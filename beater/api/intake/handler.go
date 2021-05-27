@@ -63,11 +63,7 @@ func Handler(processor *stream.Processor, batchProcessor model.BatchProcessor) r
 			return
 		}
 
-		metadata := model.Metadata{
-			UserAgent: model.UserAgent{Original: c.RequestMetadata.UserAgent},
-			Client:    model.Client{IP: c.RequestMetadata.ClientIP},
-			System:    model.System{IP: c.RequestMetadata.SystemIP}}
-		res := processor.HandleStream(c, c.RateLimiter, &metadata, reader, batchProcessor)
+		res := processor.HandleStream(c, reader, batchProcessor)
 		sendResponse(c, res)
 	}
 }

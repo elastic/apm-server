@@ -24,7 +24,10 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"time"
+
+	"github.com/elastic/apm-server/beater/request"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 
@@ -134,7 +137,7 @@ func (p *intakeTestProcessor) Process(buf []byte) ([]beat.Event, error) {
 		return nil
 	})
 
-	result := p.HandleStream(context.TODO(), nil, &model.Metadata{}, bytes.NewBuffer(buf), batchProcessor)
+	result := p.HandleStream(&request.Context{Request: &http.Request{}}, bytes.NewBuffer(buf), batchProcessor)
 	for _, event := range events {
 		// TODO(axw) migrate all of these tests to systemtest,
 		// so we can use the proper event publishing pipeline.

@@ -298,11 +298,16 @@ func handleDecodeErr(err error, r *streamReader, result *Result) bool {
 }
 
 // HandleStream processes a stream of events
-func (p *Processor) HandleStream(c *request.Context, ipRateLimiter *rate.Limiter, meta *model.Metadata, reader io.Reader, processor model.BatchProcessor) *Result {
+func (p *Processor) HandleStream(c *request.Context, reader io.Reader, processor model.BatchProcessor) *Result {
 	res := &Result{}
 
 	sr := p.getStreamReader(reader)
 	defer sr.release()
+
+	meta := &model.Metadata{
+		UserAgent: model.UserAgent{Original: c.RequestMetadata.UserAgent},
+		Client:    model.Client{IP: c.RequestMetadata.ClientIP},
+		System:    model.System{IP: c.RequestMetadata.SystemIP}}
 
 	// first item is the metadata object
 	if err := p.readMetadata(sr, meta); err != nil {
@@ -310,9 +315,7 @@ func (p *Processor) HandleStream(c *request.Context, ipRateLimiter *rate.Limiter
 		res.Add(err)
 		return res
 	}
-	if meta != nil {
-		c.ServiceName = meta.Service.Name
-	}
+	c.ServiceName = meta.Service.Name
 
 	var allowedServiceNamesProcessor model.BatchProcessor = modelprocessor.Nop{}
 	if p.allowedServiceNames != nil {
@@ -328,7 +331,7 @@ func (p *Processor) HandleStream(c *request.Context, ipRateLimiter *rate.Limiter
 	var done bool
 	for !done {
 		var batch model.Batch
-		done = p.readBatch(ctx, ipRateLimiter, requestTime, meta, batchSize, &batch, sr, res)
+		done = p.readBatch(ctx, c.RateLimiter, requestTime, meta, batchSize, &batch, sr, res)
 		if batch.Len() == 0 {
 			continue
 		}

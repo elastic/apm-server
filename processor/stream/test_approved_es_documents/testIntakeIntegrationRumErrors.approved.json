@@ -6,9 +6,6 @@
                 "name": "rum-js",
                 "version": "0.0.0"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.error.apm_agent_js",
             "data_stream.type": "logs",
             "error": {
@@ -95,6 +92,9 @@
                     "url": "http://localhost:8000/test/e2e/general-usecase/"
                 }
             },
+            "host": {
+                "ip": "192.0.0.1"
+            },
             "http": {
                 "request": {
                     "referrer": "http://localhost:8000/test/e2e/"
@@ -107,9 +107,6 @@
             "service": {
                 "name": "apm-agent-js",
                 "version": "1.0.1"
-            },
-            "source": {
-                "ip": "192.0.0.1"
             },
             "timestamp": {
                 "us": 1512735530291000

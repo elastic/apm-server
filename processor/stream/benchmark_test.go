@@ -19,16 +19,17 @@ package stream
 
 import (
 	"bytes"
-	"context"
 	"io/ioutil"
 	"math"
+	"net/http"
 	"path/filepath"
 	"testing"
+
+	"github.com/elastic/apm-server/beater/request"
 
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/model"
 )
 
 func BenchmarkBackendProcessor(b *testing.B) {
@@ -63,7 +64,7 @@ func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string
 				b.StopTimer()
 				r.Reset(data)
 				b.StartTimer()
-				processor.HandleStream(context.Background(), rl, &model.Metadata{}, r, batchProcessor)
+				processor.HandleStream(&request.Context{Request: &http.Request{}, RateLimiter: rl}, r, batchProcessor)
 			}
 		}
 	}

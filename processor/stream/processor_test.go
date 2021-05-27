@@ -24,10 +24,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"net/http"
 	"path/filepath"
 	"testing"
 	"testing/iotest"
 	"time"
+
+	"github.com/elastic/apm-server/beater/request"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -62,7 +65,7 @@ func TestHandlerReadStreamError(t *testing.T) {
 	timeoutReader := iotest.TimeoutReader(bytes.NewReader(payload))
 
 	sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
-	actualResult := sp.HandleStream(context.Background(), nil, &model.Metadata{}, timeoutReader, processor)
+	actualResult := sp.HandleStream(&request.Context{Request: &http.Request{}}, timeoutReader, processor)
 	assertApproveResult(t, actualResult, "ReadError")
 }
 
@@ -87,7 +90,7 @@ func TestHandlerReportingStreamError(t *testing.T) {
 		},
 	} {
 		sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
-		actualResult := sp.HandleStream(context.Background(), nil, &model.Metadata{}, bytes.NewReader(payload), test.processor)
+		actualResult := sp.HandleStream(&request.Context{Request: &http.Request{}}, bytes.NewReader(payload), test.processor)
 		assertApproveResult(t, actualResult, test.name)
 	}
 }
@@ -121,10 +124,14 @@ func TestIntegrationESOutput(t *testing.T) {
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
 			batchProcessor := makeApproveEventsBatchProcessor(t, name)
 
-			reqDecoderMeta := &model.Metadata{System: model.System{IP: net.ParseIP("192.0.0.1")}}
-
+			c := &request.Context{
+				Request: (&http.Request{}).WithContext(ctx),
+				RequestMetadata: request.Metadata{
+					SystemIP: net.ParseIP("192.0.0.1"),
+				},
+			}
 			p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
-			actualResult := p.HandleStream(ctx, nil, reqDecoderMeta, bytes.NewReader(payload), batchProcessor)
+			actualResult := p.HandleStream(c, bytes.NewReader(payload), batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
@@ -147,12 +154,16 @@ func TestIntegrationRum(t *testing.T) {
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
 			batchProcessor := makeApproveEventsBatchProcessor(t, name)
 
-			reqDecoderMeta := model.Metadata{
-				UserAgent: model.UserAgent{Original: "rum-2.0"},
-				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
+			c := &request.Context{
+				Request: (&http.Request{}).WithContext(ctx),
+				RequestMetadata: request.Metadata{
+					UserAgent: "rum-2.0",
+					SystemIP:  net.ParseIP("192.0.0.1"),
+				},
+			}
 
 			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024, RumConfig: &config.RumConfig{}})
-			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bytes.NewReader(payload), batchProcessor)
+			actualResult := p.HandleStream(c, bytes.NewReader(payload), batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
@@ -175,12 +186,16 @@ func TestRUMV3(t *testing.T) {
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
 			batchProcessor := makeApproveEventsBatchProcessor(t, name)
 
-			reqDecoderMeta := model.Metadata{
-				UserAgent: model.UserAgent{Original: "rum-2.0"},
-				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
+			c := &request.Context{
+				Request: (&http.Request{}).WithContext(ctx),
+				RequestMetadata: request.Metadata{
+					UserAgent: "rum-2.0",
+					SystemIP:  net.ParseIP("192.0.0.1"),
+				},
+			}
 
 			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024, RumConfig: &config.RumConfig{}})
-			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bytes.NewReader(payload), batchProcessor)
+			actualResult := p.HandleStream(c, bytes.NewReader(payload), batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
@@ -215,7 +230,7 @@ func TestRUMAllowedServiceNames(t *testing.T) {
 			RumConfig:    &config.RumConfig{AllowServiceNames: test.AllowServiceNames},
 		})
 
-		result := p.HandleStream(context.Background(), nil, &model.Metadata{}, bytes.NewReader(payload), modelprocessor.Nop{})
+		result := p.HandleStream(&request.Context{Request: &http.Request{}}, bytes.NewReader(payload), modelprocessor.Nop{})
 		assert.Equal(t, test.ExpectedResult, result)
 	}
 }
@@ -242,7 +257,7 @@ func TestRateLimiting(t *testing.T) {
 			}
 
 			actualResult := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}).HandleStream(
-				context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(payload), nopBatchProcessor{})
+				&request.Context{Request: &http.Request{}, RateLimiter: test.lim}, bytes.NewReader(payload), nopBatchProcessor{})
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}

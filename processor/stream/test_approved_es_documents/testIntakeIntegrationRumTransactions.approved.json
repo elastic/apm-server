@@ -6,13 +6,13 @@
                 "name": "rum-js",
                 "version": "0.0.0"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.apm_agent_js",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "http": {
                 "request": {
@@ -26,9 +26,6 @@
             "service": {
                 "name": "apm-agent-js",
                 "version": "1.0.0"
-            },
-            "source": {
-                "ip": "192.0.0.1"
             },
             "timestamp": {
                 "us": 1533117600000000
@@ -74,13 +71,13 @@
                 "name": "rum-js",
                 "version": "0.0.0"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.apm_agent_js",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "parent": {
                 "id": "611f4fa950f04631"

@@ -6,13 +6,13 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "http": {
                 "request": {
@@ -63,9 +63,6 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
-            },
-            "source": {
-                "ip": "192.0.0.1"
             },
             "timestamp": {
                 "us": 1533117600000000
@@ -154,13 +151,13 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -225,13 +222,13 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -296,9 +293,6 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "traces",
             "destination": {
@@ -307,6 +301,9 @@
             },
             "event": {
                 "outcome": "unknown"
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -388,13 +385,13 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -458,9 +455,6 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "traces",
             "destination": {
@@ -469,6 +463,9 @@
             },
             "event": {
                 "outcome": "success"
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -550,9 +547,6 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "traces",
             "destination": {
@@ -561,6 +555,9 @@
             },
             "event": {
                 "outcome": "success"
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -642,9 +639,6 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "traces",
             "destination": {
@@ -653,6 +647,9 @@
             },
             "event": {
                 "outcome": "success"
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -735,13 +732,13 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -828,11 +825,11 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "metrics",
+            "host": {
+                "ip": "192.0.0.1"
+            },
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -885,11 +882,11 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "metrics",
+            "host": {
+                "ip": "192.0.0.1"
+            },
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -942,11 +939,11 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "metrics",
+            "host": {
+                "ip": "192.0.0.1"
+            },
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -999,11 +996,11 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "192.0.0.1"
-            },
             "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
             "data_stream.type": "metrics",
+            "host": {
+                "ip": "192.0.0.1"
+            },
             "labels": {
                 "tag1": "value1",
                 "testTagKey": "testTagValue"
