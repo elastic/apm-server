@@ -24,6 +24,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Add metric_type and unit to field metadata of system metrics {pull}5230[5230]
 * Upgrade Go to 1.15.12 {pull}[]
 * Display apm-server url in fleet ui's apm-server integration {pull}4895[4895]
+* Add support for dynamic histogram metrics {pull}5239[5239]
 
 [float]
 ==== Deprecated
