@@ -36,34 +36,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
-func TestIndexTemplateKeywords(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
-
-	indexTemplate := getIndexTemplate(t, srv.Version)
-	flattenedFields := make(map[string]interface{})
-	mappings := indexTemplate["mappings"].(map[string]interface{})
-	getFlattenedFields(mappings["properties"].(map[string]interface{}), "", flattenedFields)
-
-	// Check that all keyword fields (ECS and non-ECS) have ignore_above set.
-	//
-	// ignoreAboveExceptions holds the expected "ignore_above" value for keyword
-	// fields, for fields which do not have the standard value of 1024.
-	var standardIgnoreAbove float64 = 1024
-	ignoreAboveExceptions := map[string]float64{"file.drive_letter": 1}
-	for field, mapping := range flattenedFields {
-		mapping := mapping.(map[string]interface{})
-		if mapping["type"] != "keyword" {
-			continue
-		}
-		expect, ok := ignoreAboveExceptions[field]
-		if !ok {
-			expect = standardIgnoreAbove
-		}
-		assert.Equal(t, expect, mapping["ignore_above"])
-	}
-}
-
 func TestIndexTemplateCoverage(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServer(t)
