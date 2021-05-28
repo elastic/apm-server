@@ -13,6 +13,20 @@
                 "ingested": "dynamic"
             },
             "float64_counter": 1,
+            "int64_recorder": {
+                "counts": [
+                    1,
+                    1,
+                    1,
+                    1
+                ],
+                "values": [
+                    50.5,
+                    550,
+                    5500,
+                    10000
+                ]
+            },
             "metricset.name": "app",
             "observer": {
                 "ephemeral_id": "dynamic",

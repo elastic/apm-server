@@ -87,7 +87,8 @@ const dataStreamIndexTemplate = `{
   "data_stream": {},
   "template": {
     "settings": {
-      "index.lifecycle.name": %q
+      "index.lifecycle.name": %q,
+      "index.number_of_shards": 1
     },
     "mappings": {
       "properties": {
