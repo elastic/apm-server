@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
@@ -18,6 +19,7 @@ import (
 
 	"github.com/dgraph-io/badger/v2"
 	"github.com/gofrs/uuid"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -594,6 +596,30 @@ func TestStorageGC(t *testing.T) {
 	t.Fatal("timed out waiting for value log garbage collection")
 }
 
+func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
+	config := newTempdirConfig(t)
+	config.Policies = []sampling.Policy{{SampleRate: 0.5}}
+	config.FlushInterval = 10 * time.Millisecond
+
+	subscriberChan := make(chan string)
+	subscriber := pubsubtest.SubscriberChan(subscriberChan)
+	config.Elasticsearch = pubsubtest.Client(nil, subscriber)
+
+	processor, err := sampling.NewProcessor(config)
+	require.NoError(t, err)
+	go processor.Run()
+	defer processor.Stop(context.Background())
+
+	// Wait for subscriber_position.json to be written to the storage directory.
+	subscriberPositionFile := filepath.Join(config.StorageDir, "subscriber_position.json")
+	data, info := waitFileModified(t, subscriberPositionFile, time.Time{})
+	assert.Equal(t, "{}", string(data))
+
+	subscriberChan <- "0102030405060708090a0b0c0d0e0f10"
+	data, _ = waitFileModified(t, subscriberPositionFile, info.ModTime())
+	assert.Equal(t, `{"index_name":1}`, string(data))
+}
+
 func withBadger(tb testing.TB, storageDir string, f func(db *badger.DB)) {
 	badgerOpts := badger.DefaultOptions(storageDir)
 	badgerOpts.Logger = nil
@@ -698,5 +724,37 @@ func cloneBatch(in *model.Batch) *model.Batch {
 	return &model.Batch{
 		Transactions: in.Transactions[:],
 		Spans:        in.Spans[:],
+	}
+}
+
+// waitFileModified waits up to 10 seconds for filename to exist and for its
+// modification time to be greater than "after", and returns the file content
+// and file info (including modification time).
+func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, os.FileInfo) {
+	// Wait for subscriber_position.json to be written to the storage directory.
+	timeout := time.NewTimer(10 * time.Second)
+	defer timeout.Stop()
+	ticker := time.NewTicker(50 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+
+		select {
+		case <-ticker.C:
+			info, err := os.Stat(filename)
+			if errors.Is(err, os.ErrNotExist) {
+				continue
+			} else if err != nil {
+				tb.Fatal(err)
+			}
+			if info.ModTime().After(after) {
+				data, err := ioutil.ReadFile(filename)
+				if err != nil {
+					tb.Fatal(err)
+				}
+				return data, info
+			}
+		case <-timeout.C:
+			tb.Fatalf("timed out waiting for %q to be modified", filename)
+		}
 	}
 }
