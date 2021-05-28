@@ -137,6 +137,19 @@ func WithInterval(d time.Duration) RequestOption {
 
 type ConditionFunc func(*esapi.Response) bool
 
+// AllCondition returns a ConditionFunc that returns true as
+// long as none of the supplied conditions returns false.
+func AllCondition(conds ...ConditionFunc) ConditionFunc {
+	return func(resp *esapi.Response) bool {
+		for _, cond := range conds {
+			if !cond(resp) {
+				return false
+			}
+		}
+		return true
+	}
+}
+
 func WithCondition(cond ConditionFunc) RequestOption {
 	return func(opts *requestOptions) {
 		opts.cond = cond
