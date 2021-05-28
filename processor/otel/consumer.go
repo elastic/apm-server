@@ -152,7 +152,7 @@ func (c *Consumer) convertSpan(
 	var span *model.Span
 
 	name := otelSpan.Name()
-	if root || otelSpan.Kind() == pdata.SpanKindSERVER {
+	if root || otelSpan.Kind() == pdata.SpanKindSERVER || otelSpan.Kind() == pdata.SpanKindCONSUMER {
 		transaction = &model.Transaction{
 			Metadata:  metadata,
 			ID:        spanID,

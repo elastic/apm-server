@@ -521,6 +521,12 @@ func TestRPCSpan(t *testing.T) {
 func TestMessagingTransaction(t *testing.T) {
 	tx := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"messaging.destination": pdata.NewAttributeValueString("myQueue"),
+	}, func(s pdata.Span) {
+		s.SetKind(pdata.SpanKindCONSUMER)
+		// Set parentID to imply this isn't the root, but
+		// kind==CONSUMER should still force the span to be translated
+		// as a transaction.
+		s.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
 	})
 	assert.Equal(t, "messaging", tx.Type)
 	assert.Empty(t, tx.Labels)
@@ -1091,11 +1097,14 @@ func jaegerKeyValue(k string, v interface{}) jaegermodel.KeyValue {
 	return kv
 }
 
-func transformTransactionWithAttributes(t *testing.T, attrs map[string]pdata.AttributeValue) *model.Transaction {
+func transformTransactionWithAttributes(t *testing.T, attrs map[string]pdata.AttributeValue, configFns ...func(pdata.Span)) *model.Transaction {
 	traces, spans := newTracesSpans()
 	otelSpan := pdata.NewSpan()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	for _, fn := range configFns {
+		fn(otelSpan)
+	}
 	otelSpan.Attributes().InitFromMap(attrs)
 	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
