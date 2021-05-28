@@ -732,7 +732,6 @@ func cloneBatch(in *model.Batch) *model.Batch {
 // and file info (including modification time).
 func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, os.FileInfo) {
 	// Wait for subscriber_position.json to be written to the storage directory.
-	//subscriberPositionFile := filepath.Join(config.StorageDir, "subscriber_position.json")
 	timeout := time.NewTimer(10 * time.Second)
 	defer timeout.Stop()
 	ticker := time.NewTicker(50 * time.Millisecond)
