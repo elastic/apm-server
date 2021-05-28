@@ -290,11 +290,11 @@ apm-server:
   #     capture_body: true
   #     log_level: info
   #     recording: true
-  #     transaction_sample_rate: 0.1
+  #     transaction_sample_rate: '0.1'
   # - service.name: frontend
   #   agent.name: rum-js
   #   config:
-  #     transaction_sample_rate: 0.1
+  #     transaction_sample_rate: '0.1'
 
   # When using APM agent configuration, information fetched from Kibana will be cached in memory for some time.
   # Specify cache key expiration via this setting. Default is 30 seconds.
