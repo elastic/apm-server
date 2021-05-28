@@ -47,7 +47,8 @@ install_gvm() {
     chmod +x "$GVM"
   fi
 
-  debug "Gvm version $(${GVM} --version)"
+  export PATH="${GVMDIR}:${PATH}"
+  debug "Gvm version $(gvm --version)"
 }
 
 # setup_go_root "version"
