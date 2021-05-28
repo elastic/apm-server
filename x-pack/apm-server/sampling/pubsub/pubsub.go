@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -87,23 +88,43 @@ func (p *Pubsub) onBulkIndexerItemFailure(ctx context.Context, item elasticsearc
 	p.config.Logger.With(logp.Error(err)).Debug("publishing sampled trace ID failed", resp.Error)
 }
 
-// SubscribeSampledTraceIDs subscribes to new sampled trace IDs, sending them to the
-// traceIDs channel.
-func (p *Pubsub) SubscribeSampledTraceIDs(ctx context.Context, traceIDs chan<- string) error {
+// SubscribeSampledTraceIDs subscribes to sampled trace IDs after the given position,
+// sending them to the traceIDs channel, and sending the most recently observed position
+// (on change) to the positions channel.
+func (p *Pubsub) SubscribeSampledTraceIDs(
+	ctx context.Context,
+	pos SubscriberPosition,
+	traceIDs chan<- string,
+	positions chan<- SubscriberPosition,
+) error {
 	ticker := time.NewTicker(p.config.SearchInterval)
 	defer ticker.Stop()
 
-	observedSeqnos := make(map[string]int64)
+	// Only send positions on change.
+	var positionsOut chan<- SubscriberPosition
+	positionsOut = positions
+
+	// Copy pos because it may be mutated by p.searchTraceIDs.
+	pos = copyPosition(pos)
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
+		case positionsOut <- pos:
+			// Copy pos because it may be mutated by p.searchTraceIDs.
+			pos = copyPosition(pos)
+			positionsOut = nil
 		case <-ticker.C:
-		}
-		if err := p.searchTraceIDs(ctx, traceIDs, observedSeqnos); err != nil {
-			// Errors may occur due to rate limiting, or while the index is
-			// still being created, so just log and continue.
-			p.config.Logger.With(logp.Error(err)).Debug("error searching for trace IDs")
+			changed, err := p.searchTraceIDs(ctx, traceIDs, pos.observedSeqnos)
+			if err != nil {
+				// Errors may occur due to rate limiting, or while the index is
+				// still being created, so just log and continue.
+				p.config.Logger.With(logp.Error(err)).Debug("error searching for trace IDs")
+				continue
+			}
+			if changed {
+				positionsOut = positions
+			}
 		}
 	}
 }
@@ -117,10 +138,10 @@ func (p *Pubsub) SubscribeSampledTraceIDs(ctx context.Context, traceIDs chan<- s
 //
 // Immediately after observing an updated global checkpoint we will force-refresh indices to ensure all documents
 // up to the global checkpoint are visible in proceeding searches.
-func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observedSeqnos map[string]int64) error {
+func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observedSeqnos map[string]int64) (bool, error) {
 	globalCheckpoints, err := getGlobalCheckpoints(ctx, p.config.Client, p.config.DataStream.String())
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// Remove old indices from the observed _seq_no map.
@@ -141,9 +162,11 @@ func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observed
 		indices = append(indices, index)
 	}
 	if err := p.refreshIndices(ctx, indices); err != nil {
-		return err
+		return false, err
 	}
 
+	var changed bool
+	var observedSeqnosMu sync.Mutex
 	g, ctx := errgroup.WithContext(ctx)
 	for _, index := range indices {
 		globalCheckpoint := globalCheckpoints[index]
@@ -158,13 +181,16 @@ func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observed
 				return err
 			}
 			if maxSeqno > observedSeqno {
+				observedSeqnosMu.Lock()
 				observedSeqno = maxSeqno
+				observedSeqnos[index] = observedSeqno
+				changed = true
+				observedSeqnosMu.Unlock()
 			}
-			observedSeqnos[index] = observedSeqno
 			return nil
 		})
 	}
-	return g.Wait()
+	return changed, g.Wait()
 }
 
 func (p *Pubsub) refreshIndices(ctx context.Context, indices []string) error {
