@@ -25,6 +25,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Upgrade Go to 1.15.12 {pull}[]
 * Display apm-server url in fleet ui's apm-server integration {pull}4895[4895]
 * Add support for dynamic histogram metrics {pull}5239[5239]
+* Tail-sampling processor now resumes subscription from previous position after restart {pull}5350[5350]
 
 [float]
 ==== Deprecated
