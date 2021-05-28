@@ -525,9 +525,6 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 				message.QueueName = stringval
 				isMessagingSpan = true
 			case conventions.AttributeMessagingOperation:
-				if stringval == "" && span.Kind() == pdata.SpanKindPRODUCER {
-					stringval = "send"
-				}
 				messageOperation = stringval
 				isMessagingSpan = true
 			case conventions.AttributeMessagingSystem:
@@ -663,8 +660,10 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 	case isMessagingSpan:
 		event.Type = "messaging"
 		event.Subtype = messageSystem
+		if messageOperation == "" && span.Kind() == pdata.SpanKindPRODUCER {
+			messageOperation = "send"
+		}
 		event.Action = messageOperation
-
 		if destinationService.Resource != "" && message.QueueName != "" {
 			destinationService.Resource += "/" + message.QueueName
 		}
