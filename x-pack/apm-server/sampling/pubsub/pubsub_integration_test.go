@@ -135,7 +135,7 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	g.Go(func() error {
-		return es.SubscribeSampledTraceIDs(ctx, out)
+		return es.SubscribeSampledTraceIDs(ctx, pubsub.SubscriberPosition{}, out, nil)
 	})
 	assert.NoError(t, err)
 

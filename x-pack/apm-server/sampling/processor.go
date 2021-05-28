@@ -6,6 +6,10 @@ package sampling
 
 import (
 	"context"
+	"encoding/json"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -24,6 +28,10 @@ import (
 
 const (
 	badgerValueLogFileSize = 128 * 1024 * 1024
+
+	// subscriberPositionFile holds the file name used for persisting
+	// the subscriber position across server restarts.
+	subscriberPositionFile = "subscriber_position.json"
 
 	// tooManyGroupsLoggerRateLimit is the maximum frequency at which
 	// "too many groups" log messages are logged.
@@ -336,6 +344,11 @@ func (p *Processor) Run() error {
 		bulkIndexerFlushInterval = p.config.FlushInterval
 	}
 
+	initialSubscriberPosition, err := readSubscriberPosition(p.config.StorageDir)
+	if err != nil {
+		return err
+	}
+	subscriberPositions := make(chan pubsub.SubscriberPosition)
 	pubsub, err := pubsub.New(pubsub.Config{
 		BeatID:     p.config.BeatID,
 		Client:     p.config.Elasticsearch,
@@ -382,7 +395,8 @@ func (p *Processor) Run() error {
 		}
 	})
 	errgroup.Go(func() error {
-		return pubsub.SubscribeSampledTraceIDs(ctx, remoteSampledTraceIDs)
+		defer close(subscriberPositions)
+		return pubsub.SubscribeSampledTraceIDs(ctx, initialSubscriberPosition, remoteSampledTraceIDs, subscriberPositions)
 	})
 	errgroup.Go(func() error {
 		ticker := time.NewTicker(p.config.FlushInterval)
@@ -461,8 +475,41 @@ func (p *Processor) Run() error {
 			}
 		}
 	})
+	errgroup.Go(func() error {
+		// Write subscriber position to a file on disk, to support resuming
+		// on apm-server restart without reprocessing all indices.
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case pos := <-subscriberPositions:
+				if err := writeSubscriberPosition(p.config.StorageDir, pos); err != nil {
+					return err
+				}
+			}
+		}
+	})
 	if err := errgroup.Wait(); err != nil && err != context.Canceled {
 		return err
 	}
 	return nil
+}
+
+func readSubscriberPosition(storageDir string) (pubsub.SubscriberPosition, error) {
+	var pos pubsub.SubscriberPosition
+	data, err := ioutil.ReadFile(filepath.Join(storageDir, subscriberPositionFile))
+	if errors.Is(err, os.ErrNotExist) {
+		return pos, nil
+	} else if err != nil {
+		return pos, err
+	}
+	return pos, json.Unmarshal(data, &pos)
+}
+
+func writeSubscriberPosition(storageDir string, pos pubsub.SubscriberPosition) error {
+	data, err := json.Marshal(pos)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(filepath.Join(storageDir, subscriberPositionFile), data, 0644)
 }
