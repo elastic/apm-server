@@ -25,14 +25,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-server/systemtest/estest"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/systemtest/estest"
 )
 
 func TestDataStreamsEnabled(t *testing.T) {
@@ -108,7 +107,7 @@ func TestDataStreamsEnabled(t *testing.T) {
 				"trace.id", "transaction.id",
 			)
 
-			// There should be no warnings or errors logged.
+			// Assert there are no unexpected warnings or errors.
 			for _, record := range srv.Logs.All() {
 				assert.Condition(t, func() bool {
 					if record.Level == zapcore.ErrorLevel {
