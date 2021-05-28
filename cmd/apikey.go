@@ -245,7 +245,7 @@ func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
 		return nil, nil, err
 	}
 
-	client, err := es.NewClient(beaterConfig.APIKeyConfig.ESConfig)
+	client, err := es.NewClient(beaterConfig.AgentAuth.APIKey.ESConfig)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -417,7 +417,7 @@ func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, creden
 	perms := make(es.Permissions)
 	printText, printJSON := printers(asJSON)
 	for _, privilege := range privileges {
-		builder, err := auth.NewBuilder(config)
+		builder, err := auth.NewBuilder(config.AgentAuth)
 		if err != nil {
 			return err
 		}

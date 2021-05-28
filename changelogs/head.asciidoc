@@ -26,7 +26,9 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Add support for histograms to metrics intake {pull}5360[5360]
 * Upgrade Go to 1.16.4 {pull}5381[5381]
 * Add units to metric fields {pull}5395[5395]
-
+* Introduce `apm-server.auth.*` config {pull}5457[5457]
 
 [float]
 ==== Deprecated
+* `apm-server.secret_token` is now `apm-server.auth.secret_token` {pull}5457[5457]
+* `apm-server.api_key` is now `apm-server.auth.api_key` {pull}5457[5457]

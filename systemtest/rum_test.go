@@ -123,6 +123,7 @@ func TestRUMAuth(t *testing.T) {
 
 func TestRUMAllowServiceNames(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.SecretToken = "abc123"
 	srv.Config.RUM = &apmservertest.RUMConfig{
 		Enabled:           true,
 		AllowServiceNames: []string{"allowed"},
