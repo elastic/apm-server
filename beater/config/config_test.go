@@ -484,27 +484,6 @@ func TestUnpackConfig(t *testing.T) {
 	}
 }
 
-/*
-func TestPipeline(t *testing.T) {
-	cases := []struct {
-		c                  *PipelineConfig
-		enabled, overwrite bool
-	}{
-		{c: nil, enabled: false, overwrite: false},
-		{c: &PipelineConfig{}, enabled: true, overwrite: false}, //default values
-		{c: &PipelineConfig{Enabled: false, Overwrite: true}, enabled: false, overwrite: true},
-		{c: &PipelineConfig{Enabled: true, Overwrite: false}, enabled: true, overwrite: false},
-	}
-
-	for idx, test := range cases {
-		assert.Equal(t, test.enabled, test.c.Enabled,
-			fmt.Sprintf("<%v> IsEnabled() expected %v", idx, test.enabled))
-		assert.Equal(t, test.overwrite, test.c.ShouldOverwrite(),
-			fmt.Sprintf("<%v> ShouldOverwrite() expected %v", idx, test.overwrite))
-	}
-}
-*/
-
 func TestTLSSettings(t *testing.T) {
 	t.Run("ClientAuthentication", func(t *testing.T) {
 		for name, tc := range map[string]struct {
