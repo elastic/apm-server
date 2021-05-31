@@ -43,7 +43,6 @@ const (
 )
 
 var (
-	errInvalidAgentConfigServiceName   = errors.New("agent_config: either service.name or service.environment must be set")
 	errInvalidAgentConfigMissingConfig = errors.New("agent_config: no config set")
 )
 
@@ -113,9 +112,6 @@ type AgentConfig struct {
 }
 
 func (s *AgentConfig) setup() error {
-	if !s.Service.isValid() {
-		return errInvalidAgentConfigServiceName
-	}
 	if s.Config == nil {
 		return errInvalidAgentConfigMissingConfig
 	}
@@ -146,10 +142,6 @@ func (s *Service) String() string {
 		env = "service.environment=" + s.Environment
 	}
 	return strings.Join([]string{name, env}, " ")
-}
-
-func (s *Service) isValid() bool {
-	return s.Name != "" || s.Environment != ""
 }
 
 // ExpvarConfig holds config information about exposing expvar
