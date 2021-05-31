@@ -523,9 +523,15 @@ func TestMessagingTransaction(t *testing.T) {
 	tx := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"messaging.destination": pdata.NewAttributeValueString("myQueue"),
 	}, func(s pdata.Span) {
+<<<<<<< HEAD
 		s.SetKind(pdata.SpanKindConsumer)
 		// Set parentID to imply this isn't the root, but
 		// kind==Consumer should still force the span to be translated
+=======
+		s.SetKind(pdata.SpanKindCONSUMER)
+		// Set parentID to imply this isn't the root, but
+		// kind==CONSUMER should still force the span to be translated
+>>>>>>> 16618f2a (translate otel messaging.* to ecs (#5334))
 		// as a transaction.
 		s.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
 	})
@@ -543,7 +549,11 @@ func TestMessagingSpan(t *testing.T) {
 		"net.peer.ip":           pdata.NewAttributeValueString("10.20.30.40"),
 		"net.peer.port":         pdata.NewAttributeValueInt(123),
 	}, func(s pdata.Span) {
+<<<<<<< HEAD
 		s.SetKind(pdata.SpanKindProducer)
+=======
+		s.SetKind(pdata.SpanKindPRODUCER)
+>>>>>>> 16618f2a (translate otel messaging.* to ecs (#5334))
 	})
 	assert.Equal(t, "messaging", span.Type)
 	assert.Equal(t, "kafka", span.Subtype)

@@ -190,7 +190,11 @@ func (c *Consumer) convertSpan(
 	// currently do not have the metadata to make this distinction. For
 	// now, we assume that the majority of consumption is passive, and
 	// therefore start a transaction whenever span kind == consumer.
+<<<<<<< HEAD
 	if root || otelSpan.Kind() == pdata.SpanKindServer || otelSpan.Kind() == pdata.SpanKindConsumer {
+=======
+	if root || otelSpan.Kind() == pdata.SpanKindSERVER || otelSpan.Kind() == pdata.SpanKindCONSUMER {
+>>>>>>> 16618f2a (translate otel messaging.* to ecs (#5334))
 		transaction = &model.Transaction{
 			Metadata:  metadata,
 			ID:        spanID,
@@ -700,7 +704,11 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 	case isMessagingSpan:
 		event.Type = "messaging"
 		event.Subtype = messageSystem
+<<<<<<< HEAD
 		if messageOperation == "" && span.Kind() == pdata.SpanKindProducer {
+=======
+		if messageOperation == "" && span.Kind() == pdata.SpanKindPRODUCER {
+>>>>>>> 16618f2a (translate otel messaging.* to ecs (#5334))
 			messageOperation = "send"
 		}
 		event.Action = messageOperation
