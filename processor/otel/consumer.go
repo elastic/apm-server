@@ -152,6 +152,11 @@ func (c *Consumer) convertSpan(
 	var span *model.Span
 
 	name := otelSpan.Name()
+	// Message consumption results in either a transaction or a span based
+	// on whether the consumption is active or passive. Otel spans
+	// currently do not have the metadata to make this distinction. For
+	// now, we assume that the majority of consumption is passive, and
+	// therefore start a transaction whenever span kind == consumer.
 	if root || otelSpan.Kind() == pdata.SpanKindSERVER || otelSpan.Kind() == pdata.SpanKindCONSUMER {
 		transaction = &model.Transaction{
 			Metadata:  metadata,
