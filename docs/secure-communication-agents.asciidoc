@@ -449,6 +449,8 @@ as there is no way to prevent them from being publicly exposed.
 
 **APM Server configuration**
 
+For Elastic Cloud Service deployments and ECE, the secret token is already provisioned on creation of deployment. The secret token can be found and reset in the deployments APM page.
+
 Here's how you set the secret token in APM Server:
 
 [source,yaml]
