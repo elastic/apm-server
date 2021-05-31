@@ -538,7 +538,6 @@ func TestMessagingTransaction(t *testing.T) {
 func TestMessagingSpan(t *testing.T) {
 	span := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{
 		"messaging.system":      pdata.NewAttributeValueString("kafka"),
-		"messaging.operation":   pdata.NewAttributeValueString(""),
 		"messaging.destination": pdata.NewAttributeValueString("myTopic"),
 		"net.peer.ip":           pdata.NewAttributeValueString("10.20.30.40"),
 		"net.peer.port":         pdata.NewAttributeValueInt(123),
