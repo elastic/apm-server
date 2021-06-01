@@ -76,6 +76,8 @@ require (
 	google.golang.org/genproto v0.0.0-20210524171403-669157292da3 // indirect
 	google.golang.org/grpc v1.38.0
 	gopkg.in/yaml.v2 v2.4.0
+	gotest.tools/gotestsum v0.6.0
+	honnef.co/go/tools v0.1.1
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
 	k8s.io/client-go v12.0.0+incompatible // indirect
 )
