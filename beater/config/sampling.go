@@ -34,7 +34,7 @@ type SamplingConfig struct {
 	KeepUnsampled bool `config:"keep_unsampled"`
 
 	// Tail holds tail-sampling configuration.
-	Tail *TailSamplingConfig `config:"tail"`
+	Tail TailSamplingConfig `config:"tail"`
 }
 
 // TailSamplingConfig holds configuration related to tail-sampling.
@@ -127,7 +127,7 @@ func defaultSamplingConfig() SamplingConfig {
 		// In a future major release we will set this to
 		// false, and then later remove the option.
 		KeepUnsampled: true,
-		Tail:          &tail,
+		Tail:          tail,
 	}
 }
 

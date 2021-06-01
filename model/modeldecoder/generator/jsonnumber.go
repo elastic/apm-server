@@ -17,8 +17,24 @@
 
 package generator
 
+import "encoding/json"
+
 func generateJSONPropertyJSONNumber(info *fieldInfo, parent *property, child *property) error {
 	child.Type.add(TypeNameNumber)
 	parent.Properties[jsonSchemaName(info.field)] = child
 	return setPropertyRulesInteger(info, child)
+}
+
+func setPropertyRulesNumber(info *fieldInfo, p *property) error {
+	for tagName, tagValue := range info.tags {
+		switch tagName {
+		case tagMax:
+			p.Max = json.Number(tagValue)
+			delete(info.tags, tagName)
+		case tagMin:
+			p.Min = json.Number(tagValue)
+			delete(info.tags, tagName)
+		}
+	}
+	return nil
 }

@@ -115,12 +115,12 @@ func NewMux(
 		logger.Infof("Path %s added to request handler", route.path)
 		mux.Handle(route.path, pool.HTTPHandler(h))
 	}
-	if beaterConfig.Expvar.IsEnabled() {
+	if beaterConfig.Expvar.Enabled {
 		path := beaterConfig.Expvar.URL
 		logger.Infof("Path %s added to request handler", path)
 		mux.Handle(path, http.HandlerFunc(debugVarsHandler))
 	}
-	if beaterConfig.Pprof.IsEnabled() {
+	if beaterConfig.Pprof.Enabled {
 		const path = "/debug/pprof"
 		logger.Infof("Path %s added to request handler", path)
 		mux.Handle(path+"/", http.HandlerFunc(pprof.Index))
@@ -239,7 +239,7 @@ func rumMiddleware(cfg *config.Config, _ *authorization.Handler, m map[request.R
 		middleware.SetRumFlagMiddleware(),
 		middleware.SetIPRateLimitMiddleware(cfg.RumConfig.EventRate),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins, cfg.RumConfig.AllowHeaders),
-		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled(), msg),
+		middleware.KillSwitchMiddleware(cfg.RumConfig.Enabled, msg),
 	)
 	if cfg.AugmentEnabled {
 		rumMiddleware = append(rumMiddleware, middleware.UserMetadataMiddleware())
@@ -254,7 +254,7 @@ func sourcemapMiddleware(cfg *config.Config, auth *authorization.Handler) []midd
 	if cfg.DataStreams.Enabled {
 		msg = "When APM Server is managed by Fleet, Sourcemaps must be uploaded directly to Elasticsearch."
 	}
-	enabled := cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled() && !cfg.DataStreams.Enabled
+	enabled := cfg.RumConfig.Enabled && cfg.RumConfig.SourceMapping.Enabled && !cfg.DataStreams.Enabled
 	return append(backendMiddleware(cfg, auth, sourcemap.MonitoringMap),
 		middleware.KillSwitchMiddleware(enabled, msg))
 }

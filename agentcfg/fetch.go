@@ -74,11 +74,6 @@ func NewFetcher(cfg *config.Config) Fetcher {
 	if cfg.Kibana.Enabled {
 		client = kibana.NewConnectingClient(&cfg.Kibana)
 	}
-
-	if cfg.KibanaAgentConfig == nil {
-		cfg.KibanaAgentConfig = config.DefaultKibanaAgentConfig()
-	}
-
 	return NewKibanaFetcher(client, cfg.KibanaAgentConfig.Cache.Expiration)
 }
 

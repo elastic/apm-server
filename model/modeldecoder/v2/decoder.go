@@ -562,7 +562,24 @@ func mapToMetricsetModel(from *metricset, metadata *model.Metadata, reqTime time
 		out.Samples = make([]model.Sample, len(from.Samples))
 		i := 0
 		for name, sample := range from.Samples {
-			out.Samples[i] = model.Sample{Name: name, Value: sample.Value.Val}
+			var counts []int64
+			var values []float64
+			if n := len(sample.Values); n > 0 {
+				values = make([]float64, n)
+				copy(values, sample.Values)
+			}
+			if n := len(sample.Counts); n > 0 {
+				counts = make([]int64, n)
+				copy(counts, sample.Counts)
+			}
+			out.Samples[i] = model.Sample{
+				Name:   name,
+				Type:   model.MetricType(sample.Type.Val),
+				Unit:   sample.Unit.Val,
+				Value:  sample.Value.Val,
+				Values: values,
+				Counts: counts,
+			}
 			i++
 		}
 	}

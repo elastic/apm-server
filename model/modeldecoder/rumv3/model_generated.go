@@ -51,7 +51,7 @@ func (val *metadataRoot) validate() error {
 }
 
 func (val *metadata) IsSet() bool {
-	return len(val.Labels) > 0 || val.Service.IsSet() || val.User.IsSet()
+	return (len(val.Labels) > 0) || val.Service.IsSet() || val.User.IsSet()
 }
 
 func (val *metadata) Reset() {
@@ -353,22 +353,22 @@ func (val *errorEvent) validate() error {
 		return fmt.Errorf("'pid': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ParentID.IsSet() {
-		if val.TraceID.IsSet() {
-			return fmt.Errorf("'pid' required when 'tid' is set")
-		}
 		if val.TransactionID.IsSet() {
 			return fmt.Errorf("'pid' required when 'xid' is set")
+		}
+		if val.TraceID.IsSet() {
+			return fmt.Errorf("'pid' required when 'tid' is set")
 		}
 	}
 	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
 		return fmt.Errorf("'tid': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.TraceID.IsSet() {
-		if val.ParentID.IsSet() {
-			return fmt.Errorf("'tid' required when 'pid' is set")
-		}
 		if val.TransactionID.IsSet() {
 			return fmt.Errorf("'tid' required when 'xid' is set")
+		}
+		if val.ParentID.IsSet() {
+			return fmt.Errorf("'tid' required when 'pid' is set")
 		}
 	}
 	if err := val.Transaction.validate(); err != nil {
@@ -384,7 +384,7 @@ func (val *errorEvent) validate() error {
 }
 
 func (val *context) IsSet() bool {
-	return len(val.Custom) > 0 || val.Page.IsSet() || val.Response.IsSet() || val.Request.IsSet() || val.Service.IsSet() || len(val.Tags) > 0 || val.User.IsSet()
+	return (len(val.Custom) > 0) || val.Page.IsSet() || val.Response.IsSet() || val.Request.IsSet() || val.Service.IsSet() || (len(val.Tags) > 0) || val.User.IsSet()
 }
 
 func (val *context) Reset() {
@@ -472,7 +472,7 @@ func (val *contextResponse) validate() error {
 }
 
 func (val *contextRequest) IsSet() bool {
-	return len(val.Env) > 0 || val.Headers.IsSet() || val.HTTPVersion.IsSet() || val.Method.IsSet()
+	return (len(val.Env) > 0) || val.Headers.IsSet() || val.HTTPVersion.IsSet() || val.Method.IsSet()
 }
 
 func (val *contextRequest) Reset() {
@@ -634,7 +634,7 @@ func (val *contextServiceRuntime) validate() error {
 }
 
 func (val *errorException) IsSet() bool {
-	return len(val.Attributes) > 0 || val.Code.IsSet() || len(val.Cause) > 0 || val.Handled.IsSet() || val.Message.IsSet() || val.Module.IsSet() || len(val.Stacktrace) > 0 || val.Type.IsSet()
+	return (len(val.Attributes) > 0) || val.Code.IsSet() || (len(val.Cause) > 0) || val.Handled.IsSet() || val.Message.IsSet() || val.Module.IsSet() || (len(val.Stacktrace) > 0) || val.Type.IsSet()
 }
 
 func (val *errorException) Reset() {
@@ -697,7 +697,7 @@ func (val *errorException) validate() error {
 }
 
 func (val *stacktraceFrame) IsSet() bool {
-	return val.AbsPath.IsSet() || val.Classname.IsSet() || val.ColumnNumber.IsSet() || val.ContextLine.IsSet() || val.Filename.IsSet() || val.Function.IsSet() || val.LineNumber.IsSet() || val.Module.IsSet() || len(val.PostContext) > 0 || len(val.PreContext) > 0
+	return val.AbsPath.IsSet() || val.Classname.IsSet() || val.ColumnNumber.IsSet() || val.ContextLine.IsSet() || val.Filename.IsSet() || val.Function.IsSet() || val.LineNumber.IsSet() || val.Module.IsSet() || (len(val.PostContext) > 0) || (len(val.PreContext) > 0)
 }
 
 func (val *stacktraceFrame) Reset() {
@@ -724,7 +724,7 @@ func (val *stacktraceFrame) validate() error {
 }
 
 func (val *errorLog) IsSet() bool {
-	return val.Level.IsSet() || val.LoggerName.IsSet() || val.Message.IsSet() || val.ParamMessage.IsSet() || len(val.Stacktrace) > 0
+	return val.Level.IsSet() || val.LoggerName.IsSet() || val.Message.IsSet() || val.ParamMessage.IsSet() || (len(val.Stacktrace) > 0)
 }
 
 func (val *errorLog) Reset() {
@@ -800,7 +800,7 @@ func (val *metricsetRoot) validate() error {
 }
 
 func (val *metricset) IsSet() bool {
-	return val.Samples.IsSet() || val.Span.IsSet() || len(val.Tags) > 0
+	return val.Samples.IsSet() || val.Span.IsSet() || (len(val.Tags) > 0)
 }
 
 func (val *metricset) Reset() {
@@ -933,7 +933,7 @@ func (val *transactionRoot) validate() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || len(val.Metricsets) > 0 || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.Session.IsSet() || val.SpanCount.IsSet() || len(val.Spans) > 0 || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
+	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || (len(val.Metricsets) > 0) || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.Session.IsSet() || val.SpanCount.IsSet() || (len(val.Spans) > 0) || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
 }
 
 func (val *transaction) Reset() {
@@ -1043,7 +1043,7 @@ func (val *transaction) validate() error {
 }
 
 func (val *transactionMarks) IsSet() bool {
-	return len(val.Events) > 0
+	return (len(val.Events) > 0)
 }
 
 func (val *transactionMarks) Reset() {
@@ -1060,7 +1060,7 @@ func (val *transactionMarks) validate() error {
 }
 
 func (val *transactionMarkEvents) IsSet() bool {
-	return len(val.Measurements) > 0
+	return (len(val.Measurements) > 0)
 }
 
 func (val *transactionMarkEvents) Reset() {
@@ -1118,7 +1118,7 @@ func (val *transactionSpanCount) validate() error {
 }
 
 func (val *span) IsSet() bool {
-	return val.Action.IsSet() || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentIndex.IsSet() || val.SampleRate.IsSet() || len(val.Stacktrace) > 0 || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Type.IsSet()
+	return val.Action.IsSet() || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentIndex.IsSet() || val.SampleRate.IsSet() || (len(val.Stacktrace) > 0) || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Type.IsSet()
 }
 
 func (val *span) Reset() {
@@ -1201,7 +1201,7 @@ func (val *span) validate() error {
 }
 
 func (val *spanContext) IsSet() bool {
-	return val.Destination.IsSet() || val.HTTP.IsSet() || val.Service.IsSet() || len(val.Tags) > 0
+	return val.Destination.IsSet() || val.HTTP.IsSet() || val.Service.IsSet() || (len(val.Tags) > 0)
 }
 
 func (val *spanContext) Reset() {
