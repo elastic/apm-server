@@ -20,6 +20,7 @@ package systemtest_test
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -43,15 +44,20 @@ func TestApprovedMetrics(t *testing.T) {
 	eventsPayload, err := ioutil.ReadFile("../testdata/intake-v2/metricsets.ndjson")
 	require.NoError(t, err)
 
-	req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/events", bytes.NewReader(eventsPayload))
+	req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/events?verbose=true", bytes.NewReader(eventsPayload))
 	req.Header.Set("Content-Type", "application/x-ndjson")
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
+	var ingestResult struct {
+		Accepted int
+	}
+	err = json.NewDecoder(resp.Body).Decode(&ingestResult)
+	assert.NoError(t, err)
 
 	// Check the metrics documents are exactly as we expect.
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 3, "apm-*", estest.TermQuery{
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, ingestResult.Accepted, "apm-*", estest.TermQuery{
 		Field: "processor.event",
 		Value: "metric",
 	})
