@@ -633,6 +633,7 @@
 
         - name: duration
           type: long
+          unit: micros
           count: 1
           description: >
             Duration of the profile, in microseconds.
@@ -644,15 +645,17 @@
           fields:
             - name: ns
               type: long
+              unit: nanos
               count: 1
               description: >
                 Amount of CPU time profiled, in nanoseconds.
-        
+
         - name: wall
           type: group
           fields:
             - name: us
               type: long
+              unit: nanos
               count: 1
               description: >
                 Amount of wall time profiled, in microseconds.

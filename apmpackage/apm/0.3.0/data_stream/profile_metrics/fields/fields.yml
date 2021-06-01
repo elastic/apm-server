@@ -50,10 +50,12 @@
   type: long
   description: |
     Amount of CPU time profiled, in nanoseconds.
+  unit: nanos
 - name: profile.duration
   type: long
   description: |
     Duration of the profile, in microseconds. All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
+  unit: micros
 - name: profile.id
   type: keyword
   description: |
@@ -106,6 +108,7 @@
   type: long
   description: |
     Amount of wall time profiled, in microseconds.
+  unit: nanos
 - name: service.environment
   type: keyword
   description: |

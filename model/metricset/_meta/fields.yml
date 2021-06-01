@@ -176,6 +176,7 @@
               fields:
                 - name: us
                   type: long
+                  unit: micros
                   overwrite: true
                   description: Aggregated transaction duration, in microseconds.
 
@@ -193,6 +194,7 @@
               fields:
                 - name: us
                   type: long
+                  unit: micros
                   overwrite: true
                   description: >
                     Aggregated transaction duration, excluding the time periods where a
@@ -245,6 +247,7 @@
             fields:
               - name: us
                 type: long
+                unit: ms
                 overwrite: true
                 description: >
                   Aggregated span duration, excluding the time periods where a
@@ -421,7 +424,6 @@
           overwrite: true
           description: >
             Hostname of the APM Server.
-          overwrite: true
 
         - name: version
           type: keyword
@@ -440,7 +442,6 @@
           overwrite: true
           description: >
             The type will be set to `apm-server`.
-          overwrite: true
 
     - name: user
       type: group
