@@ -80,7 +80,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		}
 		processors = append(processors, namedProcessor{name: name, processor: spanAggregator})
 	}
-	if args.Config.Sampling.Tail != nil && args.Config.Sampling.Tail.Enabled {
+	if args.Config.Sampling.Tail.Enabled {
 		const name = "tail sampler"
 		sampler, err := newTailSamplingProcessor(args)
 		if err != nil {

@@ -17,35 +17,10 @@
 
 package config
 
-import (
-	"fmt"
-	"net/url"
-)
-
-type urls []*url.URL
-
-func (u *urls) Unpack(c interface{}) error {
-	if c == nil {
-		return nil
-	}
-	hosts, ok := c.([]interface{})
-	if !ok {
-		return fmt.Errorf("hosts must be a list, got: %#v", c)
-	}
-
-	nu := make(urls, len(hosts))
-	for i, host := range hosts {
-		h, ok := host.(string)
-		if !ok {
-			return fmt.Errorf("host must be a string, got: %#v", h)
-		}
-		url, err := url.Parse(h)
-		if err != nil {
-			return err
-		}
-		nu[i] = url
-	}
-	*u = nu
-
-	return nil
+// PprofConfig holds config information about exposing pprof
+type PprofConfig struct {
+	Enabled          bool `config:"enabled"`
+	BlockProfileRate int  `config:"block_profile_rate"`
+	MemProfileRate   int  `config:"mem_profile_rate"`
+	MutexProfileRate int  `config:"mutex_profile_rate"`
 }

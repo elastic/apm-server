@@ -29,38 +29,30 @@ const (
 
 // RegisterConfig holds ingest config information
 type RegisterConfig struct {
-	Ingest *IngestConfig `config:"ingest"`
+	Ingest IngestConfig `config:"ingest"`
 }
 
 // IngestConfig holds config pipeline ingest information
 type IngestConfig struct {
-	Pipeline *PipelineConfig `config:"pipeline"`
+	Pipeline PipelineConfig `config:"pipeline"`
 }
 
 // PipelineConfig holds config information about registering ingest pipelines
 type PipelineConfig struct {
-	Enabled   *bool `config:"enabled"`
-	Overwrite *bool `config:"overwrite"`
+	Enabled   bool `config:"enabled"`
+	Overwrite bool `config:"overwrite"`
 	Path      string
 }
 
-// IsEnabled indicates whether pipeline registration is enabled or not
-func (c *PipelineConfig) IsEnabled() bool {
-	return c != nil && (c.Enabled == nil || *c.Enabled)
-}
-
-// ShouldOverwrite indicates whether existing pipelines should be overwritten during registration process
-func (c *PipelineConfig) ShouldOverwrite() bool {
-	return c != nil && (c.Overwrite != nil && *c.Overwrite)
-}
-
-func defaultRegisterConfig(pipelineEnabled bool) *RegisterConfig {
-	return &RegisterConfig{
-		Ingest: &IngestConfig{
-			Pipeline: &PipelineConfig{
-				Enabled: &pipelineEnabled,
-				Path: paths.Resolve(paths.Home,
-					filepath.Join("ingest", "pipeline", "definition.json")),
-			}},
+func defaultRegisterConfig() RegisterConfig {
+	return RegisterConfig{
+		Ingest: IngestConfig{
+			Pipeline: PipelineConfig{
+				Enabled: true,
+				Path: paths.Resolve(
+					paths.Home, filepath.Join("ingest", "pipeline", "definition.json"),
+				),
+			},
+		},
 	}
 }

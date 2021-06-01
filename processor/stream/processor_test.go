@@ -151,7 +151,7 @@ func TestIntegrationRum(t *testing.T) {
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
-			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024, RumConfig: &config.RumConfig{}})
+			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024})
 			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bytes.NewReader(payload), batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
@@ -179,7 +179,7 @@ func TestRUMV3(t *testing.T) {
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
-			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024, RumConfig: &config.RumConfig{}})
+			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024})
 			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bytes.NewReader(payload), batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
@@ -212,7 +212,7 @@ func TestRUMAllowedServiceNames(t *testing.T) {
 	}} {
 		p := RUMV2Processor(&config.Config{
 			MaxEventSize: 100 * 1024,
-			RumConfig:    &config.RumConfig{AllowServiceNames: test.AllowServiceNames},
+			RumConfig:    config.RumConfig{AllowServiceNames: test.AllowServiceNames},
 		})
 
 		result := p.HandleStream(context.Background(), nil, &model.Metadata{}, bytes.NewReader(payload), modelprocessor.Nop{})
