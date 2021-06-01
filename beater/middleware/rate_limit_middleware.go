@@ -26,7 +26,7 @@ import (
 const burstMultiplier = 3
 
 // SetIPRateLimitMiddleware sets a rate limiter
-func SetIPRateLimitMiddleware(cfg *config.EventRate) Middleware {
+func SetIPRateLimitMiddleware(cfg config.EventRate) Middleware {
 	store, err := ratelimit.NewStore(cfg.LruSize, cfg.Limit, burstMultiplier)
 
 	return func(h request.Handler) (request.Handler, error) {

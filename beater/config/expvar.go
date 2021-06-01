@@ -17,35 +17,8 @@
 
 package config
 
-import (
-	"fmt"
-	"net/url"
-)
-
-type urls []*url.URL
-
-func (u *urls) Unpack(c interface{}) error {
-	if c == nil {
-		return nil
-	}
-	hosts, ok := c.([]interface{})
-	if !ok {
-		return fmt.Errorf("hosts must be a list, got: %#v", c)
-	}
-
-	nu := make(urls, len(hosts))
-	for i, host := range hosts {
-		h, ok := host.(string)
-		if !ok {
-			return fmt.Errorf("host must be a string, got: %#v", h)
-		}
-		url, err := url.Parse(h)
-		if err != nil {
-			return err
-		}
-		nu[i] = url
-	}
-	*u = nu
-
-	return nil
+// ExpvarConfig holds config information about exposing expvar
+type ExpvarConfig struct {
+	Enabled bool   `config:"enabled"`
+	URL     string `config:"url"`
 }
