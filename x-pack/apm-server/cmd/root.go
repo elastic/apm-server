@@ -7,7 +7,7 @@ package cmd
 import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	libbeatcmd "github.com/elastic/beats/v7/libbeat/cmd"
-	_ "github.com/elastic/beats/v7/x-pack/libbeat/include"
+	_ "github.com/elastic/beats/v7/x-pack/libbeat/include" // Fleet, processors
 
 	"github.com/elastic/apm-server/cmd"
 	_ "github.com/elastic/apm-server/x-pack/apm-server/include" // include assets
