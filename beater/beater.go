@@ -103,7 +103,7 @@ func NewCreator(args CreatorParams) beat.Creator {
 			bt.logger.Errorf("Error recording telemetry data", err)
 		}
 
-		if bt.config.Pprof.IsEnabled() {
+		if bt.config.Pprof.Enabled {
 			// Profiling rates should be set once, early on in the program.
 			runtime.SetBlockProfileRate(bt.config.Pprof.BlockProfileRate)
 			runtime.SetMutexProfileFraction(bt.config.Pprof.MutexProfileRate)
@@ -488,13 +488,13 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 		return nil
 	}
 
-	if !bt.config.Register.Ingest.Pipeline.IsEnabled() {
+	if !bt.config.Register.Ingest.Pipeline.Enabled {
 		bt.logger.Info("Pipeline registration disabled")
 		return nil
 	}
 
 	bt.logger.Info("Registering pipeline callback")
-	overwrite := bt.config.Register.Ingest.Pipeline.ShouldOverwrite()
+	overwrite := bt.config.Register.Ingest.Pipeline.Overwrite
 	path := bt.config.Register.Ingest.Pipeline.Path
 
 	// ensure setup cmd is working properly
@@ -539,7 +539,7 @@ func initTracing(b *beat.Beat, cfg *config.Config, logger *logp.Logger) (*apm.Tr
 // it does not instrument the beat output
 func initLegacyTracer(info beat.Info, cfg *config.Config) (*apm.Tracer, net.Listener, error) {
 	selfInstrumentation := cfg.SelfInstrumentation
-	if selfInstrumentation == nil || !selfInstrumentation.IsEnabled() {
+	if !selfInstrumentation.Enabled {
 		return apm.DefaultTracer, nil, nil
 	}
 	conf, err := common.NewConfigFrom(cfg.SelfInstrumentation)
@@ -606,7 +606,7 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 		},
 	}
 
-	if cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled() && cfg.RumConfig.SourceMapping.ESConfig != nil {
+	if cfg.RumConfig.Enabled && cfg.RumConfig.SourceMapping.Enabled && cfg.RumConfig.SourceMapping.ESConfig != nil {
 		store, err := newSourcemapStore(beatInfo, cfg.RumConfig.SourceMapping)
 		if err != nil {
 			return nil, err
@@ -617,7 +617,7 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 	return transformConfig, nil
 }
 
-func newSourcemapStore(beatInfo beat.Info, cfg *config.SourceMapping) (*sourcemap.Store, error) {
+func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping) (*sourcemap.Store, error) {
 	esClient, err := elasticsearch.NewClient(cfg.ESConfig)
 	if err != nil {
 		return nil, err

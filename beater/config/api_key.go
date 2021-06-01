@@ -38,13 +38,8 @@ type APIKeyConfig struct {
 	esConfigured bool
 }
 
-// IsEnabled returns whether or not API Key authorization is enabled
-func (c *APIKeyConfig) IsEnabled() bool {
-	return c != nil && c.Enabled
-}
-
 func (c *APIKeyConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
-	if c == nil || !c.Enabled || c.esConfigured || outputESCfg == nil {
+	if !c.Enabled || c.esConfigured || outputESCfg == nil {
 		return nil
 	}
 	log.Info("Falling back to elasticsearch output for API Key usage")
@@ -52,23 +47,17 @@ func (c *APIKeyConfig) setup(log *logp.Logger, outputESCfg *common.Config) error
 		return errors.Wrap(err, "unpacking Elasticsearch config into API key config")
 	}
 	return nil
-
 }
 
-func defaultAPIKeyConfig() *APIKeyConfig {
-	return &APIKeyConfig{Enabled: false, LimitPerMin: apiKeyLimit, ESConfig: elasticsearch.DefaultConfig()}
+func defaultAPIKeyConfig() APIKeyConfig {
+	return APIKeyConfig{Enabled: false, LimitPerMin: apiKeyLimit, ESConfig: elasticsearch.DefaultConfig()}
 }
 
 func (c *APIKeyConfig) Unpack(inp *common.Config) error {
-	cfg := tmpAPIKeyConfig(*defaultAPIKeyConfig())
-	if err := inp.Unpack(&cfg); err != nil {
+	type underlyingAPIKeyConfig APIKeyConfig
+	if err := inp.Unpack((*underlyingAPIKeyConfig)(c)); err != nil {
 		return errors.Wrap(err, "error unpacking api_key config")
 	}
-	*c = APIKeyConfig(cfg)
-	if inp.HasField("elasticsearch") {
-		c.esConfigured = true
-	}
+	c.esConfigured = inp.HasField("elasticsearch")
 	return nil
 }
-
-type tmpAPIKeyConfig APIKeyConfig

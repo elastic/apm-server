@@ -18,34 +18,31 @@
 package config
 
 import (
-	"testing"
+	"strings"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/logp"
-
-	"github.com/stretchr/testify/assert"
+	"github.com/elastic/beats/v7/libbeat/kibana"
 )
 
-func TestRumSetup(t *testing.T) {
-	rum := defaultRum()
-	rum.SourceMapping.esConfigured = true
-	rum.Enabled = true
-	rum.SourceMapping.ESConfig = &elasticsearch.Config{APIKey: "id:apikey"}
-	esCfg := common.MustNewConfigFrom(map[string]interface{}{
-		"hosts": []interface{}{"cloud:9200"},
-	})
-
-	err := rum.setup(logp.NewLogger("test"), true, esCfg)
-
-	require.NoError(t, err)
-	assert.Equal(t, elasticsearch.Hosts{"cloud:9200"}, rum.SourceMapping.ESConfig.Hosts)
-	assert.Equal(t, "id:apikey", rum.SourceMapping.ESConfig.APIKey)
+type KibanaConfig struct {
+	Enabled             bool   `config:"enabled"`
+	APIKey              string `config:"api_key"`
+	kibana.ClientConfig `config:",inline"`
 }
 
-func TestDefaultRum(t *testing.T) {
-	c := DefaultConfig()
-	assert.Equal(t, defaultRum(), c.RumConfig)
+func (k *KibanaConfig) Unpack(cfg *common.Config) error {
+	type kibanaConfig KibanaConfig
+	if err := cfg.Unpack((*kibanaConfig)(k)); err != nil {
+		return err
+	}
+	k.Enabled = cfg.Enabled()
+	k.Host = strings.TrimRight(k.Host, "/")
+	return nil
+}
+
+func defaultKibanaConfig() KibanaConfig {
+	return KibanaConfig{
+		Enabled:      false,
+		ClientConfig: kibana.DefaultClientConfig(),
+	}
 }

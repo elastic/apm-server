@@ -60,7 +60,7 @@ const (
 // based on the request Authorization header
 func NewBuilder(cfg *config.Config) (*Builder, error) {
 	b := Builder{}
-	if cfg.APIKeyConfig.IsEnabled() {
+	if cfg.APIKeyConfig.Enabled {
 		// do not use username+password for API Key requests
 		cfg.APIKeyConfig.ESConfig.Username = ""
 		cfg.APIKeyConfig.ESConfig.Password = ""

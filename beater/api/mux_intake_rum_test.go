@@ -123,8 +123,7 @@ func TestRumHandler_MonitoringMiddleware(t *testing.T) {
 
 func cfgEnabledRUM() *config.Config {
 	cfg := config.DefaultConfig()
-	t := true
-	cfg.RumConfig.Enabled = &t
+	cfg.RumConfig.Enabled = true
 	return cfg
 }
 
