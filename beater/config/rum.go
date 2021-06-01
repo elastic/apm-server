@@ -60,11 +60,12 @@ type EventRate struct {
 
 // SourceMapping holds sourecemap config information
 type SourceMapping struct {
-	Cache        Cache                 `config:"cache"`
-	Enabled      bool                  `config:"enabled"`
-	IndexPattern string                `config:"index_pattern"`
-	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
-	esConfigured bool
+	Cache            Cache                 `config:"cache"`
+	Enabled          bool                  `config:"enabled"`
+	IndexPattern     string                `config:"index_pattern"`
+	ESConfig         *elasticsearch.Config `config:"elasticsearch"`
+	SourceMapConfigs []SourceMapConfig     `config:"source_maps"`
+	esConfigured     bool
 }
 
 func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg *common.Config) error {
@@ -115,10 +116,11 @@ func (s *SourceMapping) Unpack(inp *common.Config) error {
 
 func defaultSourcemapping() SourceMapping {
 	return SourceMapping{
-		Enabled:      true,
-		Cache:        Cache{Expiration: defaultSourcemapCacheExpiration},
-		IndexPattern: defaultSourcemapIndexPattern,
-		ESConfig:     elasticsearch.DefaultConfig(),
+		Enabled:          true,
+		Cache:            Cache{Expiration: defaultSourcemapCacheExpiration},
+		IndexPattern:     defaultSourcemapIndexPattern,
+		ESConfig:         elasticsearch.DefaultConfig(),
+		SourceMapConfigs: []SourceMapConfig{defaultSourceMapConfig},
 	}
 }
 

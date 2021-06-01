@@ -163,6 +163,7 @@ func (r *routeBuilder) rumV3IntakeHandler() (request.Handler, error) {
 }
 
 func (r *routeBuilder) sourcemapHandler() (request.Handler, error) {
+	// TODO: Turn this off, don't allow sourcemap upload in managed mode
 	h := sourcemap.Handler(r.reporter)
 	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeSourcemapWrite.Action)
 	return middleware.Wrap(h, sourcemapMiddleware(r.cfg, authHandler)...)

@@ -53,9 +53,6 @@ type AgentConfig struct {
 }
 
 func (s *AgentConfig) setup() error {
-	if !s.Service.isValid() {
-		return errInvalidAgentConfigServiceName
-	}
 	if s.Config == nil {
 		return errInvalidAgentConfigMissingConfig
 	}
@@ -74,20 +71,20 @@ func (s *AgentConfig) setup() error {
 type Service struct {
 	Name        string `config:"name"`
 	Environment string `config:"environment"`
+	Version     string `config:"version"`
 }
 
 // String implements the Stringer interface.
 func (s *Service) String() string {
-	var name, env string
+	var name, env, version string
 	if s.Name != "" {
 		name = "service.name=" + s.Name
 	}
 	if s.Environment != "" {
 		env = "service.environment=" + s.Environment
 	}
-	return strings.Join([]string{name, env}, " ")
-}
-
-func (s *Service) isValid() bool {
-	return s.Name != "" || s.Environment != ""
+	if s.Version != "" {
+		version = "service.version=" + s.Version
+	}
+	return strings.Join([]string{name, env, version}, " ")
 }
