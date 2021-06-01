@@ -47,6 +47,12 @@ policy_templates:
             required: true
             show_user: true
             default: localhost:8200
+          - name: url
+            type: text
+            title: URL
+            required: true
+            show_user: true
+            default: http://localhost:8200
           - name: secret_token
             type: text
             title: Secret token for Agent authentication
