@@ -450,13 +450,15 @@ func TestUnpackConfig(t *testing.T) {
 			cfg, err := NewConfig(inpCfg, nil)
 			require.NoError(t, err)
 			require.NotNil(t, cfg)
-			if test.outCfg.JaegerConfig.GRPC.TLS != nil {
-				// tlscommon sets VerifyConnection to a closure, so we
-				// cannot compare the TLS configs as-is. We don't need
-				// to test libbeat behaviour, so just unset the field.
-				test.outCfg.JaegerConfig.GRPC.TLS.VerifyConnection = nil
+			if test.outCfg.JaegerConfig.GRPC.TLS != nil || cfg.JaegerConfig.GRPC.TLS != nil {
+				// tlscommon captures closures for the following callbacks
+				// setting them to nil to skip these from comparison
 				cfg.JaegerConfig.GRPC.TLS.VerifyConnection = nil
+				test.outCfg.JaegerConfig.GRPC.TLS.VerifyConnection = nil
+				test.outCfg.JaegerConfig.GRPC.TLS.ClientCAs = nil
+				cfg.JaegerConfig.GRPC.TLS.ClientCAs = nil
 			}
+
 			assert.Equal(t, test.outCfg, cfg)
 		})
 	}
