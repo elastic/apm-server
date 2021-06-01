@@ -96,8 +96,7 @@ func (h *httpServer) start() error {
 		h.logger.Infof("Listening on: %s:%s", addr.Network(), addr.String())
 	}
 
-	switch h.cfg.RumConfig.IsEnabled() {
-	case true:
+	if h.cfg.RumConfig.Enabled {
 		h.logger.Info("RUM endpoints enabled!")
 		for _, s := range h.cfg.RumConfig.AllowOrigins {
 			if s == "*" {
@@ -105,7 +104,7 @@ func (h *httpServer) start() error {
 				break
 			}
 		}
-	case false:
+	} else {
 		h.logger.Info("RUM endpoints disabled.")
 	}
 
