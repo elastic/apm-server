@@ -1,0 +1,4 @@
+title: APM traces
+type: traces
+dataset: apm
+ilm_policy: traces-apm.traces-default_policy

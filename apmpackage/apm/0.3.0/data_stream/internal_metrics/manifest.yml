@@ -1,0 +1,4 @@
+title: APM internal metrics
+type: metrics
+dataset: apm.internal
+ilm_policy: metrics-apm.internal_metrics-default_policy
