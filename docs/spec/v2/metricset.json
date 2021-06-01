@@ -13,13 +13,118 @@
             "object"
           ],
           "properties": {
+            "counts": {
+              "description": "Counts holds the bucket counts for histogram metrics.  These numbers must be positive or zero.  If Counts is specified, then Values is expected to be specified with the same number of elements, and with the same order.",
+              "type": [
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "minItems": 0
+            },
+            "type": {
+              "description": "Type holds an optional metric type: gauge, counter, or histogram.  If Type is unknown, it will be ignored.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "unit": {
+              "description": "Unit holds an optional unit for the metric.  - \"percent\" (value is in the range [0,1]) - \"byte\" - a time unit: \"nanos\", \"micros\", \"ms\", \"s\", \"m\", \"h\", \"d\"  If Unit is unknown, it will be ignored.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
             "value": {
               "description": "Value holds the value of a single metric sample.",
-              "type": "number"
+              "type": [
+                "null",
+                "number"
+              ]
+            },
+            "values": {
+              "description": "Values holds the bucket values for histogram metrics.  Values must be provided in ascending order; failure to do so will result in the metric being discarded.",
+              "type": [
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": "number"
+              },
+              "minItems": 0
             }
           },
-          "required": [
-            "value"
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "counts": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "counts"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "values": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "values"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "values": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "values"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "counts": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "counts"
+                ]
+              }
+            }
+          ],
+          "anyOf": [
+            {
+              "properties": {
+                "value": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "value"
+              ]
+            },
+            {
+              "properties": {
+                "values": {
+                  "type": "array"
+                }
+              },
+              "required": [
+                "values"
+              ]
+            }
           ]
         }
       }
