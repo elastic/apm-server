@@ -32,8 +32,13 @@ var versionMapping = map[string]string{
 	"7.11": "0.1.0",
 	"7.12": "0.1.0",
 	"7.13": "0.2.0",
+<<<<<<< HEAD
 	"7.14": "0.2.0",
 	"8.0":  "0.2.0",
+=======
+	"7.14": "0.3.0",
+	"8.0":  "0.3.0",
+>>>>>>> 59ee2f07 (add apm-server url to handlebars tmpl (#5332))
 }
 
 // Some data streams may not have a counterpart template
