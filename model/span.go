@@ -227,6 +227,7 @@ func (e *Span) appendBeatEvents(ctx context.Context, cfg *transform.Config, even
 		fields.set("experimental", e.Experimental)
 	}
 	fields.maybeSetMapStr("destination", e.Destination.fields())
+	fields.maybeSetMapStr("http", e.HTTP.fields())
 
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
@@ -254,6 +255,7 @@ func (e *Span) fields(ctx context.Context, cfg *transform.Config) common.MapStr 
 
 	fields.maybeSetMapStr("db", e.DB.fields())
 	fields.maybeSetMapStr("http", e.HTTP.fields())
+	fields.delete("http.response.headers")
 	fields.maybeSetMapStr("message", e.Message.Fields())
 	if destinationServiceFields := e.DestinationService.fields(); len(destinationServiceFields) > 0 {
 		common.MapStr(fields).Put("destination.service", destinationServiceFields)

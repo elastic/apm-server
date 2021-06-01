@@ -221,6 +221,23 @@
                     "platform": "Linux"
                 }
             },
+            "http": {
+                "method": "GET",
+                "response": {
+                    "decoded_body_size": 401,
+                    "encoded_body_size": 356,
+                    "headers": {
+                        "Content-Type": [
+                            "application/json"
+                        ]
+                    },
+                    "status_code": 200,
+                    "transfer_size": 300.12
+                },
+                "url": {
+                    "original": "http://localhost:8000"
+                }
+            },
             "kubernetes": {
                 "namespace": "default",
                 "node": {
@@ -298,11 +315,6 @@
                     "response": {
                         "decoded_body_size": 401,
                         "encoded_body_size": 356,
-                        "headers": {
-                            "Content-Type": [
-                                "application/json"
-                            ]
-                        },
                         "status_code": 200,
                         "transfer_size": 300.12
                     },

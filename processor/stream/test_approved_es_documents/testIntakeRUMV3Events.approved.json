@@ -308,6 +308,16 @@
             "event": {
                 "outcome": "unknown"
             },
+            "http": {
+                "response": {
+                    "decoded_body_size": 676864,
+                    "encoded_body_size": 676864,
+                    "transfer_size": 677175
+                },
+                "url": {
+                    "original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED"
+                }
+            },
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -470,6 +480,15 @@
             "event": {
                 "outcome": "success"
             },
+            "http": {
+                "method": "GET",
+                "response": {
+                    "status_code": 200
+                },
+                "url": {
+                    "original": "http://localhost:8000/test/e2e/common/data.json?test=hamid"
+                }
+            },
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -562,6 +581,15 @@
             "event": {
                 "outcome": "success"
             },
+            "http": {
+                "method": "POST",
+                "response": {
+                    "status_code": 200
+                },
+                "url": {
+                    "original": "http://localhost:8003/data"
+                }
+            },
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -653,6 +681,15 @@
             },
             "event": {
                 "outcome": "success"
+            },
+            "http": {
+                "method": "POST",
+                "response": {
+                    "status_code": 200
+                },
+                "url": {
+                    "original": "http://localhost:8003/fetch"
+                }
             },
             "labels": {
                 "testTagKey": "testTagValue"

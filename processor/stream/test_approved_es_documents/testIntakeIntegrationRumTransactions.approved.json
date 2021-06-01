@@ -82,6 +82,11 @@
             "event": {
                 "outcome": "unknown"
             },
+            "http": {
+                "url": {
+                    "original": "http://localhost:8000/test/e2e/general-usecase/span"
+                }
+            },
             "parent": {
                 "id": "611f4fa950f04631"
             },

@@ -18,6 +18,15 @@
             "host": {
                 "hostname": "host-abc"
             },
+            "http": {
+                "method": "get",
+                "response": {
+                    "status_code": 400
+                },
+                "url": {
+                    "original": "http://foo.bar.com?a=12"
+                }
+            },
             "labels": {
                 "component": "foo",
                 "double_a": 14.65,

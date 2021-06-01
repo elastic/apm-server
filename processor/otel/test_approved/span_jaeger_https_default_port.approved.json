@@ -18,6 +18,11 @@
             "host": {
                 "hostname": "host-abc"
             },
+            "http": {
+                "url": {
+                    "original": "https://foo.bar.com:443?a=12"
+                }
+            },
             "parent": {
                 "id": "0000000058585858"
             },

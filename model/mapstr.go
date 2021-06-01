@@ -67,3 +67,9 @@ func (m *mapStr) maybeSetMapStr(k string, v common.MapStr) bool {
 	}
 	return false
 }
+
+func (m mapStr) delete(k string) mapStr {
+	fs := common.MapStr(m)
+	fs.Delete(k)
+	return mapStr(fs)
+}
