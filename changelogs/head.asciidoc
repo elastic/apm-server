@@ -26,6 +26,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Translate otel messaging.* semantic conventions to ECS {pull}5334[5334]
 * Add support for dynamic histogram metrics {pull}5239[5239]
 * Tail-sampling processor now resumes subscription from previous position after restart {pull}5350[5350]
+* Add support for histograms to metrics intake {pull}5360[5360]
 
 [float]
 ==== Deprecated

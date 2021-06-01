@@ -34,6 +34,7 @@ const (
 	tagMaxLengthVals  = "maxLengthVals"
 	tagMin            = "min"
 	tagMinLength      = "minLength"
+	tagMinVals        = "minVals"
 	tagPattern        = "pattern"
 	tagPatternKeys    = "patternKeys"
 	tagRequired       = "required"
@@ -96,7 +97,7 @@ func validationRules(structTag reflect.StructTag) ([]validationRule, error) {
 
 func ruleMinMaxOperator(ruleName string) string {
 	switch ruleName {
-	case tagMin, tagMinLength:
+	case tagMin, tagMinLength, tagMinVals:
 		return "<"
 	case tagMax, tagMaxLength:
 		return ">"
@@ -118,26 +119,22 @@ if !val.%s.IsSet()  {
 }
 
 func ruleRequiredOneOf(w io.Writer, fields []structField, tagValue string) error {
-	oneOf := strings.Split(tagValue, ";")
+	oneOf, err := filteredFields(fields, strings.Split(tagValue, ";"))
+	if err != nil {
+		return err
+	}
 	if len(oneOf) <= 1 {
 		return fmt.Errorf("invalid usage of rule 'requiredOneOf' - try 'required' instead")
 	}
+
 	fmt.Fprintf(w, `if `)
-	var matched bool
-	for i := 0; i < len(fields); i++ {
-		f := fields[i]
-		jName := jsonName(f)
-		if j := indexOf(oneOf, jName); j != -1 {
-			if matched {
-				fmt.Fprintf(w, ` && `)
-			}
-			fmt.Fprintf(w, ` !val.%s.IsSet()`[1:], f.Name())
-			matched = true
-			// remove from ifAny names and check if we can return early
-			oneOf = append(oneOf[:j], oneOf[j+1:]...)
-			if len(oneOf) == 0 {
-				break
-			}
+	for i, oneOfField := range oneOf {
+		if i > 0 {
+			fmt.Fprintf(w, " && ")
+		}
+		fmt.Fprint(w, "!")
+		if err := generateIsSet(w, oneOfField, "val."); err != nil {
+			return err
 		}
 	}
 	fmt.Fprintf(w, ` {
@@ -151,44 +148,47 @@ func ruleRequiredOneOf(w io.Writer, fields []structField, tagValue string) error
 }
 
 func ruleRequiredIfAny(w io.Writer, fields []structField, field structField, tagValue string) error {
-	ifAny := make(map[string]struct{})
-	for _, n := range strings.Split(tagValue, ";") {
-		ifAny[n] = struct{}{}
+	ifAny, err := filteredFields(fields, strings.Split(tagValue, ";"))
+	if err != nil {
+		return err
 	}
-	// only check ifAny fields if the field itself is not set
-	fmt.Fprintf(w, `
-if !val.%s.IsSet()  {
-`[1:], field.Name())
-	for i := 0; i < len(fields); i++ {
-		f := fields[i]
-		jName := jsonName(f)
-		if _, ok := ifAny[jName]; ok {
-			fmt.Fprintf(w, `
-if val.%s.IsSet()  {
+
+	// Only check ifAny fields if the field itself is not set
+	fmt.Fprint(w, "if !")
+	if err := generateIsSet(w, field, "val."); err != nil {
+		return err
+	}
+	fmt.Fprintln(w, " {")
+
+	// Check if any of the fields is set. We create a separate "if" block
+	// for each field so we can include its name in the error.
+	for _, ifAnyField := range ifAny {
+		fmt.Fprint(w, "if ")
+		if err := generateIsSet(w, ifAnyField, "val."); err != nil {
+			return err
+		}
+		fmt.Fprintf(w, ` {
 	return fmt.Errorf("'%s' required when '%s' is set")
 }
-`[1:], f.Name(), jsonName(field), jsonName(f))
-			// remove from ifAny names and check if we can return early
-			delete(ifAny, jName)
-			if len(ifAny) == 0 {
-				break
-			}
-		}
+`, jsonName(field), jsonName(ifAnyField))
 	}
-	if len(ifAny) != 0 {
-		return fmt.Errorf("unhandled 'requiredIfAny' field name(s) for %s", field.Name())
-	}
-	fmt.Fprintf(w, `
-}
-`[1:])
+
+	fmt.Fprintln(w, "}")
 	return nil
 }
 
-func indexOf(s []string, key string) int {
-	for i := 0; i < len(s); i++ {
-		if s[i] == key {
-			return i
-		}
+func filteredFields(fields []structField, jsonNames []string) ([]structField, error) {
+	mapped := make(map[string]structField)
+	for _, field := range fields {
+		mapped[jsonName(field)] = field
 	}
-	return -1
+	filtered := make([]structField, len(jsonNames))
+	for i, jsonName := range jsonNames {
+		field, ok := mapped[jsonName]
+		if !ok {
+			return nil, fmt.Errorf("unknown field name %q", jsonName)
+		}
+		filtered[i] = field
+	}
+	return filtered, nil
 }
