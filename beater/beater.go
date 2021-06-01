@@ -604,7 +604,7 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 		},
 	}
 
-	if cfg.RumConfig.Enabled && cfg.RumConfig.SourceMapping.Enabled && cfg.RumConfig.SourceMapping.ESConfig != nil {
+	if cfg.RumConfig.Enabled && cfg.RumConfig.SourceMapping.Enabled {
 		store, err := sourcemap.NewStore(beatInfo, cfg.RumConfig.SourceMapping)
 		if err != nil {
 			return nil, err

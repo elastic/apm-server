@@ -71,7 +71,6 @@ func NewStore(beatInfo beat.Info, cfg config.SourceMapping) (*Store, error) {
 	logger := logp.NewLogger(logs.Sourcemap)
 
 	if len(cfg.SourceMapConfigs) == 0 {
-		logger.Info("no source maps configured, using esClient")
 		esClient, err := elasticsearch.NewClient(cfg.ESConfig)
 		if err != nil {
 			return nil, err
@@ -79,7 +78,6 @@ func NewStore(beatInfo beat.Info, cfg config.SourceMapping) (*Store, error) {
 		index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
 		b = &esStore{client: esClient, index: index, logger: logger}
 	} else {
-		logger.Info("source maps configured, using fleet backend")
 		b = newFleetBackend(cfg.SourceMapConfigs)
 	}
 

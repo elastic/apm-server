@@ -17,8 +17,6 @@
 
 package config
 
-var defaultSourceMapConfig = SourceMapConfig{}
-
 type SourceMapConfig struct {
 	Service   Service   `config:"service"`
 	Bundle    Bundle    `config:"bundle"`

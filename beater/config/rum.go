@@ -80,6 +80,16 @@ func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg
 		return errors.Wrapf(err, "Invalid regex for `exclude_from_grouping`: ")
 	}
 
+	if c.SourceMapping.esConfigured && len(c.SourceMapping.SourceMapConfigs) > 0 {
+		return errors.New("configuring both source_mapping.elasticsearch and sourcemapping.source_maps not allowed")
+	}
+
+	// No need to unpack the ESConfig if we've set SourceMapConfigs
+	if len(c.SourceMapping.SourceMapConfigs) > 0 {
+		return nil
+	}
+	c.SourceMapping.ESConfig = elasticsearch.DefaultConfig()
+
 	var apiKey string
 	if c.SourceMapping.esConfigured {
 		if dataStreamsEnabled {
@@ -119,8 +129,8 @@ func defaultSourcemapping() SourceMapping {
 		Enabled:          true,
 		Cache:            Cache{Expiration: defaultSourcemapCacheExpiration},
 		IndexPattern:     defaultSourcemapIndexPattern,
-		ESConfig:         elasticsearch.DefaultConfig(),
-		SourceMapConfigs: []SourceMapConfig{defaultSourceMapConfig},
+		ESConfig:         nil,
+		SourceMapConfigs: []SourceMapConfig{},
 	}
 }
 
