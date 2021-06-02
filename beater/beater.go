@@ -308,11 +308,6 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 	if cfg.DataStreams.Enabled && args.KibanaConfig != nil {
 		cfg.Kibana.ClientConfig = *args.KibanaConfig
 	}
-	if args.Beat.Manager != nil && args.Beat.Manager.Enabled() {
-		// If we're running in managed mode we do not want to
-		// communicate with kibana.
-		cfg.Kibana.Enabled = false
-	}
 
 	runServerContext, cancel := context.WithCancel(ctx)
 	return &serverRunner{
