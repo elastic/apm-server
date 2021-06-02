@@ -576,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20210511162651-b54b2e5e8c72
+Version: v7.0.0-alpha2.0.20210601231209-d95f6bab8554
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210511162651-b54b2e5e8c72/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210601231209-d95f6bab8554/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -3512,11 +3512,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm
-Version: v1.11.0
+Version: v1.12.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm@v1.11.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm@v1.12.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4630,11 +4630,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : go.uber.org/zap
-Version: v1.16.0
+Version: v1.17.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.uber.org/zap@v1.16.0/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/go.uber.org/zap@v1.17.0/LICENSE.txt:
 
 Copyright (c) 2016-2017 Uber Technologies, Inc.
 
@@ -4659,11 +4659,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.0.0-20210510120150-4163338589ed
+Version: v0.0.0-20210525063256-abc453219eb5
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210510120150-4163338589ed/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210525063256-abc453219eb5/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -4770,11 +4770,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.37.1
+Version: v1.38.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.37.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.38.0/LICENSE:
 
 
                                  Apache License
@@ -5906,12 +5906,12 @@ THE SOFTWARE.
 
 
 --------------------------------------------------------------------------------
-Dependency : github.com/Microsoft/go-winio
-Version: v0.4.16
+Dependency : github.com/bi-zone/go-winio
+Version: v0.4.15
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/!microsoft/go-winio@v0.4.16/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/bi-zone/go-winio@v0.4.15/LICENSE:
 
 The MIT License (MIT)
 
@@ -10081,11 +10081,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/fatih/color
-Version: v1.10.0
+Version: v1.12.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/fatih/color@v1.10.0/LICENSE.md:
+Contents of probable licence file $GOMODCACHE/github.com/fatih/color@v1.12.0/LICENSE.md:
 
 The MIT License (MIT)
 
@@ -14635,11 +14635,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/mattn/go-isatty
-Version: v0.0.12
+Version: v0.0.13
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/mattn/go-isatty@v0.0.12/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/mattn/go-isatty@v0.0.13/LICENSE:
 
 Copyright (c) Yasuhiro MATSUMOTO <mattn.jp@gmail.com>
 
@@ -18294,11 +18294,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.0.0-20210506145944-38f3c27a63bf
+Version: v0.0.0-20210513164829-c07d793c2f9a
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210506145944-38f3c27a63bf/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210513164829-c07d793c2f9a/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18368,11 +18368,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20210511113859-b0526f3d8744
+Version: v0.0.0-20210601080250-7ecdf8ef093b
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210511113859-b0526f3d8744/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210601080250-7ecdf8ef093b/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18479,11 +18479,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20210510173355-fb37daa5cd7a
+Version: v0.0.0-20210601170153-0befbe3492e2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210510173355-fb37daa5cd7a/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210601170153-0befbe3492e2/LICENSE:
 
 
                                  Apache License
