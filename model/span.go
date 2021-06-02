@@ -135,7 +135,7 @@ func (db *DB) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (http *HTTP) fields() common.MapStr {
+func (http *HTTP) fields(ecsOnly bool) common.MapStr {
 	if http == nil {
 		return nil
 	}
@@ -143,7 +143,7 @@ func (http *HTTP) fields() common.MapStr {
 	if url.maybeSetString("original", http.URL) {
 		fields.set("url", common.MapStr(url))
 	}
-	response := http.Response.Fields()
+	response := http.Response.Fields(ecsOnly)
 	if http.StatusCode > 0 {
 		if response == nil {
 			response = common.MapStr{"status_code": http.StatusCode}
@@ -227,7 +227,7 @@ func (e *Span) appendBeatEvents(ctx context.Context, cfg *transform.Config, even
 		fields.set("experimental", e.Experimental)
 	}
 	fields.maybeSetMapStr("destination", e.Destination.fields())
-	fields.maybeSetMapStr("http", e.HTTP.fields())
+	fields.maybeSetMapStr("http", e.HTTP.fields(true))
 
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
@@ -254,8 +254,7 @@ func (e *Span) fields(ctx context.Context, cfg *transform.Config) common.MapStr 
 	fields.set("duration", utility.MillisAsMicros(e.Duration))
 
 	fields.maybeSetMapStr("db", e.DB.fields())
-	fields.maybeSetMapStr("http", e.HTTP.fields())
-	fields.delete("http.response.headers")
+	fields.maybeSetMapStr("http", e.HTTP.fields(false))
 	fields.maybeSetMapStr("message", e.Message.Fields())
 	if destinationServiceFields := e.DestinationService.fields(); len(destinationServiceFields) > 0 {
 		common.MapStr(fields).Put("destination.service", destinationServiceFields)

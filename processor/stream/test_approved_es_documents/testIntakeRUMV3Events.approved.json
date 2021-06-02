@@ -309,11 +309,6 @@
                 "outcome": "unknown"
             },
             "http": {
-                "response": {
-                    "decoded_body_size": 676864,
-                    "encoded_body_size": 676864,
-                    "transfer_size": 677175
-                },
                 "url": {
                     "original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED"
                 }
