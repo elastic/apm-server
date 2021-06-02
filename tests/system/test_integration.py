@@ -79,11 +79,13 @@ class Test(ElasticTest):
         self.check_backend_error_sourcemap(index_error, count=4)
 
     def test_load_docs_with_template_and_add_metricset(self):
-        self.load_docs_with_template(self.get_metricset_payload_path(), self.intake_url, 'metric', 4)
+        # NOTE(axw) this test is redundant with systemtest.TestApprovedMetrics,
+        # but we use the output of this test for generating documentation.
+        self.load_docs_with_template(self.get_metricset_payload_path(), self.intake_url, 'metric', 5)
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for metricsets with new ones
-        metricset_docs = self.wait_for_events('metric', 4, index=index_metric)
+        metricset_docs = self.wait_for_events('metric', 5, index=index_metric)
         self.approve_docs('metricset', metricset_docs)
 
 

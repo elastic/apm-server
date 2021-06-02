@@ -40,7 +40,7 @@ func generateNullableStringValidation(w io.Writer, fields []structField, f struc
 		case tagRequired:
 			ruleNullableRequired(w, f)
 		case tagRequiredIfAny:
-			if err = ruleRequiredIfAny(w, fields, f, rule.value); err != nil {
+			if err := ruleRequiredIfAny(w, fields, f, rule.value); err != nil {
 				return errors.Wrap(err, "nullableString")
 			}
 		default:

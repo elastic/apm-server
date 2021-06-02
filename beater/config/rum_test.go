@@ -29,24 +29,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIsRumEnabled(t *testing.T) {
-	truthy := true
-	for _, td := range []struct {
-		c       *Config
-		enabled bool
-	}{
-		{c: &Config{RumConfig: &RumConfig{Enabled: new(bool)}}, enabled: false},
-		{c: &Config{RumConfig: &RumConfig{Enabled: &truthy}}, enabled: true},
-	} {
-		assert.Equal(t, td.enabled, td.c.RumConfig.IsEnabled())
-
-	}
-}
-
 func TestRumSetup(t *testing.T) {
 	rum := defaultRum()
 	rum.SourceMapping.esConfigured = true
-	rum.Enabled = &rum.SourceMapping.esConfigured
+	rum.Enabled = true
 	rum.SourceMapping.ESConfig = &elasticsearch.Config{APIKey: "id:apikey"}
 	esCfg := common.MustNewConfigFrom(map[string]interface{}{
 		"hosts": []interface{}{"cloud:9200"},
