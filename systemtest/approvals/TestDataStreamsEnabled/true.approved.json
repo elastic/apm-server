@@ -34,7 +34,7 @@
             },
             "process": {
                 "pid": 1,
-                "title": "systemtest.test"
+                "title": "dynamic"
             },
             "processor": {
                 "event": "transaction",
