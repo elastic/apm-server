@@ -18,6 +18,7 @@
 package generator
 
 import (
+	"encoding/json"
 	"fmt"
 	"go/types"
 	"io"
@@ -45,10 +46,14 @@ for _, elem := range val.%s{
 		switch rule.name {
 		case tagMinLength, tagMaxLength:
 			err = sliceRuleMinMaxLength(w, f, rule)
+		case tagMinVals:
+			err = sliceRuleMinVals(w, f, rule)
 		case tagRequired:
 			sliceRuleRequired(w, f, rule)
 		case tagRequiredAnyOf:
 			err = ruleRequiredOneOf(w, fields, rule.value)
+		case tagRequiredIfAny:
+			err = ruleRequiredIfAny(w, fields, f, rule.value)
 		default:
 			return errors.Wrap(errUnhandledTagRule(rule), "slice")
 		}
@@ -77,6 +82,17 @@ for _, elem := range val.%s{
 		}
 	}
 	return fmt.Errorf("unhandled tag rule max for type %s", f.Type().Underlying())
+}
+
+func sliceRuleMinVals(w io.Writer, f structField, rule validationRule) error {
+	fmt.Fprintf(w, `
+for _, elem := range val.%s{
+	if elem %s %s{
+		return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
+	}
+}
+`[1:], f.Name(), ruleMinMaxOperator(rule.name), rule.value, jsonName(f), rule.name, rule.value)
+	return nil
 }
 
 func sliceRuleRequired(w io.Writer, f structField, rule validationRule) {
@@ -110,10 +126,18 @@ func generateJSONPropertySlice(info *fieldInfo, parent *property, child *propert
 	// NOTE(simi): set required=true to be aligned with previous JSON schema definitions
 	items := property{Type: &propertyType{names: []propertyTypeName{itemsType}, required: true}}
 	switch itemsType {
+	case TypeNameInteger:
+		setPropertyRulesInteger(info, &items)
+	case TypeNameNumber:
+		setPropertyRulesNumber(info, &items)
 	case TypeNameString:
 		setPropertyRulesString(info, &items)
 	default:
 		return fmt.Errorf("unhandled slice item type %s", itemsType)
+	}
+	if minVals, ok := info.tags[tagMinVals]; ok {
+		items.Min = json.Number(minVals)
+		delete(info.tags, tagMinVals)
 	}
 	child.Items = &items
 	return nil
