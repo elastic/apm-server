@@ -13,7 +13,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20210225215109-d91c329300e7 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210525011854-b3a5c87d4aaa
+	github.com/elastic/beats/v7 v7.13.2-0.20210602151559-29e4c1c14470
 	github.com/elastic/ecs v1.8.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210407144825-cc1c33cfa1d0 // indirect
 	github.com/elastic/elastic-package v0.0.0-20210310173719-3b8f76516ae3
@@ -38,6 +38,7 @@ require (
 	github.com/json-iterator/go v1.1.10
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/magefile/mage v1.11.0
+	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -54,7 +55,7 @@ require (
 	github.com/tidwall/sjson v1.1.1
 	github.com/urso/magetools v0.0.0-20200125210132-c2e338f92f3a // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
-	go.elastic.co/apm v1.11.0
+	go.elastic.co/apm v1.12.0
 	go.elastic.co/apm/module/apmelasticsearch v1.7.2
 	go.elastic.co/apm/module/apmgrpc v1.7.0
 	go.elastic.co/apm/module/apmhttp v1.7.2
@@ -64,14 +65,14 @@ require (
 	go.opentelemetry.io/collector v0.22.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/multierr v1.7.0 // indirect
-	go.uber.org/zap v1.16.0
+	go.uber.org/zap v1.17.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
-	golang.org/x/sys v0.0.0-20210521203332-0cec03c779c1 // indirect
+	golang.org/x/sys v0.0.0-20210601080250-7ecdf8ef093b // indirect
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
-	golang.org/x/tools v0.1.1
-	google.golang.org/genproto v0.0.0-20210524171403-669157292da3 // indirect
+	golang.org/x/tools v0.1.2
+	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect
 	google.golang.org/grpc v1.38.0
 	gopkg.in/yaml.v2 v2.4.0
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
