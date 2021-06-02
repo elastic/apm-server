@@ -90,7 +90,7 @@
   type: long
   description: |
     Aggregated span duration, excluding the time periods where a direct child was running, in microseconds.
-  unit: ms
+  unit: micros
 - name: span.subtype
   type: keyword
   description: |
