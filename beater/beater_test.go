@@ -240,7 +240,7 @@ func TestTransformConfigIndex(t *testing.T) {
 		defer srv.Close()
 
 		cfg := config.DefaultConfig()
-		cfg.RumConfig.Enabled = newBool(true)
+		cfg.RumConfig.Enabled = true
 		cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{srv.URL}
 		if indexPattern != "" {
 			cfg.RumConfig.SourceMapping.IndexPattern = indexPattern
@@ -262,7 +262,7 @@ func TestTransformConfigIndex(t *testing.T) {
 }
 
 func TestTransformConfig(t *testing.T) {
-	test := func(rumEnabled, sourcemapEnabled *bool, expectSourcemapStore bool) {
+	test := func(rumEnabled, sourcemapEnabled bool, expectSourcemapStore bool) {
 		cfg := config.DefaultConfig()
 		cfg.RumConfig.Enabled = rumEnabled
 		cfg.RumConfig.SourceMapping.Enabled = sourcemapEnabled
@@ -275,19 +275,8 @@ func TestTransformConfig(t *testing.T) {
 		}
 	}
 
-	test(nil, nil, false)
-	test(nil, newBool(false), false)
-	test(nil, newBool(true), false)
-
-	test(newBool(false), nil, false)
-	test(newBool(false), newBool(false), false)
-	test(newBool(false), newBool(true), false)
-
-	test(newBool(true), nil, true) // sourcemap.enabled is true by default
-	test(newBool(true), newBool(false), false)
-	test(newBool(true), newBool(true), true)
-}
-
-func newBool(v bool) *bool {
-	return &v
+	test(false, false, false)
+	test(false, true, false)
+	test(true, false, false)
+	test(true, true, true)
 }

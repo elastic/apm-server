@@ -178,13 +178,13 @@ var (
 )
 
 func TestAgentConfigHandler(t *testing.T) {
-	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: 4 * time.Second}}
+	var cfg = config.KibanaAgentConfig{Cache: config.Cache{Expiration: 4 * time.Second}}
 
 	for name, tc := range testcases {
 
 		runTest := func(t *testing.T, expectedBody map[string]string, authorized bool) {
 			f := agentcfg.NewKibanaFetcher(tc.kbClient, cfg.Cache.Expiration)
-			h := NewHandler(f, &cfg, "")
+			h := NewHandler(f, cfg, "")
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 			for k, v := range tc.requestHeader {
 				r.Header.Set(k, v)
@@ -214,9 +214,9 @@ func TestAgentConfigHandler(t *testing.T) {
 }
 
 func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
-	cfg := config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(nil, cfg.Cache.Expiration)
-	h := NewHandler(f, &cfg, "")
+	h := NewHandler(f, cfg, "")
 
 	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
 		"service": m{"name": "opbeans-node"}})))
@@ -233,9 +233,9 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 		},
 	}, mockVersion, true)
 
-	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	var cfg = config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
-	h := NewHandler(f, &cfg, "")
+	h := NewHandler(f, cfg, "")
 
 	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
 		"service": m{"name": "opbeans-node"}})))
@@ -254,9 +254,9 @@ func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 		}, mockVersion, true),
 	}
 
-	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	var cfg = config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
-	h := NewHandler(f, &cfg, "default")
+	h := NewHandler(f, cfg, "default")
 
 	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node", "environment": "specified"}})))
 	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node"}})))
@@ -342,9 +342,9 @@ func getHandler(agent string) request.Handler {
 			"agent_name": agent,
 		},
 	}, mockVersion, true)
-	cfg := config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
-	return NewHandler(f, &cfg, "")
+	return NewHandler(f, cfg, "")
 }
 
 func TestIfNoneMatch(t *testing.T) {
@@ -368,7 +368,7 @@ func TestAgentConfigTraceContext(t *testing.T) {
 	kibanaCfg := config.KibanaConfig{Enabled: true, ClientConfig: libkibana.DefaultClientConfig()}
 	kibanaCfg.Host = "testKibana:12345"
 	client := kibana.NewConnectingClient(&kibanaCfg)
-	cfg := &config.KibanaAgentConfig{Cache: &config.Cache{Expiration: 5 * time.Minute}}
+	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: 5 * time.Minute}}
 	f := agentcfg.NewKibanaFetcher(client, cfg.Cache.Expiration)
 	handler := NewHandler(f, cfg, "default")
 	_, spans, _ := apmtest.WithTransaction(func(ctx context.Context) {

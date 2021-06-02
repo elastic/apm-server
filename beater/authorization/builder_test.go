@@ -46,8 +46,10 @@ func TestBuilder(t *testing.T) {
 				cfg.SecretToken = "xvz"
 			}
 			if tc.withApikey {
-				cfg.APIKeyConfig = &config.APIKeyConfig{
-					Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()}
+				cfg.APIKeyConfig = config.APIKeyConfig{
+					Enabled: true, LimitPerMin: 100,
+					ESConfig: elasticsearch.DefaultConfig(),
+				}
 			}
 
 			builder, err := NewBuilder(cfg)
