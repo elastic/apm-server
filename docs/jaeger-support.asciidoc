@@ -5,138 +5,68 @@
 <titleabbrev>Integrate with Jaeger</titleabbrev>
 ++++
 
+experimental::[]
+
 include::./jaeger-reference.asciidoc[tag=jaeger-intro]
 
 [float]
 [[jaeger-get-started]]
 ==== Get started
 
-Connecting your preexisting Jaeger setup to Elastic APM is easy!
-Configure APM Server to receive Jaeger data,
-set up sampling, and configure your Jaeger Agents or Jaeger Clients to start sending spans to APM Server.
+Connect your preexisting Jaeger setup to Elastic APM in three steps:
 
-* <<jaeger-configure-apm-server>>
-* <<jaeger-configure-sampling>>
 * <<jaeger-configure-agent-client>>
+* <<jaeger-configure-sampling>>
 * <<jaeger-configure-start>>
 
-IMPORTANT: There are important <<jaeger-caveats>> to understand about this integration.
+IMPORTANT: There are <<jaeger-caveats,caveats>> to this integration.
 
 [float]
-[[jaeger-configure-apm-server]]
-==== Configure APM Server
+[[jaeger-configure-agent-client]]
+==== Configure Jaeger agents
 
-. Enable the correct jaeger endpoint in the `apm-server.yml` configuration file.
-+
-In a typical Jaeger deployment, Clients send spans to Agents, who forward them to Collectors.
-If this matches your architecture, enable the gRPC endpoint by setting
-`apm-server.jaeger.grpc.enabled` to `true`.
-+
-Alternatively, if you've configured your Clients to send spans directly to Collectors (bypassing Jaeger Agents),
-enable the HTTP endpoint by setting `apm-server.jaeger.http.enabled` to `true`.
+APM Server serves Jaeger gRPC over the same <<host,host and port>> as the Elastic APM agent protocol.
 
-. Configure the host and port that APM Server listens on.
-+
-Based on the endpoint enabled in the previous step, configure the relevant host and port:
-+
-* `apm-server.jaeger.grpc.host` defaults to `localhost:14250`.
-* `apm-server.jaeger.http.host` defaults to `localhost:14268`.
+include::./tab-widgets/jaeger-widget.asciidoc[]
 
 [float]
 [[jaeger-configure-sampling]]
 ==== Configure Sampling
 
-The gRPC endpoint supports probabilistic sampling, which can be used to reduce the amount of data that your agents collect and send.
+APM Server supports probabilistic sampling, which can be used to reduce the amount of data that your agents collect and send.
 Probabilistic sampling makes a random sampling decision based on the configured sampling value.
 For example, a value of `.2` means that 20% of traces will be sampled.
 
-APM Server automatically enables the sampling endpoint when `grpc.enabled` is set to `true`.
-There are two different ways to configure the sampling rate of your Jaeger Agents:
+There are two different ways to configure the sampling rate of your Jaeger agents:
 
-* <<jaeger-configure-sampling-central,Centrally>>, with APM Agent configuration (default).
-* <<jaeger-configure-sampling-local,Locally>>, in each Jaeger client.
+* <<jaeger-configure-sampling-central,APM Agent central configuration (default)>>
+* <<jaeger-configure-sampling-local,Local sampling in each Jaeger client>>
 
 [float]
 [[jaeger-configure-sampling-central]]
-===== Central sampling
+===== APM Agent central configuration (default)
 
-Central sampling, with APM Agent configuration,
-requires the <<setup-kibana-endpoint,Kibana endpoint>> to be enabled.
-This allows Jaeger clients to poll APM Server for the sampling rate.
-To enable the kibana endpoint, set <<kibana-enabled>> to `true`, and point <<kibana-host>> at the Kibana host that APM Server will communicate with.
+Central sampling, with APM Agent central configuration,
+allows Jaeger clients to poll APM Server for the sampling rate.
+This means sample rates can be configured on the fly, on a per-service and per-environment basis.
 
-The default sampling ratio, as well as per-service sampling rates,
-can then be configured via the {kibana-ref}/agent-configuration.html[Agent configuration] page in the APM app.
+include::./tab-widgets/jaeger-sampling-widget.asciidoc[]
 
 [float]
 [[jaeger-configure-sampling-local]]
-===== Local sampling
+===== Local sampling in each Jaeger client
 
 If you don't have access to the APM app,
-you'll need to change the Jaeger Client's `sampler.type` and `sampler.param`,
-enabling you to set the sampling configuration locally in each Client.
-See the official https://www.jaegertracing.io/docs/1.17/sampling/[Jaeger sampling documentation]
+you'll need to change the Jaeger client's `sampler.type` and `sampler.param`.
+This enables you to set the sampling configuration locally in each Jaeger client.
+See the official https://www.jaegertracing.io/docs/1.22/sampling/[Jaeger sampling documentation]
 for more information.
-
-[float]
-[[jaeger-configure-agent-client]]
-==== Configure Jaeger communication
-
-[float]
-[[jaeger-configure-grpc]]
-===== Jaeger Agent communication with APM Server (gRPC)
-
-As of this writing, the Jaeger Agent binary offers the `--reporter.grpc.host-port` CLI flag,
-which can be used to set a static list of collectors for the Jaeger Agent to connect to.
-The `host:port` set here should correspond with the value set in `apm-server.jaeger.grpc.host`.
-
-*Optional token-based authorization**
-
-A <<secret-token,secret token>> or <<api-key,API key>> can be used to ensure only authorized
-Jaeger Agents can send data to the APM Server.
-Authorization is off by default, but can be enabled by setting a value in `apm-server.jaeger.grpc.auth_tag`.
-When enabled, APM Server looks for a _Process tag_ in each incoming event,
-and uses it to authorize the Jaeger Agent against the configured `auth_tag` and secret token or API key.
-Auth tags will be removed from events after being verified.
-
-Here's an example that sets the `auth_tag` and `secret_token` in APM Server:
-
-[source,yaml]
-----
-apm-server.jaeger.grpc.enabled=true
-apm-server.jaeger.grpc.auth_tag=authorization
-apm-server.secret_token=qwerty1234
-----
-
-To authorize Jaeger Agent communication, use the `--agent.tags` CLI flag to pass the corresponding Process tag to the APM Server:
-
-[source,console]
-----
---agent.tags "authorization=Bearer qwerty1234"
-----
-
-See the https://www.jaegertracing.io/docs/1.16/cli/[Jaeger CLI flags documentation] for more information.
-
-[float]
-[[jaeger-configure-http]]
-===== Jaeger Client communication with APM Server (HTTP)
-
-If you're using an officially supported Jaeger Client library and want to connect directly to APM Server,
-you need to update the `JAEGER_ENDPOINT` configuration property.
-This is the HTTP endpoint the Client will send spans to.
-The `host:port` set here should correspond to the value set in `apm-server.jaeger.http.host`.
-
-See the relevant supported Jaeger library for more information.
-
-* https://github.com/jaegertracing/jaeger-client-go[Go]
-* https://github.com/jaegertracing/jaeger-client-java[Java]
-* https://github.com/jaegertracing/jaeger-client-node[Node.js]
-* https://github.com/jaegertracing/jaeger-client-python[Python]
-* https://github.com/jaegertracing/jaeger-client-cpp[C++]
-* https://github.com/jaegertracing/jaeger-client-csharp[C#]
 
 [float]
 [[jaeger-configure-start]]
 ==== Start sending span data
 
-Data sent from Jaeger Agents or Clients to APM Server should now be visible in the APM app!
+That's it! Data sent from Jaeger clients to the APM Server can now be viewed in the APM app.
+
+// Make tab-widgets work
+include::./tab-widgets/code.asciidoc[]
