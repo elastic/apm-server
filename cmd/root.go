@@ -65,12 +65,13 @@ var libbeatConfigOverrides = []cfgfile.ConditionalOverride{{
 },
 	{
 		Check: func(_ *common.Config) bool {
-			cap := os.Getenv(cloudEnv)
-			_, ok := cloudMatrix[cap]
-			return ok
+			return true
 		},
 		Config: func() *common.Config {
 			cap := os.Getenv(cloudEnv)
+			if _, ok := cloudMatrix[cap]; !ok {
+				return nil
+			}
 			return common.MustNewConfigFrom(map[string]interface{}{
 				"output": map[string]interface{}{
 					"elasticsearch": map[string]interface{}{
