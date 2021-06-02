@@ -247,7 +247,7 @@
             fields:
               - name: us
                 type: long
-                unit: ms
+                unit: micros
                 overwrite: true
                 description: >
                   Aggregated span duration, excluding the time periods where a
