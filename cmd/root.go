@@ -19,6 +19,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/pflag"
 
@@ -37,7 +38,16 @@ import (
 const (
 	beatName        = "apm-server"
 	apmIndexPattern = "apm"
+	cloudEnv        = "CLOUD_APM_CAPACITY"
 )
+
+var cloudMatrix = map[string][]int{
+	"512":  {5, 267, 2000, 267},
+	"1024": {7, 381, 4000, 381},
+	"2048": {10, 533, 8000, 533},
+	"4096": {14, 762, 16000, 762},
+	"8192": {20, 1067, 32000, 1067},
+}
 
 var libbeatConfigOverrides = []cfgfile.ConditionalOverride{{
 	Check: func(_ *common.Config) bool {
@@ -52,7 +62,34 @@ var libbeatConfigOverrides = []cfgfile.ConditionalOverride{{
 			"json": true,
 		},
 	}),
-}}
+},
+	{
+		Check: func(_ *common.Config) bool {
+			cap := os.Getenv(cloudEnv)
+			_, ok := cloudMatrix[cap]
+			return ok
+		},
+		Config: func() *common.Config {
+			cap := os.Getenv(cloudEnv)
+			return common.MustNewConfigFrom(map[string]interface{}{
+				"output": map[string]interface{}{
+					"elasticsearch": map[string]interface{}{
+						"worker":        cloudMatrix[cap][0],
+						"bulk_max_size": cloudMatrix[cap][1],
+					},
+				},
+				"queue": map[string]interface{}{
+					"mem": map[string]interface{}{
+						"events": cloudMatrix[cap][2],
+						"flush": map[string]interface{}{
+							"min_events": cloudMatrix[cap][3],
+						},
+					},
+				},
+			})
+		}(),
+	},
+}
 
 // DefaultSettings return the default settings for APM Server to pass into
 // the GenRootCmdWithSettings.
