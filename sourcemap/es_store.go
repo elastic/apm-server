@@ -44,7 +44,8 @@ var (
 	errSourcemapWrongFormat = errors.New("Sourcemapping ES Result not in expected format")
 )
 
-type esStore struct {
+// ESStore handles making sourcemap requests to an ElasticSearch backend.
+type ESStore struct {
 	client elasticsearch.Client
 	index  string
 	logger *logp.Logger
@@ -65,7 +66,13 @@ type esSourcemapResponse struct {
 	} `json:"hits"`
 }
 
-func (s *esStore) fetch(ctx context.Context, name, version, path string) (string, error) {
+// NewESStore returns an instance of ESStore for interacting with sourcemaps
+// stored in ElasticSearch.
+func NewESStore(c elasticsearch.Client, index string, logger *logp.Logger) *ESStore {
+	return &ESStore{c, index, logger}
+}
+
+func (s *ESStore) fetch(ctx context.Context, name, version, path string) (string, error) {
 	statusCode, body, err := s.runSearchQuery(ctx, name, version, path)
 	if err != nil {
 		return "", errors.Wrap(err, errMsgESFailure)
@@ -87,7 +94,7 @@ func (s *esStore) fetch(ctx context.Context, name, version, path string) (string
 	return parse(body, name, version, path, s.logger)
 }
 
-func (s *esStore) runSearchQuery(ctx context.Context, name, version, path string) (int, io.ReadCloser, error) {
+func (s *ESStore) runSearchQuery(ctx context.Context, name, version, path string) (int, io.ReadCloser, error) {
 	// build and encode the query
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query(name, version, path)); err != nil {

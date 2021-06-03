@@ -20,21 +20,14 @@ package sourcemap
 import (
 	"context"
 	"math"
-	"net/http"
 	"strings"
 	"time"
-
-	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/elasticsearch"
 
 	"github.com/go-sourcemap/sourcemap"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/logp"
-
-	logs "github.com/elastic/apm-server/log"
 )
 
 const (
@@ -59,29 +52,9 @@ type backend interface {
 // NewStore creates a new instance for fetching sourcemaps based on the
 // provided config.SourceMapping. Only one of source_mapping.elasticsearch or
 // sourcemapping.source_maps can be configured.
-func NewStore(beatInfo beat.Info, cfg config.SourceMapping) (*Store, error) {
-	// We're already checking for this in config parsing, so do we need it
-	// here a second time?
-	if cfg.ESConfig != nil && len(cfg.SourceMapConfigs) > 0 {
-		return nil, errors.New("configuring both source_mapping.elasticsearch and sourcemapping.source_maps not allowed")
-	}
-	expiration := cfg.Cache.Expiration
+func NewStore(b backend, logger *logp.Logger, expiration time.Duration) (*Store, error) {
 	if expiration < 0 {
 		return nil, errInit
-	}
-
-	var b backend
-	logger := logp.NewLogger(logs.Sourcemap)
-
-	if len(cfg.SourceMapConfigs) == 0 {
-		esClient, err := elasticsearch.NewClient(cfg.ESConfig)
-		if err != nil {
-			return nil, err
-		}
-		index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
-		b = &esStore{client: esClient, index: index, logger: logger}
-	} else {
-		b = newFleetBackend(cfg.ESConfig.APIKey, cfg.SourceMapConfigs, http.DefaultClient)
 	}
 
 	return &Store{
@@ -104,7 +77,6 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 	// fetch from Elasticsearch and ensure caching for all non-temporary results
 	sourcemapStr, err := s.backend.fetch(ctx, name, version, path)
 	if err != nil {
-		// TODO: Check for errors from both stores
 		if !strings.Contains(err.Error(), errMsgESFailure) {
 			s.add(key, nil)
 		}

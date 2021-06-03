@@ -30,12 +30,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
 
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 func baseException() *Exception {
@@ -805,7 +807,8 @@ func TestSourcemapping(t *testing.T) {
 	assert.Equal(t, 1, *event.Exception.Stacktrace[0].Lineno)
 
 	// transform with sourcemap store
-	store, err := sourcemap.NewStore(test.ESClientWithValidSourcemap(t), "apm-*sourcemap*", time.Minute)
+	b := sourcemap.NewESStore(test.ESClientWithValidSourcemap(t), "apm-*sourcemap*", logp.NewLogger(logs.Sourcemap))
+	store, err := sourcemap.NewStore(b, logp.NewLogger(logs.Sourcemap), time.Minute)
 	require.NoError(t, err)
 	transformedWithSourcemap := event.fields(context.Background(), &transform.Config{
 		RUM: transform.RUMConfig{SourcemapStore: store},

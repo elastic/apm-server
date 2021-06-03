@@ -18,23 +18,60 @@
 package sourcemap
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/elastic/apm-server/beater/config"
 )
 
-type fleetStore struct {
-	apiKey string
-	c      *http.Client
-	cfgs   []config.SourceMapConfig
+// FleetStore handles making sourcemap requests to a Fleet-Server.
+type FleetStore struct {
+	apikey    string
+	c         *http.Client
+	fleetURLs map[string]string
 }
 
-func newFleetBackend(apiKey string, cfgs []config.SourceMapConfig, c *http.Client) fleetStore {
-	return fleetStore{apiKey: apiKey, cfgs: cfgs, c: c}
+// NewFleetStore returns an instance of ESStore for interacting with sourcemaps
+// stored in Fleet-Server.
+func NewFleetStore(apikey string, cfgs []config.SourceMapConfig, c *http.Client) FleetStore {
+	fleetURLs := make(map[string]string)
+	for _, cfg := range cfgs {
+		k := key([]string{cfg.Service.Name, cfg.Service.Version, cfg.Bundle.Filepath})
+		fleetURLs[k] = cfg.SourceMap.URL
+	}
+	return FleetStore{
+		apikey:    "ApiKey " + apikey,
+		fleetURLs: fleetURLs,
+		c:         c,
+	}
 }
 
-func (f fleetStore) fetch(ctx context.Context, name, version, path string) (string, error) {
-	// find the right sourcemap config, make request with its sourcemap.url
-	return "", nil
+func (f FleetStore) fetch(ctx context.Context, name, version, path string) (string, error) {
+	k := key([]string{name, version, path})
+	fleetURL, ok := f.fleetURLs[k]
+	if !ok {
+		return "", fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s",
+			name, version, path,
+		)
+	}
+	req, err := http.NewRequest(http.MethodGet, fleetURL, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("Authorization", f.apikey)
+
+	resp, err := f.c.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	buf := new(bytes.Buffer)
+
+	io.Copy(buf, resp.Body)
+
+	return buf.String(), nil
 }

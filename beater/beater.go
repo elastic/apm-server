@@ -20,8 +20,10 @@ package beater
 import (
 	"context"
 	"net"
+	"net/http"
 	"regexp"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -43,6 +45,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
@@ -605,7 +608,7 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 	}
 
 	if cfg.RumConfig.Enabled && cfg.RumConfig.SourceMapping.Enabled {
-		store, err := sourcemap.NewStore(beatInfo, cfg.RumConfig.SourceMapping)
+		store, err := newSourcemapStore(beatInfo, cfg.RumConfig.SourceMapping)
 		if err != nil {
 			return nil, err
 		}
@@ -613,6 +616,24 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 	}
 
 	return transformConfig, nil
+}
+
+func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping) (*sourcemap.Store, error) {
+	logger := logp.NewLogger(logs.Sourcemap)
+	if len(cfg.SourceMapConfigs) == 0 {
+		esClient, err := elasticsearch.NewClient(cfg.ESConfig)
+		if err != nil {
+			return nil, err
+		}
+		index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
+		b := sourcemap.NewESStore(esClient, index, logger)
+
+		return sourcemap.NewStore(b, logger, cfg.Cache.Expiration)
+	}
+
+	b := sourcemap.NewFleetStore(cfg.ESConfig.APIKey, cfg.SourceMapConfigs, http.DefaultClient)
+
+	return sourcemap.NewStore(b, logger, cfg.Cache.Expiration)
 }
 
 // WrapRunServerWithProcessors wraps runServer such that it wraps args.Reporter

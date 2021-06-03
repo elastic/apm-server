@@ -88,7 +88,6 @@ func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg
 	if len(c.SourceMapping.SourceMapConfigs) > 0 {
 		return nil
 	}
-	c.SourceMapping.ESConfig = elasticsearch.DefaultConfig()
 
 	var apiKey string
 	if c.SourceMapping.esConfigured {
@@ -129,7 +128,7 @@ func defaultSourcemapping() SourceMapping {
 		Enabled:          true,
 		Cache:            Cache{Expiration: defaultSourcemapCacheExpiration},
 		IndexPattern:     defaultSourcemapIndexPattern,
-		ESConfig:         nil,
+		ESConfig:         elasticsearch.DefaultConfig(),
 		SourceMapConfigs: []SourceMapConfig{},
 	}
 }

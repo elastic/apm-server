@@ -29,15 +29,19 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/elasticsearch"
+	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/sourcemap/test"
 )
 
 func Test_NewStore(t *testing.T) {
-	_, err := NewStore(nil, "", -1)
+	logger := logp.NewLogger(logs.Sourcemap)
+
+	_, err := NewStore(nil, logger, -1)
 	require.Error(t, err)
 
-	f, err := NewStore(nil, "", 100)
+	f, err := NewStore(nil, logger, 100)
 	require.NoError(t, err)
 	assert.NotNil(t, f.cache)
 }
@@ -202,7 +206,10 @@ func TestCleanupInterval(t *testing.T) {
 }
 
 func testStore(t *testing.T, client elasticsearch.Client) *Store {
-	store, err := NewStore(client, "apm-*sourcemap*", time.Minute)
+	logger := logp.NewLogger(logs.Sourcemap)
+	b := NewESStore(client, "apm-*sourcemap*", logger)
+
+	store, err := NewStore(b, logger, time.Minute)
 	require.NoError(t, err)
 	return store
 }
