@@ -38,7 +38,6 @@ const (
 )
 
 var (
-	errInvalidAgentConfigServiceName   = errors.New("agent_config: either service.name or service.environment must be set")
 	errInvalidAgentConfigMissingConfig = errors.New("agent_config: no config set")
 )
 
