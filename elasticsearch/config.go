@@ -88,7 +88,7 @@ func connectionConfig(config *Config) (http.RoundTripper, []string, http.Header,
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	transp, err := httpTransport(config)
+	transp, err := NewHTTPTransport(config)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -134,7 +134,8 @@ func addresses(cfg *Config) ([]string, error) {
 	return addresses, nil
 }
 
-func httpTransport(cfg *Config) (*http.Transport, error) {
+// NewHttpTransport configures an *http.Transport according to a *Config
+func NewHTTPTransport(cfg *Config) (*http.Transport, error) {
 	proxy, err := httpProxyURL(cfg)
 	if err != nil {
 		return nil, err
