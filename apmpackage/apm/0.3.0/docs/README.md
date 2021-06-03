@@ -296,6 +296,15 @@ Traces are written to `traces-apm.*` indices.
   "event": {
     "outcome": "unknown"
   },
+  "http": {
+    "method": "GET",
+    "response": {
+      "status_code": 200
+    },
+    "url": {
+      "original": "http://localhost:8000"
+    }
+  },
   "labels": {
     "span_tag": "something"
   },
