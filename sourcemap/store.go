@@ -60,6 +60,8 @@ type backend interface {
 // provided config.SourceMapping. Only one of source_mapping.elasticsearch or
 // sourcemapping.source_maps can be configured.
 func NewStore(beatInfo beat.Info, cfg config.SourceMapping) (*Store, error) {
+	// We're already checking for this in config parsing, so do we need it
+	// here a second time?
 	if cfg.ESConfig != nil && len(cfg.SourceMapConfigs) > 0 {
 		return nil, errors.New("configuring both source_mapping.elasticsearch and sourcemapping.source_maps not allowed")
 	}
