@@ -11,9 +11,6 @@
 :ot-collector:  https://opentelemetry.io/docs/collector/getting-started/
 :ot-dockerhub:  https://hub.docker.com/r/otel/opentelemetry-collector-contrib
 
-// Make tab-widgets work
-include::../tab-widgets/code.asciidoc[]
-
 https://opentelemetry.io/docs/concepts/what-is-opentelemetry/[OpenTelemetry] is a set
 of APIs, SDKs, tooling, and integrations that enable the capture and management of
 telemetry data from your services for greater observability. For more information about the
@@ -25,20 +22,72 @@ business KPIs and technical components with the {stack}.
 
 There are two Elastic OpenTelemetry integrations available:
 
-* <<open-telemetry-elastic-exporter,Elastic exporter on the OpenTelemetry collector>> (recommmended)
-* <<open-telemetry-elastic-protocol,APM Server native support of OpenTelemetry protocol>> (experimental)
+* <<open-telemetry-elastic-protocol,APM Server native support of OpenTelemetry protocol>> (recommended)
+* <<open-telemetry-elastic-exporter,Elastic exporter on the OpenTelemetry collector>>
+
+[[open-telemetry-elastic-protocol]]
+==== APM Server native support of OpenTelemetry protocol
+
+Elastic APM Server natively supports the OpenTelemetry protocol.
+This means trace data and metrics collected from your applications and infrastructure can
+be sent directly to APM Server using the OpenTelemetry protocol.
+
+image::images/open-telemetry-protocol-arch.png[OpenTelemetry Elastic protocol architecture diagram]
+
+[float]
+[[instrument-apps-apm-server]]
+===== Instrument applications
+
+To export traces and metrics to APM Server, ensure that you have instrumented your services and applications
+with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to instrument your Java app using the
+https://github.com/open-telemetry/opentelemetry-java-instrumentation[OpenTelemetry agent for Java].
+
+By defining the following environment variables, you can customize the OTLP endpoint so that the OpenTelemetry agent communicates with
+APM Server.
+
+[source,bash]
+----
+export OTEL_RESOURCE_ATTRIBUTES=service.name=checkoutService,service.version=1.1,deployment.environment=production
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://apm_server_url:8200
+export OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer apm_secret_token"
+java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
+     -classpath lib/*:classes/ \
+     com.mycompany.checkout.CheckoutServiceServer
+----
+
+|===
+
+| `OTEL_RESOURCE_ATTRIBUTES` | The service name to identify your application.
+
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
+
+| `OTEL_EXPORTER_OTLP_HEADERS` | Authorization header that includes the Elastic APM Secret token or API key: `"authorization=ApiKey api_key"`.
+
+For information on how to format an API key, see our {apm-server-ref-v}/api-key.html[API key] docs.
+
+Please note the required space between `Bearer` and `apm_secret_token`, and `APIKey` and `api_key`.
+
+| `OTEL_EXPORTER_OTLP_CERTIFICATE` | Certificate for TLS credentials of the gRPC client. (optional)
+
+|===
+
+You are now ready to collect <<open-telemetry-elastic-traces-metrics,traces and metrics>>, <<open-telemetry-elastic-verify,verify metrics>>,
+and <<open-telemetry-elastic-kibana,visualize metrics>> in {kib}.
+
+IMPORTANT: If collecting metrics, please note that the https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/DoubleValueRecorder.html[`DoubleValueRecorder`]
+and https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/LongValueObserver.html[`LongValueRecorder`] metrics are not yet supported.
 
 [[open-telemetry-elastic-exporter]]
 ==== Elastic exporter on the OpenTelemetry collector
 
-The is the recommended OpenTelemetry integration. We have extended the "contrib" OpenTelemetry collector by
+We have extended the "contrib" OpenTelemetry collector by
 adding an Elastic exporter so that you can drop this integration into your current OpenTelemetry setup.
 
 The architecture consists of three main components.
 
 image::images/open-telemetry-exporter-arch.png[OpenTelemetry Elastic exporter architecture diagram]
 
-|=== 
+|===
 
 | *Agents* | The OpenTelemetry agents instrument the applications and export the telemetry data to the OpenTelemetry collector.
 
@@ -59,8 +108,8 @@ OpenTelemetry Collectors can be run as agents or as standalone collectors.
 They can be deployed as often as necessary and scaled up or out. Deployment planning resources are available in
 OpenTelemetry's {ot-collector}[Getting Started] documentation and {ot-scaling}[Collector Performance] research.
 
-You can download the latest release of the Collector from the {ot-contrib}/releases[GitHub releases page]. The Elastic exporter
-lives in the {ot-contrib}[`opentelemetry-collector-contrib` repository].
+You can download the latest release of the collector from the {ot-contrib}/releases[GitHub releases page].
+The Elastic exporter lives in the {ot-contrib}[`opentelemetry-collector-contrib` repository].
 
 Docker images are available on {ot-dockerhub}[dockerhub]:
 
@@ -127,7 +176,7 @@ and integrated visualizations to collect infrastructure metrics.
 [[open-telemetry-elastic-config]]
 ===== Elastic exporter configuration options
 
-|=== 
+|===
 
 | `apm_server_url` | Elastic APM Server URL. (required).
 
@@ -151,7 +200,7 @@ and integrated visualizations to collect infrastructure metrics.
 
 To export traces and metrics to the OpenTelemetry Collector, ensure that you have instrumented your services and applications
 with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to instrument your Java app using the
-https://github.com/open-telemetry/opentelemetry-java-instrumentation[OpenTelemetry agent for Java]. 
+https://github.com/open-telemetry/opentelemetry-java-instrumentation[OpenTelemetry agent for Java].
 
 By defining the following environment variables, you can customize the OTLP endpoint the agent will use to communicate with
 APM Server.
@@ -164,7 +213,7 @@ java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
      -jar target/frontend-1.1.jar
 ----
 
-|=== 
+|===
 
 | `OTEL_RESOURCE_ATTRIBUTES` | The service name to identify your application.
 
@@ -175,65 +224,11 @@ java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
 You are now ready to collect <<open-telemetry-elastic-traces-metrics,traces and metrics>>, <<open-telemetry-elastic-verify,verify metrics>>,
 and <<open-telemetry-elastic-kibana,visualize metrics>> in {kib}.
 
-[[open-telemetry-elastic-protocol]]
-==== APM Server native support of OpenTelemetry protocol
-
-experimental::[This feature is experimental and may be changed in a future release. It is only available in a self-managed environment.]
-
-The APM Server native support of the OpenTelemetry protocol allows you to send collected telemetry data directly from your applications to APM Server.
-Trace data collected from your services and the metrics data collected from your applications and infrastructure are sent using the
-OpenTelemetry protocol.
-
-image::images/open-telemetry-protocol-arch.png[OpenTelemetry Elastic protocol architecture diagram]
-
-[float]
-[[instrument-apps-apm-server]]
-===== Instrument applications
-
-To export traces and metrics to APM Server, ensure that you have instrumented your services and applications
-with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to instrument your Java app using the
-https://github.com/open-telemetry/opentelemetry-java-instrumentation[OpenTelemetry agent for Java]. 
-
-By defining the following environment variables, you can customize the OTLP endpoint so that the OpenTelemetry agent communicates with
-APM Server.
-
-[source,bash]
-----
-export OTEL_RESOURCE_ATTRIBUTES=service.name=checkoutService,service.version=1.1,deployment.environment=production
-export OTEL_EXPORTER_OTLP_ENDPOINT=https://apm_server_url:8200
-export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer apm_secret_token"
-java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
-     -classpath lib/*:classes/ \
-     com.mycompany.checkout.CheckoutServiceServer
-----
-
-|=== 
-
-| `OTEL_RESOURCE_ATTRIBUTES` | The service name to identify your application.
-
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
-
-| `OTEL_EXPORTER_OTLP_HEADERS` | Authorization header that includes the Elastic APM Secret token or API key: `"Authorization=ApiKey api_key"`.
-
-For information on how to format an API key, see our {apm-server-ref-v}/api-key.html[API key] docs.
-
-Please note the required space between `Bearer` and `apm_secret_token`, and `APIKey` and `api_key`.
-
-| `OTEL_EXPORTER_OTLP_CERTIFICATE` | Certificate for TLS credentials of the gRPC client. (optional)
-
-|===
-
-You are now ready to collect <<open-telemetry-elastic-traces-metrics,traces and metrics>>, <<open-telemetry-elastic-verify,verify metrics>>,
-and <<open-telemetry-elastic-kibana,visualize metrics>> in {kib}.
-
-[float]
 [[open-telemetry-elastic-traces-metrics]]
 ==== Collect traces and metrics
 
-To export traces and metrics, ensure that you have instrumented your services and applications
-with the OpenTelemetry API, SDK, or both.
-
-Here is an example of how to capture business metrics from a Java application.
+You're now ready to export traces and metrics from your services and applications.
+Here's an example of how to capture business metrics from a Java application.
 
 [source,java]
 ----
@@ -250,8 +245,8 @@ public void createOrder(HttpServletRequest request) {
 }
 ----
 
-IMPORTANT: If collecting metrics, please note that the https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/DoubleValueRecorder.html[`DoubleValueRecorder`]
-and https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/LongValueObserver.html[`LongValueRecorder`] metrics are not yet supported.
+See the https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md[Open Telemetry Metrics API]
+for more information.
 
 [[open-telemetry-elastic-verify]]
 ==== Verify OpenTelemetry metrics data
@@ -313,3 +308,6 @@ Both visualizations are now displayed on your custom dashboard.
 
 IMPORTANT: By default, Discover shows data for the last 15 minutes. If you have a time-based index
 and no data displays, you might need to increase the time range.
+
+// Make tab-widgets work
+include::../tab-widgets/code.asciidoc[]

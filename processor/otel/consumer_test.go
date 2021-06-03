@@ -518,6 +518,66 @@ func TestRPCSpan(t *testing.T) {
 	}, span.DestinationService)
 }
 
+func TestMessagingTransaction(t *testing.T) {
+	tx := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
+		"messaging.destination": pdata.NewAttributeValueString("myQueue"),
+	}, func(s pdata.Span) {
+		s.SetKind(pdata.SpanKindCONSUMER)
+		// Set parentID to imply this isn't the root, but
+		// kind==CONSUMER should still force the span to be translated
+		// as a transaction.
+		s.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
+	})
+	assert.Equal(t, "messaging", tx.Type)
+	assert.Empty(t, tx.Labels)
+	assert.Equal(t, &model.Message{
+		QueueName: "myQueue",
+	}, tx.Message)
+}
+
+func TestMessagingSpan(t *testing.T) {
+	span := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{
+		"messaging.system":      pdata.NewAttributeValueString("kafka"),
+		"messaging.destination": pdata.NewAttributeValueString("myTopic"),
+		"net.peer.ip":           pdata.NewAttributeValueString("10.20.30.40"),
+		"net.peer.port":         pdata.NewAttributeValueInt(123),
+	}, func(s pdata.Span) {
+		s.SetKind(pdata.SpanKindPRODUCER)
+	})
+	assert.Equal(t, "messaging", span.Type)
+	assert.Equal(t, "kafka", span.Subtype)
+	assert.Equal(t, "send", span.Action)
+	assert.Empty(t, span.Labels)
+	assert.Equal(t, &model.Destination{
+		Address: "10.20.30.40",
+		Port:    123,
+	}, span.Destination)
+	assert.Equal(t, &model.DestinationService{
+		Type:     "messaging",
+		Name:     "kafka",
+		Resource: "kafka/myTopic",
+	}, span.DestinationService)
+}
+
+func TestArrayLabels(t *testing.T) {
+	stringArray := pdata.NewAttributeValueArray()
+	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("string1"))
+	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("string2"))
+
+	boolArray := pdata.NewAttributeValueArray()
+	boolArray.ArrayVal().Append(pdata.NewAttributeValueBool(false))
+	boolArray.ArrayVal().Append(pdata.NewAttributeValueBool(true))
+
+	tx := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
+		"string_array": stringArray,
+		"bool_array":   boolArray,
+	})
+	assert.Equal(t, common.MapStr{
+		"bool_array":   []interface{}{false, true},
+		"string_array": []interface{}{"string1", "string2"},
+	}, tx.Labels)
+}
+
 func TestConsumer_JaegerMetadata(t *testing.T) {
 	jaegerBatch := jaegermodel.Batch{
 		Spans: []*jaegermodel.Span{{
@@ -1036,23 +1096,29 @@ func jaegerKeyValue(k string, v interface{}) jaegermodel.KeyValue {
 	return kv
 }
 
-func transformTransactionWithAttributes(t *testing.T, attrs map[string]pdata.AttributeValue) *model.Transaction {
+func transformTransactionWithAttributes(t *testing.T, attrs map[string]pdata.AttributeValue, configFns ...func(pdata.Span)) *model.Transaction {
 	traces, spans := newTracesSpans()
 	otelSpan := pdata.NewSpan()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	for _, fn := range configFns {
+		fn(otelSpan)
+	}
 	otelSpan.Attributes().InitFromMap(attrs)
 	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
 	return events.Transactions[0]
 }
 
-func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeValue) *model.Span {
+func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeValue, configFns ...func(pdata.Span)) *model.Span {
 	traces, spans := newTracesSpans()
 	otelSpan := pdata.NewSpan()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	otelSpan.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
+	for _, fn := range configFns {
+		fn(otelSpan)
+	}
 	otelSpan.Attributes().InitFromMap(attrs)
 	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)

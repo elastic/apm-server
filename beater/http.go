@@ -27,6 +27,7 @@ import (
 	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
 
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
@@ -45,8 +46,8 @@ type httpServer struct {
 	grpcListener net.Listener
 }
 
-func newHTTPServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, batchProcessor model.BatchProcessor) (*httpServer, error) {
-	mux, err := api.NewMux(info, cfg, reporter, batchProcessor)
+func newHTTPServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, batchProcessor model.BatchProcessor, f agentcfg.Fetcher) (*httpServer, error) {
+	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, f)
 	if err != nil {
 		return nil, err
 	}
@@ -95,8 +96,7 @@ func (h *httpServer) start() error {
 		h.logger.Infof("Listening on: %s:%s", addr.Network(), addr.String())
 	}
 
-	switch h.cfg.RumConfig.IsEnabled() {
-	case true:
+	if h.cfg.RumConfig.Enabled {
 		h.logger.Info("RUM endpoints enabled!")
 		for _, s := range h.cfg.RumConfig.AllowOrigins {
 			if s == "*" {
@@ -104,7 +104,7 @@ func (h *httpServer) start() error {
 				break
 			}
 		}
-	case false:
+	} else {
 		h.logger.Info("RUM endpoints disabled.")
 	}
 

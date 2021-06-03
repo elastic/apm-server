@@ -55,7 +55,6 @@ import (
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
-	"github.com/elastic/apm-server/tests/loader"
 )
 
 type m map[string]interface{}
@@ -609,7 +608,7 @@ func dummyPipeline(cfg *common.Config, info beat.Info, clients ...outputs.Client
 }
 
 var testData = func() []byte {
-	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
+	b, err := ioutil.ReadFile("../testdata/intake-v2/transactions.ndjson")
 	if err != nil {
 		panic(err)
 	}

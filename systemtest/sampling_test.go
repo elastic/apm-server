@@ -19,6 +19,7 @@ package systemtest_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -100,11 +101,7 @@ func TestTailSampling(t *testing.T) {
 			Policies: []apmservertest.TailSamplingPolicy{{SampleRate: 0.5}},
 		},
 	}
-	srv1.Config.Monitoring = &apmservertest.MonitoringConfig{
-		Enabled:       true,
-		MetricsPeriod: 100 * time.Millisecond,
-		StatePeriod:   100 * time.Millisecond,
-	}
+	srv1.Config.Monitoring = newFastMonitoringConfig()
 	require.NoError(t, srv1.Start())
 
 	srv2 := apmservertest.NewUnstartedServer(t)
@@ -230,6 +227,9 @@ func refreshPeriodically(t *testing.T, interval time.Duration, index ...string) 
 			case <-ticker.C:
 			}
 			if _, err := systemtest.Elasticsearch.Do(ctx, &request, nil); err != nil {
+				if errors.Is(err, context.Canceled) {
+					return nil
+				}
 				return err
 			}
 		}

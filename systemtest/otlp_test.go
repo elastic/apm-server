@@ -79,11 +79,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 func TestOTLPGRPCMetrics(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.Monitoring = &apmservertest.MonitoringConfig{
-		Enabled:       true,
-		MetricsPeriod: time.Duration(time.Second),
-		StatePeriod:   time.Duration(time.Second),
-	}
+	srv.Config.Monitoring = newFastMonitoringConfig()
 	err := srv.Start()
 	require.NoError(t, err)
 
@@ -94,9 +90,11 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 		float64Counter := meter.NewFloat64Counter("float64_counter")
 		float64Counter.Add(context.Background(), 1)
 
-		// This will be dropped, as we do not support consuming histograms yet.
 		int64Recorder := meter.NewInt64ValueRecorder("int64_recorder")
+		int64Recorder.Record(context.Background(), 1)
 		int64Recorder.Record(context.Background(), 123)
+		int64Recorder.Record(context.Background(), 1024)
+		int64Recorder.Record(context.Background(), 20000)
 	})
 	require.NoError(t, err)
 
@@ -169,61 +167,6 @@ func TestOTLPClientIP(t *testing.T) {
 		Field: "service.name", Value: "service2",
 	})
 	assert.True(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())
-}
-
-func TestOpenTelemetryJavaMetrics(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
-	err := srv.Start()
-	require.NoError(t, err)
-
-	aggregator := simple.NewWithExactDistribution()
-	err = sendOTLPMetrics(t, context.Background(), srv, aggregator, func(meter metric.MeterMust) {
-		// Record well-known JVM runtime metrics, to test that they are
-		// copied to their Elastic APM equivalents during ingest.
-		jvmGCTime := meter.NewInt64Counter("runtime.jvm.gc.time")
-		jvmGCCount := meter.NewInt64Counter("runtime.jvm.gc.count")
-		jvmGCTime.Bind(attribute.String("gc", "G1 Young Generation")).Add(context.Background(), 123)
-		jvmGCCount.Bind(attribute.String("gc", "G1 Young Generation")).Add(context.Background(), 1)
-		jvmMemoryArea := meter.NewInt64UpDownCounter("runtime.jvm.memory.area")
-		jvmMemoryArea.Bind(
-			attribute.String("area", "heap"),
-			attribute.String("type", "used"),
-		).Add(context.Background(), 42)
-	})
-	require.NoError(t, err)
-
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*", estest.BoolQuery{Filter: []interface{}{
-		estest.TermQuery{Field: "processor.event", Value: "metric"},
-	}})
-	require.Len(t, result.Hits.Hits, 2) // one for each set of labels
-
-	var gcHit, memoryAreaHit estest.SearchHit
-	for _, hit := range result.Hits.Hits {
-		require.Contains(t, hit.Source, "jvm")
-		switch {
-		case gjson.GetBytes(hit.RawSource, "labels.gc").Exists():
-			gcHit = hit
-		case gjson.GetBytes(hit.RawSource, "labels.area").Exists():
-			memoryAreaHit = hit
-		}
-	}
-
-	assert.Equal(t, 123.0, gjson.GetBytes(gcHit.RawSource, "runtime.jvm.gc.time").Value())
-	assert.Equal(t, 1.0, gjson.GetBytes(gcHit.RawSource, "runtime.jvm.gc.count").Value())
-	assert.Equal(t, map[string]interface{}{
-		"gc":   "G1 Young Generation",
-		"name": "G1 Young Generation",
-	}, gcHit.Source["labels"])
-	assert.Equal(t, 123.0, gjson.GetBytes(gcHit.RawSource, "jvm.gc.time").Value())
-	assert.Equal(t, 1.0, gjson.GetBytes(gcHit.RawSource, "jvm.gc.count").Value())
-
-	assert.Equal(t, 42.0, gjson.GetBytes(memoryAreaHit.RawSource, "runtime.jvm.memory.area").Value())
-	assert.Equal(t, map[string]interface{}{
-		"area": "heap",
-		"type": "used",
-	}, memoryAreaHit.Source["labels"])
-	assert.Equal(t, 42.0, gjson.GetBytes(memoryAreaHit.RawSource, "jvm.memory.heap.used").Value())
 }
 
 func newOTLPExporter(t testing.TB, srv *apmservertest.Server, options ...otlpgrpc.Option) *otlp.Exporter {

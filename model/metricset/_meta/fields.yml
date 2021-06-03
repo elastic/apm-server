@@ -1,3 +1,12 @@
+- key: apm-application-metrics
+  title: "APM Application Metrics"
+  description: APM application metrics.
+  short_config: true
+  fields:
+    - name: histogram
+      type: histogram
+      dynamic_template: true
+
 - key: apm-transaction-metrics
   title: "APM Transaction Metrics"
   description: >
@@ -167,6 +176,7 @@
               fields:
                 - name: us
                   type: long
+                  unit: micros
                   overwrite: true
                   description: Aggregated transaction duration, in microseconds.
 
@@ -184,6 +194,7 @@
               fields:
                 - name: us
                   type: long
+                  unit: micros
                   overwrite: true
                   description: >
                     Aggregated transaction duration, excluding the time periods where a
@@ -236,6 +247,7 @@
             fields:
               - name: us
                 type: long
+                unit: micros
                 overwrite: true
                 description: >
                   Aggregated span duration, excluding the time periods where a
@@ -412,7 +424,6 @@
           overwrite: true
           description: >
             Hostname of the APM Server.
-          overwrite: true
 
         - name: version
           type: keyword
@@ -431,7 +442,6 @@
           overwrite: true
           description: >
             The type will be set to `apm-server`.
-          overwrite: true
 
     - name: user
       type: group
@@ -782,6 +792,8 @@
         - name: total.norm.pct
           type: scaled_float
           format: percent
+          unit: percent
+          metric_type: gauge
           description: >
             The percentage of CPU time spent by the process since the last event.
             This value is normalized by the number of CPU cores and it ranges
@@ -795,6 +807,8 @@
         - name: total
           type: long
           format: bytes
+          unit: byte
+          metric_type: gauge
           description: >
             Total memory.
         - name: actual
@@ -805,6 +819,8 @@
           - name: free
             type: long
             format: bytes
+            unit: byte
+            metric_type: gauge
             description: >
               Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory
               plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal
@@ -823,6 +839,8 @@
           - name: total.norm.pct
             type: scaled_float
             format: percent
+            unit: percent
+            metric_type: gauge
             description: >
               The percentage of CPU time spent by the process since the last event.
               This value is normalized by the number of CPU cores and it ranges
@@ -835,11 +853,15 @@
           - name: size
             type: long
             format: bytes
+            unit: byte
+            metric_type: gauge
             description: >
               The total virtual memory the process has.
           - name: rss.bytes
             type: long
             format: bytes
+            unit: byte
+            metric_type: gauge
             description: >
               The Resident Set Size. The amount of memory the process occupied in main memory (RAM).
         - name: cgroup
@@ -851,7 +873,7 @@
             description: CPU-specific cgroup metrics and limits.
             fields:
             - name: id
-              type: long
+              type: keyword
               description: ID for the current cgroup CPU.
             - name: cfs
               type: group
@@ -860,28 +882,38 @@
               - name: period.us
                 type: long
                 description: CFS period in microseconds.
+                unit: micros
+                metric_type: gauge
               - name: quota.us
                 type: long
                 description: CFS quota in microseconds.
+                unit: micros
+                metric_type: gauge
             - name: stats.periods
               type: long
               description: Number of periods seen by the CPU.
+              metric_type: counter
             - name: stats.throttled.periods
               type: long
               description: Number of throttled periods seen by the CPU.
+              metric_type: counter
             - name: stats.throttled.ns
               type: long
               description: Nanoseconds spent throttled seen by the CPU.
+              unit: nanos
+              metric_type: counter
           - name: cpuacct
             type: group
             description: CPU Accounting-specific cgroup metrics and limits.
             fields:
             - name: id
-              type: long
+              type: keyword
               description: ID for the current cgroup CPU.
             - name: total.ns
               type: long
               description: Total CPU time for the current cgroup CPU in nanoseconds.
+              unit: nanos
+              metric_type: counter
           - name: memory
             type: group
             description: Memory-specific cgroup metrics and limits.
@@ -889,8 +921,12 @@
             - name: mem.limit.bytes
               type: long
               format: bytes
+              unit: byte
+              metric_type: gauge
               description: Memory limit for the current cgroup slice.
             - name: mem.usage.bytes
               type: long
               format: bytes
+              unit: byte
+              metric_type: gauge
               description:  Memory usage by the current cgroup slice.

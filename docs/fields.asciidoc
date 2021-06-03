@@ -12,6 +12,7 @@ This file is generated! See _meta/fields.yml and scripts/generate_fields_docs.py
 This document describes the fields that are exported by Apm-Server. They are
 grouped in the following categories:
 
+* <<exported-fields-apm-application-metrics>>
 * <<exported-fields-apm-error>>
 * <<exported-fields-apm-profile>>
 * <<exported-fields-apm-sourcemap>>
@@ -30,6 +31,19 @@ grouped in the following categories:
 * <<exported-fields-system>>
 
 --
+[[exported-fields-apm-application-metrics]]
+== APM Application Metrics fields
+
+APM application metrics.
+
+
+*`histogram`*::
++
+--
+type: histogram
+
+--
+
 [[exported-fields-apm-error]]
 == APM Error fields
 
@@ -2305,7 +2319,7 @@ type: keyword
 *`profile.duration`*::
 +
 --
-Duration of the profile, in microseconds. All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
+Duration of the profile, in nanoseconds. All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
 
 
 type: long
@@ -6270,15 +6284,6 @@ alias to: agent.name
 +
 --
 Time series instance id
-
-type: keyword
-
---
-
-*`user_agent.device.type`*::
-+
---
-Type of device where the user agent is running.
 
 type: keyword
 
@@ -16996,6 +17001,16 @@ type: keyword
 
 --
 
+*`kubernetes.pod.ip`*::
++
+--
+Kubernetes Pod IP
+
+
+type: ip
+
+--
+
 *`kubernetes.namespace`*::
 +
 --
@@ -17046,10 +17061,10 @@ type: object
 
 --
 
-*`kubernetes.service.selectors.*`*::
+*`kubernetes.selectors.*`*::
 +
 --
-Kubernetes Service selectors map
+Kubernetes selectors map
 
 
 type: object
@@ -17269,7 +17284,7 @@ CPU-specific cgroup metrics and limits.
 --
 ID for the current cgroup CPU.
 
-type: long
+type: keyword
 
 --
 
@@ -17335,7 +17350,7 @@ CPU Accounting-specific cgroup metrics and limits.
 --
 ID for the current cgroup CPU.
 
-type: long
+type: keyword
 
 --
 

@@ -1,0 +1,20 @@
+apm-server:
+    host: {{host}}
+    secret_token: {{secret_token}}
+    max_event_size: {{max_event_bytes}}
+    capture_personal_data: {{capture_personal_data}}
+    default_service_environment: {{default_service_environment}}
+    rum:
+        enabled: {{enable_rum}}
+        source_mapping.elasticsearch.api_key: {{sourcemap_api_key}}
+        allow_service_names: {{rum_allow_service_names}}
+        allow_origins: {{rum_allow_origins}}
+        allow_headers: {{rum_allow_headers}}
+        library_pattern: {{rum_library_pattern}}
+        exclude_from_grouping: {{rum_exclude_from_grouping}}
+        response_headers: {{rum_response_headers}}
+        event_rate.limit: {{rum_event_rate_limit}}
+        event_rate.lru_size: {{rum_event_rate_lru_size}}
+    api_key:
+        enabled: {{api_key_enabled}}
+        limit: {{api_key_limit}}

@@ -546,10 +546,41 @@ type metricset struct {
 	Transaction metricsetTransactionRef `json:"transaction"`
 }
 
-// TODO(axw/simitt): add support for ingesting counts/values (histogram metrics)
 type metricsetSampleValue struct {
+	// Type holds an optional metric type: gauge, counter, or histogram.
+	//
+	// If Type is unknown, it will be ignored.
+	Type nullable.String `json:"type"`
+
+	// Unit holds an optional unit for the metric.
+	//
+	// - "percent" (value is in the range [0,1])
+	// - "byte"
+	// - a time unit: "nanos", "micros", "ms", "s", "m", "h", "d"
+	//
+	// If Unit is unknown, it will be ignored.
+	Unit nullable.String `json:"unit"`
+
 	// Value holds the value of a single metric sample.
-	Value nullable.Float64 `json:"value" validate:"required"`
+	Value nullable.Float64 `json:"value"`
+
+	// Values holds the bucket values for histogram metrics.
+	//
+	// Values must be provided in ascending order; failure to do
+	// so will result in the metric being discarded.
+	Values []float64 `json:"values" validate:"requiredIfAny=counts"`
+
+	// Counts holds the bucket counts for histogram metrics.
+	//
+	// These numbers must be positive or zero.
+	//
+	// If Counts is specified, then Values is expected to be
+	// specified with the same number of elements, and with the
+	// same order.
+	Counts []int64 `json:"counts" validate:"requiredIfAny=values,minVals=0"`
+
+	// At least one of value or values must be specified.
+	_ struct{} `validate:"requiredAnyOf=value;values"`
 }
 
 type metricsetSpanRef struct {

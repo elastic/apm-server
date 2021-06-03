@@ -1,4 +1,0 @@
-title: APM tail-sampled traces
-type: traces
-dataset: sampled
-ilm_policy: traces-apm.sampled-default_policy

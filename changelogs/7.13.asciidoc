@@ -3,11 +3,26 @@
 
 https://github.com/elastic/apm-server/compare/7.12\...7.13[View commits]
 
+* <<release-notes-7.13.1>>
 * <<release-notes-7.13.0>>
 
 [float]
+[[release-notes-7.13.1]]
+=== APM Server version 7.13.1
+
+https://github.com/elastic/apm-server/compare/v7.13.0\...v7.13.1[View commits]
+
+[float]
+==== Bug fixes
+
+* Fix document grouping of translated OpenTelemetry Java metrics {pull}5309[5309]
+* model/modeldecoder: fix 32-bit timestamp decoding {pull}5308[5308]
+* OpenTelemetry: record array attributes as labels {pull}5286[5286]
+* Don't auto-disable ILM due to a failure to communicate with Elasticsearch {pull}5264[5264]
+
+[float]
 [[release-notes-7.13.0]]
-=== APM Server version 7.10.0
+=== APM Server version 7.13.0
 
 https://github.com/elastic/apm-server/compare/v7.12.1\...v7.13.0[View commits]
 
@@ -19,14 +34,14 @@ https://github.com/elastic/apm-server/compare/v7.12.1\...v7.13.0[View commits]
 [float]
 ==== Added
 * Add support for Node.js wall time profiles {pull}4728[4728]
-* Add metricset.name field to metric docs {pull}4857[4857]
+* Add `metricset.name` field to metric docs {pull}4857[4857]
 * Add `apm-server.default_service_environment` config {pull}4861[4861]
 * Transaction histogram metrics are now recorded by default {pull}4882[4882]
 * Add `error.grouping_name` field to speed up error grouping aggregations {pull}4886[4886]
 * Add support for OpenTelemetry exception span events {pull}4876[4876]
-* Set metricset.name for breakdown metrics {pull}4910[4910]
+* Set `metricset.name` for breakdown metrics {pull}4910[4910]
 * Set log and http responses for server timeout {pull}4918[4918]
-* Define ES fields for cgroup.cpu and cgroup.cpuacct metrics {pull}4956[4956]
+* Define ES fields for `cgroup.cpu` and `cgroup.cpuacct` metrics {pull}4956[4956]
 * Log gRPC tracing requests {pull}4934[4934]
 * Improved coverage of translation of OpenTelemetry resource conventions {pull}4955[4955]
 * Set `client.ip` for events from the Elastic APM iOS agent {pull}4975[4975]

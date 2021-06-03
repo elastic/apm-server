@@ -19,14 +19,12 @@ package config
 
 import (
 	"net"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
-	"github.com/elastic/beats/v7/libbeat/kibana"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	logs "github.com/elastic/apm-server/log"
@@ -39,28 +37,9 @@ const (
 	msgInvalidConfigAgentCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
 )
 
-type KibanaConfig struct {
-	Enabled             bool   `config:"enabled"`
-	APIKey              string `config:"api_key"`
-	kibana.ClientConfig `config:",inline"`
-}
-
-func (k *KibanaConfig) Unpack(cfg *common.Config) error {
-	type kibanaConfig KibanaConfig
-	if err := cfg.Unpack((*kibanaConfig)(k)); err != nil {
-		return err
-	}
-	k.Enabled = cfg.Enabled()
-	k.Host = strings.TrimRight(k.Host, "/")
-	return nil
-}
-
-func defaultKibanaConfig() KibanaConfig {
-	return KibanaConfig{
-		Enabled:      false,
-		ClientConfig: kibana.DefaultClientConfig(),
-	}
-}
+var (
+	errInvalidAgentConfigMissingConfig = errors.New("agent_config: no config set")
+)
 
 // Config holds configuration information nested under the key `apm-server`
 type Config struct {
@@ -74,17 +53,17 @@ type Config struct {
 	TLS                       *tlscommon.ServerConfig `config:"ssl"`
 	MaxConnections            int                     `config:"max_connections"`
 	ResponseHeaders           map[string][]string     `config:"response_headers"`
-	Expvar                    *ExpvarConfig           `config:"expvar"`
-	Pprof                     *PprofConfig            `config:"pprof"`
+	Expvar                    ExpvarConfig            `config:"expvar"`
+	Pprof                     PprofConfig             `config:"pprof"`
 	AugmentEnabled            bool                    `config:"capture_personal_data"`
-	SelfInstrumentation       *InstrumentationConfig  `config:"instrumentation"`
-	RumConfig                 *RumConfig              `config:"rum"`
-	Register                  *RegisterConfig         `config:"register"`
+	SelfInstrumentation       InstrumentationConfig   `config:"instrumentation"`
+	RumConfig                 RumConfig               `config:"rum"`
+	Register                  RegisterConfig          `config:"register"`
 	Mode                      Mode                    `config:"mode"`
 	Kibana                    KibanaConfig            `config:"kibana"`
-	AgentConfig               *AgentConfig            `config:"agent.config"`
+	KibanaAgentConfig         KibanaAgentConfig       `config:"agent.config"`
 	SecretToken               string                  `config:"secret_token"`
-	APIKeyConfig              *APIKeyConfig           `config:"api_key"`
+	APIKeyConfig              APIKeyConfig            `config:"api_key"`
 	JaegerConfig              JaegerConfig            `config:"jaeger"`
 	Aggregation               AggregationConfig       `config:"aggregation"`
 	Sampling                  SamplingConfig          `config:"sampling"`
@@ -92,30 +71,8 @@ type Config struct {
 	DefaultServiceEnvironment string                  `config:"default_service_environment"`
 
 	Pipeline string
-}
 
-// ExpvarConfig holds config information about exposing expvar
-type ExpvarConfig struct {
-	Enabled *bool  `config:"enabled"`
-	URL     string `config:"url"`
-}
-
-// PprofConfig holds config information about exposing pprof
-type PprofConfig struct {
-	Enabled          bool `config:"enabled"`
-	BlockProfileRate int  `config:"block_profile_rate"`
-	MemProfileRate   int  `config:"mem_profile_rate"`
-	MutexProfileRate int  `config:"mutex_profile_rate"`
-}
-
-// AgentConfig holds remote agent config information
-type AgentConfig struct {
-	Cache *Cache `config:"cache"`
-}
-
-// Cache holds config information about cache expiration
-type Cache struct {
-	Expiration time.Duration `config:"expiration"`
+	AgentConfigs []AgentConfig `config:"agent_config"`
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
@@ -126,8 +83,14 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
 
-	if float64(int(c.AgentConfig.Cache.Expiration.Seconds())) != c.AgentConfig.Cache.Expiration.Seconds() {
+	if float64(int(c.KibanaAgentConfig.Cache.Expiration.Seconds())) != c.KibanaAgentConfig.Cache.Expiration.Seconds() {
 		return nil, errors.New(msgInvalidConfigAgentCfg)
+	}
+
+	for _, serviceConfig := range c.AgentConfigs {
+		if err := serviceConfig.setup(); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := c.RumConfig.setup(logger, c.DataStreams.Enabled, outputESCfg); err != nil {
@@ -138,18 +101,12 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, err
 	}
 
-	if err := c.SelfInstrumentation.setup(logger); err != nil {
-		return nil, err
-	}
-
 	if err := c.JaegerConfig.setup(c); err != nil {
 		return nil, err
 	}
 
-	if c.Sampling.Tail != nil {
-		if err := c.Sampling.Tail.setup(logger, outputESCfg); err != nil {
-			return nil, err
-		}
+	if err := c.Sampling.Tail.setup(logger, outputESCfg); err != nil {
+		return nil, err
 	}
 
 	if !c.Sampling.KeepUnsampled && !c.Aggregation.Transactions.Enabled {
@@ -171,16 +128,6 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 	return c, nil
 }
 
-// IsEnabled indicates whether expvar is enabled or not
-func (c *ExpvarConfig) IsEnabled() bool {
-	return c != nil && (c.Enabled == nil || *c.Enabled)
-}
-
-// IsEnabled indicates whether pprof is enabled or not
-func (c *PprofConfig) IsEnabled() bool {
-	return c != nil && c.Enabled
-}
-
 // DefaultConfig returns a config with default settings for `apm-server` config options.
 func DefaultConfig() *Config {
 	return &Config{
@@ -193,21 +140,22 @@ func DefaultConfig() *Config {
 		MaxEventSize:    300 * 1024, // 300 kb
 		ShutdownTimeout: 5 * time.Second,
 		AugmentEnabled:  true,
-		Expvar: &ExpvarConfig{
-			Enabled: new(bool),
+		Expvar: ExpvarConfig{
+			Enabled: false,
 			URL:     "/debug/vars",
 		},
-		Pprof:        &PprofConfig{Enabled: false},
-		RumConfig:    defaultRum(),
-		Register:     defaultRegisterConfig(true),
-		Mode:         ModeProduction,
-		Kibana:       defaultKibanaConfig(),
-		AgentConfig:  &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-		Pipeline:     defaultAPMPipeline,
-		APIKeyConfig: defaultAPIKeyConfig(),
-		JaegerConfig: defaultJaeger(),
-		Aggregation:  defaultAggregationConfig(),
-		Sampling:     defaultSamplingConfig(),
-		DataStreams:  defaultDataStreamsConfig(),
+		Pprof:               PprofConfig{Enabled: false},
+		SelfInstrumentation: defaultInstrumentationConfig(),
+		RumConfig:           defaultRum(),
+		Register:            defaultRegisterConfig(),
+		Mode:                ModeProduction,
+		Kibana:              defaultKibanaConfig(),
+		KibanaAgentConfig:   defaultKibanaAgentConfig(),
+		Pipeline:            defaultAPMPipeline,
+		APIKeyConfig:        defaultAPIKeyConfig(),
+		JaegerConfig:        defaultJaeger(),
+		Aggregation:         defaultAggregationConfig(),
+		Sampling:            defaultSamplingConfig(),
+		DataStreams:         defaultDataStreamsConfig(),
 	}
 }

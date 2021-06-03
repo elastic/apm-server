@@ -152,7 +152,12 @@ func (c *Consumer) convertSpan(
 	var span *model.Span
 
 	name := otelSpan.Name()
-	if root || otelSpan.Kind() == pdata.SpanKindSERVER {
+	// Message consumption results in either a transaction or a span based
+	// on whether the consumption is active or passive. Otel spans
+	// currently do not have the metadata to make this distinction. For
+	// now, we assume that the majority of consumption is passive, and
+	// therefore start a transaction whenever span kind == consumer.
+	if root || otelSpan.Kind() == pdata.SpanKindSERVER || otelSpan.Kind() == pdata.SpanKindCONSUMER {
 		transaction = &model.Transaction{
 			Metadata:  metadata,
 			ID:        spanID,
@@ -222,6 +227,23 @@ func translateTransaction(
 
 		k := replaceDots(kDots)
 		switch v.Type() {
+		case pdata.AttributeValueARRAY:
+			array := v.ArrayVal()
+			values := make([]interface{}, array.Len())
+			for i := range values {
+				value := array.At(i)
+				switch value.Type() {
+				case pdata.AttributeValueBOOL:
+					values[i] = value.BoolVal()
+				case pdata.AttributeValueDOUBLE:
+					values[i] = value.DoubleVal()
+				case pdata.AttributeValueINT:
+					values[i] = value.IntVal()
+				case pdata.AttributeValueSTRING:
+					values[i] = truncate(value.StringVal())
+				}
+			}
+			labels[k] = values
 		case pdata.AttributeValueBOOL:
 			labels[k] = v.BoolVal()
 		case pdata.AttributeValueDOUBLE:
@@ -296,10 +318,8 @@ func translateTransaction(
 			case conventions.AttributeNetHostName:
 				netHostName = stringval
 
-			// messaging
-			//
-			// TODO(axw) translate OpenTelemtry messaging conventions.
-			case "message_bus.destination":
+			// messaging.*
+			case "message_bus.destination", conventions.AttributeMessagingDestination:
 				message.QueueName = stringval
 				isMessaging = true
 
@@ -408,6 +428,11 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		httpScheme string = "http"
 	)
 
+	var (
+		messageSystem    string
+		messageOperation string
+	)
+
 	var http model.HTTP
 	var message model.Message
 	var db model.DB
@@ -500,11 +525,17 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 					netPeerName = stringval
 				}
 
-			// messaging
-			//
-			// TODO(axw) translate OpenTelemtry messaging conventions.
-			case "message_bus.destination":
+			// messaging.*
+			case "message_bus.destination", conventions.AttributeMessagingDestination:
 				message.QueueName = stringval
+				isMessagingSpan = true
+			case conventions.AttributeMessagingOperation:
+				messageOperation = stringval
+				isMessagingSpan = true
+			case conventions.AttributeMessagingSystem:
+				messageSystem = stringval
+				destinationService.Resource = stringval
+				destinationService.Name = stringval
 				isMessagingSpan = true
 
 			// rpc.*
@@ -633,6 +664,14 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		event.DB = &db
 	case isMessagingSpan:
 		event.Type = "messaging"
+		event.Subtype = messageSystem
+		if messageOperation == "" && span.Kind() == pdata.SpanKindPRODUCER {
+			messageOperation = "send"
+		}
+		event.Action = messageOperation
+		if destinationService.Resource != "" && message.QueueName != "" {
+			destinationService.Resource += "/" + message.QueueName
+		}
 		event.Message = &message
 	case isRPCSpan:
 		event.Type = "external"
