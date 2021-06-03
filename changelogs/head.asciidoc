@@ -25,6 +25,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Add support for histograms to metrics intake {pull}5360[5360]
 * Upgrade Go to 1.16.4 {pull}5381[5381]
 * Add units to metric fields {pull}5395[5395]
+* Add HTTP span fields as top level ECS fields {pull}5396[5396]
 
 
 [float]
