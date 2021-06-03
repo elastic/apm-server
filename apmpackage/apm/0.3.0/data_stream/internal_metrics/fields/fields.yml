@@ -33,6 +33,7 @@
 - name: metricset.period
   type: long
   description: Current data collection period for this event in milliseconds.
+  unit: ms
 - name: observer.listening
   type: keyword
   description: |
@@ -81,6 +82,7 @@
 - name: span.destination.service.response_time.sum.us
   type: long
   description: Aggregated duration of outgoing requests, in microseconds.
+  unit: micros
 - name: span.self_time.count
   type: long
   description: Number of aggregated spans.
@@ -88,6 +90,7 @@
   type: long
   description: |
     Aggregated span duration, excluding the time periods where a direct child was running, in microseconds.
+  unit: micros
 - name: span.subtype
   type: keyword
   description: |
@@ -202,6 +205,7 @@
 - name: transaction.duration.sum.us
   type: long
   description: Aggregated transaction duration, in microseconds.
+  unit: micros
 - name: transaction.name
   type: keyword
   description: |
@@ -224,6 +228,7 @@
   type: long
   description: |
     Aggregated transaction duration, excluding the time periods where a direct child was running, in microseconds.
+  unit: micros
 - name: transaction.type
   type: keyword
   description: |
