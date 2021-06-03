@@ -1,0 +1,40 @@
+++++
+<div class="tabs" data-tab-group="jaeger">
+  <div role="tablist" aria-label="jaeger sampling instructions">
+    <button role="tab"
+            aria-selected="true"
+            aria-controls="jaeger-cloud-tab-sampling"
+            id="jaeger-cloud-sampling">
+      Elasticsearch Service
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="jaeger-self-managed-tab-sampling"
+            id="jaeger-self-managed-sampling"
+            tabindex="-1">
+      Self-managed
+    </button>
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="jaeger-cloud-tab-sampling"
+       aria-labelledby="jaeger-cloud-sampling">
+++++
+
+include::jaeger-sampling.asciidoc[tag=ess]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="jaeger-self-managed-tab-sampling"
+       aria-labelledby="jaeger-self-managed-sampling"
+       hidden="">
+++++
+
+include::jaeger-sampling.asciidoc[tag=self-managed]
+
+++++
+  </div>
+</div>
+++++
