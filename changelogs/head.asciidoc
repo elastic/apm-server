@@ -8,12 +8,8 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
 [float]
 ==== Bug fixes
-* Don't auto-disable ILM due to a failure to communicate with Elasticsearch {pull}5264[5264]
 * Fix panic due to misaligned 64-bit access on 32-bit architectures {pull}5277[5277]
 * Fixed tail-based sampling pubsub to use _seq_no correctly {pull}5126[5126]
-* Fix document grouping of translated OpenTelemetry Java metrics {pull}5309[5309]
-* OpenTelemetry: record array attributes as labels {pull}5286[5286]
-* model/modeldecoder: fix 32-bit timestamp decoding {pull}5308[5308]
 
 [float]
 ==== Intake API Changes
@@ -22,12 +18,14 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 ==== Added
 * Support setting agent configuration from apm-server.yml {pull}5177[5177]
 * Add metric_type and unit to field metadata of system metrics {pull}5230[5230]
-* Upgrade Go to 1.15.12 {pull}[]
 * Display apm-server url in fleet ui's apm-server integration {pull}4895[4895]
 * Translate otel messaging.* semantic conventions to ECS {pull}5334[5334]
 * Add support for dynamic histogram metrics {pull}5239[5239]
 * Tail-sampling processor now resumes subscription from previous position after restart {pull}5350[5350]
 * Add support for histograms to metrics intake {pull}5360[5360]
+* Upgrade Go to 1.16.4 {pull}5381[5381]
+* Add units to metric fields {pull}5395[5395]
+
 
 [float]
 ==== Deprecated
