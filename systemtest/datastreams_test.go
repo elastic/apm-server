@@ -104,7 +104,7 @@ func TestDataStreamsEnabled(t *testing.T) {
 			systemtest.ApproveEvents(
 				t, t.Name(), result.Hits.Hits,
 				"@timestamp", "timestamp.us",
-				"trace.id", "transaction.id", "process.title",
+				"trace.id", "transaction.id",
 			)
 
 			// There should be no warnings or errors logged.
