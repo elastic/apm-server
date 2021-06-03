@@ -20,6 +20,7 @@ package sourcemap
 import (
 	"context"
 	"math"
+	"net/http"
 	"strings"
 	"time"
 
@@ -78,7 +79,7 @@ func NewStore(beatInfo beat.Info, cfg config.SourceMapping) (*Store, error) {
 		index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
 		b = &esStore{client: esClient, index: index, logger: logger}
 	} else {
-		b = newFleetBackend(cfg.SourceMapConfigs)
+		b = newFleetBackend(cfg.ESConfig.APIKey, cfg.SourceMapConfigs, http.DefaultClient)
 	}
 
 	return &Store{

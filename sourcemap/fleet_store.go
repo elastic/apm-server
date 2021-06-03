@@ -25,13 +25,13 @@ import (
 )
 
 type fleetStore struct {
-	// TODO: configurable client
-	c    *http.Client
-	cfgs []config.SourceMapConfig
+	apiKey string
+	c      *http.Client
+	cfgs   []config.SourceMapConfig
 }
 
-func newFleetBackend(cfgs []config.SourceMapConfig) fleetStore {
-	return fleetStore{cfgs: cfgs, c: http.DefaultClient}
+func newFleetBackend(apiKey string, cfgs []config.SourceMapConfig, c *http.Client) fleetStore {
+	return fleetStore{apiKey: apiKey, cfgs: cfgs, c: c}
 }
 
 func (f fleetStore) fetch(ctx context.Context, name, version, path string) (string, error) {
