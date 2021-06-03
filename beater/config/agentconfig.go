@@ -53,9 +53,6 @@ type AgentConfig struct {
 }
 
 func (s *AgentConfig) setup() error {
-	if !s.Service.isValid() {
-		return errInvalidAgentConfigServiceName
-	}
 	if s.Config == nil {
 		return errInvalidAgentConfigMissingConfig
 	}
@@ -86,8 +83,4 @@ func (s *Service) String() string {
 		env = "service.environment=" + s.Environment
 	}
 	return strings.Join([]string{name, env}, " ")
-}
-
-func (s *Service) isValid() bool {
-	return s.Name != "" || s.Environment != ""
 }
