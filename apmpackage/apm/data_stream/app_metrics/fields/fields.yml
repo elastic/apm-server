@@ -28,6 +28,7 @@
   type: long
   description: Current data collection period for this event in milliseconds.
   unit: ms
+<<<<<<< HEAD:apmpackage/apm/data_stream/app_metrics/fields/fields.yml
 - name: network.carrier.icc
   type: keyword
   description: |
@@ -48,6 +49,8 @@
   type: keyword
   description: |
     Cellular network technology, eg. 4G
+=======
+>>>>>>> fedc1db2 (Add units to metric duration fields (#5395)):apmpackage/apm/0.3.0/data_stream/app_metrics/fields/fields.yml
 - name: observer.listening
   type: keyword
   description: |
