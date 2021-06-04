@@ -85,8 +85,10 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 		s.Unlock()
 		<-wait
 		// Try to read the value again
-		// TODO: Prevent this from being an infinite loop
-		// Maybe just try s.cache.Get() one more time?
+		// TODO: All waiting Fetch()'s will attempt to re-fetch once
+		// the coordinated backend request has finished. At some point
+		// we need to start failing incoming requests as more start
+		// piling up, if eg. the backend is down.
 		return s.Fetch(ctx, name, version, path)
 	} else {
 		// no inflight request found, add a channel to the map and then
