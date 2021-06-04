@@ -89,16 +89,6 @@ func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg
 		return nil
 	}
 
-	var apiKey string
-	if c.SourceMapping.esConfigured {
-		if dataStreamsEnabled {
-			// when running under Fleet, the only setting configured is the api key
-			apiKey = c.SourceMapping.ESConfig.APIKey
-		} else {
-			return nil
-		}
-	}
-
 	// fall back to elasticsearch output configuration for sourcemap storage if possible
 	if outputESCfg == nil {
 		log.Info("Unable to determine sourcemap storage, sourcemaps will not be applied")
@@ -107,9 +97,6 @@ func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg
 	log.Info("Falling back to elasticsearch output for sourcemap storage")
 	if err := outputESCfg.Unpack(c.SourceMapping.ESConfig); err != nil {
 		return errors.Wrap(err, "unpacking Elasticsearch config into Sourcemap config")
-	}
-	if c.SourceMapping.ESConfig.APIKey == "" {
-		c.SourceMapping.ESConfig.APIKey = apiKey
 	}
 	return nil
 }
