@@ -620,16 +620,13 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 }
 
 func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping) (*sourcemap.Store, error) {
-	logger := logp.NewLogger(logs.Sourcemap)
 	if len(cfg.SourceMapConfigs) == 0 {
-		esClient, err := elasticsearch.NewClient(cfg.ESConfig)
+		c, err := elasticsearch.NewClient(cfg.ESConfig)
 		if err != nil {
 			return nil, err
 		}
 		index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
-		b := sourcemap.NewESStore(esClient, index, logger)
-
-		return sourcemap.NewStore(b, logger, cfg.Cache.Expiration)
+		return sourcemap.NewElasticsearchStore(c, index, cfg.Cache.Expiration)
 	}
 
 	// make a copy of the default http client, configure a Transport to be
@@ -642,9 +639,7 @@ func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping) (*sourcemap
 	}
 
 	c.Transport = apmhttp.WrapRoundTripper(tr)
-	b := sourcemap.NewFleetStore(cfg.ESConfig.APIKey, cfg.SourceMapConfigs, &c)
-
-	return sourcemap.NewStore(b, logger, cfg.Cache.Expiration)
+	return sourcemap.NewFleetStore(&c, cfg.ESConfig.APIKey, cfg.SourceMapConfigs, cfg.Cache.Expiration)
 }
 
 // WrapRunServerWithProcessors wraps runServer such that it wraps args.Reporter

@@ -25,12 +25,14 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/elasticsearch"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -44,8 +46,7 @@ var (
 	errSourcemapWrongFormat = errors.New("Sourcemapping ES Result not in expected format")
 )
 
-// ESStore handles making sourcemap requests to an ElasticSearch backend.
-type ESStore struct {
+type esStore struct {
 	client elasticsearch.Client
 	index  string
 	logger *logp.Logger
@@ -66,13 +67,20 @@ type esSourcemapResponse struct {
 	} `json:"hits"`
 }
 
-// NewESStore returns an instance of ESStore for interacting with sourcemaps
-// stored in ElasticSearch.
-func NewESStore(c elasticsearch.Client, index string, logger *logp.Logger) *ESStore {
-	return &ESStore{c, index, logger}
+// NewElasticsearchStore returns an instance of Store for interacting with
+// sourcemaps stored in ElasticSearch.
+func NewElasticsearchStore(
+	c elasticsearch.Client,
+	index string,
+	expiration time.Duration,
+) (*Store, error) {
+	logger := logp.NewLogger(logs.Sourcemap)
+	s := &esStore{c, index, logger}
+
+	return newStore(s, logger, expiration)
 }
 
-func (s *ESStore) fetch(ctx context.Context, name, version, path string) (string, error) {
+func (s *esStore) fetch(ctx context.Context, name, version, path string) (string, error) {
 	statusCode, body, err := s.runSearchQuery(ctx, name, version, path)
 	if err != nil {
 		return "", errors.Wrap(err, errMsgESFailure)
@@ -94,7 +102,7 @@ func (s *ESStore) fetch(ctx context.Context, name, version, path string) (string
 	return parse(body, name, version, path, s.logger)
 }
 
-func (s *ESStore) runSearchQuery(ctx context.Context, name, version, path string) (int, io.ReadCloser, error) {
+func (s *esStore) runSearchQuery(ctx context.Context, name, version, path string) (int, io.ReadCloser, error) {
 	// build and encode the query
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query(name, version, path)); err != nil {

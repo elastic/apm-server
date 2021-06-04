@@ -49,10 +49,7 @@ type backend interface {
 	fetch(ctx context.Context, name, version, path string) (string, error)
 }
 
-// NewStore creates a new instance for fetching sourcemaps based on the
-// provided config.SourceMapping. Only one of source_mapping.elasticsearch or
-// sourcemapping.source_maps can be configured.
-func NewStore(b backend, logger *logp.Logger, expiration time.Duration) (*Store, error) {
+func newStore(b backend, logger *logp.Logger, expiration time.Duration) (*Store, error) {
 	if expiration < 0 {
 		return nil, errInit
 	}

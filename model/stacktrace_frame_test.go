@@ -28,10 +28,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/elasticsearch"
-	logs "github.com/elastic/apm-server/log"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/sourcemap/test"
@@ -424,9 +422,7 @@ func TestLibraryFrame(t *testing.T) {
 }
 
 func testSourcemapStore(t *testing.T, client elasticsearch.Client) *sourcemap.Store {
-	logger := logp.NewLogger(logs.Sourcemap)
-	b := sourcemap.NewESStore(client, "apm-*sourcemap*", logger)
-	store, err := sourcemap.NewStore(b, logger, time.Minute)
+	store, err := sourcemap.NewElasticsearchStore(client, "apm-*sourcemap*", time.Minute)
 	require.NoError(t, err)
 	return store
 }

@@ -23,12 +23,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
+
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/config"
+	logs "github.com/elastic/apm-server/log"
 )
 
-// FleetStore handles making sourcemap requests to a Fleet-Server.
-type FleetStore struct {
+type fleetStore struct {
 	apikey    string
 	c         *http.Client
 	fleetURLs map[key]string
@@ -40,22 +43,33 @@ type key struct {
 	BundleFilepath string
 }
 
-// NewFleetStore returns an instance of ESStore for interacting with sourcemaps
+// NewFleetStore returns an instance of Store for interacting with sourcemaps
 // stored in Fleet-Server.
-func NewFleetStore(apikey string, cfgs []config.SourceMapConfig, c *http.Client) FleetStore {
+func NewFleetStore(
+	c *http.Client,
+	apikey string,
+	cfgs []config.SourceMapConfig,
+	expiration time.Duration,
+) (*Store, error) {
+	logger := logp.NewLogger(logs.Sourcemap)
+	s := newFleetStore(c, apikey, cfgs)
+	return newStore(s, logger, expiration)
+}
+
+func newFleetStore(c *http.Client, apikey string, cfgs []config.SourceMapConfig) fleetStore {
 	fleetURLs := make(map[key]string)
 	for _, cfg := range cfgs {
 		k := key{cfg.ServiceName, cfg.ServiceVersion, cfg.BundleFilepath}
 		fleetURLs[k] = cfg.SourceMapURL
 	}
-	return FleetStore{
+	return fleetStore{
 		apikey:    "ApiKey " + apikey,
 		fleetURLs: fleetURLs,
 		c:         c,
 	}
 }
 
-func (f FleetStore) fetch(ctx context.Context, name, version, path string) (string, error) {
+func (f fleetStore) fetch(ctx context.Context, name, version, path string) (string, error) {
 	k := key{name, version, path}
 	fleetURL, ok := f.fleetURLs[k]
 	if !ok {

@@ -35,13 +35,13 @@ import (
 	"github.com/elastic/apm-server/sourcemap/test"
 )
 
-func Test_NewStore(t *testing.T) {
+func Test_newStore(t *testing.T) {
 	logger := logp.NewLogger(logs.Sourcemap)
 
-	_, err := NewStore(nil, logger, -1)
+	_, err := newStore(nil, logger, -1)
 	require.Error(t, err)
 
-	f, err := NewStore(nil, logger, 100)
+	f, err := newStore(nil, logger, 100)
 	require.NoError(t, err)
 	assert.NotNil(t, f.cache)
 }
@@ -206,10 +206,7 @@ func TestCleanupInterval(t *testing.T) {
 }
 
 func testStore(t *testing.T, client elasticsearch.Client) *Store {
-	logger := logp.NewLogger(logs.Sourcemap)
-	b := NewESStore(client, "apm-*sourcemap*", logger)
-
-	store, err := NewStore(b, logger, time.Minute)
+	store, err := NewElasticsearchStore(client, "apm-*sourcemap*", time.Minute)
 	require.NoError(t, err)
 	return store
 }

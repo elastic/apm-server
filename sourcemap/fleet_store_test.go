@@ -48,12 +48,13 @@ func TestFetch(t *testing.T) {
 
 	cfgs := []config.SourceMapConfig{
 		{
-			Service:   config.Service{Name: name, Version: version},
-			Bundle:    config.Bundle{Filepath: path},
-			SourceMap: config.SourceMap{URL: ts.URL},
+			ServiceName:    name,
+			ServiceVersion: version,
+			BundleFilepath: path,
+			SourceMapURL:   ts.URL,
 		},
 	}
-	fb := NewFleetStore(apikey, cfgs, c)
+	fb := newFleetStore(c, apikey, cfgs)
 
 	gotRes, err := fb.fetch(context.Background(), name, version, path)
 	assert.NoError(t, err)
