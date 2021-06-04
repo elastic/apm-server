@@ -8,6 +8,7 @@ import sys
 
 import yaml
 
+
 def semver_sorter(a, b):
     a_list = a.split("-")
     b_list = b.split("-")
