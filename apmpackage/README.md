@@ -45,8 +45,6 @@ Follow steps described above, except:
 
 1. New local version
     - Bump the version in `apmpackage/apm/manifest.yml`
-    - Add a new version mapping in the `versionMapping` variable at the top of `apmpackage/cmd/gen-package/main.go`.
-      Most likely this won't be needed in the future.
     - Then do any changes in the new folder. The rest of the steps are the same.
 
 2. First dev version
