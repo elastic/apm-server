@@ -31,15 +31,21 @@ import (
 type FleetStore struct {
 	apikey    string
 	c         *http.Client
-	fleetURLs map[string]string
+	fleetURLs map[key]string
+}
+
+type key struct {
+	ServiceName    string
+	ServiceVersion string
+	BundleFilepath string
 }
 
 // NewFleetStore returns an instance of ESStore for interacting with sourcemaps
 // stored in Fleet-Server.
 func NewFleetStore(apikey string, cfgs []config.SourceMapConfig, c *http.Client) FleetStore {
-	fleetURLs := make(map[string]string)
+	fleetURLs := make(map[key]string)
 	for _, cfg := range cfgs {
-		k := key([]string{cfg.Service.Name, cfg.Service.Version, cfg.Bundle.Filepath})
+		k := key{cfg.Service.Name, cfg.Service.Version, cfg.Bundle.Filepath}
 		fleetURLs[k] = cfg.SourceMap.URL
 	}
 	return FleetStore{
@@ -50,7 +56,7 @@ func NewFleetStore(apikey string, cfgs []config.SourceMapConfig, c *http.Client)
 }
 
 func (f FleetStore) fetch(ctx context.Context, name, version, path string) (string, error) {
-	k := key([]string{name, version, path})
+	k := key{name, version, path}
 	fleetURL, ok := f.fleetURLs[k]
 	if !ok {
 		return "", fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s",

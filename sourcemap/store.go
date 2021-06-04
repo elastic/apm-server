@@ -66,7 +66,7 @@ func NewStore(b backend, logger *logp.Logger, expiration time.Duration) (*Store,
 
 // Fetch a sourcemap from the store.
 func (s *Store) Fetch(ctx context.Context, name string, version string, path string) (*sourcemap.Consumer, error) {
-	key := key([]string{name, version, path})
+	key := cacheKey([]string{name, version, path})
 
 	// fetch from cache
 	if val, found := s.cache.Get(key); found {
@@ -103,7 +103,7 @@ func (s *Store) Added(ctx context.Context, name string, version string, path str
 		s.logger.Warnf("Overriding sourcemap for service %s version %s and file %s",
 			name, version, path)
 	}
-	key := key([]string{name, version, path})
+	key := cacheKey([]string{name, version, path})
 	s.cache.Delete(key)
 	if !s.logger.IsDebug() {
 		return
@@ -119,7 +119,7 @@ func (s *Store) add(key string, consumer *sourcemap.Consumer) {
 	s.logger.Debugf("Added id %v. Cache now has %v entries.", key, s.cache.ItemCount())
 }
 
-func key(s []string) string {
+func cacheKey(s []string) string {
 	return strings.Join(s, "_")
 }
 
