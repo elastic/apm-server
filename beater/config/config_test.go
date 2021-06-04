@@ -293,6 +293,14 @@ func TestUnpackConfig(t *testing.T) {
 				"rum": map[string]interface{}{
 					"enabled": true,
 					"source_mapping": map[string]interface{}{
+						"source_maps": []map[string]string{
+							{
+								"service.name":    "opbeans-rum",
+								"service.version": "1.2.3",
+								"bundle.filepath": "/test/e2e/general-usecase/bundle.js.map",
+								"sourcemap.url":   "http://somewhere.com/bundle.js.map",
+							},
+						},
 						"cache": map[string]interface{}{
 							"expiration": 7,
 						},
@@ -364,9 +372,16 @@ func TestUnpackConfig(t *testing.T) {
 						Cache: Cache{
 							Expiration: 7 * time.Second,
 						},
-						IndexPattern:     "apm-*-sourcemap*",
-						ESConfig:         elasticsearch.DefaultConfig(),
-						SourceMapConfigs: []SourceMapConfig{},
+						IndexPattern: "apm-*-sourcemap*",
+						ESConfig:     elasticsearch.DefaultConfig(),
+						SourceMapConfigs: []SourceMapConfig{
+							{
+								ServiceName:    "opbeans-rum",
+								ServiceVersion: "1.2.3",
+								BundleFilepath: "/test/e2e/general-usecase/bundle.js.map",
+								SourceMapURL:   "http://somewhere.com/bundle.js.map",
+							},
+						},
 					},
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",

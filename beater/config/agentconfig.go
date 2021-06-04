@@ -71,7 +71,6 @@ func (s *AgentConfig) setup() error {
 type Service struct {
 	Name        string `config:"name"`
 	Environment string `config:"environment"`
-	Version     string `config:"version"`
 }
 
 // String implements the Stringer interface.
@@ -82,9 +81,6 @@ func (s *Service) String() string {
 	}
 	if s.Environment != "" {
 		env = "service.environment=" + s.Environment
-	}
-	if s.Version != "" {
-		version = "service.version=" + s.Version
 	}
 	return strings.Join([]string{name, env, version}, " ")
 }

@@ -17,16 +17,10 @@
 
 package config
 
+// SourceMapConfig holds source map configuration information.
 type SourceMapConfig struct {
-	Service   Service   `config:"service"`
-	Bundle    Bundle    `config:"bundle"`
-	SourceMap SourceMap `config:"sourcemap"`
-}
-
-type Bundle struct {
-	Filepath string `config:"filepath"`
-}
-
-type SourceMap struct {
-	URL string `config:"url"`
+	ServiceName    string `config:"service.name"`
+	ServiceVersion string `config:"service.version"`
+	BundleFilepath string `config:"bundle.filepath"`
+	SourceMapURL   string `config:"sourcemap.url"`
 }

@@ -45,8 +45,8 @@ type key struct {
 func NewFleetStore(apikey string, cfgs []config.SourceMapConfig, c *http.Client) FleetStore {
 	fleetURLs := make(map[key]string)
 	for _, cfg := range cfgs {
-		k := key{cfg.Service.Name, cfg.Service.Version, cfg.Bundle.Filepath}
-		fleetURLs[k] = cfg.SourceMap.URL
+		k := key{cfg.ServiceName, cfg.ServiceVersion, cfg.BundleFilepath}
+		fleetURLs[k] = cfg.SourceMapURL
 	}
 	return FleetStore{
 		apikey:    "ApiKey " + apikey,
