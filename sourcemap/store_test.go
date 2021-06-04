@@ -20,6 +20,10 @@ package sourcemap
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -28,6 +32,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -144,6 +149,73 @@ func TestStore_Fetch(t *testing.T) {
 		_, found = store.cache.Get(key)
 		assert.False(t, found)
 	})
+}
+
+func TestConcurrentFetch(t *testing.T) {
+	for _, tc := range []struct {
+		calledWant, errWant, succsWant int64
+	}{
+		{calledWant: 1, errWant: 0, succsWant: 10},
+		{calledWant: 2, errWant: 1, succsWant: 9},
+		{calledWant: 4, errWant: 3, succsWant: 7},
+	} {
+		var (
+			called, errs, succs int64
+
+			apikey  = "supersecret"
+			name    = "webapp"
+			version = "1.0.0"
+			path    = "/my/path/to/bundle.js.map"
+			c       = http.DefaultClient
+
+			errsLeft = tc.errWant
+		)
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			atomic.AddInt64(&called, 1)
+			// Simulate the wait for a network request.
+			time.Sleep(50 * time.Millisecond)
+			if errsLeft > 0 {
+				errsLeft--
+				http.Error(w, "err", http.StatusInternalServerError)
+				return
+			}
+			w.Write([]byte(test.ValidSourcemap))
+		}))
+		defer ts.Close()
+
+		cfgs := []config.SourceMapConfig{
+			{
+				ServiceName:    name,
+				ServiceVersion: version,
+				BundleFilepath: path,
+				SourceMapURL:   ts.URL,
+			},
+		}
+		store, err := NewFleetStore(c, apikey, cfgs, time.Minute)
+		assert.NoError(t, err)
+
+		var wg sync.WaitGroup
+		for i := 0; i < int(tc.succsWant+tc.errWant); i++ {
+			wg.Add(1)
+			go func() {
+				consumer, err := store.Fetch(context.Background(), name, version, path)
+				if err != nil {
+					atomic.AddInt64(&errs, 1)
+				} else {
+					assert.NotNil(t, consumer)
+					atomic.AddInt64(&succs, 1)
+				}
+
+				wg.Done()
+			}()
+		}
+
+		wg.Wait()
+		assert.Equal(t, tc.errWant, errs)
+		assert.Equal(t, tc.calledWant, called)
+		assert.Equal(t, tc.succsWant, succs)
+	}
 }
 
 func TestStore_Added(t *testing.T) {

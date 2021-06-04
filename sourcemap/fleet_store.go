@@ -22,6 +22,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -88,6 +89,15 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 		return "", err
 	}
 	defer resp.Body.Close()
+
+	// Verify that we should only get 200 back from fleet-server
+	if resp.StatusCode != http.StatusOK {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return "", fmt.Errorf("failure querying fleet: statuscode=%d response=(failed to read body)", resp.StatusCode)
+		}
+		return "", fmt.Errorf("failure querying fleet: statuscode=%d response=%s", resp.StatusCode, body)
+	}
 
 	buf := new(bytes.Buffer)
 

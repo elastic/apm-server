@@ -21,6 +21,7 @@ import (
 	"context"
 	"math"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-sourcemap/sourcemap"
@@ -43,6 +44,9 @@ type Store struct {
 	cache   *gocache.Cache
 	backend backend
 	logger  *logp.Logger
+
+	sync.Mutex
+	inflight map[string]chan struct{}
 }
 
 type backend interface {
@@ -55,9 +59,10 @@ func newStore(b backend, logger *logp.Logger, expiration time.Duration) (*Store,
 	}
 
 	return &Store{
-		cache:   gocache.New(expiration, cleanupInterval(expiration)),
-		backend: b,
-		logger:  logger,
+		cache:    gocache.New(expiration, cleanupInterval(expiration)),
+		backend:  b,
+		logger:   logger,
+		inflight: make(map[string]chan struct{}),
 	}, nil
 }
 
@@ -71,10 +76,39 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 		return consumer, nil
 	}
 
+	// if the value hasn't been found, check to see if there's an inflight
+	// request to update the value.
+	s.Lock()
+	wait, ok := s.inflight[key]
+	if ok {
+		// found an inflight request, wait for it to complete.
+		s.Unlock()
+		<-wait
+		// Try to read the value again
+		// TODO: Prevent this from being an infinite loop
+		// Maybe just try s.cache.Get() one more time?
+		return s.Fetch(ctx, name, version, path)
+	} else {
+		// no inflight request found, add a channel to the map and then
+		// make the fetch request.
+		wait = make(chan struct{})
+		s.inflight[key] = wait
+	}
+	s.Unlock()
+
+	// Once the fetch request is complete, close and remove the channel
+	// from the syncronization map.
+	defer func() {
+		s.Lock()
+		delete(s.inflight, key)
+		close(wait)
+		s.Unlock()
+	}()
+
 	// fetch from Elasticsearch and ensure caching for all non-temporary results
 	sourcemapStr, err := s.backend.fetch(ctx, name, version, path)
 	if err != nil {
-		if !strings.Contains(err.Error(), errMsgESFailure) {
+		if !strings.Contains(err.Error(), "failure querying") {
 			s.add(key, nil)
 		}
 		return nil, err
@@ -91,6 +125,7 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 		return nil, errors.Wrap(err, errMsgParseSourcemap)
 	}
 	s.add(key, consumer)
+
 	return consumer, nil
 }
 
