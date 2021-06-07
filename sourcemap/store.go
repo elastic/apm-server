@@ -100,12 +100,13 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 		<-s.waiters
 		// Try to read the value again
 		return s.Fetch(ctx, name, version, path)
-	} else {
-		// no inflight request found, add a channel to the map and then
-		// make the fetch request.
-		wait = make(chan struct{})
-		s.inflight[key] = wait
 	}
+
+	// no inflight request found, add a channel to the map and then
+	// make the fetch request.
+	wait = make(chan struct{})
+	s.inflight[key] = wait
+
 	s.Unlock()
 
 	// Once the fetch request is complete, close and remove the channel
