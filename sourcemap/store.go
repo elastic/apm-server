@@ -44,6 +44,7 @@ type Store struct {
 	cache   *gocache.Cache
 	backend backend
 	logger  *logp.Logger
+	waiters chan struct{}
 
 	sync.Mutex
 	inflight map[string]chan struct{}
@@ -53,15 +54,19 @@ type backend interface {
 	fetch(ctx context.Context, name, version, path string) (string, error)
 }
 
-func newStore(b backend, logger *logp.Logger, expiration time.Duration) (*Store, error) {
+func newStore(b backend, logger *logp.Logger, expiration time.Duration, maxWaiters int) (*Store, error) {
 	if expiration < 0 {
 		return nil, errInit
 	}
 
 	return &Store{
-		cache:    gocache.New(expiration, cleanupInterval(expiration)),
-		backend:  b,
-		logger:   logger,
+		cache:   gocache.New(expiration, cleanupInterval(expiration)),
+		backend: b,
+		logger:  logger,
+		// TODO: Number of requests waiting for a sourcemap to be
+		// fetched. Any suggestion as to where we should set this is
+		// appreciated.
+		waiters:  make(chan struct{}, maxWaiters),
 		inflight: make(map[string]chan struct{}),
 	}, nil
 }
@@ -83,12 +88,17 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 	if ok {
 		// found an inflight request, wait for it to complete.
 		s.Unlock()
+		// Check to see if we should wait for a response
+		select {
+		case s.waiters <- struct{}{}:
+		default:
+			// waiters is currently full, abort the request.
+			return nil, errors.New("sourcemap fetch: too many open requests")
+		}
 		<-wait
+		// Release back to waiters semaphore
+		<-s.waiters
 		// Try to read the value again
-		// TODO: All waiting Fetch()'s will attempt to re-fetch once
-		// the coordinated backend request has finished. At some point
-		// we need to start failing incoming requests as more start
-		// piling up, if eg. the backend is down.
 		return s.Fetch(ctx, name, version, path)
 	} else {
 		// no inflight request found, add a channel to the map and then
