@@ -629,16 +629,12 @@ func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping) (*sourcemap
 		return sourcemap.NewElasticsearchStore(c, index, cfg.Cache.Expiration)
 	}
 
-	// make a copy of the default http client, configure a Transport to be
-	// the same as the esClient, instrument it, and set it on the http
-	// client.
+	// TODO: Configure the client with fleet TLS certs, timeouts, etc.
+	// Fleet hands TLS certs to the child processes during the gRPC
+	// handshake?
 	c := *http.DefaultClient
-	tr, err := elasticsearch.NewHTTPTransport(cfg.ESConfig)
-	if err != nil {
-		return nil, err
-	}
 
-	c.Transport = apmhttp.WrapRoundTripper(tr)
+	c.Transport = apmhttp.WrapRoundTripper(http.DefaultTransport)
 	return sourcemap.NewFleetStore(&c, cfg.ESConfig.APIKey, cfg.SourceMapConfigs, cfg.Cache.Expiration)
 }
 
