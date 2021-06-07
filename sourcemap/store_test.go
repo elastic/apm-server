@@ -43,10 +43,10 @@ import (
 func Test_newStore(t *testing.T) {
 	logger := logp.NewLogger(logs.Sourcemap)
 
-	_, err := newStore(nil, logger, -1, 25)
+	_, err := newStore(nil, logger, -1, time.Second, 25)
 	require.Error(t, err)
 
-	f, err := newStore(nil, logger, 100, 25)
+	f, err := newStore(nil, logger, 100, time.Second, 25)
 	require.NoError(t, err)
 	assert.NotNil(t, f.cache)
 }
@@ -221,6 +221,57 @@ func TestWaitersLimit(t *testing.T) {
 	}
 
 	wg.Wait()
+}
+
+func TestWaitersTimeout(t *testing.T) {
+	var (
+		errs int64
+
+		apikey  = "supersecret"
+		name    = "webapp"
+		version = "1.0.0"
+		path    = "/my/path/to/bundle.js.map"
+		c       = http.DefaultClient
+		waitc   = make(chan struct{})
+	)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-waitc
+		w.Write([]byte(test.ValidSourcemap))
+	}))
+	defer ts.Close()
+
+	cfgs := []config.SourceMapConfig{
+		{
+			ServiceName:    name,
+			ServiceVersion: version,
+			BundleFilepath: path,
+			SourceMapURL:   ts.URL,
+		},
+	}
+	b := newFleetStore(c, apikey, cfgs)
+	logger := logp.NewLogger(logs.Sourcemap)
+	store, err := newStore(b, logger, time.Minute, time.Millisecond, 25)
+	assert.NoError(t, err)
+
+	var wg sync.WaitGroup
+	for i := 0; i < 2; i++ {
+		wg.Add(1)
+		go func() {
+			consumer, err := store.Fetch(context.Background(), name, version, path)
+			if err != nil {
+				assert.Contains(t, err.Error(), "timeout")
+				atomic.AddInt64(&errs, 1)
+				close(waitc)
+			} else {
+				assert.NotNil(t, consumer)
+			}
+
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
+	assert.Equal(t, int64(1), errs)
 }
 
 func TestConcurrentFetch(t *testing.T) {

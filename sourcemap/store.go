@@ -41,10 +41,11 @@ var (
 
 // Store holds information necessary to fetch a sourcemap, either from an Elasticsearch instance or an internal cache.
 type Store struct {
-	cache   *gocache.Cache
-	backend backend
-	logger  *logp.Logger
-	waiters chan struct{}
+	cache       *gocache.Cache
+	backend     backend
+	logger      *logp.Logger
+	waiters     chan struct{}
+	waitTimeout time.Duration
 
 	sync.Mutex
 	inflight map[string]chan struct{}
@@ -54,20 +55,26 @@ type backend interface {
 	fetch(ctx context.Context, name, version, path string) (string, error)
 }
 
-func newStore(b backend, logger *logp.Logger, expiration time.Duration, maxWaiters int) (*Store, error) {
-	if expiration < 0 {
+func newStore(
+	b backend,
+	logger *logp.Logger,
+	cacheExpiration, waitTimeout time.Duration,
+	maxWaiters int,
+) (*Store, error) {
+	if cacheExpiration < 0 {
 		return nil, errInit
 	}
 
 	return &Store{
-		cache:   gocache.New(expiration, cleanupInterval(expiration)),
+		cache:   gocache.New(cacheExpiration, cleanupInterval(cacheExpiration)),
 		backend: b,
 		logger:  logger,
 		// TODO: Number of requests waiting for a sourcemap to be
 		// fetched. Any suggestion as to where we should set this is
 		// appreciated.
-		waiters:  make(chan struct{}, maxWaiters),
-		inflight: make(map[string]chan struct{}),
+		waiters:     make(chan struct{}, maxWaiters),
+		waitTimeout: waitTimeout,
+		inflight:    make(map[string]chan struct{}),
 	}, nil
 }
 
@@ -95,7 +102,14 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 			// waiters is currently full, abort the request.
 			return nil, errors.New("sourcemap fetch: too many open requests")
 		}
-		<-wait
+
+		t := time.NewTimer(s.waitTimeout)
+		select {
+		case <-wait:
+			t.Stop()
+		case <-t.C:
+			return nil, errors.New("sourcemap fetch: timeout")
+		}
 		// Release back to waiters semaphore
 		<-s.waiters
 		// Try to read the value again
