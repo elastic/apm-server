@@ -30,7 +30,7 @@ import (
 	"github.com/elastic/ecs/code/go/ecs"
 )
 
-func generateFields(version string) map[string][]field {
+func generateFields() map[string][]field {
 
 	ecsFlatFields := loadECSFields()
 
@@ -60,7 +60,7 @@ func generateFields(version string) map[string][]field {
 			if err != nil {
 				panic(err)
 			}
-			err = ioutil.WriteFile(filepath.Join(fieldsPath(version, streamType), fName), bytes, 0644)
+			err = ioutil.WriteFile(filepath.Join(fieldsPath(streamType), fName), bytes, 0644)
 			if err != nil {
 				panic(err)
 			}
