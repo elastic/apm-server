@@ -21,12 +21,13 @@ import (
 	"context"
 )
 
-// denyAuth implements the Authorization interface. It denies all authorization requests.
+// denyAuth implements the Authorization interface.
 type denyAuth struct {
 	reason string
 }
 
-// AuthorizedFor always returns false
+// AuthorizedFor always returns a Result indicating the request is neither authorized
+// nor authenticated.
 func (d denyAuth) AuthorizedFor(context.Context, Resource) (Result, error) {
 	return Result{Authorized: false, Reason: d.reason}, nil
 }

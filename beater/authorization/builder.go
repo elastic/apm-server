@@ -63,8 +63,16 @@ type Resource struct {
 
 // Result holds a result of calling Authorization.AuthorizedFor.
 type Result struct {
-	// Authorized indicates whether or not the authorization
-	// attempt was successful.
+	// Anonymous indicates whether or not the client has been granted anonymous access.
+	//
+	// Anonymous may be be false when no authentication/authorization is required,
+	// even if the client has not presented any credentials.
+	Anonymous bool
+
+	// Authorized indicates whether or not the authorization attempt was successful.
+	//
+	// It is possible that a result is both Anonymous and Authorized, when limited
+	// anonymous access is permitted (e.g. for RUM).
 	Authorized bool
 
 	// Reason holds an optional reason for unauthorized results.

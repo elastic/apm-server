@@ -21,10 +21,10 @@ import (
 	"context"
 )
 
-// allowAuth implements the Authorization interface.
-type allowAuth struct{}
+// AnonymousAuth implements the Authorization interface.
+type AnonymousAuth struct{}
 
-// AuthorizedFor always returns a Result indicating the request is authorized.
-func (allowAuth) AuthorizedFor(context.Context, Resource) (Result, error) {
-	return Result{Authorized: true}, nil
+// AuthorizedFor always returns a Result indicating the request is authorized and anonymous.
+func (AnonymousAuth) AuthorizedFor(context.Context, Resource) (Result, error) {
+	return Result{Anonymous: true, Authorized: true}, nil
 }
