@@ -46,6 +46,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
+	kibana_client "github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
@@ -364,6 +365,18 @@ func (s *serverRunner) run() error {
 		Pipeline:        s.config.Pipeline,
 		Namespace:       s.namespace,
 		TransformConfig: transformConfig,
+	}
+
+	// Also check env var, which env var indicates we're running on
+	// ECE/ESS?
+	if s.config.Kibana.Enabled {
+		// Don't block server startup sending the config.
+		go func() {
+			c := kibana_client.NewConnectingClient(&s.config.Kibana)
+			if err := kibana_client.SendConfig(s.runServerContext, c, s.config); err != nil {
+				s.logger.Infof("failed to upload config to kibana: %v", err)
+			}
+		}()
 	}
 
 	// When the publisher stops cleanly it will close its pipeline client,
