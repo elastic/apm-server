@@ -19,34 +19,38 @@ package main
 
 import "path/filepath"
 
-func docsTemplateFilePath(version string) string {
-	return filepath.Join("apmpackage", "apm", version, "README.template.md")
+func manifestFilePath() string {
+	return filepath.Join("apmpackage", "apm", "manifest.yml")
 }
 
-func docsFilePath(version string) string {
-	return filepath.Join("apmpackage", "apm", version, "docs/README.md")
+func docsTemplateFilePath() string {
+	return filepath.Join("apmpackage", "apm", "README.template.md")
 }
 
-func pipelinesPath(version, dataStream string) string {
-	return filepath.Join("apmpackage", "apm", version, "data_stream", dataStream, "elasticsearch", "ingest_pipeline")
+func docsFilePath() string {
+	return filepath.Join("apmpackage", "apm", "docs/README.md")
 }
 
-func dataStreamPath(version string) string {
-	return filepath.Join("apmpackage", "apm", version, "data_stream")
+func pipelinesPath(dataStream string) string {
+	return filepath.Join("apmpackage", "apm", "data_stream", dataStream, "elasticsearch", "ingest_pipeline")
 }
 
-func fieldsPath(version, dataStream string) string {
-	return filepath.Join(dataStreamPath(version), dataStream, "fields")
+func dataStreamPath() string {
+	return filepath.Join("apmpackage", "apm", "data_stream")
 }
 
-func ecsFilePath(version, dataStream string) string {
-	return filepath.Join(fieldsPath(version, dataStream), "ecs.yml")
+func fieldsPath(dataStream string) string {
+	return filepath.Join(dataStreamPath(), dataStream, "fields")
 }
 
-func fieldsFilePath(version, dataStream string) string {
-	return filepath.Join(fieldsPath(version, dataStream), "fields.yml")
+func ecsFilePath(dataStream string) string {
+	return filepath.Join(fieldsPath(dataStream), "ecs.yml")
 }
 
-func baseFieldsFilePath(version, dataStream string) string {
-	return filepath.Join(fieldsPath(version, dataStream), "base-fields.yml")
+func fieldsFilePath(dataStream string) string {
+	return filepath.Join(fieldsPath(dataStream), "fields.yml")
+}
+
+func baseFieldsFilePath(dataStream string) string {
+	return filepath.Join(fieldsPath(dataStream), "base-fields.yml")
 }

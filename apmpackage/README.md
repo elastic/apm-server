@@ -10,12 +10,12 @@
 #### Update / fix a package
 
 1. Actual work
-    - Make changes in `apmpackage/apm/<version>` and/or code as needed
+    - Make changes in `apmpackage/apm` and/or code as needed
     - Run `make update`. That will update fields, pipeline and doc files based on apm-server fields and pipeline defs.
 
 2. Run the registry
     - Checkout a fresh master from the registry and run `mage build`
-    - Copy `apmpackage/apm` in apm-server to `build/package-storage/packages` in the registry
+    - Copy `apmpackage/apm` in apm-server to `build/package-storage/packages/apm/<version>` in the registry
     - `go run .`
 
 3. Run the stack
@@ -34,19 +34,17 @@
 
 5. Upload to the snapshot registry
     - When everything works and `apmpackage/apm/` changes have been merged to `master`, copy the new package to
-    `package-storage/packages` in the `package-storage` repo, `snapshot` branch.
+    `package-storage/packages/apm/<version>` in the `package-storage` repo, `snapshot` branch.
     Do *NOT* override any existing packages. Instead, bump the qualifier version (eg: `0.1.0-dev.1` to `0.1.0-dev.2`)
     both in the folder name and the content (`manifest.yml` and `default.json` pipelines)
-    - You can `cd script && python copy-package.py` for this.
+    - You can `cd script && python copy_package.py` for this.
 
 #### Create a new package version
 
 Follow steps described above, except:
 
 1. New local version
-    - Copy `apmpackage/apm/<latest-version>` to `apmpackage/apm/<next-version>`.
-    - Add a new version mapping in the `versionMapping` variable at the top of `apmpackage/cmd/gen-package/main.go`.
-      Most likely this won't be needed in the future.
+    - Bump the version in `apmpackage/apm/manifest.yml`
     - Then do any changes in the new folder. The rest of the steps are the same.
 
 2. First dev version

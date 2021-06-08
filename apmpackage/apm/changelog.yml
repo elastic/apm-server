@@ -1,0 +1,24 @@
+# newer versions go on top
+#
+# change type can be one of: enhancement, bugfix, breaking-change
+- version: "0.3.0"
+  changes:
+    - description: added apm-server.url config
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/5332
+    - description: removed apm-server.kibana.api_key config
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/5380
+- version: "0.2.0"
+  changes:
+    - description: added support for apm-server.rum.allow_service_names
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/5030
+    - description: introduce a configurable default service environment
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/4861
+- version: "0.1.0"
+  changes:
+    - description: initial release
+      type: enhancement
+      link: https://github.com/elastic/apm-server/

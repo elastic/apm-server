@@ -37,25 +37,25 @@ func escapeReplacer(s ...string) *strings.Replacer {
 
 var markdownReplacer = escapeReplacer("\\", "`", "*", "_")
 
-func generateDocs(inputFields map[string][]field, version string) {
+func generateDocs(inputFields map[string][]field) {
 	data := docsData{
-		Traces:             prepareFields(inputFields, version, "traces"),
-		Metrics:            prepareFields(inputFields, version, "app_metrics"),
-		Logs:               prepareFields(inputFields, version, "error_logs"),
+		Traces:             prepareFields(inputFields, "traces"),
+		Metrics:            prepareFields(inputFields, "app_metrics"),
+		Logs:               prepareFields(inputFields, "error_logs"),
 		TransactionExample: loadExample("transactions.json"),
 		SpanExample:        loadExample("spans.json"),
 		MetricsExample:     loadExample("metricsets.json"),
 		ErrorExample:       loadExample("errors.json"),
 	}
-	t := template.New(docsTemplateFilePath(version))
+	t := template.New(docsTemplateFilePath())
 	tmpl, err := t.Funcs(map[string]interface{}{
 		"Trim":           strings.TrimSpace,
 		"EscapeMarkdown": markdownReplacer.Replace,
-	}).ParseFiles(docsTemplateFilePath(version))
+	}).ParseFiles(docsTemplateFilePath())
 	if err != nil {
 		panic(err)
 	}
-	path := docsFilePath(version)
+	path := docsFilePath()
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		panic(err)
@@ -77,10 +77,10 @@ type docsData struct {
 	ErrorExample       string
 }
 
-func prepareFields(inputFields map[string][]field, version, stream string) []field {
+func prepareFields(inputFields map[string][]field, stream string) []field {
 	extend := func(fs []field) []field {
 		var baseFields []field
-		for _, f := range loadFieldsFile(baseFieldsFilePath(version, stream)) {
+		for _, f := range loadFieldsFile(baseFieldsFilePath(stream)) {
 			f.IsECS = true
 			baseFields = append(baseFields, f)
 		}
