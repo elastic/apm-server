@@ -108,6 +108,8 @@ services:
     image: docker.elastic.co/package-registry/distribution:snapshot
     ports:
       - 8080
+    entrypoint: /entrypoint.sh
     volumes:
+      - "./testing/docker/package-registry/entrypoint.sh:/entrypoint.sh"
       - "./testing/docker/package-registry/config.yml:/package-registry/config.yml"
-      - "./apmpackage/apm:/packages/local/apm"
+      - "./apmpackage:/apmpackage" # copied to /packages/local/apm/<version> by entrypoint.sh
