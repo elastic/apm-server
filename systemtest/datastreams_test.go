@@ -107,9 +107,12 @@ func TestDataStreamsEnabled(t *testing.T) {
 				"trace.id", "transaction.id",
 			)
 
-			// There should be no warnings or errors logged.
+			// Assert there are no unexpected warnings or errors.
 			for _, record := range srv.Logs.All() {
 				assert.Condition(t, func() bool {
+					if record.Level == zapcore.ErrorLevel {
+						return assert.Equal(t, "Started apm-server with data streams enabled but no active fleet management mode was specified", record.Message)
+					}
 					return record.Level < zapcore.WarnLevel
 				}, "%s: %s", record.Level, record.Message)
 			}
