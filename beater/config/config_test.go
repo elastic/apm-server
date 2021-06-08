@@ -194,8 +194,8 @@ func TestUnpackConfig(t *testing.T) {
 							MaxRetries: 3,
 							Backoff:    elasticsearch.DefaultBackoffConfig,
 						},
-						SourceMapConfigs: []SourceMapConfig{},
-						esConfigured:     true,
+						Metadata:     []SourceMapMetadata{},
+						esConfigured: true,
 					},
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
@@ -293,7 +293,7 @@ func TestUnpackConfig(t *testing.T) {
 				"rum": map[string]interface{}{
 					"enabled": true,
 					"source_mapping": map[string]interface{}{
-						"source_maps": []map[string]string{
+						"metadata": []map[string]string{
 							{
 								"service.name":    "opbeans-rum",
 								"service.version": "1.2.3",
@@ -374,7 +374,7 @@ func TestUnpackConfig(t *testing.T) {
 						},
 						IndexPattern: "apm-*-sourcemap*",
 						ESConfig:     elasticsearch.DefaultConfig(),
-						SourceMapConfigs: []SourceMapConfig{
+						Metadata: []SourceMapMetadata{
 							{
 								ServiceName:    "opbeans-rum",
 								ServiceVersion: "1.2.3",

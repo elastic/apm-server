@@ -60,12 +60,12 @@ type EventRate struct {
 
 // SourceMapping holds sourecemap config information
 type SourceMapping struct {
-	Cache            Cache                 `config:"cache"`
-	Enabled          bool                  `config:"enabled"`
-	IndexPattern     string                `config:"index_pattern"`
-	ESConfig         *elasticsearch.Config `config:"elasticsearch"`
-	SourceMapConfigs []SourceMapConfig     `config:"source_maps"`
-	esConfigured     bool
+	Cache        Cache                 `config:"cache"`
+	Enabled      bool                  `config:"enabled"`
+	IndexPattern string                `config:"index_pattern"`
+	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
+	Metadata     []SourceMapMetadata   `config:"metadata"`
+	esConfigured bool
 }
 
 func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg *common.Config) error {
@@ -80,12 +80,12 @@ func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg
 		return errors.Wrapf(err, "Invalid regex for `exclude_from_grouping`: ")
 	}
 
-	if c.SourceMapping.esConfigured && len(c.SourceMapping.SourceMapConfigs) > 0 {
+	if c.SourceMapping.esConfigured && len(c.SourceMapping.Metadata) > 0 {
 		return errors.New("configuring both source_mapping.elasticsearch and sourcemapping.source_maps not allowed")
 	}
 
-	// No need to unpack the ESConfig if we've set SourceMapConfigs
-	if len(c.SourceMapping.SourceMapConfigs) > 0 {
+	// No need to unpack the ESConfig if SourceMapMetadata exist
+	if len(c.SourceMapping.Metadata) > 0 {
 		return nil
 	}
 
@@ -112,11 +112,11 @@ func (s *SourceMapping) Unpack(inp *common.Config) error {
 
 func defaultSourcemapping() SourceMapping {
 	return SourceMapping{
-		Enabled:          true,
-		Cache:            Cache{Expiration: defaultSourcemapCacheExpiration},
-		IndexPattern:     defaultSourcemapIndexPattern,
-		ESConfig:         elasticsearch.DefaultConfig(),
-		SourceMapConfigs: []SourceMapConfig{},
+		Enabled:      true,
+		Cache:        Cache{Expiration: defaultSourcemapCacheExpiration},
+		IndexPattern: defaultSourcemapIndexPattern,
+		ESConfig:     elasticsearch.DefaultConfig(),
+		Metadata:     []SourceMapMetadata{},
 	}
 }
 

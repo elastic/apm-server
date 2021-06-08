@@ -167,7 +167,7 @@ func TestWaitersLimit(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	cfgs := []config.SourceMapConfig{
+	cfgs := []config.SourceMapMetadata{
 		{
 			ServiceName:    name,
 			ServiceVersion: version,
@@ -240,7 +240,7 @@ func TestWaitersTimeout(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	cfgs := []config.SourceMapConfig{
+	cfgs := []config.SourceMapMetadata{
 		{
 			ServiceName:    name,
 			ServiceVersion: version,
@@ -307,7 +307,7 @@ func TestConcurrentFetch(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		cfgs := []config.SourceMapConfig{
+		cfgs := []config.SourceMapMetadata{
 			{
 				ServiceName:    name,
 				ServiceVersion: version,

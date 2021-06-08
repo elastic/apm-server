@@ -17,8 +17,8 @@
 
 package config
 
-// SourceMapConfig holds source map configuration information.
-type SourceMapConfig struct {
+// SourceMapMetadata holds source map configuration information.
+type SourceMapMetadata struct {
 	ServiceName    string `config:"service.name"`
 	ServiceVersion string `config:"service.version"`
 	BundleFilepath string `config:"bundle.filepath"`

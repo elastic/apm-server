@@ -49,7 +49,7 @@ type key struct {
 func NewFleetStore(
 	c *http.Client,
 	apikey string,
-	cfgs []config.SourceMapConfig,
+	cfgs []config.SourceMapMetadata,
 	expiration time.Duration,
 ) (*Store, error) {
 	logger := logp.NewLogger(logs.Sourcemap)
@@ -57,7 +57,7 @@ func NewFleetStore(
 	return newStore(s, logger, expiration, 10*time.Second, 25)
 }
 
-func newFleetStore(c *http.Client, apikey string, cfgs []config.SourceMapConfig) fleetStore {
+func newFleetStore(c *http.Client, apikey string, cfgs []config.SourceMapMetadata) fleetStore {
 	fleetURLs := make(map[key]string)
 	for _, cfg := range cfgs {
 		k := key{cfg.ServiceName, cfg.ServiceVersion, cfg.BundleFilepath}
