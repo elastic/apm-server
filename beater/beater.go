@@ -29,9 +29,14 @@ import (
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
+<<<<<<< HEAD
 	"github.com/elastic/beats/v7/libbeat/common/transport"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/go-ucfg"
+=======
+
+	"github.com/elastic/beats/v7/libbeat/kibana"
+>>>>>>> f32bb45b (Add additional logging when starting with data_streams.enabled (#5351))
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
