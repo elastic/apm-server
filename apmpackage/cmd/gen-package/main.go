@@ -18,23 +18,12 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 
-	"github.com/elastic/apm-server/cmd"
-	"github.com/elastic/beats/v7/libbeat/common"
+	"gopkg.in/yaml.v2"
 )
-
-var versionMapping = map[string]string{
-	"7.11": "0.1.0",
-	"7.12": "0.1.0",
-	"7.13": "0.2.0",
-	"7.14": "0.3.0",
-	"8.0":  "0.3.0",
-}
 
 // Some data streams may not have a counterpart template
 // in standalone apm-server, and so it does not make sense
@@ -44,29 +33,32 @@ var handwritten = map[string]bool{
 }
 
 func main() {
-	stackVersion := common.MustNewVersion(cmd.DefaultSettings().Version)
-	shortVersion := fmt.Sprintf("%d.%d", stackVersion.Major, stackVersion.Minor)
-	packageVersion, ok := versionMapping[shortVersion]
-	if !ok {
-		panic(errors.New("integration package can't be generated for current apm-server version"))
+	manifestData, err := ioutil.ReadFile(manifestFilePath())
+	if err != nil {
+		log.Fatal(err)
 	}
-	clear(packageVersion)
-	inputFields := generateFields(packageVersion)
+	var manifest struct {
+		Version string `yaml:"version"`
+	}
+	if err := yaml.Unmarshal(manifestData, &manifest); err != nil {
+		log.Fatal(err)
+	}
+
+	clear()
+	inputFields := generateFields()
 	for dataStream := range inputFields {
-		if err := generatePipelines(packageVersion, dataStream); err != nil {
+		if err := generatePipelines(manifest.Version, dataStream); err != nil {
 			log.Fatal(err)
 		}
 	}
 	// TODO(axw) rely on `elastic-package build` to build docs from a template, like in integrations.
-	generateDocs(inputFields, packageVersion)
-	log.Printf("Package fields and docs generated for version %s (stack %s)", packageVersion, stackVersion.String())
+	generateDocs(inputFields)
+	log.Printf("Package fields and docs generated for version %s", manifest.Version)
 }
 
-func clear(version string) {
-	fileInfo, err := ioutil.ReadDir(dataStreamPath(version))
+func clear() {
+	fileInfo, err := ioutil.ReadDir(dataStreamPath())
 	if err != nil {
-		log.Printf("NOTE: if you are adding a new package version, you must create the folder"+
-			" `apmpackage/apm/%s/` and copy all the contents from the previous version.", version)
 		panic(err)
 	}
 	for _, f := range fileInfo {
@@ -77,11 +69,11 @@ func clear(version string) {
 		if handwritten[name] {
 			continue
 		}
-		removeFile(ecsFilePath(version, name))
-		removeFile(fieldsFilePath(version, name))
-		removeDir(pipelinesPath(version, name))
+		removeFile(ecsFilePath(name))
+		removeFile(fieldsFilePath(name))
+		removeDir(pipelinesPath(name))
 	}
-	ioutil.WriteFile(docsFilePath(version), nil, 0644)
+	ioutil.WriteFile(docsFilePath(), nil, 0644)
 }
 
 func removeFile(path string) {
