@@ -33,17 +33,9 @@ var handwritten = map[string]bool{
 }
 
 func main() {
-<<<<<<< HEAD
-	stackVersion := common.MustNewVersion(cmd.DefaultSettings().Version)
-	shortVersion := fmt.Sprintf("%d.%d", stackVersion.Major, stackVersion.Minor)
-	packageVersion, ok := versionMapping[shortVersion]
-	if !ok {
-		panic(errors.New("integration package can't be generated for current apm-server version"))
-=======
 	manifestData, err := ioutil.ReadFile(manifestFilePath())
 	if err != nil {
 		log.Fatal(err)
->>>>>>> 18761816 (apmpackage: remove version directory (#5414))
 	}
 	var manifest struct {
 		Version string `yaml:"version"`
