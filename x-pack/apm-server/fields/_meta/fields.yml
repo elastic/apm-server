@@ -25,6 +25,7 @@
   short_config: true
   fields:
     - name: metricset.period
+      unit: ms
       type: long
       description: Current data collection period for this event in milliseconds.
     - name: span
@@ -39,5 +40,6 @@
             type: long
             description: Number of aggregated outgoing requests.
           - name: response_time.sum.us
+            unit: micros
             type: long
             description: Aggregated duration of outgoing requests, in microseconds.

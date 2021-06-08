@@ -33,6 +33,7 @@
 - name: metricset.period
   type: long
   description: Current data collection period for this event in milliseconds.
+  unit: ms
 - name: observer.listening
   type: keyword
   description: |
