@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/elasticsearch"
 )
 
 func TestAuthorizationMiddleware(t *testing.T) {
@@ -124,7 +123,7 @@ func TestAuthorizationMiddleware(t *testing.T) {
 }
 
 func TestAuthorizationMiddlewareError(t *testing.T) {
-	auth := authorizationFunc(func(ctx context.Context, resource elasticsearch.Resource) (authorization.Result, error) {
+	auth := authorizationFunc(func(ctx context.Context, resource authorization.Resource) (authorization.Result, error) {
 		return authorization.Result{Authorized: true}, errors.New("internal details should not be leaked")
 	})
 	handler := authorizationHandlerFunc(func(kind, value string) authorization.Authorization {
@@ -147,8 +146,8 @@ func (f authorizationHandlerFunc) AuthorizationFor(kind, value string) authoriza
 	return f(kind, value)
 }
 
-type authorizationFunc func(context.Context, elasticsearch.Resource) (authorization.Result, error)
+type authorizationFunc func(context.Context, authorization.Resource) (authorization.Result, error)
 
-func (f authorizationFunc) AuthorizedFor(ctx context.Context, resource elasticsearch.Resource) (authorization.Result, error) {
+func (f authorizationFunc) AuthorizedFor(ctx context.Context, resource authorization.Resource) (authorization.Result, error) {
 	return f(ctx, resource)
 }

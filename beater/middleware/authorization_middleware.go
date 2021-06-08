@@ -36,7 +36,7 @@ func AuthorizationMiddleware(auth AuthorizationHandler, required bool) Middlewar
 			header := c.Request.Header.Get(headers.Authorization)
 			auth := auth.AuthorizationFor(authorization.ParseAuthorizationHeader(header))
 
-			result, err := auth.AuthorizedFor(c.Request.Context(), authorization.ResourceInternal)
+			result, err := auth.AuthorizedFor(c.Request.Context(), authorization.Resource{})
 			if err != nil {
 				c.Result.SetDefault(request.IDResponseErrorsServiceUnavailable)
 				c.Result.Err = err

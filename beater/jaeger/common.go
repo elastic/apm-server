@@ -78,7 +78,7 @@ func makeAuthFunc(authTag string, authHandler *authorization.Handler) authFunc {
 			break
 		}
 		auth := authHandler.AuthorizationFor(kind, token)
-		result, err := auth.AuthorizedFor(ctx, authorization.ResourceInternal)
+		result, err := auth.AuthorizedFor(ctx, authorization.Resource{})
 		if !result.Authorized {
 			if err != nil {
 				return errors.Wrap(err, errNotAuthorized.Error())
