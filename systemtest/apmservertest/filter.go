@@ -109,6 +109,7 @@ func (defaultMetadataFilter) FilterEventMetadata(m *EventMetadata) {
 	m.Process.Argv = nil
 	m.Process.Pid = 1
 	m.Process.Ppid = nil
+	m.Process.Title = "systemtest.test"
 	m.Service.Agent.Version = "0.0.0"
 	m.Service.Language.Version = "2.0"
 	m.Service.Runtime.Version = "2.0"

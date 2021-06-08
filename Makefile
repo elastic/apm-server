@@ -238,11 +238,11 @@ check-docker-compose: $(PYTHON_BIN)
 
 .PHONY: check-package format-package build-package
 check-package: $(ELASTICPACKAGE)
-	@for x in apmpackage/apm/*; do (cd $$x; echo "Checking $$x"; $(CURDIR)/$(ELASTICPACKAGE) check); done
+	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) check)
 format-package: $(ELASTICPACKAGE)
-	@for x in apmpackage/apm/*; do (cd $$x; echo "Formatting $$x"; $(CURDIR)/$(ELASTICPACKAGE) format); done
+	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
-	@for x in apmpackage/apm/*; do (cd $$x; echo "Building $$x"; $(CURDIR)/$(ELASTICPACKAGE) build); done
+	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) build)
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
 check-fmt: check-gofmt check-autopep8

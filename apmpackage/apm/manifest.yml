@@ -1,7 +1,7 @@
 format_version: 1.0.0
 name: apm
 title: Elastic APM
-version: 0.2.0
+version: 0.3.0
 license: basic
 description: Ingest APM data
 type: integration
@@ -65,12 +65,6 @@ policy_templates:
             required: false
             show_user: true
             default: false
-          - name: kibana_api_key
-            type: text
-            title: API Key for Central Configuration
-            required: false
-            description: API Key for APM central configuration feature. Enter as <Id>:<API Key>
-            show_user: true
           - name: enable_rum
             type: bool
             title: Enable RUM

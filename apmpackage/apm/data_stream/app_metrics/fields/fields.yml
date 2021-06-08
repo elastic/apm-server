@@ -33,6 +33,7 @@
 - name: metricset.period
   type: long
   description: Current data collection period for this event in milliseconds.
+  unit: ms
 - name: observer.listening
   type: keyword
   description: |
@@ -75,27 +76,6 @@
   type: keyword
   description: |
     Version of the runtime used.
-- name: span.destination.service.response_time.count
-  type: long
-  description: Number of aggregated outgoing requests.
-- name: span.destination.service.response_time.sum.us
-  type: long
-  description: Aggregated duration of outgoing requests, in microseconds.
-- name: span.self_time.count
-  type: long
-  description: Number of aggregated spans.
-- name: span.self_time.sum.us
-  type: long
-  description: |
-    Aggregated span duration, excluding the time periods where a direct child was running, in microseconds.
-- name: span.subtype
-  type: keyword
-  description: |
-    A further sub-division of the type (e.g. postgresql, elasticsearch)
-- name: span.type
-  type: keyword
-  description: |
-    Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
 - name: system.cpu.total.norm.pct
   type: scaled_float
   format: percent
@@ -188,43 +168,3 @@
   type: long
   description: |
     Timestamp of the event in microseconds since Unix epoch.
-- name: transaction.breakdown.count
-  type: long
-  description: |
-    Counter for collected breakdowns for the transaction
-- name: transaction.duration.count
-  type: long
-  description: Number of aggregated transactions.
-- name: transaction.duration.histogram
-  type: histogram
-  description: |
-    Pre-aggregated histogram of transaction durations.
-- name: transaction.duration.sum.us
-  type: long
-  description: Aggregated transaction duration, in microseconds.
-- name: transaction.name
-  type: keyword
-  description: |
-    Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
-  multi_fields:
-    - name: text
-      type: text
-- name: transaction.root
-  type: boolean
-  description: |
-    Identifies metrics for root transactions. This can be used for calculating metrics for traces.
-- name: transaction.sampled
-  type: boolean
-  description: |
-    Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
-- name: transaction.self_time.count
-  type: long
-  description: Number of aggregated transactions.
-- name: transaction.self_time.sum.us
-  type: long
-  description: |
-    Aggregated transaction duration, excluding the time periods where a direct child was running, in microseconds.
-- name: transaction.type
-  type: keyword
-  description: |
-    Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
