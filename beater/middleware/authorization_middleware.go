@@ -53,7 +53,19 @@ func AuthorizationMiddleware(auth AuthorizationHandler, required bool) Middlewar
 				return
 			}
 			c.AuthResult = result
+			c.Request = c.Request.WithContext(authorization.ContextWithAuthorization(c.Request.Context(), auth))
 
+			h(c)
+		}, nil
+	}
+}
+
+// AnonymousAuthorizationMiddleware returns a Middleware allowing anonymous access.
+func AnonymousAuthorizationMiddleware() Middleware {
+	return func(h request.Handler) (request.Handler, error) {
+		return func(c *request.Context) {
+			auth := authorization.AnonymousAuth{}
+			c.Request = c.Request.WithContext(authorization.ContextWithAuthorization(c.Request.Context(), auth))
 			h(c)
 		}, nil
 	}

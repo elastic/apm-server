@@ -45,15 +45,17 @@ func newAuthUnaryServerInterceptor(builder *authorization.Builder) grpc.UnarySer
 		handler grpc.UnaryHandler,
 	) (resp interface{}, err error) {
 		if strings.HasPrefix(info.FullMethod, "/opentelemetry") {
-			if err := verifyGRPCAuthorization(ctx, authHandler); err != nil {
+			auth, err := verifyGRPCAuthorization(ctx, authHandler)
+			if err != nil {
 				return nil, err
 			}
+			ctx = authorization.ContextWithAuthorization(ctx, auth)
 		}
 		return handler(ctx, req)
 	}
 }
 
-func verifyGRPCAuthorization(ctx context.Context, authHandler *authorization.Handler) error {
+func verifyGRPCAuthorization(ctx context.Context, authHandler *authorization.Handler) (authorization.Authorization, error) {
 	var authHeader string
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		if values := md.Get(headers.Authorization); len(values) > 0 {
@@ -63,14 +65,14 @@ func verifyGRPCAuthorization(ctx context.Context, authHandler *authorization.Han
 	auth := authHandler.AuthorizationFor(authorization.ParseAuthorizationHeader(authHeader))
 	result, err := auth.AuthorizedFor(ctx, authorization.Resource{})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !result.Authorized {
 		message := "unauthorized"
 		if result.Reason != "" {
 			message = result.Reason
 		}
-		return status.Error(codes.Unauthenticated, message)
+		return nil, status.Error(codes.Unauthenticated, message)
 	}
-	return nil
+	return auth, nil
 }

@@ -65,4 +65,14 @@ func TestRootHandler(t *testing.T) {
 			version.Commit())
 		assert.Equal(t, body, w.Body.String())
 	})
+
+	t.Run("authorized_anonymous", func(t *testing.T) {
+		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
+		c.AuthResult.Authorized = true
+		c.AuthResult.Anonymous = true
+		Handler(HandlerConfig{Version: "1.2.3"})(c)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, "", w.Body.String())
+	})
 }

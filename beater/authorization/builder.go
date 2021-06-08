@@ -47,8 +47,8 @@ type Authorization interface {
 	AuthorizedFor(context.Context, Resource) (Result, error)
 }
 
-// AuthorizationResource holds parameters for restricting access that may be
-// checked by Authorization.AuthorizedFor.
+// Resource holds parameters for restricting access that may be checked by
+// Authorization.AuthorizedFor.
 type Resource struct {
 	// AgentName holds the agent name associated with the agent making the
 	// request. This may be empty if the agent is unknown or irrelevant,
