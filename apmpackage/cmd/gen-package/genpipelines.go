@@ -61,7 +61,7 @@ func generatePipelines(version, dataStream string) error {
 		return err
 	}
 
-	if err := os.MkdirAll(pipelinesPath(version, dataStream), 0755); err != nil {
+	if err := os.MkdirAll(pipelinesPath(dataStream), 0755); err != nil {
 		return err
 	}
 
@@ -71,7 +71,7 @@ func generatePipelines(version, dataStream string) error {
 			apmPipelineBody = definition.Body
 			continue
 		}
-		fName := filepath.Join(pipelinesPath(version, dataStream), definition.ID+".json")
+		fName := filepath.Join(pipelinesPath(dataStream), definition.ID+".json")
 		if err := writeFilePipelineJSON(fName, definition.Body); err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func generatePipelines(version, dataStream string) error {
 		}
 		apmPipelineBody = out
 	}
-	fName := filepath.Join(pipelinesPath(version, dataStream), "default.json")
+	fName := filepath.Join(pipelinesPath(dataStream), "default.json")
 	return writeFilePipelineJSON(fName, apmPipelineBody)
 }
 
