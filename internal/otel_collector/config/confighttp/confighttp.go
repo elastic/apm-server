@@ -16,16 +16,21 @@ package confighttp
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net"
 	"net/http"
 	"time"
 
 	"github.com/rs/cors"
 
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configauth"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/internal/middleware"
 )
 
+// HTTPClientSettings defines settings for creating an HTTP client.
 type HTTPClientSettings struct {
 	// The target URL to send data to (e.g.: http://some.url:9411/v1/traces).
 	Endpoint string `mapstructure:"endpoint"`
@@ -48,9 +53,13 @@ type HTTPClientSettings struct {
 
 	// Custom Round Tripper to allow for individual components to intercept HTTP requests
 	CustomRoundTripper func(next http.RoundTripper) (http.RoundTripper, error)
+
+	// Auth configuration for outgoing HTTP calls.
+	Auth *configauth.Authentication `mapstructure:"auth,omitempty"`
 }
 
-func (hcs *HTTPClientSettings) ToClient() (*http.Client, error) {
+// ToClient creates an HTTP client.
+func (hcs *HTTPClientSettings) ToClient(ext map[config.ComponentID]component.Extension) (*http.Client, error) {
 	tlsCfg, err := hcs.TLSSetting.LoadTLSConfig()
 	if err != nil {
 		return nil, err
@@ -74,6 +83,27 @@ func (hcs *HTTPClientSettings) ToClient() (*http.Client, error) {
 		}
 	}
 
+	if hcs.Auth != nil {
+		if ext == nil {
+			return nil, fmt.Errorf("extensions configuration not found")
+		}
+
+		componentID, cperr := config.NewIDFromString(hcs.Auth.AuthenticatorName)
+		if cperr != nil {
+			return nil, cperr
+		}
+
+		httpCustomAuthRoundTripper, aerr := configauth.GetHTTPClientAuthenticator(ext, componentID)
+		if aerr != nil {
+			return nil, aerr
+		}
+
+		clientTransport, err = httpCustomAuthRoundTripper.RoundTripper(clientTransport)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if hcs.CustomRoundTripper != nil {
 		clientTransport, err = hcs.CustomRoundTripper(clientTransport)
 		if err != nil {
@@ -87,13 +117,13 @@ func (hcs *HTTPClientSettings) ToClient() (*http.Client, error) {
 	}, nil
 }
 
-// Custom RoundTripper that add headers
+// Custom RoundTripper that adds headers.
 type headerRoundTripper struct {
 	transport http.RoundTripper
 	headers   map[string]string
 }
 
-// Custom RoundTrip that add headers
+// RoundTrip is a custom RoundTripper that adds headers to the request.
 func (interceptor *headerRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	for k, v := range interceptor.headers {
 		req.Header.Set(k, v)
@@ -102,6 +132,7 @@ func (interceptor *headerRoundTripper) RoundTrip(req *http.Request) (*http.Respo
 	return interceptor.transport.RoundTrip(req)
 }
 
+// HTTPServerSettings defines settings for creating an HTTP server.
 type HTTPServerSettings struct {
 	// Endpoint configures the listening address for the server.
 	Endpoint string `mapstructure:"endpoint"`
@@ -122,6 +153,7 @@ type HTTPServerSettings struct {
 	CorsHeaders []string `mapstructure:"cors_allowed_headers"`
 }
 
+// ToListener creates a net.Listener.
 func (hss *HTTPServerSettings) ToListener() (net.Listener, error) {
 	listener, err := net.Listen("tcp", hss.Endpoint)
 	if err != nil {
@@ -145,6 +177,8 @@ type toServerOptions struct {
 	errorHandler middleware.ErrorHandler
 }
 
+// ToServerOption is an option to change the behavior of the HTTP server
+// returned by HTTPServerSettings.ToServer().
 type ToServerOption func(opts *toServerOptions)
 
 // WithErrorHandler overrides the HTTP error handler that gets invoked
@@ -155,6 +189,7 @@ func WithErrorHandler(e middleware.ErrorHandler) ToServerOption {
 	}
 }
 
+// ToServer creates an http.Server from settings object.
 func (hss *HTTPServerSettings) ToServer(handler http.Handler, opts ...ToServerOption) *http.Server {
 	serverOpts := &toServerOptions{}
 	for _, o := range opts {

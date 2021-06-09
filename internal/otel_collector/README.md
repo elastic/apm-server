@@ -2,11 +2,11 @@
 
 <p align="center">
   <strong>
-    <a href="https://opentelemetry.io/docs/collector/getting-started/">Getting Started<a/>
+    <a href="https://opentelemetry.io/docs/collector/getting-started/">Getting Started</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="CONTRIBUTING.md">Getting Involved<a/>
+    <a href="CONTRIBUTING.md">Getting Involved</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="https://gitter.im/open-telemetry/opentelemetry-service">Getting In Touch<a/>
+    <a href="https://gitter.im/open-telemetry/opentelemetry-service">Getting In Touch</a>
   </strong>
 </p>
 
@@ -28,17 +28,19 @@
 
 <p align="center">
   <strong>
-    <a href="docs/vision.md">Vision<a/>
+    <a href="docs/vision.md">Vision</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="docs/design.md">Design<a/>
+    <a href="docs/design.md">Design</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="docs/monitoring.md">Monitoring<a/>
+    <a href="docs/monitoring.md">Monitoring</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="docs/performance.md">Performance<a/>
+    <a href="docs/performance.md">Performance</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="docs/security.md">Security<a/>
+    <a href="docs/security.md">Security</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="docs/roadmap.md">Roadmap<a/>
+    <a href="docs/roadmap.md">Roadmap</a>
+    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+    <a href="https://pkg.go.dev/go.opentelemetry.io/collector">Package</a>
   </strong>
 </p>
 
@@ -64,17 +66,17 @@ Objectives:
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Triagers ([@open-telemetry/collector-triagers](https://github.com/orgs/open-telemetry/teams/collector-triager)):
-- [Andrew Hsu](https://github.com/andrewhsu), Lightstep
+Triagers ([@open-telemetry/collector-triagers](https://github.com/orgs/open-telemetry/teams/collector-triagers)):
+
+- [Alolita Sharma](https://github.com/alolita), AWS
+- [Punya Biswal](https://github.com/punya), Google
 - [Steve Flanders](https://github.com/flands), Splunk
 
 Approvers ([@open-telemetry/collector-approvers](https://github.com/orgs/open-telemetry/teams/collector-approvers)):
 
 - [Dmitrii Anoshin](https://github.com/dmitryax), Splunk
-- [James Bebbington](https://github.com/james-bebbington), Google
 - [Jay Camp](https://github.com/jrcamp), Splunk
 - [Juraci Paixão Kröhling](https://github.com/jpkrohling), Red Hat
-- [Nail Islamov](https://github.com/nilebox), Google
 - [Owais Lone](https://github.com/owais), Splunk
 
 Maintainers ([@open-telemetry/collector-maintainers](https://github.com/orgs/open-telemetry/teams/collector-maintainers)):
