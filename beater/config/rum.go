@@ -58,7 +58,7 @@ type EventRate struct {
 	LruSize int `config:"lru_size"`
 }
 
-// SourceMapping holds sourecemap config information
+// SourceMapping holds sourcemap config information
 type SourceMapping struct {
 	Cache        Cache                 `config:"cache"`
 	Enabled      bool                  `config:"enabled"`
