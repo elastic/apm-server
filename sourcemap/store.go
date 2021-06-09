@@ -108,6 +108,8 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 		case <-wait:
 			t.Stop()
 		case <-t.C:
+			// Release back to waiters semaphore
+			<-s.waiters
 			return nil, errors.New("sourcemap fetch: timeout")
 		}
 		// Release back to waiters semaphore
