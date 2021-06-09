@@ -107,6 +107,10 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 		select {
 		case <-wait:
 			t.Stop()
+		case <-ctx.Done():
+			// Release back to waiters semaphore
+			<-s.waiters
+			return nil, ctx.Err()
 		case <-t.C:
 			// Release back to waiters semaphore
 			<-s.waiters
