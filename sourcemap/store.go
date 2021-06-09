@@ -39,7 +39,8 @@ var (
 	errInit = errors.New("Cache cannot be initialized. Expiration and CleanupInterval need to be >= 0")
 )
 
-// Store holds information necessary to fetch a sourcemap, either from an Elasticsearch instance or an internal cache.
+// Store holds information necessary to fetch a sourcemap, either from an
+// Elasticsearch instance or an internal cache.
 type Store struct {
 	cache       *gocache.Cache
 	backend     backend
