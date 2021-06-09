@@ -45,6 +45,5 @@ func TestCloudEnv(t *testing.T) {
 	os.Setenv(cloudEnv, "123")
 	settings = DefaultSettings()
 	assert.Len(t, settings.ConfigOverrides, 2)
-	cfg = settings.ConfigOverrides[1].Config
 	assert.Nil(t, settings.ConfigOverrides[1].Config)
 }
