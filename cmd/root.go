@@ -19,10 +19,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-
-	"github.com/spf13/pflag"
-
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/cmd"
@@ -30,6 +26,8 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring/report"
 	"github.com/elastic/beats/v7/libbeat/publisher/processing"
+	"github.com/spf13/pflag"
+	"os"
 
 	"github.com/elastic/apm-server/idxmgmt"
 	_ "github.com/elastic/apm-server/include" // include assets
@@ -78,7 +76,7 @@ var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
 			Config: func() *common.Config {
 				cap := os.Getenv(cloudEnv)
 				if _, ok := cloudMatrix[cap]; !ok {
-					return nil
+					return common.NewConfig()
 				}
 				return common.MustNewConfigFrom(map[string]interface{}{
 					"output": map[string]interface{}{
