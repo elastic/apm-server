@@ -41,7 +41,14 @@ const (
 	cloudEnv        = "CLOUD_APM_CAPACITY"
 )
 
-var cloudMatrix = map[string][]int{
+type throughputSettings struct {
+	worker int
+	bulkMaxSize int
+	events int
+	minEvents int
+}
+
+var cloudMatrix = map[string]throughputSettings{
 	"512":  {5, 267, 2000, 267},
 	"1024": {7, 381, 4000, 381},
 	"2048": {10, 533, 8000, 533},
@@ -49,47 +56,49 @@ var cloudMatrix = map[string][]int{
 	"8192": {20, 1067, 32000, 1067},
 }
 
-var libbeatConfigOverrides = []cfgfile.ConditionalOverride{{
-	Check: func(_ *common.Config) bool {
-		return true
-	},
-	Config: common.MustNewConfigFrom(map[string]interface{}{
-		"logging": map[string]interface{}{
-			"metrics": map[string]interface{}{
-				"enabled": false,
-			},
-			"ecs":  true,
-			"json": true,
-		},
-	}),
-},
-	{
+var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
+	return []cfgfile.ConditionalOverride{{
 		Check: func(_ *common.Config) bool {
 			return true
 		},
-		Config: func() *common.Config {
-			cap := os.Getenv(cloudEnv)
-			if _, ok := cloudMatrix[cap]; !ok {
-				return nil
-			}
-			return common.MustNewConfigFrom(map[string]interface{}{
-				"output": map[string]interface{}{
-					"elasticsearch": map[string]interface{}{
-						"worker":        cloudMatrix[cap][0],
-						"bulk_max_size": cloudMatrix[cap][1],
-					},
+		Config: common.MustNewConfigFrom(map[string]interface{}{
+			"logging": map[string]interface{}{
+				"metrics": map[string]interface{}{
+					"enabled": false,
 				},
-				"queue": map[string]interface{}{
-					"mem": map[string]interface{}{
-						"events": cloudMatrix[cap][2],
-						"flush": map[string]interface{}{
-							"min_events": cloudMatrix[cap][3],
+				"ecs":  true,
+				"json": true,
+			},
+		}),
+	},
+		{
+			Check: func(_ *common.Config) bool {
+				return true
+			},
+			Config: func() *common.Config {
+				cap := os.Getenv(cloudEnv)
+				if _, ok := cloudMatrix[cap]; !ok {
+					return nil
+				}
+				return common.MustNewConfigFrom(map[string]interface{}{
+					"output": map[string]interface{}{
+						"elasticsearch": map[string]interface{}{
+							"worker":        cloudMatrix[cap].worker,
+							"bulk_max_size": cloudMatrix[cap].bulkMaxSize,
 						},
 					},
-				},
-			})
-		}(),
-	},
+					"queue": map[string]interface{}{
+						"mem": map[string]interface{}{
+							"events": cloudMatrix[cap].events,
+							"flush": map[string]interface{}{
+								"min_events": cloudMatrix[cap].minEvents,
+							},
+						},
+					},
+				})
+			}(),
+		},
+	}
 }
 
 // DefaultSettings return the default settings for APM Server to pass into
@@ -105,7 +114,7 @@ func DefaultSettings() instance.Settings {
 		},
 		IndexManagement: idxmgmt.MakeDefaultSupporter,
 		Processing:      processing.MakeDefaultObserverSupport(false),
-		ConfigOverrides: libbeatConfigOverrides,
+		ConfigOverrides: libbeatConfigOverrides(),
 	}
 }
 
