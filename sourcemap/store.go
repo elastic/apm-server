@@ -47,7 +47,7 @@ type Store struct {
 	waiters     chan struct{}
 	waitTimeout time.Duration
 
-	sync.Mutex
+	mu       sync.Mutex
 	inflight map[string]chan struct{}
 }
 
@@ -90,11 +90,11 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 
 	// if the value hasn't been found, check to see if there's an inflight
 	// request to update the value.
-	s.Lock()
+	s.mu.Lock()
 	wait, ok := s.inflight[key]
 	if ok {
 		// found an inflight request, wait for it to complete.
-		s.Unlock()
+		s.mu.Unlock()
 		// Check to see if we should wait for a response
 		select {
 		case s.waiters <- struct{}{}:
@@ -123,15 +123,15 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 	wait = make(chan struct{})
 	s.inflight[key] = wait
 
-	s.Unlock()
+	s.mu.Unlock()
 
 	// Once the fetch request is complete, close and remove the channel
 	// from the syncronization map.
 	defer func() {
-		s.Lock()
+		s.mu.Lock()
 		delete(s.inflight, key)
 		close(wait)
-		s.Unlock()
+		s.mu.Unlock()
 	}()
 
 	// fetch from Elasticsearch and ensure caching for all non-temporary results
