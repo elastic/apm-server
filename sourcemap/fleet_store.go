@@ -101,7 +101,9 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 
 	buf := new(bytes.Buffer)
 
-	io.Copy(buf, resp.Body)
+	if _, err := io.Copy(buf, resp.Body); err != nil {
+		return "", err
+	}
 
 	return buf.String(), nil
 }
