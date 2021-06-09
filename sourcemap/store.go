@@ -79,7 +79,7 @@ func newStore(
 }
 
 // Fetch a sourcemap from the store.
-func (s *Store) Fetch(ctx context.Context, name string, version string, path string) (*sourcemap.Consumer, error) {
+func (s *Store) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	key := cacheKey([]string{name, version, path})
 
 	// fetch from cache
