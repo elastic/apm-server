@@ -54,7 +54,7 @@ func NewFleetStore(
 ) (*Store, error) {
 	logger := logp.NewLogger(logs.Sourcemap)
 	s := newFleetStore(c, apikey, cfgs)
-	return newStore(s, logger, expiration, 10*time.Second, 25)
+	return newStore(s, logger, expiration, 10*time.Second)
 }
 
 func newFleetStore(c *http.Client, apikey string, cfgs []config.SourceMapMetadata) fleetStore {

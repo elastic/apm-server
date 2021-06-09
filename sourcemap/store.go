@@ -59,20 +59,15 @@ func newStore(
 	b backend,
 	logger *logp.Logger,
 	cacheExpiration, waitTimeout time.Duration,
-	maxWaiters int,
 ) (*Store, error) {
 	if cacheExpiration < 0 {
 		return nil, errInit
 	}
 
 	return &Store{
-		cache:   gocache.New(cacheExpiration, cleanupInterval(cacheExpiration)),
-		backend: b,
-		logger:  logger,
-		// TODO: Number of requests waiting for a sourcemap to be
-		// fetched. Any suggestion as to where we should set this is
-		// appreciated.
-		waiters:     make(chan struct{}, maxWaiters),
+		cache:       gocache.New(cacheExpiration, cleanupInterval(cacheExpiration)),
+		backend:     b,
+		logger:      logger,
 		waitTimeout: waitTimeout,
 		inflight:    make(map[string]chan struct{}),
 	}, nil
@@ -95,29 +90,16 @@ func (s *Store) Fetch(ctx context.Context, name, version, path string) (*sourcem
 	if ok {
 		// found an inflight request, wait for it to complete.
 		s.mu.Unlock()
-		// Check to see if we should wait for a response
-		select {
-		case s.waiters <- struct{}{}:
-		default:
-			// waiters is currently full, abort the request.
-			return nil, errors.New("sourcemap fetch: too many open requests")
-		}
 
 		t := time.NewTimer(s.waitTimeout)
 		select {
 		case <-wait:
 			t.Stop()
 		case <-ctx.Done():
-			// Release back to waiters semaphore
-			<-s.waiters
 			return nil, ctx.Err()
 		case <-t.C:
-			// Release back to waiters semaphore
-			<-s.waiters
 			return nil, errors.New("sourcemap fetch: timeout")
 		}
-		// Release back to waiters semaphore
-		<-s.waiters
 		// Try to read the value again
 		return s.Fetch(ctx, name, version, path)
 	}

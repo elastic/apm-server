@@ -43,10 +43,10 @@ import (
 func Test_newStore(t *testing.T) {
 	logger := logp.NewLogger(logs.Sourcemap)
 
-	_, err := newStore(nil, logger, -1, time.Second, 25)
+	_, err := newStore(nil, logger, -1, time.Second)
 	require.Error(t, err)
 
-	f, err := newStore(nil, logger, 100, time.Second, 25)
+	f, err := newStore(nil, logger, 100, time.Second)
 	require.NoError(t, err)
 	assert.NotNil(t, f.cache)
 }
@@ -151,78 +151,6 @@ func TestStore_Fetch(t *testing.T) {
 	})
 }
 
-func TestWaitersLimit(t *testing.T) {
-	var (
-		errs int64
-
-		apikey  = "supersecret"
-		name    = "webapp"
-		version = "1.0.0"
-		path    = "/my/path/to/bundle.js.map"
-		c       = http.DefaultClient
-	)
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(50 * time.Millisecond)
-		w.Write([]byte(test.ValidSourcemap))
-	}))
-	defer ts.Close()
-
-	cfgs := []config.SourceMapMetadata{
-		{
-			ServiceName:    name,
-			ServiceVersion: version,
-			BundleFilepath: path,
-			SourceMapURL:   ts.URL,
-		},
-		{
-			ServiceName:    name,
-			ServiceVersion: "1.1.0",
-			BundleFilepath: path,
-			SourceMapURL:   ts.URL,
-		},
-	}
-	store, err := NewFleetStore(c, apikey, cfgs, time.Minute)
-	assert.NoError(t, err)
-
-	var wg sync.WaitGroup
-	// NewFleetStore is currently limited to 1 active + 25 waiting = 26
-	// requests, so the 27th should fail. All others wait and receive a
-	// successful response.
-	for i := 0; i < 27; i++ {
-		wg.Add(1)
-		go func() {
-			consumer, err := store.Fetch(context.Background(), name, version, path)
-			if err != nil {
-				assert.Nil(t, consumer)
-				atomic.AddInt64(&errs, 1)
-			} else {
-				assert.NotNil(t, consumer)
-			}
-
-			wg.Done()
-		}()
-	}
-
-	wg.Wait()
-
-	assert.Equal(t, int64(1), errs)
-
-	// Verify that the semaphore was released and requests for a different
-	// key work as expected.
-	for i := 0; i < 26; i++ {
-		wg.Add(1)
-		go func() {
-			consumer, err := store.Fetch(context.Background(), name, "1.1.0", path)
-			assert.NoError(t, err)
-			assert.NotNil(t, consumer)
-
-			wg.Done()
-		}()
-	}
-
-	wg.Wait()
-}
-
 func TestWaitersTimeout(t *testing.T) {
 	var (
 		errs int64
@@ -250,7 +178,7 @@ func TestWaitersTimeout(t *testing.T) {
 	}
 	b := newFleetStore(c, apikey, cfgs)
 	logger := logp.NewLogger(logs.Sourcemap)
-	store, err := newStore(b, logger, time.Minute, time.Millisecond, 25)
+	store, err := newStore(b, logger, time.Minute, time.Millisecond)
 	assert.NoError(t, err)
 
 	var wg sync.WaitGroup
