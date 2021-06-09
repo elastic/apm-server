@@ -42,10 +42,10 @@ const (
 )
 
 type throughputSettings struct {
-	worker int
+	worker      int
 	bulkMaxSize int
-	events int
-	minEvents int
+	events      int
+	minEvents   int
 }
 
 var cloudMatrix = map[string]throughputSettings{
