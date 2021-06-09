@@ -44,7 +44,6 @@ type Store struct {
 	cache       *gocache.Cache
 	backend     backend
 	logger      *logp.Logger
-	waiters     chan struct{}
 	waitTimeout time.Duration
 
 	mu       sync.Mutex
