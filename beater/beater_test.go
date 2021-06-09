@@ -36,7 +36,9 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
@@ -279,4 +281,28 @@ func TestTransformConfig(t *testing.T) {
 	test(false, true, false)
 	test(true, false, false)
 	test(true, true, true)
+}
+
+func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
+	var called bool
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		w.Write([]byte(test.ValidSourcemap))
+	}))
+	defer ts.Close()
+
+	cfg := config.DefaultConfig()
+	cfg.RumConfig.Enabled = true
+	cfg.RumConfig.SourceMapping.Enabled = true
+	cfg.RumConfig.SourceMapping.ESConfig = elasticsearch.DefaultConfig()
+	cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{ts.URL}
+
+	transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg)
+	require.NoError(t, err)
+	// Check that the provided rum elasticsearch config was used and
+	// Fetch() goes to the test server.
+	_, err = transformConfig.RUM.SourcemapStore.Fetch(context.Background(), "app", "1.0", "/bundle/path")
+	require.NoError(t, err)
+
+	assert.True(t, called)
 }
