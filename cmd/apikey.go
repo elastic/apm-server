@@ -315,7 +315,7 @@ PUT /_security/role/my_role {
 					{
 						Name:       auth.Application,
 						Privileges: privileges,
-						Resources:  []es.Resource{auth.ResourceAny},
+						Resources:  []es.Resource{"*"},
 					},
 				},
 			},
@@ -429,7 +429,7 @@ func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, creden
 		result, err := builder.
 			ForPrivilege(privilege).
 			AuthorizationFor(headers.APIKey, credentials).
-			AuthorizedFor(context.Background(), auth.ResourceInternal)
+			AuthorizedFor(context.Background(), auth.Resource{})
 		if err != nil {
 			return err
 		}
