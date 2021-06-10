@@ -169,6 +169,12 @@ func newGRPCServer(
 		}
 	}
 
+	// Add a model processor that checks authorization for the agent and service for each event.
+	batchProcessor = modelprocessor.Chained{
+		modelprocessor.MetadataProcessorFunc(verifyAuthorizedFor),
+		batchProcessor,
+	}
+
 	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, batchProcessor, fetcher)
 	if err := otlp.RegisterGRPCServices(srv, batchProcessor); err != nil {
 		return nil, err
