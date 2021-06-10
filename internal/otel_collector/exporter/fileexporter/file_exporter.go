@@ -17,55 +17,61 @@ package fileexporter
 import (
 	"context"
 	"io"
+	"os"
 	"sync"
 
-	"github.com/gogo/protobuf/jsonpb"
-	"github.com/gogo/protobuf/proto"
-
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/internal"
-	otlplogs "go.opentelemetry.io/collector/internal/data/protogen/collector/logs/v1"
-	otlpmetrics "go.opentelemetry.io/collector/internal/data/protogen/collector/metrics/v1"
-	otlptrace "go.opentelemetry.io/collector/internal/data/protogen/collector/trace/v1"
+	"go.opentelemetry.io/collector/internal/otlp"
 )
 
-// Marshaler configuration used for marhsaling Protobuf to JSON. Use default config.
-var marshaler = &jsonpb.Marshaler{}
+// Marshaler configuration used for marhsaling Protobuf to JSON.
+var tracesMarshaler = otlp.NewJSONTracesMarshaler()
+var metricsMarshaler = otlp.NewJSONMetricsMarshaler()
+var logsMarshaler = otlp.NewJSONLogsMarshaler()
 
 // fileExporter is the implementation of file exporter that writes telemetry data to a file
 // in Protobuf-JSON format.
 type fileExporter struct {
+	path  string
 	file  io.WriteCloser
 	mutex sync.Mutex
 }
 
+func (e *fileExporter) Capabilities() consumer.Capabilities {
+	return consumer.Capabilities{MutatesData: false}
+}
+
 func (e *fileExporter) ConsumeTraces(_ context.Context, td pdata.Traces) error {
-	request := otlptrace.ExportTraceServiceRequest{
-		ResourceSpans: pdata.TracesToOtlp(td),
+	buf, err := tracesMarshaler.Marshal(td)
+	if err != nil {
+		return err
 	}
-	return exportMessageAsLine(e, &request)
+	return exportMessageAsLine(e, buf)
 }
 
 func (e *fileExporter) ConsumeMetrics(_ context.Context, md pdata.Metrics) error {
-	request := otlpmetrics.ExportMetricsServiceRequest{
-		ResourceMetrics: pdata.MetricsToOtlp(md),
+	buf, err := metricsMarshaler.Marshal(md)
+	if err != nil {
+		return err
 	}
-	return exportMessageAsLine(e, &request)
+	return exportMessageAsLine(e, buf)
 }
 
 func (e *fileExporter) ConsumeLogs(_ context.Context, ld pdata.Logs) error {
-	request := otlplogs.ExportLogsServiceRequest{
-		ResourceLogs: internal.LogsToOtlp(ld.InternalRep()),
+	buf, err := logsMarshaler.Marshal(ld)
+	if err != nil {
+		return err
 	}
-	return exportMessageAsLine(e, &request)
+	return exportMessageAsLine(e, buf)
 }
 
-func exportMessageAsLine(e *fileExporter, message proto.Message) error {
+func exportMessageAsLine(e *fileExporter, buf []byte) error {
 	// Ensure only one write operation happens at a time.
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
-	if err := marshaler.Marshal(e.file, message); err != nil {
+	if _, err := e.file.Write(buf); err != nil {
 		return err
 	}
 	if _, err := io.WriteString(e.file, "\n"); err != nil {
@@ -74,8 +80,10 @@ func exportMessageAsLine(e *fileExporter, message proto.Message) error {
 	return nil
 }
 
-func (e *fileExporter) Start(ctx context.Context, host component.Host) error {
-	return nil
+func (e *fileExporter) Start(context.Context, component.Host) error {
+	var err error
+	e.file, err = os.OpenFile(e.path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	return err
 }
 
 // Shutdown stops the exporter and is invoked during shutdown.

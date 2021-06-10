@@ -18,13 +18,12 @@
 package pdata
 
 import (
-	"go.opentelemetry.io/collector/internal/data"
 	otlptrace "go.opentelemetry.io/collector/internal/data/protogen/trace/v1"
 )
 
 // ResourceSpansSlice logically represents a slice of ResourceSpans.
 //
-// This is a reference type, if passed by value and callee modifies it the
+// This is a reference type. If passed by value and callee modifies it, the
 // caller will see the modification.
 //
 // Must use NewResourceSpansSlice function to create new instances.
@@ -56,24 +55,12 @@ func (es ResourceSpansSlice) Len() int {
 // At returns the element at the given index.
 //
 // This function is used mostly for iterating over all the values in the slice:
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     ... // Do something with the element
-// }
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       ... // Do something with the element
+//   }
 func (es ResourceSpansSlice) At(ix int) ResourceSpans {
 	return newResourceSpans((*es.orig)[ix])
-}
-
-// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
-// The current slice will be cleared.
-func (es ResourceSpansSlice) MoveAndAppendTo(dest ResourceSpansSlice) {
-	if *dest.orig == nil {
-		// We can simply move the entire vector and avoid any allocations.
-		*dest.orig = *es.orig
-	} else {
-		*dest.orig = append(*dest.orig, *es.orig...)
-	}
-	*es.orig = nil
 }
 
 // CopyTo copies all elements from the current slice to the dest.
@@ -101,12 +88,12 @@ func (es ResourceSpansSlice) CopyTo(dest ResourceSpansSlice) {
 // 2. If the newLen > len then (newLen - cap) empty elements will be appended to the slice.
 //
 // Here is how a new ResourceSpansSlice can be initialized:
-// es := NewResourceSpansSlice()
-// es.Resize(4)
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     // Here should set all the values for e.
-// }
+//   es := NewResourceSpansSlice()
+//   es.Resize(4)
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       // Here should set all the values for e.
+//   }
 func (es ResourceSpansSlice) Resize(newLen int) {
 	oldLen := len(*es.orig)
 	oldCap := cap(*es.orig)
@@ -132,11 +119,51 @@ func (es ResourceSpansSlice) Resize(newLen int) {
 // given ResourceSpans at that new position.  The original ResourceSpans
 // could still be referenced so do not reuse it after passing it to this
 // method.
+// Deprecated: Use AppendEmpty.
 func (es ResourceSpansSlice) Append(e ResourceSpans) {
 	*es.orig = append(*es.orig, e.orig)
 }
 
-// InstrumentationLibrarySpans is a collection of spans from a LibraryInstrumentation.
+// AppendEmpty will append to the end of the slice an empty ResourceSpans.
+// It returns the newly added ResourceSpans.
+func (es ResourceSpansSlice) AppendEmpty() ResourceSpans {
+	*es.orig = append(*es.orig, &otlptrace.ResourceSpans{})
+	return es.At(es.Len() - 1)
+}
+
+// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
+// The current slice will be cleared.
+func (es ResourceSpansSlice) MoveAndAppendTo(dest ResourceSpansSlice) {
+	if *dest.orig == nil {
+		// We can simply move the entire vector and avoid any allocations.
+		*dest.orig = *es.orig
+	} else {
+		*dest.orig = append(*dest.orig, *es.orig...)
+	}
+	*es.orig = nil
+}
+
+// RemoveIf calls f sequentially for each element present in the slice.
+// If f returns true, the element is removed from the slice.
+func (es ResourceSpansSlice) RemoveIf(f func(ResourceSpans) bool) {
+	newLen := 0
+	for i := 0; i < len(*es.orig); i++ {
+		if f(es.At(i)) {
+			continue
+		}
+		if newLen == i {
+			// Nothing to move, element is at the right place.
+			newLen++
+			continue
+		}
+		(*es.orig)[newLen] = (*es.orig)[i]
+		newLen++
+	}
+	// TODO: Prevent memory leak by erasing truncated values.
+	*es.orig = (*es.orig)[:newLen]
+}
+
+// ResourceSpans is a collection of spans from a Resource.
 //
 // This is a reference type, if passed by value and callee modifies it the
 // caller will see the modification.
@@ -176,7 +203,7 @@ func (ms ResourceSpans) CopyTo(dest ResourceSpans) {
 
 // InstrumentationLibrarySpansSlice logically represents a slice of InstrumentationLibrarySpans.
 //
-// This is a reference type, if passed by value and callee modifies it the
+// This is a reference type. If passed by value and callee modifies it, the
 // caller will see the modification.
 //
 // Must use NewInstrumentationLibrarySpansSlice function to create new instances.
@@ -208,24 +235,12 @@ func (es InstrumentationLibrarySpansSlice) Len() int {
 // At returns the element at the given index.
 //
 // This function is used mostly for iterating over all the values in the slice:
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     ... // Do something with the element
-// }
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       ... // Do something with the element
+//   }
 func (es InstrumentationLibrarySpansSlice) At(ix int) InstrumentationLibrarySpans {
 	return newInstrumentationLibrarySpans((*es.orig)[ix])
-}
-
-// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
-// The current slice will be cleared.
-func (es InstrumentationLibrarySpansSlice) MoveAndAppendTo(dest InstrumentationLibrarySpansSlice) {
-	if *dest.orig == nil {
-		// We can simply move the entire vector and avoid any allocations.
-		*dest.orig = *es.orig
-	} else {
-		*dest.orig = append(*dest.orig, *es.orig...)
-	}
-	*es.orig = nil
 }
 
 // CopyTo copies all elements from the current slice to the dest.
@@ -253,12 +268,12 @@ func (es InstrumentationLibrarySpansSlice) CopyTo(dest InstrumentationLibrarySpa
 // 2. If the newLen > len then (newLen - cap) empty elements will be appended to the slice.
 //
 // Here is how a new InstrumentationLibrarySpansSlice can be initialized:
-// es := NewInstrumentationLibrarySpansSlice()
-// es.Resize(4)
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     // Here should set all the values for e.
-// }
+//   es := NewInstrumentationLibrarySpansSlice()
+//   es.Resize(4)
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       // Here should set all the values for e.
+//   }
 func (es InstrumentationLibrarySpansSlice) Resize(newLen int) {
 	oldLen := len(*es.orig)
 	oldCap := cap(*es.orig)
@@ -284,8 +299,48 @@ func (es InstrumentationLibrarySpansSlice) Resize(newLen int) {
 // given InstrumentationLibrarySpans at that new position.  The original InstrumentationLibrarySpans
 // could still be referenced so do not reuse it after passing it to this
 // method.
+// Deprecated: Use AppendEmpty.
 func (es InstrumentationLibrarySpansSlice) Append(e InstrumentationLibrarySpans) {
 	*es.orig = append(*es.orig, e.orig)
+}
+
+// AppendEmpty will append to the end of the slice an empty InstrumentationLibrarySpans.
+// It returns the newly added InstrumentationLibrarySpans.
+func (es InstrumentationLibrarySpansSlice) AppendEmpty() InstrumentationLibrarySpans {
+	*es.orig = append(*es.orig, &otlptrace.InstrumentationLibrarySpans{})
+	return es.At(es.Len() - 1)
+}
+
+// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
+// The current slice will be cleared.
+func (es InstrumentationLibrarySpansSlice) MoveAndAppendTo(dest InstrumentationLibrarySpansSlice) {
+	if *dest.orig == nil {
+		// We can simply move the entire vector and avoid any allocations.
+		*dest.orig = *es.orig
+	} else {
+		*dest.orig = append(*dest.orig, *es.orig...)
+	}
+	*es.orig = nil
+}
+
+// RemoveIf calls f sequentially for each element present in the slice.
+// If f returns true, the element is removed from the slice.
+func (es InstrumentationLibrarySpansSlice) RemoveIf(f func(InstrumentationLibrarySpans) bool) {
+	newLen := 0
+	for i := 0; i < len(*es.orig); i++ {
+		if f(es.At(i)) {
+			continue
+		}
+		if newLen == i {
+			// Nothing to move, element is at the right place.
+			newLen++
+			continue
+		}
+		(*es.orig)[newLen] = (*es.orig)[i]
+		newLen++
+	}
+	// TODO: Prevent memory leak by erasing truncated values.
+	*es.orig = (*es.orig)[:newLen]
 }
 
 // InstrumentationLibrarySpans is a collection of spans from a LibraryInstrumentation.
@@ -328,7 +383,7 @@ func (ms InstrumentationLibrarySpans) CopyTo(dest InstrumentationLibrarySpans) {
 
 // SpanSlice logically represents a slice of Span.
 //
-// This is a reference type, if passed by value and callee modifies it the
+// This is a reference type. If passed by value and callee modifies it, the
 // caller will see the modification.
 //
 // Must use NewSpanSlice function to create new instances.
@@ -360,24 +415,12 @@ func (es SpanSlice) Len() int {
 // At returns the element at the given index.
 //
 // This function is used mostly for iterating over all the values in the slice:
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     ... // Do something with the element
-// }
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       ... // Do something with the element
+//   }
 func (es SpanSlice) At(ix int) Span {
 	return newSpan((*es.orig)[ix])
-}
-
-// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
-// The current slice will be cleared.
-func (es SpanSlice) MoveAndAppendTo(dest SpanSlice) {
-	if *dest.orig == nil {
-		// We can simply move the entire vector and avoid any allocations.
-		*dest.orig = *es.orig
-	} else {
-		*dest.orig = append(*dest.orig, *es.orig...)
-	}
-	*es.orig = nil
 }
 
 // CopyTo copies all elements from the current slice to the dest.
@@ -405,12 +448,12 @@ func (es SpanSlice) CopyTo(dest SpanSlice) {
 // 2. If the newLen > len then (newLen - cap) empty elements will be appended to the slice.
 //
 // Here is how a new SpanSlice can be initialized:
-// es := NewSpanSlice()
-// es.Resize(4)
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     // Here should set all the values for e.
-// }
+//   es := NewSpanSlice()
+//   es.Resize(4)
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       // Here should set all the values for e.
+//   }
 func (es SpanSlice) Resize(newLen int) {
 	oldLen := len(*es.orig)
 	oldCap := cap(*es.orig)
@@ -436,12 +479,52 @@ func (es SpanSlice) Resize(newLen int) {
 // given Span at that new position.  The original Span
 // could still be referenced so do not reuse it after passing it to this
 // method.
+// Deprecated: Use AppendEmpty.
 func (es SpanSlice) Append(e Span) {
 	*es.orig = append(*es.orig, e.orig)
 }
 
+// AppendEmpty will append to the end of the slice an empty Span.
+// It returns the newly added Span.
+func (es SpanSlice) AppendEmpty() Span {
+	*es.orig = append(*es.orig, &otlptrace.Span{})
+	return es.At(es.Len() - 1)
+}
+
+// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
+// The current slice will be cleared.
+func (es SpanSlice) MoveAndAppendTo(dest SpanSlice) {
+	if *dest.orig == nil {
+		// We can simply move the entire vector and avoid any allocations.
+		*dest.orig = *es.orig
+	} else {
+		*dest.orig = append(*dest.orig, *es.orig...)
+	}
+	*es.orig = nil
+}
+
+// RemoveIf calls f sequentially for each element present in the slice.
+// If f returns true, the element is removed from the slice.
+func (es SpanSlice) RemoveIf(f func(Span) bool) {
+	newLen := 0
+	for i := 0; i < len(*es.orig); i++ {
+		if f(es.At(i)) {
+			continue
+		}
+		if newLen == i {
+			// Nothing to move, element is at the right place.
+			newLen++
+			continue
+		}
+		(*es.orig)[newLen] = (*es.orig)[i]
+		newLen++
+	}
+	// TODO: Prevent memory leak by erasing truncated values.
+	*es.orig = (*es.orig)[:newLen]
+}
+
 // Span represents a single operation within a trace.
-// See Span definition in OTLP: https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto#L37
+// See Span definition in OTLP: https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
 //
 // This is a reference type, if passed by value and callee modifies it the
 // caller will see the modification.
@@ -465,22 +548,22 @@ func NewSpan() Span {
 
 // TraceID returns the traceid associated with this Span.
 func (ms Span) TraceID() TraceID {
-	return TraceID((*ms.orig).TraceId)
+	return TraceID{orig: ((*ms.orig).TraceId)}
 }
 
 // SetTraceID replaces the traceid associated with this Span.
 func (ms Span) SetTraceID(v TraceID) {
-	(*ms.orig).TraceId = data.TraceID(v)
+	(*ms.orig).TraceId = v.orig
 }
 
 // SpanID returns the spanid associated with this Span.
 func (ms Span) SpanID() SpanID {
-	return SpanID((*ms.orig).SpanId)
+	return SpanID{orig: ((*ms.orig).SpanId)}
 }
 
 // SetSpanID replaces the spanid associated with this Span.
 func (ms Span) SetSpanID(v SpanID) {
-	(*ms.orig).SpanId = data.SpanID(v)
+	(*ms.orig).SpanId = v.orig
 }
 
 // TraceState returns the tracestate associated with this Span.
@@ -495,12 +578,12 @@ func (ms Span) SetTraceState(v TraceState) {
 
 // ParentSpanID returns the parentspanid associated with this Span.
 func (ms Span) ParentSpanID() SpanID {
-	return SpanID((*ms.orig).ParentSpanId)
+	return SpanID{orig: ((*ms.orig).ParentSpanId)}
 }
 
 // SetParentSpanID replaces the parentspanid associated with this Span.
 func (ms Span) SetParentSpanID(v SpanID) {
-	(*ms.orig).ParentSpanId = data.SpanID(v)
+	(*ms.orig).ParentSpanId = v.orig
 }
 
 // Name returns the name associated with this Span.
@@ -523,23 +606,23 @@ func (ms Span) SetKind(v SpanKind) {
 	(*ms.orig).Kind = otlptrace.Span_SpanKind(v)
 }
 
-// StartTime returns the starttime associated with this Span.
-func (ms Span) StartTime() Timestamp {
+// StartTimestamp returns the starttimestamp associated with this Span.
+func (ms Span) StartTimestamp() Timestamp {
 	return Timestamp((*ms.orig).StartTimeUnixNano)
 }
 
-// SetStartTime replaces the starttime associated with this Span.
-func (ms Span) SetStartTime(v Timestamp) {
+// SetStartTimestamp replaces the starttimestamp associated with this Span.
+func (ms Span) SetStartTimestamp(v Timestamp) {
 	(*ms.orig).StartTimeUnixNano = uint64(v)
 }
 
-// EndTime returns the endtime associated with this Span.
-func (ms Span) EndTime() Timestamp {
+// EndTimestamp returns the endtimestamp associated with this Span.
+func (ms Span) EndTimestamp() Timestamp {
 	return Timestamp((*ms.orig).EndTimeUnixNano)
 }
 
-// SetEndTime replaces the endtime associated with this Span.
-func (ms Span) SetEndTime(v Timestamp) {
+// SetEndTimestamp replaces the endtimestamp associated with this Span.
+func (ms Span) SetEndTimestamp(v Timestamp) {
 	(*ms.orig).EndTimeUnixNano = uint64(v)
 }
 
@@ -601,8 +684,8 @@ func (ms Span) CopyTo(dest Span) {
 	dest.SetParentSpanID(ms.ParentSpanID())
 	dest.SetName(ms.Name())
 	dest.SetKind(ms.Kind())
-	dest.SetStartTime(ms.StartTime())
-	dest.SetEndTime(ms.EndTime())
+	dest.SetStartTimestamp(ms.StartTimestamp())
+	dest.SetEndTimestamp(ms.EndTimestamp())
 	ms.Attributes().CopyTo(dest.Attributes())
 	dest.SetDroppedAttributesCount(ms.DroppedAttributesCount())
 	ms.Events().CopyTo(dest.Events())
@@ -614,7 +697,7 @@ func (ms Span) CopyTo(dest Span) {
 
 // SpanEventSlice logically represents a slice of SpanEvent.
 //
-// This is a reference type, if passed by value and callee modifies it the
+// This is a reference type. If passed by value and callee modifies it, the
 // caller will see the modification.
 //
 // Must use NewSpanEventSlice function to create new instances.
@@ -646,24 +729,12 @@ func (es SpanEventSlice) Len() int {
 // At returns the element at the given index.
 //
 // This function is used mostly for iterating over all the values in the slice:
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     ... // Do something with the element
-// }
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       ... // Do something with the element
+//   }
 func (es SpanEventSlice) At(ix int) SpanEvent {
 	return newSpanEvent((*es.orig)[ix])
-}
-
-// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
-// The current slice will be cleared.
-func (es SpanEventSlice) MoveAndAppendTo(dest SpanEventSlice) {
-	if *dest.orig == nil {
-		// We can simply move the entire vector and avoid any allocations.
-		*dest.orig = *es.orig
-	} else {
-		*dest.orig = append(*dest.orig, *es.orig...)
-	}
-	*es.orig = nil
 }
 
 // CopyTo copies all elements from the current slice to the dest.
@@ -691,12 +762,12 @@ func (es SpanEventSlice) CopyTo(dest SpanEventSlice) {
 // 2. If the newLen > len then (newLen - cap) empty elements will be appended to the slice.
 //
 // Here is how a new SpanEventSlice can be initialized:
-// es := NewSpanEventSlice()
-// es.Resize(4)
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     // Here should set all the values for e.
-// }
+//   es := NewSpanEventSlice()
+//   es.Resize(4)
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       // Here should set all the values for e.
+//   }
 func (es SpanEventSlice) Resize(newLen int) {
 	oldLen := len(*es.orig)
 	oldCap := cap(*es.orig)
@@ -722,8 +793,48 @@ func (es SpanEventSlice) Resize(newLen int) {
 // given SpanEvent at that new position.  The original SpanEvent
 // could still be referenced so do not reuse it after passing it to this
 // method.
+// Deprecated: Use AppendEmpty.
 func (es SpanEventSlice) Append(e SpanEvent) {
 	*es.orig = append(*es.orig, e.orig)
+}
+
+// AppendEmpty will append to the end of the slice an empty SpanEvent.
+// It returns the newly added SpanEvent.
+func (es SpanEventSlice) AppendEmpty() SpanEvent {
+	*es.orig = append(*es.orig, &otlptrace.Span_Event{})
+	return es.At(es.Len() - 1)
+}
+
+// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
+// The current slice will be cleared.
+func (es SpanEventSlice) MoveAndAppendTo(dest SpanEventSlice) {
+	if *dest.orig == nil {
+		// We can simply move the entire vector and avoid any allocations.
+		*dest.orig = *es.orig
+	} else {
+		*dest.orig = append(*dest.orig, *es.orig...)
+	}
+	*es.orig = nil
+}
+
+// RemoveIf calls f sequentially for each element present in the slice.
+// If f returns true, the element is removed from the slice.
+func (es SpanEventSlice) RemoveIf(f func(SpanEvent) bool) {
+	newLen := 0
+	for i := 0; i < len(*es.orig); i++ {
+		if f(es.At(i)) {
+			continue
+		}
+		if newLen == i {
+			// Nothing to move, element is at the right place.
+			newLen++
+			continue
+		}
+		(*es.orig)[newLen] = (*es.orig)[i]
+		newLen++
+	}
+	// TODO: Prevent memory leak by erasing truncated values.
+	*es.orig = (*es.orig)[:newLen]
 }
 
 // SpanEvent is a time-stamped annotation of the span, consisting of user-supplied
@@ -794,7 +905,7 @@ func (ms SpanEvent) CopyTo(dest SpanEvent) {
 
 // SpanLinkSlice logically represents a slice of SpanLink.
 //
-// This is a reference type, if passed by value and callee modifies it the
+// This is a reference type. If passed by value and callee modifies it, the
 // caller will see the modification.
 //
 // Must use NewSpanLinkSlice function to create new instances.
@@ -826,24 +937,12 @@ func (es SpanLinkSlice) Len() int {
 // At returns the element at the given index.
 //
 // This function is used mostly for iterating over all the values in the slice:
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     ... // Do something with the element
-// }
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       ... // Do something with the element
+//   }
 func (es SpanLinkSlice) At(ix int) SpanLink {
 	return newSpanLink((*es.orig)[ix])
-}
-
-// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
-// The current slice will be cleared.
-func (es SpanLinkSlice) MoveAndAppendTo(dest SpanLinkSlice) {
-	if *dest.orig == nil {
-		// We can simply move the entire vector and avoid any allocations.
-		*dest.orig = *es.orig
-	} else {
-		*dest.orig = append(*dest.orig, *es.orig...)
-	}
-	*es.orig = nil
 }
 
 // CopyTo copies all elements from the current slice to the dest.
@@ -871,12 +970,12 @@ func (es SpanLinkSlice) CopyTo(dest SpanLinkSlice) {
 // 2. If the newLen > len then (newLen - cap) empty elements will be appended to the slice.
 //
 // Here is how a new SpanLinkSlice can be initialized:
-// es := NewSpanLinkSlice()
-// es.Resize(4)
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     // Here should set all the values for e.
-// }
+//   es := NewSpanLinkSlice()
+//   es.Resize(4)
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       // Here should set all the values for e.
+//   }
 func (es SpanLinkSlice) Resize(newLen int) {
 	oldLen := len(*es.orig)
 	oldCap := cap(*es.orig)
@@ -902,12 +1001,53 @@ func (es SpanLinkSlice) Resize(newLen int) {
 // given SpanLink at that new position.  The original SpanLink
 // could still be referenced so do not reuse it after passing it to this
 // method.
+// Deprecated: Use AppendEmpty.
 func (es SpanLinkSlice) Append(e SpanLink) {
 	*es.orig = append(*es.orig, e.orig)
 }
 
+// AppendEmpty will append to the end of the slice an empty SpanLink.
+// It returns the newly added SpanLink.
+func (es SpanLinkSlice) AppendEmpty() SpanLink {
+	*es.orig = append(*es.orig, &otlptrace.Span_Link{})
+	return es.At(es.Len() - 1)
+}
+
+// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
+// The current slice will be cleared.
+func (es SpanLinkSlice) MoveAndAppendTo(dest SpanLinkSlice) {
+	if *dest.orig == nil {
+		// We can simply move the entire vector and avoid any allocations.
+		*dest.orig = *es.orig
+	} else {
+		*dest.orig = append(*dest.orig, *es.orig...)
+	}
+	*es.orig = nil
+}
+
+// RemoveIf calls f sequentially for each element present in the slice.
+// If f returns true, the element is removed from the slice.
+func (es SpanLinkSlice) RemoveIf(f func(SpanLink) bool) {
+	newLen := 0
+	for i := 0; i < len(*es.orig); i++ {
+		if f(es.At(i)) {
+			continue
+		}
+		if newLen == i {
+			// Nothing to move, element is at the right place.
+			newLen++
+			continue
+		}
+		(*es.orig)[newLen] = (*es.orig)[i]
+		newLen++
+	}
+	// TODO: Prevent memory leak by erasing truncated values.
+	*es.orig = (*es.orig)[:newLen]
+}
+
 // SpanLink is a pointer from the current span to another span in the same trace or in a
-// different trace. See OTLP for link definition.
+// different trace.
+// See Link definition in OTLP: https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
 //
 // This is a reference type, if passed by value and callee modifies it the
 // caller will see the modification.
@@ -931,22 +1071,22 @@ func NewSpanLink() SpanLink {
 
 // TraceID returns the traceid associated with this SpanLink.
 func (ms SpanLink) TraceID() TraceID {
-	return TraceID((*ms.orig).TraceId)
+	return TraceID{orig: ((*ms.orig).TraceId)}
 }
 
 // SetTraceID replaces the traceid associated with this SpanLink.
 func (ms SpanLink) SetTraceID(v TraceID) {
-	(*ms.orig).TraceId = data.TraceID(v)
+	(*ms.orig).TraceId = v.orig
 }
 
 // SpanID returns the spanid associated with this SpanLink.
 func (ms SpanLink) SpanID() SpanID {
-	return SpanID((*ms.orig).SpanId)
+	return SpanID{orig: ((*ms.orig).SpanId)}
 }
 
 // SetSpanID replaces the spanid associated with this SpanLink.
 func (ms SpanLink) SetSpanID(v SpanID) {
-	(*ms.orig).SpanId = data.SpanID(v)
+	(*ms.orig).SpanId = v.orig
 }
 
 // TraceState returns the tracestate associated with this SpanLink.
@@ -983,8 +1123,8 @@ func (ms SpanLink) CopyTo(dest SpanLink) {
 	dest.SetDroppedAttributesCount(ms.DroppedAttributesCount())
 }
 
-// SpanStatus is an optional final status for this span. Semantically when Status wasn't set
-// it is means span ended without errors and assume Status.Ok (code = 0).
+// SpanStatus is an optional final status for this span. Semantically, when Status was not
+// set, that means the span ended without errors and to assume Status.Ok (code = 0).
 //
 // This is a reference type, if passed by value and callee modifies it the
 // caller will see the modification.

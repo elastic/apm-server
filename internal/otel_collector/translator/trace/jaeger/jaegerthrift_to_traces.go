@@ -22,10 +22,12 @@ import (
 	"github.com/jaegertracing/jaeger/thrift-gen/jaeger"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
+	idutils "go.opentelemetry.io/collector/internal/idutils"
 	"go.opentelemetry.io/collector/translator/conventions"
 	tracetranslator "go.opentelemetry.io/collector/translator/trace"
 )
 
+// ThriftBatchToInternalTraces transforms a Thrift trace batch into pdata.Traces.
 func ThriftBatchToInternalTraces(batch *jaeger.Batch) pdata.Traces {
 	traceData := pdata.NewTraces()
 	jProcess := batch.GetProcess()
@@ -35,18 +37,14 @@ func ThriftBatchToInternalTraces(batch *jaeger.Batch) pdata.Traces {
 		return traceData
 	}
 
-	rss := traceData.ResourceSpans()
-	rss.Resize(1)
-	rs := rss.At(0)
+	rs := traceData.ResourceSpans().AppendEmpty()
 	jThriftProcessToInternalResource(jProcess, rs.Resource())
 
 	if len(jSpans) == 0 {
 		return traceData
 	}
 
-	ilss := rs.InstrumentationLibrarySpans()
-	ilss.Resize(1)
-	jThriftSpansToInternal(jSpans, ilss.At(0).Spans())
+	jThriftSpansToInternal(jSpans, rs.InstrumentationLibrarySpans().AppendEmpty().Spans())
 
 	return traceData
 }
@@ -63,11 +61,12 @@ func jThriftProcessToInternalResource(process *jaeger.Process, dest pdata.Resour
 	}
 
 	attrs := dest.Attributes()
+	attrs.Clear()
 	if serviceName != "" {
-		attrs.InitEmptyWithCapacity(len(tags) + 1)
+		attrs.EnsureCapacity(len(tags) + 1)
 		attrs.UpsertString(conventions.AttributeServiceName, serviceName)
 	} else {
-		attrs.InitEmptyWithCapacity(len(tags))
+		attrs.EnsureCapacity(len(tags))
 	}
 	jThriftTagsToInternalAttributes(tags, attrs)
 
@@ -97,19 +96,20 @@ func jThriftSpansToInternal(spans []*jaeger.Span, dest pdata.SpanSlice) {
 }
 
 func jThriftSpanToInternal(span *jaeger.Span, dest pdata.Span) {
-	dest.SetTraceID(tracetranslator.UInt64ToTraceID(uint64(span.TraceIdHigh), uint64(span.TraceIdLow)))
-	dest.SetSpanID(tracetranslator.UInt64ToSpanID(uint64(span.SpanId)))
+	dest.SetTraceID(idutils.UInt64ToTraceID(uint64(span.TraceIdHigh), uint64(span.TraceIdLow)))
+	dest.SetSpanID(idutils.UInt64ToSpanID(uint64(span.SpanId)))
 	dest.SetName(span.OperationName)
-	dest.SetStartTime(microsecondsToUnixNano(span.StartTime))
-	dest.SetEndTime(microsecondsToUnixNano(span.StartTime + span.Duration))
+	dest.SetStartTimestamp(microsecondsToUnixNano(span.StartTime))
+	dest.SetEndTimestamp(microsecondsToUnixNano(span.StartTime + span.Duration))
 
 	parentSpanID := span.ParentSpanId
 	if parentSpanID != 0 {
-		dest.SetParentSpanID(tracetranslator.UInt64ToSpanID(uint64(parentSpanID)))
+		dest.SetParentSpanID(idutils.UInt64ToSpanID(uint64(parentSpanID)))
 	}
 
 	attrs := dest.Attributes()
-	attrs.InitEmptyWithCapacity(len(span.Tags))
+	attrs.Clear()
+	attrs.EnsureCapacity(len(span.Tags))
 	jThriftTagsToInternalAttributes(span.Tags, attrs)
 	setInternalSpanStatus(attrs, dest.Status())
 	if spanKindAttr, ok := attrs.Get(tracetranslator.TagSpanKind); ok {
@@ -162,7 +162,8 @@ func jThriftLogsToSpanEvents(logs []*jaeger.Log, dest pdata.SpanEventSlice) {
 		}
 
 		attrs := event.Attributes()
-		attrs.InitEmptyWithCapacity(len(log.Fields))
+		attrs.Clear()
+		attrs.EnsureCapacity(len(log.Fields))
 		jThriftTagsToInternalAttributes(log.Fields, attrs)
 		if name, ok := attrs.Get(tracetranslator.TagMessage); ok {
 			event.SetName(name.StringVal())
@@ -184,8 +185,8 @@ func jThriftReferencesToSpanLinks(refs []*jaeger.SpanRef, excludeParentID int64,
 			continue
 		}
 
-		link.SetTraceID(tracetranslator.UInt64ToTraceID(uint64(ref.TraceIdHigh), uint64(ref.TraceIdLow)))
-		link.SetSpanID(tracetranslator.UInt64ToSpanID(uint64(ref.SpanId)))
+		link.SetTraceID(idutils.UInt64ToTraceID(uint64(ref.TraceIdHigh), uint64(ref.TraceIdLow)))
+		link.SetSpanID(idutils.UInt64ToSpanID(uint64(ref.SpanId)))
 		i++
 	}
 

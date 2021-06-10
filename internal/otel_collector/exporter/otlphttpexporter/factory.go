@@ -21,8 +21,9 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/confighttp"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
@@ -36,19 +37,16 @@ func NewFactory() component.ExporterFactory {
 	return exporterhelper.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		exporterhelper.WithTraces(createTraceExporter),
+		exporterhelper.WithTraces(createTracesExporter),
 		exporterhelper.WithMetrics(createMetricsExporter),
 		exporterhelper.WithLogs(createLogsExporter))
 }
 
-func createDefaultConfig() configmodels.Exporter {
+func createDefaultConfig() config.Exporter {
 	return &Config{
-		ExporterSettings: configmodels.ExporterSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr,
-		},
-		RetrySettings: exporterhelper.DefaultRetrySettings(),
-		QueueSettings: exporterhelper.DefaultQueueSettings(),
+		ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+		RetrySettings:    exporterhelper.DefaultRetrySettings(),
+		QueueSettings:    exporterhelper.DefaultQueueSettings(),
 		HTTPClientSettings: confighttp.HTTPClientSettings{
 			Endpoint: "",
 			Timeout:  30 * time.Second,
@@ -74,12 +72,12 @@ func composeSignalURL(oCfg *Config, signalOverrideURL string, signalName string)
 	}
 }
 
-func createTraceExporter(
+func createTracesExporter(
 	_ context.Context,
-	params component.ExporterCreateParams,
-	cfg configmodels.Exporter,
+	set component.ExporterCreateSettings,
+	cfg config.Exporter,
 ) (component.TracesExporter, error) {
-	oce, err := newExporter(cfg, params.Logger)
+	oce, err := newExporter(cfg, set.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -90,10 +88,12 @@ func createTraceExporter(
 		return nil, err
 	}
 
-	return exporterhelper.NewTraceExporter(
+	return exporterhelper.NewTracesExporter(
 		cfg,
-		params.Logger,
-		oce.pushTraceData,
+		set.Logger,
+		oce.pushTraces,
+		exporterhelper.WithStart(oce.start),
+		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
 		// explicitly disable since we rely on http.Client timeout logic.
 		exporterhelper.WithTimeout(exporterhelper.TimeoutSettings{Timeout: 0}),
 		exporterhelper.WithRetry(oCfg.RetrySettings),
@@ -102,10 +102,10 @@ func createTraceExporter(
 
 func createMetricsExporter(
 	_ context.Context,
-	params component.ExporterCreateParams,
-	cfg configmodels.Exporter,
+	set component.ExporterCreateSettings,
+	cfg config.Exporter,
 ) (component.MetricsExporter, error) {
-	oce, err := newExporter(cfg, params.Logger)
+	oce, err := newExporter(cfg, set.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -118,8 +118,10 @@ func createMetricsExporter(
 
 	return exporterhelper.NewMetricsExporter(
 		cfg,
-		params.Logger,
-		oce.pushMetricsData,
+		set.Logger,
+		oce.pushMetrics,
+		exporterhelper.WithStart(oce.start),
+		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
 		// explicitly disable since we rely on http.Client timeout logic.
 		exporterhelper.WithTimeout(exporterhelper.TimeoutSettings{Timeout: 0}),
 		exporterhelper.WithRetry(oCfg.RetrySettings),
@@ -128,10 +130,10 @@ func createMetricsExporter(
 
 func createLogsExporter(
 	_ context.Context,
-	params component.ExporterCreateParams,
-	cfg configmodels.Exporter,
+	set component.ExporterCreateSettings,
+	cfg config.Exporter,
 ) (component.LogsExporter, error) {
-	oce, err := newExporter(cfg, params.Logger)
+	oce, err := newExporter(cfg, set.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -144,8 +146,10 @@ func createLogsExporter(
 
 	return exporterhelper.NewLogsExporter(
 		cfg,
-		params.Logger,
-		oce.pushLogData,
+		set.Logger,
+		oce.pushLogs,
+		exporterhelper.WithStart(oce.start),
+		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
 		// explicitly disable since we rely on http.Client timeout logic.
 		exporterhelper.WithTimeout(exporterhelper.TimeoutSettings{Timeout: 0}),
 		exporterhelper.WithRetry(oCfg.RetrySettings),

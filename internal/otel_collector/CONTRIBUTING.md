@@ -107,7 +107,7 @@ section of general project contributing guide.
 Working with the project sources requires the following tools:
 
 1. [git](https://git-scm.com/)
-2. [go](https://golang.org/) (version 1.14 and up)
+2. [go](https://golang.org/) (version 1.16 and up)
 3. [make](https://www.gnu.org/software/make/)
 4. [docker](https://www.docker.com/)
 
@@ -116,13 +116,13 @@ Working with the project sources requires the following tools:
 Fork the repo, checkout the upstream repo to your GOPATH by:
 
 ```
-$ GO111MODULE="" go get -d go.opentelemetry.io/collector
+$ git clone git@github.com:open-telemetry/opentelemetry-collector.git
 ```
 
 Add your fork as an origin:
 
 ```shell
-$ cd $(go env GOPATH)/src/go.opentelemetry.io/collector
+$ cd opentelemetry-collector
 $ git remote add fork git@github.com:YOUR_GITHUB_USERNAME/opentelemetry-collector.git
 ```
 
@@ -152,7 +152,7 @@ $ git push fork feature
 
 ## General Notes
 
-This project uses Go 1.14.* and CircleCI.
+This project uses Go 1.16.* and CircleCI.
 
 CircleCI uses the Makefile with the `ci` target, it is recommended to
 run it before submitting your PR. It runs `gofmt -s` (simplify) and `golint`.
@@ -246,6 +246,16 @@ the event happens.
 Make log message human readable and also include data that is needed for easier
 understanding of what happened and in what context.
 
+### Observability
+
+Out of the box, your users should be able to observe the state of your component. 
+The collector exposes an OpenMetrics endpoint at `http://localhost:8888/metrics`
+where your data will land.
+
+When using the regular helpers, you should have some metrics added around key 
+events automatically. For instance, exporters should have `otelcol_exporter_sent_spans` 
+tracked without your exporter doing anything.
+
 ### Resource Usage
 
 Limit usage of CPU, RAM or other resources that the code can use. Do not write code
@@ -287,6 +297,9 @@ the automated [Testbed](testbed/README.md).
 ## Release
 
 See [release](docs/release.md) for details.
+
+## Contributing Images
+If you are adding any new images, please use [Excalidraw](https://excalidraw.com). It's a free and open source web application and doesn't require any account to get started. Once you've created the design, while exporting the image, make sure to tick **"Embed scene into exported file"** option. This allows the image to be imported in an editable format for other contributors later.
 
 ## Common Issues
 

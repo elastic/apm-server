@@ -63,7 +63,7 @@ const (
 // grpcCollector implements Jaeger api_v2 protocol for receiving tracing data
 type grpcCollector struct {
 	auth     authFunc
-	consumer consumer.TracesConsumer
+	consumer consumer.Traces
 }
 
 // PostSpans implements the api_v2/collector.proto. It converts spans received via Jaeger Proto batch to open-telemetry
@@ -78,7 +78,8 @@ func (c *grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansReques
 }
 
 func (c *grpcCollector) postSpans(ctx context.Context, batch model.Batch) error {
-	if err := c.auth(ctx, batch); err != nil {
+	ctx, err := c.auth(ctx, batch)
+	if err != nil {
 		gRPCCollectorMonitoringMap.inc(request.IDResponseErrorsUnauthorized)
 		return status.Error(codes.Unauthenticated, err.Error())
 	}
