@@ -25,6 +25,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/internal/occonventions"
 	"go.opentelemetry.io/collector/translator/conventions"
 	tracetranslator "go.opentelemetry.io/collector/translator/trace"
 )
@@ -87,8 +88,8 @@ func spanToOC(span pdata.Span) *octrace.Span {
 		ParentSpanId:            spanIDToOC(span.ParentSpanID()),
 		Name:                    stringToTruncatableString(span.Name()),
 		Kind:                    spanKindToOC(span.Kind()),
-		StartTime:               timestampAsTimestampPb(span.StartTime()),
-		EndTime:                 timestampAsTimestampPb(span.EndTime()),
+		StartTime:               timestampAsTimestampPb(span.StartTimestamp()),
+		EndTime:                 timestampAsTimestampPb(span.EndTimestamp()),
 		Attributes:              attributes,
 		TimeEvents:              eventsToOC(span.Events(), span.DroppedEventsCount()),
 		Links:                   linksToOC(span.Links(), span.DroppedLinksCount()),
@@ -115,8 +116,9 @@ func attributesMapToOCAttributeMap(attributes pdata.AttributeMap) map[string]*oc
 	}
 
 	ocAttributes := make(map[string]*octrace.AttributeValue, attributes.Len())
-	attributes.ForEach(func(k string, v pdata.AttributeValue) {
+	attributes.Range(func(k string, v pdata.AttributeValue) bool {
 		ocAttributes[k] = attributeValueToOC(v)
+		return true
 	})
 	return ocAttributes
 }
@@ -125,29 +127,29 @@ func attributeValueToOC(attr pdata.AttributeValue) *octrace.AttributeValue {
 	a := &octrace.AttributeValue{}
 
 	switch attr.Type() {
-	case pdata.AttributeValueSTRING:
+	case pdata.AttributeValueTypeString:
 		a.Value = &octrace.AttributeValue_StringValue{
 			StringValue: stringToTruncatableString(attr.StringVal()),
 		}
-	case pdata.AttributeValueBOOL:
+	case pdata.AttributeValueTypeBool:
 		a.Value = &octrace.AttributeValue_BoolValue{
 			BoolValue: attr.BoolVal(),
 		}
-	case pdata.AttributeValueDOUBLE:
+	case pdata.AttributeValueTypeDouble:
 		a.Value = &octrace.AttributeValue_DoubleValue{
 			DoubleValue: attr.DoubleVal(),
 		}
-	case pdata.AttributeValueINT:
+	case pdata.AttributeValueTypeInt:
 		a.Value = &octrace.AttributeValue_IntValue{
 			IntValue: attr.IntVal(),
 		}
-	case pdata.AttributeValueMAP:
+	case pdata.AttributeValueTypeMap:
 		a.Value = &octrace.AttributeValue_StringValue{
-			StringValue: stringToTruncatableString(tracetranslator.AttributeValueToString(attr, false)),
+			StringValue: stringToTruncatableString(tracetranslator.AttributeValueToString(attr)),
 		}
-	case pdata.AttributeValueARRAY:
+	case pdata.AttributeValueTypeArray:
 		a.Value = &octrace.AttributeValue_StringValue{
-			StringValue: stringToTruncatableString(tracetranslator.AttributeValueToString(attr, false)),
+			StringValue: stringToTruncatableString(tracetranslator.AttributeValueToString(attr)),
 		}
 	default:
 		a.Value = &octrace.AttributeValue_StringValue{
@@ -161,15 +163,15 @@ func attributeValueToOC(attr pdata.AttributeValue) *octrace.AttributeValue {
 func spanKindToOCAttribute(kind pdata.SpanKind) *octrace.AttributeValue {
 	var ocKind tracetranslator.OpenTracingSpanKind
 	switch kind {
-	case pdata.SpanKindCONSUMER:
+	case pdata.SpanKindConsumer:
 		ocKind = tracetranslator.OpenTracingSpanKindConsumer
-	case pdata.SpanKindPRODUCER:
+	case pdata.SpanKindProducer:
 		ocKind = tracetranslator.OpenTracingSpanKindProducer
-	case pdata.SpanKindINTERNAL:
+	case pdata.SpanKindInternal:
 		ocKind = tracetranslator.OpenTracingSpanKindInternal
-	case pdata.SpanKindUNSPECIFIED:
-	case pdata.SpanKindSERVER: // explicitly handled as SpanKind
-	case pdata.SpanKindCLIENT: // explicitly handled as SpanKind
+	case pdata.SpanKindUnspecified:
+	case pdata.SpanKindServer: // explicitly handled as SpanKind
+	case pdata.SpanKindClient: // explicitly handled as SpanKind
 	default:
 
 	}
@@ -191,8 +193,8 @@ func stringAttributeValue(val string) *octrace.AttributeValue {
 }
 
 func attributesMapToOCSameProcessAsParentSpan(attr pdata.AttributeMap) *wrapperspb.BoolValue {
-	val, ok := attr.Get(conventions.OCAttributeSameProcessAsParentSpan)
-	if !ok || val.Type() != pdata.AttributeValueBOOL {
+	val, ok := attr.Get(occonventions.AttributeSameProcessAsParentSpan)
+	if !ok || val.Type() != pdata.AttributeValueTypeBool {
 		return nil
 	}
 	return wrapperspb.Bool(val.BoolVal())
@@ -233,15 +235,15 @@ func traceStateToOC(traceState pdata.TraceState) *octrace.Span_Tracestate {
 
 func spanKindToOC(kind pdata.SpanKind) octrace.Span_SpanKind {
 	switch kind {
-	case pdata.SpanKindSERVER:
+	case pdata.SpanKindServer:
 		return octrace.Span_SERVER
-	case pdata.SpanKindCLIENT:
+	case pdata.SpanKindClient:
 		return octrace.Span_CLIENT
 	// NOTE: see `spanKindToOCAttribute` function for custom kinds
-	case pdata.SpanKindUNSPECIFIED:
-	case pdata.SpanKindINTERNAL:
-	case pdata.SpanKindPRODUCER:
-	case pdata.SpanKindCONSUMER:
+	case pdata.SpanKindUnspecified:
+	case pdata.SpanKindInternal:
+	case pdata.SpanKindProducer:
+	case pdata.SpanKindConsumer:
 	default:
 	}
 

@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/confighttp"
-	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
@@ -41,17 +41,14 @@ func NewFactory() component.ExporterFactory {
 	return exporterhelper.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		exporterhelper.WithTraces(createTraceExporter))
+		exporterhelper.WithTraces(createTracesExporter))
 }
 
-func createDefaultConfig() configmodels.Exporter {
+func createDefaultConfig() config.Exporter {
 	return &Config{
-		ExporterSettings: configmodels.ExporterSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr,
-		},
-		RetrySettings: exporterhelper.DefaultRetrySettings(),
-		QueueSettings: exporterhelper.DefaultQueueSettings(),
+		ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+		RetrySettings:    exporterhelper.DefaultRetrySettings(),
+		QueueSettings:    exporterhelper.DefaultQueueSettings(),
 		HTTPClientSettings: confighttp.HTTPClientSettings{
 			Timeout: defaultTimeout,
 			// We almost read 0 bytes, so no need to tune ReadBufferSize.
@@ -62,10 +59,10 @@ func createDefaultConfig() configmodels.Exporter {
 	}
 }
 
-func createTraceExporter(
+func createTracesExporter(
 	_ context.Context,
-	params component.ExporterCreateParams,
-	cfg configmodels.Exporter,
+	set component.ExporterCreateSettings,
+	cfg config.Exporter,
 ) (component.TracesExporter, error) {
 	zc := cfg.(*Config)
 
@@ -78,10 +75,11 @@ func createTraceExporter(
 	if err != nil {
 		return nil, err
 	}
-	return exporterhelper.NewTraceExporter(
+	return exporterhelper.NewTracesExporter(
 		zc,
-		params.Logger,
-		ze.pushTraceData,
+		set.Logger,
+		ze.pushTraces,
+		exporterhelper.WithStart(ze.start),
 		// explicitly disable since we rely on http.Client timeout logic.
 		exporterhelper.WithTimeout(exporterhelper.TimeoutSettings{Timeout: 0}),
 		exporterhelper.WithQueue(zc.QueueSettings),

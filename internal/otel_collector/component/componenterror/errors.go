@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package oterr provides helper functions to create and process
-// OpenTelemetry specific errors
 package componenterror
 
 import (
@@ -21,12 +19,11 @@ import (
 )
 
 var (
-	// ErrAlreadyStarted indicates an error on starting an already-started component.
-	ErrAlreadyStarted = errors.New("already started")
-
-	// ErrAlreadyStopped indicates an error on stoping an already-stopped component.
-	ErrAlreadyStopped = errors.New("already stopped")
-
 	// ErrNilNextConsumer indicates an error on nil next consumer.
 	ErrNilNextConsumer = errors.New("nil nextConsumer")
+
+	// ErrDataTypeIsNotSupported can be returned by receiver, exporter or processor
+	// factory methods that create the entity if the particular telemetry
+	// data type is not supported by the receiver, exporter or processor.
+	ErrDataTypeIsNotSupported = errors.New("telemetry type is not supported")
 )

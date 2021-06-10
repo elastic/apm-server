@@ -12,7 +12,7 @@ MODULE_DIR=$(go list -m -f {{.Dir}} go.opentelemetry.io/collector)
 
 rm -fr $TARGET_DIR
 mkdir $TARGET_DIR
-rsync -cr --no-perms --no-group --chmod=ugo=rwX --delete $MODULE_DIR/* $TARGET_DIR
+rsync -cr --no-perms --no-group --chmod=ugo=rwX --delete --exclude='*_test.go' $MODULE_DIR/* $TARGET_DIR
 rsync -cr --no-perms --no-group --chmod=ugo=rwX $MIXIN_DIR/* $TARGET_DIR
 
 go mod edit -replace go.opentelemetry.io/collector=./internal/otel_collector

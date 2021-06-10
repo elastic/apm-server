@@ -24,6 +24,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/internal/occonventions"
 	"go.opentelemetry.io/collector/translator/conventions"
 	tracetranslator "go.opentelemetry.io/collector/translator/trace"
 )
@@ -87,18 +88,20 @@ func internalResourceToOC(resource pdata.Resource) (*occommon.Node, *ocresource.
 	ocNode := &occommon.Node{}
 	ocResource := &ocresource.Resource{}
 	labels := make(map[string]string, attrs.Len())
-	attrs.ForEach(func(k string, v pdata.AttributeValue) {
-		val := tracetranslator.AttributeValueToString(v, false)
+	attrs.Range(func(k string, v pdata.AttributeValue) bool {
+		val := tracetranslator.AttributeValueToString(v)
 
 		switch k {
-		case conventions.OCAttributeResourceType:
+		case conventions.AttributeCloudAvailabilityZone:
+			labels[resourcekeys.CloudKeyZone] = val
+		case occonventions.AttributeResourceType:
 			ocResource.Type = val
 		case conventions.AttributeServiceName:
 			getServiceInfo(ocNode).Name = val
-		case conventions.OCAttributeProcessStartTime:
+		case occonventions.AttributeProcessStartTime:
 			t, err := time.Parse(time.RFC3339Nano, val)
 			if err != nil {
-				return
+				return true
 			}
 			ts := timestamppb.New(t)
 			getProcessIdentifier(ocNode).StartTimestamp = ts
@@ -112,7 +115,7 @@ func internalResourceToOC(resource pdata.Resource) (*occommon.Node, *ocresource.
 			getProcessIdentifier(ocNode).Pid = uint32(pid)
 		case conventions.AttributeTelemetrySDKVersion:
 			getLibraryInfo(ocNode).CoreLibraryVersion = val
-		case conventions.OCAttributeExporterVersion:
+		case occonventions.AttributeExporterVersion:
 			getLibraryInfo(ocNode).ExporterVersion = val
 		case conventions.AttributeTelemetrySDKLanguage:
 			if code, ok := langToOCLangCodeMap[val]; ok {
@@ -122,6 +125,7 @@ func internalResourceToOC(resource pdata.Resource) (*occommon.Node, *ocresource.
 			// Not a special attribute, put it into resource labels
 			labels[k] = val
 		}
+		return true
 	})
 	ocResource.Labels = labels
 
