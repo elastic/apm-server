@@ -167,9 +167,9 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 			}
 		}
 		return !anyDropped
-	case pdata.MetricDataTypeDoubleHistogram:
+	case pdata.MetricDataTypeHistogram:
 		anyDropped := false
-		dps := metric.DoubleHistogram().DataPoints()
+		dps := metric.Histogram().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			if sample, ok := histogramSample(metric.Name(), dp.BucketCounts(), dp.ExplicitBounds()); ok {
@@ -179,7 +179,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 			}
 		}
 		return !anyDropped
-	case pdata.MetricDataTypeDoubleSummary:
+	case pdata.MetricDataTypeSummary:
 		// TODO(axw) https://github.com/elastic/apm-server/issues/3195
 		// (Not quite the same issue, but the solution would also enable
 		// aggregate metrics, which would be appropriate for summaries.)
@@ -265,8 +265,9 @@ type stringMapItem struct {
 
 func toStringMapItems(labelMap pdata.StringMap) []stringMapItem {
 	labels := make([]stringMapItem, 0, labelMap.Len())
-	labelMap.ForEach(func(k, v string) {
+	labelMap.Range(func(k, v string) bool {
 		labels = append(labels, stringMapItem{k, v})
+		return true
 	})
 	sort.SliceStable(labels, func(i, j int) bool {
 		return labels[i].key < labels[j].key

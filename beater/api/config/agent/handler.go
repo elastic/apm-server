@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -91,12 +92,34 @@ func (h *handler) Handle(c *request.Context) {
 
 	query, queryErr := buildQuery(c)
 	if queryErr != nil {
-		extractQueryError(c, queryErr, c.AuthResult.Authorized)
+		extractQueryError(c, queryErr)
 		c.Write()
 		return
 	}
 	if query.Service.Environment == "" {
 		query.Service.Environment = h.defaultServiceEnvironment
+	}
+
+	if !c.AuthResult.Anonymous {
+		// The exact agent is not always known for anonymous clients, so we do not
+		// issue a secondary authorization check for them. Instead, we issue the
+		// request and filter the results using query.InsecureAgents.
+		authResource := authorization.Resource{ServiceName: query.Service.Name}
+		if result, err := authorization.AuthorizedFor(c.Request.Context(), authResource); err != nil {
+			c.Result.SetDefault(request.IDResponseErrorsServiceUnavailable)
+			c.Result.Err = err
+			c.Write()
+			return
+		} else if !result.Authorized {
+			id := request.IDResponseErrorsUnauthorized
+			status := request.MapResultIDToStatus[id]
+			if result.Reason != "" {
+				status.Keyword = result.Reason
+			}
+			c.Result.Set(id, status.Code, status.Keyword, nil, nil)
+			c.Write()
+			return
+		}
 	}
 
 	result, err := h.f.Fetch(c.Request.Context(), query)
@@ -105,7 +128,7 @@ func (h *handler) Handle(c *request.Context) {
 		if errors.As(err, &verr) {
 			body := verr.Body()
 			if strings.HasPrefix(body, agentcfg.ErrMsgKibanaVersionNotCompatible) {
-				body = authErrMsg(body, agentcfg.ErrMsgKibanaVersionNotCompatible, c.AuthResult.Authorized)
+				body = authErrMsg(c, body, agentcfg.ErrMsgKibanaVersionNotCompatible)
 			}
 			c.Result.Set(
 				request.IDResponseErrorsServiceUnavailable,
@@ -116,7 +139,7 @@ func (h *handler) Handle(c *request.Context) {
 			)
 		} else {
 			apm.CaptureError(c.Request.Context(), err).Send()
-			extractInternalError(c, err, c.AuthResult.Authorized)
+			extractInternalError(c, err)
 		}
 		c.Write()
 		return
@@ -135,12 +158,15 @@ func (h *handler) Handle(c *request.Context) {
 	c.Write()
 }
 
-func buildQuery(c *request.Context) (query agentcfg.Query, err error) {
+func buildQuery(c *request.Context) (agentcfg.Query, error) {
 	r := c.Request
 
+	var query agentcfg.Query
 	switch r.Method {
 	case http.MethodPost:
-		err = convert.FromReader(r.Body, &query)
+		if err := convert.FromReader(r.Body, &query); err != nil {
+			return query, err
+		}
 	case http.MethodGet:
 		params := r.URL.Query()
 		query = agentcfg.Query{
@@ -150,41 +176,43 @@ func buildQuery(c *request.Context) (query agentcfg.Query, err error) {
 			},
 		}
 	default:
-		err = errors.Errorf("%s: %s", msgMethodUnsupported, r.Method)
+		if err := errors.Errorf("%s: %s", msgMethodUnsupported, r.Method); err != nil {
+			return query, err
+		}
+	}
+	if query.Service.Name == "" {
+		return query, errors.New(agentcfg.ServiceName + " is required")
 	}
 
-	if err == nil && query.Service.Name == "" {
-		err = errors.New(agentcfg.ServiceName + " is required")
-	}
 	if c.IsRum {
 		query.InsecureAgents = rumAgents
 	}
 	query.Etag = ifNoneMatch(c)
-	return
+	return query, nil
 }
 
-func extractInternalError(c *request.Context, err error, withAuth bool) {
+func extractInternalError(c *request.Context, err error) {
 	msg := err.Error()
 	var body interface{}
 	var keyword string
 	switch {
 	case strings.Contains(msg, agentcfg.ErrMsgSendToKibanaFailed):
-		body = authErrMsg(msg, agentcfg.ErrMsgSendToKibanaFailed, withAuth)
+		body = authErrMsg(c, msg, agentcfg.ErrMsgSendToKibanaFailed)
 		keyword = agentcfg.ErrMsgSendToKibanaFailed
 
 	case strings.Contains(msg, agentcfg.ErrMsgReadKibanaResponse):
-		body = authErrMsg(msg, agentcfg.ErrMsgReadKibanaResponse, withAuth)
+		body = authErrMsg(c, msg, agentcfg.ErrMsgReadKibanaResponse)
 		keyword = agentcfg.ErrMsgReadKibanaResponse
 
 	case strings.Contains(msg, agentcfg.ErrUnauthorized):
 		fullMsg := "APM Server is not authorized to query Kibana. " +
 			"Please configure apm-server.kibana.username and apm-server.kibana.password, " +
 			"and ensure the user has the necessary privileges."
-		body = authErrMsg(fullMsg, agentcfg.ErrUnauthorized, withAuth)
+		body = authErrMsg(c, fullMsg, agentcfg.ErrUnauthorized)
 		keyword = agentcfg.ErrUnauthorized
 
 	default:
-		body = authErrMsg(msg, msgServiceUnavailable, withAuth)
+		body = authErrMsg(c, msg, msgServiceUnavailable)
 		keyword = msgServiceUnavailable
 	}
 
@@ -195,25 +223,25 @@ func extractInternalError(c *request.Context, err error, withAuth bool) {
 		err)
 }
 
-func extractQueryError(c *request.Context, err error, withAuth bool) {
+func extractQueryError(c *request.Context, err error) {
 	msg := err.Error()
 	if strings.Contains(msg, msgMethodUnsupported) {
 		c.Result.Set(request.IDResponseErrorsMethodNotAllowed,
 			http.StatusMethodNotAllowed,
 			msgMethodUnsupported,
-			authErrMsg(msg, msgMethodUnsupported, withAuth),
+			authErrMsg(c, msg, msgMethodUnsupported),
 			err)
 		return
 	}
 	c.Result.Set(request.IDResponseErrorsInvalidQuery,
 		http.StatusBadRequest,
 		msgInvalidQuery,
-		authErrMsg(msg, msgInvalidQuery, withAuth),
+		authErrMsg(c, msg, msgInvalidQuery),
 		err)
 }
 
-func authErrMsg(fullMsg, shortMsg string, withAuth bool) string {
-	if withAuth {
+func authErrMsg(c *request.Context, fullMsg, shortMsg string) string {
+	if !c.AuthResult.Anonymous {
 		return fullMsg
 	}
 	return shortMsg

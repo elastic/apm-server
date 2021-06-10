@@ -47,7 +47,7 @@ var (
 )
 
 // newHTTPMux returns a new http.ServeMux which accepts Thrift-encoded spans.
-func newHTTPMux(consumer consumer.TracesConsumer) (*http.ServeMux, error) {
+func newHTTPMux(consumer consumer.Traces) (*http.ServeMux, error) {
 	handler, err := middleware.Wrap(
 		newHTTPHandler(consumer),
 		middleware.LogMiddleware(),
@@ -66,10 +66,10 @@ func newHTTPMux(consumer consumer.TracesConsumer) (*http.ServeMux, error) {
 }
 
 type httpHandler struct {
-	consumer consumer.TracesConsumer
+	consumer consumer.Traces
 }
 
-func newHTTPHandler(consumer consumer.TracesConsumer) request.Handler {
+func newHTTPHandler(consumer consumer.Traces) request.Handler {
 	h := &httpHandler{consumer}
 	return h.handle
 }
@@ -110,8 +110,8 @@ func (h *httpHandler) handleTraces(c *request.Context) {
 
 	var batch jaeger.Batch
 	transport := thrift.NewStreamTransport(c.Request.Body, ioutil.Discard)
-	protocol := thrift.NewTBinaryProtocolFactoryDefault().GetProtocol(transport)
-	if err := batch.Read(protocol); err != nil {
+	protocol := thrift.NewTBinaryProtocolFactoryConf(nil).GetProtocol(transport)
+	if err := batch.Read(c.Request.Context(), protocol); err != nil {
 		c.Result.SetWithError(request.IDResponseErrorsDecode, err)
 		return
 	}
