@@ -30,6 +30,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -365,7 +366,6 @@ func (c *ElasticAgentContainer) Start() error {
 	defer cancel()
 
 	// Update request from user-definable fields.
-	c.request.Env["FLEET_INSECURE"] = "1"
 	c.request.Env["FLEET_URL"] = c.fleetServerURL
 	if c.FleetEnrollmentToken != "" {
 		c.request.Env["FLEET_ENROLL"] = "1"
@@ -378,6 +378,15 @@ func (c *ElasticAgentContainer) Start() error {
 	for source, target := range c.BindMountInstall {
 		c.request.BindMounts[source] = path.Join(c.installDir, target)
 	}
+
+	// Inject CA certificate for verifying fleet-server.
+	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
+	hostCACertPath, err := filepath.Abs("../testing/docker/fleet-server/ca.pem")
+	if err != nil {
+		return err
+	}
+	c.request.BindMounts[hostCACertPath] = containerCACertPath
+	c.request.Env["FLEET_CA"] = containerCACertPath
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: c.request,
