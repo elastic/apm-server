@@ -26,6 +26,8 @@ import (
 )
 
 func TestCloudEnv(t *testing.T) {
+	defer os.Unsetenv(cloudEnv)
+
 	// no cloud environment variable set
 	settings := DefaultSettings()
 	assert.Len(t, settings.ConfigOverrides, 2)
