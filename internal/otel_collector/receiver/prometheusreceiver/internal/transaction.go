@@ -25,19 +25,23 @@ import (
 	metricspb "github.com/census-instrumentation/opencensus-proto/gen-go/metrics/v1"
 	resourcepb "github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/storage"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/translator/internaldata"
 )
 
 const (
-	portAttr   = "port"
-	schemeAttr = "scheme"
+	portAttr     = "port"
+	schemeAttr   = "scheme"
+	jobAttr      = "job"
+	instanceAttr = "instance"
 
 	transport  = "http"
 	dataformat = "prometheus"
@@ -58,21 +62,32 @@ type transaction struct {
 	id                   int64
 	ctx                  context.Context
 	isNew                bool
-	sink                 consumer.MetricsConsumer
+	sink                 consumer.Metrics
 	job                  string
 	instance             string
 	jobsMap              *JobsMap
 	useStartTimeMetric   bool
 	startTimeMetricRegex string
-	receiverName         string
+	receiverID           config.ComponentID
 	ms                   *metadataService
 	node                 *commonpb.Node
 	resource             *resourcepb.Resource
 	metricBuilder        *metricBuilder
+	externalLabels       labels.Labels
 	logger               *zap.Logger
+	obsrecv              *obsreport.Receiver
 }
 
-func newTransaction(ctx context.Context, jobsMap *JobsMap, useStartTimeMetric bool, startTimeMetricRegex string, receiverName string, ms *metadataService, sink consumer.MetricsConsumer, logger *zap.Logger) *transaction {
+func newTransaction(
+	ctx context.Context,
+	jobsMap *JobsMap,
+	useStartTimeMetric bool,
+	startTimeMetricRegex string,
+	receiverID config.ComponentID,
+	ms *metadataService,
+	sink consumer.Metrics,
+	externalLabels labels.Labels,
+	logger *zap.Logger) *transaction {
 	return &transaction{
 		id:                   atomic.AddInt64(&idSeq, 1),
 		ctx:                  ctx,
@@ -81,17 +96,19 @@ func newTransaction(ctx context.Context, jobsMap *JobsMap, useStartTimeMetric bo
 		jobsMap:              jobsMap,
 		useStartTimeMetric:   useStartTimeMetric,
 		startTimeMetricRegex: startTimeMetricRegex,
-		receiverName:         receiverName,
+		receiverID:           receiverID,
 		ms:                   ms,
+		externalLabels:       externalLabels,
 		logger:               logger,
+		obsrecv:              obsreport.NewReceiver(obsreport.ReceiverSettings{ReceiverID: receiverID, Transport: transport}),
 	}
 }
 
 // ensure *transaction has implemented the storage.Appender interface
 var _ storage.Appender = (*transaction)(nil)
 
-// always returns 0 to disable label caching
-func (tr *transaction) Add(ls labels.Labels, t int64, v float64) (uint64, error) {
+// Append always returns 0 to disable label caching.
+func (tr *transaction) Append(ref uint64, ls labels.Labels, t int64, v float64) (uint64, error) {
 	// Important, must handle. prometheus will still try to feed the appender some data even if it failed to
 	// scrape the remote target,  if the previous scrape was success and some data were cached internally
 	// in our case, we don't need these data, simply drop them shall be good enough. more details:
@@ -105,7 +122,10 @@ func (tr *transaction) Add(ls labels.Labels, t int64, v float64) (uint64, error)
 		return 0, errTransactionAborted
 	default:
 	}
-
+	if len(tr.externalLabels) > 0 {
+		// TODO(jbd): Improve the allocs.
+		ls = append(ls, tr.externalLabels...)
+	}
 	if tr.isNew {
 		if err := tr.initTransaction(ls); err != nil {
 			return 0, err
@@ -114,7 +134,11 @@ func (tr *transaction) Add(ls labels.Labels, t int64, v float64) (uint64, error)
 	return 0, tr.metricBuilder.AddDataPoint(ls, t, v)
 }
 
-// always returns error since caching is not supported by Add() function
+func (tr *transaction) AppendExemplar(ref uint64, l labels.Labels, e exemplar.Exemplar) (uint64, error) {
+	return 0, nil
+}
+
+// AddFast always returns error since caching is not supported by Add() function.
 func (tr *transaction) AddFast(_ uint64, _ int64, _ float64) error {
 	return storage.ErrNotFound
 }
@@ -139,7 +163,7 @@ func (tr *transaction) initTransaction(ls labels.Labels) error {
 	return nil
 }
 
-// submit metrics data to consumers
+// Commit submits metrics data to consumers.
 func (tr *transaction) Commit() error {
 	if tr.isNew {
 		// In a situation like not able to connect to the remote server, scrapeloop will still commit even if it had
@@ -147,11 +171,11 @@ func (tr *transaction) Commit() error {
 		return nil
 	}
 
-	ctx := obsreport.StartMetricsReceiveOp(tr.ctx, tr.receiverName, transport)
+	ctx := tr.obsrecv.StartMetricsOp(tr.ctx)
 	metrics, _, _, err := tr.metricBuilder.Build()
 	if err != nil {
 		// Only error by Build() is errNoDataToBuild, with numReceivedPoints set to zero.
-		obsreport.EndMetricsReceiveOp(ctx, dataformat, 0, err)
+		tr.obsrecv.EndMetricsOp(ctx, dataformat, 0, err)
 		return err
 	}
 
@@ -162,11 +186,11 @@ func (tr *transaction) Commit() error {
 			// Since we are unable to adjust metrics properly, we will drop them
 			// and return an error.
 			err = errNoStartTimeMetrics
-			obsreport.EndMetricsReceiveOp(ctx, dataformat, 0, err)
+			tr.obsrecv.EndMetricsOp(ctx, dataformat, 0, err)
 			return err
 		}
 
-		adjustStartTime(tr.metricBuilder.startTime, metrics)
+		adjustStartTimestamp(tr.metricBuilder.startTime, metrics)
 	} else {
 		// AdjustMetrics - jobsMap has to be non-nil in this case.
 		// Note: metrics could be empty after adjustment, which needs to be checked before passing it on to ConsumeMetrics()
@@ -175,15 +199,11 @@ func (tr *transaction) Commit() error {
 
 	numPoints := 0
 	if len(metrics) > 0 {
-		md := internaldata.OCToMetrics(internaldata.MetricsData{
-			Node:     tr.node,
-			Resource: tr.resource,
-			Metrics:  metrics,
-		})
+		md := internaldata.OCToMetrics(tr.node, tr.resource, metrics)
 		_, numPoints = md.MetricAndDataPointCount()
 		err = tr.sink.ConsumeMetrics(ctx, md)
 	}
-	obsreport.EndMetricsReceiveOp(ctx, dataformat, numPoints, err)
+	tr.obsrecv.EndMetricsOp(ctx, dataformat, numPoints, err)
 	return err
 }
 
@@ -191,7 +211,7 @@ func (tr *transaction) Rollback() error {
 	return nil
 }
 
-func adjustStartTime(startTime float64, metrics []*metricspb.Metric) {
+func adjustStartTimestamp(startTime float64, metrics []*metricspb.Metric) {
 	startTimeTs := timestampFromFloat64(startTime)
 	for _, metric := range metrics {
 		switch metric.GetMetricDescriptor().GetType() {
@@ -227,8 +247,10 @@ func createNodeAndResource(job, instance, scheme string) (*commonpb.Node, *resou
 	}
 	resource := &resourcepb.Resource{
 		Labels: map[string]string{
-			portAttr:   port,
-			schemeAttr: scheme,
+			jobAttr:      job,
+			instanceAttr: instance,
+			portAttr:     port,
+			schemeAttr:   scheme,
 		},
 	}
 	return node, resource

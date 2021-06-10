@@ -19,8 +19,10 @@ import (
 
 	occommon "github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1"
 	ocresource "github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1"
+	"go.opencensus.io/resource/resourcekeys"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/internal/occonventions"
 	"go.opentelemetry.io/collector/translator/conventions"
 )
 
@@ -79,7 +81,8 @@ func ocNodeResourceToInternal(ocNode *occommon.Node, ocResource *ocresource.Reso
 	}
 
 	attrs := dest.Attributes()
-	attrs.InitEmptyWithCapacity(maxTotalAttrCount)
+	attrs.Clear()
+	attrs.EnsureCapacity(maxTotalAttrCount)
 
 	if ocNode != nil {
 		// Copy all Attributes.
@@ -95,7 +98,7 @@ func ocNodeResourceToInternal(ocNode *occommon.Node, ocResource *ocresource.Reso
 		}
 		if ocNode.Identifier != nil {
 			if ocNode.Identifier.StartTimestamp != nil {
-				attrs.UpsertString(conventions.OCAttributeProcessStartTime, ocNode.Identifier.StartTimestamp.AsTime().Format(time.RFC3339Nano))
+				attrs.UpsertString(occonventions.AttributeProcessStartTime, ocNode.Identifier.StartTimestamp.AsTime().Format(time.RFC3339Nano))
 			}
 			if ocNode.Identifier.HostName != "" {
 				attrs.UpsertString(conventions.AttributeHostName, ocNode.Identifier.HostName)
@@ -109,7 +112,7 @@ func ocNodeResourceToInternal(ocNode *occommon.Node, ocResource *ocresource.Reso
 				attrs.UpsertString(conventions.AttributeTelemetrySDKVersion, ocNode.LibraryInfo.CoreLibraryVersion)
 			}
 			if ocNode.LibraryInfo.ExporterVersion != "" {
-				attrs.UpsertString(conventions.OCAttributeExporterVersion, ocNode.LibraryInfo.ExporterVersion)
+				attrs.UpsertString(occonventions.AttributeExporterVersion, ocNode.LibraryInfo.ExporterVersion)
 			}
 			if ocNode.LibraryInfo.Language != occommon.LibraryInfo_LANGUAGE_UNSPECIFIED {
 				if str, ok := ocLangCodeToLangMap[ocNode.LibraryInfo.Language]; ok {
@@ -122,11 +125,16 @@ func ocNodeResourceToInternal(ocNode *occommon.Node, ocResource *ocresource.Reso
 	if ocResource != nil {
 		// Copy resource Labels.
 		for k, v := range ocResource.Labels {
-			attrs.InsertString(k, v)
+			switch k {
+			case resourcekeys.CloudKeyZone:
+				attrs.InsertString(conventions.AttributeCloudAvailabilityZone, v)
+			default:
+				attrs.InsertString(k, v)
+			}
 		}
 		// Add special fields.
 		if ocResource.Type != "" {
-			attrs.UpsertString(conventions.OCAttributeResourceType, ocResource.Type)
+			attrs.UpsertString(occonventions.AttributeResourceType, ocResource.Type)
 		}
 	}
 }

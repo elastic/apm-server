@@ -23,8 +23,6 @@ import (
 
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver/metrics"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver/trace"
 	"google.golang.org/grpc"
 
 	"github.com/elastic/apm-server/beater/request"
@@ -69,12 +67,10 @@ func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcesso
 	// dynamically registered and unregistered.
 	setCurrentMonitoredConsumer(consumer)
 
-	traceReceiver := trace.New("otlp", consumer)
-	metricsReceiver := metrics.New("otlp", consumer)
-	if err := otlpreceiver.RegisterTraceReceiver(context.Background(), traceReceiver, grpcServer, nil); err != nil {
+	if err := otlpreceiver.RegisterTraceReceiver(context.Background(), consumer, grpcServer, nil); err != nil {
 		return errors.Wrap(err, "failed to register OTLP trace receiver")
 	}
-	if err := otlpreceiver.RegisterMetricsReceiver(context.Background(), metricsReceiver, grpcServer, nil); err != nil {
+	if err := otlpreceiver.RegisterMetricsReceiver(context.Background(), consumer, grpcServer, nil); err != nil {
 		return errors.Wrap(err, "failed to register OTLP metrics receiver")
 	}
 	return nil
