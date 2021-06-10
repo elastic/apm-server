@@ -21,6 +21,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/elastic/beats/v7/libbeat/common"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,7 +33,7 @@ func TestCloudEnv(t *testing.T) {
 	// no cloud environment variable set
 	settings := DefaultSettings()
 	assert.Len(t, settings.ConfigOverrides, 2)
-	assert.Nil(t, settings.ConfigOverrides[1].Config)
+	assert.Equal(t, common.NewConfig(), settings.ConfigOverrides[1].Config)
 
 	// cloud environment picked up
 	os.Setenv(cloudEnv, "512")
@@ -47,5 +49,5 @@ func TestCloudEnv(t *testing.T) {
 	os.Setenv(cloudEnv, "123")
 	settings = DefaultSettings()
 	assert.Len(t, settings.ConfigOverrides, 2)
-	assert.Nil(t, settings.ConfigOverrides[1].Config)
+	assert.Equal(t, common.NewConfig(), settings.ConfigOverrides[1].Config)
 }
