@@ -67,15 +67,9 @@ require (
 	go.uber.org/zap v1.17.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5
-<<<<<<< HEAD
-	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
-	golang.org/x/sys v0.0.0-20210601080250-7ecdf8ef093b // indirect
-	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
-=======
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20210531225629-47163c9f4e4f // indirect
+	golang.org/x/sys v0.0.0-20210601080250-7ecdf8ef093b // indirect
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
->>>>>>> 7f55bc86 (Update go.opentelemetry.io/collector to v0.28.0 (#5425))
 	golang.org/x/tools v0.1.2
 	google.golang.org/genproto v0.0.0-20210601170153-0befbe3492e2 // indirect
 	google.golang.org/grpc v1.38.0
