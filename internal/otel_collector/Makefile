@@ -5,14 +5,12 @@ ALL_SRC := $(shell find . -name '*.go' \
 							-not -path './cmd/issuegenerator/*' \
 							-not -path './cmd/mdatagen/*' \
 							-not -path './cmd/schemagen/*' \
+							-not -path './cmd/checkdoc/*' \
 							-not -path './internal/tools/*' \
 							-not -path './examples/demo/app/*' \
 							-not -path './internal/data/protogen/*' \
 							-not -path './service/internal/zpages/tmplgen/*' \
 							-type f | sort)
-
-# ALL_PKGS is the list of all packages where ALL_SRC files reside.
-ALL_PKGS := $(shell go list $(sort $(dir $(ALL_SRC))))
 
 # All source code and documents. Used in spell check.
 ALL_DOC := $(shell find . \( -name "*.md" -o -name "*.yaml" \) \
@@ -28,18 +26,18 @@ GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
 
 BUILD_INFO_IMPORT_PATH=go.opentelemetry.io/collector/internal/version
-GIT_SHA=$(shell git rev-parse --short HEAD)
-BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA)
 VERSION=$(shell git describe --match "v[0-9]*" HEAD)
-BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
-# BUILD_TYPE should be one of (dev, release).
-BUILD_TYPE?=release
-BUILD_X3=-X $(BUILD_INFO_IMPORT_PATH).BuildType=$(BUILD_TYPE)
-BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2} ${BUILD_X3}"
+BUILD_INFO=-ldflags "-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)"
 
 RUN_CONFIG?=examples/local/otel-config.yaml
-
 CONTRIB_PATH=$(CURDIR)/../opentelemetry-collector-contrib
+COMP_REL_PATH=service/defaultcomponents/defaults.go
+MOD_NAME=go.opentelemetry.io/collector
+
+GO_ACC=go-acc
+ADDLICENSE=addlicense
+MISSPELL=misspell -error
+MISSPELL_CORRECTION=misspell -w
 
 # Function to execute a command. Note the empty line before endef to make sure each command
 # gets executed separately instead of concatenated with previous one.
@@ -52,7 +50,7 @@ endef
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: gochecklicense goimpi golint gomisspell gotest otelcol
+all: checklicense checkdoc misspell goimpi golint gotest otelcol
 
 all-modules:
 	@echo $(ALL_MODULES) | tr ' ' '\n' | sort
@@ -61,25 +59,17 @@ all-modules:
 testbed-loadtest: otelcol
 	cd ./testbed/tests && ./runtests.sh
 
-.PHONY: testbed-correctness
-testbed-correctness: otelcol
+.PHONY: testbed-correctness-traces
+testbed-correctness-traces: otelcol
 	cd ./testbed/correctness/traces && ./runtests.sh
-
-.PHONY: testbed-list-loadtest
-testbed-list-loadtest:
-	RUN_TESTBED=1 $(GOTEST) -v ./testbed/tests --test.list '.*'| grep "^Test"
-
-.PHONY: testbed-list-correctness
-testbed-list-correctness:
-	RUN_TESTBED=1 $(GOTEST) -v ./testbed/correctness --test.list '.*'| grep "^Test"
-
-.PHONY: testbed-list-correctness-metrics
-testbed-list-correctness-metrics:
-	RUN_TESTBED=1 $(GOTEST) -v ./testbed/correctness/metrics --test.list '.*'| grep "^TestHarness_"
 
 .PHONY: testbed-correctness-metrics
 testbed-correctness-metrics: otelcol
 	cd ./testbed/correctness/metrics && ./runtests.sh
+
+.PHONY: testbed-list-loadtest
+testbed-list-loadtest:
+	RUN_TESTBED=1 $(GOTEST) -v ./testbed/tests --test.list '.*'| grep "^Test"
 
 .PHONY: gomoddownload
 gomoddownload:
@@ -104,22 +94,6 @@ gotest-with-cover:
 	$(GO_ACC) ./...
 	go tool cover -html=coverage.txt -o coverage.html
 
-.PHONY: goaddlicense
-goaddlicense:
-	@$(MAKE) for-all CMD="make addlicense"
-
-.PHONY: gochecklicense
-gochecklicense:
-	@$(MAKE) for-all CMD="make checklicense"
-
-.PHONY: gomisspell
-gomisspell:
-	@$(MAKE) for-all CMD="make misspell"
-
-.PHONY: gomisspell-correction
-gomisspell-correction:
-	@$(MAKE) for-all CMD="make misspell-correction"
-
 .PHONY: golint
 golint:
 	@$(MAKE) for-all CMD="make lint"
@@ -137,6 +111,37 @@ gotidy:
 	$(MAKE) for-all CMD="rm -fr go.sum"
 	$(MAKE) for-all CMD="go mod tidy"
 
+.PHONY: addlicense
+addlicense:
+	@ADDLICENSEOUT=`$(ADDLICENSE) -y "" -c "The OpenTelemetry Authors" $(ALL_SRC) 2>&1`; \
+		if [ "$$ADDLICENSEOUT" ]; then \
+			echo "$(ADDLICENSE) FAILED => add License errors:\n"; \
+			echo "$$ADDLICENSEOUT\n"; \
+			exit 1; \
+		else \
+			echo "Add License finished successfully"; \
+		fi
+
+.PHONY: checklicense
+checklicense:
+	@ADDLICENSEOUT=`$(ADDLICENSE) -check $(ALL_SRC) 2>&1`; \
+		if [ "$$ADDLICENSEOUT" ]; then \
+			echo "$(ADDLICENSE) FAILED => add License errors:\n"; \
+			echo "$$ADDLICENSEOUT\n"; \
+			echo "Use 'make addlicense' to fix this."; \
+			exit 1; \
+		else \
+			echo "Check License finished successfully"; \
+		fi
+
+.PHONY: misspell
+misspell:
+	$(MISSPELL) $(ALL_DOC)
+
+.PHONY: misspell-correction
+misspell-correction:
+	$(MISSPELL_CORRECTION) $(ALL_DOC)
+
 .PHONY: install-tools
 install-tools:
 	cd $(TOOLS_MOD_DIR) && go install github.com/client9/misspell/cmd/misspell
@@ -147,8 +152,10 @@ install-tools:
 	cd $(TOOLS_MOD_DIR) && go install github.com/ory/go-acc
 	cd $(TOOLS_MOD_DIR) && go install github.com/pavius/impi/cmd/impi
 	cd $(TOOLS_MOD_DIR) && go install github.com/tcnksm/ghr
+	cd $(TOOLS_MOD_DIR) && go install golang.org/x/exp/cmd/apidiff
 	cd $(TOOLS_MOD_DIR) && go install golang.org/x/tools/cmd/goimports
 	cd cmd/mdatagen && go install ./
+	cd cmd/checkdoc && go install ./
 
 .PHONY: otelcol
 otelcol:
@@ -157,7 +164,7 @@ otelcol:
 
 .PHONY: run
 run:
-	GO111MODULE=on go run --race ./cmd/otelcol/... --config ${RUN_CONFIG}
+	GO111MODULE=on go run --race ./cmd/otelcol/... --config ${RUN_CONFIG} ${RUN_ARGS}
 
 .PHONY: docker-component # Not intended to be used directly
 docker-component: check-component
@@ -216,12 +223,17 @@ delete-tag:
 docker-otelcol:
 	COMPONENT=otelcol $(MAKE) docker-component
 
+# build collector binaries with different OS and Architecture
 .PHONY: binaries-all-sys
-binaries-all-sys: binaries-darwin_amd64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64
+binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64
 
 .PHONY: binaries-darwin_amd64
 binaries-darwin_amd64:
 	GOOS=darwin  GOARCH=amd64 $(MAKE) build-binary-internal
+
+.PHONY: binaries-darwin_arm64
+binaries-darwin_arm64:
+	GOOS=darwin  GOARCH=arm64 $(MAKE) build-binary-internal
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
@@ -237,7 +249,7 @@ binaries-windows_amd64:
 
 .PHONY: build-binary-internal
 build-binary-internal:
-	GO111MODULE=on CGO_ENABLED=0 go build -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
 
 
 .PHONY: deb-rpm-package
@@ -251,18 +263,27 @@ build-binary-internal:
 genmdata:
 	$(MAKE) for-all CMD="go generate ./..."
 
-DEPENDABOT_PATH=./.github/dependabot.yml
+DEPENDABOT_PATH=".github/dependabot.yml"
+.PHONY: internal-gendependabot
+internal-gendependabot:
+	@echo "Add rule for \"${PACKAGE}\" in \"${DIR}\"";
+	@echo "  - package-ecosystem: \"${PACKAGE}\"" >> ${DEPENDABOT_PATH};
+	@echo "    directory: \"${DIR}\"" >> ${DEPENDABOT_PATH};
+	@echo "    schedule:" >> ${DEPENDABOT_PATH};
+	@echo "      interval: \"weekly\"" >> ${DEPENDABOT_PATH};
+
 .PHONY: gendependabot
 gendependabot:
-	@echo "Recreate dependabot.yml file"
-	@echo "# File generated by \"make gendependabot\"; DO NOT EDIT.\n" > ${DEPENDABOT_PATH}
+	@echo "Recreating ${DEPENDABOT_PATH} file"
+	@echo "# File generated by \"make gendependabot\"; DO NOT EDIT." > ${DEPENDABOT_PATH}
+	@echo "" >> ${DEPENDABOT_PATH}
 	@echo "version: 2" >> ${DEPENDABOT_PATH}
 	@echo "updates:" >> ${DEPENDABOT_PATH}
-	@echo "Add entry for \"/\""
-	@echo "  - package-ecosystem: \"gomod\"\n    directory: \"/\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH}
+	$(MAKE) internal-gendependabot DIR="/" PACKAGE="github-actions"
+	$(MAKE) internal-gendependabot DIR="/" PACKAGE="docker"
+	$(MAKE) internal-gendependabot DIR="/" PACKAGE="gomod"
 	@set -e; for dir in $(ALL_MODULES); do \
-		(echo "Add entry for \"$${dir:1}\"" && \
-		  echo "  - package-ecosystem: \"gomod\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH} ); \
+		$(MAKE) internal-gendependabot DIR=$${dir:1} PACKAGE="gomod"; \
 	done
 
 # Definitions for ProtoBuf generation.
@@ -337,6 +358,7 @@ genpdata:
 check-contrib:
 	@echo Setting contrib at $(CONTRIB_PATH) to use this core checkout
 	make -C $(CONTRIB_PATH) for-all CMD="go mod edit -replace go.opentelemetry.io/collector=$(CURDIR)"
+	make -C $(CONTRIB_PATH) gotidy
 	make -C $(CONTRIB_PATH) test
 	@echo Restoring contrib to no longer use this core checkout
 	make -C $(CONTRIB_PATH) for-all CMD="go mod edit -dropreplace go.opentelemetry.io/collector"
@@ -356,3 +378,18 @@ certs:
 .PHONY: certs-dryrun
 certs-dryrun:
 	@internal/buildscripts/gen-certs.sh -d
+
+# Verify existence of READMEs for components specified as default components in the collector.
+.PHONY: checkdoc
+checkdoc:
+	go run cmd/checkdoc/main.go cmd/checkdoc/docs.go --project-path $(CURDIR) --component-rel-path $(COMP_REL_PATH) --module-name $(MOD_NAME)
+
+# Construct new API state snapshots
+.PHONY: apidiff-build
+apidiff-build:
+	@$(foreach pkg,$(ALL_PKGS),$(call exec-command,./internal/buildscripts/gen-apidiff.sh -p $(pkg)))
+
+# Compare API state snapshots
+.PHONY: apidiff-compare
+apidiff-compare:
+	@$(foreach pkg,$(ALL_PKGS),$(call exec-command,./internal/buildscripts/compare-apidiff.sh -p $(pkg)))

@@ -24,10 +24,10 @@ import (
 	"go.opentelemetry.io/collector/translator/conventions"
 )
 
-// TODO: Modify Matcher to invoke both the include and exclude properties so
-// calling processors will always have the same logic.
 // Matcher is an interface that allows matching a span against a configuration
 // of a match.
+// TODO: Modify Matcher to invoke both the include and exclude properties so
+//  calling processors will always have the same logic.
 type Matcher interface {
 	MatchSpan(span pdata.Span, resource pdata.Resource, library pdata.InstrumentationLibrary) bool
 }
@@ -58,7 +58,7 @@ func NewMatcher(mp *filterconfig.MatchProperties) (Matcher, error) {
 		return nil, err
 	}
 
-	var serviceFS filterset.FilterSet = nil
+	var serviceFS filterset.FilterSet
 	if len(mp.Services) > 0 {
 		serviceFS, err = filterset.CreateFilterSet(mp.Services, &mp.Config)
 		if err != nil {
@@ -66,7 +66,7 @@ func NewMatcher(mp *filterconfig.MatchProperties) (Matcher, error) {
 		}
 	}
 
-	var nameFS filterset.FilterSet = nil
+	var nameFS filterset.FilterSet
 	if len(mp.SpanNames) > 0 {
 		nameFS, err = filterset.CreateFilterSet(mp.SpanNames, &mp.Config)
 		if err != nil {

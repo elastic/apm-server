@@ -28,6 +28,7 @@ import (
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/translator/trace/jaeger"
 	"google.golang.org/grpc/codes"
@@ -114,6 +115,10 @@ func (tc *testGRPCCollector) setup(t *testing.T) {
 }
 
 type tracesConsumerFunc func(ctx context.Context, td pdata.Traces) error
+
+func (f tracesConsumerFunc) Capabilities() consumer.Capabilities {
+	return consumer.Capabilities{}
+}
 
 func (f tracesConsumerFunc) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	return f(ctx, td)
