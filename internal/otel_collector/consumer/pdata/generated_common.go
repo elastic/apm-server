@@ -71,7 +71,7 @@ func (ms InstrumentationLibrary) CopyTo(dest InstrumentationLibrary) {
 
 // AnyValueArray logically represents a slice of AttributeValue.
 //
-// This is a reference type, if passed by value and callee modifies it the
+// This is a reference type. If passed by value and callee modifies it, the
 // caller will see the modification.
 //
 // Must use NewAnyValueArray function to create new instances.
@@ -103,24 +103,12 @@ func (es AnyValueArray) Len() int {
 // At returns the element at the given index.
 //
 // This function is used mostly for iterating over all the values in the slice:
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     ... // Do something with the element
-// }
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       ... // Do something with the element
+//   }
 func (es AnyValueArray) At(ix int) AttributeValue {
 	return newAttributeValue(&(*es.orig)[ix])
-}
-
-// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
-// The current slice will be cleared.
-func (es AnyValueArray) MoveAndAppendTo(dest AnyValueArray) {
-	if *dest.orig == nil {
-		// We can simply move the entire vector and avoid any allocations.
-		*dest.orig = *es.orig
-	} else {
-		*dest.orig = append(*dest.orig, *es.orig...)
-	}
-	*es.orig = nil
 }
 
 // CopyTo copies all elements from the current slice to the dest.
@@ -143,12 +131,12 @@ func (es AnyValueArray) CopyTo(dest AnyValueArray) {
 // 2. If the newLen > len then (newLen - cap) empty elements will be appended to the slice.
 //
 // Here is how a new AnyValueArray can be initialized:
-// es := NewAnyValueArray()
-// es.Resize(4)
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     // Here should set all the values for e.
-// }
+//   es := NewAnyValueArray()
+//   es.Resize(4)
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       // Here should set all the values for e.
+//   }
 func (es AnyValueArray) Resize(newLen int) {
 	oldLen := len(*es.orig)
 	oldCap := cap(*es.orig)
@@ -174,6 +162,46 @@ func (es AnyValueArray) Resize(newLen int) {
 // given AttributeValue at that new position.  The original AttributeValue
 // could still be referenced so do not reuse it after passing it to this
 // method.
+// Deprecated: Use AppendEmpty.
 func (es AnyValueArray) Append(e AttributeValue) {
 	*es.orig = append(*es.orig, *e.orig)
+}
+
+// AppendEmpty will append to the end of the slice an empty AttributeValue.
+// It returns the newly added AttributeValue.
+func (es AnyValueArray) AppendEmpty() AttributeValue {
+	*es.orig = append(*es.orig, otlpcommon.AnyValue{})
+	return es.At(es.Len() - 1)
+}
+
+// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
+// The current slice will be cleared.
+func (es AnyValueArray) MoveAndAppendTo(dest AnyValueArray) {
+	if *dest.orig == nil {
+		// We can simply move the entire vector and avoid any allocations.
+		*dest.orig = *es.orig
+	} else {
+		*dest.orig = append(*dest.orig, *es.orig...)
+	}
+	*es.orig = nil
+}
+
+// RemoveIf calls f sequentially for each element present in the slice.
+// If f returns true, the element is removed from the slice.
+func (es AnyValueArray) RemoveIf(f func(AttributeValue) bool) {
+	newLen := 0
+	for i := 0; i < len(*es.orig); i++ {
+		if f(es.At(i)) {
+			continue
+		}
+		if newLen == i {
+			// Nothing to move, element is at the right place.
+			newLen++
+			continue
+		}
+		(*es.orig)[newLen] = (*es.orig)[i]
+		newLen++
+	}
+	// TODO: Prevent memory leak by erasing truncated values.
+	*es.orig = (*es.orig)[:newLen]
 }

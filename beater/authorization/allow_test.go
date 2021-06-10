@@ -27,7 +27,7 @@ import (
 func TestAllowAuth(t *testing.T) {
 	handler := allowAuth{}
 
-	result, err := handler.AuthorizedFor(context.Background(), "")
+	result, err := handler.AuthorizedFor(context.Background(), Resource{})
 	assert.NoError(t, err)
 	assert.Equal(t, Result{Authorized: true}, result)
 }

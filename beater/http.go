@@ -31,6 +31,7 @@ import (
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
@@ -47,6 +48,13 @@ type httpServer struct {
 }
 
 func newHTTPServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, batchProcessor model.BatchProcessor, f agentcfg.Fetcher) (*httpServer, error) {
+
+	// Add a model processor that checks authorization for the agent and service for each event.
+	batchProcessor = modelprocessor.Chained{
+		modelprocessor.MetadataProcessorFunc(verifyAuthorizedFor),
+		batchProcessor,
+	}
+
 	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, f)
 	if err != nil {
 		return nil, err

@@ -38,13 +38,41 @@ type Handler Builder
 
 // Authorization interface to be implemented by different auth types
 type Authorization interface {
-	AuthorizedFor(context.Context, elasticsearch.Resource) (Result, error)
+	// AuthorizedFor reports whether the agent is authorized for access to
+	// the given resource.
+	//
+	// When resource is zero, AuthorizedFor indicates whether the agent is
+	// allowed any access at all. When resource is non-zero, AllowedFor
+	// indicates whether the agent has access to the specific resource.
+	AuthorizedFor(context.Context, Resource) (Result, error)
+}
+
+// Resource holds parameters for restricting access that may be checked by
+// Authorization.AuthorizedFor.
+type Resource struct {
+	// AgentName holds the agent name associated with the agent making the
+	// request. This may be empty if the agent is unknown or irrelevant,
+	// such as in a request to the healthcheck endpoint.
+	AgentName string
+
+	// ServiceName holds the service name associated with the agent making
+	// the request. This may be empty if the agent is unknown or irrelevant,
+	// such as in a request to the healthcheck endpoint.
+	ServiceName string
 }
 
 // Result holds a result of calling Authorization.AuthorizedFor.
 type Result struct {
-	// Authorized indicates whether or not the authorization
-	// attempt was successful.
+	// Anonymous indicates whether or not the client has been granted anonymous access.
+	//
+	// Anonymous may be be false when no authentication/authorization is required,
+	// even if the client has not presented any credentials.
+	Anonymous bool
+
+	// Authorized indicates whether or not the authorization attempt was successful.
+	//
+	// It is possible that a result is both Anonymous and Authorized, when limited
+	// anonymous access is permitted (e.g. for RUM).
 	Authorized bool
 
 	// Reason holds an optional reason for unauthorized results.

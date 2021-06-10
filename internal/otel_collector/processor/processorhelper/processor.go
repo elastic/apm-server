@@ -15,18 +15,15 @@
 package processorhelper
 
 import (
-	"context"
 	"errors"
 
 	"go.opencensus.io/trace"
 
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/component/componenthelper"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/obsreport"
+	"go.opentelemetry.io/collector/consumer/consumerhelper"
+	"go.opentelemetry.io/collector/internal/obsreportconfig/obsmetrics"
 )
 
 // ErrSkipProcessingData is a sentinel value to indicate when traces or metrics should intentionally be dropped
@@ -34,65 +31,43 @@ import (
 // to stop further processing without propagating an error back up the pipeline to logs.
 var ErrSkipProcessingData = errors.New("sentinel error to skip processing data from the remainder of the pipeline")
 
-// TProcessor is a helper interface that allows avoiding implementing all functions in TracesProcessor by using NewTraceProcessor.
-type TProcessor interface {
-	// ProcessTraces is a helper function that processes the incoming data and returns the data to be sent to the next component.
-	// If error is returned then returned data are ignored. It MUST not call the next component.
-	ProcessTraces(context.Context, pdata.Traces) (pdata.Traces, error)
-}
-
-// MProcessor is a helper interface that allows avoiding implementing all functions in MetricsProcessor by using NewTraceProcessor.
-type MProcessor interface {
-	// ProcessMetrics is a helper function that processes the incoming data and returns the data to be sent to the next component.
-	// If error is returned then returned data are ignored. It MUST not call the next component.
-	ProcessMetrics(context.Context, pdata.Metrics) (pdata.Metrics, error)
-}
-
-// LProcessor is a helper interface that allows avoiding implementing all functions in LogsProcessor by using NewLogsProcessor.
-type LProcessor interface {
-	// ProcessLogs is a helper function that processes the incoming data and returns the data to be sent to the next component.
-	// If error is returned then returned data are ignored. It MUST not call the next component.
-	ProcessLogs(context.Context, pdata.Logs) (pdata.Logs, error)
-}
-
 // Option apply changes to internalOptions.
 type Option func(*baseSettings)
 
 // WithStart overrides the default Start function for an processor.
 // The default shutdown function does nothing and always returns nil.
-func WithStart(start componenthelper.Start) Option {
+func WithStart(start componenthelper.StartFunc) Option {
 	return func(o *baseSettings) {
-		o.Start = start
+		o.componentOptions = append(o.componentOptions, componenthelper.WithStart(start))
 	}
 }
 
 // WithShutdown overrides the default Shutdown function for an processor.
 // The default shutdown function does nothing and always returns nil.
-func WithShutdown(shutdown componenthelper.Shutdown) Option {
+func WithShutdown(shutdown componenthelper.ShutdownFunc) Option {
 	return func(o *baseSettings) {
-		o.Shutdown = shutdown
+		o.componentOptions = append(o.componentOptions, componenthelper.WithShutdown(shutdown))
 	}
 }
 
-// WithShutdown overrides the default GetCapabilities function for an processor.
+// WithCapabilities overrides the default GetCapabilities function for an processor.
 // The default GetCapabilities function returns mutable capabilities.
-func WithCapabilities(capabilities component.ProcessorCapabilities) Option {
+func WithCapabilities(capabilities consumer.Capabilities) Option {
 	return func(o *baseSettings) {
-		o.capabilities = capabilities
+		o.consumerOptions = append(o.consumerOptions, consumerhelper.WithCapabilities(capabilities))
 	}
 }
 
 type baseSettings struct {
-	*componenthelper.ComponentSettings
-	capabilities component.ProcessorCapabilities
+	componentOptions []componenthelper.Option
+	consumerOptions  []consumerhelper.Option
 }
 
 // fromOptions returns the internal settings starting from the default and applying all options.
 func fromOptions(options []Option) *baseSettings {
 	// Start from the default options:
 	opts := &baseSettings{
-		ComponentSettings: componenthelper.DefaultComponentSettings(),
-		capabilities:      component.ProcessorCapabilities{MutatesConsumedData: true},
+		consumerOptions: []consumerhelper.Option{consumerhelper.WithCapabilities(consumer.Capabilities{MutatesData: true})},
 	}
 
 	for _, op := range options {
@@ -102,155 +77,8 @@ func fromOptions(options []Option) *baseSettings {
 	return opts
 }
 
-// internalOptions contains internalOptions concerning how an Processor is configured.
-type baseProcessor struct {
-	component.Component
-	fullName        string
-	capabilities    component.ProcessorCapabilities
-	traceAttributes []trace.Attribute
-}
-
-// Construct the internalOptions from multiple Option.
-func newBaseProcessor(fullName string, options ...Option) baseProcessor {
-	bs := fromOptions(options)
-	be := baseProcessor{
-		Component:    componenthelper.NewComponent(bs.ComponentSettings),
-		fullName:     fullName,
-		capabilities: bs.capabilities,
-		traceAttributes: []trace.Attribute{
-			trace.StringAttribute(obsreport.ProcessorKey, fullName),
-		},
+func spanAttributes(id config.ComponentID) []trace.Attribute {
+	return []trace.Attribute{
+		trace.StringAttribute(obsmetrics.ProcessorKey, id.String()),
 	}
-
-	return be
-}
-
-func (bp *baseProcessor) GetCapabilities() component.ProcessorCapabilities {
-	return bp.capabilities
-}
-
-type tracesProcessor struct {
-	baseProcessor
-	processor    TProcessor
-	nextConsumer consumer.TracesConsumer
-}
-
-func (tp *tracesProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
-	span := trace.FromContext(ctx)
-	span.Annotate(tp.traceAttributes, "Start processing.")
-	var err error
-	td, err = tp.processor.ProcessTraces(ctx, td)
-	span.Annotate(tp.traceAttributes, "End processing.")
-	if err != nil {
-		return err
-	}
-	return tp.nextConsumer.ConsumeTraces(ctx, td)
-}
-
-// NewTraceProcessor creates a TracesProcessor that ensure context propagation and the right tags are set.
-// TODO: Add observability metrics support
-func NewTraceProcessor(
-	config configmodels.Processor,
-	nextConsumer consumer.TracesConsumer,
-	processor TProcessor,
-	options ...Option,
-) (component.TracesProcessor, error) {
-	if processor == nil {
-		return nil, errors.New("nil processor")
-	}
-
-	if nextConsumer == nil {
-		return nil, componenterror.ErrNilNextConsumer
-	}
-
-	return &tracesProcessor{
-		baseProcessor: newBaseProcessor(config.Name(), options...),
-		processor:     processor,
-		nextConsumer:  nextConsumer,
-	}, nil
-}
-
-type metricsProcessor struct {
-	baseProcessor
-	processor    MProcessor
-	nextConsumer consumer.MetricsConsumer
-}
-
-func (mp *metricsProcessor) ConsumeMetrics(ctx context.Context, md pdata.Metrics) error {
-	span := trace.FromContext(ctx)
-	span.Annotate(mp.traceAttributes, "Start processing.")
-	var err error
-	md, err = mp.processor.ProcessMetrics(ctx, md)
-	span.Annotate(mp.traceAttributes, "End processing.")
-	if err != nil {
-		if err == ErrSkipProcessingData {
-			return nil
-		}
-		return err
-	}
-	return mp.nextConsumer.ConsumeMetrics(ctx, md)
-}
-
-// NewMetricsProcessor creates a MetricsProcessor that ensure context propagation and the right tags are set.
-// TODO: Add observability metrics support
-func NewMetricsProcessor(
-	config configmodels.Processor,
-	nextConsumer consumer.MetricsConsumer,
-	processor MProcessor,
-	options ...Option,
-) (component.MetricsProcessor, error) {
-	if processor == nil {
-		return nil, errors.New("nil processor")
-	}
-
-	if nextConsumer == nil {
-		return nil, componenterror.ErrNilNextConsumer
-	}
-
-	return &metricsProcessor{
-		baseProcessor: newBaseProcessor(config.Name(), options...),
-		processor:     processor,
-		nextConsumer:  nextConsumer,
-	}, nil
-}
-
-type logProcessor struct {
-	baseProcessor
-	processor    LProcessor
-	nextConsumer consumer.LogsConsumer
-}
-
-func (lp *logProcessor) ConsumeLogs(ctx context.Context, ld pdata.Logs) error {
-	span := trace.FromContext(ctx)
-	span.Annotate(lp.traceAttributes, "Start processing.")
-	var err error
-	ld, err = lp.processor.ProcessLogs(ctx, ld)
-	span.Annotate(lp.traceAttributes, "End processing.")
-	if err != nil {
-		return err
-	}
-	return lp.nextConsumer.ConsumeLogs(ctx, ld)
-}
-
-// NewLogsProcessor creates a LogsProcessor that ensure context propagation and the right tags are set.
-// TODO: Add observability metrics support
-func NewLogsProcessor(
-	config configmodels.Processor,
-	nextConsumer consumer.LogsConsumer,
-	processor LProcessor,
-	options ...Option,
-) (component.LogsProcessor, error) {
-	if processor == nil {
-		return nil, errors.New("nil processor")
-	}
-
-	if nextConsumer == nil {
-		return nil, componenterror.ErrNilNextConsumer
-	}
-
-	return &logProcessor{
-		baseProcessor: newBaseProcessor(config.Name(), options...),
-		processor:     processor,
-		nextConsumer:  nextConsumer,
-	}, nil
 }

@@ -20,26 +20,25 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configerror"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/component/componenterror"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/internal/testdata"
 )
 
-func verifyTraceProcessorDoesntProduceAfterShutdown(t *testing.T, factory component.ProcessorFactory, cfg configmodels.Processor) {
+func verifyTracesProcessorDoesntProduceAfterShutdown(t *testing.T, factory component.ProcessorFactory, cfg config.Processor) {
 	// Create a processor and output its produce to a sink.
 	nextSink := new(consumertest.TracesSink)
 	processor, err := factory.CreateTracesProcessor(
 		context.Background(),
-		component.ProcessorCreateParams{Logger: zap.NewNop()},
+		NewNopProcessorCreateSettings(),
 		cfg,
 		nextSink,
 	)
 	if err != nil {
-		if err == configerror.ErrDataTypeIsNotSupported {
+		if err == componenterror.ErrDataTypeIsNotSupported {
 			return
 		}
 		require.NoError(t, err)
@@ -50,7 +49,7 @@ func verifyTraceProcessorDoesntProduceAfterShutdown(t *testing.T, factory compon
 	// Send some traces to the processor.
 	const generatedCount = 10
 	for i := 0; i < generatedCount; i++ {
-		processor.ConsumeTraces(context.Background(), testdata.GenerateTraceDataOneSpan())
+		require.NoError(t, processor.ConsumeTraces(context.Background(), testdata.GenerateTracesOneSpan()))
 	}
 
 	// Now shutdown the processor.
@@ -62,8 +61,9 @@ func verifyTraceProcessorDoesntProduceAfterShutdown(t *testing.T, factory compon
 	assert.EqualValues(t, generatedCount, nextSink.SpansCount())
 }
 
-func VerifyProcessorShutdown(t *testing.T, factory component.ProcessorFactory, cfg configmodels.Processor) {
-	verifyTraceProcessorDoesntProduceAfterShutdown(t, factory, cfg)
+// VerifyProcessorShutdown verifies the processor doesn't produce telemetry data after shutdown.
+func VerifyProcessorShutdown(t *testing.T, factory component.ProcessorFactory, cfg config.Processor) {
+	verifyTracesProcessorDoesntProduceAfterShutdown(t, factory, cfg)
 	// TODO: add metrics and logs verification.
 	// TODO: add other shutdown verifications.
 }

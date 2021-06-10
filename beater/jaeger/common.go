@@ -50,7 +50,7 @@ func (m monitoringMap) add(id request.ResultID, n int64) {
 func consumeBatch(
 	ctx context.Context,
 	batch model.Batch,
-	consumer consumer.TracesConsumer,
+	consumer consumer.Traces,
 	requestMetrics monitoringMap,
 ) error {
 	spanCount := int64(len(batch.Spans))
@@ -59,14 +59,14 @@ func consumeBatch(
 	return consumer.ConsumeTraces(ctx, traces)
 }
 
-type authFunc func(context.Context, model.Batch) error
+type authFunc func(context.Context, model.Batch) (context.Context, error)
 
-func noAuth(context.Context, model.Batch) error {
-	return nil
+func noAuth(ctx context.Context, _ model.Batch) (context.Context, error) {
+	return ctx, nil
 }
 
 func makeAuthFunc(authTag string, authHandler *authorization.Handler) authFunc {
-	return func(ctx context.Context, batch model.Batch) error {
+	return func(ctx context.Context, batch model.Batch) (context.Context, error) {
 		var kind, token string
 		for i, kv := range batch.Process.GetTags() {
 			if kv.Key != authTag {
@@ -78,15 +78,16 @@ func makeAuthFunc(authTag string, authHandler *authorization.Handler) authFunc {
 			break
 		}
 		auth := authHandler.AuthorizationFor(kind, token)
-		result, err := auth.AuthorizedFor(ctx, authorization.ResourceInternal)
+		result, err := auth.AuthorizedFor(ctx, authorization.Resource{})
 		if !result.Authorized {
 			if err != nil {
-				return errors.Wrap(err, errNotAuthorized.Error())
+				return nil, errors.Wrap(err, errNotAuthorized.Error())
 			}
 			// NOTE(axw) for now at least, we do not return result.Reason in the error message,
 			// as it refers to the "Authorization header" which is incorrect for Jaeger.
-			return errNotAuthorized
+			return nil, errNotAuthorized
 		}
-		return nil
+		ctx = authorization.ContextWithAuthorization(ctx, auth)
+		return ctx, nil
 	}
 }

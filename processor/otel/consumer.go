@@ -43,6 +43,7 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
 	"google.golang.org/grpc/codes"
@@ -88,6 +89,13 @@ type consumerStats struct {
 func (c *Consumer) Stats() ConsumerStats {
 	return ConsumerStats{
 		UnsupportedMetricsDropped: atomic.LoadInt64(&c.stats.unsupportedMetricsDropped),
+	}
+}
+
+// Capabilities is part of the consumer interfaces.
+func (c *Consumer) Capabilities() consumer.Capabilities {
+	return consumer.Capabilities{
+		MutatesData: false,
 	}
 }
 
@@ -141,8 +149,8 @@ func (c *Consumer) convertSpan(
 	traceID := otelSpan.TraceID().HexString()
 	spanID := otelSpan.SpanID().HexString()
 
-	startTime := otelSpan.StartTime().AsTime()
-	endTime := otelSpan.EndTime().AsTime()
+	startTime := otelSpan.StartTimestamp().AsTime()
+	endTime := otelSpan.EndTimestamp().AsTime()
 	var durationMillis float64
 	if endTime.After(startTime) {
 		durationMillis = endTime.Sub(startTime).Seconds() * 1000
@@ -157,7 +165,7 @@ func (c *Consumer) convertSpan(
 	// currently do not have the metadata to make this distinction. For
 	// now, we assume that the majority of consumption is passive, and
 	// therefore start a transaction whenever span kind == consumer.
-	if root || otelSpan.Kind() == pdata.SpanKindSERVER || otelSpan.Kind() == pdata.SpanKindCONSUMER {
+	if root || otelSpan.Kind() == pdata.SpanKindServer || otelSpan.Kind() == pdata.SpanKindConsumer {
 		transaction = &model.Transaction{
 			Metadata:  metadata,
 			ID:        spanID,
@@ -213,42 +221,42 @@ func translateTransaction(
 	var isMessaging bool
 	var samplerType, samplerParam pdata.AttributeValue
 	var httpHostName string
-	span.Attributes().ForEach(func(kDots string, v pdata.AttributeValue) {
+	span.Attributes().Range(func(kDots string, v pdata.AttributeValue) bool {
 		if isJaeger {
 			switch kDots {
 			case "sampler.type":
 				samplerType = v
-				return
+				return true
 			case "sampler.param":
 				samplerParam = v
-				return
+				return true
 			}
 		}
 
 		k := replaceDots(kDots)
 		switch v.Type() {
-		case pdata.AttributeValueARRAY:
+		case pdata.AttributeValueTypeArray:
 			array := v.ArrayVal()
 			values := make([]interface{}, array.Len())
 			for i := range values {
 				value := array.At(i)
 				switch value.Type() {
-				case pdata.AttributeValueBOOL:
+				case pdata.AttributeValueTypeBool:
 					values[i] = value.BoolVal()
-				case pdata.AttributeValueDOUBLE:
+				case pdata.AttributeValueTypeDouble:
 					values[i] = value.DoubleVal()
-				case pdata.AttributeValueINT:
+				case pdata.AttributeValueTypeInt:
 					values[i] = value.IntVal()
-				case pdata.AttributeValueSTRING:
+				case pdata.AttributeValueTypeString:
 					values[i] = truncate(value.StringVal())
 				}
 			}
 			labels[k] = values
-		case pdata.AttributeValueBOOL:
+		case pdata.AttributeValueTypeBool:
 			labels[k] = v.BoolVal()
-		case pdata.AttributeValueDOUBLE:
+		case pdata.AttributeValueTypeDouble:
 			labels[k] = v.DoubleVal()
-		case pdata.AttributeValueINT:
+		case pdata.AttributeValueTypeInt:
 			switch kDots {
 			case conventions.AttributeHTTPStatusCode:
 				tx.setHTTPStatusCode(int(v.IntVal()))
@@ -261,7 +269,7 @@ func translateTransaction(
 			default:
 				labels[k] = v.IntVal()
 			}
-		case pdata.AttributeValueSTRING:
+		case pdata.AttributeValueTypeString:
 			stringval := truncate(v.StringVal())
 			switch kDots {
 			// http.*
@@ -339,13 +347,14 @@ func translateTransaction(
 				tx.Type = stringval
 			case conventions.AttributeServiceVersion:
 				tx.Metadata.Service.Version = stringval
-			case conventions.AttributeComponent:
+			case "component":
 				component = stringval
 				fallthrough
 			default:
 				labels[k] = stringval
 			}
 		}
+		return true
 	})
 
 	if tx.Type == "" {
@@ -441,25 +450,25 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 	var component string
 	var rpcSystem string
 	var samplerType, samplerParam pdata.AttributeValue
-	span.Attributes().ForEach(func(kDots string, v pdata.AttributeValue) {
+	span.Attributes().Range(func(kDots string, v pdata.AttributeValue) bool {
 		if isJaeger {
 			switch kDots {
 			case "sampler.type":
 				samplerType = v
-				return
+				return true
 			case "sampler.param":
 				samplerParam = v
-				return
+				return true
 			}
 		}
 
 		k := replaceDots(kDots)
 		switch v.Type() {
-		case pdata.AttributeValueBOOL:
+		case pdata.AttributeValueTypeBool:
 			labels[k] = v.BoolVal()
-		case pdata.AttributeValueDOUBLE:
+		case pdata.AttributeValueTypeDouble:
 			labels[k] = v.DoubleVal()
-		case pdata.AttributeValueINT:
+		case pdata.AttributeValueTypeInt:
 			switch kDots {
 			case "http.status_code":
 				http.StatusCode = int(v.IntVal())
@@ -471,7 +480,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 			default:
 				labels[k] = v.IntVal()
 			}
-		case pdata.AttributeValueSTRING:
+		case pdata.AttributeValueTypeString:
 			stringval := truncate(v.StringVal())
 			switch kDots {
 			// http.*
@@ -557,13 +566,14 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 					// Prefer using peer.address for resource.
 					destinationService.Resource = stringval
 				}
-			case conventions.AttributeComponent:
+			case "component":
 				component = stringval
 				fallthrough
 			default:
 				labels[k] = stringval
 			}
 		}
+		return true
 	})
 
 	destPort := netPeerPort
@@ -665,7 +675,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 	case isMessagingSpan:
 		event.Type = "messaging"
 		event.Subtype = messageSystem
-		if messageOperation == "" && span.Kind() == pdata.SpanKindPRODUCER {
+		if messageOperation == "" && span.Kind() == pdata.SpanKindProducer {
 			messageOperation = "send"
 		}
 		event.Action = messageOperation
@@ -712,9 +722,9 @@ func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, repr
 	default:
 		labels["sampler_type"] = samplerType
 		switch samplerParam.Type() {
-		case pdata.AttributeValueBOOL:
+		case pdata.AttributeValueTypeBool:
 			labels["sampler_param"] = samplerParam.BoolVal()
-		case pdata.AttributeValueDOUBLE:
+		case pdata.AttributeValueTypeDouble:
 			labels["sampler_param"] = samplerParam.DoubleVal()
 		}
 	}
@@ -745,7 +755,7 @@ func convertSpanEvent(
 		}
 		var exceptionEscaped bool
 		var exceptionMessage, exceptionStacktrace, exceptionType string
-		event.Attributes().ForEach(func(k string, v pdata.AttributeValue) {
+		event.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
 			switch k {
 			case conventions.AttributeExceptionMessage:
 				exceptionMessage = v.StringVal()
@@ -756,6 +766,7 @@ func convertSpanEvent(
 			case "exception.escaped":
 				exceptionEscaped = v.BoolVal()
 			}
+			return true
 		})
 		if exceptionMessage == "" && exceptionType == "" {
 			// Per OpenTelemetry semantic conventions:
@@ -786,9 +797,9 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *mo
 	var exMessage, exType string
 	logMessage := event.Name()
 	hasMinimalInfo := logMessage != ""
-	event.Attributes().ForEach(func(k string, v pdata.AttributeValue) {
-		if v.Type() != pdata.AttributeValueSTRING {
-			return
+	event.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+		if v.Type() != pdata.AttributeValueTypeString {
+			return true
 		}
 		stringval := truncate(v.StringVal())
 		switch k {
@@ -814,6 +825,7 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *mo
 		case "level":
 			isError = stringval == "error"
 		}
+		return true
 	})
 	if !isError {
 		return nil
