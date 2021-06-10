@@ -1,8 +1,12 @@
+extensions:
+  bearertokenauth:
+    token: "somerandomtoken"
+
 receivers:
-  examplereceiver:
+  nop:
 
 processors:
-  exampleprocessor:
+  nop:
 
 exporters:
   otlp:
@@ -20,9 +24,8 @@ exporters:
       initial_interval: 10s
       max_interval: 60s
       max_elapsed_time: 10m
-    per_rpc_auth:
-      type: bearer
-      bearer_token: some-token
+    auth:
+      authenticator: bearertokenauth
     headers:
       "can you have a . here?": "F0000000-0000-0000-0000-000000000000"
       header1: 234
@@ -34,8 +37,9 @@ exporters:
     balancer_name: "round_robin"
 
 service:
+  extensions: [bearertokenauth]
   pipelines:
     traces:
-      receivers: [examplereceiver]
-      processors: [exampleprocessor]
+      receivers: [nop]
+      processors: [nop]
       exporters: [otlp]

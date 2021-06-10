@@ -50,7 +50,7 @@ func (m monitoringMap) add(id request.ResultID, n int64) {
 func consumeBatch(
 	ctx context.Context,
 	batch model.Batch,
-	consumer consumer.TracesConsumer,
+	consumer consumer.Traces,
 	requestMetrics monitoringMap,
 ) error {
 	spanCount := int64(len(batch.Spans))

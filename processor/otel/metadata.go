@@ -40,7 +40,7 @@ var (
 
 func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 	var exporterVersion string
-	resource.Attributes().ForEach(func(k string, v pdata.AttributeValue) {
+	resource.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
 		switch k {
 		// service.*
 		case conventions.AttributeServiceName:
@@ -69,9 +69,9 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 			out.Cloud.AccountID = truncate(v.StringVal())
 		case conventions.AttributeCloudRegion:
 			out.Cloud.Region = truncate(v.StringVal())
-		case conventions.AttributeCloudZone, "cloud.availability_zone":
+		case conventions.AttributeCloudAvailabilityZone:
 			out.Cloud.AvailabilityZone = truncate(v.StringVal())
-		case conventions.AttributeCloudInfrastructureService:
+		case conventions.AttributeCloudPlatform:
 			out.Cloud.ServiceName = truncate(v.StringVal())
 
 		// container.*
@@ -125,7 +125,7 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 			out.System.FullPlatform = truncate(v.StringVal())
 
 		// Legacy OpenCensus attributes.
-		case conventions.OCAttributeExporterVersion:
+		case "opencensus.exporterversion":
 			exporterVersion = v.StringVal()
 
 		default:
@@ -134,6 +134,7 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 			}
 			out.Labels[replaceDots(k)] = ifaceAttributeValue(v)
 		}
+		return true
 	})
 
 	// https://www.elastic.co/guide/en/ecs/current/ecs-os.html#field-os-type:
@@ -197,13 +198,13 @@ func cleanServiceName(name string) string {
 
 func ifaceAttributeValue(v pdata.AttributeValue) interface{} {
 	switch v.Type() {
-	case pdata.AttributeValueSTRING:
+	case pdata.AttributeValueTypeString:
 		return truncate(v.StringVal())
-	case pdata.AttributeValueINT:
+	case pdata.AttributeValueTypeInt:
 		return v.IntVal()
-	case pdata.AttributeValueDOUBLE:
+	case pdata.AttributeValueTypeDouble:
 		return v.DoubleVal()
-	case pdata.AttributeValueBOOL:
+	case pdata.AttributeValueTypeBool:
 		return v.BoolVal()
 	}
 	return nil
