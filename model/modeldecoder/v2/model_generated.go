@@ -467,7 +467,7 @@ func (val *metadataServiceRuntime) validate() error {
 }
 
 func (val *metadataSystem) IsSet() bool {
-	return val.Architecture.IsSet() || val.ConfiguredHostname.IsSet() || val.Container.IsSet() || val.DetectedHostname.IsSet() || val.DeprecatedHostname.IsSet() || val.Kubernetes.IsSet() || val.Platform.IsSet()
+	return val.Architecture.IsSet() || val.ConfiguredHostname.IsSet() || val.Container.IsSet() || val.DetectedHostname.IsSet() || val.DeprecatedHostname.IsSet() || val.Kubernetes.IsSet() || val.Platform.IsSet() || val.Network.IsSet()
 }
 
 func (val *metadataSystem) Reset() {
@@ -478,6 +478,7 @@ func (val *metadataSystem) Reset() {
 	val.DeprecatedHostname.Reset()
 	val.Kubernetes.Reset()
 	val.Platform.Reset()
+	val.Network.Reset()
 }
 
 func (val *metadataSystem) validate() error {
@@ -504,6 +505,9 @@ func (val *metadataSystem) validate() error {
 	}
 	if val.Platform.IsSet() && utf8.RuneCountInString(val.Platform.Val) > 1024 {
 		return fmt.Errorf("'platform': validation rule 'maxLength(1024)' violated")
+	}
+	if err := val.Network.validate(); err != nil {
+		return errors.Wrapf(err, "network")
 	}
 	return nil
 }
@@ -588,6 +592,58 @@ func (val *metadataSystemKubernetesPod) validate() error {
 	}
 	if val.UID.IsSet() && utf8.RuneCountInString(val.UID.Val) > 1024 {
 		return fmt.Errorf("'uid': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *metadataSystemNetwork) IsSet() bool {
+	return val.ConnectionType.IsSet() || val.Carrier.IsSet()
+}
+
+func (val *metadataSystemNetwork) Reset() {
+	val.ConnectionType.Reset()
+	val.Carrier.Reset()
+}
+
+func (val *metadataSystemNetwork) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.ConnectionType.IsSet() && utf8.RuneCountInString(val.ConnectionType.Val) > 1024 {
+		return fmt.Errorf("'connection_type': validation rule 'maxLength(1024)' violated")
+	}
+	if err := val.Carrier.validate(); err != nil {
+		return errors.Wrapf(err, "carrier")
+	}
+	return nil
+}
+
+func (val *metadataSystemNetworkCarrier) IsSet() bool {
+	return val.Name.IsSet() || val.MCC.IsSet() || val.MNC.IsSet() || val.ICC.IsSet()
+}
+
+func (val *metadataSystemNetworkCarrier) Reset() {
+	val.Name.Reset()
+	val.MCC.Reset()
+	val.MNC.Reset()
+	val.ICC.Reset()
+}
+
+func (val *metadataSystemNetworkCarrier) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
+	}
+	if val.MCC.IsSet() && utf8.RuneCountInString(val.MCC.Val) > 1024 {
+		return fmt.Errorf("'mcc': validation rule 'maxLength(1024)' violated")
+	}
+	if val.MNC.IsSet() && utf8.RuneCountInString(val.MNC.Val) > 1024 {
+		return fmt.Errorf("'mnc': validation rule 'maxLength(1024)' violated")
+	}
+	if val.ICC.IsSet() && utf8.RuneCountInString(val.ICC.Val) > 1024 {
+		return fmt.Errorf("'icc': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }

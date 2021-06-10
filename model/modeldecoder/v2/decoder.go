@@ -526,6 +526,21 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 	if from.System.Platform.IsSet() {
 		out.System.Platform = from.System.Platform.Val
 	}
+	if from.System.Network.Carrier.Name.IsSet() {
+		out.System.Network.Carrier.Name = from.System.Network.Carrier.Name.Val
+	}
+	if from.System.Network.Carrier.MCC.IsSet() {
+		out.System.Network.Carrier.MCC = from.System.Network.Carrier.MCC.Val
+	}
+	if from.System.Network.Carrier.MNC.IsSet() {
+		out.System.Network.Carrier.MNC = from.System.Network.Carrier.MNC.Val
+	}
+	if from.System.Network.Carrier.ICC.IsSet() {
+		out.System.Network.Carrier.ICC = from.System.Network.Carrier.ICC.Val
+	}
+	if from.System.Network.ConnectionType.IsSet() {
+		out.System.Network.ConnectionType = from.System.Network.ConnectionType.Val
+	}
 
 	// User
 	if from.User.Domain.IsSet() {

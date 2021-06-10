@@ -35,10 +35,10 @@ func TestSystemTransformation(t *testing.T) {
 	nodename, podname, podUID := "a.node", "a.pod", "b.podID"
 
 	for name, system := range map[string]System{
-		"hostname":           System{DetectedHostname: detected},
-		"ignored hostname":   System{ConfiguredHostname: configured},
-		"full hostname info": System{DetectedHostname: detected, ConfiguredHostname: configured},
-		"full": System{
+		"hostname":           {DetectedHostname: detected},
+		"ignored hostname":   {ConfiguredHostname: configured},
+		"full hostname info": {DetectedHostname: detected, ConfiguredHostname: configured},
+		"full": {
 			DetectedHostname:   detected,
 			ConfiguredHostname: configured,
 			Architecture:       "amd",
@@ -61,4 +61,15 @@ func TestSystemTransformation(t *testing.T) {
 			approvaltest.ApproveJSON(t, name, resultJSON)
 		})
 	}
+}
+
+func TestNetworkTransformation(t *testing.T) {
+	var fields mapStr
+	metadata := &Metadata{System: System{Network: Network{ConnectionType: "3G",
+		Carrier: Carrier{Name: "Three", MCC: "100", MNC: "200", ICC: "DK"}}}}
+	metadata.set(&fields, nil)
+	resultJSON, err := json.Marshal(fields["network"])
+	require.NoError(t, err)
+	name := filepath.Join("test_approved", "system", strings.ReplaceAll("network", " ", "_"))
+	approvaltest.ApproveJSON(t, name, resultJSON)
 }
