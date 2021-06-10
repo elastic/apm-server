@@ -19,15 +19,12 @@ package authorization
 
 import (
 	"context"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
-func TestDenyAuth(t *testing.T) {
-	handler := denyAuth{}
+// AnonymousAuth implements the Authorization interface.
+type AnonymousAuth struct{}
 
-	result, err := handler.AuthorizedFor(context.Background(), Resource{})
-	assert.NoError(t, err)
-	assert.Equal(t, Result{Authorized: false}, result)
+// AuthorizedFor always returns a Result indicating the request is authorized and anonymous.
+func (AnonymousAuth) AuthorizedFor(context.Context, Resource) (Result, error) {
+	return Result{Anonymous: true, Authorized: true}, nil
 }
