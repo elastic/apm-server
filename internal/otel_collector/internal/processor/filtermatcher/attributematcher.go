@@ -27,7 +27,7 @@ import (
 
 type AttributesMatcher []AttributeMatcher
 
-// attributeMatcher is a attribute key/value pair to match to.
+// AttributeMatcher is a attribute key/value pair to match to.
 type AttributeMatcher struct {
 	Key string
 	// If both AttributeValue and StringFilter are nil only check for key existence.
@@ -57,7 +57,7 @@ func NewAttributesMatcher(config filterset.Config, attributes []filterconfig.Att
 			}
 
 			if config.MatchType == filterset.Regexp {
-				if val.Type() != pdata.AttributeValueSTRING {
+				if val.Type() != pdata.AttributeValueTypeString {
 					return nil, fmt.Errorf(
 						"%s=%s for %q only supports STRING, but found %s",
 						filterset.MatchTypeFieldName, filterset.Regexp, attribute.Key, val.Type(),
@@ -79,7 +79,7 @@ func NewAttributesMatcher(config filterset.Config, attributes []filterconfig.Att
 	return rawAttributes, nil
 }
 
-// match attributes specification against a span/log.
+// Match attributes specification against a span/log.
 func (ma AttributesMatcher) Match(attrs pdata.AttributeMap) bool {
 	// If there are no attributes to match against, the span/log matches.
 	if len(ma) == 0 {
@@ -115,13 +115,13 @@ func (ma AttributesMatcher) Match(attrs pdata.AttributeMap) bool {
 
 func attributeStringValue(attr pdata.AttributeValue) (string, error) {
 	switch attr.Type() {
-	case pdata.AttributeValueSTRING:
+	case pdata.AttributeValueTypeString:
 		return attr.StringVal(), nil
-	case pdata.AttributeValueBOOL:
+	case pdata.AttributeValueTypeBool:
 		return strconv.FormatBool(attr.BoolVal()), nil
-	case pdata.AttributeValueDOUBLE:
+	case pdata.AttributeValueTypeDouble:
 		return strconv.FormatFloat(attr.DoubleVal(), 'f', -1, 64), nil
-	case pdata.AttributeValueINT:
+	case pdata.AttributeValueTypeInt:
 		return strconv.FormatInt(attr.IntVal(), 10), nil
 	default:
 		return "", errUnexpectedAttributeType

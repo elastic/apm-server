@@ -63,7 +63,7 @@ const (
 // grpcCollector implements Jaeger api_v2 protocol for receiving tracing data
 type grpcCollector struct {
 	auth     authFunc
-	consumer consumer.TracesConsumer
+	consumer consumer.Traces
 }
 
 // PostSpans implements the api_v2/collector.proto. It converts spans received via Jaeger Proto batch to open-telemetry
