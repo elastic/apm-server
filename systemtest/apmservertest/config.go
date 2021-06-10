@@ -156,6 +156,15 @@ type RUMConfig struct {
 
 	// ResponseHeaders holds headers to add to all APM Server RUM HTTP responses.
 	ResponseHeaders http.Header `json:"response_headers,omitempty"`
+
+	// RateLimit holds event rate limit configuration.
+	RateLimit *RUMRateLimitConfig `json:"event_rate,omitempty"`
+}
+
+// RUMRateLimitConfig holds APM Server RUM event rate limit configuration.
+type RUMRateLimitConfig struct {
+	IPLimit    int `json:"lru_size,omitempty"`
+	EventLimit int `json:"limit,omitempty"`
 }
 
 // DataStreamsConfig holds APM Server data streams configuration.

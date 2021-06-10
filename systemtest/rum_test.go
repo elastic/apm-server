@@ -19,6 +19,7 @@ package systemtest_test
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -34,6 +35,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
@@ -144,6 +146,52 @@ func TestRUMAllowServiceNames(t *testing.T) {
 	respBody, _ := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, string(respBody))
 	assert.Equal(t, `{"accepted":0,"errors":[{"message":"service name is not allowed"}]}`+"\n", string(respBody))
+}
+
+func TestRUMRateLimit(t *testing.T) {
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{
+		Enabled: true,
+		RateLimit: &apmservertest.RUMRateLimitConfig{
+			IPLimit:    2,
+			EventLimit: 10,
+		},
+	}
+	err := srv.Start()
+	require.NoError(t, err)
+
+	sendEvents := func(ip string, n int) error {
+		body := bytes.NewBufferString(`{"metadata":{"service":{"name":"allowed","version":"1.0.0","agent":{"name":"rum-js","version":"0.0.0"}}}}` + "\n")
+		for i := 0; i < n; i++ {
+			body.WriteString(`{"transaction":{"trace_id":"x","id":"y","type":"z","duration":0,"span_count":{"started":1},"context":{"service":{"name":"foo"}}}}` + "\n")
+		}
+
+		req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/rum/events?verbose=true", body)
+		req.Header.Add("Content-Type", "application/x-ndjson")
+		req.Header.Add("X-Forwarded-For", ip)
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		respBody, _ := ioutil.ReadAll(resp.Body)
+		if resp.StatusCode != http.StatusAccepted {
+			return fmt.Errorf("%s (%s)", resp.Status, strings.TrimSpace(string(respBody)))
+		}
+		return nil
+	}
+
+	// Just check that rate limiting is wired up. More specific rate limiting scenarios are unit tested.
+
+	var g errgroup.Group
+	g.Go(func() error { return sendEvents("10.11.12.13", srv.Config.RUM.RateLimit.EventLimit) })
+	g.Go(func() error { return sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit) })
+	assert.NoError(t, g.Wait())
+
+	g = errgroup.Group{}
+	g.Go(func() error { return sendEvents("10.11.12.13", srv.Config.RUM.RateLimit.EventLimit) })
+	g.Go(func() error { return sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit) })
+	g.Go(func() error { return sendEvents("10.11.12.15", srv.Config.RUM.RateLimit.EventLimit) })
+	assert.EqualError(t, g.Wait(), `429 Too Many Requests ({"accepted":0,"errors":[{"message":"rate limit exceeded"}]})`)
 }
 
 func sendRUMEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {
