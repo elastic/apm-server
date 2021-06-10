@@ -20,6 +20,7 @@ package beater
 import (
 	"context"
 	"net"
+	"os"
 	"regexp"
 	"runtime"
 	"strings"
@@ -372,9 +373,8 @@ func (s *serverRunner) run() error {
 		TransformConfig: transformConfig,
 	}
 
-	// Also check env var, which env var indicates we're running on
-	// ECE/ESS?
-	if s.config.Kibana.Enabled {
+	// Check for an environment variable set when running in a cloud environment
+	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
 		// Don't block server startup sending the config.
 		go func() {
 			c := kibana_client.NewConnectingClient(&s.config.Kibana)
