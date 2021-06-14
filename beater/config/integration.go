@@ -22,7 +22,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
-	"github.com/elastic/beats/v7/libbeat/kibana"
 )
 
 func NewIntegrationConfig(rootConfig *common.Config) (*IntegrationConfig, error) {
@@ -67,9 +66,8 @@ type Package struct {
 }
 
 type Fleet struct {
-	Kibana       kibana.ClientConfig `config:"kibana"`
-	Hosts        []string            `config:"hosts"`
-	Protocol     string              `config:"protocol"`
-	AccessAPIKey string              `config:"access_api_key"`
-	TLS          *tlscommon.Config   `config:"ssl"`
+	Hosts        []string          `config:"hosts"`
+	Protocol     string            `config:"protocol"`
+	AccessAPIKey string            `config:"access_api_key"`
+	TLS          *tlscommon.Config `config:"ssl"`
 }

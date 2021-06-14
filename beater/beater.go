@@ -29,8 +29,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
 
-	"github.com/elastic/beats/v7/libbeat/kibana"
-
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
@@ -258,7 +256,6 @@ func (s *serverCreator) Create(p beat.PipelineConnector, rawConfig *common.Confi
 		sharedServerRunnerParams: s.args,
 		Namespace:                namespace,
 		Pipeline:                 p,
-		KibanaConfig:             &integrationConfig.Fleet.Kibana,
 		RawConfig:                apmServerCommonConfig,
 	})
 }
@@ -291,10 +288,9 @@ type serverRunner struct {
 type serverRunnerParams struct {
 	sharedServerRunnerParams
 
-	Namespace    string
-	Pipeline     beat.PipelineConnector
-	KibanaConfig *kibana.ClientConfig
-	RawConfig    *common.Config
+	Namespace string
+	Pipeline  beat.PipelineConnector
+	RawConfig *common.Config
 }
 
 type sharedServerRunnerParams struct {
@@ -310,10 +306,6 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 	cfg, err := config.NewConfig(args.RawConfig, elasticsearchOutputConfig(args.Beat))
 	if err != nil {
 		return nil, err
-	}
-
-	if cfg.DataStreams.Enabled && args.KibanaConfig != nil {
-		cfg.Kibana.ClientConfig = *args.KibanaConfig
 	}
 
 	runServerContext, cancel := context.WithCancel(ctx)
