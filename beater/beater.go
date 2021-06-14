@@ -281,6 +281,7 @@ type serverRunner struct {
 	acker         *waitPublishedAcker
 	namespace     string
 	config        *config.Config
+	rawConfig     *common.Config
 	beat          *beat.Beat
 	logger        *logp.Logger
 	tracer        *apm.Tracer
@@ -323,6 +324,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		cancelRunServerContext: cancel,
 
 		config:        cfg,
+		rawConfig:     args.RawConfig,
 		acker:         args.Acker,
 		pipeline:      args.Pipeline,
 		namespace:     args.Namespace,
@@ -378,7 +380,7 @@ func (s *serverRunner) run() error {
 		// Don't block server startup sending the config.
 		go func() {
 			c := kibana_client.NewConnectingClient(&s.config.Kibana)
-			if err := kibana_client.SendConfig(s.runServerContext, c, s.config); err != nil {
+			if err := kibana_client.SendConfig(s.runServerContext, c, s.rawConfig); err != nil {
 				s.logger.Infof("failed to upload config to kibana: %v", err)
 			}
 		}()

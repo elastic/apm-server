@@ -27,7 +27,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -38,7 +37,7 @@ const kibanaConfigUploadPath = "/apm/settings/schema"
 // SendConfig marshals and uploads the provided config to kibana using the
 // provided ConnectingClient. It retries until its context has been canceled or
 // the upload succeeds.
-func SendConfig(ctx context.Context, client Client, conf *config.Config) error {
+func SendConfig(ctx context.Context, client Client, conf *common.Config) error {
 	// configuration options are already flattened (dotted)
 	// any credentials for ES and Kibana are removed
 	flat, err := flattenAndClean(conf)
@@ -75,23 +74,35 @@ func SendConfig(ctx context.Context, client Client, conf *config.Config) error {
 	}
 }
 
-func flattenAndClean(conf *config.Config) (map[string]interface{}, error) {
+func flattenAndClean(conf *common.Config) (map[string]interface{}, error) {
 	m := common.MapStr{}
-	b, err := json.Marshal(conf)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal(b, &m); err != nil {
+	if err := conf.Unpack(m); err != nil {
 		return nil, err
 	}
 	flat := m.Flatten()
 	out := make(common.MapStr, len(flat))
 	for k, v := range flat {
-		if strings.Contains(k, "ESConfig") {
+		// remove if elasticsearch is NOT in the front position?
+		// *.elasticsearch.* according to axw
+		if strings.Contains(k, "elasticsearch") {
 			continue
 		}
-		if strings.Contains(k, "Kibana") {
+		if strings.Contains(k, "kibana") {
 			continue
+		}
+		if strings.HasPrefix(k, "instrumentation") {
+			continue
+		}
+		if strings.HasPrefix(k, "ssl.") {
+			// Following ssl related settings need to be synced:
+			// apm-server.ssl.enabled
+			// apm-server.ssl.certificate
+			// apm-server.ssl.key
+			switch k[4:] {
+			case "enabled", "certificate", "key":
+			default:
+				continue
+			}
 		}
 		out[k] = v
 	}
