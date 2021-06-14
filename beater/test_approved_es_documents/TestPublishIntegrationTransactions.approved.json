@@ -62,15 +62,6 @@
                 "tag2": 2,
                 "wrapped_reporter": true
             },
-            "network": {
-                "carrier": {
-                    "icc": "dk",
-                    "mcc": "100",
-                    "mnc": "200",
-                    "name": "Three"
-                },
-                "connection_type": "wifi"
-            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -267,15 +258,6 @@
                 "tag4": false,
                 "wrapped_reporter": true
             },
-            "network": {
-                "carrier": {
-                    "icc": "dk",
-                    "mcc": "100",
-                    "mnc": "200",
-                    "name": "Three"
-                },
-                "connection_type": "wifi"
-            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -444,15 +426,6 @@
                 "tag2": 2,
                 "wrapped_reporter": true
             },
-            "network": {
-                "carrier": {
-                    "icc": "dk",
-                    "mcc": "100",
-                    "mnc": "200",
-                    "name": "Three"
-                },
-                "connection_type": "wifi"
-            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -599,15 +572,6 @@
                 "tag1": "one",
                 "tag2": 2,
                 "wrapped_reporter": true
-            },
-            "network": {
-                "carrier": {
-                    "icc": "dk",
-                    "mcc": "100",
-                    "mnc": "200",
-                    "name": "Three"
-                },
-                "connection_type": "wifi"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",

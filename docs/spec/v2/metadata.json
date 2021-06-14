@@ -469,64 +469,6 @@
             }
           }
         },
-        "network": {
-          "description": "Network contains connectivity information for mobile and RUM",
-          "type": [
-            "null",
-            "object"
-          ],
-          "properties": {
-            "carrier": {
-              "description": "Carrier is the network operator",
-              "type": [
-                "null",
-                "object"
-              ],
-              "properties": {
-                "icc": {
-                  "description": "ICC is the iso country code, eg. DK",
-                  "type": [
-                    "null",
-                    "string"
-                  ],
-                  "maxLength": 1024
-                },
-                "mcc": {
-                  "description": "MCC is the mobile country code",
-                  "type": [
-                    "null",
-                    "string"
-                  ],
-                  "maxLength": 1024
-                },
-                "mnc": {
-                  "description": "MNC is the mobile network code",
-                  "type": [
-                    "null",
-                    "string"
-                  ],
-                  "maxLength": 1024
-                },
-                "name": {
-                  "description": "Name of the carrier, eg. Vodafone",
-                  "type": [
-                    "null",
-                    "string"
-                  ],
-                  "maxLength": 1024
-                }
-              }
-            },
-            "connection_type": {
-              "description": "Connection Type is the technology standard for mobile networks, eg. 4G",
-              "type": [
-                "null",
-                "string"
-              ],
-              "maxLength": 1024
-            }
-          }
-        },
         "platform": {
           "description": "Platform name of the system platform the monitored service is running on.",
           "type": [

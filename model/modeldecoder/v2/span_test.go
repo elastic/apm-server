@@ -64,7 +64,7 @@ func TestDecodeNestedSpan(t *testing.T) {
 
 func TestDecodeMapToSpanModel(t *testing.T) {
 	t.Run("set-metadata", func(t *testing.T) {
-		exceptions := func(key string) bool { return false }
+		exceptions := func(key string) bool { return strings.HasPrefix(key, "System.Network") }
 		var input span
 		var out model.Span
 		mapToSpanModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)

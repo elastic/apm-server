@@ -59,15 +59,6 @@
                 "tag1": "one",
                 "tag2": 2
             },
-            "network": {
-                "carrier": {
-                    "icc": "dk",
-                    "mcc": "100",
-                    "mnc": "200",
-                    "name": "Three"
-                },
-                "connection_type": "wifi"
-            },
             "parent": {
                 "id": "abcdefabcdef01234567"
             },
@@ -253,15 +244,6 @@
                 "tag3": 12.45,
                 "tag4": false
             },
-            "network": {
-                "carrier": {
-                    "icc": "dk",
-                    "mcc": "100",
-                    "mnc": "200",
-                    "name": "Three"
-                },
-                "connection_type": "wifi"
-            },
             "process": {
                 "args": [
                     "node",
@@ -419,15 +401,6 @@
                 "tag1": "one",
                 "tag2": 2
             },
-            "network": {
-                "carrier": {
-                    "icc": "dk",
-                    "mcc": "100",
-                    "mnc": "200",
-                    "name": "Three"
-                },
-                "connection_type": "wifi"
-            },
             "process": {
                 "args": [
                     "node",
@@ -563,15 +536,6 @@
             "labels": {
                 "tag1": "one",
                 "tag2": 2
-            },
-            "network": {
-                "carrier": {
-                    "icc": "dk",
-                    "mcc": "100",
-                    "mnc": "200",
-                    "name": "Three"
-                },
-                "connection_type": "wifi"
             },
             "parent": {
                 "id": "abcdefabcdef01234567"

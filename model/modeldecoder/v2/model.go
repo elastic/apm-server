@@ -502,8 +502,6 @@ type metadataSystem struct {
 	Kubernetes metadataSystemKubernetes `json:"kubernetes"`
 	// Platform name of the system platform the monitored service is running on.
 	Platform nullable.String `json:"platform" validate:"maxLength=1024"`
-	// Network contains connectivity information for mobile and RUM
-	Network metadataSystemNetwork `json:"network"`
 }
 
 type metadataSystemContainer struct {
@@ -518,24 +516,6 @@ type metadataSystemKubernetes struct {
 	Node metadataSystemKubernetesNode `json:"node"`
 	// Pod related information
 	Pod metadataSystemKubernetesPod `json:"pod"`
-}
-
-type metadataSystemNetwork struct {
-	// Connection Type is the technology standard for mobile networks, eg. 4G
-	ConnectionType nullable.String `json:"connection_type" validate:"maxLength=1024"`
-	// Carrier is the network operator
-	Carrier metadataSystemNetworkCarrier `json:"carrier"`
-}
-
-type metadataSystemNetworkCarrier struct {
-	// Name of the carrier, eg. Vodafone
-	Name nullable.String `json:"name" validate:"maxLength=1024"`
-	// MCC is the mobile country code
-	MCC nullable.String `json:"mcc" validate:"maxLength=1024"`
-	// MNC is the mobile network code
-	MNC nullable.String `json:"mnc" validate:"maxLength=1024"`
-	// ICC is the iso country code, eg. DK
-	ICC nullable.String `json:"icc" validate:"maxLength=1024"`
 }
 
 type metadataSystemKubernetesNode struct {
