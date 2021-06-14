@@ -625,22 +625,21 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 }
 
 func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping) (*sourcemap.Store, error) {
-	if len(cfg.Metadata) == 0 {
-		c, err := elasticsearch.NewClient(cfg.ESConfig)
-		if err != nil {
-			return nil, err
-		}
-		index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
-		return sourcemap.NewElasticsearchStore(c, index, cfg.Cache.Expiration)
+	if fleetmode.Enabled() {
+		// TODO: Configure the client with fleet TLS certs, timeouts, etc.
+		// Fleet hands TLS certs to the child processes during the gRPC
+		// handshake?
+		c := *http.DefaultClient
+
+		c.Transport = apmhttp.WrapRoundTripper(http.DefaultTransport)
+		return sourcemap.NewFleetStore(&c, cfg.ESConfig.APIKey, cfg.Metadata, cfg.Cache.Expiration)
 	}
-
-	// TODO: Configure the client with fleet TLS certs, timeouts, etc.
-	// Fleet hands TLS certs to the child processes during the gRPC
-	// handshake?
-	c := *http.DefaultClient
-
-	c.Transport = apmhttp.WrapRoundTripper(http.DefaultTransport)
-	return sourcemap.NewFleetStore(&c, cfg.ESConfig.APIKey, cfg.Metadata, cfg.Cache.Expiration)
+	c, err := elasticsearch.NewClient(cfg.ESConfig)
+	if err != nil {
+		return nil, err
+	}
+	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
+	return sourcemap.NewElasticsearchStore(c, index, cfg.Cache.Expiration)
 }
 
 // WrapRunServerWithProcessors wraps runServer such that it wraps args.Reporter
