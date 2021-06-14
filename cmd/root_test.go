@@ -45,6 +45,10 @@ func TestCloudEnv(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, int64(5), workers)
 
+	compression, err := cfg.Int("output.elasticsearch.compression_level", -1)
+	require.NoError(t, err)
+	assert.Equal(t, int64(5), compression)
+
 	// bad cloud environment value
 	os.Setenv(cloudEnv, "123")
 	settings = DefaultSettings()
