@@ -15,19 +15,29 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package authorization
+package beater
 
 import (
 	"context"
-	"testing"
+	"errors"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/model"
 )
 
-func TestDenyAuth(t *testing.T) {
-	handler := denyAuth{}
-
-	result, err := handler.AuthorizedFor(context.Background(), Resource{})
-	assert.NoError(t, err)
-	assert.Equal(t, Result{Authorized: false}, result)
+// verifyAuthorizedFor is a model.BatchProcessor that checks authorization
+// for the agent and service name in the metadata.
+func verifyAuthorizedFor(ctx context.Context, meta *model.Metadata) error {
+	result, err := authorization.AuthorizedFor(ctx, authorization.Resource{
+		AgentName:   meta.Service.Agent.Name,
+		ServiceName: meta.Service.Name,
+	})
+	if err != nil {
+		return err
+	}
+	if result.Authorized {
+		return nil
+	}
+	// TODO(axw) specific error type to control response code?
+	return errors.New(result.Reason)
 }

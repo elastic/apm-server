@@ -20,8 +20,6 @@ package authorization
 import (
 	"context"
 	"crypto/subtle"
-
-	"github.com/elastic/apm-server/elasticsearch"
 )
 
 type bearerBuilder struct {
@@ -38,6 +36,6 @@ func (b bearerBuilder) forToken(token string) *bearerAuth {
 	}
 }
 
-func (b *bearerAuth) AuthorizedFor(context.Context, elasticsearch.Resource) (Result, error) {
+func (b *bearerAuth) AuthorizedFor(context.Context, Resource) (Result, error) {
 	return Result{Authorized: b.authorized}, nil
 }
