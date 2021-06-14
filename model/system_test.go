@@ -70,6 +70,6 @@ func TestNetworkTransformation(t *testing.T) {
 	metadata.set(&fields, nil)
 	resultJSON, err := json.Marshal(fields["network"])
 	require.NoError(t, err)
-	name := filepath.Join("test_approved", "system", strings.ReplaceAll("network", " ", "_"))
+	name := filepath.Join("test_approved", "system", "network")
 	approvaltest.ApproveJSON(t, name, resultJSON)
 }
