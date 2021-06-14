@@ -77,7 +77,7 @@ func NewElasticsearchStore(
 	logger := logp.NewLogger(logs.Sourcemap)
 	s := &esStore{c, index, logger}
 
-	return newStore(s, logger, expiration, 10*time.Second)
+	return newStore(s, logger, expiration)
 }
 
 func (s *esStore) fetch(ctx context.Context, name, version, path string) (string, error) {

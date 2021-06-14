@@ -42,10 +42,9 @@ var (
 // Store holds information necessary to fetch a sourcemap, either from an
 // Elasticsearch instance or an internal cache.
 type Store struct {
-	cache       *gocache.Cache
-	backend     backend
-	logger      *logp.Logger
-	waitTimeout time.Duration
+	cache   *gocache.Cache
+	backend backend
+	logger  *logp.Logger
 
 	mu       sync.Mutex
 	inflight map[string]chan struct{}
@@ -58,18 +57,17 @@ type backend interface {
 func newStore(
 	b backend,
 	logger *logp.Logger,
-	cacheExpiration, waitTimeout time.Duration,
+	cacheExpiration time.Duration,
 ) (*Store, error) {
 	if cacheExpiration < 0 {
 		return nil, errInit
 	}
 
 	return &Store{
-		cache:       gocache.New(cacheExpiration, cleanupInterval(cacheExpiration)),
-		backend:     b,
-		logger:      logger,
-		waitTimeout: waitTimeout,
-		inflight:    make(map[string]chan struct{}),
+		cache:    gocache.New(cacheExpiration, cleanupInterval(cacheExpiration)),
+		backend:  b,
+		logger:   logger,
+		inflight: make(map[string]chan struct{}),
 	}, nil
 }
 
@@ -91,14 +89,10 @@ func (s *Store) Fetch(ctx context.Context, name, version, path string) (*sourcem
 		// found an inflight request, wait for it to complete.
 		s.mu.Unlock()
 
-		t := time.NewTimer(s.waitTimeout)
 		select {
 		case <-wait:
-			t.Stop()
 		case <-ctx.Done():
 			return nil, ctx.Err()
-		case <-t.C:
-			return nil, errors.New("sourcemap fetch: timeout")
 		}
 		// Try to read the value again
 		return s.Fetch(ctx, name, version, path)

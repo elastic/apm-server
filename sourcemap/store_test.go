@@ -19,6 +19,7 @@ package sourcemap
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -43,10 +44,10 @@ import (
 func Test_newStore(t *testing.T) {
 	logger := logp.NewLogger(logs.Sourcemap)
 
-	_, err := newStore(nil, logger, -1, time.Second)
+	_, err := newStore(nil, logger, -1)
 	require.Error(t, err)
 
-	f, err := newStore(nil, logger, 100, time.Second)
+	f, err := newStore(nil, logger, 100)
 	require.NoError(t, err)
 	assert.NotNil(t, f.cache)
 }
@@ -151,7 +152,7 @@ func TestStore_Fetch(t *testing.T) {
 	})
 }
 
-func TestWaitersTimeout(t *testing.T) {
+func TestFetchTimeout(t *testing.T) {
 	var (
 		errs int64
 
@@ -178,16 +179,20 @@ func TestWaitersTimeout(t *testing.T) {
 	}
 	b := newFleetStore(c, apikey, cfgs)
 	logger := logp.NewLogger(logs.Sourcemap)
-	store, err := newStore(b, logger, time.Minute, time.Millisecond)
+	store, err := newStore(b, logger, time.Minute)
 	assert.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
 
 	var wg sync.WaitGroup
 	for i := 0; i < 2; i++ {
 		wg.Add(1)
 		go func() {
-			consumer, err := store.Fetch(context.Background(), name, version, path)
+			consumer, err := store.Fetch(ctx, name, version, path)
 			if err != nil {
-				assert.Contains(t, err.Error(), "timeout")
+
+				assert.True(t, errors.Is(err, context.DeadlineExceeded))
 				atomic.AddInt64(&errs, 1)
 				close(waitc)
 			} else {
