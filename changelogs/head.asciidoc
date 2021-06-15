@@ -5,6 +5,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
 [float]
 ==== Breaking Changes
+* Removed monitoring counters `apm-server.processor.stream.errors.{queue,server,closed}` {pull}5453[5453]
 
 [float]
 ==== Bug fixes
