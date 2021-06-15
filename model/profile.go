@@ -128,8 +128,7 @@ func (pp PprofProfile) appendBeatEvents(cfg *transform.Config, events []beat.Eve
 		}
 		if cfg.DataStreams {
 			fields[datastreams.TypeField] = datastreams.MetricsType
-			dataset := fmt.Sprintf("%s.%s", ProfilesDataset, datastreams.NormalizeServiceName(pp.Metadata.Service.Name))
-			fields[datastreams.DatasetField] = dataset
+			fields[datastreams.DatasetField] = ProfilesDataset
 		}
 		var profileLabels common.MapStr
 		if len(sample.Label) > 0 {
