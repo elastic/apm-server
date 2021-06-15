@@ -18,12 +18,14 @@
 package intake
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
-	"github.com/pkg/errors"
+	"golang.org/x/time/rate"
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
@@ -32,127 +34,185 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/stream"
+	"github.com/elastic/apm-server/publish"
 )
 
 var (
 	// MonitoringMap holds a mapping for request.IDs to monitoring counters
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
 	registry      = monitoring.Default.NewRegistry("apm-server.server")
+
+	errMethodNotAllowed   = errors.New("only POST requests are supported")
+	errServerShuttingDown = errors.New("server is shutting down")
+	errInvalidContentType = errors.New("invalid content type")
+	errRateLimitExceeded  = stream.ErrRateLimitExceeded
 )
 
+// StreamHandler is an interface for handling an Elastic APM agent ND-JSON event
+// stream, implemented by processor/stream.
+type StreamHandler interface {
+	HandleStream(
+		context.Context,
+		*rate.Limiter,
+		*model.Metadata,
+		io.Reader,
+		model.BatchProcessor,
+		*stream.Result,
+	) error
+}
+
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
-func Handler(processor *stream.Processor, batchProcessor model.BatchProcessor) request.Handler {
+func Handler(handler StreamHandler, batchProcessor model.BatchProcessor) request.Handler {
 	return func(c *request.Context) {
 
-		serr := validateRequest(c.Request)
-		if serr != nil {
-			sendError(c, serr)
+		if err := validateRequest(c); err != nil {
+			writeError(c, err)
 			return
 		}
 
-		ok := c.RateLimiter == nil || c.RateLimiter.Allow()
-		if !ok {
-			sendError(c, &stream.Error{
-				Type: stream.RateLimitErrType, Message: "rate limit exceeded"})
+		if c.RateLimiter != nil && !c.RateLimiter.Allow() {
+			writeError(c, errRateLimitExceeded)
 			return
 		}
 
-		reader, serr := bodyReader(c.Request)
-		if serr != nil {
-			sendError(c, serr)
+		reader, err := decoder.CompressedRequestReader(c.Request)
+		if err != nil {
+			writeError(c, compressedRequestReaderError{err})
 			return
 		}
 
 		metadata := model.Metadata{
 			UserAgent: model.UserAgent{Original: c.RequestMetadata.UserAgent},
 			Client:    model.Client{IP: c.RequestMetadata.ClientIP},
-			System:    model.System{IP: c.RequestMetadata.SystemIP}}
-		res := processor.HandleStream(c.Request.Context(), c.RateLimiter, &metadata, reader, batchProcessor)
-		sendResponse(c, res)
+			System:    model.System{IP: c.RequestMetadata.SystemIP},
+		}
+
+		var result stream.Result
+		if err := handler.HandleStream(
+			c.Request.Context(),
+			c.RateLimiter,
+			&metadata,
+			reader,
+			batchProcessor,
+			&result,
+		); err != nil {
+			result.Add(err)
+		}
+		writeStreamResult(c, &result)
 	}
 }
 
-func sendResponse(c *request.Context, sr *stream.Result) {
-	code := http.StatusAccepted
-	id := request.IDResponseValidAccepted
-	set := func(c int, i request.ResultID) {
-		if c > code {
-			code = c
-			id = i
-		}
+func validateRequest(c *request.Context) error {
+	if c.Request.Method != http.MethodPost {
+		return errMethodNotAllowed
 	}
-
-L:
-	for _, err := range sr.Errors {
-		switch err.Type {
-		case stream.MethodForbiddenErrType:
-			// TODO: remove exception case and use StatusMethodNotAllowed (breaking bugfix)
-			set(http.StatusBadRequest, request.IDResponseErrorsMethodNotAllowed)
-		case stream.InputTooLargeErrType:
-			// TODO: remove exception case and use StatusRequestEntityTooLarge (breaking bugfix)
-			set(http.StatusBadRequest, request.IDResponseErrorsRequestTooLarge)
-		case stream.InvalidInputErrType:
-			set(request.MapResultIDToStatus[request.IDResponseErrorsValidate].Code, request.IDResponseErrorsValidate)
-		case stream.RateLimitErrType:
-			set(request.MapResultIDToStatus[request.IDResponseErrorsRateLimit].Code, request.IDResponseErrorsRateLimit)
-		case stream.QueueFullErrType:
-			set(request.MapResultIDToStatus[request.IDResponseErrorsFullQueue].Code, request.IDResponseErrorsFullQueue)
-			break L
-		case stream.ShuttingDownErrType:
-			set(request.MapResultIDToStatus[request.IDResponseErrorsShuttingDown].Code, request.IDResponseErrorsShuttingDown)
-			break L
-		default:
-			set(request.MapResultIDToStatus[request.IDResponseErrorsInternal].Code, request.IDResponseErrorsInternal)
-		}
-	}
-
-	var body interface{}
-	if code >= http.StatusBadRequest {
-		// this signals to the client that we're closing the connection
-		// but also signals to http.Server that it should close it:
-		// https://golang.org/src/net/http/server.go#L1254
-		c.Header().Add(headers.Connection, "Close")
-		body = sr
-	} else if _, ok := c.Request.URL.Query()["verbose"]; ok {
-		body = sr
-	}
-	var err error
-	if errMsg := sr.Error(); errMsg != "" {
-		err = errors.New(errMsg)
-	}
-	c.Result.Set(id, code, request.MapResultIDToStatus[id].Keyword, body, err)
-	c.Write()
-}
-func sendError(c *request.Context, err *stream.Error) {
-	sr := stream.Result{}
-	sr.Add(err)
-	sendResponse(c, &sr)
-}
-
-func validateRequest(r *http.Request) *stream.Error {
-	if r.Method != http.MethodPost {
-		return &stream.Error{
-			Type:    stream.MethodForbiddenErrType,
-			Message: "only POST requests are supported",
-		}
-	}
-
-	if !strings.Contains(r.Header.Get(headers.ContentType), "application/x-ndjson") {
-		return &stream.Error{
-			Type:    stream.InvalidInputErrType,
-			Message: fmt.Sprintf("invalid content type: '%s'", r.Header.Get(headers.ContentType)),
-		}
+	if contentType := c.Request.Header.Get(headers.ContentType); !strings.Contains(contentType, "application/x-ndjson") {
+		return fmt.Errorf("%w: '%s'", errInvalidContentType, contentType)
 	}
 	return nil
 }
 
-func bodyReader(r *http.Request) (io.ReadCloser, *stream.Error) {
-	reader, err := decoder.CompressedRequestReader(r)
-	if err != nil {
-		return nil, &stream.Error{
-			Type:    stream.InvalidInputErrType,
-			Message: err.Error(),
+func writeError(c *request.Context, err error) {
+	var result stream.Result
+	result.Add(err)
+	writeStreamResult(c, &result)
+}
+
+func writeStreamResult(c *request.Context, sr *stream.Result) {
+	statusCode := http.StatusAccepted
+	id := request.IDResponseValidAccepted
+	jsonResult := jsonResult{Accepted: sr.Accepted}
+	var errorMessages []string
+
+	if n := len(sr.Errors); n > 0 {
+		jsonResult.Errors = make([]jsonError, n)
+		errorMessages = make([]string, n)
+	}
+
+	for i, err := range sr.Errors {
+		errID := request.IDResponseErrorsInternal
+		var invalidInput *stream.InvalidInputError
+		if errors.As(err, &invalidInput) {
+			if invalidInput.TooLarge {
+				errID = request.IDResponseErrorsRequestTooLarge
+			} else {
+				errID = request.IDResponseErrorsValidate
+			}
+			jsonResult.Errors[i] = jsonError{
+				Message:  invalidInput.Message,
+				Document: invalidInput.Document,
+			}
+		} else {
+			if errors.As(err, &compressedRequestReaderError{}) {
+				errID = request.IDResponseErrorsValidate
+			} else {
+				switch {
+				case errors.Is(err, publish.ErrChannelClosed):
+					errID = request.IDResponseErrorsShuttingDown
+					err = errServerShuttingDown
+				case errors.Is(err, publish.ErrFull):
+					errID = request.IDResponseErrorsFullQueue
+				case errors.Is(err, errMethodNotAllowed):
+					errID = request.IDResponseErrorsMethodNotAllowed
+				case errors.Is(err, errInvalidContentType):
+					errID = request.IDResponseErrorsValidate
+				case errors.Is(err, errRateLimitExceeded):
+					errID = request.IDResponseErrorsRateLimit
+				}
+			}
+			jsonResult.Errors[i] = jsonError{Message: err.Error()}
+		}
+		errorMessages[i] = jsonResult.Errors[i].Message
+
+		var errStatusCode int
+		switch errID {
+		case request.IDResponseErrorsMethodNotAllowed:
+			// TODO: remove exception case and use StatusMethodNotAllowed (breaking bugfix)
+			errStatusCode = http.StatusBadRequest
+		case request.IDResponseErrorsRequestTooLarge:
+			// TODO: remove exception case and use StatusRequestEntityTooLarge (breaking bugfix)
+			errStatusCode = http.StatusBadRequest
+		default:
+			errStatusCode = request.MapResultIDToStatus[errID].Code
+		}
+		if errStatusCode > statusCode {
+			statusCode = errStatusCode
+			id = errID
 		}
 	}
-	return reader, nil
+
+	var err error
+	if len(errorMessages) > 0 {
+		err = errors.New(strings.Join(errorMessages, ", "))
+	}
+	writeResult(c, id, statusCode, &jsonResult, err)
+}
+
+func writeResult(c *request.Context, id request.ResultID, statusCode int, result *jsonResult, err error) {
+	var body interface{}
+	if statusCode >= http.StatusBadRequest {
+		// this signals to the client that we're closing the connection
+		// but also signals to http.Server that it should close it:
+		// https://golang.org/src/net/http/server.go#L1254
+		c.Header().Add(headers.Connection, "Close")
+		body = result
+	} else if _, ok := c.Request.URL.Query()["verbose"]; ok {
+		body = result
+	}
+	c.Result.Set(id, statusCode, request.MapResultIDToStatus[id].Keyword, body, err)
+	c.Write()
+}
+
+type compressedRequestReaderError struct {
+	error
+}
+
+type jsonResult struct {
+	Accepted int         `json:"accepted"`
+	Errors   []jsonError `json:"errors,omitempty"`
+}
+
+type jsonError struct {
+	Message  string `json:"message"`
+	Document string `json:"document,omitempty"`
 }
