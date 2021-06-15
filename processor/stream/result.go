@@ -18,31 +18,9 @@
 package stream
 
 import (
-	"strings"
+	"errors"
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
-)
-
-type Error struct {
-	Type     StreamError `json:"-"`
-	Message  string      `json:"message"`
-	Document string      `json:"document,omitempty"`
-}
-
-func (s *Error) Error() string {
-	return s.Message
-}
-
-type StreamError int
-
-const (
-	QueueFullErrType StreamError = iota
-	InvalidInputErrType
-	InputTooLargeErrType
-	ShuttingDownErrType
-	ServerErrType
-	MethodForbiddenErrType
-	RateLimitErrType
 )
 
 const (
@@ -50,20 +28,15 @@ const (
 )
 
 var (
-	m             = monitoring.Default.NewRegistry("apm-server.processor.stream")
-	mAccepted     = monitoring.NewInt(m, "accepted")
-	monitoringMap = map[StreamError]*monitoring.Int{
-		QueueFullErrType:     monitoring.NewInt(m, "errors.queue"),
-		InvalidInputErrType:  monitoring.NewInt(m, "errors.invalid"),
-		InputTooLargeErrType: monitoring.NewInt(m, "errors.toolarge"),
-		ShuttingDownErrType:  monitoring.NewInt(m, "errors.server"),
-		ServerErrType:        monitoring.NewInt(m, "errors.closed"),
-	}
+	m         = monitoring.Default.NewRegistry("apm-server.processor.stream")
+	mAccepted = monitoring.NewInt(m, "accepted")
+	mInvalid  = monitoring.NewInt(m, "errors.invalid")
+	mTooLarge = monitoring.NewInt(m, "errors.toolarge")
 )
 
 type Result struct {
-	Accepted int      `json:"accepted"`
-	Errors   []*Error `json:"errors,omitempty"`
+	Accepted int
+	Errors   []error
 }
 
 func (r *Result) LimitedAdd(err error) {
@@ -79,29 +52,26 @@ func (r *Result) AddAccepted(ct int) {
 	mAccepted.Add(int64(ct))
 }
 
-func (r *Result) Error() string {
-	var errorList []string
-	for _, e := range r.Errors {
-		errorList = append(errorList, e.Error())
-	}
-	return strings.Join(errorList, ", ")
-}
-
 func (r *Result) add(err error, add bool) {
-	e, ok := err.(*Error)
-	if !ok {
-		e = &Error{Message: err.Error(), Type: ServerErrType}
+	var invalid *InvalidInputError
+	if errors.As(err, &invalid) {
+		if invalid.TooLarge {
+			mTooLarge.Inc()
+		} else {
+			mInvalid.Inc()
+		}
 	}
 	if add {
-		r.Errors = append(r.Errors, e)
+		r.Errors = append(r.Errors, err)
 	}
-	countErr(e.Type)
 }
 
-func countErr(e StreamError) {
-	if i, ok := monitoringMap[e]; ok {
-		i.Inc()
-	} else {
-		monitoringMap[ServerErrType].Inc()
-	}
+type InvalidInputError struct {
+	TooLarge bool
+	Message  string
+	Document string
+}
+
+func (e *InvalidInputError) Error() string {
+	return e.Message
 }
