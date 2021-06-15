@@ -274,7 +274,6 @@ func (p *Processor) readBatch(
 			}
 			n += 1 + len(event.Metricsets) + len(event.Spans)
 		default:
-			// TODO(axw)
 			result.LimitedAdd(&InvalidInputError{
 				Message:  errors.Wrap(ErrUnrecognizedObject, string(eventType)).Error(),
 				Document: string(reader.LatestLine()),
