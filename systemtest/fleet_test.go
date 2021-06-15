@@ -19,12 +19,8 @@ package systemtest_test
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/url"
-	"path"
-	"path/filepath"
-	"runtime"
 	"testing"
 	"time"
 
@@ -35,7 +31,6 @@ import (
 	"go.elastic.co/apm/transport"
 
 	"github.com/elastic/apm-server/systemtest"
-	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/fleettest"
 )
 
@@ -79,24 +74,6 @@ func TestFleetIntegration(t *testing.T) {
 			}
 		}
 	}()
-
-	// Build apm-server, and bind-mount it into the elastic-agent container's "install"
-	// directory. This bypasses downloading the artifact.
-	arch := runtime.GOARCH
-	if arch == "amd64" {
-		arch = "x86_64"
-	}
-	apmServerArtifactName := fmt.Sprintf("apm-server-%s-linux-%s", agent.StackVersion, arch)
-
-	// Bind-mount the apm-server binary and apm-server.yml into the container's
-	// "install" directory. This causes elastic-agent to skip installing the
-	// artifact.
-	apmServerBinary, err := apmservertest.BuildServerBinary("linux")
-	require.NoError(t, err)
-	agent.BindMountInstall[apmServerBinary] = path.Join(apmServerArtifactName, "apm-server")
-	apmServerConfigFile, err := filepath.Abs("../apm-server.yml")
-	require.NoError(t, err)
-	agent.BindMountInstall[apmServerConfigFile] = path.Join(apmServerArtifactName, "apm-server.yml")
 
 	// Start elastic-agent with port 8200 exposed, and wait for the server to service
 	// healthcheck requests to port 8200.
