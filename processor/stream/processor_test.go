@@ -20,7 +20,6 @@ package stream
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -43,17 +42,11 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-func assertApproveResult(t *testing.T, actualResponse *Result, name string) {
-	resultName := fmt.Sprintf("test_approved_stream_result/testIntegrationResult%s", name)
-	resultJSON, err := json.Marshal(actualResponse)
-	require.NoError(t, err)
-	approvaltest.ApproveJSON(t, resultName, resultJSON)
-}
-
 func TestHandlerReadStreamError(t *testing.T) {
-	var batches []*model.Batch
+	var accepted int
 	processor := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
-		batches = append(batches, batch)
+		events := batch.Transform(ctx, &transform.Config{})
+		accepted += len(events)
 		return nil
 	})
 
@@ -62,8 +55,11 @@ func TestHandlerReadStreamError(t *testing.T) {
 	timeoutReader := iotest.TimeoutReader(bytes.NewReader(payload))
 
 	sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
-	actualResult := sp.HandleStream(context.Background(), nil, &model.Metadata{}, timeoutReader, processor)
-	assertApproveResult(t, actualResult, "ReadError")
+
+	var actualResult Result
+	err = sp.HandleStream(context.Background(), nil, &model.Metadata{}, timeoutReader, processor, &actualResult)
+	assert.EqualError(t, err, "timeout")
+	assert.Equal(t, Result{Accepted: accepted}, actualResult)
 }
 
 func TestHandlerReportingStreamError(t *testing.T) {
@@ -71,61 +67,130 @@ func TestHandlerReportingStreamError(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, test := range []struct {
-		name      string
-		processor model.BatchProcessor
-	}{
-		{
-			name: "ShuttingDown",
-			processor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
-				return publish.ErrChannelClosed
-			}),
-		}, {
-			name: "QueueFull",
-			processor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
-				return publish.ErrFull
-			}),
-		},
-	} {
+		name string
+		err  error
+	}{{
+		name: "ShuttingDown",
+		err:  publish.ErrChannelClosed,
+	}, {
+		name: "QueueFull",
+		err:  publish.ErrFull,
+	}} {
 		sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
-		actualResult := sp.HandleStream(context.Background(), nil, &model.Metadata{}, bytes.NewReader(payload), test.processor)
-		assertApproveResult(t, actualResult, test.name)
+		processor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
+			return test.err
+		})
+
+		var actualResult Result
+		err := sp.HandleStream(
+			context.Background(), nil, &model.Metadata{},
+			bytes.NewReader(payload), processor, &actualResult,
+		)
+		assert.Equal(t, test.err, err)
+		assert.Zero(t, actualResult)
 	}
 }
 
 func TestIntegrationESOutput(t *testing.T) {
 	for _, test := range []struct {
-		path string
-		name string
-	}{
-		{path: "errors.ndjson", name: "Errors"},
-		{path: "transactions.ndjson", name: "Transactions"},
-		{path: "spans.ndjson", name: "Spans"},
-		{path: "metricsets.ndjson", name: "Metricsets"},
-		{path: "events.ndjson", name: "Events"},
-		{path: "minimal-service.ndjson", name: "MinimalService"},
-		{path: "metadata-null-values.ndjson", name: "MetadataNullValues"},
-		{path: "invalid-event.ndjson", name: "InvalidEvent"},
-		{path: "invalid-json-event.ndjson", name: "InvalidJSONEvent"},
-		{path: "invalid-json-metadata.ndjson", name: "InvalidJSONMetadata"},
-		{path: "invalid-metadata.ndjson", name: "InvalidMetadata"},
-		{path: "invalid-metadata-2.ndjson", name: "InvalidMetadata2"},
-		{path: "invalid-event-type.ndjson", name: "UnrecognizedEvent"},
-		{path: "optional-timestamps.ndjson", name: "OptionalTimestamps"},
-	} {
+		name   string
+		path   string
+		errors []error // per-event errors
+		err    error   // stream-level error
+	}{{
+		name: "Errors",
+		path: "errors.ndjson",
+	}, {
+		name: "Transactions",
+		path: "transactions.ndjson",
+	}, {
+		name: "Spans",
+		path: "spans.ndjson",
+	}, {
+		name: "Metricsets",
+		path: "metricsets.ndjson",
+	}, {
+		name: "Events",
+		path: "events.ndjson",
+	}, {
+		name: "MinimalService",
+		path: "minimal-service.ndjson",
+	}, {
+		name: "MetadataNullValues",
+		path: "metadata-null-values.ndjson",
+	}, {
+		name: "OptionalTimestamps",
+		path: "optional-timestamps.ndjson",
+	}, {
+		name: "InvalidEvent",
+		path: "invalid-event.ndjson",
+		errors: []error{
+			&InvalidInputError{
+				Message:  `decode error: data read error: v2.transactionRoot.Transaction: v2.transaction.ID: ReadString: expects " or n,`,
+				Document: `{ "transaction": { "id": 12345, "trace_id": "0123456789abcdef0123456789abcdef", "parent_id": "abcdefabcdef01234567", "type": "request", "duration": 32.592981, "span_count": { "started": 21 } } }   `,
+			},
+		},
+	}, {
+		name: "InvalidJSONEvent",
+		path: "invalid-json-event.ndjson",
+		errors: []error{
+			&InvalidInputError{
+				Message:  "invalid-json: did not recognize object type",
+				Document: `{ "invalid-json" }`,
+			},
+		},
+	}, {
+		name: "InvalidJSONMetadata",
+		path: "invalid-json-metadata.ndjson",
+		err: &InvalidInputError{
+			Message:  "decode error: data read error: v2.metadataRoot.Metadata: v2.metadata.readFieldHash: expect :,",
+			Document: `{"metadata": {"invalid-json"}}`,
+		},
+	}, {
+		name: "InvalidMetadata",
+		path: "invalid-metadata.ndjson",
+		err: &InvalidInputError{
+			Message:  "validation error: 'metadata' required",
+			Document: `{"metadata": {"user": null}}`,
+		},
+	}, {
+		name: "InvalidMetadata2",
+		path: "invalid-metadata-2.ndjson",
+		err: &InvalidInputError{
+			Message:  "validation error: 'metadata' required",
+			Document: `{"not": "metadata"}`,
+		},
+	}, {
+		name: "UnrecognizedEvent",
+		path: "invalid-event-type.ndjson",
+		errors: []error{
+			&InvalidInputError{
+				Message:  "tennis-court: did not recognize object type",
+				Document: `{"tennis-court": {"name": "Centre Court, Wimbledon"}}`,
+			},
+		},
+	}} {
 		t.Run(test.name, func(t *testing.T) {
 			payload, err := ioutil.ReadFile(filepath.Join("../../testdata/intake-v2", test.path))
 			require.NoError(t, err)
 
+			var accepted int
 			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
-			batchProcessor := makeApproveEventsBatchProcessor(t, name)
+			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
 			reqDecoderMeta := &model.Metadata{System: model.System{IP: net.ParseIP("192.0.0.1")}}
 
 			p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
-			actualResult := p.HandleStream(ctx, nil, reqDecoderMeta, bytes.NewReader(payload), batchProcessor)
-			assertApproveResult(t, actualResult, test.name)
+			var actualResult Result
+			err = p.HandleStream(ctx, nil, reqDecoderMeta, bytes.NewReader(payload), batchProcessor, &actualResult)
+			if test.err != nil {
+				assert.Equal(t, test.err, err)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, Result{Accepted: accepted, Errors: test.errors}, actualResult)
 		})
 	}
 }
@@ -142,18 +207,21 @@ func TestIntegrationRum(t *testing.T) {
 			payload, err := ioutil.ReadFile(filepath.Join("../../testdata/intake-v2", test.path))
 			require.NoError(t, err)
 
+			var accepted int
 			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
-			batchProcessor := makeApproveEventsBatchProcessor(t, name)
+			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
 			reqDecoderMeta := model.Metadata{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
 			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024})
-			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bytes.NewReader(payload), batchProcessor)
-			assertApproveResult(t, actualResult, test.name)
+			var actualResult Result
+			err = p.HandleStream(ctx, nil, &reqDecoderMeta, bytes.NewReader(payload), batchProcessor, &actualResult)
+			require.NoError(t, err)
+			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})
 	}
 }
@@ -170,18 +238,21 @@ func TestRUMV3(t *testing.T) {
 			payload, err := ioutil.ReadFile(filepath.Join("../../testdata/intake-v3", test.path))
 			require.NoError(t, err)
 
+			var accepted int
 			name := fmt.Sprintf("test_approved_es_documents/testIntake%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
-			batchProcessor := makeApproveEventsBatchProcessor(t, name)
+			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
 			reqDecoderMeta := model.Metadata{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
 			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024})
-			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bytes.NewReader(payload), batchProcessor)
-			assertApproveResult(t, actualResult, test.name)
+			var actualResult Result
+			err = p.HandleStream(ctx, nil, &reqDecoderMeta, bytes.NewReader(payload), batchProcessor, &actualResult)
+			require.NoError(t, err)
+			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})
 	}
 }
@@ -192,31 +263,34 @@ func TestRUMAllowedServiceNames(t *testing.T) {
 
 	for _, test := range []struct {
 		AllowServiceNames []string
-		ExpectedResult    *Result
+		Allowed           bool
 	}{{
 		AllowServiceNames: nil,
-		ExpectedResult: &Result{
-			Accepted: 2,
-		},
+		Allowed:           true, // none specified = all allowed
 	}, {
 		AllowServiceNames: []string{"apm-agent-js"}, // matches what's in test data
-		ExpectedResult: &Result{
-			Accepted: 2,
-		},
+		Allowed:           true,
 	}, {
 		AllowServiceNames: []string{"reject_everything"},
-		ExpectedResult: &Result{
-			Accepted: 0,
-			Errors:   []*Error{{Type: InvalidInputErrType, Message: "service name is not allowed"}},
-		},
+		Allowed:           false,
 	}} {
 		p := RUMV2Processor(&config.Config{
 			MaxEventSize: 100 * 1024,
 			RumConfig:    config.RumConfig{AllowServiceNames: test.AllowServiceNames},
 		})
 
-		result := p.HandleStream(context.Background(), nil, &model.Metadata{}, bytes.NewReader(payload), modelprocessor.Nop{})
-		assert.Equal(t, test.ExpectedResult, result)
+		var result Result
+		err := p.HandleStream(
+			context.Background(), nil, &model.Metadata{}, bytes.NewReader(payload),
+			modelprocessor.Nop{}, &result,
+		)
+		if test.Allowed {
+			require.NoError(t, err)
+			assert.Equal(t, Result{Accepted: 2}, result)
+		} else {
+			assert.EqualError(t, err, "service name is not allowed")
+			assert.Equal(t, Result{Accepted: 0}, result)
+		}
 	}
 }
 
@@ -225,32 +299,61 @@ func TestRateLimiting(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, test := range []struct {
-		name string
-		lim  *rate.Limiter
-		hit  int
-	}{
-		{name: "NoLimiter"},
-		{name: "LimiterDenyAll", lim: rate.NewLimiter(rate.Limit(0), 2)},
-		{name: "LimiterAllowAll", lim: rate.NewLimiter(rate.Limit(40), 40*5)},
-		{name: "LimiterPartiallyUsedLimitAllow", lim: rate.NewLimiter(rate.Limit(10), 10*2), hit: 10},
-		{name: "LimiterPartiallyUsedLimitDeny", lim: rate.NewLimiter(rate.Limit(7), 7*2), hit: 10},
-		{name: "LimiterDeny", lim: rate.NewLimiter(rate.Limit(6), 6*2)},
-	} {
+		name     string
+		lim      *rate.Limiter
+		hit      int
+		accepted int
+		limited  bool
+	}{{
+		name:     "LimiterDenyAll",
+		lim:      rate.NewLimiter(rate.Limit(0), 2),
+		accepted: 0,
+		limited:  true,
+	}, {
+		name:     "LimiterAllowAll",
+		lim:      rate.NewLimiter(rate.Limit(40), 40*5),
+		accepted: 19,
+	}, {
+		name:     "LimiterPartiallyUsedLimitAllow",
+		lim:      rate.NewLimiter(rate.Limit(10), 10*2),
+		hit:      10,
+		accepted: 19,
+	}, {
+		name:     "LimiterPartiallyUsedLimitDeny",
+		lim:      rate.NewLimiter(rate.Limit(7), 7*2),
+		hit:      10,
+		accepted: 10,
+		limited:  true,
+	}, {
+		name:     "LimiterDeny",
+		lim:      rate.NewLimiter(rate.Limit(6), 6*2),
+		accepted: 10,
+		limited:  true,
+	}} {
 		t.Run(test.name, func(t *testing.T) {
 			if test.hit > 0 {
 				assert.True(t, test.lim.AllowN(time.Now(), test.hit))
 			}
 
-			actualResult := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}).HandleStream(
-				context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(payload), nopBatchProcessor{})
-			assertApproveResult(t, actualResult, test.name)
+			var actualResult Result
+			err := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}).HandleStream(
+				context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(payload), nopBatchProcessor{},
+				&actualResult,
+			)
+			if test.limited {
+				assert.Equal(t, ErrRateLimitExceeded, err)
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, Result{Accepted: test.accepted}, actualResult)
 		})
 	}
 }
 
-func makeApproveEventsBatchProcessor(t *testing.T, name string) model.BatchProcessor {
+func makeApproveEventsBatchProcessor(t *testing.T, name string, count *int) model.BatchProcessor {
 	return model.ProcessBatchFunc(func(ctx context.Context, b *model.Batch) error {
 		events := b.Transform(ctx, &transform.Config{DataStreams: true})
+		*count += len(events)
 		docs := beatertest.EncodeEventDocs(events...)
 		approvaltest.ApproveEventDocs(t, name, docs)
 		return nil

@@ -18,62 +18,51 @@
 package stream
 
 import (
-	"errors"
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
-func TestStreamResponseSimple(t *testing.T) {
-	sr := Result{}
-	sr.LimitedAdd(&Error{Type: QueueFullErrType, Message: "err1", Document: "buf1"})
-	sr.LimitedAdd(errors.New("transmogrifier error"))
-	sr.LimitedAdd(&Error{Type: InvalidInputErrType, Message: "err2", Document: "buf2"})
-	sr.LimitedAdd(&Error{Type: InvalidInputErrType, Message: "err3", Document: "buf3"})
+func TestResultAdd(t *testing.T) {
+	err1 := &InvalidInputError{Message: "err1", Document: "buf1"}
+	err2 := &InvalidInputError{Message: "err2", Document: "buf2"}
+	err3 := &InvalidInputError{Message: "err3", Document: "buf3"}
+	err4 := &InvalidInputError{Message: "err4"}
+	err5 := &InvalidInputError{Message: "err5"}
+	err6 := &InvalidInputError{Message: "err6"}
+	err7 := &InvalidInputError{Message: "err7"}
 
-	sr.LimitedAdd(&Error{Message: "err4"})
-	sr.LimitedAdd(&Error{Message: "err5"})
+	result := Result{}
+	result.LimitedAdd(err1)
+	result.LimitedAdd(err2)
+	result.LimitedAdd(err3)
+	result.LimitedAdd(err4)
+	result.LimitedAdd(err5)
+	result.LimitedAdd(err5)
+	result.LimitedAdd(err6) // limited, not added
+	result.Add(err7)        // unconditionally added
 
-	// not added
-	sr.LimitedAdd(&Error{Message: "err6"})
-
-	// added
-	sr.Add(&Error{Message: "err6"})
-
-	assert.Len(t, sr.Errors, 6)
-
-	expectedStr := `err1, transmogrifier error, err2, err3, err4, err6`
-	assert.Equal(t, expectedStr, sr.Error())
+	assert.Len(t, result.Errors, 6)
+	assert.Equal(t, []error{err1, err2, err3, err4, err5, err7}, result.Errors)
 }
 
 func TestMonitoring(t *testing.T) {
-	for _, test := range []struct {
-		counter  *monitoring.Int
-		expected int64
-	}{
-		{monitoringMap[QueueFullErrType], 1},
-		{monitoringMap[InvalidInputErrType], 2},
-		{monitoringMap[InputTooLargeErrType], 1},
-		{monitoringMap[ShuttingDownErrType], 1},
-		{monitoringMap[ServerErrType], 2},
-		{mAccepted, 12},
-	} {
-		// get current value for counter
-		ct := test.counter.Get()
+	initialAccepted := mAccepted.Get()
+	initialInvalid := mInvalid.Get()
+	initialTooLarge := mTooLarge.Get()
 
-		sr := Result{}
-		sr.AddAccepted(9)
-		sr.AddAccepted(3)
-		sr.LimitedAdd(&Error{Type: QueueFullErrType})
-		sr.LimitedAdd(errors.New("error"))
-		sr.LimitedAdd(&Error{Type: InvalidInputErrType})
-		sr.LimitedAdd(&Error{Type: ShuttingDownErrType})
-		sr.LimitedAdd(&Error{Type: ServerErrType})
-		sr.LimitedAdd(&Error{Type: InputTooLargeErrType, Message: "err3", Document: "buf3"})
-		sr.Add(&Error{Type: InvalidInputErrType})
-
-		assert.Equal(t, ct+test.expected, test.counter.Get())
+	var result Result
+	result.AddAccepted(9)
+	result.AddAccepted(3)
+	for i := 0; i < 10; i++ {
+		result.LimitedAdd(&InvalidInputError{TooLarge: false})
 	}
+	result.LimitedAdd(&InvalidInputError{TooLarge: true})
+	result.Add(&InvalidInputError{TooLarge: true})
+	result.Add(errors.New("error"))
+
+	assert.Equal(t, int64(12), mAccepted.Get()-initialAccepted)
+	assert.Equal(t, int64(10), mInvalid.Get()-initialInvalid)
+	assert.Equal(t, int64(2), mTooLarge.Get()-initialTooLarge)
 }
