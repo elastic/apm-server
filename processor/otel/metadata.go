@@ -35,7 +35,7 @@ const (
 
 	// Network attributes are pending approval in the OTel spec, and subject to change:
 	// https://github.com/open-telemetry/opentelemetry-specification/issues/1647
-	
+
 	AttributeNetworkType        = "net.host.connection_type"
 	AttributeNetworkMCC         = "net.host.carrier.mcc"
 	AttributeNetworkMNC         = "net.host.carrier.mnc"
