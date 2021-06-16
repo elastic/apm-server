@@ -123,12 +123,6 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 		return "", fmt.Errorf("failure querying fleet: statuscode=%d response=%s", resp.StatusCode, body)
 	}
 
-	// Do the headers show compression???
-
-	buf := new(bytes.Buffer)
-
-	// TODO: Caue said that the response is b64 encoded.
-	// body := base64.NewDecoder(base64.StdEncoding, resp.Body)
 	// Looking at the index in elasticsearch, currently
 	// - no encryption
 	// - zlib compression
@@ -137,6 +131,7 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 		return "", err
 	}
 
+	buf := new(bytes.Buffer)
 	if _, err := io.Copy(buf, r); err != nil {
 		return "", err
 	}
