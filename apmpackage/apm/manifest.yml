@@ -119,7 +119,7 @@ policy_templates:
             description: Number of unique IPs to be cached for the rate limiter.
             required: false
             show_user: false
-            default: 1000
+            default: 10000
           - name: sourcemap_api_key
             type: text
             title: RUM - API Key for Sourcemaps
@@ -212,11 +212,6 @@ policy_templates:
             type: text
             title: File path to server certificate key
             description: Required when TLS is enabled.
-            required: false
-            show_user: false
-          - name: tls_key_passphrase
-            type: password
-            title: Passphrase for decrypting the certificate key
             required: false
             show_user: false
           - name: tls_supported_protocols
