@@ -55,10 +55,13 @@ import (
 // the Elastic APM metrics model and sending to the reporter.
 func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) error {
 	receiveTimestamp := time.Now()
+<<<<<<< HEAD
 	logger := logp.NewLogger(logs.Otel)
 	if logger.IsDebug() {
 		logger.Debug(otlptext.Metrics(metrics))
 	}
+=======
+>>>>>>> 1a93a25b (processor/otel: adjust timestamps for mobile (#5433))
 	batch := c.convertMetrics(metrics, receiveTimestamp)
 	return c.Processor.ProcessBatch(ctx, batch)
 }

@@ -358,6 +358,7 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	assert.InDelta(t, now.Add(dataPointOffset).Unix(), metricsets[0].Timestamp.Unix(), allowedError)
 }
 
+<<<<<<< HEAD
 func TestMetricsLogging(t *testing.T) {
 	for _, level := range []logp.Level{logp.InfoLevel, logp.DebugLevel} {
 		t.Run(level.String(), func(t *testing.T) {
@@ -373,6 +374,8 @@ func TestMetricsLogging(t *testing.T) {
 	}
 }
 
+=======
+>>>>>>> 1a93a25b (processor/otel: adjust timestamps for mobile (#5433))
 func transformMetrics(t *testing.T, metrics pdata.Metrics) ([]*model.Metricset, otel.ConsumerStats) {
 	var batches []*model.Batch
 	recorder := batchRecorderBatchProcessor(&batches)

@@ -105,6 +105,7 @@ func (c *Consumer) Capabilities() consumer.Capabilities {
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error {
 	receiveTimestamp := time.Now()
+<<<<<<< HEAD
 	logger := logp.NewLogger(logs.Otel)
 	if logger.IsDebug() {
 		logger.Debug(otlptext.Traces(traces))
@@ -118,16 +119,31 @@ func (c *Consumer) convert(td pdata.Traces, receiveTimestamp time.Time, logger *
 	resourceSpans := td.ResourceSpans()
 	for i := 0; i < resourceSpans.Len(); i++ {
 		c.convertResourceSpans(resourceSpans.At(i), receiveTimestamp, logger, &batch)
+=======
+	batch := c.convert(traces, receiveTimestamp)
+	return c.Processor.ProcessBatch(ctx, batch)
+}
+
+func (c *Consumer) convert(td pdata.Traces, receiveTimestamp time.Time) *model.Batch {
+	batch := model.Batch{}
+	resourceSpans := td.ResourceSpans()
+	for i := 0; i < resourceSpans.Len(); i++ {
+		c.convertResourceSpans(resourceSpans.At(i), receiveTimestamp, &batch)
+>>>>>>> 1a93a25b (processor/otel: adjust timestamps for mobile (#5433))
 	}
 	return &batch
 }
 
+<<<<<<< HEAD
 func (c *Consumer) convertResourceSpans(
 	resourceSpans pdata.ResourceSpans,
 	receiveTimestamp time.Time,
 	logger *logp.Logger,
 	out *model.Batch,
 ) {
+=======
+func (c *Consumer) convertResourceSpans(resourceSpans pdata.ResourceSpans, receiveTimestamp time.Time, out *model.Batch) {
+>>>>>>> 1a93a25b (processor/otel: adjust timestamps for mobile (#5433))
 	var metadata model.Metadata
 	var timeDelta time.Duration
 	resource := resourceSpans.Resource()
@@ -137,9 +153,13 @@ func (c *Consumer) convertResourceSpans(
 	}
 	instrumentationLibrarySpans := resourceSpans.InstrumentationLibrarySpans()
 	for i := 0; i < instrumentationLibrarySpans.Len(); i++ {
+<<<<<<< HEAD
 		c.convertInstrumentationLibrarySpans(
 			instrumentationLibrarySpans.At(i), metadata, timeDelta, logger, out,
 		)
+=======
+		c.convertInstrumentationLibrarySpans(instrumentationLibrarySpans.At(i), metadata, timeDelta, out)
+>>>>>>> 1a93a25b (processor/otel: adjust timestamps for mobile (#5433))
 	}
 }
 
@@ -147,12 +167,19 @@ func (c *Consumer) convertInstrumentationLibrarySpans(
 	in pdata.InstrumentationLibrarySpans,
 	metadata model.Metadata,
 	timeDelta time.Duration,
+<<<<<<< HEAD
 	logger *logp.Logger,
+=======
+>>>>>>> 1a93a25b (processor/otel: adjust timestamps for mobile (#5433))
 	out *model.Batch,
 ) {
 	otelSpans := in.Spans()
 	for i := 0; i < otelSpans.Len(); i++ {
+<<<<<<< HEAD
 		c.convertSpan(otelSpans.At(i), in.InstrumentationLibrary(), metadata, timeDelta, logger, out)
+=======
+		c.convertSpan(otelSpans.At(i), in.InstrumentationLibrary(), metadata, timeDelta, out)
+>>>>>>> 1a93a25b (processor/otel: adjust timestamps for mobile (#5433))
 	}
 }
 
@@ -161,7 +188,10 @@ func (c *Consumer) convertSpan(
 	otelLibrary pdata.InstrumentationLibrary,
 	metadata model.Metadata,
 	timeDelta time.Duration,
+<<<<<<< HEAD
 	logger *logp.Logger,
+=======
+>>>>>>> 1a93a25b (processor/otel: adjust timestamps for mobile (#5433))
 	out *model.Batch,
 ) {
 	root := otelSpan.ParentSpanID().IsEmpty()
