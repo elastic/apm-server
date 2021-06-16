@@ -6,7 +6,9 @@ apm-server:
     default_service_environment: {{default_service_environment}}
     rum:
         enabled: {{enable_rum}}
+        {{#if sourcemap_api_key}}
         source_mapping.elasticsearch.api_key: {{sourcemap_api_key}}
+        {{/if}}
         allow_service_names: {{rum_allow_service_names}}
         allow_origins: {{rum_allow_origins}}
         allow_headers: {{rum_allow_headers}}
