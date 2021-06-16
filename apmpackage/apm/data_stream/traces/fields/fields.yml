@@ -40,6 +40,26 @@
   type: keyword
   description: |
     Kubernetes Pod UID
+- name: network.carrier.icc
+  type: keyword
+  description: |
+    ISO country code, eg. US
+- name: network.carrier.mcc
+  type: keyword
+  description: |
+    Mobile country code
+- name: network.carrier.mnc
+  type: keyword
+  description: |
+    Mobile network code
+- name: network.carrier.name
+  type: keyword
+  description: |
+    Carrier name, eg. Vodafone, T-Mobile, etc.
+- name: network.connection_type
+  type: keyword
+  description: |
+    Cellular network technology, eg. 4G
 - name: observer.listening
   type: keyword
   description: |
