@@ -42,6 +42,7 @@ import (
 	"strconv"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/pdata"
@@ -102,32 +103,43 @@ func (c *Consumer) Capabilities() consumer.Capabilities {
 // ConsumeTraces consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error {
-	batch := c.convert(traces)
+	receiveTimestamp := time.Now()
+	batch := c.convert(traces, receiveTimestamp)
 	return c.Processor.ProcessBatch(ctx, batch)
 }
 
-func (c *Consumer) convert(td pdata.Traces) *model.Batch {
+func (c *Consumer) convert(td pdata.Traces, receiveTimestamp time.Time) *model.Batch {
 	batch := model.Batch{}
 	resourceSpans := td.ResourceSpans()
 	for i := 0; i < resourceSpans.Len(); i++ {
-		c.convertResourceSpans(resourceSpans.At(i), &batch)
+		c.convertResourceSpans(resourceSpans.At(i), receiveTimestamp, &batch)
 	}
 	return &batch
 }
 
-func (c *Consumer) convertResourceSpans(resourceSpans pdata.ResourceSpans, out *model.Batch) {
+func (c *Consumer) convertResourceSpans(resourceSpans pdata.ResourceSpans, receiveTimestamp time.Time, out *model.Batch) {
 	var metadata model.Metadata
-	translateResourceMetadata(resourceSpans.Resource(), &metadata)
+	var timeDelta time.Duration
+	resource := resourceSpans.Resource()
+	translateResourceMetadata(resource, &metadata)
+	if exportTimestamp, ok := exportTimestamp(resource); ok {
+		timeDelta = receiveTimestamp.Sub(exportTimestamp)
+	}
 	instrumentationLibrarySpans := resourceSpans.InstrumentationLibrarySpans()
 	for i := 0; i < instrumentationLibrarySpans.Len(); i++ {
-		c.convertInstrumentationLibrarySpans(instrumentationLibrarySpans.At(i), metadata, out)
+		c.convertInstrumentationLibrarySpans(instrumentationLibrarySpans.At(i), metadata, timeDelta, out)
 	}
 }
 
-func (c *Consumer) convertInstrumentationLibrarySpans(in pdata.InstrumentationLibrarySpans, metadata model.Metadata, out *model.Batch) {
+func (c *Consumer) convertInstrumentationLibrarySpans(
+	in pdata.InstrumentationLibrarySpans,
+	metadata model.Metadata,
+	timeDelta time.Duration,
+	out *model.Batch,
+) {
 	otelSpans := in.Spans()
 	for i := 0; i < otelSpans.Len(); i++ {
-		c.convertSpan(otelSpans.At(i), in.InstrumentationLibrary(), metadata, out)
+		c.convertSpan(otelSpans.At(i), in.InstrumentationLibrary(), metadata, timeDelta, out)
 	}
 }
 
@@ -135,12 +147,12 @@ func (c *Consumer) convertSpan(
 	otelSpan pdata.Span,
 	otelLibrary pdata.InstrumentationLibrary,
 	metadata model.Metadata,
+	timeDelta time.Duration,
 	out *model.Batch,
 ) {
 	logger := logp.NewLogger(logs.Otel)
 
 	root := otelSpan.ParentSpanID().IsEmpty()
-
 	var parentID string
 	if !root {
 		parentID = otelSpan.ParentSpanID().HexString()
@@ -155,6 +167,7 @@ func (c *Consumer) convertSpan(
 	if endTime.After(startTime) {
 		durationMillis = endTime.Sub(startTime).Seconds() * 1000
 	}
+	timestamp := startTime.Add(timeDelta)
 
 	var transaction *model.Transaction
 	var span *model.Span
@@ -171,7 +184,7 @@ func (c *Consumer) convertSpan(
 			ID:        spanID,
 			ParentID:  parentID,
 			TraceID:   traceID,
-			Timestamp: startTime,
+			Timestamp: timestamp,
 			Duration:  durationMillis,
 			Name:      name,
 			Outcome:   spanStatusOutcome(otelSpan.Status()),
@@ -184,7 +197,7 @@ func (c *Consumer) convertSpan(
 			ID:        spanID,
 			ParentID:  parentID,
 			TraceID:   traceID,
-			Timestamp: startTime,
+			Timestamp: timestamp,
 			Duration:  durationMillis,
 			Name:      name,
 			Outcome:   spanStatusOutcome(otelSpan.Status()),
@@ -195,7 +208,7 @@ func (c *Consumer) convertSpan(
 
 	events := otelSpan.Events()
 	for i := 0; i < events.Len(); i++ {
-		convertSpanEvent(logger, events.At(i), metadata, transaction, span, out)
+		convertSpanEvent(logger, events.At(i), metadata, transaction, span, timeDelta, out)
 	}
 }
 
@@ -735,6 +748,7 @@ func convertSpanEvent(
 	event pdata.SpanEvent,
 	metadata model.Metadata,
 	transaction *model.Transaction, span *model.Span, // only one is non-nil
+	timeDelta time.Duration,
 	out *model.Batch,
 ) {
 	var e *model.Error
@@ -775,8 +789,10 @@ func convertSpanEvent(
 			//   - exception.message`
 			return
 		}
+		timestamp := event.Timestamp().AsTime()
+		timestamp = timestamp.Add(timeDelta)
 		e = convertOpenTelemetryExceptionSpanEvent(
-			event.Timestamp().AsTime(),
+			timestamp,
 			exceptionType, exceptionMessage, exceptionStacktrace,
 			exceptionEscaped, metadata.Service.Language.Name,
 		)
