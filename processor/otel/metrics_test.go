@@ -317,6 +317,46 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	}}, metricsets)
 }
 
+func TestConsumeMetricsExportTimestamp(t *testing.T) {
+	resourceMetrics := pdata.NewResourceMetrics()
+	metrics := pdata.NewMetrics()
+	metrics.ResourceMetrics().Append(resourceMetrics)
+
+	// The actual timestamps will be non-deterministic, as they are adjusted
+	// based on the server's clock.
+	//
+	// Use a large delta so that we can allow for a significant amount of
+	// delay in the test environment affecting the timestamp adjustment.
+	const timeDelta = time.Hour
+	const allowedError = 5 // seconds
+
+	now := time.Now()
+	exportTimestamp := now.Add(-timeDelta)
+	resourceMetrics.Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"telemetry.sdk.elastic_export_timestamp": pdata.NewAttributeValueInt(exportTimestamp.UnixNano()),
+	})
+
+	// Timestamp relative to the export timestamp.
+	dataPointOffset := -time.Second
+	exportedDataPointTimestamp := exportTimestamp.Add(dataPointOffset)
+
+	instrumentationLibraryMetrics := pdata.NewInstrumentationLibraryMetrics()
+	resourceMetrics.InstrumentationLibraryMetrics().Append(instrumentationLibraryMetrics)
+
+	metric := pdata.NewMetric()
+	metric.SetName("int_gauge")
+	metric.SetDataType(pdata.MetricDataTypeIntGauge)
+	intGauge := metric.IntGauge()
+	intGauge.DataPoints().Resize(1)
+	intGauge.DataPoints().At(0).SetTimestamp(pdata.TimestampFromTime(exportedDataPointTimestamp))
+	intGauge.DataPoints().At(0).SetValue(1)
+	instrumentationLibraryMetrics.Metrics().Append(metric)
+
+	metricsets, _ := transformMetrics(t, metrics)
+	require.Len(t, metricsets, 1)
+	assert.InDelta(t, now.Add(dataPointOffset).Unix(), metricsets[0].Timestamp.Unix(), allowedError)
+}
+
 func transformMetrics(t *testing.T, metrics pdata.Metrics) ([]*model.Metricset, otel.ConsumerStats) {
 	var batches []*model.Batch
 	recorder := batchRecorderBatchProcessor(&batches)

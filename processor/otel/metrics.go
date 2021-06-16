@@ -51,29 +51,40 @@ import (
 // ConsumeMetrics consumes OpenTelemetry metrics data, converting into
 // the Elastic APM metrics model and sending to the reporter.
 func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) error {
-	batch := c.convertMetrics(metrics)
+	receiveTimestamp := time.Now()
+	batch := c.convertMetrics(metrics, receiveTimestamp)
 	return c.Processor.ProcessBatch(ctx, batch)
 }
 
-func (c *Consumer) convertMetrics(metrics pdata.Metrics) *model.Batch {
+func (c *Consumer) convertMetrics(metrics pdata.Metrics, receiveTimestamp time.Time) *model.Batch {
 	batch := model.Batch{}
 	resourceMetrics := metrics.ResourceMetrics()
 	for i := 0; i < resourceMetrics.Len(); i++ {
-		c.convertResourceMetrics(resourceMetrics.At(i), &batch)
+		c.convertResourceMetrics(resourceMetrics.At(i), receiveTimestamp, &batch)
 	}
 	return &batch
 }
 
-func (c *Consumer) convertResourceMetrics(resourceMetrics pdata.ResourceMetrics, out *model.Batch) {
+func (c *Consumer) convertResourceMetrics(resourceMetrics pdata.ResourceMetrics, receiveTimestamp time.Time, out *model.Batch) {
 	var metadata model.Metadata
-	translateResourceMetadata(resourceMetrics.Resource(), &metadata)
+	var timeDelta time.Duration
+	resource := resourceMetrics.Resource()
+	translateResourceMetadata(resource, &metadata)
+	if exportTimestamp, ok := exportTimestamp(resource); ok {
+		timeDelta = receiveTimestamp.Sub(exportTimestamp)
+	}
 	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics()
 	for i := 0; i < instrumentationLibraryMetrics.Len(); i++ {
-		c.convertInstrumentationLibraryMetrics(instrumentationLibraryMetrics.At(i), metadata, out)
+		c.convertInstrumentationLibraryMetrics(instrumentationLibraryMetrics.At(i), metadata, timeDelta, out)
 	}
 }
 
-func (c *Consumer) convertInstrumentationLibraryMetrics(in pdata.InstrumentationLibraryMetrics, metadata model.Metadata, out *model.Batch) {
+func (c *Consumer) convertInstrumentationLibraryMetrics(
+	in pdata.InstrumentationLibraryMetrics,
+	metadata model.Metadata,
+	timeDelta time.Duration,
+	out *model.Batch,
+) {
 	var ms metricsets
 	otelMetrics := in.Metrics()
 	var unsupported int64
@@ -84,6 +95,7 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(in pdata.Instrumentation
 	}
 	for _, m := range ms {
 		m.Metadata = metadata
+		m.Timestamp = m.Timestamp.Add(timeDelta)
 		out.Metricsets = append(out.Metricsets, m.Metricset)
 	}
 	if unsupported > 0 {
