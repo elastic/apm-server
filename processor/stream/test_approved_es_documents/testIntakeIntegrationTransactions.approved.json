@@ -32,7 +32,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.1234_service_12a3",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -153,7 +153,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.1234_service_12a3",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
@@ -366,7 +366,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.service1",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -510,7 +510,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.1234_service_12a3",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"

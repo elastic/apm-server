@@ -120,8 +120,7 @@ func (e *Error) appendBeatEvents(ctx context.Context, cfg *transform.Config, eve
 		// By storing errors in a "logs" data stream, they can be viewed in the Logs app
 		// in Kibana.
 		fields[datastreams.TypeField] = datastreams.LogsType
-		dataset := fmt.Sprintf("%s.%s", ErrorsDataset, datastreams.NormalizeServiceName(e.Metadata.Service.Name))
-		fields[datastreams.DatasetField] = dataset
+		fields[datastreams.DatasetField] = ErrorsDataset
 	}
 
 	// first set the generic metadata (order is relevant)
