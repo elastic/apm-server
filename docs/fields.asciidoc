@@ -563,6 +563,70 @@ type: keyword
 --
 
 [float]
+=== network
+
+Optional network fields
+
+
+
+*`network.connection_type`*::
++
+--
+Cellular network technology, eg. 4G
+
+
+type: keyword
+
+--
+
+[float]
+=== carrier
+
+Network operator
+
+
+
+*`network.carrier.name`*::
++
+--
+Carrier name, eg. Vodafone, T-Mobile, etc.
+
+
+type: keyword
+
+--
+
+*`network.carrier.mcc`*::
++
+--
+Mobile country code
+
+
+type: keyword
+
+--
+
+*`network.carrier.mnc`*::
++
+--
+Mobile network code
+
+
+type: keyword
+
+--
+
+*`network.carrier.icc`*::
++
+--
+ISO country code, eg. US
+
+
+type: keyword
+
+--
+
+[float]
 === host
 
 Optional host fields.
@@ -1594,6 +1658,70 @@ Unique container id.
 type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== network
+
+Optional network fields
+
+
+
+*`network.connection_type`*::
++
+--
+Cellular network technology, eg. 4G
+
+
+type: keyword
+
+--
+
+[float]
+=== carrier
+
+Network operator
+
+
+
+*`network.carrier.name`*::
++
+--
+Carrier name, eg. Vodafone, T-Mobile, etc.
+
+
+type: keyword
+
+--
+
+*`network.carrier.mcc`*::
++
+--
+Mobile country code
+
+
+type: keyword
+
+--
+
+*`network.carrier.mnc`*::
++
+--
+Mobile network code
+
+
+type: keyword
+
+--
+
+*`network.carrier.icc`*::
++
+--
+ISO country code, eg. US
+
+
+type: keyword
 
 --
 
@@ -2866,6 +2994,70 @@ type: keyword
 +
 --
 Kubernetes Pod UID
+
+
+type: keyword
+
+--
+
+[float]
+=== network
+
+Optional network fields
+
+
+
+*`network.connection_type`*::
++
+--
+Cellular network technology, eg. 4G
+
+
+type: keyword
+
+--
+
+[float]
+=== carrier
+
+Network operator
+
+
+
+*`network.carrier.name`*::
++
+--
+Carrier name, eg. Vodafone, T-Mobile, etc.
+
+
+type: keyword
+
+--
+
+*`network.carrier.mcc`*::
++
+--
+Mobile country code
+
+
+type: keyword
+
+--
+
+*`network.carrier.mnc`*::
++
+--
+Mobile network code
+
+
+type: keyword
+
+--
+
+*`network.carrier.icc`*::
++
+--
+ISO country code, eg. US
 
 
 type: keyword
@@ -4397,6 +4589,70 @@ type: keyword
 --
 
 [float]
+=== network
+
+Optional network fields
+
+
+
+*`network.connection_type`*::
++
+--
+Cellular network technology, eg. 4G
+
+
+type: keyword
+
+--
+
+[float]
+=== carrier
+
+Network operator
+
+
+
+*`network.carrier.name`*::
++
+--
+Carrier name, eg. Vodafone, T-Mobile, etc.
+
+
+type: keyword
+
+--
+
+*`network.carrier.mcc`*::
++
+--
+Mobile country code
+
+
+type: keyword
+
+--
+
+*`network.carrier.mnc`*::
++
+--
+Mobile network code
+
+
+type: keyword
+
+--
+
+*`network.carrier.icc`*::
++
+--
+ISO country code, eg. US
+
+
+type: keyword
+
+--
+
+[float]
 === host
 
 Optional host fields.
@@ -5525,6 +5781,70 @@ type: keyword
 +
 --
 Kubernetes Pod UID
+
+
+type: keyword
+
+--
+
+[float]
+=== network
+
+Optional network fields
+
+
+
+*`network.connection_type`*::
++
+--
+Cellular network technology, eg. 4G
+
+
+type: keyword
+
+--
+
+[float]
+=== carrier
+
+Network operator
+
+
+
+*`network.carrier.name`*::
++
+--
+Carrier name, eg. Vodafone, T-Mobile, etc.
+
+
+type: keyword
+
+--
+
+*`network.carrier.mcc`*::
++
+--
+Mobile country code
+
+
+type: keyword
+
+--
+
+*`network.carrier.mnc`*::
++
+--
+Mobile network code
+
+
+type: keyword
+
+--
+
+*`network.carrier.icc`*::
++
+--
+ISO country code, eg. US
 
 
 type: keyword
