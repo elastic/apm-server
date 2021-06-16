@@ -18,6 +18,7 @@
 package sourcemap
 
 import (
+	"compress/zlib"
 	"context"
 	"errors"
 	"fmt"
@@ -165,19 +166,29 @@ func TestFetchTimeout(t *testing.T) {
 	)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		<-waitc
-		w.Write([]byte(test.ValidSourcemap))
+		// zlib compress
+		wr := zlib.NewWriter(w)
+		defer wr.Close()
+		wr.Write([]byte(test.ValidSourcemap))
 	}))
 	defer ts.Close()
 
+	fleetCfg := &config.Fleet{
+		Hosts:        []string{ts.URL},
+		Protocol:     "https",
+		AccessAPIKey: apikey,
+		TLS:          nil,
+	}
 	cfgs := []config.SourceMapMetadata{
 		{
 			ServiceName:    name,
 			ServiceVersion: version,
 			BundleFilepath: path,
-			SourceMapURL:   ts.URL,
+			SourceMapURL:   "",
 		},
 	}
-	b := newFleetStore(c, apikey, cfgs)
+	b, err := newFleetStore(c, fleetCfg, cfgs)
+	assert.NoError(t, err)
 	logger := logp.NewLogger(logs.Sourcemap)
 	store, err := newStore(b, logger, time.Minute)
 	assert.NoError(t, err)
@@ -191,7 +202,6 @@ func TestFetchTimeout(t *testing.T) {
 		go func() {
 			consumer, err := store.Fetch(ctx, name, version, path)
 			if err != nil {
-
 				assert.True(t, errors.Is(err, context.DeadlineExceeded))
 				atomic.AddInt64(&errs, 1)
 				close(waitc)
@@ -236,19 +246,27 @@ func TestConcurrentFetch(t *testing.T) {
 				http.Error(w, "err", http.StatusInternalServerError)
 				return
 			}
-			w.Write([]byte(test.ValidSourcemap))
+			wr := zlib.NewWriter(w)
+			defer wr.Close()
+			wr.Write([]byte(test.ValidSourcemap))
 		}))
 		defer ts.Close()
 
+		fleetCfg := &config.Fleet{
+			Hosts:        []string{ts.URL},
+			Protocol:     "https",
+			AccessAPIKey: apikey,
+			TLS:          nil,
+		}
 		cfgs := []config.SourceMapMetadata{
 			{
 				ServiceName:    name,
 				ServiceVersion: version,
 				BundleFilepath: path,
-				SourceMapURL:   ts.URL,
+				SourceMapURL:   "",
 			},
 		}
-		store, err := NewFleetStore(c, apikey, cfgs, time.Minute)
+		store, err := NewFleetStore(c, fleetCfg, cfgs, time.Minute)
 		assert.NoError(t, err)
 
 		var wg sync.WaitGroup

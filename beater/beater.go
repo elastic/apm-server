@@ -28,6 +28,8 @@ import (
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
+	"github.com/elastic/beats/v7/libbeat/common/transport"
+	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
@@ -257,6 +259,7 @@ func (s *serverCreator) Create(p beat.PipelineConnector, rawConfig *common.Confi
 		Namespace:                namespace,
 		Pipeline:                 p,
 		RawConfig:                apmServerCommonConfig,
+		FleetConfig:              &integrationConfig.Fleet,
 	})
 }
 
@@ -278,6 +281,7 @@ type serverRunner struct {
 	acker         *waitPublishedAcker
 	namespace     string
 	config        *config.Config
+	fleetConfig   *config.Fleet
 	beat          *beat.Beat
 	logger        *logp.Logger
 	tracer        *apm.Tracer
@@ -288,9 +292,10 @@ type serverRunner struct {
 type serverRunnerParams struct {
 	sharedServerRunnerParams
 
-	Namespace string
-	Pipeline  beat.PipelineConnector
-	RawConfig *common.Config
+	Namespace   string
+	Pipeline    beat.PipelineConnector
+	RawConfig   *common.Config
+	FleetConfig *config.Fleet
 }
 
 type sharedServerRunnerParams struct {
@@ -315,6 +320,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		cancelRunServerContext: cancel,
 
 		config:        cfg,
+		fleetConfig:   args.FleetConfig,
 		acker:         args.Acker,
 		pipeline:      args.Pipeline,
 		namespace:     args.Namespace,
@@ -353,8 +359,7 @@ func (s *serverRunner) Start() {
 func (s *serverRunner) run() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
-
-	transformConfig, err := newTransformConfig(s.beat.Info, s.config)
+	transformConfig, err := newTransformConfig(s.beat.Info, s.config, s.fleetConfig)
 	if err != nil {
 		return err
 	}
@@ -596,7 +601,7 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	}
 }
 
-func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Config, error) {
+func newTransformConfig(beatInfo beat.Info, cfg *config.Config, fleetCfg *config.Fleet) (*transform.Config, error) {
 	transformConfig := &transform.Config{
 		DataStreams: cfg.DataStreams.Enabled,
 		RUM: transform.RUMConfig{
@@ -606,7 +611,7 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 	}
 
 	if cfg.RumConfig.Enabled && cfg.RumConfig.SourceMapping.Enabled {
-		store, err := newSourcemapStore(beatInfo, cfg.RumConfig.SourceMapping)
+		store, err := newSourcemapStore(beatInfo, cfg.RumConfig.SourceMapping, fleetCfg)
 		if err != nil {
 			return nil, err
 		}
@@ -616,15 +621,39 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 	return transformConfig, nil
 }
 
-func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping) (*sourcemap.Store, error) {
+func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping, fleetCfg *config.Fleet) (*sourcemap.Store, error) {
 	if fleetmode.Enabled() {
-		// TODO: Configure the client with fleet TLS certs, timeouts, etc.
-		// Fleet hands TLS certs to the child processes during the gRPC
-		// handshake?
-		c := *http.DefaultClient
+		var (
+			c  = *http.DefaultClient
+			rt = http.DefaultTransport
+		)
+		if fleetCfg != nil {
+			var tlsConfig *tlscommon.TLSConfig
+			var err error
+			if fleetCfg.TLS.IsEnabled() {
+				if tlsConfig, err = tlscommon.LoadTLSConfig(fleetCfg.TLS); err != nil {
+					return nil, err
+				}
+			}
 
-		c.Transport = apmhttp.WrapRoundTripper(http.DefaultTransport)
-		return sourcemap.NewFleetStore(&c, cfg.ESConfig.APIKey, cfg.Metadata, cfg.Cache.Expiration)
+			// Default for es is 90s :shrug:
+			timeout := 30 * time.Second
+			dialer := transport.NetDialer(timeout)
+			tlsDialer, err := transport.TLSDialer(dialer, tlsConfig, timeout)
+			if err != nil {
+				return nil, err
+			}
+
+			rt = &http.Transport{
+				Proxy:           http.ProxyFromEnvironment,
+				Dial:            dialer.Dial,
+				DialTLS:         tlsDialer.Dial,
+				TLSClientConfig: tlsConfig.ToConfig(),
+			}
+		}
+
+		c.Transport = apmhttp.WrapRoundTripper(rt)
+		return sourcemap.NewFleetStore(&c, fleetCfg, cfg.Metadata, cfg.Cache.Expiration)
 	}
 	c, err := elasticsearch.NewClient(cfg.ESConfig)
 	if err != nil {

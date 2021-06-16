@@ -248,7 +248,7 @@ func TestTransformConfigIndex(t *testing.T) {
 			cfg.RumConfig.SourceMapping.IndexPattern = indexPattern
 		}
 
-		transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg)
+		transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg, nil)
 		require.NoError(t, err)
 		require.NotNil(t, transformConfig.RUM.SourcemapStore)
 		transformConfig.RUM.SourcemapStore.Added(context.Background(), "name", "version", "path")
@@ -268,7 +268,7 @@ func TestTransformConfig(t *testing.T) {
 		cfg := config.DefaultConfig()
 		cfg.RumConfig.Enabled = rumEnabled
 		cfg.RumConfig.SourceMapping.Enabled = sourcemapEnabled
-		transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg)
+		transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg, nil)
 		require.NoError(t, err)
 		if expectSourcemapStore {
 			assert.NotNil(t, transformConfig.RUM.SourcemapStore)
@@ -297,7 +297,7 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	cfg.RumConfig.SourceMapping.ESConfig = elasticsearch.DefaultConfig()
 	cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{ts.URL}
 
-	transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg)
+	transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg, nil)
 	require.NoError(t, err)
 	// Check that the provided rum elasticsearch config was used and
 	// Fetch() goes to the test server.

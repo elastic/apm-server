@@ -19,6 +19,7 @@ package sourcemap
 
 import (
 	"bytes"
+	"compress/zlib"
 	"context"
 	"fmt"
 	"io"
@@ -26,6 +27,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/pkg/errors"
+
+	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -48,26 +52,45 @@ type key struct {
 // stored in Fleet-Server.
 func NewFleetStore(
 	c *http.Client,
-	apikey string,
+	fleetCfg *config.Fleet,
 	cfgs []config.SourceMapMetadata,
 	expiration time.Duration,
 ) (*Store, error) {
+	if len(fleetCfg.Hosts) < 1 {
+		return nil, errors.New("no fleet hosts present for fleet store")
+	}
 	logger := logp.NewLogger(logs.Sourcemap)
-	s := newFleetStore(c, apikey, cfgs)
+	s, err := newFleetStore(c, fleetCfg, cfgs)
+	if err != nil {
+		return nil, err
+	}
 	return newStore(s, logger, expiration)
 }
 
-func newFleetStore(c *http.Client, apikey string, cfgs []config.SourceMapMetadata) fleetStore {
+func newFleetStore(
+	c *http.Client,
+	fleetCfg *config.Fleet,
+	cfgs []config.SourceMapMetadata,
+) (fleetStore, error) {
+	// TODO(stn): This is assuming we'll get a single fleet address right now.
+	// If we get more, how do we know which artifact is where? Are they
+	// present on all fleet-servers and we should rr through the addresses?
+	host := fleetCfg.Hosts[0]
 	fleetURLs := make(map[key]string)
+
 	for _, cfg := range cfgs {
 		k := key{cfg.ServiceName, cfg.ServiceVersion, cfg.BundleFilepath}
-		fleetURLs[k] = cfg.SourceMapURL
+		u, err := common.MakeURL(fleetCfg.Protocol, cfg.SourceMapURL, host, 8220)
+		if err != nil {
+			return fleetStore{}, err
+		}
+		fleetURLs[k] = u
 	}
 	return fleetStore{
-		apikey:    "ApiKey " + apikey,
+		apikey:    "ApiKey " + fleetCfg.AccessAPIKey,
 		fleetURLs: fleetURLs,
 		c:         c,
-	}
+	}, nil
 }
 
 func (f fleetStore) fetch(ctx context.Context, name, version, path string) (string, error) {
@@ -78,6 +101,7 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 			name, version, path,
 		)
 	}
+
 	req, err := http.NewRequest(http.MethodGet, fleetURL, nil)
 	if err != nil {
 		return "", err
@@ -99,9 +123,21 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 		return "", fmt.Errorf("failure querying fleet: statuscode=%d response=%s", resp.StatusCode, body)
 	}
 
+	// Do the headers show compression???
+
 	buf := new(bytes.Buffer)
 
-	if _, err := io.Copy(buf, resp.Body); err != nil {
+	// TODO: Caue said that the response is b64 encoded.
+	// body := base64.NewDecoder(base64.StdEncoding, resp.Body)
+	// Looking at the index in elasticsearch, currently
+	// - no encryption
+	// - zlib compression
+	r, err := zlib.NewReader(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if _, err := io.Copy(buf, r); err != nil {
 		return "", err
 	}
 

@@ -18,6 +18,7 @@
 package sourcemap
 
 import (
+	"compress/zlib"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -28,7 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFetch(t *testing.T) {
+func TestFleetFetch(t *testing.T) {
 	var (
 		hasAuth bool
 		apikey  = "supersecret"
@@ -42,19 +43,30 @@ func TestFetch(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		auth := r.Header.Get("Authorization")
 		hasAuth = auth == "ApiKey "+apikey
-		w.Write([]byte(wantRes))
+		// zlib compress
+		wr := zlib.NewWriter(w)
+		defer wr.Close()
+		wr.Write([]byte(wantRes))
 	}))
 	defer ts.Close()
+
+	fleetCfg := &config.Fleet{
+		Hosts:        []string{ts.URL},
+		Protocol:     "https",
+		AccessAPIKey: apikey,
+		TLS:          nil,
+	}
 
 	cfgs := []config.SourceMapMetadata{
 		{
 			ServiceName:    name,
 			ServiceVersion: version,
 			BundleFilepath: path,
-			SourceMapURL:   ts.URL,
+			SourceMapURL:   "/",
 		},
 	}
-	fb := newFleetStore(c, apikey, cfgs)
+	fb, err := newFleetStore(c, fleetCfg, cfgs)
+	assert.NoError(t, err)
 
 	gotRes, err := fb.fetch(context.Background(), name, version, path)
 	assert.NoError(t, err)
