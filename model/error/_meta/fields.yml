@@ -257,7 +257,7 @@
           type: keyword
           description: >
              The ID of the trace to which the event belongs to.
-          overwrite: true 
+          overwrite: true
 
     - name: parent
       type: group
@@ -267,7 +267,7 @@
           type: keyword
           description: >
              The ID of the parent event.
-          overwrite: true 
+          overwrite: true
 
     - name: agent
       type: group
@@ -346,6 +346,49 @@
               description: >
                 Kubernetes Pod UID
               overwrite: true
+
+    - name: network
+      type: group
+      dynamic: false
+      description: >
+        Optional network fields
+      fields:
+
+        - name: connection_type
+          type: keyword
+          description: >
+            Cellular network technology, eg. 4G
+          overwrite: true
+
+        - name: carrier
+          type: group
+          description: >
+            Network operator
+          fields:
+
+            - name: name
+              type: keyword
+              overwrite: true
+              description: >
+                Carrier name, eg. Vodafone, T-Mobile, etc.
+
+            - name: mcc
+              type: keyword
+              overwrite: true
+              description: >
+                Mobile country code
+
+            - name: mnc
+              type: keyword
+              overwrite: true
+              description: >
+                Mobile network code
+
+            - name: icc
+              type: keyword
+              overwrite: true
+              description: >
+                ISO country code, eg. US
 
     - name: host
       type: group

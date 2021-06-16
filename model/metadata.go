@@ -43,5 +43,6 @@ func (m *Metadata) set(fields *mapStr, eventLabels common.MapStr) {
 	fields.maybeSetMapStr("container", m.System.Container.fields())
 	fields.maybeSetMapStr("kubernetes", m.System.Kubernetes.fields())
 	fields.maybeSetMapStr("cloud", m.Cloud.fields())
+	fields.maybeSetMapStr("network", m.System.Network.fields())
 	maybeSetLabels(fields, m.Labels, eventLabels)
 }

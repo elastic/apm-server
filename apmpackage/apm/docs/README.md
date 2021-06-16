@@ -106,6 +106,11 @@ Traces are written to `traces-apm.*` indices.
 |kubernetes.pod.name|Kubernetes pod name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |kubernetes.pod.uid|Kubernetes Pod UID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |labels|A flat mapping of user-defined labels with string, boolean or number values.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|network.carrier.icc|ISO country code, eg. US|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.carrier.mcc|Mobile country code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.carrier.mnc|Mobile network code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.carrier.name|Carrier name, eg. Vodafone, T-Mobile, etc.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.connection\_type|Cellular network technology, eg. 4G|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |observer.listening|Address the server is listening on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.type|The type will be set to \`apm-server\`.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -454,6 +459,11 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
 |labels|A flat mapping of user-defined labels with string, boolean or number values.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |metricset.name|Name of the set of metrics.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |metricset.period|Current data collection period for this event in milliseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.carrier.icc|ISO country code, eg. US|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.carrier.mcc|Mobile country code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.carrier.mnc|Mobile network code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.carrier.name|Carrier name, eg. Vodafone, T-Mobile, etc.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.connection\_type|Cellular network technology, eg. 4G|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |observer.listening|Address the server is listening on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.type|The type will be set to \`apm-server\`.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -639,6 +649,11 @@ Logs are written to `logs-apm.error.*` indices.
 |kubernetes.pod.name|Kubernetes pod name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |kubernetes.pod.uid|Kubernetes Pod UID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |labels|A flat mapping of user-defined labels with string, boolean or number values.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|network.carrier.icc|ISO country code, eg. US|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.carrier.mcc|Mobile country code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.carrier.mnc|Mobile network code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.carrier.name|Carrier name, eg. Vodafone, T-Mobile, etc.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|network.connection\_type|Cellular network technology, eg. 4G|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |observer.listening|Address the server is listening on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.type|The type will be set to \`apm-server\`.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
