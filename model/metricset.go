@@ -239,15 +239,13 @@ func (me *Metricset) appendBeatEvents(cfg *transform.Config, events []beat.Event
 	fields.maybeSetMapStr("_metric_descriptions", common.MapStr(metricDescriptions))
 
 	if cfg.DataStreams {
-		dataset := AppMetricsDataset
-		// Metrics are stored in "metrics" data streams.
-		if isInternal {
-			// Metrics that include well-defined transaction/span fields
-			// (i.e. breakdown metrics, transaction and span metrics) will
-			// be stored separately from application and runtime metrics.
-			dataset = InternalMetricsDataset
+		// Metrics that include well-defined transaction/span fields
+		// (i.e. breakdown metrics, transaction and span metrics) will
+		// be stored separately from application and runtime metrics.
+		dataset := InternalMetricsDataset
+		if !isInternal {
+			dataset = fmt.Sprintf("%s.%s", AppMetricsDataset, datastreams.NormalizeServiceName(me.Metadata.Service.Name))
 		}
-		dataset += fmt.Sprintf(".%s", datastreams.NormalizeServiceName(me.Metadata.Service.Name))
 		fields[datastreams.DatasetField] = dataset
 		fields[datastreams.TypeField] = datastreams.MetricsType
 	}
