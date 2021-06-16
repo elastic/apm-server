@@ -32,3 +32,4 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
 [float]
 ==== Deprecated
+* Make destination.service.name and destination.service.type fields optional and deprecated {pull}5468[5468]
