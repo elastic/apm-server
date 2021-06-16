@@ -27,6 +27,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Add support for histograms to metrics intake {pull}5360[5360]
 * Upgrade Go to 1.16.4 {pull}5381[5381]
 * Add units to metric fields {pull}5395[5395]
+* Add support for adjusting OTel event timestamps using `telemetry.sdk.elastic_export_timestamp` {pull}5433[5433]
 * Add support for OpenTelemetry labels describing mobile connectivity {pull}5436[5436]
 
 [float]
