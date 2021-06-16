@@ -64,9 +64,33 @@ var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
 				return true
 			},
 			Config: func() *common.Config {
+<<<<<<< HEAD
 				m := map[string]interface{}{}
 				cloudValues(m)
 				return common.MustNewConfigFrom(m)
+=======
+				cap := os.Getenv(cloudEnv)
+				if _, ok := cloudMatrix[cap]; !ok {
+					return common.NewConfig()
+				}
+				return common.MustNewConfigFrom(map[string]interface{}{
+					"output": map[string]interface{}{
+						"elasticsearch": map[string]interface{}{
+							"compression_level": 5, //default to medium compression on cloud
+							"worker":            cloudMatrix[cap].worker,
+							"bulk_max_size":     cloudMatrix[cap].bulkMaxSize,
+						},
+					},
+					"queue": map[string]interface{}{
+						"mem": map[string]interface{}{
+							"events": cloudMatrix[cap].events,
+							"flush": map[string]interface{}{
+								"min_events": cloudMatrix[cap].minEvents,
+							},
+						},
+					},
+				})
+>>>>>>> 1c09eed7 ([cloud] default to medium compression (#5446))
 			}(),
 		}}
 }

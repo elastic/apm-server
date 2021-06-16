@@ -64,8 +64,20 @@ func TestCloudEnv(t *testing.T) {
 	}
 }
 
+<<<<<<< HEAD
 func assertEqual(t *testing.T, cfg *common.Config, key string, expected float64) {
 	val, err := cfg.Float(key, -1)
 	require.NoError(t, err)
 	assert.Equal(t, expected, val)
+=======
+	compression, err := cfg.Int("output.elasticsearch.compression_level", -1)
+	require.NoError(t, err)
+	assert.Equal(t, int64(5), compression)
+
+	// bad cloud environment value
+	os.Setenv(cloudEnv, "123")
+	settings = DefaultSettings()
+	assert.Len(t, settings.ConfigOverrides, 2)
+	assert.Equal(t, common.NewConfig(), settings.ConfigOverrides[1].Config)
+>>>>>>> 1c09eed7 ([cloud] default to medium compression (#5446))
 }
