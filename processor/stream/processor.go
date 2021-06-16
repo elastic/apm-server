@@ -37,12 +37,13 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder/rumv3"
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/model/modelprocessor"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/utility"
 )
 
 var (
 	ErrUnrecognizedObject = errors.New("did not recognize object type")
+
+	ErrRateLimitExceeded = errors.New("rate limit exceeded")
 )
 
 const (
@@ -112,17 +113,15 @@ func (p *Processor) readMetadata(reader *streamReader, metadata *model.Metadata)
 	if err := p.decodeMetadata(reader, metadata); err != nil {
 		err = reader.wrapError(err)
 		if err == io.EOF {
-			return &Error{
-				Type:     InvalidInputErrType,
+			return &InvalidInputError{
 				Message:  "EOF while reading metadata",
 				Document: string(reader.LatestLine()),
 			}
 		}
-		if _, ok := err.(*Error); ok {
+		if _, ok := err.(*InvalidInputError); ok {
 			return err
 		}
-		return &Error{
-			Type:     InvalidInputErrType,
+		return &InvalidInputError{
 			Message:  err.Error(),
 			Document: string(reader.LatestLine()),
 		}
@@ -158,9 +157,10 @@ func (p *Processor) IdentifyEventType(body []byte) []byte {
 	return key[:end]
 }
 
-// readBatch will read up to `batchSize` objects from the ndjson stream,
-// adding events to batch and returning a boolean indicating that there
-// might be more to read.
+// readBatch reads up to `batchSize` events from the ndjson stream into
+// batch, returning the number of events read and any error encountered.
+// Callers should always process the n > 0 events returned before considering
+// the error err.
 func (p *Processor) readBatch(
 	ctx context.Context,
 	ipRateLimiter *rate.Limiter,
@@ -169,36 +169,35 @@ func (p *Processor) readBatch(
 	batchSize int,
 	batch *model.Batch,
 	reader *streamReader,
-	response *Result,
-) bool {
+	result *Result,
+) (int, error) {
 
 	if ipRateLimiter != nil {
+		// TODO(axw) move this logic somewhere central, so it
+		// can be used by processor/otel too.
+		//
 		// use provided rate limiter to throttle batch read
 		ctxT, cancel := context.WithTimeout(ctx, time.Second)
 		err := ipRateLimiter.WaitN(ctxT, batchSize)
 		cancel()
 		if err != nil {
-			response.Add(&Error{
-				Type:    RateLimitErrType,
-				Message: "rate limit exceeded",
-			})
-			return true
+			return 0, ErrRateLimitExceeded
 		}
 	}
 
 	// input events are decoded and appended to the batch
+	var n int
 	for i := 0; i < batchSize && !reader.IsEOF(); i++ {
 		body, err := reader.ReadAhead()
 		if err != nil && err != io.EOF {
-			err = reader.wrapError(err)
-			if e, ok := err.(*Error); ok && (e.Type == InvalidInputErrType || e.Type == InputTooLargeErrType) {
-				response.LimitedAdd(e)
+			err := reader.wrapError(err)
+			var invalidInput *InvalidInputError
+			if errors.As(err, &invalidInput) {
+				result.LimitedAdd(err)
 				continue
-			} else {
-				// return early, we assume we can only recover from a input error types
-				response.Add(err)
-				return true
 			}
+			// return early, we assume we can only recover from a input error types
+			return n, err
 		}
 		if len(body) == 0 {
 			// required for backwards compatibility - sending empty lines was permitted in previous versions
@@ -213,52 +212,58 @@ func (p *Processor) readBatch(
 		case errorEventType:
 			var event model.Error
 			err := v2.DecodeNestedError(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			event.RUM = p.isRUM
 			batch.Errors = append(batch.Errors, &event)
+			n++
 		case metricsetEventType:
 			var event model.Metricset
 			err := v2.DecodeNestedMetricset(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			batch.Metricsets = append(batch.Metricsets, &event)
+			n++
 		case spanEventType:
 			var event model.Span
 			err := v2.DecodeNestedSpan(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			event.RUM = p.isRUM
 			batch.Spans = append(batch.Spans, &event)
+			n++
 		case transactionEventType:
 			var event model.Transaction
 			err := v2.DecodeNestedTransaction(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			batch.Transactions = append(batch.Transactions, &event)
+			n++
 		case rumv3ErrorEventType:
 			var event model.Error
 			err := rumv3.DecodeNestedError(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			event.RUM = p.isRUM
 			batch.Errors = append(batch.Errors, &event)
+			n++
 		case rumv3MetricsetEventType:
 			var event model.Metricset
 			err := rumv3.DecodeNestedMetricset(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			batch.Metricsets = append(batch.Metricsets, &event)
+			n++
 		case rumv3TransactionEventType:
 			var event rumv3.Transaction
 			err := rumv3.DecodeNestedTransaction(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			batch.Transactions = append(batch.Transactions, &event.Transaction)
@@ -267,46 +272,55 @@ func (p *Processor) readBatch(
 				span.RUM = true
 				batch.Spans = append(batch.Spans, span)
 			}
+			n += 1 + len(event.Metricsets) + len(event.Spans)
 		default:
-			response.LimitedAdd(&Error{
-				Type:     InvalidInputErrType,
+			result.LimitedAdd(&InvalidInputError{
 				Message:  errors.Wrap(ErrUnrecognizedObject, string(eventType)).Error(),
 				Document: string(reader.LatestLine()),
 			})
 			continue
 		}
 	}
-	return reader.IsEOF()
+	if reader.IsEOF() {
+		return n, io.EOF
+	}
+	return n, nil
 }
 
 func handleDecodeErr(err error, r *streamReader, result *Result) bool {
 	if err == nil || err == io.EOF {
 		return false
 	}
-	e, ok := err.(*Error)
-	if !ok || (e.Type != InvalidInputErrType && e.Type != InputTooLargeErrType) {
-		e = &Error{
-			Type:     InvalidInputErrType,
-			Message:  err.Error(),
-			Document: string(r.LatestLine()),
-		}
-	}
-	result.LimitedAdd(e)
+	result.LimitedAdd(&InvalidInputError{
+		Message:  err.Error(),
+		Document: string(r.LatestLine()),
+	})
 	return true
 }
 
-// HandleStream processes a stream of events
-func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta *model.Metadata, reader io.Reader, processor model.BatchProcessor) *Result {
-	res := &Result{}
-
+// HandleStream processes a stream of events, updating result as events are
+// accepted, or per-event errors occur.
+//
+// HandleStream will return an error when a terminal stream-level error occurs,
+// such as the rate limit being exceeded, or due to authorization errors. In
+// this case the result will only cover the subset of events accepted.
+//
+// Callers must not access result concurrently with HandleStream.
+func (p *Processor) HandleStream(
+	ctx context.Context,
+	ipRateLimiter *rate.Limiter,
+	meta *model.Metadata,
+	reader io.Reader,
+	processor model.BatchProcessor,
+	result *Result,
+) error {
 	sr := p.getStreamReader(reader)
 	defer sr.release()
 
 	// first item is the metadata object
 	if err := p.readMetadata(sr, meta); err != nil {
 		// no point in continuing if we couldn't read the metadata
-		res.Add(err)
-		return res
+		return err
 	}
 
 	var allowedServiceNamesProcessor model.BatchProcessor = modelprocessor.Nop{}
@@ -318,43 +332,30 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
-	var done bool
-	for !done {
+	for {
 		var batch model.Batch
-		done = p.readBatch(ctx, ipRateLimiter, requestTime, meta, batchSize, &batch, sr, res)
-		if batch.Len() == 0 {
-			continue
-		}
-		if err := allowedServiceNamesProcessor.ProcessBatch(ctx, &batch); err != nil {
-			res.Add(err)
-			return res
-		}
-
-		// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
-		// the slice memory. We should investigate alternative interfaces between the
-		// processor and publisher which would enable better memory reuse, e.g. by using
-		// a sync.Pool for creating batches, and having the publisher (terminal processor)
-		// release batches back into the pool.
-		if err := processor.ProcessBatch(ctx, &batch); err != nil {
-			switch err {
-			case publish.ErrChannelClosed:
-				res.Add(&Error{
-					Type:    ShuttingDownErrType,
-					Message: "server is shutting down",
-				})
-			case publish.ErrFull:
-				res.Add(&Error{
-					Type:    QueueFullErrType,
-					Message: err.Error(),
-				})
-			default:
-				res.Add(err)
+		n, readErr := p.readBatch(ctx, ipRateLimiter, requestTime, meta, batchSize, &batch, sr, result)
+		if n > 0 {
+			if err := allowedServiceNamesProcessor.ProcessBatch(ctx, &batch); err != nil {
+				return err
 			}
-			return res
+			// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
+			// the slice memory. We should investigate alternative interfaces between the
+			// processor and publisher which would enable better memory reuse, e.g. by using
+			// a sync.Pool for creating batches, and having the publisher (terminal processor)
+			// release batches back into the pool.
+			if err := processor.ProcessBatch(ctx, &batch); err != nil {
+				return err
+			}
+			result.AddAccepted(batch.Len())
 		}
-		res.AddAccepted(batch.Len())
+		if readErr == io.EOF {
+			break
+		} else if readErr != nil {
+			return readErr
+		}
 	}
-	return res
+	return nil
 }
 
 func (p *Processor) restrictAllowedServiceNames(ctx context.Context, meta *model.Metadata) error {
@@ -362,8 +363,7 @@ func (p *Processor) restrictAllowedServiceNames(ctx context.Context, meta *model
 	// allowed service names is not considered secret, so we do
 	// not use constant time comparison.
 	if !p.allowedServiceNames[meta.Service.Name] {
-		return &Error{
-			Type:    InvalidInputErrType,
+		return &InvalidInputError{
 			Message: "service name is not allowed",
 		}
 	}
@@ -400,8 +400,7 @@ func (sr *streamReader) wrapError(err error) error {
 		return nil
 	}
 	if _, ok := err.(decoder.JSONDecodeError); ok {
-		return &Error{
-			Type:     InvalidInputErrType,
+		return &InvalidInputError{
 			Message:  err.Error(),
 			Document: string(sr.LatestLine()),
 		}
@@ -412,8 +411,8 @@ func (sr *streamReader) wrapError(err error) error {
 		e = err.Unwrap()
 	}
 	if errors.Is(e, decoder.ErrLineTooLong) {
-		return &Error{
-			Type:     InputTooLargeErrType,
+		return &InvalidInputError{
+			TooLarge: true,
 			Message:  "event exceeded the permitted size.",
 			Document: string(sr.LatestLine()),
 		}

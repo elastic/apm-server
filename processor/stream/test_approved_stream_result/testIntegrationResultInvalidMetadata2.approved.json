@@ -1,9 +1,0 @@
-{
-    "accepted": 0,
-    "errors": [
-        {
-            "document": "{\"not\": \"metadata\"}",
-            "message": "validation error: 'metadata' required"
-        }
-    ]
-}
