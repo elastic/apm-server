@@ -7,7 +7,7 @@
                 "version": "3.14.0"
             },
             "byte_counter": 1,
-            "data_stream.dataset": "apm.internal.1234_service_12a3",
+            "data_stream.dataset": "apm.internal",
             "data_stream.type": "metrics",
             "dotted": {
                 "float": {
