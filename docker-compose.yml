@@ -115,6 +115,10 @@ services:
     ports:
       - 8080
     entrypoint: /entrypoint.sh
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail localhost:8080/health"]
+      retries: 100
+      interval: 5s
     volumes:
       - "./testing/docker/package-registry/entrypoint.sh:/entrypoint.sh"
       - "./testing/docker/package-registry/config.yml:/package-registry/config.yml"
