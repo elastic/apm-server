@@ -706,14 +706,14 @@
           count: 1
           description: >
             Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
-          overwrite: true 
+          overwrite: true
 
         - name: subtype
           type: keyword
           count: 1
           description: >
             A further sub-division of the type (e.g. postgresql, elasticsearch)
-          overwrite: true 
+          overwrite: true
 
         - name: id
           type: keyword
@@ -787,11 +787,13 @@
                   type: keyword
                   description: >
                     Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type.
+                    This field is DEPRECATED and it will be removed in a future release
 
                 - name: name
                   type: keyword
                   description: >
                     Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq')
+                    This field is DEPRECATED and it will be removed in a future release
 
                 - name: resource
                   type: keyword

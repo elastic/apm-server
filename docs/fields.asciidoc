@@ -3685,7 +3685,7 @@ Destination service context
 *`span.destination.service.type`*::
 +
 --
-Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type.
+Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type. This field is DEPRECATED and it will be removed in a future release
 
 
 type: keyword
@@ -3695,7 +3695,7 @@ type: keyword
 *`span.destination.service.name`*::
 +
 --
-Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq')
+Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq') This field is DEPRECATED and it will be removed in a future release
 
 
 type: keyword
