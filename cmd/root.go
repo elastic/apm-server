@@ -83,8 +83,9 @@ var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
 				return common.MustNewConfigFrom(map[string]interface{}{
 					"output": map[string]interface{}{
 						"elasticsearch": map[string]interface{}{
-							"worker":        cloudMatrix[cap].worker,
-							"bulk_max_size": cloudMatrix[cap].bulkMaxSize,
+							"compression_level": 5, //default to medium compression on cloud
+							"worker":            cloudMatrix[cap].worker,
+							"bulk_max_size":     cloudMatrix[cap].bulkMaxSize,
 						},
 					},
 					"queue": map[string]interface{}{
