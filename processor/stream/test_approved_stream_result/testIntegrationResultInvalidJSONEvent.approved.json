@@ -1,9 +1,0 @@
-{
-    "accepted": 1,
-    "errors": [
-        {
-            "document": "{ \"invalid-json\" }",
-            "message": "invalid-json: did not recognize object type"
-        }
-    ]
-}

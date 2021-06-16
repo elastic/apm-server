@@ -119,12 +119,12 @@ func TestMakeDefaultSupporterDataStreams(t *testing.T) {
 	index, err := selector.Select(&beat.Event{
 		Fields: common.MapStr{
 			datastreams.TypeField:      datastreams.TracesType,
-			datastreams.DatasetField:   "apm.apm_server",
+			datastreams.DatasetField:   "apm",
 			datastreams.NamespaceField: "production",
 		},
 	})
 	require.NoError(t, err)
-	assert.Equal(t, "traces-apm.apm_server-production", index)
+	assert.Equal(t, "traces-apm-production", index)
 }
 
 func TestMakeDefaultSupporterDataStreamsWarnings(t *testing.T) {
