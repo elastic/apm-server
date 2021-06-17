@@ -26,35 +26,33 @@ import (
 
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
-func TestAPIKeyConfig_ESConfig(t *testing.T) {
+func TestAPIKeyAgentAuth_ESConfig(t *testing.T) {
 	for name, tc := range map[string]struct {
-		cfg   *common.Config
-		esCfg *common.Config
-
-		expectedConfig APIKeyConfig
-		expectedErr    error
+		cfg            *common.Config
+		esCfg          *common.Config
+		expectedConfig APIKeyAgentAuth
 	}{
 		"default": {
-			cfg:            common.NewConfig(),
-			expectedConfig: defaultAPIKeyConfig(),
+			cfg:            nil,
+			expectedConfig: defaultAPIKeyAgentAuth(),
 		},
 		"ES config missing": {
 			cfg: common.MustNewConfigFrom(`{"enabled": true}`),
-			expectedConfig: APIKeyConfig{
+			expectedConfig: APIKeyAgentAuth{
 				Enabled:     true,
-				LimitPerMin: apiKeyLimit,
+				LimitPerMin: 100,
 				ESConfig:    elasticsearch.DefaultConfig(),
+				configured:  true,
 			},
 		},
 		"ES configured": {
 			cfg:   common.MustNewConfigFrom(`{"enabled": true, "elasticsearch.timeout":"7s"}`),
 			esCfg: common.MustNewConfigFrom(`{"hosts":["186.0.0.168:9200"]}`),
-			expectedConfig: APIKeyConfig{
+			expectedConfig: APIKeyAgentAuth{
 				Enabled:     true,
-				LimitPerMin: apiKeyLimit,
+				LimitPerMin: 100,
 				ESConfig: &elasticsearch.Config{
 					Hosts:      elasticsearch.Hosts{"localhost:9200"},
 					Protocol:   "http",
@@ -62,18 +60,19 @@ func TestAPIKeyConfig_ESConfig(t *testing.T) {
 					MaxRetries: 3,
 					Backoff:    elasticsearch.DefaultBackoffConfig,
 				},
+				configured:   true,
 				esConfigured: true,
 			},
 		},
 		"disabled with ES from output": {
-			cfg:            common.NewConfig(),
+			cfg:            nil,
 			esCfg:          common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`),
-			expectedConfig: defaultAPIKeyConfig(),
+			expectedConfig: defaultAPIKeyAgentAuth(),
 		},
 		"ES from output": {
 			cfg:   common.MustNewConfigFrom(`{"enabled": true, "limit": 20}`),
 			esCfg: common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"],"username":"foo","password":"bar"}`),
-			expectedConfig: APIKeyConfig{
+			expectedConfig: APIKeyAgentAuth{
 				Enabled:     true,
 				LimitPerMin: 20,
 				ESConfig: &elasticsearch.Config{
@@ -85,19 +84,50 @@ func TestAPIKeyConfig_ESConfig(t *testing.T) {
 					MaxRetries: 3,
 					Backoff:    elasticsearch.DefaultBackoffConfig,
 				},
+				configured: true,
 			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			apiKeyConfig := defaultAPIKeyConfig()
-			require.NoError(t, tc.cfg.Unpack(&apiKeyConfig))
-			err := apiKeyConfig.setup(logp.NewLogger("api_key"), tc.esCfg)
-			if tc.expectedErr == nil {
-				assert.NoError(t, err)
-			} else {
-				assert.Error(t, err)
+			for _, key := range []string{"api_key", "auth.api_key"} {
+				input := common.NewConfig()
+				if tc.cfg != nil {
+					input.SetChild(key, -1, tc.cfg)
+				}
+				cfg, err := NewConfig(input, tc.esCfg)
+				require.NoError(t, err)
+				assert.Equal(t, tc.expectedConfig, cfg.AgentAuth.APIKey)
 			}
-			assert.Equal(t, tc.expectedConfig, apiKeyConfig)
+		})
+	}
+}
+
+func TestSecretTokenAuth(t *testing.T) {
+	for name, tc := range map[string]struct {
+		cfg      *common.Config
+		expected string
+	}{
+		"default": {
+			cfg:      common.NewConfig(),
+			expected: "",
+		},
+		"secret_token_auth": {
+			cfg:      common.MustNewConfigFrom(`{"auth.secret_token":"token-one"}`),
+			expected: "token-one",
+		},
+		"deprecated_secret_token": {
+			cfg:      common.MustNewConfigFrom(`{"secret_token":"token-two"}`),
+			expected: "token-two",
+		},
+		"deprecated_secret_token_conflict": {
+			cfg:      common.MustNewConfigFrom(`{"auth.secret_token":"token-one","secret_token":"token-two"}`),
+			expected: "token-one",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg, err := NewConfig(tc.cfg, nil)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, cfg.AgentAuth.SecretToken)
 		})
 	}
 }

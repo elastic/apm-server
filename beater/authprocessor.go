@@ -19,7 +19,7 @@ package beater
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/model"
@@ -38,6 +38,5 @@ func verifyAuthorizedFor(ctx context.Context, meta *model.Metadata) error {
 	if result.Authorized {
 		return nil
 	}
-	// TODO(axw) specific error type to control response code?
-	return errors.New(result.Reason)
+	return fmt.Errorf("%w: %s", authorization.ErrUnauthorized, result.Reason)
 }
