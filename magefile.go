@@ -189,6 +189,13 @@ func Version() error {
 
 // TestPackages tests the generated packages (i.e. file modes, owners, groups).
 func TestPackages() error {
+	// Run the tests using beats/go.mod.
+	defer os.Setenv("GOFLAGS", os.Getenv("GOFLAGS"))
+	beatsdir, err := mage.ElasticBeatsDir()
+	if err != nil {
+		return err
+	}
+	os.Setenv("GOFLAGS", "-modfile="+filepath.Join(beatsdir, "go.mod"))
 	return mage.TestPackages()
 }
 
