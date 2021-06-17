@@ -61,7 +61,7 @@ var (
 	configMetadataGauge = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "apmserver",
-			Subsystem: "agent_config",
+			Name:      "agent_config",
 			Help:      "Metadata gauge for agent config requests, partitioned by agent_ip, service_name, service_environment, and etag",
 		},
 		[]string{
