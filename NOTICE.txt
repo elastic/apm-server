@@ -576,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20210531144435-27e76c567711
+Version: v7.0.0-alpha2.0.20210614232151-2871d29be93a
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210531144435-27e76c567711/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210614232151-2871d29be93a/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -4601,11 +4601,11 @@ Contents of probable licence file LICENSE:
 
 --------------------------------------------------------------------------------
 Dependency : go.uber.org/atomic
-Version: v1.7.0
+Version: v1.8.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.uber.org/atomic@v1.7.0/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/go.uber.org/atomic@v1.8.0/LICENSE.txt:
 
 Copyright (c) 2016 Uber Technologies, Inc.
 
@@ -4659,11 +4659,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.0.0-20210525063256-abc453219eb5
+Version: v0.0.0-20210614182718-04defd469f4e
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210525063256-abc453219eb5/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210614182718-04defd469f4e/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -17944,11 +17944,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20210531225629-47163c9f4e4f
+Version: v0.0.0-20210615035016-665e8c7367d1
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210531225629-47163c9f4e4f/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210615035016-665e8c7367d1/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18055,11 +18055,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20210524171403-669157292da3
+Version: v0.0.0-20210614182748-5b3b54cad159
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210524171403-669157292da3/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210614182748-5b3b54cad159/LICENSE:
 
 
                                  Apache License
