@@ -29,6 +29,11 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Add units to metric fields {pull}5395[5395]
 * Add support for adjusting OTel event timestamps using `telemetry.sdk.elastic_export_timestamp` {pull}5433[5433]
 * Add support for OpenTelemetry labels describing mobile connectivity {pull}5436[5436]
+<<<<<<< HEAD
+=======
+* Introduce `apm-server.auth.*` config {pull}5457[5457]
+* Add debug logging of OpenTelemetry payloads {pull}5474[5474]
+>>>>>>> 476d223f (processor/otel: add debug logging of payloads (#5474))
 
 [float]
 ==== Deprecated
