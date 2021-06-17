@@ -15,28 +15,37 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package model
 
-import (
-	"context"
-	"fmt"
+import "github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/beater/authorization"
-	"github.com/elastic/apm-server/model"
-)
+type Network struct {
+	ConnectionType string
+	Carrier        Carrier
+}
 
-// verifyAuthorizedFor is a model.BatchProcessor that checks authorization
-// for the agent and service name in the metadata.
-func verifyAuthorizedFor(ctx context.Context, meta *model.Metadata) error {
-	result, err := authorization.AuthorizedFor(ctx, authorization.Resource{
-		AgentName:   meta.Service.Agent.Name,
-		ServiceName: meta.Service.Name,
-	})
-	if err != nil {
-		return err
-	}
-	if result.Authorized {
-		return nil
-	}
-	return fmt.Errorf("%w: %s", authorization.ErrUnauthorized, result.Reason)
+type Carrier struct {
+	Name string
+	// mobile country code
+	MCC string
+	// mobile network code
+	MNC string
+	// ISO country code
+	ICC string
+}
+
+func (n *Network) fields() common.MapStr {
+	var network mapStr
+	network.maybeSetString("connection_type", n.ConnectionType)
+	network.maybeSetMapStr("carrier", n.Carrier.fields())
+	return common.MapStr(network)
+}
+
+func (c *Carrier) fields() common.MapStr {
+	var carrier mapStr
+	carrier.maybeSetString("mcc", c.MCC)
+	carrier.maybeSetString("mnc", c.MNC)
+	carrier.maybeSetString("icc", c.ICC)
+	carrier.maybeSetString("name", c.Name)
+	return common.MapStr(carrier)
 }

@@ -15,28 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package otel
 
 import (
-	"context"
-	"fmt"
+	"time"
 
-	"github.com/elastic/apm-server/beater/authorization"
-	"github.com/elastic/apm-server/model"
+	"go.opentelemetry.io/collector/consumer/pdata"
 )
 
-// verifyAuthorizedFor is a model.BatchProcessor that checks authorization
-// for the agent and service name in the metadata.
-func verifyAuthorizedFor(ctx context.Context, meta *model.Metadata) error {
-	result, err := authorization.AuthorizedFor(ctx, authorization.Resource{
-		AgentName:   meta.Service.Agent.Name,
-		ServiceName: meta.Service.Name,
-	})
-	if err != nil {
-		return err
+// exportTimestamp extracts the `telemetry.sdk.elastic_export_timestamp`
+// resource attribute as a timestamp, and returns a boolean indicating
+// whether the attribute was found.
+func exportTimestamp(resource pdata.Resource) (time.Time, bool) {
+	attr, ok := resource.Attributes().Get("telemetry.sdk.elastic_export_timestamp")
+	if !ok {
+		return time.Time{}, false
 	}
-	if result.Authorized {
-		return nil
-	}
-	return fmt.Errorf("%w: %s", authorization.ErrUnauthorized, result.Reason)
+	nsec := attr.IntVal()
+	return time.Unix(0, nsec), nsec > 0
 }

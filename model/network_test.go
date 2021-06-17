@@ -15,28 +15,49 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package model
 
 import (
-	"context"
-	"fmt"
+	"testing"
 
-	"github.com/elastic/apm-server/beater/authorization"
-	"github.com/elastic/apm-server/model"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-// verifyAuthorizedFor is a model.BatchProcessor that checks authorization
-// for the agent and service name in the metadata.
-func verifyAuthorizedFor(ctx context.Context, meta *model.Metadata) error {
-	result, err := authorization.AuthorizedFor(ctx, authorization.Resource{
-		AgentName:   meta.Service.Agent.Name,
-		ServiceName: meta.Service.Name,
-	})
-	if err != nil {
-		return err
+func TestNetworkTransform(t *testing.T) {
+	tests := []struct {
+		Network Network
+		Output  common.MapStr
+	}{
+		{
+			Network: Network{},
+			Output:  nil,
+		},
+		{
+			Network: Network{
+				ConnectionType: "4G",
+				Carrier: Carrier{
+					Name: "Vodafone",
+					MCC:  "234",
+					MNC:  "03",
+					ICC:  "UK",
+				},
+			},
+			Output: common.MapStr{
+				"connection_type": "4G",
+				"carrier": common.MapStr{
+					"name": "Vodafone",
+					"mcc":  "234",
+					"mnc":  "03",
+					"icc":  "UK",
+				},
+			},
+		},
 	}
-	if result.Authorized {
-		return nil
+
+	for _, test := range tests {
+		output := test.Network.fields()
+		assert.Equal(t, test.Output, output)
 	}
-	return fmt.Errorf("%w: %s", authorization.ErrUnauthorized, result.Reason)
 }
