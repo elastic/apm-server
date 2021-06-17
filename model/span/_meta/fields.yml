@@ -830,11 +830,13 @@
                   type: keyword
                   description: >
                     Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type.
+                    DEPRECATED: this field will be removed in a future release
 
                 - name: name
                   type: keyword
                   description: >
                     Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq')
+                    DEPRECATED: this field will be removed in a future release
 
                 - name: resource
                   type: keyword

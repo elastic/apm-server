@@ -1702,9 +1702,6 @@ func (val *spanContextDestinationService) validate() error {
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if !val.Name.IsSet() {
-		return fmt.Errorf("'name' required")
-	}
 	if val.Resource.IsSet() && utf8.RuneCountInString(val.Resource.Val) > 1024 {
 		return fmt.Errorf("'resource': validation rule 'maxLength(1024)' violated")
 	}
@@ -1713,9 +1710,6 @@ func (val *spanContextDestinationService) validate() error {
 	}
 	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
-	}
-	if !val.Type.IsSet() {
-		return fmt.Errorf("'type' required")
 	}
 	return nil
 }
