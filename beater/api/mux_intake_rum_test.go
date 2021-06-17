@@ -67,7 +67,7 @@ func TestOPTIONS(t *testing.T) {
 
 func TestRUMHandler_NoAuthorizationRequired(t *testing.T) {
 	cfg := cfgEnabledRUM()
-	cfg.SecretToken = "1234"
+	cfg.AgentAuth.SecretToken = "1234"
 	rec, err := requestToMuxerWithPattern(cfg, IntakeRUMPath)
 	require.NoError(t, err)
 	assert.NotEqual(t, http.StatusUnauthorized, rec.Code)

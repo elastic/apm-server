@@ -85,7 +85,7 @@ func NewServer(
 			// must explicitly specify which tag to use.
 			// TODO(axw) share auth builder with beater/api.
 			var err error
-			authBuilder, err = authorization.NewBuilder(cfg)
+			authBuilder, err = authorization.NewBuilder(cfg.AgentAuth)
 			if err != nil {
 				return nil, err
 			}

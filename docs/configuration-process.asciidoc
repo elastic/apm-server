@@ -90,7 +90,7 @@ Default value is 0, which means _unlimited_.
 
 [[config-secret-token]]
 [float]
-==== `secret_token`
+==== `auth.secret_token`
 Authorization token for sending data to the APM server.
 If a token is set, the agents must send it in the following format:
 Authorization: Bearer <secret-token>.
@@ -98,6 +98,15 @@ The token is not used for RUM endpoints. By default, no authorization token is s
 
 It is recommended to use an authorization token in combination with SSL enabled.
 Read more about <<securing-apm-server, Securing APM Server>> and the <<secret-token, secret token>>.
+
+[[config-secret-token-legacy]]
+[float]
+==== `secret_token`
+
+deprecated::[7.14.0, Replaced by `auth.secret_token`. See <<config-secret-token>>]
+
+In versions prior to 7.14.0, secret token authorization was known as `apm-server.secret_token`. In 7.14.0 this was renamed `apm-server.auth.secret_token`.
+The old configuration will continue to work until 8.0.0, and the new configuration will take precedence.
 
 [[capture_personal_data]]
 [float]
