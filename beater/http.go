@@ -55,7 +55,7 @@ func newHTTPServer(logger *logp.Logger, info beat.Info, cfg *config.Config, trac
 		batchProcessor,
 	}
 
-	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, f)
+	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, f, tracer)
 	if err != nil {
 		return nil, err
 	}

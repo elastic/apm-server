@@ -532,7 +532,7 @@ func initTracing(b *beat.Beat, cfg *config.Config, logger *logp.Logger) (*apm.Tr
 	var tracerServer *tracerServer
 	if listener != nil {
 		var err error
-		tracerServer, err = newTracerServer(listener, logger)
+		tracerServer, err = newTracerServer(listener, logger, tracer)
 		if err != nil {
 			return nil, nil, err
 		}

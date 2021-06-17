@@ -22,6 +22,8 @@ import (
 	"net"
 	"net/http"
 
+	"go.elastic.co/apm"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
@@ -38,7 +40,7 @@ type tracerServer struct {
 	requests <-chan tracerServerRequest
 }
 
-func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer, error) {
+func newTracerServer(listener net.Listener, logger *logp.Logger, tracer *apm.Tracer) (*tracerServer, error) {
 	requests := make(chan tracerServerRequest)
 	nopReporter := func(ctx context.Context, _ publish.PendingReq) error {
 		return nil
@@ -59,7 +61,7 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 		}
 	})
 	cfg := config.DefaultConfig()
-	mux, err := api.NewMux(beat.Info{}, cfg, nopReporter, processBatch, agentcfg.NewFetcher(cfg))
+	mux, err := api.NewMux(beat.Info{}, cfg, nopReporter, processBatch, agentcfg.NewFetcher(cfg), tracer)
 	if err != nil {
 		return nil, err
 	}

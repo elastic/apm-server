@@ -21,6 +21,8 @@ import (
 	"net/http"
 	"net/http/pprof"
 
+	"go.elastic.co/apm"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
@@ -73,6 +75,7 @@ func NewMux(
 	report publish.Reporter,
 	batchProcessor model.BatchProcessor,
 	fetcher agentcfg.Fetcher,
+	tracer *apm.Tracer,
 ) (*http.ServeMux, error) {
 	pool := request.NewContextPool()
 	mux := http.NewServeMux()
@@ -98,8 +101,8 @@ func NewMux(
 	routeMap := []route{
 		{RootPath, builder.rootHandler},
 		{AssetSourcemapPath, builder.sourcemapHandler},
-		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher)},
-		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher)},
+		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher, tracer)},
+		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher, tracer)},
 		{IntakeRUMPath, builder.rumIntakeHandler},
 		{IntakeRUMV3Path, builder.rumV3IntakeHandler},
 		{IntakePath, builder.backendIntakeHandler},
@@ -173,16 +176,16 @@ func (r *routeBuilder) rootHandler() (request.Handler, error) {
 	return middleware.Wrap(h, rootMiddleware(r.cfg, r.authBuilder.ForAnyOfPrivileges(authorization.ActionAny))...)
 }
 
-func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
+func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher, tracer *apm.Tracer) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
-		return agentConfigHandler(r.cfg, authHandler, backendMiddleware, f)
+		return agentConfigHandler(r.cfg, authHandler, backendMiddleware, f, tracer)
 	}
 }
 
-func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
+func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher, tracer *apm.Tracer) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		return agentConfigHandler(r.cfg, nil, rumMiddleware, f)
+		return agentConfigHandler(r.cfg, nil, rumMiddleware, f, tracer)
 	}
 }
 
@@ -193,9 +196,10 @@ func agentConfigHandler(
 	authHandler *authorization.Handler,
 	middlewareFunc middlewareFunc,
 	f agentcfg.Fetcher,
+	tracer *apm.Tracer,
 ) (request.Handler, error) {
 	mw := middlewareFunc(cfg, authHandler, agent.MonitoringMap)
-	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment)
+	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment, tracer)
 
 	if !cfg.Kibana.Enabled && cfg.AgentConfigs == nil {
 		msg := "Agent remote configuration is disabled. " +
