@@ -19,6 +19,7 @@ package authorization
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -26,6 +27,16 @@ import (
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/elasticsearch"
 )
+
+// ErrUnauthorized is an error that can be used to indicate that the client is
+// unauthorized for some action and resource. This should be wrapped to provide
+// a reason, and checked using `errors.Is`.
+//
+// This is not returned from AuthorizedFor methods; those methods return a
+// Result that indicates whether or not an operation is authorized, as
+// auth may be optional. The error is used where auth is absolutely required,
+// and will be communicated up the stack to set HTTP/gRPC status codes.
+var ErrUnauthorized = errors.New("unauthorized")
 
 // Builder creates an authorization Handler depending on configuration options
 type Builder struct {
@@ -86,19 +97,19 @@ const (
 // NewBuilder creates authorization builder based off of the given information
 // if apm-server.api_key is enabled, authorization is granted/denied solely
 // based on the request Authorization header
-func NewBuilder(cfg *config.Config) (*Builder, error) {
+func NewBuilder(cfg config.AgentAuth) (*Builder, error) {
 	b := Builder{}
-	if cfg.APIKeyConfig.Enabled {
+	if cfg.APIKey.Enabled {
 		// do not use username+password for API Key requests
-		cfg.APIKeyConfig.ESConfig.Username = ""
-		cfg.APIKeyConfig.ESConfig.Password = ""
-		cfg.APIKeyConfig.ESConfig.APIKey = ""
-		client, err := elasticsearch.NewClient(cfg.APIKeyConfig.ESConfig)
+		cfg.APIKey.ESConfig.Username = ""
+		cfg.APIKey.ESConfig.Password = ""
+		cfg.APIKey.ESConfig.APIKey = ""
+		client, err := elasticsearch.NewClient(cfg.APIKey.ESConfig)
 		if err != nil {
 			return nil, err
 		}
 
-		cache := newPrivilegesCache(cacheTimeoutMinute, cfg.APIKeyConfig.LimitPerMin)
+		cache := newPrivilegesCache(cacheTimeoutMinute, cfg.APIKey.LimitPerMin)
 		b.apikey = newApikeyBuilder(client, cache, []elasticsearch.PrivilegeAction{})
 	}
 	if cfg.SecretToken != "" {

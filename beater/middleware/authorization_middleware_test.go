@@ -72,7 +72,7 @@ func TestAuthorizationMiddleware(t *testing.T) {
 			if tc.header != "" {
 				c.Request.Header.Set(headers.Authorization, tc.header)
 			}
-			builder, err := authorization.NewBuilder(&config.Config{SecretToken: token})
+			builder, err := authorization.NewBuilder(config.AgentAuth{SecretToken: token})
 			require.NoError(t, err)
 			return builder.ForAnyOfPrivileges(authorization.ActionAny), c, rec
 		}

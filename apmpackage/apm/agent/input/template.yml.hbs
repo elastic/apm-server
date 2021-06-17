@@ -1,6 +1,10 @@
 apm-server:
     host: {{host}}
-    secret_token: {{secret_token}}
+    auth:
+        secret_token: {{secret_token}}
+        api_key:
+            enabled: {{api_key_enabled}}
+            limit: {{api_key_limit}}
     max_event_size: {{max_event_bytes}}
     capture_personal_data: {{capture_personal_data}}
     default_service_environment: {{default_service_environment}}
@@ -15,6 +19,3 @@ apm-server:
         response_headers: {{rum_response_headers}}
         event_rate.limit: {{rum_event_rate_limit}}
         event_rate.lru_size: {{rum_event_rate_lru_size}}
-    api_key:
-        enabled: {{api_key_enabled}}
-        limit: {{api_key_limit}}

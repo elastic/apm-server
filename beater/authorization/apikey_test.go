@@ -197,11 +197,11 @@ func (tc *apikeyTestcase) setup(t *testing.T) {
 	}
 
 	cfg := config.DefaultConfig()
-	cfg.APIKeyConfig.Enabled = true
+	cfg.AgentAuth.APIKey.Enabled = true
 	if tc.apiKeyLimit > 0 {
-		cfg.APIKeyConfig.LimitPerMin = tc.apiKeyLimit
+		cfg.AgentAuth.APIKey.LimitPerMin = tc.apiKeyLimit
 	}
-	tc.builder, err = NewBuilder(cfg)
+	tc.builder, err = NewBuilder(cfg.AgentAuth)
 	require.NoError(t, err)
 	tc.builder.apikey.esClient = tc.client
 	tc.cache = tc.builder.apikey.cache

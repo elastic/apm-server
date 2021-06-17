@@ -232,7 +232,7 @@ func TestServerIntegration(t *testing.T) {
 		"secret token set but no auth_tag": {
 			cfg: func() *config.Config {
 				cfg := config.DefaultConfig()
-				cfg.SecretToken = "hunter2"
+				cfg.AgentAuth.SecretToken = "hunter2"
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
 				cfg.JaegerConfig.HTTP.Enabled = true
@@ -244,7 +244,7 @@ func TestServerIntegration(t *testing.T) {
 		"secret token and auth_tag set, but no auth_tag sent by agent": {
 			cfg: func() *config.Config {
 				cfg := config.DefaultConfig()
-				cfg.SecretToken = "hunter2"
+				cfg.AgentAuth.SecretToken = "hunter2"
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
 				cfg.JaegerConfig.GRPC.AuthTag = "authorization"
@@ -256,7 +256,7 @@ func TestServerIntegration(t *testing.T) {
 		"secret token and auth_tag set, auth_tag sent by agent": {
 			cfg: func() *config.Config {
 				cfg := config.DefaultConfig()
-				cfg.SecretToken = "hunter2"
+				cfg.AgentAuth.SecretToken = "hunter2"
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
 				cfg.JaegerConfig.GRPC.AuthTag = "authorization"
