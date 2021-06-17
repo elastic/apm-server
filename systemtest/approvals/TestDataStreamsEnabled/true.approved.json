@@ -6,7 +6,7 @@
                 "name": "go",
                 "version": "0.0.0"
             },
-            "data_stream.dataset": "apm.systemtest",
+            "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
             "ecs": {
