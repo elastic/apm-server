@@ -26,6 +26,25 @@ apm-server:
           - {{this}}
         {{/each}}
         enabled: {{enable_rum}}
+<<<<<<< HEAD
+=======
+        source_mapping.elasticsearch.api_key: {{sourcemap_api_key}}
+        allow_service_names:
+        {{#each rum_allow_service_names}}
+          - {{this}}
+        {{/each}}
+        allow_origins:
+        {{#each rum_allow_origins}}
+          - {{this}}
+        {{/each}}
+        allow_headers:
+        {{#each rum_allow_headers}}
+          - {{this}}
+        {{/each}}
+        library_pattern: {{rum_library_pattern}}
+        exclude_from_grouping: {{rum_exclude_from_grouping}}
+        response_headers: {{rum_response_headers}}
+>>>>>>> b459a0bb ([Fleet] Fix the agent template to support multi variables (#5469))
         event_rate.limit: {{rum_event_rate_limit}}
         event_rate.lru_size: {{rum_event_rate_lru_size}}
         exclude_from_grouping: {{rum_exclude_from_grouping}}
