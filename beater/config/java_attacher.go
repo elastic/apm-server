@@ -37,10 +37,6 @@ type JavaAttacherConfig struct {
 	Config []string `config:"config"`
 }
 
-// The attacher version should be fixed for a given version of apm-server
-// https://github.com/elastic/apm-server/issues/4830#issuecomment-863207642
-var javaAttacherVersion = ""
-
 func defaultJavaAttacherConfig() JavaAttacherConfig {
 	return JavaAttacherConfig{Enabled: false}
 }
