@@ -33,7 +33,7 @@ import (
 func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
 	t.Run("Unauthorized", func(t *testing.T) {
 		cfg := configEnabledConfigAgent()
-		cfg.SecretToken = "1234"
+		cfg.AgentAuth.SecretToken = "1234"
 		rec, err := requestToMuxerWithPattern(cfg, AgentConfigPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusUnauthorized, rec.Code)
@@ -42,7 +42,7 @@ func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
 
 	t.Run("Authorized", func(t *testing.T) {
 		cfg := configEnabledConfigAgent()
-		cfg.SecretToken = "1234"
+		cfg.AgentAuth.SecretToken = "1234"
 		header := map[string]string{headers.Authorization: "Bearer 1234"}
 		queryString := map[string]string{"service.name": "service1"}
 		rec, err := requestToMuxerWithHeaderAndQueryString(cfg, AgentConfigPath, http.MethodGet, header, queryString)
