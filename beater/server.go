@@ -108,7 +108,14 @@ type server struct {
 	jaegerServer *jaeger.Server
 }
 
-func newServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, batchProcessor model.BatchProcessor) (server, error) {
+func newServer(
+	logger *logp.Logger,
+	info beat.Info,
+	cfg *config.Config,
+	tracer *apm.Tracer,
+	reporter publish.Reporter,
+	batchProcessor model.BatchProcessor,
+) (server, error) {
 	fetcher := agentcfg.NewFetcher(cfg)
 	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor, fetcher)
 	if err != nil {
@@ -140,7 +147,7 @@ func newGRPCServer(
 	fetcher agentcfg.Fetcher,
 ) (*grpc.Server, error) {
 	// TODO(axw) share auth builder with beater/api.
-	authBuilder, err := authorization.NewBuilder(cfg)
+	authBuilder, err := authorization.NewBuilder(cfg.AgentAuth)
 	if err != nil {
 		return nil, err
 	}

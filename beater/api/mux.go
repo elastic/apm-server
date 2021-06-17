@@ -78,7 +78,7 @@ func NewMux(
 	mux := http.NewServeMux()
 	logger := logp.NewLogger(logs.Handler)
 
-	auth, err := authorization.NewBuilder(beaterConfig)
+	auth, err := authorization.NewBuilder(beaterConfig.AgentAuth)
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,19 @@ apm-server:
   # Defines the host and port the server is listening on. Use "unix:/path/to.sock" to listen on a unix domain socket.
   host: "localhost:8200"
 
+  # Agent authorization configuration. If no methods are defined, all requests will be allowed.
+  #auth:
+    # Agent authorization using Elasticsearch API Keys.
+    #api_key:
+      #enabled: false
+      #
+      # Restrict how many unique API keys are allowed per minute. Should be set to at least the amount of different
+      # API keys configured in your monitored services. Every unique API key triggers one request to Elasticsearch.
+      #limit: 100
+
+    # Define a shared secret token for authorizing agents using the "Bearer" authorization method.
+    #secret_token:
+
   # Maximum permitted size in bytes of a request's header accepted by the server to be processed.
   #max_header_size: 1048576
 
@@ -102,11 +115,17 @@ apm-server:
   # Agents include the token in the following format: Authorization: Bearer <secret-token>.
   # It is recommended to use an authorization token in combination with SSL enabled,
   # and save the token in the apm-server keystore.
+  #
+  # WARNING: This configuration is deprecated and replaced with `apm-server.auth.secret_token`, and will be removed
+  # in the 8.0 release. If that config is defined, this one will be ignored.
   #secret_token:
 
   # Enable API key authorization by setting enabled to true. By default API key support is disabled.
   # Agents include a valid API key in the following format: Authorization: ApiKey <token>.
   # The key must be the base64 encoded representation of the API key's "id:key".
+  #
+  # WARNING: This configuration is deprecated and replaced with `apm-server.auth.api_key`, and will be removed
+  # in the 8.0 release. If that config is defined, this one will be ignored.
   #api_key:
     #enabled: false
 

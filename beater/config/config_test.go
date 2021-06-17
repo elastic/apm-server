@@ -148,7 +148,22 @@ func TestUnpackConfig(t *testing.T) {
 				ReadTimeout:     3000000000,
 				WriteTimeout:    4000000000,
 				ShutdownTimeout: 9000000000,
-				SecretToken:     "1234random",
+				AgentAuth: AgentAuth{
+					SecretToken: "1234random",
+					APIKey: APIKeyAgentAuth{
+						Enabled:     true,
+						LimitPerMin: 200,
+						ESConfig: &elasticsearch.Config{
+							Hosts:      elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
+							Protocol:   "http",
+							Timeout:    5 * time.Second,
+							MaxRetries: 3,
+							Backoff:    elasticsearch.DefaultBackoffConfig,
+						},
+						configured:   true,
+						esConfigured: true,
+					},
+				},
 				TLS: &tlscommon.ServerConfig{
 					Enabled:     newBool(true),
 					Certificate: testdataCertificateConfig,
@@ -233,18 +248,6 @@ func TestUnpackConfig(t *testing.T) {
 						Enabled: true,
 						Host:    "localhost:6789",
 					},
-				},
-				APIKeyConfig: APIKeyConfig{
-					Enabled:     true,
-					LimitPerMin: 200,
-					ESConfig: &elasticsearch.Config{
-						Hosts:      elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
-						Protocol:   "http",
-						Timeout:    5 * time.Second,
-						MaxRetries: 3,
-						Backoff:    elasticsearch.DefaultBackoffConfig,
-					},
-					esConfigured: true,
 				},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
@@ -334,7 +337,15 @@ func TestUnpackConfig(t *testing.T) {
 				ReadTimeout:     30000000000,
 				WriteTimeout:    30000000000,
 				ShutdownTimeout: 5000000000,
-				SecretToken:     "1234random",
+				AgentAuth: AgentAuth{
+					SecretToken: "1234random",
+					APIKey: APIKeyAgentAuth{
+						Enabled:     true,
+						LimitPerMin: 100,
+						ESConfig:    elasticsearch.DefaultConfig(),
+						configured:  true,
+					},
+				},
 				TLS: &tlscommon.ServerConfig{
 					Enabled:     newBool(true),
 					Certificate: testdataCertificateConfig,
@@ -416,7 +427,6 @@ func TestUnpackConfig(t *testing.T) {
 						Host:    "localhost:14268",
 					},
 				},
-				APIKeyConfig: APIKeyConfig{Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
 						Enabled:                        false,
@@ -612,7 +622,7 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	cfg, err := NewConfig(ucfg, nil)
 	require.NoError(t, err)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.RumConfig.SourceMapping.ESConfig)
-	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.APIKeyConfig.ESConfig)
+	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.AgentAuth.APIKey.ESConfig)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.Sampling.Tail.ESConfig)
 
 	// with es config
@@ -621,8 +631,8 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.RumConfig.SourceMapping.ESConfig.Hosts))
-	assert.NotNil(t, cfg.APIKeyConfig.ESConfig)
-	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.APIKeyConfig.ESConfig.Hosts))
+	assert.NotNil(t, cfg.AgentAuth.APIKey.ESConfig)
+	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.AgentAuth.APIKey.ESConfig.Hosts))
 	assert.NotNil(t, cfg.Sampling.Tail.ESConfig)
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.Sampling.Tail.ESConfig.Hosts))
 }
