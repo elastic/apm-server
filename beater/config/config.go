@@ -200,6 +200,9 @@ func DefaultConfig() *Config {
 		Sampling:            defaultSamplingConfig(),
 		DataStreams:         defaultDataStreamsConfig(),
 		AgentAuth:           defaultAgentAuth(),
+<<<<<<< HEAD
 		JavaAttacherConfig:  defaultJavaAttacherConfig(),
+=======
+>>>>>>> fc605761 (Introduce `apm-server.auth.*` config (#5457))
 	}
 }

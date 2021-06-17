@@ -120,12 +120,17 @@ func newServer(
 	reporter publish.Reporter,
 	batchProcessor model.BatchProcessor,
 ) (server, error) {
+<<<<<<< HEAD
 	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor, 30*time.Second)
 	ratelimitStore, err := ratelimit.NewStore(
 		cfg.RumConfig.EventRate.LruSize,
 		cfg.RumConfig.EventRate.Limit,
 		3, // burst multiplier
 	)
+=======
+	fetcher := agentcfg.NewFetcher(cfg)
+	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor, fetcher)
+>>>>>>> fc605761 (Introduce `apm-server.auth.*` config (#5457))
 	if err != nil {
 		return server{}, err
 	}

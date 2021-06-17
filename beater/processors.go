@@ -20,7 +20,10 @@ package beater
 import (
 	"context"
 	"fmt"
+<<<<<<< HEAD:beater/processors.go
 	"time"
+=======
+>>>>>>> fc605761 (Introduce `apm-server.auth.*` config (#5457)):beater/authprocessor.go
 
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/ratelimit"
@@ -45,6 +48,7 @@ func verifyAuthorizedFor(ctx context.Context, meta *model.Metadata) error {
 		return nil
 	}
 	return fmt.Errorf("%w: %s", authorization.ErrUnauthorized, result.Reason)
+<<<<<<< HEAD:beater/processors.go
 }
 
 // rateLimitBatchProcessor is a model.BatchProcessor that rate limits based on
@@ -59,4 +63,6 @@ func rateLimitBatchProcessor(ctx context.Context, batch *model.Batch) error {
 		}
 	}
 	return nil
+=======
+>>>>>>> fc605761 (Introduce `apm-server.auth.*` config (#5457)):beater/authprocessor.go
 }

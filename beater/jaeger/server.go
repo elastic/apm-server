@@ -83,7 +83,16 @@ func NewServer(
 		if cfg.JaegerConfig.GRPC.AuthTag != "" {
 			// By default auth is not required for Jaeger - users
 			// must explicitly specify which tag to use.
+<<<<<<< HEAD
 			agentAuth = cfg.AgentAuth
+=======
+			// TODO(axw) share auth builder with beater/api.
+			var err error
+			authBuilder, err = authorization.NewBuilder(cfg.AgentAuth)
+			if err != nil {
+				return nil, err
+			}
+>>>>>>> fc605761 (Introduce `apm-server.auth.*` config (#5457))
 		}
 		authBuilder, err := authorization.NewBuilder(agentAuth)
 		if err != nil {

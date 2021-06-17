@@ -1,7 +1,17 @@
 apm-server:
+<<<<<<< HEAD
     api_key:
         enabled: {{api_key_enabled}}
         limit: {{api_key_limit}}
+=======
+    host: {{host}}
+    auth:
+        secret_token: {{secret_token}}
+        api_key:
+            enabled: {{api_key_enabled}}
+            limit: {{api_key_limit}}
+    max_event_size: {{max_event_bytes}}
+>>>>>>> fc605761 (Introduce `apm-server.auth.*` config (#5457))
     capture_personal_data: {{capture_personal_data}}
     idle_timeout: {{idle_timeout}}
     default_service_environment: {{default_service_environment}}
@@ -28,6 +38,7 @@ apm-server:
         enabled: {{enable_rum}}
         event_rate.limit: {{rum_event_rate_limit}}
         event_rate.lru_size: {{rum_event_rate_lru_size}}
+<<<<<<< HEAD
         exclude_from_grouping: {{rum_exclude_from_grouping}}
         library_pattern: {{rum_library_pattern}}
         response_headers: {{rum_response_headers}}
@@ -53,3 +64,5 @@ apm-server:
         {{/each}}
     {{/if}}
     write_timeout: {{write_timeout}}
+=======
+>>>>>>> fc605761 (Introduce `apm-server.auth.*` config (#5457))
