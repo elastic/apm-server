@@ -34,7 +34,6 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/rumv3"
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
-	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -55,12 +54,11 @@ const (
 type decodeMetadataFunc func(decoder.Decoder, *model.Metadata) error
 
 type Processor struct {
-	Mconfig             modeldecoder.Config
-	MaxEventSize        int
-	streamReaderPool    sync.Pool
-	decodeMetadata      decodeMetadataFunc
-	isRUM               bool
-	allowedServiceNames map[string]bool
+	Mconfig          modeldecoder.Config
+	MaxEventSize     int
+	streamReaderPool sync.Pool
+	decodeMetadata   decodeMetadataFunc
+	isRUM            bool
 }
 
 func BackendProcessor(cfg *config.Config) *Processor {
@@ -74,33 +72,20 @@ func BackendProcessor(cfg *config.Config) *Processor {
 
 func RUMV2Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:             modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
-		MaxEventSize:        cfg.MaxEventSize,
-		decodeMetadata:      v2.DecodeNestedMetadata,
-		isRUM:               true,
-		allowedServiceNames: makeAllowedServiceNamesMap(cfg.RumConfig.AllowServiceNames),
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize:   cfg.MaxEventSize,
+		decodeMetadata: v2.DecodeNestedMetadata,
+		isRUM:          true,
 	}
 }
 
 func RUMV3Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:             modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
-		MaxEventSize:        cfg.MaxEventSize,
-		decodeMetadata:      rumv3.DecodeNestedMetadata,
-		isRUM:               true,
-		allowedServiceNames: makeAllowedServiceNamesMap(cfg.RumConfig.AllowServiceNames),
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize:   cfg.MaxEventSize,
+		decodeMetadata: rumv3.DecodeNestedMetadata,
+		isRUM:          true,
 	}
-}
-
-func makeAllowedServiceNamesMap(allowed []string) map[string]bool {
-	if len(allowed) == 0 {
-		return nil
-	}
-	m := make(map[string]bool, len(allowed))
-	for _, name := range allowed {
-		m[name] = true
-	}
-	return m
 }
 
 func (p *Processor) readMetadata(reader *streamReader, metadata *model.Metadata) error {
@@ -299,10 +284,6 @@ func (p *Processor) HandleStream(
 		return err
 	}
 
-	var allowedServiceNamesProcessor model.BatchProcessor = modelprocessor.Nop{}
-	if p.allowedServiceNames != nil {
-		allowedServiceNamesProcessor = modelprocessor.MetadataProcessorFunc(p.restrictAllowedServiceNames)
-	}
 	requestTime := utility.RequestTime(ctx)
 
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
@@ -312,9 +293,6 @@ func (p *Processor) HandleStream(
 		var batch model.Batch
 		n, readErr := p.readBatch(ctx, requestTime, meta, batchSize, &batch, sr, result)
 		if n > 0 {
-			if err := allowedServiceNamesProcessor.ProcessBatch(ctx, &batch); err != nil {
-				return err
-			}
 			// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
 			// the slice memory. We should investigate alternative interfaces between the
 			// processor and publisher which would enable better memory reuse, e.g. by using
@@ -329,18 +307,6 @@ func (p *Processor) HandleStream(
 			break
 		} else if readErr != nil {
 			return readErr
-		}
-	}
-	return nil
-}
-
-func (p *Processor) restrictAllowedServiceNames(ctx context.Context, meta *model.Metadata) error {
-	// Restrict to explicitly allowed service names. The list of
-	// allowed service names is not considered secret, so we do
-	// not use constant time comparison.
-	if !p.allowedServiceNames[meta.Service.Name] {
-		return &InvalidInputError{
-			Message: "service name is not allowed",
 		}
 	}
 	return nil

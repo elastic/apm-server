@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -253,43 +252,6 @@ func TestRUMV3(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})
-	}
-}
-
-func TestRUMAllowedServiceNames(t *testing.T) {
-	payload, err := ioutil.ReadFile("../../testdata/intake-v2/transactions_spans_rum.ndjson")
-	require.NoError(t, err)
-
-	for _, test := range []struct {
-		AllowServiceNames []string
-		Allowed           bool
-	}{{
-		AllowServiceNames: nil,
-		Allowed:           true, // none specified = all allowed
-	}, {
-		AllowServiceNames: []string{"apm-agent-js"}, // matches what's in test data
-		Allowed:           true,
-	}, {
-		AllowServiceNames: []string{"reject_everything"},
-		Allowed:           false,
-	}} {
-		p := RUMV2Processor(&config.Config{
-			MaxEventSize: 100 * 1024,
-			RumConfig:    config.RumConfig{AllowServiceNames: test.AllowServiceNames},
-		})
-
-		var result Result
-		err := p.HandleStream(
-			context.Background(), &model.Metadata{}, bytes.NewReader(payload), 10,
-			modelprocessor.Nop{}, &result,
-		)
-		if test.Allowed {
-			require.NoError(t, err)
-			assert.Equal(t, Result{Accepted: 2}, result)
-		} else {
-			assert.EqualError(t, err, "service name is not allowed")
-			assert.Equal(t, Result{Accepted: 0}, result)
-		}
 	}
 }
 
