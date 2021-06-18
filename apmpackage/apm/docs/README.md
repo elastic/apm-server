@@ -133,9 +133,9 @@ Traces are written to `traces-apm.*` indices.
 |span.action|The specific kind of event within the sub-type represented by the span (e.g. query, connect)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.db.link|Database link.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.db.rows\_affected|Number of rows affected by the database statement.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.destination.service.name|Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq')|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|span.destination.service.name|Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq') DEPRECATED: this field will be removed in a future release|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.destination.service.resource|Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue\_name')|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.destination.service.type|Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|span.destination.service.type|Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type. DEPRECATED: this field will be removed in a future release|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.duration.us|Duration of the span, in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.id|The ID of the span stored as hex encoded string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |span.message.age.ms|Age of a message in milliseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
