@@ -78,7 +78,6 @@ func Handler(handler StreamHandler, batchProcessor model.BatchProcessor) request
 
 		if c.RateLimiter != nil {
 			// Apply rate limiting after reading but before processing any events.
-			// We perform an initial Allow check to limit the number of connections.
 			batchProcessor = modelprocessor.Chained{
 				rateLimitBatchProcessor(c.RateLimiter, batchSize),
 				batchProcessor,
