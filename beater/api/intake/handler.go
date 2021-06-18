@@ -77,6 +77,14 @@ func Handler(handler StreamHandler, batchProcessor model.BatchProcessor) request
 		}
 
 		if c.RateLimiter != nil {
+			// Call Allow once for each stream to avoid burning CPU before we
+			// begin reading for the first time. This prevents clients from
+			// repeatedly connecting and sending < batchSize events and
+			// disconnecting before being rate limited.
+			if !c.RateLimiter.Allow() {
+				writeError(c, errRateLimitExceeded)
+			}
+
 			// Apply rate limiting after reading but before processing any events.
 			batchProcessor = modelprocessor.Chained{
 				rateLimitBatchProcessor(c.RateLimiter, batchSize),
