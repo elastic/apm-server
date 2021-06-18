@@ -95,13 +95,15 @@ func newBaseRunServer(reporter publish.Reporter) RunServerFunc {
 			case <-done:
 			}
 		}()
+		go srv.fetchReporter.Run(ctx)
 		return srv.run()
 	}
 }
 
 type server struct {
-	logger *logp.Logger
-	cfg    *config.Config
+	logger        *logp.Logger
+	cfg           *config.Config
+	fetchReporter agentcfg.Reporter
 
 	httpServer   *httpServer
 	grpcServer   *grpc.Server
@@ -116,25 +118,27 @@ func newServer(
 	reporter publish.Reporter,
 	batchProcessor model.BatchProcessor,
 ) (server, error) {
-	fetcher := agentcfg.NewFetcher(cfg)
-	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor, fetcher)
+	// TODO: Set up some periodic sending of applied configs from fetcher -> batchProcessor
+	fetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor)
+	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor, fetchReporter)
 	if err != nil {
 		return server{}, err
 	}
-	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig, fetcher)
+	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig, fetchReporter)
 	if err != nil {
 		return server{}, err
 	}
-	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, batchProcessor, fetcher)
+	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, batchProcessor, fetchReporter)
 	if err != nil {
 		return server{}, err
 	}
 	return server{
-		logger:       logger,
-		cfg:          cfg,
-		httpServer:   httpServer,
-		grpcServer:   grpcServer,
-		jaegerServer: jaegerServer,
+		logger:        logger,
+		cfg:           cfg,
+		httpServer:    httpServer,
+		grpcServer:    grpcServer,
+		jaegerServer:  jaegerServer,
+		fetchReporter: fetchReporter,
 	}, nil
 }
 
