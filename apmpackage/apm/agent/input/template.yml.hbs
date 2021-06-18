@@ -31,6 +31,10 @@ apm-server:
         exclude_from_grouping: {{rum_exclude_from_grouping}}
         library_pattern: {{rum_library_pattern}}
         response_headers: {{rum_response_headers}}
+<<<<<<< HEAD
+=======
+        source_mapping.elasticsearch.api_key: {{sourcemap_api_key}}
+>>>>>>> 17166cdb ([fleet integration] Support apm-server config options and adapt defaults. (#5444))
     secret_token: {{secret_token}}
     shutdown_timeout: {{shutdown_timeout}}
     {{#if tls_enabled}}

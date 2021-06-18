@@ -120,7 +120,11 @@ policy_templates:
             required: false
             show_user: false
             default: 10000
+<<<<<<< HEAD
           - name: rum_library_pattern
+=======
+          - name: sourcemap_api_key
+>>>>>>> 17166cdb ([fleet integration] Support apm-server config options and adapt defaults. (#5444))
             type: text
             title: RUM - Library Frame Pattern
             description: Identify library frames by matching a stacktrace frame's `file_name` and `abs_path` against this regexp.
