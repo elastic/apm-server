@@ -20,8 +20,7 @@ package config
 // JavaAttacherConfig holds configuration information for running a java
 // attacher jarfile.
 type JavaAttacherConfig struct {
-	Enabled    bool `config:"enabled"`
-	Continuous bool `config:"continuous"`
+	Enabled bool `config:"enabled"`
 
 	IncludeAll bool     `config:"include_all"`
 	IncludePID []string `config:"include_pid"`
