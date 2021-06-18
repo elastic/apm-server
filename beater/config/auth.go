@@ -20,44 +20,59 @@ package config
 import (
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/logp"
-
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/elasticsearch"
 )
 
-const apiKeyLimit = 100
+// AgentAuth holds config related to agent auth.
+type AgentAuth struct {
+	APIKey      APIKeyAgentAuth `config:"api_key"`
+	SecretToken string          `config:"secret_token"`
+}
 
-// APIKeyConfig can be used for authorizing against the APM Server via API Keys.
-type APIKeyConfig struct {
+// APIKeyAgentAuth holds config related to API Key auth for agents.
+type APIKeyAgentAuth struct {
 	Enabled     bool                  `config:"enabled"`
 	LimitPerMin int                   `config:"limit"`
 	ESConfig    *elasticsearch.Config `config:"elasticsearch"`
 
-	esConfigured bool
+	configured   bool // api_key explicitly defined
+	esConfigured bool // api_key.elasticsearch explicitly defined
 }
 
-func (c *APIKeyConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
-	if !c.Enabled || c.esConfigured || outputESCfg == nil {
+func (a *APIKeyAgentAuth) Unpack(in *common.Config) error {
+	type underlyingAPIKeyAgentAuth APIKeyAgentAuth
+	if err := in.Unpack((*underlyingAPIKeyAgentAuth)(a)); err != nil {
+		return errors.Wrap(err, "error unpacking api_key config")
+	}
+	a.configured = true
+	a.esConfigured = in.HasField("elasticsearch")
+	return nil
+}
+
+func (a *APIKeyAgentAuth) setup(log *logp.Logger, outputESCfg *common.Config) error {
+	if !a.Enabled || a.esConfigured || outputESCfg == nil {
 		return nil
 	}
 	log.Info("Falling back to elasticsearch output for API Key usage")
-	if err := outputESCfg.Unpack(c.ESConfig); err != nil {
+	if err := outputESCfg.Unpack(&a.ESConfig); err != nil {
 		return errors.Wrap(err, "unpacking Elasticsearch config into API key config")
 	}
 	return nil
 }
 
-func defaultAPIKeyConfig() APIKeyConfig {
-	return APIKeyConfig{Enabled: false, LimitPerMin: apiKeyLimit, ESConfig: elasticsearch.DefaultConfig()}
+func defaultAgentAuth() AgentAuth {
+	return AgentAuth{
+		APIKey: defaultAPIKeyAgentAuth(),
+	}
 }
 
-func (c *APIKeyConfig) Unpack(inp *common.Config) error {
-	type underlyingAPIKeyConfig APIKeyConfig
-	if err := inp.Unpack((*underlyingAPIKeyConfig)(c)); err != nil {
-		return errors.Wrap(err, "error unpacking api_key config")
+func defaultAPIKeyAgentAuth() APIKeyAgentAuth {
+	return APIKeyAgentAuth{
+		Enabled:     false,
+		LimitPerMin: 100,
+		ESConfig:    elasticsearch.DefaultConfig(),
 	}
-	c.esConfigured = inp.HasField("elasticsearch")
-	return nil
 }

@@ -354,9 +354,7 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 		"me.sa":        nil, //metricsets.samples
 		"t":            nil, //type
 		"tid":          nil, //trace_id
-		"y.c.dt.se.n":  nil, //spans.*.context.destination.service.name
 		"y.c.dt.se.rc": nil, //spans.*.context.destination.service.resource
-		"y.c.dt.se.t":  nil, //spans.*.context.destination.service.type
 		"y.d":          nil, //spans.*.duration
 		"y.id":         nil, //spans.*.id
 		"y.n":          nil, //spans.*.name

@@ -113,8 +113,8 @@ type Destination struct {
 
 // DestinationService contains information about the destination service of a span event
 type DestinationService struct {
-	Type     string
-	Name     string
+	Type     string // Deprecated
+	Name     string // Deprecated
 	Resource string
 }
 

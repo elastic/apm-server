@@ -93,7 +93,7 @@ func recordRootConfig(info beat.Info, rootCfg *common.Config) error {
 // This should be called once each time runServer is called.
 func recordAPMServerConfig(cfg *config.Config) {
 	configMonitors.rumEnabled.Set(cfg.RumConfig.Enabled)
-	configMonitors.apiKeysEnabled.Set(cfg.APIKeyConfig.Enabled)
+	configMonitors.apiKeysEnabled.Set(cfg.AgentAuth.APIKey.Enabled)
 	configMonitors.kibanaEnabled.Set(cfg.Kibana.Enabled)
 	configMonitors.jaegerHTTPEnabled.Set(cfg.JaegerConfig.HTTP.Enabled)
 	configMonitors.jaegerGRPCEnabled.Set(cfg.JaegerConfig.GRPC.Enabled)

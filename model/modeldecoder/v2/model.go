@@ -700,14 +700,16 @@ type spanContextDestination struct {
 
 type spanContextDestinationService struct {
 	// Name is the identifier for the destination service,
-	// e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq'
-	Name nullable.String `json:"name" validate:"required,maxLength=1024"`
+	// e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq' (
+	// DEPRECATED: this field will be removed in a future release
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
 	// Resource identifies the destination service resource being operated on
 	// e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name'
 	Resource nullable.String `json:"resource" validate:"required,maxLength=1024"`
 	// Type of the destination service, e.g. db, elasticsearch. Should
 	// typically be the same as span.type.
-	Type nullable.String `json:"type" validate:"required,maxLength=1024"`
+	// DEPRECATED: this field will be removed in a future release
+	Type nullable.String `json:"type" validate:"maxLength=1024"`
 }
 
 type spanContextHTTP struct {

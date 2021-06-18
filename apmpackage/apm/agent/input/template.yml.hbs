@@ -13,9 +13,18 @@ apm-server:
     read_timeout: {{read_timeout}}
     response_headers: {{response_headers}}
     rum:
-        allow_headers: {{rum_allow_headers}}
-        allow_origins: {{rum_allow_origins}}
-        allow_service_names: {{rum_allow_service_names}}
+        allow_headers:
+        {{#each rum_allow_headers}}
+          - {{this}}
+        {{/each}}
+        allow_origins:
+        {{#each rum_allow_origins}}
+          - {{this}}
+        {{/each}}
+        allow_service_names:
+        {{#each rum_allow_service_names}}
+          - {{this}}
+        {{/each}}
         enabled: {{enable_rum}}
         event_rate.limit: {{rum_event_rate_limit}}
         event_rate.lru_size: {{rum_event_rate_lru_size}}

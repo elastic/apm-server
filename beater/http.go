@@ -133,7 +133,7 @@ func (h *httpServer) start() error {
 		h.logger.Info("SSL enabled.")
 		return h.ServeTLS(lis, "", "")
 	}
-	if h.cfg.SecretToken != "" {
+	if h.cfg.AgentAuth.SecretToken != "" {
 		h.logger.Warn("Secret token is set, but SSL is not enabled.")
 	}
 	h.logger.Info("SSL disabled.")
