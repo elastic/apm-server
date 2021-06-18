@@ -30,7 +30,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/beatertest"
@@ -57,7 +56,7 @@ func TestHandlerReadStreamError(t *testing.T) {
 	sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
 
 	var actualResult Result
-	err = sp.HandleStream(context.Background(), nil, &model.Metadata{}, timeoutReader, processor, &actualResult)
+	err = sp.HandleStream(context.Background(), &model.Metadata{}, timeoutReader, 10, processor, &actualResult)
 	assert.EqualError(t, err, "timeout")
 	assert.Equal(t, Result{Accepted: accepted}, actualResult)
 }
@@ -83,8 +82,8 @@ func TestHandlerReportingStreamError(t *testing.T) {
 
 		var actualResult Result
 		err := sp.HandleStream(
-			context.Background(), nil, &model.Metadata{},
-			bytes.NewReader(payload), processor, &actualResult,
+			context.Background(), &model.Metadata{},
+			bytes.NewReader(payload), 10, processor, &actualResult,
 		)
 		assert.Equal(t, test.err, err)
 		assert.Zero(t, actualResult)
@@ -184,7 +183,7 @@ func TestIntegrationESOutput(t *testing.T) {
 
 			p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
 			var actualResult Result
-			err = p.HandleStream(ctx, nil, reqDecoderMeta, bytes.NewReader(payload), batchProcessor, &actualResult)
+			err = p.HandleStream(ctx, reqDecoderMeta, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			if test.err != nil {
 				assert.Equal(t, test.err, err)
 			} else {
@@ -219,7 +218,7 @@ func TestIntegrationRum(t *testing.T) {
 
 			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024})
 			var actualResult Result
-			err = p.HandleStream(ctx, nil, &reqDecoderMeta, bytes.NewReader(payload), batchProcessor, &actualResult)
+			err = p.HandleStream(ctx, &reqDecoderMeta, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
 			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})
@@ -250,7 +249,7 @@ func TestRUMV3(t *testing.T) {
 
 			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024})
 			var actualResult Result
-			err = p.HandleStream(ctx, nil, &reqDecoderMeta, bytes.NewReader(payload), batchProcessor, &actualResult)
+			err = p.HandleStream(ctx, &reqDecoderMeta, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
 			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})
@@ -281,7 +280,7 @@ func TestRUMAllowedServiceNames(t *testing.T) {
 
 		var result Result
 		err := p.HandleStream(
-			context.Background(), nil, &model.Metadata{}, bytes.NewReader(payload),
+			context.Background(), &model.Metadata{}, bytes.NewReader(payload), 10,
 			modelprocessor.Nop{}, &result,
 		)
 		if test.Allowed {
@@ -291,62 +290,6 @@ func TestRUMAllowedServiceNames(t *testing.T) {
 			assert.EqualError(t, err, "service name is not allowed")
 			assert.Equal(t, Result{Accepted: 0}, result)
 		}
-	}
-}
-
-func TestRateLimiting(t *testing.T) {
-	payload, err := ioutil.ReadFile("../../testdata/intake-v2/ratelimit.ndjson")
-	require.NoError(t, err)
-
-	for _, test := range []struct {
-		name     string
-		lim      *rate.Limiter
-		hit      int
-		accepted int
-		limited  bool
-	}{{
-		name:     "LimiterDenyAll",
-		lim:      rate.NewLimiter(rate.Limit(0), 2),
-		accepted: 0,
-		limited:  true,
-	}, {
-		name:     "LimiterAllowAll",
-		lim:      rate.NewLimiter(rate.Limit(40), 40*5),
-		accepted: 19,
-	}, {
-		name:     "LimiterPartiallyUsedLimitAllow",
-		lim:      rate.NewLimiter(rate.Limit(10), 10*2),
-		hit:      10,
-		accepted: 19,
-	}, {
-		name:     "LimiterPartiallyUsedLimitDeny",
-		lim:      rate.NewLimiter(rate.Limit(7), 7*2),
-		hit:      10,
-		accepted: 10,
-		limited:  true,
-	}, {
-		name:     "LimiterDeny",
-		lim:      rate.NewLimiter(rate.Limit(6), 6*2),
-		accepted: 10,
-		limited:  true,
-	}} {
-		t.Run(test.name, func(t *testing.T) {
-			if test.hit > 0 {
-				assert.True(t, test.lim.AllowN(time.Now(), test.hit))
-			}
-
-			var actualResult Result
-			err := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}).HandleStream(
-				context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(payload), nopBatchProcessor{},
-				&actualResult,
-			)
-			if test.limited {
-				assert.Equal(t, ErrRateLimitExceeded, err)
-			} else {
-				assert.NoError(t, err)
-			}
-			assert.Equal(t, Result{Accepted: test.accepted}, actualResult)
-		})
 	}
 }
 

@@ -27,24 +27,23 @@ import (
 	"net/http/httptest"
 	"path/filepath"
 	"testing"
-
-	"github.com/elastic/apm-server/approvaltest"
-	"github.com/elastic/apm-server/beater/api/ratelimit"
-	"github.com/elastic/apm-server/model"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/time/rate"
 
+	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 )
 
 func TestIntakeHandler(t *testing.T) {
-	var rateLimit, err = ratelimit.NewStore(1, 0, 0)
-	require.NoError(t, err)
 	for name, tc := range map[string]testcaseIntakeHandler{
 		"Method": {
 			path: "errors.ndjson",
@@ -59,11 +58,6 @@ func TestIntakeHandler(t *testing.T) {
 				return req
 			}(),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
-		},
-		"RateLimit": {
-			path:      "errors.ndjson",
-			rateLimit: rateLimit,
-			code:      http.StatusTooManyRequests, id: request.IDResponseErrorsRateLimit,
 		},
 		"BodyReader": {
 			path: "errors.ndjson",
@@ -141,9 +135,6 @@ func TestIntakeHandler(t *testing.T) {
 			// setup
 			tc.setup(t)
 
-			if tc.rateLimit != nil {
-				tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
-			}
 			// call handler
 			h := Handler(tc.processor, tc.batchProcessor)
 			h(tc.c)
@@ -164,12 +155,73 @@ func TestIntakeHandler(t *testing.T) {
 	}
 }
 
+func TestRateLimiting(t *testing.T) {
+	type test struct {
+		limiter        *rate.Limiter
+		preconsumed    int
+		expectAccepted int
+		expectLimited  bool
+	}
+
+	for name, test := range map[string]test{
+		"LimiterAllowAll": {
+			limiter:       rate.NewLimiter(rate.Limit(40), 40*5),
+			expectLimited: false,
+		},
+		"LimiterPartiallyUsedLimitAllow": {
+			limiter:        rate.NewLimiter(rate.Limit(10), 10*2),
+			preconsumed:    10,
+			expectLimited:  false,
+			expectAccepted: 19,
+		},
+		"LimiterDenyAll": {
+			limiter:       rate.NewLimiter(rate.Limit(0), 2),
+			expectLimited: true,
+		},
+		"LimiterPartiallyUsedLimitDeny": {
+			limiter:        rate.NewLimiter(rate.Limit(7), 7*2),
+			preconsumed:    10,
+			expectLimited:  true,
+			expectAccepted: 10,
+		},
+		"LimiterDeny": {
+			limiter:        rate.NewLimiter(rate.Limit(6), 6*2),
+			expectLimited:  true,
+			expectAccepted: 10,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			var tc testcaseIntakeHandler
+			tc.path = "ratelimit.ndjson"
+			tc.setup(t)
+			tc.c.RateLimiter = test.limiter
+			if test.preconsumed > 0 {
+				test.limiter.AllowN(time.Now(), test.preconsumed)
+			}
+
+			h := Handler(tc.processor, tc.batchProcessor)
+			h(tc.c)
+
+			if test.expectLimited {
+				assert.Equal(t, request.IDResponseErrorsRateLimit, tc.c.Result.ID)
+				assert.Equal(t, http.StatusTooManyRequests, tc.w.Code)
+				assert.Error(t, tc.c.Result.Err)
+			} else {
+				assert.Equal(t, request.IDResponseValidAccepted, tc.c.Result.ID)
+				assert.Equal(t, http.StatusAccepted, tc.w.Code)
+				assert.NoError(t, tc.c.Result.Err)
+			}
+			assert.NotZero(t, tc.w.Body.Len())
+			approvaltest.ApproveJSON(t, "test_approved/"+t.Name(), tc.w.Body.Bytes())
+		})
+	}
+}
+
 type testcaseIntakeHandler struct {
 	c              *request.Context
 	w              *httptest.ResponseRecorder
 	r              *http.Request
 	processor      *stream.Processor
-	rateLimit      *ratelimit.Store
 	batchProcessor model.BatchProcessor
 	path           string
 
@@ -183,7 +235,7 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 		tc.processor = stream.BackendProcessor(cfg)
 	}
 	if tc.batchProcessor == nil {
-		tc.batchProcessor = model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
+		tc.batchProcessor = modelprocessor.Nop{}
 	}
 
 	if tc.r == nil {

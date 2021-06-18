@@ -24,8 +24,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/time/rate"
-
 	"go.elastic.co/apm"
 
 	"github.com/pkg/errors"
@@ -42,13 +40,9 @@ import (
 
 var (
 	ErrUnrecognizedObject = errors.New("did not recognize object type")
-
-	ErrRateLimitExceeded = errors.New("rate limit exceeded")
 )
 
 const (
-	batchSize = 10
-
 	errorEventType            = "error"
 	metricsetEventType        = "metricset"
 	spanEventType             = "span"
@@ -163,7 +157,6 @@ func (p *Processor) IdentifyEventType(body []byte) []byte {
 // the error err.
 func (p *Processor) readBatch(
 	ctx context.Context,
-	ipRateLimiter *rate.Limiter,
 	requestTime time.Time,
 	streamMetadata *model.Metadata,
 	batchSize int,
@@ -171,19 +164,6 @@ func (p *Processor) readBatch(
 	reader *streamReader,
 	result *Result,
 ) (int, error) {
-
-	if ipRateLimiter != nil {
-		// TODO(axw) move this logic somewhere central, so it
-		// can be used by processor/otel too.
-		//
-		// use provided rate limiter to throttle batch read
-		ctxT, cancel := context.WithTimeout(ctx, time.Second)
-		err := ipRateLimiter.WaitN(ctxT, batchSize)
-		cancel()
-		if err != nil {
-			return 0, ErrRateLimitExceeded
-		}
-	}
 
 	// input events are decoded and appended to the batch
 	var n int
@@ -298,8 +278,8 @@ func handleDecodeErr(err error, r *streamReader, result *Result) bool {
 	return true
 }
 
-// HandleStream processes a stream of events, updating result as events are
-// accepted, or per-event errors occur.
+// HandleStream processes a stream of events in batches of batchSize at a time,
+// updating result as events are accepted, or per-event errors occur.
 //
 // HandleStream will return an error when a terminal stream-level error occurs,
 // such as the rate limit being exceeded, or due to authorization errors. In
@@ -308,9 +288,9 @@ func handleDecodeErr(err error, r *streamReader, result *Result) bool {
 // Callers must not access result concurrently with HandleStream.
 func (p *Processor) HandleStream(
 	ctx context.Context,
-	ipRateLimiter *rate.Limiter,
 	meta *model.Metadata,
 	reader io.Reader,
+	batchSize int,
 	processor model.BatchProcessor,
 	result *Result,
 ) error {
@@ -334,7 +314,7 @@ func (p *Processor) HandleStream(
 
 	for {
 		var batch model.Batch
-		n, readErr := p.readBatch(ctx, ipRateLimiter, requestTime, meta, batchSize, &batch, sr, result)
+		n, readErr := p.readBatch(ctx, requestTime, meta, batchSize, &batch, sr, result)
 		if n > 0 {
 			if err := allowedServiceNamesProcessor.ProcessBatch(ctx, &batch); err != nil {
 				return err
