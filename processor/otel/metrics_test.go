@@ -46,6 +46,7 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 func TestConsumeMetrics(t *testing.T) {
@@ -355,6 +356,21 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	metricsets, _ := transformMetrics(t, metrics)
 	require.Len(t, metricsets, 1)
 	assert.InDelta(t, now.Add(dataPointOffset).Unix(), metricsets[0].Timestamp.Unix(), allowedError)
+}
+
+func TestMetricsLogging(t *testing.T) {
+	for _, level := range []logp.Level{logp.InfoLevel, logp.DebugLevel} {
+		t.Run(level.String(), func(t *testing.T) {
+			logp.DevelopmentSetup(logp.ToObserverOutput(), logp.WithLevel(level))
+			transformMetrics(t, pdata.NewMetrics())
+			logs := logp.ObserverLogs().TakeAll()
+			if level == logp.InfoLevel {
+				assert.Empty(t, logs)
+			} else {
+				assert.NotEmpty(t, logs)
+			}
+		})
+	}
 }
 
 func transformMetrics(t *testing.T, metrics pdata.Metrics) ([]*model.Metricset, otel.ConsumerStats) {

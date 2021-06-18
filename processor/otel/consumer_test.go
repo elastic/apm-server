@@ -52,6 +52,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/beatertest"
@@ -1032,6 +1033,21 @@ func TestJaegerServiceVersion(t *testing.T) {
 
 	assert.Equal(t, "process_tag_value", batches[0].Transactions[0].Metadata.Service.Version)
 	assert.Equal(t, "span_tag_value", batches[0].Transactions[1].Metadata.Service.Version)
+}
+
+func TestTracesLogging(t *testing.T) {
+	for _, level := range []logp.Level{logp.InfoLevel, logp.DebugLevel} {
+		t.Run(level.String(), func(t *testing.T) {
+			logp.DevelopmentSetup(logp.ToObserverOutput(), logp.WithLevel(level))
+			transformTraces(t, pdata.NewTraces())
+			logs := logp.ObserverLogs().TakeAll()
+			if level == logp.InfoLevel {
+				assert.Empty(t, logs)
+			} else {
+				assert.NotEmpty(t, logs)
+			}
+		})
+	}
 }
 
 func testJaegerLogs() []jaegermodel.Log {

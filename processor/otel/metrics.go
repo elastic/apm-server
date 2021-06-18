@@ -43,15 +43,22 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/otlptext"
 
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 // ConsumeMetrics consumes OpenTelemetry metrics data, converting into
 // the Elastic APM metrics model and sending to the reporter.
 func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) error {
 	receiveTimestamp := time.Now()
+	logger := logp.NewLogger(logs.Otel)
+	if logger.IsDebug() {
+		logger.Debug(otlptext.Metrics(metrics))
+	}
 	batch := c.convertMetrics(metrics, receiveTimestamp)
 	return c.Processor.ProcessBatch(ctx, batch)
 }
