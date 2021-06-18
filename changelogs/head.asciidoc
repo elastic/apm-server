@@ -31,8 +31,11 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Add support for adjusting OTel event timestamps using `telemetry.sdk.elastic_export_timestamp` {pull}5433[5433]
 * Add support for OpenTelemetry labels describing mobile connectivity {pull}5436[5436]
 * Introduce `apm-server.auth.*` config {pull}5457[5457]
+* Add debug logging of OpenTelemetry payloads {pull}5474[5474]
+* Add support for more input variables in fleet integration {pull}5444[5444]
 
 [float]
 ==== Deprecated
+* Make destination.service.name and destination.service.type fields optional and deprecated {pull}5468[5468]
 * `apm-server.secret_token` is now `apm-server.auth.secret_token` {pull}5457[5457]
 * `apm-server.api_key` is now `apm-server.auth.api_key` {pull}5457[5457]

@@ -715,8 +715,11 @@
                     ],
                     "properties": {
                       "n": {
-                        "description": "Name is the identifier for the destination service, e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq'",
-                        "type": "string",
+                        "description": "Name is the identifier for the destination service, e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq' DEPRECATED: this field will be removed in a future release",
+                        "type": [
+                          "null",
+                          "string"
+                        ],
                         "maxLength": 1024
                       },
                       "rc": {
@@ -725,15 +728,16 @@
                         "maxLength": 1024
                       },
                       "t": {
-                        "description": "Type of the destination service, e.g. db, elasticsearch. Should typically be the same as span.type.",
-                        "type": "string",
+                        "description": "Type of the destination service, e.g. db, elasticsearch. Should typically be the same as span.type. DEPRECATED: this field will be removed in a future release",
+                        "type": [
+                          "null",
+                          "string"
+                        ],
                         "maxLength": 1024
                       }
                     },
                     "required": [
-                      "n",
-                      "rc",
-                      "t"
+                      "rc"
                     ]
                   }
                 }
