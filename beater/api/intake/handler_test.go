@@ -157,10 +157,9 @@ func TestIntakeHandler(t *testing.T) {
 
 func TestRateLimiting(t *testing.T) {
 	type test struct {
-		limiter        *rate.Limiter
-		preconsumed    int
-		expectAccepted int
-		expectLimited  bool
+		limiter       *rate.Limiter
+		preconsumed   int
+		expectLimited bool
 	}
 
 	for name, test := range map[string]test{
@@ -169,25 +168,22 @@ func TestRateLimiting(t *testing.T) {
 			expectLimited: false,
 		},
 		"LimiterPartiallyUsedLimitAllow": {
-			limiter:        rate.NewLimiter(rate.Limit(10), 10*2),
-			preconsumed:    10,
-			expectLimited:  false,
-			expectAccepted: 19,
+			limiter:       rate.NewLimiter(rate.Limit(10), 10*2),
+			preconsumed:   10,
+			expectLimited: false,
 		},
 		"LimiterDenyAll": {
 			limiter:       rate.NewLimiter(rate.Limit(0), 2),
 			expectLimited: true,
 		},
 		"LimiterPartiallyUsedLimitDeny": {
-			limiter:        rate.NewLimiter(rate.Limit(7), 7*2),
-			preconsumed:    10,
-			expectLimited:  true,
-			expectAccepted: 10,
+			limiter:       rate.NewLimiter(rate.Limit(7), 7*2),
+			preconsumed:   10,
+			expectLimited: true,
 		},
 		"LimiterDeny": {
-			limiter:        rate.NewLimiter(rate.Limit(6), 6*2),
-			expectLimited:  true,
-			expectAccepted: 10,
+			limiter:       rate.NewLimiter(rate.Limit(6), 6*2),
+			expectLimited: true,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {

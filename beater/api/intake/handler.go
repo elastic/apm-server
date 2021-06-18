@@ -71,22 +71,17 @@ type StreamHandler interface {
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
 func Handler(handler StreamHandler, batchProcessor model.BatchProcessor) request.Handler {
 	return func(c *request.Context) {
-
 		if err := validateRequest(c); err != nil {
 			writeError(c, err)
 			return
 		}
 
-		// We want to apply rate limiting before each batch is read. Limit once at the beginning of
-		// each stream, and then once _after_ each batch is processed for the next iteration.
 		if c.RateLimiter != nil {
-			if err := rateLimitBatch(c.Request.Context(), c.RateLimiter, batchSize); err != nil {
-				writeError(c, err)
-				return
-			}
+			// Apply rate limiting after reading but before processing any events.
+			// We perform an initial Allow check to limit the number of connections.
 			batchProcessor = modelprocessor.Chained{
-				batchProcessor,
 				rateLimitBatchProcessor(c.RateLimiter, batchSize),
+				batchProcessor,
 			}
 		}
 
