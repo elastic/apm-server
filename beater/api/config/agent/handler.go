@@ -24,10 +24,8 @@ import (
 	"time"
 
 	"go.elastic.co/apm"
-	"go.elastic.co/apm/module/apmprometheus"
 
 	"github.com/pkg/errors"
-	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
@@ -57,17 +55,6 @@ var (
 
 	// rumAgents keywords (new and old)
 	rumAgents = []string{"rum-js", "js-base"}
-
-	configMetadataGauge = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "apmserver",
-			Name:      "agent_config",
-			Help:      "Metadata gauge for agent config requests, partitioned by etag",
-		},
-		[]string{
-			"etag",
-		},
-	)
 )
 
 type handler struct {
@@ -76,20 +63,9 @@ type handler struct {
 	cacheControl, defaultServiceEnvironment string
 }
 
-func NewHandler(
-	f agentcfg.Fetcher,
-	config config.KibanaAgentConfig,
-	defaultServiceEnvironment string,
-	tracer *apm.Tracer,
-) request.Handler {
+func NewHandler(f agentcfg.Fetcher, config config.KibanaAgentConfig, defaultServiceEnvironment string) request.Handler {
 	if f == nil {
 		panic("fetcher must not be nil")
-	}
-	if tracer != nil {
-		r := prometheus.NewRegistry()
-		r.MustRegister(configMetadataGauge)
-		g := apmprometheus.Wrap(r)
-		tracer.RegisterMetricsGatherer(g)
 	}
 	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
 	h := &handler{
@@ -179,7 +155,6 @@ func (h *handler) Handle(c *request.Context) {
 	} else {
 		c.Result.SetWithBody(request.IDResponseValidOK, result.Source.Settings)
 	}
-	configMetadataGauge.WithLabelValues(result.Source.Etag).Set(1)
 	c.Write()
 }
 
