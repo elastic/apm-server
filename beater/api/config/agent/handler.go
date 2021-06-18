@@ -62,12 +62,9 @@ var (
 		prometheus.GaugeOpts{
 			Namespace: "apmserver",
 			Name:      "agent_config",
-			Help:      "Metadata gauge for agent config requests, partitioned by agent_ip, service_name, service_environment, and etag",
+			Help:      "Metadata gauge for agent config requests, partitioned by etag",
 		},
 		[]string{
-			"agent_ip",
-			"service_name",
-			"service_environment",
 			"etag",
 		},
 	)
