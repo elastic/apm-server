@@ -118,7 +118,6 @@ func newServer(
 	reporter publish.Reporter,
 	batchProcessor model.BatchProcessor,
 ) (server, error) {
-	// TODO: Set up some periodic sending of applied configs from fetcher -> batchProcessor
 	fetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor)
 	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor, fetchReporter)
 	if err != nil {
