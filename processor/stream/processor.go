@@ -39,7 +39,7 @@ import (
 )
 
 var (
-	ErrUnrecognizedObject = errors.New("did not recognize object type")
+	errUnrecognizedObject = errors.New("did not recognize object type")
 )
 
 const (
@@ -123,17 +123,13 @@ func (p *Processor) readMetadata(reader *streamReader, metadata *model.Metadata)
 	return nil
 }
 
-// IdentifyEventType takes a reader and reads ahead the first key of the
+// identifyEventType takes a reader and reads ahead the first key of the
 // underlying json input. This method makes some assumptions met by the
 // input format:
 // - the input is in JSON format
 // - every valid ndjson line only has one root key
 // - the bytes that we must match on are ASCII
-//
-// NOTE(axw) this method really should not be exported, but it has to be
-// for package_test. When we migrate that code to system tests, unexport
-// this method.
-func (p *Processor) IdentifyEventType(body []byte) []byte {
+func (p *Processor) identifyEventType(body []byte) []byte {
 	// find event type, trim spaces and account for single and double quotes
 	var quote byte
 	var key []byte
@@ -188,7 +184,7 @@ func (p *Processor) readBatch(
 			Metadata:    *streamMetadata,
 			Config:      p.Mconfig,
 		}
-		switch eventType := p.IdentifyEventType(body); string(eventType) {
+		switch eventType := p.identifyEventType(body); string(eventType) {
 		case errorEventType:
 			var event model.Error
 			err := v2.DecodeNestedError(reader, &input, &event)
@@ -255,7 +251,7 @@ func (p *Processor) readBatch(
 			n += 1 + len(event.Metricsets) + len(event.Spans)
 		default:
 			result.LimitedAdd(&InvalidInputError{
-				Message:  errors.Wrap(ErrUnrecognizedObject, string(eventType)).Error(),
+				Message:  errors.Wrap(errUnrecognizedObject, string(eventType)).Error(),
 				Document: string(reader.LatestLine()),
 			})
 			continue
