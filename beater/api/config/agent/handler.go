@@ -179,6 +179,7 @@ func (h *handler) Handle(c *request.Context) {
 	} else {
 		c.Result.SetWithBody(request.IDResponseValidOK, result.Source.Settings)
 	}
+	configMetadataGauge.WithLabelValues(result.Source.Etag).Set(1)
 	c.Write()
 }
 
