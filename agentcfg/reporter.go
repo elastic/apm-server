@@ -75,8 +75,7 @@ func (r Reporter) Run(ctx context.Context) error {
 			m.Timestamp = now
 			batch.Metricsets = append(batch.Metricsets, m)
 		}
-		if err := r.p.ProcessBatch(ctx, batch); err != nil {
-			// TODO: Log error?
-		}
+		// TODO: Log error?
+		r.p.ProcessBatch(ctx, batch)
 	}
 }
