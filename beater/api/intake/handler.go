@@ -83,6 +83,7 @@ func Handler(handler StreamHandler, batchProcessor model.BatchProcessor) request
 			// disconnecting before being rate limited.
 			if !c.RateLimiter.Allow() {
 				writeError(c, errRateLimitExceeded)
+				return
 			}
 
 			// Apply rate limiting after reading but before processing any events.
