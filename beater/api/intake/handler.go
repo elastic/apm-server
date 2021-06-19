@@ -24,6 +24,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"golang.org/x/time/rate"
 
@@ -33,8 +34,14 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
+)
+
+const (
+	batchSize        = 10
+	rateLimitTimeout = time.Second
 )
 
 var (
@@ -45,34 +52,45 @@ var (
 	errMethodNotAllowed   = errors.New("only POST requests are supported")
 	errServerShuttingDown = errors.New("server is shutting down")
 	errInvalidContentType = errors.New("invalid content type")
-	errRateLimitExceeded  = stream.ErrRateLimitExceeded
+	errRateLimitExceeded  = errors.New("rate limit exceeded")
 )
 
 // StreamHandler is an interface for handling an Elastic APM agent ND-JSON event
 // stream, implemented by processor/stream.
 type StreamHandler interface {
 	HandleStream(
-		context.Context,
-		*rate.Limiter,
-		*model.Metadata,
-		io.Reader,
-		model.BatchProcessor,
-		*stream.Result,
+		ctx context.Context,
+		meta *model.Metadata,
+		stream io.Reader,
+		batchSize int,
+		processor model.BatchProcessor,
+		out *stream.Result,
 	) error
 }
 
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
 func Handler(handler StreamHandler, batchProcessor model.BatchProcessor) request.Handler {
 	return func(c *request.Context) {
-
 		if err := validateRequest(c); err != nil {
 			writeError(c, err)
 			return
 		}
 
-		if c.RateLimiter != nil && !c.RateLimiter.Allow() {
-			writeError(c, errRateLimitExceeded)
-			return
+		if c.RateLimiter != nil {
+			// Call Allow once for each stream to avoid burning CPU before we
+			// begin reading for the first time. This prevents clients from
+			// repeatedly connecting and sending < batchSize events and
+			// disconnecting before being rate limited.
+			if !c.RateLimiter.Allow() {
+				writeError(c, errRateLimitExceeded)
+				return
+			}
+
+			// Apply rate limiting after reading but before processing any events.
+			batchProcessor = modelprocessor.Chained{
+				rateLimitBatchProcessor(c.RateLimiter, batchSize),
+				batchProcessor,
+			}
 		}
 
 		reader, err := decoder.CompressedRequestReader(c.Request)
@@ -90,9 +108,9 @@ func Handler(handler StreamHandler, batchProcessor model.BatchProcessor) request
 		var result stream.Result
 		if err := handler.HandleStream(
 			c.Request.Context(),
-			c.RateLimiter,
 			&metadata,
 			reader,
+			batchSize,
 			batchProcessor,
 			&result,
 		); err != nil {
@@ -100,6 +118,23 @@ func Handler(handler StreamHandler, batchProcessor model.BatchProcessor) request
 		}
 		writeStreamResult(c, &result)
 	}
+}
+
+func rateLimitBatchProcessor(limiter *rate.Limiter, batchSize int) model.ProcessBatchFunc {
+	return func(ctx context.Context, _ *model.Batch) error {
+		return rateLimitBatch(ctx, limiter, batchSize)
+	}
+}
+
+// rateLimitBatch waits up to one second for the rate limiter to allow
+// batchSize events to be read and processed.
+func rateLimitBatch(ctx context.Context, limiter *rate.Limiter, batchSize int) error {
+	ctx, cancel := context.WithTimeout(ctx, rateLimitTimeout)
+	defer cancel()
+	if err := limiter.WaitN(ctx, batchSize); err != nil {
+		return errRateLimitExceeded
+	}
+	return nil
 }
 
 func validateRequest(c *request.Context) error {
