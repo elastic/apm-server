@@ -18,6 +18,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"net/http/pprof"
 
@@ -37,6 +38,7 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 )
@@ -100,8 +102,8 @@ func NewMux(
 		{AssetSourcemapPath, builder.sourcemapHandler},
 		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher)},
 		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher)},
-		{IntakeRUMPath, builder.rumIntakeHandler},
-		{IntakeRUMV3Path, builder.rumV3IntakeHandler},
+		{IntakeRUMPath, builder.rumIntakeHandler(stream.RUMV2Processor)},
+		{IntakeRUMV3Path, builder.rumIntakeHandler(stream.RUMV3Processor)},
 		{IntakePath, builder.backendIntakeHandler},
 		// The profile endpoint is in Beta
 		{ProfilePath, builder.profileHandler},
@@ -152,14 +154,13 @@ func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
 	return middleware.Wrap(h, backendMiddleware(r.cfg, authHandler, intake.MonitoringMap)...)
 }
 
-func (r *routeBuilder) rumIntakeHandler() (request.Handler, error) {
-	h := intake.Handler(stream.RUMV2Processor(r.cfg), r.batchProcessor)
-	return middleware.Wrap(h, rumMiddleware(r.cfg, nil, intake.MonitoringMap)...)
-}
-
-func (r *routeBuilder) rumV3IntakeHandler() (request.Handler, error) {
-	h := intake.Handler(stream.RUMV3Processor(r.cfg), r.batchProcessor)
-	return middleware.Wrap(h, rumMiddleware(r.cfg, nil, intake.MonitoringMap)...)
+func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *stream.Processor) func() (request.Handler, error) {
+	return func() (request.Handler, error) {
+		batchProcessor := r.batchProcessor
+		batchProcessor = batchProcessorWithAllowedServiceNames(batchProcessor, r.cfg.RumConfig.AllowServiceNames)
+		h := intake.Handler(newProcessor(r.cfg), batchProcessor)
+		return middleware.Wrap(h, rumMiddleware(r.cfg, nil, intake.MonitoringMap)...)
+	}
 }
 
 func (r *routeBuilder) sourcemapHandler() (request.Handler, error) {
@@ -264,4 +265,26 @@ func rootMiddleware(cfg *config.Config, auth *authorization.Handler) []middlewar
 	return append(apmMiddleware(root.MonitoringMap),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthorizationMiddleware(auth, false))
+}
+
+// TODO(axw) move this into the authorization package when introducing anonymous auth.
+func batchProcessorWithAllowedServiceNames(p model.BatchProcessor, allowedServiceNames []string) model.BatchProcessor {
+	if len(allowedServiceNames) == 0 {
+		// All service names are allowed.
+		return p
+	}
+	m := make(map[string]bool)
+	for _, name := range allowedServiceNames {
+		m[name] = true
+	}
+	var restrictServiceName modelprocessor.MetadataProcessorFunc = func(ctx context.Context, meta *model.Metadata) error {
+		// Restrict to explicitly allowed service names.
+		// The list of allowed service names is not considered secret,
+		// so we do not use constant time comparison.
+		if !m[meta.Service.Name] {
+			return &stream.InvalidInputError{Message: "service name is not allowed"}
+		}
+		return nil
+	}
+	return modelprocessor.Chained{restrictServiceName, p}
 }
