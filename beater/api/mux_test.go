@@ -28,6 +28,7 @@ import (
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/approvaltest"
+	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/request"
@@ -76,7 +77,8 @@ func requestToMuxerWithHeaderAndQueryString(
 func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
 	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
 	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
-	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg))
+	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
+	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg), ratelimitStore)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +113,8 @@ func testMonitoringMiddleware(t *testing.T, urlPath string, monitoringMap map[re
 func newTestMux(t *testing.T, cfg *config.Config) http.Handler {
 	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
 	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
-	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg))
+	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
+	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg), ratelimitStore)
 	require.NoError(t, err)
 	return mux
 }

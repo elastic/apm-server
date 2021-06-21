@@ -23,13 +23,12 @@ import (
 	"net/http"
 	"strings"
 
-	"golang.org/x/time/rate"
-
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/headers"
 	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/utility"
 )
 
 const (
@@ -43,24 +42,15 @@ var (
 
 // Context abstracts request and response information for http requests
 type Context struct {
-	Request         *http.Request
-	Logger          *logp.Logger
-	RateLimiter     *rate.Limiter
-	AuthResult      authorization.Result
-	IsRum           bool
-	Result          Result
-	RequestMetadata Metadata
+	Request    *http.Request
+	Logger     *logp.Logger
+	AuthResult authorization.Result
+	Result     Result
+	SourceIP   net.IP
+	UserAgent  string
 
 	w             http.ResponseWriter
 	writeAttempts int
-}
-
-// Metadata contains metadata extracted from the request by middleware,
-// and should be merged into the event metadata.
-type Metadata struct {
-	ClientIP  net.IP
-	SystemIP  net.IP
-	UserAgent string
 }
 
 // NewContext creates an empty Context struct
@@ -72,21 +62,13 @@ func NewContext() *Context {
 func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Request = r
 	c.Logger = nil
-	c.RateLimiter = nil
 	c.AuthResult = authorization.Result{}
-	c.IsRum = false
 	c.Result.Reset()
-	c.RequestMetadata.Reset()
+	c.SourceIP = utility.ExtractIP(r)
+	c.UserAgent = utility.UserAgentHeader(r.Header)
 
 	c.w = w
 	c.writeAttempts = 0
-}
-
-// Reset sets all attribtues of the Metadata instance to it's zero value
-func (m *Metadata) Reset() {
-	m.ClientIP = nil
-	m.SystemIP = nil
-	m.UserAgent = ""
 }
 
 // Header returns the http.Header of the context's writer
