@@ -192,7 +192,12 @@ func TestRUMRateLimit(t *testing.T) {
 	g.Go(func() error { return sendEvents("10.11.12.13", srv.Config.RUM.RateLimit.EventLimit) })
 	g.Go(func() error { return sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit) })
 	g.Go(func() error { return sendEvents("10.11.12.15", srv.Config.RUM.RateLimit.EventLimit) })
-	assert.EqualError(t, g.Wait(), `429 Too Many Requests ({"accepted":0,"errors":[{"message":"rate limit exceeded"}]})`)
+	err = g.Wait()
+	require.Error(t, err)
+
+	// The exact error differs, depending on whether rate limiting was applied at the request
+	// level, or at the event stream level. Either could occur.
+	assert.Regexp(t, `429 Too Many Requests .*`, err.Error())
 }
 
 func sendRUMEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {

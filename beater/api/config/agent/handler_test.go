@@ -32,7 +32,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/apmtest"
-	"golang.org/x/time/rate"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	libkibana "github.com/elastic/beats/v7/libbeat/kibana"
@@ -173,18 +172,12 @@ func TestAgentConfigHandler(t *testing.T) {
 	var cfg = config.KibanaAgentConfig{Cache: config.Cache{Expiration: 4 * time.Second}}
 	for _, tc := range testcases {
 		f := agentcfg.NewKibanaFetcher(tc.kbClient, cfg.Cache.Expiration)
-		h := NewHandler(f, cfg, "")
+		h := NewHandler(f, cfg, "", nil)
 		r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 		for k, v := range tc.requestHeader {
 			r.Header.Set(k, v)
 		}
 		ctx, w := newRequestContext(r)
-		ctx.AuthResult.Authorized = true
-		ctx.Request = withAuthorization(ctx.Request,
-			authorizedForFunc(func(context.Context, authorization.Resource) (authorization.Result, error) {
-				return authorization.Result{Authorized: true}, nil
-			}),
-		)
 		h(ctx)
 
 		require.Equal(t, tc.respStatus, w.Code)
@@ -202,32 +195,46 @@ func TestAgentConfigHandlerAnonymousAccess(t *testing.T) {
 	kbClient := kibanatest.MockKibana(http.StatusUnauthorized, m{"error": "Unauthorized"}, mockVersion, true)
 	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(kbClient, cfg.Cache.Expiration)
-	h := NewHandler(f, cfg, "")
+	h := NewHandler(f, cfg, "", nil)
 
 	for _, tc := range []struct {
-		anonymous bool
-		response  string
+		anonymous    bool
+		response     string
+		authResource *authorization.Resource
 	}{{
-		anonymous: false,
-		response:  `{"error":"APM Server is not authorized to query Kibana. Please configure apm-server.kibana.username and apm-server.kibana.password, and ensure the user has the necessary privileges."}`,
+		anonymous:    false,
+		response:     `{"error":"APM Server is not authorized to query Kibana. Please configure apm-server.kibana.username and apm-server.kibana.password, and ensure the user has the necessary privileges."}`,
+		authResource: &authorization.Resource{ServiceName: "opbeans"},
 	}, {
-		anonymous: true,
-		response:  `{"error":"Unauthorized"}`,
+		anonymous:    true,
+		response:     `{"error":"Unauthorized"}`,
+		authResource: &authorization.Resource{ServiceName: "opbeans"},
 	}} {
 		r := httptest.NewRequest(http.MethodGet, target(map[string]string{"service.name": "opbeans"}), nil)
-		ctx, w := newRequestContext(r)
-		ctx.AuthResult.Authorized = true
-		ctx.AuthResult.Anonymous = tc.anonymous
-		ctx.Request = withAuthorization(ctx.Request, authorization.AnonymousAuth{})
-		h(ctx)
+		c, w := newRequestContext(r)
+		c.AuthResult.Authorized = true
+		c.AuthResult.Anonymous = tc.anonymous
+
+		var requestedResource *authorization.Resource
+		c.Request = withAuthorization(c.Request,
+			authorizedForFunc(func(ctx context.Context, resource authorization.Resource) (authorization.Result, error) {
+				if requestedResource != nil {
+					panic("expected only one AuthorizedFor request")
+				}
+				requestedResource = &resource
+				return c.AuthResult, nil
+			}),
+		)
+		h(c)
 		assert.Equal(t, tc.response+"\n", w.Body.String())
+		assert.Equal(t, tc.authResource, requestedResource)
 	}
 }
 
 func TestAgentConfigHandlerAuthorizedForService(t *testing.T) {
 	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(nil, cfg.Cache.Expiration)
-	h := NewHandler(f, cfg, "")
+	h := NewHandler(f, cfg, "", nil)
 
 	r := httptest.NewRequest(http.MethodGet, target(map[string]string{"service.name": "opbeans"}), nil)
 	ctx, w := newRequestContext(r)
@@ -249,7 +256,7 @@ func TestAgentConfigHandlerAuthorizedForService(t *testing.T) {
 func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
 	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(nil, cfg.Cache.Expiration)
-	h := NewHandler(f, cfg, "")
+	h := NewHandler(f, cfg, "", nil)
 
 	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
 		"service": m{"name": "opbeans-node"}})))
@@ -268,7 +275,7 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 
 	var cfg = config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
-	h := NewHandler(f, cfg, "")
+	h := NewHandler(f, cfg, "", nil)
 
 	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
 		"service": m{"name": "opbeans-node"}})))
@@ -289,7 +296,7 @@ func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 
 	var cfg = config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
-	h := NewHandler(f, cfg, "default")
+	h := NewHandler(f, cfg, "default", nil)
 
 	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node", "environment": "specified"}})))
 	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node"}})))
@@ -306,8 +313,6 @@ func TestAgentConfigRum(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
 	ctx, w := newRequestContext(r)
-	ctx.IsRum = true
-	ctx.AuthResult.Anonymous = true
 	h(ctx)
 	var actual map[string]string
 	json.Unmarshal(w.Body.Bytes(), &actual)
@@ -320,8 +325,6 @@ func TestAgentConfigRumEtag(t *testing.T) {
 	h := getHandler("rum-js")
 	r := httptest.NewRequest(http.MethodGet, "/rum?ifnonematch=123&service.name=opbeans", nil)
 	ctx, w := newRequestContext(r)
-	ctx.IsRum = true
-	ctx.AuthResult.Anonymous = true
 	h(ctx)
 	assert.Equal(t, http.StatusNotModified, w.Code, w.Body.String())
 }
@@ -333,7 +336,7 @@ func TestAgentConfigNotRum(t *testing.T) {
 	ctx, w := newRequestContext(r)
 	ctx.Request = withAuthorization(ctx.Request,
 		authorizedForFunc(func(context.Context, authorization.Resource) (authorization.Result, error) {
-			return authorization.Result{Authorized: true}, nil
+			return authorization.Result{Authorized: true, Anonymous: false}, nil
 		}),
 	)
 	h(ctx)
@@ -348,28 +351,11 @@ func TestAgentConfigNoLeak(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
 	ctx, w := newRequestContext(r)
-	ctx.IsRum = true
-	ctx.AuthResult.Anonymous = true
 	h(ctx)
 	var actual map[string]string
 	json.Unmarshal(w.Body.Bytes(), &actual)
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
 	assert.Equal(t, map[string]string{}, actual)
-}
-
-func TestAgentConfigRateLimit(t *testing.T) {
-	h := getHandler("rum-js")
-	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
-		"service": m{"name": "opbeans"}}))
-	ctx, w := newRequestContext(r)
-	ctx.IsRum = true
-	ctx.RateLimiter = rate.NewLimiter(rate.Limit(0), 0)
-	ctx.AuthResult.Anonymous = true
-	h(ctx)
-	var actual map[string]string
-	json.Unmarshal(w.Body.Bytes(), &actual)
-	assert.Equal(t, http.StatusTooManyRequests, w.Code, w.Body.String())
-	assert.Equal(t, map[string]string{"error": "too many requests"}, actual)
 }
 
 func getHandler(agent string) request.Handler {
@@ -386,7 +372,7 @@ func getHandler(agent string) request.Handler {
 	}, mockVersion, true)
 	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
-	return NewHandler(f, cfg, "")
+	return NewHandler(f, cfg, "", []string{"rum-js"})
 }
 
 func TestIfNoneMatch(t *testing.T) {
@@ -412,7 +398,7 @@ func TestAgentConfigTraceContext(t *testing.T) {
 	client := kibana.NewConnectingClient(&kibanaCfg)
 	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: 5 * time.Minute}}
 	f := agentcfg.NewKibanaFetcher(client, cfg.Cache.Expiration)
-	handler := NewHandler(f, cfg, "default")
+	handler := NewHandler(f, cfg, "default", nil)
 	_, spans, _ := apmtest.WithTransaction(func(ctx context.Context) {
 		// When the handler is called with a context containing
 		// a transaction, the underlying Kibana query should create a span
@@ -439,6 +425,7 @@ func newRequestContext(r *http.Request) (*request.Context, *httptest.ResponseRec
 	w := httptest.NewRecorder()
 	ctx := request.NewContext()
 	ctx.Reset(w, r)
+	ctx.Request = withAnonymousAuthorization(ctx.Request)
 	return ctx, w
 }
 
@@ -469,6 +456,12 @@ func (c *recordingKibanaClient) Send(ctx context.Context, method string, path st
 	}
 	c.requests = append(c.requests, req.WithContext(ctx))
 	return c.Client.Send(ctx, method, path, params, header, body)
+}
+
+func withAnonymousAuthorization(req *http.Request) *http.Request {
+	return withAuthorization(req, authorizedForFunc(func(context.Context, authorization.Resource) (authorization.Result, error) {
+		return authorization.Result{Authorized: true, Anonymous: true}, nil
+	}))
 }
 
 func withAuthorization(req *http.Request, auth authorization.Authorization) *http.Request {
