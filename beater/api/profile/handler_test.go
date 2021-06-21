@@ -31,7 +31,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/model"
 
 	"github.com/stretchr/testify/assert"
@@ -216,7 +215,6 @@ type testcaseIntakeHandler struct {
 	c              *request.Context
 	w              *httptest.ResponseRecorder
 	r              *http.Request
-	rateLimit      *ratelimit.Store
 	batchProcessor func(t *testing.T) model.BatchProcessor
 	reports        int
 	parts          []part
