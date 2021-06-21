@@ -30,6 +30,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
@@ -52,7 +53,6 @@ var (
 	errMethodNotAllowed   = errors.New("only POST requests are supported")
 	errServerShuttingDown = errors.New("server is shutting down")
 	errInvalidContentType = errors.New("invalid content type")
-	errRateLimitExceeded  = errors.New("rate limit exceeded")
 )
 
 // StreamHandler is an interface for handling an Elastic APM agent ND-JSON event
@@ -68,27 +68,23 @@ type StreamHandler interface {
 	) error
 }
 
+// RequestMetadataFunc is a function type supplied to Handler for extracting
+// metadata from the request. This is used for conditionally injecting the
+// source IP address as `client.ip` for RUM.
+type RequestMetadataFunc func(*request.Context) model.Metadata
+
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
-func Handler(handler StreamHandler, batchProcessor model.BatchProcessor) request.Handler {
+func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, batchProcessor model.BatchProcessor) request.Handler {
 	return func(c *request.Context) {
 		if err := validateRequest(c); err != nil {
 			writeError(c, err)
 			return
 		}
 
-		if c.RateLimiter != nil {
-			// Call Allow once for each stream to avoid burning CPU before we
-			// begin reading for the first time. This prevents clients from
-			// repeatedly connecting and sending < batchSize events and
-			// disconnecting before being rate limited.
-			if !c.RateLimiter.Allow() {
-				writeError(c, errRateLimitExceeded)
-				return
-			}
-
+		if limiter, ok := ratelimit.FromContext(c.Request.Context()); ok {
 			// Apply rate limiting after reading but before processing any events.
 			batchProcessor = modelprocessor.Chained{
-				rateLimitBatchProcessor(c.RateLimiter, batchSize),
+				rateLimitBatchProcessor(limiter, batchSize),
 				batchProcessor,
 			}
 		}
@@ -99,12 +95,7 @@ func Handler(handler StreamHandler, batchProcessor model.BatchProcessor) request
 			return
 		}
 
-		metadata := model.Metadata{
-			UserAgent: model.UserAgent{Original: c.RequestMetadata.UserAgent},
-			Client:    model.Client{IP: c.RequestMetadata.ClientIP},
-			System:    model.System{IP: c.RequestMetadata.SystemIP},
-		}
-
+		metadata := requestMetadataFunc(c)
 		var result stream.Result
 		if err := handler.HandleStream(
 			c.Request.Context(),
@@ -132,7 +123,7 @@ func rateLimitBatch(ctx context.Context, limiter *rate.Limiter, batchSize int) e
 	ctx, cancel := context.WithTimeout(ctx, rateLimitTimeout)
 	defer cancel()
 	if err := limiter.WaitN(ctx, batchSize); err != nil {
-		return errRateLimitExceeded
+		return ratelimit.ErrRateLimitExceeded
 	}
 	return nil
 }
@@ -191,7 +182,7 @@ func writeStreamResult(c *request.Context, sr *stream.Result) {
 					errID = request.IDResponseErrorsMethodNotAllowed
 				case errors.Is(err, errInvalidContentType):
 					errID = request.IDResponseErrorsValidate
-				case errors.Is(err, errRateLimitExceeded):
+				case errors.Is(err, ratelimit.ErrRateLimitExceeded):
 					errID = request.IDResponseErrorsRateLimit
 				}
 			}
