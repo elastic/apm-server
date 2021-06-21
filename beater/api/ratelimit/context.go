@@ -15,18 +15,28 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package middleware
+package ratelimit
 
 import (
-	"github.com/elastic/apm-server/beater/request"
+	"context"
+
+	"github.com/pkg/errors"
+	"golang.org/x/time/rate"
 )
 
-// SetRumFlagMiddleware sets a rum flag in the context
-func SetRumFlagMiddleware() Middleware {
-	return func(h request.Handler) (request.Handler, error) {
-		return func(c *request.Context) {
-			c.IsRum = true
-			h(c)
-		}, nil
-	}
+// ErrRateLimitExceeded is returned when the rate limit is exceeded.
+var ErrRateLimitExceeded = errors.New("rate limit exceeded")
+
+type rateLimiterKey struct{}
+
+// FromContext returns a rate.Limiter if one is contained in ctx,
+// and a bool indicating whether one was found.
+func FromContext(ctx context.Context) (*rate.Limiter, bool) {
+	limiter, ok := ctx.Value(rateLimiterKey{}).(*rate.Limiter)
+	return limiter, ok
+}
+
+// ContextWithLimiter returns a copy of parent associated with limiter.
+func ContextWithLimiter(parent context.Context, limiter *rate.Limiter) context.Context {
+	return context.WithValue(parent, rateLimiterKey{}, limiter)
 }

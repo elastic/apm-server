@@ -19,20 +19,33 @@ package middleware
 
 import (
 	"github.com/elastic/apm-server/beater/api/ratelimit"
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/request"
 )
 
-const burstMultiplier = 3
-
-// SetIPRateLimitMiddleware sets a rate limiter
-func SetIPRateLimitMiddleware(cfg config.EventRate) Middleware {
-	store, err := ratelimit.NewStore(cfg.LruSize, cfg.Limit, burstMultiplier)
-
+// AnonymousRateLimitMiddleware adds a rate.Limiter to the context of anonymous
+// requests, first ensuring the client is allowed to perform a single event and
+// responding with 429 Too Many Requests if it is not.
+//
+// This middleware must be wrapped by AuthorizationMiddleware, as it depends on
+// the value of c.AuthResult.Anonymous.
+func AnonymousRateLimitMiddleware(store *ratelimit.Store) Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			c.RateLimiter = store.ForIP(c.Request)
+			if c.AuthResult.Anonymous {
+				limiter := store.ForIP(c.SourceIP)
+				if !limiter.Allow() {
+					c.Result.SetWithError(
+						request.IDResponseErrorsRateLimit,
+						ratelimit.ErrRateLimitExceeded,
+					)
+					c.Write()
+					return
+				}
+				ctx := c.Request.Context()
+				ctx = ratelimit.ContextWithLimiter(ctx, limiter)
+				c.Request = c.Request.WithContext(ctx)
+			}
 			h(c)
-		}, err
+		}, nil
 	}
 }
