@@ -117,7 +117,7 @@ func NewServer(tb testing.TB, args ...string) *Server {
 func NewUnstartedServer(tb testing.TB, args ...string) *Server {
 	return &Server{
 		Config:              DefaultConfig(),
-		EventMetadataFilter: defaultMetadataFilter{},
+		EventMetadataFilter: DefaultMetadataFilter{},
 		tb:                  tb,
 		args:                args,
 	}
@@ -469,10 +469,7 @@ func (s *Server) Tracer() *apm.Tracer {
 
 	var transport transport.Transport = httpTransport
 	if s.EventMetadataFilter != nil {
-		transport = &filteringTransport{
-			HTTPTransport: httpTransport,
-			filter:        s.EventMetadataFilter,
-		}
+		transport = NewFilteringTransport(httpTransport, s.EventMetadataFilter)
 	}
 	tracer, err := apm.NewTracerOptions(apm.TracerOptions{Transport: transport})
 	if err != nil {
