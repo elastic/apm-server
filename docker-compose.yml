@@ -106,6 +106,7 @@ services:
       KIBANA_PASSWORD: "${ES_SUPERUSER_PASS:-changeme}"
     depends_on:
       elasticsearch: { condition: service_healthy }
+      kibana: { condition: service_healthy }
     volumes:
       - "./testing/docker/fleet-server/certificate.pem:/etc/pki/tls/certs/fleet-server.pem"
       - "./testing/docker/fleet-server/key.pem:/etc/pki/tls/private/fleet-server-key.pem"
