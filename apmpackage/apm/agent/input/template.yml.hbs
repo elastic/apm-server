@@ -13,7 +13,6 @@ apm-server:
     read_timeout: {{read_timeout}}
     response_headers: {{response_headers}}
     rum:
-        enabled: {{enable_rum}}
         allow_headers:
         {{#each rum_allow_headers}}
           - {{this}}
