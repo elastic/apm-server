@@ -24,8 +24,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/time/rate"
-
 	"go.elastic.co/apm"
 
 	"github.com/pkg/errors"
@@ -36,19 +34,14 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/rumv3"
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
-	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/utility"
 )
 
 var (
-	ErrUnrecognizedObject = errors.New("did not recognize object type")
-
-	ErrRateLimitExceeded = errors.New("rate limit exceeded")
+	errUnrecognizedObject = errors.New("did not recognize object type")
 )
 
 const (
-	batchSize = 10
-
 	errorEventType            = "error"
 	metricsetEventType        = "metricset"
 	spanEventType             = "span"
@@ -61,12 +54,11 @@ const (
 type decodeMetadataFunc func(decoder.Decoder, *model.Metadata) error
 
 type Processor struct {
-	Mconfig             modeldecoder.Config
-	MaxEventSize        int
-	streamReaderPool    sync.Pool
-	decodeMetadata      decodeMetadataFunc
-	isRUM               bool
-	allowedServiceNames map[string]bool
+	Mconfig          modeldecoder.Config
+	MaxEventSize     int
+	streamReaderPool sync.Pool
+	decodeMetadata   decodeMetadataFunc
+	isRUM            bool
 }
 
 func BackendProcessor(cfg *config.Config) *Processor {
@@ -80,33 +72,20 @@ func BackendProcessor(cfg *config.Config) *Processor {
 
 func RUMV2Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:             modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
-		MaxEventSize:        cfg.MaxEventSize,
-		decodeMetadata:      v2.DecodeNestedMetadata,
-		isRUM:               true,
-		allowedServiceNames: makeAllowedServiceNamesMap(cfg.RumConfig.AllowServiceNames),
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize:   cfg.MaxEventSize,
+		decodeMetadata: v2.DecodeNestedMetadata,
+		isRUM:          true,
 	}
 }
 
 func RUMV3Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:             modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
-		MaxEventSize:        cfg.MaxEventSize,
-		decodeMetadata:      rumv3.DecodeNestedMetadata,
-		isRUM:               true,
-		allowedServiceNames: makeAllowedServiceNamesMap(cfg.RumConfig.AllowServiceNames),
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize:   cfg.MaxEventSize,
+		decodeMetadata: rumv3.DecodeNestedMetadata,
+		isRUM:          true,
 	}
-}
-
-func makeAllowedServiceNamesMap(allowed []string) map[string]bool {
-	if len(allowed) == 0 {
-		return nil
-	}
-	m := make(map[string]bool, len(allowed))
-	for _, name := range allowed {
-		m[name] = true
-	}
-	return m
 }
 
 func (p *Processor) readMetadata(reader *streamReader, metadata *model.Metadata) error {
@@ -129,17 +108,13 @@ func (p *Processor) readMetadata(reader *streamReader, metadata *model.Metadata)
 	return nil
 }
 
-// IdentifyEventType takes a reader and reads ahead the first key of the
+// identifyEventType takes a reader and reads ahead the first key of the
 // underlying json input. This method makes some assumptions met by the
 // input format:
 // - the input is in JSON format
 // - every valid ndjson line only has one root key
 // - the bytes that we must match on are ASCII
-//
-// NOTE(axw) this method really should not be exported, but it has to be
-// for package_test. When we migrate that code to system tests, unexport
-// this method.
-func (p *Processor) IdentifyEventType(body []byte) []byte {
+func (p *Processor) identifyEventType(body []byte) []byte {
 	// find event type, trim spaces and account for single and double quotes
 	var quote byte
 	var key []byte
@@ -163,7 +138,6 @@ func (p *Processor) IdentifyEventType(body []byte) []byte {
 // the error err.
 func (p *Processor) readBatch(
 	ctx context.Context,
-	ipRateLimiter *rate.Limiter,
 	requestTime time.Time,
 	streamMetadata *model.Metadata,
 	batchSize int,
@@ -171,19 +145,6 @@ func (p *Processor) readBatch(
 	reader *streamReader,
 	result *Result,
 ) (int, error) {
-
-	if ipRateLimiter != nil {
-		// TODO(axw) move this logic somewhere central, so it
-		// can be used by processor/otel too.
-		//
-		// use provided rate limiter to throttle batch read
-		ctxT, cancel := context.WithTimeout(ctx, time.Second)
-		err := ipRateLimiter.WaitN(ctxT, batchSize)
-		cancel()
-		if err != nil {
-			return 0, ErrRateLimitExceeded
-		}
-	}
 
 	// input events are decoded and appended to the batch
 	var n int
@@ -208,7 +169,7 @@ func (p *Processor) readBatch(
 			Metadata:    *streamMetadata,
 			Config:      p.Mconfig,
 		}
-		switch eventType := p.IdentifyEventType(body); string(eventType) {
+		switch eventType := p.identifyEventType(body); string(eventType) {
 		case errorEventType:
 			var event model.Error
 			err := v2.DecodeNestedError(reader, &input, &event)
@@ -275,7 +236,7 @@ func (p *Processor) readBatch(
 			n += 1 + len(event.Metricsets) + len(event.Spans)
 		default:
 			result.LimitedAdd(&InvalidInputError{
-				Message:  errors.Wrap(ErrUnrecognizedObject, string(eventType)).Error(),
+				Message:  errors.Wrap(errUnrecognizedObject, string(eventType)).Error(),
 				Document: string(reader.LatestLine()),
 			})
 			continue
@@ -298,8 +259,8 @@ func handleDecodeErr(err error, r *streamReader, result *Result) bool {
 	return true
 }
 
-// HandleStream processes a stream of events, updating result as events are
-// accepted, or per-event errors occur.
+// HandleStream processes a stream of events in batches of batchSize at a time,
+// updating result as events are accepted, or per-event errors occur.
 //
 // HandleStream will return an error when a terminal stream-level error occurs,
 // such as the rate limit being exceeded, or due to authorization errors. In
@@ -308,9 +269,9 @@ func handleDecodeErr(err error, r *streamReader, result *Result) bool {
 // Callers must not access result concurrently with HandleStream.
 func (p *Processor) HandleStream(
 	ctx context.Context,
-	ipRateLimiter *rate.Limiter,
 	meta *model.Metadata,
 	reader io.Reader,
+	batchSize int,
 	processor model.BatchProcessor,
 	result *Result,
 ) error {
@@ -323,10 +284,6 @@ func (p *Processor) HandleStream(
 		return err
 	}
 
-	var allowedServiceNamesProcessor model.BatchProcessor = modelprocessor.Nop{}
-	if p.allowedServiceNames != nil {
-		allowedServiceNamesProcessor = modelprocessor.MetadataProcessorFunc(p.restrictAllowedServiceNames)
-	}
 	requestTime := utility.RequestTime(ctx)
 
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
@@ -334,11 +291,8 @@ func (p *Processor) HandleStream(
 
 	for {
 		var batch model.Batch
-		n, readErr := p.readBatch(ctx, ipRateLimiter, requestTime, meta, batchSize, &batch, sr, result)
+		n, readErr := p.readBatch(ctx, requestTime, meta, batchSize, &batch, sr, result)
 		if n > 0 {
-			if err := allowedServiceNamesProcessor.ProcessBatch(ctx, &batch); err != nil {
-				return err
-			}
 			// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
 			// the slice memory. We should investigate alternative interfaces between the
 			// processor and publisher which would enable better memory reuse, e.g. by using
@@ -353,18 +307,6 @@ func (p *Processor) HandleStream(
 			break
 		} else if readErr != nil {
 			return readErr
-		}
-	}
-	return nil
-}
-
-func (p *Processor) restrictAllowedServiceNames(ctx context.Context, meta *model.Metadata) error {
-	// Restrict to explicitly allowed service names. The list of
-	// allowed service names is not considered secret, so we do
-	// not use constant time comparison.
-	if !p.allowedServiceNames[meta.Service.Name] {
-		return &InvalidInputError{
-			Message: "service name is not allowed",
 		}
 	}
 	return nil

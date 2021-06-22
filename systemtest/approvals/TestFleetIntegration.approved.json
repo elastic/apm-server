@@ -13,12 +13,14 @@
                 "version": "dynamic"
             },
             "event": {
+                "agent_id_status": "untrusted_user",
+                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
                 "architecture": "i386",
                 "hostname": "beowulf",
-                "ip": "127.0.0.1",
+                "ip": "10.11.12.13",
                 "name": "beowulf",
                 "os": {
                     "platform": "minix"

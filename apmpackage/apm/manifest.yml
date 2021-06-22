@@ -71,7 +71,7 @@ policy_templates:
             description: Enable Real User Monitoring (RUM).
             required: true
             show_user: true
-            default: false
+            default: true
           - name: default_service_environment
             type: text
             title: Default Service Environment
@@ -112,14 +112,14 @@ policy_templates:
             description: Maximum number of events allowed per IP per second.
             required: false
             show_user: false
-            default: 300
+            default: 10
           - name: rum_event_rate_lru_size
             type: integer
             title: RUM - Rate limit cache size
             description: Number of unique IPs to be cached for the rate limiter.
             required: false
             show_user: false
-            default: 1000
+            default: 10000
           - name: sourcemap_api_key
             type: text
             title: RUM - API Key for Sourcemaps
@@ -146,6 +146,93 @@ policy_templates:
             required: false
             show_user: false
             default: true
+          - name: max_header_bytes
+            type: integer
+            title: Maximum size of a request's header (bytes)
+            required: false
+            show_user: false
+            default: 1048576
+          - name: idle_timeout
+            type: text
+            title: Idle time before underlying connection is closed
+            required: false
+            show_user: false
+            default: "45s"
+          - name: read_timeout
+            type: text
+            title: Maximum duration for reading an entire request
+            required: false
+            show_user: false
+            default: "3600s"
+          - name: shutdown_timeout
+            type: text
+            title: Maximum duration before releasing resources when shutting down
+            required: false
+            show_user: false
+            default: "30s"
+          - name: write_timeout
+            type: text
+            title: Maximum duration for writing a response
+            required: false
+            show_user: false
+            default: "30s"
+          - name: max_connections
+            type: integer
+            title: Simultaneously accepted connections
+            description: 0 for unlimited
+            required: false
+            show_user: false
+            default: 0
+          - name: response_headers
+            type: yaml
+            title: Custom HTTP headers added to HTTP responses
+            description: Might be used for security policy compliance.
+            required: false
+            show_user: false
+          - name: expvar_enabled
+            type: bool
+            title: Enable APM Server Golang expvar support
+            description: exposed under /debug/vars
+            required: false
+            show_user: false
+            default: false
+          - name: tls_enabled
+            type: bool
+            title: Enable TLS
+            required: false
+            show_user: false
+            default: false
+          - name: tls_certificate
+            type: text
+            title: File path to server certificate
+            description: Required when TLS is enabled.
+            required: false
+            show_user: false
+          - name: tls_key
+            type: text
+            title: File path to server certificate key
+            description: Required when TLS is enabled.
+            required: false
+            show_user: false
+          - name: tls_supported_protocols
+            type: text
+            multi: true
+            title: Supported protocol versions
+            required: false
+            show_user: false
+          - name: tls_cipher_suites
+            type: text
+            multi: true
+            title: Cipher suites for TLS connections.
+            description: Not configurable for TLS 1.3.
+            required: false
+            show_user: false
+          - name: tls_curve_types
+            type: text
+            multi: true
+            title: Curve types for ECDHE based cipher suites
+            required: false
+            show_user: false
         template_path: template.yml.hbs
 owner:
   github: elastic/apm-server
