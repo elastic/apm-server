@@ -32,7 +32,7 @@ import (
 
 // TODO: Get this value from Oliver
 // https://github.com/elastic/kibana/issues/100657
-const kibanaConfigUploadPath = "/apm/settings/schema"
+const kibanaConfigUploadPath = "/apm/fleet/apm_server_settings"
 
 // SendConfig marshals and uploads the provided config to kibana using the
 // provided ConnectingClient. It retries until its context has been canceled or
