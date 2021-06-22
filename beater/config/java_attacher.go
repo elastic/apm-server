@@ -17,23 +17,42 @@
 
 package config
 
+import "fmt"
+
 // JavaAttacherConfig holds configuration information for running a java
 // attacher jarfile.
 type JavaAttacherConfig struct {
-	Enabled bool `config:"enabled"`
+	Enabled        bool                `config:"enabled"`
+	DiscoveryRules []map[string]string `config:"discovery_rules"`
+	Config         map[string]string   `config:"config"`
+}
 
-	IncludeAll bool     `config:"include_all"`
-	IncludePID []string `config:"include_pid"`
+func (j JavaAttacherConfig) setup() error {
+	if !j.Enabled {
+		return nil
+	}
+	for _, rule := range j.DiscoveryRules {
+		if len(rule) != 1 {
+			return fmt.Errorf("unexpected discovery rule format: %v", rule)
+		}
+		for flag := range rule {
+			if _, ok := allowlist[flag]; !ok {
+				return fmt.Errorf("unrecognized discovery rule: %s", rule)
+			}
+		}
+	}
+	return nil
+}
 
-	IncludeMain  []string `config:"include_main"`
-	IncludeVMArg []string `config:"include_vmarg"`
-	IncludeUser  []string `config:"include_user"`
-
-	ExcludeMain  []string `config:"exclude_main"`
-	ExcludeVMArg []string `config:"exclude_vmarg"`
-	ExcludeUser  []string `config:"exclude_user"`
-
-	Config map[string]string `config:"config"`
+var allowlist = map[string]struct{}{
+	"include-all":   {},
+	"include-pid":   {},
+	"include-main":  {},
+	"include-vmarg": {},
+	"include-user":  {},
+	"exclude-main":  {},
+	"exclude-vmarg": {},
+	"exclude-user":  {},
 }
 
 func defaultJavaAttacherConfig() JavaAttacherConfig {
