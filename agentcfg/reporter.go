@@ -71,7 +71,6 @@ func (r Reporter) Run(ctx context.Context) error {
 		case <-t.C:
 		}
 		batch := new(model.Batch)
-		now := time.Now()
 		for etag := range applied {
 			var m *model.Metricset
 			m.Labels["etag"] = etag
