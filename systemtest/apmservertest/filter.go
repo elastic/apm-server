@@ -29,7 +29,7 @@ import (
 	"go.elastic.co/fastjson"
 )
 
-// TODO(axw) move EventMetadata and filteringTransport to go.elastic.co/apmtest,
+// TODO(axw) move EventMetadata and FilteringTransport to go.elastic.co/apmtest,
 // generalising filteringTransport to work with arbitrary base transports. To do
 // that we would need to dynamically check for optional interfaces supported by
 // the base transport, and create passthrough methods.
@@ -47,14 +47,22 @@ type EventMetadataFilter interface {
 	FilterEventMetadata(*EventMetadata)
 }
 
-type filteringTransport struct {
+// FilteringTransport is a transport for the APM Go agent which modifies events
+// prior to sending them to the underlying transport.
+type FilteringTransport struct {
 	*transport.HTTPTransport
 	filter EventMetadataFilter
 }
 
+// NewFilteringTransport returns a new FilteringTransport that filters events
+// using f, and sends them on to h.
+func NewFilteringTransport(h *transport.HTTPTransport, f EventMetadataFilter) *FilteringTransport {
+	return &FilteringTransport{h, f}
+}
+
 // SendStream decodes metadata from reader, passes it through the filters,
 // and then sends the modified stream to the underlying transport.
-func (t *filteringTransport) SendStream(ctx context.Context, stream io.Reader) error {
+func (t *FilteringTransport) SendStream(ctx context.Context, stream io.Reader) error {
 	zr, err := zlib.NewReader(stream)
 	if err != nil {
 		return err
@@ -98,9 +106,12 @@ func (t *filteringTransport) SendStream(ctx context.Context, stream io.Reader) e
 	return t.HTTPTransport.SendStream(ctx, &buf)
 }
 
-type defaultMetadataFilter struct{}
+// DefaultMetadataFilter implements EventMetadataFilter, setting some default values
+// for fields that would otherwise by dynamically discovered.
+type DefaultMetadataFilter struct{}
 
-func (defaultMetadataFilter) FilterEventMetadata(m *EventMetadata) {
+// FilterEventMetadata updates m with default values for dynamically discovered fields.
+func (DefaultMetadataFilter) FilterEventMetadata(m *EventMetadata) {
 	m.System.Platform = "minix"
 	m.System.Architecture = "i386"
 	m.System.Container = nil
