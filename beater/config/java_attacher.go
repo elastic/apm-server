@@ -33,7 +33,7 @@ type JavaAttacherConfig struct {
 	ExcludeVMArg []string `config:"exclude_vmarg"`
 	ExcludeUser  []string `config:"exclude_user"`
 
-	Config []string `config:"config"`
+	Config map[string]string `config:"config"`
 }
 
 func defaultJavaAttacherConfig() JavaAttacherConfig {
