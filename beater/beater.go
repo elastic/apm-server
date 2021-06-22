@@ -622,34 +622,32 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config, fleetCfg *config
 }
 
 func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping, fleetCfg *config.Fleet) (*sourcemap.Store, error) {
-	if fleetmode.Enabled() {
+	if fleetCfg != nil {
 		var (
 			c  = *http.DefaultClient
 			rt = http.DefaultTransport
 		)
-		if fleetCfg != nil {
-			var tlsConfig *tlscommon.TLSConfig
-			var err error
-			if fleetCfg.TLS.IsEnabled() {
-				if tlsConfig, err = tlscommon.LoadTLSConfig(fleetCfg.TLS); err != nil {
-					return nil, err
-				}
-			}
-
-			// Default for es is 90s :shrug:
-			timeout := 30 * time.Second
-			dialer := transport.NetDialer(timeout)
-			tlsDialer, err := transport.TLSDialer(dialer, tlsConfig, timeout)
-			if err != nil {
+		var tlsConfig *tlscommon.TLSConfig
+		var err error
+		if fleetCfg.TLS.IsEnabled() {
+			if tlsConfig, err = tlscommon.LoadTLSConfig(fleetCfg.TLS); err != nil {
 				return nil, err
 			}
+		}
 
-			rt = &http.Transport{
-				Proxy:           http.ProxyFromEnvironment,
-				Dial:            dialer.Dial,
-				DialTLS:         tlsDialer.Dial,
-				TLSClientConfig: tlsConfig.ToConfig(),
-			}
+		// Default for es is 90s :shrug:
+		timeout := 30 * time.Second
+		dialer := transport.NetDialer(timeout)
+		tlsDialer, err := transport.TLSDialer(dialer, tlsConfig, timeout)
+		if err != nil {
+			return nil, err
+		}
+
+		rt = &http.Transport{
+			Proxy:           http.ProxyFromEnvironment,
+			Dial:            dialer.Dial,
+			DialTLS:         tlsDialer.Dial,
+			TLSClientConfig: tlsConfig.ToConfig(),
 		}
 
 		c.Transport = apmhttp.WrapRoundTripper(rt)
