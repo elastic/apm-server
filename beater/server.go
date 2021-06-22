@@ -132,7 +132,7 @@ func newServer(
 	if err != nil {
 		return server{}, err
 	}
-	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig, fetchReporter)
+	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig, fetchReporter, ratelimitStore)
 	if err != nil {
 		return server{}, err
 	}
