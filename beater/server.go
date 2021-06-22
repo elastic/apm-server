@@ -21,6 +21,7 @@ import (
 	"context"
 	"crypto/tls"
 	"net/http"
+	"time"
 
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmgrpc"
@@ -119,7 +120,7 @@ func newServer(
 	reporter publish.Reporter,
 	batchProcessor model.BatchProcessor,
 ) (server, error) {
-	fetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor)
+	fetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor, 30*time.Second)
 	ratelimitStore, err := ratelimit.NewStore(
 		cfg.RumConfig.EventRate.LruSize,
 		cfg.RumConfig.EventRate.Limit,
