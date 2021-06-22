@@ -22,18 +22,22 @@ import (
 	"time"
 
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 type Reporter struct {
 	f       Fetcher
 	p       model.BatchProcessor
+	logger  *logp.Logger
 	resultc chan Result
 }
 
 func NewReporter(f Fetcher, batchProcessor model.BatchProcessor) Reporter {
+	logger := logp.NewLogger("agentcfg")
 	return Reporter{
 		f:       f,
 		p:       batchProcessor,
+		logger:  logger,
 		resultc: make(chan Result),
 	}
 }
@@ -73,7 +77,13 @@ func (r Reporter) Run(ctx context.Context) error {
 			m.Timestamp = now
 			batch.Metricsets = append(batch.Metricsets, m)
 		}
-		// TODO: Log error?
-		r.p.ProcessBatch(ctx, batch)
+		// Reset applied map, so that we report only configs applied
+		// during a given iteration.
+		applied = make(map[string]struct{})
+		go func() {
+			if err := r.p.ProcessBatch(ctx, batch); err != nil {
+				r.logger.Errorf("error sending applied agent configs to kibana: %v", err)
+			}
+		}()
 	}
 }
