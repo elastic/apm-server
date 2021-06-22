@@ -31,16 +31,18 @@ import (
 
 func TestFleetFetch(t *testing.T) {
 	var (
-		hasAuth bool
-		apikey  = "supersecret"
-		name    = "webapp"
-		version = "1.0.0"
-		path    = "/my/path/to/bundle.js.map"
-		wantRes = "sourcemap response"
-		c       = http.DefaultClient
+		hasAuth       bool
+		apikey        = "supersecret"
+		name          = "webapp"
+		version       = "1.0.0"
+		path          = "/my/path/to/bundle.js.map"
+		wantRes       = "sourcemap response"
+		c             = http.DefaultClient
+		sourceMapPath = "/api/fleet/artifact"
 	)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, sourceMapPath, r.URL.Path)
 		auth := r.Header.Get("Authorization")
 		hasAuth = auth == "ApiKey "+apikey
 		// zlib compress
@@ -62,7 +64,7 @@ func TestFleetFetch(t *testing.T) {
 			ServiceName:    name,
 			ServiceVersion: version,
 			BundleFilepath: path,
-			SourceMapURL:   "/",
+			SourceMapURL:   sourceMapPath,
 		},
 	}
 	fb, err := newFleetStore(c, fleetCfg, cfgs)
