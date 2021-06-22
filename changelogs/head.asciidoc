@@ -32,6 +32,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Introduce `apm-server.auth.*` config {pull}5457[5457]
 * Add debug logging of OpenTelemetry payloads {pull}5474[5474]
 * Add support for more input variables in fleet integration {pull}5444[5444]
+* Server sends its raw config to kibana when running on ECE/ESS {pull}5424[5424]
 
 [float]
 ==== Deprecated
