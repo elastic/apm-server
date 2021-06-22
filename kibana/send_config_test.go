@@ -43,7 +43,7 @@ func TestFlatten(t *testing.T) {
 		if strings.HasPrefix(k, "apm-server.ssl.") {
 			switch k[15:] {
 			case "enabled", "certificate", "key":
-				tlsFieldsCount += 1
+				tlsFieldsCount++
 			default:
 				assert.Fail(t, fmt.Sprintf("should not be present: %s", k))
 			}
