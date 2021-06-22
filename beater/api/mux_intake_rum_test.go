@@ -29,6 +29,7 @@ import (
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/intake"
+	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/middleware"
@@ -36,6 +37,7 @@ import (
 )
 
 func TestOPTIONS(t *testing.T) {
+	ratelimitStore, _ := ratelimit.NewStore(1, 1, 1)
 	requestTaken := make(chan struct{}, 1)
 	done := make(chan struct{}, 1)
 
@@ -46,7 +48,7 @@ func TestOPTIONS(t *testing.T) {
 			requestTaken <- struct{}{}
 			<-done
 		},
-		rumMiddleware(cfg, nil, intake.MonitoringMap)...)
+		rumMiddleware(cfg, nil, ratelimitStore, intake.MonitoringMap)...)
 
 	// use this to block the single allowed concurrent requests
 	go func() {

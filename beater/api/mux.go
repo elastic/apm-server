@@ -31,6 +31,7 @@ import (
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/api/intake"
 	"github.com/elastic/apm-server/beater/api/profile"
+	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/beater/api/root"
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
@@ -68,6 +69,13 @@ const (
 	IntakeRUMV3Path = "/intake/v3/rum/events"
 )
 
+var (
+	// rumAgents holds the current and previous agent names for the
+	// RUM JavaScript agent. This is used for restricting which config
+	// is supplied to anonymous agents.
+	rumAgents = []string{"rum-js", "js-base"}
+)
+
 // NewMux registers apm handlers to paths building up the APM Server API.
 func NewMux(
 	beatInfo beat.Info,
@@ -75,6 +83,7 @@ func NewMux(
 	report publish.Reporter,
 	batchProcessor model.BatchProcessor,
 	fetcher agentcfg.Fetcher,
+	ratelimitStore *ratelimit.Store,
 ) (*http.ServeMux, error) {
 	pool := request.NewContextPool()
 	mux := http.NewServeMux()
@@ -91,6 +100,7 @@ func NewMux(
 		authBuilder:    auth,
 		reporter:       report,
 		batchProcessor: batchProcessor,
+		ratelimitStore: ratelimitStore,
 	}
 
 	type route struct {
@@ -140,33 +150,46 @@ type routeBuilder struct {
 	authBuilder    *authorization.Builder
 	reporter       publish.Reporter
 	batchProcessor model.BatchProcessor
+	ratelimitStore *ratelimit.Store
 }
 
 func (r *routeBuilder) profileHandler() (request.Handler, error) {
-	h := profile.Handler(r.batchProcessor)
+	requestMetadataFunc := emptyRequestMetadata
+	if r.cfg.AugmentEnabled {
+		requestMetadataFunc = backendRequestMetadata
+	}
+	h := profile.Handler(requestMetadataFunc, r.batchProcessor)
 	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
-	return middleware.Wrap(h, backendMiddleware(r.cfg, authHandler, profile.MonitoringMap)...)
+	return middleware.Wrap(h, backendMiddleware(r.cfg, authHandler, r.ratelimitStore, profile.MonitoringMap)...)
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
-	h := intake.Handler(stream.BackendProcessor(r.cfg), r.batchProcessor)
+	requestMetadataFunc := emptyRequestMetadata
+	if r.cfg.AugmentEnabled {
+		requestMetadataFunc = backendRequestMetadata
+	}
+	h := intake.Handler(stream.BackendProcessor(r.cfg), requestMetadataFunc, r.batchProcessor)
 	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
-	return middleware.Wrap(h, backendMiddleware(r.cfg, authHandler, intake.MonitoringMap)...)
+	return middleware.Wrap(h, backendMiddleware(r.cfg, authHandler, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
 func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *stream.Processor) func() (request.Handler, error) {
+	requestMetadataFunc := emptyRequestMetadata
+	if r.cfg.AugmentEnabled {
+		requestMetadataFunc = rumRequestMetadata
+	}
 	return func() (request.Handler, error) {
 		batchProcessor := r.batchProcessor
 		batchProcessor = batchProcessorWithAllowedServiceNames(batchProcessor, r.cfg.RumConfig.AllowServiceNames)
-		h := intake.Handler(newProcessor(r.cfg), batchProcessor)
-		return middleware.Wrap(h, rumMiddleware(r.cfg, nil, intake.MonitoringMap)...)
+		h := intake.Handler(newProcessor(r.cfg), requestMetadataFunc, batchProcessor)
+		return middleware.Wrap(h, rumMiddleware(r.cfg, nil, r.ratelimitStore, intake.MonitoringMap)...)
 	}
 }
 
 func (r *routeBuilder) sourcemapHandler() (request.Handler, error) {
 	h := sourcemap.Handler(r.reporter)
 	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeSourcemapWrite.Action)
-	return middleware.Wrap(h, sourcemapMiddleware(r.cfg, authHandler)...)
+	return middleware.Wrap(h, sourcemapMiddleware(r.cfg, authHandler, r.ratelimitStore)...)
 }
 
 func (r *routeBuilder) rootHandler() (request.Handler, error) {
@@ -177,26 +200,27 @@ func (r *routeBuilder) rootHandler() (request.Handler, error) {
 func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
-		return agentConfigHandler(r.cfg, authHandler, backendMiddleware, f)
+		return agentConfigHandler(r.cfg, authHandler, r.ratelimitStore, backendMiddleware, f)
 	}
 }
 
 func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		return agentConfigHandler(r.cfg, nil, rumMiddleware, f)
+		return agentConfigHandler(r.cfg, nil, r.ratelimitStore, rumMiddleware, f)
 	}
 }
 
-type middlewareFunc func(*config.Config, *authorization.Handler, map[request.ResultID]*monitoring.Int) []middleware.Middleware
+type middlewareFunc func(*config.Config, *authorization.Handler, *ratelimit.Store, map[request.ResultID]*monitoring.Int) []middleware.Middleware
 
 func agentConfigHandler(
 	cfg *config.Config,
 	authHandler *authorization.Handler,
+	ratelimitStore *ratelimit.Store,
 	middlewareFunc middlewareFunc,
 	f agentcfg.Fetcher,
 ) (request.Handler, error) {
-	mw := middlewareFunc(cfg, authHandler, agent.MonitoringMap)
-	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment)
+	mw := middlewareFunc(cfg, authHandler, ratelimitStore, agent.MonitoringMap)
+	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment, rumAgents)
 
 	if !cfg.Kibana.Enabled && cfg.AgentConfigs == nil {
 		msg := "Agent remote configuration is disabled. " +
@@ -219,37 +243,30 @@ func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middlewa
 	}
 }
 
-func backendMiddleware(cfg *config.Config, auth *authorization.Handler, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+func backendMiddleware(cfg *config.Config, auth *authorization.Handler, ratelimitStore *ratelimit.Store, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
 	backendMiddleware := append(apmMiddleware(m),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthorizationMiddleware(auth, true),
+		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
 	)
-	if cfg.AugmentEnabled {
-		backendMiddleware = append(backendMiddleware, middleware.SystemMetadataMiddleware())
-	}
 	return backendMiddleware
 }
 
-func rumMiddleware(cfg *config.Config, _ *authorization.Handler, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+func rumMiddleware(cfg *config.Config, auth *authorization.Handler, ratelimitStore *ratelimit.Store, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
 	msg := "RUM endpoint is disabled. " +
 		"Configure the `apm-server.rum` section in apm-server.yml to enable ingestion of RUM events. " +
 		"If you are not using the RUM agent, you can safely ignore this error."
 	rumMiddleware := append(apmMiddleware(m),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.ResponseHeadersMiddleware(cfg.RumConfig.ResponseHeaders),
-		middleware.SetRumFlagMiddleware(),
-		middleware.SetIPRateLimitMiddleware(cfg.RumConfig.EventRate),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins, cfg.RumConfig.AllowHeaders),
 		middleware.AnonymousAuthorizationMiddleware(),
-		middleware.KillSwitchMiddleware(cfg.RumConfig.Enabled, msg),
+		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
 	)
-	if cfg.AugmentEnabled {
-		rumMiddleware = append(rumMiddleware, middleware.UserMetadataMiddleware())
-	}
-	return rumMiddleware
+	return append(rumMiddleware, middleware.KillSwitchMiddleware(cfg.RumConfig.Enabled, msg))
 }
 
-func sourcemapMiddleware(cfg *config.Config, auth *authorization.Handler) []middleware.Middleware {
+func sourcemapMiddleware(cfg *config.Config, auth *authorization.Handler, ratelimitStore *ratelimit.Store) []middleware.Middleware {
 	msg := "Sourcemap upload endpoint is disabled. " +
 		"Configure the `apm-server.rum` section in apm-server.yml to enable sourcemap uploads. " +
 		"If you are not using the RUM agent, you can safely ignore this error."
@@ -257,8 +274,8 @@ func sourcemapMiddleware(cfg *config.Config, auth *authorization.Handler) []midd
 		msg = "When APM Server is managed by Fleet, Sourcemaps must be uploaded directly to Elasticsearch."
 	}
 	enabled := cfg.RumConfig.Enabled && cfg.RumConfig.SourceMapping.Enabled && !cfg.DataStreams.Enabled
-	return append(backendMiddleware(cfg, auth, sourcemap.MonitoringMap),
-		middleware.KillSwitchMiddleware(enabled, msg))
+	backendMiddleware := backendMiddleware(cfg, auth, ratelimitStore, sourcemap.MonitoringMap)
+	return append(backendMiddleware, middleware.KillSwitchMiddleware(enabled, msg))
 }
 
 func rootMiddleware(cfg *config.Config, auth *authorization.Handler) []middleware.Middleware {
@@ -287,4 +304,19 @@ func batchProcessorWithAllowedServiceNames(p model.BatchProcessor, allowedServic
 		return nil
 	}
 	return modelprocessor.Chained{restrictServiceName, p}
+}
+
+func emptyRequestMetadata(c *request.Context) model.Metadata {
+	return model.Metadata{}
+}
+
+func backendRequestMetadata(c *request.Context) model.Metadata {
+	return model.Metadata{System: model.System{IP: c.SourceIP}}
+}
+
+func rumRequestMetadata(c *request.Context) model.Metadata {
+	return model.Metadata{
+		Client:    model.Client{IP: c.SourceIP},
+		UserAgent: model.UserAgent{Original: c.UserAgent},
+	}
 }

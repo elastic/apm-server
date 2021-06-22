@@ -65,6 +65,7 @@ func AnonymousAuthorizationMiddleware() Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			auth := authorization.AnonymousAuth{}
+			c.AuthResult = authorization.Result{Authorized: true, Anonymous: true}
 			c.Request = c.Request.WithContext(authorization.ContextWithAuthorization(c.Request.Context(), auth))
 			h(c)
 		}, nil
