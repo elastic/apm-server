@@ -18,7 +18,7 @@
 package ratelimit
 
 import (
-	"net/http"
+	"net"
 	"testing"
 	"time"
 
@@ -38,7 +38,6 @@ func TestCacheInitFails(t *testing.T) {
 		c, err := NewStore(test.size, test.limit, 3)
 		assert.Error(t, err)
 		assert.Nil(t, c)
-		assert.Nil(t, c.ForIP(&http.Request{}))
 	}
 }
 
@@ -50,20 +49,20 @@ func TestCacheEviction(t *testing.T) {
 	require.NoError(t, err)
 
 	// add new limiter
-	rlA := store.acquire("a")
+	rlA := store.ForIP(net.ParseIP("127.0.0.1"))
 	rlA.AllowN(time.Now(), 3)
 
 	// add new limiter
-	rlB := store.acquire("b")
+	rlB := store.ForIP(net.ParseIP("127.0.0.2"))
 	rlB.AllowN(time.Now(), 2)
 
 	// reuse evicted limiter rlA
-	rlC := store.acquire("c")
+	rlC := store.ForIP(net.ParseIP("127.0.0.3"))
 	assert.False(t, rlC.Allow())
 	assert.Equal(t, rlC, store.evictedLimiter)
 
 	// reuse evicted limiter rlB
-	rlD := store.acquire("a")
+	rlD := store.ForIP(net.ParseIP("127.0.0.1"))
 	assert.True(t, rlD.Allow())
 	assert.False(t, rlD.Allow())
 	assert.Equal(t, rlD, store.evictedLimiter)
@@ -77,22 +76,6 @@ func TestCacheEviction(t *testing.T) {
 func TestCacheOk(t *testing.T) {
 	store, err := NewStore(1, 1, 1)
 	require.NoError(t, err)
-	limiter := store.acquire("a")
+	limiter := store.ForIP(net.ParseIP("127.0.0.1"))
 	assert.NotNil(t, limiter)
-}
-
-func TestRateLimitPerIP(t *testing.T) {
-	store, err := NewStore(2, 1, 1)
-	require.NoError(t, err)
-
-	var reqFrom = func(ip string) *http.Request {
-		r := http.Request{}
-		r.Header = http.Header{}
-		r.Header.Set("X-Real-Ip", ip)
-		return &r
-	}
-	assert.True(t, store.ForIP(reqFrom("10.10.10.1")).Allow())
-	assert.False(t, store.ForIP(reqFrom("10.10.10.1")).Allow())
-	assert.True(t, store.ForIP(reqFrom("10.10.10.2")).Allow())
-	assert.False(t, store.ForIP(reqFrom("10.10.10.3")).Allow())
 }

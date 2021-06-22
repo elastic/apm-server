@@ -239,6 +239,17 @@ func (c *Client) Package(name, version string) (*Package, error) {
 	return &result.Response, nil
 }
 
+// DeletePackage deletes (uninstalls) the package with the given name and version.
+func (c *Client) DeletePackage(name, version string) error {
+	req := c.newFleetRequest("DELETE", "/epm/packages/"+name+"-"+version, nil)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return consumeResponse(resp, nil)
+}
+
 // PackagePolicy returns information about the package policy with the given ID.
 func (c *Client) PackagePolicy(id string) (*PackagePolicy, error) {
 	resp, err := http.Get(c.fleetURL + "/package_policies/" + id)

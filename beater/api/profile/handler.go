@@ -55,8 +55,13 @@ const (
 	profileContentLengthLimit  = 10 * 1024 * 1024
 )
 
+// RequestMetadataFunc is a function type supplied to Handler for extracting
+// metadata from the request. This is used for conditionally injecting the
+// source IP address as `client.ip` for RUM.
+type RequestMetadataFunc func(*request.Context) model.Metadata
+
 // Handler returns a request.Handler for managing profile requests.
-func Handler(processor model.BatchProcessor) request.Handler {
+func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProcessor) request.Handler {
 	handle := func(c *request.Context) (*result, error) {
 		if c.Request.Method != http.MethodPost {
 			return nil, requestError{
@@ -68,14 +73,6 @@ func Handler(processor model.BatchProcessor) request.Handler {
 			return nil, requestError{
 				id:  request.IDResponseErrorsValidate,
 				err: err,
-			}
-		}
-
-		ok := c.RateLimiter == nil || c.RateLimiter.Allow()
-		if !ok {
-			return nil, requestError{
-				id:  request.IDResponseErrorsRateLimit,
-				err: errors.New("rate limit exceeded"),
 			}
 		}
 
@@ -104,10 +101,7 @@ func Handler(processor model.BatchProcessor) request.Handler {
 				}
 				r := &decoder.LimitedReader{R: part, N: metadataContentLengthLimit}
 				dec := decoder.NewJSONDecoder(r)
-				metadata := model.Metadata{
-					UserAgent: model.UserAgent{Original: c.RequestMetadata.UserAgent},
-					Client:    model.Client{IP: c.RequestMetadata.ClientIP},
-					System:    model.System{IP: c.RequestMetadata.SystemIP}}
+				metadata := requestMetadataFunc(c)
 				if err := v2.DecodeMetadata(dec, &metadata); err != nil {
 					if r.N < 0 {
 						return nil, requestError{
