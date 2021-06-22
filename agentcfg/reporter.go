@@ -46,7 +46,7 @@ func (r Reporter) Fetch(ctx context.Context, query Query) (Result, error) {
 	result, err := r.f.Fetch(ctx, query)
 	// Only report configs when the query etag == current config etag, or
 	// when the agent indicates it has been applied.
-	if err == nil && (query.Etag == result.Source.Etag || query.MarkAsAppliedByAgent) {
+	if err == nil && (query.Etag == result.Source.Etag || *query.MarkAsAppliedByAgent) {
 		r.resultc <- result
 	}
 
