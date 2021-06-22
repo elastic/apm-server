@@ -33,7 +33,7 @@ additional_third_party_deps = [{
     "version":   "8",
     "url":       "https://catalog.redhat.com/software/containers/ubi8/ubi-minimal/5c359a62bed8bd75a2c3fba8",
     "license":   "Custom;https://www.redhat.com/licenses/EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf",
-    "sourceURL": "https://oss-dependencies.elastic.co/redhat/ubi/ubi-minimal-8-source.tar.gz",
+    "sourceURL": "https://oss-dependencies.elastic.co/red-hat-universal-base-image-minimal/8/ubi-minimal-8-source.tar.gz",
 }]
 
 
