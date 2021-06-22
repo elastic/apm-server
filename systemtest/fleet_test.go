@@ -20,6 +20,7 @@ package systemtest_test
 import (
 	"context"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"testing"
 	"time"
@@ -31,6 +32,7 @@ import (
 	"go.elastic.co/apm/transport"
 
 	"github.com/elastic/apm-server/systemtest"
+	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/fleettest"
 )
 
@@ -83,17 +85,36 @@ func TestFleetIntegration(t *testing.T) {
 	require.NoError(t, err)
 
 	// Elastic Agent has started apm-server. Connect to apm-server and send some data,
-	// and make sure it gets indexed into a data stream.
-	transport, err := transport.NewHTTPTransport()
+	// and make sure it gets indexed into a data stream. We override the transport to
+	// set known metadata.
+	httpTransport, err := transport.NewHTTPTransport()
 	require.NoError(t, err)
-	transport.SetServerURL(&url.URL{Scheme: "http", Host: agent.Addrs["8200"]})
-	tracer, err := apm.NewTracerOptions(apm.TracerOptions{Transport: transport})
+	origTransport := httpTransport.Client.Transport
+	httpTransport.Client.Transport = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		r.Header.Set("X-Real-Ip", "10.11.12.13")
+		return origTransport.RoundTrip(r)
+	})
+	httpTransport.SetServerURL(&url.URL{Scheme: "http", Host: agent.Addrs["8200"]})
+	tracer, err := apm.NewTracerOptions(apm.TracerOptions{
+		Transport: apmservertest.NewFilteringTransport(
+			httpTransport,
+			apmservertest.DefaultMetadataFilter{},
+		),
+	})
 	require.NoError(t, err)
 	defer tracer.Close()
-	tracer.StartTransaction("name", "type").End()
+
+	tx := tracer.StartTransaction("name", "type")
+	tx.Duration = time.Second
+	tx.End()
 	tracer.Flush(nil)
 
-	systemtest.Elasticsearch.ExpectDocs(t, "traces-*", nil)
+	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-*", nil)
+	systemtest.ApproveEvents(
+		t, t.Name(), result.Hits.Hits,
+		"@timestamp", "timestamp.us",
+		"trace.id", "transaction.id",
+	)
 }
 
 func TestFleetPackageNonMultiple(t *testing.T) {
@@ -143,7 +164,16 @@ func initAPMIntegrationPackagePolicyInputs(t *testing.T, packagePolicy *fleettes
 	}
 }
 
-func getAPMIntegrationPackage(t *testing.T, fleet *fleettest.Client) *fleettest.Package {
+func cleanupFleet(t testing.TB, fleet *fleettest.Client) {
+	cleanupFleetPolicies(t, fleet)
+	apmPackage := getAPMIntegrationPackage(t, fleet)
+	if apmPackage.Status == "installed" {
+		err := fleet.DeletePackage(apmPackage.Name, apmPackage.Version)
+		require.NoError(t, err)
+	}
+}
+
+func getAPMIntegrationPackage(t testing.TB, fleet *fleettest.Client) *fleettest.Package {
 	var apmPackage *fleettest.Package
 	packages, err := fleet.ListPackages()
 	require.NoError(t, err)
@@ -161,7 +191,7 @@ func getAPMIntegrationPackage(t *testing.T, fleet *fleettest.Client) *fleettest.
 	panic("unreachable")
 }
 
-func cleanupFleet(t testing.TB, fleet *fleettest.Client) {
+func cleanupFleetPolicies(t testing.TB, fleet *fleettest.Client) {
 	apmAgentPolicies, err := fleet.AgentPolicies("ingest-agent-policies.name:apm_systemtest")
 	require.NoError(t, err)
 	if len(apmAgentPolicies) == 0 {
@@ -186,4 +216,10 @@ func cleanupFleet(t testing.TB, fleet *fleettest.Client) {
 		err := fleet.DeleteAgentPolicy(p.ID)
 		require.NoError(t, err)
 	}
+}
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(r *http.Request) (*http.Response, error) {
+	return f(r)
 }
