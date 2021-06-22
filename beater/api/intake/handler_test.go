@@ -34,6 +34,7 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/approvaltest"
+	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -136,7 +137,7 @@ func TestIntakeHandler(t *testing.T) {
 			tc.setup(t)
 
 			// call handler
-			h := Handler(tc.processor, tc.batchProcessor)
+			h := Handler(tc.processor, emptyRequestMetadata, tc.batchProcessor)
 			h(tc.c)
 
 			require.Equal(t, string(tc.id), string(tc.c.Result.ID))
@@ -190,12 +191,15 @@ func TestRateLimiting(t *testing.T) {
 			var tc testcaseIntakeHandler
 			tc.path = "ratelimit.ndjson"
 			tc.setup(t)
-			tc.c.RateLimiter = test.limiter
+
+			tc.c.Request = tc.c.Request.WithContext(
+				ratelimit.ContextWithLimiter(tc.c.Request.Context(), test.limiter),
+			)
 			if test.preconsumed > 0 {
 				test.limiter.AllowN(time.Now(), test.preconsumed)
 			}
 
-			h := Handler(tc.processor, tc.batchProcessor)
+			h := Handler(tc.processor, emptyRequestMetadata, tc.batchProcessor)
 			h(tc.c)
 
 			if test.expectLimited {
@@ -274,4 +278,8 @@ func compressedRequest(t *testing.T, compressionType string, compressPayload boo
 	req.Header.Set(headers.ContentType, "application/x-ndjson")
 	req.Header.Set(headers.ContentEncoding, compressionType)
 	return req
+}
+
+func emptyRequestMetadata(*request.Context) model.Metadata {
+	return model.Metadata{}
 }
