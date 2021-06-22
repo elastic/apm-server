@@ -162,14 +162,9 @@ func TestFetchTimeout(t *testing.T) {
 		version = "1.0.0"
 		path    = "/my/path/to/bundle.js.map"
 		c       = http.DefaultClient
-		waitc   = make(chan struct{})
 	)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		<-waitc
-		// zlib compress
-		wr := zlib.NewWriter(w)
-		defer wr.Close()
-		wr.Write([]byte(test.ValidSourcemap))
+		<-r.Context().Done()
 	}))
 	defer ts.Close()
 
@@ -196,24 +191,10 @@ func TestFetchTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
 
-	var wg sync.WaitGroup
-	for i := 0; i < 2; i++ {
-		wg.Add(1)
-		go func() {
-			consumer, err := store.Fetch(ctx, name, version, path)
-			if err != nil {
-				assert.True(t, errors.Is(err, context.DeadlineExceeded))
-				atomic.AddInt64(&errs, 1)
-				close(waitc)
-			} else {
-				assert.NotNil(t, consumer)
-			}
+	_, err = store.Fetch(ctx, name, version, path)
+	assert.True(t, errors.Is(err, context.DeadlineExceeded))
+	atomic.AddInt64(&errs, 1)
 
-			wg.Done()
-		}()
-	}
-
-	wg.Wait()
 	assert.Equal(t, int64(1), errs)
 }
 

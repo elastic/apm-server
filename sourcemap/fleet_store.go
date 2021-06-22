@@ -108,7 +108,7 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 	}
 	req.Header.Add("Authorization", f.apikey)
 
-	resp, err := f.c.Do(req)
+	resp, err := f.c.Do(req.WithContext(ctx))
 	if err != nil {
 		return "", err
 	}
