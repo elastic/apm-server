@@ -38,7 +38,7 @@ func TestBearerAuth(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			bearer := tc.builder.forToken(tc.token)
-			result, err := bearer.AuthorizedFor(context.Background(), "")
+			result, err := bearer.AuthorizedFor(context.Background(), Resource{})
 			assert.NoError(t, err)
 			assert.Equal(t, Result{Authorized: tc.authorized}, result)
 		})

@@ -24,33 +24,33 @@ import (
 )
 
 // AttributeValueType specifies the type of AttributeValue.
-type AttributeValueType int
+type AttributeValueType int32
 
 const (
-	AttributeValueNULL AttributeValueType = iota
-	AttributeValueSTRING
-	AttributeValueINT
-	AttributeValueDOUBLE
-	AttributeValueBOOL
-	AttributeValueMAP
-	AttributeValueARRAY
+	AttributeValueTypeNull AttributeValueType = iota
+	AttributeValueTypeString
+	AttributeValueTypeInt
+	AttributeValueTypeDouble
+	AttributeValueTypeBool
+	AttributeValueTypeMap
+	AttributeValueTypeArray
 )
 
 func (avt AttributeValueType) String() string {
 	switch avt {
-	case AttributeValueNULL:
+	case AttributeValueTypeNull:
 		return "NULL"
-	case AttributeValueSTRING:
+	case AttributeValueTypeString:
 		return "STRING"
-	case AttributeValueBOOL:
+	case AttributeValueTypeBool:
 		return "BOOL"
-	case AttributeValueINT:
+	case AttributeValueTypeInt:
 		return "INT"
-	case AttributeValueDOUBLE:
+	case AttributeValueTypeDouble:
 		return "DOUBLE"
-	case AttributeValueMAP:
+	case AttributeValueTypeMap:
 		return "MAP"
-	case AttributeValueARRAY:
+	case AttributeValueTypeArray:
 		return "ARRAY"
 	}
 	return ""
@@ -67,7 +67,7 @@ func (avt AttributeValueType) String() string {
 //   function f2() {
 //   	v := NewAttributeValueString("a string")
 //      f1(v)
-//      _ := v.Type() // this will return AttributeValueINT
+//      _ := v.Type() // this will return AttributeValueTypeInt
 //   }
 //
 // Important: zero-initialized instance is not valid for use. All AttributeValue functions bellow must
@@ -82,104 +82,92 @@ func newAttributeValue(orig *otlpcommon.AnyValue) AttributeValue {
 
 // NewAttributeValueNull creates a new AttributeValue with a null value.
 func NewAttributeValueNull() AttributeValue {
-	orig := &otlpcommon.AnyValue{}
-	return AttributeValue{orig: orig}
-}
-
-// Deprecated: Use NewAttributeValueNull()
-func NewAttributeValue() AttributeValue {
-	return NewAttributeValueNull()
+	return AttributeValue{orig: &otlpcommon.AnyValue{}}
 }
 
 // NewAttributeValueString creates a new AttributeValue with the given string value.
 func NewAttributeValueString(v string) AttributeValue {
-	orig := &otlpcommon.AnyValue{Value: &otlpcommon.AnyValue_StringValue{StringValue: v}}
-	return AttributeValue{orig: orig}
+	return AttributeValue{orig: &otlpcommon.AnyValue{Value: &otlpcommon.AnyValue_StringValue{StringValue: v}}}
 }
 
 // NewAttributeValueInt creates a new AttributeValue with the given int64 value.
 func NewAttributeValueInt(v int64) AttributeValue {
-	orig := &otlpcommon.AnyValue{Value: &otlpcommon.AnyValue_IntValue{IntValue: v}}
-	return AttributeValue{orig: orig}
+	return AttributeValue{orig: &otlpcommon.AnyValue{Value: &otlpcommon.AnyValue_IntValue{IntValue: v}}}
 }
 
 // NewAttributeValueDouble creates a new AttributeValue with the given float64 value.
 func NewAttributeValueDouble(v float64) AttributeValue {
-	orig := &otlpcommon.AnyValue{Value: &otlpcommon.AnyValue_DoubleValue{DoubleValue: v}}
-	return AttributeValue{orig: orig}
+	return AttributeValue{orig: &otlpcommon.AnyValue{Value: &otlpcommon.AnyValue_DoubleValue{DoubleValue: v}}}
 }
 
 // NewAttributeValueBool creates a new AttributeValue with the given bool value.
 func NewAttributeValueBool(v bool) AttributeValue {
-	orig := &otlpcommon.AnyValue{Value: &otlpcommon.AnyValue_BoolValue{BoolValue: v}}
-	return AttributeValue{orig: orig}
+	return AttributeValue{orig: &otlpcommon.AnyValue{Value: &otlpcommon.AnyValue_BoolValue{BoolValue: v}}}
 }
 
 // NewAttributeValueMap creates a new AttributeValue of map type.
 func NewAttributeValueMap() AttributeValue {
-	orig := &otlpcommon.AnyValue{Value: &otlpcommon.AnyValue_KvlistValue{KvlistValue: &otlpcommon.KeyValueList{}}}
-	return AttributeValue{orig: orig}
+	return AttributeValue{orig: &otlpcommon.AnyValue{Value: &otlpcommon.AnyValue_KvlistValue{KvlistValue: &otlpcommon.KeyValueList{}}}}
 }
 
 // NewAttributeValueArray creates a new AttributeValue of array type.
 func NewAttributeValueArray() AttributeValue {
-	orig := &otlpcommon.AnyValue{Value: &otlpcommon.AnyValue_ArrayValue{ArrayValue: &otlpcommon.ArrayValue{}}}
-	return AttributeValue{orig: orig}
+	return AttributeValue{orig: &otlpcommon.AnyValue{Value: &otlpcommon.AnyValue_ArrayValue{ArrayValue: &otlpcommon.ArrayValue{}}}}
 }
 
 // Type returns the type of the value for this AttributeValue.
 // Calling this function on zero-initialized AttributeValue will cause a panic.
 func (a AttributeValue) Type() AttributeValueType {
 	if a.orig.Value == nil {
-		return AttributeValueNULL
+		return AttributeValueTypeNull
 	}
 	switch a.orig.Value.(type) {
 	case *otlpcommon.AnyValue_StringValue:
-		return AttributeValueSTRING
+		return AttributeValueTypeString
 	case *otlpcommon.AnyValue_BoolValue:
-		return AttributeValueBOOL
+		return AttributeValueTypeBool
 	case *otlpcommon.AnyValue_IntValue:
-		return AttributeValueINT
+		return AttributeValueTypeInt
 	case *otlpcommon.AnyValue_DoubleValue:
-		return AttributeValueDOUBLE
+		return AttributeValueTypeDouble
 	case *otlpcommon.AnyValue_KvlistValue:
-		return AttributeValueMAP
+		return AttributeValueTypeMap
 	case *otlpcommon.AnyValue_ArrayValue:
-		return AttributeValueARRAY
+		return AttributeValueTypeArray
 	}
-	return AttributeValueNULL
+	return AttributeValueTypeNull
 }
 
 // StringVal returns the string value associated with this AttributeValue.
-// If the Type() is not AttributeValueSTRING then returns empty string.
+// If the Type() is not AttributeValueTypeString then returns empty string.
 // Calling this function on zero-initialized AttributeValue will cause a panic.
 func (a AttributeValue) StringVal() string {
 	return a.orig.GetStringValue()
 }
 
 // IntVal returns the int64 value associated with this AttributeValue.
-// If the Type() is not AttributeValueINT then returns int64(0).
+// If the Type() is not AttributeValueTypeInt then returns int64(0).
 // Calling this function on zero-initialized AttributeValue will cause a panic.
 func (a AttributeValue) IntVal() int64 {
 	return a.orig.GetIntValue()
 }
 
 // DoubleVal returns the float64 value associated with this AttributeValue.
-// If the Type() is not AttributeValueDOUBLE then returns float64(0).
+// If the Type() is not AttributeValueTypeDouble then returns float64(0).
 // Calling this function on zero-initialized AttributeValue will cause a panic.
 func (a AttributeValue) DoubleVal() float64 {
 	return a.orig.GetDoubleValue()
 }
 
 // BoolVal returns the bool value associated with this AttributeValue.
-// If the Type() is not AttributeValueBOOL then returns false.
+// If the Type() is not AttributeValueTypeBool then returns false.
 // Calling this function on zero-initialized AttributeValue will cause a panic.
 func (a AttributeValue) BoolVal() bool {
 	return a.orig.GetBoolValue()
 }
 
 // MapVal returns the map value associated with this AttributeValue.
-// If the Type() is not AttributeValueMAP then returns an empty map. Note that modifying
+// If the Type() is not AttributeValueTypeMap then returns an empty map. Note that modifying
 // such empty map has no effect on this AttributeValue.
 //
 // Calling this function on zero-initialized AttributeValue will cause a panic.
@@ -192,7 +180,7 @@ func (a AttributeValue) MapVal() AttributeMap {
 }
 
 // ArrayVal returns the array value associated with this AttributeValue.
-// If the Type() is not AttributeValueARRAY then returns an empty array. Note that modifying
+// If the Type() is not AttributeValueTypeArray then returns an empty array. Note that modifying
 // such empty array has no effect on this AttributeValue.
 //
 // Calling this function on zero-initialized AttributeValue will cause a panic.
@@ -205,28 +193,28 @@ func (a AttributeValue) ArrayVal() AnyValueArray {
 }
 
 // SetStringVal replaces the string value associated with this AttributeValue,
-// it also changes the type to be AttributeValueSTRING.
+// it also changes the type to be AttributeValueTypeString.
 // Calling this function on zero-initialized AttributeValue will cause a panic.
 func (a AttributeValue) SetStringVal(v string) {
 	a.orig.Value = &otlpcommon.AnyValue_StringValue{StringValue: v}
 }
 
 // SetIntVal replaces the int64 value associated with this AttributeValue,
-// it also changes the type to be AttributeValueINT.
+// it also changes the type to be AttributeValueTypeInt.
 // Calling this function on zero-initialized AttributeValue will cause a panic.
 func (a AttributeValue) SetIntVal(v int64) {
 	a.orig.Value = &otlpcommon.AnyValue_IntValue{IntValue: v}
 }
 
 // SetDoubleVal replaces the float64 value associated with this AttributeValue,
-// it also changes the type to be AttributeValueDOUBLE.
+// it also changes the type to be AttributeValueTypeDouble.
 // Calling this function on zero-initialized AttributeValue will cause a panic.
 func (a AttributeValue) SetDoubleVal(v float64) {
 	a.orig.Value = &otlpcommon.AnyValue_DoubleValue{DoubleValue: v}
 }
 
 // SetBoolVal replaces the bool value associated with this AttributeValue,
-// it also changes the type to be AttributeValueBOOL.
+// it also changes the type to be AttributeValueTypeBool.
 // Calling this function on zero-initialized AttributeValue will cause a panic.
 func (a AttributeValue) SetBoolVal(v bool) {
 	a.orig.Value = &otlpcommon.AnyValue_BoolValue{BoolValue: v}
@@ -265,6 +253,7 @@ func (a AttributeValue) copyTo(dest *otlpcommon.AnyValue) {
 	}
 }
 
+// CopyTo copies the attribute to a destination.
 func (a AttributeValue) CopyTo(dest AttributeValue) {
 	a.copyTo(dest.orig)
 }
@@ -300,7 +289,7 @@ func (a AttributeValue) Equal(av AttributeValue) bool {
 			av := newAttributeValue(&vv[i])
 
 			// According to the specification, array values must be scalar.
-			if avType := av.Type(); avType == AttributeValueARRAY || avType == AttributeValueMAP {
+			if avType := av.Type(); avType == AttributeValueTypeArray || avType == AttributeValueTypeMap {
 				return false
 			}
 
@@ -390,13 +379,20 @@ func (am AttributeMap) InitFromMap(attrMap map[string]AttributeValue) AttributeM
 	return am
 }
 
-// InitEmptyWithCapacity constructs an empty AttributeMap with predefined slice capacity.
-func (am AttributeMap) InitEmptyWithCapacity(cap int) {
-	if cap == 0 {
-		*am.orig = []otlpcommon.KeyValue(nil)
+// Clear erases any existing entries in this AttributeMap instance.
+func (am AttributeMap) Clear() {
+	*am.orig = nil
+}
+
+// EnsureCapacity increases the capacity of this AttributeMap instance, if necessary,
+// to ensure that it can hold at least the number of elements specified by the capacity argument.
+func (am AttributeMap) EnsureCapacity(capacity int) {
+	if capacity <= cap(*am.orig) {
 		return
 	}
-	*am.orig = make([]otlpcommon.KeyValue, 0, cap)
+	oldOrig := *am.orig
+	*am.orig = make([]otlpcommon.KeyValue, 0, capacity)
+	copy(*am.orig, oldOrig)
 }
 
 // Get returns the AttributeValue associated with the key and true. Returned
@@ -602,22 +598,24 @@ func (am AttributeMap) Sort() AttributeMap {
 // Len returns the length of this map.
 //
 // Because the AttributeMap is represented internally by a slice of pointers, and the data are comping from the wire,
-// it is possible that when iterating using "ForEach" to get access to fewer elements because nil elements are skipped.
+// it is possible that when iterating using "Range" to get access to fewer elements because nil elements are skipped.
 func (am AttributeMap) Len() int {
 	return len(*am.orig)
 }
 
-// ForEach iterates over the every elements in the map by calling the provided func.
+// Range calls f sequentially for each key and value present in the map. If f returns false, range stops the iteration.
 //
 // Example:
 //
-// it := sm.ForEach(func(k string, v AttributeValue) {
+// it := sm.Range(func(k string, v AttributeValue) {
 //   ...
 // })
-func (am AttributeMap) ForEach(f func(k string, v AttributeValue)) {
+func (am AttributeMap) Range(f func(k string, v AttributeValue) bool) {
 	for i := range *am.orig {
 		kv := &(*am.orig)[i]
-		f(kv.Key, AttributeValue{&kv.Value})
+		if !f(kv.Key, AttributeValue{&kv.Value}) {
+			break
+		}
 	}
 }
 
@@ -683,13 +681,20 @@ func (sm StringMap) InitFromMap(attrMap map[string]string) StringMap {
 	return sm
 }
 
-// InitEmptyWithCapacity constructs an empty StringMap with predefined slice capacity.
-func (sm StringMap) InitEmptyWithCapacity(cap int) {
-	if cap == 0 {
-		*sm.orig = []otlpcommon.StringKeyValue(nil)
+// Clear erases any existing entries in this StringMap instance.
+func (sm StringMap) Clear() {
+	*sm.orig = nil
+}
+
+// EnsureCapacity increases the capacity of this StringMap instance, if necessary,
+// to ensure that it can hold at least the number of elements specified by the capacity argument.
+func (sm StringMap) EnsureCapacity(capacity int) {
+	if capacity <= cap(*sm.orig) {
 		return
 	}
-	*sm.orig = make([]otlpcommon.StringKeyValue, 0, cap)
+	oldOrig := *sm.orig
+	*sm.orig = make([]otlpcommon.StringKeyValue, 0, capacity)
+	copy(*sm.orig, oldOrig)
 }
 
 // Get returns the StringValue associated with the key and true,
@@ -745,22 +750,24 @@ func (sm StringMap) Upsert(k, v string) {
 // Len returns the length of this map.
 //
 // Because the AttributeMap is represented internally by a slice of pointers, and the data are comping from the wire,
-// it is possible that when iterating using "ForEach" to get access to fewer elements because nil elements are skipped.
+// it is possible that when iterating using "Range" to get access to fewer elements because nil elements are skipped.
 func (sm StringMap) Len() int {
 	return len(*sm.orig)
 }
 
-// ForEach iterates over the every elements in the map by calling the provided func.
+// Range calls f sequentially for each key and value present in the map. If f returns false, range stops the iteration.
 //
 // Example:
 //
-// it := sm.ForEach(func(k string, v StringValue) {
+// it := sm.Range(func(k string, v StringValue) {
 //   ...
 // })
-func (sm StringMap) ForEach(f func(k string, v string)) {
+func (sm StringMap) Range(f func(k string, v string) bool) {
 	for i := range *sm.orig {
 		skv := &(*sm.orig)[i]
-		f(skv.Key, skv.Value)
+		if !f(skv.Key, skv.Value) {
+			break
+		}
 	}
 }
 

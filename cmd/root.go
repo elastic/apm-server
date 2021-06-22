@@ -19,6 +19,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/pflag"
 
@@ -37,22 +38,69 @@ import (
 const (
 	beatName        = "apm-server"
 	apmIndexPattern = "apm"
+	cloudEnv        = "CLOUD_APM_CAPACITY"
 )
 
-var libbeatConfigOverrides = []cfgfile.ConditionalOverride{{
-	Check: func(_ *common.Config) bool {
-		return true
-	},
-	Config: common.MustNewConfigFrom(map[string]interface{}{
-		"logging": map[string]interface{}{
-			"metrics": map[string]interface{}{
-				"enabled": false,
-			},
-			"ecs":  true,
-			"json": true,
+type throughputSettings struct {
+	worker      int
+	bulkMaxSize int
+	events      int
+	minEvents   int
+}
+
+var cloudMatrix = map[string]throughputSettings{
+	"512":  {5, 267, 2000, 267},
+	"1024": {7, 381, 4000, 381},
+	"2048": {10, 533, 8000, 533},
+	"4096": {14, 762, 16000, 762},
+	"8192": {20, 1067, 32000, 1067},
+}
+
+var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
+	return []cfgfile.ConditionalOverride{{
+		Check: func(_ *common.Config) bool {
+			return true
 		},
-	}),
-}}
+		Config: common.MustNewConfigFrom(map[string]interface{}{
+			"logging": map[string]interface{}{
+				"metrics": map[string]interface{}{
+					"enabled": false,
+				},
+				"ecs":  true,
+				"json": true,
+			},
+		}),
+	},
+		{
+			Check: func(_ *common.Config) bool {
+				return true
+			},
+			Config: func() *common.Config {
+				cap := os.Getenv(cloudEnv)
+				if _, ok := cloudMatrix[cap]; !ok {
+					return common.NewConfig()
+				}
+				return common.MustNewConfigFrom(map[string]interface{}{
+					"output": map[string]interface{}{
+						"elasticsearch": map[string]interface{}{
+							"compression_level": 5, //default to medium compression on cloud
+							"worker":            cloudMatrix[cap].worker,
+							"bulk_max_size":     cloudMatrix[cap].bulkMaxSize,
+						},
+					},
+					"queue": map[string]interface{}{
+						"mem": map[string]interface{}{
+							"events": cloudMatrix[cap].events,
+							"flush": map[string]interface{}{
+								"min_events": cloudMatrix[cap].minEvents,
+							},
+						},
+					},
+				})
+			}(),
+		},
+	}
+}
 
 // DefaultSettings return the default settings for APM Server to pass into
 // the GenRootCmdWithSettings.
@@ -67,7 +115,7 @@ func DefaultSettings() instance.Settings {
 		},
 		IndexManagement: idxmgmt.MakeDefaultSupporter,
 		Processing:      processing.MakeDefaultObserverSupport(false),
-		ConfigOverrides: libbeatConfigOverrides,
+		ConfigOverrides: libbeatConfigOverrides(),
 	}
 }
 

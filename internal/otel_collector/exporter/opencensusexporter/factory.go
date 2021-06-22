@@ -18,8 +18,9 @@ import (
 	"context"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configgrpc"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
@@ -33,16 +34,13 @@ func NewFactory() component.ExporterFactory {
 	return exporterhelper.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		exporterhelper.WithTraces(createTraceExporter),
+		exporterhelper.WithTraces(createTracesExporter),
 		exporterhelper.WithMetrics(createMetricsExporter))
 }
 
-func createDefaultConfig() configmodels.Exporter {
+func createDefaultConfig() config.Exporter {
 	return &Config{
-		ExporterSettings: configmodels.ExporterSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr,
-		},
+		ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
 			Headers: map[string]string{},
 			// We almost read 0 bytes, so no need to tune ReadBufferSize.
@@ -52,23 +50,25 @@ func createDefaultConfig() configmodels.Exporter {
 	}
 }
 
-func createTraceExporter(ctx context.Context, params component.ExporterCreateParams, cfg configmodels.Exporter) (component.TracesExporter, error) {
+func createTracesExporter(ctx context.Context, set component.ExporterCreateSettings, cfg config.Exporter) (component.TracesExporter, error) {
 	oCfg := cfg.(*Config)
-	oce, err := newTraceExporter(ctx, oCfg)
+	oce, err := newTracesExporter(ctx, oCfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return exporterhelper.NewTraceExporter(
+	return exporterhelper.NewTracesExporter(
 		cfg,
-		params.Logger,
-		oce.pushTraceData,
+		set.Logger,
+		oce.pushTraces,
+		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
 		exporterhelper.WithRetry(oCfg.RetrySettings),
 		exporterhelper.WithQueue(oCfg.QueueSettings),
+		exporterhelper.WithStart(oce.start),
 		exporterhelper.WithShutdown(oce.shutdown))
 }
 
-func createMetricsExporter(ctx context.Context, params component.ExporterCreateParams, cfg configmodels.Exporter) (component.MetricsExporter, error) {
+func createMetricsExporter(ctx context.Context, set component.ExporterCreateSettings, cfg config.Exporter) (component.MetricsExporter, error) {
 	oCfg := cfg.(*Config)
 	oce, err := newMetricsExporter(ctx, oCfg)
 	if err != nil {
@@ -77,9 +77,11 @@ func createMetricsExporter(ctx context.Context, params component.ExporterCreateP
 
 	return exporterhelper.NewMetricsExporter(
 		cfg,
-		params.Logger,
-		oce.pushMetricsData,
+		set.Logger,
+		oce.pushMetrics,
+		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
 		exporterhelper.WithRetry(oCfg.RetrySettings),
 		exporterhelper.WithQueue(oCfg.QueueSettings),
+		exporterhelper.WithStart(oce.start),
 		exporterhelper.WithShutdown(oce.shutdown))
 }

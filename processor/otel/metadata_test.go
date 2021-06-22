@@ -90,11 +90,11 @@ func TestResourceConventions(t *testing.T) {
 		},
 		"cloud": {
 			attrs: map[string]pdata.AttributeValue{
-				"cloud.provider":               pdata.NewAttributeValueString("provider_name"),
-				"cloud.region":                 pdata.NewAttributeValueString("region_name"),
-				"cloud.account.id":             pdata.NewAttributeValueString("account_id"),
-				"cloud.availability_zone":      pdata.NewAttributeValueString("availability_zone"),
-				"cloud.infrastructure_service": pdata.NewAttributeValueString("service_name"),
+				"cloud.provider":          pdata.NewAttributeValueString("provider_name"),
+				"cloud.region":            pdata.NewAttributeValueString("region_name"),
+				"cloud.account.id":        pdata.NewAttributeValueString("account_id"),
+				"cloud.availability_zone": pdata.NewAttributeValueString("availability_zone"),
+				"cloud.platform":          pdata.NewAttributeValueString("platform_name"),
 			},
 			expected: model.Metadata{
 				Service: defaultService,
@@ -103,7 +103,7 @@ func TestResourceConventions(t *testing.T) {
 					Region:           "region_name",
 					AccountID:        "account_id",
 					AvailabilityZone: "availability_zone",
-					ServiceName:      "service_name",
+					ServiceName:      "platform_name",
 				},
 			},
 		},
@@ -190,6 +190,29 @@ func TestResourceConventions(t *testing.T) {
 					Platform:     "darwin",
 					OSType:       "macos",
 					FullPlatform: "Mac OS Mojave",
+				},
+			},
+		},
+		"network": {
+			attrs: map[string]pdata.AttributeValue{
+				"net.host.connection_type": pdata.NewAttributeValueString("5G"),
+				"net.host.carrier.name":    pdata.NewAttributeValueString("Vodafone"),
+				"net.host.carrier.mnc":     pdata.NewAttributeValueString("01"),
+				"net.host.carrier.mcc":     pdata.NewAttributeValueString("101"),
+				"net.host.carrier.icc":     pdata.NewAttributeValueString("UK"),
+			},
+			expected: model.Metadata{
+				Service: defaultService,
+				System: model.System{
+					Network: model.Network{
+						ConnectionType: "5G",
+						Carrier: model.Carrier{
+							Name: "Vodafone",
+							MNC:  "01",
+							MCC:  "101",
+							ICC:  "UK",
+						},
+					},
 				},
 			},
 		},

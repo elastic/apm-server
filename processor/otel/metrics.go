@@ -43,37 +43,55 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/otlptext"
 
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 // ConsumeMetrics consumes OpenTelemetry metrics data, converting into
 // the Elastic APM metrics model and sending to the reporter.
 func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) error {
-	batch := c.convertMetrics(metrics)
+	receiveTimestamp := time.Now()
+	logger := logp.NewLogger(logs.Otel)
+	if logger.IsDebug() {
+		logger.Debug(otlptext.Metrics(metrics))
+	}
+	batch := c.convertMetrics(metrics, receiveTimestamp)
 	return c.Processor.ProcessBatch(ctx, batch)
 }
 
-func (c *Consumer) convertMetrics(metrics pdata.Metrics) *model.Batch {
+func (c *Consumer) convertMetrics(metrics pdata.Metrics, receiveTimestamp time.Time) *model.Batch {
 	batch := model.Batch{}
 	resourceMetrics := metrics.ResourceMetrics()
 	for i := 0; i < resourceMetrics.Len(); i++ {
-		c.convertResourceMetrics(resourceMetrics.At(i), &batch)
+		c.convertResourceMetrics(resourceMetrics.At(i), receiveTimestamp, &batch)
 	}
 	return &batch
 }
 
-func (c *Consumer) convertResourceMetrics(resourceMetrics pdata.ResourceMetrics, out *model.Batch) {
+func (c *Consumer) convertResourceMetrics(resourceMetrics pdata.ResourceMetrics, receiveTimestamp time.Time, out *model.Batch) {
 	var metadata model.Metadata
-	translateResourceMetadata(resourceMetrics.Resource(), &metadata)
+	var timeDelta time.Duration
+	resource := resourceMetrics.Resource()
+	translateResourceMetadata(resource, &metadata)
+	if exportTimestamp, ok := exportTimestamp(resource); ok {
+		timeDelta = receiveTimestamp.Sub(exportTimestamp)
+	}
 	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics()
 	for i := 0; i < instrumentationLibraryMetrics.Len(); i++ {
-		c.convertInstrumentationLibraryMetrics(instrumentationLibraryMetrics.At(i), metadata, out)
+		c.convertInstrumentationLibraryMetrics(instrumentationLibraryMetrics.At(i), metadata, timeDelta, out)
 	}
 }
 
-func (c *Consumer) convertInstrumentationLibraryMetrics(in pdata.InstrumentationLibraryMetrics, metadata model.Metadata, out *model.Batch) {
+func (c *Consumer) convertInstrumentationLibraryMetrics(
+	in pdata.InstrumentationLibraryMetrics,
+	metadata model.Metadata,
+	timeDelta time.Duration,
+	out *model.Batch,
+) {
 	var ms metricsets
 	otelMetrics := in.Metrics()
 	var unsupported int64
@@ -84,6 +102,7 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(in pdata.Instrumentation
 	}
 	for _, m := range ms {
 		m.Metadata = metadata
+		m.Timestamp = m.Timestamp.Add(timeDelta)
 		out.Metricsets = append(out.Metricsets, m.Metricset)
 	}
 	if unsupported > 0 {
@@ -167,9 +186,9 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 			}
 		}
 		return !anyDropped
-	case pdata.MetricDataTypeDoubleHistogram:
+	case pdata.MetricDataTypeHistogram:
 		anyDropped := false
-		dps := metric.DoubleHistogram().DataPoints()
+		dps := metric.Histogram().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			if sample, ok := histogramSample(metric.Name(), dp.BucketCounts(), dp.ExplicitBounds()); ok {
@@ -179,7 +198,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 			}
 		}
 		return !anyDropped
-	case pdata.MetricDataTypeDoubleSummary:
+	case pdata.MetricDataTypeSummary:
 		// TODO(axw) https://github.com/elastic/apm-server/issues/3195
 		// (Not quite the same issue, but the solution would also enable
 		// aggregate metrics, which would be appropriate for summaries.)
@@ -265,8 +284,9 @@ type stringMapItem struct {
 
 func toStringMapItems(labelMap pdata.StringMap) []stringMapItem {
 	labels := make([]stringMapItem, 0, labelMap.Len())
-	labelMap.ForEach(func(k, v string) {
+	labelMap.Range(func(k, v string) bool {
 		labels = append(labels, stringMapItem{k, v})
+		return true
 	})
 	sort.SliceStable(labels, func(i, j int) bool {
 		return labels[i].key < labels[j].key

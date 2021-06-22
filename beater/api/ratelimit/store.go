@@ -18,10 +18,8 @@
 package ratelimit
 
 import (
-	"net/http"
+	"net"
 	"sync"
-
-	"github.com/elastic/apm-server/utility"
 
 	"github.com/hashicorp/golang-lru/simplelru"
 	"github.com/pkg/errors"
@@ -63,8 +61,9 @@ func NewStore(size, rateLimit, burstFactor int) (*Store, error) {
 	return &store, nil
 }
 
-// acquire returns a rate.Limiter instance for the given key
-func (s *Store) acquire(key string) *rate.Limiter {
+// ForIP returns a rate limiter for the given IP.
+func (s *Store) ForIP(ip net.IP) *rate.Limiter {
+	key := ip.String()
 
 	// lock get and add action for cache to allow proper eviction handling without
 	// race conditions.
@@ -82,12 +81,4 @@ func (s *Store) acquire(key string) *rate.Limiter {
 		limiter = rate.NewLimiter(rate.Limit(s.limit), s.limit*s.burstFactor)
 	}
 	return limiter
-}
-
-// ForIP returns a rate limiter for the given request IP
-func (s *Store) ForIP(r *http.Request) *rate.Limiter {
-	if s == nil {
-		return nil
-	}
-	return s.acquire(utility.RemoteAddr(r))
 }

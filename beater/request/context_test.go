@@ -18,6 +18,7 @@
 package request
 
 import (
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -37,7 +38,11 @@ func TestContext_Reset(t *testing.T) {
 	w1.WriteHeader(http.StatusServiceUnavailable)
 	w2 := httptest.NewRecorder()
 	r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+	r1.RemoteAddr = "10.1.2.3:4321"
+	r1.Header.Set("User-Agent", "ua1")
 	r2 := httptest.NewRequest(http.MethodHead, "/new", nil)
+	r2.RemoteAddr = "10.1.2.3:1234"
+	r2.Header.Set("User-Agent", "ua2")
 
 	c := Context{
 		Request: r1, w: w1,
@@ -65,8 +70,10 @@ func TestContext_Reset(t *testing.T) {
 			assert.Equal(t, 0, c.writeAttempts)
 		case "Result":
 			assertResultIsEmpty(t, cVal.Field(i).Interface().(Result))
-		case "RequestMetadata":
-			assert.Equal(t, Metadata{}, cVal.Field(i).Interface().(Metadata))
+		case "SourceIP":
+			assert.Equal(t, net.ParseIP("10.1.2.3"), cVal.Field(i).Interface())
+		case "UserAgent":
+			assert.Equal(t, "ua2", cVal.Field(i).Interface())
 		default:
 			assert.Empty(t, cVal.Field(i).Interface(), cType.Field(i).Name)
 		}

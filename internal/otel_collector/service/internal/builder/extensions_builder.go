@@ -21,7 +21,7 @@ import (
 	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 )
 
@@ -37,22 +37,22 @@ func (ext *builtExtension) Start(ctx context.Context, host component.Host) error
 	return ext.extension.Start(ctx, host)
 }
 
-// Stop the receiver.
+// Shutdown the receiver.
 func (ext *builtExtension) Shutdown(ctx context.Context) error {
 	return ext.extension.Shutdown(ctx)
 }
 
 var _ component.Extension = (*builtExtension)(nil)
 
-// Exporters is a map of exporters created from exporter configs.
-type Extensions map[configmodels.Extension]*builtExtension
+// Extensions is a map of extensions created from extension configs.
+type Extensions map[config.Extension]*builtExtension
 
 // StartAll starts all exporters.
 func (exts Extensions) StartAll(ctx context.Context, host component.Host) error {
 	for _, ext := range exts {
 		ext.logger.Info("Extension is starting...")
 
-		if err := ext.Start(ctx, host); err != nil {
+		if err := ext.Start(ctx, newHostWrapper(host, ext.logger)); err != nil {
 			return err
 		}
 
@@ -71,7 +71,7 @@ func (exts Extensions) ShutdownAll(ctx context.Context) error {
 		}
 	}
 
-	return consumererror.CombineErrors(errs)
+	return consumererror.Combine(errs)
 }
 
 func (exts Extensions) NotifyPipelineReady() error {
@@ -99,13 +99,13 @@ func (exts Extensions) NotifyPipelineNotReady() error {
 		}
 	}
 
-	return consumererror.CombineErrors(errs)
+	return consumererror.Combine(errs)
 }
 
-func (exts Extensions) ToMap() map[configmodels.NamedEntity]component.Extension {
-	result := make(map[configmodels.NamedEntity]component.Extension, len(exts))
+func (exts Extensions) ToMap() map[config.ComponentID]component.Extension {
+	result := make(map[config.ComponentID]component.Extension, len(exts))
 	for k, v := range exts {
-		result[k] = v.extension
+		result[k.ID()] = v.extension
 	}
 	return result
 }
@@ -113,19 +113,19 @@ func (exts Extensions) ToMap() map[configmodels.NamedEntity]component.Extension 
 // exportersBuilder builds exporters from config.
 type extensionsBuilder struct {
 	logger    *zap.Logger
-	appInfo   component.ApplicationStartInfo
-	config    *configmodels.Config
-	factories map[configmodels.Type]component.ExtensionFactory
+	buildInfo component.BuildInfo
+	config    *config.Config
+	factories map[config.Type]component.ExtensionFactory
 }
 
 // BuildExtensions builds Extensions from config.
 func BuildExtensions(
 	logger *zap.Logger,
-	appInfo component.ApplicationStartInfo,
-	config *configmodels.Config,
-	factories map[configmodels.Type]component.ExtensionFactory,
+	buildInfo component.BuildInfo,
+	config *config.Config,
+	factories map[config.Type]component.ExtensionFactory,
 ) (Extensions, error) {
-	eb := &extensionsBuilder{logger.With(zap.String(kindLogKey, kindLogExtension)), appInfo, config, factories}
+	eb := &extensionsBuilder{logger.With(zap.String(zapKindKey, zapKindExtension)), buildInfo, config, factories}
 
 	extensions := make(Extensions)
 	for _, extName := range eb.config.Service.Extensions {
@@ -134,8 +134,8 @@ func BuildExtensions(
 			return nil, fmt.Errorf("extension %q is not configured", extName)
 		}
 
-		componentLogger := eb.logger.With(zap.String(typeLogKey, string(extCfg.Type())), zap.String(nameLogKey, extCfg.Name()))
-		ext, err := eb.buildExtension(componentLogger, eb.appInfo, extCfg)
+		componentLogger := eb.logger.With(zap.Stringer(zapNameKey, extCfg.ID()))
+		ext, err := eb.buildExtension(componentLogger, eb.buildInfo, extCfg)
 		if err != nil {
 			return nil, err
 		}
@@ -146,29 +146,29 @@ func BuildExtensions(
 	return extensions, nil
 }
 
-func (eb *extensionsBuilder) buildExtension(logger *zap.Logger, appInfo component.ApplicationStartInfo, cfg configmodels.Extension) (*builtExtension, error) {
-	factory := eb.factories[cfg.Type()]
+func (eb *extensionsBuilder) buildExtension(logger *zap.Logger, buildInfo component.BuildInfo, cfg config.Extension) (*builtExtension, error) {
+	factory := eb.factories[cfg.ID().Type()]
 	if factory == nil {
-		return nil, fmt.Errorf("extension factory for type %q is not configured", cfg.Type())
+		return nil, fmt.Errorf("extension factory for type %q is not configured", cfg.ID().Type())
 	}
 
 	ext := &builtExtension{
 		logger: logger,
 	}
 
-	creationParams := component.ExtensionCreateParams{
-		Logger:               logger,
-		ApplicationStartInfo: appInfo,
+	creationSet := component.ExtensionCreateSettings{
+		Logger:    logger,
+		BuildInfo: buildInfo,
 	}
 
-	ex, err := factory.CreateExtension(context.Background(), creationParams, cfg)
+	ex, err := factory.CreateExtension(context.Background(), creationSet, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create extension %q: %w", cfg.Name(), err)
+		return nil, fmt.Errorf("failed to create extension %v: %w", cfg.ID(), err)
 	}
 
 	// Check if the factory really created the extension.
 	if ex == nil {
-		return nil, fmt.Errorf("factory for %q produced a nil extension", cfg.Name())
+		return nil, fmt.Errorf("factory for %v produced a nil extension", cfg.ID())
 	}
 
 	ext.extension = ex

@@ -19,7 +19,6 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"time"
 
@@ -114,8 +113,8 @@ type Destination struct {
 
 // DestinationService contains information about the destination service of a span event
 type DestinationService struct {
-	Type     string
-	Name     string
+	Type     string // Deprecated
+	Name     string // Deprecated
 	Resource string
 }
 
@@ -199,8 +198,7 @@ func (e *Span) appendBeatEvents(ctx context.Context, cfg *transform.Config, even
 	if cfg.DataStreams {
 		// Spans are stored in a "traces" data stream along with transactions.
 		fields[datastreams.TypeField] = datastreams.TracesType
-		dataset := fmt.Sprintf("%s.%s", TracesDataset, datastreams.NormalizeServiceName(e.Metadata.Service.Name))
-		fields[datastreams.DatasetField] = dataset
+		fields[datastreams.DatasetField] = TracesDataset
 	}
 
 	// first set the generic metadata

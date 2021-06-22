@@ -245,7 +245,7 @@ func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
 		return nil, nil, err
 	}
 
-	client, err := es.NewClient(beaterConfig.APIKeyConfig.ESConfig)
+	client, err := es.NewClient(beaterConfig.AgentAuth.APIKey.ESConfig)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -315,7 +315,7 @@ PUT /_security/role/my_role {
 					{
 						Name:       auth.Application,
 						Privileges: privileges,
-						Resources:  []es.Resource{auth.ResourceAny},
+						Resources:  []es.Resource{"*"},
 					},
 				},
 			},
@@ -417,14 +417,14 @@ func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, creden
 	perms := make(es.Permissions)
 	printText, printJSON := printers(asJSON)
 	for _, privilege := range privileges {
-		builder, err := auth.NewBuilder(config)
+		builder, err := auth.NewBuilder(config.AgentAuth)
 		if err != nil {
 			return err
 		}
 		result, err := builder.
 			ForPrivilege(privilege).
 			AuthorizationFor(headers.APIKey, credentials).
-			AuthorizedFor(context.Background(), auth.ResourceInternal)
+			AuthorizedFor(context.Background(), auth.Resource{})
 		if err != nil {
 			return err
 		}

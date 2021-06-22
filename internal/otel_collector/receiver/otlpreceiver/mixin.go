@@ -20,16 +20,19 @@ import (
 	gatewayruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
 
+	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/consumer"
 	collectorlog "go.opentelemetry.io/collector/internal/data/protogen/collector/logs/v1"
 	collectormetrics "go.opentelemetry.io/collector/internal/data/protogen/collector/metrics/v1"
 	collectortrace "go.opentelemetry.io/collector/internal/data/protogen/collector/trace/v1"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver/logs"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver/metrics"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver/trace"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver/internal/logs"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver/internal/metrics"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver/internal/trace"
 )
 
 // RegisterTraceReceiver registers the trace receiver with a gRPC server and/or grpc-gateway mux, if non-nil.
-func RegisterTraceReceiver(ctx context.Context, receiver *trace.Receiver, serverGRPC *grpc.Server, gatewayMux *gatewayruntime.ServeMux) error {
+func RegisterTraceReceiver(ctx context.Context, consumer consumer.Traces, serverGRPC *grpc.Server, gatewayMux *gatewayruntime.ServeMux) error {
+	receiver := trace.New(config.NewID("otlp"), consumer)
 	if serverGRPC != nil {
 		collectortrace.RegisterTraceServiceServer(serverGRPC, receiver)
 	}
@@ -45,7 +48,8 @@ func RegisterTraceReceiver(ctx context.Context, receiver *trace.Receiver, server
 }
 
 // RegisterMetricsReceiver registers the metrics receiver with a gRPC server and/or grpc-gateway mux, if non-nil.
-func RegisterMetricsReceiver(ctx context.Context, receiver *metrics.Receiver, serverGRPC *grpc.Server, gatewayMux *gatewayruntime.ServeMux) error {
+func RegisterMetricsReceiver(ctx context.Context, consumer consumer.Metrics, serverGRPC *grpc.Server, gatewayMux *gatewayruntime.ServeMux) error {
+	receiver := metrics.New(config.NewID("otlp"), consumer)
 	if serverGRPC != nil {
 		collectormetrics.RegisterMetricsServiceServer(serverGRPC, receiver)
 	}
@@ -56,7 +60,8 @@ func RegisterMetricsReceiver(ctx context.Context, receiver *metrics.Receiver, se
 }
 
 // RegisterLogsReceiver registers the logs receiver with a gRPC server and/or grpc-gateway mux, if non-nil.
-func RegisterLogsReceiver(ctx context.Context, receiver *logs.Receiver, serverGRPC *grpc.Server, gatewayMux *gatewayruntime.ServeMux) error {
+func RegisterLogsReceiver(ctx context.Context, consumer consumer.Logs, serverGRPC *grpc.Server, gatewayMux *gatewayruntime.ServeMux) error {
+	receiver := logs.New(config.NewID("otlp"), consumer)
 	if serverGRPC != nil {
 		collectorlog.RegisterLogsServiceServer(serverGRPC, receiver)
 	}
