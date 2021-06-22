@@ -79,16 +79,26 @@ func NewServer(
 
 	srv := &Server{logger: logger}
 	if cfg.JaegerConfig.GRPC.Enabled {
-		var authBuilder *authorization.Builder
+		var agentAuth config.AgentAuth
 		if cfg.JaegerConfig.GRPC.AuthTag != "" {
 			// By default auth is not required for Jaeger - users
 			// must explicitly specify which tag to use.
-			// TODO(axw) share auth builder with beater/api.
-			var err error
-			authBuilder, err = authorization.NewBuilder(cfg.AgentAuth)
-			if err != nil {
-				return nil, err
-			}
+			agentAuth = cfg.AgentAuth
+		}
+		authBuilder, err := authorization.NewBuilder(agentAuth)
+		if err != nil {
+			return nil, err
+		}
+
+		grpcInterceptors := []grpc.UnaryServerInterceptor{
+			apmgrpc.NewUnaryServerInterceptor(
+				apmgrpc.WithRecovery(),
+				apmgrpc.WithTracer(tracer),
+			),
+			interceptors.Logging(logger),
+			interceptors.Metrics(logger, RegistryMonitoringMaps),
+			interceptors.Timeout(),
+			interceptors.Authorization(MethodAuthorizationHandlers(authBuilder, cfg.JaegerConfig.GRPC.AuthTag)),
 		}
 
 		// TODO(axw) should the listener respect cfg.MaxConnections?
@@ -97,32 +107,14 @@ func NewServer(
 			return nil, err
 		}
 		logger = logger.Named(logs.Jaeger)
-		grpcOptions := []grpc.ServerOption{
-			grpc.ChainUnaryInterceptor(
-				apmgrpc.NewUnaryServerInterceptor(
-					apmgrpc.WithRecovery(),
-					apmgrpc.WithTracer(tracer),
-				),
-				interceptors.Logging(logger),
-				interceptors.Metrics(logger, RegistryMonitoringMaps),
-				interceptors.Timeout(),
-			),
-		}
+		grpcOptions := []grpc.ServerOption{grpc.ChainUnaryInterceptor(grpcInterceptors...)}
 		if cfg.JaegerConfig.GRPC.TLS != nil {
 			creds := credentials.NewTLS(cfg.JaegerConfig.GRPC.TLS)
 			grpcOptions = append(grpcOptions, grpc.Creds(creds))
 		}
 		srv.grpc.server = grpc.NewServer(grpcOptions...)
 		srv.grpc.listener = grpcListener
-
-		RegisterGRPCServices(
-			srv.grpc.server,
-			authBuilder,
-			cfg.JaegerConfig.GRPC.AuthTag,
-			logger,
-			processor,
-			fetcher,
-		)
+		RegisterGRPCServices(srv.grpc.server, logger, processor, fetcher)
 	}
 	if cfg.JaegerConfig.HTTP.Enabled {
 		// TODO(axw) should the listener respect cfg.MaxConnections?
@@ -149,18 +141,12 @@ func NewServer(
 // RegisterGRPCServices registers Jaeger gRPC services with srv.
 func RegisterGRPCServices(
 	srv *grpc.Server,
-	authBuilder *authorization.Builder,
-	authTag string,
 	logger *logp.Logger,
 	processor model.BatchProcessor,
 	fetcher agentcfg.Fetcher,
 ) {
-	auth := noAuth
-	if authTag != "" {
-		auth = makeAuthFunc(authTag, authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action))
-	}
 	traceConsumer := &otel.Consumer{Processor: processor}
-	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{auth, traceConsumer})
+	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{traceConsumer})
 	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, fetcher})
 }
 
