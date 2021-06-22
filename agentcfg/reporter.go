@@ -28,17 +28,12 @@ type Reporter struct {
 	f       Fetcher
 	p       model.BatchProcessor
 	resultc chan Result
-
-	// keeps track of the agent_configs that have been queried and applied
-	// to agents.
-	applied map[string]struct{}
 }
 
 func NewReporter(f Fetcher, batchProcessor model.BatchProcessor) Reporter {
 	return Reporter{
 		f:       f,
 		p:       batchProcessor,
-		applied: make(map[string]struct{}),
 		resultc: make(chan Result),
 	}
 }
@@ -53,6 +48,9 @@ func (r Reporter) Fetch(ctx context.Context, query Query) (Result, error) {
 }
 
 func (r Reporter) Run(ctx context.Context) error {
+	// keeps track of the agent_configs that have been queried and applied
+	// to agents.
+	applied := make(map[string]struct{})
 	t := time.NewTicker(30 * time.Second)
 	defer t.Stop()
 	for {
@@ -60,15 +58,15 @@ func (r Reporter) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case result := <-r.resultc:
-			if _, ok := r.applied[result.Source.Etag]; !ok {
-				r.applied[result.Source.Etag] = struct{}{}
+			if _, ok := applied[result.Source.Etag]; !ok {
+				applied[result.Source.Etag] = struct{}{}
 			}
 			continue
 		case <-t.C:
 		}
 		batch := new(model.Batch)
 		now := time.Now()
-		for etag := range r.applied {
+		for etag := range applied {
 			var m *model.Metricset
 			m.Labels["etag"] = etag
 			m.Name = "direct.agent.config.applied"
