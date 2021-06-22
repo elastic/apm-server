@@ -120,12 +120,6 @@ policy_templates:
             required: false
             show_user: false
             default: 10000
-          - name: sourcemap_api_key
-            type: text
-            title: RUM - API Key for Sourcemaps
-            required: false
-            description: API Key for sourcemap feature. Enter as <Id>:<API Key>
-            show_user: false
           - name: api_key_limit
             type: integer
             title: Maximum number of API Keys for Agent authentication
