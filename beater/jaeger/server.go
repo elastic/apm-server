@@ -90,6 +90,7 @@ func NewServer(
 			return nil, err
 		}
 
+		logger = logger.Named(logs.Jaeger)
 		grpcInterceptors := []grpc.UnaryServerInterceptor{
 			apmgrpc.NewUnaryServerInterceptor(
 				apmgrpc.WithRecovery(),
@@ -106,7 +107,6 @@ func NewServer(
 		if err != nil {
 			return nil, err
 		}
-		logger = logger.Named(logs.Jaeger)
 		grpcOptions := []grpc.ServerOption{grpc.ChainUnaryInterceptor(grpcInterceptors...)}
 		if cfg.JaegerConfig.GRPC.TLS != nil {
 			creds := credentials.NewTLS(cfg.JaegerConfig.GRPC.TLS)
