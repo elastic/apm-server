@@ -31,7 +31,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/model"
 
 	"github.com/stretchr/testify/assert"
@@ -45,8 +44,6 @@ import (
 const pprofContentType = `application/x-protobuf; messageType="perftools.profiles.Profile"`
 
 func TestHandler(t *testing.T) {
-	var rateLimit, err = ratelimit.NewStore(1, 0, 0)
-	require.NoError(t, err)
 	for name, tc := range map[string]testcaseIntakeHandler{
 		"MethodNotAllowed": {
 			r:  httptest.NewRequest(http.MethodGet, "/", nil),
@@ -59,10 +56,6 @@ func TestHandler(t *testing.T) {
 				return req
 			}(),
 			id: request.IDResponseErrorsValidate,
-		},
-		"RateLimitExceeded": {
-			rateLimit: rateLimit,
-			id:        request.IDResponseErrorsRateLimit,
 		},
 		"Closing": {
 			batchProcessor: func(t *testing.T) model.BatchProcessor {
@@ -199,10 +192,7 @@ func TestHandler(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			tc.setup(t)
-			if tc.rateLimit != nil {
-				tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
-			}
-			Handler(tc.batchProcessor(t))(tc.c)
+			Handler(emptyRequestMetadata, tc.batchProcessor(t))(tc.c)
 
 			assert.Equal(t, string(tc.id), string(tc.c.Result.ID))
 			resultStatus := request.MapResultIDToStatus[tc.id]
@@ -225,7 +215,6 @@ type testcaseIntakeHandler struct {
 	c              *request.Context
 	w              *httptest.ResponseRecorder
 	r              *http.Request
-	rateLimit      *ratelimit.Store
 	batchProcessor func(t *testing.T) model.BatchProcessor
 	reports        int
 	parts          []part
@@ -298,4 +287,8 @@ func prettyJSON(v interface{}) string {
 	enc.SetIndent("", "  ")
 	enc.Encode(v)
 	return buf.String()
+}
+
+func emptyRequestMetadata(*request.Context) model.Metadata {
+	return model.Metadata{}
 }

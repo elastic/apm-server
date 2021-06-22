@@ -52,18 +52,21 @@ var (
 	registry      = monitoring.Default.NewRegistry("apm-server.acm")
 
 	errCacheControl = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
-
-	// rumAgents keywords (new and old)
-	rumAgents = []string{"rum-js", "js-base"}
 )
 
 type handler struct {
 	f agentcfg.Fetcher
 
+	allowAnonymousAgents                    []string
 	cacheControl, defaultServiceEnvironment string
 }
 
-func NewHandler(f agentcfg.Fetcher, config config.KibanaAgentConfig, defaultServiceEnvironment string) request.Handler {
+func NewHandler(
+	f agentcfg.Fetcher,
+	config config.KibanaAgentConfig,
+	defaultServiceEnvironment string,
+	allowAnonymousAgents []string,
+) request.Handler {
 	if f == nil {
 		panic("fetcher must not be nil")
 	}
@@ -72,6 +75,7 @@ func NewHandler(f agentcfg.Fetcher, config config.KibanaAgentConfig, defaultServ
 		f:                         f,
 		cacheControl:              cacheControl,
 		defaultServiceEnvironment: defaultServiceEnvironment,
+		allowAnonymousAgents:      allowAnonymousAgents,
 	}
 
 	return h.Handle
@@ -83,13 +87,6 @@ func (h *handler) Handle(c *request.Context) {
 	// error handling
 	c.Header().Set(headers.CacheControl, errCacheControl)
 
-	ok := c.RateLimiter == nil || c.RateLimiter.Allow()
-	if !ok {
-		c.Result.SetDefault(request.IDResponseErrorsRateLimit)
-		c.Write()
-		return
-	}
-
 	query, queryErr := buildQuery(c)
 	if queryErr != nil {
 		extractQueryError(c, queryErr)
@@ -100,26 +97,29 @@ func (h *handler) Handle(c *request.Context) {
 		query.Service.Environment = h.defaultServiceEnvironment
 	}
 
-	if !c.AuthResult.Anonymous {
-		// The exact agent is not always known for anonymous clients, so we do not
-		// issue a secondary authorization check for them. Instead, we issue the
-		// request and filter the results using query.InsecureAgents.
-		authResource := authorization.Resource{ServiceName: query.Service.Name}
-		if result, err := authorization.AuthorizedFor(c.Request.Context(), authResource); err != nil {
-			c.Result.SetDefault(request.IDResponseErrorsServiceUnavailable)
-			c.Result.Err = err
-			c.Write()
-			return
-		} else if !result.Authorized {
-			id := request.IDResponseErrorsUnauthorized
-			status := request.MapResultIDToStatus[id]
-			if result.Reason != "" {
-				status.Keyword = result.Reason
-			}
-			c.Result.Set(id, status.Code, status.Keyword, nil, nil)
-			c.Write()
-			return
+	// Only service, and not agent, is known for config queries.
+	// For anonymous/untrusted agents, we filter the results using
+	// query.InsecureAgents below.
+	authResource := authorization.Resource{ServiceName: query.Service.Name}
+	authResult, err := authorization.AuthorizedFor(c.Request.Context(), authResource)
+	if err != nil {
+		c.Result.SetDefault(request.IDResponseErrorsServiceUnavailable)
+		c.Result.Err = err
+		c.Write()
+		return
+	}
+	if !authResult.Authorized {
+		id := request.IDResponseErrorsUnauthorized
+		status := request.MapResultIDToStatus[id]
+		if authResult.Reason != "" {
+			status.Keyword = authResult.Reason
 		}
+		c.Result.Set(id, status.Code, status.Keyword, nil, nil)
+		c.Write()
+		return
+	}
+	if authResult.Anonymous {
+		query.InsecureAgents = h.allowAnonymousAgents
 	}
 
 	result, err := h.f.Fetch(c.Request.Context(), query)
@@ -184,9 +184,6 @@ func buildQuery(c *request.Context) (agentcfg.Query, error) {
 		return query, errors.New(agentcfg.ServiceName + " is required")
 	}
 
-	if c.IsRum {
-		query.InsecureAgents = rumAgents
-	}
 	query.Etag = ifNoneMatch(c)
 	return query, nil
 }
