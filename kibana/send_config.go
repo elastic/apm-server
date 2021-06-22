@@ -93,12 +93,12 @@ func flattenAndClean(conf *common.Config) (map[string]interface{}, error) {
 		if strings.HasPrefix(k, "instrumentation") {
 			continue
 		}
-		if strings.HasPrefix(k, "ssl.") {
+		if strings.HasPrefix(k, "apm-server.ssl.") {
 			// Following ssl related settings need to be synced:
 			// apm-server.ssl.enabled
 			// apm-server.ssl.certificate
 			// apm-server.ssl.key
-			switch k[4:] {
+			switch k[15:] {
 			case "enabled", "certificate", "key":
 			default:
 				continue

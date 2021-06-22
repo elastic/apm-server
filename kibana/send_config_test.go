@@ -25,25 +25,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 )
 
 func TestFlatten(t *testing.T) {
-	dc := config.DefaultConfig()
-	enabled := true
-	dc.TLS = &tlscommon.ServerConfig{
-		Enabled:          &enabled,
-		VerificationMode: tlscommon.VerifyStrict,
-		Certificate: tlscommon.CertificateConfig{
-			Certificate: "my-cert",
-			Key:         "my-key",
-		},
-	}
 	tlsFieldsCount := 0
-	cc := common.NewConfig()
-	err := cc.Merge(dc)
+	cc, err := common.NewConfigWithYAML([]byte(serverYAML), "apm-server.yml")
 	require.NoError(t, err)
 
 	flat, err := flattenAndClean(cc)
@@ -53,8 +40,8 @@ func TestFlatten(t *testing.T) {
 		assert.NotContains(t, k, "elasticsearch")
 		assert.NotContains(t, k, "kibana")
 		assert.NotContains(t, k, "instrumentation")
-		if strings.HasPrefix(k, "ssl.") {
-			switch k[4:] {
+		if strings.HasPrefix(k, "apm-server.ssl.") {
+			switch k[15:] {
 			case "enabled", "certificate", "key":
 				tlsFieldsCount += 1
 			default:
@@ -64,3 +51,35 @@ func TestFlatten(t *testing.T) {
 	}
 	assert.Equal(t, 3, tlsFieldsCount)
 }
+
+var serverYAML = `apm-server:
+  host: "localhost:8200"
+  auth:
+    api_key:
+      enabled: true
+      limit: 100
+  max_header_size: 1048576
+  idle_timeout: 45s
+  read_timeout: 30s
+  write_timeout: 30s
+  shutdown_timeout: 5s
+  ssl:
+    enabled: true
+    key: 'my-key'
+    certificate: 'my-cert'
+    key_passphrase: 'pass-phrase'
+    verify_mode: 'strict'
+  rum:
+    enabled: false
+    event_rate:
+      limit: 300
+      lru_size: 1000
+output.elasticsearch:
+  hosts: ["localhost:9200"]
+  enabled: true
+  compression_level: 0
+  protocol: "https"
+  username: "elastic"
+  password: "changeme"
+  worker: 1
+`
