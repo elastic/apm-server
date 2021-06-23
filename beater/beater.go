@@ -21,6 +21,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"os"
 	"regexp"
 	"runtime"
 	"strings"
@@ -30,6 +31,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
 	"github.com/elastic/beats/v7/libbeat/common/transport"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+	"github.com/elastic/go-ucfg"
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
@@ -50,6 +52,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
+	kibana_client "github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
@@ -281,6 +284,7 @@ type serverRunner struct {
 	acker         *waitPublishedAcker
 	namespace     string
 	config        *config.Config
+	rawConfig     *common.Config
 	fleetConfig   *config.Fleet
 	beat          *beat.Beat
 	logger        *logp.Logger
@@ -320,6 +324,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		cancelRunServerContext: cancel,
 
 		config:        cfg,
+		rawConfig:     args.RawConfig,
 		fleetConfig:   args.FleetConfig,
 		acker:         args.Acker,
 		pipeline:      args.Pipeline,
@@ -368,6 +373,18 @@ func (s *serverRunner) run() error {
 		Pipeline:        s.config.Pipeline,
 		Namespace:       s.namespace,
 		TransformConfig: transformConfig,
+	}
+
+	// Check for an environment variable set when running in a cloud environment
+	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
+		// Don't block server startup sending the config.
+		go func() {
+			c := kibana_client.NewConnectingClient(&s.config.Kibana)
+			cfg := ucfg.Config(*s.rawConfig)
+			if err := kibana_client.SendConfig(s.runServerContext, c, cfg.Parent()); err != nil {
+				s.logger.Infof("failed to upload config to kibana: %v", err)
+			}
+		}()
 	}
 
 	// When the publisher stops cleanly it will close its pipeline client,
