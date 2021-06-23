@@ -20,11 +20,8 @@ package beater
 import (
 	"context"
 	"net"
-<<<<<<< HEAD
-=======
 	"net/http"
 	"os"
->>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 	"regexp"
 	"runtime"
 	"strings"
@@ -32,17 +29,13 @@ import (
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
-<<<<<<< HEAD
-
-	"github.com/elastic/beats/v7/libbeat/kibana"
-=======
 	"github.com/elastic/beats/v7/libbeat/common/transport"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/go-ucfg"
->>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
+	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
