@@ -78,10 +78,9 @@ func (r Reporter) Run(ctx context.Context) error {
 		for etag := range applied {
 			m := &model.Metricset{
 				Name:    "agent_config",
-				Labels:  make(common.MapStr, 1),
+				Labels:  common.MapStr{"etag": etag},
 				Samples: []model.Sample{{Name: "agent_config_applied", Value: 1}},
 			}
-			m.Labels.Put("etag", etag)
 			batch.Metricsets = append(batch.Metricsets, m)
 		}
 		// Reset applied map, so that we report only configs applied
