@@ -21,17 +21,13 @@ import (
 	"context"
 
 	"github.com/jaegertracing/jaeger/model"
-	"github.com/pkg/errors"
 	"go.opentelemetry.io/collector/consumer"
 	trjaeger "go.opentelemetry.io/collector/translator/trace/jaeger"
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/request"
 )
-
-var errNotAuthorized = errors.New("not authorized")
 
 type monitoringMap map[request.ResultID]*monitoring.Int
 
@@ -57,37 +53,4 @@ func consumeBatch(
 	requestMetrics.add(request.IDEventReceivedCount, spanCount)
 	traces := trjaeger.ProtoBatchToInternalTraces(batch)
 	return consumer.ConsumeTraces(ctx, traces)
-}
-
-type authFunc func(context.Context, model.Batch) (context.Context, error)
-
-func noAuth(ctx context.Context, _ model.Batch) (context.Context, error) {
-	return ctx, nil
-}
-
-func makeAuthFunc(authTag string, authHandler *authorization.Handler) authFunc {
-	return func(ctx context.Context, batch model.Batch) (context.Context, error) {
-		var kind, token string
-		for i, kv := range batch.Process.GetTags() {
-			if kv.Key != authTag {
-				continue
-			}
-			// Remove the auth tag.
-			batch.Process.Tags = append(batch.Process.Tags[:i], batch.Process.Tags[i+1:]...)
-			kind, token = authorization.ParseAuthorizationHeader(kv.VStr)
-			break
-		}
-		auth := authHandler.AuthorizationFor(kind, token)
-		result, err := auth.AuthorizedFor(ctx, authorization.Resource{})
-		if !result.Authorized {
-			if err != nil {
-				return nil, errors.Wrap(err, errNotAuthorized.Error())
-			}
-			// NOTE(axw) for now at least, we do not return result.Reason in the error message,
-			// as it refers to the "Authorization header" which is incorrect for Jaeger.
-			return nil, errNotAuthorized
-		}
-		ctx = authorization.ContextWithAuthorization(ctx, auth)
-		return ctx, nil
-	}
 }
