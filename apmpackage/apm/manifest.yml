@@ -119,6 +119,7 @@ policy_templates:
             description: Number of unique IPs to be cached for the rate limiter.
             required: false
             show_user: false
+<<<<<<< HEAD
             default: 1000
           - name: sourcemap_api_key
             type: text
@@ -126,6 +127,9 @@ policy_templates:
             required: false
             description: API Key for sourcemap feature. Enter as <Id>:<API Key>
             show_user: false
+=======
+            default: 10000
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
           - name: api_key_limit
             type: integer
             title: Maximum number of API Keys for Agent authentication

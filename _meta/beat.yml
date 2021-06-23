@@ -263,9 +263,12 @@ apm-server:
       # Sourcemapping is enabled by default.
       #enabled: true
 
-      # Source maps are always fetched from Elasticsearch, by default using the output.elasticsearch configuration.
+      # Source maps may be fetched from Elasticsearch by using the
+      # output.elasticsearch configuration.
       # A different instance must be configured when using any other output.
       # This setting only affects sourcemap reads - the output determines where sourcemaps are written.
+      # Note: Configuring elasticsearch is not supported if apm-server is being
+      # managed by Fleet.
       #elasticsearch:
         # Array of hosts to connect to.
         # Scheme and port can be left out and will be set to the default (`http` and `9200`).

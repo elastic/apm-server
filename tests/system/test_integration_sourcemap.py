@@ -209,29 +209,6 @@ class SourcemappingDisabledIntegrationTest(BaseSourcemapTest):
 
 
 @integration_test
-class SourcemapInvalidESConfig(BaseSourcemapTest):
-    def config(self):
-        cfg = super(SourcemapInvalidESConfig, self).config()
-        url = self.split_url(cfg)
-        cfg.update({
-            "smap_es_host": url["host"],
-            "smap_es_username": url["username"],
-            "smap_es_password": "xxxx",
-        })
-        return cfg
-
-    def test_unauthorized(self):
-        # successful - uses output.elasticsearch.* configuration
-        self.upload_sourcemap()
-        # unauthorized - uses apm-server.rum.sourcemapping.elasticsearch configuration
-        self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.intake_url,
-                                     'error',
-                                     1)
-        assert self.log_contains("unable to authenticate user")
-
-
-@integration_test
 class SourcemapESConfigUser(BaseSourcemapTest):
     def config(self):
         cfg = super(SourcemapESConfigUser, self).config()
