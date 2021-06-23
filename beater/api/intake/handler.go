@@ -81,6 +81,8 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 			return
 		}
 
+		// copy batchProcessor to avoid updating closure below
+		batchProcessor := batchProcessor
 		if limiter, ok := ratelimit.FromContext(c.Request.Context()); ok {
 			// Apply rate limiting after reading but before processing any events.
 			batchProcessor = modelprocessor.Chained{
