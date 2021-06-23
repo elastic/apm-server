@@ -120,6 +120,7 @@ policy_templates:
             required: false
             show_user: false
             default: 10000
+<<<<<<< HEAD
           - name: rum_library_pattern
             type: text
             title: RUM - Library Frame Pattern
@@ -134,6 +135,8 @@ policy_templates:
             required: false
             show_user: false
             default: '"^/webpack"'
+=======
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
           - name: api_key_limit
             type: integer
             title: Maximum number of API Keys for Agent authentication

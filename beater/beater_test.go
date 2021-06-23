@@ -315,7 +315,11 @@ func TestFleetStoreUsed(t *testing.T) {
 		called = true
 		wr := zlib.NewWriter(w)
 		defer wr.Close()
+<<<<<<< HEAD
 		wr.Write([]byte(fmt.Sprintf(`{"sourceMap":%s}`, test.ValidSourcemap)))
+=======
+		wr.Write([]byte(test.ValidSourcemap))
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 	}))
 	defer ts.Close()
 

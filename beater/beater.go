@@ -21,7 +21,10 @@ import (
 	"context"
 	"net"
 	"net/http"
+<<<<<<< HEAD
 	"os"
+=======
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 	"regexp"
 	"runtime"
 	"strings"
@@ -31,7 +34,10 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
 	"github.com/elastic/beats/v7/libbeat/common/transport"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+<<<<<<< HEAD
 	"github.com/elastic/go-ucfg"
+=======
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
@@ -284,7 +290,10 @@ type serverRunner struct {
 	acker         *waitPublishedAcker
 	namespace     string
 	config        *config.Config
+<<<<<<< HEAD
 	rawConfig     *common.Config
+=======
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 	fleetConfig   *config.Fleet
 	beat          *beat.Beat
 	logger        *logp.Logger
@@ -324,7 +333,10 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		cancelRunServerContext: cancel,
 
 		config:        cfg,
+<<<<<<< HEAD
 		rawConfig:     args.RawConfig,
+=======
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 		fleetConfig:   args.FleetConfig,
 		acker:         args.Acker,
 		pipeline:      args.Pipeline,
@@ -655,7 +667,15 @@ func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping, fleetCfg *c
 		// Default for es is 90s :shrug:
 		timeout := 30 * time.Second
 		dialer := transport.NetDialer(timeout)
+<<<<<<< HEAD
 		tlsDialer := transport.TLSDialer(dialer, tlsConfig, timeout)
+=======
+		tlsDialer, err := transport.TLSDialer(dialer, tlsConfig, timeout)
+		if err != nil {
+			return nil, err
+		}
+
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 		rt = &http.Transport{
 			Proxy:           http.ProxyFromEnvironment,
 			Dial:            dialer.Dial,

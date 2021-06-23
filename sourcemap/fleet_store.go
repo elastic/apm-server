@@ -18,10 +18,18 @@
 package sourcemap
 
 import (
+<<<<<<< HEAD
 	"compress/zlib"
 	"context"
 	"encoding/json"
 	"fmt"
+=======
+	"bytes"
+	"compress/zlib"
+	"context"
+	"fmt"
+	"io"
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -129,9 +137,18 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 		return "", err
 	}
 
+<<<<<<< HEAD
 	var m map[string]json.RawMessage
 	if err := json.NewDecoder(r).Decode(&m); err != nil {
 		return "", err
 	}
 	return string(m["sourceMap"]), nil
+=======
+	buf := new(bytes.Buffer)
+	if _, err := io.Copy(buf, r); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 }

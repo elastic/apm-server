@@ -153,14 +153,22 @@ func TestStore_Fetch(t *testing.T) {
 	})
 }
 
+<<<<<<< HEAD
 func TestFetchContext(t *testing.T) {
 	var (
+=======
+func TestFetchTimeout(t *testing.T) {
+	var (
+		errs int64
+
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 		apikey  = "supersecret"
 		name    = "webapp"
 		version = "1.0.0"
 		path    = "/my/path/to/bundle.js.map"
 		c       = http.DefaultClient
 	)
+<<<<<<< HEAD
 
 	requestReceived := make(chan struct{})
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -170,6 +178,9 @@ func TestFetchContext(t *testing.T) {
 			return
 		}
 		// block until the client cancels the request
+=======
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 		<-r.Context().Done()
 	}))
 	defer ts.Close()
@@ -192,6 +203,7 @@ func TestFetchContext(t *testing.T) {
 	assert.NoError(t, err)
 	logger := logp.NewLogger(logs.Sourcemap)
 	store, err := newStore(b, logger, time.Minute)
+<<<<<<< HEAD
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -216,6 +228,18 @@ func TestFetchContext(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for Fetch to return")
 	}
+=======
+	assert.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+
+	_, err = store.Fetch(ctx, name, version, path)
+	assert.True(t, errors.Is(err, context.DeadlineExceeded))
+	atomic.AddInt64(&errs, 1)
+
+	assert.Equal(t, int64(1), errs)
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 }
 
 func TestConcurrentFetch(t *testing.T) {
@@ -234,7 +258,10 @@ func TestConcurrentFetch(t *testing.T) {
 			version = "1.0.0"
 			path    = "/my/path/to/bundle.js.map"
 			c       = http.DefaultClient
+<<<<<<< HEAD
 			res     = fmt.Sprintf(`{"sourceMap":%s}`, test.ValidSourcemap)
+=======
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 
 			errsLeft = tc.errWant
 		)
@@ -250,7 +277,11 @@ func TestConcurrentFetch(t *testing.T) {
 			}
 			wr := zlib.NewWriter(w)
 			defer wr.Close()
+<<<<<<< HEAD
 			wr.Write([]byte(res))
+=======
+			wr.Write([]byte(test.ValidSourcemap))
+>>>>>>> 9453fe24 (Service specific source maps (#5410))
 		}))
 		defer ts.Close()
 
