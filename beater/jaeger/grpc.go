@@ -129,7 +129,7 @@ func (s *grpcSampler) GetSamplingStrategy(
 
 func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (float64, error) {
 	query := agentcfg.Query{Service: agentcfg.Service{Name: service},
-		InsecureAgents: jaegerAgentPrefixes, MarkAsAppliedByAgent: newBool(true)}
+		InsecureAgents: jaegerAgentPrefixes, MarkAsAppliedByAgent: true}
 	result, err := s.fetcher.Fetch(ctx, query)
 	if err != nil {
 		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)

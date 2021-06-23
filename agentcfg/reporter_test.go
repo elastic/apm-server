@@ -40,10 +40,9 @@ func TestReportFetch(t *testing.T) {
 		Service: Service{Name: "webapp", Environment: "production"},
 		Etag:    "abc123",
 	}
-	applied := true
 	query2 := Query{
 		Etag:                 "def456",
-		MarkAsAppliedByAgent: &applied,
+		MarkAsAppliedByAgent: true,
 	}
 	query3 := Query{
 		Etag: "old-etag",
