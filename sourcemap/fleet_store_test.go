@@ -53,8 +53,8 @@ func TestFleetFetch(t *testing.T) {
 	defer ts.Close()
 
 	fleetCfg := &config.Fleet{
-		Hosts:        []string{ts.URL},
-		Protocol:     "https",
+		Hosts:        []string{ts.URL[7:]},
+		Protocol:     "http",
 		AccessAPIKey: apikey,
 		TLS:          nil,
 	}
