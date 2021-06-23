@@ -32,7 +32,7 @@ services:
       kibana: { condition: service_healthy }
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.3-6b02e37f-SNAPSHOT
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.3-87af5e25-SNAPSHOT
     ports:
       - 9200:9200
     healthcheck:
@@ -61,7 +61,7 @@ services:
       - "./testing/docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles"
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:7.13.3-6b02e37f-SNAPSHOT
+    image: docker.elastic.co/kibana/kibana:7.13.3-87af5e25-SNAPSHOT
     ports:
       - 5601:5601
     healthcheck:
@@ -84,7 +84,7 @@ services:
       package-registry: { condition: service_healthy }
 
   fleet-server:
-    image: docker.elastic.co/beats/elastic-agent:7.13.3-6b02e37f-SNAPSHOT
+    image: docker.elastic.co/beats/elastic-agent:7.13.3-87af5e25-SNAPSHOT
     ports:
       - 8220:8220
     healthcheck:
