@@ -31,7 +31,13 @@ import (
 	"github.com/elastic/go-ucfg"
 )
 
+<<<<<<< HEAD
 const kibanaConfigUploadPath = "/api/apm/fleet/apm_server_schema"
+=======
+// TODO: Get this value from Oliver
+// https://github.com/elastic/kibana/issues/100657
+const kibanaConfigUploadPath = "/apm/fleet/apm_server_settings"
+>>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 
 // SendConfig marshals and uploads the provided config to kibana using the
 // provided ConnectingClient. It retries until its context has been canceled or
@@ -43,8 +49,12 @@ func SendConfig(ctx context.Context, client Client, conf *ucfg.Config) error {
 	if err != nil {
 		return err
 	}
+<<<<<<< HEAD
 
 	b, err := json.Marshal(format(flat))
+=======
+	b, err := json.Marshal(flat)
+>>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 	if err != nil {
 		return err
 	}
@@ -74,10 +84,13 @@ func SendConfig(ctx context.Context, client Client, conf *ucfg.Config) error {
 	}
 }
 
+<<<<<<< HEAD
 func format(m map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{"schema": m}
 }
 
+=======
+>>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 func flattenAndClean(conf *ucfg.Config) (map[string]interface{}, error) {
 	m := common.MapStr{}
 	if err := conf.Unpack(m); err != nil {
@@ -97,6 +110,7 @@ func flattenAndClean(conf *ucfg.Config) (map[string]interface{}, error) {
 		if strings.HasPrefix(k, "instrumentation") {
 			continue
 		}
+<<<<<<< HEAD
 		if strings.HasPrefix(k, "logging.") {
 			switch k[8:] {
 			case "level", "selectors", "metrics.enabled", "metrics.period":
@@ -113,6 +127,8 @@ func flattenAndClean(conf *ucfg.Config) (map[string]interface{}, error) {
 		if k == "apm-server.host" {
 			v = "0.0.0.0:8200"
 		}
+=======
+>>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 		if strings.HasPrefix(k, "apm-server.ssl.") {
 			// Following ssl related settings need to be synced:
 			// apm-server.ssl.enabled

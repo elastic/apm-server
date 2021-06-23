@@ -29,8 +29,13 @@ import (
 	"github.com/elastic/go-ucfg"
 )
 
+<<<<<<< HEAD
 func TestFlattenAndFormat(t *testing.T) {
 	tlsFieldsCount, loggingFieldCount := 0, 0
+=======
+func TestFlatten(t *testing.T) {
+	tlsFieldsCount := 0
+>>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 	cc, err := common.NewConfigWithYAML([]byte(serverYAML), "apm-server.yml")
 	c := ucfg.Config(*cc)
 	require.NoError(t, err)
@@ -38,6 +43,7 @@ func TestFlattenAndFormat(t *testing.T) {
 	flat, err := flattenAndClean(&c)
 	assert.NoError(t, err)
 
+<<<<<<< HEAD
 	flat = format(flat)
 	assert.Contains(t, flat, "schema")
 
@@ -61,6 +67,12 @@ func TestFlattenAndFormat(t *testing.T) {
 		if k == "apm-server.host" {
 			assert.Equal(t, "0.0.0.0:8200", v)
 		}
+=======
+	for k := range flat {
+		assert.NotContains(t, k, "elasticsearch")
+		assert.NotContains(t, k, "kibana")
+		assert.NotContains(t, k, "instrumentation")
+>>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 		if strings.HasPrefix(k, "apm-server.ssl.") {
 			switch k[15:] {
 			case "enabled", "certificate", "key":
@@ -93,12 +105,16 @@ var serverYAML = `apm-server:
     certificate: 'my-cert'
     key_passphrase: 'pass-phrase'
     verify_mode: 'strict'
+<<<<<<< HEAD
   name: 'test-name'
+=======
+>>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
   rum:
     enabled: false
     event_rate:
       limit: 300
       lru_size: 1000
+<<<<<<< HEAD
 gc_percent: 70
 logging:
   level: 'debug'
@@ -113,6 +129,8 @@ path.data: "/app/data"
 path:
   home: "/app/"
 xpack.monitoring.enabled: true
+=======
+>>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 output.elasticsearch:
   hosts: ["localhost:9200"]
   enabled: true
