@@ -805,7 +805,7 @@ func TestSourcemapping(t *testing.T) {
 	assert.Equal(t, 1, *event.Exception.Stacktrace[0].Lineno)
 
 	// transform with sourcemap store
-	store, err := sourcemap.NewStore(test.ESClientWithValidSourcemap(t), "apm-*sourcemap*", time.Minute)
+	store, err := sourcemap.NewElasticsearchStore(test.ESClientWithValidSourcemap(t), "apm-*sourcemap*", time.Minute)
 	require.NoError(t, err)
 	transformedWithSourcemap := event.fields(context.Background(), &transform.Config{
 		RUM: transform.RUMConfig{SourcemapStore: store},
