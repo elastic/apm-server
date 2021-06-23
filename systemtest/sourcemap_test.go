@@ -152,7 +152,9 @@ func TestFetchLatestSourcemap(t *testing.T) {
 	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-sourcemap", nil)
 
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
+	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
 	expectLogMessage(t, srv, "No Sourcemap available")
+	deleteIndex(t, "apm-*-error*")
 
 	// upload second sourcemap file with same key,
 	// that actually leads to proper matchings
@@ -162,9 +164,12 @@ func TestFetchLatestSourcemap(t *testing.T) {
 	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
 		"apm-agent-js",
-		"1.0.0",
+		"1.0.1",
 	)
 	systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*-sourcemap", nil)
+
+	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
+	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
 	expectSourcemapUpdated(t)
 }
 
@@ -179,21 +184,17 @@ func TestSourcemapCacheUsage(t *testing.T) {
 	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
 		"apm-agent-js",
-		"1.0.0",
+		"1.0.1",
 	)
 	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-sourcemap", nil)
 
 	// trigger cache
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
 	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
+	expectSourcemapUpdated(t)
 
 	// delete sourcemap index
-	resp, err := systemtest.Elasticsearch.Indices.Delete([]string{"apm-*-sourcemap"})
-	require.NoError(t, err)
-	resp.Body.Close()
-	resp, err = systemtest.Elasticsearch.Indices.Flush()
-	require.NoError(t, err)
-	resp.Body.Close()
+	deleteIndex(t, "apm-*-sourcemap*")
 
 	// index error document again
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
@@ -227,12 +228,7 @@ func TestSourcemapCacheExpiration(t *testing.T) {
 	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
 
 	// delete sourcemap index
-	resp, err := systemtest.Elasticsearch.Indices.Delete([]string{"apm-*-sourcemap"})
-	require.NoError(t, err)
-	resp.Body.Close()
-	resp, err = systemtest.Elasticsearch.Indices.Flush()
-	require.NoError(t, err)
-	resp.Body.Close()
+	deleteIndex(t, "apm-*-sourcemap*")
 
 	// wait for the cache to expire
 	time.Sleep(time.Second)
@@ -293,6 +289,16 @@ func expectLogMessage(t *testing.T, srv *apmservertest.Server, message string) {
 			t.Fatal("timed out waiting for log message")
 		}
 	}
+}
+
+func deleteIndex(t *testing.T, name string) {
+	// delete sourcemap index
+	resp, err := systemtest.Elasticsearch.Indices.Delete([]string{name})
+	require.NoError(t, err)
+	resp.Body.Close()
+	resp, err = systemtest.Elasticsearch.Indices.Flush()
+	require.NoError(t, err)
+	resp.Body.Close()
 }
 
 func expectSourcemapUpdated(t *testing.T) {
