@@ -24,25 +24,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/translator/trace/jaeger"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/beatertest"
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/kibana/kibanatest"
 )
-
-type authKey struct{}
 
 func TestGRPCCollector_PostSpans(t *testing.T) {
 	for name, tc := range map[string]testGRPCCollector{
@@ -53,21 +50,6 @@ func TestGRPCCollector_PostSpans(t *testing.T) {
 		"failing request": {
 			consumerErr: errors.New("consumer failed"),
 			expectedErr: errors.New("consumer failed"),
-		},
-		"auth fails": {
-			authErr:     errors.New("oh noes"),
-			expectedErr: status.Error(codes.Unauthenticated, "oh noes"),
-		},
-		"auth context": {
-			auth: func(ctx context.Context, batch model.Batch) (context.Context, error) {
-				return context.WithValue(ctx, authKey{}, 123), nil
-			},
-			consumer: func(ctx context.Context, td pdata.Traces) error {
-				if ctx.Value(authKey{}) != 123 {
-					panic("auth context not propagated to consumer")
-				}
-				return nil
-			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -89,8 +71,6 @@ func TestGRPCCollector_PostSpans(t *testing.T) {
 type testGRPCCollector struct {
 	request     *api_v2.PostSpansRequest
 	consumer    tracesConsumerFunc
-	auth        authFunc
-	authErr     error
 	consumerErr error
 	collector   *grpcCollector
 
@@ -125,12 +105,7 @@ func (tc *testGRPCCollector) setup(t *testing.T) {
 			return tc.consumerErr
 		}
 	}
-	if tc.auth == nil {
-		tc.auth = func(ctx context.Context, _ model.Batch) (context.Context, error) {
-			return ctx, tc.authErr
-		}
-	}
-	tc.collector = &grpcCollector{tc.auth, tc.consumer}
+	tc.collector = &grpcCollector{tc.consumer}
 }
 
 type tracesConsumerFunc func(ctx context.Context, td pdata.Traces) error
@@ -178,7 +153,12 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 			tc.setup()
 			params := &api_v2.SamplingStrategyParameters{ServiceName: "serviceA"}
-			resp, err := tc.sampler.GetSamplingStrategy(context.Background(), params)
+
+			ctx := context.Background()
+			authBuilder, _ := authorization.NewBuilder(config.AgentAuth{})
+			authHandler := authBuilder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
+			ctx = authorization.ContextWithAuthorization(ctx, authHandler.AuthorizationFor("", ""))
+			resp, err := tc.sampler.GetSamplingStrategy(ctx, params)
 
 			// assert sampling response
 			if tc.expectedErrMsg != "" {
