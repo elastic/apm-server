@@ -284,11 +284,8 @@ type serverRunner struct {
 	acker         *waitPublishedAcker
 	namespace     string
 	config        *config.Config
-<<<<<<< HEAD
-=======
 	rawConfig     *common.Config
 	fleetConfig   *config.Fleet
->>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 	beat          *beat.Beat
 	logger        *logp.Logger
 	tracer        *apm.Tracer
@@ -331,11 +328,8 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		cancelRunServerContext: cancel,
 
 		config:        cfg,
-<<<<<<< HEAD
-=======
 		rawConfig:     args.RawConfig,
 		fleetConfig:   args.FleetConfig,
->>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 		acker:         args.Acker,
 		pipeline:      args.Pipeline,
 		namespace:     args.Namespace,
