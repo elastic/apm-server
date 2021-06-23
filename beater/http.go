@@ -29,8 +29,8 @@ import (
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/api"
-	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
@@ -59,8 +59,9 @@ func newHTTPServer(
 	ratelimitStore *ratelimit.Store,
 ) (*httpServer, error) {
 
-	// Add a model processor that checks authorization for the agent and service for each event.
+	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
 	batchProcessor = modelprocessor.Chained{
+		model.ProcessBatchFunc(rateLimitBatchProcessor),
 		modelprocessor.MetadataProcessorFunc(verifyAuthorizedFor),
 		batchProcessor,
 	}
