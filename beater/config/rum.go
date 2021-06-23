@@ -58,12 +58,13 @@ type EventRate struct {
 	LruSize int `config:"lru_size"`
 }
 
-// SourceMapping holds sourecemap config information
+// SourceMapping holds sourcemap config information
 type SourceMapping struct {
 	Cache        Cache                 `config:"cache"`
 	Enabled      bool                  `config:"enabled"`
 	IndexPattern string                `config:"index_pattern"`
 	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
+	Metadata     []SourceMapMetadata   `config:"metadata"`
 	esConfigured bool
 }
 
@@ -79,14 +80,13 @@ func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg
 		return errors.Wrapf(err, "Invalid regex for `exclude_from_grouping`: ")
 	}
 
-	var apiKey string
-	if c.SourceMapping.esConfigured {
-		if dataStreamsEnabled {
-			// when running under Fleet, the only setting configured is the api key
-			apiKey = c.SourceMapping.ESConfig.APIKey
-		} else {
-			return nil
-		}
+	if c.SourceMapping.esConfigured && len(c.SourceMapping.Metadata) > 0 {
+		return errors.New("configuring both source_mapping.elasticsearch and sourcemapping.source_maps not allowed")
+	}
+
+	// No need to unpack the ESConfig if SourceMapMetadata exist
+	if len(c.SourceMapping.Metadata) > 0 {
+		return nil
 	}
 
 	// fall back to elasticsearch output configuration for sourcemap storage if possible
@@ -97,9 +97,6 @@ func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg
 	log.Info("Falling back to elasticsearch output for sourcemap storage")
 	if err := outputESCfg.Unpack(c.SourceMapping.ESConfig); err != nil {
 		return errors.Wrap(err, "unpacking Elasticsearch config into Sourcemap config")
-	}
-	if c.SourceMapping.ESConfig.APIKey == "" {
-		c.SourceMapping.ESConfig.APIKey = apiKey
 	}
 	return nil
 }
@@ -119,6 +116,7 @@ func defaultSourcemapping() SourceMapping {
 		Cache:        Cache{Expiration: defaultSourcemapCacheExpiration},
 		IndexPattern: defaultSourcemapIndexPattern,
 		ESConfig:     elasticsearch.DefaultConfig(),
+		Metadata:     []SourceMapMetadata{},
 	}
 }
 
