@@ -153,6 +153,96 @@ func TestIntakeHandler(t *testing.T) {
 	}
 }
 
+<<<<<<< HEAD
+=======
+func TestRateLimiting(t *testing.T) {
+	type test struct {
+		limiter       *rate.Limiter
+		preconsumed   int
+		expectLimited bool
+	}
+
+	for name, test := range map[string]test{
+		"LimiterAllowAll": {
+			limiter:       rate.NewLimiter(rate.Limit(40), 40*5),
+			expectLimited: false,
+		},
+		"LimiterPartiallyUsedLimitAllow": {
+			limiter:       rate.NewLimiter(rate.Limit(10), 10*2),
+			preconsumed:   10,
+			expectLimited: false,
+		},
+		"LimiterDenyAll": {
+			limiter:       rate.NewLimiter(rate.Limit(0), 2),
+			expectLimited: true,
+		},
+		"LimiterPartiallyUsedLimitDeny": {
+			limiter:       rate.NewLimiter(rate.Limit(7), 7*2),
+			preconsumed:   10,
+			expectLimited: true,
+		},
+		"LimiterDeny": {
+			limiter:       rate.NewLimiter(rate.Limit(6), 6*2),
+			expectLimited: true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			var tc testcaseIntakeHandler
+			tc.path = "ratelimit.ndjson"
+			tc.setup(t)
+
+			tc.c.Request = tc.c.Request.WithContext(
+				ratelimit.ContextWithLimiter(tc.c.Request.Context(), test.limiter),
+			)
+			if test.preconsumed > 0 {
+				test.limiter.AllowN(time.Now(), test.preconsumed)
+			}
+
+			h := Handler(tc.processor, emptyRequestMetadata, tc.batchProcessor)
+			h(tc.c)
+
+			if test.expectLimited {
+				assert.Equal(t, request.IDResponseErrorsRateLimit, tc.c.Result.ID)
+				assert.Equal(t, http.StatusTooManyRequests, tc.w.Code)
+				assert.Error(t, tc.c.Result.Err)
+			} else {
+				assert.Equal(t, request.IDResponseValidAccepted, tc.c.Result.ID)
+				assert.Equal(t, http.StatusAccepted, tc.w.Code)
+				assert.NoError(t, tc.c.Result.Err)
+			}
+			assert.NotZero(t, tc.w.Body.Len())
+			approvaltest.ApproveJSON(t, "test_approved/"+t.Name(), tc.w.Body.Bytes())
+		})
+	}
+}
+
+func TestRateLimitingRequests(t *testing.T) {
+	// Check that rate limiting across multiple requests is handled correctly.
+	//
+	// ratelimit.ndjson contains 19 events, and we rate limit in batches of 10
+	// events. The burst of 41 should be enough for 2 iterations with one left.
+	limiter := rate.NewLimiter(1, 41)
+	processor := stream.BackendProcessor(config.DefaultConfig())
+	handler := Handler(processor, emptyRequestMetadata, modelprocessor.Nop{})
+
+	data, err := ioutil.ReadFile("../../../testdata/intake-v2/ratelimit.ndjson")
+	require.NoError(t, err)
+	for i := 0; i < 2; i++ {
+		r := httptest.NewRequest("POST", "/", bytes.NewBuffer(data))
+		r = r.WithContext(ratelimit.ContextWithLimiter(r.Context(), limiter))
+		r.Header.Add("Content-Type", "application/x-ndjson")
+
+		w := httptest.NewRecorder()
+		c := request.NewContext()
+		c.Reset(w, r)
+		handler(c)
+		assert.Equal(t, http.StatusAccepted, w.Code)
+	}
+	assert.True(t, limiter.Allow())
+	assert.False(t, limiter.Allow())
+}
+
+>>>>>>> 97a6f9b8 (beater/api/intake: fix rate limiting (#5518))
 type testcaseIntakeHandler struct {
 	c              *request.Context
 	w              *httptest.ResponseRecorder

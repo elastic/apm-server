@@ -76,6 +76,19 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 			return
 		}
 
+<<<<<<< HEAD
+=======
+		// copy batchProcessor to avoid updating closure below
+		batchProcessor := batchProcessor
+		if limiter, ok := ratelimit.FromContext(c.Request.Context()); ok {
+			// Apply rate limiting after reading but before processing any events.
+			batchProcessor = modelprocessor.Chained{
+				rateLimitBatchProcessor(limiter, batchSize),
+				batchProcessor,
+			}
+		}
+
+>>>>>>> 97a6f9b8 (beater/api/intake: fix rate limiting (#5518))
 		reader, err := decoder.CompressedRequestReader(c.Request)
 		if err != nil {
 			writeError(c, compressedRequestReaderError{err})

@@ -162,6 +162,7 @@ func TestRUMRateLimit(t *testing.T) {
 	err = sendEvents("10.11.12.13", 3*srv.Config.RUM.RateLimit.EventLimit)
 	assert.NoError(t, err)
 
+<<<<<<< HEAD
 	// Sending the events over multiple requests should have the same outcome.
 	for i := 0; i < 3; i++ {
 		err = sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit)
@@ -171,6 +172,16 @@ func TestRUMRateLimit(t *testing.T) {
 	// The rate limiter cache only has space for 2 IPs, so the 3rd one reuses an existing
 	// limiter, which will have already been exhausted.
 	err = sendEvents("10.11.12.15", 10)
+=======
+	var g errgroup.Group
+	g.Go(func() error { return sendEvents("10.11.12.13", srv.Config.RUM.RateLimit.EventLimit*3) })
+	g.Go(func() error { return sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit*3) })
+	assert.NoError(t, g.Wait())
+
+	g = errgroup.Group{}
+	g.Go(func() error { return sendEvents("10.11.12.15", srv.Config.RUM.RateLimit.EventLimit) })
+	err = g.Wait()
+>>>>>>> 97a6f9b8 (beater/api/intake: fix rate limiting (#5518))
 	require.Error(t, err)
 
 	// The exact error differs, depending on whether rate limiting was applied at the request
