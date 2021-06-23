@@ -72,9 +72,8 @@ func newFleetStore(
 	fleetCfg *config.Fleet,
 	cfgs []config.SourceMapMetadata,
 ) (fleetStore, error) {
-	// TODO(stn): This is assuming we'll get a single fleet address right now.
-	// If we get more, how do we know which artifact is where? Are they
-	// present on all fleet-servers and we should rr through the addresses?
+	// TODO(stn): Add support for multiple fleet hosts
+	// cf. https://github.com/elastic/apm-server/issues/5514
 	host := fleetCfg.Hosts[0]
 	fleetURLs := make(map[key]string)
 
