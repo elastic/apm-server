@@ -55,7 +55,10 @@ func TestFlatten(t *testing.T) {
 }
 
 var serverYAML = `apm-server:
-  host: "localhost:8200"
+  kibana:
+    enabled: true
+    api_key: abc123
+    host: "localhost:8200"
   auth:
     api_key:
       enabled: true
@@ -89,7 +92,4 @@ instrumentation:
   environment: ""
   hosts:
   - http://remote-apm-server:8200
-kibana:
-  enabled: true
-  api_key: abc123
 `
