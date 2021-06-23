@@ -157,13 +157,11 @@ func TestRUMRateLimit(t *testing.T) {
 	// Just check that rate limiting is wired up. More specific rate limiting scenarios are unit tested.
 
 	var g errgroup.Group
-	g.Go(func() error { return sendEvents("10.11.12.13", srv.Config.RUM.RateLimit.EventLimit) })
-	g.Go(func() error { return sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit) })
+	g.Go(func() error { return sendEvents("10.11.12.13", srv.Config.RUM.RateLimit.EventLimit*3) })
+	g.Go(func() error { return sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit*3) })
 	assert.NoError(t, g.Wait())
 
 	g = errgroup.Group{}
-	g.Go(func() error { return sendEvents("10.11.12.13", srv.Config.RUM.RateLimit.EventLimit) })
-	g.Go(func() error { return sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit) })
 	g.Go(func() error { return sendEvents("10.11.12.15", srv.Config.RUM.RateLimit.EventLimit) })
 	err = g.Wait()
 	require.Error(t, err)

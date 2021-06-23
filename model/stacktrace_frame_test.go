@@ -422,7 +422,7 @@ func TestLibraryFrame(t *testing.T) {
 }
 
 func testSourcemapStore(t *testing.T, client elasticsearch.Client) *sourcemap.Store {
-	store, err := sourcemap.NewStore(client, "apm-*sourcemap*", time.Minute)
+	store, err := sourcemap.NewElasticsearchStore(client, "apm-*sourcemap*", time.Minute)
 	require.NoError(t, err)
 	return store
 }

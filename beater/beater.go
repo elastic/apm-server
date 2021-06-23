@@ -20,6 +20,8 @@ package beater
 import (
 	"context"
 	"net"
+	"net/http"
+	"os"
 	"regexp"
 	"runtime"
 	"strings"
@@ -27,11 +29,13 @@ import (
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
-
-	"github.com/elastic/beats/v7/libbeat/kibana"
+	"github.com/elastic/beats/v7/libbeat/common/transport"
+	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+	"github.com/elastic/go-ucfg"
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
+	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -48,6 +52,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
+	kibana_client "github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
@@ -256,8 +261,8 @@ func (s *serverCreator) Create(p beat.PipelineConnector, rawConfig *common.Confi
 		sharedServerRunnerParams: s.args,
 		Namespace:                namespace,
 		Pipeline:                 p,
-		KibanaConfig:             &integrationConfig.Fleet.Kibana,
 		RawConfig:                apmServerCommonConfig,
+		FleetConfig:              &integrationConfig.Fleet,
 	})
 }
 
@@ -279,6 +284,8 @@ type serverRunner struct {
 	acker         *waitPublishedAcker
 	namespace     string
 	config        *config.Config
+	rawConfig     *common.Config
+	fleetConfig   *config.Fleet
 	beat          *beat.Beat
 	logger        *logp.Logger
 	tracer        *apm.Tracer
@@ -289,10 +296,10 @@ type serverRunner struct {
 type serverRunnerParams struct {
 	sharedServerRunnerParams
 
-	Namespace    string
-	Pipeline     beat.PipelineConnector
-	KibanaConfig *kibana.ClientConfig
-	RawConfig    *common.Config
+	Namespace   string
+	Pipeline    beat.PipelineConnector
+	RawConfig   *common.Config
+	FleetConfig *config.Fleet
 }
 
 type sharedServerRunnerParams struct {
@@ -310,10 +317,6 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		return nil, err
 	}
 
-	if cfg.DataStreams.Enabled && args.KibanaConfig != nil {
-		cfg.Kibana.ClientConfig = *args.KibanaConfig
-	}
-
 	runServerContext, cancel := context.WithCancel(ctx)
 	return &serverRunner{
 		backgroundContext:      ctx,
@@ -321,6 +324,8 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		cancelRunServerContext: cancel,
 
 		config:        cfg,
+		rawConfig:     args.RawConfig,
+		fleetConfig:   args.FleetConfig,
 		acker:         args.Acker,
 		pipeline:      args.Pipeline,
 		namespace:     args.Namespace,
@@ -359,8 +364,7 @@ func (s *serverRunner) Start() {
 func (s *serverRunner) run() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
-
-	transformConfig, err := newTransformConfig(s.beat.Info, s.config)
+	transformConfig, err := newTransformConfig(s.beat.Info, s.config, s.fleetConfig)
 	if err != nil {
 		return err
 	}
@@ -369,6 +373,18 @@ func (s *serverRunner) run() error {
 		Pipeline:        s.config.Pipeline,
 		Namespace:       s.namespace,
 		TransformConfig: transformConfig,
+	}
+
+	// Check for an environment variable set when running in a cloud environment
+	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
+		// Don't block server startup sending the config.
+		go func() {
+			c := kibana_client.NewConnectingClient(&s.config.Kibana)
+			cfg := ucfg.Config(*s.rawConfig)
+			if err := kibana_client.SendConfig(s.runServerContext, c, cfg.Parent()); err != nil {
+				s.logger.Infof("failed to upload config to kibana: %v", err)
+			}
+		}()
 	}
 
 	// When the publisher stops cleanly it will close its pipeline client,
@@ -602,7 +618,7 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	}
 }
 
-func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Config, error) {
+func newTransformConfig(beatInfo beat.Info, cfg *config.Config, fleetCfg *config.Fleet) (*transform.Config, error) {
 	transformConfig := &transform.Config{
 		DataStreams: cfg.DataStreams.Enabled,
 		RUM: transform.RUMConfig{
@@ -611,8 +627,8 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 		},
 	}
 
-	if cfg.RumConfig.Enabled && cfg.RumConfig.SourceMapping.Enabled && cfg.RumConfig.SourceMapping.ESConfig != nil {
-		store, err := newSourcemapStore(beatInfo, cfg.RumConfig.SourceMapping)
+	if cfg.RumConfig.Enabled && cfg.RumConfig.SourceMapping.Enabled {
+		store, err := newSourcemapStore(beatInfo, cfg.RumConfig.SourceMapping, fleetCfg)
 		if err != nil {
 			return nil, err
 		}
@@ -622,13 +638,44 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 	return transformConfig, nil
 }
 
-func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping) (*sourcemap.Store, error) {
-	esClient, err := elasticsearch.NewClient(cfg.ESConfig)
+func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping, fleetCfg *config.Fleet) (*sourcemap.Store, error) {
+	if fleetCfg != nil {
+		var (
+			c  = *http.DefaultClient
+			rt = http.DefaultTransport
+		)
+		var tlsConfig *tlscommon.TLSConfig
+		var err error
+		if fleetCfg.TLS.IsEnabled() {
+			if tlsConfig, err = tlscommon.LoadTLSConfig(fleetCfg.TLS); err != nil {
+				return nil, err
+			}
+		}
+
+		// Default for es is 90s :shrug:
+		timeout := 30 * time.Second
+		dialer := transport.NetDialer(timeout)
+		tlsDialer, err := transport.TLSDialer(dialer, tlsConfig, timeout)
+		if err != nil {
+			return nil, err
+		}
+
+		rt = &http.Transport{
+			Proxy:           http.ProxyFromEnvironment,
+			Dial:            dialer.Dial,
+			DialTLS:         tlsDialer.Dial,
+			TLSClientConfig: tlsConfig.ToConfig(),
+		}
+
+		c.Transport = apmhttp.WrapRoundTripper(rt)
+		return sourcemap.NewFleetStore(&c, fleetCfg, cfg.Metadata, cfg.Cache.Expiration)
+	}
+	c, err := elasticsearch.NewClient(cfg.ESConfig)
 	if err != nil {
 		return nil, err
 	}
 	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
-	return sourcemap.NewStore(esClient, index, cfg.Cache.Expiration)
+	return sourcemap.NewElasticsearchStore(c, index, cfg.Cache.Expiration)
 }
 
 // WrapRunServerWithProcessors wraps runServer such that it wraps args.Reporter

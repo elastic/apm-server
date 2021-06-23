@@ -27,11 +27,13 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Add support for histograms to metrics intake {pull}5360[5360]
 * Upgrade Go to 1.16.5 {pull}5454[5454]
 * Add units to metric fields {pull}5395[5395]
+* Support fetching sourcemaps from fleet {pull}5410[5410]
 * Add support for adjusting OTel event timestamps using `telemetry.sdk.elastic_export_timestamp` {pull}5433[5433]
 * Add support for OpenTelemetry labels describing mobile connectivity {pull}5436[5436]
 * Introduce `apm-server.auth.*` config {pull}5457[5457]
 * Add debug logging of OpenTelemetry payloads {pull}5474[5474]
 * Add support for more input variables in fleet integration {pull}5444[5444]
+* Server sends its raw config to kibana when running on ECE/ESS {pull}5424[5424]
 
 [float]
 ==== Deprecated
