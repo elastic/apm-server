@@ -20,6 +20,11 @@ package beater
 import (
 	"context"
 	"net"
+<<<<<<< HEAD
+=======
+	"net/http"
+	"os"
+>>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 	"regexp"
 	"runtime"
 	"strings"
@@ -27,8 +32,14 @@ import (
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
+<<<<<<< HEAD
 
 	"github.com/elastic/beats/v7/libbeat/kibana"
+=======
+	"github.com/elastic/beats/v7/libbeat/common/transport"
+	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+	"github.com/elastic/go-ucfg"
+>>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
@@ -48,6 +59,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
+	kibana_client "github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
@@ -279,6 +291,11 @@ type serverRunner struct {
 	acker         *waitPublishedAcker
 	namespace     string
 	config        *config.Config
+<<<<<<< HEAD
+=======
+	rawConfig     *common.Config
+	fleetConfig   *config.Fleet
+>>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 	beat          *beat.Beat
 	logger        *logp.Logger
 	tracer        *apm.Tracer
@@ -321,6 +338,11 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		cancelRunServerContext: cancel,
 
 		config:        cfg,
+<<<<<<< HEAD
+=======
+		rawConfig:     args.RawConfig,
+		fleetConfig:   args.FleetConfig,
+>>>>>>> 1920f958 (Send APM Server config to Kibana (#5424))
 		acker:         args.Acker,
 		pipeline:      args.Pipeline,
 		namespace:     args.Namespace,
@@ -369,6 +391,18 @@ func (s *serverRunner) run() error {
 		Pipeline:        s.config.Pipeline,
 		Namespace:       s.namespace,
 		TransformConfig: transformConfig,
+	}
+
+	// Check for an environment variable set when running in a cloud environment
+	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
+		// Don't block server startup sending the config.
+		go func() {
+			c := kibana_client.NewConnectingClient(&s.config.Kibana)
+			cfg := ucfg.Config(*s.rawConfig)
+			if err := kibana_client.SendConfig(s.runServerContext, c, cfg.Parent()); err != nil {
+				s.logger.Infof("failed to upload config to kibana: %v", err)
+			}
+		}()
 	}
 
 	// When the publisher stops cleanly it will close its pipeline client,
