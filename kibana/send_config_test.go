@@ -26,14 +26,16 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/go-ucfg"
 )
 
 func TestFlatten(t *testing.T) {
 	tlsFieldsCount := 0
 	cc, err := common.NewConfigWithYAML([]byte(serverYAML), "apm-server.yml")
+	c := ucfg.Config(*cc)
 	require.NoError(t, err)
 
-	flat, err := flattenAndClean(cc)
+	flat, err := flattenAndClean(&c)
 	assert.NoError(t, err)
 
 	for k := range flat {
@@ -82,4 +84,12 @@ output.elasticsearch:
   username: "elastic"
   password: "changeme"
   worker: 1
+instrumentation:
+  enabled: false
+  environment: ""
+  hosts:
+  - http://remote-apm-server:8200
+kibana:
+  enabled: true
+  api_key: abc123
 `

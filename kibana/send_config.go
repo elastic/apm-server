@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/go-ucfg"
 )
 
 // TODO: Get this value from Oliver
@@ -37,7 +38,7 @@ const kibanaConfigUploadPath = "/apm/fleet/apm_server_settings"
 // SendConfig marshals and uploads the provided config to kibana using the
 // provided ConnectingClient. It retries until its context has been canceled or
 // the upload succeeds.
-func SendConfig(ctx context.Context, client Client, conf *common.Config) error {
+func SendConfig(ctx context.Context, client Client, conf *ucfg.Config) error {
 	// configuration options are already flattened (dotted)
 	// any credentials for ES and Kibana are removed
 	flat, err := flattenAndClean(conf)
@@ -74,7 +75,7 @@ func SendConfig(ctx context.Context, client Client, conf *common.Config) error {
 	}
 }
 
-func flattenAndClean(conf *common.Config) (map[string]interface{}, error) {
+func flattenAndClean(conf *ucfg.Config) (map[string]interface{}, error) {
 	m := common.MapStr{}
 	if err := conf.Unpack(m); err != nil {
 		return nil, err

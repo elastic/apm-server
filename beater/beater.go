@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
+	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/beats/v7/libbeat/kibana"
 
@@ -380,7 +381,8 @@ func (s *serverRunner) run() error {
 		// Don't block server startup sending the config.
 		go func() {
 			c := kibana_client.NewConnectingClient(&s.config.Kibana)
-			if err := kibana_client.SendConfig(s.runServerContext, c, s.rawConfig); err != nil {
+			cfg := ucfg.Config(*s.rawConfig)
+			if err := kibana_client.SendConfig(s.runServerContext, c, cfg.Parent()); err != nil {
 				s.logger.Infof("failed to upload config to kibana: %v", err)
 			}
 		}()
