@@ -217,6 +217,32 @@ func TestRateLimiting(t *testing.T) {
 	}
 }
 
+func TestRateLimitingRequests(t *testing.T) {
+	// Check that rate limiting across multiple requests is handled correctly.
+	//
+	// ratelimit.ndjson contains 19 events, and we rate limit in batches of 10
+	// events. The burst of 41 should be enough for 2 iterations with one left.
+	limiter := rate.NewLimiter(1, 41)
+	processor := stream.BackendProcessor(config.DefaultConfig())
+	handler := Handler(processor, emptyRequestMetadata, modelprocessor.Nop{})
+
+	data, err := ioutil.ReadFile("../../../testdata/intake-v2/ratelimit.ndjson")
+	require.NoError(t, err)
+	for i := 0; i < 2; i++ {
+		r := httptest.NewRequest("POST", "/", bytes.NewBuffer(data))
+		r = r.WithContext(ratelimit.ContextWithLimiter(r.Context(), limiter))
+		r.Header.Add("Content-Type", "application/x-ndjson")
+
+		w := httptest.NewRecorder()
+		c := request.NewContext()
+		c.Reset(w, r)
+		handler(c)
+		assert.Equal(t, http.StatusAccepted, w.Code)
+	}
+	assert.True(t, limiter.Allow())
+	assert.False(t, limiter.Allow())
+}
+
 type testcaseIntakeHandler struct {
 	c              *request.Context
 	w              *httptest.ResponseRecorder

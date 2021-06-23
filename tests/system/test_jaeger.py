@@ -93,7 +93,7 @@ class TestAuthTag(JaegerBaseTest):
         )
         stdout, stderr = proc.communicate()
         self.assertNotEqual(proc.returncode, 0)
-        self.assertRegex(stderr.decode("utf-8"), "not authorized")
+        self.assertRegex(stderr.decode("utf-8"), "Unauthenticated")
 
     def test_jaeger_authorized(self):
         """

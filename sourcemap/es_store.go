@@ -25,12 +25,14 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/elasticsearch"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -63,6 +65,19 @@ type esSourcemapResponse struct {
 			} `json:"_source"`
 		}
 	} `json:"hits"`
+}
+
+// NewElasticsearchStore returns an instance of Store for interacting with
+// sourcemaps stored in ElasticSearch.
+func NewElasticsearchStore(
+	c elasticsearch.Client,
+	index string,
+	expiration time.Duration,
+) (*Store, error) {
+	logger := logp.NewLogger(logs.Sourcemap)
+	s := &esStore{c, index, logger}
+
+	return newStore(s, logger, expiration)
 }
 
 func (s *esStore) fetch(ctx context.Context, name, version, path string) (string, error) {
