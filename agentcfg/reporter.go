@@ -47,11 +47,18 @@ func NewReporter(f Fetcher, batchProcessor model.BatchProcessor, interval time.D
 
 func (r Reporter) Fetch(ctx context.Context, query Query) (Result, error) {
 	result, err := r.f.Fetch(ctx, query)
+	if err != nil {
+		return Result{}, err
+	}
 	// Only report configs when the query etag == current config etag, or
 	// when the agent indicates it has been applied.
 	if err == nil &&
 		(query.Etag == result.Source.Etag || query.MarkAsAppliedByAgent) {
-		r.resultc <- result
+		select {
+		case <-ctx.Done():
+			return Result{}, ctx.Err()
+		case r.resultc <- result:
+		}
 	}
 
 	return result, err

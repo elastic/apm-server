@@ -97,15 +97,15 @@ func newBaseRunServer(reporter publish.Reporter) RunServerFunc {
 			case <-done:
 			}
 		}()
-		go srv.fetchReporter.Run(ctx)
+		go srv.agentcfgFetchReporter.Run(ctx)
 		return srv.run()
 	}
 }
 
 type server struct {
-	logger        *logp.Logger
-	cfg           *config.Config
-	fetchReporter agentcfg.Reporter
+	logger                *logp.Logger
+	cfg                   *config.Config
+	agentcfgFetchReporter agentcfg.Reporter
 
 	httpServer   *httpServer
 	grpcServer   *grpc.Server
@@ -120,7 +120,7 @@ func newServer(
 	reporter publish.Reporter,
 	batchProcessor model.BatchProcessor,
 ) (server, error) {
-	fetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor, 30*time.Second)
+	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor, 30*time.Second)
 	ratelimitStore, err := ratelimit.NewStore(
 		cfg.RumConfig.EventRate.LruSize,
 		cfg.RumConfig.EventRate.Limit,
@@ -129,25 +129,25 @@ func newServer(
 	if err != nil {
 		return server{}, err
 	}
-	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor, fetchReporter, ratelimitStore)
+	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor, agentcfgFetchReporter, ratelimitStore)
 	if err != nil {
 		return server{}, err
 	}
-	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig, fetchReporter, ratelimitStore)
+	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig, agentcfgFetchReporter, ratelimitStore)
 	if err != nil {
 		return server{}, err
 	}
-	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, batchProcessor, fetchReporter)
+	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, batchProcessor, agentcfgFetchReporter)
 	if err != nil {
 		return server{}, err
 	}
 	return server{
-		logger:        logger,
-		cfg:           cfg,
-		httpServer:    httpServer,
-		grpcServer:    grpcServer,
-		jaegerServer:  jaegerServer,
-		fetchReporter: fetchReporter,
+		logger:                logger,
+		cfg:                   cfg,
+		httpServer:            httpServer,
+		grpcServer:            grpcServer,
+		jaegerServer:          jaegerServer,
+		agentcfgFetchReporter: agentcfgFetchReporter,
 	}, nil
 }
 

@@ -168,5 +168,3 @@ func checkValidationError(err *agentcfg.ValidationError) error {
 		return nil
 	}
 }
-
-func newBool(b bool) *bool { return &b }
