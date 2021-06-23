@@ -27,13 +27,13 @@ import (
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"go.opentelemetry.io/collector/consumer"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/processor/otel"
 )
@@ -60,9 +60,16 @@ const (
 	getSamplingStrategyFullMethod = "/jaeger.api_v2.SamplingManager/GetSamplingStrategy"
 )
 
+// MethodAuthorizationHandlers returns a map of all supported Jaeger/gRPC methods to authorization handlers.
+func MethodAuthorizationHandlers(authBuilder *authorization.Builder, authTag string) map[string]interceptors.MethodAuthorizationHandler {
+	return map[string]interceptors.MethodAuthorizationHandler{
+		postSpansFullMethod:           postSpansMethodAuthorizationHandler(authBuilder, authTag),
+		getSamplingStrategyFullMethod: getSamplingStrategyMethodAuthorizationHandler(authBuilder),
+	}
+}
+
 // grpcCollector implements Jaeger api_v2 protocol for receiving tracing data
 type grpcCollector struct {
-	auth     authFunc
 	consumer consumer.Traces
 }
 
@@ -78,11 +85,6 @@ func (c *grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansReques
 }
 
 func (c *grpcCollector) postSpans(ctx context.Context, batch model.Batch) error {
-	ctx, err := c.auth(ctx, batch)
-	if err != nil {
-		gRPCCollectorMonitoringMap.inc(request.IDResponseErrorsUnauthorized)
-		return status.Error(codes.Unauthenticated, err.Error())
-	}
 	return consumeBatch(ctx, batch, c.consumer, gRPCCollectorMonitoringMap)
 }
 
@@ -128,8 +130,27 @@ func (s *grpcSampler) GetSamplingStrategy(
 }
 
 func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (float64, error) {
-	query := agentcfg.Query{Service: agentcfg.Service{Name: service},
-		InsecureAgents: jaegerAgentPrefixes, MarkAsAppliedByAgent: true}
+	// Only service, and not agent, is known for config queries.
+	// For anonymous/untrusted agents, we filter the results using
+	// query.InsecureAgents below.
+	authResource := authorization.Resource{ServiceName: service}
+	authResult, err := authorization.AuthorizedFor(ctx, authResource)
+	if err != nil {
+		return 0, err
+	}
+	if !authResult.Authorized {
+		err := authorization.ErrUnauthorized
+		if authResult.Reason != "" {
+			err = fmt.Errorf("%w: %s", err, authResult.Reason)
+		}
+		return 0, err
+	}
+
+	query := agentcfg.Query{
+		Service:              agentcfg.Service{Name: service},
+		InsecureAgents:       jaegerAgentPrefixes,
+		MarkAsAppliedByAgent: true,
+	}
 	result, err := s.fetcher.Fetch(ctx, query)
 	if err != nil {
 		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
@@ -166,5 +187,31 @@ func checkValidationError(err *agentcfg.ValidationError) error {
 		)
 	default:
 		return nil
+	}
+}
+
+func postSpansMethodAuthorizationHandler(authBuilder *authorization.Builder, authTag string) interceptors.MethodAuthorizationHandler {
+	authHandler := authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
+	return func(ctx context.Context, req interface{}) authorization.Authorization {
+		postSpansRequest := req.(*api_v2.PostSpansRequest)
+		batch := &postSpansRequest.Batch
+		var kind, token string
+		for i, kv := range batch.Process.GetTags() {
+			if kv.Key != authTag {
+				continue
+			}
+			// Remove the auth tag.
+			batch.Process.Tags = append(batch.Process.Tags[:i], batch.Process.Tags[i+1:]...)
+			kind, token = authorization.ParseAuthorizationHeader(kv.VStr)
+			break
+		}
+		return authHandler.AuthorizationFor(kind, token)
+	}
+}
+
+func getSamplingStrategyMethodAuthorizationHandler(authBuilder *authorization.Builder) interceptors.MethodAuthorizationHandler {
+	authHandler := authBuilder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
+	return func(ctx context.Context, req interface{}) authorization.Authorization {
+		return authHandler.AuthorizationFor("", "")
 	}
 }

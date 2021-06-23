@@ -167,7 +167,10 @@ func newGRPCServer(
 	}
 
 	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
-	authInterceptor := newAuthUnaryServerInterceptor(authBuilder)
+	authInterceptor := interceptors.Authorization(
+		otlp.MethodAuthorizationHandlers(authBuilder),
+		jaeger.MethodAuthorizationHandlers(authBuilder, jaeger.ElasticAuthTag),
+	)
 
 	// Note that we intentionally do not use a grpc.Creds ServerOption
 	// even if TLS is enabled, as TLS is handled by the net/http server.
@@ -200,7 +203,7 @@ func newGRPCServer(
 		batchProcessor,
 	}
 
-	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, batchProcessor, agentcfgFetcher)
+	jaeger.RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)
 	if err := otlp.RegisterGRPCServices(srv, batchProcessor); err != nil {
 		return nil, err
 	}
