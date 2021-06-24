@@ -42,8 +42,9 @@ var (
 	gRPCCollectorRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.collect")
 	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(
 		gRPCCollectorRegistry, append(request.DefaultResultIDs,
-			request.IDResponseErrorsUnauthorized,
+			request.IDResponseErrorsRateLimit,
 			request.IDResponseErrorsTimeout,
+			request.IDResponseErrorsUnauthorized,
 		),
 	)
 
