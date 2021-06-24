@@ -19,12 +19,41 @@ package authorization
 
 import (
 	"context"
+	"fmt"
 )
 
-// AnonymousAuth implements the Authorization interface.
-type AnonymousAuth struct{}
+func newAnonymousAuth(allowAgent, allowService []string) *anonymousAuth {
+	a := &anonymousAuth{
+		allowedAgents:   make(map[string]bool),
+		allowedServices: make(map[string]bool),
+	}
+	for _, name := range allowAgent {
+		a.allowedAgents[name] = true
+	}
+	for _, name := range allowService {
+		a.allowedServices[name] = true
+	}
+	return a
+}
 
-// AuthorizedFor always returns a Result indicating the request is authorized and anonymous.
-func (AnonymousAuth) AuthorizedFor(context.Context, Resource) (Result, error) {
-	return Result{Anonymous: true, Authorized: true}, nil
+// anonymousAuth implements the Authorization interface, allowing anonymous access with
+// optional restriction on agent and service name.
+type anonymousAuth struct {
+	allowedAgents   map[string]bool
+	allowedServices map[string]bool
+}
+
+// AuthorizedFor always returns a Result indicating the request is anonymous, and
+// authorized if the resource is permitted for anonymous access.
+func (a *anonymousAuth) AuthorizedFor(ctx context.Context, resource Resource) (Result, error) {
+	result := Result{Authorized: true, Anonymous: true}
+	switch {
+	case resource.AgentName != "" && len(a.allowedAgents) > 0 && !a.allowedAgents[resource.AgentName]:
+		result.Authorized = false
+		result.Reason = fmt.Sprintf("agent %q not allowed", resource.AgentName)
+	case resource.ServiceName != "" && len(a.allowedServices) > 0 && !a.allowedServices[resource.ServiceName]:
+		result.Authorized = false
+		result.Reason = fmt.Sprintf("service %q not allowed", resource.ServiceName)
+	}
+	return result, nil
 }

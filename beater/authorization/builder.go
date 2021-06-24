@@ -40,8 +40,9 @@ var ErrUnauthorized = errors.New("unauthorized")
 
 // Builder creates an authorization Handler depending on configuration options
 type Builder struct {
-	apikey *apikeyBuilder
-	bearer *bearerBuilder
+	anonymous *anonymousAuth
+	apikey    *apikeyBuilder
+	bearer    *bearerBuilder
 }
 
 // Handler returns the authorization method according to provided information
@@ -55,6 +56,8 @@ type Authorization interface {
 	// When resource is zero, AuthorizedFor indicates whether the agent is
 	// allowed any access at all. When resource is non-zero, AllowedFor
 	// indicates whether the agent has access to the specific resource.
+	// If only ServiceName or only AgentName is defined in the resource,
+	// then AuthorizedFor only checks for access to that.
 	AuthorizedFor(context.Context, Resource) (Result, error)
 }
 
@@ -115,6 +118,9 @@ func NewBuilder(cfg config.AgentAuth) (*Builder, error) {
 	if cfg.SecretToken != "" {
 		b.bearer = &bearerBuilder{cfg.SecretToken}
 	}
+	if cfg.Anonymous.Enabled {
+		b.anonymous = newAnonymousAuth(cfg.Anonymous.AllowAgent, cfg.Anonymous.AllowService)
+	}
 	return &b, nil
 }
 
@@ -125,17 +131,27 @@ func (b *Builder) ForPrivilege(privilege elasticsearch.PrivilegeAction) *Handler
 
 // ForAnyOfPrivileges creates an authorization Handler checking for any of the provided privileges
 func (b *Builder) ForAnyOfPrivileges(privileges ...elasticsearch.PrivilegeAction) *Handler {
-	handler := Handler{bearer: b.bearer}
+	handler := Handler{bearer: b.bearer, anonymous: b.anonymous}
 	if b.apikey != nil {
 		handler.apikey = newApikeyBuilder(b.apikey.esClient, b.apikey.cache, privileges)
 	}
 	return &handler
 }
 
+// WithAnonymousDisabled returns a copy of h with anonymous auth disabled.
+func (h *Handler) WithAnonymousDisabled() *Handler {
+	hcopy := *h
+	hcopy.anonymous = nil
+	return &hcopy
+}
+
 // AuthorizationFor returns proper authorization implementation depending on the given kind, configured with the token.
 func (h *Handler) AuthorizationFor(kind string, token string) Authorization {
-	if h.apikey == nil && h.bearer == nil {
+	if h.apikey == nil && h.bearer == nil && h.anonymous == nil {
 		return allowAuth{}
+	}
+	if kind == "" && h.anonymous != nil {
+		return h.anonymous
 	}
 	switch kind {
 	case headers.APIKey:
