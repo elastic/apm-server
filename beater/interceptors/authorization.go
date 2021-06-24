@@ -19,6 +19,7 @@ package interceptors
 
 import (
 	"context"
+	"errors"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -69,7 +70,12 @@ func Authorization(methodHandlers ...map[string]MethodAuthorizationHandler) grpc
 			return nil, status.Error(codes.Unauthenticated, message)
 		}
 		ctx = authorization.ContextWithAuthorization(ctx, auth)
-		return handler(ctx, req)
+		resp, err := handler(ctx, req)
+		if errors.Is(err, authorization.ErrUnauthorized) {
+			// Processors may indicate that a request is unauthorized by returning authorization.ErrUnauthorized.
+			err = status.Error(codes.Unauthenticated, err.Error())
+		}
+		return resp, err
 	}
 }
 

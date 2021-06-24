@@ -20,6 +20,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -138,6 +139,23 @@ func TestAuthorizationMiddlewareError(t *testing.T) {
 		assert.EqualError(t, c.Result.Err, "internal details should not be leaked")
 		assert.Zero(t, c.AuthResult)
 	}
+}
+
+func TestAuthorizationUnauthorized(t *testing.T) {
+	authHandler := authorizationHandlerFunc(func(kind, value string) authorization.Authorization {
+		return authorizationFunc(
+			func(ctx context.Context, _ authorization.Resource) (authorization.Result, error) {
+				return authorization.Result{Authorized: true}, nil
+			},
+		)
+	})
+	next := func(c *request.Context) {
+		c.Result.Err = fmt.Errorf("%w: none shall pass", authorization.ErrUnauthorized)
+	}
+	c, _ := beatertest.DefaultContextWithResponseRecorder()
+	m := AuthorizationMiddleware(authHandler, true)
+	Apply(m, next)(c)
+	assert.Equal(t, request.IDResponseErrorsUnauthorized, c.Result.ID)
 }
 
 type authorizationHandlerFunc func(kind, value string) authorization.Authorization

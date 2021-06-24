@@ -20,6 +20,7 @@ package interceptors_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -132,6 +133,27 @@ func TestMetadataMethodAuthorizationHandler(t *testing.T) {
 	result, err := auth.AuthorizedFor(ctx, authorization.Resource{})
 	require.NoError(t, err)
 	assert.Equal(t, authorization.Result{Authorized: true}, result)
+}
+
+func TestAuthorizationUnauthorized(t *testing.T) {
+	interceptor := interceptors.Authorization(
+		map[string]interceptors.MethodAuthorizationHandler{
+			"authorized": interceptors.MethodAuthorizationHandler(
+				func(ctx context.Context, req interface{}) authorization.Authorization {
+					return authorizationFunc(
+						func(ctx context.Context, _ authorization.Resource) (authorization.Result, error) {
+							return authorization.Result{Authorized: true}, nil
+						},
+					)
+				},
+			),
+		},
+	)
+	next := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return nil, fmt.Errorf("%w: none shall pass", authorization.ErrUnauthorized)
+	}
+	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{FullMethod: "authorized"}, next)
+	assert.Equal(t, status.Error(codes.Unauthenticated, "unauthorized: none shall pass"), err)
 }
 
 type authorizationFunc func(context.Context, authorization.Resource) (authorization.Result, error)
