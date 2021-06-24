@@ -70,13 +70,25 @@ func (j JavaAttacher) Run(ctx context.Context) error {
 	// TODO: How do we want to handle logging?
 	// See comment:
 	// https://github.com/elastic/apm-server/issues/4830#issuecomment-863207642
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		j.logger.Info(scanner.Text())
-	}
-	if err := scanner.Err(); err != nil {
-		return err
-	}
+	donec := make(chan struct{})
+	defer close(donec)
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			select {
+			case <-ctx.Done():
+				return
+			case <-donec:
+				// TODO: Is this necessary, or will the scanner
+				// finish when the command exits?
+				return
+			}
+			j.logger.Info(scanner.Text())
+		}
+		if err := scanner.Err(); err != nil {
+			j.logger.Errorf("error scanning attacher logs: %v", err)
+		}
+	}()
 
 	return cmd.Wait()
 }
