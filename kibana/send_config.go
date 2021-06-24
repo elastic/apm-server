@@ -31,9 +31,7 @@ import (
 	"github.com/elastic/go-ucfg"
 )
 
-// TODO: Get this value from Oliver
-// https://github.com/elastic/kibana/issues/100657
-const kibanaConfigUploadPath = "/apm/fleet/apm_server_settings"
+const kibanaConfigUploadPath = "/api/apm/fleet/apm_server_schema"
 
 // SendConfig marshals and uploads the provided config to kibana using the
 // provided ConnectingClient. It retries until its context has been canceled or
@@ -45,7 +43,8 @@ func SendConfig(ctx context.Context, client Client, conf *ucfg.Config) error {
 	if err != nil {
 		return err
 	}
-	b, err := json.Marshal(flat)
+
+	b, err := json.Marshal(format(flat))
 	if err != nil {
 		return err
 	}
@@ -73,6 +72,10 @@ func SendConfig(ctx context.Context, client Client, conf *ucfg.Config) error {
 
 		return nil
 	}
+}
+
+func format(m map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{"schemaJson": m}
 }
 
 func flattenAndClean(conf *ucfg.Config) (map[string]interface{}, error) {
