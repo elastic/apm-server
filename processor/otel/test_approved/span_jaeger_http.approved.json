@@ -19,12 +19,9 @@
                 "hostname": "host-abc"
             },
             "http": {
-                "method": "get",
+                "request.method": "get",
                 "response": {
                     "status_code": 400
-                },
-                "url": {
-                    "original": "http://foo.bar.com?a=12"
                 }
             },
             "labels": {
@@ -77,7 +74,8 @@
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
-            }
+            },
+            "url.original": "http://foo.bar.com?a=12"
         },
         {
             "@timestamp": "2019-12-16T12:46:58.000Z",

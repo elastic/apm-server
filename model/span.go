@@ -140,8 +140,10 @@ func (http *HTTP) fields(ecsOnly bool) common.MapStr {
 		return nil
 	}
 	var fields, url mapStr
-	if url.maybeSetString("original", http.URL) {
-		fields.set("url", common.MapStr(url))
+	if !ecsOnly {
+		if url.maybeSetString("original", http.URL) {
+			fields.set("url", common.MapStr(url))
+		}
 	}
 	response := http.Response.Fields(ecsOnly)
 	if http.StatusCode > 0 {
@@ -152,7 +154,11 @@ func (http *HTTP) fields(ecsOnly bool) common.MapStr {
 		}
 	}
 	fields.maybeSetMapStr("response", response)
-	fields.maybeSetString("method", http.Method)
+	if ecsOnly {
+		fields.maybeSetString("request.method", http.Method)
+	} else {
+		fields.maybeSetString("method", http.Method)
+	}
 	return common.MapStr(fields)
 }
 
@@ -228,6 +234,9 @@ func (e *Span) appendBeatEvents(ctx context.Context, cfg *transform.Config, even
 	}
 	fields.maybeSetMapStr("destination", e.Destination.fields())
 	fields.maybeSetMapStr("http", e.HTTP.fields(true))
+	if e.HTTP != nil {
+		fields.maybeSetString("url.original", e.HTTP.URL)
+	}
 
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 

@@ -308,11 +308,6 @@
             "event": {
                 "outcome": "unknown"
             },
-            "http": {
-                "url": {
-                    "original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED"
-                }
-            },
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -378,6 +373,7 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             },
+            "url.original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED",
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -476,12 +472,9 @@
                 "outcome": "success"
             },
             "http": {
-                "method": "GET",
+                "request.method": "GET",
                 "response": {
                     "status_code": 200
-                },
-                "url": {
-                    "original": "http://localhost:8000/test/e2e/common/data.json?test=hamid"
                 }
             },
             "labels": {
@@ -549,6 +542,7 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             },
+            "url.original": "http://localhost:8000/test/e2e/common/data.json?test=hamid",
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -577,12 +571,9 @@
                 "outcome": "success"
             },
             "http": {
-                "method": "POST",
+                "request.method": "POST",
                 "response": {
                     "status_code": 200
-                },
-                "url": {
-                    "original": "http://localhost:8003/data"
                 }
             },
             "labels": {
@@ -650,6 +641,7 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             },
+            "url.original": "http://localhost:8003/data",
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -678,12 +670,9 @@
                 "outcome": "success"
             },
             "http": {
-                "method": "POST",
+                "request.method": "POST",
                 "response": {
                     "status_code": 200
-                },
-                "url": {
-                    "original": "http://localhost:8003/fetch"
                 }
             },
             "labels": {
@@ -752,6 +741,7 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             },
+            "url.original": "http://localhost:8003/fetch",
             "user": {
                 "email": "user@email.com",
                 "id": "123",

@@ -211,12 +211,9 @@
                 }
             },
             "http": {
-                "method": "GET",
+                "request.method": "GET",
                 "response": {
                     "status_code": 200
-                },
-                "url": {
-                    "original": "http://localhost:8000"
                 }
             },
             "kubernetes": {
@@ -339,7 +336,8 @@
             },
             "transaction": {
                 "id": "1234567890987654"
-            }
+            },
+            "url.original": "http://localhost:8000"
         },
         {
             "@timestamp": "2019-10-21T11:30:44.929Z",
