@@ -1,0 +1,106 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+package java_attacher
+
+import (
+	"bufio"
+	"context"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+
+	"github.com/elastic/beats/v7/libbeat/logp"
+
+	"github.com/elastic/apm-server/beater/config"
+)
+
+type JavaAttacher struct {
+	cfg    config.JavaAttacherConfig
+	logger *logp.Logger
+}
+
+func New(cfg config.JavaAttacherConfig, logger *logp.Logger) (JavaAttacher, error) {
+	if cfg.JavaBin == "" {
+		if jh := os.Getenv("JAVA_HOME"); jh != "" {
+			cfg.JavaBin = filepath.Join(jh, "/bin/java")
+		} else {
+			bin, err := exec.Command("which", "java").Output()
+			if err != nil {
+				return JavaAttacher{}, fmt.Errorf("no java binary found: %v", err)
+			}
+			cfg.JavaBin = string(bin)
+		}
+	}
+	return JavaAttacher{cfg: cfg, logger: logger}, nil
+}
+
+// javaAttacher is bundled by the server
+// TODO: Figure out the real path
+const javaAttacher = "/bin/apm-agent-attach-cli-1.24.0-slim.jar"
+
+func (j JavaAttacher) Run(ctx context.Context) error {
+	cmd := j.build(ctx)
+	j.logger.Debugf("starting java attacher with command: %s", strings.Join(cmd.Args, " "))
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	// TODO: How do we want to handle logging?
+	// See comment:
+	// https://github.com/elastic/apm-server/issues/4830#issuecomment-863207642
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		j.logger.Info(scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	return cmd.Wait()
+}
+
+func (j JavaAttacher) build(ctx context.Context) *exec.Cmd {
+	args := append([]string{"-jar", javaAttacher}, j.formatArgs()...)
+	return exec.CommandContext(ctx, j.cfg.JavaBin, args...)
+}
+
+func (j JavaAttacher) formatArgs() []string {
+	args := []string{"--continuous"}
+
+	for _, flag := range j.cfg.DiscoveryRules {
+		for name, value := range flag {
+			args = append(args, makeArg("--"+name, value))
+		}
+	}
+	for k, v := range j.cfg.Config {
+		args = append(args, "--config "+k+"="+v)
+	}
+
+	return args
+}
+
+func makeArg(flagName string, args ...string) string {
+	return flagName + " " + strings.Join(args, " ")
+}

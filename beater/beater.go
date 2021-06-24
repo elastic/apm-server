@@ -50,6 +50,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/java_attacher"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	kibana_client "github.com/elastic/apm-server/kibana"
@@ -393,6 +394,19 @@ func (s *serverRunner) run() error {
 	// be closed at shutdown time.
 	s.acker.Open()
 	pipeline := pipetool.WithACKer(s.pipeline, s.acker)
+
+	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac == "" && s.config.JavaAttacherConfig.Enabled {
+		// Not running on ECE/ESS, start the java attacher
+		go func() {
+			attacher, err := java_attacher.New(s.config.JavaAttacherConfig, s.logger)
+			if err != nil {
+				s.logger.Errorf("java attacher error: %v", err)
+			}
+			if err := attacher.Run(s.backgroundContext); err != nil {
+				s.logger.Errorf("java attacher error: %v", err)
+			}
+		}()
+	}
 
 	publisher, err := publish.NewPublisher(pipeline, s.tracer, publisherConfig)
 	if err != nil {
