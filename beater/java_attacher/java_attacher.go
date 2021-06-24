@@ -82,6 +82,7 @@ func (j JavaAttacher) Run(ctx context.Context) error {
 				// TODO: Is this necessary, or will the scanner
 				// finish when the command exits?
 				return
+			default:
 			}
 			j.logger.Info(scanner.Text())
 		}
