@@ -197,7 +197,7 @@ func TestSourcemapCacheUsage(t *testing.T) {
 
 	// index error document again
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result = systemtest.Elasticsearch.ExpectMinDocs(t, 1, "apm-*-error", nil)
+	result = systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*-error", nil)
 
 	// check that sourcemap is updated, meaning it was applied from the cache
 	expectSourcemapUpdated(t, result)
@@ -301,9 +301,10 @@ func deleteIndex(t *testing.T, name string) {
 
 func expectSourcemapUpdated(t *testing.T, result estest.SearchResult) {
 	for _, hit := range result.Hits.Hits {
-		source := Source{}
-		data, _ := hit.RawSource.MarshalJSON()
-		err := json.Unmarshal(data, &source)
+		var source struct {
+			Error Error
+		}
+		err := hit.UnmarshalSource(&source)
 		require.NoError(t, err)
 
 		for _, exception := range source.Error.Exception {
@@ -318,9 +319,6 @@ func expectSourcemapUpdated(t *testing.T, result estest.SearchResult) {
 	}
 }
 
-type Source struct {
-	Error Error
-}
 
 type Error struct {
 	Exception []Exception
