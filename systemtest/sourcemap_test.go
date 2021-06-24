@@ -19,7 +19,6 @@ package systemtest_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -64,7 +63,7 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 	)
 }
 
-func TestRUMTransactionSourcemapping(t *testing.T) {
+func TestRUMSpanSourcemapping(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
@@ -169,8 +168,8 @@ func TestFetchLatestSourcemap(t *testing.T) {
 	systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*-sourcemap", nil)
 
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
-	expectSourcemapUpdated(t)
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
+	expectSourcemapUpdated(t, result)
 }
 
 func TestSourcemapCacheUsage(t *testing.T) {
@@ -190,18 +189,18 @@ func TestSourcemapCacheUsage(t *testing.T) {
 
 	// trigger cache
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
-	expectSourcemapUpdated(t)
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
+	expectSourcemapUpdated(t, result)
 
 	// delete sourcemap index
 	deleteIndex(t, "apm-*-sourcemap*")
 
 	// index error document again
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
+	result = systemtest.Elasticsearch.ExpectMinDocs(t, 1, "apm-*-error", nil)
 
 	// check that sourcemap is updated, meaning it was applied from the cache
-	expectSourcemapUpdated(t)
+	expectSourcemapUpdated(t, result)
 }
 
 func TestSourcemapCacheExpiration(t *testing.T) {
@@ -292,7 +291,6 @@ func expectLogMessage(t *testing.T, srv *apmservertest.Server, message string) {
 }
 
 func deleteIndex(t *testing.T, name string) {
-	// delete sourcemap index
 	resp, err := systemtest.Elasticsearch.Indices.Delete([]string{name})
 	require.NoError(t, err)
 	resp.Body.Close()
@@ -301,10 +299,7 @@ func deleteIndex(t *testing.T, name string) {
 	resp.Body.Close()
 }
 
-func expectSourcemapUpdated(t *testing.T) {
-	result := estest.SearchResult{}
-	_, err := systemtest.Elasticsearch.Search("apm-*-error").Do(context.Background(), &result)
-	require.NoError(t, err)
+func expectSourcemapUpdated(t *testing.T, result estest.SearchResult) {
 	for _, hit := range result.Hits.Hits {
 		source := Source{}
 		data, _ := hit.RawSource.MarshalJSON()
