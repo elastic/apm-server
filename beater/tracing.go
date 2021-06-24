@@ -27,8 +27,8 @@ import (
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/api"
-	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 )

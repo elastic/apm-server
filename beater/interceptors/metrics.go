@@ -72,6 +72,8 @@ func Metrics(
 					m[request.IDResponseErrorsUnauthorized].Inc()
 				case codes.DeadlineExceeded:
 					m[request.IDResponseErrorsTimeout].Inc()
+				case codes.ResourceExhausted:
+					m[request.IDResponseErrorsRateLimit].Inc()
 				}
 			}
 		}
