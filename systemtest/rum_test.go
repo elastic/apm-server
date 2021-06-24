@@ -104,12 +104,12 @@ func TestRUMAuth(t *testing.T) {
 	secretToken := strconv.Itoa(rng.Int())
 
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.SecretToken = secretToken
+	srv.Config.AgentAuth.SecretToken = secretToken
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
 	err := srv.Start()
 	require.NoError(t, err)
 
-	sendRUMEventsPayload(t, srv, "../testdata/intake-v2/transactions.ndjson")
+	sendRUMEventsPayload(t, srv, "../testdata/intake-v2/transactions_spans_rum.ndjson")
 
 	req, _ := http.NewRequest("GET", srv.URL+"/config/v1/rum/agents", nil)
 	req.Header.Add("Content-Type", "application/json")
@@ -122,7 +122,7 @@ func TestRUMAuth(t *testing.T) {
 
 func TestRUMAllowServiceNames(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.SecretToken = "abc123"
+	srv.Config.AgentAuth.SecretToken = "abc123"
 	srv.Config.RUM = &apmservertest.RUMConfig{
 		Enabled:           true,
 		AllowServiceNames: []string{"allowed"},
@@ -144,15 +144,16 @@ func TestRUMAllowServiceNames(t *testing.T) {
 	defer resp.Body.Close()
 
 	respBody, _ := ioutil.ReadAll(resp.Body)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, string(respBody))
-	assert.Equal(t, `{"accepted":0,"errors":[{"message":"service name is not allowed"}]}`+"\n", string(respBody))
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode, string(respBody))
+	assert.Equal(t, `{"accepted":0,"errors":[{"message":"unauthorized: service \"disallowed\" not allowed"}]}`+"\n", string(respBody))
 }
 
 func TestRUMRateLimit(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{
+	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	srv.Config.AgentAuth.Anonymous = &apmservertest.AnonymousAuthConfig{
 		Enabled: true,
-		RateLimit: &apmservertest.RUMRateLimitConfig{
+		RateLimit: &apmservertest.RateLimitConfig{
 			IPLimit: 2,
 
 			// Set the event limit to less than 10 (the batch size)
@@ -186,12 +187,12 @@ func TestRUMRateLimit(t *testing.T) {
 
 	// The configured event rate limit is multiplied by 3 for the initial burst. Check that
 	// for the configured IP limit (2), we can handle 3*event_limit without being rate limited.
-	err = sendEvents("10.11.12.13", 3*srv.Config.RUM.RateLimit.EventLimit)
+	err = sendEvents("10.11.12.13", 3*srv.Config.AgentAuth.Anonymous.RateLimit.EventLimit)
 	assert.NoError(t, err)
 
 	// Sending the events over multiple requests should have the same outcome.
 	for i := 0; i < 3; i++ {
-		err = sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit)
+		err = sendEvents("10.11.12.14", srv.Config.AgentAuth.Anonymous.RateLimit.EventLimit)
 		assert.NoError(t, err)
 	}
 

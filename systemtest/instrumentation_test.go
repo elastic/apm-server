@@ -96,8 +96,8 @@ func TestAPMServerInstrumentationAuth(t *testing.T) {
 	test := func(t *testing.T, external, useSecretToken, useAPIKey bool) {
 		systemtest.CleanupElasticsearch(t)
 		srv := apmservertest.NewUnstartedServer(t)
-		srv.Config.SecretToken = "hunter2"
-		srv.Config.APIKey = &apmservertest.APIKeyConfig{Enabled: true}
+		srv.Config.AgentAuth.SecretToken = "hunter2"
+		srv.Config.AgentAuth.APIKey = &apmservertest.APIKeyAuthConfig{Enabled: true}
 		srv.Config.Instrumentation = &apmservertest.InstrumentationConfig{Enabled: true}
 
 		serverURLChan := make(chan string, 1)
@@ -125,7 +125,7 @@ func TestAPMServerInstrumentationAuth(t *testing.T) {
 			srv.Config.Instrumentation.Hosts = []string{proxy.URL}
 		}
 		if useSecretToken {
-			srv.Config.Instrumentation.SecretToken = srv.Config.SecretToken
+			srv.Config.Instrumentation.SecretToken = srv.Config.AgentAuth.SecretToken
 		}
 		if useAPIKey {
 			systemtest.InvalidateAPIKeys(t)

@@ -42,8 +42,8 @@ func TestAuth(t *testing.T) {
 	secretToken := strconv.Itoa(rng.Int())
 
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.SecretToken = secretToken
-	srv.Config.APIKey = &apmservertest.APIKeyConfig{Enabled: true}
+	srv.Config.AgentAuth.SecretToken = secretToken
+	srv.Config.AgentAuth.APIKey = &apmservertest.APIKeyAuthConfig{Enabled: true}
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
 	err := srv.Start()
 	require.NoError(t, err)
