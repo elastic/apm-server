@@ -32,7 +32,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
@@ -127,8 +126,12 @@ func TestRUMRateLimit(t *testing.T) {
 	srv.Config.RUM = &apmservertest.RUMConfig{
 		Enabled: true,
 		RateLimit: &apmservertest.RUMRateLimitConfig{
-			IPLimit:    2,
-			EventLimit: 10,
+			IPLimit: 2,
+
+			// Set the event limit to less than 10 (the batch size)
+			// to immediately return 429 rather than waiting until
+			// another batch can be processed.
+			EventLimit: 5,
 		},
 	}
 	err := srv.Start()
@@ -154,16 +157,20 @@ func TestRUMRateLimit(t *testing.T) {
 		return nil
 	}
 
-	// Just check that rate limiting is wired up. More specific rate limiting scenarios are unit tested.
+	// The configured event rate limit is multiplied by 3 for the initial burst. Check that
+	// for the configured IP limit (2), we can handle 3*event_limit without being rate limited.
+	err = sendEvents("10.11.12.13", 3*srv.Config.RUM.RateLimit.EventLimit)
+	assert.NoError(t, err)
 
-	var g errgroup.Group
-	g.Go(func() error { return sendEvents("10.11.12.13", srv.Config.RUM.RateLimit.EventLimit*3) })
-	g.Go(func() error { return sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit*3) })
-	assert.NoError(t, g.Wait())
+	// Sending the events over multiple requests should have the same outcome.
+	for i := 0; i < 3; i++ {
+		err = sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit)
+		assert.NoError(t, err)
+	}
 
-	g = errgroup.Group{}
-	g.Go(func() error { return sendEvents("10.11.12.15", srv.Config.RUM.RateLimit.EventLimit) })
-	err = g.Wait()
+	// The rate limiter cache only has space for 2 IPs, so the 3rd one reuses an existing
+	// limiter, which will have already been exhausted.
+	err = sendEvents("10.11.12.15", 10)
 	require.Error(t, err)
 
 	// The exact error differs, depending on whether rate limiting was applied at the request

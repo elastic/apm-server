@@ -20,9 +20,15 @@ package beater
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
+)
+
+const (
+	rateLimitTimeout = time.Second
 )
 
 // verifyAuthorizedFor is a model.BatchProcessor that checks authorization
@@ -39,4 +45,18 @@ func verifyAuthorizedFor(ctx context.Context, meta *model.Metadata) error {
 		return nil
 	}
 	return fmt.Errorf("%w: %s", authorization.ErrUnauthorized, result.Reason)
+}
+
+// rateLimitBatchProcessor is a model.BatchProcessor that rate limits based on
+// the batch size. This will be invoked after decoding events, but before sending
+// on to the libbeat publisher.
+func rateLimitBatchProcessor(ctx context.Context, batch *model.Batch) error {
+	if limiter, ok := ratelimit.FromContext(ctx); ok {
+		ctx, cancel := context.WithTimeout(ctx, rateLimitTimeout)
+		defer cancel()
+		if err := limiter.WaitN(ctx, batch.Len()); err != nil {
+			return ratelimit.ErrRateLimitExceeded
+		}
+	}
+	return nil
 }
