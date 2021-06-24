@@ -27,28 +27,27 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/apmtest"
 
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/elasticsearch/estest"
 )
 
 func TestApikeyBuilder(t *testing.T) {
 	// in case handler does not read from cache, but from ES an error is returned
-	tc := &apikeyTestcase{
-		cache:     newPrivilegesCache(time.Minute, 5),
-		transport: estest.NewTransport(t, http.StatusInternalServerError, nil)}
+	tc := &apikeyTestcase{transport: estest.NewTransport(t, http.StatusInternalServerError, nil)}
 
 	tc.setup(t)
 	key := "myApiKey"
-	handler1 := tc.builder.forKey(key)
-	handler2 := tc.builder.forKey(key)
+	handler1 := tc.builder.ForPrivilege(PrivilegeEventWrite.Action).AuthorizationFor("ApiKey", key)
+	handler2 := tc.builder.ForPrivilege(PrivilegeEventWrite.Action).AuthorizationFor("ApiKey", key)
 
 	// add existing privileges to shared cache
 	privilegesValid := elasticsearch.Permissions{}
 	for _, p := range PrivilegesAll {
 		privilegesValid[p.Action] = true
 	}
-	resource := elasticsearch.Resource("service-go")
-	tc.cache.add(id(key, resource), privilegesValid)
+	resource := Resource{}
+	tc.cache.add(id(key, "-"), privilegesValid)
 
 	// check that cache is actually shared between apiKeyHandlers
 	result, err := handler1.AuthorizedFor(context.Background(), resource)
@@ -62,41 +61,46 @@ func TestApikeyBuilder(t *testing.T) {
 
 func TestAPIKey_AuthorizedFor(t *testing.T) {
 	t.Run("cache full", func(t *testing.T) {
-		tc := &apikeyTestcase{cache: newPrivilegesCache(time.Millisecond, 1)}
+		tc := &apikeyTestcase{apiKeyLimit: 1}
 		tc.setup(t)
-		handler := tc.builder.forKey("")
 
-		result, err := handler.AuthorizedFor(context.Background(), "data:ingest")
-		assert.Equal(t, Result{Authorized: false}, result)
-		assert.NoError(t, err)
+		handler1 := tc.builder.ForPrivilege(PrivilegeEventWrite.Action).AuthorizationFor("ApiKey", "foo")
+		for i := 0; i < 2; i++ {
+			result, err := handler1.AuthorizedFor(context.Background(), Resource{})
+			assert.Equal(t, Result{Authorized: true}, result)
+			assert.NoError(t, err)
+		}
 
-		result, err = handler.AuthorizedFor(context.Background(), "apm:read")
-		assert.Error(t, err)
+		handler2 := tc.builder.ForPrivilege(PrivilegeEventWrite.Action).AuthorizationFor("ApiKey", "bar")
+		result, err := handler2.AuthorizedFor(context.Background(), Resource{})
 		assert.Equal(t, Result{Authorized: false}, result)
+		assert.Error(t, err) // cache is full
 	})
 
 	t.Run("from cache", func(t *testing.T) {
 		// in case handler does not read from cache, but from ES an error is returned
 		tc := &apikeyTestcase{transport: estest.NewTransport(t, http.StatusInternalServerError, nil)}
 		tc.setup(t)
-		key := ""
-		handler := tc.builder.forKey(key)
-		resourceValid := elasticsearch.Resource("foo")
-		resourceInvalid := elasticsearch.Resource("bar")
-		resourceMissing := elasticsearch.Resource("missing")
 
-		tc.cache.add(id(key, resourceValid), elasticsearch.Permissions{tc.anyOfPrivileges[0]: true})
-		tc.cache.add(id(key, resourceInvalid), elasticsearch.Permissions{tc.anyOfPrivileges[0]: false})
+		keyValid := "foo"
+		keyInvalid := "bar"
+		keyMissing := "missing"
+		tc.cache.add(id(keyValid, "-"), elasticsearch.Permissions{PrivilegeEventWrite.Action: true})
+		tc.cache.add(id(keyInvalid, "-"), elasticsearch.Permissions{PrivilegeEventWrite.Action: false})
 
-		result, err := handler.AuthorizedFor(context.Background(), resourceValid)
+		handlerValid := tc.builder.ForPrivilege(PrivilegeEventWrite.Action).AuthorizationFor("ApiKey", keyValid)
+		handlerInvalid := tc.builder.ForPrivilege(PrivilegeEventWrite.Action).AuthorizationFor("ApiKey", keyInvalid)
+		handlerMissing := tc.builder.ForPrivilege(PrivilegeEventWrite.Action).AuthorizationFor("ApiKey", keyMissing)
+
+		result, err := handlerValid.AuthorizedFor(context.Background(), Resource{})
 		require.NoError(t, err)
 		assert.Equal(t, Result{Authorized: true}, result)
 
-		result, err = handler.AuthorizedFor(context.Background(), resourceInvalid)
+		result, err = handlerInvalid.AuthorizedFor(context.Background(), Resource{})
 		require.NoError(t, err)
 		assert.Equal(t, Result{Authorized: false}, result)
 
-		result, err = handler.AuthorizedFor(context.Background(), resourceMissing)
+		result, err = handlerMissing.AuthorizedFor(context.Background(), Resource{})
 		require.Error(t, err)
 		assert.Equal(t, Result{Authorized: false}, result)
 	})
@@ -104,29 +108,30 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 	t.Run("from ES", func(t *testing.T) {
 		tc := &apikeyTestcase{}
 		tc.setup(t)
-		handler := tc.builder.forKey("key")
 
-		result, err := handler.AuthorizedFor(context.Background(), "foo")
+		handler := tc.builder.ForPrivilege(PrivilegeEventWrite.Action).AuthorizationFor("ApiKey", "key1")
+		result, err := handler.AuthorizedFor(context.Background(), Resource{})
 		require.NoError(t, err)
 		assert.Equal(t, Result{Authorized: true}, result)
 
-		result, err = handler.AuthorizedFor(context.Background(), "bar")
+		handler = tc.builder.ForPrivilege(PrivilegeSourcemapWrite.Action).AuthorizationFor("ApiKey", "key2")
+		result, err = handler.AuthorizedFor(context.Background(), Resource{})
 		require.NoError(t, err)
 		assert.Equal(t, Result{Authorized: false}, result)
 
-		result, err = handler.AuthorizedFor(context.Background(), "missing")
+		handler = tc.builder.ForPrivilege("missing").AuthorizationFor("ApiKey", "key3")
+		result, err = handler.AuthorizedFor(context.Background(), Resource{})
 		require.NoError(t, err)
 		assert.Equal(t, Result{Authorized: false}, result)
 		assert.Equal(t, 3, tc.cache.cache.ItemCount())
 	})
 
 	t.Run("client error", func(t *testing.T) {
-		tc := &apikeyTestcase{
-			transport: estest.NewTransport(t, -1, nil)}
+		tc := &apikeyTestcase{transport: estest.NewTransport(t, -1, nil)}
 		tc.setup(t)
-		handler := tc.builder.forKey("12a3")
+		handler := tc.builder.ForPrivilege(PrivilegeEventWrite.Action).AuthorizationFor("ApiKey", "12a3")
 
-		result, err := handler.AuthorizedFor(context.Background(), "xyz")
+		result, err := handler.AuthorizedFor(context.Background(), Resource{})
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "client error")
 		assert.Equal(t, Result{Authorized: false}, result)
@@ -136,9 +141,9 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 	t.Run("unauthorized status from ES", func(t *testing.T) {
 		tc := &apikeyTestcase{transport: estest.NewTransport(t, http.StatusUnauthorized, nil)}
 		tc.setup(t)
-		handler := tc.builder.forKey("12a3")
+		handler := tc.builder.ForPrivilege(PrivilegeEventWrite.Action).AuthorizationFor("ApiKey", "12a3")
 
-		result, err := handler.AuthorizedFor(context.Background(), "xyz")
+		result, err := handler.AuthorizedFor(context.Background(), Resource{})
 		require.NoError(t, err)
 		assert.Equal(t, Result{Authorized: false}, result)
 		assert.Equal(t, 1, tc.cache.cache.ItemCount()) // unauthorized responses are cached
@@ -147,9 +152,9 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 	t.Run("invalid status from ES", func(t *testing.T) {
 		tc := &apikeyTestcase{transport: estest.NewTransport(t, http.StatusNotFound, nil)}
 		tc.setup(t)
-		handler := tc.builder.forKey("12a3")
+		handler := tc.builder.ForPrivilege(PrivilegeEventWrite.Action).AuthorizationFor("ApiKey", "12a3")
 
-		result, err := handler.AuthorizedFor(context.Background(), "xyz")
+		result, err := handler.AuthorizedFor(context.Background(), Resource{})
 		require.Error(t, err)
 		assert.Equal(t, Result{Authorized: false}, result)
 		assert.Equal(t, 0, tc.cache.cache.ItemCount())
@@ -158,8 +163,8 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 	t.Run("decode error from ES", func(t *testing.T) {
 		tc := &apikeyTestcase{transport: estest.NewTransport(t, http.StatusOK, nil)}
 		tc.setup(t)
-		handler := tc.builder.forKey("123")
-		result, err := handler.AuthorizedFor(context.Background(), "foo")
+		handler := tc.builder.ForPrivilege(PrivilegeEventWrite.Action).AuthorizationFor("ApiKey", "123")
+		result, err := handler.AuthorizedFor(context.Background(), Resource{})
 		require.Error(t, err)
 		assert.Equal(t, Result{Authorized: false}, result)
 		assert.Zero(t, tc.cache.cache.ItemCount())
@@ -167,12 +172,12 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 }
 
 type apikeyTestcase struct {
-	transport       *estest.Transport
-	client          elasticsearch.Client
-	cache           *privilegesCache
-	anyOfPrivileges []elasticsearch.PrivilegeAction
+	transport   *estest.Transport
+	client      elasticsearch.Client
+	cache       *privilegesCache
+	apiKeyLimit int
 
-	builder *apikeyBuilder
+	builder *Builder
 }
 
 func (tc *apikeyTestcase) setup(t *testing.T) {
@@ -182,20 +187,24 @@ func (tc *apikeyTestcase) setup(t *testing.T) {
 			tc.transport = estest.NewTransport(t, http.StatusOK, map[string]interface{}{
 				"application": map[string]interface{}{
 					"apm": map[string]map[string]interface{}{
-						"foo": {"config_agent:read": true, "event:write": true, "sourcemap:write": false},
-						"bar": {"config_agent:read": true, "event:write": false},
-					}}})
+						"-": {"config_agent:read": true, "event:write": true, "sourcemap:write": false},
+					},
+				},
+			})
 		}
 		tc.client, err = estest.NewElasticsearchClient(tc.transport)
 		require.NoError(t, err)
 	}
-	if tc.cache == nil {
-		tc.cache = newPrivilegesCache(time.Minute, 5)
+
+	cfg := config.DefaultConfig()
+	cfg.AgentAuth.APIKey.Enabled = true
+	if tc.apiKeyLimit > 0 {
+		cfg.AgentAuth.APIKey.LimitPerMin = tc.apiKeyLimit
 	}
-	if tc.anyOfPrivileges == nil {
-		tc.anyOfPrivileges = []elasticsearch.PrivilegeAction{PrivilegeEventWrite.Action, PrivilegeSourcemapWrite.Action}
-	}
-	tc.builder = newApikeyBuilder(tc.client, tc.cache, tc.anyOfPrivileges)
+	tc.builder, err = NewBuilder(cfg.AgentAuth)
+	require.NoError(t, err)
+	tc.builder.apikey.esClient = tc.client
+	tc.cache = tc.builder.apikey.cache
 }
 
 func TestApikeyBuilderTraceContext(t *testing.T) {
@@ -212,8 +221,8 @@ func TestApikeyBuilderTraceContext(t *testing.T) {
 		// When AuthorizedFor is called with a context containing
 		// a transaction, the underlying Elasticsearch query should
 		// create a span.
-		handler.AuthorizedFor(ctx, ResourceInternal)
-		handler.AuthorizedFor(ctx, ResourceInternal) // cached, no query
+		handler.AuthorizedFor(ctx, Resource{})
+		handler.AuthorizedFor(ctx, Resource{}) // cached, no query
 	})
 	require.Len(t, spans, 1)
 	assert.Equal(t, "elasticsearch", spans[0].Subtype)

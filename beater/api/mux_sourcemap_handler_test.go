@@ -33,7 +33,7 @@ import (
 func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
 	t.Run("Unauthorized", func(t *testing.T) {
 		cfg := cfgEnabledRUM()
-		cfg.SecretToken = "1234"
+		cfg.AgentAuth.SecretToken = "1234"
 		rec, err := requestToMuxerWithPattern(cfg, AssetSourcemapPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusUnauthorized, rec.Code)
@@ -42,7 +42,7 @@ func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
 
 	t.Run("Authorized", func(t *testing.T) {
 		cfg := cfgEnabledRUM()
-		cfg.SecretToken = "1234"
+		cfg.AgentAuth.SecretToken = "1234"
 		h := map[string]string{headers.Authorization: "Bearer 1234"}
 		rec, err := requestToMuxerWithHeader(cfg, AssetSourcemapPath, http.MethodPost, h)
 		require.NoError(t, err)

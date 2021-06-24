@@ -18,13 +18,12 @@
 package pdata
 
 import (
-	"go.opentelemetry.io/collector/internal/data"
 	otlplogs "go.opentelemetry.io/collector/internal/data/protogen/logs/v1"
 )
 
 // ResourceLogsSlice logically represents a slice of ResourceLogs.
 //
-// This is a reference type, if passed by value and callee modifies it the
+// This is a reference type. If passed by value and callee modifies it, the
 // caller will see the modification.
 //
 // Must use NewResourceLogsSlice function to create new instances.
@@ -56,24 +55,12 @@ func (es ResourceLogsSlice) Len() int {
 // At returns the element at the given index.
 //
 // This function is used mostly for iterating over all the values in the slice:
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     ... // Do something with the element
-// }
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       ... // Do something with the element
+//   }
 func (es ResourceLogsSlice) At(ix int) ResourceLogs {
 	return newResourceLogs((*es.orig)[ix])
-}
-
-// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
-// The current slice will be cleared.
-func (es ResourceLogsSlice) MoveAndAppendTo(dest ResourceLogsSlice) {
-	if *dest.orig == nil {
-		// We can simply move the entire vector and avoid any allocations.
-		*dest.orig = *es.orig
-	} else {
-		*dest.orig = append(*dest.orig, *es.orig...)
-	}
-	*es.orig = nil
 }
 
 // CopyTo copies all elements from the current slice to the dest.
@@ -101,12 +88,12 @@ func (es ResourceLogsSlice) CopyTo(dest ResourceLogsSlice) {
 // 2. If the newLen > len then (newLen - cap) empty elements will be appended to the slice.
 //
 // Here is how a new ResourceLogsSlice can be initialized:
-// es := NewResourceLogsSlice()
-// es.Resize(4)
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     // Here should set all the values for e.
-// }
+//   es := NewResourceLogsSlice()
+//   es.Resize(4)
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       // Here should set all the values for e.
+//   }
 func (es ResourceLogsSlice) Resize(newLen int) {
 	oldLen := len(*es.orig)
 	oldCap := cap(*es.orig)
@@ -132,8 +119,48 @@ func (es ResourceLogsSlice) Resize(newLen int) {
 // given ResourceLogs at that new position.  The original ResourceLogs
 // could still be referenced so do not reuse it after passing it to this
 // method.
+// Deprecated: Use AppendEmpty.
 func (es ResourceLogsSlice) Append(e ResourceLogs) {
 	*es.orig = append(*es.orig, e.orig)
+}
+
+// AppendEmpty will append to the end of the slice an empty ResourceLogs.
+// It returns the newly added ResourceLogs.
+func (es ResourceLogsSlice) AppendEmpty() ResourceLogs {
+	*es.orig = append(*es.orig, &otlplogs.ResourceLogs{})
+	return es.At(es.Len() - 1)
+}
+
+// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
+// The current slice will be cleared.
+func (es ResourceLogsSlice) MoveAndAppendTo(dest ResourceLogsSlice) {
+	if *dest.orig == nil {
+		// We can simply move the entire vector and avoid any allocations.
+		*dest.orig = *es.orig
+	} else {
+		*dest.orig = append(*dest.orig, *es.orig...)
+	}
+	*es.orig = nil
+}
+
+// RemoveIf calls f sequentially for each element present in the slice.
+// If f returns true, the element is removed from the slice.
+func (es ResourceLogsSlice) RemoveIf(f func(ResourceLogs) bool) {
+	newLen := 0
+	for i := 0; i < len(*es.orig); i++ {
+		if f(es.At(i)) {
+			continue
+		}
+		if newLen == i {
+			// Nothing to move, element is at the right place.
+			newLen++
+			continue
+		}
+		(*es.orig)[newLen] = (*es.orig)[i]
+		newLen++
+	}
+	// TODO: Prevent memory leak by erasing truncated values.
+	*es.orig = (*es.orig)[:newLen]
 }
 
 // ResourceLogs is a collection of logs from a Resource.
@@ -176,7 +203,7 @@ func (ms ResourceLogs) CopyTo(dest ResourceLogs) {
 
 // InstrumentationLibraryLogsSlice logically represents a slice of InstrumentationLibraryLogs.
 //
-// This is a reference type, if passed by value and callee modifies it the
+// This is a reference type. If passed by value and callee modifies it, the
 // caller will see the modification.
 //
 // Must use NewInstrumentationLibraryLogsSlice function to create new instances.
@@ -208,24 +235,12 @@ func (es InstrumentationLibraryLogsSlice) Len() int {
 // At returns the element at the given index.
 //
 // This function is used mostly for iterating over all the values in the slice:
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     ... // Do something with the element
-// }
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       ... // Do something with the element
+//   }
 func (es InstrumentationLibraryLogsSlice) At(ix int) InstrumentationLibraryLogs {
 	return newInstrumentationLibraryLogs((*es.orig)[ix])
-}
-
-// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
-// The current slice will be cleared.
-func (es InstrumentationLibraryLogsSlice) MoveAndAppendTo(dest InstrumentationLibraryLogsSlice) {
-	if *dest.orig == nil {
-		// We can simply move the entire vector and avoid any allocations.
-		*dest.orig = *es.orig
-	} else {
-		*dest.orig = append(*dest.orig, *es.orig...)
-	}
-	*es.orig = nil
 }
 
 // CopyTo copies all elements from the current slice to the dest.
@@ -253,12 +268,12 @@ func (es InstrumentationLibraryLogsSlice) CopyTo(dest InstrumentationLibraryLogs
 // 2. If the newLen > len then (newLen - cap) empty elements will be appended to the slice.
 //
 // Here is how a new InstrumentationLibraryLogsSlice can be initialized:
-// es := NewInstrumentationLibraryLogsSlice()
-// es.Resize(4)
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     // Here should set all the values for e.
-// }
+//   es := NewInstrumentationLibraryLogsSlice()
+//   es.Resize(4)
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       // Here should set all the values for e.
+//   }
 func (es InstrumentationLibraryLogsSlice) Resize(newLen int) {
 	oldLen := len(*es.orig)
 	oldCap := cap(*es.orig)
@@ -284,8 +299,48 @@ func (es InstrumentationLibraryLogsSlice) Resize(newLen int) {
 // given InstrumentationLibraryLogs at that new position.  The original InstrumentationLibraryLogs
 // could still be referenced so do not reuse it after passing it to this
 // method.
+// Deprecated: Use AppendEmpty.
 func (es InstrumentationLibraryLogsSlice) Append(e InstrumentationLibraryLogs) {
 	*es.orig = append(*es.orig, e.orig)
+}
+
+// AppendEmpty will append to the end of the slice an empty InstrumentationLibraryLogs.
+// It returns the newly added InstrumentationLibraryLogs.
+func (es InstrumentationLibraryLogsSlice) AppendEmpty() InstrumentationLibraryLogs {
+	*es.orig = append(*es.orig, &otlplogs.InstrumentationLibraryLogs{})
+	return es.At(es.Len() - 1)
+}
+
+// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
+// The current slice will be cleared.
+func (es InstrumentationLibraryLogsSlice) MoveAndAppendTo(dest InstrumentationLibraryLogsSlice) {
+	if *dest.orig == nil {
+		// We can simply move the entire vector and avoid any allocations.
+		*dest.orig = *es.orig
+	} else {
+		*dest.orig = append(*dest.orig, *es.orig...)
+	}
+	*es.orig = nil
+}
+
+// RemoveIf calls f sequentially for each element present in the slice.
+// If f returns true, the element is removed from the slice.
+func (es InstrumentationLibraryLogsSlice) RemoveIf(f func(InstrumentationLibraryLogs) bool) {
+	newLen := 0
+	for i := 0; i < len(*es.orig); i++ {
+		if f(es.At(i)) {
+			continue
+		}
+		if newLen == i {
+			// Nothing to move, element is at the right place.
+			newLen++
+			continue
+		}
+		(*es.orig)[newLen] = (*es.orig)[i]
+		newLen++
+	}
+	// TODO: Prevent memory leak by erasing truncated values.
+	*es.orig = (*es.orig)[:newLen]
 }
 
 // InstrumentationLibraryLogs is a collection of logs from a LibraryInstrumentation.
@@ -328,7 +383,7 @@ func (ms InstrumentationLibraryLogs) CopyTo(dest InstrumentationLibraryLogs) {
 
 // LogSlice logically represents a slice of LogRecord.
 //
-// This is a reference type, if passed by value and callee modifies it the
+// This is a reference type. If passed by value and callee modifies it, the
 // caller will see the modification.
 //
 // Must use NewLogSlice function to create new instances.
@@ -360,24 +415,12 @@ func (es LogSlice) Len() int {
 // At returns the element at the given index.
 //
 // This function is used mostly for iterating over all the values in the slice:
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     ... // Do something with the element
-// }
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       ... // Do something with the element
+//   }
 func (es LogSlice) At(ix int) LogRecord {
 	return newLogRecord((*es.orig)[ix])
-}
-
-// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
-// The current slice will be cleared.
-func (es LogSlice) MoveAndAppendTo(dest LogSlice) {
-	if *dest.orig == nil {
-		// We can simply move the entire vector and avoid any allocations.
-		*dest.orig = *es.orig
-	} else {
-		*dest.orig = append(*dest.orig, *es.orig...)
-	}
-	*es.orig = nil
 }
 
 // CopyTo copies all elements from the current slice to the dest.
@@ -405,12 +448,12 @@ func (es LogSlice) CopyTo(dest LogSlice) {
 // 2. If the newLen > len then (newLen - cap) empty elements will be appended to the slice.
 //
 // Here is how a new LogSlice can be initialized:
-// es := NewLogSlice()
-// es.Resize(4)
-// for i := 0; i < es.Len(); i++ {
-//     e := es.At(i)
-//     // Here should set all the values for e.
-// }
+//   es := NewLogSlice()
+//   es.Resize(4)
+//   for i := 0; i < es.Len(); i++ {
+//       e := es.At(i)
+//       // Here should set all the values for e.
+//   }
 func (es LogSlice) Resize(newLen int) {
 	oldLen := len(*es.orig)
 	oldCap := cap(*es.orig)
@@ -436,8 +479,48 @@ func (es LogSlice) Resize(newLen int) {
 // given LogRecord at that new position.  The original LogRecord
 // could still be referenced so do not reuse it after passing it to this
 // method.
+// Deprecated: Use AppendEmpty.
 func (es LogSlice) Append(e LogRecord) {
 	*es.orig = append(*es.orig, e.orig)
+}
+
+// AppendEmpty will append to the end of the slice an empty LogRecord.
+// It returns the newly added LogRecord.
+func (es LogSlice) AppendEmpty() LogRecord {
+	*es.orig = append(*es.orig, &otlplogs.LogRecord{})
+	return es.At(es.Len() - 1)
+}
+
+// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
+// The current slice will be cleared.
+func (es LogSlice) MoveAndAppendTo(dest LogSlice) {
+	if *dest.orig == nil {
+		// We can simply move the entire vector and avoid any allocations.
+		*dest.orig = *es.orig
+	} else {
+		*dest.orig = append(*dest.orig, *es.orig...)
+	}
+	*es.orig = nil
+}
+
+// RemoveIf calls f sequentially for each element present in the slice.
+// If f returns true, the element is removed from the slice.
+func (es LogSlice) RemoveIf(f func(LogRecord) bool) {
+	newLen := 0
+	for i := 0; i < len(*es.orig); i++ {
+		if f(es.At(i)) {
+			continue
+		}
+		if newLen == i {
+			// Nothing to move, element is at the right place.
+			newLen++
+			continue
+		}
+		(*es.orig)[newLen] = (*es.orig)[i]
+		newLen++
+	}
+	// TODO: Prevent memory leak by erasing truncated values.
+	*es.orig = (*es.orig)[:newLen]
 }
 
 // LogRecord are experimental implementation of OpenTelemetry Log Data Model.
@@ -475,22 +558,22 @@ func (ms LogRecord) SetTimestamp(v Timestamp) {
 
 // TraceID returns the traceid associated with this LogRecord.
 func (ms LogRecord) TraceID() TraceID {
-	return TraceID((*ms.orig).TraceId)
+	return TraceID{orig: ((*ms.orig).TraceId)}
 }
 
 // SetTraceID replaces the traceid associated with this LogRecord.
 func (ms LogRecord) SetTraceID(v TraceID) {
-	(*ms.orig).TraceId = data.TraceID(v)
+	(*ms.orig).TraceId = v.orig
 }
 
 // SpanID returns the spanid associated with this LogRecord.
 func (ms LogRecord) SpanID() SpanID {
-	return SpanID((*ms.orig).SpanId)
+	return SpanID{orig: ((*ms.orig).SpanId)}
 }
 
 // SetSpanID replaces the spanid associated with this LogRecord.
 func (ms LogRecord) SetSpanID(v SpanID) {
-	(*ms.orig).SpanId = data.SpanID(v)
+	(*ms.orig).SpanId = v.orig
 }
 
 // Flags returns the flags associated with this LogRecord.

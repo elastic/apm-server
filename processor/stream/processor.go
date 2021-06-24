@@ -24,8 +24,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/time/rate"
-
 	"go.elastic.co/apm"
 
 	"github.com/pkg/errors"
@@ -36,18 +34,14 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/rumv3"
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
-	"github.com/elastic/apm-server/model/modelprocessor"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/utility"
 )
 
 var (
-	ErrUnrecognizedObject = errors.New("did not recognize object type")
+	errUnrecognizedObject = errors.New("did not recognize object type")
 )
 
 const (
-	batchSize = 10
-
 	errorEventType            = "error"
 	metricsetEventType        = "metricset"
 	spanEventType             = "span"
@@ -60,12 +54,11 @@ const (
 type decodeMetadataFunc func(decoder.Decoder, *model.Metadata) error
 
 type Processor struct {
-	Mconfig             modeldecoder.Config
-	MaxEventSize        int
-	streamReaderPool    sync.Pool
-	decodeMetadata      decodeMetadataFunc
-	isRUM               bool
-	allowedServiceNames map[string]bool
+	Mconfig          modeldecoder.Config
+	MaxEventSize     int
+	streamReaderPool sync.Pool
+	decodeMetadata   decodeMetadataFunc
+	isRUM            bool
 }
 
 func BackendProcessor(cfg *config.Config) *Processor {
@@ -79,50 +72,35 @@ func BackendProcessor(cfg *config.Config) *Processor {
 
 func RUMV2Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:             modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
-		MaxEventSize:        cfg.MaxEventSize,
-		decodeMetadata:      v2.DecodeNestedMetadata,
-		isRUM:               true,
-		allowedServiceNames: makeAllowedServiceNamesMap(cfg.RumConfig.AllowServiceNames),
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize:   cfg.MaxEventSize,
+		decodeMetadata: v2.DecodeNestedMetadata,
+		isRUM:          true,
 	}
 }
 
 func RUMV3Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:             modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
-		MaxEventSize:        cfg.MaxEventSize,
-		decodeMetadata:      rumv3.DecodeNestedMetadata,
-		isRUM:               true,
-		allowedServiceNames: makeAllowedServiceNamesMap(cfg.RumConfig.AllowServiceNames),
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize:   cfg.MaxEventSize,
+		decodeMetadata: rumv3.DecodeNestedMetadata,
+		isRUM:          true,
 	}
-}
-
-func makeAllowedServiceNamesMap(allowed []string) map[string]bool {
-	if len(allowed) == 0 {
-		return nil
-	}
-	m := make(map[string]bool, len(allowed))
-	for _, name := range allowed {
-		m[name] = true
-	}
-	return m
 }
 
 func (p *Processor) readMetadata(reader *streamReader, metadata *model.Metadata) error {
 	if err := p.decodeMetadata(reader, metadata); err != nil {
 		err = reader.wrapError(err)
 		if err == io.EOF {
-			return &Error{
-				Type:     InvalidInputErrType,
+			return &InvalidInputError{
 				Message:  "EOF while reading metadata",
 				Document: string(reader.LatestLine()),
 			}
 		}
-		if _, ok := err.(*Error); ok {
+		if _, ok := err.(*InvalidInputError); ok {
 			return err
 		}
-		return &Error{
-			Type:     InvalidInputErrType,
+		return &InvalidInputError{
 			Message:  err.Error(),
 			Document: string(reader.LatestLine()),
 		}
@@ -130,17 +108,13 @@ func (p *Processor) readMetadata(reader *streamReader, metadata *model.Metadata)
 	return nil
 }
 
-// IdentifyEventType takes a reader and reads ahead the first key of the
+// identifyEventType takes a reader and reads ahead the first key of the
 // underlying json input. This method makes some assumptions met by the
 // input format:
 // - the input is in JSON format
 // - every valid ndjson line only has one root key
 // - the bytes that we must match on are ASCII
-//
-// NOTE(axw) this method really should not be exported, but it has to be
-// for package_test. When we migrate that code to system tests, unexport
-// this method.
-func (p *Processor) IdentifyEventType(body []byte) []byte {
+func (p *Processor) identifyEventType(body []byte) []byte {
 	// find event type, trim spaces and account for single and double quotes
 	var quote byte
 	var key []byte
@@ -158,47 +132,33 @@ func (p *Processor) IdentifyEventType(body []byte) []byte {
 	return key[:end]
 }
 
-// readBatch will read up to `batchSize` objects from the ndjson stream,
-// adding events to batch and returning a boolean indicating that there
-// might be more to read.
+// readBatch reads up to `batchSize` events from the ndjson stream into
+// batch, returning the number of events read and any error encountered.
+// Callers should always process the n > 0 events returned before considering
+// the error err.
 func (p *Processor) readBatch(
 	ctx context.Context,
-	ipRateLimiter *rate.Limiter,
 	requestTime time.Time,
 	streamMetadata *model.Metadata,
 	batchSize int,
 	batch *model.Batch,
 	reader *streamReader,
-	response *Result,
-) bool {
-
-	if ipRateLimiter != nil {
-		// use provided rate limiter to throttle batch read
-		ctxT, cancel := context.WithTimeout(ctx, time.Second)
-		err := ipRateLimiter.WaitN(ctxT, batchSize)
-		cancel()
-		if err != nil {
-			response.Add(&Error{
-				Type:    RateLimitErrType,
-				Message: "rate limit exceeded",
-			})
-			return true
-		}
-	}
+	result *Result,
+) (int, error) {
 
 	// input events are decoded and appended to the batch
+	var n int
 	for i := 0; i < batchSize && !reader.IsEOF(); i++ {
 		body, err := reader.ReadAhead()
 		if err != nil && err != io.EOF {
-			err = reader.wrapError(err)
-			if e, ok := err.(*Error); ok && (e.Type == InvalidInputErrType || e.Type == InputTooLargeErrType) {
-				response.LimitedAdd(e)
+			err := reader.wrapError(err)
+			var invalidInput *InvalidInputError
+			if errors.As(err, &invalidInput) {
+				result.LimitedAdd(err)
 				continue
-			} else {
-				// return early, we assume we can only recover from a input error types
-				response.Add(err)
-				return true
 			}
+			// return early, we assume we can only recover from a input error types
+			return n, err
 		}
 		if len(body) == 0 {
 			// required for backwards compatibility - sending empty lines was permitted in previous versions
@@ -209,56 +169,62 @@ func (p *Processor) readBatch(
 			Metadata:    *streamMetadata,
 			Config:      p.Mconfig,
 		}
-		switch eventType := p.IdentifyEventType(body); string(eventType) {
+		switch eventType := p.identifyEventType(body); string(eventType) {
 		case errorEventType:
 			var event model.Error
 			err := v2.DecodeNestedError(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			event.RUM = p.isRUM
 			batch.Errors = append(batch.Errors, &event)
+			n++
 		case metricsetEventType:
 			var event model.Metricset
 			err := v2.DecodeNestedMetricset(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			batch.Metricsets = append(batch.Metricsets, &event)
+			n++
 		case spanEventType:
 			var event model.Span
 			err := v2.DecodeNestedSpan(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			event.RUM = p.isRUM
 			batch.Spans = append(batch.Spans, &event)
+			n++
 		case transactionEventType:
 			var event model.Transaction
 			err := v2.DecodeNestedTransaction(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			batch.Transactions = append(batch.Transactions, &event)
+			n++
 		case rumv3ErrorEventType:
 			var event model.Error
 			err := rumv3.DecodeNestedError(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			event.RUM = p.isRUM
 			batch.Errors = append(batch.Errors, &event)
+			n++
 		case rumv3MetricsetEventType:
 			var event model.Metricset
 			err := rumv3.DecodeNestedMetricset(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			batch.Metricsets = append(batch.Metricsets, &event)
+			n++
 		case rumv3TransactionEventType:
 			var event rumv3.Transaction
 			err := rumv3.DecodeNestedTransaction(reader, &input, &event)
-			if handleDecodeErr(err, reader, response) {
+			if handleDecodeErr(err, reader, result) {
 				continue
 			}
 			batch.Transactions = append(batch.Transactions, &event.Transaction)
@@ -267,104 +233,80 @@ func (p *Processor) readBatch(
 				span.RUM = true
 				batch.Spans = append(batch.Spans, span)
 			}
+			n += 1 + len(event.Metricsets) + len(event.Spans)
 		default:
-			response.LimitedAdd(&Error{
-				Type:     InvalidInputErrType,
-				Message:  errors.Wrap(ErrUnrecognizedObject, string(eventType)).Error(),
+			result.LimitedAdd(&InvalidInputError{
+				Message:  errors.Wrap(errUnrecognizedObject, string(eventType)).Error(),
 				Document: string(reader.LatestLine()),
 			})
 			continue
 		}
 	}
-	return reader.IsEOF()
+	if reader.IsEOF() {
+		return n, io.EOF
+	}
+	return n, nil
 }
 
 func handleDecodeErr(err error, r *streamReader, result *Result) bool {
 	if err == nil || err == io.EOF {
 		return false
 	}
-	e, ok := err.(*Error)
-	if !ok || (e.Type != InvalidInputErrType && e.Type != InputTooLargeErrType) {
-		e = &Error{
-			Type:     InvalidInputErrType,
-			Message:  err.Error(),
-			Document: string(r.LatestLine()),
-		}
-	}
-	result.LimitedAdd(e)
+	result.LimitedAdd(&InvalidInputError{
+		Message:  err.Error(),
+		Document: string(r.LatestLine()),
+	})
 	return true
 }
 
-// HandleStream processes a stream of events
-func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta *model.Metadata, reader io.Reader, processor model.BatchProcessor) *Result {
-	res := &Result{}
-
+// HandleStream processes a stream of events in batches of batchSize at a time,
+// updating result as events are accepted, or per-event errors occur.
+//
+// HandleStream will return an error when a terminal stream-level error occurs,
+// such as the rate limit being exceeded, or due to authorization errors. In
+// this case the result will only cover the subset of events accepted.
+//
+// Callers must not access result concurrently with HandleStream.
+func (p *Processor) HandleStream(
+	ctx context.Context,
+	meta *model.Metadata,
+	reader io.Reader,
+	batchSize int,
+	processor model.BatchProcessor,
+	result *Result,
+) error {
 	sr := p.getStreamReader(reader)
 	defer sr.release()
 
 	// first item is the metadata object
 	if err := p.readMetadata(sr, meta); err != nil {
 		// no point in continuing if we couldn't read the metadata
-		res.Add(err)
-		return res
+		return err
 	}
 
-	var allowedServiceNamesProcessor model.BatchProcessor = modelprocessor.Nop{}
-	if p.allowedServiceNames != nil {
-		allowedServiceNamesProcessor = modelprocessor.MetadataProcessorFunc(p.restrictAllowedServiceNames)
-	}
 	requestTime := utility.RequestTime(ctx)
 
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
-	var done bool
-	for !done {
+	for {
 		var batch model.Batch
-		done = p.readBatch(ctx, ipRateLimiter, requestTime, meta, batchSize, &batch, sr, res)
-		if batch.Len() == 0 {
-			continue
-		}
-		if err := allowedServiceNamesProcessor.ProcessBatch(ctx, &batch); err != nil {
-			res.Add(err)
-			return res
-		}
-
-		// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
-		// the slice memory. We should investigate alternative interfaces between the
-		// processor and publisher which would enable better memory reuse, e.g. by using
-		// a sync.Pool for creating batches, and having the publisher (terminal processor)
-		// release batches back into the pool.
-		if err := processor.ProcessBatch(ctx, &batch); err != nil {
-			switch err {
-			case publish.ErrChannelClosed:
-				res.Add(&Error{
-					Type:    ShuttingDownErrType,
-					Message: "server is shutting down",
-				})
-			case publish.ErrFull:
-				res.Add(&Error{
-					Type:    QueueFullErrType,
-					Message: err.Error(),
-				})
-			default:
-				res.Add(err)
+		n, readErr := p.readBatch(ctx, requestTime, meta, batchSize, &batch, sr, result)
+		if n > 0 {
+			// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
+			// the slice memory. We should investigate alternative interfaces between the
+			// processor and publisher which would enable better memory reuse, e.g. by using
+			// a sync.Pool for creating batches, and having the publisher (terminal processor)
+			// release batches back into the pool.
+			if err := processor.ProcessBatch(ctx, &batch); err != nil {
+				return err
 			}
-			return res
+			result.AddAccepted(batch.Len())
 		}
-		res.AddAccepted(batch.Len())
-	}
-	return res
-}
-
-func (p *Processor) restrictAllowedServiceNames(ctx context.Context, meta *model.Metadata) error {
-	// Restrict to explicitly allowed service names. The list of
-	// allowed service names is not considered secret, so we do
-	// not use constant time comparison.
-	if !p.allowedServiceNames[meta.Service.Name] {
-		return &Error{
-			Type:    InvalidInputErrType,
-			Message: "service name is not allowed",
+		if readErr == io.EOF {
+			break
+		} else if readErr != nil {
+			return readErr
 		}
 	}
 	return nil
@@ -400,8 +342,7 @@ func (sr *streamReader) wrapError(err error) error {
 		return nil
 	}
 	if _, ok := err.(decoder.JSONDecodeError); ok {
-		return &Error{
-			Type:     InvalidInputErrType,
+		return &InvalidInputError{
 			Message:  err.Error(),
 			Document: string(sr.LatestLine()),
 		}
@@ -412,8 +353,8 @@ func (sr *streamReader) wrapError(err error) error {
 		e = err.Unwrap()
 	}
 	if errors.Is(e, decoder.ErrLineTooLong) {
-		return &Error{
-			Type:     InputTooLargeErrType,
+		return &InvalidInputError{
+			TooLarge: true,
 			Message:  "event exceeded the permitted size.",
 			Document: string(sr.LatestLine()),
 		}

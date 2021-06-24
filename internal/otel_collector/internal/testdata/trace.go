@@ -17,9 +17,9 @@ package testdata
 import (
 	"time"
 
-	otlptrace "go.opentelemetry.io/collector/internal/data/protogen/trace/v1"
-
 	"go.opentelemetry.io/collector/consumer/pdata"
+	otlpcollectortrace "go.opentelemetry.io/collector/internal/data/protogen/collector/trace/v1"
+	otlptrace "go.opentelemetry.io/collector/internal/data/protogen/trace/v1"
 )
 
 var (
@@ -33,77 +33,72 @@ var (
 	TestSpanEndTimestamp = pdata.TimestampFromTime(TestSpanEndTime)
 )
 
-func GenerateTraceDataEmpty() pdata.Traces {
+func GenerateTracesOneEmptyResourceSpans() pdata.Traces {
 	td := pdata.NewTraces()
+	td.ResourceSpans().AppendEmpty()
 	return td
 }
 
-func generateTraceOtlpEmpty() []*otlptrace.ResourceSpans {
-	return []*otlptrace.ResourceSpans(nil)
-}
-
-func GenerateTraceDataOneEmptyResourceSpans() pdata.Traces {
-	td := GenerateTraceDataEmpty()
-	td.ResourceSpans().Resize(1)
-	return td
-}
-
-func generateTraceOtlpOneEmptyResourceSpans() []*otlptrace.ResourceSpans {
-	return []*otlptrace.ResourceSpans{
-		{},
+func generateTracesOtlpOneEmptyResourceSpans() *otlpcollectortrace.ExportTraceServiceRequest {
+	return &otlpcollectortrace.ExportTraceServiceRequest{
+		ResourceSpans: []*otlptrace.ResourceSpans{
+			{},
+		},
 	}
 }
 
-func GenerateTraceDataNoLibraries() pdata.Traces {
-	td := GenerateTraceDataOneEmptyResourceSpans()
+func GenerateTracesNoLibraries() pdata.Traces {
+	td := GenerateTracesOneEmptyResourceSpans()
 	rs0 := td.ResourceSpans().At(0)
 	initResource1(rs0.Resource())
 	return td
 }
 
-func generateTraceOtlpNoLibraries() []*otlptrace.ResourceSpans {
-	return []*otlptrace.ResourceSpans{
-		{
-			Resource: generateOtlpResource1(),
+func generateTracesOtlpNoLibraries() *otlpcollectortrace.ExportTraceServiceRequest {
+	return &otlpcollectortrace.ExportTraceServiceRequest{
+		ResourceSpans: []*otlptrace.ResourceSpans{
+			{
+				Resource: generateOtlpResource1(),
+			},
 		},
 	}
 }
 
-func GenerateTraceDataOneEmptyInstrumentationLibrary() pdata.Traces {
-	td := GenerateTraceDataNoLibraries()
+func GenerateTracesOneEmptyInstrumentationLibrary() pdata.Traces {
+	td := GenerateTracesNoLibraries()
+	td.ResourceSpans().At(0).InstrumentationLibrarySpans().AppendEmpty()
+	return td
+}
+
+func generateTracesOtlpOneEmptyInstrumentationLibrary() *otlpcollectortrace.ExportTraceServiceRequest {
+	return &otlpcollectortrace.ExportTraceServiceRequest{
+		ResourceSpans: []*otlptrace.ResourceSpans{
+			{
+				Resource: generateOtlpResource1(),
+				InstrumentationLibrarySpans: []*otlptrace.InstrumentationLibrarySpans{
+					{},
+				},
+			},
+		},
+	}
+}
+
+func GenerateTracesOneSpanNoResource() pdata.Traces {
+	td := GenerateTracesOneEmptyResourceSpans()
 	rs0 := td.ResourceSpans().At(0)
-	rs0.InstrumentationLibrarySpans().Resize(1)
+	fillSpanOne(rs0.InstrumentationLibrarySpans().AppendEmpty().Spans().AppendEmpty())
 	return td
 }
 
-func generateTraceOtlpOneEmptyInstrumentationLibrary() []*otlptrace.ResourceSpans {
-	return []*otlptrace.ResourceSpans{
-		{
-			Resource: generateOtlpResource1(),
-			InstrumentationLibrarySpans: []*otlptrace.InstrumentationLibrarySpans{
-				{},
-			},
-		},
-	}
-}
-
-func GenerateTraceDataOneSpanNoResource() pdata.Traces {
-	td := GenerateTraceDataOneEmptyResourceSpans()
-	rs0 := td.ResourceSpans().At(0)
-	rs0.InstrumentationLibrarySpans().Resize(1)
-	rs0ils0 := rs0.InstrumentationLibrarySpans().At(0)
-	rs0ils0.Spans().Resize(1)
-	fillSpanOne(rs0ils0.Spans().At(0))
-	return td
-}
-
-func generateTraceOtlpOneSpanNoResource() []*otlptrace.ResourceSpans {
-	return []*otlptrace.ResourceSpans{
-		{
-			InstrumentationLibrarySpans: []*otlptrace.InstrumentationLibrarySpans{
-				{
-					Spans: []*otlptrace.Span{
-						generateOtlpSpanOne(),
+func generateTracesOtlpOneSpanNoResource() *otlpcollectortrace.ExportTraceServiceRequest {
+	return &otlpcollectortrace.ExportTraceServiceRequest{
+		ResourceSpans: []*otlptrace.ResourceSpans{
+			{
+				InstrumentationLibrarySpans: []*otlptrace.InstrumentationLibrarySpans{
+					{
+						Spans: []*otlptrace.Span{
+							generateOtlpSpanOne(),
+						},
 					},
 				},
 			},
@@ -111,22 +106,23 @@ func generateTraceOtlpOneSpanNoResource() []*otlptrace.ResourceSpans {
 	}
 }
 
-func GenerateTraceDataOneSpan() pdata.Traces {
-	td := GenerateTraceDataOneEmptyInstrumentationLibrary()
+func GenerateTracesOneSpan() pdata.Traces {
+	td := GenerateTracesOneEmptyInstrumentationLibrary()
 	rs0ils0 := td.ResourceSpans().At(0).InstrumentationLibrarySpans().At(0)
-	rs0ils0.Spans().Resize(1)
-	fillSpanOne(rs0ils0.Spans().At(0))
+	fillSpanOne(rs0ils0.Spans().AppendEmpty())
 	return td
 }
 
-func generateTraceOtlpOneSpan() []*otlptrace.ResourceSpans {
-	return []*otlptrace.ResourceSpans{
-		{
-			Resource: generateOtlpResource1(),
-			InstrumentationLibrarySpans: []*otlptrace.InstrumentationLibrarySpans{
-				{
-					Spans: []*otlptrace.Span{
-						generateOtlpSpanOne(),
+func generateTracesOtlpOneSpan() *otlpcollectortrace.ExportTraceServiceRequest {
+	return &otlpcollectortrace.ExportTraceServiceRequest{
+		ResourceSpans: []*otlptrace.ResourceSpans{
+			{
+				Resource: generateOtlpResource1(),
+				InstrumentationLibrarySpans: []*otlptrace.InstrumentationLibrarySpans{
+					{
+						Spans: []*otlptrace.Span{
+							generateOtlpSpanOne(),
+						},
 					},
 				},
 			},
@@ -134,25 +130,26 @@ func generateTraceOtlpOneSpan() []*otlptrace.ResourceSpans {
 	}
 }
 
-func GenerateTraceDataTwoSpansSameResource() pdata.Traces {
-	td := GenerateTraceDataOneEmptyInstrumentationLibrary()
+func GenerateTracesTwoSpansSameResource() pdata.Traces {
+	td := GenerateTracesOneEmptyInstrumentationLibrary()
 	rs0ils0 := td.ResourceSpans().At(0).InstrumentationLibrarySpans().At(0)
-	rs0ils0.Spans().Resize(2)
-	fillSpanOne(rs0ils0.Spans().At(0))
-	fillSpanTwo(rs0ils0.Spans().At(1))
+	fillSpanOne(rs0ils0.Spans().AppendEmpty())
+	fillSpanTwo(rs0ils0.Spans().AppendEmpty())
 	return td
 }
 
-// GenerateTraceOtlpSameResourceTwoSpans returns the OTLP representation of the GenerateTraceOtlpSameResourceTwoSpans.
-func GenerateTraceOtlpSameResourceTwoSpans() []*otlptrace.ResourceSpans {
-	return []*otlptrace.ResourceSpans{
-		{
-			Resource: generateOtlpResource1(),
-			InstrumentationLibrarySpans: []*otlptrace.InstrumentationLibrarySpans{
-				{
-					Spans: []*otlptrace.Span{
-						generateOtlpSpanOne(),
-						generateOtlpSpanTwo(),
+// generateTracesOtlpSameResourceTwoSpans returns the OTLP representation of the generateTracesOtlpSameResourceTwoSpans.
+func generateTracesOtlpSameResourceTwoSpans() *otlpcollectortrace.ExportTraceServiceRequest {
+	return &otlpcollectortrace.ExportTraceServiceRequest{
+		ResourceSpans: []*otlptrace.ResourceSpans{
+			{
+				Resource: generateOtlpResource1(),
+				InstrumentationLibrarySpans: []*otlptrace.InstrumentationLibrarySpans{
+					{
+						Spans: []*otlptrace.Span{
+							generateOtlpSpanOne(),
+							generateOtlpSpanTwo(),
+						},
 					},
 				},
 			},
@@ -160,27 +157,22 @@ func GenerateTraceOtlpSameResourceTwoSpans() []*otlptrace.ResourceSpans {
 	}
 }
 
-func GenerateTraceDataTwoSpansSameResourceOneDifferent() pdata.Traces {
+func GenerateTracesTwoSpansSameResourceOneDifferent() pdata.Traces {
 	td := pdata.NewTraces()
-	td.ResourceSpans().Resize(2)
-	rs0 := td.ResourceSpans().At(0)
+	rs0 := td.ResourceSpans().AppendEmpty()
 	initResource1(rs0.Resource())
-	rs0.InstrumentationLibrarySpans().Resize(1)
-	rs0ils0 := rs0.InstrumentationLibrarySpans().At(0)
-	rs0ils0.Spans().Resize(2)
-	fillSpanOne(rs0ils0.Spans().At(0))
-	fillSpanTwo(rs0ils0.Spans().At(1))
-	rs1 := td.ResourceSpans().At(1)
+	rs0ils0 := rs0.InstrumentationLibrarySpans().AppendEmpty()
+	fillSpanOne(rs0ils0.Spans().AppendEmpty())
+	fillSpanTwo(rs0ils0.Spans().AppendEmpty())
+	rs1 := td.ResourceSpans().AppendEmpty()
 	initResource2(rs1.Resource())
-	rs1.InstrumentationLibrarySpans().Resize(1)
-	rs1ils0 := rs1.InstrumentationLibrarySpans().At(0)
-	rs1ils0.Spans().Resize(1)
-	fillSpanThree(rs1ils0.Spans().At(0))
+	rs1ils0 := rs1.InstrumentationLibrarySpans().AppendEmpty()
+	fillSpanThree(rs1ils0.Spans().AppendEmpty())
 	return td
 }
 
-func GenerateTraceDataManySpansSameResource(spansCount int) pdata.Traces {
-	td := GenerateTraceDataOneEmptyInstrumentationLibrary()
+func GenerateTracesManySpansSameResource(spansCount int) pdata.Traces {
+	td := GenerateTracesOneEmptyInstrumentationLibrary()
 	rs0ils0 := td.ResourceSpans().At(0).InstrumentationLibrarySpans().At(0)
 	rs0ils0.Spans().Resize(spansCount)
 	for i := 0; i < spansCount; i++ {
@@ -189,25 +181,27 @@ func GenerateTraceDataManySpansSameResource(spansCount int) pdata.Traces {
 	return td
 }
 
-func generateTraceOtlpTwoSpansSameResourceOneDifferent() []*otlptrace.ResourceSpans {
-	return []*otlptrace.ResourceSpans{
-		{
-			Resource: generateOtlpResource1(),
-			InstrumentationLibrarySpans: []*otlptrace.InstrumentationLibrarySpans{
-				{
-					Spans: []*otlptrace.Span{
-						generateOtlpSpanOne(),
-						generateOtlpSpanTwo(),
+func generateTracesOtlpTwoSpansSameResourceOneDifferent() *otlpcollectortrace.ExportTraceServiceRequest {
+	return &otlpcollectortrace.ExportTraceServiceRequest{
+		ResourceSpans: []*otlptrace.ResourceSpans{
+			{
+				Resource: generateOtlpResource1(),
+				InstrumentationLibrarySpans: []*otlptrace.InstrumentationLibrarySpans{
+					{
+						Spans: []*otlptrace.Span{
+							generateOtlpSpanOne(),
+							generateOtlpSpanTwo(),
+						},
 					},
 				},
 			},
-		},
-		{
-			Resource: generateOtlpResource2(),
-			InstrumentationLibrarySpans: []*otlptrace.InstrumentationLibrarySpans{
-				{
-					Spans: []*otlptrace.Span{
-						generateOtlpSpanThree(),
+			{
+				Resource: generateOtlpResource2(),
+				InstrumentationLibrarySpans: []*otlptrace.InstrumentationLibrarySpans{
+					{
+						Spans: []*otlptrace.Span{
+							generateOtlpSpanThree(),
+						},
 					},
 				},
 			},
@@ -217,17 +211,16 @@ func generateTraceOtlpTwoSpansSameResourceOneDifferent() []*otlptrace.ResourceSp
 
 func fillSpanOne(span pdata.Span) {
 	span.SetName("operationA")
-	span.SetStartTime(TestSpanStartTimestamp)
-	span.SetEndTime(TestSpanEndTimestamp)
+	span.SetStartTimestamp(TestSpanStartTimestamp)
+	span.SetEndTimestamp(TestSpanEndTimestamp)
 	span.SetDroppedAttributesCount(1)
 	evs := span.Events()
-	evs.Resize(2)
-	ev0 := evs.At(0)
+	ev0 := evs.AppendEmpty()
 	ev0.SetTimestamp(TestSpanEventTimestamp)
 	ev0.SetName("event-with-attr")
 	initSpanEventAttributes(ev0.Attributes())
 	ev0.SetDroppedAttributesCount(2)
-	ev1 := evs.At(1)
+	ev1 := evs.AppendEmpty()
 	ev1.SetTimestamp(TestSpanEventTimestamp)
 	ev1.SetName("event")
 	ev1.SetDroppedAttributesCount(2)
@@ -267,12 +260,13 @@ func generateOtlpSpanOne() *otlptrace.Span {
 
 func fillSpanTwo(span pdata.Span) {
 	span.SetName("operationB")
-	span.SetStartTime(TestSpanStartTimestamp)
-	span.SetEndTime(TestSpanEndTimestamp)
-	span.Links().Resize(2)
-	initSpanLinkAttributes(span.Links().At(0).Attributes())
-	span.Links().At(0).SetDroppedAttributesCount(4)
-	span.Links().At(1).SetDroppedAttributesCount(4)
+	span.SetStartTimestamp(TestSpanStartTimestamp)
+	span.SetEndTimestamp(TestSpanEndTimestamp)
+	link0 := span.Links().AppendEmpty()
+	initSpanLinkAttributes(link0.Attributes())
+	link0.SetDroppedAttributesCount(4)
+	link1 := span.Links().AppendEmpty()
+	link1.SetDroppedAttributesCount(4)
 	span.SetDroppedLinksCount(3)
 }
 
@@ -296,8 +290,8 @@ func generateOtlpSpanTwo() *otlptrace.Span {
 
 func fillSpanThree(span pdata.Span) {
 	span.SetName("operationC")
-	span.SetStartTime(TestSpanStartTimestamp)
-	span.SetEndTime(TestSpanEndTimestamp)
+	span.SetStartTimestamp(TestSpanStartTimestamp)
+	span.SetEndTimestamp(TestSpanEndTimestamp)
 	initSpanAttributes(span.Attributes())
 	span.SetDroppedAttributesCount(5)
 }

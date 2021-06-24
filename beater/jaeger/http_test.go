@@ -181,9 +181,9 @@ func encodeThriftSpans(spans ...*jaegerthrift.Span) io.Reader {
 }
 
 func encodeThriftBatch(batch *jaegerthrift.Batch) io.Reader {
-	transport := thrift.NewTMemoryBuffer()
-	if err := batch.Write(thrift.NewTBinaryProtocolTransport(transport)); err != nil {
+	buffer := thrift.NewTMemoryBuffer()
+	if err := batch.Write(context.Background(), thrift.NewTBinaryProtocolConf(buffer, nil)); err != nil {
 		panic(err)
 	}
-	return bytes.NewReader(transport.Buffer.Bytes())
+	return bytes.NewReader(buffer.Bytes())
 }

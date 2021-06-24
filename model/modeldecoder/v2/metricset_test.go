@@ -66,7 +66,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 }
 
 func TestDecodeMapToMetricsetModel(t *testing.T) {
-	exceptions := func(key string) bool { return false }
+	exceptions := func(key string) bool { return strings.HasPrefix(key, "System.Network") }
 
 	t.Run("metadata-set", func(t *testing.T) {
 		// set metadata - metricsets do not hold metadata themselves

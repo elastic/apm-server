@@ -5,11 +5,13 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
 [float]
 ==== Breaking Changes
+* Removed monitoring counters `apm-server.processor.stream.errors.{queue,server,closed}` {pull}5453[5453]
 
 [float]
 ==== Bug fixes
 * Fix panic due to misaligned 64-bit access on 32-bit architectures {pull}5277[5277]
 * Fixed tail-based sampling pubsub to use _seq_no correctly {pull}5126[5126]
+* Removed service name from dataset {pull}5451[5451]
 
 [float]
 ==== Intake API Changes
@@ -23,10 +25,20 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Add support for dynamic histogram metrics {pull}5239[5239]
 * Tail-sampling processor now resumes subscription from previous position after restart {pull}5350[5350]
 * Add support for histograms to metrics intake {pull}5360[5360]
-* Upgrade Go to 1.16.4 {pull}5381[5381]
+* Upgrade Go to 1.16.5 {pull}5454[5454]
 * Add units to metric fields {pull}5395[5395]
+* Support fetching sourcemaps from fleet {pull}5410[5410]
+* Add support for adjusting OTel event timestamps using `telemetry.sdk.elastic_export_timestamp` {pull}5433[5433]
+* Add support for OpenTelemetry labels describing mobile connectivity {pull}5436[5436]
+* Introduce `apm-server.auth.*` config {pull}5457[5457]
+* Add debug logging of OpenTelemetry payloads {pull}5474[5474]
+* Add support for more input variables in fleet integration {pull}5444[5444]
+* Server sends its raw config to kibana when running on ECE/ESS {pull}5424[5424]
 * Add HTTP span fields as top level ECS fields {pull}5396[5396]
 
 
 [float]
 ==== Deprecated
+* Make destination.service.name and destination.service.type fields optional and deprecated {pull}5468[5468]
+* `apm-server.secret_token` is now `apm-server.auth.secret_token` {pull}5457[5457]
+* `apm-server.api_key` is now `apm-server.auth.api_key` {pull}5457[5457]

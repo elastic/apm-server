@@ -21,17 +21,14 @@ import (
 	"context"
 	"math"
 	"strings"
+	"sync"
 	"time"
-
-	"github.com/elastic/apm-server/elasticsearch"
 
 	"github.com/go-sourcemap/sourcemap"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
-
-	logs "github.com/elastic/apm-server/log"
 )
 
 const (
@@ -42,30 +39,41 @@ var (
 	errInit = errors.New("Cache cannot be initialized. Expiration and CleanupInterval need to be >= 0")
 )
 
-// Store holds information necessary to fetch a sourcemap, either from an Elasticsearch instance or an internal cache.
+// Store holds information necessary to fetch a sourcemap, either from an
+// Elasticsearch instance or an internal cache.
 type Store struct {
 	cache   *gocache.Cache
-	esStore *esStore
+	backend backend
 	logger  *logp.Logger
+
+	mu       sync.Mutex
+	inflight map[string]chan struct{}
 }
 
-// NewStore creates a new instance for fetching sourcemaps. The client and index parameters are needed to be able to
-// fetch sourcemaps from Elasticsearch. The expiration time is used for the internal cache.
-func NewStore(client elasticsearch.Client, index string, expiration time.Duration) (*Store, error) {
-	if expiration < 0 {
+type backend interface {
+	fetch(ctx context.Context, name, version, path string) (string, error)
+}
+
+func newStore(
+	b backend,
+	logger *logp.Logger,
+	cacheExpiration time.Duration,
+) (*Store, error) {
+	if cacheExpiration < 0 {
 		return nil, errInit
 	}
-	logger := logp.NewLogger(logs.Sourcemap)
+
 	return &Store{
-		cache:   gocache.New(expiration, cleanupInterval(expiration)),
-		esStore: &esStore{client: client, index: index, logger: logger},
-		logger:  logger,
+		cache:    gocache.New(cacheExpiration, cleanupInterval(cacheExpiration)),
+		backend:  b,
+		logger:   logger,
+		inflight: make(map[string]chan struct{}),
 	}, nil
 }
 
 // Fetch a sourcemap from the store.
-func (s *Store) Fetch(ctx context.Context, name string, version string, path string) (*sourcemap.Consumer, error) {
-	key := key([]string{name, version, path})
+func (s *Store) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
+	key := cacheKey([]string{name, version, path})
 
 	// fetch from cache
 	if val, found := s.cache.Get(key); found {
@@ -73,10 +81,43 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 		return consumer, nil
 	}
 
+	// if the value hasn't been found, check to see if there's an inflight
+	// request to update the value.
+	s.mu.Lock()
+	wait, ok := s.inflight[key]
+	if ok {
+		// found an inflight request, wait for it to complete.
+		s.mu.Unlock()
+
+		select {
+		case <-wait:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+		// Try to read the value again
+		return s.Fetch(ctx, name, version, path)
+	}
+
+	// no inflight request found, add a channel to the map and then
+	// make the fetch request.
+	wait = make(chan struct{})
+	s.inflight[key] = wait
+
+	s.mu.Unlock()
+
+	// Once the fetch request is complete, close and remove the channel
+	// from the syncronization map.
+	defer func() {
+		s.mu.Lock()
+		delete(s.inflight, key)
+		close(wait)
+		s.mu.Unlock()
+	}()
+
 	// fetch from Elasticsearch and ensure caching for all non-temporary results
-	sourcemapStr, err := s.esStore.fetch(ctx, name, version, path)
+	sourcemapStr, err := s.backend.fetch(ctx, name, version, path)
 	if err != nil {
-		if !strings.Contains(err.Error(), errMsgESFailure) {
+		if !strings.Contains(err.Error(), "failure querying") {
 			s.add(key, nil)
 		}
 		return nil, err
@@ -93,6 +134,7 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 		return nil, errors.Wrap(err, errMsgParseSourcemap)
 	}
 	s.add(key, consumer)
+
 	return consumer, nil
 }
 
@@ -102,7 +144,7 @@ func (s *Store) Added(ctx context.Context, name string, version string, path str
 		s.logger.Warnf("Overriding sourcemap for service %s version %s and file %s",
 			name, version, path)
 	}
-	key := key([]string{name, version, path})
+	key := cacheKey([]string{name, version, path})
 	s.cache.Delete(key)
 	if !s.logger.IsDebug() {
 		return
@@ -118,7 +160,7 @@ func (s *Store) add(key string, consumer *sourcemap.Consumer) {
 	s.logger.Debugf("Added id %v. Cache now has %v entries.", key, s.cache.ItemCount())
 }
 
-func key(s []string) string {
+func cacheKey(s []string) string {
 	return strings.Join(s, "_")
 }
 

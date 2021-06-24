@@ -1,5 +1,4 @@
 title: APM traces
 type: traces
 dataset: apm
-dataset_is_prefix: true
 ilm_policy: traces-apm.traces-default_policy

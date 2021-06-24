@@ -82,7 +82,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	gatewayIP := net.ParseIP("192.168.0.1")
 	randomIP := net.ParseIP("71.0.54.1")
 	exceptions := func(key string) bool {
-		return key == "RepresentativeCount"
+		return key == "RepresentativeCount" || strings.HasPrefix(key, "System.Network")
 	}
 
 	t.Run("metadata-set", func(t *testing.T) {

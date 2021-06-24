@@ -23,10 +23,10 @@ import (
 
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver/metrics"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver/trace"
 	"google.golang.org/grpc"
 
+	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
@@ -35,8 +35,9 @@ import (
 
 var (
 	monitoringKeys = append(request.DefaultResultIDs,
-		request.IDResponseErrorsUnauthorized,
+		request.IDResponseErrorsRateLimit,
 		request.IDResponseErrorsTimeout,
+		request.IDResponseErrorsUnauthorized,
 	)
 	gRPCMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.grpc.metrics")
 	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)
@@ -60,6 +61,17 @@ func init() {
 	monitoring.NewFunc(gRPCMetricsRegistry, "consumer", collectMetricsMonitoring, monitoring.Report)
 }
 
+// MethodAuthorizationHandlers returns a map of all supported OTLP/gRPC methods to authorization handlers.
+func MethodAuthorizationHandlers(authBuilder *authorization.Builder) map[string]interceptors.MethodAuthorizationHandler {
+	eventWriteMethodAuthorizationHandler := interceptors.MetadataMethodAuthorizationHandler(
+		authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action),
+	)
+	return map[string]interceptors.MethodAuthorizationHandler{
+		metricsFullMethod: eventWriteMethodAuthorizationHandler,
+		tracesFullMethod:  eventWriteMethodAuthorizationHandler,
+	}
+}
+
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
 func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcessor) error {
 	consumer := &otel.Consumer{Processor: processor}
@@ -69,12 +81,10 @@ func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcesso
 	// dynamically registered and unregistered.
 	setCurrentMonitoredConsumer(consumer)
 
-	traceReceiver := trace.New("otlp", consumer)
-	metricsReceiver := metrics.New("otlp", consumer)
-	if err := otlpreceiver.RegisterTraceReceiver(context.Background(), traceReceiver, grpcServer, nil); err != nil {
+	if err := otlpreceiver.RegisterTraceReceiver(context.Background(), consumer, grpcServer, nil); err != nil {
 		return errors.Wrap(err, "failed to register OTLP trace receiver")
 	}
-	if err := otlpreceiver.RegisterMetricsReceiver(context.Background(), metricsReceiver, grpcServer, nil); err != nil {
+	if err := otlpreceiver.RegisterMetricsReceiver(context.Background(), consumer, grpcServer, nil); err != nil {
 		return errors.Wrap(err, "failed to register OTLP metrics receiver")
 	}
 	return nil

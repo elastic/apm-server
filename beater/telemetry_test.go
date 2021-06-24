@@ -34,7 +34,7 @@ func TestRecordConfigs(t *testing.T) {
 
 	info := beat.Info{Name: "apm-server", Version: "7.x"}
 	apmCfg := config.DefaultConfig()
-	apmCfg.APIKeyConfig.Enabled = true
+	apmCfg.AgentAuth.APIKey.Enabled = true
 	apmCfg.Kibana.Enabled = true
 	apmCfg.JaegerConfig.GRPC.Enabled = true
 	apmCfg.JaegerConfig.HTTP.Enabled = true

@@ -281,7 +281,6 @@ func TestErrorRequiredValidationRules(t *testing.T) {
 	requiredKeys := map[string]interface{}{
 		"context.request.method":               nil,
 		"context.destination.service.resource": nil,
-		"context.destination.service.type":     nil,
 		"id":                                   nil,
 		"log.message":                          nil,
 		"parent_id":                            nil, //requiredIf
@@ -516,9 +515,7 @@ func TestSpanRequiredValidationRules(t *testing.T) {
 	// and test that validation behaves as expected
 	requiredKeys := map[string]interface{}{
 		"id":                                   nil,
-		"context.destination.service.name":     nil,
 		"context.destination.service.resource": nil,
-		"context.destination.service.type":     nil,
 		"duration":                             nil,
 		"name":                                 nil,
 		"parent_id":                            nil,

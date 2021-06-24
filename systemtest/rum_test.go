@@ -19,6 +19,7 @@ package systemtest_test
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -121,6 +122,7 @@ func TestRUMAuth(t *testing.T) {
 
 func TestRUMAllowServiceNames(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.SecretToken = "abc123"
 	srv.Config.RUM = &apmservertest.RUMConfig{
 		Enabled:           true,
 		AllowServiceNames: []string{"allowed"},
@@ -144,6 +146,63 @@ func TestRUMAllowServiceNames(t *testing.T) {
 	respBody, _ := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, string(respBody))
 	assert.Equal(t, `{"accepted":0,"errors":[{"message":"service name is not allowed"}]}`+"\n", string(respBody))
+}
+
+func TestRUMRateLimit(t *testing.T) {
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{
+		Enabled: true,
+		RateLimit: &apmservertest.RUMRateLimitConfig{
+			IPLimit: 2,
+
+			// Set the event limit to less than 10 (the batch size)
+			// to immediately return 429 rather than waiting until
+			// another batch can be processed.
+			EventLimit: 5,
+		},
+	}
+	err := srv.Start()
+	require.NoError(t, err)
+
+	sendEvents := func(ip string, n int) error {
+		body := bytes.NewBufferString(`{"metadata":{"service":{"name":"allowed","version":"1.0.0","agent":{"name":"rum-js","version":"0.0.0"}}}}` + "\n")
+		for i := 0; i < n; i++ {
+			body.WriteString(`{"transaction":{"trace_id":"x","id":"y","type":"z","duration":0,"span_count":{"started":1},"context":{"service":{"name":"foo"}}}}` + "\n")
+		}
+
+		req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/rum/events?verbose=true", body)
+		req.Header.Add("Content-Type", "application/x-ndjson")
+		req.Header.Add("X-Forwarded-For", ip)
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		respBody, _ := ioutil.ReadAll(resp.Body)
+		if resp.StatusCode != http.StatusAccepted {
+			return fmt.Errorf("%s (%s)", resp.Status, strings.TrimSpace(string(respBody)))
+		}
+		return nil
+	}
+
+	// The configured event rate limit is multiplied by 3 for the initial burst. Check that
+	// for the configured IP limit (2), we can handle 3*event_limit without being rate limited.
+	err = sendEvents("10.11.12.13", 3*srv.Config.RUM.RateLimit.EventLimit)
+	assert.NoError(t, err)
+
+	// Sending the events over multiple requests should have the same outcome.
+	for i := 0; i < 3; i++ {
+		err = sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit)
+		assert.NoError(t, err)
+	}
+
+	// The rate limiter cache only has space for 2 IPs, so the 3rd one reuses an existing
+	// limiter, which will have already been exhausted.
+	err = sendEvents("10.11.12.15", 10)
+	require.Error(t, err)
+
+	// The exact error differs, depending on whether rate limiting was applied at the request
+	// level, or at the event stream level. Either could occur.
+	assert.Regexp(t, `429 Too Many Requests .*`, err.Error())
 }
 
 func sendRUMEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {

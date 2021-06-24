@@ -43,7 +43,13 @@ var (
 
 // Config holds configuration information nested under the key `apm-server`
 type Config struct {
-	Host                      string                  `config:"host"`
+	// Host holds the hostname or address that the server should bind to
+	// when listening for requests from agents.
+	Host string `config:"host"`
+
+	// AgentAuth holds agent auth config.
+	AgentAuth AgentAuth `config:"auth"`
+
 	MaxHeaderSize             int                     `config:"max_header_size"`
 	IdleTimeout               time.Duration           `config:"idle_timeout"`
 	ReadTimeout               time.Duration           `config:"read_timeout"`
@@ -62,13 +68,12 @@ type Config struct {
 	Mode                      Mode                    `config:"mode"`
 	Kibana                    KibanaConfig            `config:"kibana"`
 	KibanaAgentConfig         KibanaAgentConfig       `config:"agent.config"`
-	SecretToken               string                  `config:"secret_token"`
-	APIKeyConfig              APIKeyConfig            `config:"api_key"`
 	JaegerConfig              JaegerConfig            `config:"jaeger"`
 	Aggregation               AggregationConfig       `config:"aggregation"`
 	Sampling                  SamplingConfig          `config:"sampling"`
 	DataStreams               DataStreamsConfig       `config:"data_streams"`
 	DefaultServiceEnvironment string                  `config:"default_service_environment"`
+	JavaAttacherConfig        JavaAttacherConfig      `config:"java_attacher"`
 
 	Pipeline string
 
@@ -93,11 +98,15 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		}
 	}
 
+	if err := setDeprecatedConfig(c, ucfg, logger); err != nil {
+		return nil, err
+	}
+
 	if err := c.RumConfig.setup(logger, c.DataStreams.Enabled, outputESCfg); err != nil {
 		return nil, err
 	}
 
-	if err := c.APIKeyConfig.setup(logger, outputESCfg); err != nil {
+	if err := c.AgentAuth.APIKey.setup(logger, outputESCfg); err != nil {
 		return nil, err
 	}
 
@@ -128,6 +137,40 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 	return c, nil
 }
 
+// setDeprecatedConfig translates deprecated top-level config attributes to the
+// current config structure.
+func setDeprecatedConfig(out *Config, in *common.Config, logger *logp.Logger) error {
+	var deprecatedConfig struct {
+		APIKey      APIKeyAgentAuth `config:"api_key"`
+		SecretToken string          `config:"secret_token"`
+	}
+	deprecatedConfig.APIKey = defaultAPIKeyAgentAuth()
+	if err := in.Unpack(&deprecatedConfig); err != nil {
+		return err
+	}
+
+	warnIgnored := func(deprecated, replacement string) {
+		logger.Warnf("ignoring deprecated config %q as %q is defined", deprecated, replacement)
+	}
+	if deprecatedConfig.APIKey.configured {
+		// "apm-server.api_key" -> "apm-server.auth.api_key"
+		if out.AgentAuth.APIKey.configured {
+			warnIgnored("apm-server.api_key", "apm-server.auth.api_key")
+		} else {
+			out.AgentAuth.APIKey = deprecatedConfig.APIKey
+		}
+	}
+	if deprecatedConfig.SecretToken != "" {
+		// "apm-server.secret_token" -> "apm-server.auth.secret_token"
+		if out.AgentAuth.SecretToken != "" {
+			warnIgnored("apm-server.secret_token", "apm-server.auth.secret_token")
+		} else {
+			out.AgentAuth.SecretToken = deprecatedConfig.SecretToken
+		}
+	}
+	return nil
+}
+
 // DefaultConfig returns a config with default settings for `apm-server` config options.
 func DefaultConfig() *Config {
 	return &Config{
@@ -152,10 +195,11 @@ func DefaultConfig() *Config {
 		Kibana:              defaultKibanaConfig(),
 		KibanaAgentConfig:   defaultKibanaAgentConfig(),
 		Pipeline:            defaultAPMPipeline,
-		APIKeyConfig:        defaultAPIKeyConfig(),
 		JaegerConfig:        defaultJaeger(),
 		Aggregation:         defaultAggregationConfig(),
 		Sampling:            defaultSamplingConfig(),
 		DataStreams:         defaultDataStreamsConfig(),
+		AgentAuth:           defaultAgentAuth(),
+		JavaAttacherConfig:  defaultJavaAttacherConfig(),
 	}
 }

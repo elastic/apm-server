@@ -9,7 +9,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
@@ -157,7 +157,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -228,7 +228,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -299,7 +299,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
@@ -392,7 +392,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -462,7 +462,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
@@ -561,7 +561,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
@@ -660,7 +660,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
@@ -760,7 +760,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
@@ -853,7 +853,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm.internal",
             "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
@@ -910,7 +910,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm.internal",
             "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
@@ -967,7 +967,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm.internal",
             "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
@@ -1024,7 +1024,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm.internal",
             "data_stream.type": "metrics",
             "labels": {
                 "tag1": "value1",

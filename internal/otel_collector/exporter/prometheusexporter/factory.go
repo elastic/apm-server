@@ -19,7 +19,8 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
@@ -28,6 +29,7 @@ const (
 	typeStr = "prometheus"
 )
 
+// NewFactory creates a new Prometheus exporter factory.
 func NewFactory() component.ExporterFactory {
 	return exporterhelper.NewFactory(
 		typeStr,
@@ -35,12 +37,9 @@ func NewFactory() component.ExporterFactory {
 		exporterhelper.WithMetrics(createMetricsExporter))
 }
 
-func createDefaultConfig() configmodels.Exporter {
+func createDefaultConfig() config.Exporter {
 	return &Config{
-		ExporterSettings: configmodels.ExporterSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr,
-		},
+		ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
 		ConstLabels:      map[string]string{},
 		SendTimestamps:   false,
 		MetricExpiration: time.Minute * 5,
@@ -49,10 +48,36 @@ func createDefaultConfig() configmodels.Exporter {
 
 func createMetricsExporter(
 	_ context.Context,
-	params component.ExporterCreateParams,
-	cfg configmodels.Exporter,
+	set component.ExporterCreateSettings,
+	cfg config.Exporter,
 ) (component.MetricsExporter, error) {
 	pcfg := cfg.(*Config)
 
-	return newPrometheusExporter(pcfg, params.Logger)
+	prometheus, err := newPrometheusExporter(pcfg, set.Logger)
+	if err != nil {
+		return nil, err
+	}
+
+	exporter, err := exporterhelper.NewMetricsExporter(
+		cfg,
+		set.Logger,
+		prometheus.ConsumeMetrics,
+		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
+		exporterhelper.WithStart(prometheus.Start),
+		exporterhelper.WithShutdown(prometheus.Shutdown),
+		exporterhelper.WithResourceToTelemetryConversion(pcfg.ResourceToTelemetrySettings),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &wrapMetricsExpoter{
+		MetricsExporter: exporter,
+		exporter:        prometheus,
+	}, nil
+}
+
+type wrapMetricsExpoter struct {
+	component.MetricsExporter
+	exporter *prometheusExporter
 }
