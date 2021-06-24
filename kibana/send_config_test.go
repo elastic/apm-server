@@ -18,6 +18,7 @@
 package kibana
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -38,11 +39,14 @@ func TestFlattenAndFormat(t *testing.T) {
 	flat, err := flattenAndClean(&c)
 	assert.NoError(t, err)
 
-	flat = format(flat)
-	assert.Contains(t, flat, "schemaJson")
+	formatted, err := format(flat)
+	assert.Contains(t, formatted, "schemaJson")
 
-	flat = flat["schemaJson"].(map[string]interface{})
-	for k := range flat {
+	cfg := formatted["schemaJson"]
+	parsed := make(map[string]interface{})
+	require.NoError(t, json.Unmarshal([]byte(cfg), &parsed))
+
+	for k := range parsed {
 		assert.NotContains(t, k, "elasticsearch")
 		assert.NotContains(t, k, "kibana")
 		assert.NotContains(t, k, "instrumentation")

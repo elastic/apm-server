@@ -44,7 +44,11 @@ func SendConfig(ctx context.Context, client Client, conf *ucfg.Config) error {
 		return err
 	}
 
-	b, err := json.Marshal(format(flat))
+	formatted, err := format(flat)
+	if err != nil {
+		return err
+	}
+	b, err := json.Marshal(formatted)
 	if err != nil {
 		return err
 	}
@@ -74,8 +78,12 @@ func SendConfig(ctx context.Context, client Client, conf *ucfg.Config) error {
 	}
 }
 
-func format(m map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{"schemaJson": m}
+func format(m map[string]interface{}) (map[string]string, error) {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]string{"schemaJson": string(b)}, nil
 }
 
 func flattenAndClean(conf *ucfg.Config) (map[string]interface{}, error) {
