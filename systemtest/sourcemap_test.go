@@ -19,7 +19,6 @@ package systemtest_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -318,7 +317,6 @@ func expectSourcemapUpdated(t *testing.T, result estest.SearchResult) {
 		}
 	}
 }
-
 
 type Error struct {
 	Exception []Exception
