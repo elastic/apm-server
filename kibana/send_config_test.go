@@ -37,9 +37,10 @@ func TestFlattenAndFormat(t *testing.T) {
 	require.NoError(t, err)
 
 	flat, err := flattenAndClean(&c)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	formatted, err := format(flat)
+	require.NoError(t, err)
 	assert.Contains(t, formatted, "schemaJson")
 
 	cfg := formatted["schemaJson"]
