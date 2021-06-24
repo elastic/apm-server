@@ -29,7 +29,7 @@ import (
 	"github.com/elastic/go-ucfg"
 )
 
-func TestFlatten(t *testing.T) {
+func TestFlattenAndFormat(t *testing.T) {
 	tlsFieldsCount := 0
 	cc, err := common.NewConfigWithYAML([]byte(serverYAML), "apm-server.yml")
 	c := ucfg.Config(*cc)
@@ -38,6 +38,10 @@ func TestFlatten(t *testing.T) {
 	flat, err := flattenAndClean(&c)
 	assert.NoError(t, err)
 
+	flat = format(flat)
+	assert.Contains(t, flat, "schemaJson")
+
+	flat = flat["schemaJson"].(map[string]interface{})
 	for k := range flat {
 		assert.NotContains(t, k, "elasticsearch")
 		assert.NotContains(t, k, "kibana")
