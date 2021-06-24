@@ -1,5 +1,18 @@
 apm-server:
     auth:
+        anonymous:
+            allow_agent:
+                {{#each anonymous_allow_agent}}
+                - {{this}}
+                {{/each}}
+            allow_service:
+                {{#each anonymous_allow_service}}
+                - {{this}}
+                {{/each}}
+            enabled: {{anonymous_enabled}}
+            rate_limit:
+                event_limit: {{anonymous_rate_limit_event_limit}}
+                ip_limit: {{anonymous_rate_limit_ip_limit}}
         api_key:
             enabled: {{api_key_enabled}}
             limit: {{api_key_limit}}
@@ -24,13 +37,7 @@ apm-server:
         {{#each rum_allow_origins}}
           - {{this}}
         {{/each}}
-        allow_service_names:
-        {{#each rum_allow_service_names}}
-          - {{this}}
-        {{/each}}
         enabled: {{enable_rum}}
-        event_rate.limit: {{rum_event_rate_limit}}
-        event_rate.lru_size: {{rum_event_rate_lru_size}}
         exclude_from_grouping: {{rum_exclude_from_grouping}}
         library_pattern: {{rum_library_pattern}}
         response_headers: {{rum_response_headers}}
