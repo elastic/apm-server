@@ -15,18 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package middleware
+package config
 
-import (
-	"github.com/elastic/apm-server/beater/request"
-)
-
-// SetRumFlagMiddleware sets a rum flag in the context
-func SetRumFlagMiddleware() Middleware {
-	return func(h request.Handler) (request.Handler, error) {
-		return func(c *request.Context) {
-			c.IsRum = true
-			h(c)
-		}, nil
-	}
+// SourceMapMetadata holds source map configuration information.
+type SourceMapMetadata struct {
+	ServiceName    string `config:"service.name"`
+	ServiceVersion string `config:"service.version"`
+	BundleFilepath string `config:"bundle.filepath"`
+	SourceMapURL   string `config:"sourcemap.url"`
 }

@@ -25,6 +25,8 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"google.golang.org/grpc"
 
+	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
@@ -56,6 +58,17 @@ const (
 
 func init() {
 	monitoring.NewFunc(gRPCMetricsRegistry, "consumer", collectMetricsMonitoring, monitoring.Report)
+}
+
+// MethodAuthorizationHandlers returns a map of all supported OTLP/gRPC methods to authorization handlers.
+func MethodAuthorizationHandlers(authBuilder *authorization.Builder) map[string]interceptors.MethodAuthorizationHandler {
+	eventWriteMethodAuthorizationHandler := interceptors.MetadataMethodAuthorizationHandler(
+		authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action),
+	)
+	return map[string]interceptors.MethodAuthorizationHandler{
+		metricsFullMethod: eventWriteMethodAuthorizationHandler,
+		tracesFullMethod:  eventWriteMethodAuthorizationHandler,
+	}
 }
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
