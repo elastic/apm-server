@@ -27,12 +27,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 func TestNew(t *testing.T) {
 	cfg := config.JavaAttacherConfig{JavaBin: ""}
-	logger := logp.NewLogger("test_logger")
 	jh := os.Getenv("JAVA_HOME")
 	os.Setenv("JAVA_HOME", "/usr/local")
 	defer func() {
@@ -40,13 +38,13 @@ func TestNew(t *testing.T) {
 		os.Setenv("JAVA_HOME", jh)
 	}()
 
-	attacher, err := New(cfg, logger)
+	attacher, err := New(cfg)
 	require.NoError(t, err)
 
 	assert.Equal(t, "/usr/local/bin/java", attacher.cfg.JavaBin)
 
 	cfg.JavaBin = "/home/user/bin/java"
-	attacher, err = New(cfg, logger)
+	attacher, err = New(cfg)
 	require.NoError(t, err)
 
 	assert.Equal(t, "/home/user/bin/java", attacher.cfg.JavaBin)
@@ -68,8 +66,7 @@ func TestBuild(t *testing.T) {
 		JavaBin:        "/usr/bin/java",
 	}
 
-	logger := logp.NewLogger("test_logger")
-	attacher, err := New(cfg, logger)
+	attacher, err := New(cfg)
 	require.NoError(t, err)
 
 	cmd := attacher.build(context.Background())

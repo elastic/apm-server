@@ -398,7 +398,7 @@ func (s *serverRunner) run() error {
 	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac == "" && s.config.JavaAttacherConfig.Enabled {
 		// Not running on ECE/ESS, start the java attacher
 		go func() {
-			attacher, err := javaattacher.New(s.config.JavaAttacherConfig, s.logger)
+			attacher, err := javaattacher.New(s.config.JavaAttacherConfig)
 			if err != nil {
 				s.logger.Errorf("java attacher error: %v", err)
 			}

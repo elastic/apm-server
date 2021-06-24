@@ -36,7 +36,7 @@ type JavaAttacher struct {
 	logger *logp.Logger
 }
 
-func New(cfg config.JavaAttacherConfig, logger *logp.Logger) (JavaAttacher, error) {
+func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
 	if cfg.JavaBin == "" {
 		if jh := os.Getenv("JAVA_HOME"); jh != "" {
 			cfg.JavaBin = filepath.Join(jh, "/bin/java")
@@ -48,6 +48,7 @@ func New(cfg config.JavaAttacherConfig, logger *logp.Logger) (JavaAttacher, erro
 			cfg.JavaBin = string(bin)
 		}
 	}
+	logger := logp.NewLogger("java-attacher")
 	return JavaAttacher{cfg: cfg, logger: logger}, nil
 }
 
