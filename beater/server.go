@@ -119,8 +119,8 @@ func newServer(
 ) (server, error) {
 	agentcfgFetcher := agentcfg.NewFetcher(cfg)
 	ratelimitStore, err := ratelimit.NewStore(
-		cfg.RumConfig.EventRate.LruSize,
-		cfg.RumConfig.EventRate.Limit,
+		cfg.AgentAuth.Anonymous.RateLimit.IPLimit,
+		cfg.AgentAuth.Anonymous.RateLimit.EventLimit,
 		3, // burst multiplier
 	)
 	if err != nil {

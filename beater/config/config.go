@@ -105,6 +105,10 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, err
 	}
 
+	if err := c.AgentAuth.setAnonymousDefaults(logger, c.RumConfig.Enabled); err != nil {
+		return nil, err
+	}
+
 	if err := c.AgentAuth.APIKey.setup(logger, outputESCfg); err != nil {
 		return nil, err
 	}
@@ -139,9 +143,18 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 // setDeprecatedConfig translates deprecated top-level config attributes to the
 // current config structure.
 func setDeprecatedConfig(out *Config, in *common.Config, logger *logp.Logger) error {
+	type deprecatedRUMEventRateConfig struct {
+		Limit   int `config:"limit"`
+		LruSize int `config:"lru_size"`
+	}
+	type deprecatedRUMConfig struct {
+		EventRate         *deprecatedRUMEventRateConfig `config:"event_rate"`
+		AllowServiceNames []string                      `config:"allow_service_names"`
+	}
 	var deprecatedConfig struct {
-		APIKey      APIKeyAgentAuth `config:"api_key"`
-		SecretToken string          `config:"secret_token"`
+		APIKey      APIKeyAgentAuth      `config:"api_key"`
+		RUM         *deprecatedRUMConfig `config:"rum"`
+		SecretToken string               `config:"secret_token"`
 	}
 	deprecatedConfig.APIKey = defaultAPIKeyAgentAuth()
 	if err := in.Unpack(&deprecatedConfig); err != nil {
@@ -157,6 +170,27 @@ func setDeprecatedConfig(out *Config, in *common.Config, logger *logp.Logger) er
 			warnIgnored("apm-server.api_key", "apm-server.auth.api_key")
 		} else {
 			out.AgentAuth.APIKey = deprecatedConfig.APIKey
+		}
+	}
+	if deprecatedConfig.RUM != nil {
+		// "apm-server.rum.event_rate" -> "apm-server.auth.anonymous.rate_limit"
+		if deprecatedConfig.RUM.EventRate != nil {
+			if out.AgentAuth.Anonymous.configured {
+				warnIgnored("apm-server.rum.event_rate", "apm-server.auth.anonymous")
+			} else {
+				out.AgentAuth.Anonymous.RateLimit = RateLimit{
+					EventLimit: deprecatedConfig.RUM.EventRate.Limit,
+					IPLimit:    deprecatedConfig.RUM.EventRate.LruSize,
+				}
+			}
+		}
+		// "apm-server.rum.allow_service_names" -> "apm-server.auth.anonymous.allow_service"
+		if len(deprecatedConfig.RUM.AllowServiceNames) > 0 {
+			if out.AgentAuth.Anonymous.configured {
+				warnIgnored("apm-server.rum.allow_service_names", "apm-server.auth.anonymous")
+			} else {
+				out.AgentAuth.Anonymous.AllowService = deprecatedConfig.RUM.AllowServiceNames
+			}
 		}
 	}
 	if deprecatedConfig.SecretToken != "" {

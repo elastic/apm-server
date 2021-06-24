@@ -19,6 +19,34 @@ apm-server:
     # Define a shared secret token for authorizing agents using the "Bearer" authorization method.
     #secret_token:
 
+    # Allow anonymous access only for specified agents and/or services. This is primarily intended to allow
+    # limited access for untrusted agents, such as Real User Monitoring.
+    #anonymous:
+      # By default anonymous auth is automatically enabled when either auth.api_key or
+      # auth.secret_token is enabled, and RUM is enabled. Otherwise, anonymous auth is
+      # disabled by default.
+      #
+      # When anonymous auth is enabled, only agents matching allow_agent and services
+      # matching allow_service are allowed. See below for details on default values for
+      # allow_agent.
+      #enabled:
+
+      # Allow anonymous access only for specified agents.
+      #allow_agent: [rum-js, js-base]
+
+      # Allow anonymous access only for specified service names. By default, all service names are allowed.
+      #allow_service: []
+
+      # Rate-limit anonymous access by IP and number of events.
+      #rate_limit:
+        # Rate limiting is defined per unique client IP address, for a limited number of IP addresses.
+        # Sites with many concurrent clients should consider increasing this limit. Defaults to 1000.
+        #ip_limit: 1000
+
+        # Defines the maximum amount of events allowed per IP per second. Defaults to 300. The overall
+        # maximum event throughput for anonymous access is (event_limit * ip_limit).
+        #event_limit: 300
+
   # Maximum permitted size in bytes of a request's header accepted by the server to be processed.
   #max_header_size: 1048576
 
@@ -214,6 +242,10 @@ apm-server:
   #rum:
     #enabled: false
 
+    # Rate-limit RUM agents.
+    #
+    # WARNING: This configuration is deprecated and replaced with `apm-server.auth.anonymous.rate_limit`,
+    # and will be removed in the 8.0 release. If that config is defined, this one will be ignored.
     #event_rate:
 
       # Defines the maximum amount of events allowed to be sent to the APM Server RUM
@@ -230,6 +262,9 @@ apm-server:
     # A list of service names to allow, to limit service-specific indices and data streams
     # created for unauthenticated RUM events.
     # If the list is empty, any service name is allowed.
+    #
+    # WARNING: This configuration is deprecated and replaced with `apm-server.auth.anonymous.allow_service`,
+    # and will be removed in the 8.0 release. If that config is defined, this one will be ignored.
     #allow_service_names: []
 
     # A list of permitted origins for real user monitoring.

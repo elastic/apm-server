@@ -28,8 +28,25 @@ import (
 
 // AgentAuth holds config related to agent auth.
 type AgentAuth struct {
-	APIKey      APIKeyAgentAuth `config:"api_key"`
-	SecretToken string          `config:"secret_token"`
+	Anonymous   AnonymousAgentAuth `config:"anonymous"`
+	APIKey      APIKeyAgentAuth    `config:"api_key"`
+	SecretToken string             `config:"secret_token"`
+}
+
+func (a *AgentAuth) setAnonymousDefaults(logger *logp.Logger, rumEnabled bool) error {
+	if a.Anonymous.configured {
+		// Anonymous access explicitly configured.
+		return nil
+	}
+	if !a.APIKey.Enabled && a.SecretToken == "" {
+		// No auth is required.
+		return nil
+	}
+	if rumEnabled {
+		logger.Info("anonymous access enabled for RUM")
+		a.Anonymous.Enabled = true
+	}
+	return nil
 }
 
 // APIKeyAgentAuth holds config related to API Key auth for agents.
@@ -63,9 +80,43 @@ func (a *APIKeyAgentAuth) setup(log *logp.Logger, outputESCfg *common.Config) er
 	return nil
 }
 
+// AnonymousAgentAuth holds config related to anonymous access for agents.
+//
+// If RUM is enabled, and either secret_token or api_key auth is defined,
+// then anonymous auth will be enabled for RUM by default.
+type AnonymousAgentAuth struct {
+	Enabled      bool      `config:"enabled"`
+	AllowAgent   []string  `config:"allow_agent"`
+	AllowService []string  `config:"allow_service"`
+	RateLimit    RateLimit `config:"rate_limit"`
+
+	configured bool // anon explicitly defined
+}
+
+func (a *AnonymousAgentAuth) Unpack(in *common.Config) error {
+	type underlyingAnonymousAgentAuth AnonymousAgentAuth
+	if err := in.Unpack((*underlyingAnonymousAgentAuth)(a)); err != nil {
+		return errors.Wrap(err, "error unpacking anon config")
+	}
+	a.configured = true
+	return nil
+}
+
 func defaultAgentAuth() AgentAuth {
 	return AgentAuth{
-		APIKey: defaultAPIKeyAgentAuth(),
+		Anonymous: defaultAnonymousAgentAuth(),
+		APIKey:    defaultAPIKeyAgentAuth(),
+	}
+}
+
+func defaultAnonymousAgentAuth() AnonymousAgentAuth {
+	return AnonymousAgentAuth{
+		Enabled:    false,
+		AllowAgent: []string{"rum-js"},
+		RateLimit: RateLimit{
+			EventLimit: 300,
+			IPLimit:    1000,
+		},
 	}
 }
 
