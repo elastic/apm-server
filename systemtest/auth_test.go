@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -84,7 +85,7 @@ func TestAuth(t *testing.T) {
 		}
 	})
 
-	eventsPayload, err := ioutil.ReadFile("../testdata/intake-v2/metadata.ndjson")
+	eventsPayload, err := ioutil.ReadFile("../testdata/intake-v2/transactions.ndjson")
 	require.NoError(t, err)
 	runWithMethods(t, "ingest", func(t *testing.T, apiKey string, headers http.Header) {
 		req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/events", bytes.NewReader(eventsPayload))
@@ -117,18 +118,32 @@ func TestAuth(t *testing.T) {
 		}
 	})
 
+	// Create agent config to test the anonymous and authenticated responses.
+	settings := map[string]string{"transaction_sample_rate": "0.1", "sanitize_field_names": "foo,bar,baz"}
+	systemtest.CreateAgentConfig(t, "systemtest_service", "", "", settings)
+	completeSettings := `{"sanitize_field_names":"foo,bar,baz","transaction_sample_rate":"0.1"}`
+	anonymousSettings := `{"transaction_sample_rate":"0.1"}`
 	runWithMethods(t, "agentconfig", func(t *testing.T, apiKey string, headers http.Header) {
 		req, _ := http.NewRequest("GET", srv.URL+"/config/v1/agents", nil)
 		copyHeaders(req.Header, headers)
 		req.Header.Add("Content-Type", "application/json")
-		req.URL.RawQuery = url.Values{"service.name": []string{"service_name"}}.Encode()
+		req.URL.RawQuery = url.Values{"service.name": []string{"systemtest_service"}}.Encode()
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
-		if len(headers) == 0 || apiKey == "ingest" || apiKey == "sourcemap" {
+		if apiKey == "ingest" || apiKey == "sourcemap" {
 			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 		} else {
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
+			body, _ := ioutil.ReadAll(resp.Body)
+			if len(headers) == 0 {
+				// Anonymous auth succeeds because RUM is enabled, which
+				// auto enables anonymous auth. However, only a subset of
+				// the config is returned.
+				assert.Equal(t, anonymousSettings, strings.TrimSpace(string(body)))
+			} else {
+				assert.Equal(t, completeSettings, strings.TrimSpace(string(body)))
+			}
 		}
 	})
 }
