@@ -150,6 +150,7 @@ func TestRUMAllowServiceNames(t *testing.T) {
 
 func TestRUMRateLimit(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.SecretToken = "abc123" // enable auth & rate limiting
 	srv.Config.RUM = &apmservertest.RUMConfig{
 		Enabled: true,
 		RateLimit: &apmservertest.RUMRateLimitConfig{

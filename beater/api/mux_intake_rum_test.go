@@ -29,6 +29,7 @@ import (
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/intake"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/middleware"
@@ -43,12 +44,13 @@ func TestOPTIONS(t *testing.T) {
 
 	cfg := cfgEnabledRUM()
 	cfg.RumConfig.AllowOrigins = []string{"*"}
+	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
 	h, _ := middleware.Wrap(
 		func(c *request.Context) {
 			requestTaken <- struct{}{}
 			<-done
 		},
-		rumMiddleware(cfg, nil, ratelimitStore, intake.MonitoringMap)...)
+		rumMiddleware(cfg, authenticator, ratelimitStore, intake.MonitoringMap)...)
 
 	// use this to block the single allowed concurrent requests
 	go func() {

@@ -28,6 +28,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
@@ -53,6 +54,20 @@ func Handler(report publish.Reporter) request.Handler {
 			c.Write()
 			return
 		}
+
+		if err := auth.Authorize(c.Request.Context(), auth.ActionSourcemapUpload, auth.Resource{}); err != nil {
+			if errors.Is(err, auth.ErrUnauthorized) {
+				id := request.IDResponseErrorsForbidden
+				status := request.MapResultIDToStatus[id]
+				c.Result.Set(id, status.Code, err.Error(), nil, nil)
+			} else {
+				c.Result.SetDefault(request.IDResponseErrorsServiceUnavailable)
+				c.Result.Err = err
+			}
+			c.Write()
+			return
+		}
+
 		var smap model.Sourcemap
 		decodingCount.Inc()
 		if err := decode(c.Request, &smap); err != nil {

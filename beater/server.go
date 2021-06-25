@@ -32,7 +32,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/version"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/jaeger"
@@ -156,16 +156,16 @@ func newGRPCServer(
 	agentcfgFetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
 ) (*grpc.Server, error) {
-	// TODO(axw) share auth builder with beater/api.
-	authBuilder, err := authorization.NewBuilder(cfg.AgentAuth)
+	// TODO(axw) share authenticator with beater/api.
+	authenticator, err := auth.NewAuthenticator(cfg.AgentAuth)
 	if err != nil {
 		return nil, err
 	}
 
 	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
-	authInterceptor := interceptors.Authorization(
-		otlp.MethodAuthorizationHandlers(authBuilder),
-		jaeger.MethodAuthorizationHandlers(authBuilder, jaeger.ElasticAuthTag),
+	authInterceptor := interceptors.Auth(
+		otlp.MethodAuthenticators(authenticator),
+		jaeger.MethodAuthenticators(authenticator, jaeger.ElasticAuthTag),
 	)
 
 	// Note that we intentionally do not use a grpc.Creds ServerOption
@@ -194,7 +194,7 @@ func newGRPCServer(
 	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
 	batchProcessor = modelprocessor.Chained{
 		model.ProcessBatchFunc(rateLimitBatchProcessor),
-		modelprocessor.MetadataProcessorFunc(verifyAuthorizedFor),
+		modelprocessor.MetadataProcessorFunc(authorizeEventIngest),
 		batchProcessor,
 	}
 
