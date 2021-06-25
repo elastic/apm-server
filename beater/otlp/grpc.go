@@ -35,8 +35,9 @@ import (
 
 var (
 	monitoringKeys = append(request.DefaultResultIDs,
-		request.IDResponseErrorsUnauthorized,
+		request.IDResponseErrorsRateLimit,
 		request.IDResponseErrorsTimeout,
+		request.IDResponseErrorsUnauthorized,
 	)
 	gRPCMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.grpc.metrics")
 	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)

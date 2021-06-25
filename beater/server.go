@@ -32,12 +32,12 @@ import (
 	"github.com/elastic/beats/v7/libbeat/version"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/jaeger"
 	"github.com/elastic/apm-server/beater/otlp"
+	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
@@ -179,9 +179,7 @@ func newGRPCServer(
 			interceptors.Metrics(logger, otlp.RegistryMonitoringMaps, jaeger.RegistryMonitoringMaps),
 			interceptors.Timeout(),
 			authInterceptor,
-
-			// TODO(axw) add a rate limiting interceptor here once we've
-			// updated authInterceptor to handle auth for Jaeger requests.
+			interceptors.AnonymousRateLimit(ratelimitStore),
 		),
 	)
 
@@ -193,8 +191,9 @@ func newGRPCServer(
 		}
 	}
 
-	// Add a model processor that checks authorization for the agent and service for each event.
+	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
 	batchProcessor = modelprocessor.Chained{
+		model.ProcessBatchFunc(rateLimitBatchProcessor),
 		modelprocessor.MetadataProcessorFunc(verifyAuthorizedFor),
 		batchProcessor,
 	}
