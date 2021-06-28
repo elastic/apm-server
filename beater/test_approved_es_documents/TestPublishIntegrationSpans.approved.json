@@ -585,6 +585,12 @@
                     "platform": "darwin"
                 }
             },
+            "http": {
+                "request.method": "GET",
+                "response": {
+                    "status_code": 200
+                }
+            },
             "kubernetes": {
                 "namespace": "namespace1",
                 "node": {
@@ -740,6 +746,7 @@
             "trace": {
                 "id": "abcdef0123456789abcdef9876543210"
             },
+            "url.original": "http://localhost:8000",
             "user": {
                 "domain": "ldap://abc",
                 "email": "s@test.com",
