@@ -75,7 +75,7 @@ func SendConfig(ctx context.Context, client Client, conf *ucfg.Config) error {
 }
 
 func format(m map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{"schemaJson": m}
+	return map[string]interface{}{"schema": m}
 }
 
 func flattenAndClean(conf *ucfg.Config) (map[string]interface{}, error) {
