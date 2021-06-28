@@ -35,6 +35,8 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Add support for more input variables in fleet integration {pull}5444[5444]
 * Under fleet, report which agent configs have been applied {pull}5481[5481]
 * Server sends its raw config to kibana when running on ECE/ESS {pull}5424[5424]
+* Add HTTP span fields as top level ECS fields {pull}5396[5396]
+
 
 [float]
 ==== Deprecated
