@@ -73,6 +73,7 @@ type Config struct {
 	Sampling                  SamplingConfig          `config:"sampling"`
 	DataStreams               DataStreamsConfig       `config:"data_streams"`
 	DefaultServiceEnvironment string                  `config:"default_service_environment"`
+	JavaAttacherConfig        JavaAttacherConfig      `config:"java_attacher"`
 
 	Pipeline string
 
@@ -199,5 +200,6 @@ func DefaultConfig() *Config {
 		Sampling:            defaultSamplingConfig(),
 		DataStreams:         defaultDataStreamsConfig(),
 		AgentAuth:           defaultAgentAuth(),
+		JavaAttacherConfig:  defaultJavaAttacherConfig(),
 	}
 }
