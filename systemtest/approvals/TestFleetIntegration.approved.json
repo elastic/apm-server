@@ -13,7 +13,7 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "untrusted_user",
+                "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "unknown"
             },
