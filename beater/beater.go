@@ -401,9 +401,11 @@ func (s *serverRunner) run() error {
 			attacher, err := javaattacher.New(s.config.JavaAttacherConfig)
 			if err != nil {
 				s.logger.Errorf("java attacher error: %v", err)
+				return
 			}
 			if err := attacher.Run(s.backgroundContext); err != nil {
 				s.logger.Errorf("java attacher error: %v", err)
+				return
 			}
 		}()
 	}
