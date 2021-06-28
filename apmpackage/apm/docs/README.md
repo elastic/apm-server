@@ -302,12 +302,9 @@ Traces are written to `traces-apm.*` indices.
     "outcome": "unknown"
   },
   "http": {
-    "method": "GET",
+    "request.method": "GET",
     "response": {
       "status_code": 200
-    },
-    "url": {
-      "original": "http://localhost:8000"
     }
   },
   "labels": {
@@ -407,7 +404,8 @@ Traces are written to `traces-apm.*` indices.
   },
   "transaction": {
     "id": "945254c567a5417e"
-  }
+  },
+  "url.original": "http://localhost:8000"
 }
 ```
 
