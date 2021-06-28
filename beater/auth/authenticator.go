@@ -140,7 +140,9 @@ type APIKeyAuthenticationDetails struct {
 func NewAuthenticator(cfg config.AgentAuth) (*Authenticator, error) {
 	b := Authenticator{secretToken: cfg.SecretToken}
 	if cfg.APIKey.Enabled {
-		// do not use username+password for API Key requests
+		// Do not use apm-server's credentials for API Key requests;
+		// we should only use API Key credentials provided by clients
+		// to the Authenticate method.
 		cfg.APIKey.ESConfig.Username = ""
 		cfg.APIKey.ESConfig.Password = ""
 		cfg.APIKey.ESConfig.APIKey = ""
@@ -155,14 +157,14 @@ func NewAuthenticator(cfg config.AgentAuth) (*Authenticator, error) {
 	return &b, nil
 }
 
-// Authenticate authenticates a client given an authentication mtehod and token,
+// Authenticate authenticates a client given an authentication method and token,
 // returning the authentication details and an Authorizer for authorizing specific
 // actions and resources.
 //
 // Authenticate will return ErrAuthFailed (possibly wrapped) if at least one auth
-// method is configured and the, and no valid credentials have been supplied.
-// Other errors may be returned, for example because the server cannot communicate
-// with external systems.
+// method is configured and no valid credentials have been supplied. Other errors
+// may be returned, for example because the server cannot communicate with external
+// systems.
 func (a *Authenticator) Authenticate(ctx context.Context, kind string, token string) (AuthenticationDetails, Authorizer, error) {
 	if a.apikey == nil && a.secretToken == "" {
 		// No auth required, let everyone through.
