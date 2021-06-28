@@ -41,6 +41,8 @@ func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
 		if jh := os.Getenv("JAVA_HOME"); jh != "" {
 			cfg.JavaBin = filepath.Join(jh, "/bin/java")
 		} else {
+			// TODO: This does not support windows. How do we want
+			// to handle this for windows users?
 			bin, err := exec.Command("which", "java").Output()
 			if err != nil {
 				return JavaAttacher{}, fmt.Errorf("no java binary found: %v", err)
