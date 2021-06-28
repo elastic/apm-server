@@ -19,6 +19,7 @@ package agentcfg
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -28,13 +29,12 @@ import (
 )
 
 func TestReportFetch(t *testing.T) {
-	interval := time.Millisecond
+	interval := 10 * time.Millisecond
 	receivedc := make(chan struct{})
 	defer close(receivedc)
 	bp := &batchProcessor{receivedc: receivedc}
 	r := NewReporter(fauxFetcher{}, bp, interval)
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	go r.Run(ctx)
 	query1 := Query{
 		Service: Service{Name: "webapp", Environment: "production"},
@@ -53,6 +53,9 @@ func TestReportFetch(t *testing.T) {
 	<-receivedc
 	<-receivedc
 	<-receivedc
+
+	// cancel the context to stop processing
+	cancel()
 
 	assert.Len(t, bp.received, 2)
 	assert.Equal(t, "abc123", bp.received[0].Labels["etag"])
@@ -79,9 +82,12 @@ func (f fauxFetcher) Fetch(_ context.Context, q Query) (Result, error) {
 type batchProcessor struct {
 	receivedc chan struct{}
 	received  []*model.Metricset
+	mu        sync.Mutex
 }
 
 func (p *batchProcessor) ProcessBatch(_ context.Context, b *model.Batch) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.received = append(p.received, b.Metricsets...)
 	p.receivedc <- struct{}{}
 	return nil
