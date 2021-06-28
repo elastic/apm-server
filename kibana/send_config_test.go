@@ -42,7 +42,11 @@ func TestFlattenAndFormat(t *testing.T) {
 	assert.Contains(t, flat, "schema")
 
 	flat = flat["schema"].(map[string]interface{})
+<<<<<<< HEAD
 	for k, v := range flat {
+=======
+	for k := range flat {
+>>>>>>> 90816520 (config is now rooted under "schema" key (#5544))
 		assert.NotContains(t, k, "elasticsearch")
 		assert.NotContains(t, k, "kibana")
 		assert.NotContains(t, k, "instrumentation")
