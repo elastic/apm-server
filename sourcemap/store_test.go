@@ -192,6 +192,7 @@ func TestFetchTimeout(t *testing.T) {
 	defer cancel()
 
 	_, err = store.Fetch(ctx, name, version, path)
+	time.Sleep(10 * time.Millisecond)
 	assert.True(t, errors.Is(err, context.DeadlineExceeded))
 	atomic.AddInt64(&errs, 1)
 

@@ -19,7 +19,9 @@ package cmd
 
 import (
 	"fmt"
+	"math"
 	"os"
+	"strconv"
 
 	"github.com/spf13/pflag"
 
@@ -41,65 +43,32 @@ const (
 	cloudEnv        = "CLOUD_APM_CAPACITY"
 )
 
-type throughputSettings struct {
-	worker      int
-	bulkMaxSize int
-	events      int
-	minEvents   int
-}
-
-var cloudMatrix = map[string]throughputSettings{
-	"512":  {5, 267, 2000, 267},
-	"1024": {7, 381, 4000, 381},
-	"2048": {10, 533, 8000, 533},
-	"4096": {14, 762, 16000, 762},
-	"8192": {20, 1067, 32000, 1067},
-}
-
 var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
-	return []cfgfile.ConditionalOverride{{
-		Check: func(_ *common.Config) bool {
-			return true
-		},
-		Config: common.MustNewConfigFrom(map[string]interface{}{
-			"logging": map[string]interface{}{
-				"metrics": map[string]interface{}{
-					"enabled": false,
-				},
-				"ecs":  true,
-				"json": true,
+	return []cfgfile.ConditionalOverride{
+		{
+			Check: func(_ *common.Config) bool {
+				return true
 			},
-		}),
-	},
+			Config: common.MustNewConfigFrom(map[string]interface{}{
+				"logging": map[string]interface{}{
+					"metrics": map[string]interface{}{
+						"enabled": false,
+					},
+					"ecs":  true,
+					"json": true,
+				},
+			}),
+		},
 		{
 			Check: func(_ *common.Config) bool {
 				return true
 			},
 			Config: func() *common.Config {
-				cap := os.Getenv(cloudEnv)
-				if _, ok := cloudMatrix[cap]; !ok {
-					return common.NewConfig()
-				}
-				return common.MustNewConfigFrom(map[string]interface{}{
-					"output": map[string]interface{}{
-						"elasticsearch": map[string]interface{}{
-							"compression_level": 5, //default to medium compression on cloud
-							"worker":            cloudMatrix[cap].worker,
-							"bulk_max_size":     cloudMatrix[cap].bulkMaxSize,
-						},
-					},
-					"queue": map[string]interface{}{
-						"mem": map[string]interface{}{
-							"events": cloudMatrix[cap].events,
-							"flush": map[string]interface{}{
-								"min_events": cloudMatrix[cap].minEvents,
-							},
-						},
-					},
-				})
+				m := map[string]interface{}{}
+				cloudValues(m)
+				return common.MustNewConfigFrom(m)
 			}(),
-		},
-	}
+		}}
 }
 
 // DefaultSettings return the default settings for APM Server to pass into
@@ -157,4 +126,34 @@ func modifyBuiltinCommands(rootCmd *cmd.BeatsRootCmd, settings instance.Settings
 	setup.Flags().MarkDeprecated(tmplKey, fmt.Sprintf("please use --%s instead", cmd.IndexManagementKey))
 	setup.Flags().Bool(cmd.IndexManagementKey, false, "Setup Elasticsearch index management")
 	setup.Flags().Bool(cmd.PipelineKey, false, "Setup ingest pipelines")
+}
+
+func cloudValues(m map[string]interface{}) {
+	cap, err := strconv.ParseFloat(os.Getenv(cloudEnv), 64)
+	if err != nil {
+		return
+	}
+	multiplier := math.Round(cap / 512)
+	queueMemEvents := 2000 * multiplier
+	workers := math.Round(3.72549 + 1.626502*multiplier - 0.03826692*(multiplier*multiplier))
+	if cap > 8192 {
+		workers = 20 //plateau on number of workers
+	}
+	bulkMaxSize := math.Round(((queueMemEvents / 1.5) / workers))
+	m["output"] = map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"compression_level": 5, //default to medium compression on cloud
+			"worker":            workers,
+			"bulk_max_size":     bulkMaxSize,
+		},
+	}
+	m["queue"] = map[string]interface{}{
+		"mem": map[string]interface{}{
+			"events": queueMemEvents,
+			"flush": map[string]interface{}{
+				"min_events": bulkMaxSize,
+				"timeout":    "1s", //default aligned with cloud value
+			},
+		},
+	}
 }
