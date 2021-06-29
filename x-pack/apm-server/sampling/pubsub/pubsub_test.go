@@ -398,8 +398,7 @@ func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *req
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rrw := &requestResponseWriter{
 			Request: r,
-			w:       w,
-			done:    make(chan struct{}),
+			done:    make(chan response),
 		}
 		select {
 		case <-r.Context().Done():
@@ -410,8 +409,9 @@ func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *req
 		select {
 		case <-r.Context().Done():
 			w.WriteHeader(http.StatusRequestTimeout)
-			return
-		case <-rrw.done:
+		case response := <-rrw.done:
+			w.WriteHeader(response.statusCode)
+			w.Write([]byte(response.body))
 		}
 	}))
 	t.Cleanup(srv.Close)
@@ -420,8 +420,12 @@ func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *req
 
 type requestResponseWriter struct {
 	*http.Request
-	w    http.ResponseWriter
-	done chan struct{}
+	done chan response
+}
+
+type response struct {
+	statusCode int
+	body       string
 }
 
 func (w *requestResponseWriter) Write(body string) {
@@ -429,9 +433,7 @@ func (w *requestResponseWriter) Write(body string) {
 }
 
 func (w *requestResponseWriter) WriteStatus(statusCode int, body string) {
-	w.w.WriteHeader(statusCode)
-	w.w.Write([]byte(body))
-	w.done <- struct{}{}
+	w.done <- response{statusCode, body}
 }
 
 func expectRequest(t testing.TB, ch <-chan *requestResponseWriter, path, body string) *requestResponseWriter {
