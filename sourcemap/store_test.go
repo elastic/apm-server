@@ -159,14 +159,16 @@ func TestFetchTimeout(t *testing.T) {
 	var (
 		errs int64
 
-		apikey  = "supersecret"
-		name    = "webapp"
-		version = "1.0.0"
-		path    = "/my/path/to/bundle.js.map"
-		c       = http.DefaultClient
+		apikey      = "supersecret"
+		name        = "webapp"
+		version     = "1.0.0"
+		path        = "/my/path/to/bundle.js.map"
+		c           = http.DefaultClient
+		ctx, cancel = context.WithTimeout(context.Background(), time.Millisecond)
 	)
+	defer cancel()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		<-r.Context().Done()
+		<-ctx.Done()
 	}))
 	defer ts.Close()
 
@@ -190,11 +192,7 @@ func TestFetchTimeout(t *testing.T) {
 	store, err := newStore(b, logger, time.Minute)
 	assert.NoError(t, err)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
-	defer cancel()
-
 	_, err = store.Fetch(ctx, name, version, path)
-	time.Sleep(10 * time.Millisecond)
 	assert.True(t, errors.Is(err, context.DeadlineExceeded))
 	atomic.AddInt64(&errs, 1)
 
