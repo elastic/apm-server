@@ -36,22 +36,36 @@ func TestCloudEnv(t *testing.T) {
 	assert.Equal(t, common.NewConfig(), settings.ConfigOverrides[1].Config)
 
 	// cloud environment picked up
-	os.Setenv(cloudEnv, "512")
-	settings = DefaultSettings()
-	assert.Len(t, settings.ConfigOverrides, 2)
-	cfg := settings.ConfigOverrides[1].Config
-	assert.NotNil(t, cfg)
-	workers, err := cfg.Int("output.elasticsearch.worker", -1)
-	require.NoError(t, err)
-	assert.Equal(t, int64(5), workers)
+	var cloudMatrix = map[string]struct {
+		worker      int
+		bulkMaxSize int
+		events      int
+		minEvents   int
+	}{
+		"512":   {5, 267, 2000, 267},
+		"1024":  {7, 381, 4000, 381},
+		"2048":  {10, 533, 8000, 533},
+		"4096":  {14, 762, 16000, 762},
+		"8192":  {20, 1067, 32000, 1067},
+		"16384": {20, 2133, 64000, 2133},
+		"32768": {20, 4267, 128000, 4267},
+	}
+	for capacity, throughputSettings := range cloudMatrix {
+		os.Setenv(cloudEnv, capacity)
+		settings = DefaultSettings()
+		assert.Len(t, settings.ConfigOverrides, 2)
+		cfg := settings.ConfigOverrides[1].Config
+		assert.NotNil(t, cfg)
+		assertEqual(t, cfg, "output.elasticsearch.worker", float64(throughputSettings.worker))
+		assertEqual(t, cfg, "output.elasticsearch.bulk_max_size", float64(throughputSettings.bulkMaxSize))
+		assertEqual(t, cfg, "queue.mem.events", float64(throughputSettings.events))
+		assertEqual(t, cfg, "queue.mem.flush.min_events", float64(throughputSettings.minEvents))
+		assertEqual(t, cfg, "output.elasticsearch.compression_level", 5)
+	}
+}
 
-	compression, err := cfg.Int("output.elasticsearch.compression_level", -1)
+func assertEqual(t *testing.T, cfg *common.Config, key string, expected float64) {
+	val, err := cfg.Float(key, -1)
 	require.NoError(t, err)
-	assert.Equal(t, int64(5), compression)
-
-	// bad cloud environment value
-	os.Setenv(cloudEnv, "123")
-	settings = DefaultSettings()
-	assert.Len(t, settings.ConfigOverrides, 2)
-	assert.Equal(t, common.NewConfig(), settings.ConfigOverrides[1].Config)
+	assert.Equal(t, expected, val)
 }

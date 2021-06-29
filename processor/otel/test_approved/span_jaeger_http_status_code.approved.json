@@ -18,6 +18,12 @@
             "host": {
                 "hostname": "host-abc"
             },
+            "http": {
+                "request.method": "get",
+                "response": {
+                    "status_code": 202
+                }
+            },
             "parent": {
                 "id": "0000000058585858"
             },
@@ -61,7 +67,8 @@
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
-            }
+            },
+            "url.original": "http://foo.bar.com?a=12"
         }
     ]
 }

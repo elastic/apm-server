@@ -24,25 +24,20 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
-
-	"golang.org/x/time/rate"
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/beater/headers"
+	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 )
 
 const (
-	batchSize        = 10
-	rateLimitTimeout = time.Second
+	batchSize = 10
 )
 
 var (
@@ -81,14 +76,6 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 			return
 		}
 
-		if limiter, ok := ratelimit.FromContext(c.Request.Context()); ok {
-			// Apply rate limiting after reading but before processing any events.
-			batchProcessor = modelprocessor.Chained{
-				rateLimitBatchProcessor(limiter, batchSize),
-				batchProcessor,
-			}
-		}
-
 		reader, err := decoder.CompressedRequestReader(c.Request)
 		if err != nil {
 			writeError(c, compressedRequestReaderError{err})
@@ -109,23 +96,6 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 		}
 		writeStreamResult(c, &result)
 	}
-}
-
-func rateLimitBatchProcessor(limiter *rate.Limiter, batchSize int) model.ProcessBatchFunc {
-	return func(ctx context.Context, _ *model.Batch) error {
-		return rateLimitBatch(ctx, limiter, batchSize)
-	}
-}
-
-// rateLimitBatch waits up to one second for the rate limiter to allow
-// batchSize events to be read and processed.
-func rateLimitBatch(ctx context.Context, limiter *rate.Limiter, batchSize int) error {
-	ctx, cancel := context.WithTimeout(ctx, rateLimitTimeout)
-	defer cancel()
-	if err := limiter.WaitN(ctx, batchSize); err != nil {
-		return ratelimit.ErrRateLimitExceeded
-	}
-	return nil
 }
 
 func validateRequest(c *request.Context) error {

@@ -42,8 +42,9 @@ var (
 	gRPCCollectorRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.collect")
 	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(
 		gRPCCollectorRegistry, append(request.DefaultResultIDs,
-			request.IDResponseErrorsUnauthorized,
+			request.IDResponseErrorsRateLimit,
 			request.IDResponseErrorsTimeout,
+			request.IDResponseErrorsUnauthorized,
 		),
 	)
 
@@ -146,11 +147,10 @@ func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (fl
 		return 0, err
 	}
 
-	markAsAppliedByAgent := true
 	query := agentcfg.Query{
 		Service:              agentcfg.Service{Name: service},
 		InsecureAgents:       jaegerAgentPrefixes,
-		MarkAsAppliedByAgent: &markAsAppliedByAgent,
+		MarkAsAppliedByAgent: true,
 	}
 	result, err := s.fetcher.Fetch(ctx, query)
 	if err != nil {
