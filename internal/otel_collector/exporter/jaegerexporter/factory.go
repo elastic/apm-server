@@ -19,8 +19,8 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configgrpc"
-	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
@@ -34,18 +34,15 @@ func NewFactory() component.ExporterFactory {
 	return exporterhelper.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		exporterhelper.WithTraces(createTraceExporter))
+		exporterhelper.WithTraces(createTracesExporter))
 }
 
-func createDefaultConfig() configmodels.Exporter {
+func createDefaultConfig() config.Exporter {
 	return &Config{
-		ExporterSettings: configmodels.ExporterSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr,
-		},
-		TimeoutSettings: exporterhelper.DefaultTimeoutSettings(),
-		RetrySettings:   exporterhelper.DefaultRetrySettings(),
-		QueueSettings:   exporterhelper.DefaultQueueSettings(),
+		ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+		TimeoutSettings:  exporterhelper.DefaultTimeoutSettings(),
+		RetrySettings:    exporterhelper.DefaultRetrySettings(),
+		QueueSettings:    exporterhelper.DefaultQueueSettings(),
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
 			// We almost read 0 bytes, so no need to tune ReadBufferSize.
 			WriteBufferSize: 512 * 1024,
@@ -53,25 +50,19 @@ func createDefaultConfig() configmodels.Exporter {
 	}
 }
 
-func createTraceExporter(
+func createTracesExporter(
 	_ context.Context,
-	params component.ExporterCreateParams,
-	config configmodels.Exporter,
+	set component.ExporterCreateSettings,
+	config config.Exporter,
 ) (component.TracesExporter, error) {
 
 	expCfg := config.(*Config)
 	if expCfg.Endpoint == "" {
 		// TODO: Improve error message, see #215
-		err := fmt.Errorf(
+		return nil, fmt.Errorf(
 			"%q config requires a non-empty \"endpoint\"",
-			expCfg.Name())
-		return nil, err
+			expCfg.ID().String())
 	}
 
-	exp, err := newTraceExporter(expCfg, params.Logger)
-	if err != nil {
-		return nil, err
-	}
-
-	return exp, nil
+	return newTracesExporter(expCfg, set.Logger)
 }

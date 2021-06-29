@@ -9,7 +9,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
@@ -157,7 +157,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -228,7 +228,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -299,7 +299,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
@@ -373,6 +373,7 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             },
+            "url.original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED",
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -391,7 +392,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -461,7 +462,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
@@ -469,6 +470,12 @@
             },
             "event": {
                 "outcome": "success"
+            },
+            "http": {
+                "request.method": "GET",
+                "response": {
+                    "status_code": 200
+                }
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -535,6 +542,7 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             },
+            "url.original": "http://localhost:8000/test/e2e/common/data.json?test=hamid",
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -553,7 +561,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
@@ -561,6 +569,12 @@
             },
             "event": {
                 "outcome": "success"
+            },
+            "http": {
+                "request.method": "POST",
+                "response": {
+                    "status_code": 200
+                }
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -627,6 +641,7 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             },
+            "url.original": "http://localhost:8003/data",
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -645,7 +660,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
@@ -653,6 +668,12 @@
             },
             "event": {
                 "outcome": "success"
+            },
+            "http": {
+                "request.method": "POST",
+                "response": {
+                    "status_code": 200
+                }
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -720,6 +741,7 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             },
+            "url.original": "http://localhost:8003/fetch",
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -738,7 +760,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
@@ -831,7 +853,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm.internal",
             "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
@@ -888,7 +910,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm.internal",
             "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
@@ -945,7 +967,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm.internal",
             "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
@@ -1002,7 +1024,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.dataset": "apm.internal",
             "data_stream.type": "metrics",
             "labels": {
                 "tag1": "value1",

@@ -1,0 +1,190 @@
+- name: cloud.service.name
+  level: extended
+  type: keyword
+  description: |
+    Cloud service name, intended to distinguish services running on different platforms within a provider.
+  ignore_above: 1024
+- name: experimental
+  type: object
+  description: Additional experimental data sent by the agents.
+  dynamic: true
+- name: histogram
+  type: histogram
+- name: kubernetes.namespace
+  type: keyword
+  description: |
+    Kubernetes namespace
+- name: kubernetes.node.name
+  type: keyword
+  description: |
+    Kubernetes node name
+- name: kubernetes.pod.name
+  type: keyword
+  description: |
+    Kubernetes pod name
+- name: kubernetes.pod.uid
+  type: keyword
+  description: |
+    Kubernetes Pod UID
+- name: metricset.name
+  type: keyword
+  description: |
+    Name of the set of metrics.
+- name: metricset.period
+  type: long
+  description: Current data collection period for this event in milliseconds.
+  unit: ms
+- name: network.carrier.icc
+  type: keyword
+  description: |
+    ISO country code, eg. US
+- name: network.carrier.mcc
+  type: keyword
+  description: |
+    Mobile country code
+- name: network.carrier.mnc
+  type: keyword
+  description: |
+    Mobile network code
+- name: network.carrier.name
+  type: keyword
+  description: |
+    Carrier name, eg. Vodafone, T-Mobile, etc.
+- name: network.connection_type
+  type: keyword
+  description: |
+    Cellular network technology, eg. 4G
+- name: observer.listening
+  type: keyword
+  description: |
+    Address the server is listening on.
+- name: observer.version_major
+  type: byte
+  description: |
+    Major version number of the observer
+- name: processor.event
+  type: keyword
+  description: Processor event.
+- name: processor.name
+  type: keyword
+  description: Processor name.
+- name: service.environment
+  type: keyword
+  description: |
+    Service environment.
+- name: service.framework.name
+  type: keyword
+  description: |
+    Name of the framework used.
+- name: service.framework.version
+  type: keyword
+  description: |
+    Version of the framework used.
+- name: service.language.name
+  type: keyword
+  description: |
+    Name of the programming language used.
+- name: service.language.version
+  type: keyword
+  description: |
+    Version of the programming language used.
+- name: service.runtime.name
+  type: keyword
+  description: |
+    Name of the runtime used.
+- name: service.runtime.version
+  type: keyword
+  description: |
+    Version of the runtime used.
+- name: system.cpu.total.norm.pct
+  type: scaled_float
+  format: percent
+  description: |
+    The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
+  metric_type: gauge
+  unit: percent
+- name: system.memory.actual.free
+  type: long
+  format: bytes
+  description: |
+    Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal to `system.memory.free`.
+  metric_type: gauge
+  unit: byte
+- name: system.memory.total
+  type: long
+  format: bytes
+  description: |
+    Total memory.
+  metric_type: gauge
+  unit: byte
+- name: system.process.cgroup.cpu.cfs.period.us
+  type: long
+  description: CFS period in microseconds.
+  metric_type: gauge
+  unit: micros
+- name: system.process.cgroup.cpu.cfs.quota.us
+  type: long
+  description: CFS quota in microseconds.
+  metric_type: gauge
+  unit: micros
+- name: system.process.cgroup.cpu.id
+  type: keyword
+  description: ID for the current cgroup CPU.
+- name: system.process.cgroup.cpu.stats.periods
+  type: long
+  description: Number of periods seen by the CPU.
+  metric_type: counter
+- name: system.process.cgroup.cpu.stats.throttled.ns
+  type: long
+  description: Nanoseconds spent throttled seen by the CPU.
+  metric_type: counter
+  unit: nanos
+- name: system.process.cgroup.cpu.stats.throttled.periods
+  type: long
+  description: Number of throttled periods seen by the CPU.
+  metric_type: counter
+- name: system.process.cgroup.cpuacct.id
+  type: keyword
+  description: ID for the current cgroup CPU.
+- name: system.process.cgroup.cpuacct.total.ns
+  type: long
+  description: Total CPU time for the current cgroup CPU in nanoseconds.
+  metric_type: counter
+  unit: nanos
+- name: system.process.cgroup.memory.mem.limit.bytes
+  type: long
+  format: bytes
+  description: Memory limit for the current cgroup slice.
+  metric_type: gauge
+  unit: byte
+- name: system.process.cgroup.memory.mem.usage.bytes
+  type: long
+  format: bytes
+  description: Memory usage by the current cgroup slice.
+  metric_type: gauge
+  unit: byte
+- name: system.process.cpu.total.norm.pct
+  type: scaled_float
+  format: percent
+  description: |
+    The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
+  metric_type: gauge
+  unit: percent
+- name: system.process.memory.rss.bytes
+  type: long
+  format: bytes
+  description: |
+    The Resident Set Size. The amount of memory the process occupied in main memory (RAM).
+  metric_type: gauge
+  unit: byte
+- name: system.process.memory.size
+  type: long
+  format: bytes
+  description: |
+    The total virtual memory the process has.
+  metric_type: gauge
+  unit: byte
+- name: timestamp.us
+  type: long
+  description: |
+    Timestamp of the event in microseconds since Unix epoch.

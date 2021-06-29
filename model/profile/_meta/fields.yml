@@ -154,6 +154,49 @@
             Unique container id.
           overwrite: true
 
+    - name: network
+      type: group
+      dynamic: false
+      description: >
+        Optional network fields
+      fields:
+
+        - name: connection_type
+          type: keyword
+          description: >
+            Cellular network technology, eg. 4G
+          overwrite: true
+
+        - name: carrier
+          type: group
+          description: >
+            Network operator
+          fields:
+
+            - name: name
+              type: keyword
+              overwrite: true
+              description: >
+                Carrier name, eg. Vodafone, T-Mobile, etc.
+
+            - name: mcc
+              type: keyword
+              overwrite: true
+              description: >
+                Mobile country code
+
+            - name: mnc
+              type: keyword
+              overwrite: true
+              description: >
+                Mobile network code
+
+            - name: icc
+              type: keyword
+              overwrite: true
+              description: >
+                ISO country code, eg. US
+
     - name: kubernetes
       type: group
       dynamic: false
@@ -633,9 +676,10 @@
 
         - name: duration
           type: long
+          unit: nanos
           count: 1
           description: >
-            Duration of the profile, in microseconds.
+            Duration of the profile, in nanoseconds.
             All samples within a profile will have the same duration.
             To aggregate durations, you should first group by the profile ID.
 
@@ -644,15 +688,17 @@
           fields:
             - name: ns
               type: long
+              unit: nanos
               count: 1
               description: >
                 Amount of CPU time profiled, in nanoseconds.
-        
+
         - name: wall
           type: group
           fields:
             - name: us
               type: long
+              unit: micros
               count: 1
               description: >
                 Amount of wall time profiled, in microseconds.

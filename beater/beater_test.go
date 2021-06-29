@@ -18,6 +18,7 @@
 package beater
 
 import (
+	"compress/zlib"
 	"context"
 	"errors"
 	"net"
@@ -36,7 +37,9 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
@@ -240,13 +243,13 @@ func TestTransformConfigIndex(t *testing.T) {
 		defer srv.Close()
 
 		cfg := config.DefaultConfig()
-		cfg.RumConfig.Enabled = newBool(true)
+		cfg.RumConfig.Enabled = true
 		cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{srv.URL}
 		if indexPattern != "" {
 			cfg.RumConfig.SourceMapping.IndexPattern = indexPattern
 		}
 
-		transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg)
+		transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg, nil)
 		require.NoError(t, err)
 		require.NotNil(t, transformConfig.RUM.SourcemapStore)
 		transformConfig.RUM.SourcemapStore.Added(context.Background(), "name", "version", "path")
@@ -262,11 +265,11 @@ func TestTransformConfigIndex(t *testing.T) {
 }
 
 func TestTransformConfig(t *testing.T) {
-	test := func(rumEnabled, sourcemapEnabled *bool, expectSourcemapStore bool) {
+	test := func(rumEnabled, sourcemapEnabled bool, expectSourcemapStore bool) {
 		cfg := config.DefaultConfig()
 		cfg.RumConfig.Enabled = rumEnabled
 		cfg.RumConfig.SourceMapping.Enabled = sourcemapEnabled
-		transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg)
+		transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg, nil)
 		require.NoError(t, err)
 		if expectSourcemapStore {
 			assert.NotNil(t, transformConfig.RUM.SourcemapStore)
@@ -275,19 +278,69 @@ func TestTransformConfig(t *testing.T) {
 		}
 	}
 
-	test(nil, nil, false)
-	test(nil, newBool(false), false)
-	test(nil, newBool(true), false)
-
-	test(newBool(false), nil, false)
-	test(newBool(false), newBool(false), false)
-	test(newBool(false), newBool(true), false)
-
-	test(newBool(true), nil, true) // sourcemap.enabled is true by default
-	test(newBool(true), newBool(false), false)
-	test(newBool(true), newBool(true), true)
+	test(false, false, false)
+	test(false, true, false)
+	test(true, false, false)
+	test(true, true, true)
 }
 
-func newBool(v bool) *bool {
-	return &v
+func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
+	var called bool
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		w.Write([]byte(test.ValidSourcemap))
+	}))
+	defer ts.Close()
+
+	cfg := config.DefaultConfig()
+	cfg.RumConfig.Enabled = true
+	cfg.RumConfig.SourceMapping.Enabled = true
+	cfg.RumConfig.SourceMapping.ESConfig = elasticsearch.DefaultConfig()
+	cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{ts.URL}
+
+	transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg, nil)
+	require.NoError(t, err)
+	// Check that the provided rum elasticsearch config was used and
+	// Fetch() goes to the test server.
+	_, err = transformConfig.RUM.SourcemapStore.Fetch(context.Background(), "app", "1.0", "/bundle/path")
+	require.NoError(t, err)
+
+	assert.True(t, called)
+}
+
+func TestFleetStoreUsed(t *testing.T) {
+	var called bool
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		wr := zlib.NewWriter(w)
+		defer wr.Close()
+		wr.Write([]byte(test.ValidSourcemap))
+	}))
+	defer ts.Close()
+
+	cfg := config.DefaultConfig()
+	cfg.RumConfig.Enabled = true
+	cfg.RumConfig.SourceMapping.Enabled = true
+	cfg.RumConfig.SourceMapping.Metadata = []config.SourceMapMetadata{{
+		ServiceName:    "app",
+		ServiceVersion: "1.0",
+		BundleFilepath: "/bundle/path",
+		SourceMapURL:   "/my/path",
+	}}
+
+	fleetCfg := &config.Fleet{
+		Hosts:        []string{ts.URL[7:]},
+		Protocol:     "http",
+		AccessAPIKey: "my-key",
+		TLS:          nil,
+	}
+
+	transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg, fleetCfg)
+	require.NoError(t, err)
+	// Check that the provided rum elasticsearch config was used and
+	// Fetch() goes to the test server.
+	_, err = transformConfig.RUM.SourcemapStore.Fetch(context.Background(), "app", "1.0", "/bundle/path")
+	require.NoError(t, err)
+
+	assert.True(t, called)
 }

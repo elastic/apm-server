@@ -1,0 +1,163 @@
+- name: cloud.service.name
+  level: extended
+  type: keyword
+  description: |
+    Cloud service name, intended to distinguish services running on different platforms within a provider.
+  ignore_above: 1024
+- name: experimental
+  type: object
+  description: Additional experimental data sent by the agents.
+  dynamic: true
+- name: kubernetes.namespace
+  type: keyword
+  description: |
+    Kubernetes namespace
+- name: kubernetes.node.name
+  type: keyword
+  description: |
+    Kubernetes node name
+- name: kubernetes.pod.name
+  type: keyword
+  description: |
+    Kubernetes pod name
+- name: kubernetes.pod.uid
+  type: keyword
+  description: |
+    Kubernetes Pod UID
+- name: network.carrier.icc
+  type: keyword
+  description: |
+    ISO country code, eg. US
+- name: network.carrier.mcc
+  type: keyword
+  description: |
+    Mobile country code
+- name: network.carrier.mnc
+  type: keyword
+  description: |
+    Mobile network code
+- name: network.carrier.name
+  type: keyword
+  description: |
+    Carrier name, eg. Vodafone, T-Mobile, etc.
+- name: network.connection_type
+  type: keyword
+  description: |
+    Cellular network technology, eg. 4G
+- name: observer.listening
+  type: keyword
+  description: |
+    Address the server is listening on.
+- name: observer.version_major
+  type: byte
+  description: |
+    Major version number of the observer
+- name: processor.event
+  type: keyword
+  description: Processor event.
+- name: processor.name
+  type: keyword
+  description: Processor name.
+- name: profile.alloc_objects.count
+  type: long
+  description: |
+    Number of objects allocated since the process started.
+- name: profile.alloc_space.bytes
+  type: long
+  description: |
+    Amount of memory allocated, in bytes, since the process started.
+- name: profile.cpu.ns
+  type: long
+  description: |
+    Amount of CPU time profiled, in nanoseconds.
+  unit: nanos
+- name: profile.duration
+  type: long
+  description: |
+    Duration of the profile, in nanoseconds. All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
+  unit: nanos
+- name: profile.id
+  type: keyword
+  description: |
+    Unique ID for the profile. All samples within a profile will have the same profile ID.
+- name: profile.inuse_objects.count
+  type: long
+  description: |
+    Number of objects allocated and currently in use.
+- name: profile.inuse_space.bytes
+  type: long
+  description: |
+    Amount of memory allocated, in bytes, and currently in use.
+- name: profile.samples.count
+  type: long
+  description: |
+    Number of profile samples for the profiling period.
+- name: profile.stack.filename
+  type: keyword
+  description: |
+    Source code filename for a stack frame.
+- name: profile.stack.function
+  type: keyword
+  description: |
+    Function name for a stack frame.
+- name: profile.stack.id
+  type: keyword
+  description: |
+    Unique ID for a stack frame in the context of its callers.
+- name: profile.stack.line
+  type: long
+  description: |
+    Source code line number for a stack frame.
+- name: profile.top.filename
+  type: keyword
+  description: |
+    Source code filename for the top stack frame.
+- name: profile.top.function
+  type: keyword
+  description: |
+    Function name for the top stack frame.
+- name: profile.top.id
+  type: keyword
+  description: |
+    Unique ID for the top stack frame in the context of its callers.
+- name: profile.top.line
+  type: long
+  description: |
+    Source code line number for the top stack frame.
+- name: profile.wall.us
+  type: long
+  description: |
+    Amount of wall time profiled, in microseconds.
+  unit: micros
+- name: service.environment
+  type: keyword
+  description: |
+    Service environment.
+- name: service.framework.name
+  type: keyword
+  description: |
+    Name of the framework used.
+- name: service.framework.version
+  type: keyword
+  description: |
+    Version of the framework used.
+- name: service.language.name
+  type: keyword
+  description: |
+    Name of the programming language used.
+- name: service.language.version
+  type: keyword
+  description: |
+    Version of the programming language used.
+- name: service.runtime.name
+  type: keyword
+  description: |
+    Name of the runtime used.
+- name: service.runtime.version
+  type: keyword
+  description: |
+    Version of the runtime used.
+- name: timestamp.us
+  type: long
+  description: |
+    Timestamp of the event in microseconds since Unix epoch.

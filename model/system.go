@@ -50,6 +50,7 @@ type System struct {
 
 	Container  Container
 	Kubernetes Kubernetes
+	Network    Network
 }
 
 func (s *System) fields() common.MapStr {

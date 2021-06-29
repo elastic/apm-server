@@ -32,7 +32,7 @@ services:
       kibana: { condition: service_healthy }
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-68ee0bbd-SNAPSHOT
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-49bc2dec-SNAPSHOT
     ports:
       - 9200:9200
     healthcheck:
@@ -61,7 +61,7 @@ services:
       - "./testing/docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles"
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.0.0-68ee0bbd-SNAPSHOT
+    image: docker.elastic.co/kibana/kibana:8.0.0-49bc2dec-SNAPSHOT
     ports:
       - 5601:5601
     healthcheck:
@@ -85,7 +85,7 @@ services:
       package-registry: { condition: service_healthy }
 
   fleet-server:
-    image: docker.elastic.co/beats/elastic-agent:8.0.0-68ee0bbd-SNAPSHOT
+    image: docker.elastic.co/beats/elastic-agent:8.0.0-49bc2dec-SNAPSHOT
     ports:
       - 8220:8220
     healthcheck:
@@ -97,17 +97,30 @@ services:
       FLEET_SERVER_ELASTICSEARCH_HOST: http://elasticsearch:9200
       FLEET_SERVER_ELASTICSEARCH_USERNAME: "${ES_SUPERUSER_USER:-admin}"
       FLEET_SERVER_ELASTICSEARCH_PASSWORD: "${ES_SUPERUSER_PASS:-changeme}"
+      FLEET_SERVER_CERT: /etc/pki/tls/certs/fleet-server.pem
+      FLEET_SERVER_CERT_KEY: /etc/pki/tls/private/fleet-server-key.pem
+      FLEET_URL: https://fleet-server:8220
       KIBANA_FLEET_SETUP: "true"
       KIBANA_HOST: "http://kibana:5601"
       KIBANA_USERNAME: "${ES_SUPERUSER_USER:-admin}"
       KIBANA_PASSWORD: "${ES_SUPERUSER_PASS:-changeme}"
     depends_on:
       elasticsearch: { condition: service_healthy }
+      kibana: { condition: service_healthy }
+    volumes:
+      - "./testing/docker/fleet-server/certificate.pem:/etc/pki/tls/certs/fleet-server.pem"
+      - "./testing/docker/fleet-server/key.pem:/etc/pki/tls/private/fleet-server-key.pem"
 
   package-registry:
     image: docker.elastic.co/package-registry/distribution:snapshot
     ports:
       - 8080
+    entrypoint: /entrypoint.sh
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail localhost:8080/health"]
+      retries: 100
+      interval: 5s
     volumes:
+      - "./testing/docker/package-registry/entrypoint.sh:/entrypoint.sh"
       - "./testing/docker/package-registry/config.yml:/package-registry/config.yml"
-      - "./apmpackage/apm:/packages/local/apm"
+      - "./apmpackage:/apmpackage" # copied to /packages/local/apm/<version> by entrypoint.sh

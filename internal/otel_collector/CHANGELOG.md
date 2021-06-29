@@ -2,6 +2,270 @@
 
 ## Unreleased
 
+## v0.28.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Remove unused logstest package (#3222)
+- Introduce `AppSettings` instead of `Parameters` (#3163)
+- Remove unused testutil.TempSocketName (#3291)
+- Move BigEndian helper functions in `tracetranslator` to an internal package.(#3298)
+- Rename `configtest.LoadConfigFile` to `configtest.LoadConfigAndValidate` (#3306)
+- Replace `ExtensionCreateParams` with `ExtensionCreateSettings` (#3294)
+- Replace `ProcessorCreateParams` with `ProcessorCreateSettings`. (#3181)
+- Replace `ExporterCreateParams` with `ExporterCreateSettings` (#3164)
+- Replace `ReceiverCreateParams` with `ReceiverCreateSettings`. (#3167)
+- Change `batchprocessor` logic to limit data points rather than metrics (#3141)
+- Rename `PrwExporter` to `PRWExporter` and `NewPrwExporter` to `NewPRWExporter` (#3246)
+- Avoid exposing OpenCensus reference in public APIs (#3253)
+- Move `config.Parser` to `configparser.Parser` (#3304)
+- Remove deprecated funcs inside the obsreceiver (#3314)
+- Remove `obsreport.GRPCServerWithObservabilityEnabled`, enable observability in config (#3315)
+- Remove `obsreport.ProcessorMetricViews`, use `BuildProcessorCustomMetricName` where needed (#3316)
+- Remove "Receive" from `obsreport.Receiver` funcs (#3326)
+- Remove "Export" from `obsreport.Exporter` funcs (#3333)
+- Hide unnecessary public struct `obsreport.StartReceiveOptions` (#3353)
+- Avoid exposing internal implementation public in OC/OTEL receivers (#3355)
+- Updated configgrpc `ToDialOptions` and confighttp `ToClient` apis to take extensions configuration map (#3340)
+- Remove `GenerateSequentialTraceID` and `GenerateSequentialSpanIDin` functions in testbed (#3390)
+- Change "grpc" to "GRPC" in configauth function/type names (#3285)
+
+## 💡 Enhancements 💡
+
+- Add `doc.go` files to the consumer package and its subpackages (#3270)
+- Automate triggering of doc-update on release (#3234)
+- Enable Dependabot for Github Actions (#3312)
+- Remove the proto dependency in `goldendataset` for traces (#3322)
+- Add telemetry for dropped data due to exporter sending queue overflow (#3328)
+- Add initial implementation of `pdatagrcp` (#3231)
+- Change receiver obsreport helpers pattern to match the Processor/Exporter (#3227)
+- Add model translation and encoding interfaces (#3200)
+- Add otlpjson as a serializer implementation (#3238)
+- `prometheus` receiver:
+  - Add `createNodeAndResourcePdata` for Prometheus->OTLP pdata (#3139)
+  - Direct metricfamily Prometheus->OTLP (#3145)
+- Add `componenttest.NewNop*CreateSettings` to simplify tests (#3375)
+- Add support for markdown generation (#3100)
+- Refactor components for the Client Authentication Extensions (#3287)
+
+## 🧰 Bug fixes 🧰
+
+- Use dedicated `zapcore.Core` for Windows service (#3147)
+- Hook up start and shutdown functions in fileexporter (#3260)
+- Fix oc to pdata translation for sum non-monotonic cumulative (#3272)
+- Fix `timeseriesSignature` in prometheus receiver (#3310)
+
+## v0.27.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Change `Marshal` signatures in kafkaexporter's Marshalers to directly convert pdata to `sarama.ProducerMessage` (#3162)
+- Remove `tracetranslator.DetermineValueType`, only used internally by Zipkin (#3114)
+- Remove OpenCensus conventions, should not be used (#3113)
+- Remove Zipkin specific translation constants, move to internal (#3112)
+- Remove `tracetranslator.TagHTTPStatusCode`, use `conventions.AttributeHTTPStatusCode` (#3111)
+- Remove OpenCensus status constants and transformation (#3110)
+- Remove `tracetranslator.AttributeArrayToSlice`, not used in core or contrib (#3109)
+- Remove `internaldata.MetricsData`, same APIs as for traces (#3156)
+- Rename `config.IDFromString` to `NewIDFromString`, remove `MustIDFromString` (#3177)
+- Move consumerfanout package to internal (#3207)
+- Canonicalize enum names in pdata. Fix usage of uppercase names (#3208)
+
+## 💡 Enhancements 💡
+
+- Use `config.ComponentID` for obsreport receiver/scraper (#3098)
+- Add initial implementation of the consumerhelper (#3146)
+- Add Collector version to Prometheus Remote Write Exporter user-agent header (#3094)
+- Refactor processorhelper to use consumerhelper, split by signal type (#3180)
+- Use consumerhelper for exporterhelper, add WithCapabilities (#3186)
+- Set capabilities for all core exporters, remove unnecessary funcs (#3190)
+- Add an internal sharedcomponent to be shared by receivers with shared resources (#3198)
+- Allow users to configure the Prometheus remote write queue (#3046)
+- Mark internaldata traces translation as deprecated for external usage (#3176)
+
+## 🧰 Bug fixes 🧰
+
+- Fix Prometheus receiver metric start time and reset determination logic. (#3047)
+  - The receiver will no longer drop the first sample for `counter`, `summary`, and `histogram` metrics.
+- The Prometheus remote write exporter will no longer force `counter` metrics to have a `_total` suffix. (#2993)
+- Remove locking from jaeger receiver start and stop processes (#3070)
+- Fix batch processor metrics reorder, improve performance (#3034)
+- Fix batch processor traces reorder, improve performance (#3107)
+- Fix batch processor logs reorder, improve performance (#3125)
+- Avoid one unnecessary allocation in grpc OTLP exporter (#3122)
+- `batch` processor: Validate that batch config max size is greater than send size (#3126)
+- Add capabilities to consumer, remove from processor (#2770)
+- Remove internal protos usage in Prometheusremotewrite exporter (#3184)
+- `prometheus` receiver: Honor Prometheus external labels (#3127)
+- Validate that remote write queue settings are not negative (#3213)
+
+## v0.26.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Change `With*Unmarshallers` signatures in Kafka exporter/receiver (#2973)
+- Rename `marshall` to `marshal` in all the occurrences (#2977)
+- Remove `componenterror.ErrAlreadyStarted` and `componenterror.ErrAlreadyStopped`, components should not protect against this, Service will start/stop once.
+- Rename `ApplicationStartInfo` to `BuildInfo`
+- Rename `ApplicationStartInfo.ExeName` to `BuildInfo.Command`
+- Rename `ApplicationStartInfo.LongName` to `BuildInfo.Description`
+
+## 💡 Enhancements 💡
+
+- `kafka` exporter: Add logs support (#2943)
+- Add AppendEmpty and deprecate Append for slices (#2970)
+- Update mdatagen to create factories of init instead of new (#2978)
+- `zipkin` receiver: Reduce the judgment of zipkin v1 version (#2990)
+- Custom authenticator logic to accept a `component.Host` which will extract the authenticator to use based on a new authenticator name property (#2767)
+- `prometheusremotewrite` exporter: Add `resource_to_telemetry_conversion` config option (#3031)
+- `logging` exporter: Extract OTLP text logging (#3082)
+- Format timestamps as strings instead of int in otlptext output (#3088)
+- Add darwin arm64 build (#3090)
+
+## 🧰 Bug fixes 🧰
+
+- Fix Jaeger receiver to honor TLS Settings (#2866)
+- `zipkin` translator: Handle missing starttime case for zipkin json v2 format spans (#2506)
+- `prometheus` exporter: Fix OTEL resource label drops (#2899)
+- `prometheusremotewrite` exporter:
+  - Enable the queue internally (#2974)
+  - Don't drop instance and job labels (#2979)
+- `jaeger` receiver: Wait for server goroutines exit on shutdown (#2985)
+- `logging` exporter: Ignore invalid handle on close (#2994)
+- Fix service zpages (#2996)
+- `batch` processor: Fix to avoid reordering and send max size (#3029)
+
+
+## v0.25.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Rename ForEach (in pdata) with Range to be consistent with sync.Map (#2931)
+- Rename `componenthelper.Start` to `componenthelper.StartFunc` (#2880)
+- Rename `componenthelper.Stop` to `componenthelper.StopFunc` (#2880)
+- Remove `exporterheleper.WithCustomUnmarshaler`, `processorheleper.WithCustomUnmarshaler`, `receiverheleper.WithCustomUnmarshaler`, `extensionheleper.WithCustomUnmarshaler`, implement `config.CustomUnmarshaler` interface instead (#2867)
+- Remove `component.CustomUnmarshaler` implement `config.CustomUnmarshaler` interface instead (#2867)
+- Remove `testutil.HostPortFromAddr`, users can write their own parsing helper (#2919)
+- Remove `configparser.DecodeTypeAndName`, use `config.IDFromString` (#2869)
+- Remove `config.NewViper`, users should use `config.NewParser` (#2917)
+- Remove `testutil.WaitFor`, use `testify.Eventually` helper if needed (#2920)
+- Remove testutil.WaitForPort, users can use testify.Eventually (#2926)
+- Rename `processorhelper.NewTraceProcessor` to `processorhelper.NewTracesProcessor` (#2935)
+- Rename `exporterhelper.NewTraceExporter` to `exporterhelper.NewTracesExporter` (#2937)
+- Remove InitEmptyWithCapacity, add EnsureCapacity and Clear (#2845)
+- Rename traces methods/objects to include Traces in Kafka receiver (#2966)
+
+## 💡 Enhancements 💡
+
+- Add `validatable` interface with `Validate()` to all `config.<component>` (#2898)
+  - add the empty `Validate()` implementation for all component configs
+- **Experimental**: Add a config source manager that wraps the interaction with config sources (#2857, #2903, #2948)
+- `kafka` exporter: Key jaeger messages on traceid (#2855)
+- `scraperhelper`: Don't try to count metrics if scraper returns an error (#2902)
+- Extract ConfigFactory in a ParserProvider interface (#2868)
+- `prometheus` exporter: Allows Summary metrics to be exported to Prometheus (#2900)
+- `prometheus` receiver: Optimize `dpgSignature` function (#2945)
+- `kafka` receiver: Add logs support (#2944)
+
+## 🧰 Bug fixes 🧰
+
+- `prometheus` receiver:
+  - Treat Summary and Histogram metrics without "_sum" counter as valid metric (#2812)
+  - Add `job` and `instance` as well-known labels (#2897)
+- `prometheusremotewrite` exporter:
+  - Sort Sample by Timestamp to avoid out of order errors (#2941)
+  - Remove incompatible queued retry (#2951)
+- `kafka` receiver: Fix data race with batchprocessor (#2957)
+- `jaeger` receiver: Jaeger agent should not report ErrServerClosed (#2965)
+
+## v0.24.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Remove legacy internal metrics for memorylimiter processor, `spans_dropped` and `trace_batches_dropped` (#2841)
+  - For `spans_dropped` use `processor/refused_spans` with `processor=memorylimiter`
+- Rename pdata.*.[Start|End]Time to pdata.*.[Start|End]Timestamp (#2847)
+- Rename pdata.DoubleExemplar to pdata.Exemplar (#2804)
+- Rename pdata.DoubleHistogram to pdata.Histogram (#2797)
+- Rename pdata.DoubleSummary to pdata.Summary (#2774)
+- Refactor `consumererror` package (#2768)
+  - Remove `PartialError` type in favor of signal-specific types
+  - Rename `CombineErrors()` to `Combine()`
+- Refactor `componenthelper` package (#2778)
+  - Remove `ComponentSettings` and `DefaultComponentSettings()`
+  - Rename `NewComponent()` to `New()`
+- obsReport.NewExporter accepts a settings struct (#2668)
+- Remove ErrorWaitingHost from `componenttest` (#2582)
+- Move `config.Load` to `configparser.Load` (#2796)
+- Remove `configtest.NewViperFromYamlFile()`, use `config.Parser.NewParserFromFile()` (#2806)
+- Remove `config.ViperSubExact()`, use `config.Parser.Sub()` (#2806)
+- Update LoadReceiver signature to remove unused params (#2823)
+- Move `configerror.ErrDataTypeIsNotSupported` to `componenterror.ErrDataTypeIsNotSupported` (#2886)
+- Rename`CreateTraceExporter` type to `CreateTracesExporter` in `exporterhelper` (#2779)
+- Move `fluentbit` extension to contrib (#2795)
+- Move `configmodels` to `config` (#2808)
+- Move `fluentforward` receiver to contrib (#2723)
+
+## 💡 Enhancements 💡
+
+- `batch` processor: - Support max batch size for logs (#2736)
+- Use `Endpoint` for health check extension (#2782)
+- Use `confignet.TCPAddr` for `pprof` and `zpages` extensions (#2829)
+- Deprecate `consumetest.New[${SIGNAL}]Nop` in favor of `consumetest.NewNop` (#2878)
+- Deprecate `consumetest.New[${SIGNAL}]Err` in favor of `consumetest.NewErr` (#2878)
+- Add watcher to values retrieved via config sources (#2803)
+- Updates for cloud semantic conventions (#2809)
+  - `cloud.infrastructure_service` -> `cloud.platform`
+  - `cloud.zone` -> `cloud.availability_zone`
+- Add systemd environment file for deb/rpm packages (#2822)
+- Add validate interface in `configmodels` to force each component do configuration validation (#2802, #2856)
+- Add `aws.ecs.task.revision` to semantic conventions list (#2816)
+- Set unprivileged user to container image (#2838)
+- Add New funcs for extension, exporter, processor config settings (#2872)
+- Report metric about current size of the exporter retry queue (#2858)
+- Allow adding new signals in `ProcessorFactory` by forcing everyone to embed `BaseProcessorFactory` (#2885)
+
+## 🧰 Bug fixes 🧰
+
+- `pdata.TracesFromOtlpProtoBytes`: Fixes to handle backwards compatibility changes in proto (#2798)
+- `jaeger` receiver: Escape user input used in output (#2815)
+- `prometheus` exporter: Ensure same time is used for updated time (#2745)
+- `prometheusremotewrite` exporter: Close HTTP response body (#2875)
+
+## v0.23.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Move fanout consumers to fanoutconsumer package (#2615)
+- Rename ExporterObsReport to Exporter (#2658)
+- Rename ProcessorObsReport to Processor (#2657)
+- Remove ValidateConfig and add Validate on the Config struct (#2665)
+- Rename pdata Size to OtlpProtoSize (#2726)
+- Rename [Traces|Metrics|Logs]Consumer to [Traces|Metrics|Logs] (#2761)
+- Remove public access for `componenttest.Example*` components:
+  - Users of these structs for testing configs should use the newly added `componenttest.Nop*` (update all components name in the config `example*` -> `nop` and use `componenttest.NopComponents()`).
+  - Users of these structs for sink like behavior should use `consumertest.*Sink`.
+
+## 💡 Enhancements 💡
+
+- `hostmetrics` receiver: List labels along with respective metrics in metadata (#2662)
+- `exporter` helper: Remove obsreport.ExporterContext, always add exporter name as a tag to the metrics (#2682)
+- `jaeger` exporter: Change to not use internal data (#2698)
+- `kafka` receiver: Change to not use internal data (#2697)
+- `zipkin` receiver: Change to not use internal data (#2699)
+- `kafka` exporter: Change to not use internal data (#2696)
+- Ensure that extensions can be created and started multiple times (#2679)
+- Use otlp request in logs wrapper, hide members in the wrapper (#2692)
+- Add MetricsWrapper to dissallow access to internal representation (#2693)
+- Add TracesWrapper to dissallow access to internal representation (#2721)
+- Allow multiple OTLP receivers to be created (#2743)
+
+## 🧰 Bug fixes 🧰
+
+- `prometheus` exporter: Fix to work with standard labels that follow the naming convention of using periods instead of underscores (#2707)
+- Propagate name and transport for `prometheus` receiver and exporter (#2680)
+- `zipkin` receiver: Ensure shutdown correctness (#2765)
+
 ## v0.22.0 Beta
 
 ## 🛑 Breaking changes 🛑

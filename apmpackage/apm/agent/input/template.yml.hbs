@@ -1,0 +1,55 @@
+apm-server:
+    api_key:
+        enabled: {{api_key_enabled}}
+        limit: {{api_key_limit}}
+    capture_personal_data: {{capture_personal_data}}
+    idle_timeout: {{idle_timeout}}
+    default_service_environment: {{default_service_environment}}
+    expvar.enabled: {{expvar_enabled}}
+    host: {{host}}
+    max_connections: {{max_connections}}
+    max_event_size: {{max_event_bytes}}
+    max_header_size: {{max_header_bytes}}
+    read_timeout: {{read_timeout}}
+    response_headers: {{response_headers}}
+    rum:
+        allow_headers:
+        {{#each rum_allow_headers}}
+          - {{this}}
+        {{/each}}
+        allow_origins:
+        {{#each rum_allow_origins}}
+          - {{this}}
+        {{/each}}
+        allow_service_names:
+        {{#each rum_allow_service_names}}
+          - {{this}}
+        {{/each}}
+        enabled: {{enable_rum}}
+        event_rate.limit: {{rum_event_rate_limit}}
+        event_rate.lru_size: {{rum_event_rate_lru_size}}
+        exclude_from_grouping: {{rum_exclude_from_grouping}}
+        library_pattern: {{rum_library_pattern}}
+        response_headers: {{rum_response_headers}}
+    secret_token: {{secret_token}}
+    shutdown_timeout: {{shutdown_timeout}}
+    {{#if tls_enabled}}
+    ssl:
+        enabled: {{tls_enabled}}
+        certificate: {{tls_certificate}}
+        key: {{tls_key}}
+        key_passphrase: {{tls_key_passphrase}}
+        supported_protocols: {{tls_supported_protocols}}
+        {{#each tls_supported_protocols}}
+          - {{this}}
+        {{/each}}
+        cipher_suites: {{tls_cipher_suites}}
+        {{#each tls_cipher_suites}}
+          - {{this}}
+        {{/each}}
+        curve_types: {{tls_curve_types}}
+        {{#each tls_curve_types}}
+          - {{this}}
+        {{/each}}
+    {{/if}}
+    write_timeout: {{write_timeout}}

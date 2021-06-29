@@ -86,7 +86,7 @@ func TestInvalidateCache(t *testing.T) {
 		// create sourcemap store
 		client, err := estest.NewElasticsearchClient(estest.NewTransport(t, http.StatusOK, nil))
 		require.NoError(t, err)
-		store, err := sourcemap.NewStore(client, "foo", time.Minute)
+		store, err := sourcemap.NewElasticsearchStore(client, "foo", time.Minute)
 		require.NoError(t, err)
 
 		// transform with sourcemap store

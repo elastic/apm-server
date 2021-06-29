@@ -19,6 +19,9 @@ package cmd
 
 import (
 	"fmt"
+	"math"
+	"os"
+	"strconv"
 
 	"github.com/spf13/pflag"
 
@@ -37,22 +40,36 @@ import (
 const (
 	beatName        = "apm-server"
 	apmIndexPattern = "apm"
+	cloudEnv        = "CLOUD_APM_CAPACITY"
 )
 
-var libbeatConfigOverrides = []cfgfile.ConditionalOverride{{
-	Check: func(_ *common.Config) bool {
-		return true
-	},
-	Config: common.MustNewConfigFrom(map[string]interface{}{
-		"logging": map[string]interface{}{
-			"metrics": map[string]interface{}{
-				"enabled": false,
+var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
+	return []cfgfile.ConditionalOverride{
+		{
+			Check: func(_ *common.Config) bool {
+				return true
 			},
-			"ecs":  true,
-			"json": true,
+			Config: common.MustNewConfigFrom(map[string]interface{}{
+				"logging": map[string]interface{}{
+					"metrics": map[string]interface{}{
+						"enabled": false,
+					},
+					"ecs":  true,
+					"json": true,
+				},
+			}),
 		},
-	}),
-}}
+		{
+			Check: func(_ *common.Config) bool {
+				return true
+			},
+			Config: func() *common.Config {
+				m := map[string]interface{}{}
+				cloudValues(m)
+				return common.MustNewConfigFrom(m)
+			}(),
+		}}
+}
 
 // DefaultSettings return the default settings for APM Server to pass into
 // the GenRootCmdWithSettings.
@@ -67,7 +84,7 @@ func DefaultSettings() instance.Settings {
 		},
 		IndexManagement: idxmgmt.MakeDefaultSupporter,
 		Processing:      processing.MakeDefaultObserverSupport(false),
-		ConfigOverrides: libbeatConfigOverrides,
+		ConfigOverrides: libbeatConfigOverrides(),
 	}
 }
 
@@ -109,4 +126,34 @@ func modifyBuiltinCommands(rootCmd *cmd.BeatsRootCmd, settings instance.Settings
 	setup.Flags().MarkDeprecated(tmplKey, fmt.Sprintf("please use --%s instead", cmd.IndexManagementKey))
 	setup.Flags().Bool(cmd.IndexManagementKey, false, "Setup Elasticsearch index management")
 	setup.Flags().Bool(cmd.PipelineKey, false, "Setup ingest pipelines")
+}
+
+func cloudValues(m map[string]interface{}) {
+	cap, err := strconv.ParseFloat(os.Getenv(cloudEnv), 64)
+	if err != nil {
+		return
+	}
+	multiplier := math.Round(cap / 512)
+	queueMemEvents := 2000 * multiplier
+	workers := math.Round(3.72549 + 1.626502*multiplier - 0.03826692*(multiplier*multiplier))
+	if cap > 8192 {
+		workers = 20 //plateau on number of workers
+	}
+	bulkMaxSize := math.Round(((queueMemEvents / 1.5) / workers))
+	m["output"] = map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"compression_level": 5, //default to medium compression on cloud
+			"worker":            workers,
+			"bulk_max_size":     bulkMaxSize,
+		},
+	}
+	m["queue"] = map[string]interface{}{
+		"mem": map[string]interface{}{
+			"events": queueMemEvents,
+			"flush": map[string]interface{}{
+				"min_events": bulkMaxSize,
+				"timeout":    "1s", //default aligned with cloud value
+			},
+		},
+	}
 }

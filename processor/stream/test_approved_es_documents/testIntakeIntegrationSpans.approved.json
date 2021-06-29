@@ -37,7 +37,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
@@ -154,7 +154,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -272,7 +272,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -394,7 +394,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -513,7 +513,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.service1",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "0:0::0:1",
@@ -529,6 +529,12 @@
                 "ip": "192.0.0.1",
                 "os": {
                     "platform": "darwin"
+                }
+            },
+            "http": {
+                "request.method": "GET",
+                "response": {
+                    "status_code": 200
                 }
             },
             "kubernetes": {
@@ -675,6 +681,7 @@
             "trace": {
                 "id": "abcdef0123456789abcdef9876543210"
             },
+            "url.original": "http://localhost:8000",
             "user": {
                 "domain": "ldap://abc",
                 "email": "s@test.com",
@@ -714,7 +721,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "0:0::0:1",

@@ -21,6 +21,7 @@ import (
 	"context"
 	"crypto/tls"
 	"net/http"
+	"time"
 
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmgrpc"
@@ -37,6 +38,7 @@ import (
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/jaeger"
 	"github.com/elastic/apm-server/beater/otlp"
+	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
@@ -95,39 +97,57 @@ func newBaseRunServer(reporter publish.Reporter) RunServerFunc {
 			case <-done:
 			}
 		}()
+		go srv.agentcfgFetchReporter.Run(ctx)
 		return srv.run()
 	}
 }
 
 type server struct {
-	logger *logp.Logger
-	cfg    *config.Config
+	logger                *logp.Logger
+	cfg                   *config.Config
+	agentcfgFetchReporter agentcfg.Reporter
 
 	httpServer   *httpServer
 	grpcServer   *grpc.Server
 	jaegerServer *jaeger.Server
 }
 
-func newServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, batchProcessor model.BatchProcessor) (server, error) {
-	fetcher := agentcfg.NewFetcher(cfg)
-	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor, fetcher)
+func newServer(
+	logger *logp.Logger,
+	info beat.Info,
+	cfg *config.Config,
+	tracer *apm.Tracer,
+	reporter publish.Reporter,
+	batchProcessor model.BatchProcessor,
+) (server, error) {
+	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor, 30*time.Second)
+	ratelimitStore, err := ratelimit.NewStore(
+		cfg.RumConfig.EventRate.LruSize,
+		cfg.RumConfig.EventRate.Limit,
+		3, // burst multiplier
+	)
 	if err != nil {
 		return server{}, err
 	}
-	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig, fetcher)
+	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor, agentcfgFetchReporter, ratelimitStore)
 	if err != nil {
 		return server{}, err
 	}
-	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, batchProcessor, fetcher)
+	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig, agentcfgFetchReporter, ratelimitStore)
+	if err != nil {
+		return server{}, err
+	}
+	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, batchProcessor, agentcfgFetchReporter)
 	if err != nil {
 		return server{}, err
 	}
 	return server{
-		logger:       logger,
-		cfg:          cfg,
-		httpServer:   httpServer,
-		grpcServer:   grpcServer,
-		jaegerServer: jaegerServer,
+		logger:                logger,
+		cfg:                   cfg,
+		httpServer:            httpServer,
+		grpcServer:            grpcServer,
+		jaegerServer:          jaegerServer,
+		agentcfgFetchReporter: agentcfgFetchReporter,
 	}, nil
 }
 
@@ -137,18 +157,23 @@ func newGRPCServer(
 	tracer *apm.Tracer,
 	batchProcessor model.BatchProcessor,
 	tlsConfig *tls.Config,
-	fetcher agentcfg.Fetcher,
+	agentcfgFetcher agentcfg.Fetcher,
+	ratelimitStore *ratelimit.Store,
 ) (*grpc.Server, error) {
 	// TODO(axw) share auth builder with beater/api.
-	authBuilder, err := authorization.NewBuilder(cfg)
+	authBuilder, err := authorization.NewBuilder(cfg.AgentAuth)
 	if err != nil {
 		return nil, err
 	}
 
-	// NOTE(axw) even if TLS is enabled we should not use grpc.Creds, as TLS is handled by the net/http server.
 	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
-	authInterceptor := newAuthUnaryServerInterceptor(authBuilder)
+	authInterceptor := interceptors.Authorization(
+		otlp.MethodAuthorizationHandlers(authBuilder),
+		jaeger.MethodAuthorizationHandlers(authBuilder, jaeger.ElasticAuthTag),
+	)
 
+	// Note that we intentionally do not use a grpc.Creds ServerOption
+	// even if TLS is enabled, as TLS is handled by the net/http server.
 	logger = logger.Named("grpc")
 	srv := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
@@ -158,6 +183,7 @@ func newGRPCServer(
 			interceptors.Metrics(logger, otlp.RegistryMonitoringMaps, jaeger.RegistryMonitoringMaps),
 			interceptors.Timeout(),
 			authInterceptor,
+			interceptors.AnonymousRateLimit(ratelimitStore),
 		),
 	)
 
@@ -169,7 +195,14 @@ func newGRPCServer(
 		}
 	}
 
-	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, batchProcessor, fetcher)
+	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
+	batchProcessor = modelprocessor.Chained{
+		model.ProcessBatchFunc(rateLimitBatchProcessor),
+		modelprocessor.MetadataProcessorFunc(verifyAuthorizedFor),
+		batchProcessor,
+	}
+
+	jaeger.RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)
 	if err := otlp.RegisterGRPCServices(srv, batchProcessor); err != nil {
 		return nil, err
 	}

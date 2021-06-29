@@ -40,14 +40,15 @@ func TestBuilder(t *testing.T) {
 	} {
 
 		setup := func() *Builder {
-			cfg := config.DefaultConfig()
-
+			var cfg config.AgentAuth
 			if tc.withBearer {
 				cfg.SecretToken = "xvz"
 			}
 			if tc.withApikey {
-				cfg.APIKeyConfig = &config.APIKeyConfig{
-					Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()}
+				cfg.APIKey = config.APIKeyAgentAuth{
+					Enabled: true, LimitPerMin: 100,
+					ESConfig: elasticsearch.DefaultConfig(),
+				}
 			}
 
 			builder, err := NewBuilder(cfg)

@@ -41,15 +41,15 @@ const (
 
 // RumConfig holds config information related to the RUM endpoint
 type RumConfig struct {
-	Enabled             *bool               `config:"enabled"`
-	EventRate           *EventRate          `config:"event_rate"`
+	Enabled             bool                `config:"enabled"`
+	EventRate           EventRate           `config:"event_rate"`
 	AllowServiceNames   []string            `config:"allow_service_names"`
 	AllowOrigins        []string            `config:"allow_origins"`
 	AllowHeaders        []string            `config:"allow_headers"`
 	ResponseHeaders     map[string][]string `config:"response_headers"`
 	LibraryPattern      string              `config:"library_pattern"`
 	ExcludeFromGrouping string              `config:"exclude_from_grouping"`
-	SourceMapping       *SourceMapping      `config:"source_mapping"`
+	SourceMapping       SourceMapping       `config:"source_mapping"`
 }
 
 // EventRate holds config information about event rate limiting
@@ -58,27 +58,18 @@ type EventRate struct {
 	LruSize int `config:"lru_size"`
 }
 
-// SourceMapping holds sourecemap config information
+// SourceMapping holds sourcemap config information
 type SourceMapping struct {
-	Cache        *Cache                `config:"cache"`
-	Enabled      *bool                 `config:"enabled"`
+	Cache        Cache                 `config:"cache"`
+	Enabled      bool                  `config:"enabled"`
 	IndexPattern string                `config:"index_pattern"`
 	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
+	Metadata     []SourceMapMetadata   `config:"metadata"`
 	esConfigured bool
 }
 
-// IsEnabled indicates whether RUM endpoint is enabled or not
-func (c *RumConfig) IsEnabled() bool {
-	return c != nil && (c.Enabled != nil && *c.Enabled)
-}
-
-// IsEnabled indicates whether sourcemap handling is enabled or not
-func (s *SourceMapping) IsEnabled() bool {
-	return s == nil || s.Enabled == nil || *s.Enabled
-}
-
 func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg *common.Config) error {
-	if !c.IsEnabled() {
+	if !c.Enabled {
 		return nil
 	}
 
@@ -89,14 +80,13 @@ func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg
 		return errors.Wrapf(err, "Invalid regex for `exclude_from_grouping`: ")
 	}
 
-	var apiKey string
-	if c.SourceMapping == nil || c.SourceMapping.esConfigured {
-		if dataStreamsEnabled {
-			// when running under Fleet, the only setting configured is the api key
-			apiKey = c.SourceMapping.ESConfig.APIKey
-		} else {
-			return nil
-		}
+	if c.SourceMapping.esConfigured && len(c.SourceMapping.Metadata) > 0 {
+		return errors.New("configuring both source_mapping.elasticsearch and sourcemapping.source_maps not allowed")
+	}
+
+	// No need to unpack the ESConfig if SourceMapMetadata exist
+	if len(c.SourceMapping.Metadata) > 0 {
+		return nil
 	}
 
 	// fall back to elasticsearch output configuration for sourcemap storage if possible
@@ -108,39 +98,31 @@ func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg
 	if err := outputESCfg.Unpack(c.SourceMapping.ESConfig); err != nil {
 		return errors.Wrap(err, "unpacking Elasticsearch config into Sourcemap config")
 	}
-	if c.SourceMapping.ESConfig.APIKey == "" {
-		c.SourceMapping.ESConfig.APIKey = apiKey
-	}
 	return nil
 }
 
 func (s *SourceMapping) Unpack(inp *common.Config) error {
-	// this type is needed to avoid a custom Unpack method
-	type tmpSourceMapping SourceMapping
-
-	cfg := tmpSourceMapping(*defaultSourcemapping())
-	if err := inp.Unpack(&cfg); err != nil {
+	type underlyingSourceMapping SourceMapping
+	if err := inp.Unpack((*underlyingSourceMapping)(s)); err != nil {
 		return errors.Wrap(err, "error unpacking sourcemapping config")
 	}
-	*s = SourceMapping(cfg)
-
-	if inp.HasField("elasticsearch") {
-		s.esConfigured = true
-	}
+	s.esConfigured = inp.HasField("elasticsearch")
 	return nil
 }
 
-func defaultSourcemapping() *SourceMapping {
-	return &SourceMapping{
-		Cache:        &Cache{Expiration: defaultSourcemapCacheExpiration},
+func defaultSourcemapping() SourceMapping {
+	return SourceMapping{
+		Enabled:      true,
+		Cache:        Cache{Expiration: defaultSourcemapCacheExpiration},
 		IndexPattern: defaultSourcemapIndexPattern,
 		ESConfig:     elasticsearch.DefaultConfig(),
+		Metadata:     []SourceMapMetadata{},
 	}
 }
 
-func defaultRum() *RumConfig {
-	return &RumConfig{
-		EventRate: &EventRate{
+func defaultRum() RumConfig {
+	return RumConfig{
+		EventRate: EventRate{
 			Limit:   defaultEventRateLimit,
 			LruSize: defaultEventRateLRUSize,
 		},

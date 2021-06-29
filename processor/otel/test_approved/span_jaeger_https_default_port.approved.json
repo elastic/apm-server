@@ -6,7 +6,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.unknown",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "foo.bar.com",
@@ -57,7 +57,8 @@
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
-            }
+            },
+            "url.original": "https://foo.bar.com:443?a=12"
         }
     ]
 }

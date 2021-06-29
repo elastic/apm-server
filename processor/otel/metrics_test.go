@@ -46,6 +46,7 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 func TestConsumeMetrics(t *testing.T) {
@@ -121,8 +122,8 @@ func TestConsumeMetrics(t *testing.T) {
 	doubleSum.DataPoints().At(2).SetValue(14)
 	doubleSum.DataPoints().At(2).LabelsMap().InitFromMap(map[string]string{"k2": "v"})
 
-	metric = appendMetric("double_histogram_metric", pdata.MetricDataTypeDoubleHistogram)
-	doubleHistogram := metric.DoubleHistogram()
+	metric = appendMetric("histogram_metric", pdata.MetricDataTypeHistogram)
+	doubleHistogram := metric.Histogram()
 	doubleHistogram.DataPoints().Resize(1)
 	doubleHistogram.DataPoints().At(0).SetTimestamp(pdata.TimestampFromTime(timestamp0))
 	doubleHistogram.DataPoints().At(0).SetBucketCounts([]uint64{1, 1, 2, 3})
@@ -135,8 +136,8 @@ func TestConsumeMetrics(t *testing.T) {
 	intHistogram.DataPoints().At(0).SetBucketCounts([]uint64{0, 1, 2, 3})
 	intHistogram.DataPoints().At(0).SetExplicitBounds([]float64{1.0, 2.0, 3.0})
 
-	metric = appendMetric("invalid_histogram_metric", pdata.MetricDataTypeDoubleHistogram)
-	invalidHistogram := metric.DoubleHistogram()
+	metric = appendMetric("invalid_histogram_metric", pdata.MetricDataTypeHistogram)
+	invalidHistogram := metric.Histogram()
 	invalidHistogram.DataPoints().Resize(1)
 	invalidHistogram.DataPoints().At(0).SetTimestamp(pdata.TimestampFromTime(timestamp0))
 	invalidHistogram.DataPoints().At(0).SetBucketCounts([]uint64{1, 2, 3}) // should be one more bucket count than bounds
@@ -144,8 +145,8 @@ func TestConsumeMetrics(t *testing.T) {
 	expectDropped++
 
 	// Summary metrics are not yet supported, and will be dropped.
-	metric = appendMetric("double_summary_metric", pdata.MetricDataTypeDoubleSummary)
-	metric.DoubleSummary().DataPoints().Resize(1)
+	metric = appendMetric("double_summary_metric", pdata.MetricDataTypeSummary)
+	metric.Summary().DataPoints().Resize(1)
 	expectDropped++
 
 	metadata := model.Metadata{
@@ -174,7 +175,7 @@ func TestConsumeMetrics(t *testing.T) {
 			{Name: "double_sum_metric", Value: 12, Type: "counter"},
 
 			{
-				Name: "double_histogram_metric", Type: "histogram",
+				Name: "histogram_metric", Type: "histogram",
 				Counts: []int64{1, 1, 2, 3},
 				Values: []float64{-1, 0.5, 2.75, 3.5},
 			},
@@ -315,6 +316,61 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 			Value: 42,
 		}},
 	}}, metricsets)
+}
+
+func TestConsumeMetricsExportTimestamp(t *testing.T) {
+	resourceMetrics := pdata.NewResourceMetrics()
+	metrics := pdata.NewMetrics()
+	metrics.ResourceMetrics().Append(resourceMetrics)
+
+	// The actual timestamps will be non-deterministic, as they are adjusted
+	// based on the server's clock.
+	//
+	// Use a large delta so that we can allow for a significant amount of
+	// delay in the test environment affecting the timestamp adjustment.
+	const timeDelta = time.Hour
+	const allowedError = 5 // seconds
+
+	now := time.Now()
+	exportTimestamp := now.Add(-timeDelta)
+	resourceMetrics.Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"telemetry.sdk.elastic_export_timestamp": pdata.NewAttributeValueInt(exportTimestamp.UnixNano()),
+	})
+
+	// Timestamp relative to the export timestamp.
+	dataPointOffset := -time.Second
+	exportedDataPointTimestamp := exportTimestamp.Add(dataPointOffset)
+
+	instrumentationLibraryMetrics := pdata.NewInstrumentationLibraryMetrics()
+	resourceMetrics.InstrumentationLibraryMetrics().Append(instrumentationLibraryMetrics)
+
+	metric := pdata.NewMetric()
+	metric.SetName("int_gauge")
+	metric.SetDataType(pdata.MetricDataTypeIntGauge)
+	intGauge := metric.IntGauge()
+	intGauge.DataPoints().Resize(1)
+	intGauge.DataPoints().At(0).SetTimestamp(pdata.TimestampFromTime(exportedDataPointTimestamp))
+	intGauge.DataPoints().At(0).SetValue(1)
+	instrumentationLibraryMetrics.Metrics().Append(metric)
+
+	metricsets, _ := transformMetrics(t, metrics)
+	require.Len(t, metricsets, 1)
+	assert.InDelta(t, now.Add(dataPointOffset).Unix(), metricsets[0].Timestamp.Unix(), allowedError)
+}
+
+func TestMetricsLogging(t *testing.T) {
+	for _, level := range []logp.Level{logp.InfoLevel, logp.DebugLevel} {
+		t.Run(level.String(), func(t *testing.T) {
+			logp.DevelopmentSetup(logp.ToObserverOutput(), logp.WithLevel(level))
+			transformMetrics(t, pdata.NewMetrics())
+			logs := logp.ObserverLogs().TakeAll()
+			if level == logp.InfoLevel {
+				assert.Empty(t, logs)
+			} else {
+				assert.NotEmpty(t, logs)
+			}
+		})
+	}
 }
 
 func transformMetrics(t *testing.T, metrics pdata.Metrics) ([]*model.Metricset, otel.ConsumerStats) {

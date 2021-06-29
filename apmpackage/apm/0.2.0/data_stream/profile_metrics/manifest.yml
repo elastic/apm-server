@@ -1,5 +1,0 @@
-title: APM profiles
-type: metrics
-dataset: apm.profiling
-dataset_is_prefix: true
-ilm_policy: metrics-apm.profile_metrics-default_policy

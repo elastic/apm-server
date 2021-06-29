@@ -65,7 +65,7 @@ type Fetcher interface {
 
 // NewFetcher returns a new Fetcher based on the provided config.
 func NewFetcher(cfg *config.Config) Fetcher {
-	if cfg.AgentConfigs != nil {
+	if cfg.AgentConfigs != nil || !cfg.Kibana.Enabled {
 		// Direct agent configuration is present, disable communication
 		// with kibana.
 		return NewDirectFetcher(cfg.AgentConfigs)
@@ -74,11 +74,6 @@ func NewFetcher(cfg *config.Config) Fetcher {
 	if cfg.Kibana.Enabled {
 		client = kibana.NewConnectingClient(&cfg.Kibana)
 	}
-
-	if cfg.KibanaAgentConfig == nil {
-		cfg.KibanaAgentConfig = config.DefaultKibanaAgentConfig()
-	}
-
 	return NewKibanaFetcher(client, cfg.KibanaAgentConfig.Cache.Expiration)
 }
 

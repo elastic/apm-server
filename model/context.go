@@ -204,13 +204,13 @@ func (resp *Resp) fields() common.MapStr {
 	if resp == nil {
 		return nil
 	}
-	fields := mapStr(resp.MinimalResp.Fields())
+	fields := mapStr(resp.MinimalResp.Fields(false))
 	fields.maybeSetBool("headers_sent", resp.HeadersSent)
 	fields.maybeSetBool("finished", resp.Finished)
 	return common.MapStr(fields)
 }
 
-func (m *MinimalResp) Fields() common.MapStr {
+func (m *MinimalResp) Fields(ecsOnly bool) common.MapStr {
 	if m == nil {
 		return nil
 	}
@@ -218,10 +218,12 @@ func (m *MinimalResp) Fields() common.MapStr {
 	if m.StatusCode > 0 {
 		fields.set("status_code", m.StatusCode)
 	}
-	fields.maybeSetMapStr("headers", headerToFields(m.Headers))
-	fields.maybeSetFloat64ptr("transfer_size", m.TransferSize)
-	fields.maybeSetFloat64ptr("encoded_body_size", m.EncodedBodySize)
-	fields.maybeSetFloat64ptr("decoded_body_size", m.DecodedBodySize)
+	if !ecsOnly {
+		fields.maybeSetMapStr("headers", headerToFields(m.Headers))
+		fields.maybeSetFloat64ptr("transfer_size", m.TransferSize)
+		fields.maybeSetFloat64ptr("encoded_body_size", m.EncodedBodySize)
+		fields.maybeSetFloat64ptr("decoded_body_size", m.DecodedBodySize)
+	}
 	return common.MapStr(fields)
 }
 

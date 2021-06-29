@@ -19,60 +19,66 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenthelper"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/obsreport"
 )
 
-// Scrape metrics.
+// ScrapeMetrics scrapes metrics.
 type ScrapeMetrics func(context.Context) (pdata.MetricSlice, error)
 
-// Scrape resource metrics.
+// ScrapeResourceMetrics scrapes resource metrics.
 type ScrapeResourceMetrics func(context.Context) (pdata.ResourceMetricsSlice, error)
 
-// ScraperOption apply changes to internal options.
-type ScraperOption func(*componenthelper.ComponentSettings)
+type baseSettings struct {
+	componentOptions []componenthelper.Option
+}
 
+// ScraperOption apply changes to internal options.
+type ScraperOption func(*baseSettings)
+
+// BaseScraper is the base interface for scrapers.
 type BaseScraper interface {
 	component.Component
 
-	// Name returns the scraper name
-	Name() string
+	// ID returns the scraper id.
+	ID() config.ComponentID
 }
 
 // MetricsScraper is an interface for scrapers that scrape metrics.
 type MetricsScraper interface {
 	BaseScraper
-	Scrape(context.Context, string) (pdata.MetricSlice, error)
+	Scrape(context.Context, config.ComponentID) (pdata.MetricSlice, error)
 }
 
 // ResourceMetricsScraper is an interface for scrapers that scrape resource metrics.
 type ResourceMetricsScraper interface {
 	BaseScraper
-	Scrape(context.Context, string) (pdata.ResourceMetricsSlice, error)
+	Scrape(context.Context, config.ComponentID) (pdata.ResourceMetricsSlice, error)
 }
 
 var _ BaseScraper = (*baseScraper)(nil)
 
 type baseScraper struct {
 	component.Component
-	name string
+	id config.ComponentID
 }
 
-func (b baseScraper) Name() string {
-	return b.name
+func (b baseScraper) ID() config.ComponentID {
+	return b.id
 }
 
 // WithStart sets the function that will be called on startup.
-func WithStart(start componenthelper.Start) ScraperOption {
-	return func(s *componenthelper.ComponentSettings) {
-		s.Start = start
+func WithStart(start componenthelper.StartFunc) ScraperOption {
+	return func(o *baseSettings) {
+		o.componentOptions = append(o.componentOptions, componenthelper.WithStart(start))
 	}
 }
 
 // WithShutdown sets the function that will be called on shutdown.
-func WithShutdown(shutdown componenthelper.Shutdown) ScraperOption {
-	return func(s *componenthelper.ComponentSettings) {
-		s.Shutdown = shutdown
+func WithShutdown(shutdown componenthelper.ShutdownFunc) ScraperOption {
+	return func(o *baseSettings) {
+		o.componentOptions = append(o.componentOptions, componenthelper.WithShutdown(shutdown))
 	}
 }
 
@@ -91,15 +97,15 @@ func NewMetricsScraper(
 	scrape ScrapeMetrics,
 	options ...ScraperOption,
 ) MetricsScraper {
-	set := componenthelper.DefaultComponentSettings()
+	set := &baseSettings{}
 	for _, op := range options {
 		op(set)
 	}
 
 	ms := &metricsScraper{
 		baseScraper: baseScraper{
-			Component: componenthelper.NewComponent(set),
-			name:      name,
+			Component: componenthelper.New(set.componentOptions...),
+			id:        config.NewID(config.Type(name)),
 		},
 		ScrapeMetrics: scrape,
 	}
@@ -107,11 +113,15 @@ func NewMetricsScraper(
 	return ms
 }
 
-func (ms metricsScraper) Scrape(ctx context.Context, receiverName string) (pdata.MetricSlice, error) {
-	ctx = obsreport.ScraperContext(ctx, receiverName, ms.Name())
-	ctx = obsreport.StartMetricsScrapeOp(ctx, receiverName, ms.Name())
+func (ms metricsScraper) Scrape(ctx context.Context, receiverID config.ComponentID) (pdata.MetricSlice, error) {
+	ctx = obsreport.ScraperContext(ctx, receiverID, ms.ID())
+	ctx = obsreport.StartMetricsScrapeOp(ctx, receiverID, ms.ID())
 	metrics, err := ms.ScrapeMetrics(ctx)
-	obsreport.EndMetricsScrapeOp(ctx, metrics.Len(), err)
+	count := 0
+	if err == nil {
+		count = metrics.Len()
+	}
+	obsreport.EndMetricsScrapeOp(ctx, count, err)
 	return metrics, err
 }
 
@@ -126,19 +136,19 @@ var _ ResourceMetricsScraper = (*resourceMetricsScraper)(nil)
 // specified collection interval, reports observability information, and
 // passes the scraped resource metrics to the next consumer.
 func NewResourceMetricsScraper(
-	name string,
+	id config.ComponentID,
 	scrape ScrapeResourceMetrics,
 	options ...ScraperOption,
 ) ResourceMetricsScraper {
-	set := componenthelper.DefaultComponentSettings()
+	set := &baseSettings{}
 	for _, op := range options {
 		op(set)
 	}
 
 	rms := &resourceMetricsScraper{
 		baseScraper: baseScraper{
-			Component: componenthelper.NewComponent(set),
-			name:      name,
+			Component: componenthelper.New(set.componentOptions...),
+			id:        id,
 		},
 		ScrapeResourceMetrics: scrape,
 	}
@@ -146,11 +156,15 @@ func NewResourceMetricsScraper(
 	return rms
 }
 
-func (rms resourceMetricsScraper) Scrape(ctx context.Context, receiverName string) (pdata.ResourceMetricsSlice, error) {
-	ctx = obsreport.ScraperContext(ctx, receiverName, rms.Name())
-	ctx = obsreport.StartMetricsScrapeOp(ctx, receiverName, rms.Name())
+func (rms resourceMetricsScraper) Scrape(ctx context.Context, receiverID config.ComponentID) (pdata.ResourceMetricsSlice, error) {
+	ctx = obsreport.ScraperContext(ctx, receiverID, rms.ID())
+	ctx = obsreport.StartMetricsScrapeOp(ctx, receiverID, rms.ID())
 	resourceMetrics, err := rms.ScrapeResourceMetrics(ctx)
-	obsreport.EndMetricsScrapeOp(ctx, metricCount(resourceMetrics), err)
+	count := 0
+	if err == nil {
+		count = metricCount(resourceMetrics)
+	}
+	obsreport.EndMetricsScrapeOp(ctx, count, err)
 	return resourceMetrics, err
 }
 

@@ -40,7 +40,7 @@ func TestNonzeroHosts(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"instrumentation.enabled": true}), nil)
 		require.NoError(t, err)
-		assert.True(t, *cfg.SelfInstrumentation.Enabled)
+		assert.True(t, cfg.SelfInstrumentation.Enabled)
 		assert.Empty(t, cfg.SelfInstrumentation.Hosts)
 	})
 }

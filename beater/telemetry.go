@@ -92,20 +92,14 @@ func recordRootConfig(info beat.Info, rootCfg *common.Config) error {
 // recordAPMServerConfig records dynamic APM Server config properties for telemetry.
 // This should be called once each time runServer is called.
 func recordAPMServerConfig(cfg *config.Config) {
-	configMonitors.rumEnabled.Set(cfg.RumConfig.IsEnabled())
-	configMonitors.apiKeysEnabled.Set(cfg.APIKeyConfig.IsEnabled())
+	configMonitors.rumEnabled.Set(cfg.RumConfig.Enabled)
+	configMonitors.apiKeysEnabled.Set(cfg.AgentAuth.APIKey.Enabled)
 	configMonitors.kibanaEnabled.Set(cfg.Kibana.Enabled)
 	configMonitors.jaegerHTTPEnabled.Set(cfg.JaegerConfig.HTTP.Enabled)
 	configMonitors.jaegerGRPCEnabled.Set(cfg.JaegerConfig.GRPC.Enabled)
 	configMonitors.sslEnabled.Set(cfg.TLS.IsEnabled())
-	configMonitors.pipelinesEnabled.Set(cfg.Register.Ingest.Pipeline.IsEnabled())
-	configMonitors.pipelinesOverwrite.Set(cfg.Register.Ingest.Pipeline.ShouldOverwrite())
-
-	tailSamplingEnabled := cfg.Sampling.Tail != nil && cfg.Sampling.Tail.Enabled
-	tailSamplingPolicies := 0
-	if tailSamplingEnabled {
-		tailSamplingPolicies = len(cfg.Sampling.Tail.Policies)
-	}
-	configMonitors.tailSamplingEnabled.Set(tailSamplingEnabled)
-	configMonitors.tailSamplingPolicies.Set(int64(tailSamplingPolicies))
+	configMonitors.pipelinesEnabled.Set(cfg.Register.Ingest.Pipeline.Enabled)
+	configMonitors.pipelinesOverwrite.Set(cfg.Register.Ingest.Pipeline.Overwrite)
+	configMonitors.tailSamplingEnabled.Set(cfg.Sampling.Tail.Enabled)
+	configMonitors.tailSamplingPolicies.Set(int64(len(cfg.Sampling.Tail.Policies)))
 }

@@ -19,7 +19,6 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"time"
 
@@ -114,8 +113,8 @@ type Destination struct {
 
 // DestinationService contains information about the destination service of a span event
 type DestinationService struct {
-	Type     string
-	Name     string
+	Type     string // Deprecated
+	Name     string // Deprecated
 	Resource string
 }
 
@@ -135,15 +134,17 @@ func (db *DB) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (http *HTTP) fields() common.MapStr {
+func (http *HTTP) fields(ecsOnly bool) common.MapStr {
 	if http == nil {
 		return nil
 	}
 	var fields, url mapStr
-	if url.maybeSetString("original", http.URL) {
-		fields.set("url", common.MapStr(url))
+	if !ecsOnly {
+		if url.maybeSetString("original", http.URL) {
+			fields.set("url", common.MapStr(url))
+		}
 	}
-	response := http.Response.Fields()
+	response := http.Response.Fields(ecsOnly)
 	if http.StatusCode > 0 {
 		if response == nil {
 			response = common.MapStr{"status_code": http.StatusCode}
@@ -152,7 +153,11 @@ func (http *HTTP) fields() common.MapStr {
 		}
 	}
 	fields.maybeSetMapStr("response", response)
-	fields.maybeSetString("method", http.Method)
+	if ecsOnly {
+		fields.maybeSetString("request.method", http.Method)
+	} else {
+		fields.maybeSetString("method", http.Method)
+	}
 	return common.MapStr(fields)
 }
 
@@ -199,8 +204,7 @@ func (e *Span) appendBeatEvents(ctx context.Context, cfg *transform.Config, even
 	if cfg.DataStreams {
 		// Spans are stored in a "traces" data stream along with transactions.
 		fields[datastreams.TypeField] = datastreams.TracesType
-		dataset := fmt.Sprintf("%s.%s", TracesDataset, datastreams.NormalizeServiceName(e.Metadata.Service.Name))
-		fields[datastreams.DatasetField] = dataset
+		fields[datastreams.DatasetField] = TracesDataset
 	}
 
 	// first set the generic metadata
@@ -227,6 +231,10 @@ func (e *Span) appendBeatEvents(ctx context.Context, cfg *transform.Config, even
 		fields.set("experimental", e.Experimental)
 	}
 	fields.maybeSetMapStr("destination", e.Destination.fields())
+	fields.maybeSetMapStr("http", e.HTTP.fields(true))
+	if e.HTTP != nil {
+		fields.maybeSetString("url.original", e.HTTP.URL)
+	}
 
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
@@ -253,7 +261,7 @@ func (e *Span) fields(ctx context.Context, cfg *transform.Config) common.MapStr 
 	fields.set("duration", utility.MillisAsMicros(e.Duration))
 
 	fields.maybeSetMapStr("db", e.DB.fields())
-	fields.maybeSetMapStr("http", e.HTTP.fields())
+	fields.maybeSetMapStr("http", e.HTTP.fields(false))
 	fields.maybeSetMapStr("message", e.Message.Fields())
 	if destinationServiceFields := e.DestinationService.fields(); len(destinationServiceFields) > 0 {
 		common.MapStr(fields).Put("destination.service", destinationServiceFields)

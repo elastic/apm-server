@@ -28,6 +28,7 @@ import (
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 )
@@ -59,7 +60,18 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 		}
 	})
 	cfg := config.DefaultConfig()
-	mux, err := api.NewMux(beat.Info{}, cfg, nopReporter, processBatch, agentcfg.NewFetcher(cfg))
+	ratelimitStore, err := ratelimit.NewStore(1, 1, 1) // unused, arbitrary params
+	if err != nil {
+		return nil, err
+	}
+	mux, err := api.NewMux(
+		beat.Info{},
+		cfg,
+		nopReporter,
+		processBatch,
+		agentcfg.NewFetcher(cfg),
+		ratelimitStore,
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -7,7 +7,7 @@
                 "version": "3.14.0"
             },
             "byte_counter": 1,
-            "data_stream.dataset": "apm.internal.1234_service_12a3",
+            "data_stream.dataset": "apm.internal",
             "data_stream.type": "metrics",
             "dotted": {
                 "float": {
@@ -251,6 +251,62 @@
                             }
                         }
                     }
+                }
+            },
+            "user": {
+                "email": "user@mail.com",
+                "id": "axb123hg",
+                "name": "logged-in-user"
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:41.366Z",
+            "_doc_count": 6,
+            "_metric_descriptions": {
+                "latency_distribution": {
+                    "type": "histogram",
+                    "unit": "s"
+                }
+            },
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.type": "metrics",
+            "host": {
+                "ip": "192.0.0.1"
+            },
+            "labels": {
+                "tag1": "one",
+                "tag2": 2
+            },
+            "latency_distribution": {
+                "counts": [
+                    1,
+                    2,
+                    3
+                ],
+                "values": [
+                    1.1,
+                    2.2,
+                    3.3
+                ]
+            },
+            "process": {
+                "pid": 1234
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
                 }
             },
             "user": {

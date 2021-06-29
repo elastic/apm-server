@@ -28,23 +28,20 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/elastic/apm-server/approvaltest"
-	"github.com/elastic/apm-server/beater/api/ratelimit"
-	"github.com/elastic/apm-server/model"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 )
 
 func TestIntakeHandler(t *testing.T) {
-	var rateLimit, err = ratelimit.NewStore(1, 0, 0)
-	require.NoError(t, err)
 	for name, tc := range map[string]testcaseIntakeHandler{
 		"Method": {
 			path: "errors.ndjson",
@@ -59,11 +56,6 @@ func TestIntakeHandler(t *testing.T) {
 				return req
 			}(),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
-		},
-		"RateLimit": {
-			path:      "errors.ndjson",
-			rateLimit: rateLimit,
-			code:      http.StatusTooManyRequests, id: request.IDResponseErrorsRateLimit,
 		},
 		"BodyReader": {
 			path: "errors.ndjson",
@@ -141,11 +133,8 @@ func TestIntakeHandler(t *testing.T) {
 			// setup
 			tc.setup(t)
 
-			if tc.rateLimit != nil {
-				tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
-			}
 			// call handler
-			h := Handler(tc.processor, tc.batchProcessor)
+			h := Handler(tc.processor, emptyRequestMetadata, tc.batchProcessor)
 			h(tc.c)
 
 			require.Equal(t, string(tc.id), string(tc.c.Result.ID))
@@ -169,7 +158,6 @@ type testcaseIntakeHandler struct {
 	w              *httptest.ResponseRecorder
 	r              *http.Request
 	processor      *stream.Processor
-	rateLimit      *ratelimit.Store
 	batchProcessor model.BatchProcessor
 	path           string
 
@@ -183,7 +171,7 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 		tc.processor = stream.BackendProcessor(cfg)
 	}
 	if tc.batchProcessor == nil {
-		tc.batchProcessor = model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
+		tc.batchProcessor = modelprocessor.Nop{}
 	}
 
 	if tc.r == nil {
@@ -226,4 +214,8 @@ func compressedRequest(t *testing.T, compressionType string, compressPayload boo
 	req.Header.Set(headers.ContentType, "application/x-ndjson")
 	req.Header.Set(headers.ContentEncoding, compressionType)
 	return req
+}
+
+func emptyRequestMetadata(*request.Context) model.Metadata {
+	return model.Metadata{}
 }

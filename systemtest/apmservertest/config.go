@@ -156,6 +156,28 @@ type RUMConfig struct {
 
 	// ResponseHeaders holds headers to add to all APM Server RUM HTTP responses.
 	ResponseHeaders http.Header `json:"response_headers,omitempty"`
+
+	// RateLimit holds event rate limit configuration.
+	RateLimit *RUMRateLimitConfig `json:"event_rate,omitempty"`
+
+	Sourcemap *RUMSourcemapConfig `json:"source_mapping,omitempty"`
+}
+
+// RUMRateLimitConfig holds APM Server RUM event rate limit configuration.
+type RUMRateLimitConfig struct {
+	IPLimit    int `json:"lru_size,omitempty"`
+	EventLimit int `json:"limit,omitempty"`
+}
+
+// RUMSourcemapConfig holds APM Server RUM sourcemap configuration.
+type RUMSourcemapConfig struct {
+	Enabled bool                     `json:"enabled,omitempty"`
+	Cache   *RUMSourcemapCacheConfig `json:"cache,omitempty"`
+}
+
+// RUMSourcemapCacheConfig holds sourcemap cache expiration.
+type RUMSourcemapCacheConfig struct {
+	Expiration time.Duration `json:"expiration,omitempty"`
 }
 
 // DataStreamsConfig holds APM Server data streams configuration.

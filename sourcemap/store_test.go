@@ -18,8 +18,14 @@
 package sourcemap
 
 import (
+	"compress/zlib"
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -28,16 +34,21 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
+	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/sourcemap/test"
 )
 
-func Test_NewStore(t *testing.T) {
-	_, err := NewStore(nil, "", -1)
+func Test_newStore(t *testing.T) {
+	logger := logp.NewLogger(logs.Sourcemap)
+
+	_, err := newStore(nil, logger, -1)
 	require.Error(t, err)
 
-	f, err := NewStore(nil, "", 100)
+	f, err := newStore(nil, logger, 100)
 	require.NoError(t, err)
 	assert.NotNil(t, f.cache)
 }
@@ -142,6 +153,127 @@ func TestStore_Fetch(t *testing.T) {
 	})
 }
 
+func TestFetchTimeout(t *testing.T) {
+	var (
+		errs int64
+
+		apikey  = "supersecret"
+		name    = "webapp"
+		version = "1.0.0"
+		path    = "/my/path/to/bundle.js.map"
+		c       = http.DefaultClient
+	)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-r.Context().Done()
+	}))
+	defer ts.Close()
+
+	fleetCfg := &config.Fleet{
+		Hosts:        []string{ts.URL},
+		Protocol:     "https",
+		AccessAPIKey: apikey,
+		TLS:          nil,
+	}
+	cfgs := []config.SourceMapMetadata{
+		{
+			ServiceName:    name,
+			ServiceVersion: version,
+			BundleFilepath: path,
+			SourceMapURL:   "",
+		},
+	}
+	b, err := newFleetStore(c, fleetCfg, cfgs)
+	assert.NoError(t, err)
+	logger := logp.NewLogger(logs.Sourcemap)
+	store, err := newStore(b, logger, time.Minute)
+	assert.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+
+	_, err = store.Fetch(ctx, name, version, path)
+	time.Sleep(10 * time.Millisecond)
+	assert.True(t, errors.Is(err, context.DeadlineExceeded))
+	atomic.AddInt64(&errs, 1)
+
+	assert.Equal(t, int64(1), errs)
+}
+
+func TestConcurrentFetch(t *testing.T) {
+	for _, tc := range []struct {
+		calledWant, errWant, succsWant int64
+	}{
+		{calledWant: 1, errWant: 0, succsWant: 10},
+		{calledWant: 2, errWant: 1, succsWant: 9},
+		{calledWant: 4, errWant: 3, succsWant: 7},
+	} {
+		var (
+			called, errs, succs int64
+
+			apikey  = "supersecret"
+			name    = "webapp"
+			version = "1.0.0"
+			path    = "/my/path/to/bundle.js.map"
+			c       = http.DefaultClient
+
+			errsLeft = tc.errWant
+		)
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			atomic.AddInt64(&called, 1)
+			// Simulate the wait for a network request.
+			time.Sleep(50 * time.Millisecond)
+			if errsLeft > 0 {
+				errsLeft--
+				http.Error(w, "err", http.StatusInternalServerError)
+				return
+			}
+			wr := zlib.NewWriter(w)
+			defer wr.Close()
+			wr.Write([]byte(test.ValidSourcemap))
+		}))
+		defer ts.Close()
+
+		fleetCfg := &config.Fleet{
+			Hosts:        []string{ts.URL},
+			Protocol:     "https",
+			AccessAPIKey: apikey,
+			TLS:          nil,
+		}
+		cfgs := []config.SourceMapMetadata{
+			{
+				ServiceName:    name,
+				ServiceVersion: version,
+				BundleFilepath: path,
+				SourceMapURL:   "",
+			},
+		}
+		store, err := NewFleetStore(c, fleetCfg, cfgs, time.Minute)
+		assert.NoError(t, err)
+
+		var wg sync.WaitGroup
+		for i := 0; i < int(tc.succsWant+tc.errWant); i++ {
+			wg.Add(1)
+			go func() {
+				consumer, err := store.Fetch(context.Background(), name, version, path)
+				if err != nil {
+					atomic.AddInt64(&errs, 1)
+				} else {
+					assert.NotNil(t, consumer)
+					atomic.AddInt64(&succs, 1)
+				}
+
+				wg.Done()
+			}()
+		}
+
+		wg.Wait()
+		assert.Equal(t, tc.errWant, errs)
+		assert.Equal(t, tc.calledWant, called)
+		assert.Equal(t, tc.succsWant, succs)
+	}
+}
+
 func TestStore_Added(t *testing.T) {
 	name, version, path := "foo", "1.0.1", "/tmp"
 	key := "foo_1.0.1_/tmp"
@@ -202,7 +334,7 @@ func TestCleanupInterval(t *testing.T) {
 }
 
 func testStore(t *testing.T, client elasticsearch.Client) *Store {
-	store, err := NewStore(client, "apm-*sourcemap*", time.Minute)
+	store, err := NewElasticsearchStore(client, "apm-*sourcemap*", time.Minute)
 	require.NoError(t, err)
 	return store
 }

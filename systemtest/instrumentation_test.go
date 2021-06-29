@@ -180,6 +180,10 @@ func TestAPMServerInstrumentationAuth(t *testing.T) {
 }
 
 func TestAPMServerProfiling(t *testing.T) {
+	// TODO(axw) the heap profiling test specifically is flaky. This is
+	// a highly experimental feature, so disable system tests for now.
+	t.Skip("flaky test: https://github.com/elastic/apm-server/issues/5322")
+
 	test := func(t *testing.T, profilingConfig *apmservertest.ProfilingConfig, expectedMetrics []string) {
 		systemtest.CleanupElasticsearch(t)
 		srv := apmservertest.NewUnstartedServer(t)

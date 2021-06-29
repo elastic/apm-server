@@ -9,7 +9,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_agent_js",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -77,7 +77,7 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.apm_agent_js",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -140,6 +140,7 @@
             "transaction": {
                 "id": "611f4fa950f04631"
             },
+            "url.original": "http://localhost:8000/test/e2e/general-usecase/span",
             "user_agent": {
                 "original": "rum-2.0"
             }

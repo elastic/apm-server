@@ -30,7 +30,9 @@ import (
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
@@ -46,8 +48,25 @@ type httpServer struct {
 	grpcListener net.Listener
 }
 
-func newHTTPServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, batchProcessor model.BatchProcessor, f agentcfg.Fetcher) (*httpServer, error) {
-	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, f)
+func newHTTPServer(
+	logger *logp.Logger,
+	info beat.Info,
+	cfg *config.Config,
+	tracer *apm.Tracer,
+	reporter publish.Reporter,
+	batchProcessor model.BatchProcessor,
+	agentcfgFetcher agentcfg.Fetcher,
+	ratelimitStore *ratelimit.Store,
+) (*httpServer, error) {
+
+	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
+	batchProcessor = modelprocessor.Chained{
+		model.ProcessBatchFunc(rateLimitBatchProcessor),
+		modelprocessor.MetadataProcessorFunc(verifyAuthorizedFor),
+		batchProcessor,
+	}
+
+	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, agentcfgFetcher, ratelimitStore)
 	if err != nil {
 		return nil, err
 	}
@@ -96,8 +115,7 @@ func (h *httpServer) start() error {
 		h.logger.Infof("Listening on: %s:%s", addr.Network(), addr.String())
 	}
 
-	switch h.cfg.RumConfig.IsEnabled() {
-	case true:
+	if h.cfg.RumConfig.Enabled {
 		h.logger.Info("RUM endpoints enabled!")
 		for _, s := range h.cfg.RumConfig.AllowOrigins {
 			if s == "*" {
@@ -105,7 +123,7 @@ func (h *httpServer) start() error {
 				break
 			}
 		}
-	case false:
+	} else {
 		h.logger.Info("RUM endpoints disabled.")
 	}
 
@@ -126,7 +144,7 @@ func (h *httpServer) start() error {
 		h.logger.Info("SSL enabled.")
 		return h.ServeTLS(lis, "", "")
 	}
-	if h.cfg.SecretToken != "" {
+	if h.cfg.AgentAuth.SecretToken != "" {
 		h.logger.Warn("Secret token is set, but SSL is not enabled.")
 	}
 	h.logger.Info("SSL disabled.")

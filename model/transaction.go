@@ -18,7 +18,6 @@
 package model
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -132,8 +131,7 @@ func (e *Transaction) appendBeatEvents(cfg *transform.Config, events []beat.Even
 	if cfg.DataStreams {
 		// Transactions are stored in a "traces" data stream along with spans.
 		fields[datastreams.TypeField] = datastreams.TracesType
-		dataset := fmt.Sprintf("%s.%s", TracesDataset, datastreams.NormalizeServiceName(e.Metadata.Service.Name))
-		fields[datastreams.DatasetField] = dataset
+		fields[datastreams.DatasetField] = TracesDataset
 	}
 
 	// first set generic metadata (order is relevant)

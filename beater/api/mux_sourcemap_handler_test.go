@@ -33,7 +33,7 @@ import (
 func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
 	t.Run("Unauthorized", func(t *testing.T) {
 		cfg := cfgEnabledRUM()
-		cfg.SecretToken = "1234"
+		cfg.AgentAuth.SecretToken = "1234"
 		rec, err := requestToMuxerWithPattern(cfg, AssetSourcemapPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusUnauthorized, rec.Code)
@@ -42,7 +42,7 @@ func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
 
 	t.Run("Authorized", func(t *testing.T) {
 		cfg := cfgEnabledRUM()
-		cfg.SecretToken = "1234"
+		cfg.AgentAuth.SecretToken = "1234"
 		h := map[string]string{headers.Authorization: "Bearer 1234"}
 		rec, err := requestToMuxerWithHeader(cfg, AssetSourcemapPath, http.MethodPost, h)
 		require.NoError(t, err)
@@ -61,10 +61,8 @@ func TestSourcemapHandler_KillSwitchMiddleware(t *testing.T) {
 
 	t.Run("OffSourcemap", func(t *testing.T) {
 		cfg := config.DefaultConfig()
-		rum := true
-		cfg.RumConfig.Enabled = &rum
-		cfg.RumConfig.SourceMapping.Enabled = new(bool)
-		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), AssetSourcemapPath)
+		cfg.RumConfig.SourceMapping.Enabled = true
+		rec, err := requestToMuxerWithPattern(cfg, AssetSourcemapPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusForbidden, rec.Code)
 		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
@@ -80,7 +78,9 @@ func TestSourcemapHandler_KillSwitchMiddleware(t *testing.T) {
 	})
 
 	t.Run("On", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(cfgEnabledRUM(), AssetSourcemapPath)
+		cfg := cfgEnabledRUM()
+		cfg.RumConfig.SourceMapping.Enabled = true
+		rec, err := requestToMuxerWithPattern(cfg, AssetSourcemapPath)
 		require.NoError(t, err)
 		require.NotEqual(t, http.StatusForbidden, rec.Code)
 		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())

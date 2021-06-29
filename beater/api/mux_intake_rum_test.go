@@ -18,6 +18,8 @@
 package api
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -30,10 +32,12 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/middleware"
+	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/beater/request"
 )
 
 func TestOPTIONS(t *testing.T) {
+	ratelimitStore, _ := ratelimit.NewStore(1, 1, 1)
 	requestTaken := make(chan struct{}, 1)
 	done := make(chan struct{}, 1)
 
@@ -44,7 +48,7 @@ func TestOPTIONS(t *testing.T) {
 			requestTaken <- struct{}{}
 			<-done
 		},
-		rumMiddleware(cfg, nil, intake.MonitoringMap)...)
+		rumMiddleware(cfg, nil, ratelimitStore, intake.MonitoringMap)...)
 
 	// use this to block the single allowed concurrent requests
 	go func() {
@@ -67,7 +71,7 @@ func TestOPTIONS(t *testing.T) {
 
 func TestRUMHandler_NoAuthorizationRequired(t *testing.T) {
 	cfg := cfgEnabledRUM()
-	cfg.SecretToken = "1234"
+	cfg.AgentAuth.SecretToken = "1234"
 	rec, err := requestToMuxerWithPattern(cfg, IntakeRUMPath)
 	require.NoError(t, err)
 	assert.NotEqual(t, http.StatusUnauthorized, rec.Code)
@@ -121,10 +125,42 @@ func TestRumHandler_MonitoringMiddleware(t *testing.T) {
 	}
 }
 
+func TestRUMHandler_AllowedServiceNames(t *testing.T) {
+	payload, err := ioutil.ReadFile("../../testdata/intake-v2/transactions_spans_rum.ndjson")
+	require.NoError(t, err)
+
+	for _, test := range []struct {
+		AllowServiceNames []string
+		Allowed           bool
+	}{{
+		AllowServiceNames: nil,
+		Allowed:           true, // none specified = all allowed
+	}, {
+		AllowServiceNames: []string{"apm-agent-js"}, // matches what's in test data
+		Allowed:           true,
+	}, {
+		AllowServiceNames: []string{"reject_everything"},
+		Allowed:           false,
+	}} {
+		cfg := cfgEnabledRUM()
+		cfg.RumConfig.AllowServiceNames = test.AllowServiceNames
+		h := newTestMux(t, cfg)
+
+		req := httptest.NewRequest(http.MethodPost, "/intake/v2/rum/events", bytes.NewReader(payload))
+		req.Header.Set("Content-Type", "application/x-ndjson")
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+		if test.Allowed {
+			assert.Equal(t, http.StatusAccepted, w.Code)
+		} else {
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+		}
+	}
+}
+
 func cfgEnabledRUM() *config.Config {
 	cfg := config.DefaultConfig()
-	t := true
-	cfg.RumConfig.Enabled = &t
+	cfg.RumConfig.Enabled = true
 	return cfg
 }
 

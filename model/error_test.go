@@ -307,7 +307,7 @@ func TestEvents(t *testing.T) {
 			Error: &Error{Timestamp: timestamp, Metadata: md},
 			Output: common.MapStr{
 				"data_stream.type":    "logs",
-				"data_stream.dataset": "apm.error.myservice",
+				"data_stream.dataset": "apm.error",
 				"agent":               common.MapStr{"name": "go", "version": "1.0"},
 				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
 				"error": common.MapStr{
@@ -322,7 +322,7 @@ func TestEvents(t *testing.T) {
 			Error: &Error{Timestamp: timestamp, Metadata: md, TransactionSampled: &sampledFalse},
 			Output: common.MapStr{
 				"data_stream.type":    "logs",
-				"data_stream.dataset": "apm.error.myservice",
+				"data_stream.dataset": "apm.error",
 				"transaction":         common.MapStr{"sampled": false},
 				"agent":               common.MapStr{"name": "go", "version": "1.0"},
 				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
@@ -338,7 +338,7 @@ func TestEvents(t *testing.T) {
 			Error: &Error{Timestamp: timestamp, Metadata: md, TransactionType: transactionType},
 			Output: common.MapStr{
 				"data_stream.type":    "logs",
-				"data_stream.dataset": "apm.error.myservice",
+				"data_stream.dataset": "apm.error",
 				"transaction":         common.MapStr{"type": "request"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
@@ -371,7 +371,7 @@ func TestEvents(t *testing.T) {
 
 			Output: common.MapStr{
 				"data_stream.type":    "logs",
-				"data_stream.dataset": "apm.error.myservice",
+				"data_stream.dataset": "apm.error",
 				"labels":              common.MapStr{"key": true, "label": 101},
 				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
 				"agent":               common.MapStr{"name": "go", "version": "1.0"},
@@ -805,7 +805,7 @@ func TestSourcemapping(t *testing.T) {
 	assert.Equal(t, 1, *event.Exception.Stacktrace[0].Lineno)
 
 	// transform with sourcemap store
-	store, err := sourcemap.NewStore(test.ESClientWithValidSourcemap(t), "apm-*sourcemap*", time.Minute)
+	store, err := sourcemap.NewElasticsearchStore(test.ESClientWithValidSourcemap(t), "apm-*sourcemap*", time.Minute)
 	require.NoError(t, err)
 	transformedWithSourcemap := event.fields(context.Background(), &transform.Config{
 		RUM: transform.RUMConfig{SourcemapStore: store},

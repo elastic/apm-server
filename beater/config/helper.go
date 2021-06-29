@@ -20,33 +20,7 @@ package config
 import (
 	"fmt"
 	"net/url"
-	"reflect"
-	"strconv"
-
-	"github.com/elastic/go-ucfg"
 )
-
-func init() {
-	if err := ucfg.RegisterValidator("maxlen", func(v interface{}, param string) error {
-		if v == nil {
-			return nil
-		}
-		switch v := reflect.ValueOf(v); v.Kind() {
-		case reflect.Array, reflect.Map, reflect.Slice:
-			maxlen, err := strconv.ParseInt(param, 0, 64)
-			if err != nil {
-				return err
-			}
-
-			if length := int64(v.Len()); length > maxlen {
-				return fmt.Errorf("requires length (%d) <= %v", length, param)
-			}
-		}
-		return nil
-	}); err != nil {
-		panic(err)
-	}
-}
 
 type urls []*url.URL
 

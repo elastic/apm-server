@@ -6,7 +6,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.unknown",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "foo.bar.com",
@@ -17,6 +17,12 @@
             },
             "host": {
                 "hostname": "host-abc"
+            },
+            "http": {
+                "request.method": "get",
+                "response": {
+                    "status_code": 400
+                }
             },
             "labels": {
                 "component": "foo",
@@ -68,7 +74,8 @@
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
-            }
+            },
+            "url.original": "http://foo.bar.com?a=12"
         },
         {
             "@timestamp": "2019-12-16T12:46:58.000Z",
@@ -76,7 +83,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error.unknown",
+            "data_stream.dataset": "apm.error",
             "data_stream.type": "logs",
             "error": {
                 "exception": [
@@ -118,7 +125,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error.unknown",
+            "data_stream.dataset": "apm.error",
             "data_stream.type": "logs",
             "error": {
                 "grouping_key": "23b7ac1bdf1ca957f9f581cfadee467c",
@@ -155,7 +162,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error.unknown",
+            "data_stream.dataset": "apm.error",
             "data_stream.type": "logs",
             "error": {
                 "exception": [
@@ -194,7 +201,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error.unknown",
+            "data_stream.dataset": "apm.error",
             "data_stream.type": "logs",
             "error": {
                 "exception": [
@@ -233,7 +240,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error.unknown",
+            "data_stream.dataset": "apm.error",
             "data_stream.type": "logs",
             "error": {
                 "exception": [
@@ -272,7 +279,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error.unknown",
+            "data_stream.dataset": "apm.error",
             "data_stream.type": "logs",
             "error": {
                 "grouping_key": "c9221918248f05433f6b81c46a666aee",

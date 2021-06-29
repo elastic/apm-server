@@ -58,7 +58,7 @@ func TestSpanTransform(t *testing.T) {
 			Span: Span{Timestamp: timestamp, Metadata: metadata},
 			Output: common.MapStr{
 				"data_stream.type":    "traces",
-				"data_stream.dataset": "apm.myservice",
+				"data_stream.dataset": "apm",
 				"processor":           common.MapStr{"event": "span", "name": "transaction"},
 				"service":             common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"span": common.MapStr{
@@ -76,7 +76,7 @@ func TestSpanTransform(t *testing.T) {
 			Span: Span{Timestamp: timestamp, Metadata: metadata, Outcome: "success"},
 			Output: common.MapStr{
 				"data_stream.type":    "traces",
-				"data_stream.dataset": "apm.myservice",
+				"data_stream.dataset": "apm",
 				"processor":           common.MapStr{"event": "span", "name": "transaction"},
 				"service":             common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"span": common.MapStr{
@@ -125,7 +125,7 @@ func TestSpanTransform(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"data_stream.type":    "traces",
-				"data_stream.dataset": "apm.myservice",
+				"data_stream.dataset": "apm",
 				"span": common.MapStr{
 					"id":       hexID,
 					"duration": common.MapStr{"us": 1200},
@@ -170,6 +170,11 @@ func TestSpanTransform(t *testing.T) {
 				"parent":      common.MapStr{"id": parentID},
 				"destination": common.MapStr{"address": address, "ip": address, "port": port},
 				"event":       common.MapStr{"outcome": "unknown"},
+				"http": common.MapStr{
+					"response":       common.MapStr{"status_code": statusCode},
+					"request.method": "get",
+				},
+				"url.original": url,
 			},
 		},
 	}

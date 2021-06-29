@@ -35,7 +35,7 @@ You can configure API keys to authorize requests to the APM Server.
 NOTE: API keys are sent as plain-text,
 so they only provide security when used in combination with <<ssl-setup,SSL/TLS>>.
 
-By enabling `apm-server.api_key.enabled: true`, you ensure that only agents with a valid API Key
+By enabling `apm-server.auth.api_key.enabled: true`, you ensure that only agents with a valid API Key
 are able to successfully use APM Server's API (except for RUM endpoints).
 
 To secure the communication between APM Agents and the APM Server with API keys:
@@ -53,16 +53,16 @@ as there is no way to prevent them from being publicly exposed.
 === Enable and configure API keys
 
 API keys are disabled by default. You can change this, and additional settings,
-in the `apm-server.api_key` section of the +{beatname_lc}.yml+ configuration file.
+in the `apm-server.auth.api_key` section of the +{beatname_lc}.yml+ configuration file.
 
 At a minimum, you must enable API keys,
 and should set a limit on the number of unique API keys that APM Server allows per minute.
-Here's an example `apm-server.api_key` config using 50 unique API keys:
+Here's an example `apm-server.auth.api_key` config using 50 unique API keys:
 
 [source,yaml]
 ----
-apm-server.api_key.enabled: true <1>
-apm-server.api_key.limit: 50 <2>
+apm-server.auth.api_key.enabled: true <1>
+apm-server.auth.api_key.limit: 50 <2>
 ----
 <1> Enables API keys
 <2> Restricts the number of unique API keys that {es} allows each minute.
@@ -290,10 +290,15 @@ See the relevant agent documentation for additional information:
 * *Python agent*: {apm-py-ref}/configuration.html#config-api-key[`api_key`]
 * *Ruby agent*: {apm-ruby-ref}/configuration.html#config-api-key[`api_key`]
 
+[float]
 [[api-key-settings]]
-=== `api_key.*` configuration options
+=== API key configuration options
 
-You can specify the following options in the `apm-server.api_key.*` section of the
+[float]
+[[api-key-auth-settings]]
+==== `auth.api_key.*` configuration options
+
+You can specify the following options in the `apm-server.auth.api_key.*` section of the
 +{beatname_lc}.yml+ configuration file.
 They apply to API key communication between the APM Server and APM Agents.
 
@@ -318,9 +323,9 @@ The minimum value for this setting should be the number of API keys configured i
 The default `limit` is `100`.
 
 [float]
-=== `api_key.elasticsearch.*` configuration options
+==== `auth.api_key.elasticsearch.*` configuration options
 
-All of the `api_key.elasticsearch.*` configurations are optional.
+All of the `auth.api_key.elasticsearch.*` configurations are optional.
 If none are set, configuration settings from the `apm-server.output` section will be reused.
 
 [float]
@@ -357,7 +362,7 @@ The http request timeout in seconds for the Elasticsearch request.
 If nothing is configured, configuration settings from the `output` section will be reused.
 
 [float]
-==== `api_key.elasticsearch.ssl.*` configuration options
+==== `auth.api_key.elasticsearch.ssl.*` configuration options
 
 SSL is off by default. Set `elasticsearch.protocol` to `https` if you want to enable `https`.
 
@@ -424,6 +429,15 @@ Valid options are `never`, `once`, and `freely`. Default is `never`.
 * `once` - Allows a remote server to request renegotiation once per connection.
 * `freely` - Allows a remote server to repeatedly request renegotiation.
 
+[float]
+[[api-key-settings-legacy]]
+==== `api_key.*` configuration options
+
+deprecated::[7.14.0, Replaced by `auth.api_key.*`. See <<api-key-auth-settings>>]
+
+In versions prior to 7.14.0, API Key authorization was known as `apm-server.api_key`. In 7.14.0 this was renamed `apm-server.auth.api_key`.
+The old configuration will continue to work until 8.0.0, and the new configuration will take precedence.
+
 [[secret-token]]
 === Secret token
 
@@ -456,7 +470,7 @@ Here's how you set the secret token in APM Server:
 
 [source,yaml]
 ----
-apm-server.secret_token: <secret-token>
+apm-server.auth.secret_token: <secret-token>
 ----
 
 We recommend saving the token in the APM Server <<keystore>>.
