@@ -30,7 +30,7 @@ import (
 )
 
 func TestFlattenAndFormat(t *testing.T) {
-	tlsFieldsCount := 0
+	tlsFieldsCount, loggingFieldCount := 0, 0
 	cc, err := common.NewConfigWithYAML([]byte(serverYAML), "apm-server.yml")
 	c := ucfg.Config(*cc)
 	require.NoError(t, err)
@@ -42,10 +42,25 @@ func TestFlattenAndFormat(t *testing.T) {
 	assert.Contains(t, flat, "schema")
 
 	flat = flat["schema"].(map[string]interface{})
-	for k := range flat {
+	for k, v := range flat {
 		assert.NotContains(t, k, "elasticsearch")
 		assert.NotContains(t, k, "kibana")
 		assert.NotContains(t, k, "instrumentation")
+		assert.NotContains(t, k, "path.")
+		assert.NotEqual(t, k, "name")
+		assert.NotContains(t, k, "gc_percent")
+		assert.NotContains(t, k, "xpack.monitoring.enabled")
+		if strings.HasPrefix(k, "logging.") {
+			switch k {
+			case "logging.level", "logging.selectors", "logging.metrics.enabled", "logging.metrics.period":
+				loggingFieldCount++
+			default:
+				assert.Fail(t, fmt.Sprintf("should not be present: %s", k))
+			}
+		}
+		if k == "apm-server.host" {
+			assert.Equal(t, "0.0.0.0:8200", v)
+		}
 		if strings.HasPrefix(k, "apm-server.ssl.") {
 			switch k[15:] {
 			case "enabled", "certificate", "key":
@@ -78,11 +93,26 @@ var serverYAML = `apm-server:
     certificate: 'my-cert'
     key_passphrase: 'pass-phrase'
     verify_mode: 'strict'
+  name: 'test-name'
   rum:
     enabled: false
     event_rate:
       limit: 300
       lru_size: 1000
+gc_percent: 70
+logging:
+  level: 'debug'
+  selectors: ['intake']
+  metrics:
+    enabled: true
+    period: 10s
+  files.name: "apm.log"
+  json: true
+path.config: "/app/config"
+path.data: "/app/data"
+path:
+  home: "/app/"
+xpack.monitoring.enabled: true
 output.elasticsearch:
   hosts: ["localhost:9200"]
   enabled: true
