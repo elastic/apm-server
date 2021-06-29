@@ -24,7 +24,7 @@ import "fmt"
 type JavaAttacherConfig struct {
 	Enabled        bool                `config:"enabled"`
 	DiscoveryRules []map[string]string `config:"discovery-rules"`
-	Config         map[string]string   `config:"config"`
+	Config         []string            `config:"config"`
 	JavaBin        string
 }
 

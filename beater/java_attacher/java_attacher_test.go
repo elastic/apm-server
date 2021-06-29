@@ -62,8 +62,44 @@ func TestBuild(t *testing.T) {
 	cfg := config.JavaAttacherConfig{
 		Enabled:        true,
 		DiscoveryRules: args,
-		Config:         map[string]string{"service_name": "my-cool-service", "server_url": "http://localhost:8200"},
-		JavaBin:        "/usr/bin/java",
+		Config: []string{
+			"service_name=my-cool-service",
+			"server_url=http://localhost:8200",
+		},
+		JavaBin: "/usr/bin/java",
+	}
+
+	attacher, err := New(cfg)
+	require.NoError(t, err)
+
+	cmd := attacher.build(context.Background())
+
+	want := "/usr/bin/java -jar /bin/apm-agent-attach-cli-1.24.0-slim.jar --continuous " +
+		"--exclude-user root --include-pid 123 --include-pid 456 " +
+		"--include-main MyApplication --include-main my-application.jar --include-vmarg elastic.apm.agent.attach=true " +
+		"--config service_name=my-cool-service --config server_url=http://localhost:8200"
+
+	cmdArgs := strings.Join(cmd.Args, " ")
+	assert.Equal(t, want, cmdArgs)
+}
+
+func TestEscape(t *testing.T) {
+	args := []map[string]string{
+		{"exclude-user": "root; bash -c 'touch arbitrary_execution';"},
+		{"include-pid": ";bash -c 'touch arbitrary_execution'"},
+		{"include-pid": "456"},
+		{"include-main": "MyApplication"},
+		{"include-main": "my-application.jar"},
+		{"include-vmarg": "elastic.apm.agent.attach=true"},
+	}
+	cfg := config.JavaAttacherConfig{
+		Enabled:        true,
+		DiscoveryRules: args,
+		Config: []string{
+			"service_name=my-cool-service",
+			"server_url=http://localhost:8200",
+		},
+		JavaBin: "/usr/bin/java",
 	}
 
 	attacher, err := New(cfg)
