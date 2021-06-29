@@ -19,6 +19,7 @@ package agentcfg
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/elastic/apm-server/model"
@@ -64,8 +65,10 @@ func (r Reporter) Fetch(ctx context.Context, query Query) (Result, error) {
 }
 
 func (r Reporter) Run(ctx context.Context) error {
-	// keeps track of the agent_configs that have been queried and applied
-	// to agents.
+	var wg sync.WaitGroup
+	defer wg.Wait()
+
+	// applied tracks the etags of agent config that has been applied.
 	applied := make(map[string]struct{})
 	t := time.NewTicker(r.interval)
 	defer t.Stop()
@@ -92,7 +95,9 @@ func (r Reporter) Run(ctx context.Context) error {
 		// Reset applied map, so that we report only configs applied
 		// during a given iteration.
 		applied = make(map[string]struct{})
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			if err := r.p.ProcessBatch(ctx, batch); err != nil {
 				r.logger.Errorf("error sending applied agent configs to kibana: %v", err)
 			}
