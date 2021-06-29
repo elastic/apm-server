@@ -449,6 +449,9 @@ as there is no way to prevent them from being publicly exposed.
 
 **APM Server configuration**
 
+NOTE: {ess} and {ece} deployments provision a secret token when the deployment is created.
+The secret token can be found and reset in the {ecloud} console under **Deployments** -- **APM & Fleet**.
+
 Here's how you set the secret token in APM Server:
 
 [source,yaml]
