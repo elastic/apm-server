@@ -20,6 +20,7 @@ package javaattacher
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -75,6 +76,9 @@ func (j JavaAttacher) Run(ctx context.Context) error {
 	defer close(donec)
 	go func() {
 		scanner := bufio.NewScanner(stdout)
+		b := struct {
+			Message string `json:"message"`
+		}{}
 		for scanner.Scan() {
 			select {
 			case <-ctx.Done():
@@ -85,7 +89,8 @@ func (j JavaAttacher) Run(ctx context.Context) error {
 				return
 			default:
 			}
-			j.logger.Info(scanner.Text())
+			json.Unmarshal(scanner.Bytes(), &b)
+			j.logger.Info(b.Message)
 		}
 		if err := scanner.Err(); err != nil {
 			j.logger.Errorf("error scanning attacher logs: %v", err)
