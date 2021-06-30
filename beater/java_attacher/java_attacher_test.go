@@ -62,9 +62,9 @@ func TestBuild(t *testing.T) {
 	cfg := config.JavaAttacherConfig{
 		Enabled:        true,
 		DiscoveryRules: args,
-		Config: []string{
-			"service_name=my-cool-service",
-			"server_url=http://localhost:8200",
+		Config: map[string]string{
+			"service_name": "my-cool-service",
+			"server_url":   "http://localhost:8200",
 		},
 		JavaBin: "/usr/bin/java",
 	}

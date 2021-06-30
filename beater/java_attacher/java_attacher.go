@@ -113,8 +113,8 @@ func (j JavaAttacher) formatArgs() []string {
 			args = append(args, makeArg("--"+name, value))
 		}
 	}
-	for _, arg := range j.cfg.Config {
-		args = append(args, "--config "+arg)
+	for k, v := range j.cfg.Config {
+		args = append(args, "--config "+k+"="+v)
 	}
 
 	return args
