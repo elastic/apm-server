@@ -655,11 +655,7 @@ func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping, fleetCfg *c
 		// Default for es is 90s :shrug:
 		timeout := 30 * time.Second
 		dialer := transport.NetDialer(timeout)
-		tlsDialer, err := transport.TLSDialer(dialer, tlsConfig, timeout)
-		if err != nil {
-			return nil, err
-		}
-
+		tlsDialer := transport.TLSDialer(dialer, tlsConfig, timeout)
 		rt = &http.Transport{
 			Proxy:           http.ProxyFromEnvironment,
 			Dial:            dialer.Dial,

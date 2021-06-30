@@ -147,10 +147,7 @@ func httpTransport(cfg *Config) (*http.Transport, error) {
 		}
 	}
 	dialer := transport.NetDialer(cfg.Timeout)
-	tlsDialer, err := transport.TLSDialer(dialer, tlsConfig, cfg.Timeout)
-	if err != nil {
-		return nil, err
-	}
+	tlsDialer := transport.TLSDialer(dialer, tlsConfig, cfg.Timeout)
 	return &http.Transport{
 		Proxy:           proxy,
 		Dial:            dialer.Dial,
