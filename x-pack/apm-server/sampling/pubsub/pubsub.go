@@ -27,6 +27,9 @@ import (
 	logs "github.com/elastic/apm-server/log"
 )
 
+// ErrClosed may be returned by Pubsub methods after the Close method is called.
+var ErrClosed = errors.New("pubsub closed")
+
 var errIndexNotFound = errors.New("index not found")
 
 // Pubsub provides a means of publishing and subscribing to sampled trace IDs,
@@ -34,12 +37,12 @@ var errIndexNotFound = errors.New("index not found")
 //
 // An independent process will periodically reap old documents in the index.
 type Pubsub struct {
-	config  Config
-	indexer elasticsearch.BulkIndexer
+	config Config
 }
 
 // New returns a new Pubsub which can publish and subscribe sampled trace IDs,
-// using Elasticsearch for storage.
+// using Elasticsearch for storage. The Pubsub.Close method must be called when
+// it is no longer needed.
 //
 // Documents are expected to be indexed through a pipeline which sets the
 // `event.ingested` timestamp field. Another process will periodically reap
@@ -51,37 +54,55 @@ func New(config Config) (*Pubsub, error) {
 	if config.Logger == nil {
 		config.Logger = logp.NewLogger(logs.Sampling)
 	}
-	indexer, err := config.Client.NewBulkIndexer(elasticsearch.BulkIndexerConfig{
-		Index:         config.DataStream.String(),
-		FlushInterval: config.FlushInterval,
+	return &Pubsub{config: config}, nil
+}
+
+// PublishSampledTraceIDs receives trace IDs from the traceIDs channel,
+// indexing them into Elasticsearch. PublishSampledTraceIDs returns when
+// ctx is canceled.
+func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceIDs <-chan string) error {
+	indexer, err := p.config.Client.NewBulkIndexer(elasticsearch.BulkIndexerConfig{
+		Index:         p.config.DataStream.String(),
+		FlushInterval: p.config.FlushInterval,
 		OnError: func(ctx context.Context, err error) {
-			config.Logger.With(logp.Error(err)).Debug("publishing sampled trace IDs failed")
+			p.config.Logger.With(logp.Error(err)).Debug("publishing sampled trace IDs failed")
 		},
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &Pubsub{
-		config:  config,
-		indexer: indexer,
-	}, nil
-}
 
-// PublishSampledTraceIDs bulk indexes traceIDs into Elasticsearch.
-func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceID ...string) error {
-	now := time.Now()
-	for _, id := range traceID {
-		var json fastjson.Writer
-		p.marshalTraceIDDocument(&json, id, now, p.config.DataStream)
-		if err := p.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
-			Action:    "create",
-			Body:      bytes.NewReader(json.Bytes()),
-			OnFailure: p.onBulkIndexerItemFailure,
-		}); err != nil {
-			return err
+	var closeIndexerOnce sync.Once
+	var closeIndexerErr error
+	closeIndexer := func() error {
+		closeIndexerOnce.Do(func() {
+			ctx, cancel := context.WithTimeout(context.Background(), p.config.FlushInterval)
+			defer cancel()
+			closeIndexerErr = indexer.Close(ctx)
+		})
+		return closeIndexerErr
+	}
+	defer closeIndexer()
+
+	for {
+		select {
+		case <-ctx.Done():
+			if err := ctx.Err(); err != context.Canceled {
+				return err
+			}
+			return closeIndexer()
+		case id := <-traceIDs:
+			var json fastjson.Writer
+			p.marshalTraceIDDocument(&json, id, time.Now(), p.config.DataStream)
+			if err := indexer.Add(ctx, elasticsearch.BulkIndexerItem{
+				Action:    "create",
+				Body:      bytes.NewReader(json.Bytes()),
+				OnFailure: p.onBulkIndexerItemFailure,
+			}); err != nil {
+				return err
+			}
 		}
 	}
-	return nil
 }
 
 func (p *Pubsub) onBulkIndexerItemFailure(ctx context.Context, item elasticsearch.BulkIndexerItem, resp elasticsearch.BulkIndexerResponseItem, err error) {
