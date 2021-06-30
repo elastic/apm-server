@@ -153,22 +153,24 @@ func TestStore_Fetch(t *testing.T) {
 	})
 }
 
-func TestFetchTimeout(t *testing.T) {
-	// TODO(stn): fix this flaky test
-	t.Skip()
+func TestFetchContext(t *testing.T) {
 	var (
-		errs int64
-
-		apikey      = "supersecret"
-		name        = "webapp"
-		version     = "1.0.0"
-		path        = "/my/path/to/bundle.js.map"
-		c           = http.DefaultClient
-		ctx, cancel = context.WithTimeout(context.Background(), time.Millisecond)
+		apikey  = "supersecret"
+		name    = "webapp"
+		version = "1.0.0"
+		path    = "/my/path/to/bundle.js.map"
+		c       = http.DefaultClient
 	)
-	defer cancel()
+
+	requestReceived := make(chan struct{})
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		<-ctx.Done()
+		select {
+		case requestReceived <- struct{}{}:
+		case <-r.Context().Done():
+			return
+		}
+		// block until the client cancels the request
+		<-r.Context().Done()
 	}))
 	defer ts.Close()
 
@@ -190,13 +192,30 @@ func TestFetchTimeout(t *testing.T) {
 	assert.NoError(t, err)
 	logger := logp.NewLogger(logs.Sourcemap)
 	store, err := newStore(b, logger, time.Minute)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	_, err = store.Fetch(ctx, name, version, path)
-	assert.True(t, errors.Is(err, context.DeadlineExceeded))
-	atomic.AddInt64(&errs, 1)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	fetchReturned := make(chan error, 1)
+	go func() {
+		defer close(fetchReturned)
+		_, err := store.Fetch(ctx, name, version, path)
+		fetchReturned <- err
+	}()
+	select {
+	case <-requestReceived:
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for server to receive request")
+	}
 
-	assert.Equal(t, int64(1), errs)
+	// Check that cancelling the context unblocks the request.
+	cancel()
+	select {
+	case err := <-fetchReturned:
+		assert.True(t, errors.Is(err, context.Canceled))
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for Fetch to return")
+	}
 }
 
 func TestConcurrentFetch(t *testing.T) {
