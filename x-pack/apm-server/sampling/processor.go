@@ -367,8 +367,9 @@ func (p *Processor) Run() error {
 
 	remoteSampledTraceIDs := make(chan string)
 	localSampledTraceIDs := make(chan string)
-	errgroup, ctx := errgroup.WithContext(context.Background())
-	errgroup.Go(func() error {
+	publishSampledTraceIDs := make(chan string)
+	g, ctx := errgroup.WithContext(context.Background())
+	g.Go(func() error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -376,7 +377,7 @@ func (p *Processor) Run() error {
 			return context.Canceled
 		}
 	})
-	errgroup.Go(func() error {
+	g.Go(func() error {
 		// This goroutine is responsible for periodically garbage
 		// collecting the Badger value log, using the recommended
 		// discard ratio of 0.5.
@@ -394,11 +395,14 @@ func (p *Processor) Run() error {
 			}
 		}
 	})
-	errgroup.Go(func() error {
+	g.Go(func() error {
 		defer close(subscriberPositions)
 		return pubsub.SubscribeSampledTraceIDs(ctx, initialSubscriberPosition, remoteSampledTraceIDs, subscriberPositions)
 	})
-	errgroup.Go(func() error {
+	g.Go(func() error {
+		return pubsub.PublishSampledTraceIDs(ctx, publishSampledTraceIDs)
+	})
+	g.Go(func() error {
 		ticker := time.NewTicker(p.config.FlushInterval)
 		defer ticker.Stop()
 		var traceIDs []string
@@ -412,21 +416,17 @@ func (p *Processor) Run() error {
 				if len(traceIDs) == 0 {
 					continue
 				}
-				if err := pubsub.PublishSampledTraceIDs(ctx, traceIDs...); err != nil {
+				var g errgroup.Group
+				g.Go(func() error { return sendTraceIDs(ctx, publishSampledTraceIDs, traceIDs) })
+				g.Go(func() error { return sendTraceIDs(ctx, localSampledTraceIDs, traceIDs) })
+				if err := g.Wait(); err != nil {
 					return err
-				}
-				for _, traceID := range traceIDs {
-					select {
-					case <-ctx.Done():
-						return ctx.Err()
-					case localSampledTraceIDs <- traceID:
-					}
 				}
 				traceIDs = traceIDs[:0]
 			}
 		}
 	})
-	errgroup.Go(func() error {
+	g.Go(func() error {
 		// TODO(axw) pace the publishing over the flush interval?
 		// Alternatively we can rely on backpressure from the reporter,
 		// removing the artificial one second timeout from publisher code
@@ -475,7 +475,7 @@ func (p *Processor) Run() error {
 			}
 		}
 	})
-	errgroup.Go(func() error {
+	g.Go(func() error {
 		// Write subscriber position to a file on disk, to support resuming
 		// on apm-server restart without reprocessing all indices.
 		for {
@@ -489,7 +489,7 @@ func (p *Processor) Run() error {
 			}
 		}
 	})
-	if err := errgroup.Wait(); err != nil && err != context.Canceled {
+	if err := g.Wait(); err != nil && err != context.Canceled {
 		return err
 	}
 	return nil
@@ -512,4 +512,15 @@ func writeSubscriberPosition(storageDir string, pos pubsub.SubscriberPosition) e
 		return err
 	}
 	return ioutil.WriteFile(filepath.Join(storageDir, subscriberPositionFile), data, 0644)
+}
+
+func sendTraceIDs(ctx context.Context, out chan<- string, traceIDs []string) error {
+	for _, traceID := range traceIDs {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case out <- traceID:
+		}
+	}
+	return nil
 }
