@@ -77,7 +77,8 @@ func (j JavaAttacher) Run(ctx context.Context) error {
 	go func() {
 		scanner := bufio.NewScanner(stdout)
 		b := struct {
-			Message string `json:"message"`
+			LogLevel string `json:"log.level"`
+			Message  string `json:"message"`
 		}{}
 		for scanner.Scan() {
 			select {
@@ -90,7 +91,18 @@ func (j JavaAttacher) Run(ctx context.Context) error {
 			default:
 			}
 			json.Unmarshal(scanner.Bytes(), &b)
-			j.logger.Info(b.Message)
+			switch b.LogLevel {
+			case "FATAL", "ERROR":
+				j.logger.Error(b.Message)
+			case "WARN":
+				j.logger.Warn(b.Message)
+			case "INFO":
+				j.logger.Info(b.Message)
+			case "DEBUG", "TRACE":
+				j.logger.Debug(b.Message)
+			default:
+				j.logger.Errorf("unrecognized java-attacher log.level: %s", b.LogLevel)
+			}
 		}
 		if err := scanner.Err(); err != nil {
 			j.logger.Errorf("error scanning attacher logs: %v", err)
