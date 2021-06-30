@@ -42,24 +42,36 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 	srv, requests := newRequestResponseWriterServer(t)
 	pub := newPubsub(t, srv, time.Millisecond, time.Minute)
 
-	var ids []string
-	for i := 0; i < 20; i++ {
-		ids = append(ids, uuid.Must(uuid.NewV4()).String())
+	input := make([]string, 20)
+	for i := 0; i < len(input); i++ {
+		input[i] = uuid.Must(uuid.NewV4()).String()
 	}
 
 	// Publish in a separate goroutine, as it may get blocked if we don't
 	// service bulk requests.
-	go func() {
-		for i := 0; i < len(ids); i += 2 {
-			err := pub.PublishSampledTraceIDs(context.Background(), ids[i], ids[i+1])
-			assert.NoError(t, err)
-			time.Sleep(10 * time.Millisecond) // sleep to force a new request
+	ids := make(chan string)
+	ctx, cancel := context.WithCancel(context.Background())
+	var g errgroup.Group
+	defer g.Wait()
+	defer cancel()
+	g.Go(func() error {
+		return pub.PublishSampledTraceIDs(ctx, ids)
+	})
+	g.Go(func() error {
+		for _, id := range input {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case ids <- id:
+			}
+			time.Sleep(10 * time.Millisecond) // sleep to force new requests
 		}
-	}()
+		return nil
+	})
 
 	var received []string
 	deadlineTimer := time.NewTimer(10 * time.Second)
-	for len(received) < len(ids) {
+	for len(received) < len(input) {
 		select {
 		case <-deadlineTimer.C:
 			t.Fatal("timed out waiting for events to be received by server")
@@ -108,7 +120,7 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 
 	// The publisher uses an esutil.BulkIndexer, which may index items out
 	// of order due to having multiple goroutines picking items off a queue.
-	assert.ElementsMatch(t, ids, received)
+	assert.ElementsMatch(t, input, received)
 }
 
 func TestSubscribeSampledTraceIDs(t *testing.T) {
@@ -386,8 +398,7 @@ func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *req
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rrw := &requestResponseWriter{
 			Request: r,
-			w:       w,
-			done:    make(chan struct{}),
+			done:    make(chan response),
 		}
 		select {
 		case <-r.Context().Done():
@@ -398,8 +409,9 @@ func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *req
 		select {
 		case <-r.Context().Done():
 			w.WriteHeader(http.StatusRequestTimeout)
-			return
-		case <-rrw.done:
+		case response := <-rrw.done:
+			w.WriteHeader(response.statusCode)
+			w.Write([]byte(response.body))
 		}
 	}))
 	t.Cleanup(srv.Close)
@@ -408,8 +420,12 @@ func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *req
 
 type requestResponseWriter struct {
 	*http.Request
-	w    http.ResponseWriter
-	done chan struct{}
+	done chan response
+}
+
+type response struct {
+	statusCode int
+	body       string
 }
 
 func (w *requestResponseWriter) Write(body string) {
@@ -417,9 +433,7 @@ func (w *requestResponseWriter) Write(body string) {
 }
 
 func (w *requestResponseWriter) WriteStatus(statusCode int, body string) {
-	w.w.WriteHeader(statusCode)
-	w.w.Write([]byte(body))
-	close(w.done)
+	w.done <- response{statusCode, body}
 }
 
 func expectRequest(t testing.TB, ch <-chan *requestResponseWriter, path, body string) *requestResponseWriter {

@@ -170,6 +170,11 @@ func TestSpanTransform(t *testing.T) {
 				"parent":      common.MapStr{"id": parentID},
 				"destination": common.MapStr{"address": address, "ip": address, "port": port},
 				"event":       common.MapStr{"outcome": "unknown"},
+				"http": common.MapStr{
+					"response":       common.MapStr{"status_code": statusCode},
+					"request.method": "get",
+				},
+				"url.original": url,
 			},
 		},
 	}
