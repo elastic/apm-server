@@ -48,6 +48,10 @@ func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
 			}
 			cfg.JavaBin = bin
 		}
+	} else {
+		// Ensure we're using the correct separators for the system
+		// running apm-server
+		cfg.JavaBin = filepath.FromSlash(cfg.JavaBin)
 	}
 	logger := logp.NewLogger("java-attacher")
 	return JavaAttacher{cfg: cfg, logger: logger}, nil

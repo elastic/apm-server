@@ -20,6 +20,7 @@ package javaattacher
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -41,13 +42,15 @@ func TestNew(t *testing.T) {
 	attacher, err := New(cfg)
 	require.NoError(t, err)
 
-	assert.Equal(t, "/usr/local/bin/java", attacher.cfg.JavaBin)
+	javapath := filepath.FromSlash("/usr/local/bin/java")
+	assert.Equal(t, javapath, attacher.cfg.JavaBin)
 
 	cfg.JavaBin = "/home/user/bin/java"
 	attacher, err = New(cfg)
 	require.NoError(t, err)
 
-	assert.Equal(t, "/home/user/bin/java", attacher.cfg.JavaBin)
+	javapath = filepath.FromSlash("/home/user/bin/java")
+	assert.Equal(t, javapath, attacher.cfg.JavaBin)
 }
 
 func TestBuild(t *testing.T) {
