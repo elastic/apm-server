@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/model"
 )
@@ -34,8 +35,11 @@ func TestReportFetch(t *testing.T) {
 	defer close(receivedc)
 	bp := &batchProcessor{receivedc: receivedc}
 	r := NewReporter(fauxFetcher{}, bp, interval)
+
+	var g errgroup.Group
 	ctx, cancel := context.WithCancel(context.Background())
-	go r.Run(ctx)
+	g.Go(func() error { return r.Run(ctx) })
+
 	query1 := Query{
 		Service: Service{Name: "webapp", Environment: "production"},
 		Etag:    "abc123",
@@ -56,10 +60,15 @@ func TestReportFetch(t *testing.T) {
 
 	// cancel the context to stop processing
 	cancel()
+	g.Wait()
 
-	assert.Len(t, bp.received, 2)
-	assert.Equal(t, "abc123", bp.received[0].Labels["etag"])
-	assert.Equal(t, "def456", bp.received[1].Labels["etag"])
+	// We use assert.ElementsMatch because the etags may not be
+	// reported in exactly the same order they were fetched.
+	etags := make([]string, len(bp.received))
+	for i, received := range bp.received {
+		etags[i] = received.Labels["etag"].(string)
+	}
+	assert.ElementsMatch(t, []string{"abc123", "def456"}, etags)
 }
 
 type fauxFetcher struct{}
