@@ -47,7 +47,6 @@ func (j JavaAttacherConfig) setup() error {
 
 var allowlist = map[string]struct{}{
 	"include-all":   {},
-	"include-pid":   {},
 	"include-main":  {},
 	"include-vmarg": {},
 	"include-user":  {},
