@@ -6554,12 +6554,10 @@ Contains common beat fields available in all event types.
 *`agent.hostname`*::
 +
 --
-Deprecated - use agent.name or agent.id to identify an agent.
+Deprecated - use agent.name or agent.id to identify an agent. Hostname of the agent.
 
 
-type: alias
-
-alias to: agent.name
+type: keyword
 
 --
 
@@ -6596,7 +6594,7 @@ alias to: host.name
 --
 type: alias
 
-alias to: agent.name
+alias to: agent.hostname
 
 --
 

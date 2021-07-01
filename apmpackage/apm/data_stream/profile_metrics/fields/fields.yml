@@ -1,9 +1,3 @@
-- name: cloud.service.name
-  level: extended
-  type: keyword
-  description: |
-    Cloud service name, intended to distinguish services running on different platforms within a provider.
-  ignore_above: 1024
 - name: experimental
   type: object
   description: Additional experimental data sent by the agents.
