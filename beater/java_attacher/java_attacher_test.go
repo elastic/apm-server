@@ -56,8 +56,6 @@ func TestNew(t *testing.T) {
 func TestBuild(t *testing.T) {
 	args := []map[string]string{
 		{"exclude-user": "root"},
-		{"include-pid": "123"},
-		{"include-pid": "456"},
 		{"include-main": "MyApplication"},
 		{"include-main": "my-application.jar"},
 		{"include-vmarg": "elastic.apm.agent.attach=true"},
@@ -78,8 +76,8 @@ func TestBuild(t *testing.T) {
 	cmd := attacher.build(context.Background())
 
 	want := filepath.FromSlash("/usr/bin/java -jar /bin/apm-agent-attach-cli-1.24.0-slim.jar") +
-		" --continuous --exclude-user root --include-pid 123 --include-pid 456 " +
-		"--include-main MyApplication --include-main my-application.jar --include-vmarg elastic.apm.agent.attach=true " +
+		" --continuous --exclude-user root --include-main MyApplication --include-main my-application.jar " +
+		"--include-vmarg elastic.apm.agent.attach=true " +
 		"--config service_name=my-cool-service --config server_url=http://localhost:8200"
 
 	cmdArgs := strings.Join(cmd.Args, " ")
