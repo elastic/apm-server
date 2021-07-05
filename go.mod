@@ -19,8 +19,8 @@ require (
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210407144825-cc1c33cfa1d0 // indirect
 	github.com/elastic/elastic-package v0.0.0-20210310173719-3b8f76516ae3
 	github.com/elastic/gmux v0.1.0
-	github.com/elastic/go-elasticsearch/v7 v7.11.0
-	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201007143536-4b4020669208
+	github.com/elastic/go-elasticsearch/v7 v7.13.1
+	github.com/elastic/go-elasticsearch/v8 v8.0.0-20210701131303-a3f8e421ff7c
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
 	github.com/elastic/go-ucfg v0.8.4-0.20200415140258-1232bd4774a6
