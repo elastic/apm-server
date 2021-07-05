@@ -68,7 +68,7 @@ func New(cfg config.JavaAttacherConfig, logLevel string) (JavaAttacher, error) {
 
 // javaAttacher is bundled by the server
 // TODO: Figure out the real path
-const javaAttacher = "/bin/apm-agent-attach-cli-1.24.0-slim.jar"
+var javaAttacher = filepath.FromSlash("/bin/apm-agent-attach-cli-1.24.0-slim.jar")
 
 func (j JavaAttacher) Run(ctx context.Context) error {
 	cmd := j.build(ctx)
