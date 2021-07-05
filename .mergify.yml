@@ -17,13 +17,25 @@ pull_request_rules:
     conditions:
       - merged
       - base=master
-      - label=v7.14.0
+      - label=v7.15.0
     actions:
       backport:
         assignees:
           - "{{ author }}"
         branches:
           - "7.x"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 7.14 branch
+    conditions:
+      - merged
+      - base=master
+      - label=v7.14.0
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "7.14"
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
   - name: backport patches to 7.13 branch
     conditions:
