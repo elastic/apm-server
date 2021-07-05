@@ -376,13 +376,14 @@ func (s *serverRunner) run() error {
 		TransformConfig: transformConfig,
 	}
 
+	cfg := ucfg.Config(*s.rawConfig)
+	parentCfg := cfg.Parent()
 	// Check for an environment variable set when running in a cloud environment
 	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
 		// Don't block server startup sending the config.
 		go func() {
 			c := kibana_client.NewConnectingClient(&s.config.Kibana)
-			cfg := ucfg.Config(*s.rawConfig)
-			if err := kibana_client.SendConfig(s.runServerContext, c, cfg.Parent()); err != nil {
+			if err := kibana_client.SendConfig(s.runServerContext, c, parentCfg); err != nil {
 				s.logger.Infof("failed to upload config to kibana: %v", err)
 			}
 		}()
@@ -397,8 +398,18 @@ func (s *serverRunner) run() error {
 
 	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac == "" && s.config.JavaAttacherConfig.Enabled {
 		// Not running on ECE/ESS, start the java attacher
+		m := common.MapStr{}
+		if err := parentCfg.Unpack(m); err != nil {
+			s.logger.Errorf("failed to parse logging.level from config", err)
+		}
+		logLevel := "info"
+		if ll, ok := m.Flatten()["logging.level"]; ok {
+			if l, ok := ll.(string); ok && l != "" {
+				logLevel = l
+			}
+		}
 		go func() {
-			attacher, err := javaattacher.New(s.config.JavaAttacherConfig)
+			attacher, err := javaattacher.New(s.config.JavaAttacherConfig, logLevel)
 			if err != nil {
 				s.logger.Errorf("java attacher error: %v", err)
 				return

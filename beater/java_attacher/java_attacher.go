@@ -33,11 +33,15 @@ import (
 )
 
 type JavaAttacher struct {
-	cfg    config.JavaAttacherConfig
-	logger *logp.Logger
+	cfg      config.JavaAttacherConfig
+	logLevel string
+	logger   *logp.Logger
+	logfn    logfn
 }
 
-func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
+type logfn func(...interface{})
+
+func New(cfg config.JavaAttacherConfig, logLevel string) (JavaAttacher, error) {
 	if cfg.JavaBin == "" {
 		if jh := os.Getenv("JAVA_HOME"); jh != "" {
 			cfg.JavaBin = filepath.Join(jh, "/bin/java")
@@ -54,7 +58,12 @@ func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
 		cfg.JavaBin = filepath.FromSlash(cfg.JavaBin)
 	}
 	logger := logp.NewLogger("java-attacher")
-	return JavaAttacher{cfg: cfg, logger: logger}, nil
+	return JavaAttacher{
+		cfg:      cfg,
+		logLevel: logLevel,
+		logger:   logger,
+		logfn:    setLogfn(logger, logLevel),
+	}, nil
 }
 
 // javaAttacher is bundled by the server
@@ -73,40 +82,26 @@ func (j JavaAttacher) Run(ctx context.Context) error {
 		return err
 	}
 
-	// TODO: How do we want to handle logging?
-	// See comment:
-	// https://github.com/elastic/apm-server/issues/4830#issuecomment-863207642
 	donec := make(chan struct{})
 	defer close(donec)
 	go func() {
 		scanner := bufio.NewScanner(stdout)
 		b := struct {
-			LogLevel string `json:"log.level"`
-			Message  string `json:"message"`
+			Message string `json:"message"`
 		}{}
 		for scanner.Scan() {
 			select {
 			case <-ctx.Done():
 				return
 			case <-donec:
-				// TODO: Is this necessary, or will the scanner
-				// finish when the command exits?
 				return
 			default:
 			}
-			json.Unmarshal(scanner.Bytes(), &b)
-			switch b.LogLevel {
-			case "FATAL", "ERROR":
-				j.logger.Error(b.Message)
-			case "WARN":
-				j.logger.Warn(b.Message)
-			case "INFO":
-				j.logger.Info(b.Message)
-			case "DEBUG", "TRACE":
-				j.logger.Debug(b.Message)
-			default:
-				j.logger.Errorf("unrecognized java-attacher log.level: %s", b.LogLevel)
+			if err := json.Unmarshal(scanner.Bytes(), &b); err != nil {
+				j.logger.Errorf("error unmarshaling attacher logs: %v", err)
+				continue
 			}
+			j.logfn(b.Message)
 		}
 		if err := scanner.Err(); err != nil {
 			j.logger.Errorf("error scanning attacher logs: %v", err)
@@ -122,7 +117,7 @@ func (j JavaAttacher) build(ctx context.Context) *exec.Cmd {
 }
 
 func (j JavaAttacher) formatArgs() []string {
-	args := []string{"--continuous"}
+	args := []string{"--continuous", "--log-level", j.logLevel}
 
 	for _, flag := range j.cfg.DiscoveryRules {
 		for name, value := range flag {
@@ -138,4 +133,19 @@ func (j JavaAttacher) formatArgs() []string {
 
 func makeArg(flagName string, args ...string) string {
 	return flagName + " " + strings.Join(args, " ")
+}
+
+func setLogfn(l *logp.Logger, level string) logfn {
+	switch level {
+	case "error":
+		return l.Error
+	case "warn":
+		return l.Warn
+	case "info":
+		return l.Info
+	case "debug":
+		return l.Debug
+	default:
+		return l.Info
+	}
 }
