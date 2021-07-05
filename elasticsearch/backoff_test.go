@@ -90,7 +90,10 @@ func TestBackoffRetries(t *testing.T) {
 	assert.NoError(t, err)
 	c.Perform(req)
 
-	assert.Equal(t, retries, requests)
+	// We have the initial request, and then a maximum amount of retries.
+	// Add the initial request to the number of retries to get the total
+	// requests we expect.
+	assert.Equal(t, retries+1, requests)
 }
 
 func TestBackoffConfigured(t *testing.T) {
