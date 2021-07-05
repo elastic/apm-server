@@ -71,6 +71,10 @@ func TestBackoffRetries(t *testing.T) {
 		retries  = 5
 	)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			w.Header().Set("X-Elastic-Product", "Elasticsearch")
+			return
+		}
 		requests++
 		w.WriteHeader(503)
 		w.Write([]byte("error"))
@@ -86,7 +90,7 @@ func TestBackoffRetries(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	req, err := http.NewRequest("GET", "", nil)
+	req, err := http.NewRequest("GET", "/some/path", nil)
 	assert.NoError(t, err)
 	c.Perform(req)
 
