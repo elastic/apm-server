@@ -103,7 +103,7 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 	for _, m := range ms {
 		m.Metadata = metadata
 		m.Timestamp = m.Timestamp.Add(timeDelta)
-		out.Metricsets = append(out.Metricsets, m.Metricset)
+		*out = append(*out, model.APMEvent{Metricset: m.Metricset})
 	}
 	if unsupported > 0 {
 		atomic.AddInt64(&c.stats.unsupportedMetricsDropped, unsupported)
