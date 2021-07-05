@@ -15,7 +15,11 @@
 
 * Update Kibana Index Pattern
 
-  If fields are not up-to-date, run `make update && script/update_kibana_objects.py` and create a PR.
+  If fields are not up to date, perform the following and open a PR:
+  * Fork and locally clone kibana
+  * Ensure that your copy of kibana has the current release branch from elastic/kibana
+  * From the apm-server repo run:
+    `make update && script/update_kibana_objects.py -d path/to/your/kibana -b $release_branch`
 
 * Update Changelog
 
