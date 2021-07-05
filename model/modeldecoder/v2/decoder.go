@@ -776,6 +776,15 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 		out.ChildIDs = make([]string, len(from.ChildIDs))
 		copy(out.ChildIDs, from.ChildIDs)
 	}
+	if from.Compressed.IsSet() {
+		compressed := model.Compressed{}
+		if from.Compressed.Count.IsSet() {
+			compressed.Count = from.Compressed.Count.Val
+		}
+		if from.Compressed.End.IsSet() && !from.Compressed.End.Val.IsZero() {
+			compressed.End = from.Compressed.End.Val
+		}
+	}
 	if from.Context.Database.IsSet() {
 		db := model.DB{}
 		if from.Context.Database.Instance.IsSet() {

@@ -605,9 +605,12 @@ type span struct {
 	Action nullable.String `json:"action" validate:"maxLength=1024"`
 	// ChildIDs holds a list of successor transactions and/or spans.
 	ChildIDs []string `json:"child_ids" validate:"maxLength=1024"`
+	// Compressed holds metrics on a group of spans compressed into one.
+	Compressed spanCompressed `json:"compressed"`
 	// Context holds arbitrary contextual information for the event.
 	Context spanContext `json:"context"`
-	// Duration of the span in milliseconds
+	// Duration of the span in milliseconds. When the span is a compressed one,
+	// Duration is the sum of all the compressed spans' durations.
 	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
 	// ID holds the hex encoded 64 random bits ID of the event.
 	ID nullable.String `json:"id" validate:"required,maxLength=1024"`
@@ -766,6 +769,16 @@ type stacktraceFrame struct {
 	// Vars is a flat mapping of local variables of the frame.
 	Vars common.MapStr `json:"vars"`
 	_    struct{}      `validate:"requiredAnyOf=classname;filename"`
+}
+
+type spanCompressed struct {
+	// Count is the number of spans that have been compressed into a single
+	// one.
+	Count nullable.Int `json:"count"`
+	// End is the end timestamp of the last span. This field - the span's timestamp
+	// is the overall duration of all the compressed spans, including any delays
+	// between the spans.
+	End nullable.TimeMicrosUnix `json:"end"`
 }
 
 type transaction struct {

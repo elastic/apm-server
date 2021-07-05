@@ -70,6 +70,7 @@ type Span struct {
 	HTTP               *HTTP
 	Destination        *Destination
 	DestinationService *DestinationService
+	Compressed         *Compressed
 
 	// RUM records whether or not this is a RUM span,
 	// and should have its stack frames sourcemapped.
@@ -116,6 +117,12 @@ type DestinationService struct {
 	Type     string // Deprecated
 	Name     string // Deprecated
 	Resource string
+}
+
+// Compressed holds metrics on a group of spans compressed into one.
+type Compressed struct {
+	Count int
+	End   time.Time
 }
 
 func (db *DB) fields() common.MapStr {
@@ -186,6 +193,18 @@ func (d *DestinationService) fields() common.MapStr {
 	fields.maybeSetString("type", d.Type)
 	fields.maybeSetString("name", d.Name)
 	fields.maybeSetString("resource", d.Resource)
+	return common.MapStr(fields)
+}
+
+func (c *Compressed) fields() common.MapStr {
+	if c == nil {
+		return nil
+	}
+	var fields mapStr
+	if c.Count > 0 {
+		fields.set("count", c.Count)
+	}
+	fields.maybeSetMapStr("end", utility.TimeAsMicros(c.End))
 	return common.MapStr(fields)
 }
 
@@ -263,6 +282,7 @@ func (e *Span) fields(ctx context.Context, cfg *transform.Config) common.MapStr 
 	fields.maybeSetMapStr("db", e.DB.fields())
 	fields.maybeSetMapStr("http", e.HTTP.fields(false))
 	fields.maybeSetMapStr("message", e.Message.Fields())
+	fields.maybeSetMapStr("compressed", e.Compressed.fields())
 	if destinationServiceFields := e.DestinationService.fields(); len(destinationServiceFields) > 0 {
 		common.MapStr(fields).Put("destination.service", destinationServiceFields)
 	}
