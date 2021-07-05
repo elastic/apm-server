@@ -45,55 +45,35 @@ func testProcessBatchMetadata(t *testing.T, processor model.BatchProcessor, in, 
 
 	// Check that the model.Batch fields have not changed since this
 	// test was last updated, to ensure we process all model types.
-	var batchFields []string
-	typ := reflect.TypeOf(model.Batch{})
+	var apmEventFields []string
+	typ := reflect.TypeOf(model.APMEvent{})
 	for i := 0; i < typ.NumField(); i++ {
-		batchFields = append(batchFields, typ.Field(i).Name)
+		apmEventFields = append(apmEventFields, typ.Field(i).Name)
 	}
 	assert.ElementsMatch(t, []string{
-		"Transactions",
-		"Spans",
-		"Metricsets",
-		"Errors",
-		"Profiles",
-	}, batchFields)
+		"Transaction",
+		"Span",
+		"Metricset",
+		"Error",
+		"Profile",
+	}, apmEventFields)
 
 	batch := &model.Batch{
-		Transactions: []*model.Transaction{
-			{Metadata: in},
-		},
-		Spans: []*model.Span{
-			{Metadata: in},
-		},
-		Metricsets: []*model.Metricset{
-			{Metadata: in},
-		},
-		Errors: []*model.Error{
-			{Metadata: in},
-		},
-		Profiles: []*model.PprofProfile{
-			{Metadata: in},
-		},
+		{Transaction: &model.Transaction{Metadata: in}},
+		{Span: &model.Span{Metadata: in}},
+		{Metricset: &model.Metricset{Metadata: in}},
+		{Error: &model.Error{Metadata: in}},
+		{Profile: &model.PprofProfile{Metadata: in}},
 	}
 	err := processor.ProcessBatch(context.Background(), batch)
 	require.NoError(t, err)
 
 	expected := &model.Batch{
-		Transactions: []*model.Transaction{
-			{Metadata: out},
-		},
-		Spans: []*model.Span{
-			{Metadata: out},
-		},
-		Metricsets: []*model.Metricset{
-			{Metadata: out},
-		},
-		Errors: []*model.Error{
-			{Metadata: out},
-		},
-		Profiles: []*model.PprofProfile{
-			{Metadata: out},
-		},
+		{Transaction: &model.Transaction{Metadata: out}},
+		{Span: &model.Span{Metadata: out}},
+		{Metricset: &model.Metricset{Metadata: out}},
+		{Error: &model.Error{Metadata: out}},
+		{Profile: &model.PprofProfile{Metadata: out}},
 	}
 	assert.Equal(t, expected, batch)
 }
