@@ -9,7 +9,9 @@
 
 * Update beats
 
-  run `make update-beats` in the branch from which the new branch will be created before FF to recognize potential issues
+  * Before feature freeze and creating the release branch, update `BEATS_VERSION` to the release version in the top-level Makefile of the release's parent branch
+  * Run `make update-beats` in the parent branch to recognize potential issues
+  * Commit these changes
 
 * Update Kibana Index Pattern
 
@@ -38,6 +40,8 @@
 
 * Ensure a branch or tag is created for the [go-elasticsearch](https://github.com/elastic/go-elasticsearch) library and update to it.
 
+  `go get github.com/elastic/go-elasticsearch/v$major@$major.$minor`
+
 * The following may also need to be updated manually:
     * APM Overview's [release highlights](https://github.com/elastic/apm-server/blob/master/docs/guide/apm-release-notes.asciidoc) - Anything exciting across the APM stack!
     * APM Overview's [breaking changes](https://github.com/elastic/apm-server/blob/master/docs/guide/apm-breaking-changes.asciidoc) - Any breaking changes across the APM stack.
@@ -45,6 +49,10 @@
     * APM Server's [upgrade guide](https://github.com/elastic/apm-server/blob/master/docs/upgrading.asciidoc).
 
 * For major releases, update and smoke test the dev quick start [`docker-compose.yml`](https://github.com/elastic/apm-server/blob/master/docs/guide/docker-compose.yml).
+
+## After feature freeze
+
+* Update [.mergify.yml](https://github.com/elastic/apm-server/blob/master/.mergify.yml) with a new backport rule for the next version. An example of adding v7.15 after v7.14 feature freeze is available [here](https://github.com/elastic/apm-server/pull/5601/files)
 
 ## On release day
 
