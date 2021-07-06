@@ -219,7 +219,7 @@ You can verify your API key has been base64-encoded correctly with the
 
 ["source","sh",subs="attributes"]
 -----
-curl -H "Authorization: ApiKey R0gzRWIzUUI3eVpiU054S3pYSy06bXQyQWl4TlZUeEcyUjd4cUZDS0NlUQ==" localhost:9200/_security/_authentication
+curl -H "Authorization: ApiKey R0gzRWIzUUI3eVpiU054S3pYSy06bXQyQWl4TlZUeEcyUjd4cUZDS0NlUQ==" localhost:9200/_security/_authenticate
 -----
 
 If the API key has been encoded correctly, you'll see a response similar to the following:
@@ -462,6 +462,9 @@ as there is no way to prevent them from being publicly exposed.
 === Set a secret token
 
 **APM Server configuration**
+
+NOTE: {ess} and {ece} deployments provision a secret token when the deployment is created.
+The secret token can be found and reset in the {ecloud} console under **Deployments** -- **APM & Fleet**.
 
 Here's how you set the secret token in APM Server:
 

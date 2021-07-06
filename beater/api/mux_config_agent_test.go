@@ -62,9 +62,8 @@ func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
 	})
 
 	t.Run("On", func(t *testing.T) {
-		header := map[string]string{headers.Authorization: "Bearer 1234"}
 		queryString := map[string]string{"service.name": "service1"}
-		rec, err := requestToMuxerWithHeaderAndQueryString(configEnabledConfigAgent(), AgentConfigPath, http.MethodGet, header, queryString)
+		rec, err := requestToMuxerWithHeaderAndQueryString(configEnabledConfigAgent(), AgentConfigPath, http.MethodGet, nil, queryString)
 		require.NoError(t, err)
 		require.NotEqual(t, http.StatusForbidden, rec.Code)
 		approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
@@ -81,9 +80,8 @@ func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
 		},
 	}
 
-	header := map[string]string{headers.Authorization: "Bearer 1234"}
 	queryString := map[string]string{"service.name": "service1"}
-	rec, err := requestToMuxerWithHeaderAndQueryString(cfg, AgentConfigPath, http.MethodGet, header, queryString)
+	rec, err := requestToMuxerWithHeaderAndQueryString(cfg, AgentConfigPath, http.MethodGet, nil, queryString)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, rec.Code)
 	approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())

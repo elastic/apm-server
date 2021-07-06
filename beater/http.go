@@ -62,7 +62,7 @@ func newHTTPServer(
 	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
 	batchProcessor = modelprocessor.Chained{
 		model.ProcessBatchFunc(rateLimitBatchProcessor),
-		modelprocessor.MetadataProcessorFunc(verifyAuthorizedFor),
+		modelprocessor.MetadataProcessorFunc(authorizeEventIngest),
 		batchProcessor,
 	}
 

@@ -56,7 +56,7 @@ func Handler(cfg HandlerConfig) request.Handler {
 			return
 		}
 		c.Result.SetDefault(request.IDResponseValidOK)
-		if c.AuthResult.Authorized && !c.AuthResult.Anonymous {
+		if c.Authentication.Method != "" {
 			c.Result.Body = serverInfo
 		}
 		c.Write()

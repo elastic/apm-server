@@ -19,10 +19,9 @@ package beater
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
 )
@@ -31,20 +30,13 @@ const (
 	rateLimitTimeout = time.Second
 )
 
-// verifyAuthorizedFor is a model.BatchProcessor that checks authorization
-// for the agent and service name in the metadata.
-func verifyAuthorizedFor(ctx context.Context, meta *model.Metadata) error {
-	result, err := authorization.AuthorizedFor(ctx, authorization.Resource{
+// authorizeEventIngest is a model.BatchProcessor that checks that the client
+// is authorized to ingest events for the agent and service name in metadata.
+func authorizeEventIngest(ctx context.Context, meta *model.Metadata) error {
+	return auth.Authorize(ctx, auth.ActionEventIngest, auth.Resource{
 		AgentName:   meta.Service.Agent.Name,
 		ServiceName: meta.Service.Name,
 	})
-	if err != nil {
-		return err
-	}
-	if result.Authorized {
-		return nil
-	}
-	return fmt.Errorf("%w: %s", authorization.ErrUnauthorized, result.Reason)
 }
 
 // rateLimitBatchProcessor is a model.BatchProcessor that rate limits based on

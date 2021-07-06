@@ -35,9 +35,8 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/beatertest"
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/kibana/kibanatest"
 )
 
@@ -155,9 +154,7 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 			params := &api_v2.SamplingStrategyParameters{ServiceName: "serviceA"}
 
 			ctx := context.Background()
-			authBuilder, _ := authorization.NewBuilder(config.AgentAuth{})
-			authHandler := authBuilder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
-			ctx = authorization.ContextWithAuthorization(ctx, authHandler.AuthorizationFor("", ""))
+			ctx = auth.ContextWithAuthorizer(ctx, auth.AnonymousAuth{})
 			resp, err := tc.sampler.GetSamplingStrategy(ctx, params)
 
 			// assert sampling response
