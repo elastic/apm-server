@@ -32,7 +32,7 @@ import (
 	"github.com/elastic/apm-server/beater/api/intake"
 	"github.com/elastic/apm-server/beater/api/profile"
 	"github.com/elastic/apm-server/beater/api/root"
-	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/ratelimit"
@@ -89,7 +89,7 @@ func NewMux(
 	mux := http.NewServeMux()
 	logger := logp.NewLogger(logs.Handler)
 
-	auth, err := authorization.NewBuilder(beaterConfig.AgentAuth)
+	auth, err := auth.NewAuthenticator(beaterConfig.AgentAuth)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func NewMux(
 	builder := routeBuilder{
 		info:           beatInfo,
 		cfg:            beaterConfig,
-		authBuilder:    auth,
+		authenticator:  auth,
 		reporter:       report,
 		batchProcessor: batchProcessor,
 		ratelimitStore: ratelimitStore,
@@ -147,7 +147,7 @@ func NewMux(
 type routeBuilder struct {
 	info           beat.Info
 	cfg            *config.Config
-	authBuilder    *authorization.Builder
+	authenticator  *auth.Authenticator
 	reporter       publish.Reporter
 	batchProcessor model.BatchProcessor
 	ratelimitStore *ratelimit.Store
@@ -159,8 +159,7 @@ func (r *routeBuilder) profileHandler() (request.Handler, error) {
 		requestMetadataFunc = backendRequestMetadata
 	}
 	h := profile.Handler(requestMetadataFunc, r.batchProcessor)
-	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
-	return middleware.Wrap(h, backendMiddleware(r.cfg, authHandler, r.ratelimitStore, profile.MonitoringMap)...)
+	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, profile.MonitoringMap)...)
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
@@ -169,8 +168,7 @@ func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
 		requestMetadataFunc = backendRequestMetadata
 	}
 	h := intake.Handler(stream.BackendProcessor(r.cfg), requestMetadataFunc, r.batchProcessor)
-	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
-	return middleware.Wrap(h, backendMiddleware(r.cfg, authHandler, r.ratelimitStore, intake.MonitoringMap)...)
+	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
 func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *stream.Processor) func() (request.Handler, error) {
@@ -182,44 +180,42 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *strea
 		batchProcessor := r.batchProcessor
 		batchProcessor = batchProcessorWithAllowedServiceNames(batchProcessor, r.cfg.RumConfig.AllowServiceNames)
 		h := intake.Handler(newProcessor(r.cfg), requestMetadataFunc, batchProcessor)
-		return middleware.Wrap(h, rumMiddleware(r.cfg, nil, r.ratelimitStore, intake.MonitoringMap)...)
+		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 	}
 }
 
 func (r *routeBuilder) sourcemapHandler() (request.Handler, error) {
 	h := sourcemap.Handler(r.reporter)
-	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeSourcemapWrite.Action)
-	return middleware.Wrap(h, sourcemapMiddleware(r.cfg, authHandler, r.ratelimitStore)...)
+	return middleware.Wrap(h, sourcemapMiddleware(r.cfg, r.authenticator, r.ratelimitStore)...)
 }
 
 func (r *routeBuilder) rootHandler() (request.Handler, error) {
 	h := root.Handler(root.HandlerConfig{Version: r.info.Version})
-	return middleware.Wrap(h, rootMiddleware(r.cfg, r.authBuilder.ForAnyOfPrivileges(authorization.ActionAny))...)
+	return middleware.Wrap(h, rootMiddleware(r.cfg, r.authenticator)...)
 }
 
 func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
-		return agentConfigHandler(r.cfg, authHandler, r.ratelimitStore, backendMiddleware, f)
+		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, backendMiddleware, f)
 	}
 }
 
 func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		return agentConfigHandler(r.cfg, nil, r.ratelimitStore, rumMiddleware, f)
+		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, rumMiddleware, f)
 	}
 }
 
-type middlewareFunc func(*config.Config, *authorization.Handler, *ratelimit.Store, map[request.ResultID]*monitoring.Int) []middleware.Middleware
+type middlewareFunc func(*config.Config, *auth.Authenticator, *ratelimit.Store, map[request.ResultID]*monitoring.Int) []middleware.Middleware
 
 func agentConfigHandler(
 	cfg *config.Config,
-	authHandler *authorization.Handler,
+	authenticator *auth.Authenticator,
 	ratelimitStore *ratelimit.Store,
 	middlewareFunc middlewareFunc,
 	f agentcfg.Fetcher,
 ) (request.Handler, error) {
-	mw := middlewareFunc(cfg, authHandler, ratelimitStore, agent.MonitoringMap)
+	mw := middlewareFunc(cfg, authenticator, ratelimitStore, agent.MonitoringMap)
 	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment, rumAgents)
 
 	if !cfg.Kibana.Enabled && cfg.AgentConfigs == nil {
@@ -243,16 +239,16 @@ func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middlewa
 	}
 }
 
-func backendMiddleware(cfg *config.Config, auth *authorization.Handler, ratelimitStore *ratelimit.Store, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+func backendMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
 	backendMiddleware := append(apmMiddleware(m),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
-		middleware.AuthorizationMiddleware(auth, true),
+		middleware.AuthMiddleware(authenticator, true),
 		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
 	)
 	return backendMiddleware
 }
 
-func rumMiddleware(cfg *config.Config, auth *authorization.Handler, ratelimitStore *ratelimit.Store, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+func rumMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
 	msg := "RUM endpoint is disabled. " +
 		"Configure the `apm-server.rum` section in apm-server.yml to enable ingestion of RUM events. " +
 		"If you are not using the RUM agent, you can safely ignore this error."
@@ -260,13 +256,13 @@ func rumMiddleware(cfg *config.Config, auth *authorization.Handler, ratelimitSto
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.ResponseHeadersMiddleware(cfg.RumConfig.ResponseHeaders),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins, cfg.RumConfig.AllowHeaders),
-		middleware.AnonymousAuthorizationMiddleware(),
+		middleware.AuthMiddleware(authenticator, false),
 		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
 	)
 	return append(rumMiddleware, middleware.KillSwitchMiddleware(cfg.RumConfig.Enabled, msg))
 }
 
-func sourcemapMiddleware(cfg *config.Config, auth *authorization.Handler, ratelimitStore *ratelimit.Store) []middleware.Middleware {
+func sourcemapMiddleware(cfg *config.Config, auth *auth.Authenticator, ratelimitStore *ratelimit.Store) []middleware.Middleware {
 	msg := "Sourcemap upload endpoint is disabled. " +
 		"Configure the `apm-server.rum` section in apm-server.yml to enable sourcemap uploads. " +
 		"If you are not using the RUM agent, you can safely ignore this error."
@@ -278,13 +274,14 @@ func sourcemapMiddleware(cfg *config.Config, auth *authorization.Handler, rateli
 	return append(backendMiddleware, middleware.KillSwitchMiddleware(enabled, msg))
 }
 
-func rootMiddleware(cfg *config.Config, auth *authorization.Handler) []middleware.Middleware {
+func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []middleware.Middleware {
 	return append(apmMiddleware(root.MonitoringMap),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
-		middleware.AuthorizationMiddleware(auth, false))
+		middleware.AuthMiddleware(authenticator, false),
+	)
 }
 
-// TODO(axw) move this into the authorization package when introducing anonymous auth.
+// TODO(axw) move this into the auth package when introducing anonymous auth.
 func batchProcessorWithAllowedServiceNames(p model.BatchProcessor, allowedServiceNames []string) model.BatchProcessor {
 	if len(allowedServiceNames) == 0 {
 		// All service names are allowed.

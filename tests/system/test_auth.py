@@ -115,7 +115,8 @@ class TestAPIKeyCache(APIKeyBaseTest):
 
         # fill cache up until one spot
         for i in range(4):
-            assert_intake("ApiKey xyz{}".format(i), 401)
+            credentials = base64.b64encode("id{}:key".format(i).encode('utf-8')).decode()
+            assert_intake("ApiKey " + credentials, 401)
 
         # allow for authorized api key
         assert_intake(key1)
