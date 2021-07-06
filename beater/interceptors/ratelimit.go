@@ -25,7 +25,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/ratelimit"
 )
 
@@ -39,11 +38,11 @@ func AnonymousRateLimit(store *ratelimit.Store) grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		authResult, err := authorization.AuthorizedFor(ctx, authorization.Resource{})
-		if err != nil {
-			return nil, err
+		details, ok := AuthenticationDetailsFromContext(ctx)
+		if !ok {
+			return nil, errors.New("authentication details not found in context")
 		}
-		if authResult.Anonymous {
+		if details.Method == "" {
 			clientMetadata, ok := ClientMetadataFromContext(ctx)
 			if !ok {
 				return nil, errors.New("client metadata not found in context")

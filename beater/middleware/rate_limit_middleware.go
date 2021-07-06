@@ -31,7 +31,7 @@ import (
 func AnonymousRateLimitMiddleware(store *ratelimit.Store) Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			if c.AuthResult.Anonymous {
+			if c.Authentication.Method == "" {
 				limiter := store.ForIP(c.SourceIP)
 				if !limiter.Allow() {
 					c.Result.SetWithError(

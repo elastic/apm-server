@@ -25,7 +25,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 
-	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/headers"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/utility"
@@ -42,12 +42,12 @@ var (
 
 // Context abstracts request and response information for http requests
 type Context struct {
-	Request    *http.Request
-	Logger     *logp.Logger
-	AuthResult authorization.Result
-	Result     Result
-	SourceIP   net.IP
-	UserAgent  string
+	Request        *http.Request
+	Logger         *logp.Logger
+	Authentication auth.AuthenticationDetails
+	Result         Result
+	SourceIP       net.IP
+	UserAgent      string
 
 	w             http.ResponseWriter
 	writeAttempts int
@@ -62,7 +62,7 @@ func NewContext() *Context {
 func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Request = r
 	c.Logger = nil
-	c.AuthResult = authorization.Result{}
+	c.Authentication = auth.AuthenticationDetails{}
 	c.Result.Reset()
 	c.SourceIP = utility.ExtractIP(r)
 	c.UserAgent = utility.UserAgentHeader(r.Header)
