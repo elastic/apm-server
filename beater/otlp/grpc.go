@@ -25,12 +25,13 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"google.golang.org/grpc"
 
-	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
+
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 var (
@@ -61,14 +62,12 @@ func init() {
 	monitoring.NewFunc(gRPCMetricsRegistry, "consumer", collectMetricsMonitoring, monitoring.Report)
 }
 
-// MethodAuthorizationHandlers returns a map of all supported OTLP/gRPC methods to authorization handlers.
-func MethodAuthorizationHandlers(authBuilder *authorization.Builder) map[string]interceptors.MethodAuthorizationHandler {
-	eventWriteMethodAuthorizationHandler := interceptors.MetadataMethodAuthorizationHandler(
-		authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action),
-	)
-	return map[string]interceptors.MethodAuthorizationHandler{
-		metricsFullMethod: eventWriteMethodAuthorizationHandler,
-		tracesFullMethod:  eventWriteMethodAuthorizationHandler,
+// MethodAuthenticators returns a map of all supported OTLP/gRPC methods to authenticators.
+func MethodAuthenticators(authenticator *auth.Authenticator) map[string]interceptors.MethodAuthenticator {
+	metadataMethodAuthenticator := interceptors.MetadataMethodAuthenticator(authenticator)
+	return map[string]interceptors.MethodAuthenticator{
+		metricsFullMethod: metadataMethodAuthenticator,
+		tracesFullMethod:  metadataMethodAuthenticator,
 	}
 }
 

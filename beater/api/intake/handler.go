@@ -27,6 +27,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/beater/request"
@@ -154,6 +155,8 @@ func writeStreamResult(c *request.Context, sr *stream.Result) {
 					errID = request.IDResponseErrorsValidate
 				case errors.Is(err, ratelimit.ErrRateLimitExceeded):
 					errID = request.IDResponseErrorsRateLimit
+				case errors.Is(err, auth.ErrUnauthorized):
+					errID = request.IDResponseErrorsForbidden
 				}
 			}
 			jsonResult.Errors[i] = jsonError{Message: err.Error()}

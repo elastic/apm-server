@@ -32,7 +32,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/processor/otel"
@@ -61,11 +61,11 @@ const (
 	getSamplingStrategyFullMethod = "/jaeger.api_v2.SamplingManager/GetSamplingStrategy"
 )
 
-// MethodAuthorizationHandlers returns a map of all supported Jaeger/gRPC methods to authorization handlers.
-func MethodAuthorizationHandlers(authBuilder *authorization.Builder, authTag string) map[string]interceptors.MethodAuthorizationHandler {
-	return map[string]interceptors.MethodAuthorizationHandler{
-		postSpansFullMethod:           postSpansMethodAuthorizationHandler(authBuilder, authTag),
-		getSamplingStrategyFullMethod: getSamplingStrategyMethodAuthorizationHandler(authBuilder),
+// MethodAuthenticators returns a map of all supported Jaeger/gRPC methods to authorization handlers.
+func MethodAuthenticators(authenticator *auth.Authenticator, authTag string) map[string]interceptors.MethodAuthenticator {
+	return map[string]interceptors.MethodAuthenticator{
+		postSpansFullMethod:           postSpansMethodAuthenticator(authenticator, authTag),
+		getSamplingStrategyFullMethod: getSamplingStrategyMethodAuthenticator(authenticator),
 	}
 }
 
@@ -134,16 +134,8 @@ func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (fl
 	// Only service, and not agent, is known for config queries.
 	// For anonymous/untrusted agents, we filter the results using
 	// query.InsecureAgents below.
-	authResource := authorization.Resource{ServiceName: service}
-	authResult, err := authorization.AuthorizedFor(ctx, authResource)
-	if err != nil {
-		return 0, err
-	}
-	if !authResult.Authorized {
-		err := authorization.ErrUnauthorized
-		if authResult.Reason != "" {
-			err = fmt.Errorf("%w: %s", err, authResult.Reason)
-		}
+	authResource := auth.Resource{ServiceName: service}
+	if err := auth.Authorize(ctx, auth.ActionAgentConfig, authResource); err != nil {
 		return 0, err
 	}
 
@@ -191,9 +183,8 @@ func checkValidationError(err *agentcfg.ValidationError) error {
 	}
 }
 
-func postSpansMethodAuthorizationHandler(authBuilder *authorization.Builder, authTag string) interceptors.MethodAuthorizationHandler {
-	authHandler := authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
-	return func(ctx context.Context, req interface{}) authorization.Authorization {
+func postSpansMethodAuthenticator(authenticator *auth.Authenticator, authTag string) interceptors.MethodAuthenticator {
+	return func(ctx context.Context, req interface{}) (auth.AuthenticationDetails, auth.Authorizer, error) {
 		postSpansRequest := req.(*api_v2.PostSpansRequest)
 		batch := &postSpansRequest.Batch
 		var kind, token string
@@ -203,16 +194,22 @@ func postSpansMethodAuthorizationHandler(authBuilder *authorization.Builder, aut
 			}
 			// Remove the auth tag.
 			batch.Process.Tags = append(batch.Process.Tags[:i], batch.Process.Tags[i+1:]...)
-			kind, token = authorization.ParseAuthorizationHeader(kv.VStr)
+			kind, token = auth.ParseAuthorizationHeader(kv.VStr)
 			break
 		}
-		return authHandler.AuthorizationFor(kind, token)
+		return authenticator.Authenticate(ctx, kind, token)
 	}
 }
 
-func getSamplingStrategyMethodAuthorizationHandler(authBuilder *authorization.Builder) interceptors.MethodAuthorizationHandler {
-	authHandler := authBuilder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
-	return func(ctx context.Context, req interface{}) authorization.Authorization {
-		return authHandler.AuthorizationFor("", "")
+func getSamplingStrategyMethodAuthenticator(authenticator *auth.Authenticator) interceptors.MethodAuthenticator {
+	return func(ctx context.Context, req interface{}) (auth.AuthenticationDetails, auth.Authorizer, error) {
+		// Sampling strategy queries are always unauthenticated. We still consult
+		// the authenticator in case auth isn't required, in which case we should
+		// not rate limit the request.
+		details, authz, err := authenticator.Authenticate(ctx, "", "")
+		if errors.Is(err, auth.ErrAuthFailed) {
+			return auth.AuthenticationDetails{}, auth.AnonymousAuth{}, nil
+		}
+		return details, authz, err
 	}
 }

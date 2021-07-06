@@ -84,7 +84,7 @@ func TestAuth(t *testing.T) {
 		}
 	})
 
-	eventsPayload, err := ioutil.ReadFile("../testdata/intake-v2/metadata.ndjson")
+	eventsPayload, err := ioutil.ReadFile("../testdata/intake-v2/transactions.ndjson")
 	require.NoError(t, err)
 	runWithMethods(t, "ingest", func(t *testing.T, apiKey string, headers http.Header) {
 		req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/events", bytes.NewReader(eventsPayload))
@@ -93,10 +93,13 @@ func TestAuth(t *testing.T) {
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
-		if len(headers) == 0 || apiKey == "sourcemap" || apiKey == "agentconfig" {
-			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+		body, _ := ioutil.ReadAll(resp.Body)
+		if len(headers) == 0 {
+			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode, string(body))
+		} else if apiKey == "sourcemap" || apiKey == "agentconfig" {
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode, string(body))
 		} else {
-			assert.Equal(t, http.StatusAccepted, resp.StatusCode)
+			assert.Equal(t, http.StatusAccepted, resp.StatusCode, string(body))
 		}
 	})
 
@@ -110,8 +113,10 @@ func TestAuth(t *testing.T) {
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
-		if len(headers) == 0 || apiKey == "ingest" || apiKey == "agentconfig" {
+		if len(headers) == 0 {
 			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+		} else if apiKey == "ingest" || apiKey == "agentconfig" {
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 		} else {
 			assert.Equal(t, http.StatusAccepted, resp.StatusCode)
 		}
@@ -125,8 +130,10 @@ func TestAuth(t *testing.T) {
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
-		if len(headers) == 0 || apiKey == "ingest" || apiKey == "sourcemap" {
+		if len(headers) == 0 {
 			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+		} else if apiKey == "ingest" || apiKey == "sourcemap" {
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 		} else {
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
 		}

@@ -15,34 +15,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package authorization
+package auth
 
 import (
-	"fmt"
-	"testing"
-	"time"
-
-	"github.com/elastic/apm-server/elasticsearch"
-
-	"github.com/stretchr/testify/assert"
+	"context"
 )
 
-func TestPrivilegesCache(t *testing.T) {
-	n := 10
-	cache := newPrivilegesCache(time.Millisecond, n)
-	assert.False(t, cache.isFull())
-	for i := 0; i < n-1; i++ {
-		cache.add(fmt.Sprintf("%v", i), elasticsearch.Permissions{})
-		assert.False(t, cache.isFull())
-	}
-	cache.add("oneMore", elasticsearch.Permissions{})
-	assert.True(t, cache.isFull())
-	assert.NotNil(t, cache.get("oneMore"))
-	time.Sleep(time.Millisecond)
-	assert.Nil(t, cache.get("oneMore"))
+// allowAuth implements the Authorizer interface.
+type allowAuth struct{}
 
-	p := elasticsearch.Permissions{"a": true, "b": false}
-	cache.add("id1", p)
-	assert.Equal(t, p, cache.get("id1"))
-	assert.Nil(t, cache.get("oneMore"))
+// Authorize always returns nil, indicating the request is authorized.
+func (allowAuth) Authorize(context.Context, Action, Resource) error {
+	return nil
 }

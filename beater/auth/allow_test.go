@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package authorization
+package auth
 
 import (
 	"context"
@@ -24,10 +24,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDenyAuth(t *testing.T) {
-	handler := denyAuth{}
+func TestAllowAuth(t *testing.T) {
+	handler := allowAuth{}
 
-	result, err := handler.AuthorizedFor(context.Background(), Resource{})
+	err := handler.Authorize(context.Background(), "", Resource{})
 	assert.NoError(t, err)
-	assert.Equal(t, Result{Authorized: false}, result)
 }

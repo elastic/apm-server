@@ -15,19 +15,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package authorization
+package auth
 
 import (
 	"context"
 )
 
-// denyAuth implements the Authorization interface.
-type denyAuth struct {
-	reason string
-}
+// AnonymousAuth implements the Authorizer interface.
+type AnonymousAuth struct{}
 
-// AuthorizedFor always returns a Result indicating the request is neither authorized
-// nor authenticated.
-func (d denyAuth) AuthorizedFor(context.Context, Resource) (Result, error) {
-	return Result{Authorized: false, Reason: d.reason}, nil
+// Authorize always returns nil, indicating the request is authorized.
+func (AnonymousAuth) Authorize(context.Context, Action, Resource) error {
+	return nil
 }

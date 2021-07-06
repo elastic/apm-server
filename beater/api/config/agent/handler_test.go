@@ -37,7 +37,7 @@ import (
 	libkibana "github.com/elastic/beats/v7/libbeat/kibana"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -200,29 +200,32 @@ func TestAgentConfigHandlerAnonymousAccess(t *testing.T) {
 	for _, tc := range []struct {
 		anonymous    bool
 		response     string
-		authResource *authorization.Resource
+		authResource *auth.Resource
 	}{{
 		anonymous:    false,
 		response:     `{"error":"APM Server is not authorized to query Kibana. Please configure apm-server.kibana.username and apm-server.kibana.password, and ensure the user has the necessary privileges."}`,
-		authResource: &authorization.Resource{ServiceName: "opbeans"},
+		authResource: &auth.Resource{ServiceName: "opbeans"},
 	}, {
 		anonymous:    true,
 		response:     `{"error":"Unauthorized"}`,
-		authResource: &authorization.Resource{ServiceName: "opbeans"},
+		authResource: &auth.Resource{ServiceName: "opbeans"},
 	}} {
 		r := httptest.NewRequest(http.MethodGet, target(map[string]string{"service.name": "opbeans"}), nil)
 		c, w := newRequestContext(r)
-		c.AuthResult.Authorized = true
-		c.AuthResult.Anonymous = tc.anonymous
 
-		var requestedResource *authorization.Resource
-		c.Request = withAuthorization(c.Request,
-			authorizedForFunc(func(ctx context.Context, resource authorization.Resource) (authorization.Result, error) {
+		c.Authentication.Method = "none"
+		if tc.anonymous {
+			c.Authentication.Method = ""
+		}
+
+		var requestedResource *auth.Resource
+		c.Request = withAuthorizer(c.Request,
+			authorizerFunc(func(ctx context.Context, action auth.Action, resource auth.Resource) error {
 				if requestedResource != nil {
-					panic("expected only one AuthorizedFor request")
+					panic("expected only one Authorize request")
 				}
 				requestedResource = &resource
-				return c.AuthResult, nil
+				return nil
 			}),
 		)
 		h(c)
@@ -238,19 +241,18 @@ func TestAgentConfigHandlerAuthorizedForService(t *testing.T) {
 
 	r := httptest.NewRequest(http.MethodGet, target(map[string]string{"service.name": "opbeans"}), nil)
 	ctx, w := newRequestContext(r)
-	ctx.AuthResult.Authorized = true
 
-	var queriedResource authorization.Resource
-	ctx.Request = withAuthorization(ctx.Request,
-		authorizedForFunc(func(ctx context.Context, resource authorization.Resource) (authorization.Result, error) {
+	var queriedResource auth.Resource
+	ctx.Request = withAuthorizer(ctx.Request,
+		authorizerFunc(func(ctx context.Context, action auth.Action, resource auth.Resource) error {
 			queriedResource = resource
-			return authorization.Result{Authorized: false}, nil
+			return auth.ErrUnauthorized
 		}),
 	)
 	h(ctx)
 
-	assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
-	assert.Equal(t, authorization.Resource{ServiceName: "opbeans"}, queriedResource)
+	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
+	assert.Equal(t, auth.Resource{ServiceName: "opbeans"}, queriedResource)
 }
 
 func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
@@ -313,6 +315,7 @@ func TestAgentConfigRum(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
 	ctx, w := newRequestContext(r)
+	ctx.Authentication.Method = "" // unauthenticated
 	h(ctx)
 	var actual map[string]string
 	json.Unmarshal(w.Body.Bytes(), &actual)
@@ -334,9 +337,9 @@ func TestAgentConfigNotRum(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, "/backend", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
 	ctx, w := newRequestContext(r)
-	ctx.Request = withAuthorization(ctx.Request,
-		authorizedForFunc(func(context.Context, authorization.Resource) (authorization.Result, error) {
-			return authorization.Result{Authorized: true, Anonymous: false}, nil
+	ctx.Request = withAuthorizer(ctx.Request,
+		authorizerFunc(func(context.Context, auth.Action, auth.Resource) error {
+			return nil
 		}),
 	)
 	h(ctx)
@@ -351,6 +354,7 @@ func TestAgentConfigNoLeak(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
 	ctx, w := newRequestContext(r)
+	ctx.Authentication.Method = "" // unauthenticated
 	h(ctx)
 	var actual map[string]string
 	json.Unmarshal(w.Body.Bytes(), &actual)
@@ -412,9 +416,9 @@ func TestAgentConfigTraceContext(t *testing.T) {
 
 func sendRequest(h request.Handler, r *http.Request) *httptest.ResponseRecorder {
 	ctx, recorder := newRequestContext(r)
-	ctx.Request = withAuthorization(ctx.Request,
-		authorizedForFunc(func(context.Context, authorization.Resource) (authorization.Result, error) {
-			return authorization.Result{Authorized: true}, nil
+	ctx.Request = withAuthorizer(ctx.Request,
+		authorizerFunc(func(context.Context, auth.Action, auth.Resource) error {
+			return nil
 		}),
 	)
 	h(ctx)
@@ -425,7 +429,8 @@ func newRequestContext(r *http.Request) (*request.Context, *httptest.ResponseRec
 	w := httptest.NewRecorder()
 	ctx := request.NewContext()
 	ctx.Reset(w, r)
-	ctx.Request = withAnonymousAuthorization(ctx.Request)
+	ctx.Request = withAnonymousAuthorizer(ctx.Request)
+	ctx.Authentication.Method = auth.MethodNone
 	return ctx, w
 }
 
@@ -458,18 +463,18 @@ func (c *recordingKibanaClient) Send(ctx context.Context, method string, path st
 	return c.Client.Send(ctx, method, path, params, header, body)
 }
 
-func withAnonymousAuthorization(req *http.Request) *http.Request {
-	return withAuthorization(req, authorizedForFunc(func(context.Context, authorization.Resource) (authorization.Result, error) {
-		return authorization.Result{Authorized: true, Anonymous: true}, nil
+func withAnonymousAuthorizer(req *http.Request) *http.Request {
+	return withAuthorizer(req, authorizerFunc(func(context.Context, auth.Action, auth.Resource) error {
+		return nil
 	}))
 }
 
-func withAuthorization(req *http.Request, auth authorization.Authorization) *http.Request {
-	return req.WithContext(authorization.ContextWithAuthorization(req.Context(), auth))
+func withAuthorizer(req *http.Request, authz auth.Authorizer) *http.Request {
+	return req.WithContext(auth.ContextWithAuthorizer(req.Context(), authz))
 }
 
-type authorizedForFunc func(context.Context, authorization.Resource) (authorization.Result, error)
+type authorizerFunc func(context.Context, auth.Action, auth.Resource) error
 
-func (f authorizedForFunc) AuthorizedFor(ctx context.Context, resource authorization.Resource) (authorization.Result, error) {
-	return f(ctx, resource)
+func (f authorizerFunc) Authorize(ctx context.Context, action auth.Action, resource auth.Resource) error {
+	return f(ctx, action, resource)
 }
