@@ -120,6 +120,20 @@ policy_templates:
             required: false
             show_user: false
             default: 10000
+          - name: rum_library_pattern
+            type: string
+            title: RUM - Library Frame Pattern
+            description: Identify library frames by matching a stacktrace frame's `file_name` and `abs_path` against this regexp.
+            required: false
+            show_user: false
+            default: '"node_modules|bower_components|~"'
+          - name: rum_exclude_from_grouping
+            type: string
+            title: RUM - Exclude from grouping
+            description: Exclude stacktrace frames from error group calculations by matching a stacktrace frame's `file_name` against this regexp.
+            required: false
+            show_user: false
+            default: '"^/webpack"'
           - name: api_key_limit
             type: integer
             title: Maximum number of API Keys for Agent authentication
