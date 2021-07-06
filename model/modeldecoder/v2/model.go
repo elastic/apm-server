@@ -773,8 +773,8 @@ type stacktraceFrame struct {
 
 type spanCompressed struct {
 	// Count is the number of spans that have been compressed into a single
-	// one.
-	Count nullable.Int `json:"count"`
+	// one. This number must be greater than 1.
+	Count nullable.Int `json:"count" validate:"min=2"`
 	// End is the end timestamp of the last span. This field - the span's timestamp
 	// is the overall duration of all the compressed spans, including any delays
 	// between the spans.
