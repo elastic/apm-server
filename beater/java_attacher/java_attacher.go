@@ -25,6 +25,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -124,11 +125,14 @@ func (j JavaAttacher) formatArgs() []string {
 			args = append(args, makeArg("--"+name, value))
 		}
 	}
+	cfg := make([]string, 0, len(j.cfg.Config))
 	for k, v := range j.cfg.Config {
-		args = append(args, "--config "+k+"="+v)
+		cfg = append(cfg, "--config "+k+"="+v)
 	}
+	// we want a predictable order for testing
+	sort.Strings(cfg)
 
-	return args
+	return append(args, cfg...)
 }
 
 func makeArg(flagName string, args ...string) string {

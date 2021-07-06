@@ -78,7 +78,7 @@ func TestBuild(t *testing.T) {
 	want := filepath.FromSlash("/usr/bin/java -jar /bin/apm-agent-attach-cli-1.24.0-slim.jar") +
 		" --continuous --log-level info --exclude-user root --include-main MyApplication " +
 		"--include-main my-application.jar --include-vmarg elastic.apm.agent.attach=true " +
-		"--config service_name=my-cool-service --config server_url=http://localhost:8200"
+		"--config server_url=http://localhost:8200 --config service_name=my-cool-service"
 
 	cmdArgs := strings.Join(cmd.Args, " ")
 	assert.Equal(t, want, cmdArgs)
