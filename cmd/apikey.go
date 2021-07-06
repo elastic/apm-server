@@ -39,7 +39,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 
-	auth "github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/auth"
 	es "github.com/elastic/apm-server/elasticsearch"
 )
 
@@ -78,7 +78,7 @@ If no privilege(s) are specified, the API Key will be valid for all.`,
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
 				// No privileges specified, grant all.
-				privileges = auth.ActionsAll()
+				privileges = auth.AllPrivilegeActions()
 			}
 			return createAPIKey(client, keyName, expiration, privileges, json)
 		}),
@@ -170,8 +170,7 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 		Run: makeAPIKeyRun(settings, &json, func(client es.Client, config *config.Config, args []string) error {
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
-				// can't use "*" for querying
-				privileges = auth.ActionsAll()
+				privileges = auth.AllPrivilegeActions()
 			}
 			return verifyAPIKey(config, privileges, credentials, json)
 		}),
@@ -419,22 +418,37 @@ func invalidateAPIKey(client es.Client, id, name *string, asJSON bool) error {
 }
 
 func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, credentials string, asJSON bool) error {
+	authenticator, err := auth.NewAuthenticator(config.AgentAuth)
+	if err != nil {
+		return err
+	}
+	_, authz, err := authenticator.Authenticate(context.Background(), headers.APIKey, credentials)
+	if err != nil {
+		return err
+	}
 	perms := make(es.Permissions)
 	printText, printJSON := printers(asJSON)
 	for _, privilege := range privileges {
-		builder, err := auth.NewBuilder(config.AgentAuth)
-		if err != nil {
-			return err
+		var action auth.Action
+		switch privilege {
+		case auth.PrivilegeAgentConfigRead.Action:
+			action = auth.ActionAgentConfig
+		case auth.PrivilegeEventWrite.Action:
+			action = auth.ActionEventIngest
+		case auth.PrivilegeSourcemapWrite.Action:
+			action = auth.ActionSourcemapUpload
 		}
-		result, err := builder.
-			ForPrivilege(privilege).
-			AuthorizationFor(headers.APIKey, credentials).
-			AuthorizedFor(context.Background(), auth.Resource{})
-		if err != nil {
-			return err
+
+		authorized := true
+		if err := authz.Authorize(context.Background(), action, auth.Resource{}); err != nil {
+			if errors.Is(err, auth.ErrUnauthorized) {
+				authorized = false
+			} else {
+				return err
+			}
 		}
-		perms[privilege] = result.Authorized
-		printText("Authorized for %s...: %s", humanPrivilege(privilege), humanBool(result.Authorized))
+		perms[privilege] = authorized
+		printText("Authorized for %s...: %s", humanPrivilege(privilege), humanBool(authorized))
 	}
 	printJSON(perms)
 	return nil
@@ -448,12 +462,7 @@ func humanBool(b bool) string {
 }
 
 func humanPrivilege(privilege es.PrivilegeAction) string {
-	switch privilege {
-	case auth.ActionAny:
-		return fmt.Sprintf("all privileges (\"%v\")", privilege)
-	default:
-		return fmt.Sprintf("privilege \"%v\"", privilege)
-	}
+	return fmt.Sprintf("privilege \"%v\"", privilege)
 }
 
 func humanTime(millis *int64) string {

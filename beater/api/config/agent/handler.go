@@ -30,7 +30,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -100,25 +100,21 @@ func (h *handler) Handle(c *request.Context) {
 	// Only service, and not agent, is known for config queries.
 	// For anonymous/untrusted agents, we filter the results using
 	// query.InsecureAgents below.
-	authResource := authorization.Resource{ServiceName: query.Service.Name}
-	authResult, err := authorization.AuthorizedFor(c.Request.Context(), authResource)
-	if err != nil {
-		c.Result.SetDefault(request.IDResponseErrorsServiceUnavailable)
-		c.Result.Err = err
-		c.Write()
-		return
-	}
-	if !authResult.Authorized {
-		id := request.IDResponseErrorsUnauthorized
-		status := request.MapResultIDToStatus[id]
-		if authResult.Reason != "" {
-			status.Keyword = authResult.Reason
+	authResource := auth.Resource{ServiceName: query.Service.Name}
+	if err := auth.Authorize(c.Request.Context(), auth.ActionAgentConfig, authResource); err != nil {
+		if errors.Is(err, auth.ErrUnauthorized) {
+			id := request.IDResponseErrorsForbidden
+			status := request.MapResultIDToStatus[id]
+			c.Result.Set(id, status.Code, err.Error(), nil, nil)
+		} else {
+			c.Result.SetDefault(request.IDResponseErrorsServiceUnavailable)
+			c.Result.Err = err
 		}
-		c.Result.Set(id, status.Code, status.Keyword, nil, nil)
 		c.Write()
 		return
 	}
-	if authResult.Anonymous {
+	if c.Authentication.Method == "" {
+		// Unauthenticated client, restrict results.
 		query.InsecureAgents = h.allowAnonymousAgents
 	}
 
@@ -238,7 +234,7 @@ func extractQueryError(c *request.Context, err error) {
 }
 
 func authErrMsg(c *request.Context, fullMsg, shortMsg string) string {
-	if !c.AuthResult.Anonymous {
+	if c.Authentication.Method != "" {
 		return fullMsg
 	}
 	return shortMsg

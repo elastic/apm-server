@@ -15,16 +15,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package authorization
+package auth
 
 import (
-	"context"
+	"strings"
 )
 
-// allowAuth implements the Authorization interface.
-type allowAuth struct{}
-
-// AuthorizedFor always returns a Result indicating the request is authorized.
-func (allowAuth) AuthorizedFor(context.Context, Resource) (Result, error) {
-	return Result{Authorized: true}, nil
+// ParseAuthorizationHeader parses an HTTP Authorization header value,
+// which should have the format "<auth-kind> <auth-token>".
+func ParseAuthorizationHeader(v string) (kind, token string) {
+	space := strings.IndexRune(v, ' ')
+	if space <= 0 {
+		return "", ""
+	}
+	return v[:space], v[space+1:]
 }

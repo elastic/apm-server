@@ -74,7 +74,9 @@ func TestAnonymousRateLimitMiddleware(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
 		c.Reset(w, r)
-		c.AuthResult.Anonymous = test.anonymous
+		if !test.anonymous {
+			c.Authentication.Method = "none"
+		}
 
 		wrapped(c)
 		assert.Equal(t, test.expectStatusCode, w.Code)
@@ -94,7 +96,6 @@ func TestAnonymousRateLimitMiddlewareForIP(t *testing.T) {
 		r := httptest.NewRequest("GET", "/", nil)
 		r.RemoteAddr = ip
 		c.Reset(w, r)
-		c.AuthResult.Anonymous = true
 		wrapped(c)
 		return w.Code
 	}

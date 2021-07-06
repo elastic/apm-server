@@ -240,6 +240,7 @@ class AgentConfigurationKibanaDisabledIntegrationTest(ElasticTest):
 @integration_test
 class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
     config_overrides = {
+        "secret_token": "supersecret",
         "enable_rum": "true",
     }
 
@@ -290,7 +291,8 @@ class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
 
         r2 = requests.get(self.agent_config_url,
                           params={"service.name": service_name},
-                          headers={"Content-Type": "application/json"})
+                          headers={"Content-Type": "application/json",
+                                   "Authorization": "Bearer " + self.config_overrides["secret_token"]})
 
         assert r2.status_code == 200, r2.status_code
         assert r2.json() == {"transaction_sample_rate": "0.3"}, r2.json()
@@ -301,7 +303,8 @@ class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
 
         r1 = requests.get(self.agent_config_url,
                           params={"service.name": service_name},
-                          headers={"Content-Type": "application/json"})
+                          headers={"Content-Type": "application/json",
+                                   "Authorization": "Bearer " + self.config_overrides["secret_token"]})
 
         assert r1.status_code == 200, r1.status_code
         assert r1.json() == {"transaction_sample_rate": "0.3"}, r1.json()
