@@ -75,7 +75,7 @@ func SendConfig(ctx context.Context, client Client, conf *ucfg.Config) error {
 }
 
 func format(m map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{"schemaJson": m}
+	return map[string]interface{}{"schema": m}
 }
 
 func flattenAndClean(conf *ucfg.Config) (map[string]interface{}, error) {
@@ -96,6 +96,22 @@ func flattenAndClean(conf *ucfg.Config) (map[string]interface{}, error) {
 		}
 		if strings.HasPrefix(k, "instrumentation") {
 			continue
+		}
+		if strings.HasPrefix(k, "logging.") {
+			switch k[8:] {
+			case "level", "selectors", "metrics.enabled", "metrics.period":
+			default:
+				continue
+			}
+		}
+		if strings.HasPrefix(k, "path") {
+			continue
+		}
+		if k == "gc_percent" || k == "name" || k == "xpack.monitoring.enabled" {
+			continue
+		}
+		if k == "apm-server.host" {
+			v = "0.0.0.0:8200"
 		}
 		if strings.HasPrefix(k, "apm-server.ssl.") {
 			// Following ssl related settings need to be synced:

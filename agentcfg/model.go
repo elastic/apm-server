@@ -66,7 +66,7 @@ type Query struct {
 	// agent requests the Etag should be set, instead of the AppliedByAgent setting.
 	// Use this flag when building queries for third party integrations,
 	// such as Jaeger, that do not send an Etag in their request.
-	MarkAsAppliedByAgent *bool `json:"mark_as_applied_by_agent,omitempty"`
+	MarkAsAppliedByAgent bool `json:"mark_as_applied_by_agent,omitempty"`
 
 	// InsecureAgents holds a set of prefixes for restricting results to those whose
 	// agent name matches any of the specified prefixes.

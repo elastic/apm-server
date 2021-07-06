@@ -23,11 +23,8 @@ import (
 	"io"
 	"io/ioutil"
 	"math/rand"
-	"mime/multipart"
 	"net/http"
 	"net/url"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -72,30 +69,6 @@ func TestRUMXForwardedFor(t *testing.T) {
 	)
 }
 
-func TestRUMErrorSourcemapping(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err := srv.Start()
-	require.NoError(t, err)
-
-	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
-		"http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map", // bundle filepath
-		"apm-agent-js", // service name
-		"1.0.1",        // service version
-	)
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-sourcemap", nil)
-
-	sendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
-
-	systemtest.ApproveEvents(
-		t, t.Name(), result.Hits.Hits,
-		// RUM timestamps are set by the server based on the time the payload is received.
-		"@timestamp", "timestamp.us",
-	)
-}
-
 func TestRUMAuth(t *testing.T) {
 	// The RUM endpoint does not require auth. Start the server
 	// with a randomly generated secret token to show that RUM
@@ -109,7 +82,7 @@ func TestRUMAuth(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	sendRUMEventsPayload(t, srv, "../testdata/intake-v2/transactions.ndjson")
+	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/transactions.ndjson")
 
 	req, _ := http.NewRequest("GET", srv.URL+"/config/v1/rum/agents", nil)
 	req.Header.Add("Content-Type", "application/json")
@@ -204,58 +177,4 @@ func TestRUMRateLimit(t *testing.T) {
 	// The exact error differs, depending on whether rate limiting was applied at the request
 	// level, or at the event stream level. Either could occur.
 	assert.Regexp(t, `429 Too Many Requests .*`, err.Error())
-}
-
-func sendRUMEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {
-	t.Helper()
-
-	f, err := os.Open(payloadFile)
-	require.NoError(t, err)
-	defer f.Close()
-
-	req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/rum/events", f)
-	req.Header.Add("Content-Type", "application/x-ndjson")
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusAccepted, resp.StatusCode, string(respBody))
-}
-
-func uploadSourcemap(t *testing.T, srv *apmservertest.Server, sourcemapFile, bundleFilepath, serviceName, serviceVersion string) {
-	t.Helper()
-
-	req := newUploadSourcemapRequest(t, srv, sourcemapFile, bundleFilepath, serviceName, serviceVersion)
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusAccepted, resp.StatusCode, string(respBody))
-}
-
-func newUploadSourcemapRequest(t *testing.T, srv *apmservertest.Server, sourcemapFile, bundleFilepath, serviceName, serviceVersion string) *http.Request {
-	t.Helper()
-
-	var data bytes.Buffer
-	mw := multipart.NewWriter(&data)
-	require.NoError(t, mw.WriteField("service_name", serviceName))
-	require.NoError(t, mw.WriteField("service_version", serviceVersion))
-	require.NoError(t, mw.WriteField("bundle_filepath", bundleFilepath))
-
-	f, err := os.Open(sourcemapFile)
-	require.NoError(t, err)
-	defer f.Close()
-	sourcemapFileWriter, err := mw.CreateFormFile("sourcemap", filepath.Base(sourcemapFile))
-	require.NoError(t, err)
-	_, err = io.Copy(sourcemapFileWriter, f)
-	require.NoError(t, err)
-	require.NoError(t, mw.Close())
-
-	req, _ := http.NewRequest("POST", srv.URL+"/assets/v1/sourcemaps", &data)
-	req.Header.Add("Content-Type", mw.FormDataContentType())
-	return req
 }
