@@ -109,8 +109,8 @@ pipeline {
         withGithubNotify(context: 'Intake') {
           deleteDir()
           unstash 'source'
-          withMageEnv(){
-            dir("${BASE_DIR}"){
+          dir("${BASE_DIR}"){
+            withMageEnv(){
               sh(label: 'Run intake', script: './.ci/scripts/intake.sh')
             }
           }
@@ -136,8 +136,8 @@ pipeline {
             withGithubNotify(context: 'Build - Linux') {
               deleteDir()
               unstash 'source'
-              withMageEnv(){
-                dir("${BASE_DIR}"){
+              dir(BASE_DIR){
+                withMageEnv(){
                   retry(2) { // Retry in case there are any errors to avoid temporary glitches
                     sleep randomNumber(min: 5, max: 10)
                     sh(label: 'Linux build', script: './.ci/scripts/build.sh')
@@ -167,8 +167,8 @@ pipeline {
             withGithubNotify(context: 'Build-Test - Windows') {
               deleteDir()
               unstash 'source'
-              withMageEnv(){
-                dir("${BASE_DIR}"){
+              dir(BASE_DIR){
+                withMageEnv(){
                   retry(2) { // Retry in case there are any errors to avoid temporary glitches
                     sleep randomNumber(min: 5, max: 10)
                     powershell(label: 'Windows build', script: '.\\.ci\\scripts\\windows-build.ps1')
@@ -209,8 +209,8 @@ pipeline {
             withGithubNotify(context: 'Build-Test - OSX') {
               deleteDir()
               unstash 'source'
-              withMageEnv(){
-                dir("${BASE_DIR}"){
+              dir(BASE_DIR){
+                withMageEnv(){
                   retry(2) { // Retry in case there are any errors to avoid temporary glitches
                     sleep randomNumber(min: 5, max: 10)
                     sh(label: 'OSX build', script: '.ci/scripts/build-darwin.sh')
@@ -246,8 +246,8 @@ pipeline {
             withGithubNotify(context: 'Build-Test - ARM') {
               deleteDir()
               unstash 'source'
-              withMageEnv(){
-                dir("${BASE_DIR}"){
+              dir("${BASE_DIR}"){
+                withMageEnv(){
                   sh(label: 'ARM build', script: '.ci/scripts/build.sh')
                   sh(label: 'ARM Unit tests', script: './.ci/scripts/unit-test.sh')
                 }
@@ -283,8 +283,8 @@ pipeline {
             withGithubNotify(context: 'Unit Tests', tab: 'tests') {
               deleteDir()
               unstash 'source'
-              withMageEnv(){
-                dir("${BASE_DIR}"){
+              dir("${BASE_DIR}"){
+                withMageEnv(){
                   sh(label: 'Run Unit tests', script: './.ci/scripts/unit-test.sh')
                 }
               }
@@ -328,8 +328,8 @@ pipeline {
             withGithubNotify(context: 'System Tests', tab: 'tests') {
               deleteDir()
               unstash 'source'
-              withMageEnv(){
-                dir("${BASE_DIR}"){
+              dir("${BASE_DIR}"){
+                withMageEnv(){
                   sh(label: 'Run Linux tests', script: './.ci/scripts/linux-test.sh')
                 }
               }
@@ -378,8 +378,8 @@ pipeline {
             withGithubNotify(context: 'Benchmarking') {
               deleteDir()
               unstash 'source'
-              withMageEnv(){
-                dir("${BASE_DIR}"){
+              dir("${BASE_DIR}"){
+                withMageEnv(){
                   sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                 }
               }
@@ -408,8 +408,8 @@ pipeline {
             withGithubNotify(context: 'Sync Kibana') {
               deleteDir()
               unstash 'source'
-              withMageEnv(){
-                dir("${BASE_DIR}"){
+              dir("${BASE_DIR}"){
+                withMageEnv(){
                   catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
                     sh(label: 'Test Sync', script: './.ci/scripts/sync.sh')
                   }
@@ -430,8 +430,8 @@ pipeline {
               deleteDir()
               unstash 'source'
               dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-              withMageEnv(){
-                dir("${BASE_DIR}"){
+              dir("${BASE_DIR}"){
+                withMageEnv(){
                   sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
                 }
               }
@@ -471,8 +471,8 @@ pipeline {
                 withGithubNotify(context: 'Package') {
                   deleteDir()
                   unstash 'source'
-                  withMageEnv(){
-                    dir("${BASE_DIR}"){
+                  dir("${BASE_DIR}"){
+                    withMageEnv(){
                       sh(label: 'Build packages', script: './.ci/scripts/package.sh')
                       sh(label: 'Test packages install', script: './.ci/scripts/test-install-packages.sh')
                       dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
