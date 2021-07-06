@@ -3,6 +3,7 @@
 
 https://github.com/elastic/apm-server/compare/6.7\...6.8[View commits]
 
+* <<release-notes-6.8.17>>
 * <<release-notes-6.8.16>>
 * <<release-notes-6.8.15>>
 * <<release-notes-6.8.14>>
@@ -20,6 +21,14 @@ https://github.com/elastic/apm-server/compare/6.7\...6.8[View commits]
 * <<release-notes-6.8.2>>
 * <<release-notes-6.8.1>>
 * <<release-notes-6.8.0>>
+
+[float]
+[[release-notes-6.8.17]]
+=== APM Server version 6.8.17
+
+https://github.com/elastic/apm-server/compare/v6.8.16\...v6.8.17[View commits]
+
+No significant changes.
 
 [float]
 [[release-notes-6.8.16]]
