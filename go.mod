@@ -3,12 +3,9 @@ module github.com/elastic/apm-server
 go 1.13
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.1.1 // indirect
 	github.com/DataDog/zstd v1.4.4 // indirect
-	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/apache/thrift v0.14.1
-	github.com/aymerick/raymond v2.0.2+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
@@ -20,33 +17,27 @@ require (
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210630182526-5217a133e7ae
 	github.com/elastic/ecs v1.10.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210407144825-cc1c33cfa1d0 // indirect
+	github.com/elastic/elastic-package v0.0.0-20210706142446-d7dd1a3ac595
 	github.com/elastic/gmux v0.1.0
-	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20210701130713-3c08ee738285
+	github.com/elastic/go-elasticsearch/v7 v7.13.1
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20210701131303-a3f8e421ff7c
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
 	github.com/elastic/go-ucfg v0.8.4-0.20200415140258-1232bd4774a6
-	github.com/elastic/package-spec/code/go v0.0.0-20210310145052-baee4c3da9cc // indirect
 	github.com/fatih/color v1.12.0 // indirect
-	github.com/go-git/go-git/v5 v5.1.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogo/protobuf v1.3.2
-	github.com/google/go-github/v32 v32.1.0 // indirect
 	github.com/google/pprof v0.0.0-20210323184331-8eee2492667d
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
-	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/jaegertracing/jaeger v1.23.0
-	github.com/jedib0t/go-pretty v4.3.0+incompatible // indirect
 	github.com/josephspurrier/goversioninfo v1.2.0 // indirect
 	github.com/json-iterator/go v1.1.10
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/magefile/mage v1.11.0
 	github.com/mattn/go-isatty v0.0.13 // indirect
-	github.com/mattn/go-runewidth v0.0.9 // indirect
-	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
