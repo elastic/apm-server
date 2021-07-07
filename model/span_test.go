@@ -26,7 +26,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -105,7 +104,6 @@ func TestSpanTransform(t *testing.T) {
 				Outcome:             "unknown",
 				RepresentativeCount: 5,
 				Duration:            1.20,
-				RUM:                 true,
 				Stacktrace:          Stacktrace{{AbsPath: path}},
 				Labels:              common.MapStr{"label_a": 12},
 				HTTP:                &HTTP{Method: method, StatusCode: statusCode, URL: url},
@@ -114,7 +112,8 @@ func TestSpanTransform(t *testing.T) {
 					Statement:    statement,
 					Type:         dbType,
 					UserName:     user,
-					RowsAffected: &rowsAffected},
+					RowsAffected: &rowsAffected,
+				},
 				Destination: &Destination{Address: address, Port: port},
 				DestinationService: &DestinationService{
 					Type:     destServiceType,
@@ -137,10 +136,7 @@ func TestSpanTransform(t *testing.T) {
 					"stacktrace": []common.MapStr{{
 						"exclude_from_grouping": false,
 						"abs_path":              path,
-						"sourcemap": common.MapStr{
-							"error":   "Colno mandatory for sourcemapping.",
-							"updated": false,
-						}}},
+					}},
 					"db": common.MapStr{
 						"instance":      instance,
 						"statement":     statement,
@@ -182,7 +178,6 @@ func TestSpanTransform(t *testing.T) {
 	for _, test := range tests {
 		output := test.Span.appendBeatEvents(context.Background(), &transform.Config{
 			DataStreams: true,
-			RUM:         transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
 		}, nil)
 		fields := output[0].Fields
 		assert.Equal(t, test.Output, fields, test.Msg)

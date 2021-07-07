@@ -19,75 +19,124 @@ package model
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/logp"
-
-	logs "github.com/elastic/apm-server/log"
 
 	"github.com/elastic/apm-server/transform"
 )
 
 type Stacktrace []*StacktraceFrame
 
-func (st *Stacktrace) transform(ctx context.Context, cfg *transform.Config, rum bool, service *Service) []common.MapStr {
-	if st == nil {
-		return nil
-	}
-	// source map algorithm:
-	// apply source mapping frame by frame
-	// if no source map could be found, set updated to false and set sourcemap error
-	// otherwise use source map library for mapping and update
-	// - filename: only if it was found
-	// - function:
-	//   * should be moved down one stack trace frame,
-	//   * the function name of the first frame is set to <anonymous>
-	//   * if one frame is not found in the source map, this frame is left out and
-	//   the function name from the previous frame is used
-	//   * if a mapping could be applied but no function name is found, the
-	//   function name for the next frame is set to <unknown>
-	// - colno
-	// - lineno
-	// - abs_path is set to the cleaned abs_path
-	// - sourcmeap.updated is set to true
+type StacktraceFrame struct {
+	AbsPath      string
+	Filename     string
+	Classname    string
+	Lineno       *int
+	Colno        *int
+	ContextLine  string
+	Module       string
+	Function     string
+	LibraryFrame *bool
+	Vars         common.MapStr
+	PreContext   []string
+	PostContext  []string
 
-	if !rum || cfg.RUM.SourcemapStore == nil {
-		return st.transformFrames(cfg, rum, noSourcemapping)
-	}
-	if service == nil || service.Name == "" || service.Version == "" {
-		return st.transformFrames(cfg, rum, noSourcemapping)
-	}
+	ExcludeFromGrouping bool
 
-	var errMsg string
-	var sourcemapErrorSet = map[string]interface{}{}
-	logger := logp.NewLogger(logs.Stacktrace)
-	fct := "<anonymous>"
-	return st.transformFrames(cfg, rum, func(frame *StacktraceFrame) {
-		fct, errMsg = frame.applySourcemap(ctx, cfg.RUM.SourcemapStore, service, fct)
-		if errMsg == "" || !logger.IsDebug() {
-			return
-		}
-		if _, ok := sourcemapErrorSet[errMsg]; !ok {
-			logger.Debug(errMsg)
-			sourcemapErrorSet[errMsg] = nil
-		}
-	})
+	SourcemapUpdated bool
+	Original         Original
 }
 
-func (st *Stacktrace) transformFrames(cfg *transform.Config, rum bool, apply func(*StacktraceFrame)) []common.MapStr {
-	frameCount := len(*st)
-	if frameCount == 0 {
+type Original struct {
+	AbsPath      string
+	Filename     string
+	Classname    string
+	Lineno       *int
+	Colno        *int
+	Function     string
+	LibraryFrame *bool
+}
+
+func (st Stacktrace) transform(ctx context.Context, cfg *transform.Config, rum bool) []common.MapStr {
+	if len(st) == 0 {
 		return nil
 	}
-
-	var fr *StacktraceFrame
-	frames := make([]common.MapStr, frameCount)
-	for idx := frameCount - 1; idx >= 0; idx-- {
-		fr = (*st)[idx]
-		apply(fr)
-		frames[idx] = fr.transform(cfg, rum)
+	frames := make([]common.MapStr, len(st))
+	for i, frame := range st {
+		frames[i] = frame.transform(cfg, rum)
 	}
 	return frames
 }
 
-func noSourcemapping(_ *StacktraceFrame) {}
+func (s *StacktraceFrame) transform(cfg *transform.Config, rum bool) common.MapStr {
+	var m mapStr
+	m.maybeSetString("filename", s.Filename)
+	m.maybeSetString("classname", s.Classname)
+	m.maybeSetString("abs_path", s.AbsPath)
+	m.maybeSetString("module", s.Module)
+	m.maybeSetString("function", s.Function)
+	m.maybeSetMapStr("vars", s.Vars)
+
+	if rum && cfg.RUM.LibraryPattern != nil {
+		s.setLibraryFrame(cfg.RUM.LibraryPattern)
+	}
+	if s.LibraryFrame != nil {
+		m.set("library_frame", *s.LibraryFrame)
+	}
+
+	if rum && cfg.RUM.ExcludeFromGrouping != nil {
+		s.setExcludeFromGrouping(cfg.RUM.ExcludeFromGrouping)
+	}
+	m.set("exclude_from_grouping", s.ExcludeFromGrouping)
+
+	var context mapStr
+	if len(s.PreContext) > 0 {
+		context.set("pre", s.PreContext)
+	}
+	if len(s.PostContext) > 0 {
+		context.set("post", s.PostContext)
+	}
+	m.maybeSetMapStr("context", common.MapStr(context))
+
+	var line mapStr
+	line.maybeSetIntptr("number", s.Lineno)
+	line.maybeSetIntptr("column", s.Colno)
+	line.maybeSetString("context", s.ContextLine)
+	m.maybeSetMapStr("line", common.MapStr(line))
+
+	var sm mapStr
+	if s.SourcemapUpdated {
+		sm.set("updated", true)
+	}
+	m.maybeSetMapStr("sourcemap", common.MapStr(sm))
+
+	var orig mapStr
+	orig.maybeSetBool("library_frame", s.Original.LibraryFrame)
+	if s.SourcemapUpdated {
+		orig.maybeSetString("filename", s.Original.Filename)
+		orig.maybeSetString("classname", s.Original.Classname)
+		orig.maybeSetString("abs_path", s.Original.AbsPath)
+		orig.maybeSetString("function", s.Original.Function)
+		orig.maybeSetIntptr("colno", s.Original.Colno)
+		orig.maybeSetIntptr("lineno", s.Original.Lineno)
+	}
+	m.maybeSetMapStr("original", common.MapStr(orig))
+
+	return common.MapStr(m)
+}
+
+func (s *StacktraceFrame) IsLibraryFrame() bool {
+	return s.LibraryFrame != nil && *s.LibraryFrame
+}
+
+func (s *StacktraceFrame) setExcludeFromGrouping(pattern *regexp.Regexp) {
+	s.ExcludeFromGrouping = s.Filename != "" && pattern.MatchString(s.Filename)
+}
+
+func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
+	s.Original.LibraryFrame = s.LibraryFrame
+	libraryFrame := (s.Filename != "" && pattern.MatchString(s.Filename)) ||
+		(s.AbsPath != "" && pattern.MatchString(s.AbsPath))
+	s.LibraryFrame = &libraryFrame
+}

@@ -7,6 +7,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 ==== Breaking Changes
 * Removed monitoring counters `apm-server.processor.stream.errors.{queue,server,closed}` {pull}5453[5453]
 * APM Server now responds with 403 (HTTP) and PermissionDenied (gRPC) for authenticated but unauthorized requests {pull}5545[5545]
+* `sourcemap.error` and `sourcemap.updated` are no longer set due to failing to find a matching source map {pull}5631[5631]
 
 [float]
 ==== Bug fixes

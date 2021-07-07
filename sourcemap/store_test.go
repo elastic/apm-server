@@ -308,7 +308,7 @@ func TestStore_Added(t *testing.T) {
 	assert.Equal(t, "", mapper.File())
 
 	// remove from cache, afterwards sourcemap should be fetched from ES
-	store.Added(context.Background(), name, version, path)
+	store.NotifyAdded(context.Background(), name, version, path)
 	mapper, err = store.Fetch(context.Background(), name, version, path)
 	require.NoError(t, err)
 	assert.NotNil(t, &sourcemap.Consumer{}, mapper)

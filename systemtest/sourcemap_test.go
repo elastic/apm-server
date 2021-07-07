@@ -25,9 +25,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -105,7 +103,15 @@ func TestDuplicateSourcemapWarning(t *testing.T) {
 	)
 	systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*-sourcemap", nil)
 
-	expectLogMessage(t, srv, "Overriding sourcemap")
+	require.NoError(t, srv.Close())
+	var messages []string
+	for _, entry := range srv.Logs.All() {
+		messages = append(messages, entry.Message)
+	}
+	assert.Contains(t, messages,
+		`Overriding sourcemap for service apm-agent-js version 1.0.0 and `+
+			`file http://localhost:8000/test/e2e/general-usecase/bundle.js.map`,
+	)
 }
 
 func TestNoMatchingSourcemap(t *testing.T) {
@@ -149,8 +155,8 @@ func TestFetchLatestSourcemap(t *testing.T) {
 	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-sourcemap", nil)
 
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
-	expectLogMessage(t, srv, "No Sourcemap available")
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
+	assertSourcemapUpdated(t, result, false)
 	deleteIndex(t, "apm-*-error*")
 
 	// upload second sourcemap file with same key,
@@ -166,18 +172,17 @@ func TestFetchLatestSourcemap(t *testing.T) {
 	systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*-sourcemap", nil)
 
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
-	expectSourcemapUpdated(t, result)
+	result = systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
+	assertSourcemapUpdated(t, result, true)
 }
 
-func TestSourcemapCacheUsage(t *testing.T) {
+func TestSourcemapCaching(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
 	err := srv.Start()
 	require.NoError(t, err)
 
-	// upload valid sourcemap
 	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
 		"apm-agent-js",
@@ -185,55 +190,17 @@ func TestSourcemapCacheUsage(t *testing.T) {
 	)
 	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-sourcemap", nil)
 
-	// trigger cache
+	// Index an error, applying source mapping and caching the source map in the process.
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
 	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
-	expectSourcemapUpdated(t, result)
+	assertSourcemapUpdated(t, result, true)
 
-	// delete sourcemap index
+	// Delete the source map and error, and try again.
 	deleteIndex(t, "apm-*-sourcemap*")
-
-	// index error document again
+	deleteIndex(t, "apm-*-error*")
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result = systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*-error", nil)
-
-	// check that sourcemap is updated, meaning it was applied from the cache
-	expectSourcemapUpdated(t, result)
-}
-
-func TestSourcemapCacheExpiration(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true,
-		Sourcemap: &apmservertest.RUMSourcemapConfig{
-			Enabled: true,
-			Cache:   &apmservertest.RUMSourcemapCacheConfig{Expiration: time.Second},
-		}}
-	err := srv.Start()
-	require.NoError(t, err)
-
-	// upload valid sourcemap
-	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
-		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-		"apm-agent-js",
-		"1.0.0",
-	)
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-sourcemap", nil)
-
-	// trigger cache
-	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
-
-	// delete sourcemap index
-	deleteIndex(t, "apm-*-sourcemap*")
-
-	// wait for the cache to expire
-	time.Sleep(time.Second)
-
-	// no sourcemap available, since the index was removed and the cache was expired
-	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
-	expectLogMessage(t, srv, "No Sourcemap available")
+	result = systemtest.Elasticsearch.ExpectMinDocs(t, 1, "apm-*-error", nil)
+	assertSourcemapUpdated(t, result, true)
 }
 
 func uploadSourcemap(t *testing.T, srv *apmservertest.Server, sourcemapFile, bundleFilepath, serviceName, serviceVersion string) {
@@ -272,22 +239,6 @@ func newUploadSourcemapRequest(t *testing.T, srv *apmservertest.Server, sourcema
 	return req
 }
 
-func expectLogMessage(t *testing.T, srv *apmservertest.Server, message string) {
-	timeout := time.After(time.Minute)
-	logs := srv.Logs.Iterator()
-	defer logs.Close()
-	for {
-		select {
-		case entry := <-logs.C():
-			if strings.Contains(entry.Message, message) {
-				return
-			}
-		case <-timeout:
-			t.Fatal("timed out waiting for log message")
-		}
-	}
-}
-
 func deleteIndex(t *testing.T, name string) {
 	resp, err := systemtest.Elasticsearch.Indices.Delete([]string{name})
 	require.NoError(t, err)
@@ -297,7 +248,23 @@ func deleteIndex(t *testing.T, name string) {
 	resp.Body.Close()
 }
 
-func expectSourcemapUpdated(t *testing.T, result estest.SearchResult) {
+func assertSourcemapUpdated(t *testing.T, result estest.SearchResult, updated bool) {
+	t.Helper()
+
+	type StacktraceFrame struct {
+		Sourcemap struct {
+			Updated bool
+		}
+	}
+	type Error struct {
+		Exception []struct {
+			Stacktrace []StacktraceFrame
+		}
+		Log struct {
+			Stacktrace []StacktraceFrame
+		}
+	}
+
 	for _, hit := range result.Hits.Hits {
 		var source struct {
 			Error Error
@@ -307,33 +274,12 @@ func expectSourcemapUpdated(t *testing.T, result estest.SearchResult) {
 
 		for _, exception := range source.Error.Exception {
 			for _, stacktrace := range exception.Stacktrace {
-				assert.True(t, stacktrace.Sourcemap.Updated)
+				assert.Equal(t, updated, stacktrace.Sourcemap.Updated)
 			}
 		}
 
 		for _, stacktrace := range source.Error.Log.Stacktrace {
-			assert.True(t, stacktrace.Sourcemap.Updated)
+			assert.Equal(t, updated, stacktrace.Sourcemap.Updated)
 		}
 	}
-}
-
-type Error struct {
-	Exception []Exception
-	Log       Log
-}
-
-type Exception struct {
-	Stacktrace []Stacktrace
-}
-
-type Log struct {
-	Stacktrace []Stacktrace
-}
-
-type Stacktrace struct {
-	Sourcemap Sourcemap
-}
-
-type Sourcemap struct {
-	Updated bool
 }
