@@ -5,498 +5,6 @@
             "agent": {
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
                 "name": "java",
-                "version": "1.10.0-SNAPSHOT"
-            },
-            "client": {
-                "ip": "12.53.12.1"
-            },
-            "container": {
-                "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
-            },
-            "ecs": {
-                "version": "1.8.0"
-            },
-            "event": {
-                "outcome": "success"
-            },
-            "host": {
-                "architecture": "amd64",
-                "hostname": "node-name",
-                "ip": "127.0.0.1",
-                "name": "host1",
-                "os": {
-                    "platform": "Linux"
-                }
-            },
-            "http": {
-                "request": {
-                    "body": {
-                        "original": {
-                            "additional": {
-                                "bar": 123,
-                                "req": "additionalinformation"
-                            },
-                            "string": "helloworld"
-                        }
-                    },
-                    "cookies": {
-                        "c1": "v1",
-                        "c2": "v2"
-                    },
-                    "env": {
-                        "GATEWAY_INTERFACE": "CGI/1.1",
-                        "SERVER_SOFTWARE": "nginx"
-                    },
-                    "headers": {
-                        "Content-Type": [
-                            "text/html"
-                        ],
-                        "Cookie": [
-                            "c1=v1,c2=v2"
-                        ],
-                        "Elastic-Apm-Traceparent": [
-                            "00-33a0bd4cceff0370a7c57d807032688e-69feaabc5b88d7e8-01"
-                        ],
-                        "User-Agent": [
-                            "Mozilla/5.0(Macintosh;IntelMacOSX10_10_5)AppleWebKit/537.36(KHTML,likeGecko)Chrome/51.0.2704.103Safari/537.36",
-                            "MozillaChromeEdge"
-                        ]
-                    },
-                    "method": "POST",
-                    "socket": {
-                        "encrypted": true,
-                        "remote_address": "12.53.12.1:8080"
-                    }
-                },
-                "response": {
-                    "decoded_body_size": 401.9,
-                    "encoded_body_size": 356.9,
-                    "finished": true,
-                    "headers": {
-                        "Content-Type": [
-                            "application/json"
-                        ]
-                    },
-                    "headers_sent": true,
-                    "status_code": 200,
-                    "transfer_size": 300
-                },
-                "version": "1.1"
-            },
-            "kubernetes": {
-                "namespace": "default",
-                "node": {
-                    "name": "node-name"
-                },
-                "pod": {
-                    "name": "instrumented-java-service",
-                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
-                }
-            },
-            "labels": {
-                "ab_testing": true,
-                "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "segment": 5,
-                "wrapped_reporter": true
-            },
-            "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "hostname": "",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
-            },
-            "parent": {
-                "id": "abcdefabcdef01234567"
-            },
-            "process": {
-                "args": [
-                    "-v"
-                ],
-                "pid": 1234,
-                "ppid": 1,
-                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
-            },
-            "processor": {
-                "event": "transaction",
-                "name": "transaction"
-            },
-            "service": {
-                "environment": "production",
-                "framework": {
-                    "name": "spring",
-                    "version": "5.0.0"
-                },
-                "language": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                },
-                "name": "experimental-java",
-                "node": {
-                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
-                },
-                "runtime": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                },
-                "version": "4.3.0"
-            },
-            "source": {
-                "ip": "12.53.12.1"
-            },
-            "timestamp": {
-                "us": 1571657444929001
-            },
-            "trace": {
-                "id": "0acd456789abcdef0123456789abcdef"
-            },
-            "transaction": {
-                "custom": {
-                    "(": "notavalidregexandthatisfine",
-                    "and_objects": {
-                        "foo": [
-                            "bar",
-                            "baz"
-                        ]
-                    },
-                    "my_key": 1,
-                    "some_other_value": "foobar"
-                },
-                "duration": {
-                    "us": 32592
-                },
-                "id": "4340a8e0df1906ecbfa9",
-                "name": "ResourceHttpRequestHandler",
-                "result": "HTTP2xx",
-                "sampled": true,
-                "span_count": {
-                    "dropped": 0,
-                    "started": 17
-                },
-                "type": "http"
-            },
-            "url": {
-                "domain": "www.example.com",
-                "fragment": "#hash",
-                "full": "https://www.example.com/p/a/t/h?query=string#hash",
-                "original": "/p/a/t/h?query=string#hash",
-                "path": "/p/a/t/h",
-                "port": 8080,
-                "query": "?query=string",
-                "scheme": "https"
-            },
-            "user": {
-                "email": "foo@mail.com",
-                "id": "99",
-                "name": "foo"
-            },
-            "user_agent": {
-                "original": "Mozilla/5.0(Macintosh;IntelMacOSX10_10_5)AppleWebKit/537.36(KHTML,likeGecko)Chrome/51.0.2704.103Safari/537.36, MozillaChromeEdge"
-            }
-        },
-        {
-            "@timestamp": "2019-10-21T11:30:44.929Z",
-            "agent": {
-                "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
-                "name": "java",
-                "version": "1.10.0-SNAPSHOT"
-            },
-            "container": {
-                "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
-            },
-            "ecs": {
-                "version": "1.8.0"
-            },
-            "event": {
-                "outcome": "success"
-            },
-            "host": {
-                "architecture": "amd64",
-                "hostname": "node-name",
-                "ip": "127.0.0.1",
-                "name": "host1",
-                "os": {
-                    "platform": "Linux"
-                }
-            },
-            "http": {
-                "request.method": "GET",
-                "response": {
-                    "status_code": 200
-                }
-            },
-            "kubernetes": {
-                "namespace": "default",
-                "node": {
-                    "name": "node-name"
-                },
-                "pod": {
-                    "name": "instrumented-java-service",
-                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
-                }
-            },
-            "labels": {
-                "ab_testing": true,
-                "group": "experimental",
-                "segment": 5
-            },
-            "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "hostname": "",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
-            },
-            "parent": {
-                "id": "abcdef0123456789"
-            },
-            "process": {
-                "args": [
-                    "-v"
-                ],
-                "pid": 1234,
-                "ppid": 1,
-                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
-            },
-            "service": {
-                "environment": "production",
-                "framework": {
-                    "name": "spring",
-                    "version": "5.0.0"
-                },
-                "language": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                },
-                "name": "opbeans-java-1",
-                "node": {
-                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
-                },
-                "runtime": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                },
-                "version": "4.3.0"
-            },
-            "span": {
-                "action": "connect",
-                "db": {
-                    "instance": "customers",
-                    "link": "other.db.com",
-                    "statement": "SELECT * FROM product_types WHERE user_id = ?",
-                    "type": "sql",
-                    "user": {
-                        "name": "postgres"
-                    }
-                },
-                "duration": {
-                    "us": 3781
-                },
-                "http": {
-                    "method": "GET",
-                    "response": {
-                        "decoded_body_size": 401,
-                        "encoded_body_size": 356,
-                        "headers": {
-                            "Content-Type": [
-                                "application/json"
-                            ]
-                        },
-                        "status_code": 200,
-                        "transfer_size": 300.12
-                    },
-                    "url": {
-                        "original": "http://localhost:8000"
-                    }
-                },
-                "id": "1234567890aaaade",
-                "name": "GET users-authenticated",
-                "stacktrace": [
-                    {
-                        "exclude_from_grouping": false,
-                        "filename": "DispatcherServlet.java",
-                        "line": {
-                            "number": 547
-                        }
-                    },
-                    {
-                        "abs_path": "/tmp/AbstractView.java",
-                        "exclude_from_grouping": false,
-                        "filename": "AbstractView.java",
-                        "function": "render",
-                        "library_frame": true,
-                        "line": {
-                            "column": 4,
-                            "context": "line3",
-                            "number": 547
-                        },
-                        "module": "org.springframework.web.servlet.view",
-                        "vars": {
-                            "key": "value"
-                        }
-                    }
-                ],
-                "subtype": "http",
-                "sync": true,
-                "type": "external"
-            },
-            "timestamp": {
-                "us": 1571657444929001
-            },
-            "trace": {
-                "id": "abcdef0123456789abcdef9876543210"
-            },
-            "transaction": {
-                "id": "1234567890987654"
-            },
-            "url.original": "http://localhost:8000"
-        },
-        {
-            "@timestamp": "2019-10-21T11:30:44.929Z",
-            "agent": {
-                "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
-                "name": "java",
-                "version": "1.10.0"
-            },
-            "byte_counter": 1,
-            "container": {
-                "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
-            },
-            "dotted": {
-                "float": {
-                    "gauge": 6.12
-                }
-            },
-            "double_gauge": 3.141592653589793,
-            "ecs": {
-                "version": "1.8.0"
-            },
-            "float_gauge": 9.16,
-            "host": {
-                "architecture": "amd64",
-                "hostname": "node-name",
-                "ip": "127.0.0.1",
-                "name": "host1",
-                "os": {
-                    "platform": "Linux"
-                }
-            },
-            "integer_gauge": 42767,
-            "kubernetes": {
-                "namespace": "default",
-                "node": {
-                    "name": "node-name"
-                },
-                "pod": {
-                    "name": "instrumented-java-service",
-                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
-                }
-            },
-            "labels": {
-                "ab_testing": true,
-                "code": 200,
-                "group": "experimental",
-                "segment": 5,
-                "success": true
-            },
-            "long_gauge": 3147483648,
-            "metricset.name": "span_breakdown",
-            "negative": {
-                "d": {
-                    "o": {
-                        "t": {
-                            "t": {
-                                "e": {
-                                    "d": -1022
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "hostname": "",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
-            },
-            "process": {
-                "args": [
-                    "-v"
-                ],
-                "pid": 1234,
-                "ppid": 1,
-                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
-            },
-            "processor": {
-                "event": "metric",
-                "name": "metric"
-            },
-            "service": {
-                "environment": "production",
-                "framework": {
-                    "name": "spring",
-                    "version": "5.0.0"
-                },
-                "language": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                },
-                "name": "1234_service-12a3",
-                "node": {
-                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
-                },
-                "runtime": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                },
-                "version": "4.3.0"
-            },
-            "short_counter": 227,
-            "span": {
-                "self_time": {
-                    "count": 1,
-                    "sum": {
-                        "us": 633.288
-                    }
-                },
-                "subtype": "mysql",
-                "type": "db"
-            },
-            "transaction": {
-                "breakdown": {
-                    "count": 12
-                },
-                "duration": {
-                    "count": 2,
-                    "sum": {
-                        "us": 12
-                    }
-                },
-                "name": "GET/",
-                "self_time": {
-                    "count": 2,
-                    "sum": {
-                        "us": 10
-                    }
-                },
-                "type": "request"
-            }
-        },
-        {
-            "@timestamp": "2019-10-21T11:30:44.929Z",
-            "agent": {
-                "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
-                "name": "java",
                 "version": "1.10.0"
             },
             "client": {
@@ -779,6 +287,498 @@
                 "email": "user@foo.mail",
                 "id": "99",
                 "name": "foo"
+            }
+        },
+        {
+            "@timestamp": "2019-10-21T11:30:44.929Z",
+            "agent": {
+                "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
+                "name": "java",
+                "version": "1.10.0-SNAPSHOT"
+            },
+            "container": {
+                "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+            },
+            "ecs": {
+                "version": "1.8.0"
+            },
+            "event": {
+                "outcome": "success"
+            },
+            "host": {
+                "architecture": "amd64",
+                "hostname": "node-name",
+                "ip": "127.0.0.1",
+                "name": "host1",
+                "os": {
+                    "platform": "Linux"
+                }
+            },
+            "http": {
+                "request.method": "GET",
+                "response": {
+                    "status_code": 200
+                }
+            },
+            "kubernetes": {
+                "namespace": "default",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "instrumented-java-service",
+                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
+                }
+            },
+            "labels": {
+                "ab_testing": true,
+                "group": "experimental",
+                "segment": 5
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "1.2.3",
+                "version_major": 1
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "process": {
+                "args": [
+                    "-v"
+                ],
+                "pid": 1234,
+                "ppid": 1,
+                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "production",
+                "framework": {
+                    "name": "spring",
+                    "version": "5.0.0"
+                },
+                "language": {
+                    "name": "Java",
+                    "version": "10.0.2"
+                },
+                "name": "opbeans-java-1",
+                "node": {
+                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+                },
+                "runtime": {
+                    "name": "Java",
+                    "version": "10.0.2"
+                },
+                "version": "4.3.0"
+            },
+            "span": {
+                "action": "connect",
+                "db": {
+                    "instance": "customers",
+                    "link": "other.db.com",
+                    "statement": "SELECT * FROM product_types WHERE user_id = ?",
+                    "type": "sql",
+                    "user": {
+                        "name": "postgres"
+                    }
+                },
+                "duration": {
+                    "us": 3781
+                },
+                "http": {
+                    "method": "GET",
+                    "response": {
+                        "decoded_body_size": 401,
+                        "encoded_body_size": 356,
+                        "headers": {
+                            "Content-Type": [
+                                "application/json"
+                            ]
+                        },
+                        "status_code": 200,
+                        "transfer_size": 300.12
+                    },
+                    "url": {
+                        "original": "http://localhost:8000"
+                    }
+                },
+                "id": "1234567890aaaade",
+                "name": "GET users-authenticated",
+                "stacktrace": [
+                    {
+                        "exclude_from_grouping": false,
+                        "filename": "DispatcherServlet.java",
+                        "line": {
+                            "number": 547
+                        }
+                    },
+                    {
+                        "abs_path": "/tmp/AbstractView.java",
+                        "exclude_from_grouping": false,
+                        "filename": "AbstractView.java",
+                        "function": "render",
+                        "library_frame": true,
+                        "line": {
+                            "column": 4,
+                            "context": "line3",
+                            "number": 547
+                        },
+                        "module": "org.springframework.web.servlet.view",
+                        "vars": {
+                            "key": "value"
+                        }
+                    }
+                ],
+                "subtype": "http",
+                "sync": true,
+                "type": "external"
+            },
+            "timestamp": {
+                "us": 1571657444929001
+            },
+            "trace": {
+                "id": "abcdef0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "1234567890987654"
+            },
+            "url.original": "http://localhost:8000"
+        },
+        {
+            "@timestamp": "2019-10-21T11:30:44.929Z",
+            "agent": {
+                "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
+                "name": "java",
+                "version": "1.10.0-SNAPSHOT"
+            },
+            "client": {
+                "ip": "12.53.12.1"
+            },
+            "container": {
+                "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+            },
+            "ecs": {
+                "version": "1.8.0"
+            },
+            "event": {
+                "outcome": "success"
+            },
+            "host": {
+                "architecture": "amd64",
+                "hostname": "node-name",
+                "ip": "127.0.0.1",
+                "name": "host1",
+                "os": {
+                    "platform": "Linux"
+                }
+            },
+            "http": {
+                "request": {
+                    "body": {
+                        "original": {
+                            "additional": {
+                                "bar": 123,
+                                "req": "additionalinformation"
+                            },
+                            "string": "helloworld"
+                        }
+                    },
+                    "cookies": {
+                        "c1": "v1",
+                        "c2": "v2"
+                    },
+                    "env": {
+                        "GATEWAY_INTERFACE": "CGI/1.1",
+                        "SERVER_SOFTWARE": "nginx"
+                    },
+                    "headers": {
+                        "Content-Type": [
+                            "text/html"
+                        ],
+                        "Cookie": [
+                            "c1=v1,c2=v2"
+                        ],
+                        "Elastic-Apm-Traceparent": [
+                            "00-33a0bd4cceff0370a7c57d807032688e-69feaabc5b88d7e8-01"
+                        ],
+                        "User-Agent": [
+                            "Mozilla/5.0(Macintosh;IntelMacOSX10_10_5)AppleWebKit/537.36(KHTML,likeGecko)Chrome/51.0.2704.103Safari/537.36",
+                            "MozillaChromeEdge"
+                        ]
+                    },
+                    "method": "POST",
+                    "socket": {
+                        "encrypted": true,
+                        "remote_address": "12.53.12.1:8080"
+                    }
+                },
+                "response": {
+                    "decoded_body_size": 401.9,
+                    "encoded_body_size": 356.9,
+                    "finished": true,
+                    "headers": {
+                        "Content-Type": [
+                            "application/json"
+                        ]
+                    },
+                    "headers_sent": true,
+                    "status_code": 200,
+                    "transfer_size": 300
+                },
+                "version": "1.1"
+            },
+            "kubernetes": {
+                "namespace": "default",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "instrumented-java-service",
+                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
+                }
+            },
+            "labels": {
+                "ab_testing": true,
+                "group": "experimental",
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "segment": 5,
+                "wrapped_reporter": true
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "1.2.3",
+                "version_major": 1
+            },
+            "parent": {
+                "id": "abcdefabcdef01234567"
+            },
+            "process": {
+                "args": [
+                    "-v"
+                ],
+                "pid": 1234,
+                "ppid": 1,
+                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "production",
+                "framework": {
+                    "name": "spring",
+                    "version": "5.0.0"
+                },
+                "language": {
+                    "name": "Java",
+                    "version": "10.0.2"
+                },
+                "name": "experimental-java",
+                "node": {
+                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+                },
+                "runtime": {
+                    "name": "Java",
+                    "version": "10.0.2"
+                },
+                "version": "4.3.0"
+            },
+            "source": {
+                "ip": "12.53.12.1"
+            },
+            "timestamp": {
+                "us": 1571657444929001
+            },
+            "trace": {
+                "id": "0acd456789abcdef0123456789abcdef"
+            },
+            "transaction": {
+                "custom": {
+                    "(": "notavalidregexandthatisfine",
+                    "and_objects": {
+                        "foo": [
+                            "bar",
+                            "baz"
+                        ]
+                    },
+                    "my_key": 1,
+                    "some_other_value": "foobar"
+                },
+                "duration": {
+                    "us": 32592
+                },
+                "id": "4340a8e0df1906ecbfa9",
+                "name": "ResourceHttpRequestHandler",
+                "result": "HTTP2xx",
+                "sampled": true,
+                "span_count": {
+                    "dropped": 0,
+                    "started": 17
+                },
+                "type": "http"
+            },
+            "url": {
+                "domain": "www.example.com",
+                "fragment": "#hash",
+                "full": "https://www.example.com/p/a/t/h?query=string#hash",
+                "original": "/p/a/t/h?query=string#hash",
+                "path": "/p/a/t/h",
+                "port": 8080,
+                "query": "?query=string",
+                "scheme": "https"
+            },
+            "user": {
+                "email": "foo@mail.com",
+                "id": "99",
+                "name": "foo"
+            },
+            "user_agent": {
+                "original": "Mozilla/5.0(Macintosh;IntelMacOSX10_10_5)AppleWebKit/537.36(KHTML,likeGecko)Chrome/51.0.2704.103Safari/537.36, MozillaChromeEdge"
+            }
+        },
+        {
+            "@timestamp": "2019-10-21T11:30:44.929Z",
+            "agent": {
+                "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
+                "name": "java",
+                "version": "1.10.0"
+            },
+            "byte_counter": 1,
+            "container": {
+                "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+            },
+            "dotted": {
+                "float": {
+                    "gauge": 6.12
+                }
+            },
+            "double_gauge": 3.141592653589793,
+            "ecs": {
+                "version": "1.8.0"
+            },
+            "float_gauge": 9.16,
+            "host": {
+                "architecture": "amd64",
+                "hostname": "node-name",
+                "ip": "127.0.0.1",
+                "name": "host1",
+                "os": {
+                    "platform": "Linux"
+                }
+            },
+            "integer_gauge": 42767,
+            "kubernetes": {
+                "namespace": "default",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "instrumented-java-service",
+                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
+                }
+            },
+            "labels": {
+                "ab_testing": true,
+                "code": 200,
+                "group": "experimental",
+                "segment": 5,
+                "success": true
+            },
+            "long_gauge": 3147483648,
+            "metricset.name": "span_breakdown",
+            "negative": {
+                "d": {
+                    "o": {
+                        "t": {
+                            "t": {
+                                "e": {
+                                    "d": -1022
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "1.2.3",
+                "version_major": 1
+            },
+            "process": {
+                "args": [
+                    "-v"
+                ],
+                "pid": 1234,
+                "ppid": 1,
+                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "environment": "production",
+                "framework": {
+                    "name": "spring",
+                    "version": "5.0.0"
+                },
+                "language": {
+                    "name": "Java",
+                    "version": "10.0.2"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+                },
+                "runtime": {
+                    "name": "Java",
+                    "version": "10.0.2"
+                },
+                "version": "4.3.0"
+            },
+            "short_counter": 227,
+            "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum": {
+                        "us": 633.288
+                    }
+                },
+                "subtype": "mysql",
+                "type": "db"
+            },
+            "transaction": {
+                "breakdown": {
+                    "count": 12
+                },
+                "duration": {
+                    "count": 2,
+                    "sum": {
+                        "us": 12
+                    }
+                },
+                "name": "GET/",
+                "self_time": {
+                    "count": 2,
+                    "sum": {
+                        "us": 10
+                    }
+                },
+                "type": "request"
             }
         }
     ]

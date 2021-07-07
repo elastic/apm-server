@@ -140,9 +140,9 @@ func TestHandler(t *testing.T) {
 			reports: 1,
 			batchProcessor: func(t *testing.T) model.BatchProcessor {
 				return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
-					require.Len(t, batch.Profiles, 2)
-					for _, profile := range batch.Profiles {
-						assert.Equal(t, "foo", profile.Metadata.Service.Name)
+					require.Len(t, *batch, 2)
+					for _, event := range *batch {
+						assert.Equal(t, "foo", event.Profile.Metadata.Service.Name)
 					}
 					return nil
 				})

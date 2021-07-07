@@ -39,17 +39,24 @@ func TestNewDiscardUnsampledBatchProcessor(t *testing.T) {
 	t5 := &model.Transaction{Sampled: newBool(true)}
 
 	batch := model.Batch{
-		Transactions: []*model.Transaction{t1, t2, t3, t4, t5},
-		Spans:        []*model.Span{span},
+		{Transaction: t1},
+		{Transaction: t2},
+		{Span: span},
+		{Transaction: t3},
+		{Transaction: t4},
+		{Transaction: t5},
 	}
+
 	err := batchProcessor.ProcessBatch(context.Background(), &batch)
 	assert.NoError(t, err)
 
 	// Note that t3 gets sent to the back of the slice;
 	// this reporter is not order-preserving.
 	assert.Equal(t, model.Batch{
-		Transactions: []*model.Transaction{t1, t5, t3},
-		Spans:        []*model.Span{span},
+		{Transaction: t1},
+		{Transaction: t5},
+		{Span: span},
+		{Transaction: t3},
 	}, batch)
 
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
