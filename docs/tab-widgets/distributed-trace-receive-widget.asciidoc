@@ -10,6 +10,13 @@
       Go
     </button>
     <button role="tab"
+            aria-selected="false"
+            aria-controls="ios-tab-dt-r"
+            id="ios-dt-r"
+            tabindex="-1">
+      iOS
+    </button>
+    <button role="tab"
             aria-selected="true"
             aria-controls="java-tab-dt-r"
             id="java-dt-r"
@@ -60,6 +67,16 @@
 ++++
 
 include::distributed-trace-receive.asciidoc[tag=go]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="ios-tab-dt-r"
+       aria-labelledby="ios-dt-r">
+++++
+
+include::install-agents.asciidoc[tag=ios]
 
 ++++
   </div>

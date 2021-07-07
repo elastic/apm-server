@@ -57,6 +57,93 @@ func main() {
 // ***************************************************
 // ***************************************************
 
+// tag::ios[]
+
+experimental::[]
+
+*Add the agent dependency to your project*
+
+Add the Elastic APM iOS Agent as a
+https://developer.apple.com/documentation/swift_packages/adding_package_dependencies_to_your_app[package dependency]
+to your Xcode project or your `Package.swift`:
+
+[source,swift,linenums,highlight=2;10]
+----
+Package(
+    dependencies:[
+        .package(name: "iOSAgent", url: "git@github.com:elastic/apm-agent-ios.git", .branch("main")),
+    ],
+  targets:[
+    .target(
+        name: "MyApp",
+        dependencies: [
+            .product(name: "iOSAgent", package: "iOSAgent")
+        ]
+    ),
+])
+----
+
+*Initialize the agent*
+
+If you're using `SwiftUI` to build your app, add the following to `App.swift`:
+
+[source,swift,linenums,swift,highlight=2;7..12]
+----
+import SwiftUI
+import iOSAgent
+
+@main
+struct MyApp: App {
+    init() {
+        var config = AgentConfiguration()
+        config.collectorAddress = "127.0.0.1" <1>
+        config.collectorPort = 8200 <2>
+        config.collectorTLS = false <3>
+        config.secretToken = "<secret token>" <4>
+        Agent.start(with: config)
+    }
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+----
+<1> APM Server URL or IP address
+<2> APM Server port number
+<3> Enable TLS for Open telemetry exporters
+<4> Set secret token for APM server connection
+
+If you're not using `SwiftUI`, you can add the same thing to your AppDelegate file:
+
+`AppDelegate.swift`
+[source,swift,linenums,highlight=2;9..14]
+----
+import UIKit
+import iOSAgent
+@main
+class AppDelegate: UIResponder, UIApplicationDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        var config = AgentConfiguration()
+        config.collectorAddress = "127.0.0.1" <1>
+        config.collectorPort = 8200 <2>
+        config.collectorTLS = false <3>
+        config.secretToken = "<secret token>" <4>
+        Agent.start(with: config)
+        return true
+    }
+}
+----
+<1> APM Server url or ip address
+<2> APM Server port number
+<3> Enable TLS for Open telemetry exporters
+<4> Set secret token for APM server connection
+
+// end::ios[]
+
+// ***************************************************
+// ***************************************************
+
 // tag::java[]
 
 *Download the APM agent*

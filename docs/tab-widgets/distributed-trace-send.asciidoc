@@ -27,6 +27,17 @@ tracestate := traceContext.State.String()
 // ***************************************************
 // ***************************************************
 
+// tag::ios[]
+
+experimental::[]
+
+_coming soon_
+
+// end::ios[]
+
+// ***************************************************
+// ***************************************************
+
 // tag::java[]
 
 1. Start a transaction with {apm-java-ref}/public-api.html#api-start-transaction[`startTransaction`],
