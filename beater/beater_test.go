@@ -154,13 +154,16 @@ func newTestBeater(
 		Logger: logger,
 		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
 			var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
-				for _, tx := range batch.Transactions {
+				for _, event := range *batch {
+					if event.Transaction == nil {
+						continue
+					}
 					// Add a label to test that everything
 					// goes through the wrapped reporter.
-					if tx.Labels == nil {
-						tx.Labels = common.MapStr{}
+					if event.Transaction.Labels == nil {
+						event.Transaction.Labels = common.MapStr{}
 					}
-					tx.Labels["wrapped_reporter"] = true
+					event.Transaction.Labels["wrapped_reporter"] = true
 				}
 				return nil
 			}

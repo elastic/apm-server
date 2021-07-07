@@ -146,42 +146,41 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 //
 // All other trace events will either be dropped (e.g. known to not
 // be tail-sampled), or stored for possible later publication.
-func (p *Processor) ProcessBatch(ctx context.Context, events *model.Batch) error {
+func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
 	p.storageMu.RLock()
 	defer p.storageMu.RUnlock()
 	if p.storage == nil {
 		return ErrStopped
 	}
-	for i := 0; i < len(events.Transactions); i++ {
-		atomic.AddInt64(&p.eventMetrics.processed, 1)
-		report, stored, err := p.processTransaction(events.Transactions[i])
-		if err != nil {
-			return err
+	events := *batch
+	for i := 0; i < len(events); i++ {
+		event := events[i]
+		var report, stored bool
+		if event.Transaction != nil {
+			var err error
+			atomic.AddInt64(&p.eventMetrics.processed, 1)
+			report, stored, err = p.processTransaction(event.Transaction)
+			if err != nil {
+				return err
+			}
+		} else if event.Span != nil {
+			var err error
+			atomic.AddInt64(&p.eventMetrics.processed, 1)
+			report, stored, err = p.processSpan(event.Span)
+			if err != nil {
+				return err
+			}
 		}
 		if !report {
 			// We shouldn't report this event, so remove it from the slice.
-			n := len(events.Transactions)
-			events.Transactions[i], events.Transactions[n-1] = events.Transactions[n-1], events.Transactions[i]
-			events.Transactions = events.Transactions[:n-1]
+			n := len(events)
+			events[i], events[n-1] = events[n-1], events[i]
+			events = events[:n-1]
 			i--
 		}
 		p.updateProcessorMetrics(report, stored)
 	}
-	for i := 0; i < len(events.Spans); i++ {
-		atomic.AddInt64(&p.eventMetrics.processed, 1)
-		report, stored, err := p.processSpan(events.Spans[i])
-		if err != nil {
-			return err
-		}
-		if !report {
-			// We shouldn't report this event, so remove it from the slice.
-			n := len(events.Spans)
-			events.Spans[i], events.Spans[n-1] = events.Spans[n-1], events.Spans[i]
-			events.Spans = events.Spans[:n-1]
-			i--
-		}
-		p.updateProcessorMetrics(report, stored)
-	}
+	*batch = events
 	return nil
 }
 
@@ -449,7 +448,7 @@ func (p *Processor) Run() error {
 			if err := p.storage.ReadEvents(traceID, &events); err != nil {
 				return err
 			}
-			if n := events.Len(); n > 0 {
+			if n := len(events); n > 0 {
 				p.logger.Debugf("reporting %d events", n)
 				if remoteDecision {
 					// Remote decisions may be received multiple times,
@@ -458,14 +457,15 @@ func (p *Processor) Run() error {
 					// deleted. We delete events from local storage so
 					// we don't publish duplicates; delivery is therefore
 					// at-most-once, not guaranteed.
-					for _, tx := range events.Transactions {
-						if err := p.storage.DeleteTransaction(tx); err != nil {
-							return errors.Wrap(err, "failed to delete transaction from local storage")
-						}
-					}
-					for _, span := range events.Spans {
-						if err := p.storage.DeleteSpan(span); err != nil {
-							return errors.Wrap(err, "failed to delete span from local storage")
+					for _, event := range events {
+						if event.Transaction != nil {
+							if err := p.storage.DeleteTransaction(event.Transaction); err != nil {
+								return errors.Wrap(err, "failed to delete transaction from local storage")
+							}
+						} else if event.Span != nil {
+							if err := p.storage.DeleteSpan(event.Span); err != nil {
+								return errors.Wrap(err, "failed to delete span from local storage")
+							}
 						}
 					}
 				}

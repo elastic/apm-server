@@ -381,5 +381,11 @@ func transformMetrics(t *testing.T, metrics pdata.Metrics) ([]*model.Metricset, 
 	err := consumer.ConsumeMetrics(context.Background(), metrics)
 	require.NoError(t, err)
 	require.Len(t, batches, 1)
-	return batches[0].Metricsets, consumer.Stats()
+
+	batch := *batches[0]
+	metricsets := make([]*model.Metricset, len(batch))
+	for i, event := range batch {
+		metricsets[i] = event.Metricset
+	}
+	return metricsets, consumer.Stats()
 }

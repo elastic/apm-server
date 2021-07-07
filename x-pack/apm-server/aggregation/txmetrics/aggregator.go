@@ -217,19 +217,19 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	// the specific time period (date_range) on the metrics documents.
 
 	now := time.Now()
-	metricsets := make([]*model.Metricset, 0, a.inactive.entries)
+	batch := make(model.Batch, 0, a.inactive.entries)
 	for hash, entries := range a.inactive.m {
 		for _, entry := range entries {
 			counts, values := entry.transactionMetrics.histogramBuckets()
 			metricset := makeMetricset(entry.transactionAggregationKey, hash, now, counts, values)
-			metricsets = append(metricsets, &metricset)
+			batch = append(batch, model.APMEvent{Metricset: &metricset})
 		}
 		delete(a.inactive.m, hash)
 	}
 	a.inactive.entries = 0
 
-	a.config.Logger.Debugf("publishing %d metricsets", len(metricsets))
-	return a.config.BatchProcessor.ProcessBatch(ctx, &model.Batch{Metricsets: metricsets})
+	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
+	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
 
 // ProcessBatch aggregates all transactions contained in "b", adding to it any
@@ -239,9 +239,12 @@ func (a *Aggregator) publish(ctx context.Context) error {
 // events, so that the metricsets requiring immediate publication can be
 // included in the same batch.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	for _, tx := range b.Transactions {
-		if metricset := a.AggregateTransaction(tx); metricset != nil {
-			b.Metricsets = append(b.Metricsets, metricset)
+	for _, event := range *b {
+		if event.Transaction == nil {
+			continue
+		}
+		if metricset := a.AggregateTransaction(event.Transaction); metricset != nil {
+			*b = append(*b, model.APMEvent{Metricset: metricset})
 		}
 	}
 	return nil
