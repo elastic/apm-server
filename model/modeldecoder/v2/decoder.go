@@ -784,6 +784,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 		if from.Compressed.End.IsSet() && !from.Compressed.End.Val.IsZero() {
 			compressed.End = from.Compressed.End.Val
 		}
+		out.Compressed = &compressed
 	}
 	if from.Context.Database.IsSet() {
 		db := model.DB{}
