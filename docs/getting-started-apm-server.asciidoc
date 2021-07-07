@@ -349,7 +349,7 @@ brew services start elastic/tap/apm-server-full
 If you haven't already, you can now install APM Agents in your services!
 
 * {apm-go-ref-v}/introduction.html[Go agent]
-* {apm-ios-ref}/intro.html[iOS agent]
+* {apm-ios-ref-v}/intro.html[iOS agent]
 * {apm-java-ref-v}/intro.html[Java agent]
 * {apm-dotnet-ref-v}/intro.html[.NET agent]
 * {apm-node-ref-v}/intro.html[Node.js agent]

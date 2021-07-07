@@ -11,7 +11,7 @@ for more information and a configuration reference.
 For a full list of agent configuration options, see the relevant agent reference:
 
 * {apm-go-ref-v}/configuration.html[Go Agent configuration]
-* {apm-ios-ref}/configuration.html[iOS Agent configuration]
+* {apm-ios-ref-v}/configuration.html[iOS Agent configuration]
 * {apm-java-ref-v}/configuration.html[Java Agent configuration]
 * {apm-dotnet-ref-v}/configuration.html[.NET Agent configuration]
 * {apm-node-ref}/configuring-the-agent.html[Node.js Agent configuration]

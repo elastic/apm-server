@@ -484,7 +484,7 @@ as there is no way to prevent them from being publicly exposed.
 Each Agent has a configuration for setting the value of the secret token:
 
 * *Go agent*: {apm-go-ref}/configuration.html#config-secret-token[`ELASTIC_APM_SECRET_TOKEN`]
-* *iOS agent*: {apm-ios-ref}/configuration.html#secretToken[`secretToken`]
+* *iOS agent*: {apm-ios-ref-v}/configuration.html#secretToken[`secretToken`]
 * *Java agent*: {apm-java-ref}/config-reporter.html#config-secret-token[`secret_token`]
 * *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-secret-token[`ELASTIC_APM_SECRET_TOKEN`]
 * *Node.js agent*: {apm-node-ref}/configuration.html#secret-token[`Secret Token`]
