@@ -47,10 +47,10 @@ var (
 )
 
 func TestConsumeTraces(t *testing.T) {
-	var batches []*model.Batch
+	var batches []model.Batch
 	var reportError error
 	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
-		batches = append(batches, batch)
+		batches = append(batches, *batch)
 		return reportError
 	}
 
@@ -93,10 +93,8 @@ func TestConsumeTraces(t *testing.T) {
 	errStatus := status.Convert(err)
 	assert.Equal(t, "failed to publish events", errStatus.Message())
 	require.Len(t, batches, 2)
-
-	for _, batch := range batches {
-		assert.Equal(t, 1, batch.Len())
-	}
+	assert.Len(t, batches[0], 1)
+	assert.Len(t, batches[1], 1)
 
 	actual := map[string]interface{}{}
 	monitoring.GetRegistry("apm-server.otlp.grpc.traces").Do(monitoring.Full, func(key string, value interface{}) {

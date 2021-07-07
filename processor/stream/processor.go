@@ -177,7 +177,7 @@ func (p *Processor) readBatch(
 				continue
 			}
 			event.RUM = p.isRUM
-			batch.Errors = append(batch.Errors, &event)
+			*batch = append(*batch, model.APMEvent{Error: &event})
 			n++
 		case metricsetEventType:
 			var event model.Metricset
@@ -185,7 +185,7 @@ func (p *Processor) readBatch(
 			if handleDecodeErr(err, reader, result) {
 				continue
 			}
-			batch.Metricsets = append(batch.Metricsets, &event)
+			*batch = append(*batch, model.APMEvent{Metricset: &event})
 			n++
 		case spanEventType:
 			var event model.Span
@@ -194,7 +194,7 @@ func (p *Processor) readBatch(
 				continue
 			}
 			event.RUM = p.isRUM
-			batch.Spans = append(batch.Spans, &event)
+			*batch = append(*batch, model.APMEvent{Span: &event})
 			n++
 		case transactionEventType:
 			var event model.Transaction
@@ -202,7 +202,7 @@ func (p *Processor) readBatch(
 			if handleDecodeErr(err, reader, result) {
 				continue
 			}
-			batch.Transactions = append(batch.Transactions, &event)
+			*batch = append(*batch, model.APMEvent{Transaction: &event})
 			n++
 		case rumv3ErrorEventType:
 			var event model.Error
@@ -211,7 +211,7 @@ func (p *Processor) readBatch(
 				continue
 			}
 			event.RUM = p.isRUM
-			batch.Errors = append(batch.Errors, &event)
+			*batch = append(*batch, model.APMEvent{Error: &event})
 			n++
 		case rumv3MetricsetEventType:
 			var event model.Metricset
@@ -219,7 +219,7 @@ func (p *Processor) readBatch(
 			if handleDecodeErr(err, reader, result) {
 				continue
 			}
-			batch.Metricsets = append(batch.Metricsets, &event)
+			*batch = append(*batch, model.APMEvent{Metricset: &event})
 			n++
 		case rumv3TransactionEventType:
 			var event rumv3.Transaction
@@ -227,11 +227,13 @@ func (p *Processor) readBatch(
 			if handleDecodeErr(err, reader, result) {
 				continue
 			}
-			batch.Transactions = append(batch.Transactions, &event.Transaction)
-			batch.Metricsets = append(batch.Metricsets, event.Metricsets...)
+			*batch = append(*batch, model.APMEvent{Transaction: &event.Transaction})
+			for _, ms := range event.Metricsets {
+				*batch = append(*batch, model.APMEvent{Metricset: ms})
+			}
 			for _, span := range event.Spans {
 				span.RUM = true
-				batch.Spans = append(batch.Spans, span)
+				*batch = append(*batch, model.APMEvent{Span: span})
 			}
 			n += 1 + len(event.Metricsets) + len(event.Spans)
 		default:
@@ -301,7 +303,7 @@ func (p *Processor) HandleStream(
 			if err := processor.ProcessBatch(ctx, &batch); err != nil {
 				return err
 			}
-			result.AddAccepted(batch.Len())
+			result.AddAccepted(len(batch))
 		}
 		if readErr == io.EOF {
 			break

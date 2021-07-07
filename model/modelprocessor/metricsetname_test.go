@@ -69,11 +69,11 @@ func TestSetMetricsetName(t *testing.T) {
 	}}
 
 	for _, test := range tests {
-		batch := &model.Batch{Metricsets: []*model.Metricset{&test.metricset}}
+		batch := model.Batch{{Metricset: &test.metricset}}
 		processor := modelprocessor.SetMetricsetName{}
-		err := processor.ProcessBatch(context.Background(), batch)
+		err := processor.ProcessBatch(context.Background(), &batch)
 		assert.NoError(t, err)
-		assert.Equal(t, test.name, batch.Metricsets[0].Name)
+		assert.Equal(t, test.name, batch[0].Metricset.Name)
 	}
 
 }

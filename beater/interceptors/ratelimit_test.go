@@ -28,7 +28,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/ratelimit"
 )
@@ -76,11 +76,11 @@ func TestAnonymousRateLimit(t *testing.T) {
 		ctx := interceptors.ContextWithClientMetadata(context.Background(),
 			interceptors.ClientMetadataValues{SourceIP: net.ParseIP("10.2.3.4")},
 		)
-		ctx = authorization.ContextWithAuthorization(ctx,
-			authorizationFunc(func(ctx context.Context, _ authorization.Resource) (authorization.Result, error) {
-				return authorization.Result{Authorized: true, Anonymous: test.anonymous}, nil
-			}),
-		)
+		details := auth.AuthenticationDetails{}
+		if !test.anonymous {
+			details.Method = "none"
+		}
+		ctx = interceptors.ContextWithAuthenticationDetails(ctx, details)
 		resp, err := interceptor(ctx, "request", &grpc.UnaryServerInfo{}, handler)
 		if test.expectErr != nil {
 			assert.Nil(t, resp)
@@ -101,11 +101,7 @@ func TestAnonymousRateLimitForIP(t *testing.T) {
 		ctx := interceptors.ContextWithClientMetadata(context.Background(),
 			interceptors.ClientMetadataValues{SourceIP: net.ParseIP(ip)},
 		)
-		ctx = authorization.ContextWithAuthorization(ctx,
-			authorizationFunc(func(ctx context.Context, _ authorization.Resource) (authorization.Result, error) {
-				return authorization.Result{Authorized: true, Anonymous: true}, nil
-			}),
-		)
+		ctx = interceptors.ContextWithAuthenticationDetails(ctx, auth.AuthenticationDetails{})
 		_, err := interceptor(ctx, "request", &grpc.UnaryServerInfo{}, handler)
 		return err
 	}

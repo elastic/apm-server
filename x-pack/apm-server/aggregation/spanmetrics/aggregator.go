@@ -158,14 +158,14 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	}
 
 	now := time.Now()
-	metricsets := make([]*model.Metricset, 0, size)
+	batch := make(model.Batch, 0, size)
 	for key, metrics := range a.inactive.m {
 		metricset := makeMetricset(now, key, metrics, a.config.Interval.Milliseconds())
-		metricsets = append(metricsets, &metricset)
+		batch = append(batch, model.APMEvent{Metricset: &metricset})
 		delete(a.inactive.m, key)
 	}
-	a.config.Logger.Debugf("publishing %d metricsets", len(metricsets))
-	return a.config.BatchProcessor.ProcessBatch(ctx, &model.Batch{Metricsets: metricsets})
+	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
+	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
 
 // ProcessBatch aggregates all spans contained in "b", adding to it any
@@ -176,9 +176,12 @@ func (a *Aggregator) publish(ctx context.Context) error {
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
-	for _, span := range b.Spans {
-		if metricset := a.processSpan(span); metricset != nil {
-			b.Metricsets = append(b.Metricsets, metricset)
+	for _, event := range *b {
+		if event.Span == nil {
+			continue
+		}
+		if metricset := a.processSpan(event.Span); metricset != nil {
+			*b = append(*b, model.APMEvent{Metricset: metricset})
 		}
 	}
 	return nil

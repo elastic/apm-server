@@ -15,27 +15,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package authorization
+package auth
 
 import (
 	"context"
-	"crypto/subtle"
 )
 
-type bearerBuilder struct {
-	required string
-}
+// AnonymousAuth implements the Authorizer interface.
+type AnonymousAuth struct{}
 
-type bearerAuth struct {
-	authorized bool
-}
-
-func (b bearerBuilder) forToken(token string) *bearerAuth {
-	return &bearerAuth{
-		authorized: subtle.ConstantTimeCompare([]byte(b.required), []byte(token)) == 1,
-	}
-}
-
-func (b *bearerAuth) AuthorizedFor(context.Context, Resource) (Result, error) {
-	return Result{Authorized: b.authorized}, nil
+// Authorize always returns nil, indicating the request is authorized.
+func (AnonymousAuth) Authorize(context.Context, Action, Resource) error {
+	return nil
 }

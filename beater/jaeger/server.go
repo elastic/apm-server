@@ -33,7 +33,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/interceptors"
 	logs "github.com/elastic/apm-server/log"
@@ -85,7 +85,7 @@ func NewServer(
 			// must explicitly specify which tag to use.
 			agentAuth = cfg.AgentAuth
 		}
-		authBuilder, err := authorization.NewBuilder(agentAuth)
+		authenticator, err := auth.NewAuthenticator(agentAuth)
 		if err != nil {
 			return nil, err
 		}
@@ -99,7 +99,7 @@ func NewServer(
 			interceptors.Logging(logger),
 			interceptors.Metrics(logger, RegistryMonitoringMaps),
 			interceptors.Timeout(),
-			interceptors.Authorization(MethodAuthorizationHandlers(authBuilder, cfg.JaegerConfig.GRPC.AuthTag)),
+			interceptors.Auth(MethodAuthenticators(authenticator, cfg.JaegerConfig.GRPC.AuthTag)),
 		}
 
 		// TODO(axw) should the listener respect cfg.MaxConnections?

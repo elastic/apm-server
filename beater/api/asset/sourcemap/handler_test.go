@@ -35,6 +35,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/approvaltest"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/publish"
@@ -89,6 +90,20 @@ func TestAssetHandler(t *testing.T) {
 			},
 			code: http.StatusAccepted,
 		},
+		"unauthorized": {
+			authorizer: func(context.Context, auth.Action, auth.Resource) error {
+				return auth.ErrUnauthorized
+			},
+			code: http.StatusForbidden,
+			body: beatertest.ResultErrWrap("unauthorized"),
+		},
+		"auth_unavailable": {
+			authorizer: func(context.Context, auth.Action, auth.Resource) error {
+				return errors.New("boom")
+			},
+			code: http.StatusServiceUnavailable,
+			body: beatertest.ResultErrWrap("service unavailable"),
+		},
 	}
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
@@ -106,6 +121,7 @@ type testcaseT struct {
 	sourcemapInput string
 	contentType    string
 	reporter       func(ctx context.Context, p publish.PendingReq) error
+	authorizer     authorizerFunc
 
 	missingSourcemap, missingServiceName, missingServiceVersion, missingBundleFilepath bool
 
@@ -116,6 +132,11 @@ type testcaseT struct {
 func (tc *testcaseT) setup() error {
 	if tc.w == nil {
 		tc.w = httptest.NewRecorder()
+	}
+	if tc.authorizer == nil {
+		tc.authorizer = func(ctx context.Context, action auth.Action, resource auth.Resource) error {
+			return nil
+		}
 	}
 	if tc.r == nil {
 		buf := bytes.Buffer{}
@@ -149,6 +170,7 @@ func (tc *testcaseT) setup() error {
 			tc.contentType = w.FormDataContentType()
 		}
 		tc.r.Header.Set("Content-Type", tc.contentType)
+		tc.r = tc.r.WithContext(auth.ContextWithAuthorizer(tc.r.Context(), tc.authorizer))
 	}
 
 	if tc.reporter == nil {
@@ -159,4 +181,10 @@ func (tc *testcaseT) setup() error {
 	h := Handler(tc.reporter)
 	h(c)
 	return nil
+}
+
+type authorizerFunc func(context.Context, auth.Action, auth.Resource) error
+
+func (f authorizerFunc) Authorize(ctx context.Context, action auth.Action, resource auth.Resource) error {
+	return f(ctx, action, resource)
 }

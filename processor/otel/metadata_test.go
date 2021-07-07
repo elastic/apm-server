@@ -232,5 +232,5 @@ func transformResourceMetadata(t *testing.T, resourceAttrs map[string]pdata.Attr
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
-	return events.Transactions[0].Metadata
+	return events[0].Transaction.Metadata
 }

@@ -202,7 +202,7 @@ func (c *Consumer) convertSpan(
 			Outcome:   spanStatusOutcome(otelSpan.Status()),
 		}
 		translateTransaction(otelSpan, otelLibrary, metadata, &transactionBuilder{Transaction: transaction})
-		out.Transactions = append(out.Transactions, transaction)
+		*out = append(*out, model.APMEvent{Transaction: transaction})
 	} else {
 		span = &model.Span{
 			Metadata:  metadata,
@@ -215,7 +215,7 @@ func (c *Consumer) convertSpan(
 			Outcome:   spanStatusOutcome(otelSpan.Status()),
 		}
 		translateSpan(otelSpan, metadata, span)
-		out.Spans = append(out.Spans, span)
+		*out = append(*out, model.APMEvent{Span: span})
 	}
 
 	events := otelSpan.Events()
@@ -816,7 +816,7 @@ func convertSpanEvent(
 		if span != nil {
 			addSpanCtxToErr(span, e)
 		}
-		out.Errors = append(out.Errors, e)
+		*out = append(*out, model.APMEvent{Error: e})
 	}
 }
 

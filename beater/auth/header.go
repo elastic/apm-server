@@ -15,19 +15,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package authorization
+package auth
 
 import (
-	"context"
+	"strings"
 )
 
-// denyAuth implements the Authorization interface.
-type denyAuth struct {
-	reason string
-}
-
-// AuthorizedFor always returns a Result indicating the request is neither authorized
-// nor authenticated.
-func (d denyAuth) AuthorizedFor(context.Context, Resource) (Result, error) {
-	return Result{Authorized: false, Reason: d.reason}, nil
+// ParseAuthorizationHeader parses an HTTP Authorization header value,
+// which should have the format "<auth-kind> <auth-token>".
+func ParseAuthorizationHeader(v string) (kind, token string) {
+	space := strings.IndexRune(v, ' ')
+	if space <= 0 {
+		return "", ""
+	}
+	return v[:space], v[space+1:]
 }

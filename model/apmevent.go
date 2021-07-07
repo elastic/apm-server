@@ -15,16 +15,26 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package authorization
+package model
 
 import (
 	"context"
+
+	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/beats/v7/libbeat/beat"
 )
 
-// allowAuth implements the Authorization interface.
-type allowAuth struct{}
+// APMEvent holds the details of an APM event.
+//
+// Exactly one of the event fields should be non-nil.
+type APMEvent struct {
+	Transaction *Transaction
+	Span        *Span
+	Metricset   *Metricset
+	Error       *Error
+	Profile     *PprofProfile
+}
 
-// AuthorizedFor always returns a Result indicating the request is authorized.
-func (allowAuth) AuthorizedFor(context.Context, Resource) (Result, error) {
-	return Result{Authorized: true}, nil
+func (e *APMEvent) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+	return nil
 }
