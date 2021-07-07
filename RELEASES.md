@@ -9,9 +9,7 @@
 
 * Update beats
 
-  * Before feature freeze and creating the release branch, update `BEATS_VERSION` to the release version in the top-level Makefile of the release's parent branch
-  * Run `make update-beats` in the parent branch to recognize potential issues
-  * Commit these changes
+  run `make update-beats` in the branch from which the new branch will be created before FF to recognize potential issues
 
 * Update Kibana Index Pattern
 
@@ -39,8 +37,8 @@
   * update versions in `major.x` branch to next minor version, e.g. [#2804](https://github.com/elastic/apm-server/pull/2804)
 
 * Update to latest changes of [beats](https://github.com/elastic/beats/pulls/)
-
-  When beats has merged all PRs and for minor releases created the new branch, update beats again.
+  * Update `BEATS_VERSION` to the release version in the top-level Makefile
+  * When beats has merged all PRs and for minor releases created the new branch, run `make update-beats` and commit the changes.
 
 * Ensure a branch or tag is created for the [go-elasticsearch](https://github.com/elastic/go-elasticsearch) library and update to it.
 
