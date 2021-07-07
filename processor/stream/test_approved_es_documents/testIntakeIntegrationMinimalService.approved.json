@@ -1,37 +1,6 @@
 {
     "events": [
         {
-            "@timestamp": "2017-05-30T18:53:42.281Z",
-            "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
-            },
-            "data_stream.dataset": "apm.app.1234_service_12a3",
-            "data_stream.type": "metrics",
-            "go": {
-                "memstats": {
-                    "heap": {
-                        "sys": {
-                            "bytes": 61235
-                        }
-                    }
-                }
-            },
-            "host": {
-                "ip": "192.0.0.1"
-            },
-            "processor": {
-                "event": "metric",
-                "name": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "ecmascript"
-                },
-                "name": "1234_service-12a3"
-            }
-        },
-        {
             "@timestamp": "2018-08-09T15:04:05.999Z",
             "agent": {
                 "name": "elastic-node",
@@ -62,6 +31,37 @@
             },
             "timestamp": {
                 "us": 1533827045999000
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.type": "metrics",
+            "go": {
+                "memstats": {
+                    "heap": {
+                        "sys": {
+                            "bytes": 61235
+                        }
+                    }
+                }
+            },
+            "host": {
+                "ip": "192.0.0.1"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
+                "name": "1234_service-12a3"
             }
         }
     ]
