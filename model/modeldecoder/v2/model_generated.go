@@ -1482,12 +1482,13 @@ func (val *spanRoot) validate() error {
 }
 
 func (val *span) IsSet() bool {
-	return val.Action.IsSet() || (len(val.ChildIDs) > 0) || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.SampleRate.IsSet() || (len(val.Stacktrace) > 0) || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Type.IsSet()
+	return val.Action.IsSet() || (len(val.ChildIDs) > 0) || val.Compressed.IsSet() || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.SampleRate.IsSet() || (len(val.Stacktrace) > 0) || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Type.IsSet()
 }
 
 func (val *span) Reset() {
 	val.Action.Reset()
 	val.ChildIDs = val.ChildIDs[:0]
+	val.Compressed.Reset()
 	val.Context.Reset()
 	val.Duration.Reset()
 	val.ID.Reset()
@@ -1519,6 +1520,9 @@ func (val *span) validate() error {
 		if utf8.RuneCountInString(elem) > 1024 {
 			return fmt.Errorf("'child_ids': validation rule 'maxLength(1024)' violated")
 		}
+	}
+	if err := val.Compressed.validate(); err != nil {
+		return errors.Wrapf(err, "compressed")
 	}
 	if err := val.Context.validate(); err != nil {
 		return errors.Wrapf(err, "context")
@@ -1584,6 +1588,25 @@ func (val *span) validate() error {
 	}
 	if !val.Start.IsSet() && !val.Timestamp.IsSet() {
 		return fmt.Errorf("requires at least one of the fields 'start;timestamp'")
+	}
+	return nil
+}
+
+func (val *spanCompressed) IsSet() bool {
+	return val.Count.IsSet() || val.End.IsSet()
+}
+
+func (val *spanCompressed) Reset() {
+	val.Count.Reset()
+	val.End.Reset()
+}
+
+func (val *spanCompressed) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Count.IsSet() && val.Count.Val < 2 {
+		return fmt.Errorf("'count': validation rule 'min(2)' violated")
 	}
 	return nil
 }
