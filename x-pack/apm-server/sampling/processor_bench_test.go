@@ -47,10 +47,13 @@ func BenchmarkProcess(b *testing.B) {
 				ID:       hex.EncodeToString(spanID),
 				ParentID: spanParentID,
 			}
-			if err := processor.ProcessBatch(context.Background(), &model.Batch{
-				Transactions: []*model.Transaction{transaction},
-				Spans:        []*model.Span{span, span, span},
-			}); err != nil {
+			batch := model.Batch{
+				{Transaction: transaction},
+				{Span: span},
+				{Span: span},
+				{Span: span},
+			}
+			if err := processor.ProcessBatch(context.Background(), &batch); err != nil {
 				b.Fatal(err)
 			}
 		}

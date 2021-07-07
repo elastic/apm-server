@@ -48,7 +48,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 	}
 	assert.NoError(t, readWriter.WriteTransaction(transaction))
 
-	var spans []*model.Span
+	var spanEvents []model.APMEvent
 	for i := 0; i < numSpans; i++ {
 		spanUUID := uuid.Must(uuid.NewV4())
 		span := &model.Span{
@@ -56,21 +56,19 @@ func testWriteEvents(t *testing.T, numSpans int) {
 			ID:      spanUUID.String(),
 		}
 		assert.NoError(t, readWriter.WriteSpan(span))
-		spans = append(spans, span)
+		spanEvents = append(spanEvents, model.APMEvent{Span: span})
 	}
 	afterWrite := time.Now()
 
 	// We can read our writes without flushing.
 	var batch model.Batch
 	assert.NoError(t, readWriter.ReadEvents(traceUUID.String(), &batch))
-	assert.ElementsMatch(t, []*model.Transaction{transaction}, batch.Transactions)
-	assert.ElementsMatch(t, spans, batch.Spans)
+	assert.ElementsMatch(t, append(spanEvents, model.APMEvent{Transaction: transaction}), batch)
 
 	// Flush in order for the writes to be visible to other readers.
 	assert.NoError(t, readWriter.Flush())
 
-	var recordedTransactions []*model.Transaction
-	var recordedSpans []*model.Span
+	var recorded []model.APMEvent
 	assert.NoError(t, db.View(func(txn *badger.Txn) error {
 		iter := txn.NewIterator(badger.IteratorOptions{
 			Prefix: []byte(traceUUID.String()),
@@ -98,11 +96,11 @@ func testWriteEvents(t *testing.T, numSpans int) {
 			switch meta := item.UserMeta(); meta {
 			case 'T':
 				tx := &model.Transaction{}
-				recordedTransactions = append(recordedTransactions, tx)
+				recorded = append(recorded, model.APMEvent{Transaction: tx})
 				value = tx
 			case 'S':
 				span := &model.Span{}
-				recordedSpans = append(recordedSpans, span)
+				recorded = append(recorded, model.APMEvent{Span: span})
 				value = span
 			default:
 				t.Fatalf("invalid meta %q", meta)
@@ -113,8 +111,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 		}
 		return nil
 	}))
-	assert.ElementsMatch(t, batch.Spans, recordedSpans)
-	assert.ElementsMatch(t, batch.Transactions, recordedTransactions)
+	assert.ElementsMatch(t, batch, recorded)
 }
 
 func TestWriteTraceSampled(t *testing.T) {
@@ -208,8 +205,10 @@ func TestReadEvents(t *testing.T) {
 
 	var events model.Batch
 	assert.NoError(t, reader.ReadEvents(string(traceID[:]), &events))
-	assert.Equal(t, []*model.Transaction{{Name: "transaction"}}, events.Transactions)
-	assert.Equal(t, []*model.Span{{Name: "span"}}, events.Spans)
+	assert.Equal(t, model.Batch{
+		{Transaction: &model.Transaction{Name: "transaction"}},
+		{Span: &model.Span{Name: "span"}},
+	}, events)
 }
 
 func TestReadEventsDecodeError(t *testing.T) {

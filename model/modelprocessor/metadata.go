@@ -29,29 +29,28 @@ type MetadataProcessorFunc func(ctx context.Context, meta *model.Metadata) error
 
 // ProcessBatch calls f with the metadata of each event in b.
 func (f MetadataProcessorFunc) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	for _, event := range b.Transactions {
-		if err := f(ctx, &event.Metadata); err != nil {
-			return err
-		}
-	}
-	for _, event := range b.Spans {
-		if err := f(ctx, &event.Metadata); err != nil {
-			return err
-		}
-	}
-	for _, event := range b.Metricsets {
-		if err := f(ctx, &event.Metadata); err != nil {
-			return err
-		}
-	}
-	for _, event := range b.Errors {
-		if err := f(ctx, &event.Metadata); err != nil {
-			return err
-		}
-	}
-	for _, event := range b.Profiles {
-		if err := f(ctx, &event.Metadata); err != nil {
-			return err
+	for _, event := range *b {
+		switch {
+		case event.Transaction != nil:
+			if err := f(ctx, &event.Transaction.Metadata); err != nil {
+				return err
+			}
+		case event.Span != nil:
+			if err := f(ctx, &event.Span.Metadata); err != nil {
+				return err
+			}
+		case event.Metricset != nil:
+			if err := f(ctx, &event.Metricset.Metadata); err != nil {
+				return err
+			}
+		case event.Error != nil:
+			if err := f(ctx, &event.Error.Metadata); err != nil {
+				return err
+			}
+		case event.Profile != nil:
+			if err := f(ctx, &event.Profile.Metadata); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

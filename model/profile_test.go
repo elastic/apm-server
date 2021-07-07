@@ -87,7 +87,7 @@ func TestPprofProfileTransform(t *testing.T) {
 		},
 	}
 
-	batch := &model.Batch{Profiles: []*model.PprofProfile{&pp}}
+	batch := &model.Batch{{Profile: &pp}}
 	output := batch.Transform(context.Background(), &transform.Config{DataStreams: true})
 	require.Len(t, output, 2)
 	assert.Equal(t, output[0], output[1])
