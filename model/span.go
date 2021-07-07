@@ -121,7 +121,7 @@ type DestinationService struct {
 
 // Compressed holds metrics on a group of spans compressed into one.
 type Compressed struct {
-	Count int
+	Count *int
 	End   time.Time
 }
 
@@ -201,8 +201,8 @@ func (c *Compressed) fields() common.MapStr {
 		return nil
 	}
 	var fields mapStr
-	if c.Count > 0 {
-		fields.set("count", c.Count)
+	if c.Count != nil {
+		fields.set("count", *c.Count)
 	}
 	fields.maybeSetMapStr("end", utility.TimeAsMicros(c.End))
 	return common.MapStr(fields)
