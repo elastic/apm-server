@@ -121,8 +121,9 @@ type DestinationService struct {
 
 // Composite holds metrics on a group of spans compressed into one.
 type Composite struct {
-	Count int
-	End   time.Time
+	Count      int
+	End        time.Time
+	ExactMatch bool
 }
 
 func (db *DB) fields() common.MapStr {
@@ -204,6 +205,7 @@ func (c *Composite) fields() common.MapStr {
 	if c.Count > 1 {
 		fields.set("count", c.Count)
 	}
+	fields.maybeSetBool("exact_match", &c.ExactMatch)
 	fields.maybeSetMapStr("end", utility.TimeAsMicros(c.End))
 	return common.MapStr(fields)
 }

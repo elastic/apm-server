@@ -1593,12 +1593,13 @@ func (val *span) validate() error {
 }
 
 func (val *spanComposite) IsSet() bool {
-	return val.Count.IsSet() || val.End.IsSet()
+	return val.Count.IsSet() || val.End.IsSet() || val.ExactMatch.IsSet()
 }
 
 func (val *spanComposite) Reset() {
 	val.Count.Reset()
 	val.End.Reset()
+	val.ExactMatch.Reset()
 }
 
 func (val *spanComposite) validate() error {

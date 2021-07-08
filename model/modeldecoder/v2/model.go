@@ -779,6 +779,10 @@ type spanComposite struct {
 	// is the overall duration of all the grouped spans, including any delays
 	// between the spans.
 	End nullable.TimeMicrosUnix `json:"end"`
+	// ExactMatch indicates whether the grouped spans are identical queries to
+	// the same backend or if the queries are very similar. In both cases, the
+	// queries are fast, numerous and occur within a short period of time.
+	ExactMatch nullable.Bool `json:"exact_match"`
 }
 
 type transaction struct {

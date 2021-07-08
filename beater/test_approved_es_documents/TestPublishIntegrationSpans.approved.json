@@ -1006,7 +1006,8 @@
                     "count": 10,
                     "end": {
                         "us": 1632976822290000
-                    }
+                    },
+                    "exact_match": true
                 },
                 "duration": {
                     "us": 3781
