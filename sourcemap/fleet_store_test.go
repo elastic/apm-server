@@ -20,6 +20,7 @@ package sourcemap
 import (
 	"compress/zlib"
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -37,7 +38,8 @@ func TestFleetFetch(t *testing.T) {
 		name          = "webapp"
 		version       = "1.0.0"
 		path          = "/my/path/to/bundle.js.map"
-		wantRes       = "sourcemap response"
+		wantRes       = `"sourcemap response"`
+		res           = fmt.Sprintf(`{"sourceMap":%s}`, wantRes)
 		c             = http.DefaultClient
 		sourceMapPath = "/api/fleet/artifact"
 	)
@@ -49,7 +51,7 @@ func TestFleetFetch(t *testing.T) {
 		// zlib compress
 		wr := zlib.NewWriter(w)
 		defer wr.Close()
-		wr.Write([]byte(resp))
+		wr.Write([]byte(res))
 	}))
 	defer ts.Close()
 
@@ -72,7 +74,7 @@ func TestFleetFetch(t *testing.T) {
 	assert.NoError(t, err)
 
 	gotRes, err := fb.fetch(context.Background(), name, version, path)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, wantRes, gotRes)
 
