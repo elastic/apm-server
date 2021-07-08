@@ -17,14 +17,13 @@ require (
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210630182526-5217a133e7ae
 	github.com/elastic/ecs v1.10.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210407144825-cc1c33cfa1d0 // indirect
-	github.com/elastic/elastic-package v0.0.0-20210706142446-d7dd1a3ac595
+	github.com/elastic/elastic-package v0.0.0-20210708155721-c97edac1eec2
 	github.com/elastic/gmux v0.1.0
 	github.com/elastic/go-elasticsearch/v7 v7.13.1
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20210701131303-a3f8e421ff7c
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
 	github.com/elastic/go-ucfg v0.8.4-0.20200415140258-1232bd4774a6
-	github.com/fatih/color v1.12.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogo/protobuf v1.3.2
@@ -34,7 +33,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/jaegertracing/jaeger v1.23.0
 	github.com/josephspurrier/goversioninfo v1.2.0 // indirect
-	github.com/json-iterator/go v1.1.10
+	github.com/json-iterator/go v1.1.11
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/magefile/mage v1.11.0
 	github.com/mattn/go-isatty v0.0.13 // indirect
@@ -46,7 +45,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/reviewdog/reviewdog v0.9.17
 	github.com/ryanuber/go-glob v0.0.0-20170128012129-256dc444b735
-	github.com/spf13/cobra v1.1.3
+	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
@@ -98,3 +97,5 @@ replace (
 )
 
 replace go.opentelemetry.io/collector => ./internal/otel_collector
+
+replace github.com/elastic/go-elasticsearch/v7 => github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20210701130713-3c08ee738285
