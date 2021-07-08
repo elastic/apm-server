@@ -29,7 +29,7 @@ func BenchmarkAggregateSpan(b *testing.B) {
 		for pb.Next() {
 			agg.ProcessBatch(
 				context.Background(),
-				&model.Batch{Spans: []*model.Span{span}},
+				&model.Batch{{Span: span}},
 			)
 		}
 	})
@@ -66,7 +66,7 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 }
 
 func TestAggregatorRun(t *testing.T) {
-	batches := make(chan *model.Batch, 1)
+	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor: makeChanBatchProcessor(batches),
 		Interval:       10 * time.Millisecond,
@@ -100,11 +100,11 @@ func TestAggregatorRun(t *testing.T) {
 		go func(in input) {
 			defer wg.Done()
 			span := makeSpan(in.serviceName, in.agentName, in.destination, in.outcome, 100*time.Millisecond, in.count)
-			batch := &model.Batch{Spans: []*model.Span{span}}
+			batch := model.Batch{{Span: span}}
 			for i := 0; i < 100; i++ {
-				err := agg.ProcessBatch(context.Background(), batch)
+				err := agg.ProcessBatch(context.Background(), &batch)
 				require.NoError(t, err)
-				assert.Empty(t, batch.Metricsets)
+				assert.Equal(t, model.Batch{{Span: span}}, batch)
 			}
 		}(in)
 	}
@@ -115,10 +115,7 @@ func TestAggregatorRun(t *testing.T) {
 	defer agg.Stop(context.Background())
 
 	batch := expectBatch(t, batches)
-	for _, ms := range batch.Metricsets {
-		require.NotZero(t, ms.Timestamp)
-		ms.Timestamp = time.Time{}
-	}
+	metricsets := batchMetricsets(t, batch)
 
 	assert.ElementsMatch(t, []*model.Metricset{{
 		Name: "service_destination",
@@ -184,7 +181,7 @@ func TestAggregatorRun(t *testing.T) {
 			{Name: "span.destination.service.response_time.sum.us", Value: 10000000.0},
 			{Name: "metricset.period", Value: 10},
 		},
-	}}, batch.Metricsets)
+	}}, metricsets)
 
 	select {
 	case <-batches:
@@ -194,7 +191,7 @@ func TestAggregatorRun(t *testing.T) {
 }
 
 func TestAggregatorOverflow(t *testing.T) {
-	batches := make(chan *model.Batch, 1)
+	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor: makeChanBatchProcessor(batches),
 		Interval:       10 * time.Millisecond,
@@ -204,32 +201,28 @@ func TestAggregatorOverflow(t *testing.T) {
 
 	// The first two transaction groups will not require immediate publication,
 	// as we have configured the spanmetrics with a maximum of two buckets.
-	var batch model.Batch
-	for i := 0; i < 10; i++ {
-		batch.Spans = append(batch.Spans,
-			makeSpan("service", "agent", "destination1", "success", 100*time.Millisecond, 1),
-			makeSpan("service", "agent", "destination2", "success", 100*time.Millisecond, 1),
-		)
+	batch := make(model.Batch, 20)
+	for i := 0; i < len(batch); i += 2 {
+		batch[i].Span = makeSpan("service", "agent", "destination1", "success", 100*time.Millisecond, 1)
+		batch[i+1].Span = makeSpan("service", "agent", "destination2", "success", 100*time.Millisecond, 1)
 	}
 	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
-	assert.Empty(t, batch.Metricsets)
+	assert.Empty(t, batchMetricsets(t, batch))
 
 	// The third group will return a metricset for immediate publication.
 	for i := 0; i < 2; i++ {
-		batch.Spans = append(batch.Spans,
-			makeSpan("service", "agent", "destination3", "success", 100*time.Millisecond, 1),
-		)
+		batch = append(batch, model.APMEvent{
+			Span: makeSpan("service", "agent", "destination3", "success", 100*time.Millisecond, 1),
+		})
 	}
 	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
-	assert.Len(t, batch.Metricsets, 2)
 
-	for _, m := range batch.Metricsets {
-		require.NotNil(t, m)
-		require.False(t, m.Timestamp.IsZero())
+	metricsets := batchMetricsets(t, batch)
+	assert.Len(t, metricsets, 2)
 
-		m.Timestamp = time.Time{}
+	for _, m := range metricsets {
 		assert.Equal(t, &model.Metricset{
 			Name: "service_destination",
 			Metadata: model.Metadata{
@@ -274,18 +267,18 @@ func makeErrBatchProcessor(err error) model.BatchProcessor {
 	return model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return err })
 }
 
-func makeChanBatchProcessor(ch chan<- *model.Batch) model.BatchProcessor {
+func makeChanBatchProcessor(ch chan<- model.Batch) model.BatchProcessor {
 	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case ch <- batch:
+		case ch <- *batch:
 			return nil
 		}
 	})
 }
 
-func expectBatch(t *testing.T, ch <-chan *model.Batch) *model.Batch {
+func expectBatch(t *testing.T, ch <-chan model.Batch) model.Batch {
 	t.Helper()
 	select {
 	case batch := <-ch:
@@ -294,4 +287,17 @@ func expectBatch(t *testing.T, ch <-chan *model.Batch) *model.Batch {
 		t.Fatal("expected publish")
 	}
 	panic("unreachable")
+}
+
+func batchMetricsets(t testing.TB, batch model.Batch) []*model.Metricset {
+	var metricsets []*model.Metricset
+	for _, event := range batch {
+		if event.Metricset == nil {
+			continue
+		}
+		require.NotZero(t, event.Metricset.Timestamp)
+		event.Metricset.Timestamp = time.Time{}
+		metricsets = append(metricsets, event.Metricset)
+	}
+	return metricsets
 }

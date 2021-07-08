@@ -91,6 +91,48 @@
             }
         },
         {
+            "@timestamp": "2019-12-20T07:41:45.006Z",
+            "agent": {
+                "ephemeral_id": "2e3f8db3eb77fae0",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "error": {
+                "exception": [
+                    {
+                        "message": "redis timeout"
+                    }
+                ],
+                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
+                "log": {
+                    "message": "redis timeout"
+                }
+            },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13"
+            },
+            "parent": {
+                "id": "333295bfb438ea03"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis"
+            },
+            "timestamp": {
+                "us": 1576827705006847
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
             "@timestamp": "2019-12-20T07:41:45.007Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
@@ -310,6 +352,48 @@
             },
             "timestamp": {
                 "us": 1576827705054046
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.089Z",
+            "agent": {
+                "ephemeral_id": "2e3f8db3eb77fae0",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "error": {
+                "exception": [
+                    {
+                        "message": "redis timeout"
+                    }
+                ],
+                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
+                "log": {
+                    "message": "redis timeout"
+                }
+            },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13"
+            },
+            "parent": {
+                "id": "614811d6c498bfb0"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis"
+            },
+            "timestamp": {
+                "us": 1576827705089372
             },
             "trace": {
                 "id": "00000000000000007be2fd98d0973be3"
@@ -547,6 +631,48 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "error": {
+                "exception": [
+                    {
+                        "message": "redis timeout"
+                    }
+                ],
+                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
+                "log": {
+                    "message": "redis timeout"
+                }
+            },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13"
+            },
+            "parent": {
+                "id": "0242ee3774d9eab1"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis"
+            },
+            "timestamp": {
+                "us": 1576827705172347
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.172Z",
+            "agent": {
+                "ephemeral_id": "2e3f8db3eb77fae0",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
             "event": {
                 "outcome": "unknown"
             },
@@ -625,132 +751,6 @@
             },
             "timestamp": {
                 "us": 1576827705186670
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.006Z",
-            "agent": {
-                "ephemeral_id": "2e3f8db3eb77fae0",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "error": {
-                "exception": [
-                    {
-                        "message": "redis timeout"
-                    }
-                ],
-                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
-                "log": {
-                    "message": "redis timeout"
-                }
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": "10.0.0.13"
-            },
-            "parent": {
-                "id": "333295bfb438ea03"
-            },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "redis"
-            },
-            "timestamp": {
-                "us": 1576827705006847
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.089Z",
-            "agent": {
-                "ephemeral_id": "2e3f8db3eb77fae0",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "error": {
-                "exception": [
-                    {
-                        "message": "redis timeout"
-                    }
-                ],
-                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
-                "log": {
-                    "message": "redis timeout"
-                }
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": "10.0.0.13"
-            },
-            "parent": {
-                "id": "614811d6c498bfb0"
-            },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "redis"
-            },
-            "timestamp": {
-                "us": 1576827705089372
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.172Z",
-            "agent": {
-                "ephemeral_id": "2e3f8db3eb77fae0",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "error": {
-                "exception": [
-                    {
-                        "message": "redis timeout"
-                    }
-                ],
-                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
-                "log": {
-                    "message": "redis timeout"
-                }
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": "10.0.0.13"
-            },
-            "parent": {
-                "id": "0242ee3774d9eab1"
-            },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "redis"
-            },
-            "timestamp": {
-                "us": 1576827705172347
             },
             "trace": {
                 "id": "00000000000000007be2fd98d0973be3"

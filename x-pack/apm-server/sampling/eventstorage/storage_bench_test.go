@@ -84,14 +84,14 @@ func BenchmarkReadEvents(b *testing.B) {
 				b.ResetTimer()
 				var batch model.Batch
 				for i := 0; i < b.N; i++ {
-					batch.Reset()
+					batch = batch[:0]
 					if err := readWriter.ReadEvents(traceUUID.String(), &batch); err != nil {
 						b.Fatal(err)
 					}
-					if batch.Len() != count {
+					if len(batch) != count {
 						panic(fmt.Errorf(
 							"event count mismatch: expected %d, got %d",
-							count, batch.Len(),
+							count, len(batch),
 						))
 					}
 				}
