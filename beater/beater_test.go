@@ -253,9 +253,10 @@ func TestTransformConfigIndex(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, transformConfig.RUM.SourcemapStore)
 		transformConfig.RUM.SourcemapStore.Added(context.Background(), "name", "version", "path")
-		require.Len(t, requestPaths, 1)
+		require.Len(t, requestPaths, 2)
+		require.Equal(t, requestPaths[0], "/")
 
-		path := requestPaths[0]
+		path := requestPaths[1]
 		path = strings.TrimPrefix(path, "/")
 		path = strings.TrimSuffix(path, "/_search")
 		assert.Equal(t, expected, path)
