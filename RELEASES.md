@@ -13,7 +13,11 @@
 
 * Update Kibana Index Pattern
 
-  If fields are not up-to-date, run `make update && script/update_kibana_objects.py` and create a PR.
+  If fields are not up to date, perform the following and open a PR:
+  * Fork and locally clone kibana
+  * Ensure that your copy of kibana has the current release branch from elastic/kibana
+  * From the apm-server repo run:
+    `make update && script/update_kibana_objects.py -d path/to/your/kibana -b $release_branch`
 
 * Update Changelog
 
@@ -33,10 +37,12 @@
   * update versions in `major.x` branch to next minor version, e.g. [#2804](https://github.com/elastic/apm-server/pull/2804)
 
 * Update to latest changes of [beats](https://github.com/elastic/beats/pulls/)
-
-  When beats has merged all PRs and for minor releases created the new branch, update beats again.
+  * Update `BEATS_VERSION` to the release version in the top-level Makefile
+  * When beats has merged all PRs and for minor releases created the new branch, run `make update-beats` and commit the changes.
 
 * Ensure a branch or tag is created for the [go-elasticsearch](https://github.com/elastic/go-elasticsearch) library and update to it.
+
+  `go get github.com/elastic/go-elasticsearch/v$major@$major.$minor`
 
 * The following may also need to be updated manually:
     * APM Overview's [release highlights](https://github.com/elastic/apm-server/blob/master/docs/guide/apm-release-notes.asciidoc) - Anything exciting across the APM stack!
@@ -45,6 +51,10 @@
     * APM Server's [upgrade guide](https://github.com/elastic/apm-server/blob/master/docs/upgrading.asciidoc).
 
 * For major releases, update and smoke test the dev quick start [`docker-compose.yml`](https://github.com/elastic/apm-server/blob/master/docs/guide/docker-compose.yml).
+
+## After feature freeze
+
+* Update [.mergify.yml](https://github.com/elastic/apm-server/blob/master/.mergify.yml) with a new backport rule for the next version. An example of adding v7.15 after v7.14 feature freeze is available [here](https://github.com/elastic/apm-server/pull/5601/files)
 
 ## On release day
 
