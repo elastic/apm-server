@@ -71,6 +71,14 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 
 	var received []string
 	deadlineTimer := time.NewTimer(10 * time.Second)
+	select {
+	case <-deadlineTimer.C:
+		t.Fatal("timed out waiting for events to be received by server")
+	case rw := <-requests:
+		// burn initial request to index
+		require.Equal(t, "/", rw.URL.Path)
+		rw.Write("") // unblock client
+	}
 	for len(received) < len(input) {
 		select {
 		case <-deadlineTimer.C:
@@ -127,6 +135,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	srv, requests := newRequestResponseWriterServer(t)
 	ids, positions, cancel := newSubscriber(t, srv)
 
+	expectRequest(t, requests, "/", "").Write("")
 	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
           "indices": {
 	    "index_name": {
@@ -261,6 +270,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 
 	// Respond initially with the same _seq_no as before, indicating there
 	// have been no new docs since the position was recorded.
+	expectRequest(t, requests, "/", "").Write("")
 	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
           "indices": {
 	    "index_name": {
@@ -333,10 +343,11 @@ func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
 	srv, requests := newRequestResponseWriterServer(t)
 	newSubscriber(t, srv)
 
+	expectRequest(t, requests, "/", "").Write("")
 	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
-          "indices": {
+	"indices": {
 	    "index_name": {
-              "shards": {
+	"shards": {
 	        "0": [{
 		  "routing": {
 		    "primary": true
@@ -410,6 +421,7 @@ func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *req
 		case <-r.Context().Done():
 			w.WriteHeader(http.StatusRequestTimeout)
 		case response := <-rrw.done:
+			w.Header().Set("X-Elastic-Product", "Elasticsearch")
 			w.WriteHeader(response.statusCode)
 			w.Write([]byte(response.body))
 		}
