@@ -222,6 +222,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"Metadata",
 				// values not set for RUM v3
 				"ChildIDs",
+				"Compressed",
 				"DB",
 				"Experimental",
 				"HTTP.Response.Headers",
