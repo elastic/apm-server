@@ -605,7 +605,7 @@ type span struct {
 	Action nullable.String `json:"action" validate:"maxLength=1024"`
 	// ChildIDs holds a list of successor transactions and/or spans.
 	ChildIDs []string `json:"child_ids" validate:"maxLength=1024"`
-	// Composite holds metrics on a group of spans compressed into one.
+	// Composite holds metrics on a group of spans represented by a single one.
 	Composite spanComposite `json:"composite"`
 	// Context holds arbitrary contextual information for the event.
 	Context spanContext `json:"context"`
@@ -772,12 +772,13 @@ type stacktraceFrame struct {
 }
 
 type spanComposite struct {
-	// Count is the number of spans that have been grouped into a single
-	// composite one. This number must be greater than 1.
+	// Count is the number of compressed spans the composite span represents.
+	// The minimum count is 2 as a composite span represents at least two spans.
 	Count nullable.Int `json:"count" validate:"required,min=2"`
-	// End is the end timestamp of the last span. This field - the span's timestamp
-	// is the overall duration of all the grouped spans, including any delays
-	// between the spans.
+	// End is the end timestamp of the last compressed span.
+	// The net duration of all compressed spans is equal to the composite spans'
+	// duration. The gross duration, including the time between the spans, is
+	// equal to (compressed.end - timestamp).
 	End nullable.TimeMicrosUnix `json:"end" validate:"required"`
 	// ExactMatch indicates whether the grouped spans are identical queries to
 	// the same backend or if the queries are very similar. In both cases, the
