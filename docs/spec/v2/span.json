@@ -31,27 +31,23 @@
       "properties": {
         "count": {
           "description": "Count is the number of spans that have been grouped into a single composite one. This number must be greater than 1.",
-          "type": [
-            "null",
-            "integer"
-          ],
+          "type": "integer",
           "minimum": 2
         },
         "end": {
           "description": "End is the end timestamp of the last span. This field - the span's timestamp is the overall duration of all the grouped spans, including any delays between the spans.",
-          "type": [
-            "null",
-            "integer"
-          ]
+          "type": "integer"
         },
         "exact_match": {
           "description": "ExactMatch indicates whether the grouped spans are identical queries to the same backend or if the queries are very similar. In both cases, the queries are fast, numerous and occur within a short period of time.",
-          "type": [
-            "null",
-            "boolean"
-          ]
+          "type": "boolean"
         }
-      }
+      },
+      "required": [
+        "count",
+        "end",
+        "exact_match"
+      ]
     },
     "context": {
       "description": "Context holds arbitrary contextual information for the event.",

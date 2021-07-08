@@ -774,15 +774,15 @@ type stacktraceFrame struct {
 type spanComposite struct {
 	// Count is the number of spans that have been grouped into a single
 	// composite one. This number must be greater than 1.
-	Count nullable.Int `json:"count" validate:"min=2"`
+	Count nullable.Int `json:"count" validate:"required,min=2"`
 	// End is the end timestamp of the last span. This field - the span's timestamp
 	// is the overall duration of all the grouped spans, including any delays
 	// between the spans.
-	End nullable.TimeMicrosUnix `json:"end"`
+	End nullable.TimeMicrosUnix `json:"end" validate:"required"`
 	// ExactMatch indicates whether the grouped spans are identical queries to
 	// the same backend or if the queries are very similar. In both cases, the
 	// queries are fast, numerous and occur within a short period of time.
-	ExactMatch nullable.Bool `json:"exact_match"`
+	ExactMatch nullable.Bool `json:"exact_match" validate:"required"`
 }
 
 type transaction struct {

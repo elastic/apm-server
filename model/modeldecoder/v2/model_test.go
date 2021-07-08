@@ -523,6 +523,9 @@ func TestSpanRequiredValidationRules(t *testing.T) {
 		"parent_id":                            nil,
 		"trace_id":                             nil,
 		"type":                                 nil,
+		"composite.count":                      nil,
+		"composite.end":                        nil,
+		"composite.exact_match":                nil,
 	}
 	cb := assertRequiredFn(t, requiredKeys, event.validate)
 	modeldecodertest.SetZeroStructValue(&event, cb)

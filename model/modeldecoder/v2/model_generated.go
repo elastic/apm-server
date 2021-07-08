@@ -1609,6 +1609,15 @@ func (val *spanComposite) validate() error {
 	if val.Count.IsSet() && val.Count.Val < 2 {
 		return fmt.Errorf("'count': validation rule 'min(2)' violated")
 	}
+	if !val.Count.IsSet() {
+		return fmt.Errorf("'count' required")
+	}
+	if !val.End.IsSet() {
+		return fmt.Errorf("'end' required")
+	}
+	if !val.ExactMatch.IsSet() {
+		return fmt.Errorf("'exact_match' required")
+	}
 	return nil
 }
 
