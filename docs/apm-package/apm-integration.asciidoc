@@ -70,7 +70,7 @@ Agents::
 unified agent that you can deploy to hosts or containers to collect data and send it to the {stack}.
 Behind the scenes, {agent} runs APM Server to listen for `apm` data.
 +
-{apm-overview-ref-v}/components.html[**APM agents**] are open source libraries written in the same language as your service.
+{apm-overview-ref-v}/components.html[**APM agents**] are free and open libraries written in the same language as your service.
 You may only need one, or you might use all of them.
 You install them into your service as you would install any other library.
 They instrument your code and collect performance data and errors at runtime.

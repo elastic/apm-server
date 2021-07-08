@@ -8,7 +8,7 @@ image::images/apm-architecture-cloud.png[Architecture of Elastic APM]
 [float]
 ==== APM Agents
 
-APM agents are open source libraries written in the same language as your service.
+APM agents are free and open libraries written in the same language as your service.
 You may only need one, or you might use all of them.
 You install them into your service as you would install any other library.
 They instrument your code and collect performance data and errors at runtime.
@@ -28,7 +28,7 @@ Each agent has its own documentation:
 [float]
 ==== APM Server
 
-APM Server is an open source application that receives performance data from your APM agents.
+APM Server is a free and open application that receives performance data from your APM agents.
 It's a {apm-server-ref-v}/overview.html#why-separate-component[separate component by design],
 which helps keep the agents light, prevents certain security risks, and improves compatibility across the Elastic Stack.
 
@@ -46,14 +46,14 @@ Here you can learn more about {apm-server-ref-v}/getting-started-apm-server.html
 [float]
 ==== Elasticsearch
 
-{ref}/index.html[Elasticsearch] is a highly scalable open source full-text search and analytics engine.
+{ref}/index.html[Elasticsearch] is a highly scalable free and open full-text search and analytics engine.
 It allows you to store, search, and analyze large volumes of data quickly and in near real time.
 Elasticsearch is used to store APM performance metrics and make use of its aggregations.
 
 [float]
 ==== Kibana APM app
 
-{kibana-ref}/index.html[Kibana] is an open source analytics and visualization platform designed to work with Elasticsearch.
+{kibana-ref}/index.html[Kibana] is a free and open analytics and visualization platform designed to work with Elasticsearch.
 You use Kibana to search, view, and interact with data stored in Elasticsearch.
 
 Since application performance monitoring is all about visualizing data and detecting bottlenecks,
