@@ -140,14 +140,10 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 }
 
 func parseFleetResp(b []byte) (string, error) {
-	var m map[string]interface{}
+	var m map[string]json.RawMessage
 	if err := json.Unmarshal(b, &m); err != nil {
 		return "", err
 	}
 
-	b, err := json.Marshal(m["sourceMap"])
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
+	return string(m["sourceMap"]), nil
 }
