@@ -99,7 +99,6 @@ func (j JavaAttacher) Run(ctx context.Context) error {
 			}
 			switch b.LogLevel {
 			case "FATAL", "ERROR":
-				continue
 				j.logger.Error(b.Message)
 			case "WARN":
 				j.logger.Warn(b.Message)
