@@ -96,6 +96,6 @@ replace (
 	k8s.io/kubectl => k8s.io/kubectl v0.21.2
 )
 
-replace go.opentelemetry.io/collector => ./internal/otel_collector
-
 replace github.com/elastic/go-elasticsearch/v7 => github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20210701130713-3c08ee738285
+
+replace go.opentelemetry.io/collector => ./internal/otel_collector
