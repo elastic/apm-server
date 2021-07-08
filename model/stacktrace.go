@@ -45,6 +45,7 @@ type StacktraceFrame struct {
 	ExcludeFromGrouping bool
 
 	SourcemapUpdated bool
+	SourcemapError   string
 	Original         Original
 }
 
@@ -109,6 +110,7 @@ func (s *StacktraceFrame) transform(cfg *transform.Config, rum bool) common.MapS
 	if s.SourcemapUpdated {
 		sm.set("updated", true)
 	}
+	sm.maybeSetString("error", s.SourcemapError)
 	m.maybeSetMapStr("sourcemap", common.MapStr(sm))
 
 	var orig mapStr

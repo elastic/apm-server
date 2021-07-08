@@ -25,6 +25,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/v7/libbeat/logp"
+
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/sourcemap/test"
@@ -211,6 +213,47 @@ func TestBatchProcessor(t *testing.T) {
 			}},
 		},
 	}, error3)
+}
+
+func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
+	client := test.ESClientUnavailable(t)
+	store, err := sourcemap.NewElasticsearchStore(client, "index", time.Minute)
+	require.NoError(t, err)
+
+	metadata := model.Metadata{
+		Service: model.Service{
+			Name:    "service_name",
+			Version: "service_version",
+		},
+	}
+	nonMatchingFrame := model.StacktraceFrame{
+		AbsPath:  "bundle.js",
+		Lineno:   newInt(0),
+		Colno:    newInt(0),
+		Function: "original function",
+	}
+
+	span := &model.Span{
+		Metadata:   metadata,
+		Stacktrace: model.Stacktrace{cloneFrame(nonMatchingFrame), cloneFrame(nonMatchingFrame)},
+	}
+
+	logp.DevelopmentSetup(logp.ToObserverOutput())
+	for i := 0; i < 2; i++ {
+		processor := sourcemap.BatchProcessor{Store: store}
+		err = processor.ProcessBatch(context.Background(), &model.Batch{{Span: span}, {Span: span}})
+		assert.NoError(t, err)
+	}
+
+	// SourcemapError should have been set, but the frames should otherwise be unmodified.
+	expectedFrame := nonMatchingFrame
+	expectedFrame.SourcemapError = "failure querying ES: client error"
+	assert.Equal(t, model.Stacktrace{&expectedFrame, &expectedFrame}, span.Stacktrace)
+
+	// We should have a single log message, due to rate limiting.
+	entries := logp.ObserverLogs().TakeAll()
+	require.Len(t, entries, 1)
+	assert.Equal(t, "failed to fetch source map: failure querying ES: client error", entries[0].Message)
 }
 
 func cloneFrame(frame model.StacktraceFrame) *model.StacktraceFrame {

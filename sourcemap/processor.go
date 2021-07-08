@@ -19,7 +19,12 @@ package sourcemap
 
 import (
 	"context"
+	"sync"
+	"time"
 
+	"github.com/elastic/beats/v7/libbeat/logp"
+
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/utility"
 )
@@ -36,58 +41,38 @@ func (p BatchProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) er
 	for _, event := range *batch {
 		switch {
 		case event.Span != nil:
-			if err := p.processSpan(ctx, event.Span); err != nil {
-				return err
-			}
+			p.processSpan(ctx, event.Span)
 		case event.Error != nil:
-			if err := p.processError(ctx, event.Error); err != nil {
-				return err
-			}
+			p.processError(ctx, event.Error)
 		}
 	}
 	return nil
 }
 
-func (p BatchProcessor) processSpan(ctx context.Context, event *model.Span) error {
+func (p BatchProcessor) processSpan(ctx context.Context, event *model.Span) {
 	if event.Metadata.Service.Name == "" || event.Metadata.Service.Version == "" {
-		return nil
+		return
 	}
-	if err := p.processStacktraceFrames(ctx, &event.Metadata.Service, event.Stacktrace...); err != nil {
-		return err
-	}
-	return nil
+	p.processStacktraceFrames(ctx, &event.Metadata.Service, event.Stacktrace...)
 }
 
-func (p BatchProcessor) processError(ctx context.Context, event *model.Error) error {
+func (p BatchProcessor) processError(ctx context.Context, event *model.Error) {
 	if event.Metadata.Service.Name == "" || event.Metadata.Service.Version == "" {
-		return nil
+		return
 	}
 	if event.Log != nil {
-		if err := p.processStacktraceFrames(
-			ctx, &event.Metadata.Service,
-			event.Log.Stacktrace...,
-		); err != nil {
-			return err
-		}
+		p.processStacktraceFrames(ctx, &event.Metadata.Service, event.Log.Stacktrace...)
 	}
 	if event.Exception != nil {
-		if err := p.processException(ctx, &event.Metadata.Service, event.Exception); err != nil {
-			return err
-		}
+		p.processException(ctx, &event.Metadata.Service, event.Exception)
 	}
-	return nil
 }
 
-func (p BatchProcessor) processException(ctx context.Context, service *model.Service, exception *model.Exception) error {
-	if err := p.processStacktraceFrames(ctx, service, exception.Stacktrace...); err != nil {
-		return err
-	}
+func (p BatchProcessor) processException(ctx context.Context, service *model.Service, exception *model.Exception) {
+	p.processStacktraceFrames(ctx, service, exception.Stacktrace...)
 	for _, cause := range exception.Cause {
-		if err := p.processStacktraceFrames(ctx, service, cause.Stacktrace...); err != nil {
-			return err
-		}
+		p.processStacktraceFrames(ctx, service, cause.Stacktrace...)
 	}
-	return nil
 }
 
 // source map algorithm:
@@ -111,11 +96,7 @@ func (p BatchProcessor) processStacktraceFrames(ctx context.Context, service *mo
 	prevFunction := "<anonymous>"
 	for i := len(frames) - 1; i >= 0; i-- {
 		frame := frames[i]
-		mapped, function, err := p.processStacktraceFrame(ctx, service, frame, prevFunction)
-		if err != nil {
-			return err
-		}
-		if mapped {
+		if mapped, function := p.processStacktraceFrame(ctx, service, frame, prevFunction); mapped {
 			prevFunction = function
 		}
 	}
@@ -127,22 +108,24 @@ func (p BatchProcessor) processStacktraceFrame(
 	service *model.Service,
 	frame *model.StacktraceFrame,
 	prevFunction string,
-) (bool, string, error) {
+) (bool, string) {
 	if frame.Colno == nil || frame.Lineno == nil || frame.AbsPath == "" {
-		return false, "", nil
+		return false, ""
 	}
 
 	path := utility.CleanUrlPath(frame.AbsPath)
 	mapper, err := p.Store.Fetch(ctx, service.Name, service.Version, path)
 	if err != nil {
-		return false, "", err
+		frame.SourcemapError = err.Error()
+		getProcessorLogger().Debugf("failed to fetch source map: %s", frame.SourcemapError)
+		return false, ""
 	}
 	if mapper == nil {
-		return false, "", nil
+		return false, ""
 	}
 	file, function, lineno, colno, ctxLine, preCtx, postCtx, ok := Map(mapper, *frame.Lineno, *frame.Colno)
 	if !ok {
-		return false, "", nil
+		return false, ""
 	}
 
 	// Store original source information.
@@ -167,5 +150,22 @@ func (p BatchProcessor) processStacktraceFrame(
 	if function == "" {
 		function = "<unknown>"
 	}
-	return true, function, nil
+	return true, function
 }
+
+func getProcessorLogger() *logp.Logger {
+	processorLoggerOnce.Do(func() {
+		// We use a rate limited logger to avoid spamming the logs
+		// due to issues communicating with Elasticsearch, for example.
+		processorLogger = logp.NewLogger(
+			logs.Stacktrace,
+			logs.WithRateLimit(time.Minute),
+		)
+	})
+	return processorLogger
+}
+
+var (
+	processorLoggerOnce sync.Once
+	processorLogger     *logp.Logger
+)

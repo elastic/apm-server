@@ -113,6 +113,7 @@ func TestStacktraceTransform(t *testing.T) {
 				},
 				ExcludeFromGrouping: true,
 				SourcemapUpdated:    true,
+				SourcemapError:      "boom",
 				ContextLine:         contextLine,
 				PreContext:          preContext,
 				PostContext:         postContext,
@@ -142,6 +143,7 @@ func TestStacktraceTransform(t *testing.T) {
 				"exclude_from_grouping": true,
 				"sourcemap": common.MapStr{
 					"updated": true,
+					"error":   "boom",
 				},
 			}},
 			Msg: "mapped stacktrace",
