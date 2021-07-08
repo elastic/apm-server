@@ -1482,13 +1482,13 @@ func (val *spanRoot) validate() error {
 }
 
 func (val *span) IsSet() bool {
-	return val.Action.IsSet() || (len(val.ChildIDs) > 0) || val.Compressed.IsSet() || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.SampleRate.IsSet() || (len(val.Stacktrace) > 0) || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Type.IsSet()
+	return val.Action.IsSet() || (len(val.ChildIDs) > 0) || val.Composite.IsSet() || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.SampleRate.IsSet() || (len(val.Stacktrace) > 0) || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Type.IsSet()
 }
 
 func (val *span) Reset() {
 	val.Action.Reset()
 	val.ChildIDs = val.ChildIDs[:0]
-	val.Compressed.Reset()
+	val.Composite.Reset()
 	val.Context.Reset()
 	val.Duration.Reset()
 	val.ID.Reset()
@@ -1521,8 +1521,8 @@ func (val *span) validate() error {
 			return fmt.Errorf("'child_ids': validation rule 'maxLength(1024)' violated")
 		}
 	}
-	if err := val.Compressed.validate(); err != nil {
-		return errors.Wrapf(err, "compressed")
+	if err := val.Composite.validate(); err != nil {
+		return errors.Wrapf(err, "composite")
 	}
 	if err := val.Context.validate(); err != nil {
 		return errors.Wrapf(err, "context")
@@ -1592,16 +1592,16 @@ func (val *span) validate() error {
 	return nil
 }
 
-func (val *spanCompressed) IsSet() bool {
+func (val *spanComposite) IsSet() bool {
 	return val.Count.IsSet() || val.End.IsSet()
 }
 
-func (val *spanCompressed) Reset() {
+func (val *spanComposite) Reset() {
 	val.Count.Reset()
 	val.End.Reset()
 }
 
-func (val *spanCompressed) validate() error {
+func (val *spanComposite) validate() error {
 	if !val.IsSet() {
 		return nil
 	}

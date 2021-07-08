@@ -911,7 +911,7 @@
             },
             "span": {
                 "action": "query",
-                "compressed": {
+                "composite": {
                     "count": 10,
                     "end": {
                         "us": 1632976822290000

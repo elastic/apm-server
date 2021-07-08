@@ -70,7 +70,7 @@ type Span struct {
 	HTTP               *HTTP
 	Destination        *Destination
 	DestinationService *DestinationService
-	Compressed         *Compressed
+	Composite          *Composite
 
 	// RUM records whether or not this is a RUM span,
 	// and should have its stack frames sourcemapped.
@@ -119,8 +119,8 @@ type DestinationService struct {
 	Resource string
 }
 
-// Compressed holds metrics on a group of spans compressed into one.
-type Compressed struct {
+// Composite holds metrics on a group of spans compressed into one.
+type Composite struct {
 	Count int
 	End   time.Time
 }
@@ -196,7 +196,7 @@ func (d *DestinationService) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (c *Compressed) fields() common.MapStr {
+func (c *Composite) fields() common.MapStr {
 	if c == nil {
 		return nil
 	}
@@ -282,7 +282,7 @@ func (e *Span) fields(ctx context.Context, cfg *transform.Config) common.MapStr 
 	fields.maybeSetMapStr("db", e.DB.fields())
 	fields.maybeSetMapStr("http", e.HTTP.fields(false))
 	fields.maybeSetMapStr("message", e.Message.Fields())
-	fields.maybeSetMapStr("compressed", e.Compressed.fields())
+	fields.maybeSetMapStr("composite", e.Composite.fields())
 	if destinationServiceFields := e.DestinationService.fields(); len(destinationServiceFields) > 0 {
 		common.MapStr(fields).Put("destination.service", destinationServiceFields)
 	}

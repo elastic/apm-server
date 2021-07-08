@@ -508,8 +508,8 @@ func TestSpanRequiredValidationRules(t *testing.T) {
 	var event span
 	modeldecodertest.InitStructValues(&event)
 	event.Outcome.Set("failure")
-	// Compressed.Count must be > 1
-	event.Compressed.Count.Set(2)
+	// Composite.Count must be > 1
+	event.Composite.Count.Set(2)
 	// test vanilla struct is valid
 	require.NoError(t, event.validate())
 

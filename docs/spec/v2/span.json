@@ -22,15 +22,15 @@
       },
       "minItems": 0
     },
-    "compressed": {
-      "description": "Compressed holds metrics on a group of spans compressed into one.",
+    "composite": {
+      "description": "Composite holds metrics on a group of spans compressed into one.",
       "type": [
         "null",
         "object"
       ],
       "properties": {
         "count": {
-          "description": "Count is the number of spans that have been compressed into a single one. This number must be greater than 1.",
+          "description": "Count is the number of spans that have been grouped into a single composite one. This number must be greater than 1.",
           "type": [
             "null",
             "integer"
@@ -38,7 +38,7 @@
           "minimum": 2
         },
         "end": {
-          "description": "End is the end timestamp of the last span. This field - the span's timestamp is the overall duration of all the compressed spans, including any delays between the spans.",
+          "description": "End is the end timestamp of the last span. This field - the span's timestamp is the overall duration of all the grouped spans, including any delays between the spans.",
           "type": [
             "null",
             "integer"
@@ -500,7 +500,7 @@
       }
     },
     "duration": {
-      "description": "Duration of the span in milliseconds. When the span is a compressed one, Duration is the sum of all the compressed spans' durations.",
+      "description": "Duration of the span in milliseconds. When the span is a composite one, Duration is the sum of all the grouped spans' durations.",
       "type": "number",
       "minimum": 0
     },
