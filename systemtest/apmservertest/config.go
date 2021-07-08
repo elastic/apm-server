@@ -150,6 +150,12 @@ type TailSamplingPolicy struct {
 type RUMConfig struct {
 	Enabled bool `json:"enabled"`
 
+	// AllowOrigins holds a list of allowed origins for RUM.
+	AllowOrigins []string `json:"allow_origins,omitempty"`
+
+	// AllowHeaders holds a list of Access-Control-Allow-Headers for RUM.
+	AllowHeaders []string `json:"allow_headers,omitempty"`
+
 	// AllowServiceNames holds a list of exclusively allowed service names for
 	// RUM events.
 	AllowServiceNames []string `json:"allow_service_names,omitempty"`
