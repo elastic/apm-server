@@ -76,7 +76,7 @@ include::distributed-trace-receive.asciidoc[tag=go]
        aria-labelledby="ios-dt-r">
 ++++
 
-include::install-agents.asciidoc[tag=ios]
+include::distributed-trace-receive.asciidoc[tag=ios]
 
 ++++
   </div>
