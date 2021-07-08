@@ -39,14 +39,14 @@ func TestNew(t *testing.T) {
 		os.Setenv("JAVA_HOME", jh)
 	}()
 
-	attacher, err := New(cfg, "info")
+	attacher, err := New(cfg)
 	require.NoError(t, err)
 
 	javapath := filepath.FromSlash("/usr/local/bin/java")
 	assert.Equal(t, javapath, attacher.cfg.JavaBin)
 
 	cfg.JavaBin = "/home/user/bin/java"
-	attacher, err = New(cfg, "info")
+	attacher, err = New(cfg)
 	require.NoError(t, err)
 
 	javapath = filepath.FromSlash("/home/user/bin/java")
@@ -70,13 +70,13 @@ func TestBuild(t *testing.T) {
 		JavaBin: "/usr/bin/java",
 	}
 
-	attacher, err := New(cfg, "info")
+	attacher, err := New(cfg)
 	require.NoError(t, err)
 
 	cmd := attacher.build(context.Background())
 
 	want := filepath.FromSlash("/usr/bin/java -jar /bin/apm-agent-attach-cli-1.24.0-slim.jar") +
-		" --continuous --log-level info --exclude-user root --include-main MyApplication " +
+		" --continuous --log-level debug --exclude-user root --include-main MyApplication " +
 		"--include-main my-application.jar --include-vmarg elastic.apm.agent.attach=true " +
 		"--config server_url=http://localhost:8200 --config service_name=my-cool-service"
 
