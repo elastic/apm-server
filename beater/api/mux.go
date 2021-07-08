@@ -184,7 +184,10 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *strea
 		batchProcessor := r.batchProcessor
 		if r.sourcemapStore != nil {
 			batchProcessor = modelprocessor.Chained{
-				sourcemap.BatchProcessor{Store: r.sourcemapStore},
+				sourcemap.BatchProcessor{
+					Store:   r.sourcemapStore,
+					Timeout: r.cfg.RumConfig.SourceMapping.Timeout,
+				},
 				batchProcessor,
 			}
 		}

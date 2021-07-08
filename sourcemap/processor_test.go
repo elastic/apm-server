@@ -19,6 +19,7 @@ package sourcemap_test
 
 import (
 	"context"
+	"net/http"
 	"testing"
 	"time"
 
@@ -27,6 +28,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/sourcemap/test"
@@ -256,10 +258,60 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	assert.Equal(t, "failed to fetch source map: failure querying ES: client error", entries[0].Message)
 }
 
+func TestBatchProcessorTimeout(t *testing.T) {
+	var transport roundTripperFunc = func(req *http.Request) (*http.Response, error) {
+		<-req.Context().Done()
+		// TODO(axw) remove this "notTimeout" error wrapper when
+		// https://github.com/elastic/go-elasticsearch/issues/300
+		// is fixed.
+		//
+		// Because context.DeadlineExceeded implements net.Error,
+		// go-elasticsearch continues retrying and does not exit
+		// early.
+		type notTimeout struct{ error }
+		return nil, notTimeout{req.Context().Err()}
+	}
+	client, err := elasticsearch.NewVersionedClient("", "", "", []string{""}, nil, transport, 3, elasticsearch.DefaultBackoff)
+	require.NoError(t, err)
+	store, err := sourcemap.NewElasticsearchStore(client, "index", time.Minute)
+	require.NoError(t, err)
+
+	metadata := model.Metadata{
+		Service: model.Service{
+			Name:    "service_name",
+			Version: "service_version",
+		},
+	}
+
+	frame := model.StacktraceFrame{
+		AbsPath:  "bundle.js",
+		Lineno:   newInt(0),
+		Colno:    newInt(0),
+		Function: "original function",
+	}
+	span := &model.Span{
+		Metadata:   metadata,
+		Stacktrace: model.Stacktrace{cloneFrame(frame)},
+	}
+
+	before := time.Now()
+	processor := sourcemap.BatchProcessor{Store: store, Timeout: 100 * time.Millisecond}
+	err = processor.ProcessBatch(context.Background(), &model.Batch{{Span: span}})
+	assert.NoError(t, err)
+	taken := time.Since(before)
+	assert.Less(t, taken, time.Second)
+}
+
 func cloneFrame(frame model.StacktraceFrame) *model.StacktraceFrame {
 	return &frame
 }
 
 func newInt(v int) *int {
 	return &v
+}
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
 }

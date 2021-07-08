@@ -29,15 +29,29 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-// BatchProcessor is a model.BatchProcessor that performs source
-// mapping for span and error events.
+// BatchProcessor is a model.BatchProcessor that performs source mapping for
+// span and error events. Any errors fetching source maps, including the
+// timeout expiring, will result in the StacktraceFrame.SourcemapError field
+// being set; the error will not be returned.
 type BatchProcessor struct {
+	// Store is the store to use for fetching source maps.
 	Store *Store
+
+	// Timeout holds a timeout for each ProcessBatch call, to limit how
+	// much time is spent fetching source maps.
+	//
+	// If Timeout is <= 0, it will be ignored.
+	Timeout time.Duration
 }
 
 // ProcessBatch processes spans and errors, applying source maps
 // to their stack traces.
 func (p BatchProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
+	if p.Timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, p.Timeout)
+		defer cancel()
+	}
 	for _, event := range *batch {
 		switch {
 		case event.Span != nil:
