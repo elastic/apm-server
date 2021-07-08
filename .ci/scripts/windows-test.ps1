@@ -50,20 +50,8 @@ New-Item -ItemType directory -Path build\coverage | Out-Null
 New-Item -ItemType directory -Path build\system-tests | Out-Null
 New-Item -ItemType directory -Path build\system-tests\run | Out-Null
 
-echo "Building fields.yml"
-exec { mage fields }
-
 echo "Building $env:beat"
 exec { mage build } "Build FAILURE"
 
 echo "Unit testing $env:beat"
 exec { mage goTestUnit }
-
-echo "System testing $env:beat"
-# Get a CSV list of package names.
-$packages = $(go list ./... | select-string -Pattern "/vendor/" -NotMatch | select-string -Pattern "/scripts/cmd/" -NotMatch)
-$packages = ($packages|group|Select -ExpandProperty Name) -join ","
-exec { go test -race -c -cover -covermode=atomic -coverpkg $packages } "go test FAILURE"
-
-echo "Running python tests"
-exec { mage pythonUnitTest } "System test FAILURE"
