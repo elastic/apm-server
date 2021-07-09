@@ -781,7 +781,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 		if from.Composite.Count.IsSet() {
 			composite.Count = from.Composite.Count.Val
 		}
-		if from.Composite.End.IsSet() && !from.Composite.End.Val.IsZero() {
+		if from.Composite.End.IsSet() {
 			composite.End = from.Composite.End.Val
 		}
 		if from.Composite.ExactMatch.IsSet() {
