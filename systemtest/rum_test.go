@@ -178,3 +178,26 @@ func TestRUMRateLimit(t *testing.T) {
 	// level, or at the event stream level. Either could occur.
 	assert.Regexp(t, `429 Too Many Requests .*`, err.Error())
 }
+
+func TestRUMCORS(t *testing.T) {
+	// Check that CORS configuration is effective. More specific behaviour is unit tested.
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{
+		Enabled:      true,
+		AllowOrigins: []string{"blue"},
+		AllowHeaders: []string{"stick", "door"},
+	}
+	err := srv.Start()
+	require.NoError(t, err)
+
+	req, _ := http.NewRequest("OPTIONS", srv.URL+"/intake/v2/rum/events", nil)
+	req.Header.Set("Origin", "blue")
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "blue", resp.Header.Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "POST, OPTIONS", resp.Header.Get("Access-Control-Allow-Methods"))
+	assert.Equal(t, "stick, door, Content-Type, Content-Encoding, Accept", resp.Header.Get("Access-Control-Allow-Headers"))
+}
