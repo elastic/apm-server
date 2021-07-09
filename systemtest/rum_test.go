@@ -22,13 +22,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -69,33 +66,9 @@ func TestRUMXForwardedFor(t *testing.T) {
 	)
 }
 
-func TestRUMAuth(t *testing.T) {
-	// The RUM endpoint does not require auth. Start the server
-	// with a randomly generated secret token to show that RUM
-	// events can be sent without passing the secret token.
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	secretToken := strconv.Itoa(rng.Int())
-
-	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.SecretToken = secretToken
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err := srv.Start()
-	require.NoError(t, err)
-
-	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/transactions.ndjson")
-
-	req, _ := http.NewRequest("GET", srv.URL+"/config/v1/rum/agents", nil)
-	req.Header.Add("Content-Type", "application/json")
-	req.URL.RawQuery = url.Values{"service.name": []string{"service_name"}}.Encode()
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-}
-
 func TestRUMAllowServiceNames(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.SecretToken = "abc123"
+	srv.Config.AgentAuth.SecretToken = "abc123"
 	srv.Config.RUM = &apmservertest.RUMConfig{
 		Enabled:           true,
 		AllowServiceNames: []string{"allowed"},
@@ -123,7 +96,7 @@ func TestRUMAllowServiceNames(t *testing.T) {
 
 func TestRUMRateLimit(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.SecretToken = "abc123" // enable auth & rate limiting
+	srv.Config.AgentAuth.SecretToken = "abc123" // enable auth & rate limiting
 	srv.Config.RUM = &apmservertest.RUMConfig{
 		Enabled: true,
 		RateLimit: &apmservertest.RUMRateLimitConfig{
@@ -177,4 +150,27 @@ func TestRUMRateLimit(t *testing.T) {
 	// The exact error differs, depending on whether rate limiting was applied at the request
 	// level, or at the event stream level. Either could occur.
 	assert.Regexp(t, `429 Too Many Requests .*`, err.Error())
+}
+
+func TestRUMCORS(t *testing.T) {
+	// Check that CORS configuration is effective. More specific behaviour is unit tested.
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{
+		Enabled:      true,
+		AllowOrigins: []string{"blue"},
+		AllowHeaders: []string{"stick", "door"},
+	}
+	err := srv.Start()
+	require.NoError(t, err)
+
+	req, _ := http.NewRequest("OPTIONS", srv.URL+"/intake/v2/rum/events", nil)
+	req.Header.Set("Origin", "blue")
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "blue", resp.Header.Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "POST, OPTIONS", resp.Header.Get("Access-Control-Allow-Methods"))
+	assert.Equal(t, "stick, door, Content-Type, Content-Encoding, Accept", resp.Header.Get("Access-Control-Allow-Headers"))
 }
