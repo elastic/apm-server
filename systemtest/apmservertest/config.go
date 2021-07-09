@@ -42,15 +42,16 @@ const (
 
 // Config holds APM Server configuration.
 type Config struct {
-	SecretToken               string             `json:"apm-server.secret_token,omitempty"`
 	Jaeger                    *JaegerConfig      `json:"apm-server.jaeger,omitempty"`
 	Kibana                    *KibanaConfig      `json:"apm-server.kibana,omitempty"`
 	Aggregation               *AggregationConfig `json:"apm-server.aggregation,omitempty"`
 	Sampling                  *SamplingConfig    `json:"apm-server.sampling,omitempty"`
 	RUM                       *RUMConfig         `json:"apm-server.rum,omitempty"`
 	DataStreams               *DataStreamsConfig `json:"apm-server.data_streams,omitempty"`
-	APIKey                    *APIKeyConfig      `json:"apm-server.api_key,omitempty"`
 	DefaultServiceEnvironment string             `json:"apm-server.default_service_environment,omitempty"`
+
+	// AgentAuth holds configuration for APM agent authorization.
+	AgentAuth AgentAuthConfig `json:"apm-server.auth"`
 
 	// ResponseHeaders holds headers to add to all APM Server HTTP responses.
 	ResponseHeaders http.Header `json:"apm-server.response_headers,omitempty"`
@@ -185,8 +186,14 @@ type DataStreamsConfig struct {
 	Enabled bool `json:"enabled"`
 }
 
-// APIKeyConfig holds APM Server API Key auth configuration.
-type APIKeyConfig struct {
+// APIKeyConfig holds agent auth configuration.
+type AgentAuthConfig struct {
+	SecretToken string            `json:"secret_token,omitempty"`
+	APIKey      *APIKeyAuthConfig `json:"api_key,omitempty"`
+}
+
+// APIKeyAuthConfig holds API Key agent auth configuration.
+type APIKeyAuthConfig struct {
 	Enabled bool `json:"enabled"`
 }
 
