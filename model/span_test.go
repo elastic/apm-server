@@ -121,7 +121,7 @@ func TestSpanTransform(t *testing.T) {
 					Resource: destServiceResource,
 				},
 				Message:   &Message{QueueName: "users"},
-				Composite: &Composite{Count: 10, End: timestamp},
+				Composite: &Composite{Count: 10, End: timestamp, ExactMatch: false},
 			},
 			Output: common.MapStr{
 				"data_stream.type":    "traces",
