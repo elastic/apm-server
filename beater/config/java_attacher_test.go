@@ -25,7 +25,6 @@ import (
 
 func TestJavaAttacherConfig(t *testing.T) {
 	discoveryRules := []map[string]string{
-		map[string]string{"include-pid": "1001"},
 		map[string]string{"include-main": "main.jar"},
 		map[string]string{"include-vmarg": "elastic.apm.agent.attach=true"},
 		map[string]string{"exclude-user": "root"},
@@ -37,6 +36,6 @@ func TestJavaAttacherConfig(t *testing.T) {
 
 	assert.NoError(t, config.setup())
 
-	config.DiscoveryRules = append(discoveryRules, map[string]string{"bogus-flag": "dne"})
+	config.DiscoveryRules = append(discoveryRules, map[string]string{"include-pid": "1001"})
 	assert.Error(t, config.setup())
 }
