@@ -778,11 +778,12 @@ type spanComposite struct {
 	// End is the end timestamp of the last compressed span.
 	// The net duration of all compressed spans is equal to the composite spans'
 	// duration. The gross duration, including the time between the spans, is
-	// equal to (compressed.end - timestamp).
+	// equal to (composite.end - timestamp).
 	End nullable.TimeMicrosUnix `json:"end" validate:"required"`
 	// ExactMatch indicates whether the grouped spans are identical queries to
 	// the same backend or if the queries are very similar. In both cases, the
-	// queries are fast, numerous and occur within a short period of time.
+	// queries are fast, numerous and occur within a relatively short period
+	// of time.
 	ExactMatch nullable.Bool `json:"exact_match" validate:"required"`
 }
 
