@@ -34,6 +34,7 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -57,6 +58,7 @@ func newHTTPServer(
 	batchProcessor model.BatchProcessor,
 	agentcfgFetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
+	sourcemapStore *sourcemap.Store,
 ) (*httpServer, error) {
 
 	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
@@ -66,7 +68,7 @@ func newHTTPServer(
 		batchProcessor,
 	}
 
-	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, agentcfgFetcher, ratelimitStore)
+	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, agentcfgFetcher, ratelimitStore, sourcemapStore)
 	if err != nil {
 		return nil, err
 	}

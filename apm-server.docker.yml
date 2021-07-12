@@ -263,6 +263,9 @@ apm-server:
       # Sourcemapping is enabled by default.
       #enabled: true
 
+      # Timeout for fetching source maps.
+      #timeout: 5s
+
       # Source maps may be fetched from Elasticsearch by using the
       # output.elasticsearch configuration.
       # A different instance must be configured when using any other output.
