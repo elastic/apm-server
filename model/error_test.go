@@ -30,9 +30,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/sourcemap"
-	"github.com/elastic/apm-server/sourcemap/test"
-	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -234,10 +231,6 @@ func TestEventFields(t *testing.T) {
 					"stacktrace": []common.MapStr{{
 						"filename":              "st file",
 						"exclude_from_grouping": false,
-						"sourcemap": common.MapStr{
-							"error":   "Colno mandatory for sourcemapping.",
-							"updated": false,
-						},
 					}},
 					"code":       "13",
 					"message":    "exception message",
@@ -259,9 +252,7 @@ func TestEventFields(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			output := tc.Error.appendBeatEvents(context.Background(), &transform.Config{
-				RUM: transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
-			}, nil)
+			output := tc.Error.appendBeatEvents(context.Background(), &transform.Config{}, nil)
 			require.Len(t, output, 1)
 			fields := output[0].Fields["error"]
 			assert.Equal(t, tc.Output, fields)
@@ -390,10 +381,6 @@ func TestEvents(t *testing.T) {
 						"stacktrace": []common.MapStr{{
 							"exclude_from_grouping": false,
 							"filename":              "myFile",
-							"sourcemap": common.MapStr{
-								"error":   "Colno mandatory for sourcemapping.",
-								"updated": false,
-							},
 						}},
 					}},
 					"page": common.MapStr{"url": url, "referer": referer},
@@ -413,7 +400,6 @@ func TestEvents(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			outputEvents := tc.Error.appendBeatEvents(context.Background(), &transform.Config{
 				DataStreams: true,
-				RUM:         transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
 			}, nil)
 			require.Len(t, outputEvents, 1)
 			outputEvent := outputEvents[0]
@@ -433,110 +419,104 @@ func TestCulprit(t *testing.T) {
 	}
 	stUpdate := Stacktrace{
 		&StacktraceFrame{Filename: "a", Function: fct},
-		&StacktraceFrame{Filename: "a", LibraryFrame: &truthy, SourcemapUpdated: &truthy},
-		&StacktraceFrame{Filename: "f", Function: fct, SourcemapUpdated: &truthy},
-		&StacktraceFrame{Filename: "bar", Function: fct, SourcemapUpdated: &truthy},
+		&StacktraceFrame{Filename: "a", LibraryFrame: &truthy, SourcemapUpdated: true},
+		&StacktraceFrame{Filename: "f", Function: fct, SourcemapUpdated: true},
+		&StacktraceFrame{Filename: "bar", Function: fct, SourcemapUpdated: true},
 	}
-	store := &sourcemap.Store{}
 	tests := []struct {
 		event   Error
-		config  transform.Config
 		culprit string
 		msg     string
 	}{
 		{
-			event:   Error{Culprit: c},
-			config:  transform.Config{},
+			event:   Error{Culprit: c, RUM: false},
 			culprit: "foo",
-			msg:     "No Sourcemap in config",
+			msg:     "Not a RUM event",
 		},
 		{
-			event:   Error{Culprit: c},
-			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
+			event:   Error{Culprit: c, RUM: true},
 			culprit: "foo",
 			msg:     "No Stacktrace Frame given.",
 		},
 		{
-			event:   Error{Culprit: c, Log: &Log{Stacktrace: st}},
-			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
+			event:   Error{Culprit: c, RUM: true, Log: &Log{Stacktrace: st}},
 			culprit: "foo",
 			msg:     "Log.StacktraceFrame has no updated frame",
 		},
 		{
 			event: Error{
 				Culprit: c,
+				RUM:     true,
 				Log: &Log{
 					Stacktrace: Stacktrace{
 						&StacktraceFrame{
 							Filename:         "f",
 							Classname:        "xyz",
-							SourcemapUpdated: &truthy,
+							SourcemapUpdated: true,
 						},
 					},
 				},
 			},
-			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
 			culprit: "f",
 			msg:     "Adapt culprit to first valid Log.StacktraceFrame filename information.",
 		},
 		{
 			event: Error{
 				Culprit: c,
+				RUM:     true,
 				Log: &Log{
 					Stacktrace: Stacktrace{
 						&StacktraceFrame{
 							Classname:        "xyz",
-							SourcemapUpdated: &truthy,
+							SourcemapUpdated: true,
 						},
 					},
 				},
 			},
-			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
 			culprit: "xyz",
 			msg:     "Adapt culprit Log.StacktraceFrame classname information.",
 		},
 		{
 			event: Error{
 				Culprit:   c,
+				RUM:       true,
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
 			culprit: "f in fct",
 			msg:     "Adapt culprit to first valid Exception.StacktraceFrame information.",
 		},
 		{
 			event: Error{
 				Culprit:   c,
+				RUM:       true,
 				Log:       &Log{Stacktrace: st},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
 			culprit: "f in fct",
 			msg:     "Log and Exception StacktraceFrame given, only one changes culprit.",
 		},
 		{
 			event: Error{
 				Culprit: c,
+				RUM:     true,
 				Log: &Log{
 					Stacktrace: Stacktrace{
 						&StacktraceFrame{
 							Filename:         "a",
 							Function:         fct,
-							SourcemapUpdated: &truthy,
+							SourcemapUpdated: true,
 						},
 					},
 				},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
 			culprit: "a in fct",
 			msg:     "Log Stacktrace is prioritized over Exception StacktraceFrame",
 		},
 	}
 	for idx, test := range tests {
 		t.Run(fmt.Sprint(idx), func(t *testing.T) {
-
-			test.event.updateCulprit(&test.config)
+			test.event.updateCulprit()
 			assert.Equal(t, test.culprit, test.event.Culprit,
 				fmt.Sprintf("(%v) %s: expected <%v>, received <%v>", idx, test.msg, test.culprit, test.event.Culprit))
 		})
@@ -776,42 +756,4 @@ func md5With(args ...string) []byte {
 		md5.Write([]byte(arg))
 	}
 	return md5.Sum(nil)
-}
-
-func TestSourcemapping(t *testing.T) {
-	event := Error{
-		Metadata: Metadata{
-			Service: Service{
-				Name:    "foo",
-				Version: "bar",
-			},
-		},
-		Exception: &Exception{
-			Message: "exception message",
-			Stacktrace: Stacktrace{
-				&StacktraceFrame{
-					Filename: "/a/b/c",
-					Lineno:   tests.IntPtr(1),
-					Colno:    tests.IntPtr(23),
-					AbsPath:  "../a/b",
-				},
-			},
-		},
-		RUM: true,
-	}
-
-	// transform without sourcemap store
-	transformedNoSourcemap := event.fields(context.Background(), &transform.Config{})
-	assert.Equal(t, 1, *event.Exception.Stacktrace[0].Lineno)
-
-	// transform with sourcemap store
-	store, err := sourcemap.NewElasticsearchStore(test.ESClientWithValidSourcemap(t), "apm-*sourcemap*", time.Minute)
-	require.NoError(t, err)
-	transformedWithSourcemap := event.fields(context.Background(), &transform.Config{
-		RUM: transform.RUMConfig{SourcemapStore: store},
-	})
-	assert.Equal(t, 5, *event.Exception.Stacktrace[0].Lineno)
-
-	assert.NotEqual(t, transformedNoSourcemap["exception"], transformedWithSourcemap["exception"])
-	assert.NotEqual(t, transformedNoSourcemap["grouping_key"], transformedWithSourcemap["grouping_key"])
 }

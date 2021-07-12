@@ -24,7 +24,7 @@ The APM Server, APM app, and each APM agent has a troubleshooting guide:
 === Elastic Support
 
 We offer a support experience unlike any other.
-Our team of professionals 'speak human and code', and love open source and making your day.
+Our team of professionals 'speak human and code' and love making your day.
 https://www.elastic.co/subscriptions[Learn more about subscriptions].
 
 [float]

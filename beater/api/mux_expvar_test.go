@@ -15,27 +15,36 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package config
+package api
 
 import (
+	"encoding/json"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/beater/config"
 )
 
-func TestJavaAttacherConfig(t *testing.T) {
-	discoveryRules := []map[string]string{
-		map[string]string{"include-main": "main.jar"},
-		map[string]string{"include-vmarg": "elastic.apm.agent.attach=true"},
-		map[string]string{"exclude-user": "root"},
-	}
-	config := JavaAttacherConfig{
-		Enabled:        true,
-		DiscoveryRules: discoveryRules,
-	}
+func TestExpvarDefaultDisabled(t *testing.T) {
+	cfg := config.DefaultConfig()
+	recorder, err := requestToMuxerWithPattern(cfg, "/debug/vars")
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, recorder.Code)
+	assert.Equal(t, `{"error":"404 page not found"}`+"\n", recorder.Body.String())
+}
 
-	assert.NoError(t, config.setup())
+func TestExpvarEnabled(t *testing.T) {
+	cfg := config.DefaultConfig()
+	cfg.Expvar.Enabled = true
+	recorder, err := requestToMuxerWithPattern(cfg, "/debug/vars")
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, recorder.Code)
 
-	config.DiscoveryRules = append(discoveryRules, map[string]string{"include-pid": "1001"})
-	assert.Error(t, config.setup())
+	decoded := make(map[string]interface{})
+	err = json.NewDecoder(recorder.Body).Decode(&decoded)
+	assert.NoError(t, err)
+	assert.Contains(t, decoded, "memstats")
 }

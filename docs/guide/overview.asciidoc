@@ -1,5 +1,5 @@
 [[overview]]
-== Open source application performance monitoring
+== Free and open application performance monitoring
 
 ++++
 <titleabbrev>What is APM?</titleabbrev>

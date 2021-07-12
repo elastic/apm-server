@@ -111,7 +111,7 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 func TestOTLPGRPCAuth(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.SecretToken = "abc123"
+	srv.Config.AgentAuth.SecretToken = "abc123"
 	err := srv.Start()
 	require.NoError(t, err)
 
@@ -205,6 +205,10 @@ func sendOTLPTrace(ctx context.Context, tracerProvider *sdktrace.TracerProvider)
 	endTime := startTime.Add(time.Second)
 	_, span := tracer.Start(ctx, "operation_name", trace.WithTimestamp(startTime))
 	span.End(trace.WithTimestamp(endTime))
+	return flushTracerProvider(ctx, tracerProvider)
+}
+
+func flushTracerProvider(ctx context.Context, tracerProvider *sdktrace.TracerProvider) error {
 	if err := tracerProvider.ForceFlush(ctx); err != nil {
 		return err
 	}
