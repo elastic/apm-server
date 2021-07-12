@@ -58,7 +58,6 @@ type Processor struct {
 	MaxEventSize     int
 	streamReaderPool sync.Pool
 	decodeMetadata   decodeMetadataFunc
-	isRUM            bool
 }
 
 func BackendProcessor(cfg *config.Config) *Processor {
@@ -66,7 +65,6 @@ func BackendProcessor(cfg *config.Config) *Processor {
 		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: v2.DecodeNestedMetadata,
-		isRUM:          false,
 	}
 }
 
@@ -75,7 +73,6 @@ func RUMV2Processor(cfg *config.Config) *Processor {
 		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: v2.DecodeNestedMetadata,
-		isRUM:          true,
 	}
 }
 
@@ -84,7 +81,6 @@ func RUMV3Processor(cfg *config.Config) *Processor {
 		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: rumv3.DecodeNestedMetadata,
-		isRUM:          true,
 	}
 }
 
@@ -176,7 +172,6 @@ func (p *Processor) readBatch(
 			if handleDecodeErr(err, reader, result) {
 				continue
 			}
-			event.RUM = p.isRUM
 			*batch = append(*batch, model.APMEvent{Error: &event})
 			n++
 		case metricsetEventType:
@@ -193,7 +188,6 @@ func (p *Processor) readBatch(
 			if handleDecodeErr(err, reader, result) {
 				continue
 			}
-			event.RUM = p.isRUM
 			*batch = append(*batch, model.APMEvent{Span: &event})
 			n++
 		case transactionEventType:
@@ -210,7 +204,6 @@ func (p *Processor) readBatch(
 			if handleDecodeErr(err, reader, result) {
 				continue
 			}
-			event.RUM = p.isRUM
 			*batch = append(*batch, model.APMEvent{Error: &event})
 			n++
 		case rumv3MetricsetEventType:
@@ -232,7 +225,6 @@ func (p *Processor) readBatch(
 				*batch = append(*batch, model.APMEvent{Metricset: ms})
 			}
 			for _, span := range event.Spans {
-				span.RUM = true
 				*batch = append(*batch, model.APMEvent{Span: span})
 			}
 			n += 1 + len(event.Metricsets) + len(event.Spans)

@@ -22,7 +22,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -628,10 +627,6 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 func newTransformConfig(beatInfo beat.Info, cfg *config.Config) *transform.Config {
 	return &transform.Config{
 		DataStreams: cfg.DataStreams.Enabled,
-		RUM: transform.RUMConfig{
-			LibraryPattern:      regexp.MustCompile(cfg.RumConfig.LibraryPattern),
-			ExcludeFromGrouping: regexp.MustCompile(cfg.RumConfig.ExcludeFromGrouping),
-		},
 	}
 }
 

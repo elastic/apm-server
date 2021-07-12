@@ -21,6 +21,9 @@ import (
 	"context"
 	"net/http"
 	"net/http/pprof"
+	"regexp"
+
+	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -181,18 +184,37 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *strea
 		requestMetadataFunc = rumRequestMetadata
 	}
 	return func() (request.Handler, error) {
-		batchProcessor := r.batchProcessor
-		if r.sourcemapStore != nil {
-			batchProcessor = modelprocessor.Chained{
-				sourcemap.BatchProcessor{
-					Store:   r.sourcemapStore,
-					Timeout: r.cfg.RumConfig.SourceMapping.Timeout,
-				},
-				batchProcessor,
-			}
+		var batchProcessors modelprocessor.Chained
+		if len(r.cfg.RumConfig.AllowServiceNames) > 0 {
+			batchProcessors = append(batchProcessors, allowedServiceNamesBatchProcessor(r.cfg.RumConfig.AllowServiceNames))
 		}
-		batchProcessor = batchProcessorWithAllowedServiceNames(batchProcessor, r.cfg.RumConfig.AllowServiceNames)
-		h := intake.Handler(newProcessor(r.cfg), requestMetadataFunc, batchProcessor)
+		// The order of these processors is important. Source mapping must happen before identifying library frames, or
+		// frames to exclude from error grouping; identifying library frames must happen before updating the error culprit.
+		if r.sourcemapStore != nil {
+			batchProcessors = append(batchProcessors, sourcemap.BatchProcessor{
+				Store:   r.sourcemapStore,
+				Timeout: r.cfg.RumConfig.SourceMapping.Timeout,
+			})
+		}
+		if r.cfg.RumConfig.LibraryPattern != "" {
+			re, err := regexp.Compile(r.cfg.RumConfig.LibraryPattern)
+			if err != nil {
+				return nil, errors.Wrap(err, "invalid library pattern regex")
+			}
+			batchProcessors = append(batchProcessors, modelprocessor.SetLibraryFrame{Pattern: re})
+		}
+		if r.cfg.RumConfig.ExcludeFromGrouping != "" {
+			re, err := regexp.Compile(r.cfg.RumConfig.ExcludeFromGrouping)
+			if err != nil {
+				return nil, errors.Wrap(err, "invalid exclude from grouping regex")
+			}
+			batchProcessors = append(batchProcessors, modelprocessor.SetExcludeFromGrouping{Pattern: re})
+		}
+		if r.sourcemapStore != nil {
+			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
+		}
+		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
+		h := intake.Handler(newProcessor(r.cfg), requestMetadataFunc, batchProcessors)
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 	}
 }
@@ -295,16 +317,12 @@ func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []mid
 }
 
 // TODO(axw) move this into the auth package when introducing anonymous auth.
-func batchProcessorWithAllowedServiceNames(p model.BatchProcessor, allowedServiceNames []string) model.BatchProcessor {
-	if len(allowedServiceNames) == 0 {
-		// All service names are allowed.
-		return p
-	}
+func allowedServiceNamesBatchProcessor(allowedServiceNames []string) model.BatchProcessor {
 	m := make(map[string]bool)
 	for _, name := range allowedServiceNames {
 		m[name] = true
 	}
-	var restrictServiceName modelprocessor.MetadataProcessorFunc = func(ctx context.Context, meta *model.Metadata) error {
+	return modelprocessor.MetadataProcessorFunc(func(ctx context.Context, meta *model.Metadata) error {
 		// Restrict to explicitly allowed service names.
 		// The list of allowed service names is not considered secret,
 		// so we do not use constant time comparison.
@@ -312,8 +330,7 @@ func batchProcessorWithAllowedServiceNames(p model.BatchProcessor, allowedServic
 			return &stream.InvalidInputError{Message: "service name is not allowed"}
 		}
 		return nil
-	}
-	return modelprocessor.Chained{restrictServiceName, p}
+	})
 }
 
 func emptyRequestMetadata(c *request.Context) model.Metadata {

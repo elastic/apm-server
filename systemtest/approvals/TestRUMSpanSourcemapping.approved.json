@@ -65,7 +65,6 @@
                         "exclude_from_grouping": false,
                         "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                         "function": "\u003cunknown\u003e",
-                        "library_frame": false,
                         "line": {
                             "column": 0,
                             "context": " \tfunction __webpack_require__(moduleId) {",
@@ -102,7 +101,6 @@
                         "exclude_from_grouping": false,
                         "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                         "function": "\u003canonymous\u003e",
-                        "library_frame": false,
                         "line": {
                             "column": 0,
                             "context": " \tfunction __webpack_require__(moduleId) {",

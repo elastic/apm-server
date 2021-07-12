@@ -97,8 +97,6 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			for _, s := range []string{
 				// experimental is tested in test 'experimental'
 				"Experimental",
-				// RUM is set in stream processor
-				"RUM",
 				// RepresentativeCount is tested further down in test 'sample-rate'
 				"RepresentativeCount"} {
 				if key == s {

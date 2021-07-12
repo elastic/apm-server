@@ -19,7 +19,6 @@ package transform
 
 import (
 	"context"
-	"regexp"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 )
@@ -35,12 +34,4 @@ type Config struct {
 	// DataStreams records whether or not data streams are enabled.
 	// If true, then data_stream fields should be added to all events.
 	DataStreams bool
-
-	RUM RUMConfig
-}
-
-// RUMConfig holds RUM-related transformation configuration.
-type RUMConfig struct {
-	LibraryPattern      *regexp.Regexp
-	ExcludeFromGrouping *regexp.Regexp
 }

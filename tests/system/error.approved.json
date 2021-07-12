@@ -219,7 +219,6 @@
                         "exclude_from_grouping": false,
                         "filename": "/webpack/file/name.py",
                         "function": "foo",
-                        "library_frame": false,
                         "line": {
                             "column": 4,
                             "context": "line3",
