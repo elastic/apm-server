@@ -364,10 +364,7 @@ func (s *serverRunner) Start() {
 func (s *serverRunner) run() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
-	transformConfig, err := newTransformConfig(s.beat.Info, s.config, s.fleetConfig)
-	if err != nil {
-		return err
-	}
+	transformConfig := newTransformConfig(s.beat.Info, s.config)
 	publisherConfig := &publish.PublisherConfig{
 		Info:            s.beat.Info,
 		Pipeline:        s.config.Pipeline,
@@ -385,6 +382,15 @@ func (s *serverRunner) run() error {
 				s.logger.Infof("failed to upload config to kibana: %v", err)
 			}
 		}()
+	}
+
+	var sourcemapStore *sourcemap.Store
+	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
+		store, err := newSourcemapStore(s.beat.Info, s.config.RumConfig.SourceMapping, s.fleetConfig)
+		if err != nil {
+			return err
+		}
+		sourcemapStore = store
 	}
 
 	// When the publisher stops cleanly it will close its pipeline client,
@@ -432,6 +438,7 @@ func (s *serverRunner) run() error {
 		Logger:         s.logger,
 		Tracer:         s.tracer,
 		BatchProcessor: batchProcessor,
+		SourcemapStore: sourcemapStore,
 	}); err != nil {
 		return err
 	}
@@ -618,24 +625,14 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	}
 }
 
-func newTransformConfig(beatInfo beat.Info, cfg *config.Config, fleetCfg *config.Fleet) (*transform.Config, error) {
-	transformConfig := &transform.Config{
+func newTransformConfig(beatInfo beat.Info, cfg *config.Config) *transform.Config {
+	return &transform.Config{
 		DataStreams: cfg.DataStreams.Enabled,
 		RUM: transform.RUMConfig{
 			LibraryPattern:      regexp.MustCompile(cfg.RumConfig.LibraryPattern),
 			ExcludeFromGrouping: regexp.MustCompile(cfg.RumConfig.ExcludeFromGrouping),
 		},
 	}
-
-	if cfg.RumConfig.Enabled && cfg.RumConfig.SourceMapping.Enabled {
-		store, err := newSourcemapStore(beatInfo, cfg.RumConfig.SourceMapping, fleetCfg)
-		if err != nil {
-			return nil, err
-		}
-		transformConfig.RUM.SourcemapStore = store
-	}
-
-	return transformConfig, nil
 }
 
 func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping, fleetCfg *config.Fleet) (*sourcemap.Store, error) {

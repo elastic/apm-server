@@ -34,6 +34,7 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
@@ -78,7 +79,11 @@ func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseReco
 	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
 	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
-	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg), ratelimitStore)
+	var sourcemapStore *sourcemap.Store
+	mux, err := NewMux(
+		beat.Info{Version: "1.2.3"}, cfg,
+		nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg), ratelimitStore, sourcemapStore,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +119,11 @@ func newTestMux(t *testing.T, cfg *config.Config) http.Handler {
 	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
 	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
-	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg), ratelimitStore)
+	var sourcemapStore *sourcemap.Store
+	mux, err := NewMux(
+		beat.Info{Version: "1.2.3"}, cfg,
+		nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg), ratelimitStore, sourcemapStore,
+	)
 	require.NoError(t, err)
 	return mux
 }
