@@ -205,7 +205,7 @@ func (c *Composite) fields() common.MapStr {
 	if c.Count > 1 {
 		fields.set("count", c.Count)
 	}
-	fields.maybeSetBool("exact_match", &c.ExactMatch)
+	fields.set("exact_match", c.ExactMatch)
 	fields.maybeSetMapStr("end", utility.TimeAsMicros(c.End))
 	return common.MapStr(fields)
 }
