@@ -13,6 +13,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Fix panic due to misaligned 64-bit access on 32-bit architectures {pull}5277[5277]
 * Fixed tail-based sampling pubsub to use _seq_no correctly {pull}5126[5126]
 * Removed service name from dataset {pull}5451[5451]
+* Fix panic on Fleet policy change when transaction metrics or tail-based sampling are enabled {pull}5670[5670]
 
 [float]
 ==== Intake API Changes
