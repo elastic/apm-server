@@ -46,7 +46,7 @@ func rateLimitBatchProcessor(ctx context.Context, batch *model.Batch) error {
 	if limiter, ok := ratelimit.FromContext(ctx); ok {
 		ctx, cancel := context.WithTimeout(ctx, rateLimitTimeout)
 		defer cancel()
-		if err := limiter.WaitN(ctx, batch.Len()); err != nil {
+		if err := limiter.WaitN(ctx, len(*batch)); err != nil {
 			return ratelimit.ErrRateLimitExceeded
 		}
 	}

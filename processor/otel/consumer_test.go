@@ -90,12 +90,11 @@ func TestOutcome(t *testing.T) {
 		spans.Spans().Append(otelSpan1)
 		spans.Spans().Append(otelSpan2)
 		batch := transformTraces(t, traces)
-		require.Len(t, batch.Transactions, 1)
-		require.Len(t, batch.Spans, 1)
+		require.Len(t, batch, 2)
 
-		assert.Equal(t, expectedOutcome, batch.Transactions[0].Outcome)
-		assert.Equal(t, expectedResult, batch.Transactions[0].Result)
-		assert.Equal(t, expectedOutcome, batch.Spans[0].Outcome)
+		assert.Equal(t, expectedOutcome, batch[0].Transaction.Outcome)
+		assert.Equal(t, expectedResult, batch[0].Transaction.Result)
+		assert.Equal(t, expectedOutcome, batch[1].Span.Outcome)
 	}
 
 	test(t, "unknown", "", pdata.StatusCodeUnset)
@@ -116,11 +115,10 @@ func TestRepresentativeCount(t *testing.T) {
 	spans.Spans().Append(otelSpan1)
 	spans.Spans().Append(otelSpan2)
 	batch := transformTraces(t, traces)
-	require.Len(t, batch.Transactions, 1)
-	require.Len(t, batch.Spans, 1)
+	require.Len(t, batch, 2)
 
-	assert.Equal(t, 1.0, batch.Transactions[0].RepresentativeCount)
-	assert.Equal(t, 1.0, batch.Spans[0].RepresentativeCount)
+	assert.Equal(t, 1.0, batch[0].Transaction.RepresentativeCount)
+	assert.Equal(t, 1.0, batch[1].Span.RepresentativeCount)
 }
 
 func TestHTTPTransactionURL(t *testing.T) {
@@ -470,7 +468,7 @@ func TestInstrumentationLibrary(t *testing.T) {
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
-	tx := events.Transactions[0]
+	tx := events[0].Transaction
 
 	assert.Equal(t, "library-name", tx.Metadata.Service.Framework.Name)
 	assert.Equal(t, "1.2.3", tx.Metadata.Service.Framework.Version)
@@ -633,18 +631,16 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	otelSpan2.Events().Append(otelSpanEvent)
 
 	batch := transformTraces(t, traces)
-	require.Len(t, batch.Transactions, 1)
-	require.Len(t, batch.Spans, 1)
-	require.Len(t, batch.Errors, 1)
+	require.Len(t, batch, 3)
 
 	// Give some leeway for one event, and check other events' timestamps relative to that one.
-	assert.InDelta(t, now.Add(transactionOffset).Unix(), batch.Transactions[0].Timestamp.Unix(), allowedError)
-	assert.Equal(t, spanOffset-transactionOffset, batch.Spans[0].Timestamp.Sub(batch.Transactions[0].Timestamp))
-	assert.Equal(t, exceptionOffset-transactionOffset, batch.Errors[0].Timestamp.Sub(batch.Transactions[0].Timestamp))
+	assert.InDelta(t, now.Add(transactionOffset).Unix(), batch[0].Transaction.Timestamp.Unix(), allowedError)
+	assert.Equal(t, spanOffset-transactionOffset, batch[1].Span.Timestamp.Sub(batch[0].Transaction.Timestamp))
+	assert.Equal(t, exceptionOffset-transactionOffset, batch[2].Error.Timestamp.Sub(batch[0].Transaction.Timestamp))
 
 	// Durations should be unaffected.
-	assert.Equal(t, float64(transactionDuration.Milliseconds()), batch.Transactions[0].Duration)
-	assert.Equal(t, float64(spanDuration.Milliseconds()), batch.Spans[0].Duration)
+	assert.Equal(t, float64(transactionDuration.Milliseconds()), batch[0].Transaction.Duration)
+	assert.Equal(t, float64(spanDuration.Milliseconds()), batch[1].Span.Duration)
 }
 
 func TestConsumer_JaegerMetadata(t *testing.T) {
@@ -737,14 +733,14 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 	recorder := batchRecorderBatchProcessor(&batches)
 	require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
 	require.Len(t, batches, 1)
-	batch := batches[0]
+	batch := *batches[0]
 
 	events := transformBatch(context.Background(), batches...)
 	approveEvents(t, "jaeger_sampling_rate", events)
 
-	tx1 := batch.Transactions[0]
-	tx2 := batch.Transactions[1]
-	span := batch.Spans[0]
+	tx1 := batch[0].Transaction
+	span := batch[1].Span
+	tx2 := batch[2].Transaction
 	assert.Equal(t, 1.25 /* 1/0.8 */, tx1.RepresentativeCount)
 	assert.Equal(t, 2.5 /* 1/0.4 */, span.RepresentativeCount)
 	assert.Zero(t, tx2.RepresentativeCount) // not set for non-probabilistic
@@ -767,8 +763,9 @@ func TestConsumer_JaegerTraceID(t *testing.T) {
 	traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
 	require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
 
-	assert.Equal(t, "00000000000000000000000046467830", batches[0].Transactions[0].TraceID)
-	assert.Equal(t, "00000000464678300000000046467830", batches[0].Transactions[1].TraceID)
+	batch := *batches[0]
+	assert.Equal(t, "00000000000000000000000046467830", batch[0].Transaction.TraceID)
+	assert.Equal(t, "00000000464678300000000046467830", batch[1].Transaction.TraceID)
 }
 
 func TestConsumer_JaegerTransaction(t *testing.T) {
@@ -1031,8 +1028,9 @@ func TestJaegerServiceVersion(t *testing.T) {
 	recorder := batchRecorderBatchProcessor(&batches)
 	require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
 
-	assert.Equal(t, "process_tag_value", batches[0].Transactions[0].Metadata.Service.Version)
-	assert.Equal(t, "span_tag_value", batches[0].Transactions[1].Metadata.Service.Version)
+	batch := *batches[0]
+	assert.Equal(t, "process_tag_value", batch[0].Transaction.Metadata.Service.Version)
+	assert.Equal(t, "span_tag_value", batch[1].Transaction.Metadata.Service.Version)
 }
 
 func TestTracesLogging(t *testing.T) {
@@ -1191,7 +1189,7 @@ func transformTransactionWithAttributes(t *testing.T, attrs map[string]pdata.Att
 	otelSpan.Attributes().InitFromMap(attrs)
 	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
-	return events.Transactions[0]
+	return events[0].Transaction
 }
 
 func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeValue, configFns ...func(pdata.Span)) *model.Span {
@@ -1206,7 +1204,7 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeV
 	otelSpan.Attributes().InitFromMap(attrs)
 	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
-	return events.Spans[0]
+	return events[0].Span
 }
 
 func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (*model.Transaction, []*model.Error) {
@@ -1223,16 +1221,21 @@ func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ..
 	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
 	require.NotEmpty(t, events)
-	return events.Transactions[0], events.Errors
+
+	errors := make([]*model.Error, len(events)-1)
+	for i, event := range events[1:] {
+		errors[i] = event.Error
+	}
+	return events[0].Transaction, errors
 }
 
-func transformTraces(t *testing.T, traces pdata.Traces) *model.Batch {
-	var processed *model.Batch
+func transformTraces(t *testing.T, traces pdata.Traces) model.Batch {
+	var processed model.Batch
 	processor := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 		if processed != nil {
 			panic("already processes batch")
 		}
-		processed = batch
+		processed = *batch
 		return nil
 	})
 	require.NoError(t, (&otel.Consumer{Processor: processor}).ConsumeTraces(context.Background(), traces))

@@ -36,23 +36,21 @@ var (
 // of events retained in the batch.
 func NewDiscardUnsampledBatchProcessor() model.BatchProcessor {
 	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
-		var dropped int64
-		transactions := batch.Transactions
-		for i := 0; i < len(transactions); {
-			tx := transactions[i]
-			if tx.Sampled == nil || *tx.Sampled {
+		events := *batch
+		for i := 0; i < len(events); {
+			event := events[i]
+			if event.Transaction == nil || event.Transaction.Sampled == nil || *event.Transaction.Sampled {
 				i++
 				continue
 			}
-			n := len(transactions)
-			transactions[i], transactions[n-1] = transactions[n-1], transactions[i]
-			transactions = transactions[:n-1]
-			dropped++
+			n := len(events)
+			events[i], events[n-1] = events[n-1], events[i]
+			events = events[:n-1]
 		}
-		if dropped > 0 {
-			transactionsDroppedCounter.Add(dropped)
+		if dropped := len(*batch) - len(events); dropped > 0 {
+			transactionsDroppedCounter.Add(int64(dropped))
 		}
-		batch.Transactions = transactions
+		*batch = events
 		return nil
 	})
 }

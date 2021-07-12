@@ -27,7 +27,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
+	apisourcemap "github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/api/intake"
 	"github.com/elastic/apm-server/beater/api/profile"
@@ -42,6 +42,7 @@ import (
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/sourcemap"
 )
 
 const (
@@ -84,6 +85,7 @@ func NewMux(
 	batchProcessor model.BatchProcessor,
 	fetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
+	sourcemapStore *sourcemap.Store,
 ) (*http.ServeMux, error) {
 	pool := request.NewContextPool()
 	mux := http.NewServeMux()
@@ -101,6 +103,7 @@ func NewMux(
 		reporter:       report,
 		batchProcessor: batchProcessor,
 		ratelimitStore: ratelimitStore,
+		sourcemapStore: sourcemapStore,
 	}
 
 	type route struct {
@@ -151,6 +154,7 @@ type routeBuilder struct {
 	reporter       publish.Reporter
 	batchProcessor model.BatchProcessor
 	ratelimitStore *ratelimit.Store
+	sourcemapStore *sourcemap.Store
 }
 
 func (r *routeBuilder) profileHandler() (request.Handler, error) {
@@ -178,6 +182,15 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *strea
 	}
 	return func() (request.Handler, error) {
 		batchProcessor := r.batchProcessor
+		if r.sourcemapStore != nil {
+			batchProcessor = modelprocessor.Chained{
+				sourcemap.BatchProcessor{
+					Store:   r.sourcemapStore,
+					Timeout: r.cfg.RumConfig.SourceMapping.Timeout,
+				},
+				batchProcessor,
+			}
+		}
 		batchProcessor = batchProcessorWithAllowedServiceNames(batchProcessor, r.cfg.RumConfig.AllowServiceNames)
 		h := intake.Handler(newProcessor(r.cfg), requestMetadataFunc, batchProcessor)
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
@@ -185,7 +198,7 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *strea
 }
 
 func (r *routeBuilder) sourcemapHandler() (request.Handler, error) {
-	h := sourcemap.Handler(r.reporter)
+	h := apisourcemap.Handler(r.reporter, r.sourcemapStore)
 	return middleware.Wrap(h, sourcemapMiddleware(r.cfg, r.authenticator, r.ratelimitStore)...)
 }
 
@@ -270,7 +283,7 @@ func sourcemapMiddleware(cfg *config.Config, auth *auth.Authenticator, ratelimit
 		msg = "When APM Server is managed by Fleet, Sourcemaps must be uploaded directly to Elasticsearch."
 	}
 	enabled := cfg.RumConfig.Enabled && cfg.RumConfig.SourceMapping.Enabled && !cfg.DataStreams.Enabled
-	backendMiddleware := backendMiddleware(cfg, auth, ratelimitStore, sourcemap.MonitoringMap)
+	backendMiddleware := backendMiddleware(cfg, auth, ratelimitStore, apisourcemap.MonitoringMap)
 	return append(backendMiddleware, middleware.KillSwitchMiddleware(enabled, msg))
 }
 

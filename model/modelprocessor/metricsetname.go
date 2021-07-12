@@ -39,8 +39,9 @@ type SetMetricsetName struct{}
 // will be given a specific name, while all other metrics will be given the name
 // "app".
 func (SetMetricsetName) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	for _, ms := range b.Metricsets {
-		if ms.Name != "" || len(ms.Samples) == 0 {
+	for _, event := range *b {
+		ms := event.Metricset
+		if ms == nil || ms.Name != "" || len(ms.Samples) == 0 {
 			continue
 		}
 		ms.Name = appMetricsetName

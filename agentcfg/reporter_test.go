@@ -97,7 +97,9 @@ type batchProcessor struct {
 func (p *batchProcessor) ProcessBatch(_ context.Context, b *model.Batch) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	p.received = append(p.received, b.Metricsets...)
+	for _, event := range *b {
+		p.received = append(p.received, event.Metricset)
+	}
 	p.receivedc <- struct{}{}
 	return nil
 }

@@ -33,9 +33,9 @@ func TestRateLimitBatchProcessor(t *testing.T) {
 	limiter := rate.NewLimiter(1, 10)
 	ctx := ratelimit.ContextWithLimiter(context.Background(), limiter)
 
-	var batch model.Batch
-	for i := 0; i < 5; i++ {
-		batch.Transactions = append(batch.Transactions, &model.Transaction{})
+	batch := make(model.Batch, 5)
+	for i := range batch {
+		batch[i].Transaction = &model.Transaction{}
 	}
 	for i := 0; i < 2; i++ {
 		err := rateLimitBatchProcessor(ctx, &batch)

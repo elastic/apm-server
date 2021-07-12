@@ -18,6 +18,7 @@
 package sourcemap
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -46,8 +47,14 @@ var (
 	validateError = monitoring.NewInt(registry, "validation.errors")
 )
 
+// AddedNotifier is an interface for notifying of sourcemap additions.
+// This is implemented by sourcemap.Store.
+type AddedNotifier interface {
+	NotifyAdded(ctx context.Context, serviceName, serviceVersion, bundleFilepath string)
+}
+
 // Handler returns a request.Handler for managing asset requests.
-func Handler(report publish.Reporter) request.Handler {
+func Handler(report publish.Reporter, notifier AddedNotifier) request.Handler {
 	return func(c *request.Context) {
 		if c.Request.Method != "POST" {
 			c.Result.SetDefault(request.IDResponseErrorsMethodNotAllowed)
@@ -99,7 +106,9 @@ func Handler(report publish.Reporter) request.Handler {
 				c.Result.SetWithError(request.IDResponseErrorsFullQueue, err)
 			}
 			c.Write()
+			return
 		}
+		notifier.NotifyAdded(c.Request.Context(), smap.ServiceName, smap.ServiceVersion, smap.BundleFilepath)
 		c.Result.SetDefault(request.IDResponseValidAccepted)
 		c.Write()
 	}

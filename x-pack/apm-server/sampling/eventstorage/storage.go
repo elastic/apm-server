@@ -222,7 +222,7 @@ func (rw *ReadWriter) ReadEvents(traceID string, out *model.Batch) error {
 			}); err != nil {
 				return err
 			}
-			out.Transactions = append(out.Transactions, &event)
+			*out = append(*out, model.APMEvent{Transaction: &event})
 		case entryMetaSpan:
 			var event model.Span
 			if err := item.Value(func(data []byte) error {
@@ -230,7 +230,7 @@ func (rw *ReadWriter) ReadEvents(traceID string, out *model.Batch) error {
 			}); err != nil {
 				return err
 			}
-			out.Spans = append(out.Spans, &event)
+			*out = append(*out, model.APMEvent{Span: &event})
 		default:
 			// Unknown entry meta: ignore.
 			continue

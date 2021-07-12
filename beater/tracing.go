@@ -71,6 +71,7 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 		processBatch,
 		agentcfg.NewFetcher(cfg),
 		ratelimitStore,
+		nil, // no sourcemap store
 	)
 	if err != nil {
 		return nil, err

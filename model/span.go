@@ -269,7 +269,7 @@ func (e *Span) fields(ctx context.Context, cfg *transform.Config) common.MapStr 
 
 	// TODO(axw) we should be using a merged service object, combining
 	// the stream metadata and event-specific service info.
-	if st := e.Stacktrace.transform(ctx, cfg, e.RUM, &e.Metadata.Service); len(st) > 0 {
+	if st := e.Stacktrace.transform(ctx, cfg, e.RUM); len(st) > 0 {
 		fields.set("stacktrace", st)
 	}
 	return common.MapStr(fields)

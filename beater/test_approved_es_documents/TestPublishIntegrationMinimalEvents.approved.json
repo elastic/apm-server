@@ -9,186 +9,6 @@
             "ecs": {
                 "version": "1.8.0"
             },
-            "event": {
-                "outcome": "unknown"
-            },
-            "host": {
-                "ip": "127.0.0.1"
-            },
-            "labels": {
-                "wrapped_reporter": true
-            },
-            "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "hostname": "",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
-            },
-            "processor": {
-                "event": "transaction",
-                "name": "transaction"
-            },
-            "service": {
-                "name": "1234_service-12a3"
-            },
-            "timestamp": {
-                "us": 1547070053000000
-            },
-            "trace": {
-                "id": "01234567890123456789abcdefabcdef"
-            },
-            "transaction": {
-                "duration": {
-                    "us": 32592
-                },
-                "id": "abcdef1478523690",
-                "sampled": true,
-                "span_count": {
-                    "started": 0
-                },
-                "type": "request"
-            }
-        },
-        {
-            "@timestamp": "2019-01-09T21:40:53.000Z",
-            "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
-            },
-            "ecs": {
-                "version": "1.8.0"
-            },
-            "event": {
-                "outcome": "unknown"
-            },
-            "host": {
-                "ip": "127.0.0.1"
-            },
-            "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "hostname": "",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
-            },
-            "parent": {
-                "id": "ab23456a89012345"
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
-            },
-            "service": {
-                "name": "1234_service-12a3"
-            },
-            "span": {
-                "duration": {
-                    "us": 3564
-                },
-                "id": "0123456a89012345",
-                "name": "GET /api/types",
-                "start": {
-                    "us": 1845
-                },
-                "type": "request"
-            },
-            "timestamp": {
-                "us": 1547070053000000
-            },
-            "trace": {
-                "id": "0123456789abcdef0123456789abcdef"
-            }
-        },
-        {
-            "@timestamp": "2018-08-30T18:53:27.154Z",
-            "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
-            },
-            "ecs": {
-                "version": "1.8.0"
-            },
-            "event": {
-                "outcome": "unknown"
-            },
-            "host": {
-                "ip": "127.0.0.1"
-            },
-            "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "hostname": "",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
-            },
-            "parent": {
-                "id": "ab23456a89012345"
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
-            },
-            "service": {
-                "name": "1234_service-12a3"
-            },
-            "span": {
-                "duration": {
-                    "us": 3564
-                },
-                "id": "0123456a89012345",
-                "name": "GET /api/types",
-                "type": "request"
-            },
-            "timestamp": {
-                "us": 1535655207154000
-            },
-            "trace": {
-                "id": "0123456789abcdef0123456789abcdef"
-            }
-        },
-        {
-            "@timestamp": "2017-05-30T18:53:42.281Z",
-            "a": 3.2,
-            "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
-            },
-            "ecs": {
-                "version": "1.8.0"
-            },
-            "host": {
-                "ip": "127.0.0.1"
-            },
-            "metricset.name": "app",
-            "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "hostname": "",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
-            },
-            "processor": {
-                "event": "metric",
-                "name": "metric"
-            },
-            "service": {
-                "name": "1234_service-12a3"
-            }
-        },
-        {
-            "@timestamp": "2019-01-09T21:40:53.000Z",
-            "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
-            },
-            "ecs": {
-                "version": "1.8.0"
-            },
             "error": {
                 "grouping_key": "0b9cba09845a097a271c6beb4c6207f3",
                 "id": "abcdef0123456789",
@@ -296,6 +116,186 @@
             },
             "timestamp": {
                 "us": 1547070053000000
+            }
+        },
+        {
+            "@timestamp": "2019-01-09T21:40:53.000Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "1.8.0"
+            },
+            "event": {
+                "outcome": "unknown"
+            },
+            "host": {
+                "ip": "127.0.0.1"
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "1.2.3",
+                "version_major": 1
+            },
+            "parent": {
+                "id": "ab23456a89012345"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
+            },
+            "span": {
+                "duration": {
+                    "us": 3564
+                },
+                "id": "0123456a89012345",
+                "name": "GET /api/types",
+                "start": {
+                    "us": 1845
+                },
+                "type": "request"
+            },
+            "timestamp": {
+                "us": 1547070053000000
+            },
+            "trace": {
+                "id": "0123456789abcdef0123456789abcdef"
+            }
+        },
+        {
+            "@timestamp": "2018-08-30T18:53:27.154Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "1.8.0"
+            },
+            "event": {
+                "outcome": "unknown"
+            },
+            "host": {
+                "ip": "127.0.0.1"
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "1.2.3",
+                "version_major": 1
+            },
+            "parent": {
+                "id": "ab23456a89012345"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
+            },
+            "span": {
+                "duration": {
+                    "us": 3564
+                },
+                "id": "0123456a89012345",
+                "name": "GET /api/types",
+                "type": "request"
+            },
+            "timestamp": {
+                "us": 1535655207154000
+            },
+            "trace": {
+                "id": "0123456789abcdef0123456789abcdef"
+            }
+        },
+        {
+            "@timestamp": "2019-01-09T21:40:53.000Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "1.8.0"
+            },
+            "event": {
+                "outcome": "unknown"
+            },
+            "host": {
+                "ip": "127.0.0.1"
+            },
+            "labels": {
+                "wrapped_reporter": true
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "1.2.3",
+                "version_major": 1
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
+            },
+            "timestamp": {
+                "us": 1547070053000000
+            },
+            "trace": {
+                "id": "01234567890123456789abcdefabcdef"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 32592
+                },
+                "id": "abcdef1478523690",
+                "sampled": true,
+                "span_count": {
+                    "started": 0
+                },
+                "type": "request"
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "a": 3.2,
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "1.8.0"
+            },
+            "host": {
+                "ip": "127.0.0.1"
+            },
+            "metricset.name": "app",
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "1.2.3",
+                "version_major": 1
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "1234_service-12a3"
             }
         }
     ]

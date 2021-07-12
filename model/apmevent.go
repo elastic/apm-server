@@ -15,32 +15,26 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package transform
+package model
 
 import (
 	"context"
-	"regexp"
 
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 )
 
-// Transformable is an interface implemented by all top-level model objects for
-// translating to beat.Events.
-type Transformable interface {
-	Transform(context.Context, *Config) []beat.Event
+// APMEvent holds the details of an APM event.
+//
+// Exactly one of the event fields should be non-nil.
+type APMEvent struct {
+	Transaction *Transaction
+	Span        *Span
+	Metricset   *Metricset
+	Error       *Error
+	Profile     *PprofProfile
 }
 
-// Config holds general transformation configuration.
-type Config struct {
-	// DataStreams records whether or not data streams are enabled.
-	// If true, then data_stream fields should be added to all events.
-	DataStreams bool
-
-	RUM RUMConfig
-}
-
-// RUMConfig holds RUM-related transformation configuration.
-type RUMConfig struct {
-	LibraryPattern      *regexp.Regexp
-	ExcludeFromGrouping *regexp.Regexp
+func (e *APMEvent) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+	return nil
 }
