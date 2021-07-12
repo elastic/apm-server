@@ -202,9 +202,7 @@ func (c *Composite) fields() common.MapStr {
 		return nil
 	}
 	var fields mapStr
-	if c.Count > 1 {
-		fields.set("count", c.Count)
-	}
+	fields.set("count", c.Count)
 	fields.set("exact_match", c.ExactMatch)
 	fields.maybeSetMapStr("end", utility.TimeAsMicros(c.End))
 	return common.MapStr(fields)
