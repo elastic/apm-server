@@ -464,7 +464,7 @@ func (s *Server) Tracer() *apm.Tracer {
 		s.tb.Fatal(err)
 	}
 	httpTransport.SetServerURL(serverURL)
-	httpTransport.SetSecretToken(s.Config.SecretToken)
+	httpTransport.SetSecretToken(s.Config.AgentAuth.SecretToken)
 	httpTransport.Client.Transport.(*http.Transport).TLSClientConfig = s.TLS
 
 	var transport transport.Transport = httpTransport

@@ -110,7 +110,7 @@ func TestJaegerGRPCSampling(t *testing.T) {
 func TestJaegerGRPCAuth(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.SecretToken = "secret"
+	srv.Config.AgentAuth.SecretToken = "secret"
 	require.NoError(t, srv.Start())
 
 	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure())

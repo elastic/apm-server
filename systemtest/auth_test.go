@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -42,8 +43,8 @@ func TestAuth(t *testing.T) {
 	secretToken := strconv.Itoa(rng.Int())
 
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.SecretToken = secretToken
-	srv.Config.APIKey = &apmservertest.APIKeyConfig{Enabled: true}
+	srv.Config.AgentAuth.SecretToken = secretToken
+	srv.Config.AgentAuth.APIKey = &apmservertest.APIKeyAuthConfig{Enabled: true}
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
 	err := srv.Start()
 	require.NoError(t, err)
@@ -122,11 +123,17 @@ func TestAuth(t *testing.T) {
 		}
 	})
 
+	// Create agent config to test the anonymous and authenticated responses.
+	settings := map[string]string{"transaction_sample_rate": "0.1", "sanitize_field_names": "foo,bar,baz"}
+	systemtest.CreateAgentConfig(t, "systemtest_service", "", "", settings)
+	completeSettings := `{"sanitize_field_names":"foo,bar,baz","transaction_sample_rate":"0.1"}`
+	anonymousSettings := `{"transaction_sample_rate":"0.1"}`
+
 	runWithMethods(t, "agentconfig", func(t *testing.T, apiKey string, headers http.Header) {
 		req, _ := http.NewRequest("GET", srv.URL+"/config/v1/agents", nil)
 		copyHeaders(req.Header, headers)
 		req.Header.Add("Content-Type", "application/json")
-		req.URL.RawQuery = url.Values{"service.name": []string{"service_name"}}.Encode()
+		req.URL.RawQuery = url.Values{"service.name": []string{"systemtest_service"}}.Encode()
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -136,6 +143,50 @@ func TestAuth(t *testing.T) {
 			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 		} else {
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
+			body, _ := ioutil.ReadAll(resp.Body)
+			assert.Equal(t, completeSettings, strings.TrimSpace(string(body)))
+		}
+	})
+
+	// RUM endpoints do not require auth, but if credentials are provided
+	// they will still be checked.
+	runWithMethods(t, "rum_agentconfig", func(t *testing.T, apiKey string, headers http.Header) {
+		req, _ := http.NewRequest("GET", srv.URL+"/config/v1/rum/agents", nil)
+		copyHeaders(req.Header, headers)
+		req.Header.Add("Content-Type", "application/json")
+		req.URL.RawQuery = url.Values{"service.name": []string{"systemtest_service"}}.Encode()
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		if apiKey == "ingest" || apiKey == "sourcemap" {
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+		} else {
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
+			body, _ := ioutil.ReadAll(resp.Body)
+			if len(headers) == 0 {
+				// Anonymous auth succeeds because RUM is enabled, which
+				// auto enables anonymous auth. However, only a subset of
+				// the config is returned.
+				assert.Equal(t, anonymousSettings, strings.TrimSpace(string(body)))
+			} else {
+				assert.Equal(t, completeSettings, strings.TrimSpace(string(body)))
+			}
+		}
+	})
+	runWithMethods(t, "rum_ingest", func(t *testing.T, apiKey string, headers http.Header) {
+		req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/rum/events", bytes.NewReader(eventsPayload))
+		req.Header.Set("Content-Type", "application/x-ndjson")
+		copyHeaders(req.Header, headers)
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		if len(headers) == 0 {
+			assert.Equal(t, http.StatusAccepted, resp.StatusCode, string(body))
+		} else if apiKey == "sourcemap" || apiKey == "agentconfig" {
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode, string(body))
+		} else {
+			assert.Equal(t, http.StatusAccepted, resp.StatusCode, string(body))
 		}
 	})
 }
