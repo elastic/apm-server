@@ -20,23 +20,39 @@ package model
 import "github.com/elastic/beats/v7/libbeat/common"
 
 type Network struct {
+	// ConnectionType holds the connection type category,
+	// e.g. "wifi", "wired", and "cell".
 	ConnectionType string
-	Carrier        Carrier
+
+	// ConnectionSubtype holds more details of the connection type,
+	// specific to the connection type category.
+	//
+	// For example, if ConnectionType is "cell" then ConnectionSubtype
+	// may hold the cell technology, e.g. "LTE", or "GRPS".
+	ConnectionSubtype string
+
+	// Carrier holds information about a connection carrier.
+	Carrier Carrier
 }
 
 type Carrier struct {
+	// Name holds the carrier's name.
 	Name string
-	// mobile country code
+
+	// MCC holds the carrier's mobile country code.
 	MCC string
-	// mobile network code
+
+	// MNC holds the carrier's mobile network code.
 	MNC string
-	// ISO country code
+
+	// ICC holds the carrier's ISO 3166-1 alpha-2 2-character country code.
 	ICC string
 }
 
 func (n *Network) fields() common.MapStr {
 	var network mapStr
 	network.maybeSetString("connection_type", n.ConnectionType)
+	network.maybeSetString("connection_subtype", n.ConnectionSubtype)
 	network.maybeSetMapStr("carrier", n.Carrier.fields())
 	return common.MapStr(network)
 }

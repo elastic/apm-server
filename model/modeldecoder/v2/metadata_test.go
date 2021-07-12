@@ -52,6 +52,7 @@ func isUnmappedMetadataField(key string) bool {
 		"DataStream.Namespace",
 		"Network",
 		"Network.ConnectionType",
+		"Network.ConnectionSubtype",
 		"Network.Carrier",
 		"Network.Carrier.Name",
 		"Network.Carrier.MCC",
