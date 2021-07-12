@@ -54,10 +54,6 @@
                         "line": {
                             "column": 18,
                             "number": 1
-                        },
-                        "sourcemap": {
-                            "error": "No Sourcemap available for ServiceName apm-agent-js, ServiceVersion 1.0.0, Path http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map.",
-                            "updated": false
                         }
                     },
                     {
@@ -69,10 +65,6 @@
                         "line": {
                             "column": 18,
                             "number": 1
-                        },
-                        "sourcemap": {
-                            "error": "No Sourcemap available for ServiceName apm-agent-js, ServiceVersion 1.0.0, Path http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map.",
-                            "updated": false
                         }
                     }
                 ],

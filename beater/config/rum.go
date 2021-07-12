@@ -37,6 +37,7 @@ const (
 	defaultLibraryPattern           = "node_modules|bower_components|~"
 	defaultSourcemapCacheExpiration = 5 * time.Minute
 	defaultSourcemapIndexPattern    = "apm-*-sourcemap*"
+	defaultSourcemapTimeout         = 5 * time.Second
 )
 
 // RumConfig holds config information related to the RUM endpoint
@@ -65,6 +66,7 @@ type SourceMapping struct {
 	IndexPattern string                `config:"index_pattern"`
 	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
 	Metadata     []SourceMapMetadata   `config:"metadata"`
+	Timeout      time.Duration         `config:"timeout" validate:"positive"`
 	esConfigured bool
 }
 
@@ -117,6 +119,7 @@ func defaultSourcemapping() SourceMapping {
 		IndexPattern: defaultSourcemapIndexPattern,
 		ESConfig:     elasticsearch.DefaultConfig(),
 		Metadata:     []SourceMapMetadata{},
+		Timeout:      defaultSourcemapTimeout,
 	}
 }
 

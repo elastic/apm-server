@@ -168,15 +168,18 @@ func (e *Error) fields(ctx context.Context, cfg *transform.Config) common.MapStr
 	}
 	fields.maybeSetMapStr("log", e.logFields(ctx, cfg))
 
-	e.updateCulprit(cfg)
+	e.updateCulprit()
 	fields.maybeSetString("culprit", e.Culprit)
 	fields.maybeSetMapStr("custom", customFields(e.Custom))
 	fields.maybeSetString("grouping_key", e.calcGroupingKey(exceptionChain))
 	return common.MapStr(fields)
 }
 
-func (e *Error) updateCulprit(cfg *transform.Config) {
-	if cfg.RUM.SourcemapStore == nil {
+// TODO(axw) introduce another processor which sets library_frame
+// and exclude_from_grouping, only applied for RUM. Then we get rid
+// of Error.RUM and Span.RUM.
+func (e *Error) updateCulprit() {
+	if !e.RUM {
 		return
 	}
 	var fr *StacktraceFrame
@@ -203,7 +206,7 @@ func (e *Error) updateCulprit(cfg *transform.Config) {
 
 func findSmappedNonLibraryFrame(frames []*StacktraceFrame) *StacktraceFrame {
 	for _, fr := range frames {
-		if fr.IsSourcemapApplied() && !fr.IsLibraryFrame() {
+		if fr.SourcemapUpdated && !fr.IsLibraryFrame() {
 			return fr
 		}
 	}
@@ -236,8 +239,12 @@ func (e *Error) exceptionFields(ctx context.Context, cfg *transform.Config, chai
 			ex.set("code", code.String())
 		}
 
-		if st := exception.Stacktrace.transform(ctx, cfg, e.RUM, &e.Metadata.Service); len(st) > 0 {
-			ex.set("stacktrace", st)
+		if n := len(exception.Stacktrace); n > 0 {
+			frames := make([]common.MapStr, n)
+			for i, frame := range exception.Stacktrace {
+				frames[i] = frame.transform(cfg, e.RUM)
+			}
+			ex.set("stacktrace", frames)
 		}
 
 		result = append(result, common.MapStr(ex))
@@ -254,7 +261,7 @@ func (e *Error) logFields(ctx context.Context, cfg *transform.Config) common.Map
 	log.maybeSetString("param_message", e.Log.ParamMessage)
 	log.maybeSetString("logger_name", e.Log.LoggerName)
 	log.maybeSetString("level", e.Log.Level)
-	if st := e.Log.Stacktrace.transform(ctx, cfg, e.RUM, &e.Metadata.Service); len(st) > 0 {
+	if st := e.Log.Stacktrace.transform(ctx, cfg, e.RUM); len(st) > 0 {
 		log.set("stacktrace", st)
 	}
 	return common.MapStr(log)
