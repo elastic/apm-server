@@ -309,5 +309,99 @@ Both visualizations are now displayed on your custom dashboard.
 IMPORTANT: By default, Discover shows data for the last 15 minutes. If you have a time-based index
 and no data displays, you might need to increase the time range.
 
+[[open-telemetry-aws-lambda-elastic]]
+==== AWS Lambda Support
+
+AWS Lambda functions can be instrumented with OpenTelemetry and monitored with Elastic Observability.
+
+To get started, follow the official AWS Distro for OpenTelemetry Lambda https://aws-otel.github.io/docs/getting-started/lambda[getting started documentation] and configure the OpenTelemetry Collector to output traces and metrics to your Elastic cluster.
+
+[[open-telemetry-aws-lambda-elastic-java]]
+==== Instrumenting AWS Lambda Java functions
+
+Note that for better startup time, it is recommended to use SDK based instrumentation (aka manual instrumentation of the code) rather than auto instrumentation.
+
+To instrument AWS Lambda Java functions, follow the official https://aws-otel.github.io/docs/getting-started/lambda/lambda-java[AWS Distro for OpenTelemetry Lambda Support For Java].
+
+Noteworthy configuration elements:
+
+* AWS Lambda Java functions should extend `com.amazonaws.services.lambda.runtime.RequestHandler`,
+
+[source,java]
+----
+public class ExampleRequestHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+    public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent event, Context context) {
+        // add your code ...
+    }
+}
+----
+
+* When using SDK based instrumentation, frameworks you want to get visibility on should be manually instrumented,
+** Example to instrument https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/[OkHttpClient] with the OpenTelemetry instrument https://search.maven.org/artifact/io.opentelemetry.instrumentation/opentelemetry-okhttp-3.0/1.3.1-alpha/jar[io.opentelemetry.instrumentation:opentelemetry-okhttp-3.0:1.3.1-alpha]
+  
+[source,java]
+----
+import io.opentelemetry.instrumentation.okhttp.v3_0.OkHttpTracing;
+
+OkHttpClient httpClient = new OkHttpClient.Builder()
+        .addInterceptor(OkHttpTracing.create(GlobalOpenTelemetry.get()).newInterceptor())
+        .build();
+----
+
+* The configuration of the OpenTelemetry Collector, with the definition of the Elastic Observability endpoint, can be added to the root directory of the Lambda binaries (e.g. defined in `src/main/resources/opentelemetry-collector.yaml`)
+
+
+[source,yaml]
+----
+# Copy opentelemetry-collector.yaml in the root directory of the lambda function
+# Set an environment variable 'OPENTELEMETRY_COLLECTOR_CONFIG_FILE' to '/var/task/opentelemetry-collector.yaml'
+receivers:
+  otlp:
+    protocols:
+      http:
+      grpc:
+
+exporters:
+  logging:
+    loglevel: debug
+  otlp/elastic:
+    # Elastic APM server https endpoint without the "https://" prefix
+    endpoint: "${ELASTIC_OTLP_ENDPOINT}"
+    headers:
+      # Elastic APM Server secret token
+      Authorization: "Bearer ${ELASTIC_OTLP_TOKEN}"
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [logging, otlp/elastic]
+    metrics:
+      receivers: [otlp]
+      exporters: [logging, otlp/elastic]
+----
+
+* Note that in the `opentelemetry-collector.yaml` example above, the environment specific configuration parameters are conviniently passed  as environment variables: `ELASTIC_OTLP_ENDPOINT` and `ELASTIC_OTLP_TOKEN`.
+
+* Configure the AWS Lambda Java function with:
+** https://docs.aws.amazon.com/lambda/latest/dg/API_Layer.html[Function
+layer]: The latest https://aws-otel.github.io/docs/getting-started/lambda/lambda-java[AWS
+Lambda layer for OpenTelemetry] (e.g. `arn:aws:lambda:eu-west-1:901920570463:layer:aws-otel-java-wrapper-ver-1-2-0:1`)
+** https://docs.aws.amazon.com/lambda/latest/dg/API_TracingConfig.html[TracingConfig / Mode] set to `PassTrough`
+** Export the environment variables:
+*** `AWS_LAMBDA_EXEC_WRAPPER="/opt/otel-proxy-handler"` for wrapping handlers proxied through the API Gateway (see https://aws-otel.github.io/docs/getting-started/lambda/lambda-java#enable-auto-instrumentation-for-your-lambda-function[here])
+*** `OTEL_PROPAGATORS="tracecontext, baggage"` to override the default setting that also enables X-Ray headers causing interferences between OpenTelemetry and X-Ray
+*** `OPENTELEMETRY_COLLECTOR_CONFIG_FILE="/var/task/opentelemetry-collector.yaml"` to specify the path to your OpenTelemetry Collector configuration
+
+[[open-telemetry-aws-lambda-elastic-java-terraform]]
+==== Instrumenting AWS Lambda Java functions with Terraform
+
+We recommend to use an infrastructure as code solution like Terraform or Ansible to manage the configuration of your AWS Lambda functions.
+
+Here is an example of AWS Lambda Java function managed with Terraform and the https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function[AWS Provider / Lambda Functions]:
+
+* Sample Terraform code: https://github.com/cyrille-leclerc/my-serverless-shopping-cart/tree/main/checkout-function/deploy
+* Note that the Terraform code to manage the HTTP API Gateway (https://github.com/cyrille-leclerc/my-serverless-shopping-cart/tree/main/utils/terraform/api-gateway-proxy[here]) is copied from the official OpenTelemetry Lambda sample https://github.com/open-telemetry/opentelemetry-lambda/tree/e72467a085a2a6e57af133032f85ac5b8bbbb8d1/utils[here]
+
 // Make tab-widgets work
 include::../tab-widgets/code.asciidoc[]
