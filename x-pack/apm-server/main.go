@@ -65,6 +65,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 			return nil, errors.Wrapf(err, "error creating %s", name)
 		}
 		processors = append(processors, namedProcessor{name: name, processor: agg})
+		aggregationMonitoringRegistry.Remove("txmetrics")
 		monitoring.NewFunc(aggregationMonitoringRegistry, "txmetrics", agg.CollectMonitoring, monitoring.Report)
 	}
 	if args.Config.Aggregation.ServiceDestinations.Enabled {
@@ -86,6 +87,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating %s", name)
 		}
+		samplingMonitoringRegistry.Remove("tail")
 		monitoring.NewFunc(samplingMonitoringRegistry, "tail", sampler.CollectMonitoring, monitoring.Report)
 		processors = append(processors, namedProcessor{name: name, processor: sampler})
 	}
@@ -232,16 +234,18 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 	return g.Wait()
 }
 
-var rootCmd = cmd.NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
-	WrapRunServer: func(runServer beater.RunServerFunc) beater.RunServerFunc {
-		return func(ctx context.Context, args beater.ServerParams) error {
-			processors, err := newProcessors(args)
-			if err != nil {
-				return err
-			}
-			return runServerWithProcessors(ctx, runServer, args, processors...)
+func wrapRunServer(runServer beater.RunServerFunc) beater.RunServerFunc {
+	return func(ctx context.Context, args beater.ServerParams) error {
+		processors, err := newProcessors(args)
+		if err != nil {
+			return err
 		}
-	},
+		return runServerWithProcessors(ctx, runServer, args, processors...)
+	}
+}
+
+var rootCmd = cmd.NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
+	WrapRunServer: wrapRunServer,
 }))
 
 func main() {
