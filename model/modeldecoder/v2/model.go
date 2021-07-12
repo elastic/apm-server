@@ -605,7 +605,7 @@ type span struct {
 	Action nullable.String `json:"action" validate:"maxLength=1024"`
 	// ChildIDs holds a list of successor transactions and/or spans.
 	ChildIDs []string `json:"child_ids" validate:"maxLength=1024"`
-	// Composite holds metrics on a group of spans represented by a single one.
+	// Composite holds details on a group of spans represented by a single one.
 	Composite spanComposite `json:"composite"`
 	// Context holds arbitrary contextual information for the event.
 	Context spanContext `json:"context"`

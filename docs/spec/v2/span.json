@@ -23,7 +23,7 @@
       "minItems": 0
     },
     "composite": {
-      "description": "Composite holds metrics on a group of spans represented by a single one.",
+      "description": "Composite holds details on a group of spans represented by a single one.",
       "type": [
         "null",
         "object"

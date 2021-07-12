@@ -119,7 +119,7 @@ type DestinationService struct {
 	Resource string
 }
 
-// Composite holds metrics on a group of spans compressed into one.
+// Composite holds details on a group of spans compressed into one.
 type Composite struct {
 	Count      int
 	End        time.Time
