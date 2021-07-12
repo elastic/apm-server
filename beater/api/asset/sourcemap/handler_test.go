@@ -42,6 +42,14 @@ import (
 	"github.com/elastic/apm-server/transform"
 )
 
+type notifier struct {
+	notified bool
+}
+
+func (n *notifier) NotifyAdded(ctx context.Context, serviceName, serviceVersion, bundleFilepath string) {
+	n.notified = true
+}
+
 func TestAssetHandler(t *testing.T) {
 	testcases := map[string]testcaseT{
 		"method": {
@@ -111,6 +119,7 @@ func TestAssetHandler(t *testing.T) {
 			// test assertion
 			assert.Equal(t, tc.code, tc.w.Code)
 			assert.Equal(t, tc.body, tc.w.Body.String())
+			assert.Equal(t, tc.code == http.StatusAccepted, tc.notifier.notified)
 		})
 	}
 }
@@ -122,6 +131,7 @@ type testcaseT struct {
 	contentType    string
 	reporter       func(ctx context.Context, p publish.PendingReq) error
 	authorizer     authorizerFunc
+	notifier       notifier
 
 	missingSourcemap, missingServiceName, missingServiceVersion, missingBundleFilepath bool
 
@@ -178,7 +188,7 @@ func (tc *testcaseT) setup() error {
 	}
 	c := request.NewContext()
 	c.Reset(tc.w, tc.r)
-	h := Handler(tc.reporter)
+	h := Handler(tc.reporter, &tc.notifier)
 	h(c)
 	return nil
 }
