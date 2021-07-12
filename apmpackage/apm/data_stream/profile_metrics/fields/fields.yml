@@ -34,10 +34,6 @@
   type: keyword
   description: |
     Carrier name, eg. Vodafone, T-Mobile, etc.
-- name: network.connection_type
-  type: keyword
-  description: |
-    Cellular network technology, eg. 4G
 - name: observer.listening
   type: keyword
   description: |

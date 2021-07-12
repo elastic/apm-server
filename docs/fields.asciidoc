@@ -569,15 +569,22 @@ Optional network fields
 
 
 
-*`network.connection_type`*::
-+
---
-Cellular network technology, eg. 4G
+[float]
+=== connection
 
+Network connection details
+- name: type
+  type: keyword
+  description: >
+    Network connection type, eg. "wifi", "cell"
+  overwrite: true
 
-type: keyword
+- name: subtype
+  type: keyword
+  description: >
+    Detailed network connection sub-type, e.g. "LTE", "CDMA"
+  overwrite: true
 
---
 
 [float]
 === carrier
@@ -1668,15 +1675,22 @@ Optional network fields
 
 
 
-*`network.connection_type`*::
-+
---
-Cellular network technology, eg. 4G
+[float]
+=== connection
 
+Network connection details
+- name: type
+  type: keyword
+  description: >
+    Network connection type, eg. "wifi", "cell"
+  overwrite: true
 
-type: keyword
+- name: subtype
+  type: keyword
+  description: >
+    Detailed network connection sub-type, e.g. "LTE", "CDMA"
+  overwrite: true
 
---
 
 [float]
 === carrier
@@ -3007,15 +3021,22 @@ Optional network fields
 
 
 
-*`network.connection_type`*::
-+
---
-Cellular network technology, eg. 4G
+[float]
+=== connection
 
+Network connection details
+- name: type
+  type: keyword
+  description: >
+    Network connection type, eg. "wifi", "cell"
+  overwrite: true
 
-type: keyword
+- name: subtype
+  type: keyword
+  description: >
+    Detailed network connection sub-type, e.g. "LTE", "CDMA"
+  overwrite: true
 
---
 
 [float]
 === carrier
@@ -4627,15 +4648,22 @@ Optional network fields
 
 
 
-*`network.connection_type`*::
-+
---
-Cellular network technology, eg. 4G
+[float]
+=== connection
 
+Network connection details
+- name: type
+  type: keyword
+  description: >
+    Network connection type, eg. "wifi", "cell"
+  overwrite: true
 
-type: keyword
+- name: subtype
+  type: keyword
+  description: >
+    Detailed network connection sub-type, e.g. "LTE", "CDMA"
+  overwrite: true
 
---
 
 [float]
 === carrier
@@ -5826,15 +5854,22 @@ Optional network fields
 
 
 
-*`network.connection_type`*::
-+
---
-Cellular network technology, eg. 4G
+[float]
+=== connection
 
+Network connection details
+- name: type
+  type: keyword
+  description: >
+    Network connection type, eg. "wifi", "cell"
+  overwrite: true
 
-type: keyword
+- name: subtype
+  type: keyword
+  description: >
+    Detailed network connection sub-type, e.g. "LTE", "CDMA"
+  overwrite: true
 
---
 
 [float]
 === carrier

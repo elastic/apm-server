@@ -36,9 +36,11 @@ func TestNetworkTransform(t *testing.T) {
 		},
 		{
 			Network: Network{
-				ConnectionType:    "cell",
-				ConnectionSubtype: "LTE",
-				Carrier: Carrier{
+				Connection: NetworkConnection{
+					Type:    "cell",
+					Subtype: "LTE",
+				},
+				Carrier: NetworkCarrier{
 					Name: "Vodafone",
 					MCC:  "234",
 					MNC:  "03",
@@ -46,8 +48,10 @@ func TestNetworkTransform(t *testing.T) {
 				},
 			},
 			Output: common.MapStr{
-				"connection_type":    "cell",
-				"connection_subtype": "LTE",
+				"connection": common.MapStr{
+					"type":    "cell",
+					"subtype": "LTE",
+				},
 				"carrier": common.MapStr{
 					"name": "Vodafone",
 					"mcc":  "234",

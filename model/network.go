@@ -20,22 +20,27 @@ package model
 import "github.com/elastic/beats/v7/libbeat/common"
 
 type Network struct {
-	// ConnectionType holds the connection type category,
-	// e.g. "wifi", "wired", and "cell".
-	ConnectionType string
+	// Connection holds information about a network connection.
+	Connection NetworkConnection
 
-	// ConnectionSubtype holds more details of the connection type,
+	// Carrier holds information about a connection carrier.
+	Carrier NetworkCarrier
+}
+
+type NetworkConnection struct {
+	// Type holds the connection type category,
+	// e.g. "wifi", "wired", and "cell".
+	Type string
+
+	// Subtype holds more details of the connection type,
 	// specific to the connection type category.
 	//
 	// For example, if ConnectionType is "cell" then ConnectionSubtype
 	// may hold the cell technology, e.g. "LTE", or "GRPS".
-	ConnectionSubtype string
-
-	// Carrier holds information about a connection carrier.
-	Carrier Carrier
+	Subtype string
 }
 
-type Carrier struct {
+type NetworkCarrier struct {
 	// Name holds the carrier's name.
 	Name string
 
@@ -51,13 +56,19 @@ type Carrier struct {
 
 func (n *Network) fields() common.MapStr {
 	var network mapStr
-	network.maybeSetString("connection_type", n.ConnectionType)
-	network.maybeSetString("connection_subtype", n.ConnectionSubtype)
+	network.maybeSetMapStr("connection", n.Connection.fields())
 	network.maybeSetMapStr("carrier", n.Carrier.fields())
 	return common.MapStr(network)
 }
 
-func (c *Carrier) fields() common.MapStr {
+func (c *NetworkConnection) fields() common.MapStr {
+	var connection mapStr
+	connection.maybeSetString("type", c.Type)
+	connection.maybeSetString("subtype", c.Subtype)
+	return common.MapStr(connection)
+}
+
+func (c *NetworkCarrier) fields() common.MapStr {
 	var carrier mapStr
 	carrier.maybeSetString("mcc", c.MCC)
 	carrier.maybeSetString("mnc", c.MNC)

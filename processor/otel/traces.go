@@ -378,9 +378,9 @@ func translateTransaction(
 			case conventions.AttributeNetHostName:
 				netHostName = stringval
 			case attributeNetworkConnectionType:
-				event.Network.ConnectionType = stringval
+				event.Network.Connection.Type = stringval
 			case attributeNetworkConnectionSubtype:
-				event.Network.ConnectionSubtype = stringval
+				event.Network.Connection.Subtype = stringval
 			case attributeNetworkMCC:
 				event.Network.Carrier.MCC = stringval
 			case attributeNetworkMNC:
@@ -618,9 +618,9 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 					netPeerName = stringval
 				}
 			case attributeNetworkConnectionType:
-				event.Network.ConnectionType = stringval
+				event.Network.Connection.Type = stringval
 			case attributeNetworkConnectionSubtype:
-				event.Network.ConnectionSubtype = stringval
+				event.Network.Connection.Subtype = stringval
 			case attributeNetworkMCC:
 				event.Network.Carrier.MCC = stringval
 			case attributeNetworkMNC:

@@ -563,9 +563,11 @@ func TestSpanNetworkAttributes(t *testing.T) {
 	spanEvent := transformSpanWithAttributes(t, networkAttributes)
 
 	expected := model.Network{
-		ConnectionType:    "cell",
-		ConnectionSubtype: "LTE",
-		Carrier: model.Carrier{
+		Connection: model.NetworkConnection{
+			Type:    "cell",
+			Subtype: "LTE",
+		},
+		Carrier: model.NetworkCarrier{
 			Name: "Vodafone",
 			MNC:  "01",
 			MCC:  "101",
