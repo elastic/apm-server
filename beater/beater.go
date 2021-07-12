@@ -364,7 +364,7 @@ func (s *serverRunner) Start() {
 func (s *serverRunner) run() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
-	transformConfig := newTransformConfig(s.beat.Info, s.config, s.fleetConfig)
+	transformConfig := newTransformConfig(s.beat.Info, s.config)
 	publisherConfig := &publish.PublisherConfig{
 		Info:            s.beat.Info,
 		Pipeline:        s.config.Pipeline,
@@ -625,7 +625,7 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	}
 }
 
-func newTransformConfig(beatInfo beat.Info, cfg *config.Config, fleetCfg *config.Fleet) *transform.Config {
+func newTransformConfig(beatInfo beat.Info, cfg *config.Config) *transform.Config {
 	return &transform.Config{
 		DataStreams: cfg.DataStreams.Enabled,
 		RUM: transform.RUMConfig{
