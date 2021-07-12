@@ -54,7 +54,7 @@
 
 ## After feature freeze
 
-* Update [.mergify.yml](https://github.com/elastic/apm-server/blob/master/.mergify.yml) with a new backport rule for the next version. An example of adding v7.15 after v7.14 feature freeze is available [here](https://github.com/elastic/apm-server/pull/5601/files)
+* Update [.mergify.yml](https://github.com/elastic/apm-server/blob/master/.mergify.yml) with a new backport rule for the next version.
 
 ## On release day
 
