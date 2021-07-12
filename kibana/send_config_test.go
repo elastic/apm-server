@@ -71,6 +71,9 @@ func TestFlattenAndFormat(t *testing.T) {
 		}
 	}
 	assert.Equal(t, 3, tlsFieldsCount)
+	assert.Equal(t, 4, loggingFieldCount)
+	assert.Contains(t, flat, "apm-server.rum.event_rate.limit")
+	assert.Contains(t, flat, "apm-server.rum.event_rate.lru_size")
 }
 
 var serverYAML = `apm-server:
@@ -97,8 +100,8 @@ var serverYAML = `apm-server:
   rum:
     enabled: false
     event_rate:
-      limit: 300
       lru_size: 1000
+    rate_limit: 300
 gc_percent: 70
 logging:
   level: 'debug'
