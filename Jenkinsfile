@@ -110,7 +110,7 @@ pipeline {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
-            withMageEnv(){
+            withGoEnv(){
               sh(label: 'Run intake', script: './.ci/scripts/intake.sh')
             }
           }
