@@ -349,8 +349,7 @@ OkHttpClient httpClient = new OkHttpClient.Builder()
 ----
 
 * The configuration of the OpenTelemetry Collector, with the definition of the Elastic Observability endpoint, can be added to the root directory of the Lambda binaries (e.g. defined in `src/main/resources/opentelemetry-collector.yaml`)
-
-
++
 [source,yaml]
 ----
 # Copy opentelemetry-collector.yaml in the root directory of the lambda function
