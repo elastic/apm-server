@@ -5,7 +5,7 @@
   changes:
     - description: use new apm-server.auth config
       type: breaking-change
-      link: https://github.com/elastic/apm-server/pull/5623
+      link: https://github.com/elastic/apm-server/pull/5691
 - version: "0.3.0"
   changes:
     - description: added apm-server.url config
