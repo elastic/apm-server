@@ -386,6 +386,7 @@ service:
 layer]: The latest https://aws-otel.github.io/docs/getting-started/lambda/lambda-java[AWS
 Lambda layer for OpenTelemetry] (e.g. `arn:aws:lambda:eu-west-1:901920570463:layer:aws-otel-java-wrapper-ver-1-2-0:1`)
 ** https://docs.aws.amazon.com/lambda/latest/dg/API_TracingConfig.html[TracingConfig / Mode] set to `PassTrough`
+** https://docs.aws.amazon.com/lambda/latest/dg/API_FunctionConfiguration.html[FunctionConfiguration / Timeout] set to more than 10 seconds to support the longer cold start inherent to the Lambda Java Runtime
 ** Export the environment variables:
 *** `AWS_LAMBDA_EXEC_WRAPPER="/opt/otel-proxy-handler"` for wrapping handlers proxied through the API Gateway (see https://aws-otel.github.io/docs/getting-started/lambda/lambda-java#enable-auto-instrumentation-for-your-lambda-function[here])
 *** `OTEL_PROPAGATORS="tracecontext, baggage"` to override the default setting that also enables X-Ray headers causing interferences between OpenTelemetry and X-Ray
