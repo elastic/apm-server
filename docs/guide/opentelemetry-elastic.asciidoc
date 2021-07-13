@@ -326,7 +326,7 @@ To instrument AWS Lambda Java functions, follow the official https://aws-otel.gi
 Noteworthy configuration elements:
 
 * AWS Lambda Java functions should extend `com.amazonaws.services.lambda.runtime.RequestHandler`,
-
++
 [source,java]
 ----
 public class ExampleRequestHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
