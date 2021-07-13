@@ -239,6 +239,7 @@ func TestTransformConfigIndex(t *testing.T) {
 	test := func(t *testing.T, indexPattern, expected string) {
 		var requestPaths []string
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("X-Elastic-Product", "Elasticsearch")
 			requestPaths = append(requestPaths, r.URL.Path)
 		}))
 		defer srv.Close()
