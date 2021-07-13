@@ -17,7 +17,7 @@ require (
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210630182526-5217a133e7ae
 	github.com/elastic/ecs v1.10.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210407144825-cc1c33cfa1d0 // indirect
-	github.com/elastic/elastic-package v0.0.0-20210708155721-c97edac1eec2
+	github.com/elastic/elastic-package v0.0.0-20210712130053-17d8f2614046
 	github.com/elastic/gmux v0.1.0
 	github.com/elastic/go-elasticsearch/v7 v7.13.1
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20210701131303-a3f8e421ff7c
@@ -96,6 +96,6 @@ replace (
 	k8s.io/kubectl => k8s.io/kubectl v0.21.2
 )
 
-replace github.com/elastic/go-elasticsearch/v7 => github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20210701130713-3c08ee738285
+replace github.com/elastic/go-elasticsearch/v7 => github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20210712132103-65a665598df6
 
 replace go.opentelemetry.io/collector => ./internal/otel_collector
