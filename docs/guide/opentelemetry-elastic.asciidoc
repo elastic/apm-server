@@ -319,7 +319,7 @@ To get started, follow the official AWS Distro for OpenTelemetry Lambda https://
 [[open-telemetry-aws-lambda-elastic-java]]
 ==== Instrumenting AWS Lambda Java functions
 
-Note that for better startup time, it is recommended to use SDK based instrumentation (aka manual instrumentation of the code) rather than auto instrumentation.
+NOTE: For a better startup time, we recommend using SDK-based instrumentation, i.e. manual instrumentation of the code, rather than auto instrumentation.
 
 To instrument AWS Lambda Java functions, follow the official https://aws-otel.github.io/docs/getting-started/lambda/lambda-java[AWS Distro for OpenTelemetry Lambda Support For Java].
 
