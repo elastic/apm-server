@@ -21,6 +21,7 @@ import (
 	"compress/zlib"
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -316,7 +317,7 @@ func TestFleetStoreUsed(t *testing.T) {
 		called = true
 		wr := zlib.NewWriter(w)
 		defer wr.Close()
-		wr.Write([]byte(test.ValidSourcemap))
+		wr.Write([]byte(fmt.Sprintf(`{"sourceMap":%s}`, test.ValidSourcemap)))
 	}))
 	defer ts.Close()
 
