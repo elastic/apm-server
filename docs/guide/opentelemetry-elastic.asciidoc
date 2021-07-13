@@ -365,10 +365,10 @@ exporters:
     loglevel: debug
   otlp/elastic:
     # Elastic APM server https endpoint without the "https://" prefix
-    endpoint: "${ELASTIC_OTLP_ENDPOINT}"
+    endpoint: "${ELASTIC_OTLP_ENDPOINT}" <1>
     headers:
       # Elastic APM Server secret token
-      Authorization: "Bearer ${ELASTIC_OTLP_TOKEN}"
+      Authorization: "Bearer ${ELASTIC_OTLP_TOKEN}" <1>
 
 service:
   pipelines:
@@ -379,8 +379,7 @@ service:
       receivers: [otlp]
       exporters: [logging, otlp/elastic]
 ----
-
-* Note that in the `opentelemetry-collector.yaml` example above, the environment specific configuration parameters are conviniently passed  as environment variables: `ELASTIC_OTLP_ENDPOINT` and `ELASTIC_OTLP_TOKEN`.
+<1> Environment-specific configuration parameters can be conveniently passed in as environment variables: `ELASTIC_OTLP_ENDPOINT` and `ELASTIC_OTLP_TOKEN`
 
 * Configure the AWS Lambda Java function with:
 ** https://docs.aws.amazon.com/lambda/latest/dg/API_Layer.html[Function
