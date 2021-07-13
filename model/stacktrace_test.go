@@ -20,23 +20,37 @@ package model
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/apm-server/transform"
 )
 
 func TestStacktraceTransform(t *testing.T) {
-	colno := 1
-	l4, l5, l6, l8 := 4, 5, 6, 8
-	fct := "original function"
-	origFilename, webpackFilename := "original filename", "/webpack"
-	absPath, serviceName := "original path", "service1"
-	service := Service{Name: serviceName}
+	originalLineno := 111
+	originalColno := 222
+	originalFunction := "original function"
+	originalFilename := "original filename"
+	originalModule := "original module"
+	originalClassname := "original classname"
+	originalAbsPath := "original path"
+
+	mappedLineno := 333
+	mappedColno := 444
+	mappedFunction := "mapped function"
+	mappedFilename := "mapped filename"
+	mappedClassname := "mapped classname"
+	mappedAbsPath := "mapped path"
+
+	vars := common.MapStr{"a": "abc", "b": 123}
+
+	contextLine := "context line"
+	preContext := []string{"before1", "before2"}
+	postContext := []string{"after1", "after2"}
 
 	tests := []struct {
 		Stacktrace Stacktrace
@@ -54,214 +68,265 @@ func TestStacktraceTransform(t *testing.T) {
 			Msg:        "Stacktrace with empty Frame",
 		},
 		{
-			Stacktrace: Stacktrace{
-				&StacktraceFrame{
-					Colno:    &colno,
-					Lineno:   &l4,
-					Filename: origFilename,
-					Function: fct,
-					AbsPath:  absPath,
+			Stacktrace: Stacktrace{{
+				Colno:        &originalColno,
+				Lineno:       &originalLineno,
+				Filename:     originalFilename,
+				Function:     originalFunction,
+				Classname:    originalClassname,
+				Module:       originalModule,
+				AbsPath:      originalAbsPath,
+				LibraryFrame: newBool(true),
+				Vars:         vars,
+			}},
+			Output: []common.MapStr{{
+				"abs_path":  "original path",
+				"filename":  "original filename",
+				"function":  "original function",
+				"classname": "original classname",
+				"module":    "original module",
+				"line": common.MapStr{
+					"number": 111,
+					"column": 222,
 				},
-				&StacktraceFrame{Colno: &colno, Lineno: &l6, Function: fct, AbsPath: absPath},
-				&StacktraceFrame{Colno: &colno, Lineno: &l8, Function: fct, AbsPath: absPath},
-				&StacktraceFrame{
-					Colno:    &colno,
-					Lineno:   &l5,
-					Filename: origFilename,
-					Function: fct,
-					AbsPath:  absPath,
+				"exclude_from_grouping": false,
+				"library_frame":         true,
+				"vars":                  vars,
+			}},
+			Msg: "unmapped stacktrace",
+		},
+		{
+			Stacktrace: Stacktrace{{
+				Colno:     &mappedColno,
+				Lineno:    &mappedLineno,
+				Filename:  mappedFilename,
+				Function:  mappedFunction,
+				Classname: mappedClassname,
+				AbsPath:   mappedAbsPath,
+				Original: Original{
+					Colno:     &originalColno,
+					Lineno:    &originalLineno,
+					Filename:  originalFilename,
+					Function:  originalFunction,
+					Classname: originalClassname,
+					AbsPath:   originalAbsPath,
 				},
-				&StacktraceFrame{
-					Colno:    &colno,
-					Lineno:   &l4,
-					Filename: webpackFilename,
-					AbsPath:  absPath,
+				ExcludeFromGrouping: true,
+				SourcemapUpdated:    true,
+				SourcemapError:      "boom",
+				ContextLine:         contextLine,
+				PreContext:          preContext,
+				PostContext:         postContext,
+			}},
+			Output: []common.MapStr{{
+				"abs_path":  "mapped path",
+				"filename":  "mapped filename",
+				"function":  "mapped function",
+				"classname": "mapped classname",
+				"line": common.MapStr{
+					"number":  333,
+					"column":  444,
+					"context": "context line",
 				},
-			},
-			Output: []common.MapStr{
-				{
-					"abs_path": "original path", "filename": "original filename", "function": "original function",
-					"line":                  common.MapStr{"column": 1, "number": 4},
-					"exclude_from_grouping": false,
+				"context": common.MapStr{
+					"pre":  preContext,
+					"post": postContext,
 				},
-				{
-					"abs_path": "original path", "function": "original function",
-					"line":                  common.MapStr{"column": 1, "number": 6},
-					"exclude_from_grouping": false,
+				"original": common.MapStr{
+					"abs_path":  "original path",
+					"filename":  "original filename",
+					"function":  "original function",
+					"classname": "original classname",
+					"lineno":    111,
+					"colno":     222,
 				},
-				{
-					"abs_path": "original path", "function": "original function",
-					"line":                  common.MapStr{"column": 1, "number": 8},
-					"exclude_from_grouping": false,
+				"exclude_from_grouping": true,
+				"sourcemap": common.MapStr{
+					"updated": true,
+					"error":   "boom",
 				},
-				{
-					"abs_path": "original path", "filename": "original filename", "function": "original function",
-					"line":                  common.MapStr{"column": 1, "number": 5},
-					"exclude_from_grouping": false,
-				},
-				{
-					"abs_path": "original path", "filename": "/webpack",
-					"line":                  common.MapStr{"column": 1, "number": 4},
-					"exclude_from_grouping": false,
-				},
-			},
-			Msg: "Stacktrace with sourcemapping",
+			}},
+			Msg: "mapped stacktrace",
 		},
 	}
 
 	for idx, test := range tests {
-		output := test.Stacktrace.transform(context.Background(), &transform.Config{}, false, &service)
+		output := test.Stacktrace.transform(context.Background(), &transform.Config{}, false)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
 
-func TestStacktraceTransformWithSourcemapping(t *testing.T) {
-	int1, int6, int7, int67 := 1, 6, 7, 67
-	fct1, fct2 := "function foo", "function bar"
-	absPath, serviceName, serviceVersion := "/../a/c", "service1", "2.4.1"
-	origFilename, appliedFilename := "original filename", "myfilename"
-	service := Service{Name: serviceName, Version: serviceVersion}
+func TestStacktraceFrameIsLibraryFrame(t *testing.T) {
+	assert.False(t, (&StacktraceFrame{}).IsLibraryFrame())
+	assert.False(t, (&StacktraceFrame{LibraryFrame: new(bool)}).IsLibraryFrame())
+	libFrame := true
+	assert.True(t, (&StacktraceFrame{LibraryFrame: &libFrame}).IsLibraryFrame())
+}
 
-	for name, tc := range map[string]struct {
-		Stacktrace Stacktrace
-		Output     []common.MapStr
-		Msg        string
+func TestStacktraceFrameExcludeFromGroupingKey(t *testing.T) {
+	tests := []struct {
+		fr      StacktraceFrame
+		pattern string
+		exclude bool
 	}{
-		"emptyStacktrace": {
-			Stacktrace: Stacktrace{},
-			Output:     nil,
+		{
+			fr:      StacktraceFrame{},
+			pattern: "",
+			exclude: false,
 		},
-		"emptyFrame": {
-			Stacktrace: Stacktrace{&StacktraceFrame{}},
-			Output: []common.MapStr{
-				{"exclude_from_grouping": false,
-					"sourcemap": common.MapStr{
-						"error":   "Colno mandatory for sourcemapping.",
-						"updated": false,
-					},
-				},
-			},
+		{
+			fr:      StacktraceFrame{Filename: "/webpack"},
+			pattern: "",
+			exclude: false,
 		},
-		"noLineno": {
-			Stacktrace: Stacktrace{&StacktraceFrame{Colno: &int1}},
-			Output: []common.MapStr{
-				{"line": common.MapStr{"column": 1},
-					"exclude_from_grouping": false,
-					"sourcemap": common.MapStr{
-						"error":   "Lineno mandatory for sourcemapping.",
-						"updated": false,
-					},
-				},
-			},
+		{
+			fr:      StacktraceFrame{Filename: "/webpack"},
+			pattern: "/webpack/tmp",
+			exclude: false,
 		},
-		"sourcemapApplied": {
-			Stacktrace: Stacktrace{
-				&StacktraceFrame{
-					Colno:    &int7,
-					Lineno:   &int1,
-					Filename: origFilename,
-					Function: fct1,
-					AbsPath:  absPath,
-				},
-				&StacktraceFrame{
-					Colno:    &int67,
-					Lineno:   &int1,
-					Filename: appliedFilename,
-					Function: fct2,
-					AbsPath:  absPath,
-				},
-				&StacktraceFrame{
-					Colno:    &int7,
-					Lineno:   &int1,
-					Filename: appliedFilename,
-					Function: fct2,
-					AbsPath:  absPath,
-				},
-				&StacktraceFrame{Colno: &int1, Lineno: &int6, Function: fct2, AbsPath: absPath},
-			},
-			Output: []common.MapStr{
-				{
-					"abs_path": "/a/c",
-					"filename": "webpack:///bundle.js",
-					"function": "exports",
-					"context": common.MapStr{
-						"post": []string{"/******/ \t// The module cache", "/******/ \tvar installedModules = {};", "/******/", "/******/ \t// The require function", "/******/ \tfunction __webpack_require__(moduleId) {"}},
-					"line": common.MapStr{
-						"column":  9,
-						"number":  1,
-						"context": "/******/ (function(modules) { // webpackBootstrap"},
-					"exclude_from_grouping": false,
-					"sourcemap":             common.MapStr{"updated": true},
-					"original": common.MapStr{
-						"abs_path": "/../a/c",
-						"colno":    7,
-						"filename": "original filename",
-						"function": "function foo",
-						"lineno":   1,
-					},
-				},
-				{
-					"abs_path": "/a/c",
-					"filename": "myfilename",
-					"function": "<unknown>", //prev function
-					"context": common.MapStr{
-						"post": []string{" \t\t\tid: moduleId,", " \t\t\tloaded: false", " \t\t};", "", " \t\t// Execute the module function"},
-						"pre":  []string{" \t\tif(installedModules[moduleId])", " \t\t\treturn installedModules[moduleId].exports;", "", " \t\t// Create a new module (and put it into the cache)", " \t\tvar module = installedModules[moduleId] = {"}},
-					"line": common.MapStr{
-						"column":  0,
-						"number":  13,
-						"context": " \t\t\texports: {},"},
-					"exclude_from_grouping": false,
-					"sourcemap":             common.MapStr{"updated": true},
-					"original": common.MapStr{
-						"abs_path": "/../a/c",
-						"colno":    67,
-						"filename": "myfilename",
-						"function": "function bar",
-						"lineno":   1,
-					},
-				},
-				{
-					"abs_path": "/a/c",
-					"filename": "webpack:///bundle.js",
-					"function": "<anonymous>", //prev function
-					"context": common.MapStr{
-						"post": []string{"/******/ \t// The module cache", "/******/ \tvar installedModules = {};", "/******/", "/******/ \t// The require function", "/******/ \tfunction __webpack_require__(moduleId) {"}},
-					"line": common.MapStr{
-						"column":  9,
-						"number":  1,
-						"context": "/******/ (function(modules) { // webpackBootstrap"},
-					"exclude_from_grouping": false,
-					"sourcemap":             common.MapStr{"updated": true},
-					"original": common.MapStr{
-						"abs_path": "/../a/c",
-						"colno":    7,
-						"filename": "myfilename",
-						"function": "function bar",
-						"lineno":   1,
-					},
-				},
-				{
-					"abs_path":              "/../a/c",
-					"function":              fct2,
-					"line":                  common.MapStr{"column": 1, "number": 6},
-					"exclude_from_grouping": false,
-					"sourcemap":             common.MapStr{"updated": false, "error": "No Sourcemap found for Lineno 6, Colno 1"},
-				},
-			},
+		{
+			fr:      StacktraceFrame{Filename: ""},
+			pattern: "^/webpack",
+			exclude: false,
 		},
-	} {
-		t.Run(name, func(t *testing.T) {
-			cfg := &transform.Config{
-				RUM: transform.RUMConfig{
-					SourcemapStore: testSourcemapStore(t, test.ESClientWithValidSourcemap(t)),
-				},
-			}
-
-			// run `Stacktrace.transform` twice to ensure method is idempotent
-			tc.Stacktrace.transform(context.Background(), cfg, true, &service)
-			output := tc.Stacktrace.transform(context.Background(), cfg, true, &service)
-			assert.Equal(t, tc.Output, output)
-		})
+		{
+			fr:      StacktraceFrame{Filename: "/webpack"},
+			pattern: "^/webpack",
+			exclude: true,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "/webpack/test/e2e/general-usecase/app.e2e-bundle.js"},
+			pattern: "^/webpack",
+			exclude: true,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "/filename"},
+			pattern: "^/webpack",
+			exclude: false,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "/filename/a"},
+			pattern: "^/webpack",
+			exclude: false,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "webpack"},
+			pattern: "^/webpack",
+			exclude: false,
+		},
 	}
+
+	for idx, test := range tests {
+		var excludePattern *regexp.Regexp
+		if test.pattern != "" {
+			excludePattern = regexp.MustCompile(test.pattern)
+		}
+
+		out := test.fr.transform(&transform.Config{
+			RUM: transform.RUMConfig{ExcludeFromGrouping: excludePattern},
+		}, true)
+		exclude := out["exclude_from_grouping"]
+		message := fmt.Sprintf(
+			"(%v): Pattern: %v, Filename: %v, expected to be excluded: %v",
+			idx, test.pattern, test.fr.Filename, test.exclude,
+		)
+		assert.Equal(t, test.exclude, exclude, message)
+	}
+}
+
+func TestStacktraceFrameLibraryFrame(t *testing.T) {
+	path := "/~/a/b"
+	tests := []struct {
+		fr               StacktraceFrame
+		libraryPattern   *regexp.Regexp
+		libraryFrame     *bool
+		origLibraryFrame *bool
+		msg              string
+	}{
+		{fr: StacktraceFrame{},
+			libraryFrame:     nil,
+			origLibraryFrame: nil,
+			msg:              "Empty StacktraceFrame, empty config"},
+		{fr: StacktraceFrame{AbsPath: path},
+			libraryFrame:     nil,
+			origLibraryFrame: nil,
+			msg:              "No pattern"},
+		{fr: StacktraceFrame{AbsPath: path},
+			libraryPattern:   regexp.MustCompile(""),
+			libraryFrame:     newBool(true),
+			origLibraryFrame: nil,
+			msg:              "Empty pattern"},
+		{fr: StacktraceFrame{LibraryFrame: newBool(false)},
+			libraryPattern:   regexp.MustCompile("~"),
+			libraryFrame:     newBool(false),
+			origLibraryFrame: newBool(false),
+			msg:              "Empty StacktraceFrame"},
+		{fr: StacktraceFrame{AbsPath: path, LibraryFrame: newBool(true)},
+			libraryPattern:   regexp.MustCompile("^~/"),
+			libraryFrame:     newBool(false),
+			origLibraryFrame: newBool(true),
+			msg:              "AbsPath given, no Match"},
+		{fr: StacktraceFrame{Filename: "myFile.js", LibraryFrame: newBool(true)},
+			libraryPattern:   regexp.MustCompile("^~/"),
+			libraryFrame:     newBool(false),
+			origLibraryFrame: newBool(true),
+			msg:              "Filename given, no Match"},
+		{fr: StacktraceFrame{AbsPath: path, Filename: "myFile.js"},
+			libraryPattern:   regexp.MustCompile("^~/"),
+			libraryFrame:     newBool(false),
+			origLibraryFrame: nil,
+			msg:              "AbsPath and Filename given, no Match"},
+		{fr: StacktraceFrame{Filename: "/tmp"},
+			libraryPattern:   regexp.MustCompile("/tmp"),
+			libraryFrame:     newBool(true),
+			origLibraryFrame: nil,
+			msg:              "Filename matching"},
+		{fr: StacktraceFrame{AbsPath: path, LibraryFrame: newBool(false)},
+			libraryPattern:   regexp.MustCompile("~/"),
+			libraryFrame:     newBool(true),
+			origLibraryFrame: newBool(false),
+			msg:              "AbsPath matching"},
+		{fr: StacktraceFrame{AbsPath: path, Filename: "/a/b/c"},
+			libraryPattern:   regexp.MustCompile("~/"),
+			libraryFrame:     newBool(true),
+			origLibraryFrame: nil,
+			msg:              "AbsPath matching, Filename not matching"},
+		{fr: StacktraceFrame{AbsPath: path, Filename: "/a/b/c"},
+			libraryPattern:   regexp.MustCompile("/a/b/c"),
+			libraryFrame:     newBool(true),
+			origLibraryFrame: nil,
+			msg:              "AbsPath not matching, Filename matching"},
+		{fr: StacktraceFrame{AbsPath: path, Filename: "~/a/b/c"},
+			libraryPattern:   regexp.MustCompile("~/"),
+			libraryFrame:     newBool(true),
+			origLibraryFrame: nil,
+			msg:              "AbsPath and Filename matching"},
+	}
+
+	for _, test := range tests {
+		cfg := transform.Config{
+			RUM: transform.RUMConfig{
+				LibraryPattern: test.libraryPattern,
+			},
+		}
+		out := test.fr.transform(&cfg, true)["library_frame"]
+		libFrame := test.fr.LibraryFrame
+		origLibFrame := test.fr.Original.LibraryFrame
+		if test.libraryFrame == nil {
+			assert.Nil(t, out, test.msg)
+			assert.Nil(t, libFrame, test.msg)
+		} else {
+			assert.Equal(t, *test.libraryFrame, out, test.msg)
+			assert.Equal(t, *test.libraryFrame, *libFrame, test.msg)
+		}
+		if test.origLibraryFrame == nil {
+			assert.Nil(t, origLibFrame, test.msg)
+		} else {
+			assert.Equal(t, *test.origLibraryFrame, *origLibFrame, test.msg)
+		}
+	}
+}
+
+func newBool(v bool) *bool {
+	return &v
 }

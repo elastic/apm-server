@@ -234,6 +234,7 @@ func TestConcurrentFetch(t *testing.T) {
 			version = "1.0.0"
 			path    = "/my/path/to/bundle.js.map"
 			c       = http.DefaultClient
+			res     = fmt.Sprintf(`{"sourceMap":%s}`, test.ValidSourcemap)
 
 			errsLeft = tc.errWant
 		)
@@ -249,7 +250,7 @@ func TestConcurrentFetch(t *testing.T) {
 			}
 			wr := zlib.NewWriter(w)
 			defer wr.Close()
-			wr.Write([]byte(test.ValidSourcemap))
+			wr.Write([]byte(res))
 		}))
 		defer ts.Close()
 
@@ -308,7 +309,7 @@ func TestStore_Added(t *testing.T) {
 	assert.Equal(t, "", mapper.File())
 
 	// remove from cache, afterwards sourcemap should be fetched from ES
-	store.Added(context.Background(), name, version, path)
+	store.NotifyAdded(context.Background(), name, version, path)
 	mapper, err = store.Fetch(context.Background(), name, version, path)
 	require.NoError(t, err)
 	assert.NotNil(t, &sourcemap.Consumer{}, mapper)

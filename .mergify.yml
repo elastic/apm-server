@@ -17,7 +17,7 @@ pull_request_rules:
     conditions:
       - merged
       - base=master
-      - label=v7.15.0
+      - label=backport-7.x
     actions:
       backport:
         assignees:
@@ -29,7 +29,7 @@ pull_request_rules:
     conditions:
       - merged
       - base=master
-      - label=v7.14.0
+      - label=backport-7.14
     actions:
       backport:
         assignees:
@@ -41,25 +41,13 @@ pull_request_rules:
     conditions:
       - merged
       - base=master
-      - label=v7.13.0
+      - label=backport-7.13
     actions:
       backport:
         assignees:
           - "{{ author }}"
         branches:
           - "7.13"
-        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
-  - name: backport patches to 7.12 branch
-    conditions:
-      - merged
-      - base=master
-      - label=v7.12.0
-    actions:
-      backport:
-        assignees:
-          - "{{ author }}"
-        branches:
-          - "7.12"
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
   - name: Automatic squash and merge with success checks and the file docker-compose.yml is modified.
     conditions:

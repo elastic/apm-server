@@ -21,6 +21,7 @@ import (
 	"compress/zlib"
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -252,10 +253,9 @@ func TestTransformConfigIndex(t *testing.T) {
 			cfg.RumConfig.SourceMapping.IndexPattern = indexPattern
 		}
 
-		transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg, nil)
+		store, err := newSourcemapStore(beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, nil)
 		require.NoError(t, err)
-		require.NotNil(t, transformConfig.RUM.SourcemapStore)
-		transformConfig.RUM.SourcemapStore.Added(context.Background(), "name", "version", "path")
+		store.NotifyAdded(context.Background(), "name", "version", "path")
 		require.Len(t, requestPaths, 1)
 
 		path := requestPaths[0]
@@ -265,26 +265,6 @@ func TestTransformConfigIndex(t *testing.T) {
 	}
 	t.Run("default-pattern", func(t *testing.T) { test(t, "", "apm-*-sourcemap*") })
 	t.Run("with-observer-version", func(t *testing.T) { test(t, "blah-%{[observer.version]}-blah", "blah-1.2.3-blah") })
-}
-
-func TestTransformConfig(t *testing.T) {
-	test := func(rumEnabled, sourcemapEnabled bool, expectSourcemapStore bool) {
-		cfg := config.DefaultConfig()
-		cfg.RumConfig.Enabled = rumEnabled
-		cfg.RumConfig.SourceMapping.Enabled = sourcemapEnabled
-		transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg, nil)
-		require.NoError(t, err)
-		if expectSourcemapStore {
-			assert.NotNil(t, transformConfig.RUM.SourcemapStore)
-		} else {
-			assert.Nil(t, transformConfig.RUM.SourcemapStore)
-		}
-	}
-
-	test(false, false, false)
-	test(false, true, false)
-	test(true, false, false)
-	test(true, true, true)
 }
 
 func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
@@ -301,11 +281,11 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	cfg.RumConfig.SourceMapping.ESConfig = elasticsearch.DefaultConfig()
 	cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{ts.URL}
 
-	transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg, nil)
+	store, err := newSourcemapStore(beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, nil)
 	require.NoError(t, err)
 	// Check that the provided rum elasticsearch config was used and
 	// Fetch() goes to the test server.
-	_, err = transformConfig.RUM.SourcemapStore.Fetch(context.Background(), "app", "1.0", "/bundle/path")
+	_, err = store.Fetch(context.Background(), "app", "1.0", "/bundle/path")
 	require.NoError(t, err)
 
 	assert.True(t, called)
@@ -317,7 +297,7 @@ func TestFleetStoreUsed(t *testing.T) {
 		called = true
 		wr := zlib.NewWriter(w)
 		defer wr.Close()
-		wr.Write([]byte(test.ValidSourcemap))
+		wr.Write([]byte(fmt.Sprintf(`{"sourceMap":%s}`, test.ValidSourcemap)))
 	}))
 	defer ts.Close()
 
@@ -338,11 +318,9 @@ func TestFleetStoreUsed(t *testing.T) {
 		TLS:          nil,
 	}
 
-	transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg, fleetCfg)
+	store, err := newSourcemapStore(beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, fleetCfg)
 	require.NoError(t, err)
-	// Check that the provided rum elasticsearch config was used and
-	// Fetch() goes to the test server.
-	_, err = transformConfig.RUM.SourcemapStore.Fetch(context.Background(), "app", "1.0", "/bundle/path")
+	_, err = store.Fetch(context.Background(), "app", "1.0", "/bundle/path")
 	require.NoError(t, err)
 
 	assert.True(t, called)

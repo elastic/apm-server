@@ -38,4 +38,3 @@
         timeout: '15'
         use-author: true
         wipe-workspace: 'True'
-    periodic-folder-trigger: 1w

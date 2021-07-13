@@ -22,8 +22,6 @@ import (
 	"regexp"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-
-	"github.com/elastic/apm-server/sourcemap"
 )
 
 // Transformable is an interface implemented by all top-level model objects for
@@ -45,5 +43,4 @@ type Config struct {
 type RUMConfig struct {
 	LibraryPattern      *regexp.Regexp
 	ExcludeFromGrouping *regexp.Regexp
-	SourcemapStore      *sourcemap.Store
 }

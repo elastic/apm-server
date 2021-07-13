@@ -23,10 +23,8 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -54,13 +52,6 @@ func (pa *Sourcemap) Transform(ctx context.Context, cfg *transform.Config) []bea
 	if pa == nil {
 		return nil
 	}
-
-	if cfg.RUM.SourcemapStore == nil {
-		logp.NewLogger(logs.Sourcemap).Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
-	} else {
-		cfg.RUM.SourcemapStore.Added(ctx, pa.ServiceName, pa.ServiceVersion, pa.BundleFilepath)
-	}
-
 	ev := beat.Event{
 		Fields: common.MapStr{
 			"processor": sourcemapProcessorEntry,

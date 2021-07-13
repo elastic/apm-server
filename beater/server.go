@@ -42,6 +42,7 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/sourcemap"
 )
 
 // RunServerFunc is a function which runs the APM Server until a
@@ -69,6 +70,10 @@ type ServerParams struct {
 	// for self-instrumentation.
 	Tracer *apm.Tracer
 
+	// SourcemapStore holds a sourcemap.Store, or nil if source
+	// mapping is disabled.
+	SourcemapStore *sourcemap.Store
+
 	// BatchProcessor is the model.BatchProcessor that is used
 	// for publishing events to the output, such as Elasticsearch.
 	BatchProcessor model.BatchProcessor
@@ -84,7 +89,15 @@ type ServerParams struct {
 // should remove the reporter parameter.
 func newBaseRunServer(reporter publish.Reporter) RunServerFunc {
 	return func(ctx context.Context, args ServerParams) error {
-		srv, err := newServer(args.Logger, args.Info, args.Config, args.Tracer, reporter, args.BatchProcessor)
+		srv, err := newServer(
+			args.Logger,
+			args.Info,
+			args.Config,
+			args.Tracer,
+			reporter,
+			args.SourcemapStore,
+			args.BatchProcessor,
+		)
 		if err != nil {
 			return err
 		}
@@ -118,6 +131,7 @@ func newServer(
 	cfg *config.Config,
 	tracer *apm.Tracer,
 	reporter publish.Reporter,
+	sourcemapStore *sourcemap.Store,
 	batchProcessor model.BatchProcessor,
 ) (server, error) {
 	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor, 30*time.Second)
@@ -129,7 +143,9 @@ func newServer(
 	if err != nil {
 		return server{}, err
 	}
-	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor, agentcfgFetchReporter, ratelimitStore)
+	httpServer, err := newHTTPServer(
+		logger, info, cfg, tracer, reporter, batchProcessor, agentcfgFetchReporter, ratelimitStore, sourcemapStore,
+	)
 	if err != nil {
 		return server{}, err
 	}
