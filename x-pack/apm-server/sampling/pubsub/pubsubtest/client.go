@@ -106,26 +106,34 @@ func (rt *channelClientRoundTripper) RoundTrip(r *http.Request) (*http.Response,
 	var handler func(*http.Request, *httptest.ResponseRecorder) error
 	switch r.Method {
 	case "GET":
-		if strings.HasSuffix(r.URL.Path, "/_stats/get") {
+		if r.URL.Path == "testing.invalid/" {
+			handler = rt.roundTripProductCheck
+		} else if strings.HasSuffix(r.URL.Path, "/_stats/get") {
 			handler = rt.roundTripStats
-		} else if strings.HasSuffix(r.URL.Path, "/_search") {
-			handler = rt.roundTripSearch
 		}
 	case "POST":
 		if strings.HasSuffix(r.URL.Path, "/_refresh") {
 			handler = rt.roundTripRefreshIndices
 		} else if strings.HasSuffix(r.URL.Path, "/_bulk") {
 			handler = rt.roundTripBulk
+		} else if strings.HasSuffix(r.URL.Path, "/_search") {
+			handler = rt.roundTripSearch
 		}
 	}
 	if handler == nil {
-		panic(fmt.Errorf("unhandled path %q", r.URL.Path))
+		panic(fmt.Errorf("unhandled path %q %q", r.Method, r.URL.Path))
 	}
 	recorder := httptest.NewRecorder()
 	if err := handler(r, recorder); err != nil {
 		return nil, err
 	}
 	return recorder.Result(), nil
+}
+
+// go-elasticsearch implements a product check starting with v7.14
+func (rt *channelClientRoundTripper) roundTripProductCheck(r *http.Request, recorder *httptest.ResponseRecorder) error {
+	recorder.Header().Set("X-Elastic-Product", "Elasticsearch")
+	return nil
 }
 
 func (rt *channelClientRoundTripper) roundTripStats(r *http.Request, recorder *httptest.ResponseRecorder) error {
