@@ -22,6 +22,7 @@ import (
 	"net/url"
 
 	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/systemtest/fleettest"
 )
 
 const (
@@ -29,9 +30,14 @@ const (
 	adminKibanaPass = adminElasticsearchPass
 )
 
-// KibanaURL is the base URL for Kibana, including userinfo for
-// authenticating as the admin user.
-var KibanaURL *url.URL
+var (
+	// KibanaURL is the base URL for Kibana, including userinfo for
+	// authenticating as the admin user.
+	KibanaURL *url.URL
+
+	// Fleet is a Fleet API client for use in tests.
+	Fleet *fleettest.Client
+)
 
 func init() {
 	kibanaConfig := apmservertest.DefaultConfig().Kibana
@@ -41,4 +47,5 @@ func init() {
 	}
 	u.User = url.UserPassword(adminKibanaUser, adminKibanaPass)
 	KibanaURL = u
+	Fleet = fleettest.NewClient(KibanaURL.String())
 }

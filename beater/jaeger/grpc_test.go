@@ -37,6 +37,7 @@ import (
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/beatertest"
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/kibana/kibanatest"
 )
 
@@ -153,8 +154,14 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 			tc.setup()
 			params := &api_v2.SamplingStrategyParameters{ServiceName: "serviceA"}
 
+			authenticator, err := auth.NewAuthenticator(config.AgentAuth{
+				Anonymous: config.AnonymousAgentAuth{Enabled: true},
+			})
+			require.NoError(t, err)
 			ctx := context.Background()
-			ctx = auth.ContextWithAuthorizer(ctx, auth.AnonymousAuth{})
+			_, authz, err := authenticator.Authenticate(ctx, "", "")
+			require.NoError(t, err)
+			ctx = auth.ContextWithAuthorizer(ctx, authz)
 			resp, err := tc.sampler.GetSamplingStrategy(ctx, params)
 
 			// assert sampling response

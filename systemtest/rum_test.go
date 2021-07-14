@@ -90,16 +90,17 @@ func TestRUMAllowServiceNames(t *testing.T) {
 	defer resp.Body.Close()
 
 	respBody, _ := ioutil.ReadAll(resp.Body)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, string(respBody))
-	assert.Equal(t, `{"accepted":0,"errors":[{"message":"service name is not allowed"}]}`+"\n", string(respBody))
+	assert.Equal(t, http.StatusForbidden, resp.StatusCode, string(respBody))
+	assert.Equal(t, `{"accepted":0,"errors":[{"message":"unauthorized: anonymous access not permitted for service \"disallowed\""}]}`+"\n", string(respBody))
 }
 
 func TestRUMRateLimit(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.AgentAuth.SecretToken = "abc123" // enable auth & rate limiting
-	srv.Config.RUM = &apmservertest.RUMConfig{
+	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	srv.Config.AgentAuth.Anonymous = &apmservertest.AnonymousAuthConfig{
 		Enabled: true,
-		RateLimit: &apmservertest.RUMRateLimitConfig{
+		RateLimit: &apmservertest.RateLimitConfig{
 			IPLimit: 2,
 
 			// Set the event limit to less than 10 (the batch size)
@@ -133,12 +134,12 @@ func TestRUMRateLimit(t *testing.T) {
 
 	// The configured event rate limit is multiplied by 3 for the initial burst. Check that
 	// for the configured IP limit (2), we can handle 3*event_limit without being rate limited.
-	err = sendEvents("10.11.12.13", 3*srv.Config.RUM.RateLimit.EventLimit)
+	err = sendEvents("10.11.12.13", 3*srv.Config.AgentAuth.Anonymous.RateLimit.EventLimit)
 	assert.NoError(t, err)
 
 	// Sending the events over multiple requests should have the same outcome.
 	for i := 0; i < 3; i++ {
-		err = sendEvents("10.11.12.14", srv.Config.RUM.RateLimit.EventLimit)
+		err = sendEvents("10.11.12.14", srv.Config.AgentAuth.Anonymous.RateLimit.EventLimit)
 		assert.NoError(t, err)
 	}
 
