@@ -75,7 +75,9 @@ pipeline {
               "^tests/packaging.*",
               "^vendor/github.com/elastic/beats.*"
             ]
-            setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
+            withGoEnv(){
+              setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
+            }
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
             // Skip all the stages except docs for PR's with asciidoc changes only
             whenTrue(isPR()) {
