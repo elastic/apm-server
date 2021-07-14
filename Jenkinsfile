@@ -55,7 +55,6 @@ pipeline {
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
       }
       options { skipDefaultCheckout() }
       steps {
@@ -66,7 +65,6 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
           dir("${BASE_DIR}"){
-            env.GO_VERSION = readFile(".go-version").trim()
             def regexps =[
               "^_beats.*",
               "^apm-server.yml",
@@ -77,7 +75,9 @@ pipeline {
               "^tests/packaging.*",
               "^vendor/github.com/elastic/beats.*"
             ]
-            setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
+            withGoEnv(){
+              setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
+            }
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
             // Skip all the stages except docs for PR's with asciidoc changes only
             whenTrue(isPR()) {
@@ -99,7 +99,6 @@ pipeline {
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
       }
       when {
         beforeAgent true
@@ -113,7 +112,9 @@ pipeline {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
-            sh(label: 'Run intake', script: './.ci/scripts/intake.sh')
+            withGoEnv(){
+              sh(label: 'Run intake', script: './.ci/scripts/intake.sh')
+            }
           }
         }
       }
@@ -137,8 +138,8 @@ pipeline {
             withGithubNotify(context: 'Build - Linux') {
               deleteDir()
               unstash 'source'
-              withMageEnv(){
-                dir(BASE_DIR){
+              dir(BASE_DIR){
+                withMageEnv(){
                   retry(2) { // Retry in case there are any errors to avoid temporary glitches
                     sleep randomNumber(min: 5, max: 10)
                     sh(label: 'Linux build', script: './.ci/scripts/build.sh')
@@ -169,10 +170,12 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir(BASE_DIR){
-                retry(2) { // Retry in case there are any errors to avoid temporary glitches
-                  sleep randomNumber(min: 5, max: 10)
-                  powershell(label: 'Windows build', script: '.\\.ci\\scripts\\windows-build.ps1')
-                  powershell(label: 'Run Window tests', script: '.\\.ci\\scripts\\windows-test.ps1')
+                withMageEnv(){
+                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                    sleep randomNumber(min: 5, max: 10)
+                    powershell(label: 'Windows build', script: '.\\.ci\\scripts\\windows-build.ps1')
+                    powershell(label: 'Run Window tests', script: '.\\.ci\\scripts\\windows-test.ps1')
+                  }
                 }
               }
             }
@@ -209,10 +212,12 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir(BASE_DIR){
-                retry(2) { // Retry in case there are any errors to avoid temporary glitches
-                  sleep randomNumber(min: 5, max: 10)
-                  sh(label: 'OSX build', script: '.ci/scripts/build-darwin.sh')
-                  sh(label: 'Run Unit tests', script: '.ci/scripts/test-darwin.sh')
+                withMageEnv(){
+                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                    sleep randomNumber(min: 5, max: 10)
+                    sh(label: 'OSX build', script: '.ci/scripts/build-darwin.sh')
+                    sh(label: 'Run Unit tests', script: '.ci/scripts/test-darwin.sh')
+                  }
                 }
               }
             }
@@ -243,8 +248,8 @@ pipeline {
             withGithubNotify(context: 'Build-Test - ARM') {
               deleteDir()
               unstash 'source'
-              withGoEnv(version: "${env.GO_VERSION}"){
-                dir("${BASE_DIR}"){
+              dir("${BASE_DIR}"){
+                withMageEnv(){
                   sh(label: 'ARM build', script: '.ci/scripts/build.sh')
                   sh(label: 'ARM Unit tests', script: './.ci/scripts/unit-test.sh')
                 }
@@ -268,7 +273,6 @@ pipeline {
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
           }
           when {
             beforeAgent true
@@ -282,7 +286,9 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh(label: 'Run Unit tests', script: './.ci/scripts/unit-test.sh')
+                withMageEnv(){
+                  sh(label: 'Run Unit tests', script: './.ci/scripts/unit-test.sh')
+                }
               }
             }
           }
@@ -312,7 +318,6 @@ pipeline {
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
           }
           when {
             beforeAgent true
@@ -326,7 +331,9 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh(label: 'Run Linux tests', script: './.ci/scripts/linux-test.sh')
+                withMageEnv(){
+                  sh(label: 'Run Linux tests', script: './.ci/scripts/linux-test.sh')
+                }
               }
             }
           }
@@ -373,8 +380,8 @@ pipeline {
             withGithubNotify(context: 'Benchmarking') {
               deleteDir()
               unstash 'source'
-              withMageEnv(){
-                dir("${BASE_DIR}"){
+              dir("${BASE_DIR}"){
+                withMageEnv(){
                   sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                 }
               }
@@ -391,7 +398,6 @@ pipeline {
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
           }
           when {
             beforeAgent true
@@ -405,8 +411,10 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
-                  sh(label: 'Test Sync', script: './.ci/scripts/sync.sh')
+                withMageEnv(){
+                  catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
+                    sh(label: 'Test Sync', script: './.ci/scripts/sync.sh')
+                  }
                 }
               }
             }
@@ -423,9 +431,9 @@ pipeline {
             withGithubNotify(context: 'Hey-Apm') {
               deleteDir()
               unstash 'source'
-              withMageEnv(){
-                dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-                dir("${BASE_DIR}"){
+              dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
+              dir("${BASE_DIR}"){
+                withMageEnv(){
                   sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
                 }
               }
@@ -442,7 +450,6 @@ pipeline {
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
             SNAPSHOT = "true"
           }
           when {
@@ -466,8 +473,8 @@ pipeline {
                 withGithubNotify(context: 'Package') {
                   deleteDir()
                   unstash 'source'
-                  withMageEnv(){
-                    dir("${BASE_DIR}"){
+                  dir("${BASE_DIR}"){
+                    withMageEnv(){
                       sh(label: 'Build packages', script: './.ci/scripts/package.sh')
                       sh(label: 'Test packages install', script: './.ci/scripts/test-install-packages.sh')
                       dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
