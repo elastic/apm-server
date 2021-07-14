@@ -26,6 +26,11 @@
         },
         {
           "pipeline": {
+            "name": "apm_convert_destination_address"
+          }
+        },
+        {
+          "pipeline": {
             "name": "apm_error_grouping_name",
             "if": "ctx.processor?.event == 'error'"
           }
@@ -90,6 +95,23 @@
             "if": "ctx.processor?.event != 'span'",
             "field": "event.ingested",
             "value": "{{_ingest.timestamp}}"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "apm_convert_destination_address",
+    "body": {
+      "description": "Convert destination.address to an IP, storing in destination.ip",
+      "processors": [
+        {
+          "convert": {
+            "field": "destination.address",
+            "target_field": "destination.ip",
+            "type": "ip",
+            "ignore_missing": true,
+            "ignore_failure": true
           }
         }
       ]
