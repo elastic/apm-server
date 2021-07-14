@@ -19,7 +19,6 @@ package model
 
 import (
 	"context"
-	"net"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -168,9 +167,6 @@ func (d *Destination) fields() common.MapStr {
 	var fields mapStr
 	if d.Address != "" {
 		fields.set("address", d.Address)
-		if ip := net.ParseIP(d.Address); ip != nil {
-			fields.set("ip", d.Address)
-		}
 	}
 	if d.Port > 0 {
 		fields.set("port", d.Port)
