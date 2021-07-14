@@ -176,10 +176,7 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Span.appendBeatEvents(context.Background(), &transform.Config{
-			DataStreams: true,
-		}, nil)
-		fields := output[0].Fields
-		assert.Equal(t, test.Output, fields, test.Msg)
+		output := test.Span.toBeatEvent(context.Background(), &transform.Config{DataStreams: true})
+		assert.Equal(t, test.Output, output.Fields, test.Msg)
 	}
 }

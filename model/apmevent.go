@@ -28,13 +28,25 @@ import (
 //
 // Exactly one of the event fields should be non-nil.
 type APMEvent struct {
-	Transaction *Transaction
-	Span        *Span
-	Metricset   *Metricset
-	Error       *Error
-	Profile     *PprofProfile
+	Transaction   *Transaction
+	Span          *Span
+	Metricset     *Metricset
+	Error         *Error
+	ProfileSample *ProfileSample
 }
 
-func (e *APMEvent) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
-	return nil
+func (e *APMEvent) appendBeatEvent(ctx context.Context, cfg *transform.Config, out []beat.Event) []beat.Event {
+	switch {
+	case e.Transaction != nil:
+		out = append(out, e.Transaction.toBeatEvent(cfg))
+	case e.Span != nil:
+		out = append(out, e.Span.toBeatEvent(ctx, cfg))
+	case e.Metricset != nil:
+		out = append(out, e.Metricset.toBeatEvent(cfg))
+	case e.Error != nil:
+		out = append(out, e.Error.toBeatEvent(ctx, cfg))
+	case e.ProfileSample != nil:
+		out = append(out, e.ProfileSample.toBeatEvent(cfg))
+	}
+	return out
 }
