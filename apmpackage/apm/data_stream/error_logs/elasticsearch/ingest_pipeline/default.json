@@ -3,33 +3,38 @@
   "processors": [
     {
       "pipeline": {
-        "name": "logs-apm.error-0.3.0-apm_ingest_timestamp"
+        "name": "logs-apm.error-0.4.0-apm_ingest_timestamp"
       }
     },
     {
       "pipeline": {
-        "name": "logs-apm.error-0.3.0-apm_user_agent"
+        "name": "logs-apm.error-0.4.0-apm_user_agent"
       }
     },
     {
       "pipeline": {
-        "name": "logs-apm.error-0.3.0-apm_user_geo"
+        "name": "logs-apm.error-0.4.0-apm_user_geo"
       }
     },
     {
       "pipeline": {
-        "name": "logs-apm.error-0.3.0-apm_remove_span_metadata"
+        "name": "logs-apm.error-0.4.0-apm_remove_span_metadata"
       }
     },
     {
       "pipeline": {
-        "name": "logs-apm.error-0.3.0-apm_error_grouping_name",
+        "name": "logs-apm.error-0.4.0-apm_convert_destination_address"
+      }
+    },
+    {
+      "pipeline": {
+        "name": "logs-apm.error-0.4.0-apm_error_grouping_name",
         "if": "ctx.processor?.event == 'error'"
       }
     },
     {
       "pipeline": {
-        "name": "logs-apm.error-0.3.0-apm_metrics_dynamic_template",
+        "name": "logs-apm.error-0.4.0-apm_metrics_dynamic_template",
         "if": "ctx.processor?.event == 'metric'"
       }
     }

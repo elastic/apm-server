@@ -45,6 +45,10 @@ func TestAuth(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.AgentAuth.SecretToken = secretToken
 	srv.Config.AgentAuth.APIKey = &apmservertest.APIKeyAuthConfig{Enabled: true}
+	srv.Config.AgentAuth.Anonymous = &apmservertest.AnonymousAuthConfig{
+		Enabled:    true,
+		AllowAgent: []string{"apm-agent-js", "rum-js"},
+	}
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
 	err := srv.Start()
 	require.NoError(t, err)
@@ -85,10 +89,10 @@ func TestAuth(t *testing.T) {
 		}
 	})
 
-	eventsPayload, err := ioutil.ReadFile("../testdata/intake-v2/transactions.ndjson")
+	backendEventsPayload, err := ioutil.ReadFile("../testdata/intake-v2/transactions.ndjson")
 	require.NoError(t, err)
 	runWithMethods(t, "ingest", func(t *testing.T, apiKey string, headers http.Header) {
-		req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/events", bytes.NewReader(eventsPayload))
+		req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/events", bytes.NewReader(backendEventsPayload))
 		req.Header.Set("Content-Type", "application/x-ndjson")
 		copyHeaders(req.Header, headers)
 		resp, err := http.DefaultClient.Do(req)
@@ -96,7 +100,7 @@ func TestAuth(t *testing.T) {
 		defer resp.Body.Close()
 		body, _ := ioutil.ReadAll(resp.Body)
 		if len(headers) == 0 {
-			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode, string(body))
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode, string(body))
 		} else if apiKey == "sourcemap" || apiKey == "agentconfig" {
 			assert.Equal(t, http.StatusForbidden, resp.StatusCode, string(body))
 		} else {
@@ -115,7 +119,7 @@ func TestAuth(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		if len(headers) == 0 {
-			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 		} else if apiKey == "ingest" || apiKey == "agentconfig" {
 			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 		} else {
@@ -128,7 +132,6 @@ func TestAuth(t *testing.T) {
 	systemtest.CreateAgentConfig(t, "systemtest_service", "", "", settings)
 	completeSettings := `{"sanitize_field_names":"foo,bar,baz","transaction_sample_rate":"0.1"}`
 	anonymousSettings := `{"transaction_sample_rate":"0.1"}`
-
 	runWithMethods(t, "agentconfig", func(t *testing.T, apiKey string, headers http.Header) {
 		req, _ := http.NewRequest("GET", srv.URL+"/config/v1/agents", nil)
 		copyHeaders(req.Header, headers)
@@ -137,19 +140,23 @@ func TestAuth(t *testing.T) {
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
-		if len(headers) == 0 {
-			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
-		} else if apiKey == "ingest" || apiKey == "sourcemap" {
+		if apiKey == "ingest" || apiKey == "sourcemap" {
 			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 		} else {
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
 			body, _ := ioutil.ReadAll(resp.Body)
-			assert.Equal(t, completeSettings, strings.TrimSpace(string(body)))
+			if len(headers) == 0 {
+				// Anonymous auth succeeds because RUM is enabled, which
+				// auto enables anonymous auth. However, only a subset of
+				// the config is returned.
+				assert.Equal(t, anonymousSettings, strings.TrimSpace(string(body)))
+			} else {
+				assert.Equal(t, completeSettings, strings.TrimSpace(string(body)))
+			}
 		}
 	})
 
-	// RUM endpoints do not require auth, but if credentials are provided
-	// they will still be checked.
+	// RUM endpoints do not require auth, but if credentials are provided they will still be checked.
 	runWithMethods(t, "rum_agentconfig", func(t *testing.T, apiKey string, headers http.Header) {
 		req, _ := http.NewRequest("GET", srv.URL+"/config/v1/rum/agents", nil)
 		copyHeaders(req.Header, headers)
@@ -173,8 +180,10 @@ func TestAuth(t *testing.T) {
 			}
 		}
 	})
+	rumEventsPayload, err := ioutil.ReadFile("../testdata/intake-v2/transactions_spans_rum.ndjson")
+	require.NoError(t, err)
 	runWithMethods(t, "rum_ingest", func(t *testing.T, apiKey string, headers http.Header) {
-		req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/rum/events", bytes.NewReader(eventsPayload))
+		req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/rum/events", bytes.NewReader(rumEventsPayload))
 		req.Header.Set("Content-Type", "application/x-ndjson")
 		copyHeaders(req.Header, headers)
 		resp, err := http.DefaultClient.Do(req)

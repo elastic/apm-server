@@ -15,37 +15,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package systemtest
+package config
 
-import (
-	"log"
-	"net/url"
+// RateLimit holds configuration related to IP and event rate limiting.
+type RateLimit struct {
+	// EventLimit holds the event rate limit per IP, measured in
+	// events per second.
+	EventLimit int `config:"event_limit"`
 
-	"github.com/elastic/apm-server/systemtest/apmservertest"
-	"github.com/elastic/apm-server/systemtest/fleettest"
-)
-
-const (
-	adminKibanaUser = adminElasticsearchUser
-	adminKibanaPass = adminElasticsearchPass
-)
-
-var (
-	// KibanaURL is the base URL for Kibana, including userinfo for
-	// authenticating as the admin user.
-	KibanaURL *url.URL
-
-	// Fleet is a Fleet API client for use in tests.
-	Fleet *fleettest.Client
-)
-
-func init() {
-	kibanaConfig := apmservertest.DefaultConfig().Kibana
-	u, err := url.Parse(kibanaConfig.Host)
-	if err != nil {
-		log.Fatal(err)
-	}
-	u.User = url.UserPassword(adminKibanaUser, adminKibanaPass)
-	KibanaURL = u
-	Fleet = fleettest.NewClient(KibanaURL.String())
+	// IPLimit holds the maximum number of client IPs for which we
+	// will maintain a distinct event rate limit. Once this has been
+	// reached, clients will begin sharing rate limiters. This is
+	// done to avoid DDoS attacks.
+	IPLimit int `config:"ip_limit"`
 }

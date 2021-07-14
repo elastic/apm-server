@@ -27,5 +27,8 @@ func TestMain(m *testing.M) {
 	if err := StartStackContainers(); err != nil {
 		log.Fatal(err)
 	}
+	if err := Fleet.Setup(); err != nil {
+		log.Fatal(err)
+	}
 	os.Exit(m.Run())
 }
