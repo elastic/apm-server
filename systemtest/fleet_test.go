@@ -37,77 +37,11 @@ import (
 )
 
 func TestFleetIntegration(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-
-	fleet := fleettest.NewClient(systemtest.KibanaURL.String())
-	require.NoError(t, fleet.Setup())
-	cleanupFleet(t, fleet)
-	defer cleanupFleet(t, fleet)
-
-	agentPolicy, enrollmentAPIKey, err := fleet.CreateAgentPolicy("apm_systemtest", "default", "Agent policy for APM Server system tests")
-	require.NoError(t, err)
-
-	// Add the "apm" integration to the agent policy.
-	apmPackage := getAPMIntegrationPackage(t, fleet)
-	packagePolicy := fleettest.NewPackagePolicy(apmPackage, "apm", "default", agentPolicy.ID)
-	packagePolicy.Package.Name = apmPackage.Name
-	packagePolicy.Package.Version = apmPackage.Version
-	packagePolicy.Package.Title = apmPackage.Title
-	initAPMIntegrationPackagePolicyInputs(t, packagePolicy, apmPackage)
-
-	err = fleet.CreatePackagePolicy(packagePolicy)
-	require.NoError(t, err)
-
-	// Enroll an elastic-agent to run the APM integration.
-	agent, err := systemtest.NewUnstartedElasticAgentContainer()
-	require.NoError(t, err)
-	agent.FleetEnrollmentToken = enrollmentAPIKey.APIKey
-	defer agent.Close()
-
-	defer func() {
-		// Log the elastic-agent container output if the test fails.
-		if !t.Failed() {
-			return
-		}
-		if logs, err := agent.Logs(context.Background()); err == nil {
-			defer logs.Close()
-			if out, err := ioutil.ReadAll(logs); err == nil {
-				t.Logf("elastic-agent logs: %s", out)
-			}
-		}
-	}()
-
-	// Start elastic-agent with port 8200 exposed, and wait for the server to service
-	// healthcheck requests to port 8200.
-	agent.ExposedPorts = []string{"8200"}
-	agent.WaitingFor = wait.ForHTTP("/").WithPort("8200/tcp").WithStartupTimeout(5 * time.Minute)
-	err = agent.Start()
-	require.NoError(t, err)
-
-	// Elastic Agent has started apm-server. Connect to apm-server and send some data,
-	// and make sure it gets indexed into a data stream. We override the transport to
-	// set known metadata.
-	httpTransport, err := transport.NewHTTPTransport()
-	require.NoError(t, err)
-	origTransport := httpTransport.Client.Transport
-	httpTransport.Client.Transport = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
-		r.Header.Set("X-Real-Ip", "10.11.12.13")
-		return origTransport.RoundTrip(r)
-	})
-	httpTransport.SetServerURL(&url.URL{Scheme: "http", Host: agent.Addrs["8200"]})
-	tracer, err := apm.NewTracerOptions(apm.TracerOptions{
-		Transport: apmservertest.NewFilteringTransport(
-			httpTransport,
-			apmservertest.DefaultMetadataFilter{},
-		),
-	})
-	require.NoError(t, err)
-	defer tracer.Close()
-
-	tx := tracer.StartTransaction("name", "type")
+	apmIntegration := initAPMIntegration(t, nil)
+	tx := apmIntegration.Tracer.StartTransaction("name", "type")
 	tx.Duration = time.Second
 	tx.End()
-	tracer.Flush(nil)
+	apmIntegration.Tracer.Flush(nil)
 
 	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-*", nil)
 	systemtest.ApproveEvents(
@@ -119,39 +53,133 @@ func TestFleetIntegration(t *testing.T) {
 
 func TestFleetPackageNonMultiple(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
+	cleanupFleet(t, systemtest.Fleet)
+	defer cleanupFleet(t, systemtest.Fleet)
 
-	fleet := fleettest.NewClient(systemtest.KibanaURL.String())
-	require.NoError(t, fleet.Setup())
-	cleanupFleet(t, fleet)
-	defer cleanupFleet(t, fleet)
-
-	agentPolicy, _, err := fleet.CreateAgentPolicy("apm_systemtest", "default", "Agent policy for APM Server system tests")
+	agentPolicy, _, err := systemtest.Fleet.CreateAgentPolicy(
+		"apm_systemtest", "default", "Agent policy for APM Server system tests",
+	)
 	require.NoError(t, err)
 
-	apmPackage := getAPMIntegrationPackage(t, fleet)
+	apmPackage := getAPMIntegrationPackage(t, systemtest.Fleet)
 	packagePolicy := fleettest.NewPackagePolicy(apmPackage, "apm", "default", agentPolicy.ID)
-	initAPMIntegrationPackagePolicyInputs(t, packagePolicy, apmPackage)
+	initAPMIntegrationPackagePolicyInputs(t, packagePolicy, apmPackage, nil)
 
-	err = fleet.CreatePackagePolicy(packagePolicy)
+	err = systemtest.Fleet.CreatePackagePolicy(packagePolicy)
 	require.NoError(t, err)
 
 	// Attempting to add the "apm" integration to the agent policy twice should fail.
 	packagePolicy.Name = "apm-2"
-	err = fleet.CreatePackagePolicy(packagePolicy)
+	err = systemtest.Fleet.CreatePackagePolicy(packagePolicy)
 	require.Error(t, err)
 	assert.EqualError(t, err, "Unable to create package policy. Package 'apm' already exists on this agent policy.")
 }
 
-func initAPMIntegrationPackagePolicyInputs(t *testing.T, packagePolicy *fleettest.PackagePolicy, apmPackage *fleettest.Package) {
+func initAPMIntegration(t testing.TB, vars map[string]interface{}) apmIntegration {
+	systemtest.CleanupElasticsearch(t)
+	cleanupFleet(t, systemtest.Fleet)
+	t.Cleanup(func() { cleanupFleet(t, systemtest.Fleet) })
+
+	agentPolicy, enrollmentAPIKey, err := systemtest.Fleet.CreateAgentPolicy(
+		"apm_systemtest", "default", "Agent policy for APM Server system tests",
+	)
+	require.NoError(t, err)
+
+	// Add the "apm" integration to the agent policy.
+	apmPackage := getAPMIntegrationPackage(t, systemtest.Fleet)
+	packagePolicy := fleettest.NewPackagePolicy(apmPackage, "apm", "default", agentPolicy.ID)
+	packagePolicy.Package.Name = apmPackage.Name
+	packagePolicy.Package.Version = apmPackage.Version
+	packagePolicy.Package.Title = apmPackage.Title
+	initAPMIntegrationPackagePolicyInputs(t, packagePolicy, apmPackage, vars)
+
+	err = systemtest.Fleet.CreatePackagePolicy(packagePolicy)
+	require.NoError(t, err)
+
+	// Enroll an elastic-agent to run the APM integration.
+	agent, err := systemtest.NewUnstartedElasticAgentContainer()
+	require.NoError(t, err)
+	agent.FleetEnrollmentToken = enrollmentAPIKey.APIKey
+	t.Cleanup(func() { agent.Close() })
+	t.Cleanup(func() {
+		// Log the elastic-agent container output if the test fails.
+		if !t.Failed() {
+			return
+		}
+		if logs, err := agent.Logs(context.Background()); err == nil {
+			defer logs.Close()
+			if out, err := ioutil.ReadAll(logs); err == nil {
+				t.Logf("elastic-agent logs: %s", out)
+			}
+		}
+	})
+
+	// Start elastic-agent with port 8200 exposed, and wait for the server to service
+	// healthcheck requests to port 8200.
+	agent.ExposedPorts = []string{"8200"}
+	agent.WaitingFor = wait.ForHTTP("/").WithPort("8200/tcp").WithStartupTimeout(5 * time.Minute)
+	err = agent.Start()
+	require.NoError(t, err)
+	serverURL := &url.URL{Scheme: "http", Host: agent.Addrs["8200"]}
+
+	// Create a Tracer which sends to the APM Server running under Elastic Agent.
+	httpTransport, err := transport.NewHTTPTransport()
+	require.NoError(t, err)
+	origTransport := httpTransport.Client.Transport
+	if secretToken, ok := vars["secret_token"].(string); ok {
+		httpTransport.SetSecretToken(secretToken)
+	}
+	httpTransport.Client.Transport = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		r.Header.Set("X-Real-Ip", "10.11.12.13")
+		return origTransport.RoundTrip(r)
+	})
+	httpTransport.SetServerURL(serverURL)
+	tracer, err := apm.NewTracerOptions(apm.TracerOptions{
+		Transport: apmservertest.NewFilteringTransport(
+			httpTransport,
+			apmservertest.DefaultMetadataFilter{},
+		),
+	})
+	require.NoError(t, err)
+	t.Cleanup(tracer.Close)
+	return apmIntegration{
+		Agent:  agent,
+		Tracer: tracer,
+		URL:    serverURL.String(),
+	}
+}
+
+type apmIntegration struct {
+	Agent *systemtest.ElasticAgentContainer
+
+	// Tracer holds an apm.Tracer that may be used to send events
+	// to the server.
+	Tracer *apm.Tracer
+
+	// URL holds the APM Server URL.
+	URL string
+}
+
+func initAPMIntegrationPackagePolicyInputs(
+	t testing.TB, packagePolicy *fleettest.PackagePolicy, apmPackage *fleettest.Package, varValues map[string]interface{},
+) {
 	assert.Len(t, apmPackage.PolicyTemplates, 1)
 	assert.Len(t, apmPackage.PolicyTemplates[0].Inputs, 1)
 	for _, input := range apmPackage.PolicyTemplates[0].Inputs {
 		vars := make(map[string]interface{})
 		for _, inputVar := range input.Vars {
+			value, ok := varValues[inputVar.Name]
+			if !ok {
+				switch inputVar.Name {
+				case "host":
+					value = ":8200"
+				default:
+					value = inputVarDefault(inputVar)
+				}
+			}
 			varMap := map[string]interface{}{"type": inputVar.Type}
-			switch inputVar.Name {
-			case "host":
-				varMap["value"] = ":8200"
+			if value != nil {
+				varMap["value"] = value
 			}
 			vars[inputVar.Name] = varMap
 		}
@@ -162,6 +190,16 @@ func initAPMIntegrationPackagePolicyInputs(t *testing.T, packagePolicy *fleettes
 			Vars:    vars,
 		})
 	}
+}
+
+func inputVarDefault(inputVar fleettest.PackagePolicyTemplateInputVar) interface{} {
+	if inputVar.Default != nil {
+		return inputVar.Default
+	}
+	if inputVar.Multi {
+		return []interface{}{}
+	}
+	return nil
 }
 
 func cleanupFleet(t testing.TB, fleet *fleettest.Client) {
