@@ -164,7 +164,13 @@
         - name: connection_type
           type: keyword
           description: >
-            Cellular network technology, eg. 4G
+            Network type, eg. "wifi", "cell"
+          overwrite: true
+
+        - name: connection_subtype
+          type: keyword
+          description: >
+            Detailed connection sub-type, e.g. "LTE", "CDMA"
           overwrite: true
 
         - name: carrier

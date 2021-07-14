@@ -46,6 +46,7 @@ func isUnmappedMetadataField(key string) bool {
 		"System.Container.Name",
 		"System.Network",
 		"System.Network.ConnectionType",
+		"System.Network.ConnectionSubtype",
 		"System.Network.Carrier",
 		"System.Network.Carrier.Name",
 		"System.Network.Carrier.MCC",

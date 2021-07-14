@@ -36,7 +36,8 @@ const (
 	// Network attributes are pending approval in the OTel spec, and subject to change:
 	// https://github.com/open-telemetry/opentelemetry-specification/issues/1647
 
-	AttributeNetworkType        = "net.host.connection_type"
+	AttributeNetworkType        = "net.host.connection.type"
+	AttributeNetworkSubtype     = "net.host.connection.subtype"
 	AttributeNetworkMCC         = "net.host.carrier.mcc"
 	AttributeNetworkMNC         = "net.host.carrier.mnc"
 	AttributeNetworkCarrierName = "net.host.carrier.name"
@@ -108,6 +109,8 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 		// network.*
 		case AttributeNetworkType:
 			out.System.Network.ConnectionType = truncate(v.StringVal())
+		case AttributeNetworkSubtype:
+			out.System.Network.ConnectionSubtype = truncate(v.StringVal())
 		case AttributeNetworkCarrierName:
 			out.System.Network.Carrier.Name = truncate(v.StringVal())
 		case AttributeNetworkMCC:

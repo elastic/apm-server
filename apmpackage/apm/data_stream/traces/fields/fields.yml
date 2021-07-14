@@ -56,10 +56,14 @@
   type: keyword
   description: |
     Carrier name, eg. Vodafone, T-Mobile, etc.
+- name: network.connection_subtype
+  type: keyword
+  description: |
+    Detailed connection sub-type, e.g. "LTE", "CDMA"
 - name: network.connection_type
   type: keyword
   description: |
-    Cellular network technology, eg. 4G
+    Network type, eg. "wifi", "cell"
 - name: observer.listening
   type: keyword
   description: |

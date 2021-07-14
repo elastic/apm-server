@@ -572,7 +572,17 @@ Optional network fields
 *`network.connection_type`*::
 +
 --
-Cellular network technology, eg. 4G
+Network type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection_subtype`*::
++
+--
+Detailed connection sub-type, e.g. "LTE", "CDMA"
 
 
 type: keyword
@@ -1671,7 +1681,17 @@ Optional network fields
 *`network.connection_type`*::
 +
 --
-Cellular network technology, eg. 4G
+Network type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection_subtype`*::
++
+--
+Detailed connection sub-type, e.g. "LTE", "CDMA"
 
 
 type: keyword
@@ -3010,7 +3030,17 @@ Optional network fields
 *`network.connection_type`*::
 +
 --
-Cellular network technology, eg. 4G
+Network type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection_subtype`*::
++
+--
+Detailed connection sub-type, e.g. "LTE", "CDMA"
 
 
 type: keyword
@@ -4598,7 +4628,17 @@ Optional network fields
 *`network.connection_type`*::
 +
 --
-Cellular network technology, eg. 4G
+Network type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection_subtype`*::
++
+--
+Detailed connection sub-type, e.g. "LTE", "CDMA"
 
 
 type: keyword
@@ -5797,7 +5837,17 @@ Optional network fields
 *`network.connection_type`*::
 +
 --
-Cellular network technology, eg. 4G
+Network type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection_subtype`*::
++
+--
+Detailed connection sub-type, e.g. "LTE", "CDMA"
 
 
 type: keyword
