@@ -102,6 +102,69 @@ func TestAPIKeyAgentAuth_ESConfig(t *testing.T) {
 	}
 }
 
+func TestAnonymousAgentAuth(t *testing.T) {
+	for name, tc := range map[string]struct {
+		cfg            *common.Config
+		expectedConfig AnonymousAgentAuth
+	}{
+		"default": {
+			cfg:            common.NewConfig(),
+			expectedConfig: defaultAnonymousAgentAuth(),
+		},
+		"allow_service": {
+			cfg: common.MustNewConfigFrom(`{"auth.anonymous.allow_service":["service-one"]}`),
+			expectedConfig: AnonymousAgentAuth{
+				AllowAgent:   []string{"rum-js", "js-base"},
+				AllowService: []string{"service-one"},
+				RateLimit: RateLimit{
+					EventLimit: 300,
+					IPLimit:    1000,
+				},
+				configured: true,
+			},
+		},
+		"deprecated_rum_allow_service_names": {
+			cfg: common.MustNewConfigFrom(`{"rum.allow_service_names":["service-two"]}`),
+			expectedConfig: AnonymousAgentAuth{
+				AllowAgent:   []string{"rum-js", "js-base"},
+				AllowService: []string{"service-two"},
+				RateLimit: RateLimit{
+					EventLimit: 300,
+					IPLimit:    1000,
+				},
+			},
+		},
+		"deprecated_rum_event_rate": {
+			cfg: common.MustNewConfigFrom(`{"rum.event_rate.limit":1,"rum.event_rate.lru_size":2}`),
+			expectedConfig: AnonymousAgentAuth{
+				AllowAgent: []string{"rum-js", "js-base"},
+				RateLimit: RateLimit{
+					EventLimit: 1,
+					IPLimit:    2,
+				},
+			},
+		},
+		"deprecated_rum_allow_service_names_conflict": {
+			cfg: common.MustNewConfigFrom(`{"auth.anonymous.allow_service":["service-one"], "rum.allow_service_names":["service-two"]}`),
+			expectedConfig: AnonymousAgentAuth{
+				AllowAgent:   []string{"rum-js", "js-base"},
+				AllowService: []string{"service-one"},
+				RateLimit: RateLimit{
+					EventLimit: 300,
+					IPLimit:    1000,
+				},
+				configured: true,
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg, err := NewConfig(tc.cfg, nil)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedConfig, cfg.AgentAuth.Anonymous)
+		})
+	}
+}
+
 func TestSecretTokenAuth(t *testing.T) {
 	for name, tc := range map[string]struct {
 		cfg      *common.Config

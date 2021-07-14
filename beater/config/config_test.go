@@ -164,6 +164,15 @@ func TestUnpackConfig(t *testing.T) {
 						configured:   true,
 						esConfigured: true,
 					},
+					Anonymous: AnonymousAgentAuth{
+						Enabled:      true,
+						AllowService: []string{"opbeans-rum"},
+						AllowAgent:   []string{"rum-js", "js-base"},
+						RateLimit: RateLimit{
+							EventLimit: 7200,
+							IPLimit:    2000,
+						},
+					},
 				},
 				TLS: &tlscommon.ServerConfig{
 					Enabled:     newBool(true),
@@ -191,14 +200,9 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				RumConfig: RumConfig{
-					Enabled: true,
-					EventRate: EventRate{
-						Limit:   7200,
-						LruSize: 2000,
-					},
-					AllowServiceNames: []string{"opbeans-rum"},
-					AllowOrigins:      []string{"example*"},
-					AllowHeaders:      []string{"Authorization"},
+					Enabled:      true,
+					AllowOrigins: []string{"example*"},
+					AllowHeaders: []string{"Authorization"},
 					SourceMapping: SourceMapping{
 						Enabled:      true,
 						Cache:        Cache{Expiration: 8 * time.Minute},
@@ -347,6 +351,14 @@ func TestUnpackConfig(t *testing.T) {
 						ESConfig:    elasticsearch.DefaultConfig(),
 						configured:  true,
 					},
+					Anonymous: AnonymousAgentAuth{
+						Enabled:    true,
+						AllowAgent: []string{"rum-js", "js-base"},
+						RateLimit: RateLimit{
+							EventLimit: 300,
+							IPLimit:    1000,
+						},
+					},
 				},
 				TLS: &tlscommon.ServerConfig{
 					Enabled:     newBool(true),
@@ -373,11 +385,7 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				RumConfig: RumConfig{
-					Enabled: true,
-					EventRate: EventRate{
-						Limit:   300,
-						LruSize: 1000,
-					},
+					Enabled:      true,
 					AllowOrigins: []string{"*"},
 					AllowHeaders: []string{},
 					SourceMapping: SourceMapping{

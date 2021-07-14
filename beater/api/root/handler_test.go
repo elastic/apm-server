@@ -49,7 +49,7 @@ func TestRootHandler(t *testing.T) {
 
 	t.Run("unauthenticated", func(t *testing.T) {
 		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
-		c.Authentication.Method = ""
+		c.Authentication.Method = auth.MethodAnonymous
 		Handler(HandlerConfig{Version: "1.2.3"})(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)

@@ -7,7 +7,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.8.0"
+                "version": "1.10.0"
             },
             "error": {
                 "grouping_key": "0b9cba09845a097a271c6beb4c6207f3",
@@ -45,7 +45,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.8.0"
+                "version": "1.10.0"
             },
             "error": {
                 "exception": [
@@ -85,7 +85,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.8.0"
+                "version": "1.10.0"
             },
             "error": {
                 "exception": [
@@ -125,7 +125,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.8.0"
+                "version": "1.10.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -176,7 +176,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.8.0"
+                "version": "1.10.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -224,7 +224,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.8.0"
+                "version": "1.10.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -276,7 +276,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.8.0"
+                "version": "1.10.0"
             },
             "host": {
                 "ip": "127.0.0.1"

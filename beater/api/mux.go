@@ -18,7 +18,6 @@
 package api
 
 import (
-	"context"
 	"net/http"
 	"net/http/pprof"
 	"regexp"
@@ -71,13 +70,6 @@ const (
 	IntakeRUMPath = "/intake/v2/rum/events"
 
 	IntakeRUMV3Path = "/intake/v3/rum/events"
-)
-
-var (
-	// rumAgents holds the current and previous agent names for the
-	// RUM JavaScript agent. This is used for restricting which config
-	// is supplied to anonymous agents.
-	rumAgents = []string{"rum-js", "js-base"}
 )
 
 // NewMux registers apm handlers to paths building up the APM Server API.
@@ -185,9 +177,6 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *strea
 	}
 	return func() (request.Handler, error) {
 		var batchProcessors modelprocessor.Chained
-		if len(r.cfg.RumConfig.AllowServiceNames) > 0 {
-			batchProcessors = append(batchProcessors, allowedServiceNamesBatchProcessor(r.cfg.RumConfig.AllowServiceNames))
-		}
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
 		// frames to exclude from error grouping; identifying library frames must happen before updating the error culprit.
 		if r.sourcemapStore != nil {
@@ -251,7 +240,7 @@ func agentConfigHandler(
 	f agentcfg.Fetcher,
 ) (request.Handler, error) {
 	mw := middlewareFunc(cfg, authenticator, ratelimitStore, agent.MonitoringMap)
-	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment, rumAgents)
+	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment, cfg.AgentAuth.Anonymous.AllowAgent)
 
 	if !cfg.Kibana.Enabled && cfg.AgentConfigs == nil {
 		msg := "Agent remote configuration is disabled. " +
@@ -291,7 +280,7 @@ func rumMiddleware(cfg *config.Config, authenticator *auth.Authenticator, rateli
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.ResponseHeadersMiddleware(cfg.RumConfig.ResponseHeaders),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins, cfg.RumConfig.AllowHeaders),
-		middleware.AuthMiddleware(authenticator, false),
+		middleware.AuthMiddleware(authenticator, true),
 		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
 	)
 	return append(rumMiddleware, middleware.KillSwitchMiddleware(cfg.RumConfig.Enabled, msg))
@@ -314,23 +303,6 @@ func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []mid
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthMiddleware(authenticator, false),
 	)
-}
-
-// TODO(axw) move this into the auth package when introducing anonymous auth.
-func allowedServiceNamesBatchProcessor(allowedServiceNames []string) model.BatchProcessor {
-	m := make(map[string]bool)
-	for _, name := range allowedServiceNames {
-		m[name] = true
-	}
-	return modelprocessor.MetadataProcessorFunc(func(ctx context.Context, meta *model.Metadata) error {
-		// Restrict to explicitly allowed service names.
-		// The list of allowed service names is not considered secret,
-		// so we do not use constant time comparison.
-		if !m[meta.Service.Name] {
-			return &stream.InvalidInputError{Message: "service name is not allowed"}
-		}
-		return nil
-	})
 }
 
 func emptyRequestMetadata(c *request.Context) model.Metadata {
