@@ -776,6 +776,19 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 		out.ChildIDs = make([]string, len(from.ChildIDs))
 		copy(out.ChildIDs, from.ChildIDs)
 	}
+	if from.Composite.IsSet() {
+		composite := model.Composite{}
+		if from.Composite.Count.IsSet() {
+			composite.Count = from.Composite.Count.Val
+		}
+		if from.Composite.End.IsSet() {
+			composite.End = from.Composite.End.Val
+		}
+		if from.Composite.ExactMatch.IsSet() {
+			composite.ExactMatch = from.Composite.ExactMatch.Val
+		}
+		out.Composite = &composite
+	}
 	if from.Context.Database.IsSet() {
 		db := model.DB{}
 		if from.Context.Database.Instance.IsSet() {

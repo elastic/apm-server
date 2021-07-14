@@ -120,7 +120,8 @@ func TestSpanTransform(t *testing.T) {
 					Name:     destServiceName,
 					Resource: destServiceResource,
 				},
-				Message: &Message{QueueName: "users"},
+				Message:   &Message{QueueName: "users"},
+				Composite: &Composite{Count: 10, End: timestamp, ExactMatch: false},
 			},
 			Output: common.MapStr{
 				"data_stream.type":    "traces",
@@ -157,6 +158,11 @@ func TestSpanTransform(t *testing.T) {
 						},
 					},
 					"message": common.MapStr{"queue": common.MapStr{"name": "users"}},
+					"composite": common.MapStr{
+						"count":       10,
+						"end":         common.MapStr{"us": timestampUs},
+						"exact_match": false,
+					},
 				},
 				"labels":      common.MapStr{"label_a": 12, "label_b": "b", "c": 1},
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},
