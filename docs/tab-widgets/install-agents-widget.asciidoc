@@ -80,7 +80,8 @@ include::install-agents.asciidoc[tag=go]
   <div tabindex="0"
        role="tabpanel"
        id="ios-tab-install"
-       aria-labelledby="ios-install">
+       aria-labelledby="ios-install"
+       hidden="">
 ++++
 
 include::install-agents.asciidoc[tag=ios]

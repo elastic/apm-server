@@ -73,7 +73,8 @@ include::distributed-trace-receive.asciidoc[tag=go]
   <div tabindex="0"
        role="tabpanel"
        id="ios-tab-dt-r"
-       aria-labelledby="ios-dt-r">
+       aria-labelledby="ios-dt-r"
+       hidden="">
 ++++
 
 include::distributed-trace-receive.asciidoc[tag=ios]
