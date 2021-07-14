@@ -3,6 +3,9 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "0.4.0"
   changes:
+    - description: add anonymous auth config, replace some RUM config
+      type: breaking-change
+      link: https://github.com/elastic/apm-server/pull/5623
     - description: use new apm-server.auth config
       type: breaking-change
       link: https://github.com/elastic/apm-server/pull/5691

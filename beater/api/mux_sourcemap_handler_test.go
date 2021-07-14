@@ -34,15 +34,26 @@ func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
 	t.Run("Unauthorized", func(t *testing.T) {
 		cfg := cfgEnabledRUM()
 		cfg.AgentAuth.SecretToken = "1234"
+		cfg.AgentAuth.Anonymous.Enabled = false
 		rec, err := requestToMuxerWithPattern(cfg, AssetSourcemapPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusUnauthorized, rec.Code)
 		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
-
-	t.Run("Authorized", func(t *testing.T) {
+	t.Run("Forbidden", func(t *testing.T) {
+		// anonymous access is not allowed for uploading source maps
 		cfg := cfgEnabledRUM()
 		cfg.AgentAuth.SecretToken = "1234"
+		rec, err := requestToMuxerWithPattern(cfg, AssetSourcemapPath)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusForbidden, rec.Code)
+		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+	})
+	t.Run("Authorized", func(t *testing.T) {
+		// anonymous access is not allowed for uploading source maps
+		cfg := cfgEnabledRUM()
+		cfg.AgentAuth.SecretToken = "1234"
+		cfg.AgentAuth.Anonymous.Enabled = false
 		h := map[string]string{headers.Authorization: "Bearer 1234"}
 		rec, err := requestToMuxerWithHeader(cfg, AssetSourcemapPath, http.MethodPost, h)
 		require.NoError(t, err)
