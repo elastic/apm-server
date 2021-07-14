@@ -113,7 +113,7 @@ func (h *handler) Handle(c *request.Context) {
 		c.Write()
 		return
 	}
-	if c.Authentication.Method == "" {
+	if c.Authentication.Method == auth.MethodAnonymous {
 		// Unauthenticated client, restrict results.
 		query.InsecureAgents = h.allowAnonymousAgents
 	}
@@ -234,7 +234,7 @@ func extractQueryError(c *request.Context, err error) {
 }
 
 func authErrMsg(c *request.Context, fullMsg, shortMsg string) string {
-	if c.Authentication.Method != "" {
+	if c.Authentication.Method != auth.MethodAnonymous {
 		return fullMsg
 	}
 	return shortMsg

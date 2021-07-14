@@ -47,6 +47,10 @@ const (
 	// MethodSecretToken identifies the auth methd using a shared secret token.
 	// Clients with this secret token have unrestricted privileges.
 	MethodSecretToken Method = "secret_token"
+
+	// MethodAnonymous identifies the anonymous access auth method.
+	// Anonymous clients will typically be restricted by agent and/or service.
+	MethodAnonymous Method = ""
 )
 
 // Action identifies an action to authorize.
@@ -84,12 +88,11 @@ var ErrUnauthorized = errors.New("unauthorized")
 type Authenticator struct {
 	secretToken string
 
-	apikey *apikeyAuth
+	apikey    *apikeyAuth
+	anonymous *anonymousAuth
 }
 
 // Authorizer provides an interface for authorizing an action and resource.
-//
-// TODO(axw) rename interface to Authorizer and method to Authorize.
 type Authorizer interface {
 	// Authorize checks if the client is authorized for the given action and
 	// resource, returning ErrUnauthorized if it is not. Other errors may be
@@ -154,6 +157,9 @@ func NewAuthenticator(cfg config.AgentAuth) (*Authenticator, error) {
 		cache := newPrivilegesCache(cacheTimeoutMinute, cfg.APIKey.LimitPerMin)
 		b.apikey = newApikeyAuth(client, cache)
 	}
+	if cfg.Anonymous.Enabled {
+		b.anonymous = newAnonymousAuth(cfg.Anonymous.AllowAgent, cfg.Anonymous.AllowService)
+	}
 	return &b, nil
 }
 
@@ -172,6 +178,9 @@ func (a *Authenticator) Authenticate(ctx context.Context, kind string, token str
 	}
 	switch kind {
 	case "":
+		if a.anonymous != nil {
+			return AuthenticationDetails{Method: MethodAnonymous}, a.anonymous, nil
+		}
 		return AuthenticationDetails{}, nil, errAuthMissing
 	case headers.APIKey:
 		if a.apikey != nil {

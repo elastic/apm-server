@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/beats/v7/libbeat/version"
 
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/request"
 )
 
@@ -40,7 +41,7 @@ type HandlerConfig struct {
 }
 
 // Handler returns error if route does not exist,
-// otherwise returns information about the server. The detail level differs for authorized and non-authorized requests.
+// otherwise returns information about the server. The detail level differs for authenticated and anonymous requests.
 //TODO: only allow GET, HEAD requests (breaking change)
 func Handler(cfg HandlerConfig) request.Handler {
 	serverInfo := common.MapStr{
@@ -56,7 +57,7 @@ func Handler(cfg HandlerConfig) request.Handler {
 			return
 		}
 		c.Result.SetDefault(request.IDResponseValidOK)
-		if c.Authentication.Method != "" {
+		if c.Authentication.Method != auth.MethodAnonymous {
 			c.Result.Body = serverInfo
 		}
 		c.Write()
