@@ -114,7 +114,7 @@ func flattenAndClean(conf *ucfg.Config) (map[string]interface{}, error) {
 			v = "0.0.0.0:8200"
 		}
 		if k == "apm-server.rum.rate_limit" {
-			out["apm-server.rum.event_rate.limit"] = v
+			k = "apm-server.rum.event_rate.limit"
 		}
 		if strings.HasPrefix(k, "apm-server.ssl.") {
 			// Following ssl related settings need to be synced:
