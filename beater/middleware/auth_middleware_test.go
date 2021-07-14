@@ -75,7 +75,7 @@ func TestAuthMiddleware(t *testing.T) {
 			var authenticator authenticatorFunc = func(ctx context.Context, kind, token string) (auth.AuthenticationDetails, auth.Authorizer, error) {
 				assert.Equal(t, tc.expectKind, kind)
 				assert.Equal(t, tc.expectToken, token)
-				return auth.AuthenticationDetails{Method: auth.MethodSecretToken}, auth.AnonymousAuth{}, tc.authError
+				return auth.AuthenticationDetails{Method: auth.MethodSecretToken}, denyAll{}, tc.authError
 			}
 			m := AuthMiddleware(authenticator, tc.authRequired)
 			Apply(m, beatertest.Handler202)(c)

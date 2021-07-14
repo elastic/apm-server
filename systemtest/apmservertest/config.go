@@ -164,16 +164,7 @@ type RUMConfig struct {
 	// ResponseHeaders holds headers to add to all APM Server RUM HTTP responses.
 	ResponseHeaders http.Header `json:"response_headers,omitempty"`
 
-	// RateLimit holds event rate limit configuration.
-	RateLimit *RUMRateLimitConfig `json:"event_rate,omitempty"`
-
 	Sourcemap *RUMSourcemapConfig `json:"source_mapping,omitempty"`
-}
-
-// RUMRateLimitConfig holds APM Server RUM event rate limit configuration.
-type RUMRateLimitConfig struct {
-	IPLimit    int `json:"lru_size,omitempty"`
-	EventLimit int `json:"limit,omitempty"`
 }
 
 // RUMSourcemapConfig holds APM Server RUM sourcemap configuration.
@@ -194,13 +185,28 @@ type DataStreamsConfig struct {
 
 // APIKeyConfig holds agent auth configuration.
 type AgentAuthConfig struct {
-	SecretToken string            `json:"secret_token,omitempty"`
-	APIKey      *APIKeyAuthConfig `json:"api_key,omitempty"`
+	SecretToken string               `json:"secret_token,omitempty"`
+	APIKey      *APIKeyAuthConfig    `json:"api_key,omitempty"`
+	Anonymous   *AnonymousAuthConfig `json:"anonymous,omitempty"`
 }
 
 // APIKeyAuthConfig holds API Key agent auth configuration.
 type APIKeyAuthConfig struct {
 	Enabled bool `json:"enabled"`
+}
+
+// AnonymousAuthConfig holds anonymous agent auth configuration.
+type AnonymousAuthConfig struct {
+	Enabled      bool             `json:"enabled"`
+	AllowAgent   []string         `json:"allow_agent,omitempty"`
+	AllowService []string         `json:"allow_service,omitempty"`
+	RateLimit    *RateLimitConfig `json:"rate_limit,omitempty"`
+}
+
+// RateLimitConfig holds event rate limit configuration.
+type RateLimitConfig struct {
+	IPLimit    int `json:"ip_limit,omitempty"`
+	EventLimit int `json:"event_limit,omitempty"`
 }
 
 // InstrumentationConfig holds APM Server instrumentation configuration.

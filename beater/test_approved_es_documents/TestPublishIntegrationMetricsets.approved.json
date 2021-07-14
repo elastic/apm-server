@@ -14,7 +14,7 @@
             },
             "double_gauge": 3.141592653589793,
             "ecs": {
-                "version": "1.8.0"
+                "version": "1.10.0"
             },
             "float_gauge": 9.16,
             "host": {
@@ -110,7 +110,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.8.0"
+                "version": "1.10.0"
             },
             "go": {
                 "memstats": {
@@ -166,7 +166,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.8.0"
+                "version": "1.10.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -229,7 +229,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.8.0"
+                "version": "1.10.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -313,7 +313,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.8.0"
+                "version": "1.10.0"
             },
             "host": {
                 "ip": "127.0.0.1"

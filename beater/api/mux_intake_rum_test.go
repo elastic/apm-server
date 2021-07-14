@@ -18,8 +18,6 @@
 package api
 
 import (
-	"bytes"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -45,6 +43,7 @@ func TestOPTIONS(t *testing.T) {
 	cfg := cfgEnabledRUM()
 	cfg.RumConfig.AllowOrigins = []string{"*"}
 	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
+
 	h, _ := middleware.Wrap(
 		func(c *request.Context) {
 			requestTaken <- struct{}{}
@@ -127,42 +126,10 @@ func TestRumHandler_MonitoringMiddleware(t *testing.T) {
 	}
 }
 
-func TestRUMHandler_AllowedServiceNames(t *testing.T) {
-	payload, err := ioutil.ReadFile("../../testdata/intake-v2/transactions_spans_rum.ndjson")
-	require.NoError(t, err)
-
-	for _, test := range []struct {
-		AllowServiceNames []string
-		Allowed           bool
-	}{{
-		AllowServiceNames: nil,
-		Allowed:           true, // none specified = all allowed
-	}, {
-		AllowServiceNames: []string{"apm-agent-js"}, // matches what's in test data
-		Allowed:           true,
-	}, {
-		AllowServiceNames: []string{"reject_everything"},
-		Allowed:           false,
-	}} {
-		cfg := cfgEnabledRUM()
-		cfg.RumConfig.AllowServiceNames = test.AllowServiceNames
-		h := newTestMux(t, cfg)
-
-		req := httptest.NewRequest(http.MethodPost, "/intake/v2/rum/events", bytes.NewReader(payload))
-		req.Header.Set("Content-Type", "application/x-ndjson")
-		w := httptest.NewRecorder()
-		h.ServeHTTP(w, req)
-		if test.Allowed {
-			assert.Equal(t, http.StatusAccepted, w.Code)
-		} else {
-			assert.Equal(t, http.StatusBadRequest, w.Code)
-		}
-	}
-}
-
 func cfgEnabledRUM() *config.Config {
 	cfg := config.DefaultConfig()
 	cfg.RumConfig.Enabled = true
+	cfg.AgentAuth.Anonymous.Enabled = true
 	return cfg
 }
 

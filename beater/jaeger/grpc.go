@@ -33,6 +33,7 @@ import (
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/auth"
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/processor/otel"
@@ -202,14 +203,20 @@ func postSpansMethodAuthenticator(authenticator *auth.Authenticator, authTag str
 }
 
 func getSamplingStrategyMethodAuthenticator(authenticator *auth.Authenticator) interceptors.MethodAuthenticator {
+	// Sampling strategy queries are always unauthenticated. We still consult
+	// the authenticator in case auth isn't required, in which case we should
+	// not rate limit the request.
+	anonymousAuthenticator, err := auth.NewAuthenticator(config.AgentAuth{
+		Anonymous: config.AnonymousAgentAuth{Enabled: true},
+	})
+	if err != nil {
+		panic(err)
+	}
 	return func(ctx context.Context, req interface{}) (auth.AuthenticationDetails, auth.Authorizer, error) {
-		// Sampling strategy queries are always unauthenticated. We still consult
-		// the authenticator in case auth isn't required, in which case we should
-		// not rate limit the request.
 		details, authz, err := authenticator.Authenticate(ctx, "", "")
-		if errors.Is(err, auth.ErrAuthFailed) {
-			return auth.AuthenticationDetails{}, auth.AnonymousAuth{}, nil
+		if !errors.Is(err, auth.ErrAuthFailed) {
+			return details, authz, err
 		}
-		return details, authz, err
+		return anonymousAuthenticator.Authenticate(ctx, "", "")
 	}
 }

@@ -18,6 +18,7 @@
 package middleware
 
 import (
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/beater/request"
 )
@@ -31,7 +32,7 @@ import (
 func AnonymousRateLimitMiddleware(store *ratelimit.Store) Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			if c.Authentication.Method == "" {
+			if c.Authentication.Method == auth.MethodAnonymous {
 				limiter := store.ForIP(c.SourceIP)
 				if !limiter.Allow() {
 					c.Result.SetWithError(

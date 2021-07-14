@@ -41,11 +41,26 @@ get_go_version() {
 setup_go_root() {
   local version=${1}
 
-  # Setup GOROOT and add go to the PATH.
-  GIMME=${_sdir}/gimme/gimme
-  debug "Gimme version $(${GIMME} version)"
-  ${GIMME} "${version}" > /dev/null
-  source "${HOME}/.gimme/envs/go${version}.env" 2> /dev/null
+  # Use the current Go installation if the given Go version is already
+  # installed and configured.
+  if command -v go &>/dev/null ; then
+    debug "Found Go. Checking version..."
+    FOUND_GO_VERSION=$(go version|awk '{print $3}'|sed s/go//)
+    if [ "$FOUND_GO_VERSION" == "$version" ] ; then
+      debug "Versions match. No need to install Go. Exiting."
+      FOUND_GO="true"
+    fi
+  fi
+
+  # Install Go with gimme in case the given Go version is not
+  # installed.
+  if [ -z $FOUND_GO ] ; then
+    # Setup GOROOT and add go to the PATH.
+    GIMME=${_sdir}/gimme/gimme
+    debug "Gimme version $(${GIMME} version)"
+    ${GIMME} "${version}" > /dev/null
+    source "${HOME}/.gimme/envs/go${version}.env" 2> /dev/null
+  fi
 
   debug "$(go version)"
 }
