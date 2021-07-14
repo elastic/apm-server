@@ -474,6 +474,8 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 
 		k := replaceDots(kDots)
 		switch v.Type() {
+		case pdata.AttributeValueTypeArray:
+			labels[k] = ifaceAnyValueArray(v.ArrayVal())
 		case pdata.AttributeValueTypeBool:
 			labels[k] = v.BoolVal()
 		case pdata.AttributeValueTypeDouble:
