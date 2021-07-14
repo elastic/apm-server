@@ -1,7 +1,9 @@
 apm-server:
-    api_key:
-        enabled: {{api_key_enabled}}
-        limit: {{api_key_limit}}
+    auth:
+        api_key:
+            enabled: {{api_key_enabled}}
+            limit: {{api_key_limit}}
+        secret_token: {{secret_token}}
     capture_personal_data: {{capture_personal_data}}
     idle_timeout: {{idle_timeout}}
     default_service_environment: {{default_service_environment}}
@@ -12,6 +14,7 @@ apm-server:
     max_header_size: {{max_header_bytes}}
     read_timeout: {{read_timeout}}
     response_headers: {{response_headers}}
+    {{#if enable_rum}}
     rum:
         allow_headers:
         {{#each rum_allow_headers}}
@@ -31,7 +34,7 @@ apm-server:
         exclude_from_grouping: {{rum_exclude_from_grouping}}
         library_pattern: {{rum_library_pattern}}
         response_headers: {{rum_response_headers}}
-    secret_token: {{secret_token}}
+    {{/if}}
     shutdown_timeout: {{shutdown_timeout}}
     {{#if tls_enabled}}
     ssl:
