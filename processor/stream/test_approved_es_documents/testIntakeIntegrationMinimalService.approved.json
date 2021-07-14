@@ -6,8 +6,6 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "id": "abcdef0123456789",
@@ -39,8 +37,6 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.app.1234_service_12a3",
-            "data_stream.type": "metrics",
             "go": {
                 "memstats": {
                     "heap": {

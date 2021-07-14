@@ -51,6 +51,7 @@ func testProcessBatchMetadata(t *testing.T, processor model.BatchProcessor, in, 
 		apmEventFields = append(apmEventFields, typ.Field(i).Name)
 	}
 	assert.ElementsMatch(t, []string{
+		"DataStream",
 		"Transaction",
 		"Span",
 		"Metricset",
