@@ -43,7 +43,7 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    booleanParam(name: 'DRY_RUN_MODE', defaultValue: true, description: 'If true, allows to execute this pipeline in dry run mode, without sending a PR.')
+    booleanParam(name: 'DRY_RUN_MODE', defaultValue: false, description: 'If true, allows to execute this pipeline in dry run mode, without sending a PR.')
   }
   stages {
     stage('Checkout'){
