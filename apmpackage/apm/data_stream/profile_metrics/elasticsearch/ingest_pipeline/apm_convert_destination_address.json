@@ -1,0 +1,14 @@
+{
+  "description": "Convert destination.address to an IP, storing in destination.ip",
+  "processors": [
+    {
+      "convert": {
+        "field": "destination.address",
+        "target_field": "destination.ip",
+        "type": "ip",
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    }
+  ]
+}

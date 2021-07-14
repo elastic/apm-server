@@ -23,6 +23,11 @@
     },
     {
       "pipeline": {
+        "name": "metrics-apm.app-0.4.0-apm_convert_destination_address"
+      }
+    },
+    {
+      "pipeline": {
         "name": "metrics-apm.app-0.4.0-apm_error_grouping_name",
         "if": "ctx.processor?.event == 'error'"
       }
