@@ -74,7 +74,7 @@ Traces are written to `traces-apm.*` indices.
 |cloud.project.name|Cloud project name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.provider|Cloud provider name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.region|Cloud region name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |container.id|Unique container id.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.address|Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the \`.address\` field. Then it should be duplicated to \`.ip\` or \`.domain\`, depending on which one it is.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -200,7 +200,7 @@ Traces are written to `traces-apm.*` indices.
     "id": "container-id"
   },
   "ecs": {
-    "version": "1.8.0"
+    "version": "1.10.0"
   },
   "event": {
     "ingested": "2020-08-11T09:55:04.391451Z",
@@ -296,7 +296,7 @@ Traces are written to `traces-apm.*` indices.
     "version": "3.14.0"
   },
   "ecs": {
-    "version": "1.8.0"
+    "version": "1.10.0"
   },
   "event": {
     "outcome": "unknown"
@@ -439,7 +439,7 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
 |cloud.project.name|Cloud project name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.provider|Cloud provider name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.region|Cloud region name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |container.id|Unique container id.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.address|Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the \`.address\` field. Then it should be duplicated to \`.ip\` or \`.domain\`, depending on which one it is.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -529,7 +529,7 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
     "version": "3.14.0"
   },
   "ecs": {
-    "version": "1.8.0"
+    "version": "1.10.0"
   },
   "event": {
     "ingested": "2020-04-22T14:55:05.425020Z"
@@ -612,7 +612,7 @@ Logs are written to `logs-apm.error.*` indices.
 |cloud.project.name|Cloud project name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.provider|Cloud provider name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.region|Cloud region name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |container.id|Unique container id.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.address|Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the \`.address\` field. Then it should be duplicated to \`.ip\` or \`.domain\`, depending on which one it is.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -720,7 +720,7 @@ Logs are written to `logs-apm.error.*` indices.
     "id": "container-id"
   },
   "ecs": {
-    "version": "1.8.0"
+    "version": "1.10.0"
   },
   "error": {
     "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",

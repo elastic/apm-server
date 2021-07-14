@@ -271,3 +271,25 @@ func TestAuthenticatorAPIKeyCache(t *testing.T) {
 	_, _, err = authenticator.Authenticate(context.Background(), headers.APIKey, credentials)
 	assert.EqualError(t, err, "api_key limit reached, check your logs for failed authorization attempts or consider increasing config option `apm-server.api_key.limit`")
 }
+
+func TestAuthenticatorAnonymous(t *testing.T) {
+	// Anonymous access is only effective when some other auth method is enabled.
+	authenticator, err := NewAuthenticator(config.AgentAuth{
+		Anonymous: config.AnonymousAgentAuth{Enabled: true},
+	})
+	require.NoError(t, err)
+	details, authz, err := authenticator.Authenticate(context.Background(), "", "")
+	assert.NoError(t, err)
+	assert.Equal(t, AuthenticationDetails{Method: MethodNone}, details)
+	assert.Equal(t, allowAuth{}, authz)
+
+	authenticator, err = NewAuthenticator(config.AgentAuth{
+		SecretToken: "secret_token",
+		Anonymous:   config.AnonymousAgentAuth{Enabled: true},
+	})
+	require.NoError(t, err)
+	details, authz, err = authenticator.Authenticate(context.Background(), "", "")
+	assert.NoError(t, err)
+	assert.Equal(t, AuthenticationDetails{Method: MethodAnonymous}, details)
+	assert.Equal(t, newAnonymousAuth(nil, nil), authz)
+}

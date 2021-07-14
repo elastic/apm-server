@@ -32,10 +32,13 @@ type Authenticator interface {
 	Authenticate(ctx context.Context, kind, value string) (auth.AuthenticationDetails, auth.Authorizer, error)
 }
 
-// AuthMiddleware returns a Middleware to authenticate clients. If required is
-// true, then the middleware will prevent unauthenticated requests. Otherwise
-// the request.Context's Authentication will be set, and in the case of
-// unauthenticated requests, the Authentication field will have the zero value.
+// AuthMiddleware returns a Middleware to authenticate clients.
+//
+// If required is true, then the middleware will prevent unauthenticated
+// requests. Otherwise the request.Context's Authentication will be set,
+// and in the case of unauthenticated requests, the Authentication field
+// will have the zero value and the context will be populated with an
+// auth.Authorizer that denies all actions and resources.
 func AuthMiddleware(authenticator Authenticator, required bool) Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
@@ -46,7 +49,7 @@ func AuthMiddleware(authenticator Authenticator, required bool) Middleware {
 				if errors.Is(err, auth.ErrAuthFailed) {
 					if !required {
 						details = auth.AuthenticationDetails{}
-						authorizer = auth.AnonymousAuth{}
+						authorizer = denyAll{}
 					} else {
 						id := request.IDResponseErrorsUnauthorized
 						status := request.MapResultIDToStatus[id]
@@ -77,4 +80,10 @@ func AuthMiddleware(authenticator Authenticator, required bool) Middleware {
 			}
 		}, nil
 	}
+}
+
+type denyAll struct{}
+
+func (denyAll) Authorize(context.Context, auth.Action, auth.Resource) error {
+	return auth.ErrUnauthorized
 }
