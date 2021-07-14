@@ -82,11 +82,34 @@ pull_request_rules:
       merge:
         method: squash
         strict: smart+fasttrack
-  - name: delete upstream branch after merging changes on docker-compose.yml
+  - name: delete upstream branch with changes on docker-compose.yml after merging/closing it
     conditions:
-      - merged
+      - or:
+        - merged
+        - closed
+      - and:
+        - label=automation
+        - head~=^update-.*-version
+        - files=docker-compose.yml
+    actions:
+      delete_head_branch:
+  - name: automatic merge when CI passes for the make update-beats
+    conditions:
+      - check-success=apm-ci/pr-merge
       - label=automation
-      - head~=^update-stack-version
-      - files=docker-compose.yml
+      - base~=^update-beats
+      - files~=^(go.mod|go.sum|NOTICE.txt)
+    actions:
+      merge:
+        method: squash
+        strict: smart+fasttrack
+  - name: delete upstream branch after merging changes for the make update-beats
+    conditions:
+      - or:
+        - merged
+        - closed
+      - and:
+        - label=automation
+        - head~=^update-beats
     actions:
       delete_head_branch:
