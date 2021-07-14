@@ -19,9 +19,12 @@ package systemtest_test
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -49,6 +52,34 @@ func TestFleetIntegration(t *testing.T) {
 		"@timestamp", "timestamp.us",
 		"trace.id", "transaction.id",
 	)
+}
+
+func TestFleetIntegrationAnonymousAuth(t *testing.T) {
+	apmIntegration := initAPMIntegration(t, map[string]interface{}{
+		"secret_token": "abc123",
+		// RUM and anonymous auth are enabled by default.
+		"anonymous_allow_service": []interface{}{"allowed_service"},
+		"anonymous_allow_agent":   []interface{}{"allowed_agent"},
+	})
+
+	makePayload := func(service, agent string) io.Reader {
+		const body = `{"metadata":{"service":{"name":%q,"agent":{"name":%q,"version":"5.5.0"}}}}
+{"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}`
+		return strings.NewReader(fmt.Sprintf(body, service, agent))
+	}
+
+	test := func(service, agent string, statusCode int) {
+		req, _ := http.NewRequest("POST", apmIntegration.URL+"/intake/v2/rum/events", makePayload(service, agent))
+		req.Header.Set("Content-Type", "application/x-ndjson")
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		respBody, _ := ioutil.ReadAll(resp.Body)
+		require.Equal(t, statusCode, resp.StatusCode, string(respBody))
+	}
+	test("allowed_service", "allowed_agent", http.StatusAccepted)
+	test("allowed_service", "denied_agent", http.StatusForbidden)
+	test("denied_service", "allowed_agent", http.StatusForbidden)
 }
 
 func TestFleetPackageNonMultiple(t *testing.T) {

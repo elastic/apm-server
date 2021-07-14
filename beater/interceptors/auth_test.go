@@ -43,7 +43,8 @@ func TestAuth(t *testing.T) {
 
 	authenticated := authenticatorFunc(func(ctx context.Context, kind, token string) (auth.AuthenticationDetails, auth.Authorizer, error) {
 		assert.Equal(t, 123, ctx.Value(contextKey{}))
-		return auth.AuthenticationDetails{Method: auth.MethodSecretToken}, auth.AnonymousAuth{}, nil
+		var authz authorizerFunc = func(context.Context, auth.Action, auth.Resource) error { return nil }
+		return auth.AuthenticationDetails{Method: auth.MethodSecretToken}, authz, nil
 	})
 	authFailed := authenticatorFunc(func(ctx context.Context, kind, token string) (auth.AuthenticationDetails, auth.Authorizer, error) {
 		return auth.AuthenticationDetails{}, nil, auth.ErrAuthFailed

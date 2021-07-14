@@ -72,17 +72,46 @@ policy_templates:
             required: true
             show_user: true
             default: true
+          - name: anonymous_enabled
+            type: bool
+            title: Anonymous Agent access
+            description: Enable anonymous access to APM Server for select APM Agents.
+            required: false
+            show_user: true
+            default: true
+          - name: anonymous_allow_agent
+            type: text
+            title: Anonymous Agent access - allowed agents
+            description: Allowed agent names for anonymous access.
+            multi: true
+            required: false
+            show_user: false
+            default: ['rum-js', 'js-base', 'iOS/swift']
+          - name: anonymous_allow_service
+            type: text
+            title: Anonymous Agent access - allowed services
+            description: Allowed service names for anonymous access.
+            multi: true
+            required: false
+            show_user: false
+          - name: anonymous_rate_limit_event_limit
+            type: integer
+            title: Anonymous Agent access - event rate limit (event limit)
+            description: Maximum number of events per client IP per second.
+            required: false
+            show_user: false
+            default: 10
+          - name: anonymous_rate_limit_ip_limit
+            type: integer
+            title: Anonymous Agent access - rate limit (IP limit)
+            description: Number of unique client IPs for which a distinct rate limit will be maintained.
+            required: false
+            show_user: false
+            default: 10000
           - name: default_service_environment
             type: text
             title: Default Service Environment
             description: Default service environment to record in events which have no service environment defined.
-            required: false
-            show_user: false
-          - name: rum_allow_service_names
-            type: text
-            title: RUM - Allowed Service Names
-            description: Allowed service names for events sent by RUM agents.
-            multi: true
             required: false
             show_user: false
           - name: rum_allow_origins
@@ -106,20 +135,6 @@ policy_templates:
             description: Added to RUM responses, e.g. for security policy compliance.
             required: false
             show_user: false
-          - name: rum_event_rate_limit
-            type: integer
-            title: RUM - Rate limit events per IP
-            description: Maximum number of events allowed per IP per second.
-            required: false
-            show_user: false
-            default: 10
-          - name: rum_event_rate_lru_size
-            type: integer
-            title: RUM - Rate limit cache size
-            description: Number of unique IPs to be cached for the rate limiter.
-            required: false
-            show_user: false
-            default: 10000
           - name: rum_library_pattern
             type: text
             title: RUM - Library Frame Pattern
