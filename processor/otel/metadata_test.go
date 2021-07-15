@@ -194,29 +194,6 @@ func TestResourceConventions(t *testing.T) {
 				},
 			},
 		},
-		"network": {
-			attrs: map[string]pdata.AttributeValue{
-				"net.host.connection_type": pdata.NewAttributeValueString("5G"),
-				"net.host.carrier.name":    pdata.NewAttributeValueString("Vodafone"),
-				"net.host.carrier.mnc":     pdata.NewAttributeValueString("01"),
-				"net.host.carrier.mcc":     pdata.NewAttributeValueString("101"),
-				"net.host.carrier.icc":     pdata.NewAttributeValueString("UK"),
-			},
-			expected: model.Metadata{
-				Service: defaultService,
-				System: model.System{
-					Network: model.Network{
-						ConnectionType: "5G",
-						Carrier: model.Carrier{
-							Name: "Vodafone",
-							MNC:  "01",
-							MCC:  "101",
-							ICC:  "UK",
-						},
-					},
-				},
-			},
-		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			meta := transformResourceMetadata(t, test.attrs)
