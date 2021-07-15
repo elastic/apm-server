@@ -966,7 +966,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 		}
 		if eventFrame.LibraryFrame.IsSet() {
 			val := eventFrame.LibraryFrame.Val
-			fr.LibraryFrame = &val
+			fr.LibraryFrame = val
 		}
 		if eventFrame.LineNumber.IsSet() {
 			val := eventFrame.LineNumber.Val

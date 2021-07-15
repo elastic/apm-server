@@ -143,8 +143,6 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 				"Metadata",
 				// URL parts are derived from url (separately tested)
 				"Page.URL",
-				// RUM is set in stream processor
-				"RUM",
 				// exception.parent is only set after calling `flattenExceptionTree` (not part of decoding)
 				"Exception.Parent",
 				// stacktrace original and sourcemap values are set when sourcemapping is applied

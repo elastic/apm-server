@@ -70,10 +70,6 @@ type Span struct {
 	Destination        *Destination
 	DestinationService *DestinationService
 
-	// RUM records whether or not this is a RUM span,
-	// and should have its stack frames sourcemapped.
-	RUM bool
-
 	Experimental interface{}
 
 	// RepresentativeCount holds the approximate number of spans that
@@ -265,7 +261,7 @@ func (e *Span) fields(ctx context.Context, cfg *transform.Config) common.MapStr 
 
 	// TODO(axw) we should be using a merged service object, combining
 	// the stream metadata and event-specific service info.
-	if st := e.Stacktrace.transform(ctx, cfg, e.RUM); len(st) > 0 {
+	if st := e.Stacktrace.transform(); len(st) > 0 {
 		fields.set("stacktrace", st)
 	}
 	return common.MapStr(fields)
