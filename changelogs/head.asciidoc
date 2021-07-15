@@ -16,6 +16,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Fixed tail-based sampling pubsub to use _seq_no correctly {pull}5126[5126]
 * Removed service name from dataset {pull}5451[5451]
 * Fix panic on Fleet policy change when transaction metrics or tail-based sampling are enabled {pull}5670[5670]
+* Remove multipart form temporary files left behind by source map uploads {pull}5718[5718]
 
 [float]
 ==== Intake API Changes
