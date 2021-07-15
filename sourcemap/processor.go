@@ -85,7 +85,7 @@ func (p BatchProcessor) processError(ctx context.Context, event *model.Error) {
 func (p BatchProcessor) processException(ctx context.Context, service *model.Service, exception *model.Exception) {
 	p.processStacktraceFrames(ctx, service, exception.Stacktrace...)
 	for _, cause := range exception.Cause {
-		p.processStacktraceFrames(ctx, service, cause.Stacktrace...)
+		p.processException(ctx, service, &cause)
 	}
 }
 

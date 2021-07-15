@@ -186,8 +186,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				// URL parts are derived from page.url (separately tested)
 				"URL", "Page.URL",
 				// HTTP.Request.Referrer is derived from page.referer (separately tested)
-				// RUM is set in stream processor
-				"RUM",
 			} {
 				if strings.HasPrefix(key, s) {
 					return true
@@ -243,8 +241,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"Stacktrace.Sourcemap",
 				// ExcludeFromGrouping is set when processing the event
 				"Stacktrace.ExcludeFromGrouping",
-				// RUM is set in stream processor
-				"RUM",
 				// Transaction related information is set within the DecodeNestedTransaction method
 				// it is separatly tested in TestDecodeNestedTransaction
 				"TransactionID", "TraceID", "ParentID",
