@@ -261,22 +261,7 @@ func translateTransaction(
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pdata.AttributeValueTypeArray:
-			array := v.ArrayVal()
-			values := make([]interface{}, array.Len())
-			for i := range values {
-				value := array.At(i)
-				switch value.Type() {
-				case pdata.AttributeValueTypeBool:
-					values[i] = value.BoolVal()
-				case pdata.AttributeValueTypeDouble:
-					values[i] = value.DoubleVal()
-				case pdata.AttributeValueTypeInt:
-					values[i] = value.IntVal()
-				case pdata.AttributeValueTypeString:
-					values[i] = truncate(value.StringVal())
-				}
-			}
-			labels[k] = values
+			labels[k] = ifaceAnyValueArray(v.ArrayVal())
 		case pdata.AttributeValueTypeBool:
 			labels[k] = v.BoolVal()
 		case pdata.AttributeValueTypeDouble:
@@ -489,6 +474,8 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 
 		k := replaceDots(kDots)
 		switch v.Type() {
+		case pdata.AttributeValueTypeArray:
+			labels[k] = ifaceAnyValueArray(v.ArrayVal())
 		case pdata.AttributeValueTypeBool:
 			labels[k] = v.BoolVal()
 		case pdata.AttributeValueTypeDouble:
