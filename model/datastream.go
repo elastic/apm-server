@@ -15,20 +15,24 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package transform
+package model
 
-import (
-	"context"
+import "github.com/elastic/apm-server/datastreams"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
-)
+// DataStream identifies the data stream to which an event will be written.
+type DataStream struct {
+	// Type holds the data_stream.type identifier.
+	Type string
 
-// Transformable is an interface implemented by all top-level model objects for
-// translating to beat.Events.
-type Transformable interface {
-	Transform(context.Context, *Config) []beat.Event
+	// Dataset holds the data_stream.dataset identifier.
+	Dataset string
+
+	// Namespace holds the data_stream.namespace identifier.
+	Namespace string
 }
 
-// Config holds general transformation configuration.
-type Config struct {
+func (d *DataStream) setFields(fields *mapStr) {
+	fields.maybeSetString(datastreams.TypeField, d.Type)
+	fields.maybeSetString(datastreams.DatasetField, d.Dataset)
+	fields.maybeSetString(datastreams.NamespaceField, d.Namespace)
 }

@@ -23,7 +23,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -57,7 +56,7 @@ type ProfileSampleStackframe struct {
 	Line     int64
 }
 
-func (p *ProfileSample) toBeatEvent(cfg *transform.Config) beat.Event {
+func (p *ProfileSample) toBeatEvent(*transform.Config) beat.Event {
 	var profileFields mapStr
 	profileFields.maybeSetString("id", p.ProfileID)
 	if p.Duration > 0 {
@@ -90,10 +89,6 @@ func (p *ProfileSample) toBeatEvent(cfg *transform.Config) beat.Event {
 		profileDocType: common.MapStr(profileFields),
 	}
 	p.Metadata.set(&fields, p.Labels)
-	if cfg.DataStreams {
-		fields[datastreams.TypeField] = datastreams.MetricsType
-		fields[datastreams.DatasetField] = ProfilesDataset
-	}
 
 	return beat.Event{
 		Timestamp: p.Timestamp,

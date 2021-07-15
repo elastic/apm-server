@@ -175,14 +175,12 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Custom:    common.MapStr{"foo.bar": "baz"},
 		Message:   &Message{QueueName: "routeUser"},
 	}
-	event := txWithContext.toBeatEvent(&transform.Config{DataStreams: true})
+	event := txWithContext.toBeatEvent(&transform.Config{})
 	assert.Equal(t, event.Fields, common.MapStr{
-		"data_stream.type":    "traces",
-		"data_stream.dataset": "apm",
-		"user":                common.MapStr{"id": "123", "name": "jane"},
-		"client":              common.MapStr{"ip": ip},
-		"source":              common.MapStr{"ip": ip},
-		"user_agent":          common.MapStr{"original": userAgent},
+		"user":       common.MapStr{"id": "123", "name": "jane"},
+		"client":     common.MapStr{"ip": ip},
+		"source":     common.MapStr{"ip": ip},
+		"user_agent": common.MapStr{"original": userAgent},
 		"host": common.MapStr{
 			"architecture": "darwin",
 			"hostname":     "a.b.c",

@@ -6,8 +6,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "destination": {
                 "address": "foo.bar.com",
                 "port": 80
@@ -83,8 +81,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "exception": [
                     {
@@ -125,8 +121,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "grouping_key": "23b7ac1bdf1ca957f9f581cfadee467c",
                 "log": {
@@ -162,8 +156,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "exception": [
                     {
@@ -201,8 +193,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "exception": [
                     {
@@ -240,8 +230,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "exception": [
                     {
@@ -279,8 +267,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "grouping_key": "c9221918248f05433f6b81c46a666aee",
                 "log": {
