@@ -49,18 +49,7 @@ type Batch []APMEvent
 func (b *Batch) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
 	out := make([]beat.Event, 0, len(*b))
 	for _, event := range *b {
-		switch {
-		case event.Transaction != nil:
-			out = event.Transaction.appendBeatEvents(cfg, out)
-		case event.Span != nil:
-			out = event.Span.appendBeatEvents(ctx, cfg, out)
-		case event.Metricset != nil:
-			out = event.Metricset.appendBeatEvents(cfg, out)
-		case event.Error != nil:
-			out = event.Error.appendBeatEvents(ctx, cfg, out)
-		case event.Profile != nil:
-			out = event.Profile.appendBeatEvents(cfg, out)
-		}
+		out = event.appendBeatEvent(ctx, cfg, out)
 	}
 	return out
 }

@@ -23,11 +23,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/textproto"
-	"runtime/pprof"
 	"strings"
 	"testing"
 
@@ -123,12 +123,12 @@ func TestHandler(t *testing.T) {
 		"Profile": {
 			id: request.IDResponseValidAccepted,
 			parts: []part{
-				heapProfilePart(),
+				heapProfilePart(t),
 				{
 					name: "profile",
 					// No messageType param specified, so pprof is assumed.
 					contentType: "application/x-protobuf",
-					body:        heapProfileBody(),
+					body:        heapProfileBody(t),
 				},
 				{
 					name:        "metadata",
@@ -136,13 +136,13 @@ func TestHandler(t *testing.T) {
 					body:        strings.NewReader(`{"service":{"name":"foo","agent":{"name":"java","version":"1.2.0"}}}`),
 				},
 			},
-			body:    prettyJSON(map[string]interface{}{"accepted": 2}),
+			body:    prettyJSON(map[string]interface{}{"accepted": 84}),
 			reports: 1,
 			batchProcessor: func(t *testing.T) model.BatchProcessor {
 				return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
-					require.Len(t, *batch, 2)
+					assert.Len(t, *batch, 84)
 					for _, event := range *batch {
-						assert.Equal(t, "foo", event.Profile.Metadata.Service.Name)
+						assert.Equal(t, "foo", event.ProfileSample.Metadata.Service.Name)
 					}
 					return nil
 				})
@@ -180,7 +180,7 @@ func TestHandler(t *testing.T) {
 		"ProfileTooLarge": {
 			id: request.IDResponseErrorsRequestTooLarge,
 			parts: []part{
-				heapProfilePart(),
+				heapProfilePart(t),
 				part{
 					name:        "profile",
 					contentType: pprofContentType,
@@ -263,16 +263,14 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	tc.c.Reset(tc.w, tc.r)
 }
 
-func heapProfilePart() part {
-	return part{name: "profile", contentType: pprofContentType, body: heapProfileBody()}
+func heapProfilePart(t testing.TB) part {
+	return part{name: "profile", contentType: pprofContentType, body: heapProfileBody(t)}
 }
 
-func heapProfileBody() io.Reader {
-	var buf bytes.Buffer
-	if err := pprof.WriteHeapProfile(&buf); err != nil {
-		panic(err)
-	}
-	return &buf
+func heapProfileBody(t testing.TB) io.Reader {
+	data, err := ioutil.ReadFile("../../../testdata/profile/heap.pprof")
+	require.NoError(t, err)
+	return bytes.NewReader(data)
 }
 
 type part struct {
