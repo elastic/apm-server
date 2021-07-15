@@ -558,6 +558,30 @@ func TestMessagingSpan(t *testing.T) {
 	}, span.DestinationService)
 }
 
+func TestSpanNetworkAttributes(t *testing.T) {
+	networkAttributes := map[string]pdata.AttributeValue{
+		"net.host.connection.type": pdata.NewAttributeValueString("5G"),
+		"net.host.carrier.name":    pdata.NewAttributeValueString("Vodafone"),
+		"net.host.carrier.mnc":     pdata.NewAttributeValueString("01"),
+		"net.host.carrier.mcc":     pdata.NewAttributeValueString("101"),
+		"net.host.carrier.icc":     pdata.NewAttributeValueString("UK"),
+	}
+	tx := transformTransactionWithAttributes(t, networkAttributes)
+	span := transformSpanWithAttributes(t, networkAttributes)
+
+	expected := model.Network{
+		ConnectionType: "5G",
+		Carrier: model.Carrier{
+			Name: "Vodafone",
+			MNC:  "01",
+			MCC:  "101",
+			ICC:  "UK",
+		},
+	}
+	assert.Equal(t, expected, tx.Metadata.System.Network)
+	assert.Equal(t, expected, span.Metadata.System.Network)
+}
+
 func TestArrayLabels(t *testing.T) {
 	stringArray := pdata.NewAttributeValueArray()
 	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("string1"))
