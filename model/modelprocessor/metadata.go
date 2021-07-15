@@ -47,8 +47,8 @@ func (f MetadataProcessorFunc) ProcessBatch(ctx context.Context, b *model.Batch)
 			if err := f(ctx, &event.Error.Metadata); err != nil {
 				return err
 			}
-		case event.Profile != nil:
-			if err := f(ctx, &event.Profile.Metadata); err != nil {
+		case event.ProfileSample != nil:
+			if err := f(ctx, &event.ProfileSample.Metadata); err != nil {
 				return err
 			}
 		}
