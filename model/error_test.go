@@ -29,8 +29,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/transform"
-
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -250,7 +248,7 @@ func TestEventFields(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			output := tc.Error.toBeatEvent(context.Background(), &transform.Config{})
+			output := tc.Error.toBeatEvent(context.Background())
 			fields := output.Fields["error"]
 			assert.Equal(t, tc.Output, fields)
 		})
@@ -386,7 +384,7 @@ func TestEvents(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			outputEvent := tc.Error.toBeatEvent(context.Background(), &transform.Config{})
+			outputEvent := tc.Error.toBeatEvent(context.Background())
 			assert.Equal(t, tc.Output, outputEvent.Fields)
 			assert.Equal(t, timestamp, outputEvent.Timestamp)
 
@@ -425,7 +423,7 @@ func TestErrorTransformPage(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Error.toBeatEvent(context.Background(), &transform.Config{})
+		output := test.Error.toBeatEvent(context.Background())
 		assert.Equal(t, test.Output, output.Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

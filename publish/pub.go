@@ -26,7 +26,6 @@ import (
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
 
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -43,10 +42,9 @@ type Reporter func(context.Context, PendingReq) error
 // number of events active in the system can exceed the queue size. Only the number of
 // concurrent HTTP requests trying to publish at the same time is limited.
 type Publisher struct {
-	stopped         chan struct{}
-	tracer          *apm.Tracer
-	client          beat.Client
-	transformConfig *transform.Config
+	stopped chan struct{}
+	tracer  *apm.Tracer
+	client  beat.Client
 
 	mu              sync.RWMutex
 	stopping        bool
@@ -54,23 +52,24 @@ type Publisher struct {
 }
 
 type PendingReq struct {
-	Transformable transform.Transformable
+	Transformable Transformer
 	Trace         bool
+}
+
+// Transformer is an interface implemented by types that can be transformed into beat.Events.
+type Transformer interface {
+	Transform(context.Context) []beat.Event
 }
 
 // PublisherConfig is a struct holding configuration information for the publisher.
 type PublisherConfig struct {
-	Info            beat.Info
-	Pipeline        string
-	Namespace       string
-	Processor       beat.ProcessorList
-	TransformConfig *transform.Config
+	Info      beat.Info
+	Pipeline  string
+	Namespace string
+	Processor beat.ProcessorList
 }
 
 func (cfg *PublisherConfig) Validate() error {
-	if cfg.TransformConfig == nil {
-		return errors.New("TransfromConfig unspecified")
-	}
 	return nil
 }
 
@@ -108,9 +107,8 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 	}
 
 	p := &Publisher{
-		tracer:          tracer,
-		stopped:         make(chan struct{}),
-		transformConfig: cfg.TransformConfig,
+		tracer:  tracer,
+		stopped: make(chan struct{}),
 
 		// One request will be actively processed by the
 		// worker, while the other concurrent requests will be buffered in the queue.
@@ -209,14 +207,14 @@ func (p *Publisher) processPendingReq(ctx context.Context, req PendingReq) {
 		defer tx.End()
 		ctx = apm.ContextWithTransaction(ctx, tx)
 	}
-	events := transformTransformable(ctx, req.Transformable, p.transformConfig)
+	events := transformTransformable(ctx, req.Transformable)
 	span := tx.StartSpan("PublishAll", "Publisher", nil)
 	defer span.End()
 	p.client.PublishAll(events)
 }
 
-func transformTransformable(ctx context.Context, transformable transform.Transformable, cfg *transform.Config) []beat.Event {
+func transformTransformable(ctx context.Context, transformable Transformer) []beat.Event {
 	span, ctx := apm.StartSpan(ctx, "Transform", "Publisher")
 	defer span.End()
-	return transformable.Transform(ctx, cfg)
+	return transformable.Transform(ctx)
 }

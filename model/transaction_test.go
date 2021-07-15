@@ -28,8 +28,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestTransactionTransform(t *testing.T) {
@@ -125,14 +123,14 @@ func TestTransactionTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Transaction.toBeatEvent(&transform.Config{})
+		output := test.Transaction.toBeatEvent()
 		assert.Equal(t, test.Output, output.Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
 
 func TestTransactionTransformOutcome(t *testing.T) {
 	tx := Transaction{Outcome: "success"}
-	event := tx.toBeatEvent(&transform.Config{})
+	event := tx.toBeatEvent()
 	assert.Equal(t, common.MapStr{"outcome": "success"}, event.Fields["event"])
 }
 
@@ -175,7 +173,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Custom:    common.MapStr{"foo.bar": "baz"},
 		Message:   &Message{QueueName: "routeUser"},
 	}
-	event := txWithContext.toBeatEvent(&transform.Config{})
+	event := txWithContext.toBeatEvent()
 	assert.Equal(t, event.Fields, common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
 		"client":     common.MapStr{"ip": ip},
@@ -224,7 +222,7 @@ func TestTransformTransactionHTTP(t *testing.T) {
 	tx := Transaction{
 		HTTP: &Http{Request: &request},
 	}
-	event := tx.toBeatEvent(&transform.Config{})
+	event := tx.toBeatEvent()
 	assert.Equal(t, common.MapStr{
 		"request": common.MapStr{
 			"method": request.Method,
@@ -268,7 +266,7 @@ func TestTransactionTransformPage(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Transaction.toBeatEvent(&transform.Config{})
+		output := test.Transaction.toBeatEvent()
 		assert.Equal(t, test.Output, output.Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -297,7 +295,7 @@ func TestTransactionTransformMarks(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Transaction.toBeatEvent(&transform.Config{})
+		output := test.Transaction.toBeatEvent()
 		marks, _ := output.Fields.GetValue("transaction.marks")
 		assert.Equal(t, test.Output, marks, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
@@ -338,7 +336,7 @@ func TestTransactionSession(t *testing.T) {
 	}}
 
 	for _, test := range tests {
-		output := test.Transaction.toBeatEvent(&transform.Config{})
+		output := test.Transaction.toBeatEvent()
 		session, err := output.Fields.GetValue("session")
 		if test.Output == nil {
 			assert.Equal(t, common.ErrKeyNotFound, err)

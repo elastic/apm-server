@@ -39,7 +39,6 @@ import (
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 )
 
 type notifier struct {
@@ -90,7 +89,7 @@ func TestAssetHandler(t *testing.T) {
 				return string(b)
 			}(),
 			reporter: func(ctx context.Context, p publish.PendingReq) error {
-				events := p.Transformable.Transform(ctx, &transform.Config{})
+				events := p.Transformable.Transform(ctx)
 				docs := beatertest.EncodeEventDocs(events...)
 				name := filepath.Join("test_approved", "TestProcessSourcemap")
 				approvaltest.ApproveEventDocs(t, name, docs, "@timestamp")

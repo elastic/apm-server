@@ -58,7 +58,6 @@ import (
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sampling"
 	"github.com/elastic/apm-server/sourcemap"
-	"github.com/elastic/apm-server/transform"
 )
 
 var (
@@ -363,12 +362,10 @@ func (s *serverRunner) Start() {
 func (s *serverRunner) run() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
-	transformConfig := newTransformConfig(s.beat.Info, s.config)
 	publisherConfig := &publish.PublisherConfig{
-		Info:            s.beat.Info,
-		Pipeline:        s.config.Pipeline,
-		Namespace:       s.namespace,
-		TransformConfig: transformConfig,
+		Info:      s.beat.Info,
+		Pipeline:  s.config.Pipeline,
+		Namespace: s.namespace,
 	}
 
 	cfg := ucfg.Config(*s.rawConfig)
@@ -627,10 +624,6 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 		})
 		return g.Wait()
 	}
-}
-
-func newTransformConfig(beatInfo beat.Info, cfg *config.Config) *transform.Config {
-	return &transform.Config{}
 }
 
 func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping, fleetCfg *config.Fleet) (*sourcemap.Store, error) {
