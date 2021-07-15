@@ -294,10 +294,8 @@ func TestEvents(t *testing.T) {
 		"valid": {
 			Error: &Error{Timestamp: timestamp, Metadata: md},
 			Output: common.MapStr{
-				"data_stream.type":    "logs",
-				"data_stream.dataset": "apm.error",
-				"agent":               common.MapStr{"name": "go", "version": "1.0"},
-				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
+				"agent":   common.MapStr{"name": "go", "version": "1.0"},
+				"service": common.MapStr{"name": "myservice", "version": "1.0"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
@@ -309,11 +307,9 @@ func TestEvents(t *testing.T) {
 		"notSampled": {
 			Error: &Error{Timestamp: timestamp, Metadata: md, TransactionSampled: &sampledFalse},
 			Output: common.MapStr{
-				"data_stream.type":    "logs",
-				"data_stream.dataset": "apm.error",
-				"transaction":         common.MapStr{"sampled": false},
-				"agent":               common.MapStr{"name": "go", "version": "1.0"},
-				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
+				"transaction": common.MapStr{"sampled": false},
+				"agent":       common.MapStr{"name": "go", "version": "1.0"},
+				"service":     common.MapStr{"name": "myservice", "version": "1.0"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
@@ -325,9 +321,7 @@ func TestEvents(t *testing.T) {
 		"withMeta": {
 			Error: &Error{Timestamp: timestamp, Metadata: md, TransactionType: transactionType},
 			Output: common.MapStr{
-				"data_stream.type":    "logs",
-				"data_stream.dataset": "apm.error",
-				"transaction":         common.MapStr{"type": "request"},
+				"transaction": common.MapStr{"type": "request"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
@@ -357,15 +351,13 @@ func TestEvents(t *testing.T) {
 			},
 
 			Output: common.MapStr{
-				"data_stream.type":    "logs",
-				"data_stream.dataset": "apm.error",
-				"labels":              common.MapStr{"key": true, "label": 101},
-				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
-				"agent":               common.MapStr{"name": "go", "version": "1.0"},
-				"user":                common.MapStr{"id": uid, "email": email},
-				"client":              common.MapStr{"ip": userIP},
-				"source":              common.MapStr{"ip": userIP},
-				"user_agent":          common.MapStr{"original": userAgent},
+				"labels":     common.MapStr{"key": true, "label": 101},
+				"service":    common.MapStr{"name": "myservice", "version": "1.0"},
+				"agent":      common.MapStr{"name": "go", "version": "1.0"},
+				"user":       common.MapStr{"id": uid, "email": email},
+				"client":     common.MapStr{"ip": userIP},
+				"source":     common.MapStr{"ip": userIP},
+				"user_agent": common.MapStr{"original": userAgent},
 				"error": common.MapStr{
 					"custom": common.MapStr{
 						"foo_bar": "baz",
@@ -394,7 +386,7 @@ func TestEvents(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			outputEvent := tc.Error.toBeatEvent(context.Background(), &transform.Config{DataStreams: true})
+			outputEvent := tc.Error.toBeatEvent(context.Background(), &transform.Config{})
 			assert.Equal(t, tc.Output, outputEvent.Fields)
 			assert.Equal(t, timestamp, outputEvent.Timestamp)
 

@@ -28,6 +28,12 @@ import (
 //
 // Exactly one of the event fields should be non-nil.
 type APMEvent struct {
+	// DataStream optionally holds data stream identifiers.
+	//
+	// This will have the zero value when APM Server is run
+	// in standalone mode.
+	DataStream DataStream
+
 	Transaction   *Transaction
 	Span          *Span
 	Metricset     *Metricset
@@ -36,17 +42,21 @@ type APMEvent struct {
 }
 
 func (e *APMEvent) appendBeatEvent(ctx context.Context, cfg *transform.Config, out []beat.Event) []beat.Event {
+	var event beat.Event
 	switch {
 	case e.Transaction != nil:
-		out = append(out, e.Transaction.toBeatEvent(cfg))
+		event = e.Transaction.toBeatEvent(cfg)
 	case e.Span != nil:
-		out = append(out, e.Span.toBeatEvent(ctx, cfg))
+		event = e.Span.toBeatEvent(ctx, cfg)
 	case e.Metricset != nil:
-		out = append(out, e.Metricset.toBeatEvent(cfg))
+		event = e.Metricset.toBeatEvent(cfg)
 	case e.Error != nil:
-		out = append(out, e.Error.toBeatEvent(ctx, cfg))
+		event = e.Error.toBeatEvent(ctx, cfg)
 	case e.ProfileSample != nil:
-		out = append(out, e.ProfileSample.toBeatEvent(cfg))
+		event = e.ProfileSample.toBeatEvent(cfg)
+	default:
+		return out
 	}
-	return out
+	e.DataStream.setFields((*mapStr)(&event.Fields))
+	return append(out, event)
 }

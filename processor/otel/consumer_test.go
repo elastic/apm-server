@@ -1166,7 +1166,7 @@ func eventRecorderBatchProcessor(out *[]beat.Event) model.BatchProcessor {
 func transformBatch(ctx context.Context, batches ...*model.Batch) []beat.Event {
 	var out []beat.Event
 	for _, batch := range batches {
-		out = append(out, batch.Transform(ctx, &transform.Config{DataStreams: true})...)
+		out = append(out, batch.Transform(ctx, &transform.Config{})...)
 	}
 	return out
 }
