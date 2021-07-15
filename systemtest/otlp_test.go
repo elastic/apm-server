@@ -35,6 +35,7 @@ import (
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
 	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
+	"go.opentelemetry.io/otel/sdk/resource"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
@@ -68,7 +69,12 @@ func TestOTLPGRPCTraces(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	err := sendOTLPTrace(ctx, newOTLPTracerProvider(newOTLPExporter(t, srv)))
+
+	err := sendOTLPTrace(ctx, newOTLPTracerProvider(newOTLPExporter(t, srv), sdktrace.WithResource(
+		resource.Merge(resource.Default(), sdkresource.NewWithAttributes(
+			attribute.Array("resource_attribute_array", []string{"a", "b"}),
+		)),
+	)))
 	require.NoError(t, err)
 
 	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
@@ -322,7 +328,9 @@ func sendOTLPTrace(ctx context.Context, tracerProvider *sdktrace.TracerProvider)
 	tracer := tracerProvider.Tracer("systemtest")
 	startTime := time.Unix(123, 456)
 	endTime := startTime.Add(time.Second)
-	_, span := tracer.Start(ctx, "operation_name", trace.WithTimestamp(startTime))
+	_, span := tracer.Start(ctx, "operation_name", trace.WithTimestamp(startTime), trace.WithAttributes(
+		attribute.Array("span_attribute_array", []string{"a", "b", "c"}),
+	))
 	span.End(trace.WithTimestamp(endTime))
 	return flushTracerProvider(ctx, tracerProvider)
 }

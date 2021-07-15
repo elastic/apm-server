@@ -19,7 +19,6 @@ package transform
 
 import (
 	"context"
-	"regexp"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 )
@@ -32,11 +31,4 @@ type Transformable interface {
 
 // Config holds general transformation configuration.
 type Config struct {
-	RUM RUMConfig
-}
-
-// RUMConfig holds RUM-related transformation configuration.
-type RUMConfig struct {
-	LibraryPattern      *regexp.Regexp
-	ExcludeFromGrouping *regexp.Regexp
 }

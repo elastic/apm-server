@@ -31,7 +31,6 @@
                                 "exclude_from_grouping": false,
                                 "filename": "~/test/e2e/general-usecase/bundle.js.map",
                                 "function": "invokeTask",
-                                "library_frame": false,
                                 "line": {
                                     "column": 181,
                                     "number": 1

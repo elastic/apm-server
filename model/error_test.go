@@ -213,7 +213,6 @@ func TestEventFields(t *testing.T) {
 				Exception:     &exception,
 				Log:           &log,
 				TransactionID: trID,
-				RUM:           true,
 
 				// Service name and version are required for sourcemapping.
 				Metadata: Metadata{
@@ -349,7 +348,6 @@ func TestEvents(t *testing.T) {
 				HTTP:               &Http{Request: &Req{Referer: referer}},
 				URL:                &URL{Original: url},
 				Custom:             custom,
-				RUM:                true,
 			},
 
 			Output: common.MapStr{
@@ -392,119 +390,6 @@ func TestEvents(t *testing.T) {
 			assert.Equal(t, tc.Output, outputEvent.Fields)
 			assert.Equal(t, timestamp, outputEvent.Timestamp)
 
-		})
-	}
-}
-
-func TestCulprit(t *testing.T) {
-	c := "foo"
-	fct := "fct"
-	truthy := true
-	st := Stacktrace{
-		&StacktraceFrame{Filename: "a", Function: fct},
-	}
-	stUpdate := Stacktrace{
-		&StacktraceFrame{Filename: "a", Function: fct},
-		&StacktraceFrame{Filename: "a", LibraryFrame: &truthy, SourcemapUpdated: true},
-		&StacktraceFrame{Filename: "f", Function: fct, SourcemapUpdated: true},
-		&StacktraceFrame{Filename: "bar", Function: fct, SourcemapUpdated: true},
-	}
-	tests := []struct {
-		event   Error
-		culprit string
-		msg     string
-	}{
-		{
-			event:   Error{Culprit: c, RUM: false},
-			culprit: "foo",
-			msg:     "Not a RUM event",
-		},
-		{
-			event:   Error{Culprit: c, RUM: true},
-			culprit: "foo",
-			msg:     "No Stacktrace Frame given.",
-		},
-		{
-			event:   Error{Culprit: c, RUM: true, Log: &Log{Stacktrace: st}},
-			culprit: "foo",
-			msg:     "Log.StacktraceFrame has no updated frame",
-		},
-		{
-			event: Error{
-				Culprit: c,
-				RUM:     true,
-				Log: &Log{
-					Stacktrace: Stacktrace{
-						&StacktraceFrame{
-							Filename:         "f",
-							Classname:        "xyz",
-							SourcemapUpdated: true,
-						},
-					},
-				},
-			},
-			culprit: "f",
-			msg:     "Adapt culprit to first valid Log.StacktraceFrame filename information.",
-		},
-		{
-			event: Error{
-				Culprit: c,
-				RUM:     true,
-				Log: &Log{
-					Stacktrace: Stacktrace{
-						&StacktraceFrame{
-							Classname:        "xyz",
-							SourcemapUpdated: true,
-						},
-					},
-				},
-			},
-			culprit: "xyz",
-			msg:     "Adapt culprit Log.StacktraceFrame classname information.",
-		},
-		{
-			event: Error{
-				Culprit:   c,
-				RUM:       true,
-				Exception: &Exception{Stacktrace: stUpdate},
-			},
-			culprit: "f in fct",
-			msg:     "Adapt culprit to first valid Exception.StacktraceFrame information.",
-		},
-		{
-			event: Error{
-				Culprit:   c,
-				RUM:       true,
-				Log:       &Log{Stacktrace: st},
-				Exception: &Exception{Stacktrace: stUpdate},
-			},
-			culprit: "f in fct",
-			msg:     "Log and Exception StacktraceFrame given, only one changes culprit.",
-		},
-		{
-			event: Error{
-				Culprit: c,
-				RUM:     true,
-				Log: &Log{
-					Stacktrace: Stacktrace{
-						&StacktraceFrame{
-							Filename:         "a",
-							Function:         fct,
-							SourcemapUpdated: true,
-						},
-					},
-				},
-				Exception: &Exception{Stacktrace: stUpdate},
-			},
-			culprit: "a in fct",
-			msg:     "Log Stacktrace is prioritized over Exception StacktraceFrame",
-		},
-	}
-	for idx, test := range tests {
-		t.Run(fmt.Sprint(idx), func(t *testing.T) {
-			test.event.updateCulprit()
-			assert.Equal(t, test.culprit, test.event.Culprit,
-				fmt.Sprintf("(%v) %s: expected <%v>, received <%v>", idx, test.msg, test.culprit, test.event.Culprit))
 		})
 	}
 }
