@@ -207,14 +207,8 @@ func (p *Publisher) processPendingReq(ctx context.Context, req PendingReq) {
 		defer tx.End()
 		ctx = apm.ContextWithTransaction(ctx, tx)
 	}
-	events := transformTransformable(ctx, req.Transformable)
+	events := req.Transformable.Transform(ctx)
 	span := tx.StartSpan("PublishAll", "Publisher", nil)
 	defer span.End()
 	p.client.PublishAll(events)
-}
-
-func transformTransformable(ctx context.Context, transformable Transformer) []beat.Event {
-	span, ctx := apm.StartSpan(ctx, "Transform", "Publisher")
-	defer span.End()
-	return transformable.Transform(ctx)
 }
