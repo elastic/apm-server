@@ -58,17 +58,27 @@ func NewContext() *Context {
 	return &Context{}
 }
 
-// Reset allows to reuse a context by removing all request specific information
+// Reset allows to reuse a context by removing all request specific information.
+//
+// It is valid to call Reset(nil, nil), which will just clear all information.
+// If w and r are non-nil, the context will be associated with them for handling
+// the request, and information such as the user agent and source IP will be
+// extracted for handlers.
 func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
-	c.Request = r
+	if c.Request != nil && c.Request.MultipartForm != nil {
+		c.Request.MultipartForm.RemoveAll()
+	}
 	c.Logger = nil
 	c.AuthResult = authorization.Result{}
 	c.Result.Reset()
-	c.SourceIP = utility.ExtractIP(r)
-	c.UserAgent = utility.UserAgentHeader(r.Header)
+	c.writeAttempts = 0
 
 	c.w = w
-	c.writeAttempts = 0
+	c.Request = r
+	if r != nil {
+		c.SourceIP = utility.ExtractIP(r)
+		c.UserAgent = utility.UserAgentHeader(r.Header)
+	}
 }
 
 // Header returns the http.Header of the context's writer
