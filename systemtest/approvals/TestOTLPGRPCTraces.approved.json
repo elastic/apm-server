@@ -13,6 +13,17 @@
                 "ingested": "dynamic",
                 "outcome": "success"
             },
+            "labels": {
+                "resource_attribute_array": [
+                    "a",
+                    "b"
+                ],
+                "span_attribute_array": [
+                    "a",
+                    "b",
+                    "c"
+                ]
+            },
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
