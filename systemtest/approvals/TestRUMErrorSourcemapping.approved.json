@@ -38,7 +38,6 @@
                                 "exclude_from_grouping": false,
                                 "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                                 "function": "__webpack_require__",
-                                "library_frame": false,
                                 "line": {
                                     "column": 0,
                                     "context": " \tfunction __webpack_require__(moduleId) {",
@@ -77,7 +76,6 @@
                                 "exclude_from_grouping": false,
                                 "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                                 "function": "\u003cunknown\u003e",
-                                "library_frame": false,
                                 "line": {
                                     "column": 0,
                                     "context": " \t__webpack_require__.c = installedModules;",
@@ -88,7 +86,6 @@
                                     "colno": 181,
                                     "filename": "~/test/e2e/general-usecase/bundle.js.map",
                                     "function": "invokeTask",
-                                    "library_frame": false,
                                     "lineno": 1
                                 },
                                 "sourcemap": {
@@ -115,7 +112,6 @@
                                 "exclude_from_grouping": false,
                                 "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                                 "function": "\u003cunknown\u003e",
-                                "library_frame": false,
                                 "line": {
                                     "column": 0,
                                     "context": " \tfunction __webpack_require__(moduleId) {",
@@ -153,7 +149,6 @@
                                 "exclude_from_grouping": false,
                                 "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                                 "function": "moduleId",
-                                "library_frame": false,
                                 "line": {
                                     "column": 0,
                                     "context": " \treturn __webpack_require__(0);",
@@ -191,7 +186,6 @@
                                 "exclude_from_grouping": false,
                                 "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                                 "function": "\u003canonymous\u003e",
-                                "library_frame": false,
                                 "line": {
                                     "column": 0,
                                     "context": " \t\tif(installedModules[moduleId])",
@@ -238,7 +232,6 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003canonymous\u003e",
-                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "context": " \tfunction __webpack_require__(moduleId) {",

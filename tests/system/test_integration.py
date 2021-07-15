@@ -98,14 +98,14 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      self.backend_intake_url,
                                      'error',
                                      4)
-        self.check_library_frames({"true": 1, "false": 1, "empty": 2}, index_error)
+        self.check_library_frames({"true": 1, "false": 0, "empty": 3}, index_error)
 
     def test_rum_error(self):
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.intake_url,
                                      'error',
                                      1)
-        self.check_library_frames({"true": 5, "false": 1, "empty": 0}, index_error)
+        self.check_library_frames({"true": 5, "false": 0, "empty": 1}, index_error)
 
     def test_backend_transaction(self):
         # for backend events library_frame information should not be changed,
@@ -121,7 +121,7 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      self.intake_url,
                                      'transaction',
                                      2)
-        self.check_library_frames({"true": 1, "false": 1, "empty": 0}, index_span)
+        self.check_library_frames({"true": 1, "false": 0, "empty": 1}, index_span)
 
     def test_enrich_backend_event(self):
         self.load_docs_with_template(self.get_backend_transaction_payload_path(),

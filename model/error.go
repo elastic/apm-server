@@ -73,10 +73,6 @@ type Error struct {
 	TransactionSampled *bool
 	TransactionType    string
 
-	// RUM records whether or not this is a RUM error,
-	// and should have its stack frames sourcemapped.
-	RUM bool
-
 	Experimental interface{}
 }
 
@@ -111,7 +107,7 @@ func (e *Error) appendBeatEvents(ctx context.Context, cfg *transform.Config, eve
 	}
 
 	fields := mapStr{
-		"error":     e.fields(ctx, cfg),
+		"error":     e.fields(),
 		"processor": errorProcessorEntry,
 	}
 
@@ -157,63 +153,24 @@ func (e *Error) appendBeatEvents(ctx context.Context, cfg *transform.Config, eve
 	})
 }
 
-func (e *Error) fields(ctx context.Context, cfg *transform.Config) common.MapStr {
+func (e *Error) fields() common.MapStr {
 	var fields mapStr
 	fields.maybeSetString("id", e.ID)
 	fields.maybeSetMapStr("page", e.Page.Fields())
 
 	exceptionChain := flattenExceptionTree(e.Exception)
-	if exception := e.exceptionFields(ctx, cfg, exceptionChain); len(exception) > 0 {
+	if exception := e.exceptionFields(exceptionChain); len(exception) > 0 {
 		fields.set("exception", exception)
 	}
-	fields.maybeSetMapStr("log", e.logFields(ctx, cfg))
+	fields.maybeSetMapStr("log", e.logFields())
 
-	e.updateCulprit()
 	fields.maybeSetString("culprit", e.Culprit)
 	fields.maybeSetMapStr("custom", customFields(e.Custom))
 	fields.maybeSetString("grouping_key", e.calcGroupingKey(exceptionChain))
 	return common.MapStr(fields)
 }
 
-// TODO(axw) introduce another processor which sets library_frame
-// and exclude_from_grouping, only applied for RUM. Then we get rid
-// of Error.RUM and Span.RUM.
-func (e *Error) updateCulprit() {
-	if !e.RUM {
-		return
-	}
-	var fr *StacktraceFrame
-	if e.Log != nil {
-		fr = findSmappedNonLibraryFrame(e.Log.Stacktrace)
-	}
-	if fr == nil && e.Exception != nil {
-		fr = findSmappedNonLibraryFrame(e.Exception.Stacktrace)
-	}
-	if fr == nil {
-		return
-	}
-	var culprit string
-	if fr.Filename != "" {
-		culprit = fr.Filename
-	} else if fr.Classname != "" {
-		culprit = fr.Classname
-	}
-	if fr.Function != "" {
-		culprit += fmt.Sprintf(" in %v", fr.Function)
-	}
-	e.Culprit = culprit
-}
-
-func findSmappedNonLibraryFrame(frames []*StacktraceFrame) *StacktraceFrame {
-	for _, fr := range frames {
-		if fr.SourcemapUpdated && !fr.IsLibraryFrame() {
-			return fr
-		}
-	}
-	return nil
-}
-
-func (e *Error) exceptionFields(ctx context.Context, cfg *transform.Config, chain []Exception) []common.MapStr {
+func (e *Error) exceptionFields(chain []Exception) []common.MapStr {
 	var result []common.MapStr
 	for _, exception := range chain {
 		var ex mapStr
@@ -242,7 +199,7 @@ func (e *Error) exceptionFields(ctx context.Context, cfg *transform.Config, chai
 		if n := len(exception.Stacktrace); n > 0 {
 			frames := make([]common.MapStr, n)
 			for i, frame := range exception.Stacktrace {
-				frames[i] = frame.transform(cfg, e.RUM)
+				frames[i] = frame.transform()
 			}
 			ex.set("stacktrace", frames)
 		}
@@ -252,7 +209,7 @@ func (e *Error) exceptionFields(ctx context.Context, cfg *transform.Config, chai
 	return result
 }
 
-func (e *Error) logFields(ctx context.Context, cfg *transform.Config) common.MapStr {
+func (e *Error) logFields() common.MapStr {
 	if e.Log == nil {
 		return nil
 	}
@@ -261,7 +218,7 @@ func (e *Error) logFields(ctx context.Context, cfg *transform.Config) common.Map
 	log.maybeSetString("param_message", e.Log.ParamMessage)
 	log.maybeSetString("logger_name", e.Log.LoggerName)
 	log.maybeSetString("level", e.Log.Level)
-	if st := e.Log.Stacktrace.transform(ctx, cfg, e.RUM); len(st) > 0 {
+	if st := e.Log.Stacktrace.transform(); len(st) > 0 {
 		log.set("stacktrace", st)
 	}
 	return common.MapStr(log)

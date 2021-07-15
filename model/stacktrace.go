@@ -18,12 +18,7 @@
 package model
 
 import (
-	"context"
-	"regexp"
-
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/transform"
 )
 
 type Stacktrace []*StacktraceFrame
@@ -37,7 +32,7 @@ type StacktraceFrame struct {
 	ContextLine  string
 	Module       string
 	Function     string
-	LibraryFrame *bool
+	LibraryFrame bool
 	Vars         common.MapStr
 	PreContext   []string
 	PostContext  []string
@@ -56,21 +51,21 @@ type Original struct {
 	Lineno       *int
 	Colno        *int
 	Function     string
-	LibraryFrame *bool
+	LibraryFrame bool
 }
 
-func (st Stacktrace) transform(ctx context.Context, cfg *transform.Config, rum bool) []common.MapStr {
+func (st Stacktrace) transform() []common.MapStr {
 	if len(st) == 0 {
 		return nil
 	}
 	frames := make([]common.MapStr, len(st))
 	for i, frame := range st {
-		frames[i] = frame.transform(cfg, rum)
+		frames[i] = frame.transform()
 	}
 	return frames
 }
 
-func (s *StacktraceFrame) transform(cfg *transform.Config, rum bool) common.MapStr {
+func (s *StacktraceFrame) transform() common.MapStr {
 	var m mapStr
 	m.maybeSetString("filename", s.Filename)
 	m.maybeSetString("classname", s.Classname)
@@ -79,15 +74,8 @@ func (s *StacktraceFrame) transform(cfg *transform.Config, rum bool) common.MapS
 	m.maybeSetString("function", s.Function)
 	m.maybeSetMapStr("vars", s.Vars)
 
-	if rum && cfg.RUM.LibraryPattern != nil {
-		s.setLibraryFrame(cfg.RUM.LibraryPattern)
-	}
-	if s.LibraryFrame != nil {
-		m.set("library_frame", *s.LibraryFrame)
-	}
-
-	if rum && cfg.RUM.ExcludeFromGrouping != nil {
-		s.setExcludeFromGrouping(cfg.RUM.ExcludeFromGrouping)
+	if s.LibraryFrame {
+		m.set("library_frame", s.LibraryFrame)
 	}
 	m.set("exclude_from_grouping", s.ExcludeFromGrouping)
 
@@ -114,7 +102,9 @@ func (s *StacktraceFrame) transform(cfg *transform.Config, rum bool) common.MapS
 	m.maybeSetMapStr("sourcemap", common.MapStr(sm))
 
 	var orig mapStr
-	orig.maybeSetBool("library_frame", s.Original.LibraryFrame)
+	if s.Original.LibraryFrame {
+		orig.set("library_frame", s.Original.LibraryFrame)
+	}
 	if s.SourcemapUpdated {
 		orig.maybeSetString("filename", s.Original.Filename)
 		orig.maybeSetString("classname", s.Original.Classname)
@@ -126,19 +116,4 @@ func (s *StacktraceFrame) transform(cfg *transform.Config, rum bool) common.MapS
 	m.maybeSetMapStr("original", common.MapStr(orig))
 
 	return common.MapStr(m)
-}
-
-func (s *StacktraceFrame) IsLibraryFrame() bool {
-	return s.LibraryFrame != nil && *s.LibraryFrame
-}
-
-func (s *StacktraceFrame) setExcludeFromGrouping(pattern *regexp.Regexp) {
-	s.ExcludeFromGrouping = s.Filename != "" && pattern.MatchString(s.Filename)
-}
-
-func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
-	s.Original.LibraryFrame = s.LibraryFrame
-	libraryFrame := (s.Filename != "" && pattern.MatchString(s.Filename)) ||
-		(s.AbsPath != "" && pattern.MatchString(s.AbsPath))
-	s.LibraryFrame = &libraryFrame
 }
