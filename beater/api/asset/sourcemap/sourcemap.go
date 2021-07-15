@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package sourcemap
 
 import (
 	"context"
@@ -35,19 +35,19 @@ const (
 )
 
 var (
-	registry                = monitoring.Default.NewRegistry("apm-server.processor.sourcemap")
-	sourcemapCounter        = monitoring.NewInt(registry, "counter")
+	processorRegistry       = monitoring.Default.NewRegistry("apm-server.processor.sourcemap")
+	sourcemapCounter        = monitoring.NewInt(processorRegistry, "counter")
 	sourcemapProcessorEntry = common.MapStr{"name": sourcemapProcessorName, "event": sourcemapDocType}
 )
 
-type Sourcemap struct {
+type sourcemapDoc struct {
 	ServiceName    string
 	ServiceVersion string
 	Sourcemap      string
 	BundleFilepath string
 }
 
-func (pa *Sourcemap) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+func (pa *sourcemapDoc) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
 	sourcemapCounter.Inc()
 	if pa == nil {
 		return nil
