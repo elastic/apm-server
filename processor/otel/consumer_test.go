@@ -599,6 +599,15 @@ func TestArrayLabels(t *testing.T) {
 		"bool_array":   []interface{}{false, true},
 		"string_array": []interface{}{"string1", "string2"},
 	}, tx.Labels)
+
+	span := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{
+		"string_array": stringArray,
+		"bool_array":   boolArray,
+	})
+	assert.Equal(t, common.MapStr{
+		"bool_array":   []interface{}{false, true},
+		"string_array": []interface{}{"string1", "string2"},
+	}, span.Labels)
 }
 
 func TestConsumeTracesExportTimestamp(t *testing.T) {
