@@ -42,6 +42,7 @@ func (pool *ContextPool) HTTPHandler(h Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c := pool.p.Get().(*Context)
 		defer pool.p.Put(c)
+		defer c.Reset(nil, nil)
 		c.Reset(w, r)
 		h(c)
 	})
