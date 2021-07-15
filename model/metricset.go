@@ -179,12 +179,8 @@ type MetricsetSpan struct {
 	DestinationService DestinationService
 }
 
-func (me *Metricset) appendBeatEvents(cfg *transform.Config, events []beat.Event) []beat.Event {
+func (me *Metricset) toBeatEvent(cfg *transform.Config) beat.Event {
 	metricsetTransformations.Inc()
-	if me == nil {
-		return nil
-	}
-
 	fields := mapStr{}
 	for _, sample := range me.Samples {
 		if err := sample.set(common.MapStr(fields)); err != nil {
@@ -250,10 +246,10 @@ func (me *Metricset) appendBeatEvents(cfg *transform.Config, events []beat.Event
 		fields[datastreams.TypeField] = datastreams.MetricsType
 	}
 
-	return append(events, beat.Event{
+	return beat.Event{
 		Fields:    common.MapStr(fields),
 		Timestamp: me.Timestamp,
-	})
+	}
 }
 
 func (e *MetricsetEventCategorization) fields() common.MapStr {
