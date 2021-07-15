@@ -67,16 +67,14 @@ func TestProfileSampleTransform(t *testing.T) {
 	}
 
 	batch := &model.Batch{{ProfileSample: &sample}, {ProfileSample: &sample}}
-	output := batch.Transform(context.Background(), &transform.Config{DataStreams: true})
+	output := batch.Transform(context.Background(), &transform.Config{})
 	require.Len(t, output, 2)
 	assert.Equal(t, output[0], output[1])
 
 	assert.Equal(t, beat.Event{
 		Timestamp: timestamp,
 		Fields: common.MapStr{
-			"data_stream.type":    "metrics",
-			"data_stream.dataset": "apm.profiling",
-			"processor":           common.MapStr{"event": "profile", "name": "profile"},
+			"processor": common.MapStr{"event": "profile", "name": "profile"},
 			"service": common.MapStr{
 				"name":        "myService",
 				"environment": "staging",

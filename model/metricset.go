@@ -18,7 +18,6 @@
 package model
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -26,7 +25,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/datastreams"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/transform"
 )
@@ -179,7 +177,7 @@ type MetricsetSpan struct {
 	DestinationService DestinationService
 }
 
-func (me *Metricset) toBeatEvent(cfg *transform.Config) beat.Event {
+func (me *Metricset) toBeatEvent(*transform.Config) beat.Event {
 	metricsetTransformations.Inc()
 	fields := mapStr{}
 	for _, sample := range me.Samples {
@@ -200,17 +198,13 @@ func (me *Metricset) toBeatEvent(cfg *transform.Config) beat.Event {
 
 	me.Metadata.set(&fields, me.Labels)
 
-	var isInternal bool
 	if eventFields := me.Event.fields(); eventFields != nil {
-		isInternal = true
 		common.MapStr(fields).DeepUpdate(common.MapStr{metricsetEventKey: eventFields})
 	}
 	if transactionFields := me.Transaction.fields(); transactionFields != nil {
-		isInternal = true
 		common.MapStr(fields).DeepUpdate(common.MapStr{metricsetTransactionKey: transactionFields})
 	}
 	if spanFields := me.Span.fields(); spanFields != nil {
-		isInternal = true
 		common.MapStr(fields).DeepUpdate(common.MapStr{metricsetSpanKey: spanFields})
 	}
 
@@ -233,18 +227,6 @@ func (me *Metricset) toBeatEvent(cfg *transform.Config) beat.Event {
 		metricDescriptions.maybeSetMapStr(sample.Name, common.MapStr(m))
 	}
 	fields.maybeSetMapStr("_metric_descriptions", common.MapStr(metricDescriptions))
-
-	if cfg.DataStreams {
-		// Metrics that include well-defined transaction/span fields
-		// (i.e. breakdown metrics, transaction and span metrics) will
-		// be stored separately from application and runtime metrics.
-		dataset := InternalMetricsDataset
-		if !isInternal {
-			dataset = fmt.Sprintf("%s.%s", AppMetricsDataset, datastreams.NormalizeServiceName(me.Metadata.Service.Name))
-		}
-		fields[datastreams.DatasetField] = dataset
-		fields[datastreams.TypeField] = datastreams.MetricsType
-	}
 
 	return beat.Event{
 		Fields:    common.MapStr(fields),

@@ -9,8 +9,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -157,8 +155,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -214,8 +210,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -271,8 +265,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -328,8 +320,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -399,8 +389,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -470,8 +458,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
                 "port": 8000
@@ -563,8 +549,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -633,8 +617,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
                 "port": 8000
@@ -732,8 +714,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
                 "port": 8003
@@ -831,8 +811,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
                 "port": 8003
@@ -931,8 +909,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -1024,8 +1000,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.type": "metrics",
             "labels": {
                 "tag1": "value1",
                 "testTagKey": "testTagValue"
