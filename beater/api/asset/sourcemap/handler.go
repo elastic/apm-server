@@ -31,7 +31,6 @@ import (
 
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/utility"
 )
@@ -75,7 +74,7 @@ func Handler(report publish.Reporter, notifier AddedNotifier) request.Handler {
 			return
 		}
 
-		var smap model.Sourcemap
+		var smap sourcemapDoc
 		decodingCount.Inc()
 		if err := decode(c.Request, &smap); err != nil {
 			decodingError.Inc()
@@ -88,7 +87,7 @@ func Handler(report publish.Reporter, notifier AddedNotifier) request.Handler {
 			return
 		}
 		validateCount.Inc()
-		if err := validate(smap); err != nil {
+		if err := validate(&smap); err != nil {
 			validateError.Inc()
 			c.Result.SetWithError(request.IDResponseErrorsValidate, err)
 			c.Write()
@@ -114,7 +113,7 @@ func Handler(report publish.Reporter, notifier AddedNotifier) request.Handler {
 	}
 }
 
-func decode(req *http.Request, smap *model.Sourcemap) error {
+func decode(req *http.Request, smap *sourcemapDoc) error {
 	if !strings.Contains(req.Header.Get("Content-Type"), "multipart/form-data") {
 		return fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
 	}
@@ -134,7 +133,7 @@ func decode(req *http.Request, smap *model.Sourcemap) error {
 	return nil
 }
 
-func validate(smap model.Sourcemap) error {
+func validate(smap *sourcemapDoc) error {
 	// ensure all information is given
 	if smap.BundleFilepath == "" || smap.ServiceName == "" || smap.ServiceVersion == "" {
 		return errors.New("error validating sourcemap: bundle_filepath, service_name and service_version must be sent")
