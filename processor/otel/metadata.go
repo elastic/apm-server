@@ -227,6 +227,16 @@ func ifaceAttributeValue(v pdata.AttributeValue) interface{} {
 		return v.DoubleVal()
 	case pdata.AttributeValueTypeBool:
 		return v.BoolVal()
+	case pdata.AttributeValueTypeArray:
+		return ifaceAnyValueArray(v.ArrayVal())
 	}
 	return nil
+}
+
+func ifaceAnyValueArray(array pdata.AnyValueArray) []interface{} {
+	values := make([]interface{}, array.Len())
+	for i := range values {
+		values[i] = ifaceAttributeValue(array.At(i))
+	}
+	return values
 }
