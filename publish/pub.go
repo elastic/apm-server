@@ -26,7 +26,6 @@ import (
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
 
-	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -103,9 +102,6 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 	processingCfg := beat.ProcessingConfig{
 		Fields:    common.MapStr{"observer": observerFields},
 		Processor: cfg.Processor,
-	}
-	if cfg.TransformConfig.DataStreams {
-		processingCfg.Fields[datastreams.NamespaceField] = cfg.Namespace
 	}
 	if cfg.Pipeline != "" {
 		processingCfg.Meta = map[string]interface{}{"pipeline": cfg.Pipeline}

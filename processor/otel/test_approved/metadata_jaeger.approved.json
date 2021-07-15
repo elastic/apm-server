@@ -7,8 +7,6 @@
                 "name": "Jaeger/C++",
                 "version": "3.2.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },

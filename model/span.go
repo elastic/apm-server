@@ -25,7 +25,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -195,12 +194,6 @@ func (e *Span) appendBeatEvents(ctx context.Context, cfg *transform.Config, even
 	fields := mapStr{
 		"processor": spanProcessorEntry,
 		spanDocType: e.fields(ctx, cfg),
-	}
-
-	if cfg.DataStreams {
-		// Spans are stored in a "traces" data stream along with transactions.
-		fields[datastreams.TypeField] = datastreams.TracesType
-		fields[datastreams.DatasetField] = TracesDataset
 	}
 
 	// first set the generic metadata

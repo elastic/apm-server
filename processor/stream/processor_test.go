@@ -257,7 +257,7 @@ func TestRUMV3(t *testing.T) {
 
 func makeApproveEventsBatchProcessor(t *testing.T, name string, count *int) model.BatchProcessor {
 	return model.ProcessBatchFunc(func(ctx context.Context, b *model.Batch) error {
-		events := b.Transform(ctx, &transform.Config{DataStreams: true})
+		events := b.Transform(ctx, &transform.Config{})
 		*count += len(events)
 		docs := beatertest.EncodeEventDocs(events...)
 		approvaltest.ApproveEventDocs(t, name, docs)

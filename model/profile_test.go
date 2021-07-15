@@ -87,8 +87,13 @@ func TestPprofProfileTransform(t *testing.T) {
 		},
 	}
 
+<<<<<<< HEAD
 	batch := &model.Batch{{Profile: &pp}}
 	output := batch.Transform(context.Background(), &transform.Config{DataStreams: true})
+=======
+	batch := &model.Batch{{ProfileSample: &sample}, {ProfileSample: &sample}}
+	output := batch.Transform(context.Background(), &transform.Config{})
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 	require.Len(t, output, 2)
 	assert.Equal(t, output[0], output[1])
 
@@ -100,9 +105,7 @@ func TestPprofProfileTransform(t *testing.T) {
 	assert.Equal(t, beat.Event{
 		Timestamp: timestamp,
 		Fields: common.MapStr{
-			"data_stream.type":    "metrics",
-			"data_stream.dataset": "apm.profiling",
-			"processor":           common.MapStr{"event": "profile", "name": "profile"},
+			"processor": common.MapStr{"event": "profile", "name": "profile"},
 			"service": common.MapStr{
 				"name":        "myService",
 				"environment": "staging",

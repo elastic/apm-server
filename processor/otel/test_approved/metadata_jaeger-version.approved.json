@@ -6,8 +6,6 @@
                 "name": "Jaeger/PHP",
                 "version": "3.4.12"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },

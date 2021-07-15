@@ -28,6 +28,7 @@ import (
 //
 // Exactly one of the event fields should be non-nil.
 type APMEvent struct {
+<<<<<<< HEAD
 	Transaction *Transaction
 	Span        *Span
 	Metricset   *Metricset
@@ -37,4 +38,37 @@ type APMEvent struct {
 
 func (e *APMEvent) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
 	return nil
+=======
+	// DataStream optionally holds data stream identifiers.
+	//
+	// This will have the zero value when APM Server is run
+	// in standalone mode.
+	DataStream DataStream
+
+	Transaction   *Transaction
+	Span          *Span
+	Metricset     *Metricset
+	Error         *Error
+	ProfileSample *ProfileSample
+}
+
+func (e *APMEvent) appendBeatEvent(ctx context.Context, cfg *transform.Config, out []beat.Event) []beat.Event {
+	var event beat.Event
+	switch {
+	case e.Transaction != nil:
+		event = e.Transaction.toBeatEvent(cfg)
+	case e.Span != nil:
+		event = e.Span.toBeatEvent(ctx, cfg)
+	case e.Metricset != nil:
+		event = e.Metricset.toBeatEvent(cfg)
+	case e.Error != nil:
+		event = e.Error.toBeatEvent(ctx, cfg)
+	case e.ProfileSample != nil:
+		event = e.ProfileSample.toBeatEvent(cfg)
+	default:
+		return out
+	}
+	e.DataStream.setFields((*mapStr)(&event.Fields))
+	return append(out, event)
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 }

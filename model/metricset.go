@@ -18,7 +18,6 @@
 package model
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -26,7 +25,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/datastreams"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/transform"
 )
@@ -179,7 +177,11 @@ type MetricsetSpan struct {
 	DestinationService DestinationService
 }
 
+<<<<<<< HEAD
 func (me *Metricset) appendBeatEvents(cfg *transform.Config, events []beat.Event) []beat.Event {
+=======
+func (me *Metricset) toBeatEvent(*transform.Config) beat.Event {
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 	metricsetTransformations.Inc()
 	if me == nil {
 		return nil
@@ -204,17 +206,13 @@ func (me *Metricset) appendBeatEvents(cfg *transform.Config, events []beat.Event
 
 	me.Metadata.set(&fields, me.Labels)
 
-	var isInternal bool
 	if eventFields := me.Event.fields(); eventFields != nil {
-		isInternal = true
 		common.MapStr(fields).DeepUpdate(common.MapStr{metricsetEventKey: eventFields})
 	}
 	if transactionFields := me.Transaction.fields(); transactionFields != nil {
-		isInternal = true
 		common.MapStr(fields).DeepUpdate(common.MapStr{metricsetTransactionKey: transactionFields})
 	}
 	if spanFields := me.Span.fields(); spanFields != nil {
-		isInternal = true
 		common.MapStr(fields).DeepUpdate(common.MapStr{metricsetSpanKey: spanFields})
 	}
 
@@ -238,6 +236,7 @@ func (me *Metricset) appendBeatEvents(cfg *transform.Config, events []beat.Event
 	}
 	fields.maybeSetMapStr("_metric_descriptions", common.MapStr(metricDescriptions))
 
+<<<<<<< HEAD
 	if cfg.DataStreams {
 		// Metrics that include well-defined transaction/span fields
 		// (i.e. breakdown metrics, transaction and span metrics) will
@@ -251,6 +250,9 @@ func (me *Metricset) appendBeatEvents(cfg *transform.Config, events []beat.Event
 	}
 
 	return append(events, beat.Event{
+=======
+	return beat.Event{
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 		Fields:    common.MapStr(fields),
 		Timestamp: me.Timestamp,
 	})

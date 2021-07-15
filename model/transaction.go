@@ -24,7 +24,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -120,18 +119,16 @@ func (e *Transaction) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
+<<<<<<< HEAD
 func (e *Transaction) appendBeatEvents(cfg *transform.Config, events []beat.Event) []beat.Event {
+=======
+func (e *Transaction) toBeatEvent(*transform.Config) beat.Event {
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 	transactionTransformations.Inc()
 
 	fields := mapStr{
 		"processor":        transactionProcessorEntry,
 		transactionDocType: e.fields(),
-	}
-
-	if cfg.DataStreams {
-		// Transactions are stored in a "traces" data stream along with spans.
-		fields[datastreams.TypeField] = datastreams.TracesType
-		fields[datastreams.DatasetField] = TracesDataset
 	}
 
 	// first set generic metadata (order is relevant)

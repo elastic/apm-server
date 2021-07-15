@@ -457,6 +457,11 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,
 		})
 	}
+	if s.config.DataStreams.Enabled {
+		processors = append(processors, &modelprocessor.SetDataStream{
+			Namespace: s.namespace,
+		})
+	}
 	return WrapRunServerWithProcessors(runServer, processors...)
 }
 
@@ -626,6 +631,7 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 }
 
 func newTransformConfig(beatInfo beat.Info, cfg *config.Config) *transform.Config {
+<<<<<<< HEAD
 	return &transform.Config{
 		DataStreams: cfg.DataStreams.Enabled,
 		RUM: transform.RUMConfig{
@@ -633,6 +639,9 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) *transform.Confi
 			ExcludeFromGrouping: regexp.MustCompile(cfg.RumConfig.ExcludeFromGrouping),
 		},
 	}
+=======
+	return &transform.Config{}
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 }
 
 func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping, fleetCfg *config.Fleet) (*sourcemap.Store, error) {

@@ -59,6 +59,7 @@ func TestTransform(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{Timestamp: timestamp, Metadata: metadata},
+<<<<<<< HEAD
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
@@ -67,12 +68,19 @@ func TestTransform(t *testing.T) {
 					"service": common.MapStr{
 						"name": "myservice",
 					},
+=======
+			Output: common.MapStr{
+				"processor": common.MapStr{"event": "metric", "name": "metric"},
+				"service": common.MapStr{
+					"name": "myservice",
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 				},
 			},
 			Msg: "Payload with empty metric.",
 		},
 		{
 			Metricset: &Metricset{Timestamp: timestamp, Metadata: metadata, Name: "raj"},
+<<<<<<< HEAD
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
@@ -82,6 +90,13 @@ func TestTransform(t *testing.T) {
 					"service": common.MapStr{
 						"name": "myservice",
 					},
+=======
+			Output: common.MapStr{
+				"processor":      common.MapStr{"event": "metric", "name": "metric"},
+				"metricset.name": "raj",
+				"service": common.MapStr{
+					"name": "myservice",
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 				},
 			},
 			Msg: "Payload with metricset name.",
@@ -102,6 +117,7 @@ func TestTransform(t *testing.T) {
 					},
 				},
 			},
+<<<<<<< HEAD
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
@@ -109,6 +125,12 @@ func TestTransform(t *testing.T) {
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service":             common.MapStr{"name": "myservice"},
 					"labels":              common.MapStr{"a_b": "a.b.value"},
+=======
+			Output: common.MapStr{
+				"processor": common.MapStr{"event": "metric", "name": "metric"},
+				"service":   common.MapStr{"name": "myservice"},
+				"labels":    common.MapStr{"a_b": "a.b.value"},
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 
 					"a":    common.MapStr{"counter": float64(612)},
 					"some": common.MapStr{"gauge": float64(9.16)},
@@ -127,6 +149,7 @@ func TestTransform(t *testing.T) {
 					Value: 123,
 				}},
 			},
+<<<<<<< HEAD
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
@@ -139,6 +162,16 @@ func TestTransform(t *testing.T) {
 						"self_time": common.MapStr{
 							"count": 123.0,
 						},
+=======
+			Output: common.MapStr{
+				"processor":   common.MapStr{"event": "metric", "name": "metric"},
+				"service":     common.MapStr{"name": "myservice"},
+				"transaction": common.MapStr{"type": trType, "name": trName},
+				"span": common.MapStr{
+					"type": spType, "subtype": spSubtype,
+					"self_time": common.MapStr{
+						"count": 123.0,
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 					},
 				},
 			},
@@ -165,6 +198,7 @@ func TestTransform(t *testing.T) {
 					},
 				},
 			},
+<<<<<<< HEAD
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
@@ -183,6 +217,22 @@ func TestTransform(t *testing.T) {
 								"counts": []int64{1, 2, 3},
 								"values": []float64{4.5, 6.0, 9.0},
 							},
+=======
+			Output: common.MapStr{
+				"processor":  common.MapStr{"event": "metric", "name": "metric"},
+				"service":    common.MapStr{"name": "myservice"},
+				"event":      common.MapStr{"outcome": eventOutcome},
+				"timeseries": common.MapStr{"instance": "foo"},
+				"transaction": common.MapStr{
+					"type":   trType,
+					"name":   trName,
+					"result": trResult,
+					"root":   true,
+					"duration": common.MapStr{
+						"histogram": common.MapStr{
+							"counts": []int64{1, 2, 3},
+							"values": []float64{4.5, 6.0, 9.0},
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 						},
 					},
 					"_doc_count": int64(6), // 1+2+3
@@ -208,6 +258,7 @@ func TestTransform(t *testing.T) {
 					},
 				},
 			},
+<<<<<<< HEAD
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
@@ -222,6 +273,18 @@ func TestTransform(t *testing.T) {
 					},
 					},
 					},
+=======
+			Output: common.MapStr{
+				"processor": common.MapStr{"event": "metric", "name": "metric"},
+				"service":   common.MapStr{"name": "myservice"},
+				"span": common.MapStr{"type": spType, "subtype": spSubtype,
+					"destination": common.MapStr{"service": common.MapStr{"resource": resource}}},
+				"destination": common.MapStr{"service": common.MapStr{"response_time": common.MapStr{
+					"count": 40.0,
+					"sum":   common.MapStr{"us": 500000.0},
+				},
+				},
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 				},
 			},
 			Msg: "Payload with destination service.",
@@ -246,12 +309,25 @@ func TestTransform(t *testing.T) {
 					Value: 0.99,
 				}},
 			},
+<<<<<<< HEAD
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
 					"data_stream.dataset": "apm.app.myservice",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service":             common.MapStr{"name": "myservice"},
+=======
+			Output: common.MapStr{
+				"processor": common.MapStr{"event": "metric", "name": "metric"},
+				"service":   common.MapStr{"name": "myservice"},
+				"latency_histogram": common.MapStr{
+					"counts": []int64{1, 2, 3},
+					"values": []float64{1.1, 2.2, 3.3},
+				},
+				"just_type": 123.0,
+				"just_unit": 0.99,
+				"_metric_descriptions": common.MapStr{
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 					"latency_histogram": common.MapStr{
 						"counts": []int64{1, 2, 3},
 						"values": []float64{1.1, 2.2, 3.3},
@@ -277,11 +353,17 @@ func TestTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
+<<<<<<< HEAD
 		outputEvents := test.Metricset.appendBeatEvents(&transform.Config{DataStreams: true}, nil)
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
 		}
+=======
+		outputEvent := test.Metricset.toBeatEvent(&transform.Config{})
+		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 	}
 }

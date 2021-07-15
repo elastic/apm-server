@@ -32,7 +32,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -113,14 +112,6 @@ func (e *Error) appendBeatEvents(ctx context.Context, cfg *transform.Config, eve
 	fields := mapStr{
 		"error":     e.fields(ctx, cfg),
 		"processor": errorProcessorEntry,
-	}
-
-	if cfg.DataStreams {
-		// Errors are stored in an APM errors-specific "logs" data stream, per service.
-		// By storing errors in a "logs" data stream, they can be viewed in the Logs app
-		// in Kibana.
-		fields[datastreams.TypeField] = datastreams.LogsType
-		fields[datastreams.DatasetField] = ErrorsDataset
 	}
 
 	// first set the generic metadata (order is relevant)

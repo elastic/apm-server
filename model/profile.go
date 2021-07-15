@@ -25,7 +25,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/google/pprof/profile"
 
-	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -65,6 +64,14 @@ func (pp PprofProfile) appendBeatEvents(cfg *transform.Config, events []beat.Eve
 			valueFieldNames[i] = sampleType.Type + "." + sampleUnit
 		}
 
+<<<<<<< HEAD
+=======
+func (p *ProfileSample) toBeatEvent(*transform.Config) beat.Event {
+	var profileFields mapStr
+	profileFields.maybeSetString("id", p.ProfileID)
+	if p.Duration > 0 {
+		profileFields.set("duration", int64(p.Duration))
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 	}
 
 	// Generate a unique profile ID shared by all samples in the profile.
@@ -146,10 +153,18 @@ func (pp PprofProfile) appendBeatEvents(cfg *transform.Config, events []beat.Eve
 	return events
 }
 
+<<<<<<< HEAD
 func normalizeUnit(unit string) string {
 	switch unit {
 	case "nanoseconds":
 		unit = "ns"
+=======
+	fields := mapStr{
+		"processor":    profileProcessorEntry,
+		profileDocType: common.MapStr(profileFields),
+	}
+	p.Metadata.set(&fields, p.Labels)
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 
 	case "microseconds":
 		unit = "us"

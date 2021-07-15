@@ -176,6 +176,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Custom:    common.MapStr{"foo.bar": "baz"},
 		Message:   &Message{QueueName: "routeUser"},
 	}
+<<<<<<< HEAD
 	events := txWithContext.appendBeatEvents(&transform.Config{DataStreams: true}, nil)
 	require.Len(t, events, 1)
 	assert.Equal(t, events[0].Fields, common.MapStr{
@@ -185,6 +186,14 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"client":              common.MapStr{"ip": ip},
 		"source":              common.MapStr{"ip": ip},
 		"user_agent":          common.MapStr{"original": userAgent},
+=======
+	event := txWithContext.toBeatEvent(&transform.Config{})
+	assert.Equal(t, event.Fields, common.MapStr{
+		"user":       common.MapStr{"id": "123", "name": "jane"},
+		"client":     common.MapStr{"ip": ip},
+		"source":     common.MapStr{"ip": ip},
+		"user_agent": common.MapStr{"original": userAgent},
+>>>>>>> 29cfed31 (Move setting of data_stream fields to processor (#5717))
 		"host": common.MapStr{
 			"architecture": "darwin",
 			"hostname":     "a.b.c",
