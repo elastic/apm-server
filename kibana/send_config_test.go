@@ -74,6 +74,7 @@ func TestFlattenAndFormat(t *testing.T) {
 	assert.Equal(t, 4, loggingFieldCount)
 	assert.Contains(t, flat, "apm-server.rum.event_rate.limit")
 	assert.Contains(t, flat, "apm-server.rum.event_rate.lru_size")
+	assert.NotContains(t, flat, "apm-server.rum.rate_limit")
 }
 
 var serverYAML = `apm-server:
