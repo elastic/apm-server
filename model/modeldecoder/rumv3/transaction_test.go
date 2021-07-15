@@ -56,9 +56,9 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		assert.Equal(t, now, out.Transaction.Timestamp)
 		// ensure nested metricsets are decoded
 		require.Equal(t, 2, len(out.Metricsets))
-		assert.Equal(t, []model.Sample{{Name: "transaction.duration.sum.us", Value: 2048}}, out.Metricsets[0].Samples)
+		assert.Equal(t, map[string]model.MetricsetSample{"transaction.duration.sum.us": {Value: 2048}}, out.Metricsets[0].Samples)
 		m := out.Metricsets[1]
-		assert.Equal(t, []model.Sample{{Name: "span.self_time.count", Value: 5}}, m.Samples)
+		assert.Equal(t, map[string]model.MetricsetSample{"span.self_time.count": {Value: 5}}, m.Samples)
 		assert.Equal(t, "tr-a", m.Transaction.Name)
 		assert.Equal(t, "request", m.Transaction.Type)
 		assert.Equal(t, now, m.Timestamp)

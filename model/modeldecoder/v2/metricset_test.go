@@ -48,7 +48,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var out model.Metricset
 		require.NoError(t, DecodeNestedMetricset(dec, &input, &out))
-		assert.Equal(t, []model.Sample{{Name: "a.b", Value: 2048}}, out.Samples)
+		assert.Equal(t, map[string]model.MetricsetSample{"a.b": {Value: 2048}}, out.Samples)
 		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", out.Timestamp.String())
 
 		// invalid type
@@ -84,6 +84,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		if strings.HasPrefix(key, "Metadata") ||
 			// only set by aggregator
 			strings.HasPrefix(key, "Event") ||
+			key == "DocCount" ||
 			key == "Name" ||
 			key == "TimeseriesInstanceID" ||
 			key == "Transaction.Result" ||
@@ -106,29 +107,30 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		mapToMetricsetModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, &out1, metadataExceptions, defaultVal)
-		defaultSamples := []model.Sample{{
-			Name:   defaultVal.Str + "0",
-			Type:   model.MetricType(defaultVal.Str),
-			Unit:   defaultVal.Str,
-			Value:  defaultVal.Float,
-			Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
-			Values: repeatFloat64(defaultVal.Float, defaultVal.N),
-		}, {
-			Name:   defaultVal.Str + "1",
-			Type:   model.MetricType(defaultVal.Str),
-			Unit:   defaultVal.Str,
-			Value:  defaultVal.Float,
-			Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
-			Values: repeatFloat64(defaultVal.Float, defaultVal.N),
-		}, {
-			Name:   defaultVal.Str + "2",
-			Type:   model.MetricType(defaultVal.Str),
-			Unit:   defaultVal.Str,
-			Value:  defaultVal.Float,
-			Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
-			Values: repeatFloat64(defaultVal.Float, defaultVal.N),
-		}}
-		assert.ElementsMatch(t, defaultSamples, out1.Samples)
+		defaultSamples := map[string]model.MetricsetSample{
+			defaultVal.Str + "0": {
+				Type:   model.MetricType(defaultVal.Str),
+				Unit:   defaultVal.Str,
+				Value:  defaultVal.Float,
+				Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
+				Values: repeatFloat64(defaultVal.Float, defaultVal.N),
+			},
+			defaultVal.Str + "1": {
+				Type:   model.MetricType(defaultVal.Str),
+				Unit:   defaultVal.Str,
+				Value:  defaultVal.Float,
+				Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
+				Values: repeatFloat64(defaultVal.Float, defaultVal.N),
+			},
+			defaultVal.Str + "2": {
+				Type:   model.MetricType(defaultVal.Str),
+				Unit:   defaultVal.Str,
+				Value:  defaultVal.Float,
+				Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
+				Values: repeatFloat64(defaultVal.Float, defaultVal.N),
+			},
+		}
+		assert.Equal(t, defaultSamples, out1.Samples)
 
 		// set Timestamp to requestTime if eventTime is zero
 		defaultVal.Update(time.Time{})
@@ -143,24 +145,25 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetricsetModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out2)
 		modeldecodertest.AssertStructValues(t, &out2, metadataExceptions, otherVal)
-		otherSamples := []model.Sample{{
-			Name:   otherVal.Str + "0",
-			Type:   model.MetricType(otherVal.Str),
-			Unit:   otherVal.Str,
-			Value:  otherVal.Float,
-			Counts: repeatInt64(int64(otherVal.Int), otherVal.N),
-			Values: repeatFloat64(otherVal.Float, otherVal.N),
-		}, {
-			Name:   otherVal.Str + "1",
-			Type:   model.MetricType(otherVal.Str),
-			Unit:   otherVal.Str,
-			Value:  otherVal.Float,
-			Counts: repeatInt64(int64(otherVal.Int), otherVal.N),
-			Values: repeatFloat64(otherVal.Float, otherVal.N),
-		}}
-		assert.ElementsMatch(t, otherSamples, out2.Samples)
+		otherSamples := map[string]model.MetricsetSample{
+			otherVal.Str + "0": {
+				Type:   model.MetricType(otherVal.Str),
+				Unit:   otherVal.Str,
+				Value:  otherVal.Float,
+				Counts: repeatInt64(int64(otherVal.Int), otherVal.N),
+				Values: repeatFloat64(otherVal.Float, otherVal.N),
+			},
+			otherVal.Str + "1": {
+				Type:   model.MetricType(otherVal.Str),
+				Unit:   otherVal.Str,
+				Value:  otherVal.Float,
+				Counts: repeatInt64(int64(otherVal.Int), otherVal.N),
+				Values: repeatFloat64(otherVal.Float, otherVal.N),
+			},
+		}
+		assert.Equal(t, otherSamples, out2.Samples)
 		modeldecodertest.AssertStructValues(t, &out1, metadataExceptions, defaultVal)
-		assert.ElementsMatch(t, defaultSamples, out1.Samples)
+		assert.Equal(t, defaultSamples, out1.Samples)
 	})
 }
 

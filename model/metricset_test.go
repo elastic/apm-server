@@ -76,24 +76,17 @@ func TestTransform(t *testing.T) {
 				Metadata:  metadata,
 				Labels:    common.MapStr{"a_b": "a.b.value"},
 				Timestamp: timestamp,
-				Samples: []Sample{
-					{
-						Name:  "a.counter",
-						Value: 612,
-					},
-					{
-						Name:  "some.gauge",
-						Value: 9.16,
-					},
+				Samples: map[string]MetricsetSample{
+					"a.counter":  {Value: 612},
+					"some.gauge": {Value: 9.16},
 				},
 			},
 			Output: common.MapStr{
-				"processor": common.MapStr{"event": "metric", "name": "metric"},
-				"service":   common.MapStr{"name": "myservice"},
-				"labels":    common.MapStr{"a_b": "a.b.value"},
-
-				"a":    common.MapStr{"counter": float64(612)},
-				"some": common.MapStr{"gauge": float64(9.16)},
+				"processor":  common.MapStr{"event": "metric", "name": "metric"},
+				"service":    common.MapStr{"name": "myservice"},
+				"labels":     common.MapStr{"a_b": "a.b.value"},
+				"a.counter":  612.0,
+				"some.gauge": 9.16,
 			},
 			Msg: "Payload with valid metric.",
 		},
@@ -103,10 +96,9 @@ func TestTransform(t *testing.T) {
 				Metadata:    metadata,
 				Span:        MetricsetSpan{Type: spType, Subtype: spSubtype},
 				Transaction: MetricsetTransaction{Type: trType, Name: trName},
-				Samples: []Sample{{
-					Name:  "span.self_time.count",
-					Value: 123,
-				}},
+				Samples: map[string]MetricsetSample{
+					"span.self_time.count": {Value: 123},
+				},
 			},
 			Output: common.MapStr{
 				"processor":   common.MapStr{"event": "metric", "name": "metric"},
@@ -114,10 +106,8 @@ func TestTransform(t *testing.T) {
 				"transaction": common.MapStr{"type": trType, "name": trName},
 				"span": common.MapStr{
 					"type": spType, "subtype": spSubtype,
-					"self_time": common.MapStr{
-						"count": 123.0,
-					},
 				},
+				"span.self_time.count": 123.0,
 			},
 			Msg: "Payload with breakdown metrics.",
 		},
@@ -133,14 +123,15 @@ func TestTransform(t *testing.T) {
 					Root:   true,
 				},
 				TimeseriesInstanceID: "foo",
-				Samples: []Sample{
-					{
-						Name:   "transaction.duration.histogram",
-						Value:  666, // Value is ignored when Counts/Values are specified
+				Samples: map[string]MetricsetSample{
+					"transaction.duration.histogram": {
+						Type:   "histogram",
+						Value:  666, // ignored for histogram type
 						Counts: []int64{1, 2, 3},
 						Values: []float64{4.5, 6.0, 9.0},
 					},
 				},
+				DocCount: 6,
 			},
 			Output: common.MapStr{
 				"processor":  common.MapStr{"event": "metric", "name": "metric"},
@@ -152,14 +143,17 @@ func TestTransform(t *testing.T) {
 					"name":   trName,
 					"result": trResult,
 					"root":   true,
-					"duration": common.MapStr{
-						"histogram": common.MapStr{
-							"counts": []int64{1, 2, 3},
-							"values": []float64{4.5, 6.0, 9.0},
-						},
+				},
+				"transaction.duration.histogram": common.MapStr{
+					"counts": []int64{1, 2, 3},
+					"values": []float64{4.5, 6.0, 9.0},
+				},
+				"_metric_descriptions": common.MapStr{
+					"transaction.duration.histogram": common.MapStr{
+						"type": "histogram",
 					},
 				},
-				"_doc_count": int64(6), // 1+2+3
+				"_doc_count": int64(6),
 			},
 			Msg: "Payload with transaction duration.",
 		},
@@ -170,28 +164,20 @@ func TestTransform(t *testing.T) {
 				Span: MetricsetSpan{Type: spType, Subtype: spSubtype, DestinationService: DestinationService{
 					Resource: resource,
 				}},
-				Samples: []Sample{
-					{
-						Name:  "destination.service.response_time.count",
-						Value: 40,
-					},
-					{
-						Name:  "destination.service.response_time.sum.us",
-						Value: 500000,
-					},
+				Samples: map[string]MetricsetSample{
+					"destination.service.response_time.count":  {Value: 40},
+					"destination.service.response_time.sum.us": {Value: 500000},
 				},
 			},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "metric", "name": "metric"},
 				"service":   common.MapStr{"name": "myservice"},
-				"span": common.MapStr{"type": spType, "subtype": spSubtype,
-					"destination": common.MapStr{"service": common.MapStr{"resource": resource}}},
-				"destination": common.MapStr{"service": common.MapStr{"response_time": common.MapStr{
-					"count": 40.0,
-					"sum":   common.MapStr{"us": 500000.0},
+				"span": common.MapStr{
+					"type": spType, "subtype": spSubtype,
+					"destination": common.MapStr{"service": common.MapStr{"resource": resource}},
 				},
-				},
-				},
+				"destination.service.response_time.count":  40.0,
+				"destination.service.response_time.sum.us": 500000.0,
 			},
 			Msg: "Payload with destination service.",
 		},
@@ -199,21 +185,22 @@ func TestTransform(t *testing.T) {
 			Metricset: &Metricset{
 				Timestamp: timestamp,
 				Metadata:  metadata,
-				Samples: []Sample{{
-					Name:   "latency_histogram",
-					Type:   "histogram",
-					Unit:   "s",
-					Counts: []int64{1, 2, 3},
-					Values: []float64{1.1, 2.2, 3.3},
-				}, {
-					Name:  "just_type",
-					Type:  "counter",
-					Value: 123,
-				}, {
-					Name:  "just_unit",
-					Unit:  "percent",
-					Value: 0.99,
-				}},
+				Samples: map[string]MetricsetSample{
+					"latency_histogram": {
+						Type:   "histogram",
+						Unit:   "s",
+						Counts: []int64{1, 2, 3},
+						Values: []float64{1.1, 2.2, 3.3},
+					},
+					"just_type": {
+						Type:  "counter",
+						Value: 123,
+					},
+					"just_unit": {
+						Unit:  "percent",
+						Value: 0.99,
+					},
+				},
 			},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "metric", "name": "metric"},

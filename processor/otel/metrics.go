@@ -120,9 +120,9 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 			dp := dps.At(i)
 			ms.upsert(
 				dp.Timestamp().AsTime(),
+				metric.Name(),
 				toStringMapItems(dp.LabelsMap()),
-				model.Sample{
-					Name:  metric.Name(),
+				model.MetricsetSample{
 					Type:  model.MetricTypeGauge,
 					Value: float64(dp.Value()),
 				},
@@ -135,9 +135,9 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 			dp := dps.At(i)
 			ms.upsert(
 				dp.Timestamp().AsTime(),
+				metric.Name(),
 				toStringMapItems(dp.LabelsMap()),
-				model.Sample{
-					Name:  metric.Name(),
+				model.MetricsetSample{
 					Type:  model.MetricTypeGauge,
 					Value: float64(dp.Value()),
 				},
@@ -150,9 +150,9 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 			dp := dps.At(i)
 			ms.upsert(
 				dp.Timestamp().AsTime(),
+				metric.Name(),
 				toStringMapItems(dp.LabelsMap()),
-				model.Sample{
-					Name:  metric.Name(),
+				model.MetricsetSample{
 					Type:  model.MetricTypeCounter,
 					Value: float64(dp.Value()),
 				},
@@ -165,9 +165,9 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 			dp := dps.At(i)
 			ms.upsert(
 				dp.Timestamp().AsTime(),
+				metric.Name(),
 				toStringMapItems(dp.LabelsMap()),
-				model.Sample{
-					Name:  metric.Name(),
+				model.MetricsetSample{
 					Type:  model.MetricTypeCounter,
 					Value: float64(dp.Value()),
 				},
@@ -179,8 +179,8 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		dps := metric.IntHistogram().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
-			if sample, ok := histogramSample(metric.Name(), dp.BucketCounts(), dp.ExplicitBounds()); ok {
-				ms.upsert(dp.Timestamp().AsTime(), toStringMapItems(dp.LabelsMap()), sample)
+			if sample, ok := histogramSample(dp.BucketCounts(), dp.ExplicitBounds()); ok {
+				ms.upsert(dp.Timestamp().AsTime(), metric.Name(), toStringMapItems(dp.LabelsMap()), sample)
 			} else {
 				anyDropped = true
 			}
@@ -191,8 +191,8 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		dps := metric.Histogram().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
-			if sample, ok := histogramSample(metric.Name(), dp.BucketCounts(), dp.ExplicitBounds()); ok {
-				ms.upsert(dp.Timestamp().AsTime(), toStringMapItems(dp.LabelsMap()), sample)
+			if sample, ok := histogramSample(dp.BucketCounts(), dp.ExplicitBounds()); ok {
+				ms.upsert(dp.Timestamp().AsTime(), metric.Name(), toStringMapItems(dp.LabelsMap()), sample)
 			} else {
 				anyDropped = true
 			}
@@ -207,7 +207,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 	return false
 }
 
-func histogramSample(metricName string, bucketCounts []uint64, explicitBounds []float64) (model.Sample, bool) {
+func histogramSample(bucketCounts []uint64, explicitBounds []float64) (model.MetricsetSample, bool) {
 	// (From opentelemetry-proto/opentelemetry/proto/metrics/v1/metrics.proto)
 	//
 	// This defines size(explicit_bounds) + 1 (= N) buckets. The boundaries for
@@ -220,7 +220,7 @@ func histogramSample(metricName string, bucketCounts []uint64, explicitBounds []
 	// The values in the explicit_bounds array must be strictly increasing.
 	//
 	if len(bucketCounts) != len(explicitBounds)+1 {
-		return model.Sample{}, false
+		return model.MetricsetSample{}, false
 	}
 
 	// For the bucket values, we follow the approach described by Prometheus's
@@ -262,8 +262,7 @@ func histogramSample(metricName string, bucketCounts []uint64, explicitBounds []
 		counts = append(counts, int64(count))
 		values = append(values, value)
 	}
-	return model.Sample{
-		Name:   metricName,
+	return model.MetricsetSample{
 		Type:   model.MetricTypeHistogram,
 		Counts: counts,
 		Values: values,
@@ -297,12 +296,12 @@ func toStringMapItems(labelMap pdata.StringMap) []stringMapItem {
 // upsert searches for an existing metricset with the given timestamp and labels,
 // and appends the sample to it. If there is no such existing metricset, a new one
 // is created.
-func (ms *metricsets) upsert(timestamp time.Time, labels []stringMapItem, sample model.Sample) {
+func (ms *metricsets) upsert(timestamp time.Time, name string, labels []stringMapItem, sample model.MetricsetSample) {
 	// We always record metrics as they are given. We also copy some
 	// well-known OpenTelemetry metrics to their Elastic APM equivalents.
-	ms.upsertOne(timestamp, labels, sample)
+	ms.upsertOne(timestamp, name, labels, sample)
 
-	switch sample.Name {
+	switch name {
 	case "runtime.jvm.memory.area":
 		// runtime.jvm.memory.area -> jvm.memory.{area}.{type}
 		// Copy label "gc" to "name".
@@ -316,19 +315,17 @@ func (ms *metricsets) upsert(timestamp time.Time, labels []stringMapItem, sample
 			}
 		}
 		if areaValue != "" && typeValue != "" {
-			elasticapmSample := sample
-			elasticapmSample.Name = fmt.Sprintf("jvm.memory.%s.%s", areaValue, typeValue)
-			ms.upsertOne(timestamp, nil, elasticapmSample)
+			elasticapmName := fmt.Sprintf("jvm.memory.%s.%s", areaValue, typeValue)
+			ms.upsertOne(timestamp, elasticapmName, nil, sample)
 		}
 	case "runtime.jvm.gc.collection":
 		// This is the old name for runtime.jvm.gc.time.
-		sample.Name = "runtime.jvm.gc.time"
+		name = "runtime.jvm.gc.time"
 		fallthrough
 	case "runtime.jvm.gc.time", "runtime.jvm.gc.count":
 		// Chop off the "runtime." prefix, i.e. runtime.jvm.gc.time -> jvm.gc.time.
 		// OpenTelemetry and Elastic APM metrics are both defined in milliseconds.
-		elasticapmSample := sample
-		elasticapmSample.Name = sample.Name[len("runtime."):]
+		elasticapmName := name[len("runtime."):]
 
 		// Copy label "gc" to "name".
 		var elasticapmLabels []stringMapItem
@@ -338,17 +335,17 @@ func (ms *metricsets) upsert(timestamp time.Time, labels []stringMapItem, sample
 				break
 			}
 		}
-		ms.upsertOne(timestamp, elasticapmLabels, elasticapmSample)
+		ms.upsertOne(timestamp, elasticapmName, elasticapmLabels, sample)
 	}
 }
 
-func (ms *metricsets) upsertOne(timestamp time.Time, labels []stringMapItem, sample model.Sample) {
+func (ms *metricsets) upsertOne(timestamp time.Time, name string, labels []stringMapItem, sample model.MetricsetSample) {
 	var m *model.Metricset
 	i := ms.search(timestamp, labels)
 	if i < len(*ms) && compareMetricsets((*ms)[i], timestamp, labels) == 0 {
 		m = (*ms)[i].Metricset
 	} else {
-		m = &model.Metricset{Timestamp: timestamp}
+		m = &model.Metricset{Timestamp: timestamp, Samples: make(map[string]model.MetricsetSample)}
 		if len(labels) > 0 {
 			m.Labels = make(common.MapStr, len(labels))
 			for _, label := range labels {
@@ -359,7 +356,7 @@ func (ms *metricsets) upsertOne(timestamp time.Time, labels []stringMapItem, sam
 		tail := append([]metricset{{Metricset: m, labels: labels}}, (*ms)[i:]...)
 		*ms = append(head, tail...)
 	}
-	m.Samples = append(m.Samples, sample)
+	m.Samples[name] = sample
 }
 
 func (ms *metricsets) search(timestamp time.Time, labels []stringMapItem) int {

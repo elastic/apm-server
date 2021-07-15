@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -148,7 +149,10 @@ func TestApplicationMetrics(t *testing.T) {
 	for _, fieldName := range expectedFields {
 		var found bool
 		for _, hit := range result.Hits.Hits {
-			if gjson.GetBytes(hit.RawSource, fieldName).Exists() {
+			// Metrics are written with dotted field names rather than
+			// as hierarchical objects, so escape dots in the gjson path.
+			path := strings.Replace(fieldName, ".", "\\.", -1)
+			if gjson.GetBytes(hit.RawSource, path).Exists() {
 				found = true
 				break
 			}
