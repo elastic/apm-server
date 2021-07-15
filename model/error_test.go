@@ -28,7 +28,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/transform"
 
@@ -251,9 +250,8 @@ func TestEventFields(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			output := tc.Error.appendBeatEvents(context.Background(), &transform.Config{}, nil)
-			require.Len(t, output, 1)
-			fields := output[0].Fields["error"]
+			output := tc.Error.toBeatEvent(context.Background(), &transform.Config{})
+			fields := output.Fields["error"]
 			assert.Equal(t, tc.Output, fields)
 		})
 	}
@@ -396,11 +394,7 @@ func TestEvents(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			outputEvents := tc.Error.appendBeatEvents(context.Background(), &transform.Config{
-				DataStreams: true,
-			}, nil)
-			require.Len(t, outputEvents, 1)
-			outputEvent := outputEvents[0]
+			outputEvent := tc.Error.toBeatEvent(context.Background(), &transform.Config{DataStreams: true})
 			assert.Equal(t, tc.Output, outputEvent.Fields)
 			assert.Equal(t, timestamp, outputEvent.Timestamp)
 
@@ -439,8 +433,8 @@ func TestErrorTransformPage(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Error.appendBeatEvents(context.Background(), &transform.Config{}, nil)
-		assert.Equal(t, test.Output, output[0].Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		output := test.Error.toBeatEvent(context.Background(), &transform.Config{})
+		assert.Equal(t, test.Output, output.Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
 

@@ -49,39 +49,30 @@ func TestTransform(t *testing.T) {
 
 	tests := []struct {
 		Metricset *Metricset
-		Output    []common.MapStr
+		Output    common.MapStr
 		Msg       string
 	}{
 		{
-			Metricset: nil,
-			Output:    nil,
-			Msg:       "Nil metric",
-		},
-		{
 			Metricset: &Metricset{Timestamp: timestamp, Metadata: metadata},
-			Output: []common.MapStr{
-				{
-					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.app.myservice",
-					"processor":           common.MapStr{"event": "metric", "name": "metric"},
-					"service": common.MapStr{
-						"name": "myservice",
-					},
+			Output: common.MapStr{
+				"data_stream.type":    "metrics",
+				"data_stream.dataset": "apm.app.myservice",
+				"processor":           common.MapStr{"event": "metric", "name": "metric"},
+				"service": common.MapStr{
+					"name": "myservice",
 				},
 			},
 			Msg: "Payload with empty metric.",
 		},
 		{
 			Metricset: &Metricset{Timestamp: timestamp, Metadata: metadata, Name: "raj"},
-			Output: []common.MapStr{
-				{
-					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.app.myservice",
-					"processor":           common.MapStr{"event": "metric", "name": "metric"},
-					"metricset.name":      "raj",
-					"service": common.MapStr{
-						"name": "myservice",
-					},
+			Output: common.MapStr{
+				"data_stream.type":    "metrics",
+				"data_stream.dataset": "apm.app.myservice",
+				"processor":           common.MapStr{"event": "metric", "name": "metric"},
+				"metricset.name":      "raj",
+				"service": common.MapStr{
+					"name": "myservice",
 				},
 			},
 			Msg: "Payload with metricset name.",
@@ -102,17 +93,15 @@ func TestTransform(t *testing.T) {
 					},
 				},
 			},
-			Output: []common.MapStr{
-				{
-					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.app.myservice",
-					"processor":           common.MapStr{"event": "metric", "name": "metric"},
-					"service":             common.MapStr{"name": "myservice"},
-					"labels":              common.MapStr{"a_b": "a.b.value"},
+			Output: common.MapStr{
+				"data_stream.type":    "metrics",
+				"data_stream.dataset": "apm.app.myservice",
+				"processor":           common.MapStr{"event": "metric", "name": "metric"},
+				"service":             common.MapStr{"name": "myservice"},
+				"labels":              common.MapStr{"a_b": "a.b.value"},
 
-					"a":    common.MapStr{"counter": float64(612)},
-					"some": common.MapStr{"gauge": float64(9.16)},
-				},
+				"a":    common.MapStr{"counter": float64(612)},
+				"some": common.MapStr{"gauge": float64(9.16)},
 			},
 			Msg: "Payload with valid metric.",
 		},
@@ -127,18 +116,16 @@ func TestTransform(t *testing.T) {
 					Value: 123,
 				}},
 			},
-			Output: []common.MapStr{
-				{
-					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.internal",
-					"processor":           common.MapStr{"event": "metric", "name": "metric"},
-					"service":             common.MapStr{"name": "myservice"},
-					"transaction":         common.MapStr{"type": trType, "name": trName},
-					"span": common.MapStr{
-						"type": spType, "subtype": spSubtype,
-						"self_time": common.MapStr{
-							"count": 123.0,
-						},
+			Output: common.MapStr{
+				"data_stream.type":    "metrics",
+				"data_stream.dataset": "apm.internal",
+				"processor":           common.MapStr{"event": "metric", "name": "metric"},
+				"service":             common.MapStr{"name": "myservice"},
+				"transaction":         common.MapStr{"type": trType, "name": trName},
+				"span": common.MapStr{
+					"type": spType, "subtype": spSubtype,
+					"self_time": common.MapStr{
+						"count": 123.0,
 					},
 				},
 			},
@@ -165,28 +152,26 @@ func TestTransform(t *testing.T) {
 					},
 				},
 			},
-			Output: []common.MapStr{
-				{
-					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.internal",
-					"processor":           common.MapStr{"event": "metric", "name": "metric"},
-					"service":             common.MapStr{"name": "myservice"},
-					"event":               common.MapStr{"outcome": eventOutcome},
-					"timeseries":          common.MapStr{"instance": "foo"},
-					"transaction": common.MapStr{
-						"type":   trType,
-						"name":   trName,
-						"result": trResult,
-						"root":   true,
-						"duration": common.MapStr{
-							"histogram": common.MapStr{
-								"counts": []int64{1, 2, 3},
-								"values": []float64{4.5, 6.0, 9.0},
-							},
+			Output: common.MapStr{
+				"data_stream.type":    "metrics",
+				"data_stream.dataset": "apm.internal",
+				"processor":           common.MapStr{"event": "metric", "name": "metric"},
+				"service":             common.MapStr{"name": "myservice"},
+				"event":               common.MapStr{"outcome": eventOutcome},
+				"timeseries":          common.MapStr{"instance": "foo"},
+				"transaction": common.MapStr{
+					"type":   trType,
+					"name":   trName,
+					"result": trResult,
+					"root":   true,
+					"duration": common.MapStr{
+						"histogram": common.MapStr{
+							"counts": []int64{1, 2, 3},
+							"values": []float64{4.5, 6.0, 9.0},
 						},
 					},
-					"_doc_count": int64(6), // 1+2+3
 				},
+				"_doc_count": int64(6), // 1+2+3
 			},
 			Msg: "Payload with transaction duration.",
 		},
@@ -208,20 +193,18 @@ func TestTransform(t *testing.T) {
 					},
 				},
 			},
-			Output: []common.MapStr{
-				{
-					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.internal",
-					"processor":           common.MapStr{"event": "metric", "name": "metric"},
-					"service":             common.MapStr{"name": "myservice"},
-					"span": common.MapStr{"type": spType, "subtype": spSubtype,
-						"destination": common.MapStr{"service": common.MapStr{"resource": resource}}},
-					"destination": common.MapStr{"service": common.MapStr{"response_time": common.MapStr{
-						"count": 40.0,
-						"sum":   common.MapStr{"us": 500000.0},
-					},
-					},
-					},
+			Output: common.MapStr{
+				"data_stream.type":    "metrics",
+				"data_stream.dataset": "apm.internal",
+				"processor":           common.MapStr{"event": "metric", "name": "metric"},
+				"service":             common.MapStr{"name": "myservice"},
+				"span": common.MapStr{"type": spType, "subtype": spSubtype,
+					"destination": common.MapStr{"service": common.MapStr{"resource": resource}}},
+				"destination": common.MapStr{"service": common.MapStr{"response_time": common.MapStr{
+					"count": 40.0,
+					"sum":   common.MapStr{"us": 500000.0},
+				},
+				},
 				},
 			},
 			Msg: "Payload with destination service.",
@@ -246,29 +229,27 @@ func TestTransform(t *testing.T) {
 					Value: 0.99,
 				}},
 			},
-			Output: []common.MapStr{
-				{
-					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.app.myservice",
-					"processor":           common.MapStr{"event": "metric", "name": "metric"},
-					"service":             common.MapStr{"name": "myservice"},
+			Output: common.MapStr{
+				"data_stream.type":    "metrics",
+				"data_stream.dataset": "apm.app.myservice",
+				"processor":           common.MapStr{"event": "metric", "name": "metric"},
+				"service":             common.MapStr{"name": "myservice"},
+				"latency_histogram": common.MapStr{
+					"counts": []int64{1, 2, 3},
+					"values": []float64{1.1, 2.2, 3.3},
+				},
+				"just_type": 123.0,
+				"just_unit": 0.99,
+				"_metric_descriptions": common.MapStr{
 					"latency_histogram": common.MapStr{
-						"counts": []int64{1, 2, 3},
-						"values": []float64{1.1, 2.2, 3.3},
+						"type": "histogram",
+						"unit": "s",
 					},
-					"just_type": 123.0,
-					"just_unit": 0.99,
-					"_metric_descriptions": common.MapStr{
-						"latency_histogram": common.MapStr{
-							"type": "histogram",
-							"unit": "s",
-						},
-						"just_type": common.MapStr{
-							"type": "counter",
-						},
-						"just_unit": common.MapStr{
-							"unit": "percent",
-						},
+					"just_type": common.MapStr{
+						"type": "counter",
+					},
+					"just_unit": common.MapStr{
+						"unit": "percent",
 					},
 				},
 			},
@@ -277,11 +258,8 @@ func TestTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Metricset.appendBeatEvents(&transform.Config{DataStreams: true}, nil)
-
-		for j, outputEvent := range outputEvents {
-			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
-		}
+		outputEvent := test.Metricset.toBeatEvent(&transform.Config{DataStreams: true})
+		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
 	}
 }

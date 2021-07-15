@@ -120,7 +120,7 @@ func (e *Transaction) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Transaction) appendBeatEvents(cfg *transform.Config, events []beat.Event) []beat.Event {
+func (e *Transaction) toBeatEvent(cfg *transform.Config) beat.Event {
 	transactionTransformations.Inc()
 
 	fields := mapStr{
@@ -155,10 +155,10 @@ func (e *Transaction) appendBeatEvents(cfg *transform.Config, events []beat.Even
 	}
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
-	return append(events, beat.Event{
+	return beat.Event{
 		Timestamp: e.Timestamp,
 		Fields:    common.MapStr(fields),
-	})
+	}
 }
 
 type TransactionMarks map[string]TransactionMark
