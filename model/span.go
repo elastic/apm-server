@@ -25,7 +25,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -180,7 +179,7 @@ func (d *DestinationService) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Span) toBeatEvent(ctx context.Context, cfg *transform.Config) beat.Event {
+func (e *Span) toBeatEvent(ctx context.Context) beat.Event {
 	spanTransformations.Inc()
 	if frames := len(e.Stacktrace); frames > 0 {
 		spanStacktraceCounter.Inc()
@@ -189,7 +188,7 @@ func (e *Span) toBeatEvent(ctx context.Context, cfg *transform.Config) beat.Even
 
 	fields := mapStr{
 		"processor": spanProcessorEntry,
-		spanDocType: e.fields(ctx, cfg),
+		spanDocType: e.fields(ctx),
 	}
 
 	// first set the generic metadata
@@ -229,7 +228,7 @@ func (e *Span) toBeatEvent(ctx context.Context, cfg *transform.Config) beat.Even
 	}
 }
 
-func (e *Span) fields(ctx context.Context, cfg *transform.Config) common.MapStr {
+func (e *Span) fields(ctx context.Context) common.MapStr {
 	if e == nil {
 		return nil
 	}

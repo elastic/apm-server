@@ -20,7 +20,6 @@ package model
 import (
 	"context"
 
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 )
 
@@ -41,19 +40,19 @@ type APMEvent struct {
 	ProfileSample *ProfileSample
 }
 
-func (e *APMEvent) appendBeatEvent(ctx context.Context, cfg *transform.Config, out []beat.Event) []beat.Event {
+func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat.Event {
 	var event beat.Event
 	switch {
 	case e.Transaction != nil:
-		event = e.Transaction.toBeatEvent(cfg)
+		event = e.Transaction.toBeatEvent()
 	case e.Span != nil:
-		event = e.Span.toBeatEvent(ctx, cfg)
+		event = e.Span.toBeatEvent(ctx)
 	case e.Metricset != nil:
-		event = e.Metricset.toBeatEvent(cfg)
+		event = e.Metricset.toBeatEvent()
 	case e.Error != nil:
-		event = e.Error.toBeatEvent(ctx, cfg)
+		event = e.Error.toBeatEvent(ctx)
 	case e.ProfileSample != nil:
-		event = e.ProfileSample.toBeatEvent(cfg)
+		event = e.ProfileSample.toBeatEvent()
 	default:
 		return out
 	}

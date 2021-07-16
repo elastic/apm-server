@@ -32,7 +32,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -95,7 +94,7 @@ type Log struct {
 	Stacktrace   Stacktrace
 }
 
-func (e *Error) toBeatEvent(ctx context.Context, cfg *transform.Config) beat.Event {
+func (e *Error) toBeatEvent(ctx context.Context) beat.Event {
 	errorTransformations.Inc()
 
 	if e.Exception != nil {

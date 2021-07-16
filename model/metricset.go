@@ -26,7 +26,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/transform"
 )
 
 const (
@@ -177,7 +176,7 @@ type MetricsetSpan struct {
 	DestinationService DestinationService
 }
 
-func (me *Metricset) toBeatEvent(*transform.Config) beat.Event {
+func (me *Metricset) toBeatEvent() beat.Event {
 	metricsetTransformations.Inc()
 	fields := mapStr{}
 	for _, sample := range me.Samples {
