@@ -9,11 +9,11 @@ require (
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dlclark/regexp2 v1.4.0 // indirect
-	github.com/dop251/goja v0.0.0-20210427212725-462d53687b0d // indirect
+	github.com/dop251/goja v0.0.0-20210712101704-705acef95ba3 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20210225215109-d91c329300e7 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.13.2-0.20210602151559-29e4c1c14470
+	github.com/elastic/beats/v7 v7.13.4-0.20210716073439-e981bb8a8aae
 	github.com/elastic/ecs v1.8.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210407144825-cc1c33cfa1d0 // indirect
 	github.com/elastic/elastic-package v0.0.0-20210310173719-3b8f76516ae3
@@ -43,7 +43,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/procfs v0.6.0 // indirect
+	github.com/prometheus/procfs v0.7.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/reviewdog/reviewdog v0.9.17
 	github.com/ryanuber/go-glob v0.0.0-20170128012129-256dc444b735
@@ -63,17 +63,17 @@ require (
 	go.elastic.co/fastjson v1.1.0
 	go.elastic.co/go-licence-detector v0.5.0
 	go.opentelemetry.io/collector v0.22.0
-	go.uber.org/atomic v1.7.0
+	go.uber.org/atomic v1.9.0
 	go.uber.org/multierr v1.7.0 // indirect
-	go.uber.org/zap v1.17.0
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
-	golang.org/x/net v0.0.0-20210525063256-abc453219eb5
+	go.uber.org/zap v1.18.1
+	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
+	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
-	golang.org/x/sys v0.0.0-20210601080250-7ecdf8ef093b // indirect
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
-	golang.org/x/tools v0.1.2
-	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect
-	google.golang.org/grpc v1.38.0
+	golang.org/x/tools v0.1.5
+	google.golang.org/genproto v0.0.0-20210715145939-324b959e9c22 // indirect
+	google.golang.org/grpc v1.39.0
 	gopkg.in/yaml.v2 v2.4.0
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
 	k8s.io/client-go v12.0.0+incompatible // indirect
