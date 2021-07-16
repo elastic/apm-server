@@ -36,14 +36,13 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
 func TestHandlerReadStreamError(t *testing.T) {
 	var accepted int
 	processor := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
-		events := batch.Transform(ctx, &transform.Config{})
+		events := batch.Transform(ctx)
 		accepted += len(events)
 		return nil
 	})
@@ -257,7 +256,7 @@ func TestRUMV3(t *testing.T) {
 
 func makeApproveEventsBatchProcessor(t *testing.T, name string, count *int) model.BatchProcessor {
 	return model.ProcessBatchFunc(func(ctx context.Context, b *model.Batch) error {
-		events := b.Transform(ctx, &transform.Config{})
+		events := b.Transform(ctx)
 		*count += len(events)
 		docs := beatertest.EncodeEventDocs(events...)
 		approvaltest.ApproveEventDocs(t, name, docs)

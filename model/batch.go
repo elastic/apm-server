@@ -20,7 +20,6 @@ package model
 import (
 	"context"
 
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 )
 
@@ -46,10 +45,10 @@ func (f ProcessBatchFunc) ProcessBatch(ctx context.Context, b *Batch) error {
 type Batch []APMEvent
 
 // Transform transforms all events in the batch, in sequence.
-func (b *Batch) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+func (b *Batch) Transform(ctx context.Context) []beat.Event {
 	out := make([]beat.Event, 0, len(*b))
 	for _, event := range *b {
-		out = event.appendBeatEvent(ctx, cfg, out)
+		out = event.appendBeatEvent(ctx, out)
 	}
 	return out
 }

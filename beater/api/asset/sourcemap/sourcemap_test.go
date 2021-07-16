@@ -27,8 +27,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/transform"
 )
 
 func getStr(data common.MapStr, key string) string {
@@ -44,7 +42,7 @@ func TestTransform(t *testing.T) {
 		Sourcemap:      "mysmap",
 	}
 
-	events := p.Transform(context.Background(), &transform.Config{})
+	events := p.Transform(context.Background())
 	assert.Len(t, events, 1)
 	event := events[0]
 

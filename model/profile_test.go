@@ -26,7 +26,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -67,7 +66,7 @@ func TestProfileSampleTransform(t *testing.T) {
 	}
 
 	batch := &model.Batch{{ProfileSample: &sample}, {ProfileSample: &sample}}
-	output := batch.Transform(context.Background(), &transform.Config{})
+	output := batch.Transform(context.Background())
 	require.Len(t, output, 2)
 	assert.Equal(t, output[0], output[1])
 

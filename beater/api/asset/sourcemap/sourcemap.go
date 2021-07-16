@@ -25,7 +25,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -47,7 +46,7 @@ type sourcemapDoc struct {
 	BundleFilepath string
 }
 
-func (pa *sourcemapDoc) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+func (pa *sourcemapDoc) Transform(ctx context.Context) []beat.Event {
 	sourcemapCounter.Inc()
 	if pa == nil {
 		return nil
