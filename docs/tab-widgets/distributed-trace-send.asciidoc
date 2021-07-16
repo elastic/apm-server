@@ -31,8 +31,39 @@ tracestate := traceContext.State.String()
 
 experimental::[]
 
-_coming soon_
+The agent will automatically inject trace headers into network requests using `URLSessions`, but if you're using a non-standard network library you may need to maunually inject them. It will be done using the OpenTelemetry APIs:
 
+1. Create a `Setter`
+
+2. Create a `Span` per https://github.com/open-telemetry/opentelemetry-swift/blob/main/Examples/Simple%20Exporter/main.swift#L35[Open Telemetry standards]
+
+3. Inject trace context to header dictionary
+
+4. Follow the procedure of your network library to complete the network request. Make sure to call `span.end()` when the request succeeds or fails.  
+
+[source,swift]
+----
+import OpenTelemetryApi
+import OpenTelemetrySdk
+
+struct BasicSetter: Setter { <1>
+    func set(carrier: inout [String: String], key: String, value: String) {
+        carrier[key] = value
+    }
+}
+
+let span : Span = ... <2> 
+let setter = BasicSetter()
+let propagator = W3CTraceContextPropagator()
+var headers = [String:String]()
+
+propagator.inject(spanContext: span.context, carrier: &headers, setter:setter) <3>
+
+let request = URLRequest(...)
+request.allHTTPHeaderFields = headers
+... // make network request
+span.end()
+----
 // end::ios[]
 
 // ***************************************************
