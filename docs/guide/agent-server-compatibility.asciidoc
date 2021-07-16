@@ -10,6 +10,10 @@ The chart below outlines the compatibility between different versions of the APM
 .1+|**Go agent**
 |`1.x` |≥ `6.5`
 
+// iOS
+.1+|**iOS agent**
+|`0.x` |≥ `7.14`
+
 // Java
 .1+|**Java agent**
 |`1.x`|≥ `6.5`

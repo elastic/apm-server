@@ -10,6 +10,13 @@
       Go
     </button>
     <button role="tab"
+            aria-selected="false"
+            aria-controls="ios-tab-install"
+            id="ios-install"
+            tabindex="-1">
+      iOS
+    </button>
+    <button role="tab"
             aria-selected="true"
             aria-controls="java-tab-install"
             id="java-install"
@@ -67,6 +74,17 @@
 ++++
 
 include::install-agents.asciidoc[tag=go]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="ios-tab-install"
+       aria-labelledby="ios-install"
+       hidden="">
+++++
+
+include::install-agents.asciidoc[tag=ios]
 
 ++++
   </div>

@@ -10,6 +10,13 @@
       Go
     </button>
     <button role="tab"
+            aria-selected="false"
+            aria-controls="ios-tab-dt"
+            id="ios-dt"
+            tabindex="-1">
+      iOS
+    </button>
+    <button role="tab"
             aria-selected="true"
             aria-controls="java-tab-dt"
             id="java-dt"
@@ -60,6 +67,17 @@
 ++++
 
 include::distributed-trace-send.asciidoc[tag=go]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="ios-tab-dt"
+       aria-labelledby="ios-dt"
+       hidden="">
+++++
+
+include::distributed-trace-send.asciidoc[tag=ios]
 
 ++++
   </div>

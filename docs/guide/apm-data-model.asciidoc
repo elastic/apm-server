@@ -50,6 +50,7 @@ When this occurs, the APM app will display the number of spans dropped.
 To configure the number of spans recorded per transaction, see the relevant Agent documentation:
 
 * Go: {apm-go-ref-v}/configuration.html#config-transaction-max-spans[`ELASTIC_APM_TRANSACTION_MAX_SPANS`]
+* iOS: _Not yet supported_
 * Java: {apm-java-ref-v}/config-core.html#config-transaction-max-spans[`transaction_max_spans`]
 * .NET: {apm-dotnet-ref-v}/config-core.html#config-transaction-max-spans[`TransactionMaxSpans`]
 * Node.js: {apm-node-ref-v}/configuration.html#transaction-max-spans[`transactionMaxSpans`]
@@ -240,6 +241,7 @@ IMPORTANT: Setting a circular object, a large object, or a non JSON serializable
 ===== Agent API reference
 
 * Go: {apm-go-ref-v}/api.html#context-set-custom[`SetCustom`]
+* iOS: _coming soon_
 * Java: {apm-java-ref-v}/public-api.html#api-transaction-add-custom-context[`addCustomContext`]
 * .NET: _coming soon_
 * Node.js: {apm-node-ref-v}/agent-api.html#apm-set-custom-context[`setCustomContext`]
@@ -265,6 +267,7 @@ Indexed means the data is searchable and aggregatable in Elasticsearch.
 
 * Go: {apm-go-ref-v}/api.html#context-set-username[`SetUsername`] | {apm-go-ref-v}/api.html#context-set-user-id[`SetUserID`] |
 {apm-go-ref-v}/api.html#context-set-user-email[`SetUserEmail`]
+* iOS: _coming soon_
 * Java: {apm-java-ref-v}/public-api.html#api-transaction-set-user[`setUser`]
 * .NET _coming soon_
 * Node.js: {apm-node-ref-v}/agent-api.html#apm-set-user-context[`setUserContext`]
