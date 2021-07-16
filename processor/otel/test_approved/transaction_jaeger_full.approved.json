@@ -75,7 +75,6 @@
                         "message": "no connection established"
                     }
                 ],
-                "grouping_key": "c9221918248f05433f6b81c46a666aee",
                 "log": {
                     "message": "retrying connection"
                 }
@@ -131,7 +130,6 @@
                 "version": "unknown"
             },
             "error": {
-                "grouping_key": "23b7ac1bdf1ca957f9f581cfadee467c",
                 "log": {
                     "message": "nullPointer exception"
                 }
@@ -191,8 +189,7 @@
                     {
                         "message": "no connection established"
                     }
-                ],
-                "grouping_key": "c9221918248f05433f6b81c46a666aee"
+                ]
             },
             "host": {
                 "hostname": "host-abc"
@@ -249,8 +246,7 @@
                     {
                         "message": "no connection established"
                     }
-                ],
-                "grouping_key": "c9221918248f05433f6b81c46a666aee"
+                ]
             },
             "host": {
                 "hostname": "host-abc"
@@ -307,8 +303,7 @@
                     {
                         "type": "DBClosedException"
                     }
-                ],
-                "grouping_key": "b0cf243ae3f66aa9e6bbed022417d274"
+                ]
             },
             "host": {
                 "hostname": "host-abc"
@@ -361,7 +356,6 @@
                 "version": "unknown"
             },
             "error": {
-                "grouping_key": "c9221918248f05433f6b81c46a666aee",
                 "log": {
                     "message": "no connection established"
                 }

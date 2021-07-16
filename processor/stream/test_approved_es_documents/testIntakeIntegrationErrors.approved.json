@@ -139,7 +139,6 @@
                         "type": "ConnectionError"
                     }
                 ],
-                "grouping_key": "d72b25a26fde3f3aaad1c86950acd070",
                 "id": "0123456789012345",
                 "log": {
                     "level": "warning",
@@ -382,7 +381,6 @@
                 "id": "container-id"
             },
             "error": {
-                "grouping_key": "dc8dd667f7036ec5f0bae87bf2188243",
                 "id": "xFoaabb123FFFFFF",
                 "log": {
                     "message": "no user found",
@@ -495,7 +493,6 @@
                         "message": "Cannot read property 'baz' no defined"
                     }
                 ],
-                "grouping_key": "ae0232fed4cb40e7ebc62a585a421d60",
                 "id": "cdefab0123456789"
             },
             "host": {
@@ -599,7 +596,6 @@
                         "type": "DbError"
                     }
                 ],
-                "grouping_key": "c3868d6704b923014eaffea034e70a3d",
                 "id": "cdefab0123456780"
             },
             "host": {
@@ -704,7 +700,6 @@
                 "id": "container-id"
             },
             "error": {
-                "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "id": "abcdef0123456789",
                 "log": {
                     "level": "custom log level",
