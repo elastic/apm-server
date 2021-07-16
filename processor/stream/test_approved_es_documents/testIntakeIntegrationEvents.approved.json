@@ -89,7 +89,6 @@
                         "type": "ConnectionError"
                     }
                 ],
-                "grouping_key": "9a4054e958afe722b5877e8fac578ff3",
                 "id": "9876543210abcdeffedcba0123456789",
                 "log": {
                     "level": "error",

@@ -70,7 +70,6 @@
                         "type": "Error"
                     }
                 ],
-                "grouping_key": "52fbc9c2d1a61bf905b4a11c708006fd",
                 "id": "aba2688e033848ce9c4e4005f1caa534",
                 "log": {
                     "message": "Uncaught Error: log timeout test error",

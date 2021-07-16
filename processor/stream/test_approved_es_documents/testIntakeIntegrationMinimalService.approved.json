@@ -7,7 +7,6 @@
                 "version": "3.14.0"
             },
             "error": {
-                "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "id": "abcdef0123456789",
                 "log": {
                     "level": "custom log level",
