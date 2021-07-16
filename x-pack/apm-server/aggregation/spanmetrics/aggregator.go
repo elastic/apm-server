@@ -274,13 +274,11 @@ func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics,
 		Span: model.MetricsetSpan{
 			DestinationService: model.DestinationService{Resource: key.resource},
 		},
-		Samples: []model.Sample{
-			{
-				Name:  "span.destination.service.response_time.count",
+		Samples: map[string]model.MetricsetSample{
+			"span.destination.service.response_time.count": {
 				Value: math.Round(metrics.count),
 			},
-			{
-				Name:  "span.destination.service.response_time.sum.us",
+			"span.destination.service.response_time.sum.us": {
 				Value: math.Round(metrics.sum),
 			},
 		},
@@ -291,10 +289,9 @@ func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics,
 		// An interval of zero means the metricset is computed
 		// from an instantaneous value, meaning there is no
 		// aggregation period.
-		out.Samples = append(out.Samples, model.Sample{
-			Name:  "metricset.period",
+		out.Samples["metricset.period"] = model.MetricsetSample{
 			Value: float64(interval),
-		})
+		}
 	}
 	return out
 }

@@ -86,9 +86,11 @@ func (r Reporter) Run(ctx context.Context) error {
 		batch := make(model.Batch, 0, len(applied))
 		for etag := range applied {
 			batch = append(batch, model.APMEvent{Metricset: &model.Metricset{
-				Name:    "agent_config",
-				Labels:  common.MapStr{"etag": etag},
-				Samples: []model.Sample{{Name: "agent_config_applied", Value: 1}},
+				Name:   "agent_config",
+				Labels: common.MapStr{"etag": etag},
+				Samples: map[string]model.MetricsetSample{
+					"agent_config_applied": {Value: 1},
+				},
 			}})
 		}
 		// Reset applied map, so that we report only configs applied

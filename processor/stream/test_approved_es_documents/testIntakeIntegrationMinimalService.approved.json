@@ -37,15 +37,7 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "go": {
-                "memstats": {
-                    "heap": {
-                        "sys": {
-                            "bytes": 61235
-                        }
-                    }
-                }
-            },
+            "go.memstats.heap.sys.bytes": 61235,
             "host": {
                 "ip": "192.0.0.1"
             },

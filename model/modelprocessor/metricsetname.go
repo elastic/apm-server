@@ -19,7 +19,6 @@ package modelprocessor
 
 import (
 	"context"
-	"strings"
 
 	"github.com/elastic/apm-server/model"
 )
@@ -49,20 +48,10 @@ func (SetMetricsetName) ProcessBatch(ctx context.Context, b *model.Batch) error 
 			// Not a breakdown metricset.
 			continue
 		}
-		if ms.Span.Type != "" {
-			for _, sample := range ms.Samples {
-				if strings.HasPrefix(sample.Name, "span.self_time.") {
-					ms.Name = spanBreakdownMetricsetName
-					break
-				}
-			}
-		} else {
-			for _, sample := range ms.Samples {
-				if strings.HasPrefix(sample.Name, "transaction.breakdown.") {
-					ms.Name = transactionBreakdownMetricsetName
-					break
-				}
-			}
+		if _, ok := ms.Samples["span.self_time.count"]; ok {
+			ms.Name = spanBreakdownMetricsetName
+		} else if _, ok := ms.Samples["transaction.breakdown.count"]; ok {
+			ms.Name = transactionBreakdownMetricsetName
 		}
 	}
 	return nil
