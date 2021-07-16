@@ -24,7 +24,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -119,7 +118,7 @@ func (e *Transaction) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Transaction) toBeatEvent(*transform.Config) beat.Event {
+func (e *Transaction) toBeatEvent() beat.Event {
 	transactionTransformations.Inc()
 
 	fields := mapStr{

@@ -58,7 +58,6 @@ import (
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
@@ -1166,7 +1165,7 @@ func eventRecorderBatchProcessor(out *[]beat.Event) model.BatchProcessor {
 func transformBatch(ctx context.Context, batches ...*model.Batch) []beat.Event {
 	var out []beat.Event
 	for _, batch := range batches {
-		out = append(out, batch.Transform(ctx, &transform.Config{})...)
+		out = append(out, batch.Transform(ctx)...)
 	}
 	return out
 }

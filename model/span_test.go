@@ -25,8 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestSpanTransform(t *testing.T) {
@@ -170,7 +168,7 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Span.toBeatEvent(context.Background(), &transform.Config{})
+		output := test.Span.toBeatEvent(context.Background())
 		assert.Equal(t, test.Output, output.Fields, test.Msg)
 	}
 }

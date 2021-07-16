@@ -49,7 +49,6 @@ import (
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestApprovals(t *testing.T) {
@@ -359,7 +358,7 @@ type testcase struct {
 
 func (tc *testcase) setup(t *testing.T) {
 	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
-		tc.events = append(tc.events, batch.Transform(ctx, &transform.Config{})...)
+		tc.events = append(tc.events, batch.Transform(ctx)...)
 		return nil
 	}
 
