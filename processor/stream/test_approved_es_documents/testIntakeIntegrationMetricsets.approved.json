@@ -7,11 +7,7 @@
                 "version": "3.14.0"
             },
             "byte_counter": 1,
-            "dotted": {
-                "float": {
-                    "gauge": 6.12
-                }
-            },
+            "dotted.float.gauge": 6.12,
             "double_gauge": 3.141592653589793,
             "float_gauge": 9.16,
             "host": {
@@ -26,19 +22,7 @@
                 "tag2": 2
             },
             "long_gauge": 3147483648,
-            "negative": {
-                "d": {
-                    "o": {
-                        "t": {
-                            "t": {
-                                "e": {
-                                    "d": -1022
-                                }
-                            }
-                        }
-                    }
-                }
-            },
+            "negative.d.o.t.t.e.d": -1022,
             "process": {
                 "pid": 1234
             },
@@ -57,34 +41,20 @@
             },
             "short_counter": 227,
             "span": {
-                "self_time": {
-                    "count": 1,
-                    "sum": {
-                        "us": 633.288
-                    }
-                },
                 "subtype": "mysql",
                 "type": "db"
             },
+            "span.self_time.count": 1,
+            "span.self_time.sum.us": 633.288,
             "transaction": {
-                "breakdown": {
-                    "count": 12
-                },
-                "duration": {
-                    "count": 2,
-                    "sum": {
-                        "us": 12
-                    }
-                },
                 "name": "GET /",
-                "self_time": {
-                    "count": 2,
-                    "sum": {
-                        "us": 10
-                    }
-                },
                 "type": "request"
             },
+            "transaction.breakdown.count": 12,
+            "transaction.duration.count": 2,
+            "transaction.duration.sum.us": 12,
+            "transaction.self_time.count": 2,
+            "transaction.self_time.sum.us": 10,
             "user": {
                 "email": "user@mail.com",
                 "id": "axb123hg",
@@ -97,15 +67,7 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "go": {
-                "memstats": {
-                    "heap": {
-                        "sys": {
-                            "bytes": 6520832
-                        }
-                    }
-                }
-            },
+            "go.memstats.heap.sys.bytes": 6520832,
             "host": {
                 "ip": "192.0.0.1"
             },
@@ -164,22 +126,8 @@
                     "name": "node-1"
                 }
             },
-            "system": {
-                "process": {
-                    "cgroup": {
-                        "memory": {
-                            "mem": {
-                                "limit": {
-                                    "bytes": 2048
-                                },
-                                "usage": {
-                                    "bytes": 1024
-                                }
-                            }
-                        }
-                    }
-                }
-            },
+            "system.process.cgroup.memory.mem.limit.bytes": 2048,
+            "system.process.cgroup.memory.mem.usage.bytes": 1024,
             "user": {
                 "email": "user@mail.com",
                 "id": "axb123hg",
@@ -215,36 +163,14 @@
                     "name": "node-1"
                 }
             },
-            "system": {
-                "process": {
-                    "cgroup": {
-                        "cpu": {
-                            "cfs": {
-                                "period": {
-                                    "us": 1024
-                                },
-                                "quota": {
-                                    "us": 2048
-                                }
-                            },
-                            "id": 2048,
-                            "stats": {
-                                "periods": 2048,
-                                "throttled": {
-                                    "ns": 2048,
-                                    "periods": 2048
-                                }
-                            }
-                        },
-                        "cpuacct": {
-                            "id": 2048,
-                            "total": {
-                                "ns": 2048
-                            }
-                        }
-                    }
-                }
-            },
+            "system.process.cgroup.cpu.cfs.period.us": 1024,
+            "system.process.cgroup.cpu.cfs.quota.us": 2048,
+            "system.process.cgroup.cpu.id": 2048,
+            "system.process.cgroup.cpu.stats.periods": 2048,
+            "system.process.cgroup.cpu.stats.throttled.ns": 2048,
+            "system.process.cgroup.cpu.stats.throttled.periods": 2048,
+            "system.process.cgroup.cpuacct.id": 2048,
+            "system.process.cgroup.cpuacct.total.ns": 2048,
             "user": {
                 "email": "user@mail.com",
                 "id": "axb123hg",
@@ -253,7 +179,6 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:41.366Z",
-            "_doc_count": 6,
             "_metric_descriptions": {
                 "latency_distribution": {
                     "type": "histogram",

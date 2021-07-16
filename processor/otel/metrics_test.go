@@ -168,19 +168,18 @@ func TestConsumeMetrics(t *testing.T) {
 	assert.Equal(t, []*model.Metricset{{
 		Metadata:  metadata,
 		Timestamp: timestamp0,
-		Samples: []model.Sample{
-			{Name: "int_gauge_metric", Value: 1, Type: "gauge"},
-			{Name: "double_gauge_metric", Value: 5, Type: "gauge"},
-			{Name: "int_sum_metric", Value: 9, Type: "counter"},
-			{Name: "double_sum_metric", Value: 12, Type: "counter"},
-
-			{
-				Name: "histogram_metric", Type: "histogram",
+		Samples: map[string]model.MetricsetSample{
+			"int_gauge_metric":    {Value: 1, Type: "gauge"},
+			"double_gauge_metric": {Value: 5, Type: "gauge"},
+			"int_sum_metric":      {Value: 9, Type: "counter"},
+			"double_sum_metric":   {Value: 12, Type: "counter"},
+			"histogram_metric": {
+				Type:   "histogram",
 				Counts: []int64{1, 1, 2, 3},
 				Values: []float64{-1, 0.5, 2.75, 3.5},
 			},
-			{
-				Name: "int_histogram_metric", Type: "histogram",
+			"int_histogram_metric": {
+				Type:   "histogram",
 				Counts: []int64{1, 2, 3},
 				Values: []float64{1.5, 2.5, 3},
 			},
@@ -188,35 +187,35 @@ func TestConsumeMetrics(t *testing.T) {
 	}, {
 		Metadata:  metadata,
 		Timestamp: timestamp1,
-		Samples: []model.Sample{
-			{Name: "int_gauge_metric", Value: 3, Type: "gauge"},
-			{Name: "double_gauge_metric", Value: 7, Type: "gauge"},
+		Samples: map[string]model.MetricsetSample{
+			"int_gauge_metric":    {Value: 3, Type: "gauge"},
+			"double_gauge_metric": {Value: 7, Type: "gauge"},
 		},
 	}, {
 		Metadata:  metadata,
 		Timestamp: timestamp1,
 		Labels:    common.MapStr{"k": "v"},
-		Samples: []model.Sample{
-			{Name: "int_gauge_metric", Value: 2, Type: "gauge"},
-			{Name: "double_gauge_metric", Value: 6, Type: "gauge"},
-			{Name: "int_sum_metric", Value: 10, Type: "counter"},
-			{Name: "double_sum_metric", Value: 13, Type: "counter"},
+		Samples: map[string]model.MetricsetSample{
+			"int_gauge_metric":    {Value: 2, Type: "gauge"},
+			"double_gauge_metric": {Value: 6, Type: "gauge"},
+			"int_sum_metric":      {Value: 10, Type: "counter"},
+			"double_sum_metric":   {Value: 13, Type: "counter"},
 		},
 	}, {
 		Metadata:  metadata,
 		Timestamp: timestamp1,
 		Labels:    common.MapStr{"k": "v2"},
-		Samples: []model.Sample{
-			{Name: "int_gauge_metric", Value: 4, Type: "gauge"},
-			{Name: "double_gauge_metric", Value: 8, Type: "gauge"},
+		Samples: map[string]model.MetricsetSample{
+			"int_gauge_metric":    {Value: 4, Type: "gauge"},
+			"double_gauge_metric": {Value: 8, Type: "gauge"},
 		},
 	}, {
 		Metadata:  metadata,
 		Timestamp: timestamp1,
 		Labels:    common.MapStr{"k2": "v"},
-		Samples: []model.Sample{
-			{Name: "int_sum_metric", Value: 11, Type: "counter"},
-			{Name: "double_sum_metric", Value: 14, Type: "counter"},
+		Samples: map[string]model.MetricsetSample{
+			"int_sum_metric":    {Value: 11, Type: "counter"},
+			"double_sum_metric": {Value: 14, Type: "counter"},
 		},
 	}}, metricsets)
 }
@@ -275,46 +274,50 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	assert.Equal(t, []*model.Metricset{{
 		Metadata:  metadata,
 		Timestamp: timestamp,
-		Samples: []model.Sample{{
-			Type:  "gauge",
-			Name:  "jvm.memory.heap.used",
-			Value: 42,
-		}},
+		Samples: map[string]model.MetricsetSample{
+			"jvm.memory.heap.used": {
+				Type:  "gauge",
+				Value: 42,
+			},
+		},
 	}, {
 		Metadata:  metadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"gc": "G1 Young Generation"},
-		Samples: []model.Sample{{
-			Type:  "counter",
-			Name:  "runtime.jvm.gc.time",
-			Value: 9,
-		}, {
-			Type:  "counter",
-			Name:  "runtime.jvm.gc.count",
-			Value: 2,
-		}},
+		Samples: map[string]model.MetricsetSample{
+			"runtime.jvm.gc.time": {
+				Type:  "counter",
+				Value: 9,
+			},
+			"runtime.jvm.gc.count": {
+				Type:  "counter",
+				Value: 2,
+			},
+		},
 	}, {
 		Metadata:  metadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"name": "G1 Young Generation"},
-		Samples: []model.Sample{{
-			Type:  "counter",
-			Name:  "jvm.gc.time",
-			Value: 9,
-		}, {
-			Type:  "counter",
-			Name:  "jvm.gc.count",
-			Value: 2,
-		}},
+		Samples: map[string]model.MetricsetSample{
+			"jvm.gc.time": {
+				Type:  "counter",
+				Value: 9,
+			},
+			"jvm.gc.count": {
+				Type:  "counter",
+				Value: 2,
+			},
+		},
 	}, {
 		Metadata:  metadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"area": "heap", "type": "used"},
-		Samples: []model.Sample{{
-			Type:  "gauge",
-			Name:  "runtime.jvm.memory.area",
-			Value: 42,
-		}},
+		Samples: map[string]model.MetricsetSample{
+			"runtime.jvm.memory.area": {
+				Type:  "gauge",
+				Value: 42,
+			},
+		},
 	}}, metricsets)
 }
 

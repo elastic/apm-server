@@ -542,15 +542,7 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
   "event": {
     "ingested": "2020-04-22T14:55:05.425020Z"
   },
-  "go": {
-    "memstats": {
-      "heap": {
-        "sys": {
-          "bytes": 6520832
-        }
-      }
-    }
-  },
+  "go.memstats.heap.sys.bytes": 6520832,
   "host": {
     "ip": "127.0.0.1"
   },

@@ -22,10 +22,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
-
-	logs "github.com/elastic/apm-server/log"
 )
 
 const (
@@ -81,10 +78,7 @@ type Metricset struct {
 	Labels common.MapStr
 
 	// Samples holds the metrics in the set.
-	//
-	// If Samples holds a single histogram metric, then the sum of its Counts
-	// will be used to set a _doc_count field in the transformed beat.Event.
-	Samples []Sample
+	Samples map[string]MetricsetSample
 
 	// TimeseriesInstanceID holds an optional identifier for the timeseries
 	// instance, such as a hash of the labels used for aggregating the
@@ -93,16 +87,15 @@ type Metricset struct {
 
 	// Name holds an optional name for the metricset.
 	Name string
+
+	// DocCount holds the document count for pre-aggregated metrics.
+	//
+	// See https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-doc-count-field.html
+	DocCount int64
 }
 
-// Sample represents a single named metric.
-//
-// TODO(axw) consider renaming this to "MetricSample" or similar, as
-// "Sample" isn't very meaningful in the context of the model package.
-type Sample struct {
-	// Name holds the metric name.
-	Name string
-
+// MetricsetSample represents a single named metric.
+type MetricsetSample struct {
 	// Type holds an optional metric type.
 	//
 	// If Type is unspecified or invalid, it will be ignored.
@@ -178,52 +171,30 @@ type MetricsetSpan struct {
 
 func (me *Metricset) toBeatEvent() beat.Event {
 	metricsetTransformations.Inc()
-	fields := mapStr{}
-	for _, sample := range me.Samples {
-		if err := sample.set(common.MapStr(fields)); err != nil {
-			logp.NewLogger(logs.Transform).Warnf("failed to transform sample %#v", sample)
-			continue
-		}
-	}
-	if len(me.Samples) == 1 && len(me.Samples[0].Counts) > 0 {
-		// We have a single histogram metric; add a _doc_count field which holds the sum of counts.
-		// See https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-doc-count-field.html
-		var total int64
-		for _, count := range me.Samples[0].Counts {
-			total += count
-		}
-		fields["_doc_count"] = total
-	}
 
+	var fields mapStr
+	fields.set("processor", metricsetProcessorEntry)
 	me.Metadata.set(&fields, me.Labels)
 
-	if eventFields := me.Event.fields(); eventFields != nil {
-		common.MapStr(fields).DeepUpdate(common.MapStr{metricsetEventKey: eventFields})
-	}
-	if transactionFields := me.Transaction.fields(); transactionFields != nil {
-		common.MapStr(fields).DeepUpdate(common.MapStr{metricsetTransactionKey: transactionFields})
-	}
-	if spanFields := me.Span.fields(); spanFields != nil {
-		common.MapStr(fields).DeepUpdate(common.MapStr{metricsetSpanKey: spanFields})
-	}
-
+	fields.maybeSetMapStr(metricsetEventKey, me.Event.fields())
+	fields.maybeSetMapStr(metricsetTransactionKey, me.Transaction.fields())
+	fields.maybeSetMapStr(metricsetSpanKey, me.Span.fields())
 	if me.TimeseriesInstanceID != "" {
-		fields["timeseries"] = common.MapStr{"instance": me.TimeseriesInstanceID}
+		fields.set("timeseries", common.MapStr{"instance": me.TimeseriesInstanceID})
 	}
-
-	if me.Name != "" {
-		fields["metricset.name"] = me.Name
+	if me.DocCount > 0 {
+		fields.set("_doc_count", me.DocCount)
 	}
+	fields.maybeSetString("metricset.name", me.Name)
 
-	fields["processor"] = metricsetProcessorEntry
-
-	// Set a _metric_descriptions field, which holds optional metric types and units.
 	var metricDescriptions mapStr
-	for _, sample := range me.Samples {
-		var m mapStr
-		m.maybeSetString("type", string(sample.Type))
-		m.maybeSetString("unit", sample.Unit)
-		metricDescriptions.maybeSetMapStr(sample.Name, common.MapStr(m))
+	for name, sample := range me.Samples {
+		sample.set(name, fields)
+
+		var md mapStr
+		md.maybeSetString("type", string(sample.Type))
+		md.maybeSetString("unit", sample.Unit)
+		metricDescriptions.maybeSetMapStr(name, common.MapStr(md))
 	}
 	fields.maybeSetMapStr("_metric_descriptions", common.MapStr(metricDescriptions))
 
@@ -260,16 +231,13 @@ func (s *MetricsetSpan) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (s *Sample) set(fields common.MapStr) error {
-	switch {
-	case len(s.Counts) > 0:
-		_, err := fields.Put(s.Name, common.MapStr{
+func (s *MetricsetSample) set(name string, fields mapStr) {
+	if s.Type == MetricTypeHistogram {
+		fields.set(name, common.MapStr{
 			"counts": s.Counts,
 			"values": s.Values,
 		})
-		return err
-	default:
-		_, err := fields.Put(s.Name, s.Value)
-		return err
+	} else {
+		fields.set(name, s.Value)
 	}
 }

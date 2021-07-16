@@ -48,7 +48,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var out model.Metricset
 		require.NoError(t, DecodeNestedMetricset(dec, &input, &out))
-		assert.Equal(t, []model.Sample{{Name: "transaction.duration.sum.us", Value: 2048}}, out.Samples)
+		assert.Equal(t, map[string]model.MetricsetSample{"transaction.duration.sum.us": {Value: 2048}}, out.Samples)
 		assert.Equal(t, now, out.Timestamp)
 
 		// invalid type
@@ -86,6 +86,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				strings.HasPrefix(key, "Transaction") ||
 				// only set by aggregator
 				strings.HasPrefix(key, "Event") ||
+				key == "DocCount" ||
 				key == "Name" ||
 				key == "TimeseriesInstanceID" ||
 				strings.HasPrefix(key, "Span.DestinationService") ||
@@ -96,13 +97,13 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 			return false
 		}
 
-		samples := func(val float64) []model.Sample {
-			return []model.Sample{
-				{Name: "transaction.duration.count", Value: val},
-				{Name: "transaction.duration.sum.us", Value: val},
-				{Name: "transaction.breakdown.count", Value: val},
-				{Name: "span.self_time.count", Value: val},
-				{Name: "span.self_time.sum.us", Value: val},
+		samples := func(val float64) map[string]model.MetricsetSample {
+			return map[string]model.MetricsetSample{
+				"transaction.duration.count":  {Value: val},
+				"transaction.duration.sum.us": {Value: val},
+				"transaction.breakdown.count": {Value: val},
+				"span.self_time.count":        {Value: val},
+				"span.self_time.sum.us":       {Value: val},
 			}
 		}
 
@@ -116,7 +117,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		// metricset timestamp is always set to request time
 		defaultVal.Update(reqTime)
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
-		assert.ElementsMatch(t, samples(defaultVal.Float), out1.Samples)
+		assert.Equal(t, samples(defaultVal.Float), out1.Samples)
 
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
@@ -124,8 +125,8 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		mapToMetricsetModel(&input, initializedMetadata(), reqTime, &out2)
 		otherVal.Update(reqTime)
 		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
-		assert.ElementsMatch(t, samples(otherVal.Float), out2.Samples)
+		assert.Equal(t, samples(otherVal.Float), out2.Samples)
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
-		assert.ElementsMatch(t, samples(defaultVal.Float), out1.Samples)
+		assert.Equal(t, samples(defaultVal.Float), out1.Samples)
 	})
 }
