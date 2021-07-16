@@ -12,10 +12,8 @@
                 "ingested": "dynamic",
                 "outcome": "unknown"
             },
-            "metricset": {
-                "period": 1000
-            },
             "metricset.name": "service_destination",
+            "metricset.period": 1000,
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
@@ -34,16 +32,12 @@
             "span": {
                 "destination": {
                     "service": {
-                        "resource": "resource",
-                        "response_time": {
-                            "count": 5,
-                            "sum": {
-                                "us": 5000000
-                            }
-                        }
+                        "resource": "resource"
                     }
                 }
-            }
+            },
+            "span.destination.service.response_time.count": 5,
+            "span.destination.service.response_time.sum.us": 5000000
         }
     ]
 }

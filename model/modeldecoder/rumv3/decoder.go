@@ -404,25 +404,31 @@ func mapToMetricsetModel(from *metricset, metadata *model.Metadata, reqTime time
 
 	// map samples information
 	if from.Samples.IsSet() {
+		out.Samples = make(map[string]model.MetricsetSample)
 		if from.Samples.TransactionDurationCount.Value.IsSet() {
-			s := model.Sample{Name: metricsetSamplesTransactionDurationCountName, Value: from.Samples.TransactionDurationCount.Value.Val}
-			out.Samples = append(out.Samples, s)
+			out.Samples[metricsetSamplesTransactionDurationCountName] = model.MetricsetSample{
+				Value: from.Samples.TransactionDurationCount.Value.Val,
+			}
 		}
 		if from.Samples.TransactionDurationSum.Value.IsSet() {
-			s := model.Sample{Name: metricsetSamplesTransactionDurationSumName, Value: from.Samples.TransactionDurationSum.Value.Val}
-			out.Samples = append(out.Samples, s)
+			out.Samples[metricsetSamplesTransactionDurationSumName] = model.MetricsetSample{
+				Value: from.Samples.TransactionDurationSum.Value.Val,
+			}
 		}
 		if from.Samples.TransactionBreakdownCount.Value.IsSet() {
-			s := model.Sample{Name: metricsetSamplesTransactionBreakdownCountName, Value: from.Samples.TransactionBreakdownCount.Value.Val}
-			out.Samples = append(out.Samples, s)
+			out.Samples[metricsetSamplesTransactionBreakdownCountName] = model.MetricsetSample{
+				Value: from.Samples.TransactionBreakdownCount.Value.Val,
+			}
 		}
 		if from.Samples.SpanSelfTimeCount.Value.IsSet() {
-			s := model.Sample{Name: metricsetSamplesSpanSelfTimeCountName, Value: from.Samples.SpanSelfTimeCount.Value.Val}
-			out.Samples = append(out.Samples, s)
+			out.Samples[metricsetSamplesSpanSelfTimeCountName] = model.MetricsetSample{
+				Value: from.Samples.SpanSelfTimeCount.Value.Val,
+			}
 		}
 		if from.Samples.SpanSelfTimeSum.Value.IsSet() {
-			s := model.Sample{Name: metricsetSamplesSpanSelfTimeSumName, Value: from.Samples.SpanSelfTimeSum.Value.Val}
-			out.Samples = append(out.Samples, s)
+			out.Samples[metricsetSamplesSpanSelfTimeSumName] = model.MetricsetSample{
+				Value: from.Samples.SpanSelfTimeSum.Value.Val,
+			}
 		}
 	}
 
