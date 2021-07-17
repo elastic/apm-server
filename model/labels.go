@@ -18,7 +18,6 @@
 package model
 
 import (
-	"encoding/json"
 	"strings"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -40,30 +39,15 @@ func maybeSetLabels(out *mapStr, globalLabels, eventLabels common.MapStr) {
 		if v == nil {
 			continue
 		}
-		k := sanitizeLabelKey(k)
-		combined[k] = normalizeLabelValue(v)
+		combined[sanitizeLabelKey(k)] = v
 	}
 	for k, v := range eventLabels {
-		k := sanitizeLabelKey(k)
 		if v == nil {
-			delete(combined, k)
-		} else {
-			combined[k] = normalizeLabelValue(v)
+			continue
 		}
+		combined[sanitizeLabelKey(k)] = v
 	}
 	out.set("labels", combined)
-}
-
-// normalizeLabelValue transforms v into one of the accepted label value types:
-// string, number, or boolean.
-func normalizeLabelValue(v interface{}) interface{} {
-	switch v := v.(type) {
-	case json.Number:
-		if floatVal, err := v.Float64(); err == nil {
-			return common.Float(floatVal)
-		}
-	}
-	return v // types are guaranteed by decoders
 }
 
 func sanitizeLabelKey(k string) string {
