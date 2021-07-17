@@ -202,7 +202,7 @@ func (p *Processor) updateProcessorMetrics(report, stored bool) {
 }
 
 func (p *Processor) processTransaction(tx *model.Transaction) (report, stored bool, _ error) {
-	if tx.Sampled != nil && !*tx.Sampled {
+	if !tx.Sampled {
 		// (Head-based) unsampled transactions are passed through
 		// by the tail sampler.
 		return true, false, nil

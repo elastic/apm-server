@@ -111,12 +111,13 @@ Caused by: LowLevelException
 	expectedMetadata := languageOnlyMetadata("java")
 	transaction, errors := transformTransactionSpanEvents(t, "java", exceptionEvent1, exceptionEvent2)
 	assert.Equal(t, []*model.Error{{
-		Metadata:        expectedMetadata,
-		TraceID:         transaction.TraceID,
-		ParentID:        transaction.ID,
-		TransactionID:   transaction.ID,
-		TransactionType: transaction.Type,
-		Timestamp:       timestamp,
+		Metadata:           expectedMetadata,
+		TraceID:            transaction.TraceID,
+		ParentID:           transaction.ID,
+		TransactionID:      transaction.ID,
+		TransactionType:    transaction.Type,
+		TransactionSampled: newBool(true),
+		Timestamp:          timestamp,
 		Exception: &model.Exception{
 			Type:    "java.net.ConnectException.OSError",
 			Message: "Division by zero",
@@ -154,12 +155,13 @@ Caused by: LowLevelException
 			}},
 		},
 	}, {
-		Metadata:        expectedMetadata,
-		TraceID:         transaction.TraceID,
-		ParentID:        transaction.ID,
-		TransactionID:   transaction.ID,
-		TransactionType: transaction.Type,
-		Timestamp:       timestamp,
+		Metadata:           expectedMetadata,
+		TraceID:            transaction.TraceID,
+		ParentID:           transaction.ID,
+		TransactionID:      transaction.ID,
+		TransactionType:    transaction.Type,
+		TransactionSampled: newBool(true),
+		Timestamp:          timestamp,
 		Exception: &model.Exception{
 			Type:    "HighLevelException",
 			Message: "MidLevelException: LowLevelException",
@@ -305,12 +307,13 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 	require.Len(t, errors, 1)
 
 	assert.Equal(t, &model.Error{
-		Metadata:        languageOnlyMetadata("COBOL"),
-		TraceID:         transaction.TraceID,
-		ParentID:        transaction.ID,
-		TransactionID:   transaction.ID,
-		TransactionType: transaction.Type,
-		Timestamp:       timestamp,
+		Metadata:           languageOnlyMetadata("COBOL"),
+		TraceID:            transaction.TraceID,
+		ParentID:           transaction.ID,
+		TransactionID:      transaction.ID,
+		TransactionType:    transaction.Type,
+		TransactionSampled: newBool(true),
+		Timestamp:          timestamp,
 		Exception: &model.Exception{
 			Type:    "the_type",
 			Message: "the_message",
