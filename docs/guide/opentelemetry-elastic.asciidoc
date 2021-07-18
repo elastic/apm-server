@@ -20,36 +20,37 @@ Elastic OpenTelemetry integrations allow you to reuse your existing OpenTelemetr
 instrumentation to quickly analyze distributed traces and metrics to help you monitor
 business KPIs and technical components with the {stack}.
 
-There are two Elastic OpenTelemetry integrations available:
-
-* <<open-telemetry-elastic-protocol,APM Server native support of OpenTelemetry protocol>> (recommended)
-* <<open-telemetry-elastic-exporter,Elastic exporter on the OpenTelemetry collector>>
-
 [[open-telemetry-elastic-protocol]]
 ==== APM Server native support of OpenTelemetry protocol
 
+
+IMPORTANT: The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#legacy-opentelemetry-collector-exporter-for-elastic[OpenTelemetry Collector exporter for Elastic]
+is deprecated since Elastic observability 7.13 and replaced by the native support of the OpenTelemetry Line Protocol in
+Elastic Observability (aka OTLP). See the
+https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#migration[migration guide].
+
 Elastic APM Server natively supports the OpenTelemetry protocol.
 This means trace data and metrics collected from your applications and infrastructure can
-be sent directly to APM Server using the OpenTelemetry protocol.
+be sent directly to Elastic APM Server using the OpenTelemetry protocol.
 
-image::images/open-telemetry-protocol-arch.png[OpenTelemetry Elastic protocol architecture diagram]
+image::images/open-telemetry-protocol-arch.png[OpenTelemetry Elastic architecture diagram]
 
 [float]
 [[instrument-apps-apm-server]]
-===== Instrument applications
+====== Instrument applications
 
 To export traces and metrics to APM Server, ensure that you have instrumented your services and applications
 with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to instrument your Java app using the
 https://github.com/open-telemetry/opentelemetry-java-instrumentation[OpenTelemetry agent for Java].
 
-By defining the following environment variables, you can customize the OTLP endpoint so that the OpenTelemetry agent communicates with
+By defining the following environment variables, you can configure the OTLP endpoint so that the OpenTelemetry agent communicates with
 APM Server.
 
 [source,bash]
 ----
 export OTEL_RESOURCE_ATTRIBUTES=service.name=checkoutService,service.version=1.1,deployment.environment=production
 export OTEL_EXPORTER_OTLP_ENDPOINT=https://apm_server_url:8200
-export OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer apm_secret_token"
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer an_apm_secret_token"
 java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
      -classpath lib/*:classes/ \
      com.mycompany.checkout.CheckoutServiceServer
@@ -61,173 +62,77 @@ java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
 
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
 
-| `OTEL_EXPORTER_OTLP_HEADERS` | Authorization header that includes the Elastic APM Secret token or API key: `"authorization=ApiKey api_key"`.
+| `OTEL_EXPORTER_OTLP_HEADERS` | Authorization header that includes the Elastic APM Secret token or API key: `"Authorization=Bearer an_apm_secret_token"` or `"Authorization=ApiKey an_api_key"`.
 
 For information on how to format an API key, see our {apm-server-ref-v}/api-key.html[API key] docs.
 
-Please note the required space between `Bearer` and `apm_secret_token`, and `APIKey` and `api_key`.
+Please note the required space between `Bearer` and `an_apm_secret_token`, and `APIKey` and `an_api_key`.
 
 | `OTEL_EXPORTER_OTLP_CERTIFICATE` | Certificate for TLS credentials of the gRPC client. (optional)
 
 |===
 
-You are now ready to collect <<open-telemetry-elastic-traces-metrics,traces and metrics>>, <<open-telemetry-elastic-verify,verify metrics>>,
+You are now ready to collect traces and <<open-telemetry-elastic-metrics,metrics>>, <<open-telemetry-elastic-verify,verify metrics>>,
 and <<open-telemetry-elastic-kibana,visualize metrics>> in {kib}.
 
-IMPORTANT: If collecting metrics, please note that the https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/DoubleValueRecorder.html[`DoubleValueRecorder`]
-and https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/LongValueObserver.html[`LongValueRecorder`] metrics are not yet supported.
+[[open-telemetry-collector]]
+===== Connect OpenTelemetry Collector instances
 
-[[open-telemetry-elastic-exporter]]
-==== Elastic exporter on the OpenTelemetry collector
+When using the OpenTelemetry Collector instances in your architecture, you can connect them to Elastic Observability using the OTLP exporter.
 
-We have extended the "contrib" OpenTelemetry collector by
-adding an Elastic exporter so that you can drop this integration into your current OpenTelemetry setup.
-
-The architecture consists of three main components.
-
-image::images/open-telemetry-exporter-arch.png[OpenTelemetry Elastic exporter architecture diagram]
-
-|===
-
-| *Agents* | The OpenTelemetry agents instrument the applications and export the telemetry data to the OpenTelemetry collector.
-
-| *OpenTelemetry collector* | The https://opentelemetry.io/docs/collector/configuration/#receivers[receiver]
-collects the telemetry data from the OpenTelemetry agent, and then the https://opentelemetry.io/docs/collector/configuration/#processors[processor]
-defines optional transformations on the data before it's exported using the Elastic exporter.
-
-| *Elastic exporter* | The exporter translates the OpenTelemetry data collected from your services, applications, and infrastructure to Elastic's protocol.
-The data includes trace data and metrics data. By extending the OpenTelemetry collector, no changes are needed in your instrumented services to begin using the {stack}.
-
-|===
-
-[float]
-[[open-telemetry-collector-config]]
-===== Download and configure the collector
-
-OpenTelemetry Collectors can be run as agents or as standalone collectors.
-They can be deployed as often as necessary and scaled up or out. Deployment planning resources are available in
-OpenTelemetry's {ot-collector}[Getting Started] documentation and {ot-scaling}[Collector Performance] research.
-
-You can download the latest release of the collector from the {ot-contrib}/releases[GitHub releases page].
-The Elastic exporter lives in the {ot-contrib}[`opentelemetry-collector-contrib` repository].
-
-Docker images are available on {ot-dockerhub}[dockerhub]:
-
-[source,bash]
++
+[source,yaml]
 ----
-docker pull otel/opentelemetry-collector-contrib
+receivers: <1>
+  # ...
+  otlp:
+
+processors: <2>
+  # ...
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 2000
+  batch:
+
+exporters:
+  logging:
+    loglevel: warn <3>
+  otlp/elastic: <4>
+    # Elastic APM server https endpoint without the "https://" prefix
+    endpoint: "${ELASTIC_APM_SERVER_ENDPOINT}" <5> <7>
+    headers:
+      # Elastic APM Server secret token
+      Authorization: "Bearer ${ELASTIC_APM_SERVER_TOKEN}" <6> <7>
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [logging, otlp/elastic]
+    metrics:
+      receivers: [otlp]
+      exporters: [logging, otlp/elastic]
 ----
+<1> The receivers that matter to your use case such as
+the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver[OTLP receiver] to forward data emitted by APM agents or the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/hostmetricsreceiver[Host Metrics receiver],
+<2> The processors that matter to your use case ; Elastic recommends using the https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md[Batch processor] and suggests also using the https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md[Memory Limiter processor]. More recommandations are available on https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/README.md#recommended-processors[OpenTelemetry Collector / Recommended Processors],
+<3> The https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter[Logging exporter] is convenient for troubleshooting, supported logging levels: `debug`, `info`, `warn`, and `error`,
+<4> Elastic Observability endpoint configuration. See https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter[OpenTelemetry Collector > OTLP gRPC exporter] documentation for more details.
+<5> Hostname and port of the APM Server endpoint (e.g. `elastic-apm-server:8200`),
+<6> Credential for Elastic APM {apm-server-ref-v}/secret-token.html[secret token authorization] (e.g. `Authorization: "Bearer a_secret_token"`) or {apm-server-ref-v}/api-key.html[API key authorization] (e.g. `Authorization: "ApiKey an_api_key"`),
+<7> Note that environment-specific configuration parameters can be conveniently passed in as environment variables as documented https://opentelemetry.io/docs/collector/configuration/#configuration-environment-variables[here] (e.g. `ELASTIC_APM_SERVER_ENDPOINT` and `ELASTIC_APM_SERVER_TOKEN`).
 
-To configure the collector, create a `yaml` configuration file.
-
-This example configuration file accepts input from an OpenTelemetry Agent, processes the data, and sends it to an {ess} instance.
-
-[source,yml]
-----
-  receivers:
-    otlp:
-      protocols:
-        grpc:
-          endpoint: 'localhost:4317'
-    hostmetrics: <1>
-      collection_interval: 1m
-      scrapers:
-        load:
-        memory:
-
-  processors:
-    batch: null
-
-  exporters:
-    elastic:
-      apm_server_url: 'https://elasticapm.example.com' <2>
-      secret_token: 'APM_SERVER_SECRET_TOKEN'
-
-  service:
-    pipelines:
-      metrics:
-        receivers:
-          - otlp
-          - hostmetrics
-        exporters:
-          - elastic <3>
-      traces:
-        receivers:
-          - otlp
-        processors:
-          - batch
-        exporters:
-          - elastic <4>
-----
-<1> The `hostmetrics` receiver must be defined to generate metrics about the host system scraped from various sources.
-<2> At a minimum, you must define the URL of the APM Server instance you are sending data to. For additional configurations,
-like specifying an API key, secret token, or TLS settings, see the Elastic exporter <<open-telemetry-elastic-config,configuration options>>.
-<3> To translate metrics, you must define the Elastic exporter in `service.pipelines.metrics.exporters`.
-<4> To translate trace data, you must define the Elastic exporter in `service.pipelines.traces.exporters`.
-
-Once a `receiver`, `processor`, and `exporter` are defined, you can configure {ot-pipelines}[`pipelines`] in your configuration's `services` section.
-The `traces` and `metrics` pipelines represent the path of trace data and metrics through your collector and bring all three of these components together.
-You can also enable {ot-extension}[`extensions`] for tasks like monitoring the health of the collector.
-
-TIP: We recommend using {metricbeat-ref}/metricbeat-overview.html[{metricbeat}] to get a mature collector with more integrations
-and integrated visualizations to collect infrastructure metrics.
-
-[float]
-[[open-telemetry-elastic-config]]
-===== Elastic exporter configuration options
-
-|===
-
-| `apm_server_url` | Elastic APM Server URL. (required).
-
-| `api_key` | Credential for {apm-server-ref-v}/api-key.html[API key authorization]. Must also be enabled in Elastic APM Server. (optional)
-
-| `secret_token` | Credential for {apm-server-ref-v}/secret-token.html[secret token authorization]. Must also be enabled in Elastic APM Server. (optional)
-
-| `ca_file` | Root Certificate Authority (CA) certificate for verifying the server's identity if TLS is enabled. (optional)
-
-| `cert_file` | Client TLS certificate. (optional)
-
-| `key_file` | Client TLS key. (optional)
-
-| `insecure` | Disable verification of the server's identity if TLS is enabled. (optional)
-
-|===
-
-[float]
-[[instrument-apps-collector]]
-===== Instrument applications
-
-To export traces and metrics to the OpenTelemetry Collector, ensure that you have instrumented your services and applications
-with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to instrument your Java app using the
-https://github.com/open-telemetry/opentelemetry-java-instrumentation[OpenTelemetry agent for Java].
-
-By defining the following environment variables, you can customize the OTLP endpoint the agent will use to communicate with
-APM Server.
-
-[source,bash]
-----
-export OTEL_RESOURCE_ATTRIBUTES=service.name=frontend,service.version=1.1,deployment.environment=staging
-export OTEL_EXPORTER_OTLP_ENDPOINT=https://apm_server_url:8200
-java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
-     -jar target/frontend-1.1.jar
-----
-
-|===
-
-| `OTEL_RESOURCE_ATTRIBUTES` | The service name to identify your application.
-
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
-
-|===
-
-You are now ready to collect <<open-telemetry-elastic-traces-metrics,traces and metrics>>, <<open-telemetry-elastic-verify,verify metrics>>,
-and <<open-telemetry-elastic-kibana,visualize metrics>> in {kib}.
-
-[[open-telemetry-elastic-traces-metrics]]
-==== Collect traces and metrics
+TIP: When collecting infrastructure metrics, we recommend evaluating {metricbeat-ref}/metricbeat-overview.html[{metricbeat}] to get a mature collector with more integrations
+and built-in dashboards.
 
 You're now ready to export traces and metrics from your services and applications.
+
+[[open-telemetry-elastic-metrics]]
+==== Collect metrics
+
+IMPORTANT: When collecting metrics, please note that the https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/DoubleValueRecorder.html[`DoubleValueRecorder`]
+and https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/LongValueObserver.html[`LongValueRecorder`] metrics are not yet supported.
+
 Here's an example of how to capture business metrics from a Java application.
 
 [source,java]
@@ -249,7 +154,7 @@ See the https://github.com/open-telemetry/opentelemetry-specification/blob/main/
 for more information.
 
 [[open-telemetry-elastic-verify]]
-==== Verify OpenTelemetry metrics data
+===== Verify OpenTelemetry metrics data
 
 Use *Discover* to validate that metrics are successfully reported to {kib}.
 
@@ -266,7 +171,7 @@ include::../tab-widgets/open-kibana-widget.asciidoc[]
 only OpenTelemetry metrics documents.
 
 [[open-telemetry-elastic-kibana]]
-==== Visualize in {kib}
+===== Visualize in {kib}
 
 TSVB within {kib} is the recommended visualization for OpenTelemetry metrics. TSVB is a time series data visualizer that allows you to use the
 {es} aggregation framework's full power. With TSVB, you can combine an infinite number of aggregations to display complex data.
@@ -317,7 +222,7 @@ AWS Lambda functions can be instrumented with OpenTelemetry and monitored with E
 To get started, follow the official AWS Distro for OpenTelemetry Lambda https://aws-otel.github.io/docs/getting-started/lambda[getting started documentation] and configure the OpenTelemetry Collector to output traces and metrics to your Elastic cluster.
 
 [[open-telemetry-aws-lambda-elastic-java]]
-==== Instrumenting AWS Lambda Java functions
+===== Instrumenting AWS Lambda Java functions
 
 NOTE: For a better startup time, we recommend using SDK-based instrumentation, i.e. manual instrumentation of the code, rather than auto instrumentation.
 
@@ -393,7 +298,7 @@ Lambda layer for OpenTelemetry] (e.g. `arn:aws:lambda:eu-west-1:901920570463:lay
 *** `OPENTELEMETRY_COLLECTOR_CONFIG_FILE="/var/task/opentelemetry-collector.yaml"` to specify the path to your OpenTelemetry Collector configuration
 
 [[open-telemetry-aws-lambda-elastic-java-terraform]]
-==== Instrumenting AWS Lambda Java functions with Terraform
+===== Instrumenting AWS Lambda Java functions with Terraform
 
 We recommend using an infrastructure as code solution like Terraform or Ansible to manage the configuration of your AWS Lambda functions.
 
@@ -401,6 +306,32 @@ Here is an example of AWS Lambda Java function managed with Terraform and the ht
 
 * Sample Terraform code: https://github.com/cyrille-leclerc/my-serverless-shopping-cart/tree/main/checkout-function/deploy
 * Note that the Terraform code to manage the HTTP API Gateway (https://github.com/cyrille-leclerc/my-serverless-shopping-cart/tree/main/utils/terraform/api-gateway-proxy[here]) is copied from the official OpenTelemetry Lambda sample https://github.com/open-telemetry/opentelemetry-lambda/tree/e72467a085a2a6e57af133032f85ac5b8bbbb8d1/utils[here]
+
+[[elastic-open-telemetry-known-limitations]]
+==== Known limitations
+
+===== Known limitations in Elastic Observability 7.13
+
+* OpenTelemetry traces
+** Traces of applications using `messaging` semantics might be wrongly displayed or not shown at all in Elastic APM UI. You might see only `spans` coming from such services, but no `transaction`.
+*** See issue https://github.com/elastic/apm-server/issues/5094[[OpenTelemetry\] Map OpenTelemetry `messaging.*` semantic conventions to Elastic Common Schema #5094]
+** Inability to see Stack traces in spans or in general, arbitrary span events for applications instrumented with OpenTelemetry
+*** See issue https://github.com/elastic/apm-server/issues/4715[[OpenTelemetry\] Support OpenTelemetry Span Events #4715]
+** Inability in APM views to view the "Time Spent by Span Type"
+** See issue https://github.com/elastic/apm-server/issues/5747[[OpenTelemetry\] The graph "Time spent by span type" is empty #5747]
+** Metrics derived from traces (Throughput, Latency and Errors) are not accurate when traces are sampled before being ingested by Elastic Observability (ie by an OpenTelemetry Collector or OpenTelemetry APM agent or SDK)
+*** See issue https://github.com/elastic/apm/issues/472[[OpenTelemetry\] Metrics derived from traces (Throughput, Latency and Errors) are not accurate when traces are sampled before being ingested by Elastic Observability #472]
+* OpenTelemetry Metrics
+** OpenTelemetry histogram metrics, https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/DoubleValueRecorder.html[`DoubleValueRecorder`]
+and https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/LongValueObserver.html[`LongValueRecorder`], are not yet supported
+*** See issue https://github.com/elastic/apm-server/issues/3195[Histogram Support #3195]
+** Inability to see JVM metrics in Elastic APM UI for Java applications instrumented with OpenTelemetry
+*** See issue https://github.com/elastic/apm-server/issues/4919[Visualize JVM health indicators collected by the OpenTelemetry Java Agent #4919]
+** Inability to see Host metrics in Elastic Metrics Infrastructure view when using the OpenTelemetry Collector Host Metrics receiver
+*** See issue https://github.com/elastic/apm-server/issues/5310[Map the metrics of the OpenTelemetry Collector Host Metrics Receiver to ECS and store them in the metrics- indices #5310]
+* OpenTelemetry logs
+** OpenTelemetry logs are not yet supported
+*** See issue https://github.com/elastic/apm-server/issues/5491[[OpenTelemetry\] add support for receiving logs #5491]
 
 // Make tab-widgets work
 include::../tab-widgets/code.asciidoc[]
