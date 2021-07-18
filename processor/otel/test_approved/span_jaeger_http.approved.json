@@ -17,7 +17,9 @@
                 "hostname": "host-abc"
             },
             "http": {
-                "request.method": "get",
+                "request": {
+                    "method": "get"
+                },
                 "response": {
                     "status_code": 400
                 }
@@ -57,11 +59,9 @@
                     "method": "get",
                     "response": {
                         "status_code": 400
-                    },
-                    "url": {
-                        "original": "http://foo.bar.com?a=12"
                     }
                 },
+                "http.url.original": "http://foo.bar.com?a=12",
                 "id": "0000000041414646",
                 "name": "HTTP GET",
                 "subtype": "http",

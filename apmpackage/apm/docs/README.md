@@ -302,7 +302,9 @@ Traces are written to `traces-apm.*` indices.
     "outcome": "unknown"
   },
   "http": {
-    "request.method": "GET",
+    "request": {
+      "method": "GET"
+    },
     "response": {
       "status_code": 200
     }
@@ -346,11 +348,9 @@ Traces are written to `traces-apm.*` indices.
       "method": "GET",
       "response": {
         "status_code": 200
-      },
-      "url": {
-        "original": "http://localhost:8000"
       }
     },
+    "http.url.original": "http://localhost:8000",
     "id": "0aaaaaaaaaaaaaaa",
     "name": "SELECT FROM product_types",
     "stacktrace": [

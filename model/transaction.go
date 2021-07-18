@@ -58,7 +58,7 @@ type Transaction struct {
 	Sampled        bool
 	SpanCount      SpanCount
 	Page           *Page
-	HTTP           *Http
+	HTTP           *HTTP
 	URL            *URL
 	Labels         common.MapStr
 	Custom         common.MapStr
@@ -137,7 +137,9 @@ func (e *Transaction) toBeatEvent() beat.Event {
 	fields.maybeSetMapStr("parent", common.MapStr(parent))
 	fields.maybeSetMapStr("trace", common.MapStr(trace))
 	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
-	fields.maybeSetMapStr("http", e.HTTP.Fields())
+	if e.HTTP != nil {
+		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
+	}
 	fields.maybeSetMapStr("url", e.URL.Fields())
 	fields.maybeSetMapStr("session", e.Session.fields())
 	if e.Experimental != nil {

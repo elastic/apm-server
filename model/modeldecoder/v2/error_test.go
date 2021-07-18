@@ -147,6 +147,9 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 				"Exception.Parent",
 				// GroupingKey is set by a model processor
 				"GroupingKey",
+				// HTTP headers tested in 'http-headers'
+				"HTTP.Request.Headers",
+				"HTTP.Response.Headers",
 				// stacktrace original and sourcemap values are set when sourcemapping is applied
 				"Exception.Stacktrace.Original",
 				"Exception.Stacktrace.Sourcemap",
@@ -187,6 +190,16 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})
 
+	t.Run("http-headers", func(t *testing.T) {
+		var input errorEvent
+		input.Context.Request.Headers.Set(http.Header{"a": []string{"b"}, "c": []string{"d", "e"}})
+		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
+		var out model.Error
+		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: false}, &out)
+		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
+		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.HTTP.Response.Headers)
+	})
+
 	t.Run("page.URL", func(t *testing.T) {
 		var input errorEvent
 		input.Context.Page.URL.Set("https://my.site.test:9201")
@@ -204,6 +217,6 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var out model.Error
 		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, "https://my.site.test:9201", out.Page.Referer)
-		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referer)
+		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referrer)
 	})
 }

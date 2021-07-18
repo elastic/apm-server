@@ -473,6 +473,8 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 	)
 
 	var http model.HTTP
+	var httpRequest model.HTTPRequest
+	var httpResponse model.HTTPResponse
 	var message model.Message
 	var db model.DB
 	var destinationService model.DestinationService
@@ -503,7 +505,8 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		case pdata.AttributeValueTypeInt:
 			switch kDots {
 			case "http.status_code":
-				http.StatusCode = int(v.IntVal())
+				httpResponse.StatusCode = int(v.IntVal())
+				http.Response = &httpResponse
 				isHTTPSpan = true
 			case conventions.AttributeNetPeerPort, "peer.port":
 				netPeerPort = int(v.IntVal())
@@ -529,7 +532,8 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 				httpURL = stringval
 				isHTTPSpan = true
 			case conventions.AttributeHTTPMethod:
-				http.Method = stringval
+				httpRequest.Method = stringval
+				http.Request = &httpRequest
 				isHTTPSpan = true
 
 			// db.*
@@ -636,7 +640,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 				if httpHost == "" {
 					// Set host from net.peer.*
 					httpHost = destAddr
-					if netPeerPort > 0 {
+					if destPort > 0 {
 						httpHost = net.JoinHostPort(httpHost, strconv.Itoa(destPort))
 					}
 				}
@@ -645,7 +649,6 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 			}
 		}
 		if fullURL != nil {
-			http.URL = httpURL
 			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
 			hostname := truncate(url.Hostname())
 			var port int
@@ -693,15 +696,16 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 
 	switch {
 	case isHTTPSpan:
-		if http.StatusCode > 0 {
+		if httpResponse.StatusCode > 0 {
 			if event.Outcome == outcomeUnknown {
-				event.Outcome = clientHTTPStatusCodeOutcome(http.StatusCode)
+				event.Outcome = clientHTTPStatusCodeOutcome(httpResponse.StatusCode)
 			}
 		}
 		event.Type = "external"
 		subtype := "http"
 		event.Subtype = subtype
 		event.HTTP = &http
+		event.URL = httpURL
 	case isDBSpan:
 		event.Type = "db"
 		if db.Type != "" {

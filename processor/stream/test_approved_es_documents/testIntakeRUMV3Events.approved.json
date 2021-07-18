@@ -494,11 +494,9 @@
                         "decoded_body_size": 676864,
                         "encoded_body_size": 676864,
                         "transfer_size": 677175
-                    },
-                    "url": {
-                        "original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED"
                     }
                 },
+                "http.url.original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED",
                 "id": "fb8f717930697299",
                 "name": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
                 "start": {
@@ -611,7 +609,9 @@
                 "outcome": "success"
             },
             "http": {
-                "request.method": "GET",
+                "request": {
+                    "method": "GET"
+                },
                 "response": {
                     "status_code": 200
                 }
@@ -658,11 +658,9 @@
                     "method": "GET",
                     "response": {
                         "status_code": 200
-                    },
-                    "url": {
-                        "original": "http://localhost:8000/test/e2e/common/data.json?test=hamid"
                     }
                 },
+                "http.url.original": "http://localhost:8000/test/e2e/common/data.json?test=hamid",
                 "id": "5ecb8ee030749715",
                 "name": "GET /test/e2e/common/data.json",
                 "start": {
@@ -708,7 +706,9 @@
                 "outcome": "success"
             },
             "http": {
-                "request.method": "POST",
+                "request": {
+                    "method": "POST"
+                },
                 "response": {
                     "status_code": 200
                 }
@@ -755,11 +755,9 @@
                     "method": "POST",
                     "response": {
                         "status_code": 200
-                    },
-                    "url": {
-                        "original": "http://localhost:8003/data"
                     }
                 },
+                "http.url.original": "http://localhost:8003/data",
                 "id": "27f45fd274f976d4",
                 "name": "POST http://localhost:8003/data",
                 "start": {
@@ -805,7 +803,9 @@
                 "outcome": "success"
             },
             "http": {
-                "request.method": "POST",
+                "request": {
+                    "method": "POST"
+                },
                 "response": {
                     "status_code": 200
                 }
@@ -853,11 +853,9 @@
                     "method": "POST",
                     "response": {
                         "status_code": 200
-                    },
-                    "url": {
-                        "original": "http://localhost:8003/fetch"
                     }
                 },
+                "http.url.original": "http://localhost:8003/fetch",
                 "id": "a3c043330bc2015e",
                 "name": "POST http://localhost:8003/fetch",
                 "start": {

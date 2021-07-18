@@ -40,11 +40,7 @@
                 "duration": {
                     "us": 79000000
                 },
-                "http": {
-                    "url": {
-                        "original": "https://foo.bar.com:443?a=12"
-                    }
-                },
+                "http.url.original": "https://foo.bar.com:443?a=12",
                 "id": "0000000041414646",
                 "name": "HTTPS GET",
                 "subtype": "http",
