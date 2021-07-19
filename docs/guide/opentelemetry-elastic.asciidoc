@@ -117,10 +117,10 @@ service:
 the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver[OTLP receiver], that forward data emitted by APM agents or the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/hostmetricsreceiver[host metrics receiver].
 <2> We recommend using the https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md[Batch processor] and also suggest using the https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md[memory limiter processor]. For more information, see https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/README.md#recommended-processors[Recommended processors].
 <3> The https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter[logging exporter] is helpful for troubleshooting and supports various logging levels: `debug`, `info`, `warn`, and `error`.
-<4> Elastic Observability endpoint configuration. See https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter[OpenTelemetry Collector > OTLP gRPC exporter] documentation for more details.
-<5> Hostname and port of the APM Server endpoint (e.g. `elastic-apm-server:8200`),
-<6> Credential for Elastic APM {apm-server-ref-v}/secret-token.html[secret token authorization] (e.g. `Authorization: "Bearer a_secret_token"`) or {apm-server-ref-v}/api-key.html[API key authorization] (e.g. `Authorization: "ApiKey an_api_key"`),
-<7> Note that environment-specific configuration parameters can be conveniently passed in as environment variables as documented https://opentelemetry.io/docs/collector/configuration/#configuration-environment-variables[here] (e.g. `ELASTIC_APM_SERVER_ENDPOINT` and `ELASTIC_APM_SERVER_TOKEN`).
+<4> Elastic Observability endpoint configuration. To learn more, see https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter[OpenTelemetry Collector > OTLP gRPC exporter].
+<5> Hostname and port of the APM Server endpoint. For example, `elastic-apm-server:8200`.
+<6> Credential for Elastic APM {apm-server-ref-v}/secret-token.html[secret token authorization] (`Authorization: "Bearer a_secret_token"`) or {apm-server-ref-v}/api-key.html[API key authorization] (`Authorization: "ApiKey an_api_key"`).
+<7> Environment-specific configuration parameters can be conveniently passed in as environment variables documented https://opentelemetry.io/docs/collector/configuration/#configuration-environment-variables[here] (e.g. `ELASTIC_APM_SERVER_ENDPOINT` and `ELASTIC_APM_SERVER_TOKEN`).
 
 TIP: When collecting infrastructure metrics, we recommend evaluating {metricbeat-ref}/metricbeat-overview.html[{metricbeat}] to get a mature collector with more integrations
 and built-in dashboards.
@@ -308,20 +308,20 @@ Here is an example of AWS Lambda Java function managed with Terraform and the ht
 * Note that the Terraform code to manage the HTTP API Gateway (https://github.com/cyrille-leclerc/my-serverless-shopping-cart/tree/main/utils/terraform/api-gateway-proxy[here]) is copied from the official OpenTelemetry Lambda sample https://github.com/open-telemetry/opentelemetry-lambda/tree/e72467a085a2a6e57af133032f85ac5b8bbbb8d1/utils[here]
 
 [[elastic-open-telemetry-known-limitations]]
-==== Known limitations
+==== Limitations in 7.13
 
-===== Known limitations in Elastic Observability 7.13
 
-* OpenTelemetry traces
-** Traces of applications using `messaging` semantics might be wrongly displayed or not shown at all in Elastic APM UI. You might see only `spans` coming from such services, but no `transaction`.
-*** See issue https://github.com/elastic/apm-server/issues/5094[[OpenTelemetry\] Map OpenTelemetry `messaging.*` semantic conventions to Elastic Common Schema #5094]
-** Inability to see Stack traces in spans or in general, arbitrary span events for applications instrumented with OpenTelemetry
-*** See issue https://github.com/elastic/apm-server/issues/4715[[OpenTelemetry\] Support OpenTelemetry Span Events #4715]
-** Inability in APM views to view the "Time Spent by Span Type"
-** See issue https://github.com/elastic/apm-server/issues/5747[[OpenTelemetry\] The graph "Time spent by span type" is empty #5747]
-** Metrics derived from traces (Throughput, Latency and Errors) are not accurate when traces are sampled before being ingested by Elastic Observability (ie by an OpenTelemetry Collector or OpenTelemetry APM agent or SDK)
-*** See issue https://github.com/elastic/apm/issues/472[[OpenTelemetry\] Metrics derived from traces (Throughput, Latency and Errors) are not accurate when traces are sampled before being ingested by Elastic Observability #472]
-* OpenTelemetry Metrics
+[[elastic-open-telemetry-traces-limitations]]
+===== OpenTelemetry traces
+
+* Traces of applications using `messaging` semantics might be wrongly displayed or not shown in the APM UI. You may only see `spans` coming from such services, but no `transaction` https://github.com/elastic/apm-server/issues/5094[#5094]
+* Inability to see Stack traces in spans or, in general, arbitrary span events for applications instrumented with OpenTelemetry https://github.com/elastic/apm-server/issues/4715[#4715]
+* Inability in APM views to view the "Time Spent by Span Type" https://github.com/elastic/apm-server/issues/5747[#5747]
+* Metrics derived from traces (throughput, latency, and errors) are not accurate when traces are sampled before being ingested by Elastic Observability (ie by an OpenTelemetry Collector or OpenTelemetry APM agent or SDK) https://github.com/elastic/apm/issues/472[#472]
+
+[[elastic-open-telemetry-metrics-limitations]]
+===== OpenTelemetry metrics
+
 * OpenTelemetry histogram metrics, https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/DoubleValueRecorder.html[`DoubleValueRecorder`]
 and https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/LongValueObserver.html[`LongValueRecorder`], are not yet supported https://github.com/elastic/apm-server/issues/3195[#3195]
 * Inability to see JVM metrics in Elastic APM UI for Java applications instrumented with OpenTelemetry https://github.com/elastic/apm-server/issues/4919[#4919]
