@@ -1004,11 +1004,11 @@
                     "compression_strategy": "exact_match",
                     "count": 10,
                     "sum": {
-                        "us": 3592
+                        "us": 359298
                     }
                 },
                 "duration": {
-                    "us": 3781
+                    "us": 378191
                 },
                 "id": "abcdef01234567",
                 "name": "SELECT FROM p_details",
