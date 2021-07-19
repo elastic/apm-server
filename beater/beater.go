@@ -445,8 +445,8 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 	processors := []model.BatchProcessor{
 		modelprocessor.SetSystemHostname{},
 		modelprocessor.SetServiceNodeName{},
-		// Set metricset.name for well-known agent metrics.
 		modelprocessor.SetMetricsetName{},
+		modelprocessor.SetGroupingKey{},
 	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
@@ -670,7 +670,7 @@ func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...model.Ba
 		return runServer
 	}
 	return func(ctx context.Context, args ServerParams) error {
-		processors = append(processors, args.BatchProcessor)
+		processors := append(processors, args.BatchProcessor)
 		args.BatchProcessor = modelprocessor.Chained(processors)
 		return runServer(ctx, args)
 	}

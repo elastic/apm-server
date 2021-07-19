@@ -19,12 +19,8 @@ package model
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"hash"
-	"io"
 	"strconv"
 	"time"
 
@@ -58,12 +54,13 @@ type Error struct {
 	Timestamp time.Time
 	Metadata  Metadata
 
-	Culprit string
-	Labels  common.MapStr
-	Page    *Page
-	HTTP    *Http
-	URL     *URL
-	Custom  common.MapStr
+	GroupingKey string
+	Culprit     string
+	Labels      common.MapStr
+	Page        *Page
+	HTTP        *Http
+	URL         *URL
+	Custom      common.MapStr
 
 	Exception *Exception
 	Log       *Log
@@ -156,7 +153,7 @@ func (e *Error) fields() common.MapStr {
 
 	fields.maybeSetString("culprit", e.Culprit)
 	fields.maybeSetMapStr("custom", customFields(e.Custom))
-	fields.maybeSetString("grouping_key", e.calcGroupingKey(exceptionChain))
+	fields.maybeSetString("grouping_key", e.GroupingKey)
 	return common.MapStr(fields)
 }
 
@@ -212,76 +209,6 @@ func (e *Error) logFields() common.MapStr {
 		log.set("stacktrace", st)
 	}
 	return common.MapStr(log)
-}
-
-type groupingKey struct {
-	hash  hash.Hash
-	empty bool
-}
-
-func newGroupingKey() *groupingKey {
-	return &groupingKey{
-		hash:  md5.New(),
-		empty: true,
-	}
-}
-
-func (k *groupingKey) add(s string) bool {
-	if s == "" {
-		return false
-	}
-	io.WriteString(k.hash, s)
-	k.empty = false
-	return true
-}
-
-func (k *groupingKey) addEither(str ...string) {
-	for _, s := range str {
-		if ok := k.add(s); ok {
-			break
-		}
-	}
-}
-
-func (k *groupingKey) String() string {
-	return hex.EncodeToString(k.hash.Sum(nil))
-}
-
-// calcGroupingKey computes a value for deduplicating errors - events with
-// same grouping key can be collapsed together.
-func (e *Error) calcGroupingKey(chain []Exception) string {
-	k := newGroupingKey()
-	var stacktrace Stacktrace
-
-	for _, ex := range chain {
-		k.add(ex.Type)
-		stacktrace = append(stacktrace, ex.Stacktrace...)
-	}
-
-	if e.Log != nil {
-		k.add(e.Log.ParamMessage)
-		if len(stacktrace) == 0 {
-			stacktrace = e.Log.Stacktrace
-		}
-	}
-
-	for _, fr := range stacktrace {
-		if fr.ExcludeFromGrouping {
-			continue
-		}
-		k.addEither(fr.Module, fr.Filename, fr.Classname)
-		k.add(fr.Function)
-	}
-	if k.empty {
-		for _, ex := range chain {
-			k.add(ex.Message)
-		}
-	}
-	if k.empty && e.Log != nil {
-		k.add(e.Log.Message)
-	}
-
-	return k.String()
 }
 
 func addStacktraceCounter(st Stacktrace) {

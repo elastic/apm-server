@@ -103,7 +103,6 @@
                         "message": "redis timeout"
                     }
                 ],
-                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
                 "log": {
                     "message": "redis timeout"
                 }
@@ -370,7 +369,6 @@
                         "message": "redis timeout"
                     }
                 ],
-                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
                 "log": {
                     "message": "redis timeout"
                 }
@@ -637,7 +635,6 @@
                         "message": "redis timeout"
                     }
                 ],
-                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
                 "log": {
                     "message": "redis timeout"
                 }
