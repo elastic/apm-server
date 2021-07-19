@@ -113,8 +113,8 @@ service:
       receivers: [otlp]
       exporters: [logging, otlp/elastic]
 ----
-<1> The receivers that matter to your use case such as
-the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver[OTLP receiver] to forward data emitted by APM agents or the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/hostmetricsreceiver[Host Metrics receiver],
+<1> The receivers, such as
+the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver[OTLP receiver], that forward data emitted by APM agents or the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/hostmetricsreceiver[host metrics receiver].
 <2> We recommend using the https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md[Batch processor] and also suggest using the https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md[memory limiter processor]. For more information, see https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/README.md#recommended-processors[Recommended processors].
 <3> The https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter[Logging exporter] is convenient for troubleshooting, supported logging levels: `debug`, `info`, `warn`, and `error`,
 <4> Elastic Observability endpoint configuration. See https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter[OpenTelemetry Collector > OTLP gRPC exporter] documentation for more details.
