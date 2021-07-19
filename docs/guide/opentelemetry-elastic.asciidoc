@@ -80,7 +80,6 @@ and <<open-telemetry-elastic-kibana,visualizing metrics>> in {kib}.
 
 Using the OpenTelemetry collector instances in your architecture, you can connect them to Elastic Observability using the OTLP exporter.
 
-+
 [source,yaml]
 ----
 receivers: <1>
