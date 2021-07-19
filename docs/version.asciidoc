@@ -11,6 +11,7 @@ include::{asciidoc-dir}/../../shared/versions/stack/{source_branch}.asciidoc[]
 // Used in conjunction with the stack attributes found here: https://github.com/elastic/docs/tree/7d62a6b66d6e9c96e4dd9a96c3dc7c75ceba0288/shared/versions/stack
 :apm-dotnet-ref-v:     https://www.elastic.co/guide/en/apm/agent/dotnet/{apm-dotnet-branch}
 :apm-go-ref-v:         https://www.elastic.co/guide/en/apm/agent/go/{apm-go-branch}
+:apm-ios-ref-v:        https://www.elastic.co/guide/en/apm/agent/swift/{apm-ios-branch}
 :apm-java-ref-v:       https://www.elastic.co/guide/en/apm/agent/java/{apm-java-branch}
 :apm-node-ref-v:       https://www.elastic.co/guide/en/apm/agent/nodejs/{apm-node-branch}
 :apm-php-ref-v:        https://www.elastic.co/guide/en/apm/agent/php/{apm-php-branch}

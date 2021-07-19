@@ -17,6 +17,7 @@ This data is buffered for a short period and sent on to APM Server.
 Each agent has its own documentation:
 
 * {apm-go-ref-v}/introduction.html[Go agent]
+* {apm-ios-ref-v}/intro.html[iOS agent]
 * {apm-java-ref-v}/intro.html[Java agent]
 * {apm-dotnet-ref-v}/intro.html[.NET agent]
 * {apm-node-ref-v}/intro.html[Node.js agent]
