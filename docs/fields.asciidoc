@@ -3927,6 +3927,38 @@ type: long
 
 --
 
+
+*`span.composite.count`*::
++
+--
+Number of compressed spans the composite span represents.
+
+
+type: long
+
+--
+
+
+*`span.composite.sum.us`*::
++
+--
+Sum of the durations of the compression spans, in microseconds.
+
+
+type: long
+
+--
+
+*`span.composite.compression_strategy`*::
++
+--
+The compression strategy that was used.
+
+
+type: keyword
+
+--
+
 [[exported-fields-apm-span-metrics-xpack]]
 == APM Span Metrics fields
 
