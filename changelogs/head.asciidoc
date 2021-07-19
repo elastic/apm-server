@@ -20,6 +20,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
 [float]
 ==== Intake API Changes
+* Add support for composite spans in the intake API {pull}5661[5661]
 
 [float]
 ==== Added
