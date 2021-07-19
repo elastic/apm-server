@@ -1004,7 +1004,7 @@
                     "compression_strategy": "exact_match",
                     "count": 10,
                     "sum": {
-                        "us": 32592
+                        "us": 3592
                     }
                 },
                 "duration": {
