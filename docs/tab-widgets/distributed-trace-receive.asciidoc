@@ -37,7 +37,7 @@ transaction := apm.DefaultTracer.StartTransactionOptions("GET /", "request", opt
 
 experimental::[]
 
-_coming soon_
+_Not applicable._
 
 // end::ios[]
 
