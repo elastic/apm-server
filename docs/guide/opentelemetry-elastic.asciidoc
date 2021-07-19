@@ -25,9 +25,9 @@ business KPIs and technical components with the {stack}.
 
 
 IMPORTANT: The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#legacy-opentelemetry-collector-exporter-for-elastic[OpenTelemetry Collector exporter for Elastic]
-is deprecated since Elastic observability 7.13 and replaced by the native support of the OpenTelemetry Line Protocol in
-Elastic Observability (aka OTLP). See the
-https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#migration[migration guide].
+was deprecated in 7.13 and replaced by the native support of the OpenTelemetry Line Protocol in
+Elastic Observability (OTLP). To learn more, see 
+https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#migration[migration].
 
 Elastic APM Server natively supports the OpenTelemetry protocol.
 This means trace data and metrics collected from your applications and infrastructure can
