@@ -68,6 +68,7 @@ type Span struct {
 	URL                string
 	Destination        *Destination
 	DestinationService *DestinationService
+	Composite          *Composite
 
 	Experimental interface{}
 
@@ -100,6 +101,13 @@ type DestinationService struct {
 	Type     string // Deprecated
 	Name     string // Deprecated
 	Resource string
+}
+
+// Composite holds details on a group of spans compressed into one.
+type Composite struct {
+	Count               int
+	Sum                 float64
+	CompressionStrategy string
 }
 
 func (db *DB) fields() common.MapStr {
@@ -140,6 +148,18 @@ func (d *DestinationService) fields() common.MapStr {
 	fields.maybeSetString("type", d.Type)
 	fields.maybeSetString("name", d.Name)
 	fields.maybeSetString("resource", d.Resource)
+	return common.MapStr(fields)
+}
+
+func (c *Composite) fields() common.MapStr {
+	if c == nil {
+		return nil
+	}
+	var fields mapStr
+	fields.set("count", c.Count)
+	fields.set("sum", utility.MillisAsMicros(c.Sum))
+	fields.set("compression_strategy", c.CompressionStrategy)
+
 	return common.MapStr(fields)
 }
 
@@ -214,6 +234,7 @@ func (e *Span) fields(ctx context.Context) common.MapStr {
 	}
 	fields.maybeSetMapStr("db", e.DB.fields())
 	fields.maybeSetMapStr("message", e.Message.Fields())
+	fields.maybeSetMapStr("composite", e.Composite.fields())
 	if destinationServiceFields := e.DestinationService.fields(); len(destinationServiceFields) > 0 {
 		common.MapStr(fields).Put("destination.service", destinationServiceFields)
 	}
