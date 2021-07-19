@@ -28,7 +28,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/translator/trace/jaeger"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -81,18 +81,14 @@ func (tc *testGRPCCollector) setup(t *testing.T) {
 	beatertest.ClearRegistry(gRPCCollectorMonitoringMap)
 	if tc.request == nil {
 		traces := pdata.NewTraces()
-		resourceSpans := pdata.NewResourceSpans()
-		spans := pdata.NewInstrumentationLibrarySpans()
-		span0 := pdata.NewSpan()
+		resourceSpans := traces.ResourceSpans().AppendEmpty()
+		spans := resourceSpans.InstrumentationLibrarySpans().AppendEmpty()
+		span0 := spans.Spans().AppendEmpty()
 		span0.SetTraceID(pdata.NewTraceID([16]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
 		span0.SetSpanID(pdata.NewSpanID([8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}))
-		span1 := pdata.NewSpan()
+		span1 := spans.Spans().AppendEmpty()
 		span1.SetTraceID(pdata.NewTraceID([16]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
 		span1.SetSpanID(pdata.NewSpanID([8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}))
-		spans.Spans().Append(span0)
-		spans.Spans().Append(span1)
-		resourceSpans.InstrumentationLibrarySpans().Append(spans)
-		traces.ResourceSpans().Append(resourceSpans)
 
 		batches, err := jaeger.InternalTracesToJaegerProto(traces)
 		require.NoError(t, err)

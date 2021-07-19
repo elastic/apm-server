@@ -45,8 +45,8 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/otlptext"
+	"go.opentelemetry.io/collector/model/otlp"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
 	"google.golang.org/grpc/codes"
 
@@ -74,6 +74,11 @@ const (
 	AttributeNetworkMNC         = "net.host.carrier.mnc"
 	AttributeNetworkCarrierName = "net.host.carrier.name"
 	AttributeNetworkICC         = "net.host.carrier.icc"
+)
+
+var (
+	jsonTracesMarshaler  = otlp.NewJSONTracesMarshaler()
+	jsonMetricsMarshaler = otlp.NewJSONMetricsMarshaler()
 )
 
 // Consumer transforms open-telemetry data to be compatible with elastic APM data
@@ -116,7 +121,12 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error
 	receiveTimestamp := time.Now()
 	logger := logp.NewLogger(logs.Otel)
 	if logger.IsDebug() {
-		logger.Debug(otlptext.Traces(traces))
+		data, err := jsonTracesMarshaler.MarshalTraces(traces)
+		if err != nil {
+			logger.Debug(err)
+		} else {
+			logger.Debug(data)
+		}
 	}
 	batch := c.convert(traces, receiveTimestamp, logger)
 	return c.Processor.ProcessBatch(ctx, batch)
