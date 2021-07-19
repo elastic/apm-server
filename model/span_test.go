@@ -25,8 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestSpanTransform(t *testing.T) {
@@ -56,10 +54,8 @@ func TestSpanTransform(t *testing.T) {
 			Msg:  "Span without a Stacktrace",
 			Span: Span{Timestamp: timestamp, Metadata: metadata},
 			Output: common.MapStr{
-				"data_stream.type":    "traces",
-				"data_stream.dataset": "apm",
-				"processor":           common.MapStr{"event": "span", "name": "transaction"},
-				"service":             common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
+				"processor": common.MapStr{"event": "span", "name": "transaction"},
+				"service":   common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"span": common.MapStr{
 					"duration": common.MapStr{"us": 0},
 					"name":     "",
@@ -74,10 +70,8 @@ func TestSpanTransform(t *testing.T) {
 			Msg:  "Span with outcome",
 			Span: Span{Timestamp: timestamp, Metadata: metadata, Outcome: "success"},
 			Output: common.MapStr{
-				"data_stream.type":    "traces",
-				"data_stream.dataset": "apm",
-				"processor":           common.MapStr{"event": "span", "name": "transaction"},
-				"service":             common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
+				"processor": common.MapStr{"event": "span", "name": "transaction"},
+				"service":   common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"span": common.MapStr{
 					"duration": common.MapStr{"us": 0},
 					"name":     "",
@@ -123,8 +117,6 @@ func TestSpanTransform(t *testing.T) {
 				Message: &Message{QueueName: "users"},
 			},
 			Output: common.MapStr{
-				"data_stream.type":    "traces",
-				"data_stream.dataset": "apm",
 				"span": common.MapStr{
 					"id":       hexID,
 					"duration": common.MapStr{"us": 1200},
@@ -176,10 +168,7 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Span.appendBeatEvents(context.Background(), &transform.Config{
-			DataStreams: true,
-		}, nil)
-		fields := output[0].Fields
-		assert.Equal(t, test.Output, fields, test.Msg)
+		output := test.Span.toBeatEvent(context.Background())
+		assert.Equal(t, test.Output, output.Fields, test.Msg)
 	}
 }

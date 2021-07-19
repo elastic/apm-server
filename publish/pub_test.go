@@ -36,7 +36,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestPublisherStop(t *testing.T) {
@@ -44,9 +43,7 @@ func TestPublisherStop(t *testing.T) {
 	// so we can simulate a pipeline that blocks indefinitely.
 	pipeline := newBlockingPipeline(t)
 	publisher, err := publish.NewPublisher(
-		pipeline, apmtest.DiscardTracer, &publish.PublisherConfig{
-			TransformConfig: &transform.Config{},
-		},
+		pipeline, apmtest.DiscardTracer, &publish.PublisherConfig{},
 	)
 	require.NoError(t, err)
 	defer func() {
@@ -89,9 +86,7 @@ func TestPublisherStopShutdownInactive(t *testing.T) {
 	publisher, err := publish.NewPublisher(
 		newBlockingPipeline(t),
 		apmtest.DiscardTracer,
-		&publish.PublisherConfig{
-			TransformConfig: &transform.Config{},
-		},
+		&publish.PublisherConfig{},
 	)
 	require.NoError(t, err)
 
@@ -117,16 +112,16 @@ func newBlockingPipeline(t testing.TB) *pipeline.Pipeline {
 	return pipeline
 }
 
-func makeTransformable(events ...beat.Event) transform.Transformable {
-	return transformableFunc(func(ctx context.Context, cfg *transform.Config) []beat.Event {
+func makeTransformable(events ...beat.Event) publish.Transformer {
+	return transformableFunc(func(ctx context.Context) []beat.Event {
 		return events
 	})
 }
 
-type transformableFunc func(context.Context, *transform.Config) []beat.Event
+type transformableFunc func(context.Context) []beat.Event
 
-func (f transformableFunc) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
-	return f(ctx, cfg)
+func (f transformableFunc) Transform(ctx context.Context) []beat.Event {
+	return f(ctx)
 }
 
 type mockClient struct{}

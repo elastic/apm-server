@@ -13,8 +13,6 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "culprit": "opbeans.controllers.DTInterceptor.preHandle(DTInterceptor.java:73)",
                 "custom": {
@@ -91,7 +89,6 @@
                         "type": "ConnectionError"
                     }
                 ],
-                "grouping_key": "9a4054e958afe722b5877e8fac578ff3",
                 "id": "9876543210abcdeffedcba0123456789",
                 "log": {
                     "level": "error",
@@ -290,8 +287,6 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -446,8 +441,6 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -630,13 +623,7 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.type": "metrics",
-            "dotted": {
-                "float": {
-                    "gauge": 6.12
-                }
-            },
+            "dotted.float.gauge": 6.12,
             "double_gauge": 3.141592653589793,
             "float_gauge": 9.16,
             "host": {
@@ -667,19 +654,7 @@
                 "success": true
             },
             "long_gauge": 3147483648,
-            "negative": {
-                "d": {
-                    "o": {
-                        "t": {
-                            "t": {
-                                "e": {
-                                    "d": -1022
-                                }
-                            }
-                        }
-                    }
-                }
-            },
+            "negative.d.o.t.t.e.d": -1022,
             "process": {
                 "args": [
                     "-v"
@@ -714,34 +689,20 @@
             },
             "short_counter": 227,
             "span": {
-                "self_time": {
-                    "count": 1,
-                    "sum": {
-                        "us": 633.288
-                    }
-                },
                 "subtype": "mysql",
                 "type": "db"
             },
+            "span.self_time.count": 1,
+            "span.self_time.sum.us": 633.288,
             "transaction": {
-                "breakdown": {
-                    "count": 12
-                },
-                "duration": {
-                    "count": 2,
-                    "sum": {
-                        "us": 12
-                    }
-                },
                 "name": "GET/",
-                "self_time": {
-                    "count": 2,
-                    "sum": {
-                        "us": 10
-                    }
-                },
                 "type": "request"
-            }
+            },
+            "transaction.breakdown.count": 12,
+            "transaction.duration.count": 2,
+            "transaction.duration.sum.us": 12,
+            "transaction.self_time.count": 2,
+            "transaction.self_time.sum.us": 10
         }
     ]
 }

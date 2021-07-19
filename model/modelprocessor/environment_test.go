@@ -51,11 +51,12 @@ func testProcessBatchMetadata(t *testing.T, processor model.BatchProcessor, in, 
 		apmEventFields = append(apmEventFields, typ.Field(i).Name)
 	}
 	assert.ElementsMatch(t, []string{
+		"DataStream",
 		"Transaction",
 		"Span",
 		"Metricset",
 		"Error",
-		"Profile",
+		"ProfileSample",
 	}, apmEventFields)
 
 	batch := &model.Batch{
@@ -63,7 +64,7 @@ func testProcessBatchMetadata(t *testing.T, processor model.BatchProcessor, in, 
 		{Span: &model.Span{Metadata: in}},
 		{Metricset: &model.Metricset{Metadata: in}},
 		{Error: &model.Error{Metadata: in}},
-		{Profile: &model.PprofProfile{Metadata: in}},
+		{ProfileSample: &model.ProfileSample{Metadata: in}},
 	}
 	err := processor.ProcessBatch(context.Background(), batch)
 	require.NoError(t, err)
@@ -73,7 +74,7 @@ func testProcessBatchMetadata(t *testing.T, processor model.BatchProcessor, in, 
 		{Span: &model.Span{Metadata: out}},
 		{Metricset: &model.Metricset{Metadata: out}},
 		{Error: &model.Error{Metadata: out}},
-		{Profile: &model.PprofProfile{Metadata: out}},
+		{ProfileSample: &model.ProfileSample{Metadata: out}},
 	}
 	assert.Equal(t, expected, batch)
 }

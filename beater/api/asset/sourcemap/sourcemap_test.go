@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model_test
+package sourcemap
 
 import (
 	"context"
@@ -27,9 +27,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/transform"
 )
 
 func getStr(data common.MapStr, key string) string {
@@ -38,14 +35,14 @@ func getStr(data common.MapStr, key string) string {
 }
 
 func TestTransform(t *testing.T) {
-	p := model.Sourcemap{
+	p := sourcemapDoc{
 		ServiceName:    "myService",
 		ServiceVersion: "1.0",
 		BundleFilepath: "/my/path",
 		Sourcemap:      "mysmap",
 	}
 
-	events := p.Transform(context.Background(), &transform.Config{})
+	events := p.Transform(context.Background())
 	assert.Len(t, events, 1)
 	event := events[0]
 
@@ -59,7 +56,7 @@ func TestTransform(t *testing.T) {
 }
 
 func TestParseSourcemaps(t *testing.T) {
-	fileBytes, err := ioutil.ReadFile("../testdata/sourcemap/bundle.js.map")
+	fileBytes, err := ioutil.ReadFile("../../../../testdata/sourcemap/bundle.js.map")
 	assert.NoError(t, err)
 	parser, err := s.Parse("", fileBytes)
 	assert.NoError(t, err)

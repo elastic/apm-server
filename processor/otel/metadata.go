@@ -32,15 +32,6 @@ import (
 
 const (
 	AgentNameJaeger = "Jaeger"
-
-	// Network attributes are pending approval in the OTel spec, and subject to change:
-	// https://github.com/open-telemetry/opentelemetry-specification/issues/1647
-
-	AttributeNetworkType        = "net.host.connection_type"
-	AttributeNetworkMCC         = "net.host.carrier.mcc"
-	AttributeNetworkMNC         = "net.host.carrier.mnc"
-	AttributeNetworkCarrierName = "net.host.carrier.name"
-	AttributeNetworkICC         = "net.host.carrier.icc"
 )
 
 var (
@@ -104,18 +95,6 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 			out.System.Kubernetes.PodName = truncate(v.StringVal())
 		case conventions.AttributeK8sPodUID:
 			out.System.Kubernetes.PodUID = truncate(v.StringVal())
-
-		// network.*
-		case AttributeNetworkType:
-			out.System.Network.ConnectionType = truncate(v.StringVal())
-		case AttributeNetworkCarrierName:
-			out.System.Network.Carrier.Name = truncate(v.StringVal())
-		case AttributeNetworkMCC:
-			out.System.Network.Carrier.MCC = truncate(v.StringVal())
-		case AttributeNetworkMNC:
-			out.System.Network.Carrier.MNC = truncate(v.StringVal())
-		case AttributeNetworkICC:
-			out.System.Network.Carrier.ICC = truncate(v.StringVal())
 
 		// host.*
 		case conventions.AttributeHostName:
@@ -227,6 +206,16 @@ func ifaceAttributeValue(v pdata.AttributeValue) interface{} {
 		return v.DoubleVal()
 	case pdata.AttributeValueTypeBool:
 		return v.BoolVal()
+	case pdata.AttributeValueTypeArray:
+		return ifaceAnyValueArray(v.ArrayVal())
 	}
 	return nil
+}
+
+func ifaceAnyValueArray(array pdata.AnyValueArray) []interface{} {
+	values := make([]interface{}, array.Len())
+	for i := range values {
+		values[i] = ifaceAttributeValue(array.At(i))
+	}
+	return values
 }

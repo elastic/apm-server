@@ -128,10 +128,10 @@ func TestAggregatorRun(t *testing.T) {
 		Span: model.MetricsetSpan{
 			DestinationService: model.DestinationService{Resource: destinationX},
 		},
-		Samples: []model.Sample{
-			{Name: "span.destination.service.response_time.count", Value: 100.0},
-			{Name: "span.destination.service.response_time.sum.us", Value: 10000000.0},
-			{Name: "metricset.period", Value: 10},
+		Samples: map[string]model.MetricsetSample{
+			"span.destination.service.response_time.count":  {Value: 100.0},
+			"span.destination.service.response_time.sum.us": {Value: 10000000.0},
+			"metricset.period": {Value: 10},
 		},
 	}, {
 		Name: "service_destination",
@@ -144,10 +144,10 @@ func TestAggregatorRun(t *testing.T) {
 		Span: model.MetricsetSpan{
 			DestinationService: model.DestinationService{Resource: destinationZ},
 		},
-		Samples: []model.Sample{
-			{Name: "span.destination.service.response_time.count", Value: 100.0},
-			{Name: "span.destination.service.response_time.sum.us", Value: 10000000.0},
-			{Name: "metricset.period", Value: 10},
+		Samples: map[string]model.MetricsetSample{
+			"span.destination.service.response_time.count":  {Value: 100.0},
+			"span.destination.service.response_time.sum.us": {Value: 10000000.0},
+			"metricset.period": {Value: 10},
 		},
 	}, {
 		Name: "service_destination",
@@ -160,10 +160,10 @@ func TestAggregatorRun(t *testing.T) {
 		Span: model.MetricsetSpan{
 			DestinationService: model.DestinationService{Resource: destinationZ},
 		},
-		Samples: []model.Sample{
-			{Name: "span.destination.service.response_time.count", Value: 300.0},
-			{Name: "span.destination.service.response_time.sum.us", Value: 30000000.0},
-			{Name: "metricset.period", Value: 10},
+		Samples: map[string]model.MetricsetSample{
+			"span.destination.service.response_time.count":  {Value: 300.0},
+			"span.destination.service.response_time.sum.us": {Value: 30000000.0},
+			"metricset.period": {Value: 10},
 		},
 	}, {
 		Name: "service_destination",
@@ -176,10 +176,10 @@ func TestAggregatorRun(t *testing.T) {
 		Span: model.MetricsetSpan{
 			DestinationService: model.DestinationService{Resource: destinationZ},
 		},
-		Samples: []model.Sample{
-			{Name: "span.destination.service.response_time.count", Value: 100.0},
-			{Name: "span.destination.service.response_time.sum.us", Value: 10000000.0},
-			{Name: "metricset.period", Value: 10},
+		Samples: map[string]model.MetricsetSample{
+			"span.destination.service.response_time.count":  {Value: 100.0},
+			"span.destination.service.response_time.sum.us": {Value: 10000000.0},
+			"metricset.period": {Value: 10},
 		},
 	}}, metricsets)
 
@@ -234,9 +234,9 @@ func TestAggregatorOverflow(t *testing.T) {
 			Span: model.MetricsetSpan{
 				DestinationService: model.DestinationService{Resource: "destination3"},
 			},
-			Samples: []model.Sample{
-				{Name: "span.destination.service.response_time.count", Value: 1.0},
-				{Name: "span.destination.service.response_time.sum.us", Value: 100000.0},
+			Samples: map[string]model.MetricsetSample{
+				"span.destination.service.response_time.count":  {Value: 1.0},
+				"span.destination.service.response_time.sum.us": {Value: 100000.0},
 				// No metricset.period is recorded as these metrics are instantanous, not aggregated.
 			},
 		}, m)

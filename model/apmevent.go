@@ -20,7 +20,6 @@ package model
 import (
 	"context"
 
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 )
 
@@ -28,13 +27,35 @@ import (
 //
 // Exactly one of the event fields should be non-nil.
 type APMEvent struct {
-	Transaction *Transaction
-	Span        *Span
-	Metricset   *Metricset
-	Error       *Error
-	Profile     *PprofProfile
+	// DataStream optionally holds data stream identifiers.
+	//
+	// This will have the zero value when APM Server is run
+	// in standalone mode.
+	DataStream DataStream
+
+	Transaction   *Transaction
+	Span          *Span
+	Metricset     *Metricset
+	Error         *Error
+	ProfileSample *ProfileSample
 }
 
-func (e *APMEvent) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
-	return nil
+func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat.Event {
+	var event beat.Event
+	switch {
+	case e.Transaction != nil:
+		event = e.Transaction.toBeatEvent()
+	case e.Span != nil:
+		event = e.Span.toBeatEvent(ctx)
+	case e.Metricset != nil:
+		event = e.Metricset.toBeatEvent()
+	case e.Error != nil:
+		event = e.Error.toBeatEvent(ctx)
+	case e.ProfileSample != nil:
+		event = e.ProfileSample.toBeatEvent()
+	default:
+		return out
+	}
+	e.DataStream.setFields((*mapStr)(&event.Fields))
+	return append(out, event)
 }

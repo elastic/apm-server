@@ -9,8 +9,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "culprit": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
                 "custom": {
@@ -44,7 +42,6 @@
                         "type": "Error"
                     }
                 ],
-                "grouping_key": "e5fa86c0df837d142aa0520eb2661d8d",
                 "id": "3661352868c17c78b773d2f1beae6d41",
                 "page": {
                     "referer": "http://localhost:8000/test/e2e/",

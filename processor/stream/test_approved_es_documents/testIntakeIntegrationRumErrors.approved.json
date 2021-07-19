@@ -9,8 +9,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "culprit": "test/e2e/general-usecase/bundle.js.map",
                 "exception": [
@@ -33,7 +31,6 @@
                                 "exclude_from_grouping": false,
                                 "filename": "~/test/e2e/general-usecase/bundle.js.map",
                                 "function": "invokeTask",
-                                "library_frame": false,
                                 "line": {
                                     "column": 181,
                                     "number": 1
@@ -73,7 +70,6 @@
                         "type": "Error"
                     }
                 ],
-                "grouping_key": "52fbc9c2d1a61bf905b4a11c708006fd",
                 "id": "aba2688e033848ce9c4e4005f1caa534",
                 "log": {
                     "message": "Uncaught Error: log timeout test error",

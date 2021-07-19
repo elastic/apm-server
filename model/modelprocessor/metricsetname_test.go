@@ -42,28 +42,26 @@ func TestSetMetricsetName(t *testing.T) {
 		name:      "",
 	}, {
 		metricset: model.Metricset{
-			Samples: []model.Sample{{
-				Name: "transaction.breakdown.count",
-			}},
+			Samples: map[string]model.MetricsetSample{
+				"transaction.breakdown.count": {},
+			},
 		},
 		name: "app",
 	}, {
 		metricset: model.Metricset{
 			Transaction: model.MetricsetTransaction{Type: "request"},
-			Samples: []model.Sample{{
-				Name: "transaction.duration.count",
-			}, {
-				Name: "transaction.breakdown.count",
-			}},
+			Samples: map[string]model.MetricsetSample{
+				"transaction.duration.count":  {},
+				"transaction.breakdown.count": {},
+			},
 		},
 		name: "transaction_breakdown",
 	}, {
 		metricset: model.Metricset{
 			Transaction: model.MetricsetTransaction{Type: "request"},
-			Span:        model.MetricsetSpan{Type: "app"},
-			Samples: []model.Sample{{
-				Name: "span.self_time.count",
-			}},
+			Samples: map[string]model.MetricsetSample{
+				"span.self_time.count": {},
+			},
 		},
 		name: "span_breakdown",
 	}}

@@ -22,7 +22,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -59,7 +58,6 @@ import (
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sampling"
 	"github.com/elastic/apm-server/sourcemap"
-	"github.com/elastic/apm-server/transform"
 )
 
 var (
@@ -364,12 +362,10 @@ func (s *serverRunner) Start() {
 func (s *serverRunner) run() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
-	transformConfig := newTransformConfig(s.beat.Info, s.config)
 	publisherConfig := &publish.PublisherConfig{
-		Info:            s.beat.Info,
-		Pipeline:        s.config.Pipeline,
-		Namespace:       s.namespace,
-		TransformConfig: transformConfig,
+		Info:      s.beat.Info,
+		Pipeline:  s.config.Pipeline,
+		Namespace: s.namespace,
 	}
 
 	cfg := ucfg.Config(*s.rawConfig)
@@ -449,12 +445,17 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 	processors := []model.BatchProcessor{
 		modelprocessor.SetSystemHostname{},
 		modelprocessor.SetServiceNodeName{},
-		// Set metricset.name for well-known agent metrics.
 		modelprocessor.SetMetricsetName{},
+		modelprocessor.SetGroupingKey{},
 	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
 			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,
+		})
+	}
+	if s.config.DataStreams.Enabled {
+		processors = append(processors, &modelprocessor.SetDataStream{
+			Namespace: s.namespace,
 		})
 	}
 	return WrapRunServerWithProcessors(runServer, processors...)
@@ -625,16 +626,6 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	}
 }
 
-func newTransformConfig(beatInfo beat.Info, cfg *config.Config) *transform.Config {
-	return &transform.Config{
-		DataStreams: cfg.DataStreams.Enabled,
-		RUM: transform.RUMConfig{
-			LibraryPattern:      regexp.MustCompile(cfg.RumConfig.LibraryPattern),
-			ExcludeFromGrouping: regexp.MustCompile(cfg.RumConfig.ExcludeFromGrouping),
-		},
-	}
-}
-
 func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping, fleetCfg *config.Fleet) (*sourcemap.Store, error) {
 	if fleetCfg != nil {
 		var (
@@ -680,7 +671,7 @@ func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...model.Ba
 		return runServer
 	}
 	return func(ctx context.Context, args ServerParams) error {
-		processors = append(processors, args.BatchProcessor)
+		processors := append(processors, args.BatchProcessor)
 		args.BatchProcessor = modelprocessor.Chained(processors)
 		return runServer(ctx, args)
 	}

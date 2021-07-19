@@ -6,8 +6,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -42,8 +40,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -83,8 +79,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },

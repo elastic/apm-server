@@ -56,9 +56,9 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		assert.Equal(t, now, out.Transaction.Timestamp)
 		// ensure nested metricsets are decoded
 		require.Equal(t, 2, len(out.Metricsets))
-		assert.Equal(t, []model.Sample{{Name: "transaction.duration.sum.us", Value: 2048}}, out.Metricsets[0].Samples)
+		assert.Equal(t, map[string]model.MetricsetSample{"transaction.duration.sum.us": {Value: 2048}}, out.Metricsets[0].Samples)
 		m := out.Metricsets[1]
-		assert.Equal(t, []model.Sample{{Name: "span.self_time.count", Value: 5}}, m.Samples)
+		assert.Equal(t, map[string]model.MetricsetSample{"span.self_time.count": {Value: 5}}, m.Samples)
 		assert.Equal(t, "tr-a", m.Transaction.Name)
 		assert.Equal(t, "request", m.Transaction.Type)
 		assert.Equal(t, now, m.Timestamp)
@@ -186,8 +186,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				// URL parts are derived from page.url (separately tested)
 				"URL", "Page.URL",
 				// HTTP.Request.Referrer is derived from page.referer (separately tested)
-				// RUM is set in stream processor
-				"RUM",
 			} {
 				if strings.HasPrefix(key, s) {
 					return true
@@ -243,8 +241,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"Stacktrace.Sourcemap",
 				// ExcludeFromGrouping is set when processing the event
 				"Stacktrace.ExcludeFromGrouping",
-				// RUM is set in stream processor
-				"RUM",
 				// Transaction related information is set within the DecodeNestedTransaction method
 				// it is separatly tested in TestDecodeNestedTransaction
 				"TransactionID", "TraceID", "ParentID",

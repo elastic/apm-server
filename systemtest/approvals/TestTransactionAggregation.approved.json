@@ -40,19 +40,17 @@
                 "instance": "systemtest:abc:29d4be3fbd7f200f"
             },
             "transaction": {
-                "duration": {
-                    "histogram": {
-                        "counts": [
-                            5
-                        ],
-                        "values": [
-                            1003519
-                        ]
-                    }
-                },
                 "name": "abc",
                 "root": true,
                 "type": "backend"
+            },
+            "transaction.duration.histogram": {
+                "counts": [
+                    5
+                ],
+                "values": [
+                    1003519
+                ]
             }
         },
         {
@@ -95,19 +93,17 @@
                 "instance": "systemtest:def:41b636ee77bc8c1c"
             },
             "transaction": {
-                "duration": {
-                    "histogram": {
-                        "counts": [
-                            10
-                        ],
-                        "values": [
-                            1003519
-                        ]
-                    }
-                },
                 "name": "def",
                 "root": true,
                 "type": "backend"
+            },
+            "transaction.duration.histogram": {
+                "counts": [
+                    10
+                ],
+                "values": [
+                    1003519
+                ]
             }
         }
     ]

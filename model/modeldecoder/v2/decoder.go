@@ -559,8 +559,7 @@ func mapToMetricsetModel(from *metricset, metadata *model.Metadata, reqTime time
 
 	// map samples information
 	if len(from.Samples) > 0 {
-		out.Samples = make([]model.Sample, len(from.Samples))
-		i := 0
+		out.Samples = make(map[string]model.MetricsetSample, len(from.Samples))
 		for name, sample := range from.Samples {
 			var counts []int64
 			var values []float64
@@ -572,15 +571,13 @@ func mapToMetricsetModel(from *metricset, metadata *model.Metadata, reqTime time
 				counts = make([]int64, n)
 				copy(counts, sample.Counts)
 			}
-			out.Samples[i] = model.Sample{
-				Name:   name,
+			out.Samples[name] = model.MetricsetSample{
 				Type:   model.MetricType(sample.Type.Val),
 				Unit:   sample.Unit.Val,
 				Value:  sample.Value.Val,
 				Values: values,
 				Counts: counts,
 			}
-			i++
 		}
 	}
 
@@ -966,7 +963,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 		}
 		if eventFrame.LibraryFrame.IsSet() {
 			val := eventFrame.LibraryFrame.Val
-			fr.LibraryFrame = &val
+			fr.LibraryFrame = val
 		}
 		if eventFrame.LineNumber.IsSet() {
 			val := eventFrame.LineNumber.Val

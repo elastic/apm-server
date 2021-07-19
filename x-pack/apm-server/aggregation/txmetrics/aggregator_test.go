@@ -111,12 +111,15 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 				Name: "baz",
 				Root: true,
 			},
-			Samples: []model.Sample{{
-				Name:   "transaction.duration.histogram",
-				Counts: []int64{1},
-				Values: []float64{float64(time.Minute / time.Microsecond)},
-			}},
+			Samples: map[string]model.MetricsetSample{
+				"transaction.duration.histogram": {
+					Type:   "histogram",
+					Counts: []int64{1},
+					Values: []float64{float64(time.Minute / time.Microsecond)},
+				},
+			},
 			TimeseriesInstanceID: ":baz:bc30224a3738a508",
+			DocCount:             1,
 		}, m)
 	}
 
@@ -172,9 +175,9 @@ func TestAggregatorRun(t *testing.T) {
 	})
 
 	assert.Equal(t, "T-1000", metricsets[0].Transaction.Name)
-	assert.Equal(t, []int64{1000}, metricsets[0].Samples[0].Counts)
+	assert.Equal(t, []int64{1000}, metricsets[0].Samples["transaction.duration.histogram"].Counts)
 	assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
-	assert.Equal(t, []int64{800}, metricsets[1].Samples[0].Counts)
+	assert.Equal(t, []int64{800}, metricsets[1].Samples["transaction.duration.histogram"].Counts)
 
 	select {
 	case <-batches:
@@ -284,11 +287,14 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 				Name: "foo",
 				Root: true,
 			},
-			Samples: []model.Sample{{
-				Name:   "transaction.duration.histogram",
-				Counts: []int64{test.expectedCount},
-				Values: []float64{0},
-			}},
+			Samples: map[string]model.MetricsetSample{
+				"transaction.duration.histogram": {
+					Type:   "histogram",
+					Counts: []int64{test.expectedCount},
+					Values: []float64{0},
+				},
+			},
+			DocCount: test.expectedCount,
 		}, m)
 	}
 
@@ -303,7 +309,7 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 	metricsets := batchMetricsets(t, batch)
 	require.Len(t, metricsets, 1)
 	require.Len(t, metricsets[0].Samples, 1)
-	assert.Equal(t, []int64{3 /*round(1+1.5)*/}, metricsets[0].Samples[0].Counts)
+	assert.Equal(t, []int64{3 /*round(1+1.5)*/}, metricsets[0].Samples["transaction.duration.histogram"].Counts)
 }
 
 func TestHDRHistogramSignificantFigures(t *testing.T) {
@@ -354,8 +360,10 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 		require.Len(t, metricsets, 1)
 
 		require.Len(t, metricsets[0].Samples, 1)
-		assert.Len(t, metricsets[0].Samples[0].Counts, len(metricsets[0].Samples[0].Values))
-		assert.Len(t, metricsets[0].Samples[0].Counts, sigfigs)
+		require.Contains(t, metricsets[0].Samples, "transaction.duration.histogram")
+		sample := metricsets[0].Samples["transaction.duration.histogram"]
+		assert.Len(t, sample.Counts, len(sample.Values))
+		assert.Len(t, sample.Counts, sigfigs)
 	})
 }
 
@@ -399,11 +407,14 @@ func TestAggregationFields(t *testing.T) {
 				Result: input.Result,
 				Root:   input.ParentID == "",
 			},
-			Samples: []model.Sample{{
-				Name:   "transaction.duration.histogram",
-				Counts: []int64{expectedCount},
-				Values: []float64{0},
-			}},
+			Samples: map[string]model.MetricsetSample{
+				"transaction.duration.histogram": {
+					Type:   "histogram",
+					Counts: []int64{expectedCount},
+					Values: []float64{0},
+				},
+			},
+			DocCount: expectedCount,
 		})
 	}
 	for _, field := range inputFields {

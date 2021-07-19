@@ -9,8 +9,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -157,8 +155,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -184,18 +180,12 @@
                 "version": "0.0.1"
             },
             "transaction": {
-                "breakdown": {
-                    "count": 1
-                },
-                "duration": {
-                    "count": 1,
-                    "sum": {
-                        "us": 295
-                    }
-                },
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
             },
+            "transaction.breakdown.count": 1,
+            "transaction.duration.count": 1,
+            "transaction.duration.sum.us": 295,
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -214,8 +204,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -241,14 +229,10 @@
                 "version": "0.0.1"
             },
             "span": {
-                "self_time": {
-                    "count": 1,
-                    "sum": {
-                        "us": 1
-                    }
-                },
                 "type": "Request"
             },
+            "span.self_time.count": 1,
+            "span.self_time.sum.us": 1,
             "transaction": {
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
@@ -271,8 +255,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -298,14 +280,10 @@
                 "version": "0.0.1"
             },
             "span": {
-                "self_time": {
-                    "count": 1,
-                    "sum": {
-                        "us": 1
-                    }
-                },
                 "type": "Response"
             },
+            "span.self_time.count": 1,
+            "span.self_time.sum.us": 1,
             "transaction": {
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
@@ -328,8 +306,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -399,8 +375,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -470,8 +444,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
                 "port": 8000
@@ -563,8 +535,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -633,8 +603,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
                 "port": 8000
@@ -732,8 +700,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
                 "port": 8003
@@ -831,8 +797,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
                 "port": 8003
@@ -931,8 +895,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -1024,8 +986,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.type": "metrics",
             "labels": {
                 "tag1": "value1",
                 "testTagKey": "testTagValue"
@@ -1052,15 +1012,11 @@
                 "version": "0.0.1"
             },
             "span": {
-                "self_time": {
-                    "count": 1,
-                    "sum": {
-                        "us": 124
-                    }
-                },
                 "subtype": "subtype",
                 "type": "Processing"
             },
+            "span.self_time.count": 1,
+            "span.self_time.sum.us": 124,
             "user": {
                 "email": "user@email.com",
                 "id": "123",

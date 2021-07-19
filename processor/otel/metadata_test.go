@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/collector/consumer/pdata"
 
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestResourceConventions(t *testing.T) {
@@ -193,35 +194,31 @@ func TestResourceConventions(t *testing.T) {
 				},
 			},
 		},
-		"network": {
-			attrs: map[string]pdata.AttributeValue{
-				"net.host.connection_type": pdata.NewAttributeValueString("5G"),
-				"net.host.carrier.name":    pdata.NewAttributeValueString("Vodafone"),
-				"net.host.carrier.mnc":     pdata.NewAttributeValueString("01"),
-				"net.host.carrier.mcc":     pdata.NewAttributeValueString("101"),
-				"net.host.carrier.icc":     pdata.NewAttributeValueString("UK"),
-			},
-			expected: model.Metadata{
-				Service: defaultService,
-				System: model.System{
-					Network: model.Network{
-						ConnectionType: "5G",
-						Carrier: model.Carrier{
-							Name: "Vodafone",
-							MNC:  "01",
-							MCC:  "101",
-							ICC:  "UK",
-						},
-					},
-				},
-			},
-		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			meta := transformResourceMetadata(t, test.attrs)
 			assert.Equal(t, test.expected, meta)
 		})
 	}
+}
+
+func TestResourceLabels(t *testing.T) {
+	stringArray := pdata.NewAttributeValueArray()
+	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("abc"))
+	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("def"))
+
+	intArray := pdata.NewAttributeValueArray()
+	intArray.ArrayVal().Append(pdata.NewAttributeValueInt(123))
+	intArray.ArrayVal().Append(pdata.NewAttributeValueInt(456))
+
+	metadata := transformResourceMetadata(t, map[string]pdata.AttributeValue{
+		"string_array": stringArray,
+		"int_array":    intArray,
+	})
+	assert.Equal(t, common.MapStr{
+		"string_array": []interface{}{"abc", "def"},
+		"int_array":    []interface{}{int64(123), int64(456)},
+	}, metadata.Labels)
 }
 
 func transformResourceMetadata(t *testing.T, resourceAttrs map[string]pdata.AttributeValue) model.Metadata {

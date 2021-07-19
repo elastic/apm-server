@@ -22,17 +22,15 @@ import (
 	"testing"
 	"time"
 
-	pprof_profile "github.com/google/pprof/profile"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func TestPprofProfileTransform(t *testing.T) {
+func TestProfileSampleTransform(t *testing.T) {
 	serviceName, env := "myService", "staging"
 	service := model.Service{
 		Name:        serviceName,
@@ -40,69 +38,42 @@ func TestPprofProfileTransform(t *testing.T) {
 	}
 
 	timestamp := time.Unix(123, 456)
-	pp := model.PprofProfile{
-		Metadata: model.Metadata{Service: service},
-		Profile: &pprof_profile.Profile{
-			TimeNanos:     timestamp.UnixNano(),
-			DurationNanos: int64(10 * time.Second),
-			SampleType: []*pprof_profile.ValueType{
-				{Type: "sample", Unit: "count"},
-				{Type: "cpu", Unit: "nanoseconds"},
-				{Type: "wall", Unit: "microseconds"},
-				{Type: "inuse_space", Unit: "bytes"},
-			},
-			Sample: []*pprof_profile.Sample{{
-				Value: []int64{1, 123, 789, 456},
-				Label: map[string][]string{
-					"key1": []string{"abc", "def"},
-					"key2": []string{"ghi"},
-				},
-				Location: []*pprof_profile.Location{{
-					Line: []pprof_profile.Line{{
-						Function: &pprof_profile.Function{Name: "foo", Filename: "foo.go"},
-						Line:     1,
-					}},
-				}, {
-					Line: []pprof_profile.Line{{
-						Function: &pprof_profile.Function{Name: "bar", Filename: "bar.go"},
-					}},
-				}},
-			}, {
-				Value: []int64{1, 123, 789, 456},
-				Label: map[string][]string{
-					"key1": []string{"abc", "def"},
-					"key2": []string{"ghi"},
-				},
-				Location: []*pprof_profile.Location{{
-					Line: []pprof_profile.Line{{
-						Function: &pprof_profile.Function{Name: "foo", Filename: "foo.go"},
-						Line:     1,
-					}},
-				}, {
-					Line: []pprof_profile.Line{{
-						Function: &pprof_profile.Function{Name: "bar", Filename: "bar.go"},
-					}},
-				}},
-			}},
+	sample := model.ProfileSample{
+		Metadata:  model.Metadata{Service: service},
+		Timestamp: timestamp,
+		Duration:  10 * time.Second,
+		ProfileID: "profile_id",
+		Stack: []model.ProfileSampleStackframe{{
+			ID:       "foo_id",
+			Function: "foo",
+			Filename: "foo.go",
+			Line:     1,
+		}, {
+			ID:       "bar_id",
+			Function: "bar",
+			Filename: "bar.go",
+		}},
+		Labels: common.MapStr{
+			"key1": []string{"abc", "def"},
+			"key2": []string{"ghi"},
+		},
+		Values: map[string]int64{
+			"samples.count":     1,
+			"cpu.ns":            123,
+			"wall.us":           789,
+			"inuse_space.bytes": 456,
 		},
 	}
 
-	batch := &model.Batch{{Profile: &pp}}
-	output := batch.Transform(context.Background(), &transform.Config{DataStreams: true})
+	batch := &model.Batch{{ProfileSample: &sample}, {ProfileSample: &sample}}
+	output := batch.Transform(context.Background())
 	require.Len(t, output, 2)
 	assert.Equal(t, output[0], output[1])
-
-	if profileMap, ok := output[0].Fields["profile"].(common.MapStr); ok {
-		assert.NotZero(t, profileMap["id"])
-		profileMap["id"] = "random"
-	}
 
 	assert.Equal(t, beat.Event{
 		Timestamp: timestamp,
 		Fields: common.MapStr{
-			"data_stream.type":    "metrics",
-			"data_stream.dataset": "apm.profiling",
-			"processor":           common.MapStr{"event": "profile", "name": "profile"},
+			"processor": common.MapStr{"event": "profile", "name": "profile"},
 			"service": common.MapStr{
 				"name":        "myService",
 				"environment": "staging",
@@ -112,7 +83,7 @@ func TestPprofProfileTransform(t *testing.T) {
 				"key2": []string{"ghi"},
 			},
 			"profile": common.MapStr{
-				"id":                "random",
+				"id":                "profile_id",
 				"duration":          int64(10 * time.Second),
 				"cpu.ns":            int64(123),
 				"wall.us":           int64(789),
@@ -122,17 +93,17 @@ func TestPprofProfileTransform(t *testing.T) {
 					"function": "foo",
 					"filename": "foo.go",
 					"line":     int64(1),
-					"id":       "98430081820ed765",
+					"id":       "foo_id",
 				},
 				"stack": []common.MapStr{{
 					"function": "foo",
 					"filename": "foo.go",
 					"line":     int64(1),
-					"id":       "98430081820ed765",
+					"id":       "foo_id",
 				}, {
 					"function": "bar",
 					"filename": "bar.go",
-					"id":       "48a37c90ad27a659",
+					"id":       "bar_id",
 				}},
 			},
 		},

@@ -36,8 +36,6 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "culprit": "my.module.function_name",
                 "custom": {
@@ -141,7 +139,6 @@
                         "type": "ConnectionError"
                     }
                 ],
-                "grouping_key": "d72b25a26fde3f3aaad1c86950acd070",
                 "id": "0123456789012345",
                 "log": {
                     "level": "warning",
@@ -169,7 +166,6 @@
                             "exclude_from_grouping": false,
                             "filename": "/webpack/file/name.py",
                             "function": "foo",
-                            "library_frame": false,
                             "line": {
                                 "column": 4,
                                 "context": "line3",
@@ -384,10 +380,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
-                "grouping_key": "dc8dd667f7036ec5f0bae87bf2188243",
                 "id": "xFoaabb123FFFFFF",
                 "log": {
                     "message": "no user found",
@@ -494,15 +487,12 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "exception": [
                     {
                         "message": "Cannot read property 'baz' no defined"
                     }
                 ],
-                "grouping_key": "ae0232fed4cb40e7ebc62a585a421d60",
                 "id": "cdefab0123456789"
             },
             "host": {
@@ -600,15 +590,12 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
                 "exception": [
                     {
                         "type": "DbError"
                     }
                 ],
-                "grouping_key": "c3868d6704b923014eaffea034e70a3d",
                 "id": "cdefab0123456780"
             },
             "host": {
@@ -712,10 +699,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.type": "logs",
             "error": {
-                "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "id": "abcdef0123456789",
                 "log": {
                     "level": "custom log level",

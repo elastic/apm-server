@@ -3,10 +3,19 @@
 
 https://github.com/elastic/apm-server/compare/7.12\...7.13[View commits]
 
+* <<release-notes-7.13.4>>
 * <<release-notes-7.13.3>>
 * <<release-notes-7.13.2>>
 * <<release-notes-7.13.1>>
 * <<release-notes-7.13.0>>
+
+[float]
+[[release-notes-7.13.4]]
+=== APM Server version 7.13.4
+
+https://github.com/elastic/apm-server/compare/v7.13.3\...v7.13.4[View commits]
+
+No significant changes.
 
 [float]
 [[release-notes-7.13.3]]

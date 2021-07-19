@@ -58,7 +58,6 @@ import (
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
@@ -558,6 +557,30 @@ func TestMessagingSpan(t *testing.T) {
 	}, span.DestinationService)
 }
 
+func TestSpanNetworkAttributes(t *testing.T) {
+	networkAttributes := map[string]pdata.AttributeValue{
+		"net.host.connection.type": pdata.NewAttributeValueString("5G"),
+		"net.host.carrier.name":    pdata.NewAttributeValueString("Vodafone"),
+		"net.host.carrier.mnc":     pdata.NewAttributeValueString("01"),
+		"net.host.carrier.mcc":     pdata.NewAttributeValueString("101"),
+		"net.host.carrier.icc":     pdata.NewAttributeValueString("UK"),
+	}
+	tx := transformTransactionWithAttributes(t, networkAttributes)
+	span := transformSpanWithAttributes(t, networkAttributes)
+
+	expected := model.Network{
+		ConnectionType: "5G",
+		Carrier: model.Carrier{
+			Name: "Vodafone",
+			MNC:  "01",
+			MCC:  "101",
+			ICC:  "UK",
+		},
+	}
+	assert.Equal(t, expected, tx.Metadata.System.Network)
+	assert.Equal(t, expected, span.Metadata.System.Network)
+}
+
 func TestArrayLabels(t *testing.T) {
 	stringArray := pdata.NewAttributeValueArray()
 	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("string1"))
@@ -575,6 +598,15 @@ func TestArrayLabels(t *testing.T) {
 		"bool_array":   []interface{}{false, true},
 		"string_array": []interface{}{"string1", "string2"},
 	}, tx.Labels)
+
+	span := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{
+		"string_array": stringArray,
+		"bool_array":   boolArray,
+	})
+	assert.Equal(t, common.MapStr{
+		"bool_array":   []interface{}{false, true},
+		"string_array": []interface{}{"string1", "string2"},
+	}, span.Labels)
 }
 
 func TestConsumeTracesExportTimestamp(t *testing.T) {
@@ -1133,7 +1165,7 @@ func eventRecorderBatchProcessor(out *[]beat.Event) model.BatchProcessor {
 func transformBatch(ctx context.Context, batches ...*model.Batch) []beat.Event {
 	var out []beat.Event
 	for _, batch := range batches {
-		out = append(out, batch.Transform(ctx, &transform.Config{DataStreams: true})...)
+		out = append(out, batch.Transform(ctx)...)
 	}
 	return out
 }

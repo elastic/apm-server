@@ -24,8 +24,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/datastreams"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -120,18 +118,12 @@ func (e *Transaction) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Transaction) appendBeatEvents(cfg *transform.Config, events []beat.Event) []beat.Event {
+func (e *Transaction) toBeatEvent() beat.Event {
 	transactionTransformations.Inc()
 
 	fields := mapStr{
 		"processor":        transactionProcessorEntry,
 		transactionDocType: e.fields(),
-	}
-
-	if cfg.DataStreams {
-		// Transactions are stored in a "traces" data stream along with spans.
-		fields[datastreams.TypeField] = datastreams.TracesType
-		fields[datastreams.DatasetField] = TracesDataset
 	}
 
 	// first set generic metadata (order is relevant)
@@ -155,10 +147,10 @@ func (e *Transaction) appendBeatEvents(cfg *transform.Config, events []beat.Even
 	}
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
-	return append(events, beat.Event{
+	return beat.Event{
 		Timestamp: e.Timestamp,
 		Fields:    common.MapStr(fields),
-	})
+	}
 }
 
 type TransactionMarks map[string]TransactionMark
