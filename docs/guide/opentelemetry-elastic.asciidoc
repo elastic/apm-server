@@ -331,8 +331,7 @@ and https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/open
 [[elastic-open-telemetry-logs-limitations]]
 ===== OpenTelemetry logs
 
-** OpenTelemetry logs are not yet supported
-*** See issue https://github.com/elastic/apm-server/issues/5491[[OpenTelemetry\] add support for receiving logs #5491]
+* OpenTelemetry logs are not yet supported https://github.com/elastic/apm-server/issues/5491[#5491]
 
 // Make tab-widgets work
 include::../tab-widgets/code.asciidoc[]
