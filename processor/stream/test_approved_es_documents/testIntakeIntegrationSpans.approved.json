@@ -803,6 +803,131 @@
                 "id": "123",
                 "name": "john"
             }
+        },
+        {
+            "@timestamp": "2021-07-06T11:58:05.682Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "container": {
+                "id": "container-id"
+            },
+            "event": {
+                "outcome": "success"
+            },
+            "host": {
+                "architecture": "x64",
+                "hostname": "prod1.example.com",
+                "ip": "192.0.0.1",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
+            "labels": {
+                "tag1": "label1"
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "backendspans",
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
+            },
+            "span": {
+                "action": "query",
+                "composite": {
+                    "compression_strategy": "exact_match",
+                    "count": 10,
+                    "sum": {
+                        "us": 3592
+                    }
+                },
+                "duration": {
+                    "us": 3781
+                },
+                "id": "abcdef01234567",
+                "name": "SELECT FROM p_details",
+                "start": {
+                    "us": 2830
+                },
+                "subtype": "postgresql",
+                "type": "db"
+            },
+            "timestamp": {
+                "us": 1625572685682272
+            },
+            "trace": {
+                "id": "edcbaf0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "01af25874dec69dd"
+            },
+            "user": {
+                "domain": "ldap://abc",
+                "email": "s@test.com",
+                "id": "123",
+                "name": "john"
+            }
         }
     ]
 }

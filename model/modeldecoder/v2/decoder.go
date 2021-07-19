@@ -770,6 +770,19 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 			out.Type = from.Type.Val
 		}
 	}
+	if from.Composite.IsSet() {
+		composite := model.Composite{}
+		if from.Composite.Count.IsSet() {
+			composite.Count = from.Composite.Count.Val
+		}
+		if from.Composite.Sum.IsSet() {
+			composite.Sum = from.Composite.Sum.Val
+		}
+		if from.Composite.CompressionStrategy.IsSet() {
+			composite.CompressionStrategy = from.Composite.CompressionStrategy.Val
+		}
+		out.Composite = &composite
+	}
 	if len(from.ChildIDs) > 0 {
 		out.ChildIDs = make([]string, len(from.ChildIDs))
 		copy(out.ChildIDs, from.ChildIDs)
