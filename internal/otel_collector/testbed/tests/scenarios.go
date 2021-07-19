@@ -152,7 +152,7 @@ func Scenario10kItemsPerSecond(
 		ItemsPerBatch:      100,
 		Parallel:           1,
 	}
-	agentProc := &testbed.ChildProcess{}
+	agentProc := testbed.NewChildProcessCollector()
 
 	configStr := createConfigYaml(t, sender, receiver, resultDir, processors, extensions)
 	configCleanup, err := agentProc.PrepareConfig(configStr)
@@ -168,10 +168,10 @@ func Scenario10kItemsPerSecond(
 		agentProc,
 		&testbed.PerfTestValidator{},
 		resultsSummary,
+		testbed.WithResourceLimits(resourceSpec),
 	)
 	defer tc.Stop()
 
-	tc.SetResourceLimits(resourceSpec)
 	tc.StartBackend()
 	tc.StartAgent("--log-level=debug")
 
@@ -217,7 +217,7 @@ func Scenario1kSPSWithAttrs(t *testing.T, args []string, tests []TestCase, proce
 
 			options := constructLoadOptions(test)
 
-			agentProc := &testbed.ChildProcess{}
+			agentProc := testbed.NewChildProcessCollector()
 
 			// Prepare results dir.
 			resultDir, err := filepath.Abs(path.Join("results", t.Name()))
@@ -241,13 +241,9 @@ func Scenario1kSPSWithAttrs(t *testing.T, args []string, tests []TestCase, proce
 				agentProc,
 				&testbed.PerfTestValidator{},
 				test.resultsSummary,
+				testbed.WithResourceLimits(testbed.ResourceSpec{ExpectedMaxCPU: test.expectedMaxCPU, ExpectedMaxRAM: test.expectedMaxRAM}),
 			)
 			defer tc.Stop()
-
-			tc.SetResourceLimits(testbed.ResourceSpec{
-				ExpectedMaxCPU: test.expectedMaxCPU,
-				ExpectedMaxRAM: test.expectedMaxRAM,
-			})
 
 			tc.StartBackend()
 			tc.StartAgent(args...)
@@ -290,7 +286,7 @@ func ScenarioTestTraceNoBackend10kSPS(
 	require.NoError(t, err)
 
 	options := testbed.LoadOptions{DataItemsPerSecond: 10000, ItemsPerBatch: 10}
-	agentProc := &testbed.ChildProcess{}
+	agentProc := testbed.NewChildProcessCollector()
 	configStr := createConfigYaml(t, sender, receiver, resultDir, configuration.Processor, nil)
 	configCleanup, err := agentProc.PrepareConfig(configStr)
 	require.NoError(t, err)
@@ -305,11 +301,10 @@ func ScenarioTestTraceNoBackend10kSPS(
 		agentProc,
 		&testbed.PerfTestValidator{},
 		resultsSummary,
+		testbed.WithResourceLimits(resourceSpec),
 	)
 
 	defer tc.Stop()
-
-	tc.SetResourceLimits(resourceSpec)
 
 	tc.StartAgent()
 	tc.StartLoad(options)
