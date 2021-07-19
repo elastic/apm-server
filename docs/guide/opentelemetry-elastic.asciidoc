@@ -72,8 +72,8 @@ Please note the required space between `Bearer` and `an_apm_secret_token`, and `
 
 |===
 
-You are now ready to collect traces and <<open-telemetry-elastic-metrics,metrics>>, <<open-telemetry-elastic-verify,verify metrics>>,
-and <<open-telemetry-elastic-kibana,visualize metrics>> in {kib}.
+You are now ready to collect traces and <<open-telemetry-elastic-metrics,metrics>> before <<open-telemetry-elastic-verify,verifying metrics>>
+and <<open-telemetry-elastic-kibana,visualizing metrics>> in {kib}.
 
 [[open-telemetry-collector]]
 ===== Connect OpenTelemetry Collector instances
