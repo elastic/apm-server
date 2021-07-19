@@ -324,8 +324,7 @@ Here is an example of AWS Lambda Java function managed with Terraform and the ht
 * OpenTelemetry Metrics
 * OpenTelemetry histogram metrics, https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/DoubleValueRecorder.html[`DoubleValueRecorder`]
 and https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/LongValueObserver.html[`LongValueRecorder`], are not yet supported https://github.com/elastic/apm-server/issues/3195[#3195]
-** Inability to see JVM metrics in Elastic APM UI for Java applications instrumented with OpenTelemetry
-*** See issue https://github.com/elastic/apm-server/issues/4919[Visualize JVM health indicators collected by the OpenTelemetry Java Agent #4919]
+* Inability to see JVM metrics in Elastic APM UI for Java applications instrumented with OpenTelemetry https://github.com/elastic/apm-server/issues/4919[#4919]
 * Inability to see host metrics in Elastic Metrics Infrastructure view when using the OpenTelemetry Collector host metrics receiver https://github.com/elastic/apm-server/issues/5310[#5310]
 
 [[elastic-open-telemetry-logs-limitations]]
