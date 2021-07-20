@@ -797,7 +797,7 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 	if from.Sampled.IsSet() {
 		sampled = from.Sampled.Val
 	}
-	out.Sampled = &sampled
+	out.Sampled = sampled
 	if from.SampleRate.IsSet() {
 		if from.SampleRate.Val > 0 {
 			out.RepresentativeCount = 1 / from.SampleRate.Val

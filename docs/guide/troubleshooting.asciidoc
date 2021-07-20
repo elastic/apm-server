@@ -12,6 +12,7 @@ The APM Server, APM app, and each APM agent has a troubleshooting guide:
 * {kibana-ref}/troubleshooting.html[APM app troubleshooting]
 * {apm-dotnet-ref-v}/troubleshooting.html[.NET agent troubleshooting]
 * {apm-go-ref-v}/troubleshooting.html[Go agent troubleshooting]
+* {apm-ios-ref-v}/troubleshooting.html[iOS agent troubleshooting]
 * {apm-java-ref-v}/trouble-shooting.html[Java agent troubleshooting]
 * {apm-node-ref-v}/troubleshooting.html[Node.js agent troubleshooting]
 * {apm-php-ref-v}/troubleshooting.html[PHP agent troubleshooting]

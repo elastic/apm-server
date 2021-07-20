@@ -9,7 +9,7 @@ This means you can reuse your existing OpenTracing instrumentation to quickly an
 [float]
 ==== Agent specific details
 
-Not all features of the OpenTracing API are supported. In addition, there are some Elastic APM specific tags you should be aware of. Please see the relevant Agent documentation for more detailed information:
+Not all features of the OpenTracing API are supported, and there are some Elastic APM-specific tags you should be aware of. Please see the relevant Agent documentation for more detailed information:
 
 * {apm-go-ref-v}/opentracing.html[Go agent]
 * {apm-java-ref-v}/opentracing-bridge.html[Java agent]
@@ -17,3 +17,5 @@ Not all features of the OpenTracing API are supported. In addition, there are so
 * {apm-py-ref-v}/opentracing-bridge.html[Python agent]
 * {apm-ruby-ref-v}/opentracing.html[Ruby agent]
 * {apm-rum-ref-v}/opentracing.html[JavaScript Real User Monitoring (RUM) agent]
+
+Additionally, the iOS agent can utilize the https://github.com/open-telemetry/opentelemetry-swift/tree/main/Sources/Importers/OpenTracingShim[`opentelemetry-swift/OpenTracingShim`].
