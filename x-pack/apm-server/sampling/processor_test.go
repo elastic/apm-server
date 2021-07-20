@@ -40,7 +40,7 @@ func TestProcessUnsampled(t *testing.T) {
 		Transaction: &model.Transaction{
 			TraceID: "0102030405060708090a0b0c0d0e0f10",
 			ID:      "0102030405060708",
-			Sampled: newBool(false),
+			Sampled: false,
 		},
 	}}
 	out := in[:]
@@ -80,6 +80,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	transaction1 := &model.Transaction{
 		TraceID: traceID1,
 		ID:      "0102030405060708",
+		Sampled: true,
 	}
 	span1 := &model.Span{
 		TraceID: traceID1,
@@ -88,6 +89,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	transaction2 := &model.Transaction{
 		TraceID: traceID2,
 		ID:      "0102030405060710",
+		Sampled: true,
 	}
 	span2 := &model.Span{
 		TraceID: traceID2,
@@ -155,6 +157,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			TraceID:  traceID1,
 			ID:       "0102030405060708",
 			Duration: 123,
+			Sampled:  true,
 		}},
 		{Span: &model.Span{
 			TraceID:  traceID1,
@@ -167,6 +170,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			TraceID:  traceID2,
 			ID:       "0102030405060710",
 			Duration: 456,
+			Sampled:  true,
 		}},
 		{Span: &model.Span{
 			TraceID:  traceID2,
@@ -266,6 +270,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 				TraceID:  traceID,
 				ID:       traceID,
 				Duration: 1,
+				Sampled:  true,
 			},
 		}}
 		err := processor.ProcessBatch(context.Background(), &batch)
@@ -330,6 +335,7 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 			TraceID:  fmt.Sprintf("%x", traceIDBytes[:]),
 			ID:       fmt.Sprintf("%x", traceIDBytes[8:]),
 			Duration: 123,
+			Sampled:  true,
 		}
 	}
 
@@ -479,6 +485,7 @@ func TestGroupsMonitoring(t *testing.T) {
 				TraceID:  uuid.Must(uuid.NewV4()).String(),
 				ID:       "0102030405060709",
 				Duration: 123,
+				Sampled:  true,
 			},
 		}})
 		require.NoError(t, err)
@@ -506,6 +513,7 @@ func TestStorageMonitoring(t *testing.T) {
 				TraceID:  traceID,
 				ID:       traceID,
 				Duration: 123,
+				Sampled:  true,
 			},
 		}}
 		err := processor.ProcessBatch(context.Background(), &batch)
@@ -714,10 +722,6 @@ func collectProcessorMetrics(p *sampling.Processor) monitoring.FlatSnapshot {
 		monitoring.Full,
 		false, // expvar
 	)
-}
-
-func newBool(v bool) *bool {
-	return &v
 }
 
 // waitFileModified waits up to 10 seconds for filename to exist and for its
