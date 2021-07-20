@@ -208,6 +208,7 @@ func (c *Consumer) convertSpan(
 			Timestamp: timestamp,
 			Duration:  durationMillis,
 			Name:      name,
+			Sampled:   true,
 			Outcome:   spanStatusOutcome(otelSpan.Status()),
 		}
 		translateTransaction(otelSpan, otelLibrary, metadata, &transactionBuilder{Transaction: transaction})
@@ -902,7 +903,7 @@ func addTransactionCtxToErr(transaction *model.Transaction, err *model.Error) {
 	err.URL = transaction.URL
 	err.Page = transaction.Page
 	err.Custom = transaction.Custom
-	err.TransactionSampled = transaction.Sampled
+	err.TransactionSampled = &transaction.Sampled
 	err.TransactionType = transaction.Type
 }
 

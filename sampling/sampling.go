@@ -39,7 +39,7 @@ func NewDiscardUnsampledBatchProcessor() model.BatchProcessor {
 		events := *batch
 		for i := 0; i < len(events); {
 			event := events[i]
-			if event.Transaction == nil || event.Transaction.Sampled == nil || *event.Transaction.Sampled {
+			if event.Transaction == nil || event.Transaction.Sampled {
 				i++
 				continue
 			}

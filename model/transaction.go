@@ -55,7 +55,7 @@ type Transaction struct {
 	Duration       float64
 	Marks          TransactionMarks
 	Message        *Message
-	Sampled        *bool
+	Sampled        bool
 	SpanCount      SpanCount
 	Page           *Page
 	HTTP           *Http
@@ -112,9 +112,7 @@ func (e *Transaction) fields() common.MapStr {
 		}
 		fields.set("span_count", spanCount)
 	}
-	// TODO(axw) change Sampled to be non-pointer, and set its final value when
-	// instantiating the model type.
-	fields.set("sampled", e.Sampled == nil || *e.Sampled)
+	fields.set("sampled", e.Sampled)
 	return common.MapStr(fields)
 }
 
