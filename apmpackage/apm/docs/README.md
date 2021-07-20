@@ -133,7 +133,7 @@ Traces are written to `traces-apm.*` indices.
 |span.action|The specific kind of event within the sub-type represented by the span (e.g. query, connect)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.composite.compression\_strategy|The compression strategy that was used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.composite.count|Number of compressed spans the composite span represents.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.composite.sum.us|Sum of the durations of the compression spans, in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|span.composite.sum.us|Sum of the durations of the compressed spans, in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.db.link|Database link.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.db.rows\_affected|Number of rows affected by the database statement.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.destination.service.name|Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq') DEPRECATED: this field will be removed in a future release|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
