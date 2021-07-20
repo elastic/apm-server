@@ -66,6 +66,7 @@ type Fetcher interface {
 // NewFetcher returns a new Fetcher based on the provided config.
 func NewFetcher(cfg *config.Config) Fetcher {
 	if cfg.AgentConfigs != nil || !cfg.Kibana.Enabled {
+		fmt.Println("direct fetcher")
 		// Direct agent configuration is present, disable communication
 		// with kibana.
 		return NewDirectFetcher(cfg.AgentConfigs)
@@ -74,6 +75,7 @@ func NewFetcher(cfg *config.Config) Fetcher {
 	if cfg.Kibana.Enabled {
 		client = kibana.NewConnectingClient(&cfg.Kibana)
 	}
+	fmt.Println("kibana fetcher")
 	return NewKibanaFetcher(client, cfg.KibanaAgentConfig.Cache.Expiration)
 }
 
@@ -145,6 +147,7 @@ func (f *KibanaFetcher) validate(ctx context.Context) *ValidationError {
 
 // Fetch retrieves agent configuration, fetched from Kibana or a local temporary cache.
 func (f *KibanaFetcher) Fetch(ctx context.Context, query Query) (Result, error) {
+	fmt.Println("kibana fetch called")
 	if err := f.validate(ctx); err != nil {
 		return zeroResult(), err
 	}
@@ -218,6 +221,7 @@ func NewDirectFetcher(cfgs []config.AgentConfig) *DirectFetcher {
 // - an AgentConfig without a name or environment set
 // Return an empty result if no matching result is found.
 func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
+	fmt.Println("direct fetch called")
 	name, env := query.Service.Name, query.Service.Environment
 	result := zeroResult()
 	var nameConf, envConf, defaultConf *config.AgentConfig

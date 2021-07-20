@@ -513,6 +513,8 @@ func TestServerConfigReload(t *testing.T) {
 	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: inputConfig}})
 	require.NoError(t, err)
 
+	// TODO: we're not re-listening any more.
+	t.Skip()
 	addr2, err := beater.waitListenAddr(1 * time.Second)
 	require.NoError(t, err)
 	assert.Empty(t, healthcheck(addr2)) // empty as auth is required but not specified

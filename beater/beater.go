@@ -19,12 +19,15 @@ package beater
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
@@ -237,6 +240,7 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 type serverCreator struct {
 	context context.Context
 	args    sharedServerRunnerParams
+	runner  *serverRunner
 }
 
 func (s *serverCreator) CheckConfig(cfg *common.Config) error {
@@ -255,13 +259,20 @@ func (s *serverCreator) Create(p beat.PipelineConnector, rawConfig *common.Confi
 	}
 	apmServerCommonConfig := integrationConfig.APMServer
 	apmServerCommonConfig.Merge(common.MustNewConfigFrom(`{"data_streams.enabled": true}`))
-	return newServerRunner(s.context, serverRunnerParams{
+	params := serverRunnerParams{
 		sharedServerRunnerParams: s.args,
 		Namespace:                namespace,
 		Pipeline:                 p,
 		RawConfig:                apmServerCommonConfig,
 		FleetConfig:              &integrationConfig.Fleet,
-	})
+	}
+	if s.runner != nil {
+		// If we've already created a runner, just reconfigure it.
+		return s.runner, s.runner.configure(params)
+	} else {
+		s.runner, err = newServerRunner(s.context, params)
+		return s.runner, err
+	}
 }
 
 type serverRunner struct {
@@ -278,17 +289,27 @@ type serverRunner struct {
 	stopOnce sync.Once
 	wg       sync.WaitGroup
 
-	pipeline      beat.PipelineConnector
-	acker         *waitPublishedAcker
-	namespace     string
-	config        *config.Config
-	rawConfig     *common.Config
-	fleetConfig   *config.Fleet
-	beat          *beat.Beat
-	logger        *logp.Logger
-	tracer        *apm.Tracer
-	tracerServer  *tracerServer
-	wrapRunServer func(RunServerFunc) RunServerFunc
+	mu              sync.Mutex
+	sourcemapStore  *sourcemap.Store
+	running         bool
+	publisher       *publish.Publisher
+	pipeline        beat.PipelineConnector
+	batchProcessor  model.BatchProcessor
+	acker           *waitPublishedAcker
+	namespace       string
+	config          *config.Config
+	rawConfig       *common.Config
+	fleetConfig     *config.Fleet
+	beat            *beat.Beat
+	logger          *logp.Logger
+	tracer          *apm.Tracer
+	tracerServer    *tracerServer
+	wrapRunServer   func(RunServerFunc) RunServerFunc
+	configureParams func(*ServerParams)
+
+	server *server
+	// delete me
+	params serverRunnerParams
 }
 
 type serverRunnerParams struct {
@@ -310,63 +331,74 @@ type sharedServerRunnerParams struct {
 }
 
 func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunner, error) {
-	cfg, err := config.NewConfig(args.RawConfig, elasticsearchOutputConfig(args.Beat))
+	runServerContext, cancel := context.WithCancel(ctx)
+	config, err := config.NewConfig(args.RawConfig, elasticsearchOutputConfig(args.Beat))
 	if err != nil {
 		return nil, err
 	}
-
-	runServerContext, cancel := context.WithCancel(ctx)
-	return &serverRunner{
+	s := &serverRunner{
 		backgroundContext:      ctx,
 		runServerContext:       runServerContext,
 		cancelRunServerContext: cancel,
-
-		config:        cfg,
-		rawConfig:     args.RawConfig,
-		fleetConfig:   args.FleetConfig,
-		acker:         args.Acker,
-		pipeline:      args.Pipeline,
-		namespace:     args.Namespace,
-		beat:          args.Beat,
-		logger:        args.Logger,
-		tracer:        args.Tracer,
-		tracerServer:  args.TracerServer,
-		wrapRunServer: args.WrapRunServer,
-	}, nil
+		config:                 config,
+		rawConfig:              args.RawConfig,
+		fleetConfig:            args.FleetConfig,
+		acker:                  args.Acker,
+		pipeline:               args.Pipeline,
+		namespace:              args.Namespace,
+		beat:                   args.Beat,
+		logger:                 args.Logger,
+		tracer:                 args.Tracer,
+		tracerServer:           args.TracerServer,
+		wrapRunServer:          args.WrapRunServer,
+		// This is just for testing right now.
+		params: args,
+	}
+	if err := s.configure(args); err != nil {
+		return nil, err
+	}
+	return s, nil
 }
 
-func (s *serverRunner) String() string {
-	return "APMServer"
-}
+func (s *serverRunner) configure(args serverRunnerParams) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-// Stop stops the server.
-func (s *serverRunner) Stop() {
-	s.stopOnce.Do(s.cancelRunServerContext)
-	s.Wait()
-}
+	config, err := config.NewConfig(args.RawConfig, elasticsearchOutputConfig(args.Beat))
+	if err != nil {
+		return err
+	}
 
-// Wait waits for the server to stop.
-func (s *serverRunner) Wait() {
-	s.wg.Wait()
-}
+	// once the server has been created, we only want to update the values
+	// pointed at, not the pointer itself.
+	*s.config = *config
+	if args.RawConfig != nil {
+		*s.rawConfig = *args.RawConfig
+	}
+	if args.FleetConfig != nil {
+		*s.fleetConfig = *args.FleetConfig
+	}
+	if args.Acker != nil {
+		*s.acker = *args.Acker
+	}
+	s.pipeline = args.Pipeline
+	s.namespace = args.Namespace
+	if args.Beat != nil {
+		*s.beat = *args.Beat
+	}
+	if args.Logger != nil {
+		*s.logger = *args.Logger
+	}
+	if args.Tracer != nil {
+		*s.tracer = *args.Tracer
+	}
+	if args.TracerServer != nil {
+		*s.tracerServer = *args.TracerServer
+	}
+	s.wrapRunServer = args.WrapRunServer
 
-// Start starts the server.
-func (s *serverRunner) Start() {
-	s.wg.Add(1)
-	go func() {
-		defer s.wg.Done()
-		s.run()
-	}()
-}
-
-func (s *serverRunner) run() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
-	publisherConfig := &publish.PublisherConfig{
-		Info:      s.beat.Info,
-		Pipeline:  s.config.Pipeline,
-		Namespace: s.namespace,
-	}
 
 	cfg := ucfg.Config(*s.rawConfig)
 	parentCfg := cfg.Parent()
@@ -381,31 +413,126 @@ func (s *serverRunner) run() error {
 		}()
 	}
 
-	var sourcemapStore *sourcemap.Store
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
 		store, err := newSourcemapStore(s.beat.Info, s.config.RumConfig.SourceMapping, s.fleetConfig)
 		if err != nil {
 			return err
 		}
-		sourcemapStore = store
+		if s.sourcemapStore == nil {
+			s.sourcemapStore = store
+		} else {
+			*s.sourcemapStore = *store
+		}
+	} else {
+		// TODO: We have to remember to disable the sourcemap if it's
+		// no longer enabled
+		s.sourcemapStore = nil
 	}
 
+	if !s.running {
+		pipeline := pipetool.WithACKer(s.pipeline, s.acker)
+		publisherConfig := &publish.PublisherConfig{
+			Info:      s.beat.Info,
+			Pipeline:  s.config.Pipeline,
+			Namespace: s.namespace,
+		}
+		publisher, err := publish.NewPublisher(pipeline, s.tracer, publisherConfig)
+		if err != nil {
+			return err
+		}
+		s.publisher = publisher
+
+		reporter := publisher.Send
+		s.batchProcessor = &reporterBatchProcessor{reporter}
+		if !s.config.Sampling.KeepUnsampled {
+			// The server has been configured to discard unsampled
+			// transactions. Make sure this is done just before calling
+			// the publisher to avoid affecting aggregations.
+			s.batchProcessor = modelprocessor.Chained{
+				sampling.NewDiscardUnsampledBatchProcessor(),
+				s.batchProcessor,
+			}
+		}
+
+		// TODO: Server needs to be reconfigurable
+		server, err := newServer(
+			s.logger,
+			s.beat.Info,
+			s.config,
+			s.tracer,
+			reporter,
+			s.sourcemapStore,
+			s.batchProcessor,
+		)
+		if err != nil {
+			return err
+		}
+		s.server = server
+	}
+
+	// TODO: What arguments do we need to provide
+	if err := s.server.configure(
+		s.logger,
+		s.beat.Info,
+		s.config,
+		s.tracer,
+		s.publisher.Send,
+		s.sourcemapStore,
+		s.batchProcessor,
+	); err != nil {
+		s.logger.Errorf("failed to configure server: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *serverRunner) String() string {
+	return "APMServer"
+}
+
+// Stop does nothing. The serverCreator updates the serverRunner.
+// TODO: How can we tell the difference between a stop/start in a restart, and
+// a stop for actually stopping?
+func (s *serverRunner) Stop() {
+	// s.stopOnce.Do(s.cancelRunServerContext)
+	// s.Wait()
+}
+
+// Wait waits for the server to stop.
+func (s *serverRunner) Wait() {
+	s.wg.Wait()
+}
+
+// Start starts the server.
+func (s *serverRunner) Start() {
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		s.mu.Lock()
+
+		if !s.running {
+			s.running = true
+			s.mu.Unlock()
+			s.run()
+		} else {
+			s.mu.Unlock()
+		}
+	}()
+}
+
+func (s *serverRunner) run() error {
 	// When the publisher stops cleanly it will close its pipeline client,
 	// calling the acker's Close method. We need to call Open for each new
 	// publisher to ensure we wait for all clients and enqueued events to
 	// be closed at shutdown time.
 	s.acker.Open()
-	pipeline := pipetool.WithACKer(s.pipeline, s.acker)
-	publisher, err := publish.NewPublisher(pipeline, s.tracer, publisherConfig)
-	if err != nil {
-		return err
-	}
-	defer publisher.Stop(s.backgroundContext)
+	defer s.publisher.Stop(s.backgroundContext)
 
-	// Create the runServer function. We start with newBaseRunServer, and then
-	// wrap depending on the configuration in order to inject behaviour.
-	reporter := publisher.Send
-	runServer := newBaseRunServer(reporter)
+	// Tests are failing because the params get modified as they pass
+	// through various RunServers, before they finally end (used to) create
+	// the server.
+	runServer := s.server.run
 	if s.tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
 	}
@@ -414,31 +541,62 @@ func (s *serverRunner) run() error {
 		// behaviour into the processing/reporting pipeline.
 		runServer = s.wrapRunServer(runServer)
 	}
+	// if s.configureParams != nil {
+	// 	runServer = s.configureParams(params)
+	// }
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
-	var batchProcessor model.BatchProcessor = &reporterBatchProcessor{reporter}
-	if !s.config.Sampling.KeepUnsampled {
-		// The server has been configured to discard unsampled
-		// transactions. Make sure this is done just before calling
-		// the publisher to avoid affecting aggregations.
-		batchProcessor = modelprocessor.Chained{
-			sampling.NewDiscardUnsampledBatchProcessor(), batchProcessor,
-		}
-	}
+	go func() {
+		sigs := make(chan os.Signal, 1)
+		defer close(sigs)
+		signal.Notify(sigs, syscall.SIGUSR1)
+		for {
+			select {
+			case sig := <-sigs:
+				// TODO: When ctrl-c the program, some part of
+				// this reload is stuck and never exits.
+				// Sending a SIGUSR1 causes a panic when trying
+				// to send on a closed channel.
+				// It's seemingly some dangling channel in a
+				// previous part of the code.
+				rawcfg, err := common.LoadFile("./apm-server.dev.yml")
+				if err != nil {
+					fmt.Printf("failed to load apm-server.dev.yml! %v\n", err)
+					continue
+				}
 
-	if err := runServer(s.runServerContext, ServerParams{
+				// Not sure how else to just grab the
+				// apm-server section from the config
+				integrationConfig, err := config.NewIntegrationConfig(rawcfg)
+				if err != nil {
+					fmt.Printf("failed to integration config apm-server.dev.yml! %v\n", err)
+					continue
+				}
+				cfg := integrationConfig.APMServer
+				params := s.params
+				params.RawConfig = cfg
+				s.params = params
+				s.configure(params)
+			case <-s.runServerContext.Done():
+				return
+			}
+		}
+	}()
+
+	params := ServerParams{
 		Info:           s.beat.Info,
 		Config:         s.config,
 		Managed:        s.beat.Manager != nil && s.beat.Manager.Enabled(),
 		Namespace:      s.namespace,
 		Logger:         s.logger,
 		Tracer:         s.tracer,
-		BatchProcessor: batchProcessor,
-		SourcemapStore: sourcemapStore,
-	}); err != nil {
+		BatchProcessor: s.batchProcessor,
+		SourcemapStore: s.sourcemapStore,
+	}
+	if err := runServer(s.runServerContext, params); err != nil {
 		return err
 	}
-	return publisher.Stop(s.backgroundContext)
+	return s.publisher.Stop(s.backgroundContext)
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {

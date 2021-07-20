@@ -60,7 +60,36 @@ func newHTTPServer(
 	ratelimitStore *ratelimit.Store,
 	sourcemapStore *sourcemap.Store,
 ) (*httpServer, error) {
+	s := &httpServer{
+		cfg:      cfg,
+		logger:   logger,
+		reporter: reporter,
+		Server:   &http.Server{},
+	}
+	return s, s.configure(
+		logger,
+		info,
+		cfg,
+		tracer,
+		reporter,
+		batchProcessor,
+		agentcfgFetcher,
+		ratelimitStore,
+		sourcemapStore,
+	)
+}
 
+func (s *httpServer) configure(
+	logger *logp.Logger,
+	info beat.Info,
+	cfg *config.Config,
+	tracer *apm.Tracer,
+	reporter publish.Reporter,
+	batchProcessor model.BatchProcessor,
+	agentcfgFetcher agentcfg.Fetcher,
+	ratelimitStore *ratelimit.Store,
+	sourcemapStore *sourcemap.Store,
+) error {
 	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
 	batchProcessor = modelprocessor.Chained{
 		model.ProcessBatchFunc(rateLimitBatchProcessor),
@@ -70,10 +99,10 @@ func newHTTPServer(
 
 	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, agentcfgFetcher, ratelimitStore, sourcemapStore)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	server := &http.Server{
+	*s.Server = http.Server{
 		Addr: cfg.Host,
 		Handler: apmhttp.Wrap(mux,
 			apmhttp.WithServerRequestIgnorer(doNotTrace),
@@ -85,24 +114,24 @@ func newHTTPServer(
 		MaxHeaderBytes: cfg.MaxHeaderSize,
 	}
 
+	// TODO: Track TLS settings, if it changes then we need to restart the server
 	if cfg.TLS.IsEnabled() {
 		tlsServerConfig, err := tlscommon.LoadTLSServerConfig(cfg.TLS)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		server.TLSConfig = tlsServerConfig.BuildServerConfig("")
+		s.Server.TLSConfig = tlsServerConfig.BuildServerConfig("")
 	}
 
 	// Configure the server with gmux. The returned net.Listener will receive
 	// gRPC connections, while all other requests will be handled by s.Handler.
 	//
 	// grpcListener is closed when the HTTP server is shutdown.
-	grpcListener, err := gmux.ConfigureServer(server, nil)
+	s.grpcListener, err = gmux.ConfigureServer(s.Server, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	return &httpServer{server, cfg, logger, reporter, grpcListener}, nil
+	return nil
 }
 
 func (h *httpServer) start() error {
@@ -130,6 +159,7 @@ func (h *httpServer) start() error {
 	}
 
 	if h.cfg.MaxConnections > 0 {
+		// TODO: reload
 		lis = netutil.LimitListener(lis, h.cfg.MaxConnections)
 		h.logger.Infof("Connection limit set to: %d", h.cfg.MaxConnections)
 	}
