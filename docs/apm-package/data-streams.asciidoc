@@ -2,7 +2,7 @@
 == Data streams
 
 ****
-experimental::[]
+beta::[]
 
 Existing APM users need to migrate to data streams to use the APM integration.
 The integration does not have feature parity with standalone APM.
