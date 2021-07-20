@@ -576,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20210630182526-5217a133e7ae
+Version: v7.0.0-alpha2.0.20210716115712-012fc602acfe
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210630182526-5217a133e7ae/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210716115712-012fc602acfe/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -1022,11 +1022,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.1.0/LIC
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-elasticsearch/v7
-Version: v7.5.1-0.20210701130713-3c08ee738285
+Version: v7.5.1-0.20210712132103-65a665598df6
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearch/v7@v7.5.1-0.20210701130713-3c08ee738285/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearch/v7@v7.5.1-0.20210712132103-65a665598df6/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4601,11 +4601,11 @@ Contents of probable licence file LICENSE:
 
 --------------------------------------------------------------------------------
 Dependency : go.uber.org/atomic
-Version: v1.8.0
+Version: v1.9.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.uber.org/atomic@v1.8.0/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/go.uber.org/atomic@v1.9.0/LICENSE.txt:
 
 Copyright (c) 2016 Uber Technologies, Inc.
 
@@ -15654,11 +15654,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/prometheus/procfs
-Version: v0.6.0
+Version: v0.7.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/prometheus/procfs@v0.6.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/prometheus/procfs@v0.7.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -18076,11 +18076,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.0.0-20210616213533-5ff15b29337e
+Version: v0.0.0-20210711020723-a769d52b0f97
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210616213533-5ff15b29337e/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210711020723-a769d52b0f97/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18261,11 +18261,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20210630183607-d20f26d13c79
+Version: v0.0.0-20210715145939-324b959e9c22
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210630183607-d20f26d13c79/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210715145939-324b959e9c22/LICENSE:
 
 
                                  Apache License
