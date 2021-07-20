@@ -33,7 +33,11 @@ download and enroll an {agent} on the same machines that your instrumented servi
 [[apm-integration-limitations]]
 === Limitations
 
-The APM integration has the following limitations:
+IMPORTANT: This integration is still in beta and does not have feature parity with standalone APM.
+Do not migrate production deployments.
+
+Stack monitoring::
+<<monitoring,Stack monitoring>> is not yet available.
 
 Index lifecycle management (ILM)::
 A default ILM policy, named `traces-apm.traces-default_policy` is created for all event types.

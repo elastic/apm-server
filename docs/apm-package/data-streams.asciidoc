@@ -1,7 +1,24 @@
 [[apm-integration-data-streams]]
 == Data streams
 
+****
 experimental::[]
+
+Existing APM users need to migrate to data streams to use the APM integration.
+The integration does not have feature parity with standalone APM.
+Production deployments should not be migrated at this time.
+
+Migration limitations include:
+
+* This change cannot be reverted
+* This change impacts how APM Server and its indices are configured -- see <<apm-integration-naming-scheme>> and <<apm-integration-configure>>
+* Users on {ece} require additional steps prior to migrating, like configuring TLS certificates for the connection between APM Server and {es}
+* Additional <<apm-integration-limitations,APM integration limitations>>
+****
+
+[discrete]
+[[apm-integration-naming-scheme]]
+=== Data stream naming scheme
 
 {agent} uses data streams to store append-only time series data across multiple indices
 while giving users a single named resource for requests.
