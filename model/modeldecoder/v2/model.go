@@ -609,7 +609,8 @@ type span struct {
 	Composite spanComposite `json:"composite"`
 	// Context holds arbitrary contextual information for the event.
 	Context spanContext `json:"context"`
-	// Duration of the span in milliseconds
+	// Duration of the span in milliseconds. When the span is a composite one,
+	// duration is the gross duration, including "whitespace" in between spans.
 	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
 	// ID holds the hex encoded 64 random bits ID of the event.
 	ID nullable.String `json:"id" validate:"required,maxLength=1024"`
@@ -775,9 +776,7 @@ type spanComposite struct {
 	// The minimum count is 2, as a composite span represents at least two spans.
 	Count nullable.Int `json:"count" validate:"required,min=2"`
 	// Sum is the durations of all compressed spans this composite span
-	// represents in milliseconds. Thus sum is the net duration of all the
-	// compressed spans while duration is the gross duration, including
-	// "whitespace" between the spans.
+	// represents in milliseconds.
 	Sum nullable.Float64 `json:"sum" validate:"required,min=0"`
 	// A string value indicating which compression strategy was used. The valid
 	// values are `exact_match` and `same_kind`.

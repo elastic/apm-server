@@ -39,7 +39,7 @@
           "minimum": 2
         },
         "sum": {
-          "description": "Sum is the durations of all compressed spans this composite span represents in milliseconds. Thus sum is the net duration of all the compressed spans while duration is the gross duration, including \"whitespace\" between the spans.",
+          "description": "Sum is the durations of all compressed spans this composite span represents in milliseconds.",
           "type": "number",
           "minimum": 0
         }
@@ -504,7 +504,7 @@
       }
     },
     "duration": {
-      "description": "Duration of the span in milliseconds",
+      "description": "Duration of the span in milliseconds. When the span is a composite one, duration is the gross duration, including \"whitespace\" in between spans.",
       "type": "number",
       "minimum": 0
     },
