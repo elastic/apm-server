@@ -14,7 +14,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20210225215109-d91c329300e7 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210713084715-eb758b9b11ad
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210719083153-560aa609a756
 	github.com/elastic/ecs v1.10.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210407144825-cc1c33cfa1d0 // indirect
 	github.com/elastic/elastic-package v0.0.0-20210310173719-3b8f76516ae3
@@ -63,16 +63,16 @@ require (
 	go.elastic.co/fastjson v1.1.0
 	go.elastic.co/go-licence-detector v0.5.0
 	go.opentelemetry.io/collector v0.28.0
-	go.uber.org/atomic v1.8.0
+	go.uber.org/atomic v1.9.0
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.18.1
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
+	golang.org/x/net v0.0.0-20210716203947-853a461950ff
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
-	golang.org/x/tools v0.1.4
-	google.golang.org/genproto v0.0.0-20210713002101-d411969a0d9a // indirect
+	golang.org/x/tools v0.1.5
+	google.golang.org/genproto v0.0.0-20210716133855-ce7ef5c701ea // indirect
 	google.golang.org/grpc v1.39.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v0.6.0
