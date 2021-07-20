@@ -113,6 +113,7 @@
             },
             "transaction": {
                 "id": "0000000041414646",
+                "sampled": true,
                 "type": "http_request"
             },
             "url": {
@@ -168,6 +169,7 @@
             },
             "transaction": {
                 "id": "0000000041414646",
+                "sampled": true,
                 "type": "http_request"
             },
             "url": {
@@ -225,6 +227,7 @@
             },
             "transaction": {
                 "id": "0000000041414646",
+                "sampled": true,
                 "type": "http_request"
             },
             "url": {
@@ -282,6 +285,7 @@
             },
             "transaction": {
                 "id": "0000000041414646",
+                "sampled": true,
                 "type": "http_request"
             },
             "url": {
@@ -339,6 +343,7 @@
             },
             "transaction": {
                 "id": "0000000041414646",
+                "sampled": true,
                 "type": "http_request"
             },
             "url": {
@@ -394,6 +399,7 @@
             },
             "transaction": {
                 "id": "0000000041414646",
+                "sampled": true,
                 "type": "http_request"
             },
             "url": {

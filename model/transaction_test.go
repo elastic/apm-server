@@ -33,7 +33,6 @@ import (
 func TestTransactionTransform(t *testing.T) {
 	id := "123"
 	result := "tx result"
-	sampled := false
 	dropped, startedSpans := 5, 14
 	name := "mytransaction"
 
@@ -48,7 +47,7 @@ func TestTransactionTransform(t *testing.T) {
 				"id":       "",
 				"type":     "",
 				"duration": common.MapStr{"us": 0},
-				"sampled":  true,
+				"sampled":  false,
 			},
 			Msg: "Empty Event",
 		},
@@ -62,7 +61,7 @@ func TestTransactionTransform(t *testing.T) {
 				"id":       id,
 				"type":     "tx",
 				"duration": common.MapStr{"us": 65980},
-				"sampled":  true,
+				"sampled":  false,
 			},
 			Msg: "SpanCount empty",
 		},
@@ -78,7 +77,7 @@ func TestTransactionTransform(t *testing.T) {
 				"type":       "tx",
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"started": 14},
-				"sampled":    true,
+				"sampled":    false,
 			},
 			Msg: "SpanCount only contains `started`",
 		},
@@ -94,7 +93,7 @@ func TestTransactionTransform(t *testing.T) {
 				"type":       "tx",
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"dropped": 5},
-				"sampled":    true,
+				"sampled":    false,
 			},
 			Msg: "SpanCount only contains `dropped`",
 		},
@@ -106,7 +105,7 @@ func TestTransactionTransform(t *testing.T) {
 				Result:    result,
 				Timestamp: time.Now(),
 				Duration:  65.98,
-				Sampled:   &sampled,
+				Sampled:   true,
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
 			},
 			Output: common.MapStr{
@@ -116,7 +115,7 @@ func TestTransactionTransform(t *testing.T) {
 				"result":     "tx result",
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"started": 14, "dropped": 5},
-				"sampled":    false,
+				"sampled":    true,
 			},
 			Msg: "Full Event",
 		},
@@ -172,6 +171,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		URL:       &URL{Original: url},
 		Custom:    common.MapStr{"foo.bar": "baz"},
 		Message:   &Message{QueueName: "routeUser"},
+		Sampled:   true,
 	}
 	event := txWithContext.toBeatEvent()
 	assert.Equal(t, event.Fields, common.MapStr{
