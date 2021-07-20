@@ -36,6 +36,11 @@ download and enroll an {agent} on the same machines that your instrumented servi
 IMPORTANT: This integration is still in beta and does not have feature parity with standalone APM.
 Do not migrate production deployments.
 
+Data steams migration::
+Existing APM users will need to migrate to data streams to use the APM integration.
+This change cannot be reverted, and impacts how APM Server and its indices are configured -- see <<apm-integration-naming-scheme>> and <<apm-integration-configure>>.
+Additionally, users on {ece} require additional steps prior to migrating, like configuring TLS certificates for the connection between APM Server and {es}.
+
 Stack monitoring::
 <<monitoring,Stack monitoring>> is not yet available.
 
