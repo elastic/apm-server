@@ -124,7 +124,7 @@
 - name: span.composite.sum.us
   type: long
   description: |
-    Sum of the durations of the compression spans, in microseconds.
+    Sum of the durations of the compressed spans, in microseconds.
 - name: span.db.link
   type: keyword
   description: |

@@ -3942,7 +3942,7 @@ type: long
 *`span.composite.sum.us`*::
 +
 --
-Sum of the durations of the compression spans, in microseconds.
+Sum of the durations of the compressed spans, in microseconds.
 
 
 type: long

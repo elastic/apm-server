@@ -884,7 +884,7 @@
                   type: long
                   count: 1
                   description: >
-                    Sum of the durations of the compression spans, in microseconds.
+                    Sum of the durations of the compressed spans, in microseconds.
 
             - name: compression_strategy
               type: keyword
