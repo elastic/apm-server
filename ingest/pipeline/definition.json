@@ -45,6 +45,39 @@
     }
   },
   {
+    "id": "apm_data_stream_migration",
+    "body": {
+      "description": "Migrate APM events to data streams",
+      "processors": [
+        {
+          "script": {
+            "if": "ctx.processor?.event == 'span' || ctx.processor?.event == 'transaction'",
+            "source": "ctx.data_stream = [\"type\": \"traces\", \"dataset\": \"apm\", \"namespace\": \"migrated\"]\n"
+          }
+        },
+        {
+          "script": {
+            "if": "ctx.processor?.event == 'error'",
+            "source": "ctx.data_stream = [\"type\": \"logs\", \"dataset\": \"apm.error\", \"namespace\": \"migrated\"]\n"
+          }
+        },
+        {
+          "script": {
+            "if": "ctx.processor?.event == 'metric'",
+            "source": "String dataset;\nif (ctx[\"metricset.name\"] != \"app\") {\n  dataset = \"apm.internal\";\n} else {\n  String serviceName = ctx.service.name;\n  serviceName = serviceName.toLowerCase();\n  serviceName = /[\\\\\\/*?\"<>| ,#:-]/.matcher(serviceName).replaceAll('_');\n  dataset = \"apm.app.\" + serviceName;\n}\nctx.data_stream = [\"type\": \"metrics\", \"dataset\": dataset, \"namespace\": \"migrated\"];\n"
+          }
+        },
+        {
+          "set": {
+            "if": "ctx.data_stream != null",
+            "field": "_index",
+            "value": "{{data_stream.type}}-{{data_stream.dataset}}-{{data_stream.namespace}}"
+          }
+        }
+      ]
+    }
+  },
+  {
     "id": "apm_user_agent",
     "body": {
       "description": "Add user agent information for APM events",
