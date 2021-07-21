@@ -106,7 +106,7 @@ type DestinationService struct {
 // Composite holds details on a group of spans compressed into one.
 type Composite struct {
 	Count               int
-	Sum                 float64
+	Sum                 float64 // milliseconds
 	CompressionStrategy string
 }
 
