@@ -20,7 +20,6 @@ package model
 import (
 	"fmt"
 	"net"
-	"net/http"
 	"testing"
 	"time"
 
@@ -160,21 +159,21 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Labels:    common.MapStr{"a": true},
 	}
 
-	request := Req{Method: "post", Socket: &Socket{}, Headers: http.Header{}, Referer: referer}
-	response := Resp{Finished: new(bool), MinimalResp: MinimalResp{Headers: http.Header{"content-type": []string{"text/html"}}}}
+	request := HTTPRequest{Method: "post", Headers: common.MapStr{}, Referrer: referer}
+	response := HTTPResponse{Finished: new(bool), Headers: common.MapStr{"content-type": []string{"text/html"}}}
 	txWithContext := Transaction{
 		Metadata:  eventMetadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"a": "b"},
 		Page:      &Page{URL: &URL{Original: url}, Referer: referer},
-		HTTP:      &Http{Request: &request, Response: &response},
+		HTTP:      &HTTP{Request: &request, Response: &response},
 		URL:       &URL{Original: url},
 		Custom:    common.MapStr{"foo.bar": "baz"},
 		Message:   &Message{QueueName: "routeUser"},
 		Sampled:   true,
 	}
 	event := txWithContext.toBeatEvent()
-	assert.Equal(t, event.Fields, common.MapStr{
+	assert.Equal(t, common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
 		"client":     common.MapStr{"ip": ip},
 		"source":     common.MapStr{"ip": ip},
@@ -213,22 +212,21 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"url":    common.MapStr{"original": url},
 		"http": common.MapStr{
 			"request":  common.MapStr{"method": "post", "referrer": referer},
-			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": []string{"text/html"}}}},
-	})
+			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": []string{"text/html"}}},
+		},
+	}, event.Fields)
 }
 
 func TestTransformTransactionHTTP(t *testing.T) {
-	request := Req{Method: "post", Body: "<html><marquee>hello world</marquee></html>"}
+	request := HTTPRequest{Method: "post", Body: "<html><marquee>hello world</marquee></html>"}
 	tx := Transaction{
-		HTTP: &Http{Request: &request},
+		HTTP: &HTTP{Request: &request},
 	}
 	event := tx.toBeatEvent()
 	assert.Equal(t, common.MapStr{
 		"request": common.MapStr{
-			"method": request.Method,
-			"body": common.MapStr{
-				"original": request.Body,
-			},
+			"method":        request.Method,
+			"body.original": request.Body,
 		},
 	}, event.Fields["http"])
 }

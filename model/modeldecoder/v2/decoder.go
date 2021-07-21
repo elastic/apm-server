@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
+	"github.com/elastic/apm-server/model/modeldecoder/modeldecoderutil"
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	"github.com/elastic/apm-server/utility"
 )
@@ -265,7 +266,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 			out.Labels = from.Context.Tags.Clone()
 		}
 		if from.Context.Request.IsSet() {
-			out.HTTP = &model.Http{Request: &model.Req{}}
+			out.HTTP = &model.HTTP{Request: &model.HTTPRequest{}}
 			mapToRequestModel(from.Context.Request, out.HTTP.Request)
 			if from.Context.Request.HTTPVersion.IsSet() {
 				out.HTTP.Version = from.Context.Request.HTTPVersion.Val
@@ -273,9 +274,9 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 		}
 		if from.Context.Response.IsSet() {
 			if out.HTTP == nil {
-				out.HTTP = &model.Http{}
+				out.HTTP = &model.HTTP{}
 			}
-			out.HTTP.Response = &model.Resp{}
+			out.HTTP.Response = &model.HTTPResponse{}
 			mapToResponseModel(from.Context.Response, out.HTTP.Response)
 		}
 		if from.Context.Request.URL.IsSet() {
@@ -290,13 +291,13 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 			}
 			if out.Page.Referer != "" {
 				if out.HTTP == nil {
-					out.HTTP = &model.Http{}
+					out.HTTP = &model.HTTP{}
 				}
 				if out.HTTP.Request == nil {
-					out.HTTP.Request = &model.Req{}
+					out.HTTP.Request = &model.HTTPRequest{}
 				}
-				if out.HTTP.Request.Referer == "" {
-					out.HTTP.Request.Referer = out.Page.Referer
+				if out.HTTP.Request.Referrer == "" {
+					out.HTTP.Request.Referrer = out.Page.Referer
 				}
 			}
 		}
@@ -609,7 +610,7 @@ func mapToPageModel(from contextPage, out *model.Page) {
 	}
 }
 
-func mapToRequestModel(from contextRequest, out *model.Req) {
+func mapToRequestModel(from contextRequest, out *model.HTTPRequest) {
 	if from.Method.IsSet() {
 		out.Method = from.Method.Val
 	}
@@ -617,7 +618,7 @@ func mapToRequestModel(from contextRequest, out *model.Req) {
 		out.Env = from.Env.Clone()
 	}
 	if from.Socket.IsSet() {
-		out.Socket = &model.Socket{}
+		out.Socket = &model.HTTPRequestSocket{}
 		if from.Socket.Encrypted.IsSet() {
 			val := from.Socket.Encrypted.Val
 			out.Socket.Encrypted = &val
@@ -627,13 +628,13 @@ func mapToRequestModel(from contextRequest, out *model.Req) {
 		}
 	}
 	if from.Body.IsSet() {
-		out.Body = from.Body.Val
+		out.Body = modeldecoderutil.NormalizeHTTPRequestBody(from.Body.Val)
 	}
 	if len(from.Cookies) > 0 {
 		out.Cookies = from.Cookies.Clone()
 	}
 	if from.Headers.IsSet() {
-		out.Headers = from.Headers.Val.Clone()
+		out.Headers = modeldecoderutil.HTTPHeadersToMap(from.Headers.Val.Clone())
 	}
 }
 
@@ -668,13 +669,13 @@ func mapToRequestURLModel(from contextRequestURL, out *model.URL) {
 	}
 }
 
-func mapToResponseModel(from contextResponse, out *model.Resp) {
+func mapToResponseModel(from contextResponse, out *model.HTTPResponse) {
 	if from.Finished.IsSet() {
 		val := from.Finished.Val
 		out.Finished = &val
 	}
 	if from.Headers.IsSet() {
-		out.Headers = from.Headers.Val.Clone()
+		out.Headers = modeldecoderutil.HTTPHeadersToMap(from.Headers.Val.Clone())
 	}
 	if from.HeadersSent.IsSet() {
 		val := from.HeadersSent.Val
@@ -825,10 +826,11 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 	if from.Context.HTTP.IsSet() {
 		http := model.HTTP{}
 		if from.Context.HTTP.Method.IsSet() {
-			http.Method = from.Context.HTTP.Method.Val
+			http.Request = &model.HTTPRequest{}
+			http.Request.Method = from.Context.HTTP.Method.Val
 		}
 		if from.Context.HTTP.Response.IsSet() {
-			response := model.MinimalResp{}
+			response := model.HTTPResponse{}
 			if from.Context.HTTP.Response.DecodedBodySize.IsSet() {
 				val := from.Context.HTTP.Response.DecodedBodySize.Val
 				response.DecodedBodySize = &val
@@ -838,7 +840,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 				response.EncodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.Headers.IsSet() {
-				response.Headers = from.Context.HTTP.Response.Headers.Val.Clone()
+				response.Headers = modeldecoderutil.HTTPHeadersToMap(from.Context.HTTP.Response.Headers.Val.Clone())
 			}
 			if from.Context.HTTP.Response.StatusCode.IsSet() {
 				response.StatusCode = from.Context.HTTP.Response.StatusCode.Val
@@ -850,10 +852,13 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 			http.Response = &response
 		}
 		if from.Context.HTTP.StatusCode.IsSet() {
-			http.StatusCode = from.Context.HTTP.StatusCode.Val
+			if http.Response == nil {
+				http.Response = &model.HTTPResponse{}
+			}
+			http.Response.StatusCode = from.Context.HTTP.StatusCode.Val
 		}
 		if from.Context.HTTP.URL.IsSet() {
-			http.URL = from.Context.HTTP.URL.Val
+			out.URL = from.Context.HTTP.URL.Val
 		}
 		out.HTTP = &http
 	}
@@ -1031,7 +1036,7 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 			}
 		}
 		if from.Context.Request.IsSet() {
-			out.HTTP = &model.Http{Request: &model.Req{}}
+			out.HTTP = &model.HTTP{Request: &model.HTTPRequest{}}
 			mapToRequestModel(from.Context.Request, out.HTTP.Request)
 			if from.Context.Request.HTTPVersion.IsSet() {
 				out.HTTP.Version = from.Context.Request.HTTPVersion.Val
@@ -1043,9 +1048,9 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 		}
 		if from.Context.Response.IsSet() {
 			if out.HTTP == nil {
-				out.HTTP = &model.Http{}
+				out.HTTP = &model.HTTP{}
 			}
-			out.HTTP.Response = &model.Resp{}
+			out.HTTP.Response = &model.HTTPResponse{}
 			mapToResponseModel(from.Context.Response, out.HTTP.Response)
 		}
 		if from.Context.Page.IsSet() {
@@ -1056,13 +1061,13 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 			}
 			if out.Page.Referer != "" {
 				if out.HTTP == nil {
-					out.HTTP = &model.Http{}
+					out.HTTP = &model.HTTP{}
 				}
 				if out.HTTP.Request == nil {
-					out.HTTP.Request = &model.Req{}
+					out.HTTP.Request = &model.HTTPRequest{}
 				}
-				if out.HTTP.Request.Referer == "" {
-					out.HTTP.Request.Referer = out.Page.Referer
+				if out.HTTP.Request.Referrer == "" {
+					out.HTTP.Request.Referrer = out.Page.Referer
 				}
 			}
 		}
