@@ -18,6 +18,7 @@
 package v2
 
 import (
+	"encoding/json"
 	"net"
 	"net/http"
 	"strings"
@@ -161,17 +162,15 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 	t.Run("transaction-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
-			// metadata are tested separately
-			if strings.HasPrefix(key, "Metadata") ||
-				// URL parts are derived from url (separately tested)
-				strings.HasPrefix(key, "Page.URL") ||
-				// experimental is tested separately
-				key == "Experimental" ||
-				// RepresentativeCount is not set by decoder
-				key == "RepresentativeCount" {
+			// All the below exceptions are tested separately
+			if strings.HasPrefix(key, "Metadata") || strings.HasPrefix(key, "Page.URL") {
 				return true
 			}
-			return false
+			switch key {
+			case "Headers", "Experimental", "RepresentativeCount":
+				return true
+			}
+			return true
 		}
 
 		var input transaction
@@ -199,6 +198,28 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})
 
+	t.Run("http-headers", func(t *testing.T) {
+		var input transaction
+		input.Context.Request.Headers.Set(http.Header{"a": []string{"b"}, "c": []string{"d", "e"}})
+		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
+		var out model.Transaction
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: false}, &out)
+		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
+		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.HTTP.Response.Headers)
+	})
+
+	t.Run("http-request-body", func(t *testing.T) {
+		var input transaction
+		input.Context.Request.Body.Set(map[string]interface{}{
+			"a": json.Number("123.456"),
+			"b": nil,
+			"c": "d",
+		})
+		var out model.Transaction
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: false}, &out)
+		assert.Equal(t, map[string]interface{}{"a": common.Float(123.456), "c": "d"}, out.HTTP.Request.Body)
+	})
+
 	t.Run("page.URL", func(t *testing.T) {
 		var input transaction
 		input.Context.Page.URL.Set("https://my.site.test:9201")
@@ -216,7 +237,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var out model.Transaction
 		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: false}, &out)
 		assert.Equal(t, "https://my.site.test:9201", out.Page.Referer)
-		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referer)
+		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referrer)
 	})
 
 	t.Run("sample-rate", func(t *testing.T) {

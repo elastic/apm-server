@@ -232,9 +232,7 @@ func TestHTTPSpanURL(t *testing.T) {
 	test := func(t *testing.T, expected string, attrs map[string]pdata.AttributeValue) {
 		t.Helper()
 		span := transformSpanWithAttributes(t, attrs)
-		require.NotNil(t, span.HTTP)
-		require.NotNil(t, span.HTTP.URL)
-		assert.Equal(t, expected, span.HTTP.URL)
+		assert.Equal(t, expected, span.URL)
 	}
 
 	t.Run("host.url", func(t *testing.T) {

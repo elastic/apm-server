@@ -18,6 +18,7 @@
 package rumv3
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -125,6 +126,9 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 				"Exception.Parent",
 				// GroupingKey is set by a model processor
 				"GroupingKey",
+				// HTTP headers tested in 'http-headers'
+				"HTTP.Request.Headers",
+				"HTTP.Response.Headers",
 				// stacktrace original and sourcemap values are set when sourcemapping is applied
 				"Exception.Stacktrace.Original",
 				"Exception.Stacktrace.Sourcemap",
@@ -187,7 +191,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var out model.Error
 		mapToErrorModel(&input, initializedMetadata(), time.Now(), &out)
 		assert.Equal(t, "https://my.site.test:9201", out.Page.Referer)
-		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referer)
+		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referrer)
 	})
 
 	t.Run("loggerName", func(t *testing.T) {
@@ -197,5 +201,15 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		mapToErrorModel(&input, initializedMetadata(), time.Now(), &out)
 		require.NotNil(t, out.Log.LoggerName)
 		assert.Equal(t, "default", out.Log.LoggerName)
+	})
+
+	t.Run("http-headers", func(t *testing.T) {
+		var input errorEvent
+		input.Context.Request.Headers.Set(http.Header{"a": []string{"b"}, "c": []string{"d", "e"}})
+		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
+		var out model.Error
+		mapToErrorModel(&input, initializedMetadata(), time.Now(), &out)
+		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
+		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.HTTP.Response.Headers)
 	})
 }

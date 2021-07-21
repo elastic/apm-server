@@ -302,7 +302,7 @@ func TestEvents(t *testing.T) {
 				TransactionSampled: &sampledTrue,
 				Labels:             labels,
 				Page:               &Page{URL: &URL{Original: url}, Referer: referer},
-				HTTP:               &Http{Request: &Req{Referer: referer}},
+				HTTP:               &HTTP{Request: &HTTPRequest{Referrer: referer}},
 				URL:                &URL{Original: url},
 				Custom:             custom,
 			},

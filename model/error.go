@@ -58,7 +58,7 @@ type Error struct {
 	Culprit     string
 	Labels      common.MapStr
 	Page        *Page
-	HTTP        *Http
+	HTTP        *HTTP
 	URL         *URL
 	Custom      common.MapStr
 
@@ -113,7 +113,9 @@ func (e *Error) toBeatEvent(ctx context.Context) beat.Event {
 	}
 
 	// then add event specific information
-	fields.maybeSetMapStr("http", e.HTTP.Fields())
+	if e.HTTP != nil {
+		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
+	}
 	fields.maybeSetMapStr("url", e.URL.Fields())
 	if e.Experimental != nil {
 		fields.set("experimental", e.Experimental)

@@ -66,7 +66,7 @@ func (tx transactionBuilder) setHTTPVersion(version string) {
 func (tx transactionBuilder) setHTTPRemoteAddr(remoteAddr string) {
 	tx.ensureHTTPRequest()
 	if tx.HTTP.Request.Socket == nil {
-		tx.HTTP.Request.Socket = &model.Socket{}
+		tx.HTTP.Request.Socket = &model.HTTPRequestSocket{}
 	}
 	tx.HTTP.Request.Socket.RemoteAddress = remoteAddr
 }
@@ -74,9 +74,9 @@ func (tx transactionBuilder) setHTTPRemoteAddr(remoteAddr string) {
 func (tx *transactionBuilder) setHTTPStatusCode(statusCode int) {
 	tx.ensureHTTP()
 	if tx.HTTP.Response == nil {
-		tx.HTTP.Response = &model.Resp{}
+		tx.HTTP.Response = &model.HTTPResponse{}
 	}
-	tx.HTTP.Response.MinimalResp.StatusCode = statusCode
+	tx.HTTP.Response.StatusCode = statusCode
 	if tx.Outcome == outcomeUnknown {
 		if statusCode >= 500 {
 			tx.Outcome = outcomeFailure
@@ -92,13 +92,13 @@ func (tx *transactionBuilder) setHTTPStatusCode(statusCode int) {
 func (tx *transactionBuilder) ensureHTTPRequest() {
 	tx.ensureHTTP()
 	if tx.HTTP.Request == nil {
-		tx.HTTP.Request = &model.Req{}
+		tx.HTTP.Request = &model.HTTPRequest{}
 	}
 }
 
 func (tx *transactionBuilder) ensureHTTP() {
 	if tx.HTTP == nil {
-		tx.HTTP = &model.Http{}
+		tx.HTTP = &model.HTTP{}
 	}
 }
 
