@@ -191,8 +191,14 @@ update-beats: update-beats-module update
 .PHONY: update-beats-module
 update-beats-module:
 	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
+	@GO_VERSION=$(shell cat $(BEATS_MODULE))/.go-version)
 	diff -u .go-version $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version \
-		|| { code=$$?; echo ".go-version out of sync with Beats"; exit $$code; }
+		|| { echo ".go-version out of sync with Beats, let's bump it"; \
+			 cp -f $(BEATS_MODULE))/.go-version .go-version ; \
+			 find . -maxdepth 2 -name Dockerfile -print0 | while IFS= read -r -d '' line; do \
+				sed -i'.bck' -E -e "s#(FROM golang):[0-9]+\.[0-9]+\.[0-9]+#\1:${GO_VERSION}#g" "$line" \
+			 done
+	}
 
 ##############################################################################
 # Kibana synchronisation.
