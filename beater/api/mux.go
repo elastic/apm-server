@@ -244,7 +244,7 @@ func agentConfigHandler(
 	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment, cfg.AgentAuth.Anonymous.AllowAgent)
 
 	if !cfg.Kibana.Enabled && cfg.AgentConfigs == nil {
-		fmt.Printf("agent configs == nil\n")
+		fmt.Printf("fetcher agent configs == nil\n")
 		msg := "Agent remote configuration is disabled. " +
 			"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +
 			"If you are using a RUM agent, you also need to configure the `apm-server.rum` section. " +
@@ -252,7 +252,7 @@ func agentConfigHandler(
 		mw = append(mw, middleware.KillSwitchMiddleware(cfg.Kibana.Enabled, msg))
 	}
 
-	fmt.Printf("setting agent config handler: %+v\n", f)
+	fmt.Printf("fetcher setting agent config handler: %+v\n", f)
 	return middleware.Wrap(h, mw...)
 }
 

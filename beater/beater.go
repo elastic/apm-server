@@ -468,20 +468,19 @@ func (s *serverRunner) configure(args serverRunnerParams) error {
 			return err
 		}
 		s.server = server
-	}
-
-	// TODO: What arguments do we need to provide
-	if err := s.server.configure(
-		s.logger,
-		s.beat.Info,
-		s.config,
-		s.tracer,
-		s.publisher.Send,
-		s.sourcemapStore,
-		s.batchProcessor,
-	); err != nil {
-		s.logger.Errorf("failed to configure server: %v", err)
-		return err
+	} else {
+		if err := s.server.configure(
+			s.logger,
+			s.beat.Info,
+			s.config,
+			s.tracer,
+			s.publisher.Send,
+			s.sourcemapStore,
+			s.batchProcessor,
+		); err != nil {
+			s.logger.Errorf("failed to configure server: %v", err)
+			return err
+		}
 	}
 
 	return nil
@@ -552,7 +551,7 @@ func (s *serverRunner) run() error {
 		signal.Notify(sigs, syscall.SIGUSR1)
 		for {
 			select {
-			case sig := <-sigs:
+			case <-sigs:
 				// TODO: When ctrl-c the program, some part of
 				// this reload is stuck and never exits.
 				// Sending a SIGUSR1 causes a panic when trying

@@ -20,6 +20,7 @@ package beater
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -80,8 +81,11 @@ type ServerParams struct {
 }
 
 type server struct {
-	logger                *logp.Logger
-	cfg                   *config.Config
+	logger *logp.Logger
+	cfg    *config.Config
+
+	agentCtx              context.Context
+	agentCancel           context.CancelFunc
 	agentcfgFetchReporter agentcfg.Reporter
 
 	httpServer   *httpServer
@@ -200,7 +204,9 @@ func (s *server) configure(
 	sourcemapStore *sourcemap.Store,
 	batchProcessor model.BatchProcessor,
 ) error {
-	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor, 30*time.Second)
+	fmt.Println("creating fetcher reporter")
+	s.agentcfgFetchReporter = agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor, 30*time.Second)
+	fmt.Println("creating fetcher created")
 	ratelimitStore, err := ratelimit.NewStore(
 		cfg.AgentAuth.Anonymous.RateLimit.IPLimit,
 		cfg.AgentAuth.Anonymous.RateLimit.EventLimit,
@@ -209,6 +215,11 @@ func (s *server) configure(
 	if err != nil {
 		return err
 	}
+	if s.agentCancel != nil {
+		s.agentCancel()
+		// Create a new ctx based on the original sent in to run()
+		s.startFetchReporter(s.agentCtx)
+	}
 	return s.httpServer.configure(
 		logger,
 		info,
@@ -216,10 +227,16 @@ func (s *server) configure(
 		tracer,
 		reporter,
 		batchProcessor,
-		agentcfgFetchReporter,
+		s.agentcfgFetchReporter,
 		ratelimitStore,
 		sourcemapStore,
 	)
+}
+
+func (s *server) startFetchReporter(ctx context.Context) {
+	s.agentCtx = ctx
+	ctx, s.agentCancel = context.WithCancel(s.agentCtx)
+	go s.agentcfgFetchReporter.Run(ctx)
 }
 
 func (s *server) run(ctx context.Context, args ServerParams) error {
@@ -232,7 +249,7 @@ func (s *server) run(ctx context.Context, args ServerParams) error {
 		case <-done:
 		}
 	}()
-	go s.agentcfgFetchReporter.Run(ctx)
+	s.startFetchReporter(ctx)
 
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	var g errgroup.Group
@@ -256,4 +273,7 @@ func (s server) stop() {
 	}
 	s.grpcServer.GracefulStop()
 	s.httpServer.stop()
+	if s.agentCancel != nil {
+		s.agentCancel()
+	}
 }
