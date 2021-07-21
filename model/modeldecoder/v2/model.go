@@ -605,9 +605,12 @@ type span struct {
 	Action nullable.String `json:"action" validate:"maxLength=1024"`
 	// ChildIDs holds a list of successor transactions and/or spans.
 	ChildIDs []string `json:"child_ids" validate:"maxLength=1024"`
+	// Composite holds details on a group of spans represented by a single one.
+	Composite spanComposite `json:"composite"`
 	// Context holds arbitrary contextual information for the event.
 	Context spanContext `json:"context"`
-	// Duration of the span in milliseconds
+	// Duration of the span in milliseconds. When the span is a composite one,
+	// duration is the gross duration, including "whitespace" in between spans.
 	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
 	// ID holds the hex encoded 64 random bits ID of the event.
 	ID nullable.String `json:"id" validate:"required,maxLength=1024"`
@@ -766,6 +769,18 @@ type stacktraceFrame struct {
 	// Vars is a flat mapping of local variables of the frame.
 	Vars common.MapStr `json:"vars"`
 	_    struct{}      `validate:"requiredAnyOf=classname;filename"`
+}
+
+type spanComposite struct {
+	// Count is the number of compressed spans the composite span represents.
+	// The minimum count is 2, as a composite span represents at least two spans.
+	Count nullable.Int `json:"count" validate:"required,min=2"`
+	// Sum is the durations of all compressed spans this composite span
+	// represents in milliseconds.
+	Sum nullable.Float64 `json:"sum" validate:"required,min=0"`
+	// A string value indicating which compression strategy was used. The valid
+	// values are `exact_match` and `same_kind`.
+	CompressionStrategy nullable.String `json:"compression_strategy" validate:"required"`
 }
 
 type transaction struct {
