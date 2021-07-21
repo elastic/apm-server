@@ -18,11 +18,18 @@
 package systemtest_test
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
+
+	"go.elastic.co/apm"
+
+	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v7/esutil"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
@@ -52,4 +59,67 @@ func TestIngestPipeline(t *testing.T) {
 	destinationIP := gjson.GetBytes(result.Hits.Hits[0].RawSource, "destination.ip")
 	assert.True(t, destinationIP.Exists())
 	assert.Equal(t, "::1", destinationIP.String())
+}
+
+func TestDataStreamMigrationIngestPipeline(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServer(t)
+
+	// Send a transaction, span, error, and metrics.
+	tracer := srv.Tracer()
+	tracer.RegisterMetricsGatherer(apm.GatherMetricsFunc(func(ctx context.Context, m *apm.Metrics) error {
+		m.Add("custom_metric", nil, 123)
+		return nil
+	}))
+	tx := tracer.StartTransaction("name", "type")
+	span := tx.StartSpan("name", "type", nil)
+	tracer.NewError(errors.New("boom")).Send()
+	span.End()
+	tx.End()
+	tracer.Flush(nil)
+	tracer.SendMetrics(nil)
+
+	// We expect at least 6 events:
+	// - onboarding
+	// - transaction
+	// - span
+	// - error
+	// - internal metricset
+	// - app metricset
+	for _, query := range []interface{}{
+		estest.TermQuery{Field: "processor.event", Value: "onboarding"},
+		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+		estest.TermQuery{Field: "processor.event", Value: "span"},
+		estest.TermQuery{Field: "processor.event", Value: "error"},
+		estest.TermQuery{Field: "metricset.name", Value: "transaction_breakdown"},
+		estest.TermQuery{Field: "metricset.name", Value: "app"},
+	} {
+		systemtest.Elasticsearch.ExpectDocs(t, "apm-*", query)
+	}
+
+	refresh := true
+	_, err := systemtest.Elasticsearch.Do(context.Background(), &esapi.ReindexRequest{
+		Refresh: &refresh,
+		Body: esutil.NewJSONReader(map[string]interface{}{
+			"source": map[string]interface{}{
+				"index": "apm-*",
+			},
+			"dest": map[string]interface{}{
+				"index":    "apm-migration",
+				"pipeline": "apm_data_stream_migration",
+				"op_type":  "create",
+			},
+		}),
+	}, nil)
+	require.NoError(t, err)
+
+	// There should only be an onboarding doc in "apm-migration".
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-migration", nil)
+	require.Len(t, result.Hits.Hits, 1)
+	assert.Equal(t, "onboarding", gjson.GetBytes(result.Hits.Hits[0].RawSource, "processor.event").String())
+
+	systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm-migrated", nil) // transaction, span
+	systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.error-migrated", nil)
+	systemtest.Elasticsearch.ExpectMinDocs(t, 1, "metrics-apm.internal-migrated", nil)
+	systemtest.Elasticsearch.ExpectMinDocs(t, 1, "metrics-apm.app.systemtest-migrated", nil)
 }
