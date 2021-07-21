@@ -43,6 +43,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Add HTTP span fields as top level ECS fields {pull}5396[5396]
 * Introduce `apm-server.auth.anonymous.*` config {pull}5623[5623]
 * Upgrade Go to 1.16.6 {pull}5754[5754]
+* Introduce ingest pipeline `apm_data_stream_migration` for migrating pre-data stream indices {5768}[5768]
 
 [float]
 ==== Deprecated
