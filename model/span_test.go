@@ -100,7 +100,11 @@ func TestSpanTransform(t *testing.T) {
 				Duration:            1.20,
 				Stacktrace:          Stacktrace{{AbsPath: path}},
 				Labels:              common.MapStr{"label_a": 12},
-				HTTP:                &HTTP{Method: method, StatusCode: statusCode, URL: url},
+				HTTP: &HTTP{
+					Request:  &HTTPRequest{Method: method},
+					Response: &HTTPResponse{StatusCode: statusCode},
+				},
+				URL: url,
 				DB: &DB{
 					Instance:     instance,
 					Statement:    statement,
@@ -137,10 +141,10 @@ func TestSpanTransform(t *testing.T) {
 						"rows_affected": rowsAffected,
 					},
 					"http": common.MapStr{
-						"url":      common.MapStr{"original": url},
 						"response": common.MapStr{"status_code": statusCode},
 						"method":   "get",
 					},
+					"http.url.original": url,
 					"destination": common.MapStr{
 						"service": common.MapStr{
 							"type":     destServiceType,
@@ -159,8 +163,8 @@ func TestSpanTransform(t *testing.T) {
 				"destination": common.MapStr{"address": address, "port": port},
 				"event":       common.MapStr{"outcome": "unknown"},
 				"http": common.MapStr{
-					"response":       common.MapStr{"status_code": statusCode},
-					"request.method": "get",
+					"response": common.MapStr{"status_code": statusCode},
+					"request":  common.MapStr{"method": "get"},
 				},
 				"url.original": url,
 			},

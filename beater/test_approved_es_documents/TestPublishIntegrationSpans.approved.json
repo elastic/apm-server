@@ -585,7 +585,9 @@
                 }
             },
             "http": {
-                "request.method": "GET",
+                "request": {
+                    "method": "GET"
+                },
                 "response": {
                     "status_code": 200
                 }
@@ -676,11 +678,9 @@
                         "encoded_body_size": 356,
                         "status_code": 200,
                         "transfer_size": 300.12
-                    },
-                    "url": {
-                        "original": "http://localhost:8000"
                     }
                 },
+                "http.url.original": "http://localhost:8000",
                 "id": "1234567890aaaade",
                 "name": "SELECT FROM product_types",
                 "stacktrace": [

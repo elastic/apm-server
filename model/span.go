@@ -65,6 +65,7 @@ type Span struct {
 
 	DB                 *DB
 	HTTP               *HTTP
+	URL                string
 	Destination        *Destination
 	DestinationService *DestinationService
 
@@ -86,16 +87,6 @@ type DB struct {
 	UserName     string
 	Link         string
 	RowsAffected *int
-}
-
-// HTTP contains information about the outgoing http request information of a span event
-//
-// TODO(axw) combine this and "Http", which is used by transaction and error, into one type.
-type HTTP struct {
-	URL        string
-	StatusCode int
-	Method     string
-	Response   *MinimalResp
 }
 
 // Destination contains contextual data about the destination of a span, such as address and port
@@ -123,33 +114,6 @@ func (db *DB) fields() common.MapStr {
 	fields.maybeSetIntptr("rows_affected", db.RowsAffected)
 	if user.maybeSetString("name", db.UserName) {
 		fields.set("user", common.MapStr(user))
-	}
-	return common.MapStr(fields)
-}
-
-func (http *HTTP) fields(ecsOnly bool) common.MapStr {
-	if http == nil {
-		return nil
-	}
-	var fields, url mapStr
-	if !ecsOnly {
-		if url.maybeSetString("original", http.URL) {
-			fields.set("url", common.MapStr(url))
-		}
-	}
-	response := http.Response.Fields(ecsOnly)
-	if http.StatusCode > 0 {
-		if response == nil {
-			response = common.MapStr{"status_code": http.StatusCode}
-		} else if http.Response.StatusCode == 0 {
-			response["status_code"] = http.StatusCode
-		}
-	}
-	fields.maybeSetMapStr("response", response)
-	if ecsOnly {
-		fields.maybeSetString("request.method", http.Method)
-	} else {
-		fields.maybeSetString("method", http.Method)
 	}
 	return common.MapStr(fields)
 }
@@ -215,10 +179,10 @@ func (e *Span) toBeatEvent(ctx context.Context) beat.Event {
 		fields.set("experimental", e.Experimental)
 	}
 	fields.maybeSetMapStr("destination", e.Destination.fields())
-	fields.maybeSetMapStr("http", e.HTTP.fields(true))
 	if e.HTTP != nil {
-		fields.maybeSetString("url.original", e.HTTP.URL)
+		fields.maybeSetMapStr("http", e.HTTP.spanTopLevelFields())
 	}
+	fields.maybeSetString("url.original", e.URL)
 
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
@@ -244,8 +208,11 @@ func (e *Span) fields(ctx context.Context) common.MapStr {
 	}
 	fields.set("duration", utility.MillisAsMicros(e.Duration))
 
+	if e.HTTP != nil {
+		fields.maybeSetMapStr("http", e.HTTP.spanFields())
+		fields.maybeSetString("http.url.original", e.URL)
+	}
 	fields.maybeSetMapStr("db", e.DB.fields())
-	fields.maybeSetMapStr("http", e.HTTP.fields(false))
 	fields.maybeSetMapStr("message", e.Message.Fields())
 	if destinationServiceFields := e.DestinationService.fields(); len(destinationServiceFields) > 0 {
 		common.MapStr(fields).Put("destination.service", destinationServiceFields)

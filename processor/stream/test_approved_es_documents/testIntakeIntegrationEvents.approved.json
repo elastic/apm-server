@@ -149,9 +149,7 @@
             },
             "http": {
                 "request": {
-                    "body": {
-                        "original": "HelloWorld"
-                    },
+                    "body.original": "HelloWorld",
                     "cookies": {
                         "c1": "v1",
                         "c2": "v2"
@@ -300,9 +298,11 @@
                 }
             },
             "http": {
-                "request.method": "GET",
+                "request": {
+                    "method": "GET"
+                },
                 "response": {
-                    "status_code": 200
+                    "status_code": 302
                 }
             },
             "kubernetes": {
@@ -379,13 +379,11 @@
                                 "application/json"
                             ]
                         },
-                        "status_code": 200,
+                        "status_code": 302,
                         "transfer_size": 300.12
-                    },
-                    "url": {
-                        "original": "http://localhost:8000"
                     }
                 },
+                "http.url.original": "http://localhost:8000",
                 "id": "1234567890aaaade",
                 "name": "GET users-authenticated",
                 "stacktrace": [
@@ -455,14 +453,12 @@
             },
             "http": {
                 "request": {
-                    "body": {
-                        "original": {
-                            "additional": {
-                                "bar": 123,
-                                "req": "additionalinformation"
-                            },
-                            "string": "helloworld"
-                        }
+                    "body.original": {
+                        "additional": {
+                            "bar": 123,
+                            "req": "additionalinformation"
+                        },
+                        "string": "helloworld"
                     },
                     "cookies": {
                         "c1": "v1",
