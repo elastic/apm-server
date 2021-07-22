@@ -266,12 +266,14 @@ func (s *serverCreator) Create(p beat.PipelineConnector, rawConfig *common.Confi
 		RawConfig:                apmServerCommonConfig,
 		FleetConfig:              &integrationConfig.Fleet,
 	}
-	if s.runner != nil {
-		// If we've already created a runner, just reconfigure it.
-		return s.runner, s.runner.configure(params)
-	} else {
+	if s.runner == nil || s.runner.status == runnerDone {
+		// If we don't have a runner, create it.
+		// If the runner is done, create a new one.
 		s.runner, err = newServerRunner(s.context, params)
 		return s.runner, err
+	} else {
+		// If we've already created a runner, just reconfigure it.
+		return s.runner, s.runner.configure(params)
 	}
 }
 
@@ -292,7 +294,7 @@ type serverRunner struct {
 
 	mu              sync.Mutex
 	sourcemapStore  *sourcemap.Store
-	running         bool
+	status          runnerStatus
 	publisher       *publish.Publisher
 	pipeline        beat.PipelineConnector
 	batchProcessor  model.BatchProcessor
@@ -312,6 +314,14 @@ type serverRunner struct {
 	// delete me
 	params serverRunnerParams
 }
+
+type runnerStatus int
+
+const (
+	runnerCreated runnerStatus = iota
+	runnerRunning
+	runnerDone
+)
 
 type serverRunnerParams struct {
 	sharedServerRunnerParams
@@ -353,6 +363,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		tracerServer:           args.TracerServer,
 		wrapRunServer:          args.WrapRunServer,
 		restartc:               make(chan struct{}),
+		status:                 runnerCreated,
 		// This is just for testing right now.
 		params: args,
 	}
@@ -431,7 +442,7 @@ func (s *serverRunner) configure(args serverRunnerParams) error {
 		s.sourcemapStore = nil
 	}
 
-	if !s.running {
+	if s.status == runnerCreated {
 		pipeline := pipetool.WithACKer(s.pipeline, s.acker)
 		publisherConfig := &publish.PublisherConfig{
 			Info:      s.beat.Info,
@@ -508,6 +519,7 @@ func (s *serverRunner) Stop() {
 		case <-t.C:
 			s.stopOnce.Do(s.cancelRunServerContext)
 			s.Wait()
+			s.status = runnerDone
 		case <-s.restartc:
 			// We've received a message from Start(), don't shut
 			// the server down.
@@ -538,12 +550,15 @@ func (s *serverRunner) Start() {
 		defer s.wg.Done()
 		s.mu.Lock()
 
-		if !s.running {
-			s.running = true
+		switch s.status {
+		case runnerCreated:
+			s.status = runnerRunning
 			s.mu.Unlock()
 			s.run()
-		} else {
+		case runnerRunning:
 			s.mu.Unlock()
+		case runnerDone:
+			// TODO: We don't want this to happen.
 		}
 	}()
 }
