@@ -8,7 +8,6 @@ require (
 	github.com/apache/thrift v0.14.2
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
-	github.com/coreos/etcd v3.3.13+incompatible // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/dop251/goja v0.0.0-20210712101704-705acef95ba3 // indirect
@@ -26,7 +25,6 @@ require (
 	github.com/elastic/go-licenser v0.3.1
 	github.com/elastic/go-ucfg v0.8.4-0.20200415140258-1232bd4774a6
 	github.com/fatih/color v1.12.0 // indirect
-	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogo/protobuf v1.3.2
@@ -104,5 +102,9 @@ replace (
 	k8s.io/apimachinery => k8s.io/apimachinery v0.19.4
 	k8s.io/client-go => k8s.io/client-go v0.19.4
 )
+
+// We replace golang/glog, which is used by ristretto, to avoid polluting the
+// command line flags and conflicting with command line flags added by libbeat.
+replace github.com/golang/glog => github.com/slok/noglog v0.2.0
 
 replace go.opentelemetry.io/collector => ./internal/otel_collector
