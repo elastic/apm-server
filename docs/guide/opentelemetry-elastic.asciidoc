@@ -315,6 +315,11 @@ To instrument AWS Lambda Node.js functions, follow the official https://aws-otel
 
 Noteworthy configuration elements:
 
+IMPORTANT: Due to a limitation in AWS Lambda Otel Layer for Node.js v0.19 (see https://github.com/aws-observability/aws-otel-lambda/issues/118 ), it is required to create a trace in the calling invocation of the Node.js lambda functions in order to force the sampling strategy to `sampled:true` passing a `traceparent` header with `sampled=true` i.e. with `-01` at the end of the value. 
+Creating a trace in the calling invocation of the Lambda function can be achieved using these or other methods that result in `traceparent` header added to the outgoing HTTP call:
+* If the caller is a web browser, instrumenting the caller with [Elastic RUM](https://www.elastic.co/guide/en/apm/get-started/current/rum.html) [enabling distributed tracing on the RUM agent](https://www.elastic.co/guide/en/apm/agent/rum-js/5.x/distributed-tracing-guide.html).
+* If the caller is an application, instrumenting this application with an OpenTelemetry or Elastic APM agent ensuring distributed tracing is enabled.
+
 * The configuration of the OpenTelemetry Collector, with the definition of the Elastic Observability endpoint, can be added to the root directory of the Lambda binaries (e.g. defined in `src/main/resources/opentelemetry-collector.yaml`)
 +
 [source,yaml]
@@ -366,7 +371,7 @@ We recommend using an infrastructure as code solution like Terraform or Ansible 
 
 Here is an example of AWS Lambda Node.js function managed with Terraform and the https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function[AWS Provider / Lambda Functions]:
 
-* Sample Terraform code: https://github.com/michaelhyatt/terraform-aws-nodejs-api-worker-otel
+* Sample Terraform code: https://github.com/michaelhyatt/terraform-aws-nodejs-api-worker-otel/tree/v0.19
 
 [[elastic-open-telemetry-known-limitations]]
 ==== Limitations in 7.13
