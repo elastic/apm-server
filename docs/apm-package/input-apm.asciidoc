@@ -7,7 +7,7 @@
 <titleabbrev>Input settings</titleabbrev>
 ++++
 
-experimental::[]
+beta::[]
 
 To edit the APM integration input settings, open {kib} and select:
 **Fleet** / **Integrations** / **Elastic APM** / **Add Elastic APM**.
