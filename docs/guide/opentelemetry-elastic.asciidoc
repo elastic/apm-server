@@ -369,7 +369,7 @@ Lambda layer for OpenTelemetry] (e.g. `arn:aws:lambda:eu-west-1:901920570463:lay
 [[open-telemetry-aws-lambda-elastic-nodejs-terraform]]
 ===== Instrumenting AWS Lambda Node.js functions with Terraform
 
-We recommend using an infrastructure as code solution like Terraform or Ansible to manage the configuration of your AWS Lambda functions.
+To manage the configuration of your AWS Lambda functions, we recommend using an infrastructure as code solution like Terraform or Ansible.
 
 Here is an example of AWS Lambda Node.js function managed with Terraform and the https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function[AWS Provider / Lambda Functions]:
 
