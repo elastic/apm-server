@@ -37,9 +37,9 @@ func TestSetSystemHostname(t *testing.T) {
 		},
 	}
 	withKubernetesPodName := withDetectedHostname
-	withKubernetesPodName.System.Kubernetes.PodName = "kubernetes.pod.name"
+	withKubernetesPodName.Kubernetes.PodName = "kubernetes.pod.name"
 	withKubernetesNodeName := withKubernetesPodName
-	withKubernetesNodeName.System.Kubernetes.NodeName = "kubernetes.node.name"
+	withKubernetesNodeName.Kubernetes.NodeName = "kubernetes.node.name"
 
 	processor := modelprocessor.SetSystemHostname{}
 

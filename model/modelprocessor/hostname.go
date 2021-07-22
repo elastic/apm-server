@@ -35,11 +35,11 @@ func (SetSystemHostname) ProcessBatch(ctx context.Context, b *model.Batch) error
 
 func setSystemHostname(ctx context.Context, meta *model.Metadata) error {
 	switch {
-	case meta.System.Kubernetes.NodeName != "":
+	case meta.Kubernetes.NodeName != "":
 		// system.kubernetes.node.name is set: set host.hostname to its value.
-		meta.System.DetectedHostname = meta.System.Kubernetes.NodeName
-	case meta.System.Kubernetes.PodName != "" || meta.System.Kubernetes.PodUID != "" || meta.System.Kubernetes.Namespace != "":
-		// system.kubernetes.* is set, but system.kubernetes.node.name is not: don't set host.hostname at all.
+		meta.System.DetectedHostname = meta.Kubernetes.NodeName
+	case meta.Kubernetes.PodName != "" || meta.Kubernetes.PodUID != "" || meta.Kubernetes.Namespace != "":
+		// kubernetes.* is set, but kubernetes.node.name is not: don't set host.hostname at all.
 		meta.System.DetectedHostname = ""
 	default:
 		// Otherwise use the originally specified host.hostname value.

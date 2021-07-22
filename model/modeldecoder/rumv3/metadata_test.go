@@ -47,7 +47,17 @@ func initializedMetadata() *model.Metadata {
 }
 
 func metadataExceptions(keys ...string) func(key string) bool {
-	missing := []string{"Cloud", "System", "Process", "Service.Node", "Service.Agent.EphemeralID"}
+	missing := []string{
+		"Agent",
+		"Cloud",
+		"Container",
+		"Kubernetes",
+		"Network",
+		"Process",
+		"Service.Node",
+		"Service.Agent.EphemeralID",
+		"System",
+	}
 	exceptions := append(missing, keys...)
 	return func(key string) bool {
 		for _, k := range exceptions {
@@ -74,9 +84,10 @@ func TestDecodeNestedMetadata(t *testing.T) {
 		testMinValidMetadata := `{"m":{"se":{"n":"name","a":{"n":"go","ve":"1.0.0"}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(testMinValidMetadata))
 		require.NoError(t, DecodeNestedMetadata(dec, &out))
-		assert.Equal(t, model.Metadata{Service: model.Service{
-			Name:  "name",
-			Agent: model.Agent{Name: "go", Version: "1.0.0"}}}, out)
+		assert.Equal(t, model.Metadata{
+			Service: model.Service{Name: "name"},
+			Agent:   model.Agent{Name: "go", Version: "1.0.0"},
+		}, out)
 
 		err := DecodeNestedMetadata(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &out)
 		require.Error(t, err)
@@ -100,8 +111,8 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 			labels.Put(fmt.Sprintf("%s%v", s, i), s)
 		}
 		return &model.Metadata{
+			Agent: model.Agent{Name: s, Version: s},
 			Service: model.Service{Name: s, Version: s, Environment: s,
-				Agent:     model.Agent{Name: s, Version: s},
 				Language:  model.Language{Name: s, Version: s},
 				Runtime:   model.Runtime{Name: s, Version: s},
 				Framework: model.Framework{Name: s, Version: s}},

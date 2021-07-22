@@ -347,14 +347,14 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 		transactionResult:  tx.Result,
 		transactionType:    tx.Type,
 
-		agentName:          tx.Metadata.Service.Agent.Name,
+		agentName:          tx.Metadata.Agent.Name,
 		serviceEnvironment: tx.Metadata.Service.Environment,
 		serviceName:        tx.Metadata.Service.Name,
 		serviceVersion:     tx.Metadata.Service.Version,
 
 		hostname:          tx.Metadata.System.DetectedHostname,
-		containerID:       tx.Metadata.System.Container.ID,
-		kubernetesPodName: tx.Metadata.System.Kubernetes.PodName,
+		containerID:       tx.Metadata.Container.ID,
+		kubernetesPodName: tx.Metadata.Kubernetes.PodName,
 	}
 }
 
@@ -366,16 +366,16 @@ func makeMetricset(
 		Timestamp: ts,
 		Name:      metricsetName,
 		Metadata: model.Metadata{
+			Agent:      model.Agent{Name: key.agentName},
+			Container:  model.Container{ID: key.containerID},
+			Kubernetes: model.Kubernetes{PodName: key.kubernetesPodName},
 			Service: model.Service{
 				Name:        key.serviceName,
 				Version:     key.serviceVersion,
 				Environment: key.serviceEnvironment,
-				Agent:       model.Agent{Name: key.agentName},
 			},
 			System: model.System{
 				DetectedHostname: key.hostname,
-				Container:        model.Container{ID: key.containerID},
-				Kubernetes:       model.Kubernetes{PodName: key.kubernetesPodName},
 			},
 		},
 		Event: model.MetricsetEventCategorization{

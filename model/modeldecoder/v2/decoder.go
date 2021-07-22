@@ -251,6 +251,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 	}
 	// overwrite metadata with event specific information
 	mapToServiceModel(from.Context.Service, &out.Metadata.Service)
+	mapToAgentModel(from.Context.Service.Agent, &out.Metadata.Agent)
 	overwriteUserInMetadataModel(from.Context.User, &out.Metadata)
 	mapToUserAgentModel(from.Context.Request.Headers, &out.Metadata)
 	mapToClientModel(from.Context.Request, &out.Metadata)
@@ -456,13 +457,13 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 
 	// Service
 	if from.Service.Agent.EphemeralID.IsSet() {
-		out.Service.Agent.EphemeralID = from.Service.Agent.EphemeralID.Val
+		out.Agent.EphemeralID = from.Service.Agent.EphemeralID.Val
 	}
 	if from.Service.Agent.Name.IsSet() {
-		out.Service.Agent.Name = from.Service.Agent.Name.Val
+		out.Agent.Name = from.Service.Agent.Name.Val
 	}
 	if from.Service.Agent.Version.IsSet() {
-		out.Service.Agent.Version = from.Service.Agent.Version.Val
+		out.Agent.Version = from.Service.Agent.Version.Val
 	}
 	if from.Service.Environment.IsSet() {
 		out.Service.Environment = from.Service.Environment.Val
@@ -503,7 +504,7 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 		out.System.ConfiguredHostname = from.System.ConfiguredHostname.Val
 	}
 	if from.System.Container.ID.IsSet() {
-		out.System.Container.ID = from.System.Container.ID.Val
+		out.Container.ID = from.System.Container.ID.Val
 	}
 	if from.System.DetectedHostname.IsSet() {
 		out.System.DetectedHostname = from.System.DetectedHostname.Val
@@ -513,16 +514,16 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 		out.System.DetectedHostname = from.System.DeprecatedHostname.Val
 	}
 	if from.System.Kubernetes.Namespace.IsSet() {
-		out.System.Kubernetes.Namespace = from.System.Kubernetes.Namespace.Val
+		out.Kubernetes.Namespace = from.System.Kubernetes.Namespace.Val
 	}
 	if from.System.Kubernetes.Node.Name.IsSet() {
-		out.System.Kubernetes.NodeName = from.System.Kubernetes.Node.Name.Val
+		out.Kubernetes.NodeName = from.System.Kubernetes.Node.Name.Val
 	}
 	if from.System.Kubernetes.Pod.Name.IsSet() {
-		out.System.Kubernetes.PodName = from.System.Kubernetes.Pod.Name.Val
+		out.Kubernetes.PodName = from.System.Kubernetes.Pod.Name.Val
 	}
 	if from.System.Kubernetes.Pod.UID.IsSet() {
-		out.System.Kubernetes.PodUID = from.System.Kubernetes.Pod.UID.Val
+		out.Kubernetes.PodUID = from.System.Kubernetes.Pod.UID.Val
 	}
 	if from.System.Platform.IsSet() {
 		out.System.Platform = from.System.Platform.Val
@@ -699,15 +700,6 @@ func mapToResponseModel(from contextResponse, out *model.HTTPResponse) {
 }
 
 func mapToServiceModel(from contextService, out *model.Service) {
-	if from.Agent.EphemeralID.IsSet() {
-		out.Agent.EphemeralID = from.Agent.EphemeralID.Val
-	}
-	if from.Agent.Name.IsSet() {
-		out.Agent.Name = from.Agent.Name.Val
-	}
-	if from.Agent.Version.IsSet() {
-		out.Agent.Version = from.Agent.Version.Val
-	}
 	if from.Environment.IsSet() {
 		out.Environment = from.Environment.Val
 	}
@@ -737,6 +729,18 @@ func mapToServiceModel(from contextService, out *model.Service) {
 	}
 	if from.Version.IsSet() {
 		out.Version = from.Version.Val
+	}
+}
+
+func mapToAgentModel(from contextServiceAgent, out *model.Agent) {
+	if from.Name.IsSet() {
+		out.Name = from.Name.Val
+	}
+	if from.Version.IsSet() {
+		out.Version = from.Version.Val
+	}
+	if from.EphemeralID.IsSet() {
+		out.EphemeralID = from.EphemeralID.Val
 	}
 }
 
@@ -894,6 +898,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 	}
 	if from.Context.Service.IsSet() {
 		mapToServiceModel(from.Context.Service, &out.Metadata.Service)
+		mapToAgentModel(from.Context.Service.Agent, &out.Metadata.Agent)
 	}
 	if len(from.Context.Tags) > 0 {
 		out.Labels = from.Context.Tags.Clone()
@@ -1015,6 +1020,7 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 	}
 	// overwrite metadata with event specific information
 	mapToServiceModel(from.Context.Service, &out.Metadata.Service)
+	mapToAgentModel(from.Context.Service.Agent, &out.Metadata.Agent)
 	overwriteUserInMetadataModel(from.Context.User, &out.Metadata)
 	mapToUserAgentModel(from.Context.Request.Headers, &out.Metadata)
 	mapToClientModel(from.Context.Request, &out.Metadata)

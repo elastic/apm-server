@@ -40,7 +40,7 @@ func setServiceNodeName(ctx context.Context, meta *model.Metadata) error {
 		// Already set.
 		return nil
 	}
-	nodeName := meta.System.Container.ID
+	nodeName := meta.Container.ID
 	if nodeName == "" {
 		nodeName = meta.System.ConfiguredHostname
 	}

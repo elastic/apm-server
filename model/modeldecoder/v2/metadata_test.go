@@ -38,19 +38,19 @@ func isUnmappedMetadataField(key string) bool {
 		"Client.Domain",
 		"Client.IP",
 		"Client.Port",
+		"Container.Runtime",
+		"Container.ImageName",
+		"Container.ImageTag",
+		"Container.Name",
+		"Network",
+		"Network.ConnectionType",
+		"Network.Carrier",
+		"Network.Carrier.Name",
+		"Network.Carrier.MCC",
+		"Network.Carrier.MNC",
+		"Network.Carrier.ICC",
 		"Process.CommandLine",
 		"Process.Executable",
-		"System.Container.Runtime",
-		"System.Container.ImageName",
-		"System.Container.ImageTag",
-		"System.Container.Name",
-		"System.Network",
-		"System.Network.ConnectionType",
-		"System.Network.Carrier",
-		"System.Network.Carrier.Name",
-		"System.Network.Carrier.MCC",
-		"System.Network.Carrier.MNC",
-		"System.Network.Carrier.ICC",
 		"System.FullPlatform",
 		"System.ID",
 		"System.IP",
@@ -104,9 +104,10 @@ func TestDecodeMetadata(t *testing.T) {
 			var out model.Metadata
 			dec := decoder.NewJSONDecoder(strings.NewReader(tc.input))
 			require.NoError(t, tc.decodeFn(dec, &out))
-			assert.Equal(t, model.Metadata{Service: model.Service{
-				Name:  "user-service",
-				Agent: model.Agent{Name: "go", Version: "1.0.0"}}}, out)
+			assert.Equal(t, model.Metadata{
+				Service: model.Service{Name: "user-service"},
+				Agent:   model.Agent{Name: "go", Version: "1.0.0"},
+			}, out)
 
 			err := tc.decodeFn(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &out)
 			require.Error(t, err)

@@ -240,7 +240,7 @@ func translateTransaction(
 	metadata model.Metadata,
 	tx *transactionBuilder,
 ) {
-	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
+	isJaeger := strings.HasPrefix(metadata.Agent.Name, "Jaeger")
 	labels := make(common.MapStr)
 
 	var (
@@ -346,15 +346,15 @@ func translateTransaction(
 			case conventions.AttributeNetHostName:
 				netHostName = stringval
 			case AttributeNetworkType:
-				tx.Metadata.System.Network.ConnectionType = stringval
+				tx.Metadata.Network.ConnectionType = stringval
 			case AttributeNetworkMCC:
-				tx.Metadata.System.Network.Carrier.MCC = stringval
+				tx.Metadata.Network.Carrier.MCC = stringval
 			case AttributeNetworkMNC:
-				tx.Metadata.System.Network.Carrier.MNC = stringval
+				tx.Metadata.Network.Carrier.MNC = stringval
 			case AttributeNetworkCarrierName:
-				tx.Metadata.System.Network.Carrier.Name = stringval
+				tx.Metadata.Network.Carrier.Name = stringval
 			case AttributeNetworkICC:
-				tx.Metadata.System.Network.Carrier.ICC = stringval
+				tx.Metadata.Network.Carrier.ICC = stringval
 
 			// messaging.*
 			case "message_bus.destination", conventions.AttributeMessagingDestination:
@@ -451,7 +451,7 @@ func translateTransaction(
 }
 
 func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) {
-	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
+	isJaeger := strings.HasPrefix(metadata.Agent.Name, "Jaeger")
 	labels := make(common.MapStr)
 
 	var (
@@ -570,15 +570,15 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 					netPeerName = stringval
 				}
 			case AttributeNetworkType:
-				event.Metadata.System.Network.ConnectionType = stringval
+				event.Metadata.Network.ConnectionType = stringval
 			case AttributeNetworkMCC:
-				event.Metadata.System.Network.Carrier.MCC = stringval
+				event.Metadata.Network.Carrier.MCC = stringval
 			case AttributeNetworkMNC:
-				event.Metadata.System.Network.Carrier.MNC = stringval
+				event.Metadata.Network.Carrier.MNC = stringval
 			case AttributeNetworkCarrierName:
-				event.Metadata.System.Network.Carrier.Name = stringval
+				event.Metadata.Network.Carrier.Name = stringval
 			case AttributeNetworkICC:
-				event.Metadata.System.Network.Carrier.ICC = stringval
+				event.Metadata.Network.Carrier.ICC = stringval
 
 			// messaging.*
 			case "message_bus.destination", conventions.AttributeMessagingDestination:
@@ -785,7 +785,7 @@ func convertSpanEvent(
 	out *model.Batch,
 ) {
 	var e *model.Error
-	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
+	isJaeger := strings.HasPrefix(metadata.Agent.Name, "Jaeger")
 	if isJaeger {
 		e = convertJaegerErrorSpanEvent(logger, event)
 	} else {

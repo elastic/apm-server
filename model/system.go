@@ -47,10 +47,6 @@ type System struct {
 	OSType       string
 	Type         string // host type, e.g. cloud instance machine type
 	IP           net.IP
-
-	Container  Container
-	Kubernetes Kubernetes
-	Network    Network
 }
 
 func (s *System) fields() common.MapStr {

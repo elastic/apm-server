@@ -31,8 +31,6 @@ import (
 
 func TestSystemTransformation(t *testing.T) {
 	detected, configured := "host", "custom hostname"
-	namespace := "staging"
-	nodename, podname, podUID := "a.node", "a.pod", "b.podID"
 
 	for name, system := range map[string]System{
 		"hostname":           {DetectedHostname: detected},
@@ -47,8 +45,6 @@ func TestSystemTransformation(t *testing.T) {
 			OSType:             "macos",
 			Type:               "t2.medium",
 			IP:                 net.ParseIP("127.0.0.1"),
-			Container:          Container{ID: "1234"},
-			Kubernetes:         Kubernetes{Namespace: namespace, NodeName: nodename, PodName: podname, PodUID: podUID},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -61,15 +57,4 @@ func TestSystemTransformation(t *testing.T) {
 			approvaltest.ApproveJSON(t, name, resultJSON)
 		})
 	}
-}
-
-func TestNetworkTransformation(t *testing.T) {
-	var fields mapStr
-	metadata := &Metadata{System: System{Network: Network{ConnectionType: "3G",
-		Carrier: Carrier{Name: "Three", MCC: "100", MNC: "200", ICC: "DK"}}}}
-	metadata.set(&fields, nil)
-	resultJSON, err := json.Marshal(fields["network"])
-	require.NoError(t, err)
-	name := filepath.Join("test_approved", "system", "network")
-	approvaltest.ApproveJSON(t, name, resultJSON)
 }

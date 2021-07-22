@@ -330,10 +330,10 @@ func languageOnlyMetadata(language string) model.Metadata {
 		Service: model.Service{
 			Name:     "unknown",
 			Language: model.Language{Name: language},
-			Agent: model.Agent{
-				Name:    "otlp/" + language,
-				Version: "unknown",
-			},
+		},
+		Agent: model.Agent{
+			Name:    "otlp/" + language,
+			Version: "unknown",
 		},
 	}
 }

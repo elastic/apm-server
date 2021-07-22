@@ -30,7 +30,7 @@ import (
 //
 // Client metadata is extracted from ctx, injected by interceptors.ClientMetadata.
 func SetClientMetadata(ctx context.Context, meta *model.Metadata) error {
-	if meta.Service.Agent.Name != "iOS/swift" {
+	if meta.Agent.Name != "iOS/swift" {
 		// This is not an event from an agent we would consider to be
 		// running on an end-user device.
 		//

@@ -38,7 +38,7 @@ func TestSetServiceNodeName(t *testing.T) {
 		},
 	}
 	withContainerID := withConfiguredHostname
-	withContainerID.System.Container.ID = "container_id"
+	withContainerID.Container.ID = "container_id"
 
 	processor := modelprocessor.SetServiceNodeName{}
 
