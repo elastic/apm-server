@@ -286,6 +286,7 @@ type serverRunner struct {
 	runServerContext       context.Context
 	cancelRunServerContext context.CancelFunc
 
+	restartc chan struct{}
 	stopOnce sync.Once
 	wg       sync.WaitGroup
 
@@ -351,6 +352,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		tracer:                 args.Tracer,
 		tracerServer:           args.TracerServer,
 		wrapRunServer:          args.WrapRunServer,
+		restartc:               make(chan struct{}),
 		// This is just for testing right now.
 		params: args,
 	}
@@ -490,12 +492,29 @@ func (s *serverRunner) String() string {
 	return "APMServer"
 }
 
-// Stop does nothing. The serverCreator updates the serverRunner.
-// TODO: How can we tell the difference between a stop/start in a restart, and
-// a stop for actually stopping?
+// Stop begins a timer, after which the server will shutdown. When the server
+// is being restarted, Stop() and then Start() are called, but we cannot
+// differentiate between that and only receiving Stop().
+// Start a timer, and if we receive a message from the Start() method, do not
+// stop the server.
+// The channel in the timer still needs to be drained.
 func (s *serverRunner) Stop() {
-	// s.stopOnce.Do(s.cancelRunServerContext)
-	// s.Wait()
+	t := time.NewTimer(10 * time.Second)
+	go func() {
+		select {
+		case <-t.C:
+			s.stopOnce.Do(s.cancelRunServerContext)
+			s.Wait()
+		case <-s.restartc:
+			// We've received a message from Start(), don't shut
+			// the server down.
+			s.logger.Info("restarting apm-server!")
+			// Drain the channel
+			if !t.Stop() {
+				<-t.C
+			}
+		}
+	}()
 }
 
 // Wait waits for the server to stop.
@@ -505,6 +524,12 @@ func (s *serverRunner) Wait() {
 
 // Start starts the server.
 func (s *serverRunner) Start() {
+	// If Start() is being called after Stop(), let the server know to not
+	// shutdown.
+	select {
+	case s.restartc <- struct{}{}:
+	default:
+	}
 	s.wg.Add(1)
 	go func() {
 		defer s.wg.Done()
