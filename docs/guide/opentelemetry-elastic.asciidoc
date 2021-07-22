@@ -306,6 +306,68 @@ Here is an example of AWS Lambda Java function managed with Terraform and the ht
 * Sample Terraform code: https://github.com/cyrille-leclerc/my-serverless-shopping-cart/tree/main/checkout-function/deploy
 * Note that the Terraform code to manage the HTTP API Gateway (https://github.com/cyrille-leclerc/my-serverless-shopping-cart/tree/main/utils/terraform/api-gateway-proxy[here]) is copied from the official OpenTelemetry Lambda sample https://github.com/open-telemetry/opentelemetry-lambda/tree/e72467a085a2a6e57af133032f85ac5b8bbbb8d1/utils[here]
 
+[[open-telemetry-aws-lambda-elastic-nodejs]]
+===== Instrumenting AWS Lambda Node.js functions
+
+NOTE: For a better startup time, we recommend using SDK-based instrumentation, i.e. manual instrumentation of the code, rather than auto instrumentation.
+
+To instrument AWS Lambda Node.js functions, follow the official https://aws-otel.github.io/docs/getting-started/lambda/lambda-js[AWS Distro for OpenTelemetry Lambda Support For JS].
+
+Noteworthy configuration elements:
+
+* The configuration of the OpenTelemetry Collector, with the definition of the Elastic Observability endpoint, can be added to the root directory of the Lambda binaries (e.g. defined in `src/main/resources/opentelemetry-collector.yaml`)
++
+[source,yaml]
+----
+# Copy opentelemetry-collector.yaml in the root directory of the lambda function
+# Set an environment variable 'OPENTELEMETRY_COLLECTOR_CONFIG_FILE' to '/var/task/opentelemetry-collector.yaml'
+receivers:
+  otlp:
+    protocols:
+      http:
+      grpc:
+
+exporters:
+  logging:
+    loglevel: debug
+  otlp/elastic:
+    # Elastic APM server https endpoint without the "https://" prefix
+    endpoint: "${ELASTIC_OTLP_ENDPOINT}" <1>
+    headers:
+      # Elastic APM Server secret token
+      Authorization: "Bearer ${ELASTIC_OTLP_TOKEN}" <1>
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [logging, otlp/elastic]
+    metrics:
+      receivers: [otlp]
+      exporters: [logging, otlp/elastic]
+----
+<1> Environment-specific configuration parameters can be conveniently passed in as environment variables: `ELASTIC_OTLP_ENDPOINT` and `ELASTIC_OTLP_TOKEN`
+
+* Configure the AWS Lambda Node.js function with:
+** https://docs.aws.amazon.com/lambda/latest/dg/API_Layer.html[Function
+layer]: The latest https://aws-otel.github.io/docs/getting-started/lambda/lambda-js[AWS
+Lambda layer for OpenTelemetry] (e.g. `arn:aws:lambda:eu-west-1:901920570463:layer:aws-otel-nodejs-ver-0-19-0:1`)
+** https://docs.aws.amazon.com/lambda/latest/dg/API_TracingConfig.html[TracingConfig / Mode] set to `PassTrough`
+** https://docs.aws.amazon.com/lambda/latest/dg/API_FunctionConfiguration.html[FunctionConfiguration / Timeout] set to more than 10 seconds to support the cold start of the Lambda JS Runtime
+** Export the environment variables:
+*** `AWS_LAMBDA_EXEC_WRAPPER="/opt/otel-handler"` for wrapping handlers proxied through the API Gateway (see https://aws-otel.github.io/docs/getting-started/lambda/lambda-js#enable-auto-instrumentation-for-your-lambda-function[here])
+*** `OTEL_PROPAGATORS="tracecontext"` to override the default setting that also enables X-Ray headers causing interferences between OpenTelemetry and X-Ray
+*** `OPENTELEMETRY_COLLECTOR_CONFIG_FILE="/var/task/opentelemetry-collector.yaml"` to specify the path to your OpenTelemetry Collector configuration
+
+[[open-telemetry-aws-lambda-elastic-nodejs-terraform]]
+===== Instrumenting AWS Lambda Node.js functions with Terraform
+
+We recommend using an infrastructure as code solution like Terraform or Ansible to manage the configuration of your AWS Lambda functions.
+
+Here is an example of AWS Lambda Node.js function managed with Terraform and the https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function[AWS Provider / Lambda Functions]:
+
+* Sample Terraform code: https://github.com/michaelhyatt/terraform-aws-nodejs-api-worker-otel
+
 [[elastic-open-telemetry-known-limitations]]
 ==== Limitations in 7.13
 
