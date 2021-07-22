@@ -37,3 +37,4 @@ html_docs
 /systemtest/logs
 docker-compose.yml.bck
 Dockerfile.bck
+version.asciidoc.bck
