@@ -114,7 +114,8 @@ func (s *httpServer) configure(
 		MaxHeaderBytes: cfg.MaxHeaderSize,
 	}
 
-	// TODO: Track TLS settings, if it changes then we need to restart the server
+	// TODO: Track TLS settings, if it changes then we need to restart the
+	// server
 	if cfg.TLS.IsEnabled() {
 		tlsServerConfig, err := tlscommon.LoadTLSServerConfig(cfg.TLS)
 		if err != nil {

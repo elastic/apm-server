@@ -20,7 +20,6 @@ package beater
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -111,8 +110,9 @@ func newServer(
 	if err != nil {
 		return nil, err
 	}
-	// TODO: RUM can be turned on and off, figure out how to reload this.
-	// SourcemapStore can be updated
+	// TODO: If tls config changes, should the server restart itself? or
+	// does the serverRunner notice the change and create a new server?
+	// Probably would result in simpler code if the serverRunner handled it.
 	httpServer, err := newHTTPServer(
 		logger, info, cfg, tracer, reporter, batchProcessor, agentcfgFetchReporter, ratelimitStore, sourcemapStore,
 	)
@@ -204,9 +204,7 @@ func (s *server) configure(
 	sourcemapStore *sourcemap.Store,
 	batchProcessor model.BatchProcessor,
 ) error {
-	fmt.Println("creating fetcher reporter")
 	s.agentcfgFetchReporter = agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor, 30*time.Second)
-	fmt.Println("creating fetcher created")
 	ratelimitStore, err := ratelimit.NewStore(
 		cfg.AgentAuth.Anonymous.RateLimit.IPLimit,
 		cfg.AgentAuth.Anonymous.RateLimit.EventLimit,
@@ -217,7 +215,6 @@ func (s *server) configure(
 	}
 	if s.agentCancel != nil {
 		s.agentCancel()
-		// Create a new ctx based on the original sent in to run()
 		s.startFetchReporter(s.agentCtx)
 	}
 	return s.httpServer.configure(

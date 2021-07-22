@@ -19,7 +19,6 @@ package agentcfg
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -48,7 +47,6 @@ func NewReporter(f Fetcher, batchProcessor model.BatchProcessor, interval time.D
 }
 
 func (r Reporter) Fetch(ctx context.Context, query Query) (Result, error) {
-	fmt.Println("fetcher reporter call fetch")
 	result, err := r.f.Fetch(ctx, query)
 	if err != nil {
 		return Result{}, err
@@ -56,7 +54,6 @@ func (r Reporter) Fetch(ctx context.Context, query Query) (Result, error) {
 	// Only report configs when the query etag == current config etag, or
 	// when the agent indicates it has been applied.
 	if query.Etag == result.Source.Etag || query.MarkAsAppliedByAgent {
-		fmt.Println("fetcher reporter send result")
 		select {
 		case <-ctx.Done():
 			return Result{}, ctx.Err()
@@ -64,7 +61,6 @@ func (r Reporter) Fetch(ctx context.Context, query Query) (Result, error) {
 		}
 	}
 
-	fmt.Println("fetcher reporter return result")
 	return result, err
 }
 
@@ -76,14 +72,11 @@ func (r Reporter) Run(ctx context.Context) error {
 	applied := make(map[string]struct{})
 	t := time.NewTicker(r.interval)
 	defer t.Stop()
-	fmt.Println("fetcher reporter start run")
 	for {
 		select {
 		case <-ctx.Done():
-			fmt.Println("fetcher reporter done")
 			return ctx.Err()
 		case result := <-r.resultc:
-			fmt.Println("fetcher reporter read result")
 			if _, ok := applied[result.Source.Etag]; !ok {
 				applied[result.Source.Etag] = struct{}{}
 			}
@@ -91,7 +84,6 @@ func (r Reporter) Run(ctx context.Context) error {
 		case <-t.C:
 		}
 		batch := make(model.Batch, 0, len(applied))
-		fmt.Println("fetcher reporter applying batch")
 		for etag := range applied {
 			batch = append(batch, model.APMEvent{Metricset: &model.Metricset{
 				Name:   "agent_config",
@@ -107,7 +99,6 @@ func (r Reporter) Run(ctx context.Context) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			fmt.Println("fetcher reporter processing batch")
 			if err := r.p.ProcessBatch(ctx, &batch); err != nil {
 				r.logger.Errorf("error sending applied agent configs to kibana: %v", err)
 			}

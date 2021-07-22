@@ -87,7 +87,6 @@ func (h *handler) Handle(c *request.Context) {
 	// error handling
 	c.Header().Set(headers.CacheControl, errCacheControl)
 
-	fmt.Println("fetcher agent handler called")
 	query, queryErr := buildQuery(c)
 	if queryErr != nil {
 		extractQueryError(c, queryErr)
@@ -119,11 +118,9 @@ func (h *handler) Handle(c *request.Context) {
 		query.InsecureAgents = h.allowAnonymousAgents
 	}
 
-	fmt.Println("fetcher agent handler fetch called")
 	result, err := h.f.Fetch(c.Request.Context(), query)
 	if err != nil {
 		var verr *agentcfg.ValidationError
-		fmt.Printf("fetcher agent handler fetch error, %v\n", err)
 		if errors.As(err, &verr) {
 			body := verr.Body()
 			if strings.HasPrefix(body, agentcfg.ErrMsgKibanaVersionNotCompatible) {
@@ -143,7 +140,6 @@ func (h *handler) Handle(c *request.Context) {
 		c.Write()
 		return
 	}
-	fmt.Println("fetcher agent handler fetch done")
 
 	// configuration successfully fetched
 	c.Header().Set(headers.CacheControl, h.cacheControl)

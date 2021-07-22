@@ -456,7 +456,6 @@ func (s *serverRunner) configure(args serverRunnerParams) error {
 			}
 		}
 
-		// TODO: Server needs to be reconfigurable
 		server, err := newServer(
 			s.logger,
 			s.beat.Info,
@@ -471,6 +470,10 @@ func (s *serverRunner) configure(args serverRunnerParams) error {
 		}
 		s.server = server
 	} else {
+		// TODO: Bit weird to send identical arguments into newServer
+		// and server.configure(). But I want newServer to return a
+		// configured server, and configure() to configure an existing
+		// one.
 		if err := s.server.configure(
 			s.logger,
 			s.beat.Info,
@@ -553,9 +556,9 @@ func (s *serverRunner) run() error {
 	s.acker.Open()
 	defer s.publisher.Stop(s.backgroundContext)
 
-	// Tests are failing because the params get modified as they pass
-	// through various RunServers, before they finally end (used to) create
-	// the server.
+	// TestPublishIntegration is failing because the params get modified as
+	// they pass through various RunServers, before they finally (used to)
+	// create the server.
 	runServer := s.server.run
 	if s.tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
@@ -565,9 +568,6 @@ func (s *serverRunner) run() error {
 		// behaviour into the processing/reporting pipeline.
 		runServer = s.wrapRunServer(runServer)
 	}
-	// if s.configureParams != nil {
-	// 	runServer = s.configureParams(params)
-	// }
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
 	go func() {
@@ -577,12 +577,6 @@ func (s *serverRunner) run() error {
 		for {
 			select {
 			case <-sigs:
-				// TODO: When ctrl-c the program, some part of
-				// this reload is stuck and never exits.
-				// Sending a SIGUSR1 causes a panic when trying
-				// to send on a closed channel.
-				// It's seemingly some dangling channel in a
-				// previous part of the code.
 				rawcfg, err := common.LoadFile("./apm-server.dev.yml")
 				if err != nil {
 					fmt.Printf("failed to load apm-server.dev.yml! %v\n", err)
