@@ -865,3 +865,28 @@
                 type: long
                 description: >
                   Age of a message in milliseconds.
+
+        - name: composite
+          type: group
+          dynamic: false
+          fields:
+
+            - name: count
+              type: long
+              description: >
+                Number of compressed spans the composite span represents.
+
+            - name: sum
+              type: group
+              fields:
+
+                - name: us
+                  type: long
+                  count: 1
+                  description: >
+                    Sum of the durations of the compressed spans, in microseconds.
+
+            - name: compression_strategy
+              type: keyword
+              description: >
+                The compression strategy that was used.

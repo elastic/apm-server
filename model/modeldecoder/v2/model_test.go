@@ -508,6 +508,8 @@ func TestSpanRequiredValidationRules(t *testing.T) {
 	var event span
 	modeldecodertest.InitStructValues(&event)
 	event.Outcome.Set("failure")
+	// Composite.Count must be > 1
+	event.Composite.Count.Set(2)
 	// test vanilla struct is valid
 	require.NoError(t, event.validate())
 
@@ -521,6 +523,9 @@ func TestSpanRequiredValidationRules(t *testing.T) {
 		"parent_id":                            nil,
 		"trace_id":                             nil,
 		"type":                                 nil,
+		"composite.count":                      nil,
+		"composite.sum":                        nil,
+		"composite.compression_strategy":       nil,
 	}
 	cb := assertRequiredFn(t, requiredKeys, event.validate)
 	modeldecodertest.SetZeroStructValue(&event, cb)

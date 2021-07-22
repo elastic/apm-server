@@ -113,6 +113,18 @@
   type: keyword
   description: |
     The specific kind of event within the sub-type represented by the span (e.g. query, connect)
+- name: span.composite.compression_strategy
+  type: keyword
+  description: |
+    The compression strategy that was used.
+- name: span.composite.count
+  type: long
+  description: |
+    Number of compressed spans the composite span represents.
+- name: span.composite.sum.us
+  type: long
+  description: |
+    Sum of the durations of the compressed spans, in microseconds.
 - name: span.db.link
   type: keyword
   description: |
