@@ -194,6 +194,7 @@ update-beats-module:
 	cp -f $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version .go-version
 	sed -i'.bck' -E -e "s#(FROM golang):[0-9]+\.[0-9]+\.[0-9]+#\1:$$(cat .go-version)#g" tests/Dockerfile
 	sed -i'.bck' -E -e "s#(FROM golang):[0-9]+\.[0-9]+\.[0-9]+#\1:$$(cat .go-version)#g" Dockerfile
+	sed -i'.bck' -E -e "s#(:go-version): [0-9]+\.[0-9]+\.[0-9]+#\1:$$(cat .go-version)#g" docs/version.asciidoc
 
 ##############################################################################
 # Kibana synchronisation.
