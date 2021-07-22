@@ -373,7 +373,7 @@ To manage the configuration of your AWS Lambda functions, we recommend using an 
 
 Here is an example of AWS Lambda Node.js function managed with Terraform and the https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function[AWS Provider / Lambda Functions]:
 
-* Sample Terraform code: https://github.com/michaelhyatt/terraform-aws-nodejs-api-worker-otel/tree/v0.19
+* https://github.com/michaelhyatt/terraform-aws-nodejs-api-worker-otel/tree/v0.19[Sample Terraform code]
 
 [[elastic-open-telemetry-known-limitations]]
 ==== Limitations in 7.13
