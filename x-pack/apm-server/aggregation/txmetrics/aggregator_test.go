@@ -431,7 +431,7 @@ func TestAggregationFields(t *testing.T) {
 	// is ignored.
 	input.Metadata.Kubernetes.PodName = ""
 	for _, value := range []string{"something", "anything"} {
-		input.Metadata.System.DetectedHostname = value
+		input.Metadata.Host.Hostname = value
 		assert.Nil(t, agg.AggregateTransaction(&input))
 		assert.Nil(t, agg.AggregateTransaction(&input))
 		addExpectedCount(2)

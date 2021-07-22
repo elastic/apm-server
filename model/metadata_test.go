@@ -54,9 +54,9 @@ func TestMetadata_Set(t *testing.T) {
 					Name: serviceName,
 					Node: ServiceNode{Name: serviceNodeName},
 				},
-				System: System{
-					ConfiguredHostname: host,
-					DetectedHostname:   hostname,
+				Host: Host{
+					Hostname: hostname,
+					Name:     host,
 				},
 				Process: Process{Pid: pid},
 				User:    User{ID: uid, Email: mail},
@@ -132,12 +132,14 @@ func BenchmarkMetadataSet(b *testing.B) {
 			Title: "case",
 			Argv:  []string{"apm-server"},
 		},
-		System: System{
-			DetectedHostname:   "detected",
-			ConfiguredHostname: "configured",
-			Architecture:       "x86_64",
-			Platform:           "linux",
-			IP:                 net.ParseIP("10.1.1.1"),
+		Host: Host{
+			Hostname:     "detected",
+			Name:         "configured",
+			Architecture: "x86_64",
+			IP:           net.ParseIP("10.1.1.1"),
+			OS: OS{
+				Platform: "linux",
+			},
 		},
 		User: User{
 			ID:    "123",

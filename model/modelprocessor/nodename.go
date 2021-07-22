@@ -26,8 +26,8 @@ import (
 // SetServiceNodeName is a transform.Processor that sets the service
 // node name value for events without one already set.
 //
-// SetServiceNodeName should be called after SetSystemHostname, to
-// ensure ConfiguredHostname is set.
+// SetServiceNodeName should be called after SetHostHostname, to
+// ensure Name is set.
 type SetServiceNodeName struct{}
 
 // ProcessBatch sets a default service.node.name for events without one already set.
@@ -42,7 +42,7 @@ func setServiceNodeName(ctx context.Context, meta *model.Metadata) error {
 	}
 	nodeName := meta.Container.ID
 	if nodeName == "" {
-		nodeName = meta.System.ConfiguredHostname
+		nodeName = meta.Host.Name
 	}
 	meta.Service.Node.Name = nodeName
 	return nil

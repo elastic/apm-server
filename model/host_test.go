@@ -32,28 +32,30 @@ import (
 func TestSystemTransformation(t *testing.T) {
 	detected, configured := "host", "custom hostname"
 
-	for name, system := range map[string]System{
-		"hostname":           {DetectedHostname: detected},
-		"ignored hostname":   {ConfiguredHostname: configured},
-		"full hostname info": {DetectedHostname: detected, ConfiguredHostname: configured},
+	for name, host := range map[string]Host{
+		"hostname":           {Hostname: detected},
+		"ignored hostname":   {Name: configured},
+		"full hostname info": {Hostname: detected, Name: configured},
 		"full": {
-			DetectedHostname:   detected,
-			ConfiguredHostname: configured,
-			Architecture:       "amd",
-			Platform:           "osx",
-			FullPlatform:       "Mac OS Mojave",
-			OSType:             "macos",
-			Type:               "t2.medium",
-			IP:                 net.ParseIP("127.0.0.1"),
+			Hostname:     detected,
+			Name:         configured,
+			Architecture: "amd",
+			Type:         "t2.medium",
+			IP:           net.ParseIP("127.0.0.1"),
+			OS: OS{
+				Platform: "osx",
+				Full:     "Mac OS Mojave",
+				Type:     "macos",
+			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			var fields mapStr
-			metadata := &Metadata{System: system}
+			metadata := &Metadata{Host: host}
 			metadata.set(&fields, nil)
 			resultJSON, err := json.Marshal(fields["host"])
 			require.NoError(t, err)
-			name := filepath.Join("test_approved", "system", strings.ReplaceAll(name, " ", "_"))
+			name := filepath.Join("test_approved", "host", strings.ReplaceAll(name, " ", "_"))
 			approvaltest.ApproveJSON(t, name, resultJSON)
 		})
 	}

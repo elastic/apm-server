@@ -498,20 +498,20 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 
 	// System
 	if from.System.Architecture.IsSet() {
-		out.System.Architecture = from.System.Architecture.Val
+		out.Host.Architecture = from.System.Architecture.Val
 	}
 	if from.System.ConfiguredHostname.IsSet() {
-		out.System.ConfiguredHostname = from.System.ConfiguredHostname.Val
+		out.Host.Name = from.System.ConfiguredHostname.Val
 	}
 	if from.System.Container.ID.IsSet() {
 		out.Container.ID = from.System.Container.ID.Val
 	}
 	if from.System.DetectedHostname.IsSet() {
-		out.System.DetectedHostname = from.System.DetectedHostname.Val
+		out.Host.Hostname = from.System.DetectedHostname.Val
 	}
 	if !from.System.ConfiguredHostname.IsSet() && !from.System.DetectedHostname.IsSet() &&
 		from.System.DeprecatedHostname.IsSet() {
-		out.System.DetectedHostname = from.System.DeprecatedHostname.Val
+		out.Host.Hostname = from.System.DeprecatedHostname.Val
 	}
 	if from.System.Kubernetes.Namespace.IsSet() {
 		out.Kubernetes.Namespace = from.System.Kubernetes.Namespace.Val
@@ -526,7 +526,7 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 		out.Kubernetes.PodUID = from.System.Kubernetes.Pod.UID.Val
 	}
 	if from.System.Platform.IsSet() {
-		out.System.Platform = from.System.Platform.Val
+		out.Host.OS.Platform = from.System.Platform.Val
 	}
 
 	// User

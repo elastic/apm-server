@@ -25,7 +25,7 @@ type Metadata struct {
 	Service    Service
 	Agent      Agent
 	Process    Process
-	System     System
+	Host       Host
 	User       User
 	UserAgent  UserAgent
 	Client     Client
@@ -39,7 +39,7 @@ type Metadata struct {
 func (m *Metadata) set(fields *mapStr, eventLabels common.MapStr) {
 	fields.maybeSetMapStr("service", m.Service.Fields())
 	fields.maybeSetMapStr("agent", m.Agent.fields())
-	fields.maybeSetMapStr("host", m.System.fields())
+	fields.maybeSetMapStr("host", m.Host.fields())
 	fields.maybeSetMapStr("process", m.Process.fields())
 	fields.maybeSetMapStr("user", m.User.fields())
 	fields.maybeSetMapStr("client", m.Client.fields())

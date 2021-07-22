@@ -407,7 +407,7 @@ func translateTransaction(
 			if httpHost == "" {
 				httpHost = netHostName
 				if httpHost == "" {
-					httpHost = metadata.System.DetectedHostname
+					httpHost = metadata.Host.Hostname
 				}
 			}
 			if httpHost != "" && netHostPort > 0 {

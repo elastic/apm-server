@@ -23,29 +23,29 @@ import (
 	"github.com/elastic/apm-server/model"
 )
 
-// SetSystemHostname is a transform.Processor that sets the final
+// SetHostHostname is a transform.Processor that sets the final
 // host.name and host.hostname values, according to whether the
-// system is running in Kubernetes or not.
-type SetSystemHostname struct{}
+// event originated from within Kubernetes or not.
+type SetHostHostname struct{}
 
 // ProcessBatch sets or overrides the host.name and host.hostname fields for events.
-func (SetSystemHostname) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	return MetadataProcessorFunc(setSystemHostname).ProcessBatch(ctx, b)
+func (SetHostHostname) ProcessBatch(ctx context.Context, b *model.Batch) error {
+	return MetadataProcessorFunc(setHostHostname).ProcessBatch(ctx, b)
 }
 
-func setSystemHostname(ctx context.Context, meta *model.Metadata) error {
+func setHostHostname(ctx context.Context, meta *model.Metadata) error {
 	switch {
 	case meta.Kubernetes.NodeName != "":
-		// system.kubernetes.node.name is set: set host.hostname to its value.
-		meta.System.DetectedHostname = meta.Kubernetes.NodeName
+		// host.kubernetes.node.name is set: set host.hostname to its value.
+		meta.Host.Hostname = meta.Kubernetes.NodeName
 	case meta.Kubernetes.PodName != "" || meta.Kubernetes.PodUID != "" || meta.Kubernetes.Namespace != "":
 		// kubernetes.* is set, but kubernetes.node.name is not: don't set host.hostname at all.
-		meta.System.DetectedHostname = ""
+		meta.Host.Hostname = ""
 	default:
 		// Otherwise use the originally specified host.hostname value.
 	}
-	if meta.System.ConfiguredHostname == "" {
-		meta.System.ConfiguredHostname = meta.System.DetectedHostname
+	if meta.Host.Name == "" {
+		meta.Host.Name = meta.Host.Hostname
 	}
 	return nil
 }

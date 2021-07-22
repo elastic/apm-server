@@ -51,11 +51,11 @@ func isUnmappedMetadataField(key string) bool {
 		"Network.Carrier.ICC",
 		"Process.CommandLine",
 		"Process.Executable",
-		"System.FullPlatform",
-		"System.ID",
-		"System.IP",
-		"System.OSType",
-		"System.Type",
+		"Host.OS.Full",
+		"Host.OS.Type",
+		"Host.ID",
+		"Host.IP",
+		"Host.Type",
 		"UserAgent",
 		"UserAgent.Name",
 		"UserAgent.Original":
@@ -180,7 +180,7 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.Reset()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
-		out2.System.IP, out2.Client.IP = defaultVal.IP, defaultVal.IP
+		out2.Host.IP, out2.Client.IP = defaultVal.IP, defaultVal.IP
 		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})
@@ -194,25 +194,25 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.System.DetectedHostname.Set("detected-host")
 		input.System.DeprecatedHostname.Set("deprecated-host")
 		mapToMetadataModel(&input, &out)
-		assert.Equal(t, "configured-host", out.System.ConfiguredHostname)
-		assert.Equal(t, "detected-host", out.System.DetectedHostname)
+		assert.Equal(t, "configured-host", out.Host.Name)
+		assert.Equal(t, "detected-host", out.Host.Hostname)
 		// no detected-host information
 		out = model.Metadata{}
 		input.System.DetectedHostname.Reset()
 		mapToMetadataModel(&input, &out)
-		assert.Equal(t, "configured-host", out.System.ConfiguredHostname)
-		assert.Empty(t, out.System.DetectedHostname)
+		assert.Equal(t, "configured-host", out.Host.Name)
+		assert.Empty(t, out.Host.Hostname)
 		// no configured-host information
 		out = model.Metadata{}
 		input.System.ConfiguredHostname.Reset()
 		mapToMetadataModel(&input, &out)
-		assert.Empty(t, out.System.ConfiguredHostname)
-		assert.Equal(t, "deprecated-host", out.System.DetectedHostname)
+		assert.Empty(t, out.Host.Name)
+		assert.Equal(t, "deprecated-host", out.Host.Hostname)
 		// no host information given
 		out = model.Metadata{}
 		input.System.DeprecatedHostname.Reset()
-		assert.Empty(t, out.System.ConfiguredHostname)
-		assert.Empty(t, out.System.DetectedHostname)
+		assert.Empty(t, out.Host.Name)
+		assert.Empty(t, out.Host.Hostname)
 
 	})
 }

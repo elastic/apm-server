@@ -352,7 +352,7 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 		serviceName:        tx.Metadata.Service.Name,
 		serviceVersion:     tx.Metadata.Service.Version,
 
-		hostname:          tx.Metadata.System.DetectedHostname,
+		hostname:          tx.Metadata.Host.Hostname,
 		containerID:       tx.Metadata.Container.ID,
 		kubernetesPodName: tx.Metadata.Kubernetes.PodName,
 	}
@@ -374,8 +374,8 @@ func makeMetricset(
 				Version:     key.serviceVersion,
 				Environment: key.serviceEnvironment,
 			},
-			System: model.System{
-				DetectedHostname: key.hostname,
+			Host: model.Host{
+				Hostname: key.hostname,
 			},
 		},
 		Event: model.MetricsetEventCategorization{

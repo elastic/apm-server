@@ -98,13 +98,13 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 
 		// host.*
 		case conventions.AttributeHostName:
-			out.System.DetectedHostname = truncate(v.StringVal())
+			out.Host.Hostname = truncate(v.StringVal())
 		case conventions.AttributeHostID:
-			out.System.ID = truncate(v.StringVal())
+			out.Host.ID = truncate(v.StringVal())
 		case conventions.AttributeHostType:
-			out.System.Type = truncate(v.StringVal())
+			out.Host.Type = truncate(v.StringVal())
 		case "host.arch":
-			out.System.Architecture = truncate(v.StringVal())
+			out.Host.Architecture = truncate(v.StringVal())
 
 		// process.*
 		case conventions.AttributeProcessID:
@@ -120,9 +120,9 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 
 		// os.*
 		case conventions.AttributeOSType:
-			out.System.Platform = strings.ToLower(truncate(v.StringVal()))
+			out.Host.OS.Platform = strings.ToLower(truncate(v.StringVal()))
 		case conventions.AttributeOSDescription:
-			out.System.FullPlatform = truncate(v.StringVal())
+			out.Host.OS.Full = truncate(v.StringVal())
 
 		// Legacy OpenCensus attributes.
 		case "opencensus.exporterversion":
@@ -141,13 +141,13 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 	//
 	// "One of these following values should be used (lowercase): linux, macos, unix, windows.
 	// If the OS you’re dealing with is not in the list, the field should not be populated."
-	switch out.System.Platform {
+	switch out.Host.OS.Platform {
 	case "windows", "linux":
-		out.System.OSType = out.System.Platform
+		out.Host.OS.Type = out.Host.OS.Platform
 	case "darwin":
-		out.System.OSType = "macos"
+		out.Host.OS.Type = "macos"
 	case "aix", "hpux", "solaris":
-		out.System.OSType = "unix"
+		out.Host.OS.Type = "unix"
 	}
 
 	if strings.HasPrefix(exporterVersion, "Jaeger") {
@@ -168,7 +168,7 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 			delete(out.Labels, "client-uuid")
 		}
 		if systemIP, ok := out.Labels["ip"].(string); ok {
-			out.System.IP = net.ParseIP(systemIP)
+			out.Host.IP = net.ParseIP(systemIP)
 			delete(out.Labels, "ip")
 		}
 	}

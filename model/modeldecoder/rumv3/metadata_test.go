@@ -56,7 +56,7 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"Process",
 		"Service.Node",
 		"Service.Agent.EphemeralID",
-		"System",
+		"Host",
 	}
 	exceptions := append(missing, keys...)
 	return func(key string) bool {

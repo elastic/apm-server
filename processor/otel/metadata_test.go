@@ -157,11 +157,11 @@ func TestResourceConventions(t *testing.T) {
 			expected: model.Metadata{
 				Agent:   defaultAgent,
 				Service: defaultService,
-				System: model.System{
-					DetectedHostname: "host_name",
-					ID:               "host_id",
-					Type:             "host_type",
-					Architecture:     "host_arch",
+				Host: model.Host{
+					Hostname:     "host_name",
+					ID:           "host_id",
+					Type:         "host_type",
+					Architecture: "host_arch",
 				},
 			},
 		},
@@ -189,10 +189,12 @@ func TestResourceConventions(t *testing.T) {
 			expected: model.Metadata{
 				Agent:   defaultAgent,
 				Service: defaultService,
-				System: model.System{
-					Platform:     "darwin",
-					OSType:       "macos",
-					FullPlatform: "Mac OS Mojave",
+				Host: model.Host{
+					OS: model.OS{
+						Platform: "darwin",
+						Type:     "macos",
+						Full:     "Mac OS Mojave",
+					},
 				},
 			},
 		},
