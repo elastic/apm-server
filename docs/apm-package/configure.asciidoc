@@ -5,7 +5,7 @@
 <titleabbrev>Configure</titleabbrev>
 ++++
 
-experimental::[]
+beta::[]
 
 Templates, pipelines, index lifecycle management, etc.,
 cannot be configured with APM Server or Fleet, and must instead be configured in {kib} or with
