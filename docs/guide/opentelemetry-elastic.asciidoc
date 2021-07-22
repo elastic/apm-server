@@ -309,7 +309,7 @@ Here is an example of AWS Lambda Java function managed with Terraform and the ht
 [[open-telemetry-aws-lambda-elastic-nodejs]]
 ===== Instrumenting AWS Lambda Node.js functions
 
-NOTE: For a better startup time, we recommend using SDK-based instrumentation, i.e. manual instrumentation of the code, rather than auto instrumentation.
+NOTE: For a better startup time, we recommend using SDK-based instrumentation for manual instrumentation of the code rather than auto instrumentation.
 
 To instrument AWS Lambda Node.js functions, follow the official https://aws-otel.github.io/docs/getting-started/lambda/lambda-js[AWS Distro for OpenTelemetry Lambda Support For JS].
 
