@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -208,12 +208,12 @@ func TestResourceConventions(t *testing.T) {
 
 func TestResourceLabels(t *testing.T) {
 	stringArray := pdata.NewAttributeValueArray()
-	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("abc"))
-	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("def"))
+	stringArray.ArrayVal().AppendEmpty().SetStringVal("abc")
+	stringArray.ArrayVal().AppendEmpty().SetStringVal("def")
 
 	intArray := pdata.NewAttributeValueArray()
-	intArray.ArrayVal().Append(pdata.NewAttributeValueInt(123))
-	intArray.ArrayVal().Append(pdata.NewAttributeValueInt(456))
+	intArray.ArrayVal().AppendEmpty().SetIntVal(123)
+	intArray.ArrayVal().AppendEmpty().SetIntVal(456)
 
 	metadata := transformResourceMetadata(t, map[string]pdata.AttributeValue{
 		"string_array": stringArray,
@@ -228,10 +228,9 @@ func TestResourceLabels(t *testing.T) {
 func transformResourceMetadata(t *testing.T, resourceAttrs map[string]pdata.AttributeValue) model.Metadata {
 	traces, spans := newTracesSpans()
 	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(resourceAttrs)
-	otelSpan := pdata.NewSpan()
+	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
-	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
 	return events[0].Transaction.Metadata
 }
