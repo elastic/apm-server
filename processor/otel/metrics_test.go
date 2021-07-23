@@ -150,14 +150,14 @@ func TestConsumeMetrics(t *testing.T) {
 	expectDropped++
 
 	metadata := model.Metadata{
+		Agent: model.Agent{
+			Name:    "otlp",
+			Version: "unknown",
+		},
 		Service: model.Service{
 			Name: "unknown",
 			Language: model.Language{
 				Name: "unknown",
-			},
-			Agent: model.Agent{
-				Name:    "otlp",
-				Version: "unknown",
 			},
 		},
 	}
@@ -258,14 +258,14 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	addInt64Gauge("runtime.jvm.memory.area", 42, map[string]string{"area": "heap", "type": "used"})
 
 	metadata := model.Metadata{
+		Agent: model.Agent{
+			Name:    "otlp",
+			Version: "unknown",
+		},
 		Service: model.Service{
 			Name: "unknown",
 			Language: model.Language{
 				Name: "unknown",
-			},
-			Agent: model.Agent{
-				Name:    "otlp",
-				Version: "unknown",
 			},
 		},
 	}

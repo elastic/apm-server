@@ -26,25 +26,22 @@ import (
 )
 
 var (
-	version, environment    = "5.1.3", "staging"
-	langName, langVersion   = "ecmascript", "8"
-	rtName, rtVersion       = "node", "8.0.0"
-	fwName, fwVersion       = "Express", "1.2.3"
-	agentName, agentVersion = "elastic-node", "1.0.0"
+	version, environment  = "5.1.3", "staging"
+	langName, langVersion = "ecmascript", "8"
+	rtName, rtVersion     = "node", "8.0.0"
+	fwName, fwVersion     = "Express", "1.2.3"
 )
 
 func TestServiceTransform(t *testing.T) {
 	serviceName, serviceNodeName := "myService", "abc"
 
 	tests := []struct {
-		Service     Service
-		Fields      common.MapStr
-		AgentFields common.MapStr
+		Service Service
+		Fields  common.MapStr
 	}{
 		{
-			Service:     Service{},
-			AgentFields: nil,
-			Fields:      nil,
+			Service: Service{},
+			Fields:  nil,
 		},
 		{
 			Service: Service{
@@ -63,15 +60,7 @@ func TestServiceTransform(t *testing.T) {
 					Name:    fwName,
 					Version: fwVersion,
 				},
-				Agent: Agent{
-					Name:    agentName,
-					Version: agentVersion,
-				},
 				Node: ServiceNode{Name: serviceNodeName},
-			},
-			AgentFields: common.MapStr{
-				"name":    "elastic-node",
-				"version": "1.0.0",
 			},
 			Fields: common.MapStr{
 				"name":        "myService",
@@ -96,6 +85,5 @@ func TestServiceTransform(t *testing.T) {
 
 	for _, test := range tests {
 		assert.Equal(t, test.Fields, test.Service.Fields())
-		assert.Equal(t, test.AgentFields, test.Service.Agent.fields())
 	}
 }

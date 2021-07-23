@@ -33,12 +33,10 @@ func TestSetServiceNodeName(t *testing.T) {
 		},
 	}
 	withConfiguredHostname := model.Metadata{
-		System: model.System{
-			ConfiguredHostname: "configured_hostname",
-		},
+		Host: model.Host{Name: "configured_hostname"},
 	}
 	withContainerID := withConfiguredHostname
-	withContainerID.System.Container.ID = "container_id"
+	withContainerID.Container.ID = "container_id"
 
 	processor := modelprocessor.SetServiceNodeName{}
 

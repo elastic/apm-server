@@ -224,9 +224,9 @@ func TestEvents(t *testing.T) {
 
 	serviceName, agentName, version := "myservice", "go", "1.0"
 	md := Metadata{
+		Agent: Agent{Name: agentName, Version: version},
 		Service: Service{
 			Name: serviceName, Version: version,
-			Agent: Agent{Name: agentName, Version: version},
 		},
 		Labels: common.MapStr{"label": 101},
 	}

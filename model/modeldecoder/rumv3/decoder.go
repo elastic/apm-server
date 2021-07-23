@@ -200,6 +200,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 	}
 	// overwrite metadata with event specific information
 	mapToServiceModel(from.Context.Service, &out.Metadata.Service)
+	mapToAgentModel(from.Context.Service.Agent, &out.Metadata.Agent)
 	overwriteUserInMetadataModel(from.Context.User, &out.Metadata)
 	mapToUserAgentModel(from.Context.Request.Headers, &out.Metadata)
 
@@ -341,10 +342,10 @@ func mapToMetadataModel(m *metadata, out *model.Metadata) {
 
 	// Service
 	if m.Service.Agent.Name.IsSet() {
-		out.Service.Agent.Name = m.Service.Agent.Name.Val
+		out.Agent.Name = m.Service.Agent.Name.Val
 	}
 	if m.Service.Agent.Version.IsSet() {
-		out.Service.Agent.Version = m.Service.Agent.Version.Val
+		out.Agent.Version = m.Service.Agent.Version.Val
 	}
 	if m.Service.Environment.IsSet() {
 		out.Service.Environment = m.Service.Environment.Val
@@ -485,12 +486,6 @@ func mapToRequestModel(from contextRequest, out *model.HTTPRequest) {
 }
 
 func mapToServiceModel(from contextService, out *model.Service) {
-	if from.Agent.Name.IsSet() {
-		out.Agent.Name = from.Agent.Name.Val
-	}
-	if from.Agent.Version.IsSet() {
-		out.Agent.Version = from.Agent.Version.Val
-	}
 	if from.Environment.IsSet() {
 		out.Environment = from.Environment.Val
 	}
@@ -514,6 +509,15 @@ func mapToServiceModel(from contextService, out *model.Service) {
 	}
 	if from.Runtime.Version.IsSet() {
 		out.Runtime.Version = from.Runtime.Version.Val
+	}
+	if from.Version.IsSet() {
+		out.Version = from.Version.Val
+	}
+}
+
+func mapToAgentModel(from contextServiceAgent, out *model.Agent) {
+	if from.Name.IsSet() {
+		out.Name = from.Name.Val
 	}
 	if from.Version.IsSet() {
 		out.Version = from.Version.Val
@@ -605,12 +609,6 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, out
 		out.HTTP = &http
 	}
 	if from.Context.Service.IsSet() {
-		if from.Context.Service.Agent.Name.IsSet() {
-			out.Metadata.Service.Agent.Name = from.Context.Service.Agent.Name.Val
-		}
-		if from.Context.Service.Agent.Version.IsSet() {
-			out.Metadata.Service.Agent.Version = from.Context.Service.Agent.Version.Val
-		}
 		if from.Context.Service.Name.IsSet() {
 			out.Metadata.Service.Name = from.Context.Service.Name.Val
 		}
@@ -714,6 +712,7 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 	}
 	// overwrite metadata with event specific information
 	mapToServiceModel(from.Context.Service, &out.Metadata.Service)
+	mapToAgentModel(from.Context.Service.Agent, &out.Metadata.Agent)
 	overwriteUserInMetadataModel(from.Context.User, &out.Metadata)
 	mapToUserAgentModel(from.Context.Request.Headers, &out.Metadata)
 

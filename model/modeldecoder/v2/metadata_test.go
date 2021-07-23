@@ -38,24 +38,24 @@ func isUnmappedMetadataField(key string) bool {
 		"Client.Domain",
 		"Client.IP",
 		"Client.Port",
+		"Container.Runtime",
+		"Container.ImageName",
+		"Container.ImageTag",
+		"Container.Name",
+		"Network",
+		"Network.ConnectionType",
+		"Network.Carrier",
+		"Network.Carrier.Name",
+		"Network.Carrier.MCC",
+		"Network.Carrier.MNC",
+		"Network.Carrier.ICC",
 		"Process.CommandLine",
 		"Process.Executable",
-		"System.Container.Runtime",
-		"System.Container.ImageName",
-		"System.Container.ImageTag",
-		"System.Container.Name",
-		"System.Network",
-		"System.Network.ConnectionType",
-		"System.Network.Carrier",
-		"System.Network.Carrier.Name",
-		"System.Network.Carrier.MCC",
-		"System.Network.Carrier.MNC",
-		"System.Network.Carrier.ICC",
-		"System.FullPlatform",
-		"System.ID",
-		"System.IP",
-		"System.OSType",
-		"System.Type",
+		"Host.OS.Full",
+		"Host.OS.Type",
+		"Host.ID",
+		"Host.IP",
+		"Host.Type",
 		"UserAgent",
 		"UserAgent.Name",
 		"UserAgent.Original":
@@ -104,9 +104,10 @@ func TestDecodeMetadata(t *testing.T) {
 			var out model.Metadata
 			dec := decoder.NewJSONDecoder(strings.NewReader(tc.input))
 			require.NoError(t, tc.decodeFn(dec, &out))
-			assert.Equal(t, model.Metadata{Service: model.Service{
-				Name:  "user-service",
-				Agent: model.Agent{Name: "go", Version: "1.0.0"}}}, out)
+			assert.Equal(t, model.Metadata{
+				Service: model.Service{Name: "user-service"},
+				Agent:   model.Agent{Name: "go", Version: "1.0.0"},
+			}, out)
 
 			err := tc.decodeFn(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &out)
 			require.Error(t, err)
@@ -179,7 +180,7 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.Reset()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
-		out2.System.IP, out2.Client.IP = defaultVal.IP, defaultVal.IP
+		out2.Host.IP, out2.Client.IP = defaultVal.IP, defaultVal.IP
 		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})
@@ -193,25 +194,25 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.System.DetectedHostname.Set("detected-host")
 		input.System.DeprecatedHostname.Set("deprecated-host")
 		mapToMetadataModel(&input, &out)
-		assert.Equal(t, "configured-host", out.System.ConfiguredHostname)
-		assert.Equal(t, "detected-host", out.System.DetectedHostname)
+		assert.Equal(t, "configured-host", out.Host.Name)
+		assert.Equal(t, "detected-host", out.Host.Hostname)
 		// no detected-host information
 		out = model.Metadata{}
 		input.System.DetectedHostname.Reset()
 		mapToMetadataModel(&input, &out)
-		assert.Equal(t, "configured-host", out.System.ConfiguredHostname)
-		assert.Empty(t, out.System.DetectedHostname)
+		assert.Equal(t, "configured-host", out.Host.Name)
+		assert.Empty(t, out.Host.Hostname)
 		// no configured-host information
 		out = model.Metadata{}
 		input.System.ConfiguredHostname.Reset()
 		mapToMetadataModel(&input, &out)
-		assert.Empty(t, out.System.ConfiguredHostname)
-		assert.Equal(t, "deprecated-host", out.System.DetectedHostname)
+		assert.Empty(t, out.Host.Name)
+		assert.Equal(t, "deprecated-host", out.Host.Hostname)
 		// no host information given
 		out = model.Metadata{}
 		input.System.DeprecatedHostname.Reset()
-		assert.Empty(t, out.System.ConfiguredHostname)
-		assert.Empty(t, out.System.DetectedHostname)
+		assert.Empty(t, out.Host.Name)
+		assert.Empty(t, out.Host.Hostname)
 
 	})
 }

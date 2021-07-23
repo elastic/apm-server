@@ -385,12 +385,12 @@ func TestAggregationFields(t *testing.T) {
 		&input.Outcome,
 		&input.Result,
 		&input.Type,
-		&input.Metadata.Service.Agent.Name,
+		&input.Metadata.Agent.Name,
 		&input.Metadata.Service.Environment,
 		&input.Metadata.Service.Name,
 		&input.Metadata.Service.Version,
-		&input.Metadata.System.Container.ID,
-		&input.Metadata.System.Kubernetes.PodName,
+		&input.Metadata.Container.ID,
+		&input.Metadata.Kubernetes.PodName,
 	}
 
 	var expected []*model.Metricset
@@ -429,9 +429,9 @@ func TestAggregationFields(t *testing.T) {
 	// Hostname is complex: if any kubernetes fields are set, then
 	// it is taken from Kubernetes.Node.Name, and DetectedHostname
 	// is ignored.
-	input.Metadata.System.Kubernetes.PodName = ""
+	input.Metadata.Kubernetes.PodName = ""
 	for _, value := range []string{"something", "anything"} {
-		input.Metadata.System.DetectedHostname = value
+		input.Metadata.Host.Hostname = value
 		assert.Nil(t, agg.AggregateTransaction(&input))
 		assert.Nil(t, agg.AggregateTransaction(&input))
 		addExpectedCount(2)
