@@ -20,14 +20,14 @@ import (
 	"go.opentelemetry.io/collector/client"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/internal"
-	collectormetrics "go.opentelemetry.io/collector/internal/data/protogen/collector/metrics/v1"
+	"go.opentelemetry.io/collector/model/otlpgrpc"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/obsreport"
 )
 
 const (
 	dataFormatProtobuf = "protobuf"
+	receiverTransport  = "grpc"
 )
 
 // Receiver is the type used to handle metrics from OpenTelemetry exporters.
@@ -39,38 +39,18 @@ type Receiver struct {
 
 // New creates a new Receiver reference.
 func New(id config.ComponentID, nextConsumer consumer.Metrics) *Receiver {
-	r := &Receiver{
+	return &Receiver{
 		id:           id,
 		nextConsumer: nextConsumer,
 		obsrecv:      obsreport.NewReceiver(obsreport.ReceiverSettings{ReceiverID: id, Transport: receiverTransport}),
 	}
-	return r
 }
-
-const (
-	receiverTransport = "grpc"
-)
-
-var receiverID = config.NewIDWithName("otlp", "metrics")
 
 // Export implements the service Export metrics func.
-func (r *Receiver) Export(ctx context.Context, req *collectormetrics.ExportMetricsServiceRequest) (*collectormetrics.ExportMetricsServiceResponse, error) {
-	receiverCtx := obsreport.ReceiverContext(ctx, r.id, receiverTransport)
-
-	md := pdata.MetricsFromInternalRep(internal.MetricsFromOtlp(req))
-
-	err := r.sendToNextConsumer(receiverCtx, md)
-	if err != nil {
-		return nil, err
-	}
-
-	return &collectormetrics.ExportMetricsServiceResponse{}, nil
-}
-
-func (r *Receiver) sendToNextConsumer(ctx context.Context, md pdata.Metrics) error {
-	metricCount, dataPointCount := md.MetricAndDataPointCount()
-	if metricCount == 0 {
-		return nil
+func (r *Receiver) Export(ctx context.Context, md pdata.Metrics) (otlpgrpc.MetricsResponse, error) {
+	dataPointCount := md.DataPointCount()
+	if dataPointCount == 0 {
+		return otlpgrpc.NewMetricsResponse(), nil
 	}
 
 	if c, ok := client.FromGRPC(ctx); ok {
@@ -81,5 +61,5 @@ func (r *Receiver) sendToNextConsumer(ctx context.Context, md pdata.Metrics) err
 	err := r.nextConsumer.ConsumeMetrics(ctx, md)
 	r.obsrecv.EndMetricsOp(ctx, dataFormatProtobuf, dataPointCount, err)
 
-	return err
+	return otlpgrpc.NewMetricsResponse(), err
 }

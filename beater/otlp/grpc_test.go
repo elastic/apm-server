@@ -19,16 +19,14 @@ package otlp_test
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net"
-	"reflect"
-	"strings"
 	"testing"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/model/otlpgrpc"
+	"go.opentelemetry.io/collector/model/pdata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 
@@ -39,13 +37,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
-var (
-	exportMetricsServiceRequestType  = proto.MessageType("opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest")
-	exportMetricsServiceResponseType = proto.MessageType("opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceResponse")
-	exportTraceServiceRequestType    = proto.MessageType("opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest")
-	exportTraceServiceResponseType   = proto.MessageType("opentelemetry.proto.collector.trace.v1.ExportTraceServiceResponse")
-)
-
 func TestConsumeTraces(t *testing.T) {
 	var batches []model.Batch
 	var reportError error
@@ -54,41 +45,23 @@ func TestConsumeTraces(t *testing.T) {
 		return reportError
 	}
 
+	conn := newServer(t, batchProcessor)
+	client := otlpgrpc.NewTracesClient(conn)
+
 	// Send a minimal trace to verify that everything is connected properly.
 	//
 	// We intentionally do not check the published event contents; those are
 	// tested in processor/otel.
-	cannedRequest := jsonExportTraceServiceRequest(`{
-"resource_spans": [
-  {
-    "instrumentation_library_spans": [
-      {
-        "spans": [
-	  {
-	    "trace_id": "0123456789abcdef0123456789abcdef",
-	    "span_id": "945254c567a5417e",
-	    "name": "operation_name"
-	  }
-	]
-      }
-    ]
-  }
-]
-}`)
+	traces := pdata.NewTraces()
+	span := traces.ResourceSpans().AppendEmpty().InstrumentationLibrarySpans().AppendEmpty().Spans().AppendEmpty()
+	span.SetName("operation_name")
 
-	conn := newServer(t, batchProcessor)
-	err := conn.Invoke(
-		context.Background(), "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
-		cannedRequest, newExportTraceServiceResponse(),
-	)
+	_, err := client.Export(context.Background(), traces)
 	assert.NoError(t, err)
 	require.Len(t, batches, 1)
 
 	reportError = errors.New("failed to publish events")
-	err = conn.Invoke(
-		context.Background(), "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
-		cannedRequest, newExportTraceServiceResponse(),
-	)
+	_, err = client.Export(context.Background(), traces)
 	assert.Error(t, err)
 	errStatus := status.Convert(err)
 	assert.Equal(t, "failed to publish events", errStatus.Message())
@@ -117,39 +90,26 @@ func TestConsumeMetrics(t *testing.T) {
 		return reportError
 	}
 
+	conn := newServer(t, batchProcessor)
+	client := otlpgrpc.NewMetricsClient(conn)
+
 	// Send a minimal metric to verify that everything is connected properly.
 	//
 	// We intentionally do not check the published event contents; those are
 	// tested in processor/otel.
-	cannedRequest := jsonExportMetricsServiceRequest(`{
-"resource_metrics": [
-  {
-    "instrumentation_library_metrics": [
-      {
-        "metrics": [
-	  {
-	    "name": "metric_name"
-	  }
-	]
-      }
-    ]
-  }
-]
-}`)
+	metrics := pdata.NewMetrics()
+	metric := metrics.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty().Metrics().AppendEmpty()
+	metric.SetName("metric_type")
+	metric.SetDataType(pdata.MetricDataTypeSummary)
+	metric.Summary().DataPoints().AppendEmpty()
 
-	conn := newServer(t, batchProcessor)
-	err := conn.Invoke(
-		context.Background(), "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export",
-		cannedRequest, newExportMetricsServiceResponse(),
-	)
+	_, err := client.Export(context.Background(), metrics)
 	assert.NoError(t, err)
 
 	reportError = errors.New("failed to publish events")
-	err = conn.Invoke(
-		context.Background(), "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export",
-		cannedRequest, newExportMetricsServiceResponse(),
-	)
+	_, err = client.Export(context.Background(), metrics)
 	assert.Error(t, err)
+
 	errStatus := status.Convert(err)
 	assert.Equal(t, "failed to publish events", errStatus.Message())
 
@@ -171,34 +131,6 @@ func TestConsumeMetrics(t *testing.T) {
 		"response.errors.timeout":      int64(0),
 		"response.errors.unauthorized": int64(0),
 	}, actual)
-}
-
-func jsonExportTraceServiceRequest(j string) interface{} {
-	request := reflect.New(exportTraceServiceRequestType.Elem()).Interface()
-	decoder := json.NewDecoder(strings.NewReader(j))
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(request); err != nil {
-		panic(err)
-	}
-	return request
-}
-
-func newExportTraceServiceResponse() interface{} {
-	return reflect.New(exportTraceServiceResponseType.Elem()).Interface()
-}
-
-func jsonExportMetricsServiceRequest(j string) interface{} {
-	request := reflect.New(exportMetricsServiceRequestType.Elem()).Interface()
-	decoder := json.NewDecoder(strings.NewReader(j))
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(request); err != nil {
-		panic(err)
-	}
-	return request
-}
-
-func newExportMetricsServiceResponse() interface{} {
-	return reflect.New(exportMetricsServiceResponseType.Elem()).Interface()
 }
 
 func newServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientConn {

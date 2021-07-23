@@ -20,7 +20,7 @@ package otel
 import (
 	"time"
 
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 )
 
 // exportTimestamp extracts the `telemetry.sdk.elastic_export_timestamp`

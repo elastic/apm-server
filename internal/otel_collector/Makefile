@@ -8,7 +8,7 @@ ALL_SRC := $(shell find . -name '*.go' \
 							-not -path './cmd/checkdoc/*' \
 							-not -path './internal/tools/*' \
 							-not -path './examples/demo/app/*' \
-							-not -path './internal/data/protogen/*' \
+							-not -path './model/internal/data/protogen/*' \
 							-not -path './service/internal/zpages/tmplgen/*' \
 							-type f | sort)
 
@@ -26,7 +26,7 @@ GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
 
 BUILD_INFO_IMPORT_PATH=go.opentelemetry.io/collector/internal/version
-VERSION=$(shell git describe --match "v[0-9]*" HEAD)
+VERSION=$(shell git describe --always --match "v[0-9]*" HEAD)
 BUILD_INFO=-ldflags "-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)"
 
 RUN_CONFIG?=examples/local/otel-config.yaml
@@ -48,6 +48,10 @@ $(1)
 endef
 
 .DEFAULT_GOAL := all
+
+.PHONY: version
+version:
+	@echo ${VERSION}
 
 .PHONY: all
 all: checklicense checkdoc misspell goimpi golint gotest otelcol
@@ -251,7 +255,6 @@ binaries-windows_amd64:
 build-binary-internal:
 	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
 
-
 .PHONY: deb-rpm-package
 %-package: ARCH ?= amd64
 %-package:
@@ -289,21 +292,21 @@ gendependabot:
 # Definitions for ProtoBuf generation.
 
 # The source directory for OTLP ProtoBufs.
-OPENTELEMETRY_PROTO_SRC_DIR=internal/data/opentelemetry-proto
+OPENTELEMETRY_PROTO_SRC_DIR=model/internal/opentelemetry-proto
 
 # Find all .proto files.
 OPENTELEMETRY_PROTO_FILES := $(subst $(OPENTELEMETRY_PROTO_SRC_DIR)/,,$(wildcard $(OPENTELEMETRY_PROTO_SRC_DIR)/opentelemetry/proto/*/v1/*.proto $(OPENTELEMETRY_PROTO_SRC_DIR)/opentelemetry/proto/collector/*/v1/*.proto))
 
 # Target directory to write generated files to.
-PROTO_TARGET_GEN_DIR=internal/data/protogen
+PROTO_TARGET_GEN_DIR=model/internal/data/protogen
 
 # Go package name to use for generated files.
 PROTO_PACKAGE=go.opentelemetry.io/collector/$(PROTO_TARGET_GEN_DIR)
 
 # Intermediate directory used during generation.
-PROTO_INTERMEDIATE_DIR=internal/data/.patched-otlp-proto
+PROTO_INTERMEDIATE_DIR=model/internal/.patched-otlp-proto
 
-DOCKER_PROTOBUF ?= otel/build-protobuf:0.2.1
+DOCKER_PROTOBUF ?= otel/build-protobuf:0.4.1
 PROTOC := docker run --rm -u ${shell id -u} -v${PWD}:${PWD} -w${PWD}/$(PROTO_INTERMEDIATE_DIR) ${DOCKER_PROTOBUF} --proto_path=${PWD}
 PROTO_INCLUDES := -I/usr/include/github.com/gogo/protobuf -I./
 
@@ -333,11 +336,6 @@ genproto_sub:
 	@echo Generate Go code from .proto files in intermediate directory.
 	$(foreach file,$(OPENTELEMETRY_PROTO_FILES),$(call exec-command,$(PROTOC) $(PROTO_INCLUDES) --gogofaster_out=plugins=grpc:./ $(file)))
 
-	@echo Generate gRPC gateway code.
-	$(PROTOC) $(PROTO_INCLUDES) --grpc-gateway_out=logtostderr=true,grpc_api_configuration=opentelemetry/proto/collector/trace/v1/trace_service_http.yaml:./ opentelemetry/proto/collector/trace/v1/trace_service.proto
-	$(PROTOC) $(PROTO_INCLUDES) --grpc-gateway_out=logtostderr=true,grpc_api_configuration=opentelemetry/proto/collector/metrics/v1/metrics_service_http.yaml:./ opentelemetry/proto/collector/metrics/v1/metrics_service.proto
-	$(PROTOC) $(PROTO_INCLUDES) --grpc-gateway_out=logtostderr=true,grpc_api_configuration=opentelemetry/proto/collector/logs/v1/logs_service_http.yaml:./ opentelemetry/proto/collector/logs/v1/logs_service.proto
-
 	@echo Move generated code to target directory.
 	mkdir -p $(PROTO_TARGET_GEN_DIR)
 	cp -R $(PROTO_INTERMEDIATE_DIR)/$(PROTO_PACKAGE)/* $(PROTO_TARGET_GEN_DIR)/
@@ -358,6 +356,7 @@ genpdata:
 check-contrib:
 	@echo Setting contrib at $(CONTRIB_PATH) to use this core checkout
 	make -C $(CONTRIB_PATH) for-all CMD="go mod edit -replace go.opentelemetry.io/collector=$(CURDIR)"
+	make -C $(CONTRIB_PATH) for-all CMD="go mod edit -replace go.opentelemetry.io/collector/model=$(CURDIR)/model"
 	make -C $(CONTRIB_PATH) gotidy
 	make -C $(CONTRIB_PATH) test
 	@echo Restoring contrib to no longer use this core checkout
@@ -388,6 +387,13 @@ checkdoc:
 .PHONY: apidiff-build
 apidiff-build:
 	@$(foreach pkg,$(ALL_PKGS),$(call exec-command,./internal/buildscripts/gen-apidiff.sh -p $(pkg)))
+
+# If we are running in CI, change input directory
+ifeq ($(CI), true)
+APICOMPARE_OPTS=$(COMPARE_OPTS)
+else
+APICOMPARE_OPTS=-d "./internal/data/apidiff"
+endif
 
 # Compare API state snapshots
 .PHONY: apidiff-compare

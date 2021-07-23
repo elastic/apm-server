@@ -80,10 +80,10 @@ func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcesso
 	// dynamically registered and unregistered.
 	setCurrentMonitoredConsumer(consumer)
 
-	if err := otlpreceiver.RegisterTraceReceiver(context.Background(), consumer, grpcServer, nil); err != nil {
+	if err := otlpreceiver.RegisterTraceReceiver(context.Background(), consumer, grpcServer); err != nil {
 		return errors.Wrap(err, "failed to register OTLP trace receiver")
 	}
-	if err := otlpreceiver.RegisterMetricsReceiver(context.Background(), consumer, grpcServer, nil); err != nil {
+	if err := otlpreceiver.RegisterMetricsReceiver(context.Background(), consumer, grpcServer); err != nil {
 		return errors.Wrap(err, "failed to register OTLP metrics receiver")
 	}
 	return nil
