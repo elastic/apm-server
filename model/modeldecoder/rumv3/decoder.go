@@ -26,8 +26,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
@@ -209,7 +207,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 	if from.Context.IsSet() {
 		// metadata labels and context labels are merged only in the output model
 		if len(from.Context.Tags) > 0 {
-			out.Labels = from.Context.Tags.Clone()
+			out.Labels = modeldecoderutil.NormalizeLabelValues(from.Context.Tags.Clone())
 		}
 		if from.Context.Request.IsSet() {
 			out.HTTP = &model.HTTP{Request: &model.HTTPRequest{}}
@@ -240,7 +238,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 			}
 		}
 		if len(from.Context.Custom) > 0 {
-			out.Custom = from.Context.Custom.Clone()
+			out.Custom = modeldecoderutil.NormalizeLabelValues(from.Context.Custom.Clone())
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -307,7 +305,7 @@ func mapToExceptionModel(from errorException, out *model.Exception) {
 		out.Attributes = from.Attributes.Clone()
 	}
 	if from.Code.IsSet() {
-		out.Code = from.Code.Val
+		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
 	}
 	if len(from.Cause) > 0 {
 		out.Cause = make([]model.Exception, len(from.Cause))
@@ -338,8 +336,7 @@ func mapToExceptionModel(from errorException, out *model.Exception) {
 func mapToMetadataModel(m *metadata, out *model.Metadata) {
 	// Labels
 	if len(m.Labels) > 0 {
-		out.Labels = common.MapStr{}
-		out.Labels.Update(m.Labels)
+		out.Labels = modeldecoderutil.NormalizeLabelValues(m.Labels.Clone())
 	}
 
 	// Service
@@ -434,7 +431,7 @@ func mapToMetricsetModel(from *metricset, metadata *model.Metadata, reqTime time
 	}
 
 	if len(from.Tags) > 0 {
-		out.Labels = from.Tags.Clone()
+		out.Labels = modeldecoderutil.NormalizeLabelValues(from.Tags.Clone())
 	}
 	// map span information
 	if from.Span.Subtype.IsSet() {
@@ -619,7 +616,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, out
 		}
 	}
 	if len(from.Context.Tags) > 0 {
-		out.Labels = from.Context.Tags.Clone()
+		out.Labels = modeldecoderutil.NormalizeLabelValues(from.Context.Tags.Clone())
 	}
 	if from.Duration.IsSet() {
 		out.Duration = from.Duration.Val
@@ -724,11 +721,11 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			out.Custom = from.Context.Custom.Clone()
+			out.Custom = modeldecoderutil.NormalizeLabelValues(from.Context.Custom.Clone())
 		}
 		// metadata labels and context labels are merged when transforming the output model
 		if len(from.Context.Tags) > 0 {
-			out.Labels = from.Context.Tags.Clone()
+			out.Labels = modeldecoderutil.NormalizeLabelValues(from.Context.Tags.Clone())
 		}
 		if from.Context.Request.IsSet() {
 			out.HTTP = &model.HTTP{Request: &model.HTTPRequest{}}
