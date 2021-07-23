@@ -1,9 +1,0 @@
-{
-    "carrier": {
-        "icc": "DK",
-        "mcc": "100",
-        "mnc": "200",
-        "name": "Three"
-    },
-    "connection_type": "3G"
-}

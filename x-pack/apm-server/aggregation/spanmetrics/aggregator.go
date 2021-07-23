@@ -201,7 +201,7 @@ func (a *Aggregator) processSpan(span *model.Span) *model.Metricset {
 	key := aggregationKey{
 		serviceEnvironment: span.Metadata.Service.Environment,
 		serviceName:        span.Metadata.Service.Name,
-		agentName:          span.Metadata.Service.Agent.Name,
+		agentName:          span.Metadata.Agent.Name,
 		outcome:            span.Outcome,
 		resource:           span.DestinationService.Resource,
 	}
@@ -262,10 +262,10 @@ func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics,
 		Timestamp: timestamp,
 		Name:      metricsetName,
 		Metadata: model.Metadata{
+			Agent: model.Agent{Name: key.agentName},
 			Service: model.Service{
 				Name:        key.serviceName,
 				Environment: key.serviceEnvironment,
-				Agent:       model.Agent{Name: key.agentName},
 			},
 		},
 		Event: model.MetricsetEventCategorization{

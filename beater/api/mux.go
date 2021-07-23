@@ -310,7 +310,7 @@ func emptyRequestMetadata(c *request.Context) model.Metadata {
 }
 
 func backendRequestMetadata(c *request.Context) model.Metadata {
-	return model.Metadata{System: model.System{IP: c.SourceIP}}
+	return model.Metadata{Host: model.Host{IP: c.SourceIP}}
 }
 
 func rumRequestMetadata(c *request.Context) model.Metadata {

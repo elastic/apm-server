@@ -45,18 +45,19 @@ func TestMetadata_Set(t *testing.T) {
 	}{
 		{
 			input: Metadata{
+				Agent: Agent{
+					Name:    agentName,
+					Version: agentVersion,
+				},
+				Container: Container{ID: containerID},
 				Service: Service{
 					Name: serviceName,
 					Node: ServiceNode{Name: serviceNodeName},
-					Agent: Agent{
-						Name:    agentName,
-						Version: agentVersion,
-					},
 				},
-				System: System{
-					ConfiguredHostname: host,
-					DetectedHostname:   hostname,
-					Container:          Container{ID: containerID}},
+				Host: Host{
+					Hostname: hostname,
+					Name:     host,
+				},
 				Process: Process{Pid: pid},
 				User:    User{ID: uid, Email: mail},
 			},
@@ -108,6 +109,14 @@ func BenchmarkMetadataSet(b *testing.B) {
 		},
 	})
 	test(b, "full", Metadata{
+		Agent:     Agent{Name: "go", Version: "2.0"},
+		Container: Container{ID: "docker"},
+		Kubernetes: Kubernetes{
+			Namespace: "system",
+			NodeName:  "node01",
+			PodName:   "pet",
+			PodUID:    "cattle",
+		},
 		Service: Service{
 			Name:        "foo",
 			Version:     "1.0",
@@ -116,7 +125,6 @@ func BenchmarkMetadataSet(b *testing.B) {
 			Language:    Language{Name: "go", Version: "++"},
 			Runtime:     Runtime{Name: "gc", Version: "1.0"},
 			Framework:   Framework{Name: "never", Version: "again"},
-			Agent:       Agent{Name: "go", Version: "2.0"},
 		},
 		Process: Process{
 			Pid:   123,
@@ -124,18 +132,13 @@ func BenchmarkMetadataSet(b *testing.B) {
 			Title: "case",
 			Argv:  []string{"apm-server"},
 		},
-		System: System{
-			DetectedHostname:   "detected",
-			ConfiguredHostname: "configured",
-			Architecture:       "x86_64",
-			Platform:           "linux",
-			IP:                 net.ParseIP("10.1.1.1"),
-			Container:          Container{ID: "docker"},
-			Kubernetes: Kubernetes{
-				Namespace: "system",
-				NodeName:  "node01",
-				PodName:   "pet",
-				PodUID:    "cattle",
+		Host: Host{
+			Hostname:     "detected",
+			Name:         "configured",
+			Architecture: "x86_64",
+			IP:           net.ParseIP("10.1.1.1"),
+			OS: OS{
+				Platform: "linux",
 			},
 		},
 		User: User{
