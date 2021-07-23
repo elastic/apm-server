@@ -15,41 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package modeldecoderutil
 
 import (
+	"encoding/json"
+
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-// Page consists of URL and referer
-type Page struct {
-	URL     *URL
-	Referer string
-}
-
-// Fields returns common.MapStr holding transformed data for attribute page.
-func (page *Page) Fields() common.MapStr {
-	if page == nil {
-		return nil
+// NormalizeLabelValues transforms the values in labels, replacing any
+// instance of json.Number with libbeat/common.Float, and returning
+// labels.
+func NormalizeLabelValues(labels common.MapStr) common.MapStr {
+	for k, v := range labels {
+		switch v := v.(type) {
+		case json.Number:
+			if floatVal, err := v.Float64(); err == nil {
+				labels[k] = common.Float(floatVal)
+			}
+		}
 	}
-	var fields mapStr
-	if page.URL != nil {
-		// Remove in 8.0
-		fields.set("url", page.URL.Original)
-	}
-	fields.maybeSetString("referer", page.Referer)
-	return common.MapStr(fields)
-}
-
-// customFields transforms in, returning a copy with sanitized keys,
-// suitable for storing as "custom" in transaction and error documents.
-func customFields(in common.MapStr) common.MapStr {
-	if len(in) == 0 {
-		return nil
-	}
-	out := make(common.MapStr, len(in))
-	for k, v := range in {
-		out[sanitizeLabelKey(k)] = v
-	}
-	return out
+	return labels
 }

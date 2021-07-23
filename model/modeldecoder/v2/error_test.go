@@ -219,4 +219,12 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		assert.Equal(t, "https://my.site.test:9201", out.Page.Referer)
 		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referrer)
 	})
+
+	t.Run("exception-code", func(t *testing.T) {
+		var input errorEvent
+		var out model.Error
+		input.Exception.Code.Set(123.456)
+		mapToErrorModel(&input, &model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, "123", out.Exception.Code)
+	})
 }
