@@ -212,4 +212,12 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
 		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.HTTP.Response.Headers)
 	})
+
+	t.Run("exception-code", func(t *testing.T) {
+		var input errorEvent
+		var out model.Error
+		input.Exception.Code.Set(123.456)
+		mapToErrorModel(&input, &model.Metadata{}, time.Now(), &out)
+		assert.Equal(t, "123", out.Exception.Code)
+	})
 }
