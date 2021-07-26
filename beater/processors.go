@@ -34,7 +34,7 @@ const (
 // is authorized to ingest events for the agent and service name in metadata.
 func authorizeEventIngest(ctx context.Context, meta *model.Metadata) error {
 	return auth.Authorize(ctx, auth.ActionEventIngest, auth.Resource{
-		AgentName:   meta.Service.Agent.Name,
+		AgentName:   meta.Agent.Name,
 		ServiceName: meta.Service.Name,
 	})
 }

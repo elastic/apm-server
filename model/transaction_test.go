@@ -20,7 +20,6 @@ package model
 import (
 	"fmt"
 	"net"
-	"net/http"
 	"testing"
 	"time"
 
@@ -33,7 +32,6 @@ import (
 func TestTransactionTransform(t *testing.T) {
 	id := "123"
 	result := "tx result"
-	sampled := false
 	dropped, startedSpans := 5, 14
 	name := "mytransaction"
 
@@ -48,7 +46,7 @@ func TestTransactionTransform(t *testing.T) {
 				"id":       "",
 				"type":     "",
 				"duration": common.MapStr{"us": 0},
-				"sampled":  true,
+				"sampled":  false,
 			},
 			Msg: "Empty Event",
 		},
@@ -62,7 +60,7 @@ func TestTransactionTransform(t *testing.T) {
 				"id":       id,
 				"type":     "tx",
 				"duration": common.MapStr{"us": 65980},
-				"sampled":  true,
+				"sampled":  false,
 			},
 			Msg: "SpanCount empty",
 		},
@@ -78,7 +76,7 @@ func TestTransactionTransform(t *testing.T) {
 				"type":       "tx",
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"started": 14},
-				"sampled":    true,
+				"sampled":    false,
 			},
 			Msg: "SpanCount only contains `started`",
 		},
@@ -94,7 +92,7 @@ func TestTransactionTransform(t *testing.T) {
 				"type":       "tx",
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"dropped": 5},
-				"sampled":    true,
+				"sampled":    false,
 			},
 			Msg: "SpanCount only contains `dropped`",
 		},
@@ -106,7 +104,7 @@ func TestTransactionTransform(t *testing.T) {
 				Result:    result,
 				Timestamp: time.Now(),
 				Duration:  65.98,
-				Sampled:   &sampled,
+				Sampled:   true,
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
 			},
 			Output: common.MapStr{
@@ -116,7 +114,7 @@ func TestTransactionTransform(t *testing.T) {
 				"result":     "tx result",
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"started": 14, "dropped": 5},
-				"sampled":    false,
+				"sampled":    true,
 			},
 			Msg: "Full Event",
 		},
@@ -149,11 +147,11 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			Version: serviceVersion,
 			Node:    ServiceNode{Name: serviceNodeName},
 		},
-		System: System{
-			ConfiguredHostname: name,
-			DetectedHostname:   hostname,
-			Architecture:       architecture,
-			Platform:           platform,
+		Host: Host{
+			Name:         name,
+			Hostname:     hostname,
+			Architecture: architecture,
+			OS:           OS{Platform: platform},
 		},
 		User:      User{ID: id, Name: name},
 		UserAgent: UserAgent{Original: userAgent},
@@ -161,20 +159,21 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Labels:    common.MapStr{"a": true},
 	}
 
-	request := Req{Method: "post", Socket: &Socket{}, Headers: http.Header{}, Referer: referer}
-	response := Resp{Finished: new(bool), MinimalResp: MinimalResp{Headers: http.Header{"content-type": []string{"text/html"}}}}
+	request := HTTPRequest{Method: "post", Headers: common.MapStr{}, Referrer: referer}
+	response := HTTPResponse{Finished: new(bool), Headers: common.MapStr{"content-type": []string{"text/html"}}}
 	txWithContext := Transaction{
 		Metadata:  eventMetadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"a": "b"},
 		Page:      &Page{URL: &URL{Original: url}, Referer: referer},
-		HTTP:      &Http{Request: &request, Response: &response},
+		HTTP:      &HTTP{Request: &request, Response: &response},
 		URL:       &URL{Original: url},
 		Custom:    common.MapStr{"foo.bar": "baz"},
 		Message:   &Message{QueueName: "routeUser"},
+		Sampled:   true,
 	}
 	event := txWithContext.toBeatEvent()
-	assert.Equal(t, event.Fields, common.MapStr{
+	assert.Equal(t, common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
 		"client":     common.MapStr{"ip": ip},
 		"source":     common.MapStr{"ip": ip},
@@ -213,22 +212,21 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"url":    common.MapStr{"original": url},
 		"http": common.MapStr{
 			"request":  common.MapStr{"method": "post", "referrer": referer},
-			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": []string{"text/html"}}}},
-	})
+			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": []string{"text/html"}}},
+		},
+	}, event.Fields)
 }
 
 func TestTransformTransactionHTTP(t *testing.T) {
-	request := Req{Method: "post", Body: "<html><marquee>hello world</marquee></html>"}
+	request := HTTPRequest{Method: "post", Body: "<html><marquee>hello world</marquee></html>"}
 	tx := Transaction{
-		HTTP: &Http{Request: &request},
+		HTTP: &HTTP{Request: &request},
 	}
 	event := tx.toBeatEvent()
 	assert.Equal(t, common.MapStr{
 		"request": common.MapStr{
-			"method": request.Method,
-			"body": common.MapStr{
-				"original": request.Body,
-			},
+			"method":        request.Method,
+			"body.original": request.Body,
 		},
 	}, event.Fields["http"])
 }

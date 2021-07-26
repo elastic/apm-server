@@ -42,8 +42,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/otlptext"
+	"go.opentelemetry.io/collector/model/pdata"
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
@@ -57,7 +56,12 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) er
 	receiveTimestamp := time.Now()
 	logger := logp.NewLogger(logs.Otel)
 	if logger.IsDebug() {
-		logger.Debug(otlptext.Metrics(metrics))
+		data, err := jsonMetricsMarshaler.MarshalMetrics(metrics)
+		if err != nil {
+			logger.Debug(err)
+		} else {
+			logger.Debug(data)
+		}
 	}
 	batch := c.convertMetrics(metrics, receiveTimestamp)
 	return c.Processor.ProcessBatch(ctx, batch)
@@ -129,8 +133,8 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 			)
 		}
 		return true
-	case pdata.MetricDataTypeDoubleGauge:
-		dps := metric.DoubleGauge().DataPoints()
+	case pdata.MetricDataTypeGauge:
+		dps := metric.Gauge().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
@@ -159,8 +163,8 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 			)
 		}
 		return true
-	case pdata.MetricDataTypeDoubleSum:
-		dps := metric.DoubleSum().DataPoints()
+	case pdata.MetricDataTypeSum:
+		dps := metric.Sum().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(

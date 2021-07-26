@@ -17,9 +17,7 @@ package testdata
 import (
 	"time"
 
-	"go.opentelemetry.io/collector/consumer/pdata"
-	otlpcollectormetrics "go.opentelemetry.io/collector/internal/data/protogen/collector/metrics/v1"
-	otlpmetrics "go.opentelemetry.io/collector/internal/data/protogen/metrics/v1"
+	"go.opentelemetry.io/collector/model/pdata"
 )
 
 var (
@@ -49,14 +47,6 @@ func GenerateMetricsOneEmptyResourceMetrics() pdata.Metrics {
 	return md
 }
 
-func generateMetricsOtlpOneEmptyResourceMetrics() *otlpcollectormetrics.ExportMetricsServiceRequest {
-	return &otlpcollectormetrics.ExportMetricsServiceRequest{
-		ResourceMetrics: []*otlpmetrics.ResourceMetrics{
-			{},
-		},
-	}
-}
-
 func GenerateMetricsNoLibraries() pdata.Metrics {
 	md := GenerateMetricsOneEmptyResourceMetrics()
 	ms0 := md.ResourceMetrics().At(0)
@@ -64,34 +54,10 @@ func GenerateMetricsNoLibraries() pdata.Metrics {
 	return md
 }
 
-func generateMetricsOtlpNoLibraries() *otlpcollectormetrics.ExportMetricsServiceRequest {
-	return &otlpcollectormetrics.ExportMetricsServiceRequest{
-		ResourceMetrics: []*otlpmetrics.ResourceMetrics{
-			{
-				Resource: generateOtlpResource1(),
-			},
-		},
-	}
-}
-
 func GenerateMetricsOneEmptyInstrumentationLibrary() pdata.Metrics {
 	md := GenerateMetricsNoLibraries()
 	md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().AppendEmpty()
 	return md
-}
-
-// generateMetricsOtlpOneEmptyInstrumentationLibrary returns the OTLP representation of the GenerateMetricsOneEmptyInstrumentationLibrary.
-func generateMetricsOtlpOneEmptyInstrumentationLibrary() *otlpcollectormetrics.ExportMetricsServiceRequest {
-	return &otlpcollectormetrics.ExportMetricsServiceRequest{
-		ResourceMetrics: []*otlpmetrics.ResourceMetrics{
-			{
-				Resource: generateOtlpResource1(),
-				InstrumentationLibraryMetrics: []*otlpmetrics.InstrumentationLibraryMetrics{
-					{},
-				},
-			},
-		},
-	}
 }
 
 func GenerateMetricsOneMetricNoResource() pdata.Metrics {
@@ -102,44 +68,11 @@ func GenerateMetricsOneMetricNoResource() pdata.Metrics {
 	return md
 }
 
-func generateMetricsOtlpOneMetricNoResource() *otlpcollectormetrics.ExportMetricsServiceRequest {
-	return &otlpcollectormetrics.ExportMetricsServiceRequest{
-		ResourceMetrics: []*otlpmetrics.ResourceMetrics{
-			{
-				InstrumentationLibraryMetrics: []*otlpmetrics.InstrumentationLibraryMetrics{
-					{
-						Metrics: []*otlpmetrics.Metric{
-							generateOtlpCounterIntMetric(),
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
 func GenerateMetricsOneMetric() pdata.Metrics {
 	md := GenerateMetricsOneEmptyInstrumentationLibrary()
 	rm0ils0 := md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0)
 	initCounterIntMetric(rm0ils0.Metrics().AppendEmpty())
 	return md
-}
-
-func generateMetricsOtlpOneMetric() *otlpcollectormetrics.ExportMetricsServiceRequest {
-	return &otlpcollectormetrics.ExportMetricsServiceRequest{
-		ResourceMetrics: []*otlpmetrics.ResourceMetrics{
-			{
-				Resource: generateOtlpResource1(),
-				InstrumentationLibraryMetrics: []*otlpmetrics.InstrumentationLibraryMetrics{
-					{
-						Metrics: []*otlpmetrics.Metric{
-							generateOtlpCounterIntMetric(),
-						},
-					},
-				},
-			},
-		},
-	}
 }
 
 func GenerateMetricsOneMetricOneDataPoint() pdata.Metrics {
@@ -165,24 +98,6 @@ func GenerateMetricsOneCounterOneSummaryMetrics() pdata.Metrics {
 	return md
 }
 
-func generateMetricsOtlpTwoMetrics() *otlpcollectormetrics.ExportMetricsServiceRequest {
-	return &otlpcollectormetrics.ExportMetricsServiceRequest{
-		ResourceMetrics: []*otlpmetrics.ResourceMetrics{
-			{
-				Resource: generateOtlpResource1(),
-				InstrumentationLibraryMetrics: []*otlpmetrics.InstrumentationLibraryMetrics{
-					{
-						Metrics: []*otlpmetrics.Metric{
-							generateOtlpCounterIntMetric(),
-							generateOtlpCounterIntMetric(),
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
 func GenerateMetricsOneMetricNoLabels() pdata.Metrics {
 	md := GenerateMetricsOneMetric()
 	dps := md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).IntSum().DataPoints()
@@ -191,21 +106,13 @@ func GenerateMetricsOneMetricNoLabels() pdata.Metrics {
 	return md
 }
 
-func generateMetricsOtlpOneMetricNoLabels() *otlpcollectormetrics.ExportMetricsServiceRequest {
-	md := generateMetricsOtlpOneMetric()
-	mis := md.ResourceMetrics[0].InstrumentationLibraryMetrics[0].Metrics[0].Data.(*otlpmetrics.Metric_IntSum).IntSum
-	mis.DataPoints[0].Labels = nil
-	mis.DataPoints[1].Labels = nil
-	return md
-}
-
 func GenerateMetricsAllTypesNoDataPoints() pdata.Metrics {
 	md := GenerateMetricsOneEmptyInstrumentationLibrary()
 	ilm0 := md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0)
 	ms := ilm0.Metrics()
-	initMetric(ms.AppendEmpty(), TestGaugeDoubleMetricName, pdata.MetricDataTypeDoubleGauge)
+	initMetric(ms.AppendEmpty(), TestGaugeDoubleMetricName, pdata.MetricDataTypeGauge)
 	initMetric(ms.AppendEmpty(), TestGaugeIntMetricName, pdata.MetricDataTypeIntGauge)
-	initMetric(ms.AppendEmpty(), TestCounterDoubleMetricName, pdata.MetricDataTypeDoubleSum)
+	initMetric(ms.AppendEmpty(), TestCounterDoubleMetricName, pdata.MetricDataTypeSum)
 	initMetric(ms.AppendEmpty(), TestCounterIntMetricName, pdata.MetricDataTypeIntSum)
 	initMetric(ms.AppendEmpty(), TestDoubleHistogramMetricName, pdata.MetricDataTypeHistogram)
 	initMetric(ms.AppendEmpty(), TestIntHistogramMetricName, pdata.MetricDataTypeIntHistogram)
@@ -219,14 +126,14 @@ func GenerateMetricsAllTypesEmptyDataPoint() pdata.Metrics {
 	ms := ilm0.Metrics()
 
 	doubleGauge := ms.AppendEmpty()
-	initMetric(doubleGauge, TestGaugeDoubleMetricName, pdata.MetricDataTypeDoubleGauge)
-	doubleGauge.DoubleGauge().DataPoints().AppendEmpty()
+	initMetric(doubleGauge, TestGaugeDoubleMetricName, pdata.MetricDataTypeGauge)
+	doubleGauge.Gauge().DataPoints().AppendEmpty()
 	intGauge := ms.AppendEmpty()
 	initMetric(intGauge, TestGaugeIntMetricName, pdata.MetricDataTypeIntGauge)
 	intGauge.IntGauge().DataPoints().AppendEmpty()
 	doubleSum := ms.AppendEmpty()
-	initMetric(doubleSum, TestCounterDoubleMetricName, pdata.MetricDataTypeDoubleSum)
-	doubleSum.DoubleSum().DataPoints().AppendEmpty()
+	initMetric(doubleSum, TestCounterDoubleMetricName, pdata.MetricDataTypeSum)
+	doubleSum.Sum().DataPoints().AppendEmpty()
 	intSum := ms.AppendEmpty()
 	initMetric(intSum, TestCounterIntMetricName, pdata.MetricDataTypeIntSum)
 	intSum.IntSum().DataPoints().AppendEmpty()
@@ -249,29 +156,6 @@ func GenerateMetricsMetricTypeInvalid() pdata.Metrics {
 	return md
 }
 
-func generateMetricsOtlpAllTypesNoDataPoints() *otlpcollectormetrics.ExportMetricsServiceRequest {
-	return &otlpcollectormetrics.ExportMetricsServiceRequest{
-		ResourceMetrics: []*otlpmetrics.ResourceMetrics{
-			{
-				Resource: generateOtlpResource1(),
-				InstrumentationLibraryMetrics: []*otlpmetrics.InstrumentationLibraryMetrics{
-					{
-						Metrics: []*otlpmetrics.Metric{
-							generateOtlpMetric(TestGaugeDoubleMetricName, pdata.MetricDataTypeDoubleGauge),
-							generateOtlpMetric(TestGaugeIntMetricName, pdata.MetricDataTypeIntGauge),
-							generateOtlpMetric(TestCounterDoubleMetricName, pdata.MetricDataTypeDoubleSum),
-							generateOtlpMetric(TestCounterIntMetricName, pdata.MetricDataTypeIntSum),
-							generateOtlpMetric(TestDoubleHistogramMetricName, pdata.MetricDataTypeHistogram),
-							generateOtlpMetric(TestIntHistogramMetricName, pdata.MetricDataTypeIntHistogram),
-							generateOtlpMetric(TestDoubleSummaryMetricName, pdata.MetricDataTypeSummary),
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
 func GeneratMetricsAllTypesWithSampleDatapoints() pdata.Metrics {
 	metricData := pdata.NewMetrics()
 	rm := metricData.ResourceMetrics().AppendEmpty()
@@ -286,27 +170,6 @@ func GeneratMetricsAllTypesWithSampleDatapoints() pdata.Metrics {
 	initDoubleSummaryMetric(ms.AppendEmpty())
 
 	return metricData
-}
-
-func generateMetricsOtlpAllTypesWithSampleDatapoints() *otlpcollectormetrics.ExportMetricsServiceRequest {
-	return &otlpcollectormetrics.ExportMetricsServiceRequest{
-		ResourceMetrics: []*otlpmetrics.ResourceMetrics{
-			{
-				Resource: generateOtlpResource1(),
-				InstrumentationLibraryMetrics: []*otlpmetrics.InstrumentationLibraryMetrics{
-					{
-						Metrics: []*otlpmetrics.Metric{
-							generateOtlpCounterIntMetric(),
-							generateOtlpSumDoubleMetric(),
-							generateOtlpDoubleHistogramMetric(),
-							generateOtlpIntHistogramMetric(),
-							generateOTLPDoubleSummaryMetric(),
-						},
-					},
-				},
-			},
-		},
-	}
 }
 
 func initCounterIntMetric(im pdata.Metric) {
@@ -335,30 +198,10 @@ func initGaugeIntMetricOneDataPoint(im pdata.Metric) {
 	idp0.SetValue(123)
 }
 
-func generateOtlpCounterIntMetric() *otlpmetrics.Metric {
-	m := generateOtlpMetric(TestCounterIntMetricName, pdata.MetricDataTypeIntSum)
-	m.Data.(*otlpmetrics.Metric_IntSum).IntSum.DataPoints =
-		[]*otlpmetrics.IntDataPoint{
-			{
-				Labels:            generateOtlpMetricLabels1(),
-				StartTimeUnixNano: uint64(TestMetricStartTimestamp),
-				TimeUnixNano:      uint64(TestMetricTimestamp),
-				Value:             123,
-			},
-			{
-				Labels:            generateOtlpMetricLabels2(),
-				StartTimeUnixNano: uint64(TestMetricStartTimestamp),
-				TimeUnixNano:      uint64(TestMetricTimestamp),
-				Value:             456,
-			},
-		}
-	return m
-}
-
 func initSumDoubleMetric(dm pdata.Metric) {
-	initMetric(dm, TestCounterDoubleMetricName, pdata.MetricDataTypeDoubleSum)
+	initMetric(dm, TestCounterDoubleMetricName, pdata.MetricDataTypeSum)
 
-	ddps := dm.DoubleSum().DataPoints()
+	ddps := dm.Sum().DataPoints()
 	ddp0 := ddps.AppendEmpty()
 	initMetricLabels12(ddp0.LabelsMap())
 	ddp0.SetStartTimestamp(TestMetricStartTimestamp)
@@ -370,26 +213,6 @@ func initSumDoubleMetric(dm pdata.Metric) {
 	ddp1.SetStartTimestamp(TestMetricStartTimestamp)
 	ddp1.SetTimestamp(TestMetricTimestamp)
 	ddp1.SetValue(4.56)
-}
-
-func generateOtlpSumDoubleMetric() *otlpmetrics.Metric {
-	m := generateOtlpMetric(TestCounterDoubleMetricName, pdata.MetricDataTypeDoubleSum)
-	m.Data.(*otlpmetrics.Metric_DoubleSum).DoubleSum.DataPoints =
-		[]*otlpmetrics.DoubleDataPoint{
-			{
-				Labels:            generateOtlpMetricLabels12(),
-				StartTimeUnixNano: uint64(TestMetricStartTimestamp),
-				TimeUnixNano:      uint64(TestMetricTimestamp),
-				Value:             1.23,
-			},
-			{
-				Labels:            generateOtlpMetricLabels13(),
-				StartTimeUnixNano: uint64(TestMetricStartTimestamp),
-				TimeUnixNano:      uint64(TestMetricTimestamp),
-				Value:             4.56,
-			},
-		}
-	return m
 }
 
 func initDoubleHistogramMetric(hm pdata.Metric) {
@@ -416,37 +239,6 @@ func initDoubleHistogramMetric(hm pdata.Metric) {
 	hdp1.SetExplicitBounds([]float64{1})
 }
 
-func generateOtlpDoubleHistogramMetric() *otlpmetrics.Metric {
-	m := generateOtlpMetric(TestDoubleHistogramMetricName, pdata.MetricDataTypeHistogram)
-	m.Data.(*otlpmetrics.Metric_DoubleHistogram).DoubleHistogram.DataPoints =
-		[]*otlpmetrics.DoubleHistogramDataPoint{
-			{
-				Labels:            generateOtlpMetricLabels13(),
-				StartTimeUnixNano: uint64(TestMetricStartTimestamp),
-				TimeUnixNano:      uint64(TestMetricTimestamp),
-				Count:             1,
-				Sum:               15,
-			},
-			{
-				Labels:            generateOtlpMetricLabels2(),
-				StartTimeUnixNano: uint64(TestMetricStartTimestamp),
-				TimeUnixNano:      uint64(TestMetricTimestamp),
-				Count:             1,
-				Sum:               15,
-				BucketCounts:      []uint64{0, 1},
-				ExplicitBounds:    []float64{1},
-				Exemplars: []otlpmetrics.DoubleExemplar{
-					{
-						FilteredLabels: generateOtlpMetricAttachment(),
-						TimeUnixNano:   uint64(TestMetricExemplarTimestamp),
-						Value:          15,
-					},
-				},
-			},
-		}
-	return m
-}
-
 func initIntHistogramMetric(hm pdata.Metric) {
 	initMetric(hm, TestIntHistogramMetricName, pdata.MetricDataTypeIntHistogram)
 
@@ -471,37 +263,6 @@ func initIntHistogramMetric(hm pdata.Metric) {
 	hdp1.SetExplicitBounds([]float64{1})
 }
 
-func generateOtlpIntHistogramMetric() *otlpmetrics.Metric {
-	m := generateOtlpMetric(TestIntHistogramMetricName, pdata.MetricDataTypeIntHistogram)
-	m.Data.(*otlpmetrics.Metric_IntHistogram).IntHistogram.DataPoints =
-		[]*otlpmetrics.IntHistogramDataPoint{
-			{
-				Labels:            generateOtlpMetricLabels13(),
-				StartTimeUnixNano: uint64(TestMetricStartTimestamp),
-				TimeUnixNano:      uint64(TestMetricTimestamp),
-				Count:             1,
-				Sum:               15,
-			},
-			{
-				Labels:            generateOtlpMetricLabels2(),
-				StartTimeUnixNano: uint64(TestMetricStartTimestamp),
-				TimeUnixNano:      uint64(TestMetricTimestamp),
-				Count:             1,
-				Sum:               15,
-				BucketCounts:      []uint64{0, 1},
-				ExplicitBounds:    []float64{1},
-				Exemplars: []otlpmetrics.IntExemplar{
-					{
-						FilteredLabels: generateOtlpMetricAttachment(),
-						TimeUnixNano:   uint64(TestMetricExemplarTimestamp),
-						Value:          15,
-					},
-				},
-			},
-		}
-	return m
-}
-
 func initDoubleSummaryMetric(sm pdata.Metric) {
 	initMetric(sm, TestDoubleSummaryMetricName, pdata.MetricDataTypeSummary)
 
@@ -524,34 +285,6 @@ func initDoubleSummaryMetric(sm pdata.Metric) {
 	quantile.SetValue(15)
 }
 
-func generateOTLPDoubleSummaryMetric() *otlpmetrics.Metric {
-	m := generateOtlpMetric(TestDoubleSummaryMetricName, pdata.MetricDataTypeSummary)
-	m.Data.(*otlpmetrics.Metric_DoubleSummary).DoubleSummary.DataPoints =
-		[]*otlpmetrics.DoubleSummaryDataPoint{
-			{
-				Labels:            generateOtlpMetricLabels13(),
-				StartTimeUnixNano: uint64(TestMetricStartTimestamp),
-				TimeUnixNano:      uint64(TestMetricTimestamp),
-				Count:             1,
-				Sum:               15,
-			},
-			{
-				Labels:            generateOtlpMetricLabels2(),
-				StartTimeUnixNano: uint64(TestMetricStartTimestamp),
-				TimeUnixNano:      uint64(TestMetricTimestamp),
-				Count:             1,
-				Sum:               15,
-				QuantileValues: []*otlpmetrics.DoubleSummaryDataPoint_ValueAtQuantile{
-					{
-						Quantile: 0.01,
-						Value:    15,
-					},
-				},
-			},
-		}
-	return m
-}
-
 func initMetric(m pdata.Metric, name string, ty pdata.MetricDataType) {
 	m.SetName(name)
 	m.SetDescription("")
@@ -562,8 +295,8 @@ func initMetric(m pdata.Metric, name string, ty pdata.MetricDataType) {
 		sum := m.IntSum()
 		sum.SetIsMonotonic(true)
 		sum.SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
-	case pdata.MetricDataTypeDoubleSum:
-		sum := m.DoubleSum()
+	case pdata.MetricDataTypeSum:
+		sum := m.Sum()
 		sum.SetIsMonotonic(true)
 		sum.SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
 	case pdata.MetricDataTypeIntHistogram:
@@ -575,47 +308,12 @@ func initMetric(m pdata.Metric, name string, ty pdata.MetricDataType) {
 	}
 }
 
-func generateOtlpMetric(name string, ty pdata.MetricDataType) *otlpmetrics.Metric {
-	m := &otlpmetrics.Metric{
-		Name:        name,
-		Description: "",
-		Unit:        "1",
-	}
-	switch ty {
-	case pdata.MetricDataTypeIntGauge:
-		m.Data = &otlpmetrics.Metric_IntGauge{IntGauge: &otlpmetrics.IntGauge{}}
-	case pdata.MetricDataTypeDoubleGauge:
-		m.Data = &otlpmetrics.Metric_DoubleGauge{DoubleGauge: &otlpmetrics.DoubleGauge{}}
-	case pdata.MetricDataTypeIntSum:
-		m.Data = &otlpmetrics.Metric_IntSum{IntSum: &otlpmetrics.IntSum{
-			IsMonotonic:            true,
-			AggregationTemporality: otlpmetrics.AggregationTemporality_AGGREGATION_TEMPORALITY_CUMULATIVE,
-		}}
-	case pdata.MetricDataTypeDoubleSum:
-		m.Data = &otlpmetrics.Metric_DoubleSum{DoubleSum: &otlpmetrics.DoubleSum{
-			IsMonotonic:            true,
-			AggregationTemporality: otlpmetrics.AggregationTemporality_AGGREGATION_TEMPORALITY_CUMULATIVE,
-		}}
-	case pdata.MetricDataTypeIntHistogram:
-		m.Data = &otlpmetrics.Metric_IntHistogram{IntHistogram: &otlpmetrics.IntHistogram{
-			AggregationTemporality: otlpmetrics.AggregationTemporality_AGGREGATION_TEMPORALITY_CUMULATIVE,
-		}}
-	case pdata.MetricDataTypeHistogram:
-		m.Data = &otlpmetrics.Metric_DoubleHistogram{DoubleHistogram: &otlpmetrics.DoubleHistogram{
-			AggregationTemporality: otlpmetrics.AggregationTemporality_AGGREGATION_TEMPORALITY_CUMULATIVE,
-		}}
-	case pdata.MetricDataTypeSummary:
-		m.Data = &otlpmetrics.Metric_DoubleSummary{DoubleSummary: &otlpmetrics.DoubleSummary{}}
-	}
-	return m
-}
-
 func GenerateMetricsManyMetricsSameResource(metricsCount int) pdata.Metrics {
 	md := GenerateMetricsOneEmptyInstrumentationLibrary()
 	rs0ilm0 := md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0)
-	rs0ilm0.Metrics().Resize(metricsCount)
+	rs0ilm0.Metrics().EnsureCapacity(metricsCount)
 	for i := 0; i < metricsCount; i++ {
-		initCounterIntMetric(rs0ilm0.Metrics().At(i))
+		initCounterIntMetric(rs0ilm0.Metrics().AppendEmpty())
 	}
 	return md
 }

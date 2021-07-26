@@ -120,7 +120,8 @@ func TestAggregatorRun(t *testing.T) {
 	assert.ElementsMatch(t, []*model.Metricset{{
 		Name: "service_destination",
 		Metadata: model.Metadata{
-			Service: model.Service{Name: "service-A", Agent: model.Agent{Name: "java"}},
+			Agent:   model.Agent{Name: "java"},
+			Service: model.Service{Name: "service-A"},
 		},
 		Event: model.MetricsetEventCategorization{
 			Outcome: "success",
@@ -136,7 +137,8 @@ func TestAggregatorRun(t *testing.T) {
 	}, {
 		Name: "service_destination",
 		Metadata: model.Metadata{
-			Service: model.Service{Name: "service-A", Agent: model.Agent{Name: "java"}},
+			Agent:   model.Agent{Name: "java"},
+			Service: model.Service{Name: "service-A"},
 		},
 		Event: model.MetricsetEventCategorization{
 			Outcome: "failure",
@@ -152,7 +154,8 @@ func TestAggregatorRun(t *testing.T) {
 	}, {
 		Name: "service_destination",
 		Metadata: model.Metadata{
-			Service: model.Service{Name: "service-A", Agent: model.Agent{Name: "java"}},
+			Agent:   model.Agent{Name: "java"},
+			Service: model.Service{Name: "service-A"},
 		},
 		Event: model.MetricsetEventCategorization{
 			Outcome: "success",
@@ -168,7 +171,8 @@ func TestAggregatorRun(t *testing.T) {
 	}, {
 		Name: "service_destination",
 		Metadata: model.Metadata{
-			Service: model.Service{Name: "service-B", Agent: model.Agent{Name: "python"}},
+			Agent:   model.Agent{Name: "python"},
+			Service: model.Service{Name: "service-B"},
 		},
 		Event: model.MetricsetEventCategorization{
 			Outcome: "success",
@@ -226,7 +230,8 @@ func TestAggregatorOverflow(t *testing.T) {
 		assert.Equal(t, &model.Metricset{
 			Name: "service_destination",
 			Metadata: model.Metadata{
-				Service: model.Service{Name: "service", Agent: model.Agent{Name: "agent"}},
+				Agent:   model.Agent{Name: "agent"},
+				Service: model.Service{Name: "service"},
 			},
 			Event: model.MetricsetEventCategorization{
 				Outcome: "success",
@@ -249,7 +254,10 @@ func makeSpan(
 	count float64,
 ) *model.Span {
 	span := &model.Span{
-		Metadata:            model.Metadata{Service: model.Service{Name: serviceName, Agent: model.Agent{Name: agentName}}},
+		Metadata: model.Metadata{
+			Agent:   model.Agent{Name: agentName},
+			Service: model.Service{Name: serviceName},
+		},
 		Name:                serviceName + ":" + destinationServiceResource,
 		Duration:            duration.Seconds() * 1000,
 		RepresentativeCount: count,

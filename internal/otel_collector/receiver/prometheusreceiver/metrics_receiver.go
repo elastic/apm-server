@@ -24,11 +24,8 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/receiver/prometheusreceiver/internal"
 )
-
-const transport = "http"
 
 // pReceiver is the type that provides Prometheus scraper/receiver functionality.
 type pReceiver struct {
@@ -36,7 +33,9 @@ type pReceiver struct {
 	consumer   consumer.Metrics
 	cancelFunc context.CancelFunc
 
-	logger *zap.Logger
+	logger        *zap.Logger
+	scrapeManager *scrape.Manager
+	ocaStore      *internal.OcaStore
 }
 
 // New creates a new prometheus.Receiver reference.
@@ -78,9 +77,8 @@ func (r *pReceiver) Start(_ context.Context, host component.Host) error {
 	}
 	// Per component.Component Start instructions, for async operations we should not use the
 	// incoming context, it may get cancelled.
-	receiverCtx := obsreport.ReceiverContext(context.Background(), r.cfg.ID(), transport)
-	ocaStore := internal.NewOcaStore(
-		receiverCtx,
+	r.ocaStore = internal.NewOcaStore(
+		context.Background(),
 		r.consumer,
 		r.logger,
 		jobsMap,
@@ -89,13 +87,13 @@ func (r *pReceiver) Start(_ context.Context, host component.Host) error {
 		r.cfg.ID(),
 		r.cfg.PrometheusConfig.GlobalConfig.ExternalLabels,
 	)
-	scrapeManager := scrape.NewManager(logger, ocaStore)
-	ocaStore.SetScrapeManager(scrapeManager)
-	if err := scrapeManager.ApplyConfig(r.cfg.PrometheusConfig); err != nil {
+	r.scrapeManager = scrape.NewManager(logger, r.ocaStore)
+	r.ocaStore.SetScrapeManager(r.scrapeManager)
+	if err := r.scrapeManager.ApplyConfig(r.cfg.PrometheusConfig); err != nil {
 		return err
 	}
 	go func() {
-		if err := scrapeManager.Run(discoveryManager.SyncCh()); err != nil {
+		if err := r.scrapeManager.Run(discoveryManager.SyncCh()); err != nil {
 			r.logger.Error("Scrape manager failed", zap.Error(err))
 			host.ReportFatalError(err)
 		}
@@ -106,5 +104,11 @@ func (r *pReceiver) Start(_ context.Context, host component.Host) error {
 // Shutdown stops and cancels the underlying Prometheus scrapers.
 func (r *pReceiver) Shutdown(context.Context) error {
 	r.cancelFunc()
+	// ocaStore (and internally metadataService) needs to stop first to prevent deadlocks.
+	// When stopping scrapeManager it waits for all scrapes to terminate. However during
+	// scraping metadataService calls scrapeManager.AllTargets() which acquires
+	// the same lock that's acquired when scrapeManager is stopped.
+	r.ocaStore.Close()
+	r.scrapeManager.Stop()
 	return nil
 }

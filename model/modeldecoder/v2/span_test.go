@@ -26,6 +26,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/v7/libbeat/common"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
@@ -94,14 +96,26 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 
 	t.Run("span-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
-			for _, s := range []string{
+			switch key {
+			case
 				// experimental is tested in test 'experimental'
 				"Experimental",
 				// RepresentativeCount is tested further down in test 'sample-rate'
-				"RepresentativeCount"} {
-				if key == s {
-					return true
-				}
+				"RepresentativeCount",
+				// HTTP response headers tested in test 'http-headers'
+				"HTTP.Response.Headers",
+
+				// Not set for spans:
+				"HTTP.Version",
+				"HTTP.Request.Referrer",
+				"HTTP.Request.Cookies",
+				"HTTP.Request.Env",
+				"HTTP.Request.Headers",
+				"HTTP.Request.Socket",
+				"HTTP.Request.Body",
+				"HTTP.Response.HeadersSent",
+				"HTTP.Response.Finished":
+				return true
 			}
 			for _, s := range []string{
 				//tested in the 'metadata' test
@@ -242,5 +256,13 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				assert.Equal(t, tc.action, out.Action)
 			})
 		}
+	})
+
+	t.Run("http-headers", func(t *testing.T) {
+		var input span
+		input.Context.HTTP.Response.Headers.Set(http.Header{"a": []string{"b", "c"}})
+		var out model.Span
+		mapToSpanModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, common.MapStr{"a": []string{"b", "c"}}, out.HTTP.Response.Headers)
 	})
 }

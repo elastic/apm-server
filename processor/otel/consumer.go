@@ -45,8 +45,8 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/otlptext"
+	"go.opentelemetry.io/collector/model/otlp"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
 	"google.golang.org/grpc/codes"
 
@@ -74,6 +74,11 @@ const (
 	AttributeNetworkMNC         = "net.host.carrier.mnc"
 	AttributeNetworkCarrierName = "net.host.carrier.name"
 	AttributeNetworkICC         = "net.host.carrier.icc"
+)
+
+var (
+	jsonTracesMarshaler  = otlp.NewJSONTracesMarshaler()
+	jsonMetricsMarshaler = otlp.NewJSONMetricsMarshaler()
 )
 
 // Consumer transforms open-telemetry data to be compatible with elastic APM data
@@ -116,7 +121,12 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error
 	receiveTimestamp := time.Now()
 	logger := logp.NewLogger(logs.Otel)
 	if logger.IsDebug() {
-		logger.Debug(otlptext.Traces(traces))
+		data, err := jsonTracesMarshaler.MarshalTraces(traces)
+		if err != nil {
+			logger.Debug(err)
+		} else {
+			logger.Debug(data)
+		}
 	}
 	batch := c.convert(traces, receiveTimestamp, logger)
 	return c.Processor.ProcessBatch(ctx, batch)
@@ -208,6 +218,7 @@ func (c *Consumer) convertSpan(
 			Timestamp: timestamp,
 			Duration:  durationMillis,
 			Name:      name,
+			Sampled:   true,
 			Outcome:   spanStatusOutcome(otelSpan.Status()),
 		}
 		translateTransaction(otelSpan, otelLibrary, metadata, &transactionBuilder{Transaction: transaction})
@@ -239,7 +250,7 @@ func translateTransaction(
 	metadata model.Metadata,
 	tx *transactionBuilder,
 ) {
-	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
+	isJaeger := strings.HasPrefix(metadata.Agent.Name, "Jaeger")
 	labels := make(common.MapStr)
 
 	var (
@@ -345,15 +356,15 @@ func translateTransaction(
 			case conventions.AttributeNetHostName:
 				netHostName = stringval
 			case AttributeNetworkType:
-				tx.Metadata.System.Network.ConnectionType = stringval
+				tx.Metadata.Network.ConnectionType = stringval
 			case AttributeNetworkMCC:
-				tx.Metadata.System.Network.Carrier.MCC = stringval
+				tx.Metadata.Network.Carrier.MCC = stringval
 			case AttributeNetworkMNC:
-				tx.Metadata.System.Network.Carrier.MNC = stringval
+				tx.Metadata.Network.Carrier.MNC = stringval
 			case AttributeNetworkCarrierName:
-				tx.Metadata.System.Network.Carrier.Name = stringval
+				tx.Metadata.Network.Carrier.Name = stringval
 			case AttributeNetworkICC:
-				tx.Metadata.System.Network.Carrier.ICC = stringval
+				tx.Metadata.Network.Carrier.ICC = stringval
 
 			// messaging.*
 			case "message_bus.destination", conventions.AttributeMessagingDestination:
@@ -406,7 +417,7 @@ func translateTransaction(
 			if httpHost == "" {
 				httpHost = netHostName
 				if httpHost == "" {
-					httpHost = metadata.System.DetectedHostname
+					httpHost = metadata.Host.Hostname
 				}
 			}
 			if httpHost != "" && netHostPort > 0 {
@@ -450,7 +461,7 @@ func translateTransaction(
 }
 
 func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) {
-	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
+	isJaeger := strings.HasPrefix(metadata.Agent.Name, "Jaeger")
 	labels := make(common.MapStr)
 
 	var (
@@ -472,6 +483,8 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 	)
 
 	var http model.HTTP
+	var httpRequest model.HTTPRequest
+	var httpResponse model.HTTPResponse
 	var message model.Message
 	var db model.DB
 	var destinationService model.DestinationService
@@ -502,7 +515,8 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		case pdata.AttributeValueTypeInt:
 			switch kDots {
 			case "http.status_code":
-				http.StatusCode = int(v.IntVal())
+				httpResponse.StatusCode = int(v.IntVal())
+				http.Response = &httpResponse
 				isHTTPSpan = true
 			case conventions.AttributeNetPeerPort, "peer.port":
 				netPeerPort = int(v.IntVal())
@@ -528,7 +542,8 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 				httpURL = stringval
 				isHTTPSpan = true
 			case conventions.AttributeHTTPMethod:
-				http.Method = stringval
+				httpRequest.Method = stringval
+				http.Request = &httpRequest
 				isHTTPSpan = true
 
 			// db.*
@@ -565,15 +580,15 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 					netPeerName = stringval
 				}
 			case AttributeNetworkType:
-				event.Metadata.System.Network.ConnectionType = stringval
+				event.Metadata.Network.ConnectionType = stringval
 			case AttributeNetworkMCC:
-				event.Metadata.System.Network.Carrier.MCC = stringval
+				event.Metadata.Network.Carrier.MCC = stringval
 			case AttributeNetworkMNC:
-				event.Metadata.System.Network.Carrier.MNC = stringval
+				event.Metadata.Network.Carrier.MNC = stringval
 			case AttributeNetworkCarrierName:
-				event.Metadata.System.Network.Carrier.Name = stringval
+				event.Metadata.Network.Carrier.Name = stringval
 			case AttributeNetworkICC:
-				event.Metadata.System.Network.Carrier.ICC = stringval
+				event.Metadata.Network.Carrier.ICC = stringval
 
 			// messaging.*
 			case "message_bus.destination", conventions.AttributeMessagingDestination:
@@ -635,7 +650,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 				if httpHost == "" {
 					// Set host from net.peer.*
 					httpHost = destAddr
-					if netPeerPort > 0 {
+					if destPort > 0 {
 						httpHost = net.JoinHostPort(httpHost, strconv.Itoa(destPort))
 					}
 				}
@@ -644,7 +659,6 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 			}
 		}
 		if fullURL != nil {
-			http.URL = httpURL
 			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
 			hostname := truncate(url.Hostname())
 			var port int
@@ -692,15 +706,16 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 
 	switch {
 	case isHTTPSpan:
-		if http.StatusCode > 0 {
+		if httpResponse.StatusCode > 0 {
 			if event.Outcome == outcomeUnknown {
-				event.Outcome = clientHTTPStatusCodeOutcome(http.StatusCode)
+				event.Outcome = clientHTTPStatusCodeOutcome(httpResponse.StatusCode)
 			}
 		}
 		event.Type = "external"
 		subtype := "http"
 		event.Subtype = subtype
 		event.HTTP = &http
+		event.URL = httpURL
 	case isDBSpan:
 		event.Type = "db"
 		if db.Type != "" {
@@ -780,7 +795,7 @@ func convertSpanEvent(
 	out *model.Batch,
 ) {
 	var e *model.Error
-	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
+	isJaeger := strings.HasPrefix(metadata.Agent.Name, "Jaeger")
 	if isJaeger {
 		e = convertJaegerErrorSpanEvent(logger, event)
 	} else {
@@ -902,7 +917,7 @@ func addTransactionCtxToErr(transaction *model.Transaction, err *model.Error) {
 	err.URL = transaction.URL
 	err.Page = transaction.Page
 	err.Custom = transaction.Custom
-	err.TransactionSampled = transaction.Sampled
+	err.TransactionSampled = &transaction.Sampled
 	err.TransactionType = transaction.Type
 }
 

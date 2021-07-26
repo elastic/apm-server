@@ -100,7 +100,11 @@ func TestSpanTransform(t *testing.T) {
 				Duration:            1.20,
 				Stacktrace:          Stacktrace{{AbsPath: path}},
 				Labels:              common.MapStr{"label_a": 12},
-				HTTP:                &HTTP{Method: method, StatusCode: statusCode, URL: url},
+				HTTP: &HTTP{
+					Request:  &HTTPRequest{Method: method},
+					Response: &HTTPResponse{StatusCode: statusCode},
+				},
+				URL: url,
 				DB: &DB{
 					Instance:     instance,
 					Statement:    statement,
@@ -114,7 +118,8 @@ func TestSpanTransform(t *testing.T) {
 					Name:     destServiceName,
 					Resource: destServiceResource,
 				},
-				Message: &Message{QueueName: "users"},
+				Message:   &Message{QueueName: "users"},
+				Composite: &Composite{Count: 10, Sum: 1.1, CompressionStrategy: "exact_match"},
 			},
 			Output: common.MapStr{
 				"span": common.MapStr{
@@ -137,10 +142,10 @@ func TestSpanTransform(t *testing.T) {
 						"rows_affected": rowsAffected,
 					},
 					"http": common.MapStr{
-						"url":      common.MapStr{"original": url},
 						"response": common.MapStr{"status_code": statusCode},
 						"method":   "get",
 					},
+					"http.url.original": url,
 					"destination": common.MapStr{
 						"service": common.MapStr{
 							"type":     destServiceType,
@@ -149,6 +154,11 @@ func TestSpanTransform(t *testing.T) {
 						},
 					},
 					"message": common.MapStr{"queue": common.MapStr{"name": "users"}},
+					"composite": common.MapStr{
+						"count":                10,
+						"sum":                  common.MapStr{"us": 1100},
+						"compression_strategy": "exact_match",
+					},
 				},
 				"labels":      common.MapStr{"label_a": 12, "label_b": "b", "c": 1},
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},
@@ -159,8 +169,8 @@ func TestSpanTransform(t *testing.T) {
 				"destination": common.MapStr{"address": address, "port": port},
 				"event":       common.MapStr{"outcome": "unknown"},
 				"http": common.MapStr{
-					"response":       common.MapStr{"status_code": statusCode},
-					"request.method": "get",
+					"response": common.MapStr{"status_code": statusCode},
+					"request":  common.MapStr{"method": "get"},
 				},
 				"url.original": url,
 			},

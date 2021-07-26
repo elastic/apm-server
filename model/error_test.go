@@ -33,7 +33,7 @@ func baseException() *Exception {
 	return &Exception{Message: "exception message"}
 }
 
-func (e *Exception) withCode(code interface{}) *Exception {
+func (e *Exception) withCode(code string) *Exception {
 	e.Code = code
 	return e
 }
@@ -92,14 +92,13 @@ func TestEventFields(t *testing.T) {
 	culprit := "some trigger"
 
 	errorType := "error type"
-	codeFloat := 13.0
 	module := "error module"
 	exMsg := "exception message"
 	handled := false
 	attributes := common.MapStr{"k1": "val1"}
 	exception := Exception{
 		Type:       errorType,
-		Code:       codeFloat,
+		Code:       "13",
 		Message:    exMsg,
 		Module:     module,
 		Handled:    &handled,
@@ -153,18 +152,6 @@ func TestEventFields(t *testing.T) {
 		},
 		"stringCode": {
 			Error: Error{Exception: baseException().withCode("13")},
-			Output: common.MapStr{
-				"exception": []common.MapStr{{"message": "exception message", "code": "13"}},
-			},
-		},
-		"intCode": {
-			Error: Error{Exception: baseException().withCode(13)},
-			Output: common.MapStr{
-				"exception": []common.MapStr{{"message": "exception message", "code": "13"}},
-			},
-		},
-		"floatCode": {
-			Error: Error{Exception: baseException().withCode(13.0)},
 			Output: common.MapStr{
 				"exception": []common.MapStr{{"message": "exception message", "code": "13"}},
 			},
@@ -237,9 +224,9 @@ func TestEvents(t *testing.T) {
 
 	serviceName, agentName, version := "myservice", "go", "1.0"
 	md := Metadata{
+		Agent: Agent{Name: agentName, Version: version},
 		Service: Service{
 			Name: serviceName, Version: version,
-			Agent: Agent{Name: agentName, Version: version},
 		},
 		Labels: common.MapStr{"label": 101},
 	}
@@ -302,7 +289,7 @@ func TestEvents(t *testing.T) {
 				TransactionSampled: &sampledTrue,
 				Labels:             labels,
 				Page:               &Page{URL: &URL{Original: url}, Referer: referer},
-				HTTP:               &Http{Request: &Req{Referer: referer}},
+				HTTP:               &HTTP{Request: &HTTPRequest{Referrer: referer}},
 				URL:                &URL{Original: url},
 				Custom:             custom,
 			},

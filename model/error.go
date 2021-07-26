@@ -19,9 +19,6 @@ package model
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -58,7 +55,7 @@ type Error struct {
 	Culprit     string
 	Labels      common.MapStr
 	Page        *Page
-	HTTP        *Http
+	HTTP        *HTTP
 	URL         *URL
 	Custom      common.MapStr
 
@@ -74,7 +71,7 @@ type Error struct {
 type Exception struct {
 	Message    string
 	Module     string
-	Code       interface{}
+	Code       string
 	Attributes interface{}
 	Stacktrace Stacktrace
 	Type       string
@@ -113,7 +110,9 @@ func (e *Error) toBeatEvent(ctx context.Context) beat.Event {
 	}
 
 	// then add event specific information
-	fields.maybeSetMapStr("http", e.HTTP.Fields())
+	if e.HTTP != nil {
+		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
+	}
 	fields.maybeSetMapStr("url", e.URL.Fields())
 	if e.Experimental != nil {
 		fields.set("experimental", e.Experimental)
@@ -158,12 +157,13 @@ func (e *Error) fields() common.MapStr {
 }
 
 func (e *Error) exceptionFields(chain []Exception) []common.MapStr {
-	var result []common.MapStr
-	for _, exception := range chain {
+	result := make([]common.MapStr, len(chain))
+	for i, exception := range chain {
 		var ex mapStr
 		ex.maybeSetString("message", exception.Message)
 		ex.maybeSetString("module", exception.Module)
 		ex.maybeSetString("type", exception.Type)
+		ex.maybeSetString("code", exception.Code)
 		ex.maybeSetBool("handled", exception.Handled)
 		if exception.Parent != nil {
 			ex.set("parent", exception.Parent)
@@ -171,18 +171,6 @@ func (e *Error) exceptionFields(chain []Exception) []common.MapStr {
 		if exception.Attributes != nil {
 			ex.set("attributes", exception.Attributes)
 		}
-
-		switch code := exception.Code.(type) {
-		case int:
-			ex.set("code", strconv.Itoa(code))
-		case float64:
-			ex.set("code", fmt.Sprintf("%.0f", code))
-		case string:
-			ex.set("code", code)
-		case json.Number:
-			ex.set("code", code.String())
-		}
-
 		if n := len(exception.Stacktrace); n > 0 {
 			frames := make([]common.MapStr, n)
 			for i, frame := range exception.Stacktrace {
@@ -190,8 +178,7 @@ func (e *Error) exceptionFields(chain []Exception) []common.MapStr {
 			}
 			ex.set("stacktrace", frames)
 		}
-
-		result = append(result, common.MapStr(ex))
+		result[i] = common.MapStr(ex)
 	}
 	return result
 }

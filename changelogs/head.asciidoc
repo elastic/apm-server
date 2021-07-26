@@ -20,6 +20,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
 [float]
 ==== Intake API Changes
+* Add support for composite spans in the intake API {pull}5661[5661]
 
 [float]
 ==== Added
@@ -42,6 +43,8 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Server sends its raw config to kibana when running on ECE/ESS {pull}5424[5424]
 * Add HTTP span fields as top level ECS fields {pull}5396[5396]
 * Introduce `apm-server.auth.anonymous.*` config {pull}5623[5623]
+* Upgrade Go to 1.16.6 {pull}5754[5754]
+* Introduce ingest pipeline `apm_data_stream_migration` for migrating pre-data stream indices {5768}[5768]
 
 [float]
 ==== Deprecated

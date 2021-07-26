@@ -634,7 +634,7 @@ func (s *serverRunner) run() error {
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
 	processors := []model.BatchProcessor{
-		modelprocessor.SetSystemHostname{},
+		modelprocessor.SetHostHostname{},
 		modelprocessor.SetServiceNodeName{},
 		modelprocessor.SetMetricsetName{},
 		modelprocessor.SetGroupingKey{},
