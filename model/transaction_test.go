@@ -147,11 +147,11 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			Version: serviceVersion,
 			Node:    ServiceNode{Name: serviceNodeName},
 		},
-		System: System{
-			ConfiguredHostname: name,
-			DetectedHostname:   hostname,
-			Architecture:       architecture,
-			Platform:           platform,
+		Host: Host{
+			Name:         name,
+			Hostname:     hostname,
+			Architecture: architecture,
+			OS:           OS{Platform: platform},
 		},
 		User:      User{ID: id, Name: name},
 		UserAgent: UserAgent{Original: userAgent},

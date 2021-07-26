@@ -575,8 +575,8 @@ func TestSpanNetworkAttributes(t *testing.T) {
 			ICC:  "UK",
 		},
 	}
-	assert.Equal(t, expected, tx.Metadata.System.Network)
-	assert.Equal(t, expected, span.Metadata.System.Network)
+	assert.Equal(t, expected, tx.Metadata.Network)
+	assert.Equal(t, expected, span.Metadata.Network)
 }
 
 func TestArrayLabels(t *testing.T) {

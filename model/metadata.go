@@ -22,27 +22,31 @@ import (
 )
 
 type Metadata struct {
-	Service   Service
-	Process   Process
-	System    System
-	User      User
-	UserAgent UserAgent
-	Client    Client
-	Cloud     Cloud
-	Labels    common.MapStr
+	Service    Service
+	Agent      Agent
+	Process    Process
+	Host       Host
+	User       User
+	UserAgent  UserAgent
+	Client     Client
+	Cloud      Cloud
+	Network    Network
+	Container  Container
+	Kubernetes Kubernetes
+	Labels     common.MapStr
 }
 
 func (m *Metadata) set(fields *mapStr, eventLabels common.MapStr) {
 	fields.maybeSetMapStr("service", m.Service.Fields())
-	fields.maybeSetMapStr("agent", m.Service.Agent.fields())
-	fields.maybeSetMapStr("host", m.System.fields())
+	fields.maybeSetMapStr("agent", m.Agent.fields())
+	fields.maybeSetMapStr("host", m.Host.fields())
 	fields.maybeSetMapStr("process", m.Process.fields())
 	fields.maybeSetMapStr("user", m.User.fields())
 	fields.maybeSetMapStr("client", m.Client.fields())
 	fields.maybeSetMapStr("user_agent", m.UserAgent.fields())
-	fields.maybeSetMapStr("container", m.System.Container.fields())
-	fields.maybeSetMapStr("kubernetes", m.System.Kubernetes.fields())
+	fields.maybeSetMapStr("container", m.Container.fields())
+	fields.maybeSetMapStr("kubernetes", m.Kubernetes.fields())
 	fields.maybeSetMapStr("cloud", m.Cloud.fields())
-	fields.maybeSetMapStr("network", m.System.Network.fields())
+	fields.maybeSetMapStr("network", m.Network.fields())
 	maybeSetLabels(fields, m.Labels, eventLabels)
 }

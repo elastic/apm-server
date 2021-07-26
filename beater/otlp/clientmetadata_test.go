@@ -44,18 +44,18 @@ func TestSetClientMetadata(t *testing.T) {
 	}, {
 		ctx: context.Background(),
 		meta: model.Metadata{
-			Service: model.Service{Agent: model.Agent{Name: "iOS/swift"}},
-			Client:  model.Client{IP: ip1234},
+			Agent:  model.Agent{Name: "iOS/swift"},
+			Client: model.Client{IP: ip1234},
 		},
 		expectedIP: ip1234,
 	}, {
 		ctx:  context.Background(),
-		meta: model.Metadata{Service: model.Service{Agent: model.Agent{Name: "iOS/swift"}}},
+		meta: model.Metadata{Agent: model.Agent{Name: "iOS/swift"}},
 	}, {
 		ctx: interceptors.ContextWithClientMetadata(context.Background(), interceptors.ClientMetadataValues{
 			SourceIP: ip5678,
 		}),
-		meta:       model.Metadata{Service: model.Service{Agent: model.Agent{Name: "iOS/swift"}}},
+		meta:       model.Metadata{Agent: model.Agent{Name: "iOS/swift"}},
 		expectedIP: ip5678,
 	}} {
 		metaCopy := test.meta

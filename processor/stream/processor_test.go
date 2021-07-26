@@ -177,7 +177,7 @@ func TestIntegrationESOutput(t *testing.T) {
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
 			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
-			reqDecoderMeta := &model.Metadata{System: model.System{IP: net.ParseIP("192.0.0.1")}}
+			reqDecoderMeta := &model.Metadata{Host: model.Host{IP: net.ParseIP("192.0.0.1")}}
 
 			p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
 			var actualResult Result

@@ -29,7 +29,6 @@ type Service struct {
 	Language    Language
 	Runtime     Runtime
 	Framework   Framework
-	Agent       Agent
 	Node        ServiceNode
 }
 
@@ -49,13 +48,6 @@ type Runtime struct {
 type Framework struct {
 	Name    string
 	Version string
-}
-
-//Agent has an optional version, name and an ephemeral id
-type Agent struct {
-	Name        string
-	Version     string
-	EphemeralID string
 }
 
 type ServiceNode struct {
@@ -105,12 +97,4 @@ func (n *ServiceNode) fields() common.MapStr {
 		return common.MapStr{"name": n.Name}
 	}
 	return nil
-}
-
-func (a *Agent) fields() common.MapStr {
-	var agent mapStr
-	agent.maybeSetString("name", a.Name)
-	agent.maybeSetString("version", a.Version)
-	agent.maybeSetString("ephemeral_id", a.EphemeralID)
-	return common.MapStr(agent)
 }
