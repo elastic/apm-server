@@ -72,8 +72,8 @@ func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
 
 func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
 	cfg := config.DefaultConfig()
-	cfg.AgentConfigs = []config.AgentConfig{
-		{
+	cfg.AgentConfigs = []*config.AgentConfig{
+		&config.AgentConfig{
 			Service: config.Service{Name: "service1", Environment: ""},
 			Config:  map[string]string{"key1": "val1"},
 			Etag:    "abc123",
