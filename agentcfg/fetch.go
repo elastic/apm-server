@@ -203,10 +203,10 @@ func containsAnyPrefix(s string, prefixes []string) bool {
 }
 
 type DirectFetcher struct {
-	cfgs []config.AgentConfig
+	cfgs []*config.AgentConfig
 }
 
-func NewDirectFetcher(cfgs []config.AgentConfig) *DirectFetcher {
+func NewDirectFetcher(cfgs []*config.AgentConfig) *DirectFetcher {
 	return &DirectFetcher{cfgs}
 }
 
@@ -224,14 +224,14 @@ func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
 
 	for i, cfg := range f.cfgs {
 		if cfg.Service.Name == name && cfg.Service.Environment == env {
-			nameConf = &f.cfgs[i]
+			nameConf = f.cfgs[i]
 			break
 		} else if cfg.Service.Name == name && cfg.Service.Environment == "" {
-			nameConf = &f.cfgs[i]
+			nameConf = f.cfgs[i]
 		} else if cfg.Service.Name == "" && cfg.Service.Environment == env {
-			envConf = &f.cfgs[i]
+			envConf = f.cfgs[i]
 		} else if cfg.Service.Name == "" && cfg.Service.Environment == "" {
-			defaultConf = &f.cfgs[i]
+			defaultConf = f.cfgs[i]
 		}
 	}
 

@@ -77,7 +77,7 @@ type Config struct {
 
 	Pipeline string
 
-	AgentConfigs []AgentConfig `config:"agent_config"`
+	AgentConfigs []*AgentConfig `config:"agent_config"`
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
