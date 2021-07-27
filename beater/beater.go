@@ -19,6 +19,8 @@ package beater
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -150,6 +152,7 @@ type beater struct {
 	server         *server
 	sourcemapStore *sourcemap.Store
 	batchProcessor model.BatchProcessor
+	tlsChecksum    string
 
 	ctx context.Context
 
@@ -289,6 +292,16 @@ func (b *beater) configure(args serverParams) error {
 		*b.rawConfig = *args.RawConfig
 	}
 	b.args = args.sharedServerParams
+
+	if config.TLS != nil {
+		m, err := json.Marshal(config.TLS)
+		if err != nil {
+			// TODO: what do we do now??
+			b.logger.Errorf("failed to checksum tls config: %v", err)
+		} else {
+			b.tlsChecksum = fmt.Sprintf("%x", sha256.Sum256(m))
+		}
+	}
 
 	// Send config to telemetry.
 	recordAPMServerConfig(b.config)
