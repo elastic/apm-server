@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -35,10 +36,15 @@ import (
 	logs "github.com/elastic/apm-server/log"
 )
 
+const defaultFleetPort = 8220
+
+var errMsgFleetFailure = errMsgFailure + " fleet"
+
 type fleetStore struct {
-	apikey    string
-	c         *http.Client
-	fleetURLs map[key]string
+	apikey        string
+	c             *http.Client
+	sourceMapURLs map[key]string
+	fleetBaseURLs []string
 }
 
 type key struct {
@@ -71,35 +77,76 @@ func newFleetStore(
 	fleetCfg *config.Fleet,
 	cfgs []config.SourceMapMetadata,
 ) (fleetStore, error) {
-	// TODO(stn): Add support for multiple fleet hosts
-	// cf. https://github.com/elastic/apm-server/issues/5514
-	host := fleetCfg.Hosts[0]
-	fleetURLs := make(map[key]string)
+	sourceMapURLs := make(map[key]string)
+	fleetBaseURLs := make([]string, len(fleetCfg.Hosts))
 
 	for _, cfg := range cfgs {
 		k := key{cfg.ServiceName, cfg.ServiceVersion, cfg.BundleFilepath}
-		u, err := common.MakeURL(fleetCfg.Protocol, cfg.SourceMapURL, host, 8220)
+		sourceMapURLs[k] = cfg.SourceMapURL
+	}
+
+	for i, host := range fleetCfg.Hosts {
+		baseURL, err := common.MakeURL(fleetCfg.Protocol, "", host, defaultFleetPort)
 		if err != nil {
 			return fleetStore{}, err
 		}
-		fleetURLs[k] = u
+		fleetBaseURLs[i] = baseURL
 	}
+
 	return fleetStore{
-		apikey:    "ApiKey " + fleetCfg.AccessAPIKey,
-		fleetURLs: fleetURLs,
-		c:         c,
+		apikey:        "ApiKey " + fleetCfg.AccessAPIKey,
+		fleetBaseURLs: fleetBaseURLs,
+		sourceMapURLs: sourceMapURLs,
+		c:             c,
 	}, nil
 }
 
 func (f fleetStore) fetch(ctx context.Context, name, version, path string) (string, error) {
 	k := key{name, version, path}
-	fleetURL, ok := f.fleetURLs[k]
+	sourceMapURL, ok := f.sourceMapURLs[k]
 	if !ok {
 		return "", fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s",
 			name, version, path,
 		)
 	}
 
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	type result struct {
+		sourcemap string
+		err       error
+	}
+
+	results := make(chan result)
+	var wg sync.WaitGroup
+	for _, baseURL := range f.fleetBaseURLs {
+		wg.Add(1)
+		go func(fleetURL string) {
+			defer wg.Done()
+			sourcemap, err := sendRequest(f, ctx, fleetURL)
+			results <- result{sourcemap, err}
+		}(baseURL + sourceMapURL)
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	var err error
+	for result := range results {
+		err = result.err
+		if err == nil {
+			return result.sourcemap, nil
+		}
+	}
+
+	// All requests resulted in a query failure
+	return "", err
+}
+
+func sendRequest(f fleetStore, ctx context.Context, fleetURL string) (string, error) {
 	req, err := http.NewRequest(http.MethodGet, fleetURL, nil)
 	if err != nil {
 		return "", err
@@ -116,9 +163,9 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 	if resp.StatusCode != http.StatusOK {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return "", fmt.Errorf("failure querying fleet: statuscode=%d response=(failed to read body)", resp.StatusCode)
+			return "", fmt.Errorf(errMsgFleetFailure, ": statuscode=%d response=(failed to read body)", resp.StatusCode)
 		}
-		return "", fmt.Errorf("failure querying fleet: statuscode=%d response=%s", resp.StatusCode, body)
+		return "", fmt.Errorf(errMsgFleetFailure, ": statuscode=%d response=%s", resp.StatusCode, body)
 	}
 
 	// Looking at the index in elasticsearch, currently
