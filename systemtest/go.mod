@@ -19,7 +19,8 @@ require (
 	github.com/prometheus/procfs v0.1.3 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/testcontainers/testcontainers-go v0.9.0
-	github.com/tidwall/gjson v1.6.0
+	github.com/tidwall/gjson v1.6.5
+	github.com/tidwall/pretty v1.1.0 // indirect
 	go.elastic.co/apm v1.8.1-0.20200913025752-7af7e1529586
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/otel v0.19.0
