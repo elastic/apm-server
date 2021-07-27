@@ -1,4 +1,5 @@
 include::./changelogs/head.asciidoc[]
+include::./changelogs/8.0.asciidoc[]
 include::./changelogs/7.13.asciidoc[]
 include::./changelogs/7.12.asciidoc[]
 include::./changelogs/7.11.asciidoc[]
