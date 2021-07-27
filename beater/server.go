@@ -79,9 +79,18 @@ type ServerParams struct {
 	BatchProcessor model.BatchProcessor
 }
 
+type serverStatus int
+
+const (
+	serverCreated serverStatus = iota
+	serverRunning
+	serverDone
+)
+
 type server struct {
 	logger *logp.Logger
 	cfg    *config.Config
+	status serverStatus
 
 	agentCtx              context.Context
 	agentCancel           context.CancelFunc
@@ -238,7 +247,11 @@ func (s *server) startFetchReporter(ctx context.Context) {
 
 func (s *server) run(ctx context.Context, args ServerParams) error {
 	done := make(chan struct{})
-	defer close(done)
+	s.status = serverRunning
+	defer func() {
+		defer close(done)
+		s.status = serverDone
+	}()
 	go func() {
 		select {
 		case <-ctx.Done():
