@@ -625,6 +625,14 @@ func TestAgentConfig(t *testing.T) {
 	})
 }
 
+func TestAgentConfigs(t *testing.T) {
+	cfg, err := NewConfig(common.MustNewConfigFrom(`{"agent_config":[{"service.environment":"production","config":{"transaction_sample_rate":0.5}}]}`), nil)
+	require.NoError(t, err)
+	assert.NotNil(t, cfg)
+	assert.Len(t, cfg.AgentConfigs, 1)
+	assert.NotEmpty(t, cfg.AgentConfigs[0].Etag)
+}
+
 func TestNewConfig_ESConfig(t *testing.T) {
 	ucfg, err := common.NewConfigFrom(`{"rum.enabled":true,"api_key.enabled":true,"sampling.tail.policies":[{"sample_rate": 0.5}]}`)
 	require.NoError(t, err)
