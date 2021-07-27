@@ -146,7 +146,7 @@ type beater struct {
 	pipeline       beat.Pipeline
 	publisher      *publish.Publisher
 	namespace      string
-	args           sharedServerRunnerParams
+	args           sharedServerParams
 	server         *server
 	sourcemapStore *sourcemap.Store
 	batchProcessor model.BatchProcessor
@@ -197,7 +197,7 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 
 	ctx, cancel := context.WithCancel(ctx)
 	bt.ctx = ctx
-	args := sharedServerRunnerParams{
+	args := sharedServerParams{
 		Beat:          b,
 		WrapRunServer: bt.wrapRunServer,
 		Logger:        bt.logger,
@@ -219,11 +219,11 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 		reload.Register.MustRegister("apm-server", bt)
 	} else {
 		// Management disabled, use statically defined config.
-		err := bt.configure(serverRunnerParams{
-			sharedServerRunnerParams: args,
-			Pipeline:                 b.Publisher,
-			Namespace:                "default",
-			RawConfig:                bt.rawConfig,
+		err := bt.configure(serverParams{
+			sharedServerParams: args,
+			Pipeline:           b.Publisher,
+			Namespace:          "default",
+			RawConfig:          bt.rawConfig,
 		})
 		if err != nil {
 			return nil, err
@@ -255,9 +255,9 @@ func (b *beater) Reload(cfg *reload.ConfigWithMeta) error {
 	}
 	apmServerCommonConfig := integrationConfig.APMServer
 	apmServerCommonConfig.Merge(common.MustNewConfigFrom(`{"data_streams.enabled": true}`))
-	params := serverRunnerParams{
-		sharedServerRunnerParams: b.args,
-		Namespace:                namespace,
+	params := serverParams{
+		sharedServerParams: b.args,
+		Namespace:          namespace,
 		// TODO: We used to have a beat.PipelineConnector
 		// Is this always the same as the beat.Pipeline we use elsewhere?
 		Pipeline:    b.pipeline,
@@ -275,7 +275,7 @@ func (b *beater) Reload(cfg *reload.ConfigWithMeta) error {
 	return b.configure(params)
 }
 
-func (b *beater) configure(args serverRunnerParams) error {
+func (b *beater) configure(args serverParams) error {
 	config, err := config.NewConfig(args.RawConfig, elasticsearchOutputConfig(args.Beat))
 	if err != nil {
 		return err
@@ -288,7 +288,7 @@ func (b *beater) configure(args serverRunnerParams) error {
 	if args.RawConfig != nil {
 		*b.rawConfig = *args.RawConfig
 	}
-	b.args = args.sharedServerRunnerParams
+	b.args = args.sharedServerParams
 
 	// Send config to telemetry.
 	recordAPMServerConfig(b.config)
@@ -434,9 +434,9 @@ func (b *beater) run(ctx context.Context) error {
 					namespace = integrationConfig.DataStream.Namespace
 				}
 				apmServerCommonConfig := integrationConfig.APMServer
-				params := serverRunnerParams{
-					sharedServerRunnerParams: b.args,
-					Namespace:                namespace,
+				params := serverParams{
+					sharedServerParams: b.args,
+					Namespace:          namespace,
 					// TODO: We used to have a beat.PipelineConnector
 					// Is this always the same as the beat.Pipeline we use elsewhere?
 					Pipeline:  b.pipeline,
@@ -494,12 +494,8 @@ func wrapRunServerWithPreprocessors(
 	return WrapRunServerWithProcessors(runServer, processors...)
 }
 
-////////////////////////
-// Delete below here! //
-////////////////////////
-
-type serverRunnerParams struct {
-	sharedServerRunnerParams
+type serverParams struct {
+	sharedServerParams
 
 	Namespace   string
 	Pipeline    beat.PipelineConnector
@@ -507,7 +503,7 @@ type serverRunnerParams struct {
 	FleetConfig *config.Fleet
 }
 
-type sharedServerRunnerParams struct {
+type sharedServerParams struct {
 	Beat          *beat.Beat
 	WrapRunServer func(RunServerFunc) RunServerFunc
 	Logger        *logp.Logger
