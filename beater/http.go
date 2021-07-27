@@ -181,7 +181,6 @@ func (h *httpServer) start() error {
 		h.logger.Warn("Secret token is set, but SSL is not enabled.")
 	}
 	h.logger.Info("SSL disabled.")
-
 	return h.Serve(lis)
 }
 
