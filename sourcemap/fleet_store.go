@@ -125,7 +125,10 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 		go func(fleetURL string) {
 			defer wg.Done()
 			sourcemap, err := sendRequest(f, ctx, fleetURL)
-			results <- result{sourcemap, err}
+			select {
+			case <-ctx.Done():
+			case results <- result{sourcemap, err}:
+			}
 		}(baseURL + sourceMapURL)
 	}
 
@@ -142,8 +145,10 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 		}
 	}
 
-	// All requests resulted in a query failure
-	return "", err
+	if err != nil {
+		return "", err
+	}
+	return "", ctx.Err()
 }
 
 func sendRequest(f fleetStore, ctx context.Context, fleetURL string) (string, error) {
