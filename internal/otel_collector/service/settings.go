@@ -27,7 +27,7 @@ type svcSettings struct {
 	// Factories component factories.
 	Factories component.Factories
 
-	// BuildInfo provides application start information.
+	// BuildInfo provides collector start information.
 	BuildInfo component.BuildInfo
 
 	// Config represents the configuration of the service.
@@ -40,13 +40,19 @@ type svcSettings struct {
 	AsyncErrorChannel chan error
 }
 
-// AppSettings holds configuration for creating a new Application.
-type AppSettings struct {
+// CollectorSettings holds configuration for creating a new Collector.
+type CollectorSettings struct {
 	// Factories component factories.
 	Factories component.Factories
 
-	// BuildInfo provides application start information.
+	// BuildInfo provides collector start information.
 	BuildInfo component.BuildInfo
+
+	// DisableGracefulShutdown disables the automatic graceful shutdown
+	// of the collector on SIGINT or SIGTERM.
+	// Users who want to handle signals themselves can disable this behavior
+	// and manually handle the signals to shutdown the collector.
+	DisableGracefulShutdown bool
 
 	// ParserProvider provides the configuration's Parser.
 	// If it is not provided a default provider is used. The default provider loads the configuration

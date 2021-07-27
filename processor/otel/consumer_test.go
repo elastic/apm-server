@@ -45,7 +45,7 @@ import (
 	jaegermodel "github.com/jaegertracing/jaeger/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
 	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
 	"google.golang.org/grpc/codes"
@@ -76,18 +76,16 @@ func TestOutcome(t *testing.T) {
 		t.Helper()
 
 		traces, spans := newTracesSpans()
-		otelSpan1 := pdata.NewSpan()
+		otelSpan1 := spans.Spans().AppendEmpty()
 		otelSpan1.SetTraceID(pdata.NewTraceID([16]byte{1}))
 		otelSpan1.SetSpanID(pdata.NewSpanID([8]byte{2}))
 		otelSpan1.Status().SetCode(statusCode)
-		otelSpan2 := pdata.NewSpan()
+		otelSpan2 := spans.Spans().AppendEmpty()
 		otelSpan2.SetTraceID(pdata.NewTraceID([16]byte{1}))
 		otelSpan2.SetSpanID(pdata.NewSpanID([8]byte{2}))
 		otelSpan2.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
 		otelSpan2.Status().SetCode(statusCode)
 
-		spans.Spans().Append(otelSpan1)
-		spans.Spans().Append(otelSpan2)
 		batch := transformTraces(t, traces)
 		require.Len(t, batch, 2)
 
@@ -103,16 +101,14 @@ func TestOutcome(t *testing.T) {
 
 func TestRepresentativeCount(t *testing.T) {
 	traces, spans := newTracesSpans()
-	otelSpan1 := pdata.NewSpan()
+	otelSpan1 := spans.Spans().AppendEmpty()
 	otelSpan1.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan1.SetSpanID(pdata.NewSpanID([8]byte{2}))
-	otelSpan2 := pdata.NewSpan()
+	otelSpan2 := spans.Spans().AppendEmpty()
 	otelSpan2.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan2.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	otelSpan2.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
 
-	spans.Spans().Append(otelSpan1)
-	spans.Spans().Append(otelSpan2)
 	batch := transformTraces(t, traces)
 	require.Len(t, batch, 2)
 
@@ -460,10 +456,9 @@ func TestInstrumentationLibrary(t *testing.T) {
 	traces, spans := newTracesSpans()
 	spans.InstrumentationLibrary().SetName("library-name")
 	spans.InstrumentationLibrary().SetVersion("1.2.3")
-	otelSpan := pdata.NewSpan()
+	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
-	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
 	tx := events[0].Transaction
 
@@ -581,12 +576,12 @@ func TestSpanNetworkAttributes(t *testing.T) {
 
 func TestArrayLabels(t *testing.T) {
 	stringArray := pdata.NewAttributeValueArray()
-	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("string1"))
-	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("string2"))
+	stringArray.ArrayVal().AppendEmpty().SetStringVal("string1")
+	stringArray.ArrayVal().AppendEmpty().SetStringVal("string2")
 
 	boolArray := pdata.NewAttributeValueArray()
-	boolArray.ArrayVal().Append(pdata.NewAttributeValueBool(false))
-	boolArray.ArrayVal().Append(pdata.NewAttributeValueBool(true))
+	boolArray.ArrayVal().AppendEmpty().SetBoolVal(false)
+	boolArray.ArrayVal().AppendEmpty().SetBoolVal(true)
 
 	tx := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"string_array": stringArray,
@@ -635,22 +630,20 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	exportedSpanTimestamp := exportTimestamp.Add(spanOffset)
 	exportedExceptionTimestamp := exportTimestamp.Add(exceptionOffset)
 
-	otelSpan1 := pdata.NewSpan()
+	otelSpan1 := otelSpans.Spans().AppendEmpty()
 	otelSpan1.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan1.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	otelSpan1.SetStartTimestamp(pdata.TimestampFromTime(exportedTransactionTimestamp))
 	otelSpan1.SetEndTimestamp(pdata.TimestampFromTime(exportedTransactionTimestamp.Add(transactionDuration)))
-	otelSpans.Spans().Append(otelSpan1)
 
-	otelSpan2 := pdata.NewSpan()
+	otelSpan2 := otelSpans.Spans().AppendEmpty()
 	otelSpan2.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan2.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	otelSpan2.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
 	otelSpan2.SetStartTimestamp(pdata.TimestampFromTime(exportedSpanTimestamp))
 	otelSpan2.SetEndTimestamp(pdata.TimestampFromTime(exportedSpanTimestamp.Add(spanDuration)))
-	otelSpans.Spans().Append(otelSpan2)
 
-	otelSpanEvent := pdata.NewSpanEvent()
+	otelSpanEvent := otelSpan2.Events().AppendEmpty()
 	otelSpanEvent.SetTimestamp(pdata.TimestampFromTime(exportedExceptionTimestamp))
 	otelSpanEvent.SetName("exception")
 	otelSpanEvent.Attributes().InitFromMap(map[string]pdata.AttributeValue{
@@ -658,7 +651,6 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 		"exception.message":    pdata.NewAttributeValueString("the_message"),
 		"exception.stacktrace": pdata.NewAttributeValueString("the_stacktrace"),
 	})
-	otelSpan2.Events().Append(otelSpanEvent)
 
 	batch := transformTraces(t, traces)
 	require.Len(t, batch, 3)
@@ -1210,21 +1202,20 @@ func jaegerKeyValue(k string, v interface{}) jaegermodel.KeyValue {
 
 func transformTransactionWithAttributes(t *testing.T, attrs map[string]pdata.AttributeValue, configFns ...func(pdata.Span)) *model.Transaction {
 	traces, spans := newTracesSpans()
-	otelSpan := pdata.NewSpan()
+	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	for _, fn := range configFns {
 		fn(otelSpan)
 	}
 	otelSpan.Attributes().InitFromMap(attrs)
-	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
 	return events[0].Transaction
 }
 
 func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeValue, configFns ...func(pdata.Span)) *model.Span {
 	traces, spans := newTracesSpans()
-	otelSpan := pdata.NewSpan()
+	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	otelSpan.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
@@ -1232,7 +1223,6 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeV
 		fn(otelSpan)
 	}
 	otelSpan.Attributes().InitFromMap(attrs)
-	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
 	return events[0].Span
 }
@@ -1242,13 +1232,12 @@ func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ..
 	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
 		conventions.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
 	})
-	otelSpan := pdata.NewSpan()
+	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	for _, spanEvent := range spanEvents {
-		otelSpan.Events().Append(spanEvent)
+		spanEvent.CopyTo(otelSpan.Events().AppendEmpty())
 	}
-	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
 	require.NotEmpty(t, events)
 
@@ -1274,10 +1263,8 @@ func transformTraces(t *testing.T, traces pdata.Traces) model.Batch {
 
 func newTracesSpans() (pdata.Traces, pdata.InstrumentationLibrarySpans) {
 	traces := pdata.NewTraces()
-	resourceSpans := pdata.NewResourceSpans()
-	librarySpans := pdata.NewInstrumentationLibrarySpans()
-	resourceSpans.InstrumentationLibrarySpans().Append(librarySpans)
-	traces.ResourceSpans().Append(resourceSpans)
+	resourceSpans := traces.ResourceSpans().AppendEmpty()
+	librarySpans := resourceSpans.InstrumentationLibrarySpans().AppendEmpty()
 	return traces, librarySpans
 }
 
