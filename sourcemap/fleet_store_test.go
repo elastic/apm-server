@@ -41,53 +41,6 @@ func TestFleetFetch(t *testing.T) {
 		sourceMapPath = "/api/fleet/artifact"
 	)
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, sourceMapPath, r.URL.Path)
-		auth := r.Header.Get("Authorization")
-		hasAuth = auth == "ApiKey "+apikey
-		// zlib compress
-		wr := zlib.NewWriter(w)
-		defer wr.Close()
-		wr.Write([]byte(resp))
-	}))
-	defer ts.Close()
-
-	fleetCfg := &config.Fleet{
-		Hosts:        []string{ts.URL[7:]},
-		Protocol:     "http",
-		AccessAPIKey: apikey,
-		TLS:          nil,
-	}
-
-	cfgs := []config.SourceMapMetadata{
-		{
-			ServiceName:    name,
-			ServiceVersion: version,
-			BundleFilepath: path,
-			SourceMapURL:   sourceMapPath,
-		},
-	}
-	fb, err := newFleetStore(c, fleetCfg, cfgs)
-	assert.NoError(t, err)
-
-	gotRes, err := fb.fetch(context.Background(), name, version, path)
-	require.NoError(t, err)
-
-	assert.Contains(t, gotRes, "webpack:///bundle.js")
-	assert.True(t, hasAuth)
-}
-
-func TestMultipleFleetHostsFetch(t *testing.T) {
-	var (
-		hasAuth       bool
-		apikey        = "supersecret"
-		name          = "webapp"
-		version       = "1.0.0"
-		path          = "/my/path/to/bundle.js.map"
-		c             = http.DefaultClient
-		sourceMapPath = "/api/fleet/artifact"
-	)
-
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, sourceMapPath, r.URL.Path)
 		auth := r.Header.Get("Authorization")
@@ -119,10 +72,10 @@ func TestMultipleFleetHostsFetch(t *testing.T) {
 			SourceMapURL:   sourceMapPath,
 		},
 	}
-	f, err := newFleetStore(c, fleetCfg, cfgs)
+	fb, err := newFleetStore(c, fleetCfg, cfgs)
 	assert.NoError(t, err)
 
-	gotRes, err := f.fetch(context.Background(), name, version, path)
+	gotRes, err := fb.fetch(context.Background(), name, version, path)
 	require.NoError(t, err)
 
 	assert.Contains(t, gotRes, "webpack:///bundle.js")
