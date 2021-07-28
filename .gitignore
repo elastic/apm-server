@@ -5,6 +5,7 @@
 /.ci/docker/golang-mage/approvaltest/
 /.ci/docker/golang-mage/systemtest/
 /.ci/docker/golang-mage/internal/otel_collector/
+/.ci/docker/golang-mage/internal/glog
 **/*.idea
 /build
 /data
