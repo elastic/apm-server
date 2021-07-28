@@ -24,6 +24,7 @@ import (
 	"net/http/httptest"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/elastic/apm-server/beater/config"
 
@@ -81,6 +82,84 @@ func TestFleetFetch(t *testing.T) {
 
 	assert.Contains(t, gotRes, "webpack:///bundle.js")
 	assert.True(t, hasAuth)
+}
+
+func TestMultipleFleetHostsQuery(t *testing.T) {
+	var (
+		called        int32
+		apikey        = "supersecret"
+		name          = "webapp"
+		version       = "1.0.0"
+		path          = "/my/path/to/bundle.js.map"
+		c             = http.DefaultClient
+		sourceMapPath = "/api/fleet/artifact"
+	)
+
+	hError := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&called, 1)
+		http.Error(w, "err", http.StatusInternalServerError)
+	})
+	ts0 := httptest.NewServer(hError)
+
+	requestReceived := make(chan struct{})
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&called, 1)
+		select {
+		case requestReceived <- struct{}{}:
+			wr := zlib.NewWriter(w)
+			defer wr.Close()
+			wr.Write([]byte(resp))
+		case <-r.Context().Done():
+			return
+		}
+	})
+	ts1 := httptest.NewServer(h)
+	ts2 := httptest.NewServer(h)
+
+	fleetCfg := &config.Fleet{
+		Hosts:        []string{ts0.URL[7:], ts1.URL[7:], ts2.URL[7:]},
+		Protocol:     "http",
+		AccessAPIKey: apikey,
+		TLS:          nil,
+	}
+
+	cfgs := []config.SourceMapMetadata{
+		{
+			ServiceName:    name,
+			ServiceVersion: version,
+			BundleFilepath: path,
+			SourceMapURL:   sourceMapPath,
+		},
+	}
+	f, err := newFleetStore(c, fleetCfg, cfgs)
+	assert.NoError(t, err)
+
+	fetchReturned := make(chan string)
+	go func() {
+		defer close(fetchReturned)
+		resp, _ := f.fetch(context.Background(), name, version, path)
+		fetchReturned <- resp
+	}()
+
+	select {
+	case <-requestReceived:
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for server to receive request")
+	}
+
+	select {
+	case resp := <-fetchReturned:
+		assert.Contains(t, resp, "webpack:///bundle.js")
+		assert.EqualValues(t, 3, called)
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for Fetch to return")
+	}
+
+	select {
+	case <-requestReceived:
+	default:
+		t.Fatal("No second request received by handler")
+	}
 }
 
 func TestMultipleFleetHostsQueryFailureFetch(t *testing.T) {
