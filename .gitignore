@@ -36,10 +36,6 @@ html_docs
 /docker-compose.override.yml
 /config.mk
 /systemtest/logs
-<<<<<<< HEAD
-docker-compose.yml.bck
-=======
 docker-compose.yml.bck
 Dockerfile.bck
 version.asciidoc.bck
->>>>>>> 7a5fc061 (Create our own glog replacement (#5809))
