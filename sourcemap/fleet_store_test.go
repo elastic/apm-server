@@ -22,6 +22,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -84,18 +85,18 @@ func TestFleetFetch(t *testing.T) {
 
 func TestMultipleFleetHostsQueryFailureFetch(t *testing.T) {
 	var (
+		requestCount  int32
 		apikey        = "supersecret"
 		name          = "webapp"
 		version       = "1.0.0"
 		path          = "/my/path/to/bundle.js.map"
 		c             = http.DefaultClient
 		sourceMapPath = "/api/fleet/artifact"
-		requestCount  = 0
 	)
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "err", http.StatusInternalServerError)
-		requestCount++
+		atomic.AddInt32(&requestCount, 1)
 	})
 
 	ts0 := httptest.NewServer(h)
@@ -126,7 +127,7 @@ func TestMultipleFleetHostsQueryFailureFetch(t *testing.T) {
 	assert.NoError(t, err)
 
 	resp, err := f.fetch(context.Background(), name, version, path)
-	assert.Equal(t, len(fleetCfg.Hosts), requestCount)
+	assert.EqualValues(t, len(fleetCfg.Hosts), requestCount)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), errMsgFleetFailure)
 	assert.Equal(t, "", resp)
