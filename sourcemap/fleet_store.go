@@ -148,6 +148,7 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 	if err != nil {
 		return "", err
 	}
+	// No results were received: context was cancelled.
 	return "", ctx.Err()
 }
 
