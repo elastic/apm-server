@@ -109,6 +109,7 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/DATA-DOG/go-sqlmock v1.4.1/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
+github.com/DATA-DOG/godog v0.7.13/go.mod h1:z2OZ6a3X0/YAKVqLfVzYBwFt3j6uSt3Xrqa7XTtcQE0=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/zstd v1.4.1/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
 github.com/DataDog/zstd v1.4.4 h1:+IawcoXhCBylN7ccwdwf8LOH2jKq7NavGpEPanrlTzE=
@@ -444,6 +445,7 @@ github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7
 github.com/evanphx/json-patch v4.9.0+incompatible h1:kLcOMZeuLAJvL2BPWLMIj5oaZQobrkAqrL+WFZwQses=
 github.com/evanphx/json-patch v4.9.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
+github.com/fatih/color v1.9.0 h1:8xPHl4/q1VyqGIPif1F+1V3Y3lSmrq01EabUW3CoW5s=
 github.com/fatih/color v1.9.0/go.mod h1:eQcE1qtQxscV5RaZvpXrrb8Drkc3/DdQ+uUYCNjL+zU=
 github.com/fatih/color v1.12.0 h1:mRhaKNwANqRgUBGKmnI5ZxEk7QXmjQeCcuYFMX2bfcc=
 github.com/fatih/color v1.12.0/go.mod h1:ELkj/draVOlAH/xkhN6mQ50Qd0MPOk5AAr3maGEBuJM=
@@ -1056,6 +1058,7 @@ github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaO
 github.com/mattn/go-colorable v0.1.2/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
 github.com/mattn/go-colorable v0.1.4/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
 github.com/mattn/go-colorable v0.1.6/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope9wVRipJSqc=
+github.com/mattn/go-colorable v0.1.7 h1:bQGKb3vps/j0E9GfJQ03JyhRuxsvdAanXlT9BTw3mdw=
 github.com/mattn/go-colorable v0.1.7/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope9wVRipJSqc=
 github.com/mattn/go-colorable v0.1.8 h1:c1ghPdyEDarC70ftn0y+A/Ee++9zz8ljHG1b13eJ0s8=
 github.com/mattn/go-colorable v0.1.8/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope9wVRipJSqc=
@@ -1307,13 +1310,8 @@ github.com/prometheus/procfs v0.1.3/go.mod h1:lV6e/gmhEcM9IjHGsFOCxxuZ+z1YqCvr4O
 github.com/prometheus/procfs v0.2.0/go.mod h1:lV6e/gmhEcM9IjHGsFOCxxuZ+z1YqCvr4OA4YeYWdaU=
 github.com/prometheus/procfs v0.6.0 h1:mxy4L2jP6qMonqmq+aTtOx1ifVWUgG/TAmntgbh3xv4=
 github.com/prometheus/procfs v0.6.0/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1xBZuNvfVA=
-<<<<<<< HEAD
-github.com/prometheus/procfs v0.7.0 h1:OQZ41sZU9XkRpzrz8/TD0EldH/Rwbddkdu5wDyUwzfE=
-github.com/prometheus/procfs v0.7.0/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1xBZuNvfVA=
-=======
 github.com/prometheus/procfs v0.7.1 h1:TlEtJq5GvGqMykEwWzbZWjjztF86swFhsPix1i0bkgA=
 github.com/prometheus/procfs v0.7.1/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1xBZuNvfVA=
->>>>>>> 7a5fc061 (Create our own glog replacement (#5809))
 github.com/prometheus/prometheus v0.0.0-20200609090129-a6600f564e3c/go.mod h1:S5n0C6tSgdnwWshBUceRx5G1OsjLv/EeZ9t3wIfEtsY=
 github.com/prometheus/prometheus v1.8.2-0.20210621150501-ff58416a0b02/go.mod h1:fC6ROpjS/2o+MQTO7X8NSZLhLBSNlDzxaeDMqQm+TUM=
 github.com/prometheus/prometheus v2.5.0+incompatible/go.mod h1:oAIUtOny2rjMX0OWN5vPR5/q/twIROJvdqnQKDdil/s=
@@ -1447,15 +1445,14 @@ github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69
 github.com/syndtr/gocapability v0.0.0-20170704070218-db04d3cc01c8/go.mod h1:hkRG7XYTFWNJGYcbNJQlaLq0fg1yr4J4t/NcTQtrfww=
 github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c h1:+aPplBwWcHBo6q9xrfWdMrT9o4kltkmmvpemgIjep/8=
 github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c/go.mod h1:SbErYREK7xXdsRiigaQiQkI9McGRzYMvlKYaP3Nimdk=
+github.com/tidwall/gjson v1.6.0 h1:9VEQWz6LLMUsUl6PueE49ir4Ka6CzLymOAZDxpFsTDc=
 github.com/tidwall/gjson v1.6.0/go.mod h1:P256ACg0Mn+j1RXIDXoss50DeIABTYK1PULOJHhxOls=
-<<<<<<< HEAD
-github.com/tidwall/match v1.0.1 h1:PnKP62LPNxHKTwvHHZZzdOAOCtsJTjo6dZLCwpKm5xc=
-=======
 github.com/tidwall/gjson v1.6.5 h1:P/K9r+1pt9AK54uap7HcoIp6T3a7AoMg3v18tUis+Cg=
 github.com/tidwall/gjson v1.6.5/go.mod h1:zeFuBCIqD4sN/gmqBzZ4j7Jd6UcA2Fc56x7QFsv+8fI=
->>>>>>> 7a5fc061 (Create our own glog replacement (#5809))
+github.com/tidwall/match v1.0.1 h1:PnKP62LPNxHKTwvHHZZzdOAOCtsJTjo6dZLCwpKm5xc=
 github.com/tidwall/match v1.0.1/go.mod h1:LujAq0jyVjBy028G1WhWfIzbpQfMO8bBZ6Tyb0+pL9E=
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
+github.com/tidwall/pretty v1.0.1 h1:WE4RBSZ1x6McVVC8S/Md+Qse8YUv6HRObAx6ke00NY8=
 github.com/tidwall/pretty v1.0.1/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
 github.com/tidwall/sjson v1.1.1 h1:7h1vk049Jnd5EH9NyzNiEuwYW4b5qgreBbqRC19AS3U=
 github.com/tidwall/sjson v1.1.1/go.mod h1:yvVuSnpEQv5cYIrO+AT6kw4QVfd5SDZoGIS7/5+fZFs=
@@ -1534,22 +1531,21 @@ github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:
 github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d/go.mod h1:rHwXgn7JulP+udvsHwJoVG1YGAP6VLg4y9I5dyZdqmA=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yuin/gopher-lua v0.0.0-20170403160031-b402f3114ec7/go.mod h1:aEV29XrmTYFr3CiRxZeGHpkvbwq+prZduBqMaascyCU=
+go.elastic.co/apm v1.7.0/go.mod h1:IYfi/330rWC5Kfns1rM+kY+RPkIdgUziRF6Cbm9qlxQ=
 go.elastic.co/apm v1.7.2/go.mod h1:tCw6CkOJgkWnzEthFN9HUP1uL3Gjc/Ur6m7gRPLaoH0=
 go.elastic.co/apm v1.8.1-0.20200909061013-2aef45b9cf4b/go.mod h1:qoOSi09pnzJDh5fKnfY7bPmQgl8yl2tULdOu03xhui0=
 go.elastic.co/apm v1.12.0 h1:0rYcZM/GPMeH0Er6DMFfHA8Flg5tf+XD9QbenrWWYWM=
 go.elastic.co/apm v1.12.0/go.mod h1:v8Yf+VZ3NplRjQUWlvPG4EV/GGtDNCVUMaafrCnmGEM=
+go.elastic.co/apm/module/apmelasticsearch v1.7.2 h1:5STGHLZLSeAzxordMc+dFVKiyVtMmxADOV+TgRaXXJg=
 go.elastic.co/apm/module/apmelasticsearch v1.7.2/go.mod h1:ZyNFuyWdt42GBZkz0SogoLzDBrBGj4orxpiUuxYeYq8=
-<<<<<<< HEAD
-go.elastic.co/apm/module/apmgrpc v1.7.0 h1:CE6zLPSOdSOjcn7AEDJQAULOG2ZT7W+e0i4JzYLSgeY=
-go.elastic.co/apm/module/apmgrpc v1.7.0/go.mod h1:fCqPNInjmGPbjOLXMPrDsGP9Ks39rcg/RDILJtHPwEI=
-go.elastic.co/apm/module/apmhttp v1.7.0/go.mod h1:70/fYU6lgIII213g7As10lm2Ca/ZkGixeJBoyfrGKes=
-go.elastic.co/apm/module/apmhttp v1.7.2 h1:2mRh7SwBuEVLmJlX+hsMdcSg9xaielCLElaPn/+i34w=
-=======
 go.elastic.co/apm/module/apmelasticsearch v1.12.0 h1:DzDIrzuzpdLq6aaCo4yp4unH4Xly1AzsdYtdlgbrXE4=
 go.elastic.co/apm/module/apmelasticsearch v1.12.0/go.mod h1:9Xy9sEsFIuAuxpZWVipG7CT/aFVdbwlGhHlXSNbuG44=
+go.elastic.co/apm/module/apmgrpc v1.7.0 h1:CE6zLPSOdSOjcn7AEDJQAULOG2ZT7W+e0i4JzYLSgeY=
+go.elastic.co/apm/module/apmgrpc v1.7.0/go.mod h1:fCqPNInjmGPbjOLXMPrDsGP9Ks39rcg/RDILJtHPwEI=
 go.elastic.co/apm/module/apmgrpc v1.12.0 h1:HAPWVr+aQf6Hzpe5npr36pi/UE70sJpaUZxCP+qdHz8=
 go.elastic.co/apm/module/apmgrpc v1.12.0/go.mod h1:54OQi4zyBt6dhjNdgwfL3RmIZBL1l04L9TIpQDdyUmI=
->>>>>>> 7a5fc061 (Create our own glog replacement (#5809))
+go.elastic.co/apm/module/apmhttp v1.7.0/go.mod h1:70/fYU6lgIII213g7As10lm2Ca/ZkGixeJBoyfrGKes=
+go.elastic.co/apm/module/apmhttp v1.7.2 h1:2mRh7SwBuEVLmJlX+hsMdcSg9xaielCLElaPn/+i34w=
 go.elastic.co/apm/module/apmhttp v1.7.2/go.mod h1:sTFWiWejnhSdZv6+dMgxGec2Nxe/ZKfHfz/xtRM+cRY=
 go.elastic.co/ecszap v0.3.0/go.mod h1:HTUi+QRmr3EuZMqxPX+5fyOdMNfUu5iPebgfhgsTJYQ=
 go.elastic.co/ecszap v1.0.0 h1:PdQkRUeraR3XHJ14T7JMa+ncU0XXrVrcEN/BoRa2nMI=
@@ -1779,13 +1775,8 @@ golang.org/x/net v0.0.0-20210525063256-abc453219eb5/go.mod h1:9nx3DQGgdP8bBQD5qx
 golang.org/x/net v0.0.0-20210610132358-84b48f89b13b/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/net v0.0.0-20210614182718-04defd469f4e h1:XpT3nA5TvE525Ne3hInMh6+GETgn27Zfm9dxsThnX2Q=
 golang.org/x/net v0.0.0-20210614182718-04defd469f4e/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
-<<<<<<< HEAD
-golang.org/x/net v0.0.0-20210716203947-853a461950ff h1:j2EK/QoxYNBsXI4R7fQkkRUk8y6wnOBI+6hgPdP/6Ds=
-golang.org/x/net v0.0.0-20210716203947-853a461950ff/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
-=======
 golang.org/x/net v0.0.0-20210726213435-c6fcb2dbf985 h1:4CSI6oo7cOjJKajidEljs9h+uP0rRZBPPPhcCbj5mw8=
 golang.org/x/net v0.0.0-20210726213435-c6fcb2dbf985/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
->>>>>>> 7a5fc061 (Create our own glog replacement (#5809))
 golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
 golang.org/x/oauth2 v0.0.0-20181106182150-f42d05182288/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
 golang.org/x/oauth2 v0.0.0-20190130055435-99b60b757ec1/go.mod h1:gOpvHmFTYa4IltrdGE7lF6nIHvwfUNPOp7c8zoXwtLw=
@@ -2041,13 +2032,10 @@ google.golang.org/genproto v0.0.0-20210402141018-6c239bbf2bb1/go.mod h1:9lPAdzaE
 google.golang.org/genproto v0.0.0-20210513213006-bf773b8c8384/go.mod h1:P3QM42oQyzQSnHPnZ/vqoCdDmzH28fzWByN9asMeM8A=
 google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c/go.mod h1:UODoCrxHCcBojKKwX1terBiRUaqAsFqJiF615XL43r0=
 google.golang.org/genproto v0.0.0-20210604141403-392c879c8b08/go.mod h1:UODoCrxHCcBojKKwX1terBiRUaqAsFqJiF615XL43r0=
-<<<<<<< HEAD
 google.golang.org/genproto v0.0.0-20210716133855-ce7ef5c701ea h1:8ZyCcgugUqamxp/vZSEJw9CMy7VZlSWYJLLJPi/dSDA=
 google.golang.org/genproto v0.0.0-20210716133855-ce7ef5c701ea/go.mod h1:AxrInvYm1dci+enl5hChSFPOmmUF1+uAa/UsgNRWd7k=
-=======
 google.golang.org/genproto v0.0.0-20210726200206-e7812ac95cc0 h1:VpRFBmFg/ol+rqJnkKLPjVebPNFbSxuj17B7bH1xMc8=
 google.golang.org/genproto v0.0.0-20210726200206-e7812ac95cc0/go.mod h1:ob2IJxKrgPT52GcgX759i1sleT07tiKowYBGbczaW48=
->>>>>>> 7a5fc061 (Create our own glog replacement (#5809))
 google.golang.org/grpc v1.8.0/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.14.0/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.17.0/go.mod h1:6QZJwpn2B+Zp71q/5VxRsJ6NXXVCE5NRUHRo+f3cWCs=
