@@ -5,6 +5,7 @@
 /.ci/docker/golang-mage/approvaltest/
 /.ci/docker/golang-mage/systemtest/
 /.ci/docker/golang-mage/internal/otel_collector/
+/.ci/docker/golang-mage/internal/glog
 **/*.idea
 /build
 /data
@@ -35,4 +36,10 @@ html_docs
 /docker-compose.override.yml
 /config.mk
 /systemtest/logs
+<<<<<<< HEAD
 docker-compose.yml.bck
+=======
+docker-compose.yml.bck
+Dockerfile.bck
+version.asciidoc.bck
+>>>>>>> 7a5fc061 (Create our own glog replacement (#5809))

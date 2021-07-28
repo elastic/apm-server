@@ -24,7 +24,6 @@ require (
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
 	github.com/elastic/go-ucfg v0.8.4-0.20200415140258-1232bd4774a6
-	github.com/fatih/color v1.12.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogo/protobuf v1.3.2
@@ -101,6 +100,6 @@ replace (
 
 // We replace golang/glog, which is used by ristretto, to avoid polluting the
 // command line flags and conflicting with command line flags added by libbeat.
-replace github.com/golang/glog => github.com/slok/noglog v0.2.0
+replace github.com/golang/glog => ./internal/glog
 
 replace go.opentelemetry.io/collector => ./internal/otel_collector
