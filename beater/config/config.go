@@ -92,8 +92,8 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, errors.New(msgInvalidConfigAgentCfg)
 	}
 
-	for _, serviceConfig := range c.AgentConfigs {
-		if err := serviceConfig.setup(); err != nil {
+	for i := range c.AgentConfigs {
+		if err := c.AgentConfigs[i].setup(); err != nil {
 			return nil, err
 		}
 	}
