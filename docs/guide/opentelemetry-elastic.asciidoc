@@ -313,16 +313,16 @@ NOTE: For a better startup time, we recommend using SDK-based instrumentation fo
 
 To instrument AWS Lambda Node.js functions, see https://aws-otel.github.io/docs/getting-started/lambda/lambda-js[AWS Distro for OpenTelemetry Lambda Support For JS].
 
-Noteworthy configuration elements:
+Important configuration settings:
 
 IMPORTANT: Due to a https://github.com/aws-observability/aws-otel-lambda/issues/118[limitation] in AWS Lambda Otel Layer for Node.js v0.19, you must create a trace in the calling invocation of the Node.js lambda functions. This is to force the sampling strategy to `sampled:true` passing a `traceparent` header with `sampled=true`. For example, with `-01` at the end of the value.
 
 To create a trace in the calling invocation of the Lambda function, use these or other methods that result in the `traceparent` header being added to the outgoing HTTP call:
 
-* If the caller is a web browser, instrument the caller using (https://www.elastic.co/guide/en/apm/get-started/current/rum.html)[Real User Monitoring (RUM)] by enabling https://www.elastic.co/guide/en/apm/agent/rum-js/5.x/distributed-tracing-guide.html[distributed tracing] on the RUM agent.
+* If the caller is a web browser, instrument the caller using <<rum,Real User Monitoring (RUM)>> by enabling {apm-rum-ref}/distributed-tracing-guide.html[distributed tracing] on the RUM agent.
 * If the caller is an application, instrument the application with an OpenTelemetry or Elastic APM agent ensuring distributed tracing is enabled.
 
-* The configuration of the OpenTelemetry Collector, with the definition of the Elastic Observability endpoint, can be added to the root directory of the Lambda binaries (e.g. defined in `src/main/resources/opentelemetry-collector.yaml`)
+1. The configuration of the OpenTelemetry Collector, with the definition of the Elastic Observability endpoint, can be added to the root directory of the Lambda binaries: `src/main/resources/opentelemetry-collector.yaml`.
 +
 [source,yaml]
 ----
@@ -355,16 +355,17 @@ service:
 ----
 <1> Environment-specific configuration parameters can be conveniently passed in as environment variables: `ELASTIC_OTLP_ENDPOINT` and `ELASTIC_OTLP_TOKEN`
 
-* Configure the AWS Lambda Node.js function with:
-** https://docs.aws.amazon.com/lambda/latest/dg/API_Layer.html[Function
+2. Configure the AWS Lambda Node.js function:
+
+* https://docs.aws.amazon.com/lambda/latest/dg/API_Layer.html[Function
 layer]: The latest https://aws-otel.github.io/docs/getting-started/lambda/lambda-js[AWS
-Lambda layer for OpenTelemetry] (e.g. `arn:aws:lambda:eu-west-1:901920570463:layer:aws-otel-nodejs-ver-0-19-0:1`)
-** https://docs.aws.amazon.com/lambda/latest/dg/API_TracingConfig.html[TracingConfig / Mode] set to `PassTrough`
-** https://docs.aws.amazon.com/lambda/latest/dg/API_FunctionConfiguration.html[FunctionConfiguration / Timeout] set to more than 10 seconds to support the cold start of the Lambda JS Runtime
-** Export the environment variables:
-*** `AWS_LAMBDA_EXEC_WRAPPER="/opt/otel-handler"` for wrapping handlers proxied through the API Gateway (see https://aws-otel.github.io/docs/getting-started/lambda/lambda-js#enable-auto-instrumentation-for-your-lambda-function[here])
-*** `OTEL_PROPAGATORS="tracecontext"` to override the default setting that also enables X-Ray headers causing interferences between OpenTelemetry and X-Ray
-*** `OPENTELEMETRY_COLLECTOR_CONFIG_FILE="/var/task/opentelemetry-collector.yaml"` to specify the path to your OpenTelemetry Collector configuration
+Lambda layer for OpenTelemetry]. For example, `arn:aws:lambda:eu-west-1:901920570463:layer:aws-otel-nodejs-ver-0-19-0:1`)
+* https://docs.aws.amazon.com/lambda/latest/dg/API_TracingConfig.html[TracingConfig / Mode] set to `PassTrough`
+* https://docs.aws.amazon.com/lambda/latest/dg/API_FunctionConfiguration.html[FunctionConfiguration / Timeout] set to more than 10 seconds to support the cold start of the Lambda JS Runtime
+* Export the environment variables:
+** `AWS_LAMBDA_EXEC_WRAPPER="/opt/otel-handler"` for wrapping handlers proxied through the API Gateway. See https://aws-otel.github.io/docs/getting-started/lambda/lambda-js#enable-auto-instrumentation-for-your-lambda-function[enable auto instrumentation for your lambda-function].
+** `OTEL_PROPAGATORS="tracecontext"` to override the default setting that also enables X-Ray headers causing interferences between OpenTelemetry and X-Ray
+** `OPENTELEMETRY_COLLECTOR_CONFIG_FILE="/var/task/opentelemetry-collector.yaml"` to specify the path to your OpenTelemetry Collector configuration
 
 [[open-telemetry-aws-lambda-elastic-nodejs-terraform]]
 ===== Instrumenting AWS Lambda Node.js functions with Terraform
