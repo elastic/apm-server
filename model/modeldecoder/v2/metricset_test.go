@@ -46,20 +46,22 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{}}
 		str := `{"metricset":{"timestamp":1599996822281000,"samples":{"a.b":{"value":2048}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
-		var out model.Metricset
-		require.NoError(t, DecodeNestedMetricset(dec, &input, &out))
-		assert.Equal(t, map[string]model.MetricsetSample{"a.b": {Value: 2048}}, out.Samples)
-		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", out.Timestamp.String())
+		var batch model.Batch
+		require.NoError(t, DecodeNestedMetricset(dec, &input, &batch))
+		require.Len(t, batch, 1)
+		require.NotNil(t, batch[0].Metricset)
+		assert.Equal(t, map[string]model.MetricsetSample{"a.b": {Value: 2048}}, batch[0].Metricset.Samples)
+		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", batch[0].Metricset.Timestamp.String())
 
 		// invalid type
-		err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &out)
+		err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "decode")
 	})
 
 	t.Run("validate", func(t *testing.T) {
-		var out model.Metricset
-		err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
+		var batch model.Batch
+		err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &batch)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")
 	})
@@ -71,12 +73,12 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 	t.Run("metadata-set", func(t *testing.T) {
 		// set metadata - metricsets do not hold metadata themselves
 		var input metricset
-		var out model.Metricset
+		var out model.APMEvent
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetricsetModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 		// iterate through metadata model and assert values are set to default values
-		modeldecodertest.AssertStructValues(t, &out.Metadata, exceptions, modeldecodertest.DefaultValues())
+		modeldecodertest.AssertStructValues(t, &out.Metricset.Metadata, exceptions, modeldecodertest.DefaultValues())
 	})
 
 	metadataExceptions := func(key string) bool {
@@ -99,14 +101,14 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 
 	t.Run("metricset-values", func(t *testing.T) {
 		var input metricset
-		var out1, out2 model.Metricset
+		var out1, out2 model.APMEvent
 		reqTime := time.Now().Add(time.Second)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 
 		mapToMetricsetModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out1)
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, &out1, metadataExceptions, defaultVal)
+		modeldecodertest.AssertStructValues(t, out1.Metricset, metadataExceptions, defaultVal)
 		defaultSamples := map[string]model.MetricsetSample{
 			defaultVal.Str + "0": {
 				Type:   model.MetricType(defaultVal.Str),
@@ -130,7 +132,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				Values: repeatFloat64(defaultVal.Float, defaultVal.N),
 			},
 		}
-		assert.Equal(t, defaultSamples, out1.Samples)
+		assert.Equal(t, defaultSamples, out1.Metricset.Samples)
 
 		// set Timestamp to requestTime if eventTime is zero
 		defaultVal.Update(time.Time{})
@@ -138,13 +140,13 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		mapToMetricsetModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out1)
 		defaultVal.Update(reqTime)
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, &out1, metadataExceptions, defaultVal)
+		modeldecodertest.AssertStructValues(t, out1.Metricset, metadataExceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetricsetModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out2)
-		modeldecodertest.AssertStructValues(t, &out2, metadataExceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, out2.Metricset, metadataExceptions, otherVal)
 		otherSamples := map[string]model.MetricsetSample{
 			otherVal.Str + "0": {
 				Type:   model.MetricType(otherVal.Str),
@@ -161,9 +163,9 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				Values: repeatFloat64(otherVal.Float, otherVal.N),
 			},
 		}
-		assert.Equal(t, otherSamples, out2.Samples)
-		modeldecodertest.AssertStructValues(t, &out1, metadataExceptions, defaultVal)
-		assert.Equal(t, defaultSamples, out1.Samples)
+		assert.Equal(t, otherSamples, out2.Metricset.Samples)
+		modeldecodertest.AssertStructValues(t, out1.Metricset, metadataExceptions, defaultVal)
+		assert.Equal(t, defaultSamples, out1.Metricset.Samples)
 	})
 }
 
