@@ -84,6 +84,7 @@ type serverStatus int
 const (
 	serverCreated serverStatus = iota
 	serverRunning
+	serverRestart
 	serverDone
 )
 
@@ -119,9 +120,6 @@ func newServer(
 	if err != nil {
 		return nil, err
 	}
-	// TODO: If tls config changes, should the server restart itself? or
-	// does the serverRunner notice the change and create a new server?
-	// Probably would result in simpler code if the serverRunner handled it.
 	httpServer, err := newHTTPServer(
 		logger, info, cfg, tracer, reporter, batchProcessor, agentcfgFetchReporter, ratelimitStore, sourcemapStore,
 	)
@@ -143,6 +141,7 @@ func newServer(
 		grpcServer:            grpcServer,
 		jaegerServer:          jaegerServer,
 		agentcfgFetchReporter: agentcfgFetchReporter,
+		status:                serverCreated,
 	}, nil
 }
 

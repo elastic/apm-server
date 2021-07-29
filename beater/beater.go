@@ -27,6 +27,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -102,6 +103,7 @@ func NewCreator(args CreatorParams) beat.Creator {
 			pipeline:      b.Publisher,
 			wrapRunServer: args.WrapRunServer,
 			waitPublished: newWaitPublishedAcker(),
+			restartc:      make(chan struct{}),
 		}
 
 		var err error
@@ -152,7 +154,9 @@ type beater struct {
 	server         *server
 	sourcemapStore *sourcemap.Store
 	batchProcessor model.BatchProcessor
-	tlsChecksum    string
+	checksum       string
+	restartc       chan struct{}
+	runServer      RunServerFunc
 
 	ctx context.Context
 
@@ -239,7 +243,7 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 		}
 
 		go func() {
-			bt.run(ctx)
+			bt.run()
 			defer close(done)
 			defer closeTracer()
 		}()
@@ -293,15 +297,26 @@ func (b *beater) configure(args serverParams) error {
 	}
 	b.args = args.sharedServerParams
 
+	var checksumBytes []byte
 	if config.TLS != nil {
 		m, err := json.Marshal(config.TLS)
 		if err != nil {
 			// TODO: what do we do now??
 			b.logger.Errorf("failed to checksum tls config: %v", err)
 		} else {
-			b.tlsChecksum = fmt.Sprintf("%x", sha256.Sum256(m))
+			checksumBytes = m
 		}
 	}
+
+	binMaxConn := strconv.FormatInt(int64(b.config.MaxConnections), 2)
+	checksumBytes = append(checksumBytes, []byte(binMaxConn)...)
+	checksum := fmt.Sprintf("%x", sha256.Sum256(checksumBytes))
+	if checksum != b.checksum {
+		if b.server != nil {
+			b.server.status = serverRestart
+		}
+	}
+	b.checksum = checksum
 
 	// Send config to telemetry.
 	recordAPMServerConfig(b.config)
@@ -357,7 +372,13 @@ func (b *beater) configure(args serverParams) error {
 	}
 	b.batchProcessor = batchProcessor
 
+	// Have to create a new server if:
+	// - TLS config changes
+	// - max_connections changes (we could also implement our own limit listener)
 	if b.server == nil || b.server.status != serverRunning {
+		if b.server != nil && b.server.status == serverRestart {
+			b.restartc <- struct{}{}
+		}
 		server, err := newServer(
 			b.logger,
 			args.Beat.Info,
@@ -371,6 +392,7 @@ func (b *beater) configure(args serverParams) error {
 			return err
 		}
 		b.server = server
+		b.buildRunServer()
 	} else {
 		// TODO: Bit weird to send identical arguments into newServer
 		// and server.configure(). But I want newServer to return a
@@ -393,14 +415,7 @@ func (b *beater) configure(args serverParams) error {
 	return nil
 }
 
-func (b *beater) run(ctx context.Context) error {
-	// When the publisher stops cleanly it will close its pipeline client,
-	// calling the acker's Close method. We need to call Open for each new
-	// publisher to ensure we wait for all clients and enqueued events to
-	// be closed at shutdown time.
-	b.args.Acker.Open()
-	defer b.publisher.Stop(ctx)
-
+func (b *beater) buildRunServer() {
 	// TestPublishIntegration is failing because the params get modified as
 	// they pass through various RunServers, before they finally (used to)
 	// create the server.
@@ -422,6 +437,20 @@ func (b *beater) run(ctx context.Context) error {
 		b.namespace,
 		runServer,
 	)
+	b.runServer = runServer
+}
+
+func (b *beater) run() error {
+	if b.server.status == serverRunning {
+		return errors.New("server already running")
+	}
+
+	// When the publisher stops cleanly it will close its pipeline client,
+	// calling the acker's Close method. We need to call Open for each new
+	// publisher to ensure we wait for all clients and enqueued events to
+	// be closed at shutdown time.
+	b.args.Acker.Open()
+	defer b.publisher.Stop(b.ctx)
 
 	go func() {
 		sigs := make(chan os.Signal, 1)
@@ -466,21 +495,37 @@ func (b *beater) run(ctx context.Context) error {
 		}
 	}()
 
-	params := ServerParams{
-		Info:           b.args.Beat.Info,
-		Config:         b.config,
-		Managed:        b.args.Beat.Manager != nil && b.args.Beat.Manager.Enabled(),
-		Namespace:      b.namespace,
-		Logger:         b.logger,
-		Tracer:         b.args.Tracer,
-		BatchProcessor: b.batchProcessor,
-		SourcemapStore: b.sourcemapStore,
+	// initial start to the server
+	go func() { b.restartc <- struct{}{} }()
+	ctx, cancel := context.WithCancel(b.ctx)
+	for {
+		select {
+		case <-b.restartc:
+			cancel()
+			ctx, cancel = context.WithCancel(b.ctx)
+			// wait until server is no longer running
+			for b.server.status != serverCreated {
+				time.Sleep(10 * time.Millisecond)
+			}
+		case <-b.ctx.Done():
+			return b.publisher.Stop(b.ctx)
+		}
+		params := ServerParams{
+			Info:           b.args.Beat.Info,
+			Config:         b.config,
+			Managed:        b.args.Beat.Manager != nil && b.args.Beat.Manager.Enabled(),
+			Namespace:      b.namespace,
+			Logger:         b.logger,
+			Tracer:         b.args.Tracer,
+			BatchProcessor: b.batchProcessor,
+			SourcemapStore: b.sourcemapStore,
+		}
+		b.mutex.Lock()
+		b.server.status = serverRunning
+		b.mutex.Unlock()
+		go b.runServer(ctx, params)
 	}
-	// TODO: Re-add the runserver/background context differentiation
-	if err := runServer(ctx, params); err != nil {
-		return err
-	}
-	return b.publisher.Stop(ctx)
+
 }
 
 func wrapRunServerWithPreprocessors(

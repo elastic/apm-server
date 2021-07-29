@@ -90,6 +90,7 @@ func (s *httpServer) configure(
 	ratelimitStore *ratelimit.Store,
 	sourcemapStore *sourcemap.Store,
 ) error {
+	*s.cfg = *cfg
 	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
 	batchProcessor = modelprocessor.Chained{
 		model.ProcessBatchFunc(rateLimitBatchProcessor),
@@ -160,7 +161,6 @@ func (h *httpServer) start() error {
 	}
 
 	if h.cfg.MaxConnections > 0 {
-		// TODO: reload
 		lis = netutil.LimitListener(lis, h.cfg.MaxConnections)
 		h.logger.Infof("Connection limit set to: %d", h.cfg.MaxConnections)
 	}
