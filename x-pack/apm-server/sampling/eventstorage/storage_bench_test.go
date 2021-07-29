@@ -25,16 +25,15 @@ func BenchmarkWriteTransaction(b *testing.B) {
 		readWriter := store.NewReadWriter()
 		defer readWriter.Close()
 
-		traceID := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
-		transactionID := []byte{1, 2, 3, 4, 5, 6, 7, 8}
-		transaction := &model.Transaction{
-			TraceID: hex.EncodeToString(traceID),
-			ID:      hex.EncodeToString(transactionID),
+		traceID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
+		transactionID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8})
+		transaction := &model.APMEvent{
+			Transaction: &model.Transaction{TraceID: traceID, ID: transactionID},
 		}
 
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			if err := readWriter.WriteTransaction(transaction); err != nil {
+			if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -53,7 +52,7 @@ func BenchmarkWriteTransaction(b *testing.B) {
 }
 
 func BenchmarkReadEvents(b *testing.B) {
-	traceUUID := uuid.Must(uuid.NewV4())
+	traceID := uuid.Must(uuid.NewV4()).String()
 
 	test := func(b *testing.B, codec eventstorage.Codec) {
 		// Test with varying numbers of events in the trace.
@@ -67,12 +66,14 @@ func BenchmarkReadEvents(b *testing.B) {
 				defer readWriter.Close()
 
 				for i := 0; i < count; i++ {
-					transactionUUID := uuid.Must(uuid.NewV4())
-					transaction := &model.Transaction{
-						TraceID: traceUUID.String(),
-						ID:      transactionUUID.String(),
+					transactionID := uuid.Must(uuid.NewV4()).String()
+					transaction := &model.APMEvent{
+						Transaction: &model.Transaction{
+							TraceID: traceID,
+							ID:      transactionID,
+						},
 					}
-					if err := readWriter.WriteTransaction(transaction); err != nil {
+					if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
 						b.Fatal(err)
 					}
 				}
@@ -85,7 +86,7 @@ func BenchmarkReadEvents(b *testing.B) {
 				var batch model.Batch
 				for i := 0; i < b.N; i++ {
 					batch = batch[:0]
-					if err := readWriter.ReadEvents(traceUUID.String(), &batch); err != nil {
+					if err := readWriter.ReadTraceEvents(traceID, &batch); err != nil {
 						b.Fatal(err)
 					}
 					if len(batch) != count {
@@ -156,7 +157,5 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 
 type nopCodec struct{}
 
-func (nopCodec) DecodeSpan(data []byte, span *model.Span) error             { return nil }
-func (nopCodec) DecodeTransaction(data []byte, tx *model.Transaction) error { return nil }
-func (nopCodec) EncodeSpan(*model.Span) ([]byte, error)                     { return nil, nil }
-func (nopCodec) EncodeTransaction(*model.Transaction) ([]byte, error)       { return nil, nil }
+func (nopCodec) DecodeEvent(data []byte, event *model.APMEvent) error { return nil }
+func (nopCodec) EncodeEvent(*model.APMEvent) ([]byte, error)          { return nil, nil }

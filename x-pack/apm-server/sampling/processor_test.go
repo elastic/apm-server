@@ -127,11 +127,11 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 		defer reader.Close()
 
 		var batch model.Batch
-		err := reader.ReadEvents(traceID1, &batch)
+		err := reader.ReadTraceEvents(traceID1, &batch)
 		assert.NoError(t, err)
 		assert.Zero(t, batch)
 
-		err = reader.ReadEvents(traceID2, &batch)
+		err = reader.ReadTraceEvents(traceID2, &batch)
 		assert.NoError(t, err)
 		assert.Equal(t, model.Batch{
 			{Transaction: transaction2},
@@ -238,7 +238,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 		assert.False(t, sampled)
 
 		var batch model.Batch
-		err = reader.ReadEvents(sampledTraceID, &batch)
+		err = reader.ReadTraceEvents(sampledTraceID, &batch)
 		assert.NoError(t, err)
 		assert.Equal(t, sampledTraceEvents, batch)
 
@@ -246,7 +246,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 		// available in storage until the TTL expires, as they're
 		// written there first.
 		batch = batch[:0]
-		err = reader.ReadEvents(unsampledTraceID, &batch)
+		err = reader.ReadTraceEvents(unsampledTraceID, &batch)
 		assert.NoError(t, err)
 		assert.Equal(t, unsampledTraceEvents, batch)
 	})
@@ -454,12 +454,12 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 		assert.True(t, sampled)
 
 		var batch model.Batch
-		err = reader.ReadEvents(traceID1, &batch)
+		err = reader.ReadTraceEvents(traceID1, &batch)
 		assert.NoError(t, err)
 		assert.Zero(t, batch) // events are deleted from local storage
 
 		batch = model.Batch{}
-		err = reader.ReadEvents(traceID2, &batch)
+		err = reader.ReadTraceEvents(traceID2, &batch)
 		assert.NoError(t, err)
 		assert.Empty(t, batch)
 	})
