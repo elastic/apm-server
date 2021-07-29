@@ -33,7 +33,7 @@ import (
 )
 
 // initializedMetadata returns a metadata model populated with default values
-func initializedMetadata() *model.Metadata {
+func initializedMetadata() model.Metadata {
 	var input metadata
 	var out model.Metadata
 	modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
@@ -43,7 +43,7 @@ func initializedMetadata() *model.Metadata {
 	out.Client.Domain = "init"
 	out.Client.IP = net.ParseIP("127.0.0.1")
 	out.Client.Port = 1
-	return &out
+	return out
 }
 
 func metadataExceptions(keys ...string) func(key string) bool {
@@ -137,22 +137,22 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 		out := initializedMetadata()
 		// iterate through model and assert values are set
 		defaultVal := modeldecodertest.DefaultValues()
-		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), out)
+		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), &out)
 
 		// overwrite model metadata with specified Values
 		// then iterate through model and assert values are overwritten
 		var input metadata
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToMetadataModel(&input, out)
-		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), out)
+		mapToMetadataModel(&input, &out)
+		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), &out)
 
 		// map an empty modeldecoder metadata to the model
 		// and assert values are unchanged
 		input.Reset()
 		modeldecodertest.SetZeroStructValues(&input)
-		mapToMetadataModel(&input, out)
-		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), out)
+		mapToMetadataModel(&input, &out)
+		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), &out)
 	})
 
 	t.Run("reused-memory", func(t *testing.T) {

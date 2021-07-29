@@ -84,8 +84,8 @@ func RUMV3Processor(cfg *config.Config) *Processor {
 	}
 }
 
-func (p *Processor) readMetadata(reader *streamReader, metadata *model.Metadata) error {
-	if err := p.decodeMetadata(reader, metadata); err != nil {
+func (p *Processor) readMetadata(reader *streamReader, out *model.Metadata) error {
+	if err := p.decodeMetadata(reader, out); err != nil {
 		err = reader.wrapError(err)
 		if err == io.EOF {
 			return &InvalidInputError{
@@ -135,7 +135,7 @@ func (p *Processor) identifyEventType(body []byte) []byte {
 func (p *Processor) readBatch(
 	ctx context.Context,
 	requestTime time.Time,
-	streamMetadata *model.Metadata,
+	streamMetadata model.Metadata,
 	batchSize int,
 	batch *model.Batch,
 	reader *streamReader,
@@ -143,7 +143,7 @@ func (p *Processor) readBatch(
 ) (int, error) {
 
 	// input events are decoded and appended to the batch
-	var n int
+	origLen := len(*batch)
 	for i := 0; i < batchSize && !reader.IsEOF(); i++ {
 		body, err := reader.ReadAhead()
 		if err != nil && err != io.EOF {
@@ -154,103 +154,42 @@ func (p *Processor) readBatch(
 				continue
 			}
 			// return early, we assume we can only recover from a input error types
-			return n, err
+			return len(*batch) - origLen, err
 		}
 		if len(body) == 0 {
 			// required for backwards compatibility - sending empty lines was permitted in previous versions
 			continue
 		}
-		input := modeldecoder.Input{
-			RequestTime: requestTime,
-			Metadata:    *streamMetadata,
-			Config:      p.Mconfig,
-		}
+		input := modeldecoder.Input{RequestTime: requestTime, Metadata: streamMetadata, Config: p.Mconfig}
 		switch eventType := p.identifyEventType(body); string(eventType) {
 		case errorEventType:
-			var event model.Error
-			err := v2.DecodeNestedError(reader, &input, &event)
-			if handleDecodeErr(err, reader, result) {
-				continue
-			}
-			*batch = append(*batch, model.APMEvent{Error: &event})
-			n++
+			err = v2.DecodeNestedError(reader, &input, batch)
 		case metricsetEventType:
-			var event model.Metricset
-			err := v2.DecodeNestedMetricset(reader, &input, &event)
-			if handleDecodeErr(err, reader, result) {
-				continue
-			}
-			*batch = append(*batch, model.APMEvent{Metricset: &event})
-			n++
+			err = v2.DecodeNestedMetricset(reader, &input, batch)
 		case spanEventType:
-			var event model.Span
-			err := v2.DecodeNestedSpan(reader, &input, &event)
-			if handleDecodeErr(err, reader, result) {
-				continue
-			}
-			*batch = append(*batch, model.APMEvent{Span: &event})
-			n++
+			err = v2.DecodeNestedSpan(reader, &input, batch)
 		case transactionEventType:
-			var event model.Transaction
-			err := v2.DecodeNestedTransaction(reader, &input, &event)
-			if handleDecodeErr(err, reader, result) {
-				continue
-			}
-			*batch = append(*batch, model.APMEvent{Transaction: &event})
-			n++
+			err = v2.DecodeNestedTransaction(reader, &input, batch)
 		case rumv3ErrorEventType:
-			var event model.Error
-			err := rumv3.DecodeNestedError(reader, &input, &event)
-			if handleDecodeErr(err, reader, result) {
-				continue
-			}
-			*batch = append(*batch, model.APMEvent{Error: &event})
-			n++
+			err = rumv3.DecodeNestedError(reader, &input, batch)
 		case rumv3MetricsetEventType:
-			var event model.Metricset
-			err := rumv3.DecodeNestedMetricset(reader, &input, &event)
-			if handleDecodeErr(err, reader, result) {
-				continue
-			}
-			*batch = append(*batch, model.APMEvent{Metricset: &event})
-			n++
+			err = rumv3.DecodeNestedMetricset(reader, &input, batch)
 		case rumv3TransactionEventType:
-			var event rumv3.Transaction
-			err := rumv3.DecodeNestedTransaction(reader, &input, &event)
-			if handleDecodeErr(err, reader, result) {
-				continue
-			}
-			*batch = append(*batch, model.APMEvent{Transaction: &event.Transaction})
-			for _, ms := range event.Metricsets {
-				*batch = append(*batch, model.APMEvent{Metricset: ms})
-			}
-			for _, span := range event.Spans {
-				*batch = append(*batch, model.APMEvent{Span: span})
-			}
-			n += 1 + len(event.Metricsets) + len(event.Spans)
+			err = rumv3.DecodeNestedTransaction(reader, &input, batch)
 		default:
+			err = errors.Wrap(errUnrecognizedObject, string(eventType))
+		}
+		if err != nil && err != io.EOF {
 			result.LimitedAdd(&InvalidInputError{
-				Message:  errors.Wrap(errUnrecognizedObject, string(eventType)).Error(),
+				Message:  err.Error(),
 				Document: string(reader.LatestLine()),
 			})
-			continue
 		}
 	}
 	if reader.IsEOF() {
-		return n, io.EOF
+		return len(*batch) - origLen, io.EOF
 	}
-	return n, nil
-}
-
-func handleDecodeErr(err error, r *streamReader, result *Result) bool {
-	if err == nil || err == io.EOF {
-		return false
-	}
-	result.LimitedAdd(&InvalidInputError{
-		Message:  err.Error(),
-		Document: string(r.LatestLine()),
-	})
-	return true
+	return len(*batch) - origLen, nil
 }
 
 // HandleStream processes a stream of events in batches of batchSize at a time,
@@ -263,7 +202,7 @@ func handleDecodeErr(err error, r *streamReader, result *Result) bool {
 // Callers must not access result concurrently with HandleStream.
 func (p *Processor) HandleStream(
 	ctx context.Context,
-	meta *model.Metadata,
+	meta model.Metadata,
 	reader io.Reader,
 	batchSize int,
 	processor model.BatchProcessor,
@@ -273,7 +212,7 @@ func (p *Processor) HandleStream(
 	defer sr.release()
 
 	// first item is the metadata object
-	if err := p.readMetadata(sr, meta); err != nil {
+	if err := p.readMetadata(sr, &meta); err != nil {
 		// no point in continuing if we couldn't read the metadata
 		return err
 	}

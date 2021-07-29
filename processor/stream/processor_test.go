@@ -54,7 +54,7 @@ func TestHandlerReadStreamError(t *testing.T) {
 	sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
 
 	var actualResult Result
-	err = sp.HandleStream(context.Background(), &model.Metadata{}, timeoutReader, 10, processor, &actualResult)
+	err = sp.HandleStream(context.Background(), model.Metadata{}, timeoutReader, 10, processor, &actualResult)
 	assert.EqualError(t, err, "timeout")
 	assert.Equal(t, Result{Accepted: accepted}, actualResult)
 }
@@ -80,7 +80,7 @@ func TestHandlerReportingStreamError(t *testing.T) {
 
 		var actualResult Result
 		err := sp.HandleStream(
-			context.Background(), &model.Metadata{},
+			context.Background(), model.Metadata{},
 			bytes.NewReader(payload), 10, processor, &actualResult,
 		)
 		assert.Equal(t, test.err, err)
@@ -177,11 +177,13 @@ func TestIntegrationESOutput(t *testing.T) {
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
 			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
-			reqDecoderMeta := &model.Metadata{Host: model.Host{IP: net.ParseIP("192.0.0.1")}}
+			metadata := model.Metadata{
+				Host: model.Host{IP: net.ParseIP("192.0.0.1")},
+			}
 
 			p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
 			var actualResult Result
-			err = p.HandleStream(ctx, reqDecoderMeta, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
+			err = p.HandleStream(ctx, metadata, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			if test.err != nil {
 				assert.Equal(t, test.err, err)
 			} else {
@@ -210,13 +212,14 @@ func TestIntegrationRum(t *testing.T) {
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
 			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
-			reqDecoderMeta := model.Metadata{
+			metadata := model.Metadata{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
-				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
+				Client:    model.Client{IP: net.ParseIP("192.0.0.1")},
+			}
 
 			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024})
 			var actualResult Result
-			err = p.HandleStream(ctx, &reqDecoderMeta, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
+			err = p.HandleStream(ctx, metadata, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
 			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})
@@ -241,13 +244,14 @@ func TestRUMV3(t *testing.T) {
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
 			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
-			reqDecoderMeta := model.Metadata{
+			metadata := model.Metadata{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
-				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
+				Client:    model.Client{IP: net.ParseIP("192.0.0.1")},
+			}
 
 			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024})
 			var actualResult Result
-			err = p.HandleStream(ctx, &reqDecoderMeta, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
+			err = p.HandleStream(ctx, metadata, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
 			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})

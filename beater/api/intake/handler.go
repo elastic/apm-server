@@ -56,7 +56,7 @@ var (
 type StreamHandler interface {
 	HandleStream(
 		ctx context.Context,
-		meta *model.Metadata,
+		meta model.Metadata,
 		stream io.Reader,
 		batchSize int,
 		processor model.BatchProcessor,
@@ -87,7 +87,7 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 		var result stream.Result
 		if err := handler.HandleStream(
 			c.Request.Context(),
-			&metadata,
+			metadata,
 			reader,
 			batchSize,
 			batchProcessor,
