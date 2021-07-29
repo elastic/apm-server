@@ -64,9 +64,9 @@ func isUnmappedMetadataField(key string) bool {
 	return false
 }
 
-func initializedMetadata() *model.Metadata {
+func initializedMetadata() model.Metadata {
 	_, metadata := initializedInputMetadata(modeldecodertest.DefaultValues())
-	return &metadata
+	return metadata
 }
 
 func initializedInputMetadata(values *modeldecodertest.Values) (metadata, model.Metadata) {
