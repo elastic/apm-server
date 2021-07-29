@@ -313,8 +313,6 @@ NOTE: For a better startup time, we recommend using SDK-based instrumentation fo
 
 To instrument AWS Lambda Node.js functions, see https://aws-otel.github.io/docs/getting-started/lambda/lambda-js[AWS Distro for OpenTelemetry Lambda Support For JS].
 
-Important configuration settings:
-
 IMPORTANT: Due to a https://github.com/aws-observability/aws-otel-lambda/issues/118[limitation] in AWS Lambda Otel Layer for Node.js v0.19, you must create a trace in the calling invocation of the Node.js lambda functions. This is to force the sampling strategy to `sampled:true` passing a `traceparent` header with `sampled=true`. For example, with `-01` at the end of the value.
 
 To create a trace in the calling invocation of the Lambda function, use these or other methods that result in the `traceparent` header being added to the outgoing HTTP call:
@@ -322,8 +320,8 @@ To create a trace in the calling invocation of the Lambda function, use these or
 * If the caller is a web browser, instrument the caller using <<rum,Real User Monitoring (RUM)>> by enabling {apm-rum-ref}/distributed-tracing-guide.html[distributed tracing] on the RUM agent.
 * If the caller is an application, instrument the application with an OpenTelemetry or Elastic APM agent ensuring distributed tracing is enabled.
 
-1. The configuration of the OpenTelemetry Collector, with the definition of the Elastic Observability endpoint, can be added to the root directory of the Lambda binaries: `src/main/resources/opentelemetry-collector.yaml`.
-+
+The configuration of the OpenTelemetry Collector, with the definition of the Elastic Observability endpoint, can be added to the root directory of the Lambda binaries: `src/main/resources/opentelemetry-collector.yaml`.
+
 [source,yaml]
 ----
 # Copy opentelemetry-collector.yaml in the root directory of the lambda function
@@ -355,7 +353,7 @@ service:
 ----
 <1> Environment-specific configuration parameters can be conveniently passed in as environment variables: `ELASTIC_OTLP_ENDPOINT` and `ELASTIC_OTLP_TOKEN`
 
-2. Configure the AWS Lambda Node.js function:
+Configure the AWS Lambda Node.js function:
 
 * https://docs.aws.amazon.com/lambda/latest/dg/API_Layer.html[Function
 layer]: The latest https://aws-otel.github.io/docs/getting-started/lambda/lambda-js[AWS
