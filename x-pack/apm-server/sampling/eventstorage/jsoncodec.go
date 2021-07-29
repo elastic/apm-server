@@ -17,22 +17,12 @@ import (
 // JSONCodec is an implementation of Codec, using JSON encoding.
 type JSONCodec struct{}
 
-// DecodeSpan decodes data as JSON into span.
-func (JSONCodec) DecodeSpan(data []byte, span *model.Span) error {
-	return jsoniter.ConfigFastest.Unmarshal(data, span)
+// DecodeEvent decodes data as JSON into event.
+func (JSONCodec) DecodeEvent(data []byte, event *model.APMEvent) error {
+	return jsoniter.ConfigFastest.Unmarshal(data, event)
 }
 
-// DecodeTransaction decodes data as JSON into tx.
-func (JSONCodec) DecodeTransaction(data []byte, tx *model.Transaction) error {
-	return jsoniter.ConfigFastest.Unmarshal(data, tx)
-}
-
-// EncodeSpan encodes span as JSON.
-func (JSONCodec) EncodeSpan(span *model.Span) ([]byte, error) {
-	return json.Marshal(span)
-}
-
-// EncodeTransaction encodes tx as JSON.
-func (JSONCodec) EncodeTransaction(tx *model.Transaction) ([]byte, error) {
-	return json.Marshal(tx)
+// EncodeEvent encodes event as JSON.
+func (JSONCodec) EncodeEvent(event *model.APMEvent) ([]byte, error) {
+	return json.Marshal(event)
 }

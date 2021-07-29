@@ -51,19 +51,14 @@ func (s *ShardedReadWriter) Flush() error {
 	return result
 }
 
-// ReadEvents calls Writer.ReadEvents, using a sharded, locked, Writer.
-func (s *ShardedReadWriter) ReadEvents(traceID string, out *model.Batch) error {
-	return s.getWriter(traceID).ReadEvents(traceID, out)
+// ReadTraceEvents calls Writer.ReadTraceEvents, using a sharded, locked, Writer.
+func (s *ShardedReadWriter) ReadTraceEvents(traceID string, out *model.Batch) error {
+	return s.getWriter(traceID).ReadTraceEvents(traceID, out)
 }
 
-// WriteTransaction calls Writer.WriteTransaction, using a sharded, locked, Writer.
-func (s *ShardedReadWriter) WriteTransaction(tx *model.Transaction) error {
-	return s.getWriter(tx.TraceID).WriteTransaction(tx)
-}
-
-// WriteSpan calls Writer.WriteSpan, using a sharded, locked, Writer.
-func (s *ShardedReadWriter) WriteSpan(span *model.Span) error {
-	return s.getWriter(span.TraceID).WriteSpan(span)
+// WriteTraceEvent calls Writer.WriteTraceEvent, using a sharded, locked, Writer.
+func (s *ShardedReadWriter) WriteTraceEvent(traceID, id string, event *model.APMEvent) error {
+	return s.getWriter(traceID).WriteTraceEvent(traceID, id, event)
 }
 
 // WriteTraceSampled calls Writer.WriteTraceSampled, using a sharded, locked, Writer.
@@ -76,14 +71,9 @@ func (s *ShardedReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	return s.getWriter(traceID).IsTraceSampled(traceID)
 }
 
-// DeleteTransaction calls Writer.DeleteTransaction, using a sharded, locked, Writer.
-func (s *ShardedReadWriter) DeleteTransaction(tx *model.Transaction) error {
-	return s.getWriter(tx.TraceID).DeleteTransaction(tx)
-}
-
-// DeleteSpan calls Writer.DeleteSpan, using a sharded, locked, Writer.
-func (s *ShardedReadWriter) DeleteSpan(span *model.Span) error {
-	return s.getWriter(span.TraceID).DeleteSpan(span)
+// DeleteTraceEvent calls Writer.DeleteTraceEvent, using a sharded, locked, Writer.
+func (s *ShardedReadWriter) DeleteTraceEvent(traceID, id string) error {
+	return s.getWriter(traceID).DeleteTraceEvent(traceID, id)
 }
 
 // getWriter returns an event storage writer for the given trace ID.
@@ -114,22 +104,16 @@ func (rw *lockedReadWriter) Flush() error {
 	return rw.rw.Flush()
 }
 
-func (rw *lockedReadWriter) ReadEvents(traceID string, out *model.Batch) error {
+func (rw *lockedReadWriter) ReadTraceEvents(traceID string, out *model.Batch) error {
 	rw.mu.Lock()
 	defer rw.mu.Unlock()
-	return rw.rw.ReadEvents(traceID, out)
+	return rw.rw.ReadTraceEvents(traceID, out)
 }
 
-func (rw *lockedReadWriter) WriteTransaction(tx *model.Transaction) error {
+func (rw *lockedReadWriter) WriteTraceEvent(traceID, id string, event *model.APMEvent) error {
 	rw.mu.Lock()
 	defer rw.mu.Unlock()
-	return rw.rw.WriteTransaction(tx)
-}
-
-func (rw *lockedReadWriter) WriteSpan(s *model.Span) error {
-	rw.mu.Lock()
-	defer rw.mu.Unlock()
-	return rw.rw.WriteSpan(s)
+	return rw.rw.WriteTraceEvent(traceID, id, event)
 }
 
 func (rw *lockedReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
@@ -144,14 +128,8 @@ func (rw *lockedReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	return rw.rw.IsTraceSampled(traceID)
 }
 
-func (rw *lockedReadWriter) DeleteTransaction(tx *model.Transaction) error {
+func (rw *lockedReadWriter) DeleteTraceEvent(traceID, id string) error {
 	rw.mu.Lock()
 	defer rw.mu.Unlock()
-	return rw.rw.DeleteTransaction(tx)
-}
-
-func (rw *lockedReadWriter) DeleteSpan(span *model.Span) error {
-	rw.mu.Lock()
-	defer rw.mu.Unlock()
-	return rw.rw.DeleteSpan(span)
+	return rw.rw.DeleteTraceEvent(traceID, id)
 }
