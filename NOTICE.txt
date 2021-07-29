@@ -1022,11 +1022,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.1.0/LIC
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-elasticsearch/v7
-Version: v7.11.0
+Version: v7.5.1-0.20210728153421-6462d8b84e7d
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearch/v7@v7.11.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearch/v7@v7.5.1-0.20210728153421-6462d8b84e7d/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1233,11 +1233,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearc
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-elasticsearch/v8
-Version: v8.0.0-20201007143536-4b4020669208
+Version: v8.0.0-20210727161915-8cf93274b968
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearch/v8@v8.0.0-20201007143536-4b4020669208/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearch/v8@v8.0.0-20210727161915-8cf93274b968/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004

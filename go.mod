@@ -18,8 +18,8 @@ require (
 	github.com/elastic/ecs v1.10.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210407144825-cc1c33cfa1d0 // indirect
 	github.com/elastic/gmux v0.1.0
-	github.com/elastic/go-elasticsearch/v7 v7.11.0
-	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201007143536-4b4020669208
+	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20210728153421-6462d8b84e7d
+	github.com/elastic/go-elasticsearch/v8 v8.0.0-20210727161915-8cf93274b968
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-ucfg v0.8.4-0.20200415140258-1232bd4774a6
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
