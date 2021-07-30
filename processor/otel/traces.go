@@ -69,11 +69,11 @@ const (
 	// TODO: handle net.host.connection.subtype, which will
 	// require adding a new field to the model as well.
 
-	AttributeNetworkType        = "net.host.connection.type"
-	AttributeNetworkMCC         = "net.host.carrier.mcc"
-	AttributeNetworkMNC         = "net.host.carrier.mnc"
-	AttributeNetworkCarrierName = "net.host.carrier.name"
-	AttributeNetworkICC         = "net.host.carrier.icc"
+	attributeNetworkType        = "net.host.connection.type"
+	attributeNetworkMCC         = "net.host.carrier.mcc"
+	attributeNetworkMNC         = "net.host.carrier.mnc"
+	attributeNetworkCarrierName = "net.host.carrier.name"
+	attributeNetworkICC         = "net.host.carrier.icc"
 )
 
 var (
@@ -200,17 +200,15 @@ func (c *Consumer) convertSpan(
 	}
 	timestamp := startTime.Add(timeDelta)
 
-	var transaction *model.Transaction
-	var span *model.Span
-
-	name := otelSpan.Name()
 	// Message consumption results in either a transaction or a span based
 	// on whether the consumption is active or passive. Otel spans
 	// currently do not have the metadata to make this distinction. For
 	// now, we assume that the majority of consumption is passive, and
 	// therefore start a transaction whenever span kind == consumer.
+	name := otelSpan.Name()
+	var event model.APMEvent
 	if root || otelSpan.Kind() == pdata.SpanKindServer || otelSpan.Kind() == pdata.SpanKindConsumer {
-		transaction = &model.Transaction{
+		event.Transaction = &model.Transaction{
 			Metadata:  metadata,
 			ID:        spanID,
 			ParentID:  parentID,
@@ -221,10 +219,9 @@ func (c *Consumer) convertSpan(
 			Sampled:   true,
 			Outcome:   spanStatusOutcome(otelSpan.Status()),
 		}
-		translateTransaction(otelSpan, otelLibrary, metadata, &transactionBuilder{Transaction: transaction})
-		*out = append(*out, model.APMEvent{Transaction: transaction})
+		translateTransaction(otelSpan, otelLibrary, &event)
 	} else {
-		span = &model.Span{
+		event.Span = &model.Span{
 			Metadata:  metadata,
 			ID:        spanID,
 			ParentID:  parentID,
@@ -234,23 +231,22 @@ func (c *Consumer) convertSpan(
 			Name:      name,
 			Outcome:   spanStatusOutcome(otelSpan.Status()),
 		}
-		translateSpan(otelSpan, metadata, span)
-		*out = append(*out, model.APMEvent{Span: span})
+		translateSpan(otelSpan, &event)
 	}
+	*out = append(*out, event)
 
 	events := otelSpan.Events()
 	for i := 0; i < events.Len(); i++ {
-		convertSpanEvent(logger, events.At(i), metadata, transaction, span, timeDelta, out)
+		convertSpanEvent(logger, events.At(i), event, metadata, timeDelta, out)
 	}
 }
 
 func translateTransaction(
 	span pdata.Span,
 	library pdata.InstrumentationLibrary,
-	metadata model.Metadata,
-	tx *transactionBuilder,
+	event *model.APMEvent,
 ) {
-	isJaeger := strings.HasPrefix(metadata.Agent.Name, "Jaeger")
+	isJaeger := strings.HasPrefix(event.Transaction.Metadata.Agent.Name, "Jaeger")
 	labels := make(common.MapStr)
 
 	var (
@@ -261,11 +257,25 @@ func translateTransaction(
 		netPeerPort int
 	)
 
-	var message model.Message
+	var (
+		isHTTP            bool
+		httpScheme        string
+		httpURL           string
+		httpServerName    string
+		httpHost          string
+		http              model.HTTP
+		httpRequest       model.HTTPRequest
+		httpRequestSocket model.HTTPRequestSocket
+		httpResponse      model.HTTPResponse
+	)
+
+	var (
+		isMessaging bool
+		message     model.Message
+	)
+
 	var component string
-	var isMessaging bool
 	var samplerType, samplerParam pdata.AttributeValue
-	var httpHostName string
 	span.Attributes().Range(func(kDots string, v pdata.AttributeValue) bool {
 		if isJaeger {
 			switch kDots {
@@ -289,13 +299,15 @@ func translateTransaction(
 		case pdata.AttributeValueTypeInt:
 			switch kDots {
 			case conventions.AttributeHTTPStatusCode:
-				tx.setHTTPStatusCode(int(v.IntVal()))
+				isHTTP = true
+				httpResponse.StatusCode = int(v.IntVal())
+				http.Response = &httpResponse
 			case conventions.AttributeNetPeerPort:
 				netPeerPort = int(v.IntVal())
 			case conventions.AttributeNetHostPort:
 				netHostPort = int(v.IntVal())
 			case "rpc.grpc.status_code":
-				tx.Result = codes.Code(v.IntVal()).String()
+				event.Transaction.Result = codes.Code(v.IntVal()).String()
 			default:
 				labels[k] = v.IntVal()
 			}
@@ -304,16 +316,23 @@ func translateTransaction(
 			switch kDots {
 			// http.*
 			case conventions.AttributeHTTPMethod:
-				tx.setHTTPMethod(stringval)
+				isHTTP = true
+				httpRequest.Method = stringval
+				http.Request = &httpRequest
 			case conventions.AttributeHTTPURL, conventions.AttributeHTTPTarget, "http.path":
-				tx.setHTTPURL(stringval)
+				isHTTP = true
+				httpURL = stringval
 			case conventions.AttributeHTTPHost:
-				tx.setHTTPHost(stringval)
+				isHTTP = true
+				httpHost = stringval
 			case conventions.AttributeHTTPScheme:
-				tx.setHTTPScheme(stringval)
+				isHTTP = true
+				httpScheme = stringval
 			case conventions.AttributeHTTPStatusCode:
 				if intv, err := strconv.Atoi(stringval); err == nil {
-					tx.setHTTPStatusCode(intv)
+					isHTTP = true
+					httpResponse.StatusCode = intv
+					http.Response = &httpResponse
 				}
 			case "http.protocol":
 				if !strings.HasPrefix(stringval, "HTTP/") {
@@ -324,13 +343,15 @@ func translateTransaction(
 				stringval = strings.TrimPrefix(stringval, "HTTP/")
 				fallthrough
 			case conventions.AttributeHTTPFlavor:
-				tx.setHTTPVersion(stringval)
+				isHTTP = true
+				http.Version = stringval
 			case conventions.AttributeHTTPServerName:
-				httpHostName = stringval
+				isHTTP = true
+				httpServerName = stringval
 			case conventions.AttributeHTTPClientIP:
-				tx.Metadata.Client.IP = net.ParseIP(stringval)
+				event.Transaction.Metadata.Client.IP = net.ParseIP(stringval)
 			case conventions.AttributeHTTPUserAgent:
-				tx.Metadata.UserAgent.Original = stringval
+				event.Transaction.Metadata.UserAgent.Original = stringval
 			case "http.remote_addr":
 				// NOTE(axw) this is non-standard, sent by opentelemetry-go's othttp.
 				// It's semanticall equivalent to net.peer.ip+port. Standard attributes
@@ -355,16 +376,16 @@ func translateTransaction(
 				netPeerName = stringval
 			case conventions.AttributeNetHostName:
 				netHostName = stringval
-			case AttributeNetworkType:
-				tx.Metadata.Network.ConnectionType = stringval
-			case AttributeNetworkMCC:
-				tx.Metadata.Network.Carrier.MCC = stringval
-			case AttributeNetworkMNC:
-				tx.Metadata.Network.Carrier.MNC = stringval
-			case AttributeNetworkCarrierName:
-				tx.Metadata.Network.Carrier.Name = stringval
-			case AttributeNetworkICC:
-				tx.Metadata.Network.Carrier.ICC = stringval
+			case attributeNetworkType:
+				event.Transaction.Metadata.Network.ConnectionType = stringval
+			case attributeNetworkMCC:
+				event.Transaction.Metadata.Network.Carrier.MCC = stringval
+			case attributeNetworkMNC:
+				event.Transaction.Metadata.Network.Carrier.MNC = stringval
+			case attributeNetworkCarrierName:
+				event.Transaction.Metadata.Network.Carrier.Name = stringval
+			case attributeNetworkICC:
+				event.Transaction.Metadata.Network.Carrier.ICC = stringval
 
 			// messaging.*
 			case "message_bus.destination", conventions.AttributeMessagingDestination:
@@ -377,16 +398,16 @@ func translateTransaction(
 			// attributes, and rely on the operation name like we do with
 			// Elastic APM agents.
 			case conventions.AttributeRPCSystem:
-				tx.Type = "request"
+				event.Transaction.Type = "request"
 			case conventions.AttributeRPCService:
 			case conventions.AttributeRPCMethod:
 
 			// miscellaneous
 			case "span.kind": // filter out
 			case "type":
-				tx.Type = stringval
+				event.Transaction.Type = stringval
 			case conventions.AttributeServiceVersion:
-				tx.Metadata.Service.Version = stringval
+				event.Transaction.Metadata.Service.Version = stringval
 			case "component":
 				component = stringval
 				fallthrough
@@ -397,71 +418,87 @@ func translateTransaction(
 		return true
 	})
 
-	if tx.Type == "" {
-		if tx.HTTP != nil {
-			tx.Type = "request"
+	if event.Transaction.Type == "" {
+		if isHTTP {
+			event.Transaction.Type = "request"
 		} else if isMessaging {
-			tx.Type = "messaging"
+			event.Transaction.Type = "messaging"
 		} else if component != "" {
-			tx.Type = component
+			event.Transaction.Type = component
 		} else {
-			tx.Type = "custom"
+			event.Transaction.Type = "custom"
 		}
 	}
 
-	if tx.HTTP != nil {
-		// Build the model.URL from tx.http{URL,Host,Scheme}.
-		httpHost := tx.httpHost
+	if isHTTP {
+		event.Transaction.HTTP = &http
+
+		// Set outcome nad result from status code.
+		if statusCode := httpResponse.StatusCode; statusCode > 0 {
+			if event.Transaction.Outcome == outcomeUnknown {
+				event.Transaction.Outcome = serverHTTPStatusCodeOutcome(statusCode)
+			}
+			if event.Transaction.Result == "" {
+				event.Transaction.Result = httpStatusCodeResult(statusCode)
+			}
+		}
+
+		// Build the model.URL from http{URL,Host,Scheme}.
+		httpHost := httpHost
 		if httpHost == "" {
-			httpHost = httpHostName
+			httpHost = httpServerName
 			if httpHost == "" {
 				httpHost = netHostName
 				if httpHost == "" {
-					httpHost = metadata.Host.Hostname
+					httpHost = event.Transaction.Metadata.Host.Hostname
 				}
 			}
 			if httpHost != "" && netHostPort > 0 {
 				httpHost = net.JoinHostPort(httpHost, strconv.Itoa(netHostPort))
 			}
 		}
-		tx.URL = model.ParseURL(tx.httpURL, httpHost, tx.httpScheme)
+		event.Transaction.URL = model.ParseURL(httpURL, httpHost, httpScheme)
 
 		// Set the remote address from net.peer.*
-		if tx.HTTP.Request != nil && netPeerIP != "" {
+		if event.Transaction.HTTP.Request != nil && netPeerIP != "" {
 			remoteAddr := netPeerIP
 			if netPeerPort > 0 {
 				remoteAddr = net.JoinHostPort(remoteAddr, strconv.Itoa(netPeerPort))
 			}
-			tx.setHTTPRemoteAddr(remoteAddr)
+			httpRequestSocket.RemoteAddress = remoteAddr
+			httpRequest.Socket = &httpRequestSocket
 		}
 	}
 
 	if isMessaging {
-		tx.Message = &message
+		event.Transaction.Message = &message
 	}
 
 	if netPeerIP != "" {
-		tx.Metadata.Client.IP = net.ParseIP(netPeerIP)
+		event.Transaction.Metadata.Client.IP = net.ParseIP(netPeerIP)
 	}
-	tx.Metadata.Client.Port = netPeerPort
-	tx.Metadata.Client.Domain = netPeerName
+	event.Transaction.Metadata.Client.Port = netPeerPort
+	event.Transaction.Metadata.Client.Domain = netPeerName
 
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate span metrics.
-		parseSamplerAttributes(samplerType, samplerParam, &tx.RepresentativeCount, labels)
+		parseSamplerAttributes(samplerType, samplerParam, &event.Transaction.RepresentativeCount, labels)
 	} else {
-		tx.RepresentativeCount = 1
+		event.Transaction.RepresentativeCount = 1
 	}
 
-	if tx.Result == "" {
-		tx.Result = spanStatusResult(span.Status())
+	if event.Transaction.Result == "" {
+		event.Transaction.Result = spanStatusResult(span.Status())
 	}
-	tx.setFramework(library.Name(), library.Version())
-	tx.Labels = labels
+	if name := library.Name(); name != "" {
+		event.Transaction.Metadata.Service.Framework.Name = name
+		event.Transaction.Metadata.Service.Framework.Version = library.Version()
+	}
+	event.Transaction.Labels = labels
 }
 
-func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) {
-	isJaeger := strings.HasPrefix(metadata.Agent.Name, "Jaeger")
+func translateSpan(span pdata.Span, event *model.APMEvent) {
+	isJaeger := strings.HasPrefix(event.Span.Metadata.Agent.Name, "Jaeger")
 	labels := make(common.MapStr)
 
 	var (
@@ -579,16 +616,16 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 					// values containing colons, except for IPv6.
 					netPeerName = stringval
 				}
-			case AttributeNetworkType:
-				event.Metadata.Network.ConnectionType = stringval
-			case AttributeNetworkMCC:
-				event.Metadata.Network.Carrier.MCC = stringval
-			case AttributeNetworkMNC:
-				event.Metadata.Network.Carrier.MNC = stringval
-			case AttributeNetworkCarrierName:
-				event.Metadata.Network.Carrier.Name = stringval
-			case AttributeNetworkICC:
-				event.Metadata.Network.Carrier.ICC = stringval
+			case attributeNetworkType:
+				event.Span.Metadata.Network.ConnectionType = stringval
+			case attributeNetworkMCC:
+				event.Span.Metadata.Network.Carrier.MCC = stringval
+			case attributeNetworkMNC:
+				event.Span.Metadata.Network.Carrier.MNC = stringval
+			case attributeNetworkCarrierName:
+				event.Span.Metadata.Network.Carrier.Name = stringval
+			case attributeNetworkICC:
+				event.Span.Metadata.Network.Carrier.ICC = stringval
 
 			// messaging.*
 			case "message_bus.destination", conventions.AttributeMessagingDestination:
@@ -707,65 +744,65 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 	switch {
 	case isHTTPSpan:
 		if httpResponse.StatusCode > 0 {
-			if event.Outcome == outcomeUnknown {
-				event.Outcome = clientHTTPStatusCodeOutcome(httpResponse.StatusCode)
+			if event.Span.Outcome == outcomeUnknown {
+				event.Span.Outcome = clientHTTPStatusCodeOutcome(httpResponse.StatusCode)
 			}
 		}
-		event.Type = "external"
+		event.Span.Type = "external"
 		subtype := "http"
-		event.Subtype = subtype
-		event.HTTP = &http
-		event.URL = httpURL
+		event.Span.Subtype = subtype
+		event.Span.HTTP = &http
+		event.Span.URL = httpURL
 	case isDBSpan:
-		event.Type = "db"
+		event.Span.Type = "db"
 		if db.Type != "" {
-			event.Subtype = db.Type
+			event.Span.Subtype = db.Type
 			if destinationService.Name == "" {
 				// For database requests, we currently just identify
 				// the destination service by db.system.
-				destinationService.Name = event.Subtype
-				destinationService.Resource = event.Subtype
+				destinationService.Name = event.Span.Subtype
+				destinationService.Resource = event.Span.Subtype
 			}
 		}
-		event.DB = &db
+		event.Span.DB = &db
 	case isMessagingSpan:
-		event.Type = "messaging"
-		event.Subtype = messageSystem
+		event.Span.Type = "messaging"
+		event.Span.Subtype = messageSystem
 		if messageOperation == "" && span.Kind() == pdata.SpanKindProducer {
 			messageOperation = "send"
 		}
-		event.Action = messageOperation
+		event.Span.Action = messageOperation
 		if destinationService.Resource != "" && message.QueueName != "" {
 			destinationService.Resource += "/" + message.QueueName
 		}
-		event.Message = &message
+		event.Span.Message = &message
 	case isRPCSpan:
-		event.Type = "external"
-		event.Subtype = rpcSystem
+		event.Span.Type = "external"
+		event.Span.Subtype = rpcSystem
 	default:
-		event.Type = "app"
-		event.Subtype = component
+		event.Span.Type = "app"
+		event.Span.Subtype = component
 	}
 
 	if destAddr != "" {
-		event.Destination = &model.Destination{Address: destAddr, Port: destPort}
+		event.Span.Destination = &model.Destination{Address: destAddr, Port: destPort}
 	}
 	if destinationService != (model.DestinationService{}) {
 		if destinationService.Type == "" {
 			// Copy span type to destination.service.type.
-			destinationService.Type = event.Type
+			destinationService.Type = event.Span.Type
 		}
-		event.DestinationService = &destinationService
+		event.Span.DestinationService = &destinationService
 	}
 
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate transaction metrics.
-		parseSamplerAttributes(samplerType, samplerParam, &event.RepresentativeCount, labels)
+		parseSamplerAttributes(samplerType, samplerParam, &event.Span.RepresentativeCount, labels)
 	} else {
-		event.RepresentativeCount = 1
+		event.Span.RepresentativeCount = 1
 	}
 
-	event.Labels = labels
+	event.Span.Labels = labels
 }
 
 func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, representativeCount *float64, labels common.MapStr) {
@@ -789,8 +826,8 @@ func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, repr
 func convertSpanEvent(
 	logger *logp.Logger,
 	event pdata.SpanEvent,
+	parent model.APMEvent, // either span or transaction
 	metadata model.Metadata,
-	transaction *model.Transaction, span *model.Span, // only one is non-nil
 	timeDelta time.Duration,
 	out *model.Batch,
 ) {
@@ -841,13 +878,17 @@ func convertSpanEvent(
 		)
 	}
 	if e != nil {
-		if transaction != nil {
-			addTransactionCtxToErr(transaction, e)
+		event := parent
+		event.Error = e
+		if parent.Transaction != nil {
+			event.Transaction = nil
+			addTransactionCtxToErr(parent.Transaction, event.Error)
 		}
-		if span != nil {
-			addSpanCtxToErr(span, e)
+		if parent.Span != nil {
+			event.Span = nil
+			addSpanCtxToErr(parent.Span, event.Error)
 		}
-		*out = append(*out, model.APMEvent{Error: e})
+		*out = append(*out, event)
 	}
 }
 
@@ -954,6 +995,33 @@ func spanStatusResult(status pdata.SpanStatus) string {
 		return "Error"
 	}
 	return ""
+}
+
+var standardStatusCodeResults = [...]string{
+	"HTTP 1xx",
+	"HTTP 2xx",
+	"HTTP 3xx",
+	"HTTP 4xx",
+	"HTTP 5xx",
+}
+
+// httpStatusCodeResult returns the transaction result value to use for the
+// given HTTP status code.
+func httpStatusCodeResult(statusCode int) string {
+	switch i := statusCode / 100; i {
+	case 1, 2, 3, 4, 5:
+		return standardStatusCodeResults[i-1]
+	}
+	return fmt.Sprintf("HTTP %d", statusCode)
+}
+
+// serverHTTPStatusCodeOutcome returns the transaction outcome value to use for
+// the given HTTP status code.
+func serverHTTPStatusCodeOutcome(statusCode int) string {
+	if statusCode >= 500 {
+		return outcomeFailure
+	}
+	return outcomeSuccess
 }
 
 // clientHTTPStatusCodeOutcome returns the span outcome value to use for the
