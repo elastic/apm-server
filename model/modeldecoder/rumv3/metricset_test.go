@@ -43,7 +43,8 @@ func TestResetMetricsetOnRelease(t *testing.T) {
 func TestDecodeNestedMetricset(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now()
-		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now}
+		eventBase := initializedMetadata()
+		input := modeldecoder.Input{RequestTime: now, Base: eventBase}
 		str := `{"me":{"sa":{"xds":{"v":2048}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch model.Batch
@@ -52,6 +53,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		require.NotNil(t, batch[0].Metricset)
 		assert.Equal(t, map[string]model.MetricsetSample{"transaction.duration.sum.us": {Value: 2048}}, batch[0].Metricset.Samples)
 		assert.Equal(t, now, batch[0].Metricset.Timestamp)
+		modeldecodertest.AssertStructValues(t, &batch[0], metadataExceptions(), modeldecodertest.DefaultValues())
 
 		// invalid type
 		err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
@@ -68,24 +70,12 @@ func TestDecodeNestedMetricset(t *testing.T) {
 }
 
 func TestDecodeMapToMetricsetModel(t *testing.T) {
-	t.Run("metadata-set", func(t *testing.T) {
-		// set metadata - metricsets do not hold metadata themselves
-		var input metricset
-		var out model.APMEvent
-		otherVal := modeldecodertest.NonDefaultValues()
-		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToMetricsetModel(&input, initializedMetadata(), time.Now(), &out)
-		// iterate through metadata model and assert values are set to default values
-		modeldecodertest.AssertStructValues(t, &out.Metricset.Metadata, metadataExceptions(), modeldecodertest.DefaultValues())
-	})
-
 	t.Run("metricset-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
-			// metadata are tested separately
-			if strings.HasPrefix(key, "Metadata") ||
-				// transaction is only set when metricset is nested inside transaction
-				// tested within transaction tests
-				strings.HasPrefix(key, "Transaction") ||
+			if
+			// transaction is only set when metricset is nested inside transaction
+			// tested within transaction tests
+			strings.HasPrefix(key, "Transaction") ||
 				// only set by aggregator
 				strings.HasPrefix(key, "Event") ||
 				key == "DocCount" ||
@@ -114,7 +104,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		reqTime := time.Now().Add(time.Second)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToMetricsetModel(&input, initializedMetadata(), reqTime, &out1)
+		mapToMetricsetModel(&input, reqTime, &out1)
 		input.Reset()
 		// metricset timestamp is always set to request time
 		defaultVal.Update(reqTime)
@@ -124,7 +114,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToMetricsetModel(&input, initializedMetadata(), reqTime, &out2)
+		mapToMetricsetModel(&input, reqTime, &out2)
 		otherVal.Update(reqTime)
 		modeldecodertest.AssertStructValues(t, out2.Metricset, exceptions, otherVal)
 		assert.Equal(t, samples(otherVal.Float), out2.Metricset.Samples)

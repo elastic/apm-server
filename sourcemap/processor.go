@@ -53,33 +53,22 @@ func (p BatchProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) er
 		defer cancel()
 	}
 	for _, event := range *batch {
+		if event.Service.Name == "" || event.Service.Version == "" {
+			continue
+		}
 		switch {
 		case event.Span != nil:
-			p.processSpan(ctx, event.Span)
+			p.processStacktraceFrames(ctx, &event.Service, event.Span.Stacktrace...)
 		case event.Error != nil:
-			p.processError(ctx, event.Error)
+			if event.Error.Log != nil {
+				p.processStacktraceFrames(ctx, &event.Service, event.Error.Log.Stacktrace...)
+			}
+			if event.Error.Exception != nil {
+				p.processException(ctx, &event.Service, event.Error.Exception)
+			}
 		}
 	}
 	return nil
-}
-
-func (p BatchProcessor) processSpan(ctx context.Context, event *model.Span) {
-	if event.Metadata.Service.Name == "" || event.Metadata.Service.Version == "" {
-		return
-	}
-	p.processStacktraceFrames(ctx, &event.Metadata.Service, event.Stacktrace...)
-}
-
-func (p BatchProcessor) processError(ctx context.Context, event *model.Error) {
-	if event.Metadata.Service.Name == "" || event.Metadata.Service.Version == "" {
-		return
-	}
-	if event.Log != nil {
-		p.processStacktraceFrames(ctx, &event.Metadata.Service, event.Log.Stacktrace...)
-	}
-	if event.Exception != nil {
-		p.processException(ctx, &event.Metadata.Service, event.Exception)
-	}
 }
 
 func (p BatchProcessor) processException(ctx context.Context, service *model.Service, exception *model.Exception) {

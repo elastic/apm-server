@@ -77,22 +77,22 @@ func (c *Consumer) convertMetrics(metrics pdata.Metrics, receiveTimestamp time.T
 }
 
 func (c *Consumer) convertResourceMetrics(resourceMetrics pdata.ResourceMetrics, receiveTimestamp time.Time, out *model.Batch) {
-	var metadata model.Metadata
+	var baseEvent model.APMEvent
 	var timeDelta time.Duration
 	resource := resourceMetrics.Resource()
-	translateResourceMetadata(resource, &metadata)
+	translateResourceMetadata(resource, &baseEvent)
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
 		timeDelta = receiveTimestamp.Sub(exportTimestamp)
 	}
 	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics()
 	for i := 0; i < instrumentationLibraryMetrics.Len(); i++ {
-		c.convertInstrumentationLibraryMetrics(instrumentationLibraryMetrics.At(i), metadata, timeDelta, out)
+		c.convertInstrumentationLibraryMetrics(instrumentationLibraryMetrics.At(i), baseEvent, timeDelta, out)
 	}
 }
 
 func (c *Consumer) convertInstrumentationLibraryMetrics(
 	in pdata.InstrumentationLibraryMetrics,
-	metadata model.Metadata,
+	baseEvent model.APMEvent,
 	timeDelta time.Duration,
 	out *model.Batch,
 ) {
@@ -105,9 +105,10 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 		}
 	}
 	for _, m := range ms {
-		m.Metadata = metadata
 		m.Timestamp = m.Timestamp.Add(timeDelta)
-		*out = append(*out, model.APMEvent{Metricset: m.Metricset})
+		event := baseEvent
+		event.Metricset = m.Metricset
+		*out = append(*out, event)
 	}
 	if unsupported > 0 {
 		atomic.AddInt64(&c.stats.unsupportedMetricsDropped, unsupported)

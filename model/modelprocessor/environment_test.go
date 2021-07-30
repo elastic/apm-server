@@ -19,7 +19,6 @@ package modelprocessor_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,51 +29,23 @@ import (
 )
 
 func TestSetDefaultServiceEnvironment(t *testing.T) {
-	nonEmptyMetadata := model.Metadata{Service: model.Service{Environment: "nonempty"}}
-	defaultMetadata := model.Metadata{Service: model.Service{Environment: "default"}}
+	nonEmptyServiceEnvironment := model.APMEvent{Service: model.Service{Environment: "nonempty"}}
+	defaultServiceEnvironment := model.APMEvent{Service: model.Service{Environment: "default"}}
 
 	processor := modelprocessor.SetDefaultServiceEnvironment{
 		DefaultServiceEnvironment: "default",
 	}
-	testProcessBatchMetadata(t, &processor, nonEmptyMetadata, nonEmptyMetadata)
-	testProcessBatchMetadata(t, &processor, model.Metadata{}, defaultMetadata)
+	testProcessBatch(t, &processor, nonEmptyServiceEnvironment, nonEmptyServiceEnvironment)
+	testProcessBatch(t, &processor, model.APMEvent{}, defaultServiceEnvironment)
 }
 
-func testProcessBatchMetadata(t *testing.T, processor model.BatchProcessor, in, out model.Metadata) {
+func testProcessBatch(t *testing.T, processor model.BatchProcessor, in, out model.APMEvent) {
 	t.Helper()
 
-	// Check that the model.Batch fields have not changed since this
-	// test was last updated, to ensure we process all model types.
-	var apmEventFields []string
-	typ := reflect.TypeOf(model.APMEvent{})
-	for i := 0; i < typ.NumField(); i++ {
-		apmEventFields = append(apmEventFields, typ.Field(i).Name)
-	}
-	assert.ElementsMatch(t, []string{
-		"DataStream",
-		"Transaction",
-		"Span",
-		"Metricset",
-		"Error",
-		"ProfileSample",
-	}, apmEventFields)
-
-	batch := &model.Batch{
-		{Transaction: &model.Transaction{Metadata: in}},
-		{Span: &model.Span{Metadata: in}},
-		{Metricset: &model.Metricset{Metadata: in}},
-		{Error: &model.Error{Metadata: in}},
-		{ProfileSample: &model.ProfileSample{Metadata: in}},
-	}
+	batch := &model.Batch{in}
 	err := processor.ProcessBatch(context.Background(), batch)
 	require.NoError(t, err)
 
-	expected := &model.Batch{
-		{Transaction: &model.Transaction{Metadata: out}},
-		{Span: &model.Span{Metadata: out}},
-		{Metricset: &model.Metricset{Metadata: out}},
-		{Error: &model.Error{Metadata: out}},
-		{ProfileSample: &model.ProfileSample{Metadata: out}},
-	}
+	expected := &model.Batch{out}
 	assert.Equal(t, expected, batch)
 }

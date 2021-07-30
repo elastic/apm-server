@@ -30,13 +30,18 @@ const (
 	rateLimitTimeout = time.Second
 )
 
-// authorizeEventIngest is a model.BatchProcessor that checks that the client
-// is authorized to ingest events for the agent and service name in metadata.
-func authorizeEventIngest(ctx context.Context, meta *model.Metadata) error {
-	return auth.Authorize(ctx, auth.ActionEventIngest, auth.Resource{
-		AgentName:   meta.Agent.Name,
-		ServiceName: meta.Service.Name,
-	})
+// authorizeEventIngestProcessor is a model.BatchProcessor that checks that the
+// client is authorized to ingest events for the given agent and service name.
+func authorizeEventIngestProcessor(ctx context.Context, batch *model.Batch) error {
+	for _, event := range *batch {
+		if err := auth.Authorize(ctx, auth.ActionEventIngest, auth.Resource{
+			AgentName:   event.Agent.Name,
+			ServiceName: event.Service.Name,
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // rateLimitBatchProcessor is a model.BatchProcessor that rate limits based on

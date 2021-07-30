@@ -40,8 +40,6 @@ var (
 )
 
 type Transaction struct {
-	Metadata Metadata
-
 	ID       string
 	ParentID string
 	TraceID  string
@@ -124,13 +122,6 @@ func (e *Transaction) toBeatEvent() beat.Event {
 		transactionDocType: e.fields(),
 	}
 
-	// first set generic metadata (order is relevant)
-	e.Metadata.set(&fields, e.Labels)
-	if client := fields["client"]; client != nil {
-		fields["source"] = client
-	}
-
-	// then merge event specific information
 	var parent, trace mapStr
 	parent.maybeSetString("id", e.ParentID)
 	trace.maybeSetString("id", e.TraceID)
