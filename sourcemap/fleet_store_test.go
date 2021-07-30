@@ -24,7 +24,6 @@ import (
 	"net/http/httptest"
 	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/elastic/apm-server/beater/config"
 
@@ -84,7 +83,7 @@ func TestFleetFetch(t *testing.T) {
 	assert.True(t, hasAuth)
 }
 
-func TestMultipleFleetHostsQuery(t *testing.T) {
+func TestFailedAndSuccessfulFleetHostsFetch(t *testing.T) {
 	var (
 		called        int32
 		apikey        = "supersecret"
@@ -101,17 +100,11 @@ func TestMultipleFleetHostsQuery(t *testing.T) {
 	})
 	ts0 := httptest.NewServer(hError)
 
-	requestReceived := make(chan struct{})
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		atomic.AddInt32(&called, 1)
-		select {
-		case requestReceived <- struct{}{}:
-			wr := zlib.NewWriter(w)
-			defer wr.Close()
-			wr.Write([]byte(resp))
-		case <-r.Context().Done():
-			return
-		}
+		wr := zlib.NewWriter(w)
+		defer wr.Close()
+		wr.Write([]byte(resp))
 	})
 	ts1 := httptest.NewServer(h)
 	ts2 := httptest.NewServer(h)
@@ -134,35 +127,12 @@ func TestMultipleFleetHostsQuery(t *testing.T) {
 	f, err := newFleetStore(c, fleetCfg, cfgs)
 	assert.NoError(t, err)
 
-	fetchReturned := make(chan string)
-	go func() {
-		defer close(fetchReturned)
-		resp, _ := f.fetch(context.Background(), name, version, path)
-		fetchReturned <- resp
-	}()
-
-	select {
-	case <-requestReceived:
-	case <-time.After(10 * time.Second):
-		t.Fatal("timed out waiting for server to receive request")
-	}
-
-	select {
-	case resp := <-fetchReturned:
-		assert.Contains(t, resp, "webpack:///bundle.js")
-		assert.EqualValues(t, 3, called)
-	case <-time.After(10 * time.Second):
-		t.Fatal("timed out waiting for Fetch to return")
-	}
-
-	select {
-	case <-requestReceived:
-	default:
-		t.Fatal("No second request received by handler")
-	}
+	resp, err := f.fetch(context.Background(), name, version, path)
+	require.NoError(t, err)
+	assert.Contains(t, resp, "webpack:///bundle.js")
 }
 
-func TestMultipleFleetHostsQueryFailureFetch(t *testing.T) {
+func TestAllFailedFleetHostsFetch(t *testing.T) {
 	var (
 		requestCount  int32
 		apikey        = "supersecret"
