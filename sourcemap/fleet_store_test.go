@@ -22,6 +22,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -33,7 +34,8 @@ import (
 
 func TestFleetFetch(t *testing.T) {
 	var (
-		hasAuth       bool
+		hasAuth       = true
+		mu            sync.Mutex
 		apikey        = "supersecret"
 		name          = "webapp"
 		version       = "1.0.0"
@@ -45,7 +47,9 @@ func TestFleetFetch(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, sourceMapPath, r.URL.Path)
 		auth := r.Header.Get("Authorization")
-		hasAuth = auth == "ApiKey "+apikey
+		mu.Lock()
+		hasAuth = hasAuth && (auth == "ApiKey "+apikey)
+		mu.Unlock()
 		// zlib compress
 		wr := zlib.NewWriter(w)
 		defer wr.Close()
