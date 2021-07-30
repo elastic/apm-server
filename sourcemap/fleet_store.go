@@ -124,7 +124,7 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 		wg.Add(1)
 		go func(fleetURL string) {
 			defer wg.Done()
-			sourcemap, err := sendRequest(f, ctx, fleetURL)
+			sourcemap, err := sendRequest(ctx, f, fleetURL)
 			select {
 			case <-ctx.Done():
 			case results <- result{sourcemap, err}:
@@ -152,7 +152,7 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 	return "", ctx.Err()
 }
 
-func sendRequest(f fleetStore, ctx context.Context, fleetURL string) (string, error) {
+func sendRequest(ctx context.Context, f fleetStore, fleetURL string) (string, error) {
 	req, err := http.NewRequest(http.MethodGet, fleetURL, nil)
 	if err != nil {
 		return "", err
