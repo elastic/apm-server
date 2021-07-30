@@ -53,7 +53,7 @@ func (val *metadataRoot) validate() error {
 }
 
 func (val *metadata) IsSet() bool {
-	return val.Cloud.IsSet() || (len(val.Labels) > 0) || val.Process.IsSet() || val.Service.IsSet() || val.System.IsSet() || val.User.IsSet()
+	return val.Cloud.IsSet() || (len(val.Labels) > 0) || val.Process.IsSet() || val.Service.IsSet() || val.System.IsSet() || val.User.IsSet() || val.Network.IsSet()
 }
 
 func (val *metadata) Reset() {
@@ -65,6 +65,7 @@ func (val *metadata) Reset() {
 	val.Service.Reset()
 	val.System.Reset()
 	val.User.Reset()
+	val.Network.Reset()
 }
 
 func (val *metadata) validate() error {
@@ -101,6 +102,9 @@ func (val *metadata) validate() error {
 	}
 	if err := val.User.validate(); err != nil {
 		return errors.Wrapf(err, "user")
+	}
+	if err := val.Network.validate(); err != nil {
+		return errors.Wrapf(err, "network")
 	}
 	return nil
 }
@@ -629,6 +633,42 @@ func (val *user) validate() error {
 	}
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'username': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *network) IsSet() bool {
+	return val.Connection.IsSet()
+}
+
+func (val *network) Reset() {
+	val.Connection.Reset()
+}
+
+func (val *network) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Connection.validate(); err != nil {
+		return errors.Wrapf(err, "connection")
+	}
+	return nil
+}
+
+func (val *networkConnection) IsSet() bool {
+	return val.Type.IsSet()
+}
+
+func (val *networkConnection) Reset() {
+	val.Type.Reset()
+}
+
+func (val *networkConnection) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }

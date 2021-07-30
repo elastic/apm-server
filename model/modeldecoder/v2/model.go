@@ -356,6 +356,9 @@ type metadata struct {
 	System metadataSystem `json:"system"`
 	// User metadata, which can be overwritten on a per event basis.
 	User user `json:"user"`
+	// Network holds information about the network over which the
+	// monitored service is communicating.
+	Network network `json:"network"`
 }
 
 type metadataCloud struct {
@@ -528,6 +531,14 @@ type metadataSystemKubernetesPod struct {
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
 	// UID is the system-generated string uniquely identifying the Pod.
 	UID nullable.String `json:"uid" validate:"maxLength=1024"`
+}
+
+type network struct {
+	Connection networkConnection `json:"connection"`
+}
+
+type networkConnection struct {
+	Type nullable.String `json:"type" validate:"maxLength=1024"`
 }
 
 type metricset struct {
