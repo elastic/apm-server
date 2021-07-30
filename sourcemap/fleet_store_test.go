@@ -89,7 +89,6 @@ func TestFleetFetch(t *testing.T) {
 
 func TestFailedAndSuccessfulFleetHostsFetch(t *testing.T) {
 	var (
-		called        int32
 		apikey        = "supersecret"
 		name          = "webapp"
 		version       = "1.0.0"
@@ -99,13 +98,11 @@ func TestFailedAndSuccessfulFleetHostsFetch(t *testing.T) {
 	)
 
 	hError := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		atomic.AddInt32(&called, 1)
 		http.Error(w, "err", http.StatusInternalServerError)
 	})
 	ts0 := httptest.NewServer(hError)
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		atomic.AddInt32(&called, 1)
 		wr := zlib.NewWriter(w)
 		defer wr.Close()
 		wr.Write([]byte(resp))
