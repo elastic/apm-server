@@ -42,7 +42,7 @@ const (
 )
 
 var (
-	errMsgESFailure         = "failure querying ES"
+	errMsgESFailure         = errMsgFailure + " ES"
 	errSourcemapWrongFormat = errors.New("Sourcemapping ES Result not in expected format")
 )
 
