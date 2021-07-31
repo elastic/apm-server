@@ -71,6 +71,10 @@ func TestBackoffRetries(t *testing.T) {
 		retries  = 5
 	)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			w.Header().Set("X-Elastic-Product", "Elasticsearch")
+			return
+		}
 		requests++
 		w.WriteHeader(503)
 		w.Write([]byte("error"))
@@ -86,11 +90,14 @@ func TestBackoffRetries(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	req, err := http.NewRequest("GET", "", nil)
+	req, err := http.NewRequest("GET", "/some/path", nil)
 	assert.NoError(t, err)
 	c.Perform(req)
 
-	assert.Equal(t, retries, requests)
+	// We have the initial request, and then a maximum amount of retries.
+	// Add the initial request to the number of retries to get the total
+	// requests we expect.
+	assert.Equal(t, retries+1, requests)
 }
 
 func TestBackoffConfigured(t *testing.T) {

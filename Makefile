@@ -137,7 +137,7 @@ go-generate:
 	@$(GO) generate . ./ingest/pipeline
 
 notice: NOTICE.txt
-NOTICE.txt: $(PYTHON) go.mod
+NOTICE.txt: $(PYTHON) go.mod tools/go.mod
 	@$(PYTHON) script/generate_notice.py . ./x-pack/apm-server
 
 .PHONY: add-headers
@@ -273,13 +273,9 @@ $(BIN_MAGE): go.mod
 $(MAGE): magefile.go $(BIN_MAGE)
 	$(BIN_MAGE) -compile=$@
 
-$(STATICCHECK): go.mod
-	$(GO) build -o $@ honnef.co/go/tools/cmd/staticcheck
-
 .PHONY: $(GENPACKAGE)
 $(GENPACKAGE):
 	@$(GO) build -o $@ github.com/elastic/apm-server/apmpackage/cmd/gen-package
-
 
 $(GOLINT): go.mod
 	$(GO) build -o $@ golang.org/x/lint/golint
@@ -287,14 +283,17 @@ $(GOLINT): go.mod
 $(GOIMPORTS): go.mod
 	$(GO) build -o $@ golang.org/x/tools/cmd/goimports
 
-$(GOLICENSER): go.mod
-	$(GO) build -o $@ github.com/elastic/go-licenser
+$(STATICCHECK): tools/go.mod
+	$(GO) build -o $@ -modfile=$< honnef.co/go/tools/cmd/staticcheck
 
-$(REVIEWDOG): go.mod
-	$(GO) build -o $@ github.com/reviewdog/reviewdog/cmd/reviewdog
+$(GOLICENSER): tools/go.mod
+	$(GO) build -o $@ -modfile=$< github.com/elastic/go-licenser
 
-$(ELASTICPACKAGE): go.mod
-	$(GO) build -o $@ github.com/elastic/elastic-package
+$(REVIEWDOG): tools/go.mod
+	$(GO) build -o $@ -modfile=$< github.com/reviewdog/reviewdog/cmd/reviewdog
+
+$(ELASTICPACKAGE): tools/go.mod
+	$(GO) build -o $@ -modfile=$< github.com/elastic/elastic-package
 
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
