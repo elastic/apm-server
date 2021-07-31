@@ -37,7 +37,6 @@ var profileProcessorEntry = common.MapStr{
 
 // ProfileSample holds a profiling sample.
 type ProfileSample struct {
-	Metadata  Metadata
 	Timestamp time.Time
 	Duration  time.Duration
 	ProfileID string
@@ -86,7 +85,6 @@ func (p *ProfileSample) toBeatEvent() beat.Event {
 		"processor":    profileProcessorEntry,
 		profileDocType: common.MapStr(profileFields),
 	}
-	p.Metadata.set(&fields, p.Labels)
 
 	return beat.Event{
 		Timestamp: p.Timestamp,

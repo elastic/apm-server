@@ -142,7 +142,7 @@ func TestHandler(t *testing.T) {
 				return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 					assert.Len(t, *batch, 84)
 					for _, event := range *batch {
-						assert.Equal(t, "foo", event.ProfileSample.Metadata.Service.Name)
+						assert.Equal(t, "foo", event.Service.Name)
 					}
 					return nil
 				})
@@ -287,6 +287,6 @@ func prettyJSON(v interface{}) string {
 	return buf.String()
 }
 
-func emptyRequestMetadata(*request.Context) model.Metadata {
-	return model.Metadata{}
+func emptyRequestMetadata(*request.Context) model.APMEvent {
+	return model.APMEvent{}
 }

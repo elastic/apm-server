@@ -305,16 +305,16 @@ func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []mid
 	)
 }
 
-func emptyRequestMetadata(c *request.Context) model.Metadata {
-	return model.Metadata{}
+func emptyRequestMetadata(c *request.Context) model.APMEvent {
+	return model.APMEvent{}
 }
 
-func backendRequestMetadata(c *request.Context) model.Metadata {
-	return model.Metadata{Host: model.Host{IP: c.SourceIP}}
+func backendRequestMetadata(c *request.Context) model.APMEvent {
+	return model.APMEvent{Host: model.Host{IP: c.SourceIP}}
 }
 
-func rumRequestMetadata(c *request.Context) model.Metadata {
-	return model.Metadata{
+func rumRequestMetadata(c *request.Context) model.APMEvent {
+	return model.APMEvent{
 		Client:    model.Client{IP: c.SourceIP},
 		UserAgent: model.UserAgent{Original: c.UserAgent},
 	}

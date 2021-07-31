@@ -43,17 +43,17 @@ type policyGroup struct {
 	dynamic map[string]*traceGroup // nil for static
 }
 
-func (g *policyGroup) match(tx *model.Transaction) bool {
-	if g.policy.ServiceName != "" && g.policy.ServiceName != tx.Metadata.Service.Name {
+func (g *policyGroup) match(transactionEvent *model.APMEvent) bool {
+	if g.policy.ServiceName != "" && g.policy.ServiceName != transactionEvent.Service.Name {
 		return false
 	}
-	if g.policy.ServiceEnvironment != "" && g.policy.ServiceEnvironment != tx.Metadata.Service.Environment {
+	if g.policy.ServiceEnvironment != "" && g.policy.ServiceEnvironment != transactionEvent.Service.Environment {
 		return false
 	}
-	if g.policy.TraceOutcome != "" && g.policy.TraceOutcome != tx.Outcome {
+	if g.policy.TraceOutcome != "" && g.policy.TraceOutcome != transactionEvent.Transaction.Outcome {
 		return false
 	}
-	if g.policy.TraceName != "" && g.policy.TraceName != tx.Name {
+	if g.policy.TraceName != "" && g.policy.TraceName != transactionEvent.Transaction.Name {
 		return false
 	}
 	return true
@@ -118,18 +118,18 @@ func newTraceGroup(samplingFraction float64) *traceGroup {
 //
 // If the transaction is not admitted due to the transaction group limit
 // having been reached, sampleTrace will return errTooManyTraceGroups.
-func (g *traceGroups) sampleTrace(tx *model.Transaction) (bool, error) {
-	group, err := g.getTraceGroup(tx)
+func (g *traceGroups) sampleTrace(transactionEvent *model.APMEvent) (bool, error) {
+	group, err := g.getTraceGroup(transactionEvent)
 	if err != nil {
 		return false, err
 	}
-	return group.sampleTrace(tx)
+	return group.sampleTrace(transactionEvent)
 }
 
-func (g *traceGroups) getTraceGroup(tx *model.Transaction) (*traceGroup, error) {
+func (g *traceGroups) getTraceGroup(transactionEvent *model.APMEvent) (*traceGroup, error) {
 	var pg *policyGroup
 	for i := range g.policyGroups {
-		if g.policyGroups[i].match(tx) {
+		if g.policyGroups[i].match(transactionEvent) {
 			pg = &g.policyGroups[i]
 			break
 		}
@@ -144,26 +144,26 @@ func (g *traceGroups) getTraceGroup(tx *model.Transaction) (*traceGroup, error) 
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	group, ok := pg.dynamic[tx.Metadata.Service.Name]
+	group, ok := pg.dynamic[transactionEvent.Service.Name]
 	if !ok {
 		if g.numDynamicServiceGroups == g.maxDynamicServiceGroups {
 			return nil, errTooManyTraceGroups
 		}
 		g.numDynamicServiceGroups++
 		group = newTraceGroup(pg.policy.SampleRate)
-		pg.dynamic[tx.Metadata.Service.Name] = group
+		pg.dynamic[transactionEvent.Service.Name] = group
 	}
 	return group, nil
 }
 
-func (g *traceGroup) sampleTrace(tx *model.Transaction) (bool, error) {
+func (g *traceGroup) sampleTrace(transactionEvent *model.APMEvent) (bool, error) {
 	if g.samplingFraction == 0 {
 		return false, nil
 	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	g.total++
-	return g.reservoir.Sample(tx.Duration, tx.TraceID), nil
+	return g.reservoir.Sample(transactionEvent.Transaction.Duration, transactionEvent.Transaction.TraceID), nil
 }
 
 // finalizeSampledTraces locks the groups, appends their current trace IDs to

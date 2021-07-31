@@ -36,11 +36,11 @@ func TestResourceConventions(t *testing.T) {
 
 	for name, test := range map[string]struct {
 		attrs    map[string]pdata.AttributeValue
-		expected model.Metadata
+		expected model.APMEvent
 	}{
 		"empty": {
 			attrs:    nil,
-			expected: model.Metadata{Agent: defaultAgent, Service: defaultService},
+			expected: model.APMEvent{Agent: defaultAgent, Service: defaultService},
 		},
 		"service": {
 			attrs: map[string]pdata.AttributeValue{
@@ -48,7 +48,7 @@ func TestResourceConventions(t *testing.T) {
 				"service.version":        pdata.NewAttributeValueString("service_version"),
 				"deployment.environment": pdata.NewAttributeValueString("service_environment"),
 			},
-			expected: model.Metadata{
+			expected: model.APMEvent{
 				Agent: model.Agent{Name: "otlp", Version: "unknown"},
 				Service: model.Service{
 					Name:        "service_name",
@@ -64,7 +64,7 @@ func TestResourceConventions(t *testing.T) {
 				"telemetry.sdk.version":  pdata.NewAttributeValueString("sdk_version"),
 				"telemetry.sdk.language": pdata.NewAttributeValueString("language_name"),
 			},
-			expected: model.Metadata{
+			expected: model.APMEvent{
 				Agent: model.Agent{Name: "sdk_name/language_name", Version: "sdk_version"},
 				Service: model.Service{
 					Name:     "unknown",
@@ -77,7 +77,7 @@ func TestResourceConventions(t *testing.T) {
 				"process.runtime.name":    pdata.NewAttributeValueString("runtime_name"),
 				"process.runtime.version": pdata.NewAttributeValueString("runtime_version"),
 			},
-			expected: model.Metadata{
+			expected: model.APMEvent{
 				Agent: model.Agent{Name: "otlp", Version: "unknown"},
 				Service: model.Service{
 					Name:     "unknown",
@@ -97,7 +97,7 @@ func TestResourceConventions(t *testing.T) {
 				"cloud.availability_zone": pdata.NewAttributeValueString("availability_zone"),
 				"cloud.platform":          pdata.NewAttributeValueString("platform_name"),
 			},
-			expected: model.Metadata{
+			expected: model.APMEvent{
 				Agent:   defaultAgent,
 				Service: defaultService,
 				Cloud: model.Cloud{
@@ -117,7 +117,7 @@ func TestResourceConventions(t *testing.T) {
 				"container.image.tag":  pdata.NewAttributeValueString("container_image_tag"),
 				"container.runtime":    pdata.NewAttributeValueString("container_runtime"),
 			},
-			expected: model.Metadata{
+			expected: model.APMEvent{
 				Agent:   defaultAgent,
 				Service: defaultService,
 				Container: model.Container{
@@ -136,7 +136,7 @@ func TestResourceConventions(t *testing.T) {
 				"k8s.pod.name":       pdata.NewAttributeValueString("kubernetes_pod_name"),
 				"k8s.pod.uid":        pdata.NewAttributeValueString("kubernetes_pod_uid"),
 			},
-			expected: model.Metadata{
+			expected: model.APMEvent{
 				Agent:   defaultAgent,
 				Service: defaultService,
 				Kubernetes: model.Kubernetes{
@@ -154,7 +154,7 @@ func TestResourceConventions(t *testing.T) {
 				"host.type": pdata.NewAttributeValueString("host_type"),
 				"host.arch": pdata.NewAttributeValueString("host_arch"),
 			},
-			expected: model.Metadata{
+			expected: model.APMEvent{
 				Agent:   defaultAgent,
 				Service: defaultService,
 				Host: model.Host{
@@ -171,7 +171,7 @@ func TestResourceConventions(t *testing.T) {
 				"process.command_line":    pdata.NewAttributeValueString("command_line"),
 				"process.executable.path": pdata.NewAttributeValueString("executable_path"),
 			},
-			expected: model.Metadata{
+			expected: model.APMEvent{
 				Agent:   defaultAgent,
 				Service: defaultService,
 				Process: model.Process{
@@ -186,7 +186,7 @@ func TestResourceConventions(t *testing.T) {
 				"os.type":        pdata.NewAttributeValueString("DARWIN"),
 				"os.description": pdata.NewAttributeValueString("Mac OS Mojave"),
 			},
-			expected: model.Metadata{
+			expected: model.APMEvent{
 				Agent:   defaultAgent,
 				Service: defaultService,
 				Host: model.Host{
@@ -225,12 +225,13 @@ func TestResourceLabels(t *testing.T) {
 	}, metadata.Labels)
 }
 
-func transformResourceMetadata(t *testing.T, resourceAttrs map[string]pdata.AttributeValue) model.Metadata {
+func transformResourceMetadata(t *testing.T, resourceAttrs map[string]pdata.AttributeValue) model.APMEvent {
 	traces, spans := newTracesSpans()
 	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(resourceAttrs)
 	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	events := transformTraces(t, traces)
-	return events[0].Transaction.Metadata
+	events[0].Transaction = nil
+	return events[0]
 }

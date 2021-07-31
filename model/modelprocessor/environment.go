@@ -33,12 +33,11 @@ type SetDefaultServiceEnvironment struct {
 
 // ProcessBatch sets a default service.value for events without one already set.
 func (s *SetDefaultServiceEnvironment) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	return MetadataProcessorFunc(s.setDefaultServiceEnvironment).ProcessBatch(ctx, b)
-}
-
-func (s *SetDefaultServiceEnvironment) setDefaultServiceEnvironment(ctx context.Context, meta *model.Metadata) error {
-	if meta.Service.Environment == "" {
-		meta.Service.Environment = s.DefaultServiceEnvironment
+	for i := range *b {
+		event := &(*b)[i]
+		if event.Service.Environment == "" {
+			event.Service.Environment = s.DefaultServiceEnvironment
+		}
 	}
 	return nil
 }

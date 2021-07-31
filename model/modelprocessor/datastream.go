@@ -55,7 +55,7 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		if isApplicationMetricset(event.Metricset) {
 			event.DataStream.Dataset = fmt.Sprintf(
 				"%s.%s", model.AppMetricsDataset,
-				datastreams.NormalizeServiceName(event.Metricset.Metadata.Service.Name),
+				datastreams.NormalizeServiceName(event.Service.Name),
 			)
 		}
 	case event.ProfileSample != nil:

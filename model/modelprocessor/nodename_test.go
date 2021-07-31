@@ -25,14 +25,14 @@ import (
 )
 
 func TestSetServiceNodeName(t *testing.T) {
-	withServiceNodeName := model.Metadata{
+	withServiceNodeName := model.APMEvent{
 		Service: model.Service{
 			Node: model.ServiceNode{
 				Name: "node_name",
 			},
 		},
 	}
-	withConfiguredHostname := model.Metadata{
+	withConfiguredHostname := model.APMEvent{
 		Host: model.Host{Name: "configured_hostname"},
 	}
 	withContainerID := withConfiguredHostname
@@ -40,16 +40,16 @@ func TestSetServiceNodeName(t *testing.T) {
 
 	processor := modelprocessor.SetServiceNodeName{}
 
-	testProcessBatchMetadata(t, processor, withServiceNodeName, withServiceNodeName) // unchanged
-	testProcessBatchMetadata(t, processor, withConfiguredHostname,
-		metadataWithServiceNodeName(withConfiguredHostname, "configured_hostname"),
+	testProcessBatch(t, processor, withServiceNodeName, withServiceNodeName) // unchanged
+	testProcessBatch(t, processor, withConfiguredHostname,
+		eventWithServiceNodeName(withConfiguredHostname, "configured_hostname"),
 	)
-	testProcessBatchMetadata(t, processor, withContainerID,
-		metadataWithServiceNodeName(withContainerID, "container_id"),
+	testProcessBatch(t, processor, withContainerID,
+		eventWithServiceNodeName(withContainerID, "container_id"),
 	)
 }
 
-func metadataWithServiceNodeName(in model.Metadata, nodeName string) model.Metadata {
+func eventWithServiceNodeName(in model.APMEvent, nodeName string) model.APMEvent {
 	in.Service.Node.Name = nodeName
 	return in
 }

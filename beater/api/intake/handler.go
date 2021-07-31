@@ -56,7 +56,7 @@ var (
 type StreamHandler interface {
 	HandleStream(
 		ctx context.Context,
-		meta model.Metadata,
+		base model.APMEvent,
 		stream io.Reader,
 		batchSize int,
 		processor model.BatchProcessor,
@@ -67,7 +67,7 @@ type StreamHandler interface {
 // RequestMetadataFunc is a function type supplied to Handler for extracting
 // metadata from the request. This is used for conditionally injecting the
 // source IP address as `client.ip` for RUM.
-type RequestMetadataFunc func(*request.Context) model.Metadata
+type RequestMetadataFunc func(*request.Context) model.APMEvent
 
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
 func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, batchProcessor model.BatchProcessor) request.Handler {
@@ -83,11 +83,11 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 			return
 		}
 
-		metadata := requestMetadataFunc(c)
+		base := requestMetadataFunc(c)
 		var result stream.Result
 		if err := handler.HandleStream(
 			c.Request.Context(),
-			metadata,
+			base,
 			reader,
 			batchSize,
 			batchProcessor,
