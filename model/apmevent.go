@@ -19,7 +19,9 @@ package model
 
 import (
 	"context"
+	"time"
 
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -46,6 +48,9 @@ type APMEvent struct {
 	Cloud      Cloud
 	Network    Network
 
+	// Timestamp holds the event timestamp.
+	Timestamp time.Time
+
 	// Labels holds labels to apply to the event.
 	Labels common.MapStr
 
@@ -57,24 +62,32 @@ type APMEvent struct {
 }
 
 func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat.Event {
-	var event beat.Event
+	event := beat.Event{Timestamp: e.Timestamp}
 	switch {
 	case e.Transaction != nil:
-		event = e.Transaction.toBeatEvent()
+		event.Fields = e.Transaction.fields()
 	case e.Span != nil:
-		event = e.Span.toBeatEvent(ctx)
+		event.Fields = e.Span.fields()
 	case e.Metricset != nil:
-		event = e.Metricset.toBeatEvent()
+		event.Fields = e.Metricset.fields()
 	case e.Error != nil:
-		event = e.Error.toBeatEvent(ctx)
+		event.Fields = e.Error.fields()
 	case e.ProfileSample != nil:
-		event = e.ProfileSample.toBeatEvent()
+		event.Fields = e.ProfileSample.fields()
 	default:
 		return out
 	}
 
+	// Set high resolution timestamp.
+	//
+	// TODO(axw) change @timestamp to use date_nanos, and remove this field.
+	if !e.Timestamp.IsZero() && (e.Transaction != nil || e.Span != nil || e.Error != nil) {
+		event.Fields["timestamp"] = utility.TimeAsMicros(e.Timestamp)
+	}
+
 	// Set fields common to all events.
 	fields := (*mapStr)(&event.Fields)
+	event.Timestamp = e.Timestamp
 	e.DataStream.setFields(fields)
 	fields.maybeSetMapStr("service", e.Service.Fields())
 	fields.maybeSetMapStr("agent", e.Agent.fields())

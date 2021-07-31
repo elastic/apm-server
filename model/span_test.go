@@ -49,7 +49,7 @@ func TestSpanTransform(t *testing.T) {
 	}{
 		{
 			Msg:  "Span without a Stacktrace",
-			Span: Span{Timestamp: timestamp},
+			Span: Span{},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
 				"span": common.MapStr{
@@ -63,7 +63,7 @@ func TestSpanTransform(t *testing.T) {
 		},
 		{
 			Msg:  "Span with outcome",
-			Span: Span{Timestamp: timestamp, Outcome: "success"},
+			Span: Span{Outcome: "success"},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
 				"span": common.MapStr{
@@ -85,7 +85,6 @@ func TestSpanTransform(t *testing.T) {
 				Type:                "myspantype",
 				Subtype:             subtype,
 				Action:              action,
-				Timestamp:           timestamp,
 				Start:               &start,
 				Outcome:             "unknown",
 				RepresentativeCount: 5,
@@ -167,7 +166,7 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		event := APMEvent{Span: &test.Span}
+		event := APMEvent{Span: &test.Span, Timestamp: timestamp}
 		output := event.appendBeatEvent(context.Background(), nil)
 		require.Len(t, output, 1)
 		assert.Equal(t, test.Output, output[0].Fields, test.Msg)

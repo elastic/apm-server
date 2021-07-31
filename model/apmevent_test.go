@@ -20,6 +20,7 @@ package model
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -62,6 +63,7 @@ func TestAPMEventFields(t *testing.T) {
 				User:        User{ID: uid, Email: mail},
 				Labels:      common.MapStr{"a": "b", "c": 123},
 				Transaction: &Transaction{},
+				Timestamp:   time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600)),
 			},
 			output: common.MapStr{
 				// common fields
@@ -87,6 +89,7 @@ func TestAPMEventFields(t *testing.T) {
 					"name":  "transaction",
 					"event": "transaction",
 				},
+				"timestamp": common.MapStr{"us": int64(1546525024908596)},
 				"transaction": common.MapStr{
 					"duration": common.MapStr{"us": 0},
 					"sampled":  false,

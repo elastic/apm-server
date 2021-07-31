@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"net"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -103,7 +102,6 @@ func TestTransactionTransform(t *testing.T) {
 				Name:      name,
 				Type:      "tx",
 				Result:    result,
-				Timestamp: time.Now(),
 				Duration:  65.98,
 				Sampled:   true,
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
@@ -122,23 +120,21 @@ func TestTransactionTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Transaction.toBeatEvent()
-		assert.Equal(t, test.Output, output.Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		fields := test.Transaction.fields()
+		assert.Equal(t, test.Output, fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
 
 func TestTransactionTransformOutcome(t *testing.T) {
 	tx := Transaction{Outcome: "success"}
-	event := tx.toBeatEvent()
-	assert.Equal(t, common.MapStr{"outcome": "success"}, event.Fields["event"])
+	fields := tx.fields()
+	assert.Equal(t, common.MapStr{"outcome": "success"}, fields["event"])
 }
 
 func TestEventsTransformWithMetadata(t *testing.T) {
 	hostname := "a.b.c"
 	architecture := "darwin"
 	platform := "x64"
-	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600))
-	timestampUs := timestamp.UnixNano() / 1000
 	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
 	url, referer := "https://localhost", "http://localhost"
 	serviceName, serviceNodeName, serviceVersion := "myservice", "service-123", "2.1.3"
@@ -161,13 +157,12 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		UserAgent: UserAgent{Original: userAgent},
 		Client:    Client{IP: net.ParseIP(ip)},
 		Transaction: &Transaction{
-			Timestamp: timestamp,
-			Page:      &Page{URL: &URL{Original: url}, Referer: referer},
-			HTTP:      &HTTP{Request: &request, Response: &response},
-			URL:       &URL{Original: url},
-			Custom:    common.MapStr{"foo.bar": "baz"},
-			Message:   &Message{QueueName: "routeUser"},
-			Sampled:   true,
+			Page:    &Page{URL: &URL{Original: url}, Referer: referer},
+			HTTP:    &HTTP{Request: &request, Response: &response},
+			URL:     &URL{Original: url},
+			Custom:  common.MapStr{"foo.bar": "baz"},
+			Message: &Message{QueueName: "routeUser"},
+			Sampled: true,
 		},
 	}
 
@@ -197,7 +192,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"version": serviceVersion,
 			"node":    common.MapStr{"name": serviceNodeName},
 		},
-		"timestamp": common.MapStr{"us": timestampUs},
 		"transaction": common.MapStr{
 			"duration": common.MapStr{"us": 0},
 			"id":       "",
@@ -223,13 +217,13 @@ func TestTransformTransactionHTTP(t *testing.T) {
 	tx := Transaction{
 		HTTP: &HTTP{Request: &request},
 	}
-	event := tx.toBeatEvent()
+	fields := tx.fields()
 	assert.Equal(t, common.MapStr{
 		"request": common.MapStr{
 			"method":        request.Method,
 			"body.original": request.Body,
 		},
-	}, event.Fields["http"])
+	}, fields["http"])
 }
 
 func TestTransactionTransformPage(t *testing.T) {
@@ -243,11 +237,10 @@ func TestTransactionTransformPage(t *testing.T) {
 	}{
 		{
 			Transaction: Transaction{
-				ID:        id,
-				Type:      "tx",
-				Timestamp: time.Now(),
-				Duration:  65.98,
-				URL:       ParseURL("https://localhost:8200/", "", ""),
+				ID:       id,
+				Type:     "tx",
+				Duration: 65.98,
+				URL:      ParseURL("https://localhost:8200/", "", ""),
 				Page: &Page{
 					URL: ParseURL(urlExample, "", ""),
 				},
@@ -265,8 +258,8 @@ func TestTransactionTransformPage(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Transaction.toBeatEvent()
-		assert.Equal(t, test.Output, output.Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		fields := test.Transaction.fields()
+		assert.Equal(t, test.Output, fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
 
@@ -294,8 +287,8 @@ func TestTransactionTransformMarks(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Transaction.toBeatEvent()
-		marks, _ := output.Fields.GetValue("transaction.marks")
+		fields := test.Transaction.fields()
+		marks, _ := fields.GetValue("transaction.marks")
 		assert.Equal(t, test.Output, marks, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -335,8 +328,8 @@ func TestTransactionSession(t *testing.T) {
 	}}
 
 	for _, test := range tests {
-		output := test.Transaction.toBeatEvent()
-		session, err := output.Fields.GetValue("session")
+		fields := test.Transaction.fields()
+		session, err := fields.GetValue("session")
 		if test.Output == nil {
 			assert.Equal(t, common.ErrKeyNotFound, err)
 		} else {

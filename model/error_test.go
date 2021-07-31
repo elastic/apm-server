@@ -18,10 +18,8 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -158,7 +156,6 @@ func TestEventFields(t *testing.T) {
 		"withFrames": {
 			Error: Error{
 				ID:            id,
-				Timestamp:     time.Now(),
 				Culprit:       culprit,
 				Exception:     &exception,
 				Log:           &log,
@@ -191,9 +188,8 @@ func TestEventFields(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			output := tc.Error.toBeatEvent(context.Background())
-			fields := output.Fields["error"]
-			assert.Equal(t, tc.Output, fields)
+			fields := tc.Error.fields()
+			assert.Equal(t, tc.Output, fields["error"])
 		})
 	}
 }
@@ -209,9 +205,8 @@ func TestErrorTransformPage(t *testing.T) {
 	}{
 		{
 			Error: Error{
-				ID:        id,
-				Timestamp: time.Now(),
-				URL:       ParseURL("https://localhost:8200/", "", ""),
+				ID:  id,
+				URL: ParseURL("https://localhost:8200/", "", ""),
 				Page: &Page{
 					URL: ParseURL(urlExample, "", ""),
 				},
@@ -229,7 +224,7 @@ func TestErrorTransformPage(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Error.toBeatEvent(context.Background())
-		assert.Equal(t, test.Output, output.Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		fields := test.Error.fields()
+		assert.Equal(t, test.Output, fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

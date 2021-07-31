@@ -20,7 +20,6 @@ package model
 import (
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -37,7 +36,6 @@ var profileProcessorEntry = common.MapStr{
 
 // ProfileSample holds a profiling sample.
 type ProfileSample struct {
-	Timestamp time.Time
 	Duration  time.Duration
 	ProfileID string
 	Stack     []ProfileSampleStackframe
@@ -52,7 +50,7 @@ type ProfileSampleStackframe struct {
 	Line     int64
 }
 
-func (p *ProfileSample) toBeatEvent() beat.Event {
+func (p *ProfileSample) fields() common.MapStr {
 	var profileFields mapStr
 	profileFields.maybeSetString("id", p.ProfileID)
 	if p.Duration > 0 {
@@ -80,13 +78,8 @@ func (p *ProfileSample) toBeatEvent() beat.Event {
 		profileFields.set(k, v)
 	}
 
-	fields := mapStr{
+	return common.MapStr{
 		"processor":    profileProcessorEntry,
 		profileDocType: common.MapStr(profileFields),
-	}
-
-	return beat.Event{
-		Timestamp: p.Timestamp,
-		Fields:    common.MapStr(fields),
 	}
 }
