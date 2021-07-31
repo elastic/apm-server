@@ -56,10 +56,6 @@ type Metricset struct {
 	// Timestamp holds the time at which the metrics were published.
 	Timestamp time.Time
 
-	// Metadata holds common metadata describing the entities with which
-	// the metrics are associated: service, system, etc.
-	Metadata Metadata
-
 	// Event holds information about the event category with which the
 	// metrics are associated.
 	Event MetricsetEventCategorization
@@ -174,7 +170,6 @@ func (me *Metricset) toBeatEvent() beat.Event {
 
 	var fields mapStr
 	fields.set("processor", metricsetProcessorEntry)
-	me.Metadata.set(&fields, me.Labels)
 
 	fields.maybeSetMapStr(metricsetEventKey, me.Event.fields())
 	fields.maybeSetMapStr(metricsetTransactionKey, me.Transaction.fields())

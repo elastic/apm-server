@@ -46,12 +46,6 @@ func TestBatchProcessor(t *testing.T) {
 	originalLinenoWithFunction := 1
 	originalColnoWithFunction := 67
 
-	metadata := model.Metadata{
-		Service: model.Service{
-			Name:    "service_name",
-			Version: "service_version",
-		},
-	}
 	nonMatchingFrame := model.StacktraceFrame{
 		AbsPath:  "bundle.js",
 		Lineno:   newInt(0),
@@ -125,84 +119,90 @@ func TestBatchProcessor(t *testing.T) {
 	mappedFrameWithFunction2 := mappedFrameWithFunction
 	mappedFrameWithFunction2.Function = "exports"
 
-	transaction := &model.Transaction{}
-	span1 := &model.Span{} // intentionally left blank
-	error1 := &model.Error{Metadata: metadata}
-	span2 := &model.Span{
-		Metadata: metadata,
-		Stacktrace: model.Stacktrace{cloneFrame(nonMatchingFrame), {
-			AbsPath:  "bundle.js",
-			Lineno:   newInt(originalLinenoWithFilename),
-			Colno:    newInt(originalColnoWithFilename),
-			Function: "original function",
-		}},
+	service := model.Service{
+		Name:    "service_name",
+		Version: "service_version",
 	}
-	error2 := &model.Error{
-		Metadata: metadata,
-		Log: &model.Log{
-			Stacktrace: model.Stacktrace{{
+
+	// Service intentionally left blank
+	transaction := model.APMEvent{Transaction: &model.Transaction{}}
+	span1 := model.APMEvent{Span: &model.Span{}}
+
+	error1 := model.APMEvent{
+		Service: service,
+		Error:   &model.Error{},
+	}
+	span2 := model.APMEvent{
+		Service: service,
+		Span: &model.Span{
+			Stacktrace: model.Stacktrace{cloneFrame(nonMatchingFrame), {
 				AbsPath:  "bundle.js",
-				Lineno:   newInt(originalLinenoWithoutFilename),
-				Colno:    newInt(originalColnoWithoutFilename),
+				Lineno:   newInt(originalLinenoWithFilename),
+				Colno:    newInt(originalColnoWithFilename),
 				Function: "original function",
 			}},
 		},
 	}
-	error3 := &model.Error{
-		Metadata: metadata,
-		Exception: &model.Exception{
-			Stacktrace: model.Stacktrace{{
-				AbsPath:  "bundle.js",
-				Lineno:   newInt(originalLinenoWithFunction),
-				Colno:    newInt(originalColnoWithFunction),
-				Function: "original function",
-			}},
-			Cause: []model.Exception{{
+	error2 := model.APMEvent{
+		Service: service,
+		Error: &model.Error{
+			Log: &model.Log{
+				Stacktrace: model.Stacktrace{{
+					AbsPath:  "bundle.js",
+					Lineno:   newInt(originalLinenoWithoutFilename),
+					Colno:    newInt(originalColnoWithoutFilename),
+					Function: "original function",
+				}},
+			},
+		},
+	}
+	error3 := model.APMEvent{
+		Service: service,
+		Error: &model.Error{
+			Exception: &model.Exception{
 				Stacktrace: model.Stacktrace{{
 					AbsPath:  "bundle.js",
 					Lineno:   newInt(originalLinenoWithFunction),
 					Colno:    newInt(originalColnoWithFunction),
 					Function: "original function",
-				}, {
-					AbsPath:  "bundle.js",
-					Lineno:   newInt(originalLinenoWithFunction),
-					Colno:    newInt(originalColnoWithFunction),
-					Function: "original function",
 				}},
-			}},
+				Cause: []model.Exception{{
+					Stacktrace: model.Stacktrace{{
+						AbsPath:  "bundle.js",
+						Lineno:   newInt(originalLinenoWithFunction),
+						Colno:    newInt(originalColnoWithFunction),
+						Function: "original function",
+					}, {
+						AbsPath:  "bundle.js",
+						Lineno:   newInt(originalLinenoWithFunction),
+						Colno:    newInt(originalColnoWithFunction),
+						Function: "original function",
+					}},
+				}},
+			},
 		},
 	}
 
 	processor := sourcemap.BatchProcessor{Store: store}
-	err = processor.ProcessBatch(context.Background(), &model.Batch{
-		{Transaction: transaction},
-		{Span: span1},
-		{Span: span2},
-		{Error: error1},
-		{Error: error2},
-		{Error: error3},
-	})
+	err = processor.ProcessBatch(context.Background(), &model.Batch{transaction, span1, span2, error1, error2, error3})
 	assert.NoError(t, err)
 
-	assert.Equal(t, &model.Span{}, span1)
-	assert.Equal(t, &model.Error{Metadata: metadata}, error1)
+	assert.Equal(t, &model.Span{}, span1.Span)
+	assert.Equal(t, &model.Error{}, error1.Error)
 	assert.Equal(t, &model.Span{
-		Metadata: metadata,
 		Stacktrace: model.Stacktrace{
 			cloneFrame(nonMatchingFrame),
 			cloneFrame(mappedFrameWithFilename),
 		},
-	}, span2)
+	}, span2.Span)
 	assert.Equal(t, &model.Error{
-		Metadata: metadata,
 		Log: &model.Log{
 			Stacktrace: model.Stacktrace{
 				cloneFrame(mappedFrameWithoutFilename),
 			},
 		},
-	}, error2)
+	}, error2.Error)
 	assert.Equal(t, &model.Error{
-		Metadata: metadata,
 		Exception: &model.Exception{
 			Stacktrace: model.Stacktrace{
 				cloneFrame(mappedFrameWithFunction),
@@ -214,7 +214,7 @@ func TestBatchProcessor(t *testing.T) {
 				},
 			}},
 		},
-	}, error3)
+	}, error3.Error)
 }
 
 func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
@@ -222,12 +222,6 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	store, err := sourcemap.NewElasticsearchStore(client, "index", time.Minute)
 	require.NoError(t, err)
 
-	metadata := model.Metadata{
-		Service: model.Service{
-			Name:    "service_name",
-			Version: "service_version",
-		},
-	}
 	nonMatchingFrame := model.StacktraceFrame{
 		AbsPath:  "bundle.js",
 		Lineno:   newInt(0),
@@ -235,22 +229,27 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 		Function: "original function",
 	}
 
-	span := &model.Span{
-		Metadata:   metadata,
-		Stacktrace: model.Stacktrace{cloneFrame(nonMatchingFrame), cloneFrame(nonMatchingFrame)},
+	span := model.APMEvent{
+		Service: model.Service{
+			Name:    "service_name",
+			Version: "service_version",
+		},
+		Span: &model.Span{
+			Stacktrace: model.Stacktrace{cloneFrame(nonMatchingFrame), cloneFrame(nonMatchingFrame)},
+		},
 	}
 
 	logp.DevelopmentSetup(logp.ToObserverOutput())
 	for i := 0; i < 2; i++ {
 		processor := sourcemap.BatchProcessor{Store: store}
-		err = processor.ProcessBatch(context.Background(), &model.Batch{{Span: span}, {Span: span}})
+		err = processor.ProcessBatch(context.Background(), &model.Batch{span, span})
 		assert.NoError(t, err)
 	}
 
 	// SourcemapError should have been set, but the frames should otherwise be unmodified.
 	expectedFrame := nonMatchingFrame
 	expectedFrame.SourcemapError = "failure querying ES: client error"
-	assert.Equal(t, model.Stacktrace{&expectedFrame, &expectedFrame}, span.Stacktrace)
+	assert.Equal(t, model.Stacktrace{&expectedFrame, &expectedFrame}, span.Span.Stacktrace)
 
 	// We should have a single log message, due to rate limiting.
 	entries := logp.ObserverLogs().TakeAll()
@@ -276,27 +275,25 @@ func TestBatchProcessorTimeout(t *testing.T) {
 	store, err := sourcemap.NewElasticsearchStore(client, "index", time.Minute)
 	require.NoError(t, err)
 
-	metadata := model.Metadata{
-		Service: model.Service{
-			Name:    "service_name",
-			Version: "service_version",
-		},
-	}
-
 	frame := model.StacktraceFrame{
 		AbsPath:  "bundle.js",
 		Lineno:   newInt(0),
 		Colno:    newInt(0),
 		Function: "original function",
 	}
-	span := &model.Span{
-		Metadata:   metadata,
-		Stacktrace: model.Stacktrace{cloneFrame(frame)},
+	span := model.APMEvent{
+		Service: model.Service{
+			Name:    "service_name",
+			Version: "service_version",
+		},
+		Span: &model.Span{
+			Stacktrace: model.Stacktrace{cloneFrame(frame)},
+		},
 	}
 
 	before := time.Now()
 	processor := sourcemap.BatchProcessor{Store: store, Timeout: 100 * time.Millisecond}
-	err = processor.ProcessBatch(context.Background(), &model.Batch{{Span: span}})
+	err = processor.ProcessBatch(context.Background(), &model.Batch{span})
 	assert.NoError(t, err)
 	taken := time.Since(before)
 	assert.Less(t, taken, time.Second)

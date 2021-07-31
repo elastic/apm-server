@@ -155,24 +155,10 @@ func TestConsumeMetrics(t *testing.T) {
 	metric.Summary().DataPoints().AppendEmpty()
 	expectDropped++
 
-	metadata := model.Metadata{
-		Agent: model.Agent{
-			Name:    "otlp",
-			Version: "unknown",
-		},
-		Service: model.Service{
-			Name: "unknown",
-			Language: model.Language{
-				Name: "unknown",
-			},
-		},
-	}
-
 	metricsets, stats := transformMetrics(t, metrics)
 	assert.Equal(t, expectDropped, stats.UnsupportedMetricsDropped)
 
 	assert.Equal(t, []*model.Metricset{{
-		Metadata:  metadata,
 		Timestamp: timestamp0,
 		Samples: map[string]model.MetricsetSample{
 			"int_gauge_metric": {Value: 1, Type: "gauge"},
@@ -191,14 +177,12 @@ func TestConsumeMetrics(t *testing.T) {
 			},
 		},
 	}, {
-		Metadata:  metadata,
 		Timestamp: timestamp1,
 		Samples: map[string]model.MetricsetSample{
 			"int_gauge_metric": {Value: 3, Type: "gauge"},
 			"gauge_metric":     {Value: 7, Type: "gauge"},
 		},
 	}, {
-		Metadata:  metadata,
 		Timestamp: timestamp1,
 		Labels:    common.MapStr{"k": "v"},
 		Samples: map[string]model.MetricsetSample{
@@ -208,7 +192,6 @@ func TestConsumeMetrics(t *testing.T) {
 			"sum_metric":       {Value: 13, Type: "counter"},
 		},
 	}, {
-		Metadata:  metadata,
 		Timestamp: timestamp1,
 		Labels:    common.MapStr{"k": "v2"},
 		Samples: map[string]model.MetricsetSample{
@@ -216,7 +199,6 @@ func TestConsumeMetrics(t *testing.T) {
 			"gauge_metric":     {Value: 8, Type: "gauge"},
 		},
 	}, {
-		Metadata:  metadata,
 		Timestamp: timestamp1,
 		Labels:    common.MapStr{"k2": "v"},
 		Samples: map[string]model.MetricsetSample{
@@ -259,22 +241,8 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	addInt64Sum("runtime.jvm.gc.count", 2, map[string]string{"gc": "G1 Young Generation"})
 	addInt64Gauge("runtime.jvm.memory.area", 42, map[string]string{"area": "heap", "type": "used"})
 
-	metadata := model.Metadata{
-		Agent: model.Agent{
-			Name:    "otlp",
-			Version: "unknown",
-		},
-		Service: model.Service{
-			Name: "unknown",
-			Language: model.Language{
-				Name: "unknown",
-			},
-		},
-	}
-
 	metricsets, _ := transformMetrics(t, metrics)
 	assert.Equal(t, []*model.Metricset{{
-		Metadata:  metadata,
 		Timestamp: timestamp,
 		Samples: map[string]model.MetricsetSample{
 			"jvm.memory.heap.used": {
@@ -283,7 +251,6 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 			},
 		},
 	}, {
-		Metadata:  metadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"gc": "G1 Young Generation"},
 		Samples: map[string]model.MetricsetSample{
@@ -297,7 +264,6 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 			},
 		},
 	}, {
-		Metadata:  metadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"name": "G1 Young Generation"},
 		Samples: map[string]model.MetricsetSample{
@@ -311,7 +277,6 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 			},
 		},
 	}, {
-		Metadata:  metadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"area": "heap", "type": "used"},
 		Samples: map[string]model.MetricsetSample{

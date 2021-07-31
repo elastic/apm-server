@@ -51,7 +51,7 @@ const (
 	rumv3MetricsetEventType   = "me"
 )
 
-type decodeMetadataFunc func(decoder.Decoder, *model.Metadata) error
+type decodeMetadataFunc func(decoder.Decoder, *model.APMEvent) error
 
 type Processor struct {
 	Mconfig          modeldecoder.Config
@@ -84,7 +84,7 @@ func RUMV3Processor(cfg *config.Config) *Processor {
 	}
 }
 
-func (p *Processor) readMetadata(reader *streamReader, out *model.Metadata) error {
+func (p *Processor) readMetadata(reader *streamReader, out *model.APMEvent) error {
 	if err := p.decodeMetadata(reader, out); err != nil {
 		err = reader.wrapError(err)
 		if err == io.EOF {
@@ -135,7 +135,7 @@ func (p *Processor) identifyEventType(body []byte) []byte {
 func (p *Processor) readBatch(
 	ctx context.Context,
 	requestTime time.Time,
-	streamMetadata model.Metadata,
+	baseEvent model.APMEvent,
 	batchSize int,
 	batch *model.Batch,
 	reader *streamReader,
@@ -160,7 +160,7 @@ func (p *Processor) readBatch(
 			// required for backwards compatibility - sending empty lines was permitted in previous versions
 			continue
 		}
-		input := modeldecoder.Input{RequestTime: requestTime, Metadata: streamMetadata, Config: p.Mconfig}
+		input := modeldecoder.Input{RequestTime: requestTime, Base: baseEvent, Config: p.Mconfig}
 		switch eventType := p.identifyEventType(body); string(eventType) {
 		case errorEventType:
 			err = v2.DecodeNestedError(reader, &input, batch)
@@ -202,7 +202,7 @@ func (p *Processor) readBatch(
 // Callers must not access result concurrently with HandleStream.
 func (p *Processor) HandleStream(
 	ctx context.Context,
-	meta model.Metadata,
+	baseEvent model.APMEvent,
 	reader io.Reader,
 	batchSize int,
 	processor model.BatchProcessor,
@@ -212,7 +212,7 @@ func (p *Processor) HandleStream(
 	defer sr.release()
 
 	// first item is the metadata object
-	if err := p.readMetadata(sr, &meta); err != nil {
+	if err := p.readMetadata(sr, &baseEvent); err != nil {
 		// no point in continuing if we couldn't read the metadata
 		return err
 	}
@@ -224,7 +224,7 @@ func (p *Processor) HandleStream(
 
 	for {
 		var batch model.Batch
-		n, readErr := p.readBatch(ctx, requestTime, meta, batchSize, &batch, sr, result)
+		n, readErr := p.readBatch(ctx, requestTime, baseEvent, batchSize, &batch, sr, result)
 		if n > 0 {
 			// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
 			// the slice memory. We should investigate alternative interfaces between the

@@ -44,15 +44,18 @@ func TestSetDataStream(t *testing.T) {
 		input:  model.APMEvent{Error: &model.Error{}},
 		output: model.DataStream{Type: "logs", Dataset: "apm.error", Namespace: "custom"},
 	}, {
-		input: model.APMEvent{Metricset: &model.Metricset{
-			Metadata:    model.Metadata{Service: model.Service{Name: "service-name"}},
-			Transaction: model.MetricsetTransaction{Name: "foo"},
-		}},
+		input: model.APMEvent{
+			Service: model.Service{Name: "service-name"},
+			Metricset: &model.Metricset{
+				Transaction: model.MetricsetTransaction{Name: "foo"},
+			},
+		},
 		output: model.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
 	}, {
-		input: model.APMEvent{Metricset: &model.Metricset{
-			Metadata: model.Metadata{Service: model.Service{Name: "service-name"}},
-		}},
+		input: model.APMEvent{
+			Service:   model.Service{Name: "service-name"},
+			Metricset: &model.Metricset{},
+		},
 		output: model.DataStream{Type: "metrics", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
 		input:  model.APMEvent{ProfileSample: &model.ProfileSample{}},

@@ -30,8 +30,8 @@ type Input struct {
 	// events sent by RUM.
 	RequestTime time.Time
 
-	// Metadata holds metadata that may be added to the event.
-	Metadata model.Metadata
+	// Base holds the base for decoding events.
+	Base model.APMEvent
 
 	// Config holds configuration for decoding.
 	//

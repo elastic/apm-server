@@ -46,7 +46,9 @@ func TestResetErrorOnRelease(t *testing.T) {
 func TestDecodeNestedError(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now()
-		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: true}}
+		defaultVal := modeldecodertest.DefaultValues()
+		_, eventBase := initializedInputMetadata(defaultVal)
+		input := modeldecoder.Input{RequestTime: now, Base: eventBase, Config: modeldecoder.Config{Experimental: true}}
 		str := `{"error":{"id":"a-b-c","timestamp":1599996822281000,"log":{"message":"abc"},"context":{"experimental":"exp"}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch model.Batch
@@ -55,8 +57,9 @@ func TestDecodeNestedError(t *testing.T) {
 		require.NotNil(t, batch[0].Error)
 		assert.Equal(t, "exp", batch[0].Error.Experimental)
 		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", batch[0].Error.Timestamp.String())
+		modeldecodertest.AssertStructValues(t, &batch[0], isMetadataException, defaultVal)
 
-		input = modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: false}}
+		input = modeldecoder.Input{RequestTime: now, Config: modeldecoder.Config{Experimental: false}}
 		str = `{"error":{"id":"a-b-c","log":{"message":"abc"},"context":{"experimental":"exp"}}}`
 		dec = decoder.NewJSONDecoder(strings.NewReader(str))
 		batch = model.Batch{}
@@ -82,42 +85,31 @@ func TestDecodeNestedError(t *testing.T) {
 func TestDecodeMapToErrorModel(t *testing.T) {
 	gatewayIP := net.ParseIP("192.168.0.1")
 	randomIP := net.ParseIP("71.0.54.1")
+
 	exceptions := func(key string) bool { return false }
-
-	t.Run("metadata-set", func(t *testing.T) {
-		// do not overwrite metadata with zero event values
-		var input errorEvent
-		var out model.APMEvent
-		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
-		// iterate through metadata model and assert values are set
-		defaultVal := modeldecodertest.DefaultValues()
-		modeldecodertest.AssertStructValues(t, &out.Error.Metadata, exceptions, defaultVal)
-	})
-
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with event metadata values
 		var input errorEvent
-		var out model.APMEvent
+		_, out := initializedInputMetadata(modeldecodertest.DefaultValues())
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: true}, &out)
+		mapToErrorModel(&input, time.Now(), modeldecoder.Config{Experimental: true}, &out)
 		input.Reset()
 
 		// ensure event Metadata are updated where expected
-		otherVal = modeldecodertest.NonDefaultValues()
 		userAgent := strings.Join(otherVal.HTTPHeader.Values("User-Agent"), ", ")
-		assert.Equal(t, userAgent, out.Error.Metadata.UserAgent.Original)
+		assert.Equal(t, userAgent, out.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
 		ip := modeldecodertest.DefaultValues().IP
-		assert.Equal(t, ip, out.Error.Metadata.Client.IP, out.Error.Metadata.Client.IP.String())
+		assert.Equal(t, ip, out.Client.IP, out.Client.IP.String())
 		// metadata labels and event labels should not be merged
 		mLabels := common.MapStr{"init0": "init", "init1": "init", "init2": "init"}
 		tLabels := common.MapStr{"overwritten0": "overwritten", "overwritten1": "overwritten"}
-		assert.Equal(t, mLabels, out.Error.Metadata.Labels)
+		assert.Equal(t, mLabels, out.Labels)
 		assert.Equal(t, tLabels, out.Error.Labels)
 		// service and user values should be set
-		modeldecodertest.AssertStructValues(t, &out.Error.Metadata.Service, exceptions, otherVal)
-		modeldecodertest.AssertStructValues(t, &out.Error.Metadata.User, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out.Service, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out.User, exceptions, otherVal)
 	})
 
 	t.Run("client-ip-header", func(t *testing.T) {
@@ -126,16 +118,16 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		input.Context.Request.Headers.Set(http.Header{})
 		input.Context.Request.Headers.Val.Add("x-real-ip", gatewayIP.String())
 		input.Context.Request.Socket.RemoteAddress.Set(randomIP.String())
-		mapToErrorModel(&input, model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
-		assert.Equal(t, gatewayIP, out.Error.Metadata.Client.IP, out.Error.Metadata.Client.IP.String())
+		mapToErrorModel(&input, time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, gatewayIP, out.Client.IP, out.Client.IP.String())
 	})
 
 	t.Run("client-ip-socket", func(t *testing.T) {
 		var input errorEvent
 		var out model.APMEvent
 		input.Context.Request.Socket.RemoteAddress.Set(randomIP.String())
-		mapToErrorModel(&input, model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
-		assert.Equal(t, randomIP, out.Error.Metadata.Client.IP, out.Error.Metadata.Client.IP.String())
+		mapToErrorModel(&input, time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, randomIP, out.Client.IP, out.Client.IP.String())
 	})
 
 	t.Run("error-values", func(t *testing.T) {
@@ -171,14 +163,14 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		reqTime := time.Now().Add(time.Second)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToErrorModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out1)
+		mapToErrorModel(&input, reqTime, modeldecoder.Config{Experimental: true}, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
 
 		// set Timestamp to requestTime if eventTime is zero
 		defaultVal.Update(time.Time{})
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToErrorModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out1)
+		mapToErrorModel(&input, reqTime, modeldecoder.Config{Experimental: true}, &out1)
 		defaultVal.Update(reqTime)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
@@ -187,7 +179,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToErrorModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out2)
+		mapToErrorModel(&input, reqTime, modeldecoder.Config{Experimental: true}, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Error, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
 	})
@@ -197,7 +189,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		input.Context.Request.Headers.Set(http.Header{"a": []string{"b"}, "c": []string{"d", "e"}})
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out model.APMEvent
-		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: false}, &out)
+		mapToErrorModel(&input, time.Now(), modeldecoder.Config{Experimental: false}, &out)
 		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.Error.HTTP.Request.Headers)
 		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.Error.HTTP.Response.Headers)
 	})
@@ -206,7 +198,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var input errorEvent
 		input.Context.Page.URL.Set("https://my.site.test:9201")
 		var out model.APMEvent
-		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToErrorModel(&input, time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, "https://my.site.test:9201", out.Error.Page.URL.Full)
 		assert.Equal(t, "https://my.site.test:9201", out.Error.URL.Full)
 		assert.Equal(t, 9201, out.Error.Page.URL.Port)
@@ -217,7 +209,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var input errorEvent
 		input.Context.Page.Referer.Set("https://my.site.test:9201")
 		var out model.APMEvent
-		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToErrorModel(&input, time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, "https://my.site.test:9201", out.Error.Page.Referer)
 		assert.Equal(t, "https://my.site.test:9201", out.Error.HTTP.Request.Referrer)
 	})
@@ -226,7 +218,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var input errorEvent
 		var out model.APMEvent
 		input.Exception.Code.Set(123.456)
-		mapToErrorModel(&input, model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		mapToErrorModel(&input, time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, "123", out.Error.Exception.Code)
 	})
 }

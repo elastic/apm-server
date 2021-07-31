@@ -161,7 +161,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	batch := make(model.Batch, 0, size)
 	for key, metrics := range a.inactive.m {
 		metricset := makeMetricset(now, key, metrics, a.config.Interval.Milliseconds())
-		batch = append(batch, model.APMEvent{Metricset: &metricset})
+		batch = append(batch, metricset)
 		delete(a.inactive.m, key)
 	}
 	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
@@ -180,41 +180,40 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 		if event.Span == nil {
 			continue
 		}
-		if metricset := a.processSpan(event.Span); metricset != nil {
-			*b = append(*b, model.APMEvent{Metricset: metricset})
+		if metricsetEvent := a.processSpan(&event); metricsetEvent.Metricset != nil {
+			*b = append(*b, metricsetEvent)
 		}
 	}
 	return nil
 }
 
-func (a *Aggregator) processSpan(span *model.Span) *model.Metricset {
-	if span.DestinationService == nil || span.DestinationService.Resource == "" {
-		return nil
+func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
+	if event.Span.DestinationService == nil || event.Span.DestinationService.Resource == "" {
+		return model.APMEvent{}
 	}
-	if span.RepresentativeCount <= 0 {
+	if event.Span.RepresentativeCount <= 0 {
 		// RepresentativeCount is zero when the sample rate is unknown.
 		// We cannot calculate accurate span metrics without the sample
 		// rate, so we don't calculate any at all in this case.
-		return nil
+		return model.APMEvent{}
 	}
 
 	key := aggregationKey{
-		serviceEnvironment: span.Metadata.Service.Environment,
-		serviceName:        span.Metadata.Service.Name,
-		agentName:          span.Metadata.Agent.Name,
-		outcome:            span.Outcome,
-		resource:           span.DestinationService.Resource,
+		serviceEnvironment: event.Service.Environment,
+		serviceName:        event.Service.Name,
+		agentName:          event.Agent.Name,
+		outcome:            event.Span.Outcome,
+		resource:           event.Span.DestinationService.Resource,
 	}
-	duration := time.Duration(span.Duration * float64(time.Millisecond))
+	duration := time.Duration(event.Span.Duration * float64(time.Millisecond))
 	metrics := spanMetrics{
-		count: span.RepresentativeCount,
-		sum:   float64(duration.Microseconds()) * span.RepresentativeCount,
+		count: event.Span.RepresentativeCount,
+		sum:   float64(duration.Microseconds()) * event.Span.RepresentativeCount,
 	}
 	if a.active.storeOrUpdate(key, metrics) {
-		return nil
+		return model.APMEvent{}
 	}
-	metricset := makeMetricset(time.Now(), key, metrics, 0)
-	return &metricset
+	return makeMetricset(time.Now(), key, metrics, 0)
 }
 
 type metricsBuffer struct {
@@ -257,29 +256,29 @@ type spanMetrics struct {
 	sum   float64
 }
 
-func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics, interval int64) model.Metricset {
-	out := model.Metricset{
-		Timestamp: timestamp,
-		Name:      metricsetName,
-		Metadata: model.Metadata{
-			Agent: model.Agent{Name: key.agentName},
-			Service: model.Service{
-				Name:        key.serviceName,
-				Environment: key.serviceEnvironment,
+func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics, interval int64) model.APMEvent {
+	out := model.APMEvent{
+		Agent: model.Agent{Name: key.agentName},
+		Service: model.Service{
+			Name:        key.serviceName,
+			Environment: key.serviceEnvironment,
+		},
+		Metricset: &model.Metricset{
+			Timestamp: timestamp,
+			Name:      metricsetName,
+			Event: model.MetricsetEventCategorization{
+				Outcome: key.outcome,
 			},
-		},
-		Event: model.MetricsetEventCategorization{
-			Outcome: key.outcome,
-		},
-		Span: model.MetricsetSpan{
-			DestinationService: model.DestinationService{Resource: key.resource},
-		},
-		Samples: map[string]model.MetricsetSample{
-			"span.destination.service.response_time.count": {
-				Value: math.Round(metrics.count),
+			Span: model.MetricsetSpan{
+				DestinationService: model.DestinationService{Resource: key.resource},
 			},
-			"span.destination.service.response_time.sum.us": {
-				Value: math.Round(metrics.sum),
+			Samples: map[string]model.MetricsetSample{
+				"span.destination.service.response_time.count": {
+					Value: math.Round(metrics.count),
+				},
+				"span.destination.service.response_time.sum.us": {
+					Value: math.Round(metrics.sum),
+				},
 			},
 		},
 	}
@@ -289,7 +288,7 @@ func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics,
 		// An interval of zero means the metricset is computed
 		// from an instantaneous value, meaning there is no
 		// aggregation period.
-		out.Samples["metricset.period"] = model.MetricsetSample{
+		out.Metricset.Samples["metricset.period"] = model.MetricsetSample{
 			Value: float64(interval),
 		}
 	}

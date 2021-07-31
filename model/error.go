@@ -49,7 +49,6 @@ type Error struct {
 	ParentID      string
 
 	Timestamp time.Time
-	Metadata  Metadata
 
 	GroupingKey string
 	Culprit     string
@@ -103,13 +102,6 @@ func (e *Error) toBeatEvent(ctx context.Context) beat.Event {
 		"processor": errorProcessorEntry,
 	}
 
-	// first set the generic metadata (order is relevant)
-	e.Metadata.set(&fields, e.Labels)
-	if client := fields["client"]; client != nil {
-		fields["source"] = client
-	}
-
-	// then add event specific information
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
 	}

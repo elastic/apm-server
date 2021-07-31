@@ -18,6 +18,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"testing"
@@ -141,7 +142,10 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
 	url, referer := "https://localhost", "http://localhost"
 	serviceName, serviceNodeName, serviceVersion := "myservice", "service-123", "2.1.3"
-	eventMetadata := Metadata{
+
+	request := HTTPRequest{Method: "post", Headers: common.MapStr{}, Referrer: referer}
+	response := HTTPResponse{Finished: new(bool), Headers: common.MapStr{"content-type": []string{"text/html"}}}
+	txWithContext := APMEvent{
 		Service: Service{
 			Name:    serviceName,
 			Version: serviceVersion,
@@ -157,22 +161,22 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		UserAgent: UserAgent{Original: userAgent},
 		Client:    Client{IP: net.ParseIP(ip)},
 		Labels:    common.MapStr{"a": true},
+		Transaction: &Transaction{
+			Timestamp: timestamp,
+			Labels:    common.MapStr{"a": "b"},
+			Page:      &Page{URL: &URL{Original: url}, Referer: referer},
+			HTTP:      &HTTP{Request: &request, Response: &response},
+			URL:       &URL{Original: url},
+			Custom:    common.MapStr{"foo.bar": "baz"},
+			Message:   &Message{QueueName: "routeUser"},
+			Sampled:   true,
+		},
 	}
 
-	request := HTTPRequest{Method: "post", Headers: common.MapStr{}, Referrer: referer}
-	response := HTTPResponse{Finished: new(bool), Headers: common.MapStr{"content-type": []string{"text/html"}}}
-	txWithContext := Transaction{
-		Metadata:  eventMetadata,
-		Timestamp: timestamp,
-		Labels:    common.MapStr{"a": "b"},
-		Page:      &Page{URL: &URL{Original: url}, Referer: referer},
-		HTTP:      &HTTP{Request: &request, Response: &response},
-		URL:       &URL{Original: url},
-		Custom:    common.MapStr{"foo.bar": "baz"},
-		Message:   &Message{QueueName: "routeUser"},
-		Sampled:   true,
-	}
-	event := txWithContext.toBeatEvent()
+	events := txWithContext.appendBeatEvent(context.Background(), nil)
+	require.Len(t, events, 1)
+	event := events[0]
+
 	assert.Equal(t, common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
 		"client":     common.MapStr{"ip": ip},

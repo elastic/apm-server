@@ -322,20 +322,22 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 
 	// Send transactions which would match either policy defined above.
 	rng := rand.New(rand.NewSource(0))
-	metadata := model.Metadata{Service: model.Service{Name: "service_name"}}
+	service := model.Service{Name: "service_name"}
 	numTransactions := 100
 	events := make(model.Batch, numTransactions)
 	for i := range events {
 		var traceIDBytes [16]byte
 		_, err := rng.Read(traceIDBytes[:])
 		require.NoError(t, err)
-		events[i].Transaction = &model.Transaction{
-			Metadata: metadata,
-			Name:     "trace_name",
-			TraceID:  fmt.Sprintf("%x", traceIDBytes[:]),
-			ID:       fmt.Sprintf("%x", traceIDBytes[8:]),
-			Duration: 123,
-			Sampled:  true,
+		events[i] = model.APMEvent{
+			Service: service,
+			Transaction: &model.Transaction{
+				Name:     "trace_name",
+				TraceID:  fmt.Sprintf("%x", traceIDBytes[:]),
+				ID:       fmt.Sprintf("%x", traceIDBytes[8:]),
+				Duration: 123,
+				Sampled:  true,
+			},
 		}
 	}
 
@@ -478,10 +480,8 @@ func TestGroupsMonitoring(t *testing.T) {
 
 	for i := 0; i < config.MaxDynamicServices+1; i++ {
 		err := processor.ProcessBatch(context.Background(), &model.Batch{{
+			Service: model.Service{Name: fmt.Sprintf("service_%d", i)},
 			Transaction: &model.Transaction{
-				Metadata: model.Metadata{
-					Service: model.Service{Name: fmt.Sprintf("service_%d", i)},
-				},
 				TraceID:  uuid.Must(uuid.NewV4()).String(),
 				ID:       "0102030405060709",
 				Duration: 123,

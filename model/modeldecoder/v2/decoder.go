@@ -112,14 +112,14 @@ func releaseTransactionRoot(root *transactionRoot) {
 //
 // DecodeMetadata should be used when the the stream in the decoder does not contain the
 // `metadata` key, but only the metadata data.
-func DecodeMetadata(d decoder.Decoder, out *model.Metadata) error {
+func DecodeMetadata(d decoder.Decoder, out *model.APMEvent) error {
 	return decodeMetadata(decodeIntoMetadata, d, out)
 }
 
 // DecodeNestedMetadata decodes metadata from d, updating out.
 //
 // DecodeNestedMetadata should be used when the stream in the decoder contains the `metadata` key
-func DecodeNestedMetadata(d decoder.Decoder, out *model.Metadata) error {
+func DecodeNestedMetadata(d decoder.Decoder, out *model.APMEvent) error {
 	return decodeMetadata(decodeIntoMetadataRoot, d, out)
 }
 
@@ -136,8 +136,8 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	var event model.APMEvent
-	mapToErrorModel(&root.Error, input.Metadata, input.RequestTime, input.Config, &event)
+	event := input.Base
+	mapToErrorModel(&root.Error, input.RequestTime, input.Config, &event)
 	*batch = append(*batch, event)
 	return err
 }
@@ -155,8 +155,8 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	var event model.APMEvent
-	mapToMetricsetModel(&root.Metricset, input.Metadata, input.RequestTime, input.Config, &event)
+	event := input.Base
+	mapToMetricsetModel(&root.Metricset, input.RequestTime, input.Config, &event)
 	*batch = append(*batch, event)
 	return err
 }
@@ -174,8 +174,8 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, batch *model
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	var event model.APMEvent
-	mapToSpanModel(&root.Span, input.Metadata, input.RequestTime, input.Config, &event)
+	event := input.Base
+	mapToSpanModel(&root.Span, input.RequestTime, input.Config, &event)
 	*batch = append(*batch, event)
 	return err
 }
@@ -193,13 +193,13 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	var event model.APMEvent
-	mapToTransactionModel(&root.Transaction, input.Metadata, input.RequestTime, input.Config, &event)
+	event := input.Base
+	mapToTransactionModel(&root.Transaction, input.RequestTime, input.Config, &event)
 	*batch = append(*batch, event)
 	return err
 }
 
-func decodeMetadata(decFn func(d decoder.Decoder, m *metadataRoot) error, d decoder.Decoder, out *model.Metadata) error {
+func decodeMetadata(decFn func(d decoder.Decoder, m *metadataRoot) error, d decoder.Decoder, out *model.APMEvent) error {
 	m := fetchMetadataRoot()
 	defer releaseMetadataRoot(m)
 	var err error
@@ -237,16 +237,16 @@ func mapToClientModel(from contextRequest, out *model.Client) {
 	}
 }
 
-func mapToErrorModel(from *errorEvent, metadata model.Metadata, reqTime time.Time, config modeldecoder.Config, event *model.APMEvent) {
-	out := &model.Error{Metadata: metadata}
+func mapToErrorModel(from *errorEvent, reqTime time.Time, config modeldecoder.Config, event *model.APMEvent) {
+	out := &model.Error{}
 	event.Error = out
 
 	// overwrite metadata with event specific information
-	mapToServiceModel(from.Context.Service, &out.Metadata.Service)
-	mapToAgentModel(from.Context.Service.Agent, &out.Metadata.Agent)
-	overwriteUserInMetadataModel(from.Context.User, &out.Metadata)
-	mapToUserAgentModel(from.Context.Request.Headers, &out.Metadata.UserAgent)
-	mapToClientModel(from.Context.Request, &out.Metadata.Client)
+	mapToServiceModel(from.Context.Service, &event.Service)
+	mapToAgentModel(from.Context.Service.Agent, &event.Agent)
+	overwriteUserInMetadataModel(from.Context.User, event)
+	mapToUserAgentModel(from.Context.Request.Headers, &event.UserAgent)
+	mapToClientModel(from.Context.Request, &event.Client)
 
 	// map errorEvent specific data
 
@@ -387,7 +387,7 @@ func mapToExceptionModel(from errorException, out *model.Exception) {
 	}
 }
 
-func mapToMetadataModel(from *metadata, out *model.Metadata) {
+func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 	// Cloud
 	if from.Cloud.Account.ID.IsSet() {
 		out.Cloud.AccountID = from.Cloud.Account.ID.Val
@@ -533,8 +533,8 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 	}
 }
 
-func mapToMetricsetModel(from *metricset, metadata model.Metadata, reqTime time.Time, config modeldecoder.Config, event *model.APMEvent) {
-	out := &model.Metricset{Metadata: metadata}
+func mapToMetricsetModel(from *metricset, reqTime time.Time, config modeldecoder.Config, event *model.APMEvent) {
+	out := &model.Metricset{}
 	event.Metricset = out
 
 	// set timestamp from input or requst time
@@ -729,8 +729,8 @@ func mapToAgentModel(from contextServiceAgent, out *model.Agent) {
 	}
 }
 
-func mapToSpanModel(from *span, metadata model.Metadata, reqTime time.Time, config modeldecoder.Config, event *model.APMEvent) {
-	out := &model.Span{Metadata: metadata}
+func mapToSpanModel(from *span, reqTime time.Time, config modeldecoder.Config, event *model.APMEvent) {
+	out := &model.Span{}
 	event.Span = out
 
 	// map span specific data
@@ -878,8 +878,8 @@ func mapToSpanModel(from *span, metadata model.Metadata, reqTime time.Time, conf
 		out.Message = &message
 	}
 	if from.Context.Service.IsSet() {
-		mapToServiceModel(from.Context.Service, &out.Metadata.Service)
-		mapToAgentModel(from.Context.Service.Agent, &out.Metadata.Agent)
+		mapToServiceModel(from.Context.Service, &event.Service)
+		mapToAgentModel(from.Context.Service.Agent, &event.Agent)
 	}
 	if len(from.Context.Tags) > 0 {
 		out.Labels = modeldecoderutil.NormalizeLabelValues(from.Context.Tags.Clone())
@@ -991,16 +991,16 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 	}
 }
 
-func mapToTransactionModel(from *transaction, metadata model.Metadata, reqTime time.Time, config modeldecoder.Config, event *model.APMEvent) {
-	out := &model.Transaction{Metadata: metadata}
+func mapToTransactionModel(from *transaction, reqTime time.Time, config modeldecoder.Config, event *model.APMEvent) {
+	out := &model.Transaction{}
 	event.Transaction = out
 
 	// overwrite metadata with event specific information
-	mapToServiceModel(from.Context.Service, &out.Metadata.Service)
-	mapToAgentModel(from.Context.Service.Agent, &out.Metadata.Agent)
-	overwriteUserInMetadataModel(from.Context.User, &out.Metadata)
-	mapToUserAgentModel(from.Context.Request.Headers, &out.Metadata.UserAgent)
-	mapToClientModel(from.Context.Request, &out.Metadata.Client)
+	mapToServiceModel(from.Context.Service, &event.Service)
+	mapToAgentModel(from.Context.Service.Agent, &event.Agent)
+	overwriteUserInMetadataModel(from.Context.User, event)
+	mapToUserAgentModel(from.Context.Request.Headers, &event.UserAgent)
+	mapToClientModel(from.Context.Request, &event.Client)
 
 	// map transaction specific data
 
@@ -1176,7 +1176,7 @@ func mapToUserAgentModel(from nullable.HTTPHeader, out *model.UserAgent) {
 	}
 }
 
-func overwriteUserInMetadataModel(from user, out *model.Metadata) {
+func overwriteUserInMetadataModel(from user, out *model.APMEvent) {
 	// overwrite User specific values if set
 	// either populate all User fields or none to avoid mixing
 	// different user data
