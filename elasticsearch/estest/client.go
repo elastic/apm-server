@@ -59,7 +59,11 @@ func NewTransport(t *testing.T, statusCode int, esBody map[string]interface{}) *
 				require.NoError(t, err)
 				body = ioutil.NopCloser(bytes.NewReader(resp))
 			}
-			return &http.Response{StatusCode: statusCode, Body: body}, nil
+			return &http.Response{
+				StatusCode: statusCode,
+				Body:       body,
+				Header:     http.Header{"X-Elastic-Product": []string{"Elasticsearch"}},
+			}, nil
 		},
 	}
 }
