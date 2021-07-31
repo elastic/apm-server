@@ -102,11 +102,11 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		// do not overwrite client.ip if already set in metadata
 		ip := modeldecodertest.DefaultValues().IP
 		assert.Equal(t, ip, out.Client.IP, out.Client.IP.String())
-		// metadata labels and event labels should not be merged
-		mLabels := common.MapStr{"init0": "init", "init1": "init", "init2": "init"}
-		tLabels := common.MapStr{"overwritten0": "overwritten", "overwritten1": "overwritten"}
-		assert.Equal(t, mLabels, out.Labels)
-		assert.Equal(t, tLabels, out.Transaction.Labels)
+		assert.Equal(t, common.MapStr{
+			"init0": "init", "init1": "init", "init2": "init",
+			"overwritten0": "overwritten", "overwritten1": "overwritten",
+		}, out.Labels)
+		//assert.Equal(t, tLabels, out.Transaction.Labels)
 		exceptions := func(key string) bool { return false }
 		modeldecodertest.AssertStructValues(t, &out.Service, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, &out.User, exceptions, otherVal)

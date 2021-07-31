@@ -207,6 +207,7 @@ func (c *Consumer) convertSpan(
 	// therefore start a transaction whenever span kind == consumer.
 	name := otelSpan.Name()
 	event := baseEvent
+	event.Labels = initEventLabels(event.Labels)
 	if root || otelSpan.Kind() == pdata.SpanKindServer || otelSpan.Kind() == pdata.SpanKindConsumer {
 		event.Transaction = &model.Transaction{
 			ID:        spanID,
@@ -231,9 +232,13 @@ func (c *Consumer) convertSpan(
 		}
 		translateSpan(otelSpan, &event)
 	}
+	if len(event.Labels) == 0 {
+		event.Labels = nil
+	}
 	*out = append(*out, event)
 
 	events := otelSpan.Events()
+	event.Labels = baseEvent.Labels // only copy common labels to span events
 	for i := 0; i < events.Len(); i++ {
 		convertSpanEvent(logger, events.At(i), event, timeDelta, out)
 	}
@@ -245,7 +250,6 @@ func translateTransaction(
 	event *model.APMEvent,
 ) {
 	isJaeger := strings.HasPrefix(event.Agent.Name, "Jaeger")
-	labels := make(common.MapStr)
 
 	var (
 		netHostName string
@@ -289,11 +293,11 @@ func translateTransaction(
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pdata.AttributeValueTypeArray:
-			labels[k] = ifaceAnyValueArray(v.ArrayVal())
+			event.Labels[k] = ifaceAnyValueArray(v.ArrayVal())
 		case pdata.AttributeValueTypeBool:
-			labels[k] = v.BoolVal()
+			event.Labels[k] = v.BoolVal()
 		case pdata.AttributeValueTypeDouble:
-			labels[k] = v.DoubleVal()
+			event.Labels[k] = v.DoubleVal()
 		case pdata.AttributeValueTypeInt:
 			switch kDots {
 			case conventions.AttributeHTTPStatusCode:
@@ -307,7 +311,7 @@ func translateTransaction(
 			case "rpc.grpc.status_code":
 				event.Transaction.Result = codes.Code(v.IntVal()).String()
 			default:
-				labels[k] = v.IntVal()
+				event.Labels[k] = v.IntVal()
 			}
 		case pdata.AttributeValueTypeString:
 			stringval := truncate(v.StringVal())
@@ -335,7 +339,7 @@ func translateTransaction(
 			case "http.protocol":
 				if !strings.HasPrefix(stringval, "HTTP/") {
 					// Unexpected, store in labels for debugging.
-					labels[k] = stringval
+					event.Labels[k] = stringval
 					break
 				}
 				stringval = strings.TrimPrefix(stringval, "HTTP/")
@@ -410,7 +414,7 @@ func translateTransaction(
 				component = stringval
 				fallthrough
 			default:
-				labels[k] = stringval
+				event.Labels[k] = stringval
 			}
 		}
 		return true
@@ -480,7 +484,7 @@ func translateTransaction(
 
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate span metrics.
-		parseSamplerAttributes(samplerType, samplerParam, &event.Transaction.RepresentativeCount, labels)
+		parseSamplerAttributes(samplerType, samplerParam, &event.Transaction.RepresentativeCount, event.Labels)
 	} else {
 		event.Transaction.RepresentativeCount = 1
 	}
@@ -492,12 +496,10 @@ func translateTransaction(
 		event.Service.Framework.Name = name
 		event.Service.Framework.Version = library.Version()
 	}
-	event.Transaction.Labels = labels
 }
 
 func translateSpan(span pdata.Span, event *model.APMEvent) {
 	isJaeger := strings.HasPrefix(event.Agent.Name, "Jaeger")
-	labels := make(common.MapStr)
 
 	var (
 		netPeerName string
@@ -542,11 +544,11 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pdata.AttributeValueTypeArray:
-			labels[k] = ifaceAnyValueArray(v.ArrayVal())
+			event.Labels[k] = ifaceAnyValueArray(v.ArrayVal())
 		case pdata.AttributeValueTypeBool:
-			labels[k] = v.BoolVal()
+			event.Labels[k] = v.BoolVal()
 		case pdata.AttributeValueTypeDouble:
-			labels[k] = v.DoubleVal()
+			event.Labels[k] = v.DoubleVal()
 		case pdata.AttributeValueTypeInt:
 			switch kDots {
 			case "http.status_code":
@@ -558,7 +560,7 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 			case "rpc.grpc.status_code":
 				// Ignored for spans.
 			default:
-				labels[k] = v.IntVal()
+				event.Labels[k] = v.IntVal()
 			}
 		case pdata.AttributeValueTypeString:
 			stringval := truncate(v.StringVal())
@@ -661,7 +663,7 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 				component = stringval
 				fallthrough
 			default:
-				labels[k] = stringval
+				event.Labels[k] = stringval
 			}
 		}
 		return true
@@ -795,12 +797,10 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate transaction metrics.
-		parseSamplerAttributes(samplerType, samplerParam, &event.Span.RepresentativeCount, labels)
+		parseSamplerAttributes(samplerType, samplerParam, &event.Span.RepresentativeCount, event.Labels)
 	} else {
 		event.Span.RepresentativeCount = 1
 	}
-
-	event.Span.Labels = labels
 }
 
 func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, representativeCount *float64, labels common.MapStr) {

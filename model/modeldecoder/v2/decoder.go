@@ -254,9 +254,11 @@ func mapToErrorModel(from *errorEvent, reqTime time.Time, config modeldecoder.Co
 		if config.Experimental && from.Context.Experimental.IsSet() {
 			out.Experimental = from.Context.Experimental.Val
 		}
-		// metadata labels and context labels are merged only in the output model
 		if len(from.Context.Tags) > 0 {
-			out.Labels = modeldecoderutil.NormalizeLabelValues(from.Context.Tags.Clone())
+			event.Labels = modeldecoderutil.MergeLabels(
+				event.Labels,
+				modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
+			)
 		}
 		if from.Context.Request.IsSet() {
 			out.HTTP = &model.HTTP{Request: &model.HTTPRequest{}}
@@ -569,7 +571,10 @@ func mapToMetricsetModel(from *metricset, reqTime time.Time, config modeldecoder
 	}
 
 	if len(from.Tags) > 0 {
-		out.Labels = modeldecoderutil.NormalizeLabelValues(from.Tags.Clone())
+		event.Labels = modeldecoderutil.MergeLabels(
+			event.Labels,
+			modeldecoderutil.NormalizeLabelValues(from.Tags),
+		)
 	}
 	// map span information
 	if from.Span.Subtype.IsSet() {
@@ -882,7 +887,10 @@ func mapToSpanModel(from *span, reqTime time.Time, config modeldecoder.Config, e
 		mapToAgentModel(from.Context.Service.Agent, &event.Agent)
 	}
 	if len(from.Context.Tags) > 0 {
-		out.Labels = modeldecoderutil.NormalizeLabelValues(from.Context.Tags.Clone())
+		event.Labels = modeldecoderutil.MergeLabels(
+			event.Labels,
+			modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
+		)
 	}
 	if from.Duration.IsSet() {
 		out.Duration = from.Duration.Val
@@ -1011,9 +1019,11 @@ func mapToTransactionModel(from *transaction, reqTime time.Time, config modeldec
 		if config.Experimental && from.Context.Experimental.IsSet() {
 			out.Experimental = from.Context.Experimental.Val
 		}
-		// metadata labels and context labels are merged when transforming the output model
 		if len(from.Context.Tags) > 0 {
-			out.Labels = modeldecoderutil.NormalizeLabelValues(from.Context.Tags.Clone())
+			event.Labels = modeldecoderutil.MergeLabels(
+				event.Labels,
+				modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
+			)
 		}
 		if from.Context.Message.IsSet() {
 			out.Message = &model.Message{}

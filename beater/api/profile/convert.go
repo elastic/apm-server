@@ -25,8 +25,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/google/pprof/profile"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
 	"github.com/elastic/apm-server/model"
 )
 
@@ -88,11 +86,11 @@ func appendProfileSampleBatch(pp *profile.Profile, baseEvent model.APMEvent, out
 			}
 		}
 
-		var labels common.MapStr
+		event := baseEvent
+		event.Labels = event.Labels.Clone()
 		if n := len(sample.Label); n > 0 {
-			labels = make(common.MapStr, n)
 			for k, v := range sample.Label {
-				labels[k] = v
+				event.Labels[k] = v
 			}
 		}
 
@@ -101,13 +99,11 @@ func appendProfileSampleBatch(pp *profile.Profile, baseEvent model.APMEvent, out
 			values[valueFieldNames[i]] = value
 		}
 
-		event := baseEvent
 		event.ProfileSample = &model.ProfileSample{
 			Timestamp: profileTimestamp,
 			Duration:  time.Duration(pp.DurationNanos),
 			ProfileID: profileID,
 			Stack:     stack,
-			Labels:    labels,
 			Values:    values,
 		}
 		out = append(out, event)

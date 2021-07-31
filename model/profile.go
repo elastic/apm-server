@@ -41,7 +41,6 @@ type ProfileSample struct {
 	Duration  time.Duration
 	ProfileID string
 	Stack     []ProfileSampleStackframe
-	Labels    common.MapStr
 	Values    map[string]int64
 }
 

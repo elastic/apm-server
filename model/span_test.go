@@ -91,7 +91,6 @@ func TestSpanTransform(t *testing.T) {
 				RepresentativeCount: 5,
 				Duration:            1.20,
 				Stacktrace:          Stacktrace{{AbsPath: path}},
-				Labels:              common.MapStr{"label_a": 12},
 				HTTP: &HTTP{
 					Request:  &HTTPRequest{Method: method},
 					Response: &HTTPResponse{StatusCode: statusCode},
@@ -152,7 +151,6 @@ func TestSpanTransform(t *testing.T) {
 						"compression_strategy": "exact_match",
 					},
 				},
-				"labels":      common.MapStr{"label_a": 12},
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},
 				"timestamp":   common.MapStr{"us": timestampUs},
 				"trace":       common.MapStr{"id": traceID},

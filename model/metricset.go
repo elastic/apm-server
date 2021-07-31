@@ -68,11 +68,6 @@ type Metricset struct {
 	// metrics are associated.
 	Span MetricsetSpan
 
-	// Labels holds arbitrary labels to apply to the metrics.
-	//
-	// These labels override any with the same names in Metadata.Labels.
-	Labels common.MapStr
-
 	// Samples holds the metrics in the set.
 	Samples map[string]MetricsetSample
 

@@ -46,10 +46,6 @@ func TestProfileSampleTransform(t *testing.T) {
 			Function: "bar",
 			Filename: "bar.go",
 		}},
-		Labels: common.MapStr{
-			"key1": []string{"abc", "def"},
-			"key2": []string{"ghi"},
-		},
 		Values: map[string]int64{
 			"samples.count":     1,
 			"cpu.ns":            123,
@@ -67,10 +63,6 @@ func TestProfileSampleTransform(t *testing.T) {
 		Timestamp: timestamp,
 		Fields: common.MapStr{
 			"processor": common.MapStr{"event": "profile", "name": "profile"},
-			"labels": common.MapStr{
-				"key1": []string{"abc", "def"},
-				"key2": []string{"ghi"},
-			},
 			"profile": common.MapStr{
 				"id":                "profile_id",
 				"duration":          int64(10 * time.Second),

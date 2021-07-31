@@ -52,7 +52,6 @@ type Error struct {
 
 	GroupingKey string
 	Culprit     string
-	Labels      common.MapStr
 	Page        *Page
 	HTTP        *HTTP
 	URL         *URL

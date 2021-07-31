@@ -47,10 +47,6 @@ type APMEvent struct {
 	Network    Network
 
 	// Labels holds labels to apply to the event.
-	//
-	// TODO(axw) remove Transaction.Labels, Span.Labels, etc.,
-	// and merge into these labels at decoding time. There can
-	// be only one.
 	Labels common.MapStr
 
 	Transaction   *Transaction
@@ -62,23 +58,17 @@ type APMEvent struct {
 
 func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat.Event {
 	var event beat.Event
-	var eventLabels common.MapStr
 	switch {
 	case e.Transaction != nil:
 		event = e.Transaction.toBeatEvent()
-		eventLabels = e.Transaction.Labels
 	case e.Span != nil:
 		event = e.Span.toBeatEvent(ctx)
-		eventLabels = e.Span.Labels
 	case e.Metricset != nil:
 		event = e.Metricset.toBeatEvent()
-		eventLabels = e.Metricset.Labels
 	case e.Error != nil:
 		event = e.Error.toBeatEvent(ctx)
-		eventLabels = e.Error.Labels
 	case e.ProfileSample != nil:
 		event = e.ProfileSample.toBeatEvent()
-		eventLabels = e.ProfileSample.Labels
 	default:
 		return out
 	}
@@ -104,6 +94,6 @@ func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat
 	fields.maybeSetMapStr("kubernetes", e.Kubernetes.fields())
 	fields.maybeSetMapStr("cloud", e.Cloud.fields())
 	fields.maybeSetMapStr("network", e.Network.fields())
-	maybeSetLabels(fields, e.Labels, eventLabels)
+	fields.maybeSetMapStr("labels", sanitizeLabels(e.Labels))
 	return append(out, event)
 }

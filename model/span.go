@@ -56,7 +56,6 @@ type Span struct {
 	Duration   float64
 	Stacktrace Stacktrace
 	Sync       *bool
-	Labels     common.MapStr
 
 	Type    string
 	Subtype string

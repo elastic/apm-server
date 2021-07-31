@@ -66,7 +66,6 @@ func TestMetricset(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Labels:    common.MapStr{"a_b": "a.b.value"},
 				Timestamp: timestamp,
 				Samples: map[string]MetricsetSample{
 					"a.counter":  {Value: 612},
@@ -75,7 +74,6 @@ func TestMetricset(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"processor":  common.MapStr{"event": "metric", "name": "metric"},
-				"labels":     common.MapStr{"a_b": "a.b.value"},
 				"a.counter":  612.0,
 				"some.gauge": 9.16,
 			},

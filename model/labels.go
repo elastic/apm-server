@@ -23,31 +23,20 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-// If either or both globalLabels/eventLabels is non-empty, set a "labels"
-// field in out to the combination of the labels.
-//
 // Label keys are sanitized, replacing the reserved characters '.', '*' and '"'
-// with '_'. Event-specific labels take precedence over global labels.
-// Null-valued labels are omitted.
-func maybeSetLabels(out *mapStr, globalLabels, eventLabels common.MapStr) {
-	n := len(globalLabels) + len(eventLabels)
-	if n == 0 {
-		return
-	}
-	combined := make(common.MapStr, n)
-	for k, v := range globalLabels {
+// with '_'. Null-valued labels are omitted.
+func sanitizeLabels(labels common.MapStr) common.MapStr {
+	for k, v := range labels {
 		if v == nil {
+			delete(labels, k)
 			continue
 		}
-		combined[sanitizeLabelKey(k)] = v
-	}
-	for k, v := range eventLabels {
-		if v == nil {
-			continue
+		if k2 := sanitizeLabelKey(k); k != k2 {
+			delete(labels, k)
+			labels[k2] = v
 		}
-		combined[sanitizeLabelKey(k)] = v
 	}
-	out.set("labels", combined)
+	return labels
 }
 
 func sanitizeLabelKey(k string) string {

@@ -160,10 +160,8 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		User:      User{ID: id, Name: name},
 		UserAgent: UserAgent{Original: userAgent},
 		Client:    Client{IP: net.ParseIP(ip)},
-		Labels:    common.MapStr{"a": true},
 		Transaction: &Transaction{
 			Timestamp: timestamp,
-			Labels:    common.MapStr{"a": "b"},
 			Page:      &Page{URL: &URL{Original: url}, Referer: referer},
 			HTTP:      &HTTP{Request: &request, Response: &response},
 			URL:       &URL{Original: url},
@@ -211,9 +209,8 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			},
 			"message": common.MapStr{"queue": common.MapStr{"name": "routeUser"}},
 		},
-		"event":  common.MapStr{"outcome": ""},
-		"labels": common.MapStr{"a": "b"},
-		"url":    common.MapStr{"original": url},
+		"event": common.MapStr{"outcome": ""},
+		"url":   common.MapStr{"original": url},
 		"http": common.MapStr{
 			"request":  common.MapStr{"method": "post", "referrer": referer},
 			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": []string{"text/html"}}},

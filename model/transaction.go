@@ -58,7 +58,6 @@ type Transaction struct {
 	Page           *Page
 	HTTP           *HTTP
 	URL            *URL
-	Labels         common.MapStr
 	Custom         common.MapStr
 	UserExperience *UserExperience
 	Session        TransactionSession

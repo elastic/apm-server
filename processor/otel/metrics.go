@@ -46,7 +46,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
@@ -108,6 +107,12 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 		m.Timestamp = m.Timestamp.Add(timeDelta)
 		event := baseEvent
 		event.Metricset = m.Metricset
+		if n := len(m.labels); n > 0 {
+			event.Labels = initEventLabels(event.Labels)
+			for _, label := range m.labels {
+				event.Labels[label.key] = label.value
+			}
+		}
 		*out = append(*out, event)
 	}
 	if unsupported > 0 {
@@ -351,12 +356,6 @@ func (ms *metricsets) upsertOne(timestamp time.Time, name string, labels []strin
 		m = (*ms)[i].Metricset
 	} else {
 		m = &model.Metricset{Timestamp: timestamp, Samples: make(map[string]model.MetricsetSample)}
-		if len(labels) > 0 {
-			m.Labels = make(common.MapStr, len(labels))
-			for _, label := range labels {
-				m.Labels[label.key] = label.value
-			}
-		}
 		head := (*ms)[:i]
 		tail := append([]metricset{{Metricset: m, labels: labels}}, (*ms)[i:]...)
 		*ms = append(head, tail...)

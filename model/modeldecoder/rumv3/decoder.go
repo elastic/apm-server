@@ -199,9 +199,11 @@ func mapToErrorModel(from *errorEvent, reqTime time.Time, event *model.APMEvent)
 
 	// map errorEvent specific data
 	if from.Context.IsSet() {
-		// metadata labels and context labels are merged only in the output model
 		if len(from.Context.Tags) > 0 {
-			out.Labels = modeldecoderutil.NormalizeLabelValues(from.Context.Tags.Clone())
+			event.Labels = modeldecoderutil.MergeLabels(
+				event.Labels,
+				modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
+			)
 		}
 		if from.Context.Request.IsSet() {
 			out.HTTP = &model.HTTP{Request: &model.HTTPRequest{}}
@@ -421,7 +423,10 @@ func mapToMetricsetModel(from *metricset, reqTime time.Time, event *model.APMEve
 	}
 
 	if len(from.Tags) > 0 {
-		out.Labels = modeldecoderutil.NormalizeLabelValues(from.Tags.Clone())
+		event.Labels = modeldecoderutil.MergeLabels(
+			event.Labels,
+			modeldecoderutil.NormalizeLabelValues(from.Tags),
+		)
 	}
 	// map span information
 	if from.Span.Subtype.IsSet() {
@@ -599,7 +604,10 @@ func mapToSpanModel(from *span, reqTime time.Time, event *model.APMEvent) {
 		}
 	}
 	if len(from.Context.Tags) > 0 {
-		out.Labels = modeldecoderutil.NormalizeLabelValues(from.Context.Tags.Clone())
+		event.Labels = modeldecoderutil.MergeLabels(
+			event.Labels,
+			modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
+		)
 	}
 	if from.Duration.IsSet() {
 		out.Duration = from.Duration.Val
@@ -702,9 +710,11 @@ func mapToTransactionModel(from *transaction, reqTime time.Time, event *model.AP
 		if len(from.Context.Custom) > 0 {
 			out.Custom = modeldecoderutil.NormalizeLabelValues(from.Context.Custom.Clone())
 		}
-		// metadata labels and context labels are merged when transforming the output model
 		if len(from.Context.Tags) > 0 {
-			out.Labels = modeldecoderutil.NormalizeLabelValues(from.Context.Tags.Clone())
+			event.Labels = modeldecoderutil.MergeLabels(
+				event.Labels,
+				modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
+			)
 		}
 		if from.Context.Request.IsSet() {
 			out.HTTP = &model.HTTP{Request: &model.HTTPRequest{}}
