@@ -161,10 +161,10 @@ func TestConsumeMetrics(t *testing.T) {
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
 	assert.Equal(t, []model.APMEvent{{
-		Agent:   agent,
-		Service: service,
+		Agent:     agent,
+		Service:   service,
+		Timestamp: timestamp0,
 		Metricset: &model.Metricset{
-			Timestamp: timestamp0,
 			Samples: map[string]model.MetricsetSample{
 				"int_gauge_metric": {Value: 1, Type: "gauge"},
 				"gauge_metric":     {Value: 5, Type: "gauge"},
@@ -183,21 +183,21 @@ func TestConsumeMetrics(t *testing.T) {
 			},
 		},
 	}, {
-		Agent:   agent,
-		Service: service,
+		Agent:     agent,
+		Service:   service,
+		Timestamp: timestamp1,
 		Metricset: &model.Metricset{
-			Timestamp: timestamp1,
 			Samples: map[string]model.MetricsetSample{
 				"int_gauge_metric": {Value: 3, Type: "gauge"},
 				"gauge_metric":     {Value: 7, Type: "gauge"},
 			},
 		},
 	}, {
-		Agent:   agent,
-		Service: service,
-		Labels:  common.MapStr{"k": "v"},
+		Agent:     agent,
+		Service:   service,
+		Labels:    common.MapStr{"k": "v"},
+		Timestamp: timestamp1,
 		Metricset: &model.Metricset{
-			Timestamp: timestamp1,
 			Samples: map[string]model.MetricsetSample{
 				"int_gauge_metric": {Value: 2, Type: "gauge"},
 				"gauge_metric":     {Value: 6, Type: "gauge"},
@@ -206,22 +206,22 @@ func TestConsumeMetrics(t *testing.T) {
 			},
 		},
 	}, {
-		Agent:   agent,
-		Service: service,
-		Labels:  common.MapStr{"k": "v2"},
+		Agent:     agent,
+		Service:   service,
+		Labels:    common.MapStr{"k": "v2"},
+		Timestamp: timestamp1,
 		Metricset: &model.Metricset{
-			Timestamp: timestamp1,
 			Samples: map[string]model.MetricsetSample{
 				"int_gauge_metric": {Value: 4, Type: "gauge"},
 				"gauge_metric":     {Value: 8, Type: "gauge"},
 			},
 		},
 	}, {
-		Agent:   agent,
-		Service: service,
-		Labels:  common.MapStr{"k2": "v"},
+		Agent:     agent,
+		Service:   service,
+		Labels:    common.MapStr{"k2": "v"},
+		Timestamp: timestamp1,
 		Metricset: &model.Metricset{
-			Timestamp: timestamp1,
 			Samples: map[string]model.MetricsetSample{
 				"int_sum_metric": {Value: 11, Type: "counter"},
 				"sum_metric":     {Value: 14, Type: "counter"},
@@ -267,10 +267,10 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
 	assert.Equal(t, []model.APMEvent{{
-		Agent:   agent,
-		Service: service,
+		Agent:     agent,
+		Service:   service,
+		Timestamp: timestamp,
 		Metricset: &model.Metricset{
-			Timestamp: timestamp,
 			Samples: map[string]model.MetricsetSample{
 				"jvm.memory.heap.used": {
 					Type:  "gauge",
@@ -279,11 +279,11 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 			},
 		},
 	}, {
-		Agent:   agent,
-		Service: service,
-		Labels:  common.MapStr{"gc": "G1 Young Generation"},
+		Agent:     agent,
+		Service:   service,
+		Labels:    common.MapStr{"gc": "G1 Young Generation"},
+		Timestamp: timestamp,
 		Metricset: &model.Metricset{
-			Timestamp: timestamp,
 			Samples: map[string]model.MetricsetSample{
 				"runtime.jvm.gc.time": {
 					Type:  "counter",
@@ -296,11 +296,11 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 			},
 		},
 	}, {
-		Agent:   agent,
-		Service: service,
-		Labels:  common.MapStr{"name": "G1 Young Generation"},
+		Agent:     agent,
+		Service:   service,
+		Labels:    common.MapStr{"name": "G1 Young Generation"},
+		Timestamp: timestamp,
 		Metricset: &model.Metricset{
-			Timestamp: timestamp,
 			Samples: map[string]model.MetricsetSample{
 				"jvm.gc.time": {
 					Type:  "counter",
@@ -313,11 +313,11 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 			},
 		},
 	}, {
-		Agent:   agent,
-		Service: service,
-		Labels:  common.MapStr{"area": "heap", "type": "used"},
+		Agent:     agent,
+		Service:   service,
+		Labels:    common.MapStr{"area": "heap", "type": "used"},
+		Timestamp: timestamp,
 		Metricset: &model.Metricset{
-			Timestamp: timestamp,
 			Samples: map[string]model.MetricsetSample{
 				"runtime.jvm.memory.area": {
 					Type:  "gauge",
@@ -361,7 +361,7 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 
 	events, _ := transformMetrics(t, metrics)
 	require.Len(t, events, 1)
-	assert.InDelta(t, now.Add(dataPointOffset).Unix(), events[0].Metricset.Timestamp.Unix(), allowedError)
+	assert.InDelta(t, now.Add(dataPointOffset).Unix(), events[0].Timestamp.Unix(), allowedError)
 }
 
 func TestMetricsLogging(t *testing.T) {

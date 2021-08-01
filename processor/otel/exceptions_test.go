@@ -111,15 +111,15 @@ Caused by: LowLevelException
 	service, agent := languageOnlyMetadata("java")
 	transactionEvent, errorEvents := transformTransactionSpanEvents(t, "java", exceptionEvent1, exceptionEvent2)
 	assert.Equal(t, []model.APMEvent{{
-		Service: service,
-		Agent:   agent,
+		Service:   service,
+		Agent:     agent,
+		Timestamp: timestamp,
 		Error: &model.Error{
 			TraceID:            transactionEvent.Transaction.TraceID,
 			ParentID:           transactionEvent.Transaction.ID,
 			TransactionID:      transactionEvent.Transaction.ID,
 			TransactionType:    transactionEvent.Transaction.Type,
 			TransactionSampled: newBool(true),
-			Timestamp:          timestamp,
 			Exception: &model.Exception{
 				Type:    "java.net.ConnectException.OSError",
 				Message: "Division by zero",
@@ -158,15 +158,15 @@ Caused by: LowLevelException
 			},
 		},
 	}, {
-		Service: service,
-		Agent:   agent,
+		Service:   service,
+		Agent:     agent,
+		Timestamp: timestamp,
 		Error: &model.Error{
 			TraceID:            transactionEvent.Transaction.TraceID,
 			ParentID:           transactionEvent.Transaction.ID,
 			TransactionID:      transactionEvent.Transaction.ID,
 			TransactionType:    transactionEvent.Transaction.Type,
 			TransactionSampled: newBool(true),
-			Timestamp:          timestamp,
 			Exception: &model.Exception{
 				Type:    "HighLevelException",
 				Message: "MidLevelException: LowLevelException",
@@ -314,15 +314,15 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 
 	service, agent := languageOnlyMetadata("COBOL")
 	assert.Equal(t, model.APMEvent{
-		Service: service,
-		Agent:   agent,
+		Service:   service,
+		Agent:     agent,
+		Timestamp: timestamp,
 		Error: &model.Error{
 			TraceID:            transactionEvent.Transaction.TraceID,
 			ParentID:           transactionEvent.Transaction.ID,
 			TransactionID:      transactionEvent.Transaction.ID,
 			TransactionType:    transactionEvent.Transaction.Type,
 			TransactionSampled: newBool(true),
-			Timestamp:          timestamp,
 			Exception: &model.Exception{
 				Type:    "the_type",
 				Message: "the_message",

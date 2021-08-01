@@ -198,7 +198,6 @@ func (c *Consumer) convertSpan(
 	if endTime.After(startTime) {
 		durationMillis = endTime.Sub(startTime).Seconds() * 1000
 	}
-	timestamp := startTime.Add(timeDelta)
 
 	// Message consumption results in either a transaction or a span based
 	// on whether the consumption is active or passive. Otel spans
@@ -208,27 +207,26 @@ func (c *Consumer) convertSpan(
 	name := otelSpan.Name()
 	event := baseEvent
 	event.Labels = initEventLabels(event.Labels)
+	event.Timestamp = startTime.Add(timeDelta)
 	if root || otelSpan.Kind() == pdata.SpanKindServer || otelSpan.Kind() == pdata.SpanKindConsumer {
 		event.Transaction = &model.Transaction{
-			ID:        spanID,
-			ParentID:  parentID,
-			TraceID:   traceID,
-			Timestamp: timestamp,
-			Duration:  durationMillis,
-			Name:      name,
-			Sampled:   true,
-			Outcome:   spanStatusOutcome(otelSpan.Status()),
+			ID:       spanID,
+			ParentID: parentID,
+			TraceID:  traceID,
+			Duration: durationMillis,
+			Name:     name,
+			Sampled:  true,
+			Outcome:  spanStatusOutcome(otelSpan.Status()),
 		}
 		translateTransaction(otelSpan, otelLibrary, &event)
 	} else {
 		event.Span = &model.Span{
-			ID:        spanID,
-			ParentID:  parentID,
-			TraceID:   traceID,
-			Timestamp: timestamp,
-			Duration:  durationMillis,
-			Name:      name,
-			Outcome:   spanStatusOutcome(otelSpan.Status()),
+			ID:       spanID,
+			ParentID: parentID,
+			TraceID:  traceID,
+			Duration: durationMillis,
+			Name:     name,
+			Outcome:  spanStatusOutcome(otelSpan.Status()),
 		}
 		translateSpan(otelSpan, &event)
 	}
@@ -823,7 +821,7 @@ func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, repr
 
 func convertSpanEvent(
 	logger *logp.Logger,
-	event pdata.SpanEvent,
+	spanEvent pdata.SpanEvent,
 	parent model.APMEvent, // either span or transaction
 	timeDelta time.Duration,
 	out *model.Batch,
@@ -831,7 +829,7 @@ func convertSpanEvent(
 	var e *model.Error
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
 	if isJaeger {
-		e = convertJaegerErrorSpanEvent(logger, event)
+		e = convertJaegerErrorSpanEvent(logger, spanEvent)
 	} else {
 		// Translate exception span events to errors.
 		//
@@ -839,14 +837,14 @@ func convertSpanEvent(
 		//
 		// TODO(axw) we don't currently support arbitrary events, we only look
 		// for exceptions and convert those to Elastic APM error events.
-		if event.Name() != "exception" {
+		if spanEvent.Name() != "exception" {
 			// Per OpenTelemetry semantic conventions:
 			//   `The name of the event MUST be "exception"`
 			return
 		}
 		var exceptionEscaped bool
 		var exceptionMessage, exceptionStacktrace, exceptionType string
-		event.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+		spanEvent.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
 			switch k {
 			case conventions.AttributeExceptionMessage:
 				exceptionMessage = v.StringVal()
@@ -866,10 +864,7 @@ func convertSpanEvent(
 			//   - exception.message`
 			return
 		}
-		timestamp := event.Timestamp().AsTime()
-		timestamp = timestamp.Add(timeDelta)
 		e = convertOpenTelemetryExceptionSpanEvent(
-			timestamp,
 			exceptionType, exceptionMessage, exceptionStacktrace,
 			exceptionEscaped, parent.Service.Language.Name,
 		)
@@ -877,6 +872,7 @@ func convertSpanEvent(
 	if e != nil {
 		event := parent
 		event.Error = e
+		event.Timestamp = spanEvent.Timestamp().AsTime().Add(timeDelta)
 		if parent.Transaction != nil {
 			event.Transaction = nil
 			addTransactionCtxToErr(parent.Transaction, event.Error)
@@ -931,9 +927,7 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *mo
 		logger.Debugf("Cannot convert span event (name=%q) into elastic apm error: %v", event.Name())
 		return nil
 	}
-	e := &model.Error{
-		Timestamp: event.Timestamp().AsTime(),
-	}
+	e := &model.Error{}
 	if logMessage != "" {
 		e.Log = &model.Log{Message: logMessage}
 	}
