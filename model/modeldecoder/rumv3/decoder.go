@@ -119,7 +119,7 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 		return modeldecoder.NewValidationErr(err)
 	}
 	event := input.Base
-	mapToErrorModel(&root.Error, input.RequestTime, &event)
+	mapToErrorModel(&root.Error, &event)
 	*batch = append(*batch, event)
 	return nil
 }
@@ -137,7 +137,7 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *
 		return modeldecoder.NewValidationErr(err)
 	}
 	event := input.Base
-	mapToMetricsetModel(&root.Metricset, input.RequestTime, &event)
+	mapToMetricsetModel(&root.Metricset, &event)
 	*batch = append(*batch, event)
 	return nil
 }
@@ -157,12 +157,12 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	}
 
 	transaction := input.Base
-	mapToTransactionModel(&root.Transaction, input.RequestTime, &transaction)
+	mapToTransactionModel(&root.Transaction, &transaction)
 	*batch = append(*batch, transaction)
 
 	for _, m := range root.Transaction.Metricsets {
 		metricset := input.Base
-		mapToMetricsetModel(&m, input.RequestTime, &metricset)
+		mapToMetricsetModel(&m, &metricset)
 		metricset.Metricset.Transaction.Name = transaction.Transaction.Name
 		metricset.Metricset.Transaction.Type = transaction.Transaction.Type
 		*batch = append(*batch, metricset)
@@ -171,7 +171,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	offset := len(*batch)
 	for _, s := range root.Transaction.Spans {
 		span := input.Base
-		mapToSpanModel(&s, input.RequestTime, &span)
+		mapToSpanModel(&s, &span)
 		span.Span.TransactionID = transaction.Transaction.ID
 		span.Span.TraceID = transaction.Transaction.TraceID
 		*batch = append(*batch, span)
@@ -187,7 +187,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	return nil
 }
 
-func mapToErrorModel(from *errorEvent, reqTime time.Time, event *model.APMEvent) {
+func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 	out := &model.Error{}
 	event.Error = out
 
@@ -273,10 +273,8 @@ func mapToErrorModel(from *errorEvent, reqTime time.Time, event *model.APMEvent)
 	if from.ParentID.IsSet() {
 		out.ParentID = from.ParentID.Val
 	}
-	if from.Timestamp.Val.IsZero() {
-		out.Timestamp = reqTime
-	} else {
-		out.Timestamp = from.Timestamp.Val
+	if !from.Timestamp.Val.IsZero() {
+		event.Timestamp = from.Timestamp.Val
 	}
 	if from.TraceID.IsSet() {
 		out.TraceID = from.TraceID.Val
@@ -385,12 +383,9 @@ func mapToMetadataModel(m *metadata, out *model.APMEvent) {
 	}
 }
 
-func mapToMetricsetModel(from *metricset, reqTime time.Time, event *model.APMEvent) {
+func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 	out := &model.Metricset{}
 	event.Metricset = out
-
-	// set timestamp from requst time
-	out.Timestamp = reqTime
 
 	// map samples information
 	if from.Samples.IsSet() {
@@ -518,7 +513,7 @@ func mapToAgentModel(from contextServiceAgent, out *model.Agent) {
 	}
 }
 
-func mapToSpanModel(from *span, reqTime time.Time, event *model.APMEvent) {
+func mapToSpanModel(from *span, event *model.APMEvent) {
 	out := &model.Span{}
 	event.Span = out
 
@@ -648,10 +643,13 @@ func mapToSpanModel(from *span, reqTime time.Time, event *model.APMEvent) {
 		out.Sync = &val
 	}
 	if from.Start.IsSet() {
-		// adjust timestamp to be reqTime + start
-		reqTime = reqTime.Add(time.Duration(float64(time.Millisecond) * from.Start.Val))
+		// event.Timestamp is initialized to the time the payload was
+		// received by apm-server; offset that by "start" milliseconds
+		// for RUM.
+		event.Timestamp = event.Timestamp.Add(
+			time.Duration(float64(time.Millisecond) * from.Start.Val),
+		)
 	}
-	out.Timestamp = reqTime
 }
 
 func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
@@ -695,7 +693,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 	}
 }
 
-func mapToTransactionModel(from *transaction, reqTime time.Time, event *model.APMEvent) {
+func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	out := &model.Transaction{}
 	event.Transaction = out
 
@@ -807,7 +805,6 @@ func mapToTransactionModel(from *transaction, reqTime time.Time, event *model.AP
 		started := from.SpanCount.Started.Val
 		out.SpanCount.Started = &started
 	}
-	out.Timestamp = reqTime
 	if from.TraceID.IsSet() {
 		out.TraceID = from.TraceID.Val
 	}

@@ -45,7 +45,8 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		now := time.Now()
 		defaultVal := modeldecodertest.DefaultValues()
 		_, eventBase := initializedInputMetadata(defaultVal)
-		input := modeldecoder.Input{RequestTime: now, Base: eventBase, Config: modeldecoder.Config{}}
+		eventBase.Timestamp = now
+		input := modeldecoder.Input{Base: eventBase, Config: modeldecoder.Config{}}
 		str := `{"metricset":{"timestamp":1599996822281000,"samples":{"a.b":{"value":2048}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch model.Batch
@@ -53,7 +54,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Metricset)
 		assert.Equal(t, map[string]model.MetricsetSample{"a.b": {Value: 2048}}, batch[0].Metricset.Samples)
-		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", batch[0].Metricset.Timestamp.String())
+		defaultVal.Update(time.Unix(1599996822, 281000000).UTC())
 		modeldecodertest.AssertStructValues(t, &batch[0], isMetadataException, defaultVal)
 
 		// invalid type
@@ -92,11 +93,11 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 	t.Run("metricset-values", func(t *testing.T) {
 		var input metricset
 		var out1, out2 model.APMEvent
-		reqTime := time.Now().Add(time.Second)
+		now := time.Now().Add(time.Second)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 
-		mapToMetricsetModel(&input, reqTime, modeldecoder.Config{}, &out1)
+		mapToMetricsetModel(&input, modeldecoder.Config{}, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Metricset, metadataExceptions, defaultVal)
 		defaultSamples := map[string]model.MetricsetSample{
@@ -124,18 +125,19 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		}
 		assert.Equal(t, defaultSamples, out1.Metricset.Samples)
 
-		// set Timestamp to requestTime if eventTime is zero
+		// leave Timestamp unmodified if eventTime is zero
+		out1.Timestamp = now
 		defaultVal.Update(time.Time{})
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToMetricsetModel(&input, reqTime, modeldecoder.Config{}, &out1)
-		defaultVal.Update(reqTime)
+		mapToMetricsetModel(&input, modeldecoder.Config{}, &out1)
+		defaultVal.Update(now)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Metricset, metadataExceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToMetricsetModel(&input, reqTime, modeldecoder.Config{}, &out2)
+		mapToMetricsetModel(&input, modeldecoder.Config{}, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Metricset, metadataExceptions, otherVal)
 		otherSamples := map[string]model.MetricsetSample{
 			otherVal.Str + "0": {

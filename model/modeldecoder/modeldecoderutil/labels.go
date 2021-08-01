@@ -23,7 +23,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-// CombineLabels merges eventLabels onto commonLabels. This is used for
+// MergeLabels merges eventLabels onto commonLabels. This is used for
 // combining event-specific labels onto (metadata) global labels.
 //
 // If commonLabels is non-nil, it is first cloned. If commonLabels
