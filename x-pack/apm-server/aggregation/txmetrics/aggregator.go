@@ -369,6 +369,7 @@ func makeMetricset(
 	timeseriesInstanceID.WriteString(fmt.Sprintf("%x", hash))
 
 	return model.APMEvent{
+		Timestamp:  ts,
 		Agent:      model.Agent{Name: key.agentName},
 		Container:  model.Container{ID: key.containerID},
 		Kubernetes: model.Kubernetes{PodName: key.kubernetesPodName},
@@ -381,8 +382,7 @@ func makeMetricset(
 			Hostname: key.hostname,
 		},
 		Metricset: &model.Metricset{
-			Timestamp: ts,
-			Name:      metricsetName,
+			Name: metricsetName,
 			Event: model.MetricsetEventCategorization{
 				Outcome: key.transactionOutcome,
 			},
