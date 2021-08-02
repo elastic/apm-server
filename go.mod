@@ -32,6 +32,7 @@ require (
 	github.com/jaegertracing/jaeger v1.24.0
 	github.com/josephspurrier/goversioninfo v1.2.0 // indirect
 	github.com/json-iterator/go v1.1.11
+	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/magefile/mage v1.11.0
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
@@ -69,6 +70,7 @@ require (
 	google.golang.org/genproto v0.0.0-20210726200206-e7812ac95cc0 // indirect
 	google.golang.org/grpc v1.39.0
 	gopkg.in/yaml.v2 v2.4.0
+	gotest.tools/gotestsum v1.7.0
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
 )
 
