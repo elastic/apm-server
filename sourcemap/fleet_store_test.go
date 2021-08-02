@@ -22,7 +22,6 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -34,8 +33,6 @@ import (
 
 func TestFleetFetch(t *testing.T) {
 	var (
-		hasAuth       = true
-		mu            sync.Mutex
 		apikey        = "supersecret"
 		name          = "webapp"
 		version       = "1.0.0"
@@ -46,10 +43,10 @@ func TestFleetFetch(t *testing.T) {
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, sourceMapPath, r.URL.Path)
-		auth := r.Header.Get("Authorization")
-		mu.Lock()
-		hasAuth = hasAuth && (auth == "ApiKey "+apikey)
-		mu.Unlock()
+		if auth := r.Header.Get("Authorization"); auth != "ApiKey "+apikey {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 		// zlib compress
 		wr := zlib.NewWriter(w)
 		defer wr.Close()
@@ -84,7 +81,6 @@ func TestFleetFetch(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Contains(t, gotRes, "webpack:///bundle.js")
-	assert.True(t, hasAuth)
 }
 
 func TestFailedAndSuccessfulFleetHostsFetch(t *testing.T) {
