@@ -357,8 +357,8 @@ Lambda layer for OpenTelemetry]. For example, `arn:aws:lambda:eu-west-1:90192057
 ** `AWS_LAMBDA_EXEC_WRAPPER="/opt/otel-handler"` for wrapping handlers proxied through the API Gateway. See https://aws-otel.github.io/docs/getting-started/lambda/lambda-js#enable-auto-instrumentation-for-your-lambda-function[enable auto instrumentation for your lambda-function].
 ** `OTEL_PROPAGATORS="tracecontext"` to override the default setting that also enables X-Ray headers causing interferences between OpenTelemetry and X-Ray
 ** `OPENTELEMETRY_COLLECTOR_CONFIG_FILE="/var/task/opentelemetry-collector.yaml"` to specify the path to your OpenTelemetry Collector configuration
-** `OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:55681/v1/traces"` this environment variable is required to be set until [ pull request](https://github.com/open-telemetry/opentelemetry-js/pull/2331) is merged and released.
-** `OTEL_TRACES_SAMPLER="AlwaysOn"` define the required sampler strategy if it is not sent from the caller. Note that `Always_on` can potentially create a very large amount of data, so in production set the correct sampling configuration, as per [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling).
+** `OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:55681/v1/traces"` this environment variable is required to be set until https://github.com/open-telemetry/opentelemetry-js/pull/2331[PR #2331] is merged and released.
+** `OTEL_TRACES_SAMPLER="AlwaysOn"` define the required sampler strategy if it is not sent from the caller. Note that `Always_on` can potentially create a very large amount of data, so in production set the correct sampling configuration, as per the https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling[specification].
         
 
 [[open-telemetry-aws-lambda-elastic-nodejs-terraform]]
