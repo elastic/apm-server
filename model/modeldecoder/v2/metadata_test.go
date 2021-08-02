@@ -145,6 +145,7 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		// enhanced data that are never set by the modeldecoder
 		defaultVal := modeldecodertest.DefaultValues()
 		input, out := initializedInputMetadata(defaultVal)
+		out.Timestamp = defaultVal.Time
 
 		// iterate through model and assert values are set
 		modeldecodertest.AssertStructValues(t, &out, isMetadataException, defaultVal)
@@ -157,6 +158,7 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		otherVal.Update(defaultVal.IP)
 		input.Reset()
 		modeldecodertest.SetStructValues(&input, otherVal)
+		out.Timestamp = otherVal.Time
 		mapToMetadataModel(&input, &out)
 		modeldecodertest.AssertStructValues(t, &out, isMetadataException, otherVal)
 
@@ -172,6 +174,7 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		var out2 model.APMEvent
 		defaultVal := modeldecodertest.DefaultValues()
 		input, out1 := initializedInputMetadata(defaultVal)
+		out1.Timestamp = defaultVal.Time
 
 		// iterate through model and assert values are set
 		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)
@@ -185,6 +188,7 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.Reset()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
+		out2.Timestamp = otherVal.Time
 		out2.Host.IP, out2.Client.IP = defaultVal.IP, defaultVal.IP
 		modeldecodertest.AssertStructValues(t, &out2, isMetadataException, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)

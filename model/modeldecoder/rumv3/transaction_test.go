@@ -47,7 +47,8 @@ func TestDecodeNestedTransaction(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now()
 		eventBase := initializedMetadata()
-		input := modeldecoder.Input{RequestTime: now, Base: eventBase}
+		eventBase.Timestamp = now
+		input := modeldecoder.Input{Base: eventBase}
 		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"xds":{"v":2048}}},{"sa":{"ysc":{"v":5}}}]}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch model.Batch
@@ -57,29 +58,32 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		require.NotNil(t, batch[1].Metricset)
 		require.NotNil(t, batch[2].Metricset)
 		require.NotNil(t, batch[3].Span)
-		for _, event := range batch {
-			modeldecodertest.AssertStructValues(t, &event, metadataExceptions(), modeldecodertest.DefaultValues())
-		}
 
 		assert.Equal(t, "request", batch[0].Transaction.Type)
 		// fall back to request time
-		assert.Equal(t, now, batch[0].Transaction.Timestamp)
+		assert.Equal(t, now, batch[0].Timestamp)
 
 		// ensure nested metricsets are decoded
 		assert.Equal(t, map[string]model.MetricsetSample{"transaction.duration.sum.us": {Value: 2048}}, batch[1].Metricset.Samples)
-		m := batch[2].Metricset
-		assert.Equal(t, map[string]model.MetricsetSample{"span.self_time.count": {Value: 5}}, m.Samples)
-		assert.Equal(t, "tr-a", m.Transaction.Name)
-		assert.Equal(t, "request", m.Transaction.Type)
-		assert.Equal(t, now, m.Timestamp)
+		assert.Equal(t, map[string]model.MetricsetSample{"span.self_time.count": {Value: 5}}, batch[2].Metricset.Samples)
+		assert.Equal(t, "tr-a", batch[2].Metricset.Transaction.Name)
+		assert.Equal(t, "request", batch[2].Metricset.Transaction.Type)
+		assert.Equal(t, now, batch[2].Timestamp)
 
 		// ensure nested spans are decoded
-		sp := batch[3].Span
 		start := time.Duration(20 * 1000 * 1000)
-		assert.Equal(t, now.Add(start), sp.Timestamp) //add start to timestamp
-		assert.Equal(t, "100", sp.TransactionID)
-		assert.Equal(t, "1", sp.TraceID)
-		assert.Equal(t, "100", sp.ParentID)
+		assert.Equal(t, now.Add(start), batch[3].Timestamp) //add start to timestamp
+		assert.Equal(t, "100", batch[3].Span.TransactionID)
+		assert.Equal(t, "1", batch[3].Span.TraceID)
+		assert.Equal(t, "100", batch[3].Span.ParentID)
+
+		for _, event := range batch {
+			modeldecodertest.AssertStructValues(
+				t, &event,
+				metadataExceptions("Timestamp"), // timestamp checked above
+				modeldecodertest.DefaultValues(),
+			)
+		}
 
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
 		require.Error(t, err)
@@ -88,7 +92,8 @@ func TestDecodeNestedTransaction(t *testing.T) {
 
 	t.Run("decode-marks", func(t *testing.T) {
 		now := time.Now()
-		input := modeldecoder.Input{RequestTime: now}
+		eventBase := model.APMEvent{Timestamp: now}
+		input := modeldecoder.Input{Base: eventBase}
 		str := `{"x":{"d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"k":{"a":{"dc":0.1,"di":0.2,"ds":0.3,"de":0.4,"fb":0.5,"fp":0.6,"lp":0.7,"long":0.8},"nt":{"fs":0.1,"ls":0.2,"le":0.3,"cs":0.4,"ce":0.5,"qs":0.6,"rs":0.7,"re":0.8,"dl":0.9,"di":0.11,"ds":0.21,"de":0.31,"dc":0.41,"es":0.51,"ee":6,"long":0.99},"long":{"long":0.1}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch model.Batch
@@ -146,17 +151,16 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		out := initializedMetadata()
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToTransactionModel(&input, time.Now(), &out)
+		mapToTransactionModel(&input, &out)
 
 		// user-agent should be set to context request header values
 		assert.Equal(t, "d, e", out.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
 		assert.Equal(t, localhostIP, out.Client.IP, out.Client.IP.String())
-		// metadata labels and transaction labels should not be merged
-		mLabels := common.MapStr{"init0": "init", "init1": "init", "init2": "init"}
-		assert.Equal(t, mLabels, out.Labels)
-		tLabels := common.MapStr{"overwritten0": "overwritten", "overwritten1": "overwritten"}
-		assert.Equal(t, tLabels, out.Transaction.Labels)
+		assert.Equal(t, common.MapStr{
+			"init0": "init", "init1": "init", "init2": "init",
+			"overwritten0": "overwritten", "overwritten1": "overwritten",
+		}, out.Labels)
 		// service values should be set
 		modeldecodertest.AssertStructValues(t, &out.Service, metadataExceptions("Node", "Agent.EphemeralID"), otherVal)
 		// user values should be set
@@ -168,7 +172,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out model.APMEvent
 		input.Context.User.Email.Set("test@user.com")
-		mapToTransactionModel(&input, time.Now(), &out)
+		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "test@user.com", out.User.Email)
 		assert.Zero(t, out.User.ID)
 		assert.Zero(t, out.User.Name)
@@ -199,18 +203,20 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out1, out2 model.APMEvent
 		reqTime := time.Now().Add(time.Second)
+		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToTransactionModel(&input, reqTime, &out1)
+		mapToTransactionModel(&input, &out1)
 		input.Reset()
-		defaultVal.Update(reqTime) //for rumv3 the timestamp is always set from the request time
+		defaultVal.Update(reqTime) //for rumv3 the timestamp is always set from the base event
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
+		out2.Timestamp = reqTime
 		otherVal := modeldecodertest.NonDefaultValues()
-		otherVal.Update(reqTime) //for rumv3 the timestamp is always set from the request time
+		otherVal.Update(reqTime) //for rumv3 the timestamp is always set from the base event
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToTransactionModel(&input, reqTime, &out2)
+		mapToTransactionModel(&input, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Transaction, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 	})
@@ -261,20 +267,22 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input span
 		var out1, out2 model.APMEvent
 		reqTime := time.Now().Add(time.Second)
+		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToSpanModel(&input, reqTime, &out1)
+		mapToSpanModel(&input, &out1)
 		input.Reset()
 		defaultStart := time.Duration(defaultVal.Float * 1000 * 1000)
-		defaultVal.Update(reqTime.Add(defaultStart)) //for rumv3 the timestamp is always set from the request time
+		defaultVal.Update(reqTime.Add(defaultStart)) //for rumv3 the timestamp is always set from the base event
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
+		out2.Timestamp = reqTime
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToSpanModel(&input, reqTime, &out2)
+		mapToSpanModel(&input, &out2)
 		otherStart := time.Duration(otherVal.Float * 1000 * 1000)
-		otherVal.Update(reqTime.Add(otherStart)) //for rumv3 the timestamp is always set from the request time
+		otherVal.Update(reqTime.Add(otherStart)) //for rumv3 the timestamp is always set from the base event
 		modeldecodertest.AssertStructValues(t, out2.Span, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
 	})
@@ -286,22 +294,22 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		// set from input, ignore status code
 		input.Outcome.Set("failure")
 		input.Context.HTTP.StatusCode.Set(http.StatusPermanentRedirect)
-		mapToSpanModel(&input, time.Now(), &out)
+		mapToSpanModel(&input, &out)
 		assert.Equal(t, "failure", out.Span.Outcome)
 		// derive from span fields - success
 		input.Outcome.Reset()
 		input.Context.HTTP.StatusCode.Set(http.StatusPermanentRedirect)
-		mapToSpanModel(&input, time.Now(), &out)
+		mapToSpanModel(&input, &out)
 		assert.Equal(t, "success", out.Span.Outcome)
 		// derive from span fields - failure
 		input.Outcome.Reset()
 		input.Context.HTTP.StatusCode.Set(http.StatusBadRequest)
-		mapToSpanModel(&input, time.Now(), &out)
+		mapToSpanModel(&input, &out)
 		assert.Equal(t, "failure", out.Span.Outcome)
 		// derive from span fields - unknown
 		input.Outcome.Reset()
 		input.Context.HTTP.StatusCode.Reset()
-		mapToSpanModel(&input, time.Now(), &out)
+		mapToSpanModel(&input, &out)
 		assert.Equal(t, "unknown", out.Span.Outcome)
 	})
 
@@ -312,22 +320,22 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		// set from input, ignore status code
 		input.Outcome.Set("failure")
 		input.Context.Response.StatusCode.Set(http.StatusBadRequest)
-		mapToTransactionModel(&input, time.Now(), &out)
+		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "failure", out.Transaction.Outcome)
 		// derive from span fields - success
 		input.Outcome.Reset()
 		input.Context.Response.StatusCode.Set(http.StatusBadRequest)
-		mapToTransactionModel(&input, time.Now(), &out)
+		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "success", out.Transaction.Outcome)
 		// derive from span fields - failure
 		input.Outcome.Reset()
 		input.Context.Response.StatusCode.Set(http.StatusInternalServerError)
-		mapToTransactionModel(&input, time.Now(), &out)
+		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "failure", out.Transaction.Outcome)
 		// derive from span fields - unknown
 		input.Outcome.Reset()
 		input.Context.Response.StatusCode.Reset()
-		mapToTransactionModel(&input, time.Now(), &out)
+		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "unknown", out.Transaction.Outcome)
 	})
 
@@ -335,7 +343,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		input.Context.Page.URL.Set("https://my.site.test:9201")
 		var out model.APMEvent
-		mapToTransactionModel(&input, time.Now(), &out)
+		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "https://my.site.test:9201", out.Transaction.Page.URL.Full)
 		assert.Equal(t, "https://my.site.test:9201", out.Transaction.URL.Full)
 		assert.Equal(t, 9201, out.Transaction.Page.URL.Port)
@@ -346,7 +354,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		input.Context.Page.Referer.Set("https://my.site.test:9201")
 		var out model.APMEvent
-		mapToTransactionModel(&input, time.Now(), &out)
+		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "https://my.site.test:9201", out.Transaction.Page.Referer)
 		assert.Equal(t, "https://my.site.test:9201", out.Transaction.HTTP.Request.Referrer)
 	})
@@ -356,7 +364,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Context.Request.Headers.Set(http.Header{"a": []string{"b"}, "c": []string{"d", "e"}})
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out model.APMEvent
-		mapToTransactionModel(&input, time.Now(), &out)
+		mapToTransactionModel(&input, &out)
 		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.Transaction.HTTP.Request.Headers)
 		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.Transaction.HTTP.Response.Headers)
 	})
@@ -366,12 +374,12 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var out model.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 		input.Session.ID.Reset()
-		mapToTransactionModel(&input, time.Now(), &out)
+		mapToTransactionModel(&input, &out)
 		assert.Equal(t, model.TransactionSession{}, out.Transaction.Session)
 
 		input.Session.ID.Set("session_id")
 		input.Session.Sequence.Set(123)
-		mapToTransactionModel(&input, time.Now(), &out)
+		mapToTransactionModel(&input, &out)
 		assert.Equal(t, model.TransactionSession{
 			ID:       "session_id",
 			Sequence: 123,

@@ -90,7 +90,7 @@ func (f fauxFetcher) Fetch(_ context.Context, q Query) (Result, error) {
 
 type batchProcessor struct {
 	receivedc chan struct{}
-	received  []*model.Metricset
+	received  []model.APMEvent
 	mu        sync.Mutex
 }
 
@@ -98,7 +98,7 @@ func (p *batchProcessor) ProcessBatch(_ context.Context, b *model.Batch) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	for _, event := range *b {
-		p.received = append(p.received, event.Metricset)
+		p.received = append(p.received, event)
 	}
 	p.receivedc <- struct{}{}
 	return nil

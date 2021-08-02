@@ -44,7 +44,8 @@ func TestDecodeNestedMetricset(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now()
 		eventBase := initializedMetadata()
-		input := modeldecoder.Input{RequestTime: now, Base: eventBase}
+		eventBase.Timestamp = now
+		input := modeldecoder.Input{Base: eventBase}
 		str := `{"me":{"sa":{"xds":{"v":2048}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch model.Batch
@@ -52,8 +53,9 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Metricset)
 		assert.Equal(t, map[string]model.MetricsetSample{"transaction.duration.sum.us": {Value: 2048}}, batch[0].Metricset.Samples)
-		assert.Equal(t, now, batch[0].Metricset.Timestamp)
-		modeldecodertest.AssertStructValues(t, &batch[0], metadataExceptions(), modeldecodertest.DefaultValues())
+		defaultValues := modeldecodertest.DefaultValues()
+		defaultValues.Update(now)
+		modeldecodertest.AssertStructValues(t, &batch[0], metadataExceptions(), defaultValues)
 
 		// invalid type
 		err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
@@ -102,19 +104,21 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		var input metricset
 		var out1, out2 model.APMEvent
 		reqTime := time.Now().Add(time.Second)
+		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToMetricsetModel(&input, reqTime, &out1)
+		mapToMetricsetModel(&input, &out1)
 		input.Reset()
-		// metricset timestamp is always set to request time
+		// metricset timestamp is always set to base event timestamp
 		defaultVal.Update(reqTime)
 		modeldecodertest.AssertStructValues(t, out1.Metricset, exceptions, defaultVal)
 		assert.Equal(t, samples(defaultVal.Float), out1.Metricset.Samples)
 
 		// ensure memory is not shared by reusing input model
+		out2.Timestamp = reqTime
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToMetricsetModel(&input, reqTime, &out2)
+		mapToMetricsetModel(&input, &out2)
 		otherVal.Update(reqTime)
 		modeldecodertest.AssertStructValues(t, out2.Metricset, exceptions, otherVal)
 		assert.Equal(t, samples(otherVal.Float), out2.Metricset.Samples)

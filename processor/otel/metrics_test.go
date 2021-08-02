@@ -155,57 +155,79 @@ func TestConsumeMetrics(t *testing.T) {
 	metric.Summary().DataPoints().AppendEmpty()
 	expectDropped++
 
-	metricsets, stats := transformMetrics(t, metrics)
+	events, stats := transformMetrics(t, metrics)
 	assert.Equal(t, expectDropped, stats.UnsupportedMetricsDropped)
 
-	assert.Equal(t, []*model.Metricset{{
+	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
+	agent := model.Agent{Name: "otlp", Version: "unknown"}
+	assert.Equal(t, []model.APMEvent{{
+		Agent:     agent,
+		Service:   service,
 		Timestamp: timestamp0,
-		Samples: map[string]model.MetricsetSample{
-			"int_gauge_metric": {Value: 1, Type: "gauge"},
-			"gauge_metric":     {Value: 5, Type: "gauge"},
-			"int_sum_metric":   {Value: 9, Type: "counter"},
-			"sum_metric":       {Value: 12, Type: "counter"},
-			"histogram_metric": {
-				Type:   "histogram",
-				Counts: []int64{1, 1, 2, 3},
-				Values: []float64{-1, 0.5, 2.75, 3.5},
-			},
-			"int_histogram_metric": {
-				Type:   "histogram",
-				Counts: []int64{1, 2, 3},
-				Values: []float64{1.5, 2.5, 3},
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"int_gauge_metric": {Value: 1, Type: "gauge"},
+				"gauge_metric":     {Value: 5, Type: "gauge"},
+				"int_sum_metric":   {Value: 9, Type: "counter"},
+				"sum_metric":       {Value: 12, Type: "counter"},
+				"histogram_metric": {
+					Type:   "histogram",
+					Counts: []int64{1, 1, 2, 3},
+					Values: []float64{-1, 0.5, 2.75, 3.5},
+				},
+				"int_histogram_metric": {
+					Type:   "histogram",
+					Counts: []int64{1, 2, 3},
+					Values: []float64{1.5, 2.5, 3},
+				},
 			},
 		},
 	}, {
+		Agent:     agent,
+		Service:   service,
 		Timestamp: timestamp1,
-		Samples: map[string]model.MetricsetSample{
-			"int_gauge_metric": {Value: 3, Type: "gauge"},
-			"gauge_metric":     {Value: 7, Type: "gauge"},
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"int_gauge_metric": {Value: 3, Type: "gauge"},
+				"gauge_metric":     {Value: 7, Type: "gauge"},
+			},
 		},
 	}, {
-		Timestamp: timestamp1,
+		Agent:     agent,
+		Service:   service,
 		Labels:    common.MapStr{"k": "v"},
-		Samples: map[string]model.MetricsetSample{
-			"int_gauge_metric": {Value: 2, Type: "gauge"},
-			"gauge_metric":     {Value: 6, Type: "gauge"},
-			"int_sum_metric":   {Value: 10, Type: "counter"},
-			"sum_metric":       {Value: 13, Type: "counter"},
+		Timestamp: timestamp1,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"int_gauge_metric": {Value: 2, Type: "gauge"},
+				"gauge_metric":     {Value: 6, Type: "gauge"},
+				"int_sum_metric":   {Value: 10, Type: "counter"},
+				"sum_metric":       {Value: 13, Type: "counter"},
+			},
 		},
 	}, {
-		Timestamp: timestamp1,
+		Agent:     agent,
+		Service:   service,
 		Labels:    common.MapStr{"k": "v2"},
-		Samples: map[string]model.MetricsetSample{
-			"int_gauge_metric": {Value: 4, Type: "gauge"},
-			"gauge_metric":     {Value: 8, Type: "gauge"},
+		Timestamp: timestamp1,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"int_gauge_metric": {Value: 4, Type: "gauge"},
+				"gauge_metric":     {Value: 8, Type: "gauge"},
+			},
 		},
 	}, {
-		Timestamp: timestamp1,
+		Agent:     agent,
+		Service:   service,
 		Labels:    common.MapStr{"k2": "v"},
-		Samples: map[string]model.MetricsetSample{
-			"int_sum_metric": {Value: 11, Type: "counter"},
-			"sum_metric":     {Value: 14, Type: "counter"},
+		Timestamp: timestamp1,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"int_sum_metric": {Value: 11, Type: "counter"},
+				"sum_metric":     {Value: 14, Type: "counter"},
+			},
 		},
-	}}, metricsets)
+	}}, events)
 }
 
 func TestConsumeMetrics_JVM(t *testing.T) {
@@ -241,51 +263,69 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	addInt64Sum("runtime.jvm.gc.count", 2, map[string]string{"gc": "G1 Young Generation"})
 	addInt64Gauge("runtime.jvm.memory.area", 42, map[string]string{"area": "heap", "type": "used"})
 
-	metricsets, _ := transformMetrics(t, metrics)
-	assert.Equal(t, []*model.Metricset{{
+	events, _ := transformMetrics(t, metrics)
+	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
+	agent := model.Agent{Name: "otlp", Version: "unknown"}
+	assert.Equal(t, []model.APMEvent{{
+		Agent:     agent,
+		Service:   service,
 		Timestamp: timestamp,
-		Samples: map[string]model.MetricsetSample{
-			"jvm.memory.heap.used": {
-				Type:  "gauge",
-				Value: 42,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"jvm.memory.heap.used": {
+					Type:  "gauge",
+					Value: 42,
+				},
 			},
 		},
 	}, {
-		Timestamp: timestamp,
+		Agent:     agent,
+		Service:   service,
 		Labels:    common.MapStr{"gc": "G1 Young Generation"},
-		Samples: map[string]model.MetricsetSample{
-			"runtime.jvm.gc.time": {
-				Type:  "counter",
-				Value: 9,
-			},
-			"runtime.jvm.gc.count": {
-				Type:  "counter",
-				Value: 2,
+		Timestamp: timestamp,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"runtime.jvm.gc.time": {
+					Type:  "counter",
+					Value: 9,
+				},
+				"runtime.jvm.gc.count": {
+					Type:  "counter",
+					Value: 2,
+				},
 			},
 		},
 	}, {
-		Timestamp: timestamp,
+		Agent:     agent,
+		Service:   service,
 		Labels:    common.MapStr{"name": "G1 Young Generation"},
-		Samples: map[string]model.MetricsetSample{
-			"jvm.gc.time": {
-				Type:  "counter",
-				Value: 9,
-			},
-			"jvm.gc.count": {
-				Type:  "counter",
-				Value: 2,
+		Timestamp: timestamp,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"jvm.gc.time": {
+					Type:  "counter",
+					Value: 9,
+				},
+				"jvm.gc.count": {
+					Type:  "counter",
+					Value: 2,
+				},
 			},
 		},
 	}, {
-		Timestamp: timestamp,
+		Agent:     agent,
+		Service:   service,
 		Labels:    common.MapStr{"area": "heap", "type": "used"},
-		Samples: map[string]model.MetricsetSample{
-			"runtime.jvm.memory.area": {
-				Type:  "gauge",
-				Value: 42,
+		Timestamp: timestamp,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"runtime.jvm.memory.area": {
+					Type:  "gauge",
+					Value: 42,
+				},
 			},
 		},
-	}}, metricsets)
+	}}, events)
 }
 
 func TestConsumeMetricsExportTimestamp(t *testing.T) {
@@ -319,9 +359,9 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	dp.SetTimestamp(pdata.TimestampFromTime(exportedDataPointTimestamp))
 	dp.SetValue(1)
 
-	metricsets, _ := transformMetrics(t, metrics)
-	require.Len(t, metricsets, 1)
-	assert.InDelta(t, now.Add(dataPointOffset).Unix(), metricsets[0].Timestamp.Unix(), allowedError)
+	events, _ := transformMetrics(t, metrics)
+	require.Len(t, events, 1)
+	assert.InDelta(t, now.Add(dataPointOffset).Unix(), events[0].Timestamp.Unix(), allowedError)
 }
 
 func TestMetricsLogging(t *testing.T) {
@@ -339,7 +379,7 @@ func TestMetricsLogging(t *testing.T) {
 	}
 }
 
-func transformMetrics(t *testing.T, metrics pdata.Metrics) ([]*model.Metricset, otel.ConsumerStats) {
+func transformMetrics(t *testing.T, metrics pdata.Metrics) ([]model.APMEvent, otel.ConsumerStats) {
 	var batches []*model.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
 
@@ -347,11 +387,5 @@ func transformMetrics(t *testing.T, metrics pdata.Metrics) ([]*model.Metricset, 
 	err := consumer.ConsumeMetrics(context.Background(), metrics)
 	require.NoError(t, err)
 	require.Len(t, batches, 1)
-
-	batch := *batches[0]
-	metricsets := make([]*model.Metricset, len(batch))
-	for i, event := range batch {
-		metricsets[i] = event.Metricset
-	}
-	return metricsets, consumer.Stats()
+	return *batches[0], consumer.Stats()
 }
