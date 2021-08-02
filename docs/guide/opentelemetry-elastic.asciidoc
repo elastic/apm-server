@@ -313,13 +313,6 @@ NOTE: For a better startup time, we recommend using SDK-based instrumentation fo
 
 To instrument AWS Lambda Node.js functions, see https://aws-otel.github.io/docs/getting-started/lambda/lambda-js[AWS Distro for OpenTelemetry Lambda Support For JS].
 
-IMPORTANT: Due to a https://github.com/aws-observability/aws-otel-lambda/issues/118[limitation] in AWS Lambda Otel Layer for Node.js v0.19, you must create a trace in the calling invocation of the Node.js lambda functions. This is to force the sampling strategy to `sampled:true` passing a `traceparent` header with `sampled=true`. For example, with `-01` at the end of the value.
-
-To create a trace in the calling invocation of the Lambda function, use these or other methods that result in the `traceparent` header being added to the outgoing HTTP call:
-
-* If the caller is a web browser, instrument the caller using <<rum,Real User Monitoring (RUM)>> by enabling {apm-rum-ref}/distributed-tracing-guide.html[distributed tracing] on the RUM agent.
-* If the caller is an application, instrument the application with an OpenTelemetry or Elastic APM agent ensuring distributed tracing is enabled.
-
 The configuration of the OpenTelemetry Collector, with the definition of the Elastic Observability endpoint, can be added to the root directory of the Lambda binaries: `src/main/resources/opentelemetry-collector.yaml`.
 
 [source,yaml]
@@ -357,13 +350,16 @@ Configure the AWS Lambda Node.js function:
 
 * https://docs.aws.amazon.com/lambda/latest/dg/API_Layer.html[Function
 layer]: The latest https://aws-otel.github.io/docs/getting-started/lambda/lambda-js[AWS
-Lambda layer for OpenTelemetry]. For example, `arn:aws:lambda:eu-west-1:901920570463:layer:aws-otel-nodejs-ver-0-19-0:1`)
+Lambda layer for OpenTelemetry]. For example, `arn:aws:lambda:eu-west-1:901920570463:layer:aws-otel-nodejs-ver-0-23-0:1`)
 * https://docs.aws.amazon.com/lambda/latest/dg/API_TracingConfig.html[TracingConfig / Mode] set to `PassTrough`
 * https://docs.aws.amazon.com/lambda/latest/dg/API_FunctionConfiguration.html[FunctionConfiguration / Timeout] set to more than 10 seconds to support the cold start of the Lambda JS Runtime
 * Export the environment variables:
 ** `AWS_LAMBDA_EXEC_WRAPPER="/opt/otel-handler"` for wrapping handlers proxied through the API Gateway. See https://aws-otel.github.io/docs/getting-started/lambda/lambda-js#enable-auto-instrumentation-for-your-lambda-function[enable auto instrumentation for your lambda-function].
 ** `OTEL_PROPAGATORS="tracecontext"` to override the default setting that also enables X-Ray headers causing interferences between OpenTelemetry and X-Ray
 ** `OPENTELEMETRY_COLLECTOR_CONFIG_FILE="/var/task/opentelemetry-collector.yaml"` to specify the path to your OpenTelemetry Collector configuration
+** `OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:55681/v1/traces"` this environment variable is required to be set until [ pull request](https://github.com/open-telemetry/opentelemetry-js/pull/2331) is merged and released.
+** `OTEL_TRACES_SAMPLER="AlwaysOn"` define the required sampler strategy if it is not sent from the caller. Note that `Always_on` can potentially create a very large amount of data, so in production set the correct sampling configuration, as per [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling).
+        
 
 [[open-telemetry-aws-lambda-elastic-nodejs-terraform]]
 ===== Instrumenting AWS Lambda Node.js functions with Terraform
@@ -372,7 +368,7 @@ To manage the configuration of your AWS Lambda functions, we recommend using an 
 
 Here is an example of AWS Lambda Node.js function managed with Terraform and the https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function[AWS Provider / Lambda Functions]:
 
-* https://github.com/michaelhyatt/terraform-aws-nodejs-api-worker-otel/tree/v0.19[Sample Terraform code]
+* https://github.com/michaelhyatt/terraform-aws-nodejs-api-worker-otel/tree/v0.23[Sample Terraform code]
 
 [[elastic-open-telemetry-known-limitations]]
 ==== Limitations in 7.13
