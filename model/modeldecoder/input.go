@@ -18,18 +18,11 @@
 package modeldecoder
 
 import (
-	"time"
-
 	"github.com/elastic/apm-server/model"
 )
 
 // Input holds the input required for decoding an event.
 type Input struct {
-	// RequestTime is the time at which the event was received
-	// by the server. This is used to set the timestamp for
-	// events sent by RUM.
-	RequestTime time.Time
-
 	// Base holds the base for decoding events.
 	Base model.APMEvent
 

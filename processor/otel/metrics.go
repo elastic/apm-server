@@ -46,7 +46,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
@@ -105,9 +104,15 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 		}
 	}
 	for _, m := range ms {
-		m.Timestamp = m.Timestamp.Add(timeDelta)
 		event := baseEvent
 		event.Metricset = m.Metricset
+		event.Timestamp = m.timestamp.Add(timeDelta)
+		if n := len(m.labels); n > 0 {
+			event.Labels = initEventLabels(event.Labels)
+			for _, label := range m.labels {
+				event.Labels[label.key] = label.value
+			}
+		}
 		*out = append(*out, event)
 	}
 	if unsupported > 0 {
@@ -278,7 +283,8 @@ type metricsets []metricset
 
 type metricset struct {
 	*model.Metricset
-	labels []stringMapItem // sorted by key
+	timestamp time.Time
+	labels    []stringMapItem // sorted by key
 }
 
 type stringMapItem struct {
@@ -350,15 +356,13 @@ func (ms *metricsets) upsertOne(timestamp time.Time, name string, labels []strin
 	if i < len(*ms) && compareMetricsets((*ms)[i], timestamp, labels) == 0 {
 		m = (*ms)[i].Metricset
 	} else {
-		m = &model.Metricset{Timestamp: timestamp, Samples: make(map[string]model.MetricsetSample)}
-		if len(labels) > 0 {
-			m.Labels = make(common.MapStr, len(labels))
-			for _, label := range labels {
-				m.Labels[label.key] = label.value
-			}
-		}
+		m = &model.Metricset{Samples: make(map[string]model.MetricsetSample)}
 		head := (*ms)[:i]
-		tail := append([]metricset{{Metricset: m, labels: labels}}, (*ms)[i:]...)
+		tail := append([]metricset{{
+			Metricset: m,
+			timestamp: timestamp,
+			labels:    labels,
+		}}, (*ms)[i:]...)
 		*ms = append(head, tail...)
 	}
 	m.Samples[name] = sample
@@ -371,7 +375,7 @@ func (ms *metricsets) search(timestamp time.Time, labels []stringMapItem) int {
 }
 
 func compareMetricsets(ms metricset, timestamp time.Time, labels []stringMapItem) int {
-	if d := ms.Timestamp.Sub(timestamp); d < 0 {
+	if d := ms.timestamp.Sub(timestamp); d < 0 {
 		return -1
 	} else if d > 0 {
 		return 1

@@ -438,7 +438,7 @@ func TestDatabaseSpan(t *testing.T) {
 	assert.Equal(t, common.MapStr{
 		"db_connection_string": connectionString,
 		"net_transport":        "IP.TCP",
-	}, event.Span.Labels)
+	}, event.Labels)
 
 	assert.Equal(t, &model.Destination{
 		Address: "shopdb.example.com",
@@ -478,7 +478,7 @@ func TestRPCTransaction(t *testing.T) {
 	})
 	assert.Equal(t, "request", event.Transaction.Type)
 	assert.Equal(t, "Unavailable", event.Transaction.Result)
-	assert.Empty(t, event.Transaction.Labels)
+	assert.Empty(t, event.Labels)
 	assert.Equal(t, model.Client{
 		Domain: "peer_name",
 		IP:     net.ParseIP("10.20.30.40"),
@@ -497,7 +497,7 @@ func TestRPCSpan(t *testing.T) {
 	})
 	assert.Equal(t, "external", event.Span.Type)
 	assert.Equal(t, "grpc", event.Span.Subtype)
-	assert.Empty(t, event.Span.Labels)
+	assert.Empty(t, event.Labels)
 	assert.Equal(t, &model.Destination{
 		Address: "10.20.30.40",
 		Port:    123,
@@ -520,7 +520,7 @@ func TestMessagingTransaction(t *testing.T) {
 		s.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
 	})
 	assert.Equal(t, "messaging", event.Transaction.Type)
-	assert.Empty(t, event.Transaction.Labels)
+	assert.Empty(t, event.Labels)
 	assert.Equal(t, &model.Message{
 		QueueName: "myQueue",
 	}, event.Transaction.Message)
@@ -538,7 +538,7 @@ func TestMessagingSpan(t *testing.T) {
 	assert.Equal(t, "messaging", event.Span.Type)
 	assert.Equal(t, "kafka", event.Span.Subtype)
 	assert.Equal(t, "send", event.Span.Action)
-	assert.Empty(t, event.Span.Labels)
+	assert.Empty(t, event.Labels)
 	assert.Equal(t, &model.Destination{
 		Address: "10.20.30.40",
 		Port:    123,
@@ -590,7 +590,7 @@ func TestArrayLabels(t *testing.T) {
 	assert.Equal(t, common.MapStr{
 		"bool_array":   []interface{}{false, true},
 		"string_array": []interface{}{"string1", "string2"},
-	}, txEvent.Transaction.Labels)
+	}, txEvent.Labels)
 
 	spanEvent := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{
 		"string_array": stringArray,
@@ -599,7 +599,7 @@ func TestArrayLabels(t *testing.T) {
 	assert.Equal(t, common.MapStr{
 		"bool_array":   []interface{}{false, true},
 		"string_array": []interface{}{"string1", "string2"},
-	}, spanEvent.Span.Labels)
+	}, spanEvent.Labels)
 }
 
 func TestConsumeTracesExportTimestamp(t *testing.T) {
@@ -656,9 +656,9 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	require.Len(t, batch, 3)
 
 	// Give some leeway for one event, and check other events' timestamps relative to that one.
-	assert.InDelta(t, now.Add(transactionOffset).Unix(), batch[0].Transaction.Timestamp.Unix(), allowedError)
-	assert.Equal(t, spanOffset-transactionOffset, batch[1].Span.Timestamp.Sub(batch[0].Transaction.Timestamp))
-	assert.Equal(t, exceptionOffset-transactionOffset, batch[2].Error.Timestamp.Sub(batch[0].Transaction.Timestamp))
+	assert.InDelta(t, now.Add(transactionOffset).Unix(), batch[0].Timestamp.Unix(), allowedError)
+	assert.Equal(t, spanOffset-transactionOffset, batch[1].Timestamp.Sub(batch[0].Timestamp))
+	assert.Equal(t, exceptionOffset-transactionOffset, batch[2].Timestamp.Sub(batch[0].Timestamp))
 
 	// Durations should be unaffected.
 	assert.Equal(t, float64(transactionDuration.Milliseconds()), batch[0].Transaction.Duration)

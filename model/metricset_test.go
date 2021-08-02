@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,7 +29,6 @@ import (
 )
 
 func TestMetricset(t *testing.T) {
-	timestamp := time.Now()
 	resource := "external-service"
 
 	const (
@@ -50,14 +48,14 @@ func TestMetricset(t *testing.T) {
 		Msg       string
 	}{
 		{
-			Metricset: &Metricset{Timestamp: timestamp},
+			Metricset: &Metricset{},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "metric", "name": "metric"},
 			},
 			Msg: "Payload with empty metric.",
 		},
 		{
-			Metricset: &Metricset{Timestamp: timestamp, Name: "raj"},
+			Metricset: &Metricset{Name: "raj"},
 			Output: common.MapStr{
 				"processor":      common.MapStr{"event": "metric", "name": "metric"},
 				"metricset.name": "raj",
@@ -66,8 +64,6 @@ func TestMetricset(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Labels:    common.MapStr{"a_b": "a.b.value"},
-				Timestamp: timestamp,
 				Samples: map[string]MetricsetSample{
 					"a.counter":  {Value: 612},
 					"some.gauge": {Value: 9.16},
@@ -75,7 +71,6 @@ func TestMetricset(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"processor":  common.MapStr{"event": "metric", "name": "metric"},
-				"labels":     common.MapStr{"a_b": "a.b.value"},
 				"a.counter":  612.0,
 				"some.gauge": 9.16,
 			},
@@ -83,7 +78,6 @@ func TestMetricset(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Timestamp:   timestamp,
 				Span:        MetricsetSpan{Type: spType, Subtype: spSubtype},
 				Transaction: MetricsetTransaction{Type: trType, Name: trName},
 				Samples: map[string]MetricsetSample{
@@ -102,8 +96,7 @@ func TestMetricset(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Timestamp: timestamp,
-				Event:     MetricsetEventCategorization{Outcome: eventOutcome},
+				Event: MetricsetEventCategorization{Outcome: eventOutcome},
 				Transaction: MetricsetTransaction{
 					Type:   trType,
 					Name:   trName,
@@ -146,7 +139,6 @@ func TestMetricset(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Timestamp: timestamp,
 				Span: MetricsetSpan{Type: spType, Subtype: spSubtype, DestinationService: DestinationService{
 					Resource: resource,
 				}},
@@ -168,7 +160,6 @@ func TestMetricset(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Timestamp: timestamp,
 				Samples: map[string]MetricsetSample{
 					"latency_histogram": {
 						Type:   "histogram",
@@ -212,12 +203,9 @@ func TestMetricset(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		event := APMEvent{
-			Metricset: test.Metricset,
-		}
+		event := APMEvent{Metricset: test.Metricset}
 		outputEvents := event.appendBeatEvent(context.Background(), nil)
 		require.Len(t, outputEvents, 1)
 		assert.Equal(t, test.Output, outputEvents[0].Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-		assert.Equal(t, timestamp, outputEvents[0].Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
 	}
 }

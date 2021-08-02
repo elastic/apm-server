@@ -18,14 +18,8 @@
 package model
 
 import (
-	"context"
-	"time"
-
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
-
-	"github.com/elastic/apm-server/utility"
 )
 
 var (
@@ -48,11 +42,8 @@ type Error struct {
 	TraceID       string
 	ParentID      string
 
-	Timestamp time.Time
-
 	GroupingKey string
 	Culprit     string
-	Labels      common.MapStr
 	Page        *Page
 	HTTP        *HTTP
 	URL         *URL
@@ -87,7 +78,7 @@ type Log struct {
 	Stacktrace   Stacktrace
 }
 
-func (e *Error) toBeatEvent(ctx context.Context) beat.Event {
+func (e *Error) fields() common.MapStr {
 	errorTransformations.Inc()
 
 	if e.Exception != nil {
@@ -97,11 +88,7 @@ func (e *Error) toBeatEvent(ctx context.Context) beat.Event {
 		addStacktraceCounter(e.Log.Stacktrace)
 	}
 
-	fields := mapStr{
-		"error":     e.fields(),
-		"processor": errorProcessorEntry,
-	}
-
+	fields := mapStr{"processor": errorProcessorEntry}
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
 	}
@@ -123,28 +110,19 @@ func (e *Error) toBeatEvent(ctx context.Context) beat.Event {
 	trace.maybeSetString("id", e.TraceID)
 	fields.maybeSetMapStr("parent", common.MapStr(parent))
 	fields.maybeSetMapStr("trace", common.MapStr(trace))
-	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
 
-	return beat.Event{
-		Fields:    common.MapStr(fields),
-		Timestamp: e.Timestamp,
-	}
-}
-
-func (e *Error) fields() common.MapStr {
-	var fields mapStr
-	fields.maybeSetString("id", e.ID)
-	fields.maybeSetMapStr("page", e.Page.Fields())
-
+	var errorFields mapStr
+	errorFields.maybeSetString("id", e.ID)
+	errorFields.maybeSetMapStr("page", e.Page.Fields())
 	exceptionChain := flattenExceptionTree(e.Exception)
 	if exception := e.exceptionFields(exceptionChain); len(exception) > 0 {
-		fields.set("exception", exception)
+		errorFields.set("exception", exception)
 	}
-	fields.maybeSetMapStr("log", e.logFields())
-
-	fields.maybeSetString("culprit", e.Culprit)
-	fields.maybeSetMapStr("custom", customFields(e.Custom))
-	fields.maybeSetString("grouping_key", e.GroupingKey)
+	errorFields.maybeSetMapStr("log", e.logFields())
+	errorFields.maybeSetString("culprit", e.Culprit)
+	errorFields.maybeSetMapStr("custom", customFields(e.Custom))
+	errorFields.maybeSetString("grouping_key", e.GroupingKey)
+	fields.set("error", common.MapStr(errorFields))
 	return common.MapStr(fields)
 }
 

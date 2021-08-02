@@ -19,7 +19,9 @@ package model
 
 import (
 	"context"
+	"time"
 
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -46,11 +48,10 @@ type APMEvent struct {
 	Cloud      Cloud
 	Network    Network
 
+	// Timestamp holds the event timestamp.
+	Timestamp time.Time
+
 	// Labels holds labels to apply to the event.
-	//
-	// TODO(axw) remove Transaction.Labels, Span.Labels, etc.,
-	// and merge into these labels at decoding time. There can
-	// be only one.
 	Labels common.MapStr
 
 	Transaction   *Transaction
@@ -61,30 +62,32 @@ type APMEvent struct {
 }
 
 func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat.Event {
-	var event beat.Event
-	var eventLabels common.MapStr
+	event := beat.Event{Timestamp: e.Timestamp}
 	switch {
 	case e.Transaction != nil:
-		event = e.Transaction.toBeatEvent()
-		eventLabels = e.Transaction.Labels
+		event.Fields = e.Transaction.fields()
 	case e.Span != nil:
-		event = e.Span.toBeatEvent(ctx)
-		eventLabels = e.Span.Labels
+		event.Fields = e.Span.fields()
 	case e.Metricset != nil:
-		event = e.Metricset.toBeatEvent()
-		eventLabels = e.Metricset.Labels
+		event.Fields = e.Metricset.fields()
 	case e.Error != nil:
-		event = e.Error.toBeatEvent(ctx)
-		eventLabels = e.Error.Labels
+		event.Fields = e.Error.fields()
 	case e.ProfileSample != nil:
-		event = e.ProfileSample.toBeatEvent()
-		eventLabels = e.ProfileSample.Labels
+		event.Fields = e.ProfileSample.fields()
 	default:
 		return out
 	}
 
+	// Set high resolution timestamp.
+	//
+	// TODO(axw) change @timestamp to use date_nanos, and remove this field.
+	if !e.Timestamp.IsZero() && (e.Transaction != nil || e.Span != nil || e.Error != nil) {
+		event.Fields["timestamp"] = utility.TimeAsMicros(e.Timestamp)
+	}
+
 	// Set fields common to all events.
 	fields := (*mapStr)(&event.Fields)
+	event.Timestamp = e.Timestamp
 	e.DataStream.setFields(fields)
 	fields.maybeSetMapStr("service", e.Service.Fields())
 	fields.maybeSetMapStr("agent", e.Agent.fields())
@@ -104,6 +107,6 @@ func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat
 	fields.maybeSetMapStr("kubernetes", e.Kubernetes.fields())
 	fields.maybeSetMapStr("cloud", e.Cloud.fields())
 	fields.maybeSetMapStr("network", e.Network.fields())
-	maybeSetLabels(fields, e.Labels, eventLabels)
+	fields.maybeSetMapStr("labels", sanitizeLabels(e.Labels))
 	return append(out, event)
 }
