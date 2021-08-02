@@ -24,8 +24,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/sourcemap/test"
-
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,7 +35,7 @@ func TestMapNilConsumer(t *testing.T) {
 }
 
 func TestMapNoMatch(t *testing.T) {
-	m, err := sourcemap.Parse("", []byte(test.ValidSourcemap))
+	m, err := sourcemap.Parse("", []byte(validSourcemap))
 	require.NoError(t, err)
 
 	// nothing found for lineno and colno
@@ -51,8 +49,6 @@ func TestMapNoMatch(t *testing.T) {
 }
 
 func TestMapMatch(t *testing.T) {
-	validSourcemap := test.ValidSourcemap
-
 	// Re-encode the sourcemap, adding carriage returns to the
 	// line endings in the source content.
 	decoded := make(map[string]interface{})
