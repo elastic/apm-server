@@ -32,18 +32,20 @@ type SetServiceNodeName struct{}
 
 // ProcessBatch sets a default service.node.name for events without one already set.
 func (SetServiceNodeName) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	return MetadataProcessorFunc(setServiceNodeName).ProcessBatch(ctx, b)
+	for i := range *b {
+		setServiceNodeName(&(*b)[i])
+	}
+	return nil
 }
 
-func setServiceNodeName(ctx context.Context, meta *model.Metadata) error {
-	if meta.Service.Node.Name != "" {
+func setServiceNodeName(event *model.APMEvent) {
+	if event.Service.Node.Name != "" {
 		// Already set.
-		return nil
+		return
 	}
-	nodeName := meta.Container.ID
+	nodeName := event.Container.ID
 	if nodeName == "" {
-		nodeName = meta.Host.Name
+		nodeName = event.Host.Name
 	}
-	meta.Service.Node.Name = nodeName
-	return nil
+	event.Service.Node.Name = nodeName
 }

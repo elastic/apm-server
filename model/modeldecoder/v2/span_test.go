@@ -45,13 +45,16 @@ func TestResetSpanOnRelease(t *testing.T) {
 
 func TestDecodeNestedSpan(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
-		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: time.Now(), Config: modeldecoder.Config{}}
+		defaultVal := modeldecodertest.DefaultValues()
+		_, eventBase := initializedInputMetadata(defaultVal)
+		input := modeldecoder.Input{RequestTime: time.Now(), Base: eventBase, Config: modeldecoder.Config{}}
 		str := `{"span":{"duration":100,"id":"a-b-c","name":"s","parent_id":"parent-123","trace_id":"trace-ab","type":"db","start":143}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch model.Batch
 		require.NoError(t, DecodeNestedSpan(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Span)
+		modeldecodertest.AssertStructValues(t, &batch[0], isMetadataException, defaultVal)
 
 		err := DecodeNestedSpan(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
 		require.Error(t, err)
@@ -68,18 +71,18 @@ func TestDecodeNestedSpan(t *testing.T) {
 
 func TestDecodeMapToSpanModel(t *testing.T) {
 	t.Run("set-metadata", func(t *testing.T) {
-		exceptions := func(key string) bool { return strings.HasPrefix(key, "System.Network") }
+		exceptions := func(key string) bool { return false }
 		var input span
-		var out model.APMEvent
-		mapToSpanModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
-		// iterate through metadata model and assert values are set
 		defaultVal := modeldecodertest.DefaultValues()
-		modeldecodertest.AssertStructValues(t, &out.Span.Metadata, exceptions, defaultVal)
+		modeldecodertest.SetStructValues(&input, defaultVal)
+		_, out := initializedInputMetadata(defaultVal)
+		mapToSpanModel(&input, time.Now(), modeldecoder.Config{}, &out)
+		modeldecodertest.AssertStructValues(t, &out.Service, exceptions, defaultVal)
 	})
 
 	t.Run("experimental", func(t *testing.T) {
 		// experimental enabled
-		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: time.Now(), Config: modeldecoder.Config{Experimental: true}}
+		input := modeldecoder.Input{RequestTime: time.Now(), Config: modeldecoder.Config{Experimental: true}}
 		str := `{"span":{"context":{"experimental":"exp"},"duration":100,"id":"a-b-c","name":"s","parent_id":"parent-123","trace_id":"trace-ab","type":"db","start":143}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch model.Batch
@@ -87,7 +90,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		assert.Equal(t, "exp", batch[0].Span.Experimental)
 
 		// experimental disabled
-		input = modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: time.Now(), Config: modeldecoder.Config{Experimental: false}}
+		input = modeldecoder.Input{RequestTime: time.Now(), Config: modeldecoder.Config{Experimental: false}}
 		str = `{"span":{"context":{"experimental":"exp"},"duration":100,"id":"a-b-c","name":"s","parent_id":"parent-123","trace_id":"trace-ab","type":"db","start":143}}`
 		dec = decoder.NewJSONDecoder(strings.NewReader(str))
 		batch = model.Batch{}
@@ -120,8 +123,6 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				return true
 			}
 			for _, s := range []string{
-				//tested in the 'metadata' test
-				"Metadata",
 				// stacktrace values are set when sourcemapping is applied
 				"Stacktrace.Original",
 				"Stacktrace.Sourcemap",
@@ -138,7 +139,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		reqTime := time.Now().Add(time.Second)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToSpanModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out1)
+		mapToSpanModel(&input, reqTime, modeldecoder.Config{Experimental: true}, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
 
@@ -146,7 +147,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToSpanModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out2)
+		mapToSpanModel(&input, reqTime, modeldecoder.Config{Experimental: true}, &out2)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out2.Span, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
@@ -159,22 +160,22 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		// set from input, ignore status code
 		input.Outcome.Set("failure")
 		input.Context.HTTP.StatusCode.Set(http.StatusPermanentRedirect)
-		mapToSpanModel(&input, model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		mapToSpanModel(&input, time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, "failure", out.Span.Outcome)
 		// derive from other fields - success
 		input.Outcome.Reset()
 		input.Context.HTTP.StatusCode.Set(http.StatusPermanentRedirect)
-		mapToSpanModel(&input, model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		mapToSpanModel(&input, time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, "success", out.Span.Outcome)
 		// derive from other fields - failure
 		input.Outcome.Reset()
 		input.Context.HTTP.StatusCode.Set(http.StatusBadRequest)
-		mapToSpanModel(&input, model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		mapToSpanModel(&input, time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, "failure", out.Span.Outcome)
 		// derive from other fields - unknown
 		input.Outcome.Reset()
 		input.Context.HTTP.StatusCode.Reset()
-		mapToSpanModel(&input, model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		mapToSpanModel(&input, time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, "unknown", out.Span.Outcome)
 	})
 
@@ -186,14 +187,14 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		defaultVal := modeldecodertest.DefaultValues()
 		defaultVal.Update(20.5, time.Time{})
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToSpanModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out)
+		mapToSpanModel(&input, reqTime, modeldecoder.Config{}, &out)
 		timestamp := reqTime.Add(time.Duration((20.5) * float64(time.Millisecond)))
 		assert.Equal(t, timestamp, out.Span.Timestamp)
 		// set requestTime if eventTime is zero and start is not set
 		out = model.APMEvent{}
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Start.Reset()
-		mapToSpanModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out)
+		mapToSpanModel(&input, reqTime, modeldecoder.Config{}, &out)
 		require.Nil(t, out.Span.Start)
 		assert.Equal(t, reqTime, out.Span.Timestamp)
 	})
@@ -204,16 +205,16 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 		// sample rate is set to > 0
 		input.SampleRate.Set(0.25)
-		mapToSpanModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToSpanModel(&input, time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, 4.0, out.Span.RepresentativeCount)
 		// sample rate is not set
 		out.Span.RepresentativeCount = 0.0
 		input.SampleRate.Reset()
-		mapToSpanModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToSpanModel(&input, time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, 0.0, out.Span.RepresentativeCount)
 		// sample rate is set to 0
 		input.SampleRate.Set(0)
-		mapToSpanModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToSpanModel(&input, time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, 0.0, out.Span.RepresentativeCount)
 	})
 
@@ -252,7 +253,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 					input.Action.Reset()
 				}
 				var out model.APMEvent
-				mapToSpanModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+				mapToSpanModel(&input, time.Now(), modeldecoder.Config{}, &out)
 				assert.Equal(t, tc.typ, out.Span.Type)
 				assert.Equal(t, tc.subtype, out.Span.Subtype)
 				assert.Equal(t, tc.action, out.Span.Action)
@@ -264,7 +265,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var input span
 		input.Context.HTTP.Response.Headers.Set(http.Header{"a": []string{"b", "c"}})
 		var out model.APMEvent
-		mapToSpanModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToSpanModel(&input, time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, common.MapStr{"a": []string{"b", "c"}}, out.Span.HTTP.Response.Headers)
 	})
 }

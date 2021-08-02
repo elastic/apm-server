@@ -38,7 +38,7 @@ var (
 	serviceNameInvalidRegexp = regexp.MustCompile("[^a-zA-Z0-9 _-]")
 )
 
-func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
+func translateResourceMetadata(resource pdata.Resource, out *model.APMEvent) {
 	var exporterVersion string
 	resource.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
 		switch k {

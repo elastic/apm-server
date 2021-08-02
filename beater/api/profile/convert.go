@@ -32,7 +32,7 @@ import (
 
 // appendProfileSampleBatch converts a pprof profile into a batch of model.ProfileSamples,
 // and appends it to out.
-func appendProfileSampleBatch(pp *profile.Profile, metadata model.Metadata, out model.Batch) model.Batch {
+func appendProfileSampleBatch(pp *profile.Profile, baseEvent model.APMEvent, out model.Batch) model.Batch {
 
 	// Precompute value field names for use in each event.
 	// TODO(axw) limit to well-known value names?
@@ -101,17 +101,16 @@ func appendProfileSampleBatch(pp *profile.Profile, metadata model.Metadata, out 
 			values[valueFieldNames[i]] = value
 		}
 
-		out = append(out, model.APMEvent{
-			ProfileSample: &model.ProfileSample{
-				Metadata:  metadata,
-				Timestamp: profileTimestamp,
-				Duration:  time.Duration(pp.DurationNanos),
-				ProfileID: profileID,
-				Stack:     stack,
-				Labels:    labels,
-				Values:    values,
-			},
-		})
+		event := baseEvent
+		event.ProfileSample = &model.ProfileSample{
+			Timestamp: profileTimestamp,
+			Duration:  time.Duration(pp.DurationNanos),
+			ProfileID: profileID,
+			Stack:     stack,
+			Labels:    labels,
+			Values:    values,
+		}
+		out = append(out, event)
 	}
 	return out
 }

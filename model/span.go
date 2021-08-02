@@ -41,7 +41,6 @@ var (
 )
 
 type Span struct {
-	Metadata      Metadata
 	ID            string
 	TransactionID string
 	ParentID      string
@@ -175,10 +174,6 @@ func (e *Span) toBeatEvent(ctx context.Context) beat.Event {
 		spanDocType: e.fields(ctx),
 	}
 
-	// first set the generic metadata
-	e.Metadata.set(&fields, e.Labels)
-
-	// then add event specific information
 	var trace, transaction, parent mapStr
 	if trace.maybeSetString("id", e.TraceID) {
 		fields.set("trace", common.MapStr(trace))

@@ -231,7 +231,7 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 	}
 
 	// Root transaction: apply reservoir sampling.
-	reservoirSampled, err := p.groups.sampleTrace(event.Transaction)
+	reservoirSampled, err := p.groups.sampleTrace(event)
 	if err == errTooManyTraceGroups {
 		// Too many trace groups, drop the transaction.
 		p.tooManyGroupsLogger.Warn(`

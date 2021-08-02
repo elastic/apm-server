@@ -108,11 +108,12 @@ Caused by: LowLevelException
 		),
 	})
 
-	expectedMetadata := languageOnlyMetadata("java")
+	service, agent := languageOnlyMetadata("java")
 	transactionEvent, errorEvents := transformTransactionSpanEvents(t, "java", exceptionEvent1, exceptionEvent2)
 	assert.Equal(t, []model.APMEvent{{
+		Service: service,
+		Agent:   agent,
 		Error: &model.Error{
-			Metadata:           expectedMetadata,
 			TraceID:            transactionEvent.Transaction.TraceID,
 			ParentID:           transactionEvent.Transaction.ID,
 			TransactionID:      transactionEvent.Transaction.ID,
@@ -157,8 +158,9 @@ Caused by: LowLevelException
 			},
 		},
 	}, {
+		Service: service,
+		Agent:   agent,
 		Error: &model.Error{
-			Metadata:           expectedMetadata,
 			TraceID:            transactionEvent.Transaction.TraceID,
 			ParentID:           transactionEvent.Transaction.ID,
 			TransactionID:      transactionEvent.Transaction.ID,
@@ -310,9 +312,11 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 	transactionEvent, errorEvents := transformTransactionSpanEvents(t, "COBOL", exceptionEvent)
 	require.Len(t, errorEvents, 1)
 
+	service, agent := languageOnlyMetadata("COBOL")
 	assert.Equal(t, model.APMEvent{
+		Service: service,
+		Agent:   agent,
 		Error: &model.Error{
-			Metadata:           languageOnlyMetadata("COBOL"),
 			TraceID:            transactionEvent.Transaction.TraceID,
 			ParentID:           transactionEvent.Transaction.ID,
 			TransactionID:      transactionEvent.Transaction.ID,
@@ -331,15 +335,14 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 	}, errorEvents[0])
 }
 
-func languageOnlyMetadata(language string) model.Metadata {
-	return model.Metadata{
-		Service: model.Service{
-			Name:     "unknown",
-			Language: model.Language{Name: language},
-		},
-		Agent: model.Agent{
-			Name:    "otlp/" + language,
-			Version: "unknown",
-		},
+func languageOnlyMetadata(language string) (model.Service, model.Agent) {
+	service := model.Service{
+		Name:     "unknown",
+		Language: model.Language{Name: language},
 	}
+	agent := model.Agent{
+		Name:    "otlp/" + language,
+		Version: "unknown",
+	}
+	return service, agent
 }

@@ -16,18 +16,18 @@ import (
 )
 
 func TestTraceGroupsPolicies(t *testing.T) {
-	makeTransaction := func(serviceName, serviceEnvironment, traceOutcome, traceName string) *model.Transaction {
-		return &model.Transaction{
-			Metadata: model.Metadata{
-				Service: model.Service{
-					Name:        serviceName,
-					Environment: serviceEnvironment,
-				},
+	makeTransaction := func(serviceName, serviceEnvironment, traceOutcome, traceName string) *model.APMEvent {
+		return &model.APMEvent{
+			Service: model.Service{
+				Name:        serviceName,
+				Environment: serviceEnvironment,
 			},
-			Name:    traceName,
-			Outcome: traceOutcome,
-			TraceID: uuid.Must(uuid.NewV4()).String(),
-			ID:      uuid.Must(uuid.NewV4()).String(),
+			Transaction: &model.Transaction{
+				Name:    traceName,
+				Outcome: traceOutcome,
+				TraceID: uuid.Must(uuid.NewV4()).String(),
+				ID:      uuid.Must(uuid.NewV4()).String(),
+			},
 		}
 	}
 	makePolicy := func(sampleRate float64, serviceName, serviceEnvironment, traceOutcome, traceName string) Policy {
@@ -92,25 +92,27 @@ func TestTraceGroupsMax(t *testing.T) {
 	for i := 0; i < maxDynamicServices; i++ {
 		serviceName := fmt.Sprintf("service_group_%d", i)
 		for i := 0; i < minReservoirSize; i++ {
-			admitted, err := groups.sampleTrace(&model.Transaction{
-				Metadata: model.Metadata{
-					Service: model.Service{
-						Name: serviceName,
-					},
+			admitted, err := groups.sampleTrace(&model.APMEvent{
+				Service: model.Service{
+					Name: serviceName,
 				},
-				Name:    "whatever",
-				TraceID: uuid.Must(uuid.NewV4()).String(),
-				ID:      uuid.Must(uuid.NewV4()).String(),
+				Transaction: &model.Transaction{
+					Name:    "whatever",
+					TraceID: uuid.Must(uuid.NewV4()).String(),
+					ID:      uuid.Must(uuid.NewV4()).String(),
+				},
 			})
 			require.NoError(t, err)
 			assert.True(t, admitted)
 		}
 	}
 
-	admitted, err := groups.sampleTrace(&model.Transaction{
-		Name:    "overflow",
-		TraceID: uuid.Must(uuid.NewV4()).String(),
-		ID:      uuid.Must(uuid.NewV4()).String(),
+	admitted, err := groups.sampleTrace(&model.APMEvent{
+		Transaction: &model.Transaction{
+			Name:    "overflow",
+			TraceID: uuid.Must(uuid.NewV4()).String(),
+			ID:      uuid.Must(uuid.NewV4()).String(),
+		},
 	})
 	assert.Equal(t, errTooManyTraceGroups, err)
 	assert.False(t, admitted)
@@ -126,9 +128,11 @@ func TestTraceGroupReservoirResize(t *testing.T) {
 
 	sendTransactions := func(n int) {
 		for i := 0; i < n; i++ {
-			groups.sampleTrace(&model.Transaction{
-				TraceID: "0102030405060708090a0b0c0d0e0f10",
-				ID:      "0102030405060708",
+			groups.sampleTrace(&model.APMEvent{
+				Transaction: &model.Transaction{
+					TraceID: "0102030405060708090a0b0c0d0e0f10",
+					ID:      "0102030405060708",
+				},
 			})
 		}
 	}
@@ -164,9 +168,11 @@ func TestTraceGroupReservoirResizeMinimum(t *testing.T) {
 
 	sendTransactions := func(n int) {
 		for i := 0; i < n; i++ {
-			groups.sampleTrace(&model.Transaction{
-				TraceID: "0102030405060708090a0b0c0d0e0f10",
-				ID:      "0102030405060708",
+			groups.sampleTrace(&model.APMEvent{
+				Transaction: &model.Transaction{
+					TraceID: "0102030405060708090a0b0c0d0e0f10",
+					ID:      "0102030405060708",
+				},
 			})
 		}
 	}
@@ -196,32 +202,37 @@ func TestTraceGroupsRemoval(t *testing.T) {
 	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
 
 	for i := 0; i < 10000; i++ {
-		_, err := groups.sampleTrace(&model.Transaction{
-			Metadata: model.Metadata{Service: model.Service{Name: "many"}},
+		_, err := groups.sampleTrace(&model.APMEvent{
+			Service:     model.Service{Name: "many"},
+			Transaction: &model.Transaction{},
 		})
 		assert.NoError(t, err)
 	}
-	_, err := groups.sampleTrace(&model.Transaction{
-		Metadata: model.Metadata{Service: model.Service{Name: "few"}},
+	_, err := groups.sampleTrace(&model.APMEvent{
+		Service:     model.Service{Name: "few"},
+		Transaction: &model.Transaction{},
 	})
 	assert.NoError(t, err)
 
-	_, err = groups.sampleTrace(&model.Transaction{
-		Metadata: model.Metadata{Service: model.Service{Name: "another"}},
+	_, err = groups.sampleTrace(&model.APMEvent{
+		Service:     model.Service{Name: "another"},
+		Transaction: &model.Transaction{},
 	})
 	assert.Equal(t, errTooManyTraceGroups, err)
 
 	// When there is a policy with an explicitly defined service name, that
 	// will not be affected by the limit...
-	_, err = groups.sampleTrace(&model.Transaction{
-		Metadata: model.Metadata{Service: model.Service{Name: "defined"}},
+	_, err = groups.sampleTrace(&model.APMEvent{
+		Service:     model.Service{Name: "defined"},
+		Transaction: &model.Transaction{},
 	})
 	assert.NoError(t, err)
 
 	// ...unless the policy with an explicitly defined service name comes after
 	// a matching dynamic policy.
-	_, err = groups.sampleTrace(&model.Transaction{
-		Metadata: model.Metadata{Service: model.Service{Name: "defined_later"}},
+	_, err = groups.sampleTrace(&model.APMEvent{
+		Service:     model.Service{Name: "defined_later"},
+		Transaction: &model.Transaction{},
 	})
 	assert.Equal(t, errTooManyTraceGroups, err)
 
@@ -230,8 +241,9 @@ func TestTraceGroupsRemoval(t *testing.T) {
 	groups.finalizeSampledTraces(nil)
 
 	// We should now be able to add another trace group.
-	_, err = groups.sampleTrace(&model.Transaction{
-		Metadata: model.Metadata{Service: model.Service{Name: "another"}},
+	_, err = groups.sampleTrace(&model.APMEvent{
+		Service:     model.Service{Name: "another"},
+		Transaction: &model.Transaction{},
 	})
 	assert.NoError(t, err)
 }
@@ -250,13 +262,15 @@ func BenchmarkTraceGroups(b *testing.B) {
 		//
 		// Duration is non-zero to ensure transactions have a non-zero chance of
 		// being sampled.
-		tx := model.Transaction{
-			Duration: 1000,
-			Name:     uuid.Must(uuid.NewV4()).String(),
+		tx := model.APMEvent{
+			Transaction: &model.Transaction{
+				Duration: 1000,
+				Name:     uuid.Must(uuid.NewV4()).String(),
+			},
 		}
 		for pb.Next() {
 			groups.sampleTrace(&tx)
-			tx.Duration += 1000
+			tx.Transaction.Duration += 1000
 		}
 	})
 }

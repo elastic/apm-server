@@ -24,24 +24,26 @@ import (
 	"github.com/elastic/apm-server/model"
 )
 
-// SetClientMetadata sets metadata relating to the gRPC client in metadata for
-// end-user events, which are assumed to have been sent to the server from the
-// user's device.
+// SetClientMetadata sets metadata relating to the gRPC client in end-user
+// events, which are assumed to have been sent to the server from the user's device.
 //
 // Client metadata is extracted from ctx, injected by interceptors.ClientMetadata.
-func SetClientMetadata(ctx context.Context, meta *model.Metadata) error {
-	if meta.Agent.Name != "iOS/swift" {
-		// This is not an event from an agent we would consider to be
-		// running on an end-user device.
-		//
-		// TODO(axw) use User-Agent in the check, when we know what we
-		// should be looking for?
-		return nil
-	}
-	clientMetadata, ok := interceptors.ClientMetadataFromContext(ctx)
-	if ok {
-		if meta.Client.IP == nil {
-			meta.Client.IP = clientMetadata.SourceIP
+func SetClientMetadata(ctx context.Context, batch *model.Batch) error {
+	for i := range *batch {
+		event := &(*batch)[i]
+		if event.Agent.Name != "iOS/swift" {
+			// This is not an event from an agent we would consider to be
+			// running on an end-user device.
+			//
+			// TODO(axw) use User-Agent in the check, when we know what we
+			// should be looking for?
+			continue
+		}
+		clientMetadata, ok := interceptors.ClientMetadataFromContext(ctx)
+		if ok {
+			if event.Client.IP == nil {
+				event.Client.IP = clientMetadata.SourceIP
+			}
 		}
 	}
 	return nil

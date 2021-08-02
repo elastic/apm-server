@@ -18,6 +18,7 @@
 package model
 
 import (
+	"context"
 	"encoding/json"
 	"net"
 	"path/filepath"
@@ -50,10 +51,11 @@ func TestSystemTransformation(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			var fields mapStr
-			metadata := &Metadata{Host: host}
-			metadata.set(&fields, nil)
-			resultJSON, err := json.Marshal(fields["host"])
+			event := &APMEvent{Host: host, Transaction: &Transaction{}}
+			beatEvents := event.appendBeatEvent(context.Background(), nil)
+			require.Len(t, beatEvents, 1)
+
+			resultJSON, err := json.Marshal(beatEvents[0].Fields["host"])
 			require.NoError(t, err)
 			name := filepath.Join("test_approved", "host", strings.ReplaceAll(name, " ", "_"))
 			approvaltest.ApproveJSON(t, name, resultJSON)

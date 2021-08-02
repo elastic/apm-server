@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -30,8 +31,6 @@ import (
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	start := 0.65
-	serviceName, serviceVersion, env := "myService", "1.2", "staging"
-	service := Service{Name: serviceName, Version: serviceVersion, Environment: env}
 	hexID, parentID, traceID := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
 	subtype := "amqp"
 	action := "publish"
@@ -40,8 +39,6 @@ func TestSpanTransform(t *testing.T) {
 	timestampUs := timestamp.UnixNano() / 1000
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", 5
-	metadataLabels := common.MapStr{"label.a": "a", "label.b": "b", "c": 1}
-	metadata := Metadata{Service: service, Labels: metadataLabels}
 	address, port := "127.0.0.1", 8080
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 
@@ -52,40 +49,35 @@ func TestSpanTransform(t *testing.T) {
 	}{
 		{
 			Msg:  "Span without a Stacktrace",
-			Span: Span{Timestamp: timestamp, Metadata: metadata},
+			Span: Span{Timestamp: timestamp},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
-				"service":   common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"span": common.MapStr{
 					"duration": common.MapStr{"us": 0},
 					"name":     "",
 					"type":     "",
 				},
 				"event":     common.MapStr{"outcome": ""},
-				"labels":    common.MapStr{"label_a": "a", "label_b": "b", "c": 1},
 				"timestamp": common.MapStr{"us": timestampUs},
 			},
 		},
 		{
 			Msg:  "Span with outcome",
-			Span: Span{Timestamp: timestamp, Metadata: metadata, Outcome: "success"},
+			Span: Span{Timestamp: timestamp, Outcome: "success"},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
-				"service":   common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"span": common.MapStr{
 					"duration": common.MapStr{"us": 0},
 					"name":     "",
 					"type":     "",
 				},
 				"timestamp": common.MapStr{"us": timestampUs},
-				"labels":    common.MapStr{"label_a": "a", "label_b": "b", "c": 1},
 				"event":     common.MapStr{"outcome": "success"},
 			},
 		},
 		{
 			Msg: "Full Span",
 			Span: Span{
-				Metadata:            metadata,
 				ID:                  hexID,
 				TraceID:             traceID,
 				ParentID:            parentID,
@@ -160,9 +152,8 @@ func TestSpanTransform(t *testing.T) {
 						"compression_strategy": "exact_match",
 					},
 				},
-				"labels":      common.MapStr{"label_a": 12, "label_b": "b", "c": 1},
+				"labels":      common.MapStr{"label_a": 12},
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},
-				"service":     common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"timestamp":   common.MapStr{"us": timestampUs},
 				"trace":       common.MapStr{"id": traceID},
 				"parent":      common.MapStr{"id": parentID},
@@ -178,7 +169,9 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Span.toBeatEvent(context.Background())
-		assert.Equal(t, test.Output, output.Fields, test.Msg)
+		event := APMEvent{Span: &test.Span}
+		output := event.appendBeatEvent(context.Background(), nil)
+		require.Len(t, output, 1)
+		assert.Equal(t, test.Output, output[0].Fields, test.Msg)
 	}
 }

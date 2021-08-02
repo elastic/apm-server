@@ -392,14 +392,14 @@ func TestHTTPTransactionUserAgent(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"http.user_agent": pdata.NewAttributeValueString("Foo/bar (baz)"),
 	})
-	assert.Equal(t, model.UserAgent{Original: "Foo/bar (baz)"}, event.Transaction.Metadata.UserAgent)
+	assert.Equal(t, model.UserAgent{Original: "Foo/bar (baz)"}, event.UserAgent)
 }
 
 func TestHTTPTransactionClientIP(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"http.client_ip": pdata.NewAttributeValueString("256.257.258.259"),
 	})
-	assert.Equal(t, net.ParseIP("256.257.258.259"), event.Transaction.Metadata.Client.IP)
+	assert.Equal(t, net.ParseIP("256.257.258.259"), event.Client.IP)
 }
 
 func TestHTTPTransactionStatusCode(t *testing.T) {
@@ -462,8 +462,8 @@ func TestInstrumentationLibrary(t *testing.T) {
 	events := transformTraces(t, traces)
 	event := events[0]
 
-	assert.Equal(t, "library-name", event.Transaction.Metadata.Service.Framework.Name)
-	assert.Equal(t, "1.2.3", event.Transaction.Metadata.Service.Framework.Version)
+	assert.Equal(t, "library-name", event.Service.Framework.Name)
+	assert.Equal(t, "1.2.3", event.Service.Framework.Version)
 }
 
 func TestRPCTransaction(t *testing.T) {
@@ -478,12 +478,12 @@ func TestRPCTransaction(t *testing.T) {
 	})
 	assert.Equal(t, "request", event.Transaction.Type)
 	assert.Equal(t, "Unavailable", event.Transaction.Result)
-	assert.Empty(t, event.Transaction.Metadata.Labels)
+	assert.Empty(t, event.Transaction.Labels)
 	assert.Equal(t, model.Client{
 		Domain: "peer_name",
 		IP:     net.ParseIP("10.20.30.40"),
 		Port:   123,
-	}, event.Transaction.Metadata.Client)
+	}, event.Client)
 }
 
 func TestRPCSpan(t *testing.T) {
@@ -570,8 +570,8 @@ func TestSpanNetworkAttributes(t *testing.T) {
 			ICC:  "UK",
 		},
 	}
-	assert.Equal(t, expected, txEvent.Transaction.Metadata.Network)
-	assert.Equal(t, expected, spanEvent.Span.Metadata.Network)
+	assert.Equal(t, expected, txEvent.Network)
+	assert.Equal(t, expected, spanEvent.Network)
 }
 
 func TestArrayLabels(t *testing.T) {
@@ -1051,8 +1051,8 @@ func TestJaegerServiceVersion(t *testing.T) {
 	require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
 
 	batch := *batches[0]
-	assert.Equal(t, "process_tag_value", batch[0].Transaction.Metadata.Service.Version)
-	assert.Equal(t, "span_tag_value", batch[1].Transaction.Metadata.Service.Version)
+	assert.Equal(t, "process_tag_value", batch[0].Service.Version)
+	assert.Equal(t, "span_tag_value", batch[1].Service.Version)
 }
 
 func TestTracesLogging(t *testing.T) {

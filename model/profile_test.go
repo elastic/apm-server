@@ -31,15 +31,8 @@ import (
 )
 
 func TestProfileSampleTransform(t *testing.T) {
-	serviceName, env := "myService", "staging"
-	service := model.Service{
-		Name:        serviceName,
-		Environment: env,
-	}
-
 	timestamp := time.Unix(123, 456)
 	sample := model.ProfileSample{
-		Metadata:  model.Metadata{Service: service},
 		Timestamp: timestamp,
 		Duration:  10 * time.Second,
 		ProfileID: "profile_id",
@@ -74,10 +67,6 @@ func TestProfileSampleTransform(t *testing.T) {
 		Timestamp: timestamp,
 		Fields: common.MapStr{
 			"processor": common.MapStr{"event": "profile", "name": "profile"},
-			"service": common.MapStr{
-				"name":        "myService",
-				"environment": "staging",
-			},
 			"labels": common.MapStr{
 				"key1": []string{"abc", "def"},
 				"key2": []string{"ghi"},
