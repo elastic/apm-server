@@ -74,8 +74,12 @@ require (
 	google.golang.org/genproto v0.0.0-20210716133855-ce7ef5c701ea // indirect
 	google.golang.org/grpc v1.39.0
 	gopkg.in/yaml.v2 v2.4.0
+<<<<<<< HEAD
 	gotest.tools/gotestsum v0.6.0
 	honnef.co/go/tools v0.2.0
+=======
+	gotest.tools/gotestsum v1.7.0
+>>>>>>> aa13b93a (Move some tools back to top-level go.mod (#5852))
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
 )
 
