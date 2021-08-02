@@ -219,3 +219,9 @@ func ifaceAnyValueArray(array pdata.AnyValueArray) []interface{} {
 	}
 	return values
 }
+
+// initEventLabels initializes an event-specific label map, either making a copy
+// of commonLabels if it is non-nil, or otherwise creating a new map.
+func initEventLabels(commonLabels common.MapStr) common.MapStr {
+	return commonLabels.Clone()
+}

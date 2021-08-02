@@ -258,14 +258,14 @@ type spanMetrics struct {
 
 func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics, interval int64) model.APMEvent {
 	out := model.APMEvent{
-		Agent: model.Agent{Name: key.agentName},
+		Timestamp: timestamp,
+		Agent:     model.Agent{Name: key.agentName},
 		Service: model.Service{
 			Name:        key.serviceName,
 			Environment: key.serviceEnvironment,
 		},
 		Metricset: &model.Metricset{
-			Timestamp: timestamp,
-			Name:      metricsetName,
+			Name: metricsetName,
 			Event: model.MetricsetEventCategorization{
 				Outcome: key.outcome,
 			},

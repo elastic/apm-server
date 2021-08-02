@@ -19,6 +19,7 @@ package otel_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/model/pdata"
@@ -233,5 +234,6 @@ func transformResourceMetadata(t *testing.T, resourceAttrs map[string]pdata.Attr
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	events := transformTraces(t, traces)
 	events[0].Transaction = nil
+	events[0].Timestamp = time.Time{}
 	return events[0]
 }

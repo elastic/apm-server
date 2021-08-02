@@ -289,7 +289,7 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 		})
 		require.NotNil(t, m.Metricset)
 
-		m.Metricset.Timestamp = time.Time{}
+		m.Timestamp = time.Time{}
 		assert.Equal(t, model.APMEvent{
 			Metricset: &model.Metricset{
 				Name:                 "transaction",
@@ -529,8 +529,8 @@ func batchMetricsets(t testing.TB, batch model.Batch) []model.APMEvent {
 		if event.Metricset == nil {
 			continue
 		}
-		require.NotZero(t, event.Metricset.Timestamp)
-		event.Metricset.Timestamp = time.Time{}
+		require.NotZero(t, event.Timestamp)
+		event.Timestamp = time.Time{}
 		metricsets = append(metricsets, event)
 	}
 	return metricsets

@@ -22,7 +22,6 @@ import (
 	"context"
 	"io"
 	"sync"
-	"time"
 
 	"go.elastic.co/apm"
 
@@ -134,7 +133,6 @@ func (p *Processor) identifyEventType(body []byte) []byte {
 // the error err.
 func (p *Processor) readBatch(
 	ctx context.Context,
-	requestTime time.Time,
 	baseEvent model.APMEvent,
 	batchSize int,
 	batch *model.Batch,
@@ -160,7 +158,7 @@ func (p *Processor) readBatch(
 			// required for backwards compatibility - sending empty lines was permitted in previous versions
 			continue
 		}
-		input := modeldecoder.Input{RequestTime: requestTime, Base: baseEvent, Config: p.Mconfig}
+		input := modeldecoder.Input{Base: baseEvent, Config: p.Mconfig}
 		switch eventType := p.identifyEventType(body); string(eventType) {
 		case errorEventType:
 			err = v2.DecodeNestedError(reader, &input, batch)
@@ -216,15 +214,14 @@ func (p *Processor) HandleStream(
 		// no point in continuing if we couldn't read the metadata
 		return err
 	}
-
-	requestTime := utility.RequestTime(ctx)
+	baseEvent.Timestamp = utility.RequestTime(ctx)
 
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
 	for {
 		var batch model.Batch
-		n, readErr := p.readBatch(ctx, requestTime, baseEvent, batchSize, &batch, sr, result)
+		n, readErr := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
 		if n > 0 {
 			// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
 			// the slice memory. We should investigate alternative interfaces between the

@@ -18,9 +18,6 @@
 package model
 
 import (
-	"time"
-
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
@@ -53,9 +50,6 @@ const (
 
 // Metricset describes a set of metrics and associated metadata.
 type Metricset struct {
-	// Timestamp holds the time at which the metrics were published.
-	Timestamp time.Time
-
 	// Event holds information about the event category with which the
 	// metrics are associated.
 	Event MetricsetEventCategorization
@@ -67,11 +61,6 @@ type Metricset struct {
 	// Span holds information about the span types with which the
 	// metrics are associated.
 	Span MetricsetSpan
-
-	// Labels holds arbitrary labels to apply to the metrics.
-	//
-	// These labels override any with the same names in Metadata.Labels.
-	Labels common.MapStr
 
 	// Samples holds the metrics in the set.
 	Samples map[string]MetricsetSample
@@ -165,7 +154,7 @@ type MetricsetSpan struct {
 	DestinationService DestinationService
 }
 
-func (me *Metricset) toBeatEvent() beat.Event {
+func (me *Metricset) fields() common.MapStr {
 	metricsetTransformations.Inc()
 
 	var fields mapStr
@@ -192,11 +181,7 @@ func (me *Metricset) toBeatEvent() beat.Event {
 		metricDescriptions.maybeSetMapStr(name, common.MapStr(md))
 	}
 	fields.maybeSetMapStr("_metric_descriptions", common.MapStr(metricDescriptions))
-
-	return beat.Event{
-		Fields:    common.MapStr(fields),
-		Timestamp: me.Timestamp,
-	}
+	return common.MapStr(fields)
 }
 
 func (e *MetricsetEventCategorization) fields() common.MapStr {
