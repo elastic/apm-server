@@ -44,12 +44,7 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-<<<<<<< HEAD
-	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
-	github.com/tidwall/gjson v1.6.0
-=======
 	github.com/tidwall/gjson v1.6.5
->>>>>>> fef190e9 (Move "tool" module dependencies to tools/go.mod (#5827))
 	github.com/tidwall/sjson v1.1.1
 	github.com/urso/magetools v0.0.0-20200125210132-c2e338f92f3a // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
@@ -89,12 +84,6 @@ replace (
 	github.com/fsnotify/fsnotify => github.com/adriansr/fsnotify v0.0.0-20180417234312-c9bbe1f46f1d
 	github.com/tonistiigi/fifo => github.com/containerd/fifo v0.0.0-20190816180239-bda0ff6ed73c
 	golang.org/x/tools => golang.org/x/tools v0.1.2
-<<<<<<< HEAD
-	k8s.io/api => k8s.io/api v0.19.4
-	k8s.io/apimachinery => k8s.io/apimachinery v0.19.4
-	k8s.io/client-go => k8s.io/client-go v0.19.4
-=======
->>>>>>> fef190e9 (Move "tool" module dependencies to tools/go.mod (#5827))
 )
 
 // We replace golang/glog, which is used by ristretto, to avoid polluting the
