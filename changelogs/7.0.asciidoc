@@ -25,7 +25,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0\...v7.0.1[View commits]
 [[release-notes-7.0.0]]
 === APM Server version 7.0.0
 
-https://github.com/elastic/apm-server/compare/v6.8.5\...v7.0.0[View commits]
+https://github.com/elastic/apm-server/compare/v6.8.18\...v7.0.0[View commits]
 
 These release notes include all changes made in the alpha, beta, and RC releases of 7.0.0.
 
