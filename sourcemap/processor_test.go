@@ -15,11 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package sourcemap_test
+package sourcemap
 
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -30,13 +31,13 @@ import (
 
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/sourcemap"
-	"github.com/elastic/apm-server/sourcemap/test"
 )
 
 func TestBatchProcessor(t *testing.T) {
-	client := test.ESClientWithValidSourcemap(t)
-	store, err := sourcemap.NewElasticsearchStore(client, "index", time.Minute)
+	client := newMockElasticsearchClient(t, http.StatusOK,
+		sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(string(validSourcemap))}),
+	)
+	store, err := NewElasticsearchStore(client, "index", time.Minute)
 	require.NoError(t, err)
 
 	originalLinenoWithFilename := 1
@@ -183,7 +184,7 @@ func TestBatchProcessor(t *testing.T) {
 		},
 	}
 
-	processor := sourcemap.BatchProcessor{Store: store}
+	processor := BatchProcessor{Store: store}
 	err = processor.ProcessBatch(context.Background(), &model.Batch{transaction, span1, span2, error1, error2, error3})
 	assert.NoError(t, err)
 
@@ -218,8 +219,8 @@ func TestBatchProcessor(t *testing.T) {
 }
 
 func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
-	client := test.ESClientUnavailable(t)
-	store, err := sourcemap.NewElasticsearchStore(client, "index", time.Minute)
+	client := newUnavailableElasticsearchClient(t)
+	store, err := NewElasticsearchStore(client, "index", time.Minute)
 	require.NoError(t, err)
 
 	nonMatchingFrame := model.StacktraceFrame{
@@ -241,7 +242,7 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 
 	logp.DevelopmentSetup(logp.ToObserverOutput())
 	for i := 0; i < 2; i++ {
-		processor := sourcemap.BatchProcessor{Store: store}
+		processor := BatchProcessor{Store: store}
 		err = processor.ProcessBatch(context.Background(), &model.Batch{span, span})
 		assert.NoError(t, err)
 	}
@@ -259,20 +260,20 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 
 func TestBatchProcessorTimeout(t *testing.T) {
 	var transport roundTripperFunc = func(req *http.Request) (*http.Response, error) {
+		if req.URL.Path == "/" {
+			// TODO(axw) remove product check from here when
+			// https://github.com/elastic/go-elasticsearch/pull/321 is merged,
+			// and just timeout unconditionally.
+			recorder := httptest.NewRecorder()
+			recorder.Header().Set("X-Elastic-Product", "Elasticsearch")
+			return recorder.Result(), nil
+		}
 		<-req.Context().Done()
-		// TODO(axw) remove this "notTimeout" error wrapper when
-		// https://github.com/elastic/go-elasticsearch/issues/300
-		// is fixed.
-		//
-		// Because context.DeadlineExceeded implements net.Error,
-		// go-elasticsearch continues retrying and does not exit
-		// early.
-		type notTimeout struct{ error }
-		return nil, notTimeout{req.Context().Err()}
+		return nil, req.Context().Err()
 	}
 	client, err := elasticsearch.NewVersionedClient("", "", "", []string{""}, nil, transport, 3, elasticsearch.DefaultBackoff)
 	require.NoError(t, err)
-	store, err := sourcemap.NewElasticsearchStore(client, "index", time.Minute)
+	store, err := NewElasticsearchStore(client, "index", time.Minute)
 	require.NoError(t, err)
 
 	frame := model.StacktraceFrame{
@@ -292,7 +293,7 @@ func TestBatchProcessorTimeout(t *testing.T) {
 	}
 
 	before := time.Now()
-	processor := sourcemap.BatchProcessor{Store: store, Timeout: 100 * time.Millisecond}
+	processor := BatchProcessor{Store: store, Timeout: 100 * time.Millisecond}
 	err = processor.ProcessBatch(context.Background(), &model.Batch{span})
 	assert.NoError(t, err)
 	taken := time.Since(before)
