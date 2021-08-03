@@ -1,0 +1,34 @@
+[[release-notes-8.0]]
+== APM Server version 8.0
+
+https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
+
+* <<release-notes-8.0.0-alpha1>>
+
+[float]
+[[release-notes-8.0.0-alpha1]]
+=== APM Server version 8.0.0-alpha1
+
+[float]
+==== Breaking Changes
+* APM Server now responds with 403 (HTTP) and PermissionDenied (gRPC) for authenticated but unauthorized requests {pull}5545[5545]
+* `sourcemap.error` and `sourcemap.updated` are no longer set due to failing to find a matching source map {pull}5631[5631]
+* experimental:["This breaking change applies to the experimental <<apm-integration>>."] Removed `service.name` from dataset {pull}5451[5451]
+
+// [float]
+// ==== Bug fixes
+
+[float]
+==== Intake API Changes
+* Add support for composite spans in the intake API {pull}5661[5661]
+
+[float]
+==== Added
+* Upgrade Go to 1.16.5 {pull}5454[5454]
+* Add HTTP span fields as top level ECS fields {pull}5396[5396]
+* Introduce `apm-server.auth.anonymous.*` config {pull}5623[5623]
+* Upgrade Go to 1.16.6 {pull}5754[5754]
+* Introduce ingest pipeline `apm_data_stream_migration` for migrating pre-data stream indices {5768}[5768]
+
+// [float]
+// ==== Deprecated
