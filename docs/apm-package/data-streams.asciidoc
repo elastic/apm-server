@@ -47,7 +47,6 @@ Logs::
 Logs include application error events and application logs.
 Logs are stored in the following data streams:
 
-- Application logs: `logs-<namespace>`
 - APM error/exception logging: `logs-apm.error-<namespace>`
 
 [discrete]
