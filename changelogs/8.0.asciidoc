@@ -15,9 +15,8 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * `sourcemap.error` and `sourcemap.updated` are no longer set due to failing to find a matching source map {pull}5631[5631]
 * experimental:["This breaking change applies to the experimental <<apm-integration>>."] Removed `service.name` from dataset {pull}5451[5451]
 
-[float]
-==== Bug fixes
-* Fix panic due to misaligned 64-bit access on 32-bit architectures {pull}5277[5277]
+// [float]
+// ==== Bug fixes
 
 [float]
 ==== Intake API Changes
