@@ -233,6 +233,7 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 			RawConfig:          bt.rawConfig,
 		})
 		if err != nil {
+			cancel()
 			return nil, err
 		}
 		bt.stopServer = func() {
@@ -508,6 +509,7 @@ func (b *beater) run() error {
 				time.Sleep(10 * time.Millisecond)
 			}
 		case <-b.ctx.Done():
+			cancel()
 			return b.publisher.Stop(b.ctx)
 		}
 		params := ServerParams{
@@ -525,7 +527,6 @@ func (b *beater) run() error {
 		b.mutex.Unlock()
 		go b.runServer(ctx, params)
 	}
-
 }
 
 func wrapRunServerWithPreprocessors(
