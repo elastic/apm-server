@@ -58,7 +58,7 @@ const (
 // RequestMetadataFunc is a function type supplied to Handler for extracting
 // metadata from the request. This is used for conditionally injecting the
 // source IP address as `client.ip` for RUM.
-type RequestMetadataFunc func(*request.Context) model.Metadata
+type RequestMetadataFunc func(*request.Context) model.APMEvent
 
 // Handler returns a request.Handler for managing profile requests.
 func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProcessor) request.Handler {
@@ -78,7 +78,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 
 		var totalLimitRemaining int64 = profileContentLengthLimit
 		var profiles []*pprof_profile.Profile
-		var profileMetadata model.Metadata
+		baseEvent := requestMetadataFunc(c)
 		mr, err := c.Request.MultipartReader()
 		if err != nil {
 			return nil, err
@@ -101,8 +101,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 				}
 				r := &decoder.LimitedReader{R: part, N: metadataContentLengthLimit}
 				dec := decoder.NewJSONDecoder(r)
-				metadata := requestMetadataFunc(c)
-				if err := v2.DecodeMetadata(dec, &metadata); err != nil {
+				if err := v2.DecodeMetadata(dec, &baseEvent); err != nil {
 					if r.N < 0 {
 						return nil, requestError{
 							id:  request.IDResponseErrorsRequestTooLarge,
@@ -120,7 +119,6 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 						err: errors.Wrap(err, "invalid metadata"),
 					}
 				}
-				profileMetadata = metadata
 
 			case "profile":
 				params, err := validateContentType(http.Header(part.Header), pprofMediaType)
@@ -160,7 +158,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 
 		var batch model.Batch
 		for _, profile := range profiles {
-			batch = appendProfileSampleBatch(profile, profileMetadata, batch)
+			batch = appendProfileSampleBatch(profile, baseEvent, batch)
 		}
 		if err := processor.ProcessBatch(c.Request.Context(), &batch); err != nil {
 			switch err {

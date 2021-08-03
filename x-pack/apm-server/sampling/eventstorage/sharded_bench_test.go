@@ -22,10 +22,12 @@ func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 	defer sharded.Close()
 
 	b.RunParallel(func(pb *testing.PB) {
-		traceUUID := uuid.Must(uuid.NewV4())
-		transaction := &model.Transaction{TraceID: traceUUID.String(), ID: traceUUID.String()}
+		traceID := uuid.Must(uuid.NewV4()).String()
+		transaction := &model.APMEvent{
+			Transaction: &model.Transaction{TraceID: traceID, ID: traceID},
+		}
 		for pb.Next() {
-			if err := sharded.WriteTransaction(transaction); err != nil {
+			if err := sharded.WriteTraceEvent(traceID, traceID, transaction); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -41,13 +43,17 @@ func BenchmarkShardedWriteTransactionContended(b *testing.B) {
 
 	// Use a single trace ID, causing all events to go through
 	// the same sharded writer, contending for a single lock.
-	traceUUID := uuid.Must(uuid.NewV4())
+	traceID := uuid.Must(uuid.NewV4()).String()
 
 	b.RunParallel(func(pb *testing.PB) {
-		transactionUUID := uuid.Must(uuid.NewV4())
-		transaction := &model.Transaction{TraceID: traceUUID.String(), ID: transactionUUID.String()}
+		transactionID := uuid.Must(uuid.NewV4()).String()
+		transaction := &model.APMEvent{
+			Transaction: &model.Transaction{
+				TraceID: traceID, ID: transactionID,
+			},
+		}
 		for pb.Next() {
-			if err := sharded.WriteTransaction(transaction); err != nil {
+			if err := sharded.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
 				b.Fatal(err)
 			}
 		}

@@ -17,19 +17,15 @@ require (
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210719083153-560aa609a756
 	github.com/elastic/ecs v1.10.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210407144825-cc1c33cfa1d0 // indirect
-	github.com/elastic/elastic-package v0.0.0-20210310173719-3b8f76516ae3
 	github.com/elastic/gmux v0.1.0
-	github.com/elastic/go-elasticsearch/v7 v7.11.0
-	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201007143536-4b4020669208
+	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20210728153421-6462d8b84e7d
+	github.com/elastic/go-elasticsearch/v8 v8.0.0-20210727161915-8cf93274b968
 	github.com/elastic/go-hdrhistogram v0.1.0
-	github.com/elastic/go-licenser v0.3.1
 	github.com/elastic/go-ucfg v0.8.4-0.20200415140258-1232bd4774a6
-	github.com/fatih/color v1.12.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/pprof v0.0.0-20210609004039-a478d1d731e9
-	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
@@ -46,12 +42,10 @@ require (
 	github.com/poy/eachers v0.0.0-20181020210610-23942921fe77 // indirect
 	github.com/prometheus/procfs v0.7.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
-	github.com/reviewdog/reviewdog v0.9.17
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	github.com/tidwall/gjson v1.6.5
 	github.com/tidwall/sjson v1.1.1
 	github.com/urso/magetools v0.0.0-20200125210132-c2e338f92f3a // indirect
@@ -62,7 +56,6 @@ require (
 	go.elastic.co/apm/module/apmhttp v1.12.0
 	go.elastic.co/ecszap v1.0.0 // indirect
 	go.elastic.co/fastjson v1.1.0
-	go.elastic.co/go-licence-detector v0.5.0
 	go.opentelemetry.io/collector v0.30.0
 	go.opentelemetry.io/collector/model v0.30.0
 	go.uber.org/atomic v1.9.0
@@ -77,10 +70,8 @@ require (
 	google.golang.org/genproto v0.0.0-20210726200206-e7812ac95cc0 // indirect
 	google.golang.org/grpc v1.39.0
 	gopkg.in/yaml.v2 v2.4.0
-	gotest.tools/gotestsum v0.6.0
-	honnef.co/go/tools v0.2.0
+	gotest.tools/gotestsum v1.7.0
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
-	k8s.io/client-go v12.0.0+incompatible // indirect
 )
 
 replace (
@@ -97,14 +88,10 @@ replace (
 	github.com/fsnotify/fsnotify => github.com/adriansr/fsnotify v0.0.0-20180417234312-c9bbe1f46f1d
 	github.com/tonistiigi/fifo => github.com/containerd/fifo v0.0.0-20190816180239-bda0ff6ed73c
 	golang.org/x/tools => golang.org/x/tools v0.1.2
-	k8s.io/api => k8s.io/api v0.19.4
-	k8s.io/api/auditregistration/v1alpha1 => k8s.io/api/auditregistration/v1alpha1 v0.19.4
-	k8s.io/apimachinery => k8s.io/apimachinery v0.19.4
-	k8s.io/client-go => k8s.io/client-go v0.19.4
 )
 
 // We replace golang/glog, which is used by ristretto, to avoid polluting the
 // command line flags and conflicting with command line flags added by libbeat.
-replace github.com/golang/glog => github.com/slok/noglog v0.2.0
+replace github.com/golang/glog => ./internal/glog
 
 replace go.opentelemetry.io/collector => ./internal/otel_collector

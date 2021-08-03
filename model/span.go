@@ -18,10 +18,6 @@
 package model
 
 import (
-	"context"
-	"time"
-
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
@@ -41,14 +37,11 @@ var (
 )
 
 type Span struct {
-	Metadata      Metadata
 	ID            string
 	TransactionID string
 	ParentID      string
 	ChildIDs      []string
 	TraceID       string
-
-	Timestamp time.Time
 
 	Message    *Message
 	Name       string
@@ -57,7 +50,6 @@ type Span struct {
 	Duration   float64
 	Stacktrace Stacktrace
 	Sync       *bool
-	Labels     common.MapStr
 
 	Type    string
 	Subtype string
@@ -163,22 +155,15 @@ func (c *Composite) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Span) toBeatEvent(ctx context.Context) beat.Event {
+func (e *Span) fields() common.MapStr {
 	spanTransformations.Inc()
 	if frames := len(e.Stacktrace); frames > 0 {
 		spanStacktraceCounter.Inc()
 		spanFrameCounter.Add(int64(frames))
 	}
 
-	fields := mapStr{
-		"processor": spanProcessorEntry,
-		spanDocType: e.fields(ctx),
-	}
+	fields := mapStr{"processor": spanProcessorEntry}
 
-	// first set the generic metadata
-	e.Metadata.set(&fields, e.Labels)
-
-	// then add event specific information
 	var trace, transaction, parent mapStr
 	if trace.maybeSetString("id", e.TraceID) {
 		fields.set("trace", common.MapStr(trace))
@@ -194,7 +179,6 @@ func (e *Span) toBeatEvent(ctx context.Context) beat.Event {
 		child.set("id", e.ChildIDs)
 		fields.set("child", common.MapStr(child))
 	}
-	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
 	if e.Experimental != nil {
 		fields.set("experimental", e.Experimental)
 	}
@@ -206,43 +190,34 @@ func (e *Span) toBeatEvent(ctx context.Context) beat.Event {
 
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
-	return beat.Event{
-		Fields:    common.MapStr(fields),
-		Timestamp: e.Timestamp,
-	}
-}
-
-func (e *Span) fields(ctx context.Context) common.MapStr {
-	if e == nil {
-		return nil
-	}
-	var fields mapStr
-	fields.set("name", e.Name)
-	fields.set("type", e.Type)
-	fields.maybeSetString("id", e.ID)
-	fields.maybeSetString("subtype", e.Subtype)
-	fields.maybeSetString("action", e.Action)
-	fields.maybeSetBool("sync", e.Sync)
+	var span mapStr
+	span.set("name", e.Name)
+	span.set("type", e.Type)
+	span.maybeSetString("id", e.ID)
+	span.maybeSetString("subtype", e.Subtype)
+	span.maybeSetString("action", e.Action)
+	span.maybeSetBool("sync", e.Sync)
 	if e.Start != nil {
-		fields.set("start", utility.MillisAsMicros(*e.Start))
+		span.set("start", utility.MillisAsMicros(*e.Start))
 	}
-	fields.set("duration", utility.MillisAsMicros(e.Duration))
+	span.set("duration", utility.MillisAsMicros(e.Duration))
 
 	if e.HTTP != nil {
-		fields.maybeSetMapStr("http", e.HTTP.spanFields())
-		fields.maybeSetString("http.url.original", e.URL)
+		span.maybeSetMapStr("http", e.HTTP.spanFields())
+		span.maybeSetString("http.url.original", e.URL)
 	}
-	fields.maybeSetMapStr("db", e.DB.fields())
-	fields.maybeSetMapStr("message", e.Message.Fields())
-	fields.maybeSetMapStr("composite", e.Composite.fields())
+	span.maybeSetMapStr("db", e.DB.fields())
+	span.maybeSetMapStr("message", e.Message.Fields())
+	span.maybeSetMapStr("composite", e.Composite.fields())
 	if destinationServiceFields := e.DestinationService.fields(); len(destinationServiceFields) > 0 {
-		common.MapStr(fields).Put("destination.service", destinationServiceFields)
+		common.MapStr(span).Put("destination.service", destinationServiceFields)
 	}
-
 	// TODO(axw) we should be using a merged service object, combining
 	// the stream metadata and event-specific service info.
 	if st := e.Stacktrace.transform(); len(st) > 0 {
-		fields.set("stacktrace", st)
+		span.set("stacktrace", st)
 	}
+	fields.set("span", common.MapStr(span))
+
 	return common.MapStr(fields)
 }

@@ -154,19 +154,19 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 	}
 	events := *batch
 	for i := 0; i < len(events); i++ {
-		event := events[i]
+		event := &events[i]
 		var report, stored bool
 		if event.Transaction != nil {
 			var err error
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
-			report, stored, err = p.processTransaction(event.Transaction)
+			report, stored, err = p.processTransaction(event)
 			if err != nil {
 				return err
 			}
 		} else if event.Span != nil {
 			var err error
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
-			report, stored, err = p.processSpan(event.Span)
+			report, stored, err = p.processSpan(event)
 			if err != nil {
 				return err
 			}
@@ -201,14 +201,14 @@ func (p *Processor) updateProcessorMetrics(report, stored bool) {
 	}
 }
 
-func (p *Processor) processTransaction(tx *model.Transaction) (report, stored bool, _ error) {
-	if !tx.Sampled {
+func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bool, _ error) {
+	if !event.Transaction.Sampled {
 		// (Head-based) unsampled transactions are passed through
 		// by the tail sampler.
 		return true, false, nil
 	}
 
-	traceSampled, err := p.storage.IsTraceSampled(tx.TraceID)
+	traceSampled, err := p.storage.IsTraceSampled(event.Transaction.TraceID)
 	switch err {
 	case nil:
 		// Tail-sampling decision has been made: report the transaction
@@ -222,14 +222,16 @@ func (p *Processor) processTransaction(tx *model.Transaction) (report, stored bo
 		return false, false, err
 	}
 
-	if tx.ParentID != "" {
+	if event.Transaction.ParentID != "" {
 		// Non-root transaction: write to local storage while we wait
 		// for a sampling decision.
-		return false, true, p.storage.WriteTransaction(tx)
+		return false, true, p.storage.WriteTraceEvent(
+			event.Transaction.TraceID, event.Transaction.ID, event,
+		)
 	}
 
 	// Root transaction: apply reservoir sampling.
-	reservoirSampled, err := p.groups.sampleTrace(tx)
+	reservoirSampled, err := p.groups.sampleTrace(event)
 	if err == errTooManyTraceGroups {
 		// Too many trace groups, drop the transaction.
 		p.tooManyGroupsLogger.Warn(`
@@ -249,21 +251,25 @@ sampling policies without service name specified.
 		// This is a local optimisation only. To avoid creating network
 		// traffic and load on Elasticsearch for uninteresting root
 		// transactions, we do not propagate this to other APM Servers.
-		return false, false, p.storage.WriteTraceSampled(tx.TraceID, false)
+		return false, false, p.storage.WriteTraceSampled(event.Transaction.TraceID, false)
 	}
 
 	// The root transaction was admitted to the sampling reservoir, so we
 	// can proceed to write the transaction to storage; we may index it later,
 	// after finalising the sampling decision.
-	return false, true, p.storage.WriteTransaction(tx)
+	return false, true, p.storage.WriteTraceEvent(
+		event.Transaction.TraceID, event.Transaction.ID, event,
+	)
 }
 
-func (p *Processor) processSpan(span *model.Span) (report, stored bool, _ error) {
-	traceSampled, err := p.storage.IsTraceSampled(span.TraceID)
+func (p *Processor) processSpan(event *model.APMEvent) (report, stored bool, _ error) {
+	traceSampled, err := p.storage.IsTraceSampled(event.Span.TraceID)
 	if err != nil {
 		if err == eventstorage.ErrNotFound {
-			// Tail-sampling decision has not yet been made, write span to local storage.
-			return false, true, p.storage.WriteSpan(span)
+			// Tail-sampling decision has not yet been made, write event to local storage.
+			return false, true, p.storage.WriteTraceEvent(
+				event.Span.TraceID, event.Span.ID, event,
+			)
 		}
 		return false, false, err
 	}
@@ -445,7 +451,7 @@ func (p *Processor) Run() error {
 				return err
 			}
 			var events model.Batch
-			if err := p.storage.ReadEvents(traceID, &events); err != nil {
+			if err := p.storage.ReadTraceEvents(traceID, &events); err != nil {
 				return err
 			}
 			if n := len(events); n > 0 {
@@ -459,11 +465,11 @@ func (p *Processor) Run() error {
 					// at-most-once, not guaranteed.
 					for _, event := range events {
 						if event.Transaction != nil {
-							if err := p.storage.DeleteTransaction(event.Transaction); err != nil {
+							if err := p.storage.DeleteTraceEvent(event.Transaction.TraceID, event.Transaction.ID); err != nil {
 								return errors.Wrap(err, "failed to delete transaction from local storage")
 							}
 						} else if event.Span != nil {
-							if err := p.storage.DeleteSpan(event.Span); err != nil {
+							if err := p.storage.DeleteTraceEvent(event.Span.TraceID, event.Span.ID); err != nil {
 								return errors.Wrap(err, "failed to delete span from local storage")
 							}
 						}

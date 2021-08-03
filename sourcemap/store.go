@@ -36,7 +36,8 @@ const (
 )
 
 var (
-	errInit = errors.New("Cache cannot be initialized. Expiration and CleanupInterval need to be >= 0")
+	errMsgFailure = "failure querying"
+	errInit       = errors.New("Cache cannot be initialized. Expiration and CleanupInterval need to be >= 0")
 )
 
 // Store holds information necessary to fetch a sourcemap, either from an
@@ -114,10 +115,10 @@ func (s *Store) Fetch(ctx context.Context, name, version, path string) (*sourcem
 		s.mu.Unlock()
 	}()
 
-	// fetch from Elasticsearch and ensure caching for all non-temporary results
+	// fetch from the store and ensure caching for all non-temporary results
 	sourcemapStr, err := s.backend.fetch(ctx, name, version, path)
 	if err != nil {
-		if !strings.Contains(err.Error(), "failure querying") {
+		if !strings.Contains(err.Error(), errMsgFailure) {
 			s.add(key, nil)
 		}
 		return nil, err

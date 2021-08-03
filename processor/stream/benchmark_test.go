@@ -58,7 +58,7 @@ func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string
 			b.StartTimer()
 
 			var result Result
-			processor.HandleStream(context.Background(), &model.Metadata{}, r, batchSize, batchProcessor, &result)
+			processor.HandleStream(context.Background(), model.APMEvent{}, r, batchSize, batchProcessor, &result)
 		}
 	}
 

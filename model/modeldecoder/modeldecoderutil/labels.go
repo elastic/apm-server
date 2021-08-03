@@ -23,6 +23,22 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
+// MergeLabels merges eventLabels onto commonLabels. This is used for
+// combining event-specific labels onto (metadata) global labels.
+//
+// If commonLabels is non-nil, it is first cloned. If commonLabels
+// is nil, then eventLabels is cloned.
+func MergeLabels(commonLabels, eventLabels common.MapStr) common.MapStr {
+	if commonLabels == nil {
+		return eventLabels.Clone()
+	}
+	combinedLabels := commonLabels.Clone()
+	for k, v := range eventLabels {
+		combinedLabels[k] = v
+	}
+	return combinedLabels
+}
+
 // NormalizeLabelValues transforms the values in labels, replacing any
 // instance of json.Number with libbeat/common.Float, and returning
 // labels.

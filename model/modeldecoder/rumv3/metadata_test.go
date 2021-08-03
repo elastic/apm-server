@@ -32,10 +32,11 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-// initializedMetadata returns a metadata model populated with default values
-func initializedMetadata() *model.Metadata {
+// initializedMetadata returns a model.APMEvent populated with default values
+// in the metadata-derived fields.
+func initializedMetadata() model.APMEvent {
 	var input metadata
-	var out model.Metadata
+	var out model.APMEvent
 	modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 	mapToMetadataModel(&input, &out)
 	// initialize values that are not set by input
@@ -43,11 +44,12 @@ func initializedMetadata() *model.Metadata {
 	out.Client.Domain = "init"
 	out.Client.IP = net.ParseIP("127.0.0.1")
 	out.Client.Port = 1
-	return &out
+	return out
 }
 
 func metadataExceptions(keys ...string) func(key string) bool {
 	missing := []string{
+		"DataStream",
 		"Agent",
 		"Cloud",
 		"Container",
@@ -57,6 +59,13 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"Service.Node",
 		"Service.Agent.EphemeralID",
 		"Host",
+
+		// event-specific fields
+		"Error",
+		"Metricset",
+		"ProfileSample",
+		"Span",
+		"Transaction",
 	}
 	exceptions := append(missing, keys...)
 	return func(key string) bool {
@@ -80,11 +89,11 @@ func TestMetadataResetModelOnRelease(t *testing.T) {
 
 func TestDecodeNestedMetadata(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
-		var out model.Metadata
+		var out model.APMEvent
 		testMinValidMetadata := `{"m":{"se":{"n":"name","a":{"n":"go","ve":"1.0.0"}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(testMinValidMetadata))
 		require.NoError(t, DecodeNestedMetadata(dec, &out))
-		assert.Equal(t, model.Metadata{
+		assert.Equal(t, model.APMEvent{
 			Service: model.Service{Name: "name"},
 			Agent:   model.Agent{Name: "go", Version: "1.0.0"},
 		}, out)
@@ -96,7 +105,7 @@ func TestDecodeNestedMetadata(t *testing.T) {
 
 	t.Run("validate", func(t *testing.T) {
 		inp := `{}`
-		var out model.Metadata
+		var out model.APMEvent
 		err := DecodeNestedMetadata(decoder.NewJSONDecoder(strings.NewReader(inp)), &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")
@@ -105,12 +114,12 @@ func TestDecodeNestedMetadata(t *testing.T) {
 }
 
 func TestDecodeMetadataMappingToModel(t *testing.T) {
-	expected := func(s string, ip net.IP, n int) *model.Metadata {
+	expected := func(s string, ip net.IP, n int) model.APMEvent {
 		labels := common.MapStr{}
 		for i := 0; i < n; i++ {
 			labels.Put(fmt.Sprintf("%s%v", s, i), s)
 		}
-		return &model.Metadata{
+		return model.APMEvent{
 			Agent: model.Agent{Name: s, Version: s},
 			Service: model.Service{Name: s, Version: s, Environment: s,
 				Language:  model.Language{Name: s, Version: s},
@@ -144,20 +153,20 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 		var input metadata
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToMetadataModel(&input, out)
+		mapToMetadataModel(&input, &out)
 		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), out)
 
 		// map an empty modeldecoder metadata to the model
 		// and assert values are unchanged
 		input.Reset()
 		modeldecodertest.SetZeroStructValues(&input)
-		mapToMetadataModel(&input, out)
+		mapToMetadataModel(&input, &out)
 		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), out)
 	})
 
 	t.Run("reused-memory", func(t *testing.T) {
 		var input metadata
-		var out1, out2 model.Metadata
+		var out1, out2 model.APMEvent
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToMetadataModel(&input, &out1)
@@ -166,7 +175,7 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 		out1.Client.Domain = "init"
 		out1.Client.IP = net.ParseIP("127.0.0.1")
 		out1.Client.Port = 1
-		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), &out1)
+		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), out1)
 
 		// overwrite model metadata with specified Values
 		// then iterate through model and assert values are overwritten
@@ -178,7 +187,7 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 		out2.Client.Domain = "init"
 		out2.Client.IP = net.ParseIP("127.0.0.1")
 		out2.Client.Port = 1
-		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), &out2)
-		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), &out1)
+		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), out2)
+		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), out1)
 	})
 }

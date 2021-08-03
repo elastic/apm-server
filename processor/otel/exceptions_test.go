@@ -108,93 +108,74 @@ Caused by: LowLevelException
 		),
 	})
 
-	expectedMetadata := languageOnlyMetadata("java")
-	transaction, errors := transformTransactionSpanEvents(t, "java", exceptionEvent1, exceptionEvent2)
-	assert.Equal(t, []*model.Error{{
-		Metadata:           expectedMetadata,
-		TraceID:            transaction.TraceID,
-		ParentID:           transaction.ID,
-		TransactionID:      transaction.ID,
-		TransactionType:    transaction.Type,
-		TransactionSampled: newBool(true),
-		Timestamp:          timestamp,
-		Exception: &model.Exception{
-			Type:    "java.net.ConnectException.OSError",
-			Message: "Division by zero",
-			Handled: newBool(false),
-			Stacktrace: []*model.StacktraceFrame{{
-				Classname: "com.example.GenerateTrace",
-				Function:  "methodB",
-				Filename:  "GenerateTrace.java",
-				Lineno:    newInt(13),
-			}, {
-				Classname: "com.example.GenerateTrace",
-				Function:  "methodA",
-				Filename:  "GenerateTrace.java",
-				Lineno:    newInt(9),
-			}, {
-				Classname: "com.example.GenerateTrace",
-				Function:  "main",
-				Filename:  "GenerateTrace.java",
-				Lineno:    newInt(5),
-			}, {
-				Module:    "foo@9.0",
-				Classname: "com.foo.Main",
-				Function:  "run",
-				Filename:  "Main.java",
-			}, {
-				Classname: "com.foo.bar.App",
-				Function:  "run",
-				Filename:  "App.java",
-				Lineno:    newInt(12),
-			}, {
-				Module:    "java.base",
-				Classname: "java.lang.Thread",
-				Function:  "run",
-				Filename:  "Unknown Source",
-			}},
+	service, agent := languageOnlyMetadata("java")
+	transactionEvent, errorEvents := transformTransactionSpanEvents(t, "java", exceptionEvent1, exceptionEvent2)
+	assert.Equal(t, []model.APMEvent{{
+		Service:   service,
+		Agent:     agent,
+		Timestamp: timestamp,
+		Error: &model.Error{
+			TraceID:            transactionEvent.Transaction.TraceID,
+			ParentID:           transactionEvent.Transaction.ID,
+			TransactionID:      transactionEvent.Transaction.ID,
+			TransactionType:    transactionEvent.Transaction.Type,
+			TransactionSampled: newBool(true),
+			Exception: &model.Exception{
+				Type:    "java.net.ConnectException.OSError",
+				Message: "Division by zero",
+				Handled: newBool(false),
+				Stacktrace: []*model.StacktraceFrame{{
+					Classname: "com.example.GenerateTrace",
+					Function:  "methodB",
+					Filename:  "GenerateTrace.java",
+					Lineno:    newInt(13),
+				}, {
+					Classname: "com.example.GenerateTrace",
+					Function:  "methodA",
+					Filename:  "GenerateTrace.java",
+					Lineno:    newInt(9),
+				}, {
+					Classname: "com.example.GenerateTrace",
+					Function:  "main",
+					Filename:  "GenerateTrace.java",
+					Lineno:    newInt(5),
+				}, {
+					Module:    "foo@9.0",
+					Classname: "com.foo.Main",
+					Function:  "run",
+					Filename:  "Main.java",
+				}, {
+					Classname: "com.foo.bar.App",
+					Function:  "run",
+					Filename:  "App.java",
+					Lineno:    newInt(12),
+				}, {
+					Module:    "java.base",
+					Classname: "java.lang.Thread",
+					Function:  "run",
+					Filename:  "Unknown Source",
+				}},
+			},
 		},
 	}, {
-		Metadata:           expectedMetadata,
-		TraceID:            transaction.TraceID,
-		ParentID:           transaction.ID,
-		TransactionID:      transaction.ID,
-		TransactionType:    transaction.Type,
-		TransactionSampled: newBool(true),
-		Timestamp:          timestamp,
-		Exception: &model.Exception{
-			Type:    "HighLevelException",
-			Message: "MidLevelException: LowLevelException",
-			Handled: newBool(true),
-			Stacktrace: []*model.StacktraceFrame{{
-				Classname: "Junk",
-				Function:  "a",
-				Filename:  "Junk.java",
-				Lineno:    newInt(13),
-			}, {
-				Classname: "Junk",
-				Function:  "main",
-				Filename:  "Junk.java",
-				Lineno:    newInt(4),
-			}},
-			Cause: []model.Exception{{
+		Service:   service,
+		Agent:     agent,
+		Timestamp: timestamp,
+		Error: &model.Error{
+			TraceID:            transactionEvent.Transaction.TraceID,
+			ParentID:           transactionEvent.Transaction.ID,
+			TransactionID:      transactionEvent.Transaction.ID,
+			TransactionType:    transactionEvent.Transaction.Type,
+			TransactionSampled: newBool(true),
+			Exception: &model.Exception{
+				Type:    "HighLevelException",
 				Message: "MidLevelException: LowLevelException",
 				Handled: newBool(true),
 				Stacktrace: []*model.StacktraceFrame{{
 					Classname: "Junk",
-					Function:  "c",
-					Filename:  "Junk.java",
-					Lineno:    newInt(23),
-				}, {
-					Classname: "Junk",
-					Function:  "b",
-					Filename:  "Junk.java",
-					Lineno:    newInt(17),
-				}, {
-					Classname: "Junk",
 					Function:  "a",
 					Filename:  "Junk.java",
-					Lineno:    newInt(11),
+					Lineno:    newInt(13),
 				}, {
 					Classname: "Junk",
 					Function:  "main",
@@ -202,23 +183,13 @@ Caused by: LowLevelException
 					Lineno:    newInt(4),
 				}},
 				Cause: []model.Exception{{
-					Message: "LowLevelException",
+					Message: "MidLevelException: LowLevelException",
 					Handled: newBool(true),
 					Stacktrace: []*model.StacktraceFrame{{
 						Classname: "Junk",
-						Function:  "e",
-						Filename:  "Junk.java",
-						Lineno:    newInt(37),
-					}, {
-						Classname: "Junk",
-						Function:  "d",
-						Filename:  "Junk.java",
-						Lineno:    newInt(34),
-					}, {
-						Classname: "Junk",
 						Function:  "c",
 						Filename:  "Junk.java",
-						Lineno:    newInt(21),
+						Lineno:    newInt(23),
 					}, {
 						Classname: "Junk",
 						Function:  "b",
@@ -235,10 +206,45 @@ Caused by: LowLevelException
 						Filename:  "Junk.java",
 						Lineno:    newInt(4),
 					}},
+					Cause: []model.Exception{{
+						Message: "LowLevelException",
+						Handled: newBool(true),
+						Stacktrace: []*model.StacktraceFrame{{
+							Classname: "Junk",
+							Function:  "e",
+							Filename:  "Junk.java",
+							Lineno:    newInt(37),
+						}, {
+							Classname: "Junk",
+							Function:  "d",
+							Filename:  "Junk.java",
+							Lineno:    newInt(34),
+						}, {
+							Classname: "Junk",
+							Function:  "c",
+							Filename:  "Junk.java",
+							Lineno:    newInt(21),
+						}, {
+							Classname: "Junk",
+							Function:  "b",
+							Filename:  "Junk.java",
+							Lineno:    newInt(17),
+						}, {
+							Classname: "Junk",
+							Function:  "a",
+							Filename:  "Junk.java",
+							Lineno:    newInt(11),
+						}, {
+							Classname: "Junk",
+							Function:  "main",
+							Filename:  "Junk.java",
+							Lineno:    newInt(4),
+						}},
+					}},
 				}},
-			}},
+			},
 		},
-	}}, errors)
+	}}, errorEvents)
 }
 
 func TestEncodeSpanEventsJavaExceptionsUnparsedStacktrace(t *testing.T) {
@@ -280,12 +286,12 @@ Caused by: whatever
 		events = append(events, event)
 	}
 
-	_, errors := transformTransactionSpanEvents(t, "java", events...)
-	require.Len(t, errors, len(stacktraces))
+	_, errorEvents := transformTransactionSpanEvents(t, "java", events...)
+	require.Len(t, errorEvents, len(stacktraces))
 
-	for i, e := range errors {
-		assert.Empty(t, e.Exception.Stacktrace)
-		assert.Equal(t, map[string]interface{}{"stacktrace": stacktraces[i]}, e.Exception.Attributes)
+	for i, event := range errorEvents {
+		assert.Empty(t, event.Error.Exception.Stacktrace)
+		assert.Equal(t, map[string]interface{}{"stacktrace": stacktraces[i]}, event.Error.Exception.Attributes)
 	}
 }
 
@@ -303,37 +309,40 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 
 	// For languages where we do not explicitly parse the stacktrace,
 	// the raw stacktrace is stored as an attribute on the exception.
-	transaction, errors := transformTransactionSpanEvents(t, "COBOL", exceptionEvent)
-	require.Len(t, errors, 1)
+	transactionEvent, errorEvents := transformTransactionSpanEvents(t, "COBOL", exceptionEvent)
+	require.Len(t, errorEvents, 1)
 
-	assert.Equal(t, &model.Error{
-		Metadata:           languageOnlyMetadata("COBOL"),
-		TraceID:            transaction.TraceID,
-		ParentID:           transaction.ID,
-		TransactionID:      transaction.ID,
-		TransactionType:    transaction.Type,
-		TransactionSampled: newBool(true),
-		Timestamp:          timestamp,
-		Exception: &model.Exception{
-			Type:    "the_type",
-			Message: "the_message",
-			Handled: newBool(true),
-			Attributes: map[string]interface{}{
-				"stacktrace": "the_stacktrace",
+	service, agent := languageOnlyMetadata("COBOL")
+	assert.Equal(t, model.APMEvent{
+		Service:   service,
+		Agent:     agent,
+		Timestamp: timestamp,
+		Error: &model.Error{
+			TraceID:            transactionEvent.Transaction.TraceID,
+			ParentID:           transactionEvent.Transaction.ID,
+			TransactionID:      transactionEvent.Transaction.ID,
+			TransactionType:    transactionEvent.Transaction.Type,
+			TransactionSampled: newBool(true),
+			Exception: &model.Exception{
+				Type:    "the_type",
+				Message: "the_message",
+				Handled: newBool(true),
+				Attributes: map[string]interface{}{
+					"stacktrace": "the_stacktrace",
+				},
 			},
 		},
-	}, errors[0])
+	}, errorEvents[0])
 }
 
-func languageOnlyMetadata(language string) model.Metadata {
-	return model.Metadata{
-		Service: model.Service{
-			Name:     "unknown",
-			Language: model.Language{Name: language},
-		},
-		Agent: model.Agent{
-			Name:    "otlp/" + language,
-			Version: "unknown",
-		},
+func languageOnlyMetadata(language string) (model.Service, model.Agent) {
+	service := model.Service{
+		Name:     "unknown",
+		Language: model.Language{Name: language},
 	}
+	agent := model.Agent{
+		Name:    "otlp/" + language,
+		Version: "unknown",
+	}
+	return service, agent
 }

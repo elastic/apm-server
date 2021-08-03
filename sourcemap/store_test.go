@@ -38,9 +38,17 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/beats/v7/libbeat/logp"
-
-	"github.com/elastic/apm-server/sourcemap/test"
 )
+
+var unsupportedVersionSourcemap = `{
+  "version": 1,
+  "sources": ["webpack:///bundle.js"],
+  "names": [],
+  "mappings": "CAAS",
+  "file": "bundle.js",
+  "sourcesContent": [],
+  "sourceRoot": ""
+}`
 
 func Test_newStore(t *testing.T) {
 	logger := logp.NewLogger(logs.Sourcemap)
@@ -60,7 +68,9 @@ func TestStore_Fetch(t *testing.T) {
 	t.Run("cache", func(t *testing.T) {
 		t.Run("nil", func(t *testing.T) {
 			var nilConsumer *sourcemap.Consumer
-			store := testStore(t, test.ESClientWithValidSourcemap(t)) //if ES was queried, it would return a valid sourcemap
+			store := testStore(t, newMockElasticsearchClient(t, http.StatusOK,
+				sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(validSourcemap)}),
+			))
 			store.add(key, nilConsumer)
 
 			mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
@@ -70,7 +80,7 @@ func TestStore_Fetch(t *testing.T) {
 
 		t.Run("sourcemapConsumer", func(t *testing.T) {
 			consumer := &sourcemap.Consumer{}
-			store := testStore(t, test.ESClientUnavailable(t)) //if ES was queried, it would return a server error
+			store := testStore(t, newUnavailableElasticsearchClient(t))
 			store.add(key, consumer)
 
 			mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
@@ -81,7 +91,9 @@ func TestStore_Fetch(t *testing.T) {
 	})
 
 	t.Run("validFromES", func(t *testing.T) {
-		store := testStore(t, test.ESClientWithValidSourcemap(t))
+		store := testStore(t, newMockElasticsearchClient(t, http.StatusOK,
+			sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(validSourcemap)}),
+		))
 		mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
 		require.NoError(t, err)
 		require.NotNil(t, mapper)
@@ -93,8 +105,7 @@ func TestStore_Fetch(t *testing.T) {
 	})
 
 	t.Run("notFoundInES", func(t *testing.T) {
-
-		store := testStore(t, test.ESClientWithSourcemapNotFound(t))
+		store := testStore(t, newMockElasticsearchClient(t, http.StatusNotFound, sourcemapSearchResponseBody(0, nil)))
 		//not cached
 		cached, found := store.cache.Get(key)
 		require.False(t, found)
@@ -113,8 +124,12 @@ func TestStore_Fetch(t *testing.T) {
 
 	t.Run("invalidFromES", func(t *testing.T) {
 		for name, client := range map[string]elasticsearch.Client{
-			"invalid":            test.ESClientWithInvalidSourcemap(t),
-			"unsupportedVersion": test.ESClientWithUnsupportedSourcemap(t),
+			"invalid": newMockElasticsearchClient(t, http.StatusOK,
+				sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit("foo")}),
+			),
+			"unsupportedVersion": newMockElasticsearchClient(t, http.StatusOK,
+				sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(unsupportedVersionSourcemap)}),
+			),
 		} {
 			t.Run(name, func(t *testing.T) {
 				store := testStore(t, client)
@@ -137,7 +152,7 @@ func TestStore_Fetch(t *testing.T) {
 	})
 
 	t.Run("noConnectionToES", func(t *testing.T) {
-		store := testStore(t, test.ESClientUnavailable(t))
+		store := testStore(t, newUnavailableElasticsearchClient(t))
 		//not cached
 		_, found := store.cache.Get(key)
 		require.False(t, found)
@@ -234,7 +249,7 @@ func TestConcurrentFetch(t *testing.T) {
 			version = "1.0.0"
 			path    = "/my/path/to/bundle.js.map"
 			c       = http.DefaultClient
-			res     = fmt.Sprintf(`{"sourceMap":%s}`, test.ValidSourcemap)
+			res     = fmt.Sprintf(`{"sourceMap":%s}`, validSourcemap)
 
 			errsLeft = tc.errWant
 		)
@@ -300,7 +315,9 @@ func TestStore_Added(t *testing.T) {
 
 	// setup
 	// remove empty sourcemap from cache, and valid one with File() == "bundle.js" from Elasticsearch
-	store := testStore(t, test.ESClientWithValidSourcemap(t))
+	store := testStore(t, newMockElasticsearchClient(t, http.StatusOK,
+		sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(validSourcemap)}),
+	))
 	store.add(key, &sourcemap.Consumer{})
 
 	mapper, err := store.Fetch(context.Background(), name, version, path)
@@ -317,7 +334,7 @@ func TestStore_Added(t *testing.T) {
 }
 
 func TestExpiration(t *testing.T) {
-	store := testStore(t, test.ESClientUnavailable(t)) //if ES was queried it would return an error
+	store := testStore(t, newUnavailableElasticsearchClient(t)) //if ES was queried it would return an error
 	store.cache = gocache.New(25*time.Millisecond, 100)
 	store.add("foo_1.0.1_/tmp", &sourcemap.Consumer{})
 	name, version, path := "foo", "1.0.1", "/tmp"

@@ -184,7 +184,7 @@ func newGRPCServer(
 	if cfg.AugmentEnabled {
 		// Add a model processor that sets `client.ip` for events from end-user devices.
 		batchProcessor = modelprocessor.Chained{
-			modelprocessor.MetadataProcessorFunc(otlp.SetClientMetadata),
+			model.ProcessBatchFunc(otlp.SetClientMetadata),
 			batchProcessor,
 		}
 	}
@@ -192,7 +192,7 @@ func newGRPCServer(
 	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
 	batchProcessor = modelprocessor.Chained{
 		model.ProcessBatchFunc(rateLimitBatchProcessor),
-		modelprocessor.MetadataProcessorFunc(authorizeEventIngest),
+		model.ProcessBatchFunc(authorizeEventIngestProcessor),
 		batchProcessor,
 	}
 

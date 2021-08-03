@@ -23,7 +23,7 @@ func TestWriteEvents(t *testing.T) {
 	//  - 1 transaction and 1 span
 	//  - 1 transaction and 100 spans
 	//
-	// The latter test will cause ReadEvents to implicitly call flush.
+	// The latter test will cause ReadTraceEvents to implicitly call flush.
 	t.Run("no_flush", func(t *testing.T) {
 		testWriteEvents(t, 1)
 	})
@@ -40,30 +40,28 @@ func testWriteEvents(t *testing.T, numSpans int) {
 	defer readWriter.Close()
 
 	beforeWrite := time.Now()
-	traceUUID := uuid.Must(uuid.NewV4())
-	transactionUUID := uuid.Must(uuid.NewV4())
-	transaction := &model.Transaction{
-		TraceID: traceUUID.String(),
-		ID:      transactionUUID.String(),
+	traceID := uuid.Must(uuid.NewV4()).String()
+	transactionID := uuid.Must(uuid.NewV4()).String()
+	transaction := model.APMEvent{
+		Transaction: &model.Transaction{TraceID: traceID, ID: transactionID},
 	}
-	assert.NoError(t, readWriter.WriteTransaction(transaction))
+	assert.NoError(t, readWriter.WriteTraceEvent(traceID, transactionID, &transaction))
 
 	var spanEvents []model.APMEvent
 	for i := 0; i < numSpans; i++ {
-		spanUUID := uuid.Must(uuid.NewV4())
-		span := &model.Span{
-			TraceID: traceUUID.String(),
-			ID:      spanUUID.String(),
+		spanID := uuid.Must(uuid.NewV4()).String()
+		span := model.APMEvent{
+			Span: &model.Span{TraceID: traceID, ID: spanID},
 		}
-		assert.NoError(t, readWriter.WriteSpan(span))
-		spanEvents = append(spanEvents, model.APMEvent{Span: span})
+		assert.NoError(t, readWriter.WriteTraceEvent(traceID, spanID, &span))
+		spanEvents = append(spanEvents, span)
 	}
 	afterWrite := time.Now()
 
 	// We can read our writes without flushing.
 	var batch model.Batch
-	assert.NoError(t, readWriter.ReadEvents(traceUUID.String(), &batch))
-	assert.ElementsMatch(t, append(spanEvents, model.APMEvent{Transaction: transaction}), batch)
+	assert.NoError(t, readWriter.ReadTraceEvents(traceID, &batch))
+	assert.ElementsMatch(t, append(spanEvents, transaction), batch)
 
 	// Flush in order for the writes to be visible to other readers.
 	assert.NoError(t, readWriter.Flush())
@@ -71,7 +69,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 	var recorded []model.APMEvent
 	assert.NoError(t, db.View(func(txn *badger.Txn) error {
 		iter := txn.NewIterator(badger.IteratorOptions{
-			Prefix: []byte(traceUUID.String()),
+			Prefix: []byte(traceID),
 		})
 		defer iter.Close()
 		for iter.Rewind(); iter.Valid(); iter.Next() {
@@ -92,22 +90,12 @@ func testWriteEvents(t *testing.T, numSpans int) {
 				return !expiryTime.After(upperBound)
 			}, "expiry time %s is after %s", expiryTime, upperBound)
 
-			var value interface{}
-			switch meta := item.UserMeta(); meta {
-			case 'T':
-				tx := &model.Transaction{}
-				recorded = append(recorded, model.APMEvent{Transaction: tx})
-				value = tx
-			case 'S':
-				span := &model.Span{}
-				recorded = append(recorded, model.APMEvent{Span: span})
-				value = span
-			default:
-				t.Fatalf("invalid meta %q", meta)
-			}
+			var event model.APMEvent
+			require.Equal(t, "e", string(item.UserMeta()))
 			assert.NoError(t, item.Value(func(data []byte) error {
-				return json.Unmarshal(data, value)
+				return json.Unmarshal(data, &event)
 			}))
+			recorded = append(recorded, event)
 		}
 		return nil
 	}))
@@ -164,7 +152,7 @@ func TestWriteTraceSampled(t *testing.T) {
 	}, sampled)
 }
 
-func TestReadEvents(t *testing.T) {
+func TestReadTraceEvents(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
 	ttl := time.Minute
 	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
@@ -172,14 +160,14 @@ func TestReadEvents(t *testing.T) {
 	traceID := [...]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
 		key := append(traceID[:], ":12345678"...)
-		value := []byte(`{"name":"transaction"}`)
-		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('T')); err != nil {
+		value := []byte(`{"transaction":{"name":"transaction"}}`)
+		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('e')); err != nil {
 			return err
 		}
 
 		key = append(traceID[:], ":87654321"...)
-		value = []byte(`{"name":"span"}`)
-		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('S')); err != nil {
+		value = []byte(`{"span":{"name":"span"}}`)
+		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('e')); err != nil {
 			return err
 		}
 
@@ -187,7 +175,7 @@ func TestReadEvents(t *testing.T) {
 		// proceeding colon, causing it to be ignored.
 		key = append(traceID[:], "nocolon"...)
 		value = []byte(`not-json`)
-		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('S')); err != nil {
+		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('e')); err != nil {
 			return err
 		}
 
@@ -204,14 +192,14 @@ func TestReadEvents(t *testing.T) {
 	defer reader.Close()
 
 	var events model.Batch
-	assert.NoError(t, reader.ReadEvents(string(traceID[:]), &events))
+	assert.NoError(t, reader.ReadTraceEvents(string(traceID[:]), &events))
 	assert.Equal(t, model.Batch{
 		{Transaction: &model.Transaction{Name: "transaction"}},
 		{Span: &model.Span{Name: "span"}},
 	}, events)
 }
 
-func TestReadEventsDecodeError(t *testing.T) {
+func TestReadTraceEventsDecodeError(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
 	ttl := time.Minute
 	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
@@ -220,7 +208,7 @@ func TestReadEventsDecodeError(t *testing.T) {
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
 		key := append(traceID[:], ":12345678"...)
 		value := []byte(`wat`)
-		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('T')); err != nil {
+		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('e')); err != nil {
 			return err
 		}
 		return nil
@@ -230,7 +218,7 @@ func TestReadEventsDecodeError(t *testing.T) {
 	defer reader.Close()
 
 	var events model.Batch
-	err := reader.ReadEvents(string(traceID[:]), &events)
+	err := reader.ReadTraceEvents(string(traceID[:]), &events)
 	assert.Error(t, err)
 }
 

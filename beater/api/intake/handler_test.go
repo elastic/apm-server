@@ -216,6 +216,6 @@ func compressedRequest(t *testing.T, compressionType string, compressPayload boo
 	return req
 }
 
-func emptyRequestMetadata(*request.Context) model.Metadata {
-	return model.Metadata{}
+func emptyRequestMetadata(*request.Context) model.APMEvent {
+	return model.APMEvent{}
 }

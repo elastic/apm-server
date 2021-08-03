@@ -24,7 +24,8 @@ BEATS_DIR = subprocess.check_output(
 
 # notice_overrides holds additional overrides entries for go-licence-detector.
 notice_overrides = [
-    {"name": "github.com/elastic/beats/v7", "licenceType": "Elastic"}
+    {"name": "github.com/elastic/beats/v7", "licenceType": "Elastic"},
+    {"name": "github.com/golang/glog", "licenceType": "Apache-2.0"}
 ]
 
 # Additional third-party, non-source code dependencies, to add to the CSV output.
@@ -92,7 +93,7 @@ def go_license_detector(notice_out, deps_out, modules):
         notice_template_file.close()
 
         args = [
-            "go", "run", "go.elastic.co/go-licence-detector",
+            "go", "run", "-modfile=tools/go.mod", "go.elastic.co/go-licence-detector",
             "-includeIndirect",
             "-overrides", overrides_file.name,
             "-rules", beats_rules_path,

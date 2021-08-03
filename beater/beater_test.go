@@ -22,6 +22,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -40,7 +41,6 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
@@ -155,16 +155,17 @@ func newTestBeater(
 		Logger: logger,
 		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
 			var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
-				for _, event := range *batch {
+				for i := range *batch {
+					event := &(*batch)[i]
 					if event.Transaction == nil {
 						continue
 					}
 					// Add a label to test that everything
 					// goes through the wrapped reporter.
-					if event.Transaction.Labels == nil {
-						event.Transaction.Labels = common.MapStr{}
+					if event.Labels == nil {
+						event.Labels = common.MapStr{}
 					}
-					event.Transaction.Labels["wrapped_reporter"] = true
+					event.Labels["wrapped_reporter"] = true
 				}
 				return nil
 			}
@@ -267,11 +268,13 @@ func TestTransformConfigIndex(t *testing.T) {
 	t.Run("with-observer-version", func(t *testing.T) { test(t, "blah-%{[observer.version]}-blah", "blah-1.2.3-blah") })
 }
 
+var validSourcemap, _ = ioutil.ReadFile("../testdata/sourcemap/bundle.js.map")
+
 func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	var called bool
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
-		w.Write([]byte(test.ValidSourcemap))
+		w.Write(validSourcemap)
 	}))
 	defer ts.Close()
 
@@ -297,7 +300,7 @@ func TestFleetStoreUsed(t *testing.T) {
 		called = true
 		wr := zlib.NewWriter(w)
 		defer wr.Close()
-		wr.Write([]byte(fmt.Sprintf(`{"sourceMap":%s}`, test.ValidSourcemap)))
+		wr.Write([]byte(fmt.Sprintf(`{"sourceMap":%s}`, validSourcemap)))
 	}))
 	defer ts.Close()
 
