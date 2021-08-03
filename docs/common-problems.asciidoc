@@ -265,6 +265,7 @@ Adjusting these queues/buffers can increase the agent's overhead, so use caution
 
 * **Go agent** - Circular buffer with configurable size:
 {apm-go-ref}/configuration.html#config-api-buffer-size[`ELASTIC_APM_BUFFER_SIZE`].
+// * **iOS agent** - ??
 * **Java agent** - Internal buffer with configurable size:
 {apm-java-ref}/config-reporter.html#config-max-queue-size[`max_queue_size`].
 * **Node.js agent** - No internal queue. Data is lost.
