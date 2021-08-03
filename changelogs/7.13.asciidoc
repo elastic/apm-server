@@ -57,6 +57,7 @@ https://github.com/elastic/apm-server/compare/v7.12.1\...v7.13.0[View commits]
 ==== Bug fixes
 * Fix `setup.template` config merging {pull}4950[4950]
 * The server now responds with 503 instead of 401 when failure is unrelated to API Key validity, e.g. if Elasticsearch is inaccessible {pull}5053[5053]
+* Fix panic due to misaligned 64-bit access on 32-bit architectures {pull}5277[5277]
 
 [float]
 ==== Added
