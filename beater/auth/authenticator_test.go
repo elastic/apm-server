@@ -95,6 +95,11 @@ func TestAuthenticatorAPIKey(t *testing.T) {
 	var requestBody []byte
 	var requestAuthorizationHeader string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			w.Header().Set("X-Elastic-Product", "Elasticsearch")
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 		requestURLPath = r.URL.Path
 		requestBody, _ = ioutil.ReadAll(r.Body)
 		requestAuthorizationHeader = r.Header.Get("Authorization")
@@ -176,6 +181,11 @@ func TestAuthenticatorAPIKeyErrors(t *testing.T) {
 	responseStatusCode := http.StatusUnauthorized
 	responseBody := ""
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			w.Header().Set("X-Elastic-Product", "Elasticsearch")
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 		w.WriteHeader(responseStatusCode)
 		w.Write([]byte(responseBody))
 	}))
@@ -217,6 +227,11 @@ func TestAuthenticatorAPIKeyCache(t *testing.T) {
 	invalidCredentials := base64.StdEncoding.EncodeToString([]byte("invalid_id:key_value"))
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			w.Header().Set("X-Elastic-Product", "Elasticsearch")
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 		credentials := strings.Fields(r.Header.Get("Authorization"))[1]
 		switch credentials {
 		case validCredentials:

@@ -334,9 +334,9 @@ func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
 	newSubscriber(t, srv)
 
 	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
-          "indices": {
+	"indices": {
 	    "index_name": {
-              "shards": {
+	"shards": {
 	        "0": [{
 		  "routing": {
 		    "primary": true
@@ -396,6 +396,10 @@ func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval
 func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *requestResponseWriter) {
 	requests := make(chan *requestResponseWriter)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			w.Header().Set("X-Elastic-Product", "Elasticsearch")
+			return
+		}
 		rrw := &requestResponseWriter{
 			Request: r,
 			done:    make(chan response),
