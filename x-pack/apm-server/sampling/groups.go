@@ -50,7 +50,7 @@ func (g *policyGroup) match(transactionEvent *model.APMEvent) bool {
 	if g.policy.ServiceEnvironment != "" && g.policy.ServiceEnvironment != transactionEvent.Service.Environment {
 		return false
 	}
-	if g.policy.TraceOutcome != "" && g.policy.TraceOutcome != transactionEvent.Transaction.Outcome {
+	if g.policy.TraceOutcome != "" && g.policy.TraceOutcome != transactionEvent.Event.Outcome {
 		return false
 	}
 	if g.policy.TraceName != "" && g.policy.TraceName != transactionEvent.Transaction.Name {

@@ -37,6 +37,7 @@ func TestAPMEventFields(t *testing.T) {
 	uid := "12321"
 	mail := "user@email.com"
 	agentName := "elastic-node"
+	outcome := "success"
 
 	for _, test := range []struct {
 		input  APMEvent
@@ -61,6 +62,9 @@ func TestAPMEventFields(t *testing.T) {
 				Client:      Client{Domain: "client.domain"},
 				Process:     Process{Pid: pid},
 				User:        User{ID: uid, Email: mail},
+				Event:       Event{Outcome: outcome},
+				Session:     Session{ID: "session_id"},
+				URL:         URL{Original: "url"},
 				Labels:      common.MapStr{"a": "b", "c": 123},
 				Transaction: &Transaction{},
 				Timestamp:   time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600)),
@@ -75,16 +79,18 @@ func TestAPMEventFields(t *testing.T) {
 					"name": "myservice",
 					"node": common.MapStr{"name": serviceNodeName},
 				},
-				"user":   common.MapStr{"id": "12321", "email": "user@email.com"},
-				"client": common.MapStr{"domain": "client.domain"},
-				"source": common.MapStr{"domain": "client.domain"},
+				"user":    common.MapStr{"id": "12321", "email": "user@email.com"},
+				"client":  common.MapStr{"domain": "client.domain"},
+				"source":  common.MapStr{"domain": "client.domain"},
+				"event":   common.MapStr{"outcome": outcome},
+				"session": common.MapStr{"id": "session_id"},
+				"url":     common.MapStr{"original": "url"},
 				"labels": common.MapStr{
 					"a": "b",
 					"c": 123,
 				},
 
 				// fields related to APMEvent.Transaction
-				"event": common.MapStr{"outcome": ""},
 				"processor": common.MapStr{
 					"name":  "transaction",
 					"event": "transaction",

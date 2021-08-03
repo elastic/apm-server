@@ -37,7 +37,7 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:name:56ef3b5d147616b4"
+                "instance": "systemtest:name:28a46e05f123d23f"
             },
             "transaction": {
                 "name": "name",

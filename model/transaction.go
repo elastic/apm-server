@@ -44,18 +44,14 @@ type Transaction struct {
 	Type           string
 	Name           string
 	Result         string
-	Outcome        string
 	Duration       float64
 	Marks          TransactionMarks
 	Message        *Message
 	Sampled        bool
 	SpanCount      SpanCount
-	Page           *Page
 	HTTP           *HTTP
-	URL            *URL
 	Custom         common.MapStr
 	UserExperience *UserExperience
-	Session        TransactionSession
 
 	Experimental interface{}
 
@@ -64,16 +60,6 @@ type Transaction struct {
 	//
 	// This may be used for scaling metrics; it is not indexed.
 	RepresentativeCount float64
-}
-
-type TransactionSession struct {
-	// ID holds a session ID for grouping a set of related transactions.
-	ID string
-
-	// Sequence holds an optional sequence number for a transaction
-	// within a session. Sequence is ignored if it is zero or if
-	// ID is empty.
-	Sequence int
 }
 
 type SpanCount struct {
@@ -96,12 +82,9 @@ func (e *Transaction) fields() common.MapStr {
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
 	}
-	fields.maybeSetMapStr("url", e.URL.Fields())
-	fields.maybeSetMapStr("session", e.Session.fields())
 	if e.Experimental != nil {
 		fields.set("experimental", e.Experimental)
 	}
-	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
 	var transaction mapStr
 	transaction.set("id", e.ID)
@@ -110,7 +93,6 @@ func (e *Transaction) fields() common.MapStr {
 	transaction.maybeSetString("name", e.Name)
 	transaction.maybeSetString("result", e.Result)
 	transaction.maybeSetMapStr("marks", e.Marks.fields())
-	transaction.maybeSetMapStr("page", e.Page.Fields())
 	transaction.maybeSetMapStr("custom", customFields(e.Custom))
 	transaction.maybeSetMapStr("message", e.Message.Fields())
 	transaction.maybeSetMapStr("experience", e.UserExperience.Fields())
@@ -152,17 +134,6 @@ func (m TransactionMark) fields() common.MapStr {
 	out := make(common.MapStr, len(m))
 	for k, v := range m {
 		out[sanitizeLabelKey(k)] = common.Float(v)
-	}
-	return out
-}
-
-func (s *TransactionSession) fields() common.MapStr {
-	if s.ID == "" {
-		return nil
-	}
-	out := common.MapStr{"id": s.ID}
-	if s.Sequence > 0 {
-		out["sequence"] = s.Sequence
 	}
 	return out
 }

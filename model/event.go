@@ -21,15 +21,16 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-// customFields transforms in, returning a copy with sanitized keys,
-// suitable for storing as "custom" in transaction and error documents.
-func customFields(in common.MapStr) common.MapStr {
-	if len(in) == 0 {
-		return nil
-	}
-	out := make(common.MapStr, len(in))
-	for k, v := range in {
-		out[sanitizeLabelKey(k)] = v
-	}
-	return out
+// Event holds information about an event, in ECS terms.
+//
+// https://www.elastic.co/guide/en/ecs/current/ecs-event.html
+type Event struct {
+	// Outcome holds the event outcome: "success", "failure", or "unknown".
+	Outcome string
+}
+
+func (e *Event) fields() common.MapStr {
+	var fields mapStr
+	fields.maybeSetString("outcome", e.Outcome)
+	return common.MapStr(fields)
 }

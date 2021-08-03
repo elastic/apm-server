@@ -339,11 +339,11 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 
 func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent) transactionAggregationKey {
 	return transactionAggregationKey{
-		traceRoot:          event.Transaction.ParentID == "",
-		transactionName:    event.Transaction.Name,
-		transactionOutcome: event.Transaction.Outcome,
-		transactionResult:  event.Transaction.Result,
-		transactionType:    event.Transaction.Type,
+		traceRoot:         event.Transaction.ParentID == "",
+		transactionName:   event.Transaction.Name,
+		transactionResult: event.Transaction.Result,
+		transactionType:   event.Transaction.Type,
+		eventOutcome:      event.Event.Outcome,
 
 		agentName:          event.Agent.Name,
 		serviceEnvironment: event.Service.Environment,
@@ -381,11 +381,11 @@ func makeMetricset(
 		Host: model.Host{
 			Hostname: key.hostname,
 		},
+		Event: model.Event{
+			Outcome: key.eventOutcome,
+		},
 		Metricset: &model.Metricset{
 			Name: metricsetName,
-			Event: model.MetricsetEventCategorization{
-				Outcome: key.transactionOutcome,
-			},
 			Transaction: model.MetricsetTransaction{
 				Name:   key.transactionName,
 				Type:   key.transactionType,
@@ -434,9 +434,9 @@ type transactionAggregationKey struct {
 	serviceName        string
 	serviceVersion     string
 	transactionName    string
-	transactionOutcome string
 	transactionResult  string
 	transactionType    string
+	eventOutcome       string
 }
 
 func (k *transactionAggregationKey) hash() uint64 {
@@ -452,9 +452,9 @@ func (k *transactionAggregationKey) hash() uint64 {
 	h.WriteString(k.serviceName)
 	h.WriteString(k.serviceVersion)
 	h.WriteString(k.transactionName)
-	h.WriteString(k.transactionOutcome)
 	h.WriteString(k.transactionResult)
 	h.WriteString(k.transactionType)
+	h.WriteString(k.eventOutcome)
 	return h.Sum64()
 }
 
