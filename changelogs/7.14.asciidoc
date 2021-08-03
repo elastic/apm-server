@@ -38,6 +38,8 @@ https://github.com/elastic/apm-server/compare/v7.13.4\...v7.14.0[View commits]
 * Add support for dynamic histogram metrics {pull}5239[5239]
 * Support setting agent configuration from apm-server.yml {pull}5177[5177]
 * Add metric_type and unit to field metadata of system metrics {pull}5230[5230]
+* Under fleet, report which agent configs have been applied {pull}5481[5481]
+* Server sends its raw config to kibana when running on ECE/ESS {pull}5424[5424]
 
 [float]
 ==== Deprecated
