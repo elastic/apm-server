@@ -25,18 +25,16 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/google/pprof/profile"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
 	"github.com/elastic/apm-server/model"
 )
 
 // appendProfileSampleBatch converts a pprof profile into a batch of model.ProfileSamples,
 // and appends it to out.
-func appendProfileSampleBatch(pp *profile.Profile, metadata model.Metadata, out model.Batch) model.Batch {
+func appendProfileSampleBatch(pp *profile.Profile, baseEvent model.APMEvent, out model.Batch) model.Batch {
 
 	// Precompute value field names for use in each event.
 	// TODO(axw) limit to well-known value names?
-	profileTimestamp := time.Unix(0, pp.TimeNanos)
+	baseEvent.Timestamp = time.Unix(0, pp.TimeNanos)
 	valueFieldNames := make([]string, len(pp.SampleType))
 	for i, sampleType := range pp.SampleType {
 		sampleUnit := normalizeUnit(sampleType.Unit)
@@ -88,11 +86,11 @@ func appendProfileSampleBatch(pp *profile.Profile, metadata model.Metadata, out 
 			}
 		}
 
-		var labels common.MapStr
+		event := baseEvent
+		event.Labels = event.Labels.Clone()
 		if n := len(sample.Label); n > 0 {
-			labels = make(common.MapStr, n)
 			for k, v := range sample.Label {
-				labels[k] = v
+				event.Labels[k] = v
 			}
 		}
 
@@ -101,17 +99,13 @@ func appendProfileSampleBatch(pp *profile.Profile, metadata model.Metadata, out 
 			values[valueFieldNames[i]] = value
 		}
 
-		out = append(out, model.APMEvent{
-			ProfileSample: &model.ProfileSample{
-				Metadata:  metadata,
-				Timestamp: profileTimestamp,
-				Duration:  time.Duration(pp.DurationNanos),
-				ProfileID: profileID,
-				Stack:     stack,
-				Labels:    labels,
-				Values:    values,
-			},
-		})
+		event.ProfileSample = &model.ProfileSample{
+			Duration:  time.Duration(pp.DurationNanos),
+			ProfileID: profileID,
+			Stack:     stack,
+			Values:    values,
+		}
+		out = append(out, event)
 	}
 	return out
 }

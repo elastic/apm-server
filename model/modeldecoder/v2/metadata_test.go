@@ -30,6 +30,10 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
 )
 
+func isMetadataException(key string) bool {
+	return isUnmappedMetadataField(key) || isEventField(key)
+}
+
 // unmappedMetadataFields holds the list of model fields that have no equivalent
 // in the metadata input type.
 func isUnmappedMetadataField(key string) bool {
@@ -42,6 +46,10 @@ func isUnmappedMetadataField(key string) bool {
 		"Container.ImageName",
 		"Container.ImageTag",
 		"Container.Name",
+		"DataStream",
+		"DataStream.Type",
+		"DataStream.Dataset",
+		"DataStream.Namespace",
 		"Network",
 		"Network.ConnectionType",
 		"Network.Carrier",
@@ -64,18 +72,22 @@ func isUnmappedMetadataField(key string) bool {
 	return false
 }
 
-func initializedMetadata() model.Metadata {
-	_, metadata := initializedInputMetadata(modeldecodertest.DefaultValues())
-	return metadata
+func isEventField(key string) bool {
+	for _, prefix := range []string{"Error", "Metricset", "ProfileSample", "Span", "Transaction"} {
+		if key == prefix || strings.HasPrefix(key, prefix+".") {
+			return true
+		}
+	}
+	return false
 }
 
-func initializedInputMetadata(values *modeldecodertest.Values) (metadata, model.Metadata) {
+func initializedInputMetadata(values *modeldecodertest.Values) (metadata, model.APMEvent) {
 	var input metadata
-	var out model.Metadata
+	var out model.APMEvent
 	modeldecodertest.SetStructValues(&input, values)
 	mapToMetadataModel(&input, &out)
 	modeldecodertest.SetStructValues(&out, values, func(key string, field, value reflect.Value) bool {
-		return isUnmappedMetadataField(key)
+		return isUnmappedMetadataField(key) || isEventField(key)
 	})
 	return input, out
 }
@@ -93,7 +105,7 @@ func TestDecodeMetadata(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
 		input    string
-		decodeFn func(decoder.Decoder, *model.Metadata) error
+		decodeFn func(decoder.Decoder, *model.APMEvent) error
 	}{
 		{name: "decodeMetadata", decodeFn: DecodeMetadata,
 			input: `{"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}`},
@@ -101,10 +113,10 @@ func TestDecodeMetadata(t *testing.T) {
 			input: `{"metadata":{"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}}`},
 	} {
 		t.Run("decode", func(t *testing.T) {
-			var out model.Metadata
+			var out model.APMEvent
 			dec := decoder.NewJSONDecoder(strings.NewReader(tc.input))
 			require.NoError(t, tc.decodeFn(dec, &out))
-			assert.Equal(t, model.Metadata{
+			assert.Equal(t, model.APMEvent{
 				Service: model.Service{Name: "user-service"},
 				Agent:   model.Agent{Name: "go", Version: "1.0.0"},
 			}, out)
@@ -116,7 +128,7 @@ func TestDecodeMetadata(t *testing.T) {
 
 		t.Run("validate", func(t *testing.T) {
 			inp := `{}`
-			var out model.Metadata
+			var out model.APMEvent
 			err := tc.decodeFn(decoder.NewJSONDecoder(strings.NewReader(inp)), &out)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "validation")
@@ -133,13 +145,10 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		// enhanced data that are never set by the modeldecoder
 		defaultVal := modeldecodertest.DefaultValues()
 		input, out := initializedInputMetadata(defaultVal)
-
-		exceptions := func(key string) bool {
-			return isUnmappedMetadataField(key)
-		}
+		out.Timestamp = defaultVal.Time
 
 		// iterate through model and assert values are set
-		modeldecodertest.AssertStructValues(t, &out, exceptions, defaultVal)
+		modeldecodertest.AssertStructValues(t, &out, isMetadataException, defaultVal)
 
 		// overwrite model metadata with specified Values
 		// then iterate through model and assert values are overwritten
@@ -149,27 +158,26 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		otherVal.Update(defaultVal.IP)
 		input.Reset()
 		modeldecodertest.SetStructValues(&input, otherVal)
+		out.Timestamp = otherVal.Time
 		mapToMetadataModel(&input, &out)
-		modeldecodertest.AssertStructValues(t, &out, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out, isMetadataException, otherVal)
 
 		// map an empty modeldecoder metadata to the model
 		// and assert values are unchanged
 		input.Reset()
 		modeldecodertest.SetZeroStructValues(&input)
 		mapToMetadataModel(&input, &out)
-		modeldecodertest.AssertStructValues(t, &out, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out, isMetadataException, otherVal)
 	})
 
 	t.Run("reused-memory", func(t *testing.T) {
-		var out2 model.Metadata
+		var out2 model.APMEvent
 		defaultVal := modeldecodertest.DefaultValues()
 		input, out1 := initializedInputMetadata(defaultVal)
+		out1.Timestamp = defaultVal.Time
 
-		exceptions := func(key string) bool {
-			return isUnmappedMetadataField(key)
-		}
 		// iterate through model and assert values are set
-		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
+		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)
 
 		// overwrite model metadata with specified Values
 		// then iterate through model and assert values are overwritten
@@ -180,14 +188,15 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.Reset()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
+		out2.Timestamp = otherVal.Time
 		out2.Host.IP, out2.Client.IP = defaultVal.IP, defaultVal.IP
-		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
-		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
+		modeldecodertest.AssertStructValues(t, &out2, isMetadataException, otherVal)
+		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)
 	})
 
 	t.Run("system", func(t *testing.T) {
 		var input metadata
-		var out model.Metadata
+		var out model.APMEvent
 		// full input information
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 		input.System.ConfiguredHostname.Set("configured-host")
@@ -197,19 +206,19 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		assert.Equal(t, "configured-host", out.Host.Name)
 		assert.Equal(t, "detected-host", out.Host.Hostname)
 		// no detected-host information
-		out = model.Metadata{}
+		out = model.APMEvent{}
 		input.System.DetectedHostname.Reset()
 		mapToMetadataModel(&input, &out)
 		assert.Equal(t, "configured-host", out.Host.Name)
 		assert.Empty(t, out.Host.Hostname)
 		// no configured-host information
-		out = model.Metadata{}
+		out = model.APMEvent{}
 		input.System.ConfiguredHostname.Reset()
 		mapToMetadataModel(&input, &out)
 		assert.Empty(t, out.Host.Name)
 		assert.Equal(t, "deprecated-host", out.Host.Hostname)
 		// no host information given
-		out = model.Metadata{}
+		out = model.APMEvent{}
 		input.System.DeprecatedHostname.Reset()
 		assert.Empty(t, out.Host.Name)
 		assert.Empty(t, out.Host.Hostname)

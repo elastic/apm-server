@@ -18,20 +18,17 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func TestTransform(t *testing.T) {
-	timestamp := time.Now()
-	metadata := Metadata{
-		Service: Service{Name: "myservice"},
-	}
+func TestMetricset(t *testing.T) {
 	resource := "external-service"
 
 	const (
@@ -51,31 +48,22 @@ func TestTransform(t *testing.T) {
 		Msg       string
 	}{
 		{
-			Metricset: &Metricset{Timestamp: timestamp, Metadata: metadata},
+			Metricset: &Metricset{},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "metric", "name": "metric"},
-				"service": common.MapStr{
-					"name": "myservice",
-				},
 			},
 			Msg: "Payload with empty metric.",
 		},
 		{
-			Metricset: &Metricset{Timestamp: timestamp, Metadata: metadata, Name: "raj"},
+			Metricset: &Metricset{Name: "raj"},
 			Output: common.MapStr{
 				"processor":      common.MapStr{"event": "metric", "name": "metric"},
 				"metricset.name": "raj",
-				"service": common.MapStr{
-					"name": "myservice",
-				},
 			},
 			Msg: "Payload with metricset name.",
 		},
 		{
 			Metricset: &Metricset{
-				Metadata:  metadata,
-				Labels:    common.MapStr{"a_b": "a.b.value"},
-				Timestamp: timestamp,
 				Samples: map[string]MetricsetSample{
 					"a.counter":  {Value: 612},
 					"some.gauge": {Value: 9.16},
@@ -83,8 +71,6 @@ func TestTransform(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"processor":  common.MapStr{"event": "metric", "name": "metric"},
-				"service":    common.MapStr{"name": "myservice"},
-				"labels":     common.MapStr{"a_b": "a.b.value"},
 				"a.counter":  612.0,
 				"some.gauge": 9.16,
 			},
@@ -92,8 +78,6 @@ func TestTransform(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Timestamp:   timestamp,
-				Metadata:    metadata,
 				Span:        MetricsetSpan{Type: spType, Subtype: spSubtype},
 				Transaction: MetricsetTransaction{Type: trType, Name: trName},
 				Samples: map[string]MetricsetSample{
@@ -102,7 +86,6 @@ func TestTransform(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"processor":   common.MapStr{"event": "metric", "name": "metric"},
-				"service":     common.MapStr{"name": "myservice"},
 				"transaction": common.MapStr{"type": trType, "name": trName},
 				"span": common.MapStr{
 					"type": spType, "subtype": spSubtype,
@@ -113,9 +96,7 @@ func TestTransform(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Timestamp: timestamp,
-				Metadata:  metadata,
-				Event:     MetricsetEventCategorization{Outcome: eventOutcome},
+				Event: MetricsetEventCategorization{Outcome: eventOutcome},
 				Transaction: MetricsetTransaction{
 					Type:   trType,
 					Name:   trName,
@@ -135,7 +116,6 @@ func TestTransform(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"processor":  common.MapStr{"event": "metric", "name": "metric"},
-				"service":    common.MapStr{"name": "myservice"},
 				"event":      common.MapStr{"outcome": eventOutcome},
 				"timeseries": common.MapStr{"instance": "foo"},
 				"transaction": common.MapStr{
@@ -159,8 +139,6 @@ func TestTransform(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Timestamp: timestamp,
-				Metadata:  metadata,
 				Span: MetricsetSpan{Type: spType, Subtype: spSubtype, DestinationService: DestinationService{
 					Resource: resource,
 				}},
@@ -171,7 +149,6 @@ func TestTransform(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "metric", "name": "metric"},
-				"service":   common.MapStr{"name": "myservice"},
 				"span": common.MapStr{
 					"type": spType, "subtype": spSubtype,
 					"destination": common.MapStr{"service": common.MapStr{"resource": resource}},
@@ -183,8 +160,6 @@ func TestTransform(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Timestamp: timestamp,
-				Metadata:  metadata,
 				Samples: map[string]MetricsetSample{
 					"latency_histogram": {
 						Type:   "histogram",
@@ -204,7 +179,6 @@ func TestTransform(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "metric", "name": "metric"},
-				"service":   common.MapStr{"name": "myservice"},
 				"latency_histogram": common.MapStr{
 					"counts": []int64{1, 2, 3},
 					"values": []float64{1.1, 2.2, 3.3},
@@ -229,8 +203,9 @@ func TestTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvent := test.Metricset.toBeatEvent()
-		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-		assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
+		event := APMEvent{Metricset: test.Metricset}
+		outputEvents := event.appendBeatEvent(context.Background(), nil)
+		require.Len(t, outputEvents, 1)
+		assert.Equal(t, test.Output, outputEvents[0].Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

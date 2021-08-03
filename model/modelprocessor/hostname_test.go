@@ -25,13 +25,13 @@ import (
 )
 
 func TestSetHostHostname(t *testing.T) {
-	withConfiguredHostname := model.Metadata{
+	withConfiguredHostname := model.APMEvent{
 		Host: model.Host{
 			Name:     "configured_hostname",
 			Hostname: "detected_hostname",
 		},
 	}
-	withDetectedHostname := model.Metadata{
+	withDetectedHostname := model.APMEvent{
 		Host: model.Host{
 			Hostname: "detected_hostname",
 		},
@@ -43,30 +43,30 @@ func TestSetHostHostname(t *testing.T) {
 
 	processor := modelprocessor.SetHostHostname{}
 
-	testProcessBatchMetadata(t, processor, withConfiguredHostname, withConfiguredHostname) // unchanged
-	testProcessBatchMetadata(t, processor, withDetectedHostname,
-		metadataWithHostName(
-			metadataWithHostHostname(withDetectedHostname, "detected_hostname"),
+	testProcessBatch(t, processor, withConfiguredHostname, withConfiguredHostname) // unchanged
+	testProcessBatch(t, processor, withDetectedHostname,
+		eventWithHostName(
+			eventWithHostHostname(withDetectedHostname, "detected_hostname"),
 			"detected_hostname",
 		),
 	)
-	testProcessBatchMetadata(t, processor, withKubernetesPodName,
-		metadataWithHostHostname(withKubernetesPodName, ""),
+	testProcessBatch(t, processor, withKubernetesPodName,
+		eventWithHostHostname(withKubernetesPodName, ""),
 	)
-	testProcessBatchMetadata(t, processor, withKubernetesNodeName,
-		metadataWithHostName(
-			metadataWithHostHostname(withKubernetesNodeName, "kubernetes.node.name"),
+	testProcessBatch(t, processor, withKubernetesNodeName,
+		eventWithHostName(
+			eventWithHostHostname(withKubernetesNodeName, "kubernetes.node.name"),
 			"kubernetes.node.name",
 		),
 	)
 }
 
-func metadataWithHostHostname(in model.Metadata, detectedHostname string) model.Metadata {
+func eventWithHostHostname(in model.APMEvent, detectedHostname string) model.APMEvent {
 	in.Host.Hostname = detectedHostname
 	return in
 }
 
-func metadataWithHostName(in model.Metadata, configuredHostname string) model.Metadata {
+func eventWithHostName(in model.APMEvent, configuredHostname string) model.APMEvent {
 	in.Host.Name = configuredHostname
 	return in
 }

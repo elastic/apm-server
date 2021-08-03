@@ -40,7 +40,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/elastic/apm-server/model"
 )
@@ -51,7 +50,6 @@ var (
 )
 
 func convertOpenTelemetryExceptionSpanEvent(
-	timestamp time.Time,
 	exceptionType, exceptionMessage, exceptionStacktrace string,
 	exceptionEscaped bool,
 	language string,
@@ -61,7 +59,6 @@ func convertOpenTelemetryExceptionSpanEvent(
 	}
 	exceptionHandled := !exceptionEscaped
 	exceptionError := model.Error{
-		Timestamp: timestamp,
 		Exception: &model.Exception{
 			Message: exceptionMessage,
 			Type:    exceptionType,

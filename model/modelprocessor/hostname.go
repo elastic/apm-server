@@ -30,22 +30,24 @@ type SetHostHostname struct{}
 
 // ProcessBatch sets or overrides the host.name and host.hostname fields for events.
 func (SetHostHostname) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	return MetadataProcessorFunc(setHostHostname).ProcessBatch(ctx, b)
+	for i := range *b {
+		setHostHostname(&(*b)[i])
+	}
+	return nil
 }
 
-func setHostHostname(ctx context.Context, meta *model.Metadata) error {
+func setHostHostname(event *model.APMEvent) {
 	switch {
-	case meta.Kubernetes.NodeName != "":
+	case event.Kubernetes.NodeName != "":
 		// host.kubernetes.node.name is set: set host.hostname to its value.
-		meta.Host.Hostname = meta.Kubernetes.NodeName
-	case meta.Kubernetes.PodName != "" || meta.Kubernetes.PodUID != "" || meta.Kubernetes.Namespace != "":
+		event.Host.Hostname = event.Kubernetes.NodeName
+	case event.Kubernetes.PodName != "" || event.Kubernetes.PodUID != "" || event.Kubernetes.Namespace != "":
 		// kubernetes.* is set, but kubernetes.node.name is not: don't set host.hostname at all.
-		meta.Host.Hostname = ""
+		event.Host.Hostname = ""
 	default:
 		// Otherwise use the originally specified host.hostname value.
 	}
-	if meta.Host.Name == "" {
-		meta.Host.Name = meta.Host.Hostname
+	if event.Host.Name == "" {
+		event.Host.Name = event.Host.Hostname
 	}
-	return nil
 }

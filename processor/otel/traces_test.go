@@ -392,14 +392,14 @@ func TestHTTPTransactionUserAgent(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"http.user_agent": pdata.NewAttributeValueString("Foo/bar (baz)"),
 	})
-	assert.Equal(t, model.UserAgent{Original: "Foo/bar (baz)"}, event.Transaction.Metadata.UserAgent)
+	assert.Equal(t, model.UserAgent{Original: "Foo/bar (baz)"}, event.UserAgent)
 }
 
 func TestHTTPTransactionClientIP(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"http.client_ip": pdata.NewAttributeValueString("256.257.258.259"),
 	})
-	assert.Equal(t, net.ParseIP("256.257.258.259"), event.Transaction.Metadata.Client.IP)
+	assert.Equal(t, net.ParseIP("256.257.258.259"), event.Client.IP)
 }
 
 func TestHTTPTransactionStatusCode(t *testing.T) {
@@ -438,7 +438,7 @@ func TestDatabaseSpan(t *testing.T) {
 	assert.Equal(t, common.MapStr{
 		"db_connection_string": connectionString,
 		"net_transport":        "IP.TCP",
-	}, event.Span.Labels)
+	}, event.Labels)
 
 	assert.Equal(t, &model.Destination{
 		Address: "shopdb.example.com",
@@ -462,8 +462,8 @@ func TestInstrumentationLibrary(t *testing.T) {
 	events := transformTraces(t, traces)
 	event := events[0]
 
-	assert.Equal(t, "library-name", event.Transaction.Metadata.Service.Framework.Name)
-	assert.Equal(t, "1.2.3", event.Transaction.Metadata.Service.Framework.Version)
+	assert.Equal(t, "library-name", event.Service.Framework.Name)
+	assert.Equal(t, "1.2.3", event.Service.Framework.Version)
 }
 
 func TestRPCTransaction(t *testing.T) {
@@ -478,12 +478,12 @@ func TestRPCTransaction(t *testing.T) {
 	})
 	assert.Equal(t, "request", event.Transaction.Type)
 	assert.Equal(t, "Unavailable", event.Transaction.Result)
-	assert.Empty(t, event.Transaction.Metadata.Labels)
+	assert.Empty(t, event.Labels)
 	assert.Equal(t, model.Client{
 		Domain: "peer_name",
 		IP:     net.ParseIP("10.20.30.40"),
 		Port:   123,
-	}, event.Transaction.Metadata.Client)
+	}, event.Client)
 }
 
 func TestRPCSpan(t *testing.T) {
@@ -497,7 +497,7 @@ func TestRPCSpan(t *testing.T) {
 	})
 	assert.Equal(t, "external", event.Span.Type)
 	assert.Equal(t, "grpc", event.Span.Subtype)
-	assert.Empty(t, event.Span.Labels)
+	assert.Empty(t, event.Labels)
 	assert.Equal(t, &model.Destination{
 		Address: "10.20.30.40",
 		Port:    123,
@@ -520,7 +520,7 @@ func TestMessagingTransaction(t *testing.T) {
 		s.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
 	})
 	assert.Equal(t, "messaging", event.Transaction.Type)
-	assert.Empty(t, event.Transaction.Labels)
+	assert.Empty(t, event.Labels)
 	assert.Equal(t, &model.Message{
 		QueueName: "myQueue",
 	}, event.Transaction.Message)
@@ -538,7 +538,7 @@ func TestMessagingSpan(t *testing.T) {
 	assert.Equal(t, "messaging", event.Span.Type)
 	assert.Equal(t, "kafka", event.Span.Subtype)
 	assert.Equal(t, "send", event.Span.Action)
-	assert.Empty(t, event.Span.Labels)
+	assert.Empty(t, event.Labels)
 	assert.Equal(t, &model.Destination{
 		Address: "10.20.30.40",
 		Port:    123,
@@ -570,8 +570,8 @@ func TestSpanNetworkAttributes(t *testing.T) {
 			ICC:  "UK",
 		},
 	}
-	assert.Equal(t, expected, txEvent.Transaction.Metadata.Network)
-	assert.Equal(t, expected, spanEvent.Span.Metadata.Network)
+	assert.Equal(t, expected, txEvent.Network)
+	assert.Equal(t, expected, spanEvent.Network)
 }
 
 func TestArrayLabels(t *testing.T) {
@@ -590,7 +590,7 @@ func TestArrayLabels(t *testing.T) {
 	assert.Equal(t, common.MapStr{
 		"bool_array":   []interface{}{false, true},
 		"string_array": []interface{}{"string1", "string2"},
-	}, txEvent.Transaction.Labels)
+	}, txEvent.Labels)
 
 	spanEvent := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{
 		"string_array": stringArray,
@@ -599,7 +599,7 @@ func TestArrayLabels(t *testing.T) {
 	assert.Equal(t, common.MapStr{
 		"bool_array":   []interface{}{false, true},
 		"string_array": []interface{}{"string1", "string2"},
-	}, spanEvent.Span.Labels)
+	}, spanEvent.Labels)
 }
 
 func TestConsumeTracesExportTimestamp(t *testing.T) {
@@ -656,9 +656,9 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	require.Len(t, batch, 3)
 
 	// Give some leeway for one event, and check other events' timestamps relative to that one.
-	assert.InDelta(t, now.Add(transactionOffset).Unix(), batch[0].Transaction.Timestamp.Unix(), allowedError)
-	assert.Equal(t, spanOffset-transactionOffset, batch[1].Span.Timestamp.Sub(batch[0].Transaction.Timestamp))
-	assert.Equal(t, exceptionOffset-transactionOffset, batch[2].Error.Timestamp.Sub(batch[0].Transaction.Timestamp))
+	assert.InDelta(t, now.Add(transactionOffset).Unix(), batch[0].Timestamp.Unix(), allowedError)
+	assert.Equal(t, spanOffset-transactionOffset, batch[1].Timestamp.Sub(batch[0].Timestamp))
+	assert.Equal(t, exceptionOffset-transactionOffset, batch[2].Timestamp.Sub(batch[0].Timestamp))
 
 	// Durations should be unaffected.
 	assert.Equal(t, float64(transactionDuration.Milliseconds()), batch[0].Transaction.Duration)
@@ -1051,8 +1051,8 @@ func TestJaegerServiceVersion(t *testing.T) {
 	require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
 
 	batch := *batches[0]
-	assert.Equal(t, "process_tag_value", batch[0].Transaction.Metadata.Service.Version)
-	assert.Equal(t, "span_tag_value", batch[1].Transaction.Metadata.Service.Version)
+	assert.Equal(t, "process_tag_value", batch[0].Service.Version)
+	assert.Equal(t, "span_tag_value", batch[1].Service.Version)
 }
 
 func TestTracesLogging(t *testing.T) {

@@ -19,8 +19,11 @@ package model
 
 import (
 	"context"
+	"time"
 
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 // APMEvent holds the details of an APM event.
@@ -33,6 +36,24 @@ type APMEvent struct {
 	// in standalone mode.
 	DataStream DataStream
 
+	Agent      Agent
+	Container  Container
+	Kubernetes Kubernetes
+	Service    Service
+	Process    Process
+	Host       Host
+	User       User
+	UserAgent  UserAgent
+	Client     Client
+	Cloud      Cloud
+	Network    Network
+
+	// Timestamp holds the event timestamp.
+	Timestamp time.Time
+
+	// Labels holds labels to apply to the event.
+	Labels common.MapStr
+
 	Transaction   *Transaction
 	Span          *Span
 	Metricset     *Metricset
@@ -41,21 +62,51 @@ type APMEvent struct {
 }
 
 func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat.Event {
-	var event beat.Event
+	event := beat.Event{Timestamp: e.Timestamp}
 	switch {
 	case e.Transaction != nil:
-		event = e.Transaction.toBeatEvent()
+		event.Fields = e.Transaction.fields()
 	case e.Span != nil:
-		event = e.Span.toBeatEvent(ctx)
+		event.Fields = e.Span.fields()
 	case e.Metricset != nil:
-		event = e.Metricset.toBeatEvent()
+		event.Fields = e.Metricset.fields()
 	case e.Error != nil:
-		event = e.Error.toBeatEvent(ctx)
+		event.Fields = e.Error.fields()
 	case e.ProfileSample != nil:
-		event = e.ProfileSample.toBeatEvent()
+		event.Fields = e.ProfileSample.fields()
 	default:
 		return out
 	}
-	e.DataStream.setFields((*mapStr)(&event.Fields))
+
+	// Set high resolution timestamp.
+	//
+	// TODO(axw) change @timestamp to use date_nanos, and remove this field.
+	if !e.Timestamp.IsZero() && (e.Transaction != nil || e.Span != nil || e.Error != nil) {
+		event.Fields["timestamp"] = utility.TimeAsMicros(e.Timestamp)
+	}
+
+	// Set fields common to all events.
+	fields := (*mapStr)(&event.Fields)
+	event.Timestamp = e.Timestamp
+	e.DataStream.setFields(fields)
+	fields.maybeSetMapStr("service", e.Service.Fields())
+	fields.maybeSetMapStr("agent", e.Agent.fields())
+	fields.maybeSetMapStr("host", e.Host.fields())
+	fields.maybeSetMapStr("process", e.Process.fields())
+	fields.maybeSetMapStr("user", e.User.fields())
+	if client := e.Client.fields(); fields.maybeSetMapStr("client", client) {
+		// We copy client to source for transactions and errors.
+		if e.Transaction != nil || e.Error != nil {
+			// TODO(axw) once we are using Fleet for ingest pipeline
+			// management, move this to an ingest pipeline.
+			fields.set("source", client)
+		}
+	}
+	fields.maybeSetMapStr("user_agent", e.UserAgent.fields())
+	fields.maybeSetMapStr("container", e.Container.fields())
+	fields.maybeSetMapStr("kubernetes", e.Kubernetes.fields())
+	fields.maybeSetMapStr("cloud", e.Cloud.fields())
+	fields.maybeSetMapStr("network", e.Network.fields())
+	fields.maybeSetMapStr("labels", sanitizeLabels(e.Labels))
 	return append(out, event)
 }

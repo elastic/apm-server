@@ -18,9 +18,6 @@
 package model
 
 import (
-	"time"
-
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
@@ -40,13 +37,9 @@ var (
 )
 
 type Transaction struct {
-	Metadata Metadata
-
 	ID       string
 	ParentID string
 	TraceID  string
-
-	Timestamp time.Time
 
 	Type           string
 	Name           string
@@ -60,7 +53,6 @@ type Transaction struct {
 	Page           *Page
 	HTTP           *HTTP
 	URL            *URL
-	Labels         common.MapStr
 	Custom         common.MapStr
 	UserExperience *UserExperience
 	Session        TransactionSession
@@ -89,54 +81,18 @@ type SpanCount struct {
 	Started *int
 }
 
-// fields creates the fields to populate in the top-level "transaction" object field.
 func (e *Transaction) fields() common.MapStr {
-	var fields mapStr
-	fields.set("id", e.ID)
-	fields.set("type", e.Type)
-	fields.set("duration", utility.MillisAsMicros(e.Duration))
-	fields.maybeSetString("name", e.Name)
-	fields.maybeSetString("result", e.Result)
-	fields.maybeSetMapStr("marks", e.Marks.fields())
-	fields.maybeSetMapStr("page", e.Page.Fields())
-	fields.maybeSetMapStr("custom", customFields(e.Custom))
-	fields.maybeSetMapStr("message", e.Message.Fields())
-	fields.maybeSetMapStr("experience", e.UserExperience.Fields())
-	if e.SpanCount.Dropped != nil || e.SpanCount.Started != nil {
-		spanCount := common.MapStr{}
-		if e.SpanCount.Dropped != nil {
-			spanCount["dropped"] = *e.SpanCount.Dropped
-		}
-		if e.SpanCount.Started != nil {
-			spanCount["started"] = *e.SpanCount.Started
-		}
-		fields.set("span_count", spanCount)
-	}
-	fields.set("sampled", e.Sampled)
-	return common.MapStr(fields)
-}
-
-func (e *Transaction) toBeatEvent() beat.Event {
 	transactionTransformations.Inc()
 
 	fields := mapStr{
-		"processor":        transactionProcessorEntry,
-		transactionDocType: e.fields(),
+		"processor": transactionProcessorEntry,
 	}
 
-	// first set generic metadata (order is relevant)
-	e.Metadata.set(&fields, e.Labels)
-	if client := fields["client"]; client != nil {
-		fields["source"] = client
-	}
-
-	// then merge event specific information
 	var parent, trace mapStr
 	parent.maybeSetString("id", e.ParentID)
 	trace.maybeSetString("id", e.TraceID)
 	fields.maybeSetMapStr("parent", common.MapStr(parent))
 	fields.maybeSetMapStr("trace", common.MapStr(trace))
-	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
 	}
@@ -147,10 +103,31 @@ func (e *Transaction) toBeatEvent() beat.Event {
 	}
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
-	return beat.Event{
-		Timestamp: e.Timestamp,
-		Fields:    common.MapStr(fields),
+	var transaction mapStr
+	transaction.set("id", e.ID)
+	transaction.set("type", e.Type)
+	transaction.set("duration", utility.MillisAsMicros(e.Duration))
+	transaction.maybeSetString("name", e.Name)
+	transaction.maybeSetString("result", e.Result)
+	transaction.maybeSetMapStr("marks", e.Marks.fields())
+	transaction.maybeSetMapStr("page", e.Page.Fields())
+	transaction.maybeSetMapStr("custom", customFields(e.Custom))
+	transaction.maybeSetMapStr("message", e.Message.Fields())
+	transaction.maybeSetMapStr("experience", e.UserExperience.Fields())
+	if e.SpanCount.Dropped != nil || e.SpanCount.Started != nil {
+		spanCount := common.MapStr{}
+		if e.SpanCount.Dropped != nil {
+			spanCount["dropped"] = *e.SpanCount.Dropped
+		}
+		if e.SpanCount.Started != nil {
+			spanCount["started"] = *e.SpanCount.Started
+		}
+		transaction.set("span_count", spanCount)
 	}
+	transaction.set("sampled", e.Sampled)
+	fields.set("transaction", common.MapStr(transaction))
+
+	return common.MapStr(fields)
 }
 
 type TransactionMarks map[string]TransactionMark

@@ -38,7 +38,7 @@ var (
 	serviceNameInvalidRegexp = regexp.MustCompile("[^a-zA-Z0-9 _-]")
 )
 
-func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
+func translateResourceMetadata(resource pdata.Resource, out *model.APMEvent) {
 	var exporterVersion string
 	resource.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
 		switch k {
@@ -218,4 +218,10 @@ func ifaceAnyValueArray(array pdata.AnyValueArray) []interface{} {
 		values[i] = ifaceAttributeValue(array.At(i))
 	}
 	return values
+}
+
+// initEventLabels initializes an event-specific label map, either making a copy
+// of commonLabels if it is non-nil, or otherwise creating a new map.
+func initEventLabels(commonLabels common.MapStr) common.MapStr {
+	return commonLabels.Clone()
 }
