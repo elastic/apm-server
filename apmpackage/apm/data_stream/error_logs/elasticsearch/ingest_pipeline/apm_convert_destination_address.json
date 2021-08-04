@@ -2,11 +2,10 @@
   "description": "Convert destination.address to an IP, storing in destination.ip",
   "processors": [
     {
-      "convert": {
-        "field": "destination.address",
-        "target_field": "destination.ip",
-        "type": "ip",
-        "ignore_missing": true,
+      "set": {
+        "if": "ctx.destination?.address != null",
+        "field": "destination.ip",
+        "value": "{{destination.address}}",
         "ignore_failure": true
       }
     }
