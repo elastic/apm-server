@@ -329,27 +329,27 @@ func TestFleetStoreUsed(t *testing.T) {
 	assert.True(t, called)
 }
 
-func TestSplitCfg(t *testing.T) {
+func TestShouldRestart(t *testing.T) {
 	c := config.DefaultConfig()
 	r := &reloader{}
 
-	_, shouldRestart, err := r.splitCfg(c)
+	shouldRestart, err := r.shouldRestart(c)
 	require.NoError(t, err)
 
 	assert.True(t, shouldRestart)
 
-	_, shouldRestart, err = r.splitCfg(c)
+	shouldRestart, err = r.shouldRestart(c)
 	assert.False(t, shouldRestart)
 
 	// Change some dynamic options and verify we do not want to restart.
 	c.MaxHeaderSize = 12345
 	c.IdleTimeout = time.Second
 
-	_, shouldRestart, err = r.splitCfg(c)
+	shouldRestart, err = r.shouldRestart(c)
 	assert.False(t, shouldRestart)
 
 	// Change some static options and verify we do want to restart.
 	c.MaxConnections = 10
-	_, shouldRestart, err = r.splitCfg(c)
+	shouldRestart, err = r.shouldRestart(c)
 	assert.True(t, shouldRestart)
 }

@@ -265,7 +265,7 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 	if err != nil {
 		return err
 	}
-	dynamicCfg, shouldRestart, err := r.splitCfg(cfg)
+	shouldRestart, err := r.shouldRestart(cfg)
 	if err != nil {
 		return err
 	}
@@ -291,27 +291,12 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 	}
 	// Update current runner.
 	// TODO: This should actually update the runner.
-	return r.runner.updateDynamicConfig(dynamicCfg)
+	return r.runner.updateDynamicConfig(cfg)
 }
 
-func (r *reloader) splitCfg(cfg *config.Config) (dynamicConfig, bool, error) {
-	// Create the dynamic config
-	dcfg := dynamicConfig{
-		maxHeaderSize:             cfg.MaxHeaderSize,
-		idleTimeout:               cfg.IdleTimeout,
-		readTimeout:               cfg.ReadTimeout,
-		writeTimeout:              cfg.WriteTimeout,
-		maxEventSize:              cfg.MaxEventSize,
-		shutdownTimeout:           cfg.ShutdownTimeout,
-		responseHeaders:           cfg.ResponseHeaders,
-		augmentEnabled:            cfg.AugmentEnabled,
-		rateLimit:                 cfg.AgentAuth.Anonymous.RateLimit,
-		expvar:                    cfg.Expvar,
-		rumConfig:                 cfg.RumConfig,
-		apiKeyLimit:               cfg.AgentAuth.APIKey.LimitPerMin,
-		defaultServiceEnvironment: cfg.DefaultServiceEnvironment,
-		agentConfigs:              cfg.AgentConfigs,
-	}
+// Compare the new config with the old config to see if the server needs to be
+// restarted.
+func (r *reloader) shouldRestart(cfg *config.Config) (bool, error) {
 	// Zero out dynamic values in the main config
 	cfg.MaxHeaderSize = 0
 	cfg.IdleTimeout = 0
@@ -331,14 +316,14 @@ func (r *reloader) splitCfg(cfg *config.Config) (dynamicConfig, bool, error) {
 	// then we should restart.
 	m, err := json.Marshal(cfg)
 	if err != nil {
-		return dynamicConfig{}, false, err
+		return false, err
 	}
 
 	shouldRestart := !bytes.Equal(m, r.staticConfig)
 	// Set the static config on reloader for the next comparison
 	r.staticConfig = m
 
-	return dcfg, shouldRestart, nil
+	return shouldRestart, nil
 }
 
 type serverRunner struct {
@@ -494,31 +479,7 @@ func (s *serverRunner) run() error {
 	return publisher.Stop(s.backgroundContext)
 }
 
-type dynamicConfig struct {
-	maxHeaderSize   int
-	idleTimeout     time.Duration
-	readTimeout     time.Duration
-	writeTimeout    time.Duration
-	maxEventSize    int
-	shutdownTimeout time.Duration
-
-	responseHeaders map[string][]string
-	augmentEnabled  bool
-
-	rateLimit config.RateLimit
-	expvar    config.ExpvarConfig
-	rumConfig config.RumConfig
-
-	// Per minute limit on number of unique API keys used for auth between
-	// agents and apm-server
-	apiKeyLimit int
-
-	defaultServiceEnvironment string
-
-	agentConfigs []config.AgentConfig
-}
-
-func (s *serverRunner) updateDynamicConfig(cfg dynamicConfig) error {
+func (s *serverRunner) updateDynamicConfig(cfg *config.Config) error {
 	return nil
 }
 
