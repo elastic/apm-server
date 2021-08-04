@@ -18,13 +18,13 @@
 package beater
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
-	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -334,7 +334,7 @@ func (r *reloader) splitCfg(cfg *config.Config) (dynamicConfig, bool, error) {
 		return dynamicConfig{}, false, err
 	}
 
-	shouldRestart := !reflect.DeepEqual(m, r.staticConfig)
+	shouldRestart := !bytes.Equal(m, r.staticConfig)
 	// Set the static config on reloader for the next comparison
 	r.staticConfig = m
 
