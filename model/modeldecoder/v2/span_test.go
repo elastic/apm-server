@@ -161,22 +161,22 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		input.Outcome.Set("failure")
 		input.Context.HTTP.StatusCode.Set(http.StatusPermanentRedirect)
 		mapToSpanModel(&input, modeldecoder.Config{}, &out)
-		assert.Equal(t, "failure", out.Span.Outcome)
+		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from other fields - success
 		input.Outcome.Reset()
 		input.Context.HTTP.StatusCode.Set(http.StatusPermanentRedirect)
 		mapToSpanModel(&input, modeldecoder.Config{}, &out)
-		assert.Equal(t, "success", out.Span.Outcome)
+		assert.Equal(t, "success", out.Event.Outcome)
 		// derive from other fields - failure
 		input.Outcome.Reset()
 		input.Context.HTTP.StatusCode.Set(http.StatusBadRequest)
 		mapToSpanModel(&input, modeldecoder.Config{}, &out)
-		assert.Equal(t, "failure", out.Span.Outcome)
+		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from other fields - unknown
 		input.Outcome.Reset()
 		input.Context.HTTP.StatusCode.Reset()
 		mapToSpanModel(&input, modeldecoder.Config{}, &out)
-		assert.Equal(t, "unknown", out.Span.Outcome)
+		assert.Equal(t, "unknown", out.Event.Outcome)
 	})
 
 	t.Run("timestamp", func(t *testing.T) {

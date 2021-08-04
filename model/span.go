@@ -45,7 +45,6 @@ type Span struct {
 
 	Message    *Message
 	Name       string
-	Outcome    string
 	Start      *float64
 	Duration   float64
 	Stacktrace Stacktrace
@@ -57,7 +56,6 @@ type Span struct {
 
 	DB                 *DB
 	HTTP               *HTTP
-	URL                string
 	Destination        *Destination
 	DestinationService *DestinationService
 	Composite          *Composite
@@ -155,7 +153,7 @@ func (c *Composite) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Span) fields() common.MapStr {
+func (e *Span) fields(apmEvent *APMEvent) common.MapStr {
 	spanTransformations.Inc()
 	if frames := len(e.Stacktrace); frames > 0 {
 		spanStacktraceCounter.Inc()
@@ -186,9 +184,6 @@ func (e *Span) fields() common.MapStr {
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.spanTopLevelFields())
 	}
-	fields.maybeSetString("url.original", e.URL)
-
-	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
 	var span mapStr
 	span.set("name", e.Name)
@@ -204,7 +199,7 @@ func (e *Span) fields() common.MapStr {
 
 	if e.HTTP != nil {
 		span.maybeSetMapStr("http", e.HTTP.spanFields())
-		span.maybeSetString("http.url.original", e.URL)
+		span.maybeSetString("http.url.original", apmEvent.URL.Original)
 	}
 	span.maybeSetMapStr("db", e.DB.fields())
 	span.maybeSetMapStr("message", e.Message.Fields())

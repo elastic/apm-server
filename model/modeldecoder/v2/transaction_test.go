@@ -155,9 +155,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	t.Run("transaction-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
 			// All the below exceptions are tested separately
-			if strings.HasPrefix(key, "Page.URL") {
-				return true
-			}
 			switch key {
 			case "HTTP.Request.Headers", "HTTP.Response.Headers", "Experimental", "RepresentativeCount":
 				return true
@@ -220,10 +217,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var out model.APMEvent
 		input.Context.Page.URL.Set("https://my.site.test:9201")
 		mapToTransactionModel(&input, modeldecoder.Config{Experimental: false}, &out)
-		assert.Equal(t, "https://my.site.test:9201", out.Transaction.Page.URL.Full)
-		assert.Equal(t, "https://my.site.test:9201", out.Transaction.URL.Full)
-		assert.Equal(t, 9201, out.Transaction.Page.URL.Port)
-		assert.Equal(t, "https", out.Transaction.Page.URL.Scheme)
+		assert.Equal(t, "https://my.site.test:9201", out.URL.Full)
 	})
 
 	t.Run("page.referer", func(t *testing.T) {
@@ -231,7 +225,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var out model.APMEvent
 		input.Context.Page.Referer.Set("https://my.site.test:9201")
 		mapToTransactionModel(&input, modeldecoder.Config{Experimental: false}, &out)
-		assert.Equal(t, "https://my.site.test:9201", out.Transaction.Page.Referer)
 		assert.Equal(t, "https://my.site.test:9201", out.Transaction.HTTP.Request.Referrer)
 	})
 
@@ -263,22 +256,22 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Outcome.Set("failure")
 		input.Context.Response.StatusCode.Set(http.StatusBadRequest)
 		mapToTransactionModel(&input, modeldecoder.Config{}, &out)
-		assert.Equal(t, "failure", out.Transaction.Outcome)
+		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from other fields - success
 		input.Outcome.Reset()
 		input.Context.Response.StatusCode.Set(http.StatusBadRequest)
 		mapToTransactionModel(&input, modeldecoder.Config{}, &out)
-		assert.Equal(t, "success", out.Transaction.Outcome)
+		assert.Equal(t, "success", out.Event.Outcome)
 		// derive from other fields - failure
 		input.Outcome.Reset()
 		input.Context.Response.StatusCode.Set(http.StatusInternalServerError)
 		mapToTransactionModel(&input, modeldecoder.Config{}, &out)
-		assert.Equal(t, "failure", out.Transaction.Outcome)
+		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from other fields - unknown
 		input.Outcome.Reset()
 		input.Context.Response.StatusCode.Reset()
 		mapToTransactionModel(&input, modeldecoder.Config{}, &out)
-		assert.Equal(t, "unknown", out.Transaction.Outcome)
+		assert.Equal(t, "unknown", out.Event.Outcome)
 	})
 
 	t.Run("session", func(t *testing.T) {
@@ -287,14 +280,14 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 		input.Session.ID.Reset()
 		mapToTransactionModel(&input, modeldecoder.Config{}, &out)
-		assert.Equal(t, model.TransactionSession{}, out.Transaction.Session)
+		assert.Equal(t, model.Session{}, out.Session)
 
 		input.Session.ID.Set("session_id")
 		input.Session.Sequence.Set(123)
 		mapToTransactionModel(&input, modeldecoder.Config{}, &out)
-		assert.Equal(t, model.TransactionSession{
+		assert.Equal(t, model.Session{
 			ID:       "session_id",
 			Sequence: 123,
-		}, out.Transaction.Session)
+		}, out.Session)
 	})
 }

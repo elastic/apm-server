@@ -52,7 +52,9 @@
             "trace": {
                 "id": "00000000000000000000000046467830"
             },
-            "url.original": "https://foo.bar.com:443?a=12"
+            "url": {
+                "original": "https://foo.bar.com:443?a=12"
+            }
         }
     ]
 }

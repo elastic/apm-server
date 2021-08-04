@@ -193,38 +193,3 @@ func TestEventFields(t *testing.T) {
 		})
 	}
 }
-
-func TestErrorTransformPage(t *testing.T) {
-	id := "123"
-	urlExample := "http://example.com/path"
-
-	tests := []struct {
-		Error  Error
-		Output common.MapStr
-		Msg    string
-	}{
-		{
-			Error: Error{
-				ID:  id,
-				URL: ParseURL("https://localhost:8200/", "", ""),
-				Page: &Page{
-					URL: ParseURL(urlExample, "", ""),
-				},
-			},
-			Output: common.MapStr{
-				"domain":   "localhost",
-				"full":     "https://localhost:8200/",
-				"original": "https://localhost:8200/",
-				"path":     "/",
-				"port":     8200,
-				"scheme":   "https",
-			},
-			Msg: "With Page URL and Request URL",
-		},
-	}
-
-	for idx, test := range tests {
-		fields := test.Error.fields()
-		assert.Equal(t, test.Output, fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-	}
-}

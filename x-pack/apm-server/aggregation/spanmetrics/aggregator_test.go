@@ -117,11 +117,9 @@ func TestAggregatorRun(t *testing.T) {
 	assert.ElementsMatch(t, []model.APMEvent{{
 		Agent:   model.Agent{Name: "java"},
 		Service: model.Service{Name: "service-A"},
+		Event:   model.Event{Outcome: "success"},
 		Metricset: &model.Metricset{
 			Name: "service_destination",
-			Event: model.MetricsetEventCategorization{
-				Outcome: "success",
-			},
 			Span: model.MetricsetSpan{
 				DestinationService: model.DestinationService{Resource: destinationX},
 			},
@@ -134,11 +132,9 @@ func TestAggregatorRun(t *testing.T) {
 	}, {
 		Agent:   model.Agent{Name: "java"},
 		Service: model.Service{Name: "service-A"},
+		Event:   model.Event{Outcome: "failure"},
 		Metricset: &model.Metricset{
 			Name: "service_destination",
-			Event: model.MetricsetEventCategorization{
-				Outcome: "failure",
-			},
 			Span: model.MetricsetSpan{
 				DestinationService: model.DestinationService{Resource: destinationZ},
 			},
@@ -151,11 +147,9 @@ func TestAggregatorRun(t *testing.T) {
 	}, {
 		Agent:   model.Agent{Name: "java"},
 		Service: model.Service{Name: "service-A"},
+		Event:   model.Event{Outcome: "success"},
 		Metricset: &model.Metricset{
 			Name: "service_destination",
-			Event: model.MetricsetEventCategorization{
-				Outcome: "success",
-			},
 			Span: model.MetricsetSpan{
 				DestinationService: model.DestinationService{Resource: destinationZ},
 			},
@@ -168,11 +162,9 @@ func TestAggregatorRun(t *testing.T) {
 	}, {
 		Agent:   model.Agent{Name: "python"},
 		Service: model.Service{Name: "service-B"},
+		Event:   model.Event{Outcome: "success"},
 		Metricset: &model.Metricset{
 			Name: "service_destination",
-			Event: model.MetricsetEventCategorization{
-				Outcome: "success",
-			},
 			Span: model.MetricsetSpan{
 				DestinationService: model.DestinationService{Resource: destinationZ},
 			},
@@ -225,11 +217,9 @@ func TestAggregatorOverflow(t *testing.T) {
 		assert.Equal(t, model.APMEvent{
 			Agent:   model.Agent{Name: "agent"},
 			Service: model.Service{Name: "service"},
+			Event:   model.Event{Outcome: "success"},
 			Metricset: &model.Metricset{
 				Name: "service_destination",
-				Event: model.MetricsetEventCategorization{
-					Outcome: "success",
-				},
 				Span: model.MetricsetSpan{
 					DestinationService: model.DestinationService{Resource: "destination3"},
 				},
@@ -251,11 +241,11 @@ func makeSpan(
 	event := model.APMEvent{
 		Agent:   model.Agent{Name: agentName},
 		Service: model.Service{Name: serviceName},
+		Event:   model.Event{Outcome: outcome},
 		Span: &model.Span{
 			Name:                serviceName + ":" + destinationServiceResource,
 			Duration:            duration.Seconds() * 1000,
 			RepresentativeCount: count,
-			Outcome:             outcome,
 		},
 	}
 	if destinationServiceResource != "" {

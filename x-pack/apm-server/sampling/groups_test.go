@@ -22,9 +22,11 @@ func TestTraceGroupsPolicies(t *testing.T) {
 				Name:        serviceName,
 				Environment: serviceEnvironment,
 			},
+			Event: model.Event{
+				Outcome: traceOutcome,
+			},
 			Transaction: &model.Transaction{
 				Name:    traceName,
-				Outcome: traceOutcome,
 				TraceID: uuid.Must(uuid.NewV4()).String(),
 				ID:      uuid.Must(uuid.NewV4()).String(),
 			},

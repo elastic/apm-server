@@ -37,7 +37,7 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:abc:29d4be3fbd7f200f"
+                "instance": "systemtest:abc:d8f2bb8faa13bba6"
             },
             "transaction": {
                 "name": "abc",
@@ -90,7 +90,7 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:def:41b636ee77bc8c1c"
+                "instance": "systemtest:def:8445550d2ba82fde"
             },
             "transaction": {
                 "name": "def",

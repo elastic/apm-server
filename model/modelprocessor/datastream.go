@@ -66,7 +66,6 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 }
 
 func isApplicationMetricset(ms *model.Metricset) bool {
-	return ms.Event == (model.MetricsetEventCategorization{}) &&
-		ms.Transaction == (model.MetricsetTransaction{}) &&
+	return ms.Transaction == (model.MetricsetTransaction{}) &&
 		ms.Span == (model.MetricsetSpan{})
 }
