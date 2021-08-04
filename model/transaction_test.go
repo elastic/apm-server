@@ -125,12 +125,6 @@ func TestTransactionTransform(t *testing.T) {
 	}
 }
 
-func TestTransactionTransformOutcome(t *testing.T) {
-	tx := Transaction{Outcome: "success"}
-	fields := tx.fields()
-	assert.Equal(t, common.MapStr{"outcome": "success"}, fields["event"])
-}
-
 func TestEventsTransformWithMetadata(t *testing.T) {
 	hostname := "a.b.c"
 	architecture := "darwin"
@@ -156,10 +150,9 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		User:      User{ID: id, Name: name},
 		UserAgent: UserAgent{Original: userAgent},
 		Client:    Client{IP: net.ParseIP(ip)},
+		URL:       URL{Original: url},
 		Transaction: &Transaction{
-			Page:    &Page{URL: &URL{Original: url}, Referer: referer},
 			HTTP:    &HTTP{Request: &request, Response: &response},
-			URL:     &URL{Original: url},
 			Custom:  common.MapStr{"foo.bar": "baz"},
 			Message: &Message{QueueName: "routeUser"},
 			Sampled: true,
@@ -197,17 +190,17 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"id":       "",
 			"type":     "",
 			"sampled":  true,
-			"page":     common.MapStr{"url": url, "referer": referer},
 			"custom": common.MapStr{
 				"foo_bar": "baz",
 			},
 			"message": common.MapStr{"queue": common.MapStr{"name": "routeUser"}},
 		},
-		"event": common.MapStr{"outcome": ""},
-		"url":   common.MapStr{"original": url},
 		"http": common.MapStr{
 			"request":  common.MapStr{"method": "post", "referrer": referer},
 			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": []string{"text/html"}}},
+		},
+		"url": common.MapStr{
+			"original": url,
 		},
 	}, event.Fields)
 }
@@ -224,43 +217,6 @@ func TestTransformTransactionHTTP(t *testing.T) {
 			"body.original": request.Body,
 		},
 	}, fields["http"])
-}
-
-func TestTransactionTransformPage(t *testing.T) {
-	id := "123"
-	urlExample := "http://example.com/path"
-
-	tests := []struct {
-		Transaction Transaction
-		Output      common.MapStr
-		Msg         string
-	}{
-		{
-			Transaction: Transaction{
-				ID:       id,
-				Type:     "tx",
-				Duration: 65.98,
-				URL:      ParseURL("https://localhost:8200/", "", ""),
-				Page: &Page{
-					URL: ParseURL(urlExample, "", ""),
-				},
-			},
-			Output: common.MapStr{
-				"domain":   "localhost",
-				"full":     "https://localhost:8200/",
-				"original": "https://localhost:8200/",
-				"path":     "/",
-				"port":     8200,
-				"scheme":   "https",
-			},
-			Msg: "With Page URL and Request URL",
-		},
-	}
-
-	for idx, test := range tests {
-		fields := test.Transaction.fields()
-		assert.Equal(t, test.Output, fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-	}
 }
 
 func TestTransactionTransformMarks(t *testing.T) {
@@ -290,51 +246,5 @@ func TestTransactionTransformMarks(t *testing.T) {
 		fields := test.Transaction.fields()
 		marks, _ := fields.GetValue("transaction.marks")
 		assert.Equal(t, test.Output, marks, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-	}
-}
-
-func TestTransactionSession(t *testing.T) {
-	tests := []struct {
-		Transaction Transaction
-		Output      common.MapStr
-	}{{
-		Transaction: Transaction{
-			Session: TransactionSession{
-				ID: "session_id",
-			},
-		},
-		Output: common.MapStr{
-			"id": "session_id",
-		},
-	}, {
-		Transaction: Transaction{
-			Session: TransactionSession{
-				ID:       "session_id",
-				Sequence: 123,
-			},
-		},
-		Output: common.MapStr{
-			"id":       "session_id",
-			"sequence": 123,
-		},
-	}, {
-		Transaction: Transaction{
-			Session: TransactionSession{
-				// Sequence is ignored if ID is empty.
-				Sequence: 123,
-			},
-		},
-		Output: nil,
-	}}
-
-	for _, test := range tests {
-		fields := test.Transaction.fields()
-		session, err := fields.GetValue("session")
-		if test.Output == nil {
-			assert.Equal(t, common.ErrKeyNotFound, err)
-		} else {
-			require.NoError(t, err)
-			assert.Equal(t, test.Output, session)
-		}
 	}
 }

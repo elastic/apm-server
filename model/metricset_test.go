@@ -38,8 +38,6 @@ func TestMetricset(t *testing.T) {
 
 		spType    = "db"
 		spSubtype = "sql"
-
-		eventOutcome = "success"
 	)
 
 	tests := []struct {
@@ -96,7 +94,6 @@ func TestMetricset(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Event: MetricsetEventCategorization{Outcome: eventOutcome},
 				Transaction: MetricsetTransaction{
 					Type:   trType,
 					Name:   trName,
@@ -116,7 +113,6 @@ func TestMetricset(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"processor":  common.MapStr{"event": "metric", "name": "metric"},
-				"event":      common.MapStr{"outcome": eventOutcome},
 				"timeseries": common.MapStr{"instance": "foo"},
 				"transaction": common.MapStr{
 					"type":   trType,

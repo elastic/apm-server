@@ -36,11 +36,11 @@ type URL struct {
 	Fragment string
 }
 
-func ParseURL(original, defaultHostname, defaultScheme string) *URL {
+func ParseURL(original, defaultHostname, defaultScheme string) URL {
 	original = truncate(original)
 	url, err := url.Parse(original)
 	if err != nil {
-		return &URL{Original: original}
+		return URL{Original: original}
 	}
 	if url.Scheme == "" {
 		url.Scheme = defaultScheme
@@ -51,7 +51,7 @@ func ParseURL(original, defaultHostname, defaultScheme string) *URL {
 	if url.Host == "" {
 		url.Host = defaultHostname
 	}
-	out := &URL{
+	out := URL{
 		Original: original,
 		Scheme:   url.Scheme,
 		Full:     truncate(url.String()),
@@ -80,11 +80,8 @@ func truncate(s string) string {
 	return s
 }
 
-// Fields returns common.MapStr holding transformed data for attribute url.
-func (url *URL) Fields() common.MapStr {
-	if url == nil {
-		return nil
-	}
+// fields returns common.MapStr holding transformed data for attribute url.
+func (url *URL) fields() common.MapStr {
 	var fields mapStr
 	fields.maybeSetString("full", url.Full)
 	fields.maybeSetString("fragment", url.Fragment)

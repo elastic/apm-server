@@ -42,11 +42,7 @@
                         "type": "Error"
                     }
                 ],
-                "id": "3661352868c17c78b773d2f1beae6d41",
-                "page": {
-                    "referer": "http://localhost:8000/test/e2e/",
-                    "url": "http://localhost:8000/test/e2e/general-usecase/"
-                }
+                "id": "3661352868c17c78b773d2f1beae6d41"
             },
             "http": {
                 "request": {

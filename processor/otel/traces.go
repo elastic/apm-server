@@ -209,6 +209,7 @@ func (c *Consumer) convertSpan(
 	event := baseEvent
 	event.Labels = initEventLabels(event.Labels)
 	event.Timestamp = startTime.Add(timeDelta)
+	event.Event.Outcome = spanStatusOutcome(otelSpan.Status())
 	if root || otelSpan.Kind() == pdata.SpanKindServer || otelSpan.Kind() == pdata.SpanKindConsumer {
 		event.Transaction = &model.Transaction{
 			ID:       spanID,
@@ -217,7 +218,6 @@ func (c *Consumer) convertSpan(
 			Duration: durationMillis,
 			Name:     name,
 			Sampled:  true,
-			Outcome:  spanStatusOutcome(otelSpan.Status()),
 		}
 		translateTransaction(otelSpan, otelLibrary, &event)
 	} else {
@@ -227,7 +227,6 @@ func (c *Consumer) convertSpan(
 			TraceID:  traceID,
 			Duration: durationMillis,
 			Name:     name,
-			Outcome:  spanStatusOutcome(otelSpan.Status()),
 		}
 		translateSpan(otelSpan, &event)
 	}
@@ -238,6 +237,7 @@ func (c *Consumer) convertSpan(
 
 	events := otelSpan.Events()
 	event.Labels = baseEvent.Labels // only copy common labels to span events
+	event.Event.Outcome = ""        // don't set event.outcome for span events
 	for i := 0; i < events.Len(); i++ {
 		convertSpanEvent(logger, events.At(i), event, timeDelta, out)
 	}
@@ -438,8 +438,8 @@ func translateTransaction(
 
 		// Set outcome nad result from status code.
 		if statusCode := httpResponse.StatusCode; statusCode > 0 {
-			if event.Transaction.Outcome == outcomeUnknown {
-				event.Transaction.Outcome = serverHTTPStatusCodeOutcome(statusCode)
+			if event.Event.Outcome == outcomeUnknown {
+				event.Event.Outcome = serverHTTPStatusCodeOutcome(statusCode)
 			}
 			if event.Transaction.Result == "" {
 				event.Transaction.Result = httpStatusCodeResult(statusCode)
@@ -460,7 +460,7 @@ func translateTransaction(
 				httpHost = net.JoinHostPort(httpHost, strconv.Itoa(netHostPort))
 			}
 		}
-		event.Transaction.URL = model.ParseURL(httpURL, httpHost, httpScheme)
+		event.URL = model.ParseURL(httpURL, httpHost, httpScheme)
 
 		// Set the remote address from net.peer.*
 		if event.Transaction.HTTP.Request != nil && netPeerIP != "" {
@@ -747,15 +747,15 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 	switch {
 	case isHTTPSpan:
 		if httpResponse.StatusCode > 0 {
-			if event.Span.Outcome == outcomeUnknown {
-				event.Span.Outcome = clientHTTPStatusCodeOutcome(httpResponse.StatusCode)
+			if event.Event.Outcome == outcomeUnknown {
+				event.Event.Outcome = clientHTTPStatusCodeOutcome(httpResponse.StatusCode)
 			}
 		}
 		event.Span.Type = "external"
 		subtype := "http"
 		event.Span.Subtype = subtype
 		event.Span.HTTP = &http
-		event.Span.URL = httpURL
+		event.URL.Original = httpURL
 	case isDBSpan:
 		event.Span.Type = "db"
 		if db.Type != "" {
@@ -950,8 +950,6 @@ func addTransactionCtxToErr(transaction *model.Transaction, err *model.Error) {
 	err.TraceID = transaction.TraceID
 	err.ParentID = transaction.ID
 	err.HTTP = transaction.HTTP
-	err.URL = transaction.URL
-	err.Page = transaction.Page
 	err.Custom = transaction.Custom
 	err.TransactionSampled = &transaction.Sampled
 	err.TransactionType = transaction.Type

@@ -50,10 +50,6 @@ const (
 
 // Metricset describes a set of metrics and associated metadata.
 type Metricset struct {
-	// Event holds information about the event category with which the
-	// metrics are associated.
-	Event MetricsetEventCategorization
-
 	// Transaction holds information about the transaction group with
 	// which the metrics are associated.
 	Transaction MetricsetTransaction
@@ -115,16 +111,6 @@ type MetricsetSample struct {
 	Counts []int64
 }
 
-// MetricsetEventCategorization holds ECS Event Categorization fields
-// for inclusion in metrics. Typically these fields will have been
-// included in the metric aggregation logic.
-//
-// See https://www.elastic.co/guide/en/ecs/current/ecs-category-field-values-reference.html
-type MetricsetEventCategorization struct {
-	// Outcome holds the event outcome: "success", "failure", or "unknown".
-	Outcome string
-}
-
 // MetricsetTransaction provides enough information to connect a metricset to the related kind of transactions.
 type MetricsetTransaction struct {
 	// Name holds the transaction name: "GET /foo", etc.
@@ -160,7 +146,6 @@ func (me *Metricset) fields() common.MapStr {
 	var fields mapStr
 	fields.set("processor", metricsetProcessorEntry)
 
-	fields.maybeSetMapStr(metricsetEventKey, me.Event.fields())
 	fields.maybeSetMapStr(metricsetTransactionKey, me.Transaction.fields())
 	fields.maybeSetMapStr(metricsetSpanKey, me.Span.fields())
 	if me.TimeseriesInstanceID != "" {
@@ -181,12 +166,6 @@ func (me *Metricset) fields() common.MapStr {
 		metricDescriptions.maybeSetMapStr(name, common.MapStr(md))
 	}
 	fields.maybeSetMapStr("_metric_descriptions", common.MapStr(metricDescriptions))
-	return common.MapStr(fields)
-}
-
-func (e *MetricsetEventCategorization) fields() common.MapStr {
-	var fields mapStr
-	fields.maybeSetString("outcome", e.Outcome)
 	return common.MapStr(fields)
 }
 
