@@ -5,12 +5,15 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
 [float]
 ==== Breaking Changes
+- `network.connection_type` is now `network.connection.type` {pull}5671[5671]
 
 [float]
 ==== Bug fixes
+- corrected OTel attribute names for `net.host.connection.*` {pull}5671[5671]
 
 [float]
 ==== Intake API Changes
+- `network.connection.type` was added to stream metadata {pull}5671[5671]
 
 [float]
 ==== Added
