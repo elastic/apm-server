@@ -573,18 +573,28 @@ Optional network fields
 === connection
 
 Network connection details
-- name: type
-  type: keyword
-  description: >
-    Network connection type, eg. "wifi", "cell"
-  overwrite: true
 
-- name: subtype
-  type: keyword
-  description: >
-    Detailed network connection sub-type, e.g. "LTE", "CDMA"
-  overwrite: true
 
+
+*`network.connection.type`*::
++
+--
+Network connection type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection.subtype`*::
++
+--
+Detailed network connection sub-type, e.g. "LTE", "CDMA"
+
+
+type: keyword
+
+--
 
 [float]
 === carrier
@@ -1679,18 +1689,28 @@ Optional network fields
 === connection
 
 Network connection details
-- name: type
-  type: keyword
-  description: >
-    Network connection type, eg. "wifi", "cell"
-  overwrite: true
 
-- name: subtype
-  type: keyword
-  description: >
-    Detailed network connection sub-type, e.g. "LTE", "CDMA"
-  overwrite: true
 
+
+*`network.connection.type`*::
++
+--
+Network connection type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection.subtype`*::
++
+--
+Detailed network connection sub-type, e.g. "LTE", "CDMA"
+
+
+type: keyword
+
+--
 
 [float]
 === carrier
@@ -3025,18 +3045,28 @@ Optional network fields
 === connection
 
 Network connection details
-- name: type
-  type: keyword
-  description: >
-    Network connection type, eg. "wifi", "cell"
-  overwrite: true
 
-- name: subtype
-  type: keyword
-  description: >
-    Detailed network connection sub-type, e.g. "LTE", "CDMA"
-  overwrite: true
 
+
+*`network.connection.type`*::
++
+--
+Network connection type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection.subtype`*::
++
+--
+Detailed network connection sub-type, e.g. "LTE", "CDMA"
+
+
+type: keyword
+
+--
 
 [float]
 === carrier
@@ -4652,18 +4682,28 @@ Optional network fields
 === connection
 
 Network connection details
-- name: type
-  type: keyword
-  description: >
-    Network connection type, eg. "wifi", "cell"
-  overwrite: true
 
-- name: subtype
-  type: keyword
-  description: >
-    Detailed network connection sub-type, e.g. "LTE", "CDMA"
-  overwrite: true
 
+
+*`network.connection.type`*::
++
+--
+Network connection type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection.subtype`*::
++
+--
+Detailed network connection sub-type, e.g. "LTE", "CDMA"
+
+
+type: keyword
+
+--
 
 [float]
 === carrier
@@ -5858,18 +5898,28 @@ Optional network fields
 === connection
 
 Network connection details
-- name: type
-  type: keyword
-  description: >
-    Network connection type, eg. "wifi", "cell"
-  overwrite: true
 
-- name: subtype
-  type: keyword
-  description: >
-    Detailed network connection sub-type, e.g. "LTE", "CDMA"
-  overwrite: true
 
+
+*`network.connection.type`*::
++
+--
+Network connection type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection.subtype`*::
++
+--
+Detailed network connection sub-type, e.g. "LTE", "CDMA"
+
+
+type: keyword
+
+--
 
 [float]
 === carrier

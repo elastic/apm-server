@@ -372,18 +372,17 @@
           type: group
           description: >
             Network connection details
+          fields:
 
             - name: type
               type: keyword
               description: >
                 Network connection type, eg. "wifi", "cell"
-              overwrite: true
 
             - name: subtype
               type: keyword
               description: >
                 Detailed network connection sub-type, e.g. "LTE", "CDMA"
-              overwrite: true
 
         - name: carrier
           type: group
