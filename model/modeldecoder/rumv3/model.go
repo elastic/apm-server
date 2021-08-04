@@ -252,6 +252,9 @@ type metadata struct {
 	Service metadataService `json:"se" validate:"required"`
 	// User metadata, which can be overwritten on a per event basis.
 	User user `json:"u"`
+	// Network holds information about the network over which the
+	// monitored service is communicating.
+	Network network `json:"n"`
 }
 
 type metadataService struct {
@@ -301,6 +304,14 @@ type metadataServiceRuntime struct {
 	Name nullable.String `json:"n" validate:"required,maxLength=1024"`
 	// Name of the language runtime
 	Version nullable.String `json:"ve" validate:"required,maxLength=1024"`
+}
+
+type network struct {
+	Connection networkConnection `json:"c"`
+}
+
+type networkConnection struct {
+	Type nullable.String `json:"t" validate:"maxLength=1024"`
 }
 
 type metricset struct {

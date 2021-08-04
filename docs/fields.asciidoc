@@ -569,10 +569,27 @@ Optional network fields
 
 
 
-*`network.connection_type`*::
+[float]
+=== connection
+
+Network connection details
+
+
+
+*`network.connection.type`*::
 +
 --
-Cellular network technology, eg. 4G
+Network connection type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection.subtype`*::
++
+--
+Detailed network connection sub-type, e.g. "LTE", "CDMA"
 
 
 type: keyword
@@ -1668,10 +1685,27 @@ Optional network fields
 
 
 
-*`network.connection_type`*::
+[float]
+=== connection
+
+Network connection details
+
+
+
+*`network.connection.type`*::
 +
 --
-Cellular network technology, eg. 4G
+Network connection type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection.subtype`*::
++
+--
+Detailed network connection sub-type, e.g. "LTE", "CDMA"
 
 
 type: keyword
@@ -3007,10 +3041,27 @@ Optional network fields
 
 
 
-*`network.connection_type`*::
+[float]
+=== connection
+
+Network connection details
+
+
+
+*`network.connection.type`*::
 +
 --
-Cellular network technology, eg. 4G
+Network connection type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection.subtype`*::
++
+--
+Detailed network connection sub-type, e.g. "LTE", "CDMA"
 
 
 type: keyword
@@ -4627,10 +4678,27 @@ Optional network fields
 
 
 
-*`network.connection_type`*::
+[float]
+=== connection
+
+Network connection details
+
+
+
+*`network.connection.type`*::
 +
 --
-Cellular network technology, eg. 4G
+Network connection type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection.subtype`*::
++
+--
+Detailed network connection sub-type, e.g. "LTE", "CDMA"
 
 
 type: keyword
@@ -5826,10 +5894,27 @@ Optional network fields
 
 
 
-*`network.connection_type`*::
+[float]
+=== connection
+
+Network connection details
+
+
+
+*`network.connection.type`*::
 +
 --
-Cellular network technology, eg. 4G
+Network connection type, eg. "wifi", "cell"
+
+
+type: keyword
+
+--
+
+*`network.connection.subtype`*::
++
+--
+Detailed network connection sub-type, e.g. "LTE", "CDMA"
 
 
 type: keyword
