@@ -339,6 +339,7 @@ func TestShouldRestart(t *testing.T) {
 	assert.True(t, shouldRestart)
 
 	shouldRestart, err = r.shouldRestart(c)
+	require.NoError(t, err)
 	assert.False(t, shouldRestart)
 
 	// Change some dynamic options and verify we do not want to restart.
@@ -346,10 +347,12 @@ func TestShouldRestart(t *testing.T) {
 	c.IdleTimeout = time.Second
 
 	shouldRestart, err = r.shouldRestart(c)
+	require.NoError(t, err)
 	assert.False(t, shouldRestart)
 
 	// Change some static options and verify we do want to restart.
 	c.MaxConnections = 10
 	shouldRestart, err = r.shouldRestart(c)
+	require.NoError(t, err)
 	assert.True(t, shouldRestart)
 }
