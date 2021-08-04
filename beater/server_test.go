@@ -484,7 +484,7 @@ func TestServerConfigReload(t *testing.T) {
 
 	// The config must contain an "apm-server" section, and will be rejected otherwise.
 	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: common.NewConfig()}})
-	assert.EqualError(t, err, "1 error: Error creating runner from config: 'apm-server' not found in integration config")
+	assert.EqualError(t, err, "'apm-server' not found in integration config")
 
 	inputConfig := common.MustNewConfigFrom(map[string]interface{}{
 		"apm-server": map[string]interface{}{
