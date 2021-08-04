@@ -19,10 +19,12 @@ package beater
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
+	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -219,6 +221,9 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 type reloader struct {
 	runServerContext context.Context
 	args             sharedServerRunnerParams
+	// The json marshaled bytes of config.Config, with all the dynamic
+	// options zeroed out.
+	staticConfig []byte
 
 	mu     sync.Mutex
 	runner *serverRunner
@@ -256,26 +261,85 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfig *config.Fleet) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if r.runner != nil {
-		// TODO: reload should only stop the existing runner if the
-		// changed config requires a restart. Otherwise, it should
-		// update the serverRunner's config dynamically.
-		r.runner.cancelRunServerContext()
-		<-r.runner.done
-		r.runner = nil
-	}
-	runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
-		sharedServerRunnerParams: r.args,
-		Namespace:                namespace,
-		RawConfig:                rawConfig,
-		FleetConfig:              fleetConfig,
-	})
+	cfg, err := config.NewConfig(rawConfig, elasticsearchOutputConfig(r.args.Beat))
 	if err != nil {
 		return err
 	}
-	r.runner = runner
-	go r.runner.run()
-	return nil
+	dynamicCfg, shouldRestart, err := r.splitCfg(cfg)
+	if err != nil {
+		return err
+	}
+
+	if shouldRestart {
+		if r.runner != nil {
+			r.runner.cancelRunServerContext()
+			<-r.runner.done
+			r.runner = nil
+		}
+		runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
+			sharedServerRunnerParams: r.args,
+			Namespace:                namespace,
+			RawConfig:                rawConfig,
+			FleetConfig:              fleetConfig,
+		})
+		if err != nil {
+			return err
+		}
+		r.runner = runner
+		go r.runner.run()
+		return nil
+	} else {
+		// Update current runner.
+		// TODO: This should actually update the runner.
+		return r.runner.updateDynamicConfig(dynamicCfg)
+	}
+}
+
+func (r *reloader) splitCfg(cfg *config.Config) (dynamicConfig, bool, error) {
+	// Create the dynamic config
+	dcfg := dynamicConfig{
+		maxHeaderSize:             cfg.MaxHeaderSize,
+		idleTimeout:               cfg.IdleTimeout,
+		readTimeout:               cfg.ReadTimeout,
+		writeTimeout:              cfg.WriteTimeout,
+		maxEventSize:              cfg.MaxEventSize,
+		shutdownTimeout:           cfg.ShutdownTimeout,
+		responseHeaders:           cfg.ResponseHeaders,
+		augmentEnabled:            cfg.AugmentEnabled,
+		rateLimit:                 cfg.AgentAuth.Anonymous.RateLimit,
+		expvar:                    cfg.Expvar,
+		rumConfig:                 cfg.RumConfig,
+		apiKeyLimit:               cfg.AgentAuth.APIKey.LimitPerMin,
+		defaultServiceEnvironment: cfg.DefaultServiceEnvironment,
+		agentConfigs:              cfg.AgentConfigs,
+	}
+	// Zero out dynamic values in the main config
+	cfg.MaxHeaderSize = 0
+	cfg.IdleTimeout = 0
+	cfg.ReadTimeout = 0
+	cfg.WriteTimeout = 0
+	cfg.MaxEventSize = 0
+	cfg.ShutdownTimeout = 0
+	cfg.ResponseHeaders = nil
+	cfg.AugmentEnabled = false
+	cfg.AgentAuth.Anonymous.RateLimit = config.RateLimit{}
+	cfg.Expvar = config.ExpvarConfig{}
+	cfg.RumConfig = config.RumConfig{}
+	cfg.AgentAuth.APIKey.LimitPerMin = 0
+	cfg.DefaultServiceEnvironment = ""
+	cfg.AgentConfigs = nil
+	// Does our static config match the previous static config? If not,
+	// then we should restart.
+	m, err := json.Marshal(cfg)
+	if err != nil {
+		return dynamicConfig{}, false, err
+	}
+
+	shouldRestart := !reflect.DeepEqual(m, r.staticConfig)
+	// Set the static config on reloader for the next comparison
+	r.staticConfig = m
+
+	return dcfg, shouldRestart, nil
 }
 
 type serverRunner struct {
@@ -429,6 +493,34 @@ func (s *serverRunner) run() error {
 		return err
 	}
 	return publisher.Stop(s.backgroundContext)
+}
+
+type dynamicConfig struct {
+	maxHeaderSize   int
+	idleTimeout     time.Duration
+	readTimeout     time.Duration
+	writeTimeout    time.Duration
+	maxEventSize    int
+	shutdownTimeout time.Duration
+
+	responseHeaders map[string][]string
+	augmentEnabled  bool
+
+	rateLimit config.RateLimit
+	expvar    config.ExpvarConfig
+	rumConfig config.RumConfig
+
+	// Per minute limit on number of unique API keys used for auth between
+	// agents and apm-server
+	apiKeyLimit int
+
+	defaultServiceEnvironment string
+
+	agentConfigs []config.AgentConfig
+}
+
+func (s *serverRunner) updateDynamicConfig(cfg dynamicConfig) error {
+	return nil
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
