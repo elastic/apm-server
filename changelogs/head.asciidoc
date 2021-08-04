@@ -8,6 +8,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
 [float]
 ==== Bug fixes
+- Fix apm_error_grouping_name and apm_convert_destination_address {pull}5876[5876]
 
 [float]
 ==== Intake API Changes

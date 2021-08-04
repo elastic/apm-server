@@ -87,11 +87,10 @@ apm_ingest_timestamp:
 apm_convert_destination_address:
   description: Convert destination.address to an IP, storing in destination.ip
   processors:
-  - convert:
-      field: destination.address
-      target_field: destination.ip
-      type: ip
-      ignore_missing: true
+  - set:
+      if: ctx.destination?.address != null
+      field: destination.ip
+      value: "{{destination.address}}"
       ignore_failure: true
 
 apm_remove_span_metadata:
@@ -122,7 +121,7 @@ apm_error_grouping_name:
       if: ctx.error?.exception?.length != null && ctx.error?.exception?.length > 0
   - set:
       field: error.grouping_name
-      copy_from: error.log.message
+      value: "{{error.log.message}}"
       if: ctx.error?.log?.message != null
 
 # TODO(axw) handle unit in metric descriptions.
