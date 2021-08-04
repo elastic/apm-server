@@ -127,6 +127,11 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 				Framework: model.Framework{Name: s, Version: s}},
 			User:   model.User{Name: s, Email: s, Domain: s, ID: s},
 			Labels: labels,
+			Network: model.Network{
+				Connection: model.NetworkConnection{
+					Type: s,
+				},
+			},
 			// these values are not set from http headers and
 			// are not expected change with updated input data
 			UserAgent: model.UserAgent{Original: "init", Name: "init"},

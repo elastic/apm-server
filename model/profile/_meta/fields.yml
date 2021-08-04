@@ -161,11 +161,23 @@
         Optional network fields
       fields:
 
-        - name: connection_type
-          type: keyword
+        - name: connection
+          type: group
           description: >
-            Cellular network technology, eg. 4G
-          overwrite: true
+            Network connection details
+          fields:
+
+            - name: type
+              type: keyword
+              description: >
+                Network connection type, eg. "wifi", "cell"
+              overwrite: true
+
+            - name: subtype
+              type: keyword
+              description: >
+                Detailed network connection sub-type, e.g. "LTE", "CDMA"
+              overwrite: true
 
         - name: carrier
           type: group
