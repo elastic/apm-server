@@ -19,6 +19,7 @@ package beater
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -44,7 +45,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/beats/v7/libbeat/management"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 
@@ -193,61 +193,56 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 		Acker:         bt.waitPublished,
 	}
 
-	if b.Manager != nil && b.Manager.Enabled() {
-		// Management enabled, register reloadable inputs.
-		creator := &serverCreator{context: ctx, args: sharedArgs}
-		inputs := cfgfile.NewRunnerList(management.DebugK, creator, b.Publisher)
-		bt.stopServer = func() {
-			defer close(done)
-			defer closeTracer()
-			if bt.config.ShutdownTimeout > 0 {
-				time.AfterFunc(bt.config.ShutdownTimeout, cancelContext)
-			}
-			inputs.Stop()
+	reloader := reloader{
+		runServerContext: ctx,
+		args:             sharedArgs,
+	}
+	bt.stopServer = func() {
+		defer close(done)
+		defer closeTracer()
+		if bt.config.ShutdownTimeout > 0 {
+			time.AfterFunc(bt.config.ShutdownTimeout, cancelContext)
 		}
-		reload.Register.MustRegisterList("inputs", inputs)
-
+		reloader.stop()
+	}
+	if b.Manager != nil && b.Manager.Enabled() {
+		reload.Register.MustRegisterList("inputs", &reloader)
 	} else {
 		// Management disabled, use statically defined config.
-		s, err := newServerRunner(ctx, serverRunnerParams{
-			sharedServerRunnerParams: sharedArgs,
-			Pipeline:                 b.Publisher,
-			Namespace:                "default",
-			RawConfig:                bt.rawConfig,
-		})
-		if err != nil {
+		if err := reloader.reload(bt.rawConfig, "default", nil); err != nil {
 			return nil, err
 		}
-		bt.stopServer = func() {
-			if bt.config.ShutdownTimeout > 0 {
-				time.AfterFunc(bt.config.ShutdownTimeout, cancelContext)
-			}
-			s.Stop()
-		}
-		s.Start()
-		go func() {
-			defer close(done)
-			defer closeTracer()
-			s.Wait()
-		}()
 	}
 	return done, nil
 }
 
-type serverCreator struct {
-	context context.Context
-	args    sharedServerRunnerParams
+type reloader struct {
+	runServerContext context.Context
+	args             sharedServerRunnerParams
+
+	mu     sync.Mutex
+	runner *serverRunner
 }
 
-func (s *serverCreator) CheckConfig(cfg *common.Config) error {
-	_, err := config.NewIntegrationConfig(cfg)
-	return err
+func (r *reloader) stop() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.runner != nil {
+		r.runner.cancelRunServerContext()
+		<-r.runner.done
+		r.runner = nil
+	}
 }
 
-func (s *serverCreator) Create(p beat.PipelineConnector, rawConfig *common.Config) (cfgfile.Runner, error) {
-	integrationConfig, err := config.NewIntegrationConfig(rawConfig)
+// Reload is invoked when the initial, or updated, integration policy, is received.
+func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
+	if n := len(configs); n != 1 {
+		return fmt.Errorf("only 1 input supported, got %d", n)
+	}
+	cfg := configs[0]
+	integrationConfig, err := config.NewIntegrationConfig(cfg.Config)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	var namespace string
 	if integrationConfig.DataStream != nil {
@@ -255,13 +250,32 @@ func (s *serverCreator) Create(p beat.PipelineConnector, rawConfig *common.Confi
 	}
 	apmServerCommonConfig := integrationConfig.APMServer
 	apmServerCommonConfig.Merge(common.MustNewConfigFrom(`{"data_streams.enabled": true}`))
-	return newServerRunner(s.context, serverRunnerParams{
-		sharedServerRunnerParams: s.args,
+	return r.reload(apmServerCommonConfig, namespace, &integrationConfig.Fleet)
+}
+
+func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfig *config.Fleet) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.runner != nil {
+		// TODO: reload should only stop the existing runner if the
+		// changed config requires a restart. Otherwise, it should
+		// update the serverRunner's config dynamically.
+		r.runner.cancelRunServerContext()
+		<-r.runner.done
+		r.runner = nil
+	}
+	runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
+		sharedServerRunnerParams: r.args,
 		Namespace:                namespace,
-		Pipeline:                 p,
-		RawConfig:                apmServerCommonConfig,
-		FleetConfig:              &integrationConfig.Fleet,
+		RawConfig:                rawConfig,
+		FleetConfig:              fleetConfig,
 	})
+	if err != nil {
+		return err
+	}
+	r.runner = runner
+	go r.runner.run()
+	return nil
 }
 
 type serverRunner struct {
@@ -274,9 +288,7 @@ type serverRunner struct {
 	// immediately when the Stop method is invoked.
 	runServerContext       context.Context
 	cancelRunServerContext context.CancelFunc
-
-	stopOnce sync.Once
-	wg       sync.WaitGroup
+	done                   chan struct{}
 
 	pipeline      beat.PipelineConnector
 	acker         *waitPublishedAcker
@@ -295,7 +307,6 @@ type serverRunnerParams struct {
 	sharedServerRunnerParams
 
 	Namespace   string
-	Pipeline    beat.PipelineConnector
 	RawConfig   *common.Config
 	FleetConfig *config.Fleet
 }
@@ -320,12 +331,13 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		backgroundContext:      ctx,
 		runServerContext:       runServerContext,
 		cancelRunServerContext: cancel,
+		done:                   make(chan struct{}),
 
 		config:        cfg,
 		rawConfig:     args.RawConfig,
 		fleetConfig:   args.FleetConfig,
 		acker:         args.Acker,
-		pipeline:      args.Pipeline,
+		pipeline:      args.Beat.Publisher,
 		namespace:     args.Namespace,
 		beat:          args.Beat,
 		logger:        args.Logger,
@@ -335,31 +347,9 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 	}, nil
 }
 
-func (s *serverRunner) String() string {
-	return "APMServer"
-}
-
-// Stop stops the server.
-func (s *serverRunner) Stop() {
-	s.stopOnce.Do(s.cancelRunServerContext)
-	s.Wait()
-}
-
-// Wait waits for the server to stop.
-func (s *serverRunner) Wait() {
-	s.wg.Wait()
-}
-
-// Start starts the server.
-func (s *serverRunner) Start() {
-	s.wg.Add(1)
-	go func() {
-		defer s.wg.Done()
-		s.run()
-	}()
-}
-
 func (s *serverRunner) run() error {
+	defer close(s.done)
+
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 	publisherConfig := &publish.PublisherConfig{
