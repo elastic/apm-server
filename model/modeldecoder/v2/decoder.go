@@ -531,6 +531,11 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 	if from.User.Name.IsSet() {
 		out.User.Name = from.User.Name.Val
 	}
+
+	// Network
+	if from.Network.Connection.Type.IsSet() {
+		out.Network.Connection.Type = from.Network.Connection.Type.Val
+	}
 }
 
 func mapToMetricsetModel(from *metricset, config modeldecoder.Config, event *model.APMEvent) {

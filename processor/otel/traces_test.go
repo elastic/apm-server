@@ -552,18 +552,22 @@ func TestMessagingSpan(t *testing.T) {
 
 func TestSpanNetworkAttributes(t *testing.T) {
 	networkAttributes := map[string]pdata.AttributeValue{
-		"net.host.connection.type": pdata.NewAttributeValueString("5G"),
-		"net.host.carrier.name":    pdata.NewAttributeValueString("Vodafone"),
-		"net.host.carrier.mnc":     pdata.NewAttributeValueString("01"),
-		"net.host.carrier.mcc":     pdata.NewAttributeValueString("101"),
-		"net.host.carrier.icc":     pdata.NewAttributeValueString("UK"),
+		"net.host.connection.type":    pdata.NewAttributeValueString("cell"),
+		"net.host.connection.subtype": pdata.NewAttributeValueString("LTE"),
+		"net.host.carrier.name":       pdata.NewAttributeValueString("Vodafone"),
+		"net.host.carrier.mnc":        pdata.NewAttributeValueString("01"),
+		"net.host.carrier.mcc":        pdata.NewAttributeValueString("101"),
+		"net.host.carrier.icc":        pdata.NewAttributeValueString("UK"),
 	}
 	txEvent := transformTransactionWithAttributes(t, networkAttributes)
 	spanEvent := transformSpanWithAttributes(t, networkAttributes)
 
 	expected := model.Network{
-		ConnectionType: "5G",
-		Carrier: model.Carrier{
+		Connection: model.NetworkConnection{
+			Type:    "cell",
+			Subtype: "LTE",
+		},
+		Carrier: model.NetworkCarrier{
 			Name: "Vodafone",
 			MNC:  "01",
 			MCC:  "101",

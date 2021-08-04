@@ -69,11 +69,12 @@ const (
 	// TODO: handle net.host.connection.subtype, which will
 	// require adding a new field to the model as well.
 
-	attributeNetworkType        = "net.host.connection.type"
-	attributeNetworkMCC         = "net.host.carrier.mcc"
-	attributeNetworkMNC         = "net.host.carrier.mnc"
-	attributeNetworkCarrierName = "net.host.carrier.name"
-	attributeNetworkICC         = "net.host.carrier.icc"
+	attributeNetworkConnectionType    = "net.host.connection.type"
+	attributeNetworkConnectionSubtype = "net.host.connection.subtype"
+	attributeNetworkMCC               = "net.host.carrier.mcc"
+	attributeNetworkMNC               = "net.host.carrier.mnc"
+	attributeNetworkCarrierName       = "net.host.carrier.name"
+	attributeNetworkICC               = "net.host.carrier.icc"
 )
 
 var (
@@ -376,8 +377,10 @@ func translateTransaction(
 				netPeerName = stringval
 			case conventions.AttributeNetHostName:
 				netHostName = stringval
-			case attributeNetworkType:
-				event.Network.ConnectionType = stringval
+			case attributeNetworkConnectionType:
+				event.Network.Connection.Type = stringval
+			case attributeNetworkConnectionSubtype:
+				event.Network.Connection.Subtype = stringval
 			case attributeNetworkMCC:
 				event.Network.Carrier.MCC = stringval
 			case attributeNetworkMNC:
@@ -614,8 +617,10 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 					// values containing colons, except for IPv6.
 					netPeerName = stringval
 				}
-			case attributeNetworkType:
-				event.Network.ConnectionType = stringval
+			case attributeNetworkConnectionType:
+				event.Network.Connection.Type = stringval
+			case attributeNetworkConnectionSubtype:
+				event.Network.Connection.Subtype = stringval
 			case attributeNetworkMCC:
 				event.Network.Carrier.MCC = stringval
 			case attributeNetworkMNC:
