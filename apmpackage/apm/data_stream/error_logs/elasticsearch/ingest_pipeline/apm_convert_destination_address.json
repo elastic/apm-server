@@ -1,0 +1,13 @@
+{
+  "description": "Convert destination.address to an IP, storing in destination.ip",
+  "processors": [
+    {
+      "set": {
+        "if": "ctx.destination?.address != null",
+        "field": "destination.ip",
+        "value": "{{destination.address}}",
+        "ignore_failure": true
+      }
+    }
+  ]
+}
