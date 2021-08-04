@@ -96,25 +96,6 @@
     }
   },
   {
-<<<<<<< HEAD
-=======
-    "id": "apm_convert_destination_address",
-    "body": {
-      "description": "Convert destination.address to an IP, storing in destination.ip",
-      "processors": [
-        {
-          "set": {
-            "if": "ctx.destination?.address != null",
-            "field": "destination.ip",
-            "value": "{{destination.address}}",
-            "ignore_failure": true
-          }
-        }
-      ]
-    }
-  },
-  {
->>>>>>> 9686324b (ingest/pipeline: fix compat with old Elasticsearch (#5876))
     "id": "apm_remove_span_metadata",
     "body": {
       "description": "Removes metadata fields available already on the parent transaction, to save storage",

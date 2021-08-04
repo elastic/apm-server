@@ -50,18 +50,6 @@ apm_ingest_timestamp:
       field: event.ingested
       value: "{{_ingest.timestamp}}"
 
-<<<<<<< HEAD
-=======
-apm_convert_destination_address:
-  description: Convert destination.address to an IP, storing in destination.ip
-  processors:
-  - set:
-      if: ctx.destination?.address != null
-      field: destination.ip
-      value: "{{destination.address}}"
-      ignore_failure: true
-
->>>>>>> 9686324b (ingest/pipeline: fix compat with old Elasticsearch (#5876))
 apm_remove_span_metadata:
   description: Removes metadata fields available already on the parent transaction, to save storage
   processors:
