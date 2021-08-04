@@ -345,10 +345,20 @@ func TestShouldRestart(t *testing.T) {
 	// Change some dynamic options and verify we do not want to restart.
 	c.MaxHeaderSize = 12345
 	c.IdleTimeout = time.Second
+	agentConfigs := []config.AgentConfig{
+		{
+			Service: config.Service{Name: "service"},
+			Config:  map[string]string{"log_level": "debug"},
+		},
+	}
+	c.AgentConfigs = agentConfigs
 
 	shouldRestart, err = r.shouldRestart(c)
 	require.NoError(t, err)
 	assert.False(t, shouldRestart)
+
+	// We use the original cfg elsewhere, so make sure we don't mutate it.
+	assert.Equal(t, c.AgentConfigs, agentConfigs)
 
 	// Change some static options and verify we do want to restart.
 	c.MaxConnections = 10

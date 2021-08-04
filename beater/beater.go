@@ -297,24 +297,26 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 // Compare the new config with the old config to see if the server needs to be
 // restarted.
 func (r *reloader) shouldRestart(cfg *config.Config) (bool, error) {
+	// Make a copy of cfg so we don't mutate it
+	cpy := *cfg
 	// Zero out dynamic values in the main config
-	cfg.MaxHeaderSize = 0
-	cfg.IdleTimeout = 0
-	cfg.ReadTimeout = 0
-	cfg.WriteTimeout = 0
-	cfg.MaxEventSize = 0
-	cfg.ShutdownTimeout = 0
-	cfg.ResponseHeaders = nil
-	cfg.AugmentEnabled = false
-	cfg.AgentAuth.Anonymous.RateLimit = config.RateLimit{}
-	cfg.Expvar = config.ExpvarConfig{}
-	cfg.RumConfig = config.RumConfig{}
-	cfg.AgentAuth.APIKey.LimitPerMin = 0
-	cfg.DefaultServiceEnvironment = ""
-	cfg.AgentConfigs = nil
+	cpy.MaxHeaderSize = 0
+	cpy.IdleTimeout = 0
+	cpy.ReadTimeout = 0
+	cpy.WriteTimeout = 0
+	cpy.MaxEventSize = 0
+	cpy.ShutdownTimeout = 0
+	cpy.ResponseHeaders = nil
+	cpy.AugmentEnabled = false
+	cpy.AgentAuth.Anonymous.RateLimit = config.RateLimit{}
+	cpy.Expvar = config.ExpvarConfig{}
+	cpy.RumConfig = config.RumConfig{}
+	cpy.AgentAuth.APIKey.LimitPerMin = 0
+	cpy.DefaultServiceEnvironment = ""
+	cpy.AgentConfigs = nil
 	// Does our static config match the previous static config? If not,
 	// then we should restart.
-	m, err := json.Marshal(cfg)
+	m, err := json.Marshal(cpy)
 	if err != nil {
 		return false, err
 	}
