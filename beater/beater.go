@@ -261,37 +261,37 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfig *config.Fleet) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	// cfg, err := config.NewConfig(rawConfig, elasticsearchOutputConfig(r.args.Beat))
-	// if err != nil {
-	// 	return err
-	// }
-	// shouldRestart, err := r.shouldRestart(cfg)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if shouldRestart {
-	if r.runner != nil {
-		r.runner.cancelRunServerContext()
-		<-r.runner.done
-		r.runner = nil
-	}
-	runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
-		sharedServerRunnerParams: r.args,
-		Namespace:                namespace,
-		RawConfig:                rawConfig,
-		FleetConfig:              fleetConfig,
-	})
+	cfg, err := config.NewConfig(rawConfig, elasticsearchOutputConfig(r.args.Beat))
 	if err != nil {
 		return err
 	}
-	r.runner = runner
-	go r.runner.run()
-	return nil
-	// }
-	// // Update current runner.
-	// // TODO: This should actually update the runner.
-	// return r.runner.updateDynamicConfig(cfg)
+	shouldRestart, err := r.shouldRestart(cfg)
+	if err != nil {
+		return err
+	}
+
+	if shouldRestart {
+		if r.runner != nil {
+			r.runner.cancelRunServerContext()
+			<-r.runner.done
+			r.runner = nil
+		}
+		runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
+			sharedServerRunnerParams: r.args,
+			Namespace:                namespace,
+			RawConfig:                rawConfig,
+			FleetConfig:              fleetConfig,
+		})
+		if err != nil {
+			return err
+		}
+		r.runner = runner
+		go r.runner.run()
+		return nil
+	}
+	// Update current runner.
+	// TODO: This should actually update the runner.
+	return r.runner.updateDynamicConfig(cfg)
 }
 
 // Compare the new config with the old config to see if the server needs to be
@@ -325,7 +325,7 @@ func (r *reloader) shouldRestart(cfg *config.Config) (bool, error) {
 	// Set the static config on reloader for the next comparison
 	r.staticConfig = m
 
-	return true || shouldRestart, nil
+	return shouldRestart, nil
 }
 
 type serverRunner struct {
