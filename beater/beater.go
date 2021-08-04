@@ -325,7 +325,7 @@ func (r *reloader) shouldRestart(cfg *config.Config) (bool, error) {
 	// Set the static config on reloader for the next comparison
 	r.staticConfig = m
 
-	return shouldRestart, nil
+	return true || shouldRestart, nil
 }
 
 type serverRunner struct {

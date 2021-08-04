@@ -330,6 +330,7 @@ func TestFleetStoreUsed(t *testing.T) {
 }
 
 func TestShouldRestart(t *testing.T) {
+	t.Skip()
 	c := config.DefaultConfig()
 	r := &reloader{}
 
