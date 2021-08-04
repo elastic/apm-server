@@ -264,8 +264,11 @@ func TestAuthenticatorAPIKeyCache(t *testing.T) {
 			assert.NoError(t, err)
 		}
 	})
-	assert.Len(t, spans, 1)
+	require.Len(t, spans, 2)
 	assert.Equal(t, "elasticsearch", spans[0].Subtype)
+	assert.Equal(t, "/", spans[0].Context.HTTP.URL.Path) // product check
+	assert.Equal(t, "elasticsearch", spans[1].Subtype)
+	assert.Equal(t, "/_security/user/_has_privileges", spans[1].Context.HTTP.URL.Path)
 
 	_, spans, _ = apmtest.WithTransaction(func(ctx context.Context) {
 		// API Key checks are cached based on the API Key ID, not the full credential.
