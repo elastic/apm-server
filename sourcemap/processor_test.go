@@ -20,7 +20,6 @@ package sourcemap
 import (
 	"context"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -260,14 +259,6 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 
 func TestBatchProcessorTimeout(t *testing.T) {
 	var transport roundTripperFunc = func(req *http.Request) (*http.Response, error) {
-		if req.URL.Path == "/" {
-			// TODO(axw) remove product check from here when
-			// https://github.com/elastic/go-elasticsearch/pull/321 is merged,
-			// and just timeout unconditionally.
-			recorder := httptest.NewRecorder()
-			recorder.Header().Set("X-Elastic-Product", "Elasticsearch")
-			return recorder.Result(), nil
-		}
 		<-req.Context().Done()
 		return nil, req.Context().Err()
 	}
