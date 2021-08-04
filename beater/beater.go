@@ -288,11 +288,10 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 		r.runner = runner
 		go r.runner.run()
 		return nil
-	} else {
-		// Update current runner.
-		// TODO: This should actually update the runner.
-		return r.runner.updateDynamicConfig(dynamicCfg)
 	}
+	// Update current runner.
+	// TODO: This should actually update the runner.
+	return r.runner.updateDynamicConfig(dynamicCfg)
 }
 
 func (r *reloader) splitCfg(cfg *config.Config) (dynamicConfig, bool, error) {
