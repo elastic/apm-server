@@ -137,7 +137,7 @@
         {
           "set": {
             "field": "error.grouping_name",
-            "copy_from": "error.log.message",
+            "value": "{{error.log.message}}",
             "if": "ctx.error?.log?.message != null"
           }
         }

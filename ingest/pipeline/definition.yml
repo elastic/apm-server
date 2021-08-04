@@ -78,7 +78,7 @@ apm_error_grouping_name:
       if: ctx.error?.exception?.length != null && ctx.error?.exception?.length > 0
   - set:
       field: error.grouping_name
-      copy_from: error.log.message
+      value: "{{error.log.message}}"
       if: ctx.error?.log?.message != null
 
 # TODO(axw) handle unit in metric descriptions.
