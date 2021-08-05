@@ -29,7 +29,7 @@ import (
 )
 
 func TestNewDiscardUnsampledBatchProcessor(t *testing.T) {
-	batchProcessor := sampling.NewDiscardUnsampledBatchProcessor()
+	batchProcessor := model.ProcessBatchFunc(sampling.NewDiscardUnsampledBatchProcessor)
 
 	t1 := &model.Transaction{Sampled: false}
 	t2 := &model.Transaction{Sampled: true}
