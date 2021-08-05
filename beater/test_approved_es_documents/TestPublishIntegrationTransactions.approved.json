@@ -323,10 +323,6 @@
                 },
                 "id": "4340a8e0df1906ecbfa9",
                 "name": "GET /api/types",
-                "page": {
-                    "referer": "http://localhost:8000/test/e2e/",
-                    "url": "http://localhost:8000/test/e2e/general-usecase/"
-                },
                 "result": "success",
                 "sampled": true,
                 "span_count": {

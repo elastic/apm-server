@@ -89,9 +89,9 @@ func TestOutcome(t *testing.T) {
 		batch := transformTraces(t, traces)
 		require.Len(t, batch, 2)
 
-		assert.Equal(t, expectedOutcome, batch[0].Transaction.Outcome)
+		assert.Equal(t, expectedOutcome, batch[0].Event.Outcome)
 		assert.Equal(t, expectedResult, batch[0].Transaction.Result)
-		assert.Equal(t, expectedOutcome, batch[1].Span.Outcome)
+		assert.Equal(t, expectedOutcome, batch[1].Event.Outcome)
 	}
 
 	test(t, "unknown", "", pdata.StatusCodeUnset)
@@ -117,14 +117,14 @@ func TestRepresentativeCount(t *testing.T) {
 }
 
 func TestHTTPTransactionURL(t *testing.T) {
-	test := func(t *testing.T, expected *model.URL, attrs map[string]pdata.AttributeValue) {
+	test := func(t *testing.T, expected model.URL, attrs map[string]pdata.AttributeValue) {
 		t.Helper()
 		event := transformTransactionWithAttributes(t, attrs)
-		assert.Equal(t, expected, event.Transaction.URL)
+		assert.Equal(t, expected, event.URL)
 	}
 
 	t.Run("scheme_host_target", func(t *testing.T) {
-		test(t, &model.URL{
+		test(t, model.URL{
 			Scheme:   "https",
 			Original: "/foo?bar",
 			Full:     "https://testing.invalid:80/foo?bar",
@@ -139,7 +139,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 		})
 	})
 	t.Run("scheme_servername_nethostport_target", func(t *testing.T) {
-		test(t, &model.URL{
+		test(t, model.URL{
 			Scheme:   "https",
 			Original: "/foo?bar",
 			Full:     "https://testing.invalid:80/foo?bar",
@@ -155,7 +155,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 		})
 	})
 	t.Run("scheme_nethostname_nethostport_target", func(t *testing.T) {
-		test(t, &model.URL{
+		test(t, model.URL{
 			Scheme:   "https",
 			Original: "/foo?bar",
 			Full:     "https://testing.invalid:80/foo?bar",
@@ -171,7 +171,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 		})
 	})
 	t.Run("http.url", func(t *testing.T) {
-		test(t, &model.URL{
+		test(t, model.URL{
 			Scheme:   "https",
 			Original: "https://testing.invalid:80/foo?bar",
 			Full:     "https://testing.invalid:80/foo?bar",
@@ -184,7 +184,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 		})
 	})
 	t.Run("host_no_port", func(t *testing.T) {
-		test(t, &model.URL{
+		test(t, model.URL{
 			Scheme:   "https",
 			Original: "/foo",
 			Full:     "https://testing.invalid/foo",
@@ -197,7 +197,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 		})
 	})
 	t.Run("ipv6_host_no_port", func(t *testing.T) {
-		test(t, &model.URL{
+		test(t, model.URL{
 			Scheme:   "https",
 			Original: "/foo",
 			Full:     "https://[::1]/foo",
@@ -211,7 +211,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 	})
 	t.Run("default_scheme", func(t *testing.T) {
 		// scheme is set to "http" if it can't be deduced from attributes.
-		test(t, &model.URL{
+		test(t, model.URL{
 			Scheme:   "http",
 			Original: "/foo",
 			Full:     "http://testing.invalid/foo",
@@ -228,7 +228,7 @@ func TestHTTPSpanURL(t *testing.T) {
 	test := func(t *testing.T, expected string, attrs map[string]pdata.AttributeValue) {
 		t.Helper()
 		event := transformSpanWithAttributes(t, attrs)
-		assert.Equal(t, expected, event.Span.URL)
+		assert.Equal(t, model.URL{Original: expected}, event.URL)
 	}
 
 	t.Run("host.url", func(t *testing.T) {

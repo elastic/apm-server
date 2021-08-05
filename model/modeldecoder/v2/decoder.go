@@ -275,16 +275,13 @@ func mapToErrorModel(from *errorEvent, config modeldecoder.Config, event *model.
 			mapToResponseModel(from.Context.Response, out.HTTP.Response)
 		}
 		if from.Context.Request.URL.IsSet() {
-			out.URL = &model.URL{}
-			mapToRequestURLModel(from.Context.Request.URL, out.URL)
+			mapToRequestURLModel(from.Context.Request.URL, &event.URL)
 		}
 		if from.Context.Page.IsSet() {
-			out.Page = &model.Page{}
-			mapToPageModel(from.Context.Page, out.Page)
-			if out.URL == nil {
-				out.URL = out.Page.URL
+			if from.Context.Page.URL.IsSet() && !from.Context.Request.URL.IsSet() {
+				event.URL = model.ParseURL(from.Context.Page.URL.Val, "", "")
 			}
-			if out.Page.Referer != "" {
+			if from.Context.Page.Referer.IsSet() {
 				if out.HTTP == nil {
 					out.HTTP = &model.HTTP{}
 				}
@@ -292,7 +289,7 @@ func mapToErrorModel(from *errorEvent, config modeldecoder.Config, event *model.
 					out.HTTP.Request = &model.HTTPRequest{}
 				}
 				if out.HTTP.Request.Referrer == "" {
-					out.HTTP.Request.Referrer = out.Page.Referer
+					out.HTTP.Request.Referrer = from.Context.Page.Referer.Val
 				}
 			}
 		}
@@ -587,15 +584,6 @@ func mapToMetricsetModel(from *metricset, config modeldecoder.Config, event *mod
 	}
 }
 
-func mapToPageModel(from contextPage, out *model.Page) {
-	if from.URL.IsSet() {
-		out.URL = model.ParseURL(from.URL.Val, "", "")
-	}
-	if from.Referer.IsSet() {
-		out.Referer = from.Referer.Val
-	}
-}
-
 func mapToRequestModel(from contextRequest, out *model.HTTPRequest) {
 	if from.Method.IsSet() {
 		out.Method = from.Method.Val
@@ -856,7 +844,7 @@ func mapToSpanModel(from *span, config modeldecoder.Config, event *model.APMEven
 			http.Response.StatusCode = from.Context.HTTP.StatusCode.Val
 		}
 		if from.Context.HTTP.URL.IsSet() {
-			out.URL = from.Context.HTTP.URL.Val
+			event.URL.Original = from.Context.HTTP.URL.Val
 		}
 		out.HTTP = &http
 	}
@@ -897,17 +885,17 @@ func mapToSpanModel(from *span, config modeldecoder.Config, event *model.APMEven
 		out.Name = from.Name.Val
 	}
 	if from.Outcome.IsSet() {
-		out.Outcome = from.Outcome.Val
+		event.Event.Outcome = from.Outcome.Val
 	} else {
 		if from.Context.HTTP.StatusCode.IsSet() {
 			statusCode := from.Context.HTTP.StatusCode.Val
 			if statusCode >= http.StatusBadRequest {
-				out.Outcome = "failure"
+				event.Event.Outcome = "failure"
 			} else {
-				out.Outcome = "success"
+				event.Event.Outcome = "success"
 			}
 		} else {
-			out.Outcome = "unknown"
+			event.Event.Outcome = "unknown"
 		}
 	}
 	if from.ParentID.IsSet() {
@@ -1044,8 +1032,7 @@ func mapToTransactionModel(from *transaction, config modeldecoder.Config, event 
 			}
 		}
 		if from.Context.Request.URL.IsSet() {
-			out.URL = &model.URL{}
-			mapToRequestURLModel(from.Context.Request.URL, out.URL)
+			mapToRequestURLModel(from.Context.Request.URL, &event.URL)
 		}
 		if from.Context.Response.IsSet() {
 			if out.HTTP == nil {
@@ -1055,12 +1042,10 @@ func mapToTransactionModel(from *transaction, config modeldecoder.Config, event 
 			mapToResponseModel(from.Context.Response, out.HTTP.Response)
 		}
 		if from.Context.Page.IsSet() {
-			out.Page = &model.Page{}
-			mapToPageModel(from.Context.Page, out.Page)
-			if out.URL == nil {
-				out.URL = out.Page.URL
+			if from.Context.Page.URL.IsSet() && !from.Context.Request.URL.IsSet() {
+				event.URL = model.ParseURL(from.Context.Page.URL.Val, "", "")
 			}
-			if out.Page.Referer != "" {
+			if from.Context.Page.Referer.IsSet() {
 				if out.HTTP == nil {
 					out.HTTP = &model.HTTP{}
 				}
@@ -1068,7 +1053,7 @@ func mapToTransactionModel(from *transaction, config modeldecoder.Config, event 
 					out.HTTP.Request = &model.HTTPRequest{}
 				}
 				if out.HTTP.Request.Referrer == "" {
-					out.HTTP.Request.Referrer = out.Page.Referer
+					out.HTTP.Request.Referrer = from.Context.Page.Referer.Val
 				}
 			}
 		}
@@ -1091,17 +1076,17 @@ func mapToTransactionModel(from *transaction, config modeldecoder.Config, event 
 		out.Name = from.Name.Val
 	}
 	if from.Outcome.IsSet() {
-		out.Outcome = from.Outcome.Val
+		event.Event.Outcome = from.Outcome.Val
 	} else {
 		if from.Context.Response.StatusCode.IsSet() {
 			statusCode := from.Context.Response.StatusCode.Val
 			if statusCode >= http.StatusInternalServerError {
-				out.Outcome = "failure"
+				event.Event.Outcome = "failure"
 			} else {
-				out.Outcome = "success"
+				event.Event.Outcome = "success"
 			}
 		} else {
-			out.Outcome = "unknown"
+			event.Event.Outcome = "unknown"
 		}
 	}
 	if from.ParentID.IsSet() {
@@ -1123,8 +1108,8 @@ func mapToTransactionModel(from *transaction, config modeldecoder.Config, event 
 		out.RepresentativeCount = 1
 	}
 	if from.Session.ID.IsSet() {
-		out.Session.ID = from.Session.ID.Val
-		out.Session.Sequence = from.Session.Sequence.Val
+		event.Session.ID = from.Session.ID.Val
+		event.Session.Sequence = from.Session.Sequence.Val
 	}
 	if from.SpanCount.Dropped.IsSet() {
 		dropped := from.SpanCount.Dropped.Val

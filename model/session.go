@@ -17,19 +17,27 @@
 
 package model
 
-import (
-	"github.com/elastic/beats/v7/libbeat/common"
-)
+import "github.com/elastic/beats/v7/libbeat/common"
 
-// customFields transforms in, returning a copy with sanitized keys,
-// suitable for storing as "custom" in transaction and error documents.
-func customFields(in common.MapStr) common.MapStr {
-	if len(in) == 0 {
+// Session holds information about a group of related transactions, such as
+// a sequence of web interactions.
+type Session struct {
+	// ID holds a session ID for grouping a set of related transactions.
+	ID string
+
+	// Sequence holds an optional sequence number for a transaction
+	// within a session. Sequence is ignored if it is zero or if
+	// ID is empty.
+	Sequence int
+}
+
+func (s *Session) fields() common.MapStr {
+	if s.ID == "" {
 		return nil
 	}
-	out := make(common.MapStr, len(in))
-	for k, v := range in {
-		out[sanitizeLabelKey(k)] = v
+	out := common.MapStr{"id": s.ID}
+	if s.Sequence > 0 {
+		out["sequence"] = s.Sequence
 	}
 	return out
 }

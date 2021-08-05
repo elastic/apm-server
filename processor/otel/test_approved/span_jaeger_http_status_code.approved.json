@@ -66,7 +66,9 @@
             "trace": {
                 "id": "00000000000000000000000046467830"
             },
-            "url.original": "http://foo.bar.com?a=12"
+            "url": {
+                "original": "http://foo.bar.com?a=12"
+            }
         }
     ]
 }

@@ -118,10 +118,6 @@
                     }
                 },
                 "name": "general-usecase-initial-p-load",
-                "page": {
-                    "referer": "http://localhost:8000/test/e2e/",
-                    "url": "http://localhost:8000/test/e2e/general-usecase/"
-                },
                 "sampled": true,
                 "span_count": {
                     "dropped": 1,
@@ -514,7 +510,9 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             },
-            "url.original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED",
+            "url": {
+                "original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED"
+            },
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -679,7 +677,9 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             },
-            "url.original": "http://localhost:8000/test/e2e/common/data.json?test=hamid",
+            "url": {
+                "original": "http://localhost:8000/test/e2e/common/data.json?test=hamid"
+            },
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -776,7 +776,9 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             },
-            "url.original": "http://localhost:8003/data",
+            "url": {
+                "original": "http://localhost:8003/data"
+            },
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -874,7 +876,9 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             },
-            "url.original": "http://localhost:8003/fetch",
+            "url": {
+                "original": "http://localhost:8003/fetch"
+            },
             "user": {
                 "email": "user@email.com",
                 "id": "123",
