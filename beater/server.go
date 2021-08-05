@@ -170,12 +170,16 @@ func newGRPCServer(
 		),
 	)
 
-	if cfg.AugmentEnabled {
-		// Add a model processor that sets `client.ip` for events from end-user devices.
-		batchProcessor = modelprocessor.Chained{
-			model.ProcessBatchFunc(otlp.SetClientMetadata),
-			batchProcessor,
-		}
+	// Add a model processor that sets `client.ip` for events from end-user devices.
+	// TODO: Verify that updating AugmentEnabled on the cfg propagates here.
+	batchProcessor = modelprocessor.Chained{
+		model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+			if !cfg.AugmentEnabled {
+				return nil
+			}
+			return otlp.SetClientMetadata(ctx, batch)
+		}),
+		batchProcessor,
 	}
 
 	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
@@ -211,6 +215,7 @@ func (s *server) configure(
 	if err != nil {
 		return err
 	}
+	*s.cfg = *cfg
 	if s.agentCancel != nil {
 		s.agentCancel()
 		s.startFetchReporter(s.agentCtx)
