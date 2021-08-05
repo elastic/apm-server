@@ -34,21 +34,23 @@ var (
 //
 // The returned model.BatchProcessor does not guarantee order preservation
 // of events retained in the batch.
-func NewDiscardUnsampledBatchProcessor(ctx context.Context, batch *model.Batch) error {
-	events := *batch
-	for i := 0; i < len(events); {
-		event := events[i]
-		if event.Transaction == nil || event.Transaction.Sampled {
-			i++
-			continue
+func NewDiscardUnsampledBatchProcessor() model.BatchProcessor {
+	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		events := *batch
+		for i := 0; i < len(events); {
+			event := events[i]
+			if event.Transaction == nil || event.Transaction.Sampled {
+				i++
+				continue
+			}
+			n := len(events)
+			events[i], events[n-1] = events[n-1], events[i]
+			events = events[:n-1]
 		}
-		n := len(events)
-		events[i], events[n-1] = events[n-1], events[i]
-		events = events[:n-1]
-	}
-	if dropped := len(*batch) - len(events); dropped > 0 {
-		transactionsDroppedCounter.Add(int64(dropped))
-	}
-	*batch = events
-	return nil
+		if dropped := len(*batch) - len(events); dropped > 0 {
+			transactionsDroppedCounter.Add(int64(dropped))
+		}
+		*batch = events
+		return nil
+	})
 }

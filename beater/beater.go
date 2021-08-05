@@ -489,17 +489,14 @@ func (s *serverRunner) setup() error {
 
 	reporter := s.publisher.Send
 	batchProcessor := model.BatchProcessor(&reporterBatchProcessor{reporter})
-	// The server has been configured to discard unsampled
-	// transactions. Make sure this is done just before calling
-	// the publisher to avoid affecting aggregations.
-	batchProcessor = modelprocessor.Chained{
-		model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
-			if s.config.Sampling.KeepUnsampled {
-				return nil
-			}
-			return sampling.NewDiscardUnsampledBatchProcessor(ctx, batch)
-		}),
-		batchProcessor,
+	if !s.config.Sampling.KeepUnsampled {
+		// The server has been configured to discard unsampled
+		// transactions. Make sure this is done just before calling
+		// the publisher to avoid affecting aggregations.
+		batchProcessor = modelprocessor.Chained{
+			sampling.NewDiscardUnsampledBatchProcessor(),
+			batchProcessor,
+		}
 	}
 	s.batchProcessor = batchProcessor
 	return nil
@@ -566,7 +563,7 @@ func (s *serverRunner) updateDynamicConfig(rawConfig *common.Config, fleetConfig
 		return err
 	}
 	s.rawConfig = rawConfig
-	*s.config = *cfg
+	s.config = cfg
 	s.fleetConfig = fleetConfig
 	if err := s.setup(); err != nil {
 		return err
