@@ -446,6 +446,19 @@ func (s *serverRunner) setup() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 
+	cfg := ucfg.Config(*s.rawConfig)
+	parentCfg := cfg.Parent()
+	// Check for an environment variable set when running in a cloud environment
+	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
+		// Don't block server startup sending the config.
+		go func() {
+			c := kibana_client.NewConnectingClient(&s.config.Kibana)
+			if err := kibana_client.SendConfig(s.runServerContext, c, parentCfg); err != nil {
+				s.logger.Infof("failed to upload config to kibana: %v", err)
+			}
+		}()
+	}
+
 	var (
 		err            error
 		sourcemapStore *sourcemap.Store
@@ -491,20 +504,6 @@ func (s *serverRunner) setup() error {
 
 func (s *serverRunner) run() error {
 	defer close(s.done)
-
-	// TODO: Do we report this on every config update?
-	cfg := ucfg.Config(*s.rawConfig)
-	parentCfg := cfg.Parent()
-	// Check for an environment variable set when running in a cloud environment
-	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
-		// Don't block server startup sending the config.
-		go func() {
-			c := kibana_client.NewConnectingClient(&s.config.Kibana)
-			if err := kibana_client.SendConfig(s.runServerContext, c, parentCfg); err != nil {
-				s.logger.Infof("failed to upload config to kibana: %v", err)
-			}
-		}()
-	}
 
 	// When the publisher stops cleanly it will close its pipeline client,
 	// calling the acker's Close method. We need to call Open for each new
@@ -563,6 +562,7 @@ func (s *serverRunner) updateDynamicConfig(rawConfig *common.Config, fleetConfig
 	if err != nil {
 		return err
 	}
+	s.rawConfig = rawConfig
 	s.config = cfg
 	s.fleetConfig = fleetConfig
 	if err := s.setup(); err != nil {
