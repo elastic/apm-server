@@ -59,6 +59,9 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"Service.Node",
 		"Service.Agent.EphemeralID",
 		"Host",
+		"Event",
+		"Session",
+		"URL",
 
 		// event-specific fields
 		"Error",

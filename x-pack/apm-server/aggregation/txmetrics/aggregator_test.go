@@ -396,9 +396,9 @@ func TestAggregationFields(t *testing.T) {
 	input := model.APMEvent{Transaction: &model.Transaction{RepresentativeCount: 1}}
 	inputFields := []*string{
 		&input.Transaction.Name,
-		&input.Transaction.Outcome,
 		&input.Transaction.Result,
 		&input.Transaction.Type,
+		&input.Event.Outcome,
 		&input.Agent.Name,
 		&input.Service.Environment,
 		&input.Service.Name,
@@ -411,12 +411,9 @@ func TestAggregationFields(t *testing.T) {
 	addExpectedCount := func(expectedCount int64) {
 		expectedEvent := input
 		expectedEvent.Transaction = nil
+		expectedEvent.Event.Outcome = input.Event.Outcome
 		expectedEvent.Metricset = &model.Metricset{
 			Name: "transaction",
-			//Metadata: input.Metadata,
-			Event: model.MetricsetEventCategorization{
-				Outcome: input.Transaction.Outcome,
-			},
 			Transaction: model.MetricsetTransaction{
 				Name:   input.Transaction.Name,
 				Type:   input.Transaction.Type,

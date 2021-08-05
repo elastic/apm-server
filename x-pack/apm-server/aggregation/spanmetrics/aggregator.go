@@ -202,7 +202,7 @@ func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
 		serviceEnvironment: event.Service.Environment,
 		serviceName:        event.Service.Name,
 		agentName:          event.Agent.Name,
-		outcome:            event.Span.Outcome,
+		outcome:            event.Event.Outcome,
 		resource:           event.Span.DestinationService.Resource,
 	}
 	duration := time.Duration(event.Span.Duration * float64(time.Millisecond))
@@ -264,11 +264,11 @@ func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics,
 			Name:        key.serviceName,
 			Environment: key.serviceEnvironment,
 		},
+		Event: model.Event{
+			Outcome: key.outcome,
+		},
 		Metricset: &model.Metricset{
 			Name: metricsetName,
-			Event: model.MetricsetEventCategorization{
-				Outcome: key.outcome,
-			},
 			Span: model.MetricsetSpan{
 				DestinationService: model.DestinationService{Resource: key.resource},
 			},

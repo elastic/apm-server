@@ -49,10 +49,6 @@
                     "tbt": 3.4
                 },
                 "id": "611f4fa950f04631",
-                "page": {
-                    "referer": "http://localhost:8000/test/e2e/",
-                    "url": "http://localhost:8000/test/e2e/general-usecase/"
-                },
                 "sampled": true,
                 "span_count": {
                     "started": 1
@@ -142,7 +138,9 @@
             "transaction": {
                 "id": "611f4fa950f04631"
             },
-            "url.original": "http://localhost:8000/test/e2e/general-usecase/span",
+            "url": {
+                "original": "http://localhost:8000/test/e2e/general-usecase/span"
+            },
             "user_agent": {
                 "original": "rum-2.0"
             }

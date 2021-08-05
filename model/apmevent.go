@@ -36,6 +36,7 @@ type APMEvent struct {
 	// in standalone mode.
 	DataStream DataStream
 
+	Event      Event
 	Agent      Agent
 	Container  Container
 	Kubernetes Kubernetes
@@ -47,6 +48,8 @@ type APMEvent struct {
 	Client     Client
 	Cloud      Cloud
 	Network    Network
+	Session    Session
+	URL        URL
 
 	// Timestamp holds the event timestamp.
 	Timestamp time.Time
@@ -67,7 +70,7 @@ func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat
 	case e.Transaction != nil:
 		event.Fields = e.Transaction.fields()
 	case e.Span != nil:
-		event.Fields = e.Span.fields()
+		event.Fields = e.Span.fields(e)
 	case e.Metricset != nil:
 		event.Fields = e.Metricset.fields()
 	case e.Error != nil:
@@ -85,7 +88,7 @@ func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat
 		event.Fields["timestamp"] = utility.TimeAsMicros(e.Timestamp)
 	}
 
-	// Set fields common to all events.
+	// Set top-level field sets.
 	fields := (*mapStr)(&event.Fields)
 	event.Timestamp = e.Timestamp
 	e.DataStream.setFields(fields)
@@ -108,5 +111,8 @@ func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat
 	fields.maybeSetMapStr("cloud", e.Cloud.fields())
 	fields.maybeSetMapStr("network", e.Network.fields())
 	fields.maybeSetMapStr("labels", sanitizeLabels(e.Labels))
+	fields.maybeSetMapStr("event", e.Event.fields())
+	fields.maybeSetMapStr("url", e.URL.fields())
+	fields.maybeSetMapStr("session", e.Session.fields())
 	return append(out, event)
 }

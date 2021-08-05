@@ -57,22 +57,10 @@ func TestSpanTransform(t *testing.T) {
 					"name":     "",
 					"type":     "",
 				},
-				"event":     common.MapStr{"outcome": ""},
 				"timestamp": common.MapStr{"us": timestampUs},
-			},
-		},
-		{
-			Msg:  "Span with outcome",
-			Span: Span{Outcome: "success"},
-			Output: common.MapStr{
-				"processor": common.MapStr{"event": "span", "name": "transaction"},
-				"span": common.MapStr{
-					"duration": common.MapStr{"us": 0},
-					"name":     "",
-					"type":     "",
+				"url": common.MapStr{
+					"original": url,
 				},
-				"timestamp": common.MapStr{"us": timestampUs},
-				"event":     common.MapStr{"outcome": "success"},
 			},
 		},
 		{
@@ -86,7 +74,6 @@ func TestSpanTransform(t *testing.T) {
 				Subtype:             subtype,
 				Action:              action,
 				Start:               &start,
-				Outcome:             "unknown",
 				RepresentativeCount: 5,
 				Duration:            1.20,
 				Stacktrace:          Stacktrace{{AbsPath: path}},
@@ -94,7 +81,6 @@ func TestSpanTransform(t *testing.T) {
 					Request:  &HTTPRequest{Method: method},
 					Response: &HTTPResponse{StatusCode: statusCode},
 				},
-				URL: url,
 				DB: &DB{
 					Instance:     instance,
 					Statement:    statement,
@@ -155,18 +141,23 @@ func TestSpanTransform(t *testing.T) {
 				"trace":       common.MapStr{"id": traceID},
 				"parent":      common.MapStr{"id": parentID},
 				"destination": common.MapStr{"address": address, "port": port},
-				"event":       common.MapStr{"outcome": "unknown"},
 				"http": common.MapStr{
 					"response": common.MapStr{"status_code": statusCode},
 					"request":  common.MapStr{"method": "get"},
 				},
-				"url.original": url,
+				"url": common.MapStr{
+					"original": url,
+				},
 			},
 		},
 	}
 
 	for _, test := range tests {
-		event := APMEvent{Span: &test.Span, Timestamp: timestamp}
+		event := APMEvent{
+			Span:      &test.Span,
+			Timestamp: timestamp,
+			URL:       URL{Original: url},
+		}
 		output := event.appendBeatEvent(context.Background(), nil)
 		require.Len(t, output, 1)
 		assert.Equal(t, test.Output, output[0].Fields, test.Msg)

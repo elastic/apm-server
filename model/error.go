@@ -44,9 +44,7 @@ type Error struct {
 
 	GroupingKey string
 	Culprit     string
-	Page        *Page
 	HTTP        *HTTP
-	URL         *URL
 	Custom      common.MapStr
 
 	Exception *Exception
@@ -92,7 +90,6 @@ func (e *Error) fields() common.MapStr {
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
 	}
-	fields.maybeSetMapStr("url", e.URL.Fields())
 	if e.Experimental != nil {
 		fields.set("experimental", e.Experimental)
 	}
@@ -113,7 +110,6 @@ func (e *Error) fields() common.MapStr {
 
 	var errorFields mapStr
 	errorFields.maybeSetString("id", e.ID)
-	errorFields.maybeSetMapStr("page", e.Page.Fields())
 	exceptionChain := flattenExceptionTree(e.Exception)
 	if exception := e.exceptionFields(exceptionChain); len(exception) > 0 {
 		errorFields.set("exception", exception)

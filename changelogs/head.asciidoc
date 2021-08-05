@@ -6,6 +6,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 [float]
 ==== Breaking Changes
 - `network.connection_type` is now `network.connection.type` {pull}5671[5671]
+- `transaction.page` and `error.page` no longer recorded {pull}5872[5872]
 
 [float]
 ==== Bug fixes

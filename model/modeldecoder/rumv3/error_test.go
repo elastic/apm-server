@@ -177,10 +177,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		input.Context.Page.URL.Set("https://my.site.test:9201")
 		var out model.APMEvent
 		mapToErrorModel(&input, &out)
-		assert.Equal(t, "https://my.site.test:9201", out.Error.Page.URL.Full)
-		assert.Equal(t, "https://my.site.test:9201", out.Error.URL.Full)
-		assert.Equal(t, 9201, out.Error.Page.URL.Port)
-		assert.Equal(t, "https", out.Error.Page.URL.Scheme)
+		assert.Equal(t, "https://my.site.test:9201", out.URL.Full)
 	})
 
 	t.Run("page.referer", func(t *testing.T) {
@@ -188,7 +185,6 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		input.Context.Page.Referer.Set("https://my.site.test:9201")
 		var out model.APMEvent
 		mapToErrorModel(&input, &out)
-		assert.Equal(t, "https://my.site.test:9201", out.Error.Page.Referer)
 		assert.Equal(t, "https://my.site.test:9201", out.Error.HTTP.Request.Referrer)
 	})
 

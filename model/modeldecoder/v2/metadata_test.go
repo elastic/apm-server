@@ -67,7 +67,21 @@ func isUnmappedMetadataField(key string) bool {
 		"Host.Type",
 		"UserAgent",
 		"UserAgent.Name",
-		"UserAgent.Original":
+		"UserAgent.Original",
+		"Event",
+		"Event.Outcome",
+		"Session.ID",
+		"Session",
+		"Session.Sequence",
+		"URL",
+		"URL.Original",
+		"URL.Scheme",
+		"URL.Full",
+		"URL.Domain",
+		"URL.Port",
+		"URL.Path",
+		"URL.Query",
+		"URL.Fragment":
 		return true
 	}
 	return false
