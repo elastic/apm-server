@@ -198,6 +198,17 @@ func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
 		return model.APMEvent{}
 	}
 
+	// For composite spans we use the composite sum duration, which is the sum of
+	// pre-aggregated spans and excludes time gaps that are counted in the reported
+	// span duration. For non-composite spans we just use the reported span duration.
+	count := 1
+	durationMillis := event.Span.Duration
+	if event.Span.Composite != nil {
+		count = event.Span.Composite.Count
+		durationMillis = event.Span.Composite.Sum
+	}
+	duration := time.Duration(durationMillis * float64(time.Millisecond))
+
 	key := aggregationKey{
 		serviceEnvironment: event.Service.Environment,
 		serviceName:        event.Service.Name,
@@ -205,9 +216,8 @@ func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
 		outcome:            event.Event.Outcome,
 		resource:           event.Span.DestinationService.Resource,
 	}
-	duration := time.Duration(event.Span.Duration * float64(time.Millisecond))
 	metrics := spanMetrics{
-		count: event.Span.RepresentativeCount,
+		count: float64(count) * event.Span.RepresentativeCount,
 		sum:   float64(duration.Microseconds()) * event.Span.RepresentativeCount,
 	}
 	if a.active.storeOrUpdate(key, metrics) {
