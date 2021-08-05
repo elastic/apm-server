@@ -25,9 +25,11 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
@@ -214,6 +216,33 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 		if err := reloader.reload(bt.rawConfig, "default", nil); err != nil {
 			return nil, err
 		}
+		go func() {
+			sigs := make(chan os.Signal, 1)
+			defer close(sigs)
+			signal.Notify(sigs, syscall.SIGUSR1)
+			for {
+				select {
+				case <-sigs:
+					rawcfg, err := common.LoadFile("./apm-server.dev.yml")
+					if err != nil {
+						fmt.Printf("failed to load apm-server.dev.yml! %v\n", err)
+						continue
+					}
+					integrationConfig, err := config.NewIntegrationConfig(rawcfg)
+					if err != nil {
+						fmt.Println("failed to get apm config:", err)
+						continue
+					}
+					apmServerCommonConfig := integrationConfig.APMServer
+					if err := reloader.reload(apmServerCommonConfig, "default", nil); err != nil {
+						fmt.Println("got err while reloading:", err)
+						continue
+					}
+				case <-ctx.Done():
+					return
+				}
+			}
+		}()
 	}
 	return done, nil
 }
@@ -287,7 +316,7 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 	}
 	// Update current runner.
 	// TODO: This should actually update the runner.
-	return r.runner.updateDynamicConfig(rawConfig)
+	return r.runner.updateDynamicConfig(rawConfig, fleetConfig)
 }
 
 // Compare the new config with the old config to see if the server needs to be
@@ -350,17 +379,21 @@ type serverRunner struct {
 	cancelRunServerContext context.CancelFunc
 	done                   chan struct{}
 
-	pipeline      beat.PipelineConnector
-	acker         *waitPublishedAcker
-	namespace     string
-	config        *config.Config
-	rawConfig     *common.Config
-	fleetConfig   *config.Fleet
-	beat          *beat.Beat
-	logger        *logp.Logger
-	tracer        *apm.Tracer
-	tracerServer  *tracerServer
-	wrapRunServer func(RunServerFunc) RunServerFunc
+	pipeline       beat.PipelineConnector
+	acker          *waitPublishedAcker
+	namespace      string
+	config         *config.Config
+	rawConfig      *common.Config
+	fleetConfig    *config.Fleet
+	beat           *beat.Beat
+	logger         *logp.Logger
+	tracer         *apm.Tracer
+	tracerServer   *tracerServer
+	wrapRunServer  func(RunServerFunc) RunServerFunc
+	server         *server
+	sourcemapStore *sourcemap.Store
+	batchProcessor model.BatchProcessor
+	publisher      *publish.Publisher
 }
 
 type serverRunnerParams struct {
@@ -387,7 +420,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 	}
 
 	runServerContext, cancel := context.WithCancel(ctx)
-	return &serverRunner{
+	s := &serverRunner{
 		backgroundContext:      ctx,
 		runServerContext:       runServerContext,
 		cancelRunServerContext: cancel,
@@ -404,20 +437,62 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		tracer:        args.Tracer,
 		tracerServer:  args.TracerServer,
 		wrapRunServer: args.WrapRunServer,
-	}, nil
+	}
+	return s, s.setup()
+
 }
 
-func (s *serverRunner) run() error {
-	defer close(s.done)
-
+func (s *serverRunner) setup() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
+
+	var (
+		err            error
+		sourcemapStore *sourcemap.Store
+	)
+	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
+		sourcemapStore, err = newSourcemapStore(
+			s.beat.Info,
+			s.config.RumConfig.SourceMapping,
+			s.fleetConfig,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	s.sourcemapStore = sourcemapStore
+
+	pipeline := pipetool.WithACKer(s.pipeline, s.acker)
 	publisherConfig := &publish.PublisherConfig{
 		Info:      s.beat.Info,
 		Pipeline:  s.config.Pipeline,
 		Namespace: s.namespace,
 	}
+	publisher, err := publish.NewPublisher(pipeline, s.tracer, publisherConfig)
+	if err != nil {
+		return err
+	}
+	s.publisher = publisher
 
+	reporter := s.publisher.Send
+	batchProcessor := model.BatchProcessor(&reporterBatchProcessor{reporter})
+	if !s.config.Sampling.KeepUnsampled {
+		// The server has been configured to discard unsampled
+		// transactions. Make sure this is done just before calling
+		// the publisher to avoid affecting aggregations.
+		batchProcessor = modelprocessor.Chained{
+			sampling.NewDiscardUnsampledBatchProcessor(),
+			batchProcessor,
+		}
+	}
+	s.batchProcessor = batchProcessor
+	return nil
+}
+
+func (s *serverRunner) run() error {
+	defer close(s.done)
+
+	// TODO: Do we report this on every config update?
 	cfg := ucfg.Config(*s.rawConfig)
 	parentCfg := cfg.Parent()
 	// Check for an environment variable set when running in a cloud environment
@@ -431,31 +506,33 @@ func (s *serverRunner) run() error {
 		}()
 	}
 
-	var sourcemapStore *sourcemap.Store
-	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
-		store, err := newSourcemapStore(s.beat.Info, s.config.RumConfig.SourceMapping, s.fleetConfig)
-		if err != nil {
-			return err
-		}
-		sourcemapStore = store
-	}
-
 	// When the publisher stops cleanly it will close its pipeline client,
 	// calling the acker's Close method. We need to call Open for each new
 	// publisher to ensure we wait for all clients and enqueued events to
 	// be closed at shutdown time.
 	s.acker.Open()
-	pipeline := pipetool.WithACKer(s.pipeline, s.acker)
-	publisher, err := publish.NewPublisher(pipeline, s.tracer, publisherConfig)
-	if err != nil {
-		return err
-	}
-	defer publisher.Stop(s.backgroundContext)
+	defer s.publisher.Stop(s.backgroundContext)
 
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
-	reporter := publisher.Send
-	runServer := newBaseRunServer(reporter)
+	reporter := s.publisher.Send
+	runServer := func(ctx context.Context, args ServerParams) error {
+		srv, err := newServer(
+			args.Logger,
+			args.Info,
+			args.Config,
+			args.Tracer,
+			reporter,
+			args.SourcemapStore,
+			args.BatchProcessor,
+		)
+		if err != nil {
+			return err
+		}
+		s.server = srv
+		return srv.run(ctx, args)
+	}
+
 	if s.tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
 	}
@@ -466,16 +543,6 @@ func (s *serverRunner) run() error {
 	}
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
-	var batchProcessor model.BatchProcessor = &reporterBatchProcessor{reporter}
-	if !s.config.Sampling.KeepUnsampled {
-		// The server has been configured to discard unsampled
-		// transactions. Make sure this is done just before calling
-		// the publisher to avoid affecting aggregations.
-		batchProcessor = modelprocessor.Chained{
-			sampling.NewDiscardUnsampledBatchProcessor(), batchProcessor,
-		}
-	}
-
 	if err := runServer(s.runServerContext, ServerParams{
 		Info:           s.beat.Info,
 		Config:         s.config,
@@ -483,16 +550,33 @@ func (s *serverRunner) run() error {
 		Namespace:      s.namespace,
 		Logger:         s.logger,
 		Tracer:         s.tracer,
-		BatchProcessor: batchProcessor,
-		SourcemapStore: sourcemapStore,
+		BatchProcessor: s.batchProcessor,
+		SourcemapStore: s.sourcemapStore,
 	}); err != nil {
 		return err
 	}
-	return publisher.Stop(s.backgroundContext)
+	return s.publisher.Stop(s.backgroundContext)
 }
 
-func (s *serverRunner) updateDynamicConfig(rawConfig *common.Config) error {
-	return nil
+func (s *serverRunner) updateDynamicConfig(rawConfig *common.Config, fleetConfig *config.Fleet) error {
+	cfg, err := config.NewConfig(rawConfig, elasticsearchOutputConfig(s.beat))
+	if err != nil {
+		return err
+	}
+	s.config = cfg
+	s.fleetConfig = fleetConfig
+	if err := s.setup(); err != nil {
+		return err
+	}
+	return s.server.configure(
+		s.logger,
+		s.beat.Info,
+		s.config,
+		s.tracer,
+		s.publisher.Send,
+		s.sourcemapStore,
+		s.batchProcessor,
+	)
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {

@@ -22,6 +22,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"sync"
 
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
@@ -42,6 +43,8 @@ import (
 )
 
 type httpServer struct {
+	mu sync.Mutex
+
 	*http.Server
 	cfg          *config.Config
 	logger       *logp.Logger
@@ -60,7 +63,38 @@ func newHTTPServer(
 	ratelimitStore *ratelimit.Store,
 	sourcemapStore *sourcemap.Store,
 ) (*httpServer, error) {
+	s := &httpServer{
+		cfg:      cfg,
+		logger:   logger,
+		reporter: reporter,
+		Server:   &http.Server{},
+	}
+	return s, s.configure(
+		logger,
+		info,
+		cfg,
+		tracer,
+		reporter,
+		batchProcessor,
+		agentcfgFetcher,
+		ratelimitStore,
+		sourcemapStore,
+	)
+}
 
+func (s *httpServer) configure(
+	logger *logp.Logger,
+	info beat.Info,
+	cfg *config.Config,
+	tracer *apm.Tracer,
+	reporter publish.Reporter,
+	batchProcessor model.BatchProcessor,
+	agentcfgFetcher agentcfg.Fetcher,
+	ratelimitStore *ratelimit.Store,
+	sourcemapStore *sourcemap.Store,
+) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
 	batchProcessor = modelprocessor.Chained{
 		model.ProcessBatchFunc(rateLimitBatchProcessor),
@@ -70,39 +104,37 @@ func newHTTPServer(
 
 	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, agentcfgFetcher, ratelimitStore, sourcemapStore)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	server := &http.Server{
-		Addr: cfg.Host,
-		Handler: apmhttp.Wrap(mux,
-			apmhttp.WithServerRequestIgnorer(doNotTrace),
-			apmhttp.WithTracer(tracer),
-		),
-		IdleTimeout:    cfg.IdleTimeout,
-		ReadTimeout:    cfg.ReadTimeout,
-		WriteTimeout:   cfg.WriteTimeout,
-		MaxHeaderBytes: cfg.MaxHeaderSize,
-	}
+	*s.cfg = *cfg
+	s.Server.Addr = cfg.Host
+	s.Server.Handler = apmhttp.Wrap(mux,
+		apmhttp.WithServerRequestIgnorer(doNotTrace),
+		apmhttp.WithTracer(tracer),
+	)
+	s.Server.IdleTimeout = cfg.IdleTimeout
+	s.Server.ReadTimeout = cfg.ReadTimeout
+	s.Server.WriteTimeout = cfg.WriteTimeout
+	s.Server.MaxHeaderBytes = cfg.MaxHeaderSize
 
 	if cfg.TLS.IsEnabled() {
 		tlsServerConfig, err := tlscommon.LoadTLSServerConfig(cfg.TLS)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		server.TLSConfig = tlsServerConfig.BuildServerConfig("")
+		s.Server.TLSConfig = tlsServerConfig.BuildServerConfig("")
 	}
 
 	// Configure the server with gmux. The returned net.Listener will receive
 	// gRPC connections, while all other requests will be handled by s.Handler.
 	//
 	// grpcListener is closed when the HTTP server is shutdown.
-	grpcListener, err := gmux.ConfigureServer(server, nil)
+	s.grpcListener, err = gmux.ConfigureServer(s.Server, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	return &httpServer{server, cfg, logger, reporter, grpcListener}, nil
+	return nil
 }
 
 func (h *httpServer) start() error {
@@ -150,7 +182,6 @@ func (h *httpServer) start() error {
 		h.logger.Warn("Secret token is set, but SSL is not enabled.")
 	}
 	h.logger.Info("SSL disabled.")
-
 	return h.Serve(lis)
 }
 

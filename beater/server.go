@@ -79,45 +79,12 @@ type ServerParams struct {
 	BatchProcessor model.BatchProcessor
 }
 
-// newBaseRunServer returns the base RunServerFunc.
-//
-// reporter is the publish.Reporter that the server should use
-// uploading sourcemaps and publishing its onboarding doc.
-// Everything else should be using ServerParams.BatchProcessor.
-//
-// Once we remove sourcemap uploading and onboarding docs, we
-// should remove the reporter parameter.
-func newBaseRunServer(reporter publish.Reporter) RunServerFunc {
-	return func(ctx context.Context, args ServerParams) error {
-		srv, err := newServer(
-			args.Logger,
-			args.Info,
-			args.Config,
-			args.Tracer,
-			reporter,
-			args.SourcemapStore,
-			args.BatchProcessor,
-		)
-		if err != nil {
-			return err
-		}
-		done := make(chan struct{})
-		defer close(done)
-		go func() {
-			select {
-			case <-ctx.Done():
-				srv.stop()
-			case <-done:
-			}
-		}()
-		go srv.agentcfgFetchReporter.Run(ctx)
-		return srv.run()
-	}
-}
-
 type server struct {
-	logger                *logp.Logger
-	cfg                   *config.Config
+	logger *logp.Logger
+	cfg    *config.Config
+
+	agentCtx              context.Context
+	agentCancel           context.CancelFunc
 	agentcfgFetchReporter agentcfg.Reporter
 
 	httpServer   *httpServer
@@ -133,7 +100,7 @@ func newServer(
 	reporter publish.Reporter,
 	sourcemapStore *sourcemap.Store,
 	batchProcessor model.BatchProcessor,
-) (server, error) {
+) (*server, error) {
 	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor, 30*time.Second)
 	ratelimitStore, err := ratelimit.NewStore(
 		cfg.AgentAuth.Anonymous.RateLimit.IPLimit,
@@ -141,23 +108,23 @@ func newServer(
 		3, // burst multiplier
 	)
 	if err != nil {
-		return server{}, err
+		return nil, err
 	}
 	httpServer, err := newHTTPServer(
 		logger, info, cfg, tracer, reporter, batchProcessor, agentcfgFetchReporter, ratelimitStore, sourcemapStore,
 	)
 	if err != nil {
-		return server{}, err
+		return nil, err
 	}
 	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig, agentcfgFetchReporter, ratelimitStore)
 	if err != nil {
-		return server{}, err
+		return nil, err
 	}
 	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, batchProcessor, agentcfgFetchReporter)
 	if err != nil {
-		return server{}, err
+		return nil, err
 	}
-	return server{
+	return &server{
 		logger:                logger,
 		cfg:                   cfg,
 		httpServer:            httpServer,
@@ -218,6 +185,7 @@ func newGRPCServer(
 		batchProcessor,
 	}
 
+	// TODO: This needs to be updated, agentcfgFetcher can change.
 	jaeger.RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)
 	if err := otlp.RegisterGRPCServices(srv, batchProcessor); err != nil {
 		return nil, err
@@ -225,7 +193,61 @@ func newGRPCServer(
 	return srv, nil
 }
 
-func (s server) run() error {
+func (s *server) configure(
+	logger *logp.Logger,
+	info beat.Info,
+	cfg *config.Config,
+	tracer *apm.Tracer,
+	reporter publish.Reporter,
+	sourcemapStore *sourcemap.Store,
+	batchProcessor model.BatchProcessor,
+) error {
+	s.agentcfgFetchReporter = agentcfg.NewReporter(agentcfg.NewFetcher(cfg), batchProcessor, 30*time.Second)
+	ratelimitStore, err := ratelimit.NewStore(
+		cfg.AgentAuth.Anonymous.RateLimit.IPLimit,
+		cfg.AgentAuth.Anonymous.RateLimit.EventLimit,
+		3, // burst multiplier
+	)
+	if err != nil {
+		return err
+	}
+	if s.agentCancel != nil {
+		s.agentCancel()
+		s.startFetchReporter(s.agentCtx)
+	}
+	return s.httpServer.configure(
+		logger,
+		info,
+		cfg,
+		tracer,
+		reporter,
+		batchProcessor,
+		s.agentcfgFetchReporter,
+		ratelimitStore,
+		sourcemapStore,
+	)
+}
+
+func (s *server) startFetchReporter(ctx context.Context) {
+	s.agentCtx = ctx
+	ctx, s.agentCancel = context.WithCancel(s.agentCtx)
+	go s.agentcfgFetchReporter.Run(ctx)
+}
+
+func (s *server) run(ctx context.Context, _ ServerParams) error {
+	done := make(chan struct{})
+	defer func() {
+		defer close(done)
+	}()
+	go func() {
+		select {
+		case <-ctx.Done():
+			s.stop()
+		case <-done:
+		}
+	}()
+	s.startFetchReporter(ctx)
+
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	var g errgroup.Group
 	g.Go(s.httpServer.start)
@@ -248,4 +270,7 @@ func (s server) stop() {
 	}
 	s.grpcServer.GracefulStop()
 	s.httpServer.stop()
+	if s.agentCancel != nil {
+		s.agentCancel()
+	}
 }
