@@ -160,6 +160,30 @@
         "maxLength": 1024
       }
     },
+    "network": {
+      "description": "Network holds information about the network over which the monitored service is communicating.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "connection": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        }
+      }
+    },
     "process": {
       "description": "Process metadata about the monitored service.",
       "type": [

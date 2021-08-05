@@ -38,6 +38,11 @@
             "labels": {
                 "testTagKey": "testTagValue"
             },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
+            },
             "parent": {
                 "id": "1ef08ac234fca23b455d9e27c660f1ab"
             },
@@ -154,6 +159,11 @@
             "labels": {
                 "testTagKey": "testTagValue"
             },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
+            },
             "processor": {
                 "event": "metric",
                 "name": "metric"
@@ -202,6 +212,11 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
             },
             "processor": {
                 "event": "metric",
@@ -253,6 +268,11 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
             },
             "processor": {
                 "event": "metric",
@@ -307,6 +327,11 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -376,6 +401,11 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -449,6 +479,11 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -537,6 +572,11 @@
             "labels": {
                 "testTagKey": "testTagValue"
             },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
+            },
             "parent": {
                 "id": "ec2e280be8345240"
             },
@@ -616,6 +656,11 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -716,6 +761,11 @@
             "labels": {
                 "testTagKey": "testTagValue"
             },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
+            },
             "parent": {
                 "id": "ec2e280be8345240"
             },
@@ -815,6 +865,11 @@
             "labels": {
                 "testTagKey": "testTagValue"
             },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
+            },
             "parent": {
                 "id": "bbd8bcc3be14d814"
             },
@@ -902,6 +957,11 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -991,6 +1051,11 @@
             "labels": {
                 "tag1": "value1",
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
             },
             "processor": {
                 "event": "metric",

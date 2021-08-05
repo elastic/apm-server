@@ -17,6 +17,11 @@
                     "referrer": "http://localhost:8000/test/e2e/"
                 }
             },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
@@ -73,6 +78,11 @@
             },
             "event": {
                 "outcome": "unknown"
+            },
+            "network": {
+                "connection": {
+                    "type": "5G"
+                }
             },
             "parent": {
                 "id": "611f4fa950f04631"
