@@ -261,11 +261,7 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfig *config.Fleet) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	cfg, err := config.NewConfig(rawConfig, elasticsearchOutputConfig(r.args.Beat))
-	if err != nil {
-		return err
-	}
-	shouldRestart, err := r.shouldRestart(cfg)
+	shouldRestart, err := r.shouldRestart(rawConfig)
 	if err != nil {
 		return err
 	}
@@ -291,39 +287,53 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 	}
 	// Update current runner.
 	// TODO: This should actually update the runner.
-	return r.runner.updateDynamicConfig(cfg)
+	return r.runner.updateDynamicConfig(rawConfig)
 }
 
 // Compare the new config with the old config to see if the server needs to be
 // restarted.
-func (r *reloader) shouldRestart(cfg *config.Config) (bool, error) {
+func (r *reloader) shouldRestart(cfg *common.Config) (bool, error) {
 	// Make a copy of cfg so we don't mutate it
-	cpy := *cfg
-	// Zero out dynamic values in the main config
-	cpy.MaxHeaderSize = 0
-	cpy.IdleTimeout = 0
-	cpy.ReadTimeout = 0
-	cpy.WriteTimeout = 0
-	cpy.MaxEventSize = 0
-	cpy.ShutdownTimeout = 0
-	cpy.ResponseHeaders = nil
-	cpy.AugmentEnabled = false
-	cpy.AgentAuth.Anonymous.RateLimit = config.RateLimit{}
-	cpy.Expvar = config.ExpvarConfig{}
-	cpy.RumConfig = config.RumConfig{}
-	cpy.AgentAuth.APIKey.LimitPerMin = 0
-	cpy.DefaultServiceEnvironment = ""
-	cpy.AgentConfigs = nil
-	// Does our static config match the previous static config? If not,
-	// then we should restart.
-	m, err := json.Marshal(cpy)
+	cfg, err := common.MergeConfigs(cfg)
 	if err != nil {
 		return false, err
 	}
 
-	shouldRestart := !bytes.Equal(m, r.staticConfig)
+	// Remove dynamic values in the config
+	for _, key := range []string{
+		"max_header_size",
+		"idle_timeout",
+		"read_timeout",
+		"write_timeout",
+		"max_event_size",
+		"shutdown_timeout",
+		"response_headers",
+		"capture_personal_data",
+		"auth.anonymous.rate_limit",
+		"expvar",
+		"rum",
+		"auth.api_key.limit",
+		"api_key.limit", // old name for auth.api_key.limit
+		"default_service_environment",
+		"agent_config",
+	} {
+		cfg.Remove(key, -1)
+	}
+
+	// Does our static config match the previous static config? If not,
+	// then we should restart.
+	m := make(map[string]interface{})
+	if err := cfg.Unpack(&m); err != nil {
+		return false, err
+	}
+	key, err := json.Marshal(m)
+	if err != nil {
+		return false, err
+	}
+
+	shouldRestart := !bytes.Equal(key, r.staticConfig)
 	// Set the static config on reloader for the next comparison
-	r.staticConfig = m
+	r.staticConfig = key
 
 	return shouldRestart, nil
 }
@@ -481,7 +491,7 @@ func (s *serverRunner) run() error {
 	return publisher.Stop(s.backgroundContext)
 }
 
-func (s *serverRunner) updateDynamicConfig(cfg *config.Config) error {
+func (s *serverRunner) updateDynamicConfig(rawConfig *common.Config) error {
 	return nil
 }
 
