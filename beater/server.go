@@ -88,8 +88,13 @@ type server struct {
 	agentcfgFetchReporter agentcfg.Reporter
 
 	httpServer   *httpServer
-	grpcServer   *grpc.Server
+	grpcServer   *grpcServer
 	jaegerServer *jaeger.Server
+}
+
+type grpcServer struct {
+	*grpc.Server
+	services *jaeger.Services
 }
 
 func newServer(
@@ -142,7 +147,7 @@ func newGRPCServer(
 	tlsConfig *tls.Config,
 	agentcfgFetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
-) (*grpc.Server, error) {
+) (*grpcServer, error) {
 	// TODO(axw) share authenticator with beater/api.
 	authenticator, err := auth.NewAuthenticator(cfg.AgentAuth)
 	if err != nil {
@@ -158,7 +163,7 @@ func newGRPCServer(
 	// Note that we intentionally do not use a grpc.Creds ServerOption
 	// even if TLS is enabled, as TLS is handled by the net/http server.
 	logger = logger.Named("grpc")
-	srv := grpc.NewServer(
+	srv := &grpcServer{Server: grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			apmInterceptor,
 			interceptors.ClientMetadata(),
@@ -168,7 +173,7 @@ func newGRPCServer(
 			authInterceptor,
 			interceptors.AnonymousRateLimit(ratelimitStore),
 		),
-	)
+	)}
 
 	// Add a model processor that sets `client.ip` for events from end-user devices.
 	// TODO: Verify that updating AugmentEnabled on the cfg propagates here.
@@ -189,9 +194,8 @@ func newGRPCServer(
 		batchProcessor,
 	}
 
-	// TODO: This needs to be updated, agentcfgFetcher can change.
-	jaeger.RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)
-	if err := otlp.RegisterGRPCServices(srv, batchProcessor); err != nil {
+	srv.services = jaeger.RegisterGRPCServices(srv.Server, logger, batchProcessor, agentcfgFetcher)
+	if err := otlp.RegisterGRPCServices(srv.Server, batchProcessor); err != nil {
 		return nil, err
 	}
 	return srv, nil
@@ -220,6 +224,9 @@ func (s *server) configure(
 		s.agentCancel()
 		s.startFetchReporter(s.agentCtx)
 	}
+
+	s.grpcServer.services.Update(batchProcessor, s.agentcfgFetchReporter)
+
 	return s.httpServer.configure(
 		logger,
 		info,

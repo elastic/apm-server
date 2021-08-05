@@ -144,10 +144,26 @@ func RegisterGRPCServices(
 	logger *logp.Logger,
 	processor model.BatchProcessor,
 	fetcher agentcfg.Fetcher,
-) {
+) *Services {
 	traceConsumer := &otel.Consumer{Processor: processor}
-	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{traceConsumer})
-	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, fetcher})
+	c := &grpcCollector{traceConsumer}
+	s := &grpcSampler{logger, fetcher}
+	api_v2.RegisterCollectorServiceServer(srv, c)
+	api_v2.RegisterSamplingManagerServer(srv, s)
+	return &Services{c, s}
+}
+
+// Services wraps an internal collector and sampler, so that we can
+// dynamically update them.
+type Services struct {
+	collector *grpcCollector
+	sampler   *grpcSampler
+}
+
+// Update updates the underlying collector and sampler.
+func (s *Services) Update(batchProcessor model.BatchProcessor, fetcher agentcfg.Fetcher) {
+	s.collector.consumer = &otel.Consumer{Processor: batchProcessor}
+	s.sampler.fetcher = fetcher
 }
 
 // Serve accepts gRPC and HTTP connections, and handles Jaeger requests.
