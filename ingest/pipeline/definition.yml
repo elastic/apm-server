@@ -13,8 +13,6 @@ apm:
   - pipeline:
       name: apm_remove_span_metadata
   - pipeline:
-      name: apm_convert_destination_address
-  - pipeline:
       name: apm_error_grouping_name
       if: ctx.processor?.event == 'error'
   - pipeline:
@@ -83,15 +81,6 @@ apm_ingest_timestamp:
       if: ctx.processor?.event != 'span'
       field: event.ingested
       value: "{{_ingest.timestamp}}"
-
-apm_convert_destination_address:
-  description: Convert destination.address to an IP, storing in destination.ip
-  processors:
-  - set:
-      if: ctx.destination?.address != null
-      field: destination.ip
-      value: "{{destination.address}}"
-      ignore_failure: true
 
 apm_remove_span_metadata:
   description: Removes metadata fields available already on the parent transaction, to save storage

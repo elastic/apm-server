@@ -789,14 +789,12 @@ func mapToSpanModel(from *span, config modeldecoder.Config, event *model.APMEven
 		out.DB = &db
 	}
 	if from.Context.Destination.Address.IsSet() || from.Context.Destination.Port.IsSet() {
-		destination := model.Destination{}
 		if from.Context.Destination.Address.IsSet() {
-			destination.Address = from.Context.Destination.Address.Val
+			event.Destination.Address = from.Context.Destination.Address.Val
 		}
 		if from.Context.Destination.Port.IsSet() {
-			destination.Port = from.Context.Destination.Port.Val
+			event.Destination.Port = from.Context.Destination.Port.Val
 		}
-		out.Destination = &destination
 	}
 	if from.Context.Destination.Service.IsSet() {
 		service := model.DestinationService{}

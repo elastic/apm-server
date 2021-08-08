@@ -567,6 +567,7 @@
             },
             "destination": {
                 "address": "0:0::0:1",
+                "ip": "0:0::0:1",
                 "port": 5432
             },
             "ecs": {
@@ -788,7 +789,8 @@
                 "id": "container-id"
             },
             "destination": {
-                "address": "0:0::0:1"
+                "address": "0:0::0:1",
+                "ip": "0:0::0:1"
             },
             "ecs": {
                 "version": "1.10.0"

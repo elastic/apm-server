@@ -38,6 +38,8 @@ func TestAPMEventFields(t *testing.T) {
 	mail := "user@email.com"
 	agentName := "elastic-node"
 	outcome := "success"
+	destinationAddress := "1.2.3.4"
+	destinationPort := 1234
 
 	for _, test := range []struct {
 		input  APMEvent
@@ -60,6 +62,7 @@ func TestAPMEventFields(t *testing.T) {
 					Name:     host,
 				},
 				Client:      Client{Domain: "client.domain"},
+				Destination: Destination{Address: destinationAddress, Port: destinationPort},
 				Process:     Process{Pid: pid},
 				User:        User{ID: uid, Email: mail},
 				Event:       Event{Outcome: outcome},
@@ -79,8 +82,13 @@ func TestAPMEventFields(t *testing.T) {
 					"name": "myservice",
 					"node": common.MapStr{"name": serviceNodeName},
 				},
-				"user":    common.MapStr{"id": "12321", "email": "user@email.com"},
-				"client":  common.MapStr{"domain": "client.domain"},
+				"user":   common.MapStr{"id": "12321", "email": "user@email.com"},
+				"client": common.MapStr{"domain": "client.domain"},
+				"destination": common.MapStr{
+					"address": destinationAddress,
+					"ip":      destinationAddress,
+					"port":    destinationPort,
+				},
 				"source":  common.MapStr{"domain": "client.domain"},
 				"event":   common.MapStr{"outcome": outcome},
 				"session": common.MapStr{"id": "session_id"},
