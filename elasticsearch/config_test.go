@@ -174,6 +174,7 @@ func TestBeatsConfigSynced(t *testing.T) {
 		"max_retries",
 		"parameters",
 		"transport",
+		"non_indexable_policy",
 	}
 	for name := range libbeatStructFields {
 		assert.Contains(t, knownUnhandled, name)
