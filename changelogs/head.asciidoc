@@ -19,6 +19,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
 [float]
 ==== Added
+- `service_destination` span metrics now take into account composite spans {pull}5896[5896]
 
 [float]
 ==== Deprecated
