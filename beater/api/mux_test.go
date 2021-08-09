@@ -28,6 +28,7 @@ import (
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/approvaltest"
+	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/ratelimit"
@@ -43,6 +44,7 @@ func requestToMuxerWithPattern(cfg *config.Config, pattern string) (*httptest.Re
 	r := httptest.NewRequest(http.MethodPost, pattern, nil)
 	return requestToMuxer(cfg, r)
 }
+
 func requestToMuxerWithHeader(cfg *config.Config, pattern string, method string, header map[string]string) (*httptest.ResponseRecorder, error) {
 	r := httptest.NewRequest(method, pattern, nil)
 	return requestToMuxer(cfg, requestWithHeader(r, header))
@@ -76,20 +78,12 @@ func requestToMuxerWithHeaderAndQueryString(
 }
 
 func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
-	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
-	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
-	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
-	var sourcemapStore *sourcemap.Store
-	mux, err := NewMux(
-		beat.Info{Version: "1.2.3"}, cfg,
-		nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg), ratelimitStore, sourcemapStore,
-	)
+	mux, err := muxBuilder{}.build(cfg)
 	if err != nil {
 		return nil, err
 	}
 	w := httptest.NewRecorder()
-	h, _ := mux.Handler(r)
-	h.ServeHTTP(w, r)
+	mux.ServeHTTP(w, r)
 	return w, nil
 }
 
@@ -116,14 +110,30 @@ func testMonitoringMiddleware(t *testing.T, urlPath string, monitoringMap map[re
 }
 
 func newTestMux(t *testing.T, cfg *config.Config) http.Handler {
+	mux, err := muxBuilder{}.build(cfg)
+	require.NoError(t, err)
+	return mux
+}
+
+type muxBuilder struct {
+	SourcemapStore *sourcemap.Store
+	Managed        bool
+}
+
+func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
 	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
-	var sourcemapStore *sourcemap.Store
-	mux, err := NewMux(
-		beat.Info{Version: "1.2.3"}, cfg,
-		nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg), ratelimitStore, sourcemapStore,
+	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
+	return NewMux(
+		beat.Info{Version: "1.2.3"},
+		cfg,
+		nopReporter,
+		nopBatchProcessor,
+		authenticator,
+		agentcfg.NewFetcher(cfg),
+		ratelimitStore,
+		m.SourcemapStore,
+		m.Managed,
 	)
-	require.NoError(t, err)
-	return mux
 }

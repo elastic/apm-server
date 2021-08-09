@@ -44,11 +44,8 @@ func TestAgentConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	// Run apm-server under Fleet, exercising the Fleet agent config implementation.
-	//
-	// TODO(axw) test Fleet integration when agent config is hot-reloadable.
-	//apmIntegration := initAPMIntegration(t, map[string]interface{}{})
-	//serverURLs := []string{srv.URL, apmIntegration.URL}
-	serverURLs := []string{srv.URL}
+	apmIntegration := initAPMIntegration(t, map[string]interface{}{})
+	serverURLs := []string{srv.URL, apmIntegration.URL}
 
 	expectChange := func(serverURL string, etag string) (map[string]string, *http.Response) {
 		t.Helper()

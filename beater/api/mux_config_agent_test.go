@@ -19,6 +19,7 @@ package api
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -80,11 +81,16 @@ func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
 		},
 	}
 
-	queryString := map[string]string{"service.name": "service1"}
-	rec, err := requestToMuxerWithHeaderAndQueryString(cfg, AgentConfigPath, http.MethodGet, nil, queryString)
+	mux, err := muxBuilder{Managed: true}.build(cfg)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, rec.Code)
-	approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
+
+	r := httptest.NewRequest(http.MethodGet, AgentConfigPath, nil)
+	r = requestWithQueryString(r, map[string]string{"service.name": "service1"})
+
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, r)
+	require.Equal(t, http.StatusOK, w.Code)
+	approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), w.Body.Bytes())
 
 }
 
