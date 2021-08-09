@@ -278,7 +278,6 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 	if r.runner != nil {
 		r.runner.cancelRunServerContext()
 		<-r.runner.done
-		r.runner = nil
 	}
 	r.runner = runner
 	return nil
