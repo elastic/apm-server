@@ -38,11 +38,19 @@ var testdataCertificateConfig = tlscommon.CertificateConfig{
 }
 
 func TestUnpackConfig(t *testing.T) {
+	// When unpacking libbeat/kibana.ClientConfig, proxy headers
+	// are set to nil rather than an empty map like in the default
+	// instantiated value.
+	defaultDecodedKibanaClientConfig := defaultKibanaConfig().ClientConfig
+	defaultDecodedKibanaClientConfig.Transport.Proxy.Headers = nil
+
 	kibanaNoSlashConfig := DefaultConfig()
+	kibanaNoSlashConfig.Kibana.ClientConfig = defaultDecodedKibanaClientConfig
 	kibanaNoSlashConfig.Kibana.Enabled = true
 	kibanaNoSlashConfig.Kibana.Host = "kibanahost:5601/proxy"
 
 	kibanaHeadersConfig := DefaultConfig()
+	kibanaHeadersConfig.Kibana.ClientConfig = defaultDecodedKibanaClientConfig
 	kibanaHeadersConfig.Kibana.Enabled = true
 	kibanaHeadersConfig.Kibana.Headers = map[string]string{"foo": "bar"}
 
@@ -232,7 +240,7 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				Kibana: KibanaConfig{
 					Enabled:      true,
-					ClientConfig: defaultKibanaConfig().ClientConfig,
+					ClientConfig: defaultDecodedKibanaClientConfig,
 				},
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 2 * time.Minute}},
 				Pipeline:          defaultAPMPipeline,
