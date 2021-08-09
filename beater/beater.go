@@ -219,9 +219,6 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 type reloader struct {
 	runServerContext context.Context
 	args             sharedServerRunnerParams
-	// The json marshaled bytes of config.Config, with all the dynamic
-	// options zeroed out.
-	staticConfig []byte
 
 	mu     sync.Mutex
 	runner *serverRunner
