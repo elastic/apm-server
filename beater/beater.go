@@ -18,9 +18,7 @@
 package beater
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -284,55 +282,6 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 	}
 	r.runner = runner
 	return nil
-}
-
-// Compare the new config with the old config to see if the server needs to be
-// restarted.
-// TODO: Delete me
-func (r *reloader) shouldRestart(cfg *common.Config) (bool, error) {
-	// Make a copy of cfg so we don't mutate it
-	cfg, err := common.MergeConfigs(cfg)
-	if err != nil {
-		return false, err
-	}
-
-	// Remove dynamic values in the config
-	for _, key := range []string{
-		"max_header_size",
-		"idle_timeout",
-		"read_timeout",
-		"write_timeout",
-		"max_event_size",
-		"shutdown_timeout",
-		"response_headers",
-		"capture_personal_data",
-		"auth.anonymous.rate_limit",
-		"expvar",
-		"rum",
-		"auth.api_key.limit",
-		"api_key.limit", // old name for auth.api_key.limit
-		"default_service_environment",
-		"agent_config",
-	} {
-		cfg.Remove(key, -1)
-	}
-
-	// Does our static config match the previous static config? If not,
-	// then we should restart.
-	m := make(map[string]interface{})
-	if err := cfg.Unpack(&m); err != nil {
-		return false, err
-	}
-	key, err := json.Marshal(m)
-	if err != nil {
-		return false, err
-	}
-
-	shouldRestart := !bytes.Equal(key, r.staticConfig)
-	// Set the static config on reloader for the next comparison
-	r.staticConfig = key
-
-	return shouldRestart, nil
 }
 
 type serverRunner struct {
