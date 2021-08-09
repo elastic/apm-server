@@ -33,6 +33,17 @@ transaction := apm.DefaultTracer.StartTransactionOptions("GET /", "request", opt
 // ***************************************************
 // ***************************************************
 
+// tag::ios[]
+
+experimental::[]
+
+_Not applicable._
+
+// end::ios[]
+
+// ***************************************************
+// ***************************************************
+
 // tag::java[]
 
 1. Create a transaction as a child of the incoming transaction with
