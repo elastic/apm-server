@@ -23,6 +23,7 @@ import (
 	"net/http"
 
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
+	"github.com/libp2p/go-reuseport"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmgrpc"
 	"go.elastic.co/apm/module/apmhttp"
@@ -103,7 +104,7 @@ func NewServer(
 		}
 
 		// TODO(axw) should the listener respect cfg.MaxConnections?
-		grpcListener, err := net.Listen("tcp", cfg.JaegerConfig.GRPC.Host)
+		grpcListener, err := reuseport.Listen("tcp", cfg.JaegerConfig.GRPC.Host)
 		if err != nil {
 			return nil, err
 		}
@@ -118,7 +119,7 @@ func NewServer(
 	}
 	if cfg.JaegerConfig.HTTP.Enabled {
 		// TODO(axw) should the listener respect cfg.MaxConnections?
-		httpListener, err := net.Listen("tcp", cfg.JaegerConfig.HTTP.Host)
+		httpListener, err := reuseport.Listen("tcp", cfg.JaegerConfig.HTTP.Host)
 		if err != nil {
 			return nil, err
 		}

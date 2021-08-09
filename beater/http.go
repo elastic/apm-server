@@ -23,6 +23,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/libp2p/go-reuseport"
+
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
@@ -167,6 +169,7 @@ func (h *httpServer) stop() {
 // listen starts the listener for bt.config.Host.
 func (h *httpServer) listen() (net.Listener, error) {
 	if url, err := url.Parse(h.cfg.Host); err == nil && url.Scheme == "unix" {
+		// SO_REUSEPORT does not support unix sockets
 		return net.Listen("unix", url.Path)
 	}
 
@@ -178,7 +181,7 @@ func (h *httpServer) listen() (net.Listener, error) {
 		// already too many colons, one more won't change that.
 		addr = net.JoinHostPort(addr, config.DefaultPort)
 	}
-	return net.Listen(network, addr)
+	return reuseport.Listen(network, addr)
 }
 
 func doNotTrace(req *http.Request) bool {
