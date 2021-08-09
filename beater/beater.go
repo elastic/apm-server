@@ -261,37 +261,34 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfig *config.Fleet) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	shouldRestart, err := r.shouldRestart(rawConfig)
+	runningc := make(chan struct{})
+	runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
+		sharedServerRunnerParams: r.args,
+		Namespace:                namespace,
+		RawConfig:                rawConfig,
+		FleetConfig:              fleetConfig,
+	})
 	if err != nil {
 		return err
 	}
-
-	if shouldRestart {
-		if r.runner != nil {
-			r.runner.cancelRunServerContext()
-			<-r.runner.done
-			r.runner = nil
-		}
-		runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
-			sharedServerRunnerParams: r.args,
-			Namespace:                namespace,
-			RawConfig:                rawConfig,
-			FleetConfig:              fleetConfig,
-		})
-		if err != nil {
-			return err
-		}
-		r.runner = runner
-		go r.runner.run()
-		return nil
+	go runner.run(runningc)
+	// Wait for the new runner to start
+	<-runningc
+	// If the old runner exists, cancel it
+	if r.runner != nil {
+		// Do we want to add an additional wait before stopping the old server?
+		<-time.After(10 * time.Second)
+		r.runner.cancelRunServerContext()
+		<-r.runner.done
+		r.runner = nil
 	}
-	// Update current runner.
-	// TODO: This should actually update the runner.
-	return r.runner.updateDynamicConfig(rawConfig)
+	r.runner = runner
+	return nil
 }
 
 // Compare the new config with the old config to see if the server needs to be
 // restarted.
+// TODO: Delete me
 func (r *reloader) shouldRestart(cfg *common.Config) (bool, error) {
 	// Make a copy of cfg so we don't mutate it
 	cfg, err := common.MergeConfigs(cfg)
@@ -407,7 +404,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 	}, nil
 }
 
-func (s *serverRunner) run() error {
+func (s *serverRunner) run(runningc chan struct{}) error {
 	defer close(s.done)
 
 	// Send config to telemetry.
@@ -455,7 +452,7 @@ func (s *serverRunner) run() error {
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
 	reporter := publisher.Send
-	runServer := newBaseRunServer(reporter)
+	runServer := newBaseRunServer(runningc, reporter)
 	if s.tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
 	}
@@ -489,10 +486,6 @@ func (s *serverRunner) run() error {
 		return err
 	}
 	return publisher.Stop(s.backgroundContext)
-}
-
-func (s *serverRunner) updateDynamicConfig(rawConfig *common.Config) error {
-	return nil
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
