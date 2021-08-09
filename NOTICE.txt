@@ -18839,11 +18839,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20210630005230-0f9fa26af87c
+Version: v0.0.0-20210806184541-e5e7981a1069
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210630005230-0f9fa26af87c/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210806184541-e5e7981a1069/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
