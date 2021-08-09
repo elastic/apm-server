@@ -260,6 +260,7 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	runningc := make(chan struct{})
+	defer close(runningc)
 	runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
 		sharedServerRunnerParams: r.args,
 		Namespace:                namespace,
@@ -271,11 +272,13 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 	}
 	go runner.run(runningc)
 	// Wait for the new runner to start
-	<-runningc
+	select {
+	case <-runningc:
+	case <-time.After(10 * time.Second):
+		return errors.New("server failed to start")
+	}
 	// If the old runner exists, cancel it
 	if r.runner != nil {
-		// Do we want to add an additional wait before stopping the old server?
-		<-time.After(10 * time.Second)
 		r.runner.cancelRunServerContext()
 		<-r.runner.done
 		r.runner = nil
@@ -353,7 +356,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 	}, nil
 }
 
-func (s *serverRunner) run(runningc chan struct{}) error {
+func (s *serverRunner) run(runningc chan<- struct{}) error {
 	defer close(s.done)
 
 	// Send config to telemetry.

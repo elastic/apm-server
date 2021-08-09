@@ -87,7 +87,7 @@ type ServerParams struct {
 //
 // Once we remove sourcemap uploading and onboarding docs, we
 // should remove the reporter parameter.
-func newBaseRunServer(runningc chan struct{}, reporter publish.Reporter) RunServerFunc {
+func newBaseRunServer(runningc chan<- struct{}, reporter publish.Reporter) RunServerFunc {
 	return func(ctx context.Context, args ServerParams) error {
 		srv, err := newServer(
 			args.Logger,
@@ -225,7 +225,7 @@ func newGRPCServer(
 	return srv, nil
 }
 
-func (s server) run(runningc chan struct{}) error {
+func (s server) run(runningc chan<- struct{}) error {
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	var g errgroup.Group
 	g.Go(s.httpServer.start)
@@ -235,7 +235,7 @@ func (s server) run(runningc chan struct{}) error {
 	if s.jaegerServer != nil {
 		g.Go(s.jaegerServer.Serve)
 	}
-	close(runningc)
+	runningc <- struct{}{}
 	if err := g.Wait(); err != http.ErrServerClosed {
 		return err
 	}
