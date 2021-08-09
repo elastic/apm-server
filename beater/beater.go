@@ -18,9 +18,7 @@
 package beater
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -221,9 +219,6 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 type reloader struct {
 	runServerContext context.Context
 	args             sharedServerRunnerParams
-	// The json marshaled bytes of config.Config, with all the dynamic
-	// options zeroed out.
-	staticConfig []byte
 
 	mu     sync.Mutex
 	runner *serverRunner
@@ -261,81 +256,23 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfig *config.Fleet) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	shouldRestart, err := r.shouldRestart(rawConfig)
+	runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
+		sharedServerRunnerParams: r.args,
+		Namespace:                namespace,
+		RawConfig:                rawConfig,
+		FleetConfig:              fleetConfig,
+	})
 	if err != nil {
 		return err
 	}
-
-	if shouldRestart {
-		if r.runner != nil {
-			r.runner.cancelRunServerContext()
-			<-r.runner.done
-			r.runner = nil
-		}
-		runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
-			sharedServerRunnerParams: r.args,
-			Namespace:                namespace,
-			RawConfig:                rawConfig,
-			FleetConfig:              fleetConfig,
-		})
-		if err != nil {
-			return err
-		}
-		r.runner = runner
-		go r.runner.run()
-		return nil
+	go runner.run()
+	// If the old runner exists, cancel it
+	if r.runner != nil {
+		r.runner.cancelRunServerContext()
+		<-r.runner.done
 	}
-	// Update current runner.
-	// TODO: This should actually update the runner.
-	return r.runner.updateDynamicConfig(rawConfig)
-}
-
-// Compare the new config with the old config to see if the server needs to be
-// restarted.
-func (r *reloader) shouldRestart(cfg *common.Config) (bool, error) {
-	// Make a copy of cfg so we don't mutate it
-	cfg, err := common.MergeConfigs(cfg)
-	if err != nil {
-		return false, err
-	}
-
-	// Remove dynamic values in the config
-	for _, key := range []string{
-		"max_header_size",
-		"idle_timeout",
-		"read_timeout",
-		"write_timeout",
-		"max_event_size",
-		"shutdown_timeout",
-		"response_headers",
-		"capture_personal_data",
-		"auth.anonymous.rate_limit",
-		"expvar",
-		"rum",
-		"auth.api_key.limit",
-		"api_key.limit", // old name for auth.api_key.limit
-		"default_service_environment",
-		"agent_config",
-	} {
-		cfg.Remove(key, -1)
-	}
-
-	// Does our static config match the previous static config? If not,
-	// then we should restart.
-	m := make(map[string]interface{})
-	if err := cfg.Unpack(&m); err != nil {
-		return false, err
-	}
-	key, err := json.Marshal(m)
-	if err != nil {
-		return false, err
-	}
-
-	shouldRestart := !bytes.Equal(key, r.staticConfig)
-	// Set the static config on reloader for the next comparison
-	r.staticConfig = key
-
-	return shouldRestart, nil
+	r.runner = runner
+	return nil
 }
 
 type serverRunner struct {
@@ -489,10 +426,6 @@ func (s *serverRunner) run() error {
 		return err
 	}
 	return publisher.Stop(s.backgroundContext)
-}
-
-func (s *serverRunner) updateDynamicConfig(rawConfig *common.Config) error {
-	return nil
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
