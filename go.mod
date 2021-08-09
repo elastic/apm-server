@@ -4,7 +4,6 @@ go 1.13
 
 require (
 	github.com/DataDog/zstd v1.4.4 // indirect
-	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/apache/thrift v0.14.2
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
@@ -29,7 +28,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/jaegertracing/jaeger v1.24.0
-	github.com/josephspurrier/goversioninfo v1.2.0 // indirect
+	github.com/josephspurrier/goversioninfo v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.11
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/libp2p/go-reuseport v0.0.2
@@ -64,6 +63,7 @@ require (
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
 	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6
 	golang.org/x/tools v0.1.5
 	google.golang.org/genproto v0.0.0-20210805201207-89edb61ffb67 // indirect
