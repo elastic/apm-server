@@ -49,6 +49,7 @@ type httpServer struct {
 	logger       *logp.Logger
 	reporter     publish.Reporter
 	grpcListener net.Listener
+	httpListener net.Listener
 }
 
 func newHTTPServer(
@@ -103,16 +104,20 @@ func newHTTPServer(
 	if err != nil {
 		return nil, err
 	}
+	httpListener, err := listen(cfg)
+	if err != nil {
+		return nil, err
+	}
+	if cfg.MaxConnections > 0 {
+		httpListener = netutil.LimitListener(httpListener, cfg.MaxConnections)
+		logger.Infof("Connection limit set to: %d", cfg.MaxConnections)
+	}
 
-	return &httpServer{server, cfg, logger, reporter, grpcListener}, nil
+	return &httpServer{server, cfg, logger, reporter, grpcListener, httpListener}, nil
 }
 
 func (h *httpServer) start() error {
-	lis, err := h.listen()
-	if err != nil {
-		return err
-	}
-	addr := lis.Addr()
+	addr := h.httpListener.Addr()
 	if addr.Network() == "tcp" {
 		h.logger.Infof("Listening on: %s", addr)
 	} else {
@@ -131,11 +136,6 @@ func (h *httpServer) start() error {
 		h.logger.Info("RUM endpoints disabled.")
 	}
 
-	if h.cfg.MaxConnections > 0 {
-		lis = netutil.LimitListener(lis, h.cfg.MaxConnections)
-		h.logger.Infof("Connection limit set to: %d", h.cfg.MaxConnections)
-	}
-
 	if !h.cfg.DataStreams.Enabled {
 		// Create the "onboarding" document, which contains the server's
 		// listening address. We only do this if data streams are not enabled,
@@ -146,14 +146,14 @@ func (h *httpServer) start() error {
 
 	if h.cfg.TLS.IsEnabled() {
 		h.logger.Info("SSL enabled.")
-		return h.ServeTLS(lis, "", "")
+		return h.ServeTLS(h.httpListener, "", "")
 	}
 	if h.cfg.AgentAuth.SecretToken != "" {
 		h.logger.Warn("Secret token is set, but SSL is not enabled.")
 	}
 	h.logger.Info("SSL disabled.")
 
-	return h.Serve(lis)
+	return h.Serve(h.httpListener)
 }
 
 func (h *httpServer) stop() {
@@ -167,14 +167,14 @@ func (h *httpServer) stop() {
 }
 
 // listen starts the listener for bt.config.Host.
-func (h *httpServer) listen() (net.Listener, error) {
-	if url, err := url.Parse(h.cfg.Host); err == nil && url.Scheme == "unix" {
+func listen(cfg *config.Config) (net.Listener, error) {
+	if url, err := url.Parse(cfg.Host); err == nil && url.Scheme == "unix" {
 		// SO_REUSEPORT does not support unix sockets
 		return net.Listen("unix", url.Path)
 	}
 
 	const network = "tcp"
-	addr := h.cfg.Host
+	addr := cfg.Host
 	if _, _, err := net.SplitHostPort(addr); err != nil {
 		// Tack on a port if SplitHostPort fails on what should be a
 		// tcp network address. If splitting failed because there were
