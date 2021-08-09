@@ -256,8 +256,6 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfig *config.Fleet) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	runningc := make(chan struct{})
-	defer close(runningc)
 	runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
 		sharedServerRunnerParams: r.args,
 		Namespace:                namespace,
@@ -267,13 +265,7 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 	if err != nil {
 		return err
 	}
-	go runner.run(runningc)
-	// Wait for the new runner to start
-	select {
-	case <-runningc:
-	case <-time.After(10 * time.Second):
-		return errors.New("server failed to start")
-	}
+	go runner.run()
 	// If the old runner exists, cancel it
 	if r.runner != nil {
 		r.runner.cancelRunServerContext()
@@ -352,7 +344,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 	}, nil
 }
 
-func (s *serverRunner) run(runningc chan<- struct{}) error {
+func (s *serverRunner) run() error {
 	defer close(s.done)
 
 	// Send config to telemetry.
@@ -400,7 +392,7 @@ func (s *serverRunner) run(runningc chan<- struct{}) error {
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
 	reporter := publisher.Send
-	runServer := newBaseRunServer(runningc, reporter)
+	runServer := newBaseRunServer(reporter)
 	if s.tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
 	}
