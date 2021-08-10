@@ -49,6 +49,7 @@ type Config struct {
 	RUM                       *RUMConfig         `json:"apm-server.rum,omitempty"`
 	DataStreams               *DataStreamsConfig `json:"apm-server.data_streams,omitempty"`
 	DefaultServiceEnvironment string             `json:"apm-server.default_service_environment,omitempty"`
+	KibanaAgentConfig         *KibanaAgentConfig `json:"apm-server.agent.config,omitempty"`
 
 	// AgentAuth holds configuration for APM agent authorization.
 	AgentAuth AgentAuthConfig `json:"apm-server.auth"`
@@ -81,6 +82,23 @@ type Config struct {
 // in the form ["-E", "k=v", "-E", "k=v", ...]
 func (cfg Config) Args() ([]string, error) {
 	return configArgs(cfg, nil)
+}
+
+// KibanaAgentConfig holds configuration related to the Kibana-based
+// implementation of agent configuration.
+type KibanaAgentConfig struct {
+	CacheExpiration time.Duration
+}
+
+func (c *KibanaAgentConfig) MarshalJSON() ([]byte, error) {
+	// time.Duration is encoded as int64.
+	// Convert time.Durations to durations, to encode as duration strings.
+	type config struct {
+		CacheExpiration string `json:"cache.expiration,omitempty"`
+	}
+	return json.Marshal(config{
+		CacheExpiration: durationString(c.CacheExpiration),
+	})
 }
 
 // LoggingConfig holds APM Server logging configuration.

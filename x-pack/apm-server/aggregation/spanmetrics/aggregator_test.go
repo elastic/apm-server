@@ -183,6 +183,45 @@ func TestAggregatorRun(t *testing.T) {
 	}
 }
 
+func TestAggregateCompositeSpan(t *testing.T) {
+	batches := make(chan model.Batch, 1)
+	agg, err := NewAggregator(AggregatorConfig{
+		BatchProcessor: makeChanBatchProcessor(batches),
+		Interval:       10 * time.Millisecond,
+		MaxGroups:      1000,
+	})
+	require.NoError(t, err)
+
+	span := makeSpan("service-A", "java", "final_destination", "success", time.Second, 2)
+	span.Span.Composite = &model.Composite{Count: 25, Sum: 700 /* milliseconds */}
+	err = agg.ProcessBatch(context.Background(), &model.Batch{span})
+	require.NoError(t, err)
+
+	// Start the aggregator after processing to ensure metrics are aggregated deterministically.
+	go agg.Run()
+	defer agg.Stop(context.Background())
+
+	batch := expectBatch(t, batches)
+	metricsets := batchMetricsets(t, batch)
+
+	assert.Equal(t, []model.APMEvent{{
+		Agent:   model.Agent{Name: "java"},
+		Service: model.Service{Name: "service-A"},
+		Event:   model.Event{Outcome: "success"},
+		Metricset: &model.Metricset{
+			Name: "service_destination",
+			Span: model.MetricsetSpan{
+				DestinationService: model.DestinationService{Resource: "final_destination"},
+			},
+			Samples: map[string]model.MetricsetSample{
+				"span.destination.service.response_time.count":  {Value: 50.0},
+				"span.destination.service.response_time.sum.us": {Value: 1400000},
+				"metricset.period": {Value: 10},
+			},
+		},
+	}}, metricsets)
+}
+
 func TestAggregatorOverflow(t *testing.T) {
 	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
