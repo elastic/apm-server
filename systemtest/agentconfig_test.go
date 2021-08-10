@@ -49,7 +49,7 @@ func TestAgentConfig(t *testing.T) {
 
 	expectChange := func(serverURL string, etag string) (map[string]string, *http.Response) {
 		t.Helper()
-		timer := time.NewTimer(10 * time.Second)
+		timer := time.NewTimer(time.Minute)
 		defer timer.Stop()
 		interval := 100 * time.Millisecond
 		for {
