@@ -1,0 +1,27 @@
+[[release-notes-head]]
+== APM Server version HEAD
+
+https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
+
+[float]
+==== Breaking Changes
+- `network.connection_type` is now `network.connection.type` {pull}5671[5671]
+- `transaction.page` and `error.page` no longer recorded {pull}5872[5872]
+
+[float]
+==== Bug fixes
+- Fix apm_error_grouping_name and apm_convert_destination_address {pull}5876[5876]
+- corrected OTel attribute names for `net.host.connection.*` {pull}5671[5671]
+- Fix response to agent config when running under Fleet with no agent config defined {pull}5917[5917]
+
+[float]
+==== Intake API Changes
+- `network.connection.type` was added to stream metadata {pull}5671[5671]
+
+[float]
+==== Added
+- `service_destination` span metrics now take into account composite spans {pull}5896[5896]
+- add zero-downtime config reloads via `SO_REUSEPORT` {pull}5911[5911]
+
+[float]
+==== Deprecated
