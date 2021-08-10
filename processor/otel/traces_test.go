@@ -270,15 +270,15 @@ func TestHTTPSpanURL(t *testing.T) {
 }
 
 func TestHTTPSpanDestination(t *testing.T) {
-	test := func(t *testing.T, expectedDestination *model.Destination, expectedDestinationService *model.DestinationService, attrs map[string]pdata.AttributeValue) {
+	test := func(t *testing.T, expectedDestination model.Destination, expectedDestinationService *model.DestinationService, attrs map[string]pdata.AttributeValue) {
 		t.Helper()
 		event := transformSpanWithAttributes(t, attrs)
-		assert.Equal(t, expectedDestination, event.Span.Destination)
+		assert.Equal(t, expectedDestination, event.Destination)
 		assert.Equal(t, expectedDestinationService, event.Span.DestinationService)
 	}
 
 	t.Run("url_default_port_specified", func(t *testing.T) {
-		test(t, &model.Destination{
+		test(t, model.Destination{
 			Address: "testing.invalid",
 			Port:    443,
 		}, &model.DestinationService{
@@ -290,7 +290,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 		})
 	})
 	t.Run("url_port_scheme", func(t *testing.T) {
-		test(t, &model.Destination{
+		test(t, model.Destination{
 			Address: "testing.invalid",
 			Port:    443,
 		}, &model.DestinationService{
@@ -302,7 +302,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 		})
 	})
 	t.Run("url_non_default_port", func(t *testing.T) {
-		test(t, &model.Destination{
+		test(t, model.Destination{
 			Address: "testing.invalid",
 			Port:    444,
 		}, &model.DestinationService{
@@ -314,7 +314,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 		})
 	})
 	t.Run("scheme_host_target", func(t *testing.T) {
-		test(t, &model.Destination{
+		test(t, model.Destination{
 			Address: "testing.invalid",
 			Port:    444,
 		}, &model.DestinationService{
@@ -328,7 +328,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 		})
 	})
 	t.Run("scheme_netpeername_nethostport_target", func(t *testing.T) {
-		test(t, &model.Destination{
+		test(t, model.Destination{
 			Address: "::1",
 			Port:    444,
 		}, &model.DestinationService{
@@ -440,10 +440,10 @@ func TestDatabaseSpan(t *testing.T) {
 		"net_transport":        "IP.TCP",
 	}, event.Labels)
 
-	assert.Equal(t, &model.Destination{
+	assert.Equal(t, model.Destination{
 		Address: "shopdb.example.com",
 		Port:    3306,
-	}, event.Span.Destination)
+	}, event.Destination)
 
 	assert.Equal(t, &model.DestinationService{
 		Type:     "db",
@@ -498,10 +498,10 @@ func TestRPCSpan(t *testing.T) {
 	assert.Equal(t, "external", event.Span.Type)
 	assert.Equal(t, "grpc", event.Span.Subtype)
 	assert.Empty(t, event.Labels)
-	assert.Equal(t, &model.Destination{
+	assert.Equal(t, model.Destination{
 		Address: "10.20.30.40",
 		Port:    123,
-	}, event.Span.Destination)
+	}, event.Destination)
 	assert.Equal(t, &model.DestinationService{
 		Type:     "external",
 		Name:     "10.20.30.40:123",
@@ -539,10 +539,10 @@ func TestMessagingSpan(t *testing.T) {
 	assert.Equal(t, "kafka", event.Span.Subtype)
 	assert.Equal(t, "send", event.Span.Action)
 	assert.Empty(t, event.Labels)
-	assert.Equal(t, &model.Destination{
+	assert.Equal(t, model.Destination{
 		Address: "10.20.30.40",
 		Port:    123,
-	}, event.Span.Destination)
+	}, event.Destination)
 	assert.Equal(t, &model.DestinationService{
 		Type:     "messaging",
 		Name:     "kafka",

@@ -44,10 +44,6 @@ func generateFields() map[string][]field {
 
 	for streamType, inputFields := range inputFieldsFiles {
 		log.Printf("%s", streamType)
-		for _, field := range inputFields {
-			log.Printf(" - %s", field.Name)
-		}
-
 		var ecsFields []field
 		var nonECSFields []field
 		for _, fields := range populateECSInfo(ecsFlatFields, inputFields) {

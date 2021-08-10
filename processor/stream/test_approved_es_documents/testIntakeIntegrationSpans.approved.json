@@ -507,6 +507,7 @@
             },
             "destination": {
                 "address": "0:0::0:1",
+                "ip": "0:0::0:1",
                 "port": 5432
             },
             "event": {
@@ -713,7 +714,8 @@
                 "id": "container-id"
             },
             "destination": {
-                "address": "0:0::0:1"
+                "address": "0:0::0:1",
+                "ip": "0:0::0:1"
             },
             "event": {
                 "outcome": "unknown"

@@ -56,7 +56,6 @@ type Span struct {
 
 	DB                 *DB
 	HTTP               *HTTP
-	Destination        *Destination
 	DestinationService *DestinationService
 	Composite          *Composite
 
@@ -78,12 +77,6 @@ type DB struct {
 	UserName     string
 	Link         string
 	RowsAffected *int
-}
-
-// Destination contains contextual data about the destination of a span, such as address and port
-type Destination struct {
-	Address string
-	Port    int
 }
 
 // DestinationService contains information about the destination service of a span event
@@ -112,20 +105,6 @@ func (db *DB) fields() common.MapStr {
 	fields.maybeSetIntptr("rows_affected", db.RowsAffected)
 	if user.maybeSetString("name", db.UserName) {
 		fields.set("user", common.MapStr(user))
-	}
-	return common.MapStr(fields)
-}
-
-func (d *Destination) fields() common.MapStr {
-	if d == nil {
-		return nil
-	}
-	var fields mapStr
-	if d.Address != "" {
-		fields.set("address", d.Address)
-	}
-	if d.Port > 0 {
-		fields.set("port", d.Port)
 	}
 	return common.MapStr(fields)
 }
@@ -180,7 +159,6 @@ func (e *Span) fields(apmEvent *APMEvent) common.MapStr {
 	if e.Experimental != nil {
 		fields.set("experimental", e.Experimental)
 	}
-	fields.maybeSetMapStr("destination", e.Destination.fields())
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.spanTopLevelFields())
 	}

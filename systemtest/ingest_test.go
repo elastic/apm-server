@@ -36,29 +36,40 @@ import (
 	"github.com/elastic/apm-server/systemtest/estest"
 )
 
-func TestIngestPipeline(t *testing.T) {
+func TestIngestPipelinePipeline(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServer(t)
 
 	tracer := srv.Tracer()
 	tx := tracer.StartTransaction("name", "type")
-	span := tx.StartSpan("name", "type", nil)
+	span1 := tx.StartSpan("name", "type", nil)
 	// If a destination address is recorded, and it is a valid
 	// IPv4 or IPv6 address, it will be copied to destination.ip.
-	span.Context.SetDestinationAddress("::1", 1234)
-	span.End()
+	span1.Context.SetDestinationAddress("::1", 1234)
+	span1.End()
+	span2 := tx.StartSpan("name", "type", nil)
+	span2.Context.SetDestinationAddress("testing.invalid", 1234)
+	span2.End()
 	tx.End()
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
-		Field: "span.id",
-		Value: span.TraceContext().Span.String(),
-	})
-	require.Len(t, result.Hits.Hits, 1)
+	getSpanDoc := func(spanID string) estest.SearchHit {
+		result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
+			Field: "span.id",
+			Value: spanID,
+		})
+		require.Len(t, result.Hits.Hits, 1)
+		return result.Hits.Hits[0]
+	}
 
-	destinationIP := gjson.GetBytes(result.Hits.Hits[0].RawSource, "destination.ip")
+	span1Doc := getSpanDoc(span1.TraceContext().Span.String())
+	destinationIP := gjson.GetBytes(span1Doc.RawSource, "destination.ip")
 	assert.True(t, destinationIP.Exists())
 	assert.Equal(t, "::1", destinationIP.String())
+
+	span2Doc := getSpanDoc(span2.TraceContext().Span.String())
+	destinationIP = gjson.GetBytes(span2Doc.RawSource, "destination.ip")
+	assert.False(t, destinationIP.Exists()) // destination.address is not an IP
 }
 
 func TestDataStreamMigrationIngestPipeline(t *testing.T) {
