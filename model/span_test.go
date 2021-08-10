@@ -39,7 +39,6 @@ func TestSpanTransform(t *testing.T) {
 	timestampUs := timestamp.UnixNano() / 1000
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", 5
-	address, port := "127.0.0.1", 8080
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 
 	tests := []struct {
@@ -88,7 +87,6 @@ func TestSpanTransform(t *testing.T) {
 					UserName:     user,
 					RowsAffected: &rowsAffected,
 				},
-				Destination: &Destination{Address: address, Port: port},
 				DestinationService: &DestinationService{
 					Type:     destServiceType,
 					Name:     destServiceName,
@@ -136,11 +134,10 @@ func TestSpanTransform(t *testing.T) {
 						"compression_strategy": "exact_match",
 					},
 				},
-				"processor":   common.MapStr{"event": "span", "name": "transaction"},
-				"timestamp":   common.MapStr{"us": timestampUs},
-				"trace":       common.MapStr{"id": traceID},
-				"parent":      common.MapStr{"id": parentID},
-				"destination": common.MapStr{"address": address, "port": port},
+				"processor": common.MapStr{"event": "span", "name": "transaction"},
+				"timestamp": common.MapStr{"us": timestampUs},
+				"trace":     common.MapStr{"id": traceID},
+				"parent":    common.MapStr{"id": parentID},
 				"http": common.MapStr{
 					"response": common.MapStr{"status_code": statusCode},
 					"request":  common.MapStr{"method": "get"},

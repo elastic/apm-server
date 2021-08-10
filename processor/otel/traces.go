@@ -236,8 +236,9 @@ func (c *Consumer) convertSpan(
 	*out = append(*out, event)
 
 	events := otelSpan.Events()
-	event.Labels = baseEvent.Labels // only copy common labels to span events
-	event.Event.Outcome = ""        // don't set event.outcome for span events
+	event.Labels = baseEvent.Labels         // only copy common labels to span events
+	event.Event.Outcome = ""                // don't set event.outcome for span events
+	event.Destination = model.Destination{} // don't set destination for span events
 	for i := 0; i < events.Len(); i++ {
 		convertSpanEvent(logger, events.At(i), event, timeDelta, out)
 	}
@@ -788,7 +789,7 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 	}
 
 	if destAddr != "" {
-		event.Span.Destination = &model.Destination{Address: destAddr, Port: destPort}
+		event.Destination = model.Destination{Address: destAddr, Port: destPort}
 	}
 	if destinationService != (model.DestinationService{}) {
 		if destinationService.Type == "" {
