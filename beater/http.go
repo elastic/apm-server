@@ -24,19 +24,11 @@ import (
 	"net/url"
 
 	"github.com/libp2p/go-reuseport"
-
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
 
-	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/beater/ratelimit"
-	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -56,32 +48,13 @@ func newHTTPServer(
 	logger *logp.Logger,
 	info beat.Info,
 	cfg *config.Config,
-	tracer *apm.Tracer,
+	handler http.Handler,
 	reporter publish.Reporter,
-	batchProcessor model.BatchProcessor,
-	agentcfgFetcher agentcfg.Fetcher,
-	ratelimitStore *ratelimit.Store,
-	sourcemapStore *sourcemap.Store,
 ) (*httpServer, error) {
 
-	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
-	batchProcessor = modelprocessor.Chained{
-		model.ProcessBatchFunc(rateLimitBatchProcessor),
-		model.ProcessBatchFunc(authorizeEventIngestProcessor),
-		batchProcessor,
-	}
-
-	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, agentcfgFetcher, ratelimitStore, sourcemapStore)
-	if err != nil {
-		return nil, err
-	}
-
 	server := &http.Server{
-		Addr: cfg.Host,
-		Handler: apmhttp.Wrap(mux,
-			apmhttp.WithServerRequestIgnorer(doNotTrace),
-			apmhttp.WithTracer(tracer),
-		),
+		Addr:           cfg.Host,
+		Handler:        handler,
 		IdleTimeout:    cfg.IdleTimeout,
 		ReadTimeout:    cfg.ReadTimeout,
 		WriteTimeout:   cfg.WriteTimeout,
