@@ -22,6 +22,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 ==== Added
 - `service_destination` span metrics now take into account composite spans {pull}5896[5896]
 - add zero-downtime config reloads via `SO_REUSEPORT` {pull}5911[5911]
+- experimental support for writing data streams in standalone mode {pull}5928[5928]
 
 [float]
 ==== Deprecated
