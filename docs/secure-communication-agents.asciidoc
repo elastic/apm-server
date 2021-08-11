@@ -21,6 +21,7 @@ In addition, there is a less straightforward and more restrictive way to authent
 <<ssl-client-authentication,SSL/TLS client authentication>>, which is currently a mainstream option only
 for the RUM agent (through the browser) and the Jaeger agent.
 
+[float]
 [[secure-communication-unauthenticated]]
 === Unauthenticated communication
 
