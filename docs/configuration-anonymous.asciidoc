@@ -6,11 +6,8 @@
 ++++
 
 Elastic APM agents can send unauthenticated (anonymous) events to the APM Server.
-This is especially useful when agents are running on clients, like the RUM agent running in a browser,
+This is useful for agents that run on clients, like the Real User Monitoring (RUM) agent running in a browser,
 or the iOS/Swift agent running in a user application.
-
-Enable anonymous authentication with <<config-auth-anon-enabled>>,
-or <<rum-enable,`apm-server.rum.enabled`>>.
 
 Example configuration:
 
@@ -23,7 +20,15 @@ apm-server.auth.anonymous.rate_limit.event_limit: 300
 apm-server.auth.anonymous.rate_limit.ip_limit: 1000
 ----
 
-TIP: Configuring RUM? See <<configuration-rum>> for additional RUM configuration options.
+[float]
+[[config-auth-anon-rum]]
+=== Real User Monitoring (RUM)
+
+Anonymous authentication must be enabled to collect RUM data.
+For this reason, anonymous auth will be enabled automatically if <<rum-enable,`apm-server.rum.enabled`>>
+is set to `true`, and <<config-auth-anon-enabled,`apm-server.auth.anonymous.enabled`>> is not explicitly defined.
+
+See <<configuration-rum>> for additional RUM configuration options.
 
 [float]
 [[config-auth-anon]]
@@ -38,9 +43,6 @@ Specify the following options in the `apm-server.auth.anonymous` section of the 
 Enable or disable anonymous authentication.
 
 Default: `false` (disabled)
-
-NOTE: Anonymous authentication is enabled automatically if <<rum-enable,`apm-server.rum.enabled`>>
-is set to `true`, and this setting is not explicitly defined.
 
 [float]
 [[config-auth-anon-allow-agent]]
