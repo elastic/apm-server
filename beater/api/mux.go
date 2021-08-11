@@ -78,27 +78,25 @@ func NewMux(
 	beaterConfig *config.Config,
 	report publish.Reporter,
 	batchProcessor model.BatchProcessor,
+	authenticator *auth.Authenticator,
 	fetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
 	sourcemapStore *sourcemap.Store,
+	fleetManaged bool,
 ) (*http.ServeMux, error) {
 	pool := request.NewContextPool()
 	mux := http.NewServeMux()
 	logger := logp.NewLogger(logs.Handler)
 
-	auth, err := auth.NewAuthenticator(beaterConfig.AgentAuth)
-	if err != nil {
-		return nil, err
-	}
-
 	builder := routeBuilder{
 		info:           beatInfo,
 		cfg:            beaterConfig,
-		authenticator:  auth,
+		authenticator:  authenticator,
 		reporter:       report,
 		batchProcessor: batchProcessor,
 		ratelimitStore: ratelimitStore,
 		sourcemapStore: sourcemapStore,
+		fleetManaged:   fleetManaged,
 	}
 
 	type route struct {
@@ -150,6 +148,7 @@ type routeBuilder struct {
 	batchProcessor model.BatchProcessor
 	ratelimitStore *ratelimit.Store
 	sourcemapStore *sourcemap.Store
+	fleetManaged   bool
 }
 
 func (r *routeBuilder) profileHandler() (request.Handler, error) {
@@ -220,13 +219,13 @@ func (r *routeBuilder) rootHandler() (request.Handler, error) {
 
 func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, backendMiddleware, f)
+		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, backendMiddleware, f, r.fleetManaged)
 	}
 }
 
 func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, rumMiddleware, f)
+		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, rumMiddleware, f, r.fleetManaged)
 	}
 }
 
@@ -238,11 +237,12 @@ func agentConfigHandler(
 	ratelimitStore *ratelimit.Store,
 	middlewareFunc middlewareFunc,
 	f agentcfg.Fetcher,
+	fleetManaged bool,
 ) (request.Handler, error) {
 	mw := middlewareFunc(cfg, authenticator, ratelimitStore, agent.MonitoringMap)
 	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment, cfg.AgentAuth.Anonymous.AllowAgent)
 
-	if !cfg.Kibana.Enabled && cfg.AgentConfigs == nil {
+	if !cfg.Kibana.Enabled && !fleetManaged {
 		msg := "Agent remote configuration is disabled. " +
 			"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +
 			"If you are using a RUM agent, you also need to configure the `apm-server.rum` section. " +
