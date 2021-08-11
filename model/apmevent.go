@@ -36,20 +36,21 @@ type APMEvent struct {
 	// in standalone mode.
 	DataStream DataStream
 
-	Event      Event
-	Agent      Agent
-	Container  Container
-	Kubernetes Kubernetes
-	Service    Service
-	Process    Process
-	Host       Host
-	User       User
-	UserAgent  UserAgent
-	Client     Client
-	Cloud      Cloud
-	Network    Network
-	Session    Session
-	URL        URL
+	Event       Event
+	Agent       Agent
+	Container   Container
+	Kubernetes  Kubernetes
+	Service     Service
+	Process     Process
+	Host        Host
+	User        User
+	UserAgent   UserAgent
+	Client      Client
+	Destination Destination
+	Cloud       Cloud
+	Network     Network
+	Session     Session
+	URL         URL
 
 	// Timestamp holds the event timestamp.
 	Timestamp time.Time
@@ -105,6 +106,7 @@ func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat
 			fields.set("source", client)
 		}
 	}
+	fields.maybeSetMapStr("destination", e.Destination.fields())
 	fields.maybeSetMapStr("user_agent", e.UserAgent.fields())
 	fields.maybeSetMapStr("container", e.Container.fields())
 	fields.maybeSetMapStr("kubernetes", e.Kubernetes.fields())
