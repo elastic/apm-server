@@ -10,10 +10,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -39,8 +39,15 @@ var (
 )
 
 func TestPublishSampledTraceIDs(t *testing.T) {
-	srv, requests := newRequestResponseWriterServer(t)
-	pub := newPubsub(t, srv, time.Millisecond, time.Minute)
+	requestBodies := make(chan string)
+	ms := newMockElasticsearchServer(t)
+	ms.onBulk = func(r *http.Request) {
+		select {
+		case <-r.Context().Done():
+		case requestBodies <- readBody(r):
+		}
+	}
+	pub := newPubsub(t, ms.srv, time.Millisecond, time.Minute)
 
 	input := make([]string, 20)
 	for i := 0; i < len(input); i++ {
@@ -71,26 +78,12 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 
 	var received []string
 	deadlineTimer := time.NewTimer(10 * time.Second)
-	select {
-	case <-deadlineTimer.C:
-		t.Fatal("timed out waiting for events to be received by server")
-	case rw := <-requests:
-		// burn initial request to index
-		require.Equal(t, "/", rw.URL.Path)
-		rw.Write("") // unblock client
-	}
 	for len(received) < len(input) {
 		select {
 		case <-deadlineTimer.C:
 			t.Fatal("timed out waiting for events to be received by server")
-		case rw := <-requests:
-			require.Equal(t, fmt.Sprintf("/%s/_bulk", dataStream.String()), rw.URL.Path)
-
-			body, err := ioutil.ReadAll(rw.Body)
-			require.NoError(t, err)
-			rw.Write("") // unblock client
-
-			d := json.NewDecoder(bytes.NewReader(body))
+		case body := <-requestBodies:
+			d := json.NewDecoder(bytes.NewReader([]byte(body)))
 			for {
 				action := make(map[string]interface{})
 				err := d.Decode(&action)
@@ -132,238 +125,130 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 }
 
 func TestSubscribeSampledTraceIDs(t *testing.T) {
-	srv, requests := newRequestResponseWriterServer(t)
-	ids, positions, cancel := newSubscriber(t, srv)
+	ms := newMockElasticsearchServer(t)
+	ms.statsGlobalCheckpoint = 99
 
-	expectRequest(t, requests, "/", "").Write("")
-	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
-          "indices": {
-	    "index_name": {
-              "shards": {
-	        "0": [{
-		  "routing": {
-		    "primary": true
-		  },
-		  "seq_no": {
-		    "global_checkpoint": 99
-		  }
-		}]
-	      }
-	    }
-	  }
-	}`)
+	assertSearchQueryFilterEqual := func(filter, body string) {
+		expect := fmt.Sprintf(
+			`{"query":{"bool":{"filter":%s,"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`,
+			filter,
+		)
+		assert.Equal(t, expect, body)
+	}
 
-	// _refresh
-	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
+	var searchRequests int
+	ms.onSearch = func(r *http.Request) {
+		body := readBody(r)
+		searchRequests++
+		switch searchRequests {
+		case 1:
+			assertSearchQueryFilterEqual(`[{"range":{"_seq_no":{"lte":99}}}]`, body)
+			ms.searchResults = []searchHit{
+				newSearchHit(1, "trace_1"),
+				newSearchHit(2, "trace_2"),
+			}
+		case 2:
+			// The previous _search responded non-empty, and the greatest
+			// _seq_no was not equal to the global checkpoint: _search again
+			// after _seq_no 2.
+			assertSearchQueryFilterEqual(`[{"range":{"_seq_no":{"lte":99}}}]`, body)
+			ms.searchResults = []searchHit{
+				newSearchHit(3, "trace_3"),
+				newSearchHit(98, "trace_98"),
+			}
+		case 3:
+			// Again the previous _search responded non-empty, and the greatest
+			// _seq_no was not equal to the global checkpoint: _search again
+			// after _seq_no 98. This time we respond with no hits, so the
+			// subscriber goes back to sleep.
+			assertSearchQueryFilterEqual(`[{"range":{"_seq_no":{"lte":99}}}]`, body)
+			ms.searchResults = nil
+		case 4:
+			// The search now has an exclusive lower bound of the previously
+			// observed maximum _seq_no. When the global checkpoint is observed,
+			// the server stops issuing search requests and goes back to sleep.
+			assertSearchQueryFilterEqual(`[{"range":{"_seq_no":{"lte":99}}},{"range":{"_seq_no":{"gt":98}}}]`, body)
+			ms.searchResults = []searchHit{
+				newSearchHit(99, "trace_99"),
+			}
+		case 5:
+			// After advancing the global checkpoint, a new search will be made
+			// with increased lower and upper bounds.
+			assertSearchQueryFilterEqual(`[{"range":{"_seq_no":{"lte":100}}},{"range":{"_seq_no":{"gt":99}}}]`, body)
+			ms.searchResults = []searchHit{
+				newSearchHit(100, "trace_100"),
+			}
+		}
+	}
 
-	// _search: we respond with some results.
-	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
-          "hits": {
-	    "hits": [
-	      {
-	        "_seq_no": 1,
-		"_source": {"trace": {"id": "trace_1"}, "observer": {"id": "another_beat_id"}},
-		"sort": [1]
-	      },
-	      {
-	        "_seq_no": 2,
-		"_source": {"trace": {"id": "trace_2"}, "observer": {"id": "another_beat_id"}},
-		"sort": [2]
-	      }
-	    ]
-	  }
-	}`)
-
+	ids, positions, closeSubscriber := newSubscriber(t, ms.srv)
 	assert.Equal(t, "trace_1", expectValue(t, ids))
 	assert.Equal(t, "trace_2", expectValue(t, ids))
-
-	// The previous _search responded non-empty, and the greatest _seq_no was not equal
-	// to the global checkpoint: _search again after _seq_no 2.
-	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
-	  "pit_id": "pit_id_2",
-          "hits": {
-	    "hits": [
-	      {
-	        "_seq_no": 3,
-		"_source": {"trace": {"id": "trace_3"}, "observer": {"id": "another_beat_id"}},
-		"sort": [3]
-	      },
-	      {
-	        "_seq_no": 98,
-		"_source": {"trace": {"id": "trace_98"}, "observer": {"id": "another_beat_id"}},
-		"sort": [98]
-	      }
-	    ]
-	  }
-	}`)
-
 	assert.Equal(t, "trace_3", expectValue(t, ids))
 	assert.Equal(t, "trace_98", expectValue(t, ids))
-
-	// Again the previous _search responded non-empty, and the greatest _seq_no was not equal
-	// to the global checkpoint: _search again after _seq_no 98. This time we respond with no
-	// hits, so the subscriber goes back to sleep.
-	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(
-		`{"hits":{"hits":[]}}`,
-	)
+	assert.Equal(t, "trace_99", expectValue(t, ids))
 	expectNone(t, ids)
 
-	// _stats: respond with the same global checkpoint as before
-	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
-          "indices": {
-	    "index_name": {
-              "shards": {
-	        "0": [{
-		  "routing": {
-		    "primary": true
-		  },
-		  "seq_no": {
-		    "global_checkpoint": 99
-		  }
-		}]
-	      }
-	    }
-	  }
-	}`)
-
-	// _refresh
-	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
-
-	// The search now has an exclusive lower bound of the previously observed maximum _seq_no.
-	// When the global checkpoint is observed, the server stops issuing search requests and
-	// goes back to sleep.
-	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}},{"range":{"_seq_no":{"gt":98}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
-          "hits": {
-	    "hits": [
-	      {
-	        "_seq_no": 99,
-		"_source": {"trace": {"id": "trace_99"}, "observer": {"id": "another_beat_id"}},
-		"sort": [99]
-	      }
-	    ]
-	  }
-	}`)
-	assert.Equal(t, "trace_99", expectValue(t, ids))
-
-	// Wait for the position to be reported. The position is only reported
-	// between searches, so for the test we need to unblock search requests
-	// until a position is received.
-	//
-	// The returned position should be non-zero, and when used should
-	// resume subscription without returning already observed IDs.
+	// Wait for the position to be reported. The position should be
+	// non-zero, and when used should resume subscription without
+	// returning already observed IDs.
 	var pos pubsub.SubscriberPosition
-	var gotPosition bool
-	for !gotPosition {
-		select {
-		case pos = <-positions:
-			gotPosition = true
-		case r := <-requests:
-			r.WriteStatus(500, "")
-		case <-time.After(10 * time.Second):
-			t.Fatal("timed out waiting for subscriber position")
-		}
+	select {
+	case pos = <-positions:
+		assert.NotZero(t, pos)
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for position to be reported")
 	}
-	assert.NotZero(t, pos)
-	cancel() // close first subscriber
-	ids, positions, cancel = newSubscriberPosition(t, srv, pos)
-	defer cancel()
 
-	// Respond initially with the same _seq_no as before, indicating there
-	// have been no new docs since the position was recorded.
-	expectRequest(t, requests, "/", "").Write("")
-	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
-          "indices": {
-	    "index_name": {
-              "shards": {
-	        "0": [{
-		  "routing": {
-		    "primary": true
-		  },
-		  "seq_no": {
-		    "global_checkpoint": 99
-		  }
-		}]
-	      }
-	    }
-	  }
-	}`)
+	// close first subscriber, create a new one initialised with position
+	closeSubscriber()
+	ids, positions, _ = newSubscriberPosition(t, ms.srv, pos)
 
-	// No changes, so after the interval elapses we'll check again. Now there
-	// has been a new document written.
-	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
-          "indices": {
-	    "index_name": {
-              "shards": {
-	        "0": [{
-		  "routing": {
-		    "primary": true
-		  },
-		  "seq_no": {
-		    "global_checkpoint": 100
-		  }
-		}]
-	      }
-	    }
-	  }
-	}`)
+	// Global checkpoint hasn't changed.
+	expectNone(t, ids)
 
-	// _refresh
-	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
-
-	// _search: we respond with some results.
-	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":100}}},{"range":{"_seq_no":{"gt":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
-          "hits": {
-	    "hits": [
-	      {
-	        "_seq_no": 100,
-		"_source": {"trace": {"id": "trace_100"}, "observer": {"id": "another_beat_id"}},
-		"sort": [100]
-	      }
-	    ]
-	  }
-	}`)
+	// Advance global checkpoint, expect a new search and new position to be reported.
+	ms.statsGlobalCheckpointMu.Lock()
+	ms.statsGlobalCheckpoint = 100
+	ms.statsGlobalCheckpointMu.Unlock()
 	assert.Equal(t, "trace_100", expectValue(t, ids))
-
-	var pos2 pubsub.SubscriberPosition
-	gotPosition = false
-	for !gotPosition {
-		select {
-		case pos2 = <-positions:
-			gotPosition = true
-		case r := <-requests:
-			r.WriteStatus(500, "")
-		case <-time.After(10 * time.Second):
-			t.Fatal("timed out waiting for subscriber position")
-		}
+	select {
+	case pos2 := <-positions:
+		assert.NotEqual(t, pos, pos2)
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for position to be reported")
 	}
-	assert.NotEqual(t, pos, pos2)
 }
 
 func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
-	srv, requests := newRequestResponseWriterServer(t)
-	newSubscriber(t, srv)
+	statsRequests := make(chan struct{})
+	firstStats := true
+	m := newMockElasticsearchServer(t)
+	m.searchStatusCode = http.StatusNotFound
+	m.statsGlobalCheckpoint = 99
+	m.onStats = func(r *http.Request) {
+		select {
+		case <-r.Context().Done():
+		case statsRequests <- struct{}{}:
+		}
+		if firstStats {
+			firstStats = false
+			return
+		}
+		m.statsStatusCode = http.StatusInternalServerError
+	}
+	newSubscriber(t, m.srv)
 
-	expectRequest(t, requests, "/", "").Write("")
-	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
-	"indices": {
-	    "index_name": {
-	"shards": {
-	        "0": [{
-		  "routing": {
-		    "primary": true
-		  },
-		  "seq_no": {
-		    "global_checkpoint": 99
-		  }
-		}]
-	      }
-	    }
-	  }
-	}`)
-	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
-	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).WriteStatus(404, "")
-	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "")
-	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "") // errors are not fatal
+	// Show that failed requests to Elasticsearch are not fatal, and
+	// that the subscriber will retry.
+	timeout := time.After(10 * time.Second)
+	for i := 0; i < 10; i++ {
+		select {
+		case <-statsRequests:
+		case <-timeout:
+			t.Fatal("timed out waiting for _stats request")
+		}
+	}
 }
 
 func newSubscriber(t testing.TB, srv *httptest.Server) (<-chan string, <-chan pubsub.SubscriberPosition, context.CancelFunc) {
@@ -404,66 +289,115 @@ func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval
 	return sub
 }
 
-func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *requestResponseWriter) {
-	requests := make(chan *requestResponseWriter)
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rrw := &requestResponseWriter{
-			Request: r,
-			done:    make(chan response),
-		}
-		select {
-		case <-r.Context().Done():
-			w.WriteHeader(http.StatusRequestTimeout)
-			return
-		case requests <- rrw:
-		}
-		select {
-		case <-r.Context().Done():
-			w.WriteHeader(http.StatusRequestTimeout)
-		case response := <-rrw.done:
-			w.Header().Set("X-Elastic-Product", "Elasticsearch")
-			w.WriteHeader(response.statusCode)
-			w.Write([]byte(response.body))
-		}
-	}))
-	t.Cleanup(srv.Close)
-	return srv, requests
+type mockElasticsearchServer struct {
+	srv *httptest.Server
+
+	// statsGlobalCheckpoint is the shard seq_no global_checkpoint to respond with in
+	// the _stats/get handler. If this is negative, the handler responds with status
+	statsGlobalCheckpointMu sync.RWMutex
+	statsGlobalCheckpoint   int
+
+	// statsStatusCode is the status code that the _stats/get handler responds with.
+	statsStatusCode int
+
+	// searchResults is the search hits that the _search handler responds with.
+	searchResults []searchHit
+
+	// searchStatusCode is the status code that the _search handler responds with.
+	searchStatusCode int
+
+	// onStats is a function that is invoked whenever a _stats/get request is received.
+	// This may be used to adjust the status code or global checkpoint that will be
+	// returned.
+	onStats func(r *http.Request)
+
+	// onSearch is a function that is invoked whenever a _search request is received.
+	// This may be used to check the search query, and adjust the search results that
+	// will be returned.
+	onSearch func(r *http.Request)
+
+	// onBulk is a function that is invoked whenever a _bulk request is received.
+	// This may be used to check the publication of sampled trace IDs.
+	onBulk func(r *http.Request)
 }
 
-type requestResponseWriter struct {
-	*http.Request
-	done chan response
-}
-
-type response struct {
-	statusCode int
-	body       string
-}
-
-func (w *requestResponseWriter) Write(body string) {
-	w.WriteStatus(http.StatusOK, body)
-}
-
-func (w *requestResponseWriter) WriteStatus(statusCode int, body string) {
-	w.done <- response{statusCode, body}
-}
-
-func expectRequest(t testing.TB, ch <-chan *requestResponseWriter, path, body string) *requestResponseWriter {
-	t.Helper()
-	select {
-	case <-time.After(10 * time.Second):
-		t.Fatalf("timed out waiting for request")
-		panic("unreachable")
-	case r, ok := <-ch:
-		if assert.True(t, ok) {
-			var buf bytes.Buffer
-			io.Copy(&buf, r.Body)
-			assert.Equal(t, path, r.URL.Path)
-			assert.Equal(t, body, strings.TrimSpace(buf.String()))
-			return r
-		}
+func newMockElasticsearchServer(t testing.TB) *mockElasticsearchServer {
+	m := &mockElasticsearchServer{
+		statsStatusCode:  http.StatusOK,
+		searchStatusCode: http.StatusOK,
+		onStats:          func(*http.Request) {},
+		onSearch:         func(*http.Request) {},
+		onBulk:           func(*http.Request) {},
 	}
-	return nil
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			w.Header().Set("X-Elastic-Product", "Elasticsearch")
+			return
+		}
+		panic(fmt.Errorf("unexpected URL path: %s", r.URL.Path))
+	})
+	mux.HandleFunc("/"+dataStream.String()+"/_bulk", m.handleBulk)
+	mux.HandleFunc("/"+dataStream.String()+"/_stats/get", m.handleStats)
+	mux.HandleFunc("/index_name/_refresh", m.handleRefresh)
+	mux.HandleFunc("/index_name/_search", m.handleSearch)
+
+	m.srv = httptest.NewServer(mux)
+	t.Cleanup(m.srv.Close)
+	return m
+}
+
+func (m *mockElasticsearchServer) handleStats(w http.ResponseWriter, r *http.Request) {
+	m.onStats(r)
+	w.WriteHeader(m.statsStatusCode)
+	if m.statsStatusCode != http.StatusOK {
+		return
+	}
+
+	m.statsGlobalCheckpointMu.RLock()
+	checkpoint := m.statsGlobalCheckpoint
+	m.statsGlobalCheckpointMu.RUnlock()
+
+	w.Write([]byte(fmt.Sprintf(`{
+          "indices": {
+	    "index_name": {
+              "shards": {
+	        "0": [{
+		  "routing": {
+		    "primary": true
+		  },
+		  "seq_no": {
+		    "global_checkpoint": %d
+		  }
+		}]
+	      }
+	    }
+	  }
+	}`, checkpoint)))
+}
+
+func (m *mockElasticsearchServer) handleRefresh(w http.ResponseWriter, r *http.Request) {
+	// Empty 200 OK response
+}
+
+func (m *mockElasticsearchServer) handleSearch(w http.ResponseWriter, r *http.Request) {
+	m.onSearch(r)
+	w.WriteHeader(m.searchStatusCode)
+	if m.searchStatusCode != http.StatusOK {
+		return
+	}
+	var body struct {
+		Hits struct {
+			Hits []searchHit `json:"hits"`
+		} `json:"hits"`
+	}
+	body.Hits.Hits = m.searchResults
+	json.NewEncoder(w).Encode(body)
+}
+
+func (m *mockElasticsearchServer) handleBulk(w http.ResponseWriter, r *http.Request) {
+	m.onBulk(r)
 }
 
 func expectValue(t testing.TB, ch <-chan string) string {
@@ -481,8 +415,37 @@ func expectValue(t testing.TB, ch <-chan string) string {
 func expectNone(t testing.TB, ch <-chan string) {
 	t.Helper()
 	select {
-	case <-time.After(500 * time.Millisecond):
+	case <-time.After(100 * time.Millisecond):
 	case v := <-ch:
 		t.Errorf("unexpected send on channel: %q", v)
 	}
+}
+
+func readBody(r *http.Request) string {
+	var buf bytes.Buffer
+	io.Copy(&buf, r.Body)
+	return strings.TrimSpace(buf.String())
+}
+
+type searchHit struct {
+	SeqNo  int64           `json:"_seq_no,omitempty"`
+	Source traceIDDocument `json:"_source"`
+	Sort   []int64         `json:"sort"`
+}
+
+func newSearchHit(seqNo int64, traceID string) searchHit {
+	var source traceIDDocument
+	source.Observer.ID = "another_beat_id"
+	source.Trace.ID = traceID
+	return searchHit{SeqNo: seqNo, Source: source, Sort: []int64{seqNo}}
+}
+
+type traceIDDocument struct {
+	Observer struct {
+		ID string `json:"id"`
+	} `json:"observer"`
+
+	Trace struct {
+		ID string `json:"id"`
+	} `json:"trace"`
 }
