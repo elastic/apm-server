@@ -289,6 +289,11 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				DefaultServiceEnvironment: "overridden",
+				DataStreams: DataStreamsConfig{
+					Enabled:                    false,
+					WaitForIntegration:         true,
+					WaitForIntegrationInterval: 5 * time.Second,
+				},
 			},
 		},
 		"merge config with default": {
@@ -342,6 +347,7 @@ func TestUnpackConfig(t *testing.T) {
 					"interval":          "2m",
 					"ingest_rate_decay": 1.0,
 				},
+				"data_streams.wait_for_integration": false,
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -471,6 +477,11 @@ func TestUnpackConfig(t *testing.T) {
 						StorageGCInterval:     5 * time.Minute,
 						TTL:                   30 * time.Minute,
 					},
+				},
+				DataStreams: DataStreamsConfig{
+					Enabled:                    false,
+					WaitForIntegration:         false,
+					WaitForIntegrationInterval: 5 * time.Second,
 				},
 			},
 		},
