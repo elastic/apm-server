@@ -101,15 +101,15 @@ func setCurrentMonitoredConsumer(c *otel.Consumer) {
 }
 
 func collectMetricsMonitoring(mode monitoring.Mode, V monitoring.Visitor) {
+	V.OnRegistryStart()
+	defer V.OnRegistryFinished()
+
 	currentMonitoredConsumerMu.RLock()
 	c := currentMonitoredConsumer
 	currentMonitoredConsumerMu.RUnlock()
 	if c == nil {
 		return
 	}
-
-	V.OnRegistryStart()
-	defer V.OnRegistryFinished()
 
 	stats := c.Stats()
 	monitoring.ReportInt(V, "unsupported_dropped", stats.UnsupportedMetricsDropped)
