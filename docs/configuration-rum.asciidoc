@@ -5,24 +5,22 @@
 <titleabbrev>Real User Monitoring (RUM)</titleabbrev>
 ++++
 
-Real User Monitoring captures user interaction with clients such as web browsers.
-The {apm-rum-ref-v}/index.html[JavaScript Agent] is Elastic's RUM Agent.
+The {apm-rum-ref-v}/index.html[Real User Monitoring (RUM) agent] captures user interactions with clients such as web browsers.
 
-By default, Real User Monitoring is disabled. To enable it,
+By default, RUM is disabled. To enable it,
 set `apm-server.rum.enabled` to `true` in your APM Server configuration file.
 
 In addition, if APM Server is deployed in an origin different than the page’s origin,
 you will need to configure {apm-rum-ref-v}/configuring-cors.html[Cross-Origin Resource Sharing (CORS)] in the Agent.
-
-A full list of APM Server configuration options is available in the <<configuration-rum,RUM configuration reference>>.
 
 Example config with RUM enabled:
 
 ["source","yaml"]
 ----
 apm-server.rum.enabled: true
-apm-server.rum.event_rate.limit: 300
-apm-server.rum.event_rate.lru_size: 1000
+apm-server.auth.anonymous.rate_limit.event_limit: 300
+apm-server.auth.anonymous.rate_limit.ip_limit: 1000
+apm-server.auth.anonymous.allow_service: [your_service_name]
 apm-server.rum.allow_origins: ['*']
 apm-server.rum.allow_headers: ["header1", "header2"]
 apm-server.rum.library_pattern: "node_modules|bower_components|~"
@@ -34,7 +32,9 @@ apm-server.rum.source_mapping.index_pattern: "apm-*-sourcemap*"
 
 [float]
 [[enable-rum-support]]
-=== Configuration
+=== Configuration reference
+
+Specify the following options in the `apm-server.rum` section of the `apm-server.yml` config file:
 
 [[rum-enable]]
 [float]
@@ -42,26 +42,41 @@ apm-server.rum.source_mapping.index_pattern: "apm-*-sourcemap*"
 To enable RUM support, set `apm-server.rum.enabled` to `true`.
 By default this is disabled.
 
+NOTE: Enabling RUM support automatically enables <<configuration-anonymous>>.
+Anonymous access is required as the RUM agent runs in end users' browsers.
+
 [float]
 [[event_rate.limit]]
 ==== `event_rate.limit`
-Defines the maximum amount of events allowed to be sent to the APM Server RUM endpoint per ip per second.
-Defaults to 300.
+
+deprecated::[7.15.0, Replaced by <<config-auth-anon-event-limit,`auth.anonymous.rate_limit.event_limit`>>.]
+
+The maximum number of events allowed per second, per agent IP address.
+
+Default: `300`
 
 [float]
 ==== `event_rate.lru_size`
-An LRU cache is used to keep a rate limit per IP for the most recently seen IPs.
-This setting defines the number of unique IPs that can be tracked in the cache.
-Sites with many concurrent clients should consider increasing this limit.
-Defaults to 1000.
+
+deprecated::[7.15.0, Replaced by <<config-auth-anon-ip-limit,`auth.anonymous.rate_limit.ip_limit`>>.]
+
+The number of unique IP addresses to track in an LRU cache.
+IP addresses in the cache will be rate limited according to the <<config-auth-anon-event-limit>> setting.
+Consider increasing this default if your site has many concurrent clients.
+
+Default: `1000`
 
 [float]
 [[rum-allow-service-names]]
 ==== `allow_service_names`
+
+deprecated::[7.15.0, Replaced by <<config-auth-anon-allow-service,`auth.anonymous.allow_service`>>.]
 A list of permitted service names for RUM support.
+Names in this list must match the agent's `service.name`.
 This can be set to restrict RUM events to those with one of a set of known service names,
 in order to limit the number of service-specific indices or data streams created.
-By default this is not set, allowing any service name.
+
+Default: Not set (any service name is accepted)
 
 [float]
 [[rum-allow-origins]]
@@ -70,16 +85,19 @@ A list of permitted origins for RUM support.
 User-agents send an Origin header that will be validated against this list.
 This is done automatically by modern browsers as part of the https://www.w3.org/TR/cors/[CORS specification].
 An origin is made of a protocol scheme, host and port, without the URL path.
-Default value is set to `['*']`, which allows everything.
+
+Default: `['*']` (allows everything)
 
 [float]
 [[rum-allow-headers]]
 ==== `allow_headers`
-By default, HTTP requests made from the RUM agent to the APM Server are limited in the HTTP headers they are allowed to have.
+HTTP requests made from the RUM agent to the APM Server are limited in the HTTP headers they are allowed to have.
 If any other headers are added, the request will be rejected by the browser due to Cross-Origin Resource Sharing (CORS) restrictions.
-If you need to add extra headers to these requests, you can use this configuration to allow additional headers.
-The default list of values includes "Content-Type", "Content-Encoding", and "Accept";
+Use this setting to allow additional headers.
+The default list of allowed headers includes "Content-Type", "Content-Encoding", and "Accept";
 custom values configured here are appended to the default list and used as the value for the `Access-Control-Allow-Headers` header.
+
+Default: `[]`
 
 [float]
 [[rum-library-pattern]]
@@ -89,19 +107,22 @@ If the RegExp matches, the stacktrace frame is considered to be a library frame.
 When source mapping is applied, the `error.culprit` is set to reflect the _function_ and the _filename_
 of the first non library frame.
 This aims to provide an entry point for identifying issues.
-Default value is `"node_modules|bower_components|~"`.
+
+Default: `"node_modules|bower_components|~"`
 
 [float]
 ==== `exclude_from_grouping`
 RegExp to be matched against a stacktrace frame's `file_name`.
 If the RegExp matches, the stacktrace frame is excluded from being used for calculating error groups.
-The default pattern excludes stacktrace frames that have a filename starting with `/webpack`.
+
+Default: `"^/webpack"` (excludes stacktrace frames that have a filename starting with `/webpack`)
 
 [[config-sourcemapping-enabled]]
 [float]
 ==== `source_mapping.enabled`
 Used to enable/disable <<sourcemaps,sourcemapping>> for RUM events.
-Defaults to `true`.
+
+Default: `true`
 
 [[config-sourcemapping-elasticsearch]]
 [float]
@@ -117,12 +138,15 @@ If a source map has been uploaded to the APM Server,
 <<sourcemaps,source mapping>> is automatically applied to documents sent to the RUM endpoint.
 Source maps are fetched from Elasticsearch and then kept in an in-memory cache for the configured time.
 Values configured without a time unit are treated as seconds.
-Default value is 5 minutes.
+
+Default: `5m` (5 minutes)
 
 [float]
 ==== `source_mapping.index_pattern`
 Source maps are stored in a separate index `apm-%{[observer.version]}-sourcemap` by default.
 If changed, a matching index pattern needs to be specified here.
+
+Default: `"apm-*-sourcemap*"`
 
 [float]
 === Ingest pipelines

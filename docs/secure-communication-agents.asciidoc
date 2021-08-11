@@ -21,6 +21,13 @@ In addition, there is a less straightforward and more restrictive way to authent
 <<ssl-client-authentication,SSL/TLS client authentication>>, which is currently a mainstream option only
 for the RUM agent (through the browser) and the Jaeger agent.
 
+[[secure-communication-unauthenticated]]
+=== Unauthenticated communication
+
+In certain use cases, like when the RUM agent runs in end users' browsers,
+authentication isn't possible. See <<configuration-anonymous>> to configure unauthenticated,
+but rate-limited communication between APM agents and Server.
+
 [[ssl-setup]]
 === SSL/TLS communication
 

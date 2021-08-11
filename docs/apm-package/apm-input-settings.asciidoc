@@ -38,7 +38,8 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 | (string) Authorization token for sending APM data.
 The same token must also be set in each APM agent.
 This token is not used for RUM endpoints.
-By default, no authorization token is set.
+
+*Default:* No secret token set
 // end::secret_token-setting[]
 
 // =============================================================================
@@ -133,29 +134,68 @@ Configured values are appended to the default list and used as the value for the
 
 // =============================================================================
 
-// tag::rum_event_rate_limit-setting[]
+// tag::anonymous_enabled-setting[]
 |
-[id="input-{input-type}-rum_event_rate_limit-setting"]
-`rum_event_rate_limit`
+[id="input-{input-type}-anonymous_enabled-setting"]
+`anonymous_enabled`
 
-| (int) Defines the maximum amount of events allowed to be sent to the APM Server RUM endpoint per ip per second.
+| (bool) Enable or disable anonymous authentication.
 
-*Default:* `300`
-// end::rum_event_rate_limit-setting[]
+*Default:* `true` (enabled)
+// end::anonymous_enabled-setting[]
 
 // =============================================================================
 
-// tag::rum_event_rate_lru_size-setting[]
+// tag::anonymous_allow_agent-setting[]
 |
-[id="input-{input-type}-rum_event_rate_lru_size-setting"]
-`rum_event_rate_lru_size`
+[id="input-{input-type}-anonymous_allow_agent-setting"]
+`anonymous_allow_agent`
 
-| (int) An LRU cache is used to keep a rate limit per IP for the most recently seen IPs.
-This setting defines the number of unique IPs that can be tracked in the cache.
-Sites with many concurrent clients should consider increasing this limit.
+| (array) A list of permitted APM agent names for anonymous authentication.
+Names in this list must match the agent's `agent.name`.
 
-*Default:* `1000`
-// end::rum_event_rate_lru_size-setting[]
+*Default:* `[rum-js, js-base, iOS/swift]` (only RUM and iOS/Swift agent events are accepted)
+// end::anonymous_allow_agent-setting[]
+
+// =============================================================================
+
+// tag::anonymous_allow_service-setting[]
+|
+[id="input-{input-type}-anonymous_allow_service-setting"]
+`anonymous_allow_service`
+
+| (array) A list of permitted service names for anonymous authentication.
+Names in this list must match the agent's `service.name`.
+This can be used to limit the number of service-specific indices or data streams created.
+
+*Default:* Not set (any service name is accepted)
+// end::anonymous_allow_service-setting[]
+
+// =============================================================================
+
+// tag::anonymous_rate_limit_event_limit-setting[]
+|
+[id="input-{input-type}-anonymous_rate_limit_event_limit-setting"]
+`anonymous_rate_limit_event_limit`
+
+| (int) The maximum amount of events allowed to be sent to the APM Server anonymous auth endpoint per IP per second.
+
+*Default:* `10`
+// end::anonymous_rate_limit_event_limit-setting[]
+
+// =============================================================================
+
+// tag::anonymous_rate_limit_ip_limit-setting[]
+|
+[id="input-{input-type}-anonymous_rate_limit_ip_limit-setting"]
+`anonymous_rate_limit_ip_limit`
+
+| (int) The number of unique IP addresses to track in an LRU cache.
+IP addresses in the cache will be rate limited according to the `anonymous_rate_limit_event_limit` setting.
+Consider increasing this default if your application has many concurrent clients.
+
+*Default:* `10000`
+// end::anonymous_rate_limit_ip_limit-setting[]
 
 // =============================================================================
 
