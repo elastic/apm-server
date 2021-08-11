@@ -78,14 +78,6 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 
 	var received []string
 	deadlineTimer := time.NewTimer(10 * time.Second)
-	select {
-	case <-deadlineTimer.C:
-		t.Fatal("timed out waiting for events to be received by server")
-	case rw := <-requests:
-		// burn initial request to index
-		require.Equal(t, "/", rw.URL.Path)
-		rw.Write("") // unblock client
-	}
 	for len(received) < len(input) {
 		select {
 		case <-deadlineTimer.C:
@@ -144,46 +136,6 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 		assert.Equal(t, expect, body)
 	}
 
-<<<<<<< HEAD
-	expectRequest(t, requests, "/", "").Write("")
-	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
-          "indices": {
-	    "index_name": {
-              "shards": {
-	        "0": [{
-		  "routing": {
-		    "primary": true
-		  },
-		  "seq_no": {
-		    "global_checkpoint": 99
-		  }
-		}]
-	      }
-	    }
-	  }
-	}`)
-
-	// _refresh
-	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
-
-	// _search: we respond with some results.
-	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
-          "hits": {
-	    "hits": [
-	      {
-	        "_seq_no": 1,
-		"_source": {"trace": {"id": "trace_1"}, "observer": {"id": "another_beat_id"}},
-		"sort": [1]
-	      },
-	      {
-	        "_seq_no": 2,
-		"_source": {"trace": {"id": "trace_2"}, "observer": {"id": "another_beat_id"}},
-		"sort": [2]
-	      }
-	    ]
-	  }
-	}`)
-=======
 	var searchRequests int
 	ms.onSearch = func(r *http.Request) {
 		body := readBody(r)
@@ -228,7 +180,6 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 			}
 		}
 	}
->>>>>>> c4189411 (sampling/pubsub: fix flaky test (#5915))
 
 	ids, positions, closeSubscriber := newSubscriber(t, ms.srv)
 	assert.Equal(t, "trace_1", expectValue(t, ids))
@@ -249,31 +200,9 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 		t.Fatal("timed out waiting for position to be reported")
 	}
 
-<<<<<<< HEAD
-	// Respond initially with the same _seq_no as before, indicating there
-	// have been no new docs since the position was recorded.
-	expectRequest(t, requests, "/", "").Write("")
-	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
-          "indices": {
-	    "index_name": {
-              "shards": {
-	        "0": [{
-		  "routing": {
-		    "primary": true
-		  },
-		  "seq_no": {
-		    "global_checkpoint": 99
-		  }
-		}]
-	      }
-	    }
-	  }
-	}`)
-=======
 	// close first subscriber, create a new one initialised with position
 	closeSubscriber()
 	ids, positions, _ = newSubscriberPosition(t, ms.srv, pos)
->>>>>>> c4189411 (sampling/pubsub: fix flaky test (#5915))
 
 	// Global checkpoint hasn't changed.
 	expectNone(t, ids)
@@ -310,29 +239,6 @@ func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
 	}
 	newSubscriber(t, m.srv)
 
-<<<<<<< HEAD
-	expectRequest(t, requests, "/", "").Write("")
-	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
-	"indices": {
-	    "index_name": {
-	"shards": {
-	        "0": [{
-		  "routing": {
-		    "primary": true
-		  },
-		  "seq_no": {
-		    "global_checkpoint": 99
-		  }
-		}]
-	      }
-	    }
-	  }
-	}`)
-	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
-	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).WriteStatus(404, "")
-	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "")
-	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "") // errors are not fatal
-=======
 	// Show that failed requests to Elasticsearch are not fatal, and
 	// that the subscriber will retry.
 	timeout := time.After(10 * time.Second)
@@ -343,7 +249,6 @@ func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
 			t.Fatal("timed out waiting for _stats request")
 		}
 	}
->>>>>>> c4189411 (sampling/pubsub: fix flaky test (#5915))
 }
 
 func newSubscriber(t testing.TB, srv *httptest.Server) (<-chan string, <-chan pubsub.SubscriberPosition, context.CancelFunc) {
@@ -384,33 +289,6 @@ func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval
 	return sub
 }
 
-<<<<<<< HEAD
-func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *requestResponseWriter) {
-	requests := make(chan *requestResponseWriter)
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rrw := &requestResponseWriter{
-			Request: r,
-			done:    make(chan response),
-		}
-		select {
-		case <-r.Context().Done():
-			w.WriteHeader(http.StatusRequestTimeout)
-			return
-		case requests <- rrw:
-		}
-		select {
-		case <-r.Context().Done():
-			w.WriteHeader(http.StatusRequestTimeout)
-		case response := <-rrw.done:
-			w.Header().Set("X-Elastic-Product", "Elasticsearch")
-			w.WriteHeader(response.statusCode)
-			w.Write([]byte(response.body))
-		}
-	}))
-	t.Cleanup(srv.Close)
-	return srv, requests
-}
-=======
 type mockElasticsearchServer struct {
 	srv *httptest.Server
 
@@ -418,7 +296,6 @@ type mockElasticsearchServer struct {
 	// the _stats/get handler. If this is negative, the handler responds with status
 	statsGlobalCheckpointMu sync.RWMutex
 	statsGlobalCheckpoint   int
->>>>>>> c4189411 (sampling/pubsub: fix flaky test (#5915))
 
 	// statsStatusCode is the status code that the _stats/get handler responds with.
 	statsStatusCode int
@@ -455,6 +332,10 @@ func newMockElasticsearchServer(t testing.TB) *mockElasticsearchServer {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			w.Header().Set("X-Elastic-Product", "Elasticsearch")
+			return
+		}
 		panic(fmt.Errorf("unexpected URL path: %s", r.URL.Path))
 	})
 	mux.HandleFunc("/"+dataStream.String()+"/_bulk", m.handleBulk)
