@@ -358,8 +358,6 @@ func (s *serverRunner) run() error {
 		Namespace: s.namespace,
 	}
 
-<<<<<<< HEAD
-=======
 	var kibanaClient kibana_client.Client
 	if s.config.Kibana.Enabled {
 		kibanaClient = kibana_client.NewConnectingClient(&s.config.Kibana)
@@ -367,18 +365,11 @@ func (s *serverRunner) run() error {
 
 	cfg := ucfg.Config(*s.rawConfig)
 	parentCfg := cfg.Parent()
->>>>>>> 114d7d62 (Add `data_streams.wait_for_integration` (#5928))
 	// Check for an environment variable set when running in a cloud environment
 	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
 		// Don't block server startup sending the config.
 		go func() {
-<<<<<<< HEAD
-			c := kibana_client.NewConnectingClient(&s.config.Kibana)
-			cfg := ucfg.Config(*s.rawConfig)
-			if err := kibana_client.SendConfig(s.runServerContext, c, cfg.Parent()); err != nil {
-=======
 			if err := kibana_client.SendConfig(s.runServerContext, kibanaClient, parentCfg); err != nil {
->>>>>>> 114d7d62 (Add `data_streams.wait_for_integration` (#5928))
 				s.logger.Infof("failed to upload config to kibana: %v", err)
 			}
 		}()
