@@ -18,11 +18,8 @@
 package beater
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -377,15 +374,25 @@ func (s *serverRunner) run() error {
 
 	fleetManaged := s.beat.Manager != nil && s.beat.Manager.Enabled()
 	if !fleetManaged && s.config.DataStreams.Enabled && s.config.DataStreams.WaitForIntegration {
-		// TODO(axw) we should also try querying Elasticsearch in parallel
-		// (e.g. check for an index template created), for the case where
-		// there is no Kibana configuration.
-		if !s.config.Kibana.Enabled {
-			return errors.New("cannot wait for integration without Kibana config")
+		var esClient elasticsearch.Client
+		if cfg := elasticsearchOutputConfig(s.beat); cfg != nil {
+			esConfig := elasticsearch.DefaultConfig()
+			err := cfg.Unpack(&esConfig)
+			if err != nil {
+				return err
+			}
+			esClient, err = elasticsearch.NewClient(esConfig)
+			if err != nil {
+				return err
+			}
+		}
+		if kibanaClient == nil && esClient == nil {
+			return errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
 		}
 		if err := waitForIntegration(
 			s.runServerContext,
 			kibanaClient,
+			esClient,
 			s.config.DataStreams.WaitForIntegrationInterval,
 			s.tracer,
 			s.logger,
@@ -699,60 +706,4 @@ type reporterBatchProcessor struct {
 func (p *reporterBatchProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
 	disableTracing, _ := ctx.Value(disablePublisherTracingKey{}).(bool)
 	return p.reporter(ctx, publish.PendingReq{Transformable: batch, Trace: !disableTracing})
-}
-
-// waitForIntegration waits for the APM integration to be installed by querying Kibana,
-// or for the context to be cancelled.
-func waitForIntegration(
-	ctx context.Context,
-	kibanaClient kibana_client.Client,
-	interval time.Duration,
-	tracer *apm.Tracer,
-	logger *logp.Logger,
-) error {
-	logger.Info("waiting for integration package to be installed")
-	tx := tracer.StartTransaction("wait_for_integration", "init")
-	ctx = apm.ContextWithTransaction(ctx, tx)
-	var ticker *time.Ticker
-	for {
-		if ticker == nil {
-			ticker = time.NewTicker(interval)
-			defer ticker.Stop()
-		} else {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-ticker.C:
-			}
-		}
-		if checkIntegrationInstalled(ctx, kibanaClient, logger) {
-			return nil
-		}
-	}
-}
-
-func checkIntegrationInstalled(ctx context.Context, kibanaClient kibana_client.Client, logger *logp.Logger) bool {
-	resp, err := kibanaClient.Send(ctx, "GET", "/api/fleet/epm/packages/apm", nil, nil, nil)
-	if err != nil {
-		logger.Errorf("error querying integration package status: %s", err)
-		return false
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		logger.Errorf("unexpected status querying integration package status: %s (%s)", resp.Status, bytes.TrimSpace(body))
-		return false
-	}
-	var result struct {
-		Response struct {
-			Status string `json:"status"`
-		} `json:"response"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		logger.Errorf("error decoding integration package response: %s", err)
-		return false
-	}
-	logger.Infof("integration package status: %s", result.Response.Status)
-	return result.Response.Status == "installed"
 }
