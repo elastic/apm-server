@@ -409,7 +409,6 @@ func (s *serverRunner) run() error {
 	// be closed at shutdown time.
 	s.acker.Open()
 	pipeline := pipetool.WithACKer(s.pipeline, s.acker)
-
 	publisher, err := publish.NewPublisher(pipeline, s.tracer, publisherConfig)
 	if err != nil {
 		return err
