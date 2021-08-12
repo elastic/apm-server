@@ -18,8 +18,11 @@
 package beater
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -28,7 +31,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
 	"github.com/elastic/beats/v7/libbeat/common/transport"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/go-ucfg"
@@ -121,9 +123,6 @@ func NewCreator(args CreatorParams) beat.Creator {
 			if b.Manager != nil && b.Manager.Enabled() {
 				return nil, errors.New("data streams must be enabled when the server is managed")
 			}
-		} else if bt.config.DataStreams.Enabled && !fleetmode.Enabled() {
-			// not supported only available for development purposes
-			bt.logger.Errorf("Started apm-server with data streams enabled but no active fleet management mode was specified")
 		}
 
 		if err := bt.registerPipelineCallback(b); err != nil {
@@ -265,7 +264,11 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 	if err != nil {
 		return err
 	}
-	go runner.run()
+	go func() {
+		if err := runner.run(); err != nil {
+			r.args.Logger.Error(err)
+		}
+	}()
 	// If the old runner exists, cancel it
 	if r.runner != nil {
 		r.runner.cancelRunServerContext()
@@ -355,17 +358,40 @@ func (s *serverRunner) run() error {
 		Namespace: s.namespace,
 	}
 
+	var kibanaClient kibana_client.Client
+	if s.config.Kibana.Enabled {
+		kibanaClient = kibana_client.NewConnectingClient(&s.config.Kibana)
+	}
+
 	cfg := ucfg.Config(*s.rawConfig)
 	parentCfg := cfg.Parent()
 	// Check for an environment variable set when running in a cloud environment
 	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
 		// Don't block server startup sending the config.
 		go func() {
-			c := kibana_client.NewConnectingClient(&s.config.Kibana)
-			if err := kibana_client.SendConfig(s.runServerContext, c, parentCfg); err != nil {
+			if err := kibana_client.SendConfig(s.runServerContext, kibanaClient, parentCfg); err != nil {
 				s.logger.Infof("failed to upload config to kibana: %v", err)
 			}
 		}()
+	}
+
+	fleetManaged := s.beat.Manager != nil && s.beat.Manager.Enabled()
+	if !fleetManaged && s.config.DataStreams.Enabled && s.config.DataStreams.WaitForIntegration {
+		// TODO(axw) we should also try querying Elasticsearch in parallel
+		// (e.g. check for an index template created), for the case where
+		// there is no Kibana configuration.
+		if !s.config.Kibana.Enabled {
+			return errors.New("cannot wait for integration without Kibana config")
+		}
+		if err := waitForIntegration(
+			s.runServerContext,
+			kibanaClient,
+			s.config.DataStreams.WaitForIntegrationInterval,
+			s.tracer,
+			s.logger,
+		); err != nil {
+			return errors.Wrap(err, "error waiting for integration")
+		}
 	}
 
 	var sourcemapStore *sourcemap.Store
@@ -672,4 +698,60 @@ type reporterBatchProcessor struct {
 func (p *reporterBatchProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
 	disableTracing, _ := ctx.Value(disablePublisherTracingKey{}).(bool)
 	return p.reporter(ctx, publish.PendingReq{Transformable: batch, Trace: !disableTracing})
+}
+
+// waitForIntegration waits for the APM integration to be installed by querying Kibana,
+// or for the context to be cancelled.
+func waitForIntegration(
+	ctx context.Context,
+	kibanaClient kibana_client.Client,
+	interval time.Duration,
+	tracer *apm.Tracer,
+	logger *logp.Logger,
+) error {
+	logger.Info("waiting for integration package to be installed")
+	tx := tracer.StartTransaction("wait_for_integration", "init")
+	ctx = apm.ContextWithTransaction(ctx, tx)
+	var ticker *time.Ticker
+	for {
+		if ticker == nil {
+			ticker = time.NewTicker(interval)
+			defer ticker.Stop()
+		} else {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-ticker.C:
+			}
+		}
+		if checkIntegrationInstalled(ctx, kibanaClient, logger) {
+			return nil
+		}
+	}
+}
+
+func checkIntegrationInstalled(ctx context.Context, kibanaClient kibana_client.Client, logger *logp.Logger) bool {
+	resp, err := kibanaClient.Send(ctx, "GET", "/api/fleet/epm/packages/apm", nil, nil, nil)
+	if err != nil {
+		logger.Errorf("error querying integration package status: %s", err)
+		return false
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		logger.Errorf("unexpected status querying integration package status: %s (%s)", resp.Status, bytes.TrimSpace(body))
+		return false
+	}
+	var result struct {
+		Response struct {
+			Status string `json:"status"`
+		} `json:"response"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		logger.Errorf("error decoding integration package response: %s", err)
+		return false
+	}
+	logger.Infof("integration package status: %s", result.Response.Status)
+	return result.Response.Status == "installed"
 }

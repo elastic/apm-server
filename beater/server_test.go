@@ -24,6 +24,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"reflect"
@@ -520,6 +521,47 @@ func TestServerConfigReload(t *testing.T) {
 	// First HTTP server should have been stopped.
 	_, err = http.Get("http://" + addr1)
 	assert.Error(t, err)
+}
+
+func TestServerWaitForIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping slow test")
+	}
+
+	var requests int
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"version":{"number":"1.2.3"}}`))
+	})
+	mux.HandleFunc("/api/fleet/epm/packages/apm", func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		switch requests {
+		case 1:
+			w.WriteHeader(500)
+		case 2:
+			fmt.Fprintln(w, `{"response":{"status":"not_installed"}}`)
+		case 3:
+			fmt.Fprintln(w, `{"response":{"status":"installed"}}`)
+		}
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	cfg := common.MustNewConfigFrom(map[string]interface{}{
+		"data_streams.enabled":                       true,
+		"data_streams.wait_for_integration_interval": "100ms",
+		"kibana.enabled":                             true,
+		"kibana.host":                                srv.URL,
+	})
+
+	beat, cfg := newBeat(t, cfg, nil, nil)
+	tb, err := newTestBeater(t, beat, cfg, nil)
+	require.NoError(t, err)
+	tb.start()
+
+	_, err = tb.waitListenAddr(30 * time.Second)
+	require.NoError(t, err)
+	assert.Equal(t, 3, requests)
 }
 
 type chanClient struct {

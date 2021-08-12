@@ -17,11 +17,30 @@
 
 package config
 
+import "time"
+
 // DataStreamsConfig holds data streams configuration.
 type DataStreamsConfig struct {
 	Enabled bool `config:"enabled"`
+
+	// WaitForIntegration controls whether APM Server waits for the Fleet
+	// integration package to be installed before indexing events.
+	//
+	// This requires a connection to Kibana, and is ignored when running
+	// under Elastic Agent; it is intended for running APM Server standalone,
+	// relying on Fleet to install the integration for creating Elasticsearch
+	// index templates, ILM policies, and ingest pipelines.
+	WaitForIntegration bool `config:"wait_for_integration"`
+
+	// WaitForIntegrationInterval holds the interval for checks when waiting
+	// for the integration package to be installed.
+	WaitForIntegrationInterval time.Duration `config:"wait_for_integration_interval"`
 }
 
 func defaultDataStreamsConfig() DataStreamsConfig {
-	return DataStreamsConfig{Enabled: false}
+	return DataStreamsConfig{
+		Enabled:                    false,
+		WaitForIntegration:         true,
+		WaitForIntegrationInterval: 5 * time.Second,
+	}
 }
