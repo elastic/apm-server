@@ -6,9 +6,10 @@
 ++++
 
 The {apm-rum-ref-v}/index.html[Real User Monitoring (RUM) agent] captures user interactions with clients such as web browsers.
-
-By default, RUM is disabled. To enable it,
-set `apm-server.rum.enabled` to `true` in your APM Server configuration file.
+These interactions are sent as events to the APM Server.
+Because the RUM agent runs on the client side, the connection between agent and server is unauthenticated.
+As a security precaution, RUM is therefore disabled by default.
+To enable it, set `apm-server.rum.enabled` to `true` in your APM Server configuration file.
 
 In addition, if APM Server is deployed in an origin different than the page’s origin,
 you will need to configure {apm-rum-ref-v}/configuring-cors.html[Cross-Origin Resource Sharing (CORS)] in the Agent.
