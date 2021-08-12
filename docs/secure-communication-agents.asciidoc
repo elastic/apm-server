@@ -15,19 +15,12 @@ In addition, since both mechanisms involve sending a secret as plain text,
 they should be used in combination with SSL/TLS encryption.
 
 As soon as an authenticated communication is enabled, requests without a valid token or API key will be denied by APM Server.
-As RUM endpoints cannot be secured through these mechanisms, they are exempt from this rule.
+An exception to this rule can be configured with <<secure-communication-unauthenticated,anonymous authentication>>,
+which is useful for APM agents running on the client side, like the Real User Monitoring (RUM) agent.
 
-In addition, there is a less straightforward and more restrictive way to authenticate clients through
+There is a less straightforward and more restrictive way to authenticate clients through
 <<ssl-client-authentication,SSL/TLS client authentication>>, which is currently a mainstream option only
 for the RUM agent (through the browser) and the Jaeger agent.
-
-[float]
-[[secure-communication-unauthenticated]]
-=== Unauthenticated communication
-
-In certain use cases, like when the RUM agent runs in end users' browsers,
-authentication isn't possible. See <<configuration-anonymous>> to configure unauthenticated,
-but rate-limited communication between APM agents and Server.
 
 [[ssl-setup]]
 === SSL/TLS communication
@@ -535,3 +528,22 @@ This ensures encryption, but does not verify that you are sending data to the co
 * *Python agent*: {apm-py-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
 * *Ruby agent*: {apm-ruby-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
 * *NodeJS agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]
+
+[[secure-communication-unauthenticated]]
+=== Anonymous authentication
+
+Elastic APM agents can send unauthenticated (anonymous) events to the APM Server.
+This is useful for agents that run on clients, like the Real User Monitoring (RUM) agent running in a browser,
+or the iOS/Swift agent running in a user application.
+Incoming requests are considered to be anonymous if no authentication token can be extracted from the incoming request.
+By default, these anonymous requests are rejected and an authentication error is returned.
+
+Anonymous authentication must be enabled to collect RUM data.
+To enable anonymous access, set either <<rum-enable,`apm-server.rum.enabled`>> or
+<<config-auth-anon-enabled,`apm-server.auth.anonymous.enabled`>> to `true`.
+
+Because anyone can send anonymous events to the APM Server,
+additional configuration variables are available to rate limit the number anonymous events the APM Server processes;
+throughput is equal to the `rate_limit.ip_limit` times the `rate_limit.event_limit`.
+
+See <<configuration-anonymous>> for a complete list of options and a sample configuration file.
