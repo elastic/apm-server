@@ -21,6 +21,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/ecs/code/go/ecs"
+
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
@@ -56,4 +60,38 @@ func rateLimitBatchProcessor(ctx context.Context, batch *model.Batch) error {
 		}
 	}
 	return nil
+}
+
+// ecsVersionBatchProcessor is a model.BatchProcessor that sets the ECSVersion
+// field of each event to the ECS library version.
+func ecsVersionBatchProcessor(ctx context.Context, b *model.Batch) error {
+	for i := range *b {
+		event := &(*b)[i]
+		event.ECSVersion = ecs.Version
+	}
+	return nil
+}
+
+// newBeatInfoBatchProcessor returns a model.BatchProcessor that sets observer
+// fields from info.
+func newBeatInfoBatchProcessor(info beat.Info) model.ProcessBatchFunc {
+	var versionMajor int
+	if version, err := common.NewVersion(info.Version); err == nil {
+		versionMajor = version.Major
+	}
+	return func(ctx context.Context, b *model.Batch) error {
+		for i := range *b {
+			observer := &(*b)[i].Observer
+			observer.EphemeralID = info.EphemeralID.String()
+			observer.Hostname = info.Hostname
+			observer.ID = info.ID.String()
+			if info.Name != info.Hostname {
+				observer.Name = info.Name
+			}
+			observer.Type = info.Beat
+			observer.Version = info.Version
+			observer.VersionMajor = versionMajor
+		}
+		return nil
+	}
 }

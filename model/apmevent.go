@@ -36,8 +36,10 @@ type APMEvent struct {
 	// in standalone mode.
 	DataStream DataStream
 
+	ECSVersion  string
 	Event       Event
 	Agent       Agent
+	Observer    Observer
 	Container   Container
 	Kubernetes  Kubernetes
 	Service     Service
@@ -65,7 +67,8 @@ type APMEvent struct {
 	ProfileSample *ProfileSample
 }
 
-func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat.Event {
+// BeatEvent converts e to a beat.Event.
+func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	event := beat.Event{Timestamp: e.Timestamp}
 	switch {
 	case e.Transaction != nil:
@@ -79,7 +82,7 @@ func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat
 	case e.ProfileSample != nil:
 		event.Fields = e.ProfileSample.fields()
 	default:
-		return out
+		event.Fields = make(common.MapStr)
 	}
 
 	// Set high resolution timestamp.
@@ -93,8 +96,12 @@ func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat
 	fields := (*mapStr)(&event.Fields)
 	event.Timestamp = e.Timestamp
 	e.DataStream.setFields(fields)
+	if e.ECSVersion != "" {
+		fields.set("ecs", common.MapStr{"version": e.ECSVersion})
+	}
 	fields.maybeSetMapStr("service", e.Service.Fields())
 	fields.maybeSetMapStr("agent", e.Agent.fields())
+	fields.maybeSetMapStr("observer", e.Observer.Fields())
 	fields.maybeSetMapStr("host", e.Host.fields())
 	fields.maybeSetMapStr("process", e.Process.fields())
 	fields.maybeSetMapStr("user", e.User.fields())
@@ -116,5 +123,5 @@ func (e *APMEvent) appendBeatEvent(ctx context.Context, out []beat.Event) []beat
 	fields.maybeSetMapStr("event", e.Event.fields())
 	fields.maybeSetMapStr("url", e.URL.fields())
 	fields.maybeSetMapStr("session", e.Session.fields())
-	return append(out, event)
+	return event
 }
