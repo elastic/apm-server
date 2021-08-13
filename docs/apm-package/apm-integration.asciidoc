@@ -103,7 +103,7 @@ Changes are automatically propagated to your APM agents, so there’s no need to
 === Package versioning
 
 The APM package is versioned separately from the Elastic Stack.
-The current version is `0.1.0`. In the future, we may align with Elastic Stack versioning.
+In the future, we may align with Elastic Stack versioning.
 
 [discrete]
 [[apm-integration-learn-more]]
