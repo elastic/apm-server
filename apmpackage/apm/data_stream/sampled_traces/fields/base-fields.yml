@@ -10,3 +10,6 @@
 - name: data_stream.namespace
   type: constant_keyword
   description: Data stream namespace.
+- name: ecs.version
+  type: keyword
+  description: ECS version the event conforms to.

@@ -2,3 +2,9 @@ title: APM internal metrics
 type: metrics
 dataset: apm.internal
 ilm_policy: metrics-apm.internal_metrics-default_policy
+elasticsearch:
+  index_template:
+    mappings:
+      # Internal metrics should have all fields strictly mapped;
+      # we are in full control of the field names.
+      dynamic: strict
