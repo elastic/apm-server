@@ -201,5 +201,6 @@ Defaults to false.
 [[data_streams.wait_for_integration]]
 [float]
 ==== `wait_for_integration`
-Wait for the `apm` Fleet integration to be installed by Kibana. Requires <<kibana-enabled>>.
+Wait for the `apm` Fleet integration to be installed by Kibana. Requires either <<kibana-enabled>>
+or for the <<elasticsearch-output, Elasticsearch output>> to be configured.
 Defaults to true.
