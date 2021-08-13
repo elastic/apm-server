@@ -10,7 +10,7 @@
 beta::[]
 
 To edit the APM integration input settings, open {kib} and select:
-**Fleet** / **Integrations** / **Elastic APM** / **Add Elastic APM**.
+**Integrations** > **Elastic APM** > **Add Elastic APM**.
 Expand the carrot to view all settings.
 
 A limited number of settings are currently supported.
@@ -39,6 +39,21 @@ include::./apm-input-settings.asciidoc[tag=capture_personal_data-setting]
 |===
 
 [float]
+[[apm-input-anon-auth-settings]]
+=== Anonymous authentication settings
+
+[cols="2*<a"]
+|===
+
+include::./apm-input-settings.asciidoc[tag=anonymous_enabled-setting]
+include::./apm-input-settings.asciidoc[tag=anonymous_allow_agent-setting]
+include::./apm-input-settings.asciidoc[tag=anonymous_allow_service-setting]
+include::./apm-input-settings.asciidoc[tag=anonymous_rate_limit_event_limit-setting]
+include::./apm-input-settings.asciidoc[tag=anonymous_rate_limit_ip_limit-setting]
+
+|===
+
+[float]
 [[apm-input-rum-settings]]
 === Real User Monitoring (RUM) settings
 
@@ -49,8 +64,6 @@ include::./apm-input-settings.asciidoc[tag=enable_rum-setting]
 include::./apm-input-settings.asciidoc[tag=rum_allow_origins-setting]
 include::./apm-input-settings.asciidoc[tag=rum_allow_headers-setting]
 include::./apm-input-settings.asciidoc[tag=rum_response_headers-setting]
-include::./apm-input-settings.asciidoc[tag=rum_event_rate_limit-setting]
-include::./apm-input-settings.asciidoc[tag=rum_event_rate_lru_size-setting]
 
 |===
 

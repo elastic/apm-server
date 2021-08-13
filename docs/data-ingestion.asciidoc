@@ -72,13 +72,14 @@ Read more in the {apm-agents-ref}/index.html[agents documentation].
 
 [[adjust-event-rate]]
 [float]
-==== Adjust RUM event rate limit
+==== Adjust anonymous auth rate limit
 
-Agents make use of long running requests and flush as many events over a single request as possible. Thus, the rate limiter for RUM is bound to the number of _events_ sent per second, per IP.
+Agents make use of long running requests and flush as many events over a single request as possible.
+Thus, the rate limiter for anonymous authentication is bound to the number of _events_ sent per second, per IP.
 
-If the rate limit is hit while events on an established request are sent, the request is not immediately terminated. The intake of events is only throttled to <<event_rate.limit,`event_rate.limit`>>, which means that events are queued and processed slower. Only when the allowed buffer queue is also full, does the request get terminated with a `429 - rate limit exceeded` HTTP response. If an agent tries to establish a new request, but the rate limit is already hit, a `429` will be sent immediately.
+If the event rate limit is hit while events on an established request are sent, the request is not immediately terminated. The intake of events is only throttled to <<config-auth-anon-event-limit,`rate_limit.event_limit`>>, which means that events are queued and processed slower. Only when the allowed buffer queue is also full, does the request get terminated with a `429 - rate limit exceeded` HTTP response. If an agent tries to establish a new request, but the rate limit is already hit, a `429` will be sent immediately.
 
-Increasing the <<event_rate.limit,`event_rate.limit`>> default value will help avoid `rate limit exceeded` errors.
+Increasing the <<config-auth-anon-event-limit,`rate_limit.event_limit`>> default value will help avoid `rate limit exceeded` errors.
 
 [[tune-es]]
 === Tune Elasticsearch
