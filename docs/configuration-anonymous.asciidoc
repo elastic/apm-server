@@ -1,0 +1,78 @@
+[[configuration-anonymous]]
+== Anonymous auth configuration options
+
+++++
+<titleabbrev>Anonymous authentication</titleabbrev>
+++++
+
+Elastic APM agents can send unauthenticated (anonymous) events to the APM Server.
+This is useful for agents that run on clients, like the Real User Monitoring (RUM) agent running in a browser,
+or the iOS/Swift agent running in a user application.
+
+Example configuration:
+
+["source","yaml"]
+----
+apm-server.auth.anonymous.enabled: true
+apm-server.auth.anonymous.allow_agent: [rum-js]
+apm-server.auth.anonymous.allow_service: [my_service_name]
+apm-server.auth.anonymous.rate_limit.event_limit: 300
+apm-server.auth.anonymous.rate_limit.ip_limit: 1000
+----
+
+[float]
+[[config-auth-anon-rum]]
+=== Real User Monitoring (RUM)
+
+Anonymous authentication must be enabled to collect RUM data.
+For this reason, anonymous auth will be enabled automatically if <<rum-enable,`apm-server.rum.enabled`>>
+is set to `true`, and <<config-auth-anon-enabled,`apm-server.auth.anonymous.enabled`>> is not explicitly defined.
+
+See <<configuration-rum>> for additional RUM configuration options.
+
+[float]
+[[config-auth-anon]]
+=== Configuration reference
+
+Specify the following options in the `apm-server.auth.anonymous` section of the `apm-server.yml` config file:
+
+[float]
+[[config-auth-anon-enabled]]
+==== `enabled`
+
+Enable or disable anonymous authentication.
+
+Default: `false` (disabled)
+
+[float]
+[[config-auth-anon-allow-agent]]
+==== `allow_agent`
+A list of permitted APM agent names for anonymous authentication.
+Names in this list must match the agent's `agent.name`.
+
+Default: `[rum-js, js-base]` (only RUM agent events are accepted)
+
+[float]
+[[config-auth-anon-allow-service]]
+==== `allow_service`
+A list of permitted service names for anonymous authentication.
+Names in this list must match the agent's `service.name`.
+This can be used to limit the number of service-specific indices or data streams created.
+
+Default: Not set (any service name is accepted)
+
+[float]
+[[config-auth-anon-ip-limit]]
+==== `rate_limit.ip_limit`
+The number of unique IP addresses to track in an LRU cache.
+IP addresses in the cache will be rate limited according to the <<config-auth-anon-event-limit>> setting.
+Consider increasing this default if your application has many concurrent clients.
+
+Default: `1000`
+
+[float]
+[[config-auth-anon-event-limit]]
+==== `rate_limit.event_limit`
+The maximum number of events allowed per second, per agent IP address.
+
+Default: `300`
