@@ -27,8 +27,10 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path"
 	"reflect"
 	"runtime"
+	"sync"
 	"testing"
 	"time"
 
@@ -523,11 +525,7 @@ func TestServerConfigReload(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestServerWaitForIntegration(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping slow test")
-	}
-
+func TestServerWaitForIntegrationKibana(t *testing.T) {
 	var requests int
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
@@ -553,15 +551,43 @@ func TestServerWaitForIntegration(t *testing.T) {
 		"kibana.enabled":                             true,
 		"kibana.host":                                srv.URL,
 	})
-
-	beat, cfg := newBeat(t, cfg, nil, nil)
-	tb, err := newTestBeater(t, beat, cfg, nil)
-	require.NoError(t, err)
-	tb.start()
-
-	_, err = tb.waitListenAddr(30 * time.Second)
+	_, err := setupServer(t, cfg, nil, nil)
 	require.NoError(t, err)
 	assert.Equal(t, 3, requests)
+}
+
+func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
+	var mu sync.Mutex
+	templateRequests := make(map[string]int)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+	})
+	mux.HandleFunc("/_index_template/", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		template := path.Base(r.URL.Path)
+		templateRequests[template]++
+		if template == "traces-apm" && templateRequests[template] == 1 {
+			w.WriteHeader(404)
+		}
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	cfg := common.MustNewConfigFrom(map[string]interface{}{
+		"data_streams.enabled":                       true,
+		"data_streams.wait_for_integration_interval": "100ms",
+	})
+	var beatConfig beat.BeatConfig
+	err := beatConfig.Output.Unpack(common.MustNewConfigFrom(map[string]interface{}{
+		"elasticsearch.hosts": []string{srv.URL},
+	}))
+	require.NoError(t, err)
+
+	_, err = setupServer(t, cfg, &beatConfig, nil)
+	require.NoError(t, err)
+	assert.Equal(t, 2, templateRequests["traces-apm"])
 }
 
 type chanClient struct {
