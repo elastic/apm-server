@@ -26,10 +26,11 @@ type DataStreamsConfig struct {
 	// WaitForIntegration controls whether APM Server waits for the Fleet
 	// integration package to be installed before indexing events.
 	//
-	// This requires a connection to Kibana, and is ignored when running
-	// under Elastic Agent; it is intended for running APM Server standalone,
-	// relying on Fleet to install the integration for creating Elasticsearch
-	// index templates, ILM policies, and ingest pipelines.
+	// This config is ignored when running under Elastic Agent; it is intended
+	// for running APM Server standalone, relying on Fleet to install the integration
+	// for creating Elasticsearch index templates, ILM policies, and ingest pipelines.
+	//
+	// This configuration requires either a connection to Kibana or Elasticsearch.
 	WaitForIntegration bool `config:"wait_for_integration"`
 
 	// WaitForIntegrationInterval holds the interval for checks when waiting
