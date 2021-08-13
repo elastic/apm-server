@@ -53,6 +53,9 @@ func waitForIntegration(
 	var ticker *time.Ticker
 	for {
 		if ticker == nil {
+			// We start the ticker on the first iteration, rather than
+			// before the loop, so we don't have to wait for a tick
+			// (5 seconds by default) before peforming the first check.
 			ticker = time.NewTicker(interval)
 			defer ticker.Stop()
 		} else {
@@ -63,7 +66,6 @@ func waitForIntegration(
 			}
 		}
 		if kibanaClient != nil {
-			//logger.Errorf("error querying integration package status: %s", err)
 			installed, err := checkIntegrationInstalledKibana(ctx, kibanaClient, logger)
 			if err != nil {
 				logger.Errorf("error querying Kibana for integration package status: %s", err)
