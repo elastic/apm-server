@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/go-ucfg"
 
+	"github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
@@ -55,6 +56,7 @@ import (
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelindexer"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sampling"
@@ -535,6 +537,10 @@ func (s *serverRunner) run(listener net.Listener) error {
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
 	batchProcessor := make(modelprocessor.Chained, 0, 3)
+	finalBatchProcessor, err := s.newFinalBatchProcessor(publisher)
+	if err != nil {
+		return err
+	}
 	if !s.config.Sampling.KeepUnsampled {
 		// The server has been configured to discard unsampled
 		// transactions. Make sure this is done just before calling
@@ -545,7 +551,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	}
 	batchProcessor = append(batchProcessor,
 		modelprocessor.DroppedSpansStatsDiscarder{},
-		s.newFinalBatchProcessor(publisher),
+		finalBatchProcessor,
 	)
 
 	g.Go(func() error {
@@ -642,8 +648,70 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 }
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events.
-func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) model.BatchProcessor {
-	return p
+func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.BatchProcessor, error) {
+	esOutputConfig := elasticsearchOutputConfig(s.beat)
+	if esOutputConfig == nil || !s.config.DataStreams.Enabled {
+		return p, nil
+	}
+
+	// Add `output.elasticsearch.experimental` config. If this is true and
+	// data streams are enabled, we'll use the model indexer processor.
+	var esConfig struct {
+		*elasticsearch.Config
+		Experimental  bool          `config:"experimental"`
+		FlushBytes    string        `config:"flush_bytes"`
+		FlushInterval time.Duration `config:"flush_interval"`
+	}
+	esConfig.FlushInterval = time.Second
+
+	if esOutputConfig != nil {
+		esConfig.Config = elasticsearch.DefaultConfig()
+		if err := esOutputConfig.Unpack(&esConfig); err != nil {
+			return nil, err
+		}
+		if err := esOutputConfig.Unpack(&esConfig.Config); err != nil {
+			return nil, err
+		}
+	}
+	if !esConfig.Experimental {
+		return p, nil
+	}
+
+	s.logger.Info("using experimental model indexer")
+	var flushBytes int
+	if esConfig.FlushBytes != "" {
+		b, err := humanize.ParseBytes(esConfig.FlushBytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse ")
+		}
+		flushBytes = int(b)
+	}
+	client, err := elasticsearch.NewClient(esConfig.Config)
+	if err != nil {
+		return nil, err
+	}
+	indexer, err := modelindexer.New(client, modelindexer.Config{
+		FlushBytes:    flushBytes,
+		FlushInterval: esConfig.FlushInterval,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Remove libbeat output counters, and install our own callback which uses the modelindexer stats.
+	monitoring.Default.Remove("libbeat.output.events")
+	monitoring.NewFunc(monitoring.Default, "libbeat.output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		stats := indexer.Stats()
+		v.OnKey("active")
+		v.OnInt(stats.Active)
+		v.OnKey("total")
+		v.OnInt(stats.Added)
+		v.OnKey("failed")
+		v.OnInt(stats.Failed)
+	})
+	return indexer, nil
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
