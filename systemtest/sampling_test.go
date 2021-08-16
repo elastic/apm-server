@@ -92,8 +92,13 @@ func TestKeepUnsampledWarning(t *testing.T) {
 
 func TestTailSampling(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
+	cleanupFleet(t, systemtest.Fleet)
+	integrationPackage := getAPMIntegrationPackage(t, systemtest.Fleet)
+	err := systemtest.Fleet.InstallPackage(integrationPackage.Name, integrationPackage.Version)
+	require.NoError(t, err)
 
 	srv1 := apmservertest.NewUnstartedServer(t)
+	srv1.Config.DataStreams = &apmservertest.DataStreamsConfig{Enabled: true}
 	srv1.Config.Sampling = &apmservertest.SamplingConfig{
 		Tail: &apmservertest.TailSamplingConfig{
 			Enabled:  true,
@@ -105,6 +110,7 @@ func TestTailSampling(t *testing.T) {
 	require.NoError(t, srv1.Start())
 
 	srv2 := apmservertest.NewUnstartedServer(t)
+	srv2.Config.DataStreams = &apmservertest.DataStreamsConfig{Enabled: true}
 	srv2.Config.Sampling = srv1.Config.Sampling
 	require.NoError(t, srv2.Start())
 
@@ -128,12 +134,12 @@ func TestTailSampling(t *testing.T) {
 
 	// Flush the data stream while the test is running, as we have no
 	// control over the settings for the sampled traces index template.
-	refreshPeriodically(t, 250*time.Millisecond, "apm-sampled-traces")
+	refreshPeriodically(t, 250*time.Millisecond, "traces-apm.sampled-*")
 
 	for _, transactionType := range []string{"parent", "child"} {
 		var result estest.SearchResult
 		t.Logf("waiting for %d %q transactions", expected, transactionType)
-		_, err := systemtest.Elasticsearch.Search("apm-*").WithQuery(estest.TermQuery{
+		_, err := systemtest.Elasticsearch.Search("traces-*").WithQuery(estest.TermQuery{
 			Field: "transaction.type",
 			Value: transactionType,
 		}).WithSize(total).Do(context.Background(), &result,
