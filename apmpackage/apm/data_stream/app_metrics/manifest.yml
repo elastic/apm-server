@@ -3,3 +3,10 @@ type: metrics
 dataset: apm.app
 dataset_is_prefix: true
 ilm_policy: metrics-apm.app_metrics-default_policy
+elasticsearch:
+  index_template:
+    mappings:
+      # Application metrics must be dynamically mapped,
+      # as their names are application-specific and not
+      # known ahead of time.
+      dynamic: true

@@ -18,16 +18,22 @@
 package main
 
 type field struct {
-	Name             string                 `yaml:"name,omitempty"`
-	Key              string                 `yaml:"key,omitempty"`
-	Title            string                 `yaml:"title,omitempty"`
-	Group            *int                   `yaml:"group,omitempty"`
-	Level            string                 `yaml:"level,omitempty"`
-	Required         *bool                  `yaml:"required,omitempty"`
-	Type             string                 `yaml:"type,omitempty"`
-	Format           string                 `yaml:"format,omitempty"`
-	Description      string                 `yaml:"description,omitempty"`
-	Dynamic          bool                   `yaml:"dynamic,omitempty"`
+	Name        string `yaml:"name,omitempty"`
+	Key         string `yaml:"key,omitempty"`
+	Title       string `yaml:"title,omitempty"`
+	Level       string `yaml:"level,omitempty"`
+	Required    *bool  `yaml:"required,omitempty"`
+	Type        string `yaml:"type,omitempty"`
+	Format      string `yaml:"format,omitempty"`
+	Description string `yaml:"description,omitempty"`
+
+	// Dynamic controls whether a field is dynamically mapped.
+	//
+	// Note: we intentionally omit "dynamic: false", as we set
+	// a default dynamic mapping value for each data stream and
+	// opt *in* to dynamically mapping where needed.
+	Dynamic bool `yaml:"dynamic,omitempty"`
+
 	ObjectTypeParams interface{}            `yaml:"object_type_params,omitempty"`
 	Release          string                 `yaml:"release,omitempty"`
 	Alias            string                 `yaml:"alias,omitempty"`
@@ -38,13 +44,8 @@ type field struct {
 	Fields           []field                `yaml:"fields,omitempty"`
 	MetricType       string                 `yaml:"metric_type,omitempty"`
 	Unit             string                 `yaml:"unit,omitempty"`
-	IsECS            bool                   `yaml:"-"`
-	HasECS           bool                   `yaml:"-"`
-	HasNonECS        bool                   `yaml:"-"`
-}
 
-func (f field) isNonECSLeaf() bool {
-	return f.Type != "group" && !f.IsECS
+	IsECS bool `yaml:"-"`
 }
 
 type multiFieldDefinition struct {
@@ -52,9 +53,4 @@ type multiFieldDefinition struct {
 	Type         string `yaml:"type,omitempty"`
 	Norms        *bool  `yaml:"norms,omitempty"`
 	DefaultField *bool  `yaml:"default_field,omitempty"`
-}
-
-func copyFieldRoot(f field) field {
-	f.Fields = nil
-	return f
 }
