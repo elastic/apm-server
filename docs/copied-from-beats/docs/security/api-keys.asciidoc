@@ -19,8 +19,101 @@ IMPORTANT: Review <<feature-roles>> before creating API keys for {beatname_uc}.
 [float]
 [[beats-api-key-publish]]
 === Create an API key for publishing
-To create an API key to use for writing data to {es}, use the
-{ref}/security-api-create-api-key.html[Create API key API], for example:
+
+In {kib}, navigate to **Stack Management** > **API keys** and click **Create API key**.
+
+[role="screenshot"]
+image::images/server-api-key-create.png[API key creation]
+
+Enter a name for your API key and select **Restrict privileges**.
+In the role descriptors box, assign the appropriate privileges to the new API key.
+For example:
+
+[source,json,subs="attributes,callouts"]
+----
+{
+    "{beat_default_index_prefix}_writer": {
+        "cluster": ["monitor", "read_ilm"], <1>
+        "index": [ <2>
+            {
+                "names": ["{beat_default_index_prefix}-*"],
+                "privileges": ["view_index_metadata", "create_doc"]
+            }
+      ]
+    }
+}
+----
+<1> Defines cluster-level privileges
+<2> Defines index-level privileges
+
+NOTE: See <<privileges-to-publish-events>> for the list of privileges required to publish events.
+
+To set an expiration date for the API key, select **Expire after time**
+and input the lifetime of the API key in days.
+
+Click **Create API key**. In the dropdown, switch to **Beats* and copy the API key.
+
+You can now use this API key in your +{beatname_lc}.yml+ configuration file:
+
+["source","yml",subs="attributes"]
+--------------------
+output.elasticsearch:
+  api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSowb0kQ0HWoA <1>
+--------------------
+<1> Format is `id:api_key` (as shown in the Beats dropdown)
+
+[float]
+[[beats-api-key-monitor]]
+=== Create an API key for monitoring
+
+In {kib}, navigate to **Stack Management** > **API keys** and click **Create API key**.
+
+[role="screenshot"]
+image::images/server-api-key-create.png[API key creation]
+
+Enter a name for your API key and select **Restrict privileges**.
+In the role descriptors box, assign the appropriate privileges to the new API key.
+For example:
+
+[source,json,subs="attributes,callouts"]
+----
+{
+    "{beat_default_index_prefix}_monitoring": {
+        "cluster": ["monitor"], <1>
+        "index": [ <2>
+            {
+                "names": [".monitoring-beats-*"],
+                "privileges": ["create_index", "create"]
+            }
+      ]
+    }
+}
+----
+<1> Defines cluster-level privileges
+<2> Defines index-level privileges
+
+NOTE: See <<privileges-to-publish-monitoring>> for the list of privileges required to send monitoring data.
+
+To set an expiration date for the API key, select **Expire after time**
+and input the lifetime of the API key in days.
+
+Click **Create API key**. In the dropdown, switch to **Beats* and copy the API key.
+
+You can now use this API key in your +{beatname_lc}.yml+ configuration file like this:
+
+["source","yml",subs="attributes"]
+--------------------
+monitoring.elasticsearch:
+  api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSowb0kQ0HWoA <1>
+--------------------
+<1> Format is `id:api_key` (as shown in the Beats dropdown)
+
+[float]
+[[beats-api-key-es]]
+=== Create an API key with {es} APIs
+
+You can also use {es}'s {ref}/security-api-create-api-key.html[Create API key API] to create a new API key.
+For example:
 
 [source,console,subs="attributes,callouts"]
 ------------------------------------------------------------
@@ -43,78 +136,7 @@ POST /_security/api_key
 <1> Name of the API key
 <2> Granted privileges, see <<feature-roles>>
 
-NOTE: See <<privileges-to-publish-events>> for the list of privileges required to publish events.
-
-The return value will look something like this:
-
-[source,console-result,subs="attributes,callouts"]
---------------------------------------------------
-{
-  "id":"TiNAGG4BaaMdaH1tRfuU", <1>
-  "name":"{beat_default_index_prefix}_host001",
-  "api_key":"KnR6yE41RrSowb0kQ0HWoA" <2>
-}
---------------------------------------------------
-<1> Unique id for this API key
-<2> Generated API key
-
-You can now use this API key in your +{beatname_lc}.yml+ configuration file like this:
-["source","yaml"]
---------------------
-output.elasticsearch:
-  api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSowb0kQ0HWoA <1>
---------------------
-<1> Format is `id:api_key` (as returned by {ref}/security-api-create-api-key.html[Create API key])
-
-[float]
-[[beats-api-key-monitor]]
-=== Create an API key for monitoring
-To create an API key to use for sending monitoring data to {es}, use the
-{ref}/security-api-create-api-key.html[Create API key API], for example:
-
-[source,console,subs="attributes,callouts"]
-------------------------------------------------------------
-POST /_security/api_key
-{
-  "name": "{beat_default_index_prefix}_host001", <1>
-  "role_descriptors": {
-    "{beat_default_index_prefix}_monitoring": { <2>
-      "cluster": ["monitor"],
-      "index": [
-        {
-          "names": [".monitoring-beats-*"],
-          "privileges": ["create_index", "create"]
-        }
-      ]
-    }
-  }
-}
-------------------------------------------------------------
-<1> Name of the API key
-<2> Granted privileges, see <<feature-roles>>
-
-NOTE: See <<privileges-to-publish-monitoring>> for the list of privileges required to send monitoring data.
-
-The return value will look something like this:
-
-[source,console-result,subs="attributes,callouts"]
---------------------------------------------------
-{
-  "id":"TiNAGG4BaaMdaH1tRfuU", <1>
-  "name":"{beat_default_index_prefix}_host001",
-  "api_key":"KnR6yE41RrSowb0kQ0HWoA" <2>
-}
---------------------------------------------------
-<1> Unique id for this API key
-<2> Generated API key
-
-You can now use this API key in your +{beatname_lc}.yml+ configuration file like this:
-["source","yml",subs="attributes"]
---------------------
-monitoring.elasticsearch:
-  api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSowb0kQ0HWoA <1>
---------------------
-<1> Format is `id:api_key` (as returned by {ref}/security-api-create-api-key.html[Create API key])
+See the {ref}/security-api-create-api-key.html[Create API key] reference for more information.
 
 [[learn-more-api-keys]]
 [float]

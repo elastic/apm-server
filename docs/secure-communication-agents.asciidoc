@@ -31,30 +31,37 @@ include::./ssl-input.asciidoc[]
 [[api-key]]
 === API keys
 
-You can configure API keys to authorize requests to the APM Server.
-
 NOTE: API keys are sent as plain-text,
 so they only provide security when used in combination with <<ssl-setup,SSL/TLS>>.
-
-By enabling `apm-server.auth.api_key.enabled: true`, you ensure that only agents with a valid API Key
-are able to successfully use APM Server's API (except for RUM endpoints).
-
-To secure the communication between APM Agents and the APM Server with API keys:
-
-. Make sure <<ssl-setup,SSL/TLS>> is enabled
-. <<configure-api-key,Enable and configure API keys>>
-. <<create-api-key,Create an API key with APM Server>>
-. <<set-api-key,Set the API key in your APM Agents>>
-
-NOTE: API Keys are not applicable for the RUM Agent,
+They are not applicable for agents running on clients, like the RUM agent,
 as there is no way to prevent them from being publicly exposed.
+
+Configure API keys to authorize requests to the APM Server.
+To enable API key authorization, set `apm-server.auth.api_key.enabled` to `true`.
+
+There are multiple, unique privileges you can assign to each API key.
+API keys can have one or more of these privileges:
+
+* *Agent configuration* (`config_agent:read`): Required for agents to read
+{kibana-ref}/agent-configuration.html[Agent configuration remotely].
+* *Ingest* (`event:write`): Required for ingesting Agent events.
+* *Sourcemap* (`sourcemap:write`): Required for <<sourcemaps,uploading sourcemaps>>.
+
+To secure the communication between APM Agents and the APM Server with API keys,
+make sure <<ssl-setup,SSL/TLS>> is enabled, then complete these steps:
+
+. <<configure-api-key,Enable and configure API keys>>
+. <<create-api-key,Create an API key in {kib}>>
+. <<set-api-key,Set the API key in your APM agents>>
+
+NOTE: API Keys
 
 [[configure-api-key]]
 [float]
 === Enable and configure API keys
 
-API keys are disabled by default. You can change this, and additional settings,
-in the `apm-server.auth.api_key` section of the +{beatname_lc}.yml+ configuration file.
+API keys are disabled by default. Enable and configure this feature in the `apm-server.auth.api_key`
+section of the +{beatname_lc}.yml+ configuration file.
 
 At a minimum, you must enable API keys,
 and should set a limit on the number of unique API keys that APM Server allows per minute.
@@ -73,35 +80,95 @@ All other configuration options are described in <<api-key-settings>>.
 
 [[create-api-key]]
 [float]
-=== Create and validate an API key
+=== Create an API key
+
+[role="screenshot"]
+image::images/api-key-create.png[API key creation]
+
+In {kib}, navigate to **Stack Management** > **API keys** and click **Create API key**.
+
+Enter a name for your API key and select **Restrict privileges**.
+In the role descriptors box, copy and paste the following JSON.
+This example creates an API key with privileges for ingesting APM events,
+reading agent central configuration, uploading a sourcemap:
+
+[source,json]
+----
+{
+   "apm": {
+      "applications": [
+         {
+            "application": "apm",
+            "privileges": ["sourcemap:write", "event:write", "config_agent:read"], <1>
+            "resources": ["*"]
+         }
+      ]
+   }
+}
+----
+<1> This example adds all three API privileges to the new API key.
+Privileges are described <<api-key,above>>. Remove any privileges that you do not need.
+
+To set an expiration date for the API key, select **Expire after time**
+and input the lifetime of the API key in days.
+
+Click **Create API key** and then copy the Base64 encoded API key.
+You will need this for the next step, and you will not be able to view it again.
+
+[role="screenshot"]
+image::images/api-key-copy.png[API key copy base64]
+
+[[set-api-key]]
+[float]
+=== Set the API key in your APM agents
+
+You can now apply your newly created API keys in the configuration of each of your APM agents.
+See the relevant agent documentation for additional information:
+
+// Not relevant for RUM and iOS
+* *Go agent*: {apm-go-ref}/configuration.html#config-api-key[`ELASTIC_APM_API_KEY`]
+* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-api-key[`ApiKey`]
+* *Java agent*: {apm-java-ref}/config-reporter.html#config-api-key[`api_key`]
+* *Node.js agent*: {apm-node-ref}/configuration.html#api-key[`apiKey`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-api-key[`api_key`]
+* *Python agent*: {apm-py-ref}/configuration.html#config-api-key[`api_key`]
+* *Ruby agent*: {apm-ruby-ref}/configuration.html#config-api-key[`api_key`]
+
+[[configure-api-key-alternative]]
+[float]
+=== Alternate API key creation methods
+
+API keys can also be created and validated outside of Kibana:
+
+* <<create-api-key-workflow-apm-server>>
+* <<create-api-key-workflow-es>>
+
+[[create-api-key-workflow-apm-server]]
+[float]
+==== APM Server API key workflow
 
 APM Server provides a command line interface for creating, retrieving, invalidating, and verifying API keys.
-Keys created using this method can only be used for Agent/Server communication.
+Keys created using this method can only be used for communication with APM Server.
 
 [[create-api-key-subcommands]]
 [float]
-==== `apikey` subcommands
+===== `apikey` subcommands
 
 include::{libbeat-dir}/command-reference.asciidoc[tag=apikey-subcommands]
 
 [[create-api-key-privileges]]
 [float]
-==== Privileges
+===== Privileges
 
-There are three unique privileges you can assign to each API keys.
 If privileges are not specified at creation time, the created key will have all privileges.
 
-* *Agent configuration*: Required for agents to read
-{kibana-ref}/agent-configuration.html[Agent configuration remotely].
-`--agent-config` gives the `config_agent:read` privilege to the created key.
-* *Ingest*: Required for ingesting Agent events.
-`--ingest` gives the `event:write` privilege to the created key.
-* *Sourcemap*: Required for <<sourcemaps,uploading sourcemaps>>.
-`--sourcemap` gives the `sourcemap:write` privilege to the created key.
+* `--agent-config` grants the `config_agent:read` privilege
+* `--ingest` grants the `event:write` privilege
+* `--sourcemap` grants the `sourcemap:write` privilege
 
 [[create-api-key-workflow]]
 [float]
-==== API key workflow example
+===== Create an API key
 
 Create an API key with the `create` subcommand.
 
@@ -164,9 +231,9 @@ A full list of `apikey` subcommands and flags is available in the <<apikey-comma
 
 [[create-api-key-workflow-es]]
 [float]
-==== Alternate API key workflow example
+==== {es} API key workflow
 
-Instead of using the APM Server CLI, it is possible to create API keys using the Elasticsearch
+It is also possible to create API keys using the Elasticsearch
 {ref}/security-api-create-api-key.html[create API key API].
 
 This example creates an API key named `java-002`:
@@ -275,22 +342,6 @@ Authorized for privilege "config_agent:read"...:  Yes
 Authorized for privilege "event:write"...:        Yes
 Authorized for privilege "sourcemap:write"...:    Yes
 ----
-
-[[set-api-key]]
-[float]
-=== Set the API key in your APM agents
-
-You can now apply your newly created API keys in the configuration of each of your APM agents.
-See the relevant agent documentation for additional information:
-
-// Not relevant for RUM and iOS
-* *Go agent*: {apm-go-ref}/configuration.html#config-api-key[`ELASTIC_APM_API_KEY`]
-* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-api-key[`ApiKey`]
-* *Java agent*: {apm-java-ref}/config-reporter.html#config-api-key[`api_key`]
-* *Node.js agent*: {apm-node-ref}/configuration.html#api-key[`apiKey`]
-* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-api-key[`api_key`]
-* *Python agent*: {apm-py-ref}/configuration.html#config-api-key[`api_key`]
-* *Ruby agent*: {apm-ruby-ref}/configuration.html#config-api-key[`api_key`]
 
 [float]
 [[api-key-settings]]
