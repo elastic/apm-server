@@ -51,7 +51,7 @@ NOTE: See <<privileges-to-publish-events>> for the list of privileges required t
 To set an expiration date for the API key, select **Expire after time**
 and input the lifetime of the API key in days.
 
-Click **Create API key**. In the dropdown, switch to **Beats* and copy the API key.
+Click **Create API key**. In the dropdown, switch to **Beats** and copy the API key.
 
 You can now use this API key in your +{beatname_lc}.yml+ configuration file:
 
@@ -97,7 +97,7 @@ NOTE: See <<privileges-to-publish-monitoring>> for the list of privileges requir
 To set an expiration date for the API key, select **Expire after time**
 and input the lifetime of the API key in days.
 
-Click **Create API key**. In the dropdown, switch to **Beats* and copy the API key.
+Click **Create API key**. In the dropdown, switch to **Beats** and copy the API key.
 
 You can now use this API key in your +{beatname_lc}.yml+ configuration file like this:
 
