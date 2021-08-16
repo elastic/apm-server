@@ -23,6 +23,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 - `service_destination` span metrics now take into account composite spans {pull}5896[5896]
 - add zero-downtime config reloads via `SO_REUSEPORT` {pull}5911[5911]
 - experimental support for writing data streams in standalone mode {pull}5928[5928]
+- Data streams now define a default `dynamic` mapping parameter, overridable in the `<data-stream>@custom` template {pull}5947[5947]
 
 [float]
 ==== Deprecated
