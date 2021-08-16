@@ -106,7 +106,7 @@ Default: `[]`
 Custom HTTP headers to add to RUM responses.
 This can be useful for security policy compliance.
 
-Any values set in `apm-server.rum.response_headers` also apply to RUM events.
+Any values set in `apm-server.response_headers` also apply to RUM events.
 Values set for the same key will be concatenated.
 
 Default: Not set
