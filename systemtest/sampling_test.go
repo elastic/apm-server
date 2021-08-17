@@ -178,8 +178,17 @@ func TestTailSamplingUnlicensed(t *testing.T) {
 	require.NoError(t, es.Start())
 	defer es.Close()
 
+	// Data streams are required for tail-based sampling, but since we're using
+	// an ephemeral Elasticsearch container it's not straightforward to install
+	// the integration package. We won't be indexing anything, so just don't wait
+	// for the integration package to be installed in this test.
+	waitForIntegration := false
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Output.Elasticsearch.Hosts = []string{es.Addr}
+	srv.Config.DataStreams = &apmservertest.DataStreamsConfig{
+		Enabled:            true,
+		WaitForIntegration: &waitForIntegration,
+	}
 	srv.Config.Sampling = &apmservertest.SamplingConfig{
 		Tail: &apmservertest.TailSamplingConfig{
 			Enabled:  true,
@@ -188,6 +197,15 @@ func TestTailSamplingUnlicensed(t *testing.T) {
 		},
 	}
 	require.NoError(t, srv.Start())
+
+	// Send some transactions to trigger an indexing attempt.
+	tracer := srv.Tracer()
+	for i := 0; i < 100; i++ {
+		tx := tracer.StartTransaction("GET /", "parent")
+		tx.Duration = time.Second * time.Duration(i+1)
+		tx.End()
+	}
+	tracer.Flush(nil)
 
 	timeout := time.After(time.Minute)
 	logs := srv.Logs.Iterator()
@@ -204,7 +222,7 @@ func TestTailSamplingUnlicensed(t *testing.T) {
 
 	// Due to the failing license check, APM Server will refuse to index anything.
 	var result estest.SearchResult
-	_, err = es.Client.Search("apm-*").Do(context.Background(), &result)
+	_, err = es.Client.Search("traces-apm*").Do(context.Background(), &result)
 	assert.NoError(t, err)
 	assert.Empty(t, result.Hits.Hits)
 }
