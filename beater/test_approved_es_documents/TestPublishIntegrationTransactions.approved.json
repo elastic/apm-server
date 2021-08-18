@@ -33,7 +33,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -164,7 +164,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "event": {
                 "outcome": "success"
@@ -381,7 +381,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -535,7 +535,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "event": {
                 "outcome": "unknown"

@@ -6,7 +6,7 @@
             "version": "3.14.0"
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "event": {
             "outcome": "unknown"
@@ -131,7 +131,7 @@
             "port": 5432
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "event": {
             "outcome": "unknown"
@@ -200,7 +200,7 @@
             "version": "3.14.0"
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "event": {
             "outcome": "unknown"
@@ -253,7 +253,7 @@
             "version": "3.14.0"
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "event": {
             "outcome": "unknown"
@@ -312,7 +312,7 @@
             ]
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "event": {
             "outcome": "unknown"
