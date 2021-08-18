@@ -239,6 +239,17 @@ func (c *Client) Package(name, version string) (*Package, error) {
 	return &result.Response, nil
 }
 
+// InstallPackage installs the package with the given name.
+func (c *Client) InstallPackage(name, version string) error {
+	req := c.newFleetRequest("POST", "/epm/packages/"+name+"-"+version, nil)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return consumeResponse(resp, nil)
+}
+
 // DeletePackage deletes (uninstalls) the package with the given name and version.
 func (c *Client) DeletePackage(name, version string) error {
 	req := c.newFleetRequest("DELETE", "/epm/packages/"+name+"-"+version, nil)
