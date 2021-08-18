@@ -829,6 +829,26 @@ type: keyword
 
 --
 
+*`observer.id`*::
++
+--
+Unique identifier of the APM Server.
+
+
+type: keyword
+
+--
+
+*`observer.ephemeral_id`*::
++
+--
+Ephemeral identifier of the APM Server.
+
+
+type: keyword
+
+--
+
 
 *`user.name`*::
 +
@@ -1991,6 +2011,26 @@ The type will be set to `apm-server`.
 type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.id`*::
++
+--
+Unique identifier of the APM Server.
+
+
+type: keyword
+
+--
+
+*`observer.ephemeral_id`*::
++
+--
+Ephemeral identifier of the APM Server.
+
+
+type: keyword
 
 --
 
@@ -3298,6 +3338,26 @@ The type will be set to `apm-server`.
 type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.id`*::
++
+--
+Unique identifier of the APM Server.
+
+
+type: keyword
+
+--
+
+*`observer.ephemeral_id`*::
++
+--
+Ephemeral identifier of the APM Server.
+
+
+type: keyword
 
 --
 
@@ -4938,6 +4998,26 @@ type: keyword
 
 --
 
+*`observer.id`*::
++
+--
+Unique identifier of the APM Server.
+
+
+type: keyword
+
+--
+
+*`observer.ephemeral_id`*::
++
+--
+Ephemeral identifier of the APM Server.
+
+
+type: keyword
+
+--
+
 
 *`user.domain`*::
 +
@@ -5463,6 +5543,15 @@ type: keyword
 
 --
 
+*`timeseries.instance`*::
++
+--
+Time series instance ID
+
+type: keyword
+
+--
+
 
 *`timestamp.us`*::
 +
@@ -5734,6 +5823,16 @@ type: boolean
 
 --
 
+*`transaction.result`*::
++
+--
+The result of the transaction. HTTP status code for HTTP-related transactions.
+
+
+type: keyword
+
+--
+
 
 *`span.type`*::
 +
@@ -5779,6 +5878,23 @@ Aggregated span duration, excluding the time periods where a direct child was ru
 
 
 type: long
+
+--
+
+
+[float]
+=== service
+
+Destination service context
+
+
+*`span.destination.service.resource`*::
++
+--
+Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name')
+
+
+type: keyword
 
 --
 
@@ -6151,6 +6267,26 @@ The type will be set to `apm-server`.
 type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.id`*::
++
+--
+Unique identifier of the APM Server.
+
+
+type: keyword
+
+--
+
+*`observer.ephemeral_id`*::
++
+--
+Ephemeral identifier of the APM Server.
+
+
+type: keyword
 
 --
 

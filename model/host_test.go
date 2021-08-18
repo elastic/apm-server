@@ -52,10 +52,9 @@ func TestSystemTransformation(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			event := &APMEvent{Host: host, Transaction: &Transaction{}}
-			beatEvents := event.appendBeatEvent(context.Background(), nil)
-			require.Len(t, beatEvents, 1)
+			beatEvent := event.BeatEvent(context.Background())
 
-			resultJSON, err := json.Marshal(beatEvents[0].Fields["host"])
+			resultJSON, err := json.Marshal(beatEvent.Fields["host"])
 			require.NoError(t, err)
 			name := filepath.Join("test_approved", "host", strings.ReplaceAll(name, " ", "_"))
 			approvaltest.ApproveJSON(t, name, resultJSON)
