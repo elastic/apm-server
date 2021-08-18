@@ -119,7 +119,7 @@ func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient elasti
 	// TODO(axw) generate the list of expected index templates.
 	templates := []string{
 		"traces-apm",
-		"traces-sampled",
+		"traces-apm.sampled",
 		"metrics-apm.app",
 		"metrics-apm.internal",
 		"logs-apm.error",
