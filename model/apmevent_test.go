@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -48,10 +47,12 @@ func TestAPMEventFields(t *testing.T) {
 	}{
 		{
 			input: APMEvent{
+				ECSVersion: "1.0.0",
 				Agent: Agent{
 					Name:    agentName,
 					Version: agentVersion,
 				},
+				Observer:  Observer{Type: "apm-server"},
 				Container: Container{ID: containerID},
 				Service: Service{
 					Name: serviceName,
@@ -74,7 +75,9 @@ func TestAPMEventFields(t *testing.T) {
 			},
 			output: common.MapStr{
 				// common fields
+				"ecs":       common.MapStr{"version": "1.0.0"},
 				"agent":     common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				"observer":  common.MapStr{"type": "apm-server"},
 				"container": common.MapStr{"id": containerID},
 				"host":      common.MapStr{"hostname": hostname, "name": host},
 				"process":   common.MapStr{"pid": pid},
@@ -113,8 +116,7 @@ func TestAPMEventFields(t *testing.T) {
 			},
 		},
 	} {
-		events := test.input.appendBeatEvent(context.Background(), nil)
-		require.Len(t, events, 1)
-		assert.Equal(t, test.output, events[0].Fields)
+		event := test.input.BeatEvent(context.Background())
+		assert.Equal(t, test.output, event.Fields)
 	}
 }

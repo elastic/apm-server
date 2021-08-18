@@ -350,7 +350,6 @@ func (s *serverRunner) run() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 	publisherConfig := &publish.PublisherConfig{
-		Info:      s.beat.Info,
 		Pipeline:  s.config.Pipeline,
 		Namespace: s.namespace,
 	}
@@ -424,8 +423,13 @@ func (s *serverRunner) run() error {
 
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
+	//
+	// The reporter is passed into newBaseRunServer for legacy event publishers
+	// that bypass the model processor framework, i.e. sourcemap uploads, and
+	// onboarding docs. Because these bypass the model processor framework, we
+	// must augment the reporter to set common `observer` and `ecs.version` fields.
 	reporter := publisher.Send
-	runServer := newBaseRunServer(reporter)
+	runServer := newBaseRunServer(augmentedReporter(reporter, s.beat.Info))
 	if s.tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
 	}
@@ -436,7 +440,7 @@ func (s *serverRunner) run() error {
 	}
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
-	var batchProcessor model.BatchProcessor = &reporterBatchProcessor{reporter}
+	batchProcessor := s.newFinalBatchProcessor(reporter)
 	if !s.config.Sampling.KeepUnsampled {
 		// The server has been configured to discard unsampled
 		// transactions. Make sure this is done just before calling
@@ -461,12 +465,19 @@ func (s *serverRunner) run() error {
 	return publisher.Stop(s.backgroundContext)
 }
 
+// newFinalBatchProcessor returns the final model.BatchProcessor that publishes events.
+func (s *serverRunner) newFinalBatchProcessor(libbeatReporter publish.Reporter) model.BatchProcessor {
+	return &reporterBatchProcessor{libbeatReporter}
+}
+
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
 	processors := []model.BatchProcessor{
 		modelprocessor.SetHostHostname{},
 		modelprocessor.SetServiceNodeName{},
 		modelprocessor.SetMetricsetName{},
 		modelprocessor.SetGroupingKey{},
+		newObserverBatchProcessor(s.beat.Info),
+		model.ProcessBatchFunc(ecsVersionBatchProcessor),
 	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
@@ -705,4 +716,32 @@ type reporterBatchProcessor struct {
 func (p *reporterBatchProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
 	disableTracing, _ := ctx.Value(disablePublisherTracingKey{}).(bool)
 	return p.reporter(ctx, publish.PendingReq{Transformable: batch, Trace: !disableTracing})
+}
+
+// augmentedReporter wraps publish.Reporter such that the events it reports have
+// `observer` and `ecs.version` fields injected.
+func augmentedReporter(reporter publish.Reporter, info beat.Info) publish.Reporter {
+	observerBatchProcessor := newObserverBatchProcessor(info)
+	return func(ctx context.Context, req publish.PendingReq) error {
+		orig := req.Transformable
+		req.Transformable = transformerFunc(func(ctx context.Context) []beat.Event {
+			// Merge common fields into each event.
+			events := orig.Transform(ctx)
+			batch := make(model.Batch, 1)
+			observerBatchProcessor(ctx, &batch)
+			ecsVersionBatchProcessor(ctx, &batch)
+			for _, event := range events {
+				event.Fields.Put("ecs.version", batch[0].ECSVersion)
+				event.Fields.DeepUpdate(common.MapStr{"observer": batch[0].Observer.Fields()})
+			}
+			return events
+		})
+		return reporter(ctx, req)
+	}
+}
+
+type transformerFunc func(context.Context) []beat.Event
+
+func (f transformerFunc) Transform(ctx context.Context) []beat.Event {
+	return f(ctx)
 }
