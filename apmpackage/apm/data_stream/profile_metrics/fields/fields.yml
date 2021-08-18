@@ -72,6 +72,14 @@
 - name: observer
   type: group
   fields:
+    - name: ephemeral_id
+      type: keyword
+      description: |
+        Ephemeral identifier of the APM Server.
+    - name: id
+      type: keyword
+      description: |
+        Unique identifier of the APM Server.
     - name: listening
       type: keyword
       description: |

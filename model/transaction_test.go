@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -159,10 +158,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		},
 	}
 
-	events := txWithContext.appendBeatEvent(context.Background(), nil)
-	require.Len(t, events, 1)
-	event := events[0]
-
+	event := txWithContext.BeatEvent(context.Background())
 	assert.Equal(t, common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
 		"client":     common.MapStr{"ip": ip},

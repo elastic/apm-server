@@ -23,7 +23,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -200,8 +199,7 @@ func TestMetricset(t *testing.T) {
 
 	for idx, test := range tests {
 		event := APMEvent{Metricset: test.Metricset}
-		outputEvents := event.appendBeatEvent(context.Background(), nil)
-		require.Len(t, outputEvents, 1)
-		assert.Equal(t, test.Output, outputEvents[0].Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		outputEvent := event.BeatEvent(context.Background())
+		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
