@@ -7,7 +7,7 @@
             "version": "2.20.1"
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "event": {
             "ingested": "2020-08-11T09:58:54.379837Z",
@@ -71,7 +71,7 @@
             "version": "2.20.1"
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "error": {
             "exception": [
@@ -137,7 +137,7 @@
             "version": "2.20.1"
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "error": {
             "exception": [
@@ -203,7 +203,7 @@
             "version": "2.20.1"
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "error": {
             "exception": [
