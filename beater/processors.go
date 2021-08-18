@@ -72,9 +72,9 @@ func ecsVersionBatchProcessor(ctx context.Context, b *model.Batch) error {
 	return nil
 }
 
-// newBeatInfoBatchProcessor returns a model.BatchProcessor that sets observer
+// newObserverBatchProcessor returns a model.BatchProcessor that sets observer
 // fields from info.
-func newBeatInfoBatchProcessor(info beat.Info) model.ProcessBatchFunc {
+func newObserverBatchProcessor(info beat.Info) model.ProcessBatchFunc {
 	var versionMajor int
 	if version, err := common.NewVersion(info.Version); err == nil {
 		versionMajor = version.Major

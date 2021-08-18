@@ -476,7 +476,7 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 		modelprocessor.SetServiceNodeName{},
 		modelprocessor.SetMetricsetName{},
 		modelprocessor.SetGroupingKey{},
-		newBeatInfoBatchProcessor(s.beat.Info),
+		newObserverBatchProcessor(s.beat.Info),
 		model.ProcessBatchFunc(ecsVersionBatchProcessor),
 	}
 	if s.config.DefaultServiceEnvironment != "" {
@@ -722,14 +722,14 @@ func (p *reporterBatchProcessor) ProcessBatch(ctx context.Context, batch *model.
 // augmentedReporter wraps publish.Reporter such that the events it reports have
 // `observer` and `ecs.version` fields injected.
 func augmentedReporter(reporter publish.Reporter, info beat.Info) publish.Reporter {
-	beatInfoBatchProcessor := newBeatInfoBatchProcessor(info)
+	observerBatchProcessor := newObserverBatchProcessor(info)
 	return func(ctx context.Context, req publish.PendingReq) error {
 		orig := req.Transformable
 		req.Transformable = transformerFunc(func(ctx context.Context) []beat.Event {
 			// Merge common fields into each event.
 			events := orig.Transform(ctx)
 			batch := make(model.Batch, 1)
-			beatInfoBatchProcessor(ctx, &batch)
+			observerBatchProcessor(ctx, &batch)
 			ecsVersionBatchProcessor(ctx, &batch)
 			for _, event := range events {
 				event.Fields.Put("ecs.version", batch[0].ECSVersion)
