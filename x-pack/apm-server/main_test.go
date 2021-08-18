@@ -63,6 +63,7 @@ func TestMonitoring(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := config.DefaultConfig()
+	cfg.DataStreams.Enabled = true
 	cfg.Aggregation.Transactions.Enabled = true
 	cfg.Sampling.Tail.Enabled = true
 	cfg.Sampling.Tail.Policies = []config.TailSamplingPolicy{{SampleRate: 0.1}}
