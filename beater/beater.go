@@ -28,7 +28,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
 	"github.com/elastic/beats/v7/libbeat/common/transport"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/go-ucfg"
@@ -121,9 +120,6 @@ func NewCreator(args CreatorParams) beat.Creator {
 			if b.Manager != nil && b.Manager.Enabled() {
 				return nil, errors.New("data streams must be enabled when the server is managed")
 			}
-		} else if bt.config.DataStreams.Enabled && !fleetmode.Enabled() {
-			// not supported only available for development purposes
-			bt.logger.Errorf("Started apm-server with data streams enabled but no active fleet management mode was specified")
 		}
 
 		if err := bt.registerPipelineCallback(b); err != nil {
@@ -265,7 +261,11 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 	if err != nil {
 		return err
 	}
-	go runner.run()
+	go func() {
+		if err := runner.run(); err != nil {
+			r.args.Logger.Error(err)
+		}
+	}()
 	// If the old runner exists, cancel it
 	if r.runner != nil {
 		r.runner.cancelRunServerContext()
@@ -350,9 +350,13 @@ func (s *serverRunner) run() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 	publisherConfig := &publish.PublisherConfig{
-		Info:      s.beat.Info,
 		Pipeline:  s.config.Pipeline,
 		Namespace: s.namespace,
+	}
+
+	var kibanaClient kibana_client.Client
+	if s.config.Kibana.Enabled {
+		kibanaClient = kibana_client.NewConnectingClient(&s.config.Kibana)
 	}
 
 	cfg := ucfg.Config(*s.rawConfig)
@@ -361,11 +365,39 @@ func (s *serverRunner) run() error {
 	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
 		// Don't block server startup sending the config.
 		go func() {
-			c := kibana_client.NewConnectingClient(&s.config.Kibana)
-			if err := kibana_client.SendConfig(s.runServerContext, c, parentCfg); err != nil {
+			if err := kibana_client.SendConfig(s.runServerContext, kibanaClient, parentCfg); err != nil {
 				s.logger.Infof("failed to upload config to kibana: %v", err)
 			}
 		}()
+	}
+
+	fleetManaged := s.beat.Manager != nil && s.beat.Manager.Enabled()
+	if !fleetManaged && s.config.DataStreams.Enabled && s.config.DataStreams.WaitForIntegration {
+		var esClient elasticsearch.Client
+		if cfg := elasticsearchOutputConfig(s.beat); cfg != nil {
+			esConfig := elasticsearch.DefaultConfig()
+			err := cfg.Unpack(&esConfig)
+			if err != nil {
+				return err
+			}
+			esClient, err = elasticsearch.NewClient(esConfig)
+			if err != nil {
+				return err
+			}
+		}
+		if kibanaClient == nil && esClient == nil {
+			return errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
+		}
+		if err := waitForIntegration(
+			s.runServerContext,
+			kibanaClient,
+			esClient,
+			s.config.DataStreams.WaitForIntegrationInterval,
+			s.tracer,
+			s.logger,
+		); err != nil {
+			return errors.Wrap(err, "error waiting for integration")
+		}
 	}
 
 	var sourcemapStore *sourcemap.Store
@@ -391,8 +423,13 @@ func (s *serverRunner) run() error {
 
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
+	//
+	// The reporter is passed into newBaseRunServer for legacy event publishers
+	// that bypass the model processor framework, i.e. sourcemap uploads, and
+	// onboarding docs. Because these bypass the model processor framework, we
+	// must augment the reporter to set common `observer` and `ecs.version` fields.
 	reporter := publisher.Send
-	runServer := newBaseRunServer(reporter)
+	runServer := newBaseRunServer(augmentedReporter(reporter, s.beat.Info))
 	if s.tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
 	}
@@ -403,7 +440,7 @@ func (s *serverRunner) run() error {
 	}
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
-	var batchProcessor model.BatchProcessor = &reporterBatchProcessor{reporter}
+	batchProcessor := s.newFinalBatchProcessor(reporter)
 	if !s.config.Sampling.KeepUnsampled {
 		// The server has been configured to discard unsampled
 		// transactions. Make sure this is done just before calling
@@ -428,12 +465,19 @@ func (s *serverRunner) run() error {
 	return publisher.Stop(s.backgroundContext)
 }
 
+// newFinalBatchProcessor returns the final model.BatchProcessor that publishes events.
+func (s *serverRunner) newFinalBatchProcessor(libbeatReporter publish.Reporter) model.BatchProcessor {
+	return &reporterBatchProcessor{libbeatReporter}
+}
+
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
 	processors := []model.BatchProcessor{
 		modelprocessor.SetHostHostname{},
 		modelprocessor.SetServiceNodeName{},
 		modelprocessor.SetMetricsetName{},
 		modelprocessor.SetGroupingKey{},
+		newObserverBatchProcessor(s.beat.Info),
+		model.ProcessBatchFunc(ecsVersionBatchProcessor),
 	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
@@ -673,4 +717,32 @@ type reporterBatchProcessor struct {
 func (p *reporterBatchProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
 	disableTracing, _ := ctx.Value(disablePublisherTracingKey{}).(bool)
 	return p.reporter(ctx, publish.PendingReq{Transformable: batch, Trace: !disableTracing})
+}
+
+// augmentedReporter wraps publish.Reporter such that the events it reports have
+// `observer` and `ecs.version` fields injected.
+func augmentedReporter(reporter publish.Reporter, info beat.Info) publish.Reporter {
+	observerBatchProcessor := newObserverBatchProcessor(info)
+	return func(ctx context.Context, req publish.PendingReq) error {
+		orig := req.Transformable
+		req.Transformable = transformerFunc(func(ctx context.Context) []beat.Event {
+			// Merge common fields into each event.
+			events := orig.Transform(ctx)
+			batch := make(model.Batch, 1)
+			observerBatchProcessor(ctx, &batch)
+			ecsVersionBatchProcessor(ctx, &batch)
+			for _, event := range events {
+				event.Fields.Put("ecs.version", batch[0].ECSVersion)
+				event.Fields.DeepUpdate(common.MapStr{"observer": batch[0].Observer.Fields()})
+			}
+			return events
+		})
+		return reporter(ctx, req)
+	}
+}
+
+type transformerFunc func(context.Context) []beat.Event
+
+func (f transformerFunc) Transform(ctx context.Context) []beat.Event {
+	return f(ctx)
 }

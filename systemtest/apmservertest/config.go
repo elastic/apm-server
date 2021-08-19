@@ -198,7 +198,8 @@ type RUMSourcemapCacheConfig struct {
 
 // DataStreamsConfig holds APM Server data streams configuration.
 type DataStreamsConfig struct {
-	Enabled bool `json:"enabled"`
+	Enabled            bool  `json:"enabled"`
+	WaitForIntegration *bool `json:"wait_for_integration,omitempty"`
 }
 
 // APIKeyConfig holds agent auth configuration.

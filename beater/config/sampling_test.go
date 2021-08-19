@@ -28,6 +28,7 @@ import (
 func TestSamplingPoliciesValidation(t *testing.T) {
 	t.Run("MinimallyValid", func(t *testing.T) {
 		_, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{
+			"data_streams.enabled": true,
 			"sampling.tail.policies": []map[string]interface{}{{
 				"sample_rate": 0.5,
 			}},
@@ -36,17 +37,28 @@ func TestSamplingPoliciesValidation(t *testing.T) {
 	})
 	t.Run("NoPolicies", func(t *testing.T) {
 		_, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{
+			"data_streams.enabled":  true,
 			"sampling.tail.enabled": true,
 		}), nil)
 		assert.EqualError(t, err, "Error processing configuration: invalid tail sampling config: no policies specified accessing 'sampling.tail'")
 	})
 	t.Run("NoDefaultPolicies", func(t *testing.T) {
 		_, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{
+			"data_streams.enabled": true,
 			"sampling.tail.policies": []map[string]interface{}{{
 				"service.name": "foo",
 				"sample_rate":  0.5,
 			}},
 		}), nil)
 		assert.EqualError(t, err, "Error processing configuration: invalid tail sampling config: no default (empty criteria) policy specified accessing 'sampling.tail'")
+	})
+	t.Run("DataStreamsDisabled", func(t *testing.T) {
+		_, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{
+			"sampling.tail.enabled": true,
+			"sampling.tail.policies": []map[string]interface{}{{
+				"sample_rate": 0.5,
+			}},
+		}), nil)
+		assert.EqualError(t, err, "tail-sampling requires data streams to be enabled")
 	})
 }

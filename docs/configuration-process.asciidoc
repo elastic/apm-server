@@ -184,3 +184,23 @@ Default value is 1 second.
 ==== `max_procs`
 Sets the maximum number of CPUs that can be executing simultaneously.
 The default is the number of logical CPUs available in the system.
+
+[float]
+=== Configuration options: `data_streams`
+
+experimental::[]
+
+[[data_streams.enabled]]
+[float]
+==== `enabled`
+Write events to Elasticsearch data streams instead of indices.
+Events will be written to `traces-*`, `logs-*`, and `metrics-*` data streams.
+Enabling data streams disables the setup of index templates, ILM policies, and ingest pipelines.
+Defaults to false.
+
+[[data_streams.wait_for_integration]]
+[float]
+==== `wait_for_integration`
+Wait for the `apm` Fleet integration to be installed by Kibana. Requires either <<kibana-enabled>>
+or for the <<elasticsearch-output, Elasticsearch output>> to be configured.
+Defaults to true.

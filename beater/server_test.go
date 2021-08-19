@@ -24,10 +24,13 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
+	"path"
 	"reflect"
 	"runtime"
+	"sync"
 	"testing"
 	"time"
 
@@ -522,6 +525,71 @@ func TestServerConfigReload(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestServerWaitForIntegrationKibana(t *testing.T) {
+	var requests int
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"version":{"number":"1.2.3"}}`))
+	})
+	mux.HandleFunc("/api/fleet/epm/packages/apm", func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		switch requests {
+		case 1:
+			w.WriteHeader(500)
+		case 2:
+			fmt.Fprintln(w, `{"response":{"status":"not_installed"}}`)
+		case 3:
+			fmt.Fprintln(w, `{"response":{"status":"installed"}}`)
+		}
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	cfg := common.MustNewConfigFrom(map[string]interface{}{
+		"data_streams.enabled":                       true,
+		"data_streams.wait_for_integration_interval": "100ms",
+		"kibana.enabled":                             true,
+		"kibana.host":                                srv.URL,
+	})
+	_, err := setupServer(t, cfg, nil, nil)
+	require.NoError(t, err)
+	assert.Equal(t, 3, requests)
+}
+
+func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
+	var mu sync.Mutex
+	templateRequests := make(map[string]int)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+	})
+	mux.HandleFunc("/_index_template/", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		template := path.Base(r.URL.Path)
+		templateRequests[template]++
+		if template == "traces-apm" && templateRequests[template] == 1 {
+			w.WriteHeader(404)
+		}
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	cfg := common.MustNewConfigFrom(map[string]interface{}{
+		"data_streams.enabled":                       true,
+		"data_streams.wait_for_integration_interval": "100ms",
+	})
+	var beatConfig beat.BeatConfig
+	err := beatConfig.Output.Unpack(common.MustNewConfigFrom(map[string]interface{}{
+		"elasticsearch.hosts": []string{srv.URL},
+	}))
+	require.NoError(t, err)
+
+	_, err = setupServer(t, cfg, &beatConfig, nil)
+	require.NoError(t, err)
+	assert.Equal(t, 2, templateRequests["traces-apm"])
+}
+
 type chanClient struct {
 	done    chan struct{}
 	Channel chan beat.Event
@@ -577,7 +645,7 @@ func dummyPipeline(cfg *common.Config, info beat.Info, clients ...outputs.Client
 	if cfg == nil {
 		cfg = common.NewConfig()
 	}
-	processors, err := processing.MakeDefaultObserverSupport(false)(info, logp.NewLogger("testbeat"), cfg)
+	processors, err := processing.MakeDefaultSupport(false)(info, logp.NewLogger("testbeat"), cfg)
 	if err != nil {
 		panic(err)
 	}

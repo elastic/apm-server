@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -155,8 +154,7 @@ func TestSpanTransform(t *testing.T) {
 			Timestamp: timestamp,
 			URL:       URL{Original: url},
 		}
-		output := event.appendBeatEvent(context.Background(), nil)
-		require.Len(t, output, 1)
-		assert.Equal(t, test.Output, output[0].Fields, test.Msg)
+		output := event.BeatEvent(context.Background())
+		assert.Equal(t, test.Output, output.Fields, test.Msg)
 	}
 }

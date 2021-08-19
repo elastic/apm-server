@@ -54,9 +54,6 @@ Traces are written to `traces-apm.*` indices.
 | Field | Description | Type | ECS |
 |---|---|---|:---:|
 |@timestamp|Event timestamp.|date|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.type|Data stream type.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.dataset|Data stream dataset.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.namespace|Data stream namespace.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.ephemeral\_id|The Ephemeral ID identifies a running process.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.name|Name of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.version|Version of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -76,9 +73,13 @@ Traces are written to `traces-apm.*` indices.
 |cloud.region|Cloud region name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |container.id|Unique container id.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|data\_stream.dataset|Data stream dataset.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|data\_stream.namespace|Data stream namespace.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|data\_stream.type|Data stream type.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.address|Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the \`.address\` field. Then it should be duplicated to \`.ip\` or \`.domain\`, depending on which one it is.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.port|Port of the destination.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|ecs.version|ECS version the event conforms to.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |event.outcome|\`event.outcome\` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |experimental|Additional experimental data sent by the agents.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |host.architecture|The architecture of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -104,7 +105,9 @@ Traces are written to `traces-apm.*` indices.
 |network.carrier.name|Carrier name, eg. Vodafone, T-Mobile, etc.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |network.connection.subtype|Detailed network connection sub-type, e.g. "LTE", "CDMA"|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |network.connection.type|Network connection type, eg. "wifi", "cell"|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|observer.ephemeral\_id|Ephemeral identifier of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|observer.id|Unique identifier of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.listening|Address the server is listening on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.type|The type will be set to \`apm-server\`.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |observer.version|APM Server version.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -426,9 +429,6 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
 | Field | Description | Type | ECS |
 |---|---|---|:---:|
 |@timestamp|Event timestamp.|date|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.type|Data stream type.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.dataset|Data stream dataset.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.namespace|Data stream namespace.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.ephemeral\_id|The Ephemeral ID identifies a running process.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.name|Name of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.version|Version of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -447,9 +447,13 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
 |cloud.region|Cloud region name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |container.id|Unique container id.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|data\_stream.dataset|Data stream dataset.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|data\_stream.namespace|Data stream namespace.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|data\_stream.type|Data stream type.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.address|Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the \`.address\` field. Then it should be duplicated to \`.ip\` or \`.domain\`, depending on which one it is.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.port|Port of the destination.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|ecs.version|ECS version the event conforms to.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |experimental|Additional experimental data sent by the agents.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |histogram||histogram|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |host.architecture|The architecture of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -470,7 +474,9 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
 |network.carrier.name|Carrier name, eg. Vodafone, T-Mobile, etc.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |network.connection.subtype|Detailed network connection sub-type, e.g. "LTE", "CDMA"|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |network.connection.type|Network connection type, eg. "wifi", "cell"|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|observer.ephemeral\_id|Ephemeral identifier of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|observer.id|Unique identifier of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.listening|Address the server is listening on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.type|The type will be set to \`apm-server\`.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |observer.version|APM Server version.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -510,6 +516,7 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
 |system.process.cpu.total.norm.pct|The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.|scaled\_float|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.process.memory.rss.bytes|The Resident Set Size. The amount of memory the process occupied in main memory (RAM).|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.process.memory.size|The total virtual memory the process has.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|timeseries.instance|Time series instance ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |timestamp.us|Timestamp of the event in microseconds since Unix epoch.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |user.email|Email of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user.id|Identifier of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -592,9 +599,6 @@ Logs are written to `logs-apm.error.*` indices.
 | Field | Description | Type | ECS |
 |---|---|---|:---:|
 |@timestamp|Event timestamp.|date|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.type|Data stream type.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.dataset|Data stream dataset.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.namespace|Data stream namespace.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.ephemeral\_id|The Ephemeral ID identifies a running process.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.name|Name of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.version|Version of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -613,9 +617,13 @@ Logs are written to `logs-apm.error.*` indices.
 |cloud.region|Cloud region name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |container.id|Unique container id.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|data\_stream.dataset|Data stream dataset.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|data\_stream.namespace|Data stream namespace.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|data\_stream.type|Data stream type.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.address|Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the \`.address\` field. Then it should be duplicated to \`.ip\` or \`.domain\`, depending on which one it is.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.port|Port of the destination.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|ecs.version|ECS version the event conforms to.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |error.culprit|Function call which was the primary perpetrator of this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.exception.code|The error code set when the error happened, e.g. database error code.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.exception.handled|Indicator whether the error was caught somewhere in the code or not.|boolean|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -653,7 +661,9 @@ Logs are written to `logs-apm.error.*` indices.
 |network.carrier.name|Carrier name, eg. Vodafone, T-Mobile, etc.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |network.connection.subtype|Detailed network connection sub-type, e.g. "LTE", "CDMA"|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |network.connection.type|Network connection type, eg. "wifi", "cell"|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|observer.ephemeral\_id|Ephemeral identifier of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|observer.id|Unique identifier of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.listening|Address the server is listening on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.type|The type will be set to \`apm-server\`.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |observer.version|APM Server version.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |

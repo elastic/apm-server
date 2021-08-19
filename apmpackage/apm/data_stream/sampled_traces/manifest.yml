@@ -1,6 +1,6 @@
 title: APM tail-sampled traces
 type: traces
-dataset: sampled
+dataset: apm.sampled
 ilm_policy: traces-apm.sampled-default_policy
 elasticsearch:
   index_template:
@@ -9,3 +9,7 @@ elasticsearch:
       # global checkpoints as a way of limiting search
       # results.
       number_of_shards: 1
+    mappings:
+      # Sampled traces should have all fields strictly mapped;
+      # we are in full control of the field names.
+      dynamic: strict

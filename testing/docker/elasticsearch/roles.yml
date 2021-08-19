@@ -1,7 +1,7 @@
 apm_server:
   cluster: ['manage_ilm','manage_security','manage_api_key']
   indices:
-    - names: ['apm-*']
+    - names: ['apm-*', 'traces-apm*', 'logs-apm*', 'metrics-apm*']
       privileges: ['write','create_index','manage','manage_ilm']
   applications:
     - application: 'apm'
