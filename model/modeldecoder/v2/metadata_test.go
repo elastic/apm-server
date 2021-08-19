@@ -55,6 +55,7 @@ func isUnmappedMetadataField(key string) bool {
 		"Destination.IP",
 		"Destination.Port",
 		"ECSVersion",
+		"Message",
 		"Network",
 		"Network.Connection",
 		"Network.Connection.Subtype",
