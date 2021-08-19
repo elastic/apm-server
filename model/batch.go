@@ -46,9 +46,9 @@ type Batch []APMEvent
 
 // Transform transforms all events in the batch, in sequence.
 func (b *Batch) Transform(ctx context.Context) []beat.Event {
-	out := make([]beat.Event, 0, len(*b))
-	for _, event := range *b {
-		out = event.appendBeatEvent(ctx, out)
+	out := make([]beat.Event, len(*b))
+	for i, event := range *b {
+		out[i] = event.BeatEvent(ctx)
 	}
 	return out
 }

@@ -645,7 +645,7 @@ func dummyPipeline(cfg *common.Config, info beat.Info, clients ...outputs.Client
 	if cfg == nil {
 		cfg = common.NewConfig()
 	}
-	processors, err := processing.MakeDefaultObserverSupport(false)(info, logp.NewLogger("testbeat"), cfg)
+	processors, err := processing.MakeDefaultSupport(false)(info, logp.NewLogger("testbeat"), cfg)
 	if err != nil {
 		panic(err)
 	}

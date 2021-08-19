@@ -85,6 +85,14 @@
 - name: observer
   type: group
   fields:
+    - name: ephemeral_id
+      type: keyword
+      description: |
+        Ephemeral identifier of the APM Server.
+    - name: id
+      type: keyword
+      description: |
+        Unique identifier of the APM Server.
     - name: listening
       type: keyword
       description: |
@@ -144,6 +152,17 @@
 - name: span
   type: group
   fields:
+    - name: destination
+      type: group
+      fields:
+        - name: service
+          type: group
+          description: Destination service context
+          fields:
+            - name: resource
+              type: keyword
+              description: |
+                Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name')
     - name: destination.service
       type: group
       fields:
@@ -320,6 +339,9 @@
                 The total virtual memory the process has.
               metric_type: gauge
               unit: byte
+- name: timeseries.instance
+  type: keyword
+  description: Time series instance ID
 - name: timestamp
   type: group
   fields:
@@ -361,6 +383,10 @@
       multi_fields:
         - name: text
           type: text
+    - name: result
+      type: keyword
+      description: |
+        The result of the transaction. HTTP status code for HTTP-related transactions.
     - name: root
       type: boolean
       description: |

@@ -360,6 +360,18 @@
           description: >
             The type will be set to `apm-server`.
 
+        - name: id
+          type: keyword
+          overwrite: true
+          description: >
+            Unique identifier of the APM Server.
+
+        - name: ephemeral_id
+          type: keyword
+          overwrite: true
+          description: >
+            Ephemeral identifier of the APM Server.
+
     - name: user
       type: group
       dynamic: false
