@@ -27,7 +27,6 @@ import (
 	"go.elastic.co/apm"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 type Reporter func(context.Context, PendingReq) error
@@ -87,21 +86,7 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 		return nil, errors.Wrap(err, "invalid config")
 	}
 
-	observerFields := common.MapStr{
-		"type":         cfg.Info.Beat,
-		"hostname":     cfg.Info.Hostname,
-		"version":      cfg.Info.Version,
-		"id":           cfg.Info.ID.String(),
-		"ephemeral_id": cfg.Info.EphemeralID.String(),
-	}
-	if version, err := common.NewVersion(cfg.Info.Version); err == nil {
-		observerFields["version_major"] = version.Major
-	}
-
-	processingCfg := beat.ProcessingConfig{
-		Fields:    common.MapStr{"observer": observerFields},
-		Processor: cfg.Processor,
-	}
+	processingCfg := beat.ProcessingConfig{Processor: cfg.Processor}
 	if cfg.Pipeline != "" {
 		processingCfg.Meta = map[string]interface{}{"pipeline": cfg.Pipeline}
 	}
