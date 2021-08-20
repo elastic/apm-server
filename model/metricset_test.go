@@ -46,15 +46,12 @@ func TestMetricset(t *testing.T) {
 	}{
 		{
 			Metricset: &Metricset{},
-			Output: common.MapStr{
-				"processor": common.MapStr{"event": "metric", "name": "metric"},
-			},
-			Msg: "Payload with empty metric.",
+			Output:    common.MapStr{},
+			Msg:       "Payload with empty metric.",
 		},
 		{
 			Metricset: &Metricset{Name: "raj"},
 			Output: common.MapStr{
-				"processor":      common.MapStr{"event": "metric", "name": "metric"},
 				"metricset.name": "raj",
 			},
 			Msg: "Payload with metricset name.",
@@ -67,7 +64,6 @@ func TestMetricset(t *testing.T) {
 				},
 			},
 			Output: common.MapStr{
-				"processor":  common.MapStr{"event": "metric", "name": "metric"},
 				"a.counter":  612.0,
 				"some.gauge": 9.16,
 			},
@@ -82,7 +78,6 @@ func TestMetricset(t *testing.T) {
 				},
 			},
 			Output: common.MapStr{
-				"processor":   common.MapStr{"event": "metric", "name": "metric"},
 				"transaction": common.MapStr{"type": trType, "name": trName},
 				"span": common.MapStr{
 					"type": spType, "subtype": spSubtype,
@@ -111,7 +106,6 @@ func TestMetricset(t *testing.T) {
 				DocCount: 6,
 			},
 			Output: common.MapStr{
-				"processor":  common.MapStr{"event": "metric", "name": "metric"},
 				"timeseries": common.MapStr{"instance": "foo"},
 				"transaction": common.MapStr{
 					"type":   trType,
@@ -143,7 +137,6 @@ func TestMetricset(t *testing.T) {
 				},
 			},
 			Output: common.MapStr{
-				"processor": common.MapStr{"event": "metric", "name": "metric"},
 				"span": common.MapStr{
 					"type": spType, "subtype": spSubtype,
 					"destination": common.MapStr{"service": common.MapStr{"resource": resource}},
@@ -173,7 +166,6 @@ func TestMetricset(t *testing.T) {
 				},
 			},
 			Output: common.MapStr{
-				"processor": common.MapStr{"event": "metric", "name": "metric"},
 				"latency_histogram": common.MapStr{
 					"counts": []int64{1, 2, 3},
 					"values": []float64{1.1, 2.2, 3.3},

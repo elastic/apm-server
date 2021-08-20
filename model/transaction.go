@@ -25,15 +25,15 @@ import (
 )
 
 const (
-	transactionProcessorName = "transaction"
-	transactionDocType       = "transaction"
-	TracesDataset            = "apm"
+	TracesDataset = "apm"
 )
 
 var (
 	transactionMetrics         = monitoring.Default.NewRegistry("apm-server.processor.transaction")
 	transactionTransformations = monitoring.NewInt(transactionMetrics, "transformations")
-	transactionProcessorEntry  = common.MapStr{"name": transactionProcessorName, "event": transactionDocType}
+
+	// TransactionProcessor is the Processor value that should be assigned to transaction events.
+	TransactionProcessor = Processor{Name: "transaction", Event: "transaction"}
 )
 
 type Transaction struct {
@@ -70,10 +70,7 @@ type SpanCount struct {
 func (e *Transaction) fields() common.MapStr {
 	transactionTransformations.Inc()
 
-	fields := mapStr{
-		"processor": transactionProcessorEntry,
-	}
-
+	var fields mapStr
 	var parent, trace mapStr
 	parent.maybeSetString("id", e.ParentID)
 	trace.maybeSetString("id", e.TraceID)

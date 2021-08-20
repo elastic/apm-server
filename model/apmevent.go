@@ -53,6 +53,7 @@ type APMEvent struct {
 	Network     Network
 	Session     Session
 	URL         URL
+	Processor   Processor
 
 	// Timestamp holds the event timestamp.
 	//
@@ -90,7 +91,8 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 		event.Fields = e.Error.fields()
 	case e.ProfileSample != nil:
 		event.Fields = e.ProfileSample.fields()
-	default:
+	}
+	if event.Fields == nil {
 		event.Fields = make(common.MapStr)
 	}
 
@@ -132,6 +134,7 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("event", e.Event.fields())
 	fields.maybeSetMapStr("url", e.URL.fields())
 	fields.maybeSetMapStr("session", e.Session.fields())
+	fields.maybeSetMapStr("processor", e.Processor.fields())
 	fields.maybeSetString("message", e.Message)
 	return event
 }

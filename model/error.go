@@ -27,13 +27,13 @@ var (
 	errorTransformations   = monitoring.NewInt(errorMetrics, "transformations")
 	errorStacktraceCounter = monitoring.NewInt(errorMetrics, "stacktraces")
 	errorFrameCounter      = monitoring.NewInt(errorMetrics, "frames")
-	errorProcessorEntry    = common.MapStr{"name": errorProcessorName, "event": errorDocType}
+
+	// ErrorProcessor is the Processor value that should be assigned to error events.
+	ErrorProcessor = Processor{Name: "error", Event: "error"}
 )
 
 const (
-	errorProcessorName = "error"
-	errorDocType       = "error"
-	ErrorsDataset      = "apm.error"
+	ErrorsDataset = "apm.error"
 )
 
 type Error struct {
@@ -86,7 +86,7 @@ func (e *Error) fields() common.MapStr {
 		addStacktraceCounter(e.Log.Stacktrace)
 	}
 
-	fields := mapStr{"processor": errorProcessorEntry}
+	var fields mapStr
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
 	}
