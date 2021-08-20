@@ -93,6 +93,7 @@
             "ip": "10.0.0.13",
             "name": "host01"
         },
+        "message": "Retrying GetDriver after error",
         "observer": {
             "ephemeral_id": "97a0be74-0ec2-433d-b3f4-8853ae5504c4",
             "hostname": "goat",
@@ -159,6 +160,7 @@
             "ip": "10.0.0.13",
             "name": "host01"
         },
+        "message": "Retrying GetDriver after error",
         "observer": {
             "ephemeral_id": "97a0be74-0ec2-433d-b3f4-8853ae5504c4",
             "hostname": "goat",
@@ -225,6 +227,7 @@
             "ip": "10.0.0.13",
             "name": "host01"
         },
+        "message": "Retrying GetDriver after error",
         "observer": {
             "ephemeral_id": "97a0be74-0ec2-433d-b3f4-8853ae5504c4",
             "hostname": "goat",
