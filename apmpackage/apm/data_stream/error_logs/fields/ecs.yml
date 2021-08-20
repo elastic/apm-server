@@ -212,6 +212,9 @@
     - object_type: boolean
     - object_type: scaled_float
       scaling_factor: 1000000
+- name: message
+  type: text
+  description: The original error message.
 - name: observer
   type: group
   fields:

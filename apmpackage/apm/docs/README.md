@@ -663,6 +663,7 @@ Logs are written to `logs-apm.error.*` indices.
 |kubernetes.pod.name|Kubernetes pod name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |kubernetes.pod.uid|Kubernetes Pod UID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |labels|A flat mapping of user-defined labels with string, boolean or number values.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|message|The original error message.|text|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |network.carrier.icc|ISO country code, eg. US|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |network.carrier.mcc|Mobile country code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |network.carrier.mnc|Mobile network code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -770,6 +771,7 @@ Logs are written to `logs-apm.error.*` indices.
     "tag1": "one",
     "tag2": 2
   },
+  "message": "Cannot read property 'baz' of undefined",
   "observer": {
     "ephemeral_id": "f1838cde-80dd-4af5-b7ac-ffc2d3fccc9d",
     "hostname": "ix.lan",

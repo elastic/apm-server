@@ -56,6 +56,7 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"Destination",
 		"ECSVersion",
 		"Kubernetes",
+		"Message",
 		"Network",
 		"Observer",
 		"Process",
