@@ -43,219 +43,99 @@ policy_templates:
         vars:
           - name: host
             type: text
-            title: Host
-            required: true
-            show_user: true
             default: localhost:8200
           - name: url
             type: text
-            title: URL
-            required: true
-            show_user: true
             default: http://localhost:8200
           - name: secret_token
             type: text
-            title: Secret token for Agent authentication
-            required: false
-            show_user: true
           - name: api_key_enabled
             type: bool
-            title: API Key for Agent authentication
-            description: Enable API Key auth between APM Server and APM Agents.
-            required: false
-            show_user: true
             default: false
           - name: enable_rum
             type: bool
-            title: Enable RUM
-            description: Enable Real User Monitoring (RUM).
-            required: true
-            show_user: true
             default: true
           - name: anonymous_enabled
             type: bool
-            title: Anonymous Agent access
-            description: Enable anonymous access to APM Server for select APM Agents.
-            required: false
-            show_user: true
             default: true
           - name: anonymous_allow_agent
             type: text
-            title: Anonymous Agent access - allowed agents
-            description: Allowed agent names for anonymous access.
             multi: true
-            required: false
-            show_user: false
             default: ['rum-js', 'js-base', 'iOS/swift']
           - name: anonymous_allow_service
             type: text
-            title: Anonymous Agent access - allowed services
-            description: Allowed service names for anonymous access.
             multi: true
-            required: false
-            show_user: false
           - name: anonymous_rate_limit_event_limit
             type: integer
-            title: Anonymous Agent access - event rate limit (event limit)
-            description: Maximum number of events per client IP per second.
-            required: false
-            show_user: false
             default: 10
           - name: anonymous_rate_limit_ip_limit
             type: integer
-            title: Anonymous Agent access - rate limit (IP limit)
-            description: Number of unique client IPs for which a distinct rate limit will be maintained.
-            required: false
-            show_user: false
             default: 10000
           - name: default_service_environment
             type: text
-            title: Default Service Environment
-            description: Default service environment to record in events which have no service environment defined.
-            required: false
-            show_user: false
           - name: rum_allow_origins
             type: text
-            title: RUM - Origin Headers
-            description: Allowed Origin headers to be sent by User Agents.
             multi: true
-            required: false
-            show_user: false
             default: ['"*"']
           - name: rum_allow_headers
             type: text
-            title: RUM - Access-Control-Allow-Headers
-            description: Supported Access-Control-Allow-Headers in addition to "Content-Type", "Content-Encoding" and "Accept".
             multi: true
-            required: false
-            show_user: false
           - name: rum_response_headers
             type: yaml
-            title: RUM - Custom HTTP response headers
-            description: Added to RUM responses, e.g. for security policy compliance.
-            required: false
-            show_user: false
           - name: rum_library_pattern
             type: text
-            title: RUM - Library Frame Pattern
-            description: Identify library frames by matching a stacktrace frame's `file_name` and `abs_path` against this regexp.
-            required: false
-            show_user: false
             default: '"node_modules|bower_components|~"'
           - name: rum_exclude_from_grouping
             type: text
-            title: RUM - Exclude from grouping
-            description: Exclude stacktrace frames from error group calculations by matching a stacktrace frame's `file_name` against this regexp.
-            required: false
-            show_user: false
             default: '"^/webpack"'
           - name: api_key_limit
             type: integer
-            title: Maximum number of API Keys for Agent authentication
-            description: Restrict number of unique API Keys per minute, used for auth between APM Agents and Server.
-            required: false
-            show_user: false
             default: 100
           - name: max_event_bytes
             type: integer
-            title: Maximum size per event (bytes)
-            required: false
-            show_user: false
             default: 307200
           - name: capture_personal_data
             type: bool
-            title: Capture personal data
-            description: Capture personal data such as IP or User Agent.
-            required: false
-            show_user: false
             default: true
           - name: max_header_bytes
             type: integer
-            title: Maximum size of a request's header (bytes)
-            required: false
-            show_user: false
             default: 1048576
           - name: idle_timeout
             type: text
-            title: Idle time before underlying connection is closed
-            required: false
-            show_user: false
             default: "45s"
           - name: read_timeout
             type: text
-            title: Maximum duration for reading an entire request
-            required: false
-            show_user: false
             default: "3600s"
           - name: shutdown_timeout
             type: text
-            title: Maximum duration before releasing resources when shutting down
-            required: false
-            show_user: false
             default: "30s"
           - name: write_timeout
             type: text
-            title: Maximum duration for writing a response
-            required: false
-            show_user: false
             default: "30s"
           - name: max_connections
             type: integer
-            title: Simultaneously accepted connections
-            description: 0 for unlimited
-            required: false
-            show_user: false
             default: 0
           - name: response_headers
             type: yaml
-            title: Custom HTTP headers added to HTTP responses
-            description: Might be used for security policy compliance.
-            required: false
-            show_user: false
           - name: expvar_enabled
             type: bool
-            title: Enable APM Server Golang expvar support
-            description: exposed under /debug/vars
-            required: false
-            show_user: false
             default: false
           - name: tls_enabled
             type: bool
-            title: Enable TLS
-            required: false
-            show_user: false
             default: false
           - name: tls_certificate
             type: text
-            title: File path to server certificate
-            description: Required when TLS is enabled.
-            required: false
-            show_user: false
           - name: tls_key
             type: text
-            title: File path to server certificate key
-            description: Required when TLS is enabled.
-            required: false
-            show_user: false
           - name: tls_supported_protocols
             type: text
             multi: true
-            title: Supported protocol versions
-            required: false
-            show_user: false
           - name: tls_cipher_suites
             type: text
             multi: true
-            title: Cipher suites for TLS connections.
-            description: Not configurable for TLS 1.3.
-            required: false
-            show_user: false
           - name: tls_curve_types
             type: text
             multi: true
-            title: Curve types for ECDHE based cipher suites
-            required: false
-            show_user: false
         template_path: template.yml.hbs
 owner:
   github: elastic/apm-server
