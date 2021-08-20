@@ -19,7 +19,6 @@ package model
 
 import (
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 const (
@@ -28,9 +27,6 @@ const (
 )
 
 var (
-	metricsetMetrics         = monitoring.Default.NewRegistry("apm-server.processor.metric")
-	metricsetTransformations = monitoring.NewInt(metricsetMetrics, "transformations")
-
 	// MetricsetProcessor is the Processor value that should be assigned to metricset events.
 	MetricsetProcessor = Processor{Name: "metric", Event: "metric"}
 )
@@ -138,8 +134,6 @@ type MetricsetSpan struct {
 }
 
 func (me *Metricset) fields() common.MapStr {
-	metricsetTransformations.Inc()
-
 	var fields mapStr
 	fields.maybeSetMapStr("transaction", me.Transaction.fields())
 	fields.maybeSetMapStr("span", me.Span.fields())

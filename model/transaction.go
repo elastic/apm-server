@@ -19,7 +19,6 @@ package model
 
 import (
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/utility"
 )
@@ -29,9 +28,6 @@ const (
 )
 
 var (
-	transactionMetrics         = monitoring.Default.NewRegistry("apm-server.processor.transaction")
-	transactionTransformations = monitoring.NewInt(transactionMetrics, "transformations")
-
 	// TransactionProcessor is the Processor value that should be assigned to transaction events.
 	TransactionProcessor = Processor{Name: "transaction", Event: "transaction"}
 )
@@ -68,8 +64,6 @@ type SpanCount struct {
 }
 
 func (e *Transaction) fields() common.MapStr {
-	transactionTransformations.Inc()
-
 	var fields mapStr
 	var parent, trace mapStr
 	parent.maybeSetString("id", e.ParentID)

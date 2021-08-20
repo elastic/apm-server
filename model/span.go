@@ -19,17 +19,11 @@ package model
 
 import (
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/utility"
 )
 
 var (
-	spanMetrics           = monitoring.Default.NewRegistry("apm-server.processor.span")
-	spanTransformations   = monitoring.NewInt(spanMetrics, "transformations")
-	spanStacktraceCounter = monitoring.NewInt(spanMetrics, "stacktraces")
-	spanFrameCounter      = monitoring.NewInt(spanMetrics, "frames")
-
 	// SpanProcessor is the Processor value that should be assigned to span events.
 	SpanProcessor = Processor{Name: "transaction", Event: "span"}
 )
@@ -131,12 +125,6 @@ func (c *Composite) fields() common.MapStr {
 }
 
 func (e *Span) fields(apmEvent *APMEvent) common.MapStr {
-	spanTransformations.Inc()
-	if frames := len(e.Stacktrace); frames > 0 {
-		spanStacktraceCounter.Inc()
-		spanFrameCounter.Add(int64(frames))
-	}
-
 	var fields mapStr
 	var trace, transaction, parent mapStr
 	if trace.maybeSetString("id", e.TraceID) {
