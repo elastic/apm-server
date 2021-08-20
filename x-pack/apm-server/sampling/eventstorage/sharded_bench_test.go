@@ -24,7 +24,7 @@ func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		transaction := &model.APMEvent{
-			Transaction: &model.Transaction{TraceID: traceID, ID: traceID},
+			Transaction: &model.Transaction{ID: traceID},
 		}
 		for pb.Next() {
 			if err := sharded.WriteTraceEvent(traceID, traceID, transaction); err != nil {
@@ -48,9 +48,7 @@ func BenchmarkShardedWriteTransactionContended(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		transactionID := uuid.Must(uuid.NewV4()).String()
 		transaction := &model.APMEvent{
-			Transaction: &model.Transaction{
-				TraceID: traceID, ID: transactionID,
-			},
+			Transaction: &model.Transaction{ID: transactionID},
 		}
 		for pb.Next() {
 			if err := sharded.WriteTraceEvent(traceID, transactionID, transaction); err != nil {

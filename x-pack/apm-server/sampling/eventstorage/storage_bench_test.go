@@ -28,7 +28,7 @@ func BenchmarkWriteTransaction(b *testing.B) {
 		traceID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
 		transactionID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8})
 		transaction := &model.APMEvent{
-			Transaction: &model.Transaction{TraceID: traceID, ID: transactionID},
+			Transaction: &model.Transaction{ID: transactionID},
 		}
 
 		b.ResetTimer()
@@ -69,8 +69,7 @@ func BenchmarkReadEvents(b *testing.B) {
 					transactionID := uuid.Must(uuid.NewV4()).String()
 					transaction := &model.APMEvent{
 						Transaction: &model.Transaction{
-							TraceID: traceID,
-							ID:      transactionID,
+							ID: transactionID,
 						},
 					}
 					if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {

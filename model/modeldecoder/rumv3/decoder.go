@@ -173,7 +173,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 		span := input.Base
 		mapToSpanModel(&s, &span)
 		span.Span.TransactionID = transaction.Transaction.ID
-		span.Span.TraceID = transaction.Transaction.TraceID
+		span.Trace = transaction.Trace
 		*batch = append(*batch, span)
 	}
 	spans := (*batch)[offset:]
@@ -277,7 +277,7 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 		event.Timestamp = from.Timestamp.Val
 	}
 	if from.TraceID.IsSet() {
-		out.TraceID = from.TraceID.Val
+		event.Trace.ID = from.TraceID.Val
 	}
 	if from.Transaction.Sampled.IsSet() {
 		val := from.Transaction.Sampled.Val
@@ -800,7 +800,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 		out.SpanCount.Started = &started
 	}
 	if from.TraceID.IsSet() {
-		out.TraceID = from.TraceID.Val
+		event.Trace.ID = from.TraceID.Val
 	}
 	if from.Type.IsSet() {
 		out.Type = from.Type.Val

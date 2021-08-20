@@ -41,7 +41,6 @@ type Span struct {
 	TransactionID string
 	ParentID      string
 	ChildIDs      []string
-	TraceID       string
 
 	Message    *Message
 	Name       string
@@ -141,10 +140,7 @@ func (e *Span) fields(apmEvent *APMEvent) common.MapStr {
 
 	fields := mapStr{"processor": spanProcessorEntry}
 
-	var trace, transaction, parent mapStr
-	if trace.maybeSetString("id", e.TraceID) {
-		fields.set("trace", common.MapStr(trace))
-	}
+	var transaction, parent mapStr
 	if transaction.maybeSetString("id", e.TransactionID) {
 		fields.set("transaction", common.MapStr(transaction))
 	}
