@@ -179,7 +179,6 @@
             "id": "85925e55b43f4341",
             "name": "GET /api/types",
             "result": "200",
-            "sampled": false,
             "span_count": {
                 "started": 0
             },

@@ -153,7 +153,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		exceptions := func(key string) bool {
 			// All the below exceptions are tested separately
 			switch key {
-			case "HTTP.Request.Headers", "HTTP.Response.Headers", "Experimental", "RepresentativeCount":
+			case "HTTP.Request.Headers", "HTTP.Response.Headers", "Experimental", "RepresentativeCount", "Root":
 				return true
 			}
 			return false

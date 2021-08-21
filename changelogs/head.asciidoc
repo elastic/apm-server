@@ -12,6 +12,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 - Removed unused stacktrace/frame monitoring counters {pull}5984[5984]
 - Removed unused support for top-level metricsets and metricset tags for RUMv3 {pull}6065[6065]
 - Removed `apm-server.mode` configuration, and "experimental" fields {pull}6086[6086]
+- `transaction.sampled` is now only set for sampled transactions {pull}6066[6066]
 
 [float]
 ==== Bug fixes
