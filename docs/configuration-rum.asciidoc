@@ -101,6 +101,16 @@ custom values configured here are appended to the default list and used as the v
 Default: `[]`
 
 [float]
+[[rum-response-headers]]
+==== `response_headers`
+Custom HTTP headers to add to RUM responses.
+This can be useful for security policy compliance.
+
+Values set for the same key will be concatenated.
+
+Default: Not set
+
+[float]
 [[rum-library-pattern]]
 ==== `library_pattern`
 RegExp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
