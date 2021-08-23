@@ -7,11 +7,9 @@ pipeline {
   environment {
     BASE_DIR = 'src'
     PIPELINE_LOG_LEVEL = 'INFO'
-    VERSION = "${params.VERSION}"
     HOME = "${WORKSPACE}"
     // This limits ourselves to just the APM tests
     ANSIBLE_EXTRA_FLAGS = "--tags apm-server"
-    APM_URL_BASE = "${params.APM_URL_BASE}"
     LANG = "C.UTF-8"
     LC_ALL = "C.UTF-8"
     PYTHONUTF8 = "1"
@@ -54,6 +52,9 @@ pipeline {
               setEnvVar('APM_URL_BASE', params.get('APM_URL_BASE', 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots'))
               setEnvVar('VERSION', params.get('VERSION', '8.0.0-SNAPSHOT'))
             }
+          } else {
+            setEnvVar('APM_URL_BASE', params.get('APM_URL_BASE'))
+            setEnvVar('VERSION', params.get('VERSION'))
           }
         }
         gitCheckout(basedir: "${BASE_DIR}", repo: 'git@github.com:elastic/beats-tester.git', branch: 'master', credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba')
