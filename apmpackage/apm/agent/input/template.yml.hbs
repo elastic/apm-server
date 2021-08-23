@@ -49,15 +49,15 @@ apm-server:
         certificate: {{tls_certificate}}
         key: {{tls_key}}
         key_passphrase: {{tls_key_passphrase}}
-        supported_protocols: {{tls_supported_protocols}}
+        supported_protocols:
         {{#each tls_supported_protocols}}
           - {{this}}
         {{/each}}
-        cipher_suites: {{tls_cipher_suites}}
+        cipher_suites:
         {{#each tls_cipher_suites}}
           - {{this}}
         {{/each}}
-        curve_types: {{tls_curve_types}}
+        curve_types:
         {{#each tls_curve_types}}
           - {{this}}
         {{/each}}
