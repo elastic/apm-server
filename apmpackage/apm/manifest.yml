@@ -130,6 +130,7 @@ policy_templates:
           - name: tls_supported_protocols
             type: text
             multi: true
+            default: ["TLSv1.0", "TLSv1.1", "TLSv1.2"]
           - name: tls_cipher_suites
             type: text
             multi: true
