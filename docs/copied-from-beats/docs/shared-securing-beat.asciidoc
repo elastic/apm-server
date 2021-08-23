@@ -44,18 +44,19 @@ endif::[]
 
 --
 
-// APM privileges
 ifdef::apm-server[]
+// APM privileges
 include::{docdir}/feature-roles.asciidoc[]
+// APM API keys
+include::{docdir}/api-keys.asciidoc[]
 endif::[]
 
-// Beat privileges
 ifndef::apm-server[]
+// Beat privileges
 include::./security/users.asciidoc[]
-endif::[]
-
-// API Keys
+// Beat API keys
 include::./security/api-keys.asciidoc[]
+endif::[]
 
 // APM Agent security
 ifdef::apm-server[]
