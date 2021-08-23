@@ -54,8 +54,6 @@ make sure <<ssl-setup,SSL/TLS>> is enabled, then complete these steps:
 . <<create-api-key,Create an API key in {kib}>>
 . <<set-api-key,Set the API key in your APM agents>>
 
-NOTE: API Keys
-
 [[configure-api-key]]
 [float]
 === Enable and configure API keys

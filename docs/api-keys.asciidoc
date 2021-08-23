@@ -14,11 +14,9 @@ API key. For different clusters, you need to use an API key per cluster.
 NOTE: For security reasons, we recommend using a unique API key per {beatname_uc} instance.
 You can create as many API keys per user as necessary.
 
-IMPORTANT: Review <<feature-roles>> before creating API keys for {beatname_uc}.
-
 [float]
 [[beats-api-key-publish]]
-=== Create an API key for publishing
+=== Create an API key for writing events
 
 In {kib}, navigate to **Stack Management** > **API keys** and click **Create API key**.
 
@@ -26,27 +24,28 @@ In {kib}, navigate to **Stack Management** > **API keys** and click **Create API
 image::images/server-api-key-create.png[API key creation]
 
 Enter a name for your API key and select **Restrict privileges**.
-In the role descriptors box, assign the appropriate privileges to the new API key.
-For example:
+In the role descriptors box, assign the appropriate privileges to the new API key. For example:
 
 [source,json,subs="attributes,callouts"]
 ----
 {
     "{beat_default_index_prefix}_writer": {
-        "cluster": ["monitor", "read_ilm"], <1>
-        "index": [ <2>
+        "index": [
             {
                 "names": ["{beat_default_index_prefix}-*"],
-                "privileges": ["view_index_metadata", "create_doc"]
-            }
+                "privileges": ["create_index", "create_doc"]
+            },
+            {
+                "names": ["{beat_default_index_prefix}-*sourcemap"],
+                "privileges": ["read"]
+            },
       ]
     }
 }
 ----
-<1> Defines cluster-level privileges
-<2> Defines index-level privileges
 
-NOTE: See <<privileges-to-publish-events>> for the list of privileges required to publish events.
+NOTE: This example only provides privileges for **writing data**.
+See <<feature-roles>> for additional privileges and information.
 
 To set an expiration date for the API key, select **Expire after time**
 and input the lifetime of the API key in days.
@@ -79,20 +78,18 @@ For example:
 ----
 {
     "{beat_default_index_prefix}_monitoring": {
-        "cluster": ["monitor"], <1>
-        "index": [ <2>
+        "index": [
             {
                 "names": [".monitoring-beats-*"],
-                "privileges": ["create_index", "create"]
+                "privileges": ["create_index", "create_doc"]
             }
       ]
     }
 }
 ----
-<1> Defines cluster-level privileges
-<2> Defines index-level privileges
 
-NOTE: See <<privileges-to-publish-monitoring>> for the list of privileges required to send monitoring data.
+NOTE: This example only provides privileges for **publishing monitoring data**.
+See <<feature-roles>> for additional privileges and information.
 
 To set an expiration date for the API key, select **Expire after time**
 and input the lifetime of the API key in days.
@@ -122,12 +119,15 @@ POST /_security/api_key
   "name": "{beat_default_index_prefix}_host001", <1>
   "role_descriptors": {
     "{beat_default_index_prefix}_writer": { <2>
-      "cluster": ["monitor", "read_ilm"],
       "index": [
         {
           "names": ["{beat_default_index_prefix}-*"],
-          "privileges": ["view_index_metadata", "create_doc"]
-        }
+          "privileges": ["create_index", "create_doc"]
+        },
+        {
+          "names": ["{beat_default_index_prefix}-*sourcemap"],
+          "privileges": ["read"]
+        },
       ]
     }
   }
