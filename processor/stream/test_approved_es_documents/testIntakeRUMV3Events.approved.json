@@ -483,6 +483,13 @@
             "event": {
                 "outcome": "unknown"
             },
+            "http": {
+                "response": {
+                    "decoded_body_size": 676864,
+                    "encoded_body_size": 676864,
+                    "transfer_size": 677175
+                }
+            },
             "labels": {
                 "testTagKey": "testTagValue"
             },

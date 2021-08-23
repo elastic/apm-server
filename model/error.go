@@ -35,7 +35,6 @@ type Error struct {
 
 	GroupingKey string
 	Culprit     string
-	HTTP        *HTTP
 	Custom      common.MapStr
 
 	Exception *Exception
@@ -63,10 +62,6 @@ type Log struct {
 }
 
 func (e *Error) setFields(fields *mapStr) {
-	if e.HTTP != nil {
-		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
-	}
-
 	var errorFields mapStr
 	errorFields.maybeSetString("id", e.ID)
 	exceptionChain := flattenExceptionTree(e.Exception)

@@ -154,8 +154,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			// All the below exceptions are tested separately
 			switch key {
 			case
-				"HTTP.Request.Headers",
-				"HTTP.Response.Headers",
+				// Tested separately
 				"RepresentativeCount",
 
 				// Not set for transaction events, tested in metricset decoding:
@@ -206,8 +205,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out model.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.Transaction.HTTP.Request.Headers)
-		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.Transaction.HTTP.Response.Headers)
+		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
+		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.HTTP.Response.Headers)
 	})
 
 	t.Run("http-request-body", func(t *testing.T) {
@@ -219,7 +218,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		})
 		var out model.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, map[string]interface{}{"a": common.Float(123.456), "c": "d"}, out.Transaction.HTTP.Request.Body)
+		assert.Equal(t, map[string]interface{}{"a": common.Float(123.456), "c": "d"}, out.HTTP.Request.Body)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {
@@ -235,7 +234,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var out model.APMEvent
 		input.Context.Page.Referer.Set("https://my.site.test:9201")
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, "https://my.site.test:9201", out.Transaction.HTTP.Request.Referrer)
+		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referrer)
 	})
 
 	t.Run("sample-rate", func(t *testing.T) {

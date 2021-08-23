@@ -66,7 +66,6 @@ type Transaction struct {
 	Marks          TransactionMarks
 	Message        *Message
 	SpanCount      SpanCount
-	HTTP           *HTTP
 	Custom         common.MapStr
 	UserExperience *UserExperience
 
@@ -88,10 +87,6 @@ type SpanCount struct {
 }
 
 func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
-	if e.HTTP != nil {
-		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
-	}
-
 	var transaction mapStr
 	if apmEvent.Processor == TransactionProcessor {
 		// TODO(axw) set `event.duration` in 8.0, and remove this field.
