@@ -79,6 +79,17 @@ type: long
 
 --
 
+*`message`*::
++
+--
+The original error message.
+
+type: text
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 [float]
 === url
 
