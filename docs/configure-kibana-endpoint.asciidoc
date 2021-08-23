@@ -21,11 +21,13 @@ apm-server.kibana.host: "http://localhost:5601"
 [float]
 === Considerations
 
-* If your setup uses a <<config-secret-token>> for Agent/Server communication,
+* If your setup uses a <<config-secret-token,secret token>> for Agent/Server communication,
 the same token is used to secure this endpoint.
 * It's important to still set relevant defaults locally in each Agent's configuration.
 If APM Server is unreachable, slow to respond, returns an error, etc.,
 defaults set in the agent will apply according to their precedence.
+* APM Server needs sufficient Kibana privileges to manage central configuration.
+See <<privileges-agent-central-config>> for a list of required privileges.
 
 [float]
 === Kibana endpoint configuration options
