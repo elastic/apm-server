@@ -22,6 +22,11 @@
             Timestamp of the event in microseconds since Unix epoch.
           overwrite: true
 
+    - name: message
+      type: text
+      description: The original error message.
+      overwrite: true
+
     - name: url
       type: group
       description: >
