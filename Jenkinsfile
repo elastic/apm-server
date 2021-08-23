@@ -497,6 +497,12 @@ pipeline {
                   sharedPublicly: true,
                   showInline: true)
 
+                // Disable caching
+                gsutil(
+                    command: "-h 'Cache-Control:public, max-age=0' ${BUCKET_URI}",
+                    credentialsId: "${JOB_GCS_CREDENTIALS}",
+                )
+
                 // Copy those files to another location with the sha commit to test them afterward.
                 googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}",
                   credentialsId: "${JOB_GCS_CREDENTIALS}",
@@ -504,6 +510,12 @@ pipeline {
                   pattern: "${BASE_DIR}/build/distributions/**/*",
                   sharedPublicly: true,
                   showInline: true)
+
+                // Disable caching
+                gsutil(
+                    command: "-h 'Cache-Control:public, max-age=0' gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}",
+                    credentialsId: "${JOB_GCS_CREDENTIALS}",
+                )
               }
             }
           }
