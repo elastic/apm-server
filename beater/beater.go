@@ -476,6 +476,7 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 		modelprocessor.SetServiceNodeName{},
 		modelprocessor.SetMetricsetName{},
 		modelprocessor.SetGroupingKey{},
+		modelprocessor.SetErrorMessage{},
 		newObserverBatchProcessor(s.beat.Info),
 		model.ProcessBatchFunc(ecsVersionBatchProcessor),
 	}

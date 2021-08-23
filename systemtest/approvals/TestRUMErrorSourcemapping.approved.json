@@ -259,6 +259,7 @@
                     "referrer": "http://localhost:8000/test/e2e/"
                 }
             },
+            "message": "Uncaught Error: log timeout test error",
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
