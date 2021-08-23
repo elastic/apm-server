@@ -40,6 +40,7 @@ pipeline {
         script {
           if(isUpstreamTrigger()) {
             try {
+              log(level: 'INFO', text: "Started by upstream pipeline. Read 'beats-tester.properties'.")
               copyArtifacts(filter: 'beats-tester.properties',
                             flatten: true,
                             projectName: "apm-server/apm-server-mbp/${env.JOB_BASE_NAME}",
@@ -48,11 +49,12 @@ pipeline {
               setEnvVar('APM_URL_BASE', props.get('APM_URL_BASE', ''))
               setEnvVar('VERSION', props.get('VERSION', '8.0.0-SNAPSHOT'))
             } catch(err) {
-              // Fallback to the head of the branch as used to be.
+              log(level: 'WARN', text: "copyArtifacts failed. Fallback to the head of the branch as used to be.")
               setEnvVar('APM_URL_BASE', params.get('APM_URL_BASE', 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots'))
               setEnvVar('VERSION', params.get('VERSION', '8.0.0-SNAPSHOT'))
             }
           } else {
+            log(level: 'INFO', text: "No started by upstream pipeline. Fallback to the head of the branch as used to be.")
             setEnvVar('APM_URL_BASE', params.get('APM_URL_BASE'))
             setEnvVar('VERSION', params.get('VERSION'))
           }
