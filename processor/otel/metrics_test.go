@@ -164,6 +164,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Agent:     agent,
 		Service:   service,
 		Timestamp: timestamp0,
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"int_gauge_metric": {Value: 1, Type: "gauge"},
@@ -186,6 +187,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Agent:     agent,
 		Service:   service,
 		Timestamp: timestamp1,
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"int_gauge_metric": {Value: 3, Type: "gauge"},
@@ -197,6 +199,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Service:   service,
 		Labels:    common.MapStr{"k": "v"},
 		Timestamp: timestamp1,
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"int_gauge_metric": {Value: 2, Type: "gauge"},
@@ -210,6 +213,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Service:   service,
 		Labels:    common.MapStr{"k": "v2"},
 		Timestamp: timestamp1,
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"int_gauge_metric": {Value: 4, Type: "gauge"},
@@ -221,6 +225,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Service:   service,
 		Labels:    common.MapStr{"k2": "v"},
 		Timestamp: timestamp1,
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"int_sum_metric": {Value: 11, Type: "counter"},
@@ -270,6 +275,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Agent:     agent,
 		Service:   service,
 		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"jvm.memory.heap.used": {
@@ -283,6 +289,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Service:   service,
 		Labels:    common.MapStr{"gc": "G1 Young Generation"},
 		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"runtime.jvm.gc.time": {
@@ -300,6 +307,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Service:   service,
 		Labels:    common.MapStr{"name": "G1 Young Generation"},
 		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"jvm.gc.time": {
@@ -317,6 +325,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Service:   service,
 		Labels:    common.MapStr{"area": "heap", "type": "used"},
 		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"runtime.jvm.memory.area": {

@@ -24,15 +24,11 @@ import (
 )
 
 const (
-	profileProcessorName = "profile"
-	profileDocType       = "profile"
-	ProfilesDataset      = "apm.profiling"
+	ProfilesDataset = "apm.profiling"
 )
 
-var profileProcessorEntry = common.MapStr{
-	"name":  profileProcessorName,
-	"event": profileDocType,
-}
+// ProfileProcessor is the Processor value that should be assigned to profile events.
+var ProfileProcessor = Processor{Name: "profile", Event: "profile"}
 
 // ProfileSample holds a profiling sample.
 type ProfileSample struct {
@@ -78,8 +74,5 @@ func (p *ProfileSample) fields() common.MapStr {
 		profileFields.set(k, v)
 	}
 
-	return common.MapStr{
-		"processor":    profileProcessorEntry,
-		profileDocType: common.MapStr(profileFields),
-	}
+	return common.MapStr{"profile": common.MapStr(profileFields)}
 }

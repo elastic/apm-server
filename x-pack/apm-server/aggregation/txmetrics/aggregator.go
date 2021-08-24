@@ -239,7 +239,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 // included in the same batch.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	for _, event := range *b {
-		if event.Transaction == nil {
+		if event.Processor != model.TransactionProcessor {
 			continue
 		}
 		if metricsetEvent := a.AggregateTransaction(event); metricsetEvent.Metricset != nil {
@@ -384,6 +384,7 @@ func makeMetricset(
 		Event: model.Event{
 			Outcome: key.eventOutcome,
 		},
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name: metricsetName,
 			Transaction: model.MetricsetTransaction{
