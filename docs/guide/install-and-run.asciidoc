@@ -1,9 +1,6 @@
 [[install-and-run]]
 == Quick start guide
 
-// Make tab-widgets work
-include::../tab-widgets/code.asciidoc[]
-
 This guide describes how to get started quickly with Elastic APM. You’ll learn how to:
 
 * Spin up {es}, {kib}, and APM Server on {ess}
