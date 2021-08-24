@@ -19,21 +19,15 @@ package model
 
 import (
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 var (
-	errorMetrics           = monitoring.Default.NewRegistry("apm-server.processor.error")
-	errorTransformations   = monitoring.NewInt(errorMetrics, "transformations")
-	errorStacktraceCounter = monitoring.NewInt(errorMetrics, "stacktraces")
-	errorFrameCounter      = monitoring.NewInt(errorMetrics, "frames")
-	errorProcessorEntry    = common.MapStr{"name": errorProcessorName, "event": errorDocType}
+	// ErrorProcessor is the Processor value that should be assigned to error events.
+	ErrorProcessor = Processor{Name: "error", Event: "error"}
 )
 
 const (
-	errorProcessorName = "error"
-	errorDocType       = "error"
-	ErrorsDataset      = "apm.error"
+	ErrorsDataset = "apm.error"
 )
 
 type Error struct {
@@ -76,16 +70,7 @@ type Log struct {
 }
 
 func (e *Error) fields() common.MapStr {
-	errorTransformations.Inc()
-
-	if e.Exception != nil {
-		addStacktraceCounter(e.Exception.Stacktrace)
-	}
-	if e.Log != nil {
-		addStacktraceCounter(e.Log.Stacktrace)
-	}
-
-	fields := mapStr{"processor": errorProcessorEntry}
+	var fields mapStr
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
 	}
@@ -159,13 +144,6 @@ func (e *Error) logFields() common.MapStr {
 		log.set("stacktrace", st)
 	}
 	return common.MapStr(log)
-}
-
-func addStacktraceCounter(st Stacktrace) {
-	if frames := len(st); frames > 0 {
-		errorStacktraceCounter.Inc()
-		errorFrameCounter.Add(int64(frames))
-	}
 }
 
 // flattenExceptionTree recursively traverses the causes of an exception to return a slice of exceptions.

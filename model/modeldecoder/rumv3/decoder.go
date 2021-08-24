@@ -161,20 +161,20 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	*batch = append(*batch, transaction)
 
 	for _, m := range root.Transaction.Metricsets {
-		metricset := input.Base
-		mapToMetricsetModel(&m, &metricset)
-		metricset.Metricset.Transaction.Name = transaction.Transaction.Name
-		metricset.Metricset.Transaction.Type = transaction.Transaction.Type
-		*batch = append(*batch, metricset)
+		event := input.Base
+		mapToMetricsetModel(&m, &event)
+		event.Metricset.Transaction.Name = transaction.Transaction.Name
+		event.Metricset.Transaction.Type = transaction.Transaction.Type
+		*batch = append(*batch, event)
 	}
 
 	offset := len(*batch)
 	for _, s := range root.Transaction.Spans {
-		span := input.Base
-		mapToSpanModel(&s, &span)
-		span.Span.TransactionID = transaction.Transaction.ID
-		span.Trace = transaction.Trace
-		*batch = append(*batch, span)
+		event := input.Base
+		mapToSpanModel(&s, &event)
+		event.Span.TransactionID = transaction.Transaction.ID
+		event.Trace = transaction.Trace
+		*batch = append(*batch, event)
 	}
 	spans := (*batch)[offset:]
 	for i, s := range root.Transaction.Spans {
@@ -190,6 +190,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 	out := &model.Error{}
 	event.Error = out
+	event.Processor = model.ErrorProcessor
 
 	// overwrite metadata with event specific information
 	mapToServiceModel(from.Context.Service, &event.Service)
@@ -391,6 +392,7 @@ func mapToMetadataModel(m *metadata, out *model.APMEvent) {
 func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 	out := &model.Metricset{}
 	event.Metricset = out
+	event.Processor = model.MetricsetProcessor
 
 	// map samples information
 	if from.Samples.IsSet() {
@@ -512,6 +514,7 @@ func mapToAgentModel(from contextServiceAgent, out *model.Agent) {
 func mapToSpanModel(from *span, event *model.APMEvent) {
 	out := &model.Span{}
 	event.Span = out
+	event.Processor = model.SpanProcessor
 
 	// map span specific data
 	if !from.Action.IsSet() && !from.Subtype.IsSet() {
@@ -690,6 +693,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	out := &model.Transaction{}
 	event.Transaction = out
+	event.Processor = model.TransactionProcessor
 
 	// overwrite metadata with event specific information
 	mapToServiceModel(from.Context.Service, &event.Service)

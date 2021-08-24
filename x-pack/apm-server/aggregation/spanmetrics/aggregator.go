@@ -177,7 +177,7 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	for _, event := range *b {
-		if event.Span == nil {
+		if event.Processor != model.SpanProcessor {
 			continue
 		}
 		if metricsetEvent := a.processSpan(&event); metricsetEvent.Metricset != nil {
@@ -277,6 +277,7 @@ func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics,
 		Event: model.Event{
 			Outcome: key.outcome,
 		},
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name: metricsetName,
 			Span: model.MetricsetSpan{
