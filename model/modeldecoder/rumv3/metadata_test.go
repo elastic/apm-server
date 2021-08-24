@@ -65,6 +65,7 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"Host",
 		"Event",
 		"Session",
+		"Trace",
 		"URL",
 
 		// event-specific fields

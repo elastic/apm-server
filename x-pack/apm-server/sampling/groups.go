@@ -163,7 +163,7 @@ func (g *traceGroup) sampleTrace(transactionEvent *model.APMEvent) (bool, error)
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	g.total++
-	return g.reservoir.Sample(transactionEvent.Transaction.Duration, transactionEvent.Transaction.TraceID), nil
+	return g.reservoir.Sample(transactionEvent.Transaction.Duration, transactionEvent.Trace.ID), nil
 }
 
 // finalizeSampledTraces locks the groups, appends their current trace IDs to

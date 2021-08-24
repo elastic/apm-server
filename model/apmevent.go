@@ -53,6 +53,7 @@ type APMEvent struct {
 	Network     Network
 	Session     Session
 	URL         URL
+	Trace       Trace
 
 	// Timestamp holds the event timestamp.
 	//
@@ -132,6 +133,7 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("event", e.Event.fields())
 	fields.maybeSetMapStr("url", e.URL.fields())
 	fields.maybeSetMapStr("session", e.Session.fields())
+	fields.maybeSetMapStr("trace", e.Trace.fields())
 	fields.maybeSetString("message", e.Message)
 	return event
 }

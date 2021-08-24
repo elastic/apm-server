@@ -39,6 +39,7 @@ func TestAPMEventFields(t *testing.T) {
 	outcome := "success"
 	destinationAddress := "1.2.3.4"
 	destinationPort := 1234
+	traceID := "trace_id"
 
 	for _, test := range []struct {
 		input  APMEvent
@@ -73,6 +74,7 @@ func TestAPMEventFields(t *testing.T) {
 				Message:     "bottle",
 				Transaction: &Transaction{},
 				Timestamp:   time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600)),
+				Trace:       Trace{ID: traceID},
 			},
 			output: common.MapStr{
 				// common fields
@@ -102,6 +104,9 @@ func TestAPMEventFields(t *testing.T) {
 					"c": 123,
 				},
 				"message": "bottle",
+				"trace": common.MapStr{
+					"id": traceID,
+				},
 
 				// fields related to APMEvent.Transaction
 				"processor": common.MapStr{

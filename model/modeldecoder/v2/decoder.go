@@ -334,7 +334,7 @@ func mapToErrorModel(from *errorEvent, config modeldecoder.Config, event *model.
 		event.Timestamp = from.Timestamp.Val
 	}
 	if from.TraceID.IsSet() {
-		out.TraceID = from.TraceID.Val
+		event.Trace.ID = from.TraceID.Val
 	}
 	if from.Transaction.Sampled.IsSet() {
 		val := from.Transaction.Sampled.Val
@@ -930,7 +930,7 @@ func mapToSpanModel(from *span, config modeldecoder.Config, event *model.APMEven
 		)
 	}
 	if from.TraceID.IsSet() {
-		out.TraceID = from.TraceID.Val
+		event.Trace.ID = from.TraceID.Val
 	}
 	if from.TransactionID.IsSet() {
 		out.TransactionID = from.TransactionID.Val
@@ -1126,7 +1126,7 @@ func mapToTransactionModel(from *transaction, config modeldecoder.Config, event 
 		event.Timestamp = from.Timestamp.Val
 	}
 	if from.TraceID.IsSet() {
-		out.TraceID = from.TraceID.Val
+		event.Trace.ID = from.TraceID.Val
 	}
 	if from.Type.IsSet() {
 		out.Type = from.Type.Val
