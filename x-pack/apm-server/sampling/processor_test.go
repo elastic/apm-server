@@ -37,6 +37,13 @@ func TestProcessUnsampled(t *testing.T) {
 	defer processor.Stop(context.Background())
 
 	in := model.Batch{{
+<<<<<<< HEAD
+=======
+		Processor: model.TransactionProcessor,
+		Trace: model.Trace{
+			ID: "0102030405060708090a0b0c0d0e0f10",
+		},
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 		Transaction: &model.Transaction{
 			TraceID: "0102030405060708090a0b0c0d0e0f10",
 			ID:      "0102030405060708",
@@ -77,6 +84,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	go processor.Run()
 	defer processor.Stop(context.Background())
 
+<<<<<<< HEAD
 	transaction1 := &model.Transaction{
 		TraceID: traceID1,
 		ID:      "0102030405060708",
@@ -102,16 +110,54 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 		{Span: span1},
 		{Span: span2},
 	}
+=======
+	transaction1 := model.APMEvent{
+		Processor: model.TransactionProcessor,
+		Trace:     trace1,
+		Transaction: &model.Transaction{
+			ID:      "0102030405060708",
+			Sampled: true,
+		},
+	}
+	span1 := model.APMEvent{
+		Processor: model.SpanProcessor,
+		Trace:     trace1,
+		Span: &model.Span{
+			ID: "0102030405060709",
+		},
+	}
+	transaction2 := model.APMEvent{
+		Processor: model.TransactionProcessor,
+		Trace:     trace2,
+		Transaction: &model.Transaction{
+			ID:      "0102030405060710",
+			Sampled: true,
+		},
+	}
+	span2 := model.APMEvent{
+		Processor: model.SpanProcessor,
+		Trace:     trace2,
+		Span: &model.Span{
+			ID: "0102030405060711",
+		},
+	}
+
+	batch := model.Batch{transaction1, transaction2, span1, span2}
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 	err = processor.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
 
 	// Tail sampling decision already made. The first transaction and span should be
 	// reported immediately, whereas the second ones should be written storage since
 	// they were received after the trace sampling entry expired.
+<<<<<<< HEAD
 	assert.Equal(t, model.Batch{
 		{Transaction: transaction1},
 		{Span: span1},
 	}, batch)
+=======
+	assert.Equal(t, model.Batch{transaction1, span1}, batch)
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
 	expectedMonitoring.Ints["sampling.events.processed"] = 4
@@ -133,10 +179,14 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 		err = reader.ReadTraceEvents(traceID2, &batch)
 		assert.NoError(t, err)
+<<<<<<< HEAD
 		assert.Equal(t, model.Batch{
 			{Transaction: transaction2},
 			{Span: span2},
 		}, batch)
+=======
+		assert.Equal(t, model.Batch{transaction2, span2}, batch)
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 	})
 }
 
@@ -150,6 +200,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
 
+<<<<<<< HEAD
 	traceID1 := "0102030405060708090a0b0c0d0e0f10"
 	traceID2 := "0102030405060708090a0b0c0d0e0f11"
 	trace1Events := model.Batch{
@@ -174,10 +225,42 @@ func TestProcessLocalTailSampling(t *testing.T) {
 		}},
 		{Span: &model.Span{
 			TraceID:  traceID2,
+=======
+	trace1 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f10"}
+	trace2 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f11"}
+	trace1Events := model.Batch{{
+		Processor: model.TransactionProcessor,
+		Trace:     trace1,
+		Transaction: &model.Transaction{
+			ID:       "0102030405060708",
+			Duration: 123,
+			Sampled:  true,
+		},
+	}, {
+		Processor: model.SpanProcessor,
+		Trace:     trace1,
+		Span: &model.Span{
+			ID:       "0102030405060709",
+			Duration: 123,
+		},
+	}}
+	trace2Events := model.Batch{{
+		Processor: model.TransactionProcessor,
+		Trace:     trace2,
+		Transaction: &model.Transaction{
+			ID:       "0102030405060710",
+			Duration: 456,
+			Sampled:  true,
+		},
+	}, {
+		Processor: model.SpanProcessor,
+		Trace:     trace2,
+		Span: &model.Span{
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 			ID:       "0102030405060711",
 			Duration: 456,
-		}},
-	}
+		},
+	}}
 
 	in := append(trace1Events[:], trace2Events...)
 	err = processor.ProcessBatch(context.Background(), &in)
@@ -266,6 +349,11 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		traceIDs[i] = traceID
 		batch := model.Batch{{
+<<<<<<< HEAD
+=======
+			Processor: model.TransactionProcessor,
+			Trace:     model.Trace{ID: traceID},
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 			Transaction: &model.Transaction{
 				TraceID:  traceID,
 				ID:       traceID,
@@ -330,7 +418,13 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 		_, err := rng.Read(traceIDBytes[:])
 		require.NoError(t, err)
 		events[i] = model.APMEvent{
+<<<<<<< HEAD
 			Service: service,
+=======
+			Service:   service,
+			Processor: model.TransactionProcessor,
+			Trace:     model.Trace{ID: fmt.Sprintf("%x", traceIDBytes[:])},
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 			Transaction: &model.Transaction{
 				Name:     "trace_name",
 				TraceID:  fmt.Sprintf("%x", traceIDBytes[:]),
@@ -399,6 +493,11 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	traceID1 := "0102030405060708090a0b0c0d0e0f10"
 	traceID2 := "0102030405060708090a0b0c0d0e0f11"
 	trace1Events := model.Batch{{
+<<<<<<< HEAD
+=======
+		Processor: model.SpanProcessor,
+		Trace:     model.Trace{ID: traceID1},
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 		Span: &model.Span{
 			TraceID:  traceID1,
 			ID:       "0102030405060709",
@@ -480,7 +579,13 @@ func TestGroupsMonitoring(t *testing.T) {
 
 	for i := 0; i < config.MaxDynamicServices+1; i++ {
 		err := processor.ProcessBatch(context.Background(), &model.Batch{{
+<<<<<<< HEAD
 			Service: model.Service{Name: fmt.Sprintf("service_%d", i)},
+=======
+			Service:   model.Service{Name: fmt.Sprintf("service_%d", i)},
+			Processor: model.TransactionProcessor,
+			Trace:     model.Trace{ID: uuid.Must(uuid.NewV4()).String()},
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 			Transaction: &model.Transaction{
 				TraceID:  uuid.Must(uuid.NewV4()).String(),
 				ID:       "0102030405060709",
@@ -509,6 +614,11 @@ func TestStorageMonitoring(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		batch := model.Batch{{
+<<<<<<< HEAD
+=======
+			Processor: model.TransactionProcessor,
+			Trace:     model.Trace{ID: traceID},
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 			Transaction: &model.Transaction{
 				TraceID:  traceID,
 				ID:       traceID,
@@ -553,6 +663,11 @@ func TestStorageGC(t *testing.T) {
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch := model.Batch{{
+<<<<<<< HEAD
+=======
+				Processor: model.SpanProcessor,
+				Trace:     model.Trace{ID: traceID},
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 				Span: &model.Span{
 					TraceID:  traceID,
 					ID:       traceID,

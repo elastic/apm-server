@@ -114,6 +114,11 @@ Caused by: LowLevelException
 		Service:   service,
 		Agent:     agent,
 		Timestamp: timestamp,
+<<<<<<< HEAD
+=======
+		Processor: model.ErrorProcessor,
+		Trace:     transactionEvent.Trace,
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 		Error: &model.Error{
 			TraceID:            transactionEvent.Transaction.TraceID,
 			ParentID:           transactionEvent.Transaction.ID,
@@ -161,6 +166,11 @@ Caused by: LowLevelException
 		Service:   service,
 		Agent:     agent,
 		Timestamp: timestamp,
+<<<<<<< HEAD
+=======
+		Processor: model.ErrorProcessor,
+		Trace:     transactionEvent.Trace,
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 		Error: &model.Error{
 			TraceID:            transactionEvent.Transaction.TraceID,
 			ParentID:           transactionEvent.Transaction.ID,
@@ -317,6 +327,11 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 		Service:   service,
 		Agent:     agent,
 		Timestamp: timestamp,
+<<<<<<< HEAD
+=======
+		Processor: model.ErrorProcessor,
+		Trace:     transactionEvent.Trace,
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 		Error: &model.Error{
 			TraceID:            transactionEvent.Transaction.TraceID,
 			ParentID:           transactionEvent.Transaction.ID,

@@ -73,6 +73,11 @@ func TestAPMEventFields(t *testing.T) {
 				Message:     "bottle",
 				Transaction: &Transaction{},
 				Timestamp:   time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600)),
+<<<<<<< HEAD
+=======
+				Processor:   Processor{Name: "processor_name", Event: "processor_event"},
+				Trace:       Trace{ID: traceID},
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 			},
 			output: common.MapStr{
 				// common fields
@@ -102,12 +107,20 @@ func TestAPMEventFields(t *testing.T) {
 					"c": 123,
 				},
 				"message": "bottle",
+<<<<<<< HEAD
 
 				// fields related to APMEvent.Transaction
-				"processor": common.MapStr{
-					"name":  "transaction",
-					"event": "transaction",
+=======
+				"trace": common.MapStr{
+					"id": traceID,
 				},
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
+				"processor": common.MapStr{
+					"name":  "processor_name",
+					"event": "processor_event",
+				},
+
+				// fields related to APMEvent.Transaction
 				"timestamp": common.MapStr{"us": int64(1546525024908596)},
 				"transaction": common.MapStr{
 					"duration": common.MapStr{"us": 0},

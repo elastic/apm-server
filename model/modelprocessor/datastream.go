@@ -39,14 +39,14 @@ func (s *SetDataStream) ProcessBatch(ctx context.Context, b *model.Batch) error 
 }
 
 func (s *SetDataStream) setDataStream(event *model.APMEvent) {
-	switch {
-	case event.Transaction != nil || event.Span != nil:
+	switch event.Processor {
+	case model.SpanProcessor, model.TransactionProcessor:
 		event.DataStream.Type = datastreams.TracesType
 		event.DataStream.Dataset = model.TracesDataset
-	case event.Error != nil:
+	case model.ErrorProcessor:
 		event.DataStream.Type = datastreams.LogsType
 		event.DataStream.Dataset = model.ErrorsDataset
-	case event.Metricset != nil:
+	case model.MetricsetProcessor:
 		event.DataStream.Type = datastreams.MetricsType
 		// Metrics that include well-defined transaction/span fields
 		// (i.e. breakdown metrics, transaction and span metrics) will
@@ -58,7 +58,7 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 				datastreams.NormalizeServiceName(event.Service.Name),
 			)
 		}
-	case event.ProfileSample != nil:
+	case model.ProfileProcessor:
 		event.DataStream.Type = datastreams.MetricsType
 		event.DataStream.Dataset = model.ProfilesDataset
 	}

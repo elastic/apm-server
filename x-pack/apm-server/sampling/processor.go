@@ -156,14 +156,15 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 	for i := 0; i < len(events); i++ {
 		event := &events[i]
 		var report, stored bool
-		if event.Transaction != nil {
+		switch event.Processor {
+		case model.TransactionProcessor:
 			var err error
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
 			report, stored, err = p.processTransaction(event)
 			if err != nil {
 				return err
 			}
-		} else if event.Span != nil {
+		case model.SpanProcessor:
 			var err error
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
 			report, stored, err = p.processSpan(event)
@@ -464,12 +465,22 @@ func (p *Processor) Run() error {
 					// we don't publish duplicates; delivery is therefore
 					// at-most-once, not guaranteed.
 					for _, event := range events {
+<<<<<<< HEAD
 						if event.Transaction != nil {
 							if err := p.storage.DeleteTraceEvent(event.Transaction.TraceID, event.Transaction.ID); err != nil {
 								return errors.Wrap(err, "failed to delete transaction from local storage")
 							}
 						} else if event.Span != nil {
 							if err := p.storage.DeleteTraceEvent(event.Span.TraceID, event.Span.ID); err != nil {
+=======
+						switch event.Processor {
+						case model.TransactionProcessor:
+							if err := p.storage.DeleteTraceEvent(event.Trace.ID, event.Transaction.ID); err != nil {
+								return errors.Wrap(err, "failed to delete transaction from local storage")
+							}
+						case model.SpanProcessor:
+							if err := p.storage.DeleteTraceEvent(event.Trace.ID, event.Span.ID); err != nil {
+>>>>>>> cb6b2dab (Introduce model.Processor (#5984))
 								return errors.Wrap(err, "failed to delete span from local storage")
 							}
 						}

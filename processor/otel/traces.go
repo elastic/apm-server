@@ -211,6 +211,7 @@ func (c *Consumer) convertSpan(
 	event.Timestamp = startTime.Add(timeDelta)
 	event.Event.Outcome = spanStatusOutcome(otelSpan.Status())
 	if root || otelSpan.Kind() == pdata.SpanKindServer || otelSpan.Kind() == pdata.SpanKindConsumer {
+		event.Processor = model.TransactionProcessor
 		event.Transaction = &model.Transaction{
 			ID:       spanID,
 			ParentID: parentID,
@@ -221,6 +222,7 @@ func (c *Consumer) convertSpan(
 		}
 		translateTransaction(otelSpan, otelLibrary, &event)
 	} else {
+		event.Processor = model.SpanProcessor
 		event.Span = &model.Span{
 			ID:       spanID,
 			ParentID: parentID,
@@ -877,6 +879,7 @@ func convertSpanEvent(
 	}
 	if e != nil {
 		event := parent
+		event.Processor = model.ErrorProcessor
 		event.Error = e
 		event.Timestamp = spanEvent.Timestamp().AsTime().Add(timeDelta)
 		if parent.Transaction != nil {
