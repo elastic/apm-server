@@ -10,6 +10,10 @@ SDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BRANCH=$*
 LATEST_SNAPSHOT_VERSION=$($SDIR/latest_snapshot_version.py $BRANCH)
 
+# latest_snapshot_version.py returns "" if $BRANCH has no snapshot yet.
+# If no snapshot is available, just exit.
+[ -n "$LATEST_SNAPSHOT_VERSION" ] || exit 0
+
 # Check docker.elastic.co images listed in docker-compose.yml are up to date.
 # Ignore any images that don't end with "-SNAPSHOT", such as package-registry.
 IMAGES=$(grep 'image: docker.elastic.co.*-SNAPSHOT' $SDIR/../docker-compose.yml | sed 's/.*image: \(.*\)/\1/')
@@ -22,6 +26,6 @@ for IMAGE in $IMAGES; do
         printf "docker-compose.yml: image %s up to date (latest '%s' snapshot version %s)\n" "$IMAGE" "$BRANCH" "$LATEST_SNAPSHOT_VERSION"
     else
         printf "docker-compose.yml: image %s is out of date (latest '%s' snapshot version is %s)\n" "$IMAGE" "$BRANCH" "$LATEST_SNAPSHOT_VERSION"
-	exit 1
+        exit 1
     fi
 done

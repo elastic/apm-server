@@ -14,8 +14,9 @@ def main():
     args = parser.parse_args()
 
     r = requests.get('https://snapshots.elastic.co/latest/{}.json'.format(args.branch))
-    r.raise_for_status()
-    print(r.json()['version'])
+    if r.status_code != 404:
+        r.raise_for_status()
+        print(r.json()['version'])
 
 
 if __name__ == '__main__':
