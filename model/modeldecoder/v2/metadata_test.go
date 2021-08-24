@@ -90,6 +90,8 @@ func isUnmappedMetadataField(key string) bool {
 		"Session.ID",
 		"Session",
 		"Session.Sequence",
+		"Trace",
+		"Trace.ID",
 		"URL",
 		"URL.Original",
 		"URL.Scheme",

@@ -26,10 +26,10 @@ func TestTraceGroupsPolicies(t *testing.T) {
 				Outcome: traceOutcome,
 			},
 			Processor: model.TransactionProcessor,
+			Trace:     model.Trace{ID: uuid.Must(uuid.NewV4()).String()},
 			Transaction: &model.Transaction{
-				Name:    traceName,
-				TraceID: uuid.Must(uuid.NewV4()).String(),
-				ID:      uuid.Must(uuid.NewV4()).String(),
+				Name: traceName,
+				ID:   uuid.Must(uuid.NewV4()).String(),
 			},
 		}
 	}
@@ -100,10 +100,10 @@ func TestTraceGroupsMax(t *testing.T) {
 					Name: serviceName,
 				},
 				Processor: model.TransactionProcessor,
+				Trace:     model.Trace{ID: uuid.Must(uuid.NewV4()).String()},
 				Transaction: &model.Transaction{
-					Name:    "whatever",
-					TraceID: uuid.Must(uuid.NewV4()).String(),
-					ID:      uuid.Must(uuid.NewV4()).String(),
+					Name: "whatever",
+					ID:   uuid.Must(uuid.NewV4()).String(),
 				},
 			})
 			require.NoError(t, err)
@@ -113,10 +113,10 @@ func TestTraceGroupsMax(t *testing.T) {
 
 	admitted, err := groups.sampleTrace(&model.APMEvent{
 		Processor: model.TransactionProcessor,
+		Trace:     model.Trace{ID: uuid.Must(uuid.NewV4()).String()},
 		Transaction: &model.Transaction{
-			Name:    "overflow",
-			TraceID: uuid.Must(uuid.NewV4()).String(),
-			ID:      uuid.Must(uuid.NewV4()).String(),
+			Name: "overflow",
+			ID:   uuid.Must(uuid.NewV4()).String(),
 		},
 	})
 	assert.Equal(t, errTooManyTraceGroups, err)
@@ -134,11 +134,9 @@ func TestTraceGroupReservoirResize(t *testing.T) {
 	sendTransactions := func(n int) {
 		for i := 0; i < n; i++ {
 			groups.sampleTrace(&model.APMEvent{
-				Processor: model.TransactionProcessor,
-				Transaction: &model.Transaction{
-					TraceID: "0102030405060708090a0b0c0d0e0f10",
-					ID:      "0102030405060708",
-				},
+				Processor:   model.TransactionProcessor,
+				Trace:       model.Trace{ID: "0102030405060708090a0b0c0d0e0f10"},
+				Transaction: &model.Transaction{ID: "0102030405060708"},
 			})
 		}
 	}
@@ -175,11 +173,9 @@ func TestTraceGroupReservoirResizeMinimum(t *testing.T) {
 	sendTransactions := func(n int) {
 		for i := 0; i < n; i++ {
 			groups.sampleTrace(&model.APMEvent{
-				Processor: model.TransactionProcessor,
-				Transaction: &model.Transaction{
-					TraceID: "0102030405060708090a0b0c0d0e0f10",
-					ID:      "0102030405060708",
-				},
+				Processor:   model.TransactionProcessor,
+				Trace:       model.Trace{ID: "0102030405060708090a0b0c0d0e0f10"},
+				Transaction: &model.Transaction{ID: "0102030405060708"},
 			})
 		}
 	}

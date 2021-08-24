@@ -30,7 +30,7 @@ import (
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	start := 0.65
-	hexID, parentID, traceID := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
+	hexID, parentID := "0147258369012345", "abcdef0123456789"
 	subtype := "amqp"
 	action := "publish"
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6,
@@ -64,7 +64,6 @@ func TestSpanTransform(t *testing.T) {
 			Msg: "Full Span",
 			Span: Span{
 				ID:                  hexID,
-				TraceID:             traceID,
 				ParentID:            parentID,
 				Name:                "myspan",
 				Type:                "myspantype",
@@ -133,7 +132,6 @@ func TestSpanTransform(t *testing.T) {
 					},
 				},
 				"timestamp": common.MapStr{"us": timestampUs},
-				"trace":     common.MapStr{"id": traceID},
 				"parent":    common.MapStr{"id": parentID},
 				"http": common.MapStr{
 					"response": common.MapStr{"status_code": statusCode},
