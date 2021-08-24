@@ -19,27 +19,22 @@ package model
 
 import (
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/utility"
 )
 
 const (
-	transactionProcessorName = "transaction"
-	transactionDocType       = "transaction"
-	TracesDataset            = "apm"
+	TracesDataset = "apm"
 )
 
 var (
-	transactionMetrics         = monitoring.Default.NewRegistry("apm-server.processor.transaction")
-	transactionTransformations = monitoring.NewInt(transactionMetrics, "transformations")
-	transactionProcessorEntry  = common.MapStr{"name": transactionProcessorName, "event": transactionDocType}
+	// TransactionProcessor is the Processor value that should be assigned to transaction events.
+	TransactionProcessor = Processor{Name: "transaction", Event: "transaction"}
 )
 
 type Transaction struct {
 	ID       string
 	ParentID string
-	TraceID  string
 
 	Type           string
 	Name           string
@@ -68,17 +63,10 @@ type SpanCount struct {
 }
 
 func (e *Transaction) fields() common.MapStr {
-	transactionTransformations.Inc()
-
-	fields := mapStr{
-		"processor": transactionProcessorEntry,
-	}
-
-	var parent, trace mapStr
+	var fields mapStr
+	var parent mapStr
 	parent.maybeSetString("id", e.ParentID)
-	trace.maybeSetString("id", e.TraceID)
 	fields.maybeSetMapStr("parent", common.MapStr(parent))
-	fields.maybeSetMapStr("trace", common.MapStr(trace))
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
 	}

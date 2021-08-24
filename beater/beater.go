@@ -30,6 +30,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common/transport"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/go-ucfg"
 
 	"github.com/pkg/errors"
@@ -479,6 +480,7 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 		modelprocessor.SetErrorMessage{},
 		newObserverBatchProcessor(s.beat.Info),
 		model.ProcessBatchFunc(ecsVersionBatchProcessor),
+		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
 	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{

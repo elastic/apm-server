@@ -25,10 +25,11 @@ func TestTraceGroupsPolicies(t *testing.T) {
 			Event: model.Event{
 				Outcome: traceOutcome,
 			},
+			Processor: model.TransactionProcessor,
+			Trace:     model.Trace{ID: uuid.Must(uuid.NewV4()).String()},
 			Transaction: &model.Transaction{
-				Name:    traceName,
-				TraceID: uuid.Must(uuid.NewV4()).String(),
-				ID:      uuid.Must(uuid.NewV4()).String(),
+				Name: traceName,
+				ID:   uuid.Must(uuid.NewV4()).String(),
 			},
 		}
 	}
@@ -98,10 +99,11 @@ func TestTraceGroupsMax(t *testing.T) {
 				Service: model.Service{
 					Name: serviceName,
 				},
+				Processor: model.TransactionProcessor,
+				Trace:     model.Trace{ID: uuid.Must(uuid.NewV4()).String()},
 				Transaction: &model.Transaction{
-					Name:    "whatever",
-					TraceID: uuid.Must(uuid.NewV4()).String(),
-					ID:      uuid.Must(uuid.NewV4()).String(),
+					Name: "whatever",
+					ID:   uuid.Must(uuid.NewV4()).String(),
 				},
 			})
 			require.NoError(t, err)
@@ -110,10 +112,11 @@ func TestTraceGroupsMax(t *testing.T) {
 	}
 
 	admitted, err := groups.sampleTrace(&model.APMEvent{
+		Processor: model.TransactionProcessor,
+		Trace:     model.Trace{ID: uuid.Must(uuid.NewV4()).String()},
 		Transaction: &model.Transaction{
-			Name:    "overflow",
-			TraceID: uuid.Must(uuid.NewV4()).String(),
-			ID:      uuid.Must(uuid.NewV4()).String(),
+			Name: "overflow",
+			ID:   uuid.Must(uuid.NewV4()).String(),
 		},
 	})
 	assert.Equal(t, errTooManyTraceGroups, err)
@@ -131,10 +134,9 @@ func TestTraceGroupReservoirResize(t *testing.T) {
 	sendTransactions := func(n int) {
 		for i := 0; i < n; i++ {
 			groups.sampleTrace(&model.APMEvent{
-				Transaction: &model.Transaction{
-					TraceID: "0102030405060708090a0b0c0d0e0f10",
-					ID:      "0102030405060708",
-				},
+				Processor:   model.TransactionProcessor,
+				Trace:       model.Trace{ID: "0102030405060708090a0b0c0d0e0f10"},
+				Transaction: &model.Transaction{ID: "0102030405060708"},
 			})
 		}
 	}
@@ -171,10 +173,9 @@ func TestTraceGroupReservoirResizeMinimum(t *testing.T) {
 	sendTransactions := func(n int) {
 		for i := 0; i < n; i++ {
 			groups.sampleTrace(&model.APMEvent{
-				Transaction: &model.Transaction{
-					TraceID: "0102030405060708090a0b0c0d0e0f10",
-					ID:      "0102030405060708",
-				},
+				Processor:   model.TransactionProcessor,
+				Trace:       model.Trace{ID: "0102030405060708090a0b0c0d0e0f10"},
+				Transaction: &model.Transaction{ID: "0102030405060708"},
 			})
 		}
 	}
@@ -206,18 +207,21 @@ func TestTraceGroupsRemoval(t *testing.T) {
 	for i := 0; i < 10000; i++ {
 		_, err := groups.sampleTrace(&model.APMEvent{
 			Service:     model.Service{Name: "many"},
+			Processor:   model.TransactionProcessor,
 			Transaction: &model.Transaction{},
 		})
 		assert.NoError(t, err)
 	}
 	_, err := groups.sampleTrace(&model.APMEvent{
 		Service:     model.Service{Name: "few"},
+		Processor:   model.TransactionProcessor,
 		Transaction: &model.Transaction{},
 	})
 	assert.NoError(t, err)
 
 	_, err = groups.sampleTrace(&model.APMEvent{
 		Service:     model.Service{Name: "another"},
+		Processor:   model.TransactionProcessor,
 		Transaction: &model.Transaction{},
 	})
 	assert.Equal(t, errTooManyTraceGroups, err)
@@ -226,6 +230,7 @@ func TestTraceGroupsRemoval(t *testing.T) {
 	// will not be affected by the limit...
 	_, err = groups.sampleTrace(&model.APMEvent{
 		Service:     model.Service{Name: "defined"},
+		Processor:   model.TransactionProcessor,
 		Transaction: &model.Transaction{},
 	})
 	assert.NoError(t, err)
@@ -234,6 +239,7 @@ func TestTraceGroupsRemoval(t *testing.T) {
 	// a matching dynamic policy.
 	_, err = groups.sampleTrace(&model.APMEvent{
 		Service:     model.Service{Name: "defined_later"},
+		Processor:   model.TransactionProcessor,
 		Transaction: &model.Transaction{},
 	})
 	assert.Equal(t, errTooManyTraceGroups, err)
@@ -245,6 +251,7 @@ func TestTraceGroupsRemoval(t *testing.T) {
 	// We should now be able to add another trace group.
 	_, err = groups.sampleTrace(&model.APMEvent{
 		Service:     model.Service{Name: "another"},
+		Processor:   model.TransactionProcessor,
 		Transaction: &model.Transaction{},
 	})
 	assert.NoError(t, err)
@@ -265,6 +272,7 @@ func BenchmarkTraceGroups(b *testing.B) {
 		// Duration is non-zero to ensure transactions have a non-zero chance of
 		// being sampled.
 		tx := model.APMEvent{
+			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Duration: 1000,
 				Name:     uuid.Must(uuid.NewV4()).String(),

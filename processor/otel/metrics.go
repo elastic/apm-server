@@ -105,6 +105,7 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 	}
 	for _, m := range ms {
 		event := baseEvent
+		event.Processor = model.MetricsetProcessor
 		event.Metricset = m.Metricset
 		event.Timestamp = m.timestamp.Add(timeDelta)
 		if n := len(m.labels); n > 0 {

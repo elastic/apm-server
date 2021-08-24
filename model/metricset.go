@@ -19,23 +19,16 @@ package model
 
 import (
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 const (
-	metricsetProcessorName  = "metric"
-	metricsetDocType        = "metric"
-	metricsetEventKey       = "event"
-	metricsetTransactionKey = "transaction"
-	metricsetSpanKey        = "span"
-	AppMetricsDataset       = "apm.app"
-	InternalMetricsDataset  = "apm.internal"
+	AppMetricsDataset      = "apm.app"
+	InternalMetricsDataset = "apm.internal"
 )
 
 var (
-	metricsetMetrics         = monitoring.Default.NewRegistry("apm-server.processor.metric")
-	metricsetTransformations = monitoring.NewInt(metricsetMetrics, "transformations")
-	metricsetProcessorEntry  = common.MapStr{"name": metricsetProcessorName, "event": metricsetDocType}
+	// MetricsetProcessor is the Processor value that should be assigned to metricset events.
+	MetricsetProcessor = Processor{Name: "metric", Event: "metric"}
 )
 
 // MetricType describes the type of a metric: gauge, counter, or histogram.
@@ -141,13 +134,9 @@ type MetricsetSpan struct {
 }
 
 func (me *Metricset) fields() common.MapStr {
-	metricsetTransformations.Inc()
-
 	var fields mapStr
-	fields.set("processor", metricsetProcessorEntry)
-
-	fields.maybeSetMapStr(metricsetTransactionKey, me.Transaction.fields())
-	fields.maybeSetMapStr(metricsetSpanKey, me.Span.fields())
+	fields.maybeSetMapStr("transaction", me.Transaction.fields())
+	fields.maybeSetMapStr("span", me.Span.fields())
 	if me.TimeseriesInstanceID != "" {
 		fields.set("timeseries", common.MapStr{"instance": me.TimeseriesInstanceID})
 	}
@@ -158,7 +147,7 @@ func (me *Metricset) fields() common.MapStr {
 
 	var metricDescriptions mapStr
 	for name, sample := range me.Samples {
-		sample.set(name, fields)
+		sample.set(name, &fields)
 
 		var md mapStr
 		md.maybeSetString("type", string(sample.Type))
@@ -190,7 +179,7 @@ func (s *MetricsetSpan) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (s *MetricsetSample) set(name string, fields mapStr) {
+func (s *MetricsetSample) set(name string, fields *mapStr) {
 	if s.Type == MetricTypeHistogram {
 		fields.set(name, common.MapStr{
 			"counts": s.Counts,

@@ -115,9 +115,10 @@ func TestAggregatorRun(t *testing.T) {
 	metricsets := batchMetricsets(t, batch)
 
 	assert.ElementsMatch(t, []model.APMEvent{{
-		Agent:   model.Agent{Name: "java"},
-		Service: model.Service{Name: "service-A"},
-		Event:   model.Event{Outcome: "success"},
+		Agent:     model.Agent{Name: "java"},
+		Service:   model.Service{Name: "service-A"},
+		Event:     model.Event{Outcome: "success"},
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name: "service_destination",
 			Span: model.MetricsetSpan{
@@ -130,9 +131,10 @@ func TestAggregatorRun(t *testing.T) {
 			},
 		},
 	}, {
-		Agent:   model.Agent{Name: "java"},
-		Service: model.Service{Name: "service-A"},
-		Event:   model.Event{Outcome: "failure"},
+		Agent:     model.Agent{Name: "java"},
+		Service:   model.Service{Name: "service-A"},
+		Event:     model.Event{Outcome: "failure"},
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name: "service_destination",
 			Span: model.MetricsetSpan{
@@ -145,9 +147,10 @@ func TestAggregatorRun(t *testing.T) {
 			},
 		},
 	}, {
-		Agent:   model.Agent{Name: "java"},
-		Service: model.Service{Name: "service-A"},
-		Event:   model.Event{Outcome: "success"},
+		Agent:     model.Agent{Name: "java"},
+		Service:   model.Service{Name: "service-A"},
+		Event:     model.Event{Outcome: "success"},
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name: "service_destination",
 			Span: model.MetricsetSpan{
@@ -160,9 +163,10 @@ func TestAggregatorRun(t *testing.T) {
 			},
 		},
 	}, {
-		Agent:   model.Agent{Name: "python"},
-		Service: model.Service{Name: "service-B"},
-		Event:   model.Event{Outcome: "success"},
+		Agent:     model.Agent{Name: "python"},
+		Service:   model.Service{Name: "service-B"},
+		Event:     model.Event{Outcome: "success"},
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name: "service_destination",
 			Span: model.MetricsetSpan{
@@ -205,9 +209,10 @@ func TestAggregateCompositeSpan(t *testing.T) {
 	metricsets := batchMetricsets(t, batch)
 
 	assert.Equal(t, []model.APMEvent{{
-		Agent:   model.Agent{Name: "java"},
-		Service: model.Service{Name: "service-A"},
-		Event:   model.Event{Outcome: "success"},
+		Agent:     model.Agent{Name: "java"},
+		Service:   model.Service{Name: "service-A"},
+		Event:     model.Event{Outcome: "success"},
+		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name: "service_destination",
 			Span: model.MetricsetSpan{
@@ -254,9 +259,10 @@ func TestAggregatorOverflow(t *testing.T) {
 
 	for _, m := range metricsets {
 		assert.Equal(t, model.APMEvent{
-			Agent:   model.Agent{Name: "agent"},
-			Service: model.Service{Name: "service"},
-			Event:   model.Event{Outcome: "success"},
+			Agent:     model.Agent{Name: "agent"},
+			Service:   model.Service{Name: "service"},
+			Event:     model.Event{Outcome: "success"},
+			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
 				Name: "service_destination",
 				Span: model.MetricsetSpan{
@@ -278,9 +284,10 @@ func makeSpan(
 	count float64,
 ) model.APMEvent {
 	event := model.APMEvent{
-		Agent:   model.Agent{Name: agentName},
-		Service: model.Service{Name: serviceName},
-		Event:   model.Event{Outcome: outcome},
+		Agent:     model.Agent{Name: agentName},
+		Service:   model.Service{Name: serviceName},
+		Event:     model.Event{Outcome: outcome},
+		Processor: model.SpanProcessor,
 		Span: &model.Span{
 			Name:                serviceName + ":" + destinationServiceResource,
 			Duration:            duration.Seconds() * 1000,

@@ -1,0 +1,149 @@
+[role="xpack"]
+[[beats-api-keys]]
+== Grant access using API keys
+
+Instead of using usernames and passwords, you can use API keys to grant
+access to {es} resources. You can set API keys to expire at a certain time,
+and you can explicitly invalidate them. Any user with the `manage_api_key`
+or `manage_own_api_key` cluster privilege can create API keys.
+
+{beatname_uc} instances typically send both collected data and monitoring
+information to {es}. If you are sending both to the same cluster, you can use the same
+API key. For different clusters, you need to use an API key per cluster.
+
+NOTE: For security reasons, we recommend using a unique API key per {beatname_uc} instance.
+You can create as many API keys per user as necessary.
+
+[float]
+[[beats-api-key-publish]]
+=== Create an API key for writing events
+
+In {kib}, navigate to **Stack Management** > **API keys** and click **Create API key**.
+
+[role="screenshot"]
+image::images/server-api-key-create.png[API key creation]
+
+Enter a name for your API key and select **Restrict privileges**.
+In the role descriptors box, assign the appropriate privileges to the new API key. For example:
+
+[source,json,subs="attributes,callouts"]
+----
+{
+    "{beat_default_index_prefix}_writer": {
+        "index": [
+            {
+                "names": ["{beat_default_index_prefix}-*"],
+                "privileges": ["create_index", "create_doc"]
+            },
+            {
+                "names": ["{beat_default_index_prefix}-*sourcemap"],
+                "privileges": ["read"]
+            },
+      ]
+    }
+}
+----
+
+NOTE: This example only provides privileges for **writing data**.
+See <<feature-roles>> for additional privileges and information.
+
+To set an expiration date for the API key, select **Expire after time**
+and input the lifetime of the API key in days.
+
+Click **Create API key**. In the dropdown, switch to **Beats** and copy the API key.
+
+You can now use this API key in your +{beatname_lc}.yml+ configuration file:
+
+["source","yml",subs="attributes"]
+--------------------
+output.elasticsearch:
+  api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSowb0kQ0HWoA <1>
+--------------------
+<1> Format is `id:api_key` (as shown in the Beats dropdown)
+
+[float]
+[[beats-api-key-monitor]]
+=== Create an API key for monitoring
+
+In {kib}, navigate to **Stack Management** > **API keys** and click **Create API key**.
+
+[role="screenshot"]
+image::images/server-api-key-create.png[API key creation]
+
+Enter a name for your API key and select **Restrict privileges**.
+In the role descriptors box, assign the appropriate privileges to the new API key.
+For example:
+
+[source,json,subs="attributes,callouts"]
+----
+{
+    "{beat_default_index_prefix}_monitoring": {
+        "index": [
+            {
+                "names": [".monitoring-beats-*"],
+                "privileges": ["create_index", "create_doc"]
+            }
+      ]
+    }
+}
+----
+
+NOTE: This example only provides privileges for **publishing monitoring data**.
+See <<feature-roles>> for additional privileges and information.
+
+To set an expiration date for the API key, select **Expire after time**
+and input the lifetime of the API key in days.
+
+Click **Create API key**. In the dropdown, switch to **Beats** and copy the API key.
+
+You can now use this API key in your +{beatname_lc}.yml+ configuration file like this:
+
+["source","yml",subs="attributes"]
+--------------------
+monitoring.elasticsearch:
+  api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSowb0kQ0HWoA <1>
+--------------------
+<1> Format is `id:api_key` (as shown in the Beats dropdown)
+
+[float]
+[[beats-api-key-es]]
+=== Create an API key with {es} APIs
+
+You can also use {es}'s {ref}/security-api-create-api-key.html[Create API key API] to create a new API key.
+For example:
+
+[source,console,subs="attributes,callouts"]
+------------------------------------------------------------
+POST /_security/api_key
+{
+  "name": "{beat_default_index_prefix}_host001", <1>
+  "role_descriptors": {
+    "{beat_default_index_prefix}_writer": { <2>
+      "index": [
+        {
+          "names": ["{beat_default_index_prefix}-*"],
+          "privileges": ["create_index", "create_doc"]
+        },
+        {
+          "names": ["{beat_default_index_prefix}-*sourcemap"],
+          "privileges": ["read"]
+        },
+      ]
+    }
+  }
+}
+------------------------------------------------------------
+<1> Name of the API key
+<2> Granted privileges, see <<feature-roles>>
+
+See the {ref}/security-api-create-api-key.html[Create API key] reference for more information.
+
+[[learn-more-api-keys]]
+[float]
+=== Learn more about API keys
+
+See the {es} API key documentation for more information:
+
+* {ref}/security-api-create-api-key.html[Create API key]
+* {ref}/security-api-get-api-key.html[Get API key information]
+* {ref}/security-api-invalidate-api-key.html[Invalidate API key]

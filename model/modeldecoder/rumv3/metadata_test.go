@@ -60,11 +60,13 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"Network",
 		"Observer",
 		"Process",
+		"Processor",
 		"Service.Node",
 		"Service.Agent.EphemeralID",
 		"Host",
 		"Event",
 		"Session",
+		"Trace",
 		"URL",
 
 		// event-specific fields

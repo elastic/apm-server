@@ -19,21 +19,13 @@ package model
 
 import (
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/utility"
 )
 
-const (
-	spanDocType = "span"
-)
-
 var (
-	spanMetrics           = monitoring.Default.NewRegistry("apm-server.processor.span")
-	spanTransformations   = monitoring.NewInt(spanMetrics, "transformations")
-	spanStacktraceCounter = monitoring.NewInt(spanMetrics, "stacktraces")
-	spanFrameCounter      = monitoring.NewInt(spanMetrics, "frames")
-	spanProcessorEntry    = common.MapStr{"name": "transaction", "event": spanDocType}
+	// SpanProcessor is the Processor value that should be assigned to span events.
+	SpanProcessor = Processor{Name: "transaction", Event: "span"}
 )
 
 type Span struct {
@@ -41,7 +33,6 @@ type Span struct {
 	TransactionID string
 	ParentID      string
 	ChildIDs      []string
-	TraceID       string
 
 	Message    *Message
 	Name       string
@@ -133,18 +124,8 @@ func (c *Composite) fields() common.MapStr {
 }
 
 func (e *Span) fields(apmEvent *APMEvent) common.MapStr {
-	spanTransformations.Inc()
-	if frames := len(e.Stacktrace); frames > 0 {
-		spanStacktraceCounter.Inc()
-		spanFrameCounter.Add(int64(frames))
-	}
-
-	fields := mapStr{"processor": spanProcessorEntry}
-
-	var trace, transaction, parent mapStr
-	if trace.maybeSetString("id", e.TraceID) {
-		fields.set("trace", common.MapStr(trace))
-	}
+	var fields mapStr
+	var transaction, parent mapStr
 	if transaction.maybeSetString("id", e.TransactionID) {
 		fields.set("transaction", common.MapStr(transaction))
 	}
@@ -191,6 +172,5 @@ func (e *Span) fields(apmEvent *APMEvent) common.MapStr {
 		span.set("stacktrace", st)
 	}
 	fields.set("span", common.MapStr(span))
-
 	return common.MapStr(fields)
 }
