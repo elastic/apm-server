@@ -163,7 +163,6 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	for _, m := range root.Transaction.Metricsets {
 		event := input.Base
 		mapToMetricsetModel(&m, &event)
-		event.Processor = model.MetricsetProcessor
 		event.Metricset.Transaction.Name = transaction.Transaction.Name
 		event.Metricset.Transaction.Type = transaction.Transaction.Type
 		*batch = append(*batch, event)
@@ -173,7 +172,6 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	for _, s := range root.Transaction.Spans {
 		event := input.Base
 		mapToSpanModel(&s, &event)
-		event.Processor = model.SpanProcessor
 		event.Span.TransactionID = transaction.Transaction.ID
 		event.Trace = transaction.Trace
 		*batch = append(*batch, event)
@@ -516,6 +514,7 @@ func mapToAgentModel(from contextServiceAgent, out *model.Agent) {
 func mapToSpanModel(from *span, event *model.APMEvent) {
 	out := &model.Span{}
 	event.Span = out
+	event.Processor = model.SpanProcessor
 
 	// map span specific data
 	if !from.Action.IsSet() && !from.Subtype.IsSet() {
