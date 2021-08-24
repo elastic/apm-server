@@ -43,7 +43,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 	traceID := uuid.Must(uuid.NewV4()).String()
 	transactionID := uuid.Must(uuid.NewV4()).String()
 	transaction := model.APMEvent{
-		Transaction: &model.Transaction{TraceID: traceID, ID: transactionID},
+		Transaction: &model.Transaction{ID: transactionID},
 	}
 	assert.NoError(t, readWriter.WriteTraceEvent(traceID, transactionID, &transaction))
 
@@ -51,7 +51,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 	for i := 0; i < numSpans; i++ {
 		spanID := uuid.Must(uuid.NewV4()).String()
 		span := model.APMEvent{
-			Span: &model.Span{TraceID: traceID, ID: spanID},
+			Span: &model.Span{ID: spanID},
 		}
 		assert.NoError(t, readWriter.WriteTraceEvent(traceID, spanID, &span))
 		spanEvents = append(spanEvents, span)

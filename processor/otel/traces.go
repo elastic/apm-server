@@ -190,9 +190,6 @@ func (c *Consumer) convertSpan(
 		parentID = otelSpan.ParentSpanID().HexString()
 	}
 
-	traceID := otelSpan.TraceID().HexString()
-	spanID := otelSpan.SpanID().HexString()
-
 	startTime := otelSpan.StartTimestamp().AsTime()
 	endTime := otelSpan.EndTimestamp().AsTime()
 	var durationMillis float64
@@ -206,15 +203,16 @@ func (c *Consumer) convertSpan(
 	// now, we assume that the majority of consumption is passive, and
 	// therefore start a transaction whenever span kind == consumer.
 	name := otelSpan.Name()
+	spanID := otelSpan.SpanID().HexString()
 	event := baseEvent
 	event.Labels = initEventLabels(event.Labels)
 	event.Timestamp = startTime.Add(timeDelta)
+	event.Trace.ID = otelSpan.TraceID().HexString()
 	event.Event.Outcome = spanStatusOutcome(otelSpan.Status())
 	if root || otelSpan.Kind() == pdata.SpanKindServer || otelSpan.Kind() == pdata.SpanKindConsumer {
 		event.Transaction = &model.Transaction{
 			ID:       spanID,
 			ParentID: parentID,
-			TraceID:  traceID,
 			Duration: durationMillis,
 			Name:     name,
 			Sampled:  true,
@@ -224,7 +222,6 @@ func (c *Consumer) convertSpan(
 		event.Span = &model.Span{
 			ID:       spanID,
 			ParentID: parentID,
-			TraceID:  traceID,
 			Duration: durationMillis,
 			Name:     name,
 		}
@@ -948,7 +945,6 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *mo
 
 func addTransactionCtxToErr(transaction *model.Transaction, err *model.Error) {
 	err.TransactionID = transaction.ID
-	err.TraceID = transaction.TraceID
 	err.ParentID = transaction.ID
 	err.HTTP = transaction.HTTP
 	err.Custom = transaction.Custom
@@ -957,7 +953,6 @@ func addTransactionCtxToErr(transaction *model.Transaction, err *model.Error) {
 }
 
 func addSpanCtxToErr(span *model.Span, err *model.Error) {
-	err.TraceID = span.TraceID
 	err.ParentID = span.ID
 }
 

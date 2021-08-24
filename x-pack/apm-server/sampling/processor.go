@@ -208,7 +208,7 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 		return true, false, nil
 	}
 
-	traceSampled, err := p.storage.IsTraceSampled(event.Transaction.TraceID)
+	traceSampled, err := p.storage.IsTraceSampled(event.Trace.ID)
 	switch err {
 	case nil:
 		// Tail-sampling decision has been made: report the transaction
@@ -226,7 +226,7 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 		// Non-root transaction: write to local storage while we wait
 		// for a sampling decision.
 		return false, true, p.storage.WriteTraceEvent(
-			event.Transaction.TraceID, event.Transaction.ID, event,
+			event.Trace.ID, event.Transaction.ID, event,
 		)
 	}
 
@@ -251,24 +251,24 @@ sampling policies without service name specified.
 		// This is a local optimisation only. To avoid creating network
 		// traffic and load on Elasticsearch for uninteresting root
 		// transactions, we do not propagate this to other APM Servers.
-		return false, false, p.storage.WriteTraceSampled(event.Transaction.TraceID, false)
+		return false, false, p.storage.WriteTraceSampled(event.Trace.ID, false)
 	}
 
 	// The root transaction was admitted to the sampling reservoir, so we
 	// can proceed to write the transaction to storage; we may index it later,
 	// after finalising the sampling decision.
 	return false, true, p.storage.WriteTraceEvent(
-		event.Transaction.TraceID, event.Transaction.ID, event,
+		event.Trace.ID, event.Transaction.ID, event,
 	)
 }
 
 func (p *Processor) processSpan(event *model.APMEvent) (report, stored bool, _ error) {
-	traceSampled, err := p.storage.IsTraceSampled(event.Span.TraceID)
+	traceSampled, err := p.storage.IsTraceSampled(event.Trace.ID)
 	if err != nil {
 		if err == eventstorage.ErrNotFound {
 			// Tail-sampling decision has not yet been made, write event to local storage.
 			return false, true, p.storage.WriteTraceEvent(
-				event.Span.TraceID, event.Span.ID, event,
+				event.Trace.ID, event.Span.ID, event,
 			)
 		}
 		return false, false, err
@@ -465,11 +465,11 @@ func (p *Processor) Run() error {
 					// at-most-once, not guaranteed.
 					for _, event := range events {
 						if event.Transaction != nil {
-							if err := p.storage.DeleteTraceEvent(event.Transaction.TraceID, event.Transaction.ID); err != nil {
+							if err := p.storage.DeleteTraceEvent(event.Trace.ID, event.Transaction.ID); err != nil {
 								return errors.Wrap(err, "failed to delete transaction from local storage")
 							}
 						} else if event.Span != nil {
-							if err := p.storage.DeleteTraceEvent(event.Span.TraceID, event.Span.ID); err != nil {
+							if err := p.storage.DeleteTraceEvent(event.Trace.ID, event.Span.ID); err != nil {
 								return errors.Wrap(err, "failed to delete span from local storage")
 							}
 						}

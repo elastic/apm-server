@@ -790,8 +790,8 @@ func TestConsumer_JaegerTraceID(t *testing.T) {
 	require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
 
 	batch := *batches[0]
-	assert.Equal(t, "00000000000000000000000046467830", batch[0].Transaction.TraceID)
-	assert.Equal(t, "00000000464678300000000046467830", batch[1].Transaction.TraceID)
+	assert.Equal(t, "00000000000000000000000046467830", batch[0].Trace.ID)
+	assert.Equal(t, "00000000464678300000000046467830", batch[1].Trace.ID)
 }
 
 func TestConsumer_JaegerTransaction(t *testing.T) {
