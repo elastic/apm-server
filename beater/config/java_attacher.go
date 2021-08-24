@@ -22,10 +22,11 @@ import "fmt"
 // JavaAttacherConfig holds configuration information for running a java
 // attacher jarfile.
 type JavaAttacherConfig struct {
-	Enabled        bool                `config:"enabled"`
-	DiscoveryRules []map[string]string `config:"discovery-rules"`
-	Config         map[string]string   `config:"config"`
-	JavaBin        string
+	Enabled              bool                `config:"enabled"`
+	DiscoveryRules       []map[string]string `config:"discovery-rules"`
+	Config               map[string]string   `config:"config"`
+	JavaBin              string
+	DownloadAgentVersion string `config:"download-agent-version"`
 }
 
 func (j JavaAttacherConfig) setup() error {

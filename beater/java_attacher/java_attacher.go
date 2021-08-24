@@ -126,6 +126,10 @@ func (j JavaAttacher) build(ctx context.Context) *exec.Cmd {
 func (j JavaAttacher) formatArgs() []string {
 	args := []string{"--continuous", "--log-level", "debug"}
 
+	if j.cfg.DownloadAgentVersion != "" {
+		args = append(args, "--download-agent-version", j.cfg.DownloadAgentVersion)
+	}
+
 	for _, flag := range j.cfg.DiscoveryRules {
 		for name, value := range flag {
 			args = append(args, makeArg("--"+name, value))
