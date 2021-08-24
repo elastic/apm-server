@@ -67,7 +67,6 @@ func TestProfileSampleTransform(t *testing.T) {
 	assert.Equal(t, beat.Event{
 		Timestamp: timestamp,
 		Fields: common.MapStr{
-			"processor": common.MapStr{"event": "profile", "name": "profile"},
 			"profile": common.MapStr{
 				"id":                "profile_id",
 				"duration":          int64(10 * time.Second),

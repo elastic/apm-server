@@ -172,10 +172,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 				"platform": "x64",
 			},
 		},
-		"processor": common.MapStr{
-			"event": "transaction",
-			"name":  "transaction",
-		},
 		"service": common.MapStr{
 			"name":    serviceName,
 			"version": serviceVersion,

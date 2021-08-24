@@ -35,17 +35,18 @@ func TestSetDataStream(t *testing.T) {
 		input:  model.APMEvent{},
 		output: model.DataStream{Namespace: "custom"},
 	}, {
-		input:  model.APMEvent{Transaction: &model.Transaction{}},
+		input:  model.APMEvent{Processor: model.TransactionProcessor},
 		output: model.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},
 	}, {
-		input:  model.APMEvent{Span: &model.Span{}},
+		input:  model.APMEvent{Processor: model.SpanProcessor},
 		output: model.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},
 	}, {
-		input:  model.APMEvent{Error: &model.Error{}},
+		input:  model.APMEvent{Processor: model.ErrorProcessor},
 		output: model.DataStream{Type: "logs", Dataset: "apm.error", Namespace: "custom"},
 	}, {
 		input: model.APMEvent{
-			Service: model.Service{Name: "service-name"},
+			Processor: model.MetricsetProcessor,
+			Service:   model.Service{Name: "service-name"},
 			Metricset: &model.Metricset{
 				Transaction: model.MetricsetTransaction{Name: "foo"},
 			},
@@ -53,12 +54,16 @@ func TestSetDataStream(t *testing.T) {
 		output: model.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
 	}, {
 		input: model.APMEvent{
+			Processor: model.MetricsetProcessor,
 			Service:   model.Service{Name: "service-name"},
 			Metricset: &model.Metricset{},
 		},
 		output: model.DataStream{Type: "metrics", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
-		input:  model.APMEvent{ProfileSample: &model.ProfileSample{}},
+		input: model.APMEvent{
+			Processor:     model.ProfileProcessor,
+			ProfileSample: &model.ProfileSample{},
+		},
 		output: model.DataStream{Type: "metrics", Dataset: "apm.profiling", Namespace: "custom"},
 	}}
 

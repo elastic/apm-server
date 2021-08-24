@@ -83,8 +83,14 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 	// as we have configured the txmetrics with a maximum of two buckets.
 	batch := make(model.Batch, 20)
 	for i := 0; i < len(batch); i += 2 {
-		batch[i].Transaction = &model.Transaction{Name: "foo", RepresentativeCount: 1}
-		batch[i+1].Transaction = &model.Transaction{Name: "bar", RepresentativeCount: 1}
+		batch[i] = model.APMEvent{
+			Processor:   model.TransactionProcessor,
+			Transaction: &model.Transaction{Name: "foo", RepresentativeCount: 1},
+		}
+		batch[i+1] = model.APMEvent{
+			Processor:   model.TransactionProcessor,
+			Transaction: &model.Transaction{Name: "bar", RepresentativeCount: 1},
+		}
 	}
 	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
@@ -92,11 +98,14 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 
 	// The third transaction group will return a metricset for immediate publication.
 	for i := 0; i < 2; i++ {
-		batch = append(batch, model.APMEvent{Transaction: &model.Transaction{
-			Name:                "baz",
-			Duration:            float64(time.Minute / time.Millisecond),
-			RepresentativeCount: 1,
-		}})
+		batch = append(batch, model.APMEvent{
+			Processor: model.TransactionProcessor,
+			Transaction: &model.Transaction{
+				Name:                "baz",
+				Duration:            float64(time.Minute / time.Millisecond),
+				RepresentativeCount: 1,
+			},
+		})
 	}
 	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
@@ -105,6 +114,7 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 
 	for _, m := range metricsets {
 		assert.Equal(t, model.APMEvent{
+			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
 				Name: "transaction",
 				Transaction: model.MetricsetTransaction{
@@ -152,6 +162,7 @@ func TestAggregatorRun(t *testing.T) {
 
 	for i := 0; i < 1000; i++ {
 		metricset := agg.AggregateTransaction(model.APMEvent{
+			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "T-1000",
 				RepresentativeCount: 1,
@@ -161,6 +172,7 @@ func TestAggregatorRun(t *testing.T) {
 	}
 	for i := 0; i < 800; i++ {
 		metricset := agg.AggregateTransaction(model.APMEvent{
+			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "T-800",
 				RepresentativeCount: 1,
@@ -221,6 +233,7 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		metricset := agg.AggregateTransaction(model.APMEvent{
+			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "T-1000",
 				RepresentativeCount: 1,
@@ -254,12 +267,19 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 
 	// Record a transaction group so subsequent calls yield immediate metricsets,
 	// and to demonstrate that fractional transaction counts are accumulated.
-	agg.AggregateTransaction(model.APMEvent{Transaction: &model.Transaction{Name: "fnord", RepresentativeCount: 1}})
-	agg.AggregateTransaction(model.APMEvent{Transaction: &model.Transaction{Name: "fnord", RepresentativeCount: 1.5}})
+	agg.AggregateTransaction(model.APMEvent{
+		Processor:   model.TransactionProcessor,
+		Transaction: &model.Transaction{Name: "fnord", RepresentativeCount: 1},
+	})
+	agg.AggregateTransaction(model.APMEvent{
+		Processor:   model.TransactionProcessor,
+		Transaction: &model.Transaction{Name: "fnord", RepresentativeCount: 1.5},
+	})
 
 	// For non-positive RepresentativeCounts, no metrics will be accumulated.
 	for _, representativeCount := range []float64{-1, 0} {
 		m := agg.AggregateTransaction(model.APMEvent{
+			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "foo",
 				RepresentativeCount: representativeCount,
@@ -282,6 +302,7 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 		expectedCount:       2,
 	}} {
 		m := agg.AggregateTransaction(model.APMEvent{
+			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "foo",
 				RepresentativeCount: test.representativeCount,
@@ -291,6 +312,7 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 
 		m.Timestamp = time.Time{}
 		assert.Equal(t, model.APMEvent{
+			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
 				Name:                 "transaction",
 				TimeseriesInstanceID: ":foo:1db641f187113b17",
@@ -357,6 +379,7 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 			101111 * time.Microsecond,
 		} {
 			metricset := agg.AggregateTransaction(model.APMEvent{
+				Processor: model.TransactionProcessor,
 				Transaction: &model.Transaction{
 					Name:                "T-1000",
 					Duration:            durationMillis(duration),
@@ -393,7 +416,10 @@ func TestAggregationFields(t *testing.T) {
 	go agg.Run()
 	defer agg.Stop(context.Background())
 
-	input := model.APMEvent{Transaction: &model.Transaction{RepresentativeCount: 1}}
+	input := model.APMEvent{
+		Processor:   model.TransactionProcessor,
+		Transaction: &model.Transaction{RepresentativeCount: 1},
+	}
 	inputFields := []*string{
 		&input.Transaction.Name,
 		&input.Transaction.Result,
@@ -412,6 +438,7 @@ func TestAggregationFields(t *testing.T) {
 		expectedEvent := input
 		expectedEvent.Transaction = nil
 		expectedEvent.Event.Outcome = input.Event.Outcome
+		expectedEvent.Processor = model.MetricsetProcessor
 		expectedEvent.Metricset = &model.Metricset{
 			Name: "transaction",
 			Transaction: model.MetricsetTransaction{
@@ -480,6 +507,7 @@ func BenchmarkAggregateTransaction(b *testing.B) {
 	require.NoError(b, err)
 
 	event := model.APMEvent{
+		Processor: model.TransactionProcessor,
 		Transaction: &model.Transaction{
 			Name:                "T-1000",
 			Duration:            1,

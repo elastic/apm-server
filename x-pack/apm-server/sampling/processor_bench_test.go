@@ -37,21 +37,20 @@ func BenchmarkProcess(b *testing.B) {
 			binary.LittleEndian.PutUint64(traceID[8:], rng.Uint64())
 			transactionID := traceID[:8]
 			spanID := traceID[8:]
+			trace := model.Trace{ID: hex.EncodeToString(traceID[:])}
 			transaction := &model.Transaction{
-				TraceID: hex.EncodeToString(traceID[:]),
-				ID:      hex.EncodeToString(transactionID),
+				ID: hex.EncodeToString(transactionID),
 			}
 			spanParentID := hex.EncodeToString(transactionID)
 			span := &model.Span{
-				TraceID:  hex.EncodeToString(traceID[:]),
 				ID:       hex.EncodeToString(spanID),
 				ParentID: spanParentID,
 			}
 			batch := model.Batch{
-				{Transaction: transaction},
-				{Span: span},
-				{Span: span},
-				{Span: span},
+				{Trace: trace, Transaction: transaction},
+				{Trace: trace, Span: span},
+				{Trace: trace, Span: span},
+				{Trace: trace, Span: span},
 			}
 			if err := processor.ProcessBatch(context.Background(), &batch); err != nil {
 				b.Fatal(err)
