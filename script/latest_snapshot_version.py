@@ -18,5 +18,6 @@ def main():
         r.raise_for_status()
         print(r.json()['version'])
 
+
 if __name__ == '__main__':
     main()
