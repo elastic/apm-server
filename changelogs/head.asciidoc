@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 - `transaction.page` and `error.page` no longer recorded {pull}5872[5872]
 - experimental:["This breaking change applies to the experimental tail-based sampling feature."] `apm-server.sampling.tail` now requires `apm-server.data_streams.enabled` {pull}5952[5952]
 - beta:["This breaking change applies to the beta <<apm-integration>>."] The `traces-sampled-*` data stream is now `traces-apm.sampled-*` {pull}5952[5952]
+- Removed unused stacktrace/frame monitoring counters {pull}5984[5984]
 
 [float]
 ==== Bug fixes
