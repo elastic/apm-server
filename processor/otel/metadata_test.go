@@ -234,6 +234,7 @@ func transformResourceMetadata(t *testing.T, resourceAttrs map[string]pdata.Attr
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	events := transformTraces(t, traces)
 	events[0].Transaction = nil
+	events[0].Trace = model.Trace{}
 	events[0].Event.Outcome = ""
 	events[0].Timestamp = time.Time{}
 	return events[0]

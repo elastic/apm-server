@@ -74,7 +74,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		start := time.Duration(20 * 1000 * 1000)
 		assert.Equal(t, now.Add(start), batch[3].Timestamp) //add start to timestamp
 		assert.Equal(t, "100", batch[3].Span.TransactionID)
-		assert.Equal(t, "1", batch[3].Span.TraceID)
+		assert.Equal(t, "1", batch[3].Trace.ID)
 		assert.Equal(t, "100", batch[3].Span.ParentID)
 
 		for _, event := range batch {
