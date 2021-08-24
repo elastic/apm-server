@@ -237,5 +237,6 @@ func transformResourceMetadata(t *testing.T, resourceAttrs map[string]pdata.Attr
 	events[0].Trace = model.Trace{}
 	events[0].Event.Outcome = ""
 	events[0].Timestamp = time.Time{}
+	events[0].Processor = model.Processor{}
 	return events[0]
 }

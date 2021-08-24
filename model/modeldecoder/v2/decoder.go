@@ -240,6 +240,7 @@ func mapToClientModel(from contextRequest, out *model.Client) {
 func mapToErrorModel(from *errorEvent, config modeldecoder.Config, event *model.APMEvent) {
 	out := &model.Error{}
 	event.Error = out
+	event.Processor = model.ErrorProcessor
 
 	// overwrite metadata with event specific information
 	mapToServiceModel(from.Context.Service, &event.Service)
@@ -538,6 +539,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 func mapToMetricsetModel(from *metricset, config modeldecoder.Config, event *model.APMEvent) {
 	out := &model.Metricset{}
 	event.Metricset = out
+	event.Processor = model.MetricsetProcessor
 
 	if !from.Timestamp.Val.IsZero() {
 		event.Timestamp = from.Timestamp.Val
@@ -725,6 +727,7 @@ func mapToAgentModel(from contextServiceAgent, out *model.Agent) {
 func mapToSpanModel(from *span, config modeldecoder.Config, event *model.APMEvent) {
 	out := &model.Span{}
 	event.Span = out
+	event.Processor = model.SpanProcessor
 
 	// map span specific data
 	if !from.Action.IsSet() && !from.Subtype.IsSet() {
@@ -987,6 +990,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 
 func mapToTransactionModel(from *transaction, config modeldecoder.Config, event *model.APMEvent) {
 	out := &model.Transaction{}
+	event.Processor = model.TransactionProcessor
 	event.Transaction = out
 
 	// overwrite metadata with event specific information

@@ -49,7 +49,6 @@ func TestSpanTransform(t *testing.T) {
 			Msg:  "Span without a Stacktrace",
 			Span: Span{},
 			Output: common.MapStr{
-				"processor": common.MapStr{"event": "span", "name": "transaction"},
 				"span": common.MapStr{
 					"duration": common.MapStr{"us": 0},
 					"name":     "",
@@ -132,7 +131,6 @@ func TestSpanTransform(t *testing.T) {
 						"compression_strategy": "exact_match",
 					},
 				},
-				"processor": common.MapStr{"event": "span", "name": "transaction"},
 				"timestamp": common.MapStr{"us": timestampUs},
 				"parent":    common.MapStr{"id": parentID},
 				"http": common.MapStr{
