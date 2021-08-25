@@ -23,9 +23,7 @@ The chart below outlines the compatibility between different versions of the APM
 |`1.x` |≥ `6.5`
 
 // Node
-.3+|**Node.js agent**
-|`1.x` |`6.2`-`6.x`
-|`2.x` |≥ `6.5`
+.1+|**Node.js agent**
 |`3.x` |≥ `6.6`
 
 // PHP
@@ -33,22 +31,16 @@ The chart below outlines the compatibility between different versions of the APM
 |`1.x` |≥ `7.0`
 
 // Python
-.3+|**Python agent**
-|`2.x`, `3.x` |`6.2`-`6.x`
-|`4.x` |≥ `6.5`
-|`5.x` |≥ `6.6`
+.1+|**Python agent**
+|`6.x` |≥ `6.6`
 
 // Ruby
-.4+|**Ruby agent**
-|`1.x` |`6.4`-`6.x`
-|`2.x` |≥ `6.5`
+.2+|**Ruby agent**
 |`3.x` |≥ `6.5`
 |`4.x` |≥ `6.5`
 
 // RUM
-.4+|**JavaScript RUM agent**
-|`0.x` |`6.3`-`6.4`
-|`1.x` |`6.4`
-|`2.x`, `3.x`, `4.x` |≥ `6.5`
+.2+|**JavaScript RUM agent**
+|`4.x` |≥ `6.5`
 |`5.x` |≥ `7.0`
 |====
