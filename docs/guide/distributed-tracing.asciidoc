@@ -1,9 +1,6 @@
 [[distributed-tracing]]
 === Distributed tracing
 
-// Make tab-widgets work
-include::../tab-widgets/code.asciidoc[]
-
 A `trace` is a group of <<transactions,transactions>> and <<transaction-spans,spans>> with a common root.
 Each `trace` tracks the entirety of a single request.
 When a `trace` travels through multiple services, as is common in a microservice architecture,
