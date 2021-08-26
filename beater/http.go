@@ -50,6 +50,7 @@ func newHTTPServer(
 	cfg *config.Config,
 	handler http.Handler,
 	reporter publish.Reporter,
+	listener net.Listener,
 ) (*httpServer, error) {
 
 	server := &http.Server{
@@ -77,26 +78,11 @@ func newHTTPServer(
 	if err != nil {
 		return nil, err
 	}
-	httpListener, err := listen(cfg)
-	if err != nil {
-		return nil, err
-	}
-	if cfg.MaxConnections > 0 {
-		httpListener = netutil.LimitListener(httpListener, cfg.MaxConnections)
-		logger.Infof("Connection limit set to: %d", cfg.MaxConnections)
-	}
 
-	return &httpServer{server, cfg, logger, reporter, grpcListener, httpListener}, nil
+	return &httpServer{server, cfg, logger, reporter, grpcListener, listener}, nil
 }
 
 func (h *httpServer) start() error {
-	addr := h.httpListener.Addr()
-	if addr.Network() == "tcp" {
-		h.logger.Infof("Listening on: %s", addr)
-	} else {
-		h.logger.Infof("Listening on: %s:%s", addr.Network(), addr.String())
-	}
-
 	if h.cfg.RumConfig.Enabled {
 		h.logger.Info("RUM endpoints enabled!")
 		for _, s := range h.cfg.RumConfig.AllowOrigins {
@@ -114,7 +100,7 @@ func (h *httpServer) start() error {
 		// listening address. We only do this if data streams are not enabled,
 		// as onboarding documents are incompatible with data streams.
 		// Onboarding documents should be replaced by Fleet status later.
-		notifyListening(context.Background(), addr, h.reporter)
+		notifyListening(context.Background(), h.httpListener.Addr(), h.reporter)
 	}
 
 	if h.cfg.TLS.IsEnabled() {
@@ -140,21 +126,37 @@ func (h *httpServer) stop() {
 }
 
 // listen starts the listener for bt.config.Host.
-func listen(cfg *config.Config) (net.Listener, error) {
-	if url, err := url.Parse(cfg.Host); err == nil && url.Scheme == "unix" {
+func listen(cfg *config.Config, logger *logp.Logger) (net.Listener, error) {
+	var listener net.Listener
+	url, err := url.Parse(cfg.Host)
+	if err == nil && url.Scheme == "unix" {
 		// SO_REUSEPORT does not support unix sockets
-		return net.Listen("unix", url.Path)
+		listener, err = net.Listen("unix", url.Path)
+	} else {
+		addr := cfg.Host
+		if _, _, err := net.SplitHostPort(addr); err != nil {
+			// Tack on a port if SplitHostPort fails on what should be a
+			// tcp network address. If splitting failed because there were
+			// already too many colons, one more won't change that.
+			addr = net.JoinHostPort(addr, config.DefaultPort)
+		}
+		listener, err = reuseport.Listen("tcp", addr)
+	}
+	if err != nil {
+		return nil, err
 	}
 
-	const network = "tcp"
-	addr := cfg.Host
-	if _, _, err := net.SplitHostPort(addr); err != nil {
-		// Tack on a port if SplitHostPort fails on what should be a
-		// tcp network address. If splitting failed because there were
-		// already too many colons, one more won't change that.
-		addr = net.JoinHostPort(addr, config.DefaultPort)
+	addr := listener.Addr()
+	if network := addr.Network(); network == "tcp" {
+		logger.Infof("Listening on: %s", addr)
+	} else {
+		logger.Infof("Listening on: %s:%s", network, addr.String())
 	}
-	return reuseport.Listen(network, addr)
+	if cfg.MaxConnections > 0 {
+		logger.Infof("Connection limit set to: %d", cfg.MaxConnections)
+		listener = netutil.LimitListener(listener, cfg.MaxConnections)
+	}
+	return listener, nil
 }
 
 func doNotTrace(req *http.Request) bool {

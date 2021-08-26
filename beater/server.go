@@ -19,6 +19,7 @@ package beater
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"time"
 
@@ -88,9 +89,9 @@ type ServerParams struct {
 //
 // Once we remove sourcemap uploading and onboarding docs, we
 // should remove the reporter parameter.
-func newBaseRunServer(reporter publish.Reporter) RunServerFunc {
+func newBaseRunServer(listener net.Listener, reporter publish.Reporter) RunServerFunc {
 	return func(ctx context.Context, args ServerParams) error {
-		srv, err := newServer(args, reporter)
+		srv, err := newServer(args, listener, reporter)
 		if err != nil {
 			return err
 		}
@@ -118,7 +119,7 @@ type server struct {
 	jaegerServer *jaeger.Server
 }
 
-func newServer(args ServerParams, reporter publish.Reporter) (server, error) {
+func newServer(args ServerParams, listener net.Listener, reporter publish.Reporter) (server, error) {
 	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(args.Config), args.BatchProcessor, 30*time.Second)
 
 	// DEPRECATED: dedicated Jaeger server. This does not use the same authenticator and is not rate limited.
@@ -157,7 +158,7 @@ func newServer(args ServerParams, reporter publish.Reporter) (server, error) {
 		return server{}, err
 	}
 	handler := apmhttp.Wrap(mux, apmhttp.WithServerRequestIgnorer(doNotTrace), apmhttp.WithTracer(args.Tracer))
-	httpServer, err := newHTTPServer(args.Logger, args.Info, args.Config, handler, reporter)
+	httpServer, err := newHTTPServer(args.Logger, args.Info, args.Config, handler, reporter, listener)
 	if err != nil {
 		return server{}, err
 	}
