@@ -489,6 +489,18 @@ func TestServerConfigReload(t *testing.T) {
 	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: common.NewConfig()}})
 	assert.EqualError(t, err, "'apm-server' not found in integration config")
 
+	// Creating the socket listener is performed synchronously in the Reload method
+	// to ensure zero downtime when reloading an already running server. Illustrate
+	// that the socket listener is created synhconously in Reload by attempting to
+	// reload with an invalid host.
+	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: common.MustNewConfigFrom(map[string]interface{}{
+		"apm-server": map[string]interface{}{
+			"host": "testing.invalid:123",
+		},
+	})}})
+	require.Error(t, err)
+	assert.Regexp(t, "listen tcp: lookup testing.invalid: .*", err.Error())
+
 	inputConfig := common.MustNewConfigFrom(map[string]interface{}{
 		"apm-server": map[string]interface{}{
 			"host": "localhost:0",
