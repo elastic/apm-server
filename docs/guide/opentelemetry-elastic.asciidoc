@@ -26,7 +26,7 @@ business KPIs and technical components with the {stack}.
 
 IMPORTANT: The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#legacy-opentelemetry-collector-exporter-for-elastic[OpenTelemetry Collector exporter for Elastic]
 was deprecated in 7.13 and replaced by the native support of the OpenTelemetry Line Protocol in
-Elastic Observability (OTLP). To learn more, see 
+Elastic Observability (OTLP). To learn more, see
 https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#migration[migration].
 
 Elastic APM Server natively supports the OpenTelemetry protocol.
@@ -359,7 +359,7 @@ Lambda layer for OpenTelemetry]. For example, `arn:aws:lambda:eu-west-1:90192057
 ** `OPENTELEMETRY_COLLECTOR_CONFIG_FILE="/var/task/opentelemetry-collector.yaml"` to specify the path to your OpenTelemetry Collector configuration
 ** `OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:55681/v1/traces"` this environment variable is required to be set until https://github.com/open-telemetry/opentelemetry-js/pull/2331[PR #2331] is merged and released.
 ** `OTEL_TRACES_SAMPLER="AlwaysOn"` define the required sampler strategy if it is not sent from the caller. Note that `Always_on` can potentially create a very large amount of data, so in production set the correct sampling configuration, as per the https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling[specification].
-        
+
 
 [[open-telemetry-aws-lambda-elastic-nodejs-terraform]]
 ===== Instrumenting AWS Lambda Node.js functions with Terraform
@@ -394,6 +394,3 @@ and https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/open
 ===== OpenTelemetry logs
 
 * OpenTelemetry logs are not yet supported https://github.com/elastic/apm-server/issues/5491[#5491]
-
-// Make tab-widgets work
-include::../tab-widgets/code.asciidoc[]
