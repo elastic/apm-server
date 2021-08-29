@@ -10,6 +10,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 - experimental:["This breaking change applies to the experimental tail-based sampling feature."] `apm-server.sampling.tail` now requires `apm-server.data_streams.enabled` {pull}5952[5952]
 - beta:["This breaking change applies to the beta <<apm-integration>>."] The `traces-sampled-*` data stream is now `traces-apm.sampled-*` {pull}5952[5952]
 - Removed unused stacktrace/frame monitoring counters {pull}5984[5984]
+- Removed unused support for top-level metricsets and metricset tags for RUMv3 {pull}6065[6065]
 
 [float]
 ==== Bug fixes
