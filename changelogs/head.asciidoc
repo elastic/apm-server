@@ -38,6 +38,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 - Add histogram dynamic_template to app metrics data stream {pull}6043[6043]
 - Index OpenTelemetry span events and Jaeger logs into a log data stream {pull}6122[6122]
 - With `apm-server.data_streams.enabled` in standalone mode, the server now accepts and enqueues events while waiting for the integration to be installed {pull}6130[6130]
+- HTTP server errors (e.g. TLS handshake errors) are now logged {pull}6141[6141]
 
 [float]
 ==== Deprecated
