@@ -19,8 +19,6 @@ package model
 
 import (
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/utility"
 )
 
 const (
@@ -39,7 +37,6 @@ type Transaction struct {
 	Type           string
 	Name           string
 	Result         string
-	Duration       float64
 	Marks          TransactionMarks
 	Message        *Message
 	Sampled        bool
@@ -62,7 +59,7 @@ type SpanCount struct {
 	Started *int
 }
 
-func (e *Transaction) fields() common.MapStr {
+func (e *Transaction) fields(apmEvent *APMEvent) common.MapStr {
 	var fields mapStr
 	var parent mapStr
 	parent.maybeSetString("id", e.ParentID)
@@ -77,7 +74,9 @@ func (e *Transaction) fields() common.MapStr {
 	var transaction mapStr
 	transaction.set("id", e.ID)
 	transaction.set("type", e.Type)
-	transaction.set("duration", utility.MillisAsMicros(e.Duration))
+	// TODO(axw) set `event.duration` in 8.0, and remove this field.
+	// See https://github.com/elastic/apm-server/issues/5999
+	transaction.set("duration", common.MapStr{"us": int(apmEvent.Event.Duration.Microseconds())})
 	transaction.maybeSetString("name", e.Name)
 	transaction.maybeSetString("result", e.Result)
 	transaction.maybeSetMapStr("marks", e.Marks.fields())
