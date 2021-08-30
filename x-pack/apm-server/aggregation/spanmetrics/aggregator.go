@@ -202,12 +202,11 @@ func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
 	// pre-aggregated spans and excludes time gaps that are counted in the reported
 	// span duration. For non-composite spans we just use the reported span duration.
 	count := 1
-	durationMillis := event.Span.Duration
+	duration := event.Event.Duration
 	if event.Span.Composite != nil {
 		count = event.Span.Composite.Count
-		durationMillis = event.Span.Composite.Sum
+		duration = time.Duration(event.Span.Composite.Sum * float64(time.Millisecond))
 	}
-	duration := time.Duration(durationMillis * float64(time.Millisecond))
 
 	key := aggregationKey{
 		serviceEnvironment: event.Service.Environment,

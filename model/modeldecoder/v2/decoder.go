@@ -882,7 +882,8 @@ func mapToSpanModel(from *span, config modeldecoder.Config, event *model.APMEven
 		)
 	}
 	if from.Duration.IsSet() {
-		out.Duration = from.Duration.Val
+		duration := time.Duration(from.Duration.Val * float64(time.Millisecond))
+		event.Event.Duration = duration
 	}
 	if from.ID.IsSet() {
 		out.ID = from.ID.Val
@@ -1066,7 +1067,8 @@ func mapToTransactionModel(from *transaction, config modeldecoder.Config, event 
 		}
 	}
 	if from.Duration.IsSet() {
-		out.Duration = from.Duration.Val
+		duration := time.Duration(from.Duration.Val * float64(time.Millisecond))
+		event.Event.Duration = duration
 	}
 	if from.ID.IsSet() {
 		out.ID = from.ID.Val

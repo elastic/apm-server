@@ -114,7 +114,7 @@ func TestAPMEventFields(t *testing.T) {
 				},
 
 				// fields related to APMEvent.Transaction
-				"timestamp": common.MapStr{"us": int64(1546525024908596)},
+				"timestamp": common.MapStr{"us": 1546525024908596},
 				"transaction": common.MapStr{
 					"duration": common.MapStr{"us": 0},
 					"sampled":  false,

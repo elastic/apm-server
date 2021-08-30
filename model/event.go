@@ -18,6 +18,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -25,6 +27,13 @@ import (
 //
 // https://www.elastic.co/guide/en/ecs/current/ecs-event.html
 type Event struct {
+	// Duration holds the event duration.
+	//
+	// TODO(axw) emit an `event.duration` field with the duration in
+	// nanoseconds, in 8.0. For now we emit event-specific duration fields.
+	// See https://github.com/elastic/apm-server/issues/5999
+	Duration time.Duration
+
 	// Outcome holds the event outcome: "success", "failure", or "unknown".
 	Outcome string
 }

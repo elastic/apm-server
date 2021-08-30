@@ -312,14 +312,14 @@ func TestMetadataRequiredValidationRules(t *testing.T) {
 	modeldecodertest.SetZeroStructValue(&event, cb)
 }
 
-func TestMetricsetRequiredValidationRules(t *testing.T) {
+func TestTransactionMetricsetRequiredValidationRules(t *testing.T) {
 	// setup: create full struct with sample values set
-	var root metricsetRoot
-	s := `{"me":{"sa":{"xds":{"v":2048},"xbc":{"v":1}},"y":{"t":"db","su":"mysql"},"g":{"a":"b"}}}`
-	modeldecodertest.DecodeData(t, strings.NewReader(s), "me", &root)
+	var tx transaction
+	s := `{"me":[{"sa":{"xds":{"v":2048},"xbc":{"v":1}},"y":{"t":"db","su":"mysql"}}]}`
+	modeldecodertest.DecodeData(t, strings.NewReader(s), "me", &tx)
 	// test vanilla struct is valid
-	event := root.Metricset
-	require.NoError(t, event.validate())
+	require.Len(t, tx.Metricsets, 1)
+	require.NoError(t, tx.Metricsets[0].validate())
 
 	// iterate through struct, remove every key one by one
 	// and test that validation behaves as expected
@@ -327,8 +327,8 @@ func TestMetricsetRequiredValidationRules(t *testing.T) {
 		"sa":   nil, //samples
 		"sa.v": nil, //samples.*.value
 	}
-	cb := assertRequiredFn(t, requiredKeys, event.validate)
-	modeldecodertest.SetZeroStructValue(&event, cb)
+	cb := assertRequiredFn(t, requiredKeys, tx.Metricsets[0].validate)
+	modeldecodertest.SetZeroStructValue(&tx.Metricsets[0], cb)
 }
 
 func TestTransactionRequiredValidationRules(t *testing.T) {
@@ -392,10 +392,9 @@ func assertRequiredFn(t *testing.T, keys map[string]interface{}, validate func()
 
 func TestResetIsSet(t *testing.T) {
 	for name, root := range map[string]setter{
-		"e":  &errorRoot{},
-		"m":  &metadataRoot{},
-		"me": &metricsetRoot{},
-		"x":  &transactionRoot{},
+		"e": &errorRoot{},
+		"m": &metadataRoot{},
+		"x": &transactionRoot{},
 	} {
 		t.Run(name, func(t *testing.T) {
 			r := testdataReader(t, testFileName(name))
@@ -448,8 +447,6 @@ func testValidation(t *testing.T, eventType string, testcases []testcase, keys .
 				event = &errorEvent{}
 			case "m":
 				event = &metadata{}
-			case "me":
-				event = &metricset{}
 			case "x":
 				event = &transaction{}
 			}
