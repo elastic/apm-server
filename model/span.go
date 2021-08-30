@@ -18,9 +18,9 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"time"
 
-	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 var (
@@ -34,10 +34,14 @@ type Span struct {
 	ParentID      string
 	ChildIDs      []string
 
-	Message    *Message
-	Name       string
-	Start      *float64
-	Duration   float64
+	Message *Message
+	Name    string
+
+	// Start holds the span's offset from the transaction timestamp in milliseconds.
+	//
+	// TODO(axw) drop in 8.0. See https://github.com/elastic/apm-server/issues/6000)
+	Start *float64
+
 	Stacktrace Stacktrace
 	Sync       *bool
 
@@ -116,8 +120,9 @@ func (c *Composite) fields() common.MapStr {
 		return nil
 	}
 	var fields mapStr
+	sumDuration := time.Duration(c.Sum * float64(time.Millisecond))
+	fields.set("sum", common.MapStr{"us": int(sumDuration.Microseconds())})
 	fields.set("count", c.Count)
-	fields.set("sum", utility.MillisAsMicros(c.Sum))
 	fields.set("compression_strategy", c.CompressionStrategy)
 
 	return common.MapStr(fields)
@@ -152,9 +157,12 @@ func (e *Span) fields(apmEvent *APMEvent) common.MapStr {
 	span.maybeSetString("action", e.Action)
 	span.maybeSetBool("sync", e.Sync)
 	if e.Start != nil {
-		span.set("start", utility.MillisAsMicros(*e.Start))
+		start := time.Duration(*e.Start * float64(time.Millisecond))
+		span.set("start", common.MapStr{"us": int(start.Microseconds())})
 	}
-	span.set("duration", utility.MillisAsMicros(e.Duration))
+	// TODO(axw) set `event.duration` in 8.0, and remove this field.
+	// See https://github.com/elastic/apm-server/issues/5999
+	span.set("duration", common.MapStr{"us": int(apmEvent.Event.Duration.Microseconds())})
 
 	if e.HTTP != nil {
 		span.maybeSetMapStr("http", e.HTTP.spanFields())

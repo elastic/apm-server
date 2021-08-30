@@ -100,9 +100,9 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		batch = append(batch, model.APMEvent{
 			Processor: model.TransactionProcessor,
+			Event:     model.Event{Duration: time.Minute},
 			Transaction: &model.Transaction{
 				Name:                "baz",
-				Duration:            float64(time.Minute / time.Millisecond),
 				RepresentativeCount: 1,
 			},
 		})
@@ -365,10 +365,6 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 		})
 		require.NoError(t, err)
 
-		durationMillis := func(d time.Duration) float64 {
-			return float64(d) / float64(time.Millisecond)
-		}
-
 		// The following values will be recorded in either 1, 2, 3, 4, or 5
 		// buckets according to the configured number of significant figures.
 		for _, duration := range []time.Duration{
@@ -380,9 +376,9 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 		} {
 			metricset := agg.AggregateTransaction(model.APMEvent{
 				Processor: model.TransactionProcessor,
+				Event:     model.Event{Duration: duration},
 				Transaction: &model.Transaction{
 					Name:                "T-1000",
-					Duration:            durationMillis(duration),
 					RepresentativeCount: 1,
 				},
 			})
@@ -508,9 +504,9 @@ func BenchmarkAggregateTransaction(b *testing.B) {
 
 	event := model.APMEvent{
 		Processor: model.TransactionProcessor,
+		Event:     model.Event{Duration: time.Millisecond},
 		Transaction: &model.Transaction{
 			Name:                "T-1000",
-			Duration:            1,
 			RepresentativeCount: 1,
 		},
 	}

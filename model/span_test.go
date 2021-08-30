@@ -33,8 +33,8 @@ func TestSpanTransform(t *testing.T) {
 	hexID, parentID := "0147258369012345", "abcdef0123456789"
 	subtype := "amqp"
 	action := "publish"
-	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6,
-		time.FixedZone("+0100", 3600))
+	duration := time.Millisecond * 1500
+	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", 5
@@ -50,11 +50,11 @@ func TestSpanTransform(t *testing.T) {
 			Span: Span{},
 			Output: common.MapStr{
 				"span": common.MapStr{
-					"duration": common.MapStr{"us": 0},
+					"duration": common.MapStr{"us": int(duration.Microseconds())},
 					"name":     "",
 					"type":     "",
 				},
-				"timestamp": common.MapStr{"us": timestampUs},
+				"timestamp": common.MapStr{"us": int(timestampUs)},
 				"url": common.MapStr{
 					"original": url,
 				},
@@ -71,7 +71,6 @@ func TestSpanTransform(t *testing.T) {
 				Action:              action,
 				Start:               &start,
 				RepresentativeCount: 5,
-				Duration:            1.20,
 				Stacktrace:          Stacktrace{{AbsPath: path}},
 				HTTP: &HTTP{
 					Request:  &HTTPRequest{Method: method},
@@ -95,7 +94,7 @@ func TestSpanTransform(t *testing.T) {
 			Output: common.MapStr{
 				"span": common.MapStr{
 					"id":       hexID,
-					"duration": common.MapStr{"us": 1200},
+					"duration": common.MapStr{"us": int(duration.Microseconds())},
 					"name":     "myspan",
 					"start":    common.MapStr{"us": 650},
 					"type":     "myspantype",
@@ -131,7 +130,7 @@ func TestSpanTransform(t *testing.T) {
 						"compression_strategy": "exact_match",
 					},
 				},
-				"timestamp": common.MapStr{"us": timestampUs},
+				"timestamp": common.MapStr{"us": int(timestampUs)},
 				"parent":    common.MapStr{"id": parentID},
 				"http": common.MapStr{
 					"response": common.MapStr{"status_code": statusCode},
@@ -148,6 +147,7 @@ func TestSpanTransform(t *testing.T) {
 		event := APMEvent{
 			Span:      &test.Span,
 			Timestamp: timestamp,
+			Event:     Event{Duration: duration},
 			URL:       URL{Original: url},
 		}
 		output := event.BeatEvent(context.Background())
