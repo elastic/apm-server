@@ -175,6 +175,75 @@ func TestAPIKeyInvalidateID(t *testing.T) {
 	assertAuthenticateFails(t, es)
 }
 
+func TestAPIKeyVerify(t *testing.T) {
+	systemtest.InvalidateAPIKeys(t)
+	defer systemtest.InvalidateAPIKeys(t)
+
+	cmd := apiKeyCommand("create", "--name", t.Name(), "--json", "--ingest", "--agent-config")
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err)
+	attrs := decodeJSONMap(t, bytes.NewReader(out))
+	credentials := attrs["credentials"].(string)
+
+	cmd = apiKeyCommand("verify", "--json", "--credentials="+credentials)
+	out, err = cmd.CombinedOutput()
+	require.NoError(t, err)
+	attrs = decodeJSONMap(t, bytes.NewReader(out))
+	assert.Equal(t, map[string]interface{}{
+		"event:write":       true,
+		"config_agent:read": true,
+		"sourcemap:write":   false,
+	}, attrs)
+
+	cmd = apiKeyCommand("verify", "--json", "--credentials="+credentials, "--ingest")
+	out, err = cmd.CombinedOutput()
+	require.NoError(t, err)
+	attrs = decodeJSONMap(t, bytes.NewReader(out))
+	assert.Equal(t, map[string]interface{}{"event:write": true}, attrs)
+}
+
+func TestAPIKeyInfo(t *testing.T) {
+	systemtest.InvalidateAPIKeys(t)
+	defer systemtest.InvalidateAPIKeys(t)
+
+	var ids []string
+	for i := 0; i < 2; i++ {
+		cmd := apiKeyCommand("create", "--name", t.Name(), "--json", "--ingest", "--agent-config")
+		out, err := cmd.CombinedOutput()
+		require.NoError(t, err)
+		attrs := decodeJSONMap(t, bytes.NewReader(out))
+		ids = append(ids, attrs["id"].(string))
+	}
+
+	type apiKey struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	}
+	var result struct {
+		APIKeys []apiKey `json:"api_keys"`
+	}
+
+	cmd := apiKeyCommand("info", "--json", "--id="+ids[0])
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err)
+	err = json.Unmarshal(out, &result)
+	require.NoError(t, err)
+	assert.Equal(t, []apiKey{{
+		ID:   ids[0],
+		Name: t.Name(),
+	}}, result.APIKeys)
+
+	result.APIKeys = nil
+	cmd = apiKeyCommand("info", "--json", "--name="+t.Name())
+	out, err = cmd.CombinedOutput()
+	require.NoError(t, err)
+	err = json.Unmarshal(out, &result)
+	require.NoError(t, err)
+	// Should be at least 2, possibly more; Elasticsearch may
+	// hold invalidated keys from previous test runs.
+	assert.GreaterOrEqual(t, len(result.APIKeys), 2)
+}
+
 func assertAuthenticateSucceeds(t testing.TB, es *estest.Client) *esapi.Response {
 	t.Helper()
 	resp, err := es.Security.Authenticate()
