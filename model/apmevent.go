@@ -21,7 +21,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -83,7 +82,7 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	event := beat.Event{Timestamp: e.Timestamp}
 	switch {
 	case e.Transaction != nil:
-		event.Fields = e.Transaction.fields()
+		event.Fields = e.Transaction.fields(e)
 	case e.Span != nil:
 		event.Fields = e.Span.fields(e)
 	case e.Metricset != nil:
@@ -101,7 +100,7 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	//
 	// TODO(axw) change @timestamp to use date_nanos, and remove this field.
 	if !e.Timestamp.IsZero() && (e.Transaction != nil || e.Span != nil || e.Error != nil) {
-		event.Fields["timestamp"] = utility.TimeAsMicros(e.Timestamp)
+		event.Fields["timestamp"] = common.MapStr{"us": int(e.Timestamp.UnixNano() / 1000)}
 	}
 
 	// Set top-level field sets.

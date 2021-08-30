@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -33,6 +34,7 @@ func TestTransactionTransform(t *testing.T) {
 	result := "tx result"
 	dropped, startedSpans := 5, 14
 	name := "mytransaction"
+	duration := 65980 * time.Microsecond
 
 	tests := []struct {
 		Transaction Transaction
@@ -44,16 +46,15 @@ func TestTransactionTransform(t *testing.T) {
 			Output: common.MapStr{
 				"id":       "",
 				"type":     "",
-				"duration": common.MapStr{"us": 0},
+				"duration": common.MapStr{"us": 65980},
 				"sampled":  false,
 			},
-			Msg: "Empty Event",
+			Msg: "Empty Transaction",
 		},
 		{
 			Transaction: Transaction{
-				ID:       id,
-				Type:     "tx",
-				Duration: 65.98,
+				ID:   id,
+				Type: "tx",
 			},
 			Output: common.MapStr{
 				"id":       id,
@@ -67,7 +68,6 @@ func TestTransactionTransform(t *testing.T) {
 			Transaction: Transaction{
 				ID:        id,
 				Type:      "tx",
-				Duration:  65.98,
 				SpanCount: SpanCount{Started: &startedSpans},
 			},
 			Output: common.MapStr{
@@ -83,7 +83,6 @@ func TestTransactionTransform(t *testing.T) {
 			Transaction: Transaction{
 				ID:        id,
 				Type:      "tx",
-				Duration:  65.98,
 				SpanCount: SpanCount{Dropped: &dropped},
 			},
 			Output: common.MapStr{
@@ -101,7 +100,6 @@ func TestTransactionTransform(t *testing.T) {
 				Name:      name,
 				Type:      "tx",
 				Result:    result,
-				Duration:  65.98,
 				Sampled:   true,
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
 			},
@@ -119,8 +117,12 @@ func TestTransactionTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		fields := test.Transaction.fields()
-		assert.Equal(t, test.Output, fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		event := APMEvent{
+			Transaction: &test.Transaction,
+			Event:       Event{Duration: duration},
+		}
+		beatEvent := event.BeatEvent(context.Background())
+		assert.Equal(t, test.Output, beatEvent.Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
 
@@ -199,16 +201,18 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 
 func TestTransformTransactionHTTP(t *testing.T) {
 	request := HTTPRequest{Method: "post", Body: "<html><marquee>hello world</marquee></html>"}
-	tx := Transaction{
-		HTTP: &HTTP{Request: &request},
+	event := APMEvent{
+		Transaction: &Transaction{
+			HTTP: &HTTP{Request: &request},
+		},
 	}
-	fields := tx.fields()
+	beatEvent := event.BeatEvent(context.Background())
 	assert.Equal(t, common.MapStr{
 		"request": common.MapStr{
 			"method":        request.Method,
 			"body.original": request.Body,
 		},
-	}, fields["http"])
+	}, beatEvent.Fields["http"])
 }
 
 func TestTransactionTransformMarks(t *testing.T) {
@@ -235,8 +239,9 @@ func TestTransactionTransformMarks(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		fields := test.Transaction.fields()
-		marks, _ := fields.GetValue("transaction.marks")
+		event := APMEvent{Transaction: &test.Transaction}
+		beatEvent := event.BeatEvent(context.Background())
+		marks, _ := beatEvent.Fields.GetValue("transaction.marks")
 		assert.Equal(t, test.Output, marks, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
