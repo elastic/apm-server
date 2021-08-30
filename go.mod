@@ -16,7 +16,7 @@ require (
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210819093209-c30b7afe7e72
 	github.com/elastic/ecs v1.11.0
 	github.com/elastic/gmux v0.1.0
-	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20210803065541-d87f0bdcf0fe
+	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20210820163134-d87e9d5a5329
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20210727161915-8cf93274b968
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-ucfg v0.8.4-0.20200415140258-1232bd4774a6
