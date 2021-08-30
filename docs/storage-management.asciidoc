@@ -212,7 +212,7 @@ INFO      "delete_indices" action completed.
 ===== Delete data matching a query
 
 You can delete documents matching a specific query.
-For example, all documents with a given `c`ontext.service.name` use the following request:
+For example, all documents with a given `context.service.name` use the following request:
 
 ["source","sh"]
 ------------------------------------------------------------
