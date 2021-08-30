@@ -47,7 +47,6 @@ const (
 	transactionEventType      = "transaction"
 	rumv3ErrorEventType       = "e"
 	rumv3TransactionEventType = "x"
-	rumv3MetricsetEventType   = "me"
 )
 
 type decodeMetadataFunc func(decoder.Decoder, *model.APMEvent) error
@@ -170,8 +169,6 @@ func (p *Processor) readBatch(
 			err = v2.DecodeNestedTransaction(reader, &input, batch)
 		case rumv3ErrorEventType:
 			err = rumv3.DecodeNestedError(reader, &input, batch)
-		case rumv3MetricsetEventType:
-			err = rumv3.DecodeNestedMetricset(reader, &input, batch)
 		case rumv3TransactionEventType:
 			err = rumv3.DecodeNestedTransaction(reader, &input, batch)
 		default:

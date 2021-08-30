@@ -821,139 +821,6 @@ func (val *errorTransactionRef) validate() error {
 	return nil
 }
 
-func (val *metricsetRoot) IsSet() bool {
-	return val.Metricset.IsSet()
-}
-
-func (val *metricsetRoot) Reset() {
-	val.Metricset.Reset()
-}
-
-func (val *metricsetRoot) validate() error {
-	if err := val.Metricset.validate(); err != nil {
-		return errors.Wrapf(err, "me")
-	}
-	if !val.Metricset.IsSet() {
-		return fmt.Errorf("'me' required")
-	}
-	return nil
-}
-
-func (val *metricset) IsSet() bool {
-	return val.Samples.IsSet() || val.Span.IsSet() || (len(val.Tags) > 0)
-}
-
-func (val *metricset) Reset() {
-	val.Samples.Reset()
-	val.Span.Reset()
-	for k := range val.Tags {
-		delete(val.Tags, k)
-	}
-}
-
-func (val *metricset) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if err := val.Samples.validate(); err != nil {
-		return errors.Wrapf(err, "sa")
-	}
-	if !val.Samples.IsSet() {
-		return fmt.Errorf("'sa' required")
-	}
-	if err := val.Span.validate(); err != nil {
-		return errors.Wrapf(err, "y")
-	}
-	for k, v := range val.Tags {
-		switch t := v.(type) {
-		case nil:
-		case string:
-			if utf8.RuneCountInString(t) > 1024 {
-				return fmt.Errorf("'g': validation rule 'maxLengthVals(1024)' violated")
-			}
-		case bool:
-		case json.Number:
-		default:
-			return fmt.Errorf("'g': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
-		}
-	}
-	return nil
-}
-
-func (val *metricsetSamples) IsSet() bool {
-	return val.TransactionDurationCount.IsSet() || val.TransactionDurationSum.IsSet() || val.TransactionBreakdownCount.IsSet() || val.SpanSelfTimeCount.IsSet() || val.SpanSelfTimeSum.IsSet()
-}
-
-func (val *metricsetSamples) Reset() {
-	val.TransactionDurationCount.Reset()
-	val.TransactionDurationSum.Reset()
-	val.TransactionBreakdownCount.Reset()
-	val.SpanSelfTimeCount.Reset()
-	val.SpanSelfTimeSum.Reset()
-}
-
-func (val *metricsetSamples) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if err := val.TransactionDurationCount.validate(); err != nil {
-		return errors.Wrapf(err, "xdc")
-	}
-	if err := val.TransactionDurationSum.validate(); err != nil {
-		return errors.Wrapf(err, "xds")
-	}
-	if err := val.TransactionBreakdownCount.validate(); err != nil {
-		return errors.Wrapf(err, "xbc")
-	}
-	if err := val.SpanSelfTimeCount.validate(); err != nil {
-		return errors.Wrapf(err, "ysc")
-	}
-	if err := val.SpanSelfTimeSum.validate(); err != nil {
-		return errors.Wrapf(err, "yss")
-	}
-	return nil
-}
-
-func (val *metricsetSampleValue) IsSet() bool {
-	return val.Value.IsSet()
-}
-
-func (val *metricsetSampleValue) Reset() {
-	val.Value.Reset()
-}
-
-func (val *metricsetSampleValue) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if !val.Value.IsSet() {
-		return fmt.Errorf("'v' required")
-	}
-	return nil
-}
-
-func (val *metricsetSpanRef) IsSet() bool {
-	return val.Subtype.IsSet() || val.Type.IsSet()
-}
-
-func (val *metricsetSpanRef) Reset() {
-	val.Subtype.Reset()
-	val.Type.Reset()
-}
-
-func (val *metricsetSpanRef) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Subtype.IsSet() && utf8.RuneCountInString(val.Subtype.Val) > 1024 {
-		return fmt.Errorf("'su': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'t': validation rule 'maxLength(1024)' violated")
-	}
-	return nil
-}
-
 func (val *transactionRoot) IsSet() bool {
 	return val.Transaction.IsSet()
 }
@@ -1112,6 +979,105 @@ func (val *transactionMarkEvents) Reset() {
 func (val *transactionMarkEvents) validate() error {
 	if !val.IsSet() {
 		return nil
+	}
+	return nil
+}
+
+func (val *transactionMetricset) IsSet() bool {
+	return val.Samples.IsSet() || val.Span.IsSet()
+}
+
+func (val *transactionMetricset) Reset() {
+	val.Samples.Reset()
+	val.Span.Reset()
+}
+
+func (val *transactionMetricset) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Samples.validate(); err != nil {
+		return errors.Wrapf(err, "sa")
+	}
+	if !val.Samples.IsSet() {
+		return fmt.Errorf("'sa' required")
+	}
+	if err := val.Span.validate(); err != nil {
+		return errors.Wrapf(err, "y")
+	}
+	return nil
+}
+
+func (val *transactionMetricsetSamples) IsSet() bool {
+	return val.TransactionDurationCount.IsSet() || val.TransactionDurationSum.IsSet() || val.TransactionBreakdownCount.IsSet() || val.SpanSelfTimeCount.IsSet() || val.SpanSelfTimeSum.IsSet()
+}
+
+func (val *transactionMetricsetSamples) Reset() {
+	val.TransactionDurationCount.Reset()
+	val.TransactionDurationSum.Reset()
+	val.TransactionBreakdownCount.Reset()
+	val.SpanSelfTimeCount.Reset()
+	val.SpanSelfTimeSum.Reset()
+}
+
+func (val *transactionMetricsetSamples) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.TransactionDurationCount.validate(); err != nil {
+		return errors.Wrapf(err, "xdc")
+	}
+	if err := val.TransactionDurationSum.validate(); err != nil {
+		return errors.Wrapf(err, "xds")
+	}
+	if err := val.TransactionBreakdownCount.validate(); err != nil {
+		return errors.Wrapf(err, "xbc")
+	}
+	if err := val.SpanSelfTimeCount.validate(); err != nil {
+		return errors.Wrapf(err, "ysc")
+	}
+	if err := val.SpanSelfTimeSum.validate(); err != nil {
+		return errors.Wrapf(err, "yss")
+	}
+	return nil
+}
+
+func (val *metricsetSampleValue) IsSet() bool {
+	return val.Value.IsSet()
+}
+
+func (val *metricsetSampleValue) Reset() {
+	val.Value.Reset()
+}
+
+func (val *metricsetSampleValue) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if !val.Value.IsSet() {
+		return fmt.Errorf("'v' required")
+	}
+	return nil
+}
+
+func (val *metricsetSpanRef) IsSet() bool {
+	return val.Subtype.IsSet() || val.Type.IsSet()
+}
+
+func (val *metricsetSpanRef) Reset() {
+	val.Subtype.Reset()
+	val.Type.Reset()
+}
+
+func (val *metricsetSpanRef) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Subtype.IsSet() && utf8.RuneCountInString(val.Subtype.Val) > 1024 {
+		return fmt.Errorf("'su': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+		return fmt.Errorf("'t': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
