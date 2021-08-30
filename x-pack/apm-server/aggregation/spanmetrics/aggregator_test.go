@@ -284,13 +284,15 @@ func makeSpan(
 	count float64,
 ) model.APMEvent {
 	event := model.APMEvent{
-		Agent:     model.Agent{Name: agentName},
-		Service:   model.Service{Name: serviceName},
-		Event:     model.Event{Outcome: outcome},
+		Agent:   model.Agent{Name: agentName},
+		Service: model.Service{Name: serviceName},
+		Event: model.Event{
+			Outcome:  outcome,
+			Duration: duration,
+		},
 		Processor: model.SpanProcessor,
 		Span: &model.Span{
 			Name:                serviceName + ":" + destinationServiceResource,
-			Duration:            duration.Seconds() * 1000,
 			RepresentativeCount: count,
 		},
 	}

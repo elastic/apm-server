@@ -159,33 +159,33 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	trace1Events := model.Batch{{
 		Processor: model.TransactionProcessor,
 		Trace:     trace1,
+		Event:     model.Event{Duration: 123 * time.Millisecond},
 		Transaction: &model.Transaction{
-			ID:       "0102030405060708",
-			Duration: 123,
-			Sampled:  true,
+			ID:      "0102030405060708",
+			Sampled: true,
 		},
 	}, {
 		Processor: model.SpanProcessor,
 		Trace:     trace1,
+		Event:     model.Event{Duration: 123 * time.Millisecond},
 		Span: &model.Span{
-			ID:       "0102030405060709",
-			Duration: 123,
+			ID: "0102030405060709",
 		},
 	}}
 	trace2Events := model.Batch{{
 		Processor: model.TransactionProcessor,
 		Trace:     trace2,
+		Event:     model.Event{Duration: 456 * time.Millisecond},
 		Transaction: &model.Transaction{
-			ID:       "0102030405060710",
-			Duration: 456,
-			Sampled:  true,
+			ID:      "0102030405060710",
+			Sampled: true,
 		},
 	}, {
 		Processor: model.SpanProcessor,
 		Trace:     trace2,
+		Event:     model.Event{Duration: 456 * time.Millisecond},
 		Span: &model.Span{
-			ID:       "0102030405060711",
-			Duration: 456,
+			ID: "0102030405060711",
 		},
 	}}
 
@@ -278,10 +278,10 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 		batch := model.Batch{{
 			Processor: model.TransactionProcessor,
 			Trace:     model.Trace{ID: traceID},
+			Event:     model.Event{Duration: time.Millisecond},
 			Transaction: &model.Transaction{
-				ID:       traceID,
-				Duration: 1,
-				Sampled:  true,
+				ID:      traceID,
+				Sampled: true,
 			},
 		}}
 		err := processor.ProcessBatch(context.Background(), &batch)
@@ -344,11 +344,11 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 			Service:   service,
 			Processor: model.TransactionProcessor,
 			Trace:     model.Trace{ID: fmt.Sprintf("%x", traceIDBytes[:])},
+			Event:     model.Event{Duration: 123 * time.Millisecond},
 			Transaction: &model.Transaction{
-				Name:     "trace_name",
-				ID:       fmt.Sprintf("%x", traceIDBytes[8:]),
-				Duration: 123,
-				Sampled:  true,
+				Name:    "trace_name",
+				ID:      fmt.Sprintf("%x", traceIDBytes[8:]),
+				Sampled: true,
 			},
 		}
 	}
@@ -413,9 +413,9 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	trace1Events := model.Batch{{
 		Processor: model.SpanProcessor,
 		Trace:     model.Trace{ID: traceID1},
+		Event:     model.Event{Duration: 123 * time.Millisecond},
 		Span: &model.Span{
-			ID:       "0102030405060709",
-			Duration: 123,
+			ID: "0102030405060709",
 		},
 	}}
 
@@ -496,10 +496,10 @@ func TestGroupsMonitoring(t *testing.T) {
 			Service:   model.Service{Name: fmt.Sprintf("service_%d", i)},
 			Processor: model.TransactionProcessor,
 			Trace:     model.Trace{ID: uuid.Must(uuid.NewV4()).String()},
+			Event:     model.Event{Duration: 123 * time.Millisecond},
 			Transaction: &model.Transaction{
-				ID:       "0102030405060709",
-				Duration: 123,
-				Sampled:  true,
+				ID:      "0102030405060709",
+				Sampled: true,
 			},
 		}})
 		require.NoError(t, err)
@@ -525,10 +525,10 @@ func TestStorageMonitoring(t *testing.T) {
 		batch := model.Batch{{
 			Processor: model.TransactionProcessor,
 			Trace:     model.Trace{ID: traceID},
+			Event:     model.Event{Duration: 123 * time.Millisecond},
 			Transaction: &model.Transaction{
-				ID:       traceID,
-				Duration: 123,
-				Sampled:  true,
+				ID:      traceID,
+				Sampled: true,
 			},
 		}}
 		err := processor.ProcessBatch(context.Background(), &batch)
@@ -570,9 +570,9 @@ func TestStorageGC(t *testing.T) {
 			batch := model.Batch{{
 				Processor: model.SpanProcessor,
 				Trace:     model.Trace{ID: traceID},
+				Event:     model.Event{Duration: 123 * time.Millisecond},
 				Span: &model.Span{
-					ID:       traceID,
-					Duration: 123,
+					ID: traceID,
 				},
 			}}
 			err := processor.ProcessBatch(context.Background(), &batch)

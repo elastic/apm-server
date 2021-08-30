@@ -7,6 +7,7 @@ package sampling
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -273,14 +274,14 @@ func BenchmarkTraceGroups(b *testing.B) {
 		// being sampled.
 		tx := model.APMEvent{
 			Processor: model.TransactionProcessor,
+			Event:     model.Event{Duration: time.Second},
 			Transaction: &model.Transaction{
-				Duration: 1000,
-				Name:     uuid.Must(uuid.NewV4()).String(),
+				Name: uuid.Must(uuid.NewV4()).String(),
 			},
 		}
 		for pb.Next() {
 			groups.sampleTrace(&tx)
-			tx.Transaction.Duration += 1000
+			tx.Event.Duration += time.Second
 		}
 	})
 }
