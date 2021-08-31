@@ -89,7 +89,6 @@ Traces are written to `traces-apm.*` indices.
 |destination.port|Port of the destination.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |ecs.version|ECS version the event conforms to.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |event.outcome|\`event.outcome\` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|experimental|Additional experimental data sent by the agents.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |host.architecture|The architecture of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.hostname|The hostname of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.ip|IP of the host that records the event.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -462,7 +461,6 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
 |destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.port|Port of the destination.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |ecs.version|ECS version the event conforms to.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|experimental|Additional experimental data sent by the agents.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |histogram||histogram|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |host.architecture|The architecture of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.hostname|The hostname of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -645,7 +643,6 @@ Logs are written to `logs-apm.error.*` indices.
 |error.log.logger\_name|The name of the logger instance used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.log.message|The additionally logged error message.|text|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.log.param\_message|A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param\_message, but with placeholders replaced. In some situations the param\_message is used to group errors together.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|experimental|Additional experimental data sent by the agents.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |host.architecture|The architecture of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.hostname|The hostname of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.ip|IP of the host that records the event.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |

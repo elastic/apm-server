@@ -45,8 +45,6 @@ type Error struct {
 
 	TransactionSampled *bool
 	TransactionType    string
-
-	Experimental interface{}
 }
 
 type Exception struct {
@@ -73,9 +71,6 @@ func (e *Error) fields() common.MapStr {
 	var fields mapStr
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
-	}
-	if e.Experimental != nil {
-		fields.set("experimental", e.Experimental)
 	}
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
