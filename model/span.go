@@ -54,8 +54,6 @@ type Span struct {
 	DestinationService *DestinationService
 	Composite          *Composite
 
-	Experimental interface{}
-
 	// RepresentativeCount holds the approximate number of spans that
 	// this span represents for aggregation. This will only be set when
 	// the sampling rate is known.
@@ -141,9 +139,6 @@ func (e *Span) fields(apmEvent *APMEvent) common.MapStr {
 		var child mapStr
 		child.set("id", e.ChildIDs)
 		fields.set("child", common.MapStr(child))
-	}
-	if e.Experimental != nil {
-		fields.set("experimental", e.Experimental)
 	}
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.spanTopLevelFields())

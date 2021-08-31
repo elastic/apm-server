@@ -1196,15 +1196,6 @@ example: 4.4.0-112-generic
 
 --
 
-*`experimental`*::
-+
---
-Additional experimental data sent by the agents.
-
-type: object
-
---
-
 [float]
 === cloud
 
@@ -2366,15 +2357,6 @@ type: keyword
 example: 4.4.0-112-generic
 
 {yes-icon} {ecs-ref}[ECS] field.
-
---
-
-*`experimental`*::
-+
---
-Additional experimental data sent by the agents.
-
-type: object
 
 --
 
@@ -3705,15 +3687,6 @@ type: keyword
 example: 4.4.0-112-generic
 
 {yes-icon} {ecs-ref}[ECS] field.
-
---
-
-*`experimental`*::
-+
---
-Additional experimental data sent by the agents.
-
-type: object
 
 --
 
@@ -5365,15 +5338,6 @@ example: 4.4.0-112-generic
 
 --
 
-*`experimental`*::
-+
---
-Additional experimental data sent by the agents.
-
-type: object
-
---
-
 [float]
 === cloud
 
@@ -6622,15 +6586,6 @@ type: keyword
 example: 4.4.0-112-generic
 
 {yes-icon} {ecs-ref}[ECS] field.
-
---
-
-*`experimental`*::
-+
---
-Additional experimental data sent by the agents.
-
-type: object
 
 --
 

@@ -52,10 +52,6 @@
           type: keyword
           description: |
             A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together.
-- name: experimental
-  type: object
-  description: Additional experimental data sent by the agents.
-  dynamic: true
 - name: http
   type: group
   fields:

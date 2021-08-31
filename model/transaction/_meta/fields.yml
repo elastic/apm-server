@@ -753,12 +753,6 @@
             description: >
               Operating system kernel version as a raw string.
 
-    - name: experimental
-      type: object
-      dynamic: true
-      overwrite: true
-      description: Additional experimental data sent by the agents.
-
     - name: cloud
       title: Cloud
       group: 2
