@@ -86,6 +86,7 @@ func isUnmappedMetadataField(key string) bool {
 		"UserAgent.Name",
 		"UserAgent.Original",
 		"Event",
+		"Event.Duration",
 		"Event.Outcome",
 		"Session.ID",
 		"Session",

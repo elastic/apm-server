@@ -121,8 +121,8 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 		switch fKind := f.Kind(); fKind {
 		case reflect.String:
 			fieldVal = reflect.ValueOf(values.Str)
-		case reflect.Int:
-			fieldVal = reflect.ValueOf(values.Int)
+		case reflect.Int, reflect.Int64:
+			fieldVal = reflect.ValueOf(values.Int).Convert(f.Type())
 		case reflect.Slice:
 			var elemVal reflect.Value
 			switch v := f.Interface().(type) {
@@ -204,7 +204,7 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 			}
 			return
 		default:
-			panic(fmt.Sprintf("unhandled type %s for key %s", fKind, key))
+			panic(fmt.Sprintf("unhandled type %s for key %s", f.Type(), key))
 		}
 
 		// Run through options, giving an opportunity to disable

@@ -665,8 +665,8 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	assert.Equal(t, exceptionOffset-transactionOffset, batch[2].Timestamp.Sub(batch[0].Timestamp))
 
 	// Durations should be unaffected.
-	assert.Equal(t, float64(transactionDuration.Milliseconds()), batch[0].Transaction.Duration)
-	assert.Equal(t, float64(spanDuration.Milliseconds()), batch[1].Span.Duration)
+	assert.Equal(t, transactionDuration, batch[0].Event.Duration)
+	assert.Equal(t, spanDuration, batch[1].Event.Duration)
 }
 
 func TestConsumer_JaegerMetadata(t *testing.T) {

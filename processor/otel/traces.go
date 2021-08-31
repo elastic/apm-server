@@ -192,10 +192,7 @@ func (c *Consumer) convertSpan(
 
 	startTime := otelSpan.StartTimestamp().AsTime()
 	endTime := otelSpan.EndTimestamp().AsTime()
-	var durationMillis float64
-	if endTime.After(startTime) {
-		durationMillis = endTime.Sub(startTime).Seconds() * 1000
-	}
+	duration := endTime.Sub(startTime)
 
 	// Message consumption results in either a transaction or a span based
 	// on whether the consumption is active or passive. Otel spans
@@ -208,13 +205,13 @@ func (c *Consumer) convertSpan(
 	event.Labels = initEventLabels(event.Labels)
 	event.Timestamp = startTime.Add(timeDelta)
 	event.Trace.ID = otelSpan.TraceID().HexString()
+	event.Event.Duration = duration
 	event.Event.Outcome = spanStatusOutcome(otelSpan.Status())
 	if root || otelSpan.Kind() == pdata.SpanKindServer || otelSpan.Kind() == pdata.SpanKindConsumer {
 		event.Processor = model.TransactionProcessor
 		event.Transaction = &model.Transaction{
 			ID:       spanID,
 			ParentID: parentID,
-			Duration: durationMillis,
 			Name:     name,
 			Sampled:  true,
 		}
@@ -224,7 +221,6 @@ func (c *Consumer) convertSpan(
 		event.Span = &model.Span{
 			ID:       spanID,
 			ParentID: parentID,
-			Duration: durationMillis,
 			Name:     name,
 		}
 		translateSpan(otelSpan, &event)
