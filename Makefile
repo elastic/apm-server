@@ -196,16 +196,6 @@ update-beats-module:
 	sed -i'.bck' -E -e "s#(:go-version): [0-9]+\.[0-9]+\.[0-9]+#\1: $$(cat .go-version)#g" docs/version.asciidoc
 
 ##############################################################################
-# Kibana synchronisation.
-##############################################################################
-
-.PHONY: are-kibana-objects-updated
-are-kibana-objects-updated: $(PYTHON) build/index-pattern.json
-	@$(PYTHON) ./script/are_kibana_saved_objects_updated.py --branch ${BEATS_VERSION} build/index-pattern.json
-build/index-pattern.json: $(PYTHON) apm-server
-	@./apm-server --strict.perms=false export index-pattern > $@
-
-##############################################################################
 # Linting, style-checking, license header checks, etc.
 ##############################################################################
 
