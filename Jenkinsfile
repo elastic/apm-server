@@ -42,7 +42,6 @@ pipeline {
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
-    booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
     booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
     string(name: 'DIAGNOSTIC_INTERVAL', defaultValue: "0", description: 'Elasticsearch detailed logging every X seconds')
     string(name: 'ES_LOG_LEVEL', defaultValue: "error", description: 'Elasticsearch error level')
@@ -390,37 +389,6 @@ pipeline {
                 }
               }
               sendBenchmarks(file: "${BASE_DIR}/bench.out", index: "benchmark-server")
-            }
-          }
-        }
-        /**
-        Checks if kibana objects are updated.
-        */
-        stage('Check kibana Obj. Updated') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-          }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.kibana_update_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'Sync Kibana') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                withMageEnv(){
-                  catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
-                    sh(label: 'Test Sync', script: './.ci/scripts/sync.sh')
-                  }
-                }
-              }
             }
           }
         }
