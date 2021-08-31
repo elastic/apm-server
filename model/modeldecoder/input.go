@@ -25,16 +25,4 @@ import (
 type Input struct {
 	// Base holds the base for decoding events.
 	Base model.APMEvent
-
-	// Config holds configuration for decoding.
-	//
-	// TODO(axw) define a Decoder type which encapsulates
-	// static configuration defined in one location, removing
-	// the possibility of inconsistent configuration.
-	Config Config
-}
-
-// Config holds static configuration which applies to all decoding.
-type Config struct {
-	Experimental bool
 }

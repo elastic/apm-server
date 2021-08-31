@@ -5,10 +5,6 @@
       type: keyword
       description: |
         The ID(s) of the child event(s).
-- name: experimental
-  type: object
-  description: Additional experimental data sent by the agents.
-  dynamic: true
 - name: http
   type: group
   fields:

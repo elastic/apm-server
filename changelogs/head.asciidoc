@@ -11,6 +11,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 - beta:["This breaking change applies to the beta <<apm-integration>>."] The `traces-sampled-*` data stream is now `traces-apm.sampled-*` {pull}5952[5952]
 - Removed unused stacktrace/frame monitoring counters {pull}5984[5984]
 - Removed unused support for top-level metricsets and metricset tags for RUMv3 {pull}6065[6065]
+- Removed `apm-server.mode` configuration, and "experimental" fields {pull}6086[6086]
 
 [float]
 ==== Bug fixes

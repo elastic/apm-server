@@ -765,14 +765,13 @@ func (val *errorEvent) validate() error {
 }
 
 func (val *context) IsSet() bool {
-	return (len(val.Custom) > 0) || val.Experimental.IsSet() || val.Message.IsSet() || val.Page.IsSet() || val.Response.IsSet() || val.Request.IsSet() || val.Service.IsSet() || (len(val.Tags) > 0) || val.User.IsSet()
+	return (len(val.Custom) > 0) || val.Message.IsSet() || val.Page.IsSet() || val.Response.IsSet() || val.Request.IsSet() || val.Service.IsSet() || (len(val.Tags) > 0) || val.User.IsSet()
 }
 
 func (val *context) Reset() {
 	for k := range val.Custom {
 		delete(val.Custom, k)
 	}
-	val.Experimental.Reset()
 	val.Message.Reset()
 	val.Page.Reset()
 	val.Response.Reset()
@@ -1665,13 +1664,12 @@ func (val *spanComposite) validate() error {
 }
 
 func (val *spanContext) IsSet() bool {
-	return val.Database.IsSet() || val.Destination.IsSet() || val.Experimental.IsSet() || val.HTTP.IsSet() || val.Message.IsSet() || val.Service.IsSet() || (len(val.Tags) > 0)
+	return val.Database.IsSet() || val.Destination.IsSet() || val.HTTP.IsSet() || val.Message.IsSet() || val.Service.IsSet() || (len(val.Tags) > 0)
 }
 
 func (val *spanContext) Reset() {
 	val.Database.Reset()
 	val.Destination.Reset()
-	val.Experimental.Reset()
 	val.HTTP.Reset()
 	val.Message.Reset()
 	val.Service.Reset()
