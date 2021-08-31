@@ -66,10 +66,6 @@ type context struct {
 	// The format is unspecified and can be deeply nested objects.
 	// The information will not be indexed or searchable in Elasticsearch.
 	Custom common.MapStr `json:"custom"`
-	// Experimental information is only processed when APM Server is started
-	// in development mode and should only be used by APM agent developers
-	// implementing new, unreleased features. The format is unspecified.
-	Experimental nullable.Interface `json:"experimental"`
 	// Message holds details related to message receiving and publishing
 	// if the captured event integrates with a messaging system
 	Message contextMessage `json:"message"`
@@ -665,10 +661,6 @@ type spanContext struct {
 	Database spanContextDatabase `json:"db"`
 	// Destination contains contextual data about the destination of spans
 	Destination spanContextDestination `json:"destination"`
-	// Experimental information is only processed when APM Server is started
-	// in development mode and should only be used by APM agent developers
-	// implementing new, unreleased features. The format is unspecified.
-	Experimental nullable.Interface `json:"experimental" `
 	// HTTP contains contextual information when the span concerns an HTTP request.
 	HTTP spanContextHTTP `json:"http"`
 	// Message holds details related to message receiving and publishing

@@ -52,7 +52,6 @@ const (
 type decodeMetadataFunc func(decoder.Decoder, *model.APMEvent) error
 
 type Processor struct {
-	Mconfig          modeldecoder.Config
 	MaxEventSize     int
 	streamReaderPool sync.Pool
 	decodeMetadata   decodeMetadataFunc
@@ -60,7 +59,6 @@ type Processor struct {
 
 func BackendProcessor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: v2.DecodeNestedMetadata,
 	}
@@ -68,7 +66,6 @@ func BackendProcessor(cfg *config.Config) *Processor {
 
 func RUMV2Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: v2.DecodeNestedMetadata,
 	}
@@ -76,7 +73,6 @@ func RUMV2Processor(cfg *config.Config) *Processor {
 
 func RUMV3Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: rumv3.DecodeNestedMetadata,
 	}
@@ -157,7 +153,7 @@ func (p *Processor) readBatch(
 			// required for backwards compatibility - sending empty lines was permitted in previous versions
 			continue
 		}
-		input := modeldecoder.Input{Base: baseEvent, Config: p.Mconfig}
+		input := modeldecoder.Input{Base: baseEvent}
 		switch eventType := p.identifyEventType(body); string(eventType) {
 		case errorEventType:
 			err = v2.DecodeNestedError(reader, &input, batch)

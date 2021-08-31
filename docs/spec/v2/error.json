@@ -17,9 +17,6 @@
             "object"
           ]
         },
-        "experimental": {
-          "description": "Experimental information is only processed when APM Server is started in development mode and should only be used by APM agent developers implementing new, unreleased features. The format is unspecified."
-        },
         "message": {
           "description": "Message holds details related to message receiving and publishing if the captured event integrates with a messaging system",
           "type": [

@@ -45,8 +45,6 @@ type Transaction struct {
 	Custom         common.MapStr
 	UserExperience *UserExperience
 
-	Experimental interface{}
-
 	// RepresentativeCount holds the approximate number of
 	// transactions that this transaction represents for aggregation.
 	//
@@ -66,9 +64,6 @@ func (e *Transaction) fields(apmEvent *APMEvent) common.MapStr {
 	fields.maybeSetMapStr("parent", common.MapStr(parent))
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
-	}
-	if e.Experimental != nil {
-		fields.set("experimental", e.Experimental)
 	}
 
 	var transaction mapStr

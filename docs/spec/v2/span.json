@@ -166,9 +166,6 @@
             }
           }
         },
-        "experimental": {
-          "description": "Experimental information is only processed when APM Server is started in development mode and should only be used by APM agent developers implementing new, unreleased features. The format is unspecified."
-        },
         "http": {
           "description": "HTTP contains contextual information when the span concerns an HTTP request.",
           "type": [
