@@ -11,14 +11,6 @@
 
   run `make update-beats` in the branch from which the new branch will be created before FF to recognize potential issues
 
-* Update Kibana Index Pattern
-
-  If fields are not up to date, perform the following and open a PR:
-  * Fork and locally clone kibana
-  * Ensure that your copy of kibana has the current release branch from elastic/kibana
-  * From the apm-server repo run:
-    `make update && script/update_kibana_objects.py -d path/to/your/kibana -b $release_branch`
-
 * Update Changelog
 
   * Review existing [changelogs/head](https://github.com/elastic/apm-server/tree/master/changelogs/head.asciidoc) to ensure all relevant notes have been added
