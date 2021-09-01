@@ -55,8 +55,8 @@ require (
 	go.elastic.co/apm/module/apmhttp v1.12.0
 	go.elastic.co/ecszap v1.0.0 // indirect
 	go.elastic.co/fastjson v1.1.0
-	go.opentelemetry.io/collector v0.30.0
-	go.opentelemetry.io/collector/model v0.30.0
+	go.opentelemetry.io/collector v0.34.0
+	go.opentelemetry.io/collector/model v0.34.0
 	go.uber.org/atomic v1.9.0
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.19.0
