@@ -326,7 +326,7 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 		out.Log = &log
 	}
 	if from.ParentID.IsSet() {
-		out.ParentID = from.ParentID.Val
+		event.Parent.ID = from.ParentID.Val
 	}
 	if !from.Timestamp.Val.IsZero() {
 		event.Timestamp = from.Timestamp.Val
@@ -334,15 +334,17 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 	if from.TraceID.IsSet() {
 		event.Trace.ID = from.TraceID.Val
 	}
-	if from.Transaction.Sampled.IsSet() {
-		val := from.Transaction.Sampled.Val
-		out.TransactionSampled = &val
-	}
-	if from.Transaction.Type.IsSet() {
-		out.TransactionType = from.Transaction.Type.Val
-	}
-	if from.TransactionID.IsSet() {
-		out.TransactionID = from.TransactionID.Val
+	if from.Transaction.IsSet() {
+		event.Transaction = &model.Transaction{}
+		if from.Transaction.Sampled.IsSet() {
+			event.Transaction.Sampled = from.Transaction.Sampled.Val
+		}
+		if from.Transaction.Type.IsSet() {
+			event.Transaction.Type = from.Transaction.Type.Val
+		}
+		if from.TransactionID.IsSet() {
+			event.Transaction.ID = from.TransactionID.Val
+		}
 	}
 }
 
@@ -534,8 +536,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 }
 
 func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
-	out := &model.Metricset{}
-	event.Metricset = out
+	event.Metricset = &model.Metricset{}
 	event.Processor = model.MetricsetProcessor
 
 	if !from.Timestamp.Val.IsZero() {
@@ -544,7 +545,7 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 
 	// map samples information
 	if len(from.Samples) > 0 {
-		out.Samples = make(map[string]model.MetricsetSample, len(from.Samples))
+		samples := make(map[string]model.MetricsetSample, len(from.Samples))
 		for name, sample := range from.Samples {
 			var counts []int64
 			var values []float64
@@ -556,7 +557,7 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 				counts = make([]int64, n)
 				copy(counts, sample.Counts)
 			}
-			out.Samples[name] = model.MetricsetSample{
+			samples[name] = model.MetricsetSample{
 				Type:   model.MetricType(sample.Type.Val),
 				Unit:   sample.Unit.Val,
 				Value:  sample.Value.Val,
@@ -564,6 +565,7 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 				Counts: counts,
 			}
 		}
+		event.Metricset.Samples = samples
 	}
 
 	if len(from.Tags) > 0 {
@@ -572,19 +574,25 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 			modeldecoderutil.NormalizeLabelValues(from.Tags),
 		)
 	}
-	// map span information
-	if from.Span.Subtype.IsSet() {
-		out.Span.Subtype = from.Span.Subtype.Val
+
+	if from.Span.IsSet() {
+		event.Span = &model.Span{}
+		if from.Span.Subtype.IsSet() {
+			event.Span.Subtype = from.Span.Subtype.Val
+		}
+		if from.Span.Type.IsSet() {
+			event.Span.Type = from.Span.Type.Val
+		}
 	}
-	if from.Span.Type.IsSet() {
-		out.Span.Type = from.Span.Type.Val
-	}
-	// map transaction information
-	if from.Transaction.Name.IsSet() {
-		out.Transaction.Name = from.Transaction.Name.Val
-	}
-	if from.Transaction.Type.IsSet() {
-		out.Transaction.Type = from.Transaction.Type.Val
+
+	if from.Transaction.IsSet() {
+		event.Transaction = &model.Transaction{}
+		if from.Transaction.Name.IsSet() {
+			event.Transaction.Name = from.Transaction.Name.Val
+		}
+		if from.Transaction.Type.IsSet() {
+			event.Transaction.Type = from.Transaction.Type.Val
+		}
 	}
 }
 
@@ -762,8 +770,8 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		out.Composite = &composite
 	}
 	if len(from.ChildIDs) > 0 {
-		out.ChildIDs = make([]string, len(from.ChildIDs))
-		copy(out.ChildIDs, from.ChildIDs)
+		event.Child.ID = make([]string, len(from.ChildIDs))
+		copy(event.Child.ID, from.ChildIDs)
 	}
 	if from.Context.Database.IsSet() {
 		db := model.DB{}
@@ -900,7 +908,7 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		}
 	}
 	if from.ParentID.IsSet() {
-		out.ParentID = from.ParentID.Val
+		event.Parent.ID = from.ParentID.Val
 	}
 	if from.SampleRate.IsSet() && from.SampleRate.Val > 0 {
 		out.RepresentativeCount = 1 / from.SampleRate.Val
@@ -931,7 +939,7 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		event.Trace.ID = from.TraceID.Val
 	}
 	if from.TransactionID.IsSet() {
-		out.TransactionID = from.TransactionID.Val
+		event.Transaction = &model.Transaction{ID: from.TransactionID.Val}
 	}
 }
 
@@ -1090,7 +1098,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 		}
 	}
 	if from.ParentID.IsSet() {
-		out.ParentID = from.ParentID.Val
+		event.Parent.ID = from.ParentID.Val
 	}
 	if from.Result.IsSet() {
 		out.Result = from.Result.Val

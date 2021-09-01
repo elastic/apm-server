@@ -30,7 +30,7 @@ import (
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	start := 0.65
-	hexID, parentID := "0147258369012345", "abcdef0123456789"
+	hexID := "0147258369012345"
 	subtype := "amqp"
 	action := "publish"
 	duration := time.Millisecond * 1500
@@ -49,10 +49,9 @@ func TestSpanTransform(t *testing.T) {
 			Msg:  "Span without a Stacktrace",
 			Span: Span{},
 			Output: common.MapStr{
+				"processor": common.MapStr{"name": "transaction", "event": "span"},
 				"span": common.MapStr{
 					"duration": common.MapStr{"us": int(duration.Microseconds())},
-					"name":     "",
-					"type":     "",
 				},
 				"timestamp": common.MapStr{"us": int(timestampUs)},
 				"url": common.MapStr{
@@ -64,7 +63,6 @@ func TestSpanTransform(t *testing.T) {
 			Msg: "Full Span",
 			Span: Span{
 				ID:                  hexID,
-				ParentID:            parentID,
 				Name:                "myspan",
 				Type:                "myspantype",
 				Subtype:             subtype,
@@ -92,6 +90,7 @@ func TestSpanTransform(t *testing.T) {
 				Composite: &Composite{Count: 10, Sum: 1.1, CompressionStrategy: "exact_match"},
 			},
 			Output: common.MapStr{
+				"processor": common.MapStr{"name": "transaction", "event": "span"},
 				"span": common.MapStr{
 					"id":       hexID,
 					"duration": common.MapStr{"us": int(duration.Microseconds())},
@@ -131,7 +130,6 @@ func TestSpanTransform(t *testing.T) {
 					},
 				},
 				"timestamp": common.MapStr{"us": int(timestampUs)},
-				"parent":    common.MapStr{"id": parentID},
 				"http": common.MapStr{
 					"response": common.MapStr{"status_code": statusCode},
 					"request":  common.MapStr{"method": "get"},
@@ -145,6 +143,7 @@ func TestSpanTransform(t *testing.T) {
 
 	for _, test := range tests {
 		event := APMEvent{
+			Processor: SpanProcessor,
 			Span:      &test.Span,
 			Timestamp: timestamp,
 			Event:     Event{Duration: duration},

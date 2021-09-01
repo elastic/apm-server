@@ -52,7 +52,7 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		// (i.e. breakdown metrics, transaction and span metrics) will
 		// be stored separately from application and runtime metrics.
 		event.DataStream.Dataset = model.InternalMetricsDataset
-		if isApplicationMetricset(event.Metricset) {
+		if event.Transaction == nil && event.Span == nil {
 			event.DataStream.Dataset = fmt.Sprintf(
 				"%s.%s", model.AppMetricsDataset,
 				datastreams.NormalizeServiceName(event.Service.Name),
@@ -63,9 +63,4 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		event.DataStream.Dataset = model.ProfilesDataset
 	}
 	event.DataStream.Namespace = s.Namespace
-}
-
-func isApplicationMetricset(ms *model.Metricset) bool {
-	return ms.Transaction == (model.MetricsetTransaction{}) &&
-		ms.Span == (model.MetricsetSpan{})
 }

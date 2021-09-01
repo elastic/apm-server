@@ -50,6 +50,7 @@ func initializedMetadata() model.APMEvent {
 func metadataExceptions(keys ...string) func(key string) bool {
 	missing := []string{
 		"Agent",
+		"Child",
 		"Cloud",
 		"Container",
 		"DataStream",
@@ -59,6 +60,7 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"Message",
 		"Network",
 		"Observer",
+		"Parent",
 		"Process",
 		"Processor",
 		"Service.Node",

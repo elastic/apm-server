@@ -37,7 +37,6 @@
                 "duration": {
                     "us": 0
                 },
-                "id": "",
                 "result": "HTTP 2xx",
                 "sampled": true,
                 "type": "request"

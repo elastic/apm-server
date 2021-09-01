@@ -18,6 +18,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -114,8 +115,6 @@ func TestEventFields(t *testing.T) {
 		LoggerName:   loggerName,
 	}
 
-	trID := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
-
 	tests := map[string]struct {
 		Error  Error
 		Output common.MapStr
@@ -155,11 +154,10 @@ func TestEventFields(t *testing.T) {
 		},
 		"withFrames": {
 			Error: Error{
-				ID:            id,
-				Culprit:       culprit,
-				Exception:     &exception,
-				Log:           &log,
-				TransactionID: trID,
+				ID:        id,
+				Culprit:   culprit,
+				Exception: &exception,
+				Log:       &log,
 			},
 			Output: common.MapStr{
 				"id":      "45678",
@@ -188,8 +186,9 @@ func TestEventFields(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			fields := tc.Error.fields()
-			assert.Equal(t, tc.Output, fields["error"])
+			event := APMEvent{Error: &tc.Error}
+			beatEvent := event.BeatEvent(context.Background())
+			assert.Equal(t, tc.Output, beatEvent.Fields["error"])
 		})
 	}
 }

@@ -116,11 +116,13 @@ Caused by: LowLevelException
 		Timestamp: timestamp,
 		Processor: model.ErrorProcessor,
 		Trace:     transactionEvent.Trace,
+		Parent:    model.Parent{ID: transactionEvent.Transaction.ID},
+		Transaction: &model.Transaction{
+			ID:      transactionEvent.Transaction.ID,
+			Type:    transactionEvent.Transaction.Type,
+			Sampled: true,
+		},
 		Error: &model.Error{
-			ParentID:           transactionEvent.Transaction.ID,
-			TransactionID:      transactionEvent.Transaction.ID,
-			TransactionType:    transactionEvent.Transaction.Type,
-			TransactionSampled: newBool(true),
 			Exception: &model.Exception{
 				Type:    "java.net.ConnectException.OSError",
 				Message: "Division by zero",
@@ -164,11 +166,13 @@ Caused by: LowLevelException
 		Timestamp: timestamp,
 		Processor: model.ErrorProcessor,
 		Trace:     transactionEvent.Trace,
+		Parent:    model.Parent{ID: transactionEvent.Transaction.ID},
+		Transaction: &model.Transaction{
+			ID:      transactionEvent.Transaction.ID,
+			Type:    transactionEvent.Transaction.Type,
+			Sampled: true,
+		},
 		Error: &model.Error{
-			ParentID:           transactionEvent.Transaction.ID,
-			TransactionID:      transactionEvent.Transaction.ID,
-			TransactionType:    transactionEvent.Transaction.Type,
-			TransactionSampled: newBool(true),
 			Exception: &model.Exception{
 				Type:    "HighLevelException",
 				Message: "MidLevelException: LowLevelException",
@@ -321,11 +325,13 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.ErrorProcessor,
 		Trace:     transactionEvent.Trace,
+		Parent:    model.Parent{ID: transactionEvent.Transaction.ID},
+		Transaction: &model.Transaction{
+			ID:      transactionEvent.Transaction.ID,
+			Type:    transactionEvent.Transaction.Type,
+			Sampled: true,
+		},
 		Error: &model.Error{
-			ParentID:           transactionEvent.Transaction.ID,
-			TransactionID:      transactionEvent.Transaction.ID,
-			TransactionType:    transactionEvent.Transaction.Type,
-			TransactionSampled: newBool(true),
 			Exception: &model.Exception{
 				Type:    "the_type",
 				Message: "the_message",
