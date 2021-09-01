@@ -24,7 +24,7 @@ import (
 	"strings"
 
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/conventions"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -43,75 +43,75 @@ func translateResourceMetadata(resource pdata.Resource, out *model.APMEvent) {
 	resource.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
 		switch k {
 		// service.*
-		case conventions.AttributeServiceName:
+		case semconv.AttributeServiceName:
 			out.Service.Name = cleanServiceName(v.StringVal())
-		case conventions.AttributeServiceVersion:
+		case semconv.AttributeServiceVersion:
 			out.Service.Version = truncate(v.StringVal())
-		case conventions.AttributeServiceInstance:
+		case semconv.AttributeServiceInstanceID:
 			out.Service.Node.Name = truncate(v.StringVal())
 
 		// deployment.*
-		case conventions.AttributeDeploymentEnvironment:
+		case semconv.AttributeDeploymentEnvironment:
 			out.Service.Environment = truncate(v.StringVal())
 
 		// telemetry.sdk.*
-		case conventions.AttributeTelemetrySDKName:
+		case semconv.AttributeTelemetrySDKName:
 			out.Agent.Name = truncate(v.StringVal())
-		case conventions.AttributeTelemetrySDKVersion:
+		case semconv.AttributeTelemetrySDKVersion:
 			out.Agent.Version = truncate(v.StringVal())
-		case conventions.AttributeTelemetrySDKLanguage:
+		case semconv.AttributeTelemetrySDKLanguage:
 			out.Service.Language.Name = truncate(v.StringVal())
 
 		// cloud.*
-		case conventions.AttributeCloudProvider:
+		case semconv.AttributeCloudProvider:
 			out.Cloud.Provider = truncate(v.StringVal())
-		case conventions.AttributeCloudAccount:
+		case semconv.AttributeCloudAccountID:
 			out.Cloud.AccountID = truncate(v.StringVal())
-		case conventions.AttributeCloudRegion:
+		case semconv.AttributeCloudRegion:
 			out.Cloud.Region = truncate(v.StringVal())
-		case conventions.AttributeCloudAvailabilityZone:
+		case semconv.AttributeCloudAvailabilityZone:
 			out.Cloud.AvailabilityZone = truncate(v.StringVal())
-		case conventions.AttributeCloudPlatform:
+		case semconv.AttributeCloudPlatform:
 			out.Cloud.ServiceName = truncate(v.StringVal())
 
 		// container.*
-		case conventions.AttributeContainerName:
+		case semconv.AttributeContainerName:
 			out.Container.Name = truncate(v.StringVal())
-		case conventions.AttributeContainerID:
+		case semconv.AttributeContainerID:
 			out.Container.ID = truncate(v.StringVal())
-		case conventions.AttributeContainerImage:
+		case semconv.AttributeContainerImageName:
 			out.Container.ImageName = truncate(v.StringVal())
-		case conventions.AttributeContainerTag:
+		case semconv.AttributeContainerImageTag:
 			out.Container.ImageTag = truncate(v.StringVal())
 		case "container.runtime":
 			out.Container.Runtime = truncate(v.StringVal())
 
 		// k8s.*
-		case conventions.AttributeK8sNamespace:
+		case semconv.AttributeK8SNamespaceName:
 			out.Kubernetes.Namespace = truncate(v.StringVal())
-		case conventions.AttributeK8sNodeName:
+		case semconv.AttributeK8SNodeName:
 			out.Kubernetes.NodeName = truncate(v.StringVal())
-		case conventions.AttributeK8sPod:
+		case semconv.AttributeK8SPodName:
 			out.Kubernetes.PodName = truncate(v.StringVal())
-		case conventions.AttributeK8sPodUID:
+		case semconv.AttributeK8SPodUID:
 			out.Kubernetes.PodUID = truncate(v.StringVal())
 
 		// host.*
-		case conventions.AttributeHostName:
+		case semconv.AttributeHostName:
 			out.Host.Hostname = truncate(v.StringVal())
-		case conventions.AttributeHostID:
+		case semconv.AttributeHostID:
 			out.Host.ID = truncate(v.StringVal())
-		case conventions.AttributeHostType:
+		case semconv.AttributeHostType:
 			out.Host.Type = truncate(v.StringVal())
 		case "host.arch":
 			out.Host.Architecture = truncate(v.StringVal())
 
 		// process.*
-		case conventions.AttributeProcessID:
+		case semconv.AttributeProcessPID:
 			out.Process.Pid = int(v.IntVal())
-		case conventions.AttributeProcessCommandLine:
+		case semconv.AttributeProcessCommandLine:
 			out.Process.CommandLine = truncate(v.StringVal())
-		case conventions.AttributeProcessExecutablePath:
+		case semconv.AttributeProcessExecutablePath:
 			out.Process.Executable = truncate(v.StringVal())
 		case "process.runtime.name":
 			out.Service.Runtime.Name = truncate(v.StringVal())
@@ -119,9 +119,9 @@ func translateResourceMetadata(resource pdata.Resource, out *model.APMEvent) {
 			out.Service.Runtime.Version = truncate(v.StringVal())
 
 		// os.*
-		case conventions.AttributeOSType:
+		case semconv.AttributeOSType:
 			out.Host.OS.Platform = strings.ToLower(truncate(v.StringVal()))
-		case conventions.AttributeOSDescription:
+		case semconv.AttributeOSDescription:
 			out.Host.OS.Full = truncate(v.StringVal())
 
 		// Legacy OpenCensus attributes.

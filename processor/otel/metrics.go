@@ -59,7 +59,7 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) er
 		if err != nil {
 			logger.Debug(err)
 		} else {
-			logger.Debug(data)
+			logger.Debug(string(data))
 		}
 	}
 	batch := c.convertMetrics(metrics, receiveTimestamp)
@@ -109,7 +109,7 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 		event.Metricset = m.Metricset
 		event.Timestamp = m.timestamp.Add(timeDelta)
 		if n := len(m.labels); n > 0 {
-			event.Labels = initEventLabels(event.Labels)
+			event.Labels = initEventLabels(event.Labels) // FIXME
 			for _, label := range m.labels {
 				event.Labels[label.key] = label.value
 			}
@@ -123,6 +123,9 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 
 func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 	// TODO(axw) support units
+
+	logger := logp.NewLogger(logs.Otel)
+	logger.Infof("addMetric: %s %s", metric.Name(), metric.DataType())
 
 	switch metric.DataType() {
 	case pdata.MetricDataTypeIntGauge:
@@ -174,6 +177,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		dps := metric.Sum().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
+			logger.Infof("value: %v", dp.Value())
 			ms.upsert(
 				dp.Timestamp().AsTime(),
 				metric.Name(),

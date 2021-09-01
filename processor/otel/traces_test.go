@@ -46,7 +46,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/conventions"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
 	"google.golang.org/grpc/codes"
 
@@ -1234,7 +1234,7 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeV
 func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (transaction model.APMEvent, errors []model.APMEvent) {
 	traces, spans := newTracesSpans()
 	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		conventions.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
+		semconv.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
 	})
 	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
