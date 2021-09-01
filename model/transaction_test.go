@@ -29,6 +29,12 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
+func TestTransactionTransformEmpty(t *testing.T) {
+	event := APMEvent{Transaction: &Transaction{}}
+	beatEvent := event.BeatEvent(context.Background())
+	assert.Empty(t, beatEvent.Fields)
+}
+
 func TestTransactionTransform(t *testing.T) {
 	id := "123"
 	result := "tx result"
@@ -44,10 +50,7 @@ func TestTransactionTransform(t *testing.T) {
 		{
 			Transaction: Transaction{},
 			Output: common.MapStr{
-				"id":       "",
-				"type":     "",
 				"duration": common.MapStr{"us": 65980},
-				"sampled":  false,
 			},
 			Msg: "Empty Transaction",
 		},
@@ -60,7 +63,6 @@ func TestTransactionTransform(t *testing.T) {
 				"id":       id,
 				"type":     "tx",
 				"duration": common.MapStr{"us": 65980},
-				"sampled":  false,
 			},
 			Msg: "SpanCount empty",
 		},
@@ -75,7 +77,6 @@ func TestTransactionTransform(t *testing.T) {
 				"type":       "tx",
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"started": 14},
-				"sampled":    false,
 			},
 			Msg: "SpanCount only contains `started`",
 		},
@@ -90,7 +91,6 @@ func TestTransactionTransform(t *testing.T) {
 				"type":       "tx",
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"dropped": 5},
-				"sampled":    false,
 			},
 			Msg: "SpanCount only contains `dropped`",
 		},
@@ -118,6 +118,7 @@ func TestTransactionTransform(t *testing.T) {
 
 	for idx, test := range tests {
 		event := APMEvent{
+			Processor:   TransactionProcessor,
 			Transaction: &test.Transaction,
 			Event:       Event{Duration: duration},
 		}
@@ -137,6 +138,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	request := HTTPRequest{Method: "post", Headers: common.MapStr{}, Referrer: referer}
 	response := HTTPResponse{Finished: new(bool), Headers: common.MapStr{"content-type": []string{"text/html"}}}
 	txWithContext := APMEvent{
+		Processor: TransactionProcessor,
 		Service: Service{
 			Name:    serviceName,
 			Version: serviceVersion,
@@ -162,6 +164,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 
 	event := txWithContext.BeatEvent(context.Background())
 	assert.Equal(t, common.MapStr{
+		"processor":  common.MapStr{"name": "transaction", "event": "transaction"},
 		"user":       common.MapStr{"id": "123", "name": "jane"},
 		"client":     common.MapStr{"ip": ip},
 		"source":     common.MapStr{"ip": ip},
@@ -181,8 +184,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		},
 		"transaction": common.MapStr{
 			"duration": common.MapStr{"us": 0},
-			"id":       "",
-			"type":     "",
 			"sampled":  true,
 			"custom": common.MapStr{
 				"foo_bar": "baz",

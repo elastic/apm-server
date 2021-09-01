@@ -39,6 +39,8 @@ func isMetadataException(key string) bool {
 func isUnmappedMetadataField(key string) bool {
 	switch key {
 	case
+		"Child",
+		"Child.ID",
 		"Client.Domain",
 		"Client.IP",
 		"Client.Port",
@@ -72,6 +74,8 @@ func isUnmappedMetadataField(key string) bool {
 		"Observer.Type",
 		"Observer.Version",
 		"Observer.VersionMajor",
+		"Parent",
+		"Parent.ID",
 		"Process.CommandLine",
 		"Process.Executable",
 		"Processor",

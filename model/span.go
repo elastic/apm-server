@@ -29,25 +29,28 @@ var (
 )
 
 type Span struct {
-	ID            string
-	TransactionID string
-	ParentID      string
-	ChildIDs      []string
+	ID string
 
-	Message *Message
-	Name    string
+	// Name holds the span name: "SELECT FROM table_name", etc.
+	Name string
+
+	// Type holds the span type: "external", "db", etc.
+	Type string
+
+	// Subtype holds the span subtype: "http", "sql", etc.
+	Subtype string
+
+	// Action holds the span action: "query", "execute", etc.
+	Action string
 
 	// Start holds the span's offset from the transaction timestamp in milliseconds.
 	//
 	// TODO(axw) drop in 8.0. See https://github.com/elastic/apm-server/issues/6000)
 	Start *float64
 
+	Message    *Message
 	Stacktrace Stacktrace
 	Sync       *bool
-
-	Type    string
-	Subtype string
-	Action  string
 
 	DB                 *DB
 	HTTP               *HTTP
@@ -126,27 +129,14 @@ func (c *Composite) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Span) fields(apmEvent *APMEvent) common.MapStr {
-	var fields mapStr
-	var transaction, parent mapStr
-	if transaction.maybeSetString("id", e.TransactionID) {
-		fields.set("transaction", common.MapStr(transaction))
-	}
-	if parent.maybeSetString("id", e.ParentID) {
-		fields.set("parent", common.MapStr(parent))
-	}
-	if len(e.ChildIDs) > 0 {
-		var child mapStr
-		child.set("id", e.ChildIDs)
-		fields.set("child", common.MapStr(child))
-	}
+func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.spanTopLevelFields())
 	}
 
 	var span mapStr
-	span.set("name", e.Name)
-	span.set("type", e.Type)
+	span.maybeSetString("name", e.Name)
+	span.maybeSetString("type", e.Type)
 	span.maybeSetString("id", e.ID)
 	span.maybeSetString("subtype", e.Subtype)
 	span.maybeSetString("action", e.Action)
@@ -155,9 +145,11 @@ func (e *Span) fields(apmEvent *APMEvent) common.MapStr {
 		start := time.Duration(*e.Start * float64(time.Millisecond))
 		span.set("start", common.MapStr{"us": int(start.Microseconds())})
 	}
-	// TODO(axw) set `event.duration` in 8.0, and remove this field.
-	// See https://github.com/elastic/apm-server/issues/5999
-	span.set("duration", common.MapStr{"us": int(apmEvent.Event.Duration.Microseconds())})
+	if apmEvent.Processor == SpanProcessor {
+		// TODO(axw) set `event.duration` in 8.0, and remove this field.
+		// See https://github.com/elastic/apm-server/issues/5999
+		span.set("duration", common.MapStr{"us": int(apmEvent.Event.Duration.Microseconds())})
+	}
 
 	if e.HTTP != nil {
 		span.maybeSetMapStr("http", e.HTTP.spanFields())
@@ -167,13 +159,15 @@ func (e *Span) fields(apmEvent *APMEvent) common.MapStr {
 	span.maybeSetMapStr("message", e.Message.Fields())
 	span.maybeSetMapStr("composite", e.Composite.fields())
 	if destinationServiceFields := e.DestinationService.fields(); len(destinationServiceFields) > 0 {
-		common.MapStr(span).Put("destination.service", destinationServiceFields)
+		destinationMap, ok := span["destination"].(common.MapStr)
+		if !ok {
+			destinationMap = make(common.MapStr)
+			span.set("destination", destinationMap)
+		}
+		destinationMap["service"] = destinationServiceFields
 	}
-	// TODO(axw) we should be using a merged service object, combining
-	// the stream metadata and event-specific service info.
 	if st := e.Stacktrace.transform(); len(st) > 0 {
 		span.set("stacktrace", st)
 	}
-	fields.set("span", common.MapStr(span))
-	return common.MapStr(fields)
+	fields.maybeSetMapStr("span", common.MapStr(span))
 }

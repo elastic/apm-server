@@ -29,7 +29,6 @@
                 "duration": {
                     "us": 79000000
                 },
-                "id": "",
                 "result": "Error",
                 "sampled": true,
                 "type": "custom"

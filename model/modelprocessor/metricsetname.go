@@ -44,7 +44,7 @@ func (SetMetricsetName) ProcessBatch(ctx context.Context, b *model.Batch) error 
 			continue
 		}
 		ms.Name = appMetricsetName
-		if ms.Transaction.Type == "" {
+		if event.Transaction == nil {
 			// Not a breakdown metricset.
 			continue
 		}

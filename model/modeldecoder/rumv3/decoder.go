@@ -130,9 +130,11 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 
 	for _, m := range root.Transaction.Metricsets {
 		event := input.Base
+		event.Transaction = &model.Transaction{
+			Name: transaction.Transaction.Name,
+			Type: transaction.Transaction.Type,
+		}
 		mapToTransactionMetricsetModel(&m, &event)
-		event.Metricset.Transaction.Name = transaction.Transaction.Name
-		event.Metricset.Transaction.Type = transaction.Transaction.Type
 		*batch = append(*batch, event)
 	}
 
@@ -140,16 +142,15 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	for _, s := range root.Transaction.Spans {
 		event := input.Base
 		mapToSpanModel(&s, &event)
-		event.Span.TransactionID = transaction.Transaction.ID
+		event.Transaction = &model.Transaction{ID: transaction.Transaction.ID}
+		event.Parent.ID = transaction.Transaction.ID // may be overridden later
 		event.Trace = transaction.Trace
 		*batch = append(*batch, event)
 	}
 	spans := (*batch)[offset:]
 	for i, s := range root.Transaction.Spans {
 		if s.ParentIndex.IsSet() && s.ParentIndex.Val >= 0 && s.ParentIndex.Val < len(spans) {
-			spans[i].Span.ParentID = spans[s.ParentIndex.Val].Span.ID
-		} else {
-			spans[i].Span.ParentID = spans[i].Span.TransactionID
+			spans[i].Parent.ID = spans[s.ParentIndex.Val].Span.ID
 		}
 	}
 	return nil
@@ -240,7 +241,7 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 		out.Log = &log
 	}
 	if from.ParentID.IsSet() {
-		out.ParentID = from.ParentID.Val
+		event.Parent.ID = from.ParentID.Val
 	}
 	if !from.Timestamp.Val.IsZero() {
 		event.Timestamp = from.Timestamp.Val
@@ -248,15 +249,17 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 	if from.TraceID.IsSet() {
 		event.Trace.ID = from.TraceID.Val
 	}
-	if from.Transaction.Sampled.IsSet() {
-		val := from.Transaction.Sampled.Val
-		out.TransactionSampled = &val
-	}
-	if from.Transaction.Type.IsSet() {
-		out.TransactionType = from.Transaction.Type.Val
-	}
-	if from.TransactionID.IsSet() {
-		out.TransactionID = from.TransactionID.Val
+	if from.Transaction.IsSet() {
+		event.Transaction = &model.Transaction{}
+		if from.Transaction.Sampled.IsSet() {
+			event.Transaction.Sampled = from.Transaction.Sampled.Val
+		}
+		if from.Transaction.Type.IsSet() {
+			event.Transaction.Type = from.Transaction.Type.Val
+		}
+		if from.TransactionID.IsSet() {
+			event.Transaction.ID = from.TransactionID.Val
+		}
 	}
 }
 
@@ -392,12 +395,14 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *model.APM
 		event.Metricset.Samples = samples
 	}
 
-	// map span information
-	if from.Span.Subtype.IsSet() {
-		event.Metricset.Span.Subtype = from.Span.Subtype.Val
-	}
-	if from.Span.Type.IsSet() {
-		event.Metricset.Span.Type = from.Span.Type.Val
+	if from.Span.IsSet() {
+		event.Span = &model.Span{}
+		if from.Span.Subtype.IsSet() {
+			event.Span.Subtype = from.Span.Subtype.Val
+		}
+		if from.Span.Type.IsSet() {
+			event.Span.Type = from.Span.Type.Val
+		}
 	}
 }
 
@@ -737,7 +742,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 		}
 	}
 	if from.ParentID.IsSet() {
-		out.ParentID = from.ParentID.Val
+		event.Parent.ID = from.ParentID.Val
 	}
 	if from.Result.IsSet() {
 		out.Result = from.Result.Val

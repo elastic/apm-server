@@ -157,7 +157,7 @@ func newTestBeater(
 			var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
 				for i := range *batch {
 					event := &(*batch)[i]
-					if event.Transaction == nil {
+					if event.Processor != model.TransactionProcessor {
 						continue
 					}
 					// Add a label to test that everything

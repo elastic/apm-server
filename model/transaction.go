@@ -31,12 +31,17 @@ var (
 )
 
 type Transaction struct {
-	ID       string
-	ParentID string
+	ID string
 
-	Type           string
-	Name           string
-	Result         string
+	// Type holds the transaction type: "request", "message", etc.
+	Type string
+
+	// Name holds the transaction name: "GET /foo", etc.
+	Name string
+
+	// Result holds the transaction result: "HTTP 2xx", "OK", "Error", etc.
+	Result string
+
 	Marks          TransactionMarks
 	Message        *Message
 	Sampled        bool
@@ -50,6 +55,11 @@ type Transaction struct {
 	//
 	// This may be used for scaling metrics; it is not indexed.
 	RepresentativeCount float64
+
+	// Root indicates whether or not the transaction is the trace root.
+	//
+	// If Root is false, it will be omitted from the output event.
+	Root bool
 }
 
 type SpanCount struct {
@@ -57,21 +67,19 @@ type SpanCount struct {
 	Started *int
 }
 
-func (e *Transaction) fields(apmEvent *APMEvent) common.MapStr {
-	var fields mapStr
-	var parent mapStr
-	parent.maybeSetString("id", e.ParentID)
-	fields.maybeSetMapStr("parent", common.MapStr(parent))
+func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
 	}
 
 	var transaction mapStr
-	transaction.set("id", e.ID)
-	transaction.set("type", e.Type)
-	// TODO(axw) set `event.duration` in 8.0, and remove this field.
-	// See https://github.com/elastic/apm-server/issues/5999
-	transaction.set("duration", common.MapStr{"us": int(apmEvent.Event.Duration.Microseconds())})
+	if apmEvent.Processor == TransactionProcessor {
+		// TODO(axw) set `event.duration` in 8.0, and remove this field.
+		// See https://github.com/elastic/apm-server/issues/5999
+		transaction.set("duration", common.MapStr{"us": int(apmEvent.Event.Duration.Microseconds())})
+	}
+	transaction.maybeSetString("id", e.ID)
+	transaction.maybeSetString("type", e.Type)
 	transaction.maybeSetString("name", e.Name)
 	transaction.maybeSetString("result", e.Result)
 	transaction.maybeSetMapStr("marks", e.Marks.fields())
@@ -88,10 +96,13 @@ func (e *Transaction) fields(apmEvent *APMEvent) common.MapStr {
 		}
 		transaction.set("span_count", spanCount)
 	}
-	transaction.set("sampled", e.Sampled)
-	fields.set("transaction", common.MapStr(transaction))
-
-	return common.MapStr(fields)
+	if e.Sampled {
+		transaction.set("sampled", e.Sampled)
+	}
+	if e.Root {
+		transaction.set("root", e.Root)
+	}
+	fields.maybeSetMapStr("transaction", common.MapStr(transaction))
 }
 
 type TransactionMarks map[string]TransactionMark

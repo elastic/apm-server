@@ -338,7 +338,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 
 func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent) transactionAggregationKey {
 	return transactionAggregationKey{
-		traceRoot:         event.Transaction.ParentID == "",
+		traceRoot:         event.Parent.ID == "",
 		transactionName:   event.Transaction.Name,
 		transactionResult: event.Transaction.Result,
 		transactionType:   event.Transaction.Type,
@@ -386,12 +386,6 @@ func makeMetricset(
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name: metricsetName,
-			Transaction: model.MetricsetTransaction{
-				Name:   key.transactionName,
-				Type:   key.transactionType,
-				Result: key.transactionResult,
-				Root:   key.traceRoot,
-			},
 			Samples: map[string]model.MetricsetSample{
 				"transaction.duration.histogram": {
 					Type:   model.MetricTypeHistogram,
@@ -401,6 +395,12 @@ func makeMetricset(
 			},
 			DocCount:             totalCount,
 			TimeseriesInstanceID: timeseriesInstanceID.String(),
+		},
+		Transaction: &model.Transaction{
+			Name:   key.transactionName,
+			Type:   key.transactionType,
+			Result: key.transactionResult,
+			Root:   key.traceRoot,
 		},
 	}
 }

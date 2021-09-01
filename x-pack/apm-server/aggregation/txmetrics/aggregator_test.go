@@ -117,10 +117,6 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
 				Name: "transaction",
-				Transaction: model.MetricsetTransaction{
-					Name: "baz",
-					Root: true,
-				},
 				Samples: map[string]model.MetricsetSample{
 					"transaction.duration.histogram": {
 						Type:   "histogram",
@@ -130,6 +126,10 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 				},
 				TimeseriesInstanceID: ":baz:bc30224a3738a508",
 				DocCount:             1,
+			},
+			Transaction: &model.Transaction{
+				Name: "baz",
+				Root: true,
 			},
 		}, m)
 	}
@@ -188,12 +188,12 @@ func TestAggregatorRun(t *testing.T) {
 	metricsets := batchMetricsets(t, batch)
 	require.Len(t, metricsets, 2)
 	sort.Slice(metricsets, func(i, j int) bool {
-		return metricsets[i].Metricset.Transaction.Name < metricsets[j].Metricset.Transaction.Name
+		return metricsets[i].Transaction.Name < metricsets[j].Transaction.Name
 	})
 
-	assert.Equal(t, "T-1000", metricsets[0].Metricset.Transaction.Name)
+	assert.Equal(t, "T-1000", metricsets[0].Transaction.Name)
 	assert.Equal(t, []int64{1000}, metricsets[0].Metricset.Samples["transaction.duration.histogram"].Counts)
-	assert.Equal(t, "T-800", metricsets[1].Metricset.Transaction.Name)
+	assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
 	assert.Equal(t, []int64{800}, metricsets[1].Metricset.Samples["transaction.duration.histogram"].Counts)
 
 	select {
@@ -316,10 +316,6 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 			Metricset: &model.Metricset{
 				Name:                 "transaction",
 				TimeseriesInstanceID: ":foo:1db641f187113b17",
-				Transaction: model.MetricsetTransaction{
-					Name: "foo",
-					Root: true,
-				},
 				Samples: map[string]model.MetricsetSample{
 					"transaction.duration.histogram": {
 						Type:   "histogram",
@@ -328,6 +324,10 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 					},
 				},
 				DocCount: test.expectedCount,
+			},
+			Transaction: &model.Transaction{
+				Name: "foo",
+				Root: true,
 			},
 		}, m)
 	}
@@ -437,12 +437,6 @@ func TestAggregationFields(t *testing.T) {
 		expectedEvent.Processor = model.MetricsetProcessor
 		expectedEvent.Metricset = &model.Metricset{
 			Name: "transaction",
-			Transaction: model.MetricsetTransaction{
-				Name:   input.Transaction.Name,
-				Type:   input.Transaction.Type,
-				Result: input.Transaction.Result,
-				Root:   input.Transaction.ParentID == "",
-			},
 			Samples: map[string]model.MetricsetSample{
 				"transaction.duration.histogram": {
 					Type:   "histogram",
@@ -451,6 +445,12 @@ func TestAggregationFields(t *testing.T) {
 				},
 			},
 			DocCount: expectedCount,
+		}
+		expectedEvent.Transaction = &model.Transaction{
+			Name:   input.Transaction.Name,
+			Type:   input.Transaction.Type,
+			Result: input.Transaction.Result,
+			Root:   input.Parent.ID == "",
 		}
 		expected = append(expected, expectedEvent)
 	}
@@ -475,10 +475,10 @@ func TestAggregationFields(t *testing.T) {
 			addExpectedCount(2)
 		}
 
-		// ParentID only impacts aggregation as far as grouping root and
+		// Parent.ID only impacts aggregation as far as grouping root and
 		// non-root traces.
 		for _, value := range []string{"something", "anything"} {
-			input.Transaction.ParentID = value
+			input.Parent.ID = value
 			assert.Zero(t, agg.AggregateTransaction(input))
 			assert.Zero(t, agg.AggregateTransaction(input))
 		}
