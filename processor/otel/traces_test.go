@@ -43,11 +43,11 @@ import (
 	"time"
 
 	jaegermodel "github.com/jaegertracing/jaeger/model"
+	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/model/pdata"
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
-	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -895,7 +895,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				Tags: []jaegermodel.KeyValue{
 					jaegerKeyValue("span.kind", "server"),
 					jaegerKeyValue("error", true),
-					jaegerKeyValue("status.code", int64(2)),
+					jaegerKeyValue("otel.status_code", int64(2)),
 				},
 			}},
 		},

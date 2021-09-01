@@ -5,9 +5,13 @@ go 1.13
 require (
 	github.com/DataDog/zstd v1.4.4 // indirect
 	github.com/apache/thrift v0.14.2
+	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
+	github.com/coreos/bbolt v1.3.2 // indirect
+	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
+	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/dop251/goja v0.0.0-20210810150349-acd0507c3d6f // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20210225215109-d91c329300e7 // indirect
@@ -20,6 +24,8 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20210727161915-8cf93274b968
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-ucfg v0.8.4-0.20200415140258-1232bd4774a6
+	github.com/go-kit/kit v0.10.0 // indirect
+	github.com/go-openapi/analysis v0.20.1 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogo/protobuf v1.3.2
@@ -27,19 +33,24 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
-	github.com/jaegertracing/jaeger v1.24.0
+	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
+	github.com/jaegertracing/jaeger v1.25.0
 	github.com/josephspurrier/goversioninfo v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.11
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/libp2p/go-reuseport v0.0.2
 	github.com/magefile/mage v1.11.0
+	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/reflect2 v1.0.1
+	github.com/oklog/run v1.1.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.34.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/poy/eachers v0.0.0-20181020210610-23942921fe77 // indirect
 	github.com/prometheus/procfs v0.7.2 // indirect
+	github.com/prometheus/tsdb v0.7.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.2.1
@@ -47,6 +58,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.6.5
 	github.com/tidwall/sjson v1.1.1
+	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
 	github.com/urso/magetools v0.0.0-20200125210132-c2e338f92f3a // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.elastic.co/apm v1.13.1
@@ -55,6 +67,7 @@ require (
 	go.elastic.co/apm/module/apmhttp v1.12.0
 	go.elastic.co/ecszap v1.0.0 // indirect
 	go.elastic.co/fastjson v1.1.0
+	go.mongodb.org/mongo-driver v1.5.2 // indirect
 	go.opentelemetry.io/collector v0.34.0
 	go.opentelemetry.io/collector/model v0.34.0
 	go.uber.org/atomic v1.9.0
