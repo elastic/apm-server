@@ -1,9 +1,0 @@
-FROM debian:jessie
-
-ARG apm_server_pkg
-COPY $apm_server_pkg $apm_server_pkg
-RUN dpkg -i $apm_server_pkg
-
-COPY test.sh test.sh
-
-CMD ./test.sh

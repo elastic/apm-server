@@ -71,7 +71,6 @@ pipeline {
               "^magefile.go",
               "^ingest.*",
               "^packaging.*",
-              "^tests/packaging.*",
               "^vendor/github.com/elastic/beats.*"
             ]
             withGoEnv(){
@@ -444,7 +443,6 @@ pipeline {
                   dir("${BASE_DIR}"){
                     withMageEnv(){
                       sh(label: 'Build packages', script: './.ci/scripts/package.sh')
-                      sh(label: 'Test packages install', script: './.ci/scripts/test-install-packages.sh')
                       dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
                       sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
                     }
