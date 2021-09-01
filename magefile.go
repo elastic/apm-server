@@ -179,7 +179,6 @@ func Package() {
 		mg.Deps(Update, prepareIngestPackaging)
 		mg.Deps(CrossBuild, CrossBuildXPack, CrossBuildGoDaemon)
 	}
-	mg.SerialDeps(mage.Package, TestPackages)
 }
 
 func Version() error {
@@ -191,6 +190,7 @@ func Version() error {
 	return nil
 }
 
+<<<<<<< HEAD
 // TestPackages tests the generated packages (i.e. file modes, owners, groups).
 func TestPackages() error {
 	// Run the tests using beats/go.mod.
@@ -235,6 +235,8 @@ func TestPackagesInstall() error {
 	return nil
 }
 
+=======
+>>>>>>> e9da5e52 (Remove package tests (#6101))
 // Update updates the generated files.
 func Update() error {
 	mg.Deps(Fields, Config)
