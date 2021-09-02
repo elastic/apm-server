@@ -160,7 +160,7 @@ func filterPackages(types string) {
 // Use SNAPSHOT=true to build snapshots.
 // Use PLATFORMS to control the target platforms. eg linux/amd64
 // Use TYPES to control the target types. eg docker
-func Package() {
+func Package() error {
 	start := time.Now()
 	defer func() { fmt.Println("package ran for", time.Since(start)) }()
 
@@ -175,6 +175,7 @@ func Package() {
 		mg.Deps(Update, prepareIngestPackaging)
 		mg.Deps(CrossBuild, CrossBuildXPack, CrossBuildGoDaemon)
 	}
+	return mage.Package()
 }
 
 func Version() error {
