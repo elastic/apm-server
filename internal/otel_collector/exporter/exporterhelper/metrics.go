@@ -81,7 +81,7 @@ func NewMetricsExporter(
 	}
 
 	bs := fromOptions(options...)
-	be := newBaseExporter(cfg, set.Logger, bs)
+	be := newBaseExporter(cfg, set, bs)
 	be.wrapConsumerSender(func(nextSender requestSender) requestSender {
 		return &metricsSenderWithObservability{
 			obsrep:     be.obsrep,
@@ -90,9 +90,6 @@ func NewMetricsExporter(
 	})
 
 	mc, err := consumerhelper.NewMetrics(func(ctx context.Context, md pdata.Metrics) error {
-		if bs.ResourceToTelemetrySettings.Enabled {
-			md = convertResourceToLabels(md)
-		}
 		req := newMetricsRequest(ctx, md, pusher)
 		err := be.sender.send(req)
 		if errors.Is(err, errSendingQueueIsFull) {

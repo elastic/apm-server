@@ -21,8 +21,8 @@ import (
 	"context"
 
 	"github.com/jaegertracing/jaeger/model"
+	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"go.opentelemetry.io/collector/consumer"
-	trjaeger "go.opentelemetry.io/collector/translator/trace/jaeger"
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
@@ -51,6 +51,6 @@ func consumeBatch(
 ) error {
 	spanCount := int64(len(batch.Spans))
 	requestMetrics.add(request.IDEventReceivedCount, spanCount)
-	traces := trjaeger.ProtoBatchToInternalTraces(batch)
+	traces := jaegertranslator.ProtoBatchToInternalTraces(batch)
 	return consumer.ConsumeTraces(ctx, traces)
 }
