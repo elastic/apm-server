@@ -27,6 +27,13 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
+func TestSpanTransformEmpty(t *testing.T) {
+	var event APMEvent
+	event.Span = &Span{}
+	beatEvent := event.BeatEvent(context.Background())
+	assert.Empty(t, beatEvent.Fields)
+}
+
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	start := 0.65
@@ -45,20 +52,6 @@ func TestSpanTransform(t *testing.T) {
 		Output common.MapStr
 		Msg    string
 	}{
-		{
-			Msg:  "Span without a Stacktrace",
-			Span: Span{},
-			Output: common.MapStr{
-				"processor": common.MapStr{"name": "transaction", "event": "span"},
-				"span": common.MapStr{
-					"duration": common.MapStr{"us": int(duration.Microseconds())},
-				},
-				"timestamp": common.MapStr{"us": int(timestampUs)},
-				"url": common.MapStr{
-					"original": url,
-				},
-			},
-		},
 		{
 			Msg: "Full Span",
 			Span: Span{

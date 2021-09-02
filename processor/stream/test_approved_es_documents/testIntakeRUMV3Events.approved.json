@@ -186,12 +186,14 @@
                 "version": "0.0.1"
             },
             "transaction": {
+                "breakdown.count": 1,
+                "duration": {
+                    "count": 1,
+                    "sum.us": 295
+                },
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
             },
-            "transaction.breakdown.count": 1,
-            "transaction.duration.count": 1,
-            "transaction.duration.sum.us": 295,
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -240,10 +242,12 @@
                 "version": "0.0.1"
             },
             "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum.us": 1
+                },
                 "type": "Request"
             },
-            "span.self_time.count": 1,
-            "span.self_time.sum.us": 1,
             "transaction": {
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
@@ -296,10 +300,12 @@
                 "version": "0.0.1"
             },
             "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum.us": 1
+                },
                 "type": "Response"
             },
-            "span.self_time.count": 1,
-            "span.self_time.sum.us": 1,
             "transaction": {
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"

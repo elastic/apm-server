@@ -13,6 +13,8 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 - Removed unused support for top-level metricsets and metricset tags for RUMv3 {pull}6065[6065]
 - Removed `apm-server.mode` configuration, and "experimental" fields {pull}6086[6086]
 - `transaction.sampled` is now only set for sampled transactions {pull}6066[6066]
+- Unknown metrics are dropped when `transaction.*` or `span.*` are present in a metricset {pull}6111[6111]
+- Removed `metricset.period` from service_destination metrics {pull}6111[6111]
 
 [float]
 ==== Bug fixes

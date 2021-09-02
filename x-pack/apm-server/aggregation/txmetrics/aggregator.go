@@ -385,14 +385,7 @@ func makeMetricset(
 		},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Name: metricsetName,
-			Samples: map[string]model.MetricsetSample{
-				"transaction.duration.histogram": {
-					Type:   model.MetricTypeHistogram,
-					Counts: counts,
-					Values: values,
-				},
-			},
+			Name:                 metricsetName,
 			DocCount:             totalCount,
 			TimeseriesInstanceID: timeseriesInstanceID.String(),
 		},
@@ -401,6 +394,10 @@ func makeMetricset(
 			Type:   key.transactionType,
 			Result: key.transactionResult,
 			Root:   key.traceRoot,
+			DurationHistogram: model.Histogram{
+				Counts: counts,
+				Values: values,
+			},
 		},
 	}
 }
