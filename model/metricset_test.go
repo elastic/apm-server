@@ -28,17 +28,6 @@ import (
 )
 
 func TestMetricset(t *testing.T) {
-	resource := "external-service"
-
-	const (
-		trType   = "request"
-		trName   = "GET /"
-		trResult = "HTTP 2xx"
-
-		spType    = "db"
-		spSubtype = "sql"
-	)
-
 	tests := []struct {
 		Metricset *Metricset
 		Output    common.MapStr
@@ -71,29 +60,17 @@ func TestMetricset(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Span:        MetricsetSpan{Type: spType, Subtype: spSubtype},
-				Transaction: MetricsetTransaction{Type: trType, Name: trName},
 				Samples: map[string]MetricsetSample{
 					"span.self_time.count": {Value: 123},
 				},
 			},
 			Output: common.MapStr{
-				"transaction": common.MapStr{"type": trType, "name": trName},
-				"span": common.MapStr{
-					"type": spType, "subtype": spSubtype,
-				},
 				"span.self_time.count": 123.0,
 			},
 			Msg: "Payload with breakdown metrics.",
 		},
 		{
 			Metricset: &Metricset{
-				Transaction: MetricsetTransaction{
-					Type:   trType,
-					Name:   trName,
-					Result: trResult,
-					Root:   true,
-				},
 				TimeseriesInstanceID: "foo",
 				Samples: map[string]MetricsetSample{
 					"transaction.duration.histogram": {
@@ -107,12 +84,6 @@ func TestMetricset(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"timeseries": common.MapStr{"instance": "foo"},
-				"transaction": common.MapStr{
-					"type":   trType,
-					"name":   trName,
-					"result": trResult,
-					"root":   true,
-				},
 				"transaction.duration.histogram": common.MapStr{
 					"counts": []int64{1, 2, 3},
 					"values": []float64{4.5, 6.0, 9.0},
@@ -128,19 +99,12 @@ func TestMetricset(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Span: MetricsetSpan{Type: spType, Subtype: spSubtype, DestinationService: DestinationService{
-					Resource: resource,
-				}},
 				Samples: map[string]MetricsetSample{
 					"destination.service.response_time.count":  {Value: 40},
 					"destination.service.response_time.sum.us": {Value: 500000},
 				},
 			},
 			Output: common.MapStr{
-				"span": common.MapStr{
-					"type": spType, "subtype": spSubtype,
-					"destination": common.MapStr{"service": common.MapStr{"resource": resource}},
-				},
 				"destination.service.response_time.count":  40.0,
 				"destination.service.response_time.sum.us": 500000.0,
 			},
@@ -194,4 +158,45 @@ func TestMetricset(t *testing.T) {
 		outputEvent := event.BeatEvent(context.Background())
 		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
+}
+
+func TransformTransactionMetricset(t *testing.T) {
+	event := APMEvent{
+		Processor: MetricsetProcessor,
+		Transaction: &Transaction{
+			Name:   "transaction_name",
+			Type:   "transaction_type",
+			Result: "transaction_result",
+		},
+		Metricset: &Metricset{
+			Name:                 "transaction",
+			TimeseriesInstanceID: "foo",
+			DocCount:             6,
+			Samples: map[string]MetricsetSample{
+				"transaction.duration.histogram": {
+					Type:   "histogram",
+					Value:  666, // ignored for histogram type
+					Counts: []int64{1, 2, 3},
+					Values: []float64{4.5, 6.0, 9.0},
+				},
+			},
+		},
+	}
+	beatEvent := event.BeatEvent(context.Background())
+	assert.Equal(t, common.MapStr{
+		"metricset": common.MapStr{
+			"name": "transaction",
+		},
+		"timeseries": common.MapStr{"instance": "foo"},
+		"transaction.duration.histogram": common.MapStr{
+			"counts": []int64{1, 2, 3},
+			"values": []float64{4.5, 6.0, 9.0},
+		},
+		"_metric_descriptions": common.MapStr{
+			"transaction.duration.histogram": common.MapStr{
+				"type": "histogram",
+			},
+		},
+		"_doc_count": int64(6),
+	}, beatEvent.Fields)
 }

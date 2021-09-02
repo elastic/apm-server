@@ -32,7 +32,6 @@
                 "duration": {
                     "us": 0
                 },
-                "id": "",
                 "message": {
                     "queue": {
                         "name": "queue-abc"

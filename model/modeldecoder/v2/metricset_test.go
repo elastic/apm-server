@@ -73,16 +73,10 @@ func TestDecodeNestedMetricset(t *testing.T) {
 
 func TestDecodeMapToMetricsetModel(t *testing.T) {
 	metadataExceptions := func(key string) bool {
-		// metadata are tested separately
-		if strings.HasPrefix(key, "Metadata") ||
-			// only set by aggregator
-			strings.HasPrefix(key, "Event") ||
-			key == "DocCount" ||
+		// only set by aggregator
+		if key == "DocCount" ||
 			key == "Name" ||
 			key == "TimeseriesInstanceID" ||
-			key == "Transaction.Result" ||
-			key == "Transaction.Root" ||
-			strings.HasPrefix(key, "Span.DestinationService") ||
 			// test Samples separately
 			strings.HasPrefix(key, "Samples") {
 			return true

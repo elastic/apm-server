@@ -40,90 +40,97 @@ func TestAPMEventFields(t *testing.T) {
 	destinationAddress := "1.2.3.4"
 	destinationPort := 1234
 	traceID := "trace_id"
+	parentID := "parent_id"
+	childID := []string{"child_1", "child_2"}
 
 	for _, test := range []struct {
 		input  APMEvent
-		fields common.MapStr
 		output common.MapStr
-	}{
-		{
-			input: APMEvent{
-				ECSVersion: "1.0.0",
-				Agent: Agent{
-					Name:    agentName,
-					Version: agentVersion,
-				},
-				Observer:  Observer{Type: "apm-server"},
-				Container: Container{ID: containerID},
-				Service: Service{
-					Name: serviceName,
-					Node: ServiceNode{Name: serviceNodeName},
-				},
-				Host: Host{
-					Hostname: hostname,
-					Name:     host,
-				},
-				Client:      Client{Domain: "client.domain"},
-				Destination: Destination{Address: destinationAddress, Port: destinationPort},
-				Process:     Process{Pid: pid},
-				User:        User{ID: uid, Email: mail},
-				Event:       Event{Outcome: outcome},
-				Session:     Session{ID: "session_id"},
-				URL:         URL{Original: "url"},
-				Labels:      common.MapStr{"a": "b", "c": 123},
-				Message:     "bottle",
-				Transaction: &Transaction{},
-				Timestamp:   time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600)),
-				Processor:   Processor{Name: "processor_name", Event: "processor_event"},
-				Trace:       Trace{ID: traceID},
+	}{{
+		input: APMEvent{
+			ECSVersion: "1.0.0",
+			Agent: Agent{
+				Name:    agentName,
+				Version: agentVersion,
 			},
-			output: common.MapStr{
-				// common fields
-				"ecs":       common.MapStr{"version": "1.0.0"},
-				"agent":     common.MapStr{"version": "1.0.0", "name": "elastic-node"},
-				"observer":  common.MapStr{"type": "apm-server"},
-				"container": common.MapStr{"id": containerID},
-				"host":      common.MapStr{"hostname": hostname, "name": host},
-				"process":   common.MapStr{"pid": pid},
-				"service": common.MapStr{
-					"name": "myservice",
-					"node": common.MapStr{"name": serviceNodeName},
-				},
-				"user":   common.MapStr{"id": "12321", "email": "user@email.com"},
-				"client": common.MapStr{"domain": "client.domain"},
-				"destination": common.MapStr{
-					"address": destinationAddress,
-					"ip":      destinationAddress,
-					"port":    destinationPort,
-				},
-				"source":  common.MapStr{"domain": "client.domain"},
-				"event":   common.MapStr{"outcome": outcome},
-				"session": common.MapStr{"id": "session_id"},
-				"url":     common.MapStr{"original": "url"},
-				"labels": common.MapStr{
-					"a": "b",
-					"c": 123,
-				},
-				"message": "bottle",
-				"trace": common.MapStr{
-					"id": traceID,
-				},
-				"processor": common.MapStr{
-					"name":  "processor_name",
-					"event": "processor_event",
-				},
-
-				// fields related to APMEvent.Transaction
-				"timestamp": common.MapStr{"us": 1546525024908596},
-				"transaction": common.MapStr{
-					"duration": common.MapStr{"us": 0},
-					"sampled":  false,
-					"type":     "",
-					"id":       "",
-				},
+			Observer:  Observer{Type: "apm-server"},
+			Container: Container{ID: containerID},
+			Service: Service{
+				Name: serviceName,
+				Node: ServiceNode{Name: serviceNodeName},
+			},
+			Host: Host{
+				Hostname: hostname,
+				Name:     host,
+			},
+			Client:      Client{Domain: "client.domain"},
+			Destination: Destination{Address: destinationAddress, Port: destinationPort},
+			Process:     Process{Pid: pid},
+			User:        User{ID: uid, Email: mail},
+			Event:       Event{Outcome: outcome},
+			Session:     Session{ID: "session_id"},
+			URL:         URL{Original: "url"},
+			Labels:      common.MapStr{"a": "b", "c": 123},
+			Message:     "bottle",
+			Transaction: &Transaction{},
+			Timestamp:   time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600)),
+			Processor:   Processor{Name: "processor_name", Event: "processor_event"},
+			Trace:       Trace{ID: traceID},
+			Parent:      Parent{ID: parentID},
+			Child:       Child{ID: childID},
+		},
+		output: common.MapStr{
+			// common fields
+			"ecs":       common.MapStr{"version": "1.0.0"},
+			"agent":     common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+			"observer":  common.MapStr{"type": "apm-server"},
+			"container": common.MapStr{"id": containerID},
+			"host":      common.MapStr{"hostname": hostname, "name": host},
+			"process":   common.MapStr{"pid": pid},
+			"service": common.MapStr{
+				"name": "myservice",
+				"node": common.MapStr{"name": serviceNodeName},
+			},
+			"user":   common.MapStr{"id": "12321", "email": "user@email.com"},
+			"client": common.MapStr{"domain": "client.domain"},
+			"destination": common.MapStr{
+				"address": destinationAddress,
+				"ip":      destinationAddress,
+				"port":    destinationPort,
+			},
+			"event":   common.MapStr{"outcome": outcome},
+			"session": common.MapStr{"id": "session_id"},
+			"url":     common.MapStr{"original": "url"},
+			"labels": common.MapStr{
+				"a": "b",
+				"c": 123,
+			},
+			"message": "bottle",
+			"trace": common.MapStr{
+				"id": traceID,
+			},
+			"processor": common.MapStr{
+				"name":  "processor_name",
+				"event": "processor_event",
+			},
+			"parent": common.MapStr{
+				"id": parentID,
+			},
+			"child": common.MapStr{
+				"id": childID,
 			},
 		},
-	} {
+	}, {
+		input: APMEvent{
+			Processor: TransactionProcessor,
+			Timestamp: time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600)),
+		},
+		output: common.MapStr{
+			"processor": common.MapStr{"name": "transaction", "event": "transaction"},
+			// timestamp.us is added for transactions, spans, and errors.
+			"timestamp": common.MapStr{"us": 1546525024908596},
+		},
+	}} {
 		event := test.input.BeatEvent(context.Background())
 		assert.Equal(t, test.output, event.Fields)
 	}

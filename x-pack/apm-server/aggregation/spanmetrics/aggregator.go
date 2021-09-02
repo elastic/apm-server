@@ -279,9 +279,6 @@ func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name: metricsetName,
-			Span: model.MetricsetSpan{
-				DestinationService: model.DestinationService{Resource: key.resource},
-			},
 			Samples: map[string]model.MetricsetSample{
 				"span.destination.service.response_time.count": {
 					Value: math.Round(metrics.count),
@@ -289,6 +286,11 @@ func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics,
 				"span.destination.service.response_time.sum.us": {
 					Value: math.Round(metrics.sum),
 				},
+			},
+		},
+		Span: &model.Span{
+			DestinationService: &model.DestinationService{
+				Resource: key.resource,
 			},
 		},
 	}

@@ -29,7 +29,6 @@
                 "duration": {
                     "us": 79000000
                 },
-                "id": "",
                 "sampled": true,
                 "type": "custom"
             }
@@ -63,7 +62,6 @@
                 "duration": {
                     "us": 79000000
                 },
-                "name": "",
                 "type": "app"
             },
             "timestamp": {
@@ -106,7 +104,6 @@
                 "duration": {
                     "us": 79000000
                 },
-                "id": "",
                 "sampled": true,
                 "type": "custom"
             }

@@ -66,16 +66,16 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		// ensure nested metricsets are decoded
 		assert.Equal(t, map[string]model.MetricsetSample{"transaction.duration.sum.us": {Value: 2048}}, batch[1].Metricset.Samples)
 		assert.Equal(t, map[string]model.MetricsetSample{"span.self_time.count": {Value: 5}}, batch[2].Metricset.Samples)
-		assert.Equal(t, "tr-a", batch[2].Metricset.Transaction.Name)
-		assert.Equal(t, "request", batch[2].Metricset.Transaction.Type)
+		assert.Equal(t, "tr-a", batch[2].Transaction.Name)
+		assert.Equal(t, "request", batch[2].Transaction.Type)
 		assert.Equal(t, now, batch[2].Timestamp)
 
 		// ensure nested spans are decoded
 		start := time.Duration(20 * 1000 * 1000)
 		assert.Equal(t, now.Add(start), batch[3].Timestamp) //add start to timestamp
-		assert.Equal(t, "100", batch[3].Span.TransactionID)
+		assert.Equal(t, "100", batch[3].Transaction.ID)
 		assert.Equal(t, "1", batch[3].Trace.ID)
-		assert.Equal(t, "100", batch[3].Span.ParentID)
+		assert.Equal(t, "100", batch[3].Parent.ID)
 
 		for _, event := range batch {
 			modeldecodertest.AssertStructValues(
@@ -185,7 +185,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"HTTP.Request.Env", "HTTP.Request.Body", "HTTP.Request.Socket", "HTTP.Request.Cookies",
 				"HTTP.Response.HeadersSent", "HTTP.Response.Finished",
 				"Experimental",
-				"RepresentativeCount", "Message",
+				"RepresentativeCount", "Root", "Message",
 				// HTTP headers tested separately
 				"HTTP.Request.Headers",
 				"HTTP.Response.Headers",
