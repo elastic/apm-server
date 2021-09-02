@@ -404,6 +404,8 @@ func translateTransaction(
 			case "span.kind": // filter out
 			case "type":
 				event.Transaction.Type = stringval
+			case semconv.AttributeDeploymentEnvironment:
+				event.Service.Environment = stringval
 			case semconv.AttributeServiceVersion:
 				event.Service.Version = stringval
 			case "component":

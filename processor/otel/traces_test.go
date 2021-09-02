@@ -820,6 +820,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 					jaegerKeyValue("component", "foo"),
 					jaegerKeyValue("string.a.b", "some note"),
 					jaegerKeyValue("service.version", "1.0"),
+					jaegerKeyValue("deployment.environment", "staging"),
 				},
 				Logs: testJaegerLogs(),
 			}},

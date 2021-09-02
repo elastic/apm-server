@@ -33,6 +33,7 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "staging",
                 "language": {
                     "name": "unknown"
                 },
@@ -99,6 +100,7 @@
                 "name": "error"
             },
             "service": {
+                "environment": "staging",
                 "language": {
                     "name": "unknown"
                 },
@@ -155,6 +157,7 @@
                 "name": "error"
             },
             "service": {
+                "environment": "staging",
                 "language": {
                     "name": "unknown"
                 },
@@ -213,6 +216,7 @@
                 "name": "error"
             },
             "service": {
+                "environment": "staging",
                 "language": {
                     "name": "unknown"
                 },
@@ -271,6 +275,7 @@
                 "name": "error"
             },
             "service": {
+                "environment": "staging",
                 "language": {
                     "name": "unknown"
                 },
@@ -329,6 +334,7 @@
                 "name": "error"
             },
             "service": {
+                "environment": "staging",
                 "language": {
                     "name": "unknown"
                 },
@@ -385,6 +391,7 @@
                 "name": "error"
             },
             "service": {
+                "environment": "staging",
                 "language": {
                     "name": "unknown"
                 },
