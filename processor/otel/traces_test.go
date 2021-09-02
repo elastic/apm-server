@@ -43,11 +43,11 @@ import (
 	"time"
 
 	jaegermodel "github.com/jaegertracing/jaeger/model"
+	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/conventions"
-	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -895,7 +895,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				Tags: []jaegermodel.KeyValue{
 					jaegerKeyValue("span.kind", "server"),
 					jaegerKeyValue("error", true),
-					jaegerKeyValue("status.code", int64(2)),
+					jaegerKeyValue("otel.status_code", int64(2)),
 				},
 			}},
 		},
@@ -1234,7 +1234,7 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeV
 func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (transaction model.APMEvent, errors []model.APMEvent) {
 	traces, spans := newTracesSpans()
 	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		conventions.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
+		semconv.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
 	})
 	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))

@@ -8,6 +8,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
+	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/dop251/goja v0.0.0-20210817151038-07a7fd9355b4 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20210225215109-d91c329300e7 // indirect
@@ -28,15 +29,17 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
-	github.com/jaegertracing/jaeger v1.24.0
+	github.com/jaegertracing/jaeger v1.25.0
 	github.com/josephspurrier/goversioninfo v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.11
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/libp2p/go-reuseport v0.0.2
 	github.com/magefile/mage v1.11.0
+	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/reflect2 v1.0.1
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.34.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/poy/eachers v0.0.0-20181020210610-23942921fe77 // indirect
@@ -56,8 +59,8 @@ require (
 	go.elastic.co/apm/module/apmhttp v1.7.2
 	go.elastic.co/ecszap v1.0.0 // indirect
 	go.elastic.co/fastjson v1.1.0
-	go.opentelemetry.io/collector v0.30.0
-	go.opentelemetry.io/collector/model v0.30.0
+	go.opentelemetry.io/collector v0.34.0
+	go.opentelemetry.io/collector/model v0.34.0
 	go.uber.org/atomic v1.9.0
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.19.0
@@ -66,7 +69,6 @@ require (
 	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210818153620-00dd8d7831e7 // indirect
-	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6
 	golang.org/x/tools v0.1.5
 	google.golang.org/genproto v0.0.0-20210816143620-e15ff196659d // indirect
