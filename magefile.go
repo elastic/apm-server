@@ -179,7 +179,6 @@ func Package() {
 		mg.Deps(Update, prepareIngestPackaging)
 		mg.Deps(CrossBuild, CrossBuildXPack, CrossBuildGoDaemon)
 	}
-	mg.SerialDeps(mage.Package, TestPackages)
 }
 
 func Version() error {
@@ -188,50 +187,6 @@ func Version() error {
 		return err
 	}
 	fmt.Print(v)
-	return nil
-}
-
-// TestPackages tests the generated packages (i.e. file modes, owners, groups).
-func TestPackages() error {
-	// Run the tests using beats/go.mod.
-	defer os.Setenv("GOFLAGS", os.Getenv("GOFLAGS"))
-	beatsdir, err := mage.ElasticBeatsDir()
-	if err != nil {
-		return err
-	}
-	os.Setenv("GOFLAGS", "-modfile="+filepath.Join(beatsdir, "go.mod"))
-	return mage.TestPackages()
-}
-
-// TestPackagesInstall integration tests the generated packages
-func TestPackagesInstall() error {
-	// make the test script available to containers first
-	copy := &mage.CopyTask{
-		Source: "tests/packaging/test.sh",
-		Dest:   mage.MustExpand("{{.PWD}}/build/distributions/test.sh"),
-		Mode:   0755,
-	}
-	if err := copy.Execute(); err != nil {
-		return err
-	}
-	defer sh.Rm(copy.Dest)
-
-	goTest := sh.OutCmd("go", "test")
-	var args []string
-	if mg.Verbose() {
-		args = append(args, "-v")
-	}
-	args = append(args, mage.MustExpand("tests/packaging/package_test.go"))
-	args = append(args, "-files", mage.MustExpand("{{.PWD}}/build/distributions/*"))
-	args = append(args, "-tags=package")
-
-	if out, err := goTest(args...); err != nil {
-		if mg.Verbose() {
-			fmt.Println(out)
-		}
-		return err
-	}
-
 	return nil
 }
 
