@@ -47,7 +47,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/otlp"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/conventions"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -126,7 +126,7 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error
 		if err != nil {
 			logger.Debug(err)
 		} else {
-			logger.Debug(data)
+			logger.Debug(string(data))
 		}
 	}
 	batch := c.convert(traces, receiveTimestamp, logger)
@@ -300,13 +300,13 @@ func translateTransaction(
 			event.Labels[k] = v.DoubleVal()
 		case pdata.AttributeValueTypeInt:
 			switch kDots {
-			case conventions.AttributeHTTPStatusCode:
+			case semconv.AttributeHTTPStatusCode:
 				isHTTP = true
 				httpResponse.StatusCode = int(v.IntVal())
 				http.Response = &httpResponse
-			case conventions.AttributeNetPeerPort:
+			case semconv.AttributeNetPeerPort:
 				netPeerPort = int(v.IntVal())
-			case conventions.AttributeNetHostPort:
+			case semconv.AttributeNetHostPort:
 				netHostPort = int(v.IntVal())
 			case "rpc.grpc.status_code":
 				event.Transaction.Result = codes.Code(v.IntVal()).String()
@@ -317,20 +317,20 @@ func translateTransaction(
 			stringval := truncate(v.StringVal())
 			switch kDots {
 			// http.*
-			case conventions.AttributeHTTPMethod:
+			case semconv.AttributeHTTPMethod:
 				isHTTP = true
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
-			case conventions.AttributeHTTPURL, conventions.AttributeHTTPTarget, "http.path":
+			case semconv.AttributeHTTPURL, semconv.AttributeHTTPTarget, "http.path":
 				isHTTP = true
 				httpURL = stringval
-			case conventions.AttributeHTTPHost:
+			case semconv.AttributeHTTPHost:
 				isHTTP = true
 				httpHost = stringval
-			case conventions.AttributeHTTPScheme:
+			case semconv.AttributeHTTPScheme:
 				isHTTP = true
 				httpScheme = stringval
-			case conventions.AttributeHTTPStatusCode:
+			case semconv.AttributeHTTPStatusCode:
 				if intv, err := strconv.Atoi(stringval); err == nil {
 					isHTTP = true
 					httpResponse.StatusCode = intv
@@ -344,15 +344,15 @@ func translateTransaction(
 				}
 				stringval = strings.TrimPrefix(stringval, "HTTP/")
 				fallthrough
-			case conventions.AttributeHTTPFlavor:
+			case semconv.AttributeHTTPFlavor:
 				isHTTP = true
 				http.Version = stringval
-			case conventions.AttributeHTTPServerName:
+			case semconv.AttributeHTTPServerName:
 				isHTTP = true
 				httpServerName = stringval
-			case conventions.AttributeHTTPClientIP:
+			case semconv.AttributeHTTPClientIP:
 				event.Client.IP = net.ParseIP(stringval)
-			case conventions.AttributeHTTPUserAgent:
+			case semconv.AttributeHTTPUserAgent:
 				event.UserAgent.Original = stringval
 			case "http.remote_addr":
 				// NOTE(axw) this is non-standard, sent by opentelemetry-go's othttp.
@@ -372,11 +372,11 @@ func translateTransaction(
 				}
 
 			// net.*
-			case conventions.AttributeNetPeerIP:
+			case semconv.AttributeNetPeerIP:
 				netPeerIP = stringval
-			case conventions.AttributeNetPeerName:
+			case semconv.AttributeNetPeerName:
 				netPeerName = stringval
-			case conventions.AttributeNetHostName:
+			case semconv.AttributeNetHostName:
 				netHostName = stringval
 			case attributeNetworkConnectionType:
 				event.Network.Connection.Type = stringval
@@ -392,7 +392,7 @@ func translateTransaction(
 				event.Network.Carrier.ICC = stringval
 
 			// messaging.*
-			case "message_bus.destination", conventions.AttributeMessagingDestination:
+			case "message_bus.destination", semconv.AttributeMessagingDestination:
 				message.QueueName = stringval
 				isMessaging = true
 
@@ -401,16 +401,16 @@ func translateTransaction(
 			// TODO(axw) add RPC fieldset to ECS? Currently we drop these
 			// attributes, and rely on the operation name like we do with
 			// Elastic APM agents.
-			case conventions.AttributeRPCSystem:
+			case semconv.AttributeRPCSystem:
 				event.Transaction.Type = "request"
-			case conventions.AttributeRPCService:
-			case conventions.AttributeRPCMethod:
+			case semconv.AttributeRPCService:
+			case semconv.AttributeRPCMethod:
 
 			// miscellaneous
 			case "span.kind": // filter out
 			case "type":
 				event.Transaction.Type = stringval
-			case conventions.AttributeServiceVersion:
+			case semconv.AttributeServiceVersion:
 				event.Service.Version = stringval
 			case "component":
 				component = stringval
@@ -557,7 +557,7 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 				httpResponse.StatusCode = int(v.IntVal())
 				http.Response = &httpResponse
 				isHTTPSpan = true
-			case conventions.AttributeNetPeerPort, "peer.port":
+			case semconv.AttributeNetPeerPort, "peer.port":
 				netPeerPort = int(v.IntVal())
 			case "rpc.grpc.status_code":
 				// Ignored for spans.
@@ -568,19 +568,19 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 			stringval := truncate(v.StringVal())
 			switch kDots {
 			// http.*
-			case conventions.AttributeHTTPHost:
+			case semconv.AttributeHTTPHost:
 				httpHost = stringval
 				isHTTPSpan = true
-			case conventions.AttributeHTTPScheme:
+			case semconv.AttributeHTTPScheme:
 				httpScheme = stringval
 				isHTTPSpan = true
-			case conventions.AttributeHTTPTarget:
+			case semconv.AttributeHTTPTarget:
 				httpTarget = stringval
 				isHTTPSpan = true
-			case conventions.AttributeHTTPURL:
+			case semconv.AttributeHTTPURL:
 				httpURL = stringval
 				isHTTPSpan = true
-			case conventions.AttributeHTTPMethod:
+			case semconv.AttributeHTTPMethod:
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
 				isHTTPSpan = true
@@ -591,23 +591,23 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 					db.Type = "sql"
 				}
 				fallthrough
-			case conventions.AttributeDBStatement:
+			case semconv.AttributeDBStatement:
 				db.Statement = stringval
 				isDBSpan = true
-			case conventions.AttributeDBName, "db.instance":
+			case semconv.AttributeDBName, "db.instance":
 				db.Instance = stringval
 				isDBSpan = true
-			case conventions.AttributeDBSystem, "db.type":
+			case semconv.AttributeDBSystem, "db.type":
 				db.Type = stringval
 				isDBSpan = true
-			case conventions.AttributeDBUser:
+			case semconv.AttributeDBUser:
 				db.UserName = stringval
 				isDBSpan = true
 
 			// net.*
-			case conventions.AttributeNetPeerName, "peer.hostname":
+			case semconv.AttributeNetPeerName, "peer.hostname":
 				netPeerName = stringval
-			case conventions.AttributeNetPeerIP, "peer.ipv4", "peer.ipv6":
+			case semconv.AttributeNetPeerIP, "peer.ipv4", "peer.ipv6":
 				netPeerIP = stringval
 			case "peer.address":
 				destinationService.Resource = stringval
@@ -632,13 +632,13 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 				event.Network.Carrier.ICC = stringval
 
 			// messaging.*
-			case "message_bus.destination", conventions.AttributeMessagingDestination:
+			case "message_bus.destination", semconv.AttributeMessagingDestination:
 				message.QueueName = stringval
 				isMessagingSpan = true
-			case conventions.AttributeMessagingOperation:
+			case semconv.AttributeMessagingOperation:
 				messageOperation = stringval
 				isMessagingSpan = true
-			case conventions.AttributeMessagingSystem:
+			case semconv.AttributeMessagingSystem:
 				messageSystem = stringval
 				destinationService.Resource = stringval
 				destinationService.Name = stringval
@@ -649,15 +649,15 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 			// TODO(axw) add RPC fieldset to ECS? Currently we drop these
 			// attributes, and rely on the operation name and span type/subtype
 			// like we do with Elastic APM agents.
-			case conventions.AttributeRPCSystem:
+			case semconv.AttributeRPCSystem:
 				rpcSystem = stringval
 				isRPCSpan = true
-			case conventions.AttributeRPCService:
-			case conventions.AttributeRPCMethod:
+			case semconv.AttributeRPCService:
+			case semconv.AttributeRPCMethod:
 
 			// miscellaneous
 			case "span.kind": // filter out
-			case conventions.AttributePeerService:
+			case semconv.AttributePeerService:
 				destinationService.Name = stringval
 				if destinationService.Resource == "" {
 					// Prefer using peer.address for resource.
@@ -839,7 +839,7 @@ func convertSpanEvent(
 	} else {
 		// Translate exception span events to errors.
 		//
-		// If it's not Jaeger, we assume OpenTelemetry semantic conventions.
+		// If it's not Jaeger, we assume OpenTelemetry semantic semconv.
 		//
 		// TODO(axw) we don't currently support arbitrary events, we only look
 		// for exceptions and convert those to Elastic APM error events.
@@ -852,11 +852,11 @@ func convertSpanEvent(
 		var exceptionMessage, exceptionStacktrace, exceptionType string
 		spanEvent.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
 			switch k {
-			case conventions.AttributeExceptionMessage:
+			case semconv.AttributeExceptionMessage:
 				exceptionMessage = v.StringVal()
-			case conventions.AttributeExceptionStacktrace:
+			case semconv.AttributeExceptionStacktrace:
 				exceptionStacktrace = v.StringVal()
-			case conventions.AttributeExceptionType:
+			case semconv.AttributeExceptionType:
 				exceptionType = v.StringVal()
 			case "exception.escaped":
 				exceptionEscaped = v.BoolVal()

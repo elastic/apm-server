@@ -66,81 +66,57 @@ func TestConsumeMetrics(t *testing.T) {
 
 	var expectDropped int64
 
-	metric := appendMetric("int_gauge_metric", pdata.MetricDataTypeIntGauge)
-	intGauge := metric.IntGauge()
-	intGaugeDP0 := intGauge.DataPoints().AppendEmpty()
-	intGaugeDP0.SetTimestamp(pdata.TimestampFromTime(timestamp0))
-	intGaugeDP0.SetValue(1)
-	intGaugeDP1 := intGauge.DataPoints().AppendEmpty()
-	intGaugeDP1.SetTimestamp(pdata.TimestampFromTime(timestamp1))
-	intGaugeDP1.SetValue(2)
-	intGaugeDP1.LabelsMap().InitFromMap(map[string]string{"k": "v"})
-	intGaugeDP2 := intGauge.DataPoints().AppendEmpty()
-	intGaugeDP2.SetTimestamp(pdata.TimestampFromTime(timestamp1))
-	intGaugeDP2.SetValue(3)
-	intGaugeDP3 := intGauge.DataPoints().AppendEmpty()
-	intGaugeDP3.SetTimestamp(pdata.TimestampFromTime(timestamp1))
-	intGaugeDP3.SetValue(4)
-	intGaugeDP3.LabelsMap().InitFromMap(map[string]string{"k": "v2"})
-
-	metric = appendMetric("gauge_metric", pdata.MetricDataTypeGauge)
+	metric := appendMetric("gauge_metric", pdata.MetricDataTypeGauge)
 	gauge := metric.Gauge()
 	gaugeDP0 := gauge.DataPoints().AppendEmpty()
 	gaugeDP0.SetTimestamp(pdata.TimestampFromTime(timestamp0))
-	gaugeDP0.SetValue(5)
+	gaugeDP0.SetIntVal(1)
 	gaugeDP1 := gauge.DataPoints().AppendEmpty()
 	gaugeDP1.SetTimestamp(pdata.TimestampFromTime(timestamp1))
-	gaugeDP1.SetValue(6)
-	gaugeDP1.LabelsMap().InitFromMap(map[string]string{"k": "v"})
+	gaugeDP1.SetDoubleVal(2.3)
+	gaugeDP1.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"k": pdata.NewAttributeValueString("v"),
+	})
 	gaugeDP2 := gauge.DataPoints().AppendEmpty()
 	gaugeDP2.SetTimestamp(pdata.TimestampFromTime(timestamp1))
-	gaugeDP2.SetValue(7)
+	gaugeDP2.SetIntVal(4)
 	gaugeDP3 := gauge.DataPoints().AppendEmpty()
 	gaugeDP3.SetTimestamp(pdata.TimestampFromTime(timestamp1))
-	gaugeDP3.SetValue(8)
-	gaugeDP3.LabelsMap().InitFromMap(map[string]string{"k": "v2"})
-
-	metric = appendMetric("int_sum_metric", pdata.MetricDataTypeIntSum)
-	intSum := metric.IntSum()
-	intSumDP0 := intSum.DataPoints().AppendEmpty()
-	intSumDP0.SetTimestamp(pdata.TimestampFromTime(timestamp0))
-	intSumDP0.SetValue(9)
-	intSumDP1 := intSum.DataPoints().AppendEmpty()
-	intSumDP1.SetTimestamp(pdata.TimestampFromTime(timestamp1))
-	intSumDP1.SetValue(10)
-	intSumDP1.LabelsMap().InitFromMap(map[string]string{"k": "v"})
-	intSumDP2 := intSum.DataPoints().AppendEmpty()
-	intSumDP2.SetTimestamp(pdata.TimestampFromTime(timestamp1))
-	intSumDP2.SetValue(11)
-	intSumDP2.LabelsMap().InitFromMap(map[string]string{"k2": "v"})
+	gaugeDP3.SetDoubleVal(5.6)
+	gaugeDP3.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"k": pdata.NewAttributeValueString("v2"),
+	})
 
 	metric = appendMetric("sum_metric", pdata.MetricDataTypeSum)
 	sum := metric.Sum()
 	sumDP0 := sum.DataPoints().AppendEmpty()
 	sumDP0.SetTimestamp(pdata.TimestampFromTime(timestamp0))
-	sumDP0.SetValue(12)
+	sumDP0.SetIntVal(7)
 	sumDP1 := sum.DataPoints().AppendEmpty()
 	sumDP1.SetTimestamp(pdata.TimestampFromTime(timestamp1))
-	sumDP1.SetValue(13)
-	sumDP1.LabelsMap().InitFromMap(map[string]string{"k": "v"})
+	sumDP1.SetDoubleVal(8.9)
+	sumDP1.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"k": pdata.NewAttributeValueString("v"),
+	})
 	sumDP2 := sum.DataPoints().AppendEmpty()
 	sumDP2.SetTimestamp(pdata.TimestampFromTime(timestamp1))
-	sumDP2.SetValue(14)
-	sumDP2.LabelsMap().InitFromMap(map[string]string{"k2": "v"})
+	sumDP2.SetIntVal(10)
+	sumDP2.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"k2": pdata.NewAttributeValueString("v"),
+	})
+	sumDP3 := sum.DataPoints().AppendEmpty()
+	sumDP3.SetTimestamp(pdata.TimestampFromTime(timestamp1))
+	sumDP3.SetDoubleVal(11.12)
+	sumDP3.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"k": pdata.NewAttributeValueString("v2"),
+	})
 
 	metric = appendMetric("histogram_metric", pdata.MetricDataTypeHistogram)
-	doubleHistogram := metric.Histogram()
-	doubleHistogramDP := doubleHistogram.DataPoints().AppendEmpty()
-	doubleHistogramDP.SetTimestamp(pdata.TimestampFromTime(timestamp0))
-	doubleHistogramDP.SetBucketCounts([]uint64{1, 1, 2, 3})
-	doubleHistogramDP.SetExplicitBounds([]float64{-1.0, 2.0, 3.5})
-
-	metric = appendMetric("int_histogram_metric", pdata.MetricDataTypeIntHistogram)
-	intHistogram := metric.IntHistogram()
-	intHistogramDP := intHistogram.DataPoints().AppendEmpty()
-	intHistogramDP.SetTimestamp(pdata.TimestampFromTime(timestamp0))
-	intHistogramDP.SetBucketCounts([]uint64{0, 1, 2, 3})
-	intHistogramDP.SetExplicitBounds([]float64{1.0, 2.0, 3.0})
+	histogram := metric.Histogram()
+	histogramDP := histogram.DataPoints().AppendEmpty()
+	histogramDP.SetTimestamp(pdata.TimestampFromTime(timestamp0))
+	histogramDP.SetBucketCounts([]uint64{1, 1, 2, 3})
+	histogramDP.SetExplicitBounds([]float64{-1.0, 2.0, 3.5})
 
 	metric = appendMetric("invalid_histogram_metric", pdata.MetricDataTypeHistogram)
 	invalidHistogram := metric.Histogram()
@@ -160,25 +136,18 @@ func TestConsumeMetrics(t *testing.T) {
 
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	assert.Equal(t, []model.APMEvent{{
+	assert.ElementsMatch(t, []model.APMEvent{{
 		Agent:     agent,
 		Service:   service,
 		Timestamp: timestamp0,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
-				"int_gauge_metric": {Value: 1, Type: "gauge"},
-				"gauge_metric":     {Value: 5, Type: "gauge"},
-				"int_sum_metric":   {Value: 9, Type: "counter"},
-				"sum_metric":       {Value: 12, Type: "counter"},
+				"gauge_metric": {Value: 1, Type: "gauge"},
+				"sum_metric":   {Value: 7, Type: "counter"},
 				"histogram_metric": {
 					Type:   "histogram",
 					Counts: []int64{1, 1, 2, 3},
 					Values: []float64{-1, 0.5, 2.75, 3.5},
-				},
-				"int_histogram_metric": {
-					Type:   "histogram",
-					Counts: []int64{1, 2, 3},
-					Values: []float64{1.5, 2.5, 3},
 				},
 			},
 		},
@@ -188,8 +157,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp1,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
-				"int_gauge_metric": {Value: 3, Type: "gauge"},
-				"gauge_metric":     {Value: 7, Type: "gauge"},
+				"gauge_metric": {Value: 4, Type: "gauge"},
 			},
 		},
 	}, {
@@ -199,10 +167,8 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp1,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
-				"int_gauge_metric": {Value: 2, Type: "gauge"},
-				"gauge_metric":     {Value: 6, Type: "gauge"},
-				"int_sum_metric":   {Value: 10, Type: "counter"},
-				"sum_metric":       {Value: 13, Type: "counter"},
+				"gauge_metric": {Value: 2.3, Type: "gauge"},
+				"sum_metric":   {Value: 8.9, Type: "counter"},
 			},
 		},
 	}, {
@@ -212,8 +178,8 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp1,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
-				"int_gauge_metric": {Value: 4, Type: "gauge"},
-				"gauge_metric":     {Value: 8, Type: "gauge"},
+				"gauge_metric": {Value: 5.6, Type: "gauge"},
+				"sum_metric":   {Value: 11.12, Type: "counter"},
 			},
 		},
 	}, {
@@ -223,8 +189,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp1,
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
-				"int_sum_metric": {Value: 11, Type: "counter"},
-				"sum_metric":     {Value: 14, Type: "counter"},
+				"sum_metric": {Value: 10, Type: "counter"},
 			},
 		},
 	}}, events)
@@ -243,30 +208,37 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	}
 
 	timestamp := time.Unix(123, 0).UTC()
-	addInt64Sum := func(name string, value int64, labels map[string]string) {
-		metric := appendMetric(name, pdata.MetricDataTypeIntSum)
-		intSum := metric.IntSum()
-		dp := intSum.DataPoints().AppendEmpty()
+	addInt64Sum := func(name string, value int64, attributes map[string]pdata.AttributeValue) {
+		metric := appendMetric(name, pdata.MetricDataTypeSum)
+		sum := metric.Sum()
+		dp := sum.DataPoints().AppendEmpty()
 		dp.SetTimestamp(pdata.TimestampFromTime(timestamp))
-		dp.SetValue(value)
-		dp.LabelsMap().InitFromMap(labels)
+		dp.SetIntVal(value)
+		dp.Attributes().InitFromMap(attributes)
 	}
-	addInt64Gauge := func(name string, value int64, labels map[string]string) {
-		metric := appendMetric(name, pdata.MetricDataTypeIntGauge)
-		intSum := metric.IntGauge()
-		dp := intSum.DataPoints().AppendEmpty()
+	addInt64Gauge := func(name string, value int64, attributes map[string]pdata.AttributeValue) {
+		metric := appendMetric(name, pdata.MetricDataTypeGauge)
+		sum := metric.Gauge()
+		dp := sum.DataPoints().AppendEmpty()
 		dp.SetTimestamp(pdata.TimestampFromTime(timestamp))
-		dp.SetValue(value)
-		dp.LabelsMap().InitFromMap(labels)
+		dp.SetIntVal(value)
+		dp.Attributes().InitFromMap(attributes)
 	}
-	addInt64Sum("runtime.jvm.gc.time", 9, map[string]string{"gc": "G1 Young Generation"})
-	addInt64Sum("runtime.jvm.gc.count", 2, map[string]string{"gc": "G1 Young Generation"})
-	addInt64Gauge("runtime.jvm.memory.area", 42, map[string]string{"area": "heap", "type": "used"})
+	addInt64Sum("runtime.jvm.gc.time", 9, map[string]pdata.AttributeValue{
+		"gc": pdata.NewAttributeValueString("G1 Young Generation"),
+	})
+	addInt64Sum("runtime.jvm.gc.count", 2, map[string]pdata.AttributeValue{
+		"gc": pdata.NewAttributeValueString("G1 Young Generation"),
+	})
+	addInt64Gauge("runtime.jvm.memory.area", 42, map[string]pdata.AttributeValue{
+		"area": pdata.NewAttributeValueString("heap"),
+		"type": pdata.NewAttributeValueString("used"),
+	})
 
 	events, _ := transformMetrics(t, metrics)
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	assert.Equal(t, []model.APMEvent{{
+	assert.ElementsMatch(t, []model.APMEvent{{
 		Agent:     agent,
 		Service:   service,
 		Timestamp: timestamp,
@@ -353,11 +325,11 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics().AppendEmpty()
 	metric := instrumentationLibraryMetrics.Metrics().AppendEmpty()
 	metric.SetName("int_gauge")
-	metric.SetDataType(pdata.MetricDataTypeIntGauge)
-	intGauge := metric.IntGauge()
+	metric.SetDataType(pdata.MetricDataTypeGauge)
+	intGauge := metric.Gauge()
 	dp := intGauge.DataPoints().AppendEmpty()
 	dp.SetTimestamp(pdata.TimestampFromTime(exportedDataPointTimestamp))
-	dp.SetValue(1)
+	dp.SetIntVal(1)
 
 	events, _ := transformMetrics(t, metrics)
 	require.Len(t, events, 1)
