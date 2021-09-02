@@ -11885,11 +11885,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/gorilla/websocket
-Version: v1.4.2
+Version: v1.4.1
 Licence type (autodetected): BSD-2-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gorilla/websocket@v1.4.2/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/gorilla/websocket@v1.4.1/LICENSE:
 
 Copyright (c) 2013 The Gorilla WebSocket Authors. All rights reserved.
 

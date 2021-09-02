@@ -104,16 +104,9 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 	}
 	for key, ms := range ms {
 		event := baseEvent
-<<<<<<< HEAD
-		event.Metricset = m.Metricset
-		event.Timestamp = m.timestamp.Add(timeDelta)
-		if n := len(m.labels); n > 0 {
-=======
-		event.Processor = model.MetricsetProcessor
-		event.Timestamp = key.timestamp.Add(timeDelta)
 		event.Metricset = &model.Metricset{Samples: ms.samples}
+		event.Timestamp = key.timestamp.Add(timeDelta)
 		if ms.attributes.Len() > 0 {
->>>>>>> 80057a45 (Update to opentelemetry-collector v0.34.0 (#6106))
 			event.Labels = initEventLabels(event.Labels)
 			ms.attributes.Range(func(k string, v pdata.AttributeValue) bool {
 				event.Labels[k] = ifaceAttributeValue(v)
