@@ -33,7 +33,7 @@ func TestSetMetricsetName(t *testing.T) {
 		name  string
 	}{{
 		event: model.APMEvent{Metricset: &model.Metricset{}},
-		name:  "",
+		name:  "app",
 	}, {
 		event: model.APMEvent{
 			Metricset: &model.Metricset{Name: "already_set"},
@@ -41,38 +41,24 @@ func TestSetMetricsetName(t *testing.T) {
 		name: "already_set",
 	}, {
 		event: model.APMEvent{
-			Metricset:   &model.Metricset{},
-			Transaction: &model.Transaction{Type: "request"},
-		},
-		name: "",
-	}, {
-		event: model.APMEvent{
 			Metricset: &model.Metricset{
-				Samples: map[string]model.MetricsetSample{
-					"transaction.breakdown.count": {},
-				},
+				Samples: map[string]model.MetricsetSample{},
 			},
-		},
-		name: "app",
-	}, {
-		event: model.APMEvent{
-			Metricset: &model.Metricset{
-				Samples: map[string]model.MetricsetSample{
-					"transaction.duration.count":  {},
-					"transaction.breakdown.count": {},
-				},
+			Transaction: &model.Transaction{
+				Type:           "request",
+				BreakdownCount: 1,
 			},
-			Transaction: &model.Transaction{Type: "request"},
 		},
 		name: "transaction_breakdown",
 	}, {
 		event: model.APMEvent{
-			Metricset: &model.Metricset{
-				Samples: map[string]model.MetricsetSample{
-					"span.self_time.count": {},
+			Metricset:   &model.Metricset{},
+			Transaction: &model.Transaction{Type: "request"},
+			Span: &model.Span{
+				SelfTime: model.AggregatedDuration{
+					Count: 1,
 				},
 			},
-			Transaction: &model.Transaction{Type: "request"},
 		},
 		name: "span_breakdown",
 	}}

@@ -91,6 +91,9 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				"HTTP.Response.Headers",
 
 				// Not set for spans:
+				"DestinationService.ResponseTime",
+				"DestinationService.ResponseTime.Count",
+				"DestinationService.ResponseTime.Sum",
 				"HTTP.Version",
 				"HTTP.Request.Referrer",
 				"HTTP.Request.Cookies",
@@ -99,7 +102,10 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				"HTTP.Request.Socket",
 				"HTTP.Request.Body",
 				"HTTP.Response.HeadersSent",
-				"HTTP.Response.Finished":
+				"HTTP.Response.Finished",
+				"SelfTime",
+				"SelfTime.Count",
+				"SelfTime.Sum":
 				return true
 			}
 			for _, s := range []string{

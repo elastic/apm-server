@@ -48,6 +48,9 @@ type Span struct {
 	// TODO(axw) drop in 8.0. See https://github.com/elastic/apm-server/issues/6000)
 	Start *float64
 
+	// SelfTime holds the aggregated span durations, for breakdown metrics.
+	SelfTime AggregatedDuration
+
 	Message    *Message
 	Stacktrace Stacktrace
 	Sync       *bool
@@ -80,6 +83,9 @@ type DestinationService struct {
 	Type     string // Deprecated
 	Name     string // Deprecated
 	Resource string
+
+	// ResponseTime holds aggregated span durations for the destination service resource.
+	ResponseTime AggregatedDuration
 }
 
 // Composite holds details on a group of spans compressed into one.
@@ -113,6 +119,7 @@ func (d *DestinationService) fields() common.MapStr {
 	fields.maybeSetString("type", d.Type)
 	fields.maybeSetString("name", d.Name)
 	fields.maybeSetString("resource", d.Resource)
+	fields.maybeSetMapStr("response_time", d.ResponseTime.fields())
 	return common.MapStr(fields)
 }
 
@@ -169,5 +176,6 @@ func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
 	if st := e.Stacktrace.transform(); len(st) > 0 {
 		span.set("stacktrace", st)
 	}
+	span.maybeSetMapStr("self_time", e.SelfTime.fields())
 	fields.maybeSetMapStr("span", common.MapStr(span))
 }

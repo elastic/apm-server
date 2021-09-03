@@ -241,9 +241,11 @@ func histogramSample(bucketCounts []uint64, explicitBounds []float64) (model.Met
 		values = append(values, value)
 	}
 	return model.MetricsetSample{
-		Type:   model.MetricTypeHistogram,
-		Counts: counts,
-		Values: values,
+		Type: model.MetricTypeHistogram,
+		Histogram: model.Histogram{
+			Counts: counts,
+			Values: values,
+		},
 	}, true
 }
 

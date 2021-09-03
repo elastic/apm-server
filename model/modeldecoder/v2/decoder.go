@@ -543,7 +543,6 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 		event.Timestamp = from.Timestamp.Val
 	}
 
-	// map samples information
 	if len(from.Samples) > 0 {
 		samples := make(map[string]model.MetricsetSample, len(from.Samples))
 		for name, sample := range from.Samples {
@@ -558,11 +557,13 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 				copy(counts, sample.Counts)
 			}
 			samples[name] = model.MetricsetSample{
-				Type:   model.MetricType(sample.Type.Val),
-				Unit:   sample.Unit.Val,
-				Value:  sample.Value.Val,
-				Values: values,
-				Counts: counts,
+				Type:  model.MetricType(sample.Type.Val),
+				Unit:  sample.Unit.Val,
+				Value: sample.Value.Val,
+				Histogram: model.Histogram{
+					Values: values,
+					Counts: counts,
+				},
 			}
 		}
 		event.Metricset.Samples = samples
@@ -593,6 +594,8 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 		if from.Transaction.Type.IsSet() {
 			event.Transaction.Type = from.Transaction.Type.Val
 		}
+		// Transaction fields specified: this is an APM-internal metricset.
+		modeldecoderutil.SetInternalMetrics(event)
 	}
 }
 
