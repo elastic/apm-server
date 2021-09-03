@@ -35,6 +35,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 - Data streams now define a default `dynamic` mapping parameter, overridable in the `<data-stream>@custom` template {pull}5947[5947]
 - The `error.log.message` or `error.exception.message` field of errors will be copied to the ECS field `message` {pull}5974[5974]
 - Define index sorting for internal metrics data stream {pull}6116[6116]
+- Add histogram dynamic_template to app metrics data stream {pull}6043[6043]
 
 [float]
 ==== Deprecated

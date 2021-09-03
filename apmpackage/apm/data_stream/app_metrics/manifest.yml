@@ -10,3 +10,9 @@ elasticsearch:
       # as their names are application-specific and not
       # known ahead of time.
       dynamic: true
+      # Install dynamic templates for use in dynamically
+      # mapping complex application metrics.
+      dynamic_templates:
+        - histogram:
+            mapping:
+              type: histogram
