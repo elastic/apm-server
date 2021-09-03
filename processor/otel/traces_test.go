@@ -1122,7 +1122,7 @@ func testJaegerLogs() []jaegermodel.Log {
 	}, {
 		Timestamp: testStartTime().Add(65 * time.Nanosecond),
 		Fields: jaegerKeyValues(
-			"event", "retrying connection",
+			"message", "retrying connection",
 			"level", "info",
 		),
 	}, {
@@ -1231,7 +1231,7 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeV
 	return events[0]
 }
 
-func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (transaction model.APMEvent, errors []model.APMEvent) {
+func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (transaction model.APMEvent, events []model.APMEvent) {
 	traces, spans := newTracesSpans()
 	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
 		semconv.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
@@ -1242,12 +1242,10 @@ func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ..
 	for _, spanEvent := range spanEvents {
 		spanEvent.CopyTo(otelSpan.Events().AppendEmpty())
 	}
-	events := transformTraces(t, traces)
-	require.NotEmpty(t, events)
 
-	errors = make([]model.APMEvent, len(events)-1)
-	copy(errors, events[1:])
-	return events[0], errors
+	allEvents := transformTraces(t, traces)
+	require.NotEmpty(t, allEvents)
+	return allEvents[0], allEvents[1:]
 }
 
 func transformTraces(t *testing.T, traces pdata.Traces) model.Batch {

@@ -409,6 +409,113 @@
                 "query": "a=12",
                 "scheme": "http"
             }
+        },
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream.type": "logs",
+            "host": {
+                "hostname": "host-abc"
+            },
+            "labels": {
+                "event": "baggage",
+                "isValid": false
+            },
+            "processor": {
+                "event": "log",
+                "name": "log"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown",
+                "version": "1.0"
+            },
+            "trace": {
+                "id": "00000000000000000000000046467830"
+            },
+            "url": {
+                "domain": "foo.bar.com",
+                "full": "http://foo.bar.com?a=12",
+                "original": "http://foo.bar.com?a=12",
+                "query": "a=12",
+                "scheme": "http"
+            }
+        },
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream.type": "logs",
+            "host": {
+                "hostname": "host-abc"
+            },
+            "labels": {
+                "level": "info"
+            },
+            "message": "retrying connection",
+            "processor": {
+                "event": "log",
+                "name": "log"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown",
+                "version": "1.0"
+            },
+            "trace": {
+                "id": "00000000000000000000000046467830"
+            },
+            "url": {
+                "domain": "foo.bar.com",
+                "full": "http://foo.bar.com?a=12",
+                "original": "http://foo.bar.com?a=12",
+                "query": "a=12",
+                "scheme": "http"
+            }
+        },
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream.type": "logs",
+            "host": {
+                "hostname": "host-abc"
+            },
+            "labels": {
+                "level": "error"
+            },
+            "processor": {
+                "event": "log",
+                "name": "log"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown",
+                "version": "1.0"
+            },
+            "trace": {
+                "id": "00000000000000000000000046467830"
+            },
+            "url": {
+                "domain": "foo.bar.com",
+                "full": "http://foo.bar.com?a=12",
+                "original": "http://foo.bar.com?a=12",
+                "query": "a=12",
+                "scheme": "http"
+            }
         }
     ]
 }
