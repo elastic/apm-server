@@ -8,3 +8,7 @@ elasticsearch:
       # Internal metrics should have all fields strictly mapped;
       # we are in full control of the field names.
       dynamic: strict
+    settings:
+      index:
+        sort.field: "@timestamp"
+        sort.order: desc
