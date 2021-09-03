@@ -364,37 +364,6 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *model.APM
 	event.Metricset = &model.Metricset{}
 	event.Processor = model.MetricsetProcessor
 
-	// map samples information
-	if from.Samples.IsSet() {
-		samples := make(map[string]model.MetricsetSample)
-		if from.Samples.TransactionDurationCount.Value.IsSet() {
-			samples[metricsetSamplesTransactionDurationCountName] = model.MetricsetSample{
-				Value: from.Samples.TransactionDurationCount.Value.Val,
-			}
-		}
-		if from.Samples.TransactionDurationSum.Value.IsSet() {
-			samples[metricsetSamplesTransactionDurationSumName] = model.MetricsetSample{
-				Value: from.Samples.TransactionDurationSum.Value.Val,
-			}
-		}
-		if from.Samples.TransactionBreakdownCount.Value.IsSet() {
-			samples[metricsetSamplesTransactionBreakdownCountName] = model.MetricsetSample{
-				Value: from.Samples.TransactionBreakdownCount.Value.Val,
-			}
-		}
-		if from.Samples.SpanSelfTimeCount.Value.IsSet() {
-			samples[metricsetSamplesSpanSelfTimeCountName] = model.MetricsetSample{
-				Value: from.Samples.SpanSelfTimeCount.Value.Val,
-			}
-		}
-		if from.Samples.SpanSelfTimeSum.Value.IsSet() {
-			samples[metricsetSamplesSpanSelfTimeSumName] = model.MetricsetSample{
-				Value: from.Samples.SpanSelfTimeSum.Value.Val,
-			}
-		}
-		event.Metricset.Samples = samples
-	}
-
 	if from.Span.IsSet() {
 		event.Span = &model.Span{}
 		if from.Span.Subtype.IsSet() {
@@ -402,6 +371,28 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *model.APM
 		}
 		if from.Span.Type.IsSet() {
 			event.Span.Type = from.Span.Type.Val
+		}
+	}
+
+	if from.Samples.IsSet() {
+		if event.Transaction != nil {
+			if value := from.Samples.TransactionDurationCount.Value; value.IsSet() {
+				event.Transaction.AggregatedDuration.Count = int(value.Val)
+			}
+			if value := from.Samples.TransactionDurationSum.Value; value.IsSet() {
+				event.Transaction.AggregatedDuration.Sum = time.Duration(value.Val * 1000)
+			}
+			if value := from.Samples.TransactionBreakdownCount.Value; value.IsSet() {
+				event.Transaction.BreakdownCount = int(value.Val)
+			}
+		}
+		if event.Span != nil {
+			if value := from.Samples.SpanSelfTimeCount.Value; value.IsSet() {
+				event.Span.SelfTime.Count = int(value.Val)
+			}
+			if value := from.Samples.SpanSelfTimeSum.Value; value.IsSet() {
+				event.Span.SelfTime.Sum = time.Duration(value.Val * 1000)
+			}
 		}
 	}
 }

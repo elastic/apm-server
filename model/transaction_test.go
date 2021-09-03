@@ -102,6 +102,7 @@ func TestTransactionTransform(t *testing.T) {
 				Result:    result,
 				Sampled:   true,
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
+				Root:      true,
 			},
 			Output: common.MapStr{
 				"id":         id,
@@ -111,6 +112,7 @@ func TestTransactionTransform(t *testing.T) {
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"started": 14, "dropped": 5},
 				"sampled":    true,
+				"root":       true,
 			},
 			Msg: "Full Event",
 		},

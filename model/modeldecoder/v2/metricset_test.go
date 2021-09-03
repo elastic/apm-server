@@ -72,8 +72,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 }
 
 func TestDecodeMapToMetricsetModel(t *testing.T) {
-	metadataExceptions := func(key string) bool {
-		// only set by aggregator
+	exceptions := func(key string) bool {
 		if key == "DocCount" ||
 			key == "Name" ||
 			key == "TimeseriesInstanceID" ||
@@ -90,31 +89,38 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		now := time.Now().Add(time.Second)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
+		input.Transaction.Reset() // tested by TestDecodeMetricsetInternal
 
 		mapToMetricsetModel(&input, &out1)
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, out1.Metricset, metadataExceptions, defaultVal)
+		modeldecodertest.AssertStructValues(t, out1.Metricset, exceptions, defaultVal)
 		defaultSamples := map[string]model.MetricsetSample{
 			defaultVal.Str + "0": {
-				Type:   model.MetricType(defaultVal.Str),
-				Unit:   defaultVal.Str,
-				Value:  defaultVal.Float,
-				Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
-				Values: repeatFloat64(defaultVal.Float, defaultVal.N),
+				Type:  model.MetricType(defaultVal.Str),
+				Unit:  defaultVal.Str,
+				Value: defaultVal.Float,
+				Histogram: model.Histogram{
+					Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
+					Values: repeatFloat64(defaultVal.Float, defaultVal.N),
+				},
 			},
 			defaultVal.Str + "1": {
-				Type:   model.MetricType(defaultVal.Str),
-				Unit:   defaultVal.Str,
-				Value:  defaultVal.Float,
-				Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
-				Values: repeatFloat64(defaultVal.Float, defaultVal.N),
+				Type:  model.MetricType(defaultVal.Str),
+				Unit:  defaultVal.Str,
+				Value: defaultVal.Float,
+				Histogram: model.Histogram{
+					Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
+					Values: repeatFloat64(defaultVal.Float, defaultVal.N),
+				},
 			},
 			defaultVal.Str + "2": {
-				Type:   model.MetricType(defaultVal.Str),
-				Unit:   defaultVal.Str,
-				Value:  defaultVal.Float,
-				Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
-				Values: repeatFloat64(defaultVal.Float, defaultVal.N),
+				Type:  model.MetricType(defaultVal.Str),
+				Unit:  defaultVal.Str,
+				Value: defaultVal.Float,
+				Histogram: model.Histogram{
+					Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
+					Values: repeatFloat64(defaultVal.Float, defaultVal.N),
+				},
 			},
 		}
 		assert.Equal(t, defaultSamples, out1.Metricset.Samples)
@@ -123,36 +129,112 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		out1.Timestamp = now
 		defaultVal.Update(time.Time{})
 		modeldecodertest.SetStructValues(&input, defaultVal)
+		input.Transaction.Reset()
 		mapToMetricsetModel(&input, &out1)
 		defaultVal.Update(now)
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, out1.Metricset, metadataExceptions, defaultVal)
+		modeldecodertest.AssertStructValues(t, out1.Metricset, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
+		input.Transaction.Reset()
 		mapToMetricsetModel(&input, &out2)
-		modeldecodertest.AssertStructValues(t, out2.Metricset, metadataExceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, out2.Metricset, exceptions, otherVal)
 		otherSamples := map[string]model.MetricsetSample{
 			otherVal.Str + "0": {
-				Type:   model.MetricType(otherVal.Str),
-				Unit:   otherVal.Str,
-				Value:  otherVal.Float,
-				Counts: repeatInt64(int64(otherVal.Int), otherVal.N),
-				Values: repeatFloat64(otherVal.Float, otherVal.N),
+				Type:  model.MetricType(otherVal.Str),
+				Unit:  otherVal.Str,
+				Value: otherVal.Float,
+				Histogram: model.Histogram{
+					Counts: repeatInt64(int64(otherVal.Int), otherVal.N),
+					Values: repeatFloat64(otherVal.Float, otherVal.N),
+				},
 			},
 			otherVal.Str + "1": {
-				Type:   model.MetricType(otherVal.Str),
-				Unit:   otherVal.Str,
-				Value:  otherVal.Float,
-				Counts: repeatInt64(int64(otherVal.Int), otherVal.N),
-				Values: repeatFloat64(otherVal.Float, otherVal.N),
+				Type:  model.MetricType(otherVal.Str),
+				Unit:  otherVal.Str,
+				Value: otherVal.Float,
+				Histogram: model.Histogram{
+					Counts: repeatInt64(int64(otherVal.Int), otherVal.N),
+					Values: repeatFloat64(otherVal.Float, otherVal.N),
+				},
 			},
 		}
 		assert.Equal(t, otherSamples, out2.Metricset.Samples)
-		modeldecodertest.AssertStructValues(t, out1.Metricset, metadataExceptions, defaultVal)
+		modeldecodertest.AssertStructValues(t, out1.Metricset, exceptions, defaultVal)
 		assert.Equal(t, defaultSamples, out1.Metricset.Samples)
 	})
+}
+
+func TestDecodeMetricsetInternal(t *testing.T) {
+	var batch model.Batch
+
+	err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{
+		"metricset": {
+			"timestamp": 0,
+			"samples": {
+				"transaction.breakdown.count": {"value": 123},
+				"transaction.duration.count": {"value": 456},
+				"transaction.duration.sum.us": {"value": 789}
+			},
+			"transaction": {
+				"name": "transaction_name",
+				"type": "transaction_type"
+			}
+		}
+	}`)), &modeldecoder.Input{}, &batch)
+	require.NoError(t, err)
+
+	err = DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{
+		"metricset": {
+			"timestamp": 0,
+			"samples": {
+				"span.self_time.count": {"value": 123},
+				"span.self_time.sum.us": {"value": 456}
+			},
+			"transaction": {
+				"name": "transaction_name",
+				"type": "transaction_type"
+			},
+			"span": {
+				"type": "span_type",
+				"subtype": "span_subtype"
+			}
+		}
+	}`)), &modeldecoder.Input{}, &batch)
+	require.NoError(t, err)
+
+	assert.Equal(t, model.Batch{{
+		Timestamp: time.Unix(0, 0).UTC(),
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{},
+		Transaction: &model.Transaction{
+			Name:           "transaction_name",
+			Type:           "transaction_type",
+			BreakdownCount: 123,
+			AggregatedDuration: model.AggregatedDuration{
+				Count: 456,
+				Sum:   789 * time.Microsecond,
+			},
+		},
+	}, {
+		Timestamp: time.Unix(0, 0).UTC(),
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{},
+		Transaction: &model.Transaction{
+			Name: "transaction_name",
+			Type: "transaction_type",
+		},
+		Span: &model.Span{
+			Type:    "span_type",
+			Subtype: "span_subtype",
+			SelfTime: model.AggregatedDuration{
+				Count: 123,
+				Sum:   456 * time.Microsecond,
+			},
+		},
+	}}, batch)
 }
 
 func repeatInt64(v int64, n int) []int64 {

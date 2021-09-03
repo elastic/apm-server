@@ -333,14 +333,6 @@ type transactionMetricsetSamples struct {
 	SpanSelfTimeSum metricsetSampleValue `json:"yss"`
 }
 
-const (
-	metricsetSamplesTransactionDurationCountName  = "transaction.duration.count"
-	metricsetSamplesTransactionDurationSumName    = "transaction.duration.sum.us"
-	metricsetSamplesTransactionBreakdownCountName = "transaction.breakdown.count"
-	metricsetSamplesSpanSelfTimeCountName         = "span.self_time.count"
-	metricsetSamplesSpanSelfTimeSumName           = "span.self_time.sum.us"
-)
-
 type metricsetSampleValue struct {
 	// Value holds the value of a single metric sample.
 	Value nullable.Float64 `json:"v" validate:"required"`

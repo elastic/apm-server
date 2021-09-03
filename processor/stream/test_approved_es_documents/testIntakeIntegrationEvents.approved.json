@@ -617,13 +617,9 @@
                 "name": "java",
                 "version": "1.10.0"
             },
-            "byte_counter": 1,
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
-            "dotted.float.gauge": 6.12,
-            "double_gauge": 3.141592653589793,
-            "float_gauge": 9.16,
             "host": {
                 "architecture": "amd64",
                 "hostname": "8ec7ceb99074",
@@ -633,7 +629,6 @@
                     "platform": "Linux"
                 }
             },
-            "integer_gauge": 42767,
             "kubernetes": {
                 "namespace": "default",
                 "node": {
@@ -651,8 +646,6 @@
                 "segment": 5,
                 "success": true
             },
-            "long_gauge": 3147483648,
-            "negative.d.o.t.t.e.d": -1022,
             "process": {
                 "args": [
                     "-v"
@@ -685,22 +678,23 @@
                 },
                 "version": "4.3.0"
             },
-            "short_counter": 227,
             "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum.us": 633
+                },
                 "subtype": "mysql",
                 "type": "db"
             },
-            "span.self_time.count": 1,
-            "span.self_time.sum.us": 633.288,
             "transaction": {
+                "breakdown.count": 12,
+                "duration": {
+                    "count": 2,
+                    "sum.us": 12
+                },
                 "name": "GET/",
                 "type": "request"
-            },
-            "transaction.breakdown.count": 12,
-            "transaction.duration.count": 2,
-            "transaction.duration.sum.us": 12,
-            "transaction.self_time.count": 2,
-            "transaction.self_time.sum.us": 10
+            }
         }
     ]
 }

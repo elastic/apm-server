@@ -40,6 +40,7 @@ type Values struct {
 	Float      float64
 	Bool       bool
 	Time       time.Time
+	Duration   time.Duration
 	IP         net.IP
 	HTTPHeader http.Header
 	// N controls how many elements are added to a slice or a map
@@ -55,6 +56,7 @@ func DefaultValues() *Values {
 		Float:      0.5,
 		Bool:       true,
 		Time:       initTime,
+		Duration:   time.Second,
 		IP:         net.ParseIP("127.0.0.1"),
 		HTTPHeader: http.Header{http.CanonicalHeaderKey("user-agent"): []string{"a", "b", "c"}},
 		N:          3,
@@ -70,6 +72,7 @@ func NonDefaultValues() *Values {
 		Float:      3.5,
 		Bool:       false,
 		Time:       updatedTime,
+		Duration:   time.Minute,
 		IP:         net.ParseIP("192.168.0.1"),
 		HTTPHeader: http.Header{http.CanonicalHeaderKey("user-agent"): []string{"d", "e"}},
 		N:          2,
@@ -277,6 +280,8 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			newVal = &values.Str
 		case int:
 			newVal = values.Int
+		case int64:
+			newVal = int64(values.Int)
 		case *int:
 			newVal = &values.Int
 		case float64:
@@ -294,6 +299,8 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			newVal = values.HTTPHeader
 		case time.Time:
 			newVal = values.Time
+		case time.Duration:
+			newVal = values.Duration
 		default:
 			// the populator recursively iterates over struct and structPtr
 			// calling this function for all fields;
@@ -310,7 +317,7 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 				assert.NotZero(t, fVal, key)
 				return
 			}
-			panic(fmt.Sprintf("unhandled type %s for key %s", f.Type().Kind(), key))
+			panic(fmt.Sprintf("unhandled type %s for key %s", f.Type(), key))
 		}
 		assert.Equal(t, newVal, fVal, key)
 	})
