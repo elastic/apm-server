@@ -1,6 +1,11 @@
 # newer versions go on top
 #
 # change type can be one of: enhancement, bugfix, breaking-change
+- version: "0.5.0"
+  changes:
+    - description: define index sorting for internal metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6116
 - version: "0.4.0"
   changes:
     - description: add anonymous auth config, replace some RUM config
