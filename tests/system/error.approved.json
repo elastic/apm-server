@@ -9,7 +9,7 @@
             "id": "container-id"
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "error": {
             "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
@@ -109,7 +109,7 @@
             "id": "container-id"
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "error": {
             "culprit": "my.module.function_name",
@@ -418,7 +418,7 @@
             "id": "container-id"
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "error": {
             "exception": [
@@ -506,7 +506,7 @@
             "id": "container-id"
         },
         "ecs": {
-            "version": "1.10.0"
+            "version": "1.11.0"
         },
         "error": {
             "exception": [
