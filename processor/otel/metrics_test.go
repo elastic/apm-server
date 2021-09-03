@@ -146,9 +146,11 @@ func TestConsumeMetrics(t *testing.T) {
 				"gauge_metric": {Value: 1, Type: "gauge"},
 				"sum_metric":   {Value: 7, Type: "counter"},
 				"histogram_metric": {
-					Type:   "histogram",
-					Counts: []int64{1, 1, 2, 3},
-					Values: []float64{-1, 0.5, 2.75, 3.5},
+					Type: "histogram",
+					Histogram: model.Histogram{
+						Counts: []int64{1, 1, 2, 3},
+						Values: []float64{-1, 0.5, 2.75, 3.5},
+					},
 				},
 			},
 		},

@@ -153,7 +153,20 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		exceptions := func(key string) bool {
 			// All the below exceptions are tested separately
 			switch key {
-			case "HTTP.Request.Headers", "HTTP.Response.Headers", "Experimental", "RepresentativeCount", "Root":
+			case
+				"HTTP.Request.Headers",
+				"HTTP.Response.Headers",
+				"RepresentativeCount",
+
+				// Not set for transaction events, tested in metricset decoding:
+				"AggregatedDuration",
+				"AggregatedDuration.Count",
+				"AggregatedDuration.Sum",
+				"BreakdownCount",
+				"DurationHistogram",
+				"DurationHistogram.Counts",
+				"DurationHistogram.Values",
+				"Root":
 				return true
 			}
 			return false

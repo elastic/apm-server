@@ -18,6 +18,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -81,6 +83,12 @@ type MetricsetSample struct {
 	// If Counts and Values are specified, then Value will be ignored.
 	Value float64
 
+	// Histogram holds bucket values and counts for histogram metrics.
+	Histogram
+}
+
+// Histogram holds bucket values and counts for a histogram metric.
+type Histogram struct {
 	// Values holds the bucket values for histogram metrics.
 	//
 	// These values must be provided in ascending order.
@@ -94,6 +102,35 @@ type MetricsetSample struct {
 	// specified with the same number of elements, and with the
 	// same order.
 	Counts []int64
+}
+
+func (h *Histogram) fields() common.MapStr {
+	if len(h.Counts) == 0 {
+		return nil
+	}
+	var fields mapStr
+	fields.set("counts", h.Counts)
+	fields.set("values", h.Values)
+	return common.MapStr(fields)
+}
+
+// AggregatedDuration holds a count and sum of aggregated durations.
+type AggregatedDuration struct {
+	// Count holds the number of durations aggregated.
+	Count int
+
+	// Sum holds the sum of aggregated durations.
+	Sum time.Duration
+}
+
+func (a *AggregatedDuration) fields() common.MapStr {
+	if a.Count == 0 {
+		return nil
+	}
+	var fields mapStr
+	fields.set("count", a.Count)
+	fields.set("sum.us", a.Sum.Microseconds())
+	return common.MapStr(fields)
 }
 
 func (me *Metricset) setFields(fields *mapStr) {
@@ -119,10 +156,7 @@ func (me *Metricset) setFields(fields *mapStr) {
 
 func (s *MetricsetSample) set(name string, fields *mapStr) {
 	if s.Type == MetricTypeHistogram {
-		fields.set(name, common.MapStr{
-			"counts": s.Counts,
-			"values": s.Values,
-		})
+		fields.set(name, s.Histogram.fields())
 	} else {
 		fields.set(name, s.Value)
 	}
