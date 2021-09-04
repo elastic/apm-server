@@ -6,6 +6,9 @@
     - description: define index sorting for internal metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6116
+    - description: add histogram dynamic_template to app metrics data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6043
 - version: "0.4.0"
   changes:
     - description: add anonymous auth config, replace some RUM config
