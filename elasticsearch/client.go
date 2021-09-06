@@ -21,7 +21,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"io"
 	"io/ioutil"
 	"net/http"
 
@@ -50,27 +49,10 @@ type Client interface {
 
 	// Perform satisfies esapi.Transport
 	Perform(*http.Request) (*http.Response, error)
-
-	// TODO: deprecate
-	SearchQuery(ctx context.Context, index string, body io.Reader) (int, io.ReadCloser, error)
 }
 
 type clientV8 struct {
 	*esv8.Client
-}
-
-func (c clientV8) SearchQuery(ctx context.Context, index string, body io.Reader) (int, io.ReadCloser, error) {
-	response, err := c.Search(
-		c.Search.WithContext(ctx),
-		c.Search.WithIndex(index),
-		c.Search.WithBody(body),
-		c.Search.WithTrackTotalHits(true),
-		c.Search.WithPretty(),
-	)
-	if err != nil {
-		return 0, nil, err
-	}
-	return response.StatusCode, response.Body, nil
 }
 
 func (c clientV8) NewBulkIndexer(config BulkIndexerConfig) (BulkIndexer, error) {
@@ -94,20 +76,6 @@ func (c clientV8) NewBulkIndexer(config BulkIndexerConfig) (BulkIndexer, error) 
 
 type clientV7 struct {
 	*esv7.Client
-}
-
-func (c clientV7) SearchQuery(ctx context.Context, index string, body io.Reader) (int, io.ReadCloser, error) {
-	response, err := c.Search(
-		c.Search.WithContext(ctx),
-		c.Search.WithIndex(index),
-		c.Search.WithBody(body),
-		c.Search.WithTrackTotalHits(true),
-		c.Search.WithPretty(),
-	)
-	if err != nil {
-		return 0, nil, err
-	}
-	return response.StatusCode, response.Body, nil
 }
 
 func (c clientV7) NewBulkIndexer(config BulkIndexerConfig) (BulkIndexer, error) {
