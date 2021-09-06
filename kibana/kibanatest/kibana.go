@@ -18,7 +18,9 @@
 package kibanatest
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -26,7 +28,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -41,9 +42,17 @@ type MockKibanaClient struct {
 }
 
 // Send returns a mock http.Response based on parameters used to init the MockKibanaClient instance
-func (c *MockKibanaClient) Send(_ context.Context, method, extraPath string, params url.Values,
-	headers http.Header, body io.Reader) (*http.Response, error) {
-	resp := http.Response{StatusCode: c.code, Body: ioutil.NopCloser(convert.ToReader(c.body))}
+func (c *MockKibanaClient) Send(
+	_ context.Context,
+	method, extraPath string, params url.Values,
+	headers http.Header,
+	body io.Reader,
+) (*http.Response, error) {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(c.body); err != nil {
+		panic(err)
+	}
+	resp := http.Response{StatusCode: c.code, Body: ioutil.NopCloser(&buf)}
 	if resp.StatusCode == http.StatusBadGateway {
 		return nil, errors.New("testerror")
 	}
