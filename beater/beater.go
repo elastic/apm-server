@@ -46,6 +46,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/processors"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -356,9 +357,19 @@ func (s *serverRunner) run(listener net.Listener) error {
 
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
+
 	publisherConfig := &publish.PublisherConfig{
 		Pipeline:  s.config.Pipeline,
 		Namespace: s.namespace,
+	}
+	if !s.config.DataStreams.Enabled {
+		// Logs are only supported with data streams;
+		// add a beat.Processor which drops them.
+		dropLogsProcessor, err := newDropLogsBeatProcessor()
+		if err != nil {
+			return err
+		}
+		publisherConfig.Processor = dropLogsProcessor
 	}
 
 	var kibanaClient kibana_client.Client
@@ -754,4 +765,18 @@ type transformerFunc func(context.Context) []beat.Event
 
 func (f transformerFunc) Transform(ctx context.Context) []beat.Event {
 	return f(ctx)
+}
+
+func newDropLogsBeatProcessor() (beat.ProcessorList, error) {
+	return processors.New(processors.PluginConfig{
+		common.MustNewConfigFrom(map[string]interface{}{
+			"drop_event": map[string]interface{}{
+				"when": map[string]interface{}{
+					"contains": map[string]interface{}{
+						"processor.event": "log",
+					},
+				},
+			},
+		}),
+	})
 }

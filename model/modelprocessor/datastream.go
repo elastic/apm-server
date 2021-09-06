@@ -46,6 +46,9 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 	case model.ErrorProcessor:
 		event.DataStream.Type = datastreams.LogsType
 		event.DataStream.Dataset = model.ErrorsDataset
+	case model.LogProcessor:
+		event.DataStream.Type = datastreams.LogsType
+		event.DataStream.Dataset = model.AppLogsDataset
 	case model.MetricsetProcessor:
 		event.DataStream.Type = datastreams.MetricsType
 		// Metrics that include well-defined transaction/span fields
