@@ -18,6 +18,7 @@
 package agent
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -34,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/convert"
 )
 
 const (
@@ -160,7 +160,7 @@ func buildQuery(c *request.Context) (agentcfg.Query, error) {
 	var query agentcfg.Query
 	switch r.Method {
 	case http.MethodPost:
-		if err := convert.FromReader(r.Body, &query); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&query); err != nil {
 			return query, err
 		}
 	case http.MethodGet:
