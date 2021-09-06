@@ -44,6 +44,7 @@ import (
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestEncodeSpanEventsNonExceptions(t *testing.T) {
@@ -57,8 +58,10 @@ func TestEncodeSpanEventsNonExceptions(t *testing.T) {
 		semconv.AttributeExceptionStacktrace: pdata.NewAttributeValueString("stacktrace"),
 	})
 
-	_, errors := transformTransactionSpanEvents(t, "java", nonExceptionEvent, incompleteExceptionEvent)
-	require.Empty(t, errors)
+	_, events := transformTransactionSpanEvents(t, "java", nonExceptionEvent, incompleteExceptionEvent)
+	require.Len(t, events, 2)
+	assert.Equal(t, model.LogProcessor, events[0].Processor)
+	assert.Equal(t, model.LogProcessor, events[1].Processor)
 }
 
 func TestEncodeSpanEventsJavaExceptions(t *testing.T) {
@@ -114,6 +117,7 @@ Caused by: LowLevelException
 		Service:   service,
 		Agent:     agent,
 		Timestamp: timestamp,
+		Labels:    common.MapStr{},
 		Processor: model.ErrorProcessor,
 		Trace:     transactionEvent.Trace,
 		Parent:    model.Parent{ID: transactionEvent.Transaction.ID},
@@ -164,6 +168,7 @@ Caused by: LowLevelException
 		Service:   service,
 		Agent:     agent,
 		Timestamp: timestamp,
+		Labels:    common.MapStr{},
 		Processor: model.ErrorProcessor,
 		Trace:     transactionEvent.Trace,
 		Parent:    model.Parent{ID: transactionEvent.Transaction.ID},
@@ -323,6 +328,7 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 		Service:   service,
 		Agent:     agent,
 		Timestamp: timestamp,
+		Labels:    common.MapStr{},
 		Processor: model.ErrorProcessor,
 		Trace:     transactionEvent.Trace,
 		Parent:    model.Parent{ID: transactionEvent.Transaction.ID},

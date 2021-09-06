@@ -64,22 +64,42 @@ func init() {
 }
 
 func TestOTLPGRPCTraces(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	withDataStreams(t, testOTLPGRPCTraces)
+}
 
+func testOTLPGRPCTraces(t *testing.T, srv *apmservertest.Server) {
+	srv.Start()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err := sendOTLPTrace(ctx, newOTLPTracerProvider(newOTLPExporter(t, srv), sdktrace.WithResource(
+	err := withOTLPTracer(newOTLPTracerProvider(newOTLPExporter(t, srv), sdktrace.WithResource(
 		resource.Merge(resource.Default(), sdkresource.NewWithAttributes(
 			attribute.Array("resource_attribute_array", []string{"a", "b"}),
 		)),
-	)))
+	)), func(tracer trace.Tracer) {
+		startTime := time.Unix(123, 456)
+		endTime := startTime.Add(time.Second)
+		_, span := tracer.Start(ctx, "operation_name", trace.WithTimestamp(startTime), trace.WithAttributes(
+			attribute.Array("span_attribute_array", []string{"a", "b", "c"}),
+		))
+		span.AddEvent("a_span_event", trace.WithTimestamp(startTime.Add(time.Millisecond)))
+		span.End(trace.WithTimestamp(endTime))
+	})
 	require.NoError(t, err)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
-	}})
+	expectMin := 1
+	if srv.Config.DataStreams != nil && srv.Config.DataStreams.Enabled {
+		expectMin++ // span events only indexed into data streams
+	}
+
+	indices := "apm-*,traces-apm*,logs-apm*"
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, expectMin, indices, estest.BoolQuery{
+		Should: []interface{}{
+			estest.TermQuery{Field: "processor.event", Value: "transaction"},
+			estest.TermQuery{Field: "processor.event", Value: "log"},
+		},
+		MinimumShouldMatch: 1,
+	})
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
@@ -325,14 +345,21 @@ func newOTLPTracerProvider(exporter *otlp.Exporter, options ...sdktrace.TracerPr
 }
 
 func sendOTLPTrace(ctx context.Context, tracerProvider *sdktrace.TracerProvider) error {
-	tracer := tracerProvider.Tracer("systemtest")
-	startTime := time.Unix(123, 456)
-	endTime := startTime.Add(time.Second)
-	_, span := tracer.Start(ctx, "operation_name", trace.WithTimestamp(startTime), trace.WithAttributes(
-		attribute.Array("span_attribute_array", []string{"a", "b", "c"}),
-	))
-	span.End(trace.WithTimestamp(endTime))
+	return withOTLPTracer(tracerProvider, func(tracer trace.Tracer) {
+		startTime := time.Unix(123, 456)
+		endTime := startTime.Add(time.Second)
+		_, span := tracer.Start(ctx, "operation_name", trace.WithTimestamp(startTime), trace.WithAttributes(
+			attribute.Array("span_attribute_array", []string{"a", "b", "c"}),
+		))
+		span.End(trace.WithTimestamp(endTime))
+	})
 	return flushTracerProvider(ctx, tracerProvider)
+}
+
+func withOTLPTracer(tracerProvider *sdktrace.TracerProvider, f func(trace.Tracer)) error {
+	tracer := tracerProvider.Tracer("systemtest")
+	f(tracer)
+	return flushTracerProvider(context.Background(), tracerProvider)
 }
 
 func flushTracerProvider(ctx context.Context, tracerProvider *sdktrace.TracerProvider) error {

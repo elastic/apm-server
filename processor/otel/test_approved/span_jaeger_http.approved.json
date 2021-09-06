@@ -309,6 +309,107 @@
             "url": {
                 "original": "http://foo.bar.com?a=12"
             }
+        },
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream.type": "logs",
+            "host": {
+                "hostname": "host-abc"
+            },
+            "labels": {
+                "event": "baggage",
+                "isValid": false
+            },
+            "parent": {
+                "id": "0000000058585858"
+            },
+            "processor": {
+                "event": "log",
+                "name": "log"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "trace": {
+                "id": "00000000000000000000000046467830"
+            },
+            "url": {
+                "original": "http://foo.bar.com?a=12"
+            }
+        },
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream.type": "logs",
+            "host": {
+                "hostname": "host-abc"
+            },
+            "labels": {
+                "level": "info"
+            },
+            "message": "retrying connection",
+            "parent": {
+                "id": "0000000058585858"
+            },
+            "processor": {
+                "event": "log",
+                "name": "log"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "trace": {
+                "id": "00000000000000000000000046467830"
+            },
+            "url": {
+                "original": "http://foo.bar.com?a=12"
+            }
+        },
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream.type": "logs",
+            "host": {
+                "hostname": "host-abc"
+            },
+            "labels": {
+                "level": "error"
+            },
+            "parent": {
+                "id": "0000000058585858"
+            },
+            "processor": {
+                "event": "log",
+                "name": "log"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "trace": {
+                "id": "00000000000000000000000046467830"
+            },
+            "url": {
+                "original": "http://foo.bar.com?a=12"
+            }
         }
     ]
 }
