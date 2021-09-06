@@ -47,7 +47,7 @@ func TestFetcher_Fetch(t *testing.T) {
 		kb := kibanatest.MockKibana(http.StatusExpectationFailed, m{"error": "an error"}, mockVersion, true)
 		_, err := NewKibanaFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.Error(t, err)
-		assert.Equal(t, "{\"error\":\"an error\"}", err.Error())
+		assert.Equal(t, "{\"error\":\"an error\"}"+"\n", err.Error())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
