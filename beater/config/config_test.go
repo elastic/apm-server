@@ -290,10 +290,10 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				DefaultServiceEnvironment: "overridden",
 				DataStreams: DataStreamsConfig{
-					Enabled:                    false,
-					WaitForIntegration:         true,
-					WaitForIntegrationInterval: 5 * time.Second,
+					Enabled:            false,
+					WaitForIntegration: true,
 				},
+				WaitReadyInterval: 5 * time.Second,
 			},
 		},
 		"merge config with default": {
@@ -479,10 +479,10 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				DataStreams: DataStreamsConfig{
-					Enabled:                    false,
-					WaitForIntegration:         false,
-					WaitForIntegrationInterval: 5 * time.Second,
+					Enabled:            false,
+					WaitForIntegration: false,
 				},
+				WaitReadyInterval: 5 * time.Second,
 			},
 		},
 		"kibana trailing slash": {

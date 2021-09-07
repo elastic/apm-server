@@ -115,7 +115,8 @@ func addresses(cfg *Config) ([]string, error) {
 	return addresses, nil
 }
 
-func httpTransport(cfg *Config) (*http.Transport, error) {
+// NewHTTPTransport returns a new net/http.Transport for cfg.
+func NewHTTPTransport(cfg *Config) (*http.Transport, error) {
 	proxy, err := httpProxyURL(cfg)
 	if err != nil {
 		return nil, err

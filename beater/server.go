@@ -41,6 +41,7 @@ import (
 	"github.com/elastic/apm-server/beater/jaeger"
 	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/beater/ratelimit"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
@@ -79,6 +80,14 @@ type ServerParams struct {
 	// BatchProcessor is the model.BatchProcessor that is used
 	// for publishing events to the output, such as Elasticsearch.
 	BatchProcessor model.BatchProcessor
+
+	// NewElasticsearchClient returns an elasticsearch.Client for cfg.
+	//
+	// This must be used whenever an elasticsearch client might be used
+	// for indexing. Under some configuration, the server will wrap the
+	// client's transport such that requests will be blocked until data
+	// streams have been initialised.
+	NewElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error)
 }
 
 // newBaseRunServer returns the base RunServerFunc.

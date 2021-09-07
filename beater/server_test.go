@@ -539,6 +539,7 @@ func TestServerConfigReload(t *testing.T) {
 
 func TestServerWaitForIntegrationKibana(t *testing.T) {
 	var requests int
+	requestCh := make(chan struct{})
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"version":{"number":"1.2.3"}}`))
@@ -553,53 +554,120 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 		case 3:
 			fmt.Fprintln(w, `{"response":{"status":"installed"}}`)
 		}
-	})
-	srv := httptest.NewServer(mux)
-	defer srv.Close()
-
-	cfg := common.MustNewConfigFrom(map[string]interface{}{
-		"data_streams.enabled":                       true,
-		"data_streams.wait_for_integration_interval": "100ms",
-		"kibana.enabled":                             true,
-		"kibana.host":                                srv.URL,
-	})
-	_, err := setupServer(t, cfg, nil, nil)
-	require.NoError(t, err)
-	assert.Equal(t, 3, requests)
-}
-
-func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
-	var mu sync.Mutex
-	templateRequests := make(map[string]int)
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-	})
-	mux.HandleFunc("/_index_template/", func(w http.ResponseWriter, r *http.Request) {
-		mu.Lock()
-		defer mu.Unlock()
-		template := path.Base(r.URL.Path)
-		templateRequests[template]++
-		if template == "traces-apm" && templateRequests[template] == 1 {
-			w.WriteHeader(404)
+		select {
+		case requestCh <- struct{}{}:
+		case <-r.Context().Done():
 		}
 	})
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
 	cfg := common.MustNewConfigFrom(map[string]interface{}{
-		"data_streams.enabled":                       true,
-		"data_streams.wait_for_integration_interval": "100ms",
+		"data_streams.enabled": true,
+		"wait_ready_interval":  "100ms",
+		"kibana.enabled":       true,
+		"kibana.host":          srv.URL,
+	})
+	_, err := setupServer(t, cfg, nil, nil)
+	require.NoError(t, err)
+
+	timeout := time.After(10 * time.Second)
+	for i := 0; i < 3; i++ {
+		select {
+		case <-requestCh:
+		case <-timeout:
+			t.Fatal("timed out waiting for request")
+		}
+	}
+	select {
+	case <-requestCh:
+		t.Fatal("unexpected request")
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
+	var mu sync.Mutex
+	var tracesRequests int
+	tracesRequestsCh := make(chan int)
+	bulkCh := make(chan struct{}, 1)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		// We must send a valid JSON response for the libbeat
+		// elasticsearch client to send bulk requests.
+		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
+	})
+	mux.HandleFunc("/_index_template/", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		template := path.Base(r.URL.Path)
+		if template == "traces-apm" {
+			tracesRequests++
+			if tracesRequests == 1 {
+				w.WriteHeader(404)
+			}
+			tracesRequestsCh <- tracesRequests
+		}
+	})
+	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case bulkCh <- struct{}{}:
+		default:
+		}
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	cfg := common.MustNewConfigFrom(map[string]interface{}{
+		"data_streams.enabled": true,
+		"wait_ready_interval":  "100ms",
 	})
 	var beatConfig beat.BeatConfig
 	err := beatConfig.Output.Unpack(common.MustNewConfigFrom(map[string]interface{}{
-		"elasticsearch.hosts": []string{srv.URL},
+		"elasticsearch": map[string]interface{}{
+			"hosts":       []string{srv.URL},
+			"backoff":     map[string]interface{}{"init": "10ms", "max": "10ms"},
+			"max_retries": 1000,
+		},
 	}))
 	require.NoError(t, err)
 
-	_, err = setupServer(t, cfg, &beatConfig, nil)
+	beater, err := setupServer(t, cfg, &beatConfig, nil)
 	require.NoError(t, err)
-	assert.Equal(t, 2, templateRequests["traces-apm"])
+
+	// Send some events to the server. They should be accepted and enqueued.
+	req := makeTransactionRequest(t, beater.baseURL)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	resp, err := beater.client.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
+	resp.Body.Close()
+
+	// Indexing should be blocked until we receive from tracesRequestsCh.
+	select {
+	case <-bulkCh:
+		t.Fatal("unexpected bulk request")
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	timeout := time.After(10 * time.Second)
+	var done bool
+	for !done {
+		select {
+		case n := <-tracesRequestsCh:
+			done = n == 2
+		case <-timeout:
+			t.Fatal("timed out waiting for request")
+		}
+	}
+
+	// libbeat should keep retrying, and finally succeed now it is unblocked.
+	select {
+	case <-bulkCh:
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for bulk request")
+	}
 }
 
 type chanClient struct {

@@ -15,26 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package config
+package elasticsearch
 
-// DataStreamsConfig holds data streams configuration.
-type DataStreamsConfig struct {
-	Enabled bool `config:"enabled"`
+import (
+	"context"
 
-	// WaitForIntegration controls whether APM Server waits for the Fleet
-	// integration package to be installed before indexing events.
-	//
-	// This config is ignored when running under Elastic Agent; it is intended
-	// for running APM Server standalone, relying on Fleet to install the integration
-	// for creating Elasticsearch index templates, ILM policies, and ingest pipelines.
-	//
-	// This configuration requires either a connection to Kibana or Elasticsearch.
-	WaitForIntegration bool `config:"wait_for_integration"`
-}
+	"github.com/elastic/beats/v7/libbeat/licenser"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
+)
 
-func defaultDataStreamsConfig() DataStreamsConfig {
-	return DataStreamsConfig{
-		Enabled:            false,
-		WaitForIntegration: true,
+// GetLicense gets the Elasticsearch licensing information.
+func GetLicense(ctx context.Context, client Client) (licenser.License, error) {
+	var result struct {
+		License licenser.License `json:"license"`
 	}
+	req := esapi.LicenseGetRequest{}
+	if err := doRequest(ctx, client, req, &result); err != nil {
+		return licenser.License{}, err
+	}
+	return result.License, nil
 }

@@ -44,6 +44,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
+	"github.com/elastic/beats/v7/libbeat/licenser"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/v7/libbeat/processors"
@@ -52,6 +53,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
+	"github.com/elastic/apm-server/kibana"
 	kibana_client "github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
@@ -123,11 +125,7 @@ func NewCreator(args CreatorParams) beat.Creator {
 				return nil, errors.New("data streams must be enabled when the server is managed")
 			}
 		}
-
-		if err := bt.registerPipelineCallback(b); err != nil {
-			return nil, err
-		}
-
+		bt.registerPipelineSetupCallback(b)
 		return bt, nil
 	}
 }
@@ -389,38 +387,56 @@ func (s *serverRunner) run(listener net.Listener) error {
 		}()
 	}
 
-	fleetManaged := s.beat.Manager != nil && s.beat.Manager.Enabled()
-	if !fleetManaged && s.config.DataStreams.Enabled && s.config.DataStreams.WaitForIntegration {
-		var esClient elasticsearch.Client
-		if cfg := elasticsearchOutputConfig(s.beat); cfg != nil {
-			esConfig := elasticsearch.DefaultConfig()
-			err := cfg.Unpack(&esConfig)
-			if err != nil {
-				return err
-			}
-			esClient, err = elasticsearch.NewClient(esConfig)
-			if err != nil {
-				return err
-			}
+	g, ctx := errgroup.WithContext(s.runServerContext)
+
+	// Ensure the libbeat output and go-elasticsearch clients do not index
+	// any events to Elasticsearch before the integration is ready.
+	ready := make(chan struct{})
+	g.Go(func() error {
+		defer close(ready)
+		err := s.waitReady(ctx, kibanaClient)
+		return errors.Wrap(err, "error waiting for server to be ready")
+	})
+	callbackUUID, err := esoutput.RegisterConnectCallback(func(*eslegclient.Connection) error {
+		select {
+		case <-ready:
+			return nil
+		default:
 		}
-		if kibanaClient == nil && esClient == nil {
-			return errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
-		}
-		if err := waitForIntegration(
-			s.runServerContext,
-			kibanaClient,
-			esClient,
-			s.config.DataStreams.WaitForIntegrationInterval,
-			s.tracer,
-			s.logger,
-		); err != nil {
-			return errors.Wrap(err, "error waiting for integration")
-		}
+		return errors.New("integration is not ready")
+	})
+	if err != nil {
+		return err
 	}
+	defer esoutput.DeregisterConnectCallback(callbackUUID)
+	newElasticsearchClient := func(cfg *elasticsearch.Config) (elasticsearch.Client, error) {
+		httpTransport, err := elasticsearch.NewHTTPTransport(cfg)
+		if err != nil {
+			return nil, err
+		}
+		transport := &waitReadyRoundTripper{Transport: httpTransport, ready: ready}
+		return elasticsearch.NewClientParams(elasticsearch.ClientParams{
+			Config:    cfg,
+			Transport: transport,
+		})
+	}
+
+	// Register a libbeat elasticsearch output connect callback which
+	// ensures the pipeline is installed. The callback does nothing
+	// when data streams are in use.
+	pipelineCallback := newPipelineElasticsearchConnectCallback(s.config)
+	callbackUUID, err = esoutput.RegisterConnectCallback(pipelineCallback)
+	if err != nil {
+		return err
+	}
+	defer esoutput.DeregisterConnectCallback(callbackUUID)
 
 	var sourcemapStore *sourcemap.Store
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
-		store, err := newSourcemapStore(s.beat.Info, s.config.RumConfig.SourceMapping, s.fleetConfig)
+		store, err := newSourcemapStore(
+			s.beat.Info, s.config.RumConfig.SourceMapping, s.fleetConfig,
+			newElasticsearchClient,
+		)
 		if err != nil {
 			return err
 		}
@@ -468,19 +484,96 @@ func (s *serverRunner) run(listener net.Listener) error {
 		}
 	}
 
-	if err := runServer(s.runServerContext, ServerParams{
-		Info:           s.beat.Info,
-		Config:         s.config,
-		Managed:        s.beat.Manager != nil && s.beat.Manager.Enabled(),
-		Namespace:      s.namespace,
-		Logger:         s.logger,
-		Tracer:         s.tracer,
-		BatchProcessor: batchProcessor,
-		SourcemapStore: sourcemapStore,
-	}); err != nil {
+	g.Go(func() error {
+		return runServer(ctx, ServerParams{
+			Info:                   s.beat.Info,
+			Config:                 s.config,
+			Managed:                s.beat.Manager != nil && s.beat.Manager.Enabled(),
+			Namespace:              s.namespace,
+			Logger:                 s.logger,
+			Tracer:                 s.tracer,
+			BatchProcessor:         batchProcessor,
+			SourcemapStore:         sourcemapStore,
+			NewElasticsearchClient: newElasticsearchClient,
+		})
+	})
+	if err := g.Wait(); err != nil {
 		return err
 	}
 	return publisher.Stop(s.backgroundContext)
+}
+
+// waitReady waits until the server is ready to index events.
+func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client) error {
+	var preconditions []func(context.Context) error
+	var esOutputClient elasticsearch.Client
+	if cfg := elasticsearchOutputConfig(s.beat); cfg != nil {
+		esConfig := elasticsearch.DefaultConfig()
+		err := cfg.Unpack(&esConfig)
+		if err != nil {
+			return err
+		}
+		esOutputClient, err = elasticsearch.NewClient(esConfig)
+		if err != nil {
+			return err
+		}
+	}
+
+	// libbeat and go-elasticsearch both ensure a minimum level of Basic.
+	//
+	// If any configured features require a higher license level, add a
+	// precondition which checks this.
+	if esOutputClient != nil {
+		requiredLicenseLevel := licenser.Basic
+		licensedFeature := ""
+		if s.config.Sampling.Tail.Enabled {
+			requiredLicenseLevel = licenser.Platinum
+			licensedFeature = "tail-based sampling"
+		}
+		if requiredLicenseLevel > licenser.Basic {
+			preconditions = append(preconditions, func(ctx context.Context) error {
+				license, err := elasticsearch.GetLicense(ctx, esOutputClient)
+				if err != nil {
+					return errors.Wrap(err, "error getting Elasticsearch licensing information")
+				}
+				if licenser.IsExpired(license) {
+					return errors.New("Elasticsearch license is expired")
+				}
+				if license.Type == licenser.Trial || license.Cover(requiredLicenseLevel) {
+					return nil
+				}
+				return fmt.Errorf(
+					"invalid license level %s: %s requires license level %s",
+					license.Type, licensedFeature, requiredLicenseLevel,
+				)
+			})
+		}
+	}
+
+	// When running standalone with data streams enabled, by default we will add
+	// a precondition that ensures the integration is installed.
+	fleetManaged := s.beat.Manager != nil && s.beat.Manager.Enabled()
+	if !fleetManaged && s.config.DataStreams.Enabled && s.config.DataStreams.WaitForIntegration {
+		if kibanaClient == nil && esOutputClient == nil {
+			return errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
+		}
+		preconditions = append(preconditions, func(ctx context.Context) error {
+			return checkIntegrationInstalled(ctx, kibanaClient, esOutputClient, s.logger)
+		})
+	}
+
+	if len(preconditions) == 0 {
+		return nil
+	}
+	check := func(ctx context.Context) error {
+		for _, pre := range preconditions {
+			if err := pre(ctx); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	return waitReady(ctx, s.config.WaitReadyInterval, s.tracer, s.logger, check)
 }
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events.
@@ -550,14 +643,12 @@ func hasElasticsearchOutput(b *beat.Beat) bool {
 	return b.Config != nil && b.Config.Output.Name() == "elasticsearch"
 }
 
-// registerPipelineCallback registers an Elasticsearch connection callback
-// that ensures the configured pipeline is installed, if configured to do
-// so. If data streams are enabled, then pipeline registration is always
-// disabled and `setup --pipelines` will return an error.
-func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
+// registerPipelineCallback registers a callback which is invoked when
+// `setup --pipelines` is called, to either register pipelines or return
+// an error depending on the configuration.
+func (bt *beater) registerPipelineSetupCallback(b *beat.Beat) {
 	if !hasElasticsearchOutput(b) {
 		bt.logger.Info("Output is not Elasticsearch: pipeline registration disabled")
-		return nil
 	}
 
 	if bt.config.DataStreams.Enabled {
@@ -565,12 +656,10 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 		b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
 			return errors.New("index pipeline setup must be performed externally when using data streams, by installing the 'apm' integration package")
 		}
-		return nil
 	}
 
 	if !bt.config.Register.Ingest.Pipeline.Enabled {
 		bt.logger.Info("Pipeline registration disabled")
-		return nil
 	}
 
 	bt.logger.Info("Registering pipeline callback")
@@ -585,11 +674,21 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 		}
 		return pipeline.RegisterPipelines(conn, overwrite, path)
 	}
-	// ensure pipelines are registered when new ES connection is established.
-	_, err := esoutput.RegisterConnectCallback(func(conn *eslegclient.Connection) error {
+}
+
+// newPipelineElasticsearchConnectCallback returns an Elasticsearch connect
+// callback that ensures the configured pipeline is installed, if configured
+// to do so. If data streams are enabled, then pipeline registration is always
+// disabled.
+func newPipelineElasticsearchConnectCallback(cfg *config.Config) esoutput.ConnectCallback {
+	return func(conn *eslegclient.Connection) error {
+		if cfg.DataStreams.Enabled || !cfg.Register.Ingest.Pipeline.Enabled {
+			return nil
+		}
+		overwrite := cfg.Register.Ingest.Pipeline.Overwrite
+		path := cfg.Register.Ingest.Pipeline.Path
 		return pipeline.RegisterPipelines(conn, overwrite, path)
-	})
-	return err
+	}
 }
 
 func initTracing(b *beat.Beat, cfg *config.Config, logger *logp.Logger) (*apm.Tracer, *tracerServer, error) {
@@ -677,7 +776,12 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	}
 }
 
-func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping, fleetCfg *config.Fleet) (*sourcemap.Store, error) {
+func newSourcemapStore(
+	beatInfo beat.Info,
+	cfg config.SourceMapping,
+	fleetCfg *config.Fleet,
+	newElasticsearchClient func(*elasticsearch.Config) (elasticsearch.Client, error),
+) (*sourcemap.Store, error) {
 	if fleetCfg != nil {
 		var (
 			c  = *http.DefaultClient
@@ -691,7 +795,6 @@ func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping, fleetCfg *c
 			}
 		}
 
-		// Default for es is 90s :shrug:
 		timeout := 30 * time.Second
 		dialer := transport.NetDialer(timeout)
 		tlsDialer := transport.TLSDialer(dialer, tlsConfig, timeout)
@@ -706,7 +809,7 @@ func newSourcemapStore(beatInfo beat.Info, cfg config.SourceMapping, fleetCfg *c
 		c.Transport = apmhttp.WrapRoundTripper(rt)
 		return sourcemap.NewFleetStore(&c, fleetCfg, cfg.Metadata, cfg.Cache.Expiration)
 	}
-	c, err := elasticsearch.NewClient(cfg.ESConfig)
+	c, err := newElasticsearchClient(cfg.ESConfig)
 	if err != nil {
 		return nil, err
 	}

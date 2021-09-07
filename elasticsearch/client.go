@@ -107,7 +107,7 @@ type ClientParams struct {
 	// to Elasticsearch.
 	//
 	// If Transport is nil, then a net/http.Transport will be constructed
-	// using Config.
+	// with NewHTTPTransport(Config).
 	Transport http.RoundTripper
 }
 
@@ -125,7 +125,7 @@ func NewClientParams(args ClientParams) (Client, error) {
 
 	transport := args.Transport
 	if transport == nil {
-		httpTransport, err := httpTransport(args.Config)
+		httpTransport, err := NewHTTPTransport(args.Config)
 		if err != nil {
 			return nil, err
 		}
