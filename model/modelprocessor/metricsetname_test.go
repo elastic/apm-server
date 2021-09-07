@@ -29,45 +29,42 @@ import (
 
 func TestSetMetricsetName(t *testing.T) {
 	tests := []struct {
-		metricset model.Metricset
-		name      string
+		event model.APMEvent
+		name  string
 	}{{
-		metricset: model.Metricset{},
-		name:      "",
+		event: model.APMEvent{Metricset: &model.Metricset{}},
+		name:  "app",
 	}, {
-		metricset: model.Metricset{Name: "already_set"},
-		name:      "already_set",
-	}, {
-		metricset: model.Metricset{Transaction: model.MetricsetTransaction{Type: "request"}},
-		name:      "",
-	}, {
-		metricset: model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"transaction.breakdown.count": {},
-			},
+		event: model.APMEvent{
+			Metricset: &model.Metricset{Name: "already_set"},
 		},
-		name: "app",
+		name: "already_set",
 	}, {
-		metricset: model.Metricset{
-			Transaction: model.MetricsetTransaction{Type: "request"},
-			Samples: map[string]model.MetricsetSample{
-				"transaction.duration.count":  {},
-				"transaction.breakdown.count": {},
+		event: model.APMEvent{
+			Metricset: &model.Metricset{
+				Samples: map[string]model.MetricsetSample{},
+			},
+			Transaction: &model.Transaction{
+				Type:           "request",
+				BreakdownCount: 1,
 			},
 		},
 		name: "transaction_breakdown",
 	}, {
-		metricset: model.Metricset{
-			Transaction: model.MetricsetTransaction{Type: "request"},
-			Samples: map[string]model.MetricsetSample{
-				"span.self_time.count": {},
+		event: model.APMEvent{
+			Metricset:   &model.Metricset{},
+			Transaction: &model.Transaction{Type: "request"},
+			Span: &model.Span{
+				SelfTime: model.AggregatedDuration{
+					Count: 1,
+				},
 			},
 		},
 		name: "span_breakdown",
 	}}
 
 	for _, test := range tests {
-		batch := model.Batch{{Metricset: &test.metricset}}
+		batch := model.Batch{test.event}
 		processor := modelprocessor.SetMetricsetName{}
 		err := processor.ProcessBatch(context.Background(), &batch)
 		assert.NoError(t, err)

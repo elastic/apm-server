@@ -41,9 +41,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/conventions"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestEncodeSpanEventsNonExceptions(t *testing.T) {
@@ -54,11 +55,13 @@ func TestEncodeSpanEventsNonExceptions(t *testing.T) {
 	incompleteExceptionEvent.SetName("exception")
 	incompleteExceptionEvent.Attributes().InitFromMap(map[string]pdata.AttributeValue{
 		// At least one of exception.message and exception.type is required.
-		conventions.AttributeExceptionStacktrace: pdata.NewAttributeValueString("stacktrace"),
+		semconv.AttributeExceptionStacktrace: pdata.NewAttributeValueString("stacktrace"),
 	})
 
-	_, errors := transformTransactionSpanEvents(t, "java", nonExceptionEvent, incompleteExceptionEvent)
-	require.Empty(t, errors)
+	_, events := transformTransactionSpanEvents(t, "java", nonExceptionEvent, incompleteExceptionEvent)
+	require.Len(t, events, 2)
+	assert.Equal(t, model.LogProcessor, events[0].Processor)
+	assert.Equal(t, model.LogProcessor, events[1].Processor)
 }
 
 func TestEncodeSpanEventsJavaExceptions(t *testing.T) {
@@ -114,13 +117,16 @@ Caused by: LowLevelException
 		Service:   service,
 		Agent:     agent,
 		Timestamp: timestamp,
+		Labels:    common.MapStr{},
 		Processor: model.ErrorProcessor,
 		Trace:     transactionEvent.Trace,
+		Parent:    model.Parent{ID: transactionEvent.Transaction.ID},
+		Transaction: &model.Transaction{
+			ID:      transactionEvent.Transaction.ID,
+			Type:    transactionEvent.Transaction.Type,
+			Sampled: true,
+		},
 		Error: &model.Error{
-			ParentID:           transactionEvent.Transaction.ID,
-			TransactionID:      transactionEvent.Transaction.ID,
-			TransactionType:    transactionEvent.Transaction.Type,
-			TransactionSampled: newBool(true),
 			Exception: &model.Exception{
 				Type:    "java.net.ConnectException.OSError",
 				Message: "Division by zero",
@@ -162,13 +168,16 @@ Caused by: LowLevelException
 		Service:   service,
 		Agent:     agent,
 		Timestamp: timestamp,
+		Labels:    common.MapStr{},
 		Processor: model.ErrorProcessor,
 		Trace:     transactionEvent.Trace,
+		Parent:    model.Parent{ID: transactionEvent.Transaction.ID},
+		Transaction: &model.Transaction{
+			ID:      transactionEvent.Transaction.ID,
+			Type:    transactionEvent.Transaction.Type,
+			Sampled: true,
+		},
 		Error: &model.Error{
-			ParentID:           transactionEvent.Transaction.ID,
-			TransactionID:      transactionEvent.Transaction.ID,
-			TransactionType:    transactionEvent.Transaction.Type,
-			TransactionSampled: newBool(true),
 			Exception: &model.Exception{
 				Type:    "HighLevelException",
 				Message: "MidLevelException: LowLevelException",
@@ -319,13 +328,16 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 		Service:   service,
 		Agent:     agent,
 		Timestamp: timestamp,
+		Labels:    common.MapStr{},
 		Processor: model.ErrorProcessor,
 		Trace:     transactionEvent.Trace,
+		Parent:    model.Parent{ID: transactionEvent.Transaction.ID},
+		Transaction: &model.Transaction{
+			ID:      transactionEvent.Transaction.ID,
+			Type:    transactionEvent.Transaction.Type,
+			Sampled: true,
+		},
 		Error: &model.Error{
-			ParentID:           transactionEvent.Transaction.ID,
-			TransactionID:      transactionEvent.Transaction.ID,
-			TransactionType:    transactionEvent.Transaction.Type,
-			TransactionSampled: newBool(true),
 			Exception: &model.Exception{
 				Type:    "the_type",
 				Message: "the_message",

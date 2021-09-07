@@ -47,13 +47,11 @@ const (
 	transactionEventType      = "transaction"
 	rumv3ErrorEventType       = "e"
 	rumv3TransactionEventType = "x"
-	rumv3MetricsetEventType   = "me"
 )
 
 type decodeMetadataFunc func(decoder.Decoder, *model.APMEvent) error
 
 type Processor struct {
-	Mconfig          modeldecoder.Config
 	MaxEventSize     int
 	streamReaderPool sync.Pool
 	decodeMetadata   decodeMetadataFunc
@@ -61,7 +59,6 @@ type Processor struct {
 
 func BackendProcessor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: v2.DecodeNestedMetadata,
 	}
@@ -69,7 +66,6 @@ func BackendProcessor(cfg *config.Config) *Processor {
 
 func RUMV2Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: v2.DecodeNestedMetadata,
 	}
@@ -77,7 +73,6 @@ func RUMV2Processor(cfg *config.Config) *Processor {
 
 func RUMV3Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: rumv3.DecodeNestedMetadata,
 	}
@@ -158,7 +153,7 @@ func (p *Processor) readBatch(
 			// required for backwards compatibility - sending empty lines was permitted in previous versions
 			continue
 		}
-		input := modeldecoder.Input{Base: baseEvent, Config: p.Mconfig}
+		input := modeldecoder.Input{Base: baseEvent}
 		switch eventType := p.identifyEventType(body); string(eventType) {
 		case errorEventType:
 			err = v2.DecodeNestedError(reader, &input, batch)
@@ -170,8 +165,6 @@ func (p *Processor) readBatch(
 			err = v2.DecodeNestedTransaction(reader, &input, batch)
 		case rumv3ErrorEventType:
 			err = rumv3.DecodeNestedError(reader, &input, batch)
-		case rumv3MetricsetEventType:
-			err = rumv3.DecodeNestedMetricset(reader, &input, batch)
 		case rumv3TransactionEventType:
 			err = rumv3.DecodeNestedTransaction(reader, &input, batch)
 		default:

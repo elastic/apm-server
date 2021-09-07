@@ -202,12 +202,11 @@ func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
 	// pre-aggregated spans and excludes time gaps that are counted in the reported
 	// span duration. For non-composite spans we just use the reported span duration.
 	count := 1
-	durationMillis := event.Span.Duration
+	duration := event.Event.Duration
 	if event.Span.Composite != nil {
 		count = event.Span.Composite.Count
-		durationMillis = event.Span.Composite.Sum
+		duration = time.Duration(event.Span.Composite.Sum * float64(time.Millisecond))
 	}
-	duration := time.Duration(durationMillis * float64(time.Millisecond))
 
 	key := aggregationKey{
 		serviceEnvironment: event.Service.Environment,
@@ -218,7 +217,7 @@ func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
 	}
 	metrics := spanMetrics{
 		count: float64(count) * event.Span.RepresentativeCount,
-		sum:   float64(duration.Microseconds()) * event.Span.RepresentativeCount,
+		sum:   float64(duration) * event.Span.RepresentativeCount,
 	}
 	if a.active.storeOrUpdate(key, metrics) {
 		return model.APMEvent{}
@@ -267,7 +266,7 @@ type spanMetrics struct {
 }
 
 func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics, interval int64) model.APMEvent {
-	out := model.APMEvent{
+	return model.APMEvent{
 		Timestamp: timestamp,
 		Agent:     model.Agent{Name: key.agentName},
 		Service: model.Service{
@@ -280,28 +279,15 @@ func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name: metricsetName,
-			Span: model.MetricsetSpan{
-				DestinationService: model.DestinationService{Resource: key.resource},
-			},
-			Samples: map[string]model.MetricsetSample{
-				"span.destination.service.response_time.count": {
-					Value: math.Round(metrics.count),
-				},
-				"span.destination.service.response_time.sum.us": {
-					Value: math.Round(metrics.sum),
+		},
+		Span: &model.Span{
+			DestinationService: &model.DestinationService{
+				Resource: key.resource,
+				ResponseTime: model.AggregatedDuration{
+					Count: int(math.Round(metrics.count)),
+					Sum:   time.Duration(math.Round(metrics.sum)),
 				},
 			},
 		},
 	}
-	if interval > 0 {
-		// Only set metricset.period for a positive interval.
-		//
-		// An interval of zero means the metricset is computed
-		// from an instantaneous value, meaning there is no
-		// aggregation period.
-		out.Metricset.Samples["metricset.period"] = model.MetricsetSample{
-			Value: float64(interval),
-		}
-	}
-	return out
 }

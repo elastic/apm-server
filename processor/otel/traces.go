@@ -47,12 +47,13 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/otlp"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/conventions"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
+	"github.com/elastic/apm-server/datastreams"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 )
@@ -126,7 +127,7 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error
 		if err != nil {
 			logger.Debug(err)
 		} else {
-			logger.Debug(data)
+			logger.Debug(string(data))
 		}
 	}
 	batch := c.convert(traces, receiveTimestamp, logger)
@@ -192,10 +193,7 @@ func (c *Consumer) convertSpan(
 
 	startTime := otelSpan.StartTimestamp().AsTime()
 	endTime := otelSpan.EndTimestamp().AsTime()
-	var durationMillis float64
-	if endTime.After(startTime) {
-		durationMillis = endTime.Sub(startTime).Seconds() * 1000
-	}
+	duration := endTime.Sub(startTime)
 
 	// Message consumption results in either a transaction or a span based
 	// on whether the consumption is active or passive. Otel spans
@@ -208,24 +206,22 @@ func (c *Consumer) convertSpan(
 	event.Labels = initEventLabels(event.Labels)
 	event.Timestamp = startTime.Add(timeDelta)
 	event.Trace.ID = otelSpan.TraceID().HexString()
+	event.Event.Duration = duration
 	event.Event.Outcome = spanStatusOutcome(otelSpan.Status())
+	event.Parent.ID = parentID
 	if root || otelSpan.Kind() == pdata.SpanKindServer || otelSpan.Kind() == pdata.SpanKindConsumer {
 		event.Processor = model.TransactionProcessor
 		event.Transaction = &model.Transaction{
-			ID:       spanID,
-			ParentID: parentID,
-			Duration: durationMillis,
-			Name:     name,
-			Sampled:  true,
+			ID:      spanID,
+			Name:    name,
+			Sampled: true,
 		}
 		translateTransaction(otelSpan, otelLibrary, &event)
 	} else {
 		event.Processor = model.SpanProcessor
 		event.Span = &model.Span{
-			ID:       spanID,
-			ParentID: parentID,
-			Duration: durationMillis,
-			Name:     name,
+			ID:   spanID,
+			Name: name,
 		}
 		translateSpan(otelSpan, &event)
 	}
@@ -239,7 +235,7 @@ func (c *Consumer) convertSpan(
 	event.Event.Outcome = ""                // don't set event.outcome for span events
 	event.Destination = model.Destination{} // don't set destination for span events
 	for i := 0; i < events.Len(); i++ {
-		convertSpanEvent(logger, events.At(i), event, timeDelta, out)
+		*out = append(*out, convertSpanEvent(logger, events.At(i), event, timeDelta))
 	}
 }
 
@@ -299,13 +295,13 @@ func translateTransaction(
 			event.Labels[k] = v.DoubleVal()
 		case pdata.AttributeValueTypeInt:
 			switch kDots {
-			case conventions.AttributeHTTPStatusCode:
+			case semconv.AttributeHTTPStatusCode:
 				isHTTP = true
 				httpResponse.StatusCode = int(v.IntVal())
 				http.Response = &httpResponse
-			case conventions.AttributeNetPeerPort:
+			case semconv.AttributeNetPeerPort:
 				netPeerPort = int(v.IntVal())
-			case conventions.AttributeNetHostPort:
+			case semconv.AttributeNetHostPort:
 				netHostPort = int(v.IntVal())
 			case "rpc.grpc.status_code":
 				event.Transaction.Result = codes.Code(v.IntVal()).String()
@@ -316,20 +312,20 @@ func translateTransaction(
 			stringval := truncate(v.StringVal())
 			switch kDots {
 			// http.*
-			case conventions.AttributeHTTPMethod:
+			case semconv.AttributeHTTPMethod:
 				isHTTP = true
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
-			case conventions.AttributeHTTPURL, conventions.AttributeHTTPTarget, "http.path":
+			case semconv.AttributeHTTPURL, semconv.AttributeHTTPTarget, "http.path":
 				isHTTP = true
 				httpURL = stringval
-			case conventions.AttributeHTTPHost:
+			case semconv.AttributeHTTPHost:
 				isHTTP = true
 				httpHost = stringval
-			case conventions.AttributeHTTPScheme:
+			case semconv.AttributeHTTPScheme:
 				isHTTP = true
 				httpScheme = stringval
-			case conventions.AttributeHTTPStatusCode:
+			case semconv.AttributeHTTPStatusCode:
 				if intv, err := strconv.Atoi(stringval); err == nil {
 					isHTTP = true
 					httpResponse.StatusCode = intv
@@ -343,15 +339,15 @@ func translateTransaction(
 				}
 				stringval = strings.TrimPrefix(stringval, "HTTP/")
 				fallthrough
-			case conventions.AttributeHTTPFlavor:
+			case semconv.AttributeHTTPFlavor:
 				isHTTP = true
 				http.Version = stringval
-			case conventions.AttributeHTTPServerName:
+			case semconv.AttributeHTTPServerName:
 				isHTTP = true
 				httpServerName = stringval
-			case conventions.AttributeHTTPClientIP:
+			case semconv.AttributeHTTPClientIP:
 				event.Client.IP = net.ParseIP(stringval)
-			case conventions.AttributeHTTPUserAgent:
+			case semconv.AttributeHTTPUserAgent:
 				event.UserAgent.Original = stringval
 			case "http.remote_addr":
 				// NOTE(axw) this is non-standard, sent by opentelemetry-go's othttp.
@@ -371,11 +367,11 @@ func translateTransaction(
 				}
 
 			// net.*
-			case conventions.AttributeNetPeerIP:
+			case semconv.AttributeNetPeerIP:
 				netPeerIP = stringval
-			case conventions.AttributeNetPeerName:
+			case semconv.AttributeNetPeerName:
 				netPeerName = stringval
-			case conventions.AttributeNetHostName:
+			case semconv.AttributeNetHostName:
 				netHostName = stringval
 			case attributeNetworkConnectionType:
 				event.Network.Connection.Type = stringval
@@ -391,7 +387,7 @@ func translateTransaction(
 				event.Network.Carrier.ICC = stringval
 
 			// messaging.*
-			case "message_bus.destination", conventions.AttributeMessagingDestination:
+			case "message_bus.destination", semconv.AttributeMessagingDestination:
 				message.QueueName = stringval
 				isMessaging = true
 
@@ -400,16 +396,16 @@ func translateTransaction(
 			// TODO(axw) add RPC fieldset to ECS? Currently we drop these
 			// attributes, and rely on the operation name like we do with
 			// Elastic APM agents.
-			case conventions.AttributeRPCSystem:
+			case semconv.AttributeRPCSystem:
 				event.Transaction.Type = "request"
-			case conventions.AttributeRPCService:
-			case conventions.AttributeRPCMethod:
+			case semconv.AttributeRPCService:
+			case semconv.AttributeRPCMethod:
 
 			// miscellaneous
 			case "span.kind": // filter out
 			case "type":
 				event.Transaction.Type = stringval
-			case conventions.AttributeServiceVersion:
+			case semconv.AttributeServiceVersion:
 				event.Service.Version = stringval
 			case "component":
 				component = stringval
@@ -556,7 +552,7 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 				httpResponse.StatusCode = int(v.IntVal())
 				http.Response = &httpResponse
 				isHTTPSpan = true
-			case conventions.AttributeNetPeerPort, "peer.port":
+			case semconv.AttributeNetPeerPort, "peer.port":
 				netPeerPort = int(v.IntVal())
 			case "rpc.grpc.status_code":
 				// Ignored for spans.
@@ -567,19 +563,19 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 			stringval := truncate(v.StringVal())
 			switch kDots {
 			// http.*
-			case conventions.AttributeHTTPHost:
+			case semconv.AttributeHTTPHost:
 				httpHost = stringval
 				isHTTPSpan = true
-			case conventions.AttributeHTTPScheme:
+			case semconv.AttributeHTTPScheme:
 				httpScheme = stringval
 				isHTTPSpan = true
-			case conventions.AttributeHTTPTarget:
+			case semconv.AttributeHTTPTarget:
 				httpTarget = stringval
 				isHTTPSpan = true
-			case conventions.AttributeHTTPURL:
+			case semconv.AttributeHTTPURL:
 				httpURL = stringval
 				isHTTPSpan = true
-			case conventions.AttributeHTTPMethod:
+			case semconv.AttributeHTTPMethod:
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
 				isHTTPSpan = true
@@ -590,23 +586,23 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 					db.Type = "sql"
 				}
 				fallthrough
-			case conventions.AttributeDBStatement:
+			case semconv.AttributeDBStatement:
 				db.Statement = stringval
 				isDBSpan = true
-			case conventions.AttributeDBName, "db.instance":
+			case semconv.AttributeDBName, "db.instance":
 				db.Instance = stringval
 				isDBSpan = true
-			case conventions.AttributeDBSystem, "db.type":
+			case semconv.AttributeDBSystem, "db.type":
 				db.Type = stringval
 				isDBSpan = true
-			case conventions.AttributeDBUser:
+			case semconv.AttributeDBUser:
 				db.UserName = stringval
 				isDBSpan = true
 
 			// net.*
-			case conventions.AttributeNetPeerName, "peer.hostname":
+			case semconv.AttributeNetPeerName, "peer.hostname":
 				netPeerName = stringval
-			case conventions.AttributeNetPeerIP, "peer.ipv4", "peer.ipv6":
+			case semconv.AttributeNetPeerIP, "peer.ipv4", "peer.ipv6":
 				netPeerIP = stringval
 			case "peer.address":
 				destinationService.Resource = stringval
@@ -631,13 +627,13 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 				event.Network.Carrier.ICC = stringval
 
 			// messaging.*
-			case "message_bus.destination", conventions.AttributeMessagingDestination:
+			case "message_bus.destination", semconv.AttributeMessagingDestination:
 				message.QueueName = stringval
 				isMessagingSpan = true
-			case conventions.AttributeMessagingOperation:
+			case semconv.AttributeMessagingOperation:
 				messageOperation = stringval
 				isMessagingSpan = true
-			case conventions.AttributeMessagingSystem:
+			case semconv.AttributeMessagingSystem:
 				messageSystem = stringval
 				destinationService.Resource = stringval
 				destinationService.Name = stringval
@@ -648,15 +644,15 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 			// TODO(axw) add RPC fieldset to ECS? Currently we drop these
 			// attributes, and rely on the operation name and span type/subtype
 			// like we do with Elastic APM agents.
-			case conventions.AttributeRPCSystem:
+			case semconv.AttributeRPCSystem:
 				rpcSystem = stringval
 				isRPCSpan = true
-			case conventions.AttributeRPCService:
-			case conventions.AttributeRPCMethod:
+			case semconv.AttributeRPCService:
+			case semconv.AttributeRPCMethod:
 
 			// miscellaneous
 			case "span.kind": // filter out
-			case conventions.AttributePeerService:
+			case semconv.AttributePeerService:
 				destinationService.Name = stringval
 				if destinationService.Resource == "" {
 					// Prefer using peer.address for resource.
@@ -829,69 +825,67 @@ func convertSpanEvent(
 	spanEvent pdata.SpanEvent,
 	parent model.APMEvent, // either span or transaction
 	timeDelta time.Duration,
-	out *model.Batch,
-) {
-	var e *model.Error
+) model.APMEvent {
+	event := parent
+	event.Labels = initEventLabels(event.Labels)
+	event.Transaction = nil
+	event.Span = nil
+	event.Timestamp = spanEvent.Timestamp().AsTime().Add(timeDelta)
+
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
 	if isJaeger {
-		e = convertJaegerErrorSpanEvent(logger, spanEvent)
-	} else {
+		event.Error = convertJaegerErrorSpanEvent(logger, spanEvent, event.Labels)
+	} else if spanEvent.Name() == "exception" {
 		// Translate exception span events to errors.
 		//
-		// If it's not Jaeger, we assume OpenTelemetry semantic conventions.
-		//
-		// TODO(axw) we don't currently support arbitrary events, we only look
-		// for exceptions and convert those to Elastic APM error events.
-		if spanEvent.Name() != "exception" {
-			// Per OpenTelemetry semantic conventions:
-			//   `The name of the event MUST be "exception"`
-			return
-		}
+		// If it's not Jaeger, we assume OpenTelemetry semantic semconv.
+		// Per OpenTelemetry semantic conventions:
+		//   `The name of the event MUST be "exception"`
 		var exceptionEscaped bool
 		var exceptionMessage, exceptionStacktrace, exceptionType string
 		spanEvent.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
 			switch k {
-			case conventions.AttributeExceptionMessage:
+			case semconv.AttributeExceptionMessage:
 				exceptionMessage = v.StringVal()
-			case conventions.AttributeExceptionStacktrace:
+			case semconv.AttributeExceptionStacktrace:
 				exceptionStacktrace = v.StringVal()
-			case conventions.AttributeExceptionType:
+			case semconv.AttributeExceptionType:
 				exceptionType = v.StringVal()
 			case "exception.escaped":
 				exceptionEscaped = v.BoolVal()
+			default:
+				event.Labels[replaceDots(k)] = ifaceAttributeValue(v)
 			}
 			return true
 		})
-		if exceptionMessage == "" && exceptionType == "" {
+		if exceptionMessage != "" || exceptionType != "" {
 			// Per OpenTelemetry semantic conventions:
 			//   `At least one of the following sets of attributes is required:
 			//   - exception.type
 			//   - exception.message`
-			return
+			event.Error = convertOpenTelemetryExceptionSpanEvent(
+				exceptionType, exceptionMessage, exceptionStacktrace,
+				exceptionEscaped, parent.Service.Language.Name,
+			)
 		}
-		e = convertOpenTelemetryExceptionSpanEvent(
-			exceptionType, exceptionMessage, exceptionStacktrace,
-			exceptionEscaped, parent.Service.Language.Name,
-		)
 	}
-	if e != nil {
-		event := parent
+
+	if event.Error != nil {
 		event.Processor = model.ErrorProcessor
-		event.Error = e
-		event.Timestamp = spanEvent.Timestamp().AsTime().Add(timeDelta)
-		if parent.Transaction != nil {
-			event.Transaction = nil
-			addTransactionCtxToErr(parent.Transaction, event.Error)
-		}
-		if parent.Span != nil {
-			event.Span = nil
-			addSpanCtxToErr(parent.Span, event.Error)
-		}
-		*out = append(*out, event)
+		setErrorContext(&event, parent)
+	} else {
+		event.Processor = model.LogProcessor
+		event.DataStream.Type = datastreams.LogsType
+		event.Message = spanEvent.Name()
+		spanEvent.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+			event.Labels[replaceDots(k)] = ifaceAttributeValue(v)
+			return true
+		})
 	}
+	return event
 }
 
-func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *model.Error {
+func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, labels common.MapStr) *model.Error {
 	var isError bool
 	var exMessage, exType string
 	logMessage := event.Name()
@@ -923,6 +917,8 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *mo
 			isError = true
 		case "level":
 			isError = stringval == "error"
+		default:
+			labels[replaceDots(k)] = ifaceAttributeValue(v)
 		}
 		return true
 	})
@@ -946,17 +942,21 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *mo
 	return e
 }
 
-func addTransactionCtxToErr(transaction *model.Transaction, err *model.Error) {
-	err.TransactionID = transaction.ID
-	err.ParentID = transaction.ID
-	err.HTTP = transaction.HTTP
-	err.Custom = transaction.Custom
-	err.TransactionSampled = &transaction.Sampled
-	err.TransactionType = transaction.Type
-}
-
-func addSpanCtxToErr(span *model.Span, err *model.Error) {
-	err.ParentID = span.ID
+func setErrorContext(out *model.APMEvent, parent model.APMEvent) {
+	out.Trace.ID = parent.Trace.ID
+	if parent.Transaction != nil {
+		out.Transaction = &model.Transaction{
+			ID:      parent.Transaction.ID,
+			Sampled: parent.Transaction.Sampled,
+			Type:    parent.Transaction.Type,
+		}
+		out.Error.HTTP = parent.Transaction.HTTP
+		out.Error.Custom = parent.Transaction.Custom
+		out.Parent.ID = parent.Transaction.ID
+	}
+	if parent.Span != nil {
+		out.Parent.ID = parent.Span.ID
+	}
 }
 
 func replaceDots(s string) string {

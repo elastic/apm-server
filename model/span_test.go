@@ -27,14 +27,21 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
+func TestSpanTransformEmpty(t *testing.T) {
+	var event APMEvent
+	event.Span = &Span{}
+	beatEvent := event.BeatEvent(context.Background())
+	assert.Empty(t, beatEvent.Fields)
+}
+
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	start := 0.65
-	hexID, parentID := "0147258369012345", "abcdef0123456789"
+	hexID := "0147258369012345"
 	subtype := "amqp"
 	action := "publish"
-	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6,
-		time.FixedZone("+0100", 3600))
+	duration := time.Millisecond * 1500
+	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", 5
@@ -46,32 +53,15 @@ func TestSpanTransform(t *testing.T) {
 		Msg    string
 	}{
 		{
-			Msg:  "Span without a Stacktrace",
-			Span: Span{},
-			Output: common.MapStr{
-				"span": common.MapStr{
-					"duration": common.MapStr{"us": 0},
-					"name":     "",
-					"type":     "",
-				},
-				"timestamp": common.MapStr{"us": timestampUs},
-				"url": common.MapStr{
-					"original": url,
-				},
-			},
-		},
-		{
 			Msg: "Full Span",
 			Span: Span{
 				ID:                  hexID,
-				ParentID:            parentID,
 				Name:                "myspan",
 				Type:                "myspantype",
 				Subtype:             subtype,
 				Action:              action,
 				Start:               &start,
 				RepresentativeCount: 5,
-				Duration:            1.20,
 				Stacktrace:          Stacktrace{{AbsPath: path}},
 				HTTP: &HTTP{
 					Request:  &HTTPRequest{Method: method},
@@ -93,9 +83,10 @@ func TestSpanTransform(t *testing.T) {
 				Composite: &Composite{Count: 10, Sum: 1.1, CompressionStrategy: "exact_match"},
 			},
 			Output: common.MapStr{
+				"processor": common.MapStr{"name": "transaction", "event": "span"},
 				"span": common.MapStr{
 					"id":       hexID,
-					"duration": common.MapStr{"us": 1200},
+					"duration": common.MapStr{"us": int(duration.Microseconds())},
 					"name":     "myspan",
 					"start":    common.MapStr{"us": 650},
 					"type":     "myspantype",
@@ -131,8 +122,7 @@ func TestSpanTransform(t *testing.T) {
 						"compression_strategy": "exact_match",
 					},
 				},
-				"timestamp": common.MapStr{"us": timestampUs},
-				"parent":    common.MapStr{"id": parentID},
+				"timestamp": common.MapStr{"us": int(timestampUs)},
 				"http": common.MapStr{
 					"response": common.MapStr{"status_code": statusCode},
 					"request":  common.MapStr{"method": "get"},
@@ -146,8 +136,10 @@ func TestSpanTransform(t *testing.T) {
 
 	for _, test := range tests {
 		event := APMEvent{
+			Processor: SpanProcessor,
 			Span:      &test.Span,
 			Timestamp: timestamp,
+			Event:     Event{Duration: duration},
 			URL:       URL{Original: url},
 		}
 		output := event.BeatEvent(context.Background())

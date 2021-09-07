@@ -40,17 +40,17 @@
                 "instance": "systemtest:name:28a46e05f123d23f"
             },
             "transaction": {
+                "duration.histogram": {
+                    "counts": [
+                        1
+                    ],
+                    "values": [
+                        1003519
+                    ]
+                },
                 "name": "name",
                 "root": true,
                 "type": "type"
-            },
-            "transaction.duration.histogram": {
-                "counts": [
-                    1
-                ],
-                "values": [
-                    1003519
-                ]
             }
         }
     ]

@@ -49,6 +49,68 @@
             }
         },
         {
+            "@timestamp": "2019-12-20T07:41:44.954Z",
+            "agent": {
+                "ephemeral_id": "624386e9c81d2980",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "data_stream.type": "logs",
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13"
+            },
+            "labels": {
+                "event": "baggage",
+                "key": "customer",
+                "value": "Japanese Desserts"
+            },
+            "processor": {
+                "event": "log",
+                "name": "log"
+            },
+            "service": {
+                "language": {
+                    "name": "Go"
+                },
+                "name": "driver"
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:44.954Z",
+            "agent": {
+                "ephemeral_id": "624386e9c81d2980",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "data_stream.type": "logs",
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13"
+            },
+            "labels": {
+                "event": "Searching for nearby drivers",
+                "level": "info",
+                "location": "728,326"
+            },
+            "processor": {
+                "event": "log",
+                "name": "log"
+            },
+            "service": {
+                "language": {
+                    "name": "Go"
+                },
+                "name": "driver"
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
             "@timestamp": "2019-12-20T07:41:45.007Z",
             "agent": {
                 "ephemeral_id": "624386e9c81d2980",
@@ -184,6 +246,37 @@
                 "id": "7be2fd98d0973be3",
                 "sampled": true,
                 "type": "custom"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.197Z",
+            "agent": {
+                "ephemeral_id": "624386e9c81d2980",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "data_stream.type": "logs",
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13"
+            },
+            "labels": {
+                "event": "Search successful",
+                "level": "info",
+                "num_drivers": 10
+            },
+            "processor": {
+                "event": "log",
+                "name": "log"
+            },
+            "service": {
+                "language": {
+                    "name": "Go"
+                },
+                "name": "driver"
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
             }
         }
     ]

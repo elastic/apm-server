@@ -49,7 +49,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		eventBase := initializedMetadata()
 		eventBase.Timestamp = now
 		input := modeldecoder.Input{Base: eventBase}
-		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"xds":{"v":2048}}},{"sa":{"ysc":{"v":5}}}]}}`
+		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"xds":{"v":2048}}},{"sa":{"ysc":{"v":5}},"y":{"t":"span_type","su":"span_subtype"}}]}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch model.Batch
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &batch))
@@ -63,19 +63,34 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		// fall back to request time
 		assert.Equal(t, now, batch[0].Timestamp)
 
-		// ensure nested metricsets are decoded
-		assert.Equal(t, map[string]model.MetricsetSample{"transaction.duration.sum.us": {Value: 2048}}, batch[1].Metricset.Samples)
-		assert.Equal(t, map[string]model.MetricsetSample{"span.self_time.count": {Value: 5}}, batch[2].Metricset.Samples)
-		assert.Equal(t, "tr-a", batch[2].Metricset.Transaction.Name)
-		assert.Equal(t, "request", batch[2].Metricset.Transaction.Type)
+		// Ensure nested metricsets are decoded. RUMv3 only sends
+		// breakdown metrics, so the Metricsets will be empty and
+		// metrics will be recorded on the Transaction and Span
+		// fields.
+		assert.Equal(t, &model.Metricset{}, batch[1].Metricset)
+		assert.Equal(t, &model.Transaction{
+			Name:               "tr-a",
+			Type:               "request",
+			AggregatedDuration: model.AggregatedDuration{Sum: 2048 * time.Microsecond},
+		}, batch[1].Transaction)
+		assert.Equal(t, &model.Metricset{}, batch[2].Metricset)
+		assert.Equal(t, &model.Transaction{
+			Name: "tr-a",
+			Type: "request",
+		}, batch[2].Transaction)
+		assert.Equal(t, &model.Span{
+			Type:     "span_type",
+			Subtype:  "span_subtype",
+			SelfTime: model.AggregatedDuration{Count: 5},
+		}, batch[2].Span)
 		assert.Equal(t, now, batch[2].Timestamp)
 
 		// ensure nested spans are decoded
 		start := time.Duration(20 * 1000 * 1000)
 		assert.Equal(t, now.Add(start), batch[3].Timestamp) //add start to timestamp
-		assert.Equal(t, "100", batch[3].Span.TransactionID)
+		assert.Equal(t, "100", batch[3].Transaction.ID)
 		assert.Equal(t, "1", batch[3].Trace.ID)
-		assert.Equal(t, "100", batch[3].Span.ParentID)
+		assert.Equal(t, "100", batch[3].Parent.ID)
 
 		for _, event := range batch {
 			modeldecodertest.AssertStructValues(
@@ -185,13 +200,21 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"HTTP.Request.Env", "HTTP.Request.Body", "HTTP.Request.Socket", "HTTP.Request.Cookies",
 				"HTTP.Response.HeadersSent", "HTTP.Response.Finished",
 				"Experimental",
-				"RepresentativeCount", "Message",
+				"RepresentativeCount", "Root", "Message",
 				// HTTP headers tested separately
 				"HTTP.Request.Headers",
 				"HTTP.Response.Headers",
 				// URL parts are derived from page.url (separately tested)
 				"URL", "Page.URL",
-				// HTTP.Request.Referrer is derived from page.referer (separately tested)
+				// Not set for transaction events:
+				"AggregatedDuration",
+				"AggregatedDuration.Count",
+				"AggregatedDuration.Sum",
+				"BreakdownCount",
+				"DurationHistogram",
+				"DurationHistogram.Counts",
+				"DurationHistogram.Values",
+				"Root",
 			} {
 				if strings.HasPrefix(key, s) {
 					return true
@@ -232,13 +255,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"HTTP.Response.Headers",
 				"Message",
 				"RepresentativeCount",
-				"Service.Agent.EphemeralID",
-				"Service.Environment",
-				"Service.Framework",
-				"Service.Language",
-				"Service.Node",
-				"Service.Runtime",
-				"Service.Version",
 				"Stacktrace.LibraryFrame",
 				"Stacktrace.Vars",
 				// set as HTTP.StatusCode for RUM v3
@@ -253,9 +269,13 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"Stacktrace.Sourcemap",
 				// ExcludeFromGrouping is set when processing the event
 				"Stacktrace.ExcludeFromGrouping",
-				// Transaction related information is set within the DecodeNestedTransaction method
-				// it is separatly tested in TestDecodeNestedTransaction
-				"TransactionID", "TraceID", "ParentID",
+				// Not set for span events:
+				"DestinationService.ResponseTime",
+				"DestinationService.ResponseTime.Count",
+				"DestinationService.ResponseTime.Sum",
+				"SelfTime",
+				"SelfTime.Count",
+				"SelfTime.Sum",
 			} {
 				if strings.HasPrefix(key, s) {
 					return true

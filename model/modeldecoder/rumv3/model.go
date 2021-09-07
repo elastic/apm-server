@@ -43,11 +43,6 @@ type metadataRoot struct {
 	Metadata metadata `json:"m" validate:"required"`
 }
 
-// metricsetRoot requires a metricset event to be present
-type metricsetRoot struct {
-	Metricset metricset `json:"me" validate:"required"`
-}
-
 // transactionRoot requires a transaction event to be present
 type transactionRoot struct {
 	Transaction transaction `json:"x" validate:"required"`
@@ -314,17 +309,14 @@ type networkConnection struct {
 	Type nullable.String `json:"t" validate:"maxLength=1024"`
 }
 
-type metricset struct {
+type transactionMetricset struct {
 	// Samples hold application metrics collected from the agent.
-	Samples metricsetSamples `json:"sa" validate:"required"`
+	Samples transactionMetricsetSamples `json:"sa" validate:"required"`
 	// Span holds selected information about the correlated transaction.
 	Span metricsetSpanRef `json:"y"`
-	// Tags are a flat mapping of user-defined tags. Allowed value types are
-	// string, boolean and number values. Tags are indexed and searchable.
-	Tags common.MapStr `json:"g" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 }
 
-type metricsetSamples struct {
+type transactionMetricsetSamples struct {
 	// TransactionDurationCount is the number of transactions since the last
 	// report (the delta). The duration of transactions is tracked, which
 	// allows for the creation of graphs displaying a weighted average.
@@ -340,14 +332,6 @@ type metricsetSamples struct {
 	// SpanSelfTimeSum holds the sum of the related spans' self_time.
 	SpanSelfTimeSum metricsetSampleValue `json:"yss"`
 }
-
-var (
-	metricsetSamplesTransactionDurationCountName  = "transaction.duration.count"
-	metricsetSamplesTransactionDurationSumName    = "transaction.duration.sum.us"
-	metricsetSamplesTransactionBreakdownCountName = "transaction.breakdown.count"
-	metricsetSamplesSpanSelfTimeCountName         = "span.self_time.count"
-	metricsetSamplesSpanSelfTimeSumName           = "span.self_time.sum.us"
-)
 
 type metricsetSampleValue struct {
 	// Value holds the value of a single metric sample.
@@ -506,7 +490,7 @@ type transaction struct {
 	// user or the agent. Marks are only reported by RUM agents.
 	Marks transactionMarks `json:"k"`
 	// Metricsets is a collection metrics related to this transaction.
-	Metricsets []metricset `json:"me"`
+	Metricsets []transactionMetricset `json:"me"`
 	// Name is the generic designation of a transaction in the scope of a
 	// single service, eg: 'GET /users/:id'.
 	Name nullable.String `json:"n" validate:"maxLength=1024"`

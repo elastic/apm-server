@@ -40,7 +40,6 @@
                 "duration": {
                     "us": 0
                 },
-                "id": "",
                 "result": "HTTP 5xx",
                 "sampled": true,
                 "type": "request"

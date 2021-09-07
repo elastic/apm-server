@@ -19,8 +19,6 @@ package model
 
 import (
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/utility"
 )
 
 const (
@@ -32,29 +30,56 @@ var (
 	TransactionProcessor = Processor{Name: "transaction", Event: "transaction"}
 )
 
+// Transaction holds values for transaction.* fields. This may be used in
+// transaction, span, and error events (i.e. transaction.id), as well as
+// internal metrics such as breakdowns (i.e. including transaction.name).
 type Transaction struct {
-	ID       string
-	ParentID string
+	ID string
 
-	Type           string
-	Name           string
-	Result         string
-	Duration       float64
+	// Type holds the transaction type: "request", "message", etc.
+	Type string
+
+	// Name holds the transaction name: "GET /foo", etc.
+	Name string
+
+	// Result holds the transaction result: "HTTP 2xx", "OK", "Error", etc.
+	Result string
+
+	// Sampled holds the transaction's sampling decision.
+	//
+	// If Sampled is false, then it will be omitted from the output event.
+	Sampled bool
+
+	// DurationHistogram holds a transaction duration histogram,
+	// with bucket values measured in microseconds, for transaction
+	// duration metrics.
+	DurationHistogram Histogram
+
+	// BreakdownCount holds transaction breakdown count, for
+	// breakdown metrics.
+	BreakdownCount int
+
+	// AggregatedDuration holds aggregated transaction durations,
+	// for breakdown metrics.
+	AggregatedDuration AggregatedDuration
+
 	Marks          TransactionMarks
 	Message        *Message
-	Sampled        bool
 	SpanCount      SpanCount
 	HTTP           *HTTP
 	Custom         common.MapStr
 	UserExperience *UserExperience
-
-	Experimental interface{}
 
 	// RepresentativeCount holds the approximate number of
 	// transactions that this transaction represents for aggregation.
 	//
 	// This may be used for scaling metrics; it is not indexed.
 	RepresentativeCount float64
+
+	// Root indicates whether or not the transaction is the trace root.
+	//
+	// If Root is false, it will be omitted from the output event.
+	Root bool
 }
 
 type SpanCount struct {
@@ -62,22 +87,21 @@ type SpanCount struct {
 	Started *int
 }
 
-func (e *Transaction) fields() common.MapStr {
-	var fields mapStr
-	var parent mapStr
-	parent.maybeSetString("id", e.ParentID)
-	fields.maybeSetMapStr("parent", common.MapStr(parent))
+func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
 	}
-	if e.Experimental != nil {
-		fields.set("experimental", e.Experimental)
-	}
 
 	var transaction mapStr
-	transaction.set("id", e.ID)
-	transaction.set("type", e.Type)
-	transaction.set("duration", utility.MillisAsMicros(e.Duration))
+	if apmEvent.Processor == TransactionProcessor {
+		// TODO(axw) set `event.duration` in 8.0, and remove this field.
+		// See https://github.com/elastic/apm-server/issues/5999
+		transaction.set("duration", common.MapStr{"us": int(apmEvent.Event.Duration.Microseconds())})
+	}
+	transaction.maybeSetString("id", e.ID)
+	transaction.maybeSetString("type", e.Type)
+	transaction.maybeSetMapStr("duration", e.AggregatedDuration.fields())
+	transaction.maybeSetMapStr("duration.histogram", e.DurationHistogram.fields())
 	transaction.maybeSetString("name", e.Name)
 	transaction.maybeSetString("result", e.Result)
 	transaction.maybeSetMapStr("marks", e.Marks.fields())
@@ -94,10 +118,16 @@ func (e *Transaction) fields() common.MapStr {
 		}
 		transaction.set("span_count", spanCount)
 	}
-	transaction.set("sampled", e.Sampled)
-	fields.set("transaction", common.MapStr(transaction))
-
-	return common.MapStr(fields)
+	if e.Sampled {
+		transaction.set("sampled", e.Sampled)
+	}
+	if e.Root {
+		transaction.set("root", e.Root)
+	}
+	if e.BreakdownCount > 0 {
+		transaction.set("breakdown.count", e.BreakdownCount)
+	}
+	fields.maybeSetMapStr("transaction", common.MapStr(transaction))
 }
 
 type TransactionMarks map[string]TransactionMark

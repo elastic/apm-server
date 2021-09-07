@@ -263,8 +263,7 @@ func (a *Aggregator) AggregateTransaction(event model.APMEvent) model.APMEvent {
 	key := a.makeTransactionAggregationKey(event)
 	hash := key.hash()
 	count := transactionCount(event.Transaction)
-	duration := time.Duration(event.Transaction.Duration * float64(time.Millisecond))
-	if a.updateTransactionMetrics(key, hash, event.Transaction.RepresentativeCount, duration) {
+	if a.updateTransactionMetrics(key, hash, event.Transaction.RepresentativeCount, event.Event.Duration) {
 		return model.APMEvent{}
 	}
 	// Too many aggregation keys: could not update metrics, so immediately
@@ -276,7 +275,7 @@ unique transaction names.`[1:],
 	)
 	atomic.AddInt64(&a.metrics.overflowed, 1)
 	counts := []int64{int64(math.Round(count))}
-	values := []float64{float64(durationMicros(duration))}
+	values := []float64{float64(event.Event.Duration.Microseconds())}
 	return makeMetricset(key, hash, time.Now(), counts[0], counts, values)
 }
 
@@ -323,8 +322,8 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	entry.transactionAggregationKey = key
 	if entry.transactionMetrics.histogram == nil {
 		entry.transactionMetrics.histogram = hdrhistogram.New(
-			durationMicros(minDuration),
-			durationMicros(maxDuration),
+			minDuration.Microseconds(),
+			maxDuration.Microseconds(),
 			a.config.HDRHistogramSignificantFigures,
 		)
 	} else {
@@ -339,7 +338,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 
 func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent) transactionAggregationKey {
 	return transactionAggregationKey{
-		traceRoot:         event.Transaction.ParentID == "",
+		traceRoot:         event.Parent.ID == "",
 		transactionName:   event.Transaction.Name,
 		transactionResult: event.Transaction.Result,
 		transactionType:   event.Transaction.Type,
@@ -386,22 +385,19 @@ func makeMetricset(
 		},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Name: metricsetName,
-			Transaction: model.MetricsetTransaction{
-				Name:   key.transactionName,
-				Type:   key.transactionType,
-				Result: key.transactionResult,
-				Root:   key.traceRoot,
-			},
-			Samples: map[string]model.MetricsetSample{
-				"transaction.duration.histogram": {
-					Type:   model.MetricTypeHistogram,
-					Counts: counts,
-					Values: values,
-				},
-			},
+			Name:                 metricsetName,
 			DocCount:             totalCount,
 			TimeseriesInstanceID: timeseriesInstanceID.String(),
+		},
+		Transaction: &model.Transaction{
+			Name:   key.transactionName,
+			Type:   key.transactionType,
+			Result: key.transactionResult,
+			Root:   key.traceRoot,
+			DurationHistogram: model.Histogram{
+				Counts: counts,
+				Values: values,
+			},
 		},
 	}
 }
@@ -465,7 +461,7 @@ type transactionMetrics struct {
 
 func (m *transactionMetrics) recordDuration(d time.Duration, n float64) {
 	count := int64(math.Round(n * histogramCountScale))
-	m.histogram.RecordValuesAtomic(durationMicros(d), count)
+	m.histogram.RecordValuesAtomic(d.Microseconds(), count)
 }
 
 func (m *transactionMetrics) histogramBuckets() (totalCount int64, counts []int64, values []float64) {
@@ -494,8 +490,4 @@ func transactionCount(tx *model.Transaction) float64 {
 		return tx.RepresentativeCount
 	}
 	return 1
-}
-
-func durationMicros(d time.Duration) int64 {
-	return int64(d / time.Microsecond)
 }

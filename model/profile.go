@@ -46,7 +46,7 @@ type ProfileSampleStackframe struct {
 	Line     int64
 }
 
-func (p *ProfileSample) fields() common.MapStr {
+func (p *ProfileSample) setFields(fields *mapStr) {
 	var profileFields mapStr
 	profileFields.maybeSetString("id", p.ProfileID)
 	if p.Duration > 0 {
@@ -73,6 +73,5 @@ func (p *ProfileSample) fields() common.MapStr {
 	for k, v := range p.Values {
 		profileFields.set(k, v)
 	}
-
-	return common.MapStr{"profile": common.MapStr(profileFields)}
+	fields.set("profile", common.MapStr(profileFields))
 }

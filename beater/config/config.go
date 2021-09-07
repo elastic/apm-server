@@ -65,7 +65,6 @@ type Config struct {
 	SelfInstrumentation       InstrumentationConfig   `config:"instrumentation"`
 	RumConfig                 RumConfig               `config:"rum"`
 	Register                  RegisterConfig          `config:"register"`
-	Mode                      Mode                    `config:"mode"`
 	Kibana                    KibanaConfig            `config:"kibana"`
 	KibanaAgentConfig         KibanaAgentConfig       `config:"agent.config"`
 	JaegerConfig              JaegerConfig            `config:"jaeger"`
@@ -227,7 +226,6 @@ func DefaultConfig() *Config {
 		SelfInstrumentation: defaultInstrumentationConfig(),
 		RumConfig:           defaultRum(),
 		Register:            defaultRegisterConfig(),
-		Mode:                ModeProduction,
 		Kibana:              defaultKibanaConfig(),
 		KibanaAgentConfig:   defaultKibanaAgentConfig(),
 		Pipeline:            defaultAPMPipeline,

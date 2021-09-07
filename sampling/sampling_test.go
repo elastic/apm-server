@@ -37,22 +37,35 @@ func TestNewDiscardUnsampledBatchProcessor(t *testing.T) {
 	t3 := &model.Transaction{Sampled: false}
 	t4 := &model.Transaction{Sampled: true}
 
-	batch := model.Batch{
-		{Transaction: t1},
-		{Transaction: t2},
-		{Span: span},
-		{Transaction: t3},
-		{Transaction: t4},
-	}
+	batch := model.Batch{{
+		Processor:   model.TransactionProcessor,
+		Transaction: t1,
+	}, {
+		Processor:   model.TransactionProcessor,
+		Transaction: t2,
+	}, {
+		Processor: model.SpanProcessor,
+		Span:      span,
+		// Transaction.Sampled should be disregarded,
+		// as Processor == SpanProcessor, i.e. this is
+		// a span event with transaction fields.
+		Transaction: &model.Transaction{},
+	}, {
+		Processor:   model.TransactionProcessor,
+		Transaction: t3,
+	}, {
+		Processor:   model.TransactionProcessor,
+		Transaction: t4,
+	}}
 
 	err := batchProcessor.ProcessBatch(context.Background(), &batch)
 	assert.NoError(t, err)
 
 	// Note: this processor is not order-preserving.
 	assert.Equal(t, model.Batch{
-		{Transaction: t4},
-		{Transaction: t2},
-		{Span: span},
+		{Processor: model.TransactionProcessor, Transaction: t4},
+		{Processor: model.TransactionProcessor, Transaction: t2},
+		{Processor: model.SpanProcessor, Span: span, Transaction: &model.Transaction{}},
 	}, batch)
 
 	expectedMonitoring := monitoring.MakeFlatSnapshot()

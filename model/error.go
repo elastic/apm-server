@@ -31,9 +31,7 @@ const (
 )
 
 type Error struct {
-	ID            string
-	TransactionID string
-	ParentID      string
+	ID string
 
 	GroupingKey string
 	Culprit     string
@@ -42,11 +40,6 @@ type Error struct {
 
 	Exception *Exception
 	Log       *Log
-
-	TransactionSampled *bool
-	TransactionType    string
-
-	Experimental interface{}
 }
 
 type Exception struct {
@@ -69,26 +62,10 @@ type Log struct {
 	Stacktrace   Stacktrace
 }
 
-func (e *Error) fields() common.MapStr {
-	var fields mapStr
+func (e *Error) setFields(fields *mapStr) {
 	if e.HTTP != nil {
 		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
 	}
-	if e.Experimental != nil {
-		fields.set("experimental", e.Experimental)
-	}
-
-	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
-	// agents must send semantically correct data
-	var transaction mapStr
-	transaction.maybeSetString("id", e.TransactionID)
-	transaction.maybeSetString("type", e.TransactionType)
-	transaction.maybeSetBool("sampled", e.TransactionSampled)
-	fields.maybeSetMapStr("transaction", common.MapStr(transaction))
-
-	var parent mapStr
-	parent.maybeSetString("id", e.ParentID)
-	fields.maybeSetMapStr("parent", common.MapStr(parent))
 
 	var errorFields mapStr
 	errorFields.maybeSetString("id", e.ID)
@@ -101,7 +78,6 @@ func (e *Error) fields() common.MapStr {
 	errorFields.maybeSetMapStr("custom", customFields(e.Custom))
 	errorFields.maybeSetString("grouping_key", e.GroupingKey)
 	fields.set("error", common.MapStr(errorFields))
-	return common.MapStr(fields)
 }
 
 func (e *Error) exceptionFields(chain []Exception) []common.MapStr {

@@ -137,7 +137,7 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 		return modeldecoder.NewValidationErr(err)
 	}
 	event := input.Base
-	mapToErrorModel(&root.Error, input.Config, &event)
+	mapToErrorModel(&root.Error, &event)
 	*batch = append(*batch, event)
 	return err
 }
@@ -156,7 +156,7 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *
 		return modeldecoder.NewValidationErr(err)
 	}
 	event := input.Base
-	mapToMetricsetModel(&root.Metricset, input.Config, &event)
+	mapToMetricsetModel(&root.Metricset, &event)
 	*batch = append(*batch, event)
 	return err
 }
@@ -175,7 +175,7 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, batch *model
 		return modeldecoder.NewValidationErr(err)
 	}
 	event := input.Base
-	mapToSpanModel(&root.Span, input.Config, &event)
+	mapToSpanModel(&root.Span, &event)
 	*batch = append(*batch, event)
 	return err
 }
@@ -194,7 +194,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 		return modeldecoder.NewValidationErr(err)
 	}
 	event := input.Base
-	mapToTransactionModel(&root.Transaction, input.Config, &event)
+	mapToTransactionModel(&root.Transaction, &event)
 	*batch = append(*batch, event)
 	return err
 }
@@ -237,7 +237,7 @@ func mapToClientModel(from contextRequest, out *model.Client) {
 	}
 }
 
-func mapToErrorModel(from *errorEvent, config modeldecoder.Config, event *model.APMEvent) {
+func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 	out := &model.Error{}
 	event.Error = out
 	event.Processor = model.ErrorProcessor
@@ -252,9 +252,6 @@ func mapToErrorModel(from *errorEvent, config modeldecoder.Config, event *model.
 	// map errorEvent specific data
 
 	if from.Context.IsSet() {
-		if config.Experimental && from.Context.Experimental.IsSet() {
-			out.Experimental = from.Context.Experimental.Val
-		}
 		if len(from.Context.Tags) > 0 {
 			event.Labels = modeldecoderutil.MergeLabels(
 				event.Labels,
@@ -329,7 +326,7 @@ func mapToErrorModel(from *errorEvent, config modeldecoder.Config, event *model.
 		out.Log = &log
 	}
 	if from.ParentID.IsSet() {
-		out.ParentID = from.ParentID.Val
+		event.Parent.ID = from.ParentID.Val
 	}
 	if !from.Timestamp.Val.IsZero() {
 		event.Timestamp = from.Timestamp.Val
@@ -337,15 +334,17 @@ func mapToErrorModel(from *errorEvent, config modeldecoder.Config, event *model.
 	if from.TraceID.IsSet() {
 		event.Trace.ID = from.TraceID.Val
 	}
-	if from.Transaction.Sampled.IsSet() {
-		val := from.Transaction.Sampled.Val
-		out.TransactionSampled = &val
-	}
-	if from.Transaction.Type.IsSet() {
-		out.TransactionType = from.Transaction.Type.Val
-	}
-	if from.TransactionID.IsSet() {
-		out.TransactionID = from.TransactionID.Val
+	if from.Transaction.IsSet() {
+		event.Transaction = &model.Transaction{}
+		if from.Transaction.Sampled.IsSet() {
+			event.Transaction.Sampled = from.Transaction.Sampled.Val
+		}
+		if from.Transaction.Type.IsSet() {
+			event.Transaction.Type = from.Transaction.Type.Val
+		}
+		if from.TransactionID.IsSet() {
+			event.Transaction.ID = from.TransactionID.Val
+		}
 	}
 }
 
@@ -536,18 +535,16 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 	}
 }
 
-func mapToMetricsetModel(from *metricset, config modeldecoder.Config, event *model.APMEvent) {
-	out := &model.Metricset{}
-	event.Metricset = out
+func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
+	event.Metricset = &model.Metricset{}
 	event.Processor = model.MetricsetProcessor
 
 	if !from.Timestamp.Val.IsZero() {
 		event.Timestamp = from.Timestamp.Val
 	}
 
-	// map samples information
 	if len(from.Samples) > 0 {
-		out.Samples = make(map[string]model.MetricsetSample, len(from.Samples))
+		samples := make(map[string]model.MetricsetSample, len(from.Samples))
 		for name, sample := range from.Samples {
 			var counts []int64
 			var values []float64
@@ -559,14 +556,17 @@ func mapToMetricsetModel(from *metricset, config modeldecoder.Config, event *mod
 				counts = make([]int64, n)
 				copy(counts, sample.Counts)
 			}
-			out.Samples[name] = model.MetricsetSample{
-				Type:   model.MetricType(sample.Type.Val),
-				Unit:   sample.Unit.Val,
-				Value:  sample.Value.Val,
-				Values: values,
-				Counts: counts,
+			samples[name] = model.MetricsetSample{
+				Type:  model.MetricType(sample.Type.Val),
+				Unit:  sample.Unit.Val,
+				Value: sample.Value.Val,
+				Histogram: model.Histogram{
+					Values: values,
+					Counts: counts,
+				},
 			}
 		}
+		event.Metricset.Samples = samples
 	}
 
 	if len(from.Tags) > 0 {
@@ -575,19 +575,27 @@ func mapToMetricsetModel(from *metricset, config modeldecoder.Config, event *mod
 			modeldecoderutil.NormalizeLabelValues(from.Tags),
 		)
 	}
-	// map span information
-	if from.Span.Subtype.IsSet() {
-		out.Span.Subtype = from.Span.Subtype.Val
+
+	if from.Span.IsSet() {
+		event.Span = &model.Span{}
+		if from.Span.Subtype.IsSet() {
+			event.Span.Subtype = from.Span.Subtype.Val
+		}
+		if from.Span.Type.IsSet() {
+			event.Span.Type = from.Span.Type.Val
+		}
 	}
-	if from.Span.Type.IsSet() {
-		out.Span.Type = from.Span.Type.Val
-	}
-	// map transaction information
-	if from.Transaction.Name.IsSet() {
-		out.Transaction.Name = from.Transaction.Name.Val
-	}
-	if from.Transaction.Type.IsSet() {
-		out.Transaction.Type = from.Transaction.Type.Val
+
+	if from.Transaction.IsSet() {
+		event.Transaction = &model.Transaction{}
+		if from.Transaction.Name.IsSet() {
+			event.Transaction.Name = from.Transaction.Name.Val
+		}
+		if from.Transaction.Type.IsSet() {
+			event.Transaction.Type = from.Transaction.Type.Val
+		}
+		// Transaction fields specified: this is an APM-internal metricset.
+		modeldecoderutil.SetInternalMetrics(event)
 	}
 }
 
@@ -724,7 +732,7 @@ func mapToAgentModel(from contextServiceAgent, out *model.Agent) {
 	}
 }
 
-func mapToSpanModel(from *span, config modeldecoder.Config, event *model.APMEvent) {
+func mapToSpanModel(from *span, event *model.APMEvent) {
 	out := &model.Span{}
 	event.Span = out
 	event.Processor = model.SpanProcessor
@@ -765,8 +773,8 @@ func mapToSpanModel(from *span, config modeldecoder.Config, event *model.APMEven
 		out.Composite = &composite
 	}
 	if len(from.ChildIDs) > 0 {
-		out.ChildIDs = make([]string, len(from.ChildIDs))
-		copy(out.ChildIDs, from.ChildIDs)
+		event.Child.ID = make([]string, len(from.ChildIDs))
+		copy(event.Child.ID, from.ChildIDs)
 	}
 	if from.Context.Database.IsSet() {
 		db := model.DB{}
@@ -811,9 +819,6 @@ func mapToSpanModel(from *span, config modeldecoder.Config, event *model.APMEven
 			service.Type = from.Context.Destination.Service.Type.Val
 		}
 		out.DestinationService = &service
-	}
-	if config.Experimental && from.Context.Experimental.IsSet() {
-		out.Experimental = from.Context.Experimental.Val
 	}
 	if from.Context.HTTP.IsSet() {
 		http := model.HTTP{}
@@ -882,7 +887,8 @@ func mapToSpanModel(from *span, config modeldecoder.Config, event *model.APMEven
 		)
 	}
 	if from.Duration.IsSet() {
-		out.Duration = from.Duration.Val
+		duration := time.Duration(from.Duration.Val * float64(time.Millisecond))
+		event.Event.Duration = duration
 	}
 	if from.ID.IsSet() {
 		out.ID = from.ID.Val
@@ -905,7 +911,7 @@ func mapToSpanModel(from *span, config modeldecoder.Config, event *model.APMEven
 		}
 	}
 	if from.ParentID.IsSet() {
-		out.ParentID = from.ParentID.Val
+		event.Parent.ID = from.ParentID.Val
 	}
 	if from.SampleRate.IsSet() && from.SampleRate.Val > 0 {
 		out.RepresentativeCount = 1 / from.SampleRate.Val
@@ -936,7 +942,7 @@ func mapToSpanModel(from *span, config modeldecoder.Config, event *model.APMEven
 		event.Trace.ID = from.TraceID.Val
 	}
 	if from.TransactionID.IsSet() {
-		out.TransactionID = from.TransactionID.Val
+		event.Transaction = &model.Transaction{ID: from.TransactionID.Val}
 	}
 }
 
@@ -988,7 +994,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 	}
 }
 
-func mapToTransactionModel(from *transaction, config modeldecoder.Config, event *model.APMEvent) {
+func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	out := &model.Transaction{}
 	event.Processor = model.TransactionProcessor
 	event.Transaction = out
@@ -1005,9 +1011,6 @@ func mapToTransactionModel(from *transaction, config modeldecoder.Config, event 
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
 			out.Custom = modeldecoderutil.NormalizeLabelValues(from.Context.Custom.Clone())
-		}
-		if config.Experimental && from.Context.Experimental.IsSet() {
-			out.Experimental = from.Context.Experimental.Val
 		}
 		if len(from.Context.Tags) > 0 {
 			event.Labels = modeldecoderutil.MergeLabels(
@@ -1066,7 +1069,8 @@ func mapToTransactionModel(from *transaction, config modeldecoder.Config, event 
 		}
 	}
 	if from.Duration.IsSet() {
-		out.Duration = from.Duration.Val
+		duration := time.Duration(from.Duration.Val * float64(time.Millisecond))
+		event.Event.Duration = duration
 	}
 	if from.ID.IsSet() {
 		out.ID = from.ID.Val
@@ -1097,7 +1101,7 @@ func mapToTransactionModel(from *transaction, config modeldecoder.Config, event 
 		}
 	}
 	if from.ParentID.IsSet() {
-		out.ParentID = from.ParentID.Val
+		event.Parent.ID = from.ParentID.Val
 	}
 	if from.Result.IsSet() {
 		out.Result = from.Result.Val

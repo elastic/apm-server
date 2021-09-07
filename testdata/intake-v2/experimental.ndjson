@@ -1,4 +1,0 @@
-{"metadata": { "service": {"name": "1234_service-12a3", "agent": {"version": "3.14.0", "name": "elastic-node"}}}}
-{"error": {"timestamp":1494342245999999,"id": "abcdef0123456789", "log": {"message": "error log message"},"context":{"experimental":{"foo":"bar","a":{"b":1}}}}}
-{"span": {"timestamp":1496170407154000,"id": "0123456a89012345", "trace_id": "0123456789abcdef0123456789abcdef", "parent_id": "ab23456a89012345", "transaction_id": "ab23456a89012345", "name": "GET /api/types", "type": "request", "start": 1.845, "duration": 3.5642981,"context":{"experimental":{"foo":"bar","a":{"b":1}}}}}
-{"transaction": {"timestamp":1496170407154000,"trace_id": "01234567890123456789abcdefabcdef", "id": "abcdef1478523690", "type": "request", "duration": 32.592981, "span_count": {"started": 0},"context":{"experimental":{"foo":"bar","a":{"b":1}}}}}

@@ -43,11 +43,11 @@ import (
 	"time"
 
 	jaegermodel "github.com/jaegertracing/jaeger/model"
+	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/conventions"
-	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -665,8 +665,8 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	assert.Equal(t, exceptionOffset-transactionOffset, batch[2].Timestamp.Sub(batch[0].Timestamp))
 
 	// Durations should be unaffected.
-	assert.Equal(t, float64(transactionDuration.Milliseconds()), batch[0].Transaction.Duration)
-	assert.Equal(t, float64(spanDuration.Milliseconds()), batch[1].Span.Duration)
+	assert.Equal(t, transactionDuration, batch[0].Event.Duration)
+	assert.Equal(t, spanDuration, batch[1].Event.Duration)
 }
 
 func TestConsumer_JaegerMetadata(t *testing.T) {
@@ -895,7 +895,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				Tags: []jaegermodel.KeyValue{
 					jaegerKeyValue("span.kind", "server"),
 					jaegerKeyValue("error", true),
-					jaegerKeyValue("status.code", int64(2)),
+					jaegerKeyValue("otel.status_code", int64(2)),
 				},
 			}},
 		},
@@ -1122,7 +1122,7 @@ func testJaegerLogs() []jaegermodel.Log {
 	}, {
 		Timestamp: testStartTime().Add(65 * time.Nanosecond),
 		Fields: jaegerKeyValues(
-			"event", "retrying connection",
+			"message", "retrying connection",
 			"level", "info",
 		),
 	}, {
@@ -1231,10 +1231,10 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeV
 	return events[0]
 }
 
-func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (transaction model.APMEvent, errors []model.APMEvent) {
+func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (transaction model.APMEvent, events []model.APMEvent) {
 	traces, spans := newTracesSpans()
 	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		conventions.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
+		semconv.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
 	})
 	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
@@ -1242,12 +1242,10 @@ func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ..
 	for _, spanEvent := range spanEvents {
 		spanEvent.CopyTo(otelSpan.Events().AppendEmpty())
 	}
-	events := transformTraces(t, traces)
-	require.NotEmpty(t, events)
 
-	errors = make([]model.APMEvent, len(events)-1)
-	copy(errors, events[1:])
-	return events[0], errors
+	allEvents := transformTraces(t, traces)
+	require.NotEmpty(t, allEvents)
+	return allEvents[0], allEvents[1:]
 }
 
 func transformTraces(t *testing.T, traces pdata.Traces) model.Batch {

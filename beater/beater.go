@@ -46,6 +46,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/processors"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -262,8 +263,14 @@ func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfi
 	if err != nil {
 		return err
 	}
+	// Start listening before we stop the existing runner (if any), to ensure zero downtime.
+	listener, err := listen(runner.config, runner.logger)
+	if err != nil {
+		return err
+	}
 	go func() {
-		if err := runner.run(); err != nil {
+		defer listener.Close()
+		if err := runner.run(listener); err != nil {
 			r.args.Logger.Error(err)
 		}
 	}()
@@ -345,14 +352,24 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 	}, nil
 }
 
-func (s *serverRunner) run() error {
+func (s *serverRunner) run(listener net.Listener) error {
 	defer close(s.done)
 
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
+
 	publisherConfig := &publish.PublisherConfig{
 		Pipeline:  s.config.Pipeline,
 		Namespace: s.namespace,
+	}
+	if !s.config.DataStreams.Enabled {
+		// Logs are only supported with data streams;
+		// add a beat.Processor which drops them.
+		dropLogsProcessor, err := newDropLogsBeatProcessor()
+		if err != nil {
+			return err
+		}
+		publisherConfig.Processor = dropLogsProcessor
 	}
 
 	var kibanaClient kibana_client.Client
@@ -430,7 +447,7 @@ func (s *serverRunner) run() error {
 	// onboarding docs. Because these bypass the model processor framework, we
 	// must augment the reporter to set common `observer` and `ecs.version` fields.
 	reporter := publisher.Send
-	runServer := newBaseRunServer(augmentedReporter(reporter, s.beat.Info))
+	runServer := newBaseRunServer(listener, augmentedReporter(reporter, s.beat.Info))
 	if s.tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
 	}
@@ -748,4 +765,18 @@ type transformerFunc func(context.Context) []beat.Event
 
 func (f transformerFunc) Transform(ctx context.Context) []beat.Event {
 	return f(ctx)
+}
+
+func newDropLogsBeatProcessor() (beat.ProcessorList, error) {
+	return processors.New(processors.PluginConfig{
+		common.MustNewConfigFrom(map[string]interface{}{
+			"drop_event": map[string]interface{}{
+				"when": map[string]interface{}{
+					"contains": map[string]interface{}{
+						"processor.event": "log",
+					},
+				},
+			},
+		}),
+	})
 }

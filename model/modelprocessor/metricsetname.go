@@ -40,18 +40,17 @@ type SetMetricsetName struct{}
 func (SetMetricsetName) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	for _, event := range *b {
 		ms := event.Metricset
-		if ms == nil || ms.Name != "" || len(ms.Samples) == 0 {
+		if ms == nil || ms.Name != "" {
 			continue
 		}
 		ms.Name = appMetricsetName
-		if ms.Transaction.Type == "" {
+		if event.Transaction == nil {
 			// Not a breakdown metricset.
 			continue
 		}
-		if _, ok := ms.Samples["span.self_time.count"]; ok {
+		ms.Name = transactionBreakdownMetricsetName
+		if event.Span != nil && event.Span.SelfTime.Count > 0 {
 			ms.Name = spanBreakdownMetricsetName
-		} else if _, ok := ms.Samples["transaction.breakdown.count"]; ok {
-			ms.Name = transactionBreakdownMetricsetName
 		}
 	}
 	return nil

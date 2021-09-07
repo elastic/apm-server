@@ -18,8 +18,6 @@ import (
 	"context"
 	"time"
 
-	"go.uber.org/zap"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenthelper"
 	"go.opentelemetry.io/collector/config"
@@ -81,7 +79,6 @@ type baseSettings struct {
 	TimeoutSettings
 	QueueSettings
 	RetrySettings
-	ResourceToTelemetrySettings
 }
 
 // fromOptions returns the internal options starting from the default and applying all configured options.
@@ -92,8 +89,7 @@ func fromOptions(options ...Option) *baseSettings {
 		// TODO: Enable queuing by default (call DefaultQueueSettings)
 		QueueSettings: QueueSettings{Enabled: false},
 		// TODO: Enable retry by default (call DefaultRetrySettings)
-		RetrySettings:               RetrySettings{Enabled: false},
-		ResourceToTelemetrySettings: defaultResourceToTelemetrySettings(),
+		RetrySettings: RetrySettings{Enabled: false},
 	}
 
 	for _, op := range options {
@@ -155,14 +151,6 @@ func WithCapabilities(capabilities consumer.Capabilities) Option {
 	}
 }
 
-// WithResourceToTelemetryConversion overrides the default ResourceToTelemetrySettings for an exporter.
-// The default ResourceToTelemetrySettings is to disable resource attributes to metric labels conversion.
-func WithResourceToTelemetryConversion(resourceToTelemetrySettings ResourceToTelemetrySettings) Option {
-	return func(o *baseSettings) {
-		o.ResourceToTelemetrySettings = resourceToTelemetrySettings
-	}
-}
-
 // baseExporter contains common fields between different exporter types.
 type baseExporter struct {
 	component.Component
@@ -171,16 +159,17 @@ type baseExporter struct {
 	qrSender *queuedRetrySender
 }
 
-func newBaseExporter(cfg config.Exporter, logger *zap.Logger, bs *baseSettings) *baseExporter {
+func newBaseExporter(cfg config.Exporter, set component.ExporterCreateSettings, bs *baseSettings) *baseExporter {
 	be := &baseExporter{
 		Component: componenthelper.New(bs.componentOptions...),
 	}
 
 	be.obsrep = newObsExporter(obsreport.ExporterSettings{
-		Level:      configtelemetry.GetMetricsLevelFlagValue(),
-		ExporterID: cfg.ID(),
+		Level:                  configtelemetry.GetMetricsLevelFlagValue(),
+		ExporterID:             cfg.ID(),
+		ExporterCreateSettings: set,
 	})
-	be.qrSender = newQueuedRetrySender(cfg.ID().String(), bs.QueueSettings, bs.RetrySettings, &timeoutSender{cfg: bs.TimeoutSettings}, logger)
+	be.qrSender = newQueuedRetrySender(cfg.ID().String(), bs.QueueSettings, bs.RetrySettings, &timeoutSender{cfg: bs.TimeoutSettings}, set.Logger)
 	be.sender = be.qrSender
 
 	return be

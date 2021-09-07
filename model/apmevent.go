@@ -21,7 +21,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -55,6 +54,8 @@ type APMEvent struct {
 	URL         URL
 	Processor   Processor
 	Trace       Trace
+	Parent      Parent
+	Child       Child
 
 	// Timestamp holds the event timestamp.
 	//
@@ -80,28 +81,34 @@ type APMEvent struct {
 
 // BeatEvent converts e to a beat.Event.
 func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
-	event := beat.Event{Timestamp: e.Timestamp}
-	switch {
-	case e.Transaction != nil:
-		event.Fields = e.Transaction.fields()
-	case e.Span != nil:
-		event.Fields = e.Span.fields(e)
-	case e.Metricset != nil:
-		event.Fields = e.Metricset.fields()
-	case e.Error != nil:
-		event.Fields = e.Error.fields()
-	case e.ProfileSample != nil:
-		event.Fields = e.ProfileSample.fields()
+	event := beat.Event{
+		Timestamp: e.Timestamp,
+		Fields:    make(common.MapStr),
 	}
-	if event.Fields == nil {
-		event.Fields = make(common.MapStr)
+	if e.Transaction != nil {
+		e.Transaction.setFields((*mapStr)(&event.Fields), e)
+	}
+	if e.Span != nil {
+		e.Span.setFields((*mapStr)(&event.Fields), e)
+	}
+	if e.Metricset != nil {
+		e.Metricset.setFields((*mapStr)(&event.Fields))
+	}
+	if e.Error != nil {
+		e.Error.setFields((*mapStr)(&event.Fields))
+	}
+	if e.ProfileSample != nil {
+		e.ProfileSample.setFields((*mapStr)(&event.Fields))
 	}
 
 	// Set high resolution timestamp.
 	//
 	// TODO(axw) change @timestamp to use date_nanos, and remove this field.
-	if !e.Timestamp.IsZero() && (e.Transaction != nil || e.Span != nil || e.Error != nil) {
-		event.Fields["timestamp"] = utility.TimeAsMicros(e.Timestamp)
+	if !e.Timestamp.IsZero() {
+		switch e.Processor {
+		case TransactionProcessor, SpanProcessor, ErrorProcessor:
+			event.Fields["timestamp"] = common.MapStr{"us": int(e.Timestamp.UnixNano() / 1000)}
+		}
 	}
 
 	// Set top-level field sets.
@@ -119,7 +126,8 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("user", e.User.fields())
 	if client := e.Client.fields(); fields.maybeSetMapStr("client", client) {
 		// We copy client to source for transactions and errors.
-		if e.Transaction != nil || e.Error != nil {
+		switch e.Processor {
+		case TransactionProcessor, ErrorProcessor:
 			// TODO(axw) once we are using Fleet for ingest pipeline
 			// management, move this to an ingest pipeline.
 			fields.set("source", client)
@@ -135,6 +143,8 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("event", e.Event.fields())
 	fields.maybeSetMapStr("url", e.URL.fields())
 	fields.maybeSetMapStr("session", e.Session.fields())
+	fields.maybeSetMapStr("parent", e.Parent.fields())
+	fields.maybeSetMapStr("child", e.Child.fields())
 	fields.maybeSetMapStr("processor", e.Processor.fields())
 	fields.maybeSetMapStr("trace", e.Trace.fields())
 	fields.maybeSetString("message", e.Message)

@@ -223,7 +223,7 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 		return false, false, err
 	}
 
-	if event.Transaction.ParentID != "" {
+	if event.Parent.ID != "" {
 		// Non-root transaction: write to local storage while we wait
 		// for a sampling decision.
 		return false, true, p.storage.WriteTraceEvent(
