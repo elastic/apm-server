@@ -83,25 +83,6 @@ func (h Hosts) Validate() error {
 	return nil
 }
 
-func connectionConfig(config *Config) (http.RoundTripper, []string, http.Header, error) {
-	addrs, err := addresses(config)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	transp, err := httpTransport(config)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	var headers http.Header
-	if len(config.Headers) > 0 {
-		headers = make(http.Header)
-		for k, v := range config.Headers {
-			headers.Set(k, v)
-		}
-	}
-	return transp, addrs, headers, nil
-}
-
 func httpProxyURL(cfg *Config) (func(*http.Request) (*url.URL, error), error) {
 	if cfg.ProxyDisable {
 		return nil, nil

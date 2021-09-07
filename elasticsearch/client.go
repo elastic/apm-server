@@ -97,32 +97,71 @@ func (c clientV7) NewBulkIndexer(config BulkIndexerConfig) (BulkIndexer, error) 
 	return v7BulkIndexer{indexer}, nil
 }
 
-// NewClient parses the given config and returns  a version-aware client as an interface
+// ClientParams holds parameters for NewClientParams.
+type ClientParams struct {
+	// Config holds the user-defined configuration: Elasticsearch hosts,
+	// max retries, etc.
+	Config *Config
+
+	// Transport holds a net/http.RoundTripper to use for sending requests
+	// to Elasticsearch.
+	//
+	// If Transport is nil, then a net/http.Transport will be constructed
+	// using Config.
+	Transport http.RoundTripper
+}
+
+// NewClient returns a stack version-aware Elasticsearch client,
+// equivalent to NewClientParams(ClientParams{Config: config}).
 func NewClient(config *Config) (Client, error) {
-	if config == nil {
+	return NewClientParams(ClientParams{Config: config})
+}
+
+// NewClientParams returns a stack version-aware Elasticsearch client.
+func NewClientParams(args ClientParams) (Client, error) {
+	if args.Config == nil {
 		return nil, errConfigMissing
 	}
-	transport, addresses, headers, err := connectionConfig(config)
+
+	transport := args.Transport
+	if transport == nil {
+		httpTransport, err := httpTransport(args.Config)
+		if err != nil {
+			return nil, err
+		}
+		transport = httpTransport
+	}
+
+	addrs, err := addresses(args.Config)
 	if err != nil {
 		return nil, err
 	}
-	backoff := exponentialBackoff(config.Backoff)
-	return NewVersionedClient(config.APIKey, config.Username, config.Password, addresses, headers, transport, config.MaxRetries, backoff)
-}
 
-// NewVersionedClient returns the right elasticsearch client for the current Stack version, as an interface
-func NewVersionedClient(apikey, user, pwd string, addresses []string, headers http.Header, transport http.RoundTripper, maxRetries int, backoff backoffFunc) (Client, error) {
-	if apikey != "" {
-		apikey = base64.StdEncoding.EncodeToString([]byte(apikey))
+	var headers http.Header
+	if len(args.Config.Headers) > 0 {
+		headers = make(http.Header, len(args.Config.Headers))
+		for k, v := range args.Config.Headers {
+			headers.Set(k, v)
+		}
 	}
-	transport = apmelasticsearch.WrapRoundTripper(transport)
-	version := common.MustNewVersion(version.GetDefaultVersion())
-	if version.IsMajor(8) {
-		c, err := newV8Client(apikey, user, pwd, addresses, headers, transport, maxRetries, backoff)
-		return clientV8{c}, err
+
+	var apikey string
+	if args.Config.APIKey != "" {
+		apikey = base64.StdEncoding.EncodeToString([]byte(args.Config.APIKey))
 	}
-	c, err := newV7Client(apikey, user, pwd, addresses, headers, transport, maxRetries, backoff)
-	return clientV7{c}, err
+
+	newClient := newV7Client
+	if version := common.MustNewVersion(version.GetDefaultVersion()); version.IsMajor(8) {
+		newClient = newV8Client
+	}
+	return newClient(
+		apikey, args.Config.Username, args.Config.Password,
+		addrs,
+		headers,
+		apmelasticsearch.WrapRoundTripper(transport),
+		args.Config.MaxRetries,
+		exponentialBackoff(args.Config.Backoff),
+	)
 }
 
 func newV7Client(
@@ -132,8 +171,8 @@ func newV7Client(
 	transport http.RoundTripper,
 	maxRetries int,
 	fn backoffFunc,
-) (*esv7.Client, error) {
-	return esv7.NewClient(esv7.Config{
+) (Client, error) {
+	c, err := esv7.NewClient(esv7.Config{
 		APIKey:               apikey,
 		Username:             user,
 		Password:             pwd,
@@ -145,6 +184,10 @@ func newV7Client(
 		RetryBackoff:         fn,
 		MaxRetries:           maxRetries,
 	})
+	if err != nil {
+		return nil, err
+	}
+	return clientV7{c}, nil
 }
 
 func newV8Client(
@@ -154,8 +197,8 @@ func newV8Client(
 	transport http.RoundTripper,
 	maxRetries int,
 	fn backoffFunc,
-) (*esv8.Client, error) {
-	return esv8.NewClient(esv8.Config{
+) (Client, error) {
+	c, err := esv8.NewClient(esv8.Config{
 		APIKey:               apikey,
 		Username:             user,
 		Password:             pwd,
@@ -167,6 +210,10 @@ func newV8Client(
 		RetryBackoff:         fn,
 		MaxRetries:           maxRetries,
 	})
+	if err != nil {
+		return nil, err
+	}
+	return clientV8{c}, nil
 }
 
 func doRequest(ctx context.Context, transport esapiv7.Transport, req esapiv7.Request, out interface{}) error {
