@@ -406,6 +406,10 @@ func translateTransaction(
 			case "type":
 				event.Transaction.Type = stringval
 			case semconv.AttributeServiceVersion:
+				// NOTE support for sending service.version as a span tag
+				// is deprecated, and will be removed in 8.0. Instrumentation
+				// should set this as a resource attribute (OTel) or tracer
+				// tag (Jaeger).
 				event.Service.Version = stringval
 			case "component":
 				component = stringval
