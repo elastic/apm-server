@@ -302,7 +302,7 @@ Traces are written to `traces-apm.*` indices.
     "version": "3.14.0"
   },
   "ecs": {
-    "version": "1.10.0"
+    "version": "1.11.0"
   },
   "event": {
     "outcome": "unknown"
