@@ -1,5 +1,6 @@
 {
     "build_date": "0001-01-01T00:00:00Z",
     "build_sha": "unknown",
+    "publish_ready": true,
     "version": "1.2.3"
 }

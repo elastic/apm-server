@@ -20,7 +20,9 @@ package beater
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -644,6 +646,13 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
 	resp.Body.Close()
 
+	// Healthcheck should report that the server is not publish-ready.
+	resp, err = beater.client.Get(beater.baseURL + api.RootPath)
+	require.NoError(t, err)
+	out := decodeJSONMap(t, resp.Body)
+	resp.Body.Close()
+	assert.Equal(t, false, out["publish_ready"])
+
 	// Indexing should be blocked until we receive from tracesRequestsCh.
 	select {
 	case <-bulkCh:
@@ -668,6 +677,13 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for bulk request")
 	}
+
+	// Healthcheck should now report that the server is publish-ready.
+	resp, err = beater.client.Get(beater.baseURL + api.RootPath)
+	require.NoError(t, err)
+	out = decodeJSONMap(t, resp.Body)
+	resp.Body.Close()
+	assert.Equal(t, true, out["publish_ready"])
 }
 
 type chanClient struct {
@@ -770,6 +786,13 @@ func makeTransactionRequest(t *testing.T, baseUrl string) *http.Request {
 	}
 
 	return req
+}
+
+func decodeJSONMap(t *testing.T, r io.Reader) map[string]interface{} {
+	out := make(map[string]interface{})
+	err := json.NewDecoder(r).Decode(&out)
+	require.NoError(t, err)
+	return out
 }
 
 func body(t *testing.T, response *http.Response) string {
