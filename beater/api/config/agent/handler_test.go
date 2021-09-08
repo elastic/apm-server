@@ -18,6 +18,7 @@
 package agent
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -41,7 +42,6 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/kibana/kibanatest"
 )
@@ -260,7 +260,7 @@ func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
 	f := agentcfg.NewKibanaFetcher(nil, cfg.Cache.Expiration)
 	h := NewHandler(f, cfg, "", nil)
 
-	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
+	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(m{
 		"service": m{"name": "opbeans-node"}})))
 	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
 }
@@ -279,7 +279,7 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
 	h := NewHandler(f, cfg, "", nil)
 
-	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
+	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(m{
 		"service": m{"name": "opbeans-node"}})))
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
 }
@@ -300,19 +300,19 @@ func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
 	h := NewHandler(f, cfg, "default", nil)
 
-	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node", "environment": "specified"}})))
-	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node"}})))
+	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(m{"service": m{"name": "opbeans-node", "environment": "specified"}})))
+	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(m{"service": m{"name": "opbeans-node"}})))
 	require.Len(t, kb.requests, 2)
 
 	body0, _ := ioutil.ReadAll(kb.requests[0].Body)
 	body1, _ := ioutil.ReadAll(kb.requests[1].Body)
-	assert.Equal(t, `{"service":{"name":"opbeans-node","environment":"specified"},"etag":""}`, string(body0))
-	assert.Equal(t, `{"service":{"name":"opbeans-node","environment":"default"},"etag":""}`, string(body1))
+	assert.Equal(t, `{"service":{"name":"opbeans-node","environment":"specified"},"etag":""}`+"\n", string(body0))
+	assert.Equal(t, `{"service":{"name":"opbeans-node","environment":"default"},"etag":""}`+"\n", string(body1))
 }
 
 func TestAgentConfigRum(t *testing.T) {
 	h := getHandler("rum-js")
-	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
+	r := httptest.NewRequest(http.MethodPost, "/rum", jsonReader(m{
 		"service": m{"name": "opbeans"}}))
 	ctx, w := newRequestContext(r)
 	ctx.Authentication.Method = "" // unauthenticated
@@ -334,7 +334,7 @@ func TestAgentConfigRumEtag(t *testing.T) {
 
 func TestAgentConfigNotRum(t *testing.T) {
 	h := getHandler("node-js")
-	r := httptest.NewRequest(http.MethodPost, "/backend", convert.ToReader(m{
+	r := httptest.NewRequest(http.MethodPost, "/backend", jsonReader(m{
 		"service": m{"name": "opbeans"}}))
 	ctx, w := newRequestContext(r)
 	ctx.Request = withAuthorizer(ctx.Request,
@@ -351,7 +351,7 @@ func TestAgentConfigNotRum(t *testing.T) {
 
 func TestAgentConfigNoLeak(t *testing.T) {
 	h := getHandler("node-js")
-	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
+	r := httptest.NewRequest(http.MethodPost, "/rum", jsonReader(m{
 		"service": m{"name": "opbeans"}}))
 	ctx, w := newRequestContext(r)
 	ctx.Authentication.Method = "" // unauthenticated
@@ -406,7 +406,7 @@ func TestAgentConfigTraceContext(t *testing.T) {
 	_, spans, _ := apmtest.WithTransaction(func(ctx context.Context) {
 		// When the handler is called with a context containing
 		// a transaction, the underlying Kibana query should create a span
-		r := httptest.NewRequest(http.MethodPost, "/backend", convert.ToReader(m{
+		r := httptest.NewRequest(http.MethodPost, "/backend", jsonReader(m{
 			"service": m{"name": "opbeans"}}))
 		sendRequest(handler, r.WithContext(ctx))
 	})
@@ -477,4 +477,12 @@ type authorizerFunc func(context.Context, auth.Action, auth.Resource) error
 
 func (f authorizerFunc) Authorize(ctx context.Context, action auth.Action, resource auth.Resource) error {
 	return f(ctx, action, resource)
+}
+
+func jsonReader(v interface{}) io.Reader {
+	data, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return bytes.NewReader(data)
 }

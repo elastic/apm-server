@@ -53,6 +53,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
+	"github.com/elastic/apm-server/datastreams"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 )
@@ -234,7 +235,7 @@ func (c *Consumer) convertSpan(
 	event.Event.Outcome = ""                // don't set event.outcome for span events
 	event.Destination = model.Destination{} // don't set destination for span events
 	for i := 0; i < events.Len(); i++ {
-		convertSpanEvent(logger, events.At(i), event, timeDelta, out)
+		*out = append(*out, convertSpanEvent(logger, events.At(i), event, timeDelta))
 	}
 }
 
@@ -405,6 +406,10 @@ func translateTransaction(
 			case "type":
 				event.Transaction.Type = stringval
 			case semconv.AttributeServiceVersion:
+				// NOTE support for sending service.version as a span tag
+				// is deprecated, and will be removed in 8.0. Instrumentation
+				// should set this as a resource attribute (OTel) or tracer
+				// tag (Jaeger).
 				event.Service.Version = stringval
 			case "component":
 				component = stringval
@@ -824,24 +829,22 @@ func convertSpanEvent(
 	spanEvent pdata.SpanEvent,
 	parent model.APMEvent, // either span or transaction
 	timeDelta time.Duration,
-	out *model.Batch,
-) {
-	var e *model.Error
+) model.APMEvent {
+	event := parent
+	event.Labels = initEventLabels(event.Labels)
+	event.Transaction = nil
+	event.Span = nil
+	event.Timestamp = spanEvent.Timestamp().AsTime().Add(timeDelta)
+
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
 	if isJaeger {
-		e = convertJaegerErrorSpanEvent(logger, spanEvent)
-	} else {
+		event.Error = convertJaegerErrorSpanEvent(logger, spanEvent, event.Labels)
+	} else if spanEvent.Name() == "exception" {
 		// Translate exception span events to errors.
 		//
 		// If it's not Jaeger, we assume OpenTelemetry semantic semconv.
-		//
-		// TODO(axw) we don't currently support arbitrary events, we only look
-		// for exceptions and convert those to Elastic APM error events.
-		if spanEvent.Name() != "exception" {
-			// Per OpenTelemetry semantic conventions:
-			//   `The name of the event MUST be "exception"`
-			return
-		}
+		// Per OpenTelemetry semantic conventions:
+		//   `The name of the event MUST be "exception"`
 		var exceptionEscaped bool
 		var exceptionMessage, exceptionStacktrace, exceptionType string
 		spanEvent.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
@@ -854,34 +857,39 @@ func convertSpanEvent(
 				exceptionType = v.StringVal()
 			case "exception.escaped":
 				exceptionEscaped = v.BoolVal()
+			default:
+				event.Labels[replaceDots(k)] = ifaceAttributeValue(v)
 			}
 			return true
 		})
-		if exceptionMessage == "" && exceptionType == "" {
+		if exceptionMessage != "" || exceptionType != "" {
 			// Per OpenTelemetry semantic conventions:
 			//   `At least one of the following sets of attributes is required:
 			//   - exception.type
 			//   - exception.message`
-			return
+			event.Error = convertOpenTelemetryExceptionSpanEvent(
+				exceptionType, exceptionMessage, exceptionStacktrace,
+				exceptionEscaped, parent.Service.Language.Name,
+			)
 		}
-		e = convertOpenTelemetryExceptionSpanEvent(
-			exceptionType, exceptionMessage, exceptionStacktrace,
-			exceptionEscaped, parent.Service.Language.Name,
-		)
 	}
-	if e != nil {
-		event := parent
-		event.Transaction = nil
-		event.Span = nil
+
+	if event.Error != nil {
 		event.Processor = model.ErrorProcessor
-		event.Error = e
-		event.Timestamp = spanEvent.Timestamp().AsTime().Add(timeDelta)
 		setErrorContext(&event, parent)
-		*out = append(*out, event)
+	} else {
+		event.Processor = model.LogProcessor
+		event.DataStream.Type = datastreams.LogsType
+		event.Message = spanEvent.Name()
+		spanEvent.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+			event.Labels[replaceDots(k)] = ifaceAttributeValue(v)
+			return true
+		})
 	}
+	return event
 }
 
-func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *model.Error {
+func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, labels common.MapStr) *model.Error {
 	var isError bool
 	var exMessage, exType string
 	logMessage := event.Name()
@@ -913,6 +921,8 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *mo
 			isError = true
 		case "level":
 			isError = stringval == "error"
+		default:
+			labels[replaceDots(k)] = ifaceAttributeValue(v)
 		}
 		return true
 	})
