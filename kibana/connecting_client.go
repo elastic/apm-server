@@ -127,7 +127,7 @@ func (c *ConnectingClient) SupportsVersion(ctx context.Context, v *common.Versio
 	if !retry || upToDate {
 		return upToDate, nil
 	}
-	client, err := kibana.NewClientWithConfig(c.clientConfig())
+	client, err := kibana.NewClientWithConfig(c.clientConfig(), "apm-server")
 	if err != nil {
 		log.Errorf("failed to obtain connection to Kibana: %s", err.Error())
 		return upToDate, err
@@ -148,7 +148,7 @@ func (c *ConnectingClient) connect() error {
 	if c.client != nil {
 		return nil
 	}
-	client, err := kibana.NewClientWithConfig(c.clientConfig())
+	client, err := kibana.NewClientWithConfig(c.clientConfig(), "apm-server")
 	if err != nil {
 		return err
 	}
