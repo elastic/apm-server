@@ -54,7 +54,6 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	"github.com/elastic/apm-server/kibana"
-	kibana_client "github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
@@ -370,9 +369,9 @@ func (s *serverRunner) run(listener net.Listener) error {
 		publisherConfig.Processor = dropLogsProcessor
 	}
 
-	var kibanaClient kibana_client.Client
+	var kibanaClient kibana.Client
 	if s.config.Kibana.Enabled {
-		kibanaClient = kibana_client.NewConnectingClient(&s.config.Kibana)
+		kibanaClient = kibana.NewConnectingClient(&s.config.Kibana)
 	}
 
 	cfg := ucfg.Config(*s.rawConfig)
@@ -381,7 +380,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
 		// Don't block server startup sending the config.
 		go func() {
-			if err := kibana_client.SendConfig(s.runServerContext, kibanaClient, parentCfg); err != nil {
+			if err := kibana.SendConfig(s.runServerContext, kibanaClient, parentCfg); err != nil {
 				s.logger.Infof("failed to upload config to kibana: %v", err)
 			}
 		}()
