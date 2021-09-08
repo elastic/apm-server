@@ -649,6 +649,7 @@ func hasElasticsearchOutput(b *beat.Beat) bool {
 func (bt *beater) registerPipelineSetupCallback(b *beat.Beat) {
 	if !hasElasticsearchOutput(b) {
 		bt.logger.Info("Output is not Elasticsearch: pipeline registration disabled")
+		return
 	}
 
 	if bt.config.DataStreams.Enabled {
@@ -656,10 +657,12 @@ func (bt *beater) registerPipelineSetupCallback(b *beat.Beat) {
 		b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
 			return errors.New("index pipeline setup must be performed externally when using data streams, by installing the 'apm' integration package")
 		}
+		return
 	}
 
 	if !bt.config.Register.Ingest.Pipeline.Enabled {
 		bt.logger.Info("Pipeline registration disabled")
+		return
 	}
 
 	bt.logger.Info("Registering pipeline callback")
