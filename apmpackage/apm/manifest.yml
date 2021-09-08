@@ -6,9 +6,9 @@ license: basic
 description: Ingest APM data
 type: integration
 categories: ["elastic_stack", "monitoring"]
-release: experimental # experimental / beta / ga
+release: ga
 conditions:
-  kibana.version: "^7.13.0"
+  kibana.version: "^7.16.0"
 icons:
   - src: /img/logo_apm.svg
     title: APM Logo
