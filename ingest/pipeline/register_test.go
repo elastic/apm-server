@@ -31,7 +31,7 @@ import (
 )
 
 func TestRegisterPipelines(t *testing.T) {
-	esClients, err := eslegclient.NewClients(getFakeESConfig(9200))
+	esClients, err := eslegclient.NewClients(getFakeESConfig(9200), "apm-server")
 	require.NoError(t, err)
 	esClient := &esClients[0]
 	path, err := filepath.Abs("definition.json")
@@ -49,7 +49,7 @@ func TestRegisterPipelines(t *testing.T) {
 	assert.NoError(t, err)
 
 	// invalid esClient
-	invalidClients, err := eslegclient.NewClients(getFakeESConfig(1234))
+	invalidClients, err := eslegclient.NewClients(getFakeESConfig(1234), "apm-server")
 	require.NoError(t, err)
 	err = RegisterPipelines(&invalidClients[0], true, path)
 	assert.Error(t, err)
