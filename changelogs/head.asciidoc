@@ -42,3 +42,4 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 [float]
 ==== Deprecated
 - Setting `service.version` as a span tag (Jaeger) or attribute (OTel) is deprecated; use tracer tags (Jaeger) and resource attributes (OTel) {pull}6131[6131]
+- Setting up Elasticsearch templates, ILM policies, and pipelines directly with apm-server is now deprecated. Users should use the integration package {pull}6145[6145]
