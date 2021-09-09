@@ -241,11 +241,7 @@ If you're running APM Server as an Elastic Agent integration, you can configure 
 {fleet}/agent-policy.html[Elastic Agent policies].
 
 [float]
-===== Standalone (data streams)
-
-[float]
-[[index-template-config]]
-===== Standalone (classic indices)
+===== Standalone
 
 You can edit the `apm-server.yml` configuration file to customize it to your needs.
 The location of this file varies by platform, but the <<directory-layout>> will help you locate it.
@@ -253,14 +249,15 @@ All available configuration options are outlined in
 {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
 
 [float]
-====== Standalone (data streams)
+====== Standalone setup (data streams)
 
 If you're running APM Server as a standalone process, we recommend that you configure <<data_streams.enabled>>
 to write events to data streams in the same way as the <<apm-integration>>. You will need to install the APM
 integration package to set up Elasticsearch before APM Server becomes operative.
 
 [float]
-====== Standalone (classic indices)
+[[index-template-config]]
+====== Standalone setup (classic indices)
 
 deprecated::[7.16.0,Users should now use the <<apm-integration>> or configure <<data_streams.enabled>>.]
 
