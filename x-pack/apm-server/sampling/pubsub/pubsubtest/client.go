@@ -100,7 +100,7 @@ func (rt *channelClientRoundTripper) RoundTrip(r *http.Request) (*http.Response,
 	var handler func(*http.Request, *httptest.ResponseRecorder) error
 	switch r.Method {
 	case "GET":
-		if r.URL.Path == "testing.invalid/" {
+		if r.URL.Path == "/" {
 			handler = rt.roundTripProductCheck
 		} else if strings.HasSuffix(r.URL.Path, "/_stats/get") {
 			handler = rt.roundTripStats
