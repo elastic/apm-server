@@ -140,12 +140,45 @@
       description: >
         A flat mapping of user-defined labels with string, boolean or number values.
 
+    - name: faas
+      type: group
+      dynamic: false
+      description: >
+        Function as a service fields.
+      fields:
+        - name: execution
+          type: keyword
+          description: >
+            Request ID of the function invocation.
+          overwrite: true
+        - name: coldstart
+          type: boolean
+          description: >
+            Boolean indicating whether the function invocation was a coldstart or not.
+          overwrite: true
+        - name: trigger.type
+          type: keyword
+          description: >
+            The trigger type.
+          overwrite: true
+        - name: trigger.request_id
+          type: keyword
+          description: >
+            The ID of the origin trigger request.
+          overwrite: true
+
     - name: service
       type: group
       dynamic: false
       description: >
         Service fields.
       fields:
+        - name: id
+          type: keyword
+          description: >
+            Immutable id of the service emitting this event.
+          overwrite: true
+
         - name: name
           type: keyword
           description: >
@@ -220,6 +253,11 @@
             description: >
               Version of the framework used.
             overwrite: true
+
+        # TODO: Is it correct to mark this as dynamic to accept all service.origin.*?
+        - name: origin
+          type: group
+          dynamic: true
 
     - name: session
       type: group
@@ -810,6 +848,10 @@
           description: Cloud instance/machine type
           example: t2.medium
           overwrite: true
+      # TODO: Is it correct to mark this as dynamic to accept all cloud.origin.*?
+      - name: origin
+        type: group
+        dynamic: true
       - name: project
         type: group
         dynamic: false

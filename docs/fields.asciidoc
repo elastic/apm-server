@@ -4313,11 +4313,70 @@ type: object
 --
 
 [float]
+=== faas
+
+Function as a service fields.
+
+
+
+*`faas.execution`*::
++
+--
+Request ID of the function invocation.
+
+
+type: keyword
+
+--
+
+*`faas.coldstart`*::
++
+--
+Boolean indicating whether the function invocation was a coldstart or not.
+
+
+type: boolean
+
+--
+
+*`faas.trigger.type`*::
++
+--
+The trigger type.
+
+
+type: keyword
+
+--
+
+*`faas.trigger.request_id`*::
++
+--
+The ID of the origin trigger request.
+
+
+type: keyword
+
+--
+
+[float]
 === service
 
 Service fields.
 
 
+
+*`service.id`*::
++
+--
+Immutable id of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
 
 *`service.name`*::
 +

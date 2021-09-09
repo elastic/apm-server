@@ -74,6 +74,9 @@
           type: keyword
           description: Cloud instance/machine type
           ignore_above: 1024
+    - name: origin
+      type: group
+      dynamic: true
     - name: project
       type: group
       fields:
@@ -254,6 +257,10 @@
   description: |
     Service fields.
   fields:
+    - name: id
+      type: keyword
+      description: |
+        Immutable id of the service emitting this event.
     - name: name
       type: keyword
       description: |
@@ -265,6 +272,9 @@
           type: keyword
           description: |
             Unique meaningful name of the service node.
+    - name: origin
+      type: group
+      dynamic: true
     - name: version
       type: keyword
       description: |

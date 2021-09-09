@@ -5,6 +5,27 @@
       type: keyword
       description: |
         The ID(s) of the child event(s).
+- name: faas
+  type: group
+  description: |
+    Function as a service fields.
+  fields:
+    - name: coldstart
+      type: boolean
+      description: |
+        Boolean indicating whether the function invocation was a coldstart or not.
+    - name: execution
+      type: keyword
+      description: |
+        Request ID of the function invocation.
+    - name: trigger.request_id
+      type: keyword
+      description: |
+        The ID of the origin trigger request.
+    - name: trigger.type
+      type: keyword
+      description: |
+        The trigger type.
 - name: http
   type: group
   fields:

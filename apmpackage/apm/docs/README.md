@@ -81,6 +81,10 @@ Traces are written to `traces-apm.*` indices.
 |destination.port|Port of the destination.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |ecs.version|ECS version the event conforms to.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |event.outcome|\`event.outcome\` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|faas.coldstart|Boolean indicating whether the function invocation was a coldstart or not.|boolean|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|faas.execution|Request ID of the function invocation.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|faas.trigger.request\_id|The ID of the origin trigger request.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|faas.trigger.type|The trigger type.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |host.architecture|The architecture of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.hostname|The hostname of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.ip|IP of the host that records the event.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -121,6 +125,7 @@ Traces are written to `traces-apm.*` indices.
 |service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.framework.name|Name of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.framework.version|Version of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|service.id|Immutable id of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |service.language.name|Name of the programming language used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.language.version|Version of the programming language used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.name|Immutable name of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
