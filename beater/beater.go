@@ -671,7 +671,7 @@ func (bt *beater) registerPipelineSetupCallback(b *beat.Beat) {
 
 	// ensure setup cmd is working properly
 	b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
-		conn, err := eslegclient.NewConnectedClient(esConfig)
+		conn, err := eslegclient.NewConnectedClient(esConfig, b.Info.Beat)
 		if err != nil {
 			return err
 		}
