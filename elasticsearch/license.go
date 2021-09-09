@@ -18,25 +18,20 @@
 package elasticsearch
 
 import (
-	"testing"
-	"time"
+	"context"
 
-	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/licenser"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
-func TestExponentialBackoff(t *testing.T) {
-	init := 2 * time.Second
-	backoffCfg := elasticsearch.Backoff{
-		Init: init,
-		Max:  time.Minute,
+// GetLicense gets the Elasticsearch licensing information.
+func GetLicense(ctx context.Context, client Client) (licenser.License, error) {
+	var result struct {
+		License licenser.License `json:"license"`
 	}
-	backoffFn := exponentialBackoff(backoffCfg)
-	assert.Equal(t, init, backoffFn(1))
-	assert.Equal(t, 4*time.Second, backoffFn(2))
-	assert.Equal(t, 8*time.Second, backoffFn(3))
-	assert.Equal(t, 16*time.Second, backoffFn(4))
-	assert.Equal(t, 32*time.Second, backoffFn(5))
-	assert.Equal(t, time.Minute, backoffFn(20))
+	req := esapi.LicenseGetRequest{}
+	if err := doRequest(ctx, client, req, &result); err != nil {
+		return licenser.License{}, err
+	}
+	return result.License, nil
 }

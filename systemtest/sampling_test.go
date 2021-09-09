@@ -209,12 +209,11 @@ func TestTailSamplingUnlicensed(t *testing.T) {
 
 	timeout := time.After(time.Minute)
 	logs := srv.Logs.Iterator()
-	for {
+	var done bool
+	for !done {
 		select {
 		case entry := <-logs.C():
-			if strings.Contains(entry.Message, "invalid license") {
-				return
-			}
+			done = strings.Contains(entry.Message, "invalid license")
 		case <-timeout:
 			t.Fatal("timed out waiting for log message")
 		}
@@ -225,6 +224,10 @@ func TestTailSamplingUnlicensed(t *testing.T) {
 	_, err = es.Client.Search("traces-apm*").Do(context.Background(), &result)
 	assert.NoError(t, err)
 	assert.Empty(t, result.Hits.Hits)
+
+	// The server will wait for the enqueued events to be published before
+	// shutting down gracefully, so shutdown forcefully.
+	srv.Kill()
 }
 
 func refreshPeriodically(t *testing.T, interval time.Duration, index ...string) {

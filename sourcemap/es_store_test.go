@@ -155,8 +155,10 @@ func newUnavailableElasticsearchClient(t testing.TB) elasticsearch.Client {
 	var transport roundTripperFunc = func(r *http.Request) (*http.Response, error) {
 		return nil, errors.New("client error")
 	}
-	backoff := func(int) time.Duration { return 0 }
-	client, err := elasticsearch.NewVersionedClient("", "", "", []string{"testing.invalid"}, nil, transport, 1, backoff)
+	cfg := elasticsearch.DefaultConfig()
+	cfg.Hosts = []string{"testing.invalid"}
+	cfg.MaxRetries = 1
+	client, err := elasticsearch.NewClientParams(elasticsearch.ClientParams{Config: cfg, Transport: transport})
 	require.NoError(t, err)
 	return client
 }
