@@ -30,6 +30,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 
 	"github.com/elastic/apm-server/elasticsearch"
 	logs "github.com/elastic/apm-server/log"
@@ -81,17 +82,18 @@ func NewElasticsearchStore(
 }
 
 func (s *esStore) fetch(ctx context.Context, name, version, path string) (string, error) {
-	statusCode, body, err := s.runSearchQuery(ctx, name, version, path)
+	resp, err := s.runSearchQuery(ctx, name, version, path)
 	if err != nil {
 		return "", errors.Wrap(err, errMsgESFailure)
 	}
-	defer body.Close()
+	defer resp.Body.Close()
+
 	// handle error response
-	if statusCode >= http.StatusMultipleChoices {
-		if statusCode == http.StatusNotFound {
+	if resp.StatusCode >= http.StatusMultipleChoices {
+		if resp.StatusCode == http.StatusNotFound {
 			return "", nil
 		}
-		b, err := ioutil.ReadAll(body)
+		b, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return "", errors.Wrap(err, errMsgParseSourcemap)
 		}
@@ -99,17 +101,20 @@ func (s *esStore) fetch(ctx context.Context, name, version, path string) (string
 	}
 
 	// parse response
-	return parse(body, name, version, path, s.logger)
+	return parse(resp.Body, name, version, path, s.logger)
 }
 
-func (s *esStore) runSearchQuery(ctx context.Context, name, version, path string) (int, io.ReadCloser, error) {
-	// build and encode the query
+func (s *esStore) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query(name, version, path)); err != nil {
-		return 0, nil, err
+		return nil, err
 	}
-	// Perform the runSearchQuery request.
-	return s.client.SearchQuery(ctx, s.index, &buf)
+	req := esapi.SearchRequest{
+		Index:          []string{s.index},
+		Body:           &buf,
+		TrackTotalHits: true,
+	}
+	return req.Do(ctx, s.client)
 }
 
 func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {

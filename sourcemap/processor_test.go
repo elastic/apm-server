@@ -262,7 +262,13 @@ func TestBatchProcessorTimeout(t *testing.T) {
 		<-req.Context().Done()
 		return nil, req.Context().Err()
 	}
-	client, err := elasticsearch.NewVersionedClient("", "", "", []string{""}, nil, transport, 3, elasticsearch.DefaultBackoff)
+
+	cfg := elasticsearch.DefaultConfig()
+	cfg.Hosts = []string{""}
+	client, err := elasticsearch.NewClientParams(elasticsearch.ClientParams{
+		Config:    cfg,
+		Transport: transport,
+	})
 	require.NoError(t, err)
 	store, err := NewElasticsearchStore(client, "index", time.Minute)
 	require.NoError(t, err)

@@ -80,16 +80,10 @@ func (f SubscriberFunc) Subscribe(ctx context.Context) (string, error) {
 // requests by calling sub (if non-nil). If either function is nil, then the
 // respective operation will be a no-op.
 func Client(pub Publisher, sub Subscriber) elasticsearch.Client {
-	client, err := elasticsearch.NewVersionedClient(
-		"",                          // API Key
-		"",                          // user
-		"",                          // password,
-		[]string{"testing.invalid"}, // addresses
-		nil,                         // headers
-		&channelClientRoundTripper{pub: pub, sub: sub},
-		3,
-		elasticsearch.DefaultBackoff,
-	)
+	client, err := elasticsearch.NewClientParams(elasticsearch.ClientParams{
+		Config:    elasticsearch.DefaultConfig(),
+		Transport: &channelClientRoundTripper{pub: pub, sub: sub},
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -106,7 +100,7 @@ func (rt *channelClientRoundTripper) RoundTrip(r *http.Request) (*http.Response,
 	var handler func(*http.Request, *httptest.ResponseRecorder) error
 	switch r.Method {
 	case "GET":
-		if r.URL.Path == "testing.invalid/" {
+		if r.URL.Path == "/" {
 			handler = rt.roundTripProductCheck
 		} else if strings.HasSuffix(r.URL.Path, "/_stats/get") {
 			handler = rt.roundTripStats
