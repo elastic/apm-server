@@ -426,6 +426,14 @@ func (s *Server) Close() error {
 	return s.Wait()
 }
 
+// Kill forcefully shuts down the server.
+func (s *Server) Kill() error {
+	if s.cmd != nil {
+		s.cmd.Process.Kill()
+	}
+	return s.Wait()
+}
+
 // Wait waits for the server to exit.
 //
 // Wait waits up to 10 seconds for the process's stderr to be closed,

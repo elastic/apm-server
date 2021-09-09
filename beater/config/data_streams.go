@@ -17,8 +17,6 @@
 
 package config
 
-import "time"
-
 // DataStreamsConfig holds data streams configuration.
 type DataStreamsConfig struct {
 	Enabled bool `config:"enabled"`
@@ -32,16 +30,11 @@ type DataStreamsConfig struct {
 	//
 	// This configuration requires either a connection to Kibana or Elasticsearch.
 	WaitForIntegration bool `config:"wait_for_integration"`
-
-	// WaitForIntegrationInterval holds the interval for checks when waiting
-	// for the integration package to be installed.
-	WaitForIntegrationInterval time.Duration `config:"wait_for_integration_interval"`
 }
 
 func defaultDataStreamsConfig() DataStreamsConfig {
 	return DataStreamsConfig{
-		Enabled:                    false,
-		WaitForIntegration:         true,
-		WaitForIntegrationInterval: 5 * time.Second,
+		Enabled:            false,
+		WaitForIntegration: true,
 	}
 }

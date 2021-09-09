@@ -43,8 +43,10 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/outputs"
 )
 
 type testBeater struct {
@@ -96,9 +98,16 @@ func newBeat(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, even
 
 	var pub beat.Pipeline
 	if events != nil {
-		// capture events
+		// capture events using the supplied channel
 		pubClient := newChanClientWith(events)
 		pub = dummyPipeline(cfg, info, pubClient)
+	} else if beatConfig != nil && beatConfig.Output.Name() == "elasticsearch" {
+		// capture events using the configured elasticsearch output
+		supporter, err := idxmgmt.DefaultSupport(logp.NewLogger("beater_test"), info, nil)
+		require.NoError(t, err)
+		outputGroup, err := outputs.Load(supporter, info, nil, "elasticsearch", beatConfig.Output.Config())
+		require.NoError(t, err)
+		pub = dummyPipeline(cfg, info, outputGroup.Clients...)
 	} else {
 		// don't capture events
 		pub = dummyPipeline(cfg, info)
@@ -255,7 +264,10 @@ func TestTransformConfigIndex(t *testing.T) {
 			cfg.RumConfig.SourceMapping.IndexPattern = indexPattern
 		}
 
-		store, err := newSourcemapStore(beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, nil)
+		store, err := newSourcemapStore(
+			beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, nil,
+			elasticsearch.NewClient,
+		)
 		require.NoError(t, err)
 		store.NotifyAdded(context.Background(), "name", "version", "path")
 		require.Len(t, requestPaths, 2)
@@ -287,7 +299,10 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	cfg.RumConfig.SourceMapping.ESConfig = elasticsearch.DefaultConfig()
 	cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{ts.URL}
 
-	store, err := newSourcemapStore(beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, nil)
+	store, err := newSourcemapStore(
+		beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, nil,
+		elasticsearch.NewClient,
+	)
 	require.NoError(t, err)
 	// Check that the provided rum elasticsearch config was used and
 	// Fetch() goes to the test server.
@@ -324,7 +339,7 @@ func TestFleetStoreUsed(t *testing.T) {
 		TLS:          nil,
 	}
 
-	store, err := newSourcemapStore(beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, fleetCfg)
+	store, err := newSourcemapStore(beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, fleetCfg, nil)
 	require.NoError(t, err)
 	_, err = store.Fetch(context.Background(), "app", "1.0", "/bundle/path")
 	require.NoError(t, err)
