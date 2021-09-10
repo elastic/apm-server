@@ -259,7 +259,7 @@ integration package to set up Elasticsearch before APM Server becomes operative.
 [[index-template-config]]
 ====== Standalone setup (classic indices)
 
-deprecated::[7.16.0,Users should now use the <<apm-integration>> or configure <<data_streams.enabled>>.]
+deprecated::[7.16.0,Users should now use the <<apm-integration>> or configure <<data_streams.enabled,`data_streams.enabled`>>.]
 
 It is recommended that you run the `setup` command before starting {beatname_uc}.
 
