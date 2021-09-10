@@ -251,7 +251,7 @@ All available configuration options are outlined in
 [float]
 ====== Standalone setup (data streams)
 
-If you're running APM Server as a standalone process, we recommend that you configure <<data_streams.enabled>>
+If you're running APM Server as a standalone process, we recommend that you configure <<data_streams.enabled,`data_streams.enabled`>>
 to write events to data streams in the same way as the <<apm-integration>>. You will need to install the APM
 integration package to set up Elasticsearch before APM Server becomes operative.
 
