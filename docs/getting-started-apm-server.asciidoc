@@ -237,8 +237,7 @@ Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user s
 [float]
 ===== APM integration for Elastic Agent
 
-If you're running APM Server as an Elastic Agent integration, you can configure settings via
-{fleet-guide}/agent-policy.html[Elastic Agent policies].
+If you're running the <<apm-integration>>, you can configure settings via {fleet-guide}/agent-policy.html[Elastic Agent policies].
 
 [float]
 ===== Standalone
