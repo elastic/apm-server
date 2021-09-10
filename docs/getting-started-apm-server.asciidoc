@@ -260,7 +260,8 @@ integration package to set up Elasticsearch before APM Server becomes operative.
 
 deprecated::[7.16.0,Users should now use the <<apm-integration>> or configure <<data_streams.enabled,`data_streams.enabled`>>.]
 
-It is recommended that you run the `setup` command before starting {beatname_uc}.
+When running APM Server standalone with classic indices,
+we recommend that you run the `setup` command before starting {beatname_uc}.
 
 The `setup` command sets up the initial environment, including the Elasticsearch index template,
 and ILM write alias. In Elasticsearch, {ref}/index-templates.html[index templates]
