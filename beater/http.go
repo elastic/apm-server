@@ -19,11 +19,14 @@ package beater
 
 import (
 	"context"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/libp2p/go-reuseport"
+	"go.uber.org/zap"
 	"golang.org/x/net/netutil"
 
 	"github.com/elastic/apm-server/beater/api"
@@ -60,6 +63,7 @@ func newHTTPServer(
 		ReadTimeout:    cfg.ReadTimeout,
 		WriteTimeout:   cfg.WriteTimeout,
 		MaxHeaderBytes: cfg.MaxHeaderSize,
+		ErrorLog:       newErrorLog(logger),
 	}
 
 	if cfg.TLS.IsEnabled() {
@@ -162,4 +166,23 @@ func listen(cfg *config.Config, logger *logp.Logger) (net.Listener, error) {
 func doNotTrace(req *http.Request) bool {
 	// Don't trace root url (healthcheck) requests.
 	return req.URL.Path == api.RootPath
+}
+
+// newErrorLog returns a standard library log.Logger that sends
+// logs to logger with error level.
+func newErrorLog(logger *logp.Logger) *log.Logger {
+	logger = logger.Named("http")
+	logger = logger.WithOptions(zap.AddCallerSkip(3))
+	w := errorLogWriter{logger}
+	return log.New(w, "", 0)
+}
+
+type errorLogWriter struct {
+	logger *logp.Logger
+}
+
+func (w errorLogWriter) Write(p []byte) (int, error) {
+	message := strings.TrimSpace(string(p))
+	w.logger.Error(message)
+	return len(p), nil
 }

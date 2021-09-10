@@ -64,6 +64,7 @@ func TestJaegerGRPCMuxedTLS(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Monitoring = newFastMonitoringConfig()
+	srv.Config.TLS = &apmservertest.TLSConfig{ClientAuthentication: "required"}
 	require.NoError(t, srv.StartTLS())
 	testJaegerGRPC(t, srv, serverAddr(srv), grpc.WithTransportCredentials(credentials.NewTLS(srv.TLS)))
 }
