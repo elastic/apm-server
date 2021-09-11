@@ -20,7 +20,6 @@ package model
 import (
 	"context"
 	"fmt"
-	"net"
 	"testing"
 	"time"
 
@@ -133,7 +132,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	hostname := "a.b.c"
 	architecture := "darwin"
 	platform := "x64"
-	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
+	id, name, userAgent := "123", "jane", "node-js-2.3"
 	url, referer := "https://localhost", "http://localhost"
 	serviceName, serviceNodeName, serviceVersion := "myservice", "service-123", "2.1.3"
 
@@ -154,7 +153,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		},
 		User:      User{ID: id, Name: name},
 		UserAgent: UserAgent{Original: userAgent},
-		Client:    Client{IP: net.ParseIP(ip)},
 		URL:       URL{Original: url},
 		Transaction: &Transaction{
 			HTTP:    &HTTP{Request: &request, Response: &response},
@@ -168,8 +166,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	assert.Equal(t, common.MapStr{
 		"processor":  common.MapStr{"name": "transaction", "event": "transaction"},
 		"user":       common.MapStr{"id": "123", "name": "jane"},
-		"client":     common.MapStr{"ip": ip},
-		"source":     common.MapStr{"ip": ip},
 		"user_agent": common.MapStr{"original": userAgent},
 		"host": common.MapStr{
 			"architecture": "darwin",

@@ -33,6 +33,10 @@
             "service": {
                 "name": "apm-agent-js"
             },
+            "source": {
+                "ip": "127.0.0.1",
+                "port": "dynamic"
+            },
             "span": {
                 "duration": {
                     "us": 643000

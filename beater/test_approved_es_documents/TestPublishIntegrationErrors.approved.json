@@ -256,11 +256,7 @@
                         ]
                     },
                     "method": "POST",
-                    "referrer": "http://localhost:8000/test/e2e/",
-                    "socket": {
-                        "encrypted": true,
-                        "remote_address": "12.53.12.1"
-                    }
+                    "referrer": "http://localhost:8000/test/e2e/"
                 },
                 "response": {
                     "finished": true,

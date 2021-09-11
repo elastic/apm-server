@@ -20,6 +20,7 @@ package utility
 import (
 	"net"
 	"net/http"
+	"strconv"
 )
 
 // ExtractIP calls ExtractIPFromHeader(r) to extract a valid IP address. If no valid IP can be extracted from headers,
@@ -50,6 +51,21 @@ func ParseIP(inp string) net.IP {
 	host, _ := splitHost(inp)
 	if ip := net.ParseIP(host); ip != nil {
 		return ip
+	}
+	return nil
+}
+
+// ParseTCPAddr returns a net.Addr parsed from a given input, if it is a valid IP:port pair. Otherwise returns nil.
+func ParseTCPAddr(in string) net.Addr {
+	if in == "" {
+		return nil
+	}
+	host, portstr := splitHost(in)
+	if ip := net.ParseIP(host); ip != nil {
+		port, err := strconv.ParseUint(portstr, 10, 16)
+		if err == nil {
+			return &net.TCPAddr{IP: ip, Port: int(port)}
+		}
 	}
 	return nil
 }

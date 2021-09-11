@@ -47,6 +47,7 @@ type APMEvent struct {
 	User        User
 	UserAgent   UserAgent
 	Client      Client
+	Source      Source
 	Destination Destination
 	Cloud       Cloud
 	Network     Network
@@ -124,15 +125,8 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("host", e.Host.fields())
 	fields.maybeSetMapStr("process", e.Process.fields())
 	fields.maybeSetMapStr("user", e.User.fields())
-	if client := e.Client.fields(); fields.maybeSetMapStr("client", client) {
-		// We copy client to source for transactions and errors.
-		switch e.Processor {
-		case TransactionProcessor, ErrorProcessor:
-			// TODO(axw) once we are using Fleet for ingest pipeline
-			// management, move this to an ingest pipeline.
-			fields.set("source", client)
-		}
-	}
+	fields.maybeSetMapStr("client", e.Client.fields())
+	fields.maybeSetMapStr("source", e.Source.fields())
 	fields.maybeSetMapStr("destination", e.Destination.fields())
 	fields.maybeSetMapStr("user_agent", e.UserAgent.fields())
 	fields.maybeSetMapStr("container", e.Container.fields())

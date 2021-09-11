@@ -19,6 +19,7 @@ package model
 
 import (
 	"context"
+	"net"
 	"testing"
 	"time"
 
@@ -64,6 +65,7 @@ func TestAPMEventFields(t *testing.T) {
 				Name:     host,
 			},
 			Client:      Client{Domain: "client.domain"},
+			Source:      Source{IP: net.ParseIP("127.0.0.1"), Port: 1234},
 			Destination: Destination{Address: destinationAddress, Port: destinationPort},
 			Process:     Process{Pid: pid},
 			User:        User{ID: uid, Email: mail},
@@ -93,6 +95,7 @@ func TestAPMEventFields(t *testing.T) {
 			},
 			"user":   common.MapStr{"id": "12321", "email": "user@email.com"},
 			"client": common.MapStr{"domain": "client.domain"},
+			"source": common.MapStr{"ip": "127.0.0.1", "port": 1234},
 			"destination": common.MapStr{
 				"address": destinationAddress,
 				"ip":      destinationAddress,

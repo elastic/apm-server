@@ -19,6 +19,7 @@ package otlp
 
 import (
 	"context"
+	"net"
 
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/model"
@@ -41,8 +42,14 @@ func SetClientMetadata(ctx context.Context, batch *model.Batch) error {
 		}
 		clientMetadata, ok := interceptors.ClientMetadataFromContext(ctx)
 		if ok {
+			if event.Source.IP == nil {
+				if tcpAddr, ok := clientMetadata.SourceAddr.(*net.TCPAddr); ok {
+					event.Source.IP = tcpAddr.IP
+					event.Source.Port = tcpAddr.Port
+				}
+			}
 			if event.Client.IP == nil {
-				event.Client.IP = clientMetadata.SourceIP
+				event.Client.IP = clientMetadata.ClientIP
 			}
 		}
 	}

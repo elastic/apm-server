@@ -249,21 +249,17 @@ func translateTransaction(
 	var (
 		netHostName string
 		netHostPort int
-		netPeerIP   string
-		netPeerName string
-		netPeerPort int
 	)
 
 	var (
-		isHTTP            bool
-		httpScheme        string
-		httpURL           string
-		httpServerName    string
-		httpHost          string
-		http              model.HTTP
-		httpRequest       model.HTTPRequest
-		httpRequestSocket model.HTTPRequestSocket
-		httpResponse      model.HTTPResponse
+		isHTTP         bool
+		httpScheme     string
+		httpURL        string
+		httpServerName string
+		httpHost       string
+		http           model.HTTP
+		httpRequest    model.HTTPRequest
+		httpResponse   model.HTTPResponse
 	)
 
 	var (
@@ -300,7 +296,7 @@ func translateTransaction(
 				httpResponse.StatusCode = int(v.IntVal())
 				http.Response = &httpResponse
 			case semconv.AttributeNetPeerPort:
-				netPeerPort = int(v.IntVal())
+				event.Source.Port = int(v.IntVal())
 			case semconv.AttributeNetHostPort:
 				netHostPort = int(v.IntVal())
 			case "rpc.grpc.status_code":
@@ -349,28 +345,12 @@ func translateTransaction(
 				event.Client.IP = net.ParseIP(stringval)
 			case semconv.AttributeHTTPUserAgent:
 				event.UserAgent.Original = stringval
-			case "http.remote_addr":
-				// NOTE(axw) this is non-standard, sent by opentelemetry-go's othttp.
-				// It's semanticall equivalent to net.peer.ip+port. Standard attributes
-				// take precedence.
-				ip, port, err := net.SplitHostPort(stringval)
-				if err != nil {
-					ip = stringval
-				}
-				if net.ParseIP(ip) != nil {
-					if netPeerIP == "" {
-						netPeerIP = ip
-					}
-					if netPeerPort == 0 {
-						netPeerPort, _ = strconv.Atoi(port)
-					}
-				}
 
 			// net.*
 			case semconv.AttributeNetPeerIP:
-				netPeerIP = stringval
+				event.Source.IP = net.ParseIP(stringval)
 			case semconv.AttributeNetPeerName:
-				netPeerName = stringval
+				event.Source.Domain = stringval
 			case semconv.AttributeNetHostName:
 				netHostName = stringval
 			case attributeNetworkConnectionType:
@@ -461,27 +441,15 @@ func translateTransaction(
 			}
 		}
 		event.URL = model.ParseURL(httpURL, httpHost, httpScheme)
-
-		// Set the remote address from net.peer.*
-		if event.Transaction.HTTP.Request != nil && netPeerIP != "" {
-			remoteAddr := netPeerIP
-			if netPeerPort > 0 {
-				remoteAddr = net.JoinHostPort(remoteAddr, strconv.Itoa(netPeerPort))
-			}
-			httpRequestSocket.RemoteAddress = remoteAddr
-			httpRequest.Socket = &httpRequestSocket
-		}
 	}
 
 	if isMessaging {
 		event.Transaction.Message = &message
 	}
 
-	if netPeerIP != "" {
-		event.Client.IP = net.ParseIP(netPeerIP)
+	if event.Client.IP == nil {
+		event.Client = model.Client(event.Source)
 	}
-	event.Client.Port = netPeerPort
-	event.Client.Domain = netPeerName
 
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate span metrics.
