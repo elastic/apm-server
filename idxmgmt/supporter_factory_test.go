@@ -159,6 +159,37 @@ func TestMakeDefaultSupporterDataStreamsWarnings(t *testing.T) {
 	}, warnings)
 }
 
+func TestMakeDefaultSupporterStandaloneWarnings(t *testing.T) {
+	core, observed := observer.New(zapcore.DebugLevel)
+	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(in, core)
+	}))
+
+	attrs := map[string]interface{}{
+		"apm-server.ilm.enabled":                      "auto",
+		"apm-server.register.ingest.pipeline.enabled": "true",
+		"output.elasticsearch.indices":                map[string]interface{}{},
+		"setup.template.name":                         "custom",
+		"setup.template.pattern":                      "custom",
+	}
+
+	s, err := MakeDefaultSupporter(logger, beat.Info{}, common.MustNewConfigFrom(attrs))
+	assert.NoError(t, err)
+	assert.NotNil(t, s)
+
+	var warnings []string
+	for _, record := range observed.All() {
+		assert.Equal(t, zapcore.WarnLevel, record.Level, record.Message)
+		warnings = append(warnings, record.Message)
+	}
+	assert.Equal(t, []string{
+		"deprecated config `setup.template` specified. This config will be removed in 8.0.",
+		"deprecated config `apm-server.ilm` specified. This config will be removed in 8.0.",
+		"deprecated config `apm-server.register.ingest.pipeline` specified. This config will be removed in 8.0.",
+		"deprecated config `output.elasticsearch.{index,indices}` specified. This config will be removed in 8.0.",
+	}, warnings)
+}
+
 func TestNewIndexManagementConfig(t *testing.T) {
 	cfg := common.MustNewConfigFrom(map[string]interface{}{
 		"path.config":           "/dev/null",

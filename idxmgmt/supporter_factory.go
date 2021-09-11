@@ -147,10 +147,10 @@ func checkTemplateESSettings(tmplCfg template.TemplateConfig, indexCfg *unmanage
 }
 
 func (cfg *IndexManagementConfig) logWarnings(log *logp.Logger) {
-	if !cfg.DataStreams {
-		return
+	format := "deprecated config `%s` specified. This config will be removed in 8.0."
+	if cfg.DataStreams {
+		format = "`%s` specified, but will be ignored as data streams are enabled"
 	}
-	const format = "`%s` specified, but will be ignored as data streams are enabled"
 	if cfg.setupTemplateSpecified {
 		log.Warnf(format, "setup.template")
 	}
