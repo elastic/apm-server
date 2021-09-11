@@ -112,12 +112,14 @@ func modifyBuiltinCommands(rootCmd *cmd.BeatsRootCmd, settings instance.Settings
 
 	// only add defined flags to setup command
 	setup := rootCmd.SetupCmd
-	setup.Short = "Setup Elasticsearch index management components and pipelines"
+	setup.Short = "Setup Elasticsearch index management components and pipelines (deprecated)"
 	setup.Long = `This command does initial setup of the environment:
 
  * Index management including loading Elasticsearch templates, ILM policies and write aliases.
  * Ingest pipelines
-`
+
+` + idxmgmt.SetupDeprecatedWarning + "\n"
+
 	setup.ResetFlags()
 
 	//lint:ignore SA1019 Setting up template must still be supported until next major version upgrade.
