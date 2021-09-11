@@ -188,8 +188,6 @@ The default is the number of logical CPUs available in the system.
 [float]
 === Configuration options: `data_streams`
 
-experimental::[]
-
 [[data_streams.enabled]]
 [float]
 ==== `enabled`

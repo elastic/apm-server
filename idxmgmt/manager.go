@@ -31,12 +31,18 @@ import (
 )
 
 const (
-	msgIlmDisabledES             = "Automatically disabled ILM as configured Elasticsearch not eligible for auto enabling. "
-	msgIlmDisabledCfg            = "Automatically disabled ILM as custom index settings configured. "
-	msgIdxCfgIgnored             = "Custom index configuration ignored when ILM is enabled. "
-	msgIlmSetupDisabled          = "Manage ILM setup is disabled. "
-	msgIlmSetupOverwriteDisabled = "Overwrite ILM setup is disabled. "
-	msgTemplateSetupDisabled     = "Template loading is disabled. "
+	// SetupDeprecatedWarning holds the warning message to display to users
+	// when setting up index management and/or pipelines.
+	SetupDeprecatedWarning = `WARNING: setting up Elasticsearch directly with apm-server is deprecated, and will be removed in 8.0.
+New installations are encouraged to use the Elastic Agent integration. For more details, refer to
+https://www.elastic.co/guide/en/apm/server/current/breaking-changes.html#_7_16`
+
+	msgIlmDisabledES             = "Automatically disabled ILM as configured Elasticsearch not eligible for auto enabling."
+	msgIlmDisabledCfg            = "Automatically disabled ILM as custom index settings configured."
+	msgIdxCfgIgnored             = "Custom index configuration ignored when ILM is enabled."
+	msgIlmSetupDisabled          = "Manage ILM setup is disabled."
+	msgIlmSetupOverwriteDisabled = "Overwrite ILM setup is disabled."
+	msgTemplateSetupDisabled     = "Template loading is disabled."
 )
 
 type manager struct {
@@ -48,18 +54,19 @@ type manager struct {
 // VerifySetup provides an opportunity to print a warning message to the console,
 // for users who are running apm-server interactively.
 func (m *manager) VerifySetup(loadTemplate, loadILM libidxmgmt.LoadMode) (bool, string) {
+	warnings := []string{"\n" + SetupDeprecatedWarning + "\n"}
 	templateFeature := m.templateFeature(loadTemplate)
-	_, _, ilmWarn, _, err := m.ilmFeature(loadILM)
-	if err != nil {
-		return false, err.Error()
+	if _, _, ilmWarn, _, err := m.ilmFeature(loadILM); err != nil {
+		warnings = append(warnings, err.Error())
+	} else {
+		if !templateFeature.load {
+			warnings = append(warnings, msgTemplateSetupDisabled)
+		}
+		if ilmWarn != "" {
+			warnings = append(warnings, ilmWarn)
+		}
 	}
-
-	var warn string
-	if !templateFeature.load {
-		warn += msgTemplateSetupDisabled
-	}
-	warn += ilmWarn
-	return warn == "", strings.TrimSpace(warn)
+	return false, strings.Join(warnings, " ")
 }
 
 // Setup is called for new Elasticsearch connections to ensure indices and templates are setup.
