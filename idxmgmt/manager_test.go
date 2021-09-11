@@ -43,7 +43,6 @@ func TestManager_VerifySetup(t *testing.T) {
 		version               string
 		esCfg                 common.MapStr
 
-		ok   bool
 		warn string
 	}{
 		"SetupTemplateDisabled": {
@@ -101,7 +100,6 @@ func TestManager_VerifySetup(t *testing.T) {
 		"EverythingEnabled": {
 			templateEnabled: true, loadTemplate: libidxmgmt.LoadModeEnabled,
 			ilmSetupEnabled: true, ilmSetupOverwrite: true, loadILM: libidxmgmt.LoadModeEnabled,
-			ok: true,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -123,7 +121,8 @@ func TestManager_VerifySetup(t *testing.T) {
 			}
 			manager := support.Manager(newMockClientHandler(version), nil)
 			ok, warn := manager.VerifySetup(tc.loadTemplate, tc.loadILM)
-			require.Equal(t, tc.ok, ok, warn)
+			require.False(t, ok, warn)
+			assert.Contains(t, warn, SetupDeprecatedWarning)
 			assert.Contains(t, warn, tc.warn)
 		})
 	}

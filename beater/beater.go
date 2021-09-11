@@ -39,7 +39,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
@@ -60,10 +59,6 @@ import (
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sampling"
 	"github.com/elastic/apm-server/sourcemap"
-)
-
-var (
-	errSetupDashboardRemoved = errors.New("setting 'setup.dashboards' has been removed")
 )
 
 // CreatorParams holds parameters for creating beat.Beaters.
@@ -89,9 +84,6 @@ func NewCreator(args CreatorParams) beat.Creator {
 			logger = logger.Named(logs.Beater)
 		} else {
 			logger = logp.NewLogger(logs.Beater)
-		}
-		if err := checkConfig(logger); err != nil {
-			return nil, err
 		}
 		bt := &beater{
 			rawConfig:     ucfg,
@@ -603,32 +595,6 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 		})
 	}
 	return WrapRunServerWithProcessors(runServer, processors...)
-}
-
-// checkConfig verifies the global configuration doesn't use unsupported settings
-//
-// TODO(axw) remove this, nobody expects dashboard setup from apm-server.
-func checkConfig(logger *logp.Logger) error {
-	cfg, err := cfgfile.Load("", nil)
-	if err != nil {
-		// responsibility for failing to load configuration lies elsewhere
-		// this is not reachable after going through normal beat creation
-		return nil
-	}
-
-	var s struct {
-		Dashboards *common.Config `config:"setup.dashboards"`
-	}
-	if err := cfg.Unpack(&s); err != nil {
-		return err
-	}
-	if s.Dashboards != nil {
-		if s.Dashboards.Enabled() {
-			return errSetupDashboardRemoved
-		}
-		logger.Warn(errSetupDashboardRemoved)
-	}
-	return nil
 }
 
 // elasticsearchOutputConfig returns nil if the output is not elasticsearch
