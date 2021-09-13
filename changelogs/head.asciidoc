@@ -40,9 +40,11 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 - Index OpenTelemetry span events and Jaeger logs into a log data stream {pull}6122[6122]
 - With `apm-server.data_streams.enabled` in standalone mode, the server now accepts and enqueues events while waiting for the integration to be installed {pull}6130[6130]
 - HTTP server errors (e.g. TLS handshake errors) are now logged {pull}6141[6141]
+- Span documents now duplicate extended HTTP fields, which were previously only under `span.http.*`, under `http.*` {pull}6147[6147]
 - We now record the direct network peer for incoming requests as `source.ip` and `source.port`; origin IP is recorded in `client.ip` {pull}6152[6152]
 
 [float]
 ==== Deprecated
 - Setting `service.version` as a span tag (Jaeger) or attribute (OTel) is deprecated; use tracer tags (Jaeger) and resource attributes (OTel) {pull}6131[6131]
 - Setting up Elasticsearch templates, ILM policies, and pipelines directly with apm-server is now deprecated. Users should use the integration package {pull}6145[6145]
+- `span.http.*` fields are deprecated, replaced by `http.*`, and will be removed in 8.0 {pull}6147[6147]

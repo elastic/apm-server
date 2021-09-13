@@ -146,6 +146,7 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				elemVal = reflect.Zero(f.Type().Elem())
 			}
 			if elemVal.IsValid() {
+				fieldVal = fieldVal.Slice(0, 0)
 				for i := 0; i < values.N; i++ {
 					fieldVal = reflect.Append(fieldVal, elemVal)
 				}
@@ -207,7 +208,7 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 			}
 			return
 		default:
-			panic(fmt.Sprintf("unhandled type %s for key %s", f.Type(), key))
+			fieldVal = reflect.Value{}
 		}
 
 		// Run through options, giving an opportunity to disable
@@ -220,6 +221,9 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 			}
 		}
 		if setField {
+			if !fieldVal.IsValid() {
+				panic(fmt.Sprintf("unhandled type %s for key %s", f.Kind(), key))
+			}
 			f.Set(fieldVal)
 		}
 	})

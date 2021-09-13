@@ -197,15 +197,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		exceptions := func(key string) bool {
 			for _, s := range []string{
 				// values not set for RUM v3
-				"HTTP.Request.Env", "HTTP.Request.Body", "HTTP.Request.Socket", "HTTP.Request.Cookies",
-				"HTTP.Response.HeadersSent", "HTTP.Response.Finished",
-				"Experimental",
-				"RepresentativeCount", "Root", "Message",
-				// HTTP headers tested separately
-				"HTTP.Request.Headers",
-				"HTTP.Response.Headers",
-				// URL parts are derived from page.url (separately tested)
-				"URL", "Page.URL",
+				"RepresentativeCount", "Message",
 				// Not set for transaction events:
 				"AggregatedDuration",
 				"AggregatedDuration.Count",
@@ -251,19 +243,10 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"ChildIDs",
 				"Composite",
 				"DB",
-				"Experimental",
-				"HTTP.Response.Headers",
 				"Message",
 				"RepresentativeCount",
 				"Stacktrace.LibraryFrame",
 				"Stacktrace.Vars",
-				// set as HTTP.StatusCode for RUM v3
-				"HTTP.Response.StatusCode",
-				// Not set for HTTP spans
-				"HTTP.Request.Env", "HTTP.Request.Body", "HTTP.Request.Socket", "HTTP.Request.Cookies",
-				"HTTP.Response.HeadersSent", "HTTP.Response.Finished",
-				"HTTP.Request.Body", "HTTP.Request.Headers", "HTTP.Response.Headers", "HTTP.Request.Referrer",
-				"HTTP.Version",
 				// stacktrace original and sourcemap values are set when sourcemapping is applied
 				"Stacktrace.Original",
 				"Stacktrace.Sourcemap",
@@ -372,7 +355,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Context.Page.Referer.Set("https://my.site.test:9201")
 		var out model.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, "https://my.site.test:9201", out.Transaction.HTTP.Request.Referrer)
+		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referrer)
 	})
 
 	t.Run("http-headers", func(t *testing.T) {
@@ -381,8 +364,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out model.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.Transaction.HTTP.Request.Headers)
-		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.Transaction.HTTP.Response.Headers)
+		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
+		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.HTTP.Response.Headers)
 	})
 
 	t.Run("session", func(t *testing.T) {

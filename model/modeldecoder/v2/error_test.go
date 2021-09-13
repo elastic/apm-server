@@ -130,17 +130,10 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 	t.Run("error-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
 			for _, s := range []string{
-				// metadata are tested separately
-				"Metadata",
-				// URL parts are derived from url (separately tested)
-				"Page.URL",
 				// exception.parent is only set after calling `flattenExceptionTree` (not part of decoding)
 				"Exception.Parent",
 				// GroupingKey is set by a model processor
 				"GroupingKey",
-				// HTTP headers tested in 'http-headers'
-				"HTTP.Request.Headers",
-				"HTTP.Response.Headers",
 				// stacktrace original and sourcemap values are set when sourcemapping is applied
 				"Exception.Stacktrace.Original",
 				"Exception.Stacktrace.Sourcemap",
@@ -148,7 +141,8 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 				"Log.Stacktrace.Sourcemap",
 				// ExcludeFromGrouping is set when processing the event
 				"Exception.Stacktrace.ExcludeFromGrouping",
-				"Log.Stacktrace.ExcludeFromGrouping"} {
+				"Log.Stacktrace.ExcludeFromGrouping",
+			} {
 				if strings.HasPrefix(key, s) {
 					return true
 				}
@@ -178,8 +172,8 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out model.APMEvent
 		mapToErrorModel(&input, &out)
-		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.Error.HTTP.Request.Headers)
-		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.Error.HTTP.Response.Headers)
+		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
+		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.HTTP.Response.Headers)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {
@@ -195,7 +189,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		input.Context.Page.Referer.Set("https://my.site.test:9201")
 		var out model.APMEvent
 		mapToErrorModel(&input, &out)
-		assert.Equal(t, "https://my.site.test:9201", out.Error.HTTP.Request.Referrer)
+		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referrer)
 	})
 
 	t.Run("exception-code", func(t *testing.T) {

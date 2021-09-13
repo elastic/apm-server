@@ -96,6 +96,14 @@
             "host": {
                 "hostname": "host-abc"
             },
+            "http": {
+                "request": {
+                    "method": "get"
+                },
+                "response": {
+                    "status_code": 400
+                }
+            },
             "parent": {
                 "id": "0000000041414646"
             },
@@ -133,6 +141,14 @@
             "host": {
                 "hostname": "host-abc"
             },
+            "http": {
+                "request": {
+                    "method": "get"
+                },
+                "response": {
+                    "status_code": 400
+                }
+            },
             "parent": {
                 "id": "0000000041414646"
             },
@@ -172,6 +188,14 @@
             "host": {
                 "hostname": "host-abc"
             },
+            "http": {
+                "request": {
+                    "method": "get"
+                },
+                "response": {
+                    "status_code": 400
+                }
+            },
             "parent": {
                 "id": "0000000041414646"
             },
@@ -210,6 +234,14 @@
             },
             "host": {
                 "hostname": "host-abc"
+            },
+            "http": {
+                "request": {
+                    "method": "get"
+                },
+                "response": {
+                    "status_code": 400
+                }
             },
             "parent": {
                 "id": "0000000041414646"
@@ -250,6 +282,14 @@
             "host": {
                 "hostname": "host-abc"
             },
+            "http": {
+                "request": {
+                    "method": "get"
+                },
+                "response": {
+                    "status_code": 400
+                }
+            },
             "parent": {
                 "id": "0000000041414646"
             },
@@ -287,6 +327,14 @@
             "host": {
                 "hostname": "host-abc"
             },
+            "http": {
+                "request": {
+                    "method": "get"
+                },
+                "response": {
+                    "status_code": 400
+                }
+            },
             "parent": {
                 "id": "0000000041414646"
             },
@@ -319,6 +367,14 @@
             "data_stream.type": "logs",
             "host": {
                 "hostname": "host-abc"
+            },
+            "http": {
+                "request": {
+                    "method": "get"
+                },
+                "response": {
+                    "status_code": 400
+                }
             },
             "labels": {
                 "event": "baggage",
@@ -354,6 +410,14 @@
             "host": {
                 "hostname": "host-abc"
             },
+            "http": {
+                "request": {
+                    "method": "get"
+                },
+                "response": {
+                    "status_code": 400
+                }
+            },
             "labels": {
                 "level": "info"
             },
@@ -387,6 +451,14 @@
             "data_stream.type": "logs",
             "host": {
                 "hostname": "host-abc"
+            },
+            "http": {
+                "request": {
+                    "method": "get"
+                },
+                "response": {
+                    "status_code": 400
+                }
             },
             "labels": {
                 "level": "error"

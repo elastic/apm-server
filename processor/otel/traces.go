@@ -414,7 +414,7 @@ func translateTransaction(
 	}
 
 	if isHTTP {
-		event.Transaction.HTTP = &http
+		event.HTTP = http
 
 		// Set outcome nad result from status code.
 		if statusCode := httpResponse.StatusCode; statusCode > 0 {
@@ -722,7 +722,7 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 		event.Span.Type = "external"
 		subtype := "http"
 		event.Span.Subtype = subtype
-		event.Span.HTTP = &http
+		event.HTTP = http
 		event.URL.Original = httpURL
 	case isDBSpan:
 		event.Span.Type = "db"
@@ -916,13 +916,14 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, lab
 
 func setErrorContext(out *model.APMEvent, parent model.APMEvent) {
 	out.Trace.ID = parent.Trace.ID
+	out.HTTP = parent.HTTP
+	out.URL = parent.URL
 	if parent.Transaction != nil {
 		out.Transaction = &model.Transaction{
 			ID:      parent.Transaction.ID,
 			Sampled: parent.Transaction.Sampled,
 			Type:    parent.Transaction.Type,
 		}
-		out.Error.HTTP = parent.Transaction.HTTP
 		out.Error.Custom = parent.Transaction.Custom
 		out.Parent.ID = parent.Transaction.ID
 	}

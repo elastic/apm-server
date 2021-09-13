@@ -352,8 +352,8 @@ func TestHTTPTransactionSource(t *testing.T) {
 		attrs["http.method"] = pdata.NewAttributeValueString("POST")
 
 		event := transformTransactionWithAttributes(t, attrs)
-		require.NotNil(t, event.Transaction.HTTP)
-		require.NotNil(t, event.Transaction.HTTP.Request)
+		require.NotNil(t, event.HTTP)
+		require.NotNil(t, event.HTTP.Request)
 		parsedIP := net.ParseIP(expectedIP)
 		require.NotNil(t, parsedIP)
 		assert.Equal(t, model.Source{
@@ -387,7 +387,7 @@ func TestHTTPTransactionFlavor(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"http.flavor": pdata.NewAttributeValueString("1.1"),
 	})
-	assert.Equal(t, "1.1", event.Transaction.HTTP.Version)
+	assert.Equal(t, "1.1", event.HTTP.Version)
 }
 
 func TestHTTPTransactionUserAgent(t *testing.T) {
@@ -411,7 +411,7 @@ func TestHTTPTransactionStatusCode(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"http.status_code": pdata.NewAttributeValueInt(200),
 	})
-	assert.Equal(t, 200, event.Transaction.HTTP.Response.StatusCode)
+	assert.Equal(t, 200, event.HTTP.Response.StatusCode)
 }
 
 func TestDatabaseSpan(t *testing.T) {

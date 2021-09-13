@@ -5,8 +5,6 @@
 <titleabbrev>Integrate with Jaeger</titleabbrev>
 ++++
 
-experimental::[]
-
 include::./jaeger-reference.asciidoc[tag=jaeger-intro]
 
 [float]
