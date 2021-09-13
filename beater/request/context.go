@@ -79,13 +79,15 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	if c.Request != nil && c.Request.MultipartForm != nil {
 		c.Request.MultipartForm.RemoveAll()
 	}
-	c.Logger = nil
-	c.Authentication = auth.AuthenticationDetails{}
-	c.Result.Reset()
-	c.writeAttempts = 0
 
-	c.w = w
-	c.Request = r
+	*c = Context{
+		Request:        r,
+		Logger:         nil,
+		Authentication: auth.AuthenticationDetails{},
+		w:              w,
+	}
+	c.Result.Reset()
+
 	if r != nil {
 		c.SourceAddr = utility.ParseTCPAddr(r.RemoteAddr)
 		c.ClientIP = utility.ExtractIP(r)
