@@ -56,6 +56,7 @@ type APMEvent struct {
 	Trace       Trace
 	Parent      Parent
 	Child       Child
+	HTTP        HTTP
 
 	// Timestamp holds the event timestamp.
 	//
@@ -148,5 +149,29 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("processor", e.Processor.fields())
 	fields.maybeSetMapStr("trace", e.Trace.fields())
 	fields.maybeSetString("message", e.Message)
+	fields.maybeSetMapStr("http", e.HTTP.fields())
+	if e.Processor == SpanProcessor {
+		// Deprecated: copy url.original and http.* to span.http.* for backwards compatibility.
+		//
+		// TODO(axw) remove this in 8.0: https://github.com/elastic/apm-server/issues/5995
+		var spanHTTPFields mapStr
+		spanHTTPFields.maybeSetString("version", e.HTTP.Version)
+		if e.HTTP.Request != nil {
+			spanHTTPFields.maybeSetString("method", e.HTTP.Request.Method)
+		}
+		if e.HTTP.Response != nil {
+			spanHTTPFields.maybeSetMapStr("response", e.HTTP.Response.fields())
+		}
+		if len(spanHTTPFields) != 0 || e.URL.Original != "" {
+			spanFieldsMap, ok := event.Fields["span"].(common.MapStr)
+			if !ok {
+				spanFieldsMap = make(common.MapStr)
+				event.Fields["span"] = spanFieldsMap
+			}
+			spanFields := mapStr(spanFieldsMap)
+			spanFields.maybeSetMapStr("http", common.MapStr(spanHTTPFields))
+			spanFields.maybeSetString("http.url.original", e.URL.Original)
+		}
+	}
 	return event
 }

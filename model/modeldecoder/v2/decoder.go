@@ -259,18 +259,15 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 			)
 		}
 		if from.Context.Request.IsSet() {
-			out.HTTP = &model.HTTP{Request: &model.HTTPRequest{}}
-			mapToRequestModel(from.Context.Request, out.HTTP.Request)
+			event.HTTP.Request = &model.HTTPRequest{}
+			mapToRequestModel(from.Context.Request, event.HTTP.Request)
 			if from.Context.Request.HTTPVersion.IsSet() {
-				out.HTTP.Version = from.Context.Request.HTTPVersion.Val
+				event.HTTP.Version = from.Context.Request.HTTPVersion.Val
 			}
 		}
 		if from.Context.Response.IsSet() {
-			if out.HTTP == nil {
-				out.HTTP = &model.HTTP{}
-			}
-			out.HTTP.Response = &model.HTTPResponse{}
-			mapToResponseModel(from.Context.Response, out.HTTP.Response)
+			event.HTTP.Response = &model.HTTPResponse{}
+			mapToResponseModel(from.Context.Response, event.HTTP.Response)
 		}
 		if from.Context.Request.URL.IsSet() {
 			mapToRequestURLModel(from.Context.Request.URL, &event.URL)
@@ -280,14 +277,11 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 				event.URL = model.ParseURL(from.Context.Page.URL.Val, "", "")
 			}
 			if from.Context.Page.Referer.IsSet() {
-				if out.HTTP == nil {
-					out.HTTP = &model.HTTP{}
+				if event.HTTP.Request == nil {
+					event.HTTP.Request = &model.HTTPRequest{}
 				}
-				if out.HTTP.Request == nil {
-					out.HTTP.Request = &model.HTTPRequest{}
-				}
-				if out.HTTP.Request.Referrer == "" {
-					out.HTTP.Request.Referrer = from.Context.Page.Referer.Val
+				if event.HTTP.Request.Referrer == "" {
+					event.HTTP.Request.Referrer = from.Context.Page.Referer.Val
 				}
 			}
 		}
@@ -427,8 +421,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 
 	// Process
 	if len(from.Process.Argv) > 0 {
-		out.Process.Argv = make([]string, len(from.Process.Argv))
-		copy(out.Process.Argv, from.Process.Argv)
+		out.Process.Argv = append(out.Process.Argv[:0], from.Process.Argv...)
 	}
 	if from.Process.Pid.IsSet() {
 		out.Process.Pid = from.Process.Pid.Val
@@ -821,10 +814,9 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		out.DestinationService = &service
 	}
 	if from.Context.HTTP.IsSet() {
-		http := model.HTTP{}
 		if from.Context.HTTP.Method.IsSet() {
-			http.Request = &model.HTTPRequest{}
-			http.Request.Method = from.Context.HTTP.Method.Val
+			event.HTTP.Request = &model.HTTPRequest{}
+			event.HTTP.Request.Method = from.Context.HTTP.Method.Val
 		}
 		if from.Context.HTTP.Response.IsSet() {
 			response := model.HTTPResponse{}
@@ -846,18 +838,17 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 				val := from.Context.HTTP.Response.TransferSize.Val
 				response.TransferSize = &val
 			}
-			http.Response = &response
+			event.HTTP.Response = &response
 		}
 		if from.Context.HTTP.StatusCode.IsSet() {
-			if http.Response == nil {
-				http.Response = &model.HTTPResponse{}
+			if event.HTTP.Response == nil {
+				event.HTTP.Response = &model.HTTPResponse{}
 			}
-			http.Response.StatusCode = from.Context.HTTP.StatusCode.Val
+			event.HTTP.Response.StatusCode = from.Context.HTTP.StatusCode.Val
 		}
 		if from.Context.HTTP.URL.IsSet() {
 			event.URL.Original = from.Context.HTTP.URL.Val
 		}
-		out.HTTP = &http
 	}
 	if from.Context.Message.IsSet() {
 		message := model.Message{}
@@ -1035,35 +1026,29 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 			}
 		}
 		if from.Context.Request.IsSet() {
-			out.HTTP = &model.HTTP{Request: &model.HTTPRequest{}}
-			mapToRequestModel(from.Context.Request, out.HTTP.Request)
+			event.HTTP.Request = &model.HTTPRequest{}
+			mapToRequestModel(from.Context.Request, event.HTTP.Request)
 			if from.Context.Request.HTTPVersion.IsSet() {
-				out.HTTP.Version = from.Context.Request.HTTPVersion.Val
+				event.HTTP.Version = from.Context.Request.HTTPVersion.Val
 			}
 		}
 		if from.Context.Request.URL.IsSet() {
 			mapToRequestURLModel(from.Context.Request.URL, &event.URL)
 		}
 		if from.Context.Response.IsSet() {
-			if out.HTTP == nil {
-				out.HTTP = &model.HTTP{}
-			}
-			out.HTTP.Response = &model.HTTPResponse{}
-			mapToResponseModel(from.Context.Response, out.HTTP.Response)
+			event.HTTP.Response = &model.HTTPResponse{}
+			mapToResponseModel(from.Context.Response, event.HTTP.Response)
 		}
 		if from.Context.Page.IsSet() {
 			if from.Context.Page.URL.IsSet() && !from.Context.Request.URL.IsSet() {
 				event.URL = model.ParseURL(from.Context.Page.URL.Val, "", "")
 			}
 			if from.Context.Page.Referer.IsSet() {
-				if out.HTTP == nil {
-					out.HTTP = &model.HTTP{}
+				if event.HTTP.Request == nil {
+					event.HTTP.Request = &model.HTTPRequest{}
 				}
-				if out.HTTP.Request == nil {
-					out.HTTP.Request = &model.HTTPRequest{}
-				}
-				if out.HTTP.Request.Referrer == "" {
-					out.HTTP.Request.Referrer = from.Context.Page.Referer.Val
+				if event.HTTP.Request.Referrer == "" {
+					event.HTTP.Request.Referrer = from.Context.Page.Referer.Val
 				}
 			}
 		}

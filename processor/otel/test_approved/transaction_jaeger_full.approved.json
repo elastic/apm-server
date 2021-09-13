@@ -420,6 +420,15 @@
             "host": {
                 "hostname": "host-abc"
             },
+            "http": {
+                "request": {
+                    "method": "get"
+                },
+                "response": {
+                    "status_code": 400
+                },
+                "version": "1.1"
+            },
             "labels": {
                 "event": "baggage",
                 "isValid": false
@@ -456,6 +465,15 @@
             "host": {
                 "hostname": "host-abc"
             },
+            "http": {
+                "request": {
+                    "method": "get"
+                },
+                "response": {
+                    "status_code": 400
+                },
+                "version": "1.1"
+            },
             "labels": {
                 "level": "info"
             },
@@ -491,6 +509,15 @@
             "data_stream.type": "logs",
             "host": {
                 "hostname": "host-abc"
+            },
+            "http": {
+                "request": {
+                    "method": "get"
+                },
+                "response": {
+                    "status_code": 400
+                },
+                "version": "1.1"
             },
             "labels": {
                 "level": "error"
