@@ -317,7 +317,15 @@
                     "method": "GET"
                 },
                 "response": {
-                    "status_code": 302
+                    "decoded_body_size": 401,
+                    "encoded_body_size": 356,
+                    "headers": {
+                        "Content-Type": [
+                            "application/json"
+                        ]
+                    },
+                    "status_code": 302,
+                    "transfer_size": 300.12
                 }
             },
             "kubernetes": {

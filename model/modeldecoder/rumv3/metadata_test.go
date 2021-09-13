@@ -20,6 +20,7 @@ package rumv3
 import (
 	"fmt"
 	"net"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -37,7 +38,9 @@ import (
 func initializedMetadata() model.APMEvent {
 	var input metadata
 	var out model.APMEvent
-	modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+	modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues(), func(key string, field, value reflect.Value) bool {
+		return key != "Experimental"
+	})
 	mapToMetadataModel(&input, &out)
 	// initialize values that are not set by input
 	out.UserAgent = model.UserAgent{Name: "init", Original: "init"}
@@ -56,6 +59,8 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"DataStream",
 		"Destination",
 		"ECSVersion",
+		"Experimental",
+		"HTTP",
 		"Kubernetes",
 		"Message",
 		"Network",
