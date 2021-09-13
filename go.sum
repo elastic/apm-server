@@ -336,8 +336,8 @@ github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFP
 github.com/eclipse/paho.mqtt.golang v1.2.0/go.mod h1:H9keYFcgq3Qr5OUJm/JZI/i6U7joQ8SYLhZwfeOo6Ts=
 github.com/eclipse/paho.mqtt.golang v1.3.5/go.mod h1:eTzb4gxwwyWpqBUHGQZ4ABAV7+Jgm1PklsYT/eo8Hcc=
 github.com/edsrzf/mmap-go v1.0.0/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210909204511-6b417428d309 h1:k+2XgVV3gfaMj1EnYCYHf8Yz1jkBQ8bvmPd3m+kYIMA=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210909204511-6b417428d309/go.mod h1:LCcsmUpI0w3r2r/vslHEbO6ra8YfIwNuUPrqt5zrZdY=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210911003435-13e34660f62a h1:YLCpIj/8hsbqnYkzRnyL09T/5TcYT+uGsfO7DcdEwC8=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210911003435-13e34660f62a/go.mod h1:LCcsmUpI0w3r2r/vslHEbO6ra8YfIwNuUPrqt5zrZdY=
 github.com/elastic/ecs v1.11.0 h1:eqcKejxlTzy+6TsCIkd0aBnKHEQOkSfeXnu+pmGYMUY=
 github.com/elastic/ecs v1.11.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/elastic-agent-client/v7 v7.0.0-20210727140539-f0905d9377f6 h1:nFvXHBjYK3e9+xF0WKDeAKK4aOO51uC28s+L9rBmilo=
@@ -1734,8 +1734,8 @@ golang.org/x/sys v0.0.0-20210603125802-9665404d3644/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20210611083646-a4fc73990273/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.0.0-20210909193231-528a39cd75f3 h1:3Ad41xy2WCESpufXwgs7NpDSu+vjxqLt2UFqUV+20bI=
-golang.org/x/sys v0.0.0-20210909193231-528a39cd75f3/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0 h1:xrCZDmdtoloIiooiA9q0OQb9r8HejIHYoHGhGCe1pGg=
+golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201117132131-f5c789dd3221/go.mod h1:Nr5EML6q2oocZ2LXRh80K7BxOlk5/8JxuGnuhpl+muw=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 h1:v+OssWQX+hTHEmOBgwxdZxK4zHq3yOs8F9J7mk0PY8E=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
