@@ -2,6 +2,8 @@
 [role="xpack"]
 == Configure Index lifecycle management (ILM)
 
+deprecated::[7.16.0,Users should now use the <<apm-integration>>. See <<apm-integration-ilm>>]
+
 ++++
 <titleabbrev>Index lifecycle management</titleabbrev>
 ++++

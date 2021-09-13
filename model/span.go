@@ -56,7 +56,6 @@ type Span struct {
 	Sync       *bool
 
 	DB                 *DB
-	HTTP               *HTTP
 	DestinationService *DestinationService
 	Composite          *Composite
 
@@ -137,10 +136,6 @@ func (c *Composite) fields() common.MapStr {
 }
 
 func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
-	if e.HTTP != nil {
-		fields.maybeSetMapStr("http", e.HTTP.spanTopLevelFields())
-	}
-
 	var span mapStr
 	span.maybeSetString("name", e.Name)
 	span.maybeSetString("type", e.Type)
@@ -156,11 +151,6 @@ func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
 		// TODO(axw) set `event.duration` in 8.0, and remove this field.
 		// See https://github.com/elastic/apm-server/issues/5999
 		span.set("duration", common.MapStr{"us": int(apmEvent.Event.Duration.Microseconds())})
-	}
-
-	if e.HTTP != nil {
-		span.maybeSetMapStr("http", e.HTTP.spanFields())
-		span.maybeSetString("http.url.original", apmEvent.URL.Original)
 	}
 	span.maybeSetMapStr("db", e.DB.fields())
 	span.maybeSetMapStr("message", e.Message.Fields())
