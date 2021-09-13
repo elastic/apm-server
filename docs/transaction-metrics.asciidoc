@@ -2,8 +2,6 @@
 [[transaction-metrics]]
 == Configure transaction metrics
 
-experimental[]
-
 ++++
 <titleabbrev>Transaction metrics</titleabbrev>
 ++++
