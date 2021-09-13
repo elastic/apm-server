@@ -62,10 +62,15 @@ type transactionRoot struct {
 // other structs
 
 type context struct {
+	// Cloud holds fields related to the cloud or infrastructure the events
+	// are coming from.
+	Cloud contextCloud `json:"cloud"`
 	// Custom can contain additional metadata to be stored with the event.
 	// The format is unspecified and can be deeply nested objects.
 	// The information will not be indexed or searchable in Elasticsearch.
 	Custom common.MapStr `json:"custom"`
+	// FAAS holds fields related to Function as a Service events.
+	FAAS contextFAAS `json:"faas"`
 	// Message holds details related to message receiving and publishing
 	// if the captured event integrates with a messaging system
 	Message contextMessage `json:"message"`
@@ -91,6 +96,51 @@ type context struct {
 	// is ignored, otherwise the metadata's user information will be stored
 	// with the event.
 	User user `json:"user"`
+}
+
+type contextFAAS struct {
+	// Indicates whether a function invocation was a cold start or not.
+	Coldstart nullable.Bool `json:"coldstart"`
+	// The request id of the function invocation.
+	Execution nullable.String `json:"execution"`
+	// The trigger type.
+	TriggerType nullable.String `json:"trigger.type"`
+	// The id of the origin trigger request.
+	TriggerRequestID nullable.String `json:"trigger.request_id"`
+}
+
+type contextCloud struct {
+	// Origin contains the self-nested field groups for cloud.
+	Origin contextCloudOrigin `json:"origin"`
+}
+
+type contextCloudOrigin struct {
+	// The cloud account or organization id used to identify
+	// different entities in a multi-tenant environment.
+	AccountID nullable.String `json:"account.id"`
+	// The cloud account name or alias used to identify different entities
+	// in a multi-tenant environment.
+	AccountName nullable.String `json:"account.name"`
+	// Availability zone in which this host, resource, or service is
+	// located.
+	AvailabilityZone nullable.String `json:"availability_zone"`
+	// Instance ID of the host machine.
+	InstanceID nullable.String `json:"instance.id"`
+	// Instance name of the host machine.
+	InstanceName nullable.String `json:"instance.name"`
+	// Machine type of the host machine.
+	MachineType nullable.String `json:"machine.type"`
+	// The cloud project name.
+	ProjectName nullable.String `json:"project.name"`
+	// The cloud project identifier.
+	ProjectID nullable.String `json:"project.id"`
+	// Name of the cloud provider.
+	Provider nullable.String `json:"provider"`
+	// Region in which this host, resource, or service is located.
+	Region nullable.String `json:"region"`
+	// The cloud service name is intended to distinguish services running
+	// on different platforms within a provider.
+	ServiceName nullable.String `json:"service.name"`
 }
 
 type contextMessage struct {
@@ -207,6 +257,8 @@ type contextService struct {
 	// Framework holds information about the framework used in the
 	// monitored service.
 	Framework contextServiceFramework `json:"framework"`
+	// ID holds a unique identifier for the event.
+	ID nullable.String `json:"string"`
 	// Language holds information about the programming language of the
 	// monitored service.
 	Language contextServiceLanguage `json:"language"`
@@ -214,11 +266,30 @@ type contextService struct {
 	Name nullable.String `json:"name" validate:"maxLength=1024,pattern=patternAlphaNumericExt"`
 	// Node must be a unique meaningful name of the service node.
 	Node contextServiceNode `json:"node"`
+	// Origin contains the self-nested field groups for service.
+	Origin contextServiceOrigin `json:"origin"`
 	// Runtime holds information about the language runtime running the
 	// monitored service
 	Runtime contextServiceRuntime `json:"runtime"`
 	// Version of the monitored service.
 	Version nullable.String `json:"version" validate:"maxLength=1024"`
+}
+
+type contextServiceOrigin struct {
+	// Ephemeral identifier of the service.
+	EphemeralID nullable.String `json:"ephemeral_id"`
+	// Immutable id of the service emitting this event.
+	ID nullable.String `json:"id"`
+	// Immutable name of the service emitting this event.
+	Name nullable.String `json:"name"`
+	// Name of a service node.
+	NodeName nullable.String `json:"node.name"`
+	// Current state of the service.
+	State nullable.String `json:"state"`
+	// The type of the service the data is collected from.
+	Type nullable.String `json:"type"`
+	// The version of the service the data was collected from.
+	Version nullable.String `json:"version"`
 }
 
 type contextServiceAgent struct {
@@ -429,6 +500,8 @@ type metadataService struct {
 	// Framework holds information about the framework used in the
 	// monitored service.
 	Framework metadataServiceFramework `json:"framework"`
+	// ID holds a unique identifier for the running service.
+	ID nullable.String `json:"id"`
 	// Language holds information about the programming language of the
 	// monitored service.
 	Language metadataServiceLanguage `json:"language"`

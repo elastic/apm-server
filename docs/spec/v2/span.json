@@ -447,6 +447,64 @@
                 }
               }
             },
+            "origin": {
+              "description": "Origin contains the self-nested field groups for service.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "ephemeral_id": {
+                  "description": "Ephemeral identifier of the service.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "id": {
+                  "description": "Immutable id of the service emitting this event.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "name": {
+                  "description": "Immutable name of the service emitting this event.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "node.name": {
+                  "description": "Name of a service node.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "state": {
+                  "description": "Current state of the service.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "type": {
+                  "description": "The type of the service the data is collected from.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "version": {
+                  "description": "The version of the service the data was collected from.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                }
+              }
+            },
             "runtime": {
               "description": "Runtime holds information about the language runtime running the monitored service",
               "type": [
@@ -471,6 +529,13 @@
                   "maxLength": 1024
                 }
               }
+            },
+            "string": {
+              "description": "ID holds a unique identifier for the event.",
+              "type": [
+                "null",
+                "string"
+              ]
             },
             "version": {
               "description": "Version of the monitored service.",

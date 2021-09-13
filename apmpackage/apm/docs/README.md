@@ -67,6 +67,17 @@ Traces are written to `traces-apm.*` indices.
 |cloud.instance.id|Cloud instance/machine ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.instance.name|Cloud instance/machine name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.machine.type|Cloud instance/machine type|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|cloud.origin.account.id|The cloud account or organization id used to identify different entities in a multi-tenant environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.origin.account.name|The cloud account name or alias used to identify different entities in a multi-tenant environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.origin.availability\_zone|Availability zone in which this host, resource, or service is located.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.origin.instance.id|Instance ID of the host machine.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.origin.instance.name|Instance name of the host machine.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.origin.machine.type|Machine type of the host machine.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.origin.project.id|The cloud project identifier.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.origin.project.name|The cloud project name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.origin.provider|Name of the cloud provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.origin.region|Region in which this host, resource, or service is located.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|cloud.origin.service.name|The cloud service name is intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |cloud.project.id|Cloud project ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.project.name|Cloud project name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.provider|Cloud provider name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -130,6 +141,13 @@ Traces are written to `traces-apm.*` indices.
 |service.language.version|Version of the programming language used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.name|Immutable name of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |service.node.name|Unique meaningful name of the service node.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|service.origin.ephemeral\_id|Ephemeral identifier of the service|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|service.origin.id|Immutable id of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|service.origin.name|Immutable name of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|service.origin.node.name|Name of a service node.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|service.origin.state|Current state of the service.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|service.origin.type|The type of the service the data is collected from.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|service.origin.version|The version of the service the data was collected from.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.runtime.name|Name of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.runtime.version|Version of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.version|Version of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |

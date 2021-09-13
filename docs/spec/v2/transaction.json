@@ -9,12 +9,144 @@
         "object"
       ],
       "properties": {
+        "cloud": {
+          "description": "Cloud holds fields related to the cloud or infrastructure the events are coming from.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "origin": {
+              "description": "Origin contains the self-nested field groups for cloud.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "account.id": {
+                  "description": "The cloud account or organization id used to identify different entities in a multi-tenant environment.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "account.name": {
+                  "description": "The cloud account name or alias used to identify different entities in a multi-tenant environment.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "availability_zone": {
+                  "description": "Availability zone in which this host, resource, or service is located.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "instance.id": {
+                  "description": "Instance ID of the host machine.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "instance.name": {
+                  "description": "Instance name of the host machine.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "machine.type": {
+                  "description": "Machine type of the host machine.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "project.id": {
+                  "description": "The cloud project identifier.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "project.name": {
+                  "description": "The cloud project name.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "provider": {
+                  "description": "Name of the cloud provider.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "region": {
+                  "description": "Region in which this host, resource, or service is located.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "service.name": {
+                  "description": "The cloud service name is intended to distinguish services running on different platforms within a provider.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                }
+              }
+            }
+          }
+        },
         "custom": {
           "description": "Custom can contain additional metadata to be stored with the event. The format is unspecified and can be deeply nested objects. The information will not be indexed or searchable in Elasticsearch.",
           "type": [
             "null",
             "object"
           ]
+        },
+        "faas": {
+          "description": "FAAS holds fields related to Function as a Service events.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "coldstart": {
+              "description": "Indicates whether a function invocation was a cold start or not.",
+              "type": [
+                "null",
+                "boolean"
+              ]
+            },
+            "execution": {
+              "description": "The request id of the function invocation.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "trigger.request_id": {
+              "description": "The id of the origin trigger request.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "trigger.type": {
+              "description": "The trigger type.",
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
         },
         "message": {
           "description": "Message holds details related to message receiving and publishing if the captured event integrates with a messaging system",
@@ -467,6 +599,64 @@
                 }
               }
             },
+            "origin": {
+              "description": "Origin contains the self-nested field groups for service.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "ephemeral_id": {
+                  "description": "Ephemeral identifier of the service.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "id": {
+                  "description": "Immutable id of the service emitting this event.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "name": {
+                  "description": "Immutable name of the service emitting this event.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "node.name": {
+                  "description": "Name of a service node.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "state": {
+                  "description": "Current state of the service.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "type": {
+                  "description": "The type of the service the data is collected from.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "version": {
+                  "description": "The version of the service the data was collected from.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                }
+              }
+            },
             "runtime": {
               "description": "Runtime holds information about the language runtime running the monitored service",
               "type": [
@@ -491,6 +681,13 @@
                   "maxLength": 1024
                 }
               }
+            },
+            "string": {
+              "description": "ID holds a unique identifier for the event.",
+              "type": [
+                "null",
+                "string"
+              ]
             },
             "version": {
               "description": "Version of the monitored service.",
