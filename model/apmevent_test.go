@@ -42,6 +42,8 @@ func TestAPMEventFields(t *testing.T) {
 	traceID := "trace_id"
 	parentID := "parent_id"
 	childID := []string{"child_1", "child_2"}
+	httpRequestMethod := "post"
+	httpRequestBody := "<html><marquee>hello world</marquee></html>"
 
 	for _, test := range []struct {
 		input  APMEvent
@@ -78,6 +80,12 @@ func TestAPMEventFields(t *testing.T) {
 			Trace:       Trace{ID: traceID},
 			Parent:      Parent{ID: parentID},
 			Child:       Child{ID: childID},
+			HTTP: HTTP{
+				Request: &HTTPRequest{
+					Method: httpRequestMethod,
+					Body:   httpRequestBody,
+				},
+			},
 		},
 		output: common.MapStr{
 			// common fields
@@ -118,6 +126,12 @@ func TestAPMEventFields(t *testing.T) {
 			},
 			"child": common.MapStr{
 				"id": childID,
+			},
+			"http": common.MapStr{
+				"request": common.MapStr{
+					"method":        "post",
+					"body.original": httpRequestBody,
+				},
 			},
 		},
 	}, {
