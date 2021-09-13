@@ -65,7 +65,7 @@ services:
     ports:
       - 5601:5601
     healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:5601/api/status | grep -q 'Looking good'"]
+      test: ["CMD-SHELL", "curl -s http://localhost:5601/api/status | grep -q 'All services are available'"]
       retries: 300
       interval: 1s
     environment:
