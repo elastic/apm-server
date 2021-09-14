@@ -74,7 +74,9 @@ func TestAnonymousRateLimit(t *testing.T) {
 		}
 
 		ctx := interceptors.ContextWithClientMetadata(context.Background(),
-			interceptors.ClientMetadataValues{SourceIP: net.ParseIP("10.2.3.4")},
+			interceptors.ClientMetadataValues{
+				ClientIP: net.ParseIP("10.2.3.4"),
+			},
 		)
 		details := auth.AuthenticationDetails{}
 		if !test.anonymous {
@@ -99,7 +101,7 @@ func TestAnonymousRateLimitForIP(t *testing.T) {
 
 	requestWithIP := func(ip string) error {
 		ctx := interceptors.ContextWithClientMetadata(context.Background(),
-			interceptors.ClientMetadataValues{SourceIP: net.ParseIP(ip)},
+			interceptors.ClientMetadataValues{ClientIP: net.ParseIP(ip)},
 		)
 		ctx = interceptors.ContextWithAuthenticationDetails(ctx, auth.AuthenticationDetails{})
 		_, err := interceptor(ctx, "request", &grpc.UnaryServerInfo{}, handler)

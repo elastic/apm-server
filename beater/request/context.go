@@ -46,8 +46,19 @@ type Context struct {
 	Logger         *logp.Logger
 	Authentication auth.AuthenticationDetails
 	Result         Result
-	SourceIP       net.IP
-	UserAgent      string
+
+	// SourceAddr holds the address of the (source) network peer.
+	SourceAddr net.Addr
+
+	// ClientIP holds the IP address of the originating client,
+	// as recorded in Forwarded, X-Forwarded-For, etc.
+	//
+	// For requests without one of the forwarded headers, this will
+	// have the same value as SourceIP.
+	ClientIP net.IP
+
+	// UserAgent holds the User-Agent request header value.
+	UserAgent string
 
 	w             http.ResponseWriter
 	writeAttempts int
@@ -68,15 +79,18 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	if c.Request != nil && c.Request.MultipartForm != nil {
 		c.Request.MultipartForm.RemoveAll()
 	}
-	c.Logger = nil
-	c.Authentication = auth.AuthenticationDetails{}
-	c.Result.Reset()
-	c.writeAttempts = 0
 
-	c.w = w
-	c.Request = r
+	*c = Context{
+		Request:        r,
+		Logger:         nil,
+		Authentication: auth.AuthenticationDetails{},
+		w:              w,
+	}
+	c.Result.Reset()
+
 	if r != nil {
-		c.SourceIP = utility.ExtractIP(r)
+		c.SourceAddr = utility.ParseTCPAddr(r.RemoteAddr)
+		c.ClientIP = utility.ExtractIP(r)
 		c.UserAgent = utility.UserAgentHeader(r.Header)
 	}
 }

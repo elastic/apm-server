@@ -7,7 +7,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "error": {
                 "culprit": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
