@@ -7,7 +7,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "event": {
                 "outcome": "success"
@@ -154,7 +154,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -184,6 +184,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "transaction": {
                 "breakdown.count": 1,
@@ -210,7 +213,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -240,6 +243,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "self_time": {
@@ -268,7 +274,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -299,6 +305,9 @@
                 },
                 "version": "0.0.1"
             },
+            "source": {
+                "ip": "192.0.0.1"
+            },
             "span": {
                 "self_time": {
                     "count": 1,
@@ -326,7 +335,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "event": {
                 "outcome": "unknown"
@@ -362,6 +371,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "duration": {
@@ -400,7 +412,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "event": {
                 "outcome": "unknown"
@@ -436,6 +448,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "duration": {
@@ -474,7 +489,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "destination": {
                 "address": "localhost",
@@ -521,6 +536,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "destination": {
@@ -577,7 +595,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "event": {
                 "outcome": "unknown"
@@ -613,6 +631,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "duration": {
@@ -650,7 +671,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "destination": {
                 "address": "localhost",
@@ -698,6 +719,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "destination": {
@@ -754,7 +778,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "destination": {
                 "address": "localhost",
@@ -802,6 +826,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "destination": {
@@ -858,7 +885,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "destination": {
                 "address": "localhost",
@@ -906,6 +933,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "action": "action",
@@ -963,7 +993,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "event": {
                 "outcome": "success"
@@ -999,6 +1029,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "duration": {

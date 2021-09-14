@@ -47,6 +47,7 @@ func TestContext_Reset(t *testing.T) {
 	r2 := httptest.NewRequest(http.MethodHead, "/new", nil)
 	r2.RemoteAddr = "10.1.2.3:1234"
 	r2.Header.Set("User-Agent", "ua2")
+	r2.Header.Set("X-Forwarded-For", "192.168.0.1")
 
 	var multipartBuf bytes.Buffer
 	multipartWriter := multipart.NewWriter(&multipartBuf)
@@ -99,8 +100,13 @@ func TestContext_Reset(t *testing.T) {
 			assert.Equal(t, 0, c.writeAttempts)
 		case "Result":
 			assertResultIsEmpty(t, cVal.Field(i).Interface().(Result))
-		case "SourceIP":
-			assert.Equal(t, net.ParseIP("10.1.2.3"), cVal.Field(i).Interface())
+		case "SourceAddr":
+			assert.Equal(t, &net.TCPAddr{
+				IP:   net.ParseIP("10.1.2.3"),
+				Port: 1234,
+			}, cVal.Field(i).Interface())
+		case "ClientIP":
+			assert.Equal(t, net.ParseIP("192.168.0.1"), cVal.Field(i).Interface())
 		case "UserAgent":
 			assert.Equal(t, "ua2", cVal.Field(i).Interface())
 		default:

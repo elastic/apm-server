@@ -174,6 +174,7 @@ type contextRequestURL struct {
 
 type contextRequestSocket struct {
 	// Encrypted indicates whether a request was sent as TLS/HTTPS request.
+	// DEPRECATED: this field will be removed in a future release.
 	Encrypted nullable.Bool `json:"encrypted"`
 	// RemoteAddress holds the network address sending the request. It should
 	// be obtained through standard APIs and not be parsed from any headers

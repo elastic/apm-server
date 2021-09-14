@@ -99,6 +99,9 @@ func isUnmappedMetadataField(key string) bool {
 		"Session.ID",
 		"Session",
 		"Session.Sequence",
+		"Source.Domain",
+		"Source.IP",
+		"Source.Port",
 		"Trace",
 		"Trace.ID",
 		"URL",
@@ -232,7 +235,9 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
 		out2.Timestamp = otherVal.Time
-		out2.Host.IP, out2.Client.IP = defaultVal.IP, defaultVal.IP
+		out2.Host.IP = defaultVal.IP
+		out2.Client.IP = defaultVal.IP
+		out2.Source.IP = defaultVal.IP
 		modeldecodertest.AssertStructValues(t, &out2, isMetadataException, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)
 	})
