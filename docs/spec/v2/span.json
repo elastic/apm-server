@@ -454,13 +454,6 @@
                 "object"
               ],
               "properties": {
-                "ephemeral_id": {
-                  "description": "Ephemeral identifier of the service.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
                 "id": {
                   "description": "Immutable id of the service emitting this event.",
                   "type": [
@@ -470,27 +463,6 @@
                 },
                 "name": {
                   "description": "Immutable name of the service emitting this event.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "node.name": {
-                  "description": "Name of a service node.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "state": {
-                  "description": "Current state of the service.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "type": {
-                  "description": "The type of the service the data is collected from.",
                   "type": [
                     "null",
                     "string"

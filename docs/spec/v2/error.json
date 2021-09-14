@@ -31,55 +31,6 @@
                     "string"
                   ]
                 },
-                "account.name": {
-                  "description": "The cloud account name or alias used to identify different entities in a multi-tenant environment.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "availability_zone": {
-                  "description": "Availability zone in which this host, resource, or service is located.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "instance.id": {
-                  "description": "Instance ID of the host machine.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "instance.name": {
-                  "description": "Instance name of the host machine.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "machine.type": {
-                  "description": "Machine type of the host machine.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "project.id": {
-                  "description": "The cloud project identifier.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "project.name": {
-                  "description": "The cloud project name.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
                 "provider": {
                   "description": "Name of the cloud provider.",
                   "type": [
@@ -607,13 +558,6 @@
                 "object"
               ],
               "properties": {
-                "ephemeral_id": {
-                  "description": "Ephemeral identifier of the service.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
                 "id": {
                   "description": "Immutable id of the service emitting this event.",
                   "type": [
@@ -623,27 +567,6 @@
                 },
                 "name": {
                   "description": "Immutable name of the service emitting this event.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "node.name": {
-                  "description": "Name of a service node.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "state": {
-                  "description": "Current state of the service.",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "type": {
-                  "description": "The type of the service the data is collected from.",
                   "type": [
                     "null",
                     "string"

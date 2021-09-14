@@ -118,22 +118,6 @@ type contextCloudOrigin struct {
 	// The cloud account or organization id used to identify
 	// different entities in a multi-tenant environment.
 	AccountID nullable.String `json:"account.id"`
-	// The cloud account name or alias used to identify different entities
-	// in a multi-tenant environment.
-	AccountName nullable.String `json:"account.name"`
-	// Availability zone in which this host, resource, or service is
-	// located.
-	AvailabilityZone nullable.String `json:"availability_zone"`
-	// Instance ID of the host machine.
-	InstanceID nullable.String `json:"instance.id"`
-	// Instance name of the host machine.
-	InstanceName nullable.String `json:"instance.name"`
-	// Machine type of the host machine.
-	MachineType nullable.String `json:"machine.type"`
-	// The cloud project name.
-	ProjectName nullable.String `json:"project.name"`
-	// The cloud project identifier.
-	ProjectID nullable.String `json:"project.id"`
 	// Name of the cloud provider.
 	Provider nullable.String `json:"provider"`
 	// Region in which this host, resource, or service is located.
@@ -276,18 +260,10 @@ type contextService struct {
 }
 
 type contextServiceOrigin struct {
-	// Ephemeral identifier of the service.
-	EphemeralID nullable.String `json:"ephemeral_id"`
 	// Immutable id of the service emitting this event.
 	ID nullable.String `json:"id"`
 	// Immutable name of the service emitting this event.
 	Name nullable.String `json:"name"`
-	// Name of a service node.
-	NodeName nullable.String `json:"node.name"`
-	// Current state of the service.
-	State nullable.String `json:"state"`
-	// The type of the service the data is collected from.
-	Type nullable.String `json:"type"`
 	// The version of the service the data was collected from.
 	Version nullable.String `json:"version"`
 }

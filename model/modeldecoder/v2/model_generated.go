@@ -849,18 +849,11 @@ func (val *contextCloud) validate() error {
 }
 
 func (val *contextCloudOrigin) IsSet() bool {
-	return val.AccountID.IsSet() || val.AccountName.IsSet() || val.AvailabilityZone.IsSet() || val.InstanceID.IsSet() || val.InstanceName.IsSet() || val.MachineType.IsSet() || val.ProjectName.IsSet() || val.ProjectID.IsSet() || val.Provider.IsSet() || val.Region.IsSet() || val.ServiceName.IsSet()
+	return val.AccountID.IsSet() || val.Provider.IsSet() || val.Region.IsSet() || val.ServiceName.IsSet()
 }
 
 func (val *contextCloudOrigin) Reset() {
 	val.AccountID.Reset()
-	val.AccountName.Reset()
-	val.AvailabilityZone.Reset()
-	val.InstanceID.Reset()
-	val.InstanceName.Reset()
-	val.MachineType.Reset()
-	val.ProjectName.Reset()
-	val.ProjectID.Reset()
 	val.Provider.Reset()
 	val.Region.Reset()
 	val.ServiceName.Reset()
@@ -1252,16 +1245,12 @@ func (val *contextServiceNode) validate() error {
 }
 
 func (val *contextServiceOrigin) IsSet() bool {
-	return val.EphemeralID.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.NodeName.IsSet() || val.State.IsSet() || val.Type.IsSet() || val.Version.IsSet()
+	return val.ID.IsSet() || val.Name.IsSet() || val.Version.IsSet()
 }
 
 func (val *contextServiceOrigin) Reset() {
-	val.EphemeralID.Reset()
 	val.ID.Reset()
 	val.Name.Reset()
-	val.NodeName.Reset()
-	val.State.Reset()
-	val.Type.Reset()
 	val.Version.Reset()
 }
 
