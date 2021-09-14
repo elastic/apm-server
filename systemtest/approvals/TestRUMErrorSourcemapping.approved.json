@@ -277,7 +277,8 @@
                 "version": "1.0.1"
             },
             "source": {
-                "ip": "127.0.0.1"
+                "ip": "127.0.0.1",
+                "port": "dynamic"
             },
             "timestamp": {
                 "us": "dynamic"

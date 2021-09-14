@@ -35,13 +35,15 @@ import (
 )
 
 func TestLogging(t *testing.T) {
-	ip1234 := net.ParseIP("1.2.3.4")
 	methodName := "test_method_name"
 	info := &grpc.UnaryServerInfo{
 		FullMethod: methodName,
 	}
 	ctx := ContextWithClientMetadata(context.Background(), ClientMetadataValues{
-		SourceIP: ip1234,
+		SourceAddr: &net.TCPAddr{
+			IP:   net.ParseIP("1.2.3.4"),
+			Port: 4321,
+		},
 	})
 
 	requiredKeys := []string{
@@ -95,7 +97,7 @@ func TestLogging(t *testing.T) {
 			assert.Contains(t, fields, k)
 		}
 		assert.Equal(t, methodName, fields["grpc.request.method"])
-		assert.Equal(t, ip1234.String(), fields["source.address"])
+		assert.Equal(t, "1.2.3.4:4321", fields["source.address"])
 		assert.Equal(t, tc.statusCode.String(), fields["grpc.response.status_code"])
 	}
 }

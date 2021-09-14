@@ -19,6 +19,7 @@ package utility_test
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"testing"
 
@@ -141,6 +142,20 @@ func TestParseIP(t *testing.T) {
 			assert.Nil(t, utility.ParseIP(inp))
 		})
 	}
+}
+
+func TestParseTCPAddr(t *testing.T) {
+	assert.Equal(t, &net.TCPAddr{
+		IP:   net.ParseIP("192.168.0.1"),
+		Port: 8080,
+	}, utility.ParseTCPAddr("192.168.0.1:8080"))
+
+	assert.Equal(t, &net.TCPAddr{
+		IP:   net.ParseIP("::1"),
+		Port: 8080,
+	}, utility.ParseTCPAddr("[::1]:8080"))
+
+	assert.Equal(t, nil, utility.ParseTCPAddr("::1"))
 }
 
 func BenchmarkExtractIP(b *testing.B) {
