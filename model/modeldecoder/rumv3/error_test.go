@@ -109,8 +109,6 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 	t.Run("error-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
 			for _, s := range []string{
-				// exception.parent is only set after calling `flattenExceptionTree` (not part of decoding)
-				"Exception.Parent",
 				// GroupingKey is set by a model processor
 				"GroupingKey",
 				// stacktrace original and sourcemap values are set when sourcemapping is applied
