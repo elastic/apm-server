@@ -39,16 +39,6 @@ type HTTPRequest struct {
 	Headers common.MapStr
 	Env     common.MapStr
 	Cookies common.MapStr
-	Socket  *HTTPRequestSocket
-}
-
-// HTTPRequestSocket holds information about an HTTP connection.
-//
-// TODO remove this. Encrypted can be derived from the URL scheme,
-// and RemoteAddress should be stored in `source.address`.
-type HTTPRequestSocket struct {
-	RemoteAddress string
-	Encrypted     *bool
 }
 
 // HTTPResponse holds information about an HTTP response.
@@ -84,19 +74,9 @@ func (h *HTTPRequest) fields() common.MapStr {
 	fields.maybeSetMapStr("headers", h.Headers)
 	fields.maybeSetMapStr("env", h.Env)
 	fields.maybeSetMapStr("cookies", h.Cookies)
-	if h.Socket != nil {
-		fields.maybeSetMapStr("socket", h.Socket.fields())
-	}
 	if h.Body != nil {
 		fields.set("body.original", h.Body)
 	}
-	return common.MapStr(fields)
-}
-
-func (s *HTTPRequestSocket) fields() common.MapStr {
-	var fields mapStr
-	fields.maybeSetString("remote_address", s.RemoteAddress)
-	fields.maybeSetBool("encrypted", s.Encrypted)
 	return common.MapStr(fields)
 }
 

@@ -214,7 +214,8 @@ func TestIntegrationRum(t *testing.T) {
 
 			baseEvent := model.APMEvent{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
-				Client:    model.Client{IP: net.ParseIP("192.0.0.1")},
+				Source:    model.Source{IP: net.ParseIP("192.0.0.1")},
+				Client:    model.Client{IP: net.ParseIP("192.0.0.2")}, // X-Forwarded-For
 			}
 
 			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024})
@@ -246,7 +247,8 @@ func TestRUMV3(t *testing.T) {
 
 			baseEvent := model.APMEvent{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
-				Client:    model.Client{IP: net.ParseIP("192.0.0.1")},
+				Source:    model.Source{IP: net.ParseIP("192.0.0.1")},
+				Client:    model.Client{IP: net.ParseIP("192.0.0.2")}, // X-Forwarded-For
 			}
 
 			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024})

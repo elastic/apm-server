@@ -18,6 +18,7 @@
 package api
 
 import (
+	"net"
 	"net/http"
 	"net/http/pprof"
 	"regexp"
@@ -316,12 +317,20 @@ func emptyRequestMetadata(c *request.Context) model.APMEvent {
 }
 
 func backendRequestMetadata(c *request.Context) model.APMEvent {
-	return model.APMEvent{Host: model.Host{IP: c.SourceIP}}
+	return model.APMEvent{Host: model.Host{
+		IP: c.ClientIP,
+	}}
 }
 
 func rumRequestMetadata(c *request.Context) model.APMEvent {
+	var source model.Source
+	if tcpAddr, ok := c.SourceAddr.(*net.TCPAddr); ok {
+		source.IP = tcpAddr.IP
+		source.Port = tcpAddr.Port
+	}
 	return model.APMEvent{
-		Client:    model.Client{IP: c.SourceIP},
+		Client:    model.Client{IP: c.ClientIP},
+		Source:    source,
 		UserAgent: model.UserAgent{Original: c.UserAgent},
 	}
 }

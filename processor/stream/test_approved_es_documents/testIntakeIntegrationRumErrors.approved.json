@@ -7,7 +7,7 @@
                 "version": "0.0.0"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "error": {
                 "culprit": "test/e2e/general-usecase/bundle.js.map",

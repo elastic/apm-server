@@ -221,19 +221,16 @@ func decodeIntoMetadataRoot(d decoder.Decoder, m *metadataRoot) error {
 	return d.Decode(m)
 }
 
-func mapToClientModel(from contextRequest, out *model.Client) {
-	// only set client information if not already set in metadata
-	// this is aligned with current logic
-	if out.IP != nil {
-		return
+func mapToClientModel(from contextRequest, source *model.Source, client *model.Client) {
+	// http.Request.Headers and http.Request.Socket are only set for backend events.
+	if source.IP == nil {
+		source.IP = utility.ParseIP(from.Socket.RemoteAddress.Val)
 	}
-	// http.Request.Headers and http.Request.Socket information is
-	// only set for backend events; try to first extract an IP address
-	// from the headers, if not possible use IP address from socket remote_address
-	if ip := utility.ExtractIPFromHeader(from.Headers.Val); ip != nil {
-		out.IP = ip
-	} else if ip := utility.ParseIP(from.Socket.RemoteAddress.Val); ip != nil {
-		out.IP = ip
+	if client.IP == nil {
+		client.IP = source.IP
+		if ip := utility.ExtractIPFromHeader(from.Headers.Val); ip != nil {
+			client.IP = ip
+		}
 	}
 }
 
@@ -247,7 +244,7 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 	mapToAgentModel(from.Context.Service.Agent, &event.Agent)
 	overwriteUserInMetadataModel(from.Context.User, event)
 	mapToUserAgentModel(from.Context.Request.Headers, &event.UserAgent)
-	mapToClientModel(from.Context.Request, &event.Client)
+	mapToClientModel(from.Context.Request, &event.Source, &event.Client)
 
 	// map errorEvent specific data
 
@@ -598,16 +595,6 @@ func mapToRequestModel(from contextRequest, out *model.HTTPRequest) {
 	}
 	if len(from.Env) > 0 {
 		out.Env = from.Env.Clone()
-	}
-	if from.Socket.IsSet() {
-		out.Socket = &model.HTTPRequestSocket{}
-		if from.Socket.Encrypted.IsSet() {
-			val := from.Socket.Encrypted.Val
-			out.Socket.Encrypted = &val
-		}
-		if from.Socket.RemoteAddress.IsSet() {
-			out.Socket.RemoteAddress = from.Socket.RemoteAddress.Val
-		}
 	}
 	if from.Body.IsSet() {
 		out.Body = modeldecoderutil.NormalizeHTTPRequestBody(from.Body.Val)
@@ -995,7 +982,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	mapToAgentModel(from.Context.Service.Agent, &event.Agent)
 	overwriteUserInMetadataModel(from.Context.User, event)
 	mapToUserAgentModel(from.Context.Request.Headers, &event.UserAgent)
-	mapToClientModel(from.Context.Request, &event.Client)
+	mapToClientModel(from.Context.Request, &event.Source, &event.Client)
 
 	// map transaction specific data
 

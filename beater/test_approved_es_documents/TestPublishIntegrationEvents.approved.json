@@ -180,11 +180,7 @@
                             "opbeans-java:3000"
                         ]
                     },
-                    "method": "POST",
-                    "socket": {
-                        "encrypted": true,
-                        "remote_address": "12.53.12.1"
-                    }
+                    "method": "POST"
                 },
                 "response": {
                     "finished": true,
@@ -258,7 +254,7 @@
                 "version": "4.3.0"
             },
             "source": {
-                "ip": "192.168.0.1"
+                "ip": "12.53.12.1"
             },
             "timestamp": {
                 "us": 1571657444929001
@@ -518,11 +514,7 @@
                             "MozillaChromeEdge"
                         ]
                     },
-                    "method": "POST",
-                    "socket": {
-                        "encrypted": true,
-                        "remote_address": "12.53.12.1:8080"
-                    }
+                    "method": "POST"
                 },
                 "response": {
                     "decoded_body_size": 401.9,
