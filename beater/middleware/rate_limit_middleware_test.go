@@ -94,7 +94,8 @@ func TestAnonymousRateLimitMiddlewareForIP(t *testing.T) {
 		c := request.NewContext()
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		r.RemoteAddr = ip
+		r.Header.Set("X-Real-Ip", ip)
+		r.RemoteAddr = "1.2.3.4:5678"
 		c.Reset(w, r)
 		wrapped(c)
 		return w.Code

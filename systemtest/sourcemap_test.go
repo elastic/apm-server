@@ -56,6 +56,8 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",
+		// RUM events have the source port recorded, and in the tests it will be dynamic
+		"source.port",
 	)
 }
 
@@ -79,6 +81,8 @@ func TestRUMSpanSourcemapping(t *testing.T) {
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",
+		// RUM events have the source port recorded, and in the tests it will be dynamic
+		"source.port",
 	)
 }
 
@@ -136,6 +140,8 @@ func TestNoMatchingSourcemap(t *testing.T) {
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",
+		// RUM events have the source port recorded, and in the tests it will be dynamic
+		"source.port",
 	)
 }
 
