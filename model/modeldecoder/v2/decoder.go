@@ -233,7 +233,7 @@ func mapToFAASModel(from contextFAAS, faas *model.FAAS) {
 func mapToCloudModel(from contextCloud, cloud *model.Cloud) {
 	cloudOrigin := cloud.Origin
 	if cloudOrigin == nil {
-		cloudOrigin = &model.Cloud{}
+		cloudOrigin = &model.CloudOrigin{}
 	}
 
 	fromOrigin := from.Origin

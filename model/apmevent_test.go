@@ -100,6 +100,14 @@ func TestAPMEventFields(t *testing.T) {
 				TriggerType:      "http",
 				TriggerRequestID: "abc123",
 			},
+			Cloud: Cloud{
+				Origin: &CloudOrigin{
+					AccountID:   "accountID",
+					Provider:    "aws",
+					Region:      "us-west-1",
+					ServiceName: "serviceName",
+				},
+			},
 		},
 		output: common.MapStr{
 			// common fields
@@ -158,6 +166,14 @@ func TestAPMEventFields(t *testing.T) {
 				"execution":          "execution",
 				"trigger.type":       "http",
 				"trigger.request_id": "abc123",
+			},
+			"cloud": common.MapStr{
+				"origin": common.MapStr{
+					"account.id":   "accountID",
+					"provider":     "aws",
+					"region":       "us-west-1",
+					"service.name": "serviceName",
+				},
 			},
 		},
 	}, {
