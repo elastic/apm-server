@@ -102,9 +102,11 @@ func (s *Service) Fields() common.MapStr {
 	}
 
 	if s.Origin != nil {
-		svc.maybeSetString("origin.name", s.Origin.Name)
-		svc.maybeSetString("origin.version", s.Origin.Version)
-		svc.maybeSetString("origin.id", s.Origin.ID)
+		var origin mapStr
+		origin.maybeSetString("name", s.Origin.Name)
+		origin.maybeSetString("version", s.Origin.Version)
+		origin.maybeSetString("id", s.Origin.ID)
+		svc.maybeSetMapStr("origin", common.MapStr(origin))
 	}
 
 	return common.MapStr(svc)

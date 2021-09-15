@@ -62,6 +62,11 @@ func TestAPMEventFields(t *testing.T) {
 			Service: Service{
 				Name: serviceName,
 				Node: ServiceNode{Name: serviceNodeName},
+				Origin: &ServiceOrigin{
+					ID:      "abc123",
+					Name:    serviceName,
+					Version: "1.0",
+				},
 			},
 			Host: Host{
 				Hostname: hostname,
@@ -107,6 +112,11 @@ func TestAPMEventFields(t *testing.T) {
 			"service": common.MapStr{
 				"name": "myservice",
 				"node": common.MapStr{"name": serviceNodeName},
+				"origin": common.MapStr{
+					"id":      "abc123",
+					"name":    "myservice",
+					"version": "1.0",
+				},
 			},
 			"user":   common.MapStr{"id": "12321", "email": "user@email.com"},
 			"client": common.MapStr{"domain": "client.domain"},
