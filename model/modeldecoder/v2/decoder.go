@@ -729,20 +729,20 @@ func mapToServiceModel(from contextService, out *model.Service) {
 	if from.Version.IsSet() {
 		out.Version = from.Version.Val
 	}
-	// outOrigin := out.Origin
-	// if outOrigin == nil {
-	// 	outOrigin = &model.Service{}
-	// }
-	// if from.Origin.ID.IsSet() {
-	// 	outOrigin.ID = from.Origin.ID.Val
-	// }
-	// if from.Origin.Name.IsSet() {
-	// 	outOrigin.Name = from.Origin.Name.Val
-	// }
-	// if from.Origin.Version.IsSet() {
-	// 	outOrigin.Version = from.Origin.Version.Val
-	// }
-	// out.Origin = outOrigin
+	outOrigin := out.Origin
+	if outOrigin == nil {
+		outOrigin = &model.ServiceOrigin{}
+	}
+	if from.Origin.ID.IsSet() {
+		outOrigin.ID = from.Origin.ID.Val
+	}
+	if from.Origin.Name.IsSet() {
+		outOrigin.Name = from.Origin.Name.Val
+	}
+	if from.Origin.Version.IsSet() {
+		outOrigin.Version = from.Origin.Version.Val
+	}
+	out.Origin = outOrigin
 }
 
 func mapToAgentModel(from contextServiceAgent, out *model.Agent) {

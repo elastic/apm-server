@@ -21,9 +21,9 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-//Service bundles together information related to the monitored service and the agent used for monitoring
+// Service bundles together information related to the monitored service and
+// the agent used for monitoring
 type Service struct {
-	// ID          string
 	Name        string
 	Version     string
 	Environment string
@@ -32,7 +32,15 @@ type Service struct {
 	Framework   Framework
 	Node        ServiceNode
 
-	// Origin *Service
+	Origin *ServiceOrigin
+}
+
+// ServiceOrigin holds self nested information related to the monitored
+// service.
+type ServiceOrigin struct {
+	ID      string
+	Name    string
+	Version string
 }
 
 //Language has an optional version and name
@@ -93,9 +101,11 @@ func (s *Service) Fields() common.MapStr {
 		svc.set("framework", common.MapStr(framework))
 	}
 
-	// if s.Origin != nil {
-	// 	svc.set("origin", s.Origin.Fields())
-	// }
+	if s.Origin != nil {
+		svc.maybeSetString("origin.name", s.Origin.Name)
+		svc.maybeSetString("origin.version", s.Origin.Version)
+		svc.maybeSetString("origin.id", s.Origin.ID)
+	}
 
 	return common.MapStr(svc)
 }
