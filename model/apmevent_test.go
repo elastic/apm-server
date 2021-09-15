@@ -45,6 +45,7 @@ func TestAPMEventFields(t *testing.T) {
 	childID := []string{"child_1", "child_2"}
 	httpRequestMethod := "post"
 	httpRequestBody := "<html><marquee>hello world</marquee></html>"
+	coldstart := true
 
 	for _, test := range []struct {
 		input  APMEvent
@@ -87,6 +88,12 @@ func TestAPMEventFields(t *testing.T) {
 					Method: httpRequestMethod,
 					Body:   httpRequestBody,
 				},
+			},
+			FAAS: FAAS{
+				Coldstart:        &coldstart,
+				Execution:        "execution",
+				TriggerType:      "http",
+				TriggerRequestID: "abc123",
 			},
 		},
 		output: common.MapStr{
@@ -135,6 +142,12 @@ func TestAPMEventFields(t *testing.T) {
 					"method":        "post",
 					"body.original": httpRequestBody,
 				},
+			},
+			"faas": common.MapStr{
+				"coldstart":          true,
+				"execution":          "execution",
+				"trigger.type":       "http",
+				"trigger.request_id": "abc123",
 			},
 		},
 	}, {
