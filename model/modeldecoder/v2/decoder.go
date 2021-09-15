@@ -231,25 +231,25 @@ func mapToFAASModel(from contextFAAS, faas *model.FAAS) {
 }
 
 func mapToCloudModel(from contextCloud, cloud *model.Cloud) {
-	// cloudOrigin := cloud.Origin
-	// if cloudOrigin == nil {
-	// 	cloudOrigin = &model.Cloud{}
-	// }
+	cloudOrigin := cloud.Origin
+	if cloudOrigin == nil {
+		cloudOrigin = &model.Cloud{}
+	}
 
-	// fromOrigin := from.Origin
-	// if fromOrigin.AccountID.IsSet() {
-	// 	cloudOrigin.AccountID = fromOrigin.AccountID.Val
-	// }
-	// if fromOrigin.Provider.IsSet() {
-	// 	cloudOrigin.Provider = fromOrigin.Provider.Val
-	// }
-	// if fromOrigin.Region.IsSet() {
-	// 	cloudOrigin.Region = fromOrigin.Region.Val
-	// }
-	// if fromOrigin.ServiceName.IsSet() {
-	// 	cloudOrigin.ServiceName = fromOrigin.ServiceName.Val
-	// }
-	// cloud.Origin = cloudOrigin
+	fromOrigin := from.Origin
+	if fromOrigin.AccountID.IsSet() {
+		cloudOrigin.AccountID = fromOrigin.AccountID.Val
+	}
+	if fromOrigin.Provider.IsSet() {
+		cloudOrigin.Provider = fromOrigin.Provider.Val
+	}
+	if fromOrigin.Region.IsSet() {
+		cloudOrigin.Region = fromOrigin.Region.Val
+	}
+	if fromOrigin.ServiceName.IsSet() {
+		cloudOrigin.ServiceName = fromOrigin.ServiceName.Val
+	}
+	cloud.Origin = cloudOrigin
 }
 
 func mapToClientModel(from contextRequest, source *model.Source, client *model.Client) {
