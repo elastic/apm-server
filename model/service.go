@@ -72,7 +72,6 @@ func (s *Service) Fields() common.MapStr {
 	}
 
 	var svc mapStr
-	// svc.maybeSetString("id", s.ID)
 	svc.maybeSetString("name", s.Name)
 	svc.maybeSetString("version", s.Version)
 	svc.maybeSetString("environment", s.Environment)
