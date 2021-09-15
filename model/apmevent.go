@@ -58,6 +58,7 @@ type APMEvent struct {
 	Parent      Parent
 	Child       Child
 	HTTP        HTTP
+	FAAS        FAAS
 
 	// Timestamp holds the event timestamp.
 	//

@@ -23,6 +23,7 @@ import (
 
 //Service bundles together information related to the monitored service and the agent used for monitoring
 type Service struct {
+	// ID          string
 	Name        string
 	Version     string
 	Environment string
@@ -30,6 +31,8 @@ type Service struct {
 	Runtime     Runtime
 	Framework   Framework
 	Node        ServiceNode
+
+	// Origin *Service
 }
 
 //Language has an optional version and name
@@ -61,6 +64,7 @@ func (s *Service) Fields() common.MapStr {
 	}
 
 	var svc mapStr
+	// svc.maybeSetString("id", s.ID)
 	svc.maybeSetString("name", s.Name)
 	svc.maybeSetString("version", s.Version)
 	svc.maybeSetString("environment", s.Environment)
@@ -88,6 +92,10 @@ func (s *Service) Fields() common.MapStr {
 	if framework != nil {
 		svc.set("framework", common.MapStr(framework))
 	}
+
+	// if s.Origin != nil {
+	// 	svc.set("origin", s.Origin.Fields())
+	// }
 
 	return common.MapStr(svc)
 }
