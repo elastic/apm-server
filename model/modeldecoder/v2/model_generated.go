@@ -822,7 +822,7 @@ func (val *context) validate() error {
 }
 
 func (val *contextMessage) IsSet() bool {
-	return val.Age.IsSet() || val.Body.IsSet() || val.Headers.IsSet() || val.Queue.IsSet()
+	return val.Age.IsSet() || val.Body.IsSet() || val.Headers.IsSet() || val.Queue.IsSet() || val.RoutingKey.IsSet()
 }
 
 func (val *contextMessage) Reset() {
@@ -830,6 +830,7 @@ func (val *contextMessage) Reset() {
 	val.Body.Reset()
 	val.Headers.Reset()
 	val.Queue.Reset()
+	val.RoutingKey.Reset()
 }
 
 func (val *contextMessage) validate() error {

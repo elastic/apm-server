@@ -106,6 +106,9 @@ type contextMessage struct {
 	Headers nullable.HTTPHeader `json:"headers"`
 	// Queue holds information about the message queue where the message is received.
 	Queue contextMessageQueue `json:"queue"`
+	// RoutingKey holds the optional routing key of the received message as set
+	// on the queuing system. Currently only used on for RabbitMQ messages.
+	RoutingKey nullable.String `json:"routing_key"`
 }
 
 type contextMessageAge struct {

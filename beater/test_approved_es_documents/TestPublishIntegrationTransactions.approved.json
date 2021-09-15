@@ -631,7 +631,8 @@
                     },
                     "queue": {
                         "name": "new_users"
-                    }
+                    },
+                    "routing_key": "user-created-transaction"
                 },
                 "name": "amqp receive",
                 "sampled": true,
