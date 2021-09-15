@@ -31,7 +31,7 @@ See [APM data streams](https://ela.st/apm-data-streams) for more information.
 ## Compatibility and limitations
 
 The APM integration requires Kibana v7.12 and Elasticsearch with at least the basic license.
-This version is experimental and has some limitations, listed bellow:
+This version is beta and has some limitations, listed bellow:
 
 - Sourcemaps need to be uploaded to Elasticsearch directly.
 - You need to create specific API keys for sourcemaps and central configuration.
