@@ -19,10 +19,10 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -41,48 +41,72 @@ func baseLog() *Log {
 }
 
 func TestHandleExceptionTree(t *testing.T) {
-	event := &Error{
-		ID: "id",
-		Exception: &Exception{
-			Message: "message0",
-			Type:    "type0",
-			Stacktrace: Stacktrace{{
-				Filename: "file0",
-			}},
-			Cause: []Exception{{
-				Message: "message1",
-				Type:    "type1",
-			}, {
-				Message: "message2",
-				Type:    "type2",
-				Cause: []Exception{{
-					Message: "message3",
-					Type:    "type3",
-					Cause: []Exception{{
-						Message: "message4",
-						Type:    "type4",
-					}, {
-						Message: "message5",
-						Type:    "type5",
-					}},
+	event := APMEvent{
+		Error: &Error{
+			ID: "id",
+			Exception: &Exception{
+				Message: "message0",
+				Type:    "type0",
+				Stacktrace: Stacktrace{{
+					Filename: "file0",
 				}},
-			}, {
-				Message: "message6",
-				Type:    "type6",
-			}},
+				Cause: []Exception{{
+					Message: "message1",
+					Type:    "type1",
+				}, {
+					Message: "message2",
+					Type:    "type2",
+					Cause: []Exception{{
+						Message: "message3",
+						Type:    "type3",
+						Cause: []Exception{{
+							Message: "message4",
+							Type:    "type4",
+						}, {
+							Message: "message5",
+							Type:    "type5",
+						}},
+					}},
+				}, {
+					Message: "message6",
+					Type:    "type6",
+				}},
+			},
 		},
 	}
-	exceptions := flattenExceptionTree(event.Exception)
 
-	assert.Len(t, exceptions, 7)
-	for i, ex := range exceptions {
-		assert.Equal(t, fmt.Sprintf("message%d", i), ex.Message)
-		assert.Equal(t, fmt.Sprintf("type%d", i), ex.Type)
-		assert.Nil(t, ex.Cause)
-	}
-	assert.Equal(t, 0, *exceptions[2].Parent)
-	assert.Equal(t, 3, *exceptions[5].Parent)
-	assert.Equal(t, 0, *exceptions[6].Parent)
+	beatEvent := event.BeatEvent(context.Background())
+	exceptionField, err := beatEvent.Fields.GetValue("error.exception")
+	require.NoError(t, err)
+	assert.Equal(t, []common.MapStr{{
+		"message": "message0",
+		"stacktrace": []common.MapStr{{
+			"exclude_from_grouping": false,
+			"filename":              "file0",
+		}},
+		"type": "type0",
+	}, {
+		"message": "message1",
+		"type":    "type1",
+	}, {
+		"message": "message2",
+		"type":    "type2",
+		"parent":  0,
+	}, {
+		"message": "message3",
+		"type":    "type3",
+	}, {
+		"message": "message4",
+		"type":    "type4",
+	}, {
+		"message": "message5",
+		"type":    "type5",
+		"parent":  3,
+	}, {
+		"message": "message6",
+		"type":    "type6",
+		"parent":  0,
+	}}, exceptionField)
 }
 
 func TestEventFields(t *testing.T) {
