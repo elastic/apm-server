@@ -69,8 +69,6 @@ type context struct {
 	// The format is unspecified and can be deeply nested objects.
 	// The information will not be indexed or searchable in Elasticsearch.
 	Custom common.MapStr `json:"custom"`
-	// FAAS holds fields related to Function as a Service events.
-	FAAS contextFAAS `json:"faas"`
 	// Message holds details related to message receiving and publishing
 	// if the captured event integrates with a messaging system
 	Message contextMessage `json:"message"`
@@ -98,7 +96,7 @@ type context struct {
 	User user `json:"user"`
 }
 
-type contextFAAS struct {
+type faas struct {
 	// Indicates whether a function invocation was a cold start or not.
 	Coldstart nullable.Bool `json:"coldstart"`
 	// The request id of the function invocation.
@@ -842,6 +840,8 @@ type transaction struct {
 	// Duration how long the transaction took to complete, in milliseconds
 	// with 3 decimal points.
 	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
+	// FAAS holds fields related to Function as a Service events.
+	FAAS faas `json:"faas"`
 	// ID holds the hex encoded 64 random bits ID of the event.
 	ID nullable.String `json:"id" validate:"required,maxLength=1024"`
 	// Marks capture the timing of a significant event during the lifetime of

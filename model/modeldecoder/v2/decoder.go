@@ -221,7 +221,7 @@ func decodeIntoMetadataRoot(d decoder.Decoder, m *metadataRoot) error {
 	return d.Decode(m)
 }
 
-func mapToFAASModel(from contextFAAS, faas *model.FAAS) {
+func mapToFAASModel(from faas, faas *model.FAAS) {
 	if from.Coldstart.IsSet() {
 		faas.Coldstart = &from.Coldstart.Val
 	}
@@ -1028,7 +1028,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	overwriteUserInMetadataModel(from.Context.User, event)
 	mapToUserAgentModel(from.Context.Request.Headers, &event.UserAgent)
 	mapToClientModel(from.Context.Request, &event.Source, &event.Client)
-	mapToFAASModel(from.Context.FAAS, &event.FAAS)
+	mapToFAASModel(from.FAAS, &event.FAAS)
 	mapToCloudModel(from.Context.Cloud, &event.Cloud)
 
 	// map transaction specific data
