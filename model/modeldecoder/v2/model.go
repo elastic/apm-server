@@ -62,6 +62,9 @@ type transactionRoot struct {
 // other structs
 
 type context struct {
+	// Cloud holds fields related to the cloud or infrastructure the events
+	// are coming from.
+	Cloud contextCloud `json:"cloud"`
 	// Custom can contain additional metadata to be stored with the event.
 	// The format is unspecified and can be deeply nested objects.
 	// The information will not be indexed or searchable in Elasticsearch.
@@ -91,6 +94,52 @@ type context struct {
 	// is ignored, otherwise the metadata's user information will be stored
 	// with the event.
 	User user `json:"user"`
+}
+
+type faas struct {
+	// Indicates whether a function invocation was a cold start or not.
+	Coldstart nullable.Bool `json:"coldstart"`
+	// The request id of the function invocation.
+	Execution nullable.String `json:"execution"`
+	// Trigger attributes.
+	Trigger trigger `json:"trigger"`
+}
+
+type trigger struct {
+	// The trigger type.
+	Type nullable.String `json:"type"`
+	// The id of the origin trigger request.
+	RequestID nullable.String `json:"request_id"`
+}
+
+type contextCloud struct {
+	// Origin contains the self-nested field groups for cloud.
+	Origin contextCloudOrigin `json:"origin"`
+}
+
+type contextCloudOrigin struct {
+	// The cloud account or organization id used to identify
+	// different entities in a multi-tenant environment.
+	Account contextCloudOriginAccount `json:"account"`
+	// Name of the cloud provider.
+	Provider nullable.String `json:"provider"`
+	// Region in which this host, resource, or service is located.
+	Region nullable.String `json:"region"`
+	// The cloud service name is intended to distinguish services running
+	// on different platforms within a provider.
+	Service contextCloudOriginService `json:"service"`
+}
+
+type contextCloudOriginAccount struct {
+	// The cloud account or organization id used to identify
+	// different entities in a multi-tenant environment.
+	ID nullable.String `json:"id"`
+}
+
+type contextCloudOriginService struct {
+	// The cloud service name is intended to distinguish services running
+	// on different platforms within a provider.
+	Name nullable.String `json:"name"`
 }
 
 type contextMessage struct {
@@ -208,6 +257,8 @@ type contextService struct {
 	// Framework holds information about the framework used in the
 	// monitored service.
 	Framework contextServiceFramework `json:"framework"`
+	// ID holds a unique identifier for the service.
+	ID nullable.String `json:"string"`
 	// Language holds information about the programming language of the
 	// monitored service.
 	Language contextServiceLanguage `json:"language"`
@@ -215,11 +266,22 @@ type contextService struct {
 	Name nullable.String `json:"name" validate:"maxLength=1024,pattern=patternAlphaNumericExt"`
 	// Node must be a unique meaningful name of the service node.
 	Node contextServiceNode `json:"node"`
+	// Origin contains the self-nested field groups for service.
+	Origin contextServiceOrigin `json:"origin"`
 	// Runtime holds information about the language runtime running the
 	// monitored service
 	Runtime contextServiceRuntime `json:"runtime"`
 	// Version of the monitored service.
 	Version nullable.String `json:"version" validate:"maxLength=1024"`
+}
+
+type contextServiceOrigin struct {
+	// Immutable id of the service emitting this event.
+	ID nullable.String `json:"id"`
+	// Immutable name of the service emitting this event.
+	Name nullable.String `json:"name"`
+	// The version of the service the data was collected from.
+	Version nullable.String `json:"version"`
 }
 
 type contextServiceAgent struct {
@@ -430,6 +492,8 @@ type metadataService struct {
 	// Framework holds information about the framework used in the
 	// monitored service.
 	Framework metadataServiceFramework `json:"framework"`
+	// ID holds a unique identifier for the running service.
+	ID nullable.String `json:"id"`
 	// Language holds information about the programming language of the
 	// monitored service.
 	Language metadataServiceLanguage `json:"language"`
@@ -793,6 +857,8 @@ type transaction struct {
 	// Duration how long the transaction took to complete, in milliseconds
 	// with 3 decimal points.
 	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
+	// FAAS holds fields related to Function as a Service events.
+	FAAS faas `json:"faas"`
 	// ID holds the hex encoded 64 random bits ID of the event.
 	ID nullable.String `json:"id" validate:"required,maxLength=1024"`
 	// Marks capture the timing of a significant event during the lifetime of

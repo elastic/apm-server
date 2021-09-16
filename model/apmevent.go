@@ -58,6 +58,7 @@ type APMEvent struct {
 	Parent      Parent
 	Child       Child
 	HTTP        HTTP
+	FAAS        FAAS
 
 	// Timestamp holds the event timestamp.
 	//
@@ -144,6 +145,7 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("trace", e.Trace.fields())
 	fields.maybeSetString("message", e.Message)
 	fields.maybeSetMapStr("http", e.HTTP.fields())
+	fields.maybeSetMapStr("faas", e.FAAS.fields())
 	if e.Processor == SpanProcessor {
 		// Deprecated: copy url.original and http.* to span.http.* for backwards compatibility.
 		//

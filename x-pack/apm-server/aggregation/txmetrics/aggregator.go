@@ -421,6 +421,7 @@ type metricsMapEntry struct {
 	transactionMetrics
 }
 
+// NOTE(axw) the dimensions should be kept in sync with docs/metricset-indices.asciidoc,
 type transactionAggregationKey struct {
 	traceRoot          bool
 	agentName          string
