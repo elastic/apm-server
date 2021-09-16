@@ -62,7 +62,7 @@ class PipelineRegisterTest(ElasticTest):
         wait_until_pipelines(self.es)
         # setup
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
-                                     self.intake_url, 'transaction', 4)
+                                     self.intake_url, 'transaction', 5)
 
         entries = self.es.search(index=index_transaction)['hits']['hits']
         ua_found = False
@@ -99,7 +99,7 @@ class PipelineConfigurationNoneTest(ElasticTest):
     def test_pipeline_not_applied(self):
         wait_until_pipelines(self.es)
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
-                                     self.intake_url, 'transaction', 4)
+                                     self.intake_url, 'transaction', 5)
         uaFound = False
         entries = self.es.search(index=index_transaction)['hits']['hits']
         for e in entries:
@@ -126,7 +126,7 @@ class PipelineDisableRegisterTest(ElasticTest):
         # events do not get stored when pipeline is missing
         with pytest.raises(TimeoutError):
             self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
-                                         self.intake_url, 'transaction', 4)
+                                         self.intake_url, 'transaction', 5)
 
 
 class PipelineOverwriteBase(ElasticTest):

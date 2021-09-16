@@ -254,6 +254,10 @@
   description: |
     Service fields.
   fields:
+    - name: id
+      type: keyword
+      description: |
+        Immutable id of the service emitting this event.
     - name: name
       type: keyword
       description: |

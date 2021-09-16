@@ -35,6 +35,15 @@ type Cloud struct {
 	Provider         string
 	Region           string
 	ServiceName      string
+
+	Origin *CloudOrigin
+}
+
+type CloudOrigin struct {
+	AccountID   string
+	Provider    string
+	Region      string
+	ServiceName string
 }
 
 func (c *Cloud) fields() common.MapStr {
@@ -58,5 +67,13 @@ func (c *Cloud) fields() common.MapStr {
 	fields.maybeSetMapStr("service", common.MapStr(service))
 	fields.maybeSetString("provider", c.Provider)
 	fields.maybeSetString("region", c.Region)
+	if c.Origin != nil {
+		var origin mapStr
+		origin.maybeSetString("account.id", c.Origin.AccountID)
+		origin.maybeSetString("provider", c.Origin.Provider)
+		origin.maybeSetString("region", c.Origin.Region)
+		origin.maybeSetString("service.name", c.Origin.ServiceName)
+		fields.maybeSetMapStr("origin", common.MapStr(origin))
+	}
 	return common.MapStr(fields)
 }
