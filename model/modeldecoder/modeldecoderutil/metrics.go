@@ -38,10 +38,6 @@ func SetInternalMetrics(event *model.APMEvent) {
 		switch k {
 		case "transaction.breakdown.count":
 			event.Transaction.BreakdownCount = int(v.Value)
-		case "transaction.duration.count":
-			event.Transaction.AggregatedDuration.Count = int(v.Value)
-		case "transaction.duration.sum.us":
-			event.Transaction.AggregatedDuration.Sum = time.Duration(v.Value * 1000)
 		case "span.self_time.count":
 			if event.Span != nil {
 				event.Span.SelfTime.Count = int(v.Value)

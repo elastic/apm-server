@@ -315,7 +315,7 @@ func TestMetadataRequiredValidationRules(t *testing.T) {
 func TestTransactionMetricsetRequiredValidationRules(t *testing.T) {
 	// setup: create full struct with sample values set
 	var tx transaction
-	s := `{"me":[{"sa":{"xds":{"v":2048},"xbc":{"v":1}},"y":{"t":"db","su":"mysql"}}]}`
+	s := `{"me":[{"sa":{"ysc":{"v":2048},"xbc":{"v":1}},"y":{"t":"db","su":"mysql"}}]}`
 	modeldecodertest.DecodeData(t, strings.NewReader(s), "me", &tx)
 	// test vanilla struct is valid
 	require.Len(t, tx.Metricsets, 1)

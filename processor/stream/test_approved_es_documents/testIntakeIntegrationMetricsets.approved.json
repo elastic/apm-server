@@ -42,10 +42,6 @@
             },
             "transaction": {
                 "breakdown.count": 12,
-                "duration": {
-                    "count": 2,
-                    "sum.us": 12
-                },
                 "name": "GET /",
                 "type": "request"
             },
