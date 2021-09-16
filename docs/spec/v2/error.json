@@ -63,43 +63,6 @@
             "object"
           ]
         },
-        "faas": {
-          "description": "FAAS holds fields related to Function as a Service events.",
-          "type": [
-            "null",
-            "object"
-          ],
-          "properties": {
-            "coldstart": {
-              "description": "Indicates whether a function invocation was a cold start or not.",
-              "type": [
-                "null",
-                "boolean"
-              ]
-            },
-            "execution": {
-              "description": "The request id of the function invocation.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "trigger.request_id": {
-              "description": "The id of the origin trigger request.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "trigger.type": {
-              "description": "The trigger type.",
-              "type": [
-                "null",
-                "string"
-              ]
-            }
-          }
-        },
         "message": {
           "description": "Message holds details related to message receiving and publishing if the captured event integrates with a messaging system",
           "type": [

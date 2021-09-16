@@ -862,24 +862,6 @@ func (val *contextCloudOrigin) validate() error {
 	return nil
 }
 
-func (val *faas) IsSet() bool {
-	return val.Coldstart.IsSet() || val.Execution.IsSet() || val.TriggerType.IsSet() || val.TriggerRequestID.IsSet()
-}
-
-func (val *faas) Reset() {
-	val.Coldstart.Reset()
-	val.Execution.Reset()
-	val.TriggerType.Reset()
-	val.TriggerRequestID.Reset()
-}
-
-func (val *faas) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	return nil
-}
-
 func (val *contextMessage) IsSet() bool {
 	return val.Age.IsSet() || val.Body.IsSet() || val.Headers.IsSet() || val.Queue.IsSet()
 }
@@ -1964,11 +1946,11 @@ func (val *transaction) validate() error {
 	if val.Duration.IsSet() && val.Duration.Val < 0 {
 		return fmt.Errorf("'duration': validation rule 'min(0)' violated")
 	}
-	if err := val.FAAS.validate(); err != nil {
-		return errors.Wrapf(err, "faas")
-	}
 	if !val.Duration.IsSet() {
 		return fmt.Errorf("'duration' required")
+	}
+	if err := val.FAAS.validate(); err != nil {
+		return errors.Wrapf(err, "faas")
 	}
 	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
@@ -2023,6 +2005,24 @@ func (val *transaction) validate() error {
 	}
 	if err := val.UserExperience.validate(); err != nil {
 		return errors.Wrapf(err, "experience")
+	}
+	return nil
+}
+
+func (val *faas) IsSet() bool {
+	return val.Coldstart.IsSet() || val.Execution.IsSet() || val.TriggerType.IsSet() || val.TriggerRequestID.IsSet()
+}
+
+func (val *faas) Reset() {
+	val.Coldstart.Reset()
+	val.Execution.Reset()
+	val.TriggerType.Reset()
+	val.TriggerRequestID.Reset()
+}
+
+func (val *faas) validate() error {
+	if !val.IsSet() {
+		return nil
 	}
 	return nil
 }
