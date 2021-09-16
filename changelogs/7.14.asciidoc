@@ -3,8 +3,17 @@
 
 https://github.com/elastic/apm-server/compare/7.13\...7.14[View commits]
 
+* <<release-notes-7.14.2>>
 * <<release-notes-7.14.1>>
 * <<release-notes-7.14.0>>
+
+[float]
+[[release-notes-7.14.2]]
+=== APM Server version 7.14.2
+
+https://github.com/elastic/apm-server/compare/v7.14.1\...v7.14.2[View commits]
+
+No significant changes.
 
 [float]
 [[release-notes-7.14.1]]
@@ -30,6 +39,8 @@ https://github.com/elastic/apm-server/compare/v7.13.4\...v7.14.0[View commits]
 * Remove multipart form temporary files left behind by source map uploads {pull}5718[5718]
 * Removed service name from dataset {pull}5451[5451]
 * Fixed tail-based sampling pubsub to use _seq_no correctly {pull}5126[5126]
+* Fix apm_error_grouping_name and apm_convert_destination_address {pull}5876[5876]
+
 
 [float]
 ==== Added
