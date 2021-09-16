@@ -222,34 +222,39 @@ func decodeIntoMetadataRoot(d decoder.Decoder, m *metadataRoot) error {
 }
 
 func mapToFAASModel(from faas, faas *model.FAAS) {
-	if from.Coldstart.IsSet() {
-		faas.Coldstart = &from.Coldstart.Val
+	if from.IsSet() {
+		if from.Coldstart.IsSet() {
+			faas.Coldstart = &from.Coldstart.Val
+		}
+		if from.Execution.IsSet() {
+			faas.Execution = from.Execution.Val
+		}
+		if from.TriggerType.IsSet() {
+			faas.TriggerType = from.TriggerType.Val
+		}
+		if from.TriggerRequestID.IsSet() {
+			faas.TriggerRequestID = from.TriggerRequestID.Val
+		}
 	}
-	faas.Execution = from.Execution.Val
-	faas.TriggerType = from.TriggerType.Val
-	faas.TriggerRequestID = from.TriggerRequestID.Val
 }
 
 func mapToCloudModel(from contextCloud, cloud *model.Cloud) {
-	cloudOrigin := cloud.Origin
-	if cloudOrigin == nil {
-		cloudOrigin = &model.CloudOrigin{}
+	if from.IsSet() {
+		cloudOrigin := &model.CloudOrigin{}
+		if from.Origin.AccountID.IsSet() {
+			cloudOrigin.AccountID = from.Origin.AccountID.Val
+		}
+		if from.Origin.Provider.IsSet() {
+			cloudOrigin.Provider = from.Origin.Provider.Val
+		}
+		if from.Origin.Region.IsSet() {
+			cloudOrigin.Region = from.Origin.Region.Val
+		}
+		if from.Origin.ServiceName.IsSet() {
+			cloudOrigin.ServiceName = from.Origin.ServiceName.Val
+		}
+		cloud.Origin = cloudOrigin
 	}
-
-	fromOrigin := from.Origin
-	if fromOrigin.AccountID.IsSet() {
-		cloudOrigin.AccountID = fromOrigin.AccountID.Val
-	}
-	if fromOrigin.Provider.IsSet() {
-		cloudOrigin.Provider = fromOrigin.Provider.Val
-	}
-	if fromOrigin.Region.IsSet() {
-		cloudOrigin.Region = fromOrigin.Region.Val
-	}
-	if fromOrigin.ServiceName.IsSet() {
-		cloudOrigin.ServiceName = fromOrigin.ServiceName.Val
-	}
-	cloud.Origin = cloudOrigin
 }
 
 func mapToClientModel(from contextRequest, source *model.Source, client *model.Client) {
@@ -729,20 +734,19 @@ func mapToServiceModel(from contextService, out *model.Service) {
 	if from.Version.IsSet() {
 		out.Version = from.Version.Val
 	}
-	outOrigin := out.Origin
-	if outOrigin == nil {
-		outOrigin = &model.ServiceOrigin{}
+	if from.Origin.IsSet() {
+		outOrigin := &model.ServiceOrigin{}
+		if from.Origin.ID.IsSet() {
+			outOrigin.ID = from.Origin.ID.Val
+		}
+		if from.Origin.Name.IsSet() {
+			outOrigin.Name = from.Origin.Name.Val
+		}
+		if from.Origin.Version.IsSet() {
+			outOrigin.Version = from.Origin.Version.Val
+		}
+		out.Origin = outOrigin
 	}
-	if from.Origin.ID.IsSet() {
-		outOrigin.ID = from.Origin.ID.Val
-	}
-	if from.Origin.Name.IsSet() {
-		outOrigin.Name = from.Origin.Name.Val
-	}
-	if from.Origin.Version.IsSet() {
-		outOrigin.Version = from.Origin.Version.Val
-	}
-	out.Origin = outOrigin
 }
 
 func mapToAgentModel(from contextServiceAgent, out *model.Agent) {
