@@ -221,6 +221,42 @@ func decodeIntoMetadataRoot(d decoder.Decoder, m *metadataRoot) error {
 	return d.Decode(m)
 }
 
+func mapToFAASModel(from faas, faas *model.FAAS) {
+	if from.IsSet() {
+		if from.Coldstart.IsSet() {
+			faas.Coldstart = &from.Coldstart.Val
+		}
+		if from.Execution.IsSet() {
+			faas.Execution = from.Execution.Val
+		}
+		if from.Trigger.Type.IsSet() {
+			faas.TriggerType = from.Trigger.Type.Val
+		}
+		if from.Trigger.RequestID.IsSet() {
+			faas.TriggerRequestID = from.Trigger.RequestID.Val
+		}
+	}
+}
+
+func mapToCloudModel(from contextCloud, cloud *model.Cloud) {
+	if from.IsSet() {
+		cloudOrigin := &model.CloudOrigin{}
+		if from.Origin.Account.ID.IsSet() {
+			cloudOrigin.AccountID = from.Origin.Account.ID.Val
+		}
+		if from.Origin.Provider.IsSet() {
+			cloudOrigin.Provider = from.Origin.Provider.Val
+		}
+		if from.Origin.Region.IsSet() {
+			cloudOrigin.Region = from.Origin.Region.Val
+		}
+		if from.Origin.Service.Name.IsSet() {
+			cloudOrigin.ServiceName = from.Origin.Service.Name.Val
+		}
+		cloud.Origin = cloudOrigin
+	}
+}
+
 func mapToClientModel(from contextRequest, source *model.Source, client *model.Client) {
 	// http.Request.Headers and http.Request.Socket are only set for backend events.
 	if source.IP == nil {
@@ -698,6 +734,19 @@ func mapToServiceModel(from contextService, out *model.Service) {
 	if from.Version.IsSet() {
 		out.Version = from.Version.Val
 	}
+	if from.Origin.IsSet() {
+		outOrigin := &model.ServiceOrigin{}
+		if from.Origin.ID.IsSet() {
+			outOrigin.ID = from.Origin.ID.Val
+		}
+		if from.Origin.Name.IsSet() {
+			outOrigin.Name = from.Origin.Name.Val
+		}
+		if from.Origin.Version.IsSet() {
+			outOrigin.Version = from.Origin.Version.Val
+		}
+		out.Origin = outOrigin
+	}
 }
 
 func mapToAgentModel(from contextServiceAgent, out *model.Agent) {
@@ -983,6 +1032,8 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	overwriteUserInMetadataModel(from.Context.User, event)
 	mapToUserAgentModel(from.Context.Request.Headers, &event.UserAgent)
 	mapToClientModel(from.Context.Request, &event.Source, &event.Client)
+	mapToFAASModel(from.FAAS, &event.FAAS)
+	mapToCloudModel(from.Context.Cloud, &event.Cloud)
 
 	// map transaction specific data
 
