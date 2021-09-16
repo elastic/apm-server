@@ -18,34 +18,6 @@
           type: keyword
           description: |
             The cloud account or organization id used to identify different entities in a multi-tenant environment.
-        - name: account.name
-          type: keyword
-          description: |
-            The cloud account name or alias used to identify different entities in a multi-tenant environment.
-        - name: availability_zone
-          type: keyword
-          description: |
-            Availability zone in which this host, resource, or service is located.
-        - name: instance.id
-          type: keyword
-          description: |
-            Instance ID of the host machine.
-        - name: instance.name
-          type: keyword
-          description: |
-            Instance name of the host machine.
-        - name: machine.type
-          type: keyword
-          description: |
-            Machine type of the host machine.
-        - name: project.id
-          type: keyword
-          description: |
-            The cloud project identifier.
-        - name: project.name
-          type: keyword
-          description: |
-            The cloud project name.
         - name: provider
           type: keyword
           description: |
@@ -233,9 +205,6 @@
     - name: origin
       type: group
       fields:
-        - name: ephemeral_id
-          type: keyword
-          description: Ephemeral identifier of the service
         - name: id
           type: keyword
           description: |
@@ -244,18 +213,6 @@
           type: keyword
           description: |
             Immutable name of the service emitting this event.
-        - name: node.name
-          type: keyword
-          description: |
-            Name of a service node.
-        - name: state
-          type: keyword
-          description: |
-            Current state of the service.
-        - name: type
-          type: keyword
-          description: |
-            The type of the service the data is collected from.
         - name: version
           type: keyword
           description: |

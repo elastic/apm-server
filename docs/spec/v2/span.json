@@ -503,7 +503,7 @@
               }
             },
             "string": {
-              "description": "ID holds a unique identifier for the event.",
+              "description": "ID holds a unique identifier for the service.",
               "type": [
                 "null",
                 "string"

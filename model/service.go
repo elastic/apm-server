@@ -35,8 +35,8 @@ type Service struct {
 	Origin *ServiceOrigin
 }
 
-// ServiceOrigin holds self nested information related to the monitored
-// service.
+// ServiceOrigin holds information about the service that originated a
+// transaction.
 type ServiceOrigin struct {
 	ID      string
 	Name    string

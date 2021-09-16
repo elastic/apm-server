@@ -4489,15 +4489,6 @@ type: keyword
 --
 
 
-*`service.origin.ephemeral_id`*::
-+
---
-Ephemeral identifier of the service
-
-type: keyword
-
---
-
 *`service.origin.id`*::
 +
 --
@@ -4512,36 +4503,6 @@ type: keyword
 +
 --
 Immutable name of the service emitting this event.
-
-
-type: keyword
-
---
-
-*`service.origin.node.name`*::
-+
---
-Name of a service node.
-
-
-type: keyword
-
---
-
-*`service.origin.state`*::
-+
---
-Current state of the service.
-
-
-type: keyword
-
---
-
-*`service.origin.type`*::
-+
---
-The type of the service the data is collected from.
 
 
 type: keyword
@@ -5548,80 +5509,10 @@ example: t2.medium
 --
 
 
-*`cloud.origin.account.name`*::
-+
---
-The cloud account name or alias used to identify different entities in a multi-tenant environment.
-
-
-type: keyword
-
---
-
 *`cloud.origin.account.id`*::
 +
 --
 The cloud account or organization id used to identify different entities in a multi-tenant environment.
-
-
-type: keyword
-
---
-
-*`cloud.origin.availability_zone`*::
-+
---
-Availability zone in which this host, resource, or service is located.
-
-
-type: keyword
-
---
-
-*`cloud.origin.instance.id`*::
-+
---
-Instance ID of the host machine.
-
-
-type: keyword
-
---
-
-*`cloud.origin.instance.name`*::
-+
---
-Instance name of the host machine.
-
-
-type: keyword
-
---
-
-*`cloud.origin.machine.type`*::
-+
---
-Machine type of the host machine.
-
-
-type: keyword
-
---
-
-*`cloud.origin.project.id`*::
-+
---
-The cloud project identifier.
-
-
-type: keyword
-
---
-
-*`cloud.origin.project.name`*::
-+
---
-The cloud project name.
 
 
 type: keyword

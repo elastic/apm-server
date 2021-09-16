@@ -240,7 +240,7 @@ type contextService struct {
 	// Framework holds information about the framework used in the
 	// monitored service.
 	Framework contextServiceFramework `json:"framework"`
-	// ID holds a unique identifier for the event.
+	// ID holds a unique identifier for the service.
 	ID nullable.String `json:"string"`
 	// Language holds information about the programming language of the
 	// monitored service.
