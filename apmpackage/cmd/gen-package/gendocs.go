@@ -43,10 +43,10 @@ func generateDocs(inputFields map[string]fieldMap) {
 		Traces:             flattenFields(inputFields["traces"]),
 		Metrics:            flattenFields(inputFields["app_metrics"]),
 		Logs:               flattenFields(inputFields["error_logs"]),
-		TransactionExample: loadExample("transactions.json"),
-		SpanExample:        loadExample("spans.json"),
-		MetricsExample:     loadExample("metricsets.json"),
-		ErrorExample:       loadExample("errors.json"),
+		TransactionExample: loadExample("generated/transactions.json"),
+		SpanExample:        loadExample("generated/spans.json"),
+		MetricsExample:     loadExample("metricset.json"),
+		ErrorExample:       loadExample("generated/errors.json"),
 	}
 	t := template.New(docsTemplateFilePath())
 	tmpl, err := t.Funcs(map[string]interface{}{
@@ -89,16 +89,19 @@ func addBaseFields(streamFields map[string]fieldMap, streams ...string) {
 }
 
 func loadExample(file string) string {
-	in, err := ioutil.ReadFile(path.Join("docs/data/elasticsearch/generated/", file))
+	in, err := ioutil.ReadFile(path.Join("docs/data/elasticsearch/", file))
 	if err != nil {
 		panic(err)
 	}
-	var aux []map[string]interface{}
+	var aux interface{}
 	err = json.Unmarshal(in, &aux)
 	if err != nil {
 		panic(err)
 	}
-	out, err := json.MarshalIndent(aux[0], "", "  ")
+	if slice, ok := aux.([]interface{}); ok {
+		aux = slice[0]
+	}
+	out, err := json.MarshalIndent(aux, "", "  ")
 	if err != nil {
 		panic(err)
 	}

@@ -1,0 +1,70 @@
+{
+  "container": {
+    "id": "a47ed147c6ee269400f7ea4e296b3d01ec7398471bb2951907e4ea12f028bc69"
+  },
+  "kubernetes": {
+    "pod": {
+      "uid": "b0cb3baa-4619-4b82-bef5-84cc87b5f853",
+      "name": "opbeans-java-7c68f48dc6-n6mzc"
+    }
+  },
+  "process": {
+    "pid": 8,
+    "title": "/opt/java/openjdk/bin/java",
+    "ppid": 1
+  },
+  "agent": {
+    "name": "java",
+    "ephemeral_id": "29a27947-ed3a-4d87-b2e6-28f7a940ec2d",
+    "version": "1.25.1-SNAPSHOT.UNKNOWN"
+  },
+  "jvm.gc.time": 11511,
+  "processor": {
+    "name": "metric",
+    "event": "metric"
+  },
+  "labels": {
+    "name": "Copy"
+  },
+  "metricset.name": "app",
+  "observer": {
+    "hostname": "3c5ac040e8f9",
+    "name": "instance-0000000002",
+    "id": "6657d6e6-f3e8-4ce4-aa22-e7fe2ad77b5e",
+    "type": "apm-server",
+    "ephemeral_id": "b7f21735-d283-4945-ab80-ce8df494a207",
+    "version": "7.15.0",
+    "version_major": 7
+  },
+  "@timestamp": "2021-09-14T09:52:49.454Z",
+  "ecs": {
+    "version": "1.11.0"
+  },
+  "service": {
+    "node": {
+      "name": "a47ed147c6ee269400f7ea4e296b3d01ec7398471bb2951907e4ea12f028bc69"
+    },
+    "environment": "production",
+    "name": "opbeans-java",
+    "runtime": {
+      "name": "Java",
+      "version": "11.0.11"
+    },
+    "language": {
+      "name": "Java",
+      "version": "11.0.11"
+    },
+    "version": "2021-09-08 03:55:06"
+  },
+  "jvm.gc.count": 2224,
+  "host": {
+    "os": {
+      "platform": "Linux"
+    },
+    "ip": "35.240.52.17",
+    "architecture": "amd64"
+  },
+  "event": {
+    "ingested": "2021-09-14T09:53:00.834276431Z"
+  }
+}
