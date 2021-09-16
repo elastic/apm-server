@@ -1015,7 +1015,6 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 				out.Message.QueueName = from.Context.Message.Queue.Name.Val
 			}
 			if from.Context.Message.RoutingKey.IsSet() {
-				println(from.Context.Message.RoutingKey.Val)
 				out.Message.RoutingKey = from.Context.Message.RoutingKey.Val
 			}
 		}
