@@ -4313,11 +4313,70 @@ type: object
 --
 
 [float]
+=== faas
+
+Function as a service fields.
+
+
+
+*`faas.execution`*::
++
+--
+Request ID of the function invocation.
+
+
+type: keyword
+
+--
+
+*`faas.coldstart`*::
++
+--
+Boolean indicating whether the function invocation was a coldstart or not.
+
+
+type: boolean
+
+--
+
+*`faas.trigger.type`*::
++
+--
+The trigger type.
+
+
+type: keyword
+
+--
+
+*`faas.trigger.request_id`*::
++
+--
+The ID of the origin trigger request.
+
+
+type: keyword
+
+--
+
+[float]
 === service
 
 Service fields.
 
 
+
+*`service.id`*::
++
+--
+Immutable id of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
 
 *`service.name`*::
 +
@@ -4423,6 +4482,37 @@ type: keyword
 +
 --
 Version of the framework used.
+
+
+type: keyword
+
+--
+
+
+*`service.origin.id`*::
++
+--
+Immutable id of the service emitting this event.
+
+
+type: keyword
+
+--
+
+*`service.origin.name`*::
++
+--
+Immutable name of the service emitting this event.
+
+
+type: keyword
+
+--
+
+*`service.origin.version`*::
++
+--
+The version of the service the data was collected from.
 
 
 type: keyword
@@ -5415,6 +5505,47 @@ type: keyword
 example: t2.medium
 
 {yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.origin.account.id`*::
++
+--
+The cloud account or organization id used to identify different entities in a multi-tenant environment.
+
+
+type: keyword
+
+--
+
+*`cloud.origin.provider`*::
++
+--
+Name of the cloud provider.
+
+
+type: keyword
+
+--
+
+*`cloud.origin.region`*::
++
+--
+Region in which this host, resource, or service is located.
+
+
+type: keyword
+
+--
+
+*`cloud.origin.service.name`*::
++
+--
+The cloud service name is intended to distinguish services running on different platforms within a provider.
+
+
+type: keyword
 
 --
 

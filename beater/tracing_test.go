@@ -37,6 +37,7 @@ var testTransactionIds = map[string]bool{
 	"4340a8e0df1906ecbfa9": true,
 	"cdef4340a8e0df19":     true,
 	"00xxxxFFaaaa1234":     true,
+	"142e61450efb8574":     true,
 }
 
 func TestServerTracingEnabled(t *testing.T) {

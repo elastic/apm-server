@@ -292,6 +292,13 @@
             }
           }
         },
+        "id": {
+          "description": "ID holds a unique identifier for the running service.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
         "language": {
           "description": "Language holds information about the programming language of the monitored service.",
           "type": [

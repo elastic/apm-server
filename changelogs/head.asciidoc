@@ -28,6 +28,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 [float]
 ==== Intake API Changes
 - `network.connection.type` was added to stream metadata {pull}5671[5671]
+- `faas`, `service.origin.*`, and `cloud.origin.*` added for supporting function as a service fields {pull}6161[6161]
 
 [float]
 ==== Added
