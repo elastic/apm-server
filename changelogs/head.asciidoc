@@ -28,6 +28,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 [float]
 ==== Intake API Changes
 - `network.connection.type` was added to stream metadata {pull}5671[5671]
+- `context.message.routing_key` was added to the intake API {pull}6177[6177]
 
 [float]
 ==== Added
