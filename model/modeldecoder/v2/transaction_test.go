@@ -113,10 +113,10 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out model.APMEvent
 		origin := contextCloudOrigin{}
-		origin.AccountID.Set("accountID")
+		origin.Account.ID.Set("accountID")
 		origin.Provider.Set("aws")
 		origin.Region.Set("us-east-1")
-		origin.ServiceName.Set("serviceName")
+		origin.Service.Name.Set("serviceName")
 		input.Context.Cloud.Origin = origin
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "accountID", out.Cloud.Origin.AccountID)
@@ -144,8 +144,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var out model.APMEvent
 		input.FAAS.Coldstart.Set(true)
 		input.FAAS.Execution.Set("execution")
-		input.FAAS.TriggerType.Set("http")
-		input.FAAS.TriggerRequestID.Set("abc123")
+		input.FAAS.Trigger.Type.Set("http")
+		input.FAAS.Trigger.RequestID.Set("abc123")
 		mapToTransactionModel(&input, &out)
 		assert.True(t, *out.FAAS.Coldstart)
 		assert.Equal(t, "execution", out.FAAS.Execution)

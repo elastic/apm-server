@@ -101,10 +101,15 @@ type faas struct {
 	Coldstart nullable.Bool `json:"coldstart"`
 	// The request id of the function invocation.
 	Execution nullable.String `json:"execution"`
+	// Trigger attributes.
+	Trigger trigger `json:"trigger"`
+}
+
+type trigger struct {
 	// The trigger type.
-	TriggerType nullable.String `json:"trigger.type"`
+	Type nullable.String `json:"type"`
 	// The id of the origin trigger request.
-	TriggerRequestID nullable.String `json:"trigger.request_id"`
+	RequestID nullable.String `json:"request_id"`
 }
 
 type contextCloud struct {
@@ -115,14 +120,26 @@ type contextCloud struct {
 type contextCloudOrigin struct {
 	// The cloud account or organization id used to identify
 	// different entities in a multi-tenant environment.
-	AccountID nullable.String `json:"account.id"`
+	Account contextCloudOriginAccount `json:"account"`
 	// Name of the cloud provider.
 	Provider nullable.String `json:"provider"`
 	// Region in which this host, resource, or service is located.
 	Region nullable.String `json:"region"`
 	// The cloud service name is intended to distinguish services running
 	// on different platforms within a provider.
-	ServiceName nullable.String `json:"service.name"`
+	Service contextCloudOriginService `json:"service"`
+}
+
+type contextCloudOriginAccount struct {
+	// The cloud account or organization id used to identify
+	// different entities in a multi-tenant environment.
+	ID nullable.String `json:"id"`
+}
+
+type contextCloudOriginService struct {
+	// The cloud service name is intended to distinguish services running
+	// on different platforms within a provider.
+	Name nullable.String `json:"name"`
 }
 
 type contextMessage struct {

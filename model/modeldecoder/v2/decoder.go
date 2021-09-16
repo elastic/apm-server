@@ -229,11 +229,11 @@ func mapToFAASModel(from faas, faas *model.FAAS) {
 		if from.Execution.IsSet() {
 			faas.Execution = from.Execution.Val
 		}
-		if from.TriggerType.IsSet() {
-			faas.TriggerType = from.TriggerType.Val
+		if from.Trigger.Type.IsSet() {
+			faas.TriggerType = from.Trigger.Type.Val
 		}
-		if from.TriggerRequestID.IsSet() {
-			faas.TriggerRequestID = from.TriggerRequestID.Val
+		if from.Trigger.RequestID.IsSet() {
+			faas.TriggerRequestID = from.Trigger.RequestID.Val
 		}
 	}
 }
@@ -241,8 +241,8 @@ func mapToFAASModel(from faas, faas *model.FAAS) {
 func mapToCloudModel(from contextCloud, cloud *model.Cloud) {
 	if from.IsSet() {
 		cloudOrigin := &model.CloudOrigin{}
-		if from.Origin.AccountID.IsSet() {
-			cloudOrigin.AccountID = from.Origin.AccountID.Val
+		if from.Origin.Account.ID.IsSet() {
+			cloudOrigin.AccountID = from.Origin.Account.ID.Val
 		}
 		if from.Origin.Provider.IsSet() {
 			cloudOrigin.Provider = from.Origin.Provider.Val
@@ -250,8 +250,8 @@ func mapToCloudModel(from contextCloud, cloud *model.Cloud) {
 		if from.Origin.Region.IsSet() {
 			cloudOrigin.Region = from.Origin.Region.Val
 		}
-		if from.Origin.ServiceName.IsSet() {
-			cloudOrigin.ServiceName = from.Origin.ServiceName.Val
+		if from.Origin.Service.Name.IsSet() {
+			cloudOrigin.ServiceName = from.Origin.Service.Name.Val
 		}
 		cloud.Origin = cloudOrigin
 	}

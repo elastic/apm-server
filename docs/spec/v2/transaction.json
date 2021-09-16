@@ -23,12 +23,21 @@
                 "object"
               ],
               "properties": {
-                "account.id": {
+                "account": {
                   "description": "The cloud account or organization id used to identify different entities in a multi-tenant environment.",
                   "type": [
                     "null",
-                    "string"
-                  ]
+                    "object"
+                  ],
+                  "properties": {
+                    "id": {
+                      "description": "The cloud account or organization id used to identify different entities in a multi-tenant environment.",
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
                 },
                 "provider": {
                   "description": "Name of the cloud provider.",
@@ -44,12 +53,21 @@
                     "string"
                   ]
                 },
-                "service.name": {
+                "service": {
                   "description": "The cloud service name is intended to distinguish services running on different platforms within a provider.",
                   "type": [
                     "null",
-                    "string"
-                  ]
+                    "object"
+                  ],
+                  "properties": {
+                    "name": {
+                      "description": "The cloud service name is intended to distinguish services running on different platforms within a provider.",
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -733,19 +751,28 @@
             "string"
           ]
         },
-        "trigger.request_id": {
-          "description": "The id of the origin trigger request.",
+        "trigger": {
+          "description": "Trigger attributes.",
           "type": [
             "null",
-            "string"
-          ]
-        },
-        "trigger.type": {
-          "description": "The trigger type.",
-          "type": [
-            "null",
-            "string"
-          ]
+            "object"
+          ],
+          "properties": {
+            "request_id": {
+              "description": "The id of the origin trigger request.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "type": {
+              "description": "The trigger type.",
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
         }
       }
     },

@@ -845,17 +845,53 @@ func (val *contextCloud) validate() error {
 }
 
 func (val *contextCloudOrigin) IsSet() bool {
-	return val.AccountID.IsSet() || val.Provider.IsSet() || val.Region.IsSet() || val.ServiceName.IsSet()
+	return val.Account.IsSet() || val.Provider.IsSet() || val.Region.IsSet() || val.Service.IsSet()
 }
 
 func (val *contextCloudOrigin) Reset() {
-	val.AccountID.Reset()
+	val.Account.Reset()
 	val.Provider.Reset()
 	val.Region.Reset()
-	val.ServiceName.Reset()
+	val.Service.Reset()
 }
 
 func (val *contextCloudOrigin) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Account.validate(); err != nil {
+		return errors.Wrapf(err, "account")
+	}
+	if err := val.Service.validate(); err != nil {
+		return errors.Wrapf(err, "service")
+	}
+	return nil
+}
+
+func (val *contextCloudOriginAccount) IsSet() bool {
+	return val.ID.IsSet()
+}
+
+func (val *contextCloudOriginAccount) Reset() {
+	val.ID.Reset()
+}
+
+func (val *contextCloudOriginAccount) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *contextCloudOriginService) IsSet() bool {
+	return val.Name.IsSet()
+}
+
+func (val *contextCloudOriginService) Reset() {
+	val.Name.Reset()
+}
+
+func (val *contextCloudOriginService) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
@@ -2010,17 +2046,35 @@ func (val *transaction) validate() error {
 }
 
 func (val *faas) IsSet() bool {
-	return val.Coldstart.IsSet() || val.Execution.IsSet() || val.TriggerType.IsSet() || val.TriggerRequestID.IsSet()
+	return val.Coldstart.IsSet() || val.Execution.IsSet() || val.Trigger.IsSet()
 }
 
 func (val *faas) Reset() {
 	val.Coldstart.Reset()
 	val.Execution.Reset()
-	val.TriggerType.Reset()
-	val.TriggerRequestID.Reset()
+	val.Trigger.Reset()
 }
 
 func (val *faas) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Trigger.validate(); err != nil {
+		return errors.Wrapf(err, "trigger")
+	}
+	return nil
+}
+
+func (val *trigger) IsSet() bool {
+	return val.Type.IsSet() || val.RequestID.IsSet()
+}
+
+func (val *trigger) Reset() {
+	val.Type.Reset()
+	val.RequestID.Reset()
+}
+
+func (val *trigger) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
