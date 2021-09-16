@@ -49,7 +49,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		eventBase := initializedMetadata()
 		eventBase.Timestamp = now
 		input := modeldecoder.Input{Base: eventBase}
-		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"xds":{"v":2048}}},{"sa":{"ysc":{"v":5}},"y":{"t":"span_type","su":"span_subtype"}}]}}`
+		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"xds":{"v":2048},"xbc":{"v":4096}}},{"sa":{"ysc":{"v":5}},"y":{"t":"span_type","su":"span_subtype"}}]}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch model.Batch
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &batch))
@@ -69,9 +69,9 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		// fields.
 		assert.Equal(t, &model.Metricset{}, batch[1].Metricset)
 		assert.Equal(t, &model.Transaction{
-			Name:               "tr-a",
-			Type:               "request",
-			AggregatedDuration: model.AggregatedDuration{Sum: 2048 * time.Microsecond},
+			Name:           "tr-a",
+			Type:           "request",
+			BreakdownCount: 4096,
 		}, batch[1].Transaction)
 		assert.Equal(t, &model.Metricset{}, batch[2].Metricset)
 		assert.Equal(t, &model.Transaction{

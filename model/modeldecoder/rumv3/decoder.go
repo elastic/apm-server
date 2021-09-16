@@ -370,12 +370,6 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *model.APM
 
 	if from.Samples.IsSet() {
 		if event.Transaction != nil {
-			if value := from.Samples.TransactionDurationCount.Value; value.IsSet() {
-				event.Transaction.AggregatedDuration.Count = int(value.Val)
-			}
-			if value := from.Samples.TransactionDurationSum.Value; value.IsSet() {
-				event.Transaction.AggregatedDuration.Sum = time.Duration(value.Val * 1000)
-			}
 			if value := from.Samples.TransactionBreakdownCount.Value; value.IsSet() {
 				event.Transaction.BreakdownCount = int(value.Val)
 			}
