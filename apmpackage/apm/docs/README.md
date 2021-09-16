@@ -542,54 +542,73 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
 
 ```json
 {
-  "@timestamp": "2017-05-30T18:53:41.364Z",
+  "@timestamp": "2021-09-14T09:52:49.454Z",
   "agent": {
-    "name": "elastic-node",
-    "version": "3.14.0"
+    "ephemeral_id": "29a27947-ed3a-4d87-b2e6-28f7a940ec2d",
+    "name": "java",
+    "version": "1.25.1-SNAPSHOT.UNKNOWN"
+  },
+  "container": {
+    "id": "a47ed147c6ee269400f7ea4e296b3d01ec7398471bb2951907e4ea12f028bc69"
   },
   "ecs": {
     "version": "1.11.0"
   },
   "event": {
-    "ingested": "2020-04-22T14:55:05.425020Z"
+    "ingested": "2021-09-14T09:53:00.834276431Z"
   },
-  "go.memstats.heap.sys.bytes": 6520832,
   "host": {
-    "ip": "127.0.0.1"
+    "architecture": "amd64",
+    "ip": "35.240.52.17",
+    "os": {
+      "platform": "Linux"
+    }
+  },
+  "jvm.gc.count": 2224,
+  "jvm.gc.time": 11511,
+  "kubernetes": {
+    "pod": {
+      "name": "opbeans-java-7c68f48dc6-n6mzc",
+      "uid": "b0cb3baa-4619-4b82-bef5-84cc87b5f853"
+    }
   },
   "labels": {
-    "tag1": "one",
-    "tag2": 2
+    "name": "Copy"
   },
   "metricset.name": "app",
   "observer": {
-    "ephemeral_id": "8785cbe1-7f89-4279-84c2-6c33979531fb",
-    "hostname": "ix.lan",
-    "id": "b0cfe4b7-76c9-4159-95ff-e558db368cbe",
+    "ephemeral_id": "b7f21735-d283-4945-ab80-ce8df494a207",
+    "hostname": "3c5ac040e8f9",
+    "id": "6657d6e6-f3e8-4ce4-aa22-e7fe2ad77b5e",
+    "name": "instance-0000000002",
     "type": "apm-server",
-    "version": "8.0.0",
-    "version_major": 8
+    "version": "7.15.0",
+    "version_major": 7
   },
   "process": {
-    "pid": 1234
+    "pid": 8,
+    "ppid": 1,
+    "title": "/opt/java/openjdk/bin/java"
   },
   "processor": {
     "event": "metric",
     "name": "metric"
   },
   "service": {
+    "environment": "production",
     "language": {
-      "name": "ecmascript"
+      "name": "Java",
+      "version": "11.0.11"
     },
-    "name": "1234_service-12a3",
+    "name": "opbeans-java",
     "node": {
-      "name": "node-1"
-    }
-  },
-  "user": {
-    "email": "user@mail.com",
-    "id": "axb123hg",
-    "name": "logged-in-user"
+      "name": "a47ed147c6ee269400f7ea4e296b3d01ec7398471bb2951907e4ea12f028bc69"
+    },
+    "runtime": {
+      "name": "Java",
+      "version": "11.0.11"
+    },
+    "version": "2021-09-08 03:55:06"
   }
 }
 ```
