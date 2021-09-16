@@ -1009,12 +1009,10 @@ func (val *transactionMetricset) validate() error {
 }
 
 func (val *transactionMetricsetSamples) IsSet() bool {
-	return val.TransactionDurationCount.IsSet() || val.TransactionDurationSum.IsSet() || val.TransactionBreakdownCount.IsSet() || val.SpanSelfTimeCount.IsSet() || val.SpanSelfTimeSum.IsSet()
+	return val.TransactionBreakdownCount.IsSet() || val.SpanSelfTimeCount.IsSet() || val.SpanSelfTimeSum.IsSet()
 }
 
 func (val *transactionMetricsetSamples) Reset() {
-	val.TransactionDurationCount.Reset()
-	val.TransactionDurationSum.Reset()
 	val.TransactionBreakdownCount.Reset()
 	val.SpanSelfTimeCount.Reset()
 	val.SpanSelfTimeSum.Reset()
@@ -1023,12 +1021,6 @@ func (val *transactionMetricsetSamples) Reset() {
 func (val *transactionMetricsetSamples) validate() error {
 	if !val.IsSet() {
 		return nil
-	}
-	if err := val.TransactionDurationCount.validate(); err != nil {
-		return errors.Wrapf(err, "xdc")
-	}
-	if err := val.TransactionDurationSum.validate(); err != nil {
-		return errors.Wrapf(err, "xds")
 	}
 	if err := val.TransactionBreakdownCount.validate(); err != nil {
 		return errors.Wrapf(err, "xbc")

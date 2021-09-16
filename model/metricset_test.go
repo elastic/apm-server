@@ -130,10 +130,6 @@ func TestTransformMetricsetTransaction(t *testing.T) {
 			Type:           "transaction_type",
 			Result:         "transaction_result",
 			BreakdownCount: 123,
-			AggregatedDuration: AggregatedDuration{
-				Count: 456,
-				Sum:   time.Millisecond,
-			},
 			DurationHistogram: Histogram{
 				Counts: []int64{1, 2, 3},
 				Values: []float64{4.5, 6.0, 9.0},
@@ -150,10 +146,6 @@ func TestTransformMetricsetTransaction(t *testing.T) {
 			"type":            "transaction_type",
 			"result":          "transaction_result",
 			"breakdown.count": 123,
-			"duration": common.MapStr{
-				"count":  456,
-				"sum.us": int64(1000),
-			},
 			"duration.histogram": common.MapStr{
 				"counts": []int64{1, 2, 3},
 				"values": []float64{4.5, 6.0, 9.0},
