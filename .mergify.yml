@@ -104,7 +104,7 @@ pull_request_rules:
   - name: notify the backport policy
     conditions:
       - -label~=^backport
-      - -base=master
+      - base=master
     actions:
       comment:
         message: |
