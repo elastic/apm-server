@@ -5,6 +5,52 @@
       type: keyword
       description: |
         The ID(s) of the child event(s).
+- name: cloud
+  title: Cloud
+  type: group
+  description: |
+    Cloud metadata reported by agents
+  fields:
+    - name: origin
+      type: group
+      fields:
+        - name: account.id
+          type: keyword
+          description: |
+            The cloud account or organization id used to identify different entities in a multi-tenant environment.
+        - name: provider
+          type: keyword
+          description: |
+            Name of the cloud provider.
+        - name: region
+          type: keyword
+          description: |
+            Region in which this host, resource, or service is located.
+        - name: service.name
+          type: keyword
+          description: |
+            The cloud service name is intended to distinguish services running on different platforms within a provider.
+- name: faas
+  type: group
+  description: |
+    Function as a service fields.
+  fields:
+    - name: coldstart
+      type: boolean
+      description: |
+        Boolean indicating whether the function invocation was a coldstart or not.
+    - name: execution
+      type: keyword
+      description: |
+        Request ID of the function invocation.
+    - name: trigger.request_id
+      type: keyword
+      description: |
+        The ID of the origin trigger request.
+    - name: trigger.type
+      type: keyword
+      description: |
+        The trigger type.
 - name: http
   type: group
   fields:
@@ -156,6 +202,21 @@
           type: keyword
           description: |
             Version of the programming language used.
+    - name: origin
+      type: group
+      fields:
+        - name: id
+          type: keyword
+          description: |
+            Immutable id of the service emitting this event.
+        - name: name
+          type: keyword
+          description: |
+            Immutable name of the service emitting this event.
+        - name: version
+          type: keyword
+          description: |
+            The version of the service the data was collected from.
     - name: runtime
       type: group
       fields:

@@ -140,12 +140,45 @@
       description: >
         A flat mapping of user-defined labels with string, boolean or number values.
 
+    - name: faas
+      type: group
+      dynamic: false
+      description: >
+        Function as a service fields.
+      fields:
+        - name: execution
+          type: keyword
+          description: >
+            Request ID of the function invocation.
+          overwrite: true
+        - name: coldstart
+          type: boolean
+          description: >
+            Boolean indicating whether the function invocation was a coldstart or not.
+          overwrite: true
+        - name: trigger.type
+          type: keyword
+          description: >
+            The trigger type.
+          overwrite: true
+        - name: trigger.request_id
+          type: keyword
+          description: >
+            The ID of the origin trigger request.
+          overwrite: true
+
     - name: service
       type: group
       dynamic: false
       description: >
         Service fields.
       fields:
+        - name: id
+          type: keyword
+          description: >
+            Immutable id of the service emitting this event.
+          overwrite: true
+
         - name: name
           type: keyword
           description: >
@@ -219,6 +252,28 @@
             type: keyword
             description: >
               Version of the framework used.
+            overwrite: true
+
+        - name: origin
+          type: group
+          dynamic: false
+          fields:
+          - name: id
+            type: keyword
+            description: >
+              Immutable id of the service emitting this event.
+            overwrite: true
+
+          - name: name
+            type: keyword
+            description: >
+              Immutable name of the service emitting this event.
+            overwrite: true
+
+          - name: version
+            type: keyword
+            description: >
+              The version of the service the data was collected from.
             overwrite: true
 
     - name: session
@@ -810,6 +865,32 @@
           description: Cloud instance/machine type
           example: t2.medium
           overwrite: true
+      - name: origin
+        type: group
+        dynamic: false
+        fields:
+        - name: account.id
+          type: keyword
+          description: >
+            The cloud account or organization id used to identify different
+            entities in a multi-tenant environment.
+
+        - name: provider
+          type: keyword
+          description: >
+            Name of the cloud provider.
+
+        - name: region
+          type: keyword
+          description: >
+            Region in which this host, resource, or service is located.
+
+        - name: service.name
+          type: keyword
+          description: >
+            The cloud service name is intended to distinguish services running
+            on different platforms within a provider.
+
       - name: project
         type: group
         dynamic: false
