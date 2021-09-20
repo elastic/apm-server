@@ -31,6 +31,7 @@ import (
 	"github.com/elastic/apm-server/agentcfg"
 	apisourcemap "github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
+	"github.com/elastic/apm-server/beater/api/firehose"
 	"github.com/elastic/apm-server/beater/api/intake"
 	"github.com/elastic/apm-server/beater/api/profile"
 	"github.com/elastic/apm-server/beater/api/root"
@@ -70,6 +71,9 @@ const (
 	IntakeRUMPath = "/intake/v2/rum/events"
 
 	IntakeRUMV3Path = "/intake/v3/rum/events"
+
+	// FirehoseLogPath defines the path to ingest firehose logs
+	FirehoseLogPath = "/intake/v2/firehose/logs"
 )
 
 // NewMux registers apm handlers to paths building up the APM Server API.
@@ -113,6 +117,7 @@ func NewMux(
 		{IntakePath, builder.backendIntakeHandler},
 		// The profile endpoint is in Beta
 		{ProfilePath, builder.profileHandler},
+		{FirehoseLogPath, builder.firehoseLogHandler},
 	}
 
 	for _, route := range routeMap {
@@ -158,6 +163,15 @@ func (r *routeBuilder) profileHandler() (request.Handler, error) {
 	}
 	h := profile.Handler(requestMetadataFunc, r.batchProcessor)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, profile.MonitoringMap)...)
+}
+
+func (r *routeBuilder) firehoseLogHandler() (request.Handler, error) {
+	requestMetadataFunc := emptyRequestMetadata
+	if r.cfg.AugmentEnabled {
+		requestMetadataFunc = backendRequestMetadata
+	}
+	h := firehose.Handler(requestMetadataFunc, r.batchProcessor)
+	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {

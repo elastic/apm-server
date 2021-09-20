@@ -39,6 +39,7 @@ func (s *SetDataStream) ProcessBatch(ctx context.Context, b *model.Batch) error 
 }
 
 func (s *SetDataStream) setDataStream(event *model.APMEvent) {
+	fmt.Println("--------- modelprocessor.datastream.go event.Processor = ", event.Processor)
 	switch event.Processor {
 	case model.SpanProcessor, model.TransactionProcessor:
 		event.DataStream.Type = datastreams.TracesType
@@ -61,6 +62,9 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 	case model.ProfileProcessor:
 		event.DataStream.Type = datastreams.MetricsType
 		event.DataStream.Dataset = model.ProfilesDataset
+	case model.FirehoseProcessor:
+		event.DataStream.Type = datastreams.LogsType
+		event.DataStream.Dataset = model.FirehoseLogDataset
 	}
 	event.DataStream.Namespace = s.Namespace
 }

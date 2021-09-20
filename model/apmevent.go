@@ -77,6 +77,7 @@ type APMEvent struct {
 	Metricset     *Metricset
 	Error         *Error
 	ProfileSample *ProfileSample
+	FirehoseLog   *Firehose
 }
 
 // BeatEvent converts e to a beat.Event.
@@ -100,13 +101,16 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	if e.ProfileSample != nil {
 		e.ProfileSample.setFields((*mapStr)(&event.Fields))
 	}
+	if e.FirehoseLog != nil {
+		e.FirehoseLog.setFields((*mapStr)(&event.Fields))
+	}
 
 	// Set high resolution timestamp.
 	//
 	// TODO(axw) change @timestamp to use date_nanos, and remove this field.
 	if !e.Timestamp.IsZero() {
 		switch e.Processor {
-		case TransactionProcessor, SpanProcessor, ErrorProcessor:
+		case TransactionProcessor, SpanProcessor, ErrorProcessor, FirehoseProcessor:
 			event.Fields["timestamp"] = common.MapStr{"us": int(e.Timestamp.UnixNano() / 1000)}
 		}
 	}
