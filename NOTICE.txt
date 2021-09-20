@@ -576,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20210916223816-a3f09763ac2a
+Version: v7.0.0-alpha2.0.20210919222345-01bd66d28b87
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210916223816-a3f09763ac2a/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210919222345-01bd66d28b87/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -5104,11 +5104,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.0.0-20210916014120-12bc252f5db8
+Version: v0.0.0-20210917221730-978cfadd31cf
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210916014120-12bc252f5db8/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210917221730-978cfadd31cf/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -9232,11 +9232,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-seccomp-bpf
-Version: v1.1.0
+Version: v1.2.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-seccomp-bpf@v1.1.0/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-seccomp-bpf@v1.2.0/LICENSE.txt:
 
 
                                  Apache License
@@ -19826,11 +19826,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.0.0-20210915214749-c084706c2272
+Version: v0.0.0-20210920023735-84f357641f63
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210915214749-c084706c2272/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210920023735-84f357641f63/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -19900,11 +19900,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20210915083310-ed5796bab164
+Version: v0.0.0-20210917161153-d61c044b1678
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210915083310-ed5796bab164/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210917161153-d61c044b1678/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -20011,11 +20011,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20210916144049-3192f974c780
+Version: v0.0.0-20210917145530-b395a37504d4
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210916144049-3192f974c780/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210917145530-b395a37504d4/LICENSE:
 
 
                                  Apache License
