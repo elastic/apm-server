@@ -37,7 +37,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "error": {
                 "culprit": "my.module.function_name",
@@ -256,11 +256,7 @@
                         ]
                     },
                     "method": "POST",
-                    "referrer": "http://localhost:8000/test/e2e/",
-                    "socket": {
-                        "encrypted": true,
-                        "remote_address": "12.53.12.1"
-                    }
+                    "referrer": "http://localhost:8000/test/e2e/"
                 },
                 "response": {
                     "finished": true,
@@ -387,7 +383,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "error": {
                 "grouping_key": "dc8dd667f7036ec5f0bae87bf2188243",
@@ -506,7 +502,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "error": {
                 "exception": [
@@ -621,7 +617,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "error": {
                 "exception": [
@@ -741,7 +737,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",

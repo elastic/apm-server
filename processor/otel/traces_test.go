@@ -344,39 +344,41 @@ func TestHTTPSpanDestination(t *testing.T) {
 	})
 }
 
-func TestHTTPTransactionRequestSocketRemoteAddr(t *testing.T) {
-	test := func(t *testing.T, expected string, attrs map[string]pdata.AttributeValue) {
+func TestHTTPTransactionSource(t *testing.T) {
+	test := func(t *testing.T, expectedDomain, expectedIP string, expectedPort int, attrs map[string]pdata.AttributeValue) {
 		// "http.method" is a required attribute for HTTP spans,
 		// and its presence causes the transaction's HTTP request
 		// context to be built.
 		attrs["http.method"] = pdata.NewAttributeValueString("POST")
 
 		event := transformTransactionWithAttributes(t, attrs)
-		require.NotNil(t, event.Transaction.HTTP)
-		require.NotNil(t, event.Transaction.HTTP.Request)
-		require.NotNil(t, event.Transaction.HTTP.Request.Socket)
-		assert.Equal(t, expected, event.Transaction.HTTP.Request.Socket.RemoteAddress)
+		require.NotNil(t, event.HTTP)
+		require.NotNil(t, event.HTTP.Request)
+		parsedIP := net.ParseIP(expectedIP)
+		require.NotNil(t, parsedIP)
+		assert.Equal(t, model.Source{
+			Domain: expectedDomain,
+			IP:     net.ParseIP(expectedIP),
+			Port:   expectedPort,
+		}, event.Source)
+		assert.Equal(t, model.Client(event.Source), event.Client)
 	}
 
 	t.Run("net.peer.ip_port", func(t *testing.T) {
-		test(t, "192.168.0.1:1234", map[string]pdata.AttributeValue{
+		test(t, "", "192.168.0.1", 1234, map[string]pdata.AttributeValue{
 			"net.peer.ip":   pdata.NewAttributeValueString("192.168.0.1"),
 			"net.peer.port": pdata.NewAttributeValueInt(1234),
 		})
 	})
 	t.Run("net.peer.ip", func(t *testing.T) {
-		test(t, "192.168.0.1", map[string]pdata.AttributeValue{
+		test(t, "", "192.168.0.1", 0, map[string]pdata.AttributeValue{
 			"net.peer.ip": pdata.NewAttributeValueString("192.168.0.1"),
 		})
 	})
-	t.Run("http.remote_addr", func(t *testing.T) {
-		test(t, "192.168.0.1:1234", map[string]pdata.AttributeValue{
-			"http.remote_addr": pdata.NewAttributeValueString("192.168.0.1:1234"),
-		})
-	})
-	t.Run("http.remote_addr_no_port", func(t *testing.T) {
-		test(t, "192.168.0.1", map[string]pdata.AttributeValue{
-			"http.remote_addr": pdata.NewAttributeValueString("192.168.0.1"),
+	t.Run("net.peer.ip_name", func(t *testing.T) {
+		test(t, "source.domain", "192.168.0.1", 0, map[string]pdata.AttributeValue{
+			"net.peer.name": pdata.NewAttributeValueString("source.domain"),
+			"net.peer.ip":   pdata.NewAttributeValueString("192.168.0.1"),
 		})
 	})
 }
@@ -385,7 +387,7 @@ func TestHTTPTransactionFlavor(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"http.flavor": pdata.NewAttributeValueString("1.1"),
 	})
-	assert.Equal(t, "1.1", event.Transaction.HTTP.Version)
+	assert.Equal(t, "1.1", event.HTTP.Version)
 }
 
 func TestHTTPTransactionUserAgent(t *testing.T) {
@@ -397,16 +399,19 @@ func TestHTTPTransactionUserAgent(t *testing.T) {
 
 func TestHTTPTransactionClientIP(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
-		"http.client_ip": pdata.NewAttributeValueString("256.257.258.259"),
+		"net.peer.ip":    pdata.NewAttributeValueString("1.2.3.4"),
+		"net.peer.port":  pdata.NewAttributeValueInt(5678),
+		"http.client_ip": pdata.NewAttributeValueString("9.10.11.12"),
 	})
-	assert.Equal(t, net.ParseIP("256.257.258.259"), event.Client.IP)
+	assert.Equal(t, model.Source{IP: net.ParseIP("1.2.3.4"), Port: 5678}, event.Source)
+	assert.Equal(t, model.Client{IP: net.ParseIP("9.10.11.12")}, event.Client)
 }
 
 func TestHTTPTransactionStatusCode(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"http.status_code": pdata.NewAttributeValueInt(200),
 	})
-	assert.Equal(t, 200, event.Transaction.HTTP.Response.StatusCode)
+	assert.Equal(t, 200, event.HTTP.Response.StatusCode)
 }
 
 func TestDatabaseSpan(t *testing.T) {
@@ -1122,7 +1127,7 @@ func testJaegerLogs() []jaegermodel.Log {
 	}, {
 		Timestamp: testStartTime().Add(65 * time.Nanosecond),
 		Fields: jaegerKeyValues(
-			"event", "retrying connection",
+			"message", "retrying connection",
 			"level", "info",
 		),
 	}, {
@@ -1231,7 +1236,7 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeV
 	return events[0]
 }
 
-func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (transaction model.APMEvent, errors []model.APMEvent) {
+func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (transaction model.APMEvent, events []model.APMEvent) {
 	traces, spans := newTracesSpans()
 	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
 		semconv.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
@@ -1242,12 +1247,10 @@ func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ..
 	for _, spanEvent := range spanEvents {
 		spanEvent.CopyTo(otelSpan.Events().AppendEmpty())
 	}
-	events := transformTraces(t, traces)
-	require.NotEmpty(t, events)
 
-	errors = make([]model.APMEvent, len(events)-1)
-	copy(errors, events[1:])
-	return events[0], errors
+	allEvents := transformTraces(t, traces)
+	require.NotEmpty(t, allEvents)
+	return allEvents[0], allEvents[1:]
 }
 
 func transformTraces(t *testing.T, traces pdata.Traces) model.Batch {

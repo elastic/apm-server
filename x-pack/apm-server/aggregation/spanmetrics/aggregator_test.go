@@ -119,64 +119,60 @@ func TestAggregatorRun(t *testing.T) {
 		Service:   model.Service{Name: "service-A"},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "service_destination",
-			Samples: map[string]model.MetricsetSample{
-				"span.destination.service.response_time.count":  {Value: 100.0},
-				"span.destination.service.response_time.sum.us": {Value: 10000000.0},
-				"metricset.period": {Value: 10},
-			},
-		},
+		Metricset: &model.Metricset{Name: "service_destination"},
 		Span: &model.Span{
-			DestinationService: &model.DestinationService{Resource: destinationX},
+			DestinationService: &model.DestinationService{
+				Resource: destinationX,
+				ResponseTime: model.AggregatedDuration{
+					Count: 100,
+					Sum:   10 * time.Second,
+				},
+			},
 		},
 	}, {
 		Agent:     model.Agent{Name: "java"},
 		Service:   model.Service{Name: "service-A"},
 		Event:     model.Event{Outcome: "failure"},
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "service_destination",
-			Samples: map[string]model.MetricsetSample{
-				"span.destination.service.response_time.count":  {Value: 100.0},
-				"span.destination.service.response_time.sum.us": {Value: 10000000.0},
-				"metricset.period": {Value: 10},
-			},
-		},
+		Metricset: &model.Metricset{Name: "service_destination"},
 		Span: &model.Span{
-			DestinationService: &model.DestinationService{Resource: destinationZ},
+			DestinationService: &model.DestinationService{
+				Resource: destinationZ,
+				ResponseTime: model.AggregatedDuration{
+					Count: 100,
+					Sum:   10 * time.Second,
+				},
+			},
 		},
 	}, {
 		Agent:     model.Agent{Name: "java"},
 		Service:   model.Service{Name: "service-A"},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "service_destination",
-			Samples: map[string]model.MetricsetSample{
-				"span.destination.service.response_time.count":  {Value: 300.0},
-				"span.destination.service.response_time.sum.us": {Value: 30000000.0},
-				"metricset.period": {Value: 10},
-			},
-		},
+		Metricset: &model.Metricset{Name: "service_destination"},
 		Span: &model.Span{
-			DestinationService: &model.DestinationService{Resource: destinationZ},
+			DestinationService: &model.DestinationService{
+				Resource: destinationZ,
+				ResponseTime: model.AggregatedDuration{
+					Count: 300,
+					Sum:   30 * time.Second,
+				},
+			},
 		},
 	}, {
 		Agent:     model.Agent{Name: "python"},
 		Service:   model.Service{Name: "service-B"},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "service_destination",
-			Samples: map[string]model.MetricsetSample{
-				"span.destination.service.response_time.count":  {Value: 100.0},
-				"span.destination.service.response_time.sum.us": {Value: 10000000.0},
-				"metricset.period": {Value: 10},
-			},
-		},
+		Metricset: &model.Metricset{Name: "service_destination"},
 		Span: &model.Span{
-			DestinationService: &model.DestinationService{Resource: destinationZ},
+			DestinationService: &model.DestinationService{
+				Resource: destinationZ,
+				ResponseTime: model.AggregatedDuration{
+					Count: 100,
+					Sum:   10 * time.Second,
+				},
+			},
 		},
 	}}, metricsets)
 
@@ -213,16 +209,15 @@ func TestAggregateCompositeSpan(t *testing.T) {
 		Service:   model.Service{Name: "service-A"},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "service_destination",
-			Samples: map[string]model.MetricsetSample{
-				"span.destination.service.response_time.count":  {Value: 50.0},
-				"span.destination.service.response_time.sum.us": {Value: 1400000},
-				"metricset.period": {Value: 10},
-			},
-		},
+		Metricset: &model.Metricset{Name: "service_destination"},
 		Span: &model.Span{
-			DestinationService: &model.DestinationService{Resource: "final_destination"},
+			DestinationService: &model.DestinationService{
+				Resource: "final_destination",
+				ResponseTime: model.AggregatedDuration{
+					Count: 50,
+					Sum:   1400 * time.Millisecond,
+				},
+			},
 		},
 	}}, metricsets)
 }
@@ -263,16 +258,15 @@ func TestAggregatorOverflow(t *testing.T) {
 			Service:   model.Service{Name: "service"},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{
-				Name: "service_destination",
-				Samples: map[string]model.MetricsetSample{
-					"span.destination.service.response_time.count":  {Value: 1.0},
-					"span.destination.service.response_time.sum.us": {Value: 100000.0},
-					// No metricset.period is recorded as these metrics are instantanous, not aggregated.
-				},
-			},
+			Metricset: &model.Metricset{Name: "service_destination"},
 			Span: &model.Span{
-				DestinationService: &model.DestinationService{Resource: "destination3"},
+				DestinationService: &model.DestinationService{
+					Resource: "destination3",
+					ResponseTime: model.AggregatedDuration{
+						Count: 1,
+						Sum:   100 * time.Millisecond,
+					},
+				},
 			},
 		}, m)
 	}

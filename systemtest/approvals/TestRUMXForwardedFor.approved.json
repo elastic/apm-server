@@ -44,7 +44,8 @@
                 "name": "rum-js-test"
             },
             "source": {
-                "ip": "220.244.41.16"
+                "ip": "127.0.0.1",
+                "port": "dynamic"
             },
             "timestamp": {
                 "us": "dynamic"

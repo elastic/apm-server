@@ -30,6 +30,9 @@ var (
 	TransactionProcessor = Processor{Name: "transaction", Event: "transaction"}
 )
 
+// Transaction holds values for transaction.* fields. This may be used in
+// transaction, span, and error events (i.e. transaction.id), as well as
+// internal metrics such as breakdowns (i.e. including transaction.name).
 type Transaction struct {
 	ID string
 
@@ -42,11 +45,23 @@ type Transaction struct {
 	// Result holds the transaction result: "HTTP 2xx", "OK", "Error", etc.
 	Result string
 
+	// Sampled holds the transaction's sampling decision.
+	//
+	// If Sampled is false, then it will be omitted from the output event.
+	Sampled bool
+
+	// DurationHistogram holds a transaction duration histogram,
+	// with bucket values measured in microseconds, for transaction
+	// duration metrics.
+	DurationHistogram Histogram
+
+	// BreakdownCount holds transaction breakdown count, for
+	// breakdown metrics.
+	BreakdownCount int
+
 	Marks          TransactionMarks
 	Message        *Message
-	Sampled        bool
 	SpanCount      SpanCount
-	HTTP           *HTTP
 	Custom         common.MapStr
 	UserExperience *UserExperience
 
@@ -68,10 +83,6 @@ type SpanCount struct {
 }
 
 func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
-	if e.HTTP != nil {
-		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
-	}
-
 	var transaction mapStr
 	if apmEvent.Processor == TransactionProcessor {
 		// TODO(axw) set `event.duration` in 8.0, and remove this field.
@@ -80,6 +91,7 @@ func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
 	}
 	transaction.maybeSetString("id", e.ID)
 	transaction.maybeSetString("type", e.Type)
+	transaction.maybeSetMapStr("duration.histogram", e.DurationHistogram.fields())
 	transaction.maybeSetString("name", e.Name)
 	transaction.maybeSetString("result", e.Result)
 	transaction.maybeSetMapStr("marks", e.Marks.fields())
@@ -101,6 +113,9 @@ func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
 	}
 	if e.Root {
 		transaction.set("root", e.Root)
+	}
+	if e.BreakdownCount > 0 {
+		transaction.set("breakdown.count", e.BreakdownCount)
 	}
 	fields.maybeSetMapStr("transaction", common.MapStr(transaction))
 }

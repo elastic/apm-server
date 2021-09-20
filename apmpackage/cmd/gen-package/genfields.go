@@ -193,6 +193,13 @@ type fieldMapItem struct {
 }
 
 func (m fieldMap) update(f field) {
+	if f.DynamicTemplate {
+		// We don't add dynamic_template "fields" to the
+		// integration package; they are manually defined
+		// in the data stream manifest.
+		return
+	}
+
 	item := m[f.Name]
 	item.field = f
 	if item.fields == nil {

@@ -41,6 +41,7 @@ import (
 	"github.com/elastic/apm-server/beater/jaeger"
 	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/beater/ratelimit"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
@@ -79,6 +80,24 @@ type ServerParams struct {
 	// BatchProcessor is the model.BatchProcessor that is used
 	// for publishing events to the output, such as Elasticsearch.
 	BatchProcessor model.BatchProcessor
+
+	// PublishReady holds a channel which will be signalled when the serve
+	// is ready to publish events. Readiness means that preconditions for
+	// event publication have been met, including icense checks for some
+	// features and waiting for the Fleet integration to be installed
+	// when running in standalone mode.
+	//
+	// Even if the server is not ready to publish events, it will still
+	// accept events and enqueue them for later publication.
+	PublishReady <-chan struct{}
+
+	// NewElasticsearchClient returns an elasticsearch.Client for cfg.
+	//
+	// This must be used whenever an elasticsearch client might be used
+	// for indexing. Under some configuration, the server will wrap the
+	// client's transport such that requests will be blocked until data
+	// streams have been initialised.
+	NewElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error)
 }
 
 // newBaseRunServer returns the base RunServerFunc.
@@ -148,11 +167,20 @@ func newServer(args ServerParams, listener net.Listener, reporter publish.Report
 		args.BatchProcessor,
 	}
 
+	publishReady := func() bool {
+		select {
+		case <-args.PublishReady:
+			return true
+		default:
+			return false
+		}
+	}
+
 	// Create an HTTP server for serving Elastic APM agent requests.
 	mux, err := api.NewMux(
 		args.Info, args.Config, reporter, batchProcessor,
 		authenticator, agentcfgFetchReporter, ratelimitStore,
-		args.SourcemapStore, args.Managed,
+		args.SourcemapStore, args.Managed, publishReady,
 	)
 	if err != nil {
 		return server{}, err

@@ -18,6 +18,7 @@
 package api
 
 import (
+	"net"
 	"net/http"
 	"net/http/pprof"
 	"regexp"
@@ -87,6 +88,7 @@ func NewMux(
 	ratelimitStore *ratelimit.Store,
 	sourcemapStore *sourcemap.Store,
 	fleetManaged bool,
+	publishReady func() bool,
 ) (*http.ServeMux, error) {
 	pool := request.NewContextPool()
 	mux := http.NewServeMux()
@@ -108,7 +110,7 @@ func NewMux(
 		handlerFn func() (request.Handler, error)
 	}
 	routeMap := []route{
-		{RootPath, builder.rootHandler},
+		{RootPath, builder.rootHandler(publishReady)},
 		{AssetSourcemapPath, builder.sourcemapHandler},
 		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher)},
 		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher)},
@@ -226,9 +228,14 @@ func (r *routeBuilder) sourcemapHandler() (request.Handler, error) {
 	return middleware.Wrap(h, sourcemapMiddleware(r.cfg, r.authenticator, r.ratelimitStore)...)
 }
 
-func (r *routeBuilder) rootHandler() (request.Handler, error) {
-	h := root.Handler(root.HandlerConfig{Version: r.info.Version})
-	return middleware.Wrap(h, rootMiddleware(r.cfg, r.authenticator)...)
+func (r *routeBuilder) rootHandler(publishReady func() bool) func() (request.Handler, error) {
+	return func() (request.Handler, error) {
+		h := root.Handler(root.HandlerConfig{
+			Version:      r.info.Version,
+			PublishReady: publishReady,
+		})
+		return middleware.Wrap(h, rootMiddleware(r.cfg, r.authenticator)...)
+	}
 }
 
 func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
@@ -324,12 +331,20 @@ func emptyRequestMetadata(c *request.Context) model.APMEvent {
 }
 
 func backendRequestMetadata(c *request.Context) model.APMEvent {
-	return model.APMEvent{Host: model.Host{IP: c.SourceIP}}
+	return model.APMEvent{Host: model.Host{
+		IP: c.ClientIP,
+	}}
 }
 
 func rumRequestMetadata(c *request.Context) model.APMEvent {
+	var source model.Source
+	if tcpAddr, ok := c.SourceAddr.(*net.TCPAddr); ok {
+		source.IP = tcpAddr.IP
+		source.Port = tcpAddr.Port
+	}
 	return model.APMEvent{
-		Client:    model.Client{IP: c.SourceIP},
+		Client:    model.Client{IP: c.ClientIP},
+		Source:    source,
 		UserAgent: model.UserAgent{Original: c.UserAgent},
 	}
 }

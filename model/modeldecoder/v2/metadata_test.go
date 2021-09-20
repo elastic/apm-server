@@ -44,6 +44,7 @@ func isUnmappedMetadataField(key string) bool {
 		"Client.Domain",
 		"Client.IP",
 		"Client.Port",
+		"Cloud.Origin",
 		"Container.Runtime",
 		"Container.ImageName",
 		"Container.ImageTag",
@@ -57,6 +58,15 @@ func isUnmappedMetadataField(key string) bool {
 		"Destination.IP",
 		"Destination.Port",
 		"ECSVersion",
+		"FAAS",
+		"FAAS.Coldstart",
+		"FAAS.Execution",
+		"FAAS.TriggerType",
+		"FAAS.TriggerRequestID",
+		"HTTP",
+		"HTTP.Request",
+		"HTTP.Response",
+		"HTTP.Version",
 		"Message",
 		"Network",
 		"Network.Connection",
@@ -92,9 +102,16 @@ func isUnmappedMetadataField(key string) bool {
 		"Event",
 		"Event.Duration",
 		"Event.Outcome",
+		"Service.Origin",
+		"Service.Origin.ID",
+		"Service.Origin.Name",
+		"Service.Origin.Version",
 		"Session.ID",
 		"Session",
 		"Session.Sequence",
+		"Source.Domain",
+		"Source.IP",
+		"Source.Port",
 		"Trace",
 		"Trace.ID",
 		"URL",
@@ -228,7 +245,9 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
 		out2.Timestamp = otherVal.Time
-		out2.Host.IP, out2.Client.IP = defaultVal.IP, defaultVal.IP
+		out2.Host.IP = defaultVal.IP
+		out2.Client.IP = defaultVal.IP
+		out2.Source.IP = defaultVal.IP
 		modeldecodertest.AssertStructValues(t, &out2, isMetadataException, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)
 	})

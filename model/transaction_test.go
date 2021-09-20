@@ -20,7 +20,6 @@ package model
 import (
 	"context"
 	"fmt"
-	"net"
 	"testing"
 	"time"
 
@@ -102,6 +101,7 @@ func TestTransactionTransform(t *testing.T) {
 				Result:    result,
 				Sampled:   true,
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
+				Root:      true,
 			},
 			Output: common.MapStr{
 				"id":         id,
@@ -111,6 +111,7 @@ func TestTransactionTransform(t *testing.T) {
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"started": 14, "dropped": 5},
 				"sampled":    true,
+				"root":       true,
 			},
 			Msg: "Full Event",
 		},
@@ -131,12 +132,10 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	hostname := "a.b.c"
 	architecture := "darwin"
 	platform := "x64"
-	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
-	url, referer := "https://localhost", "http://localhost"
+	id, name, userAgent := "123", "jane", "node-js-2.3"
+	url := "https://localhost"
 	serviceName, serviceNodeName, serviceVersion := "myservice", "service-123", "2.1.3"
 
-	request := HTTPRequest{Method: "post", Headers: common.MapStr{}, Referrer: referer}
-	response := HTTPResponse{Finished: new(bool), Headers: common.MapStr{"content-type": []string{"text/html"}}}
 	txWithContext := APMEvent{
 		Processor: TransactionProcessor,
 		Service: Service{
@@ -152,10 +151,8 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		},
 		User:      User{ID: id, Name: name},
 		UserAgent: UserAgent{Original: userAgent},
-		Client:    Client{IP: net.ParseIP(ip)},
 		URL:       URL{Original: url},
 		Transaction: &Transaction{
-			HTTP:    &HTTP{Request: &request, Response: &response},
 			Custom:  common.MapStr{"foo.bar": "baz"},
 			Message: &Message{QueueName: "routeUser"},
 			Sampled: true,
@@ -166,8 +163,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	assert.Equal(t, common.MapStr{
 		"processor":  common.MapStr{"name": "transaction", "event": "transaction"},
 		"user":       common.MapStr{"id": "123", "name": "jane"},
-		"client":     common.MapStr{"ip": ip},
-		"source":     common.MapStr{"ip": ip},
 		"user_agent": common.MapStr{"original": userAgent},
 		"host": common.MapStr{
 			"architecture": "darwin",
@@ -190,30 +185,10 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			},
 			"message": common.MapStr{"queue": common.MapStr{"name": "routeUser"}},
 		},
-		"http": common.MapStr{
-			"request":  common.MapStr{"method": "post", "referrer": referer},
-			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": []string{"text/html"}}},
-		},
 		"url": common.MapStr{
 			"original": url,
 		},
 	}, event.Fields)
-}
-
-func TestTransformTransactionHTTP(t *testing.T) {
-	request := HTTPRequest{Method: "post", Body: "<html><marquee>hello world</marquee></html>"}
-	event := APMEvent{
-		Transaction: &Transaction{
-			HTTP: &HTTP{Request: &request},
-		},
-	}
-	beatEvent := event.BeatEvent(context.Background())
-	assert.Equal(t, common.MapStr{
-		"request": common.MapStr{
-			"method":        request.Method,
-			"body.original": request.Body,
-		},
-	}, beatEvent.Fields["http"])
 }
 
 func TestTransactionTransformMarks(t *testing.T) {

@@ -77,6 +77,11 @@ type Config struct {
 	Pipeline string
 
 	AgentConfigs []AgentConfig `config:"agent_config"`
+
+	// WaitReadyInterval holds the interval for checks when waiting for
+	// the integration package to be installed, and for checking the
+	// Elasticsearch license level.
+	WaitReadyInterval time.Duration `config:"wait_ready_interval"`
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
@@ -235,5 +240,6 @@ func DefaultConfig() *Config {
 		DataStreams:         defaultDataStreamsConfig(),
 		AgentAuth:           defaultAgentAuth(),
 		JavaAttacherConfig:  defaultJavaAttacherConfig(),
+		WaitReadyInterval:   5 * time.Second,
 	}
 }

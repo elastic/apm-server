@@ -221,19 +221,52 @@ func decodeIntoMetadataRoot(d decoder.Decoder, m *metadataRoot) error {
 	return d.Decode(m)
 }
 
-func mapToClientModel(from contextRequest, out *model.Client) {
-	// only set client information if not already set in metadata
-	// this is aligned with current logic
-	if out.IP != nil {
-		return
+func mapToFAASModel(from faas, faas *model.FAAS) {
+	if from.IsSet() {
+		if from.Coldstart.IsSet() {
+			faas.Coldstart = &from.Coldstart.Val
+		}
+		if from.Execution.IsSet() {
+			faas.Execution = from.Execution.Val
+		}
+		if from.Trigger.Type.IsSet() {
+			faas.TriggerType = from.Trigger.Type.Val
+		}
+		if from.Trigger.RequestID.IsSet() {
+			faas.TriggerRequestID = from.Trigger.RequestID.Val
+		}
 	}
-	// http.Request.Headers and http.Request.Socket information is
-	// only set for backend events; try to first extract an IP address
-	// from the headers, if not possible use IP address from socket remote_address
-	if ip := utility.ExtractIPFromHeader(from.Headers.Val); ip != nil {
-		out.IP = ip
-	} else if ip := utility.ParseIP(from.Socket.RemoteAddress.Val); ip != nil {
-		out.IP = ip
+}
+
+func mapToCloudModel(from contextCloud, cloud *model.Cloud) {
+	if from.IsSet() {
+		cloudOrigin := &model.CloudOrigin{}
+		if from.Origin.Account.ID.IsSet() {
+			cloudOrigin.AccountID = from.Origin.Account.ID.Val
+		}
+		if from.Origin.Provider.IsSet() {
+			cloudOrigin.Provider = from.Origin.Provider.Val
+		}
+		if from.Origin.Region.IsSet() {
+			cloudOrigin.Region = from.Origin.Region.Val
+		}
+		if from.Origin.Service.Name.IsSet() {
+			cloudOrigin.ServiceName = from.Origin.Service.Name.Val
+		}
+		cloud.Origin = cloudOrigin
+	}
+}
+
+func mapToClientModel(from contextRequest, source *model.Source, client *model.Client) {
+	// http.Request.Headers and http.Request.Socket are only set for backend events.
+	if source.IP == nil {
+		source.IP = utility.ParseIP(from.Socket.RemoteAddress.Val)
+	}
+	if client.IP == nil {
+		client.IP = source.IP
+		if ip := utility.ExtractIPFromHeader(from.Headers.Val); ip != nil {
+			client.IP = ip
+		}
 	}
 }
 
@@ -247,7 +280,7 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 	mapToAgentModel(from.Context.Service.Agent, &event.Agent)
 	overwriteUserInMetadataModel(from.Context.User, event)
 	mapToUserAgentModel(from.Context.Request.Headers, &event.UserAgent)
-	mapToClientModel(from.Context.Request, &event.Client)
+	mapToClientModel(from.Context.Request, &event.Source, &event.Client)
 
 	// map errorEvent specific data
 
@@ -259,18 +292,15 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 			)
 		}
 		if from.Context.Request.IsSet() {
-			out.HTTP = &model.HTTP{Request: &model.HTTPRequest{}}
-			mapToRequestModel(from.Context.Request, out.HTTP.Request)
+			event.HTTP.Request = &model.HTTPRequest{}
+			mapToRequestModel(from.Context.Request, event.HTTP.Request)
 			if from.Context.Request.HTTPVersion.IsSet() {
-				out.HTTP.Version = from.Context.Request.HTTPVersion.Val
+				event.HTTP.Version = from.Context.Request.HTTPVersion.Val
 			}
 		}
 		if from.Context.Response.IsSet() {
-			if out.HTTP == nil {
-				out.HTTP = &model.HTTP{}
-			}
-			out.HTTP.Response = &model.HTTPResponse{}
-			mapToResponseModel(from.Context.Response, out.HTTP.Response)
+			event.HTTP.Response = &model.HTTPResponse{}
+			mapToResponseModel(from.Context.Response, event.HTTP.Response)
 		}
 		if from.Context.Request.URL.IsSet() {
 			mapToRequestURLModel(from.Context.Request.URL, &event.URL)
@@ -280,14 +310,11 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 				event.URL = model.ParseURL(from.Context.Page.URL.Val, "", "")
 			}
 			if from.Context.Page.Referer.IsSet() {
-				if out.HTTP == nil {
-					out.HTTP = &model.HTTP{}
+				if event.HTTP.Request == nil {
+					event.HTTP.Request = &model.HTTPRequest{}
 				}
-				if out.HTTP.Request == nil {
-					out.HTTP.Request = &model.HTTPRequest{}
-				}
-				if out.HTTP.Request.Referrer == "" {
-					out.HTTP.Request.Referrer = from.Context.Page.Referer.Val
+				if event.HTTP.Request.Referrer == "" {
+					event.HTTP.Request.Referrer = from.Context.Page.Referer.Val
 				}
 			}
 		}
@@ -427,8 +454,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 
 	// Process
 	if len(from.Process.Argv) > 0 {
-		out.Process.Argv = make([]string, len(from.Process.Argv))
-		copy(out.Process.Argv, from.Process.Argv)
+		out.Process.Argv = append(out.Process.Argv[:0], from.Process.Argv...)
 	}
 	if from.Process.Pid.IsSet() {
 		out.Process.Pid = from.Process.Pid.Val
@@ -543,7 +569,6 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 		event.Timestamp = from.Timestamp.Val
 	}
 
-	// map samples information
 	if len(from.Samples) > 0 {
 		samples := make(map[string]model.MetricsetSample, len(from.Samples))
 		for name, sample := range from.Samples {
@@ -558,11 +583,13 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 				copy(counts, sample.Counts)
 			}
 			samples[name] = model.MetricsetSample{
-				Type:   model.MetricType(sample.Type.Val),
-				Unit:   sample.Unit.Val,
-				Value:  sample.Value.Val,
-				Values: values,
-				Counts: counts,
+				Type:  model.MetricType(sample.Type.Val),
+				Unit:  sample.Unit.Val,
+				Value: sample.Value.Val,
+				Histogram: model.Histogram{
+					Values: values,
+					Counts: counts,
+				},
 			}
 		}
 		event.Metricset.Samples = samples
@@ -593,6 +620,8 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 		if from.Transaction.Type.IsSet() {
 			event.Transaction.Type = from.Transaction.Type.Val
 		}
+		// Transaction fields specified: this is an APM-internal metricset.
+		modeldecoderutil.SetInternalMetrics(event)
 	}
 }
 
@@ -602,16 +631,6 @@ func mapToRequestModel(from contextRequest, out *model.HTTPRequest) {
 	}
 	if len(from.Env) > 0 {
 		out.Env = from.Env.Clone()
-	}
-	if from.Socket.IsSet() {
-		out.Socket = &model.HTTPRequestSocket{}
-		if from.Socket.Encrypted.IsSet() {
-			val := from.Socket.Encrypted.Val
-			out.Socket.Encrypted = &val
-		}
-		if from.Socket.RemoteAddress.IsSet() {
-			out.Socket.RemoteAddress = from.Socket.RemoteAddress.Val
-		}
 	}
 	if from.Body.IsSet() {
 		out.Body = modeldecoderutil.NormalizeHTTPRequestBody(from.Body.Val)
@@ -714,6 +733,19 @@ func mapToServiceModel(from contextService, out *model.Service) {
 	}
 	if from.Version.IsSet() {
 		out.Version = from.Version.Val
+	}
+	if from.Origin.IsSet() {
+		outOrigin := &model.ServiceOrigin{}
+		if from.Origin.ID.IsSet() {
+			outOrigin.ID = from.Origin.ID.Val
+		}
+		if from.Origin.Name.IsSet() {
+			outOrigin.Name = from.Origin.Name.Val
+		}
+		if from.Origin.Version.IsSet() {
+			outOrigin.Version = from.Origin.Version.Val
+		}
+		out.Origin = outOrigin
 	}
 }
 
@@ -818,10 +850,9 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		out.DestinationService = &service
 	}
 	if from.Context.HTTP.IsSet() {
-		http := model.HTTP{}
 		if from.Context.HTTP.Method.IsSet() {
-			http.Request = &model.HTTPRequest{}
-			http.Request.Method = from.Context.HTTP.Method.Val
+			event.HTTP.Request = &model.HTTPRequest{}
+			event.HTTP.Request.Method = from.Context.HTTP.Method.Val
 		}
 		if from.Context.HTTP.Response.IsSet() {
 			response := model.HTTPResponse{}
@@ -843,18 +874,17 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 				val := from.Context.HTTP.Response.TransferSize.Val
 				response.TransferSize = &val
 			}
-			http.Response = &response
+			event.HTTP.Response = &response
 		}
 		if from.Context.HTTP.StatusCode.IsSet() {
-			if http.Response == nil {
-				http.Response = &model.HTTPResponse{}
+			if event.HTTP.Response == nil {
+				event.HTTP.Response = &model.HTTPResponse{}
 			}
-			http.Response.StatusCode = from.Context.HTTP.StatusCode.Val
+			event.HTTP.Response.StatusCode = from.Context.HTTP.StatusCode.Val
 		}
 		if from.Context.HTTP.URL.IsSet() {
 			event.URL.Original = from.Context.HTTP.URL.Val
 		}
-		out.HTTP = &http
 	}
 	if from.Context.Message.IsSet() {
 		message := model.Message{}
@@ -1001,7 +1031,9 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	mapToAgentModel(from.Context.Service.Agent, &event.Agent)
 	overwriteUserInMetadataModel(from.Context.User, event)
 	mapToUserAgentModel(from.Context.Request.Headers, &event.UserAgent)
-	mapToClientModel(from.Context.Request, &event.Client)
+	mapToClientModel(from.Context.Request, &event.Source, &event.Client)
+	mapToFAASModel(from.FAAS, &event.FAAS)
+	mapToCloudModel(from.Context.Cloud, &event.Cloud)
 
 	// map transaction specific data
 
@@ -1032,35 +1064,29 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 			}
 		}
 		if from.Context.Request.IsSet() {
-			out.HTTP = &model.HTTP{Request: &model.HTTPRequest{}}
-			mapToRequestModel(from.Context.Request, out.HTTP.Request)
+			event.HTTP.Request = &model.HTTPRequest{}
+			mapToRequestModel(from.Context.Request, event.HTTP.Request)
 			if from.Context.Request.HTTPVersion.IsSet() {
-				out.HTTP.Version = from.Context.Request.HTTPVersion.Val
+				event.HTTP.Version = from.Context.Request.HTTPVersion.Val
 			}
 		}
 		if from.Context.Request.URL.IsSet() {
 			mapToRequestURLModel(from.Context.Request.URL, &event.URL)
 		}
 		if from.Context.Response.IsSet() {
-			if out.HTTP == nil {
-				out.HTTP = &model.HTTP{}
-			}
-			out.HTTP.Response = &model.HTTPResponse{}
-			mapToResponseModel(from.Context.Response, out.HTTP.Response)
+			event.HTTP.Response = &model.HTTPResponse{}
+			mapToResponseModel(from.Context.Response, event.HTTP.Response)
 		}
 		if from.Context.Page.IsSet() {
 			if from.Context.Page.URL.IsSet() && !from.Context.Request.URL.IsSet() {
 				event.URL = model.ParseURL(from.Context.Page.URL.Val, "", "")
 			}
 			if from.Context.Page.Referer.IsSet() {
-				if out.HTTP == nil {
-					out.HTTP = &model.HTTP{}
+				if event.HTTP.Request == nil {
+					event.HTTP.Request = &model.HTTPRequest{}
 				}
-				if out.HTTP.Request == nil {
-					out.HTTP.Request = &model.HTTPRequest{}
-				}
-				if out.HTTP.Request.Referrer == "" {
-					out.HTTP.Request.Referrer = from.Context.Page.Referer.Val
+				if event.HTTP.Request.Referrer == "" {
+					event.HTTP.Request.Referrer = from.Context.Page.Referer.Val
 				}
 			}
 		}

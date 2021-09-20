@@ -38,7 +38,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "event": {
                 "outcome": "success"
@@ -167,7 +167,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -297,7 +297,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -431,7 +431,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -567,7 +567,7 @@
                 "port": 5432
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "event": {
                 "outcome": "success"
@@ -586,7 +586,10 @@
                     "method": "GET"
                 },
                 "response": {
-                    "status_code": 200
+                    "decoded_body_size": 401,
+                    "encoded_body_size": 356,
+                    "status_code": 200,
+                    "transfer_size": 300.12
                 }
             },
             "kubernetes": {
@@ -788,7 +791,7 @@
                 "ip": "0:0::0:1"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -925,7 +928,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "event": {
                 "outcome": "success"

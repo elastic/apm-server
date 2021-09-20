@@ -18,7 +18,9 @@
 package agentcfg
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -32,7 +34,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
 )
 
@@ -149,7 +150,11 @@ func (f *KibanaFetcher) Fetch(ctx context.Context, query Query) (Result, error) 
 		return zeroResult(), err
 	}
 	req := func() (Result, error) {
-		return newResult(f.request(ctx, convert.ToReader(query)))
+		var buf bytes.Buffer
+		if err := json.NewEncoder(&buf).Encode(query); err != nil {
+			return Result{}, err
+		}
+		return newResult(f.request(ctx, &buf))
 	}
 	result, err := f.fetch(query, req)
 	return sanitize(query.InsecureAgents, result), err

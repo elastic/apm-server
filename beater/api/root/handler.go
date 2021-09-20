@@ -36,6 +36,9 @@ var (
 
 // HandlerConfig holds configuration for Handler.
 type HandlerConfig struct {
+	// PublishReady reports whether or not the server is ready for publishing events.
+	PublishReady func() bool
+
 	// Version holds the APM Server version.
 	Version string
 }
@@ -44,11 +47,6 @@ type HandlerConfig struct {
 // otherwise returns information about the server. The detail level differs for authenticated and anonymous requests.
 //TODO: only allow GET, HEAD requests (breaking change)
 func Handler(cfg HandlerConfig) request.Handler {
-	serverInfo := common.MapStr{
-		"build_date": version.BuildTime().Format(time.RFC3339),
-		"build_sha":  version.Commit(),
-		"version":    cfg.Version,
-	}
 
 	return func(c *request.Context) {
 		if c.Request.URL.Path != "/" {
@@ -56,6 +54,16 @@ func Handler(cfg HandlerConfig) request.Handler {
 			c.Write()
 			return
 		}
+
+		serverInfo := common.MapStr{
+			"build_date": version.BuildTime().Format(time.RFC3339),
+			"build_sha":  version.Commit(),
+			"version":    cfg.Version,
+		}
+		if cfg.PublishReady != nil {
+			serverInfo["publish_ready"] = cfg.PublishReady()
+		}
+
 		c.Result.SetDefault(request.IDResponseValidOK)
 		if c.Authentication.Method != auth.MethodAnonymous {
 			c.Result.Body = serverInfo

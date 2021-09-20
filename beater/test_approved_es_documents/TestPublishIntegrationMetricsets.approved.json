@@ -6,17 +6,12 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "byte_counter": 1,
-            "dotted.float.gauge": 6.12,
-            "double_gauge": 3.141592653589793,
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
-            "float_gauge": 9.16,
             "host": {
                 "ip": "127.0.0.1"
             },
-            "integer_gauge": 42767,
             "labels": {
                 "code": 200,
                 "some": "abc",
@@ -24,9 +19,7 @@
                 "tag1": "one",
                 "tag2": 2
             },
-            "long_gauge": 3147483648,
             "metricset.name": "span_breakdown",
-            "negative.d.o.t.t.e.d": -1022,
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
@@ -50,22 +43,19 @@
                     "name": "node-1"
                 }
             },
-            "short_counter": 227,
             "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum.us": 633
+                },
                 "subtype": "mysql",
                 "type": "db"
             },
-            "span.self_time.count": 1,
-            "span.self_time.sum.us": 633.288,
             "transaction": {
+                "breakdown.count": 12,
                 "name": "GET /",
                 "type": "request"
             },
-            "transaction.breakdown.count": 12,
-            "transaction.duration.count": 2,
-            "transaction.duration.sum.us": 12,
-            "transaction.self_time.count": 2,
-            "transaction.self_time.sum.us": 10,
             "user": {
                 "email": "user@mail.com",
                 "id": "axb123hg",
@@ -79,7 +69,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "go.memstats.heap.sys.bytes": 6520832,
             "host": {
@@ -126,7 +116,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -174,7 +164,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -234,7 +224,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.10.0"
+                "version": "1.11.0"
             },
             "host": {
                 "ip": "127.0.0.1"

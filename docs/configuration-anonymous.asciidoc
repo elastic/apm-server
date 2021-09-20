@@ -75,4 +75,14 @@ Default: `1000`
 ==== `rate_limit.event_limit`
 The maximum number of events allowed per second, per agent IP address.
 
+The APM Server first attempts to derive the IP address from proxy headers. The
+supported headers are parsed in the following order:
+
+- `Forwarded`
+- `X-Real-Ip`
+- `X-Forwarded-For`
+
+If none of these headers is present, the remote address for the incoming
+request is used.
+
 Default: `300`

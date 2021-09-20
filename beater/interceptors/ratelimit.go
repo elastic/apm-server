@@ -47,7 +47,7 @@ func AnonymousRateLimit(store *ratelimit.Store) grpc.UnaryServerInterceptor {
 			if !ok {
 				return nil, errors.New("client metadata not found in context")
 			}
-			limiter := store.ForIP(clientMetadata.SourceIP)
+			limiter := store.ForIP(clientMetadata.ClientIP)
 			if !limiter.Allow() {
 				return nil, status.Error(
 					codes.ResourceExhausted,

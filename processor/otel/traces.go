@@ -53,6 +53,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
+	"github.com/elastic/apm-server/datastreams"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 )
@@ -234,7 +235,7 @@ func (c *Consumer) convertSpan(
 	event.Event.Outcome = ""                // don't set event.outcome for span events
 	event.Destination = model.Destination{} // don't set destination for span events
 	for i := 0; i < events.Len(); i++ {
-		convertSpanEvent(logger, events.At(i), event, timeDelta, out)
+		*out = append(*out, convertSpanEvent(logger, events.At(i), event, timeDelta))
 	}
 }
 
@@ -248,21 +249,17 @@ func translateTransaction(
 	var (
 		netHostName string
 		netHostPort int
-		netPeerIP   string
-		netPeerName string
-		netPeerPort int
 	)
 
 	var (
-		isHTTP            bool
-		httpScheme        string
-		httpURL           string
-		httpServerName    string
-		httpHost          string
-		http              model.HTTP
-		httpRequest       model.HTTPRequest
-		httpRequestSocket model.HTTPRequestSocket
-		httpResponse      model.HTTPResponse
+		isHTTP         bool
+		httpScheme     string
+		httpURL        string
+		httpServerName string
+		httpHost       string
+		http           model.HTTP
+		httpRequest    model.HTTPRequest
+		httpResponse   model.HTTPResponse
 	)
 
 	var (
@@ -299,7 +296,7 @@ func translateTransaction(
 				httpResponse.StatusCode = int(v.IntVal())
 				http.Response = &httpResponse
 			case semconv.AttributeNetPeerPort:
-				netPeerPort = int(v.IntVal())
+				event.Source.Port = int(v.IntVal())
 			case semconv.AttributeNetHostPort:
 				netHostPort = int(v.IntVal())
 			case "rpc.grpc.status_code":
@@ -348,28 +345,12 @@ func translateTransaction(
 				event.Client.IP = net.ParseIP(stringval)
 			case semconv.AttributeHTTPUserAgent:
 				event.UserAgent.Original = stringval
-			case "http.remote_addr":
-				// NOTE(axw) this is non-standard, sent by opentelemetry-go's othttp.
-				// It's semanticall equivalent to net.peer.ip+port. Standard attributes
-				// take precedence.
-				ip, port, err := net.SplitHostPort(stringval)
-				if err != nil {
-					ip = stringval
-				}
-				if net.ParseIP(ip) != nil {
-					if netPeerIP == "" {
-						netPeerIP = ip
-					}
-					if netPeerPort == 0 {
-						netPeerPort, _ = strconv.Atoi(port)
-					}
-				}
 
 			// net.*
 			case semconv.AttributeNetPeerIP:
-				netPeerIP = stringval
+				event.Source.IP = net.ParseIP(stringval)
 			case semconv.AttributeNetPeerName:
-				netPeerName = stringval
+				event.Source.Domain = stringval
 			case semconv.AttributeNetHostName:
 				netHostName = stringval
 			case attributeNetworkConnectionType:
@@ -405,6 +386,10 @@ func translateTransaction(
 			case "type":
 				event.Transaction.Type = stringval
 			case semconv.AttributeServiceVersion:
+				// NOTE support for sending service.version as a span tag
+				// is deprecated, and will be removed in 8.0. Instrumentation
+				// should set this as a resource attribute (OTel) or tracer
+				// tag (Jaeger).
 				event.Service.Version = stringval
 			case "component":
 				component = stringval
@@ -429,7 +414,7 @@ func translateTransaction(
 	}
 
 	if isHTTP {
-		event.Transaction.HTTP = &http
+		event.HTTP = http
 
 		// Set outcome nad result from status code.
 		if statusCode := httpResponse.StatusCode; statusCode > 0 {
@@ -456,27 +441,15 @@ func translateTransaction(
 			}
 		}
 		event.URL = model.ParseURL(httpURL, httpHost, httpScheme)
-
-		// Set the remote address from net.peer.*
-		if event.Transaction.HTTP.Request != nil && netPeerIP != "" {
-			remoteAddr := netPeerIP
-			if netPeerPort > 0 {
-				remoteAddr = net.JoinHostPort(remoteAddr, strconv.Itoa(netPeerPort))
-			}
-			httpRequestSocket.RemoteAddress = remoteAddr
-			httpRequest.Socket = &httpRequestSocket
-		}
 	}
 
 	if isMessaging {
 		event.Transaction.Message = &message
 	}
 
-	if netPeerIP != "" {
-		event.Client.IP = net.ParseIP(netPeerIP)
+	if event.Client.IP == nil {
+		event.Client = model.Client(event.Source)
 	}
-	event.Client.Port = netPeerPort
-	event.Client.Domain = netPeerName
 
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate span metrics.
@@ -749,7 +722,7 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 		event.Span.Type = "external"
 		subtype := "http"
 		event.Span.Subtype = subtype
-		event.Span.HTTP = &http
+		event.HTTP = http
 		event.URL.Original = httpURL
 	case isDBSpan:
 		event.Span.Type = "db"
@@ -824,24 +797,22 @@ func convertSpanEvent(
 	spanEvent pdata.SpanEvent,
 	parent model.APMEvent, // either span or transaction
 	timeDelta time.Duration,
-	out *model.Batch,
-) {
-	var e *model.Error
+) model.APMEvent {
+	event := parent
+	event.Labels = initEventLabels(event.Labels)
+	event.Transaction = nil
+	event.Span = nil
+	event.Timestamp = spanEvent.Timestamp().AsTime().Add(timeDelta)
+
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
 	if isJaeger {
-		e = convertJaegerErrorSpanEvent(logger, spanEvent)
-	} else {
+		event.Error = convertJaegerErrorSpanEvent(logger, spanEvent, event.Labels)
+	} else if spanEvent.Name() == "exception" {
 		// Translate exception span events to errors.
 		//
 		// If it's not Jaeger, we assume OpenTelemetry semantic semconv.
-		//
-		// TODO(axw) we don't currently support arbitrary events, we only look
-		// for exceptions and convert those to Elastic APM error events.
-		if spanEvent.Name() != "exception" {
-			// Per OpenTelemetry semantic conventions:
-			//   `The name of the event MUST be "exception"`
-			return
-		}
+		// Per OpenTelemetry semantic conventions:
+		//   `The name of the event MUST be "exception"`
 		var exceptionEscaped bool
 		var exceptionMessage, exceptionStacktrace, exceptionType string
 		spanEvent.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
@@ -854,34 +825,39 @@ func convertSpanEvent(
 				exceptionType = v.StringVal()
 			case "exception.escaped":
 				exceptionEscaped = v.BoolVal()
+			default:
+				event.Labels[replaceDots(k)] = ifaceAttributeValue(v)
 			}
 			return true
 		})
-		if exceptionMessage == "" && exceptionType == "" {
+		if exceptionMessage != "" || exceptionType != "" {
 			// Per OpenTelemetry semantic conventions:
 			//   `At least one of the following sets of attributes is required:
 			//   - exception.type
 			//   - exception.message`
-			return
+			event.Error = convertOpenTelemetryExceptionSpanEvent(
+				exceptionType, exceptionMessage, exceptionStacktrace,
+				exceptionEscaped, parent.Service.Language.Name,
+			)
 		}
-		e = convertOpenTelemetryExceptionSpanEvent(
-			exceptionType, exceptionMessage, exceptionStacktrace,
-			exceptionEscaped, parent.Service.Language.Name,
-		)
 	}
-	if e != nil {
-		event := parent
-		event.Transaction = nil
-		event.Span = nil
+
+	if event.Error != nil {
 		event.Processor = model.ErrorProcessor
-		event.Error = e
-		event.Timestamp = spanEvent.Timestamp().AsTime().Add(timeDelta)
 		setErrorContext(&event, parent)
-		*out = append(*out, event)
+	} else {
+		event.Processor = model.LogProcessor
+		event.DataStream.Type = datastreams.LogsType
+		event.Message = spanEvent.Name()
+		spanEvent.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+			event.Labels[replaceDots(k)] = ifaceAttributeValue(v)
+			return true
+		})
 	}
+	return event
 }
 
-func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *model.Error {
+func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, labels common.MapStr) *model.Error {
 	var isError bool
 	var exMessage, exType string
 	logMessage := event.Name()
@@ -913,6 +889,8 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *mo
 			isError = true
 		case "level":
 			isError = stringval == "error"
+		default:
+			labels[replaceDots(k)] = ifaceAttributeValue(v)
 		}
 		return true
 	})
@@ -938,13 +916,14 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *mo
 
 func setErrorContext(out *model.APMEvent, parent model.APMEvent) {
 	out.Trace.ID = parent.Trace.ID
+	out.HTTP = parent.HTTP
+	out.URL = parent.URL
 	if parent.Transaction != nil {
 		out.Transaction = &model.Transaction{
 			ID:      parent.Transaction.ID,
 			Sampled: parent.Transaction.Sampled,
 			Type:    parent.Transaction.Type,
 		}
-		out.Error.HTTP = parent.Transaction.HTTP
 		out.Error.Custom = parent.Transaction.Custom
 		out.Parent.ID = parent.Transaction.ID
 	}

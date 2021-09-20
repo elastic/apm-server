@@ -35,7 +35,6 @@ type Error struct {
 
 	GroupingKey string
 	Culprit     string
-	HTTP        *HTTP
 	Custom      common.MapStr
 
 	Exception *Exception
@@ -51,7 +50,6 @@ type Exception struct {
 	Type       string
 	Handled    *bool
 	Cause      []Exception
-	Parent     *int
 }
 
 type Log struct {
@@ -63,48 +61,17 @@ type Log struct {
 }
 
 func (e *Error) setFields(fields *mapStr) {
-	if e.HTTP != nil {
-		fields.maybeSetMapStr("http", e.HTTP.transactionTopLevelFields())
-	}
-
 	var errorFields mapStr
 	errorFields.maybeSetString("id", e.ID)
-	exceptionChain := flattenExceptionTree(e.Exception)
-	if exception := e.exceptionFields(exceptionChain); len(exception) > 0 {
-		errorFields.set("exception", exception)
+	if e.Exception != nil {
+		exceptionFields := e.Exception.appendFields(nil, 0)
+		errorFields.set("exception", exceptionFields)
 	}
 	errorFields.maybeSetMapStr("log", e.logFields())
 	errorFields.maybeSetString("culprit", e.Culprit)
 	errorFields.maybeSetMapStr("custom", customFields(e.Custom))
 	errorFields.maybeSetString("grouping_key", e.GroupingKey)
 	fields.set("error", common.MapStr(errorFields))
-}
-
-func (e *Error) exceptionFields(chain []Exception) []common.MapStr {
-	result := make([]common.MapStr, len(chain))
-	for i, exception := range chain {
-		var ex mapStr
-		ex.maybeSetString("message", exception.Message)
-		ex.maybeSetString("module", exception.Module)
-		ex.maybeSetString("type", exception.Type)
-		ex.maybeSetString("code", exception.Code)
-		ex.maybeSetBool("handled", exception.Handled)
-		if exception.Parent != nil {
-			ex.set("parent", exception.Parent)
-		}
-		if exception.Attributes != nil {
-			ex.set("attributes", exception.Attributes)
-		}
-		if n := len(exception.Stacktrace); n > 0 {
-			frames := make([]common.MapStr, n)
-			for i, frame := range exception.Stacktrace {
-				frames[i] = frame.transform()
-			}
-			ex.set("stacktrace", frames)
-		}
-		result[i] = common.MapStr(ex)
-	}
-	return result
 }
 
 func (e *Error) logFields() common.MapStr {
@@ -122,29 +89,33 @@ func (e *Error) logFields() common.MapStr {
 	return common.MapStr(log)
 }
 
-// flattenExceptionTree recursively traverses the causes of an exception to return a slice of exceptions.
-// Tree traversal is Depth First.
-// The parent of a exception in the resulting slice is at the position indicated by the `parent` property
-// (0 index based), or the preceding exception if `parent` is nil.
-// The resulting exceptions always have `nil` cause.
-func flattenExceptionTree(exception *Exception) []Exception {
-	var recur func(Exception, int) []Exception
-
-	recur = func(e Exception, posId int) []Exception {
-		causes := e.Cause
-		e.Cause = nil
-		result := []Exception{e}
-		for idx, cause := range causes {
-			if idx > 0 {
-				cause.Parent = &posId
-			}
-			result = append(result, recur(cause, posId+len(result))...)
+func (e *Exception) appendFields(out []common.MapStr, parentOffset int) []common.MapStr {
+	offset := len(out)
+	var fields mapStr
+	fields.maybeSetString("message", e.Message)
+	fields.maybeSetString("module", e.Module)
+	fields.maybeSetString("type", e.Type)
+	fields.maybeSetString("code", e.Code)
+	fields.maybeSetBool("handled", e.Handled)
+	if offset > parentOffset+1 {
+		// The parent of an exception in the resulting slice is at the offset
+		// indicated by the `parent` field (0 index based), or the preceding
+		// exception in the slice if the `parent` field is not set.
+		fields.set("parent", parentOffset)
+	}
+	if e.Attributes != nil {
+		fields.set("attributes", e.Attributes)
+	}
+	if n := len(e.Stacktrace); n > 0 {
+		frames := make([]common.MapStr, n)
+		for i, frame := range e.Stacktrace {
+			frames[i] = frame.transform()
 		}
-		return result
+		fields.set("stacktrace", frames)
 	}
-
-	if exception == nil {
-		return []Exception{}
+	out = append(out, common.MapStr(fields))
+	for _, cause := range e.Cause {
+		out = cause.appendFields(out, offset)
 	}
-	return recur(*exception, 0)
+	return out
 }

@@ -21,6 +21,7 @@ import (
 	"context"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,8 +31,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/kibana"
-
-	"github.com/elastic/apm-server/convert"
 )
 
 func TestNewConnectingClientFrom(t *testing.T) {
@@ -132,7 +131,7 @@ var (
 			Host: "non-existing",
 		},
 	}
-	mockBody    = ioutil.NopCloser(convert.ToReader(`{"response": "ok"}`))
+	mockBody    = ioutil.NopCloser(strings.NewReader(`{"response": "ok"}`))
 	mockStatus  = http.StatusOK
 	mockVersion = *common.MustNewVersion("7.3.0")
 )

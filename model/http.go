@@ -39,16 +39,6 @@ type HTTPRequest struct {
 	Headers common.MapStr
 	Env     common.MapStr
 	Cookies common.MapStr
-	Socket  *HTTPRequestSocket
-}
-
-// HTTPRequestSocket holds information about an HTTP connection.
-//
-// TODO remove this. Encrypted can be derived from the URL scheme,
-// and RemoteAddress should be stored in `source.address`.
-type HTTPRequestSocket struct {
-	RemoteAddress string
-	Encrypted     *bool
 }
 
 // HTTPResponse holds information about an HTTP response.
@@ -65,51 +55,14 @@ type HTTPResponse struct {
 	DecodedBodySize *float64
 }
 
-// transactionTopLevelFields returns fields to include under "http", for
-// transactions and errors.
-//
-// TODO(axw) consolidate transactionTopLevelFields and spanTopLevelFields,
-// removing the discrepancies between them. This may involve adding fields
-// to ECS.
-func (h *HTTP) transactionTopLevelFields() common.MapStr {
+func (h *HTTP) fields() common.MapStr {
 	var fields mapStr
 	fields.maybeSetString("version", h.Version)
 	if h.Request != nil {
 		fields.maybeSetMapStr("request", h.Request.fields())
 	}
 	if h.Response != nil {
-		fields.maybeSetMapStr("response", h.Response.fields(true))
-	}
-	return common.MapStr(fields)
-}
-
-// spanTopLevelFields returns fields to include under "http", for spans.
-//
-// TODO(axw) this should be
-func (h *HTTP) spanTopLevelFields() common.MapStr {
-	var fields mapStr
-	fields.maybeSetString("version", h.Version)
-	if h.Request != nil {
-		fields.maybeSetMapStr("request", h.Request.fields())
-	}
-	if h.Response != nil {
-		fields.maybeSetMapStr("response", h.Response.fields(false))
-	}
-	return common.MapStr(fields)
-}
-
-// spanFields returns legacy fields to include under "span.http".
-//
-// TODO(axw) these should be removed, and replaced with top level "http" fields.
-// This will require coordination with APM UI, which currently uses these fields.
-func (h *HTTP) spanFields() common.MapStr {
-	var fields mapStr
-	fields.maybeSetString("version", h.Version)
-	if h.Request != nil {
-		fields.maybeSetString("method", h.Request.Method)
-	}
-	if h.Response != nil {
-		fields.maybeSetMapStr("response", h.Response.fields(true))
+		fields.maybeSetMapStr("response", h.Response.fields())
 	}
 	return common.MapStr(fields)
 }
@@ -121,34 +74,22 @@ func (h *HTTPRequest) fields() common.MapStr {
 	fields.maybeSetMapStr("headers", h.Headers)
 	fields.maybeSetMapStr("env", h.Env)
 	fields.maybeSetMapStr("cookies", h.Cookies)
-	if h.Socket != nil {
-		fields.maybeSetMapStr("socket", h.Socket.fields())
-	}
 	if h.Body != nil {
 		fields.set("body.original", h.Body)
 	}
 	return common.MapStr(fields)
 }
 
-func (s *HTTPRequestSocket) fields() common.MapStr {
-	var fields mapStr
-	fields.maybeSetString("remote_address", s.RemoteAddress)
-	fields.maybeSetBool("encrypted", s.Encrypted)
-	return common.MapStr(fields)
-}
-
-func (h *HTTPResponse) fields(extendedFields bool) common.MapStr {
+func (h *HTTPResponse) fields() common.MapStr {
 	var fields mapStr
 	if h.StatusCode > 0 {
 		fields.set("status_code", h.StatusCode)
 	}
-	if extendedFields {
-		fields.maybeSetMapStr("headers", h.Headers)
-		fields.maybeSetBool("finished", h.Finished)
-		fields.maybeSetBool("headers_sent", h.HeadersSent)
-		fields.maybeSetFloat64ptr("transfer_size", h.TransferSize)
-		fields.maybeSetFloat64ptr("encoded_body_size", h.EncodedBodySize)
-		fields.maybeSetFloat64ptr("decoded_body_size", h.DecodedBodySize)
-	}
+	fields.maybeSetMapStr("headers", h.Headers)
+	fields.maybeSetBool("finished", h.Finished)
+	fields.maybeSetBool("headers_sent", h.HeadersSent)
+	fields.maybeSetFloat64ptr("transfer_size", h.TransferSize)
+	fields.maybeSetFloat64ptr("encoded_body_size", h.EncodedBodySize)
+	fields.maybeSetFloat64ptr("decoded_body_size", h.DecodedBodySize)
 	return common.MapStr(fields)
 }

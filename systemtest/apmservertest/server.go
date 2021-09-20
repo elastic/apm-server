@@ -84,7 +84,7 @@ type Server struct {
 	// JaegerHTTPURL holds the base URL for Jaeger HTTP, if enabled.
 	JaegerHTTPURL string
 
-	// TLS is the optional TLS configuration, populated with a new config
+	// TLS is optional TLS client configuration, populated with a new config
 	// after TLS is started.
 	TLS *tls.Config
 
@@ -152,12 +152,15 @@ func (s *Server) start(tls bool) error {
 		"apm-server.host":           "127.0.0.1:0",
 	}
 	if tls {
-		certPath, keyPath, err := s.initTLS()
+		certPath, keyPath, caCertPath, err := s.initTLS()
 		if err != nil {
 			panic(err)
 		}
 		extra["apm-server.ssl.certificate"] = certPath
 		extra["apm-server.ssl.key"] = keyPath
+		if s.Config.TLS != nil && s.Config.TLS.ClientAuthentication != "" {
+			extra["apm-server.ssl.certificate_authorities"] = []string{caCertPath}
+		}
 	}
 	cfgargs, err := configArgs(s.Config, extra)
 	if err != nil {
@@ -219,36 +222,45 @@ func (s *Server) start(tls bool) error {
 	return nil
 }
 
-func (s *Server) initTLS() (certPath, keyPath string, _ error) {
+func (s *Server) initTLS() (serverCertPath, serverKeyPath, caCertPath string, _ error) {
 	repoRoot, err := getRepoRoot()
 	if err != nil {
 		panic(err)
 	}
-	certPath = filepath.Join(repoRoot, "systemtest", "apmservertest", "cert.pem")
-	keyPath = filepath.Join(repoRoot, "systemtest", "apmservertest", "key.pem")
 
-	certBytes, err := ioutil.ReadFile(certPath)
+	// Load a self-signed server certificate for testing TLS encryption.
+	serverCertPath = filepath.Join(repoRoot, "systemtest", "apmservertest", "cert.pem")
+	serverKeyPath = filepath.Join(repoRoot, "systemtest", "apmservertest", "key.pem")
+	serverCertBytes, err := ioutil.ReadFile(serverCertPath)
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
-	keyBytes, err := ioutil.ReadFile(keyPath)
-	if err != nil {
-		return "", "", err
-	}
-	cert, err := tls.X509KeyPair(certBytes, keyBytes)
-	if err != nil {
-		return "", "", err
-	}
-
 	certpool := x509.NewCertPool()
-	if !certpool.AppendCertsFromPEM(certBytes) {
+	if !certpool.AppendCertsFromPEM(serverCertBytes) {
 		panic("failed to add CA certificate to cert pool")
 	}
+
+	// Load a self-signed client certificate for testing TLS client certificate auth.
+	clientCertPath := filepath.Join(repoRoot, "systemtest", "apmservertest", "client_cert.pem")
+	clientKeyPath := filepath.Join(repoRoot, "systemtest", "apmservertest", "client_key.pem")
+	clientCertBytes, err := ioutil.ReadFile(clientCertPath)
+	if err != nil {
+		return "", "", "", err
+	}
+	clientKeyBytes, err := ioutil.ReadFile(clientKeyPath)
+	if err != nil {
+		return "", "", "", err
+	}
+	clientCert, err := tls.X509KeyPair(clientCertBytes, clientKeyBytes)
+	if err != nil {
+		return "", "", "", err
+	}
+
 	s.TLS = &tls.Config{
-		Certificates: []tls.Certificate{cert},
+		Certificates: []tls.Certificate{clientCert},
 		RootCAs:      certpool,
 	}
-	return certPath, keyPath, nil
+	return serverCertPath, serverKeyPath, clientCertPath, nil
 }
 
 func (s *Server) printCmdline(w io.Writer, args []string) {
@@ -422,6 +434,14 @@ func (s *Server) Close() error {
 		if err := interruptProcess(s.cmd.Process); err != nil {
 			s.cmd.Process.Kill()
 		}
+	}
+	return s.Wait()
+}
+
+// Kill forcefully shuts down the server.
+func (s *Server) Kill() error {
+	if s.cmd != nil {
+		s.cmd.Process.Kill()
 	}
 	return s.Wait()
 }

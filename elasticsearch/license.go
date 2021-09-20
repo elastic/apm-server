@@ -15,31 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package convert
+package elasticsearch
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
+	"context"
+
+	"github.com/elastic/beats/v7/libbeat/licenser"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
-// FromReader reads the given reader into the given interface
-func FromReader(r io.ReadCloser, i interface{}) error {
-	var buf bytes.Buffer
-	_, err := buf.ReadFrom(r)
-	return FromBytes(buf.Bytes(), i, err)
-}
-
-// FromBytes reads the given byte slice into the given interface
-func FromBytes(bs []byte, i interface{}, err error) error {
-	if err != nil || len(bs) == 0 {
-		return err
+// GetLicense gets the Elasticsearch licensing information.
+func GetLicense(ctx context.Context, client Client) (licenser.License, error) {
+	var result struct {
+		License licenser.License `json:"license"`
 	}
-	return json.Unmarshal(bs, i)
-}
-
-// ToReader converts a marshall-able interface into a reader
-func ToReader(i interface{}) io.Reader {
-	b, _ := json.Marshal(i)
-	return bytes.NewReader(b)
+	req := esapi.LicenseGetRequest{}
+	if err := doRequest(ctx, client, req, &result); err != nil {
+		return licenser.License{}, err
+	}
+	return result.License, nil
 }

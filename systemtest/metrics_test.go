@@ -39,8 +39,12 @@ import (
 )
 
 func TestApprovedMetrics(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	withDataStreams(t, testApprovedMetrics)
+}
+
+func testApprovedMetrics(t *testing.T, srv *apmservertest.Server) {
+	err := srv.Start()
+	require.NoError(t, err)
 
 	eventsPayload, err := ioutil.ReadFile("../testdata/intake-v2/metricsets.ndjson")
 	require.NoError(t, err)
@@ -58,14 +62,15 @@ func TestApprovedMetrics(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Check the metrics documents are exactly as we expect.
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, ingestResult.Accepted, "apm-*", estest.TermQuery{
+	indices := []string{"apm-*", "metrics-apm.*"}
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, ingestResult.Accepted, strings.Join(indices, ","), estest.TermQuery{
 		Field: "processor.event",
 		Value: "metric",
 	})
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 
 	// Check dynamic mapping of histograms.
-	mappings := getFieldMappings(t, []string{"apm-*"}, []string{"latency_distribution"})
+	mappings := getFieldMappings(t, indices, []string{"latency_distribution"})
 	assert.Equal(t, map[string]interface{}{
 		"latency_distribution": map[string]interface{}{
 			"full_name": "latency_distribution",

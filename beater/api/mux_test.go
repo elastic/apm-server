@@ -135,5 +135,6 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		ratelimitStore,
 		m.SourcemapStore,
 		m.Managed,
+		func() bool { return true },
 	)
 }

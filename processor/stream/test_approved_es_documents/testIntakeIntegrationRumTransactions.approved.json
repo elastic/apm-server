@@ -7,7 +7,7 @@
                 "version": "0.0.0"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "event": {
                 "outcome": "unknown"
@@ -74,7 +74,7 @@
                 "version": "0.0.0"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "event": {
                 "outcome": "unknown"
@@ -94,6 +94,9 @@
             "service": {
                 "name": "apm-agent-js",
                 "version": "1.0.0"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "duration": {

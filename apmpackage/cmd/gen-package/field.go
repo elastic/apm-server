@@ -34,6 +34,7 @@ type field struct {
 	// opt *in* to dynamically mapping where needed.
 	Dynamic bool `yaml:"dynamic,omitempty"`
 
+	DynamicTemplate  bool                   `yaml:"dynamic_template,omitempty"`
 	ObjectTypeParams interface{}            `yaml:"object_type_params,omitempty"`
 	Release          string                 `yaml:"release,omitempty"`
 	Alias            string                 `yaml:"alias,omitempty"`

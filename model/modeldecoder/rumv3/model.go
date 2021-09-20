@@ -317,29 +317,13 @@ type transactionMetricset struct {
 }
 
 type transactionMetricsetSamples struct {
-	// TransactionDurationCount is the number of transactions since the last
-	// report (the delta). The duration of transactions is tracked, which
-	// allows for the creation of graphs displaying a weighted average.
-	TransactionDurationCount metricsetSampleValue `json:"xdc"`
-	// TransactionDurationSum is the sum of all transactions durations in ms
-	// since the last report (the delta). The duration of transactions is tracked,
-	// which allows for the creation of graphs displaying a weighted average.
-	TransactionDurationSum metricsetSampleValue `json:"xds"`
-	// TransactionBreakdownCount The number of transactions for which breakdown metrics (span.self_time) have been created. As the Java agent tracks the breakdown for both sampled and non-sampled transactions, this metric is equivalent to transaction.duration.count
+	// TransactionBreakdownCount The number of transactions for which breakdown metrics (span.self_time) have been created.
 	TransactionBreakdownCount metricsetSampleValue `json:"xbc"`
 	// SpanSelfTimeCount holds the count of the related spans' self_time.
 	SpanSelfTimeCount metricsetSampleValue `json:"ysc"`
 	// SpanSelfTimeSum holds the sum of the related spans' self_time.
 	SpanSelfTimeSum metricsetSampleValue `json:"yss"`
 }
-
-const (
-	metricsetSamplesTransactionDurationCountName  = "transaction.duration.count"
-	metricsetSamplesTransactionDurationSumName    = "transaction.duration.sum.us"
-	metricsetSamplesTransactionBreakdownCountName = "transaction.breakdown.count"
-	metricsetSamplesSpanSelfTimeCountName         = "span.self_time.count"
-	metricsetSamplesSpanSelfTimeSumName           = "span.self_time.sum.us"
-)
 
 type metricsetSampleValue struct {
 	// Value holds the value of a single metric sample.

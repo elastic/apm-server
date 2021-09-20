@@ -66,4 +66,20 @@ func TestRootHandler(t *testing.T) {
 			version.Commit())
 		assert.Equal(t, body, w.Body.String())
 	})
+
+	t.Run("publish_ready", func(t *testing.T) {
+		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
+		c.Authentication.Method = auth.MethodNone
+
+		Handler(HandlerConfig{
+			PublishReady: func() bool { return false },
+			Version:      "1.2.3",
+		})(c)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, fmt.Sprintf(
+			`{"build_date":"0001-01-01T00:00:00Z","build_sha":%q,"publish_ready":false,"version":"1.2.3"}`+"\n",
+			version.Commit(),
+		), w.Body.String())
+	})
 }

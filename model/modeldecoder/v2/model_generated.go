@@ -285,13 +285,14 @@ func (val *metadataProcess) validate() error {
 }
 
 func (val *metadataService) IsSet() bool {
-	return val.Agent.IsSet() || val.Environment.IsSet() || val.Framework.IsSet() || val.Language.IsSet() || val.Name.IsSet() || val.Node.IsSet() || val.Runtime.IsSet() || val.Version.IsSet()
+	return val.Agent.IsSet() || val.Environment.IsSet() || val.Framework.IsSet() || val.ID.IsSet() || val.Language.IsSet() || val.Name.IsSet() || val.Node.IsSet() || val.Runtime.IsSet() || val.Version.IsSet()
 }
 
 func (val *metadataService) Reset() {
 	val.Agent.Reset()
 	val.Environment.Reset()
 	val.Framework.Reset()
+	val.ID.Reset()
 	val.Language.Reset()
 	val.Name.Reset()
 	val.Node.Reset()
@@ -765,10 +766,11 @@ func (val *errorEvent) validate() error {
 }
 
 func (val *context) IsSet() bool {
-	return (len(val.Custom) > 0) || val.Message.IsSet() || val.Page.IsSet() || val.Response.IsSet() || val.Request.IsSet() || val.Service.IsSet() || (len(val.Tags) > 0) || val.User.IsSet()
+	return val.Cloud.IsSet() || (len(val.Custom) > 0) || val.Message.IsSet() || val.Page.IsSet() || val.Response.IsSet() || val.Request.IsSet() || val.Service.IsSet() || (len(val.Tags) > 0) || val.User.IsSet()
 }
 
 func (val *context) Reset() {
+	val.Cloud.Reset()
 	for k := range val.Custom {
 		delete(val.Custom, k)
 	}
@@ -786,6 +788,9 @@ func (val *context) Reset() {
 func (val *context) validate() error {
 	if !val.IsSet() {
 		return nil
+	}
+	if err := val.Cloud.validate(); err != nil {
+		return errors.Wrapf(err, "cloud")
 	}
 	if err := val.Message.validate(); err != nil {
 		return errors.Wrapf(err, "message")
@@ -817,6 +822,78 @@ func (val *context) validate() error {
 	}
 	if err := val.User.validate(); err != nil {
 		return errors.Wrapf(err, "user")
+	}
+	return nil
+}
+
+func (val *contextCloud) IsSet() bool {
+	return val.Origin.IsSet()
+}
+
+func (val *contextCloud) Reset() {
+	val.Origin.Reset()
+}
+
+func (val *contextCloud) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Origin.validate(); err != nil {
+		return errors.Wrapf(err, "origin")
+	}
+	return nil
+}
+
+func (val *contextCloudOrigin) IsSet() bool {
+	return val.Account.IsSet() || val.Provider.IsSet() || val.Region.IsSet() || val.Service.IsSet()
+}
+
+func (val *contextCloudOrigin) Reset() {
+	val.Account.Reset()
+	val.Provider.Reset()
+	val.Region.Reset()
+	val.Service.Reset()
+}
+
+func (val *contextCloudOrigin) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Account.validate(); err != nil {
+		return errors.Wrapf(err, "account")
+	}
+	if err := val.Service.validate(); err != nil {
+		return errors.Wrapf(err, "service")
+	}
+	return nil
+}
+
+func (val *contextCloudOriginAccount) IsSet() bool {
+	return val.ID.IsSet()
+}
+
+func (val *contextCloudOriginAccount) Reset() {
+	val.ID.Reset()
+}
+
+func (val *contextCloudOriginAccount) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *contextCloudOriginService) IsSet() bool {
+	return val.Name.IsSet()
+}
+
+func (val *contextCloudOriginService) Reset() {
+	val.Name.Reset()
+}
+
+func (val *contextCloudOriginService) validate() error {
+	if !val.IsSet() {
+		return nil
 	}
 	return nil
 }
@@ -1040,16 +1117,18 @@ func (val *contextRequestURL) validate() error {
 }
 
 func (val *contextService) IsSet() bool {
-	return val.Agent.IsSet() || val.Environment.IsSet() || val.Framework.IsSet() || val.Language.IsSet() || val.Name.IsSet() || val.Node.IsSet() || val.Runtime.IsSet() || val.Version.IsSet()
+	return val.Agent.IsSet() || val.Environment.IsSet() || val.Framework.IsSet() || val.ID.IsSet() || val.Language.IsSet() || val.Name.IsSet() || val.Node.IsSet() || val.Origin.IsSet() || val.Runtime.IsSet() || val.Version.IsSet()
 }
 
 func (val *contextService) Reset() {
 	val.Agent.Reset()
 	val.Environment.Reset()
 	val.Framework.Reset()
+	val.ID.Reset()
 	val.Language.Reset()
 	val.Name.Reset()
 	val.Node.Reset()
+	val.Origin.Reset()
 	val.Runtime.Reset()
 	val.Version.Reset()
 }
@@ -1078,6 +1157,9 @@ func (val *contextService) validate() error {
 	}
 	if err := val.Node.validate(); err != nil {
 		return errors.Wrapf(err, "node")
+	}
+	if err := val.Origin.validate(); err != nil {
+		return errors.Wrapf(err, "origin")
 	}
 	if err := val.Runtime.validate(); err != nil {
 		return errors.Wrapf(err, "runtime")
@@ -1172,6 +1254,23 @@ func (val *contextServiceNode) validate() error {
 	}
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'configured_name': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *contextServiceOrigin) IsSet() bool {
+	return val.ID.IsSet() || val.Name.IsSet() || val.Version.IsSet()
+}
+
+func (val *contextServiceOrigin) Reset() {
+	val.ID.Reset()
+	val.Name.Reset()
+	val.Version.Reset()
+}
+
+func (val *contextServiceOrigin) validate() error {
+	if !val.IsSet() {
+		return nil
 	}
 	return nil
 }
@@ -1850,12 +1949,13 @@ func (val *transactionRoot) validate() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.Session.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
+	return val.Context.IsSet() || val.Duration.IsSet() || val.FAAS.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.Session.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
 }
 
 func (val *transaction) Reset() {
 	val.Context.Reset()
 	val.Duration.Reset()
+	val.FAAS.Reset()
 	val.ID.Reset()
 	val.Marks.Reset()
 	val.Name.Reset()
@@ -1884,6 +1984,9 @@ func (val *transaction) validate() error {
 	}
 	if !val.Duration.IsSet() {
 		return fmt.Errorf("'duration' required")
+	}
+	if err := val.FAAS.validate(); err != nil {
+		return errors.Wrapf(err, "faas")
 	}
 	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
@@ -1938,6 +2041,42 @@ func (val *transaction) validate() error {
 	}
 	if err := val.UserExperience.validate(); err != nil {
 		return errors.Wrapf(err, "experience")
+	}
+	return nil
+}
+
+func (val *faas) IsSet() bool {
+	return val.Coldstart.IsSet() || val.Execution.IsSet() || val.Trigger.IsSet()
+}
+
+func (val *faas) Reset() {
+	val.Coldstart.Reset()
+	val.Execution.Reset()
+	val.Trigger.Reset()
+}
+
+func (val *faas) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Trigger.validate(); err != nil {
+		return errors.Wrapf(err, "trigger")
+	}
+	return nil
+}
+
+func (val *trigger) IsSet() bool {
+	return val.Type.IsSet() || val.RequestID.IsSet()
+}
+
+func (val *trigger) Reset() {
+	val.Type.Reset()
+	val.RequestID.Reset()
+}
+
+func (val *trigger) validate() error {
+	if !val.IsSet() {
+		return nil
 	}
 	return nil
 }

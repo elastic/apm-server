@@ -46,8 +46,8 @@ func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 
 		start := time.Now()
 		if metadata, ok := ClientMetadataFromContext(ctx); ok {
-			if metadata.SourceIP != nil {
-				logger = logger.With("source.address", metadata.SourceIP.String())
+			if metadata.SourceAddr != nil {
+				logger = logger.With("source.address", metadata.SourceAddr.String())
 			}
 		}
 

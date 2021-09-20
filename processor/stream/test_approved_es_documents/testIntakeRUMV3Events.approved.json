@@ -7,7 +7,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "event": {
                 "outcome": "success"
@@ -154,7 +154,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -185,13 +185,14 @@
                 },
                 "version": "0.0.1"
             },
+            "source": {
+                "ip": "192.0.0.1"
+            },
             "transaction": {
+                "breakdown.count": 1,
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
             },
-            "transaction.breakdown.count": 1,
-            "transaction.duration.count": 1,
-            "transaction.duration.sum.us": 295,
             "user": {
                 "email": "user@email.com",
                 "id": "123",
@@ -208,7 +209,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -239,11 +240,16 @@
                 },
                 "version": "0.0.1"
             },
+            "source": {
+                "ip": "192.0.0.1"
+            },
             "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum.us": 1
+                },
                 "type": "Request"
             },
-            "span.self_time.count": 1,
-            "span.self_time.sum.us": 1,
             "transaction": {
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
@@ -264,7 +270,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -295,11 +301,16 @@
                 },
                 "version": "0.0.1"
             },
+            "source": {
+                "ip": "192.0.0.1"
+            },
             "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum.us": 1
+                },
                 "type": "Response"
             },
-            "span.self_time.count": 1,
-            "span.self_time.sum.us": 1,
             "transaction": {
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
@@ -320,7 +331,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "event": {
                 "outcome": "unknown"
@@ -356,6 +367,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "duration": {
@@ -394,7 +408,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "event": {
                 "outcome": "unknown"
@@ -430,6 +444,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "duration": {
@@ -468,7 +485,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "destination": {
                 "address": "localhost",
@@ -476,6 +493,13 @@
             },
             "event": {
                 "outcome": "unknown"
+            },
+            "http": {
+                "response": {
+                    "decoded_body_size": 676864,
+                    "encoded_body_size": 676864,
+                    "transfer_size": 677175
+                }
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -508,6 +532,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "destination": {
@@ -564,7 +591,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "event": {
                 "outcome": "unknown"
@@ -600,6 +627,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "duration": {
@@ -637,7 +667,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "destination": {
                 "address": "localhost",
@@ -685,6 +715,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "destination": {
@@ -741,7 +774,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "destination": {
                 "address": "localhost",
@@ -789,6 +822,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "destination": {
@@ -845,7 +881,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "destination": {
                 "address": "localhost",
@@ -893,6 +929,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "action": "action",
@@ -950,7 +989,7 @@
                 "version": "4.8.1"
             },
             "client": {
-                "ip": "192.0.0.1"
+                "ip": "192.0.0.2"
             },
             "event": {
                 "outcome": "success"
@@ -986,6 +1025,9 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "source": {
+                "ip": "192.0.0.1"
             },
             "span": {
                 "duration": {

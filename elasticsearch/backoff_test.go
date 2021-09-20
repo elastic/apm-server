@@ -18,8 +18,6 @@
 package elasticsearch
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -28,79 +26,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 )
 
-func TestBackoffCalled(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(503)
-	}))
-	defer srv.Close()
-
-	cfg := &Config{Hosts: Hosts{srv.Listener.Addr().String()}}
-	transport, addresses, headers, err := connectionConfig(cfg)
-	assert.NoError(t, err)
-
-	var (
-		called  bool
-		retries = 1
-	)
-	backoff := func(int) time.Duration {
-		called = true
-		return 0
-	}
-
-	c, err := NewVersionedClient(
-		"",
-		"",
-		"",
-		addresses,
-		headers,
-		transport,
-		retries,
-		backoff,
-	)
-	assert.NoError(t, err)
-
-	req, err := http.NewRequest("GET", srv.URL, nil)
-	assert.NoError(t, err)
-	c.Perform(req)
-	assert.True(t, called)
-}
-
-func TestBackoffRetries(t *testing.T) {
-	var (
-		requests int
-		retries  = 5
-	)
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
-			w.Header().Set("X-Elastic-Product", "Elasticsearch")
-			return
-		}
-		requests++
-		w.WriteHeader(503)
-		w.Write([]byte("error"))
-	}))
-	defer srv.Close()
-
-	c, err := NewClient(&Config{
-		Hosts:      Hosts{srv.URL},
-		Protocol:   "http",
-		Timeout:    esConnectionTimeout,
-		MaxRetries: retries,
-		Backoff:    elasticsearch.Backoff{},
-	})
-	assert.NoError(t, err)
-
-	req, err := http.NewRequest("GET", "/some/path", nil)
-	assert.NoError(t, err)
-	c.Perform(req)
-
-	// We have the initial request, and then a maximum amount of retries.
-	// Add the initial request to the number of retries to get the total
-	// requests we expect.
-	assert.Equal(t, retries+1, requests)
-}
-
-func TestBackoffConfigured(t *testing.T) {
+func TestExponentialBackoff(t *testing.T) {
 	init := 2 * time.Second
 	backoffCfg := elasticsearch.Backoff{
 		Init: init,

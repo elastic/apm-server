@@ -24,10 +24,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 
 	"github.com/pkg/errors"
-	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -37,57 +35,40 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
-// waitForIntegration waits for the APM integration to be installed by querying Kibana,
-// or for the context to be cancelled.
-func waitForIntegration(
+// checkIntegrationInstalled checks if the APM integration is installed by querying Kibana
+// and/or Elasticsearch, returning nil if and only if it is installed.
+func checkIntegrationInstalled(
 	ctx context.Context,
 	kibanaClient kibana.Client,
 	esClient elasticsearch.Client,
-	interval time.Duration,
-	tracer *apm.Tracer,
 	logger *logp.Logger,
 ) error {
-	logger.Info("waiting for integration package to be installed")
-	tx := tracer.StartTransaction("wait_for_integration", "init")
-	ctx = apm.ContextWithTransaction(ctx, tx)
-	var ticker *time.Ticker
-	for {
-		if ticker == nil {
-			// We start the ticker on the first iteration, rather than
-			// before the loop, so we don't have to wait for a tick
-			// (5 seconds by default) before peforming the first check.
-			ticker = time.NewTicker(interval)
-			defer ticker.Stop()
-		} else {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-ticker.C:
+	if kibanaClient != nil {
+		installed, err := checkIntegrationInstalledKibana(ctx, kibanaClient, logger)
+		if err != nil {
+			// We only return the Kibana error if we have no Elasticsearch client,
+			// as we may not have sufficient privileges to query the Fleet API.
+			if esClient == nil {
+				return fmt.Errorf("error querying Kibana for integration package status: %w", err)
 			}
+		} else if !installed {
+			// We were able to query Kibana, but the package is not yet installed.
+			// We should continue querying the package status via Kibana, as it is
+			// more authoritative than checking for index template installation.
+			return errors.New("integration package not yet installed")
 		}
-		if kibanaClient != nil {
-			installed, err := checkIntegrationInstalledKibana(ctx, kibanaClient, logger)
-			if err != nil {
-				logger.Errorf("error querying Kibana for integration package status: %s", err)
-			} else {
-				if installed {
-					return nil
-				}
-				// We were able to query Kibana, but the package is not yet installed.
-				// We should continue querying the package status via Kibana, as it is
-				// more authoritative than checking for index template installation.
-				continue
-			}
-		}
-		if esClient != nil {
-			installed, err := checkIntegrationInstalledElasticsearch(ctx, esClient, logger)
-			if err != nil {
-				logger.Errorf("error querying Elasticsearch for integration index templates: %s", err)
-			} else if installed {
-				return nil
-			}
+		// Fall through and query Elasticsearch (if we have a client). Kibana may prematurely
+		// report packages as installed: https://github.com/elastic/kibana/issues/108649
+	}
+	if esClient != nil {
+		installed, err := checkIntegrationInstalledElasticsearch(ctx, esClient, logger)
+		if err != nil {
+			return fmt.Errorf("error querying Elasticsearch for integration index templates: %w", err)
+		} else if !installed {
+			return errors.New("integration index templates not installed")
 		}
 	}
+	return nil
 }
 
 // checkIntegrationInstalledKibana checks if the APM integration package

@@ -48,12 +48,14 @@ type Span struct {
 	// TODO(axw) drop in 8.0. See https://github.com/elastic/apm-server/issues/6000)
 	Start *float64
 
+	// SelfTime holds the aggregated span durations, for breakdown metrics.
+	SelfTime AggregatedDuration
+
 	Message    *Message
 	Stacktrace Stacktrace
 	Sync       *bool
 
 	DB                 *DB
-	HTTP               *HTTP
 	DestinationService *DestinationService
 	Composite          *Composite
 
@@ -80,6 +82,9 @@ type DestinationService struct {
 	Type     string // Deprecated
 	Name     string // Deprecated
 	Resource string
+
+	// ResponseTime holds aggregated span durations for the destination service resource.
+	ResponseTime AggregatedDuration
 }
 
 // Composite holds details on a group of spans compressed into one.
@@ -113,6 +118,7 @@ func (d *DestinationService) fields() common.MapStr {
 	fields.maybeSetString("type", d.Type)
 	fields.maybeSetString("name", d.Name)
 	fields.maybeSetString("resource", d.Resource)
+	fields.maybeSetMapStr("response_time", d.ResponseTime.fields())
 	return common.MapStr(fields)
 }
 
@@ -130,10 +136,6 @@ func (c *Composite) fields() common.MapStr {
 }
 
 func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
-	if e.HTTP != nil {
-		fields.maybeSetMapStr("http", e.HTTP.spanTopLevelFields())
-	}
-
 	var span mapStr
 	span.maybeSetString("name", e.Name)
 	span.maybeSetString("type", e.Type)
@@ -150,11 +152,6 @@ func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
 		// See https://github.com/elastic/apm-server/issues/5999
 		span.set("duration", common.MapStr{"us": int(apmEvent.Event.Duration.Microseconds())})
 	}
-
-	if e.HTTP != nil {
-		span.maybeSetMapStr("http", e.HTTP.spanFields())
-		span.maybeSetString("http.url.original", apmEvent.URL.Original)
-	}
 	span.maybeSetMapStr("db", e.DB.fields())
 	span.maybeSetMapStr("message", e.Message.Fields())
 	span.maybeSetMapStr("composite", e.Composite.fields())
@@ -169,5 +166,6 @@ func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
 	if st := e.Stacktrace.transform(); len(st) > 0 {
 		span.set("stacktrace", st)
 	}
+	span.maybeSetMapStr("self_time", e.SelfTime.fields())
 	fields.maybeSetMapStr("span", common.MapStr(span))
 }

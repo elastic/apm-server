@@ -27,6 +27,13 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
+func TestSpanTransformEmpty(t *testing.T) {
+	var event APMEvent
+	event.Span = &Span{}
+	beatEvent := event.BeatEvent(context.Background())
+	assert.Empty(t, beatEvent.Fields)
+}
+
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	start := 0.65
@@ -36,7 +43,6 @@ func TestSpanTransform(t *testing.T) {
 	duration := time.Millisecond * 1500
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
-	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", 5
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 
@@ -45,20 +51,6 @@ func TestSpanTransform(t *testing.T) {
 		Output common.MapStr
 		Msg    string
 	}{
-		{
-			Msg:  "Span without a Stacktrace",
-			Span: Span{},
-			Output: common.MapStr{
-				"processor": common.MapStr{"name": "transaction", "event": "span"},
-				"span": common.MapStr{
-					"duration": common.MapStr{"us": int(duration.Microseconds())},
-				},
-				"timestamp": common.MapStr{"us": int(timestampUs)},
-				"url": common.MapStr{
-					"original": url,
-				},
-			},
-		},
 		{
 			Msg: "Full Span",
 			Span: Span{
@@ -70,10 +62,6 @@ func TestSpanTransform(t *testing.T) {
 				Start:               &start,
 				RepresentativeCount: 5,
 				Stacktrace:          Stacktrace{{AbsPath: path}},
-				HTTP: &HTTP{
-					Request:  &HTTPRequest{Method: method},
-					Response: &HTTPResponse{StatusCode: statusCode},
-				},
 				DB: &DB{
 					Instance:     instance,
 					Statement:    statement,
@@ -110,11 +98,6 @@ func TestSpanTransform(t *testing.T) {
 						"user":          common.MapStr{"name": user},
 						"rows_affected": rowsAffected,
 					},
-					"http": common.MapStr{
-						"response": common.MapStr{"status_code": statusCode},
-						"method":   "get",
-					},
-					"http.url.original": url,
 					"destination": common.MapStr{
 						"service": common.MapStr{
 							"type":     destServiceType,
@@ -130,13 +113,6 @@ func TestSpanTransform(t *testing.T) {
 					},
 				},
 				"timestamp": common.MapStr{"us": int(timestampUs)},
-				"http": common.MapStr{
-					"response": common.MapStr{"status_code": statusCode},
-					"request":  common.MapStr{"method": "get"},
-				},
-				"url": common.MapStr{
-					"original": url,
-				},
 			},
 		},
 	}
@@ -147,9 +123,56 @@ func TestSpanTransform(t *testing.T) {
 			Span:      &test.Span,
 			Timestamp: timestamp,
 			Event:     Event{Duration: duration},
-			URL:       URL{Original: url},
 		}
 		output := event.BeatEvent(context.Background())
 		assert.Equal(t, test.Output, output.Fields, test.Msg)
 	}
+}
+
+func TestSpanHTTPFields(t *testing.T) {
+	event := APMEvent{
+		Processor: SpanProcessor,
+		Span:      &Span{},
+		HTTP: HTTP{
+			Version: "2.0",
+			Request: &HTTPRequest{
+				Method: "get",
+			},
+			Response: &HTTPResponse{
+				StatusCode: 200,
+			},
+		},
+		URL: URL{Original: "http://localhost"},
+	}
+
+	output := event.BeatEvent(context.Background())
+	assert.Equal(t, common.MapStr{
+		"processor": common.MapStr{
+			"name":  "transaction",
+			"event": "span",
+		},
+		"http": common.MapStr{
+			"version": event.HTTP.Version,
+			"request": common.MapStr{
+				"method": event.HTTP.Request.Method,
+			},
+			"response": common.MapStr{
+				"status_code": event.HTTP.Response.StatusCode,
+			},
+		},
+		"url": common.MapStr{
+			"original": event.URL.Original,
+		},
+		"span": common.MapStr{
+			"duration":          common.MapStr{"us": 0},
+			"http.url.original": event.URL.Original,
+			"http": common.MapStr{
+				"version": event.HTTP.Version,
+				"method":  event.HTTP.Request.Method,
+				"response": common.MapStr{
+					"status_code": event.HTTP.Response.StatusCode,
+				},
+			},
+		},
+	}, output.Fields)
 }

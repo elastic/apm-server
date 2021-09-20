@@ -385,14 +385,7 @@ func makeMetricset(
 		},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Name: metricsetName,
-			Samples: map[string]model.MetricsetSample{
-				"transaction.duration.histogram": {
-					Type:   model.MetricTypeHistogram,
-					Counts: counts,
-					Values: values,
-				},
-			},
+			Name:                 metricsetName,
 			DocCount:             totalCount,
 			TimeseriesInstanceID: timeseriesInstanceID.String(),
 		},
@@ -401,6 +394,10 @@ func makeMetricset(
 			Type:   key.transactionType,
 			Result: key.transactionResult,
 			Root:   key.traceRoot,
+			DurationHistogram: model.Histogram{
+				Counts: counts,
+				Values: values,
+			},
 		},
 	}
 }
@@ -424,6 +421,7 @@ type metricsMapEntry struct {
 	transactionMetrics
 }
 
+// NOTE(axw) the dimensions should be kept in sync with docs/metricset-indices.asciidoc,
 type transactionAggregationKey struct {
 	traceRoot          bool
 	agentName          string

@@ -175,7 +175,6 @@ copy-docs:
 	@cp tests/system/error.approved.json docs/data/elasticsearch/generated/errors.json
 	@cp tests/system/transaction.approved.json docs/data/elasticsearch/generated/transactions.json
 	@cp tests/system/spans.approved.json docs/data/elasticsearch/generated/spans.json
-	@cp tests/system/metricset.approved.json docs/data/elasticsearch/generated/metricsets.json
 
 ##############################################################################
 # Beats synchronisation.

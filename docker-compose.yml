@@ -32,7 +32,7 @@ services:
       kibana: { condition: service_healthy }
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-78724554-SNAPSHOT
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-da75ec54-SNAPSHOT
     ports:
       - 9200:9200
     healthcheck:
@@ -61,11 +61,11 @@ services:
       - "./testing/docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles"
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.0.0-78724554-SNAPSHOT
+    image: docker.elastic.co/kibana/kibana:8.0.0-da75ec54-SNAPSHOT
     ports:
       - 5601:5601
     healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:5601/api/status | grep -q 'Looking good'"]
+      test: ["CMD-SHELL", "curl -s http://localhost:5601/api/status | grep -q 'All services are available'"]
       retries: 300
       interval: 1s
     environment:
@@ -85,7 +85,7 @@ services:
       package-registry: { condition: service_healthy }
 
   fleet-server:
-    image: docker.elastic.co/beats/elastic-agent:8.0.0-78724554-SNAPSHOT
+    image: docker.elastic.co/beats/elastic-agent:8.0.0-da75ec54-SNAPSHOT
     ports:
       - 8220:8220
     healthcheck:

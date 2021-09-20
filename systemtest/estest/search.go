@@ -20,6 +20,7 @@ package estest
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -62,7 +63,7 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 
 func (es *Client) Search(index string) *SearchRequest {
 	req := &SearchRequest{es: es}
-	req.Index = []string{index}
+	req.Index = strings.Split(index, ",")
 	return req
 }
 

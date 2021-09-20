@@ -19,6 +19,7 @@ package model
 
 import (
 	"context"
+	"net"
 	"testing"
 	"time"
 
@@ -42,6 +43,9 @@ func TestAPMEventFields(t *testing.T) {
 	traceID := "trace_id"
 	parentID := "parent_id"
 	childID := []string{"child_1", "child_2"}
+	httpRequestMethod := "post"
+	httpRequestBody := "<html><marquee>hello world</marquee></html>"
+	coldstart := true
 
 	for _, test := range []struct {
 		input  APMEvent
@@ -58,12 +62,18 @@ func TestAPMEventFields(t *testing.T) {
 			Service: Service{
 				Name: serviceName,
 				Node: ServiceNode{Name: serviceNodeName},
+				Origin: &ServiceOrigin{
+					ID:      "abc123",
+					Name:    serviceName,
+					Version: "1.0",
+				},
 			},
 			Host: Host{
 				Hostname: hostname,
 				Name:     host,
 			},
 			Client:      Client{Domain: "client.domain"},
+			Source:      Source{IP: net.ParseIP("127.0.0.1"), Port: 1234},
 			Destination: Destination{Address: destinationAddress, Port: destinationPort},
 			Process:     Process{Pid: pid},
 			User:        User{ID: uid, Email: mail},
@@ -78,6 +88,26 @@ func TestAPMEventFields(t *testing.T) {
 			Trace:       Trace{ID: traceID},
 			Parent:      Parent{ID: parentID},
 			Child:       Child{ID: childID},
+			HTTP: HTTP{
+				Request: &HTTPRequest{
+					Method: httpRequestMethod,
+					Body:   httpRequestBody,
+				},
+			},
+			FAAS: FAAS{
+				Coldstart:        &coldstart,
+				Execution:        "execution",
+				TriggerType:      "http",
+				TriggerRequestID: "abc123",
+			},
+			Cloud: Cloud{
+				Origin: &CloudOrigin{
+					AccountID:   "accountID",
+					Provider:    "aws",
+					Region:      "us-west-1",
+					ServiceName: "serviceName",
+				},
+			},
 		},
 		output: common.MapStr{
 			// common fields
@@ -90,9 +120,15 @@ func TestAPMEventFields(t *testing.T) {
 			"service": common.MapStr{
 				"name": "myservice",
 				"node": common.MapStr{"name": serviceNodeName},
+				"origin": common.MapStr{
+					"id":      "abc123",
+					"name":    "myservice",
+					"version": "1.0",
+				},
 			},
 			"user":   common.MapStr{"id": "12321", "email": "user@email.com"},
 			"client": common.MapStr{"domain": "client.domain"},
+			"source": common.MapStr{"ip": "127.0.0.1", "port": 1234},
 			"destination": common.MapStr{
 				"address": destinationAddress,
 				"ip":      destinationAddress,
@@ -118,6 +154,26 @@ func TestAPMEventFields(t *testing.T) {
 			},
 			"child": common.MapStr{
 				"id": childID,
+			},
+			"http": common.MapStr{
+				"request": common.MapStr{
+					"method":        "post",
+					"body.original": httpRequestBody,
+				},
+			},
+			"faas": common.MapStr{
+				"coldstart":          true,
+				"execution":          "execution",
+				"trigger.type":       "http",
+				"trigger.request_id": "abc123",
+			},
+			"cloud": common.MapStr{
+				"origin": common.MapStr{
+					"account.id":   "accountID",
+					"provider":     "aws",
+					"region":       "us-west-1",
+					"service.name": "serviceName",
+				},
 			},
 		},
 	}, {

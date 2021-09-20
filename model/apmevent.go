@@ -47,6 +47,7 @@ type APMEvent struct {
 	User        User
 	UserAgent   UserAgent
 	Client      Client
+	Source      Source
 	Destination Destination
 	Cloud       Cloud
 	Network     Network
@@ -56,6 +57,8 @@ type APMEvent struct {
 	Trace       Trace
 	Parent      Parent
 	Child       Child
+	HTTP        HTTP
+	FAAS        FAAS
 
 	// Timestamp holds the event timestamp.
 	//
@@ -128,15 +131,8 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("host", e.Host.fields())
 	fields.maybeSetMapStr("process", e.Process.fields())
 	fields.maybeSetMapStr("user", e.User.fields())
-	if client := e.Client.fields(); fields.maybeSetMapStr("client", client) {
-		// We copy client to source for transactions and errors.
-		switch e.Processor {
-		case TransactionProcessor, ErrorProcessor:
-			// TODO(axw) once we are using Fleet for ingest pipeline
-			// management, move this to an ingest pipeline.
-			fields.set("source", client)
-		}
-	}
+	fields.maybeSetMapStr("client", e.Client.fields())
+	fields.maybeSetMapStr("source", e.Source.fields())
 	fields.maybeSetMapStr("destination", e.Destination.fields())
 	fields.maybeSetMapStr("user_agent", e.UserAgent.fields())
 	fields.maybeSetMapStr("container", e.Container.fields())
@@ -152,5 +148,30 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("processor", e.Processor.fields())
 	fields.maybeSetMapStr("trace", e.Trace.fields())
 	fields.maybeSetString("message", e.Message)
+	fields.maybeSetMapStr("http", e.HTTP.fields())
+	fields.maybeSetMapStr("faas", e.FAAS.fields())
+	if e.Processor == SpanProcessor {
+		// Deprecated: copy url.original and http.* to span.http.* for backwards compatibility.
+		//
+		// TODO(axw) remove this in 8.0: https://github.com/elastic/apm-server/issues/5995
+		var spanHTTPFields mapStr
+		spanHTTPFields.maybeSetString("version", e.HTTP.Version)
+		if e.HTTP.Request != nil {
+			spanHTTPFields.maybeSetString("method", e.HTTP.Request.Method)
+		}
+		if e.HTTP.Response != nil {
+			spanHTTPFields.maybeSetMapStr("response", e.HTTP.Response.fields())
+		}
+		if len(spanHTTPFields) != 0 || e.URL.Original != "" {
+			spanFieldsMap, ok := event.Fields["span"].(common.MapStr)
+			if !ok {
+				spanFieldsMap = make(common.MapStr)
+				event.Fields["span"] = spanFieldsMap
+			}
+			spanFields := mapStr(spanFieldsMap)
+			spanFields.maybeSetMapStr("http", common.MapStr(spanHTTPFields))
+			spanFields.maybeSetString("http.url.original", e.URL.Original)
+		}
+	}
 	return event
 }

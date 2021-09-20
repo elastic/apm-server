@@ -87,19 +87,14 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			case
 				// RepresentativeCount is tested further down in test 'sample-rate'
 				"RepresentativeCount",
-				// HTTP response headers tested in test 'http-headers'
-				"HTTP.Response.Headers",
 
 				// Not set for spans:
-				"HTTP.Version",
-				"HTTP.Request.Referrer",
-				"HTTP.Request.Cookies",
-				"HTTP.Request.Env",
-				"HTTP.Request.Headers",
-				"HTTP.Request.Socket",
-				"HTTP.Request.Body",
-				"HTTP.Response.HeadersSent",
-				"HTTP.Response.Finished":
+				"DestinationService.ResponseTime",
+				"DestinationService.ResponseTime.Count",
+				"DestinationService.ResponseTime.Sum",
+				"SelfTime",
+				"SelfTime.Count",
+				"SelfTime.Sum":
 				return true
 			}
 			for _, s := range []string{
@@ -246,6 +241,6 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		input.Context.HTTP.Response.Headers.Set(http.Header{"a": []string{"b", "c"}})
 		var out model.APMEvent
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, common.MapStr{"a": []string{"b", "c"}}, out.Span.HTTP.Response.Headers)
+		assert.Equal(t, common.MapStr{"a": []string{"b", "c"}}, out.HTTP.Response.Headers)
 	})
 }

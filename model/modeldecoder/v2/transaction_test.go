@@ -109,6 +109,50 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, &out.User, exceptions, otherVal)
 	})
 
+	t.Run("cloud.origin", func(t *testing.T) {
+		var input transaction
+		var out model.APMEvent
+		origin := contextCloudOrigin{}
+		origin.Account.ID.Set("accountID")
+		origin.Provider.Set("aws")
+		origin.Region.Set("us-east-1")
+		origin.Service.Name.Set("serviceName")
+		input.Context.Cloud.Origin = origin
+		mapToTransactionModel(&input, &out)
+		assert.Equal(t, "accountID", out.Cloud.Origin.AccountID)
+		assert.Equal(t, "aws", out.Cloud.Origin.Provider)
+		assert.Equal(t, "us-east-1", out.Cloud.Origin.Region)
+		assert.Equal(t, "serviceName", out.Cloud.Origin.ServiceName)
+	})
+
+	t.Run("service.origin", func(t *testing.T) {
+		var input transaction
+		var out model.APMEvent
+		origin := contextServiceOrigin{}
+		origin.ID.Set("abc123")
+		origin.Name.Set("name")
+		origin.Version.Set("1.0")
+		input.Context.Service.Origin = origin
+		mapToTransactionModel(&input, &out)
+		assert.Equal(t, "abc123", out.Service.Origin.ID)
+		assert.Equal(t, "name", out.Service.Origin.Name)
+		assert.Equal(t, "1.0", out.Service.Origin.Version)
+	})
+
+	t.Run("faas", func(t *testing.T) {
+		var input transaction
+		var out model.APMEvent
+		input.FAAS.Coldstart.Set(true)
+		input.FAAS.Execution.Set("execution")
+		input.FAAS.Trigger.Type.Set("http")
+		input.FAAS.Trigger.RequestID.Set("abc123")
+		mapToTransactionModel(&input, &out)
+		assert.True(t, *out.FAAS.Coldstart)
+		assert.Equal(t, "execution", out.FAAS.Execution)
+		assert.Equal(t, "http", out.FAAS.TriggerType)
+		assert.Equal(t, "abc123", out.FAAS.TriggerRequestID)
+	})
+
 	t.Run("client-ip-header", func(t *testing.T) {
 		var input transaction
 		var out model.APMEvent
@@ -153,7 +197,19 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		exceptions := func(key string) bool {
 			// All the below exceptions are tested separately
 			switch key {
-			case "HTTP.Request.Headers", "HTTP.Response.Headers", "Experimental", "RepresentativeCount", "Root":
+			case
+				// Tested separately
+				"RepresentativeCount",
+
+				// Not set for transaction events, tested in metricset decoding:
+				"AggregatedDuration",
+				"AggregatedDuration.Count",
+				"AggregatedDuration.Sum",
+				"BreakdownCount",
+				"DurationHistogram",
+				"DurationHistogram.Counts",
+				"DurationHistogram.Values",
+				"Root":
 				return true
 			}
 			return false
@@ -193,8 +249,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out model.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.Transaction.HTTP.Request.Headers)
-		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.Transaction.HTTP.Response.Headers)
+		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
+		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.HTTP.Response.Headers)
 	})
 
 	t.Run("http-request-body", func(t *testing.T) {
@@ -206,7 +262,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		})
 		var out model.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, map[string]interface{}{"a": common.Float(123.456), "c": "d"}, out.Transaction.HTTP.Request.Body)
+		assert.Equal(t, map[string]interface{}{"a": common.Float(123.456), "c": "d"}, out.HTTP.Request.Body)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {
@@ -222,7 +278,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var out model.APMEvent
 		input.Context.Page.Referer.Set("https://my.site.test:9201")
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, "https://my.site.test:9201", out.Transaction.HTTP.Request.Referrer)
+		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referrer)
 	})
 
 	t.Run("sample-rate", func(t *testing.T) {
