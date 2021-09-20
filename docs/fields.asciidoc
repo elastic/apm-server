@@ -5861,26 +5861,6 @@ type: text
 
 --
 
-
-*`transaction.duration.count`*::
-+
---
-Number of aggregated transactions.
-
-type: long
-
---
-
-
-*`transaction.duration.sum.us`*::
-+
---
-Aggregated transaction duration, in microseconds.
-
-type: long
-
---
-
 [float]
 === self_time
 

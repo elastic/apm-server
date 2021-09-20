@@ -356,20 +356,10 @@
     - name: duration
       type: group
       fields:
-        - name: count
-          type: long
-          description: Number of aggregated transactions.
         - name: histogram
           type: histogram
           description: |
             Pre-aggregated histogram of transaction durations.
-        - name: sum
-          type: group
-          fields:
-            - name: us
-              type: long
-              description: Aggregated transaction duration, in microseconds.
-              unit: micros
     - name: name
       type: keyword
       description: |
