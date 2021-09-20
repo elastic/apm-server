@@ -103,7 +103,7 @@ pull_request_rules:
       delete_head_branch:
   - name: notify the backport policy
     conditions:
-      - label~=^backport
+      - -label~=^backport
     actions:
       comment:
         message: |
