@@ -190,10 +190,6 @@
             },
             "transaction": {
                 "breakdown.count": 1,
-                "duration": {
-                    "count": 1,
-                    "sum.us": 295
-                },
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
             },

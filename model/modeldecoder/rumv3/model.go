@@ -317,15 +317,7 @@ type transactionMetricset struct {
 }
 
 type transactionMetricsetSamples struct {
-	// TransactionDurationCount is the number of transactions since the last
-	// report (the delta). The duration of transactions is tracked, which
-	// allows for the creation of graphs displaying a weighted average.
-	TransactionDurationCount metricsetSampleValue `json:"xdc"`
-	// TransactionDurationSum is the sum of all transactions durations in ms
-	// since the last report (the delta). The duration of transactions is tracked,
-	// which allows for the creation of graphs displaying a weighted average.
-	TransactionDurationSum metricsetSampleValue `json:"xds"`
-	// TransactionBreakdownCount The number of transactions for which breakdown metrics (span.self_time) have been created. As the Java agent tracks the breakdown for both sampled and non-sampled transactions, this metric is equivalent to transaction.duration.count
+	// TransactionBreakdownCount The number of transactions for which breakdown metrics (span.self_time) have been created.
 	TransactionBreakdownCount metricsetSampleValue `json:"xbc"`
 	// SpanSelfTimeCount holds the count of the related spans' self_time.
 	SpanSelfTimeCount metricsetSampleValue `json:"ysc"`

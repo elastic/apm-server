@@ -169,22 +169,6 @@
             Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
           overwrite: true
 
-        - name: duration
-          type: group
-          fields:
-            - name: count
-              type: long
-              overwrite: true
-              description: Number of aggregated transactions.
-            - name: sum
-              type: group
-              fields:
-                - name: us
-                  type: long
-                  unit: micros
-                  overwrite: true
-                  description: Aggregated transaction duration, in microseconds.
-
         - name: self_time
           type: group
           description: >

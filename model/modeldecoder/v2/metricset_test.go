@@ -213,10 +213,6 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 			Name:           "transaction_name",
 			Type:           "transaction_type",
 			BreakdownCount: 123,
-			AggregatedDuration: model.AggregatedDuration{
-				Count: 456,
-				Sum:   789 * time.Microsecond,
-			},
 		},
 	}, {
 		Timestamp: time.Unix(0, 0).UTC(),
