@@ -114,7 +114,6 @@ pull_request_rules:
           * `backport-7./d` is the label to automatically backport to the `7./d` branch. /d is the digit
 
           NOTE: `backport-skip` has been added to this pull request.
-          ```
       label:
         add:
           - backport-skip
