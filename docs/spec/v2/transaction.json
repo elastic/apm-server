@@ -663,6 +663,90 @@
         }
       }
     },
+    "dropped_spans_stats": {
+      "description": "DroppedSpanStats holds information about spans that were dropped (for example due to transaction_max_spans or exit_span_min_duration).",
+      "type": [
+        "null",
+        "array"
+      ],
+      "items": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "description": "Count holds the number of times the dropped span happened.",
+            "type": [
+              "null",
+              "integer"
+            ],
+            "minimum": 1
+          },
+          "destination_service_resource": {
+            "description": "DestinationServiceResource identifies the destination service resource being operated on. e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name'.",
+            "type": [
+              "null",
+              "string"
+            ],
+            "maxLength": 1024
+          },
+          "duration": {
+            "description": "Duration holds duration aggregations about the dropped span.",
+            "type": [
+              "null",
+              "object"
+            ],
+            "properties": {
+              "sum": {
+                "description": "Sum holds dimensions about the dropped span's duration.",
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "properties": {
+                  "us": {
+                    "description": "Us represents the summation of the span duration.",
+                    "type": [
+                      "null",
+                      "integer"
+                    ],
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "outcome": {
+            "description": "Outcome of the span: success, failure, or unknown. Outcome may be one of a limited set of permitted values describing the success or failure of the span. It can be used for calculating error rates for outgoing requests.",
+            "type": [
+              "null",
+              "string"
+            ],
+            "enum": [
+              "success",
+              "failure",
+              "unknown",
+              null
+            ]
+          },
+          "subtype": {
+            "description": "Subtype is a further sub-division of the type (e.g. postgresql, elasticsearch)",
+            "type": [
+              "null",
+              "string"
+            ],
+            "maxLength": 1024
+          },
+          "type": {
+            "description": "Type holds the dropped span's type, and can have specific keywords within the service's domain (eg: 'request', 'backgroundjob', etc)",
+            "type": [
+              "null",
+              "string"
+            ],
+            "maxLength": 1024
+          }
+        }
+      },
+      "minItems": 0
+    },
     "duration": {
       "description": "Duration how long the transaction took to complete, in milliseconds with 3 decimal points.",
       "type": "number",

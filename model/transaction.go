@@ -65,6 +65,10 @@ type Transaction struct {
 	Custom         common.MapStr
 	UserExperience *UserExperience
 
+	// DroppedSpanStats holds a list of the spans that were dropped by an
+	// agent; not indexed.
+	DroppedSpansStats []DroppedSpanStats
+
 	// RepresentativeCount holds the approximate number of
 	// transactions that this transaction represents for aggregation.
 	//
@@ -117,6 +121,13 @@ func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
 	if e.BreakdownCount > 0 {
 		transaction.set("breakdown.count", e.BreakdownCount)
 	}
+	var dss []common.MapStr
+	for _, v := range e.DroppedSpansStats {
+		dss = append(dss, v.fields())
+	}
+	if len(dss) > 0 {
+		transaction.set("dropped_spans_stats", dss)
+	}
 	fields.maybeSetMapStr("transaction", common.MapStr(transaction))
 }
 
@@ -144,4 +155,32 @@ func (m TransactionMark) fields() common.MapStr {
 		out[sanitizeLabelKey(k)] = common.Float(v)
 	}
 	return out
+}
+
+type DroppedSpanStats struct {
+	Type                       string
+	Subtype                    string
+	DestinationServiceResource string
+	Outcome                    string
+	Count                      *int
+	DurationSumUs              *int // microseconds
+}
+
+func (stat DroppedSpanStats) fields() common.MapStr {
+	var out mapStr
+	out.maybeSetString("type", stat.Type)
+	out.maybeSetString("subtype", stat.Subtype)
+	out.maybeSetString("destination_service_resource",
+		stat.DestinationServiceResource,
+	)
+	out.maybeSetString("outcome", stat.Outcome)
+	out.maybeSetIntptr("count", stat.Count)
+	if stat.DurationSumUs != nil {
+		out.set("duration", common.MapStr{
+			"sum": common.MapStr{
+				"us": *stat.DurationSumUs,
+			},
+		})
+	}
+	return common.MapStr(out)
 }

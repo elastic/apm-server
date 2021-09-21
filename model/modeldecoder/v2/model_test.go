@@ -536,6 +536,10 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 	var event transaction
 	modeldecodertest.InitStructValues(&event)
 	event.Outcome.Set("success")
+	for i := range event.DroppedSpanStats {
+		dss := &event.DroppedSpanStats[i]
+		dss.Outcome.Set("success")
+	}
 	// test vanilla struct is valid
 	require.NoError(t, event.validate())
 

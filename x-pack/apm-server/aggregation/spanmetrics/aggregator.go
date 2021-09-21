@@ -66,7 +66,9 @@ type Aggregator struct {
 
 	config AggregatorConfig
 
-	mu               sync.RWMutex
+	mu sync.RWMutex
+	// These two metricsBuffer are set to the same size and act as buffers
+	// for caching and then publishing the metrics as batches.
 	active, inactive *metricsBuffer
 }
 
@@ -148,6 +150,11 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	// to block spanMetrics updaters. After the lock is released nothing
 	// will be accessing a.inactive.
 	a.mu.Lock()
+
+	// EXPLAIN: We swap active <-> inactive, so that we're only working on the
+	// inactive property while publish is running. `a.active` is the buffer that
+	// receives/stores/updates the metricsets, once swapped, we're working on the
+	// `a.inactive` which we're going to process and publish.
 	a.active, a.inactive = a.inactive, a.active
 	a.mu.Unlock()
 
@@ -169,7 +176,8 @@ func (a *Aggregator) publish(ctx context.Context) error {
 }
 
 // ProcessBatch aggregates all spans contained in "b", adding to it any
-// metricsets requiring immediate publication.
+// metricsets requiring immediate publication. It also aggregates transactions
+// where transaction.DroppedSpansStats > 0.
 //
 // This method is expected to be used immediately prior to publishing
 // the events.
@@ -177,11 +185,21 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	for _, event := range *b {
-		if event.Processor != model.SpanProcessor {
+		if event.Processor == model.SpanProcessor {
+			if msEvent := a.processSpan(&event); msEvent.Metricset != nil {
+				*b = append(*b, msEvent)
+			}
 			continue
 		}
-		if metricsetEvent := a.processSpan(&event); metricsetEvent.Metricset != nil {
-			*b = append(*b, metricsetEvent)
+
+		tx := event.Transaction
+		if event.Processor == model.TransactionProcessor && tx != nil {
+			for _, dss := range tx.DroppedSpansStats {
+				if msEvent := a.processDroppedSpanStats(&event, dss); msEvent.Metricset != nil {
+					*b = append(*b, msEvent)
+				}
+			}
+			continue
 		}
 	}
 	return nil
@@ -218,6 +236,33 @@ func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
 	metrics := spanMetrics{
 		count: float64(count) * event.Span.RepresentativeCount,
 		sum:   float64(duration) * event.Span.RepresentativeCount,
+	}
+	if a.active.storeOrUpdate(key, metrics) {
+		return model.APMEvent{}
+	}
+	return makeMetricset(time.Now(), key, metrics, 0)
+}
+
+func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.DroppedSpanStats) model.APMEvent {
+	representativeCount := event.Transaction.RepresentativeCount
+	if representativeCount <= 0 {
+		// RepresentativeCount is zero when the sample rate is unknown.
+		// We cannot calculate accurate span metrics without the sample
+		// rate, so we don't calculate any at all in this case.
+		return model.APMEvent{}
+	}
+
+	key := aggregationKey{
+		serviceEnvironment: event.Service.Environment,
+		serviceName:        event.Service.Name,
+		agentName:          event.Agent.Name,
+		outcome:            event.Event.Outcome,
+		resource:           dss.DestinationServiceResource,
+	}
+	sum := *dss.DurationSumUs * int(time.Millisecond)
+	metrics := spanMetrics{
+		count: float64(*dss.Count) * representativeCount,
+		sum:   float64(sum) * representativeCount,
 	}
 	if a.active.storeOrUpdate(key, metrics) {
 		return model.APMEvent{}

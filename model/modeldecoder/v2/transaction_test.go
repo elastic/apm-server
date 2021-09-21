@@ -153,6 +153,54 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, "abc123", out.FAAS.TriggerRequestID)
 	})
 
+	t.Run("dropped_span_stats", func(t *testing.T) {
+		var input transaction
+		var out model.APMEvent
+		var esDss, mysqlDss txDroppedSpanStats
+
+		count := 5
+		durationSumUs := 10_290_000
+		esDss.Type.Set("request")
+		esDss.Subtype.Set("elasticsearch")
+		esDss.DestinationServiceResource.Set("https://elasticsearch:9200")
+		esDss.Outcome.Set("success")
+		esDss.Count.Set(count)
+		esDss.Duration.Sum.Us.Set(durationSumUs)
+		mysqlDss.Type.Set("query")
+		mysqlDss.Subtype.Set("mysql")
+		mysqlDss.DestinationServiceResource.Set("mysql://mysql:3306")
+		mysqlDss.Outcome.Set("unknown")
+		mysqlDss.Count.Set(count)
+		mysqlDss.Duration.Sum.Us.Set(durationSumUs)
+		input.DroppedSpanStats = append(input.DroppedSpanStats, esDss, mysqlDss)
+
+		mapToTransactionModel(&input, &out)
+		expected := model.APMEvent{Transaction: &model.Transaction{
+			DroppedSpansStats: []model.DroppedSpanStats{
+				{
+					Type:                       "request",
+					Subtype:                    "elasticsearch",
+					DestinationServiceResource: "https://elasticsearch:9200",
+					Outcome:                    "success",
+					Count:                      &count,
+					DurationSumUs:              &durationSumUs,
+				},
+				{
+					Type:                       "query",
+					Subtype:                    "mysql",
+					DestinationServiceResource: "mysql://mysql:3306",
+					Outcome:                    "unknown",
+					Count:                      &count,
+					DurationSumUs:              &durationSumUs,
+				},
+			},
+		}}
+		assert.Equal(t,
+			expected.Transaction.DroppedSpansStats,
+			out.Transaction.DroppedSpansStats,
+		)
+	})
+
 	t.Run("client-ip-header", func(t *testing.T) {
 		var input transaction
 		var out model.APMEvent

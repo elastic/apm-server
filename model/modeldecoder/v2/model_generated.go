@@ -1949,11 +1949,15 @@ func (val *transactionRoot) validate() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || val.Duration.IsSet() || val.FAAS.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.Session.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
+	return val.Context.IsSet() || (len(val.DroppedSpanStats) > 0) || val.Duration.IsSet() || val.FAAS.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.Session.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
 }
 
 func (val *transaction) Reset() {
 	val.Context.Reset()
+	for i := range val.DroppedSpanStats {
+		val.DroppedSpanStats[i].Reset()
+	}
+	val.DroppedSpanStats = val.DroppedSpanStats[:0]
 	val.Duration.Reset()
 	val.FAAS.Reset()
 	val.ID.Reset()
@@ -1978,6 +1982,11 @@ func (val *transaction) validate() error {
 	}
 	if err := val.Context.validate(); err != nil {
 		return errors.Wrapf(err, "context")
+	}
+	for _, elem := range val.DroppedSpanStats {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "dropped_spans_stats")
+		}
 	}
 	if val.Duration.IsSet() && val.Duration.Val < 0 {
 		return fmt.Errorf("'duration': validation rule 'min(0)' violated")
@@ -2041,6 +2050,89 @@ func (val *transaction) validate() error {
 	}
 	if err := val.UserExperience.validate(); err != nil {
 		return errors.Wrapf(err, "experience")
+	}
+	return nil
+}
+
+func (val *txDroppedSpanStats) IsSet() bool {
+	return val.Type.IsSet() || val.Subtype.IsSet() || val.DestinationServiceResource.IsSet() || val.Outcome.IsSet() || val.Count.IsSet() || val.Duration.IsSet()
+}
+
+func (val *txDroppedSpanStats) Reset() {
+	val.Type.Reset()
+	val.Subtype.Reset()
+	val.DestinationServiceResource.Reset()
+	val.Outcome.Reset()
+	val.Count.Reset()
+	val.Duration.Reset()
+}
+
+func (val *txDroppedSpanStats) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Subtype.IsSet() && utf8.RuneCountInString(val.Subtype.Val) > 1024 {
+		return fmt.Errorf("'subtype': validation rule 'maxLength(1024)' violated")
+	}
+	if val.DestinationServiceResource.IsSet() && utf8.RuneCountInString(val.DestinationServiceResource.Val) > 1024 {
+		return fmt.Errorf("'destination_service_resource': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Outcome.Val != "" {
+		var matchEnum bool
+		for _, s := range enumOutcome {
+			if val.Outcome.Val == s {
+				matchEnum = true
+				break
+			}
+		}
+		if !matchEnum {
+			return fmt.Errorf("'outcome': validation rule 'enum(enumOutcome)' violated")
+		}
+	}
+	if val.Count.IsSet() && val.Count.Val < 1 {
+		return fmt.Errorf("'count': validation rule 'min(1)' violated")
+	}
+	if err := val.Duration.validate(); err != nil {
+		return errors.Wrapf(err, "duration")
+	}
+	return nil
+}
+
+func (val *txDroppedSpansDuration) IsSet() bool {
+	return val.Sum.IsSet()
+}
+
+func (val *txDroppedSpansDuration) Reset() {
+	val.Sum.Reset()
+}
+
+func (val *txDroppedSpansDuration) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Sum.validate(); err != nil {
+		return errors.Wrapf(err, "sum")
+	}
+	return nil
+}
+
+func (val *txDroppedSpansDurationSum) IsSet() bool {
+	return val.Us.IsSet()
+}
+
+func (val *txDroppedSpansDurationSum) Reset() {
+	val.Us.Reset()
+}
+
+func (val *txDroppedSpansDurationSum) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Us.IsSet() && val.Us.Val < 0 {
+		return fmt.Errorf("'us': validation rule 'min(0)' violated")
 	}
 	return nil
 }
