@@ -146,6 +146,13 @@
                   "maxLength": 1024
                 }
               }
+            },
+            "routing_key": {
+              "description": "RoutingKey holds the optional routing key of the received message as set on the queuing system, such as in RabbitMQ.",
+              "type": [
+                "null",
+                "string"
+              ]
             }
           }
         },

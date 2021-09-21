@@ -25,10 +25,11 @@ import (
 
 // Message holds information about a recorded message, such as the message body and meta information
 type Message struct {
-	Body      string
-	Headers   http.Header
-	AgeMillis *int
-	QueueName string
+	Body       string
+	Headers    http.Header
+	AgeMillis  *int
+	QueueName  string
+	RoutingKey string
 }
 
 // Fields returns a MapStr holding the transformed message information
@@ -43,9 +44,11 @@ func (m *Message) Fields() common.MapStr {
 	if m.AgeMillis != nil {
 		fields.set("age", common.MapStr{"ms": *m.AgeMillis})
 	}
-	fields.maybeSetString("body", m.Body)
 	if len(m.Headers) > 0 {
 		fields.set("headers", m.Headers)
 	}
+	fields.maybeSetString("body", m.Body)
+	fields.maybeSetString("routing_key", m.RoutingKey)
+
 	return common.MapStr(fields)
 }
