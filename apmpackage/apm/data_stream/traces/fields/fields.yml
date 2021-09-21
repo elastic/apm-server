@@ -319,6 +319,10 @@
               type: keyword
               description: |
                 Name of the message queue or topic where the message is published or received.
+        - name: routing_key
+          type: keyword
+          description: |
+            Routing key of the received message as set on the queuing system, such as in RabbitMQ.
     - name: name
       type: keyword
       description: |
@@ -411,6 +415,10 @@
               type: keyword
               description: |
                 Name of the message queue or topic where the message is published or received.
+        - name: routing_key
+          type: keyword
+          description: |
+            Routing key of the received message as set on the queuing system, such as in RabbitMQ.
     - name: name
       type: keyword
       description: |
