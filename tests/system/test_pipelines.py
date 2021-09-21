@@ -11,6 +11,7 @@ from es_helper import index_transaction
 # TRANSACTION_COUNT defines the number of transactions in testdata/transactions.ndjson.
 TRANSACTION_COUNT = 6
 
+
 @integration_test
 class SetupCmdPipelinesDefaultTest(SubCommandTest):
     """
