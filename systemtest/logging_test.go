@@ -31,7 +31,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/apmtest"
 	"go.elastic.co/fastjson"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 
@@ -59,9 +59,9 @@ func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 	_, err = client.PostSpans(context.Background(), request)
 	require.NoError(t, err)
 
-	tracerProvider := newOTLPTracerProvider(newOTLPExporter(t, srv, otlpgrpc.WithHeaders(map[string]string{
-		"Authorization": "Bearer abc123",
-	})))
+	tracerProvider := newOTLPTracerProvider(newOTLPTraceExporter(t, srv, otlptracegrpc.WithHeaders(
+		map[string]string{"Authorization": "Bearer abc123"},
+	)))
 	err = sendOTLPTrace(context.Background(), tracerProvider)
 	require.NoError(t, err)
 

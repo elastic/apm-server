@@ -27,8 +27,10 @@ import (
 	"github.com/tidwall/gjson"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/otlp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/metric"
 	export "go.opentelemetry.io/otel/sdk/export/metric"
 	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
@@ -52,7 +54,7 @@ var otelErrors = make(chan error, 1)
 
 func init() {
 	// otel.SetErrorHandler can only be called once per process.
-	otel.SetErrorHandler(otelErrorHandlerFunc(func(err error) {
+	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
 		if err == nil {
 			return
 		}
@@ -72,15 +74,16 @@ func testOTLPGRPCTraces(t *testing.T, srv *apmservertest.Server) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err := withOTLPTracer(newOTLPTracerProvider(newOTLPExporter(t, srv), sdktrace.WithResource(
-		resource.Merge(resource.Default(), sdkresource.NewWithAttributes(
-			attribute.Array("resource_attribute_array", []string{"a", "b"}),
-		)),
-	)), func(tracer trace.Tracer) {
+	resource, err := resource.Merge(resource.Default(), sdkresource.NewSchemaless(
+		attribute.StringSlice("resource_attribute_array", []string{"a", "b"}),
+	))
+	require.NoError(t, err)
+
+	err = withOTLPTracer(newOTLPTracerProvider(newOTLPTraceExporter(t, srv), sdktrace.WithResource(resource)), func(tracer trace.Tracer) {
 		startTime := time.Unix(123, 456)
 		endTime := startTime.Add(time.Second)
 		_, span := tracer.Start(ctx, "operation_name", trace.WithTimestamp(startTime), trace.WithAttributes(
-			attribute.Array("span_attribute_array", []string{"a", "b", "c"}),
+			attribute.StringSlice("span_attribute_array", []string{"a", "b", "c"}),
 		))
 		span.AddEvent("a_span_event", trace.WithTimestamp(startTime.Add(time.Millisecond)))
 		span.End(trace.WithTimestamp(endTime))
@@ -117,11 +120,11 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 		float64Counter := meter.NewFloat64Counter("float64_counter")
 		float64Counter.Add(context.Background(), 1)
 
-		int64Recorder := meter.NewInt64ValueRecorder("int64_recorder")
-		int64Recorder.Record(context.Background(), 1)
-		int64Recorder.Record(context.Background(), 123)
-		int64Recorder.Record(context.Background(), 1024)
-		int64Recorder.Record(context.Background(), 20000)
+		int64Histogram := meter.NewInt64Histogram("int64_histogram")
+		int64Histogram.Record(context.Background(), 1)
+		int64Histogram.Record(context.Background(), 123)
+		int64Histogram.Record(context.Background(), 1024)
+		int64Histogram.Record(context.Background(), 20000)
 	})
 	require.NoError(t, err)
 
@@ -145,11 +148,11 @@ func TestOTLPGRPCAuth(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err = sendOTLPTrace(ctx, newOTLPTracerProvider(newOTLPExporter(t, srv)))
+	err = sendOTLPTrace(ctx, newOTLPTracerProvider(newOTLPTraceExporter(t, srv)))
 	assert.Error(t, err)
 	assert.Equal(t, codes.Unauthenticated, status.Code(err))
 
-	err = sendOTLPTrace(ctx, newOTLPTracerProvider(newOTLPExporter(t, srv, otlpgrpc.WithHeaders(map[string]string{
+	err = sendOTLPTrace(ctx, newOTLPTracerProvider(newOTLPTraceExporter(t, srv, otlptracegrpc.WithHeaders(map[string]string{
 		"Authorization": "Bearer abc123",
 	}))))
 	require.NoError(t, err)
@@ -165,17 +168,17 @@ func TestOTLPClientIP(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	exporter := newOTLPExporter(t, srv)
+	exporter := newOTLPTraceExporter(t, srv)
 	err := sendOTLPTrace(ctx, newOTLPTracerProvider(exporter))
 	assert.NoError(t, err)
 
 	err = sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(
-		sdkresource.NewWithAttributes(attribute.String("service.name", "service1")),
+		sdkresource.NewSchemaless(attribute.String("service.name", "service1")),
 	)))
 	require.NoError(t, err)
 
 	err = sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(
-		sdkresource.NewWithAttributes(
+		sdkresource.NewSchemaless(
 			attribute.String("service.name", "service2"),
 			attribute.String("telemetry.sdk.name", "iOS"),
 			attribute.String("telemetry.sdk.language", "swift"),
@@ -220,8 +223,8 @@ func TestOTLPAnonymous(t *testing.T) {
 		if telemetrySDKLanguage != "" {
 			attributes = append(attributes, attribute.String("telemetry.sdk.language", telemetrySDKLanguage))
 		}
-		exporter := newOTLPExporter(t, srv)
-		resource := sdkresource.NewWithAttributes(attributes...)
+		exporter := newOTLPTraceExporter(t, srv)
+		resource := sdkresource.NewSchemaless(attributes...)
 		return sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(resource)))
 	}
 
@@ -286,8 +289,11 @@ func TestOTLPRateLimit(t *testing.T) {
 	sendEvent := func(ip string) error {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		exporter := newOTLPExporter(t, srv, otlpgrpc.WithHeaders(map[string]string{"x-real-ip": ip}))
-		resource := sdkresource.NewWithAttributes(
+		exporter := newOTLPTraceExporter(t, srv,
+			otlptracegrpc.WithHeaders(map[string]string{"x-real-ip": ip}),
+			otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{Enabled: false}),
+		)
+		resource := sdkresource.NewSchemaless(
 			attribute.String("service.name", "service2"),
 			attribute.String("telemetry.sdk.name", "iOS"),
 			attribute.String("telemetry.sdk.language", "swift"),
@@ -314,10 +320,9 @@ func TestOTLPRateLimit(t *testing.T) {
 	assert.Equal(t, "rate limit exceeded", errStatus.Message())
 }
 
-func newOTLPExporter(t testing.TB, srv *apmservertest.Server, options ...otlpgrpc.Option) *otlp.Exporter {
-	options = append(options, otlpgrpc.WithEndpoint(serverAddr(srv)), otlpgrpc.WithInsecure())
-	driver := otlpgrpc.NewDriver(options...)
-	exporter, err := otlp.NewExporter(context.Background(), driver)
+func newOTLPTraceExporter(t testing.TB, srv *apmservertest.Server, options ...otlptracegrpc.Option) *otlptrace.Exporter {
+	options = append(options, otlptracegrpc.WithEndpoint(serverAddr(srv)), otlptracegrpc.WithInsecure())
+	exporter, err := otlptracegrpc.New(context.Background(), options...)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		exporter.Shutdown(context.Background())
@@ -325,7 +330,17 @@ func newOTLPExporter(t testing.TB, srv *apmservertest.Server, options ...otlpgrp
 	return exporter
 }
 
-func newOTLPTracerProvider(exporter *otlp.Exporter, options ...sdktrace.TracerProviderOption) *sdktrace.TracerProvider {
+func newOTLPMetricExporter(t testing.TB, srv *apmservertest.Server, options ...otlpmetricgrpc.Option) *otlpmetric.Exporter {
+	options = append(options, otlpmetricgrpc.WithEndpoint(serverAddr(srv)), otlpmetricgrpc.WithInsecure())
+	exporter, err := otlpmetricgrpc.New(context.Background(), options...)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		exporter.Shutdown(context.Background())
+	})
+	return exporter
+}
+
+func newOTLPTracerProvider(exporter *otlptrace.Exporter, options ...sdktrace.TracerProviderOption) *sdktrace.TracerProvider {
 	return sdktrace.NewTracerProvider(append([]sdktrace.TracerProviderOption{
 		sdktrace.WithSyncer(exporter),
 		sdktrace.WithIDGenerator(&idGeneratorFuncs{
@@ -349,11 +364,10 @@ func sendOTLPTrace(ctx context.Context, tracerProvider *sdktrace.TracerProvider)
 		startTime := time.Unix(123, 456)
 		endTime := startTime.Add(time.Second)
 		_, span := tracer.Start(ctx, "operation_name", trace.WithTimestamp(startTime), trace.WithAttributes(
-			attribute.Array("span_attribute_array", []string{"a", "b", "c"}),
+			attribute.StringSlice("span_attribute_array", []string{"a", "b", "c"}),
 		))
 		span.End(trace.WithTimestamp(endTime))
 	})
-	return flushTracerProvider(ctx, tracerProvider)
 }
 
 func withOTLPTracer(tracerProvider *sdktrace.TracerProvider, f func(trace.Tracer)) error {
@@ -381,7 +395,7 @@ func sendOTLPMetrics(
 	aggregator export.AggregatorSelector,
 	recordMetrics func(metric.MeterMust),
 ) error {
-	exporter := newOTLPExporter(t, srv)
+	exporter := newOTLPMetricExporter(t, srv)
 	controller := controller.New(
 		processor.New(aggregator, exporter),
 		controller.WithExporter(exporter),
@@ -417,10 +431,4 @@ func (m *idGeneratorFuncs) NewIDs(ctx context.Context) (trace.TraceID, trace.Spa
 
 func (m *idGeneratorFuncs) NewSpanID(ctx context.Context, traceID trace.TraceID) trace.SpanID {
 	return m.newSpanID(ctx, traceID)
-}
-
-type otelErrorHandlerFunc func(error)
-
-func (f otelErrorHandlerFunc) Handle(err error) {
-	f(err)
 }
