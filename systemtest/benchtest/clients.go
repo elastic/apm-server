@@ -23,8 +23,8 @@ import (
 	"os"
 	"testing"
 
-	"go.opentelemetry.io/otel/exporters/otlp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
@@ -61,7 +61,7 @@ func NewTracer(tb testing.TB) *apm.Tracer {
 
 // NewOTLPExporter returns a new OpenTelemetry Go exporter, configured
 // to export to the target APM Server.
-func NewOTLPExporter(tb testing.TB) *otlp.Exporter {
+func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 	endpoint := serverURL.Host
 	if serverURL.Port() == "" {
 		switch serverURL.Scheme {
@@ -71,24 +71,24 @@ func NewOTLPExporter(tb testing.TB) *otlp.Exporter {
 			endpoint += ":443"
 		}
 	}
-	opts := []otlpgrpc.Option{
-		otlpgrpc.WithEndpoint(endpoint),
-		otlpgrpc.WithDialOption(grpc.WithBlock()),
+	opts := []otlptracegrpc.Option{
+		otlptracegrpc.WithEndpoint(endpoint),
+		otlptracegrpc.WithDialOption(grpc.WithBlock()),
 	}
 	if *secretToken != "" {
-		opts = append(opts, otlpgrpc.WithHeaders(map[string]string{
+		opts = append(opts, otlptracegrpc.WithHeaders(map[string]string{
 			"Authorization": "Bearer " + *secretToken,
 		}))
 	}
 	if serverURL.Scheme == "http" {
-		opts = append(opts, otlpgrpc.WithInsecure())
+		opts = append(opts, otlptracegrpc.WithInsecure())
 	} else {
 		tlsCredentials := credentials.NewTLS(&tls.Config{
 			InsecureSkipVerify: true,
 		})
-		opts = append(opts, otlpgrpc.WithTLSCredentials(tlsCredentials))
+		opts = append(opts, otlptracegrpc.WithTLSCredentials(tlsCredentials))
 	}
-	exporter, err := otlp.NewExporter(context.Background(), otlpgrpc.NewDriver(opts...))
+	exporter, err := otlptracegrpc.New(context.Background(), opts...)
 	if err != nil {
 		tb.Fatal(err)
 	}
