@@ -4,7 +4,7 @@
             "@timestamp": "dynamic",
             "agent": {
                 "name": "opentelemetry/go",
-                "version": "0.19.0"
+                "version": "1.0.0"
             },
             "ecs": {
                 "version": "dynamic"
@@ -13,7 +13,7 @@
                 "ingested": "dynamic"
             },
             "float64_counter": 1,
-            "int64_recorder": {
+            "int64_histogram": {
                 "counts": [
                     1,
                     1,
