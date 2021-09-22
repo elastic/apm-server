@@ -1,3 +1,6 @@
+:issue: https://github.com/elastic/apm-server/issues/
+:pull: https://github.com/elastic/apm-server/pull/
+
 [[apm-breaking-changes]]
 == Breaking changes
 
@@ -38,7 +41,12 @@ Also see {observability-guide}/whats-new.html[What's new in Observability {minor
 [[breaking-7.15.0]]
 === 7.15.0 APM Breaking changes
 
+<<<<<<< HEAD
 // tag::715-bc[]
+=======
+The following breaking changes were introduced in 7.15:
+
+>>>>>>> 2449f9c8 (docs: fix 7.15 breaking changes (#6220))
 - `network.connection_type` is now `network.connection.type` {pull}5671[5671]
 - `transaction.page` and `error.page` no longer recorded {pull}5872[5872]
 - experimental:["This breaking change applies to the experimental tail-based sampling feature."] `apm-server.sampling.tail` now requires `apm-server.data_streams.enabled` {pull}5952[5952]
