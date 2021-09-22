@@ -1,3 +1,6 @@
+:issue: https://github.com/elastic/apm-server/issues/
+:pull: https://github.com/elastic/apm-server/pull/
+
 [[apm-breaking-changes]]
 == Breaking changes
 
@@ -38,6 +41,8 @@ Also see {observability-guide}/whats-new.html[What's new in Observability {minor
 // tag::715-bc[]
 [[breaking-7.15.0]]
 === 7.15.0 APM Breaking changes
+
+The following breaking changes were introduced in 7.15:
 
 - `network.connection_type` is now `network.connection.type` {pull}5671[5671]
 - `transaction.page` and `error.page` no longer recorded {pull}5872[5872]
