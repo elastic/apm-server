@@ -20,6 +20,7 @@ package firehose
 import (
 	b64 "encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -49,6 +50,7 @@ type FirehoseLog struct {
 // Handler returns a request.Handler for managing firehose requests.
 func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProcessor) request.Handler {
 	handle := func(c *request.Context) (*result, error) {
+		fmt.Println("------- access key = ", c.Request.Header.Get("X-Amz-Firehose-Access-Key"))
 		if c.Request.Method != http.MethodPost {
 			return nil, requestError{
 				id:  request.IDResponseErrorsMethodNotAllowed,
@@ -81,7 +83,9 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 				event.Timestamp = time.Unix(firehose.Timestamp/1000, 0)
 				event.Processor = model.FirehoseProcessor
 				event.FirehoseLog = &model.Firehose{
-					Message: line,
+					Message:         line,
+					ARN:             c.Request.Header.Get("X-Amz-Firehose-Source-Arn"),
+					ForwardedServer: c.Request.Header.Get("X-Forwarded-Server"),
 				}
 				batch = append(batch, event)
 			}
@@ -114,19 +118,19 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 			default:
 				c.Result.SetWithError(request.IDResponseErrorsInternal, err)
 			}
+			c.Result.StatusCode = 400
 		} else {
 			c.Result.SetWithBody(request.IDResponseValidAccepted, result)
+			c.Result.StatusCode = 200
 		}
-
-		c.Result.StatusCode = 200
 		c.WriteFirehoseResponse()
 	}
 }
 
 type result struct {
 	ErrorMessage string `json:"errorMessage"`
-	RequestId string `json:"requestId"`
-	Timestamp int64    `json:"timestamp"`
+	RequestId    string `json:"requestId"`
+	Timestamp    int64  `json:"timestamp"`
 }
 
 type requestError struct {

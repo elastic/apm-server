@@ -28,11 +28,15 @@ var FirehoseProcessor = Processor{Name: "firehose", Event: "firehose"}
 
 // Firehose holds a firehose sample.
 type Firehose struct {
-	Message string
+	Message         string
+	ARN             string
+	ForwardedServer string
 }
 
 func (f *Firehose) setFields(fields *mapStr) {
 	var firehoseFields mapStr
-	firehoseFields.maybeSetString("message", f.Message)
+	firehoseFields.maybeSetString("arn", f.ARN)
+	firehoseFields.maybeSetString("forwarded_server", f.ForwardedServer)
 	fields.set("firehose", common.MapStr(firehoseFields))
+	fields.set("message", f.Message)
 }

@@ -113,7 +113,7 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	// TODO(axw) change @timestamp to use date_nanos, and remove this field.
 	if !e.Timestamp.IsZero() {
 		switch e.Processor {
-		case TransactionProcessor, SpanProcessor, ErrorProcessor, FirehoseProcessor:
+		case TransactionProcessor, SpanProcessor, ErrorProcessor:
 			event.Fields["timestamp"] = common.MapStr{"us": int(e.Timestamp.UnixNano() / 1000)}
 		}
 	}
@@ -128,7 +128,9 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("service", e.Service.Fields())
 	fields.maybeSetMapStr("agent", e.Agent.fields())
 	fields.maybeSetMapStr("observer", e.Observer.Fields())
-	fields.maybeSetMapStr("host", e.Host.fields())
+	if e.Processor != FirehoseProcessor {
+		fields.maybeSetMapStr("host", e.Host.fields())
+	}
 	fields.maybeSetMapStr("process", e.Process.fields())
 	fields.maybeSetMapStr("user", e.User.fields())
 	fields.maybeSetMapStr("client", e.Client.fields())

@@ -39,7 +39,6 @@ func (s *SetDataStream) ProcessBatch(ctx context.Context, b *model.Batch) error 
 }
 
 func (s *SetDataStream) setDataStream(event *model.APMEvent) {
-	fmt.Println("--------- modelprocessor.datastream.go event.Processor = ", event.Processor)
 	switch event.Processor {
 	case model.SpanProcessor, model.TransactionProcessor:
 		event.DataStream.Type = datastreams.TracesType
