@@ -178,3 +178,32 @@ func (c *Context) errOnWrite(err error) {
 	}
 	c.Logger.Errorw("write response", "error", err)
 }
+
+// WriteFirehoseResponse sets response header, required requestId and timestamp
+// to match Firehose HTTP delivery request response format.
+// https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html#responseformat
+func (c *Context) WriteFirehoseResponse() {
+	if c.MultipleWriteAttempts() {
+		return
+	}
+	c.writeAttempts++
+
+	body := c.Result.Body
+	if body == nil {
+		c.w.WriteHeader(c.Result.StatusCode)
+		return
+	}
+
+	if c.Result.Failure() {
+		if b, ok := body.(string); ok {
+			body = map[string]string{"errorMessage": b}
+		}
+	}
+
+	c.w.Header().Set(headers.ContentType, "application/json")
+	c.w.WriteHeader(c.Result.StatusCode)
+	err := c.writeJSON(body, true)
+	if err != nil {
+		c.errOnWrite(err)
+	}
+}

@@ -20,7 +20,6 @@ package firehose
 import (
 	b64 "encoding/base64"
 	"encoding/json"
-	"github.com/elastic/apm-server/beater/headers"
 	"net/http"
 	"strings"
 	"time"
@@ -103,7 +102,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 			}
 			return nil, err
 		}
-		return &result{Accepted: len(batch)}, nil
+		return &result{RequestId: firehose.RequestID, Timestamp: firehose.Timestamp}, nil
 	}
 
 	return func(c *request.Context) {
@@ -119,21 +118,15 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 			c.Result.SetWithBody(request.IDResponseValidAccepted, result)
 		}
 
-		// Is this the right way to add response header?
-		// Error from Firehose:
-		// The response received from the endpoint is invalid. See
-		// Troubleshooting HTTP Endpoints in the Firehose documentation for more
-		// information. Reason:. Response for request db0a05b1-be46-43e2-93fd-f9
-		// must contain a 'content-type: application/json' header. Raw response
-		// received: 202: {\"accepted\":54}"
-		c.Header().Set(headers.ContentType, "application/json")
-		c.Header().Set("content-type", "application/json")
-		c.Write()
+		c.Result.StatusCode = 200
+		c.WriteFirehoseResponse()
 	}
 }
 
 type result struct {
-	Accepted int `json:"accepted"`
+	ErrorMessage string `json:"errorMessage"`
+	RequestId string `json:"requestId"`
+	Timestamp int64    `json:"timestamp"`
 }
 
 type requestError struct {
