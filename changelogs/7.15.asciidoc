@@ -1,0 +1,36 @@
+[[release-notes-7.15]]
+== APM Server version 7.15
+
+https://github.com/elastic/apm-server/compare/7.14\...7.15[View commits]
+
+* <<release-notes-7.15.0>>
+
+[float]
+[[release-notes-7.15.0]]
+=== APM Server version 7.15.0
+
+https://github.com/elastic/apm-server/compare/v7.14.2\...v7.15.0[View commits]
+
+[float]
+==== Breaking Changes
+- `network.connection_type` is now `network.connection.type` {pull}5671[5671]
+- `transaction.page` and `error.page` no longer recorded {pull}5872[5872]
+- experimental:["This breaking change applies to the experimental tail-based sampling feature."] `apm-server.sampling.tail` now requires `apm-server.data_streams.enabled` {pull}5952[5952]
+- beta:["This breaking change applies to the beta <<apm-integration>>."] The `traces-sampled-*` data stream is now `traces-apm.sampled-*` {pull}5952[5952]
+
+[float]
+==== Bug fixes
+- corrected OTel attribute names for `net.host.connection.*` {pull}5671[5671]
+- Fix response to agent config when running under Fleet with no agent config defined {pull}5917[5917]
+- Fix handling of OTLP sum/gauge metrics with integer values {pull}6106[6106]
+
+[float]
+==== Intake API changes
+- `network.connection.type` was added to stream metadata {pull}5671[5671]
+
+[float]
+==== Added
+- `service_destination` span metrics now take into account composite spans {pull}5896[5896]
+- add zero-downtime config reloads via `SO_REUSEPORT` {pull}5911[5911]
+- experimental support for writing data streams in standalone mode {pull}5928[5928]
+- Data streams now define a default `dynamic` mapping parameter, overridable in the `<data-stream>@custom` template {pull}5947[5947]
