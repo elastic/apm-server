@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common/transport/httpcommon"
 	"github.com/elastic/beats/v7/libbeat/kibana"
 )
 
@@ -37,6 +38,9 @@ func (k *KibanaConfig) Unpack(cfg *common.Config) error {
 	}
 	k.Enabled = cfg.Enabled()
 	k.Host = strings.TrimRight(k.Host, "/")
+	if k.Transport.Proxy.Headers == nil {
+		k.Transport.Proxy.Headers = make(httpcommon.ProxyHeaders)
+	}
 	return nil
 }
 
