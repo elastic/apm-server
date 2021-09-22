@@ -1,3 +1,6 @@
+:issue: https://github.com/elastic/apm-server/issues/
+:pull: https://github.com/elastic/apm-server/pull/
+
 [[apm-breaking-changes]]
 == Breaking changes
 
