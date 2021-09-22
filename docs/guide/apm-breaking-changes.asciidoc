@@ -35,15 +35,14 @@ Also see {observability-guide}/whats-new.html[What's new in Observability {minor
 // tag::716-bc[]
 // end::716-bc[]
 
-// tag::715-bc[]
 [[breaking-7.15.0]]
 === 7.15.0 APM Breaking changes
 
+// tag::715-bc[]
 - `network.connection_type` is now `network.connection.type` {pull}5671[5671]
 - `transaction.page` and `error.page` no longer recorded {pull}5872[5872]
 - experimental:["This breaking change applies to the experimental tail-based sampling feature."] `apm-server.sampling.tail` now requires `apm-server.data_streams.enabled` {pull}5952[5952]
 - beta:["This breaking change applies to the beta APM integration."] The `traces-sampled-*` data stream is now `traces-apm.sampled-*` {pull}5952[5952]
-
 // end::715-bc[]
 
 [[breaking-7.14.0]]
