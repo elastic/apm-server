@@ -4,14 +4,14 @@
             "@timestamp": "1970-01-01T00:02:03.000Z",
             "agent": {
                 "name": "opentelemetry/go",
-                "version": "0.19.0"
+                "version": "1.0.0"
             },
             "ecs": {
                 "version": "dynamic"
             },
             "event": {
                 "ingested": "dynamic",
-                "outcome": "success"
+                "outcome": "unknown"
             },
             "labels": {
                 "resource_attribute_array": [
@@ -57,7 +57,6 @@
                 },
                 "id": "b3ee9be3b687a611",
                 "name": "operation_name",
-                "result": "Success",
                 "sampled": true,
                 "type": "custom"
             }

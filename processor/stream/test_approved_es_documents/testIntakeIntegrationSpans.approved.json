@@ -789,7 +789,8 @@
                     },
                     "queue": {
                         "name": "new_users"
-                    }
+                    },
+                    "routing_key": "user-created-span"
                 },
                 "name": "Rabbitmq receive",
                 "subtype": "JMS",

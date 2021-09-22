@@ -866,6 +866,11 @@
           dynamic: false
           fields:
 
+            - name: routing_key
+              type: keyword
+              description: >
+                Routing key of the received message as set on the queuing system, such as in RabbitMQ.
+
             - name: queue
               type: group
               fields:
