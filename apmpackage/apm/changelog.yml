@@ -9,6 +9,9 @@
     - description: add histogram dynamic_template to app metrics data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6043
+    - description: remove warm phase from ILM policies
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6229
 - version: "0.4.0"
   changes:
     - description: add anonymous auth config, replace some RUM config

@@ -1,15 +1,6 @@
 {
     "policy": {
         "phases": {
-            "warm": {
-                "min_age": "30d",
-                "actions": {
-                    "readonly": {},
-                    "set_priority": {
-                        "priority": 50
-                    }
-                }
-            },
             "hot": {
                 "actions": {
                     "rollover": {
