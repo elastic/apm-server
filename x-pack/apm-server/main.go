@@ -7,7 +7,9 @@ package main
 import (
 	"context"
 	"os"
+	"sync"
 
+	"github.com/dgraph-io/badger/v2"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
@@ -21,6 +23,11 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
+	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
+)
+
+const (
+	tailSamplingStorageDir = "tail_sampling"
 )
 
 var (
@@ -29,6 +36,10 @@ var (
 	// Note: this registry is created in github.com/elastic/apm-server/sampling. That package
 	// will hopefully disappear in the future, when agents no longer send unsampled transactions.
 	samplingMonitoringRegistry = monitoring.Default.GetRegistry("apm-server.sampling")
+
+	// badgerDB holds the badger database to use when tail-based sampling is configured.
+	badgerMu sync.Mutex
+	badgerDB *badger.DB
 )
 
 type namedProcessor struct {
@@ -99,6 +110,12 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		return nil, errors.Wrap(err, "failed to create Elasticsearch client for tail-sampling")
 	}
 
+	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
+	badgerDB, err := getBadgerDB(storageDir)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get Badger database")
+	}
+
 	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
 	for i, in := range tailSamplingConfig.Policies {
 		policies[i] = sampling.Policy{
@@ -129,11 +146,25 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			},
 		},
 		StorageConfig: sampling.StorageConfig{
-			StorageDir:        paths.Resolve(paths.Data, tailSamplingConfig.StorageDir),
+			DB:                badgerDB,
+			StorageDir:        storageDir,
 			StorageGCInterval: tailSamplingConfig.StorageGCInterval,
 			TTL:               tailSamplingConfig.TTL,
 		},
 	})
+}
+
+func getBadgerDB(storageDir string) (*badger.DB, error) {
+	badgerMu.Lock()
+	defer badgerMu.Unlock()
+	if badgerDB == nil {
+		db, err := eventstorage.OpenBadger(storageDir, -1)
+		if err != nil {
+			return nil, err
+		}
+		badgerDB = db
+	}
+	return badgerDB, nil
 }
 
 // runServerWithProcessors runs the APM Server and the given list of processors.
@@ -191,12 +222,30 @@ func wrapRunServer(runServer beater.RunServerFunc) beater.RunServerFunc {
 	}
 }
 
+func closeBadger() error {
+	if badgerDB != nil {
+		return badgerDB.Close()
+	}
+	return nil
+}
+
 var rootCmd = cmd.NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
 	WrapRunServer: wrapRunServer,
 }))
 
-func main() {
+func Main() error {
 	if err := rootCmd.Execute(); err != nil {
+		closeBadger()
+		return err
+	}
+	if err := closeBadger(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func main() {
+	if err := Main(); err != nil {
 		os.Exit(1)
 	}
 }
