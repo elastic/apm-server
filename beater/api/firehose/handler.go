@@ -18,6 +18,7 @@
 package firehose
 
 import (
+	"context"
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -25,11 +26,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
-
+	"github.com/elastic/apm-server/beater/auth"
+	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
+	"github.com/pkg/errors"
 )
 
 // RequestMetadataFunc is a function type supplied to Handler for extracting
@@ -50,7 +54,36 @@ type FirehoseLog struct {
 // Handler returns a request.Handler for managing firehose requests.
 func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProcessor) request.Handler {
 	handle := func(c *request.Context) (*result, error) {
-		fmt.Println("------- access key = ", c.Request.Header.Get("X-Amz-Firehose-Access-Key"))
+		credentials := c.Request.Header.Get("X-Amz-Firehose-Access-Key")
+		fmt.Println("------- access key = ", credentials)
+		if credentials == "" {
+			return nil, requestError{
+				id: request.IDResponseErrorsUnauthorized,
+				err: errors.New("Access key is required"),
+			}
+		}
+
+		c.Request.Header.Add("Authorization", "ApiKey "+credentials)
+
+		agentAuth := config.AgentAuth{}
+		agentAuth.APIKey.Enabled = true
+		agentAuth.APIKey.LimitPerMin = 20
+		agentAuth.APIKey.ESConfig = &elasticsearch.Config{}
+		authenticator, err := auth.NewAuthenticator(agentAuth)
+		if err != nil {
+			return nil, err
+		}
+
+		details, authz, err := authenticator.Authenticate(context.Background(), headers.APIKey, credentials)
+		fmt.Println("------ details = ", details)
+		fmt.Println("------ authz = ", authz)
+		if err != nil {
+			return nil, requestError{
+				id:  request.IDResponseErrorsUnauthorized,
+				err: errors.New("only POST requests are supported"),
+			}
+		}
+
 		if c.Request.Method != http.MethodPost {
 			return nil, requestError{
 				id:  request.IDResponseErrorsMethodNotAllowed,
@@ -61,7 +94,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 		baseEvent := requestMetadataFunc(c)
 
 		var firehose FirehoseLog
-		err := json.NewDecoder(c.Request.Body).Decode(&firehose)
+		err = json.NewDecoder(c.Request.Body).Decode(&firehose)
 		if err != nil {
 			return nil, err
 		}
