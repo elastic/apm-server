@@ -101,6 +101,9 @@ func TestIntegrationESOutput(t *testing.T) {
 		name: "Transactions",
 		path: "transactions.ndjson",
 	}, {
+		name: "TransactionsHugeTraces",
+		path: "transactions-huge_traces.ndjson",
+	}, {
 		name: "Spans",
 		path: "spans.ndjson",
 	}, {

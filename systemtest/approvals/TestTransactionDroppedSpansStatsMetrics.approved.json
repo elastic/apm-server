@@ -1,0 +1,86 @@
+{
+    "events": [
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "elastic-node"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "ingested": "dynamic",
+                "outcome": "success"
+            },
+            "metricset.name": "service_destination",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "chatty-service"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "resource": "example.com:443",
+                        "response_time": {
+                            "count": 2,
+                            "sum.us": 123456
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "elastic-node"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "ingested": "dynamic",
+                "outcome": "success"
+            },
+            "metricset.name": "service_destination",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "chatty-service"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "resource": "mysql",
+                        "response_time": {
+                            "count": 1,
+                            "sum.us": 9876543
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

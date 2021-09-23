@@ -222,6 +222,103 @@ func TestAggregateCompositeSpan(t *testing.T) {
 	}}, metricsets)
 }
 
+func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
+	batches := make(chan model.Batch, 1)
+	agg, err := NewAggregator(AggregatorConfig{
+		BatchProcessor: makeChanBatchProcessor(batches),
+		Interval:       10 * time.Millisecond,
+		MaxGroups:      1000,
+	})
+	require.NoError(t, err)
+
+	tx := model.APMEvent{
+		Agent:   model.Agent{Name: "go"},
+		Service: model.Service{Name: "go-service"},
+		Event: model.Event{
+			Outcome:  "success",
+			Duration: 10 * time.Second,
+		},
+		Processor: model.TransactionProcessor,
+		Transaction: &model.Transaction{
+			RepresentativeCount: 2,
+			DroppedSpansStats: []model.DroppedSpanStats{
+				{
+					Type:                       "request",
+					Subtype:                    "elasticsearch",
+					DestinationServiceResource: "https://elasticsearch:9200",
+					Outcome:                    "success",
+					Duration: model.AggregatedDuration{
+						Count: 10,
+						Sum:   1500 * time.Microsecond,
+					},
+				},
+				{
+					Type:                       "query",
+					Subtype:                    "mysql",
+					DestinationServiceResource: "mysql://mysql:3306",
+					Outcome:                    "unknown",
+					Duration: model.AggregatedDuration{
+						Count: 2,
+						Sum:   3000 * time.Microsecond,
+					},
+				},
+			},
+		},
+	}
+
+	txWithNoRepresentativeCount := model.APMEvent{
+		Processor: model.TransactionProcessor,
+		Transaction: &model.Transaction{
+			RepresentativeCount: 0,
+			DroppedSpansStats:   make([]model.DroppedSpanStats, 1),
+		},
+	}
+	err = agg.ProcessBatch(context.Background(), &model.Batch{tx, txWithNoRepresentativeCount})
+	require.NoError(t, err)
+
+	// Start the aggregator after processing to ensure metrics are aggregated deterministically.
+	go agg.Run()
+	defer agg.Stop(context.Background())
+
+	batch := expectBatch(t, batches)
+	metricsets := batchMetricsets(t, batch)
+
+	assert.ElementsMatch(t, []model.APMEvent{
+		{
+			Agent:     model.Agent{Name: "go"},
+			Service:   model.Service{Name: "go-service"},
+			Event:     model.Event{Outcome: "success"},
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{Name: "service_destination"},
+			Span: &model.Span{
+				DestinationService: &model.DestinationService{
+					Resource: "https://elasticsearch:9200",
+					ResponseTime: model.AggregatedDuration{
+						Count: 20,
+						Sum:   3000 * time.Microsecond,
+					},
+				},
+			},
+		},
+		{
+			Agent:     model.Agent{Name: "go"},
+			Service:   model.Service{Name: "go-service"},
+			Event:     model.Event{Outcome: "success"},
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{Name: "service_destination"},
+			Span: &model.Span{
+				DestinationService: &model.DestinationService{
+					Resource: "mysql://mysql:3306",
+					ResponseTime: model.AggregatedDuration{
+						Count: 4,
+						Sum:   6000 * time.Microsecond,
+					},
+				},
+			},
+		},
+	}, metricsets)
+}
+
 func TestAggregatorOverflow(t *testing.T) {
 	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{

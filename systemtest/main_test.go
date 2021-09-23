@@ -24,11 +24,14 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	log.Println("INFO: starting stack containers...")
 	if err := StartStackContainers(); err != nil {
 		log.Fatal(err)
 	}
+	log.Println("INFO: setting up fleet...")
 	if err := Fleet.Setup(); err != nil {
 		log.Fatal(err)
 	}
+	log.Println("INFO: running system tests...")
 	os.Exit(m.Run())
 }
