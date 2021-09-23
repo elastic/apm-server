@@ -238,6 +238,36 @@ func mapToFAASModel(from faas, faas *model.FAAS) {
 	}
 }
 
+func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *model.Transaction) {
+	for _, f := range from {
+		if f.IsSet() {
+			var to model.DroppedSpanStats
+			if f.Type.IsSet() {
+				to.Type = f.Type.Val
+			}
+			if f.Subtype.IsSet() {
+				to.Subtype = f.Subtype.Val
+			}
+			if f.DestinationServiceResource.IsSet() {
+				to.DestinationServiceResource = f.DestinationServiceResource.Val
+			}
+			if f.Outcome.IsSet() {
+				to.Outcome = f.Outcome.Val
+			}
+
+			if f.Duration.IsSet() {
+				to.Duration.Count = f.Duration.Count.Val
+				sum := f.Duration.Sum
+				if sum.IsSet() {
+					to.Duration.Sum = time.Duration(sum.Us.Val) * time.Microsecond
+				}
+			}
+
+			tx.DroppedSpansStats = append(tx.DroppedSpansStats, to)
+		}
+	}
+}
+
 func mapToCloudModel(from contextCloud, cloud *model.Cloud) {
 	if from.IsSet() {
 		cloudOrigin := &model.CloudOrigin{}
@@ -1037,6 +1067,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	mapToClientModel(from.Context.Request, &event.Source, &event.Client)
 	mapToFAASModel(from.FAAS, &event.FAAS)
 	mapToCloudModel(from.Context.Cloud, &event.Cloud)
+	mapToDroppedSpansModel(from.DroppedSpanStats, event.Transaction)
 
 	// map transaction specific data
 

@@ -153,6 +153,57 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, "abc123", out.FAAS.TriggerRequestID)
 	})
 
+	t.Run("dropped_span_stats", func(t *testing.T) {
+		var input transaction
+		var out model.APMEvent
+		var esDss, mysqlDss transactionDroppedSpanStats
+
+		durationSumUs := 10_290_000
+		esDss.Type.Set("request")
+		esDss.Subtype.Set("elasticsearch")
+		esDss.DestinationServiceResource.Set("https://elasticsearch:9200")
+		esDss.Outcome.Set("success")
+		esDss.Duration.Count.Set(2)
+		esDss.Duration.Sum.Us.Set(durationSumUs)
+		mysqlDss.Type.Set("query")
+		mysqlDss.Subtype.Set("mysql")
+		mysqlDss.DestinationServiceResource.Set("mysql://mysql:3306")
+		mysqlDss.Outcome.Set("unknown")
+		mysqlDss.Duration.Count.Set(10)
+		mysqlDss.Duration.Sum.Us.Set(durationSumUs)
+		input.DroppedSpanStats = append(input.DroppedSpanStats, esDss, mysqlDss)
+
+		mapToTransactionModel(&input, &out)
+		expected := model.APMEvent{Transaction: &model.Transaction{
+			DroppedSpansStats: []model.DroppedSpanStats{
+				{
+					Type:                       "request",
+					Subtype:                    "elasticsearch",
+					DestinationServiceResource: "https://elasticsearch:9200",
+					Outcome:                    "success",
+					Duration: model.AggregatedDuration{
+						Count: 2,
+						Sum:   time.Duration(durationSumUs) * time.Microsecond,
+					},
+				},
+				{
+					Type:                       "query",
+					Subtype:                    "mysql",
+					DestinationServiceResource: "mysql://mysql:3306",
+					Outcome:                    "unknown",
+					Duration: model.AggregatedDuration{
+						Count: 10,
+						Sum:   time.Duration(durationSumUs) * time.Microsecond,
+					},
+				},
+			},
+		}}
+		assert.Equal(t,
+			expected.Transaction.DroppedSpansStats,
+			out.Transaction.DroppedSpansStats,
+		)
+	})
+
 	t.Run("client-ip-header", func(t *testing.T) {
 		var input transaction
 		var out model.APMEvent
@@ -212,7 +263,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"Root":
 				return true
 			}
-			return false
+			// Tested separately
+			return strings.HasPrefix(key, "DroppedSpansStats")
 		}
 
 		var input transaction
