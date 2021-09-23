@@ -4000,16 +4000,6 @@ type: keyword
 --
 
 
-*`span.message.routing_key`*::
-+
---
-Routing key of the received message as set on the queuing system, such as in RabbitMQ.
-
-
-type: keyword
-
---
-
 
 *`span.message.queue.name`*::
 +
@@ -4663,16 +4653,6 @@ type: long
 
 --
 
-
-*`transaction.message.routing_key`*::
-+
---
-Routing key of the received message as set on the queuing system, such as in RabbitMQ.
-
-
-type: keyword
-
---
 
 
 *`transaction.message.queue.name`*::

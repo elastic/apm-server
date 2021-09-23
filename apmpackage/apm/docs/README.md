@@ -166,7 +166,6 @@ Traces are written to `traces-apm.*` indices.
 |span.id|The ID of the span stored as hex encoded string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |span.message.age.ms|Age of a message in milliseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.message.queue.name|Name of the message queue or topic where the message is published or received.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.message.routing\_key|Routing key of the received message as set on the queuing system, such as in RabbitMQ.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.name|Generic designation of a span in the scope of a transaction.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.start.us|Offset relative to the transaction's timestamp identifying the start of the span, in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.subtype|A further sub-division of the type (e.g. postgresql, elasticsearch)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -186,7 +185,6 @@ Traces are written to `traces-apm.*` indices.
 |transaction.marks.\*.\*|A user-defined mapping of groups of marks in milliseconds.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.message.age.ms|Age of a message in milliseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.message.queue.name|Name of the message queue or topic where the message is published or received.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.message.routing\_key|Routing key of the received message as set on the queuing system, such as in RabbitMQ.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.name|Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.result|The result of the transaction. HTTP status code for HTTP-related transactions.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.sampled|Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.|boolean|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
