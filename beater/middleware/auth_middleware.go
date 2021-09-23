@@ -42,6 +42,13 @@ type Authenticator interface {
 func AuthMiddleware(authenticator Authenticator, required bool) Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
+			// Create Authorization header using X-Amz-Firehose-Access-Key header
+			// This is only for Firehose HTTP request
+			accessKey := c.Request.Header.Get("X-Amz-Firehose-Access-Key")
+			if accessKey != "" {
+				c.Request.Header.Add("Authorization", "ApiKey "+accessKey)
+			}
+
 			header := c.Request.Header.Get(headers.Authorization)
 			kind, token := auth.ParseAuthorizationHeader(header)
 			details, authorizer, err := authenticator.Authenticate(c.Request.Context(), kind, token)

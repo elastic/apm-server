@@ -21,24 +21,21 @@ import (
 	"context"
 	b64 "encoding/base64"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/elastic/apm-server/beater/auth"
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
-	"github.com/pkg/errors"
 )
 
 // RequestMetadataFunc is a function type supplied to Handler for extracting
-// metadata from the request. This is used for conditionally injecting the
-// source IP address as `client.ip` for RUM.
+// metadata from the request.
 type RequestMetadataFunc func(*request.Context) model.APMEvent
 
 type Record struct {
@@ -52,38 +49,26 @@ type FirehoseLog struct {
 }
 
 // Handler returns a request.Handler for managing firehose requests.
-func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProcessor) request.Handler {
+func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProcessor, authenticator *auth.Authenticator) request.Handler {
 	handle := func(c *request.Context) (*result, error) {
-		credentials := c.Request.Header.Get("X-Amz-Firehose-Access-Key")
-		fmt.Println("------- access key = ", credentials)
-		if credentials == "" {
+		accessKey := c.Request.Header.Get("X-Amz-Firehose-Access-Key")
+		if accessKey == "" {
 			return nil, requestError{
-				id: request.IDResponseErrorsUnauthorized,
-				err: errors.New("Access key is required"),
+				id:  request.IDResponseErrorsUnauthorized,
+				err: errors.New("Access key is required for Firehose"),
 			}
 		}
 
-		c.Request.Header.Add("Authorization", "ApiKey "+credentials)
-
-		agentAuth := config.AgentAuth{}
-		agentAuth.APIKey.Enabled = true
-		agentAuth.APIKey.LimitPerMin = 20
-		agentAuth.APIKey.ESConfig = &elasticsearch.Config{}
-		authenticator, err := auth.NewAuthenticator(agentAuth)
-		if err != nil {
-			return nil, err
-		}
-
-		details, authz, err := authenticator.Authenticate(context.Background(), headers.APIKey, credentials)
-		fmt.Println("------ details = ", details)
-		fmt.Println("------ authz = ", authz)
+		details, authorizer, err := authenticator.Authenticate(context.Background(), headers.APIKey, accessKey)
 		if err != nil {
 			return nil, requestError{
 				id:  request.IDResponseErrorsUnauthorized,
-				err: errors.New("only POST requests are supported"),
+				err: errors.New("authentication failed"),
 			}
 		}
 
+		c.Authentication = details
+		c.Request = c.Request.WithContext(auth.ContextWithAuthorizer(c.Request.Context(), authorizer))
 		if c.Request.Method != http.MethodPost {
 			return nil, requestError{
 				id:  request.IDResponseErrorsMethodNotAllowed,

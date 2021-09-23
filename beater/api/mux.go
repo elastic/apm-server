@@ -172,7 +172,7 @@ func (r *routeBuilder) firehoseLogHandler() (request.Handler, error) {
 	if r.cfg.AugmentEnabled {
 		requestMetadataFunc = backendRequestMetadata
 	}
-	h := firehose.Handler(requestMetadataFunc, r.batchProcessor)
+	h := firehose.Handler(requestMetadataFunc, r.batchProcessor, r.authenticator)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
