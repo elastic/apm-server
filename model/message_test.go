@@ -37,15 +37,18 @@ func TestMessaging_Fields(t *testing.T) {
 	require.Nil(t, m.Fields())
 
 	m = &Message{
-		QueueName: "orders",
-		Body:      "order confirmed",
-		Headers:   http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-		AgeMillis: tests.IntPtr(1577958057123),
+		QueueName:  "orders",
+		RoutingKey: "a_routing_key",
+		Body:       "order confirmed",
+		Headers:    http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
+		AgeMillis:  tests.IntPtr(1577958057123),
 	}
 	outp := common.MapStr{
-		"queue":   common.MapStr{"name": "orders"},
-		"body":    "order confirmed",
-		"headers": http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-		"age":     common.MapStr{"ms": 1577958057123}}
+		"queue":       common.MapStr{"name": "orders"},
+		"routing_key": "a_routing_key",
+		"body":        "order confirmed",
+		"headers":     http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
+		"age":         common.MapStr{"ms": 1577958057123},
+	}
 	assert.Equal(t, outp, m.Fields())
 }

@@ -931,6 +931,9 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		if from.Context.Message.Queue.Name.IsSet() {
 			message.QueueName = from.Context.Message.Queue.Name.Val
 		}
+		if from.Context.Message.RoutingKey.IsSet() {
+			message.RoutingKey = from.Context.Message.RoutingKey.Val
+		}
 		out.Message = &message
 	}
 	if from.Context.Service.IsSet() {
@@ -1092,6 +1095,9 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 			}
 			if from.Context.Message.Queue.IsSet() && from.Context.Message.Queue.Name.IsSet() {
 				out.Message.QueueName = from.Context.Message.Queue.Name.Val
+			}
+			if from.Context.Message.RoutingKey.IsSet() {
+				out.Message.RoutingKey = from.Context.Message.RoutingKey.Val
 			}
 		}
 		if from.Context.Request.IsSet() {
