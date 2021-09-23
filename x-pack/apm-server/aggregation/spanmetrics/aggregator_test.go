@@ -249,7 +249,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Outcome:                    "success",
 					Duration: model.AggregatedDuration{
 						Count: 10,
-						Sum:   1_500_000,
+						Sum:   1500 * time.Microsecond,
 					},
 				},
 				{
@@ -259,7 +259,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Outcome:                    "unknown",
 					Duration: model.AggregatedDuration{
 						Count: 2,
-						Sum:   3_000_000,
+						Sum:   3000 * time.Microsecond,
 					},
 				},
 			},
@@ -295,7 +295,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Resource: "https://elasticsearch:9200",
 					ResponseTime: model.AggregatedDuration{
 						Count: 20,
-						Sum:   3_000 * time.Microsecond,
+						Sum:   3000 * time.Microsecond,
 					},
 				},
 			},
@@ -311,7 +311,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Resource: "mysql://mysql:3306",
 					ResponseTime: model.AggregatedDuration{
 						Count: 4,
-						Sum:   6_000 * time.Microsecond,
+						Sum:   6000 * time.Microsecond,
 					},
 				},
 			},

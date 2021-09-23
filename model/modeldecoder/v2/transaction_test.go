@@ -264,10 +264,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				return true
 			}
 			// Tested separately
-			if strings.HasPrefix(key, "DroppedSpansStats") {
-				return true
-			}
-			return false
+			return strings.HasPrefix(key, "DroppedSpansStats")
 		}
 
 		var input transaction

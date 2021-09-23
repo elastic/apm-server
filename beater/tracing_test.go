@@ -33,12 +33,11 @@ import (
 
 // transactions from testdata/intake-v2/transactions.ndjson used to trigger tracing
 var testTransactionIds = map[string]bool{
-	"945254c567a5417e":                 true,
-	"4340a8e0df1906ecbfa9":             true,
-	"cdef4340a8e0df19":                 true,
-	"00xxxxFFaaaa1234":                 true,
-	"142e61450efb8574":                 true,
-	"ddf109a4c4aa5f2b6e984548ca57774c": true,
+	"945254c567a5417e":     true,
+	"4340a8e0df1906ecbfa9": true,
+	"cdef4340a8e0df19":     true,
+	"00xxxxFFaaaa1234":     true,
+	"142e61450efb8574":     true,
 }
 
 func TestServerTracingEnabled(t *testing.T) {
