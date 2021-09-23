@@ -71,6 +71,7 @@ var apmEventSortFields = []string{
 	"span.id",
 	"error.id",
 	"timeseries.instance",
+	"span.destination.service.resource",
 	"@timestamp", // last resort, order is generally guaranteed
 }
 

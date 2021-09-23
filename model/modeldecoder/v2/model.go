@@ -857,6 +857,9 @@ type spanComposite struct {
 type transaction struct {
 	// Context holds arbitrary contextual information for the event.
 	Context context `json:"context"`
+	// DroppedSpanStats holds information about spans that were dropped
+	// (for example due to transaction_max_spans or exit_span_min_duration).
+	DroppedSpanStats []transactionDroppedSpanStats `json:"dropped_spans_stats"`
 	// Duration how long the transaction took to complete, in milliseconds
 	// with 3 decimal points.
 	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
@@ -974,4 +977,33 @@ type user struct {
 	Email nullable.String `json:"email" validate:"maxLength=1024"`
 	// Name of the user.
 	Name nullable.String `json:"username" validate:"maxLength=1024"`
+}
+
+type transactionDroppedSpanStats struct {
+	// Type holds the dropped span's type, and can have specific keywords
+	// within the service's domain (eg: 'request', 'backgroundjob', etc)
+	Type nullable.String `json:"type" validate:"maxLength=1024"`
+	// Subtype is a further sub-division of the type (e.g. postgresql, elasticsearch)
+	Subtype nullable.String `json:"subtype" validate:"maxLength=1024"`
+	// DestinationServiceResource identifies the destination service resource
+	// being operated on. e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name'.
+	DestinationServiceResource nullable.String `json:"destination_service_resource" validate:"maxLength=1024"`
+	// Outcome of the span: success, failure, or unknown. Outcome may be one of
+	// a limited set of permitted values describing the success or failure of
+	// the span. It can be used for calculating error rates for outgoing requests.
+	Outcome nullable.String `json:"outcome" validate:"enum=enumOutcome"`
+	// Duration holds duration aggregations about the dropped span.
+	Duration transactionDroppedSpansDuration `json:"duration"`
+}
+
+type transactionDroppedSpansDuration struct {
+	// Count holds the number of times the dropped span happened.
+	Count nullable.Int `json:"count" validate:"min=1"`
+	// Sum holds dimensions about the dropped span's duration.
+	Sum transactionDroppedSpansDurationSum `json:"sum"`
+}
+
+type transactionDroppedSpansDurationSum struct {
+	// Us represents the summation of the span duration.
+	Us nullable.Int `json:"us" validate:"min=0"`
 }
