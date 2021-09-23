@@ -238,7 +238,7 @@ func mapToFAASModel(from faas, faas *model.FAAS) {
 	}
 }
 
-func mapToDroppedSpansModel(from []txDroppedSpanStats, tx *model.Transaction) {
+func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *model.Transaction) {
 	for _, f := range from {
 		if f.IsSet() {
 			var to model.DroppedSpanStats
@@ -254,16 +254,15 @@ func mapToDroppedSpansModel(from []txDroppedSpanStats, tx *model.Transaction) {
 			if f.Outcome.IsSet() {
 				to.Outcome = f.Outcome.Val
 			}
-			if f.Count.IsSet() {
-				val := f.Count.Val
-				to.Count = &val
+
+			if f.Duration.IsSet() {
+				to.Duration.Count = f.Duration.Count.Val
+				sum := f.Duration.Sum
+				if sum.IsSet() {
+					to.Duration.Sum = time.Duration(sum.Us.Val) * time.Microsecond
+				}
 			}
 
-			duration := f.Duration
-			if duration.IsSet() && duration.Sum.IsSet() && duration.Sum.Us.IsSet() {
-				val := duration.Sum.Us.Val
-				to.DurationSumUs = &val
-			}
 			tx.DroppedSpansStats = append(tx.DroppedSpansStats, to)
 		}
 	}

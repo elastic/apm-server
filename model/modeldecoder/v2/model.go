@@ -856,7 +856,7 @@ type transaction struct {
 	Context context `json:"context"`
 	// DroppedSpanStats holds information about spans that were dropped
 	// (for example due to transaction_max_spans or exit_span_min_duration).
-	DroppedSpanStats []txDroppedSpanStats `json:"dropped_spans_stats"`
+	DroppedSpanStats []transactionDroppedSpanStats `json:"dropped_spans_stats"`
 	// Duration how long the transaction took to complete, in milliseconds
 	// with 3 decimal points.
 	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
@@ -976,7 +976,7 @@ type user struct {
 	Name nullable.String `json:"username" validate:"maxLength=1024"`
 }
 
-type txDroppedSpanStats struct {
+type transactionDroppedSpanStats struct {
 	// Type holds the dropped span's type, and can have specific keywords
 	// within the service's domain (eg: 'request', 'backgroundjob', etc)
 	Type nullable.String `json:"type" validate:"maxLength=1024"`
@@ -989,18 +989,18 @@ type txDroppedSpanStats struct {
 	// a limited set of permitted values describing the success or failure of
 	// the span. It can be used for calculating error rates for outgoing requests.
 	Outcome nullable.String `json:"outcome" validate:"enum=enumOutcome"`
+	// Duration holds duration aggregations about the dropped span.
+	Duration transactionDroppedSpansDuration `json:"duration"`
+}
+
+type transactionDroppedSpansDuration struct {
 	// Count holds the number of times the dropped span happened.
 	Count nullable.Int `json:"count" validate:"min=1"`
-	// Duration holds duration aggregations about the dropped span.
-	Duration txDroppedSpansDuration `json:"duration"`
-}
-
-type txDroppedSpansDuration struct {
 	// Sum holds dimensions about the dropped span's duration.
-	Sum txDroppedSpansDurationSum `json:"sum"`
+	Sum transactionDroppedSpansDurationSum `json:"sum"`
 }
 
-type txDroppedSpansDurationSum struct {
+type transactionDroppedSpansDurationSum struct {
 	// Us represents the summation of the span duration.
 	Us nullable.Int `json:"us" validate:"min=0"`
 }

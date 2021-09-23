@@ -231,10 +231,6 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	esDroppedCount := 10
-	mySQLDroppedCount := 2
-	esDurationSum := int(1_500)
-	mySQLDurationSum := int(3_000)
 	tx := model.APMEvent{
 		Agent:   model.Agent{Name: "go"},
 		Service: model.Service{Name: "go-service"},
@@ -251,16 +247,20 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Subtype:                    "elasticsearch",
 					DestinationServiceResource: "https://elasticsearch:9200",
 					Outcome:                    "success",
-					Count:                      &esDroppedCount,
-					DurationSumUs:              &esDurationSum,
+					Duration: model.AggregatedDuration{
+						Count: 10,
+						Sum:   1_500_000,
+					},
 				},
 				{
 					Type:                       "query",
 					Subtype:                    "mysql",
 					DestinationServiceResource: "mysql://mysql:3306",
 					Outcome:                    "unknown",
-					Count:                      &mySQLDroppedCount,
-					DurationSumUs:              &mySQLDurationSum,
+					Duration: model.AggregatedDuration{
+						Count: 2,
+						Sum:   3_000_000,
+					},
 				},
 			},
 		},
@@ -295,7 +295,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Resource: "https://elasticsearch:9200",
 					ResponseTime: model.AggregatedDuration{
 						Count: 20,
-						Sum:   3_000 * time.Millisecond,
+						Sum:   3_000 * time.Microsecond,
 					},
 				},
 			},
@@ -311,7 +311,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Resource: "mysql://mysql:3306",
 					ResponseTime: model.AggregatedDuration{
 						Count: 4,
-						Sum:   6_000 * time.Millisecond,
+						Sum:   6_000 * time.Microsecond,
 					},
 				},
 			},

@@ -40,7 +40,6 @@ func TestTransactionTransform(t *testing.T) {
 	dropped, startedSpans := 5, 14
 	name := "mytransaction"
 	duration := 65980 * time.Microsecond
-	durationInt := int(610_290_000)
 
 	tests := []struct {
 		Transaction Transaction
@@ -130,16 +129,20 @@ func TestTransactionTransform(t *testing.T) {
 						Subtype:                    "mysql",
 						DestinationServiceResource: "mysql://server:3306",
 						Outcome:                    "success",
-						Count:                      &dropped,
-						DurationSumUs:              &durationInt,
+						Duration: AggregatedDuration{
+							Count: 5,
+							Sum:   duration,
+						},
 					},
 					{
 						Type:                       "request",
 						Subtype:                    "elasticsearch",
 						DestinationServiceResource: "http://elasticsearch:9200",
 						Outcome:                    "unknown",
-						Count:                      &dropped,
-						DurationSumUs:              &durationInt,
+						Duration: AggregatedDuration{
+							Count: 15,
+							Sum:   duration,
+						},
 					},
 				},
 				Root: true,
@@ -153,17 +156,15 @@ func TestTransactionTransform(t *testing.T) {
 				"span_count": common.MapStr{"started": 14, "dropped": 5},
 				"dropped_spans_stats": []common.MapStr{
 					{
-						"count":                        5,
 						"destination_service_resource": "mysql://server:3306",
-						"duration":                     common.MapStr{"sum": common.MapStr{"us": 610290000}},
+						"duration":                     common.MapStr{"count": 5, "sum.us": int64(65980)},
 						"outcome":                      "success",
 						"subtype":                      "mysql",
 						"type":                         "query",
 					},
 					{
-						"count":                        5,
 						"destination_service_resource": "http://elasticsearch:9200",
-						"duration":                     common.MapStr{"sum": common.MapStr{"us": 610290000}},
+						"duration":                     common.MapStr{"count": 15, "sum.us": int64(65980)},
 						"outcome":                      "unknown",
 						"subtype":                      "elasticsearch",
 						"type":                         "request",

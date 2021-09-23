@@ -28,12 +28,10 @@ func TestMain(m *testing.M) {
 	if err := StartStackContainers(); err != nil {
 		log.Fatal(err)
 	}
-	log.Println("INFO: done.")
 	log.Println("INFO: setting up fleet...")
 	if err := Fleet.Setup(); err != nil {
 		log.Fatal(err)
 	}
-	log.Println("INFO: done.")
 	log.Println("INFO: running system tests...")
 	os.Exit(m.Run())
 }

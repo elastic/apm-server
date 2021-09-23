@@ -27,7 +27,7 @@
             },
             "service": {
                 "environment": "staging",
-                "name": "1234_service-12a3"
+                "name": "chatty-service"
             },
             "span": {
                 "destination": {
@@ -35,7 +35,7 @@
                         "resource": "example.com:443",
                         "response_time": {
                             "count": 2,
-                            "sum.us": 123456000
+                            "sum.us": 123456
                         }
                     }
                 }
@@ -68,7 +68,7 @@
             },
             "service": {
                 "environment": "staging",
-                "name": "1234_service-12a3"
+                "name": "chatty-service"
             },
             "span": {
                 "destination": {
@@ -76,7 +76,7 @@
                         "resource": "mysql",
                         "response_time": {
                             "count": 1,
-                            "sum.us": 9876543000
+                            "sum.us": 9876543
                         }
                     }
                 }

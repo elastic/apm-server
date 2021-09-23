@@ -2054,20 +2054,19 @@ func (val *transaction) validate() error {
 	return nil
 }
 
-func (val *txDroppedSpanStats) IsSet() bool {
-	return val.Type.IsSet() || val.Subtype.IsSet() || val.DestinationServiceResource.IsSet() || val.Outcome.IsSet() || val.Count.IsSet() || val.Duration.IsSet()
+func (val *transactionDroppedSpanStats) IsSet() bool {
+	return val.Type.IsSet() || val.Subtype.IsSet() || val.DestinationServiceResource.IsSet() || val.Outcome.IsSet() || val.Duration.IsSet()
 }
 
-func (val *txDroppedSpanStats) Reset() {
+func (val *transactionDroppedSpanStats) Reset() {
 	val.Type.Reset()
 	val.Subtype.Reset()
 	val.DestinationServiceResource.Reset()
 	val.Outcome.Reset()
-	val.Count.Reset()
 	val.Duration.Reset()
 }
 
-func (val *txDroppedSpanStats) validate() error {
+func (val *transactionDroppedSpanStats) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
@@ -2092,26 +2091,27 @@ func (val *txDroppedSpanStats) validate() error {
 			return fmt.Errorf("'outcome': validation rule 'enum(enumOutcome)' violated")
 		}
 	}
-	if val.Count.IsSet() && val.Count.Val < 1 {
-		return fmt.Errorf("'count': validation rule 'min(1)' violated")
-	}
 	if err := val.Duration.validate(); err != nil {
 		return errors.Wrapf(err, "duration")
 	}
 	return nil
 }
 
-func (val *txDroppedSpansDuration) IsSet() bool {
-	return val.Sum.IsSet()
+func (val *transactionDroppedSpansDuration) IsSet() bool {
+	return val.Count.IsSet() || val.Sum.IsSet()
 }
 
-func (val *txDroppedSpansDuration) Reset() {
+func (val *transactionDroppedSpansDuration) Reset() {
+	val.Count.Reset()
 	val.Sum.Reset()
 }
 
-func (val *txDroppedSpansDuration) validate() error {
+func (val *transactionDroppedSpansDuration) validate() error {
 	if !val.IsSet() {
 		return nil
+	}
+	if val.Count.IsSet() && val.Count.Val < 1 {
+		return fmt.Errorf("'count': validation rule 'min(1)' violated")
 	}
 	if err := val.Sum.validate(); err != nil {
 		return errors.Wrapf(err, "sum")
@@ -2119,15 +2119,15 @@ func (val *txDroppedSpansDuration) validate() error {
 	return nil
 }
 
-func (val *txDroppedSpansDurationSum) IsSet() bool {
+func (val *transactionDroppedSpansDurationSum) IsSet() bool {
 	return val.Us.IsSet()
 }
 
-func (val *txDroppedSpansDurationSum) Reset() {
+func (val *transactionDroppedSpansDurationSum) Reset() {
 	val.Us.Reset()
 }
 
-func (val *txDroppedSpansDurationSum) validate() error {
+func (val *transactionDroppedSpansDurationSum) validate() error {
 	if !val.IsSet() {
 		return nil
 	}

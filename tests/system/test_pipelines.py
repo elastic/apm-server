@@ -9,7 +9,7 @@ from es_helper import index_transaction
 # APM Server `setup`
 
 # TRANSACTION_COUNT defines the number of transactions in testdata/transactions.ndjson.
-TRANSACTION_COUNT = 6
+TRANSACTION_COUNT = 5
 
 
 @integration_test

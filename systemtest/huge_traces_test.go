@@ -40,7 +40,9 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	systemtest.SendBackendEventsPayload(t, srv, "../testdata/intake-v2/transactions.ndjson")
+	// TODO (marclop): use Go agent when the feature is available
+	// (https://github.com/elastic/apm-agent-go/issues/1113).
+	systemtest.SendBackendEventsPayload(t, srv, "../testdata/intake-v2/transactions-huge_traces.ndjson")
 
 	metricsResult := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm*metric",
 		estest.TermQuery{Field: "metricset.name", Value: "service_destination"},

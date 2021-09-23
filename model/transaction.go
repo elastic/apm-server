@@ -162,8 +162,7 @@ type DroppedSpanStats struct {
 	Subtype                    string
 	DestinationServiceResource string
 	Outcome                    string
-	Count                      *int
-	DurationSumUs              *int // microseconds
+	Duration                   AggregatedDuration
 }
 
 func (stat DroppedSpanStats) fields() common.MapStr {
@@ -174,13 +173,6 @@ func (stat DroppedSpanStats) fields() common.MapStr {
 		stat.DestinationServiceResource,
 	)
 	out.maybeSetString("outcome", stat.Outcome)
-	out.maybeSetIntptr("count", stat.Count)
-	if stat.DurationSumUs != nil {
-		out.set("duration", common.MapStr{
-			"sum": common.MapStr{
-				"us": *stat.DurationSumUs,
-			},
-		})
-	}
+	out.maybeSetMapStr("duration", stat.Duration.fields())
 	return common.MapStr(out)
 }

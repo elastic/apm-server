@@ -1,21 +1,12 @@
 {
     "events": [
         {
-            "@timestamp": "dynamic",
+            "@timestamp": "2017-05-30T18:53:27.154Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
             "client": {
-                "geo": {
-                    "continent_name": "North America",
-                    "country_iso_code": "US",
-                    "country_name": "United States",
-                    "location": {
-                        "lat": 37.751,
-                        "lon": -97.822
-                    }
-                },
                 "ip": "12.53.12.1"
             },
             "cloud": {
@@ -45,10 +36,9 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "dynamic"
+                "version": "1.11.0"
             },
             "event": {
-                "ingested": "dynamic",
                 "outcome": "success"
             },
             "host": {
@@ -130,15 +120,15 @@
                 "tag1": "one",
                 "tag2": 12,
                 "tag3": 12.45,
-                "tag4": false
+                "tag4": false,
+                "wrapped_reporter": true
             },
             "observer": {
-                "ephemeral_id": "dynamic",
-                "hostname": "dynamic",
-                "id": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "1.2.3",
+                "version_major": 1
             },
             "process": {
                 "args": [
@@ -245,17 +235,7 @@
                 "name": "foo"
             },
             "user_agent": {
-                "device": {
-                    "name": "Mac"
-                },
-                "name": "Chrome",
-                "original": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge",
-                "os": {
-                    "full": "Mac OS X 10.10.5",
-                    "name": "Mac OS X",
-                    "version": "10.10.5"
-                },
-                "version": "51.0.2704.103"
+                "original": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
             }
         }
     ]

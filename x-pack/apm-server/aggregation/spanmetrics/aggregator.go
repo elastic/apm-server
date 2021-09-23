@@ -259,10 +259,9 @@ func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.Dr
 		outcome:            event.Event.Outcome,
 		resource:           dss.DestinationServiceResource,
 	}
-	sum := *dss.DurationSumUs * int(time.Millisecond)
 	metrics := spanMetrics{
-		count: float64(*dss.Count) * representativeCount,
-		sum:   float64(sum) * representativeCount,
+		count: float64(dss.Duration.Count) * representativeCount,
+		sum:   float64(dss.Duration.Sum) * representativeCount,
 	}
 	if a.active.storeOrUpdate(key, metrics) {
 		return model.APMEvent{}

@@ -672,14 +672,6 @@
       "items": {
         "type": "object",
         "properties": {
-          "count": {
-            "description": "Count holds the number of times the dropped span happened.",
-            "type": [
-              "null",
-              "integer"
-            ],
-            "minimum": 1
-          },
           "destination_service_resource": {
             "description": "DestinationServiceResource identifies the destination service resource being operated on. e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name'.",
             "type": [
@@ -695,6 +687,14 @@
               "object"
             ],
             "properties": {
+              "count": {
+                "description": "Count holds the number of times the dropped span happened.",
+                "type": [
+                  "null",
+                  "integer"
+                ],
+                "minimum": 1
+              },
               "sum": {
                 "description": "Sum holds dimensions about the dropped span's duration.",
                 "type": [

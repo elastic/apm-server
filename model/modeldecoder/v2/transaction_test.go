@@ -156,21 +156,20 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	t.Run("dropped_span_stats", func(t *testing.T) {
 		var input transaction
 		var out model.APMEvent
-		var esDss, mysqlDss txDroppedSpanStats
+		var esDss, mysqlDss transactionDroppedSpanStats
 
-		count := 5
 		durationSumUs := 10_290_000
 		esDss.Type.Set("request")
 		esDss.Subtype.Set("elasticsearch")
 		esDss.DestinationServiceResource.Set("https://elasticsearch:9200")
 		esDss.Outcome.Set("success")
-		esDss.Count.Set(count)
+		esDss.Duration.Count.Set(2)
 		esDss.Duration.Sum.Us.Set(durationSumUs)
 		mysqlDss.Type.Set("query")
 		mysqlDss.Subtype.Set("mysql")
 		mysqlDss.DestinationServiceResource.Set("mysql://mysql:3306")
 		mysqlDss.Outcome.Set("unknown")
-		mysqlDss.Count.Set(count)
+		mysqlDss.Duration.Count.Set(10)
 		mysqlDss.Duration.Sum.Us.Set(durationSumUs)
 		input.DroppedSpanStats = append(input.DroppedSpanStats, esDss, mysqlDss)
 
@@ -182,16 +181,20 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 					Subtype:                    "elasticsearch",
 					DestinationServiceResource: "https://elasticsearch:9200",
 					Outcome:                    "success",
-					Count:                      &count,
-					DurationSumUs:              &durationSumUs,
+					Duration: model.AggregatedDuration{
+						Count: 2,
+						Sum:   time.Duration(durationSumUs) * time.Microsecond,
+					},
 				},
 				{
 					Type:                       "query",
 					Subtype:                    "mysql",
 					DestinationServiceResource: "mysql://mysql:3306",
 					Outcome:                    "unknown",
-					Count:                      &count,
-					DurationSumUs:              &durationSumUs,
+					Duration: model.AggregatedDuration{
+						Count: 10,
+						Sum:   time.Duration(durationSumUs) * time.Microsecond,
+					},
 				},
 			},
 		}}
@@ -258,6 +261,10 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"DurationHistogram.Counts",
 				"DurationHistogram.Values",
 				"Root":
+				return true
+			}
+			// Tested separately
+			if strings.HasPrefix(key, "DroppedSpansStats") {
 				return true
 			}
 			return false
