@@ -576,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20210919222345-01bd66d28b87
+Version: v7.0.0-alpha2.0.20210923221751-7e4affb6702a
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210919222345-01bd66d28b87/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210923221751-7e4affb6702a/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -3745,11 +3745,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm
-Version: v1.13.1
+Version: v1.14.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm@v1.13.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm@v1.14.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4378,11 +4378,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc@v
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmhttp
-Version: v1.13.1
+Version: v1.14.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp@v1.13.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp@v1.14.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5104,11 +5104,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.0.0-20210917221730-978cfadd31cf
+Version: v0.0.0-20210924054057-cf34111cab4d
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210917221730-978cfadd31cf/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210924054057-cf34111cab4d/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -8765,11 +8765,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-client/v7
-Version: v7.0.0-20210727140539-f0905d9377f6
+Version: v7.0.0-20210922110810-e6f1f402a9ed
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.0.0-20210727140539-f0905d9377f6/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.0.0-20210922110810-e6f1f402a9ed/LICENSE.txt:
 
 ELASTIC LICENSE AGREEMENT
 
@@ -10501,11 +10501,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/fatih/color
-Version: v1.12.0
+Version: v1.13.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/fatih/color@v1.12.0/LICENSE.md:
+Contents of probable licence file $GOMODCACHE/github.com/fatih/color@v1.13.0/LICENSE.md:
 
 The MIT License (MIT)
 
@@ -14905,11 +14905,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : github.com/mattn/go-colorable
-Version: v0.1.8
+Version: v0.1.9
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/mattn/go-colorable@v0.1.8/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/mattn/go-colorable@v0.1.9/LICENSE:
 
 The MIT License (MIT)
 
@@ -19826,11 +19826,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.0.0-20210920023735-84f357641f63
+Version: v0.0.0-20210921155107-089bfa567519
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210920023735-84f357641f63/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210921155107-089bfa567519/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -19900,11 +19900,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20210917161153-d61c044b1678
+Version: v0.0.0-20210923061019-b8560ed6a9b7
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210917161153-d61c044b1678/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210923061019-b8560ed6a9b7/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -20011,11 +20011,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20210917145530-b395a37504d4
+Version: v0.0.0-20210924002016-3dee208752a0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210917145530-b395a37504d4/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210924002016-3dee208752a0/LICENSE:
 
 
                                  Apache License
