@@ -8,6 +8,9 @@ from es_helper import index_transaction
 
 # APM Server `setup`
 
+# TRANSACTION_COUNT defines the number of transactions in testdata/transactions.ndjson.
+TRANSACTION_COUNT = 5
+
 
 @integration_test
 class SetupCmdPipelinesDefaultTest(SubCommandTest):
@@ -62,7 +65,7 @@ class PipelineRegisterTest(ElasticTest):
         wait_until_pipelines(self.es)
         # setup
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
-                                     self.intake_url, 'transaction', 5)
+                                     self.intake_url, 'transaction', TRANSACTION_COUNT)
 
         entries = self.es.search(index=index_transaction)['hits']['hits']
         ua_found = False
@@ -99,7 +102,7 @@ class PipelineConfigurationNoneTest(ElasticTest):
     def test_pipeline_not_applied(self):
         wait_until_pipelines(self.es)
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
-                                     self.intake_url, 'transaction', 5)
+                                     self.intake_url, 'transaction', TRANSACTION_COUNT)
         uaFound = False
         entries = self.es.search(index=index_transaction)['hits']['hits']
         for e in entries:
@@ -126,7 +129,7 @@ class PipelineDisableRegisterTest(ElasticTest):
         # events do not get stored when pipeline is missing
         with pytest.raises(TimeoutError):
             self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
-                                         self.intake_url, 'transaction', 5)
+                                         self.intake_url, 'transaction', TRANSACTION_COUNT)
 
 
 class PipelineOverwriteBase(ElasticTest):

@@ -21,6 +21,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 ==== Intake API Changes
 - `faas`, `service.origin.*`, and `cloud.origin.*` added for supporting function as a service fields {pull}6161[6161]
 - `context.message.routing_key` was added to the intake API {pull}6177[6177]
+- `transaction.dropped_spans_stats` was added to the intake API {pull}6200[6200]
 
 [float]
 ==== Added
@@ -32,6 +33,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - HTTP server errors (e.g. TLS handshake errors) are now logged {pull}6141[6141]
 - Span documents now duplicate extended HTTP fields, which were previously only under `span.http.*`, under `http.*` {pull}6147[6147]
 - We now record the direct network peer for incoming requests as `source.ip` and `source.port`; origin IP is recorded in `client.ip` {pull}6152[6152]
+- We now collect span destination metrics for transactions with too many spans (for example due to transaction_max_spans or exit_span_min_duration) when collected and sent by APM agents {pull}6200[6200]
 
 [float]
 ==== Deprecated
