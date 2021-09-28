@@ -24,7 +24,7 @@ const (
 )
 
 // FirehoseProcessor is the Processor value that should be assigned to firehose events.
-var FirehoseProcessor = Processor{Name: "firehose", Event: "firehose"}
+var FirehoseProcessor = Processor{Name: "firehose", Event: "log"}
 
 // Firehose holds a firehose sample.
 type Firehose struct {
