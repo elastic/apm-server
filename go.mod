@@ -4,9 +4,11 @@ go 1.13
 
 require (
 	github.com/DataDog/zstd v1.4.4 // indirect
+	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/apache/thrift v0.14.2
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
+	github.com/containerd/containerd v1.5.6 // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dlclark/regexp2 v1.4.0 // indirect
@@ -24,6 +26,7 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogo/protobuf v1.3.2
+	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/pprof v0.0.0-20210609004039-a478d1d731e9
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
@@ -32,6 +35,7 @@ require (
 	github.com/josephspurrier/goversioninfo v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.11
 	github.com/jstemmer/go-junit-report v0.9.1
+	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/libp2p/go-reuseport v0.0.2
 	github.com/magefile/mage v1.11.0
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -64,13 +68,13 @@ require (
 	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20210920023735-84f357641f63 // indirect
 	golang.org/x/mod v0.5.0 // indirect
-	golang.org/x/net v0.0.0-20210917221730-978cfadd31cf
+	golang.org/x/net v0.0.0-20210929193557-e81a3d93ecf6
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20210917161153-d61c044b1678 // indirect
+	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
 	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6
 	golang.org/x/tools v0.1.6
-	google.golang.org/genproto v0.0.0-20210917145530-b395a37504d4 // indirect
-	google.golang.org/grpc v1.40.0
+	google.golang.org/genproto v0.0.0-20210929214142-896c89f843d2 // indirect
+	google.golang.org/grpc v1.41.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.7.0
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
