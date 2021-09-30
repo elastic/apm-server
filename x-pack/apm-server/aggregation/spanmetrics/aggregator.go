@@ -200,7 +200,7 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 				}
 			}
 			// NOTE(marclop) The event.Transaction.DroppedSpansStats is unset
-			// via the `modelprocessor.DropedSpansStatsDiscarder` appended just
+			// via the `modelprocessor.DroppedSpansStatsDiscarder` appended just
 			// before the Elasticsearch publisher.
 			continue
 		}

@@ -475,7 +475,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 		)
 	}
 	batchProcessor = append(batchProcessor,
-		modelprocessor.DropedSpansStatsDiscarder{},
+		modelprocessor.DroppedSpansStatsDiscarder{},
 		s.newFinalBatchProcessor(reporter),
 	)
 

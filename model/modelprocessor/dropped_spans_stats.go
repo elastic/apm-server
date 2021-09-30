@@ -23,13 +23,15 @@ import (
 	"github.com/elastic/apm-server/model"
 )
 
-type DropedSpansStatsDiscarder struct{}
-
-// ProcessBatch removes model.APMEvent.Transaction.DroppedSpanStats since we
+// DroppedSpansStatsDiscarder removes the Transaction.DroppedSpanStats since we
 // only use that field to process and publish metricsets. The MetricSets are
 // aggregated and published only for the Elastic licensed `apm-server` but we
 // make sure the source isn't ever stored, ASL2 or Elastic licensed.
-func (DropedSpansStatsDiscarder) ProcessBatch(_ context.Context, batch *model.Batch) error {
+type DroppedSpansStatsDiscarder struct{}
+
+// ProcessBatch modifies the batches with a transaction processor, unsetting
+// the DroppedSpansStats field
+func (DroppedSpansStatsDiscarder) ProcessBatch(_ context.Context, batch *model.Batch) error {
 	for i := range *batch {
 		event := &(*batch)[i]
 		tx := event.Transaction
