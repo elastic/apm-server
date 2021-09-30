@@ -125,7 +125,9 @@ func (h *HTTPRequest) fields() common.MapStr {
 		fields.maybeSetMapStr("socket", h.Socket.fields())
 	}
 	if h.Body != nil {
-		fields.set("body.original", h.Body)
+		var body mapStr
+		body.set("original", h.Body)
+		fields.set("body", body)
 	}
 	return common.MapStr(fields)
 }
