@@ -52,12 +52,14 @@
             },
             "http": {
                 "request": {
-                    "body.original": {
-                        "additional": {
-                            "bar": 123,
-                            "req": "additional information"
-                        },
-                        "str": "hello world"
+                    "body": {
+                        "original": {
+                            "additional": {
+                                "bar": 123,
+                                "req": "additional information"
+                            },
+                            "str": "hello world"
+                        }
                     },
                     "cookies": {
                         "c1": "v1",

@@ -157,8 +157,10 @@ func TestAPMEventFields(t *testing.T) {
 			},
 			"http": common.MapStr{
 				"request": common.MapStr{
-					"method":        "post",
-					"body.original": httpRequestBody,
+					"method": "post",
+					"body": mapStr{
+						"original": httpRequestBody,
+					},
 				},
 			},
 			"faas": common.MapStr{

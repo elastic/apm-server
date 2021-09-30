@@ -75,7 +75,9 @@ func (h *HTTPRequest) fields() common.MapStr {
 	fields.maybeSetMapStr("env", h.Env)
 	fields.maybeSetMapStr("cookies", h.Cookies)
 	if h.Body != nil {
-		fields.set("body.original", h.Body)
+		var body mapStr
+		body.set("original", h.Body)
+		fields.set("body", body)
 	}
 	return common.MapStr(fields)
 }
