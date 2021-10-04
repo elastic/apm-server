@@ -66,4 +66,4 @@ text
 text
 
 // This includes the APM Server Reference
-include::./index.asciidoc[]
+include::legacy/index.asciidoc[]

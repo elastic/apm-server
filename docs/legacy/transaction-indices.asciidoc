@@ -9,5 +9,5 @@ This example shows what transaction documents can look like when indexed in Elas
 
 [source,json]
 ----
-include::./data/elasticsearch/generated/transactions.json[]
+include::../data/elasticsearch/generated/transactions.json[]
 ----

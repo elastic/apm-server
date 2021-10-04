@@ -9,5 +9,5 @@ This example shows what a source map document can look like when indexed in Elas
 
 [source,json]
 ----
-include::./data/intake-api/generated/sourcemap/bundle.js.map[]
+include::../data/intake-api/generated/sourcemap/bundle.js.map[]
 ----

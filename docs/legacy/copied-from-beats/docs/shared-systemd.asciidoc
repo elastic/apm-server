@@ -73,7 +73,7 @@ to configure logging behavior, set the logging options described in
 <<configuration-logging,Configure logging>>.
 
 To override these variables, create a drop-in unit file in the
-+/etc/systemd/system/{beatname_pkg}.service.d+ directory.  
++/etc/systemd/system/{beatname_pkg}.service.d+ directory.
 
 For example a file with the following content placed in
 +/etc/systemd/system/{beatname_pkg}.service.d/debug.conf+
@@ -99,5 +99,5 @@ include drop-in unit files. If you need to add a drop-in manually, use
 +systemctl edit {beatname_pkg}.service+.
 
 ifdef::apm-server[]
-include::{docdir}/config-ownership.asciidoc[]
+include::{docdir}/legacy/config-ownership.asciidoc[]
 endif::apm-server[]

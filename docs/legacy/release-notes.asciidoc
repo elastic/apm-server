@@ -1,4 +1,4 @@
-:root-dir: ../
+:root-dir: ../../
 
 [[release-notes]]
 = Release notes

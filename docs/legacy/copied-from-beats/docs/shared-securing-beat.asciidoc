@@ -43,9 +43,9 @@ endif::[]
 
 ifdef::apm-server[]
 // APM privileges
-include::{docdir}/feature-roles.asciidoc[]
+include::{docdir}/legacy/feature-roles.asciidoc[]
 // APM API keys
-include::{docdir}/api-keys.asciidoc[]
+include::{docdir}/legacy/api-keys.asciidoc[]
 endif::[]
 
 ifndef::apm-server[]
@@ -57,7 +57,7 @@ endif::[]
 
 // APM Agent security
 ifdef::apm-server[]
-include::{docdir}/secure-communication-agents.asciidoc[]
+include::{docdir}/legacy/secure-communication-agents.asciidoc[]
 endif::[]
 
 // Elasticsearch security

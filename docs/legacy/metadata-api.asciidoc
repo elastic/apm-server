@@ -62,5 +62,5 @@ APM Server uses JSON Schema to validate requests. The specification for metadata
 
 [source,json]
 ----
-include::./spec/v2/metadata.json[]
+include::../spec/v2/metadata.json[]
 ----

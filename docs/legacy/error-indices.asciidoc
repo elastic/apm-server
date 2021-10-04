@@ -9,5 +9,5 @@ This example shows what error documents can look like when indexed in Elasticsea
 
 [source,json]
 ----
-include::./data/elasticsearch/generated/errors.json[]
+include::../data/elasticsearch/generated/errors.json[]
 ----

@@ -12,5 +12,5 @@ APM Server uses JSON Schema to validate requests. The specification for spans is
 
 [source,json]
 ----
-include::./spec/v2/span.json[]
+include::../spec/v2/span.json[]
 ----

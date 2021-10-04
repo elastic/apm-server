@@ -9,5 +9,5 @@ This example shows what span documents can look like when indexed in Elasticsear
 
 [source,json]
 ----
-include::./data/elasticsearch/generated/spans.json[]
+include::../data/elasticsearch/generated/spans.json[]
 ----

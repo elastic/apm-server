@@ -5,5 +5,5 @@ A request body example containing one event for all currently supported event ty
 
 [source,json]
 ----
-include::./data/intake-api/generated/events.ndjson[]
+include::../data/intake-api/generated/events.ndjson[]
 ----

@@ -129,5 +129,5 @@ These fields make it possible to search and aggregate across various dimensions,
 
 [source,json]
 ----
-include::./data/elasticsearch/metricset.json[]
+include::../data/elasticsearch/metricset.json[]
 ----
