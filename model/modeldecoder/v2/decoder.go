@@ -242,12 +242,6 @@ func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *model.Transa
 	for _, f := range from {
 		if f.IsSet() {
 			var to model.DroppedSpanStats
-			if f.Type.IsSet() {
-				to.Type = f.Type.Val
-			}
-			if f.Subtype.IsSet() {
-				to.Subtype = f.Subtype.Val
-			}
 			if f.DestinationServiceResource.IsSet() {
 				to.DestinationServiceResource = f.DestinationServiceResource.Val
 			}
