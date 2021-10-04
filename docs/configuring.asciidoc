@@ -1,8 +1,6 @@
 [[configuring-howto-apm-server]]
 = Configure APM Server
 
-[partintro]
---
 ++++
 <titleabbrev>Configure</titleabbrev>
 ++++
@@ -24,8 +22,6 @@ include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 * <<configuration-ssl-landing>>
 * <<transaction-metrics>>
 * <<using-environ-vars>>
-
---
 
 include::./configuration-process.asciidoc[]
 

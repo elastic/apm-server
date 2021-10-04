@@ -1,8 +1,6 @@
 [[howto-guides]]
 = How-to guides
 
-[partintro]
---
 Learn how to perform common {beatname_uc} configuration and management tasks.
 
 * <<sourcemaps>>
@@ -12,8 +10,6 @@ Learn how to perform common {beatname_uc} configuration and management tasks.
 * <<storage-management>>
 * <<configuring-ingest-node>>
 * <<tune-data-ingestion>>
-
---
 
 include::./sourcemaps.asciidoc[]
 

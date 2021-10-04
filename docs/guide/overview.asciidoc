@@ -1,4 +1,4 @@
-[[overview]]
+[[overview-guide]]
 == Free and open application performance monitoring
 
 ++++

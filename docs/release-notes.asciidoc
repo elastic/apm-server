@@ -5,9 +5,6 @@
 :issue: https://github.com/elastic/apm-server/issues/
 :pull: https://github.com/elastic/apm-server/pull/
 
-[partintro]
-
---
 This following sections summarizes the changes in each release.
 
 * <<release-notes-8.0>>
@@ -35,6 +32,5 @@ This following sections summarizes the changes in each release.
 * <<release-notes-6.3>>
 * <<release-notes-6.2>>
 * <<release-notes-6.1>>
---
 
 include::{root-dir}/CHANGELOG.asciidoc[]

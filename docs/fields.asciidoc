@@ -6,9 +6,7 @@ This file is generated! See _meta/fields.yml and scripts/generate_fields_docs.py
 [[exported-fields]]
 = Exported fields
 
-[partintro]
 
---
 This document describes the fields that are exported by Apm-Server. They are
 grouped in the following categories:
 
@@ -30,7 +28,7 @@ grouped in the following categories:
 * <<exported-fields-process>>
 * <<exported-fields-system>>
 
---
+
 [[exported-fields-apm-application-metrics]]
 == APM Application Metrics fields
 
@@ -22712,4 +22710,3 @@ type: long
 format: bytes
 
 --
-

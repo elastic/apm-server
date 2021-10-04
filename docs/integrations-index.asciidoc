@@ -1,0 +1,69 @@
+include::./version.asciidoc[]
+include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
+
+[[apm-integration-guide]]
+= APM Integration Guide
+
+
+// THIS IS APM OVERVIEW CONTENT
+include::./guide/overview.asciidoc[]
+
+include::./guide/apm-doc-directory.asciidoc[]
+
+include::./guide/install-and-run.asciidoc[]
+
+include::./guide/quick-start-overview.asciidoc[]
+
+include::./guide/apm-data-model.asciidoc[]
+
+include::./guide/features.asciidoc[]
+
+include::./guide/agent-server-compatibility.asciidoc[]
+
+// include::./guide/troubleshooting.asciidoc[]
+
+// include::./guide/apm-breaking-changes.asciidoc[]
+
+// include::./guide/redirects.asciidoc[]
+
+
+
+:apm-package-dir: {docdir}/apm-package
+include::{apm-package-dir}/apm-integration.asciidoc[]
+
+
+== Set up (temp)
+
+text
+
+== Upgrade from legacy APM Server (temp)
+
+text
+
+== Administer (temp)
+
+text
+
+== How to (temp)
+
+text
+
+// configure stuff
+include::{apm-package-dir}/configure.asciidoc[]
+// input settings
+include::{apm-package-dir}/input-apm.asciidoc[]
+
+== API (temp)
+
+text
+
+== Explore your data (temp)
+
+text
+
+== Troubleshoot (temp)
+
+text
+
+// This includes the APM Server Reference
+include::./index.asciidoc[]

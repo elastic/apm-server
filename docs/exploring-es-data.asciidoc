@@ -1,9 +1,6 @@
 [[exploring-es-data]]
 = Explore data in {es}
 
-[partintro]
---
-
 Elastic APM stores data for each {apm-overview-ref-v}/apm-data-model.html[event type]
 in separate indices. By default, <<ilm,Index Lifecylce Management (ILM)>> is enabled and event data is stored using the following index naming patterns:
 
@@ -88,8 +85,6 @@ Then, retrieve the specific template you are interested in:
 GET  /_template/your-template-name
 ----
 // CONSOLE
-
---
 
 
 include::./transaction-indices.asciidoc[]

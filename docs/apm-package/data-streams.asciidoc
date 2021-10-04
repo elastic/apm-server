@@ -1,5 +1,5 @@
 [[apm-integration-data-streams]]
-== Data streams
+== Data streams (temp)
 
 ****
 beta::[]

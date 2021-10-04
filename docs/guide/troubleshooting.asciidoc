@@ -1,4 +1,4 @@
-[[troubleshooting]]
+[[troubleshooting-guide]]
 == Troubleshooting
 
 If you run into trouble, there are three places you can look for help.

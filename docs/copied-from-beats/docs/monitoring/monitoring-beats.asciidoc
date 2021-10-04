@@ -2,8 +2,6 @@
 [[monitoring]]
 = Monitor {beatname_uc}
 
-[partintro]
---
 ++++
 <titleabbrev>Monitor</titleabbrev>
 ++++
@@ -32,8 +30,6 @@ endif::[]
 //updated.
 //To learn about monitoring in general, see
 //{ref}/monitor-elasticsearch-cluster.html[Monitor a cluster].
-
---
 
 include::monitoring-internal-collection.asciidoc[]
 

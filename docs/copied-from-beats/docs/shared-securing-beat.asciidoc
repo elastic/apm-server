@@ -1,9 +1,6 @@
 [id="securing-{beatname_lc}"]
 = Secure {beatname_uc}
 
-[partintro]
-
---
 ++++
 <titleabbrev>Secure</titleabbrev>
 ++++
@@ -42,7 +39,7 @@ ifdef::beat-specific-security[]
 include::{beat-specific-security}[]
 endif::[]
 
---
+
 
 ifdef::apm-server[]
 // APM privileges

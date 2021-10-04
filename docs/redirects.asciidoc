@@ -10,20 +10,20 @@ The following pages have moved or been deleted.
 
 This page has moved. Please see {apm-overview-ref-v}/apm-data-model.html[APM data model].
 
-[role="exclude",id="errors"]
-=== Errors
+// [role="exclude",id="errors"]
+// === Errors
 
-This page has moved. Please see {apm-overview-ref-v}/errors.html[Errors].
+// This page has moved. Please see {apm-overview-ref-v}/errors.html[Errors].
 
-[role="exclude",id="transactions"]
-=== Transactions
+// [role="exclude",id="transactions"]
+// === Transactions
 
-This page has moved. Please see {apm-overview-ref-v}/transactions.html[Transactions].
+// This page has moved. Please see {apm-overview-ref-v}/transactions.html[Transactions].
 
-[role="exclude",id="transactions-spans"]
-=== Spans
+// [role="exclude",id="transactions-spans"]
+// === Spans
 
-This page has moved. Please see {apm-overview-ref-v}/transaction-spans.html[Spans].
+// This page has moved. Please see {apm-overview-ref-v}/transaction-spans.html[Spans].
 
 // Error API
 
@@ -246,7 +246,7 @@ Please use the {kibana-ref}/xpack-apm.html[Kibana APM UI] instead.
 As an alternative, a small number of dashboards and visualizations are available in the
 https://github.com/elastic/apm-contrib/tree/master/kibana[apm-contrib] repository.
 
-[role="exclude",id="rum"]
-=== Rum
+// [role="exclude",id="rum"]
+// === Rum
 
-This section has moved. Please see <<configuration-rum>>.
+// This section has moved. Please see <<configuration-rum>>.

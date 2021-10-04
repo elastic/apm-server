@@ -2,7 +2,7 @@
 == Configure APM integration
 
 ++++
-<titleabbrev>Configure</titleabbrev>
+<titleabbrev>Configure (temp)</titleabbrev>
 ++++
 
 beta::[]

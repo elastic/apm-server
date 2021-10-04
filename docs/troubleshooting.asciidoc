@@ -1,8 +1,6 @@
 [[troubleshooting]]
 = Troubleshoot
 
-[partintro]
---
 If you have issues installing or running APM Server,
 read the following tips:
 
@@ -31,8 +29,6 @@ don't forget to check the relevant troubleshooting guides:
 * {apm-py-ref-v}/troubleshooting.html[Python agent troubleshooting]
 * {apm-ruby-ref-v}/debugging.html[Ruby agent troubleshooting]
 * {apm-rum-ref-v}/troubleshooting.html[RUM troubleshooting]
-
---
 
 include::common-problems.asciidoc[]
 
