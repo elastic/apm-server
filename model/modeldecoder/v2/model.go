@@ -980,11 +980,6 @@ type user struct {
 }
 
 type transactionDroppedSpanStats struct {
-	// Type holds the dropped span's type, and can have specific keywords
-	// within the service's domain (eg: 'request', 'backgroundjob', etc)
-	Type nullable.String `json:"type" validate:"maxLength=1024"`
-	// Subtype is a further sub-division of the type (e.g. postgresql, elasticsearch)
-	Subtype nullable.String `json:"subtype" validate:"maxLength=1024"`
 	// DestinationServiceResource identifies the destination service resource
 	// being operated on. e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name'.
 	DestinationServiceResource nullable.String `json:"destination_service_resource" validate:"maxLength=1024"`

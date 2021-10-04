@@ -733,22 +733,6 @@
               "unknown",
               null
             ]
-          },
-          "subtype": {
-            "description": "Subtype is a further sub-division of the type (e.g. postgresql, elasticsearch)",
-            "type": [
-              "null",
-              "string"
-            ],
-            "maxLength": 1024
-          },
-          "type": {
-            "description": "Type holds the dropped span's type, and can have specific keywords within the service's domain (eg: 'request', 'backgroundjob', etc)",
-            "type": [
-              "null",
-              "string"
-            ],
-            "maxLength": 1024
           }
         }
       },

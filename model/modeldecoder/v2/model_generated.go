@@ -2056,12 +2056,10 @@ func (val *transaction) validate() error {
 }
 
 func (val *transactionDroppedSpanStats) IsSet() bool {
-	return val.Type.IsSet() || val.Subtype.IsSet() || val.DestinationServiceResource.IsSet() || val.Outcome.IsSet() || val.Duration.IsSet()
+	return val.DestinationServiceResource.IsSet() || val.Outcome.IsSet() || val.Duration.IsSet()
 }
 
 func (val *transactionDroppedSpanStats) Reset() {
-	val.Type.Reset()
-	val.Subtype.Reset()
 	val.DestinationServiceResource.Reset()
 	val.Outcome.Reset()
 	val.Duration.Reset()
@@ -2070,12 +2068,6 @@ func (val *transactionDroppedSpanStats) Reset() {
 func (val *transactionDroppedSpanStats) validate() error {
 	if !val.IsSet() {
 		return nil
-	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Subtype.IsSet() && utf8.RuneCountInString(val.Subtype.Val) > 1024 {
-		return fmt.Errorf("'subtype': validation rule 'maxLength(1024)' violated")
 	}
 	if val.DestinationServiceResource.IsSet() && utf8.RuneCountInString(val.DestinationServiceResource.Val) > 1024 {
 		return fmt.Errorf("'destination_service_resource': validation rule 'maxLength(1024)' violated")
