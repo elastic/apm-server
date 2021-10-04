@@ -34,7 +34,7 @@ func getGlobalCheckpoints(
 		Metric: []string{"get"},
 	}.Do(ctx, client)
 	if err != nil {
-		return nil, errors.New("index stats request failed")
+		return nil, errors.Wrap(err, "index stats request failed")
 	}
 	defer resp.Body.Close()
 	if resp.IsError() {

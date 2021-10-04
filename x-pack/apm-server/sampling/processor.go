@@ -27,8 +27,6 @@ import (
 )
 
 const (
-	badgerValueLogFileSize = 128 * 1024 * 1024
-
 	// subscriberPositionFile holds the file name used for persisting
 	// the subscriber position across server restarts.
 	subscriberPositionFile = "subscriber_position.json"
@@ -49,7 +47,6 @@ type Processor struct {
 	groups              *traceGroups
 
 	storageMu    sync.RWMutex
-	db           *badger.DB
 	storage      *eventstorage.ShardedReadWriter
 	eventMetrics *eventMetrics // heap-allocated for 64-bit alignment
 
@@ -71,19 +68,8 @@ func NewProcessor(config Config) (*Processor, error) {
 	}
 
 	logger := logp.NewLogger(logs.Sampling)
-	badgerOpts := badger.DefaultOptions(config.StorageDir)
-	badgerOpts.ValueLogFileSize = config.ValueLogFileSize
-	if badgerOpts.ValueLogFileSize == 0 {
-		badgerOpts.ValueLogFileSize = badgerValueLogFileSize
-	}
-	badgerOpts.Logger = eventstorage.LogpAdaptor{Logger: logger}
-	db, err := badger.Open(badgerOpts)
-	if err != nil {
-		return nil, err
-	}
-
 	eventCodec := eventstorage.JSONCodec{}
-	storage := eventstorage.New(db, eventCodec, config.TTL)
+	storage := eventstorage.New(config.DB, eventCodec, config.TTL)
 	readWriter := storage.NewShardedReadWriter()
 
 	p := &Processor{
@@ -91,7 +77,6 @@ func NewProcessor(config Config) (*Processor, error) {
 		logger:              logger,
 		tooManyGroupsLogger: logger.WithOptions(logs.WithRateLimit(tooManyGroupsLoggerRateLimit)),
 		groups:              newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
-		db:                  db,
 		storage:             readWriter,
 		eventMetrics:        &eventMetrics{},
 		stopping:            make(chan struct{}),
@@ -124,7 +109,7 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 	monitoring.ReportNamespace(V, "storage", func() {
 		p.storageMu.RLock()
 		defer p.storageMu.RUnlock()
-		lsmSize, valueLogSize := p.db.Size()
+		lsmSize, valueLogSize := p.config.DB.Size()
 		monitoring.ReportInt(V, "lsm_size", int64(lsmSize))
 		monitoring.ReportInt(V, "value_log_size", int64(valueLogSize))
 	})
@@ -281,7 +266,8 @@ func (p *Processor) processSpan(event *model.APMEvent) (report, stored bool, _ e
 	return true, false, nil
 }
 
-// Stop stops the processor, flushing and closing the event storage.
+// Stop stops the processor, flushing event storage. Note that the underlying
+// badger.DB must be closed independently to ensure writes are synced to disk.
 func (p *Processor) Stop(ctx context.Context) error {
 	p.stopMu.Lock()
 	if p.storage == nil {
@@ -313,9 +299,6 @@ func (p *Processor) Stop(ctx context.Context) error {
 		return err
 	}
 	p.storage.Close()
-	if err := p.db.Close(); err != nil {
-		return err
-	}
 	p.storage = nil
 	return nil
 }
@@ -395,7 +378,7 @@ func (p *Processor) Run() error {
 				return ctx.Err()
 			case <-ticker.C:
 				const discardRatio = 0.5
-				if err := p.db.RunValueLogGC(discardRatio); err != nil && err != badger.ErrNoRewrite {
+				if err := p.config.DB.RunValueLogGC(discardRatio); err != nil && err != badger.ErrNoRewrite {
 					return err
 				}
 			}
