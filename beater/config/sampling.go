@@ -126,8 +126,7 @@ func (c *TailSamplingConfig) setup(log *logp.Logger, dataStreamsEnabled bool, ou
 func defaultSamplingConfig() SamplingConfig {
 	tail := defaultTailSamplingConfig()
 	return SamplingConfig{
-		// In a 8.0 we will set this to false, and then later remove
-		// the option.
+		// In 8.0 this will be set to false, and later removed.
 		KeepUnsampled: true,
 		Tail:          tail,
 	}
