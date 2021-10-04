@@ -209,8 +209,10 @@ func TestTransformTransactionHTTP(t *testing.T) {
 	fields := tx.fields()
 	assert.Equal(t, common.MapStr{
 		"request": common.MapStr{
-			"method":        request.Method,
-			"body.original": request.Body,
+			"method": request.Method,
+			"body": mapStr{
+				"original": request.Body,
+			},
 		},
 	}, fields["http"])
 }
