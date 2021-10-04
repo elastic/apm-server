@@ -470,7 +470,7 @@ func (p *Processor) Run() error {
 						}
 					}
 				}
-				atomic.AddInt64(&p.eventMetrics.processed, int64(len(events)))
+				atomic.AddInt64(&p.eventMetrics.sampled, int64(len(events)))
 				if err := p.config.BatchProcessor.ProcessBatch(ctx, &events); err != nil {
 					p.logger.With(logp.Error(err)).Warn("failed to report events")
 				}
