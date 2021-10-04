@@ -377,7 +377,7 @@ Here is an example of AWS Lambda Node.js function managed with Terraform and the
 [[elastic-open-telemetry-traces-limitations]]
 ===== OpenTelemetry traces
 
-* Traces of applications using `messaging` semantics might be wrongly displayed or not shown in the APM UI. You may only see `spans` coming from such services, but no `transaction` https://github.com/elastic/apm-server/issues/5094[#5094]
+* Traces of applications using `messaging` semantics might be wrongly displayed or not shown in the APM UI. You may only see `spans` coming from such services, but no `transaction` https://github.com/elastic/apm-server/issues/5094[#5094]. **To fix this problem, please upgrade to Elastic 7.15.**
 * Inability to see Stack traces in spans or, in general, arbitrary span events for applications instrumented with OpenTelemetry https://github.com/elastic/apm-server/issues/4715[#4715]
 * Inability in APM views to view the "Time Spent by Span Type" https://github.com/elastic/apm-server/issues/5747[#5747]
 * Metrics derived from traces (throughput, latency, and errors) are not accurate when traces are sampled before being ingested by Elastic Observability (ie by an OpenTelemetry Collector or OpenTelemetry APM agent or SDK) https://github.com/elastic/apm/issues/472[#472]
@@ -385,6 +385,7 @@ Here is an example of AWS Lambda Node.js function managed with Terraform and the
 [[elastic-open-telemetry-metrics-limitations]]
 ===== OpenTelemetry metrics
 
+* Metrics sent by recent OpenTelemetry SDKs are reported in Elastic with value 0 (Java SDK and Agent >= 1.3, OpenTelemetry Collector >= 0.29...). **To fix this problem, please upgrade to Elastic 7.15.**
 * Inability to see host metrics in Elastic Metrics Infrastructure view when using the OpenTelemetry Collector host metrics receiver https://github.com/elastic/apm-server/issues/5310[#5310]
 
 [[elastic-open-telemetry-logs-limitations]]
