@@ -17,7 +17,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dgraph-io/badger/v2"
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -61,19 +60,17 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// subsequent events in the trace will be reported immediately.
 	trace1 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f11"}
-	withBadger(t, config.StorageDir, func(db *badger.DB) {
-		storage := eventstorage.New(db, eventstorage.JSONCodec{}, time.Minute)
-		writer := storage.NewReadWriter()
-		defer writer.Close()
-		assert.NoError(t, writer.WriteTraceSampled(trace1.ID, true))
-		assert.NoError(t, writer.Flush())
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute)
+	writer := storage.NewReadWriter()
+	assert.NoError(t, writer.WriteTraceSampled(trace1.ID, true))
+	assert.NoError(t, writer.Flush())
+	writer.Close()
 
-		storage = eventstorage.New(db, eventstorage.JSONCodec{}, -1) // expire immediately
-		writer = storage.NewReadWriter()
-		defer writer.Close()
-		assert.NoError(t, writer.WriteTraceSampled(trace2.ID, true))
-		assert.NoError(t, writer.Flush())
-	})
+	storage = eventstorage.New(config.DB, eventstorage.JSONCodec{}, -1) // expire immediately
+	writer = storage.NewReadWriter()
+	assert.NoError(t, writer.WriteTraceSampled(trace2.ID, true))
+	assert.NoError(t, writer.Flush())
+	writer.Close()
 
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
@@ -128,20 +125,17 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	withBadger(t, config.StorageDir, func(db *badger.DB) {
-		storage := eventstorage.New(db, eventstorage.JSONCodec{}, time.Minute)
-		reader := storage.NewReadWriter()
-		defer reader.Close()
+	reader := storage.NewReadWriter()
+	defer reader.Close()
 
-		var batch model.Batch
-		err := reader.ReadTraceEvents(trace1.ID, &batch)
-		assert.NoError(t, err)
-		assert.Zero(t, batch)
+	batch = nil
+	err = reader.ReadTraceEvents(trace1.ID, &batch)
+	assert.NoError(t, err)
+	assert.Zero(t, batch)
 
-		err = reader.ReadTraceEvents(trace2.ID, &batch)
-		assert.NoError(t, err)
-		assert.Equal(t, model.Batch{transaction2, span2}, batch)
-	})
+	err = reader.ReadTraceEvents(trace2.ID, &batch)
+	assert.NoError(t, err)
+	assert.Equal(t, model.Batch{transaction2, span2}, batch)
 }
 
 func TestProcessLocalTailSampling(t *testing.T) {
@@ -234,32 +228,30 @@ func TestProcessLocalTailSampling(t *testing.T) {
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	withBadger(t, config.StorageDir, func(db *badger.DB) {
-		storage := eventstorage.New(db, eventstorage.JSONCodec{}, time.Minute)
-		reader := storage.NewReadWriter()
-		defer reader.Close()
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute)
+	reader := storage.NewReadWriter()
+	defer reader.Close()
 
-		sampled, err := reader.IsTraceSampled(sampledTraceID)
-		assert.NoError(t, err)
-		assert.True(t, sampled)
+	sampled, err := reader.IsTraceSampled(sampledTraceID)
+	assert.NoError(t, err)
+	assert.True(t, sampled)
 
-		sampled, err = reader.IsTraceSampled(unsampledTraceID)
-		assert.Equal(t, eventstorage.ErrNotFound, err)
-		assert.False(t, sampled)
+	sampled, err = reader.IsTraceSampled(unsampledTraceID)
+	assert.Equal(t, eventstorage.ErrNotFound, err)
+	assert.False(t, sampled)
 
-		var batch model.Batch
-		err = reader.ReadTraceEvents(sampledTraceID, &batch)
-		assert.NoError(t, err)
-		assert.Equal(t, sampledTraceEvents, batch)
+	var batch model.Batch
+	err = reader.ReadTraceEvents(sampledTraceID, &batch)
+	assert.NoError(t, err)
+	assert.Equal(t, sampledTraceEvents, batch)
 
-		// Even though the trace is unsampled, the events will be
-		// available in storage until the TTL expires, as they're
-		// written there first.
-		batch = batch[:0]
-		err = reader.ReadTraceEvents(unsampledTraceID, &batch)
-		assert.NoError(t, err)
-		assert.Equal(t, unsampledTraceEvents, batch)
-	})
+	// Even though the trace is unsampled, the events will be
+	// available in storage until the TTL expires, as they're
+	// written there first.
+	batch = batch[:0]
+	err = reader.ReadTraceEvents(unsampledTraceID, &batch)
+	assert.NoError(t, err)
+	assert.Equal(t, unsampledTraceEvents, batch)
 }
 
 func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
@@ -291,25 +283,23 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	withBadger(t, config.StorageDir, func(db *badger.DB) {
-		storage := eventstorage.New(db, eventstorage.JSONCodec{}, time.Minute)
-		reader := storage.NewReadWriter()
-		defer reader.Close()
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute)
+	reader := storage.NewReadWriter()
+	defer reader.Close()
 
-		var anyUnsampled bool
-		for _, traceID := range traceIDs {
-			sampled, err := reader.IsTraceSampled(traceID)
-			if err == eventstorage.ErrNotFound {
-				// No sampling decision made yet.
-			} else {
-				assert.NoError(t, err)
-				assert.False(t, sampled)
-				anyUnsampled = true
-				break
-			}
+	var anyUnsampled bool
+	for _, traceID := range traceIDs {
+		sampled, err := reader.IsTraceSampled(traceID)
+		if err == eventstorage.ErrNotFound {
+			// No sampling decision made yet.
+		} else {
+			assert.NoError(t, err)
+			assert.False(t, sampled)
+			anyUnsampled = true
+			break
 		}
-		assert.True(t, anyUnsampled)
-	})
+	}
+	assert.True(t, anyUnsampled)
 }
 
 func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
@@ -455,29 +445,27 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	assert.Equal(t, trace1Events, events)
 
-	withBadger(t, config.StorageDir, func(db *badger.DB) {
-		storage := eventstorage.New(db, eventstorage.JSONCodec{}, time.Minute)
-		reader := storage.NewReadWriter()
-		defer reader.Close()
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute)
+	reader := storage.NewReadWriter()
+	defer reader.Close()
 
-		sampled, err := reader.IsTraceSampled(traceID1)
-		assert.NoError(t, err)
-		assert.True(t, sampled)
+	sampled, err := reader.IsTraceSampled(traceID1)
+	assert.NoError(t, err)
+	assert.True(t, sampled)
 
-		sampled, err = reader.IsTraceSampled(traceID2)
-		assert.NoError(t, err)
-		assert.True(t, sampled)
+	sampled, err = reader.IsTraceSampled(traceID2)
+	assert.NoError(t, err)
+	assert.True(t, sampled)
 
-		var batch model.Batch
-		err = reader.ReadTraceEvents(traceID1, &batch)
-		assert.NoError(t, err)
-		assert.Zero(t, batch) // events are deleted from local storage
+	var batch model.Batch
+	err = reader.ReadTraceEvents(traceID1, &batch)
+	assert.NoError(t, err)
+	assert.Zero(t, batch) // events are deleted from local storage
 
-		batch = model.Batch{}
-		err = reader.ReadTraceEvents(traceID2, &batch)
-		assert.NoError(t, err)
-		assert.Empty(t, batch)
-	})
+	batch = model.Batch{}
+	err = reader.ReadTraceEvents(traceID2, &batch)
+	assert.NoError(t, err)
+	assert.Empty(t, batch)
 }
 
 func TestGroupsMonitoring(t *testing.T) {
@@ -557,7 +545,13 @@ func TestStorageGC(t *testing.T) {
 	config := newTempdirConfig(t)
 	config.TTL = 10 * time.Millisecond
 	config.FlushInterval = 10 * time.Millisecond
-	config.ValueLogFileSize = 1024 * 1024
+
+	// Create a new badger DB with smaller value log files so we can test GC.
+	config.DB.Close()
+	badgerDB, err := eventstorage.OpenBadger(config.StorageDir, 1024*1024)
+	require.NoError(t, err)
+	t.Cleanup(func() { badgerDB.Close() })
+	config.DB = badgerDB
 
 	writeBatch := func(n int) {
 		config.StorageGCInterval = time.Minute // effectively disable
@@ -644,19 +638,15 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	assert.Equal(t, `{"index_name":1}`, string(data))
 }
 
-func withBadger(tb testing.TB, storageDir string, f func(db *badger.DB)) {
-	badgerOpts := badger.DefaultOptions(storageDir)
-	badgerOpts.Logger = nil
-	db, err := badger.Open(badgerOpts)
-	require.NoError(tb, err)
-	f(db)
-	assert.NoError(tb, db.Close())
-}
-
 func newTempdirConfig(tb testing.TB) sampling.Config {
 	tempdir, err := ioutil.TempDir("", "samplingtest")
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
+
+	badgerDB, err := eventstorage.OpenBadger(tempdir, 0)
+	require.NoError(tb, err)
+	tb.Cleanup(func() { badgerDB.Close() })
+
 	return sampling.Config{
 		BeatID:         "local-apm-server",
 		BatchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil }),
@@ -677,6 +667,7 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 			},
 		},
 		StorageConfig: sampling.StorageConfig{
+			DB:                badgerDB,
 			StorageDir:        tempdir,
 			StorageGCInterval: time.Second,
 			TTL:               30 * time.Minute,
