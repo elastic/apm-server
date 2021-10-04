@@ -158,8 +158,6 @@ func (m TransactionMark) fields() common.MapStr {
 }
 
 type DroppedSpanStats struct {
-	Type                       string
-	Subtype                    string
 	DestinationServiceResource string
 	Outcome                    string
 	Duration                   AggregatedDuration
@@ -167,8 +165,6 @@ type DroppedSpanStats struct {
 
 func (stat DroppedSpanStats) fields() common.MapStr {
 	var out mapStr
-	out.maybeSetString("type", stat.Type)
-	out.maybeSetString("subtype", stat.Subtype)
 	out.maybeSetString("destination_service_resource",
 		stat.DestinationServiceResource,
 	)

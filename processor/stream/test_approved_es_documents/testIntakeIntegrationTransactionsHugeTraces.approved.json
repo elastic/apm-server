@@ -179,9 +179,7 @@
                             "count": 2,
                             "sum.us": 123456
                         },
-                        "outcome": "failure",
-                        "subtype": "http",
-                        "type": "request"
+                        "outcome": "failure"
                     },
                     {
                         "destination_service_resource": "mysql",
@@ -189,9 +187,7 @@
                             "count": 1,
                             "sum.us": 9876543
                         },
-                        "outcome": "success",
-                        "subtype": "mysql",
-                        "type": "db"
+                        "outcome": "success"
                     }
                 ],
                 "duration": {
