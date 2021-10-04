@@ -62,6 +62,7 @@ func TestMonitoring(t *testing.T) {
 	home := t.TempDir()
 	err := paths.InitPaths(&paths.Path{Home: home})
 	require.NoError(t, err)
+	defer closeBadger() // close badger.DB so data dir can be deleted on Windows
 
 	cfg := config.DefaultConfig()
 	cfg.DataStreams.Enabled = true

@@ -14,7 +14,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20210920152751-582170a1676b // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210923221751-7e4affb6702a
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210930212043-3c77c9a92a2e
 	github.com/elastic/ecs v1.11.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210922110810-e6f1f402a9ed // indirect
 	github.com/elastic/gmux v0.1.0
@@ -31,14 +31,14 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/jaegertracing/jaeger v1.25.0
-	github.com/jcchavezs/porto v0.2.0 // indirect
+	github.com/jcchavezs/porto v0.2.1 // indirect
 	github.com/josephspurrier/goversioninfo v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.11
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/libp2p/go-reuseport v0.0.2
 	github.com/magefile/mage v1.11.0
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-colorable v0.1.10 // indirect
+	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.34.0
@@ -67,12 +67,12 @@ require (
 	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/mod v0.5.1 // indirect
-	golang.org/x/net v0.0.0-20210924151903-3ad01bbaa167
+	golang.org/x/net v0.0.0-20210929193557-e81a3d93ecf6
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20210927052749-1cf2251ac284 // indirect
+	golang.org/x/sys v0.0.0-20210930212924-f542c8878de8 // indirect
 	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6
-	golang.org/x/tools v0.1.6
-	google.golang.org/genproto v0.0.0-20210924002016-3dee208752a0 // indirect
+	golang.org/x/tools v0.1.7
+	google.golang.org/genproto v0.0.0-20210930144712-2e2e1008e8a3 // indirect
 	google.golang.org/grpc v1.41.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.7.0
