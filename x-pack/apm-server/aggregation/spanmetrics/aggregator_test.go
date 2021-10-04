@@ -243,8 +243,6 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			RepresentativeCount: 2,
 			DroppedSpansStats: []model.DroppedSpanStats{
 				{
-					Type:                       "request",
-					Subtype:                    "elasticsearch",
 					DestinationServiceResource: "https://elasticsearch:9200",
 					Outcome:                    "success",
 					Duration: model.AggregatedDuration{
@@ -253,8 +251,6 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					},
 				},
 				{
-					Type:                       "query",
-					Subtype:                    "mysql",
 					DestinationServiceResource: "mysql://mysql:3306",
 					Outcome:                    "unknown",
 					Duration: model.AggregatedDuration{

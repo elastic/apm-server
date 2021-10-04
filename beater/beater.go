@@ -90,7 +90,7 @@ func NewCreator(args CreatorParams) beat.Creator {
 			stopped:       false,
 			logger:        logger,
 			wrapRunServer: args.WrapRunServer,
-			waitPublished: newWaitPublishedAcker(),
+			waitPublished: publish.NewWaitPublishedAcker(),
 		}
 
 		var err error
@@ -126,7 +126,7 @@ type beater struct {
 	config        *config.Config
 	logger        *logp.Logger
 	wrapRunServer func(RunServerFunc) RunServerFunc
-	waitPublished *waitPublishedAcker
+	waitPublished *publish.WaitPublishedAcker
 
 	mutex      sync.Mutex // guards stopServer and stopped
 	stopServer func()
@@ -285,7 +285,7 @@ type serverRunner struct {
 	done                   chan struct{}
 
 	pipeline      beat.PipelineConnector
-	acker         *waitPublishedAcker
+	acker         *publish.WaitPublishedAcker
 	namespace     string
 	config        *config.Config
 	rawConfig     *common.Config
@@ -311,7 +311,7 @@ type sharedServerRunnerParams struct {
 	Logger        *logp.Logger
 	Tracer        *apm.Tracer
 	TracerServer  *tracerServer
-	Acker         *waitPublishedAcker
+	Acker         *publish.WaitPublishedAcker
 }
 
 func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunner, error) {
@@ -465,15 +465,19 @@ func (s *serverRunner) run(listener net.Listener) error {
 	}
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
-	batchProcessor := s.newFinalBatchProcessor(reporter)
+	batchProcessor := make(modelprocessor.Chained, 0, 3)
 	if !s.config.Sampling.KeepUnsampled {
 		// The server has been configured to discard unsampled
 		// transactions. Make sure this is done just before calling
 		// the publisher to avoid affecting aggregations.
-		batchProcessor = modelprocessor.Chained{
-			sampling.NewDiscardUnsampledBatchProcessor(), batchProcessor,
-		}
+		batchProcessor = append(batchProcessor,
+			sampling.NewDiscardUnsampledBatchProcessor(),
+		)
 	}
+	batchProcessor = append(batchProcessor,
+		modelprocessor.DroppedSpansStatsDiscarder{},
+		s.newFinalBatchProcessor(publisher),
+	)
 
 	g.Go(func() error {
 		return runServer(ctx, ServerParams{
@@ -569,8 +573,8 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 }
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events.
-func (s *serverRunner) newFinalBatchProcessor(libbeatReporter publish.Reporter) model.BatchProcessor {
-	return &reporterBatchProcessor{libbeatReporter}
+func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) model.BatchProcessor {
+	return p
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
@@ -798,17 +802,6 @@ func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...model.Ba
 		args.BatchProcessor = modelprocessor.Chained(processors)
 		return runServer(ctx, args)
 	}
-}
-
-type disablePublisherTracingKey struct{}
-
-type reporterBatchProcessor struct {
-	reporter publish.Reporter
-}
-
-func (p *reporterBatchProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
-	disableTracing, _ := ctx.Value(disablePublisherTracingKey{}).(bool)
-	return p.reporter(ctx, publish.PendingReq{Transformable: batch, Trace: !disableTracing})
 }
 
 // augmentedReporter wraps publish.Reporter such that the events it reports have

@@ -13,6 +13,8 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed `metricset.period` from service_destination metrics {pull}6111[6111]
 - Removed `http.request.socket` fields {pull}6152[6152]
 - Removed unused `transaction.duration.{count,sum.us}` metric fields {pull}6174[6174]
+- Removed `apm-server.sampling.tail.storage_dir` config {pull}6236[6236]
+- Removed `ProcessPending` self-instrumentation events {pull}6243[6243]
 
 [float]
 ==== Bug fixes

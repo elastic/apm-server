@@ -159,14 +159,10 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var esDss, mysqlDss transactionDroppedSpanStats
 
 		durationSumUs := 10_290_000
-		esDss.Type.Set("request")
-		esDss.Subtype.Set("elasticsearch")
 		esDss.DestinationServiceResource.Set("https://elasticsearch:9200")
 		esDss.Outcome.Set("success")
 		esDss.Duration.Count.Set(2)
 		esDss.Duration.Sum.Us.Set(durationSumUs)
-		mysqlDss.Type.Set("query")
-		mysqlDss.Subtype.Set("mysql")
 		mysqlDss.DestinationServiceResource.Set("mysql://mysql:3306")
 		mysqlDss.Outcome.Set("unknown")
 		mysqlDss.Duration.Count.Set(10)
@@ -177,8 +173,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		expected := model.APMEvent{Transaction: &model.Transaction{
 			DroppedSpansStats: []model.DroppedSpanStats{
 				{
-					Type:                       "request",
-					Subtype:                    "elasticsearch",
 					DestinationServiceResource: "https://elasticsearch:9200",
 					Outcome:                    "success",
 					Duration: model.AggregatedDuration{
@@ -187,8 +181,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 					},
 				},
 				{
-					Type:                       "query",
-					Subtype:                    "mysql",
 					DestinationServiceResource: "mysql://mysql:3306",
 					Outcome:                    "unknown",
 					Duration: model.AggregatedDuration{
