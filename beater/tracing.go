@@ -117,9 +117,6 @@ func (s *tracerServer) serve(ctx context.Context, batchProcessor model.BatchProc
 		case <-ctx.Done():
 			return ctx.Err()
 		case req := <-s.requests:
-			// Disable tracing for requests that come through the
-			// tracer server, to avoid recursive tracing.
-			req.ctx = context.WithValue(req.ctx, disablePublisherTracingKey{}, true)
 			req.res <- batchProcessor.ProcessBatch(req.ctx, req.batch)
 		}
 	}
