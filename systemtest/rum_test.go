@@ -70,17 +70,6 @@ func TestRUMXForwardedFor(t *testing.T) {
 		// slightly depending on the IP lookup.
 		"client.geo.location",
 	)
-
-	var location = make(map[string]interface{})
-	var ip string
-	for _, doc := range result.Hits.Hits {
-		client := doc.Source["client"].(map[string]interface{})
-		ip = client["ip"].(string)
-		location = client["geo"].(map[string]interface{})["location"].(map[string]interface{})
-	}
-	assert.Contains(t, location, "lat")
-	assert.Contains(t, location, "lon")
-	assert.Equal(t, ipAddress, ip)
 }
 
 func TestRUMAllowServiceNames(t *testing.T) {
