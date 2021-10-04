@@ -66,22 +66,20 @@ func TestRUMXForwardedFor(t *testing.T) {
 		"@timestamp", "timestamp.us",
 		// RUM events have the source port recorded, and in the tests it will be dynamic
 		"source.port",
-		// Do not assert the exact contents of the geo field since they can change slightly
-		// depending on the IP lookup.
-		"client.geo",
+		// Do not assert the exact contents of the location field since they may change
+		// slightly depending on the IP lookup.
+		"client.geo.location",
 	)
 
-	var geo = make(map[string]interface{})
+	var location = make(map[string]interface{})
 	var ip string
 	for _, doc := range result.Hits.Hits {
 		client := doc.Source["client"].(map[string]interface{})
 		ip = client["ip"].(string)
-		geo = client["geo"].(map[string]interface{})
+		location = client["geo"].(map[string]interface{})["location"].(map[string]interface{})
 	}
-	assert.NotZero(t, geo)
-	assert.Contains(t, geo, "location")
-	assert.Contains(t, geo, "region_iso_code")
-	assert.Contains(t, geo, "country_iso_code")
+	assert.Contains(t, location, "lat")
+	assert.Contains(t, location, "lon")
 	assert.Equal(t, ipAddress, ip)
 }
 
