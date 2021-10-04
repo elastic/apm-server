@@ -7,6 +7,7 @@ package sampling
 import (
 	"time"
 
+	"github.com/dgraph-io/badger/v2"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/elasticsearch"
@@ -84,6 +85,11 @@ type DataStreamConfig struct {
 
 // StorageConfig holds Processor configuration related to event storage.
 type StorageConfig struct {
+	// DB holds the badger database in which event storage will be maintained.
+	//
+	// DB will not be closed when the processor is closed.
+	DB *badger.DB
+
 	// StorageDir holds the directory in which event storage will be maintained.
 	StorageDir string
 
@@ -93,10 +99,6 @@ type StorageConfig struct {
 	// TTL holds the amount of time before events and sampling decisions
 	// are expired from local storage.
 	TTL time.Duration
-
-	// ValueLogFileSize holds the size for Badger value log files.
-	// If unspecified, then the default value of 128MB will be used.
-	ValueLogFileSize int64
 }
 
 // Policy holds a tail-sampling policy: criteria for matching root transactions,
@@ -210,6 +212,9 @@ func (config DataStreamConfig) validate() error {
 }
 
 func (config StorageConfig) validate() error {
+	if config.DB == nil {
+		return errors.New("DB unspecified")
+	}
 	if config.StorageDir == "" {
 		return errors.New("StorageDir unspecified")
 	}
