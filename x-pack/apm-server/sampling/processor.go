@@ -56,12 +56,11 @@ type Processor struct {
 }
 
 type eventMetrics struct {
-	processed      int64
-	dropped        int64
-	stored         int64
-	sampled        int64
-	head_unsampled int64
-	unprocessed    int64
+	processed     int64
+	dropped       int64
+	stored        int64
+	sampled       int64
+	headUnsampled int64
 }
 
 // NewProcessor returns a new Processor, for tail-sampling trace events.
@@ -121,8 +120,7 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 		monitoring.ReportInt(V, "dropped", atomic.LoadInt64(&p.eventMetrics.dropped))
 		monitoring.ReportInt(V, "stored", atomic.LoadInt64(&p.eventMetrics.stored))
 		monitoring.ReportInt(V, "sampled", atomic.LoadInt64(&p.eventMetrics.sampled))
-		monitoring.ReportInt(V, "head_unsampled", atomic.LoadInt64(&p.eventMetrics.head_unsampled))
-		monitoring.ReportInt(V, "unprocessed", atomic.LoadInt64(&p.eventMetrics.unprocessed))
+		monitoring.ReportInt(V, "head_unsampled", atomic.LoadInt64(&p.eventMetrics.headUnsampled))
 	})
 }
 
@@ -164,8 +162,6 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 				return err
 			}
 			p.updateProcessorMetrics(report, stored)
-		default:
-			atomic.AddInt64(&p.eventMetrics.unprocessed, 1)
 		}
 		if !report {
 			// We shouldn't report this event, so remove it from the slice.
@@ -200,7 +196,7 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 	if !event.Transaction.Sampled {
 		// (Head-based) unsampled transactions are passed through
 		// by the tail sampler.
-		atomic.AddInt64(&p.eventMetrics.head_unsampled, 1)
+		atomic.AddInt64(&p.eventMetrics.headUnsampled, 1)
 		return true, false, nil
 	}
 
