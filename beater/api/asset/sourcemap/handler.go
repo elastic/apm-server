@@ -97,7 +97,6 @@ func Handler(report publish.Reporter, notifier AddedNotifier) request.Handler {
 		req := publish.PendingReq{Transformable: &smap}
 		span, ctx := apm.StartSpan(c.Request.Context(), "Send", "Reporter")
 		defer span.End()
-		req.Trace = !span.Dropped()
 		if err := report(ctx, req); err != nil {
 			if err == publish.ErrChannelClosed {
 				c.Result.SetWithError(request.IDResponseErrorsShuttingDown, err)
