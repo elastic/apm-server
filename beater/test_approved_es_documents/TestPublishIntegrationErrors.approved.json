@@ -227,7 +227,9 @@
             },
             "http": {
                 "request": {
-                    "body.original": "Hello World",
+                    "body": {
+                        "original": "Hello World"
+                    },
                     "cookies": {
                         "c1": "v1",
                         "c2": "v2"

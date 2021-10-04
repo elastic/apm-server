@@ -149,7 +149,9 @@
             },
             "http": {
                 "request": {
-                    "body.original": "HelloWorld",
+                    "body": {
+                        "original": "HelloWorld"
+                    },
                     "cookies": {
                         "c1": "v1",
                         "c2": "v2"
@@ -455,12 +457,14 @@
             },
             "http": {
                 "request": {
-                    "body.original": {
-                        "additional": {
-                            "bar": 123,
-                            "req": "additionalinformation"
-                        },
-                        "string": "helloworld"
+                    "body": {
+                        "original": {
+                            "additional": {
+                                "bar": 123,
+                                "req": "additionalinformation"
+                            },
+                            "string": "helloworld"
+                        }
                     },
                     "cookies": {
                         "c1": "v1",
