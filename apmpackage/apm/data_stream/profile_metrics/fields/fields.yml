@@ -196,10 +196,6 @@
   description: |
     Service fields.
   fields:
-    - name: environment
-      type: keyword
-      description: |
-        Service environment.
     - name: framework
       type: group
       fields:
