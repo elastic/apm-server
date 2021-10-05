@@ -39,17 +39,17 @@ and continues to propagate the trace.
 In this example, Elastic's Ruby agent communicates with Elastic's Java agent.
 Both support the `traceparent` header, and trace data is successfully propagated.
 
-image::images/dt-trace-ex1.png[How traceparent propagation works]
+image::./../legacy/guide/images/dt-trace-ex1.png[How traceparent propagation works]
 
 In this example, Elastic's Ruby agent communicates with OpenTelemetry's Java agent.
 Both support the `traceparent` header, and trace data is successfully propagated.
 
-image::images/dt-trace-ex2.png[How traceparent propagation works]
+image::./../legacy/guide/images/dt-trace-ex2.png[How traceparent propagation works]
 
 In this example, the trace meets a piece of middleware that doesn't propagate the `traceparent` header.
 The distributed trace ends and any further communication will result in a new trace.
 
-image::images/dt-trace-ex3.png[How traceparent propagation works]
+image::./../legacy/guide/images/dt-trace-ex3.png[How traceparent propagation works]
 
 
 [float]
@@ -80,7 +80,7 @@ For backward-compatibility purposes, new versions of Elastic agents still suppor
 The APM app's timeline visualization provides a visual deep-dive into each of your application's traces:
 
 [role="screenshot"]
-image::images/apm-distributed-tracing.png[Distributed tracing in the APM UI]
+image::./../legacy/guide/images/apm-distributed-tracing.png[Distributed tracing in the APM UI]
 
 [float]
 === Manual distributed tracing
@@ -96,7 +96,7 @@ with each agent's API.
 Sending services must add the `traceparent` header to outgoing requests.
 
 --
-include::../tab-widgets/distributed-trace-send-widget.asciidoc[]
+include::../../tab-widgets/distributed-trace-send-widget.asciidoc[]
 --
 
 [float]
@@ -106,7 +106,7 @@ Receiving services must parse the incoming `traceparent` header,
 and start a new transaction or span as a child of the received context.
 
 --
-include::../tab-widgets/distributed-trace-receive-widget.asciidoc[]
+include::../../tab-widgets/distributed-trace-receive-widget.asciidoc[]
 --
 
 [float]

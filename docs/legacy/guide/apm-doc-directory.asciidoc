@@ -3,7 +3,7 @@
 
 Elastic APM consists of four components: *APM agents*, *APM Server*, *Elasticsearch*, and *Kibana*.
 
-image::images/apm-architecture-cloud.png[Architecture of Elastic APM]
+image::./../legacy/guide/images/apm-architecture-cloud.png[Architecture of Elastic APM]
 
 [float]
 ==== APM Agents
