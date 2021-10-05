@@ -1,6 +1,8 @@
 include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
+:apm-integration-docs:
+
 [[apm-integration-guide]]
 = APM Integration Guide
 
