@@ -895,13 +895,7 @@
           "type": [
             "null",
             "object"
-          ],
-          "additionalProperties": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
+          ]
         },
         "span_kind": {
           "description": "SpanKind holds the incoming Open Telemetry span kind.",
