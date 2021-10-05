@@ -17,26 +17,63 @@
 
 package model
 
-import "github.com/elastic/beats/v7/libbeat/common"
+import (
+	"strings"
 
-const (
-	FirehoseLogDataset = "firehose.log"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-// FirehoseProcessor is the Processor value that should be assigned to firehose events.
-var FirehoseProcessor = Processor{Name: "firehose", Event: "log"}
+const (
+	FirehoseDataset = "firehose"
+
+	arnDelimiter     = ":"
+	arnSections      = 6
+	sectionPartition = 1
+	sectionService   = 2
+	sectionRegion    = 3
+	sectionAccountID = 4
+	sectionResource  = 5
+)
 
 // Firehose holds a firehose sample.
 type Firehose struct {
-	Message         string
-	ARN             string
-	ForwardedServer string
+	Message string
+	ARN     string
+}
+
+// ARN struct separate the Amazon Resource Name into individual fields.
+type ARN struct {
+	Partition string
+	Service   string
+	Region    string
+	AccountID string
+	Resource  string
 }
 
 func (f *Firehose) setFields(fields *mapStr) {
 	var firehoseFields mapStr
-	firehoseFields.maybeSetString("arn", f.ARN)
-	firehoseFields.maybeSetString("forwarded_server", f.ForwardedServer)
 	fields.set("firehose", common.MapStr(firehoseFields))
 	fields.set("message", f.Message)
+
+	arn := parseARN(f.ARN)
+	fields.set("cloud.origin.region", arn.Region)
+	fields.set("cloud.origin.account.id", arn.AccountID)
+	fields.set("agent.id", f.ARN)
+	fields.set("agent.name", arn.Resource)
+}
+
+func parseARN(arn string) ARN {
+	// arn example for firehose:
+	// arn:aws:firehose:us-east-1:123456789:deliverystream/vpc-flow-log-stream-http-endpoint
+	sections := strings.SplitN(arn, arnDelimiter, arnSections)
+	if len(sections) != arnSections {
+		return ARN{}
+	}
+	return ARN{
+		Partition: sections[sectionPartition],
+		Service:   sections[sectionService],
+		Region:    sections[sectionRegion],
+		AccountID: sections[sectionAccountID],
+		Resource:  sections[sectionResource],
+	}
 }

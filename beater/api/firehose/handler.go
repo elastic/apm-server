@@ -99,11 +99,10 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 
 				event := baseEvent
 				event.Timestamp = time.Unix(firehose.Timestamp/1000, 0)
-				event.Processor = model.FirehoseProcessor
-				event.FirehoseLog = &model.Firehose{
-					Message:         line,
-					ARN:             c.Request.Header.Get("X-Amz-Firehose-Source-Arn"),
-					ForwardedServer: c.Request.Header.Get("X-Forwarded-Server"),
+				event.Processor = model.LogProcessor
+				event.Firehose = &model.Firehose{
+					Message: line,
+					ARN:     c.Request.Header.Get("X-Amz-Firehose-Source-Arn"),
 				}
 				batch = append(batch, event)
 			}

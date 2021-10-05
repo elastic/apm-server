@@ -25,6 +25,7 @@ import (
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 // Authenticator provides an interface for authenticating a client.
@@ -42,13 +43,6 @@ type Authenticator interface {
 func AuthMiddleware(authenticator Authenticator, required bool) Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			// Create Authorization header using X-Amz-Firehose-Access-Key header
-			// This is only for Firehose HTTP request
-			accessKey := c.Request.Header.Get("X-Amz-Firehose-Access-Key")
-			if accessKey != "" {
-				c.Request.Header.Add("Authorization", "ApiKey "+accessKey)
-			}
-
 			header := c.Request.Header.Get(headers.Authorization)
 			kind, token := auth.ParseAuthorizationHeader(header)
 			details, authorizer, err := authenticator.Authenticate(c.Request.Context(), kind, token)
@@ -85,6 +79,27 @@ func AuthMiddleware(authenticator Authenticator, required bool) Middleware {
 					c.Result.Set(id, status.Code, c.Result.Keyword, c.Result.Body, c.Result.Err)
 				}
 			}
+		}, nil
+	}
+}
+
+// FirehoseAuthMiddleware returns a middleware taking care of authorization header for Firehose
+func FirehoseAuthMiddleware() Middleware {
+	return func(h request.Handler) (request.Handler, error) {
+		return func(c *request.Context) {
+			// Create Authorization header using X-Amz-Firehose-Access-Key header
+			// This is only for Firehose HTTP request
+			accessKey := c.Request.Header.Get("X-Amz-Firehose-Access-Key")
+			var err error
+			if accessKey == "" {
+				id := request.IDResponseErrorsUnauthorized
+				c.Logger.Error(request.MapResultIDToStatus[id].Keyword, logp.Error(err))
+				c.Result.SetWithError(id, err)
+				c.Write()
+				return
+			}
+			c.Request.Header.Add("Authorization", "ApiKey "+accessKey)
+			h(c)
 		}, nil
 	}
 }

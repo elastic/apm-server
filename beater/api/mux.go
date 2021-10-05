@@ -173,7 +173,7 @@ func (r *routeBuilder) firehoseLogHandler() (request.Handler, error) {
 		requestMetadataFunc = backendRequestMetadata
 	}
 	h := firehose.Handler(requestMetadataFunc, r.batchProcessor, r.authenticator)
-	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
+	return middleware.Wrap(h, firehoseMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
@@ -324,6 +324,16 @@ func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []mid
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthMiddleware(authenticator, false),
 	)
+}
+
+func firehoseMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+	backendMiddleware := append(apmMiddleware(m),
+		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
+		middleware.FirehoseAuthMiddleware(),
+		middleware.AuthMiddleware(authenticator, true),
+		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
+	)
+	return backendMiddleware
 }
 
 func emptyRequestMetadata(c *request.Context) model.APMEvent {
