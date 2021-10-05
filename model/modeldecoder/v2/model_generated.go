@@ -1621,7 +1621,7 @@ func (val *spanRoot) validate() error {
 }
 
 func (val *span) IsSet() bool {
-	return val.Action.IsSet() || (len(val.ChildIDs) > 0) || val.Composite.IsSet() || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.SampleRate.IsSet() || (len(val.Stacktrace) > 0) || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Type.IsSet()
+	return val.Action.IsSet() || (len(val.ChildIDs) > 0) || val.Composite.IsSet() || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.OTEL.IsSet() || val.ParentID.IsSet() || val.SampleRate.IsSet() || (len(val.Stacktrace) > 0) || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Type.IsSet()
 }
 
 func (val *span) Reset() {
@@ -1633,6 +1633,7 @@ func (val *span) Reset() {
 	val.ID.Reset()
 	val.Name.Reset()
 	val.Outcome.Reset()
+	val.OTEL.Reset()
 	val.ParentID.Reset()
 	val.SampleRate.Reset()
 	for i := range val.Stacktrace {
@@ -1695,6 +1696,9 @@ func (val *span) validate() error {
 		if !matchEnum {
 			return fmt.Errorf("'outcome': validation rule 'enum(enumOutcome)' violated")
 		}
+	}
+	if err := val.OTEL.validate(); err != nil {
+		return errors.Wrapf(err, "otel")
 	}
 	if val.ParentID.IsSet() && utf8.RuneCountInString(val.ParentID.Val) > 1024 {
 		return fmt.Errorf("'parent_id': validation rule 'maxLength(1024)' violated")
@@ -1931,6 +1935,24 @@ func (val *spanContextHTTPResponse) validate() error {
 	return nil
 }
 
+func (val *otel) IsSet() bool {
+	return val.SpanKind.IsSet() || (len(val.Attributes) > 0)
+}
+
+func (val *otel) Reset() {
+	val.SpanKind.Reset()
+	for k := range val.Attributes {
+		delete(val.Attributes, k)
+	}
+}
+
+func (val *otel) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
 func (val *transactionRoot) IsSet() bool {
 	return val.Transaction.IsSet()
 }
@@ -1950,7 +1972,7 @@ func (val *transactionRoot) validate() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || (len(val.DroppedSpanStats) > 0) || val.Duration.IsSet() || val.FAAS.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.Session.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
+	return val.Context.IsSet() || (len(val.DroppedSpanStats) > 0) || val.Duration.IsSet() || val.FAAS.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.OTEL.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.Session.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
 }
 
 func (val *transaction) Reset() {
@@ -1964,6 +1986,7 @@ func (val *transaction) Reset() {
 	val.ID.Reset()
 	val.Marks.Reset()
 	val.Name.Reset()
+	val.OTEL.Reset()
 	val.Outcome.Reset()
 	val.ParentID.Reset()
 	val.Result.Reset()
@@ -2009,6 +2032,9 @@ func (val *transaction) validate() error {
 	}
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
+	}
+	if err := val.OTEL.validate(); err != nil {
+		return errors.Wrapf(err, "otel")
 	}
 	if val.Outcome.Val != "" {
 		var matchEnum bool
