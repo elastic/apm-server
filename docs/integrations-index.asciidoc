@@ -6,19 +6,19 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 
 // THIS IS APM OVERVIEW CONTENT
-include::./guide/overview.asciidoc[]
+include::./legacy/guide/overview.asciidoc[]
 
-include::./guide/apm-doc-directory.asciidoc[]
+include::./legacy/guide/apm-doc-directory.asciidoc[]
 
-include::./guide/install-and-run.asciidoc[]
+include::./legacy/guide/install-and-run.asciidoc[]
 
-include::./guide/quick-start-overview.asciidoc[]
+include::./legacy/guide/quick-start-overview.asciidoc[]
 
-include::./guide/apm-data-model.asciidoc[]
+include::./legacy/guide/apm-data-model.asciidoc[]
 
-include::./guide/features.asciidoc[]
+include::./legacy/guide/features.asciidoc[]
 
-include::./guide/agent-server-compatibility.asciidoc[]
+include::./legacy/guide/agent-server-compatibility.asciidoc[]
 
 // include::./guide/troubleshooting.asciidoc[]
 

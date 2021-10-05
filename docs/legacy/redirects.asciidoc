@@ -251,17 +251,17 @@ https://github.com/elastic/apm-contrib/tree/master/kibana[apm-contrib] repositor
 
 // This section has moved. Please see <<configuration-rum>>.
 
-[role="exclude",id="apm-integration"]
-=== APM integration
+// [role="exclude",id="apm-integration"]
+// === APM integration
 
-This section has moved.
+// This section has moved.
 
-[role="exclude",id="apm-integration-ilm"]
-=== APM integration
+// [role="exclude",id="apm-integration-ilm"]
+// === APM integration
 
-This section has moved.
+// This section has moved.
 
-[role="exclude",id="apm-integration-pipelines"]
-=== APM integration
+// [role="exclude",id="apm-integration-pipelines"]
+// === APM integration
 
-This section has moved.
+// This section has moved.
