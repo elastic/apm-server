@@ -29,11 +29,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-<<<<<<< HEAD
-    issueCommentTrigger('(?i)(.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:(hey-apm|package|arm)\\W+)?tests(?:\\W+please)?.*|^\\/test|^\\/hey-apm|^\\/package|^\\/arm)')
-=======
     issueCommentTrigger("(${obltGitHubComments()}|^run\\W+(?:the\\W+)?(hey-apm|package|arm)\\W+tests|^/test|^/hey-apm|^/package)")
->>>>>>> e7b23248 (ci: fix comment issue regex (#6282))
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
