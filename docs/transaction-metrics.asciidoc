@@ -77,6 +77,8 @@ Default: `2`.
 [float]
 ==== `keep_unsampled`
 
+Deprecated: `keep_unsampled` will default to `false` in 8.0, and later be removed.
+
 Controls the recording of unsampled transaction documents.
 Dropping unsampled documents (`keep_unsampled: false`) reduces APM's storage consumption.
 

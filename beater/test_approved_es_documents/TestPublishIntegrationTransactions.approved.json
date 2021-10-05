@@ -33,7 +33,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -164,7 +164,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "event": {
                 "outcome": "success"
@@ -180,12 +180,14 @@
             },
             "http": {
                 "request": {
-                    "body.original": {
-                        "additional": {
-                            "bar": 123,
-                            "req": "additional information"
-                        },
-                        "str": "hello world"
+                    "body": {
+                        "original": {
+                            "additional": {
+                                "bar": 123,
+                                "req": "additional information"
+                            },
+                            "str": "hello world"
+                        }
                     },
                     "cookies": {
                         "c1": "v1",
@@ -377,7 +379,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -528,7 +530,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -686,7 +688,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "event": {
                 "outcome": "unknown"

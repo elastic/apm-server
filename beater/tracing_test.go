@@ -18,6 +18,7 @@
 package beater
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -27,128 +28,44 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/beater/api"
 )
 
-// transactions from testdata/intake-v2/transactions.ndjson used to trigger tracing
-var testTransactionIds = map[string]bool{
-	"945254c567a5417e":     true,
-	"4340a8e0df1906ecbfa9": true,
-	"cdef4340a8e0df19":     true,
-	"00xxxxFFaaaa1234":     true,
-	"142e61450efb8574":     true,
-}
-
 func TestServerTracingEnabled(t *testing.T) {
-	events, teardown := setupTestServerInstrumentation(t, true)
-	defer teardown()
-
-	txEvents := transactionEvents(events)
-	var selfTransactions []string
-	for len(selfTransactions) < 2 {
-		select {
-		case e := <-txEvents:
-			if testTransactionIds[eventTransactionId(e)] {
-				continue
-			}
-
-			// Check that self-instrumentation goes through the
-			// reporter wrapped by setupBeater.
-			wrapped, _ := e.GetValue("labels.wrapped_reporter")
-			assert.Equal(t, true, wrapped)
-
-			selfTransactions = append(selfTransactions, eventTransactionName(e))
-		case <-time.After(5 * time.Second):
-			assert.FailNow(t, "timed out waiting for transaction")
-		}
-	}
-	assert.Contains(t, selfTransactions, "POST "+api.IntakePath)
-	assert.Contains(t, selfTransactions, "ProcessPending")
-
-	// We expect no more events, i.e. no recursive self-tracing.
-	for {
-		select {
-		case e := <-txEvents:
-			assert.FailNowf(t, "unexpected event", "%v", e)
-		case <-time.After(time.Second):
-			return
-		}
-	}
-}
-
-func TestServerTracingDisabled(t *testing.T) {
-	events, teardown := setupTestServerInstrumentation(t, false)
-	defer teardown()
-
-	txEvents := transactionEvents(events)
-	for {
-		select {
-		case e := <-txEvents:
-			assert.Contains(t, testTransactionIds, eventTransactionId(e))
-		case <-time.After(time.Second):
-			return
-		}
-	}
-}
-
-func eventTransactionId(event beat.Event) string {
-	transaction := event.Fields["transaction"].(common.MapStr)
-	return transaction["id"].(string)
-}
-
-func eventTransactionName(event beat.Event) string {
-	transaction := event.Fields["transaction"].(common.MapStr)
-	return transaction["name"].(string)
-}
-
-func transactionEvents(events <-chan beat.Event) <-chan beat.Event {
-	out := make(chan beat.Event, 1)
-	go func() {
-		defer close(out)
-		for event := range events {
-			processor := event.Fields["processor"].(common.MapStr)
-			if processor["event"] == "transaction" {
-				out <- event
-			}
-		}
-	}()
-	return out
-}
-
-// setupTestServerInstrumentation sets up a beater with or without instrumentation enabled,
-// and returns a channel to which events are published, and a function to be
-// called to teardown the beater. The initial onboarding event is consumed
-// and a transactions request is made before returning.
-func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event, func()) {
-	if testing.Short() {
-		t.Skip("skipping server test")
-	}
-
-	os.Setenv("ELASTIC_APM_API_REQUEST_TIME", "100ms")
+	os.Setenv("ELASTIC_APM_API_REQUEST_TIME", "10ms")
 	defer os.Unsetenv("ELASTIC_APM_API_REQUEST_TIME")
 
-	events := make(chan beat.Event, 10)
+	for _, enabled := range []bool{false, true} {
+		t.Run(fmt.Sprint(enabled), func(t *testing.T) {
+			cfg := common.MustNewConfigFrom(m{
+				"host":                              "localhost:0",
+				"data_streams.enabled":              true,
+				"data_streams.wait_for_integration": false,
+				"instrumentation.enabled":           enabled,
+			})
+			events := make(chan beat.Event, 10)
+			beater, err := setupServer(t, cfg, nil, events)
+			require.NoError(t, err)
 
-	cfg := common.MustNewConfigFrom(m{
-		"instrumentation": m{"enabled": enabled},
-		"host":            "localhost:0",
-		"secret_token":    "foo",
-	})
-	beater, err := setupServer(t, cfg, nil, events)
-	require.NoError(t, err)
+			// Make an HTTP request to the server, which should be traced
+			// if instrumentation is enabled.
+			resp, err := beater.client.Get(beater.baseURL + "/foo")
+			assert.NoError(t, err)
+			resp.Body.Close()
 
-	// onboarding event
-	e := <-events
-	assert.Equal(t, "onboarding", e.Fields["processor"].(common.MapStr)["name"])
+			if enabled {
+				select {
+				case <-events:
+				case <-time.After(10 * time.Second):
+					t.Fatal("timed out waiting for event")
+				}
+			}
 
-	// Send a transaction request so we have something to trace.
-	req := makeTransactionRequest(t, beater.baseURL)
-	req.Header.Add("Content-Type", "application/x-ndjson")
-	req.Header.Add("Authorization", "Bearer foo")
-	resp, err := beater.client.Do(req)
-	assert.NoError(t, err)
-	resp.Body.Close()
-
-	return events, beater.Stop
+			// We expect no more events, i.e. no recursive self-tracing.
+			select {
+			case e := <-events:
+				t.Errorf("unexpected event: %v", e)
+			case <-time.After(100 * time.Millisecond):
+			}
+		})
+	}
 }

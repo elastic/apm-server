@@ -13,6 +13,8 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed `metricset.period` from service_destination metrics {pull}6111[6111]
 - Removed `http.request.socket` fields {pull}6152[6152]
 - Removed unused `transaction.duration.{count,sum.us}` metric fields {pull}6174[6174]
+- Removed `apm-server.sampling.tail.storage_dir` config {pull}6236[6236]
+- Removed `ProcessPending` self-instrumentation events {pull}6243[6243]
 
 [float]
 ==== Bug fixes
@@ -40,3 +42,4 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Setting `service.version` as a span tag (Jaeger) or attribute (OTel) is deprecated; use tracer tags (Jaeger) and resource attributes (OTel) {pull}6131[6131]
 - Setting up Elasticsearch templates, ILM policies, and pipelines directly with apm-server is now deprecated. Users should use the integration package {pull}6145[6145]
 - `span.http.*` fields are deprecated, replaced by `http.*`, and will be removed in 8.0 {pull}6147[6147]
+- Add deprecation warning for `sampling.keep_unsampled=true` {pull}6285[6285]

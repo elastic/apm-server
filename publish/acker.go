@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package publish
 
 import (
 	"context"
@@ -25,40 +25,40 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 )
 
-// waitPublishedAcker is a beat.ACKer which keeps track of the number of
-// events published. waitPublishedAcker provides an interruptible Wait method
+// WaitPublishedAcker is a beat.ACKer which keeps track of the number of
+// events published. WaitPublishedAcker provides an interruptible Wait method
 // that blocks until all clients are closed, and all published events at the
 // time the clients are closed are acknowledged.
-type waitPublishedAcker struct {
+type WaitPublishedAcker struct {
 	active int64 // atomic
 
 	mu    sync.Mutex
 	empty *sync.Cond
 }
 
-// newWaitPublishedAcker returns a new waitPublishedAcker.
-func newWaitPublishedAcker() *waitPublishedAcker {
-	acker := &waitPublishedAcker{}
+// NewWaitPublishedAcker returns a new WaitPublishedAcker.
+func NewWaitPublishedAcker() *WaitPublishedAcker {
+	acker := &WaitPublishedAcker{}
 	acker.empty = sync.NewCond(&acker.mu)
 	return acker
 }
 
 // AddEvent is called when an event has been published or dropped by the client,
 // and increments a counter for published events.
-func (w *waitPublishedAcker) AddEvent(event beat.Event, published bool) {
+func (w *WaitPublishedAcker) AddEvent(event beat.Event, published bool) {
 	if published {
 		w.incref(1)
 	}
 }
 
 // ACKEvents is called when published events have been acknowledged.
-func (w *waitPublishedAcker) ACKEvents(n int) {
+func (w *WaitPublishedAcker) ACKEvents(n int) {
 	w.decref(int64(n))
 }
 
 // Open must be called exactly once before any new pipeline client is opened,
 // incrementing the acker's reference count.
-func (w *waitPublishedAcker) Open() {
+func (w *WaitPublishedAcker) Open() {
 	w.incref(1)
 }
 
@@ -66,15 +66,15 @@ func (w *waitPublishedAcker) Open() {
 // acker's reference count.
 //
 // This must be called at most once for each call to Open.
-func (w *waitPublishedAcker) Close() {
+func (w *WaitPublishedAcker) Close() {
 	w.decref(1)
 }
 
-func (w *waitPublishedAcker) incref(n int64) {
+func (w *WaitPublishedAcker) incref(n int64) {
 	atomic.AddInt64(&w.active, 1)
 }
 
-func (w *waitPublishedAcker) decref(n int64) {
+func (w *WaitPublishedAcker) decref(n int64) {
 	if atomic.AddInt64(&w.active, int64(-n)) == 0 {
 		w.empty.Broadcast()
 	}
@@ -82,7 +82,7 @@ func (w *waitPublishedAcker) decref(n int64) {
 
 // Wait waits for w to be closed and all previously published events to be
 // acknowledged.
-func (w *waitPublishedAcker) Wait(ctx context.Context) error {
+func (w *WaitPublishedAcker) Wait(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	go func() {

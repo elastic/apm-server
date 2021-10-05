@@ -36,7 +36,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "event": {
                 "outcome": "success"
@@ -52,12 +52,14 @@
             },
             "http": {
                 "request": {
-                    "body.original": {
-                        "additional": {
-                            "bar": 123,
-                            "req": "additional information"
-                        },
-                        "str": "hello world"
+                    "body": {
+                        "original": {
+                            "additional": {
+                                "bar": 123,
+                                "req": "additional information"
+                            },
+                            "str": "hello world"
+                        }
                     },
                     "cookies": {
                         "c1": "v1",
@@ -184,28 +186,6 @@
                     "my_key": 1,
                     "some_other_value": "foo bar"
                 },
-                "dropped_spans_stats": [
-                    {
-                        "destination_service_resource": "example.com:443",
-                        "duration": {
-                            "count": 2,
-                            "sum.us": 123456
-                        },
-                        "outcome": "failure",
-                        "subtype": "http",
-                        "type": "request"
-                    },
-                    {
-                        "destination_service_resource": "mysql",
-                        "duration": {
-                            "count": 1,
-                            "sum.us": 9876543
-                        },
-                        "outcome": "success",
-                        "subtype": "mysql",
-                        "type": "db"
-                    }
-                ],
                 "duration": {
                     "us": 32592
                 },
