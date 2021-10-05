@@ -36,11 +36,14 @@ var (
 type Transaction struct {
 	ID string
 
+	// Name holds the transaction name: "GET /foo", etc.
+	Name string
+
 	// Type holds the transaction type: "request", "message", etc.
 	Type string
 
-	// Name holds the transaction name: "GET /foo", etc.
-	Name string
+	// Kind holds the span kind: "CLIENT", "SERVER", "PRODUCER", "CONSUMER" and "INTERNAL".
+	Kind string
 
 	// Result holds the transaction result: "HTTP 2xx", "OK", "Error", etc.
 	Result string

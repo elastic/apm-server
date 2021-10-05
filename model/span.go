@@ -37,6 +37,9 @@ type Span struct {
 	// Type holds the span type: "external", "db", etc.
 	Type string
 
+	// Kind holds the span kind: "CLIENT", "SERVER", "PRODUCER", "CONSUMER" and "INTERNAL".
+	Kind string
+
 	// Subtype holds the span subtype: "http", "sql", etc.
 	Subtype string
 

@@ -262,6 +262,8 @@ func translateTransaction(
 		httpResponse   model.HTTPResponse
 	)
 
+	var spanKindSet bool
+
 	var (
 		isMessaging bool
 		message     model.Message
@@ -304,6 +306,7 @@ func translateTransaction(
 			default:
 				event.Labels[k] = v.IntVal()
 			}
+		case pdata.AttributeValueTypeMap:
 		case pdata.AttributeValueTypeString:
 			stringval := truncate(v.StringVal())
 			switch kDots {
@@ -381,8 +384,12 @@ func translateTransaction(
 			case semconv.AttributeRPCService:
 			case semconv.AttributeRPCMethod:
 
+			case "span_kind":
+				spanKindSet = true
+				event.Transaction.Kind = stringval
 			// miscellaneous
-			case "span.kind": // filter out
+			// TODO: This should be gone now?
+			// case "span.kind": // filter out
 			case "type":
 				event.Transaction.Type = stringval
 			case semconv.AttributeServiceVersion:
@@ -410,6 +417,17 @@ func translateTransaction(
 			event.Transaction.Type = component
 		} else {
 			event.Transaction.Type = "custom"
+		}
+	}
+
+	if !spanKindSet {
+		switch event.Transaction.Type {
+		case "messaging":
+			event.Transaction.Kind = "CONSUMER"
+		case "request":
+			event.Transaction.Kind = "SERVER"
+		default:
+			event.Transaction.Kind = "INTERNAL"
 		}
 	}
 
@@ -482,6 +500,8 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 		httpTarget string
 		httpScheme string = "http"
 	)
+
+	var spanKindSet bool
 
 	var (
 		messageSystem    string
@@ -622,6 +642,9 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 			case semconv.AttributeRPCService:
 			case semconv.AttributeRPCMethod:
 
+			case "span_kind":
+				spanKindSet = true
+				event.Transaction.Kind = stringval
 			// miscellaneous
 			case "span.kind": // filter out
 			case semconv.AttributePeerService:
@@ -753,6 +776,15 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 	default:
 		event.Span.Type = "app"
 		event.Span.Subtype = component
+	}
+
+	if !spanKindSet {
+		switch event.Span.Type {
+		case "external", "storage":
+			event.Span.Kind = "CLIENT"
+		default:
+			event.Span.Kind = "INTERNAL"
+		}
 	}
 
 	if destAddr != "" {
