@@ -86,11 +86,12 @@ func NewCreator(args CreatorParams) beat.Creator {
 			logger = logp.NewLogger(logs.Beater)
 		}
 		bt := &beater{
-			rawConfig:     ucfg,
-			stopped:       false,
-			logger:        logger,
-			wrapRunServer: args.WrapRunServer,
-			waitPublished: publish.NewWaitPublishedAcker(),
+			rawConfig:            ucfg,
+			stopped:              false,
+			logger:               logger,
+			wrapRunServer:        args.WrapRunServer,
+			waitPublished:        publish.NewWaitPublishedAcker(),
+			outputConfigReloader: newChanReloader(),
 		}
 
 		var err error
@@ -116,17 +117,27 @@ func NewCreator(args CreatorParams) beat.Creator {
 				return nil, errors.New("data streams must be enabled when the server is managed")
 			}
 		}
+
+		if b.Manager != nil && b.Manager.Enabled() {
+			// Subscribe to output changes for reconfiguring apm-server's Elasticsearch
+			// clients, which use the Elasticsearch output config by default. We install
+			// this during beat creation to ensure output config reloads are not missed;
+			// reloads will be blocked until the chanReloader is served by beater.run.
+			b.OutputConfigReloader = bt.outputConfigReloader
+		}
+
 		bt.registerPipelineSetupCallback(b)
 		return bt, nil
 	}
 }
 
 type beater struct {
-	rawConfig     *common.Config
-	config        *config.Config
-	logger        *logp.Logger
-	wrapRunServer func(RunServerFunc) RunServerFunc
-	waitPublished *publish.WaitPublishedAcker
+	rawConfig            *common.Config
+	config               *config.Config
+	logger               *logp.Logger
+	wrapRunServer        func(RunServerFunc) RunServerFunc
+	waitPublished        *publish.WaitPublishedAcker
+	outputConfigReloader *chanReloader
 
 	mutex      sync.Mutex // guards stopServer and stopped
 	stopServer func()
@@ -138,77 +149,101 @@ type beater struct {
 func (bt *beater) Run(b *beat.Beat) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	done, err := bt.start(ctx, cancel, b)
-	if err != nil {
+	if err := bt.run(ctx, cancel, b); err != nil {
 		return err
 	}
-	<-done
 	bt.waitPublished.Wait(ctx)
 	return nil
 }
 
-func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b *beat.Beat) (<-chan struct{}, error) {
-	done := make(chan struct{})
-	bt.mutex.Lock()
-	defer bt.mutex.Unlock()
-	if bt.stopped {
-		close(done)
-		return done, nil
-	}
-
+func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *beat.Beat) error {
 	tracer, tracerServer, err := initTracing(b, bt.config, bt.logger)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	closeTracer := func() error { return nil }
+	if tracerServer != nil {
+		defer tracerServer.Close()
+	}
 	if tracer != nil {
-		closeTracer = func() error {
-			tracer.Close()
-			if tracerServer != nil {
-				return tracerServer.Close()
-			}
-			return nil
-		}
-	}
-
-	sharedArgs := sharedServerRunnerParams{
-		Beat:          b,
-		WrapRunServer: bt.wrapRunServer,
-		Logger:        bt.logger,
-		Tracer:        tracer,
-		TracerServer:  tracerServer,
-		Acker:         bt.waitPublished,
+		defer tracer.Close()
 	}
 
 	reloader := reloader{
 		runServerContext: ctx,
-		args:             sharedArgs,
+		args: sharedServerRunnerParams{
+			Beat:          b,
+			WrapRunServer: bt.wrapRunServer,
+			Logger:        bt.logger,
+			Tracer:        tracer,
+			TracerServer:  tracerServer,
+			Acker:         bt.waitPublished,
+		},
 	}
-	bt.stopServer = func() {
-		defer close(done)
-		defer closeTracer()
+
+	stopped := make(chan struct{})
+	stopServer := func() {
+		defer close(stopped)
 		if bt.config.ShutdownTimeout > 0 {
 			time.AfterFunc(bt.config.ShutdownTimeout, cancelContext)
 		}
 		reloader.stop()
 	}
+	if !bt.setStopServerFunc(stopServer) {
+		// Server has already been stopped.
+		stopServer()
+		return nil
+	}
+
+	g, ctx := errgroup.WithContext(context.Background())
+	g.Go(func() error {
+		<-stopped
+		return nil
+	})
 	if b.Manager != nil && b.Manager.Enabled() {
+		// Managed by Agent: register input and output reloaders to reconfigure the server.
 		reload.Register.MustRegisterList("inputs", &reloader)
+		g.Go(func() error {
+			return bt.outputConfigReloader.serve(
+				ctx, reload.ReloadableFunc(reloader.reloadOutput),
+			)
+		})
 	} else {
 		// Management disabled, use statically defined config.
-		if err := reloader.reload(bt.rawConfig, "default", nil); err != nil {
-			return nil, err
+		reloader.namespace = "default"
+		reloader.rawConfig = bt.rawConfig
+		if b.Config != nil {
+			reloader.outputConfig = b.Config.Output
+		}
+		if err := reloader.reload(); err != nil {
+			return err
 		}
 	}
-	return done, nil
+	return g.Wait()
+}
+
+// setStopServerFunc sets a function to call when the server is stopped.
+//
+// setStopServerFunc returns false if the server has already been stopped.
+func (bt *beater) setStopServerFunc(stopServer func()) bool {
+	bt.mutex.Lock()
+	defer bt.mutex.Unlock()
+	if bt.stopped {
+		return false
+	}
+	bt.stopServer = stopServer
+	return true
 }
 
 type reloader struct {
 	runServerContext context.Context
 	args             sharedServerRunnerParams
 
-	mu     sync.Mutex
-	runner *serverRunner
+	mu           sync.Mutex
+	namespace    string
+	rawConfig    *common.Config
+	outputConfig common.ConfigNamespace
+	fleetConfig  *config.Fleet
+	runner       *serverRunner
 }
 
 func (r *reloader) stop() {
@@ -227,6 +262,7 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 		return fmt.Errorf("only 1 input supported, got %d", n)
 	}
 	cfg := configs[0]
+
 	integrationConfig, err := config.NewIntegrationConfig(cfg.Config)
 	if err != nil {
 		return err
@@ -237,17 +273,42 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 	}
 	apmServerCommonConfig := integrationConfig.APMServer
 	apmServerCommonConfig.Merge(common.MustNewConfigFrom(`{"data_streams.enabled": true}`))
-	return r.reload(apmServerCommonConfig, namespace, &integrationConfig.Fleet)
+
+	r.mu.Lock()
+	r.namespace = namespace
+	r.rawConfig = apmServerCommonConfig
+	r.fleetConfig = &integrationConfig.Fleet
+	r.mu.Unlock()
+	return r.reload()
 }
 
-func (r *reloader) reload(rawConfig *common.Config, namespace string, fleetConfig *config.Fleet) error {
+func (r *reloader) reloadOutput(config *reload.ConfigWithMeta) error {
+	var outputConfig common.ConfigNamespace
+	if config != nil {
+		if err := config.Config.Unpack(&outputConfig); err != nil {
+			return err
+		}
+	}
+	r.mu.Lock()
+	r.outputConfig = outputConfig
+	r.mu.Unlock()
+	return r.reload()
+}
+
+func (r *reloader) reload() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if r.rawConfig == nil {
+		// APM Server config not loaded yet.
+		return nil
+	}
+
 	runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
 		sharedServerRunnerParams: r.args,
-		Namespace:                namespace,
-		RawConfig:                rawConfig,
-		FleetConfig:              fleetConfig,
+		Namespace:                r.namespace,
+		RawConfig:                r.rawConfig,
+		FleetConfig:              r.fleetConfig,
+		OutputConfig:             r.outputConfig,
 	})
 	if err != nil {
 		return err
@@ -284,25 +345,27 @@ type serverRunner struct {
 	cancelRunServerContext context.CancelFunc
 	done                   chan struct{}
 
-	pipeline      beat.PipelineConnector
-	acker         *publish.WaitPublishedAcker
-	namespace     string
-	config        *config.Config
-	rawConfig     *common.Config
-	fleetConfig   *config.Fleet
-	beat          *beat.Beat
-	logger        *logp.Logger
-	tracer        *apm.Tracer
-	tracerServer  *tracerServer
-	wrapRunServer func(RunServerFunc) RunServerFunc
+	pipeline                  beat.PipelineConnector
+	acker                     *publish.WaitPublishedAcker
+	namespace                 string
+	config                    *config.Config
+	rawConfig                 *common.Config
+	elasticsearchOutputConfig *common.Config
+	fleetConfig               *config.Fleet
+	beat                      *beat.Beat
+	logger                    *logp.Logger
+	tracer                    *apm.Tracer
+	tracerServer              *tracerServer
+	wrapRunServer             func(RunServerFunc) RunServerFunc
 }
 
 type serverRunnerParams struct {
 	sharedServerRunnerParams
 
-	Namespace   string
-	RawConfig   *common.Config
-	FleetConfig *config.Fleet
+	Namespace    string
+	RawConfig    *common.Config
+	FleetConfig  *config.Fleet
+	OutputConfig common.ConfigNamespace
 }
 
 type sharedServerRunnerParams struct {
@@ -315,7 +378,12 @@ type sharedServerRunnerParams struct {
 }
 
 func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunner, error) {
-	cfg, err := config.NewConfig(args.RawConfig, elasticsearchOutputConfig(args.Beat))
+	var esOutputConfig *common.Config
+	if args.OutputConfig.Name() == "elasticsearch" {
+		esOutputConfig = args.OutputConfig.Config()
+	}
+
+	cfg, err := config.NewConfig(args.RawConfig, esOutputConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -327,17 +395,18 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		cancelRunServerContext: cancel,
 		done:                   make(chan struct{}),
 
-		config:        cfg,
-		rawConfig:     args.RawConfig,
-		fleetConfig:   args.FleetConfig,
-		acker:         args.Acker,
-		pipeline:      args.Beat.Publisher,
-		namespace:     args.Namespace,
-		beat:          args.Beat,
-		logger:        args.Logger,
-		tracer:        args.Tracer,
-		tracerServer:  args.TracerServer,
-		wrapRunServer: args.WrapRunServer,
+		config:                    cfg,
+		rawConfig:                 args.RawConfig,
+		elasticsearchOutputConfig: esOutputConfig,
+		fleetConfig:               args.FleetConfig,
+		acker:                     args.Acker,
+		pipeline:                  args.Beat.Publisher,
+		namespace:                 args.Namespace,
+		beat:                      args.Beat,
+		logger:                    args.Logger,
+		tracer:                    args.Tracer,
+		tracerServer:              args.TracerServer,
+		wrapRunServer:             args.WrapRunServer,
 	}, nil
 }
 
@@ -503,9 +572,9 @@ func (s *serverRunner) run(listener net.Listener) error {
 func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client) error {
 	var preconditions []func(context.Context) error
 	var esOutputClient elasticsearch.Client
-	if cfg := elasticsearchOutputConfig(s.beat); cfg != nil {
+	if s.elasticsearchOutputConfig != nil {
 		esConfig := elasticsearch.DefaultConfig()
-		err := cfg.Unpack(&esConfig)
+		err := s.elasticsearchOutputConfig.Unpack(&esConfig)
 		if err != nil {
 			return err
 		}
@@ -730,6 +799,7 @@ func (bt *beater) Stop() {
 		"stopping apm-server... waiting maximum of %v seconds for queues to drain",
 		bt.config.ShutdownTimeout.Seconds(),
 	)
+	bt.outputConfigReloader.cancel()
 	bt.stopServer()
 	bt.stopped = true
 }
@@ -844,4 +914,63 @@ func newDropLogsBeatProcessor() (beat.ProcessorList, error) {
 			},
 		}),
 	})
+}
+
+// chanReloader implements libbeat/common/reload.Reloadable, converting
+// Reload calls into requests send to a channel consumed by serve.
+type chanReloader struct {
+	ctx    context.Context
+	cancel context.CancelFunc
+	ch     chan reloadRequest
+}
+
+func newChanReloader() *chanReloader {
+	ctx, cancel := context.WithCancel(context.Background())
+	ch := make(chan reloadRequest)
+	return &chanReloader{ctx, cancel, ch}
+}
+
+type reloadRequest struct {
+	cfg    *reload.ConfigWithMeta
+	result chan<- error
+}
+
+// Reload sends a reload request to r.ch, which is consumed by another
+// goroutine running r.serve. Reload blocks until serve has handled the
+// reload request, or until the reloader's context has been cancelled.
+func (r *chanReloader) Reload(cfg *reload.ConfigWithMeta) error {
+	result := make(chan error, 1)
+	select {
+	case <-r.ctx.Done():
+		return r.ctx.Err()
+	case r.ch <- reloadRequest{cfg: cfg, result: result}:
+	}
+	select {
+	case <-r.ctx.Done():
+		return r.ctx.Err()
+	case err := <-result:
+		return err
+	}
+}
+
+// serve handles reload requests enqueued by Reload, returning when either
+// ctx or r.ctx are cancelled.
+func (r *chanReloader) serve(ctx context.Context, reloader reload.Reloadable) error {
+	for {
+		select {
+		case <-r.ctx.Done():
+			return r.ctx.Err()
+		case <-ctx.Done():
+			return ctx.Err()
+		case req := <-r.ch:
+			err := reloader.Reload(req.cfg)
+			select {
+			case <-r.ctx.Done():
+				return r.ctx.Err()
+			case <-ctx.Done():
+				return ctx.Err()
+			case req.result <- err:
+			}
+		}
+	}
 }
