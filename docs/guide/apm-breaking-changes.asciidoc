@@ -221,7 +221,7 @@ The migration assistant will reindex your older data in the new ECS format.
 [[ecs-compliance]]
 ==== Elastic Common Schema field changes
 
-include::../field-name-changes.asciidoc[]
+include::../legacy/field-name-changes.asciidoc[]
 
 [[breaking-6.8.0]]
 === 6.8.0 APM Breaking changes
