@@ -1,2 +1,6 @@
 // temp content
 // delete file after obs-docs has swapped
+
+
+// tag::apm-agent[]
+// end::apm-agent[]
