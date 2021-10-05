@@ -32,7 +32,10 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecoderutil"
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
+	otel_processor "github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/utility"
+
+	"go.opentelemetry.io/collector/model/pdata"
 )
 
 var (
@@ -998,6 +1001,9 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 	if from.TransactionID.IsSet() {
 		event.Transaction = &model.Transaction{ID: from.TransactionID.Val}
 	}
+	if from.OTEL.IsSet() {
+		mapOTELAttributes(from.OTEL, event)
+	}
 }
 
 func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
@@ -1218,6 +1224,81 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 			}
 		}
 	}
+
+	if from.OTEL.IsSet() {
+		mapOTELAttributes(from.OTEL, event)
+	}
+}
+
+func mapOTELAttributes(from otel, out *model.APMEvent) {
+	m := pdata.NewAttributeMap()
+	for k, v := range from.Attributes {
+		// According to the spec, these are the allowed primitive types
+		// Additionally, homogeneous arrays (single type) of primitive types are allowed
+		// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes
+		switch x := v.(type) {
+		case string:
+			m.InsertString(k, x)
+		case int64:
+			m.InsertInt(k, x)
+		case float64:
+			m.InsertDouble(k, x)
+		case bool:
+			m.InsertBool(k, x)
+		// Note: If I collapse all the slice types into a single case
+		// arm, it can't determine len(x) for make.
+		case []string:
+			// It doesn't appear I can populate an actual array for
+			// AttributeValue, so these get added as labels directly.
+			values := make([]interface{}, len(x))
+			for i := range values {
+				values[i] = x[i]
+			}
+			out.Labels[k] = values
+		case []int64:
+			// It doesn't appear I can populate an actual array for
+			// AttributeValue, so these get added as labels directly.
+			values := make([]interface{}, len(x))
+			for i := range values {
+				values[i] = x[i]
+			}
+			out.Labels[k] = values
+		case []float64:
+			// It doesn't appear I can populate an actual array for
+			// AttributeValue, so these get added as labels directly.
+			values := make([]interface{}, len(x))
+			for i := range values {
+				values[i] = x[i]
+			}
+			out.Labels[k] = values
+		case []bool:
+			// It doesn't appear I can populate an actual array for
+			// AttributeValue, so these get added as labels directly.
+			values := make([]interface{}, len(x))
+			for i := range values {
+				values[i] = x[i]
+			}
+			out.Labels[k] = values
+		default:
+			panic(fmt.Sprintf("unhandled type %v (%T)", x, x))
+		}
+	}
+	var spanKind int32
+	if from.SpanKind.IsSet() {
+		// If not present, spanKind == 0, which is UNKNOWN
+		// TODO: This is being stolen from internal code -.-
+		Span_SpanKind_value := map[string]int32{
+			"SPAN_KIND_UNSPECIFIED": 0,
+			"SPAN_KIND_INTERNAL":    1,
+			"SPAN_KIND_SERVER":      2,
+			"SPAN_KIND_CLIENT":      3,
+			"SPAN_KIND_PRODUCER":    4,
+			"SPAN_KIND_CONSUMER":    5,
+		}
+		spanKind = Span_SpanKind_value["SPAN_KIND_"+from.SpanKind.Val]
+
+	}
+	otel_processor.TranslateSpan(pdata.SpanKind(spanKind), m, out)
 }
 
 func mapToUserAgentModel(from nullable.HTTPHeader, out *model.UserAgent) {
