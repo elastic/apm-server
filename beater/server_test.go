@@ -569,15 +569,12 @@ func TestServerOutputConfigReload(t *testing.T) {
 	apmBeat, cfg := newBeat(t, cfg, nil, nil)
 	apmBeat.Manager = &mockManager{enabled: true}
 
-	var mu sync.Mutex
-	var runServerCalls []ServerParams
+	runServerCalls := make(chan ServerParams, 1)
 	createBeater := NewCreator(CreatorParams{
 		Logger: logp.NewLogger(""),
 		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
 			return func(ctx context.Context, args ServerParams) error {
-				mu.Lock()
-				runServerCalls = append(runServerCalls, args)
-				mu.Unlock()
+				runServerCalls <- args
 				return runServer(ctx, args)
 			}
 		},
@@ -614,6 +611,9 @@ func TestServerOutputConfigReload(t *testing.T) {
 	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: inputConfig}})
 	require.NoError(t, err)
 
+	runServerArgs := <-runServerCalls
+	assert.Equal(t, "", runServerArgs.Config.Sampling.Tail.ESConfig.Username)
+
 	// Reloaded output config should be passed into apm-server config.
 	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{
 		Config: common.MustNewConfigFrom(map[string]interface{}{
@@ -621,13 +621,8 @@ func TestServerOutputConfigReload(t *testing.T) {
 		}),
 	})
 	assert.NoError(t, err)
-	beater.Stop()
-
-	// Server should have been started twice: once with initial output config,
-	// and once with the updated output config.
-	require.Len(t, runServerCalls, 2)
-	assert.Equal(t, "", runServerCalls[0].Config.Sampling.Tail.ESConfig.Username)
-	assert.Equal(t, "updated", runServerCalls[1].Config.Sampling.Tail.ESConfig.Username)
+	runServerArgs = <-runServerCalls
+	assert.Equal(t, "updated", runServerArgs.Config.Sampling.Tail.ESConfig.Username)
 }
 
 func TestServerWaitForIntegrationKibana(t *testing.T) {
