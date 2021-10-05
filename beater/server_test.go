@@ -569,12 +569,15 @@ func TestServerOutputConfigReload(t *testing.T) {
 	apmBeat, cfg := newBeat(t, cfg, nil, nil)
 	apmBeat.Manager = &mockManager{enabled: true}
 
+	var mu sync.Mutex
 	var runServerCalls []ServerParams
 	createBeater := NewCreator(CreatorParams{
 		Logger: logp.NewLogger(""),
 		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
 			return func(ctx context.Context, args ServerParams) error {
+				mu.Lock()
 				runServerCalls = append(runServerCalls, args)
+				mu.Unlock()
 				return runServer(ctx, args)
 			}
 		},
