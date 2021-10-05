@@ -223,7 +223,7 @@ func (c *Consumer) convertSpan(
 			ID:   spanID,
 			Name: name,
 		}
-		translateSpan(otelSpan, &event)
+		TranslateSpan(otelSpan.Kind(), otelSpan.Attributes(), &event)
 	}
 	if len(event.Labels) == 0 {
 		event.Labels = nil
@@ -495,7 +495,7 @@ const (
 	rpcSpan
 )
 
-func translateSpan(span pdata.Span, event *model.APMEvent) {
+func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event *model.APMEvent) {
 	isJaeger := strings.HasPrefix(event.Agent.Name, "Jaeger")
 
 	var (
@@ -528,7 +528,7 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 	var component string
 	var rpcSystem string
 	var samplerType, samplerParam pdata.AttributeValue
-	span.Attributes().Range(func(kDots string, v pdata.AttributeValue) bool {
+	attributes.Range(func(kDots string, v pdata.AttributeValue) bool {
 		if isJaeger {
 			switch kDots {
 			case "sampler.type":
@@ -773,8 +773,7 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 	case messagingSpan:
 		event.Span.Type = "messaging"
 		event.Span.Subtype = messageSystem
-		// TODO: usage of span.
-		if messageOperation == "" && span.Kind() == pdata.SpanKindProducer {
+		if messageOperation == "" && spanKind == pdata.SpanKindProducer {
 			messageOperation = "send"
 		}
 		event.Span.Action = messageOperation
