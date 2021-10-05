@@ -6,8 +6,8 @@ Encryption is achievable through <<ssl-setup>>.
 
 Authentication can be achieved in two main ways:
 
-* <<api-key,API keys>>
-* <<secret-token,Secret token>>
+* <<api-key-legacy,API keys>>
+* <<secret-token-legacy,Secret token>>
 
 Both options can be enabled at the same time,
 allowing Elastic APM agents to chose whichever mechanism they support.
@@ -28,7 +28,7 @@ for the RUM agent (through the browser) and the Jaeger agent.
 // Use the shared ssl short description
 include::./ssl-input.asciidoc[]
 
-[[api-key]]
+[[api-key-legacy]]
 === API keys
 
 NOTE: API keys are sent as plain-text,
@@ -105,7 +105,7 @@ reading agent central configuration, uploading a sourcemap:
 }
 ----
 <1> This example adds all three API privileges to the new API key.
-Privileges are described <<api-key,above>>. Remove any privileges that you do not need.
+Privileges are described <<api-key-legacy,above>>. Remove any privileges that you do not need.
 
 To set an expiration date for the API key, select **Expire after time**
 and input the lifetime of the API key in days.
@@ -489,7 +489,7 @@ deprecated::[7.14.0, Replaced by `auth.api_key.*`. See <<api-key-auth-settings>>
 In versions prior to 7.14.0, API Key authorization was known as `apm-server.api_key`. In 7.14.0 this was renamed `apm-server.auth.api_key`.
 The old configuration will continue to work until 8.0.0, and the new configuration will take precedence.
 
-[[secret-token]]
+[[secret-token-legacy]]
 === Secret token
 
 You can configure a secret token to authorize requests to the APM Server.

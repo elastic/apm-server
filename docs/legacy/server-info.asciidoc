@@ -20,7 +20,7 @@ http(s)://{hostname}:{port}/
 
 This endpoint always returns an HTTP 200.
 
-If an <<api-key>> or <<secret-token>> is set, only requests including <<secure-communication-agents,authentication>> will receive server details.
+If an <<api-key-legacy>> or <<secret-token-legacy>> is set, only requests including <<secure-communication-agents,authentication>> will receive server details.
 
 Set the `Accept` header set to `text/plain` to move the server information to the root level of the response, removing `ok`.
 

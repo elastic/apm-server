@@ -267,4 +267,14 @@ This section has moved.
 === APM integration
 
 This section has moved.
+
+[role="exclude",id="api-key"]
+=== API keys
+
+This section has moved. See <<api-key-legacy>>.
+
+[role="exclude",id="secret-token"]
+=== API keys
+
+This section has moved. See <<secret-token-legacy>>.
 endif::[]

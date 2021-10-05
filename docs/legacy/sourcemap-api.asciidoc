@@ -34,7 +34,7 @@ The request must include some fields needed to identify `source map` correctly l
 spec and be attached as a `file upload`.
 * `bundle_filepath` - the absolute path of the final bundle as it is used in the web application
 
-You can configure an <<api-key,API key>> or <<secret-token,secret token>> to restrict sourcemap uploads.
+You can configure an <<api-key-legacy,API key>> or <<secret-token-legacy,secret token>> to restrict sourcemap uploads.
 
 [float]
 [[sourcemap-apply]]
@@ -56,7 +56,7 @@ the one with the latest upload timestamp is used.
 [float]
 ==== Example
 
-Example source map request including an optional <<secret-token, secret token>> "mysecret":
+Example source map request including an optional <<secret-token-legacy, secret token>> "mysecret":
 
 ["source","sh",subs="attributes"]
 ---------------------------------------------------------------------------

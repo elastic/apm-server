@@ -135,7 +135,7 @@ ifdef::apm-server[]
 experimental::[]
 
 Communication between APM agents and APM Server now supports sending an
-<<api-key,API Key in the Authorization header>>.
+<<api-key-legacy,API Key in the Authorization header>>.
 APM Server provides an `apikey` command that can create, verify, invalidate,
 and show information about API Keys for agent/server communication.
 Most operations require the `manage_api_key` cluster privilege,
@@ -222,7 +222,7 @@ When used with `info`, only returns valid API Keys (not expired or invalidated).
 {beatname_lc} apikey invalidate --name example-001
 -----
 
-For more information, see <<api-key>>.
+For more information, see <<api-key-legacy>>.
 
 endif::[]
 

@@ -18,7 +18,7 @@ example in `apm-server.yml` under Agent Configuration.
 === Agent configuration endpoint
 
 The Agent configuration endpoint accepts both `HTTP GET` and `HTTP POST` requests.
-If an <<api-key>> or <<secret-token>> has been configured, it will also apply to this endpoint.
+If an <<api-key-legacy>> or <<secret-token-legacy>> has been configured, it will also apply to this endpoint.
 
 [[agent-config-api-get]]
 [float]

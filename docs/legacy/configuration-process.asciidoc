@@ -97,7 +97,7 @@ Authorization: Bearer <secret-token>.
 The token is not used for RUM endpoints. By default, no authorization token is set.
 
 It is recommended to use an authorization token in combination with SSL enabled.
-Read more about <<securing-apm-server, Securing APM Server>> and the <<secret-token, secret token>>.
+Read more about <<securing-apm-server, Securing APM Server>> and the <<secret-token-legacy, secret token>>.
 
 [[config-secret-token-legacy]]
 [float]

@@ -129,7 +129,7 @@ If you have multiple source maps, you'll need to upload each individually.
 ==== Upload via curl
 
 Here’s an example curl request that uploads the source map file created in the previous step.
-This request uses an <<api-key,API key>> for authentication.
+This request uses an <<api-key-legacy,API key>> for authentication.
 
 [source,console]
 ----
@@ -144,7 +144,7 @@ curl http://localhost:8200/assets/v1/sourcemaps -X POST \
 <1> This example uses the version from `package.json`.
 <2> The API key used here needs to have the <<create-api-key-privileges,sourcemap privilege>>.
 
-Alternatively, you can use a <<secret-token,secret token>> for authentication.
+Alternatively, you can use a <<secret-token-legacy,secret token>> for authentication.
 
 [source,console]
 ----

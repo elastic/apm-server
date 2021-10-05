@@ -381,7 +381,7 @@ need to view monitoring data for {beatname_uc}:
 <titleabbrev>Create an _API key_ user</titleabbrev>
 ++++
 
-You can configure <<api-key,API keys>> to authorize requests to APM Server.
+You can configure <<api-key-legacy,API keys>> to authorize requests to APM Server.
 To create an APM Server user with the required privileges for creating and managing API keys:
 
 . Create an **API key role**, called something like `apm_api_key`,
