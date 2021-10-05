@@ -1,3 +1,7 @@
+// Remove these two include statements when the APM Server Reference is removed from the build
+include::../version.asciidoc[]
+include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
+
 :libbeat-dir: {docdir}/legacy/copied-from-beats/docs
 :libbeat-outputs-dir: {docdir}/legacy/copied-from-beats/outputs
 :version: {apm_server_version}

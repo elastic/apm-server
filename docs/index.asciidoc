@@ -1,0 +1,4 @@
+// This file exists to keep the current build working.
+// Delete this file when the APM Server Reference is no longer built in master and 7.16
+
+include::legacy/index.asciidoc[]
