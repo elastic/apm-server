@@ -32,7 +32,7 @@ or if you need to specify credentials:
 
 * {apm-server-ref-v}/configuring-howto-apm-server.html[Configuring APM Server]
 ** {apm-server-ref-v}/configuration-process.html[General configuration options]
-** {apm-server-ref-v}/elasticsearch-output.html[Configure the {es} output]
+** {apm-server-ref-v}/configuring-output[Configure the {es} output]
 
 [[secure-api-access]]
 If you change the listen address from `localhost` to something that is accessible from outside of the machine,

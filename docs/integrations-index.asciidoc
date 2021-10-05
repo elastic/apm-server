@@ -8,7 +8,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 
 // THIS IS APM OVERVIEW CONTENT
-include::./legacy/guide/overview.asciidoc[]
+include::./overview.asciidoc[]
 
 include::./legacy/guide/apm-doc-directory.asciidoc[]
 
