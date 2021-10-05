@@ -14,7 +14,7 @@
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "error": {
                 "culprit": "opbeans.controllers.DTInterceptor.preHandle(DTInterceptor.java:73)",
@@ -153,7 +153,9 @@
             },
             "http": {
                 "request": {
-                    "body.original": "HelloWorld",
+                    "body": {
+                        "original": "HelloWorld"
+                    },
                     "cookies": {
                         "c1": "v1",
                         "c2": "v2"
@@ -294,7 +296,7 @@
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "event": {
                 "outcome": "success"
@@ -468,7 +470,7 @@
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "event": {
                 "outcome": "success"
@@ -484,12 +486,14 @@
             },
             "http": {
                 "request": {
-                    "body.original": {
-                        "additional": {
-                            "bar": 123,
-                            "req": "additionalinformation"
-                        },
-                        "string": "helloworld"
+                    "body": {
+                        "original": {
+                            "additional": {
+                                "bar": 123,
+                                "req": "additionalinformation"
+                            },
+                            "string": "helloworld"
+                        }
                     },
                     "cookies": {
                         "c1": "v1",
@@ -654,7 +658,7 @@
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "host": {
                 "architecture": "amd64",

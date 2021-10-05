@@ -7,7 +7,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -69,7 +69,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "go.memstats.heap.sys.bytes": 6520832,
             "host": {
@@ -116,7 +116,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -164,7 +164,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -224,7 +224,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.11.0"
+                "version": "1.12.0"
             },
             "host": {
                 "ip": "127.0.0.1"

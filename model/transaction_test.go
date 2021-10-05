@@ -125,8 +125,6 @@ func TestTransactionTransform(t *testing.T) {
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
 				DroppedSpansStats: []DroppedSpanStats{
 					{
-						Type:                       "query",
-						Subtype:                    "mysql",
 						DestinationServiceResource: "mysql://server:3306",
 						Outcome:                    "success",
 						Duration: AggregatedDuration{
@@ -135,8 +133,6 @@ func TestTransactionTransform(t *testing.T) {
 						},
 					},
 					{
-						Type:                       "request",
-						Subtype:                    "elasticsearch",
 						DestinationServiceResource: "http://elasticsearch:9200",
 						Outcome:                    "unknown",
 						Duration: AggregatedDuration{
@@ -159,15 +155,11 @@ func TestTransactionTransform(t *testing.T) {
 						"destination_service_resource": "mysql://server:3306",
 						"duration":                     common.MapStr{"count": 5, "sum.us": int64(65980)},
 						"outcome":                      "success",
-						"subtype":                      "mysql",
-						"type":                         "query",
 					},
 					{
 						"destination_service_resource": "http://elasticsearch:9200",
 						"duration":                     common.MapStr{"count": 15, "sum.us": int64(65980)},
 						"outcome":                      "unknown",
-						"subtype":                      "elasticsearch",
-						"type":                         "request",
 					},
 				},
 				"sampled": true,
