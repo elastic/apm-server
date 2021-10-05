@@ -120,7 +120,9 @@ func NewCreator(args CreatorParams) beat.Creator {
 
 		if b.Manager != nil && b.Manager.Enabled() {
 			// Subscribe to output changes for reconfiguring apm-server's Elasticsearch
-			// clients, which use the Elasticsearch output config by default.
+			// clients, which use the Elasticsearch output config by default. We install
+			// this during beat creation to ensure output config reloads are not missed;
+			// reloads will be blocked until the chanReloader is served by beater.run.
 			b.OutputConfigReloader = bt.outputConfigReloader
 		}
 
@@ -914,6 +916,8 @@ func newDropLogsBeatProcessor() (beat.ProcessorList, error) {
 	})
 }
 
+// chanReloader implements libbeat/common/reload.Reloadable, converting
+// Reload calls into requests send to a channel consumed by serve.
 type chanReloader struct {
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -931,6 +935,9 @@ type reloadRequest struct {
 	result chan<- error
 }
 
+// Reload sends a reload request to r.ch, which is consumed by another
+// goroutine running r.serve. Reload blocks until serve has handled the
+// reload request, or until the reloader's context has been cancelled.
 func (r *chanReloader) Reload(cfg *reload.ConfigWithMeta) error {
 	result := make(chan error, 1)
 	select {
@@ -946,6 +953,8 @@ func (r *chanReloader) Reload(cfg *reload.ConfigWithMeta) error {
 	}
 }
 
+// serve handles reload requests enqueued by Reload, returning when either
+// ctx or r.ctx are cancelled.
 func (r *chanReloader) serve(ctx context.Context, reloader reload.Reloadable) error {
 	for {
 		select {
