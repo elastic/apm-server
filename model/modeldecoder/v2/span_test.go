@@ -87,6 +87,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			case
 				// RepresentativeCount is tested further down in test 'sample-rate'
 				"RepresentativeCount",
+				// Kind is tested further down
+				"Kind",
 
 				// Not set for spans:
 				"DestinationService.ResponseTime",
@@ -113,6 +115,11 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var out1, out2 model.APMEvent
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
+		// TODO: better way to not set "kind"? don't want to test otel
+		// mapping here since we're testing different mapping atm.
+		otl := &input.OTEL
+		otl.Reset()
+		input.OTEL = *otl
 		mapToSpanModel(&input, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
@@ -121,6 +128,10 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
+		// TODO: better way to not set "kind"? don't want to test otel
+		// mapping here since we're testing different mapping atm.
+		otl.Reset()
+		input.OTEL = *otl
 		mapToSpanModel(&input, &out2)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out2.Span, exceptions, otherVal)
@@ -178,6 +189,11 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var input span
 		var out model.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+		// TODO: better way to not set "kind"? don't want to test otel
+		// mapping here since we're testing different mapping atm.
+		otl := &input.OTEL
+		otl.Reset()
+		input.OTEL = *otl
 		// sample rate is set to > 0
 		input.SampleRate.Set(0.25)
 		mapToSpanModel(&input, &out)
