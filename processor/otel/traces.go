@@ -216,7 +216,7 @@ func (c *Consumer) convertSpan(
 			Name:    name,
 			Sampled: true,
 		}
-		translateTransaction(otelSpan, otelLibrary, &event)
+		TranslateTransaction(otelSpan.Attributes(), otelSpan.Status(), otelLibrary, &event)
 	} else {
 		event.Processor = model.SpanProcessor
 		event.Span = &model.Span{
@@ -239,8 +239,11 @@ func (c *Consumer) convertSpan(
 	}
 }
 
-func translateTransaction(
-	span pdata.Span,
+// TranslateTransaction converts incoming otlp/otel trace data into the
+// expected elasticsearch format.
+func TranslateTransaction(
+	attributes pdata.AttributeMap,
+	spanStatus pdata.SpanStatus,
 	library pdata.InstrumentationLibrary,
 	event *model.APMEvent,
 ) {
@@ -267,7 +270,7 @@ func translateTransaction(
 
 	var component string
 	var samplerType, samplerParam pdata.AttributeValue
-	span.Attributes().Range(func(kDots string, v pdata.AttributeValue) bool {
+	attributes.Range(func(kDots string, v pdata.AttributeValue) bool {
 		if isJaeger {
 			switch kDots {
 			case "sampler.type":
@@ -476,7 +479,7 @@ func translateTransaction(
 	}
 
 	if event.Transaction.Result == "" {
-		event.Transaction.Result = spanStatusResult(span.Status())
+		event.Transaction.Result = spanStatusResult(spanStatus)
 	}
 	if name := library.Name(); name != "" {
 		event.Service.Framework.Name = name
