@@ -243,6 +243,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			case
 				// Tested separately
 				"RepresentativeCount",
+				// Kind is tested further down
+				"Kind",
 
 				// Not set for transaction events, tested in metricset decoding:
 				"AggregatedDuration",
@@ -265,6 +267,11 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
+		// TODO: better way to not set "kind"? don't want to test otel
+		// mapping here since we're testing different mapping atm.
+		otl := &input.OTEL
+		otl.Reset()
+		input.OTEL = *otl
 		mapToTransactionModel(&input, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
@@ -282,6 +289,10 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		out2.Timestamp = reqTime
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
+		// TODO: better way to not set "kind"? don't want to test otel
+		// mapping here since we're testing different mapping atm.
+		otl.Reset()
+		input.OTEL = *otl
 		mapToTransactionModel(&input, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Transaction, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
