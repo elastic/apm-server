@@ -1230,16 +1230,18 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	}
 }
 
+// TODO: Test that incoming spans/transactions with data in otel.attributes are
+// properly mapped to Spans and Transactions.
 func mapOTELAttributesTransaction(from otel, out *model.APMEvent) {
 	library := pdata.NewInstrumentationLibrary()
 	// Library isn't used, but required in the fn signature
 	library.SetName("")
 	m := from.toAttributeMap()
 	out.Labels.Update(from.slicesMap())
-	// TODO: Does this work? It's invalid because we haven't set a code,
-	// but do we set event.Transaction.Result and skip using spanStatus in
-	// the fn?
 	spanStatus := pdata.NewSpanStatus()
+	// TODO: Does this work? Is there a way we can infer the status code,
+	// potentially in the actual attributes map?
+	spanStatus.SetCode(pdata.StatusCodeUnset)
 	otel_processor.TranslateTransaction(m, spanStatus, library, out)
 }
 
