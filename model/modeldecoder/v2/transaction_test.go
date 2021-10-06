@@ -340,6 +340,11 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out model.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+		// TODO: better way to not set "kind"? don't want to test otel
+		// mapping here since we're testing different mapping atm.
+		otl := &input.OTEL
+		otl.Reset()
+		input.OTEL = *otl
 		// sample rate is set to > 0
 		input.SampleRate.Set(0.25)
 		mapToTransactionModel(&input, &out)

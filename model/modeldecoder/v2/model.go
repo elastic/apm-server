@@ -19,8 +19,10 @@ package v2
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/elastic/beats/v7/libbeat/common"
+	"go.opentelemetry.io/collector/model/pdata"
 
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 )
@@ -919,6 +921,65 @@ type otel struct {
 	SpanKind nullable.String `json:"span_kind"`
 	// Attributes hold the unmapped Open Telemetry attributes.
 	Attributes map[string]interface{} `json:"attributes"`
+}
+
+func (o *otel) toAttributeMap() pdata.AttributeMap {
+	m := pdata.NewAttributeMap()
+	for k, v := range o.Attributes {
+		// According to the spec, these are the allowed primitive types
+		// Additionally, homogeneous arrays (single type) of primitive types are allowed
+		// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes
+		switch x := v.(type) {
+		case string:
+			m.InsertString(k, x)
+		case int64:
+			m.InsertInt(k, x)
+		case float64:
+			m.InsertDouble(k, x)
+		case bool:
+			m.InsertBool(k, x)
+		default:
+			panic(fmt.Sprintf("unhandled type %v (%T)", x, x))
+		}
+	}
+	return m
+}
+
+// It doesn't appear possible to populate an actual array for
+// AttributeValue, so these get added as labels directly.
+func (o *otel) slicesMap() common.MapStr {
+	m := common.MapStr{}
+	for k, v := range o.Attributes {
+		switch x := v.(type) {
+		// Note: If I collapse all the slice types into a single case
+		// arm, len(x) can't be determined.
+		case []string:
+			values := make([]interface{}, len(x))
+			for i := range values {
+				values[i] = x[i]
+			}
+			m[k] = values
+		case []int64:
+			values := make([]interface{}, len(x))
+			for i := range values {
+				values[i] = x[i]
+			}
+			m[k] = values
+		case []float64:
+			values := make([]interface{}, len(x))
+			for i := range values {
+				values[i] = x[i]
+			}
+			m[k] = values
+		case []bool:
+			values := make([]interface{}, len(x))
+			for i := range values {
+				values[i] = x[i]
+			}
+			m[k] = values
+		}
+	}
+	return m
 }
 
 type transactionSession struct {

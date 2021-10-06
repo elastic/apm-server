@@ -1002,7 +1002,7 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		event.Transaction = &model.Transaction{ID: from.TransactionID.Val}
 	}
 	if from.OTEL.IsSet() {
-		mapOTELAttributes(from.OTEL, event)
+		mapOTELAttributesSpan(from.OTEL, event)
 	}
 }
 
@@ -1226,66 +1226,28 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	}
 
 	if from.OTEL.IsSet() {
-		mapOTELAttributes(from.OTEL, event)
+		mapOTELAttributesTransaction(from.OTEL, event)
 	}
 }
 
-func mapOTELAttributes(from otel, out *model.APMEvent) {
-	m := pdata.NewAttributeMap()
-	for k, v := range from.Attributes {
-		// According to the spec, these are the allowed primitive types
-		// Additionally, homogeneous arrays (single type) of primitive types are allowed
-		// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes
-		switch x := v.(type) {
-		case string:
-			m.InsertString(k, x)
-		case int64:
-			m.InsertInt(k, x)
-		case float64:
-			m.InsertDouble(k, x)
-		case bool:
-			m.InsertBool(k, x)
-		// Note: If I collapse all the slice types into a single case
-		// arm, it can't determine len(x) for make.
-		case []string:
-			// It doesn't appear I can populate an actual array for
-			// AttributeValue, so these get added as labels directly.
-			values := make([]interface{}, len(x))
-			for i := range values {
-				values[i] = x[i]
-			}
-			out.Labels[k] = values
-		case []int64:
-			// It doesn't appear I can populate an actual array for
-			// AttributeValue, so these get added as labels directly.
-			values := make([]interface{}, len(x))
-			for i := range values {
-				values[i] = x[i]
-			}
-			out.Labels[k] = values
-		case []float64:
-			// It doesn't appear I can populate an actual array for
-			// AttributeValue, so these get added as labels directly.
-			values := make([]interface{}, len(x))
-			for i := range values {
-				values[i] = x[i]
-			}
-			out.Labels[k] = values
-		case []bool:
-			// It doesn't appear I can populate an actual array for
-			// AttributeValue, so these get added as labels directly.
-			values := make([]interface{}, len(x))
-			for i := range values {
-				values[i] = x[i]
-			}
-			out.Labels[k] = values
-		default:
-			panic(fmt.Sprintf("unhandled type %v (%T)", x, x))
-		}
-	}
+func mapOTELAttributesTransaction(from otel, out *model.APMEvent) {
+	library := pdata.NewInstrumentationLibrary()
+	// Library isn't used, but required in the fn signature
+	library.SetName("")
+	m := from.toAttributeMap()
+	out.Labels.Update(from.slicesMap())
+	// TODO: Does this work? It's invalid because we haven't set a code,
+	// but do we set event.Transaction.Result and skip using spanStatus in
+	// the fn?
+	spanStatus := pdata.NewSpanStatus()
+	otel_processor.TranslateTransaction(m, spanStatus, library, out)
+}
+
+func mapOTELAttributesSpan(from otel, out *model.APMEvent) {
+	m := from.toAttributeMap()
+	out.Labels.Update(from.slicesMap())
 	var spanKind int32
 	if from.SpanKind.IsSet() {
-		// If not present, spanKind == 0, which is UNKNOWN
 		// TODO: This is being stolen from internal code -.-
 		Span_SpanKind_value := map[string]int32{
 			"SPAN_KIND_UNSPECIFIED": 0,
@@ -1295,8 +1257,8 @@ func mapOTELAttributes(from otel, out *model.APMEvent) {
 			"SPAN_KIND_PRODUCER":    4,
 			"SPAN_KIND_CONSUMER":    5,
 		}
+		// If not present, spanKind == 0, which is UNKNOWN
 		spanKind = Span_SpanKind_value["SPAN_KIND_"+from.SpanKind.Val]
-
 	}
 	otel_processor.TranslateSpan(pdata.SpanKind(spanKind), m, out)
 }
