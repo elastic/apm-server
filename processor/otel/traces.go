@@ -494,6 +494,8 @@ const (
 	rpcSpan
 )
 
+// TranslateSpan converts incoming otlp/otel trace data into the
+// expected elasticsearch format.
 func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event *model.APMEvent) {
 	isJaeger := strings.HasPrefix(event.Agent.Name, "Jaeger")
 
@@ -784,8 +786,14 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		event.Span.Type = "external"
 		event.Span.Subtype = rpcSystem
 	case appSpan:
-		event.Span.Type = "app"
-		event.Span.Subtype = component
+		// Only set event.Span.Type if not set?
+		// This is why it's being overwritten in tests.
+		if event.Span.Type == "" {
+			event.Span.Type = "app"
+		}
+		if event.Span.Subtype == "" {
+			event.Span.Subtype = component
+		}
 	default:
 		panic("unknown span type")
 	}
