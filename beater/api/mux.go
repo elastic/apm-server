@@ -73,8 +73,8 @@ const (
 
 	IntakeRUMV3Path = "/intake/v3/rum/events"
 
-	// FirehoseLogPath defines the path to ingest firehose logs
-	FirehoseLogPath = "/intake/v2/firehose/logs"
+	// FirehosePath defines the path to ingest firehose logs
+	FirehosePath = "/firehose"
 )
 
 // NewMux registers apm handlers to paths building up the APM Server API.
@@ -119,7 +119,8 @@ func NewMux(
 		{IntakePath, builder.backendIntakeHandler},
 		// The profile endpoint is in Beta
 		{ProfilePath, builder.profileHandler},
-		{FirehoseLogPath, builder.firehoseLogHandler},
+		// The firehose endpoint is experimental and subject to breaking changes and removal.
+		{FirehosePath, builder.firehoseLogHandler},
 	}
 
 	for _, route := range routeMap {
@@ -168,12 +169,8 @@ func (r *routeBuilder) profileHandler() (request.Handler, error) {
 }
 
 func (r *routeBuilder) firehoseLogHandler() (request.Handler, error) {
-	requestMetadataFunc := emptyRequestMetadata
-	if r.cfg.AugmentEnabled {
-		requestMetadataFunc = backendRequestMetadata
-	}
-	h := firehose.Handler(requestMetadataFunc, r.batchProcessor, r.authenticator)
-	return middleware.Wrap(h, firehoseMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
+	h := firehose.Handler(r.batchProcessor, r.authenticator)
+	return middleware.Wrap(h, firehoseMiddleware(r.cfg, intake.MonitoringMap)...)
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
@@ -326,14 +323,11 @@ func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []mid
 	)
 }
 
-func firehoseMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
-	backendMiddleware := append(apmMiddleware(m),
+func firehoseMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+	firehoseMiddleware := append(apmMiddleware(m),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
-		middleware.FirehoseAuthMiddleware(),
-		middleware.AuthMiddleware(authenticator, true),
-		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
 	)
-	return backendMiddleware
+	return firehoseMiddleware
 }
 
 func emptyRequestMetadata(c *request.Context) model.APMEvent {

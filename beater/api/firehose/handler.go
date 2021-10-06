@@ -19,7 +19,7 @@ package firehose
 
 import (
 	"context"
-	b64 "encoding/base64"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -34,22 +34,18 @@ import (
 	"github.com/elastic/apm-server/publish"
 )
 
-// RequestMetadataFunc is a function type supplied to Handler for extracting
-// metadata from the request.
-type RequestMetadataFunc func(*request.Context) model.APMEvent
-
-type Record struct {
+type record struct {
 	Data string `json:"data"`
 }
 
-type FirehoseLog struct {
+type firehoseLog struct {
 	RequestID string   `json:"requestId"`
 	Timestamp int64    `json:"timestamp"`
-	Records   []Record `json:"records"`
+	Records   []record `json:"records"`
 }
 
 // Handler returns a request.Handler for managing firehose requests.
-func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProcessor, authenticator *auth.Authenticator) request.Handler {
+func Handler(processor model.BatchProcessor, authenticator *auth.Authenticator) request.Handler {
 	handle := func(c *request.Context) (*result, error) {
 		accessKey := c.Request.Header.Get("X-Amz-Firehose-Access-Key")
 		if accessKey == "" {
@@ -58,6 +54,10 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 				err: errors.New("Access key is required for Firehose"),
 			}
 		}
+
+		// Create Authorization header using X-Amz-Firehose-Access-Key header
+		// This is only for Firehose HTTP request
+		c.Request.Header.Add("Authorization", "ApiKey "+accessKey)
 
 		details, authorizer, err := authenticator.Authenticate(context.Background(), headers.APIKey, accessKey)
 		if err != nil {
@@ -76,9 +76,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 			}
 		}
 
-		baseEvent := requestMetadataFunc(c)
-
-		var firehose FirehoseLog
+		var firehose firehoseLog
 		err = json.NewDecoder(c.Request.Body).Decode(&firehose)
 		if err != nil {
 			return nil, err
@@ -86,7 +84,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 
 		var batch model.Batch
 		for _, record := range firehose.Records {
-			recordDec, err := b64.StdEncoding.DecodeString(record.Data)
+			recordDec, err := base64.StdEncoding.DecodeString(record.Data)
 			if err != nil {
 				return nil, err
 			}
@@ -97,7 +95,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 					break
 				}
 
-				event := baseEvent
+				var event model.APMEvent
 				event.Timestamp = time.Unix(firehose.Timestamp/1000, 0)
 				event.Processor = model.LogProcessor
 				event.Firehose = &model.Firehose{
@@ -123,6 +121,9 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 			}
 			return nil, err
 		}
+		// Set required requestId and timestamp to match Firehose HTTP delivery
+		// request response format.
+		// https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html#responseformat
 		return &result{RequestId: firehose.RequestID, Timestamp: firehose.Timestamp}, nil
 	}
 
@@ -140,7 +141,10 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 			c.Result.SetWithBody(request.IDResponseValidAccepted, result)
 			c.Result.StatusCode = 200
 		}
-		c.WriteFirehoseResponse()
+
+		// Set response header
+		c.Header().Set(headers.ContentType, "application/json")
+		c.Write()
 	}
 }
 

@@ -128,9 +128,7 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("service", e.Service.Fields())
 	fields.maybeSetMapStr("agent", e.Agent.fields())
 	fields.maybeSetMapStr("observer", e.Observer.Fields())
-	if e.Firehose != nil {
-		fields.maybeSetMapStr("host", e.Host.fields())
-	}
+	fields.maybeSetMapStr("host", e.Host.fields())
 	fields.maybeSetMapStr("process", e.Process.fields())
 	fields.maybeSetMapStr("user", e.User.fields())
 	fields.maybeSetMapStr("client", e.Client.fields())
