@@ -305,7 +305,7 @@ pipeline {
                   reportTitles: 'Coverage'])
                 cobertura(autoUpdateHealth: false,
                   autoUpdateStability: false,
-                  coberturaReportFile: "TEST-*.cov",
+                  coberturaReportFile: "TEST-*.xml",
                   conditionalCoverageTargets: '70, 0, 0',
                   failNoReports: false,
                   failUnhealthy: false,
