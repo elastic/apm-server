@@ -137,6 +137,10 @@ policy_templates:
           - name: tls_curve_types
             type: text
             multi: true
+          - name: tail_sampling_policies
+            type: yaml
+          - name: tail_sampling_interval
+            type: text
         template_path: template.yml.hbs
 owner:
   github: elastic/apm-server
