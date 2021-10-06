@@ -252,7 +252,6 @@ func translateTransaction(
 	)
 
 	var (
-		isHTTP         bool
 		httpScheme     string
 		httpURL        string
 		httpServerName string
@@ -263,11 +262,8 @@ func translateTransaction(
 	)
 
 	var spanKindSet bool
-
-	var (
-		isMessaging bool
-		message     model.Message
-	)
+	var foundSpanType spanType
+	var message model.Message
 
 	var component string
 	var samplerType, samplerParam pdata.AttributeValue
@@ -294,7 +290,7 @@ func translateTransaction(
 		case pdata.AttributeValueTypeInt:
 			switch kDots {
 			case semconv.AttributeHTTPStatusCode:
-				isHTTP = true
+				foundSpanType = httpSpan
 				httpResponse.StatusCode = int(v.IntVal())
 				http.Response = &httpResponse
 			case semconv.AttributeNetPeerPort:
@@ -312,21 +308,22 @@ func translateTransaction(
 			switch kDots {
 			// http.*
 			case semconv.AttributeHTTPMethod:
-				isHTTP = true
+				foundSpanType = httpSpan
+				foundSpanType = httpSpan
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
 			case semconv.AttributeHTTPURL, semconv.AttributeHTTPTarget, "http.path":
-				isHTTP = true
+				foundSpanType = httpSpan
 				httpURL = stringval
 			case semconv.AttributeHTTPHost:
-				isHTTP = true
+				foundSpanType = httpSpan
 				httpHost = stringval
 			case semconv.AttributeHTTPScheme:
-				isHTTP = true
+				foundSpanType = httpSpan
 				httpScheme = stringval
 			case semconv.AttributeHTTPStatusCode:
 				if intv, err := strconv.Atoi(stringval); err == nil {
-					isHTTP = true
+					foundSpanType = httpSpan
 					httpResponse.StatusCode = intv
 					http.Response = &httpResponse
 				}
@@ -339,10 +336,10 @@ func translateTransaction(
 				stringval = strings.TrimPrefix(stringval, "HTTP/")
 				fallthrough
 			case semconv.AttributeHTTPFlavor:
-				isHTTP = true
+				foundSpanType = httpSpan
 				http.Version = stringval
 			case semconv.AttributeHTTPServerName:
-				isHTTP = true
+				foundSpanType = httpSpan
 				httpServerName = stringval
 			case semconv.AttributeHTTPClientIP:
 				event.Client.IP = net.ParseIP(stringval)
@@ -372,7 +369,7 @@ func translateTransaction(
 			// messaging.*
 			case "message_bus.destination", semconv.AttributeMessagingDestination:
 				message.QueueName = stringval
-				isMessaging = true
+				foundSpanType = messagingSpan
 
 			// rpc.*
 			//
@@ -409,14 +406,17 @@ func translateTransaction(
 	})
 
 	if event.Transaction.Type == "" {
-		if isHTTP {
+		switch foundSpanType {
+		case httpSpan:
 			event.Transaction.Type = "request"
-		} else if isMessaging {
+		case messagingSpan:
 			event.Transaction.Type = "messaging"
-		} else if component != "" {
-			event.Transaction.Type = component
-		} else {
-			event.Transaction.Type = "custom"
+		default:
+			if component != "" {
+				event.Transaction.Type = component
+			} else {
+				event.Transaction.Type = "custom"
+			}
 		}
 	}
 
@@ -431,7 +431,8 @@ func translateTransaction(
 		}
 	}
 
-	if isHTTP {
+	switch foundSpanType {
+	case httpSpan:
 		event.HTTP = http
 
 		// Set outcome nad result from status code.
@@ -459,9 +460,7 @@ func translateTransaction(
 			}
 		}
 		event.URL = model.ParseURL(httpURL, httpHost, httpScheme)
-	}
-
-	if isMessaging {
+	case messagingSpan:
 		event.Transaction.Message = &message
 	}
 
