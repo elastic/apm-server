@@ -30,8 +30,20 @@ import (
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
+)
+
+const (
+	FirehoseDataset  = "firehose"
+	arnDelimiter     = ":"
+	arnSections      = 6
+	sectionPartition = 1
+	sectionService   = 2
+	sectionRegion    = 3
+	sectionAccountID = 4
+	sectionResource  = 5
 )
 
 type record struct {
@@ -42,6 +54,15 @@ type firehoseLog struct {
 	RequestID string   `json:"requestId"`
 	Timestamp int64    `json:"timestamp"`
 	Records   []record `json:"records"`
+}
+
+// arn struct separate the Amazon Resource Name into individual fields.
+type arn struct {
+	Partition string
+	Service   string
+	Region    string
+	AccountID string
+	Resource  string
 }
 
 // Handler returns a request.Handler for managing firehose requests.
@@ -98,10 +119,24 @@ func Handler(processor model.BatchProcessor, authenticator *auth.Authenticator) 
 				var event model.APMEvent
 				event.Timestamp = time.Unix(firehose.Timestamp/1000, 0)
 				event.Processor = model.LogProcessor
-				event.Firehose = &model.Firehose{
-					Message: line,
-					ARN:     c.Request.Header.Get("X-Amz-Firehose-Source-Arn"),
-				}
+				event.Message = line
+
+				arnString := c.Request.Header.Get("X-Amz-Firehose-Source-Arn")
+				arnParsed := parseARN(arnString)
+
+				cloudOrigin := &model.CloudOrigin{}
+				cloudOrigin.AccountID = arnParsed.AccountID
+				cloudOrigin.Region = arnParsed.Region
+				event.Cloud.Origin = cloudOrigin
+
+				serviceOrigin := &model.ServiceOrigin{}
+				serviceOrigin.ID = arnString
+				serviceOrigin.Name = arnParsed.Resource
+				event.Service.Origin = serviceOrigin
+
+				// Set data stream type and dataset fields for Firehose
+				event.DataStream.Type = datastreams.LogsType
+				event.DataStream.Dataset = FirehoseDataset
 				batch = append(batch, event)
 			}
 		}
@@ -161,4 +196,20 @@ type requestError struct {
 
 func (e requestError) Error() string {
 	return e.err.Error()
+}
+
+func parseARN(arnString string) arn {
+	// arn example for firehose:
+	// arn:aws:firehose:us-east-1:123456789:deliverystream/vpc-flow-log-stream-http-endpoint
+	sections := strings.SplitN(arnString, arnDelimiter, arnSections)
+	if len(sections) != arnSections {
+		return arn{}
+	}
+	return arn{
+		Partition: sections[sectionPartition],
+		Service:   sections[sectionService],
+		Region:    sections[sectionRegion],
+		AccountID: sections[sectionAccountID],
+		Resource:  sections[sectionResource],
+	}
 }

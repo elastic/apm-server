@@ -80,7 +80,6 @@ type APMEvent struct {
 	Metricset     *Metricset
 	Error         *Error
 	ProfileSample *ProfileSample
-	Firehose      *Firehose
 }
 
 // BeatEvent converts e to a beat.Event.
@@ -103,9 +102,6 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	}
 	if e.ProfileSample != nil {
 		e.ProfileSample.setFields((*mapStr)(&event.Fields))
-	}
-	if e.Firehose != nil {
-		e.Firehose.setFields((*mapStr)(&event.Fields))
 	}
 
 	// Set high resolution timestamp.

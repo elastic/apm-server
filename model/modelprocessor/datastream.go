@@ -33,7 +33,10 @@ type SetDataStream struct {
 // ProcessBatch sets data stream fields for each event in b.
 func (s *SetDataStream) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	for i := range *b {
-		s.setDataStream(&(*b)[i])
+		(*b)[i].DataStream.Namespace = s.Namespace
+		if (*b)[i].DataStream.Type == "" || (*b)[i].DataStream.Dataset == "" {
+			s.setDataStream(&(*b)[i])
+		}
 	}
 	return nil
 }
@@ -47,13 +50,8 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		event.DataStream.Type = datastreams.LogsType
 		event.DataStream.Dataset = model.ErrorsDataset
 	case model.LogProcessor:
-		if event.Firehose != nil {
-			event.DataStream.Type = datastreams.LogsType
-			event.DataStream.Dataset = model.FirehoseDataset
-		} else {
-			event.DataStream.Type = datastreams.LogsType
-			event.DataStream.Dataset = model.AppLogsDataset
-		}
+		event.DataStream.Type = datastreams.LogsType
+		event.DataStream.Dataset = model.AppLogsDataset
 	case model.MetricsetProcessor:
 		event.DataStream.Type = datastreams.MetricsType
 		// Metrics that include well-defined transaction/span fields
@@ -70,5 +68,4 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		event.DataStream.Type = datastreams.MetricsType
 		event.DataStream.Dataset = model.ProfilesDataset
 	}
-	event.DataStream.Namespace = s.Namespace
 }
