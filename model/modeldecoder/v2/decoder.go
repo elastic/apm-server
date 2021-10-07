@@ -1263,6 +1263,7 @@ func mapOTELAttributesSpan(from otel, out *model.APMEvent) {
 	if from.SpanKind.IsSet() {
 		// If not present, spanKind == 0, which is UNKNOWN
 		spanKind = Span_SpanKind_value["SPAN_KIND_"+from.SpanKind.Val]
+		out.Span.Kind = from.SpanKind.Val
 	}
 	otel_processor.TranslateSpan(pdata.SpanKind(spanKind), m, out)
 }

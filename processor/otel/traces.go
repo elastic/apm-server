@@ -511,8 +511,6 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		httpScheme string = "http"
 	)
 
-	var spanKindSet bool
-
 	var (
 		messageSystem    string
 		messageOperation string
@@ -653,9 +651,6 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 			case semconv.AttributeRPCService:
 			case semconv.AttributeRPCMethod:
 
-			case "span_kind":
-				spanKindSet = true
-				event.Transaction.Kind = stringval
 			// miscellaneous
 			case "span.kind": // filter out
 			case semconv.AttributePeerService:
@@ -737,15 +732,6 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		}
 	}
 
-	if foundSpanType == rpcSpan {
-		// Set destination.service.* from the peer address, unless peer.service was specified.
-		if destinationService.Name == "" {
-			destHostPort := net.JoinHostPort(destAddr, strconv.Itoa(destPort))
-			destinationService.Name = destHostPort
-			destinationService.Resource = destHostPort
-		}
-	}
-
 	switch foundSpanType {
 	case httpSpan:
 		if httpResponse.StatusCode > 0 {
@@ -782,6 +768,12 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		}
 		event.Span.Message = &message
 	case rpcSpan:
+		// Set destination.service.* from the peer address, unless peer.service was specified.
+		if destinationService.Name == "" {
+			destHostPort := net.JoinHostPort(destAddr, strconv.Itoa(destPort))
+			destinationService.Name = destHostPort
+			destinationService.Resource = destHostPort
+		}
 		event.Span.Type = "external"
 		event.Span.Subtype = rpcSystem
 	case appSpan:
@@ -797,8 +789,9 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		panic("unknown span type")
 	}
 
-	if !spanKindSet {
+	if spanKind == pdata.SpanKindUnspecified {
 		switch event.Span.Type {
+		// TODO: The spec only lists "external" and "storage"; what about "db"?
 		case "external", "storage":
 			event.Span.Kind = "CLIENT"
 		default:
