@@ -319,9 +319,6 @@ pipeline {
                 junit(allowEmptyResults: true,
                     keepLongStdio: true,
                     testResults: "TEST-*.xml")
-                catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
-                  tar(file: "coverage-files.tgz", archive: true, dir: "coverage")
-                }
               }
               codecov(repo: env.REPO, basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
