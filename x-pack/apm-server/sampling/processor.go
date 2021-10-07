@@ -153,7 +153,6 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 			if err != nil {
 				return err
 			}
-			p.updateProcessorMetrics(report, stored)
 		case model.SpanProcessor:
 			var err error
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
@@ -161,7 +160,8 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 			if err != nil {
 				return err
 			}
-			p.updateProcessorMetrics(report, stored)
+		default:
+			continue
 		}
 		if !report {
 			// We shouldn't report this event, so remove it from the slice.
@@ -170,6 +170,8 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 			events = events[:n-1]
 			i--
 		}
+
+		p.updateProcessorMetrics(report, stored)
 	}
 	*batch = events
 	return nil
