@@ -23,6 +23,8 @@ import (
 	"net/http/pprof"
 	"regexp"
 
+	"github.com/elastic/apm-server/datastreams"
+
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/agentcfg"
@@ -169,7 +171,8 @@ func (r *routeBuilder) profileHandler() (request.Handler, error) {
 }
 
 func (r *routeBuilder) firehoseLogHandler() (request.Handler, error) {
-	h := firehose.Handler(r.batchProcessor, r.authenticator)
+	requestMetadataFunc := firehoseRequestMetadata
+	h := firehose.Handler(requestMetadataFunc, r.batchProcessor, r.authenticator)
 	return middleware.Wrap(h, firehoseMiddleware(r.cfg, intake.MonitoringMap)...)
 }
 
@@ -351,4 +354,26 @@ func rumRequestMetadata(c *request.Context) model.APMEvent {
 		Source:    source,
 		UserAgent: model.UserAgent{Original: c.UserAgent},
 	}
+}
+
+func firehoseRequestMetadata(c *request.Context) model.APMEvent {
+	arnString := c.Request.Header.Get("X-Amz-Firehose-Source-Arn")
+	arnParsed := firehose.ParseARN(arnString)
+
+	var event model.APMEvent
+
+	cloudOrigin := &model.CloudOrigin{}
+	cloudOrigin.AccountID = arnParsed.AccountID
+	cloudOrigin.Region = arnParsed.Region
+	event.Cloud.Origin = cloudOrigin
+
+	serviceOrigin := &model.ServiceOrigin{}
+	serviceOrigin.ID = arnString
+	serviceOrigin.Name = arnParsed.Resource
+	event.Service.Origin = serviceOrigin
+
+	// Set data stream type and dataset fields for Firehose
+	event.DataStream.Type = datastreams.LogsType
+	event.DataStream.Dataset = firehose.Dataset
+	return event
 }

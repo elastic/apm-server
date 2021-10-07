@@ -42,6 +42,15 @@ const (
 	testARN = "arn:aws:firehose:us-east-1:123456789:deliverystream/vpc-flow-log-stream-http-endpoint"
 )
 
+func TestParseARN(t *testing.T) {
+	arnParsed := ParseARN(testARN)
+	assert.Equal(t, "aws", arnParsed.Partition)
+	assert.Equal(t, "firehose", arnParsed.Service)
+	assert.Equal(t, "123456789", arnParsed.AccountID)
+	assert.Equal(t, "us-east-1", arnParsed.Region)
+	assert.Equal(t, "deliverystream/vpc-flow-log-stream-http-endpoint", arnParsed.Resource)
+}
+
 func TestFirehoseHandler(t *testing.T) {
 	for name, tc := range map[string]testcaseFirehoseHandler{
 		"Success": {
@@ -62,7 +71,7 @@ func TestFirehoseHandler(t *testing.T) {
 			tc.setup(t)
 
 			// call handler
-			h := Handler(tc.batchProcessor, tc.authenticator)
+			h := Handler(emptyRequestMetadata, tc.batchProcessor, tc.authenticator)
 			h(tc.c)
 
 			require.Equal(t, string(tc.id), string(tc.c.Result.ID))
@@ -102,15 +111,10 @@ func TestProcessFirehoseLog(t *testing.T) {
 	err := json.NewDecoder(tc.c.Request.Body).Decode(&firehose)
 	assert.NoError(t, err)
 
-	batch, err := processFirehoseLog(tc.c, firehose)
+	batch, err := processFirehoseLog(tc.c, firehose, emptyRequestMetadata)
 	assert.NoError(t, err)
-	assert.Equal(t, 5, len(batch))
-	assert.Equal(t, "123456789", batch[0].Cloud.Origin.AccountID)
-	assert.Equal(t, "us-east-1", batch[0].Cloud.Origin.Region)
-	assert.Equal(t, "deliverystream/vpc-flow-log-stream-http-endpoint", batch[0].Service.Origin.Name)
-	assert.Equal(t, testARN, batch[0].Service.Origin.ID)
-	assert.Equal(t, "logs", batch[0].DataStream.Type)
-	assert.Equal(t, "firehose", batch[0].DataStream.Dataset)
+	assert.Equal(t, 1, len(batch))
+	assert.Equal(t, "2 123456789 eni-0b27ae2b72f7bec4c 45.146.165.96 172.31.0.75 50716 8983 6 1 40 1631651611 1631651654 REJECT OK", batch[0].Message)
 }
 
 type testcaseFirehoseHandler struct {
@@ -158,11 +162,6 @@ func (tc *testcaseFirehoseHandler) setup(t *testing.T) {
 	tc.c.Reset(tc.w, tc.r)
 }
 
-func TestParseARN(t *testing.T) {
-	arnParsed := parseARN(testARN)
-	assert.Equal(t, "aws", arnParsed.Partition)
-	assert.Equal(t, "firehose", arnParsed.Service)
-	assert.Equal(t, "123456789", arnParsed.AccountID)
-	assert.Equal(t, "us-east-1", arnParsed.Region)
-	assert.Equal(t, "deliverystream/vpc-flow-log-stream-http-endpoint", arnParsed.Resource)
+func emptyRequestMetadata(*request.Context) model.APMEvent {
+	return model.APMEvent{}
 }

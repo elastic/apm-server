@@ -30,13 +30,12 @@ import (
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 )
 
 const (
-	FirehoseDataset  = "firehose"
+	Dataset          = "firehose"
 	arnDelimiter     = ":"
 	arnSections      = 6
 	sectionPartition = 1
@@ -65,8 +64,12 @@ type arn struct {
 	Resource  string
 }
 
+// RequestMetadataFunc is a function type supplied to Handler for extracting
+// Firehose ARN from the request.
+type RequestMetadataFunc func(*request.Context) model.APMEvent
+
 // Handler returns a request.Handler for managing firehose requests.
-func Handler(processor model.BatchProcessor, authenticator *auth.Authenticator) request.Handler {
+func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProcessor, authenticator *auth.Authenticator) request.Handler {
 	handle := func(c *request.Context) (*result, error) {
 		accessKey := c.Request.Header.Get("X-Amz-Firehose-Access-Key")
 		if accessKey == "" {
@@ -100,7 +103,7 @@ func Handler(processor model.BatchProcessor, authenticator *auth.Authenticator) 
 		}
 
 		// convert firehose log to events
-		batch, err := processFirehoseLog(c, firehose)
+		batch, err := processFirehoseLog(c, firehose, requestMetadataFunc)
 		if err != nil {
 			return nil, err
 		}
@@ -162,7 +165,7 @@ func (e requestError) Error() string {
 	return e.err.Error()
 }
 
-func parseARN(arnString string) arn {
+func ParseARN(arnString string) arn {
 	// arn example for firehose:
 	// arn:aws:firehose:us-east-1:123456789:deliverystream/vpc-flow-log-stream-http-endpoint
 	sections := strings.SplitN(arnString, arnDelimiter, arnSections)
@@ -178,7 +181,7 @@ func parseARN(arnString string) arn {
 	}
 }
 
-func processFirehoseLog(c *request.Context, firehose firehoseLog) (model.Batch, error) {
+func processFirehoseLog(c *request.Context, firehose firehoseLog, requestMetadataFunc RequestMetadataFunc) (model.Batch, error) {
 	var batch model.Batch
 	for _, record := range firehose.Records {
 		recordDec, err := base64.StdEncoding.DecodeString(record.Data)
@@ -192,27 +195,10 @@ func processFirehoseLog(c *request.Context, firehose firehoseLog) (model.Batch, 
 				break
 			}
 
-			var event model.APMEvent
+			event := requestMetadataFunc(c)
 			event.Timestamp = time.Unix(firehose.Timestamp/1000, 0)
 			event.Processor = model.LogProcessor
 			event.Message = line
-
-			arnString := c.Request.Header.Get("X-Amz-Firehose-Source-Arn")
-			arnParsed := parseARN(arnString)
-
-			cloudOrigin := &model.CloudOrigin{}
-			cloudOrigin.AccountID = arnParsed.AccountID
-			cloudOrigin.Region = arnParsed.Region
-			event.Cloud.Origin = cloudOrigin
-
-			serviceOrigin := &model.ServiceOrigin{}
-			serviceOrigin.ID = arnString
-			serviceOrigin.Name = arnParsed.Resource
-			event.Service.Origin = serviceOrigin
-
-			// Set data stream type and dataset fields for Firehose
-			event.DataStream.Type = datastreams.LogsType
-			event.DataStream.Dataset = FirehoseDataset
 			batch = append(batch, event)
 		}
 	}
