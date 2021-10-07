@@ -267,11 +267,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		// TODO: better way to not set "kind"? don't want to test otel
-		// mapping here since we're testing different mapping atm.
-		otl := &input.OTEL
-		otl.Reset()
-		input.OTEL = *otl
+		input.OTEL.Reset()
 		mapToTransactionModel(&input, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
@@ -289,10 +285,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		out2.Timestamp = reqTime
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		// TODO: better way to not set "kind"? don't want to test otel
-		// mapping here since we're testing different mapping atm.
-		otl.Reset()
-		input.OTEL = *otl
+		input.OTEL.Reset()
 		mapToTransactionModel(&input, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Transaction, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
@@ -340,11 +333,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out model.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-		// TODO: better way to not set "kind"? don't want to test otel
-		// mapping here since we're testing different mapping atm.
-		otl := &input.OTEL
-		otl.Reset()
-		input.OTEL = *otl
+		input.OTEL.Reset()
 		// sample rate is set to > 0
 		input.SampleRate.Set(0.25)
 		mapToTransactionModel(&input, &out)
