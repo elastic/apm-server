@@ -932,6 +932,10 @@ func (o *otel) toAttributeMap() pdata.AttributeMap {
 		switch x := v.(type) {
 		case string:
 			m.InsertString(k, x)
+		// int is not a supported primitive type, but will a signed
+		// integer value be parsed as an int or int64?
+		case int:
+			m.InsertInt(k, int64(x))
 		case int64:
 			m.InsertInt(k, x)
 		case float64:

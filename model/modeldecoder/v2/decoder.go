@@ -1230,17 +1230,28 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	}
 }
 
-// TODO: Test that incoming spans/transactions with data in otel.attributes are
-// properly mapped to Spans and Transactions.
+// TODO: This is being stolen from internal code -.-
+var Span_SpanKind_value = map[string]int32{
+	"SPAN_KIND_UNSPECIFIED": 0,
+	"SPAN_KIND_INTERNAL":    1,
+	"SPAN_KIND_SERVER":      2,
+	"SPAN_KIND_CLIENT":      3,
+	"SPAN_KIND_PRODUCER":    4,
+	"SPAN_KIND_CONSUMER":    5,
+}
+
 func mapOTELAttributesTransaction(from otel, out *model.APMEvent) {
 	library := pdata.NewInstrumentationLibrary()
 	// Library isn't used, but required in the fn signature
 	library.SetName("")
 	m := from.toAttributeMap()
 	out.Labels.Update(from.slicesMap())
-	spanStatus := pdata.NewSpanStatus()
+	if from.SpanKind.IsSet() {
+		out.Transaction.Kind = from.SpanKind.Val
+	}
 	// TODO: Does this work? Is there a way we can infer the status code,
 	// potentially in the actual attributes map?
+	spanStatus := pdata.NewSpanStatus()
 	spanStatus.SetCode(pdata.StatusCodeUnset)
 	otel_processor.TranslateTransaction(m, spanStatus, library, out)
 }
@@ -1250,15 +1261,6 @@ func mapOTELAttributesSpan(from otel, out *model.APMEvent) {
 	out.Labels.Update(from.slicesMap())
 	var spanKind int32
 	if from.SpanKind.IsSet() {
-		// TODO: This is being stolen from internal code -.-
-		Span_SpanKind_value := map[string]int32{
-			"SPAN_KIND_UNSPECIFIED": 0,
-			"SPAN_KIND_INTERNAL":    1,
-			"SPAN_KIND_SERVER":      2,
-			"SPAN_KIND_CLIENT":      3,
-			"SPAN_KIND_PRODUCER":    4,
-			"SPAN_KIND_CONSUMER":    5,
-		}
 		// If not present, spanKind == 0, which is UNKNOWN
 		spanKind = Span_SpanKind_value["SPAN_KIND_"+from.SpanKind.Val]
 	}

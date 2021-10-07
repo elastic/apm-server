@@ -264,7 +264,6 @@ func TranslateTransaction(
 		httpResponse   model.HTTPResponse
 	)
 
-	var spanKindSet bool
 	var foundSpanType spanType
 	var message model.Message
 
@@ -384,9 +383,6 @@ func TranslateTransaction(
 			case semconv.AttributeRPCService:
 			case semconv.AttributeRPCMethod:
 
-			case "span_kind":
-				spanKindSet = true
-				event.Transaction.Kind = stringval
 			// miscellaneous
 			// TODO: This should be gone now?
 			// case "span.kind": // filter out
@@ -423,7 +419,7 @@ func TranslateTransaction(
 		}
 	}
 
-	if !spanKindSet {
+	if event.Transaction.Kind == "" {
 		switch event.Transaction.Type {
 		case "messaging":
 			event.Transaction.Kind = "CONSUMER"
