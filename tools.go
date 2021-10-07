@@ -24,5 +24,5 @@
 package main
 
 import (
-	_ "gotest.tools/gotestsum/cmd"          // go.mod/go.sum
+	_ "gotest.tools/gotestsum/cmd" // go.mod/go.sum
 )
