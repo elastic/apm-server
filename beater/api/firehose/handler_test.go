@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
-	"github.com/elastic/apm-server/processor/stream"
 )
 
 func TestFirehoseHandler(t *testing.T) {
@@ -108,7 +107,6 @@ type testcaseFirehoseHandler struct {
 	c                 *request.Context
 	w                 *httptest.ResponseRecorder
 	r                 *http.Request
-	processor         *stream.Processor
 	batchProcessor    model.BatchProcessor
 	authenticator     *auth.Authenticator
 	path              string
