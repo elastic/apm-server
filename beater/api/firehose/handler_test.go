@@ -38,19 +38,6 @@ import (
 	"github.com/elastic/apm-server/processor/stream"
 )
 
-const (
-	testARN = "arn:aws:firehose:us-east-1:123456789:deliverystream/vpc-flow-log-stream-http-endpoint"
-)
-
-func TestParseARN(t *testing.T) {
-	arnParsed := ParseARN(testARN)
-	assert.Equal(t, "aws", arnParsed.Partition)
-	assert.Equal(t, "firehose", arnParsed.Service)
-	assert.Equal(t, "123456789", arnParsed.AccountID)
-	assert.Equal(t, "us-east-1", arnParsed.Region)
-	assert.Equal(t, "deliverystream/vpc-flow-log-stream-http-endpoint", arnParsed.Resource)
-}
-
 func TestFirehoseHandler(t *testing.T) {
 	for name, tc := range map[string]testcaseFirehoseHandler{
 		"Success": {
@@ -146,7 +133,7 @@ func (tc *testcaseFirehoseHandler) setup(t *testing.T) {
 
 		tc.r = httptest.NewRequest("POST", "/", bytes.NewBuffer(data))
 		tc.r.Header.Add("Content-Type", "application/json")
-		tc.r.Header.Add("X-Amz-Firehose-Source-Arn", testARN)
+		tc.r.Header.Add("X-Amz-Firehose-Source-Arn", "arn:aws:firehose:us-east-1:123456789:deliverystream/vpc-flow-log-stream-http-endpoint")
 		if tc.firehoseAccessKey != "" {
 			tc.r.Header.Add("X-Amz-Firehose-Access-Key", tc.firehoseAccessKey)
 		}

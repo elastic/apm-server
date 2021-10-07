@@ -35,14 +35,8 @@ import (
 )
 
 const (
-	Dataset          = "firehose"
-	arnDelimiter     = ":"
-	arnSections      = 6
-	sectionPartition = 1
-	sectionService   = 2
-	sectionRegion    = 3
-	sectionAccountID = 4
-	sectionResource  = 5
+	Dataset       = "firehose"
+	sectionRegion = 3
 )
 
 type record struct {
@@ -53,15 +47,6 @@ type firehoseLog struct {
 	RequestID string   `json:"requestId"`
 	Timestamp int64    `json:"timestamp"`
 	Records   []record `json:"records"`
-}
-
-// arn struct separate the Amazon Resource Name into individual fields.
-type arn struct {
-	Partition string
-	Service   string
-	Region    string
-	AccountID string
-	Resource  string
 }
 
 // RequestMetadataFunc is a function type supplied to Handler for extracting
@@ -126,7 +111,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 		// Set required requestId and timestamp to match Firehose HTTP delivery
 		// request response format.
 		// https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html#responseformat
-		return &result{RequestId: firehose.RequestID, Timestamp: firehose.Timestamp}, nil
+		return &result{RequestID: firehose.RequestID, Timestamp: firehose.Timestamp}, nil
 	}
 
 	return func(c *request.Context) {
@@ -152,7 +137,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 
 type result struct {
 	ErrorMessage string `json:"errorMessage"`
-	RequestId    string `json:"requestId"`
+	RequestID    string `json:"requestId"`
 	Timestamp    int64  `json:"timestamp"`
 }
 
@@ -163,22 +148,6 @@ type requestError struct {
 
 func (e requestError) Error() string {
 	return e.err.Error()
-}
-
-func ParseARN(arnString string) arn {
-	// arn example for firehose:
-	// arn:aws:firehose:us-east-1:123456789:deliverystream/vpc-flow-log-stream-http-endpoint
-	sections := strings.SplitN(arnString, arnDelimiter, arnSections)
-	if len(sections) != arnSections {
-		return arn{}
-	}
-	return arn{
-		Partition: sections[sectionPartition],
-		Service:   sections[sectionService],
-		Region:    sections[sectionRegion],
-		AccountID: sections[sectionAccountID],
-		Resource:  sections[sectionResource],
-	}
 }
 
 func processFirehoseLog(c *request.Context, firehose firehoseLog, requestMetadataFunc RequestMetadataFunc) (model.Batch, error) {

@@ -138,3 +138,13 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		func() bool { return true },
 	)
 }
+
+func TestParseARN(t *testing.T) {
+	testARN := "arn:aws:firehose:us-east-1:123456789:deliverystream/vpc-flow-log-stream-http-endpoint"
+	arnParsed := parseARN(testARN)
+	assert.Equal(t, "aws", arnParsed.Partition)
+	assert.Equal(t, "firehose", arnParsed.Service)
+	assert.Equal(t, "123456789", arnParsed.AccountID)
+	assert.Equal(t, "us-east-1", arnParsed.Region)
+	assert.Equal(t, "deliverystream/vpc-flow-log-stream-http-endpoint", arnParsed.Resource)
+}

@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"regexp"
+	"strings"
 
 	"github.com/elastic/apm-server/datastreams"
 
@@ -78,6 +79,15 @@ const (
 	// This endpoint is experimental and subject to breaking changes and removal.
 	FirehosePath = "/firehose"
 )
+
+// arn struct separate the Amazon Resource Name into individual fields.
+type arn struct {
+	Partition string
+	Service   string
+	Region    string
+	AccountID string
+	Resource  string
+}
 
 // NewMux registers apm handlers to paths building up the APM Server API.
 func NewMux(
@@ -358,7 +368,7 @@ func rumRequestMetadata(c *request.Context) model.APMEvent {
 
 func firehoseRequestMetadata(c *request.Context) model.APMEvent {
 	arnString := c.Request.Header.Get("X-Amz-Firehose-Source-Arn")
-	arnParsed := firehose.ParseARN(arnString)
+	arnParsed := parseARN(arnString)
 
 	var event model.APMEvent
 
@@ -376,4 +386,21 @@ func firehoseRequestMetadata(c *request.Context) model.APMEvent {
 	event.DataStream.Type = datastreams.LogsType
 	event.DataStream.Dataset = firehose.Dataset
 	return event
+}
+
+func parseARN(arnString string) arn {
+	// arn example for firehose:
+	// arn:aws:firehose:us-east-1:123456789:deliverystream/vpc-flow-log-stream-http-endpoint
+	arnSections := 6
+	sections := strings.SplitN(arnString, ":", arnSections)
+	if len(sections) != arnSections {
+		return arn{}
+	}
+	return arn{
+		Partition: sections[1],
+		Service:   sections[2],
+		Region:    sections[3],
+		AccountID: sections[4],
+		Resource:  sections[5],
+	}
 }

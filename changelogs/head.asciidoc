@@ -36,6 +36,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Span documents now duplicate extended HTTP fields, which were previously only under `span.http.*`, under `http.*` {pull}6147[6147]
 - We now record the direct network peer for incoming requests as `source.ip` and `source.port`; origin IP is recorded in `client.ip` {pull}6152[6152]
 - We now collect span destination metrics for transactions with too many spans (for example due to transaction_max_spans or exit_span_min_duration) when collected and sent by APM agents {pull}6200[6200]
+- Add an experimental endpoint for AWS Kinesis Data Firehose {pull}6299[6299]
 
 [float]
 ==== Deprecated
