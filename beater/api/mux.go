@@ -25,10 +25,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
-
 	"github.com/elastic/apm-server/agentcfg"
 	apisourcemap "github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
@@ -47,6 +43,9 @@ import (
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 const (
@@ -73,7 +72,8 @@ const (
 
 	IntakeRUMV3Path = "/intake/v3/rum/events"
 
-	// FirehosePath defines the path to ingest firehose logs
+	// FirehosePath defines the path to ingest firehose logs.
+	// This endpoint is experimental and subject to breaking changes and removal.
 	FirehosePath = "/firehose"
 )
 

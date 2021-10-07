@@ -72,13 +72,9 @@ func Handler(processor model.BatchProcessor, authenticator *auth.Authenticator) 
 		if accessKey == "" {
 			return nil, requestError{
 				id:  request.IDResponseErrorsUnauthorized,
-				err: errors.New("Access key is required for Firehose"),
+				err: errors.New("Access key is required for using /firehose endpoint"),
 			}
 		}
-
-		// Create Authorization header using X-Amz-Firehose-Access-Key header
-		// This is only for Firehose HTTP request
-		c.Request.Header.Add("Authorization", "ApiKey "+accessKey)
 
 		details, authorizer, err := authenticator.Authenticate(context.Background(), headers.APIKey, accessKey)
 		if err != nil {
@@ -103,42 +99,10 @@ func Handler(processor model.BatchProcessor, authenticator *auth.Authenticator) 
 			return nil, err
 		}
 
-		var batch model.Batch
-		for _, record := range firehose.Records {
-			recordDec, err := base64.StdEncoding.DecodeString(record.Data)
-			if err != nil {
-				return nil, err
-			}
-
-			splitLines := strings.Split(string(recordDec), "\n")
-			for _, line := range splitLines {
-				if line == "" {
-					break
-				}
-
-				var event model.APMEvent
-				event.Timestamp = time.Unix(firehose.Timestamp/1000, 0)
-				event.Processor = model.LogProcessor
-				event.Message = line
-
-				arnString := c.Request.Header.Get("X-Amz-Firehose-Source-Arn")
-				arnParsed := parseARN(arnString)
-
-				cloudOrigin := &model.CloudOrigin{}
-				cloudOrigin.AccountID = arnParsed.AccountID
-				cloudOrigin.Region = arnParsed.Region
-				event.Cloud.Origin = cloudOrigin
-
-				serviceOrigin := &model.ServiceOrigin{}
-				serviceOrigin.ID = arnString
-				serviceOrigin.Name = arnParsed.Resource
-				event.Service.Origin = serviceOrigin
-
-				// Set data stream type and dataset fields for Firehose
-				event.DataStream.Type = datastreams.LogsType
-				event.DataStream.Dataset = FirehoseDataset
-				batch = append(batch, event)
-			}
+		// convert firehose log to events
+		batch, err := processFirehoseLog(c, firehose)
+		if err != nil {
+			return nil, err
 		}
 
 		if err := processor.ProcessBatch(c.Request.Context(), &batch); err != nil {
@@ -212,4 +176,45 @@ func parseARN(arnString string) arn {
 		AccountID: sections[sectionAccountID],
 		Resource:  sections[sectionResource],
 	}
+}
+
+func processFirehoseLog(c *request.Context, firehose firehoseLog) (model.Batch, error) {
+	var batch model.Batch
+	for _, record := range firehose.Records {
+		recordDec, err := base64.StdEncoding.DecodeString(record.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		splitLines := strings.Split(string(recordDec), "\n")
+		for _, line := range splitLines {
+			if line == "" {
+				break
+			}
+
+			var event model.APMEvent
+			event.Timestamp = time.Unix(firehose.Timestamp/1000, 0)
+			event.Processor = model.LogProcessor
+			event.Message = line
+
+			arnString := c.Request.Header.Get("X-Amz-Firehose-Source-Arn")
+			arnParsed := parseARN(arnString)
+
+			cloudOrigin := &model.CloudOrigin{}
+			cloudOrigin.AccountID = arnParsed.AccountID
+			cloudOrigin.Region = arnParsed.Region
+			event.Cloud.Origin = cloudOrigin
+
+			serviceOrigin := &model.ServiceOrigin{}
+			serviceOrigin.ID = arnString
+			serviceOrigin.Name = arnParsed.Resource
+			event.Service.Origin = serviceOrigin
+
+			// Set data stream type and dataset fields for Firehose
+			event.DataStream.Type = datastreams.LogsType
+			event.DataStream.Dataset = FirehoseDataset
+			batch = append(batch, event)
+		}
+	}
+	return batch, nil
 }
