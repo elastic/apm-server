@@ -592,7 +592,8 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 				}
 				fallthrough
 			case semconv.AttributeDBStatement:
-				db.Statement = stringval
+				// Statement should not be truncated, use original string value.
+				db.Statement = v.StringVal()
 				isDBSpan = true
 			case semconv.AttributeDBName, "db.instance":
 				db.Instance = stringval
