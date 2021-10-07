@@ -24,8 +24,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/elastic/apm-server/datastreams"
-
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/agentcfg"
@@ -40,6 +38,7 @@ import (
 	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/datastreams"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"

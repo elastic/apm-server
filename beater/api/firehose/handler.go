@@ -34,10 +34,7 @@ import (
 	"github.com/elastic/apm-server/publish"
 )
 
-const (
-	Dataset       = "firehose"
-	sectionRegion = 3
-)
+const Dataset = "firehose"
 
 type record struct {
 	Data string `json:"data"`
