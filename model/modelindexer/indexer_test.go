@@ -75,7 +75,7 @@ func TestModelIndexer(t *testing.T) {
 	})
 	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute})
 	require.NoError(t, err)
-	defer indexer.Close()
+	defer indexer.Close(context.Background())
 
 	const N = 100
 	for i := 0; i < N; i++ {
@@ -90,7 +90,7 @@ func TestModelIndexer(t *testing.T) {
 	assert.Equal(t, modelindexer.Stats{Added: N, Active: N}, indexer.Stats())
 
 	// Closing the indexer flushes enqueued events.
-	err = indexer.Close()
+	err = indexer.Close(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, modelindexer.Stats{
 		Added:  N,
@@ -112,7 +112,7 @@ func TestModelIndexerFlushInterval(t *testing.T) {
 		FlushInterval: time.Millisecond,
 	})
 	require.NoError(t, err)
-	defer indexer.Close()
+	defer indexer.Close(context.Background())
 
 	select {
 	case <-requests:
@@ -148,7 +148,7 @@ func TestModelIndexerFlushBytes(t *testing.T) {
 		// Default flush interval is 30 seconds
 	})
 	require.NoError(t, err)
-	defer indexer.Close()
+	defer indexer.Close(context.Background())
 
 	batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 		Type:      "logs",
@@ -182,7 +182,7 @@ func TestModelIndexerServerError(t *testing.T) {
 	})
 	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute})
 	require.NoError(t, err)
-	defer indexer.Close()
+	defer indexer.Close(context.Background())
 
 	batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 		Type:      "logs",
@@ -193,13 +193,57 @@ func TestModelIndexerServerError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Closing the indexer flushes enqueued events.
-	err = indexer.Close()
+	err = indexer.Close(context.Background())
 	require.EqualError(t, err, "flush failed: [500 Internal Server Error] ")
 	assert.Equal(t, modelindexer.Stats{
 		Added:  1,
 		Active: 0,
 		Failed: 1,
 	}, indexer.Stats())
+}
+
+func TestModelIndexerCloseFlushContext(t *testing.T) {
+	srvctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-srvctx.Done():
+		case <-r.Context().Done():
+		}
+	})
+	indexer, err := modelindexer.New(client, modelindexer.Config{})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+		Type:      "logs",
+		Dataset:   "apm_server",
+		Namespace: "testing",
+	}}}
+	err = indexer.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+
+	errch := make(chan error, 1)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		errch <- indexer.Close(ctx)
+	}()
+
+	// Should be blocked in flush.
+	select {
+	case err := <-errch:
+		t.Fatalf("unexpected return from indexer.Close: %s", err)
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	cancel()
+	select {
+	case err := <-errch:
+		assert.Error(t, err)
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for flush to unblock")
+	}
 }
 
 func BenchmarkModelIndexer(b *testing.B) {
@@ -221,7 +265,7 @@ func BenchmarkModelIndexer(b *testing.B) {
 
 	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Second})
 	require.NoError(b, err)
-	defer indexer.Close()
+	defer indexer.Close(context.Background())
 
 	batch := model.Batch{
 		model.APMEvent{
@@ -238,7 +282,7 @@ func BenchmarkModelIndexer(b *testing.B) {
 	})
 
 	// Closing the indexer flushes enqueued events.
-	if err := indexer.Close(); err != nil {
+	if err := indexer.Close(context.Background()); err != nil {
 		b.Fatal(err)
 	}
 	assert.Equal(b, int64(b.N), indexed)

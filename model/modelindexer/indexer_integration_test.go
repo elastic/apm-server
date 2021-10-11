@@ -51,7 +51,7 @@ func TestModelIndexerIntegration(t *testing.T) {
 	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Second})
 	require.NoError(t, err)
 	defer func() {
-		_ = indexer.Close()
+		_ = indexer.Close(context.Background())
 	}()
 
 	dataStream := model.DataStream{Type: "logs", Dataset: "apm_server", Namespace: "testing"}
@@ -73,7 +73,7 @@ func TestModelIndexerIntegration(t *testing.T) {
 	}
 
 	// Closing the indexer flushes enqueued events.
-	err = indexer.Close()
+	err = indexer.Close(context.Background())
 	require.NoError(t, err)
 
 	// Check that docs are indexed.

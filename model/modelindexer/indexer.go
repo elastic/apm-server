@@ -50,7 +50,8 @@ type Indexer struct {
 	g            errgroup.Group
 
 	mu       sync.RWMutex
-	closed   bool
+	closing  bool
+	closed   chan struct{}
 	activeMu sync.Mutex
 	active   *bulkIndexer
 	timer    *time.Timer
@@ -91,22 +92,41 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 	for i := 0; i < cfg.MaxRequests; i++ {
 		available <- newBulkIndexer(client)
 	}
-	return &Indexer{config: cfg, logger: logger, available: available}, nil
+	return &Indexer{
+		config:    cfg,
+		logger:    logger,
+		available: available,
+		closed:    make(chan struct{}),
+	}, nil
 }
 
 // Close closes the indexer, first flushing any queued events.
 //
 // Close returns an error if any flush attempts during the indexer's
-// lifetime returned an error.
-func (i *Indexer) Close() error {
+// lifetime returned an error. If ctx is cancelled, Close returns and
+// any ongoing flush attempts are cancelled.
+func (i *Indexer) Close(ctx context.Context) error {
 	i.mu.Lock()
 	defer i.mu.Unlock()
-	if !i.closed {
-		i.closed = true
+	if !i.closing {
+		i.closing = true
+
+		// Close i.closed when ctx is cancelled,
+		// unblock any ongoing flush attempts.
+		done := make(chan struct{})
+		defer close(done)
+		go func() {
+			defer close(i.closed)
+			select {
+			case <-done:
+			case <-ctx.Done():
+			}
+		}()
+
 		i.activeMu.Lock()
 		defer i.activeMu.Unlock()
 		if i.active != nil && i.timer.Stop() {
-			i.flushActiveLocked()
+			i.flushActiveLocked(ctx)
 		}
 	}
 	return i.g.Wait()
@@ -128,7 +148,7 @@ func (i *Indexer) Stats() Stats {
 func (i *Indexer) ProcessBatch(ctx context.Context, batch *model.Batch) error {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
-	if i.closed {
+	if i.closing {
 		return ErrClosed
 	}
 	for _, event := range *batch {
@@ -183,7 +203,7 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 
 	if i.active.Len() >= i.config.FlushBytes {
 		if i.timer.Stop() {
-			i.flushActiveLocked()
+			i.flushActiveLocked(context.Background())
 		}
 	}
 	return nil
@@ -192,27 +212,38 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 func (i *Indexer) flushActive() {
 	i.activeMu.Lock()
 	defer i.activeMu.Unlock()
-	i.flushActiveLocked()
+	i.flushActiveLocked(context.Background())
 }
 
-func (i *Indexer) flushActiveLocked() {
+func (i *Indexer) flushActiveLocked(ctx context.Context) {
+	// Create a child context which is cancelled when the context passed to i.Close is cancelled.
+	flushed := make(chan struct{})
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		defer cancel()
+		select {
+		case <-i.closed:
+		case <-flushed:
+		}
+	}()
 	bulkIndexer := i.active
 	i.active = nil
 	i.g.Go(func() error {
-		err := i.flush(bulkIndexer)
+		defer close(flushed)
+		err := i.flush(ctx, bulkIndexer)
 		bulkIndexer.Reset()
 		i.available <- bulkIndexer
 		return err
 	})
 }
 
-func (i *Indexer) flush(bulkIndexer *bulkIndexer) error {
+func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 	n := bulkIndexer.Items()
 	if n == 0 {
 		return nil
 	}
 	defer atomic.AddInt64(&i.eventsActive, -int64(n))
-	resp, err := bulkIndexer.Flush(context.Background())
+	resp, err := bulkIndexer.Flush(ctx)
 	if err != nil {
 		atomic.AddInt64(&i.eventsFailed, int64(n))
 		return err
