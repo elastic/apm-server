@@ -32,6 +32,7 @@ import (
 	"path"
 	"reflect"
 	"runtime"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -770,6 +771,57 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	out = decodeJSONMap(t, resp.Body)
 	resp.Body.Close()
 	assert.Equal(t, true, out["publish_ready"])
+}
+
+func TestServerExperimentalElasticsearchOutput(t *testing.T) {
+	bulkCh := make(chan *http.Request, 1)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		// We must send a valid JSON response for the libbeat
+		// elasticsearch client to send bulk requests.
+		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
+	})
+	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case bulkCh <- r:
+		default:
+		}
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	cfg := common.MustNewConfigFrom(map[string]interface{}{
+		"data_streams.enabled":              true,
+		"data_streams.wait_for_integration": false,
+	})
+	var beatConfig beat.BeatConfig
+	err := beatConfig.Output.Unpack(common.MustNewConfigFrom(map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"hosts":        []string{srv.URL},
+			"experimental": true,
+			"flush_bytes":  "1kb", // testdata is >1kb
+		},
+	}))
+	require.NoError(t, err)
+
+	beater, err := setupServer(t, cfg, &beatConfig, nil)
+	require.NoError(t, err)
+
+	req := makeTransactionRequest(t, beater.baseURL)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	resp, err := beater.client.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
+	resp.Body.Close()
+
+	select {
+	case r := <-bulkCh:
+		userAgent := r.UserAgent()
+		assert.True(t, strings.HasPrefix(userAgent, "go-elasticsearch"), userAgent)
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for bulk request")
+	}
 }
 
 type chanClient struct {
