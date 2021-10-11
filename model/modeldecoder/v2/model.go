@@ -21,8 +21,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"go.opentelemetry.io/collector/model/pdata"
+
+	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 )
