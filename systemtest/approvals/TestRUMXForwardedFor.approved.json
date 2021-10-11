@@ -12,10 +12,7 @@
                     "continent_name": "Oceania",
                     "country_iso_code": "AU",
                     "country_name": "Australia",
-                    "location": {
-                        "lat": -31.9474,
-                        "lon": 115.8648
-                    },
+                    "location": "dynamic",
                     "region_iso_code": "AU-WA",
                     "region_name": "Western Australia"
                 },

@@ -588,7 +588,8 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 				}
 				fallthrough
 			case semconv.AttributeDBStatement:
-				db.Statement = stringval
+				// Statement should not be truncated, use original string value.
+				db.Statement = v.StringVal()
 				foundSpanType = dbSpan
 			case semconv.AttributeDBName, "db.instance":
 				db.Instance = stringval

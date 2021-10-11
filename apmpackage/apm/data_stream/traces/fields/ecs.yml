@@ -254,6 +254,10 @@
   description: |
     Service fields.
   fields:
+    - name: environment
+      type: keyword
+      description: |
+        Service environment.
     - name: id
       type: keyword
       description: |
