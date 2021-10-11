@@ -37,6 +37,16 @@ import (
 	"github.com/elastic/apm-server/model/modelprocessor"
 )
 
+const (
+	testARN           = "arn:aws:firehose:us-east-1:123456789:deliverystream/vpc-flow-log-stream-http-endpoint"
+	expectedPartition = "aws"
+	expectedService   = "firehose"
+	expectedAccountID = "123456789"
+	expectedRegion    = "us-east-1"
+	expectedResource  = "deliverystream/vpc-flow-log-stream-http-endpoint"
+	expectedMessage   = "2 123456789 eni-0b27ae2b72f7bec4c 45.146.165.96 172.31.0.75 50716 8983 6 1 40 1631651611 1631651654 REJECT OK"
+)
+
 func TestFirehoseHandler(t *testing.T) {
 	for name, tc := range map[string]testcaseFirehoseHandler{
 		"Success": {
@@ -57,7 +67,7 @@ func TestFirehoseHandler(t *testing.T) {
 			tc.setup(t)
 
 			// call handler
-			h := Handler(emptyRequestMetadata, tc.batchProcessor, tc.authenticator)
+			h := Handler(RequestMetadata, tc.batchProcessor, tc.authenticator)
 			h(tc.c)
 
 			require.Equal(t, string(tc.id), string(tc.c.Result.ID))
@@ -97,10 +107,16 @@ func TestProcessFirehoseLog(t *testing.T) {
 	err := json.NewDecoder(tc.c.Request.Body).Decode(&firehose)
 	assert.NoError(t, err)
 
-	batch, err := processFirehoseLog(tc.c, firehose, emptyRequestMetadata)
+	baseEvent := RequestMetadata(tc.c)
+	assert.Equal(t, expectedRegion, baseEvent.Cloud.Origin.Region)
+	assert.Equal(t, expectedAccountID, baseEvent.Cloud.Origin.AccountID)
+	assert.Equal(t, testARN, baseEvent.Service.Origin.ID)
+	assert.Equal(t, expectedResource, baseEvent.Service.Origin.Name)
+
+	batch, err := processFirehoseLog(firehose, baseEvent)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(batch))
-	assert.Equal(t, "2 123456789 eni-0b27ae2b72f7bec4c 45.146.165.96 172.31.0.75 50716 8983 6 1 40 1631651611 1631651654 REJECT OK", batch[0].Message)
+	assert.Equal(t, expectedMessage, batch[0].Message)
 }
 
 type testcaseFirehoseHandler struct {
@@ -131,7 +147,7 @@ func (tc *testcaseFirehoseHandler) setup(t *testing.T) {
 
 		tc.r = httptest.NewRequest("POST", "/", bytes.NewBuffer(data))
 		tc.r.Header.Add("Content-Type", "application/json")
-		tc.r.Header.Add("X-Amz-Firehose-Source-Arn", "arn:aws:firehose:us-east-1:123456789:deliverystream/vpc-flow-log-stream-http-endpoint")
+		tc.r.Header.Add("X-Amz-Firehose-Source-Arn", testARN)
 		if tc.firehoseAccessKey != "" {
 			tc.r.Header.Add("X-Amz-Firehose-Access-Key", tc.firehoseAccessKey)
 		}
@@ -147,6 +163,11 @@ func (tc *testcaseFirehoseHandler) setup(t *testing.T) {
 	tc.c.Reset(tc.w, tc.r)
 }
 
-func emptyRequestMetadata(*request.Context) model.APMEvent {
-	return model.APMEvent{}
+func TestParseARN(t *testing.T) {
+	arnParsed := parseARN(testARN)
+	assert.Equal(t, expectedPartition, arnParsed.Partition)
+	assert.Equal(t, expectedService, arnParsed.Service)
+	assert.Equal(t, expectedAccountID, arnParsed.AccountID)
+	assert.Equal(t, expectedRegion, arnParsed.Region)
+	assert.Equal(t, expectedResource, arnParsed.Resource)
 }

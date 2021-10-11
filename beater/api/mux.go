@@ -22,7 +22,6 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"regexp"
-	"strings"
 
 	"github.com/pkg/errors"
 
@@ -38,7 +37,6 @@ import (
 	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/datastreams"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
@@ -78,15 +76,6 @@ const (
 	// This endpoint is experimental and subject to breaking changes and removal.
 	FirehosePath = "/firehose"
 )
-
-// arn struct separate the Amazon Resource Name into individual fields.
-type arn struct {
-	Partition string
-	Service   string
-	Region    string
-	AccountID string
-	Resource  string
-}
 
 // NewMux registers apm handlers to paths building up the APM Server API.
 func NewMux(
@@ -180,7 +169,7 @@ func (r *routeBuilder) profileHandler() (request.Handler, error) {
 }
 
 func (r *routeBuilder) firehoseLogHandler() (request.Handler, error) {
-	requestMetadataFunc := firehoseRequestMetadata
+	requestMetadataFunc := firehose.RequestMetadata
 	h := firehose.Handler(requestMetadataFunc, r.batchProcessor, r.authenticator)
 	return middleware.Wrap(h, firehoseMiddleware(r.cfg, intake.MonitoringMap)...)
 }
@@ -362,44 +351,5 @@ func rumRequestMetadata(c *request.Context) model.APMEvent {
 		Client:    model.Client{IP: c.ClientIP},
 		Source:    source,
 		UserAgent: model.UserAgent{Original: c.UserAgent},
-	}
-}
-
-func firehoseRequestMetadata(c *request.Context) model.APMEvent {
-	arnString := c.Request.Header.Get("X-Amz-Firehose-Source-Arn")
-	arnParsed := parseARN(arnString)
-
-	var event model.APMEvent
-
-	cloudOrigin := &model.CloudOrigin{}
-	cloudOrigin.AccountID = arnParsed.AccountID
-	cloudOrigin.Region = arnParsed.Region
-	event.Cloud.Origin = cloudOrigin
-
-	serviceOrigin := &model.ServiceOrigin{}
-	serviceOrigin.ID = arnString
-	serviceOrigin.Name = arnParsed.Resource
-	event.Service.Origin = serviceOrigin
-
-	// Set data stream type and dataset fields for Firehose
-	event.DataStream.Type = datastreams.LogsType
-	event.DataStream.Dataset = firehose.Dataset
-	return event
-}
-
-func parseARN(arnString string) arn {
-	// arn example for firehose:
-	// arn:aws:firehose:us-east-1:123456789:deliverystream/vpc-flow-log-stream-http-endpoint
-	arnSections := 6
-	sections := strings.SplitN(arnString, ":", arnSections)
-	if len(sections) != arnSections {
-		return arn{}
-	}
-	return arn{
-		Partition: sections[1],
-		Service:   sections[2],
-		Region:    sections[3],
-		AccountID: sections[4],
-		Resource:  sections[5],
 	}
 }
