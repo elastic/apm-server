@@ -537,10 +537,12 @@ func (s *serverRunner) run(listener net.Listener) error {
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
 	batchProcessor := make(modelprocessor.Chained, 0, 3)
-	finalBatchProcessor, err := s.newFinalBatchProcessor(publisher)
+	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(publisher)
 	if err != nil {
 		return err
 	}
+	defer closeFinalBatchProcessor(s.backgroundContext)
+
 	if !s.config.Sampling.KeepUnsampled {
 		// The server has been configured to discard unsampled
 		// transactions. Make sure this is done just before calling
@@ -647,11 +649,12 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 	return waitReady(ctx, s.config.WaitReadyInterval, s.tracer, s.logger, check)
 }
 
-// newFinalBatchProcessor returns the final model.BatchProcessor that publishes events.
-func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.BatchProcessor, error) {
+// newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
+// and a cleanup function which should be called on server shutdown.
+func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.BatchProcessor, func(context.Context) error, error) {
 	esOutputConfig := elasticsearchOutputConfig(s.beat)
 	if esOutputConfig == nil || !s.config.DataStreams.Enabled {
-		return p, nil
+		return p, func(context.Context) error { return nil }, nil
 	}
 
 	// Add `output.elasticsearch.experimental` config. If this is true and
@@ -666,10 +669,10 @@ func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.Batch
 
 	esConfig.Config = elasticsearch.DefaultConfig()
 	if err := esOutputConfig.Unpack(&esConfig); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if !esConfig.Experimental {
-		return p, nil
+		return p, func(context.Context) error { return nil }, nil
 	}
 
 	s.logger.Info("using experimental model indexer")
@@ -677,20 +680,20 @@ func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.Batch
 	if esConfig.FlushBytes != "" {
 		b, err := humanize.ParseBytes(esConfig.FlushBytes)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse ")
+			return nil, nil, errors.Wrap(err, "failed to parse flush_bytes")
 		}
 		flushBytes = int(b)
 	}
 	client, err := elasticsearch.NewClient(esConfig.Config)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	indexer, err := modelindexer.New(client, modelindexer.Config{
 		FlushBytes:    flushBytes,
 		FlushInterval: esConfig.FlushInterval,
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Remove libbeat output counters, and install our own callback which uses the modelindexer stats.
@@ -706,7 +709,7 @@ func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.Batch
 		v.OnKey("failed")
 		v.OnInt(stats.Failed)
 	})
-	return indexer, nil
+	return indexer, indexer.Close, nil
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
