@@ -45,6 +45,17 @@ const (
 var ErrClosed = errors.New("model indexer closed")
 
 // Indexer is a model.BatchProcessor which bulk indexes events as Elasticsearch documents.
+//
+// Indexer buffers events in their JSON encoding until either the accumulated buffer reaches
+// `config.FlushBytes`, or `config.FlushInterval` elapses.
+//
+// Indexer fills a single bulk request buffer at a time to ensure bulk requests are optimally
+// sized, avoiding sparse bulk requests as much as possible. After a bulk request is flushed,
+// the next event added will wait for the next available bulk request buffer and repeat the
+// process.
+//
+// Up to `config.MaxRequests` bulk requests may be flushing/active concurrently, to allow the
+// server to make progress encoding while Elasticsearch is busy servicing flushed bulk requests.
 type Indexer struct {
 	eventsAdded  int64
 	eventsActive int64
