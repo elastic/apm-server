@@ -61,7 +61,7 @@ type Config struct {
 	// MaxRequests holds the maximum number of bulk index requests to execute concurrently.
 	// The maximum memory usage of Indexer is thus approximately MaxRequests*FlushBytes.
 	//
-	// If MaxRequests is zero, the default of 10 will be used.
+	// If MaxRequests is less than or equal to zero, the default of 10 will be used.
 	MaxRequests int
 
 	// FlushBytes holds the flush threshold in bytes.
@@ -78,7 +78,7 @@ type Config struct {
 // New returns a new Indexer that indexes events directly into data streams.
 func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 	logger := logp.NewLogger("modelindexer")
-	if cfg.MaxRequests == 0 {
+	if cfg.MaxRequests <= 0 {
 		cfg.MaxRequests = 10
 	}
 	if cfg.FlushBytes <= 0 {
