@@ -664,11 +664,9 @@ func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.Batch
 	}
 	esConfig.FlushInterval = time.Second
 
-	if esOutputConfig != nil {
-		esConfig.Config = elasticsearch.DefaultConfig()
-		if err := esOutputConfig.Unpack(&esConfig); err != nil {
-			return nil, err
-		}
+	esConfig.Config = elasticsearch.DefaultConfig()
+	if err := esOutputConfig.Unpack(&esConfig); err != nil {
+		return nil, err
 	}
 	if !esConfig.Experimental {
 		return p, nil
