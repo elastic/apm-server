@@ -32,6 +32,7 @@ import (
 	"path"
 	"reflect"
 	"runtime"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -472,6 +473,7 @@ func TestServerConfigReload(t *testing.T) {
 	apmBeat.Manager = &mockManager{enabled: true}
 	beater, err := newTestBeater(t, apmBeat, cfg, nil)
 	require.NoError(t, err)
+	require.NotNil(t, apmBeat.OutputConfigReloader)
 	beater.start()
 
 	// Now that the beater is running, send config changes. The reloader
@@ -532,11 +534,96 @@ func TestServerConfigReload(t *testing.T) {
 
 	addr2, err := beater.waitListenAddr(1 * time.Second)
 	require.NoError(t, err)
-	assert.Empty(t, healthcheck(addr2)) // empty as auth is required but not specified
+	assert.Empty(t, healthcheck(addr2))
 
 	// First HTTP server should have been stopped.
 	_, err = http.Get("http://" + addr1)
 	assert.Error(t, err)
+
+	// Reload output config, should also cause HTTP server to be restarted.
+	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{Config: common.NewConfig()})
+	assert.NoError(t, err)
+
+	addr3, err := beater.waitListenAddr(1 * time.Second)
+	require.NoError(t, err)
+	assert.Empty(t, healthcheck(addr3)) // empty as auth is required but not specified
+
+	// Second HTTP server should have been stopped.
+	_, err = http.Get("http://" + addr2)
+	assert.Error(t, err)
+}
+
+func TestServerOutputConfigReload(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping server test")
+	}
+
+	// The beater has no way of unregistering itself from reload.Register,
+	// so we create a fresh registry and replace it after the test.
+	oldRegister := reload.Register
+	defer func() {
+		reload.Register = oldRegister
+	}()
+	reload.Register = reload.NewRegistry()
+
+	cfg := common.MustNewConfigFrom(map[string]interface{}{"data_streams.enabled": true})
+	apmBeat, cfg := newBeat(t, cfg, nil, nil)
+	apmBeat.Manager = &mockManager{enabled: true}
+
+	runServerCalls := make(chan ServerParams, 1)
+	createBeater := NewCreator(CreatorParams{
+		Logger: logp.NewLogger(""),
+		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
+			return func(ctx context.Context, args ServerParams) error {
+				runServerCalls <- args
+				return runServer(ctx, args)
+			}
+		},
+	})
+	beater, err := createBeater(apmBeat, cfg)
+	require.NoError(t, err)
+	t.Cleanup(beater.Stop)
+	go beater.Run(apmBeat)
+
+	// Now that the beater is running, send config changes. The reloader
+	// is not registered until after the beater starts running, so we
+	// must loop until it is set.
+	var reloadable reload.ReloadableList
+	for {
+		// The Reloader is not registered until after the beat has started running.
+		reloadable = reload.Register.GetReloadableList("inputs")
+		if reloadable != nil {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	inputConfig := common.MustNewConfigFrom(map[string]interface{}{
+		"apm-server": map[string]interface{}{
+			"host": "localhost:0",
+			"sampling.tail": map[string]interface{}{
+				"enabled": true,
+				"policies": []map[string]interface{}{{
+					"sample_rate": 0.5,
+				}},
+			},
+		},
+	})
+	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: inputConfig}})
+	require.NoError(t, err)
+
+	runServerArgs := <-runServerCalls
+	assert.Equal(t, "", runServerArgs.Config.Sampling.Tail.ESConfig.Username)
+
+	// Reloaded output config should be passed into apm-server config.
+	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{
+		Config: common.MustNewConfigFrom(map[string]interface{}{
+			"elasticsearch.username": "updated",
+		}),
+	})
+	assert.NoError(t, err)
+	runServerArgs = <-runServerCalls
+	assert.Equal(t, "updated", runServerArgs.Config.Sampling.Tail.ESConfig.Username)
 }
 
 func TestServerWaitForIntegrationKibana(t *testing.T) {
@@ -684,6 +771,57 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	out = decodeJSONMap(t, resp.Body)
 	resp.Body.Close()
 	assert.Equal(t, true, out["publish_ready"])
+}
+
+func TestServerExperimentalElasticsearchOutput(t *testing.T) {
+	bulkCh := make(chan *http.Request, 1)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		// We must send a valid JSON response for the libbeat
+		// elasticsearch client to send bulk requests.
+		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
+	})
+	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case bulkCh <- r:
+		default:
+		}
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	cfg := common.MustNewConfigFrom(map[string]interface{}{
+		"data_streams.enabled":              true,
+		"data_streams.wait_for_integration": false,
+	})
+	var beatConfig beat.BeatConfig
+	err := beatConfig.Output.Unpack(common.MustNewConfigFrom(map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"hosts":        []string{srv.URL},
+			"experimental": true,
+			"flush_bytes":  "1kb", // testdata is >1kb
+		},
+	}))
+	require.NoError(t, err)
+
+	beater, err := setupServer(t, cfg, &beatConfig, nil)
+	require.NoError(t, err)
+
+	req := makeTransactionRequest(t, beater.baseURL)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	resp, err := beater.client.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
+	resp.Body.Close()
+
+	select {
+	case r := <-bulkCh:
+		userAgent := r.UserAgent()
+		assert.True(t, strings.HasPrefix(userAgent, "go-elasticsearch"), userAgent)
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for bulk request")
+	}
 }
 
 type chanClient struct {

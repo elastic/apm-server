@@ -19,6 +19,8 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 
 [float]
 ==== Bug fixes
+- processor/otel: don't truncate `db.statement` {pull}6305[6305]
+- Use timestamp of original events for transaction/span metrics {pull}6311[6311]
 
 [float]
 ==== Intake API Changes
@@ -37,6 +39,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Span documents now duplicate extended HTTP fields, which were previously only under `span.http.*`, under `http.*` {pull}6147[6147]
 - We now record the direct network peer for incoming requests as `source.ip` and `source.port`; origin IP is recorded in `client.ip` {pull}6152[6152]
 - We now collect span destination metrics for transactions with too many spans (for example due to transaction_max_spans or exit_span_min_duration) when collected and sent by APM agents {pull}6200[6200]
+- `output.elasticsearch.experimental` can be used to enable a new, experimental Elasticsearch output using the go-elasticsearch client {pull}5970[5970]
 
 [float]
 ==== Deprecated

@@ -6,6 +6,7 @@ package spanmetrics
 
 import (
 	"context"
+	"sort"
 	"sync"
 	"testing"
 	"time"
@@ -315,6 +316,39 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 	}, metricsets)
 }
 
+func TestAggregateTimestamp(t *testing.T) {
+	batches := make(chan model.Batch, 1)
+	agg, err := NewAggregator(AggregatorConfig{
+		BatchProcessor: makeChanBatchProcessor(batches),
+		Interval:       30 * time.Second,
+		MaxGroups:      1000,
+	})
+	require.NoError(t, err)
+
+	t0 := time.Unix(0, 0)
+	for _, ts := range []time.Time{t0, t0.Add(15 * time.Second), t0.Add(30 * time.Second)} {
+		span := makeSpan("service_name", "agent_name", "destination", "success", 100*time.Millisecond, 1)
+		span.Timestamp = ts
+		batch := model.Batch{span}
+		err = agg.ProcessBatch(context.Background(), &batch)
+		require.NoError(t, err)
+		assert.Empty(t, batchMetricsets(t, batch))
+	}
+
+	go agg.Run()
+	err = agg.Stop(context.Background()) // stop to flush
+	require.NoError(t, err)
+
+	batch := expectBatch(t, batches)
+	metricsets := batchMetricsets(t, batch)
+	require.Len(t, metricsets, 2)
+	sort.Slice(metricsets, func(i, j int) bool {
+		return metricsets[i].Timestamp.Before(metricsets[j].Timestamp)
+	})
+	assert.Equal(t, t0, metricsets[0].Timestamp)
+	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp)
+}
+
 func TestAggregatorOverflow(t *testing.T) {
 	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
@@ -423,8 +457,6 @@ func batchMetricsets(t testing.TB, batch model.Batch) []model.APMEvent {
 		if event.Metricset == nil {
 			continue
 		}
-		require.NotZero(t, event.Timestamp)
-		event.Timestamp = time.Time{}
 		metricsets = append(metricsets, event)
 	}
 	return metricsets

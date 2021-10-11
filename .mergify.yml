@@ -118,3 +118,10 @@ pull_request_rules:
       label:
         add:
           - backport-skip
+  - name: remove backport-skip label
+    conditions:
+      - label~=^backport-\d
+    actions:
+      label:
+        remove:
+          - backport-skip
