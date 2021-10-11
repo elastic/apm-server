@@ -68,8 +68,8 @@ func (b *bulkIndexer) Items() int {
 	return b.itemsAdded
 }
 
-// Bytes returns the number of buffered bytes.
-func (b *bulkIndexer) Bytes() int {
+// Len returns the number of buffered bytes.
+func (b *bulkIndexer) Len() int {
 	return b.buf.Len()
 }
 

@@ -181,7 +181,7 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 	atomic.AddInt64(&i.eventsAdded, 1)
 	atomic.AddInt64(&i.eventsActive, 1)
 
-	if i.active.Bytes() >= i.config.FlushBytes {
+	if i.active.Len() >= i.config.FlushBytes {
 		if i.timer.Stop() {
 			i.flushActiveLocked()
 		}
