@@ -51,7 +51,6 @@ type Indexer struct {
 	eventsFailed int64
 	config       Config
 	logger       *logp.Logger
-	errorLogger  *logp.Logger
 	available    chan *bulkIndexer
 	g            errgroup.Group
 
