@@ -164,10 +164,9 @@ func (a *Aggregator) publish(ctx context.Context) error {
 		return nil
 	}
 
-	now := time.Now()
 	batch := make(model.Batch, 0, size)
 	for key, metrics := range a.inactive.m {
-		metricset := makeMetricset(now, key, metrics, a.config.Interval.Milliseconds())
+		metricset := makeMetricset(key, metrics)
 		batch = append(batch, metricset)
 		delete(a.inactive.m, key)
 	}
@@ -229,13 +228,7 @@ func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
 		duration = time.Duration(event.Span.Composite.Sum * float64(time.Millisecond))
 	}
 
-	key := aggregationKey{
-		serviceEnvironment: event.Service.Environment,
-		serviceName:        event.Service.Name,
-		agentName:          event.Agent.Name,
-		outcome:            event.Event.Outcome,
-		resource:           event.Span.DestinationService.Resource,
-	}
+	key := makeAggregationKey(event, event.Span.DestinationService.Resource, a.config.Interval)
 	metrics := spanMetrics{
 		count: float64(count) * event.Span.RepresentativeCount,
 		sum:   float64(duration) * event.Span.RepresentativeCount,
@@ -243,7 +236,7 @@ func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
 	if a.active.storeOrUpdate(key, metrics) {
 		return model.APMEvent{}
 	}
-	return makeMetricset(time.Now(), key, metrics, 0)
+	return makeMetricset(key, metrics)
 }
 
 func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.DroppedSpanStats) model.APMEvent {
@@ -255,13 +248,7 @@ func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.Dr
 		return model.APMEvent{}
 	}
 
-	key := aggregationKey{
-		serviceEnvironment: event.Service.Environment,
-		serviceName:        event.Service.Name,
-		agentName:          event.Agent.Name,
-		outcome:            event.Event.Outcome,
-		resource:           dss.DestinationServiceResource,
-	}
+	key := makeAggregationKey(event, dss.DestinationServiceResource, a.config.Interval)
 	metrics := spanMetrics{
 		count: float64(dss.Duration.Count) * representativeCount,
 		sum:   float64(dss.Duration.Sum) * representativeCount,
@@ -269,7 +256,7 @@ func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.Dr
 	if a.active.storeOrUpdate(key, metrics) {
 		return model.APMEvent{}
 	}
-	return makeMetricset(time.Now(), key, metrics, 0)
+	return makeMetricset(key, metrics)
 }
 
 type metricsBuffer struct {
@@ -298,13 +285,30 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, value spanMetrics) bo
 }
 
 type aggregationKey struct {
+	timestamp time.Time
+
 	// origin
 	serviceName        string
 	serviceEnvironment string
 	agentName          string
+
 	// destination
 	resource string
 	outcome  string
+}
+
+func makeAggregationKey(event *model.APMEvent, resource string, interval time.Duration) aggregationKey {
+	return aggregationKey{
+		// Group metrics by time interval.
+		timestamp: event.Timestamp.Truncate(interval),
+
+		serviceName:        event.Service.Name,
+		serviceEnvironment: event.Service.Environment,
+		agentName:          event.Agent.Name,
+
+		resource: resource,
+		outcome:  event.Event.Outcome,
+	}
 }
 
 type spanMetrics struct {
@@ -312,9 +316,9 @@ type spanMetrics struct {
 	sum   float64
 }
 
-func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics, interval int64) model.APMEvent {
+func makeMetricset(key aggregationKey, metrics spanMetrics) model.APMEvent {
 	return model.APMEvent{
-		Timestamp: timestamp,
+		Timestamp: key.timestamp,
 		Agent:     model.Agent{Name: key.agentName},
 		Service: model.Service{
 			Name:        key.serviceName,
