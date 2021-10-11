@@ -264,7 +264,7 @@ func TranslateTransaction(
 		httpResponse   model.HTTPResponse
 	)
 
-	var foundSpanType spanType
+	var foundSpanType int
 	var message model.Message
 
 	var component string
@@ -310,7 +310,6 @@ func TranslateTransaction(
 			switch kDots {
 			// http.*
 			case semconv.AttributeHTTPMethod:
-				foundSpanType = httpSpan
 				foundSpanType = httpSpan
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
@@ -483,10 +482,8 @@ func TranslateTransaction(
 	}
 }
 
-type spanType int
-
 const (
-	appSpan spanType = iota
+	appSpan int = iota
 	dbSpan
 	httpSpan
 	messagingSpan
@@ -522,7 +519,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 	var message model.Message
 	var db model.DB
 	var destinationService model.DestinationService
-	var foundSpanType spanType
+	var foundSpanType int
 	var component string
 	var rpcSystem string
 	var samplerType, samplerParam pdata.AttributeValue
