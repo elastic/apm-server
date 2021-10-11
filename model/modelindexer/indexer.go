@@ -33,7 +33,12 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/elasticsearch"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
+)
+
+const (
+	logRateLimit = time.Minute
 )
 
 // ErrClosed is returned from methods of closed Indexers.
@@ -46,6 +51,7 @@ type Indexer struct {
 	eventsFailed int64
 	config       Config
 	logger       *logp.Logger
+	errorLogger  *logp.Logger
 	available    chan *bulkIndexer
 	g            errgroup.Group
 
@@ -78,7 +84,7 @@ type Config struct {
 
 // New returns a new Indexer that indexes events directly into data streams.
 func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
-	logger := logp.NewLogger("modelindexer")
+	logger := logp.NewLogger("modelindexer", logs.WithRateLimit(logRateLimit))
 	if cfg.MaxRequests <= 0 {
 		cfg.MaxRequests = 10
 	}
@@ -246,6 +252,7 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 	resp, err := bulkIndexer.Flush(ctx)
 	if err != nil {
 		atomic.AddInt64(&i.eventsFailed, int64(n))
+		i.logger.With(logp.Error(err)).Error("bulk indexing request failed")
 		return err
 	}
 	var eventsFailed int64

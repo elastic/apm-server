@@ -32,6 +32,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 
 	"github.com/elastic/apm-server/elasticsearch"
@@ -200,6 +201,60 @@ func TestModelIndexerServerError(t *testing.T) {
 		Active: 0,
 		Failed: 1,
 	}, indexer.Stats())
+}
+
+func TestModelIndexerLogRateLimit(t *testing.T) {
+	logp.DevelopmentSetup(logp.ToObserverOutput())
+
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		scanner := bufio.NewScanner(r.Body)
+		result := elasticsearch.BulkIndexerResponse{HasErrors: true}
+		for i := 0; scanner.Scan(); i++ {
+			action := make(map[string]interface{})
+			if err := json.NewDecoder(strings.NewReader(scanner.Text())).Decode(&action); err != nil {
+				panic(err)
+			}
+			var actionType string
+			for actionType = range action {
+			}
+			if !scanner.Scan() {
+				panic("expected source")
+			}
+			item := esutil.BulkIndexerResponseItem{Status: http.StatusInternalServerError}
+			item.Error.Type = "error_type"
+			if i%2 == 0 {
+				item.Error.Reason = "error_reason_even"
+			} else {
+				item.Error.Reason = "error_reason_odd"
+			}
+			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: item})
+			if scanner.Scan() && scanner.Text() != "" {
+				// Both the libbeat event encoder and bulk indexer add an empty line.
+				panic("expected empty line")
+			}
+		}
+		json.NewEncoder(w).Encode(result)
+	})
+	indexer, err := modelindexer.New(client, modelindexer.Config{FlushBytes: 500})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+		Type:      "logs",
+		Dataset:   "apm_server",
+		Namespace: "testing",
+	}}}
+	for i := 0; i < 100; i++ {
+		err = indexer.ProcessBatch(context.Background(), &batch)
+		require.NoError(t, err)
+	}
+	err = indexer.Close(context.Background())
+	assert.NoError(t, err)
+
+	entries := logp.ObserverLogs().TakeAll()
+	require.Len(t, entries, 2)
+	assert.Equal(t, "failed to index event (error_type): error_reason_even", entries[0].Message)
+	assert.Equal(t, "failed to index event (error_type): error_reason_odd", entries[1].Message)
 }
 
 func TestModelIndexerCloseFlushContext(t *testing.T) {
