@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "dynamic",
+            "@timestamp": "2006-01-02T15:00:00.000Z",
             "_doc_count": 1,
             "agent": {
                 "name": "go"
@@ -37,7 +37,7 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:name:28a46e05f123d23f"
+                "instance": "systemtest:name:813c266c38717bab"
             },
             "transaction": {
                 "duration.histogram": {

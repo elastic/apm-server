@@ -60,9 +60,10 @@ func TestTransactionAggregation(t *testing.T) {
 
 	// Send some transactions to the server to be aggregated.
 	tracer := srv.Tracer()
+	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
 	for i, name := range []string{"abc", "def"} {
 		for j := 0; j < (i+1)*5; j++ {
-			tx := tracer.StartTransaction(name, "backend")
+			tx := tracer.StartTransactionOptions(name, "backend", apm.TransactionOptions{Start: timestamp})
 			req, _ := http.NewRequest("GET", "/", nil)
 			tx.Context.SetHTTPRequest(req)
 			tx.Duration = time.Second
@@ -74,7 +75,7 @@ func TestTransactionAggregation(t *testing.T) {
 	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*",
 		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 
 	// Make sure apm-server.aggregation.txmetrics metrics are published. Metric values are unit tested.
 	doc := getBeatsMonitoringStats(t, srv, nil)
@@ -132,7 +133,8 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 
 	// Send a transaction to the server to be aggregated.
 	tracer := srv.Tracer()
-	tx := tracer.StartTransaction("name", "type")
+	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
+	tx := tracer.StartTransactionOptions("name", "type", apm.TransactionOptions{Start: timestamp})
 	tx.Duration = time.Second
 	tx.End()
 	tracer.Flush(nil)
@@ -150,7 +152,7 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
 		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestServiceDestinationAggregation(t *testing.T) {
@@ -167,9 +169,10 @@ func TestServiceDestinationAggregation(t *testing.T) {
 
 	// Send spans to the server to be aggregated.
 	tracer := srv.Tracer()
+	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
 	tx := tracer.StartTransaction("name", "type")
 	for i := 0; i < 5; i++ {
-		span := tx.StartSpan("name", "type", nil)
+		span := tx.StartSpanOptions("name", "type", apm.SpanOptions{Start: timestamp})
 		span.Context.SetDestinationService(apm.DestinationServiceSpanContext{
 			Name:     "name",
 			Resource: "resource",
@@ -183,5 +186,5 @@ func TestServiceDestinationAggregation(t *testing.T) {
 	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
 		estest.ExistsQuery{Field: "span.destination.service.response_time.count"},
 	)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
