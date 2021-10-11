@@ -657,19 +657,16 @@ func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.Batch
 	// Add `output.elasticsearch.experimental` config. If this is true and
 	// data streams are enabled, we'll use the model indexer processor.
 	var esConfig struct {
-		*elasticsearch.Config
-		Experimental  bool          `config:"experimental"`
-		FlushBytes    string        `config:"flush_bytes"`
-		FlushInterval time.Duration `config:"flush_interval"`
+		*elasticsearch.Config `config:",inline"`
+		Experimental          bool          `config:"experimental"`
+		FlushBytes            string        `config:"flush_bytes"`
+		FlushInterval         time.Duration `config:"flush_interval"`
 	}
 	esConfig.FlushInterval = time.Second
 
 	if esOutputConfig != nil {
 		esConfig.Config = elasticsearch.DefaultConfig()
 		if err := esOutputConfig.Unpack(&esConfig); err != nil {
-			return nil, err
-		}
-		if err := esOutputConfig.Unpack(&esConfig.Config); err != nil {
 			return nil, err
 		}
 	}
