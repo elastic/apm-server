@@ -789,8 +789,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 
 	if spanKind == pdata.SpanKindUnspecified {
 		switch event.Span.Type {
-		// TODO: The spec only lists "external" and "storage"; what about "db"?
-		case "external", "storage":
+		case "db", "external", "storage":
 			event.Span.Kind = "CLIENT"
 		default:
 			event.Span.Kind = "INTERNAL"
