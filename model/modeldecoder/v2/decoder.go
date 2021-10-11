@@ -1231,7 +1231,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 }
 
 // TODO: This is being stolen from internal code -.-
-var Span_SpanKind_value = map[string]int32{
+var spanKindValue = map[string]int32{
 	"UNSPECIFIED": 0,
 	"INTERNAL":    1,
 	"SERVER":      2,
@@ -1262,7 +1262,7 @@ func mapOTELAttributesSpan(from otel, out *model.APMEvent) {
 	var spanKind int32
 	if from.SpanKind.IsSet() {
 		// If not present, spanKind == 0, which is UNKNOWN
-		spanKind = Span_SpanKind_value[from.SpanKind.Val]
+		spanKind = spanKindValue[from.SpanKind.Val]
 		out.Span.Kind = from.SpanKind.Val
 	}
 	otel_processor.TranslateSpan(pdata.SpanKind(spanKind), m, out)
