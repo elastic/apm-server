@@ -50,9 +50,7 @@ func TestModelIndexerIntegration(t *testing.T) {
 	require.NoError(t, err)
 	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Second})
 	require.NoError(t, err)
-	defer func() {
-		_ = indexer.Close(context.Background())
-	}()
+	defer indexer.Close(context.Background())
 
 	dataStream := model.DataStream{Type: "logs", Dataset: "apm_server", Namespace: "testing"}
 	index := fmt.Sprintf("%s-%s-%s", dataStream.Type, dataStream.Dataset, dataStream.Namespace)
