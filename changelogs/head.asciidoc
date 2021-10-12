@@ -16,6 +16,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - experimental:["This breaking change applies to the experimental tail-based sampling feature."] Removed `apm-server.sampling.tail.storage_dir` config {pull}6236[6236]
 - Removed `ProcessPending` self-instrumentation events {pull}6243[6243]
 - experimental:["This breaking change applies to the experimental tail-based sampling feature."] Changed `apm-server.sampling.tail.events.*` metrics semantics {pull}6273[6273]
+- Removed warm phase from default ILM policy {pull}6322[6322]
 
 [float]
 ==== Bug fixes
