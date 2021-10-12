@@ -252,21 +252,6 @@ https://github.com/elastic/apm-contrib/tree/master/kibana[apm-contrib] repositor
 // This section has moved. Please see <<configuration-rum>>.
 
 ifndef::apm-integration-docs[]
-[role="exclude",id="apm-integration"]
-=== APM integration
-
-This section has moved.
-
-[role="exclude",id="apm-integration-ilm"]
-=== APM integration
-
-This section has moved.
-
-[role="exclude",id="apm-integration-pipelines"]
-=== APM integration
-
-This section has moved.
-
 [role="exclude",id="api-key"]
 === API keys
 
@@ -276,9 +261,4 @@ This section has moved. See <<api-key-legacy>>.
 === API keys
 
 This section has moved. See <<secret-token-legacy>>.
-
-[role="exclude",id="apm-integration-data-streams"]
-=== APM integration data streams
-
-This section has moved.
 endif::[]

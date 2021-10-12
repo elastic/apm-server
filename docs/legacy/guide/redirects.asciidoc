@@ -1,5 +1,12 @@
+ifndef::apm-integration-docs[]
 ["appendix",role="exclude",id="redirects"]
 = Deleted pages
+endif::[]
+
+ifdef::apm-integration-docs[]
+["appendix",role="exclude",id="legacy-apm-redirects"]
+= Deleted pages
+endif::[]
 
 The following pages do not exist. They may have moved, been deleted, or have not been created yet.
 

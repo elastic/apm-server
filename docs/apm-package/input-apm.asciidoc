@@ -4,7 +4,7 @@
 == APM input settings
 
 ++++
-<titleabbrev>Input settings (temp)</titleabbrev>
+<titleabbrev>Input settings</titleabbrev>
 ++++
 
 beta::[]

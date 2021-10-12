@@ -2,7 +2,7 @@
 == APM integration for {agent}
 
 ++++
-<titleabbrev>Old integration overview (TBD)</titleabbrev>
+<titleabbrev>APM integration ({agent})</titleabbrev>
 ++++
 
 beta::[]
@@ -114,3 +114,7 @@ In the future, we may align with Elastic Stack versioning.
 * {fleet-guide}/fleet-overview.html[Fleet overview]
 
 include::./data-streams.asciidoc[]
+
+include::./input-apm.asciidoc[]
+
+include::./configure.asciidoc[]

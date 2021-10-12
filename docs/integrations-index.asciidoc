@@ -2,70 +2,29 @@ include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 :apm-integration-docs:
-
-[[apm-integration-guide]]
-= APM Integration Guide
-
-
-// THIS IS APM OVERVIEW CONTENT
-include::./overview.asciidoc[]
-
-include::./legacy/guide/apm-doc-directory.asciidoc[]
-
-include::./legacy/guide/install-and-run.asciidoc[]
-
-include::./legacy/guide/quick-start-overview.asciidoc[]
-
-include::./legacy/guide/apm-data-model.asciidoc[]
-
-include::./legacy/guide/features.asciidoc[]
-
-include::./legacy/guide/agent-server-compatibility.asciidoc[]
-
-// include::./guide/troubleshooting.asciidoc[]
-
-// include::./guide/apm-breaking-changes.asciidoc[]
-
-// include::./guide/redirects.asciidoc[]
-
-
-
 :apm-package-dir: {docdir}/apm-package
-include::{apm-package-dir}/apm-integration.asciidoc[]
 
+[[apm-user-guide]]
+= APM User Guide
 
-== Set up (temp)
+== New content topic 1
 
-text
+New content goes here...
 
-== Upgrade from legacy APM Server (temp)
+== New content topic 2
 
-text
+New content goes here...
 
-== Administer (temp)
+== New content topic 3
 
-text
+New content goes here...
 
-== How to (temp)
+== New content etc.
 
-text
+New content goes here...
 
-// configure stuff
-include::{apm-package-dir}/configure.asciidoc[]
-// input settings
-include::{apm-package-dir}/input-apm.asciidoc[]
+// This includes the legacy APM Overview
+include::legacy/guide/index.asciidoc[]
 
-== API (temp)
-
-text
-
-== Explore your data (temp)
-
-text
-
-== Troubleshoot (temp)
-
-text
-
-// This includes the APM Server Reference
+// This includes the legacy APM Server Reference
 include::legacy/index.asciidoc[]

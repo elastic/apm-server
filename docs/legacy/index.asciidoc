@@ -36,6 +36,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :docker_platform:
 :win_os:
 :linux_os:
+:apm-package-dir: {docdir}/apm-package
 
 :github_repo_link: https://github.com/elastic/apm-server/blob/v{version}
 ifeval::["{version}" == "8.0.0"]
@@ -49,6 +50,12 @@ NOTE: For the best reading experience,
 please view this documentation at https://www.elastic.co/guide/en/apm/server[elastic.co]
 endif::[]
 
+ifndef::apm-integration-docs[]
+[[apm-server]]
+= APM Server Reference
+endif::[]
+
+ifdef::apm-integration-docs[]
 [[apm-server]]
 = Legacy APM Server Reference
 
@@ -58,6 +65,7 @@ deprecated::[7.16.0]
 🚨🚨🚨🚨
 Add some note here about what was deprecated and why.
 ****
+endif::[]
 
 include::./overview.asciidoc[]
 
@@ -87,18 +95,6 @@ include::./upgrading.asciidoc[leveloffset=+1]
 
 include::./release-notes.asciidoc[leveloffset=+1]
 
-
+include::{apm-package-dir}/apm-integration.asciidoc[]
 
 include::./redirects.asciidoc[]
-
-
-
-Configure
-Secure
-Monitor
-API
-Explore data in Elasticsearch
-Exported fields
-Troubleshoot
-Upgrade
-Release notes
