@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "dynamic",
+            "@timestamp": "2006-01-02T15:04:05.000Z",
             "_doc_count": 5,
             "agent": {
                 "name": "go"
@@ -37,7 +37,7 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:abc:d8f2bb8faa13bba6"
+                "instance": "systemtest:abc:b61e418e611e87bb"
             },
             "transaction": {
                 "duration.histogram": {
@@ -54,7 +54,7 @@
             }
         },
         {
-            "@timestamp": "dynamic",
+            "@timestamp": "2006-01-02T15:04:05.000Z",
             "_doc_count": 10,
             "agent": {
                 "name": "go"
@@ -90,7 +90,7 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:def:8445550d2ba82fde"
+                "instance": "systemtest:def:faf17465cd8ab27d"
             },
             "transaction": {
                 "duration.histogram": {
