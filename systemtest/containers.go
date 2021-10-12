@@ -39,6 +39,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -301,9 +302,10 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		return nil, err
 	}
 	stackVersion := agentImageDetails.Config.Labels["org.label-schema.version"]
+	vcsRef := agentImageDetails.Config.Labels["org.label-schema.vcs-ref"]
 
 	// Build a custom elastic-agent image with a locally built apm-server binary injected.
-	agentImage, err = buildElasticAgentImage(context.Background(), docker, stackVersion, agentImageVersion)
+	agentImage, err = buildElasticAgentImage(context.Background(), docker, stackVersion, agentImageVersion, vcsRef)
 	if err != nil {
 		return nil, err
 	}
@@ -415,6 +417,45 @@ func (c *ElasticAgentContainer) Logs(ctx context.Context) (io.ReadCloser, error)
 	return c.container.Logs(ctx)
 }
 
+// Exec executes a command in the container, and returns its stdout and stderr.
+func (c *ElasticAgentContainer) Exec(ctx context.Context, cmd ...string) (stdout, stderr []byte, _ error) {
+	docker, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer docker.Close()
+
+	response, err := docker.ContainerExecCreate(ctx, c.container.GetContainerID(), types.ExecConfig{
+		AttachStderr: true,
+		AttachStdout: true,
+		Cmd:          cmd,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Consume all the exec output.
+	resp, err := docker.ContainerExecAttach(ctx, response.ID, types.ExecStartCheck{})
+	if err != nil {
+		return nil, nil, err
+	}
+	defer resp.Close()
+	var stdoutBuf, stderrBuf bytes.Buffer
+	if _, err := stdcopy.StdCopy(&stdoutBuf, &stderrBuf, resp.Reader); err != nil {
+		return nil, nil, err
+	}
+
+	// Return an error if the command exited non-zero.
+	execResp, err := docker.ContainerExecInspect(ctx, response.ID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if execResp.ExitCode != 0 {
+		return nil, nil, fmt.Errorf("process exited with code %d", execResp.ExitCode)
+	}
+	return stdoutBuf.Bytes(), stderrBuf.Bytes(), nil
+}
+
 func pullDockerImage(ctx context.Context, docker *client.Client, imageRef string) error {
 	rc, err := docker.ImagePull(context.Background(), imageRef, types.ImagePullOptions{})
 	if err != nil {
@@ -438,7 +479,7 @@ func matchFleetServerAPIStatusHealthy(r io.Reader) bool {
 }
 
 // buildElasticAgentImage builds a Docker image from the published image with a locally built apm-server injected.
-func buildElasticAgentImage(ctx context.Context, docker *client.Client, stackVersion, imageVersion string) (string, error) {
+func buildElasticAgentImage(ctx context.Context, docker *client.Client, stackVersion, imageVersion, vcsRef string) (string, error) {
 	imageName := fmt.Sprintf("elastic-agent-systemtest:%s", imageVersion)
 	log.Printf("Building image %s...", imageName)
 
@@ -448,7 +489,8 @@ func buildElasticAgentImage(ctx context.Context, docker *client.Client, stackVer
 	if arch == "amd64" {
 		arch = "x86_64"
 	}
-	apmServerInstallDir := fmt.Sprintf("./state/data/install/apm-server-%s-linux-%s", stackVersion, arch)
+	vcsRefShort := vcsRef[:6]
+	apmServerInstallDir := fmt.Sprintf("./data/elastic-agent-%s/install/apm-server-%s-linux-%s", vcsRefShort, stackVersion, arch)
 	apmServerBinary, err := apmservertest.BuildServerBinary("linux")
 	if err != nil {
 		return "", err
