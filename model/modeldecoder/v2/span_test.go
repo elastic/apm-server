@@ -328,7 +328,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			assert.Equal(t, "db", event.Span.Type)
 			assert.Equal(t, "mysql", event.Span.Subtype)
 			assert.Equal(t, "", event.Span.Action)
-			assert.Equal(t, "INTERNAL", event.Span.Kind)
+			assert.Equal(t, "CLIENT", event.Span.Kind)
 
 			assert.Equal(t, &model.DB{
 				Instance:  "ShopDb",
