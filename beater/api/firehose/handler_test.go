@@ -19,6 +19,7 @@ package firehose
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -26,6 +27,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -57,7 +59,7 @@ func TestFirehoseHandler(t *testing.T) {
 		},
 		"failed": {
 			path:              "vpc_log.json",
-			code:              http.StatusBadRequest,
+			code:              http.StatusUnauthorized,
 			id:                request.IDResponseErrorsUnauthorized,
 			firehoseAccessKey: "",
 		},
@@ -67,7 +69,7 @@ func TestFirehoseHandler(t *testing.T) {
 			tc.setup(t)
 
 			// call handler
-			h := Handler(RequestMetadata, tc.batchProcessor, tc.authenticator)
+			h := Handler(tc.batchProcessor, tc.authenticator)
 			h(tc.c)
 
 			require.Equal(t, string(tc.id), string(tc.c.Result.ID))
@@ -93,30 +95,77 @@ func TestFirehoseHandler(t *testing.T) {
 }
 
 func TestProcessFirehoseLog(t *testing.T) {
+	var batches []model.Batch
+	tc := testcaseFirehoseHandler{
+		path:              "vpc_log.json",
+		code:              http.StatusOK,
+		id:                request.IDResponseValidAccepted,
+		firehoseAccessKey: "U25jcABcd0JzTjQzUjNDemdGTHk6Ri0xMTNCdVVRdXFSR0lGYzF0Wk5Vdw==",
+		batchProcessor: model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+			batches = append(batches, *batch)
+			return nil
+		}),
+	}
+
+	tc.setup(t)
+	h := Handler(tc.batchProcessor, tc.authenticator)
+	h(tc.c)
+
+	require.Len(t, batches, 1)
+	require.Len(t, batches[0], 1)
+	event := batches[0][0]
+
+	assert.Equal(t, expectedMessage, event.Message)
+	assert.Equal(t, expectedRegion, event.Cloud.Origin.Region)
+	assert.Equal(t, expectedAccountID, event.Cloud.Origin.AccountID)
+	assert.Equal(t, testARN, event.Service.Origin.ID)
+	assert.Equal(t, expectedResource, event.Service.Origin.Name)
+}
+
+func TestAuth(t *testing.T) {
 	tc := testcaseFirehoseHandler{
 		path:              "vpc_log.json",
 		code:              http.StatusOK,
 		id:                request.IDResponseValidAccepted,
 		firehoseAccessKey: "U25jcABcd0JzTjQzUjNDemdGTHk6Ri0xMTNCdVVRdXFSR0lGYzF0Wk5Vdw==",
 	}
-
-	// setup
+	var authzCalled bool
+	tc.authenticator = authenticatorFunc(func(ctx context.Context, kind, token string) (auth.AuthenticationDetails, auth.Authorizer, error) {
+		var authz authorizerFunc = func(ctx context.Context, action auth.Action, resource auth.Resource) error {
+			authzCalled = true
+			return nil
+		}
+		require.Equal(t, "ApiKey", kind)
+		require.Equal(t, tc.firehoseAccessKey, token)
+		return auth.AuthenticationDetails{Method: auth.MethodAPIKey}, authz, nil
+	})
+	tc.batchProcessor = model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		return auth.Authorize(ctx, auth.ActionEventIngest, auth.Resource{})
+	})
 	tc.setup(t)
+	h := Handler(tc.batchProcessor, tc.authenticator)
+	h(tc.c)
 
-	var firehose firehoseLog
-	err := json.NewDecoder(tc.c.Request.Body).Decode(&firehose)
-	assert.NoError(t, err)
+	require.Equal(t, string(tc.id), string(tc.c.Result.ID))
+	assert.Equal(t, tc.code, tc.w.Code)
+	assert.True(t, authzCalled)
+}
 
-	baseEvent := RequestMetadata(tc.c)
-	assert.Equal(t, expectedRegion, baseEvent.Cloud.Origin.Region)
-	assert.Equal(t, expectedAccountID, baseEvent.Cloud.Origin.AccountID)
-	assert.Equal(t, testARN, baseEvent.Service.Origin.ID)
-	assert.Equal(t, expectedResource, baseEvent.Service.Origin.Name)
-
-	batch, err := processFirehoseLog(firehose, baseEvent)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(batch))
-	assert.Equal(t, expectedMessage, batch[0].Message)
+func TestAuthError(t *testing.T) {
+	tc := testcaseFirehoseHandler{
+		path:              "vpc_log.json",
+		code:              http.StatusUnauthorized,
+		id:                request.IDResponseErrorsUnauthorized,
+		firehoseAccessKey: "invalid",
+	}
+	tc.authenticator = authenticatorFunc(func(ctx context.Context, kind, token string) (auth.AuthenticationDetails, auth.Authorizer, error) {
+		return auth.AuthenticationDetails{}, nil, errors.New("authentication failed")
+	})
+	tc.setup(t)
+	h := Handler(tc.batchProcessor, tc.authenticator)
+	h(tc.c)
+	require.Equal(t, string(tc.id), string(tc.c.Result.ID))
+	assert.Equal(t, tc.code, tc.w.Code)
 }
 
 type testcaseFirehoseHandler struct {
@@ -124,7 +173,7 @@ type testcaseFirehoseHandler struct {
 	w                 *httptest.ResponseRecorder
 	r                 *http.Request
 	batchProcessor    model.BatchProcessor
-	authenticator     *auth.Authenticator
+	authenticator     Authenticator
 	path              string
 	firehoseAccessKey string
 
@@ -137,9 +186,11 @@ func (tc *testcaseFirehoseHandler) setup(t *testing.T) {
 		tc.batchProcessor = modelprocessor.Nop{}
 	}
 
-	authenticator, err := auth.NewAuthenticator(config.AgentAuth{})
-	require.NoError(t, err)
-	tc.authenticator = authenticator
+	if tc.authenticator == nil {
+		authenticator, err := auth.NewAuthenticator(config.AgentAuth{})
+		require.NoError(t, err)
+		tc.authenticator = authenticator
+	}
 
 	if tc.r == nil {
 		data, err := ioutil.ReadFile(filepath.Join("../../../testdata/firehose", tc.path))
@@ -170,4 +221,16 @@ func TestParseARN(t *testing.T) {
 	assert.Equal(t, expectedAccountID, arnParsed.AccountID)
 	assert.Equal(t, expectedRegion, arnParsed.Region)
 	assert.Equal(t, expectedResource, arnParsed.Resource)
+}
+
+type authenticatorFunc func(ctx context.Context, kind, token string) (auth.AuthenticationDetails, auth.Authorizer, error)
+
+func (f authenticatorFunc) Authenticate(ctx context.Context, kind, token string) (auth.AuthenticationDetails, auth.Authorizer, error) {
+	return f(ctx, kind, token)
+}
+
+type authorizerFunc func(ctx context.Context, action auth.Action, resource auth.Resource) error
+
+func (f authorizerFunc) Authorize(ctx context.Context, action auth.Action, resource auth.Resource) error {
+	return f(ctx, action, resource)
 }

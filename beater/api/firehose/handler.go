@@ -67,12 +67,13 @@ type arn struct {
 	Resource  string
 }
 
-// RequestMetadataFunc is a function type supplied to Handler for extracting
-// Firehose ARN from the request.
-type RequestMetadataFunc func(*request.Context) model.APMEvent
+// Authenticator provides provides authentication and authorization support.
+type Authenticator interface {
+	Authenticate(ctx context.Context, kind, token string) (auth.AuthenticationDetails, auth.Authorizer, error)
+}
 
 // Handler returns a request.Handler for managing firehose requests.
-func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProcessor, authenticator *auth.Authenticator) request.Handler {
+func Handler(processor model.BatchProcessor, authenticator Authenticator) request.Handler {
 	handle := func(c *request.Context) (*result, error) {
 		accessKey := c.Request.Header.Get("X-Amz-Firehose-Access-Key")
 		if accessKey == "" {
@@ -82,7 +83,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 			}
 		}
 
-		details, authorizer, err := authenticator.Authenticate(context.Background(), headers.APIKey, accessKey)
+		details, authorizer, err := authenticator.Authenticate(c.Request.Context(), headers.APIKey, accessKey)
 		if err != nil {
 			return nil, requestError{
 				id:  request.IDResponseErrorsUnauthorized,
@@ -106,7 +107,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 		}
 
 		// convert firehose log to events
-		baseEvent := requestMetadataFunc(c)
+		baseEvent := requestMetadata(c)
 		batch, err := processFirehoseLog(firehose, baseEvent)
 		if err != nil {
 			return nil, err
@@ -142,7 +143,6 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 			default:
 				c.Result.SetWithError(request.IDResponseErrorsInternal, err)
 			}
-			c.Result.StatusCode = 400
 		} else {
 			c.Result.SetWithBody(request.IDResponseValidAccepted, result)
 			c.Result.StatusCode = 200
@@ -181,7 +181,7 @@ func processFirehoseLog(firehose firehoseLog, baseEvent model.APMEvent) (model.B
 	return batch, nil
 }
 
-func RequestMetadata(c *request.Context) model.APMEvent {
+func requestMetadata(c *request.Context) model.APMEvent {
 	arnString := c.Request.Header.Get("X-Amz-Firehose-Source-Arn")
 	arnParsed := parseARN(arnString)
 

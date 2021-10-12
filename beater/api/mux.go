@@ -169,8 +169,7 @@ func (r *routeBuilder) profileHandler() (request.Handler, error) {
 }
 
 func (r *routeBuilder) firehoseLogHandler() (request.Handler, error) {
-	requestMetadataFunc := firehose.RequestMetadata
-	h := firehose.Handler(requestMetadataFunc, r.batchProcessor, r.authenticator)
+	h := firehose.Handler(r.batchProcessor, r.authenticator)
 	return middleware.Wrap(h, firehoseMiddleware(r.cfg, intake.MonitoringMap)...)
 }
 
