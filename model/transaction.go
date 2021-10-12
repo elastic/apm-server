@@ -98,6 +98,7 @@ func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
 	}
 	transaction.maybeSetString("id", e.ID)
 	transaction.maybeSetString("type", e.Type)
+	transaction.maybeSetString("span.kind", e.Kind)
 	transaction.maybeSetMapStr("duration.histogram", e.DurationHistogram.fields())
 	transaction.maybeSetString("name", e.Name)
 	transaction.maybeSetString("result", e.Result)
