@@ -179,7 +179,7 @@ func (a *apmIntegration) getBeatsMonitoringStats(t testing.TB, out interface{}) 
 
 func (a *apmIntegration) getBeatsMonitoring(t testing.TB, type_ string, out interface{}) *beatsMonitoringDoc {
 	// We create all agent policies with metrics enabled, which causes apm-server
-	// to se started with the libbeat HTTP introspection server started.
+	// to be started with the libbeat HTTP introspection server started.
 	const socket = "/usr/share/elastic-agent/state/data/tmp/default/apm-server/apm-server.sock"
 
 	var path string
