@@ -1242,8 +1242,6 @@ var spanKindValue = map[string]int32{
 
 func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 	library := pdata.NewInstrumentationLibrary()
-	// Library isn't used, but required in the fn signature
-	library.SetName("")
 	m := from.toAttributeMap()
 	if from.SpanKind.IsSet() {
 		out.Transaction.Kind = from.SpanKind.Val
