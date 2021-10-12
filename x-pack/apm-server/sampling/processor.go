@@ -56,9 +56,11 @@ type Processor struct {
 }
 
 type eventMetrics struct {
-	processed int64
-	dropped   int64
-	stored    int64
+	processed     int64
+	dropped       int64
+	stored        int64
+	sampled       int64
+	headUnsampled int64
 }
 
 // NewProcessor returns a new Processor, for tail-sampling trace events.
@@ -117,6 +119,8 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 		monitoring.ReportInt(V, "processed", atomic.LoadInt64(&p.eventMetrics.processed))
 		monitoring.ReportInt(V, "dropped", atomic.LoadInt64(&p.eventMetrics.dropped))
 		monitoring.ReportInt(V, "stored", atomic.LoadInt64(&p.eventMetrics.stored))
+		monitoring.ReportInt(V, "sampled", atomic.LoadInt64(&p.eventMetrics.sampled))
+		monitoring.ReportInt(V, "head_unsampled", atomic.LoadInt64(&p.eventMetrics.headUnsampled))
 	})
 }
 
@@ -156,6 +160,8 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 			if err != nil {
 				return err
 			}
+		default:
+			continue
 		}
 		if !report {
 			// We shouldn't report this event, so remove it from the slice.
@@ -164,6 +170,7 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 			events = events[:n-1]
 			i--
 		}
+
 		p.updateProcessorMetrics(report, stored)
 	}
 	*batch = events
@@ -191,6 +198,7 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 	if !event.Transaction.Sampled {
 		// (Head-based) unsampled transactions are passed through
 		// by the tail sampler.
+		atomic.AddInt64(&p.eventMetrics.headUnsampled, 1)
 		return true, false, nil
 	}
 
@@ -200,6 +208,9 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 		// Tail-sampling decision has been made: report the transaction
 		// if it was sampled.
 		report := traceSampled
+		if report {
+			atomic.AddInt64(&p.eventMetrics.sampled, 1)
+		}
 		return report, false, nil
 	case eventstorage.ErrNotFound:
 		// Tail-sampling decision has not yet been made.
@@ -263,6 +274,7 @@ func (p *Processor) processSpan(event *model.APMEvent) (report, stored bool, _ e
 	if !traceSampled {
 		return false, false, nil
 	}
+	atomic.AddInt64(&p.eventMetrics.sampled, 1)
 	return true, false, nil
 }
 
@@ -460,6 +472,7 @@ func (p *Processor) Run() error {
 						}
 					}
 				}
+				atomic.AddInt64(&p.eventMetrics.sampled, int64(len(events)))
 				if err := p.config.BatchProcessor.ProcessBatch(ctx, &events); err != nil {
 					p.logger.With(logp.Error(err)).Warn("failed to report events")
 				}
