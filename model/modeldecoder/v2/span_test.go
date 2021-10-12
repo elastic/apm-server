@@ -18,7 +18,6 @@
 package v2
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -440,7 +439,6 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var event model.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.SpanKind.Set("CONSUMER")
-			fmt.Println(input.OTel.SpanKind.Val)
 
 			mapToSpanModel(&input, &event)
 			assert.Equal(t, "CONSUMER", event.Span.Kind)
