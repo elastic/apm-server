@@ -918,9 +918,9 @@ type transaction struct {
 }
 
 type otel struct {
-	// SpanKind holds the incoming Open Telemetry span kind.
+	// SpanKind holds the incoming OpenTelemetry span kind.
 	SpanKind nullable.String `json:"span_kind"`
-	// Attributes hold the unmapped Open Telemetry attributes.
+	// Attributes hold the unmapped OpenTelemetry attributes.
 	Attributes map[string]interface{} `json:"attributes"`
 }
 

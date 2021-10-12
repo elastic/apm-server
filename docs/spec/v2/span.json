@@ -567,14 +567,14 @@
       ],
       "properties": {
         "attributes": {
-          "description": "Attributes hold the unmapped Open Telemetry attributes.",
+          "description": "Attributes hold the unmapped OpenTelemetry attributes.",
           "type": [
             "null",
             "object"
           ]
         },
         "span_kind": {
-          "description": "SpanKind holds the incoming Open Telemetry span kind.",
+          "description": "SpanKind holds the incoming OpenTelemetry span kind.",
           "type": [
             "null",
             "string"
