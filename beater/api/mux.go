@@ -25,13 +25,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
-
 	"github.com/elastic/apm-server/agentcfg"
 	apisourcemap "github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
+	"github.com/elastic/apm-server/beater/api/firehose"
 	"github.com/elastic/apm-server/beater/api/intake"
 	"github.com/elastic/apm-server/beater/api/profile"
 	"github.com/elastic/apm-server/beater/api/root"
@@ -46,6 +43,9 @@ import (
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 const (
@@ -71,6 +71,10 @@ const (
 	IntakeRUMPath = "/intake/v2/rum/events"
 
 	IntakeRUMV3Path = "/intake/v3/rum/events"
+
+	// FirehosePath defines the path to ingest firehose logs.
+	// This endpoint is experimental and subject to breaking changes and removal.
+	FirehosePath = "/firehose"
 )
 
 // NewMux registers apm handlers to paths building up the APM Server API.
@@ -115,6 +119,8 @@ func NewMux(
 		{IntakePath, builder.backendIntakeHandler},
 		// The profile endpoint is in Beta
 		{ProfilePath, builder.profileHandler},
+		// The firehose endpoint is experimental and subject to breaking changes and removal.
+		{FirehosePath, builder.firehoseHandler},
 	}
 
 	for _, route := range routeMap {
@@ -160,6 +166,11 @@ func (r *routeBuilder) profileHandler() (request.Handler, error) {
 	}
 	h := profile.Handler(requestMetadataFunc, r.batchProcessor)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, profile.MonitoringMap)...)
+}
+
+func (r *routeBuilder) firehoseHandler() (request.Handler, error) {
+	h := firehose.Handler(r.batchProcessor, r.authenticator)
+	return middleware.Wrap(h, firehoseMiddleware(r.cfg, intake.MonitoringMap)...)
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
@@ -310,6 +321,13 @@ func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []mid
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthMiddleware(authenticator, false),
 	)
+}
+
+func firehoseMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+	firehoseMiddleware := append(apmMiddleware(m),
+		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
+	)
+	return firehoseMiddleware
 }
 
 func emptyRequestMetadata(c *request.Context) model.APMEvent {
