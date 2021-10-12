@@ -120,7 +120,7 @@ func NewMux(
 		// The profile endpoint is in Beta
 		{ProfilePath, builder.profileHandler},
 		// The firehose endpoint is experimental and subject to breaking changes and removal.
-		{FirehosePath, builder.firehoseLogHandler},
+		{FirehosePath, builder.firehoseHandler},
 	}
 
 	for _, route := range routeMap {
@@ -168,7 +168,7 @@ func (r *routeBuilder) profileHandler() (request.Handler, error) {
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, profile.MonitoringMap)...)
 }
 
-func (r *routeBuilder) firehoseLogHandler() (request.Handler, error) {
+func (r *routeBuilder) firehoseHandler() (request.Handler, error) {
 	h := firehose.Handler(r.batchProcessor, r.authenticator)
 	return middleware.Wrap(h, firehoseMiddleware(r.cfg, intake.MonitoringMap)...)
 }
