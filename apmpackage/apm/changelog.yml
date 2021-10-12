@@ -3,9 +3,9 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "7.16.0"
   changes:
-    - description: remove {transaction,span}.message.routing_key
-      type: breaking-change
-      link: https://github.com/elastic/apm-server/pull/6224
+    - description: version bump to align package version with stack version
+      type: enhancement
+      link: https://github.com/elastic/apm-server/issues/4898
 - version: "0.5.0"
   changes:
     - description: define index sorting for internal metrics
