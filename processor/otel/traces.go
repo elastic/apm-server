@@ -772,17 +772,14 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		}
 		event.Span.Type = "external"
 		event.Span.Subtype = rpcSystem
-	case appSpan:
-		// Only set event.Span.Type if not set?
-		// This is why it's being overwritten in tests.
+	default:
+		// Only set event.Span.Type if not already set
 		if event.Span.Type == "" {
 			event.Span.Type = "app"
 		}
 		if event.Span.Subtype == "" {
 			event.Span.Subtype = component
 		}
-	default:
-		panic("unknown span type")
 	}
 
 	if spanKind == pdata.SpanKindUnspecified {
