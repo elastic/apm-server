@@ -28,14 +28,13 @@ will be applied to all APM indices as long as all of the following conditions ar
 * `output.elasticsearch` is enabled.
 * Custom `index` or `indices` settings are not configured.
 
-The default ILM policy applies *hot* and *warm* phases to all APM events:
+The default ILM policy applies only a *hot* phase to all APM events:
 `span`, `transaction`, `error`, and `metric`.
-*Cold* and *delete* phases are not defined.
+
+*Warm*, *cold*, and *delete* phases are not defined.
 
 * *Hot* -- Rollover data when the index reaches a maximum size of 50gb or a maximum age of 30 days:
 `max_size: 50gb`, `max_age: 30d`
-
-* *Warm* -- Move to warm phase after 30 days: `min_age: 30d`
 
 [float]
 [[ilm-default-config]]
@@ -74,12 +73,6 @@ apm-server:
                     max_age: "30d"
                   set_priority:
                     priority: 100
-              warm:
-                min_age: "30d"
-                actions:
-                  set_priority:
-                    priority: 50
-                  readonly: {}
 ----
 
 [float]
