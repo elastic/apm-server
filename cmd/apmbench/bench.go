@@ -42,13 +42,13 @@ func newTracer(tb testing.TB) *apm.Tracer {
 	return tracer
 }
 
-func benchmark100Transactions(b *testing.B) {
+var global_count int = 0
+func benchmark1Transaction(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		tracer := newTracer(b)
 		for pb.Next() {
-			for i := 0; i < 100; i++ {
-				withTransaction(tracer)
-			}
+			withTransaction(tracer)
+			global_count++
 			tracer.Flush(nil)
 		}
 		stats := tracer.Stats()

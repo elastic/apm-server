@@ -332,7 +332,7 @@ func main() {
 		benchFunc func(*testing.B)
 	}
 	benchmarks := []benchmark{
-		{"100_Transactions", benchmark100Transactions},
+		{"1_Transaction", benchmark1Transaction},
 		//{"100_5Spans_5Frames", benchmark100_5_5_Spans},
 		//{"100_15Spans_15Frames", benchmark100_15_15_Spans},
 		//{"100_30Spans_30Frames", benchmark100_30_30_Spans},
@@ -363,6 +363,7 @@ func main() {
 				if !ok {
 					fmt.Fprintf(os.Stderr, "--- FAIL: %s\n", name)
 				} else {
+					fmt.Fprintf(os.Stdout,"%d\n", global_count)
 					fmt.Fprintf(os.Stderr, "%-*s\t%s\t%s\n", maxLen, name, result, result.MemString())
 				}
 				if err := <-profileChan; err != nil {
