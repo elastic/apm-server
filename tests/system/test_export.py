@@ -79,7 +79,7 @@ class TestExportILMPolicy(ExportCommandTest):
                 with open(os.path.join(dir, file)) as f:
                     policy = json.load(f)
                 assert "hot" in policy["policy"]["phases"]
-                assert "warm" in policy["policy"]["phases"]
+                assert "warm" not in policy["policy"]["phases"]
                 assert "delete" not in policy["policy"]["phases"]
 
 
