@@ -660,60 +660,58 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		destAddr = netPeerIP
 	}
 
-	if foundSpanType == httpSpan {
-		var fullURL *url.URL
-		if httpURL != "" {
-			fullURL, _ = url.Parse(httpURL)
-		} else if httpTarget != "" {
-			// Build http.url from http.scheme, http.target, etc.
-			if u, err := url.Parse(httpTarget); err == nil {
-				fullURL = u
-				fullURL.Scheme = httpScheme
-				if httpHost == "" {
-					// Set host from net.peer.*
-					httpHost = destAddr
-					if destPort > 0 {
-						httpHost = net.JoinHostPort(httpHost, strconv.Itoa(destPort))
-					}
+	var fullURL *url.URL
+	if httpURL != "" {
+		fullURL, _ = url.Parse(httpURL)
+	} else if httpTarget != "" {
+		// Build http.url from http.scheme, http.target, etc.
+		if u, err := url.Parse(httpTarget); err == nil {
+			fullURL = u
+			fullURL.Scheme = httpScheme
+			if httpHost == "" {
+				// Set host from net.peer.*
+				httpHost = destAddr
+				if destPort > 0 {
+					httpHost = net.JoinHostPort(httpHost, strconv.Itoa(destPort))
 				}
-				fullURL.Host = httpHost
-				httpURL = fullURL.String()
 			}
+			fullURL.Host = httpHost
+			httpURL = fullURL.String()
 		}
-		if fullURL != nil {
-			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
-			hostname := truncate(url.Hostname())
-			var port int
-			portString := url.Port()
-			if portString != "" {
-				port, _ = strconv.Atoi(portString)
-			} else {
-				port = schemeDefaultPort(url.Scheme)
-			}
+	}
+	if fullURL != nil {
+		url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
+		hostname := truncate(url.Hostname())
+		var port int
+		portString := url.Port()
+		if portString != "" {
+			port, _ = strconv.Atoi(portString)
+		} else {
+			port = schemeDefaultPort(url.Scheme)
+		}
 
-			// Set destination.{address,port} from the HTTP URL,
-			// replacing peer.* based values to ensure consistency.
-			destAddr = hostname
-			if port > 0 {
-				destPort = port
-			}
+		// Set destination.{address,port} from the HTTP URL,
+		// replacing peer.* based values to ensure consistency.
+		destAddr = hostname
+		if port > 0 {
+			destPort = port
+		}
 
-			// Set destination.service.* from the HTTP URL, unless peer.service was specified.
-			if destinationService.Name == "" {
-				resource := url.Host
-				if port > 0 && port == schemeDefaultPort(url.Scheme) {
-					hasDefaultPort := portString != ""
-					if hasDefaultPort {
-						// Remove the default port from destination.service.name.
-						url.Host = hostname
-					} else {
-						// Add the default port to destination.service.resource.
-						resource = fmt.Sprintf("%s:%d", resource, port)
-					}
+		// Set destination.service.* from the HTTP URL, unless peer.service was specified.
+		if destinationService.Name == "" {
+			resource := url.Host
+			if port > 0 && port == schemeDefaultPort(url.Scheme) {
+				hasDefaultPort := portString != ""
+				if hasDefaultPort {
+					// Remove the default port from destination.service.name.
+					url.Host = hostname
+				} else {
+					// Add the default port to destination.service.resource.
+					resource = fmt.Sprintf("%s:%d", resource, port)
 				}
-				destinationService.Name = url.String()
-				destinationService.Resource = resource
 			}
+			destinationService.Name = url.String()
+			destinationService.Resource = resource
 		}
 	}
 
