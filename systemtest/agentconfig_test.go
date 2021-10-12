@@ -32,6 +32,8 @@ import (
 )
 
 func TestAgentConfig(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+
 	serviceName := "systemtest_service"
 	serviceEnvironment := "testing"
 	systemtest.DeleteAgentConfig(t, serviceName, "")
@@ -44,7 +46,7 @@ func TestAgentConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	// Run apm-server under Fleet, exercising the Fleet agent config implementation.
-	apmIntegration := initAPMIntegration(t, map[string]interface{}{})
+	apmIntegration := newAPMIntegration(t, map[string]interface{}{})
 	serverURLs := []string{srv.URL, apmIntegration.URL}
 
 	expectChange := func(serverURL string, etag string) (map[string]string, *http.Response) {

@@ -17,6 +17,12 @@
     - description: remove warm phase from ILM policies
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6229
+    - description: added privileges to tail-sampled traces data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6139
+    - description: added tail-sampling config vars
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6139
 - version: "0.4.0"
   changes:
     - description: add anonymous auth config, replace some RUM config
