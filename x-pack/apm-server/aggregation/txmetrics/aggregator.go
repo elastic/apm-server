@@ -6,6 +6,7 @@ package txmetrics
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"math"
 	"strings"
@@ -216,12 +217,11 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	// TODO(axw) record either the aggregation interval in effect, or
 	// the specific time period (date_range) on the metrics documents.
 
-	now := time.Now()
 	batch := make(model.Batch, 0, a.inactive.entries)
 	for hash, entries := range a.inactive.m {
 		for _, entry := range entries {
 			totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
-			batch = append(batch, makeMetricset(entry.transactionAggregationKey, hash, now, totalCount, counts, values))
+			batch = append(batch, makeMetricset(entry.transactionAggregationKey, hash, totalCount, counts, values))
 		}
 		delete(a.inactive.m, hash)
 	}
@@ -260,7 +260,7 @@ func (a *Aggregator) AggregateTransaction(event model.APMEvent) model.APMEvent {
 		return model.APMEvent{}
 	}
 
-	key := a.makeTransactionAggregationKey(event)
+	key := a.makeTransactionAggregationKey(event, a.config.MetricsInterval)
 	hash := key.hash()
 	count := transactionCount(event.Transaction)
 	if a.updateTransactionMetrics(key, hash, event.Transaction.RepresentativeCount, event.Event.Duration) {
@@ -276,7 +276,7 @@ unique transaction names.`[1:],
 	atomic.AddInt64(&a.metrics.overflowed, 1)
 	counts := []int64{int64(math.Round(count))}
 	values := []float64{float64(event.Event.Duration.Microseconds())}
-	return makeMetricset(key, hash, time.Now(), counts[0], counts, values)
+	return makeMetricset(key, hash, counts[0], counts, values)
 }
 
 func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, hash uint64, count float64, duration time.Duration) bool {
@@ -336,8 +336,11 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	return true
 }
 
-func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent) transactionAggregationKey {
+func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interval time.Duration) transactionAggregationKey {
 	return transactionAggregationKey{
+		// Group metrics by time interval.
+		timestamp: event.Timestamp.Truncate(interval),
+
 		traceRoot:         event.Parent.ID == "",
 		transactionName:   event.Transaction.Name,
 		transactionResult: event.Transaction.Result,
@@ -348,16 +351,21 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent) transac
 		serviceEnvironment: event.Service.Environment,
 		serviceName:        event.Service.Name,
 		serviceVersion:     event.Service.Version,
+		serviceNodeName:    event.Service.Node.Name,
 
 		hostname:          event.Host.Hostname,
 		containerID:       event.Container.ID,
 		kubernetesPodName: event.Kubernetes.PodName,
+
+		cloudProvider:         event.Cloud.Provider,
+		cloudRegion:           event.Cloud.Region,
+		cloudAvailabilityZone: event.Cloud.AvailabilityZone,
 	}
 }
 
 // makeMetricset makes a metricset event from key, counts, and values, with timestamp ts.
 func makeMetricset(
-	key transactionAggregationKey, hash uint64, ts time.Time, totalCount int64, counts []int64, values []float64,
+	key transactionAggregationKey, hash uint64, totalCount int64, counts []int64, values []float64,
 ) model.APMEvent {
 	// Record a timeseries instance ID, which should be uniquely identify the aggregation key.
 	var timeseriesInstanceID strings.Builder
@@ -368,14 +376,20 @@ func makeMetricset(
 	timeseriesInstanceID.WriteString(fmt.Sprintf("%x", hash))
 
 	return model.APMEvent{
-		Timestamp:  ts,
+		Timestamp:  key.timestamp,
 		Agent:      model.Agent{Name: key.agentName},
 		Container:  model.Container{ID: key.containerID},
 		Kubernetes: model.Kubernetes{PodName: key.kubernetesPodName},
 		Service: model.Service{
 			Name:        key.serviceName,
 			Version:     key.serviceVersion,
+			Node:        model.ServiceNode{Name: key.serviceNodeName},
 			Environment: key.serviceEnvironment,
+		},
+		Cloud: model.Cloud{
+			Provider:         key.cloudProvider,
+			Region:           key.cloudRegion,
+			AvailabilityZone: key.cloudAvailabilityZone,
 		},
 		Host: model.Host{
 			Hostname: key.hostname,
@@ -421,24 +435,32 @@ type metricsMapEntry struct {
 	transactionMetrics
 }
 
-// NOTE(axw) the dimensions should be kept in sync with docs/metricset-indices.asciidoc,
+// NOTE(axw) the dimensions should be kept in sync with docs/metricset-indices.asciidoc.
 type transactionAggregationKey struct {
-	traceRoot          bool
-	agentName          string
-	containerID        string
-	hostname           string
-	kubernetesPodName  string
-	serviceEnvironment string
-	serviceName        string
-	serviceVersion     string
-	transactionName    string
-	transactionResult  string
-	transactionType    string
-	eventOutcome       string
+	timestamp             time.Time
+	traceRoot             bool
+	agentName             string
+	containerID           string
+	hostname              string
+	kubernetesPodName     string
+	cloudProvider         string
+	cloudRegion           string
+	cloudAvailabilityZone string
+	serviceEnvironment    string
+	serviceName           string
+	serviceVersion        string
+	serviceNodeName       string
+	transactionName       string
+	transactionResult     string
+	transactionType       string
+	eventOutcome          string
 }
 
 func (k *transactionAggregationKey) hash() uint64 {
 	var h xxhash.Digest
+	var buf [8]byte
+	binary.LittleEndian.PutUint64(buf[:], uint64(k.timestamp.UnixNano()))
+	h.Write(buf[:])
 	if k.traceRoot {
 		h.WriteString("1")
 	}
@@ -446,9 +468,13 @@ func (k *transactionAggregationKey) hash() uint64 {
 	h.WriteString(k.containerID)
 	h.WriteString(k.hostname)
 	h.WriteString(k.kubernetesPodName)
+	h.WriteString(k.cloudProvider)
+	h.WriteString(k.cloudRegion)
+	h.WriteString(k.cloudAvailabilityZone)
 	h.WriteString(k.serviceEnvironment)
 	h.WriteString(k.serviceName)
 	h.WriteString(k.serviceVersion)
+	h.WriteString(k.serviceNodeName)
 	h.WriteString(k.transactionName)
 	h.WriteString(k.transactionResult)
 	h.WriteString(k.transactionType)

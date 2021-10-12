@@ -88,11 +88,17 @@ You can filter and group by these dimensions (some of which are optional, for ex
 * `agent.name`: The name of the APM agent that instrumented the transaction, for example `java`
 * `service.name`: The name of the service that served the transaction
 * `service.version`: The version of the service that served the transaction
+* `service.node.name`: The name of the service instance that served the transaction
 * `service.environment`: The environment of the service that served the transaction
 * `host.hostname`: The hostname of the service that served the transaction
 * `container.id`: The container ID of the service that served the transaction
 * `kubernetes.pod.name`: The name of the Kubernetes pod running the service that served the transaction
+* `cloud.provider`: The cloud provider hosting the service instance that served the transaction
+* `cloud.region`: The cloud region hosting the service instance that served the transaction
+* `cloud.availability_zone`: The cloud availability zone hosting the service instance that served the transaction
 --
+
+The `@timestamp` field of these documents holds the start of the aggregation interval.
 
 [float]
 ==== Service-destination metrics
@@ -117,6 +123,8 @@ You can filter and group by these dimensions:
 * `service.name`: The name of the service that made the request
 * `service.environment`: The environment of the service that made the request
 --
+
+The `@timestamp` field of these documents holds the start of the aggregation interval.
 
 [float]
 [[example-metric-document]]

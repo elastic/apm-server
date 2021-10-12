@@ -46,8 +46,7 @@ Stack monitoring::
 
 Index lifecycle management (ILM)::
 A default ILM policy, named `traces-apm.traces-default_policy` is created for all event types.
-This policy moves indices to a warm data tier after 30 days.
-No default cold or delete data tier is defined.
+No default warm, cold, or delete data tiers are defined.
 It is not possible to configure this policy in APM Server or {agent}–
 it must be configured with {es} or {kib}.
 See {ref}/example-using-index-lifecycle-policy.html[Customize built-in ILM policies] for more information.
