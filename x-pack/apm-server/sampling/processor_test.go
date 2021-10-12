@@ -119,7 +119,9 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
 	expectedMonitoring.Ints["sampling.events.processed"] = 4
+	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
 	expectedMonitoring.Ints["sampling.events.stored"] = 2
+	expectedMonitoring.Ints["sampling.events.sampled"] = 2
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
@@ -223,6 +225,8 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
 	expectedMonitoring.Ints["sampling.events.processed"] = 4
 	expectedMonitoring.Ints["sampling.events.stored"] = 4
+	expectedMonitoring.Ints["sampling.events.sampled"] = 2
+	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
@@ -440,6 +444,8 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
 	expectedMonitoring.Ints["sampling.events.processed"] = 1
 	expectedMonitoring.Ints["sampling.events.stored"] = 1
+	expectedMonitoring.Ints["sampling.events.sampled"] = 1
+	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
@@ -479,7 +485,7 @@ func TestGroupsMonitoring(t *testing.T) {
 	go processor.Run()
 	defer processor.Stop(context.Background())
 
-	for i := 0; i < config.MaxDynamicServices+1; i++ {
+	for i := 0; i < config.MaxDynamicServices+2; i++ {
 		err := processor.ProcessBatch(context.Background(), &model.Batch{{
 			Service:   model.Service{Name: fmt.Sprintf("service_%d", i)},
 			Processor: model.TransactionProcessor,
@@ -487,7 +493,7 @@ func TestGroupsMonitoring(t *testing.T) {
 			Event:     model.Event{Duration: 123 * time.Millisecond},
 			Transaction: &model.Transaction{
 				ID:      "0102030405060709",
-				Sampled: true,
+				Sampled: i < config.MaxDynamicServices+1,
 			},
 		}})
 		require.NoError(t, err)
@@ -495,9 +501,11 @@ func TestGroupsMonitoring(t *testing.T) {
 
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
 	expectedMonitoring.Ints["sampling.dynamic_service_groups"] = int64(config.MaxDynamicServices)
-	expectedMonitoring.Ints["sampling.events.processed"] = int64(config.MaxDynamicServices) + 1
+	expectedMonitoring.Ints["sampling.events.processed"] = int64(config.MaxDynamicServices) + 2
 	expectedMonitoring.Ints["sampling.events.stored"] = int64(config.MaxDynamicServices)
 	expectedMonitoring.Ints["sampling.events.dropped"] = 1 // final event dropped, after service limit reached
+	expectedMonitoring.Ints["sampling.events.sampled"] = 0
+	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 1
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`, `sampling.dynamic_service_groups`)
 }
 
