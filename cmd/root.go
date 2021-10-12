@@ -83,7 +83,7 @@ func DefaultSettings() instance.Settings {
 			DefaultUsername: "apm_system",
 		},
 		IndexManagement: idxmgmt.MakeDefaultSupporter,
-		Processing:      processing.MakeDefaultObserverSupport(false),
+		Processing:      processing.MakeDefaultSupport(false),
 		ConfigOverrides: libbeatConfigOverrides(),
 	}
 }

@@ -167,11 +167,13 @@ func BenchmarkPublisher(b *testing.B) {
 		},
 	}
 	ctx := context.Background()
-	for i := 0; i < b.N; i++ {
-		if err := publisher.ProcessBatch(ctx, &batch); err != nil {
-			b.Fatal(err)
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if err := publisher.ProcessBatch(ctx, &batch); err != nil {
+				b.Fatal(err)
+			}
 		}
-	}
+	})
 
 	// Close the publisher and wait for enqueued events to be published.
 	assert.NoError(b, publisher.Stop(context.Background()))
