@@ -454,8 +454,12 @@ func TestAggregationFields(t *testing.T) {
 		&input.Service.Environment,
 		&input.Service.Name,
 		&input.Service.Version,
+		&input.Service.Node.Name,
 		&input.Container.ID,
 		&input.Kubernetes.PodName,
+		&input.Cloud.Provider,
+		&input.Cloud.Region,
+		&input.Cloud.AvailabilityZone,
 	}
 
 	var expected []model.APMEvent
