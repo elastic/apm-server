@@ -1251,17 +1251,38 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 	spanStatus := pdata.NewSpanStatus()
 	spanStatus.SetCode(pdata.StatusCodeUnset)
 	otel_processor.TranslateTransaction(m, spanStatus, library, out)
+
+	if out.Transaction.Kind == "" {
+		switch out.Transaction.Type {
+		case "messaging":
+			out.Transaction.Kind = "CONSUMER"
+		case "request":
+			out.Transaction.Kind = "SERVER"
+		default:
+			out.Transaction.Kind = "INTERNAL"
+		}
+	}
 }
 
 func mapOTelAttributesSpan(from otel, out *model.APMEvent) {
 	m := from.toAttributeMap()
-	var spanKind int32
+	var spanVal int32
 	if from.SpanKind.IsSet() {
-		// If not present, spanKind == 0, which is UNKNOWN
-		spanKind = spanKindValue[from.SpanKind.Val]
+		// If not present, spanVal == 0, which is UNKNOWN
+		spanVal = spanKindValue[from.SpanKind.Val]
 		out.Span.Kind = from.SpanKind.Val
 	}
-	otel_processor.TranslateSpan(pdata.SpanKind(spanKind), m, out)
+	spanKind := pdata.SpanKind(spanVal)
+	otel_processor.TranslateSpan(spanKind, m, out)
+
+	if spanKind == pdata.SpanKindUnspecified {
+		switch out.Span.Type {
+		case "db", "external", "storage":
+			out.Span.Kind = "CLIENT"
+		default:
+			out.Span.Kind = "INTERNAL"
+		}
+	}
 }
 
 func mapToUserAgentModel(from nullable.HTTPHeader, out *model.UserAgent) {

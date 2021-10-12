@@ -416,17 +416,6 @@ func TranslateTransaction(
 		}
 	}
 
-	if event.Transaction.Kind == "" {
-		switch event.Transaction.Type {
-		case "messaging":
-			event.Transaction.Kind = "CONSUMER"
-		case "request":
-			event.Transaction.Kind = "SERVER"
-		default:
-			event.Transaction.Kind = "INTERNAL"
-		}
-	}
-
 	switch foundSpanType {
 	case httpSpan:
 		event.HTTP = http
@@ -779,15 +768,6 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		}
 		if event.Span.Subtype == "" {
 			event.Span.Subtype = component
-		}
-	}
-
-	if spanKind == pdata.SpanKindUnspecified {
-		switch event.Span.Type {
-		case "db", "external", "storage":
-			event.Span.Kind = "CLIENT"
-		default:
-			event.Span.Kind = "INTERNAL"
 		}
 	}
 
