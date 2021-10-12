@@ -253,8 +253,11 @@ func TestModelIndexerLogRateLimit(t *testing.T) {
 
 	entries := logp.ObserverLogs().TakeAll()
 	require.Len(t, entries, 2)
-	assert.Equal(t, "failed to index event (error_type): error_reason_even", entries[0].Message)
-	assert.Equal(t, "failed to index event (error_type): error_reason_odd", entries[1].Message)
+	messages := []string{entries[0].Message, entries[1].Message}
+	assert.ElementsMatch(t, []string{
+		"failed to index event (error_type): error_reason_even",
+		"failed to index event (error_type): error_reason_odd",
+	}, messages)
 }
 
 func TestModelIndexerCloseFlushContext(t *testing.T) {
