@@ -1245,7 +1245,6 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 	// Library isn't used, but required in the fn signature
 	library.SetName("")
 	m := from.toAttributeMap()
-	out.Labels.Update(from.slicesMap())
 	if from.SpanKind.IsSet() {
 		out.Transaction.Kind = from.SpanKind.Val
 	}
@@ -1258,7 +1257,6 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 
 func mapOTelAttributesSpan(from otel, out *model.APMEvent) {
 	m := from.toAttributeMap()
-	out.Labels.Update(from.slicesMap())
 	var spanKind int32
 	if from.SpanKind.IsSet() {
 		// If not present, spanKind == 0, which is UNKNOWN

@@ -19,7 +19,6 @@ package v2
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"go.opentelemetry.io/collector/model/pdata"
 
@@ -943,45 +942,30 @@ func (o *otel) toAttributeMap() pdata.AttributeMap {
 			m.InsertDouble(k, x)
 		case bool:
 			m.InsertBool(k, x)
-		default:
-			panic(fmt.Sprintf("unhandled type %v (%T)", x, x))
-		}
-	}
-	return m
-}
-
-// It doesn't appear possible to populate an actual array for
-// AttributeValue, so these get added as labels directly.
-func (o *otel) slicesMap() common.MapStr {
-	m := common.MapStr{}
-	for k, v := range o.Attributes {
-		switch x := v.(type) {
-		// Note: If I collapse all the slice types into a single case
-		// arm, len(x) can't be determined.
 		case []string:
-			values := make([]interface{}, len(x))
-			for i := range values {
-				values[i] = x[i]
+			attrArray := pdata.NewAttributeValueArray()
+			for i := range x {
+				attrArray.ArrayVal().AppendEmpty().SetStringVal(x[i])
 			}
-			m[k] = values
+			m.Insert(k, attrArray)
 		case []int64:
-			values := make([]interface{}, len(x))
-			for i := range values {
-				values[i] = x[i]
+			attrArray := pdata.NewAttributeValueArray()
+			for i := range x {
+				attrArray.ArrayVal().AppendEmpty().SetIntVal(x[i])
 			}
-			m[k] = values
+			m.Insert(k, attrArray)
 		case []float64:
-			values := make([]interface{}, len(x))
-			for i := range values {
-				values[i] = x[i]
+			attrArray := pdata.NewAttributeValueArray()
+			for i := range x {
+				attrArray.ArrayVal().AppendEmpty().SetDoubleVal(x[i])
 			}
-			m[k] = values
+			m.Insert(k, attrArray)
 		case []bool:
-			values := make([]interface{}, len(x))
-			for i := range values {
-				values[i] = x[i]
+			attrArray := pdata.NewAttributeValueArray()
+			for i := range x {
+				attrArray.ArrayVal().AppendEmpty().SetBoolVal(x[i])
 			}
-			m[k] = values
+			m.Insert(k, attrArray)
 		}
 	}
 	return m
