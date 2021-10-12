@@ -1,0 +1,49 @@
+[[release-notes-head]]
+== APM Server version HEAD
+
+https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
+
+[float]
+==== Breaking Changes
+- Removed unused stacktrace/frame monitoring counters {pull}5984[5984]
+- Removed unused support for top-level metricsets and metricset tags for RUMv3 {pull}6065[6065]
+- Removed `apm-server.mode` configuration, and "experimental" fields {pull}6086[6086]
+- `transaction.sampled` is now only set for sampled transactions {pull}6066[6066]
+- Unknown metrics are dropped when `transaction.*` or `span.*` are present in a metricset {pull}6111[6111]
+- Removed `metricset.period` from service_destination metrics {pull}6111[6111]
+- Removed `http.request.socket` fields {pull}6152[6152]
+- Removed unused `transaction.duration.{count,sum.us}` metric fields {pull}6174[6174]
+- Removed `apm-server.sampling.tail.storage_dir` config {pull}6236[6236]
+- Removed `ProcessPending` self-instrumentation events {pull}6243[6243]
+- Removed warm phase from default ILM policy {pull}6322[6322]
+
+[float]
+==== Bug fixes
+- processor/otel: don't truncate `db.statement` {pull}6305[6305]
+- Use timestamp of original events for transaction/span metrics {pull}6311[6311]
+
+[float]
+==== Intake API Changes
+- `faas`, `service.origin.*`, and `cloud.origin.*` added for supporting function as a service fields {pull}6161[6161]
+- `context.message.routing_key` was added to the intake API {pull}6177[6177]
+- `transaction.dropped_spans_stats` was added to the intake API {pull}6200[6200]
+
+[float]
+==== Added
+- The `error.log.message` or `error.exception.message` field of errors will be copied to the ECS field `message` {pull}5974[5974]
+- Define index sorting for internal metrics data stream {pull}6116[6116]
+- Add histogram dynamic_template to app metrics data stream {pull}6043[6043]
+- Index OpenTelemetry span events and Jaeger logs into a log data stream {pull}6122[6122]
+- With `apm-server.data_streams.enabled` in standalone mode, the server now accepts and enqueues events while waiting for the integration to be installed {pull}6130[6130]
+- HTTP server errors (e.g. TLS handshake errors) are now logged {pull}6141[6141]
+- Span documents now duplicate extended HTTP fields, which were previously only under `span.http.*`, under `http.*` {pull}6147[6147]
+- We now record the direct network peer for incoming requests as `source.ip` and `source.port`; origin IP is recorded in `client.ip` {pull}6152[6152]
+- We now collect span destination metrics for transactions with too many spans (for example due to transaction_max_spans or exit_span_min_duration) when collected and sent by APM agents {pull}6200[6200]
+- `output.elasticsearch.experimental` can be used to enable a new, experimental Elasticsearch output using the go-elasticsearch client {pull}5970[5970]
+
+[float]
+==== Deprecated
+- Setting `service.version` as a span tag (Jaeger) or attribute (OTel) is deprecated; use tracer tags (Jaeger) and resource attributes (OTel) {pull}6131[6131]
+- Setting up Elasticsearch templates, ILM policies, and pipelines directly with apm-server is now deprecated. Users should use the integration package {pull}6145[6145]
+- `span.http.*` fields are deprecated, replaced by `http.*`, and will be removed in 8.0 {pull}6147[6147]
+- Add deprecation warning for `sampling.keep_unsampled=true` {pull}6285[6285]
