@@ -383,8 +383,6 @@ func TranslateTransaction(
 			case semconv.AttributeRPCMethod:
 
 			// miscellaneous
-			// TODO: This should be gone now?
-			// case "span.kind": // filter out
 			case "type":
 				event.Transaction.Type = stringval
 			case semconv.AttributeServiceVersion:
