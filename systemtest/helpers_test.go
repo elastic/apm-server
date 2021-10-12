@@ -35,9 +35,7 @@ func withDataStreams(t *testing.T, f func(t *testing.T, unstartedServer *apmserv
 	})
 	t.Run("data_streams_enabled", func(t *testing.T) {
 		systemtest.CleanupElasticsearch(t)
-		cleanupFleet(t, systemtest.Fleet)
-		integrationPackage := getAPMIntegrationPackage(t, systemtest.Fleet)
-		err := systemtest.Fleet.InstallPackage(integrationPackage.Name, integrationPackage.Version)
+		err := systemtest.Fleet.InstallPackage(systemtest.IntegrationPackage.Name, systemtest.IntegrationPackage.Version)
 		require.NoError(t, err)
 		srv := apmservertest.NewUnstartedServer(t)
 		srv.Config.DataStreams = &apmservertest.DataStreamsConfig{Enabled: true}

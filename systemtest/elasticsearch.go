@@ -139,15 +139,7 @@ func CleanupElasticsearch(t testing.TB) {
 	)
 
 	// Delete index templates after deleting data streams.
-	doParallel(
-		esapi.IndicesDeleteTemplateRequest{Name: legacyPrefix},
-		esapi.IndicesDeleteIndexTemplateRequest{Name: apmTracesPrefix},
-		esapi.IndicesDeleteIndexTemplateRequest{Name: apmMetricsPrefix},
-		esapi.IndicesDeleteIndexTemplateRequest{Name: apmLogsPrefix},
-	)
-
-	// Delete index templates after deleting data streams.
-	if err := doReq(esapi.IndicesDeleteIndexTemplateRequest{Name: legacyPrefix}); err != nil {
+	if err := doReq(esapi.IndicesDeleteTemplateRequest{Name: legacyPrefix}); err != nil {
 		t.Fatal(err)
 	}
 
