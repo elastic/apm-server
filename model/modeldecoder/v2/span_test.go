@@ -117,7 +117,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var out1, out2 model.APMEvent
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		input.OTEL.Reset()
+		input.OTel.Reset()
 		mapToSpanModel(&input, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
@@ -126,7 +126,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		input.OTEL.Reset()
+		input.OTel.Reset()
 		mapToSpanModel(&input, &out2)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out2.Span, exceptions, otherVal)
@@ -184,7 +184,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var input span
 		var out model.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-		input.OTEL.Reset()
+		input.OTel.Reset()
 		// sample rate is set to > 0
 		input.SampleRate.Set(0.25)
 		mapToSpanModel(&input, &out)
@@ -266,8 +266,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var input span
 			var event model.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTEL.Attributes = attrs
-			input.OTEL.SpanKind.Reset()
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
 			input.Type.Reset()
 
 			mapToSpanModel(&input, &event)
@@ -292,8 +292,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var input span
 			var event model.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTEL.Attributes = attrs
-			input.OTEL.SpanKind.Reset()
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
 			input.Type.Reset()
 
 			mapToSpanModel(&input, &event)
@@ -319,8 +319,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var input span
 			var event model.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTEL.Attributes = attrs
-			input.OTEL.SpanKind.Reset()
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
 			input.Type.Reset()
 			input.Action.Reset()
 			mapToSpanModel(&input, &event)
@@ -351,8 +351,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var input span
 			var event model.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTEL.Attributes = attrs
-			input.OTEL.SpanKind.Reset()
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
 			input.Type.Reset()
 			input.Action.Reset()
 			mapToSpanModel(&input, &event)
@@ -382,8 +382,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var input span
 			var event model.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTEL.Attributes = attrs
-			input.OTEL.SpanKind.Set("PRODUCER")
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Set("PRODUCER")
 			input.Type.Reset()
 			mapToSpanModel(&input, &event)
 
@@ -415,7 +415,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var input span
 			var event model.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTEL.Attributes = attrs
+			input.OTel.Attributes = attrs
 			input.Type.Reset()
 			mapToSpanModel(&input, &event)
 
@@ -439,8 +439,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var input span
 			var event model.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTEL.SpanKind.Set("CONSUMER")
-			fmt.Println(input.OTEL.SpanKind.Val)
+			input.OTel.SpanKind.Set("CONSUMER")
+			fmt.Println(input.OTel.SpanKind.Val)
 
 			mapToSpanModel(&input, &event)
 			assert.Equal(t, "CONSUMER", event.Span.Kind)

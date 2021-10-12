@@ -698,8 +698,8 @@ type span struct {
 	// a limited set of permitted values describing the success or failure of
 	// the span. It can be used for calculating error rates for outgoing requests.
 	Outcome nullable.String `json:"outcome" validate:"enum=enumOutcome"`
-	// OTEL contains unmapped Open Telemetry attributes.
-	OTEL otel `json:"otel"`
+	// OTel contains unmapped OpenTelemetry attributes.
+	OTel otel `json:"otel"`
 	// ParentID holds the hex encoded 64 random bits ID of the parent
 	// transaction or span.
 	ParentID nullable.String `json:"parent_id" validate:"required,maxLength=1024"`
@@ -879,8 +879,8 @@ type transaction struct {
 	// Name is the generic designation of a transaction in the scope of a
 	// single service, eg: 'GET /users/:id'.
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
-	// OTEL contains unmapped Open Telemetry attributes.
-	OTEL otel `json:"otel"`
+	// OTel contains unmapped OpenTelemetry attributes.
+	OTel otel `json:"otel"`
 	// Outcome of the transaction with a limited set of permitted values,
 	// describing the success or failure of the transaction from the service's
 	// perspective. It is used for calculating error rates for incoming requests.

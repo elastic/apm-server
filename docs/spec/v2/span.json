@@ -560,7 +560,7 @@
       "maxLength": 1024
     },
     "otel": {
-      "description": "OTEL contains unmapped Open Telemetry attributes.",
+      "description": "OTel contains unmapped OpenTelemetry attributes.",
       "type": [
         "null",
         "object"

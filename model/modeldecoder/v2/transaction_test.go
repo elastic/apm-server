@@ -268,7 +268,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		input.OTEL.Reset()
+		input.OTel.Reset()
 		mapToTransactionModel(&input, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
@@ -286,7 +286,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		out2.Timestamp = reqTime
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		input.OTEL.Reset()
+		input.OTel.Reset()
 		mapToTransactionModel(&input, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Transaction, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
@@ -334,7 +334,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out model.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-		input.OTEL.Reset()
+		input.OTel.Reset()
 		// sample rate is set to > 0
 		input.SampleRate.Set(0.25)
 		mapToTransactionModel(&input, &out)
@@ -418,8 +418,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			var input transaction
 			var event model.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTEL.Attributes = attrs
-			input.OTEL.SpanKind.Reset()
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
 			input.Type.Reset()
 
 			mapToTransactionModel(&input, &event)
@@ -440,8 +440,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			var input transaction
 			var event model.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTEL.Attributes = attrs
-			input.OTEL.SpanKind.Reset()
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
 			mapToTransactionModel(&input, &event)
 
 			require.NotNil(t, event.HTTP)
@@ -471,8 +471,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"net.peer.ip":          "10.20.30.40",
 				"net.peer.port":        123,
 			}
-			input.OTEL.Attributes = attrs
-			input.OTEL.SpanKind.Reset()
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, "request", event.Transaction.Type)
@@ -493,8 +493,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			attrs := map[string]interface{}{
 				"message_bus.destination": "myQueue",
 			}
-			input.OTEL.Attributes = attrs
-			input.OTEL.SpanKind.Reset()
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, "messaging", event.Transaction.Type)
@@ -516,8 +516,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			var input transaction
 			var event model.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTEL.Attributes = attrs
-			input.OTEL.SpanKind.Reset()
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
 			mapToTransactionModel(&input, &event)
 
 			expected := model.Network{
@@ -540,7 +540,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			var input transaction
 			var event model.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTEL.SpanKind.Set("CLIENT")
+			input.OTel.SpanKind.Set("CLIENT")
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, "CLIENT", event.Transaction.Kind)

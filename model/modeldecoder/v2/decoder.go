@@ -1001,8 +1001,8 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 	if from.TransactionID.IsSet() {
 		event.Transaction = &model.Transaction{ID: from.TransactionID.Val}
 	}
-	if from.OTEL.IsSet() {
-		mapOTELAttributesSpan(from.OTEL, event)
+	if from.OTel.IsSet() {
+		mapOTelAttributesSpan(from.OTel, event)
 	}
 }
 
@@ -1225,8 +1225,8 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 		}
 	}
 
-	if from.OTEL.IsSet() {
-		mapOTELAttributesTransaction(from.OTEL, event)
+	if from.OTel.IsSet() {
+		mapOTelAttributesTransaction(from.OTel, event)
 	}
 }
 
@@ -1240,7 +1240,7 @@ var spanKindValue = map[string]int32{
 	"CONSUMER":    5,
 }
 
-func mapOTELAttributesTransaction(from otel, out *model.APMEvent) {
+func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 	library := pdata.NewInstrumentationLibrary()
 	// Library isn't used, but required in the fn signature
 	library.SetName("")
@@ -1256,7 +1256,7 @@ func mapOTELAttributesTransaction(from otel, out *model.APMEvent) {
 	otel_processor.TranslateTransaction(m, spanStatus, library, out)
 }
 
-func mapOTELAttributesSpan(from otel, out *model.APMEvent) {
+func mapOTelAttributesSpan(from otel, out *model.APMEvent) {
 	m := from.toAttributeMap()
 	out.Labels.Update(from.slicesMap())
 	var spanKind int32
