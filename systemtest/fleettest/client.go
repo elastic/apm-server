@@ -133,11 +133,17 @@ func (c *Client) DeleteAgentPolicy(id string) error {
 func (c *Client) CreateAgentPolicy(name, namespace, description string) (*AgentPolicy, *EnrollmentAPIKey, error) {
 	var body bytes.Buffer
 	type newAgentPolicy struct {
-		Name        string `json:"name,omitempty"`
-		Namespace   string `json:"namespace,omitempty"`
-		Description string `json:"description,omitempty"`
+		Name              string   `json:"name,omitempty"`
+		Namespace         string   `json:"namespace,omitempty"`
+		Description       string   `json:"description,omitempty"`
+		MonitoringEnabled []string `json:"monitoring_enabled,omitempty"`
 	}
-	if err := json.NewEncoder(&body).Encode(newAgentPolicy{name, namespace, description}); err != nil {
+	if err := json.NewEncoder(&body).Encode(newAgentPolicy{
+		Name:              name,
+		Namespace:         namespace,
+		Description:       description,
+		MonitoringEnabled: []string{"logs", "metrics"},
+	}); err != nil {
 		return nil, nil, err
 	}
 	req, err := http.NewRequest("POST", c.fleetURL+"/agent_policies", &body)

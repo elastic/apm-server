@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 	log.Println("INFO: setting up fleet...")
-	if err := Fleet.Setup(); err != nil {
+	if err := InitFleet(); err != nil {
 		log.Fatal(err)
 	}
 	log.Println("INFO: running system tests...")
