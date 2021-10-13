@@ -7,21 +7,19 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 [[apm-user-guide]]
 = APM User Guide
 
-== New content topic 1
+include::apm-overview.asciidoc[]
 
-New content goes here...
+== Quick start
 
-== New content topic 2
+Include quick start file from obs-docs repo
 
-New content goes here...
+include::data-model.asciidoc[]
 
-== New content topic 3
+include::features.asciidoc[]
 
-New content goes here...
+include::troubleshoot-apm.asciidoc[]
 
-== New content etc.
-
-New content goes here...
+include::apm-breaking.asciidoc[]
 
 // This includes the legacy APM Overview
 include::legacy/guide/index.asciidoc[]
