@@ -43,6 +43,7 @@ func TestTransactionTransform(t *testing.T) {
 
 	tests := []struct {
 		Transaction Transaction
+		Span        Span
 		Output      common.MapStr
 		Msg         string
 	}{
@@ -56,8 +57,10 @@ func TestTransactionTransform(t *testing.T) {
 		{
 			Transaction: Transaction{
 				ID:   id,
-				Kind: "CLIENT",
 				Type: "tx",
+			},
+			Span: Span{
+				Kind: "CLIENT",
 			},
 			Output: common.MapStr{
 				"id":        id,
@@ -175,6 +178,7 @@ func TestTransactionTransform(t *testing.T) {
 		event := APMEvent{
 			Processor:   TransactionProcessor,
 			Transaction: &test.Transaction,
+			Span:        &test.Span,
 			Event:       Event{Duration: duration},
 		}
 		beatEvent := event.BeatEvent(context.Background())
