@@ -1058,9 +1058,6 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	out := &model.Transaction{}
 	event.Processor = model.TransactionProcessor
 	event.Transaction = out
-	if event.Span == nil {
-		event.Span = &model.Span{}
-	}
 
 	// overwrite metadata with event specific information
 	mapToServiceModel(from.Context.Service, &event.Service)
@@ -1237,7 +1234,7 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 	library := pdata.NewInstrumentationLibrary()
 	m := from.toAttributeMap()
 	if from.SpanKind.IsSet() {
-		out.Span.Kind = from.SpanKind.Val
+		out.Transaction.Kind = from.SpanKind.Val
 	}
 	// TODO: Does this work? Is there a way we can infer the status code,
 	// potentially in the actual attributes map?
@@ -1245,14 +1242,14 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 	spanStatus.SetCode(pdata.StatusCodeUnset)
 	otel_processor.TranslateTransaction(m, spanStatus, library, out)
 
-	if out.Span.Kind == "" {
+	if out.Transaction.Kind == "" {
 		switch out.Transaction.Type {
 		case "messaging":
-			out.Span.Kind = "CONSUMER"
+			out.Transaction.Kind = "CONSUMER"
 		case "request":
-			out.Span.Kind = "SERVER"
+			out.Transaction.Kind = "SERVER"
 		default:
-			out.Span.Kind = "INTERNAL"
+			out.Transaction.Kind = "INTERNAL"
 		}
 	}
 }

@@ -424,7 +424,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, expected, event.URL)
-			assert.Equal(t, "SERVER", event.Span.Kind)
+			assert.Equal(t, "SERVER", event.Transaction.Kind)
 		})
 
 		t.Run("net", func(t *testing.T) {
@@ -454,7 +454,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				Port:   expectedPort,
 			}, event.Source)
 			assert.Equal(t, model.Client(event.Source), event.Client)
-			assert.Equal(t, "INTERNAL", event.Span.Kind)
+			assert.Equal(t, "INTERNAL", event.Transaction.Kind)
 		})
 
 		t.Run("rpc", func(t *testing.T) {
@@ -482,7 +482,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				IP:     net.ParseIP("10.20.30.40"),
 				Port:   123,
 			}, event.Client)
-			assert.Equal(t, "SERVER", event.Span.Kind)
+			assert.Equal(t, "SERVER", event.Transaction.Kind)
 		})
 
 		t.Run("messaging", func(t *testing.T) {
@@ -498,7 +498,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, "messaging", event.Transaction.Type)
-			assert.Equal(t, "CONSUMER", event.Span.Kind)
+			assert.Equal(t, "CONSUMER", event.Transaction.Kind)
 			assert.Equal(t, &model.Message{
 				QueueName: "myQueue",
 			}, event.Transaction.Message)
@@ -533,7 +533,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				},
 			}
 			assert.Equal(t, expected, event.Network)
-			assert.Equal(t, "INTERNAL", event.Span.Kind)
+			assert.Equal(t, "INTERNAL", event.Transaction.Kind)
 		})
 
 		t.Run("kind", func(t *testing.T) {
@@ -543,7 +543,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			input.OTel.SpanKind.Set("CLIENT")
 
 			mapToTransactionModel(&input, &event)
-			assert.Equal(t, "CLIENT", event.Span.Kind)
+			assert.Equal(t, "CLIENT", event.Transaction.Kind)
 		})
 	})
 }

@@ -42,6 +42,9 @@ type Transaction struct {
 	// Type holds the transaction type: "request", "message", etc.
 	Type string
 
+	// Kind holds the span kind: "CLIENT", "SERVER", "PRODUCER", "CONSUMER" and "INTERNAL".
+	Kind string
+
 	// Result holds the transaction result: "HTTP 2xx", "OK", "Error", etc.
 	Result string
 
@@ -86,7 +89,7 @@ type SpanCount struct {
 	Started *int
 }
 
-func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent, spanKind string) {
+func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
 	var transaction mapStr
 	if apmEvent.Processor == TransactionProcessor {
 		// TODO(axw) set `event.duration` in 8.0, and remove this field.
@@ -95,7 +98,7 @@ func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent, spanKind str
 	}
 	transaction.maybeSetString("id", e.ID)
 	transaction.maybeSetString("type", e.Type)
-	transaction.maybeSetString("span.kind", spanKind)
+	transaction.maybeSetString("span.kind", e.Kind)
 	transaction.maybeSetMapStr("duration.histogram", e.DurationHistogram.fields())
 	transaction.maybeSetString("name", e.Name)
 	transaction.maybeSetString("result", e.Result)
