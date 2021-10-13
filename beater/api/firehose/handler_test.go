@@ -234,3 +234,32 @@ type authorizerFunc func(ctx context.Context, action auth.Action, resource auth.
 func (f authorizerFunc) Authorize(ctx context.Context, action auth.Action, resource auth.Resource) error {
 	return f(ctx, action, resource)
 }
+
+func TestProcessMetrics(t *testing.T) {
+	var cwMetric cloudwatchMetric
+	cwMetric.MetricStreamName = "cloudwatch-metric-stream-test"
+	cwMetric.AccountID = expectedAccountID
+	cwMetric.Region = expectedRegion
+	cwMetric.Namespace = "AWS/Logs"
+	cwMetric.MetricName = "IncomingBytes"
+	dimensions := map[string]string{}
+	dimensions["LogGroupName"] = "RDSOSMetrics"
+	cwMetric.Dimensions = dimensions
+	cwMetric.Timestamp = 1633982880000
+	value := map[string]float64{}
+	value["count"] = 2.0
+	value["sum"] = 16755.0
+	value["max"] = 9403.0
+	value["min"] = 7352.0
+	cwMetric.Value = value
+	cwMetric.Unit = "Bytes"
+
+	event := processMetrics(model.APMEvent{}, cwMetric)
+	assert.Equal(t, "metrics", event.DataStream.Type)
+	assert.Equal(t, "AWS/Logs:IncomingBytes:LogGroupName:RDSOSMetrics", event.Metricset.Name)
+	assert.Equal(t, 4, len(event.Metricset.Samples))
+	assert.Equal(t, model.MetricsetSample{Unit: "Bytes", Value: 2.0}, event.Metricset.Samples["IncomingBytes.count"])
+	assert.Equal(t, model.MetricsetSample{Unit: "Bytes", Value: 16755.0}, event.Metricset.Samples["IncomingBytes.sum"])
+	assert.Equal(t, model.MetricsetSample{Unit: "Bytes", Value: 9403.0}, event.Metricset.Samples["IncomingBytes.max"])
+	assert.Equal(t, model.MetricsetSample{Unit: "Bytes", Value: 7352.0}, event.Metricset.Samples["IncomingBytes.min"])
+}
