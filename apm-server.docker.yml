@@ -468,12 +468,6 @@ apm-server:
                     #max_age: "30d"
                   #set_priority:
                     #priority: 100
-              #warm:
-                #min_age: "30d"
-                #actions:
-                  #set_priority:
-                    #priority: 50
-                  #readonly: {}
 
 
 

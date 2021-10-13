@@ -39,6 +39,7 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -417,12 +418,13 @@ func TestHTTPTransactionStatusCode(t *testing.T) {
 func TestDatabaseSpan(t *testing.T) {
 	// https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/semantic_conventions/database.md#mysql
 	connectionString := "Server=shopdb.example.com;Database=ShopDb;Uid=billing_user;TableCache=true;UseCompression=True;MinimumPoolSize=10;MaximumPoolSize=50;"
+	dbStatement := fmt.Sprintf("SELECT * FROM orders WHERE order_id = '%s'", strings.Repeat("*", 1024)) // should not be truncated!
 	event := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{
 		"db.system":            pdata.NewAttributeValueString("mysql"),
 		"db.connection_string": pdata.NewAttributeValueString(connectionString),
 		"db.user":              pdata.NewAttributeValueString("billing_user"),
 		"db.name":              pdata.NewAttributeValueString("ShopDb"),
-		"db.statement":         pdata.NewAttributeValueString("SELECT * FROM orders WHERE order_id = 'o4711'"),
+		"db.statement":         pdata.NewAttributeValueString(dbStatement),
 		"net.peer.name":        pdata.NewAttributeValueString("shopdb.example.com"),
 		"net.peer.ip":          pdata.NewAttributeValueString("192.0.2.12"),
 		"net.peer.port":        pdata.NewAttributeValueInt(3306),
@@ -435,7 +437,7 @@ func TestDatabaseSpan(t *testing.T) {
 
 	assert.Equal(t, &model.DB{
 		Instance:  "ShopDb",
-		Statement: "SELECT * FROM orders WHERE order_id = 'o4711'",
+		Statement: dbStatement,
 		Type:      "mysql",
 		UserName:  "billing_user",
 	}, event.Span.DB)

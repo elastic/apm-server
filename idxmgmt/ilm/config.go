@@ -246,15 +246,6 @@ func defaultPolicies() map[string]Policy {
 								},
 							},
 						},
-						"warm": map[string]interface{}{
-							"min_age": "30d",
-							"actions": map[string]interface{}{
-								"set_priority": map[string]interface{}{
-									"priority": 50,
-								},
-								"readonly": map[string]interface{}{},
-							},
-						},
 					},
 				},
 			},

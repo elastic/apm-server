@@ -1,7 +1,7 @@
 format_version: 1.0.0
 name: apm
 title: Elastic APM
-version: 0.5.0
+version: 7.16.0
 license: basic
 description: Ingest APM data
 type: integration
@@ -137,6 +137,10 @@ policy_templates:
           - name: tls_curve_types
             type: text
             multi: true
+          - name: tail_sampling_policies
+            type: yaml
+          - name: tail_sampling_interval
+            type: text
         template_path: template.yml.hbs
 owner:
   github: elastic/apm-server

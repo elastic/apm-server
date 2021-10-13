@@ -117,7 +117,7 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
 				Name:                 "transaction",
-				TimeseriesInstanceID: ":baz:bc30224a3738a508",
+				TimeseriesInstanceID: ":baz:9bf2d21a00716e4a",
 				DocCount:             1,
 			},
 			Transaction: &model.Transaction{
@@ -312,7 +312,7 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
 				Name:                 "transaction",
-				TimeseriesInstanceID: ":foo:1db641f187113b17",
+				TimeseriesInstanceID: ":foo:9f7a6aa5754581fe",
 				DocCount:             test.expectedCount,
 			},
 			Transaction: &model.Transaction{
@@ -340,6 +340,39 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 	require.NotNil(t, metricsets[0].Transaction)
 	durationHistogram := metricsets[0].Transaction.DurationHistogram
 	assert.Equal(t, []int64{3 /*round(1+1.5)*/}, durationHistogram.Counts)
+}
+
+func TestAggregateTimestamp(t *testing.T) {
+	batches := make(chan model.Batch, 1)
+	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+		BatchProcessor:                 makeChanBatchProcessor(batches),
+		MaxTransactionGroups:           2,
+		MetricsInterval:                30 * time.Second,
+		HDRHistogramSignificantFigures: 1,
+	})
+	require.NoError(t, err)
+
+	t0 := time.Unix(0, 0)
+	for _, ts := range []time.Time{t0, t0.Add(15 * time.Second), t0.Add(30 * time.Second)} {
+		agg.AggregateTransaction(model.APMEvent{
+			Timestamp:   ts,
+			Processor:   model.TransactionProcessor,
+			Transaction: &model.Transaction{Name: "name", RepresentativeCount: 1},
+		})
+	}
+
+	go agg.Run()
+	err = agg.Stop(context.Background()) // stop to flush
+	require.NoError(t, err)
+
+	batch := expectBatch(t, batches)
+	metricsets := batchMetricsets(t, batch)
+	require.Len(t, metricsets, 2)
+	sort.Slice(metricsets, func(i, j int) bool {
+		return metricsets[i].Timestamp.Before(metricsets[j].Timestamp)
+	})
+	assert.Equal(t, t0, metricsets[0].Timestamp)
+	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp)
 }
 
 func TestHDRHistogramSignificantFigures(t *testing.T) {
@@ -421,8 +454,12 @@ func TestAggregationFields(t *testing.T) {
 		&input.Service.Environment,
 		&input.Service.Name,
 		&input.Service.Version,
+		&input.Service.Node.Name,
 		&input.Container.ID,
 		&input.Kubernetes.PodName,
+		&input.Cloud.Provider,
+		&input.Cloud.Region,
+		&input.Cloud.AvailabilityZone,
 	}
 
 	var expected []model.APMEvent
@@ -543,8 +580,6 @@ func batchMetricsets(t testing.TB, batch model.Batch) []model.APMEvent {
 		if event.Metricset == nil {
 			continue
 		}
-		require.NotZero(t, event.Timestamp)
-		event.Timestamp = time.Time{}
 		metricsets = append(metricsets, event)
 	}
 	return metricsets

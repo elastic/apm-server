@@ -13,11 +13,14 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed `metricset.period` from service_destination metrics {pull}6111[6111]
 - Removed `http.request.socket` fields {pull}6152[6152]
 - Removed unused `transaction.duration.{count,sum.us}` metric fields {pull}6174[6174]
-- Removed `apm-server.sampling.tail.storage_dir` config {pull}6236[6236]
+- experimental:["This breaking change applies to the experimental tail-based sampling feature."] Removed `apm-server.sampling.tail.storage_dir` config {pull}6236[6236]
 - Removed `ProcessPending` self-instrumentation events {pull}6243[6243]
+- experimental:["This breaking change applies to the experimental tail-based sampling feature."] Changed `apm-server.sampling.tail.events.*` metrics semantics {pull}6273[6273]
+- Removed warm phase from default ILM policy {pull}6322[6322]
 
 [float]
 ==== Bug fixes
+- Use timestamp of original events for transaction/span metrics {pull}6311[6311]
 
 [float]
 ==== Intake API Changes
@@ -36,6 +39,9 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Span documents now duplicate extended HTTP fields, which were previously only under `span.http.*`, under `http.*` {pull}6147[6147]
 - We now record the direct network peer for incoming requests as `source.ip` and `source.port`; origin IP is recorded in `client.ip` {pull}6152[6152]
 - We now collect span destination metrics for transactions with too many spans (for example due to transaction_max_spans or exit_span_min_duration) when collected and sent by APM agents {pull}6200[6200]
+- Add an experimental endpoint for AWS Kinesis Data Firehose {pull}6299[6299]
+- `output.elasticsearch.experimental` can be used to enable a new, experimental Elasticsearch output using the go-elasticsearch client {pull}5970[5970]
+- Transaction metrics now also group by `service.node.name`, `cloud.provider`, `cloud.region`, `cloud.availability_zone` {pull}6323[6323]
 
 [float]
 ==== Deprecated
