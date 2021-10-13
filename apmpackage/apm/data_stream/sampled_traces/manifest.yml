@@ -3,6 +3,11 @@ type: traces
 dataset: apm.sampled
 ilm_policy: traces-apm.sampled-default_policy
 elasticsearch:
+  privileges:
+    # We need additional privileges for the sampled traces data stream,
+    # for refreshing indices, querying index stats, and reading documents.
+    # This data stream holds only non-sensitive information.
+    indices: [auto_configure, create_doc, maintenance, monitor, read]
   index_template:
     settings:
       # Create a single shard per index, so we can use

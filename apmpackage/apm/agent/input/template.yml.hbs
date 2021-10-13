@@ -63,3 +63,12 @@ apm-server:
         {{/each}}
     {{/if}}
     write_timeout: {{write_timeout}}
+    {{#if tail_sampling_policies}}
+    sampling:
+      tail:
+        enabled: true
+        {{#if tail_sampling_interval}}
+        interval: {{tail_sampling_interval}}
+        {{/if}}
+        policies: {{tail_sampling_policies}}
+    {{/if}}

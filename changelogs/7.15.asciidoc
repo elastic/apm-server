@@ -14,7 +14,8 @@ https://github.com/elastic/apm-server/compare/v7.15.0\...v7.15.1[View commits]
 
 [float]
 ==== Bug fixes
-- dedot http.request.body.original {pull}6256[6256]
+- dedot `http.request.body.original` {pull}6256[6256]
+- processor/otel: don't truncate `db.statement` {pull}6305[6305]
 
 [float]
 [[release-notes-7.15.0]]
