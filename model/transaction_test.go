@@ -56,14 +56,12 @@ func TestTransactionTransform(t *testing.T) {
 		{
 			Transaction: Transaction{
 				ID:   id,
-				Kind: "CLIENT",
 				Type: "tx",
 			},
 			Output: common.MapStr{
-				"id":        id,
-				"span.kind": "CLIENT",
-				"type":      "tx",
-				"duration":  common.MapStr{"us": 65980},
+				"id":       id,
+				"type":     "tx",
+				"duration": common.MapStr{"us": 65980},
 			},
 			Msg: "SpanCount empty",
 		},
