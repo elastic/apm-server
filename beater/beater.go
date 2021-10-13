@@ -96,8 +96,12 @@ func NewCreator(args CreatorParams) beat.Creator {
 			outputConfigReloader: newChanReloader(),
 		}
 
+		var elasticsearchOutputConfig *common.Config
+		if hasElasticsearchOutput(b) {
+			elasticsearchOutputConfig = b.Config.Output.Config()
+		}
 		var err error
-		bt.config, err = config.NewConfig(bt.rawConfig, elasticsearchOutputConfig(b))
+		bt.config, err = config.NewConfig(bt.rawConfig, elasticsearchOutputConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -652,8 +656,7 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
 // and a cleanup function which should be called on server shutdown.
 func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.BatchProcessor, func(context.Context) error, error) {
-	esOutputConfig := elasticsearchOutputConfig(s.beat)
-	if esOutputConfig == nil || !s.config.DataStreams.Enabled {
+	if s.elasticsearchOutputConfig == nil || !s.config.DataStreams.Enabled {
 		return p, func(context.Context) error { return nil }, nil
 	}
 
@@ -668,7 +671,7 @@ func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.Batch
 	esConfig.FlushInterval = time.Second
 
 	esConfig.Config = elasticsearch.DefaultConfig()
-	if err := esOutputConfig.Unpack(&esConfig); err != nil {
+	if err := s.elasticsearchOutputConfig.Unpack(&esConfig); err != nil {
 		return nil, nil, err
 	}
 	if !esConfig.Experimental {
@@ -734,14 +737,6 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 		})
 	}
 	return WrapRunServerWithProcessors(runServer, processors...)
-}
-
-// elasticsearchOutputConfig returns nil if the output is not elasticsearch
-func elasticsearchOutputConfig(b *beat.Beat) *common.Config {
-	if hasElasticsearchOutput(b) {
-		return b.Config.Output.Config()
-	}
-	return nil
 }
 
 func hasElasticsearchOutput(b *beat.Beat) bool {
