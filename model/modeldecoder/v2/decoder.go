@@ -1254,20 +1254,22 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 	}
 }
 
+const spanKindStringPrefix = "SPAN_KIND_"
+
 func mapOTelAttributesSpan(from otel, out *model.APMEvent) {
 	m := from.toAttributeMap()
 	var spanKind pdata.SpanKind
 	if from.SpanKind.IsSet() {
 		switch from.SpanKind.Val {
-		case pdata.SpanKindInternal.String()[10:]:
+		case pdata.SpanKindInternal.String()[len(spanKindStringPrefix):]:
 			spanKind = pdata.SpanKindInternal
-		case pdata.SpanKindServer.String()[10:]:
+		case pdata.SpanKindServer.String()[len(spanKindStringPrefix):]:
 			spanKind = pdata.SpanKindServer
-		case pdata.SpanKindClient.String()[10:]:
+		case pdata.SpanKindClient.String()[len(spanKindStringPrefix):]:
 			spanKind = pdata.SpanKindClient
-		case pdata.SpanKindProducer.String()[10:]:
+		case pdata.SpanKindProducer.String()[len(spanKindStringPrefix):]:
 			spanKind = pdata.SpanKindProducer
-		case pdata.SpanKindConsumer.String()[10:]:
+		case pdata.SpanKindConsumer.String()[len(spanKindStringPrefix):]:
 			spanKind = pdata.SpanKindConsumer
 		default:
 			spanKind = pdata.SpanKindUnspecified
