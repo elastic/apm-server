@@ -1230,16 +1230,6 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	}
 }
 
-// TODO: This is being stolen from internal code -.-
-var spanKindValue = map[string]int32{
-	"UNSPECIFIED": 0,
-	"INTERNAL":    1,
-	"SERVER":      2,
-	"CLIENT":      3,
-	"PRODUCER":    4,
-	"CONSUMER":    5,
-}
-
 func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 	library := pdata.NewInstrumentationLibrary()
 	m := from.toAttributeMap()
@@ -1266,13 +1256,24 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 
 func mapOTelAttributesSpan(from otel, out *model.APMEvent) {
 	m := from.toAttributeMap()
-	var spanVal int32
+	var spanKind pdata.SpanKind
 	if from.SpanKind.IsSet() {
-		// If not present, spanVal == 0, which is UNKNOWN
-		spanVal = spanKindValue[from.SpanKind.Val]
+		switch from.SpanKind.Val {
+		case pdata.SpanKindInternal.String()[10:]:
+			spanKind = pdata.SpanKindInternal
+		case pdata.SpanKindServer.String()[10:]:
+			spanKind = pdata.SpanKindServer
+		case pdata.SpanKindClient.String()[10:]:
+			spanKind = pdata.SpanKindClient
+		case pdata.SpanKindProducer.String()[10:]:
+			spanKind = pdata.SpanKindProducer
+		case pdata.SpanKindConsumer.String()[10:]:
+			spanKind = pdata.SpanKindConsumer
+		default:
+			spanKind = pdata.SpanKindUnspecified
+		}
 		out.Span.Kind = from.SpanKind.Val
 	}
-	spanKind := pdata.SpanKind(spanVal)
 	otel_processor.TranslateSpan(spanKind, m, out)
 
 	if spanKind == pdata.SpanKindUnspecified {
