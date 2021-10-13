@@ -43,6 +43,7 @@ func TestTransactionTransform(t *testing.T) {
 
 	tests := []struct {
 		Transaction Transaction
+		Span        Span
 		Output      common.MapStr
 		Msg         string
 	}{
@@ -58,10 +59,14 @@ func TestTransactionTransform(t *testing.T) {
 				ID:   id,
 				Type: "tx",
 			},
+			Span: Span{
+				Kind: "CLIENT",
+			},
 			Output: common.MapStr{
-				"id":       id,
-				"type":     "tx",
-				"duration": common.MapStr{"us": 65980},
+				"id":        id,
+				"span.kind": "CLIENT",
+				"type":      "tx",
+				"duration":  common.MapStr{"us": 65980},
 			},
 			Msg: "SpanCount empty",
 		},
@@ -173,6 +178,7 @@ func TestTransactionTransform(t *testing.T) {
 		event := APMEvent{
 			Processor:   TransactionProcessor,
 			Transaction: &test.Transaction,
+			Span:        &test.Span,
 			Event:       Event{Duration: duration},
 		}
 		beatEvent := event.BeatEvent(context.Background())

@@ -1226,7 +1226,9 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	}
 
 	if from.OTel.IsSet() {
-		event.Span = &model.Span{}
+		if event.Span == nil {
+			event.Span = &model.Span{}
+		}
 		mapOTelAttributesTransaction(from.OTel, event)
 	}
 }
