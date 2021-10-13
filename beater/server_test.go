@@ -791,26 +791,65 @@ func TestServerExperimentalElasticsearchOutput(t *testing.T) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
+	// The beater has no way of unregistering itself from reload.Register,
+	// so we create a fresh registry and replace it after the test.
+	oldRegister := reload.Register
+	defer func() {
+		reload.Register = oldRegister
+	}()
+	reload.Register = reload.NewRegistry()
+
 	cfg := common.MustNewConfigFrom(map[string]interface{}{
 		"data_streams.enabled":              true,
 		"data_streams.wait_for_integration": false,
 	})
-	var beatConfig beat.BeatConfig
-	err := beatConfig.Output.Unpack(common.MustNewConfigFrom(map[string]interface{}{
-		"elasticsearch": map[string]interface{}{
-			"hosts":        []string{srv.URL},
-			"experimental": true,
-			"flush_bytes":  "1kb", // testdata is >1kb
+	apmBeat, cfg := newBeat(t, cfg, nil, nil)
+	apmBeat.Manager = &mockManager{enabled: true}
+	beater, err := newTestBeater(t, apmBeat, cfg, nil)
+	require.NoError(t, err)
+	beater.start()
+
+	// Reload output config to show that apm-server will switch to the
+	// experimental output dynamically.
+	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{
+		Config: common.MustNewConfigFrom(map[string]interface{}{
+			"elasticsearch": map[string]interface{}{
+				"hosts":        []string{srv.URL},
+				"experimental": true,
+				"flush_bytes":  "1kb", // test data is >1kb
+				"backoff":      map[string]interface{}{"init": "1ms", "max": "1ms"},
+				"max_retries":  0,
+			},
+		}),
+	})
+	assert.NoError(t, err)
+
+	// Now that the beater is running, send config changes. The reloader
+	// is not registered until after the beater starts running, so we
+	// must loop until it is set.
+	var reloadable reload.ReloadableList
+	for {
+		// The Reloader is not registered until after the beat has started running.
+		reloadable = reload.Register.GetReloadableList("inputs")
+		if reloadable != nil {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: common.MustNewConfigFrom(map[string]interface{}{
+		"apm-server": map[string]interface{}{
+			"host": "localhost:0",
 		},
-	}))
+	})}})
 	require.NoError(t, err)
 
-	beater, err := setupServer(t, cfg, &beatConfig, nil)
+	listenAddr, err := beater.waitListenAddr(time.Second)
 	require.NoError(t, err)
 
-	req := makeTransactionRequest(t, beater.baseURL)
+	req := makeTransactionRequest(t, "http://"+listenAddr)
 	req.Header.Add("Content-Type", "application/x-ndjson")
-	resp, err := beater.client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
 	resp.Body.Close()
