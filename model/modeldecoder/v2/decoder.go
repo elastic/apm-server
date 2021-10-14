@@ -32,7 +32,10 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecoderutil"
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
+	otel_processor "github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/utility"
+
+	"go.opentelemetry.io/collector/model/pdata"
 )
 
 var (
@@ -998,6 +1001,9 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 	if from.TransactionID.IsSet() {
 		event.Transaction = &model.Transaction{ID: from.TransactionID.Val}
 	}
+	if from.OTel.IsSet() {
+		mapOTelAttributesSpan(from.OTel, event)
+	}
 }
 
 func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
@@ -1216,6 +1222,71 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 				Sum:   from.UserExperience.Longtask.Sum.Val,
 				Max:   from.UserExperience.Longtask.Max.Val,
 			}
+		}
+	}
+
+	if from.OTel.IsSet() {
+		if event.Span == nil {
+			event.Span = &model.Span{}
+		}
+		mapOTelAttributesTransaction(from.OTel, event)
+	}
+}
+
+func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
+	library := pdata.NewInstrumentationLibrary()
+	m := from.toAttributeMap()
+	if from.SpanKind.IsSet() {
+		out.Span.Kind = from.SpanKind.Val
+	}
+	// TODO: Does this work? Is there a way we can infer the status code,
+	// potentially in the actual attributes map?
+	spanStatus := pdata.NewSpanStatus()
+	spanStatus.SetCode(pdata.StatusCodeUnset)
+	otel_processor.TranslateTransaction(m, spanStatus, library, out)
+
+	if out.Span.Kind == "" {
+		switch out.Transaction.Type {
+		case "messaging":
+			out.Span.Kind = "CONSUMER"
+		case "request":
+			out.Span.Kind = "SERVER"
+		default:
+			out.Span.Kind = "INTERNAL"
+		}
+	}
+}
+
+const spanKindStringPrefix = "SPAN_KIND_"
+
+func mapOTelAttributesSpan(from otel, out *model.APMEvent) {
+	m := from.toAttributeMap()
+	var spanKind pdata.SpanKind
+	if from.SpanKind.IsSet() {
+		switch from.SpanKind.Val {
+		case pdata.SpanKindInternal.String()[len(spanKindStringPrefix):]:
+			spanKind = pdata.SpanKindInternal
+		case pdata.SpanKindServer.String()[len(spanKindStringPrefix):]:
+			spanKind = pdata.SpanKindServer
+		case pdata.SpanKindClient.String()[len(spanKindStringPrefix):]:
+			spanKind = pdata.SpanKindClient
+		case pdata.SpanKindProducer.String()[len(spanKindStringPrefix):]:
+			spanKind = pdata.SpanKindProducer
+		case pdata.SpanKindConsumer.String()[len(spanKindStringPrefix):]:
+			spanKind = pdata.SpanKindConsumer
+		default:
+			spanKind = pdata.SpanKindUnspecified
+		}
+		out.Span.Kind = from.SpanKind.Val
+	}
+	otel_processor.TranslateSpan(spanKind, m, out)
+
+	if spanKind == pdata.SpanKindUnspecified {
+		switch out.Span.Type {
+		case "db", "external", "storage":
+			out.Span.Kind = "CLIENT"
+		default:
+			out.Span.Kind = "INTERNAL"
 		}
 	}
 }

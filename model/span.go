@@ -37,6 +37,9 @@ type Span struct {
 	// Type holds the span type: "external", "db", etc.
 	Type string
 
+	// Kind holds the span kind: "CLIENT", "SERVER", "PRODUCER", "CONSUMER" and "INTERNAL".
+	Kind string
+
 	// Subtype holds the span subtype: "http", "sql", etc.
 	Subtype string
 
@@ -140,6 +143,7 @@ func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
 	span.maybeSetString("name", e.Name)
 	span.maybeSetString("type", e.Type)
 	span.maybeSetString("id", e.ID)
+	span.maybeSetString("kind", e.Kind)
 	span.maybeSetString("subtype", e.Subtype)
 	span.maybeSetString("action", e.Action)
 	span.maybeSetBool("sync", e.Sync)
