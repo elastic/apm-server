@@ -36,7 +36,7 @@ You can also specify certain clusters to display data from, for example, `obs-1:
 
 There are two ways to edit the default index pattern:
 
-* In the APM app -- Navigate to *APM* > *Settings* > *Indices*, and change all `apm_oss.*Pattern` values to
+* In the APM app -- Navigate to *APM* > *Settings* > *Indices*, and change all `xpack.apm.indices.*` values to
 include the new index pattern, e.g., `*:apm-*,apm-*`.
-* In `kibana.yml` -- All of the {kibana-ref}/apm-settings-kb.html[`apm_oss.*Pattern`] configuration values must
+* In `kibana.yml` -- All of the {kibana-ref}/apm-settings-kb.html[`xpack.apm.indices.*`] configuration values must
 include the new index pattern, e.g., `*:apm-*,apm-*`.
