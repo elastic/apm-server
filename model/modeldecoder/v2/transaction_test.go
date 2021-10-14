@@ -306,7 +306,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		})
 		var out model.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, map[string]interface{}{"a": common.Float(123.456), "c": "d"}, out.HTTP.Request.Body)
+		assert.Equal(t, map[string]interface{}{"a": 123.456, "c": "d"}, out.HTTP.Request.Body)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {

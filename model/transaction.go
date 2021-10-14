@@ -152,7 +152,7 @@ func (m TransactionMark) fields() common.MapStr {
 	}
 	out := make(common.MapStr, len(m))
 	for k, v := range m {
-		out[sanitizeLabelKey(k)] = common.Float(v)
+		out[sanitizeLabelKey(k)] = v
 	}
 	return out
 }
