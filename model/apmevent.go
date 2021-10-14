@@ -89,13 +89,7 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 		Fields:    make(common.MapStr),
 	}
 	if e.Transaction != nil {
-		var spanKind string
-		if e.Span != nil {
-			// Set span.kind in the transaction document, but only
-			// store Kind on Span model.
-			spanKind = e.Span.Kind
-		}
-		e.Transaction.setFields((*mapStr)(&event.Fields), e, spanKind)
+		e.Transaction.setFields((*mapStr)(&event.Fields), e)
 	}
 	if e.Span != nil {
 		e.Span.setFields((*mapStr)(&event.Fields), e)

@@ -81,14 +81,14 @@ func TestSpanTransform(t *testing.T) {
 			Output: common.MapStr{
 				"processor": common.MapStr{"name": "transaction", "event": "span"},
 				"span": common.MapStr{
-					"id":        hexID,
-					"duration":  common.MapStr{"us": int(duration.Microseconds())},
-					"name":      "myspan",
-					"span.kind": "CLIENT",
-					"start":     common.MapStr{"us": 650},
-					"type":      "myspantype",
-					"subtype":   subtype,
-					"action":    action,
+					"id":       hexID,
+					"duration": common.MapStr{"us": int(duration.Microseconds())},
+					"name":     "myspan",
+					"kind":     "CLIENT",
+					"start":    common.MapStr{"us": 650},
+					"type":     "myspantype",
+					"subtype":  subtype,
+					"action":   action,
 					"stacktrace": []common.MapStr{{
 						"exclude_from_grouping": false,
 						"abs_path":              path,

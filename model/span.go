@@ -143,7 +143,7 @@ func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
 	span.maybeSetString("name", e.Name)
 	span.maybeSetString("type", e.Type)
 	span.maybeSetString("id", e.ID)
-	span.maybeSetString("span.kind", e.Kind)
+	span.maybeSetString("kind", e.Kind)
 	span.maybeSetString("subtype", e.Subtype)
 	span.maybeSetString("action", e.Action)
 	span.maybeSetBool("sync", e.Sync)
