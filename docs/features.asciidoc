@@ -7,25 +7,22 @@
 
 * <<apm-data-security>>
 * <<apm-distributed-tracing>>
-// * <<rum>>
-// * <<trace-sampling>>
-// * <<opentracing>>
-// * <<open-telemetry-elastic>>
-// * <<observability-integrations>>
-// * <<apm-cross-cluster-search>>
+* <<apm-rum>>
+* <<sampling>>
+* <<open-telemetry>>
+* <<log-correlation>>
+* <<cross-cluster-search>>
 
 include::./apm-data-security.asciidoc[]
 
 include::./apm-distributed-tracing.asciidoc[]
 
-// include::./rum.asciidoc[]
+include::./apm-rum.asciidoc[]
 
-// include::./trace-sampling.asciidoc[]
+include::./sampling.asciidoc[]
 
-// include::./opentracing.asciidoc[]
+include::./open-telemetry.asciidoc[]
 
-// include::./opentelemetry-elastic.asciidoc[]
+include::./log-correlation.asciidoc[]
 
-// include::./obs-integrations.asciidoc[]
-
-// include::./cross-cluster-search.asciidoc[]
+include::./cross-cluster-search.asciidoc[]

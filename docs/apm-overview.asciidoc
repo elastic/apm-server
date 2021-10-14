@@ -22,5 +22,6 @@ like JVM metrics in the Java Agent, and Go runtime metrics in the Go Agent.
 [float]
 === Give Elastic APM a try
 
-// Learn more about the <<components,components>> that make up Elastic APM,
+Learn more about the <<apm-components,components>> that make up Elastic APM
+// ,
 // or jump right into the <<install-and-run,quick start guide>>.

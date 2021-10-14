@@ -9,6 +9,8 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 include::apm-overview.asciidoc[]
 
+include::apm-components.asciidoc[]
+
 == Quick start
 
 Include quick start file from obs-docs repo

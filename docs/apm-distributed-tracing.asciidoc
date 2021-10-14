@@ -101,9 +101,9 @@ with each agent's API.
 
 Sending services must add the `traceparent` header to outgoing requests.
 
-// --
-// include::../../tab-widgets/distributed-trace-send-widget.asciidoc[]
-// --
+--
+include::./tab-widgets/distributed-trace-send-widget.asciidoc[]
+--
 
 [float]
 [[distributed-tracing-incoming]]
@@ -112,9 +112,9 @@ Sending services must add the `traceparent` header to outgoing requests.
 Receiving services must parse the incoming `traceparent` header,
 and start a new transaction or span as a child of the received context.
 
-// --
-// include::../../tab-widgets/distributed-trace-receive-widget.asciidoc[]
-// --
+--
+include::./tab-widgets/distributed-trace-receive-widget.asciidoc[]
+--
 
 [float]
 [[distributed-tracing-rum]]
