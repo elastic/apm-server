@@ -20,6 +20,8 @@ package v2
 import (
 	"encoding/json"
 
+	"go.opentelemetry.io/collector/model/pdata"
+
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
@@ -695,6 +697,8 @@ type span struct {
 	// a limited set of permitted values describing the success or failure of
 	// the span. It can be used for calculating error rates for outgoing requests.
 	Outcome nullable.String `json:"outcome" validate:"enum=enumOutcome"`
+	// OTel contains unmapped OpenTelemetry attributes.
+	OTel otel `json:"otel"`
 	// ParentID holds the hex encoded 64 random bits ID of the parent
 	// transaction or span.
 	ParentID nullable.String `json:"parent_id" validate:"required,maxLength=1024"`
@@ -874,6 +878,8 @@ type transaction struct {
 	// Name is the generic designation of a transaction in the scope of a
 	// single service, eg: 'GET /users/:id'.
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
+	// OTel contains unmapped OpenTelemetry attributes.
+	OTel otel `json:"otel"`
 	// Outcome of the transaction with a limited set of permitted values,
 	// describing the success or failure of the transaction from the service's
 	// perspective. It is used for calculating error rates for incoming requests.
@@ -908,6 +914,61 @@ type transaction struct {
 	// UserExperience holds metrics for measuring real user experience.
 	// This information is only sent by RUM agents.
 	UserExperience transactionUserExperience `json:"experience"`
+}
+
+type otel struct {
+	// SpanKind holds the incoming OpenTelemetry span kind.
+	SpanKind nullable.String `json:"span_kind"`
+	// Attributes hold the unmapped OpenTelemetry attributes.
+	Attributes map[string]interface{} `json:"attributes"`
+}
+
+func (o *otel) toAttributeMap() pdata.AttributeMap {
+	m := pdata.NewAttributeMap()
+	for k, v := range o.Attributes {
+		// According to the spec, these are the allowed primitive types
+		// Additionally, homogeneous arrays (single type) of primitive types are allowed
+		// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes
+		switch x := v.(type) {
+		case string:
+			m.InsertString(k, x)
+		// int is not a supported primitive type, but will a signed
+		// integer value be parsed as an int or int64?
+		case int:
+			m.InsertInt(k, int64(x))
+		case int64:
+			m.InsertInt(k, x)
+		case float64:
+			m.InsertDouble(k, x)
+		case bool:
+			m.InsertBool(k, x)
+		case []string:
+			attrArray := pdata.NewAttributeValueArray()
+			for i := range x {
+				attrArray.ArrayVal().AppendEmpty().SetStringVal(x[i])
+			}
+			m.Insert(k, attrArray)
+		case []int64:
+			attrArray := pdata.NewAttributeValueArray()
+			for i := range x {
+				attrArray.ArrayVal().AppendEmpty().SetIntVal(x[i])
+			}
+			m.Insert(k, attrArray)
+		case []float64:
+			attrArray := pdata.NewAttributeValueArray()
+			for i := range x {
+				attrArray.ArrayVal().AppendEmpty().SetDoubleVal(x[i])
+			}
+			m.Insert(k, attrArray)
+		case []bool:
+			attrArray := pdata.NewAttributeValueArray()
+			for i := range x {
+				attrArray.ArrayVal().AppendEmpty().SetBoolVal(x[i])
+			}
+			m.Insert(k, attrArray)
+		}
+	}
+	return m
 }
 
 type transactionSession struct {
