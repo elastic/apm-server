@@ -182,7 +182,7 @@ pipeline {
             always {
               junit(allowEmptyResults: true,
                 keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/junit-report.xml,${BASE_DIR}/build/TEST-*.xml")
+                testResults: "${BASE_DIR}/build/TEST-*.xml")
             }
           }
         }
@@ -222,7 +222,9 @@ pipeline {
           }
           post {
             always {
-              junit(allowEmptyResults: true, keepLongStdio: true, testResults: "${BASE_DIR}/build/junit-*.xml")
+              junit(allowEmptyResults: true,
+                keepLongStdio: true,
+                testResults: "${BASE_DIR}/build/TEST-*.xml")
             }
           }
         }
@@ -260,9 +262,9 @@ pipeline {
           }
           post {
             always {
-              dir("${BASE_DIR}/build"){
-                junit(allowEmptyResults: true, keepLongStdio: true, testResults: "junit-*.xml")
-              }
+              junit(allowEmptyResults: true,
+                keepLongStdio: true,
+                testResults: "${BASE_DIR}/build/TEST-*.xml")
             }
           }
         }
@@ -275,6 +277,7 @@ pipeline {
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             HOME = "${env.WORKSPACE}"
+            TEST_COVERAGE = "true"
           }
           when {
             beforeAgent true
@@ -297,14 +300,29 @@ pipeline {
           post {
             always {
               dir("${BASE_DIR}/build"){
-                coverageReport("coverage")
+                publishHTML(target: [
+                  allowMissing: true,
+                  keepAll: true,
+                  reportDir: ".",
+                  reportFiles: 'TEST-*.html',
+                  reportName: 'Coverage-Sourcecode-Files',
+                  reportTitles: 'Coverage'])
+                cobertura(autoUpdateHealth: false,
+                  autoUpdateStability: false,
+                  coberturaReportFile: "TEST-*_cov.xml",
+                  conditionalCoverageTargets: '70, 0, 0',
+                  failNoReports: false,
+                  failUnhealthy: false,
+                  failUnstable: false,
+                  lineCoverageTargets: '80, 0, 0',
+                  maxNumberOfBuilds: 0,
+                  methodCoverageTargets: '80, 0, 0',
+                  onlyStable: false,
+                  sourceEncoding: 'ASCII',
+                  zoomCoverageChart: false)
                 junit(allowEmptyResults: true,
-                  keepLongStdio: true,
-                  testResults: "junit-*.xml"
-                )
-                catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
-                  tar(file: "coverage-files.tgz", archive: true, dir: "coverage")
-                }
+                    keepLongStdio: true,
+                    testResults: "TEST-*.xml")
               }
               codecov(repo: env.REPO, basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
@@ -348,7 +366,7 @@ pipeline {
                 )
                 junit(allowEmptyResults: true,
                   keepLongStdio: true,
-                  testResults: "**/TEST-*.xml"
+                  testResults: "TEST-*.xml"
                 )
                 catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
                   tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests")
