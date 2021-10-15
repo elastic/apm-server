@@ -1,5 +1,5 @@
 [[how-to-guides]]
-= How-to guides
+== How-to guides
 
 Learn how to perform common APM configuration and management tasks.
 
@@ -7,7 +7,7 @@ Learn how to perform common APM configuration and management tasks.
 * <<ilm-how-to>>
 // * <<jaeger>>
 // * <<{beatname_lc}-template>>
-// * <<storage-management>>
+* <<manage-storage>>
 // * <<configuring-ingest-node>>
 // * <<tune-data-ingestion>>
 
@@ -19,7 +19,7 @@ include::./ilm-how-to.asciidoc[]
 
 // include::{libbeat-dir}/howto/load-index-templates.asciidoc[]
 
-// include::./storage-management.asciidoc[]
+include::./manage-storage.asciidoc[]
 
 // include::./configuring-ingest.asciidoc[]
 

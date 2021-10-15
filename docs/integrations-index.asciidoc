@@ -19,6 +19,8 @@ include::data-model.asciidoc[]
 
 include::features.asciidoc[]
 
+include::how-to.asciidoc[]
+
 include::troubleshoot-apm.asciidoc[]
 
 include::apm-breaking.asciidoc[]
