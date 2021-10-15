@@ -3,17 +3,17 @@
 
 Learn how to perform common APM configuration and management tasks.
 
-// * <<sourcemaps>>
-// * <<ilm>>
+* <<source-map-how-to>>
+* <<ilm-how-to>>
 // * <<jaeger>>
 // * <<{beatname_lc}-template>>
 // * <<storage-management>>
 // * <<configuring-ingest-node>>
 // * <<tune-data-ingestion>>
 
-// include::./sourcemaps.asciidoc[]
+include::./source-map-how-to.asciidoc[]
 
-// include::./ilm.asciidoc[]
+include::./ilm-how-to.asciidoc[]
 
 // include::./jaeger-support.asciidoc[]
 
