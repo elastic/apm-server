@@ -1,0 +1,13 @@
+[[sourcemap-indices]]
+== Example source map document
+
+++++
+<titleabbrev>Source map document</titleabbrev>
+++++
+
+This example shows what a source map document can look like when indexed in Elasticsearch:
+
+[source,json]
+----
+include::../data/intake-api/generated/sourcemap/bundle.js.map[]
+----

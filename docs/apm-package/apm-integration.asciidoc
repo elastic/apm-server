@@ -1,5 +1,5 @@
 [[apm-integration]]
-= APM integration for {agent}
+== APM integration for {agent}
 
 ++++
 <titleabbrev>APM integration ({agent})</titleabbrev>
