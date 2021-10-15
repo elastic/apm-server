@@ -1,0 +1,100 @@
+// Remove these two include statements when the APM Server Reference is removed from the build
+include::../version.asciidoc[]
+include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
+
+:libbeat-dir: {docdir}/legacy/copied-from-beats/docs
+:libbeat-outputs-dir: {docdir}/legacy/copied-from-beats/outputs
+:version: {apm_server_version}
+:beatname_lc: apm-server
+:beatname_uc: APM Server
+:beatname_pkg: {beatname_lc}
+:beat_kib_app: APM app
+:beat_monitoring_user: apm_system
+:beat_monitoring_user_version: 6.5.0
+:beat_monitoring_version: 6.5
+:beat_default_index_prefix: apm
+:access_role: {beat_default_index_prefix}_user
+:beat_version_key: observer.version
+:dockerimage: docker.elastic.co/apm/{beatname_lc}:{version}
+:dockergithub: https://github.com/elastic/apm-server-docker/tree/{doc-branch}
+:dockerconfig: https://raw.githubusercontent.com/elastic/apm-server/{doc-branch}/apm-server.docker.yml
+:discuss_forum: apm
+:github_repo_name: apm-server
+:sample_date_0: 2019.10.20
+:sample_date_1: 2019.10.21
+:sample_date_2: 2019.10.22
+:repo: apm-server
+:no_kibana:
+:no_ilm:
+:no-processors:
+:no-indices-rules:
+:no_dashboards:
+:apm-server:
+:deb_os:
+:rpm_os:
+:mac_os:
+:docker_platform:
+:win_os:
+:linux_os:
+:apm-package-dir: {docdir}/apm-package
+
+:github_repo_link: https://github.com/elastic/apm-server/blob/v{version}
+ifeval::["{version}" == "8.0.0"]
+:github_repo_link: https://github.com/elastic/apm-server/blob/master
+endif::[]
+
+:downloads: https://artifacts.elastic.co/downloads/apm-server
+
+ifdef::env-github[]
+NOTE: For the best reading experience,
+please view this documentation at https://www.elastic.co/guide/en/apm/server[elastic.co]
+endif::[]
+
+ifndef::apm-integration-docs[]
+[[apm-server]]
+= APM Server Reference
+endif::[]
+
+ifdef::apm-integration-docs[]
+[[apm-server]]
+= Legacy APM Server Reference
+
+deprecated::[7.16.0]
+
+****
+🚨🚨🚨🚨
+Add some note here about what was deprecated and why.
+****
+endif::[]
+
+include::./overview.asciidoc[]
+
+include::./getting-started-apm-server.asciidoc[]
+
+include::./setting-up-and-running.asciidoc[]
+
+include::./howto.asciidoc[leveloffset=+1]
+
+:beat-specific-output-config: {docdir}/legacy/configuring-output-after.asciidoc
+include::./configuring.asciidoc[leveloffset=+1]
+
+:beat-specific-security: {docdir}/legacy/security.asciidoc
+include::{libbeat-dir}/shared-securing-beat.asciidoc[leveloffset=+1]
+
+include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[leveloffset=+1]
+
+include::./intake-api.asciidoc[leveloffset=+1]
+
+include::./exploring-es-data.asciidoc[leveloffset=+1]
+
+include::./fields.asciidoc[leveloffset=+1]
+
+include::./troubleshooting.asciidoc[leveloffset=+1]
+
+include::./upgrading.asciidoc[leveloffset=+1]
+
+include::./release-notes.asciidoc[leveloffset=+1]
+
+include::{apm-package-dir}/apm-integration.asciidoc[]
+
+include::./redirects.asciidoc[]
