@@ -6,6 +6,18 @@
     - description: version bump to align package version with stack version
       type: enhancement
       link: https://github.com/elastic/apm-server/issues/4898
+    - description: added client.geo fields to internal_metrics
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/6359
+    - description: pruned unused fields
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6359
+    - description: set processor.{name,event} to constant_keyword where possible
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6359
+    - description: created data-stream specific ingest pipelines
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6359
 - version: "0.5.0"
   changes:
     - description: define index sorting for internal metrics
