@@ -11,10 +11,11 @@
 
 1. Actual work
     - Make changes in `apmpackage/apm` and/or code as needed
+    - Run `make build-package`
 
 2. Run the registry
     - Checkout a fresh master from the registry and run `mage build`
-    - Copy `apmpackage/apm` in apm-server to `build/package-storage/packages/apm/<version>` in the registry
+    - Copy `build/integrations/apm/<version>` in apm-server to `build/package-storage/packages/apm/<version>` in the registry
     - `go run .`
 
 3. Run the stack
