@@ -1,0 +1,37 @@
+---
+description: Pipeline for ingesting APM application metrics.
+processors:
+  - set:
+      field: event.ingested
+      value: "{{_ingest.timestamp}}"
+  - user_agent:
+      field: user_agent.original
+      target_field: user_agent
+      ignore_missing: true
+      ignore_failure: true
+  - geoip:
+      database_file: GeoLite2-City.mmdb
+      field: client.ip
+      target_field: client.geo
+      ignore_missing: true
+      on_failure:
+        - remove:
+            field: client.ip
+            ignore_missing: true
+            ignore_failure: true
+  - script:
+      # TODO(axw) handle unit in metric descriptions.
+      # See https://github.com/elastic/elasticsearch/issues/72536
+      if: ctx._metric_descriptions != null
+      source: |
+        Map dynamic_templates = new HashMap();
+        for (entry in ctx._metric_descriptions.entrySet()) {
+          String name = entry.getKey();
+          Map description = entry.getValue();
+          String metric_type = description.type;
+          if (metric_type == "histogram") {
+            dynamic_templates[name] = "histogram";
+          }
+        }
+        ctx._dynamic_templates = dynamic_templates;
+        ctx.remove("_metric_descriptions");
