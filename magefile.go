@@ -202,19 +202,15 @@ func Fields() error {
 	xpackFieldsModules := []string{mage.XPackBeatDir()}
 	allFieldsModules := append(ossFieldsModules[:], xpackFieldsModules...)
 
-	// Create include/fields.go from the OSS-only fields.
+	// Create include/fields.go and fields.yml from the OSS-only fields,
+	// and fields.all.yml from all fields.
 	if err := generateFieldsYAML(mage.FieldsYML, ossFieldsModules...); err != nil {
 		return err
 	}
 	if err := mage.GenerateFieldsGo(mage.FieldsYML, fieldsInclude); err != nil {
 		return err
 	}
-
-	// Create docs/fields.asciidoc from all fields from all license types.
 	if err := generateFieldsYAML(mage.FieldsAllYML, allFieldsModules...); err != nil {
-		return err
-	}
-	if err := mage.Docs.FieldDocs(mage.FieldsAllYML); err != nil {
 		return err
 	}
 

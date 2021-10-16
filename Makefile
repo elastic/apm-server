@@ -122,7 +122,6 @@ fields_sources=\
 fields: include/fields.go x-pack/apm-server/include/fields.go
 include/fields.go x-pack/apm-server/include/fields.go: $(MAGE) magefile.go $(fields_sources)
 	@$(MAGE) fields
-	@mv docs/fields.asciidoc docs/legacy/fields.asciidoc
 
 config: apm-server.yml apm-server.docker.yml
 apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml
