@@ -1,0 +1,277 @@
+[[data-model]]
+== Data Model
+
+Elastic APM agents capture different types of information from within their instrumented applications.
+These are known as events, and can be `spans`, `transactions`, `errors`, or `metrics`.
+
+* <<data-model-spans>>
+* <<data-model-transactions>>
+* <<data-model-errors>>
+* <<data-model-metrics>>
+
+Events can contain additional <<data-model-metadata,metadata>> which further enriches your data.
+
+[[data-model-spans]]
+=== Spans
+
+*Spans* contain information about the execution of a specific code path.
+They measure from the start to the end of an activity,
+and they can have a parent/child relationship with other spans.
+
+Agents automatically instrument a variety of libraries to capture these spans from within your application,
+but you can also use the Agent API for custom instrumentation of specific code paths.
+
+Among other things, spans can contain:
+
+* A `transaction.id` attribute that refers to its parent <<data-model-transactions,transaction>>.
+* A `parent.id` attribute that refers to its parent span or transaction.
+* Its start time and duration.
+* A `name`.
+* A `type`, `subtype`, and `action`.
+* An optional `stack trace`. Stack traces consist of stack frames,
+which represent a function call on the call stack.
+They include attributes like function name, file name and path, line number, etc.
+
+TIP: Most agents limit keyword fields, like `span.id`, to 1024 characters,
+and non-keyword fields, like `span.start.us`, to 10,000 characters.
+
+Spans are stored in span indices.
+This storage is separate from transaction indices by default.
+
+[float]
+[[data-model-dropped-spans]]
+==== Dropped spans
+
+For performance reasons, APM agents can choose to sample or omit spans purposefully.
+This can be useful in preventing edge cases, like long-running transactions with over 100 spans,
+that would otherwise overload both the Agent and the APM Server.
+When this occurs, the APM app will display the number of spans dropped.
+
+To configure the number of spans recorded per transaction, see the relevant Agent documentation:
+
+* Go: {apm-go-ref-v}/configuration.html#config-transaction-max-spans[`ELASTIC_APM_TRANSACTION_MAX_SPANS`]
+* iOS: _Not yet supported_
+* Java: {apm-java-ref-v}/config-core.html#config-transaction-max-spans[`transaction_max_spans`]
+* .NET: {apm-dotnet-ref-v}/config-core.html#config-transaction-max-spans[`TransactionMaxSpans`]
+* Node.js: {apm-node-ref-v}/configuration.html#transaction-max-spans[`transactionMaxSpans`]
+* PHP: {apm-php-ref-v}/configuration-reference.html#config-transaction-max-spans[`transaction_max_spans`]
+* Python: {apm-py-ref-v}/configuration.html#config-transaction-max-spans[`transaction_max_spans`]
+* Ruby: {apm-ruby-ref-v}/configuration.html#config-transaction-max-spans[`transaction_max_spans`]
+
+[float]
+[[data-model-missing-spans]]
+==== Missing spans
+
+Agents stream spans to the APM Server separately from their transactions.
+Because of this, unforeseen errors may cause spans to go missing.
+Agents know how many spans a transaction should have;
+if the number of expected spans does not equal the number of spans received by the APM Server,
+the APM app will calculate the difference and display a message.
+
+[[data-model-transactions]]
+=== Transactions
+
+*Transactions* are a special kind of <<data-model-spans,span>> that have additional attributes associated with them.
+They describe an event captured by an Elastic APM agent instrumenting a service.
+You can think of transactions as the highest level of work you’re measuring within a service.
+As an example, a transaction might be a:
+
+* Request to your server
+* Batch job
+* Background job
+* Custom transaction type
+
+Agents decide whether to sample transactions or not,
+and provide settings to control sampling behavior.
+If sampled, the <<data-model-spans,spans>> of a transaction are sent and stored as separate documents.
+Within one transaction there can be 0, 1, or many spans captured.
+
+A transaction contains:
+
+* The timestamp of the event
+* A unique id, type, and name
+* Data about the environment in which the event is recorded:
+** Service - environment, framework, language, etc.
+** Host - architecture, hostname, IP, etc.
+** Process - args, PID, PPID, etc.
+** URL - full, domain, port, query, etc.
+** <<data-model-user,User>> - (if supplied) email, ID, username, etc.
+* Other relevant information depending on the agent. Example: The JavaScript RUM agent captures transaction marks,
+which are points in time relative to the start of the transaction with some label.
+
+In addition, agents provide options for users to capture custom <<data-model-metadata, metadata>>.
+Metadata can be indexed - <<data-model-labels,`labels`>>, or not-indexed - <<data-model-custom,`custom`>>.
+
+Transactions are grouped by their `type` and `name` in the APM UI's
+{kibana-ref}/transactions.html[Transaction overview].
+If you're using a supported framework, APM agents will automatically handle the naming for you.
+If you're not, or if you wish to override the default,
+all agents have API methods to manually set the `type` and `name`.
+
+* `type` should be a keyword of specific relevance in the service's domain,
+e.g. `request`, `backgroundjob`, etc.
+* `name` should be a generic designation of a transaction in the scope of a single service,
+e.g. `GET /users/:id`, `UsersController#show`, etc.
+
+TIP: Most agents limit keyword fields (e.g. `labels`) to 1024 characters,
+non-keyword fields (e.g. `span.db.statement`) to 10,000 characters.
+
+Transactions are stored in transaction indices.
+
+[[data-model-errors]]
+=== Errors
+
+An error event contains at least
+information about the original `exception` that occurred
+or about a `log` created when the exception occurred.
+For simplicity, errors are represented by a unique ID.
+
+An Error contains:
+
+* Both the captured `exception` and the captured `log` of an error can contain a `stack trace`,
+which is helpful for debugging.
+* The `culprit` of an error indicates where it originated.
+* An error might relate to the <<data-model-transactions,transaction>> during which it happened,
+via the `transaction.id`.
+* Data about the environment in which the event is recorded:
+** Service - environment, framework, language, etc.
+** Host - architecture, hostname, IP, etc.
+** Process - args, PID, PPID, etc.
+** URL - full, domain, port, query, etc.
+** <<data-model-user,User>> - (if supplied) email, ID, username, etc.
+
+In addition, agents provide options for users to capture custom <<data-model-metadata,metadata>>.
+Metadata can be indexed - <<data-model-labels,`labels`>>, or not-indexed - <<data-model-custom,`custom`>>.
+
+TIP: Most agents limit keyword fields (e.g. `error.id`) to 1024 characters,
+non-keyword fields (e.g. `error.exception.message`) to 10,000 characters.
+
+Errors are stored in error indices.
+
+[[data-model-metrics]]
+=== Metrics
+
+APM agents automatically pick up basic host-level metrics,
+including system and process-level CPU and memory metrics.
+Agent specific metrics are also available,
+like {apm-java-ref-v}/metrics.html[JVM metrics] in the Java Agent,
+and {apm-go-ref-v}/metrics.html[Go runtime] metrics in the Go Agent.
+
+Infrastructure and application metrics are important sources of information when debugging production systems,
+which is why we've made it easy to filter metrics for specific hosts or containers in the Kibana {kibana-ref}/metrics.html[metrics overview].
+
+Metrics have the `processor.event` property set to `metric`.
+
+TIP: Most agents limit keyword fields (e.g. `processor.event`) to 1024 characters,
+non-keyword fields (e.g. `system.memory.total`) to 10,000 characters.
+
+Metrics are stored in {apm-server-ref-v}/metricset-indices.html[metric indices].
+
+For a full list of tracked metrics, see the relevant agent documentation:
+
+* {apm-go-ref-v}/metrics.html[Go]
+* {apm-java-ref-v}/metrics.html[Java]
+* {apm-node-ref-v}/metrics.html[Node.js]
+* {apm-py-ref-v}/metrics.html[Python]
+* {apm-ruby-ref-v}/metrics.html[Ruby]
+
+// This heading is linked to from the APM UI section in Kibana
+[[data-model-metadata]]
+=== Metadata
+
+Metadata can enrich your events and make application performance monitoring even more useful.
+Let's explore the different types of metadata that Elastic APM offers.
+
+[float]
+[[data-model-labels]]
+==== Labels
+
+Labels add *indexed* information to transactions, spans, and errors.
+Indexed means the data is searchable and aggregatable in Elasticsearch.
+Add additional key-value pairs to define multiple labels.
+
+* Indexed: Yes
+* Elasticsearch type: {ref}/object.html[object]
+* Elasticsearch field: `labels`
+* Applies to: <<data-model-transactions>> | <<data-model-spans>> | <<data-model-errors>>
+
+Label values can be a string, boolean, or number, although some agents only support string values at this time.
+Because labels for a given key, regardless of agent used, are stored in the same place in Elasticsearch,
+all label values of a given key must have the same data type.
+Multiple data types per key will throw an exception, for example: `{foo: bar}` and `{foo: 42}` is not allowed.
+
+IMPORTANT: Avoid defining too many user-specified labels.
+Defining too many unique fields in an index is a condition that can lead to a
+{ref}/mapping.html#mapping-limit-settings[mapping explosion].
+
+[float]
+===== Agent API reference
+
+* Go: {apm-go-ref-v}/api.html#context-set-label[`SetLabel`]
+* Java: {apm-java-ref-v}/public-api.html#api-transaction-add-tag[`setLabel`]
+* .NET: {apm-dotnet-ref-v}/public-api.html#api-transaction-tags[`Labels`]
+* Node.js: {apm-node-ref-v}/agent-api.html#apm-set-label[`setLabel`] | {apm-node-ref-v}/agent-api.html#apm-add-labels[`addLabels`]
+* PHP: {apm-php-ref}/public-api.html#api-transaction-interface-set-label[`Transaction` `setLabel`] | {apm-php-ref}/public-api.html#api-span-interface-set-label[`Span` `setLabel`]
+* Python: {apm-py-ref-v}/api.html#api-label[`elasticapm.label()`]
+* Ruby:  {apm-ruby-ref-v}/api.html#api-agent-set-label[`set_label`]
+* Rum: {apm-rum-ref-v}/agent-api.html#apm-add-labels[`addLabels`]
+
+[float]
+[[data-model-custom]]
+==== Custom context
+
+Custom context adds *non-indexed*,
+custom contextual information to transactions and errors.
+Non-indexed means the data is not searchable or aggregatable in Elasticsearch,
+and you cannot build dashboards on top of the data.
+This also means you don't have to worry about {ref}/mapping.html#mapping-limit-settings[mapping explosions],
+as these fields are not added to the mapping.
+
+Non-indexed information is useful for providing contextual information to help you
+quickly debug performance issues or errors.
+
+* Indexed: No
+* Elasticsearch type: {ref}/object.html[object]
+* Elasticsearch fields: `transaction.custom` | `error.custom`
+* Applies to: <<data-model-transactions>> | <<data-model-errors>>
+
+IMPORTANT: Setting a circular object, a large object, or a non JSON serializable object can lead to errors.
+
+[float]
+===== Agent API reference
+
+* Go: {apm-go-ref-v}/api.html#context-set-custom[`SetCustom`]
+* iOS: _coming soon_
+* Java: {apm-java-ref-v}/public-api.html#api-transaction-add-custom-context[`addCustomContext`]
+* .NET: _coming soon_
+* Node.js: {apm-node-ref-v}/agent-api.html#apm-set-custom-context[`setCustomContext`]
+* PHP: _coming soon_
+* Python: {apm-py-ref-v}/api.html#api-set-custom-context[`set_custom_context`]
+* Ruby: {apm-ruby-ref-v}/api.html#api-agent-set-custom-context[`set_custom_context`]
+* Rum: {apm-rum-ref-v}/agent-api.html#apm-set-custom-context[`setCustomContext`]
+
+[float]
+[[data-model-user]]
+==== User context
+
+User context adds *indexed* user information to transactions and errors.
+Indexed means the data is searchable and aggregatable in Elasticsearch.
+
+* Indexed: Yes
+* Elasticsearch type: {ref}/keyword.html[keyword]
+* Elasticsearch fields: `user.email` | `user.name` | `user.id`
+* Applies to: <<data-model-transactions>> | <<data-model-errors>>
+
+[float]
+===== Agent API reference
+
+* Go: {apm-go-ref-v}/api.html#context-set-username[`SetUsername`] | {apm-go-ref-v}/api.html#context-set-user-id[`SetUserID`] |
+{apm-go-ref-v}/api.html#context-set-user-email[`SetUserEmail`]
+* iOS: _coming soon_
+* Java: {apm-java-ref-v}/public-api.html#api-transaction-set-user[`setUser`]
+* .NET _coming soon_
+* Node.js: {apm-node-ref-v}/agent-api.html#apm-set-user-context[`setUserContext`]
+* PHP: _coming soon_
+* Python: {apm-py-ref-v}/api.html#api-set-user-context[`set_user_context`]
+* Ruby: {apm-ruby-ref-v}/api.html#api-agent-set-user[`set_user`]
+* Rum: {apm-rum-ref-v}/agent-api.html#apm-set-user-context[`setUserContext`]

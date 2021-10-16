@@ -42,7 +42,7 @@ When <<ssl-setup,SSL/TLS>> is enabled in APM Server, Jaeger agents must also ena
 
 . (Optional) Enable token-based authorization
 +
-A <<secret-token,secret token>> or <<api-key,API key>> can be used to ensure only authorized
+A <<secret-token-legacy,secret token>> or <<api-key-legacy,API key>> can be used to ensure only authorized
 Jaeger agents can send data to the APM Server.
 When enabled, use an agent level tag to authorize Jaeger agent communication with the APM Server:
 +

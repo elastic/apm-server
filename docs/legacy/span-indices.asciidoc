@@ -1,0 +1,13 @@
+[[span-indices]]
+== Example span documents
+
+++++
+<titleabbrev>Span documents</titleabbrev>
+++++
+
+This example shows what span documents can look like when indexed in Elasticsearch:
+
+[source,json]
+----
+include::../data/elasticsearch/generated/spans.json[]
+----

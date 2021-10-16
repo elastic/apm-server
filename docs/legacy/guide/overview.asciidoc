@@ -1,5 +1,12 @@
-[[apm-overview]]
+ifndef::apm-integration-docs[]
+[[overview]]
 == Free and open application performance monitoring
+endif::[]
+
+ifdef::apm-integration-docs[]
+[[legacy-apm-overview]]
+== Free and open application performance monitoring
+endif::[]
 
 ++++
 <titleabbrev>What is APM?</titleabbrev>
