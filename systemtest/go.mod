@@ -44,6 +44,7 @@ require (
 )
 
 replace (
+	github.com/containerd/containerd => github.com/containerd/containerd v1.4.11
 	github.com/docker/docker => github.com/docker/engine v0.0.0-20191113042239-ea84732a7725
 	github.com/elastic/apm-server/approvaltest => ../approvaltest
 )
