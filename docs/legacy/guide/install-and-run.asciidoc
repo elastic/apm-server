@@ -1,0 +1,100 @@
+[[install-and-run]]
+== Quick start guide
+
+This guide describes how to get started quickly with Elastic APM. You’ll learn how to:
+
+* Spin up {es}, {kib}, and APM Server on {ess}
+* Install APM agents
+* Basic configuration options
+* Visualize your APM data in {kib}
+
+[float]
+[[before-installation]]
+=== Step 1: Spin up the Elastic Stack
+
+include::../../tab-widgets/spin-up-stack-widget.asciidoc[]
+
+[float]
+[[agents]]
+=== Step 2: Install APM agents
+
+// This tagged region is reused in the Observability docs.
+// tag::apm-agent[]
+APM agents are written in the same language as your service.
+To monitor a new service, you must install the agent and configure it with a service name, APM Server URL, and Secret token or API key.
+
+[[choose-service-name]]
+* *Service name*: Service names are used to differentiate data from each of your services.
+Elastic APM includes the service name field on every document that it saves in Elasticsearch.
+If you change the service name after using Elastic APM,
+you will see the old service name and the new service name as two separate services.
+Make sure you choose a good service name before you get started.
++
+The service name can only contain alphanumeric characters,
+spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
+
+* *APM Server URL*: The host and port that APM Server listens for events on.
+
+* *Secret token or API key*: Authentication method for Agent/Server communication.
+See {apm-server-ref-v}/secure-communication-agents.html[secure communication with APM Agents] to learn more.
+
+Select your service's language for installation instructions:
+// end::apm-agent[]
+
+--
+include::../../tab-widgets/install-agents-widget.asciidoc[]
+--
+
+TIP: Check the {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix] to ensure you're using agents that are compatible with your version of {es}.
+
+
+[float]
+[[configure-apm]]
+=== Step 3: Advanced configuration (optional)
+
+// This tagged region is reused in the Observability docs.
+// tag::configure-agents[]
+There are many different ways to tweak and tune the Elastic APM ecosystem to your needs.
+
+*Configure APM agents*
+
+APM agents have a number of configuration options that allow you to fine tune things like
+environment names, sampling rates, instrumentations, metrics, and more.
+Broadly speaking, there are two ways to configure APM agents:
+// end::configure-agents[]
+
+include::../../tab-widgets/configure-agent-widget.asciidoc[]
+
+*Configure APM Server*
+
+include::../../tab-widgets/configure-server-widget.asciidoc[]
+
+[float]
+[[visualize-kibana]]
+=== Step 4: Visualize in {kib}
+
+The APM app in {kib} allows you to monitor your software services and applications in real-time;
+visualize detailed performance information on your services, identify and analyze errors,
+and monitor host-level and agent-specific metrics like JVM and Go runtime metrics.
+
+To open the APM app:
+
+. Lauch {kib}:
++
+--
+include::../../tab-widgets/open-kibana-widget.asciidoc[]
+--
+
+. In the side navigation, under *Observability*, select *APM*.
+
+[float]
+[[what-next]]
+=== What's next?
+
+Now that you have APM data streaming into {ES},
+head over to the {kibana-ref}/xpack-apm.html[APM app reference] to learn more about what you can
+do with {kib}'s APM app.
+
+// Need to add more here
+// Get a deeper understanding by learning about [[concepts]]
+// Learn how to do things with [[how-to guides]]

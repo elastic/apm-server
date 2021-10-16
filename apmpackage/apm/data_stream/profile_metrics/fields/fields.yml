@@ -31,36 +31,11 @@
   description: |
     Optional network fields
   fields:
-    - name: carrier
-      type: group
-      description: |
-        Network operator
-      fields:
-        - name: icc
-          type: keyword
-          description: |
-            ISO country code, eg. US
-        - name: mcc
-          type: keyword
-          description: |
-            Mobile country code
-        - name: mnc
-          type: keyword
-          description: |
-            Mobile network code
-        - name: name
-          type: keyword
-          description: |
-            Carrier name, eg. Vodafone, T-Mobile, etc.
     - name: connection
       type: group
       description: |
         Network connection details
       fields:
-        - name: subtype
-          type: keyword
-          description: |
-            Detailed network connection sub-type, e.g. "LTE", "CDMA"
         - name: type
           type: keyword
           description: |
@@ -76,19 +51,15 @@
       type: keyword
       description: |
         Unique identifier of the APM Server.
-    - name: listening
-      type: keyword
-      description: |
-        Address the server is listening on.
     - name: version_major
       type: byte
       description: |
         Major version number of the observer
 - name: processor.event
-  type: keyword
+  type: constant_keyword
   description: Processor event.
 - name: processor.name
-  type: keyword
+  type: constant_keyword
   description: Processor name.
 - name: profile
   type: group
@@ -229,10 +200,3 @@
           type: keyword
           description: |
             Version of the runtime used.
-- name: timestamp
-  type: group
-  fields:
-    - name: us
-      type: long
-      description: |
-        Timestamp of the event in microseconds since Unix epoch.

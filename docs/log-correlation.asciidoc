@@ -1,0 +1,176 @@
+[[log-correlation]]
+=== Logging integration
+
+Many applications use logging frameworks to help record, format, and append an application's logs.
+Elastic APM now offers a way to make your application logs even more useful,
+by integrating with the most popular logging frameworks in their respective languages.
+This means you can easily inject trace information into your logs,
+allowing you to explore logs in the {observability-guide}/monitor-logs.html[Logs app],
+then jump straight into the corresponding APM traces -- all while preserving the trace context.
+
+To get started:
+
+. Enable log correlation
+. Add APM identifiers to your logs
+. Ingest your logs into Elasticsearch
+
+[float]
+==== Enable Log correlation
+
+Some Agents require you to first enable log correlation in the Agent.
+This is done with a configuration variable, and is different for each Agent.
+See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent documentation] for further information.
+
+// Not enough of the Agent docs are ready yet.
+// Commenting these out and will replace when ready.
+// * *Java*: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
+// * *.NET*: {apm-dotnet-ref-v}/[]
+// * *Node.js*: {apm-node-ref-v}/[]
+// * *Python*: {apm-py-ref-v}/[]
+// * *Ruby*: {apm-ruby-ref-v}/[]
+// * *Rum*: {apm-rum-ref-v}/[]
+
+[float]
+==== Add APM identifiers to your logs
+
+Once log correlation is enabled,
+you must ensure your logs contain APM identifiers.
+In some supported frameworks, this is already done for you.
+In other scenarios, like for unstructured logs,
+you'll need to add APM identifiers to your logs in any easy to parse manner.
+
+The identifiers we're interested in are: {ecs-ref}/ecs-tracing.html[`trace.id`] and
+{ecs-ref}/ecs-tracing.html[`transaction.id`]. Certain Agents also support the `span.id` field.
+
+This process for adding these fields will differ based the Agent you're using, the logging framework,
+and the type and structure of your logs.
+
+See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent documentation] to learn more.
+
+// Not enough of the Agent docs have been backported yet.
+// Commenting these out and will replace when ready.
+// * *Go*: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
+// * *Java*: {apm-java-ref-v}/[] NOT merged yet https://github.com/elastic/apm-agent-java/pull/854
+// * *.NET*: {apm-dotnet-ref-v}/[]
+// * *Node.js*: {apm-node-ref-v}/[]
+// * *Python*: {apm-py-ref-v}/[]
+// * *Ruby*: {apm-ruby-ref-v}/[] Not backported yet https://www.elastic.co/guide/en/apm/agent/ruby/master/log-correlation.html
+// * *Rum*: {apm-rum-ref-v}/[]
+
+[float]
+==== Ingest your logs into Elasticsearch
+
+Once your logs contain the appropriate identifiers (fields), you need to ingest them into Elasticsearch.
+Luckily, we've got a tool for that -- Filebeat is Elastic's log shipper.
+The {filebeat-ref}/filebeat-installation-configuration.html[Filebeat quick start]
+guide will walk you through the setup process.
+
+Because logging frameworks and formats vary greatly between different programming languages,
+there is no one-size-fits-all approach for ingesting your logs into Elasticsearch.
+The following tips should hopefully get you going in the right direction:
+
+**Download Filebeat**
+
+There are many ways to download and get started with Filebeat.
+Read the {filebeat-ref}/filebeat-installation-configuration.html[Filebeat quick start] guide to determine which is best for you.
+
+**Configure Filebeat**
+
+Modify the {filebeat-ref}/configuring-howto-filebeat.html[`filebeat.yml`] configuration file to your needs.
+Here are some recommendations:
+
+* Set `filebeat.inputs` to point to the source of your logs
+* Point Filebeat to the same Elastic Stack that is receiving your APM data
+  * If you're using Elastic cloud, set `cloud.id` and `cloud.auth`.
+  * If your using a manual setup, use `output.elasticsearch.hosts`.
+
+[source,yml]
+----
+filebeat.inputs:
+- type: log <1>
+  paths: <2>
+    - /var/log/*.log
+cloud.id: "staging:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbyRjZWMNjN2Q3YTllOTYyNTc0Mw==" <3>
+cloud.auth: "elastic:YOUR_PASSWORD" <4>
+----
+<1> Configures the `log` input
+<2> Path(s) that must be crawled to fetch the log lines
+<3> Used to resolve the Elasticsearch and Kibana URLs for Elastic Cloud
+<4> Authorization token for Elastic Cloud
+
+**JSON logs**
+
+For JSON logs you can use the {filebeat-ref}/filebeat-input-log.html[`log` input] to read lines from log files.
+Here's what a sample configuration might look like:
+
+[source,yml]
+----
+filebeat.inputs:
+  json.keys_under_root: true <1>
+  json.add_error_key: true <2>
+  json.message_key: message <3>
+----
+<1> `true` copies JSON keys to the top level in the output document
+<2> Tells Filebeat to add an `error.message` and `error.type: json` key in case of JSON unmarshalling errors
+<3> Specifies the JSON key on which to apply line filtering and multiline settings
+
+**Parsing unstructured logs**
+
+Consider the following log that is decorated with the `transaction.id` and `trace.id` fields:
+
+[source,log]
+----
+2019-09-18 21:29:49,525 - django.server - ERROR - "GET / HTTP/1.1" 500 27 | elasticapm transaction.id=fcfbbe447b9b6b5a trace.id=f965f4cc5b59bdc62ae349004eece70c span.id=None
+----
+
+All that's needed now is an {filebeat-ref}/configuring-ingest-node.html[ingest node processor] to pre-process your logs and
+extract these structured fields before they are indexed in Elasticsearch.
+To do this, you'd need to create a pipeline that uses Elasticsearch's {ref}/grok-processor.html[Grok Processor].
+Here's an example:
+
+[source, json]
+----
+PUT _ingest/pipeline/log-correlation
+{
+  "description": "Parses the log correlation IDs out of the raw plain-text log",
+  "processors": [
+    {
+      "grok": {
+        "field": "message", <1>
+        "patterns": ["%{GREEDYDATA:message} | elasticapm transaction.id=%{DATA:transaction.id} trace.id=%{DATA:trace.id} span.id=%{DATA:span.id}"] <2>
+      }
+    }
+  ]
+}
+----
+<1> The field to use for grok expression parsing
+<2> An ordered list of grok expression to match and extract named captures with:
+`%{DATA:transaction.id}` captures the value of `transaction.id`,
+`%{DATA:trace.id}` captures the value or `trace.id`, and
+`%{DATA:span.id}` captures the value of `span.id`.
+
+NOTE: Depending on how you've added APM data to your logs,
+you may need to tweak this grok pattern in order to work for your setup.
+In addition, it's possible to extract more structure out of your logs.
+Make sure to follow the {ecs-ref}/ecs-field-reference.html[Elastic Common Schema]
+when defining which fields you are storing in Elasticsearch.
+
+Then, configure Filebeat to use the processor in `filebeat.yml`:
+
+[source, json]
+----
+output.elasticsearch:
+  pipeline: "log-correlation"
+----
+
+If your logs contain messages that span multiple lines of text (common in Java stack traces),
+you'll also need to configure {filebeat-ref}/multiline-examples.html[multiline settings].
+
+The following example shows how to configure Filebeat to handle a multiline message where the first line of the message begins with a bracket ([).
+
+[source,yml]
+----
+multiline.pattern: '^\['
+multiline.negate: true
+multiline.match: after
+----

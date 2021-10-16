@@ -1,0 +1,28 @@
+[[features]]
+== Elastic APM features
+
+++++
+<titleabbrev>Features</titleabbrev>
+++++
+
+* <<apm-data-security>>
+* <<apm-distributed-tracing>>
+* <<apm-rum>>
+* <<sampling>>
+* <<open-telemetry>>
+* <<log-correlation>>
+* <<cross-cluster-search>>
+
+include::./apm-data-security.asciidoc[]
+
+include::./apm-distributed-tracing.asciidoc[]
+
+include::./apm-rum.asciidoc[]
+
+include::./sampling.asciidoc[]
+
+include::./open-telemetry.asciidoc[]
+
+include::./log-correlation.asciidoc[]
+
+include::./cross-cluster-search.asciidoc[]

@@ -1,8 +1,11 @@
 package_paths:
+  # Local goes first so it takes precedence over published packages.
+  # This is important to so we pick up the local package when the
+  # version hasn't been bumped, e.g. during the development cycle.
+  - /packages/local
   - /packages/production
   - /packages/staging
   - /packages/snapshot
-  - /packages/local
 
 cache_time.search: 10s
 cache_time.categories: 10s

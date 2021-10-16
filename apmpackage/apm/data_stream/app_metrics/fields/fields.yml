@@ -33,45 +33,16 @@
       type: keyword
       description: |
         Name of the set of metrics.
-- name: metricset.period
-  type: long
-  description: Current data collection period for this event in milliseconds.
-  unit: ms
 - name: network
   type: group
   description: |
     Optional network fields
   fields:
-    - name: carrier
-      type: group
-      description: |
-        Network operator
-      fields:
-        - name: icc
-          type: keyword
-          description: |
-            ISO country code, eg. US
-        - name: mcc
-          type: keyword
-          description: |
-            Mobile country code
-        - name: mnc
-          type: keyword
-          description: |
-            Mobile network code
-        - name: name
-          type: keyword
-          description: |
-            Carrier name, eg. Vodafone, T-Mobile, etc.
     - name: connection
       type: group
       description: |
         Network connection details
       fields:
-        - name: subtype
-          type: keyword
-          description: |
-            Detailed network connection sub-type, e.g. "LTE", "CDMA"
         - name: type
           type: keyword
           description: |
@@ -87,19 +58,15 @@
       type: keyword
       description: |
         Unique identifier of the APM Server.
-    - name: listening
-      type: keyword
-      description: |
-        Address the server is listening on.
     - name: version_major
       type: byte
       description: |
         Major version number of the observer
 - name: processor.event
-  type: keyword
+  type: constant_keyword
   description: Processor event.
 - name: processor.name
-  type: keyword
+  type: constant_keyword
   description: Processor name.
 - name: service
   type: group
@@ -281,13 +248,3 @@
                 The total virtual memory the process has.
               metric_type: gauge
               unit: byte
-- name: timeseries.instance
-  type: keyword
-  description: Time series instance ID
-- name: timestamp
-  type: group
-  fields:
-    - name: us
-      type: long
-      description: |
-        Timestamp of the event in microseconds since Unix epoch.
