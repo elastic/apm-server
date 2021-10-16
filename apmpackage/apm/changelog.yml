@@ -3,30 +3,30 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "7.16.0"
   changes:
-    - description: version bump to align package version with stack version
+    - description: updated package version to align with stack version
       type: enhancement
       link: https://github.com/elastic/apm-server/issues/4898
     - description: added client.geo fields to internal_metrics
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/6359
-    - description: pruned unused fields
+    - description: removed unused fields
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6359
-    - description: set processor.{name,event} to constant_keyword where possible
+    - description: changed processor.{name,event} to constant_keyword where possible
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6359
-    - description: created data-stream specific ingest pipelines
+    - description: changed to data-stream specific ingest pipelines
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6359
 - version: "0.5.0"
   changes:
-    - description: define index sorting for internal metrics
+    - description: added index sorting for internal metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6116
-    - description: add histogram dynamic_template to app metrics data stream
+    - description: added histogram dynamic_template to app metrics data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6043
-    - description: remove warm phase from ILM policies
+    - description: removed warm phase from ILM policies
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6229
     - description: added privileges to tail-sampled traces data stream
@@ -37,10 +37,10 @@
       link: https://github.com/elastic/apm-server/pull/6139
 - version: "0.4.0"
   changes:
-    - description: add anonymous auth config, replace some RUM config
+    - description: added anonymous auth config, replace some RUM config
       type: breaking-change
       link: https://github.com/elastic/apm-server/pull/5623
-    - description: use new apm-server.auth config
+    - description: updated to use new apm-server.auth config
       type: breaking-change
       link: https://github.com/elastic/apm-server/pull/5691
 - version: "0.3.0"
@@ -56,7 +56,7 @@
     - description: added support for apm-server.rum.allow_service_names
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/5030
-    - description: introduce a configurable default service environment
+    - description: added support a configurable default service environment
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/4861
 - version: "0.1.0"
