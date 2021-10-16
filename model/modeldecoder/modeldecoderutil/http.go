@@ -67,7 +67,7 @@ func NormalizeHTTPRequestBody(v interface{}) interface{} {
 		}
 	case json.Number:
 		if floatVal, err := v.Float64(); err == nil {
-			return common.Float(floatVal)
+			return floatVal
 		}
 	}
 	return v
