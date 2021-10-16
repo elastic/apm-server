@@ -33,45 +33,16 @@
       type: keyword
       description: |
         Name of the set of metrics.
-- name: metricset.period
-  type: long
-  description: Current data collection period for this event in milliseconds.
-  unit: ms
 - name: network
   type: group
   description: |
     Optional network fields
   fields:
-    - name: carrier
-      type: group
-      description: |
-        Network operator
-      fields:
-        - name: icc
-          type: keyword
-          description: |
-            ISO country code, eg. US
-        - name: mcc
-          type: keyword
-          description: |
-            Mobile country code
-        - name: mnc
-          type: keyword
-          description: |
-            Mobile network code
-        - name: name
-          type: keyword
-          description: |
-            Carrier name, eg. Vodafone, T-Mobile, etc.
     - name: connection
       type: group
       description: |
         Network connection details
       fields:
-        - name: subtype
-          type: keyword
-          description: |
-            Detailed network connection sub-type, e.g. "LTE", "CDMA"
         - name: type
           type: keyword
           description: |
@@ -87,19 +58,15 @@
       type: keyword
       description: |
         Unique identifier of the APM Server.
-    - name: listening
-      type: keyword
-      description: |
-        Address the server is listening on.
     - name: version_major
       type: byte
       description: |
         Major version number of the observer
 - name: processor.event
-  type: keyword
+  type: constant_keyword
   description: Processor event.
 - name: processor.name
-  type: keyword
+  type: constant_keyword
   description: Processor name.
 - name: service
   type: group
@@ -191,158 +158,9 @@
       type: keyword
       description: |
         Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
-- name: system
-  type: group
-  description: |
-    `system` contains local system metrics.
-  fields:
-    - name: cpu
-      type: group
-      description: |
-        `cpu` contains local CPU stats.
-      fields:
-        - name: total.norm.pct
-          type: scaled_float
-          format: percent
-          description: |
-            The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
-          metric_type: gauge
-          unit: percent
-    - name: memory
-      type: group
-      description: |
-        `memory` contains local memory stats.
-      fields:
-        - name: actual
-          type: group
-          description: |
-            Actual memory used and free.
-          fields:
-            - name: free
-              type: long
-              format: bytes
-              description: |
-                Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal to `system.memory.free`.
-              metric_type: gauge
-              unit: byte
-        - name: total
-          type: long
-          format: bytes
-          description: |
-            Total memory.
-          metric_type: gauge
-          unit: byte
-    - name: process
-      type: group
-      description: |
-        `process` contains process metadata, CPU metrics, and memory metrics.
-      fields:
-        - name: cgroup
-          type: group
-          description: Metrics and limits for the cgroup, collected by APM agents on Linux.
-          fields:
-            - name: cpu
-              type: group
-              description: CPU-specific cgroup metrics and limits.
-              fields:
-                - name: cfs
-                  type: group
-                  description: Completely Fair Scheduler (CFS) cgroup metrics.
-                  fields:
-                    - name: period.us
-                      type: long
-                      description: CFS period in microseconds.
-                      metric_type: gauge
-                      unit: micros
-                    - name: quota.us
-                      type: long
-                      description: CFS quota in microseconds.
-                      metric_type: gauge
-                      unit: micros
-                - name: id
-                  type: keyword
-                  description: ID for the current cgroup CPU.
-                - name: stats.periods
-                  type: long
-                  description: Number of periods seen by the CPU.
-                  metric_type: counter
-                - name: stats.throttled.ns
-                  type: long
-                  description: Nanoseconds spent throttled seen by the CPU.
-                  metric_type: counter
-                  unit: nanos
-                - name: stats.throttled.periods
-                  type: long
-                  description: Number of throttled periods seen by the CPU.
-                  metric_type: counter
-            - name: cpuacct
-              type: group
-              description: CPU Accounting-specific cgroup metrics and limits.
-              fields:
-                - name: id
-                  type: keyword
-                  description: ID for the current cgroup CPU.
-                - name: total.ns
-                  type: long
-                  description: Total CPU time for the current cgroup CPU in nanoseconds.
-                  metric_type: counter
-                  unit: nanos
-            - name: memory
-              type: group
-              description: Memory-specific cgroup metrics and limits.
-              fields:
-                - name: mem.limit.bytes
-                  type: long
-                  format: bytes
-                  description: Memory limit for the current cgroup slice.
-                  metric_type: gauge
-                  unit: byte
-                - name: mem.usage.bytes
-                  type: long
-                  format: bytes
-                  description: Memory usage by the current cgroup slice.
-                  metric_type: gauge
-                  unit: byte
-        - name: cpu
-          type: group
-          description: |
-            `cpu` contains local CPU stats.
-          fields:
-            - name: total.norm.pct
-              type: scaled_float
-              format: percent
-              description: |
-                The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
-              metric_type: gauge
-              unit: percent
-        - name: memory
-          type: group
-          description: Memory-specific statistics per process.
-          fields:
-            - name: rss.bytes
-              type: long
-              format: bytes
-              description: |
-                The Resident Set Size. The amount of memory the process occupied in main memory (RAM).
-              metric_type: gauge
-              unit: byte
-            - name: size
-              type: long
-              format: bytes
-              description: |
-                The total virtual memory the process has.
-              metric_type: gauge
-              unit: byte
 - name: timeseries.instance
   type: keyword
   description: Time series instance ID
-- name: timestamp
-  type: group
-  fields:
-    - name: us
-      type: long
-      description: |
-        Timestamp of the event in microseconds since Unix epoch.
 - name: transaction
   type: group
   fields:
@@ -364,9 +182,6 @@
       type: keyword
       description: |
         Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
-      multi_fields:
-        - name: text
-          type: text
     - name: result
       type: keyword
       description: |

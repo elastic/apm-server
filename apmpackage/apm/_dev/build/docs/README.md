@@ -55,61 +55,33 @@ IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode,
 ## Traces
 
 Traces are comprised of [spans and transactions](https://www.elastic.co/guide/en/apm/get-started/current/apm-data-model.html).
-Traces are written to `traces-apm.*` indices.
 
-**Exported Fields**
+Traces are written to `traces-apm-*` data streams.
 
-| Field | Description | Type | ECS |
-|---|---|---|:---:|
-{{range .Traces -}}
-| {{- Trim .Name | EscapeMarkdown -}} | {{- Trim .Description | EscapeMarkdown -}} | {{- Trim .Type | EscapeMarkdown -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
-{{end}}
+{{fields "traces"}}
 
-#### Examples
+## Application Metrics
 
-```json
-{{.TransactionExample}}
-```
+Application metrics are comprised of custom, application-specific metrics, basic system metrics such as CPU and memory usage,
+and runtime metrics such as JVM garbage collection statistics.
 
-```json
-{{.SpanExample}}
-```
+Application metrics are written to service-specific `metrics-apm.app.*-*` data streams.
 
+{{fields "app_metrics"}}
 
-## Metrics
+## Internal Metrics
 
-Metrics include application-based metrics and some basic system metrics.
-Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metrics-apm.profiling.*` indices.
+Internal metrics comprises metrics produced by Elastic APM agents and Elastic APM server for powering various Kibana charts
+in the APM app, such as "Time spent by span type".
 
-**Exported Fields**
+Internal metrics are written to `metrics-apm.internal-*` data streams.
 
-| Field | Description | Type | ECS |
-|---|---|---|:---:|
-{{range .Metrics -}}
-| {{- Trim .Name | EscapeMarkdown -}} | {{- Trim .Description | EscapeMarkdown -}} | {{- Trim .Type | EscapeMarkdown -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
-{{end}}
+{{fields "internal_metrics"}}
 
-### Example
+## Application errors
 
-```json
-{{.MetricsExample}}
-```
+Application errors comprises error/exception events occurring in an application.
 
-## Logs
+Application errors are written to `logs-apm.error.*` data stream.
 
-Logs are application error events.
-Logs are written to `logs-apm.error.*` indices.
-
-**Exported Fields**
-
-| Field | Description | Type | ECS |
-|---|---|---|:---:|
-{{range .Logs -}}
-| {{- Trim .Name | EscapeMarkdown -}} | {{- Trim .Description | EscapeMarkdown -}} | {{- Trim .Type | EscapeMarkdown -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
-{{end}}
-
-### Example
-
-```json
-{{.ErrorExample}}
-```
+{{fields "error_logs"}}

@@ -150,10 +150,6 @@
       type: keyword
       description: |
         Unique identifier of the APM Server.
-    - name: listening
-      type: keyword
-      description: |
-        Address the server is listening on.
     - name: version_major
       type: byte
       description: |
@@ -169,7 +165,7 @@
   type: keyword
   description: Processor event.
 - name: processor.name
-  type: keyword
+  type: constant_keyword
   description: Processor name.
 - name: service
   type: group
@@ -385,11 +381,6 @@
           type: scaled_float
           description: The Total Blocking Time metric
     - name: marks
-      type: object
-      description: |
-        A user-defined mapping of groups of marks in milliseconds.
-      dynamic: true
-    - name: marks.*.*
       type: object
       description: |
         A user-defined mapping of groups of marks in milliseconds.

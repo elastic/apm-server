@@ -66,6 +66,22 @@ func (q TermQuery) MarshalJSON() ([]byte, error) {
 	})
 }
 
+type TermsQuery struct {
+	Field  string
+	Values []interface{}
+	Boost  float64
+}
+
+func (q TermsQuery) MarshalJSON() ([]byte, error) {
+	args := map[string]interface{}{
+		q.Field: q.Values,
+	}
+	if q.Boost != 0 {
+		args["boost"] = q.Boost
+	}
+	return encodeQueryJSON("terms", args)
+}
+
 func encodeQueryJSON(k string, v interface{}) ([]byte, error) {
 	m := map[string]interface{}{k: v}
 	return json.Marshal(m)

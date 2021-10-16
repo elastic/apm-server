@@ -151,10 +151,6 @@
       type: keyword
       description: |
         Unique identifier of the APM Server.
-    - name: listening
-      type: keyword
-      description: |
-        Address the server is listening on.
     - name: version_major
       type: byte
       description: |
@@ -167,10 +163,10 @@
       description: |
         The ID of the parent event.
 - name: processor.event
-  type: keyword
+  type: constant_keyword
   description: Processor event.
 - name: processor.name
-  type: keyword
+  type: constant_keyword
   description: Processor name.
 - name: service
   type: group
@@ -224,13 +220,6 @@
 - name: transaction
   type: group
   fields:
-    - name: name
-      type: keyword
-      description: |
-        Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
-      multi_fields:
-        - name: text
-          type: text
     - name: sampled
       type: boolean
       description: |
