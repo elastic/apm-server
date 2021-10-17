@@ -122,6 +122,10 @@
   description: |
     Service fields.
   fields:
+    - name: environment
+      type: keyword
+      description: |
+        Service environment.
     - name: name
       type: keyword
       description: |

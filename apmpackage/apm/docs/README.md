@@ -135,7 +135,7 @@ Traces are written to `traces-apm.*` indices.
 |process.title|Service process title.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |processor.event|Processor event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |processor.name|Processor name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |service.framework.name|Name of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.framework.version|Version of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.id|Immutable id of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -227,7 +227,7 @@ Traces are written to `traces-apm.*` indices.
     "id": "container-id"
   },
   "ecs": {
-    "version": "1.11.0"
+    "version": "1.12.0"
   },
   "event": {
     "ingested": "2020-08-11T09:55:04.391451Z",
@@ -323,7 +323,7 @@ Traces are written to `traces-apm.*` indices.
     "version": "3.14.0"
   },
   "ecs": {
-    "version": "1.11.0"
+    "version": "1.12.0"
   },
   "event": {
     "outcome": "unknown"
@@ -505,7 +505,7 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
 |process.title|Service process title.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |processor.event|Processor event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |processor.name|Processor name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |service.framework.name|Name of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.framework.version|Version of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.language.name|Name of the programming language used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -712,7 +712,7 @@ Logs are written to `logs-apm.error.*` indices.
 |process.title|Service process title.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |processor.event|Processor event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |processor.name|Processor name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |service.framework.name|Name of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.framework.version|Version of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.language.name|Name of the programming language used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -767,7 +767,7 @@ Logs are written to `logs-apm.error.*` indices.
     "id": "container-id"
   },
   "ecs": {
-    "version": "1.11.0"
+    "version": "1.12.0"
   },
   "error": {
     "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
