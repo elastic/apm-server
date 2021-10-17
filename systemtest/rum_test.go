@@ -36,8 +36,10 @@ import (
 )
 
 func TestRUMXForwardedFor(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	withDataStreams(t, testRUMXForwardedFor)
+}
+
+func testRUMXForwardedFor(t *testing.T, srv *apmservertest.Server) {
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
 	err := srv.Start()
 	require.NoError(t, err)
@@ -46,8 +48,12 @@ func TestRUMXForwardedFor(t *testing.T) {
 	require.NoError(t, err)
 	serverURL.Path = "/intake/v2/rum/events"
 
+	// Send one transaction and one set of breakdown metrics.
+	// They should both have geoIP enrichment applied.
 	const body = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}}}
-{"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}`
+{"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}
+{"metricset":{"samples":{"transaction.breakdown.count":{"value":12},"transaction.duration.sum.us":{"value":12},"transaction.duration.count":{"value":2},"transaction.self_time.sum.us":{"value":10},"transaction.self_time.count":{"value":2},"span.self_time.count":{"value":1},"span.self_time.sum.us":{"value":633.288}},"transaction":{"type":"request","name":"GET /"},"span":{"type":"external","subtype":"http"},"timestamp": 1496170422281000}}
+`
 
 	req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/x-ndjson")
@@ -59,7 +65,10 @@ func TestRUMXForwardedFor(t *testing.T) {
 	io.Copy(ioutil.Discard, resp.Body)
 	resp.Body.Close()
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{Field: "processor.event", Value: "transaction"})
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*,traces-apm*,metrics-apm*", estest.TermsQuery{
+		Field:  "processor.event",
+		Values: []interface{}{"transaction", "metric"},
+	})
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
