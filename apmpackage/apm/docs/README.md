@@ -414,7 +414,6 @@ Internal metrics are written to `metrics-apm.internal-*` data streams.
 | span.subtype | A further sub-division of the type (e.g. postgresql, elasticsearch) | keyword |  |
 | span.type | Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc). | keyword |  |
 | timeseries.instance | Time series instance ID | keyword |  |
-| transaction.breakdown.count | Counter for collected breakdowns for the transaction | long |  |
 | transaction.duration.histogram | Pre-aggregated histogram of transaction durations. | histogram |  |
 | transaction.name | Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id'). | keyword |  |
 | transaction.result | The result of the transaction. HTTP status code for HTTP-related transactions. | keyword |  |

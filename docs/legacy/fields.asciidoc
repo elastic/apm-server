@@ -5887,16 +5887,6 @@ type: long
 --
 
 
-*`transaction.breakdown.count`*::
-+
---
-Counter for collected breakdowns for the transaction
-
-
-type: long
-
---
-
 *`transaction.root`*::
 +
 --

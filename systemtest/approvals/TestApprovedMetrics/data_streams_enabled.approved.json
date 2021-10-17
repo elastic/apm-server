@@ -299,7 +299,6 @@
                 "type": "db"
             },
             "transaction": {
-                "breakdown.count": 12,
                 "name": "GET /",
                 "type": "request"
             },

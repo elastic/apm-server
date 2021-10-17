@@ -170,11 +170,12 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 func TestDecodeMetricsetInternal(t *testing.T) {
 	var batch model.Batch
 
+	// There are no known metrics in the samples. Because "transaction" is set,
+	// the metricset will be omitted.
 	err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{
 		"metricset": {
 			"timestamp": 0,
 			"samples": {
-				"transaction.breakdown.count": {"value": 123},
 				"transaction.duration.count": {"value": 456},
 				"transaction.duration.sum.us": {"value": 789}
 			},
@@ -185,6 +186,7 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 		}
 	}`)), &modeldecoder.Input{}, &batch)
 	require.NoError(t, err)
+	require.Empty(t, batch)
 
 	err = DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{
 		"metricset": {
@@ -206,15 +208,6 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, model.Batch{{
-		Timestamp: time.Unix(0, 0).UTC(),
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{},
-		Transaction: &model.Transaction{
-			Name:           "transaction_name",
-			Type:           "transaction_type",
-			BreakdownCount: 123,
-		},
-	}, {
 		Timestamp: time.Unix(0, 0).UTC(),
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{},
