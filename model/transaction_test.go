@@ -259,7 +259,7 @@ func TestTransactionTransformMarks(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"a_b": common.MapStr{
-					"c_d": common.Float(123),
+					"c_d": float64(123),
 				},
 			},
 			Msg: "Unsanitized transaction mark names",
