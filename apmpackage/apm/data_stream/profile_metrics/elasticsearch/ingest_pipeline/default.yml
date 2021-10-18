@@ -1,0 +1,21 @@
+---
+description: Pipeline for ingesting APM profile data.
+processors:
+  - set:
+      field: event.ingested
+      value: "{{_ingest.timestamp}}"
+  - user_agent:
+      field: user_agent.original
+      target_field: user_agent
+      ignore_missing: true
+      ignore_failure: true
+  - geoip:
+      database_file: GeoLite2-City.mmdb
+      field: client.ip
+      target_field: client.geo
+      ignore_missing: true
+      on_failure:
+        - remove:
+            field: client.ip
+            ignore_missing: true
+            ignore_failure: true

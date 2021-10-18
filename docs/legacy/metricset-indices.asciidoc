@@ -31,21 +31,6 @@ To power the {apm-app-ref}/transactions.html[Time spent by span type] graph,
 agents collect summarized metrics about the timings of spans and transactions,
 broken down by span type.
 
-*`transaction.breakdown.count`*::
-+
---
-The number of transactions for which breakdown metrics (`span.self_time`) have been created
-in the most recent metrics reporting interval. Some agents measure the breakdown for both
-sampled and non-sampled transactions, while others measure only for sampled transactions.
-
-These metric documents can be identified by searching for `metricset.name: transaction_breakdown`.
-
-You can filter and group by these dimensions:
-
-* `transaction.name`: The name of the transaction, for example `GET /`
-* `transaction.type`: The type of the transaction, for example `request`
---
-
 *`span.self_time.count`* and *`span.self_time.sum.us`*::
 +
 --

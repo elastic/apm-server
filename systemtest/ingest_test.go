@@ -102,7 +102,7 @@ func TestDataStreamMigrationIngestPipeline(t *testing.T) {
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},
 		estest.TermQuery{Field: "processor.event", Value: "span"},
 		estest.TermQuery{Field: "processor.event", Value: "error"},
-		estest.TermQuery{Field: "metricset.name", Value: "transaction_breakdown"},
+		estest.TermQuery{Field: "metricset.name", Value: "span_breakdown"},
 		estest.TermQuery{Field: "metricset.name", Value: "app"},
 	} {
 		systemtest.Elasticsearch.ExpectDocs(t, "apm-*", query)

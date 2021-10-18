@@ -41,17 +41,6 @@ func TestSetMetricsetName(t *testing.T) {
 		name: "already_set",
 	}, {
 		event: model.APMEvent{
-			Metricset: &model.Metricset{
-				Samples: map[string]model.MetricsetSample{},
-			},
-			Transaction: &model.Transaction{
-				Type:           "request",
-				BreakdownCount: 1,
-			},
-		},
-		name: "transaction_breakdown",
-	}, {
-		event: model.APMEvent{
 			Metricset:   &model.Metricset{},
 			Transaction: &model.Transaction{Type: "request"},
 			Span: &model.Span{

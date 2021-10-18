@@ -20,8 +20,6 @@ package v2
 import (
 	"encoding/json"
 
-	"go.opentelemetry.io/collector/model/pdata"
-
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
@@ -921,54 +919,6 @@ type otel struct {
 	SpanKind nullable.String `json:"span_kind"`
 	// Attributes hold the unmapped OpenTelemetry attributes.
 	Attributes map[string]interface{} `json:"attributes"`
-}
-
-func (o *otel) toAttributeMap() pdata.AttributeMap {
-	m := pdata.NewAttributeMap()
-	for k, v := range o.Attributes {
-		// According to the spec, these are the allowed primitive types
-		// Additionally, homogeneous arrays (single type) of primitive types are allowed
-		// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes
-		switch x := v.(type) {
-		case string:
-			m.InsertString(k, x)
-		// int is not a supported primitive type, but will a signed
-		// integer value be parsed as an int or int64?
-		case int:
-			m.InsertInt(k, int64(x))
-		case int64:
-			m.InsertInt(k, x)
-		case float64:
-			m.InsertDouble(k, x)
-		case bool:
-			m.InsertBool(k, x)
-		case []string:
-			attrArray := pdata.NewAttributeValueArray()
-			for i := range x {
-				attrArray.ArrayVal().AppendEmpty().SetStringVal(x[i])
-			}
-			m.Insert(k, attrArray)
-		case []int64:
-			attrArray := pdata.NewAttributeValueArray()
-			for i := range x {
-				attrArray.ArrayVal().AppendEmpty().SetIntVal(x[i])
-			}
-			m.Insert(k, attrArray)
-		case []float64:
-			attrArray := pdata.NewAttributeValueArray()
-			for i := range x {
-				attrArray.ArrayVal().AppendEmpty().SetDoubleVal(x[i])
-			}
-			m.Insert(k, attrArray)
-		case []bool:
-			attrArray := pdata.NewAttributeValueArray()
-			for i := range x {
-				attrArray.ArrayVal().AppendEmpty().SetBoolVal(x[i])
-			}
-			m.Insert(k, attrArray)
-		}
-	}
-	return m
 }
 
 type transactionSession struct {

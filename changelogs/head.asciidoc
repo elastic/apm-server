@@ -17,6 +17,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed `ProcessPending` self-instrumentation events {pull}6243[6243]
 - experimental:["This breaking change applies to the experimental tail-based sampling feature."] Changed `apm-server.sampling.tail.events.*` metrics semantics {pull}6273[6273]
 - Removed warm phase from default ILM policy {pull}6322[6322]
+- Removed unused `transaction.breakdown.count` metric field {pull}6366[6366]
 
 [float]
 ==== Bug fixes
@@ -50,3 +51,4 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Setting up Elasticsearch templates, ILM policies, and pipelines directly with apm-server is now deprecated. Users should use the integration package {pull}6145[6145]
 - `span.http.*` fields are deprecated, replaced by `http.*`, and will be removed in 8.0 {pull}6147[6147]
 - Add deprecation warning for `sampling.keep_unsampled=true` {pull}6285[6285]
+- `processors.*` config, which was never officially supported in apm-server, is now explicitly deprecated and will be removed in 8.0 {pull}6367[6367]

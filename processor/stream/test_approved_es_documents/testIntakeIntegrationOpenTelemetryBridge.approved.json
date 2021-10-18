@@ -1,0 +1,275 @@
+{
+    "events": [
+        {
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "container": {
+                "id": "container-id"
+            },
+            "event": {
+                "outcome": "success"
+            },
+            "host": {
+                "architecture": "x64",
+                "hostname": "prod1.example.com",
+                "ip": "192.0.0.1",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
+            "labels": {
+                "double_value": 123.456,
+                "int_array": [
+                    1,
+                    2
+                ],
+                "string_array": [
+                    "a",
+                    "b"
+                ],
+                "tag1": "one",
+                "tag2": 2
+            },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "chatty-service",
+                "node": {
+                    "name": "chatty-node"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
+            },
+            "span": {
+                "kind": "CONSUMER"
+            },
+            "timestamp": {
+                "us": 1496170407154000
+            },
+            "trace": {
+                "id": "646df3b8b5279e982cc12a2f1ac004f3"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 32592
+                },
+                "id": "ddf109a4c4aa5f2b6e984548ca57774c",
+                "message": {
+                    "queue": {
+                        "name": "queue_name"
+                    }
+                },
+                "name": "tx_name",
+                "result": "success",
+                "sampled": true,
+                "span_count": {
+                    "dropped": 3,
+                    "started": 20
+                },
+                "type": "tx_type"
+            },
+            "user": {
+                "email": "bar@user.com",
+                "id": "123user",
+                "name": "bar"
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "container": {
+                "id": "container-id"
+            },
+            "event": {
+                "outcome": "success"
+            },
+            "host": {
+                "architecture": "x64",
+                "hostname": "prod1.example.com",
+                "ip": "192.0.0.1",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
+            "http": {
+                "request": {
+                    "method": "GET"
+                },
+                "response": {
+                    "status_code": 200
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
+            "labels": {
+                "double_value": 123.456,
+                "int_array": [
+                    1,
+                    2
+                ],
+                "string_array": [
+                    "a",
+                    "b"
+                ],
+                "tag1": "one",
+                "tag2": 2
+            },
+            "parent": {
+                "id": "ddf109a4c4aa5f2b6e984548ca57774c"
+            },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "chatty-service",
+                "node": {
+                    "name": "chatty-node"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
+            },
+            "span": {
+                "duration": {
+                    "us": 32592
+                },
+                "http": {
+                    "method": "GET",
+                    "response": {
+                        "status_code": 200
+                    }
+                },
+                "id": "ddf109a4c4aa5f2b6e984548ca57774d",
+                "kind": "CLIENT",
+                "name": "span_name",
+                "subtype": "http",
+                "type": "external"
+            },
+            "timestamp": {
+                "us": 1496170407154000
+            },
+            "trace": {
+                "id": "646df3b8b5279e982cc12a2f1ac004f3"
+            },
+            "user": {
+                "email": "bar@user.com",
+                "id": "123user",
+                "name": "bar"
+            }
+        }
+    ]
+}

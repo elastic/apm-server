@@ -49,15 +49,14 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		eventBase := initializedMetadata()
 		eventBase.Timestamp = now
 		input := modeldecoder.Input{Base: eventBase}
-		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"xds":{"v":2048},"xbc":{"v":4096}}},{"sa":{"ysc":{"v":5}},"y":{"t":"span_type","su":"span_subtype"}}]}}`
+		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"ysc":{"v":5}},"y":{"t":"span_type","su":"span_subtype"}}]}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch model.Batch
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &batch))
-		require.Len(t, batch, 4) // 1 transaction, 2 metricsets, 1 span
+		require.Len(t, batch, 3) // 1 transaction, 1 metricset, 1 span
 		require.NotNil(t, batch[0].Transaction)
 		require.NotNil(t, batch[1].Metricset)
-		require.NotNil(t, batch[2].Metricset)
-		require.NotNil(t, batch[3].Span)
+		require.NotNil(t, batch[2].Span)
 
 		assert.Equal(t, "request", batch[0].Transaction.Type)
 		// fall back to request time
@@ -69,28 +68,22 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		// fields.
 		assert.Equal(t, &model.Metricset{}, batch[1].Metricset)
 		assert.Equal(t, &model.Transaction{
-			Name:           "tr-a",
-			Type:           "request",
-			BreakdownCount: 4096,
-		}, batch[1].Transaction)
-		assert.Equal(t, &model.Metricset{}, batch[2].Metricset)
-		assert.Equal(t, &model.Transaction{
 			Name: "tr-a",
 			Type: "request",
-		}, batch[2].Transaction)
+		}, batch[1].Transaction)
 		assert.Equal(t, &model.Span{
 			Type:     "span_type",
 			Subtype:  "span_subtype",
 			SelfTime: model.AggregatedDuration{Count: 5},
-		}, batch[2].Span)
-		assert.Equal(t, now, batch[2].Timestamp)
+		}, batch[1].Span)
+		assert.Equal(t, now, batch[1].Timestamp)
 
 		// ensure nested spans are decoded
 		start := time.Duration(20 * 1000 * 1000)
-		assert.Equal(t, now.Add(start), batch[3].Timestamp) //add start to timestamp
-		assert.Equal(t, "100", batch[3].Transaction.ID)
-		assert.Equal(t, "1", batch[3].Trace.ID)
-		assert.Equal(t, "100", batch[3].Parent.ID)
+		assert.Equal(t, now.Add(start), batch[2].Timestamp) // add start to timestamp
+		assert.Equal(t, "100", batch[2].Transaction.ID)
+		assert.Equal(t, "1", batch[2].Trace.ID)
+		assert.Equal(t, "100", batch[2].Parent.ID)
 
 		for _, event := range batch {
 			modeldecodertest.AssertStructValues(
