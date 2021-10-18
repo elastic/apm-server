@@ -1,0 +1,27 @@
+[[overview]]
+== Overview
+
+The APM Server receives data from APM agents and transforms them into Elasticsearch documents.
+It does this by exposing an HTTP server endpoint to which agents stream the APM data they collect.
+After the APM Server has validated and processed events from the APM agents,
+the server transforms the data into Elasticsearch documents and stores them in corresponding Elasticsearch indices.
+
+The APM Server works in conjunction with {apm-agents-ref}/index.html[APM agents], {ref}/index.html[Elasticsearch], and {kibana-ref}/index.html[Kibana]. Please view the {apm-overview-ref-v}/index.html[APM Overview] for details on how these components work together.
+
+NOTE: APM Server is built with the {beats-ref}[Beats] framework and leverages its functionality.
+
+[float]
+[[why-separate-component]]
+=== Why is APM Server a separate component?
+
+The APM Server is a separate component for the following reasons:
+
+* It helps to keep the agents as light as possible.
+* Since the APM Server is a stateless separate component, it can be scaled independently.
+* Data is collected in browsers for Real User Monitoring.
+  APM Server prevents these browsers from interacting directly with Elasticsearch (which poses a security risk).
+* APM Server controls the amount of data flowing into Elasticsearch.
+* In cases where Elasticsearch becomes unresponsive,
+APM Server can buffer data temporarily without adding overhead to the agents.
+* Acts as a middleware for source mapping for JavaScript in the browser.
+* Provides a JSON API for agents to use and thereby improves compatibility across different versions of agents and the Elastic Stack.
