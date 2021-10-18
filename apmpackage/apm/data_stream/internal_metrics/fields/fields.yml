@@ -160,13 +160,6 @@
 - name: transaction
   type: group
   fields:
-    - name: breakdown
-      type: group
-      fields:
-        - name: count
-          type: long
-          description: |
-            Counter for collected breakdowns for the transaction
     - name: duration
       type: group
       fields:

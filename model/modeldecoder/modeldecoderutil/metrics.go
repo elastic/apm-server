@@ -24,29 +24,33 @@ import (
 )
 
 // SetInternalMetrics extracts well-known internal metrics from event.Metricset.Samples,
-// setting the appropriate field on event.Transaction and event.Span (if non-nil) and
-// finally setting event.Metricset.Samples to nil.
+// setting the appropriate field on event.Span (if non-nil) and finally setting
+// event.Metricset.Samples to nil.
 //
 // Any unknown metrics sent by agents in a metricset with transaction.* set will be
 // silently discarded.
-func SetInternalMetrics(event *model.APMEvent) {
+//
+// SetInternalMetrics returns true if any known metric samples were found, and false
+// otherwise. If no known metric samples were found, the caller may opt to omit the
+// metricset altogether.
+func SetInternalMetrics(event *model.APMEvent) bool {
 	if event.Transaction == nil {
 		// Not an internal metricset.
-		return
+		return false
 	}
-	for k, v := range event.Metricset.Samples {
-		switch k {
-		case "transaction.breakdown.count":
-			event.Transaction.BreakdownCount = int(v.Value)
-		case "span.self_time.count":
-			if event.Span != nil {
+	var haveMetrics bool
+	if event.Span != nil {
+		for k, v := range event.Metricset.Samples {
+			switch k {
+			case "span.self_time.count":
 				event.Span.SelfTime.Count = int(v.Value)
-			}
-		case "span.self_time.sum.us":
-			if event.Span != nil {
+				haveMetrics = true
+			case "span.self_time.sum.us":
 				event.Span.SelfTime.Sum = time.Duration(v.Value * 1000)
+				haveMetrics = true
 			}
 		}
 	}
 	event.Metricset.Samples = nil
+	return haveMetrics
 }

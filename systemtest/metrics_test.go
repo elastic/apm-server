@@ -97,7 +97,7 @@ func TestBreakdownMetrics(t *testing.T) {
 	tracer.SendMetrics(nil)
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 3, "apm-*", estest.BoolQuery{
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*", estest.BoolQuery{
 		Filter: []interface{}{
 			estest.TermQuery{
 				Field: "processor.event",
@@ -112,9 +112,6 @@ func TestBreakdownMetrics(t *testing.T) {
 
 	docs := unmarshalMetricsetDocs(t, result.Hits.Hits)
 	assert.ElementsMatch(t, []metricsetDoc{{
-		Trasaction:    metricsetTransaction{Type: "tx_type"},
-		MetricsetName: "transaction_breakdown",
-	}, {
 		Trasaction:    metricsetTransaction{Type: "tx_type"},
 		Span:          metricsetSpan{Type: "span_type"},
 		MetricsetName: "span_breakdown",

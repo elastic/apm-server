@@ -317,8 +317,6 @@ type transactionMetricset struct {
 }
 
 type transactionMetricsetSamples struct {
-	// TransactionBreakdownCount The number of transactions for which breakdown metrics (span.self_time) have been created.
-	TransactionBreakdownCount metricsetSampleValue `json:"xbc"`
 	// SpanSelfTimeCount holds the count of the related spans' self_time.
 	SpanSelfTimeCount metricsetSampleValue `json:"ysc"`
 	// SpanSelfTimeSum holds the sum of the related spans' self_time.
