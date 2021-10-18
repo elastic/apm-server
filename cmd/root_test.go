@@ -21,10 +21,15 @@ import (
 	"os"
 	"testing"
 
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestCloudEnv(t *testing.T) {
@@ -34,6 +39,12 @@ func TestCloudEnv(t *testing.T) {
 	settings := DefaultSettings()
 	assert.Len(t, settings.ConfigOverrides, 2)
 	assert.Equal(t, common.NewConfig(), settings.ConfigOverrides[1].Config)
+
+	assertEqual := func(t *testing.T, cfg *common.Config, key string, expected float64) {
+		val, err := cfg.Float(key, -1)
+		require.NoError(t, err)
+		assert.Equal(t, expected, val)
+	}
 
 	// cloud environment picked up
 	var cloudMatrix = map[string]struct {
@@ -64,8 +75,25 @@ func TestCloudEnv(t *testing.T) {
 	}
 }
 
-func assertEqual(t *testing.T, cfg *common.Config, key string, expected float64) {
-	val, err := cfg.Float(key, -1)
-	require.NoError(t, err)
-	assert.Equal(t, expected, val)
+func TestProcessorsDeprecated(t *testing.T) {
+	core, observed := observer.New(zapcore.DebugLevel)
+	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(in, core)
+	}))
+
+	settings := DefaultSettings()
+	settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{}))
+	assert.Empty(t, observed.All())
+
+	settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{
+		"processors": []interface{}{
+			map[string]interface{}{
+				"add_cloud_metadata": map[string]interface{}{},
+			},
+		},
+	}))
+	entries := observed.All()
+	require.Len(t, entries, 1)
+	assert.Equal(t, zapcore.WarnLevel, entries[0].Level)
+	assert.Equal(t, "libbeat processors are unsupported and will be removed in 8.0", entries[0].Message)
 }
