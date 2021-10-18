@@ -241,7 +241,7 @@ Then click **delete indices**.
 [[manage-indices-in-kibana]]
 === Manage Indices via Kibana
 
-Kibana's {kibana-ref}/index-mgmt.html[index management] allows you to manage your cluster's
+Kibana's {ref}/index-mgmt.html[index management] allows you to manage your cluster's
 indices, data streams, index templates, and much more.
 
 [float]
