@@ -188,61 +188,6 @@
             "source": {
                 "ip": "192.0.0.1"
             },
-            "transaction": {
-                "breakdown.count": 1,
-                "name": "general-usecase-initial-p-load",
-                "type": "p-load"
-            },
-            "user": {
-                "email": "user@email.com",
-                "id": "123",
-                "name": "John Doe"
-            },
-            "user_agent": {
-                "original": "rum-2.0"
-            }
-        },
-        {
-            "@timestamp": "2018-08-01T10:00:00.000Z",
-            "agent": {
-                "name": "js-base",
-                "version": "4.8.1"
-            },
-            "client": {
-                "ip": "192.0.0.2"
-            },
-            "labels": {
-                "testTagKey": "testTagValue"
-            },
-            "network": {
-                "connection": {
-                    "type": "5G"
-                }
-            },
-            "processor": {
-                "event": "metric",
-                "name": "metric"
-            },
-            "service": {
-                "environment": "prod",
-                "framework": {
-                    "name": "angular",
-                    "version": "2"
-                },
-                "language": {
-                    "name": "javascript",
-                    "version": "6"
-                },
-                "name": "apm-a-rum-test-e2e-general-usecase",
-                "runtime": {
-                    "name": "v8",
-                    "version": "8.0"
-                },
-                "version": "0.0.1"
-            },
-            "source": {
-                "ip": "192.0.0.1"
-            },
             "span": {
                 "self_time": {
                     "count": 1,

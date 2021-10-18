@@ -1,0 +1,6 @@
+---
+description: Pipeline for ingesting APM tail-sampled trace IDs.
+processors:
+  - set:
+      field: event.ingested
+      value: "{{_ingest.timestamp}}"

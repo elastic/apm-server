@@ -112,17 +112,12 @@ docker-compose.override.yml:
 # Rules for updating config files, fields.yml, etc.
 ##############################################################################
 
-update: fields go-generate add-headers copy-docs gen-package notice $(MAGE)
+update: fields go-generate add-headers copy-docs build-package notice $(MAGE)
 	@$(MAGE) update
 
 fields_sources=\
   $(shell find model -name fields.yml) \
   $(shell find x-pack/apm-server/fields -name fields.yml)
-
-.PHONY: gen-package gen-package-only
-gen-package: gen-package-only format-package build-package
-gen-package-only: $(GENPACKAGE)
-	@$(GENPACKAGE)
 
 fields: include/fields.go x-pack/apm-server/include/fields.go
 include/fields.go x-pack/apm-server/include/fields.go: $(MAGE) magefile.go $(fields_sources)
@@ -232,6 +227,7 @@ check-package: $(ELASTICPACKAGE)
 format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
+	@rm -fr ./build/integrations/apm/*
 	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) build)
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
@@ -261,10 +257,6 @@ $(BIN_MAGE): go.mod
 # MAGE is the compiled magefile.
 $(MAGE): magefile.go $(BIN_MAGE)
 	$(BIN_MAGE) -compile=$@
-
-.PHONY: $(GENPACKAGE)
-$(GENPACKAGE):
-	@$(GO) build -o $@ github.com/elastic/apm-server/apmpackage/cmd/gen-package
 
 $(GOLINT): go.mod
 	$(GO) build -o $@ golang.org/x/lint/golint

@@ -18,7 +18,9 @@
 package v2
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -259,7 +261,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				"http.scheme":   "https",
 				"net.peer.name": "testing.invalid",
 				"net.peer.ip":   "::1", // net.peer.name preferred
-				"net.peer.port": 80,
+				"net.peer.port": json.Number("80"),
 				"http.target":   "/foo?bar",
 			}
 			var input span
@@ -342,9 +344,9 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				"rpc.system":           "grpc",
 				"rpc.service":          "myservice.EchoService",
 				"rpc.method":           "exampleMethod",
-				"rpc.grpc.status_code": int64(codes.Unavailable),
+				"rpc.grpc.status_code": json.Number(strconv.Itoa(int(codes.Unavailable))),
 				"net.peer.ip":          "10.20.30.40",
-				"net.peer.port":        123,
+				"net.peer.port":        json.Number("123"),
 			}
 
 			var input span
@@ -375,7 +377,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				"messaging.system":      "kafka",
 				"messaging.destination": "myTopic",
 				"net.peer.ip":           "10.20.30.40",
-				"net.peer.port":         123,
+				"net.peer.port":         json.Number("123"),
 			}
 
 			var input span
