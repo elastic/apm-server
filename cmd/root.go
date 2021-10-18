@@ -30,7 +30,9 @@ import (
 	"github.com/elastic/beats/v7/libbeat/cmd"
 	"github.com/elastic/beats/v7/libbeat/cmd/instance"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring/report"
+	"github.com/elastic/beats/v7/libbeat/processors"
 	"github.com/elastic/beats/v7/libbeat/publisher/processing"
 
 	"github.com/elastic/apm-server/idxmgmt"
@@ -83,9 +85,23 @@ func DefaultSettings() instance.Settings {
 			DefaultUsername: "apm_system",
 		},
 		IndexManagement: idxmgmt.MakeDefaultSupporter,
-		Processing:      processing.MakeDefaultSupport(false),
+		Processing:      processingSupport,
 		ConfigOverrides: libbeatConfigOverrides(),
 	}
+}
+
+func processingSupport(info beat.Info, log *logp.Logger, beatCfg *common.Config) (processing.Supporter, error) {
+	supporter := processing.MakeDefaultSupport(false)
+	var cfg struct {
+		Processors processors.PluginConfig `config:"processors"`
+	}
+	if err := beatCfg.Unpack(&cfg); err != nil {
+		return nil, err
+	}
+	if len(cfg.Processors) > 0 {
+		log.Warn("libbeat processors are unsupported and will be removed in 8.0")
+	}
+	return supporter(info, log, beatCfg)
 }
 
 // NewRootCommand returns the "apm-server" root command.
