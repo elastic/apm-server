@@ -18,6 +18,9 @@
     - description: changed to data-stream specific ingest pipelines
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6359
+    - description: added cluster privilege to package for stack monitoring
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6373
 - version: "0.5.0"
   changes:
     - description: added index sorting for internal metrics
