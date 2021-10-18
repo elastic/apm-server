@@ -446,22 +446,6 @@
             "description": "Samples hold application metrics collected from the agent.",
             "type": "object",
             "properties": {
-              "xbc": {
-                "description": "TransactionBreakdownCount The number of transactions for which breakdown metrics (span.self_time) have been created.",
-                "type": [
-                  "null",
-                  "object"
-                ],
-                "properties": {
-                  "v": {
-                    "description": "Value holds the value of a single metric sample.",
-                    "type": "number"
-                  }
-                },
-                "required": [
-                  "v"
-                ]
-              },
               "ysc": {
                 "description": "SpanSelfTimeCount holds the count of the related spans' self_time.",
                 "type": [

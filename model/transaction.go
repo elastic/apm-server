@@ -55,10 +55,6 @@ type Transaction struct {
 	// duration metrics.
 	DurationHistogram Histogram
 
-	// BreakdownCount holds transaction breakdown count, for
-	// breakdown metrics.
-	BreakdownCount int
-
 	Marks          TransactionMarks
 	Message        *Message
 	SpanCount      SpanCount
@@ -117,9 +113,6 @@ func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
 	}
 	if e.Root {
 		transaction.set("root", e.Root)
-	}
-	if e.BreakdownCount > 0 {
-		transaction.set("breakdown.count", e.BreakdownCount)
 	}
 	var dss []common.MapStr
 	for _, v := range e.DroppedSpansStats {

@@ -134,8 +134,9 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 			Name: transaction.Transaction.Name,
 			Type: transaction.Transaction.Type,
 		}
-		mapToTransactionMetricsetModel(&m, &event)
-		*batch = append(*batch, event)
+		if mapToTransactionMetricsetModel(&m, &event) {
+			*batch = append(*batch, event)
+		}
 	}
 
 	offset := len(*batch)
@@ -354,7 +355,7 @@ func mapToMetadataModel(m *metadata, out *model.APMEvent) {
 	}
 }
 
-func mapToTransactionMetricsetModel(from *transactionMetricset, event *model.APMEvent) {
+func mapToTransactionMetricsetModel(from *transactionMetricset, event *model.APMEvent) bool {
 	event.Metricset = &model.Metricset{}
 	event.Processor = model.MetricsetProcessor
 
@@ -368,21 +369,20 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *model.APM
 		}
 	}
 
+	var ok bool
 	if from.Samples.IsSet() {
-		if event.Transaction != nil {
-			if value := from.Samples.TransactionBreakdownCount.Value; value.IsSet() {
-				event.Transaction.BreakdownCount = int(value.Val)
-			}
-		}
 		if event.Span != nil {
 			if value := from.Samples.SpanSelfTimeCount.Value; value.IsSet() {
 				event.Span.SelfTime.Count = int(value.Val)
+				ok = true
 			}
 			if value := from.Samples.SpanSelfTimeSum.Value; value.IsSet() {
 				event.Span.SelfTime.Sum = time.Duration(value.Val * 1000)
+				ok = true
 			}
 		}
 	}
+	return ok
 }
 
 func mapToResponseModel(from contextResponse, out *model.HTTPResponse) {
