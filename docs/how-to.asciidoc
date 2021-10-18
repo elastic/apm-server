@@ -7,9 +7,9 @@ Learn how to perform common APM configuration and management tasks.
 * <<ilm-how-to>>
 // * <<jaeger>>
 // * <<{beatname_lc}-template>>
+* <<ingest-pipelines>>
 * <<manage-storage>>
-// * <<configuring-ingest-node>>
-// * <<tune-data-ingestion>>
+* <<apm-tune-elasticsearch>>
 
 include::./source-map-how-to.asciidoc[]
 
@@ -19,8 +19,8 @@ include::./ilm-how-to.asciidoc[]
 
 // include::{libbeat-dir}/howto/load-index-templates.asciidoc[]
 
+include::./ingest-pipelines.asciidoc[]
+
 include::./manage-storage.asciidoc[]
 
-// include::./configuring-ingest.asciidoc[]
-
-// include::./data-ingestion.asciidoc[]
+include::./apm-tune-elasticsearch.asciidoc[]

@@ -162,7 +162,7 @@ or in the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
 
 Index Lifecycle management (ILM) enables you to automate how you want to manage your indices over time.
 You can base actions on factors such as shard size and performance requirements.
-See <<ilm>> to learn more.
+See <<ilm-how-to>> to learn more.
 
 [float]
 [[delete-data-with-curator]]
