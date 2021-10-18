@@ -15,15 +15,15 @@ include::apm-overview.asciidoc[]
 
 include::apm-components.asciidoc[]
 
-== Quick start
-
-Include quick start file from obs-docs repo
+include::apm-quick-start.asciidoc[]
 
 include::data-model.asciidoc[]
 
 include::features.asciidoc[]
 
 include::how-to.asciidoc[]
+
+include::input-apm.asciidoc[]
 
 include::troubleshoot-apm.asciidoc[]
 

@@ -1,5 +1,5 @@
 [[jaeger-integration]]
-== Jaeger integration
+=== Jaeger integration
 
 ++++
 <titleabbrev>Integrate with Jaeger</titleabbrev>
@@ -47,7 +47,7 @@ IMPORTANT: There are <<caveats-jaeger,caveats>> to this integration.
 
 The APM integration serves Jaeger gRPC over the same host and port as the Elastic APM agent protocol.
 
-include::../tab-widgets/jaeger-widget.asciidoc[]
+include::./shared/jaeger/jaeger-widget.asciidoc[]
 
 [float]
 [[configure-sampling-jaeger]]
@@ -63,7 +63,7 @@ There are two different ways to configure the sampling rate of your Jaeger agent
 * <<jaeger-configure-sampling-local,Local sampling in each Jaeger client>>
 
 [float]
-[[sampling-central-jaeger]]
+[[configure-sampling-central-jaeger]]
 ===== APM Agent central configuration (default)
 
 Central sampling, with APM Agent central configuration,
