@@ -2,5 +2,9 @@
 
 // tag::notable-v8-breaking-changes[]
 // end::notable-v8-breaking-changes[]
+// tag::714-bc[]
+// end::714-bc[]
+// tag::715-bc[]
+// end::715-bc[]
 // tag::716-bc[]
 // end::716-bc[]
