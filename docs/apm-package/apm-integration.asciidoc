@@ -19,7 +19,7 @@ When {agent} is assigned a policy with an APM input,
 
 Ready to jump in?
 Read through the <<apm-integration-limitations,APM integration limitations>>, then head over to the
-quick start guide: {fleet-guide}/fleet-quick-start-traces.html[Get application traces into the {stack}].
+quick start guide: {observability-guide}/ingest-traces.html[Get application traces into the {stack}].
 
 [discrete]
 [[apm-integration-architecture]]
@@ -55,7 +55,7 @@ Onboarding::
 APM Server no longer writes an onboarding document when setting up.
 
 Standalone mode::
-{fleet-guide}/run-elastic-agent-standalone.html[Standalone mode] is not currently supported.
+{fleet-guide}/install-standalone-elastic-agent.html[Standalone mode] is not currently supported.
 An {agent} with the APM integration enabled must be managed by fleet.
 
 Service names::
