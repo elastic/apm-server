@@ -251,7 +251,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"AggregatedDuration",
 				"AggregatedDuration.Count",
 				"AggregatedDuration.Sum",
-				"BreakdownCount",
 				"DurationHistogram",
 				"DurationHistogram.Counts",
 				"DurationHistogram.Values",

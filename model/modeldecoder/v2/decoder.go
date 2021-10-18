@@ -159,8 +159,9 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *
 		return modeldecoder.NewValidationErr(err)
 	}
 	event := input.Base
-	mapToMetricsetModel(&root.Metricset, &event)
-	*batch = append(*batch, event)
+	if mapToMetricsetModel(&root.Metricset, &event) {
+		*batch = append(*batch, event)
+	}
 	return err
 }
 
@@ -588,7 +589,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 	}
 }
 
-func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
+func mapToMetricsetModel(from *metricset, event *model.APMEvent) bool {
 	event.Metricset = &model.Metricset{}
 	event.Processor = model.MetricsetProcessor
 
@@ -639,6 +640,7 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 		}
 	}
 
+	ok := true
 	if from.Transaction.IsSet() {
 		event.Transaction = &model.Transaction{}
 		if from.Transaction.Name.IsSet() {
@@ -648,8 +650,11 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 			event.Transaction.Type = from.Transaction.Type.Val
 		}
 		// Transaction fields specified: this is an APM-internal metricset.
-		modeldecoderutil.SetInternalMetrics(event)
+		// If there are no known metric samples, we return false so the
+		// metricset is not added to the batch.
+		ok = modeldecoderutil.SetInternalMetrics(event)
 	}
+	return ok
 }
 
 func mapToRequestModel(from contextRequest, out *model.HTTPRequest) {
