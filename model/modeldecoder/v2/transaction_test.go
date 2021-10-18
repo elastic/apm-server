@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -410,8 +411,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			attrs := map[string]interface{}{
 				"http.scheme":   "https",
 				"net.host.name": "testing.invalid",
-				// TODO: will incoming information be properly decoded as int64?
-				"net.host.port": int64(80),
+				"net.host.port": json.Number("80"),
 				"http.target":   "/foo?bar",
 			}
 			var input transaction
@@ -433,7 +433,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			attrs := map[string]interface{}{
 				"net.peer.name": "source.domain",
 				"net.peer.ip":   "192.168.0.1",
-				"net.peer.port": 1234,
+				"net.peer.port": json.Number("1234"),
 			}
 
 			var input transaction
@@ -465,10 +465,10 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"rpc.system":           "grpc",
 				"rpc.service":          "myservice.EchoService",
 				"rpc.method":           "exampleMethod",
-				"rpc.grpc.status_code": int64(codes.Unavailable),
+				"rpc.grpc.status_code": json.Number(strconv.Itoa(int(codes.Unavailable))),
 				"net.peer.name":        "peer_name",
 				"net.peer.ip":          "10.20.30.40",
-				"net.peer.port":        123,
+				"net.peer.port":        json.Number("123"),
 			}
 			input.OTel.Attributes = attrs
 			input.OTel.SpanKind.Reset()
@@ -533,6 +533,21 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			}
 			assert.Equal(t, expected, event.Network)
 			assert.Equal(t, "INTERNAL", event.Span.Kind)
+		})
+
+		t.Run("double_attr", func(t *testing.T) {
+			attrs := map[string]interface{}{
+				"double_attr": json.Number("123.456"),
+			}
+			var input transaction
+			var event model.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			input.Context.Tags = make(common.MapStr)
+			input.OTel.Attributes = attrs
+			input.Type.Reset()
+
+			mapToTransactionModel(&input, &event)
+			assert.Equal(t, common.MapStr{"double_attr": 123.456}, event.Labels)
 		})
 
 		t.Run("kind", func(t *testing.T) {
