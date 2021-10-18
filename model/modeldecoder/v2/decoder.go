@@ -1382,6 +1382,9 @@ func otelAttributeValue(k string, v interface{}) (pdata.AttributeValue, bool) {
 // isOTelDoubleAttribute indicates whether k is an OpenTelemetry semantic convention attribute
 // known to have type "double". As this list grows over time, we should consider generating
 // the mapping with OpenTelemetry's semconvgen build tool.
+//
+// For the canonical semantic convention definitions, see
+// https://github.com/open-telemetry/opentelemetry-specification/tree/main/semantic_conventions/trace
 func isOTelDoubleAttribute(k string) bool {
 	switch k {
 	case "aws.dynamodb.provisioned_read_capacity":
