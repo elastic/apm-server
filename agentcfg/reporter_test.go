@@ -74,8 +74,7 @@ func TestReportFetch(t *testing.T) {
 	// reported in exactly the same order they were fetched.
 	assert.ElementsMatch(t, []model.APMEvent{
 		{
-			Processor: model.MetricsetProcessor,
-			Labels:    common.MapStr{"etag": "abc123"},
+			Labels: common.MapStr{"etag": "abc123"},
 			Metricset: &model.Metricset{
 				Name: "agent_config",
 				Samples: map[string]model.MetricsetSample{
@@ -84,8 +83,7 @@ func TestReportFetch(t *testing.T) {
 			},
 		},
 		{
-			Processor: model.MetricsetProcessor,
-			Labels:    common.MapStr{"etag": "def456"},
+			Labels: common.MapStr{"etag": "def456"},
 			Metricset: &model.Metricset{
 				Name: "agent_config",
 				Samples: map[string]model.MetricsetSample{

@@ -86,13 +86,8 @@ func (r Reporter) Run(ctx context.Context) error {
 		batch := make(model.Batch, 0, len(applied))
 		for etag := range applied {
 			batch = append(batch, model.APMEvent{
-<<<<<<< HEAD
-				Labels: common.MapStr{"etag": etag},
-=======
 				Timestamp: time.Now(),
-				Processor: model.MetricsetProcessor,
 				Labels:    common.MapStr{"etag": etag},
->>>>>>> da26f4f5 (fix: add missing timestamp to agent_config metric (#6382))
 				Metricset: &model.Metricset{
 					Name: "agent_config",
 					Samples: map[string]model.MetricsetSample{
