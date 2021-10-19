@@ -29,6 +29,8 @@ include::troubleshoot-apm.asciidoc[]
 
 include::apm-breaking.asciidoc[]
 
+include::upgrade.asciidoc[]
+
 // This includes the legacy APM Overview
 include::legacy/guide/index.asciidoc[]
 
