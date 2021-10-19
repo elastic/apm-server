@@ -53,13 +53,6 @@ func TestAPIKeyAuthorizer(t *testing.T) {
 	authenticator, err := NewAuthenticator(config.AgentAuth{APIKey: apikeyAuthConfig})
 	require.NoError(t, err)
 
-	_, _, err = authenticator.Authenticate(context.Background(), headers.APIKey, "notbase64")
-	require.Error(t, err)
-
-	_, _, err = authenticator.Authenticate(context.Background(), headers.APIKey,
-		base64.StdEncoding.EncodeToString([]byte("notidcolonvalue")))
-	require.Error(t, err)
-
 	credentials := base64.StdEncoding.EncodeToString([]byte("valid_id:key_value"))
 	_, authz, err := authenticator.Authenticate(context.Background(), headers.APIKey, credentials)
 	require.NoError(t, err)
