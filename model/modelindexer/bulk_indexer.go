@@ -21,9 +21,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"strconv"
 
 	jsoniter "github.com/json-iterator/go"
+	"go.elastic.co/fastjson"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 
@@ -50,10 +50,10 @@ import (
 type bulkIndexer struct {
 	client     elasticsearch.Client
 	itemsAdded int
+	jsonw      fastjson.Writer
 	buf        bytes.Buffer
 	respBuf    bytes.Buffer
 	resp       elasticsearch.BulkIndexerResponse
-	aux        []byte
 }
 
 func newBulkIndexer(client elasticsearch.Client) *bulkIndexer {
@@ -90,30 +90,23 @@ func (b *bulkIndexer) Add(item elasticsearch.BulkIndexerItem) error {
 }
 
 func (b *bulkIndexer) writeMeta(item elasticsearch.BulkIndexerItem) {
-	b.buf.WriteRune('{')
-	b.aux = strconv.AppendQuote(b.aux, item.Action)
-	b.buf.Write(b.aux)
-	b.aux = b.aux[:0]
-	b.buf.WriteRune(':')
-	b.buf.WriteRune('{')
+	b.jsonw.RawByte('{')
+	b.jsonw.String(item.Action)
+	b.jsonw.RawString(":{")
 	if item.DocumentID != "" {
-		b.buf.WriteString(`"_id":`)
-		b.aux = strconv.AppendQuote(b.aux, item.DocumentID)
-		b.buf.Write(b.aux)
-		b.aux = b.aux[:0]
+		b.jsonw.RawString(`"_id":`)
+		b.jsonw.String(item.DocumentID)
 	}
 	if item.Index != "" {
 		if item.DocumentID != "" {
-			b.buf.WriteRune(',')
+			b.jsonw.RawByte(',')
 		}
-		b.buf.WriteString(`"_index":`)
-		b.aux = strconv.AppendQuote(b.aux, item.Index)
-		b.buf.Write(b.aux)
-		b.aux = b.aux[:0]
+		b.jsonw.RawString(`"_index":`)
+		b.jsonw.String(item.Index)
 	}
-	b.buf.WriteRune('}')
-	b.buf.WriteRune('}')
-	b.buf.WriteRune('\n')
+	b.jsonw.RawString("}}\n")
+	b.buf.Write(b.jsonw.Bytes())
+	b.jsonw.Reset()
 }
 
 // Flush executes a bulk request if there are any items buffered, and clears out the buffer.
