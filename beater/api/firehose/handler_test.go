@@ -256,13 +256,13 @@ func TestProcessMetrics(t *testing.T) {
 
 	event := processMetrics(model.APMEvent{}, cwMetric)
 	assert.Equal(t, "metrics", event.DataStream.Type)
-	assert.Equal(t, "aws.logs.IncomingBytes", event.Metricset.Name)
+	assert.Equal(t, "aws.logs", event.Metricset.Name)
 	assert.Equal(t, "aws.logs", event.DataStream.Dataset)
 	assert.Equal(t, 1, len(event.Labels))
 	assert.Equal(t, "RDSOSMetrics", event.Labels["LogGroupName"])
 	assert.Equal(t, 4, len(event.Metricset.Samples))
-	assert.Equal(t, model.MetricsetSample{Unit: "Bytes", Value: 2.0}, event.Metricset.Samples["IncomingBytes.count"])
-	assert.Equal(t, model.MetricsetSample{Unit: "Bytes", Value: 16755.0}, event.Metricset.Samples["IncomingBytes.sum"])
-	assert.Equal(t, model.MetricsetSample{Unit: "Bytes", Value: 9403.0}, event.Metricset.Samples["IncomingBytes.max"])
-	assert.Equal(t, model.MetricsetSample{Unit: "Bytes", Value: 7352.0}, event.Metricset.Samples["IncomingBytes.min"])
+	assert.Equal(t, model.MetricsetSample{Value: 2.0}, event.Metricset.Samples["IncomingBytes.count"])
+	assert.Equal(t, model.MetricsetSample{Value: 16755.0}, event.Metricset.Samples["IncomingBytes.sum"])
+	assert.Equal(t, model.MetricsetSample{Value: 9403.0}, event.Metricset.Samples["IncomingBytes.max"])
+	assert.Equal(t, model.MetricsetSample{Value: 7352.0}, event.Metricset.Samples["IncomingBytes.min"])
 }

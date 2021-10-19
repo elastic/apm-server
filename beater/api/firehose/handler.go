@@ -220,12 +220,12 @@ func processMetrics(event model.APMEvent, cwMetric cloudwatchMetric) model.APMEv
 	event.Labels = labels
 
 	var metricset model.Metricset
-	metricset.Name = namespace + "." + cwMetric.MetricName
+	metricset.Name = namespace
 	samples := map[string]model.MetricsetSample{}
 	for k, v := range cwMetric.Value {
 		var sample model.MetricsetSample
 		sample.Value = v
-		sample.Unit = cwMetric.Unit
+		// TODO: handle units for CloudWatch metrics
 		samples[cwMetric.MetricName+"."+k] = sample
 	}
 	metricset.Samples = samples
