@@ -576,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20211004051530-67f2e2b0bc87
+Version: v7.0.0-alpha2.0.20211014102705-568fd05e680b
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20211004051530-67f2e2b0bc87/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20211014102705-568fd05e680b/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -5104,11 +5104,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.0.0-20210929193557-e81a3d93ecf6
+Version: v0.0.0-20211013171255-e13a2654a71e
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210929193557-e81a3d93ecf6/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20211013171255-e13a2654a71e/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -7149,11 +7149,11 @@ Contents of probable licence file $GOMODCACHE/github.com/cloudfoundry/sonde-go@v
 
 --------------------------------------------------------------------------------
 Dependency : github.com/containerd/containerd
-Version: v1.3.3
+Version: v1.5.6
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/containerd/containerd@v1.3.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/containerd/containerd@v1.5.6/LICENSE:
 
 
                                  Apache License
@@ -9655,11 +9655,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/go-structform@v
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-sysinfo
-Version: v1.7.0
+Version: v1.7.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.7.0/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.7.1/LICENSE.txt:
 
 
                                  Apache License
@@ -10598,11 +10598,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/go-logr/logr
-Version: v0.2.0
+Version: v0.4.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/go-logr/logr@v0.2.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/go-logr/logr@v0.4.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -14406,11 +14406,11 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 --------------------------------------------------------------------------------
 Dependency : github.com/imdario/mergo
-Version: v0.3.6
+Version: v0.3.12
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/imdario/mergo@v0.3.6/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/imdario/mergo@v0.3.12/LICENSE:
 
 Copyright (c) 2013 Dario Castañé. All rights reserved.
 Copyright (c) 2012 The Go Authors. All rights reserved.
@@ -14865,25 +14865,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-
-
---------------------------------------------------------------------------------
-Dependency : github.com/konsorten/go-windows-terminal-sequences
-Version: v1.0.3
-Licence type (autodetected): MIT
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/github.com/konsorten/go-windows-terminal-sequences@v1.0.3/LICENSE:
-
-(The MIT License)
-
-Copyright (c) 2017 marvin + konsorten GmbH (open-source@konsorten.de)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 --------------------------------------------------------------------------------
@@ -15551,11 +15532,11 @@ Contents of probable licence file $GOMODCACHE/github.com/open-telemetry/opentele
 
 --------------------------------------------------------------------------------
 Dependency : github.com/opencontainers/go-digest
-Version: v1.0.0-rc1.0.20190228220655-ac19fd6e7483
+Version: v1.0.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/opencontainers/go-digest@v1.0.0-rc1.0.20190228220655-ac19fd6e7483/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/opencontainers/go-digest@v1.0.0/LICENSE:
 
 
                                  Apache License
@@ -15735,6 +15716,7 @@ Contents of probable licence file $GOMODCACHE/github.com/opencontainers/go-diges
 
    END OF TERMS AND CONDITIONS
 
+   Copyright 2019, 2020 OCI Contributors
    Copyright 2016 Docker, Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -16164,11 +16146,11 @@ Contents of probable licence file $GOMODCACHE/github.com/opentracing/opentracing
 
 --------------------------------------------------------------------------------
 Dependency : github.com/pierrec/lz4
-Version: v2.5.2+incompatible
+Version: v2.6.0+incompatible
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/pierrec/lz4@v2.5.2+incompatible/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/pierrec/lz4@v2.6.0+incompatible/LICENSE:
 
 Copyright (c) 2015, Pierre Curto
 All rights reserved.
@@ -16551,11 +16533,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/sirupsen/logrus
-Version: v1.6.0
+Version: v1.8.1
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/sirupsen/logrus@v1.6.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/sirupsen/logrus@v1.8.1/LICENSE:
 
 The MIT License (MIT)
 
@@ -17713,11 +17695,11 @@ Contents of probable licence file $GOMODCACHE/github.com/xdg/scram@v1.0.3/LICENS
 
 --------------------------------------------------------------------------------
 Dependency : github.com/xdg/stringprep
-Version: v1.0.0
+Version: v1.0.3
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/xdg/stringprep@v1.0.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/xdg/stringprep@v1.0.3/LICENSE:
 
 
                                  Apache License
@@ -19900,11 +19882,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20211003122950-b1ebd4e1001c
+Version: v0.0.0-20211013075003-97ac67df715c
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20211003122950-b1ebd4e1001c/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20211013075003-97ac67df715c/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -19937,11 +19919,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/term
-Version: v0.0.0-20201126162022-7de9c90e9dd1
+Version: v0.0.0-20210220032956-6a3ed077a48d
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/term@v0.0.0-20201126162022-7de9c90e9dd1/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/term@v0.0.0-20210220032956-6a3ed077a48d/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -20011,11 +19993,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20211001223012-bfb93cce50d9
+Version: v0.0.0-20211013025323-ce878158c4d4
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20211001223012-bfb93cce50d9/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20211013025323-ce878158c4d4/LICENSE:
 
 
                                  Apache License
@@ -21421,11 +21403,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : k8s.io/api
-Version: v0.19.4
+Version: v0.21.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/k8s.io/api@v0.19.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/k8s.io/api@v0.21.1/LICENSE:
 
 
                                  Apache License
@@ -21633,11 +21615,11 @@ Contents of probable licence file $GOMODCACHE/k8s.io/api@v0.19.4/LICENSE:
 
 --------------------------------------------------------------------------------
 Dependency : k8s.io/apimachinery
-Version: v0.19.4
+Version: v0.21.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/k8s.io/apimachinery@v0.19.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/k8s.io/apimachinery@v0.21.1/LICENSE:
 
 
                                  Apache License
@@ -21845,11 +21827,11 @@ Contents of probable licence file $GOMODCACHE/k8s.io/apimachinery@v0.19.4/LICENS
 
 --------------------------------------------------------------------------------
 Dependency : k8s.io/client-go
-Version: v0.19.4
+Version: v0.21.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/k8s.io/client-go@v0.19.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/k8s.io/client-go@v0.21.1/LICENSE:
 
 
                                  Apache License
@@ -22057,11 +22039,11 @@ Contents of probable licence file $GOMODCACHE/k8s.io/client-go@v0.19.4/LICENSE:
 
 --------------------------------------------------------------------------------
 Dependency : k8s.io/klog/v2
-Version: v2.2.0
+Version: v2.8.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/k8s.io/klog/v2@v2.2.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/k8s.io/klog/v2@v2.8.0/LICENSE:
 
 Apache License
 Version 2.0, January 2004
@@ -22258,11 +22240,11 @@ third-party archives.
 
 --------------------------------------------------------------------------------
 Dependency : k8s.io/utils
-Version: v0.0.0-20200729134348-d5654de09c73
+Version: v0.0.0-20201110183641-67b214c5f920
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/k8s.io/utils@v0.0.0-20200729134348-d5654de09c73/LICENSE:
+Contents of probable licence file $GOMODCACHE/k8s.io/utils@v0.0.0-20201110183641-67b214c5f920/LICENSE:
 
 
                                  Apache License
@@ -22470,11 +22452,11 @@ Contents of probable licence file $GOMODCACHE/k8s.io/utils@v0.0.0-20200729134348
 
 --------------------------------------------------------------------------------
 Dependency : sigs.k8s.io/structured-merge-diff/v4
-Version: v4.0.1
+Version: v4.1.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/sigs.k8s.io/structured-merge-diff/v4@v4.0.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/sigs.k8s.io/structured-merge-diff/v4@v4.1.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004

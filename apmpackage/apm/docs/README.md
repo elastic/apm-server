@@ -47,793 +47,527 @@ IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode,
 ## Traces
 
 Traces are comprised of [spans and transactions](https://www.elastic.co/guide/en/apm/get-started/current/apm-data-model.html).
-Traces are written to `traces-apm.*` indices.
 
-**Exported Fields**
+Traces are written to `traces-apm-*` data streams.
 
-| Field | Description | Type | ECS |
-|---|---|---|:---:|
-|@timestamp|Event timestamp.|date|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|agent.ephemeral\_id|The Ephemeral ID identifies a running process.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|agent.name|Name of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|agent.version|Version of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|child.id|The ID(s) of the child event(s).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|client.domain|Client domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|client.ip|IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|client.port|Port of the client.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.account.id|Cloud account ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.account.name|Cloud account name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.availability\_zone|Cloud availability zone name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.instance.id|Cloud instance/machine ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.instance.name|Cloud instance/machine name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.machine.type|Cloud instance/machine type|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.origin.account.id|The cloud account or organization id used to identify different entities in a multi-tenant environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|cloud.origin.provider|Name of the cloud provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|cloud.origin.region|Region in which this host, resource, or service is located.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|cloud.origin.service.name|The cloud service name is intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|cloud.project.id|Cloud project ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.project.name|Cloud project name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.provider|Cloud provider name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.region|Cloud region name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|container.id|Unique container id.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.dataset|Data stream dataset.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.namespace|Data stream namespace.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.type|Data stream type.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|destination.address|Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the \`.address\` field. Then it should be duplicated to \`.ip\` or \`.domain\`, depending on which one it is.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|destination.port|Port of the destination.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|ecs.version|ECS version the event conforms to.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|event.outcome|\`event.outcome\` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|faas.coldstart|Boolean indicating whether the function invocation was a coldstart or not.|boolean|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|faas.execution|Request ID of the function invocation.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|faas.trigger.request\_id|The ID of the origin trigger request.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|faas.trigger.type|The trigger type.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|host.architecture|The architecture of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.hostname|The hostname of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.ip|IP of the host that records the event.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.name|Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.os.platform|The platform of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|http.request.headers|The canonical headers of the monitored HTTP request.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|http.request.method|The http method of the request leading to this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|http.request.referrer|Referrer for this HTTP request.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|http.response.finished|Used by the Node agent to indicate when in the response life cycle an error has occurred.|boolean|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|http.response.headers|The canonical headers of the monitored HTTP response.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|http.response.status\_code|The status code of the HTTP response.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|http.version|The http version of the request leading to this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|kubernetes.namespace|Kubernetes namespace|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|kubernetes.node.name|Kubernetes node name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|kubernetes.pod.name|Kubernetes pod name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|kubernetes.pod.uid|Kubernetes Pod UID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|labels|A flat mapping of user-defined labels with string, boolean or number values.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|network.carrier.icc|ISO country code, eg. US|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.carrier.mcc|Mobile country code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.carrier.mnc|Mobile network code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.carrier.name|Carrier name, eg. Vodafone, T-Mobile, etc.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.connection.subtype|Detailed network connection sub-type, e.g. "LTE", "CDMA"|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.connection.type|Network connection type, eg. "wifi", "cell"|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|observer.ephemeral\_id|Ephemeral identifier of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|observer.id|Unique identifier of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|observer.listening|Address the server is listening on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|observer.type|The type will be set to \`apm-server\`.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|observer.version|APM Server version.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|observer.version\_major|Major version number of the observer|byte|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|parent.id|The ID of the parent event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|process.args|Process arguments. May be filtered to protect sensitive information.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|process.pid|Numeric process ID of the service process.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|process.ppid|Numeric ID of the service's parent process.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|process.title|Service process title.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|processor.event|Processor event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|processor.name|Processor name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|service.framework.name|Name of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.framework.version|Version of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.id|Immutable id of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|service.language.name|Name of the programming language used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.language.version|Version of the programming language used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.name|Immutable name of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|service.node.name|Unique meaningful name of the service node.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|service.origin.id|Immutable id of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.origin.name|Immutable name of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.origin.version|The version of the service the data was collected from.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.runtime.name|Name of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.runtime.version|Version of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.version|Version of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|session.id|The ID of the session to which the event belongs.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|session.sequence|The sequence number of the event within the session to which the event belongs.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|source.domain|Source domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|source.ip|IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|source.port|Port of the source.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|span.action|The specific kind of event within the sub-type represented by the span (e.g. query, connect)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.composite.compression\_strategy|The compression strategy that was used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.composite.count|Number of compressed spans the composite span represents.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.composite.sum.us|Sum of the durations of the compressed spans, in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.db.link|Database link.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.db.rows\_affected|Number of rows affected by the database statement.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.destination.service.name|Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq') DEPRECATED: this field will be removed in a future release|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.destination.service.resource|Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue\_name')|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.destination.service.type|Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type. DEPRECATED: this field will be removed in a future release|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.duration.us|Duration of the span, in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.id|The ID of the span stored as hex encoded string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|span.message.age.ms|Age of a message in milliseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.message.queue.name|Name of the message queue or topic where the message is published or received.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.name|Generic designation of a span in the scope of a transaction.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.start.us|Offset relative to the transaction's timestamp identifying the start of the span, in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.subtype|A further sub-division of the type (e.g. postgresql, elasticsearch)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.sync|Indicates whether the span was executed synchronously or asynchronously.|boolean|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|span.type|Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|timestamp.us|Timestamp of the event in microseconds since Unix epoch.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|trace.id|The ID of the trace to which the event belongs to.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|transaction.duration.us|Total duration of this transaction, in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.experience.cls|The Cumulative Layout Shift metric|scaled\_float|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.experience.fid|The First Input Delay metric|scaled\_float|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.experience.longtask.count|The total number of of longtasks|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.experience.longtask.max|The max longtask duration|scaled\_float|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.experience.longtask.sum|The sum of longtask durations|scaled\_float|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.experience.tbt|The Total Blocking Time metric|scaled\_float|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.id|The transaction ID.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|transaction.marks|A user-defined mapping of groups of marks in milliseconds.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.marks.\*.\*|A user-defined mapping of groups of marks in milliseconds.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.message.age.ms|Age of a message in milliseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.message.queue.name|Name of the message queue or topic where the message is published or received.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.name|Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.result|The result of the transaction. HTTP status code for HTTP-related transactions.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.sampled|Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.|boolean|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.span\_count.dropped|The total amount of dropped spans for this transaction.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.type|Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|url.domain|The hostname of the request, e.g. "example.com".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.fragment|A fragment specifying a location in a web page , e.g. "top".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.full|The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.path|The path of the request, e.g. "/search".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.port|The port of the request, e.g. 443.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.query|The query string of the request, e.g. "q=elasticsearch".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.scheme|The protocol of the request, e.g. "https:".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.domain|Domain of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.email|Email of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.id|Identifier of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.name|The username of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.device.name|Name of the device.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.name|Name of the user agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.original|Unparsed version of the user\_agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.family|OS family (such as redhat, debian, freebsd, windows).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.full|Operating system name, including the version or code name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.kernel|Operating system kernel version as a raw string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.name|Operating system name, without the version.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.platform|Operating system platform (such centos, ubuntu, windows).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.version|Operating system version as a raw string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.version|Version of the user agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+**Exported fields**
 
-
-#### Examples
-
-```json
-{
-  "@timestamp": "2017-05-30T18:53:42.281Z",
-  "agent": {
-    "name": "elastic-node",
-    "version": "3.14.0"
-  },
-  "container": {
-    "id": "container-id"
-  },
-  "ecs": {
-    "version": "1.12.0"
-  },
-  "event": {
-    "ingested": "2020-08-11T09:55:04.391451Z",
-    "outcome": "unknown"
-  },
-  "host": {
-    "architecture": "x64",
-    "ip": "127.0.0.1",
-    "os": {
-      "platform": "darwin"
-    }
-  },
-  "kubernetes": {
-    "namespace": "namespace1",
-    "pod": {
-      "name": "pod-name",
-      "uid": "pod-uid"
-    }
-  },
-  "observer": {
-    "ephemeral_id": "f78f6762-2157-4322-95aa-aecd2f486c1a",
-    "hostname": "ix.lan",
-    "id": "80b79979-4a7d-450d-b2ce-75c589f7fffd",
-    "type": "apm-server",
-    "version": "8.0.0",
-    "version_major": 8
-  },
-  "process": {
-    "args": [
-      "node",
-      "server.js"
-    ],
-    "pid": 1234,
-    "ppid": 6789,
-    "title": "node"
-  },
-  "processor": {
-    "event": "transaction",
-    "name": "transaction"
-  },
-  "service": {
-    "environment": "staging",
-    "framework": {
-      "name": "Express",
-      "version": "1.2.3"
-    },
-    "language": {
-      "name": "ecmascript",
-      "version": "8"
-    },
-    "name": "1234_service-12a3",
-    "node": {
-      "name": "container-id"
-    },
-    "runtime": {
-      "name": "node",
-      "version": "8.0.0"
-    },
-    "version": "5.1.3"
-  },
-  "timestamp": {
-    "us": 1496170422281000
-  },
-  "trace": {
-    "id": "85925e55b43f4340aaaaaaaaaaaaaaaa"
-  },
-  "transaction": {
-    "duration": {
-      "us": 13980
-    },
-    "id": "85925e55b43f4340",
-    "name": "GET /api/types",
-    "result": "failure",
-    "sampled": true,
-    "span_count": {
-      "started": 0
-    },
-    "type": "request"
-  },
-  "user": {
-    "email": "foo@bar.com",
-    "id": "123user",
-    "name": "foo"
-  }
-}
-```
-
-```json
-{
-  "@timestamp": "2017-05-30T18:53:27.154Z",
-  "agent": {
-    "name": "elastic-node",
-    "version": "3.14.0"
-  },
-  "ecs": {
-    "version": "1.12.0"
-  },
-  "event": {
-    "outcome": "unknown"
-  },
-  "http": {
-    "request": {
-      "method": "GET"
-    },
-    "response": {
-      "status_code": 200
-    }
-  },
-  "labels": {
-    "span_tag": "something"
-  },
-  "observer": {
-    "ephemeral_id": "c0cea3b6-97d7-4e15-9e35-c868e7a3c869",
-    "hostname": "ix.lan",
-    "id": "a49b4a08-689a-4724-8050-8bd0ae043281",
-    "type": "apm-server",
-    "version": "8.0.0",
-    "version_major": 8
-  },
-  "parent": {
-    "id": "945254c567a5417e"
-  },
-  "processor": {
-    "event": "span",
-    "name": "transaction"
-  },
-  "service": {
-    "environment": "staging",
-    "name": "1234_service-12a3"
-  },
-  "span": {
-    "action": "query",
-    "db": {
-      "instance": "customers",
-      "statement": "SELECT * FROM product_types WHERE user_id=?",
-      "type": "sql",
-      "user": {
-        "name": "readonly_user"
-      }
-    },
-    "duration": {
-      "us": 3781
-    },
-    "http": {
-      "method": "GET",
-      "response": {
-        "status_code": 200
-      }
-    },
-    "http.url.original": "http://localhost:8000",
-    "id": "0aaaaaaaaaaaaaaa",
-    "name": "SELECT FROM product_types",
-    "stacktrace": [
-      {
-        "abs_path": "net.js",
-        "context": {
-          "post": [
-            "    ins.currentTransaction = prev",
-            "    return result",
-            "}"
-          ],
-          "pre": [
-            "  var trans = this.currentTransaction",
-            ""
-          ]
-        },
-        "exclude_from_grouping": false,
-        "filename": "net.js",
-        "function": "onread",
-        "library_frame": true,
-        "line": {
-          "column": 4,
-          "context": "line3",
-          "number": 547
-        },
-        "module": "some module",
-        "vars": {
-          "key": "value"
-        }
-      },
-      {
-        "exclude_from_grouping": false,
-        "filename": "my2file.js",
-        "line": {
-          "number": 10
-        }
-      }
-    ],
-    "start": {
-      "us": 2830
-    },
-    "subtype": "postgresql",
-    "sync": false,
-    "type": "db"
-  },
-  "timestamp": {
-    "us": 1496170407154000
-  },
-  "trace": {
-    "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
-  },
-  "transaction": {
-    "id": "945254c567a5417e"
-  },
-  "url": {
-    "original": "http://localhost:8000"
-  }
-}
-```
+| Field | Description | Type |
+|---|---|---|
+| @timestamp | Event timestamp. | date |
+| agent.ephemeral_id | Ephemeral identifier of this agent (if one exists). This id normally changes across restarts, but `agent.id` does not. | keyword |
+| agent.name | Custom name of the agent. This is a name that can be given to an agent. This can be helpful if for example two Filebeat instances are running on the same host but a human readable separation is needed on which Filebeat instance data is coming from. If no name is given, the name is often left empty. | keyword |
+| agent.version | Version of the agent. | keyword |
+| child.id | The ID(s) of the child event(s). | keyword |
+| client.domain | Client domain. | keyword |
+| client.geo.city_name | City name. | keyword |
+| client.geo.continent_name | Name of the continent. | keyword |
+| client.geo.country_iso_code | Country ISO code. | keyword |
+| client.geo.country_name | Country name. | keyword |
+| client.geo.location | Longitude and latitude. | geo_point |
+| client.geo.region_iso_code | Region ISO code. | keyword |
+| client.geo.region_name | Region name. | keyword |
+| client.ip | IP address of the client (IPv4 or IPv6). | ip |
+| client.port | Port of the client. | long |
+| cloud.account.id | The cloud account or organization id used to identify different entities in a multi-tenant environment. Examples: AWS account id, Google Cloud ORG Id, or other unique identifier. | keyword |
+| cloud.account.name | The cloud account name or alias used to identify different entities in a multi-tenant environment. Examples: AWS account name, Google Cloud ORG display name. | keyword |
+| cloud.availability_zone | Availability zone in which this host, resource, or service is located. | keyword |
+| cloud.instance.id | Instance ID of the host machine. | keyword |
+| cloud.instance.name | Instance name of the host machine. | keyword |
+| cloud.machine.type | Machine type of the host machine. | keyword |
+| cloud.origin.account.id | The cloud account or organization id used to identify different entities in a multi-tenant environment. | keyword |
+| cloud.origin.provider | Name of the cloud provider. | keyword |
+| cloud.origin.region | Region in which this host, resource, or service is located. | keyword |
+| cloud.origin.service.name | The cloud service name is intended to distinguish services running on different platforms within a provider. | keyword |
+| cloud.project.id | The cloud project identifier. Examples: Google Cloud Project id, Azure Project id. | keyword |
+| cloud.project.name | The cloud project name. Examples: Google Cloud Project name, Azure Project name. | keyword |
+| cloud.provider | Name of the cloud provider. Example values are aws, azure, gcp, or digitalocean. | keyword |
+| cloud.region | Region in which this host, resource, or service is located. | keyword |
+| cloud.service.name | The cloud service name is intended to distinguish services running on different platforms within a provider, eg AWS EC2 vs Lambda, GCP GCE vs App Engine, Azure VM vs App Server. Examples: app engine, app service, cloud run, fargate, lambda. | keyword |
+| container.id | Unique container id. | keyword |
+| data_stream.dataset | Data stream dataset. | constant_keyword |
+| data_stream.namespace | Data stream namespace. | constant_keyword |
+| data_stream.type | Data stream type. | constant_keyword |
+| destination.address | Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is. | keyword |
+| destination.ip | IP address of the destination (IPv4 or IPv6). | ip |
+| destination.port | Port of the destination. | long |
+| ecs.version | ECS version this event conforms to. `ecs.version` is a required field and must exist in all events. When querying across multiple indices -- which may conform to slightly different ECS versions -- this field lets integrations adjust to the schema version of the events. | keyword |
+| event.outcome | This is one of four ECS Categorization Fields, and indicates the lowest level in the ECS category hierarchy. `event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event. Note that when a single transaction is described in multiple events, each event may populate different values of `event.outcome`, according to their perspective. Also note that in the case of a compound event (a single event that contains multiple logical events), this field should be populated with the value that best captures the overall success or failure from the perspective of the event producer. Further note that not all events will have an associated outcome. For example, this field is generally not populated for metric events, events with `event.type:info`, or any events for which an outcome does not make logical sense. | keyword |
+| faas.coldstart | Boolean indicating whether the function invocation was a coldstart or not. | boolean |
+| faas.execution | Request ID of the function invocation. | keyword |
+| faas.trigger.request_id | The ID of the origin trigger request. | keyword |
+| faas.trigger.type | The trigger type. | keyword |
+| host.architecture | Operating system architecture. | keyword |
+| host.hostname | Hostname of the host. It normally contains what the `hostname` command returns on the host machine. | keyword |
+| host.ip | Host ip addresses. | ip |
+| host.name | Name of the host. It can contain what `hostname` returns on Unix systems, the fully qualified domain name, or a name specified by the user. The sender decides which value to use. | keyword |
+| host.os.platform | Operating system platform (such centos, ubuntu, windows). | keyword |
+| http.request.headers | The canonical headers of the monitored HTTP request. | object |
+| http.request.method | HTTP request method. Prior to ECS 1.6.0 the following guidance was provided: "The field value must be normalized to lowercase for querying." As of ECS 1.6.0, the guidance is deprecated because the original case of the method may be useful in anomaly detection.  Original case will be mandated in ECS 2.0.0 | keyword |
+| http.request.referrer | Referrer for this HTTP request. | keyword |
+| http.response.finished | Used by the Node agent to indicate when in the response life cycle an error has occurred. | boolean |
+| http.response.headers | The canonical headers of the monitored HTTP response. | object |
+| http.response.status_code | HTTP response status code. | long |
+| http.version | HTTP version. | keyword |
+| kubernetes.namespace | Kubernetes namespace | keyword |
+| kubernetes.node.name | Kubernetes node name | keyword |
+| kubernetes.pod.name | Kubernetes pod name | keyword |
+| kubernetes.pod.uid | Kubernetes Pod UID | keyword |
+| labels | A flat mapping of user-defined labels with string, boolean or number values. | object |
+| network.carrier.icc | ISO country code, eg. US | keyword |
+| network.carrier.mcc | Mobile country code | keyword |
+| network.carrier.mnc | Mobile network code | keyword |
+| network.carrier.name | Carrier name, eg. Vodafone, T-Mobile, etc. | keyword |
+| network.connection.subtype | Detailed network connection sub-type, e.g. "LTE", "CDMA" | keyword |
+| network.connection.type | Network connection type, eg. "wifi", "cell" | keyword |
+| observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |
+| observer.hostname | Hostname of the observer. | keyword |
+| observer.id | Unique identifier of the APM Server. | keyword |
+| observer.type | The type of the observer the data is coming from. There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`. | keyword |
+| observer.version | Observer version. | keyword |
+| observer.version_major | Major version number of the observer | byte |
+| parent.id | The ID of the parent event. | keyword |
+| process.args | Array of process arguments, starting with the absolute path to the executable. May be filtered to protect sensitive information. | keyword |
+| process.pid | Process id. | long |
+| process.ppid | Parent process' pid. | long |
+| process.title | Process title. The proctitle, some times the same as process name. Can also be different: for example a browser setting its title to the web page currently opened. | keyword |
+| processor.event | Processor event. | keyword |
+| processor.name | Processor name. | constant_keyword |
+| service.environment | Identifies the environment where the service is running. If the same service runs in different environments (production, staging, QA, development, etc.), the environment can identify other instances of the same service. Can also group services and applications from the same environment. | keyword |
+| service.framework.name | Name of the framework used. | keyword |
+| service.framework.version | Version of the framework used. | keyword |
+| service.language.name | Name of the programming language used. | keyword |
+| service.language.version | Version of the programming language used. | keyword |
+| service.name | Name of the service data is collected from. The name of the service is normally user given. This allows for distributed services that run on multiple hosts to correlate the related instances based on the name. In the case of Elasticsearch the `service.name` could contain the cluster name. For Beats the `service.name` is by default a copy of the `service.type` field if no name is specified. | keyword |
+| service.node.name | Name of a service node. This allows for two nodes of the same service running on the same host to be differentiated. Therefore, `service.node.name` should typically be unique across nodes of a given service. In the case of Elasticsearch, the `service.node.name` could contain the unique node name within the Elasticsearch cluster. In cases where the service doesn't have the concept of a node name, the host name or container name can be used to distinguish running instances that make up this service. If those do not provide uniqueness (e.g. multiple instances of the service running on the same host) - the node name can be manually set. | keyword |
+| service.origin.id | Immutable id of the service emitting this event. | keyword |
+| service.origin.name | Immutable name of the service emitting this event. | keyword |
+| service.origin.version | The version of the service the data was collected from. | keyword |
+| service.runtime.name | Name of the runtime used. | keyword |
+| service.runtime.version | Version of the runtime used. | keyword |
+| service.version | Version of the service the data was collected from. This allows to look at a data set only for a specific version of a service. | keyword |
+| session.id | The ID of the session to which the event belongs. | keyword |
+| session.sequence | The sequence number of the event within the session to which the event belongs. | long |
+| source.domain | Source domain. | keyword |
+| source.ip | IP address of the source (IPv4 or IPv6). | ip |
+| source.port | Port of the source. | long |
+| span.action | The specific kind of event within the sub-type represented by the span (e.g. query, connect) | keyword |
+| span.composite.compression_strategy | The compression strategy that was used. | keyword |
+| span.composite.count | Number of compressed spans the composite span represents. | long |
+| span.composite.sum.us | Sum of the durations of the compressed spans, in microseconds. | long |
+| span.db.link | Database link. | keyword |
+| span.db.rows_affected | Number of rows affected by the database statement. | long |
+| span.destination.service.name | Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq') DEPRECATED: this field will be removed in a future release | keyword |
+| span.destination.service.resource | Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name') | keyword |
+| span.destination.service.type | Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type. DEPRECATED: this field will be removed in a future release | keyword |
+| span.duration.us | Duration of the span, in microseconds. | long |
+| span.id | Unique identifier of the span within the scope of its trace. A span represents an operation within a transaction, such as a request to another service, or a database query. | keyword |
+| span.message.age.ms | Age of a message in milliseconds. | long |
+| span.message.queue.name | Name of the message queue or topic where the message is published or received. | keyword |
+| span.name | Generic designation of a span in the scope of a transaction. | keyword |
+| span.start.us | Offset relative to the transaction's timestamp identifying the start of the span, in microseconds. | long |
+| span.subtype | A further sub-division of the type (e.g. postgresql, elasticsearch) | keyword |
+| span.sync | Indicates whether the span was executed synchronously or asynchronously. | boolean |
+| span.type | Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc). | keyword |
+| timestamp.us | Timestamp of the event in microseconds since Unix epoch. | long |
+| trace.id | Unique identifier of the trace. A trace groups multiple events like transactions that belong together. For example, a user request handled by multiple inter-connected services. | keyword |
+| transaction.duration.us | Total duration of this transaction, in microseconds. | long |
+| transaction.experience.cls | The Cumulative Layout Shift metric | scaled_float |
+| transaction.experience.fid | The First Input Delay metric | scaled_float |
+| transaction.experience.longtask.count | The total number of of longtasks | long |
+| transaction.experience.longtask.max | The max longtask duration | scaled_float |
+| transaction.experience.longtask.sum | The sum of longtask durations | scaled_float |
+| transaction.experience.tbt | The Total Blocking Time metric | scaled_float |
+| transaction.id | Unique identifier of the transaction within the scope of its trace. A transaction is the highest level of work measured within a service, such as a request to a server. | keyword |
+| transaction.marks | A user-defined mapping of groups of marks in milliseconds. | object |
+| transaction.message.age.ms | Age of a message in milliseconds. | long |
+| transaction.message.queue.name | Name of the message queue or topic where the message is published or received. | keyword |
+| transaction.name | Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id'). | keyword |
+| transaction.result | The result of the transaction. HTTP status code for HTTP-related transactions. | keyword |
+| transaction.sampled | Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. | boolean |
+| transaction.span_count.dropped | The total amount of dropped spans for this transaction. | long |
+| transaction.type | Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc) | keyword |
+| url.domain | Domain of the url, such as "www.elastic.co". In some cases a URL may refer to an IP and/or port directly, without a domain name. In this case, the IP address would go to the `domain` field. If the URL contains a literal IPv6 address enclosed by `[` and `]` (IETF RFC 2732), the `[` and `]` characters should also be captured in the `domain` field. | keyword |
+| url.fragment | Portion of the url after the `#`, such as "top". The `#` is not part of the fragment. | keyword |
+| url.full | If full URLs are important to your use case, they should be stored in `url.full`, whether this field is reconstructed or present in the event source. | wildcard |
+| url.path | Path of the request, such as "/search". | wildcard |
+| url.port | Port of the request, such as 443. | long |
+| url.query | The query field describes the query string of the request, such as "q=elasticsearch". The `?` is excluded from the query string. If a URL contains no `?`, there is no query field. If there is a `?` but no query, the query field exists with an empty string. The `exists` query can be used to differentiate between the two cases. | keyword |
+| url.scheme | Scheme of the request, such as "https". Note: The `:` is not part of the scheme. | keyword |
+| user.domain | Name of the directory the user is a member of. For example, an LDAP or Active Directory domain name. | keyword |
+| user.email | User email address. | keyword |
+| user.id | Unique identifier of the user. | keyword |
+| user.name | Short name or login of the user. | keyword |
+| user_agent.device.name | Name of the device. | keyword |
+| user_agent.name | Name of the user agent. | keyword |
+| user_agent.original | Unparsed user_agent string. | keyword |
+| user_agent.os.family | OS family (such as redhat, debian, freebsd, windows). | keyword |
+| user_agent.os.full | Operating system name, including the version or code name. | keyword |
+| user_agent.os.kernel | Operating system kernel version as a raw string. | keyword |
+| user_agent.os.name | Operating system name, without the version. | keyword |
+| user_agent.os.platform | Operating system platform (such centos, ubuntu, windows). | keyword |
+| user_agent.os.version | Operating system version as a raw string. | keyword |
+| user_agent.version | Version of the user agent. | keyword |
 
 
-## Metrics
+## Application Metrics
 
-Metrics include application-based metrics and some basic system metrics.
-Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metrics-apm.profiling.*` indices.
+Application metrics are comprised of custom, application-specific metrics, basic system metrics such as CPU and memory usage,
+and runtime metrics such as JVM garbage collection statistics.
 
-**Exported Fields**
+Application metrics are written to service-specific `metrics-apm.app.*-*` data streams.
 
-| Field | Description | Type | ECS |
-|---|---|---|:---:|
-|@timestamp|Event timestamp.|date|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|agent.ephemeral\_id|The Ephemeral ID identifies a running process.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|agent.name|Name of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|agent.version|Version of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|client.domain|Client domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|client.ip|IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|client.port|Port of the client.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.account.id|Cloud account ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.account.name|Cloud account name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.availability\_zone|Cloud availability zone name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.instance.id|Cloud instance/machine ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.instance.name|Cloud instance/machine name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.machine.type|Cloud instance/machine type|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.project.id|Cloud project ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.project.name|Cloud project name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.provider|Cloud provider name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.region|Cloud region name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|container.id|Unique container id.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.dataset|Data stream dataset.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.namespace|Data stream namespace.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.type|Data stream type.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|destination.address|Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the \`.address\` field. Then it should be duplicated to \`.ip\` or \`.domain\`, depending on which one it is.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|destination.port|Port of the destination.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|ecs.version|ECS version the event conforms to.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.architecture|The architecture of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.hostname|The hostname of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.ip|IP of the host that records the event.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.name|Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.os.platform|The platform of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|kubernetes.namespace|Kubernetes namespace|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|kubernetes.node.name|Kubernetes node name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|kubernetes.pod.name|Kubernetes pod name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|kubernetes.pod.uid|Kubernetes Pod UID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|labels|A flat mapping of user-defined labels with string, boolean or number values.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|metricset.name|Name of the set of metrics.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|metricset.period|Current data collection period for this event in milliseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.carrier.icc|ISO country code, eg. US|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.carrier.mcc|Mobile country code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.carrier.mnc|Mobile network code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.carrier.name|Carrier name, eg. Vodafone, T-Mobile, etc.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.connection.subtype|Detailed network connection sub-type, e.g. "LTE", "CDMA"|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.connection.type|Network connection type, eg. "wifi", "cell"|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|observer.ephemeral\_id|Ephemeral identifier of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|observer.id|Unique identifier of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|observer.listening|Address the server is listening on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|observer.type|The type will be set to \`apm-server\`.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|observer.version|APM Server version.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|observer.version\_major|Major version number of the observer|byte|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|process.args|Process arguments. May be filtered to protect sensitive information.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|process.pid|Numeric process ID of the service process.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|process.ppid|Numeric ID of the service's parent process.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|process.title|Service process title.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|processor.event|Processor event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|processor.name|Processor name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|service.framework.name|Name of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.framework.version|Version of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.language.name|Name of the programming language used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.language.version|Version of the programming language used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.name|Immutable name of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|service.node.name|Unique meaningful name of the service node.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|service.runtime.name|Name of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.runtime.version|Version of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.version|Version of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|source.domain|Source domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|source.ip|IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|source.port|Port of the source.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|system.cpu.total.norm.pct|The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.|scaled\_float|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.memory.actual.free|Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal to \`system.memory.free\`.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.memory.total|Total memory.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.cgroup.cpu.cfs.period.us|CFS period in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.cgroup.cpu.cfs.quota.us|CFS quota in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.cgroup.cpu.id|ID for the current cgroup CPU.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.cgroup.cpu.stats.periods|Number of periods seen by the CPU.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.cgroup.cpu.stats.throttled.ns|Nanoseconds spent throttled seen by the CPU.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.cgroup.cpu.stats.throttled.periods|Number of throttled periods seen by the CPU.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.cgroup.cpuacct.id|ID for the current cgroup CPU.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.cgroup.cpuacct.total.ns|Total CPU time for the current cgroup CPU in nanoseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.cgroup.memory.mem.limit.bytes|Memory limit for the current cgroup slice.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.cgroup.memory.mem.usage.bytes|Memory usage by the current cgroup slice.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.cpu.total.norm.pct|The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.|scaled\_float|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.memory.rss.bytes|The Resident Set Size. The amount of memory the process occupied in main memory (RAM).|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.memory.size|The total virtual memory the process has.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|timeseries.instance|Time series instance ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|timestamp.us|Timestamp of the event in microseconds since Unix epoch.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|user.email|Email of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.id|Identifier of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.name|The username of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.device.name|Name of the device.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.name|Name of the user agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.original|Unparsed version of the user\_agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.family|OS family (such as redhat, debian, freebsd, windows).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.full|Operating system name, including the version or code name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.kernel|Operating system kernel version as a raw string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.name|Operating system name, without the version.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.platform|Operating system platform (such centos, ubuntu, windows).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.version|Operating system version as a raw string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.version|Version of the user agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+**Exported fields**
 
-
-### Example
-
-```json
-{
-  "@timestamp": "2021-09-14T09:52:49.454Z",
-  "agent": {
-    "ephemeral_id": "29a27947-ed3a-4d87-b2e6-28f7a940ec2d",
-    "name": "java",
-    "version": "1.25.1-SNAPSHOT.UNKNOWN"
-  },
-  "container": {
-    "id": "a47ed147c6ee269400f7ea4e296b3d01ec7398471bb2951907e4ea12f028bc69"
-  },
-  "ecs": {
-    "version": "1.11.0"
-  },
-  "event": {
-    "ingested": "2021-09-14T09:53:00.834276431Z"
-  },
-  "host": {
-    "architecture": "amd64",
-    "ip": "35.240.52.17",
-    "os": {
-      "platform": "Linux"
-    }
-  },
-  "jvm.gc.count": 2224,
-  "jvm.gc.time": 11511,
-  "kubernetes": {
-    "pod": {
-      "name": "opbeans-java-7c68f48dc6-n6mzc",
-      "uid": "b0cb3baa-4619-4b82-bef5-84cc87b5f853"
-    }
-  },
-  "labels": {
-    "name": "Copy"
-  },
-  "metricset.name": "app",
-  "observer": {
-    "ephemeral_id": "b7f21735-d283-4945-ab80-ce8df494a207",
-    "hostname": "3c5ac040e8f9",
-    "id": "6657d6e6-f3e8-4ce4-aa22-e7fe2ad77b5e",
-    "name": "instance-0000000002",
-    "type": "apm-server",
-    "version": "7.15.0",
-    "version_major": 7
-  },
-  "process": {
-    "pid": 8,
-    "ppid": 1,
-    "title": "/opt/java/openjdk/bin/java"
-  },
-  "processor": {
-    "event": "metric",
-    "name": "metric"
-  },
-  "service": {
-    "environment": "production",
-    "language": {
-      "name": "Java",
-      "version": "11.0.11"
-    },
-    "name": "opbeans-java",
-    "node": {
-      "name": "a47ed147c6ee269400f7ea4e296b3d01ec7398471bb2951907e4ea12f028bc69"
-    },
-    "runtime": {
-      "name": "Java",
-      "version": "11.0.11"
-    },
-    "version": "2021-09-08 03:55:06"
-  }
-}
-```
-
-## Logs
-
-Logs are application error events.
-Logs are written to `logs-apm.error.*` indices.
-
-**Exported Fields**
-
-| Field | Description | Type | ECS |
-|---|---|---|:---:|
-|@timestamp|Event timestamp.|date|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|agent.ephemeral\_id|The Ephemeral ID identifies a running process.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|agent.name|Name of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|agent.version|Version of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|client.domain|Client domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|client.ip|IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|client.port|Port of the client.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.account.id|Cloud account ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.account.name|Cloud account name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.availability\_zone|Cloud availability zone name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.instance.id|Cloud instance/machine ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.instance.name|Cloud instance/machine name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.machine.type|Cloud instance/machine type|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.project.id|Cloud project ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.project.name|Cloud project name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.provider|Cloud provider name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.region|Cloud region name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|container.id|Unique container id.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.dataset|Data stream dataset.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.namespace|Data stream namespace.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|data\_stream.type|Data stream type.|constant\_keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|destination.address|Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the \`.address\` field. Then it should be duplicated to \`.ip\` or \`.domain\`, depending on which one it is.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|destination.port|Port of the destination.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|ecs.version|ECS version the event conforms to.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|error.culprit|Function call which was the primary perpetrator of this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.exception.code|The error code set when the error happened, e.g. database error code.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.exception.handled|Indicator whether the error was caught somewhere in the code or not.|boolean|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.exception.message|The original error message.|text|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.exception.module|The module namespace of the original error.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.exception.type|The type of the original error, e.g. the Java exception class name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.grouping\_key|Hash of select properties of the logged error for grouping purposes.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.grouping\_name|Name to associate with an error group. Errors belonging to the same group (same grouping\_key) may have differing values for grouping\_name. Consumers may choose one arbitrarily.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.id|The ID of the error.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|error.log.level|The severity of the record.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.log.logger\_name|The name of the logger instance used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.log.message|The additionally logged error message.|text|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.log.param\_message|A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param\_message, but with placeholders replaced. In some situations the param\_message is used to group errors together.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|host.architecture|The architecture of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.hostname|The hostname of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.ip|IP of the host that records the event.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.name|Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.os.platform|The platform of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|http.request.headers|The canonical headers of the monitored HTTP request.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|http.request.method|The http method of the request leading to this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|http.request.referrer|Referrer for this HTTP request.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|http.response.finished|Used by the Node agent to indicate when in the response life cycle an error has occurred.|boolean|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|http.response.headers|The canonical headers of the monitored HTTP response.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|http.response.status\_code|The status code of the HTTP response.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|http.version|The http version of the request leading to this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|kubernetes.namespace|Kubernetes namespace|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|kubernetes.node.name|Kubernetes node name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|kubernetes.pod.name|Kubernetes pod name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|kubernetes.pod.uid|Kubernetes Pod UID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|labels|A flat mapping of user-defined labels with string, boolean or number values.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|message|The original error message.|text|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|network.carrier.icc|ISO country code, eg. US|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.carrier.mcc|Mobile country code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.carrier.mnc|Mobile network code|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.carrier.name|Carrier name, eg. Vodafone, T-Mobile, etc.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.connection.subtype|Detailed network connection sub-type, e.g. "LTE", "CDMA"|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|network.connection.type|Network connection type, eg. "wifi", "cell"|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|observer.ephemeral\_id|Ephemeral identifier of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|observer.id|Unique identifier of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|observer.listening|Address the server is listening on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|observer.type|The type will be set to \`apm-server\`.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|observer.version|APM Server version.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|observer.version\_major|Major version number of the observer|byte|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|parent.id|The ID of the parent event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|process.args|Process arguments. May be filtered to protect sensitive information.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|process.pid|Numeric process ID of the service process.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|process.ppid|Numeric ID of the service's parent process.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|process.title|Service process title.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|processor.event|Processor event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|processor.name|Processor name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|service.framework.name|Name of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.framework.version|Version of the framework used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.language.name|Name of the programming language used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.language.version|Version of the programming language used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.name|Immutable name of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|service.node.name|Unique meaningful name of the service node.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|service.runtime.name|Name of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.runtime.version|Version of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|service.version|Version of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|source.domain|Source domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|source.ip|IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|source.port|Port of the source.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|timestamp.us|Timestamp of the event in microseconds since Unix epoch.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|trace.id|The ID of the trace to which the event belongs to.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|transaction.id|The transaction ID.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|transaction.name|Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.sampled|Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.|boolean|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|transaction.type|Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|url.domain|The hostname of the request, e.g. "example.com".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.fragment|A fragment specifying a location in a web page , e.g. "top".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.full|The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.path|The path of the request, e.g. "/search".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.port|The port of the request, e.g. 443.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.query|The query string of the request, e.g. "q=elasticsearch".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.scheme|The protocol of the request, e.g. "https:".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.domain|Domain of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.email|Email of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.id|Identifier of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.name|The username of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.device.name|Name of the device.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.name|Name of the user agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.original|Unparsed version of the user\_agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.family|OS family (such as redhat, debian, freebsd, windows).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.full|Operating system name, including the version or code name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.kernel|Operating system kernel version as a raw string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.name|Operating system name, without the version.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.platform|Operating system platform (such centos, ubuntu, windows).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.os.version|Operating system version as a raw string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user\_agent.version|Version of the user agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+| Field | Description | Type | Unit | Metric Type |
+|---|---|---|---|---|
+| @timestamp | Event timestamp. | date |  |  |
+| agent.ephemeral_id | Ephemeral identifier of this agent (if one exists). This id normally changes across restarts, but `agent.id` does not. | keyword |  |  |
+| agent.name | Custom name of the agent. This is a name that can be given to an agent. This can be helpful if for example two Filebeat instances are running on the same host but a human readable separation is needed on which Filebeat instance data is coming from. If no name is given, the name is often left empty. | keyword |  |  |
+| agent.version | Version of the agent. | keyword |  |  |
+| client.domain | Client domain. | keyword |  |  |
+| client.geo.city_name | City name. | keyword |  |  |
+| client.geo.continent_name | Name of the continent. | keyword |  |  |
+| client.geo.country_iso_code | Country ISO code. | keyword |  |  |
+| client.geo.country_name | Country name. | keyword |  |  |
+| client.geo.location | Longitude and latitude. | geo_point |  |  |
+| client.geo.region_iso_code | Region ISO code. | keyword |  |  |
+| client.geo.region_name | Region name. | keyword |  |  |
+| client.ip | IP address of the client (IPv4 or IPv6). | ip |  |  |
+| client.port | Port of the client. | long |  |  |
+| cloud.account.id | The cloud account or organization id used to identify different entities in a multi-tenant environment. Examples: AWS account id, Google Cloud ORG Id, or other unique identifier. | keyword |  |  |
+| cloud.account.name | The cloud account name or alias used to identify different entities in a multi-tenant environment. Examples: AWS account name, Google Cloud ORG display name. | keyword |  |  |
+| cloud.availability_zone | Availability zone in which this host, resource, or service is located. | keyword |  |  |
+| cloud.instance.id | Instance ID of the host machine. | keyword |  |  |
+| cloud.instance.name | Instance name of the host machine. | keyword |  |  |
+| cloud.machine.type | Machine type of the host machine. | keyword |  |  |
+| cloud.project.id | The cloud project identifier. Examples: Google Cloud Project id, Azure Project id. | keyword |  |  |
+| cloud.project.name | The cloud project name. Examples: Google Cloud Project name, Azure Project name. | keyword |  |  |
+| cloud.provider | Name of the cloud provider. Example values are aws, azure, gcp, or digitalocean. | keyword |  |  |
+| cloud.region | Region in which this host, resource, or service is located. | keyword |  |  |
+| cloud.service.name | The cloud service name is intended to distinguish services running on different platforms within a provider, eg AWS EC2 vs Lambda, GCP GCE vs App Engine, Azure VM vs App Server. Examples: app engine, app service, cloud run, fargate, lambda. | keyword |  |  |
+| container.id | Unique container id. | keyword |  |  |
+| data_stream.dataset | Data stream dataset. | constant_keyword |  |  |
+| data_stream.namespace | Data stream namespace. | constant_keyword |  |  |
+| data_stream.type | Data stream type. | constant_keyword |  |  |
+| destination.address | Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is. | keyword |  |  |
+| destination.ip | IP address of the destination (IPv4 or IPv6). | ip |  |  |
+| destination.port | Port of the destination. | long |  |  |
+| ecs.version | ECS version this event conforms to. `ecs.version` is a required field and must exist in all events. When querying across multiple indices -- which may conform to slightly different ECS versions -- this field lets integrations adjust to the schema version of the events. | keyword |  |  |
+| event.outcome | This is one of four ECS Categorization Fields, and indicates the lowest level in the ECS category hierarchy. `event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event. Note that when a single transaction is described in multiple events, each event may populate different values of `event.outcome`, according to their perspective. Also note that in the case of a compound event (a single event that contains multiple logical events), this field should be populated with the value that best captures the overall success or failure from the perspective of the event producer. Further note that not all events will have an associated outcome. For example, this field is generally not populated for metric events, events with `event.type:info`, or any events for which an outcome does not make logical sense. | keyword |  |  |
+| host.architecture | Operating system architecture. | keyword |  |  |
+| host.hostname | Hostname of the host. It normally contains what the `hostname` command returns on the host machine. | keyword |  |  |
+| host.ip | Host ip addresses. | ip |  |  |
+| host.name | Name of the host. It can contain what `hostname` returns on Unix systems, the fully qualified domain name, or a name specified by the user. The sender decides which value to use. | keyword |  |  |
+| host.os.platform | Operating system platform (such centos, ubuntu, windows). | keyword |  |  |
+| kubernetes.namespace | Kubernetes namespace | keyword |  |  |
+| kubernetes.node.name | Kubernetes node name | keyword |  |  |
+| kubernetes.pod.name | Kubernetes pod name | keyword |  |  |
+| kubernetes.pod.uid | Kubernetes Pod UID | keyword |  |  |
+| labels | A flat mapping of user-defined labels with string, boolean or number values. | object |  |  |
+| metricset.name | Name of the set of metrics. | keyword |  |  |
+| network.connection.type | Network connection type, eg. "wifi", "cell" | keyword |  |  |
+| observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |  |  |
+| observer.hostname | Hostname of the observer. | keyword |  |  |
+| observer.id | Unique identifier of the APM Server. | keyword |  |  |
+| observer.type | The type of the observer the data is coming from. There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`. | keyword |  |  |
+| observer.version | Observer version. | keyword |  |  |
+| observer.version_major | Major version number of the observer | byte |  |  |
+| process.args | Array of process arguments, starting with the absolute path to the executable. May be filtered to protect sensitive information. | keyword |  |  |
+| process.pid | Process id. | long |  |  |
+| process.ppid | Parent process' pid. | long |  |  |
+| process.title | Process title. The proctitle, some times the same as process name. Can also be different: for example a browser setting its title to the web page currently opened. | keyword |  |  |
+| processor.event | Processor event. | constant_keyword |  |  |
+| processor.name | Processor name. | constant_keyword |  |  |
+| service.environment | Identifies the environment where the service is running. If the same service runs in different environments (production, staging, QA, development, etc.), the environment can identify other instances of the same service. Can also group services and applications from the same environment. | keyword |  |  |
+| service.framework.name | Name of the framework used. | keyword |  |  |
+| service.framework.version | Version of the framework used. | keyword |  |  |
+| service.language.name | Name of the programming language used. | keyword |  |  |
+| service.language.version | Version of the programming language used. | keyword |  |  |
+| service.name | Name of the service data is collected from. The name of the service is normally user given. This allows for distributed services that run on multiple hosts to correlate the related instances based on the name. In the case of Elasticsearch the `service.name` could contain the cluster name. For Beats the `service.name` is by default a copy of the `service.type` field if no name is specified. | keyword |  |  |
+| service.node.name | Name of a service node. This allows for two nodes of the same service running on the same host to be differentiated. Therefore, `service.node.name` should typically be unique across nodes of a given service. In the case of Elasticsearch, the `service.node.name` could contain the unique node name within the Elasticsearch cluster. In cases where the service doesn't have the concept of a node name, the host name or container name can be used to distinguish running instances that make up this service. If those do not provide uniqueness (e.g. multiple instances of the service running on the same host) - the node name can be manually set. | keyword |  |  |
+| service.runtime.name | Name of the runtime used. | keyword |  |  |
+| service.runtime.version | Version of the runtime used. | keyword |  |  |
+| service.version | Version of the service the data was collected from. This allows to look at a data set only for a specific version of a service. | keyword |  |  |
+| source.domain | Source domain. | keyword |  |  |
+| source.ip | IP address of the source (IPv4 or IPv6). | ip |  |  |
+| source.port | Port of the source. | long |  |  |
+| system.cpu.total.norm.pct | The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%. | scaled_float | percent | gauge |
+| system.memory.actual.free | Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal to `system.memory.free`. | long | byte | gauge |
+| system.memory.total | Total memory. | long | byte | gauge |
+| system.process.cgroup.cpu.cfs.period.us | CFS period in microseconds. | long | micros | gauge |
+| system.process.cgroup.cpu.cfs.quota.us | CFS quota in microseconds. | long | micros | gauge |
+| system.process.cgroup.cpu.id | ID for the current cgroup CPU. | keyword |  |  |
+| system.process.cgroup.cpu.stats.periods | Number of periods seen by the CPU. | long |  | counter |
+| system.process.cgroup.cpu.stats.throttled.ns | Nanoseconds spent throttled seen by the CPU. | long | nanos | counter |
+| system.process.cgroup.cpu.stats.throttled.periods | Number of throttled periods seen by the CPU. | long |  | counter |
+| system.process.cgroup.cpuacct.id | ID for the current cgroup CPU. | keyword |  |  |
+| system.process.cgroup.cpuacct.total.ns | Total CPU time for the current cgroup CPU in nanoseconds. | long | nanos | counter |
+| system.process.cgroup.memory.mem.limit.bytes | Memory limit for the current cgroup slice. | long | byte | gauge |
+| system.process.cgroup.memory.mem.usage.bytes | Memory usage by the current cgroup slice. | long | byte | gauge |
+| system.process.cpu.total.norm.pct | The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%. | scaled_float | percent | gauge |
+| system.process.memory.rss.bytes | The Resident Set Size. The amount of memory the process occupied in main memory (RAM). | long | byte | gauge |
+| system.process.memory.size | The total virtual memory the process has. | long | byte | gauge |
+| user.domain | Name of the directory the user is a member of. For example, an LDAP or Active Directory domain name. | keyword |  |  |
+| user.email | User email address. | keyword |  |  |
+| user.id | Unique identifier of the user. | keyword |  |  |
+| user.name | Short name or login of the user. | keyword |  |  |
+| user_agent.device.name | Name of the device. | keyword |  |  |
+| user_agent.name | Name of the user agent. | keyword |  |  |
+| user_agent.original | Unparsed user_agent string. | keyword |  |  |
+| user_agent.os.family | OS family (such as redhat, debian, freebsd, windows). | keyword |  |  |
+| user_agent.os.full | Operating system name, including the version or code name. | keyword |  |  |
+| user_agent.os.kernel | Operating system kernel version as a raw string. | keyword |  |  |
+| user_agent.os.name | Operating system name, without the version. | keyword |  |  |
+| user_agent.os.platform | Operating system platform (such centos, ubuntu, windows). | keyword |  |  |
+| user_agent.os.version | Operating system version as a raw string. | keyword |  |  |
+| user_agent.version | Version of the user agent. | keyword |  |  |
 
 
-### Example
+## Internal Metrics
 
-```json
-{
-  "@timestamp": "2017-05-09T15:04:05.999Z",
-  "agent": {
-    "name": "elastic-node",
-    "version": "3.14.0"
-  },
-  "container": {
-    "id": "container-id"
-  },
-  "ecs": {
-    "version": "1.12.0"
-  },
-  "error": {
-    "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
-    "grouping_name": "Cannot read property 'baz' of undefined",
-    "id": "0f0e9d67c1854d21a6f44673ed561ec8",
-    "log": {
-      "level": "custom log level",
-      "message": "Cannot read property 'baz' of undefined"
-    }
-  },
-  "event": {
-    "ingested": "2020-04-22T14:52:08.436124Z"
-  },
-  "host": {
-    "architecture": "x64",
-    "ip": "127.0.0.1",
-    "os": {
-      "platform": "darwin"
-    }
-  },
-  "kubernetes": {
-    "namespace": "namespace1",
-    "pod": {
-      "name": "pod-name",
-      "uid": "pod-uid"
-    }
-  },
-  "labels": {
-    "tag1": "one",
-    "tag2": 2
-  },
-  "message": "Cannot read property 'baz' of undefined",
-  "observer": {
-    "ephemeral_id": "f1838cde-80dd-4af5-b7ac-ffc2d3fccc9d",
-    "hostname": "ix.lan",
-    "id": "5d4dc8fe-cb14-47ee-b720-d6bf49f87ef0",
-    "type": "apm-server",
-    "version": "8.0.0",
-    "version_major": 8
-  },
-  "process": {
-    "args": [
-      "node",
-      "server.js"
-    ],
-    "pid": 1234,
-    "ppid": 7788,
-    "title": "node"
-  },
-  "processor": {
-    "event": "error",
-    "name": "error"
-  },
-  "service": {
-    "environment": "staging",
-    "framework": {
-      "name": "Express",
-      "version": "1.2.3"
-    },
-    "language": {
-      "name": "ecmascript",
-      "version": "8"
-    },
-    "name": "1234_service-12a3",
-    "node": {
-      "name": "myservice-node"
-    },
-    "runtime": {
-      "name": "node",
-      "version": "8.0.0"
-    },
-    "version": "5.1.3"
-  },
-  "timestamp": {
-    "us": 1494342245999000
-  }
-}
-```
+Internal metrics comprises metrics produced by Elastic APM agents and Elastic APM server for powering various Kibana charts
+in the APM app, such as "Time spent by span type".
+
+Internal metrics are written to `metrics-apm.internal-*` data streams.
+
+**Exported fields**
+
+| Field | Description | Type | Unit |
+|---|---|---|---|
+| @timestamp | Event timestamp. | date |  |
+| agent.ephemeral_id | Ephemeral identifier of this agent (if one exists). This id normally changes across restarts, but `agent.id` does not. | keyword |  |
+| agent.name | Custom name of the agent. This is a name that can be given to an agent. This can be helpful if for example two Filebeat instances are running on the same host but a human readable separation is needed on which Filebeat instance data is coming from. If no name is given, the name is often left empty. | keyword |  |
+| agent.version | Version of the agent. | keyword |  |
+| client.domain | Client domain. | keyword |  |
+| client.geo.city_name | City name. | keyword |  |
+| client.geo.continent_name | Name of the continent. | keyword |  |
+| client.geo.country_iso_code | Country ISO code. | keyword |  |
+| client.geo.country_name | Country name. | keyword |  |
+| client.geo.location | Longitude and latitude. | geo_point |  |
+| client.geo.region_iso_code | Region ISO code. | keyword |  |
+| client.geo.region_name | Region name. | keyword |  |
+| client.ip | IP address of the client (IPv4 or IPv6). | ip |  |
+| client.port | Port of the client. | long |  |
+| cloud.account.id | The cloud account or organization id used to identify different entities in a multi-tenant environment. Examples: AWS account id, Google Cloud ORG Id, or other unique identifier. | keyword |  |
+| cloud.account.name | The cloud account name or alias used to identify different entities in a multi-tenant environment. Examples: AWS account name, Google Cloud ORG display name. | keyword |  |
+| cloud.availability_zone | Availability zone in which this host, resource, or service is located. | keyword |  |
+| cloud.instance.id | Instance ID of the host machine. | keyword |  |
+| cloud.instance.name | Instance name of the host machine. | keyword |  |
+| cloud.machine.type | Machine type of the host machine. | keyword |  |
+| cloud.project.id | The cloud project identifier. Examples: Google Cloud Project id, Azure Project id. | keyword |  |
+| cloud.project.name | The cloud project name. Examples: Google Cloud Project name, Azure Project name. | keyword |  |
+| cloud.provider | Name of the cloud provider. Example values are aws, azure, gcp, or digitalocean. | keyword |  |
+| cloud.region | Region in which this host, resource, or service is located. | keyword |  |
+| cloud.service.name | The cloud service name is intended to distinguish services running on different platforms within a provider, eg AWS EC2 vs Lambda, GCP GCE vs App Engine, Azure VM vs App Server. Examples: app engine, app service, cloud run, fargate, lambda. | keyword |  |
+| container.id | Unique container id. | keyword |  |
+| data_stream.dataset | Data stream dataset. | constant_keyword |  |
+| data_stream.namespace | Data stream namespace. | constant_keyword |  |
+| data_stream.type | Data stream type. | constant_keyword |  |
+| destination.address | Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is. | keyword |  |
+| destination.ip | IP address of the destination (IPv4 or IPv6). | ip |  |
+| destination.port | Port of the destination. | long |  |
+| ecs.version | ECS version this event conforms to. `ecs.version` is a required field and must exist in all events. When querying across multiple indices -- which may conform to slightly different ECS versions -- this field lets integrations adjust to the schema version of the events. | keyword |  |
+| event.outcome | This is one of four ECS Categorization Fields, and indicates the lowest level in the ECS category hierarchy. `event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event. Note that when a single transaction is described in multiple events, each event may populate different values of `event.outcome`, according to their perspective. Also note that in the case of a compound event (a single event that contains multiple logical events), this field should be populated with the value that best captures the overall success or failure from the perspective of the event producer. Further note that not all events will have an associated outcome. For example, this field is generally not populated for metric events, events with `event.type:info`, or any events for which an outcome does not make logical sense. | keyword |  |
+| host.architecture | Operating system architecture. | keyword |  |
+| host.hostname | Hostname of the host. It normally contains what the `hostname` command returns on the host machine. | keyword |  |
+| host.ip | Host ip addresses. | ip |  |
+| host.name | Name of the host. It can contain what `hostname` returns on Unix systems, the fully qualified domain name, or a name specified by the user. The sender decides which value to use. | keyword |  |
+| host.os.platform | Operating system platform (such centos, ubuntu, windows). | keyword |  |
+| kubernetes.namespace | Kubernetes namespace | keyword |  |
+| kubernetes.node.name | Kubernetes node name | keyword |  |
+| kubernetes.pod.name | Kubernetes pod name | keyword |  |
+| kubernetes.pod.uid | Kubernetes Pod UID | keyword |  |
+| labels | A flat mapping of user-defined labels with string, boolean or number values. | object |  |
+| metricset.name | Name of the set of metrics. | keyword |  |
+| network.connection.type | Network connection type, eg. "wifi", "cell" | keyword |  |
+| observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |  |
+| observer.hostname | Hostname of the observer. | keyword |  |
+| observer.id | Unique identifier of the APM Server. | keyword |  |
+| observer.type | The type of the observer the data is coming from. There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`. | keyword |  |
+| observer.version | Observer version. | keyword |  |
+| observer.version_major | Major version number of the observer | byte |  |
+| process.args | Array of process arguments, starting with the absolute path to the executable. May be filtered to protect sensitive information. | keyword |  |
+| process.pid | Process id. | long |  |
+| process.ppid | Parent process' pid. | long |  |
+| process.title | Process title. The proctitle, some times the same as process name. Can also be different: for example a browser setting its title to the web page currently opened. | keyword |  |
+| processor.event | Processor event. | constant_keyword |  |
+| processor.name | Processor name. | constant_keyword |  |
+| service.environment | Identifies the environment where the service is running. If the same service runs in different environments (production, staging, QA, development, etc.), the environment can identify other instances of the same service. Can also group services and applications from the same environment. | keyword |  |
+| service.framework.name | Name of the framework used. | keyword |  |
+| service.framework.version | Version of the framework used. | keyword |  |
+| service.language.name | Name of the programming language used. | keyword |  |
+| service.language.version | Version of the programming language used. | keyword |  |
+| service.name | Name of the service data is collected from. The name of the service is normally user given. This allows for distributed services that run on multiple hosts to correlate the related instances based on the name. In the case of Elasticsearch the `service.name` could contain the cluster name. For Beats the `service.name` is by default a copy of the `service.type` field if no name is specified. | keyword |  |
+| service.node.name | Name of a service node. This allows for two nodes of the same service running on the same host to be differentiated. Therefore, `service.node.name` should typically be unique across nodes of a given service. In the case of Elasticsearch, the `service.node.name` could contain the unique node name within the Elasticsearch cluster. In cases where the service doesn't have the concept of a node name, the host name or container name can be used to distinguish running instances that make up this service. If those do not provide uniqueness (e.g. multiple instances of the service running on the same host) - the node name can be manually set. | keyword |  |
+| service.runtime.name | Name of the runtime used. | keyword |  |
+| service.runtime.version | Version of the runtime used. | keyword |  |
+| service.version | Version of the service the data was collected from. This allows to look at a data set only for a specific version of a service. | keyword |  |
+| source.domain | Source domain. | keyword |  |
+| source.ip | IP address of the source (IPv4 or IPv6). | ip |  |
+| source.port | Port of the source. | long |  |
+| span.destination.service.resource | Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name') | keyword |  |
+| span.destination.service.response_time.count | Number of aggregated outgoing requests. | long |  |
+| span.destination.service.response_time.sum.us | Aggregated duration of outgoing requests, in microseconds. | long | micros |
+| span.self_time.count | Number of aggregated spans. | long |  |
+| span.self_time.sum.us | Aggregated span duration, excluding the time periods where a direct child was running, in microseconds. | long | micros |
+| span.subtype | A further sub-division of the type (e.g. postgresql, elasticsearch) | keyword |  |
+| span.type | Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc). | keyword |  |
+| timeseries.instance | Time series instance ID | keyword |  |
+| transaction.duration.histogram | Pre-aggregated histogram of transaction durations. | histogram |  |
+| transaction.name | Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id'). | keyword |  |
+| transaction.result | The result of the transaction. HTTP status code for HTTP-related transactions. | keyword |  |
+| transaction.root | Identifies metrics for root transactions. This can be used for calculating metrics for traces. | boolean |  |
+| transaction.sampled | Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. | boolean |  |
+| transaction.self_time.count | Number of aggregated transactions. | long |  |
+| transaction.self_time.sum.us | Aggregated transaction duration, excluding the time periods where a direct child was running, in microseconds. | long | micros |
+| transaction.type | Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc) | keyword |  |
+| user.domain | Name of the directory the user is a member of. For example, an LDAP or Active Directory domain name. | keyword |  |
+| user.email | User email address. | keyword |  |
+| user.id | Unique identifier of the user. | keyword |  |
+| user.name | Short name or login of the user. | keyword |  |
+| user_agent.device.name | Name of the device. | keyword |  |
+| user_agent.name | Name of the user agent. | keyword |  |
+| user_agent.original | Unparsed user_agent string. | keyword |  |
+| user_agent.os.family | OS family (such as redhat, debian, freebsd, windows). | keyword |  |
+| user_agent.os.full | Operating system name, including the version or code name. | keyword |  |
+| user_agent.os.kernel | Operating system kernel version as a raw string. | keyword |  |
+| user_agent.os.name | Operating system name, without the version. | keyword |  |
+| user_agent.os.platform | Operating system platform (such centos, ubuntu, windows). | keyword |  |
+| user_agent.os.version | Operating system version as a raw string. | keyword |  |
+| user_agent.version | Version of the user agent. | keyword |  |
+
+
+## Application errors
+
+Application errors comprises error/exception events occurring in an application.
+
+Application errors are written to `logs-apm.error.*` data stream.
+
+**Exported fields**
+
+| Field | Description | Type |
+|---|---|---|
+| @timestamp | Event timestamp. | date |
+| agent.ephemeral_id | Ephemeral identifier of this agent (if one exists). This id normally changes across restarts, but `agent.id` does not. | keyword |
+| agent.name | Custom name of the agent. This is a name that can be given to an agent. This can be helpful if for example two Filebeat instances are running on the same host but a human readable separation is needed on which Filebeat instance data is coming from. If no name is given, the name is often left empty. | keyword |
+| agent.version | Version of the agent. | keyword |
+| client.domain | Client domain. | keyword |
+| client.geo.city_name | City name. | keyword |
+| client.geo.continent_name | Name of the continent. | keyword |
+| client.geo.country_iso_code | Country ISO code. | keyword |
+| client.geo.country_name | Country name. | keyword |
+| client.geo.location | Longitude and latitude. | geo_point |
+| client.geo.region_iso_code | Region ISO code. | keyword |
+| client.geo.region_name | Region name. | keyword |
+| client.ip | IP address of the client (IPv4 or IPv6). | ip |
+| client.port | Port of the client. | long |
+| cloud.account.id | The cloud account or organization id used to identify different entities in a multi-tenant environment. Examples: AWS account id, Google Cloud ORG Id, or other unique identifier. | keyword |
+| cloud.account.name | The cloud account name or alias used to identify different entities in a multi-tenant environment. Examples: AWS account name, Google Cloud ORG display name. | keyword |
+| cloud.availability_zone | Availability zone in which this host, resource, or service is located. | keyword |
+| cloud.instance.id | Instance ID of the host machine. | keyword |
+| cloud.instance.name | Instance name of the host machine. | keyword |
+| cloud.machine.type | Machine type of the host machine. | keyword |
+| cloud.project.id | The cloud project identifier. Examples: Google Cloud Project id, Azure Project id. | keyword |
+| cloud.project.name | The cloud project name. Examples: Google Cloud Project name, Azure Project name. | keyword |
+| cloud.provider | Name of the cloud provider. Example values are aws, azure, gcp, or digitalocean. | keyword |
+| cloud.region | Region in which this host, resource, or service is located. | keyword |
+| cloud.service.name | The cloud service name is intended to distinguish services running on different platforms within a provider, eg AWS EC2 vs Lambda, GCP GCE vs App Engine, Azure VM vs App Server. Examples: app engine, app service, cloud run, fargate, lambda. | keyword |
+| container.id | Unique container id. | keyword |
+| data_stream.dataset | Data stream dataset. | constant_keyword |
+| data_stream.namespace | Data stream namespace. | constant_keyword |
+| data_stream.type | Data stream type. | constant_keyword |
+| destination.address | Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is. | keyword |
+| destination.ip | IP address of the destination (IPv4 or IPv6). | ip |
+| destination.port | Port of the destination. | long |
+| ecs.version | ECS version this event conforms to. `ecs.version` is a required field and must exist in all events. When querying across multiple indices -- which may conform to slightly different ECS versions -- this field lets integrations adjust to the schema version of the events. | keyword |
+| error.culprit | Function call which was the primary perpetrator of this event. | keyword |
+| error.exception.code | The error code set when the error happened, e.g. database error code. | keyword |
+| error.exception.handled | Indicator whether the error was caught somewhere in the code or not. | boolean |
+| error.exception.message | The original error message. | text |
+| error.exception.module | The module namespace of the original error. | keyword |
+| error.exception.type | The type of the original error, e.g. the Java exception class name. | keyword |
+| error.grouping_key | Hash of select properties of the logged error for grouping purposes. | keyword |
+| error.grouping_name | Name to associate with an error group. Errors belonging to the same group (same grouping_key) may have differing values for grouping_name. Consumers may choose one arbitrarily. | keyword |
+| error.log.level | The severity of the record. | keyword |
+| error.log.logger_name | The name of the logger instance used. | keyword |
+| error.log.message | The additionally logged error message. | text |
+| error.log.param_message | A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. | keyword |
+| event.outcome | This is one of four ECS Categorization Fields, and indicates the lowest level in the ECS category hierarchy. `event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event. Note that when a single transaction is described in multiple events, each event may populate different values of `event.outcome`, according to their perspective. Also note that in the case of a compound event (a single event that contains multiple logical events), this field should be populated with the value that best captures the overall success or failure from the perspective of the event producer. Further note that not all events will have an associated outcome. For example, this field is generally not populated for metric events, events with `event.type:info`, or any events for which an outcome does not make logical sense. | keyword |
+| host.architecture | Operating system architecture. | keyword |
+| host.hostname | Hostname of the host. It normally contains what the `hostname` command returns on the host machine. | keyword |
+| host.ip | Host ip addresses. | ip |
+| host.name | Name of the host. It can contain what `hostname` returns on Unix systems, the fully qualified domain name, or a name specified by the user. The sender decides which value to use. | keyword |
+| host.os.platform | Operating system platform (such centos, ubuntu, windows). | keyword |
+| http.request.headers | The canonical headers of the monitored HTTP request. | object |
+| http.request.method | HTTP request method. Prior to ECS 1.6.0 the following guidance was provided: "The field value must be normalized to lowercase for querying." As of ECS 1.6.0, the guidance is deprecated because the original case of the method may be useful in anomaly detection.  Original case will be mandated in ECS 2.0.0 | keyword |
+| http.request.referrer | Referrer for this HTTP request. | keyword |
+| http.response.finished | Used by the Node agent to indicate when in the response life cycle an error has occurred. | boolean |
+| http.response.headers | The canonical headers of the monitored HTTP response. | object |
+| http.response.status_code | HTTP response status code. | long |
+| http.version | HTTP version. | keyword |
+| kubernetes.namespace | Kubernetes namespace | keyword |
+| kubernetes.node.name | Kubernetes node name | keyword |
+| kubernetes.pod.name | Kubernetes pod name | keyword |
+| kubernetes.pod.uid | Kubernetes Pod UID | keyword |
+| labels | A flat mapping of user-defined labels with string, boolean or number values. | object |
+| network.carrier.icc | ISO country code, eg. US | keyword |
+| network.carrier.mcc | Mobile country code | keyword |
+| network.carrier.mnc | Mobile network code | keyword |
+| network.carrier.name | Carrier name, eg. Vodafone, T-Mobile, etc. | keyword |
+| network.connection.subtype | Detailed network connection sub-type, e.g. "LTE", "CDMA" | keyword |
+| network.connection.type | Network connection type, eg. "wifi", "cell" | keyword |
+| observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |
+| observer.hostname | Hostname of the observer. | keyword |
+| observer.id | Unique identifier of the APM Server. | keyword |
+| observer.type | The type of the observer the data is coming from. There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`. | keyword |
+| observer.version | Observer version. | keyword |
+| observer.version_major | Major version number of the observer | byte |
+| parent.id | The ID of the parent event. | keyword |
+| process.args | Array of process arguments, starting with the absolute path to the executable. May be filtered to protect sensitive information. | keyword |
+| process.pid | Process id. | long |
+| process.ppid | Parent process' pid. | long |
+| process.title | Process title. The proctitle, some times the same as process name. Can also be different: for example a browser setting its title to the web page currently opened. | keyword |
+| processor.event | Processor event. | constant_keyword |
+| processor.name | Processor name. | constant_keyword |
+| service.environment | Identifies the environment where the service is running. If the same service runs in different environments (production, staging, QA, development, etc.), the environment can identify other instances of the same service. Can also group services and applications from the same environment. | keyword |
+| service.framework.name | Name of the framework used. | keyword |
+| service.framework.version | Version of the framework used. | keyword |
+| service.language.name | Name of the programming language used. | keyword |
+| service.language.version | Version of the programming language used. | keyword |
+| service.name | Name of the service data is collected from. The name of the service is normally user given. This allows for distributed services that run on multiple hosts to correlate the related instances based on the name. In the case of Elasticsearch the `service.name` could contain the cluster name. For Beats the `service.name` is by default a copy of the `service.type` field if no name is specified. | keyword |
+| service.node.name | Name of a service node. This allows for two nodes of the same service running on the same host to be differentiated. Therefore, `service.node.name` should typically be unique across nodes of a given service. In the case of Elasticsearch, the `service.node.name` could contain the unique node name within the Elasticsearch cluster. In cases where the service doesn't have the concept of a node name, the host name or container name can be used to distinguish running instances that make up this service. If those do not provide uniqueness (e.g. multiple instances of the service running on the same host) - the node name can be manually set. | keyword |
+| service.runtime.name | Name of the runtime used. | keyword |
+| service.runtime.version | Version of the runtime used. | keyword |
+| service.version | Version of the service the data was collected from. This allows to look at a data set only for a specific version of a service. | keyword |
+| source.domain | Source domain. | keyword |
+| source.ip | IP address of the source (IPv4 or IPv6). | ip |
+| source.port | Port of the source. | long |
+| span.id | Unique identifier of the span within the scope of its trace. A span represents an operation within a transaction, such as a request to another service, or a database query. | keyword |
+| timestamp.us | Timestamp of the event in microseconds since Unix epoch. | long |
+| trace.id | Unique identifier of the trace. A trace groups multiple events like transactions that belong together. For example, a user request handled by multiple inter-connected services. | keyword |
+| transaction.id | Unique identifier of the transaction within the scope of its trace. A transaction is the highest level of work measured within a service, such as a request to a server. | keyword |
+| transaction.sampled | Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. | boolean |
+| transaction.type | Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc) | keyword |
+| url.domain | Domain of the url, such as "www.elastic.co". In some cases a URL may refer to an IP and/or port directly, without a domain name. In this case, the IP address would go to the `domain` field. If the URL contains a literal IPv6 address enclosed by `[` and `]` (IETF RFC 2732), the `[` and `]` characters should also be captured in the `domain` field. | keyword |
+| url.fragment | Portion of the url after the `#`, such as "top". The `#` is not part of the fragment. | keyword |
+| url.full | If full URLs are important to your use case, they should be stored in `url.full`, whether this field is reconstructed or present in the event source. | wildcard |
+| url.path | Path of the request, such as "/search". | wildcard |
+| url.port | Port of the request, such as 443. | long |
+| url.query | The query field describes the query string of the request, such as "q=elasticsearch". The `?` is excluded from the query string. If a URL contains no `?`, there is no query field. If there is a `?` but no query, the query field exists with an empty string. The `exists` query can be used to differentiate between the two cases. | keyword |
+| url.scheme | Scheme of the request, such as "https". Note: The `:` is not part of the scheme. | keyword |
+| user.domain | Name of the directory the user is a member of. For example, an LDAP or Active Directory domain name. | keyword |
+| user.email | User email address. | keyword |
+| user.id | Unique identifier of the user. | keyword |
+| user.name | Short name or login of the user. | keyword |
+| user_agent.device.name | Name of the device. | keyword |
+| user_agent.name | Name of the user agent. | keyword |
+| user_agent.original | Unparsed user_agent string. | keyword |
+| user_agent.os.family | OS family (such as redhat, debian, freebsd, windows). | keyword |
+| user_agent.os.full | Operating system name, including the version or code name. | keyword |
+| user_agent.os.kernel | Operating system kernel version as a raw string. | keyword |
+| user_agent.os.name | Operating system name, without the version. | keyword |
+| user_agent.os.platform | Operating system platform (such centos, ubuntu, windows). | keyword |
+| user_agent.os.version | Operating system version as a raw string. | keyword |
+| user_agent.version | Version of the user agent. | keyword |
+

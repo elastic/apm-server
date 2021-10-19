@@ -24,9 +24,8 @@ import (
 )
 
 const (
-	spanBreakdownMetricsetName        = "span_breakdown"
-	transactionBreakdownMetricsetName = "transaction_breakdown"
-	appMetricsetName                  = "app"
+	spanBreakdownMetricsetName = "span_breakdown"
+	appMetricsetName           = "app"
 )
 
 // SetMetricsetName is a transform.Processor that sets a name for
@@ -44,12 +43,7 @@ func (SetMetricsetName) ProcessBatch(ctx context.Context, b *model.Batch) error 
 			continue
 		}
 		ms.Name = appMetricsetName
-		if event.Transaction == nil {
-			// Not a breakdown metricset.
-			continue
-		}
-		ms.Name = transactionBreakdownMetricsetName
-		if event.Span != nil && event.Span.SelfTime.Count > 0 {
+		if event.Transaction != nil && event.Span != nil && event.Span.SelfTime.Count > 0 {
 			ms.Name = spanBreakdownMetricsetName
 		}
 	}

@@ -47,7 +47,7 @@ func NormalizeLabelValues(labels common.MapStr) common.MapStr {
 		switch v := v.(type) {
 		case json.Number:
 			if floatVal, err := v.Float64(); err == nil {
-				labels[k] = common.Float(floatVal)
+				labels[k] = floatVal
 			}
 		}
 	}

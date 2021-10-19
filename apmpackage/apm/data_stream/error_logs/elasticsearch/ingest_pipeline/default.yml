@@ -1,0 +1,28 @@
+---
+description: Pipeline for ingesting APM error events.
+processors:
+  - set:
+      field: event.ingested
+      value: "{{_ingest.timestamp}}"
+  - user_agent:
+      field: user_agent.original
+      target_field: user_agent
+      ignore_missing: true
+      ignore_failure: true
+  - geoip:
+      database_file: GeoLite2-City.mmdb
+      field: client.ip
+      target_field: client.geo
+      ignore_missing: true
+      on_failure:
+        - remove:
+            field: client.ip
+            ignore_missing: true
+            ignore_failure: true
+  - script:
+      if: ctx.error?.exception?.length != null && ctx.error?.exception?.length > 0
+      source: ctx.error.grouping_name = ctx.error.exception[0].message
+  - set:
+      if: ctx.error?.log?.message != null
+      field: error.grouping_name
+      copy_from: error.log.message

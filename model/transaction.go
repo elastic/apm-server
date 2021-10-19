@@ -36,11 +36,11 @@ var (
 type Transaction struct {
 	ID string
 
-	// Type holds the transaction type: "request", "message", etc.
-	Type string
-
 	// Name holds the transaction name: "GET /foo", etc.
 	Name string
+
+	// Type holds the transaction type: "request", "message", etc.
+	Type string
 
 	// Result holds the transaction result: "HTTP 2xx", "OK", "Error", etc.
 	Result string
@@ -54,10 +54,6 @@ type Transaction struct {
 	// with bucket values measured in microseconds, for transaction
 	// duration metrics.
 	DurationHistogram Histogram
-
-	// BreakdownCount holds transaction breakdown count, for
-	// breakdown metrics.
-	BreakdownCount int
 
 	Marks          TransactionMarks
 	Message        *Message
@@ -118,9 +114,6 @@ func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
 	if e.Root {
 		transaction.set("root", e.Root)
 	}
-	if e.BreakdownCount > 0 {
-		transaction.set("breakdown.count", e.BreakdownCount)
-	}
 	var dss []common.MapStr
 	for _, v := range e.DroppedSpansStats {
 		dss = append(dss, v.fields())
@@ -152,7 +145,7 @@ func (m TransactionMark) fields() common.MapStr {
 	}
 	out := make(common.MapStr, len(m))
 	for k, v := range m {
-		out[sanitizeLabelKey(k)] = common.Float(v)
+		out[sanitizeLabelKey(k)] = v
 	}
 	return out
 }

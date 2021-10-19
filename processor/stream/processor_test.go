@@ -122,6 +122,9 @@ func TestIntegrationESOutput(t *testing.T) {
 		name: "OptionalTimestamps",
 		path: "optional-timestamps.ndjson",
 	}, {
+		name: "OpenTelemetryBridge",
+		path: "otel-bridge.ndjson",
+	}, {
 		name: "InvalidEvent",
 		path: "invalid-event.ndjson",
 		errors: []error{

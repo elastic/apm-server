@@ -18,6 +18,7 @@
 package v2
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -32,7 +33,11 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecoderutil"
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
+	otel_processor "github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/v7/libbeat/common"
+
+	"go.opentelemetry.io/collector/model/pdata"
 )
 
 var (
@@ -156,8 +161,9 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *
 		return modeldecoder.NewValidationErr(err)
 	}
 	event := input.Base
-	mapToMetricsetModel(&root.Metricset, &event)
-	*batch = append(*batch, event)
+	if mapToMetricsetModel(&root.Metricset, &event) {
+		*batch = append(*batch, event)
+	}
 	return err
 }
 
@@ -585,7 +591,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 	}
 }
 
-func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
+func mapToMetricsetModel(from *metricset, event *model.APMEvent) bool {
 	event.Metricset = &model.Metricset{}
 	event.Processor = model.MetricsetProcessor
 
@@ -636,6 +642,7 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 		}
 	}
 
+	ok := true
 	if from.Transaction.IsSet() {
 		event.Transaction = &model.Transaction{}
 		if from.Transaction.Name.IsSet() {
@@ -645,8 +652,11 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) {
 			event.Transaction.Type = from.Transaction.Type.Val
 		}
 		// Transaction fields specified: this is an APM-internal metricset.
-		modeldecoderutil.SetInternalMetrics(event)
+		// If there are no known metric samples, we return false so the
+		// metricset is not added to the batch.
+		ok = modeldecoderutil.SetInternalMetrics(event)
 	}
+	return ok
 }
 
 func mapToRequestModel(from contextRequest, out *model.HTTPRequest) {
@@ -998,6 +1008,9 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 	if from.TransactionID.IsSet() {
 		event.Transaction = &model.Transaction{ID: from.TransactionID.Val}
 	}
+	if from.OTel.IsSet() {
+		mapOTelAttributesSpan(from.OTel, event)
+	}
 }
 
 func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
@@ -1218,6 +1231,77 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 			}
 		}
 	}
+
+	if from.OTel.IsSet() {
+		if event.Span == nil {
+			event.Span = &model.Span{}
+		}
+		mapOTelAttributesTransaction(from.OTel, event)
+	}
+}
+
+func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
+	library := pdata.NewInstrumentationLibrary()
+	m := otelAttributeMap(&from)
+	if from.SpanKind.IsSet() {
+		out.Span.Kind = from.SpanKind.Val
+	}
+	if out.Labels == nil {
+		out.Labels = make(common.MapStr)
+	}
+	// TODO: Does this work? Is there a way we can infer the status code,
+	// potentially in the actual attributes map?
+	spanStatus := pdata.NewSpanStatus()
+	spanStatus.SetCode(pdata.StatusCodeUnset)
+	otel_processor.TranslateTransaction(m, spanStatus, library, out)
+
+	if out.Span.Kind == "" {
+		switch out.Transaction.Type {
+		case "messaging":
+			out.Span.Kind = "CONSUMER"
+		case "request":
+			out.Span.Kind = "SERVER"
+		default:
+			out.Span.Kind = "INTERNAL"
+		}
+	}
+}
+
+const spanKindStringPrefix = "SPAN_KIND_"
+
+func mapOTelAttributesSpan(from otel, out *model.APMEvent) {
+	m := otelAttributeMap(&from)
+	if out.Labels == nil {
+		out.Labels = make(common.MapStr)
+	}
+	var spanKind pdata.SpanKind
+	if from.SpanKind.IsSet() {
+		switch from.SpanKind.Val {
+		case pdata.SpanKindInternal.String()[len(spanKindStringPrefix):]:
+			spanKind = pdata.SpanKindInternal
+		case pdata.SpanKindServer.String()[len(spanKindStringPrefix):]:
+			spanKind = pdata.SpanKindServer
+		case pdata.SpanKindClient.String()[len(spanKindStringPrefix):]:
+			spanKind = pdata.SpanKindClient
+		case pdata.SpanKindProducer.String()[len(spanKindStringPrefix):]:
+			spanKind = pdata.SpanKindProducer
+		case pdata.SpanKindConsumer.String()[len(spanKindStringPrefix):]:
+			spanKind = pdata.SpanKindConsumer
+		default:
+			spanKind = pdata.SpanKindUnspecified
+		}
+		out.Span.Kind = from.SpanKind.Val
+	}
+	otel_processor.TranslateSpan(spanKind, m, out)
+
+	if spanKind == pdata.SpanKindUnspecified {
+		switch out.Span.Type {
+		case "db", "external", "storage":
+			out.Span.Kind = "CLIENT"
+		default:
+			out.Span.Kind = "INTERNAL"
+		}
+	}
 }
 
 func mapToUserAgentModel(from nullable.HTTPHeader, out *model.UserAgent) {
@@ -1249,4 +1333,64 @@ func overwriteUserInMetadataModel(from user, out *model.APMEvent) {
 	if from.Name.IsSet() {
 		out.User.Name = from.Name.Val
 	}
+}
+
+func otelAttributeMap(o *otel) pdata.AttributeMap {
+	m := pdata.NewAttributeMap()
+	for k, v := range o.Attributes {
+		if attr, ok := otelAttributeValue(k, v); ok {
+			m.Insert(k, attr)
+		}
+	}
+	return m
+}
+
+func otelAttributeValue(k string, v interface{}) (pdata.AttributeValue, bool) {
+	// According to the spec, these are the allowed primitive types
+	// Additionally, homogeneous arrays (single type) of primitive types are allowed
+	// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes
+	switch v := v.(type) {
+	case string:
+		return pdata.NewAttributeValueString(v), true
+	case bool:
+		return pdata.NewAttributeValueBool(v), true
+	case json.Number:
+		// Semantic conventions have specified types, and we rely on this
+		// in processor/otel when mapping to our data model. For example,
+		// `http.status_code` is expected to be an int.
+		if !isOTelDoubleAttribute(k) {
+			if v, err := v.Int64(); err == nil {
+				return pdata.NewAttributeValueInt(v), true
+			}
+		}
+		if v, err := v.Float64(); err == nil {
+			return pdata.NewAttributeValueDouble(v), true
+		}
+	case []interface{}:
+		array := pdata.NewAttributeValueArray()
+		array.ArrayVal().EnsureCapacity(len(v))
+		for i := range v {
+			if elem, ok := otelAttributeValue(k, v[i]); ok {
+				elem.CopyTo(array.ArrayVal().AppendEmpty())
+			}
+		}
+		return array, true
+	}
+	return pdata.AttributeValue{}, false
+}
+
+// isOTelDoubleAttribute indicates whether k is an OpenTelemetry semantic convention attribute
+// known to have type "double". As this list grows over time, we should consider generating
+// the mapping with OpenTelemetry's semconvgen build tool.
+//
+// For the canonical semantic convention definitions, see
+// https://github.com/open-telemetry/opentelemetry-specification/tree/main/semantic_conventions/trace
+func isOTelDoubleAttribute(k string) bool {
+	switch k {
+	case "aws.dynamodb.provisioned_read_capacity":
+		return true
+	case "aws.dynamodb.provisioned_write_capacity":
+		return true
+	}
+	return false
 }

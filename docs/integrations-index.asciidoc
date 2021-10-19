@@ -1,0 +1,30 @@
+include::./version.asciidoc[]
+include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
+
+:apm-integration-docs:
+:apm-package-dir: {docdir}/apm-package
+
+[[apm-user-guide]]
+= APM User Guide
+
+include::apm-overview.asciidoc[]
+
+include::apm-components.asciidoc[]
+
+== Quick start
+
+Include quick start file from obs-docs repo
+
+include::data-model.asciidoc[]
+
+include::features.asciidoc[]
+
+include::troubleshoot-apm.asciidoc[]
+
+include::apm-breaking.asciidoc[]
+
+// This includes the legacy APM Overview
+include::legacy/guide/index.asciidoc[]
+
+// This includes the legacy APM Server Reference
+include::legacy/index.asciidoc[]

@@ -1,0 +1,42 @@
+[[apm-cross-cluster-search]]
+=== Cross-cluster search
+
+Elastic APM utilizes Elasticsearch's cross-cluster search functionality.
+Cross-cluster search lets you run a single search request against one or more
+{ref}/modules-remote-clusters.html[remote clusters] --
+making it easy to search APM data across multiple sources.
+This means you can also have deployments per data type, making sizing and scaling more predictable,
+and allowing for better performance while managing multiple observability use cases.
+
+[float]
+[[set-up-ccs]]
+==== Set up cross-cluster search
+
+*Step 1. Set up remote clusters.*
+
+If you're using the Hosted Elasticsearch Service, see {cloud}/ec-enable-ccs.html[Enable cross-cluster search].
+
+You can add remote clusters directly in Kibana, under *Management* > *Elasticsearch* > *Remote clusters*.
+All you need is a name for the remote cluster and the seed node(s).
+Remember the names of your remote clusters, you'll need them in step two.
+See {ref}/ccr-getting-started.html[managing remote clusters] for detailed information on the setup process.
+
+Alternatively, you can {ref}/modules-remote-clusters.html#configuring-remote-clusters[configure remote clusters]
+in Elasticsearch's `elasticsearch.yml` file.
+
+*Step 2. Edit the default APM app index pattern.*
+
+The APM app index pattern determines from which clusters and indices to display data.
+Index patterns follow this convention: `<cluster-names>:<pattern>`.
+The default value is `apm-*`, which displays data from any index beginning with `apm-`.
+
+To display data from the local cluster, and all remote clusters,
+you'll need to update the index pattern to: `*:apm-*,apm-*`.
+You can also specify certain clusters to display data from, for example, `obs-1:apm-*,obs-2:apm-*`.
+
+There are two ways to edit the default index pattern:
+
+* In the APM app -- Navigate to *APM* > *Settings* > *Indices*, and change all `xpack.apm.indices.*` values to
+include the new index pattern, e.g., `*:apm-*,apm-*`.
+* In `kibana.yml` -- All of the {kibana-ref}/apm-settings-kb.html[`xpack.apm.indices.*`] configuration values must
+include the new index pattern, e.g., `*:apm-*,apm-*`.

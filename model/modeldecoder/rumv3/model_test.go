@@ -312,25 +312,6 @@ func TestMetadataRequiredValidationRules(t *testing.T) {
 	modeldecodertest.SetZeroStructValue(&event, cb)
 }
 
-func TestTransactionMetricsetRequiredValidationRules(t *testing.T) {
-	// setup: create full struct with sample values set
-	var tx transaction
-	s := `{"me":[{"sa":{"ysc":{"v":2048},"xbc":{"v":1}},"y":{"t":"db","su":"mysql"}}]}`
-	modeldecodertest.DecodeData(t, strings.NewReader(s), "me", &tx)
-	// test vanilla struct is valid
-	require.Len(t, tx.Metricsets, 1)
-	require.NoError(t, tx.Metricsets[0].validate())
-
-	// iterate through struct, remove every key one by one
-	// and test that validation behaves as expected
-	requiredKeys := map[string]interface{}{
-		"sa":   nil, //samples
-		"sa.v": nil, //samples.*.value
-	}
-	cb := assertRequiredFn(t, requiredKeys, tx.Metricsets[0].validate)
-	modeldecodertest.SetZeroStructValue(&tx.Metricsets[0], cb)
-}
-
 func TestTransactionRequiredValidationRules(t *testing.T) {
 	// setup: create full metadata struct with arbitrary values set
 	var event transaction
