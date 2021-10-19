@@ -21,7 +21,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -34,6 +33,7 @@ import (
 	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 const dataset = "firehose"
@@ -49,15 +49,15 @@ type firehose struct {
 }
 
 type cloudwatchMetric struct {
-	AccountID string   `json:"account_id"`
-	Dimensions map[string]string `json:"dimensions"`
-	MetricName string `json:"metric_name"`
-	MetricStreamName string `json:"metric_stream_name"`
-	Namespace string `json:"namespace"`
-	Region string `json:"region"`
-	Timestamp int64 `json:"timestamp"`
-	Unit string `json:"unit"`
-	Value map[string]float64 `json:"value"`
+	AccountID        string             `json:"account_id"`
+	Dimensions       map[string]string  `json:"dimensions"`
+	MetricName       string             `json:"metric_name"`
+	MetricStreamName string             `json:"metric_stream_name"`
+	Namespace        string             `json:"namespace"`
+	Region           string             `json:"region"`
+	Timestamp        int64              `json:"timestamp"`
+	Unit             string             `json:"unit"`
+	Value            map[string]float64 `json:"value"`
 }
 
 type result struct {
@@ -188,8 +188,7 @@ func processFirehose(firehose firehose, baseEvent model.APMEvent) (model.Batch, 
 
 			var cwMetric cloudwatchMetric
 			err = json.Unmarshal([]byte(line), &cwMetric)
-			if err == nil && cwMetric.MetricStreamName!= ""{
-				fmt.Println("--- line = ", line)
+			if err == nil && cwMetric.MetricStreamName != "" {
 				event = processMetrics(baseEvent, cwMetric)
 			} else {
 				event = processLogs(baseEvent, firehose, line)
@@ -200,7 +199,7 @@ func processFirehose(firehose firehose, baseEvent model.APMEvent) (model.Batch, 
 	return batch, nil
 }
 
-func processMetrics (event model.APMEvent, cwMetric cloudwatchMetric) model.APMEvent {
+func processMetrics(event model.APMEvent, cwMetric cloudwatchMetric) model.APMEvent {
 	event.Processor = model.MetricsetProcessor
 	event.DataStream.Type = datastreams.MetricsType
 	event.Timestamp = time.Unix(cwMetric.Timestamp/1000, 0)
@@ -208,25 +207,34 @@ func processMetrics (event model.APMEvent, cwMetric cloudwatchMetric) model.APME
 	event.Cloud.Region = cwMetric.Region
 	event.Cloud.ServiceName = cwMetric.Namespace
 
-	var metricset model.Metricset
-	name := cwMetric.Namespace + ":" + cwMetric.MetricName
-	for k, v := range cwMetric.Dimensions {
-		name += ":" + k + ":" + v
+	namespace := strings.ToLower(cwMetric.Namespace)
+	if strings.ContainsAny(namespace, "/") {
+		namespace = strings.ReplaceAll(namespace, "/", ".")
 	}
-	metricset.Name = name
+	event.DataStream.Dataset = namespace
+
+	labels := common.MapStr{}
+	for k, v := range cwMetric.Dimensions {
+		labels[k] = v
+	}
+	event.Labels = labels
+
+	var metricset model.Metricset
+	metricset.Name = namespace + "." + cwMetric.MetricName
 	samples := map[string]model.MetricsetSample{}
 	for k, v := range cwMetric.Value {
 		var sample model.MetricsetSample
 		sample.Value = v
 		sample.Unit = cwMetric.Unit
-		samples[cwMetric.MetricName + "." + k] = sample
+		samples[cwMetric.MetricName+"."+k] = sample
 	}
 	metricset.Samples = samples
 	event.Metricset = &metricset
 	return event
 }
 
-func processLogs (event model.APMEvent, firehose firehose, logLine string) model.APMEvent {
+func processLogs(event model.APMEvent, firehose firehose, logLine string) model.APMEvent {
+	event.DataStream.Dataset = dataset
 	event.Processor = model.LogProcessor
 	event.DataStream.Type = datastreams.LogsType
 	event.Timestamp = time.Unix(firehose.Timestamp/1000, 0)
@@ -249,9 +257,6 @@ func requestMetadata(c *request.Context) model.APMEvent {
 	serviceOrigin.ID = arnString
 	serviceOrigin.Name = arnParsed.Resource
 	event.Service.Origin = serviceOrigin
-
-	// Set data stream type and dataset fields for Firehose
-	event.DataStream.Dataset = dataset
 	return event
 }
 
