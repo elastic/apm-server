@@ -86,6 +86,7 @@ func (r Reporter) Run(ctx context.Context) error {
 		batch := make(model.Batch, 0, len(applied))
 		for etag := range applied {
 			batch = append(batch, model.APMEvent{
+				Timestamp: time.Now(),
 				Processor: model.MetricsetProcessor,
 				Labels:    common.MapStr{"etag": etag},
 				Metricset: &model.Metricset{
