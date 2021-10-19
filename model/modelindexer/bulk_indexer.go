@@ -20,9 +20,10 @@ package modelindexer
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
+
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 
@@ -50,6 +51,8 @@ type bulkIndexer struct {
 	client     elasticsearch.Client
 	itemsAdded int
 	buf        bytes.Buffer
+	respBuf    bytes.Buffer
+	resp       elasticsearch.BulkIndexerResponse
 	aux        []byte
 }
 
@@ -61,6 +64,8 @@ func newBulkIndexer(client elasticsearch.Client) *bulkIndexer {
 func (b *bulkIndexer) Reset() {
 	b.itemsAdded = 0
 	b.buf.Reset()
+	b.respBuf.Reset()
+	b.resp = elasticsearch.BulkIndexerResponse{Items: b.resp.Items[:0]}
 }
 
 // Added returns the number of buffered items.
@@ -127,9 +132,26 @@ func (b *bulkIndexer) Flush(ctx context.Context) (elasticsearch.BulkIndexerRespo
 		return elasticsearch.BulkIndexerResponse{}, fmt.Errorf("flush failed: %s", res.String())
 	}
 
-	var resp elasticsearch.BulkIndexerResponse
-	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
-		return resp, err
+	if _, err := b.respBuf.ReadFrom(res.Body); err != nil {
+		return elasticsearch.BulkIndexerResponse{}, err
 	}
-	return resp, nil
+
+	iter := jsoniter.ConfigFastest.BorrowIterator(b.respBuf.Bytes())
+	defer jsoniter.ConfigFastest.ReturnIterator(iter)
+
+	for iter.Error == nil {
+		field := iter.ReadObject()
+		if field == "" {
+			break
+		}
+		switch field {
+		case "took":
+			b.resp.Took = iter.ReadInt()
+		case "errors":
+			b.resp.HasErrors = iter.ReadBool()
+		case "items":
+			iter.ReadVal(&b.resp.Items)
+		}
+	}
+	return b.resp, iter.Error
 }
