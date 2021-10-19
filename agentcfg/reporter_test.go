@@ -27,6 +27,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestReportFetch(t *testing.T) {
@@ -62,13 +63,35 @@ func TestReportFetch(t *testing.T) {
 	cancel()
 	g.Wait()
 
+	for i, received := range bp.received {
+		// Assert the timestamp is not empty and set the timestamp to an empty
+		// value so we can assert equality in the list contents.
+		assert.NotZero(t, received.Timestamp, "empty timestamp")
+		bp.received[i].Timestamp = time.Time{}
+	}
+
 	// We use assert.ElementsMatch because the etags may not be
 	// reported in exactly the same order they were fetched.
-	etags := make([]string, len(bp.received))
-	for i, received := range bp.received {
-		etags[i] = received.Labels["etag"].(string)
-	}
-	assert.ElementsMatch(t, []string{"abc123", "def456"}, etags)
+	assert.ElementsMatch(t, []model.APMEvent{
+		{
+			Labels: common.MapStr{"etag": "abc123"},
+			Metricset: &model.Metricset{
+				Name: "agent_config",
+				Samples: map[string]model.MetricsetSample{
+					"agent_config_applied": {Value: 1},
+				},
+			},
+		},
+		{
+			Labels: common.MapStr{"etag": "def456"},
+			Metricset: &model.Metricset{
+				Name: "agent_config",
+				Samples: map[string]model.MetricsetSample{
+					"agent_config_applied": {Value: 1},
+				},
+			},
+		},
+	}, bp.received)
 }
 
 type fauxFetcher struct{}
