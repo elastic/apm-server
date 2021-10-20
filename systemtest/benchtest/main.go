@@ -18,9 +18,11 @@
 package benchtest
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"reflect"
 	"regexp"
@@ -115,6 +117,13 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 	if err := parseFlags(); err != nil {
 		return err
 	}
+	// Sets the http.DefaultClient.Transport.TLSClientConfig.InsecureSkipVerify
+	// to match the "-secure" flag value.
+	verifyTLS := *secure
+	http.DefaultClient.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: !verifyTLS},
+	}
+	os.Setenv("ELASTIC_APM_VERIFY_SERVER_CERT", fmt.Sprint(verifyTLS))
 	var profiles profiles
 	if err := profiles.init(); err != nil {
 		return err
