@@ -36,6 +36,7 @@ var (
 	benchtime     = flag.Duration("benchtime", time.Second, "run each benchmark for duration `d`")
 	secretToken   = flag.String("secret-token", os.Getenv("ELASTIC_APM_SECRET_TOKEN"), "secret token for APM Server")
 	match         = flag.String("run", "", "run only benchmarks matching `regexp`")
+	secure        = flag.Bool("secure", boolFromEnv("ELASTIC_APM_VERIFY_SERVER_CERT", false), "validate the remote server TLS certificates")
 
 	cpuprofile   = flag.String("cpuprofile", "", "Write a CPU profile to the specified file before exiting.")
 	memprofile   = flag.String("memprofile", "", "Write an allocation profile to the file  before exiting.")
@@ -96,4 +97,20 @@ func parseFlags() error {
 		return err
 	}
 	return nil
+}
+
+func boolFromEnv(varName string, defaultVal bool) bool {
+	envVal := os.Getenv(varName)
+	if envVal == "" {
+		return defaultVal
+	}
+
+	b, err := strconv.ParseBool(envVal)
+	if err != nil {
+		panic(fmt.Sprintf("failed parsing bool environment %s: %s",
+			varName, err.Error(),
+		))
+	}
+	return b
+
 }
