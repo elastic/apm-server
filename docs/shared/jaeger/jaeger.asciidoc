@@ -1,8 +1,9 @@
 // tag::ess[]
 . Log into {ess-console}[Elastic Cloud] and select your deployment.
-Open {kib} and navigate to:
-**Integrations** > **Elastic APM** > **Add Elastic APM**.
-Copy the host and secret token; you'll need these in the next step.
+Open {kib} and navigate to: **Fleet** > **Agent polices**.
+Select the policy that has the Elastic APM Integration installed,
+then select **Actions** > **Edit Integraiton**.
+Copy the URL. If you're using Agent authorization, copy the Secret token as well.
 
 . Configure the APM Integration as a collector for your Jaeger agents.
 +
@@ -12,18 +13,22 @@ which can be used to enable TLS, output to {ecloud}, and set the APM Integration
 [source,terminal]
 ----
 --reporter.grpc.tls.enabled=true
---reporter.grpc.host-port=<apm-endpoint:443>
+--reporter.grpc.host-port=<apm-url:443>
 --agent.tags="elastic-apm-auth=Bearer <secret-token>"
 ----
 
 TIP: For the equivalent environment variables,
 change all letters to upper-case and replace punctuation with underscores (`_`).
-See the https://www.jaegertracing.io/docs/1.22/cli/[Jaeger CLI flags documentation] for more information.
+See the https://www.jaegertracing.io/docs/1.27/cli/[Jaeger CLI flags documentation] for more information.
 
 // end::ess[]
 
 // tag::self-managed[]
 . Configure the APM Integration as a collector for your Jaeger agents.
+Open {kib} and navigate to: **Fleet** > **Agent polices**.
+Select the policy that has the Elastic APM Integration installed,
+then select **Actions** > **Edit Integraiton**.
+Copy the Host. If you're using Agent authorization, copy the Secret token as well.
 +
 As of this writing, the Jaeger agent binary offers the `--reporter.grpc.host-port` CLI flag.
 Use this to define the host and port that the APM Integration is listening on:
@@ -54,6 +59,6 @@ When enabled, use an agent level tag to authorize Jaeger agent communication wit
 
 TIP: For the equivalent environment variables,
 change all letters to upper-case and replace punctuation with underscores (`_`).
-See the https://www.jaegertracing.io/docs/1.22/cli/[Jaeger CLI flags documentation] for more information.
+See the https://www.jaegertracing.io/docs/1.27/cli/[Jaeger CLI flags documentation] for more information.
 
 // end::self-managed[]

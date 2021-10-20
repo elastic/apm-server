@@ -26,7 +26,7 @@ SSL settings will automatically be applied to the APM integration's Jaeger gRPC 
 * The gRPC endpoint supports probabilistic sampling.
 Sampling decisions can be configured <<configure-sampling-central-jaeger,centrally>> with APM Agent central configuration, or <<configure-sampling-local-jaeger,locally>> in each Jaeger client.
 
-See the https://www.jaegertracing.io/docs/1.22/architecture[Jaeger docs]
+See the https://www.jaegertracing.io/docs/1.27/architecture[Jaeger docs]
 for more information on Jaeger architecture.
 
 [float]
@@ -78,7 +78,7 @@ See {kibana-ref}/agent-configuration.html[Central configuration] to learn more.
 If you don't have access to the APM app,
 you'll need to change the Jaeger client's `sampler.type` and `sampler.param`.
 This enables you to set the sampling configuration locally in each Jaeger client.
-See the official https://www.jaegertracing.io/docs/1.22/sampling/[Jaeger sampling documentation]
+See the official https://www.jaegertracing.io/docs/1.27/sampling/[Jaeger sampling documentation]
 for more information.
 
 [float]
