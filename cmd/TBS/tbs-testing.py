@@ -10,13 +10,48 @@ from time import sleep
 from datetime import datetime, timezone
 from requests.auth import HTTPBasicAuth
 
-trace_search = {
+metric_query = {
+    "aggs": {
+      "count": {
+          "value_count": {
+              "field": "transaction.duration.histogram"
+          }
+      }
+    },
     "query": {
         "bool": {
             "filter": [
                 {
                     "term": {
-                        "service.name": "apmbench"
+                        "transaction.type": "request"
+                    }
+                },
+                {
+                    "term": {
+                        "service.name": "goagent"
+                    }
+                },
+                {
+                    "range": {
+                        "@timestamp": {
+                            "gte": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                            "lte": "now"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "size": 0
+}
+
+trace_query = {
+    "query": {
+        "bool": {
+            "filter": [
+                {
+                    "term": {
+                        "service.name": "goagent"
                     }
                 },
                 {
@@ -39,9 +74,19 @@ trace_search = {
 }
 
 
-def es_search(host, user, password):
-    response = requests.get(host + "/traces*/_search", auth=HTTPBasicAuth(user, password),
-                            data=json.dumps(trace_search), headers={"content-type": "application/json; charset=utf8"})
+def metric_search(host, user, password):
+    response = requests.get(host + "/metrics*/_search",
+                            auth=HTTPBasicAuth(user, password),
+                            data=json.dumps(metric_query),
+                            headers={"content-type": "app                                        lication/json; charset=utf8"})
+    return response.json()["aggregations"]["count"]["value"]
+
+
+def trace_search(host, user, password):
+    response = requests.get(host + "/traces*/_search",
+                            auth=HTTPBasicAuth(user, password),
+                            data=json.dumps(trace_query),
+                            headers={"content-type": "application/json; charset=utf8"})
     return response.json()["hits"]["total"]["value"]
 
 
@@ -95,21 +140,38 @@ def main():
     cmd = "go run ."
     p = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    bench_result = p.stderr.decode("utf-8").split()
-    print(p.stdout.decode("utf-8"))
-    iterations = bench_result[1]
+    results = 0
+    for i in p.stdout.decode("utf-8").split('\n'):
+        for e in i.split():
+            kvp = e.split(':')
+            if kvp[0] == "TransactionsSent":
+                results += int(kvp[1])
+                break
 
-    print("es query : \n" + json.dumps(trace_search, indent=2) + "\n\n")
+    print(results)
+
+
+
+
+    print("es query : \n" + json.dumps(trace_query, indent=2) + "\n\n")
 
     for i in range(1, retry + 1):
-        trace_result = es_search(elastic_host, elastic_user, elastic_password)
-        if iterations * sample_rate == trace_result:
+        metric_result = metric_search(elastic_host, elastic_user, elastic_password)
+        trace_result = trace_search(elastic_host, elastic_user, elastic_password)
+        if results * sample_rate == trace_result:
+            print("sent transactions: " + str(results))
+            print("sample rate: " + str(sample_rate))
+            print("expected transactions: " + str(results * sample_rate))
+            print("found transactions: " + str(trace_result))
+            print("found metrics: " + str(metric_result))
+            print("success!")
             exit(0)
         else:
-            print("sent transactions: " + str(iterations))
+            print("sent transactions: " + str(results))
             print("sample rate: " + str(sample_rate))
-            print("expected transactions: " + str(iterations * sample_rate))
+            print("expected transactions: " + str(results * sample_rate))
             print("found transactions: " + str(trace_result))
+            print("found metrics: " + str(metric_result))
             print("retrying in " + str(i * 5) + " seconds...")
             sleep(i * 5)
             print("retrying...\n\n")
