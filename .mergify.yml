@@ -13,17 +13,17 @@ pull_request_rules:
             git merge upstream/{{base}}
             git push upstream {{head}}
             ```
-  - name: backport patches to 7.x branch
+  - name: backport patches to 7.16 branch
     conditions:
       - merged
       - base=master
-      - label=backport-7.x
+      - label=backport-7.16
     actions:
       backport:
         assignees:
           - "{{ author }}"
         branches:
-          - "7.x"
+          - "7.16"
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
   - name: backport patches to 7.15 branch
     conditions:
