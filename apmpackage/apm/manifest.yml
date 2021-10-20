@@ -33,7 +33,7 @@ screenshots:
     type: image/png
 elasticsearch:
   privileges:
-    cluster: ['monitor/main']
+    cluster: ['cluster:monitor/main']
 policy_templates:
   - name: apmserver
     title: Elastic APM Integration
