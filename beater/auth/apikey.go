@@ -82,7 +82,7 @@ func newApikeyAuth(client es.Client, cache *privilegesCache) *apikeyAuth {
 func (a *apikeyAuth) authenticate(ctx context.Context, credentials string) (*APIKeyAuthenticationDetails, *apikeyAuthorizer, error) {
 	decoded, err := base64.StdEncoding.DecodeString(credentials)
 	if err != nil {
-		return nil, nil, fmt.Errorf("%w: %s", ErrAuthFailed, err)
+		return nil, nil, fmt.Errorf("%w: improperly encoded ApiKey credentials: expected base64(ID:APIKey): %s", ErrAuthFailed, err)
 	}
 	colon := bytes.IndexByte(decoded, ':')
 	if colon == -1 {

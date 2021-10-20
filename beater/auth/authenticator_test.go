@@ -159,7 +159,7 @@ func TestAuthenticatorAPIKeyErrors(t *testing.T) {
 	assert.Nil(t, authz)
 
 	details, authz, err = authenticator.Authenticate(context.Background(), headers.APIKey, "invalid_base64")
-	assert.EqualError(t, err, "authentication failed: illegal base64 data at input byte 7")
+	assert.EqualError(t, err, "authentication failed: improperly encoded ApiKey credentials: expected base64(ID:APIKey): illegal base64 data at input byte 7")
 	assert.True(t, errors.Is(err, ErrAuthFailed))
 	assert.Zero(t, details)
 	assert.Nil(t, authz)
