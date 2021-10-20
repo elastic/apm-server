@@ -37,7 +37,7 @@ func init() {
 	apm.DefaultTracer.Close()
 
 	// Disable TLS certificate verification; not important for benchmarking.
-	os.Setenv("ELASTIC_APM_VERIFY_SERVER_CERT", "true")
+	os.Setenv("ELASTIC_APM_VERIFY_SERVER_CERT", "false")
 }
 
 // NewTracer returns a new Elastic APM tracer, configured
