@@ -235,34 +235,39 @@ func (f authorizerFunc) Authorize(ctx context.Context, action auth.Action, resou
 	return f(ctx, action, resource)
 }
 
-func TestProcessMetrics(t *testing.T) {
-	var cwMetric cloudwatchMetric
-	cwMetric.MetricStreamName = "cloudwatch-metric-stream-test"
-	cwMetric.AccountID = expectedAccountID
-	cwMetric.Region = expectedRegion
-	cwMetric.Namespace = "AWS/Logs"
-	cwMetric.MetricName = "IncomingBytes"
-	dimensions := map[string]string{}
-	dimensions["LogGroupName"] = "RDSOSMetrics"
-	cwMetric.Dimensions = dimensions
-	cwMetric.Timestamp = 1633982880000
-	value := map[string]float64{}
-	value["count"] = 2.0
-	value["sum"] = 16755.0
-	value["max"] = 9403.0
-	value["min"] = 7352.0
-	cwMetric.Value = value
-	cwMetric.Unit = "Bytes"
+func TestProcessFirehoseMetric(t *testing.T) {
+	var batches []model.Batch
+	tc := testcaseFirehoseHandler{
+		path:              "cloudwatch_metric.json",
+		code:              http.StatusOK,
+		id:                request.IDResponseValidAccepted,
+		firehoseAccessKey: "U25jcABcd0JzTjQzUjNDemdGTHk6Ri0xMTNCdVVRdXFSR0lGYzF0Wk5Vdw==",
+		batchProcessor: model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+			batches = append(batches, *batch)
+			return nil
+		}),
+	}
 
-	event := processMetrics(model.APMEvent{}, cwMetric)
+	tc.setup(t)
+	h := Handler(tc.batchProcessor, tc.authenticator)
+	h(tc.c)
+
+	require.Len(t, batches, 1)
+	require.Len(t, batches[0], 1)
+	event := batches[0][0]
+
+	assert.Equal(t, expectedRegion, event.Cloud.Origin.Region)
+	assert.Equal(t, expectedAccountID, event.Cloud.Origin.AccountID)
+	assert.Equal(t, testARN, event.Service.Origin.ID)
+	assert.Equal(t, expectedResource, event.Service.Origin.Name)
+
 	assert.Equal(t, "metrics", event.DataStream.Type)
-	assert.Equal(t, "aws.logs", event.Metricset.Name)
-	assert.Equal(t, "aws.logs", event.DataStream.Dataset)
+	assert.Equal(t, "aws.ec2", event.Metricset.Name)
+	assert.Equal(t, "aws.ec2", event.DataStream.Dataset)
 	assert.Equal(t, 1, len(event.Labels))
-	assert.Equal(t, "RDSOSMetrics", event.Labels["LogGroupName"])
 	assert.Equal(t, 1, len(event.Metricset.Samples))
-	assert.Equal(t, int64(2), *event.Metricset.Samples["IncomingBytes"].ValueCount)
-	assert.Equal(t, 16755.0, *event.Metricset.Samples["IncomingBytes"].Sum)
-	assert.Equal(t, 9403.0, *event.Metricset.Samples["IncomingBytes"].Max)
-	assert.Equal(t, 7352.0, *event.Metricset.Samples["IncomingBytes"].Min)
+	assert.Equal(t, int64(2), *event.Metricset.Samples["CPUUtilization"].ValueCount)
+	assert.Equal(t, 3.0, *event.Metricset.Samples["CPUUtilization"].Sum)
+	assert.Equal(t, 2.0, *event.Metricset.Samples["CPUUtilization"].Max)
+	assert.Equal(t, 1.0, *event.Metricset.Samples["CPUUtilization"].Min)
 }
