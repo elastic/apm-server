@@ -16,3 +16,6 @@ elasticsearch:
         - histogram:
             mapping:
               type: histogram
+        - summary:
+            mapping:
+              type: aggregate_metric_double

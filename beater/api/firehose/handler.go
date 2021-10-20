@@ -80,7 +80,7 @@ type arn struct {
 	Resource  string
 }
 
-// Authenticator provides provides authentication and authorization support.
+// Authenticator provides authentication and authorization support.
 type Authenticator interface {
 	Authenticate(ctx context.Context, kind, token string) (auth.AuthenticationDetails, auth.Authorizer, error)
 }
@@ -221,13 +221,29 @@ func processMetrics(event model.APMEvent, cwMetric cloudwatchMetric) model.APMEv
 
 	var metricset model.Metricset
 	metricset.Name = namespace
+
 	samples := map[string]model.MetricsetSample{}
+	var sample model.MetricsetSample
+	var summary model.Summary
 	for k, v := range cwMetric.Value {
-		var sample model.MetricsetSample
-		sample.Value = v
 		// TODO: handle units for CloudWatch metrics
-		samples[cwMetric.MetricName+"."+k] = sample
+		value := v
+		switch k {
+		case "min":
+			summary.Min = &value
+		case "max":
+			summary.Max = &value
+		case "sum":
+			summary.Sum = &value
+		case "count":
+			vi := int64(value)
+			summary.ValueCount = &vi
+		}
 	}
+
+	sample.Type = model.MetricTypeSummary
+	sample.Summary = summary
+	samples[cwMetric.MetricName] = sample
 	metricset.Samples = samples
 	event.Metricset = &metricset
 	return event
