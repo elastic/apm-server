@@ -165,43 +165,6 @@ You can base actions on factors such as shard size and performance requirements.
 See <<ilm-how-to>> to learn more.
 
 [float]
-[[delete-data-with-curator]]
-===== Delete data periodically
-
-To delete data periodically you can use {curator-ref-current}[Curator] and set up a cron job to run it.
-
-By default, APM indices have the pattern `apm-%{[observer.version]}-{type}-%{+yyyy.MM.dd}`.
-With the curator command line interface you can, for instance, see all your existing indices:
-
-["source","sh",subs="attributes"]
-------------------------------------------------------------
-curator_cli --host localhost show_indices --filter_list '[{"filtertype":"pattern","kind":"prefix","value":"apm-"}]'
-
-apm-{version}-error-{sample_date_0}
-apm-{version}-error-{sample_date_1}
-apm-{version}-error-{sample_date_2}
-apm-{version}-sourcemap
-apm-{version}-span-{sample_date_0}
-apm-{version}-span-{sample_date_1}
-apm-{version}-span-{sample_date_2}
-apm-{version}-transaction-{sample_date_0}
-apm-{version}-transaction-{sample_date_1}
-apm-{version}-transaction-{sample_date_2}
-------------------------------------------------------------
-
-And then delete any span indices older than 1 day:
-
-["source","sh",subs="attributes"]
-------------------------------------------------------------
-curator_cli --host localhost delete_indices --filter_list '[{"filtertype":"pattern","kind":"prefix","value":"apm-{version}-span-"}, {"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"}]'
-
-INFO      Deleting selected indices: [apm-{version}-span-{sample_date_0}, apm-{version}-span-{sample_date_1}]
-INFO      ---deleting index apm-{version}-span-{sample_date_0}
-INFO      ---deleting index apm-{version}-span-{sample_date_1}
-INFO      "delete_indices" action completed.
-------------------------------------------------------------
-
-[float]
 [[delete-data-query]]
 ===== Delete data matching a query
 
@@ -210,14 +173,14 @@ For example, all documents with a given `context.service.name` use the following
 
 ["source","sh"]
 ------------------------------------------------------------
-POST /apm-*/_delete_by_query
+POST /*-apm-*/_delete_by_query
 {
   "query": {
     "bool": {
       "must": [
         {
           "term": {
-            "context.service.name": {
+            "service.name": {
               "value": "old-service-name"
             }
           }
@@ -260,17 +223,17 @@ To rename a service, send the following request:
 
 ["source","sh"]
 ------------------------------------------------------------
-POST /apm-*/_update_by_query
+POST *-apm-*/_update_by_query
 {
   "query": {
     "term": {
-      "context.service.name": {
-        "value": "old-service-name"
+      "service.name": {
+        "value": "current-service-name"
       }
     }
   },
   "script": {
-    "source": "ctx._source.context.service.name = 'new-service-name'",
+    "source": "ctx._source.service.name = 'new-service-name'",
     "lang": "painless"
   }
 }

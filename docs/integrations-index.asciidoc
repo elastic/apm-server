@@ -25,6 +25,8 @@ include::how-to.asciidoc[]
 
 include::input-apm.asciidoc[]
 
+include::data-streams.asciidoc[]
+
 include::troubleshoot-apm.asciidoc[]
 
 include::apm-breaking.asciidoc[]
