@@ -28,7 +28,6 @@ import (
 	"regexp"
 	"runtime"
 	"sort"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -115,14 +114,13 @@ func benchmarkFuncName(f BenchmarkFunc) (string, error) {
 // are all prefixed with "Benchmark", like those that are designed
 // to work with "go test".
 func Run(allBenchmarks ...BenchmarkFunc) error {
-	// Sets the http.DefaultClient.Transport.TLSClientConfig.InsecureSkipVerify
-	// to match the ELASTIC_APM_VERIFY_SERVER_CERT setting.
-	if err := setDefaultHTTPClientTLS(); err != nil {
-		return err
-	}
-
 	if err := parseFlags(); err != nil {
 		return err
+	}
+	// Sets the http.DefaultClient.Transport.TLSClientConfig.InsecureSkipVerify
+	// to match the "-secure" flag value.
+	http.DefaultClient.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: !*secure},
 	}
 	var profiles profiles
 	if err := profiles.init(); err != nil {
@@ -189,23 +187,6 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 				}
 			}
 		}
-	}
-	return nil
-}
-
-func setDefaultHTTPClientTLS() error {
-	var verifyCert bool
-	if val := os.Getenv("ELASTIC_APM_VERIFY_SERVER_CERT"); val != "" {
-		b, err := strconv.ParseBool(val)
-		if err != nil {
-			return fmt.Errorf(
-				"failed parsing bool environment ELASTIC_APM_VERIFY_SERVER_CERT: %w", err,
-			)
-		}
-		verifyCert = b
-	}
-	http.DefaultClient.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: !verifyCert},
 	}
 	return nil
 }
