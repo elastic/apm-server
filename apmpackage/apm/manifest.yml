@@ -46,10 +46,10 @@ policy_templates:
         vars:
           - name: host
             type: text
-            default: localhost:8200
+            default: 0.0.0.0:8200
           - name: url
             type: text
-            default: http://localhost:8200
+            default: http://0.0.0.0:8200
           - name: secret_token
             type: text
           - name: api_key_enabled
