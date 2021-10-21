@@ -19,5 +19,9 @@ elasticsearch:
         - summary:
             mapping:
               type: aggregate_metric_double
-              metrics: [ "min", "max", "sum", "value_count"]
-              default_metric: "avg"
+              metrics:
+                - min
+                - max
+                - sum
+                - value_count
+              default_metric: avg
