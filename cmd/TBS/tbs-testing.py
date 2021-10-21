@@ -78,7 +78,7 @@ def metric_search(host, user, password):
     response = requests.get(host + "/metrics*/_search",
                             auth=HTTPBasicAuth(user, password),
                             data=json.dumps(metric_query),
-                            headers={"content-type": "app                                        lication/json; charset=utf8"})
+                            headers={"content-type": "application/json; charset=utf8"})
     return response.json()["aggregations"]["count"]["value"]
 
 
@@ -124,11 +124,33 @@ def main():
                         dest="retry",
                         metavar="<retries>",
                         help="how many retries to find expected transactions in elastic search.")
+    parser.add_argument("-c",
+                        "--cloud-id",
+                        required=False,
+                        type=str,
+                        default="",
+                        dest="cloud_id",
+                        metavar="<elasticsearch_cloud_id>",
+                        help="used for apm-server configuration.")
+    parser.add_argument("-u",
+                        "--cloud-auth",
+                        required=False,
+                        type=str,
+                        default="",
+                        dest="cloud_auth",
+                        metavar="<elasticsearch_cloud_auth>",
+                        help="used for apm-server configuration. Overrides --authentication for apm-server")
 
     args = parser.parse_args()
 
     elastic_host = args.host
 
+    cloud_id = args.cloud_id
+
+    cloud_auth = args.auth
+
+    if len(args.cloud_auth) > 0:
+        cloud_auth = args.cloud_auth
     auth = args.auth.split(':')
     elastic_user = auth[0]
     elastic_password = auth[1]
@@ -136,6 +158,35 @@ def main():
     sample_rate = args.sample_rate
 
     retry = args.retry
+    if len(cloud_id) > 0:
+        es_yml = f"""cloud.id: "{cloud_id}"
+cloud.auth: "{cloud_auth}
+        """
+    else:
+        es_yml = f"""output.elasticsearch:
+    hosts: [{elastic_host}]
+    username: {elastic_user}
+    password: {elastic_password}
+"""
+
+    apm_yml = f"""apm-server:
+  host: "0.0.0.0:8200"
+  data_streams.enabled: true
+  sampling:
+    tail:
+      enable: true
+      keep_unsampled: false
+      policies: [ {{ sample_rate: {sample_rate} }} ]
+      ttl: 30m
+{es_yml}
+"""
+
+    f = open("tmp.yml", "w")
+    f.write(apm_yml)
+    f.close()
+
+    #todo: how to find apm-server binary?
+    server_p = subprocess.Popen("../../apm-server -c ./tmp.yml -e &", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
 
     cmd = "go run ."
     p = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -148,13 +199,6 @@ def main():
                 results += int(kvp[1])
                 break
 
-    print(results)
-
-
-
-
-    print("es query : \n" + json.dumps(trace_query, indent=2) + "\n\n")
-
     for i in range(1, retry + 1):
         metric_result = metric_search(elastic_host, elastic_user, elastic_password)
         trace_result = trace_search(elastic_host, elastic_user, elastic_password)
@@ -165,6 +209,7 @@ def main():
             print("found transactions: " + str(trace_result))
             print("found metrics: " + str(metric_result))
             print("success!")
+            subprocess.run(f"kill -9 {server_p.pid}", shell=True)
             exit(0)
         else:
             print("sent transactions: " + str(results))
@@ -177,6 +222,7 @@ def main():
             print("retrying...\n\n")
 
     print("Error: failed to confirm transaction count.")
+    subprocess.run(f"kill -9 {server_p.pid}", shell=True)
     exit(1)
 
 
