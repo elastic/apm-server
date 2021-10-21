@@ -114,6 +114,7 @@ docker-compose.override.yml:
 
 update: fields go-generate add-headers copy-docs build-package notice $(MAGE)
 	@$(MAGE) update
+	@go mod download all # make sure go.sum is complete
 
 fields_sources=\
   $(shell find model -name fields.yml) \
