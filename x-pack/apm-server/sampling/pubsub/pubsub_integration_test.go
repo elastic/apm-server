@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
