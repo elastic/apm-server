@@ -208,9 +208,7 @@ func processMetrics(event model.APMEvent, cwMetric cloudwatchMetric) model.APMEv
 	event.Cloud.ServiceName = cwMetric.Namespace
 
 	namespace := strings.ToLower(cwMetric.Namespace)
-	if strings.ContainsAny(namespace, "/") {
-		namespace = strings.ReplaceAll(namespace, "/", ".")
-	}
+	namespace = strings.ReplaceAll(namespace, "/", ".")
 	event.DataStream.Dataset = namespace
 
 	labels := common.MapStr{}

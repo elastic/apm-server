@@ -29,6 +29,10 @@ import (
 )
 
 func TestMetricset(t *testing.T) {
+	min := 1.0
+	max := 2.0
+	sum := 3.0
+	count := int64(2)
 	tests := []struct {
 		Metricset *Metricset
 		Output    common.MapStr
@@ -112,6 +116,47 @@ func TestMetricset(t *testing.T) {
 				},
 			},
 			Msg: "Payload with metric type and unit.",
+		},
+		{
+			Metricset: &Metricset{
+				Samples: map[string]MetricsetSample{
+					"sample_summary": {
+						Type: "summary",
+						Summary: Summary{
+							Min:        &min,
+							Max:        &max,
+							Sum:        &sum,
+							ValueCount: &count,
+						},
+					},
+					"just_min": {
+						Type: "summary",
+						Summary: Summary{
+							Min: &min,
+						},
+					},
+				},
+			},
+			Output: common.MapStr{
+				"sample_summary": common.MapStr{
+					"min":         &min,
+					"max":         &max,
+					"sum":         &sum,
+					"value_count": &count,
+				},
+				"just_min": common.MapStr{
+					"min": &min,
+				},
+				"_metric_descriptions": common.MapStr{
+					"sample_summary": common.MapStr{
+						"type": "summary",
+					},
+					"just_min": common.MapStr{
+						"type": "summary",
+					},
+				},
+			},
+			Msg: "Payload with summary metric type.",
 		},
 	}
 
