@@ -201,6 +201,23 @@
           "maxLength": 1024
         }
       }
+    },
+    "service": {
+      "description": "Service holds selected information about the correlated service.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name of the correlated service.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
     }
   },
   "required": [

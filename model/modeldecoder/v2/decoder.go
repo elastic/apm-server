@@ -656,6 +656,11 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) bool {
 		// metricset is not added to the batch.
 		ok = modeldecoderutil.SetInternalMetrics(event)
 	}
+
+	if from.Service.IsSet() {
+		event.Service = model.Service{Name: from.Service.Name.Val}
+	}
+
 	return ok
 }
 

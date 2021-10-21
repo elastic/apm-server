@@ -619,6 +619,8 @@ type metricset struct {
 	Tags common.MapStr `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// Transaction holds selected information about the correlated transaction.
 	Transaction metricsetTransactionRef `json:"transaction"`
+	// Service holds selected information about the correlated service.
+	Service metricsetServiceRef `json:"service"`
 }
 
 type metricsetSampleValue struct {
@@ -672,6 +674,11 @@ type metricsetTransactionRef struct {
 	// Type expresses the correlated transaction's type as keyword that has specific
 	// relevance within the service's domain, eg: 'request', 'backgroundjob'.
 	Type nullable.String `json:"type" validate:"maxLength=1024"`
+}
+
+type metricsetServiceRef struct {
+	// Name of the correlated service.
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
 }
 
 type span struct {
