@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"sync"
@@ -77,6 +78,12 @@ type Indexer struct {
 
 // Config holds configuration for Indexer.
 type Config struct {
+	// CompressionLevel hold the gzip compression level, from 0 (gzip.NoCompression)
+	// to 9 (gzip.BestCompression). Higher values provide greater compression, at a
+	// greater cost of CPU. The special value -1 (gzip.DefaultCompression) selects the
+	// default compression level.
+	CompressionLevel int
+
 	// MaxRequests holds the maximum number of bulk index requests to execute concurrently.
 	// The maximum memory usage of Indexer is thus approximately MaxRequests*FlushBytes.
 	//
@@ -97,6 +104,12 @@ type Config struct {
 // New returns a new Indexer that indexes events directly into data streams.
 func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 	logger := logp.NewLogger("modelindexer", logs.WithRateLimit(logRateLimit))
+	if cfg.CompressionLevel < -1 || cfg.CompressionLevel > 9 {
+		return nil, fmt.Errorf(
+			"expected CompressionLevel in range [-1,9], got %d",
+			cfg.CompressionLevel,
+		)
+	}
 	if cfg.MaxRequests <= 0 {
 		cfg.MaxRequests = 10
 	}
@@ -108,7 +121,7 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 	}
 	available := make(chan *bulkIndexer, cfg.MaxRequests)
 	for i := 0; i < cfg.MaxRequests; i++ {
-		available <- newBulkIndexer(client)
+		available <- newBulkIndexer(client, cfg.CompressionLevel)
 	}
 	return &Indexer{
 		config:    cfg,
