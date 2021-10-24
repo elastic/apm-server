@@ -78,7 +78,7 @@ type Indexer struct {
 
 // Config holds configuration for Indexer.
 type Config struct {
-	// CompressionLevel hold the gzip compression level, from 0 (gzip.NoCompression)
+	// CompressionLevel holds the gzip compression level, from 0 (gzip.NoCompression)
 	// to 9 (gzip.BestCompression). Higher values provide greater compression, at a
 	// greater cost of CPU. The special value -1 (gzip.DefaultCompression) selects the
 	// default compression level.
