@@ -658,7 +658,7 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) bool {
 	}
 
 	if from.Service.IsSet() {
-		event.Service = model.Service{Name: from.Service.Name.Val}
+		event.Service.Name = from.Service.Name.Val
 	}
 
 	return ok
