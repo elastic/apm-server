@@ -1,8 +1,8 @@
 // tag::ess[]
 . Log into {ess-console}[Elastic Cloud] and select your deployment.
-Open {kib} and navigate to: **Fleet** > **Agent polices**.
-Select the policy that has the Elastic APM Integration installed,
-then select **Actions** > **Edit Integraiton**.
+In {kib}, select **Add data**, then search for and select "Elastic APM".
+If the integration is already installed, under the polices tab, select **Actions** > **Edit integration**.
+If the integration has not been installed, select **Add Elastic APM**.
 Copy the URL. If you're using Agent authorization, copy the Secret token as well.
 
 . Configure the APM Integration as a collector for your Jaeger agents.
@@ -25,9 +25,9 @@ See the https://www.jaegertracing.io/docs/1.27/cli/[Jaeger CLI flags documentati
 
 // tag::self-managed[]
 . Configure the APM Integration as a collector for your Jaeger agents.
-Open {kib} and navigate to: **Fleet** > **Agent polices**.
-Select the policy that has the Elastic APM Integration installed,
-then select **Actions** > **Edit Integraiton**.
+In {kib}, select **Add data**, then search for and select "Elastic APM".
+If the integration is already installed, under the polices tab, select **Actions** > **Edit integration**.
+If the integration has not been installed, select **Add Elastic APM**.
 Copy the Host. If you're using Agent authorization, copy the Secret token as well.
 +
 As of this writing, the Jaeger agent binary offers the `--reporter.grpc.host-port` CLI flag.
