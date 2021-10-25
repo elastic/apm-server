@@ -69,6 +69,7 @@ See the table below for the minimum required agent version:
 |**Java Agent**| ≥`1.14`
 |**.NET Agent**| ≥`1.3`
 |**Node.js Agent**| ≥`3.4`
+|**PHP Agent**| ≥`1.0`
 |**Python Agent**| ≥`5.4`
 |**Ruby Agent**| ≥`3.5`
 |**RUM Agent**| ≥`5.0`
