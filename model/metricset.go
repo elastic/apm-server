@@ -110,16 +110,16 @@ type Histogram struct {
 
 // Summary holds min, max, sum and value count for a summary metric.
 type Summary struct {
-	// lowest value observed during the specified period
+	// Min holds the lowest value observed during the specified period
 	Min *float64
 
-	// the highest value observed during the specified period
+	// Max holds the highest value observed during the specified period
 	Max *float64
 
-	// sum of the values of the all data points collected during the period
+	// Sum holds the sum of the values of the all data points collected during the period
 	Sum *float64
 
-	// number of data points during the period
+	// ValueCount holds the number of data points during the period
 	ValueCount *int64
 }
 
