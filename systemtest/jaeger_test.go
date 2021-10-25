@@ -39,19 +39,6 @@ import (
 	"github.com/elastic/apm-server/systemtest/estest"
 )
 
-func TestJaegerGRPC(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.Jaeger = &apmservertest.JaegerConfig{
-		GRPCEnabled: true,
-		GRPCHost:    "localhost:0",
-	}
-	srv.Config.Monitoring = newFastMonitoringConfig()
-	err := srv.Start()
-	require.NoError(t, err)
-	testJaegerGRPC(t, srv, srv.JaegerGRPCAddr, grpc.WithInsecure())
-}
-
 func TestJaegerGRPCMuxed(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
