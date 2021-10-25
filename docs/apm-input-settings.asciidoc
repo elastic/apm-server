@@ -22,7 +22,7 @@ OPTIONAL INFO AND EXAMPLE
 [id="input-{input-type}-host-setting"]
 `host`
 
-| (string) Defines the host and port the server is listening on.
+| (text) Defines the host and port the server is listening on.
 Use `unix:/path/to.sock` to listen on a unix domain socket.
 
 *Default:* `localhost:8200`
@@ -30,17 +30,73 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 
 // =============================================================================
 
-// tag::secret_token-setting[]
+// tag::url-setting[]
 |
-[id="input-{input-type}-secret_token-setting"]
-`secret_token`
+[id="input-{input-type}-url-setting"]
+`URL`
 
-| (string) Authorization token for sending APM data.
-The same token must also be set in each APM agent.
-This token is not used for RUM endpoints.
+| The unchangeable, publicly reachable server URL for deployments on Elastic Cloud or ECK.
+// end::url-setting[]
 
-*Default:* No secret token set
-// end::secret_token-setting[]
+// =============================================================================
+
+// tag::max_header_bytes-setting[]
+|
+[id="input-{input-type}-max_header_bytes-setting"]
+`max_header_bytes`
+
+| (int) Maximum permitted size of a request's header accepted by the server to be processed (in Bytes).
+
+*Default:* `1048576` Bytes
+// end::max_header_bytes-setting[]
+
+// =============================================================================
+
+// tag::idle_timeout-setting[]
+|
+[id="input-{input-type}-idle_timeout-setting"]
+`idle_timeout`
+
+| (text) Maximum amount of time to wait for the next incoming request before underlying connection is closed.
+
+*Default:* `45s` (45 seconds)
+// end::idle_timeout-setting[]
+
+// =============================================================================
+
+// tag::read_timeout-setting[]
+|
+[id="input-{input-type}-read_timeout-setting"]
+`read_timeout`
+
+| (text) Maximum permitted duration for reading an entire request.
+
+*Default:* `3600s` (3600 seconds)
+// end::read_timeout-setting[]
+
+// =============================================================================
+
+// tag::shutdown_timeout-setting[]
+|
+[id="input-{input-type}-shutdown_timeout-setting"]
+`shutdown_timeout`
+
+| (text) Maximum duration in seconds before releasing resources when shutting down the server.
+
+*Default:* `30s` (30 seconds)
+// end::shutdown_timeout-setting[]
+
+// =============================================================================
+
+// tag::write_timeout-setting[]
+|
+[id="input-{input-type}-write_timeout-setting"]
+`write_timeout`
+
+| (text) Maximum permitted duration for writing a response.
+
+*Default:* `30s` (30 seconds)
+// end::write_timeout-setting[]
 
 // =============================================================================
 
@@ -56,14 +112,26 @@ This token is not used for RUM endpoints.
 
 // =============================================================================
 
-// tag::default_service_environment-setting[]
+// tag::max_connections-setting[]
 |
-[id="input-{input-type}-default_service_environment-setting"]
-`default_service_environment`
+[id="input-{input-type}-max_connections-setting"]
+`max_connections`
 
-| (string) The default service environment for events without a defined service environment.
+| (int) Maximum number of TCP connections to accept simultaneously. `0` means unlimited.
 
-// end::default_service_environment-setting[]
+*Default:* `0` (unlimited)
+// end::max_connections-setting[]
+
+// =============================================================================
+
+// tag::response_headers-setting[]
+|
+[id="input-{input-type}-response_headers-setting"]
+`response_headers`
+
+| (text) Custom HTTP headers to add to HTTP responses. Useful for security policy compliance.
+
+// end::response_headers-setting[]
 
 // =============================================================================
 
@@ -77,6 +145,32 @@ If true, APM Server captures the IP of the instrumented service and its User Age
 
 *Default:* `true`
 // end::capture_personal_data-setting[]
+
+// =============================================================================
+
+// tag::default_service_environment-setting[]
+|
+[id="input-{input-type}-default_service_environment-setting"]
+`default_service_environment`
+
+| (text) The default service environment for events without a defined service environment.
+
+*Default:* none
+
+// end::default_service_environment-setting[]
+
+// =============================================================================
+
+// tag::golang_xpvar-setting[]
+|
+[id="input-{input-type}-golang_xpvar-setting"]
+`golang_xpvar`
+
+| (bool) When set to `true`, the server exposes https://golang.org/pkg/expvar/[Golang expvar] under `/debug/vars`.
+
+*Default:* `false`
+
+// end::golang_xpvar-setting[]
 
 // =============================================================================
 
@@ -97,7 +191,7 @@ If true, APM Server captures the IP of the instrumented service and its User Age
 [id="input-{input-type}-rum_allow_origins-setting"]
 `rum_allow_origins`
 
-| (string) A list of permitted origins for RUM support.
+| (text) A list of permitted origins for RUM support.
 User-agents send an Origin header that will be validated against this list.
 This is done automatically by modern browsers as part of the https://www.w3.org/TR/cors/[CORS specification].
 An origin is made of a protocol scheme, host and port, without the URL path.
@@ -112,7 +206,7 @@ An origin is made of a protocol scheme, host and port, without the URL path.
 [id="input-{input-type}-rum_allow_headers-setting"]
 `rum_allow_headers`
 
-| (string) By default, HTTP requests made from the RUM agent to the APM integration are limited in the HTTP headers they are allowed to have.
+| (text) By default, HTTP requests made from the RUM agent to the APM integration are limited in the HTTP headers they are allowed to have.
 If any other headers are added, the request will be rejected by the browser due to Cross-Origin Resource Sharing (CORS) restrictions.
 If you need to add extra headers to these requests, use this configuration to allow additional headers.
 
@@ -128,9 +222,151 @@ Configured values are appended to the default list and used as the value for the
 [id="input-{input-type}-rum_response_headers-setting"]
 `rum_response_headers`
 
-| (yaml) Custom HTTP headers to add to RUM responses. For example, for security policy compliance.
+| (text) Custom HTTP headers to add to RUM responses. For example, for security policy compliance.
 
+*Default:* none
 // end::rum_response_headers-setting[]
+
+// =============================================================================
+
+// tag::rum_library_frame_pattern-setting[]
+|
+[id="input-{input-type}-rum_library_frame_pattern-setting"]
+`rum_library_frame_pattern`
+
+| (text) RegExp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
+If the RegExp matches, the stacktrace frame is considered to be a library frame.
+When source mapping is applied, the `error.culprit` is set to reflect the _function_ and the _filename_
+of the first non-library frame.
+This aims to provide an entry point for identifying issues.
+
+*Default:* `"node_modules\|bower_components\|~"`
+// end::rum_library_frame_pattern-setting[]
+
+// =============================================================================
+
+// tag::rum_exclude_from_grouping-setting[]
+|
+[id="input-{input-type}-rum_exclude_from_grouping-setting"]
+`rum_exclude_from_grouping`
+
+| (text) RegExp to be matched against a stacktrace frame's `file_name`.
+If the RegExp matches, the stacktrace frame is excluded from being used for calculating error groups.
+
+*Default:* `"^/webpack"` (excludes stacktrace frames that have a filename starting with `/webpack`)
+// end::rum_exclude_from_grouping-setting[]
+
+// =============================================================================
+
+// tag::tls_enabled-setting[]
+|
+[id="input-{input-type}-tls_enabled-setting"]
+`tls_enabled`
+
+| (bool) Enable TLS.
+
+*Default:* `false`
+// end::tls_enabled-setting[]
+
+// =============================================================================
+
+// tag::tls_certificate-setting[]
+|
+[id="input-{input-type}-tls_certificate-setting"]
+`tls_certificate`
+
+| (text) The path to the file containing the certificate for server authentication. Required when TLS is enabled.
+
+*Default:* none
+// end::tls_certificate-setting[]
+
+// =============================================================================
+
+// tag::tls_key-setting[]
+|
+[id="input-{input-type}-tls_key-setting"]
+`tls_key`
+
+| (text) The path to the file containing the Server certificate key. Required when TLS is enabled.
+
+*Default:* none
+// end::tls_key-setting[]
+
+// =============================================================================
+
+// tag::tls_supported_protocols-setting[]
+|
+[id="input-{input-type}-tls_supported_protocols-setting"]
+`tls_supported_protocols`
+
+| (array) A list of allowed TLS protocol versions.
+
+*Default:* `["TLSv1.0", "TLSv1.1", "TLSv1.2"]`
+// end::tls_supported_protocols-setting[]
+
+// =============================================================================
+
+// tag::tls_cipher_suites-setting[]
+|
+[id="input-{input-type}-tls_cipher_suites-setting"]
+`tls_cipher_suites`
+
+| (text) The list of cipher suites to use. The first entry has the highest priority.
+If this option is omitted, the Go crypto library’s https://golang.org/pkg/crypto/tls/[default suites] are used (recommended).
+Note that TLS 1.3 cipher suites are not individually configurable in Go, so they are not included in this list.
+// end::tls_cipher_suites-setting[]
+
+// =============================================================================
+
+// tag::tls_curve_types-setting[]
+|
+[id="input-{input-type}-tls_curve_types-setting"]
+`tls_curve_types`
+
+| (text) The list of curve types for ECDHE (Elliptic Curve Diffie-Hellman ephemeral key exchange).
+
+*Default:* none
+// end::tls_curve_types-setting[]
+
+// =============================================================================
+
+// tag::api_key_enabled-setting[]
+|
+[id="input-{input-type}-api_key_enabled-setting"]
+`api_key_enabled`
+
+| (bool) Enable or disable API key authorization between APM Server and APM agents.
+
+*Default:* `false` (disabled)
+// end::api_key_enabled-setting[]
+
+// =============================================================================
+
+// tag::api_key_limit-setting[]
+|
+[id="input-{input-type}-api_key_limit-setting"]
+`api_key_limit`
+
+| (int) Each unique API key triggers one request to Elasticsearch.
+This setting restricts the number of unique API keys are allowed per minute.
+The minimum value for this setting should be the number of API keys configured in your monitored services.
+
+*Default:* `100`
+// end::api_key_limit-setting[]
+
+// =============================================================================
+
+// tag::secret_token-setting[]
+|
+[id="input-{input-type}-secret_token-setting"]
+`secret_token`
+
+| (text) Authorization token for sending APM data.
+The same token must also be set in each APM agent.
+This token is not used for RUM endpoints.
+
+*Default:* No secret token set
+// end::secret_token-setting[]
 
 // =============================================================================
 
@@ -173,18 +409,6 @@ This can be used to limit the number of service-specific indices or data streams
 
 // =============================================================================
 
-// tag::anonymous_rate_limit_event_limit-setting[]
-|
-[id="input-{input-type}-anonymous_rate_limit_event_limit-setting"]
-`anonymous_rate_limit_event_limit`
-
-| (int) The maximum amount of events allowed to be sent to the APM Server anonymous auth endpoint per IP per second.
-
-*Default:* `10`
-// end::anonymous_rate_limit_event_limit-setting[]
-
-// =============================================================================
-
 // tag::anonymous_rate_limit_ip_limit-setting[]
 |
 [id="input-{input-type}-anonymous_rate_limit_ip_limit-setting"]
@@ -199,49 +423,14 @@ Consider increasing this default if your application has many concurrent clients
 
 // =============================================================================
 
-// tag::api_key_enabled-setting[]
+// tag::anonymous_rate_limit_event_limit-setting[]
 |
-[id="input-{input-type}-api_key_enabled-setting"]
-`api_key_enabled`
+[id="input-{input-type}-anonymous_rate_limit_event_limit-setting"]
+`anonymous_rate_limit_event_limit`
 
-| (bool) Enable or disable API key authorization between APM Server and APM agents.
+| (int) The maximum amount of events allowed to be sent to the APM Server anonymous auth endpoint per IP per second.
 
-*Default:* `false` (disabled)
-// end::api_key_enabled-setting[]
-
-// =============================================================================
-
-// tag::api_key_limit-setting[]
-|
-[id="input-{input-type}-api_key_limit-setting"]
-`api_key_limit`
-
-| (int) Each unique API key triggers one request to Elasticsearch.
-This setting restricts the number of unique API keys are allowed per minute.
-The minimum value for this setting should be the number of API keys configured in your monitored services.
-
-*Default:* `100`
-// end::api_key_limit-setting[]
-
-// =============================================================================
-
-// tag::sourcemap_api_key-setting[]
-|
-[id="input-{input-type}-sourcemap_api_key-setting"]
-`sourcemap_api_key`
-
-| (string) RUM API key for sourcemaps. Formatted as `<Id>:<API Key>`.
-// end::sourcemap_api_key-setting[]
-
-// =============================================================================
-
-// tag::kibana_api_key-setting[]
-|
-[id="input-{input-type}-kibana_api_key-setting"]
-`kibana_api_key`
-
-| (string) API Key for APM central configuration feature. Formatted as `<Id>:<API Key>`.
-
-// end::kibana_api_key-setting[]
+*Default:* `10`
+// end::anonymous_rate_limit_event_limit-setting[]
 
 // =============================================================================
