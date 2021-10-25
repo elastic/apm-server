@@ -20,6 +20,7 @@ package systemtest
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/url"
 	"testing"
@@ -78,8 +79,8 @@ func InitFleet() error {
 	for i, agentPolicy := range agentPolicies {
 		ids[i] = agentPolicy.ID
 	}
-	if err := destroyAgentPolicy(ids...); err != nil {
-		return err
+	if err := DestroyAgentPolicy(ids...); err != nil {
+		return fmt.Errorf("failed to destroy agent policy: %w", err)
 	}
 
 	packages, err := Fleet.ListPackages()
@@ -98,7 +99,10 @@ func InitFleet() error {
 		}
 		if IntegrationPackage.Status == "installed" {
 			if err := Fleet.DeletePackage(pkg.Name, pkg.Version); err != nil {
-				return err
+				return fmt.Errorf(
+					"failed to delete package %s-%s: %w",
+					pkg.Name, pkg.Version, err,
+				)
 			}
 		}
 		break
@@ -122,7 +126,10 @@ func CreateAgentPolicy(t testing.TB, name, namespace string, vars map[string]int
 
 	agentPolicy, key, err := Fleet.CreateAgentPolicy(name, namespace, agentPolicyDescription)
 	require.NoError(t, err)
-	t.Cleanup(func() { DestroyAgentPolicy(t, agentPolicy.ID) })
+	t.Cleanup(func() {
+		err := DestroyAgentPolicy(agentPolicy.ID)
+		require.NoError(t, err)
+	})
 
 	packagePolicy := NewPackagePolicy(agentPolicy, vars)
 	err = Fleet.CreatePackagePolicy(packagePolicy)
@@ -133,12 +140,7 @@ func CreateAgentPolicy(t testing.TB, name, namespace string, vars map[string]int
 
 // DestroyAgentPolicy deletes the agent policies with given IDs,
 // and bulk unenrolls the agents assigned to them.
-func DestroyAgentPolicy(t testing.TB, id ...string) {
-	err := destroyAgentPolicy(id...)
-	require.NoError(t, err)
-}
-
-func destroyAgentPolicy(id ...string) error {
+func DestroyAgentPolicy(id ...string) error {
 	if len(id) == 0 {
 		return nil
 	}
