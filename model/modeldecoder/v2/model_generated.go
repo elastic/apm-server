@@ -1607,11 +1607,12 @@ func (val *metricsetTransactionRef) validate() error {
 }
 
 func (val *metricsetServiceRef) IsSet() bool {
-	return val.Name.IsSet()
+	return val.Name.IsSet() || val.Version.IsSet()
 }
 
 func (val *metricsetServiceRef) Reset() {
 	val.Name.Reset()
+	val.Version.Reset()
 }
 
 func (val *metricsetServiceRef) validate() error {
@@ -1620,6 +1621,9 @@ func (val *metricsetServiceRef) validate() error {
 	}
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Version.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }

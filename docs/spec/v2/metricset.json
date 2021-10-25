@@ -216,6 +216,14 @@
             "string"
           ],
           "maxLength": 1024
+        },
+        "version": {
+          "description": "Version of the correlated service.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
         }
       }
     }

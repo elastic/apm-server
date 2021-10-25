@@ -679,6 +679,8 @@ type metricsetTransactionRef struct {
 type metricsetServiceRef struct {
 	// Name of the correlated service.
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
+	// Name of the correlated service.
+	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type span struct {
