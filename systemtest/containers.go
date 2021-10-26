@@ -286,10 +286,13 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		Host:   net.JoinHostPort(fleetServerIPAddress, fleetServerPort),
 	}
 	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
-	hostCACertPath, err := filepath.Abs("../testing/docker/fleet-server/ca.pem")
-	if err != nil {
-		return nil, err
+
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("could not locate systemtest directory")
 	}
+	systemtestDir := filepath.Dir(filename)
+	hostCACertPath := filepath.Join(systemtestDir, "../testing/docker/fleet-server/ca.pem")
 
 	// Use the same stack version as used for fleet-server.
 	agentImageVersion := fleetServerContainer.Image[strings.LastIndex(fleetServerContainer.Image, ":")+1:]
@@ -322,6 +325,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	}
 	return &ElasticAgentContainer{
 		request:      req,
+		Reap:         true,
 		StackVersion: agentImageVersion,
 	}, nil
 }
@@ -330,6 +334,12 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 type ElasticAgentContainer struct {
 	container testcontainers.Container
 	request   testcontainers.ContainerRequest
+
+	// Reap entrols whether the container will be automatically reaped if
+	// the controlling process exits. This is true by default, and may be
+	// set to false before the container is started to prevent the container
+	// from being stoped and removed.
+	Reap bool
 
 	// StackVersion holds the stack version of the container image,
 	// e.g. 8.0.0-SNAPSHOT.
@@ -368,6 +378,7 @@ func (c *ElasticAgentContainer) Start() error {
 	}
 	c.request.ExposedPorts = c.ExposedPorts
 	c.request.WaitingFor = c.WaitingFor
+	c.request.SkipReaper = !c.Reap
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: c.request,
