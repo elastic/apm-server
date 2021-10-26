@@ -1622,7 +1622,7 @@ func (val *metricsetServiceRef) validate() error {
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
