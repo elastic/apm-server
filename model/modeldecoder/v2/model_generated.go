@@ -1469,7 +1469,7 @@ func (val *metricsetRoot) validate() error {
 }
 
 func (val *metricset) IsSet() bool {
-	return val.Timestamp.IsSet() || (len(val.Samples) > 0) || val.Span.IsSet() || (len(val.Tags) > 0) || val.Transaction.IsSet()
+	return val.Timestamp.IsSet() || (len(val.Samples) > 0) || val.Span.IsSet() || (len(val.Tags) > 0) || val.Transaction.IsSet() || val.Service.IsSet()
 }
 
 func (val *metricset) Reset() {
@@ -1482,6 +1482,7 @@ func (val *metricset) Reset() {
 		delete(val.Tags, k)
 	}
 	val.Transaction.Reset()
+	val.Service.Reset()
 }
 
 func (val *metricset) validate() error {
@@ -1517,6 +1518,9 @@ func (val *metricset) validate() error {
 	}
 	if err := val.Transaction.validate(); err != nil {
 		return errors.Wrapf(err, "transaction")
+	}
+	if err := val.Service.validate(); err != nil {
+		return errors.Wrapf(err, "service")
 	}
 	return nil
 }
@@ -1598,6 +1602,28 @@ func (val *metricsetTransactionRef) validate() error {
 	}
 	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *metricsetServiceRef) IsSet() bool {
+	return val.Name.IsSet() || val.Version.IsSet()
+}
+
+func (val *metricsetServiceRef) Reset() {
+	val.Name.Reset()
+	val.Version.Reset()
+}
+
+func (val *metricsetServiceRef) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }

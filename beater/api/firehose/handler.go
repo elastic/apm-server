@@ -36,7 +36,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-const dataset = "firehose"
+const dataset = "apm.firehose"
 
 type record struct {
 	Data string `json:"data"`
