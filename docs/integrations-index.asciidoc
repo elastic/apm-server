@@ -23,6 +23,8 @@ include::troubleshoot-apm.asciidoc[]
 
 include::apm-breaking.asciidoc[]
 
+include::release-notes.asciidoc[leveloffset=+1]
+
 // This includes the legacy APM Overview
 include::legacy/guide/index.asciidoc[]
 
