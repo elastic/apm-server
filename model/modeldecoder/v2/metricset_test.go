@@ -226,6 +226,180 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 	}}, batch)
 }
 
+func TestDecodeMetricsetServiceName(t *testing.T) {
+	var input = &modeldecoder.Input{
+		Base: model.APMEvent{
+			Service: model.Service{
+				Name:        "service_name",
+				Version:     "service_version",
+				Environment: "service_environment",
+			},
+		},
+	}
+	var batch model.Batch
+
+	err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{
+		"metricset": {
+			"timestamp": 0,
+			"samples": {
+				"span.self_time.count": {"value": 123},
+				"span.self_time.sum.us": {"value": 456}
+			},
+			"service": {
+				"name": "ow_service_name"
+			},
+			"transaction": {
+				"name": "transaction_name",
+				"type": "transaction_type"
+			},
+			"span": {
+				"type": "span_type",
+				"subtype": "span_subtype"
+			}
+		}
+	}`)), input, &batch)
+	require.NoError(t, err)
+
+	assert.Equal(t, model.Batch{{
+		Timestamp: time.Unix(0, 0).UTC(),
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{},
+		Service: model.Service{
+			Name:        "ow_service_name",
+			Environment: "service_environment",
+		},
+		Transaction: &model.Transaction{
+			Name: "transaction_name",
+			Type: "transaction_type",
+		},
+		Span: &model.Span{
+			Type:    "span_type",
+			Subtype: "span_subtype",
+			SelfTime: model.AggregatedDuration{
+				Count: 123,
+				Sum:   456 * time.Microsecond,
+			},
+		},
+	}}, batch)
+}
+
+func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
+	var input = &modeldecoder.Input{
+		Base: model.APMEvent{
+			Service: model.Service{
+				Name:        "service_name",
+				Version:     "service_version",
+				Environment: "service_environment",
+			},
+		},
+	}
+	var batch model.Batch
+
+	err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{
+		"metricset": {
+			"timestamp": 0,
+			"samples": {
+				"span.self_time.count": {"value": 123},
+				"span.self_time.sum.us": {"value": 456}
+			},
+			"service": {
+				"name": "ow_service_name",
+				"version": "ow_service_version"
+			},
+			"transaction": {
+				"name": "transaction_name",
+				"type": "transaction_type"
+			},
+			"span": {
+				"type": "span_type",
+				"subtype": "span_subtype"
+			}
+		}
+	}`)), input, &batch)
+	require.NoError(t, err)
+
+	assert.Equal(t, model.Batch{{
+		Timestamp: time.Unix(0, 0).UTC(),
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{},
+		Service: model.Service{
+			Name:        "ow_service_name",
+			Version:     "ow_service_version",
+			Environment: "service_environment",
+		},
+		Transaction: &model.Transaction{
+			Name: "transaction_name",
+			Type: "transaction_type",
+		},
+		Span: &model.Span{
+			Type:    "span_type",
+			Subtype: "span_subtype",
+			SelfTime: model.AggregatedDuration{
+				Count: 123,
+				Sum:   456 * time.Microsecond,
+			},
+		},
+	}}, batch)
+}
+
+func TestDecodeMetricsetServiceVersion(t *testing.T) {
+	var input = &modeldecoder.Input{
+		Base: model.APMEvent{
+			Service: model.Service{
+				Name:        "service_name",
+				Version:     "service_version",
+				Environment: "service_environment",
+			},
+		},
+	}
+	var batch model.Batch
+
+	err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{
+		"metricset": {
+			"timestamp": 0,
+			"samples": {
+				"span.self_time.count": {"value": 123},
+				"span.self_time.sum.us": {"value": 456}
+			},
+			"service": {
+				"version": "ow_service_version"
+			},
+			"transaction": {
+				"name": "transaction_name",
+				"type": "transaction_type"
+			},
+			"span": {
+				"type": "span_type",
+				"subtype": "span_subtype"
+			}
+		}
+	}`)), input, &batch)
+	require.NoError(t, err)
+
+	assert.Equal(t, model.Batch{{
+		Timestamp: time.Unix(0, 0).UTC(),
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{},
+		Service: model.Service{
+			Name:        "service_name",
+			Version:     "service_version",
+			Environment: "service_environment",
+		},
+		Transaction: &model.Transaction{
+			Name: "transaction_name",
+			Type: "transaction_type",
+		},
+		Span: &model.Span{
+			Type:    "span_type",
+			Subtype: "span_subtype",
+			SelfTime: model.AggregatedDuration{
+				Count: 123,
+				Sum:   456 * time.Microsecond,
+			},
+		},
+	}}, batch)
+}
+
 func repeatInt64(v int64, n int) []int64 {
 	vs := make([]int64, n)
 	for i := range vs {
