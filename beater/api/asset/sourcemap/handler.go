@@ -27,10 +27,12 @@ import (
 
 	"go.elastic.co/apm"
 
+	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/request"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/utility"
 )
@@ -54,7 +56,13 @@ type AddedNotifier interface {
 
 // Handler returns a request.Handler for managing asset requests.
 func Handler(report publish.Reporter, notifier AddedNotifier) request.Handler {
+	logger := logp.NewLogger(logs.Sourcemap)
 	return func(c *request.Context) {
+		logger.Warn("" +
+			"Support for uploading source maps to APM Server is deprecated, and will be removed in 8.0. " +
+			"Please switch to the Kibana API: https://www.elastic.co/guide/en/kibana/7.16/rum-sourcemap-api.html",
+		)
+
 		if c.Request.Method != "POST" {
 			c.Result.SetDefault(request.IDResponseErrorsMethodNotAllowed)
 			c.Write()
