@@ -209,7 +209,7 @@ func processMetrics(event model.APMEvent, cwMetric cloudwatchMetric) model.APMEv
 
 	namespace := strings.ToLower(cwMetric.Namespace)
 	namespace = strings.ReplaceAll(namespace, "/", ".")
-	event.DataStream.Dataset = namespace
+	event.DataStream.Dataset = dataset + "-" + namespace
 
 	labels := common.MapStr{}
 	for k, v := range cwMetric.Dimensions {
@@ -221,27 +221,10 @@ func processMetrics(event model.APMEvent, cwMetric cloudwatchMetric) model.APMEv
 	metricset.Name = namespace
 
 	samples := map[string]model.MetricsetSample{}
-	var sample model.MetricsetSample
-	var summary model.Summary
 	for k, v := range cwMetric.Value {
 		// TODO: handle units for CloudWatch metrics
-		value := v
-		switch k {
-		case "min":
-			summary.Min = &value
-		case "max":
-			summary.Max = &value
-		case "sum":
-			summary.Sum = &value
-		case "count":
-			vi := int64(value)
-			summary.ValueCount = &vi
-		}
+		samples[cwMetric.MetricName+"."+k] = model.MetricsetSample{Value: v}
 	}
-
-	sample.Type = model.MetricTypeSummary
-	sample.Summary = summary
-	samples[cwMetric.MetricName] = sample
 	metricset.Samples = samples
 	event.Metricset = &metricset
 	return event

@@ -263,11 +263,12 @@ func TestProcessFirehoseMetric(t *testing.T) {
 
 	assert.Equal(t, "metrics", event.DataStream.Type)
 	assert.Equal(t, "aws.ec2", event.Metricset.Name)
-	assert.Equal(t, "aws.ec2", event.DataStream.Dataset)
+	assert.Equal(t, "apm.firehose-aws.ec2", event.DataStream.Dataset)
 	assert.Equal(t, 1, len(event.Labels))
-	assert.Equal(t, 1, len(event.Metricset.Samples))
-	assert.Equal(t, int64(2), *event.Metricset.Samples["CPUUtilization"].ValueCount)
-	assert.Equal(t, 3.0, *event.Metricset.Samples["CPUUtilization"].Sum)
-	assert.Equal(t, 2.0, *event.Metricset.Samples["CPUUtilization"].Max)
-	assert.Equal(t, 1.0, *event.Metricset.Samples["CPUUtilization"].Min)
+
+	assert.Equal(t, 4, len(event.Metricset.Samples))
+	assert.Equal(t, 2.0, event.Metricset.Samples["CPUUtilization.count"].Value)
+	assert.Equal(t, 3.0, event.Metricset.Samples["CPUUtilization.sum"].Value)
+	assert.Equal(t, 2.0, event.Metricset.Samples["CPUUtilization.max"].Value)
+	assert.Equal(t, 1.0, event.Metricset.Samples["CPUUtilization.min"].Value)
 }

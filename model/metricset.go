@@ -41,7 +41,6 @@ const (
 	MetricTypeGauge     MetricType = "gauge"
 	MetricTypeCounter   MetricType = "counter"
 	MetricTypeHistogram MetricType = "histogram"
-	MetricTypeSummary   MetricType = "summary"
 )
 
 // Metricset describes a set of metrics and associated metadata.
@@ -86,9 +85,6 @@ type MetricsetSample struct {
 
 	// Histogram holds bucket values and counts for histogram metrics.
 	Histogram
-
-	// Summary holds min, max, sum and value count for a summary metric.
-	Summary
 }
 
 // Histogram holds bucket values and counts for a histogram metric.
@@ -106,38 +102,6 @@ type Histogram struct {
 	// specified with the same number of elements, and with the
 	// same order.
 	Counts []int64
-}
-
-// Summary holds min, max, sum and value count for a summary metric.
-type Summary struct {
-	// Min holds the lowest value observed during the specified period
-	Min *float64
-
-	// Max holds the highest value observed during the specified period
-	Max *float64
-
-	// Sum holds the sum of the values of the all data points collected during the period
-	Sum *float64
-
-	// ValueCount holds the number of data points during the period
-	ValueCount *int64
-}
-
-func (s *Summary) fields() common.MapStr {
-	var fields mapStr
-	if s.Min != nil {
-		fields.set("min", s.Min)
-	}
-	if s.Max != nil {
-		fields.set("max", s.Max)
-	}
-	if s.Sum != nil {
-		fields.set("sum", s.Sum)
-	}
-	if s.ValueCount != nil {
-		fields.set("value_count", s.ValueCount)
-	}
-	return common.MapStr(fields)
 }
 
 func (h *Histogram) fields() common.MapStr {
@@ -192,8 +156,6 @@ func (me *Metricset) setFields(fields *mapStr) {
 func (s *MetricsetSample) set(name string, fields *mapStr) {
 	if s.Type == MetricTypeHistogram {
 		fields.set(name, s.Histogram.fields())
-	} else if s.Type == MetricTypeSummary {
-		fields.set(name, s.Summary.fields())
 	} else {
 		fields.set(name, s.Value)
 	}

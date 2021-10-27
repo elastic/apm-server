@@ -31,8 +31,6 @@ processors:
           String metric_type = description.type;
           if (metric_type == "histogram") {
             dynamic_templates[name] = "histogram";
-          } else if (metric_type == "summary") {
-            dynamic_templates[name] = "summary";
           }
         }
         ctx._dynamic_templates = dynamic_templates;
