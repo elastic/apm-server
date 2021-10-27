@@ -9,3 +9,8 @@
 // * Point to EA for running on Docker
 // * Point to EA for directory layout
 // * Point to EA for systemd
+
+
+// Used in the obs-docs repo
+// tag::apm-agent[]
+// end::apm-agent[]
