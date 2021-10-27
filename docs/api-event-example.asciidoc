@@ -1,0 +1,9 @@
+[[api-event-example]]
+==== Example request body
+
+A request body example containing one event for all currently supported event types.
+
+[source,json]
+----
+include::./data/intake-api/generated/events.ndjson[]
+----
