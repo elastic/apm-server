@@ -34,6 +34,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/v7/libbeat/logp"
+
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/beatertest"
@@ -121,6 +123,19 @@ func TestAssetHandler(t *testing.T) {
 			assert.Equal(t, tc.code == http.StatusAccepted, tc.notifier.notified)
 		})
 	}
+}
+
+func TestLogDeprecation(t *testing.T) {
+	err := logp.DevelopmentSetup(logp.ToObserverOutput())
+	require.NoError(t, err)
+
+	tc := testcaseT{}
+	err = tc.setup()
+	require.NoError(t, err)
+
+	logs := logp.ObserverLogs().All()
+	require.Len(t, logs, 1)
+	assert.Contains(t, logs[0].Message, "Support for uploading source maps to APM Server is deprecated, and will be removed in 8.0")
 }
 
 type testcaseT struct {
