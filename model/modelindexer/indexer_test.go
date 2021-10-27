@@ -65,11 +65,6 @@ func TestModelIndexer(t *testing.T) {
 				item.Status = http.StatusInternalServerError
 			}
 			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: item})
-
-			if scanner.Scan() && scanner.Text() != "" {
-				// Both the libbeat event encoder and bulk indexer add an empty line.
-				panic("expected empty line")
-			}
 		}
 		atomic.AddInt64(&indexed, int64(len(result.Items)))
 		json.NewEncoder(w).Encode(result)
@@ -228,10 +223,6 @@ func TestModelIndexerLogRateLimit(t *testing.T) {
 				item.Error.Reason = "error_reason_odd"
 			}
 			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: item})
-			if scanner.Scan() && scanner.Text() != "" {
-				// Both the libbeat event encoder and bulk indexer add an empty line.
-				panic("expected empty line")
-			}
 		}
 		json.NewEncoder(w).Encode(result)
 	})
@@ -312,9 +303,6 @@ func BenchmarkModelIndexer(b *testing.B) {
 		for scanner.Scan() {
 			if scanner.Scan() {
 				n++
-			}
-			if scanner.Scan() && scanner.Text() != "" {
-				panic("expected empty line")
 			}
 		}
 		atomic.AddInt64(&indexed, n)
