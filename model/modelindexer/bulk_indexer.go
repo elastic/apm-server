@@ -20,9 +20,10 @@ package modelindexer
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"strconv"
+
+	jsoniter "github.com/json-iterator/go"
+	"go.elastic.co/fastjson"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 
@@ -49,8 +50,10 @@ import (
 type bulkIndexer struct {
 	client     elasticsearch.Client
 	itemsAdded int
+	jsonw      fastjson.Writer
 	buf        bytes.Buffer
-	aux        []byte
+	respBuf    bytes.Buffer
+	resp       elasticsearch.BulkIndexerResponse
 }
 
 func newBulkIndexer(client elasticsearch.Client) *bulkIndexer {
@@ -61,6 +64,8 @@ func newBulkIndexer(client elasticsearch.Client) *bulkIndexer {
 func (b *bulkIndexer) Reset() {
 	b.itemsAdded = 0
 	b.buf.Reset()
+	b.respBuf.Reset()
+	b.resp = elasticsearch.BulkIndexerResponse{Items: b.resp.Items[:0]}
 }
 
 // Added returns the number of buffered items.
@@ -85,30 +90,23 @@ func (b *bulkIndexer) Add(item elasticsearch.BulkIndexerItem) error {
 }
 
 func (b *bulkIndexer) writeMeta(item elasticsearch.BulkIndexerItem) {
-	b.buf.WriteRune('{')
-	b.aux = strconv.AppendQuote(b.aux, item.Action)
-	b.buf.Write(b.aux)
-	b.aux = b.aux[:0]
-	b.buf.WriteRune(':')
-	b.buf.WriteRune('{')
+	b.jsonw.RawByte('{')
+	b.jsonw.String(item.Action)
+	b.jsonw.RawString(":{")
 	if item.DocumentID != "" {
-		b.buf.WriteString(`"_id":`)
-		b.aux = strconv.AppendQuote(b.aux, item.DocumentID)
-		b.buf.Write(b.aux)
-		b.aux = b.aux[:0]
+		b.jsonw.RawString(`"_id":`)
+		b.jsonw.String(item.DocumentID)
 	}
 	if item.Index != "" {
 		if item.DocumentID != "" {
-			b.buf.WriteRune(',')
+			b.jsonw.RawByte(',')
 		}
-		b.buf.WriteString(`"_index":`)
-		b.aux = strconv.AppendQuote(b.aux, item.Index)
-		b.buf.Write(b.aux)
-		b.aux = b.aux[:0]
+		b.jsonw.RawString(`"_index":`)
+		b.jsonw.String(item.Index)
 	}
-	b.buf.WriteRune('}')
-	b.buf.WriteRune('}')
-	b.buf.WriteRune('\n')
+	b.jsonw.RawString("}}\n")
+	b.buf.Write(b.jsonw.Bytes())
+	b.jsonw.Reset()
 }
 
 // Flush executes a bulk request if there are any items buffered, and clears out the buffer.
@@ -127,9 +125,26 @@ func (b *bulkIndexer) Flush(ctx context.Context) (elasticsearch.BulkIndexerRespo
 		return elasticsearch.BulkIndexerResponse{}, fmt.Errorf("flush failed: %s", res.String())
 	}
 
-	var resp elasticsearch.BulkIndexerResponse
-	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
-		return resp, err
+	if _, err := b.respBuf.ReadFrom(res.Body); err != nil {
+		return elasticsearch.BulkIndexerResponse{}, err
 	}
-	return resp, nil
+
+	iter := jsoniter.ConfigFastest.BorrowIterator(b.respBuf.Bytes())
+	defer jsoniter.ConfigFastest.ReturnIterator(iter)
+
+	for iter.Error == nil {
+		field := iter.ReadObject()
+		if field == "" {
+			break
+		}
+		switch field {
+		case "took":
+			b.resp.Took = iter.ReadInt()
+		case "errors":
+			b.resp.HasErrors = iter.ReadBool()
+		case "items":
+			iter.ReadVal(&b.resp.Items)
+		}
+	}
+	return b.resp, iter.Error
 }
