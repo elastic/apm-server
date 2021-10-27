@@ -17,7 +17,7 @@ http(s)://{hostname}:{port}/
 
 This endpoint always returns an HTTP 200.
 
-If an <<api-key>> or <<secret-token>> is configured, requests to this endpoint must be authenticated.
+If <<api-key>> or a <<secret-token>> is configured, requests to this endpoint must be authenticated.
 
 Set the `Accept` header set to `text/plain` to move the server information to the root level of the response, removing `ok`.
 
