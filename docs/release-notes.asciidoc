@@ -1,11 +1,11 @@
-:root-dir: ../../
+:root-dir: ../
 
 [[release-notes]]
 = Release notes
 :issue: https://github.com/elastic/apm-server/issues/
 :pull: https://github.com/elastic/apm-server/pull/
 
-This following sections summarizes the changes in each release.
+This section summarizes the changes in each release.
 
 * <<release-notes-7.15>>
 * <<release-notes-7.14>>
