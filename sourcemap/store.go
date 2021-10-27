@@ -139,21 +139,6 @@ func (s *Store) Fetch(ctx context.Context, name, version, path string) (*sourcem
 	return consumer, nil
 }
 
-// NotifyAdded ensures the internal cache is cleared for the given parameters.
-// This should be called when a sourcemap is uploaded.
-func (s *Store) NotifyAdded(ctx context.Context, name string, version string, path string) {
-	if sourcemap, err := s.Fetch(ctx, name, version, path); err == nil && sourcemap != nil {
-		s.logger.Warnf("Overriding sourcemap for service %s version %s and file %s",
-			name, version, path)
-	}
-	key := cacheKey([]string{name, version, path})
-	s.cache.Delete(key)
-	if !s.logger.IsDebug() {
-		return
-	}
-	s.logger.Debugf("Removed id %v. Cache now has %v entries.", key, s.cache.ItemCount())
-}
-
 func (s *Store) add(key string, consumer *sourcemap.Consumer) {
 	s.cache.SetDefault(key, consumer)
 	if !s.logger.IsDebug() {

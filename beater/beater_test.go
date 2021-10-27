@@ -268,7 +268,7 @@ func TestTransformConfigIndex(t *testing.T) {
 			elasticsearch.NewClient,
 		)
 		require.NoError(t, err)
-		store.NotifyAdded(context.Background(), "name", "version", "path")
+		store.Fetch(context.Background(), "name", "version", "path")
 		require.Len(t, requestPaths, 1)
 
 		path := requestPaths[0]

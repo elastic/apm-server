@@ -309,30 +309,6 @@ func TestConcurrentFetch(t *testing.T) {
 	}
 }
 
-func TestStore_Added(t *testing.T) {
-	name, version, path := "foo", "1.0.1", "/tmp"
-	key := "foo_1.0.1_/tmp"
-
-	// setup
-	// remove empty sourcemap from cache, and valid one with File() == "bundle.js" from Elasticsearch
-	store := testStore(t, newMockElasticsearchClient(t, http.StatusOK,
-		sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(validSourcemap)}),
-	))
-	store.add(key, &sourcemap.Consumer{})
-
-	mapper, err := store.Fetch(context.Background(), name, version, path)
-	require.NoError(t, err)
-	assert.Equal(t, &sourcemap.Consumer{}, mapper)
-	assert.Equal(t, "", mapper.File())
-
-	// remove from cache, afterwards sourcemap should be fetched from ES
-	store.NotifyAdded(context.Background(), name, version, path)
-	mapper, err = store.Fetch(context.Background(), name, version, path)
-	require.NoError(t, err)
-	assert.NotNil(t, &sourcemap.Consumer{}, mapper)
-	assert.Equal(t, "bundle.js", mapper.File())
-}
-
 func TestExpiration(t *testing.T) {
 	store := testStore(t, newUnavailableElasticsearchClient(t)) //if ES was queried it would return an error
 	store.cache = gocache.New(25*time.Millisecond, 100)
