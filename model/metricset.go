@@ -145,6 +145,7 @@ func (me *Metricset) setFields(fields *mapStr) {
 	var metricDescriptions mapStr
 	for name, sample := range me.Samples {
 		sample.set(name, fields)
+
 		var md mapStr
 		md.maybeSetString("type", string(sample.Type))
 		md.maybeSetString("unit", sample.Unit)
