@@ -35,7 +35,7 @@ import (
 	"github.com/elastic/apm-server/publish"
 )
 
-const dataset = "firehose"
+const dataset = "apm.firehose"
 
 type record struct {
 	Data string `json:"data"`
@@ -67,7 +67,7 @@ type arn struct {
 	Resource  string
 }
 
-// Authenticator provides provides authentication and authorization support.
+// Authenticator provides authentication and authorization support.
 type Authenticator interface {
 	Authenticate(ctx context.Context, kind, token string) (auth.AuthenticationDetails, auth.Authorizer, error)
 }
