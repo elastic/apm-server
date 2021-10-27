@@ -1,0 +1,54 @@
+[[span-compression]]
+=== Span compression
+
+In some cases, the agents may collect large amounts of very similar or identical spans in a transaction.
+This can e.g. happen if spans are captured inside a loop, or for unoptimized SQL queries that use multiple queries instead of joins to fetch related data.
+In such cases, the upper limit of spans per transaction (by default 500 spans) can be reached quickly, causing the agent to stop capturing possibly more relevant spans for a given transaction.
+
+Such repeated similar spans often aren't very relevant for themselves, especially if they are of very short duration.
+They also can clutter the UI, and cause processing and storage overhead.
+
+To address this problem, the APM agents can compress such spans into a single span.
+The compressed span retains some information on the original spans, such as overall count and duration.
+
+
+[float]
+==== Compression strategies
+
+The agent can select between two strategies to decide if two adjacent spans can be compressed.
+Both strategies have the benefit that only one previous span needs to be kept in memory.
+This is important to ensure that the agent doesn't require large amounts of memory to enable span compression.
+
+[float]
+===== Same-Kind strategy
+
+The agent selects this strategy, if two adjacent spans have the same
+
+ * span type
+ * span subtype
+ * `destination.service.resource` (e.g. database name)
+
+[float]
+===== Exact-Match strategy
+
+The agent selects this strategy, if two adjacent spans have the same
+
+ * span name
+ * span type
+ * span subtype
+ * `destination.service.resource` (e.g. database name)
+
+[float]
+===== Settings
+
+The agent has configuration settings to define upper thresholds in terms of span duration for both strategies.
+For the "Same-Kind" strategy, the limit is 5ms. For the "Exact-Match" strategy, the limit is 50ms.
+Spans with longer duration are not compressed. Please refer to the agent documentation for specifics.
+
+[float]
+===== Agent support
+
+Support for span compression is available in these agents:
+
+ * Go
+ * Python
