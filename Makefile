@@ -79,20 +79,12 @@ bench:
 	@$(GO) test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
 
 ##############################################################################
-# Rules for updating config files, fields.yml, etc.
+# Rules for updating config files, etc.
 ##############################################################################
 
-update: fields go-generate add-headers build-package notice $(MAGE)
+update: go-generate add-headers build-package notice $(MAGE)
 	@$(MAGE) update
 	@go mod download all # make sure go.sum is complete
-
-fields_sources=\
-  $(shell find model -name fields.yml) \
-  $(shell find x-pack/apm-server/fields -name fields.yml)
-
-fields: include/fields.go x-pack/apm-server/include/fields.go
-include/fields.go x-pack/apm-server/include/fields.go: $(MAGE) magefile.go $(fields_sources)
-	@$(MAGE) fields
 
 config: apm-server.yml apm-server.docker.yml
 apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml

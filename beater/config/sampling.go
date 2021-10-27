@@ -103,12 +103,9 @@ func (c *TailSamplingConfig) Validate() error {
 	return nil
 }
 
-func (c *TailSamplingConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg *common.Config) error {
+func (c *TailSamplingConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
 	if !c.Enabled {
 		return nil
-	}
-	if !dataStreamsEnabled {
-		return errors.New("tail-sampling requires data streams to be enabled")
 	}
 	if !c.esConfigured && outputESCfg != nil {
 		log.Info("Falling back to elasticsearch output for tail-sampling")

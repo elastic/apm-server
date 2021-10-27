@@ -19,8 +19,6 @@ package config
 
 // DataStreamsConfig holds data streams configuration.
 type DataStreamsConfig struct {
-	Enabled bool `config:"enabled"`
-
 	// WaitForIntegration controls whether APM Server waits for the Fleet
 	// integration package to be installed before indexing events.
 	//
@@ -34,7 +32,6 @@ type DataStreamsConfig struct {
 
 func defaultDataStreamsConfig() DataStreamsConfig {
 	return DataStreamsConfig{
-		Enabled:            false,
 		WaitForIntegration: true,
 	}
 }

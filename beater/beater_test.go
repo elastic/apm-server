@@ -79,6 +79,10 @@ func newBeat(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, even
 	combinedConfig := common.MustNewConfigFrom(map[string]interface{}{
 		"host": "localhost:0",
 
+		// Disable waiting for integration to be installed by default,
+		// to simplify tests. This feature is tested independently.
+		"data_streams.wait_for_integration": false,
+
 		// Enable instrumentation so the profile endpoint is
 		// available, but set the profiling interval to something
 		// long enough that it won't kick in.
@@ -248,7 +252,7 @@ func (tb *testBeater) initClient(cfg *config.Config, listenAddr string) {
 	}
 }
 
-func TestTransformConfigIndex(t *testing.T) {
+func TestSourcemapIndexPattern(t *testing.T) {
 	test := func(t *testing.T, indexPattern, expected string) {
 		var requestPaths []string
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -102,9 +102,6 @@ func NewCreator(args CreatorParams) beat.Creator {
 		if err != nil {
 			return nil, err
 		}
-		if err := recordRootConfig(b.Info, bt.rawConfig); err != nil {
-			bt.logger.Errorf("Error recording telemetry data", err)
-		}
 
 		if bt.config.Pprof.Enabled {
 			// Profiling rates should be set once, early on in the program.
@@ -112,12 +109,6 @@ func NewCreator(args CreatorParams) beat.Creator {
 			runtime.SetMutexProfileFraction(bt.config.Pprof.MutexProfileRate)
 			if bt.config.Pprof.MemProfileRate > 0 {
 				runtime.MemProfileRate = bt.config.Pprof.MemProfileRate
-			}
-		}
-
-		if !bt.config.DataStreams.Enabled {
-			if b.Manager != nil && b.Manager.Enabled() {
-				return nil, errors.New("data streams must be enabled when the server is managed")
 			}
 		}
 
@@ -273,12 +264,10 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 	if integrationConfig.DataStream != nil {
 		namespace = integrationConfig.DataStream.Namespace
 	}
-	apmServerCommonConfig := integrationConfig.APMServer
-	apmServerCommonConfig.Merge(common.MustNewConfigFrom(`{"data_streams.enabled": true}`))
 
 	r.mu.Lock()
 	r.namespace = namespace
-	r.rawConfig = apmServerCommonConfig
+	r.rawConfig = integrationConfig.APMServer
 	r.fleetConfig = &integrationConfig.Fleet
 	r.mu.Unlock()
 	return r.reload()
@@ -597,7 +586,7 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 	// When running standalone with data streams enabled, by default we will add
 	// a precondition that ensures the integration is installed.
 	fleetManaged := s.beat.Manager != nil && s.beat.Manager.Enabled()
-	if !fleetManaged && s.config.DataStreams.Enabled && s.config.DataStreams.WaitForIntegration {
+	if !fleetManaged && s.config.DataStreams.WaitForIntegration {
 		if kibanaClient == nil && esOutputClient == nil {
 			return errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
 		}
@@ -623,7 +612,7 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
 // and a cleanup function which should be called on server shutdown.
 func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.BatchProcessor, func(context.Context) error, error) {
-	if s.elasticsearchOutputConfig == nil || !s.config.DataStreams.Enabled {
+	if s.elasticsearchOutputConfig == nil {
 		return p, func(context.Context) error { return nil }, nil
 	}
 
@@ -693,15 +682,11 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 		newObserverBatchProcessor(s.beat.Info),
 		model.ProcessBatchFunc(ecsVersionBatchProcessor),
 		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
+		&modelprocessor.SetDataStream{Namespace: s.namespace},
 	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
 			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,
-		})
-	}
-	if s.config.DataStreams.Enabled {
-		processors = append(processors, &modelprocessor.SetDataStream{
-			Namespace: s.namespace,
 		})
 	}
 	return WrapRunServerWithProcessors(runServer, processors...)

@@ -97,7 +97,7 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		}
 	}
 
-	if err := c.RumConfig.setup(logger, c.DataStreams.Enabled, outputESCfg); err != nil {
+	if err := c.RumConfig.setup(logger, outputESCfg); err != nil {
 		return nil, err
 	}
 
@@ -109,7 +109,7 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, err
 	}
 
-	if err := c.Sampling.Tail.setup(logger, c.DataStreams.Enabled, outputESCfg); err != nil {
+	if err := c.Sampling.Tail.setup(logger, outputESCfg); err != nil {
 		return nil, err
 	}
 
