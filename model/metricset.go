@@ -33,7 +33,7 @@ var (
 	MetricsetProcessor = Processor{Name: "metric", Event: "metric"}
 )
 
-// MetricType describes the type of metric: gauge, counter, histogram, or summary.
+// MetricType describes the type of metric: gauge, counter, or histogram.
 type MetricType string
 
 // Valid MetricType values.
