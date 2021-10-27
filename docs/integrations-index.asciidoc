@@ -4,6 +4,11 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :apm-integration-docs:
 :apm-package-dir: {docdir}/apm-package
 
+:github_repo_link: https://github.com/elastic/apm-server/blob/v{version}
+ifeval::["{version}" == "8.0.0"]
+:github_repo_link: https://github.com/elastic/apm-server/blob/master
+endif::[]
+
 [[apm-user-guide]]
 = APM User Guide
 
@@ -19,9 +24,15 @@ include::data-model.asciidoc[]
 
 include::features.asciidoc[]
 
+include::secure-agent-communication.asciidoc[]
+
+include::api.asciidoc[]
+
 include::troubleshoot-apm.asciidoc[]
 
 include::apm-breaking.asciidoc[]
+
+include::release-notes.asciidoc[leveloffset=+1]
 
 // This includes the legacy APM Overview
 include::legacy/guide/index.asciidoc[]
