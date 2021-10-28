@@ -165,7 +165,6 @@ func TestBeatsConfigSynced(t *testing.T) {
 
 	knownUnhandled := []string{
 		"bulk_max_size",
-		"compression_level",
 		"escape_html",
 		// TODO Kerberos auth (https://github.com/elastic/apm-server/issues/3794)
 		"kerberos",

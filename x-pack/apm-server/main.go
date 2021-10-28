@@ -138,7 +138,8 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			IngestRateDecayFactor: tailSamplingConfig.IngestRateDecayFactor,
 		},
 		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
-			Elasticsearch: es,
+			CompressionLevel: tailSamplingConfig.ESConfig.CompressionLevel,
+			Elasticsearch:    es,
 			SampledTracesDataStream: sampling.DataStreamConfig{
 				Type:      "traces",
 				Dataset:   "apm.sampled",
