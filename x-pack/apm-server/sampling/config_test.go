@@ -55,6 +55,10 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	}
 	config.IngestRateDecayFactor = 0.5
 
+	config.CompressionLevel = 11
+	assertInvalidConfigError("invalid remote sampling config: CompressionLevel out of range [-1,9]")
+	config.CompressionLevel = 0
+
 	assertInvalidConfigError("invalid remote sampling config: Elasticsearch unspecified")
 	var elasticsearchClient struct {
 		elasticsearch.Client
