@@ -46,6 +46,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Add an experimental endpoint for AWS Kinesis Data Firehose {pull}6299[6299]
 - `output.elasticsearch.experimental` can be used to enable a new, experimental Elasticsearch output using the go-elasticsearch client {pull}5970[5970]
 - Transaction metrics now also group by `service.node.name`, `cloud.provider`, `cloud.region`, `cloud.availability_zone` {pull}6323[6323]
+- Add support for CloudWatch metric streams through firehose endpoint {pull}6380[6380]
 
 [float]
 ==== Deprecated
