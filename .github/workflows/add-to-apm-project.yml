@@ -42,4 +42,4 @@ jobs:
           value: "6c538d8a"
         env:
           PROJECT_ID: "PN_kwDOAGc3Zs0VSg"
-          GITHUB_TOKEN: ${{ secrets.PROJECTS_BETA_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.APM_TECH_USER_TOKEN }}
