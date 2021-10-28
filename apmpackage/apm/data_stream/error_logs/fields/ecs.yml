@@ -83,6 +83,8 @@
     A flat mapping of user-defined labels with string, boolean or number values.
   dynamic: true
 - external: ecs
+  name: message
+- external: ecs
   name: observer.hostname
 - external: ecs
   name: observer.type
