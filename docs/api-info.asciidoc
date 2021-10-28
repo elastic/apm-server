@@ -1,0 +1,41 @@
+[[api-info]]
+=== Server information API
+
+The APM Server exposes an API endpoint to query general server information.
+This lightweight endpoint is useful as a server up/down health check.
+
+[float]
+[[api-info-endpoint]]
+=== Server Information endpoint
+
+Send an `HTTP GET` request to the server information endpoint:
+
+[source,bash]
+------------------------------------------------------------
+http(s)://{hostname}:{port}/
+------------------------------------------------------------
+
+This endpoint always returns an HTTP 200.
+
+If <<api-key>> or a <<secret-token>> is configured, requests to this endpoint must be authenticated.
+
+Set the `Accept` header set to `text/plain` to move the server information to the root level of the response, removing `ok`.
+
+[float]
+[[api-info-examples]]
+==== Example
+
+Example server information request:
+
+["source","sh",subs="attributes"]
+---------------------------------------------------------------------------
+curl http://127.0.0.1:8200/
+
+{
+  "ok": {
+    "build_date": "2021-10-27T18:49:58Z",
+    "build_sha": "bc4d9a286a65b4283c2462404add86a26be61dca",
+    "version": "7.16.0"
+  }
+}
+---------------------------------------------------------------------------
