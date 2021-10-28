@@ -19,6 +19,7 @@ package modelindexer_test
 
 import (
 	"bufio"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -29,8 +30,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.elastic.co/fastjson"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
@@ -305,34 +308,81 @@ func TestModelIndexerCloseFlushContext(t *testing.T) {
 }
 
 func BenchmarkModelIndexer(b *testing.B) {
+	b.Run("NoCompression", func(b *testing.B) {
+		benchmarkModelIndexer(b, gzip.NoCompression)
+	})
+	b.Run("BestSpeed", func(b *testing.B) {
+		benchmarkModelIndexer(b, gzip.BestSpeed)
+	})
+	b.Run("DefaultCompression", func(b *testing.B) {
+		benchmarkModelIndexer(b, gzip.DefaultCompression)
+	})
+	b.Run("BestCompression", func(b *testing.B) {
+		benchmarkModelIndexer(b, gzip.BestCompression)
+	})
+}
+
+func benchmarkModelIndexer(b *testing.B, compressionLevel int) {
 	var indexed int64
 	client := newMockElasticsearchClient(b, func(w http.ResponseWriter, r *http.Request) {
-		scanner := bufio.NewScanner(r.Body)
-		var n int64
-		for scanner.Scan() {
-			if scanner.Scan() {
-				n++
+		body := r.Body
+		switch r.Header.Get("Content-Encoding") {
+		case "gzip":
+			r, err := gzip.NewReader(body)
+			if err != nil {
+				panic(err)
 			}
+			defer r.Close()
+			body = r
+		}
+
+		var n int64
+		var jsonw fastjson.Writer
+		jsonw.RawString(`{"items":[`)
+		first := true
+		scanner := bufio.NewScanner(body)
+		for scanner.Scan() {
+			// Action is always "create", skip decoding to avoid
+			// inflating allocations in benchmark.
+			if !scanner.Scan() {
+				panic("expected source")
+			}
+			if first {
+				first = false
+			} else {
+				jsonw.RawByte(',')
+			}
+<<<<<<< HEAD
 			if scanner.Scan() && scanner.Text() != "" {
 				panic("expected empty line")
 			}
+=======
+			jsonw.RawString(`{"create":{"status":201}}`)
+			n++
+>>>>>>> 7d55726c (modelindexer: add support for gzip compression (#6449))
 		}
+		jsonw.RawString(`]}`)
+		w.Write(jsonw.Bytes())
 		atomic.AddInt64(&indexed, n)
-		fmt.Fprintln(w, "{}")
 	})
 
-	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Second})
+	indexer, err := modelindexer.New(client, modelindexer.Config{
+		CompressionLevel: compressionLevel,
+		FlushInterval:    time.Second,
+	})
 	require.NoError(b, err)
 	defer indexer.Close(context.Background())
 
-	batch := model.Batch{
-		model.APMEvent{
-			Processor: model.TransactionProcessor,
-			Timestamp: time.Now(),
-		},
-	}
 	b.RunParallel(func(pb *testing.PB) {
+		batch := model.Batch{
+			model.APMEvent{
+				Processor:   model.TransactionProcessor,
+				Transaction: &model.Transaction{},
+			},
+		}
 		for pb.Next() {
+			batch[0].Timestamp = time.Now()
+			batch[0].Transaction.ID = uuid.Must(uuid.NewV4()).String()
 			if err := indexer.ProcessBatch(context.Background(), &batch); err != nil {
 				b.Fatal(err)
 			}

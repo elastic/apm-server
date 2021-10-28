@@ -62,6 +62,10 @@ type LocalSamplingConfig struct {
 // RemoteSamplingConfig holds Processor configuration related to publishing and
 // subscribing to remote sampling decisions.
 type RemoteSamplingConfig struct {
+	// CompressionLevel holds the gzip compression level to use when bulk
+	// indexing sampled trace IDs.
+	CompressionLevel int
+
 	// Elasticsearch holds the Elasticsearch client to use for publishing
 	// and subscribing to remote sampling decisions.
 	Elasticsearch elasticsearch.Client
@@ -198,6 +202,9 @@ func (config LocalSamplingConfig) validate() error {
 }
 
 func (config RemoteSamplingConfig) validate() error {
+	if config.CompressionLevel < -1 || config.CompressionLevel > 9 {
+		return errors.New("CompressionLevel out of range [-1,9]")
+	}
 	if config.Elasticsearch == nil {
 		return errors.New("Elasticsearch unspecified")
 	}
