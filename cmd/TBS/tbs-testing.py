@@ -79,7 +79,12 @@ def metric_search(host, user, password):
                             auth=HTTPBasicAuth(user, password),
                             data=json.dumps(metric_query),
                             headers={"content-type": "application/json; charset=utf8"})
-    return response.json()["aggregations"]["count"]["value"]
+
+    if "aggregations" in response.json():
+        if "count" in response.json()["aggregations"]:
+            if "value" in response.json()["aggregations"]["count"]:
+                return response.json()["aggregations"]["count"]["value"]
+    return 0
 
 
 def trace_search(host, user, password):
@@ -87,16 +92,19 @@ def trace_search(host, user, password):
                             auth=HTTPBasicAuth(user, password),
                             data=json.dumps(trace_query),
                             headers={"content-type": "application/json; charset=utf8"})
-    return response.json()["hits"]["total"]["value"]
-
+    if "hits" in response.json():
+        if "total" in response.json()["hits"]:
+            if "value" in response.json()["hits"]["total"]:
+                return response.json()["hits"]["total"]["value"]
+    return 0
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-e",
-                        "--elasticsearch_host",
+                        "--elasticsearch-host",
                         required=False,
                         type=str,
-                        default="localhost:8200",
+                        default="localhost:9200",
                         dest="host",
                         metavar="<elasticsearch_host>",
                         help="the Elasticsearch host your apm server is sending data")
@@ -112,7 +120,7 @@ def main():
                         "--sample_rate",
                         required=False,
                         type=float,
-                        default=1,
+                        default=.99,
                         dest="sample_rate",
                         metavar="<tail_based_sampling_rate>",
                         help="the tail-based sampling rate set in the APM server.")
@@ -165,9 +173,11 @@ cloud.auth: "{cloud_auth}
     else:
         es_yml = f"""output.elasticsearch:
     hosts: [{elastic_host}]
+    protocol: https
     username: {elastic_user}
     password: {elastic_password}
 """
+
 
     apm_yml = f"""apm-server:
   host: "0.0.0.0:8200"
