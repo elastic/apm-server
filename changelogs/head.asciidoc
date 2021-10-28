@@ -1,5 +1,5 @@
 [[release-notes-head]]
-== APM Server version HEAD
+== APM version HEAD
 
 https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 

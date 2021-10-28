@@ -178,7 +178,7 @@ When used with `verify`, asks for the `config_agent:read` privilege.
 
 *`--credentials CREDS`*::
 Required for the `verify` subcommand. Specifies the credentials for which to to check privileges.
-Credentials are the base64 encoded representation of the API key's `id:name`.
+Credentials are the base64 encoded representation of the API key's `id:api_key`.
 
 *`--expiration TIME`*::
 When used with `create`, specifies the expiration for the key, e.g., "1d" (default never).

@@ -12,7 +12,7 @@ Any exceptions will be explained in <<breaking-changes,breaking changes>>.
 [[before-upgrading]]
 === Before upgrading
 
-* Review the APM Server <<release-notes,release notes>> and <<breaking-changes,breaking changes>>
+* Review the APM Server {apm-guide-ref}/release-notes.html[release notes] and <<breaking-changes,breaking changes>>
 for changes between your current APM Server version and the one you are upgrading to.
 * Review the APM stack {apm-overview-ref-v}/apm-breaking-changes.html[breaking changes] and Observability
 {observability-guide}/whats-new.html[What's new in {minor-version}] for important changes to other APM components.
