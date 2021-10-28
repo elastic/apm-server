@@ -25,8 +25,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"time"
 
+	"github.com/go-sourcemap/sourcemap"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -38,8 +38,7 @@ import (
 )
 
 const (
-	emptyResult          = ""
-	errMsgParseSourcemap = "Could not parse Sourcemap."
+	errMsgParseSourcemap = "Could not parse Sourcemap"
 )
 
 var (
@@ -47,7 +46,7 @@ var (
 	errSourcemapWrongFormat = errors.New("Sourcemapping ES Result not in expected format")
 )
 
-type esStore struct {
+type esFetcher struct {
 	client elasticsearch.Client
 	index  string
 	logger *logp.Logger
@@ -68,43 +67,41 @@ type esSourcemapResponse struct {
 	} `json:"hits"`
 }
 
-// NewElasticsearchStore returns an instance of Store for interacting with
-// sourcemaps stored in ElasticSearch.
-func NewElasticsearchStore(
-	c elasticsearch.Client,
-	index string,
-	expiration time.Duration,
-) (*Store, error) {
+// NewElasticsearchFetcher returns a Fetcher for fetching source maps stored in Elasticsearch.
+func NewElasticsearchFetcher(c elasticsearch.Client, index string) Fetcher {
 	logger := logp.NewLogger(logs.Sourcemap)
-	s := &esStore{c, index, logger}
-
-	return newStore(s, logger, expiration)
+	return &esFetcher{c, index, logger}
 }
 
-func (s *esStore) fetch(ctx context.Context, name, version, path string) (string, error) {
+// Fetch fetches a source map from Elasticsearch.
+func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	resp, err := s.runSearchQuery(ctx, name, version, path)
 	if err != nil {
-		return "", errors.Wrap(err, errMsgESFailure)
+		return nil, errors.Wrap(err, errMsgESFailure)
 	}
 	defer resp.Body.Close()
 
 	// handle error response
 	if resp.StatusCode >= http.StatusMultipleChoices {
 		if resp.StatusCode == http.StatusNotFound {
-			return "", nil
+			return nil, nil
 		}
 		b, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return "", errors.Wrap(err, errMsgParseSourcemap)
+			return nil, errors.Wrap(err, errMsgParseSourcemap)
 		}
-		return "", errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, b))
+		return nil, errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, b))
 	}
 
 	// parse response
-	return parse(resp.Body, name, version, path, s.logger)
+	body, err := parse(resp.Body, name, version, path, s.logger)
+	if err != nil {
+		return nil, err
+	}
+	return parseSourceMap(body)
 }
 
-func (s *esStore) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {
+func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query(name, version, path)); err != nil {
 		return nil, err
@@ -119,12 +116,13 @@ func (s *esStore) runSearchQuery(ctx context.Context, name, version, path string
 
 func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {
 	var esSourcemapResponse esSourcemapResponse
-	if err := json.NewDecoder(body).Decode(&esSourcemapResponse); err != nil {
+	var buf bytes.Buffer
+	if err := json.NewDecoder(io.TeeReader(body, &buf)).Decode(&esSourcemapResponse); err != nil {
 		return "", err
 	}
 	hits := esSourcemapResponse.Hits.Total.Value
 	if hits == 0 || len(esSourcemapResponse.Hits.Hits) == 0 {
-		return emptyResult, nil
+		return "", nil
 	}
 
 	var esSourcemap string
@@ -134,8 +132,8 @@ func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) 
 	}
 	esSourcemap = esSourcemapResponse.Hits.Hits[0].Source.Sourcemap.Sourcemap
 	// until https://github.com/golang/go/issues/19858 is resolved
-	if esSourcemap == emptyResult {
-		return emptyResult, errSourcemapWrongFormat
+	if esSourcemap == "" {
+		return "", errSourcemapWrongFormat
 	}
 	return esSourcemap, nil
 }

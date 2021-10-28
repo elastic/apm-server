@@ -36,8 +36,6 @@ import (
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
-	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 var unsupportedVersionSourcemap = `{
@@ -50,13 +48,11 @@ var unsupportedVersionSourcemap = `{
   "sourceRoot": ""
 }`
 
-func Test_newStore(t *testing.T) {
-	logger := logp.NewLogger(logs.Sourcemap)
-
-	_, err := newStore(nil, logger, -1)
+func Test_NewCachingFetcher(t *testing.T) {
+	_, err := NewCachingFetcher(nil, -1)
 	require.Error(t, err)
 
-	f, err := newStore(nil, logger, 100)
+	f, err := NewCachingFetcher(nil, 100)
 	require.NoError(t, err)
 	assert.NotNil(t, f.cache)
 }
@@ -68,7 +64,7 @@ func TestStore_Fetch(t *testing.T) {
 	t.Run("cache", func(t *testing.T) {
 		t.Run("nil", func(t *testing.T) {
 			var nilConsumer *sourcemap.Consumer
-			store := testStore(t, newMockElasticsearchClient(t, http.StatusOK,
+			store := testCachingFetcher(t, newMockElasticsearchClient(t, http.StatusOK,
 				sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(validSourcemap)}),
 			))
 			store.add(key, nilConsumer)
@@ -80,7 +76,7 @@ func TestStore_Fetch(t *testing.T) {
 
 		t.Run("sourcemapConsumer", func(t *testing.T) {
 			consumer := &sourcemap.Consumer{}
-			store := testStore(t, newUnavailableElasticsearchClient(t))
+			store := testCachingFetcher(t, newUnavailableElasticsearchClient(t))
 			store.add(key, consumer)
 
 			mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
@@ -91,7 +87,7 @@ func TestStore_Fetch(t *testing.T) {
 	})
 
 	t.Run("validFromES", func(t *testing.T) {
-		store := testStore(t, newMockElasticsearchClient(t, http.StatusOK,
+		store := testCachingFetcher(t, newMockElasticsearchClient(t, http.StatusOK,
 			sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(validSourcemap)}),
 		))
 		mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
@@ -105,7 +101,7 @@ func TestStore_Fetch(t *testing.T) {
 	})
 
 	t.Run("notFoundInES", func(t *testing.T) {
-		store := testStore(t, newMockElasticsearchClient(t, http.StatusNotFound, sourcemapSearchResponseBody(0, nil)))
+		store := testCachingFetcher(t, newMockElasticsearchClient(t, http.StatusNotFound, sourcemapSearchResponseBody(0, nil)))
 		//not cached
 		cached, found := store.cache.Get(key)
 		require.False(t, found)
@@ -132,7 +128,7 @@ func TestStore_Fetch(t *testing.T) {
 			),
 		} {
 			t.Run(name, func(t *testing.T) {
-				store := testStore(t, client)
+				store := testCachingFetcher(t, client)
 				//not cached
 				cached, found := store.cache.Get(key)
 				require.False(t, found)
@@ -152,7 +148,7 @@ func TestStore_Fetch(t *testing.T) {
 	})
 
 	t.Run("noConnectionToES", func(t *testing.T) {
-		store := testStore(t, newUnavailableElasticsearchClient(t))
+		store := testCachingFetcher(t, newUnavailableElasticsearchClient(t))
 		//not cached
 		_, found := store.cache.Get(key)
 		require.False(t, found)
@@ -203,10 +199,9 @@ func TestFetchContext(t *testing.T) {
 			SourceMapURL:   "",
 		},
 	}
-	b, err := newFleetStore(c, fleetCfg, cfgs)
+	b, err := NewFleetFetcher(c, fleetCfg, cfgs)
 	assert.NoError(t, err)
-	logger := logp.NewLogger(logs.Sourcemap)
-	store, err := newStore(b, logger, time.Minute)
+	store, err := NewCachingFetcher(b, time.Minute)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -283,14 +278,16 @@ func TestConcurrentFetch(t *testing.T) {
 				SourceMapURL:   "",
 			},
 		}
-		store, err := NewFleetStore(c, fleetCfg, cfgs, time.Minute)
+		fleetFetcher, err := NewFleetFetcher(c, fleetCfg, cfgs)
+		assert.NoError(t, err)
+		fetcher, err := NewCachingFetcher(fleetFetcher, time.Minute)
 		assert.NoError(t, err)
 
 		var wg sync.WaitGroup
 		for i := 0; i < int(tc.succsWant+tc.errWant); i++ {
 			wg.Add(1)
 			go func() {
-				consumer, err := store.Fetch(context.Background(), name, version, path)
+				consumer, err := fetcher.Fetch(context.Background(), name, version, path)
 				if err != nil {
 					atomic.AddInt64(&errs, 1)
 				} else {
@@ -310,7 +307,7 @@ func TestConcurrentFetch(t *testing.T) {
 }
 
 func TestExpiration(t *testing.T) {
-	store := testStore(t, newUnavailableElasticsearchClient(t)) //if ES was queried it would return an error
+	store := testCachingFetcher(t, newUnavailableElasticsearchClient(t)) //if ES was queried it would return an error
 	store.cache = gocache.New(25*time.Millisecond, 100)
 	store.add("foo_1.0.1_/tmp", &sourcemap.Consumer{})
 	name, version, path := "foo", "1.0.1", "/tmp"
@@ -346,8 +343,9 @@ func TestCleanupInterval(t *testing.T) {
 	}
 }
 
-func testStore(t *testing.T, client elasticsearch.Client) *Store {
-	store, err := NewElasticsearchStore(client, "apm-*sourcemap*", time.Minute)
+func testCachingFetcher(t *testing.T, client elasticsearch.Client) *CachingFetcher {
+	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*")
+	cachingFetcher, err := NewCachingFetcher(esFetcher, time.Minute)
 	require.NoError(t, err)
-	return store
+	return cachingFetcher
 }

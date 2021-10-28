@@ -73,9 +73,9 @@ type ServerParams struct {
 	// for self-instrumentation.
 	Tracer *apm.Tracer
 
-	// SourcemapStore holds a sourcemap.Store, or nil if source
+	// SourcemapFetcher holds a sourcemap.Fetcher, or nil if source
 	// mapping is disabled.
-	SourcemapStore *sourcemap.Store
+	SourcemapFetcher sourcemap.Fetcher
 
 	// BatchProcessor is the model.BatchProcessor that is used
 	// for publishing events to the output, such as Elasticsearch.
@@ -180,7 +180,7 @@ func newServer(args ServerParams, listener net.Listener, reporter publish.Report
 	mux, err := api.NewMux(
 		args.Info, args.Config, reporter, batchProcessor,
 		authenticator, agentcfgFetchReporter, ratelimitStore,
-		args.SourcemapStore, args.Managed, publishReady,
+		args.SourcemapFetcher, args.Managed, publishReady,
 	)
 	if err != nil {
 		return server{}, err
