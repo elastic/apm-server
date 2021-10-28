@@ -11,16 +11,17 @@ They also can clutter the UI, and cause processing and storage overhead.
 To address this problem, the APM agents can compress such spans into a single span.
 The compressed span retains some information on the original spans, such as overall count and duration.
 
-
 [float]
-==== Compression strategies
+[[span-compression-strategy]]
+=== Compression strategies
 
 The agent can select between two strategies to decide if two adjacent spans can be compressed.
 Both strategies have the benefit that only one previous span needs to be kept in memory.
 This is important to ensure that the agent doesn't require large amounts of memory to enable span compression.
 
 [float]
-===== Same-Kind strategy
+[[span-compression-same]]
+==== Same-Kind strategy
 
 The agent selects this strategy, if two adjacent spans have the same
 
@@ -29,7 +30,8 @@ The agent selects this strategy, if two adjacent spans have the same
  * `destination.service.resource` (e.g. database name)
 
 [float]
-===== Exact-Match strategy
+[[span-compression-exact]]
+==== Exact-Match strategy
 
 The agent selects this strategy, if two adjacent spans have the same
 
@@ -39,14 +41,16 @@ The agent selects this strategy, if two adjacent spans have the same
  * `destination.service.resource` (e.g. database name)
 
 [float]
-===== Settings
+[[span-compression-settings]]
+=== Settings
 
 The agent has configuration settings to define upper thresholds in terms of span duration for both strategies.
 For the "Same-Kind" strategy, the limit is 5ms. For the "Exact-Match" strategy, the limit is 50ms.
 Spans with longer duration are not compressed. Please refer to the agent documentation for specifics.
 
 [float]
-===== Agent support
+[[span-compression-support]]
+=== Agent support
 
 Support for span compression is available in these agents:
 
