@@ -23,8 +23,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/elastic/go-elasticsearch/v7/esutil"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 // ExpectDocs searches index with query, returning the results.
