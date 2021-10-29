@@ -36,7 +36,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :docker_platform:
 :win_os:
 :linux_os:
-:apm-package-dir: {docdir}/apm-package
+:apm-package-dir: {docdir}/legacy/apm-package
 
 :github_repo_link: https://github.com/elastic/apm-server/blob/v{version}
 ifeval::["{version}" == "8.0.0"]
@@ -56,9 +56,17 @@ ifndef::apm-integration-docs[]
 endif::[]
 
 ifdef::apm-integration-docs[]
+// Overwrite links to the APM Overview and APM Server Ref. Point to APM Guide instead.
+:apm-overview-ref-v: {apm-guide-ref}
+:apm-guide-ref: {apm-guide-ref}
+:apm-server-ref-v: {apm-guide-ref}
+:apm-server-ref: {apm-guide-ref}
+
+//change the name
 [[apm-server]]
 = Legacy APM Server Reference
 
+// add deprecation notice
 deprecated::[7.16.0]
 
 ****
