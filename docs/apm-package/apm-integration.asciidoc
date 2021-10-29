@@ -108,13 +108,9 @@ In the future, we may align with Elastic Stack versioning.
 [[apm-integration-learn-more]]
 === Learn more
 
-// to do: update these links
-* <<input-apm>>
 * <<apm-integration-data-streams>>
 * {fleet-guide}/fleet-overview.html[Fleet overview]
 
 include::./data-streams.asciidoc[]
-
-include::./input-apm.asciidoc[]
 
 include::./configure.asciidoc[]
