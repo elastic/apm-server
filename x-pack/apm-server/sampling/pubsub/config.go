@@ -21,6 +21,10 @@ type Config struct {
 	// trace ID observations.
 	Client elasticsearch.Client
 
+	// CompressionLevel holds the gzip compression level to use when bulk indexing.
+	// See model/modelindexer.Config.CompressionLevel for details.
+	CompressionLevel int
+
 	// DataStream holds the data stream.
 	DataStream DataStreamConfig
 
