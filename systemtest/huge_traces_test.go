@@ -42,7 +42,7 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 	require.NoError(t, err)
 
 	tracer := srv.Tracer()
-	tx := tracer.StartTransaction("huge-traces", "")
+	tx := tracer.StartTransaction("huge-traces", "type")
 
 	// These spans will be dropped.
 	for i := 0; i < 50; i++ {
@@ -54,7 +54,7 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 		span.End()
 	}
 	for i := 0; i < 4; i++ {
-		span := tx.StartSpanOptions("EXISTS", "db.elasticsearch", apm.SpanOptions{
+		span := tx.StartSpanOptions("_bulk", "db.elasticsearch", apm.SpanOptions{
 			ExitSpan: true,
 		})
 		span.Duration = time.Millisecond
