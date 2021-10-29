@@ -26,9 +26,9 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/go-elasticsearch/v7"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/elastic/go-elasticsearch/v7/esutil"
+	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
@@ -131,10 +131,12 @@ func CleanupElasticsearch(t testing.TB) {
 		t.Fatal(err)
 	}
 	doParallel(
-		esapi.IndicesDeleteDataStreamRequest{Name: legacyPrefix},
-		esapi.IndicesDeleteDataStreamRequest{Name: apmTracesPrefix},
-		esapi.IndicesDeleteDataStreamRequest{Name: apmMetricsPrefix},
-		esapi.IndicesDeleteDataStreamRequest{Name: apmLogsPrefix},
+		esapi.IndicesDeleteDataStreamRequest{Name: []string{
+			legacyPrefix,
+			apmTracesPrefix,
+			apmMetricsPrefix,
+			apmLogsPrefix,
+		}},
 		esapi.IngestDeletePipelineRequest{PipelineID: legacyPrefix},
 	)
 
