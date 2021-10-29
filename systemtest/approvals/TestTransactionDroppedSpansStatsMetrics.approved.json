@@ -34,7 +34,7 @@
                         "resource": "elasticsearch",
                         "response_time": {
                             "count": 4,
-                            "sum.us": 4000
+                            "sum.us": 3600
                         }
                     }
                 }

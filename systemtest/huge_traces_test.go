@@ -44,7 +44,7 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 	tracer := srv.Tracer()
 	tx := tracer.StartTransaction("huge-traces", "type")
 
-	// These spans will be dropped.
+	// These spans are dropped since their duration < `exit_span_min_duration`.
 	for i := 0; i < 50; i++ {
 		span := tx.StartSpanOptions("EXISTS", "db.redis", apm.SpanOptions{
 			ExitSpan: true,
@@ -57,7 +57,7 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 		span := tx.StartSpanOptions("_bulk", "db.elasticsearch", apm.SpanOptions{
 			ExitSpan: true,
 		})
-		span.Duration = time.Millisecond
+		span.Duration = 900 * time.Microsecond
 		span.Outcome = "success"
 		span.End()
 	}
