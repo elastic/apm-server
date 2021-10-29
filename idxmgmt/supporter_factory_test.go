@@ -200,6 +200,7 @@ func TestNewIndexManagementConfig(t *testing.T) {
 	require.NotNil(t, indexManagementConfig)
 
 	templateConfig := template.DefaultConfig()
+	templateConfig.Type = template.IndexTemplateLegacy
 	templateConfig.Fields = "/dev/null/fields.yml"
 	templateConfig.Settings = template.TemplateSettings{
 		Index: map[string]interface{}{

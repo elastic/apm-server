@@ -104,6 +104,7 @@ func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*Index
 	}
 
 	templateConfig := template.DefaultConfig()
+	templateConfig.Type = template.IndexTemplateLegacy
 	if err := cfg.Template.Unpack(&templateConfig); err != nil {
 		return nil, errors.Wrap(err, "unpacking template config failed")
 	}
