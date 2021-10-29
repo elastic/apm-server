@@ -234,3 +234,41 @@ type authorizerFunc func(ctx context.Context, action auth.Action, resource auth.
 func (f authorizerFunc) Authorize(ctx context.Context, action auth.Action, resource auth.Resource) error {
 	return f(ctx, action, resource)
 }
+
+func TestProcessFirehoseMetric(t *testing.T) {
+	var batches []model.Batch
+	tc := testcaseFirehoseHandler{
+		path:              "cloudwatch_metric.json",
+		code:              http.StatusOK,
+		id:                request.IDResponseValidAccepted,
+		firehoseAccessKey: "U25jcABcd0JzTjQzUjNDemdGTHk6Ri0xMTNCdVVRdXFSR0lGYzF0Wk5Vdw==",
+		batchProcessor: model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+			batches = append(batches, *batch)
+			return nil
+		}),
+	}
+
+	tc.setup(t)
+	h := Handler(tc.batchProcessor, tc.authenticator)
+	h(tc.c)
+
+	require.Len(t, batches, 1)
+	require.Len(t, batches[0], 1)
+	event := batches[0][0]
+
+	assert.Equal(t, expectedRegion, event.Cloud.Origin.Region)
+	assert.Equal(t, expectedAccountID, event.Cloud.Origin.AccountID)
+	assert.Equal(t, testARN, event.Service.Origin.ID)
+	assert.Equal(t, expectedResource, event.Service.Origin.Name)
+
+	assert.Equal(t, "metrics", event.DataStream.Type)
+	assert.Equal(t, "aws.ec2", event.Metricset.Name)
+	assert.Equal(t, "apm.firehose-aws.ec2", event.DataStream.Dataset)
+	assert.Equal(t, 1, len(event.Labels))
+
+	assert.Equal(t, 4, len(event.Metricset.Samples))
+	assert.Equal(t, 2.0, event.Metricset.Samples["CPUUtilization.count"].Value)
+	assert.Equal(t, 3.0, event.Metricset.Samples["CPUUtilization.sum"].Value)
+	assert.Equal(t, 2.0, event.Metricset.Samples["CPUUtilization.max"].Value)
+	assert.Equal(t, 1.0, event.Metricset.Samples["CPUUtilization.min"].Value)
+}
