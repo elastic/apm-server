@@ -165,35 +165,6 @@ You can base actions on factors such as shard size and performance requirements.
 See <<ilm-how-to>> to learn more.
 
 [float]
-[[delete-data-query]]
-===== Delete data matching a query
-
-You can delete documents matching a specific query.
-For example, all documents with a given `context.service.name` use the following request:
-
-["source","sh"]
-------------------------------------------------------------
-POST /*-apm-*/_delete_by_query
-{
-  "query": {
-    "bool": {
-      "must": [
-        {
-          "term": {
-            "service.name": {
-              "value": "old-service-name"
-            }
-          }
-        }
-      ]
-    }
-  }
-}
-------------------------------------------------------------
-
-See {ref}/docs-delete-by-query.html[delete by query] for further information on this topic.
-
-[float]
 [[delete-data-in-kibana]]
 ===== Delete data via Kibana Index Management UI
 
@@ -223,7 +194,7 @@ To rename a service, send the following request:
 
 ["source","sh"]
 ------------------------------------------------------------
-POST *-apm-*/_update_by_query
+POST *-apm-*/_update_by_query?expand_wildcards=all
 {
   "query": {
     "term": {

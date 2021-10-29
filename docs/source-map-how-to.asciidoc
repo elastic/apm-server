@@ -1,9 +1,5 @@
 [[source-map-how-to]]
-=== How to apply source maps to error stack traces when using minified bundles
-
-++++
-<titleabbrev>Create and upload source maps (RUM)</titleabbrev>
-++++
+=== Create and upload source maps (RUM)
 
 Minifying JavaScript bundles in production is a common practice;
 it can greatly improve the load time and network latency of your applications.
