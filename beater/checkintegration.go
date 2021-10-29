@@ -32,7 +32,7 @@ import (
 
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/kibana"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
 // checkIntegrationInstalled checks if the APM integration is installed by querying Kibana

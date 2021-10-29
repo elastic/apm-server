@@ -26,12 +26,8 @@ import (
 
 	"go.elastic.co/apm/module/apmelasticsearch"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/version"
-	esv7 "github.com/elastic/go-elasticsearch/v7"
-	esapiv7 "github.com/elastic/go-elasticsearch/v7/esapi"
-	esutilv7 "github.com/elastic/go-elasticsearch/v7/esutil"
 	esv8 "github.com/elastic/go-elasticsearch/v8"
+	esapiv8 "github.com/elastic/go-elasticsearch/v8/esapi"
 	esutilv8 "github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
@@ -72,29 +68,6 @@ func (c clientV8) NewBulkIndexer(config BulkIndexerConfig) (BulkIndexer, error) 
 		return nil, err
 	}
 	return v8BulkIndexer{indexer}, nil
-}
-
-type clientV7 struct {
-	*esv7.Client
-}
-
-func (c clientV7) NewBulkIndexer(config BulkIndexerConfig) (BulkIndexer, error) {
-	indexer, err := esutilv7.NewBulkIndexer(esutilv7.BulkIndexerConfig{
-		Client:        c.Client,
-		NumWorkers:    config.NumWorkers,
-		FlushBytes:    config.FlushBytes,
-		FlushInterval: config.FlushInterval,
-		OnError:       config.OnError,
-		OnFlushStart:  config.OnFlushStart,
-		OnFlushEnd:    config.OnFlushEnd,
-		Index:         config.Index,
-		Pipeline:      config.Pipeline,
-		Timeout:       config.Timeout,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return v7BulkIndexer{indexer}, nil
 }
 
 // ClientParams holds parameters for NewClientParams.
@@ -150,11 +123,7 @@ func NewClientParams(args ClientParams) (Client, error) {
 		apikey = base64.StdEncoding.EncodeToString([]byte(args.Config.APIKey))
 	}
 
-	newClient := newV7Client
-	if version := common.MustNewVersion(version.GetDefaultVersion()); version.IsMajor(8) {
-		newClient = newV8Client
-	}
-	return newClient(
+	return newV8Client(
 		apikey, args.Config.Username, args.Config.Password,
 		addrs,
 		headers,
@@ -162,32 +131,6 @@ func NewClientParams(args ClientParams) (Client, error) {
 		args.Config.MaxRetries,
 		exponentialBackoff(args.Config.Backoff),
 	)
-}
-
-func newV7Client(
-	apikey, user, pwd string,
-	addresses []string,
-	headers http.Header,
-	transport http.RoundTripper,
-	maxRetries int,
-	fn backoffFunc,
-) (Client, error) {
-	c, err := esv7.NewClient(esv7.Config{
-		APIKey:               apikey,
-		Username:             user,
-		Password:             pwd,
-		Addresses:            addresses,
-		Transport:            transport,
-		Header:               headers,
-		RetryOnStatus:        retryableStatuses,
-		EnableRetryOnTimeout: true,
-		RetryBackoff:         fn,
-		MaxRetries:           maxRetries,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return clientV7{c}, nil
 }
 
 func newV8Client(
@@ -216,7 +159,7 @@ func newV8Client(
 	return clientV8{c}, nil
 }
 
-func doRequest(ctx context.Context, transport esapiv7.Transport, req esapiv7.Request, out interface{}) error {
+func doRequest(ctx context.Context, transport esapiv8.Transport, req esapiv8.Request, out interface{}) error {
 	resp, err := req.Do(ctx, transport)
 	if err != nil {
 		return err
