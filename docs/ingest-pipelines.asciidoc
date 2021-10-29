@@ -13,7 +13,7 @@ See <<apm-data-security,data security>> for an example.
 === View or edit a default pipeline
 
 To view or edit a default pipelines in {kib},
-select *Stack Management* / *Index Node Pipelines*.
+select *Stack Management* / *Ingest Pipelines*.
 Search for `apm`.
 
 See {ref}/ingest.html[ingest node pipelines] for more information.

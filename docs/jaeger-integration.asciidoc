@@ -105,8 +105,8 @@ it is not possible to mix and match the use of Elastic's APM agents and Jaeger's
 APM agents support a larger number of features, like
 multiple types of metrics, and application breakdown charts.
 When using Jaeger, features like this will not be available in the APM app.
-* Elastic APM's {apm-overview-ref-v}/apm-data-model.html[data model] is different than Jaegers.
+* Elastic APM's <<data-model>> is different than Jaegers.
 For Jaeger trace data to work with Elastic's data model, we rely on spans being tagged with the appropriate
 https://github.com/opentracing/specification/blob/master/semantic_conventions.md[`span.kind`].
-** Server Jaeger spans are mapped to Elastic APM {apm-overview-ref-v}/transactions.html[transactions].
-** Client Jaeger spans are mapped to Elastic APM {apm-overview-ref-v}/transaction-spans.html[spans] -- unless the span is the root, in which case it is mapped to an Elastic APM {apm-overview-ref-v}/transactions.html[transaction].
+** Server Jaeger spans are mapped to Elastic APM <<data-model-transactions>>.
+** Client Jaeger spans are mapped to Elastic APM <<data-model-spans>> -- unless the span is the root, in which case it is mapped to an Elastic APM <<data-model-transactions>>.
