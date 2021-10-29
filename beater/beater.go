@@ -692,8 +692,9 @@ func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.Batch
 		return nil, nil, err
 	}
 	indexer, err := modelindexer.New(client, modelindexer.Config{
-		FlushBytes:    flushBytes,
-		FlushInterval: esConfig.FlushInterval,
+		CompressionLevel: esConfig.CompressionLevel,
+		FlushBytes:       flushBytes,
+		FlushInterval:    esConfig.FlushInterval,
 	})
 	if err != nil {
 		return nil, nil, err
