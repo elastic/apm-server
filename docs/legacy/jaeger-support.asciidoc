@@ -25,7 +25,7 @@ IMPORTANT: There are <<jaeger-caveats,caveats>> to this integration.
 
 APM Server serves Jaeger gRPC over the same <<host,host and port>> as the Elastic APM agent protocol.
 
-include::../tab-widgets/jaeger-widget.asciidoc[]
+include::./tab-widgets/jaeger-widget.asciidoc[]
 
 [float]
 [[jaeger-configure-sampling]]
@@ -48,7 +48,7 @@ Central sampling, with APM Agent central configuration,
 allows Jaeger clients to poll APM Server for the sampling rate.
 This means sample rates can be configured on the fly, on a per-service and per-environment basis.
 
-include::../tab-widgets/jaeger-sampling-widget.asciidoc[]
+include::./tab-widgets/jaeger-sampling-widget.asciidoc[]
 
 [float]
 [[jaeger-configure-sampling-local]]
