@@ -123,6 +123,7 @@ Traces are written to `traces-apm-*` data streams.
 | observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |
 | observer.hostname | Hostname of the observer. | keyword |
 | observer.id | Unique identifier of the APM Server. | keyword |
+| observer.name | Custom name of the observer. This is a name that can be given to an observer. This can be helpful for example if multiple firewalls of the same model are used in an organization. If no custom name is needed, the field can be left empty. | keyword |
 | observer.type | The type of the observer the data is coming from. There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`. | keyword |
 | observer.version | Observer version. | keyword |
 | observer.version_major | Major version number of the observer | byte |
@@ -270,6 +271,7 @@ Application metrics are written to service-specific `metrics-apm.app.*-*` data s
 | observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |  |  |
 | observer.hostname | Hostname of the observer. | keyword |  |  |
 | observer.id | Unique identifier of the APM Server. | keyword |  |  |
+| observer.name | Custom name of the observer. This is a name that can be given to an observer. This can be helpful for example if multiple firewalls of the same model are used in an organization. If no custom name is needed, the field can be left empty. | keyword |  |  |
 | observer.type | The type of the observer the data is coming from. There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`. | keyword |  |  |
 | observer.version | Observer version. | keyword |  |  |
 | observer.version_major | Major version number of the observer | byte |  |  |
@@ -384,6 +386,7 @@ Internal metrics are written to `metrics-apm.internal-*` data streams.
 | observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |  |
 | observer.hostname | Hostname of the observer. | keyword |  |
 | observer.id | Unique identifier of the APM Server. | keyword |  |
+| observer.name | Custom name of the observer. This is a name that can be given to an observer. This can be helpful for example if multiple firewalls of the same model are used in an organization. If no custom name is needed, the field can be left empty. | keyword |  |
 | observer.type | The type of the observer the data is coming from. There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`. | keyword |  |
 | observer.version | Observer version. | keyword |  |
 | observer.version_major | Major version number of the observer | byte |  |
@@ -521,6 +524,7 @@ Application errors are written to `logs-apm.error.*` data stream.
 | observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |
 | observer.hostname | Hostname of the observer. | keyword |
 | observer.id | Unique identifier of the APM Server. | keyword |
+| observer.name | Custom name of the observer. This is a name that can be given to an observer. This can be helpful for example if multiple firewalls of the same model are used in an organization. If no custom name is needed, the field can be left empty. | keyword |
 | observer.type | The type of the observer the data is coming from. There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`. | keyword |
 | observer.version | Observer version. | keyword |
 | observer.version_major | Major version number of the observer | byte |
