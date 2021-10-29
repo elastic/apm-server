@@ -51,9 +51,6 @@ func TestClient(t *testing.T) {
 		if strings.HasPrefix(version.GetDefaultVersion(), "8.") {
 			_, ok := goESClient.(clientV8)
 			assert.True(t, ok)
-		} else if strings.HasPrefix(version.GetDefaultVersion(), "7.") {
-			_, ok := goESClient.(clientV7)
-			assert.True(t, ok)
 		} else {
 			assert.Fail(t, "unknown version ", version.GetDefaultVersion())
 		}

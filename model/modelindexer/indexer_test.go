@@ -36,7 +36,7 @@ import (
 	"go.elastic.co/fastjson"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/go-elasticsearch/v7/esutil"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
