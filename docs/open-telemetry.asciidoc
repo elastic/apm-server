@@ -64,7 +64,7 @@ java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
 
 | `OTEL_EXPORTER_OTLP_HEADERS` | Authorization header that includes the Elastic APM Secret token or API key: `"Authorization=Bearer an_apm_secret_token"` or `"Authorization=ApiKey an_api_key"`.
 
-For information on how to format an API key, see our {apm-server-ref-v}/api-key.html[API key] docs.
+For information on how to format an API key, see our <<api-key,API key>> docs.
 
 Please note the required space between `Bearer` and `an_apm_secret_token`, and `APIKey` and `an_api_key`.
 
@@ -119,7 +119,7 @@ the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver
 <3> The https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter[logging exporter] is helpful for troubleshooting and supports various logging levels: `debug`, `info`, `warn`, and `error`.
 <4> Elastic Observability endpoint configuration. To learn more, see https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter[OpenTelemetry Collector > OTLP gRPC exporter].
 <5> Hostname and port of the APM Server endpoint. For example, `elastic-apm-server:8200`.
-<6> Credential for Elastic APM {apm-server-ref-v}/secret-token.html[secret token authorization] (`Authorization: "Bearer a_secret_token"`) or {apm-server-ref-v}/api-key.html[API key authorization] (`Authorization: "ApiKey an_api_key"`).
+<6> Credential for Elastic APM <<secret-token,secret token authorization>> (`Authorization: "Bearer a_secret_token"`) or <<api-key,API key authorization>> (`Authorization: "ApiKey an_api_key"`).
 <7> Environment-specific configuration parameters can be conveniently passed in as environment variables documented https://opentelemetry.io/docs/collector/configuration/#configuration-environment-variables[here] (e.g. `ELASTIC_APM_SERVER_ENDPOINT` and `ELASTIC_APM_SERVER_TOKEN`).
 
 TIP: When collecting infrastructure metrics, we recommend evaluating {metricbeat-ref}/metricbeat-overview.html[{metricbeat}] to get a mature collector with more integrations
