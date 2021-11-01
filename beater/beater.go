@@ -422,10 +422,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 
-	publisherConfig := &publish.PublisherConfig{
-		Pipeline:  s.config.Pipeline,
-		Namespace: s.namespace,
-	}
+	publisherConfig := &publish.PublisherConfig{Pipeline: s.config.Pipeline}
 	if !s.config.DataStreams.Enabled {
 		// Logs are only supported with data streams;
 		// add a beat.Processor which drops them.
@@ -497,16 +494,22 @@ func (s *serverRunner) run(listener net.Listener) error {
 	}
 	defer esoutput.DeregisterConnectCallback(callbackUUID)
 
-	var sourcemapStore *sourcemap.Store
+	var sourcemapFetcher sourcemap.Fetcher
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
-		store, err := newSourcemapStore(
+		fetcher, err := newSourcemapFetcher(
 			s.beat.Info, s.config.RumConfig.SourceMapping, s.fleetConfig,
-			newElasticsearchClient,
+			kibanaClient, newElasticsearchClient,
 		)
 		if err != nil {
 			return err
 		}
-		sourcemapStore = store
+		cachingFetcher, err := sourcemap.NewCachingFetcher(
+			fetcher, s.config.RumConfig.SourceMapping.Cache.Expiration,
+		)
+		if err != nil {
+			return err
+		}
+		sourcemapFetcher = cachingFetcher
 	}
 
 	// When the publisher stops cleanly it will close its pipeline client,
@@ -569,7 +572,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 			Logger:                 s.logger,
 			Tracer:                 s.tracer,
 			BatchProcessor:         batchProcessor,
-			SourcemapStore:         sourcemapStore,
+			SourcemapFetcher:       sourcemapFetcher,
 			PublishReady:           publishReady,
 			NewElasticsearchClient: newElasticsearchClient,
 		})
@@ -881,12 +884,14 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	}
 }
 
-func newSourcemapStore(
+func newSourcemapFetcher(
 	beatInfo beat.Info,
 	cfg config.SourceMapping,
 	fleetCfg *config.Fleet,
+	kibanaClient kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (elasticsearch.Client, error),
-) (*sourcemap.Store, error) {
+) (sourcemap.Fetcher, error) {
+	// When running under Fleet we only fetch via Fleet Server.
 	if fleetCfg != nil {
 		var (
 			c  = *http.DefaultClient
@@ -912,14 +917,22 @@ func newSourcemapStore(
 		}
 
 		c.Transport = apmhttp.WrapRoundTripper(rt)
-		return sourcemap.NewFleetStore(&c, fleetCfg, cfg.Metadata, cfg.Cache.Expiration)
+		return sourcemap.NewFleetFetcher(&c, fleetCfg, cfg.Metadata)
 	}
-	c, err := newElasticsearchClient(cfg.ESConfig)
+
+	// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.
+	var chained sourcemap.ChainedFetcher
+	if kibanaClient != nil {
+		chained = append(chained, sourcemap.NewKibanaFetcher(kibanaClient))
+	}
+	esClient, err := newElasticsearchClient(cfg.ESConfig)
 	if err != nil {
 		return nil, err
 	}
 	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
-	return sourcemap.NewElasticsearchStore(c, index, cfg.Cache.Expiration)
+	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, index)
+	chained = append(chained, esFetcher)
+	return chained, nil
 }
 
 // WrapRunServerWithProcessors wraps runServer such that it wraps args.Reporter

@@ -18,12 +18,17 @@
 package systemtest
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"mime/multipart"
+	"net/http"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -219,4 +224,71 @@ func inputVarDefault(inputVar fleettest.PackagePolicyTemplateInputVar) interface
 		return []interface{}{}
 	}
 	return nil
+}
+
+// SourceMap holds information about a source map stored by Kibana.
+type SourceMap struct {
+	ID      string                 `json:"id"`
+	Created time.Time              `json:"created"`
+	Body    map[string]interface{} `json:"body"`
+}
+
+// CreateSourceMap creates or replaces a source map with the given service name
+// and version, and bundle filepath. CreateSourceMap returns the ID of the stored
+// source map, which may be passed to DeleteSourceMap for cleanup.
+func CreateSourceMap(t testing.TB, sourcemap, serviceName, serviceVersion, bundleFilepath string) string {
+	t.Helper()
+
+	var data bytes.Buffer
+	mw := multipart.NewWriter(&data)
+	require.NoError(t, mw.WriteField("service_name", serviceName))
+	require.NoError(t, mw.WriteField("service_version", serviceVersion))
+	require.NoError(t, mw.WriteField("bundle_filepath", bundleFilepath))
+
+	sourcemapFileWriter, err := mw.CreateFormFile("sourcemap", "sourcemap.js.map")
+	require.NoError(t, err)
+	sourcemapFileWriter.Write([]byte(sourcemap))
+	require.NoError(t, mw.Close())
+
+	url := *KibanaURL
+	url.Path += "/api/apm/sourcemaps"
+	req, _ := http.NewRequest("POST", url.String(), &data)
+	req.Header.Add("Content-Type", mw.FormDataContentType())
+	req.Header.Set("kbn-xsrf", "1")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode, string(respBody))
+
+	var result struct {
+		ID string `json:"id"`
+	}
+	err = json.Unmarshal(respBody, &result)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		DeleteSourceMap(t, result.ID)
+	})
+	return result.ID
+}
+
+// DeleteSourceMap deletes a source map with the given ID.
+func DeleteSourceMap(t testing.TB, id string) {
+	t.Helper()
+
+	url := *KibanaURL
+	url.Path += "/api/apm/sourcemaps/" + id
+	req, _ := http.NewRequest("DELETE", url.String(), nil)
+	req.Header.Set("kbn-xsrf", "1")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode, string(respBody))
 }

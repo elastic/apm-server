@@ -36,7 +36,8 @@ func TestBatchProcessor(t *testing.T) {
 	client := newMockElasticsearchClient(t, http.StatusOK,
 		sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(string(validSourcemap))}),
 	)
-	store, err := NewElasticsearchStore(client, "index", time.Minute)
+	esFetcher := NewElasticsearchFetcher(client, "index")
+	fetcher, err := NewCachingFetcher(esFetcher, time.Minute)
 	require.NoError(t, err)
 
 	originalLinenoWithFilename := 1
@@ -183,7 +184,7 @@ func TestBatchProcessor(t *testing.T) {
 		},
 	}
 
-	processor := BatchProcessor{Store: store}
+	processor := BatchProcessor{Fetcher: fetcher}
 	err = processor.ProcessBatch(context.Background(), &model.Batch{transaction, span1, span2, error1, error2, error3})
 	assert.NoError(t, err)
 
@@ -219,8 +220,7 @@ func TestBatchProcessor(t *testing.T) {
 
 func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	client := newUnavailableElasticsearchClient(t)
-	store, err := NewElasticsearchStore(client, "index", time.Minute)
-	require.NoError(t, err)
+	fetcher := NewElasticsearchFetcher(client, "index")
 
 	nonMatchingFrame := model.StacktraceFrame{
 		AbsPath:  "bundle.js",
@@ -241,8 +241,8 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 
 	logp.DevelopmentSetup(logp.ToObserverOutput())
 	for i := 0; i < 2; i++ {
-		processor := BatchProcessor{Store: store}
-		err = processor.ProcessBatch(context.Background(), &model.Batch{span, span})
+		processor := BatchProcessor{Fetcher: fetcher}
+		err := processor.ProcessBatch(context.Background(), &model.Batch{span, span})
 		assert.NoError(t, err)
 	}
 
@@ -270,8 +270,7 @@ func TestBatchProcessorTimeout(t *testing.T) {
 		Transport: transport,
 	})
 	require.NoError(t, err)
-	store, err := NewElasticsearchStore(client, "index", time.Minute)
-	require.NoError(t, err)
+	fetcher := NewElasticsearchFetcher(client, "index")
 
 	frame := model.StacktraceFrame{
 		AbsPath:  "bundle.js",
@@ -290,7 +289,7 @@ func TestBatchProcessorTimeout(t *testing.T) {
 	}
 
 	before := time.Now()
-	processor := BatchProcessor{Store: store, Timeout: 100 * time.Millisecond}
+	processor := BatchProcessor{Fetcher: fetcher, Timeout: 100 * time.Millisecond}
 	err = processor.ProcessBatch(context.Background(), &model.Batch{span})
 	assert.NoError(t, err)
 	taken := time.Since(before)
