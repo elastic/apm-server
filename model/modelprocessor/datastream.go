@@ -25,13 +25,6 @@ import (
 	"github.com/elastic/apm-server/model"
 )
 
-// These are all the known agents that send "RUM" data to the APM Server.
-var rumAgents = map[string]struct{}{
-	"rum-js":  {},
-	"js-base": {},
-	"iOS":     {},
-}
-
 // SetDataStream is a model.BatchProcessor that sets the data stream for events.
 type SetDataStream struct {
 	Namespace string
@@ -55,8 +48,8 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		event.DataStream.Dataset = model.TracesDataset
 		// In order to maintain different ILM policies, RUM traces are sent to
 		// a different datastream.
-		if _, ok := rumAgents[event.Agent.Name]; ok {
-			event.DataStream.Dataset = model.TracesDatasetRUM
+		if isRUMAgentName(event.Agent.Name) {
+			event.DataStream.Dataset = model.RUMTracesDataset
 		}
 	case model.ErrorProcessor:
 		event.DataStream.Type = datastreams.LogsType
@@ -80,4 +73,13 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		event.DataStream.Type = datastreams.MetricsType
 		event.DataStream.Dataset = model.ProfilesDataset
 	}
+}
+
+func isRUMAgentName(agentName string) bool {
+	switch agentName {
+	// These are all the known agents that send "RUM" data to the APM Server.
+	case "rum-js", "js-base", "iOS/swift":
+		return true
+	}
+	return false
 }

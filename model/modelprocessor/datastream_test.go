@@ -53,10 +53,10 @@ func TestSetDataStream(t *testing.T) {
 		input:  model.APMEvent{Processor: model.SpanProcessor, Agent: model.Agent{Name: "rum-js"}},
 		output: model.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
-		input:  model.APMEvent{Processor: model.TransactionProcessor, Agent: model.Agent{Name: "iOS"}},
+		input:  model.APMEvent{Processor: model.TransactionProcessor, Agent: model.Agent{Name: "iOS/swift"}},
 		output: model.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
-		input:  model.APMEvent{Processor: model.SpanProcessor, Agent: model.Agent{Name: "iOS"}},
+		input:  model.APMEvent{Processor: model.SpanProcessor, Agent: model.Agent{Name: "iOS/swift"}},
 		output: model.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
 		input:  model.APMEvent{Processor: model.TransactionProcessor, Agent: model.Agent{Name: "go"}},
@@ -71,10 +71,10 @@ func TestSetDataStream(t *testing.T) {
 		input:  model.APMEvent{Processor: model.LogProcessor},
 		output: model.DataStream{Type: "logs", Dataset: "apm.app", Namespace: "custom"},
 	}, {
-		input:  model.APMEvent{Processor: model.ErrorProcessor, Agent: model.Agent{Name: "iOS"}},
+		input:  model.APMEvent{Processor: model.ErrorProcessor, Agent: model.Agent{Name: "iOS/swift"}},
 		output: model.DataStream{Type: "logs", Dataset: "apm.error", Namespace: "custom"},
 	}, {
-		input:  model.APMEvent{Processor: model.LogProcessor, Agent: model.Agent{Name: "iOS"}},
+		input:  model.APMEvent{Processor: model.LogProcessor, Agent: model.Agent{Name: "iOS/swift"}},
 		output: model.DataStream{Type: "logs", Dataset: "apm.app", Namespace: "custom"},
 	}, {
 		input: model.APMEvent{
