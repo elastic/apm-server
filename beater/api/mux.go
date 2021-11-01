@@ -26,7 +26,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/agentcfg"
-	apisourcemap "github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/api/firehose"
 	"github.com/elastic/apm-server/beater/api/intake"
@@ -56,8 +55,6 @@ const (
 
 	// AgentConfigPath defines the path to query for agent config management
 	AgentConfigPath = "/config/v1/agents"
-	// AssetSourcemapPath defines the path to upload sourcemaps
-	AssetSourcemapPath = "/assets/v1/sourcemaps"
 	// IntakePath defines the path to ingest monitored events
 	IntakePath = "/intake/v2/events"
 	// ProfilePath defines the path to ingest profiles
@@ -86,7 +83,7 @@ func NewMux(
 	authenticator *auth.Authenticator,
 	fetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
-	sourcemapStore *sourcemap.Store,
+	sourcemapFetcher sourcemap.Fetcher,
 	fleetManaged bool,
 	publishReady func() bool,
 ) (*http.ServeMux, error) {
@@ -95,14 +92,14 @@ func NewMux(
 	logger := logp.NewLogger(logs.Handler)
 
 	builder := routeBuilder{
-		info:           beatInfo,
-		cfg:            beaterConfig,
-		authenticator:  authenticator,
-		reporter:       report,
-		batchProcessor: batchProcessor,
-		ratelimitStore: ratelimitStore,
-		sourcemapStore: sourcemapStore,
-		fleetManaged:   fleetManaged,
+		info:             beatInfo,
+		cfg:              beaterConfig,
+		authenticator:    authenticator,
+		reporter:         report,
+		batchProcessor:   batchProcessor,
+		ratelimitStore:   ratelimitStore,
+		sourcemapFetcher: sourcemapFetcher,
+		fleetManaged:     fleetManaged,
 	}
 
 	type route struct {
@@ -111,7 +108,6 @@ func NewMux(
 	}
 	routeMap := []route{
 		{RootPath, builder.rootHandler(publishReady)},
-		{AssetSourcemapPath, builder.sourcemapHandler},
 		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher)},
 		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher)},
 		{IntakeRUMPath, builder.rumIntakeHandler(stream.RUMV2Processor)},
@@ -149,14 +145,14 @@ func NewMux(
 }
 
 type routeBuilder struct {
-	info           beat.Info
-	cfg            *config.Config
-	authenticator  *auth.Authenticator
-	reporter       publish.Reporter
-	batchProcessor model.BatchProcessor
-	ratelimitStore *ratelimit.Store
-	sourcemapStore *sourcemap.Store
-	fleetManaged   bool
+	info             beat.Info
+	cfg              *config.Config
+	authenticator    *auth.Authenticator
+	reporter         publish.Reporter
+	batchProcessor   model.BatchProcessor
+	ratelimitStore   *ratelimit.Store
+	sourcemapFetcher sourcemap.Fetcher
+	fleetManaged     bool
 }
 
 func (r *routeBuilder) profileHandler() (request.Handler, error) {
@@ -191,9 +187,9 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *strea
 		var batchProcessors modelprocessor.Chained
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
 		// frames to exclude from error grouping; identifying library frames must happen before updating the error culprit.
-		if r.sourcemapStore != nil {
+		if r.sourcemapFetcher != nil {
 			batchProcessors = append(batchProcessors, sourcemap.BatchProcessor{
-				Store:   r.sourcemapStore,
+				Fetcher: r.sourcemapFetcher,
 				Timeout: r.cfg.RumConfig.SourceMapping.Timeout,
 			})
 		}
@@ -211,18 +207,13 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *strea
 			}
 			batchProcessors = append(batchProcessors, modelprocessor.SetExcludeFromGrouping{Pattern: re})
 		}
-		if r.sourcemapStore != nil {
+		if r.sourcemapFetcher != nil {
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
 		h := intake.Handler(newProcessor(r.cfg), requestMetadataFunc, batchProcessors)
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 	}
-}
-
-func (r *routeBuilder) sourcemapHandler() (request.Handler, error) {
-	h := apisourcemap.Handler(r.reporter, r.sourcemapStore)
-	return middleware.Wrap(h, sourcemapMiddleware(r.cfg, r.authenticator, r.ratelimitStore)...)
 }
 
 func (r *routeBuilder) rootHandler(publishReady func() bool) func() (request.Handler, error) {
@@ -302,18 +293,6 @@ func rumMiddleware(cfg *config.Config, authenticator *auth.Authenticator, rateli
 		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
 	)
 	return append(rumMiddleware, middleware.KillSwitchMiddleware(cfg.RumConfig.Enabled, msg))
-}
-
-func sourcemapMiddleware(cfg *config.Config, auth *auth.Authenticator, ratelimitStore *ratelimit.Store) []middleware.Middleware {
-	msg := "Sourcemap upload endpoint is disabled. " +
-		"Configure the `apm-server.rum` section in apm-server.yml to enable sourcemap uploads. " +
-		"If you are not using the RUM agent, you can safely ignore this error."
-	if cfg.DataStreams.Enabled {
-		msg = "When APM Server is managed by Fleet, Sourcemaps must be uploaded directly to Elasticsearch."
-	}
-	enabled := cfg.RumConfig.Enabled && cfg.RumConfig.SourceMapping.Enabled && !cfg.DataStreams.Enabled
-	backendMiddleware := backendMiddleware(cfg, auth, ratelimitStore, apisourcemap.MonitoringMap)
-	return append(backendMiddleware, middleware.KillSwitchMiddleware(enabled, msg))
 }
 
 func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []middleware.Middleware {

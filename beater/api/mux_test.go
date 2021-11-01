@@ -116,8 +116,8 @@ func newTestMux(t *testing.T, cfg *config.Config) http.Handler {
 }
 
 type muxBuilder struct {
-	SourcemapStore *sourcemap.Store
-	Managed        bool
+	SourcemapFetcher sourcemap.Fetcher
+	Managed          bool
 }
 
 func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
@@ -133,7 +133,7 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		authenticator,
 		agentcfg.NewFetcher(cfg),
 		ratelimitStore,
-		m.SourcemapStore,
+		m.SourcemapFetcher,
 		m.Managed,
 		func() bool { return true },
 	)

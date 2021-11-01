@@ -263,12 +263,12 @@ func TestTransformConfigIndex(t *testing.T) {
 			cfg.RumConfig.SourceMapping.IndexPattern = indexPattern
 		}
 
-		store, err := newSourcemapStore(
+		fetcher, err := newSourcemapFetcher(
 			beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, nil,
-			elasticsearch.NewClient,
+			nil, elasticsearch.NewClient,
 		)
 		require.NoError(t, err)
-		store.NotifyAdded(context.Background(), "name", "version", "path")
+		fetcher.Fetch(context.Background(), "name", "version", "path")
 		require.Len(t, requestPaths, 1)
 
 		path := requestPaths[0]
@@ -296,14 +296,14 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	cfg.RumConfig.SourceMapping.ESConfig = elasticsearch.DefaultConfig()
 	cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{ts.URL}
 
-	store, err := newSourcemapStore(
+	fetcher, err := newSourcemapFetcher(
 		beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, nil,
-		elasticsearch.NewClient,
+		nil, elasticsearch.NewClient,
 	)
 	require.NoError(t, err)
 	// Check that the provided rum elasticsearch config was used and
 	// Fetch() goes to the test server.
-	_, err = store.Fetch(context.Background(), "app", "1.0", "/bundle/path")
+	_, err = fetcher.Fetch(context.Background(), "app", "1.0", "/bundle/path")
 	require.NoError(t, err)
 
 	assert.True(t, called)
@@ -336,9 +336,9 @@ func TestFleetStoreUsed(t *testing.T) {
 		TLS:          nil,
 	}
 
-	store, err := newSourcemapStore(beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, fleetCfg, nil)
+	fetcher, err := newSourcemapFetcher(beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, fleetCfg, nil, nil)
 	require.NoError(t, err)
-	_, err = store.Fetch(context.Background(), "app", "1.0", "/bundle/path")
+	_, err = fetcher.Fetch(context.Background(), "app", "1.0", "/bundle/path")
 	require.NoError(t, err)
 
 	assert.True(t, called)
