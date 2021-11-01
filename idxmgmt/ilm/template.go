@@ -31,6 +31,7 @@ func Template(ilmEnabled, overwrite bool, name string, policy string) libtemplat
 		Pattern:   fmt.Sprintf("%s*", name),
 		Overwrite: overwrite,
 		Order:     2,
+		Type:      libtemplate.IndexTemplateLegacy,
 	}
 	if ilmEnabled {
 		template.Settings = libtemplate.TemplateSettings{

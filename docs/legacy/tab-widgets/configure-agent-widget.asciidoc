@@ -1,0 +1,40 @@
+++++
+<div class="tabs" data-tab-group="config-agent">
+  <div role="tablist" aria-label="Configure agents">
+    <button role="tab"
+            aria-selected="true"
+            aria-controls="cloud-tab-config-agent"
+            id="cloud-config-agent">
+      Central configuration
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="self-managed-tab-config-agent"
+            id="self-managed-config-agent"
+            tabindex="-1">
+      Agent configuration
+    </button>
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="cloud-tab-config-agent"
+       aria-labelledby="cloud-config-agent">
+++++
+
+include::configure-agent.asciidoc[tag=central-config]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="self-managed-tab-config-agent"
+       aria-labelledby="self-managed-config-agent"
+       hidden="">
+++++
+
+include::configure-agent.asciidoc[tag=reg-config]
+
+++++
+  </div>
+</div>
+++++

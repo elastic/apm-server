@@ -1,0 +1,81 @@
+:input-type: apm
+
+[[input-apm]]
+== APM input settings
+
+++++
+<titleabbrev>Input settings</titleabbrev>
+++++
+
+To edit the APM integration input settings, open {kib}, select **Add data**,
+and search for and select "Elastic APM".
+If the integration is already installed, under the polices tab, select **Actions** > **Edit integration**.
+If the integration has not been installed, select **Add Elastic APM**.
+
+[float]
+[[apm-input-general-settings]]
+=== General settings
+
+[cols="2*<a"]
+|===
+
+include::./apm-input-settings.asciidoc[tag=host-setting]
+include::./apm-input-settings.asciidoc[tag=url-setting]
+include::./apm-input-settings.asciidoc[tag=max_header_bytes-setting]
+include::./apm-input-settings.asciidoc[tag=idle_timeout-setting]
+include::./apm-input-settings.asciidoc[tag=read_timeout-setting]
+include::./apm-input-settings.asciidoc[tag=shutdown_timeout-setting]
+include::./apm-input-settings.asciidoc[tag=max_event_bytes-setting]
+include::./apm-input-settings.asciidoc[tag=max_connections-setting]
+include::./apm-input-settings.asciidoc[tag=response_headers-setting]
+include::./apm-input-settings.asciidoc[tag=capture_personal_data-setting]
+include::./apm-input-settings.asciidoc[tag=default_service_environment-setting]
+include::./apm-input-settings.asciidoc[tag=golang_xpvar-setting]
+|===
+
+[float]
+[[apm-input-rum-settings]]
+=== Real User Monitoring (RUM) settings
+
+[cols="2*<a"]
+|===
+
+include::./apm-input-settings.asciidoc[tag=enable_rum-setting]
+include::./apm-input-settings.asciidoc[tag=rum_allow_origins-setting]
+include::./apm-input-settings.asciidoc[tag=rum_allow_headers-setting]
+include::./apm-input-settings.asciidoc[tag=rum_response_headers-setting]
+include::./apm-input-settings.asciidoc[tag=rum_library_frame_pattern-setting]
+include::./apm-input-settings.asciidoc[tag=rum_exclude_from_grouping-setting]
+|===
+
+[float]
+[[apm-input-tls-settings]]
+=== TLS settings
+
+[cols="2*<a"]
+|===
+include::./apm-input-settings.asciidoc[tag=tls_enabled-setting]
+include::./apm-input-settings.asciidoc[tag=tls_certificate-setting]
+include::./apm-input-settings.asciidoc[tag=tls_key-setting]
+include::./apm-input-settings.asciidoc[tag=tls_supported_protocols-setting]
+include::./apm-input-settings.asciidoc[tag=tls_cipher_suites-setting]
+include::./apm-input-settings.asciidoc[tag=tls_curve_types-setting]
+|===
+
+[float]
+[[apm-input-agent-auth-settings]]
+=== Agent authorization settings
+
+[cols="2*<a"]
+|===
+include::./apm-input-settings.asciidoc[tag=api_key_enabled-setting]
+include::./apm-input-settings.asciidoc[tag=api_key_limit-setting]
+include::./apm-input-settings.asciidoc[tag=secret_token-setting]
+include::./apm-input-settings.asciidoc[tag=anonymous_enabled-setting]
+include::./apm-input-settings.asciidoc[tag=anonymous_allow_agent-setting]
+include::./apm-input-settings.asciidoc[tag=anonymous_allow_service-setting]
+include::./apm-input-settings.asciidoc[tag=anonymous_rate_limit_ip_limit-setting]
+include::./apm-input-settings.asciidoc[tag=anonymous_rate_limit_event_limit-setting]
+|===
+
+:input-type!:
