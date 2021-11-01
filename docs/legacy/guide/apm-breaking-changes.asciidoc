@@ -205,8 +205,7 @@ APM has aligned with the field names defined in the
 https://github.com/elastic/ecs[Elastic Common Schema (ECS)].
 Utilizing this common schema will allow for easier data correlation within Elasticsearch.
 +
-See the {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[ECS field changes]
-table for full details on which fields have changed.
+See the ECS field changes table for full details on which fields have changed.
 
 APM UI::
 +
