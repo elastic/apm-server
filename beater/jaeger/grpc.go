@@ -24,9 +24,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jaegertracing/jaeger/model"
+	jaegermodel "github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
+	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"go.opentelemetry.io/collector/consumer"
+	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
@@ -36,6 +38,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
 )
 
@@ -60,12 +63,28 @@ var (
 const (
 	postSpansFullMethod           = "/jaeger.api_v2.CollectorService/PostSpans"
 	getSamplingStrategyFullMethod = "/jaeger.api_v2.SamplingManager/GetSamplingStrategy"
+
+	// elasticAuthTag is the name of the agent tag that will be used for auth.
+	// The tag value should be "Bearer <secret token" or "ApiKey <api key>".
+	elasticAuthTag = "elastic-apm-auth"
 )
 
+// RegisterGRPCServices registers Jaeger gRPC services with srv.
+func RegisterGRPCServices(
+	srv *grpc.Server,
+	logger *logp.Logger,
+	processor model.BatchProcessor,
+	fetcher agentcfg.Fetcher,
+) {
+	traceConsumer := &otel.Consumer{Processor: processor}
+	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{traceConsumer})
+	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, fetcher})
+}
+
 // MethodAuthenticators returns a map of all supported Jaeger/gRPC methods to authorization handlers.
-func MethodAuthenticators(authenticator *auth.Authenticator, authTag string) map[string]interceptors.MethodAuthenticator {
+func MethodAuthenticators(authenticator *auth.Authenticator) map[string]interceptors.MethodAuthenticator {
 	return map[string]interceptors.MethodAuthenticator{
-		postSpansFullMethod:           postSpansMethodAuthenticator(authenticator, authTag),
+		postSpansFullMethod:           postSpansMethodAuthenticator(authenticator),
 		getSamplingStrategyFullMethod: getSamplingStrategyMethodAuthenticator(authenticator),
 	}
 }
@@ -86,13 +105,18 @@ func (c *grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansReques
 	return &api_v2.PostSpansResponse{}, nil
 }
 
-func (c *grpcCollector) postSpans(ctx context.Context, batch model.Batch) error {
-	return consumeBatch(ctx, batch, c.consumer, gRPCCollectorMonitoringMap)
+func (c *grpcCollector) postSpans(ctx context.Context, batch jaegermodel.Batch) error {
+	spanCount := int64(len(batch.Spans))
+	gRPCCollectorMonitoringMap.add(request.IDEventReceivedCount, spanCount)
+	traces := jaegertranslator.ProtoBatchToInternalTraces(batch)
+	return c.consumer.ConsumeTraces(ctx, traces)
 }
 
 var (
 	gRPCSamplingRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.sampling")
-	gRPCSamplingMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCSamplingRegistry, monitoringKeys)
+	gRPCSamplingMonitoringMap monitoringMap = request.MonitoringMapForRegistry(
+		gRPCSamplingRegistry, append(request.DefaultResultIDs, request.IDEventReceivedCount),
+	)
 
 	jaegerAgentPrefixes = []string{otel.AgentNameJaeger}
 )
@@ -184,13 +208,13 @@ func checkValidationError(err *agentcfg.ValidationError) error {
 	}
 }
 
-func postSpansMethodAuthenticator(authenticator *auth.Authenticator, authTag string) interceptors.MethodAuthenticator {
+func postSpansMethodAuthenticator(authenticator *auth.Authenticator) interceptors.MethodAuthenticator {
 	return func(ctx context.Context, req interface{}) (auth.AuthenticationDetails, auth.Authorizer, error) {
 		postSpansRequest := req.(*api_v2.PostSpansRequest)
 		batch := &postSpansRequest.Batch
 		var kind, token string
 		for i, kv := range batch.Process.GetTags() {
-			if kv.Key != authTag {
+			if kv.Key != elasticAuthTag {
 				continue
 			}
 			// Remove the auth tag.
@@ -218,5 +242,19 @@ func getSamplingStrategyMethodAuthenticator(authenticator *auth.Authenticator) i
 			return details, authz, err
 		}
 		return anonymousAuthenticator.Authenticate(ctx, "", "")
+	}
+}
+
+type monitoringMap map[request.ResultID]*monitoring.Int
+
+func (m monitoringMap) inc(id request.ResultID) {
+	if counter, ok := m[id]; ok {
+		counter.Inc()
+	}
+}
+
+func (m monitoringMap) add(id request.ResultID, n int64) {
+	if counter, ok := m[id]; ok {
+		counter.Add(n)
 	}
 }
