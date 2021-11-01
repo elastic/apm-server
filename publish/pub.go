@@ -27,6 +27,7 @@ import (
 	"go.elastic.co/apm"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model"
 )
@@ -43,9 +44,10 @@ type Reporter func(context.Context, PendingReq) error
 // number of events active in the system can exceed the queue size. Only the number of
 // concurrent HTTP requests trying to publish at the same time is limited.
 type Publisher struct {
-	stopped chan struct{}
-	tracer  *apm.Tracer
-	client  beat.Client
+	stopped  chan struct{}
+	tracer   *apm.Tracer
+	client   beat.Client
+	pipeline string
 
 	mu              sync.RWMutex
 	stopping        bool
@@ -65,7 +67,6 @@ type Transformer interface {
 type PublisherConfig struct {
 	Info      beat.Info
 	Pipeline  string
-	Namespace string
 	Processor beat.ProcessorList
 }
 
@@ -88,13 +89,10 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 	}
 
 	processingCfg := beat.ProcessingConfig{Processor: cfg.Processor}
-	if cfg.Pipeline != "" {
-		processingCfg.Meta = map[string]interface{}{"pipeline": cfg.Pipeline}
-	}
-
 	p := &Publisher{
-		tracer:  tracer,
-		stopped: make(chan struct{}),
+		tracer:   tracer,
+		stopped:  make(chan struct{}),
+		pipeline: cfg.Pipeline,
 
 		// One request will be actively processed by the
 		// worker, while the other concurrent requests will be buffered in the queue.
@@ -186,9 +184,17 @@ func (p *Publisher) Send(ctx context.Context, req PendingReq) error {
 }
 
 func (p *Publisher) run() {
+	var meta common.MapStr
+	if p.pipeline != "" {
+		meta = common.MapStr{"pipeline": p.pipeline}
+	}
+
 	ctx := context.Background()
 	for req := range p.pendingRequests {
 		events := req.Transformable.Transform(ctx)
+		for i := range events {
+			events[i].Meta = meta
+		}
 		p.client.PublishAll(events)
 	}
 }
