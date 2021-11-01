@@ -41,11 +41,65 @@ func TestSetDataStream(t *testing.T) {
 		input:  model.APMEvent{Processor: model.SpanProcessor},
 		output: model.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},
 	}, {
+		input:  model.APMEvent{Processor: model.TransactionProcessor, Agent: model.Agent{Name: "js-base"}},
+		output: model.DataStream{Type: "rum_traces", Dataset: "apm", Namespace: "custom"},
+	}, {
+		input:  model.APMEvent{Processor: model.SpanProcessor, Agent: model.Agent{Name: "js-base"}},
+		output: model.DataStream{Type: "rum_traces", Dataset: "apm", Namespace: "custom"},
+	}, {
+		input:  model.APMEvent{Processor: model.TransactionProcessor, Agent: model.Agent{Name: "rum-js"}},
+		output: model.DataStream{Type: "rum_traces", Dataset: "apm", Namespace: "custom"},
+	}, {
+		input:  model.APMEvent{Processor: model.SpanProcessor, Agent: model.Agent{Name: "rum-js"}},
+		output: model.DataStream{Type: "rum_traces", Dataset: "apm", Namespace: "custom"},
+	}, {
+		input:  model.APMEvent{Processor: model.TransactionProcessor, Agent: model.Agent{Name: "iOS"}},
+		output: model.DataStream{Type: "rum_traces", Dataset: "apm", Namespace: "custom"},
+	}, {
+		input:  model.APMEvent{Processor: model.SpanProcessor, Agent: model.Agent{Name: "iOS"}},
+		output: model.DataStream{Type: "rum_traces", Dataset: "apm", Namespace: "custom"},
+	}, {
+		input:  model.APMEvent{Processor: model.TransactionProcessor, Agent: model.Agent{Name: "go"}},
+		output: model.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},
+	}, {
+		input:  model.APMEvent{Processor: model.SpanProcessor, Agent: model.Agent{Name: "go"}},
+		output: model.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},
+	}, {
 		input:  model.APMEvent{Processor: model.ErrorProcessor},
 		output: model.DataStream{Type: "logs", Dataset: "apm.error", Namespace: "custom"},
 	}, {
 		input:  model.APMEvent{Processor: model.LogProcessor},
 		output: model.DataStream{Type: "logs", Dataset: "apm.app", Namespace: "custom"},
+	}, {
+		input:  model.APMEvent{Processor: model.ErrorProcessor, Agent: model.Agent{Name: "iOS"}},
+		output: model.DataStream{Type: "logs", Dataset: "apm.error", Namespace: "custom"},
+	}, {
+		input:  model.APMEvent{Processor: model.LogProcessor, Agent: model.Agent{Name: "iOS"}},
+		output: model.DataStream{Type: "logs", Dataset: "apm.app", Namespace: "custom"},
+	}, {
+		input: model.APMEvent{
+			Agent:       model.Agent{Name: "rum-js"},
+			Processor:   model.MetricsetProcessor,
+			Service:     model.Service{Name: "service-name"},
+			Metricset:   &model.Metricset{},
+			Transaction: &model.Transaction{Name: "foo"},
+		},
+		output: model.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
+	}, {
+		input: model.APMEvent{
+			Agent:     model.Agent{Name: "rum-js"},
+			Processor: model.MetricsetProcessor,
+			Service:   model.Service{Name: "service-name"},
+			Metricset: &model.Metricset{},
+		},
+		output: model.DataStream{Type: "metrics", Dataset: "apm.app.service_name", Namespace: "custom"},
+	}, {
+		input: model.APMEvent{
+			Agent:         model.Agent{Name: "rum-js"},
+			Processor:     model.ProfileProcessor,
+			ProfileSample: &model.ProfileSample{},
+		},
+		output: model.DataStream{Type: "metrics", Dataset: "apm.profiling", Namespace: "custom"},
 	}, {
 		input: model.APMEvent{
 			Processor:   model.MetricsetProcessor,
