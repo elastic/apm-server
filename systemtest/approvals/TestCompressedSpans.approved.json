@@ -1,0 +1,120 @@
+{
+    "events": [
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "go",
+                "version": "0.0.0"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "outcome": "success"
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "parent": "dynamic",
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "systemtest"
+            },
+            "span": {
+                "composite": {
+                    "compression_strategy": "exact_match",
+                    "count": 5,
+                    "sum": {
+                        "us": 20000
+                    }
+                },
+                "destination": {
+                    "service": {
+                        "resource": "elasticsearch",
+                        "type": "db"
+                    }
+                },
+                "duration": {
+                    "us": 20000
+                },
+                "id": "dynamic",
+                "name": "_bulk",
+                "subtype": "elasticsearch",
+                "type": "db"
+            },
+            "timestamp": "dynamic",
+            "trace": {
+                "id": "dynamic"
+            },
+            "transaction": {
+                "id": "dynamic"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "go",
+                "version": "0.0.0"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "outcome": "success"
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "parent": "dynamic",
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "systemtest"
+            },
+            "span": {
+                "composite": {
+                    "compression_strategy": "same_kind",
+                    "count": 50,
+                    "sum": {
+                        "us": 50000
+                    }
+                },
+                "destination": {
+                    "service": {
+                        "resource": "redis",
+                        "type": "db"
+                    }
+                },
+                "duration": {
+                    "us": 50000
+                },
+                "id": "dynamic",
+                "name": "Calls to redis",
+                "subtype": "redis",
+                "type": "db"
+            },
+            "timestamp": "dynamic",
+            "trace": {
+                "id": "dynamic"
+            },
+            "transaction": {
+                "id": "dynamic"
+            }
+        }
+    ]
+}
