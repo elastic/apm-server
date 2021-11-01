@@ -225,6 +225,8 @@ check-docker-compose: $(PYTHON_BIN)
 .PHONY: check-package format-package build-package
 check-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) check)
+	@diff -ru apmpackage/apm/data_stream/traces/fields apmpackage/apm/data_stream/rum_traces/fields || \
+		echo "-> 'traces-apm' and 'traces-apm.rum' data stream fields should be equal"
 format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
