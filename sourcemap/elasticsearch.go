@@ -116,8 +116,7 @@ func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path stri
 
 func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {
 	var esSourcemapResponse esSourcemapResponse
-	var buf bytes.Buffer
-	if err := json.NewDecoder(io.TeeReader(body, &buf)).Decode(&esSourcemapResponse); err != nil {
+	if err := json.NewDecoder(body).Decode(&esSourcemapResponse); err != nil {
 		return "", err
 	}
 	hits := esSourcemapResponse.Hits.Total.Value
