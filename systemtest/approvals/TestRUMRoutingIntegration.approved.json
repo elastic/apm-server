@@ -6,9 +6,7 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "dynamic"
-            },
+            "client": "dynamic",
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -79,9 +77,7 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "dynamic"
-            },
+            "client": "dynamic",
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -152,9 +148,7 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "dynamic"
-            },
+            "client": "dynamic",
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -321,9 +315,7 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "dynamic"
-            },
+            "client": "dynamic",
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -424,9 +416,7 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "dynamic"
-            },
+            "client": "dynamic",
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -496,9 +486,7 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "dynamic"
-            },
+            "client": "dynamic",
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -598,9 +586,7 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "dynamic"
-            },
+            "client": "dynamic",
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -696,9 +682,7 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "dynamic"
-            },
+            "client": "dynamic",
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -799,9 +783,7 @@
                 "name": "js-base",
                 "version": "4.8.1"
             },
-            "client": {
-                "ip": "dynamic"
-            },
+            "client": "dynamic",
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
