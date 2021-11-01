@@ -17,7 +17,7 @@ import libbeat_paths
 from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
 from helper import wait_until
 from es_helper import cleanup, default_pipelines
-from es_helper import index_smap, index_span, index_error, apm_prefix
+from es_helper import apm_prefix
 from kibana import Kibana
 
 integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
@@ -153,7 +153,6 @@ class ServerBaseTest(BaseTest):
     rum_agent_config_url = "{}/{}".format(host, "config/v1/rum/agents")
     intake_url = "{}/{}".format(host, 'intake/v2/events')
     rum_intake_url = "{}/{}".format(host, 'intake/v2/rum/events')
-    sourcemap_url = "{}/{}".format(host, 'assets/v1/sourcemaps')
     expvar_url = "{}/{}".format(host, 'debug/vars')
 
     jaeger_grpc_host = "localhost:14250"
@@ -310,30 +309,6 @@ class ElasticTest(ServerBaseTest):
                    )
         return result['docs']
 
-    def check_backend_error_sourcemap(self, index, count=1):
-        rs = self.es.search(index=index, params={"rest_total_hits_as_int": "true"})
-        assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
-            rs['hits']['total'], count)
-        for doc in rs['hits']['hits']:
-            err = doc["_source"]["error"]
-            for exception in err.get("exception", []):
-                self.check_for_no_smap(exception)
-            if "log" in err:
-                self.check_for_no_smap(err["log"])
-
-    def check_backend_span_sourcemap(self, count=1):
-        rs = self.es.search(index=index_span, params={"rest_total_hits_as_int": "true"})
-        assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
-            rs['hits']['total'], count)
-        for doc in rs['hits']['hits']:
-            self.check_for_no_smap(doc["_source"]["span"])
-
-    def check_for_no_smap(self, doc):
-        if "stacktrace" not in doc:
-            return
-        for frame in doc["stacktrace"]:
-            assert "sourcemap" not in frame, frame
-
     def logged_requests(self, url="/intake/v2/events"):
         for line in self.get_log_lines():
             jline = json.loads(line)
@@ -432,7 +407,6 @@ class ElasticTest(ServerBaseTest):
 
 
 class ClientSideBaseTest(ServerBaseTest):
-    sourcemap_url = 'http://localhost:8200/assets/v1/sourcemaps'
     intake_url = 'http://localhost:8200/intake/v2/rum/events'
     backend_intake_url = 'http://localhost:8200/intake/v2/events'
     config_overrides = {}
@@ -456,39 +430,6 @@ class ClientSideBaseTest(ServerBaseTest):
 
     def get_transaction_payload_path(self, name="transactions_spans_rum_2.ndjson"):
         return super(ClientSideBaseTest, self).get_payload_path(name)
-
-
-class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
-    def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):
-        rs = self.es.search(index=index_error, params={"rest_total_hits_as_int": "true"})
-        assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
-            rs['hits']['total'], count)
-        for doc in rs['hits']['hits']:
-            err = doc["_source"]["error"]
-            for exception in err.get("exception", []):
-                self.check_smap(exception, updated, expected_err)
-            if "log" in err:
-                self.check_smap(err["log"], updated, expected_err)
-
-    def check_rum_transaction_sourcemap(self, updated, expected_err=None, count=1):
-        rs = self.es.search(index=index_span, params={"rest_total_hits_as_int": "true"})
-        assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
-            rs['hits']['total'], count)
-        for doc in rs['hits']['hits']:
-            span = doc["_source"]["span"]
-            self.check_smap(span, updated, expected_err)
-
-    @staticmethod
-    def check_smap(doc, updated, err=None):
-        if "stacktrace" not in doc:
-            return
-        for frame in doc["stacktrace"]:
-            smap = frame["sourcemap"]
-            if err is None:
-                assert 'error' not in smap
-            else:
-                assert err in smap["error"]
-            assert smap["updated"] == updated
 
 
 class CorsBaseTest(ClientSideBaseTest):

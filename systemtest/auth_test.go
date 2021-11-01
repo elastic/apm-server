@@ -108,25 +108,6 @@ func TestAuth(t *testing.T) {
 		}
 	})
 
-	runWithMethods(t, "sourcemap", func(t *testing.T, apiKey string, headers http.Header) {
-		req := newUploadSourcemapRequest(t, srv, "../testdata/sourcemap/bundle.js.map",
-			"http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map", // bundle filepath
-			"apm-agent-js", // service name
-			"1.0.1",        // service version
-		)
-		copyHeaders(req.Header, headers)
-		resp, err := http.DefaultClient.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-		if len(headers) == 0 {
-			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
-		} else if apiKey == "ingest" || apiKey == "agentconfig" {
-			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
-		} else {
-			assert.Equal(t, http.StatusAccepted, resp.StatusCode)
-		}
-	})
-
 	// Create agent config to test the anonymous and authenticated responses.
 	settings := map[string]string{"transaction_sample_rate": "0.1", "sanitize_field_names": "foo,bar,baz"}
 	systemtest.CreateAgentConfig(t, "systemtest_service", "", "", settings)

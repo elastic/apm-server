@@ -1,0 +1,12 @@
+[[api]]
+== API
+
+The APM Server exposes endpoints for:
+
+* <<api-events,Events intake>>
+* <<api-config,Agent configuration>>
+* <<api-info,Server information>>
+
+include::./api-events.asciidoc[]
+include::./api-config.asciidoc[]
+include::./api-info.asciidoc[]

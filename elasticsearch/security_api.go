@@ -21,8 +21,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/elastic/go-elasticsearch/v7/esutil"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 // CreateAPIKey requires manage_api_key cluster privilege

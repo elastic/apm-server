@@ -1,5 +1,5 @@
 [[release-notes-head]]
-== APM Server version HEAD
+== APM version HEAD
 
 https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 
@@ -19,6 +19,8 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed warm phase from default ILM policy {pull}6322[6322]
 - Removed unused `transaction.breakdown.count` metric field {pull}6366[6366]
 - Removed legacy Jaeger gRPC/HTTP endpoints {pull}6417[6417]
+- Removed source map upload endpoint {pull}6447[6447]
+- Removed unsupported libbeat `processors` configuration {pull}6474[6474]
 
 [float]
 ==== Bug fixes
@@ -47,6 +49,9 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Add an experimental endpoint for AWS Kinesis Data Firehose {pull}6299[6299]
 - `output.elasticsearch.experimental` can be used to enable a new, experimental Elasticsearch output using the go-elasticsearch client {pull}5970[5970]
 - Transaction metrics now also group by `service.node.name`, `cloud.provider`, `cloud.region`, `cloud.availability_zone` {pull}6323[6323]
+- Add support for CloudWatch metric streams through firehose endpoint {pull}6380[6380]
+- Standalone apm-server can now fetch source maps uploaded to Kibana, when `apm-server.kibana` is configured {pull}6447[6447]
+- Added support for gzip compression to the experimental Elasticsearch output {pull}6449[6449]
 
 [float]
 ==== Deprecated
@@ -55,3 +60,4 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - `span.http.*` fields are deprecated, replaced by `http.*`, and will be removed in 8.0 {pull}6147[6147]
 - Add deprecation warning for `sampling.keep_unsampled=true` {pull}6285[6285]
 - `processors.*` config, which was never officially supported in apm-server, is now explicitly deprecated and will be removed in 8.0 {pull}6367[6367]
+- Support for uploading source maps to APM Server is deprecated, and will be removed in 8.0. Users should use the new Kibana REST API in conjunction with the integration package {pull}6432[6432]

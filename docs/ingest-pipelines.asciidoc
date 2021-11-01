@@ -1,0 +1,21 @@
+[[ingest-pipelines]]
+=== Parse data using ingest pipelines
+
+The APM integration loads default ingest node pipelines into {es}.
+These pipelines preprocess and enrich APM documents before indexing them.
+For example, a pipeline might define one processor that removes a field, and another that renames a field.
+
+Pipelines can be used to ensure data security by removing or obfuscating sensitive information.
+See <<apm-data-security,data security>> for an example.
+
+[float]
+[[view-edit-default-pipelines]]
+=== View or edit a default pipeline
+
+To view or edit a default pipelines in {kib},
+select *Stack Management* / *Ingest Pipelines*.
+Search for `apm`.
+
+See {ref}/ingest.html[ingest node pipelines] for more information.
+
+// to do: add more information including an example
