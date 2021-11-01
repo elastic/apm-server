@@ -19,6 +19,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed warm phase from default ILM policy {pull}6322[6322]
 - Removed unused `transaction.breakdown.count` metric field {pull}6366[6366]
 - Removed source map upload endpoint {pull}6447[6447]
+- Removed unsupported libbeat `processors` configuration {pull}6474[6474]
 
 [float]
 ==== Bug fixes
