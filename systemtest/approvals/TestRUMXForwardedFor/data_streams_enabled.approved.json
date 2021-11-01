@@ -87,7 +87,7 @@
                 },
                 "ip": "220.244.41.16"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
             "ecs": {
