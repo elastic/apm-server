@@ -10,10 +10,10 @@ Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user s
 // tag::self-managed[]
 
 If you've installed APM Server yourself, you can edit the `apm-server.yml` configuration file to make changes.
-More information is available in {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
+More information is available in {apm-guide-ref}/configuring-howto-apm-server.html[configuring APM Server].
 
 Don't forget to also read about
-{apm-server-ref-v}/securing-apm-server.html[securing APM Server], and
-{apm-server-ref-v}/monitoring.html[monitoring APM Server].
+{apm-guide-ref}/securing-apm-server.html[securing APM Server], and
+{apm-guide-ref}/monitoring.html[monitoring APM Server].
 
 // end::self-managed[]
