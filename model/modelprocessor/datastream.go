@@ -51,13 +51,12 @@ func (s *SetDataStream) ProcessBatch(ctx context.Context, b *model.Batch) error 
 func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 	switch event.Processor {
 	case model.SpanProcessor, model.TransactionProcessor:
+		event.DataStream.Type = datastreams.TracesType
 		event.DataStream.Dataset = model.TracesDataset
 		// In order to maintain different ILM policies, RUM traces are sent to
 		// a different datastream.
 		if _, ok := rumAgents[event.Agent.Name]; ok {
-			event.DataStream.Type = datastreams.RUMTracesType
-		} else {
-			event.DataStream.Type = datastreams.TracesType
+			event.DataStream.Dataset = model.TracesDatasetRUM
 		}
 	case model.ErrorProcessor:
 		event.DataStream.Type = datastreams.LogsType

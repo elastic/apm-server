@@ -42,22 +42,22 @@ func TestSetDataStream(t *testing.T) {
 		output: model.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},
 	}, {
 		input:  model.APMEvent{Processor: model.TransactionProcessor, Agent: model.Agent{Name: "js-base"}},
-		output: model.DataStream{Type: "rum_traces", Dataset: "apm", Namespace: "custom"},
+		output: model.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
 		input:  model.APMEvent{Processor: model.SpanProcessor, Agent: model.Agent{Name: "js-base"}},
-		output: model.DataStream{Type: "rum_traces", Dataset: "apm", Namespace: "custom"},
+		output: model.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
 		input:  model.APMEvent{Processor: model.TransactionProcessor, Agent: model.Agent{Name: "rum-js"}},
-		output: model.DataStream{Type: "rum_traces", Dataset: "apm", Namespace: "custom"},
+		output: model.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
 		input:  model.APMEvent{Processor: model.SpanProcessor, Agent: model.Agent{Name: "rum-js"}},
-		output: model.DataStream{Type: "rum_traces", Dataset: "apm", Namespace: "custom"},
+		output: model.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
 		input:  model.APMEvent{Processor: model.TransactionProcessor, Agent: model.Agent{Name: "iOS"}},
-		output: model.DataStream{Type: "rum_traces", Dataset: "apm", Namespace: "custom"},
+		output: model.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
 		input:  model.APMEvent{Processor: model.SpanProcessor, Agent: model.Agent{Name: "iOS"}},
-		output: model.DataStream{Type: "rum_traces", Dataset: "apm", Namespace: "custom"},
+		output: model.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
 		input:  model.APMEvent{Processor: model.TransactionProcessor, Agent: model.Agent{Name: "go"}},
 		output: model.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},

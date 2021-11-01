@@ -19,10 +19,9 @@ package datastreams
 
 // Constants for data stream types.
 const (
-	LogsType      = "logs"
-	MetricsType   = "metrics"
-	TracesType    = "traces"
-	RUMTracesType = "rum_traces"
+	LogsType    = "logs"
+	MetricsType = "metrics"
+	TracesType  = "traces"
 )
 
 // Cosntants for data stream event metadata fields.
