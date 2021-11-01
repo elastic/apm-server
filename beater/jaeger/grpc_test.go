@@ -19,8 +19,11 @@ package jaeger
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
-	"strings"
+	"io/ioutil"
+	"net"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -28,151 +31,198 @@ import (
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/kibana/kibanatest"
+	"github.com/elastic/apm-server/model"
 )
 
-func TestGRPCCollector_PostSpans(t *testing.T) {
-	for name, tc := range map[string]testGRPCCollector{
+func TestPostSpans(t *testing.T) {
+	var processorErr error
+	var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+		return processorErr
+	}
+	conn := newServer(t, processor, nil)
+
+	client := api_v2.NewCollectorServiceClient(conn)
+	result, err := client.PostSpans(context.Background(), &api_v2.PostSpansRequest{})
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+
+	type testcase struct {
+		request      *api_v2.PostSpansRequest
+		processorErr error
+		expectedErr  error
+	}
+
+	for name, tc := range map[string]testcase{
 		"empty request": {
 			request: &api_v2.PostSpansRequest{},
 		},
-		"successful request": {},
+		"successful request": {
+			request: newPostSpansRequest(t),
+		},
 		"failing request": {
-			consumerErr: errors.New("consumer failed"),
-			expectedErr: errors.New("consumer failed"),
+			request:      newPostSpansRequest(t),
+			processorErr: errors.New("processor failed"),
+			expectedErr:  status.Error(codes.Unknown, "processor failed"),
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			tc.setup(t)
-
-			resp, err := tc.collector.PostSpans(context.Background(), tc.request)
+			processorErr = tc.processorErr
+			resp, err := client.PostSpans(context.Background(), tc.request)
 			if tc.expectedErr != nil {
-				require.Nil(t, resp)
-				require.Error(t, err)
+				assert.Nil(t, resp)
+				assert.Error(t, err)
 				assert.Equal(t, tc.expectedErr, err)
 			} else {
-				require.NotNil(t, resp)
-				require.NoError(t, err)
+				assert.NotNil(t, resp)
+				assert.NoError(t, err)
 			}
 		})
 	}
 }
 
-type testGRPCCollector struct {
-	request     *api_v2.PostSpansRequest
-	consumer    tracesConsumerFunc
-	consumerErr error
-	collector   *grpcCollector
+func newPostSpansRequest(t *testing.T) *api_v2.PostSpansRequest {
+	traces := pdata.NewTraces()
+	resourceSpans := traces.ResourceSpans().AppendEmpty()
+	spans := resourceSpans.InstrumentationLibrarySpans().AppendEmpty()
+	span0 := spans.Spans().AppendEmpty()
+	span0.SetTraceID(pdata.NewTraceID([16]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
+	span0.SetSpanID(pdata.NewSpanID([8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}))
+	span1 := spans.Spans().AppendEmpty()
+	span1.SetTraceID(pdata.NewTraceID([16]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
+	span1.SetSpanID(pdata.NewSpanID([8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}))
 
-	expectedErr error
+	batches, err := jaegertranslator.InternalTracesToJaegerProto(traces)
+	require.NoError(t, err)
+	require.Len(t, batches, 1)
+	return &api_v2.PostSpansRequest{Batch: *batches[0]}
 }
 
-func (tc *testGRPCCollector) setup(t *testing.T) {
-	beatertest.ClearRegistry(gRPCCollectorMonitoringMap)
-	if tc.request == nil {
-		traces := pdata.NewTraces()
-		resourceSpans := traces.ResourceSpans().AppendEmpty()
-		spans := resourceSpans.InstrumentationLibrarySpans().AppendEmpty()
-		span0 := spans.Spans().AppendEmpty()
-		span0.SetTraceID(pdata.NewTraceID([16]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
-		span0.SetSpanID(pdata.NewSpanID([8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}))
-		span1 := spans.Spans().AppendEmpty()
-		span1.SetTraceID(pdata.NewTraceID([16]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
-		span1.SetSpanID(pdata.NewSpanID([8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}))
+func TestApprovals(t *testing.T) {
+	for _, name := range []string{"batch_0", "batch_1"} {
+		t.Run(name, func(t *testing.T) {
+			var batches []model.Batch
+			var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+				batches = append(batches, *batch)
+				return nil
+			}
+			conn := newServer(t, processor, nil)
+			client := api_v2.NewCollectorServiceClient(conn)
 
-		batches, err := jaegertranslator.InternalTracesToJaegerProto(traces)
-		require.NoError(t, err)
-		require.Len(t, batches, 1)
-		tc.request = &api_v2.PostSpansRequest{Batch: *batches[0]}
+			f := filepath.Join("..", "..", "testdata", "jaeger", name)
+			data, err := ioutil.ReadFile(f + ".json")
+			require.NoError(t, err)
+
+			var request api_v2.PostSpansRequest
+			err = json.Unmarshal(data, &request)
+			require.NoError(t, err)
+			_, err = client.PostSpans(context.Background(), &request)
+			require.NoError(t, err)
+
+			require.Len(t, batches, 1)
+			events := batches[0].Transform(context.Background())
+			docs := beatertest.EncodeEventDocs(events...)
+			approvaltest.ApproveEventDocs(t, f, docs)
+		})
 	}
-
-	if tc.consumer == nil {
-		tc.consumer = func(ctx context.Context, td pdata.Traces) error {
-			return tc.consumerErr
-		}
-	}
-	tc.collector = &grpcCollector{tc.consumer}
-}
-
-type tracesConsumerFunc func(ctx context.Context, td pdata.Traces) error
-
-func (f tracesConsumerFunc) Capabilities() consumer.Capabilities {
-	return consumer.Capabilities{}
-}
-
-func (f tracesConsumerFunc) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
-	return f(ctx, td)
-}
-
-func nopConsumer() tracesConsumerFunc {
-	return func(context.Context, pdata.Traces) error { return nil }
 }
 
 func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
-	for name, tc := range map[string]testGRPCSampler{
+	type testcase struct {
+		params               *api_v2.SamplingStrategyParameters
+		fetcher              agentcfg.Fetcher
+		expectedSamplingRate float64
+		expectedErrMsg       string
+		expectedLogMsg       string
+		expectedLogError     string
+	}
+
+	for name, tc := range map[string]testcase{
+		"unauthorized": {
+			params:           &api_v2.SamplingStrategyParameters{ServiceName: unauthorizedServiceName},
+			expectedErrMsg:   "no sampling rate available",
+			expectedLogMsg:   "No valid sampling rate fetched",
+			expectedLogError: `unauthorized: anonymous access not permitted for service "serviceB"`,
+		},
 		"withSamplingRate": {
-			expectedSamplingRate: 0.75},
+			params: &api_v2.SamplingStrategyParameters{ServiceName: authorizedServiceName},
+			fetcher: mockAgentConfigFetcher(agentcfg.Result{
+				Source: agentcfg.Source{
+					Settings: agentcfg.Settings{
+						agentcfg.TransactionSamplingRateKey: "0.75",
+					},
+				},
+			}, nil),
+			expectedSamplingRate: 0.75,
+		},
 		"noSamplingRate": {
-			kibanaBody: map[string]interface{}{
-				"_id": "1",
-				"_source": map[string]interface{}{
-					"settings": map[string]interface{}{}}},
+			params: &api_v2.SamplingStrategyParameters{ServiceName: authorizedServiceName},
+			fetcher: mockAgentConfigFetcher(agentcfg.Result{
+				Source: agentcfg.Source{
+					Settings: agentcfg.Settings{},
+				},
+			}, nil),
 			expectedErrMsg: "no sampling rate available",
 			expectedLogMsg: "No valid sampling rate fetched",
 		},
 		"invalidSamplingRate": {
-			kibanaBody: map[string]interface{}{
-				"_id": "1",
-				"_source": map[string]interface{}{
-					"settings": map[string]interface{}{
-						agentcfg.TransactionSamplingRateKey: "foo"}}},
+			params: &api_v2.SamplingStrategyParameters{ServiceName: authorizedServiceName},
+			fetcher: mockAgentConfigFetcher(agentcfg.Result{
+				Source: agentcfg.Source{
+					Settings: agentcfg.Settings{
+						agentcfg.TransactionSamplingRateKey: "foo",
+					},
+				},
+			}, nil),
 			expectedErrMsg: "no sampling rate available",
 			expectedLogMsg: "No valid sampling rate fetched",
 		},
 		"unsupportedVersion": {
-			kibanaVersion:  common.MustNewVersion("7.4.0"),
+			// Trigger the agentcfg.ValidationError code path by using agentcfg.KibanaFetcher
+			// with an invalid (too old) Kibana version.
+			params: &api_v2.SamplingStrategyParameters{ServiceName: authorizedServiceName},
+			fetcher: agentcfg.NewKibanaFetcher(
+				kibanatest.MockKibana(200, nil, *common.MustNewVersion("7.4.0"), true),
+				time.Second,
+			),
 			expectedErrMsg: "agent remote configuration not supported",
 			expectedLogMsg: "Kibana client does not support",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
-			tc.setup()
-			params := &api_v2.SamplingStrategyParameters{ServiceName: "serviceA"}
 
-			authenticator, err := auth.NewAuthenticator(config.AgentAuth{
-				Anonymous: config.AnonymousAgentAuth{Enabled: true},
-			})
-			require.NoError(t, err)
-			ctx := context.Background()
-			_, authz, err := authenticator.Authenticate(ctx, "", "")
-			require.NoError(t, err)
-			ctx = auth.ContextWithAuthorizer(ctx, authz)
-			resp, err := tc.sampler.GetSamplingStrategy(ctx, params)
+			conn := newServer(t, nil, tc.fetcher)
+			client := api_v2.NewSamplingManagerClient(conn)
+			resp, err := client.GetSamplingStrategy(context.Background(), tc.params)
 
 			// assert sampling response
 			if tc.expectedErrMsg != "" {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), tc.expectedErrMsg)
 				assert.Nil(t, resp)
-				logs := func() string {
-					var sb strings.Builder
-					for _, entry := range logp.ObserverLogs().All() {
-						sb.WriteString(entry.Message)
-					}
-					return sb.String()
-				}()
-				assert.Contains(t, logs, tc.expectedLogMsg)
+
+				logs := logp.ObserverLogs()
+				require.Equal(t, 1, logs.Len())
+				log := logs.All()[0]
+				assert.Contains(t, log.Message, tc.expectedLogMsg)
+				if tc.expectedLogError != "" {
+					assert.Equal(t, tc.expectedLogError, log.ContextMap()["error"])
+				}
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, api_v2.SamplingStrategyType_PROBABILISTIC, resp.StrategyType)
@@ -184,36 +234,44 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 	}
 }
 
-type testGRPCSampler struct {
-	kibanaBody    map[string]interface{}
-	kibanaCode    int
-	kibanaVersion *common.Version
-	sampler       *grpcSampler
+const (
+	authorizedServiceName   = "serviceA"
+	unauthorizedServiceName = "serviceB"
+)
 
-	expectedErrMsg       string
-	expectedLogMsg       string
-	expectedSamplingRate float64
+func newServer(t *testing.T, batchProcessor model.BatchProcessor, agentcfgFetcher agentcfg.Fetcher) *grpc.ClientConn {
+	lis, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+
+	authenticator, err := auth.NewAuthenticator(config.AgentAuth{
+		Anonymous: config.AnonymousAgentAuth{
+			Enabled:      true,
+			AllowService: []string{authorizedServiceName},
+		},
+		SecretToken: "abc123",
+	})
+	require.NoError(t, err)
+	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Auth(MethodAuthenticators(authenticator))))
+
+	logger := logp.NewLogger("jaeger.test")
+	RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)
+
+	go srv.Serve(lis)
+	t.Cleanup(srv.GracefulStop)
+	conn, err := grpc.Dial(lis.Addr().String(), grpc.WithInsecure())
+	require.NoError(t, err)
+	t.Cleanup(func() { conn.Close() })
+	return conn
 }
 
-func (tc *testGRPCSampler) setup() {
-	if tc.kibanaCode == 0 {
-		tc.kibanaCode = 200
-	}
-	if tc.kibanaBody == nil {
-		tc.kibanaBody = map[string]interface{}{
-			"_id": "1",
-			"_source": map[string]interface{}{
-				"settings": map[string]interface{}{
-					agentcfg.TransactionSamplingRateKey: 0.75,
-				},
-			},
-		}
-	}
-	if tc.kibanaVersion == nil {
-		tc.kibanaVersion = common.MustNewVersion("7.7.0")
-	}
-	client := kibanatest.MockKibana(tc.kibanaCode, tc.kibanaBody, *tc.kibanaVersion, true)
-	fetcher := agentcfg.NewKibanaFetcher(client, time.Second)
-	tc.sampler = &grpcSampler{logp.L(), fetcher}
-	beatertest.ClearRegistry(gRPCSamplingMonitoringMap)
+func mockAgentConfigFetcher(result agentcfg.Result, err error) agentcfg.Fetcher {
+	return fetchAgentConfigFunc(func(ctx context.Context, query agentcfg.Query) (agentcfg.Result, error) {
+		return result, err
+	})
+}
+
+type fetchAgentConfigFunc func(context.Context, agentcfg.Query) (agentcfg.Result, error)
+
+func (f fetchAgentConfigFunc) Fetch(ctx context.Context, query agentcfg.Query) (agentcfg.Result, error) {
+	return f(ctx, query)
 }
