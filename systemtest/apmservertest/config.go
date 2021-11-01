@@ -42,7 +42,6 @@ const (
 
 // Config holds APM Server configuration.
 type Config struct {
-	Jaeger                    *JaegerConfig      `json:"apm-server.jaeger,omitempty"`
 	Kibana                    *KibanaConfig      `json:"apm-server.kibana,omitempty"`
 	Aggregation               *AggregationConfig `json:"apm-server.aggregation,omitempty"`
 	Sampling                  *SamplingConfig    `json:"apm-server.sampling,omitempty"`
@@ -130,15 +129,6 @@ type KibanaConfig struct {
 	Host     string `json:"host,omitempty"`
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
-}
-
-// JaegerConfig holds APM Server Jaeger intake configuration.
-type JaegerConfig struct {
-	GRPCEnabled bool   `json:"grpc.enabled,omitempty"`
-	GRPCHost    string `json:"grpc.host,omitempty"`
-	GRPCAuthTag string `json:"grpc.auth_tag,omitempty"`
-	HTTPEnabled bool   `json:"http.enabled,omitempty"`
-	HTTPHost    string `json:"http.host,omitempty"`
 }
 
 // SamplingConfig holds APM Server trace sampling configuration.

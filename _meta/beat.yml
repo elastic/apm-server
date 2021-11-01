@@ -468,46 +468,6 @@ apm-server:
                   #set_priority:
                     #priority: 100
 
-
-
-  #---------------------------- APM Server - Experimental Jaeger integration ----------------------------
-
-  # When enabling Jaeger integration, APM Server acts as Jaeger collector. It supports jaeger.thrift over HTTP
-  # and gRPC. This is an experimental feature, use with care.
-  #
-  # WARNING: This configuration is deprecated, and will be removed in the 8.0 release.
-  #
-  # Jaeger gRPC is now served on the same port as Elastic APM agents, defined by the
-  # "apm-server.host" configuration; it is implicitly enabled, and an agent tag called
-  # "elastic-apm-auth" is required when auth is enabled.
-  #jaeger:
-    #grpc:
-      # Set to true to enable the Jaeger gRPC collector service.
-      #enabled: false
-
-      # Defines the gRPC host and port the server is listening on.
-      # Defaults to the standard Jaeger gRPC collector port 14250.
-      #host: "{{ .jaeger_grpc_hostport }}"
-
-      # Set to the name of a process tag to use for authorizing
-      # Jaeger agents.
-      #
-      # The tag value should have the same format as an HTTP
-      # Authorization header, i.e. "Bearer <secret_token>" or
-      # "ApiKey <base64(id:key)>".
-      #
-      # By default (if the auth_tag value is empty), authorization
-      # does not apply to Jaeger agents.
-      #auth_tag: ""
-
-    #http:
-      # Set to true to enable the Jaeger HTTP collector endpoint.
-      #enabled: false
-
-      # Defines the HTTP host and port the server is listening on.
-      # Defaults to the standard Jaeger HTTP collector port 14268.
-      #host: "{{ .jaeger_http_hostport }}"
-
 #================================= General =================================
 
 # Data is buffered in a memory queue before it is published to the configured output.
