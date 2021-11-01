@@ -6,7 +6,7 @@
 ++++
 
 Before upgrading to APM Server v7.0,
-there are some {apm-overview-ref-v}/breaking-7.0.0.html[breaking changes]
+there are some {apm-guide-ref}/breaking-7.0.0.html[breaking changes]
 in the APM Server and the APM UI that you should be aware of.
 
 [float]
