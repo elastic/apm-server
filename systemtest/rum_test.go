@@ -214,6 +214,6 @@ func TestRUMRoutingIntegration(t *testing.T) {
 	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm.rum*", nil)
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits, "@timestamp", "timestamp.us",
-		"source.port", "source.ip",
+		"source.port", "source.ip", "client",
 	)
 }
