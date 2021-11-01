@@ -34,8 +34,8 @@ import (
 // timeout expiring, will result in the StacktraceFrame.SourcemapError field
 // being set; the error will not be returned.
 type BatchProcessor struct {
-	// Store is the store to use for fetching source maps.
-	Store *Store
+	// Fetcher is the Fetcher to use for fetching source maps.
+	Fetcher Fetcher
 
 	// Timeout holds a timeout for each ProcessBatch call, to limit how
 	// much time is spent fetching source maps.
@@ -117,7 +117,7 @@ func (p BatchProcessor) processStacktraceFrame(
 	}
 
 	path := utility.CleanUrlPath(frame.AbsPath)
-	mapper, err := p.Store.Fetch(ctx, service.Name, service.Version, path)
+	mapper, err := p.Fetcher.Fetch(ctx, service.Name, service.Version, path)
 	if err != nil {
 		frame.SourcemapError = err.Error()
 		getProcessorLogger().Debugf("failed to fetch source map: %s", frame.SourcemapError)
