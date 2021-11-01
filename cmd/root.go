@@ -18,6 +18,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"os"
@@ -32,7 +33,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring/report"
-	"github.com/elastic/beats/v7/libbeat/processors"
 	"github.com/elastic/beats/v7/libbeat/publisher/processing"
 
 	"github.com/elastic/apm-server/idxmgmt"
@@ -91,17 +91,20 @@ func DefaultSettings() instance.Settings {
 }
 
 func processingSupport(info beat.Info, log *logp.Logger, beatCfg *common.Config) (processing.Supporter, error) {
-	supporter := processing.MakeDefaultSupport(false)
-	var cfg struct {
-		Processors processors.PluginConfig `config:"processors"`
+	if beatCfg.HasField("processors") {
+		return nil, errors.New("libbeat processors are not supported")
 	}
-	if err := beatCfg.Unpack(&cfg); err != nil {
-		return nil, err
-	}
-	if len(cfg.Processors) > 0 {
-		log.Warn("libbeat processors are unsupported and will be removed in 8.0")
-	}
-	return supporter(info, log, beatCfg)
+	return nopProcessingSupporter{}, nil
+}
+
+type nopProcessingSupporter struct{}
+
+func (nopProcessingSupporter) Close() error {
+	return nil
+}
+
+func (nopProcessingSupporter) Create(beat.ProcessingConfig, bool) (beat.Processor, error) {
+	return nil, nil
 }
 
 // NewRootCommand returns the "apm-server" root command.

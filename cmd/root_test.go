@@ -27,9 +27,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestCloudEnv(t *testing.T) {
@@ -75,25 +72,25 @@ func TestCloudEnv(t *testing.T) {
 	}
 }
 
-func TestProcessorsDeprecated(t *testing.T) {
-	core, observed := observer.New(zapcore.DebugLevel)
-	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
-		return zapcore.NewTee(in, core)
-	}))
-
+func TestProcessorsDisallowed(t *testing.T) {
+	logger := logp.NewLogger("")
 	settings := DefaultSettings()
-	settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{}))
-	assert.Empty(t, observed.All())
 
-	settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{
+	// If no "processors" config is specified, the supporter.Create method should return nil.
+	supporter, err := settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{}))
+	assert.NoError(t, err)
+	assert.NotNil(t, supporter)
+	processor, err := supporter.Create(beat.ProcessingConfig{}, false)
+	assert.NoError(t, err)
+	assert.Nil(t, processor)
+
+	supporter, err = settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{
 		"processors": []interface{}{
 			map[string]interface{}{
 				"add_cloud_metadata": map[string]interface{}{},
 			},
 		},
 	}))
-	entries := observed.All()
-	require.Len(t, entries, 1)
-	assert.Equal(t, zapcore.WarnLevel, entries[0].Level)
-	assert.Equal(t, "libbeat processors are unsupported and will be removed in 8.0", entries[0].Message)
+	assert.EqualError(t, err, "libbeat processors are not supported")
+	assert.Nil(t, supporter)
 }

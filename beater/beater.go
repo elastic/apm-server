@@ -422,10 +422,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 
-	publisherConfig := &publish.PublisherConfig{
-		Pipeline:  s.config.Pipeline,
-		Namespace: s.namespace,
-	}
+	publisherConfig := &publish.PublisherConfig{Pipeline: s.config.Pipeline}
 	if !s.config.DataStreams.Enabled {
 		// Logs are only supported with data streams;
 		// add a beat.Processor which drops them.
