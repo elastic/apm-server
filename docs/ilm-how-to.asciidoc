@@ -1,0 +1,18 @@
+[[ilm-how-to]]
+=== Index lifecycle management (ILM)
+
+// todo: add more context and an example
+
+++++
+<titleabbrev>Customize index lifecycle management</titleabbrev>
+++++
+
+The index lifecycle management (ILM) feature in {es} allows you to automate the
+lifecycle of your APM Server indices as they grow and age.
+ILM is enabled by default, and a default policy is applied to all APM indices.
+
+To view and edit these index lifecycle policies in {kib},
+select *Stack Management* / *Index Lifecycle Management*.
+Search for `apm`.
+
+See {ref}/getting-started-index-lifecycle-management.html[manage the index lifecycle] for more information.

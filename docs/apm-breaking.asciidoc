@@ -8,6 +8,12 @@
 // (which might mean removing this entirely, or more likely, adding this content to headings in those notes)
 // fix all broken links once a new attribute is added
 
+// These tagged regions are required for the stack-docs repo includes
+// tag::notable-v8-breaking-changes[]
+// end::notable-v8-breaking-changes[]
+// tag::716-bc[]
+// end::716-bc[]
+
 [float]
 [[breaking-changes-7.15]]
 === 7.15
@@ -35,7 +41,7 @@ There are no breaking changes in APM Server.
 
 There are three breaking changes to be aware of;
 these changes only impact users ingesting data with
-// {apm-server-ref-v}/jaeger.html[Jaeger clients].
+{apm-guide-ref}/jaeger.html[Jaeger clients].
 
 * Leading 0s are no longer removed from Jaeger client trace/span ids.
 +
@@ -87,7 +93,7 @@ There are no breaking changes in APM Server.
 === 7.7
 There are no breaking changes in APM Server.
 However, a previously hardcoded feature is now configurable.
-// Failing to follow these <<upgrading-to-77,upgrade steps>> will result in increased span metadata ingestion when upgrading to version 7.7.
+Failing to follow these <<upgrading-to-77,upgrade steps>> will result in increased span metadata ingestion when upgrading to version 7.7.
 
 [float]
 [[breaking-changes-7.6]]
@@ -102,11 +108,11 @@ The following breaking changes have been introduced in 7.5:
 * Introduced dedicated `apm-server.ilm.setup.*` flags.
 This means you can now customize ILM behavior from within the APM Server configuration.
 As a side effect, `setup.template.*` settings will be ignored for ILM related templates per event type.
-// See {apm-server-ref}/ilm.html#ilm-setup[set up ILM] for more information.
+See {apm-guide-ref}/ilm.html#ilm-setup[set up ILM] for more information.
 
 * By default, ILM policies will not longer be versioned.
 All event types will switch to the new default policy: rollover after 30 days or when reaching a size 50gb.
-// See {apm-server-ref}/ilm.html[default policy] for more information.
+See {apm-guide-ref}/ilm.html[default policy] for more information.
 
 * To make use of all the new features introduced in 7.5,
 you must ensure you are using version 7.5+ of APM Server and version 7.5+ of Kibana.
@@ -118,16 +124,16 @@ The following breaking changes have been introduced in 7.0:
 
 * Removed deprecated Intake v1 API endpoints.
 Upgrade agents to a version that supports APM Server ≥ 6.5.
-// {apm-overview-ref-v}/breaking-7.0.0.html#breaking-remove-v1[More information].
+{apm-guide-ref}/breaking-7.0.0.html#breaking-remove-v1[More information].
 * Moved fields in Elasticsearch to be compliant with the Elastic Common Schema (ECS).
-// {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information and changed fields].
-// * {beats-ref}/breaking-changes-7.0.html[Breaking changes in libbeat]
+{apm-guide-ref}/breaking-7.0.0.html#breaking-ecs[More information and changed fields].
+* {beats-ref}/breaking-changes-7.0.html[Breaking changes in libbeat]
 
 [float]
 [[breaking-changes-6.5]]
 === 6.5
 There are no breaking changes in APM Server.
-// Advanced users may find the <<upgrading-to-65,upgrading to 6.5 guide>> useful.
+Advanced users may find the <<upgrading-to-65,upgrading to 6.5 guide>> useful.
 
 [float]
 [[breaking-changes-6.4]]

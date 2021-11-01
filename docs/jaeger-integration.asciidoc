@@ -1,0 +1,112 @@
+[[jaeger-integration]]
+=== Jaeger integration
+
+++++
+<titleabbrev>Integrate with Jaeger</titleabbrev>
+++++
+
+Elastic APM integrates with https://www.jaegertracing.io/[Jaeger], an open-source, distributed tracing system.
+This integration allows users with an existing Jaeger setup to switch from the default Jaeger backend,
+to the Elastic Stack.
+Best of all, no instrumentation changes are needed in your application code.
+
+[float]
+[[jaeger-architecture]]
+=== Supported architecture
+
+Jaeger architecture supports different data formats and transport protocols
+that define how data can be sent to a collector. Elastic APM, as a Jaeger collector,
+supports communication with *Jaeger agents* via gRPC.
+
+* The APM integration serves Jaeger gRPC over the same host and port as the Elastic APM agent protocol.
+
+* The APM integration gRPC endpoint supports TLS. If SSL is configured,
+SSL settings will automatically be applied to the APM integration's Jaeger gRPC endpoint.
+
+* The gRPC endpoint supports probabilistic sampling.
+Sampling decisions can be configured <<configure-sampling-central-jaeger,centrally>> with APM Agent central configuration, or <<configure-sampling-local-jaeger,locally>> in each Jaeger client.
+
+See the https://www.jaegertracing.io/docs/1.27/architecture[Jaeger docs]
+for more information on Jaeger architecture.
+
+[float]
+[[get-started-jaeger]]
+=== Get started
+
+Connect your preexisting Jaeger setup to Elastic APM in three steps:
+
+* <<configure-agent-client-jaeger>>
+* <<configure-sampling-jaeger>>
+* <<configure-start-jaeger>>
+
+IMPORTANT: There are <<caveats-jaeger,caveats>> to this integration.
+
+[float]
+[[configure-agent-client-jaeger]]
+==== Configure Jaeger agents
+
+The APM integration serves Jaeger gRPC over the same host and port as the Elastic APM agent protocol.
+
+include::./shared/jaeger/jaeger-widget.asciidoc[]
+
+[float]
+[[configure-sampling-jaeger]]
+==== Configure Sampling
+
+The APM integration supports probabilistic sampling, which can be used to reduce the amount of data that your agents collect and send.
+Probabilistic sampling makes a random sampling decision based on the configured sampling value.
+For example, a value of `.2` means that 20% of traces will be sampled.
+
+There are two different ways to configure the sampling rate of your Jaeger agents:
+
+* <<jaeger-configure-sampling-central,APM Agent central configuration (default)>>
+* <<jaeger-configure-sampling-local,Local sampling in each Jaeger client>>
+
+[float]
+[[configure-sampling-central-jaeger]]
+===== APM Agent central configuration (default)
+
+Central sampling, with APM Agent central configuration,
+allows Jaeger clients to poll APM Server for the sampling rate.
+This means sample rates can be configured on the fly, on a per-service and per-environment basis.
+See {kibana-ref}/agent-configuration.html[Central configuration] to learn more.
+
+[float]
+[[configure-sampling-local-jaeger]]
+===== Local sampling in each Jaeger client
+
+If you don't have access to the APM app,
+you'll need to change the Jaeger client's `sampler.type` and `sampler.param`.
+This enables you to set the sampling configuration locally in each Jaeger client.
+See the official https://www.jaegertracing.io/docs/1.27/sampling/[Jaeger sampling documentation]
+for more information.
+
+[float]
+[[configure-start-jaeger]]
+==== Start sending data
+
+That's it! Data sent from Jaeger clients to the APM Server can now be viewed in the APM app.
+
+[float]
+[[caveats-jaeger]]
+=== Caveats
+
+There are some limitations and differences between Elastic APM and Jaeger that you should be aware of.
+
+*Jaeger integration limitations:*
+
+* Because Jaeger has its own trace context header, and does not currently support W3C trace context headers,
+it is not possible to mix and match the use of Elastic's APM agents and Jaeger's clients.
+* Elastic APM only supports probabilistic sampling.
+
+*Differences between APM Agents and Jaeger Clients:*
+
+* Jaeger clients only sends trace data.
+APM agents support a larger number of features, like
+multiple types of metrics, and application breakdown charts.
+When using Jaeger, features like this will not be available in the APM app.
+* Elastic APM's <<data-model>> is different than Jaegers.
+For Jaeger trace data to work with Elastic's data model, we rely on spans being tagged with the appropriate
+https://github.com/opentracing/specification/blob/master/semantic_conventions.md[`span.kind`].
+** Server Jaeger spans are mapped to Elastic APM <<data-model-transactions>>.
+** Client Jaeger spans are mapped to Elastic APM <<data-model-spans>> -- unless the span is the root, in which case it is mapped to an Elastic APM <<data-model-transactions>>.

@@ -12,7 +12,7 @@ This guide describes how to get started quickly with Elastic APM. You’ll learn
 [[before-installation]]
 === Step 1: Spin up the Elastic Stack
 
-include::../../tab-widgets/spin-up-stack-widget.asciidoc[]
+include::../tab-widgets/spin-up-stack-widget.asciidoc[]
 
 [float]
 [[agents]]
@@ -42,7 +42,7 @@ Select your service's language for installation instructions:
 // end::apm-agent[]
 
 --
-include::../../tab-widgets/install-agents-widget.asciidoc[]
+include::../tab-widgets/install-agents-widget.asciidoc[]
 --
 
 TIP: Check the {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix] to ensure you're using agents that are compatible with your version of {es}.
@@ -63,11 +63,11 @@ environment names, sampling rates, instrumentations, metrics, and more.
 Broadly speaking, there are two ways to configure APM agents:
 // end::configure-agents[]
 
-include::../../tab-widgets/configure-agent-widget.asciidoc[]
+include::../tab-widgets/configure-agent-widget.asciidoc[]
 
 *Configure APM Server*
 
-include::../../tab-widgets/configure-server-widget.asciidoc[]
+include::../tab-widgets/configure-server-widget.asciidoc[]
 
 [float]
 [[visualize-kibana]]
@@ -82,7 +82,7 @@ To open the APM app:
 . Lauch {kib}:
 +
 --
-include::../../tab-widgets/open-kibana-widget.asciidoc[]
+include::../../shared/open-kibana/open-kibana-widget.asciidoc[]
 --
 
 . In the side navigation, under *Observability*, select *APM*.

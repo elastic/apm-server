@@ -165,7 +165,7 @@ Metrics have the `processor.event` property set to `metric`.
 TIP: Most agents limit keyword fields (e.g. `processor.event`) to 1024 characters,
 non-keyword fields (e.g. `system.memory.total`) to 10,000 characters.
 
-Metrics are stored in {apm-server-ref-v}/metricset-indices.html[metric indices].
+Metrics are stored in metric indices.
 
 For a full list of tracked metrics, see the relevant agent documentation:
 
