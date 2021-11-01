@@ -9,14 +9,14 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/go-elasticsearch/v7 v7.8.0
-	github.com/elastic/go-sysinfo v1.4.0 // indirect
+	github.com/elastic/go-sysinfo v1.7.0 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/google/pprof v0.0.0-20210406223550-17a10ee72223
 	github.com/jaegertracing/jaeger v1.18.1
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/prometheus/procfs v0.1.3 // indirect
+	github.com/prometheus/procfs v0.7.1 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/testcontainers/testcontainers-go v0.9.0
 	github.com/tidwall/gjson v1.9.3
@@ -36,9 +36,12 @@ require (
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
-	golang.org/x/tools v0.1.5 // indirect
 	google.golang.org/grpc v1.40.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+)
+
+require (
+	golang.org/x/tools v0.1.5 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
 	howett.net/plist v0.0.0-20200419221736-3b63eb3a43b5 // indirect
 )

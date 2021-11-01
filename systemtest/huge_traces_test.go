@@ -79,3 +79,61 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 		"@timestamp", "timestamp", "trace.id", "transaction.id",
 	)
 }
+
+func TestCompressedSpans(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Aggregation = &apmservertest.AggregationConfig{
+		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
+			Enabled:  true,
+			Interval: time.Second,
+		},
+	}
+	err := srv.Start()
+	require.NoError(t, err)
+
+	tracer := srv.Tracer()
+	tracer.SetSpanCompressionEnabled(true)
+	tx := tracer.StartTransaction("compressed-traces", "type")
+
+	startTs := time.Now()
+
+	// These spans will be compressed. The redis spans will be compressed
+	// using the "same_kind" stategy, while the Elasticsearch spans will
+	// use the "exact_match" strategy.
+	for i := 0; i < 50; i++ {
+		cmd := "EXISTS"
+		if i%2 == 0 {
+			cmd = "GET"
+		}
+		span := tx.StartSpanOptions(cmd, "db.redis", apm.SpanOptions{
+			ExitSpan: true, Start: startTs,
+		})
+		span.Duration = 1 * time.Millisecond
+		startTs = startTs.Add(span.Duration)
+		span.Outcome = "success"
+		span.End()
+	}
+	for i := 0; i < 5; i++ {
+		span := tx.StartSpanOptions("_bulk", "db.elasticsearch", apm.SpanOptions{
+			ExitSpan: true, Start: startTs,
+		})
+		span.Duration = 4 * time.Millisecond
+		startTs = startTs.Add(span.Duration)
+		span.Outcome = "success"
+		span.End()
+	}
+
+	tx.Duration = 80 * time.Millisecond
+	tx.Outcome = "success"
+	tx.End()
+	tracer.Flush(nil)
+
+	txIgnoreFields := []string{"@timestamp", "timestamp", "trace.id", "transaction.id"}
+	spanResults := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm*span",
+		estest.TermQuery{Field: "span.type", Value: "db"},
+	)
+	systemtest.ApproveEvents(t, t.Name(), spanResults.Hits.Hits,
+		append(txIgnoreFields, "span.id", "parent")...,
+	)
+}
