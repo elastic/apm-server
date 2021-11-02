@@ -46,7 +46,6 @@ func TestTransactionAggregation(t *testing.T) {
 	}
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		Transactions: &apmservertest.TransactionAggregationConfig{
-			Enabled:  true,
 			Interval: time.Second,
 		},
 	}
@@ -120,7 +119,6 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		Transactions: &apmservertest.TransactionAggregationConfig{
-			Enabled: true,
 			// Set aggregation_interval to something that would cause
 			// a timeout if we were to wait that long. The server
 			// should flush metrics on shutdown without waiting for
@@ -160,7 +158,6 @@ func TestServiceDestinationAggregation(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
-			Enabled:  true,
 			Interval: time.Second,
 		},
 	}
