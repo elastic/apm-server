@@ -52,6 +52,14 @@ Traces are written to `traces-apm-*` data streams.
 
 {{fields "traces"}}
 
+## RUM Traces
+
+RUM Traces are comprised of [spans and transactions](https://www.elastic.co/guide/en/apm/get-started/current/apm-data-model.html).
+
+RUM Traces are written to `traces-apm.rum-*` data streams.
+
+{{fields "rum_traces"}}
+
 ## Application Metrics
 
 Application metrics are comprised of custom, application-specific metrics, basic system metrics such as CPU and memory usage,
