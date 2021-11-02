@@ -396,7 +396,6 @@ func (m *TransactionAggregationConfig) MarshalJSON() ([]byte, error) {
 
 // ServiceDestinationAggregationConfig holds APM Server service destination metrics aggregation configuration.
 type ServiceDestinationAggregationConfig struct {
-	Enabled  bool
 	Interval time.Duration
 }
 
