@@ -43,8 +43,8 @@ var (
 )
 
 type namedProcessor struct {
-	name string
 	processor
+	name string
 }
 
 type processor interface {
@@ -56,23 +56,21 @@ type processor interface {
 // newProcessors returns a list of processors which will process
 // events in sequential order, prior to the events being published.
 func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
-	var processors []namedProcessor
-	if args.Config.Aggregation.Transactions.Enabled {
-		const name = "transaction metrics aggregation"
-		args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation.Transactions)
-		agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-			BatchProcessor:                 args.BatchProcessor,
-			MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
-			MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
-			HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
-		})
-		if err != nil {
-			return nil, errors.Wrapf(err, "error creating %s", name)
-		}
-		processors = append(processors, namedProcessor{name: name, processor: agg})
-		aggregationMonitoringRegistry.Remove("txmetrics")
-		monitoring.NewFunc(aggregationMonitoringRegistry, "txmetrics", agg.CollectMonitoring, monitoring.Report)
+	processors := make([]namedProcessor, 0, 3)
+	const name = "transaction metrics aggregation"
+	args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation.Transactions)
+	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+		BatchProcessor:                 args.BatchProcessor,
+		MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
+		MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
+		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "error creating %s", name)
 	}
+	processors = append(processors, namedProcessor{name: name, processor: agg})
+	aggregationMonitoringRegistry.Remove("txmetrics")
+	monitoring.NewFunc(aggregationMonitoringRegistry, "txmetrics", agg.CollectMonitoring, monitoring.Report)
 	if args.Config.Aggregation.ServiceDestinations.Enabled {
 		const name = "service destinations aggregation"
 		args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation.ServiceDestinations)
@@ -111,7 +109,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
-	badgerDB, err := getBadgerDB(storageDir)
+	badgerDB, err = getBadgerDB(storageDir)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get Badger database")
 	}

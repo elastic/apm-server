@@ -132,18 +132,6 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 			"in a subsequent version.",
 		)
 	}
-	if !c.Sampling.KeepUnsampled && !c.Aggregation.Transactions.Enabled {
-		// Unsampled transactions should only be dropped
-		// when transaction aggregation is enabled in the
-		// server. This means the aggregations performed
-		// by the APM UI will not have access to a complete
-		// representation of the latency distribution.
-		logger.Warn("" +
-			"apm-server.sampling.keep_unsampled and " +
-			"apm-server.aggregation.transactions.enabled are both false, " +
-			"which will lead to incorrect metrics being reported in the APM UI",
-		)
-	}
 
 	if c.DataStreams.Enabled || (outputESCfg != nil && (outputESCfg.HasField("pipeline") || outputESCfg.HasField("pipelines"))) {
 		c.Pipeline = ""
