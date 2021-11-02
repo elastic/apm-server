@@ -265,7 +265,6 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Enabled:                        false,
 						Interval:                       time.Second,
 						MaxTransactionGroups:           123,
 						HDRHistogramSignificantFigures: 1,
@@ -453,7 +452,6 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Enabled:                        false,
 						Interval:                       time.Minute,
 						MaxTransactionGroups:           10000,
 						HDRHistogramSignificantFigures: 2,
