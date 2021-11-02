@@ -380,7 +380,6 @@ type AggregationConfig struct {
 
 // TransactionAggregationConfig holds APM Server transaction metrics aggregation configuration.
 type TransactionAggregationConfig struct {
-	Enabled  bool
 	Interval time.Duration
 }
 
@@ -388,11 +387,9 @@ func (m *TransactionAggregationConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Enabled  bool   `json:"enabled"`
 		Interval string `json:"interval,omitempty"`
 	}
 	return json.Marshal(config{
-		Enabled:  m.Enabled,
 		Interval: durationString(m.Interval),
 	})
 }
@@ -407,11 +404,9 @@ func (s *ServiceDestinationAggregationConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Enabled  bool   `json:"enabled"`
 		Interval string `json:"interval,omitempty"`
 	}
 	return json.Marshal(config{
-		Enabled:  s.Enabled,
 		Interval: durationString(s.Interval),
 	})
 }
