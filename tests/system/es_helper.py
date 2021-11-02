@@ -12,14 +12,13 @@ default_pipelines = ["apm_user_agent", "apm_user_geo", "apm"]
 ilm_pattern = "-000001"
 index_name = "apm-{}".format(apm_version)
 index_onboarding = "apm-{}-onboarding-{}".format(apm_version, day)
-index_smap = "apm-{}-sourcemap".format(apm_version)
 index_error = "apm-{}-error".format(apm_version)
 index_transaction = "apm-{}-transaction".format(apm_version)
 index_span = "apm-{}-span".format(apm_version)
 index_metric = "apm-{}-metric".format(apm_version)
 index_profile = "apm-{}-profile".format(apm_version)
 default_aliases = [index_error, index_transaction, index_span, index_metric, index_profile]
-default_indices = [index_name, index_onboarding, index_smap] + default_aliases
+default_indices = [index_name, index_onboarding] + default_aliases
 
 
 def cleanup(es, delete_indices=[apm_prefix], delete_templates=[apm_prefix],

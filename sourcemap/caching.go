@@ -28,6 +28,7 @@ import (
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
@@ -40,40 +41,43 @@ var (
 	errInit       = errors.New("Cache cannot be initialized. Expiration and CleanupInterval need to be >= 0")
 )
 
-// Store holds information necessary to fetch a sourcemap, either from an
-// Elasticsearch instance or an internal cache.
-type Store struct {
+// Fetcher is an interface for fetching a source map with a given service name, service version,
+// and bundle filepath.
+type Fetcher interface {
+	// Fetch fetches a source map with a given service name, service version, and bundle filepath.
+	//
+	// If there is no such source map available, Fetch returns a nil Consumer.
+	Fetch(ctx context.Context, serviceName, serviceVersion, bundleFilepath string) (*sourcemap.Consumer, error)
+}
+
+// CachingFetcher wraps a Fetcher, caching source maps in memory and fetching from the wrapped Fetcher on cache misses.
+type CachingFetcher struct {
 	cache   *gocache.Cache
-	backend backend
+	backend Fetcher
 	logger  *logp.Logger
 
 	mu       sync.Mutex
 	inflight map[string]chan struct{}
 }
 
-type backend interface {
-	fetch(ctx context.Context, name, version, path string) (string, error)
-}
-
-func newStore(
-	b backend,
-	logger *logp.Logger,
+// NewCachingFetcher returns a CachingFetcher that wraps backend, caching results for the configured cacheExpiration.
+func NewCachingFetcher(
+	backend Fetcher,
 	cacheExpiration time.Duration,
-) (*Store, error) {
+) (*CachingFetcher, error) {
 	if cacheExpiration < 0 {
 		return nil, errInit
 	}
-
-	return &Store{
+	return &CachingFetcher{
 		cache:    gocache.New(cacheExpiration, cleanupInterval(cacheExpiration)),
-		backend:  b,
-		logger:   logger,
+		backend:  backend,
+		logger:   logp.NewLogger(logs.Sourcemap),
 		inflight: make(map[string]chan struct{}),
 	}, nil
 }
 
-// Fetch a sourcemap from the store.
-func (s *Store) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
+// Fetch fetches a source map from the cache or wrapped backend.
+func (s *CachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	key := cacheKey([]string{name, version, path})
 
 	// fetch from cache
@@ -116,45 +120,18 @@ func (s *Store) Fetch(ctx context.Context, name, version, path string) (*sourcem
 	}()
 
 	// fetch from the store and ensure caching for all non-temporary results
-	sourcemapStr, err := s.backend.fetch(ctx, name, version, path)
+	consumer, err := s.backend.Fetch(ctx, name, version, path)
 	if err != nil {
 		if !strings.Contains(err.Error(), errMsgFailure) {
 			s.add(key, nil)
 		}
 		return nil, err
 	}
-
-	if sourcemapStr == emptyResult {
-		s.add(key, nil)
-		return nil, nil
-	}
-
-	consumer, err := sourcemap.Parse("", []byte(sourcemapStr))
-	if err != nil {
-		s.add(key, nil)
-		return nil, errors.Wrap(err, errMsgParseSourcemap)
-	}
 	s.add(key, consumer)
-
 	return consumer, nil
 }
 
-// NotifyAdded ensures the internal cache is cleared for the given parameters.
-// This should be called when a sourcemap is uploaded.
-func (s *Store) NotifyAdded(ctx context.Context, name string, version string, path string) {
-	if sourcemap, err := s.Fetch(ctx, name, version, path); err == nil && sourcemap != nil {
-		s.logger.Warnf("Overriding sourcemap for service %s version %s and file %s",
-			name, version, path)
-	}
-	key := cacheKey([]string{name, version, path})
-	s.cache.Delete(key)
-	if !s.logger.IsDebug() {
-		return
-	}
-	s.logger.Debugf("Removed id %v. Cache now has %v entries.", key, s.cache.ItemCount())
-}
-
-func (s *Store) add(key string, consumer *sourcemap.Consumer) {
+func (s *CachingFetcher) add(key string, consumer *sourcemap.Consumer) {
 	s.cache.SetDefault(key, consumer)
 	if !s.logger.IsDebug() {
 		return
@@ -168,4 +145,15 @@ func cacheKey(s []string) string {
 
 func cleanupInterval(ttl time.Duration) time.Duration {
 	return time.Duration(math.Max(ttl.Seconds(), minCleanupIntervalSeconds)) * time.Second
+}
+
+func parseSourceMap(data string) (*sourcemap.Consumer, error) {
+	if data == "" {
+		return nil, nil
+	}
+	consumer, err := sourcemap.Parse("", []byte(data))
+	if err != nil {
+		return nil, errors.Wrap(err, errMsgParseSourcemap)
+	}
+	return consumer, nil
 }

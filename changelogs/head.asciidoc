@@ -18,11 +18,8 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - experimental:["This breaking change applies to the experimental tail-based sampling feature."] Changed `apm-server.sampling.tail.events.*` metrics semantics {pull}6273[6273]
 - Removed warm phase from default ILM policy {pull}6322[6322]
 - Removed unused `transaction.breakdown.count` metric field {pull}6366[6366]
-<<<<<<< HEAD
-=======
 - Removed legacy Jaeger gRPC/HTTP endpoints {pull}6417[6417]
 - Removed source map upload endpoint {pull}6447[6447]
->>>>>>> 7704863f (Remove deprecated standalone Jaeger code paths (#6417))
 - Removed unsupported libbeat `processors` configuration {pull}6474[6474]
 
 [float]
@@ -53,6 +50,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - `output.elasticsearch.experimental` can be used to enable a new, experimental Elasticsearch output using the go-elasticsearch client {pull}5970[5970]
 - Transaction metrics now also group by `service.node.name`, `cloud.provider`, `cloud.region`, `cloud.availability_zone` {pull}6323[6323]
 - Add support for CloudWatch metric streams through firehose endpoint {pull}6380[6380]
+- Standalone apm-server can now fetch source maps uploaded to Kibana, when `apm-server.kibana` is configured {pull}6447[6447]
 - Added support for gzip compression to the experimental Elasticsearch output {pull}6449[6449]
 
 [float]

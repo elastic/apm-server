@@ -1,9 +1,9 @@
 import time
 
 from apmserver import integration_test
-from apmserver import ClientSideElasticTest, ElasticTest, ExpvarBaseTest, ProcStartupFailureTest
+from apmserver import ClientSideBaseTest, ElasticTest, ExpvarBaseTest, ProcStartupFailureTest
 from helper import wait_until
-from es_helper import index_smap, index_metric, index_transaction, index_error, index_span, index_onboarding, index_name
+from es_helper import index_metric, index_transaction, index_error, index_span, index_onboarding, index_name
 
 
 @integration_test
@@ -76,11 +76,9 @@ class Test(ElasticTest):
         error_docs = self.wait_for_events('error', 4, index=index_error)
         self.approve_docs('error', error_docs)
 
-        self.check_backend_error_sourcemap(index_error, count=4)
-
 
 @integration_test
-class EnrichEventIntegrationTest(ClientSideElasticTest):
+class EnrichEventIntegrationTest(ClientSideBaseTest, ElasticTest):
     def test_backend_error(self):
         # for backend events library_frame information should not be changed,
         # as no regex pattern is defined.
