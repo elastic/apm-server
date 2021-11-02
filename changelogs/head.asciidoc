@@ -18,6 +18,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - experimental:["This breaking change applies to the experimental tail-based sampling feature."] Changed `apm-server.sampling.tail.events.*` metrics semantics {pull}6273[6273]
 - Removed warm phase from default ILM policy {pull}6322[6322]
 - Removed unused `transaction.breakdown.count` metric field {pull}6366[6366]
+- Removed legacy Jaeger gRPC/HTTP endpoints {pull}6417[6417]
 - Removed source map upload endpoint {pull}6447[6447]
 - Removed unsupported libbeat `processors` configuration {pull}6474[6474]
 

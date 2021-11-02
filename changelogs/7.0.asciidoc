@@ -31,7 +31,7 @@ These release notes include all changes made in the alpha, beta, and RC releases
 
 Also see:
 
-* {apm-server-ref-v}/breaking-changes.html[Breaking changes in 7.0]
+* {apm-guide-ref}/breaking-changes.html[Breaking changes in 7.0]
 
 [float]
 ==== Added
@@ -52,7 +52,7 @@ Also see:
 [float]
 ==== Removed
 
-- Remove support for deprecated Intake v1 endpoints. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-remove-v1[More information], {pull}1731[1731].
+- Remove support for deprecated Intake v1 endpoints. {apm-guide-ref}/breaking-7.0.0.html#breaking-remove-v1[More information], {pull}1731[1731].
 - Remove `concurrent_requests` setting and use number of CPUs instead {pull}1749[1749].
 - Remove `frontend` setting {pull}1751[1751].
 - Remove `metrics.enabled` setting {pull}1759[1759].
@@ -70,7 +70,7 @@ Also see:
 
 [float]
 ==== Breaking Changes
-- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766], {pull}1783[1783], {pull}1813[1813], {pull}1836[1836], {pull}1838[1838], {pull}1844[1844], {pull}1848[1848], {pull}1849[1849], {pull}1863[1863], {pull}1870[1870].
+- Move fields in ES to be ECS compliant. {apm-guide-ref}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766], {pull}1783[1783], {pull}1813[1813], {pull}1836[1836], {pull}1838[1838], {pull}1844[1844], {pull}1848[1848], {pull}1849[1849], {pull}1863[1863], {pull}1870[1870].
 - Rename `transaction.span_count.dropped.total` to `transaction.span_count.dropped` {pull}1809[1809].
 - Rename `span.hex_id` to `span.id` {pull}1811[1811].
 - Index `error.exception` as array of objects {pull}1825[1825]
@@ -109,7 +109,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-alpha2\...v7.0.0-beta1[View
 
 [float]
 ==== Breaking Changes
-- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766], {pull}1783[1783], {pull}1813[1813], {pull}1836[1836], {pull}1838[1838], {pull}1844[1844], {pull}1848[1848], {pull}1849[1849], {pull}1863[1863], {pull}1870[1870].
+- Move fields in ES to be ECS compliant. {apm-guide-ref}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766], {pull}1783[1783], {pull}1813[1813], {pull}1836[1836], {pull}1838[1838], {pull}1844[1844], {pull}1848[1848], {pull}1849[1849], {pull}1863[1863], {pull}1870[1870].
 
 [float]
 ==== Added
@@ -130,7 +130,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-alpha2\...v7.0.0-beta1[View
 [float]
 ==== Removed
 
-- Remove support for deprecated Intake v1 endpoints. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-remove-v1[More information], {pull}1731[1731].
+- Remove support for deprecated Intake v1 endpoints. {apm-guide-ref}/breaking-7.0.0.html#breaking-remove-v1[More information], {pull}1731[1731].
 - Remove `concurrent_requests` setting and use number of CPUs instead {pull}1749[1749].
 - Remove `frontend` setting {pull}1751[1751].
 - Remove `metrics.enabled` setting {pull}1759[1759].
