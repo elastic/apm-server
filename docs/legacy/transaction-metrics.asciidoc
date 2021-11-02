@@ -6,7 +6,7 @@
 <titleabbrev>Transaction metrics</titleabbrev>
 ++++
 
-When enabled, {beatname_uc} produces transaction histogram metrics that are used to power the APM app.
+{beatname_uc} produces transaction histogram metrics that are used to power the APM app.
 Shifting this responsibility from APM app to APM Server removes the need to store unsampled transactions, reducing storage costs.
 
 Example config file:
@@ -16,7 +16,6 @@ Example config file:
 apm-server:
   aggregation:
     transactions:
-      enabled: true
       interval: 1m
   sampling:
     keep_unsampled: false
@@ -25,20 +24,6 @@ apm-server:
 [float]
 [[configuration-aggregation]]
 === Configuration options: `apm-server.aggregation.transactions.*`
-
-[[transactions-enabled]]
-[float]
-==== `enabled`
-
-Enables the collection and publishing of transaction metrics.
-Enabling this setting removes the need to store unsampled transactions, reducing storage costs.
-Storing unsampled transactions is controlled independently with <<sampling-keep_unsampled>>.
-
-Default: `true`.
-
-IMPORTANT: To prevent inaccuracies in the APM app, transaction metrics must also be enabled in
-Kibana with `xpack.apm.searchAggregatedTransactions`.
-See {kibana-ref}/apm-settings-in-kibana.html[APM app settings] for more information.
 
 [[transactions-interval]]
 [float]
@@ -83,6 +68,3 @@ Controls the recording of unsampled transaction documents.
 Dropping unsampled documents (`keep_unsampled: false`) reduces APM's storage consumption.
 
 Default: `true`.
-
-IMPORTANT: Unsampled transactions should only be dropped when `apm-server.aggregation.transactions.enabled` is `true`,
-otherwise, the APM app will report inaccurate metrics.
