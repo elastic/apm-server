@@ -6,7 +6,7 @@
 <titleabbrev>Transaction metrics</titleabbrev>
 ++++
 
-By default, {beatname_uc} produces transaction histogram metrics that are used to power the APM app.
+{beatname_uc} produces transaction histogram metrics that are used to power the APM app.
 Shifting this responsibility from APM app to APM Server removes the need to store unsampled transactions, reducing storage costs.
 
 Example config file:
