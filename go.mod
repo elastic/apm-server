@@ -4,7 +4,6 @@ go 1.17
 
 require (
 	github.com/DataDog/zstd v1.4.4 // indirect
-	github.com/apache/thrift v0.14.2
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
@@ -14,7 +13,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20211022123610-8dd9abb0616d // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20211027082820-01ba3de1e8de
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20211102141519-8059b8d4e4e3
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210922110810-e6f1f402a9ed // indirect
 	github.com/elastic/gmux v0.2.0
@@ -65,12 +64,12 @@ require (
 	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/mod v0.5.1 // indirect
-	golang.org/x/net v0.0.0-20211020060615-d418f374d309
+	golang.org/x/net v0.0.0-20211101193420-4a448f8816b3
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359 // indirect
+	golang.org/x/sys v0.0.0-20211102061401-a2f17f7b995c // indirect
 	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6
 	golang.org/x/tools v0.1.7
-	google.golang.org/genproto v0.0.0-20211026145609-4688e4c4e024 // indirect
+	google.golang.org/genproto v0.0.0-20211101144312-62acf1d99145 // indirect
 	google.golang.org/grpc v1.41.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gotest.tools/gotestsum v1.7.0
@@ -83,23 +82,24 @@ require (
 	code.cloudfoundry.org/gofileutils v0.0.0-20170111115228-4d0c80011a0f // indirect
 	code.cloudfoundry.org/rfc5424 v0.0.0-20180905210152-236a6d29298a // indirect
 	github.com/Masterminds/semver v1.4.2 // indirect
-	github.com/Microsoft/go-winio v0.4.17 // indirect
+	github.com/Microsoft/go-winio v0.5.1 // indirect
 	github.com/Shopify/sarama v1.29.1 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/akavel/rsrc v0.10.2 // indirect
+	github.com/apache/thrift v0.14.2 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v0.24.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cloudfoundry-community/go-cfclient v0.0.0-20190808214049-35bcce23fc5f // indirect
 	github.com/cloudfoundry/noaa v2.1.0+incompatible // indirect
 	github.com/cloudfoundry/sonde-go v0.0.0-20171206171820-b33733203bb4 // indirect
-	github.com/containerd/containerd v1.5.1 // indirect
+	github.com/containerd/containerd v1.5.7 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/badger/v3 v3.2103.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dnephin/pflag v1.0.7 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v1.4.2-0.20170802015333-8af4db6f002a // indirect
+	github.com/docker/docker v1.4.2-0.20190924003213-a8608b5b67c7 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/eapache/go-resiliency v1.2.0 // indirect
@@ -122,7 +122,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/golang/snappy v0.0.3 // indirect
+	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomodule/redigo v1.8.3 // indirect
 	github.com/google/flatbuffers v1.12.0 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
@@ -145,7 +145,7 @@ require (
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/klauspost/compress v1.12.3 // indirect
+	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/knadh/koanf v1.2.1 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/miekg/dns v1.1.25 // indirect
