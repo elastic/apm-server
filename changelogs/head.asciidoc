@@ -22,6 +22,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed source map upload endpoint {pull}6447[6447]
 - Removed unsupported libbeat `processors` configuration {pull}6474[6474]
 - Removed `apm-server.aggregation.transactions.enabled` configuration option {pull}6495[6495]
+- Removed `apm-server.aggregation.service_destinations.enabled` configuration option {pull}6503[6503]
 
 [float]
 ==== Bug fixes
