@@ -34,7 +34,6 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
-			Enabled:  true,
 			Interval: time.Second,
 		},
 	}
@@ -85,7 +84,6 @@ func TestCompressedSpans(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
-			Enabled:  true,
 			Interval: time.Second,
 		},
 	}

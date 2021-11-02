@@ -138,7 +138,6 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				"aggregation": map[string]interface{}{
 					"transactions": map[string]interface{}{
-						"enabled":                          false,
 						"interval":                         "1s",
 						"max_groups":                       123,
 						"hdrhistogram_significant_figures": 1,
@@ -270,7 +269,6 @@ func TestUnpackConfig(t *testing.T) {
 						HDRHistogramSignificantFigures: 1,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
-						Enabled:   true,
 						Interval:  time.Minute,
 						MaxGroups: 456,
 					},
@@ -334,11 +332,9 @@ func TestUnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"jaeger.grpc.enabled":                      true,
-				"api_key.enabled":                          true,
-				"aggregation.transactions.enabled":         false,
-				"aggregation.service_destinations.enabled": false,
-				"sampling.keep_unsampled":                  false,
+				"jaeger.grpc.enabled":     true,
+				"api_key.enabled":         true,
+				"sampling.keep_unsampled": false,
 				"sampling.tail": map[string]interface{}{
 					"enabled":           false,
 					"policies":          []map[string]interface{}{{"sample_rate": 0.5}},
@@ -457,7 +453,6 @@ func TestUnpackConfig(t *testing.T) {
 						HDRHistogramSignificantFigures: 2,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
-						Enabled:   false,
 						Interval:  time.Minute,
 						MaxGroups: 10000,
 					},

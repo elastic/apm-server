@@ -57,8 +57,8 @@ type processor interface {
 // events in sequential order, prior to the events being published.
 func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	processors := make([]namedProcessor, 0, 3)
-	const name = "transaction metrics aggregation"
-	args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation.Transactions)
+	const txName = "transaction metrics aggregation"
+	args.Logger.Infof("creating %s with config: %+v", txName, args.Config.Aggregation.Transactions)
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 args.BatchProcessor,
 		MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
@@ -66,24 +66,23 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "error creating %s", name)
+		return nil, errors.Wrapf(err, "error creating %s", txName)
 	}
-	processors = append(processors, namedProcessor{name: name, processor: agg})
+	processors = append(processors, namedProcessor{name: txName, processor: agg})
 	aggregationMonitoringRegistry.Remove("txmetrics")
 	monitoring.NewFunc(aggregationMonitoringRegistry, "txmetrics", agg.CollectMonitoring, monitoring.Report)
-	if args.Config.Aggregation.ServiceDestinations.Enabled {
-		const name = "service destinations aggregation"
-		args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation.ServiceDestinations)
-		spanAggregator, err := spanmetrics.NewAggregator(spanmetrics.AggregatorConfig{
-			BatchProcessor: args.BatchProcessor,
-			Interval:       args.Config.Aggregation.ServiceDestinations.Interval,
-			MaxGroups:      args.Config.Aggregation.ServiceDestinations.MaxGroups,
-		})
-		if err != nil {
-			return nil, errors.Wrapf(err, "error creating %s", name)
-		}
-		processors = append(processors, namedProcessor{name: name, processor: spanAggregator})
+
+	const spanName = "service destinations aggregation"
+	args.Logger.Infof("creating %s with config: %+v", spanName, args.Config.Aggregation.ServiceDestinations)
+	spanAggregator, err := spanmetrics.NewAggregator(spanmetrics.AggregatorConfig{
+		BatchProcessor: args.BatchProcessor,
+		Interval:       args.Config.Aggregation.ServiceDestinations.Interval,
+		MaxGroups:      args.Config.Aggregation.ServiceDestinations.MaxGroups,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "error creating %s", spanName)
 	}
+	processors = append(processors, namedProcessor{name: spanName, processor: spanAggregator})
 	if args.Config.Sampling.Tail.Enabled {
 		const name = "tail sampler"
 		sampler, err := newTailSamplingProcessor(args)
