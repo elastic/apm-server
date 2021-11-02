@@ -1,3 +1,0 @@
-{
-    "error": "forbidden request: When APM Server is managed by Fleet, Sourcemaps must be uploaded directly to Elasticsearch."
-}

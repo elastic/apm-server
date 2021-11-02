@@ -27,7 +27,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-sourcemap/sourcemap"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -71,7 +70,7 @@ func Test_esFetcher_fetchError(t *testing.T) {
 				client = newMockElasticsearchClient(t, tc.statusCode, tc.responseBody)
 			}
 
-			consumer, err := testESStore(client).fetch(context.Background(), "abc", "1.0", "/tmp")
+			consumer, err := testESFetcher(client).Fetch(context.Background(), "abc", "1.0", "/tmp")
 			if tc.temporary {
 				assert.Contains(t, err.Error(), errMsgESFailure)
 			} else {
@@ -104,22 +103,21 @@ func Test_esFetcher_fetch(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			client := newMockElasticsearchClient(t, tc.statusCode, tc.responseBody)
-			sourcemapStr, err := testESStore(client).fetch(context.Background(), "abc", "1.0", "/tmp")
+			sourcemapConsumer, err := testESFetcher(client).Fetch(context.Background(), "abc", "1.0", "/tmp")
 			require.NoError(t, err)
 
 			if tc.filePath == "" {
-				assert.Empty(t, sourcemapStr)
+				assert.Nil(t, sourcemapConsumer)
 			} else {
-				sourcemapConsumer, err := sourcemap.Parse("", []byte(sourcemapStr))
-				require.NoError(t, err)
+				assert.NotNil(t, sourcemapConsumer)
 				assert.Equal(t, tc.filePath, sourcemapConsumer.File())
 			}
 		})
 	}
 }
 
-func testESStore(client elasticsearch.Client) *esStore {
-	return &esStore{client: client, index: "apm-sourcemap", logger: logp.NewLogger(logs.Sourcemap)}
+func testESFetcher(client elasticsearch.Client) *esFetcher {
+	return &esFetcher{client: client, index: "apm-sourcemap", logger: logp.NewLogger(logs.Sourcemap)}
 }
 
 func sourcemapSearchResponseBody(hitsTotal int, hits []map[string]interface{}) io.Reader {

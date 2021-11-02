@@ -42,13 +42,9 @@ import (
 func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.Jaeger = &apmservertest.JaegerConfig{
-		GRPCEnabled: true,
-		GRPCHost:    "localhost:0",
-	}
 	err := srv.Start()
 	require.NoError(t, err)
-	addr := srv.JaegerGRPCAddr
+	addr := serverAddr(srv)
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	require.NoError(t, err)
 	defer conn.Close()
@@ -70,14 +66,16 @@ func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 	var foundGRPC, foundJaeger bool
 	for _, entry := range srv.Logs.All() {
 		if entry.Logger == "beater.grpc" {
-			require.Equal(t, "/opentelemetry.proto.collector.trace.v1.TraceService/Export", entry.Fields["grpc.request.method"])
-			require.Equal(t, "OK", entry.Fields["grpc.response.status_code"])
-			foundGRPC = true
-		}
-		if entry.Logger == "beater.jaeger" {
-			require.Equal(t, "/jaeger.api_v2.CollectorService/PostSpans", entry.Fields["grpc.request.method"])
-			require.Equal(t, "OK", entry.Fields["grpc.response.status_code"])
-			foundJaeger = true
+			switch entry.Fields["grpc.request.method"] {
+			case "/jaeger.api_v2.CollectorService/PostSpans":
+				require.Equal(t, "beater.grpc", entry.Logger)
+				require.Equal(t, "OK", entry.Fields["grpc.response.status_code"])
+				foundJaeger = true
+			case "/opentelemetry.proto.collector.trace.v1.TraceService/Export":
+				require.Equal(t, "beater.grpc", entry.Logger)
+				require.Equal(t, "OK", entry.Fields["grpc.response.status_code"])
+				foundGRPC = true
+			}
 		}
 	}
 	require.True(t, foundGRPC)

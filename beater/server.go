@@ -73,9 +73,9 @@ type ServerParams struct {
 	// for self-instrumentation.
 	Tracer *apm.Tracer
 
-	// SourcemapStore holds a sourcemap.Store, or nil if source
+	// SourcemapFetcher holds a sourcemap.Fetcher, or nil if source
 	// mapping is disabled.
-	SourcemapStore *sourcemap.Store
+	SourcemapFetcher sourcemap.Fetcher
 
 	// BatchProcessor is the model.BatchProcessor that is used
 	// for publishing events to the output, such as Elasticsearch.
@@ -133,19 +133,12 @@ type server struct {
 	cfg                   *config.Config
 	agentcfgFetchReporter agentcfg.Reporter
 
-	httpServer   *httpServer
-	grpcServer   *grpc.Server
-	jaegerServer *jaeger.Server
+	httpServer *httpServer
+	grpcServer *grpc.Server
 }
 
 func newServer(args ServerParams, listener net.Listener, reporter publish.Reporter) (server, error) {
 	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(args.Config), args.BatchProcessor, 30*time.Second)
-
-	// DEPRECATED: dedicated Jaeger server. This does not use the same authenticator and is not rate limited.
-	jaegerServer, err := jaeger.NewServer(args.Logger, args.Config, args.Tracer, args.BatchProcessor, agentcfgFetchReporter)
-	if err != nil {
-		return server{}, err
-	}
 
 	ratelimitStore, err := ratelimit.NewStore(
 		args.Config.AgentAuth.Anonymous.RateLimit.IPLimit,
@@ -180,7 +173,7 @@ func newServer(args ServerParams, listener net.Listener, reporter publish.Report
 	mux, err := api.NewMux(
 		args.Info, args.Config, reporter, batchProcessor,
 		authenticator, agentcfgFetchReporter, ratelimitStore,
-		args.SourcemapStore, args.Managed, publishReady,
+		args.SourcemapFetcher, args.Managed, publishReady,
 	)
 	if err != nil {
 		return server{}, err
@@ -205,7 +198,6 @@ func newServer(args ServerParams, listener net.Listener, reporter publish.Report
 		cfg:                   args.Config,
 		httpServer:            httpServer,
 		grpcServer:            grpcServer,
-		jaegerServer:          jaegerServer,
 		agentcfgFetchReporter: agentcfgFetchReporter,
 	}, nil
 }
@@ -222,7 +214,7 @@ func newGRPCServer(
 	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
 	authInterceptor := interceptors.Auth(
 		otlp.MethodAuthenticators(authenticator),
-		jaeger.MethodAuthenticators(authenticator, jaeger.ElasticAuthTag),
+		jaeger.MethodAuthenticators(authenticator),
 	)
 
 	// Note that we intentionally do not use a grpc.Creds ServerOption
@@ -262,9 +254,6 @@ func (s server) run() error {
 	g.Go(func() error {
 		return s.grpcServer.Serve(s.httpServer.grpcListener)
 	})
-	if s.jaegerServer != nil {
-		g.Go(s.jaegerServer.Serve)
-	}
 	if err := g.Wait(); err != http.ErrServerClosed {
 		return err
 	}
@@ -273,9 +262,6 @@ func (s server) run() error {
 }
 
 func (s server) stop() {
-	if s.jaegerServer != nil {
-		s.jaegerServer.Stop()
-	}
 	s.grpcServer.GracefulStop()
 	s.httpServer.stop()
 }

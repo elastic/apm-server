@@ -301,12 +301,18 @@ apm-server:
       # Timeout for fetching source maps.
       #timeout: 5s
 
-      # Source maps may be fetched from Elasticsearch by using the
-      # output.elasticsearch configuration.
-      # A different instance must be configured when using any other output.
-      # This setting only affects sourcemap reads - the output determines where sourcemaps are written.
-      # Note: Configuring elasticsearch is not supported if apm-server is being
-      # managed by Fleet.
+      # The `cache.expiration` determines how long a source map should be cached in memory.
+      # Note that values configured without a time unit will be interpreted as seconds.
+      #cache.expiration: 5m
+
+      # Source maps may be fetched from Elasticsearch by using the output.elasticsearch configuration,
+      # and running apm-server standalone.
+      #
+      # Note: fetching source maps from Elasticsearch is not supported if apm-server is being managed by
+      # Fleet. This configuration is only applicable to standalone apm-servers, for backwards compatibility
+      # with source maps stored in Elasticsearch by older versions of apm-server. New source maps must now
+      # be uploaded via Kibana, and `apm-server.kibana` configured in standalone apm-servers for fetching
+      # them.
       #elasticsearch:
         # Array of hosts to connect to.
         # Scheme and port can be left out and will be set to the default (`http` and `9200`).
@@ -322,14 +328,7 @@ apm-server:
         #username: "elastic"
         #password: "changeme"
 
-      # The `cache.expiration` determines how long a source map should be cached before fetching it again from Elasticsearch.
-      # Note that values configured without a time unit will be interpreted as seconds.
-      #cache:
-        #expiration: 5m
-
-      # Source maps are stored in a separate index.
-      # If the default index pattern for source maps at 'outputs.elasticsearch.indices'
-      # is changed, a matching index pattern needs to be specified here.
+      # Index pattern in which to search for source maps, when fetching source maps from Elasticsearch.
       #index_pattern: "apm-*-sourcemap*"
 
   #---------------------------- APM Server - Agent Configuration ----------------------------
@@ -339,7 +338,7 @@ apm-server:
   #agent.config.cache.expiration: 30s
 
   #kibana:
-    # For APM Agent configuration in Kibana, enabled must be true.
+    # Enabled must be true to enable APM Agent configuration, and for fetching source maps uploaded through Kibana.
     #enabled: false
 
     # Scheme and port can be left out and will be set to the default (`http` and `5601`).
@@ -468,46 +467,6 @@ apm-server:
                     #max_age: "30d"
                   #set_priority:
                     #priority: 100
-
-
-
-  #---------------------------- APM Server - Experimental Jaeger integration ----------------------------
-
-  # When enabling Jaeger integration, APM Server acts as Jaeger collector. It supports jaeger.thrift over HTTP
-  # and gRPC. This is an experimental feature, use with care.
-  #
-  # WARNING: This configuration is deprecated, and will be removed in the 8.0 release.
-  #
-  # Jaeger gRPC is now served on the same port as Elastic APM agents, defined by the
-  # "apm-server.host" configuration; it is implicitly enabled, and an agent tag called
-  # "elastic-apm-auth" is required when auth is enabled.
-  #jaeger:
-    #grpc:
-      # Set to true to enable the Jaeger gRPC collector service.
-      #enabled: false
-
-      # Defines the gRPC host and port the server is listening on.
-      # Defaults to the standard Jaeger gRPC collector port 14250.
-      #host: "{{ .jaeger_grpc_hostport }}"
-
-      # Set to the name of a process tag to use for authorizing
-      # Jaeger agents.
-      #
-      # The tag value should have the same format as an HTTP
-      # Authorization header, i.e. "Bearer <secret_token>" or
-      # "ApiKey <base64(id:key)>".
-      #
-      # By default (if the auth_tag value is empty), authorization
-      # does not apply to Jaeger agents.
-      #auth_tag: ""
-
-    #http:
-      # Set to true to enable the Jaeger HTTP collector endpoint.
-      #enabled: false
-
-      # Defines the HTTP host and port the server is listening on.
-      # Defaults to the standard Jaeger HTTP collector port 14268.
-      #host: "{{ .jaeger_http_hostport }}"
 
 #================================= General =================================
 
