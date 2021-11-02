@@ -25,22 +25,20 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sync"
-	"time"
 
+	"github.com/go-sourcemap/sourcemap"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/config"
-	logs "github.com/elastic/apm-server/log"
 )
 
 const defaultFleetPort = 8220
 
 var errMsgFleetFailure = errMsgFailure + " fleet"
 
-type fleetStore struct {
+type fleetFetcher struct {
 	apikey        string
 	c             *http.Client
 	sourceMapURLs map[key]string
@@ -53,47 +51,28 @@ type key struct {
 	BundleFilepath string
 }
 
-// NewFleetStore returns an instance of Store for interacting with sourcemaps
-// stored in Fleet-Server.
-func NewFleetStore(
-	c *http.Client,
-	fleetCfg *config.Fleet,
-	cfgs []config.SourceMapMetadata,
-	expiration time.Duration,
-) (*Store, error) {
+// NewFleetFetcher returns a Fetcher which fetches source maps via Fleet Server.
+func NewFleetFetcher(c *http.Client, fleetCfg *config.Fleet, cfgs []config.SourceMapMetadata) (Fetcher, error) {
 	if len(fleetCfg.Hosts) < 1 {
 		return nil, errors.New("no fleet hosts present for fleet store")
 	}
-	logger := logp.NewLogger(logs.Sourcemap)
-	s, err := newFleetStore(c, fleetCfg, cfgs)
-	if err != nil {
-		return nil, err
-	}
-	return newStore(s, logger, expiration)
-}
 
-func newFleetStore(
-	c *http.Client,
-	fleetCfg *config.Fleet,
-	cfgs []config.SourceMapMetadata,
-) (fleetStore, error) {
 	sourceMapURLs := make(map[key]string)
-	fleetBaseURLs := make([]string, len(fleetCfg.Hosts))
-
 	for _, cfg := range cfgs {
 		k := key{cfg.ServiceName, cfg.ServiceVersion, cfg.BundleFilepath}
 		sourceMapURLs[k] = cfg.SourceMapURL
 	}
 
+	fleetBaseURLs := make([]string, len(fleetCfg.Hosts))
 	for i, host := range fleetCfg.Hosts {
 		baseURL, err := common.MakeURL(fleetCfg.Protocol, "", host, defaultFleetPort)
 		if err != nil {
-			return fleetStore{}, err
+			return nil, err
 		}
 		fleetBaseURLs[i] = baseURL
 	}
 
-	return fleetStore{
+	return fleetFetcher{
 		apikey:        "ApiKey " + fleetCfg.AccessAPIKey,
 		fleetBaseURLs: fleetBaseURLs,
 		sourceMapURLs: sourceMapURLs,
@@ -101,11 +80,12 @@ func newFleetStore(
 	}, nil
 }
 
-func (f fleetStore) fetch(ctx context.Context, name, version, path string) (string, error) {
+// Fetch fetches a source map from Fleet Server.
+func (f fleetFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	k := key{name, version, path}
 	sourceMapURL, ok := f.sourceMapURLs[k]
 	if !ok {
-		return "", fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s",
+		return nil, fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s",
 			name, version, path,
 		)
 	}
@@ -141,18 +121,18 @@ func (f fleetStore) fetch(ctx context.Context, name, version, path string) (stri
 	for result := range results {
 		err = result.err
 		if err == nil {
-			return result.sourcemap, nil
+			return parseSourceMap(result.sourcemap)
 		}
 	}
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	// No results were received: context was cancelled.
-	return "", ctx.Err()
+	return nil, ctx.Err()
 }
 
-func sendRequest(ctx context.Context, f fleetStore, fleetURL string) (string, error) {
+func sendRequest(ctx context.Context, f fleetFetcher, fleetURL string) (string, error) {
 	req, err := http.NewRequest(http.MethodGet, fleetURL, nil)
 	if err != nil {
 		return "", err
