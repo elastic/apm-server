@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/DataDog/zstd v1.4.4 // indirect
-	github.com/apache/thrift v0.14.2
+	github.com/apache/thrift v0.14.2 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
