@@ -104,6 +104,12 @@ func testOTLPGRPCTraces(t *testing.T, srv *apmservertest.Server) {
 		MinimumShouldMatch: 1,
 	})
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+
+	// Ensure that the log event was filtered by libbeat.
+	if srv.Config.DataStreams == nil || !srv.Config.DataStreams.Enabled {
+		filtered := srv.GetExpvar().Vars["libbeat.pipeline.events.filtered"].(float64)
+		assert.Equal(t, float64(1), filtered, "libbeat pipeline processor should have filtered the span log event")
+	}
 }
 
 func TestOTLPGRPCMetrics(t *testing.T) {

@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/processors"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -93,4 +94,32 @@ func TestProcessorsDisallowed(t *testing.T) {
 	}))
 	assert.EqualError(t, err, "libbeat processors are not supported")
 	assert.Nil(t, supporter)
+}
+
+func TestProcessorsFromConfigNotNil(t *testing.T) {
+	logger := logp.NewLogger("")
+	settings := DefaultSettings()
+
+	supporter, err := settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{}))
+	require.NoError(t, err)
+	assert.NotNil(t, supporter)
+
+	processors, err := processors.New(processors.PluginConfig{
+		common.MustNewConfigFrom(map[string]interface{}{
+			"drop_event": map[string]interface{}{
+				"when": map[string]interface{}{
+					"contains": map[string]interface{}{
+						"processor.event": "log",
+					},
+				},
+			},
+		}),
+	})
+	require.NoError(t, err)
+
+	// The supporter is used by the pipeline client to add any more processors.
+	// We're asserting that the processors are returned and not nil.
+	processor, err := supporter.Create(beat.ProcessingConfig{Processor: processors}, false)
+	assert.NoError(t, err)
+	assert.NotNil(t, processor)
 }
