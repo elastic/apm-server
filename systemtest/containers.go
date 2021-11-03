@@ -360,6 +360,13 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		},
 		SkipReaper: true, // we use our own reaping logic
 	}
+
+	initContainerReaperOnce.Do(initContainerReaper)
+	req.Labels = make(map[string]string)
+	for k, v := range containerReaper.Labels() {
+		req.Labels[k] = v
+	}
+
 	return &ElasticAgentContainer{
 		request:      req,
 		StackVersion: agentImageVersion,
@@ -408,16 +415,6 @@ func (c *ElasticAgentContainer) Start() error {
 	}
 	c.request.ExposedPorts = c.ExposedPorts
 	c.request.WaitingFor = c.WaitingFor
-<<<<<<< HEAD
-=======
-	if c.Reap {
-		initContainerReaperOnce.Do(initContainerReaper)
-		c.request.Labels = make(map[string]string)
-		for k, v := range containerReaper.Labels() {
-			c.request.Labels[k] = v
-		}
-	}
->>>>>>> 7a85bcf0 (systemtest: fix container reaping (#6505))
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: c.request,
