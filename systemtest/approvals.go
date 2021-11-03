@@ -92,6 +92,9 @@ func (hits apmEventSearchHits) Less(i, j int) bool {
 		if ri.Less(rj, true) {
 			return true
 		}
+		if rj.Less(ri, true) {
+			return false
+		}
 	}
 	return false
 }
