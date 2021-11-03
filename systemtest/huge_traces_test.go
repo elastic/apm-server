@@ -18,6 +18,7 @@
 package systemtest_test
 
 import (
+	"encoding/binary"
 	"testing"
 	"time"
 
@@ -34,7 +35,6 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
-			Enabled:  true,
 			Interval: time.Second,
 		},
 	}
@@ -85,7 +85,6 @@ func TestCompressedSpans(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
-			Enabled:  true,
 			Interval: time.Second,
 		},
 	}
@@ -94,9 +93,24 @@ func TestCompressedSpans(t *testing.T) {
 
 	tracer := srv.Tracer()
 	tracer.SetSpanCompressionEnabled(true)
-	tx := tracer.StartTransaction("compressed-traces", "type")
 
-	startTs := time.Now()
+	var n uint64
+	nextSpanID := func() apm.SpanID {
+		var spanID apm.SpanID
+		n++
+		binary.BigEndian.PutUint64(spanID[:], n)
+		return spanID
+	}
+
+	tx := tracer.StartTransactionOptions("compressed-traces", "type", apm.TransactionOptions{
+		TraceContext: apm.TraceContext{
+			Trace:   apm.TraceID{1},
+			Options: apm.TraceOptions(0).WithRecorded(true),
+		},
+		TransactionID: nextSpanID(),
+	})
+
+	startTs := time.Unix(0, 0)
 
 	// These spans will be compressed. The redis spans will be compressed
 	// using the "same_kind" stategy, while the Elasticsearch spans will
@@ -107,7 +121,9 @@ func TestCompressedSpans(t *testing.T) {
 			cmd = "GET"
 		}
 		span := tx.StartSpanOptions(cmd, "db.redis", apm.SpanOptions{
-			ExitSpan: true, Start: startTs,
+			ExitSpan: true,
+			Start:    startTs,
+			SpanID:   nextSpanID(),
 		})
 		span.Duration = 1 * time.Millisecond
 		startTs = startTs.Add(span.Duration)
@@ -116,7 +132,9 @@ func TestCompressedSpans(t *testing.T) {
 	}
 	for i := 0; i < 5; i++ {
 		span := tx.StartSpanOptions("_bulk", "db.elasticsearch", apm.SpanOptions{
-			ExitSpan: true, Start: startTs,
+			ExitSpan: true,
+			Start:    startTs,
+			SpanID:   nextSpanID(),
 		})
 		span.Duration = 4 * time.Millisecond
 		startTs = startTs.Add(span.Duration)
@@ -129,11 +147,8 @@ func TestCompressedSpans(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	txIgnoreFields := []string{"@timestamp", "timestamp", "trace.id", "transaction.id"}
 	spanResults := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm*span",
 		estest.TermQuery{Field: "span.type", Value: "db"},
 	)
-	systemtest.ApproveEvents(t, t.Name(), spanResults.Hits.Hits,
-		append(txIgnoreFields, "span.id", "parent")...,
-	)
+	systemtest.ApproveEvents(t, t.Name(), spanResults.Hits.Hits)
 }

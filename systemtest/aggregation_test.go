@@ -158,7 +158,6 @@ func TestServiceDestinationAggregation(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
-			Enabled:  true,
 			Interval: time.Second,
 		},
 	}
