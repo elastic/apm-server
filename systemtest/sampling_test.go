@@ -20,7 +20,6 @@ package systemtest_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -37,37 +36,26 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
-func TestKeepUnsampled(t *testing.T) {
-	for _, keepUnsampled := range []bool{false, true} {
-		t.Run(fmt.Sprint(keepUnsampled), func(t *testing.T) {
-			systemtest.CleanupElasticsearch(t)
-			srv := apmservertest.NewUnstartedServer(t)
-			srv.Config.Sampling = &apmservertest.SamplingConfig{
-				KeepUnsampled: keepUnsampled,
-			}
-			err := srv.Start()
-			require.NoError(t, err)
+func TestDropUnsampled(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServer(t)
+	err := srv.Start()
+	require.NoError(t, err)
 
-			// Send one unsampled transaction, and one sampled transaction.
-			transactionType := "TestKeepUnsampled"
-			tracer := srv.Tracer()
-			tracer.StartTransaction("sampled", transactionType).End()
-			tracer.SetSampler(apm.NewRatioSampler(0))
-			tracer.StartTransaction("unsampled", transactionType).End()
-			tracer.Flush(nil)
+	// Send one unsampled transaction, and one sampled transaction.
+	// Only the sampled transaction should be stored.
+	transactionType := "TestDropUnsampled"
+	tracer := srv.Tracer()
+	tracer.StartTransaction("sampled", transactionType).End()
+	tracer.SetSampler(apm.NewRatioSampler(0))
+	tracer.StartTransaction("unsampled", transactionType).End()
+	tracer.Flush(nil)
 
-			expectedTransactionDocs := 1
-			if keepUnsampled {
-				expectedTransactionDocs++
-			}
-
-			result := systemtest.Elasticsearch.ExpectMinDocs(t, expectedTransactionDocs, "apm-*", estest.TermQuery{
-				Field: "transaction.type",
-				Value: transactionType,
-			})
-			assert.Len(t, result.Hits.Hits, expectedTransactionDocs)
-		})
-	}
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "apm-*", estest.TermQuery{
+		Field: "transaction.type",
+		Value: transactionType,
+	})
+	assert.Len(t, result.Hits.Hits, 1)
 }
 
 func TestTailSampling(t *testing.T) {

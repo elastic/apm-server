@@ -23,6 +23,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed unsupported libbeat `processors` configuration {pull}6474[6474]
 - Removed `apm-server.aggregation.transactions.enabled` configuration option {pull}6495[6495]
 - Removed `apm-server.aggregation.service_destinations.enabled` configuration option {pull}6503[6503]
+- Removed `apm-server.sampling.keep_unsampled` configuration option {pull}6514[6514]
 
 [float]
 ==== Bug fixes

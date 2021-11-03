@@ -34,6 +34,8 @@ var (
 //
 // The returned model.BatchProcessor does not guarantee order preservation
 // of events retained in the batch.
+//
+// TODO(axw) only discard non-RUM unsampled transactions.
 func NewDiscardUnsampledBatchProcessor() model.BatchProcessor {
 	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 		events := *batch

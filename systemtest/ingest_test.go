@@ -20,6 +20,8 @@ package systemtest_test
 import (
 	"context"
 	"errors"
+	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -41,7 +43,16 @@ func TestIngestPipelinePipeline(t *testing.T) {
 	srv := apmservertest.NewServer(t)
 
 	tracer := srv.Tracer()
+	httpRequest := &http.Request{
+		URL: &url.URL{},
+		Header: http.Header{
+			"User-Agent": []string{
+				"Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0",
+			},
+		},
+	}
 	tx := tracer.StartTransaction("name", "type")
+	tx.Context.SetHTTPRequest(httpRequest)
 	span1 := tx.StartSpan("name", "type", nil)
 	// If a destination address is recorded, and it is a valid
 	// IPv4 or IPv6 address, it will be copied to destination.ip.
@@ -53,21 +64,22 @@ func TestIngestPipelinePipeline(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	getSpanDoc := func(spanID string) estest.SearchHit {
-		result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
-			Field: "span.id",
-			Value: spanID,
-		})
+	getDoc := func(query estest.TermQuery) estest.SearchHit {
+		result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", query)
 		require.Len(t, result.Hits.Hits, 1)
 		return result.Hits.Hits[0]
 	}
 
-	span1Doc := getSpanDoc(span1.TraceContext().Span.String())
+	txDoc := getDoc(estest.TermQuery{Field: "processor.event", Value: "transaction"})
+	assert.Equal(t, httpRequest.Header.Get("User-Agent"), gjson.GetBytes(txDoc.RawSource, "user_agent.original").String())
+	assert.Equal(t, "Firefox", gjson.GetBytes(txDoc.RawSource, "user_agent.name").String())
+
+	span1Doc := getDoc(estest.TermQuery{Field: "span.id", Value: span1.TraceContext().Span.String()})
 	destinationIP := gjson.GetBytes(span1Doc.RawSource, "destination.ip")
 	assert.True(t, destinationIP.Exists())
 	assert.Equal(t, "::1", destinationIP.String())
 
-	span2Doc := getSpanDoc(span2.TraceContext().Span.String())
+	span2Doc := getDoc(estest.TermQuery{Field: "span.id", Value: span2.TraceContext().Span.String()})
 	destinationIP = gjson.GetBytes(span2Doc.RawSource, "destination.ip")
 	assert.False(t, destinationIP.Exists()) // destination.address is not an IP
 }
