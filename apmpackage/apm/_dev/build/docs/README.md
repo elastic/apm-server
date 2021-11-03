@@ -48,17 +48,9 @@ IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode,
 
 Traces are comprised of [spans and transactions](https://www.elastic.co/guide/en/apm/get-started/current/apm-data-model.html).
 
-Traces are written to `traces-apm-*` data streams.
+Traces are written to `traces-apm-*` data streams, except for RUM traces, which are written to `traces-apm.rum-*`.
 
 {{fields "traces"}}
-
-## RUM Traces
-
-RUM Traces are comprised of [spans and transactions](https://www.elastic.co/guide/en/apm/get-started/current/apm-data-model.html).
-
-RUM Traces are written to `traces-apm.rum-*` data streams.
-
-{{fields "rum_traces"}}
 
 ## Application Metrics
 
