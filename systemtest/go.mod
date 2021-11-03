@@ -3,14 +3,14 @@ module github.com/elastic/apm-server/systemtest
 go 1.14
 
 require (
-	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v17.12.0-ce-rc1.0.20200916142827-bd33bbf0497b+incompatible
+	github.com/docker/docker v20.10.10+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/go-elasticsearch/v7 v7.8.0
 	github.com/elastic/go-sysinfo v1.7.0 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
+	github.com/gofrs/uuid v4.1.0+incompatible
 	github.com/google/pprof v0.0.0-20210406223550-17a10ee72223
 	github.com/jaegertracing/jaeger v1.18.1
 	github.com/mitchellh/mapstructure v1.1.2
@@ -18,7 +18,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/prometheus/procfs v0.7.1 // indirect
 	github.com/stretchr/testify v1.7.0
-	github.com/testcontainers/testcontainers-go v0.9.0
+	github.com/testcontainers/testcontainers-go v0.11.1
 	github.com/tidwall/gjson v1.9.3
 	go.elastic.co/apm v1.14.1-0.20211027055810-a8ec1811e727
 	go.elastic.co/fastjson v1.1.0
@@ -41,13 +41,14 @@ require (
 )
 
 require (
+	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect
+	github.com/opencontainers/image-spec v1.0.1 // indirect
+	github.com/opencontainers/runc v0.1.1 // indirect
 	golang.org/x/tools v0.1.5 // indirect
-	gotest.tools v2.2.0+incompatible // indirect
-	howett.net/plist v0.0.0-20200419221736-3b63eb3a43b5 // indirect
+	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
 )
 
 replace (
 	github.com/containerd/containerd => github.com/containerd/containerd v1.4.11
-	github.com/docker/docker => github.com/docker/engine v0.0.0-20191113042239-ea84732a7725
 	github.com/elastic/apm-server/approvaltest => ../approvaltest
 )
