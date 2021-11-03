@@ -3,8 +3,23 @@
 
 https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
+* <<release-notes-8.0.0-beta1>>
 * <<release-notes-8.0.0-alpha2>>
 * <<release-notes-8.0.0-alpha1>>
+
+[float]
+[[release-notes-8.0.0-beta1]]
+=== APM version 8.0.0-beta1
+
+https://github.com/elastic/apm-server/compare/v8.0.0-alpha2\...v8.0.0-beta1[View commits]
+
+[float]
+==== Added
+- experimental:[] Add support for CloudWatch metric streams through firehose endpoint {pull}6380[6380]
+
+[float]
+==== Intake API Changes
+- Allow to overwrite `service.name` and `service.version` for metricset objects  {pull}6407[6407]
 
 [float]
 [[release-notes-8.0.0-alpha2]]
