@@ -34,6 +34,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -41,6 +42,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
+	"github.com/gofrs/uuid"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"golang.org/x/sync/errgroup"
@@ -55,6 +57,38 @@ const (
 
 	fleetServerPort = "8220"
 )
+
+var (
+	containerReaper         *testcontainers.Reaper
+	initContainerReaperOnce sync.Once
+)
+
+// InitContainerReaper initialises the testcontainers container reaper,
+// which will ensure all containers started by testcontainers are removed
+// after some time if they are left running when the systemtest process
+// exits.
+func initContainerReaper() {
+	dockerProvider, err := testcontainers.NewDockerProvider()
+	if err != nil {
+		panic(err)
+	}
+
+	sessionUUID := uuid.Must(uuid.NewV4())
+	containerReaper, err = testcontainers.NewReaper(
+		context.Background(),
+		sessionUUID.String(),
+		dockerProvider,
+		testcontainers.ReaperDefaultImage,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// The connection will be closed on exit.
+	if _, err = containerReaper.Connect(); err != nil {
+		panic(err)
+	}
+}
 
 // StartStackContainers starts Docker containers for Elasticsearch and Kibana.
 //
@@ -104,8 +138,15 @@ func NewUnstartedElasticsearchContainer() (*ElasticsearchContainer, error) {
 	req := testcontainers.ContainerRequest{
 		Image:      container.Image,
 		AutoRemove: true,
+		SkipReaper: true, // we use our own reaping logic
 	}
 	req.WaitingFor = wait.ForHTTP("/").WithPort("9200/tcp")
+
+	initContainerReaperOnce.Do(initContainerReaper)
+	req.Labels = make(map[string]string)
+	for k, v := range containerReaper.Labels() {
+		req.Labels[k] = v
+	}
 
 	for port := range containerDetails.Config.ExposedPorts {
 		req.ExposedPorts = append(req.ExposedPorts, string(port))
@@ -319,7 +360,15 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 			"FLEET_URL": fleetServerURL.String(),
 			"FLEET_CA":  containerCACertPath,
 		},
+		SkipReaper: true, // we use our own reaping logic
 	}
+
+	initContainerReaperOnce.Do(initContainerReaper)
+	req.Labels = make(map[string]string)
+	for k, v := range containerReaper.Labels() {
+		req.Labels[k] = v
+	}
+
 	return &ElasticAgentContainer{
 		request:      req,
 		StackVersion: agentImageVersion,
