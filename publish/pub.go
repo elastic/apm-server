@@ -79,11 +79,11 @@ var (
 	ErrChannelClosed = errors.New("can't send batch, publisher is being stopped")
 )
 
-// newPublisher creates a new publisher instance.
+// NewPublisher creates a new publisher instance.
 //
 // GOMAXPROCS goroutines are started for forwarding events to libbeat.
 // Stop must be called to close the beat.Client and free resources.
-func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConfig) (*Publisher, error) {
+func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg PublisherConfig) (*Publisher, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, errors.Wrap(err, "invalid config")
 	}

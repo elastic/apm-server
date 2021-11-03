@@ -90,21 +90,21 @@ func DefaultSettings() instance.Settings {
 	}
 }
 
-func processingSupport(info beat.Info, log *logp.Logger, beatCfg *common.Config) (processing.Supporter, error) {
+func processingSupport(_ beat.Info, _ *logp.Logger, beatCfg *common.Config) (processing.Supporter, error) {
 	if beatCfg.HasField("processors") {
 		return nil, errors.New("libbeat processors are not supported")
 	}
-	return nopProcessingSupporter{}, nil
+	return processingSupporter{}, nil
 }
 
-type nopProcessingSupporter struct{}
+type processingSupporter struct{}
 
-func (nopProcessingSupporter) Close() error {
+func (processingSupporter) Close() error {
 	return nil
 }
 
-func (nopProcessingSupporter) Create(beat.ProcessingConfig, bool) (beat.Processor, error) {
-	return nil, nil
+func (processingSupporter) Create(cfg beat.ProcessingConfig, _ bool) (beat.Processor, error) {
+	return cfg.Processor, nil
 }
 
 // NewRootCommand returns the "apm-server" root command.
