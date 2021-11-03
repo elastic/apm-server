@@ -45,7 +45,6 @@ type TransactionAggregationConfig struct {
 
 // ServiceDestinationAggregationConfig holds configuration related to span metrics aggregation for service maps.
 type ServiceDestinationAggregationConfig struct {
-	Enabled   bool          `config:"enabled"`
 	Interval  time.Duration `config:"interval" validate:"min=1"`
 	MaxGroups int           `config:"max_groups" validate:"min=1"`
 }
@@ -58,7 +57,6 @@ func defaultAggregationConfig() AggregationConfig {
 			HDRHistogramSignificantFigures: defaultTransactionAggregationHDRHistogramSignificantFigures,
 		},
 		ServiceDestinations: ServiceDestinationAggregationConfig{
-			Enabled:   true,
 			Interval:  defaultServiceDestinationAggregationInterval,
 			MaxGroups: defaultServiceDestinationAggregationMaxGroups,
 		},
