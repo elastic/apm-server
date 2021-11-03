@@ -11,6 +11,12 @@
                         "priority": 100
                     }
                 }
+            },
+            "delete": {
+                "min_age": "10d",
+                "actions": {
+                    "delete": {}
+                }
             }
         }
     }
