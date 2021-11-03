@@ -290,6 +290,14 @@
           description: >
              The sequence number of the event within the session to which the event belongs.
 
+    - name: span
+      type: group
+      dynamic: false
+      fields:
+        - name: kind
+          type: keyword
+          description: "The kind of span: CLIENT, SERVER, PRODUCER, CONSUMER, or INTERNAL."
+
     - name: transaction
       type: group
       dynamic: false

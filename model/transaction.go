@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	TracesDataset = "apm"
+	TracesDataset    = "apm"
+	RUMTracesDataset = "apm.rum"
 )
 
 var (

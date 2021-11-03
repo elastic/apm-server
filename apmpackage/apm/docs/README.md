@@ -48,7 +48,7 @@ IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode,
 
 Traces are comprised of [spans and transactions](https://www.elastic.co/guide/en/apm/get-started/current/apm-data-model.html).
 
-Traces are written to `traces-apm-*` data streams.
+Traces are written to `traces-apm-*` data streams, except for RUM traces, which are written to `traces-apm.rum-*`.
 
 **Exported fields**
 
@@ -163,6 +163,7 @@ Traces are written to `traces-apm-*` data streams.
 | span.destination.service.type | Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type. DEPRECATED: this field will be removed in a future release | keyword |
 | span.duration.us | Duration of the span, in microseconds. | long |
 | span.id | Unique identifier of the span within the scope of its trace. A span represents an operation within a transaction, such as a request to another service, or a database query. | keyword |
+| span.kind | "The kind of span: CLIENT, SERVER, PRODUCER, CONSUMER, or INTERNAL." | keyword |
 | span.message.age.ms | Age of a message in milliseconds. | long |
 | span.message.queue.name | Name of the message queue or topic where the message is published or received. | keyword |
 | span.name | Generic designation of a span in the scope of a transaction. | keyword |
