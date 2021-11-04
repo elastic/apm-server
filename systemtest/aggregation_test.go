@@ -49,11 +49,6 @@ func TestTransactionAggregation(t *testing.T) {
 			Interval: time.Second,
 		},
 	}
-	srv.Config.Sampling = &apmservertest.SamplingConfig{
-		// Drop unsampled transaction events, to show
-		// that we aggregate before they are dropped.
-		KeepUnsampled: false,
-	}
 	err := srv.Start()
 	require.NoError(t, err)
 

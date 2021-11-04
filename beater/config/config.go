@@ -125,13 +125,6 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 	if err := c.Sampling.Tail.setup(logger, c.DataStreams.Enabled, outputESCfg); err != nil {
 		return nil, err
 	}
-	if c.Sampling.KeepUnsampled {
-		logger.Info("" +
-			"apm-server.sampling.keep_unsampled is deprecated and " +
-			"will default to `false` in 8.0. It will be removed " +
-			"in a subsequent version.",
-		)
-	}
 
 	if c.DataStreams.Enabled || (outputESCfg != nil && (outputESCfg.HasField("pipeline") || outputESCfg.HasField("pipelines"))) {
 		c.Pipeline = ""
