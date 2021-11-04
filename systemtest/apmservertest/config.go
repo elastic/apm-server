@@ -133,8 +133,7 @@ type KibanaConfig struct {
 
 // SamplingConfig holds APM Server trace sampling configuration.
 type SamplingConfig struct {
-	KeepUnsampled bool                `json:"keep_unsampled"`
-	Tail          *TailSamplingConfig `json:"tail,omitempty"`
+	Tail *TailSamplingConfig `json:"tail,omitempty"`
 }
 
 // TailSamplingConfig holds APM Server tail-based sampling configuration.

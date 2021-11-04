@@ -29,10 +29,6 @@ import (
 
 // SamplingConfig holds configuration related to sampling.
 type SamplingConfig struct {
-	// KeepUnsampled controls whether unsampled
-	// transactions should be recorded. Deprecated.
-	KeepUnsampled bool `config:"keep_unsampled"`
-
 	// Tail holds tail-sampling configuration.
 	Tail TailSamplingConfig `config:"tail"`
 }
@@ -126,9 +122,7 @@ func (c *TailSamplingConfig) setup(log *logp.Logger, dataStreamsEnabled bool, ou
 func defaultSamplingConfig() SamplingConfig {
 	tail := defaultTailSamplingConfig()
 	return SamplingConfig{
-		// In 8.0 this will be set to false, and later removed.
-		KeepUnsampled: true,
-		Tail:          tail,
+		Tail: tail,
 	}
 }
 

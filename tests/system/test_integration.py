@@ -22,7 +22,7 @@ class Test(ElasticTest):
 
     def test_tags_type(self):
         self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
-                                     self.intake_url, 'transaction', 9)
+                                     self.intake_url, 'transaction', 8)
         self.assert_no_logged_warnings()
         mappings = self.es.indices.get_field_mapping(index=index_transaction, fields="context.tags.*")
         for name, metric in mappings["{}-000001".format(index_transaction)]["mappings"].items():
@@ -36,16 +36,6 @@ class Test(ElasticTest):
                 else:
                     assert mtype == "keyword", name + " mapped as " + mtype + ", not keyword"
 
-    def test_mark_type(self):
-        self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
-                                     self.intake_url, 'transaction', 9)
-        self.assert_no_logged_warnings()
-        mappings = self.es.indices.get_field_mapping(index=index_transaction, fields="transaction.marks.*")
-        for name, metric in mappings["{}-000001".format(index_transaction)]["mappings"].items():
-            for mapping in metric["mapping"].values():
-                mtype = mapping["type"]
-                assert mtype == "scaled_float", name + " mapped as " + mtype + ", not scaled_float"
-
     def test_load_docs_with_template_and_add_transaction(self):
         """
         This test starts the beat with a loaded template and sends transaction data to elasticsearch.
@@ -53,11 +43,11 @@ class Test(ElasticTest):
         and data are in expected format.
         """
         self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
-                                     self.intake_url, 'transaction', 9)
+                                     self.intake_url, 'transaction', 8)
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for transactions with new ones
-        transaction_docs = self.wait_for_events('transaction', 4, index=index_transaction)
+        transaction_docs = self.wait_for_events('transaction', 3, index=index_transaction)
         self.approve_docs('transaction', transaction_docs)
 
         # compare existing ES documents for spans with new ones
@@ -95,43 +85,12 @@ class EnrichEventIntegrationTest(ClientSideBaseTest, ElasticTest):
                                      1)
         self.check_library_frames({"true": 5, "false": 0, "empty": 1}, index_error)
 
-    def test_backend_transaction(self):
-        # for backend events library_frame information should not be changed,
-        # as no regex pattern is defined.
-        self.load_docs_with_template(self.get_backend_transaction_payload_path(),
-                                     self.backend_intake_url,
-                                     'transaction',
-                                     9)
-        self.check_library_frames({"true": 1, "false": 0, "empty": 1}, index_span)
-
     def test_rum_transaction(self):
         self.load_docs_with_template(self.get_transaction_payload_path(),
                                      self.intake_url,
                                      'transaction',
                                      2)
         self.check_library_frames({"true": 1, "false": 0, "empty": 1}, index_span)
-
-    def test_enrich_backend_event(self):
-        self.load_docs_with_template(self.get_backend_transaction_payload_path(),
-                                     self.backend_intake_url, 'transaction', 9)
-
-        rs = self.es.search(index=index_transaction)
-
-        assert "ip" in rs['hits']['hits'][0]["_source"]["host"], rs['hits']
-
-    def test_enrich_rum_event(self):
-        self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.intake_url,
-                                     'error',
-                                     1)
-
-        rs = self.es.search(index=index_error)
-
-        hits = rs['hits']['hits']
-        for hit in hits:
-            assert "user_agent" in hit["_source"], rs['hits']
-            assert "original" in hit["_source"]["user_agent"], rs['hits']
-            assert "ip" in hit["_source"]["client"], rs['hits']
 
     def test_grouping_key_for_error(self):
         # upload the same error, once via rum, once via backend endpoint

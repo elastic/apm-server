@@ -17,8 +17,6 @@ apm-server:
   aggregation:
     transactions:
       interval: 1m
-  sampling:
-    keep_unsampled: false
 ----
 
 [float]
@@ -53,18 +51,3 @@ Supported values are `1` through `5`.
 See {ref}/search-aggregations-metrics-percentile-aggregation.html#_hdr_histogram_2[HDR histogram] for more information.
 
 Default: `2`.
-
-[float]
-[[configuration-sampling]]
-=== Configuration options: `apm-server.sampling.*`
-
-[[sampling-keep_unsampled]]
-[float]
-==== `keep_unsampled`
-
-Deprecated: `keep_unsampled` will default to `false` in 8.0, and later be removed.
-
-Controls the recording of unsampled transaction documents.
-Dropping unsampled documents (`keep_unsampled: false`) reduces APM's storage consumption.
-
-Default: `true`.
