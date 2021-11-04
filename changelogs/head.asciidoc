@@ -36,6 +36,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - `context.message.routing_key` was added to the intake API {pull}6177[6177]
 - `transaction.dropped_spans_stats` was added to the intake API {pull}6200[6200]
 - map incoming OTel spans from agent bridges to apm spans/transactions {pull}6308[6308]
+- `transaction.name` was added to the error objects in the intake API {pull}6539[6539]
 
 [float]
 ==== Added

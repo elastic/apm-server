@@ -249,6 +249,9 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 		if from.Transaction.Sampled.IsSet() {
 			event.Transaction.Sampled = from.Transaction.Sampled.Val
 		}
+		if from.Transaction.Name.IsSet() {
+			event.Transaction.Name = from.Transaction.Name.Val
+		}
 		if from.Transaction.Type.IsSet() {
 			event.Transaction.Type = from.Transaction.Type.Val
 		}
