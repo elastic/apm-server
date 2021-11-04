@@ -550,15 +550,10 @@ func (s *serverRunner) run(listener net.Listener) error {
 	}
 	defer closeFinalBatchProcessor(s.backgroundContext)
 
-	if !s.config.Sampling.KeepUnsampled {
-		// The server has been configured to discard unsampled
-		// transactions. Make sure this is done just before calling
-		// the publisher to avoid affecting aggregations.
-		batchProcessor = append(batchProcessor,
-			sampling.NewDiscardUnsampledBatchProcessor(),
-		)
-	}
 	batchProcessor = append(batchProcessor,
+		// The server always discards unsampled transactions. It is important that this
+		// is done just before calling the publisher to avoid affecting aggregations.
+		sampling.NewDiscardUnsampledBatchProcessor(),
 		modelprocessor.DroppedSpansStatsDiscarder{},
 		finalBatchProcessor,
 	)

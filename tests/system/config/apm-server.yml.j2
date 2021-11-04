@@ -116,9 +116,6 @@ apm-server:
   aggregation.transactions.interval: {{ aggregation_interval }}
   {% endif %}
 
-  sampling:
-    keep_unsampled: {{ sampling_keep_unsampled }}
-
   {% if mode %}
   mode: {{ mode }}
   {% endif %}

@@ -794,6 +794,10 @@
           description: >
             The specific kind of event within the sub-type represented by the span (e.g. query, connect)
 
+        - name: kind
+          type: keyword
+          description: "The kind of span: CLIENT, SERVER, PRODUCER, CONSUMER, or INTERNAL."
+
         - name: start
           type: group
           fields:

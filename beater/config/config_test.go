@@ -274,7 +274,6 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				Sampling: SamplingConfig{
-					KeepUnsampled: true,
 					Tail: TailSamplingConfig{
 						Enabled:               false,
 						ESConfig:              elasticsearch.DefaultConfig(),
@@ -332,9 +331,8 @@ func TestUnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"jaeger.grpc.enabled":     true,
-				"api_key.enabled":         true,
-				"sampling.keep_unsampled": false,
+				"jaeger.grpc.enabled": true,
+				"api_key.enabled":     true,
 				"sampling.tail": map[string]interface{}{
 					"enabled":           false,
 					"policies":          []map[string]interface{}{{"sample_rate": 0.5}},
@@ -458,7 +456,6 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				Sampling: SamplingConfig{
-					KeepUnsampled: false,
 					Tail: TailSamplingConfig{
 						Enabled:               false,
 						Policies:              []TailSamplingPolicy{{SampleRate: 0.5}},
