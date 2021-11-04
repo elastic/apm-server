@@ -124,7 +124,7 @@ func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, 
 	var retries int
 	for errors.Is(err, io.EOF) && retries < maxRetries {
 		retries++
-		t.Logf("fleet returned EOF on read, retry %d/%d...", retries, maxRetries)
+		t.Logf("apm-server returned EOF on read, retry %d/%d...", retries, maxRetries)
 		<-time.After(500 * time.Millisecond)
 		resp, err = http.DefaultClient.Do(req)
 	}
