@@ -233,6 +233,9 @@ type errorTransactionRef struct {
 	// is captured. If a transaction is unsampled no spans and less context
 	// information will be reported.
 	Sampled nullable.Bool `json:"sm"`
+	// Name is the generic designation of a transaction in the scope of a
+	// single service, eg: 'GET /users/:id'.
+	Name nullable.String `json:"n" validate:"maxLength=1024"`
 	// Type expresses the correlated transaction's type as keyword that has
 	// specific relevance within the service's domain,
 	// eg: 'request', 'backgroundjob'.
