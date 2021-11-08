@@ -141,7 +141,7 @@ class EnrichEventIntegrationTest(ClientSideBaseTest, ElasticTest):
 
 @integration_test
 class ILMDisabledIntegrationTest(ElasticTest):
-    config_overrides = {"ilm_enabled": "false"}
+    config_overrides = {"ilm_enabled": False}
 
     def test_override_indices_config(self):
         # load error and transaction document to ES
@@ -183,7 +183,7 @@ class OverrideIndicesIntegrationTest(OverrideIndicesTest):
 
 @integration_test
 class OverrideIndicesILMFalseIntegrationTest(OverrideIndicesTest):
-    config_overrides = {"ilm_enabled": "false"}
+    config_overrides = {"ilm_enabled": False}
 
     def test_override_indices_config(self):
         # load error and transaction document to ES
@@ -197,7 +197,7 @@ class OverrideIndicesILMFalseIntegrationTest(OverrideIndicesTest):
 
 @integration_test
 class OverrideIndicesILMTrueIntegrationTest(OverrideIndicesTest):
-    config_overrides = {"ilm_enabled": "true"}
+    config_overrides = {"ilm_enabled": True}
 
     def test_override_indices_config(self):
         # load error and transaction document to ES

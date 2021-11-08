@@ -39,7 +39,7 @@ func MakeDefaultSupporter(log *logp.Logger, ilmConfig Config) []libilm.Supporter
 		policy := ilmConfig.Setup.Policies[m.PolicyName]
 		supporter := libilm.NewStdSupport(
 			log,
-			ilmConfig.Mode,
+			ilmConfig.Enabled,
 			libilm.Alias{Name: m.Index, Pattern: pattern},
 			libilm.Policy{Name: policy.Name, Body: policy.Body},
 			ilmConfig.Setup.Overwrite,

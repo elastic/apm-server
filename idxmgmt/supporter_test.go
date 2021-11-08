@@ -179,7 +179,6 @@ func TestIndexSupport_BuildSelector(t *testing.T) {
 	}
 
 	ilmSupportedHandler := newMockClientHandler("7.2.0")
-	ilmUnsupportedHandler := newMockClientHandler("6.2.0")
 
 	checkIndexSelector := func(t *testing.T, name string, test testdata, handler libidxmgmt.ClientHandler) {
 		t.Run(name, func(t *testing.T) {
@@ -213,19 +212,6 @@ func TestIndexSupport_BuildSelector(t *testing.T) {
 		test.cfg["apm-server.ilm.enabled"] = false
 		test.expected = test.noIlm
 		checkIndexSelector(t, "ILMFalse"+name, test, ilmSupportedHandler)
-
-		//ilm=auto and supported
-		test.cfg["apm-server.ilm.enabled"] = "auto"
-		test.expected = test.withIlm
-		if test.ilmAuto != "" {
-			test.expected = test.ilmAuto
-		}
-		checkIndexSelector(t, "ILMAutoSupported"+name, test, ilmSupportedHandler)
-
-		//ilm auto but unsupported
-		test.cfg["apm-server.ilm.enabled"] = "auto"
-		test.expected = test.noIlm
-		checkIndexSelector(t, "ILMAutoUnsupported"+name, test, ilmUnsupportedHandler)
 	}
 }
 
