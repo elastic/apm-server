@@ -1,13 +1,19 @@
 [[manage-storage]]
-=== Manage storage
+== Manage storage
 
-* <<storage-guide>>
-* <<processing-and-performance>>
-* <<reduce-apm-storage>>
-* <<manage-indices-in-kibana>>
-* <<update-data>>
+{agent} uses <<apm-data-streams,data streams>> to store time series data across multiple indices while giving you a single named resource for requests.
+Each data stream ships with a customizable <<ilm-how-to,index lifecycle policy>> that automates data retention as your indices grow and age.
 
-[float]
+The <<storage-guide,storage and sizing guide>> attempts to define a "typical" storage reference for Elastic APM,
+while the <<processing-and-performance,processing and performance guide>> can better help you understand throughput for various instance sizes.
+
+Finally, there are additional settings you can tweak to <<reduce-apm-storage,reduce storage>>,
+or <<<<apm-tune-elasticsearch,tune data ingestion in Elasticsearch>>.
+
+include::./data-streams.asciidoc[]
+
+include::./ilm-how-to.asciidoc[]
+
 [[storage-guide]]
 === Storage and sizing guide
 
@@ -71,7 +77,6 @@ APM data compresses quite well, so the storage cost in Elasticsearch will be con
 
 NOTE: These examples were indexing the same data over and over with minimal variation. Because of that, the compression ratios observed of 80-90% are somewhat optimistic.
 
-[float]
 [[processing-and-performance]]
 === Processing and performance
 
@@ -117,7 +122,6 @@ This means that with a properly sized Elasticsearch instance, APM Server scales 
 
 NOTE: RUM deserves special consideration. The RUM agent runs in browsers, and there can be many thousands reporting to an APM Server with very variable network latency.
 
-[float]
 [[reduce-apm-storage]]
 === Reduce storage
 
@@ -212,3 +216,5 @@ POST *-apm-*/_update_by_query?expand_wildcards=all
 // CONSOLE
 
 TIP: Remember to also change the service name in the {apm-agents-ref}/index.html[APM agent configuration].
+
+include::./apm-tune-elasticsearch.asciidoc[]

@@ -1,10 +1,6 @@
 [[ilm-how-to]]
 === Index lifecycle management
 
-++++
-<titleabbrev>Custom index lifecycle management</titleabbrev>
-++++
-
 Index lifecycle policies allow you to automate the
 lifecycle of your APM indices as they grow and age.
 A default policy is applied to each APM data stream,
@@ -61,10 +57,8 @@ Navigate to *Stack Management* / *Index Lifecycle Management*, and search for `a
 [[data-streams-custom-policy]]
 === Configure a custom index lifecycle policy
 
-This tutorial explains how to apply a custom index lifecycle policy to one of the APM data streams.
-
-**Goal:** Customize the index lifecycle policy for the `traces-apm` data stream with the `default` namespace.
-Specifically, move data into the warm phase after 60 days, the cold phase after 90 days, and remove the delete phase.
+This tutorial explains how to apply a custom index lifecycle policy to the
+`traces-apm` data stream with the `default` namespace.
 
 [discrete]
 [[data-streams-custom-one]]
