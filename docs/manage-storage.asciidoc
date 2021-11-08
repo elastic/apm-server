@@ -8,7 +8,7 @@ The <<storage-guide,storage and sizing guide>> attempts to define a "typical" st
 while the <<processing-and-performance,processing and performance guide>> can better help you understand throughput for various instance sizes.
 
 Finally, there are additional settings you can tweak to <<reduce-apm-storage,reduce storage>>,
-or <<<<apm-tune-elasticsearch,tune data ingestion in Elasticsearch>>.
+or <<apm-tune-elasticsearch,tune data ingestion in Elasticsearch>>.
 
 include::./data-streams.asciidoc[]
 
