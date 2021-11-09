@@ -159,6 +159,7 @@ class OverrideIndicesTest(ElasticTest):
                     "override_template": index_name})
         return cfg
 
+
 @integration_test
 class OverrideIndicesILMFalseIntegrationTest(OverrideIndicesTest):
     config_overrides = {"ilm_enabled": "false"}
