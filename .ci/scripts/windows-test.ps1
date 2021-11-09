@@ -47,8 +47,6 @@ exec { go get github.com/docker/libcompose }
 
 if (Test-Path "build") { Remove-Item -Recurse -Force build }
 New-Item -ItemType directory -Path build\coverage | Out-Null
-New-Item -ItemType directory -Path build\system-tests | Out-Null
-New-Item -ItemType directory -Path build\system-tests\run | Out-Null
 
 echo "Building $env:beat"
 exec { mage build } "Build FAILURE"
