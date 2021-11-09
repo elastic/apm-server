@@ -419,8 +419,8 @@ func (h *mockClientHandler) Load(config template.TemplateConfig, _ beat.Info, fi
 	return nil
 }
 
-func (h *mockClientHandler) CheckILMEnabled(mode bool) (bool, error) {
-	if !mode {
+func (h *mockClientHandler) CheckILMEnabled(enabled bool) (bool, error) {
+	if !enabled {
 		return false, nil
 	}
 	avail := !h.esVersion.LessThan(esMinILMVersion)

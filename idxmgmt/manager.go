@@ -150,9 +150,10 @@ func (m *manager) ilmFeature(loadMode libidxmgmt.LoadMode) (_ feature, _ []libil
 			warn += msgIlmDisabledES
 			checkSupported = false
 		} else if m.supporter.unmanagedIdxConfig.Customized() {
-			// Indices have been customised: "auto" becomes "disabled".
 			if m.supporter.ilmConfig.Enabled {
 				warn += msgIdxCfgIgnored
+			} else {
+				checkSupported = false
 			}
 		}
 		if checkSupported && len(ilmSupporters) > 0 {

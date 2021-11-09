@@ -141,7 +141,7 @@ class EnrichEventIntegrationTest(ClientSideBaseTest, ElasticTest):
 
 @integration_test
 class ILMDisabledIntegrationTest(ElasticTest):
-    config_overrides = {"ilm_enabled": False}
+    config_overrides = {"ilm_enabled": "false"}
 
     def test_override_indices_config(self):
         # load error and transaction document to ES
@@ -159,31 +159,9 @@ class OverrideIndicesTest(ElasticTest):
                     "override_template": index_name})
         return cfg
 
-
-@integration_test
-class OverrideIndicesIntegrationTest(OverrideIndicesTest):
-    # default ILM=auto disables ILM when custom indices given
-
-    def test_override_indices_config(self):
-        # load error and transaction document to ES
-        self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.intake_url,
-                                     'error',
-                                     4,
-                                     query_index=index_name)
-        self.load_docs_with_template(self.get_payload_path("transactions_spans_rum.ndjson"),
-                                     self.intake_url,
-                                     'transaction',
-                                     2,
-                                     query_index=index_name)
-
-        # check that every document is indexed once in the expected index (incl.1 onboarding doc)
-        assert 4+2+1 == self.es.count(index=index_name)['count']
-
-
 @integration_test
 class OverrideIndicesILMFalseIntegrationTest(OverrideIndicesTest):
-    config_overrides = {"ilm_enabled": False}
+    config_overrides = {"ilm_enabled": "false"}
 
     def test_override_indices_config(self):
         # load error and transaction document to ES
@@ -197,7 +175,7 @@ class OverrideIndicesILMFalseIntegrationTest(OverrideIndicesTest):
 
 @integration_test
 class OverrideIndicesILMTrueIntegrationTest(OverrideIndicesTest):
-    config_overrides = {"ilm_enabled": True}
+    config_overrides = {"ilm_enabled": "true"}
 
     def test_override_indices_config(self):
         # load error and transaction document to ES
