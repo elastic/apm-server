@@ -228,21 +228,11 @@ func TestUnpackConfig(t *testing.T) {
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
 				},
-				Register: RegisterConfig{
-					Ingest: IngestConfig{
-						Pipeline: PipelineConfig{
-							Enabled:   true,
-							Overwrite: false,
-							Path:      filepath.Join("tmp", "definition.json"),
-						},
-					},
-				},
 				Kibana: KibanaConfig{
 					Enabled:      true,
 					ClientConfig: defaultDecodedKibanaClientConfig,
 				},
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 2 * time.Minute}},
-				Pipeline:          defaultAPMPipeline,
 				JaegerConfig: JaegerConfig{
 					GRPC: JaegerGRPCConfig{
 						Enabled: true,
@@ -414,17 +404,8 @@ func TestUnpackConfig(t *testing.T) {
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
 				},
-				Register: RegisterConfig{
-					Ingest: IngestConfig{
-						Pipeline: PipelineConfig{
-							Enabled: false,
-							Path:    filepath.Join("ingest", "pipeline", "definition.json"),
-						},
-					},
-				},
 				Kibana:            defaultKibanaConfig(),
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 30 * time.Second}},
-				Pipeline:          defaultAPMPipeline,
 				JaegerConfig: JaegerConfig{
 					GRPC: JaegerGRPCConfig{
 						Enabled: true,

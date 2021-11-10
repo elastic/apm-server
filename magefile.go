@@ -33,7 +33,6 @@ import (
 	"time"
 
 	"github.com/magefile/mage/mg"
-	"github.com/magefile/mage/sh"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/dev-tools/mage"
@@ -173,7 +172,7 @@ func Package() error {
 	}
 
 	if os.Getenv("SKIP_BUILD") != "true" {
-		mg.Deps(Update, prepareIngestPackaging)
+		mg.Deps(Update)
 		mg.Deps(CrossBuild, CrossBuildXPack, CrossBuildGoDaemon)
 	}
 	return mage.Package()
@@ -312,83 +311,29 @@ func PythonUnitTest() error {
 
 // -----------------------------------------------------------------------------
 
-// Customizations specific to apm-server.
-// - readme.md.tmpl used in packages is customized.
-// - apm-server.reference.yml is not included in packages.
-// - ingest .json files are included in packaging
-// - fields.yml is sourced from the build directory
-
-var emptyDir = filepath.Clean("build/empty")
-var ingestDirGenerated = filepath.Clean("build/packaging/ingest")
-
 func customizePackaging() {
+	const emptyDir = "build/empty"
 	if err := os.MkdirAll(emptyDir, 0750); err != nil {
 		panic(errors.Wrapf(err, "failed to create dir %v", emptyDir))
 	}
 
-	var (
-		readmeTemplate = mage.PackageFile{
-			Mode:     0644,
-			Template: "packaging/files/README.md.tmpl",
-		}
-		ingestTarget = "ingest"
-		ingest       = mage.PackageFile{
-			Mode:   0644,
-			Source: ingestDirGenerated,
-		}
-	)
 	for idx := len(mage.Packages) - 1; idx >= 0; idx-- {
 		args := &mage.Packages[idx]
-
-		switch pkgType := args.Types[0]; pkgType {
-		case mage.Zip, mage.TarGz:
-			// Remove the reference config file from packages.
-			delete(args.Spec.Files, "{{.BeatName}}.reference.yml")
-
-			// Replace the README.md with an APM specific file.
-			args.Spec.ReplaceFile("README.md", readmeTemplate)
-			args.Spec.Files[ingestTarget] = ingest
-
-		case mage.Docker:
-			delete(args.Spec.Files, "{{.BeatName}}.reference.yml")
-			args.Spec.ReplaceFile("README.md", readmeTemplate)
-			args.Spec.Files[ingestTarget] = ingest
-			args.Spec.ExtraVars["expose_ports"] = config.DefaultPort
-			args.Spec.ExtraVars["repository"] = "docker.elastic.co/apm"
-
-		case mage.Deb, mage.RPM:
-			delete(args.Spec.Files, "/etc/{{.BeatName}}/{{.BeatName}}.reference.yml")
-			args.Spec.ReplaceFile("/usr/share/{{.BeatName}}/README.md", readmeTemplate)
-			args.Spec.Files["/usr/share/{{.BeatName}}/"+ingestTarget] = ingest
-
-			// update config file Owner
-			pf := args.Spec.Files["/etc/{{.BeatName}}/{{.BeatName}}.yml"]
-			pf.Owner = mage.BeatUser
-			args.Spec.Files["/etc/{{.BeatName}}/{{.BeatName}}.yml"] = pf
-
-			args.Spec.Files["/var/lib/{{.BeatName}}"] = mage.PackageFile{Mode: 0750, Source: emptyDir, Owner: mage.BeatUser}
-			args.Spec.Files["/var/log/{{.BeatName}}"] = mage.PackageFile{Mode: 0750, Source: emptyDir, Owner: mage.BeatUser}
-			args.Spec.PreInstallScript = "packaging/files/linux/pre-install.sh.tmpl"
-			if pkgType == mage.Deb {
-				args.Spec.PostInstallScript = "packaging/files/linux/deb-post-install.sh.tmpl"
-			}
-
-		case mage.DMG:
+		pkgType := args.Types[0]
+		if pkgType == mage.DMG {
 			// We do not build macOS packages.
 			mage.Packages = append(mage.Packages[:idx], mage.Packages[idx+1:]...)
 			continue
-
-		default:
-			panic(errors.Errorf("unhandled package type: %v", pkgType))
 		}
 
+		// Replace the generic Beats README.md with an APM specific one, and remove files unused by apm-server.
 		for filename, filespec := range args.Spec.Files {
-			switch {
-			case strings.HasPrefix(filespec.Source, "_meta/kibana"):
-				// Remove Kibana dashboard files.
+			switch filespec.Source {
+			case "{{ elastic_beats_dir }}/dev-tools/packaging/templates/common/README.md.tmpl":
+				args.Spec.Files[filename] = mage.PackageFile{Mode: 0644, Template: "packaging/files/README.md.tmpl"}
+			case "_meta/kibana.generated", "{{.BeatName}}.reference.yml":
 				delete(args.Spec.Files, filename)
-
-			case filespec.Source == "fields.yml":
+			case "fields.yml":
 				// Source fields.yml from the build directory.
 				if args.Spec.License == "Elastic License" {
 					filespec.Source = mage.FieldsAllYML
@@ -398,23 +343,32 @@ func customizePackaging() {
 				args.Spec.Files[filename] = filespec
 			}
 		}
-	}
-}
 
-func prepareIngestPackaging() error {
-	if err := sh.Rm(ingestDirGenerated); err != nil {
-		return err
-	}
+		switch pkgType := args.Types[0]; pkgType {
+		case mage.Zip, mage.TarGz:
+			// No changes required.
 
-	copy := &mage.CopyTask{
-		Source:  "ingest",
-		Dest:    ingestDirGenerated,
-		Mode:    0644,
-		DirMode: 0755,
-		Exclude: []string{".*.go"},
-	}
-	return copy.Execute()
+		case mage.Docker:
+			args.Spec.ExtraVars["expose_ports"] = config.DefaultPort
+			args.Spec.ExtraVars["repository"] = "docker.elastic.co/apm"
 
+		case mage.Deb, mage.RPM:
+			// Update config file owner.
+			pf := args.Spec.Files["/etc/{{.BeatName}}/{{.BeatName}}.yml"]
+			pf.Owner = mage.BeatUser
+			args.Spec.Files["/etc/{{.BeatName}}/{{.BeatName}}.yml"] = pf
+			args.Spec.Files["/var/log/{{.BeatName}}"] = mage.PackageFile{Mode: 0750, Source: emptyDir, Owner: mage.BeatUser}
+
+			// Customise the pre-install and post-install scripts.
+			args.Spec.PreInstallScript = "packaging/files/linux/pre-install.sh.tmpl"
+			if pkgType == mage.Deb {
+				args.Spec.PostInstallScript = "packaging/files/linux/deb-post-install.sh.tmpl"
+			}
+
+		default:
+			panic(errors.Errorf("unhandled package type: %v", pkgType))
+		}
+	}
 }
 
 // DumpVariables writes the template variables and values to stdout.

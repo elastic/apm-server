@@ -25,6 +25,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed `apm-server.aggregation.service_destinations.enabled` configuration option {pull}6503[6503]
 - Removed `apm-server.sampling.keep_unsampled` configuration option {pull}6514[6514]
 - Onboarding documents are no longer indexed {pull}6431[6431]
+- Removed `apm-server.register.ingest.pipeline` and `output.elasticsearch.pipeline` configuration options {pull}6575[6575]
 
 [float]
 ==== Bug fixes

@@ -64,7 +64,6 @@ type Config struct {
 	AugmentEnabled            bool                    `config:"capture_personal_data"`
 	SelfInstrumentation       InstrumentationConfig   `config:"instrumentation"`
 	RumConfig                 RumConfig               `config:"rum"`
-	Register                  RegisterConfig          `config:"register"`
 	Kibana                    KibanaConfig            `config:"kibana"`
 	KibanaAgentConfig         KibanaAgentConfig       `config:"agent.config"`
 	JaegerConfig              JaegerConfig            `config:"jaeger"`
@@ -73,8 +72,6 @@ type Config struct {
 	DataStreams               DataStreamsConfig       `config:"data_streams"`
 	DefaultServiceEnvironment string                  `config:"default_service_environment"`
 	JavaAttacherConfig        JavaAttacherConfig      `config:"java_attacher"`
-
-	Pipeline string
 
 	AgentConfigs []AgentConfig `config:"agent_config"`
 
@@ -126,9 +123,6 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, err
 	}
 
-	if c.DataStreams.Enabled || (outputESCfg != nil && (outputESCfg.HasField("pipeline") || outputESCfg.HasField("pipelines"))) {
-		c.Pipeline = ""
-	}
 	return c, nil
 }
 
@@ -217,10 +211,8 @@ func DefaultConfig() *Config {
 		Pprof:               PprofConfig{Enabled: false},
 		SelfInstrumentation: defaultInstrumentationConfig(),
 		RumConfig:           defaultRum(),
-		Register:            defaultRegisterConfig(),
 		Kibana:              defaultKibanaConfig(),
 		KibanaAgentConfig:   defaultKibanaAgentConfig(),
-		Pipeline:            defaultAPMPipeline,
 		JaegerConfig:        defaultJaeger(),
 		Aggregation:         defaultAggregationConfig(),
 		Sampling:            defaultSamplingConfig(),
