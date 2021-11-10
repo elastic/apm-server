@@ -3,15 +3,12 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "8.0.0"
   changes:
-<<<<<<< HEAD
     - description: updated package version to align with stack version
       type: enhancement
       link: https://github.com/elastic/obs-dc-team/issues/629
-=======
     - description: added new traces-apm.rum and individual ILM policies per data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6480
->>>>>>> 50429b0a (package: Update version to 8.0.0 (#6569))
 - version: "7.16.0"
   changes:
     - description: updated package version to align with stack version
