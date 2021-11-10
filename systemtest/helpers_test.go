@@ -40,5 +40,7 @@ func withDataStreams(t *testing.T, f func(t *testing.T, unstartedServer *apmserv
 		srv := apmservertest.NewUnstartedServer(t)
 		srv.Config.DataStreams = &apmservertest.DataStreamsConfig{Enabled: true}
 		f(t, srv)
+		err = systemtest.Fleet.DeletePackage(systemtest.IntegrationPackage.Name, systemtest.IntegrationPackage.Version)
+		require.NoError(t, err)
 	})
 }
