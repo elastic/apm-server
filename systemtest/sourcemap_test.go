@@ -43,7 +43,7 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 	)
 
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
+	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
 
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
@@ -67,7 +67,10 @@ func TestRUMSpanSourcemapping(t *testing.T) {
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
 	)
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-span", nil)
+	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
+		Field: "processor.event",
+		Value: "span",
+	})
 
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
@@ -93,7 +96,10 @@ func TestNoMatchingSourcemap(t *testing.T) {
 	)
 
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-span", nil)
+	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
+		Field: "processor.event",
+		Value: "span",
+	})
 
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
@@ -119,14 +125,14 @@ func TestSourcemapCaching(t *testing.T) {
 
 	// Index an error, applying source mapping and caching the source map in the process.
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
+	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
 	assertSourcemapUpdated(t, result, true)
 
 	// Delete the source map and error, and try again.
 	systemtest.DeleteSourceMap(t, sourcemapID)
-	deleteIndex(t, "apm-*-error*")
+	systemtest.CleanupElasticsearch(t)
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result = systemtest.Elasticsearch.ExpectMinDocs(t, 1, "apm-*-error", nil)
+	result = systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.error-*", nil)
 	assertSourcemapUpdated(t, result, true)
 }
 

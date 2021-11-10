@@ -13,6 +13,9 @@ trap cleanup EXIT
 
 make update apm-server
 
+# Start docker-compose environment first, so it doesn't count towards the test timeout.
+docker-compose up -d
+
 SYSTEM_TESTS_XUNIT_PATH="$(pwd)/build"
 # TODO(axw) make this a Makefile target
 # TODO(mdelapenya) meanwhile there is no 'DefaultGoTestSystemArgs' at beats' GoTest implementation, this command is reproducing what Beats should provide: a gotestsum representation for system tests.
