@@ -70,7 +70,7 @@ func testJaegerGRPC(t *testing.T, srv *apmservertest.Server, addr string, dialOp
 	doc := getBeatsMonitoringStats(t, srv, nil)
 	assert.Equal(t, int64(1), gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count").Int())
 
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
+	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},
 	}})
 
@@ -124,7 +124,7 @@ func TestJaegerGRPCAuth(t *testing.T) {
 	_, err = client.PostSpans(context.Background(), request)
 	require.NoError(t, err)
 
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
+	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},
 	}})
 }
