@@ -39,8 +39,6 @@ type configTelemetry struct {
 	ilmSetupEnabled           *monitoring.Bool
 	ilmSetupOverwrite         *monitoring.Bool
 	ilmSetupRequirePolicy     *monitoring.Bool
-	jaegerGRPCEnabled         *monitoring.Bool
-	jaegerHTTPEnabled         *monitoring.Bool
 	sslEnabled                *monitoring.Bool
 	tailSamplingEnabled       *monitoring.Bool
 	tailSamplingPolicies      *monitoring.Int
@@ -58,8 +56,6 @@ var configMonitors = &configTelemetry{
 	ilmSetupEnabled:           monitoring.NewBool(apmRegistry, "ilm.setup.enabled"),
 	ilmSetupOverwrite:         monitoring.NewBool(apmRegistry, "ilm.setup.overwrite"),
 	ilmSetupRequirePolicy:     monitoring.NewBool(apmRegistry, "ilm.setup.require_policy"),
-	jaegerGRPCEnabled:         monitoring.NewBool(apmRegistry, "jaeger.grpc.enabled"),
-	jaegerHTTPEnabled:         monitoring.NewBool(apmRegistry, "jaeger.http.enabled"),
 	sslEnabled:                monitoring.NewBool(apmRegistry, "ssl.enabled"),
 	tailSamplingEnabled:       monitoring.NewBool(apmRegistry, "sampling.tail.enabled"),
 	tailSamplingPolicies:      monitoring.NewInt(apmRegistry, "sampling.tail.policies"),
@@ -89,8 +85,6 @@ func recordAPMServerConfig(cfg *config.Config) {
 	configMonitors.rumEnabled.Set(cfg.RumConfig.Enabled)
 	configMonitors.apiKeysEnabled.Set(cfg.AgentAuth.APIKey.Enabled)
 	configMonitors.kibanaEnabled.Set(cfg.Kibana.Enabled)
-	configMonitors.jaegerHTTPEnabled.Set(cfg.JaegerConfig.HTTP.Enabled)
-	configMonitors.jaegerGRPCEnabled.Set(cfg.JaegerConfig.GRPC.Enabled)
 	configMonitors.sslEnabled.Set(cfg.TLS.IsEnabled())
 	configMonitors.tailSamplingEnabled.Set(cfg.Sampling.Tail.Enabled)
 	configMonitors.tailSamplingPolicies.Set(int64(len(cfg.Sampling.Tail.Policies)))
