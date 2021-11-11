@@ -62,12 +62,10 @@ type Config struct {
 	Expvar                    ExpvarConfig            `config:"expvar"`
 	Pprof                     PprofConfig             `config:"pprof"`
 	AugmentEnabled            bool                    `config:"capture_personal_data"`
-	SelfInstrumentation       InstrumentationConfig   `config:"instrumentation"`
 	RumConfig                 RumConfig               `config:"rum"`
 	Register                  RegisterConfig          `config:"register"`
 	Kibana                    KibanaConfig            `config:"kibana"`
 	KibanaAgentConfig         KibanaAgentConfig       `config:"agent.config"`
-	JaegerConfig              JaegerConfig            `config:"jaeger"`
 	Aggregation               AggregationConfig       `config:"aggregation"`
 	Sampling                  SamplingConfig          `config:"sampling"`
 	DataStreams               DataStreamsConfig       `config:"data_streams"`
@@ -102,10 +100,6 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		}
 	}
 
-	if err := setDeprecatedConfig(c, ucfg, logger); err != nil {
-		return nil, err
-	}
-
 	if err := c.RumConfig.setup(logger, c.DataStreams.Enabled, outputESCfg); err != nil {
 		return nil, err
 	}
@@ -118,10 +112,6 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, err
 	}
 
-	if err := c.JaegerConfig.setup(c); err != nil {
-		return nil, err
-	}
-
 	if err := c.Sampling.Tail.setup(logger, c.DataStreams.Enabled, outputESCfg); err != nil {
 		return nil, err
 	}
@@ -130,72 +120,6 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		c.Pipeline = ""
 	}
 	return c, nil
-}
-
-// setDeprecatedConfig translates deprecated top-level config attributes to the
-// current config structure.
-func setDeprecatedConfig(out *Config, in *common.Config, logger *logp.Logger) error {
-	type deprecatedRUMEventRateConfig struct {
-		Limit   *int `config:"limit"`
-		LruSize *int `config:"lru_size"`
-	}
-	type deprecatedRUMConfig struct {
-		EventRate         *deprecatedRUMEventRateConfig `config:"event_rate"`
-		AllowServiceNames []string                      `config:"allow_service_names"`
-	}
-	var deprecatedConfig struct {
-		APIKey      APIKeyAgentAuth      `config:"api_key"`
-		RUM         *deprecatedRUMConfig `config:"rum"`
-		SecretToken string               `config:"secret_token"`
-	}
-	deprecatedConfig.APIKey = defaultAPIKeyAgentAuth()
-	if err := in.Unpack(&deprecatedConfig); err != nil {
-		return err
-	}
-
-	warnIgnored := func(deprecated, replacement string) {
-		logger.Warnf("ignoring deprecated config %q as %q is defined", deprecated, replacement)
-	}
-	if deprecatedConfig.APIKey.configured {
-		// "apm-server.api_key" -> "apm-server.auth.api_key"
-		if out.AgentAuth.APIKey.configured {
-			warnIgnored("apm-server.api_key", "apm-server.auth.api_key")
-		} else {
-			out.AgentAuth.APIKey = deprecatedConfig.APIKey
-		}
-	}
-	if deprecatedConfig.RUM != nil {
-		// "apm-server.rum.event_rate" -> "apm-server.auth.anonymous.rate_limit"
-		if deprecatedConfig.RUM.EventRate != nil {
-			if out.AgentAuth.Anonymous.configured {
-				warnIgnored("apm-server.rum.event_rate", "apm-server.auth.anonymous")
-			} else {
-				if deprecatedConfig.RUM.EventRate.Limit != nil {
-					out.AgentAuth.Anonymous.RateLimit.EventLimit = *deprecatedConfig.RUM.EventRate.Limit
-				}
-				if deprecatedConfig.RUM.EventRate.LruSize != nil {
-					out.AgentAuth.Anonymous.RateLimit.IPLimit = *deprecatedConfig.RUM.EventRate.LruSize
-				}
-			}
-		}
-		// "apm-server.rum.allow_service_names" -> "apm-server.auth.anonymous.allow_service"
-		if len(deprecatedConfig.RUM.AllowServiceNames) > 0 {
-			if out.AgentAuth.Anonymous.configured {
-				warnIgnored("apm-server.rum.allow_service_names", "apm-server.auth.anonymous")
-			} else {
-				out.AgentAuth.Anonymous.AllowService = deprecatedConfig.RUM.AllowServiceNames
-			}
-		}
-	}
-	if deprecatedConfig.SecretToken != "" {
-		// "apm-server.secret_token" -> "apm-server.auth.secret_token"
-		if out.AgentAuth.SecretToken != "" {
-			warnIgnored("apm-server.secret_token", "apm-server.auth.secret_token")
-		} else {
-			out.AgentAuth.SecretToken = deprecatedConfig.SecretToken
-		}
-	}
-	return nil
 }
 
 // DefaultConfig returns a config with default settings for `apm-server` config options.
@@ -214,19 +138,17 @@ func DefaultConfig() *Config {
 			Enabled: false,
 			URL:     "/debug/vars",
 		},
-		Pprof:               PprofConfig{Enabled: false},
-		SelfInstrumentation: defaultInstrumentationConfig(),
-		RumConfig:           defaultRum(),
-		Register:            defaultRegisterConfig(),
-		Kibana:              defaultKibanaConfig(),
-		KibanaAgentConfig:   defaultKibanaAgentConfig(),
-		Pipeline:            defaultAPMPipeline,
-		JaegerConfig:        defaultJaeger(),
-		Aggregation:         defaultAggregationConfig(),
-		Sampling:            defaultSamplingConfig(),
-		DataStreams:         defaultDataStreamsConfig(),
-		AgentAuth:           defaultAgentAuth(),
-		JavaAttacherConfig:  defaultJavaAttacherConfig(),
-		WaitReadyInterval:   5 * time.Second,
+		Pprof:              PprofConfig{Enabled: false},
+		RumConfig:          defaultRum(),
+		Register:           defaultRegisterConfig(),
+		Kibana:             defaultKibanaConfig(),
+		KibanaAgentConfig:  defaultKibanaAgentConfig(),
+		Pipeline:           defaultAPMPipeline,
+		Aggregation:        defaultAggregationConfig(),
+		Sampling:           defaultSamplingConfig(),
+		DataStreams:        defaultDataStreamsConfig(),
+		AgentAuth:          defaultAgentAuth(),
+		JavaAttacherConfig: defaultJavaAttacherConfig(),
+		WaitReadyInterval:  5 * time.Second,
 	}
 }
