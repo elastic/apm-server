@@ -43,7 +43,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
-	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/licenser"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
@@ -797,14 +796,6 @@ func initTracing(b *beat.Beat, cfg *config.Config, logger *logp.Logger) (*apm.Tr
 	tracer := b.Instrumentation.Tracer()
 	listener := b.Instrumentation.Listener()
 
-	if !tracer.Active() && cfg != nil {
-		var err error
-		tracer, listener, err = initLegacyTracer(b.Info, cfg)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-
 	var tracerServer *tracerServer
 	if listener != nil {
 		var err error
@@ -814,38 +805,6 @@ func initTracing(b *beat.Beat, cfg *config.Config, logger *logp.Logger) (*apm.Tr
 		}
 	}
 	return tracer, tracerServer, nil
-}
-
-// initLegacyTracer exists for backwards compatibility and it should be removed in 8.0
-// it does not instrument the beat output
-func initLegacyTracer(info beat.Info, cfg *config.Config) (*apm.Tracer, net.Listener, error) {
-	selfInstrumentation := cfg.SelfInstrumentation
-	if !selfInstrumentation.Enabled {
-		return apm.DefaultTracer, nil, nil
-	}
-	conf, err := common.NewConfigFrom(cfg.SelfInstrumentation)
-	if err != nil {
-		return nil, nil, err
-	}
-	// this is needed because `hosts` strings are unpacked as URL's, so we need to covert them back to strings
-	// to not break ucfg - this code path is exercised in TestExternalTracing* system tests
-	for idx, h := range selfInstrumentation.Hosts {
-		err := conf.SetString("hosts", idx, h.String())
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-	parent := common.NewConfig()
-	err = parent.SetChild("instrumentation", -1, conf)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	instr, err := instrumentation.New(parent, info.Beat, info.Version)
-	if err != nil {
-		return nil, nil, err
-	}
-	return instr.Tracer(), instr.Listener(), nil
 }
 
 // Stop stops the beater gracefully.

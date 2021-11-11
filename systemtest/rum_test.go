@@ -85,8 +85,11 @@ func TestRUMAllowServiceNames(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.AgentAuth.SecretToken = "abc123"
 	srv.Config.RUM = &apmservertest.RUMConfig{
-		Enabled:           true,
-		AllowServiceNames: []string{"allowed"},
+		Enabled: true,
+	}
+	srv.Config.AgentAuth.Anonymous = &apmservertest.AnonymousAuthConfig{
+		Enabled:      true,
+		AllowService: []string{"allowed"},
 	}
 	err := srv.Start()
 	require.NoError(t, err)
