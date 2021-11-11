@@ -525,13 +525,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
-	//
-	// The reporter is passed into newBaseRunServer for legacy event publishers
-	// that bypass the model processor framework, i.e. sourcemap uploads, and
-	// onboarding docs. Because these bypass the model processor framework, we
-	// must augment the reporter to set common `observer` and `ecs.version` fields.
-	reporter := publisher.Send
-	runServer := newBaseRunServer(listener, augmentedReporter(reporter, s.beat.Info))
+	runServer := newBaseRunServer(listener)
 	if s.tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
 	}
@@ -901,34 +895,6 @@ func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...model.Ba
 		args.BatchProcessor = modelprocessor.Chained(processors)
 		return runServer(ctx, args)
 	}
-}
-
-// augmentedReporter wraps publish.Reporter such that the events it reports have
-// `observer` and `ecs.version` fields injected.
-func augmentedReporter(reporter publish.Reporter, info beat.Info) publish.Reporter {
-	observerBatchProcessor := newObserverBatchProcessor(info)
-	return func(ctx context.Context, req publish.PendingReq) error {
-		orig := req.Transformable
-		req.Transformable = transformerFunc(func(ctx context.Context) []beat.Event {
-			// Merge common fields into each event.
-			events := orig.Transform(ctx)
-			batch := make(model.Batch, 1)
-			observerBatchProcessor(ctx, &batch)
-			ecsVersionBatchProcessor(ctx, &batch)
-			for _, event := range events {
-				event.Fields.Put("ecs.version", batch[0].ECSVersion)
-				event.Fields.DeepUpdate(common.MapStr{"observer": batch[0].Observer.Fields()})
-			}
-			return events
-		})
-		return reporter(ctx, req)
-	}
-}
-
-type transformerFunc func(context.Context) []beat.Event
-
-func (f transformerFunc) Transform(ctx context.Context) []beat.Event {
-	return f(ctx)
 }
 
 func newDropLogsBeatProcessor() (beat.ProcessorList, error) {
