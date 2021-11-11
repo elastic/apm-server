@@ -27,7 +27,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	libcommon "github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/fmtstr"
-	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 
 	"github.com/elastic/apm-server/idxmgmt/common"
 )
@@ -38,8 +37,8 @@ const (
 
 //Config holds information about ILM mode and whether or not the server should manage the setup
 type Config struct {
-	Mode  libilm.Mode `config:"enabled"`
-	Setup Setup       `config:"setup"`
+	Enabled bool  `config:"enabled"`
+	Setup   Setup `config:"setup"`
 }
 
 //Setup holds information about how to setup ILM
@@ -71,8 +70,8 @@ type Policy struct {
 // NewConfig extracts given configuration and merges with default configuration.
 func NewConfig(info beat.Info, cfg *libcommon.Config) (Config, error) {
 	config := Config{
-		Mode:  libilm.ModeAuto,
-		Setup: Setup{Enabled: true, RequirePolicy: true, Mappings: defaultMappings()},
+		Enabled: true,
+		Setup:   Setup{Enabled: true, RequirePolicy: true, Mappings: defaultMappings()},
 	}
 	if cfg != nil {
 		if err := cfg.Unpack(&config); err != nil {

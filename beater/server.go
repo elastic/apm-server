@@ -44,7 +44,6 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sourcemap"
 )
 
@@ -101,16 +100,9 @@ type ServerParams struct {
 }
 
 // newBaseRunServer returns the base RunServerFunc.
-//
-// reporter is the publish.Reporter that the server should use
-// uploading sourcemaps and publishing its onboarding doc.
-// Everything else should be using ServerParams.BatchProcessor.
-//
-// Once we remove sourcemap uploading and onboarding docs, we
-// should remove the reporter parameter.
-func newBaseRunServer(listener net.Listener, reporter publish.Reporter) RunServerFunc {
+func newBaseRunServer(listener net.Listener) RunServerFunc {
 	return func(ctx context.Context, args ServerParams) error {
-		srv, err := newServer(args, listener, reporter)
+		srv, err := newServer(args, listener)
 		if err != nil {
 			return err
 		}
@@ -137,7 +129,7 @@ type server struct {
 	grpcServer *grpc.Server
 }
 
-func newServer(args ServerParams, listener net.Listener, reporter publish.Reporter) (server, error) {
+func newServer(args ServerParams, listener net.Listener) (server, error) {
 	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(args.Config), args.BatchProcessor, 30*time.Second)
 
 	ratelimitStore, err := ratelimit.NewStore(
@@ -171,7 +163,7 @@ func newServer(args ServerParams, listener net.Listener, reporter publish.Report
 
 	// Create an HTTP server for serving Elastic APM agent requests.
 	mux, err := api.NewMux(
-		args.Info, args.Config, reporter, batchProcessor,
+		args.Info, args.Config, batchProcessor,
 		authenticator, agentcfgFetchReporter, ratelimitStore,
 		args.SourcemapFetcher, args.Managed, publishReady,
 	)
@@ -179,7 +171,7 @@ func newServer(args ServerParams, listener net.Listener, reporter publish.Report
 		return server{}, err
 	}
 	handler := apmhttp.Wrap(mux, apmhttp.WithServerRequestIgnorer(doNotTrace), apmhttp.WithTracer(args.Tracer))
-	httpServer, err := newHTTPServer(args.Logger, args.Info, args.Config, handler, reporter, listener)
+	httpServer, err := newHTTPServer(args.Logger, args.Info, args.Config, handler, listener)
 	if err != nil {
 		return server{}, err
 	}

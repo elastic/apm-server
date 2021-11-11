@@ -24,6 +24,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed `apm-server.aggregation.transactions.enabled` configuration option {pull}6495[6495]
 - Removed `apm-server.aggregation.service_destinations.enabled` configuration option {pull}6503[6503]
 - Removed `apm-server.sampling.keep_unsampled` configuration option {pull}6514[6514]
+- Onboarding documents are no longer indexed {pull}6431[6431]
 
 [float]
 ==== Bug fixes
@@ -36,6 +37,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - `context.message.routing_key` was added to the intake API {pull}6177[6177]
 - `transaction.dropped_spans_stats` was added to the intake API {pull}6200[6200]
 - map incoming OTel spans from agent bridges to apm spans/transactions {pull}6308[6308]
+- `transaction.name` was added to the error objects in the intake API {pull}6539[6539]
 
 [float]
 ==== Added

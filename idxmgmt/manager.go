@@ -141,22 +141,19 @@ func (m *manager) templateFeature(loadMode libidxmgmt.LoadMode) feature {
 }
 
 func (m *manager) ilmFeature(loadMode libidxmgmt.LoadMode) (_ feature, _ []libilm.Supporter, warn, info string, _ error) {
-	ilmEnabled := false
+	var ilmEnabled bool
 	ilmSupporters := ilm.MakeDefaultSupporter(m.supporter.log, m.supporter.ilmConfig)
-	if m.supporter.ilmConfig.Mode != libilm.ModeDisabled {
+	if m.supporter.ilmConfig.Enabled {
 		checkSupported := true
 		if m.supporter.outputConfig.Name() != esKey {
 			// Output is not Elasticsearch: ILM is disabled.
 			warn += msgIlmDisabledES
 			checkSupported = false
 		} else if m.supporter.unmanagedIdxConfig.Customized() {
-			// Indices have been customised: "auto" becomes "disabled".
-			switch m.supporter.ilmConfig.Mode {
-			case libilm.ModeAuto:
-				warn += msgIlmDisabledCfg
-				checkSupported = false
-			case libilm.ModeEnabled:
+			if m.supporter.ilmConfig.Enabled {
 				warn += msgIdxCfgIgnored
+			} else {
+				checkSupported = false
 			}
 		}
 		if checkSupported && len(ilmSupporters) > 0 {

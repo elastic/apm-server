@@ -40,7 +40,6 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/processor/stream"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -78,7 +77,6 @@ const (
 func NewMux(
 	beatInfo beat.Info,
 	beaterConfig *config.Config,
-	report publish.Reporter,
 	batchProcessor model.BatchProcessor,
 	authenticator *auth.Authenticator,
 	fetcher agentcfg.Fetcher,
@@ -95,7 +93,6 @@ func NewMux(
 		info:             beatInfo,
 		cfg:              beaterConfig,
 		authenticator:    authenticator,
-		reporter:         report,
 		batchProcessor:   batchProcessor,
 		ratelimitStore:   ratelimitStore,
 		sourcemapFetcher: sourcemapFetcher,
@@ -148,7 +145,6 @@ type routeBuilder struct {
 	info             beat.Info
 	cfg              *config.Config
 	authenticator    *auth.Authenticator
-	reporter         publish.Reporter
 	batchProcessor   model.BatchProcessor
 	ratelimitStore   *ratelimit.Store
 	sourcemapFetcher sourcemap.Fetcher

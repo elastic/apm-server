@@ -26,7 +26,6 @@ const (
 	IndexManagement    = "index-management"
 	Jaeger             = "jaeger"
 	Kibana             = "kibana"
-	Onboarding         = "onboarding"
 	Otel               = "otel"
 	Pipelines          = "pipelines"
 	Request            = "request"
