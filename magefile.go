@@ -339,7 +339,6 @@ func customizePackaging() {
 	)
 	for idx := len(mage.Packages) - 1; idx >= 0; idx-- {
 		args := &mage.Packages[idx]
-		args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 		switch pkgType := args.Types[0]; pkgType {
 		case mage.Zip, mage.TarGz:
@@ -349,6 +348,7 @@ func customizePackaging() {
 			// Replace the README.md with an APM specific file.
 			args.Spec.ReplaceFile("README.md", readmeTemplate)
 			args.Spec.Files[ingestTarget] = ingest
+			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 		case mage.Docker:
 			delete(args.Spec.Files, "{{.BeatName}}.reference.yml")
@@ -356,11 +356,13 @@ func customizePackaging() {
 			args.Spec.Files[ingestTarget] = ingest
 			args.Spec.ExtraVars["expose_ports"] = config.DefaultPort
 			args.Spec.ExtraVars["repository"] = "docker.elastic.co/apm"
+			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 		case mage.Deb, mage.RPM:
 			delete(args.Spec.Files, "/etc/{{.BeatName}}/{{.BeatName}}.reference.yml")
 			args.Spec.ReplaceFile("/usr/share/{{.BeatName}}/README.md", readmeTemplate)
 			args.Spec.Files["/usr/share/{{.BeatName}}/"+ingestTarget] = ingest
+			args.Spec.Files["/usr/share/{{.BeatName}}/bin/java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 			// update config file Owner
 			pf := args.Spec.Files["/etc/{{.BeatName}}/{{.BeatName}}.yml"]
