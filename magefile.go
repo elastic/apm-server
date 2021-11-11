@@ -339,6 +339,7 @@ func customizePackaging() {
 	)
 	for idx := len(mage.Packages) - 1; idx >= 0; idx-- {
 		args := &mage.Packages[idx]
+		args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 		switch pkgType := args.Types[0]; pkgType {
 		case mage.Zip, mage.TarGz:

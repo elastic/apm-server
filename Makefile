@@ -260,7 +260,15 @@ release-manager-snapshot: release
 .PHONY: release-manager-release
 release-manager-release: release
 
+JAVA_ATTACHER_VERSION:=1.26.0
+JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION).jar
+JAVA_ATTACHER_URL:=https://search.maven.org/remotecontent?filepath=co/elastic/apm/apm-agent-attach-cli/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_JAR)
+
+build/$(JAVA_ATTACHER_JAR):
+	curl -sSL $(JAVA_ATTACHER_URL) > $@
+	cp $@ build/java-attacher.jar
+
 .PHONY: release
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
-release: $(MAGE)
+release: $(MAGE) build/$(JAVA_ATTACHER_JAR)
 	$(MAGE) package
