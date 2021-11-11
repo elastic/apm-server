@@ -26,7 +26,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	libidxmgmt "github.com/elastic/beats/v7/libbeat/idxmgmt"
-	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	"github.com/elastic/beats/v7/libbeat/outputs/outil"
@@ -57,14 +56,6 @@ type supporter struct {
 
 type indexSelector outil.Selector
 
-// autoSelector is an outputs.IndexSelector that delegates to either an
-// unmanaged or ILM index selector depending on whether ILM is enabled.
-type autoSelector struct {
-	ilmEnabled *atomic.Bool
-	unmanaged  outil.Selector
-	ilm        outil.Selector
-}
-
 func newSupporter(log *logp.Logger, info beat.Info, cfg *IndexManagementConfig) (*supporter, error) {
 	return &supporter{
 		log:                log,
@@ -80,7 +71,7 @@ func newSupporter(log *logp.Logger, info beat.Info, cfg *IndexManagementConfig) 
 // As long as ILM is enabled, this needs to return true, even if ilm.setup.enabled is set to false.
 // The callback will not set up anything for ILM in that case, but signal the index selector that the setup is finished.
 func (s *supporter) Enabled() bool {
-	return s.templateConfig.Enabled || s.ilmConfig.Setup.Enabled || s.ilmConfig.Mode != libilm.ModeDisabled
+	return s.templateConfig.Enabled || s.ilmConfig.Setup.Enabled || s.ilmConfig.Enabled
 }
 
 // Manager instance takes only care of the setup.
@@ -106,13 +97,10 @@ func (s *supporter) BuildSelector(_ *common.Config) (outputs.IndexSelector, erro
 		return nil, err
 	}
 
-	switch s.ilmConfig.Mode {
-	case libilm.ModeDisabled:
+	if !s.ilmConfig.Enabled {
 		return indexSelector(unmanagedSelector), nil
-	case libilm.ModeEnabled:
-		return indexSelector(ilmSelector), nil
 	}
-	return &autoSelector{ilmEnabled: &s.ilmEnabled, unmanaged: unmanagedSelector, ilm: ilmSelector}, nil
+	return indexSelector(ilmSelector), nil
 }
 
 func (s *supporter) buildSelector(cfg *common.Config, err error) (outil.Selector, error) {
@@ -128,18 +116,6 @@ func (s *supporter) buildSelector(cfg *common.Config, err error) (outil.Selector
 		Case:             outil.SelectorLowerCase,
 	}
 	return outil.BuildSelectorFromConfig(cfg, buildSettings)
-}
-
-// Select returns the index from the event's metadata if specified,
-// otherwise delegating to the ILM or unmanaged indices selector.
-func (s *autoSelector) Select(evt *beat.Event) (string, error) {
-	if idx := getEventCustomIndex(evt); idx != "" {
-		return idx, nil
-	}
-	if s.ilmEnabled.Load() {
-		return s.ilm.Select(evt)
-	}
-	return s.unmanaged.Select(evt)
 }
 
 // Select either returns the index from the event's metadata or the regular index.
