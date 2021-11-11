@@ -36,8 +36,6 @@ func TestRecordConfigs(t *testing.T) {
 	apmCfg := config.DefaultConfig()
 	apmCfg.AgentAuth.APIKey.Enabled = true
 	apmCfg.Kibana.Enabled = true
-	apmCfg.JaegerConfig.GRPC.Enabled = true
-	apmCfg.JaegerConfig.HTTP.Enabled = true
 	rootCfg := common.MustNewConfigFrom(map[string]interface{}{
 		"apm-server": map[string]interface{}{
 			"ilm": map[string]interface{}{
@@ -70,8 +68,6 @@ func TestRecordConfigs(t *testing.T) {
 	assert.Equal(t, configMonitors.ilmSetupEnabled.Get(), true)
 	assert.Equal(t, configMonitors.ilmSetupOverwrite.Get(), true)
 	assert.Equal(t, configMonitors.ilmSetupRequirePolicy.Get(), false)
-	assert.Equal(t, configMonitors.jaegerGRPCEnabled.Get(), true)
-	assert.Equal(t, configMonitors.jaegerHTTPEnabled.Get(), true)
 	assert.Equal(t, configMonitors.sslEnabled.Get(), false)
 }
 
@@ -79,8 +75,6 @@ func resetCounters() {
 	configMonitors.rumEnabled.Set(false)
 	configMonitors.apiKeysEnabled.Set(false)
 	configMonitors.kibanaEnabled.Set(false)
-	configMonitors.jaegerHTTPEnabled.Set(false)
-	configMonitors.jaegerGRPCEnabled.Set(false)
 	configMonitors.sslEnabled.Set(false)
 	configMonitors.pipelinesEnabled.Set(false)
 	configMonitors.pipelinesOverwrite.Set(false)

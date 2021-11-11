@@ -22,7 +22,6 @@ import (
 	"github.com/elastic/apm-server/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
@@ -42,8 +41,6 @@ type configTelemetry struct {
 	ilmSetupEnabled           *monitoring.Bool
 	ilmSetupOverwrite         *monitoring.Bool
 	ilmSetupRequirePolicy     *monitoring.Bool
-	jaegerGRPCEnabled         *monitoring.Bool
-	jaegerHTTPEnabled         *monitoring.Bool
 	sslEnabled                *monitoring.Bool
 	tailSamplingEnabled       *monitoring.Bool
 	tailSamplingPolicies      *monitoring.Int
@@ -63,8 +60,6 @@ var configMonitors = &configTelemetry{
 	ilmSetupEnabled:           monitoring.NewBool(apmRegistry, "ilm.setup.enabled"),
 	ilmSetupOverwrite:         monitoring.NewBool(apmRegistry, "ilm.setup.overwrite"),
 	ilmSetupRequirePolicy:     monitoring.NewBool(apmRegistry, "ilm.setup.require_policy"),
-	jaegerGRPCEnabled:         monitoring.NewBool(apmRegistry, "jaeger.grpc.enabled"),
-	jaegerHTTPEnabled:         monitoring.NewBool(apmRegistry, "jaeger.http.enabled"),
 	sslEnabled:                monitoring.NewBool(apmRegistry, "ssl.enabled"),
 	tailSamplingEnabled:       monitoring.NewBool(apmRegistry, "sampling.tail.enabled"),
 	tailSamplingPolicies:      monitoring.NewInt(apmRegistry, "sampling.tail.policies"),
@@ -84,8 +79,7 @@ func recordRootConfig(info beat.Info, rootCfg *common.Config) error {
 	configMonitors.ilmSetupEnabled.Set(indexManagementCfg.ILM.Setup.Enabled)
 	configMonitors.ilmSetupOverwrite.Set(indexManagementCfg.ILM.Setup.Overwrite)
 	configMonitors.ilmSetupRequirePolicy.Set(indexManagementCfg.ILM.Setup.RequirePolicy)
-	mode := indexManagementCfg.ILM.Mode
-	configMonitors.ilmEnabled.Set(mode == ilm.ModeAuto || mode == ilm.ModeEnabled)
+	configMonitors.ilmEnabled.Set(indexManagementCfg.ILM.Enabled)
 	return nil
 }
 
@@ -95,8 +89,6 @@ func recordAPMServerConfig(cfg *config.Config) {
 	configMonitors.rumEnabled.Set(cfg.RumConfig.Enabled)
 	configMonitors.apiKeysEnabled.Set(cfg.AgentAuth.APIKey.Enabled)
 	configMonitors.kibanaEnabled.Set(cfg.Kibana.Enabled)
-	configMonitors.jaegerHTTPEnabled.Set(cfg.JaegerConfig.HTTP.Enabled)
-	configMonitors.jaegerGRPCEnabled.Set(cfg.JaegerConfig.GRPC.Enabled)
 	configMonitors.sslEnabled.Set(cfg.TLS.IsEnabled())
 	configMonitors.pipelinesEnabled.Set(cfg.Register.Ingest.Pipeline.Enabled)
 	configMonitors.pipelinesOverwrite.Set(cfg.Register.Ingest.Pipeline.Overwrite)

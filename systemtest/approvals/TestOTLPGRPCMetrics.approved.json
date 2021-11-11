@@ -6,10 +6,14 @@
                 "name": "opentelemetry/go",
                 "version": "1.0.0"
             },
+            "data_stream.dataset": "apm.app.unknown_service_systemtest_test",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "dynamic"
             },
             "event": {
+                "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
             "float64_counter": 1,

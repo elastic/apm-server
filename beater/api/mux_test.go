@@ -34,7 +34,6 @@ import (
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
@@ -121,14 +120,12 @@ type muxBuilder struct {
 }
 
 func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
-	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
 	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
 	return NewMux(
 		beat.Info{Version: "1.2.3"},
 		cfg,
-		nopReporter,
 		nopBatchProcessor,
 		authenticator,
 		agentcfg.NewFetcher(cfg),

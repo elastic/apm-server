@@ -27,7 +27,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
-	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 )
 
 var mockBeatInfo = beat.Info{Beat: "mockapm", Version: "9.9.9"}
@@ -36,7 +35,7 @@ func TestConfig_Default(t *testing.T) {
 	c, err := NewConfig(mockBeatInfo, nil)
 	require.NoError(t, err)
 	expectedCfg := Config{
-		Mode: libilm.ModeAuto,
+		Enabled: true,
 		Setup: Setup{
 			Enabled:       true,
 			Overwrite:     false,
@@ -49,16 +48,15 @@ func TestConfig_Default(t *testing.T) {
 func TestConfig_Mode(t *testing.T) {
 	for name, tc := range map[string]struct {
 		cfg      string
-		expected libilm.Mode
+		expected bool
 	}{
-		"default":  {`{"enabled":"auto"}`, libilm.ModeAuto},
-		"disabled": {`{"enabled":"false"}`, libilm.ModeDisabled},
-		"enabled":  {`{"enabled":"true"}`, libilm.ModeEnabled},
+		"default":  {`{"enabled":"true"}`, true},
+		"disabled": {`{"enabled":"false"}`, false},
 	} {
 		t.Run(name, func(t *testing.T) {
 			c, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
-			assert.Equal(t, tc.expected, c.Mode)
+			assert.Equal(t, tc.expected, c.Enabled)
 		})
 	}
 }
@@ -121,7 +119,7 @@ func TestConfig_Valid(t *testing.T) {
 	}{
 		{name: "new policy and index suffix",
 			cfg: `{"setup":{"mapping":[{"event_type":"span","policy_name":"spanPolicy"},{"event_type":"metric","index_suffix":"ProdUCtion"},{"event_type":"error","index_suffix":"%{[observer.name]}-%{+yyyy-MM-dd}"}],"policies":[{"name":"spanPolicy","policy":{"phases":{"foo":{}}}}]}}`,
-			expected: Config{Mode: libilm.ModeAuto,
+			expected: Config{Enabled: true,
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: true,
 					Mappings: map[string]Mapping{
 						"error": {EventType: "error", PolicyName: defaultPolicyName,
@@ -145,7 +143,7 @@ func TestConfig_Valid(t *testing.T) {
 		},
 		{name: "changed default policy",
 			cfg: `{"setup":{"policies":[{"name":"apm-rollover-30-days","policy":{"phases":{"warm":{"min_age":"30d"}}}}]}}`,
-			expected: Config{Mode: libilm.ModeAuto,
+			expected: Config{Enabled: true,
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: true,
 					Mappings: defaultMappingsResolved(mockBeatInfo),
 					Policies: map[string]Policy{
@@ -157,7 +155,7 @@ func TestConfig_Valid(t *testing.T) {
 		},
 		{name: "allow unknown policy",
 			cfg: `{"setup":{"require_policy":false,"mapping":[{"event_type":"error","policy_name":"errorPolicy"}]}}`,
-			expected: Config{Mode: libilm.ModeAuto,
+			expected: Config{Enabled: true,
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: false,
 					Mappings: func() map[string]Mapping {
 						m := defaultMappingsResolved(mockBeatInfo)

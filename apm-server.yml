@@ -134,106 +134,6 @@ apm-server:
     # Configure curve types for ECDHE based cipher suites.
     #curve_types: []
 
-  # The APM Server endpoints can be secured by configuring a secret token or enabling the usage of API keys. Both
-  # options can be enabled in parallel, allowing Elastic APM agents to chose whichever mechanism they support.
-  # As soon as one of the options is enabled, requests without a valid token are denied by the server. An exception
-  # to this are requests to any enabled RUM endpoint. RUM endpoints are generally not secured by any token.
-  #
-  # Configure authorization via a common `secret_token`. By default it is disabled.
-  # Agents include the token in the following format: Authorization: Bearer <secret-token>.
-  # It is recommended to use an authorization token in combination with SSL enabled,
-  # and save the token in the apm-server keystore.
-  #
-  # WARNING: This configuration is deprecated and replaced with `apm-server.auth.secret_token`, and will be removed
-  # in the 8.0 release. If that config is defined, this one will be ignored.
-  #secret_token:
-
-  # Enable API key authorization by setting enabled to true. By default API key support is disabled.
-  # Agents include a valid API key in the following format: Authorization: ApiKey <token>.
-  # The key must be the base64 encoded representation of the API key's "id:key".
-  #
-  # WARNING: This configuration is deprecated and replaced with `apm-server.auth.api_key`, and will be removed
-  # in the 8.0 release. If that config is defined, this one will be ignored.
-  #api_key:
-    #enabled: false
-
-    # Restrict how many unique API keys are allowed per minute. Should be set to at least the amount of different
-    # API keys configured in your monitored services. Every unique API key triggers one request to Elasticsearch.
-    #limit: 100
-
-    # API keys need to be fetched from Elasticsearch. If nothing is configured, configuration settings from the
-    # output section will be reused.
-    # Note that configuration needs to point to a secured Elasticsearch cluster that is able to serve API key requests.
-    #elasticsearch:
-      #hosts: ["localhost:9200"]
-
-      #protocol: "http"
-
-      # Username and password are only needed for the apm-server apikey sub-command, and they are ignored otherwise
-      # See `apm-server apikey --help` for details.
-      #username: "elastic"
-      #password: "changeme"
-
-      # Optional HTTP Path.
-      #path: ""
-
-      # Proxy server url.
-      #proxy_url: ""
-      #proxy_disable: false
-
-      # Configure http request timeout before failing an request to Elasticsearch.
-      #timeout: 5s
-
-      # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
-      #ssl.enabled: true
-
-      # Optional SSL configuration options. SSL is off by default, change the `protocol` option if you want to enable `https`.
-      #
-      # Control the verification of Elasticsearch certificates. Valid values are:
-      # * full, which verifies that the provided certificate is signed by a trusted
-      # authority (CA) and also verifies that the server's hostname (or IP address)
-      # matches the names identified within the certificate.
-      # * strict, which verifies that the provided certificate is signed by a trusted
-      # authority (CA) and also verifies that the server's hostname (or IP address)
-      # matches the names identified within the certificate. If the Subject Alternative
-      # Name is empty, it returns an error.
-      # * certificate, which verifies that the provided certificate is signed by a
-      # trusted authority (CA), but does not perform any hostname verification.
-      #  * none, which performs no verification of the server's certificate. This
-      # mode disables many of the security benefits of SSL/TLS and should only be used
-      # after very careful consideration. It is primarily intended as a temporary
-      # diagnostic mechanism when attempting to resolve TLS errors; its use in
-      # production environments is strongly discouraged.
-      #ssl.verification_mode: full
-
-      # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
-      # 1.2 are enabled.
-      #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
-
-      # List of root certificates for HTTPS server verifications.
-      #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
-
-      # Certificate for SSL client authentication.
-      #ssl.certificate: "/etc/pki/client/cert.pem"
-
-      # Client Certificate Key
-      #ssl.key: "/etc/pki/client/cert.key"
-
-      # Optional passphrase for decrypting the Certificate Key.
-      # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
-      #ssl.key_passphrase: ''
-
-      # Configure cipher suites to be used for SSL connections.
-      #ssl.cipher_suites: []
-
-      # Configure curve types for ECDHE based cipher suites.
-      #ssl.curve_types: []
-
-      # Configure what types of renegotiation are supported. Valid options are
-      # never, once, and freely. Default is never.
-      #ssl.renegotiation: never
-
-
   #---------------------------- APM Server - RUM Real User Monitoring ----------------------------
 
   # Enable Real User Monitoring (RUM) Support. By default RUM is disabled.
@@ -242,30 +142,7 @@ apm-server:
   #rum:
     #enabled: false
 
-    # Rate-limit RUM agents.
-    #
-    # WARNING: This configuration is deprecated and replaced with `apm-server.auth.anonymous.rate_limit`,
-    # and will be removed in the 8.0 release. If that config is defined, this one will be ignored.
-    #event_rate:
-
-      # Defines the maximum amount of events allowed to be sent to the APM Server RUM
-      # endpoint per IP per second. Defaults to 300.
-      #limit: 300
-
-      # An LRU cache is used to keep a rate limit per IP for the most recently seen IPs.
-      # This setting defines the number of unique IPs that can be tracked in the cache.
-      # Sites with many concurrent clients should consider increasing this limit. Defaults to 1000.
-      #lru_size: 1000
-
     #-- General RUM settings
-
-    # A list of service names to allow, to limit service-specific indices and data streams
-    # created for unauthenticated RUM events.
-    # If the list is empty, any service name is allowed.
-    #
-    # WARNING: This configuration is deprecated and replaced with `apm-server.auth.anonymous.allow_service`,
-    # and will be removed in the 8.0 release. If that config is defined, this one will be ignored.
-    #allow_service_names: []
 
     # A list of permitted origins for real user monitoring.
     # User-agents will send an origin header that will be validated against this list.
