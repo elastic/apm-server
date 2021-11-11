@@ -364,9 +364,6 @@ pipeline {
                   keepLongStdio: true,
                   testResults: "TEST-*.xml"
                 )
-                catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
-                  tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests")
-                }
               }
             }
           }
