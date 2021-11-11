@@ -38,10 +38,8 @@ import (
 )
 
 func TestRUMXForwardedFor(t *testing.T) {
-	withDataStreams(t, testRUMXForwardedFor)
-}
-
-func testRUMXForwardedFor(t *testing.T, srv *apmservertest.Server) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
 	err := srv.Start()
 	require.NoError(t, err)
@@ -67,7 +65,7 @@ func testRUMXForwardedFor(t *testing.T, srv *apmservertest.Server) {
 	io.Copy(ioutil.Discard, resp.Body)
 	resp.Body.Close()
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*,traces-apm*,metrics-apm*", estest.TermsQuery{
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*,metrics-apm*", estest.TermsQuery{
 		Field:  "processor.event",
 		Values: []interface{}{"transaction", "metric"},
 	})
