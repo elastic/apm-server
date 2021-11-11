@@ -70,3 +70,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Add deprecation warning for `sampling.keep_unsampled=true` {pull}6285[6285]
 - `processors.*` config, which was never officially supported in apm-server, is now explicitly deprecated and will be removed in 8.0 {pull}6367[6367]
 - Support for uploading source maps to APM Server is deprecated, and will be removed in 8.0. Users should use the new Kibana REST API in conjunction with the integration package {pull}6432[6432]
+
+[float]
+==== Licensing Changes
+- Updated the `x-pack` source files license to the Elastic License 2.0 {pull}6524[6524]

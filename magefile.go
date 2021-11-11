@@ -230,7 +230,7 @@ func Fields() error {
 		return err
 	}
 	assetData, err := asset.CreateAsset(
-		licenses.Elastic, mage.BeatName,
+		licenses.Elasticv2, mage.BeatName,
 		"XPackFields", // asset name
 		"include",     // package name
 		xpackFieldsData,
@@ -390,7 +390,7 @@ func customizePackaging() {
 
 			case filespec.Source == "fields.yml":
 				// Source fields.yml from the build directory.
-				if args.Spec.License == "Elastic License" {
+				if args.Spec.License == "Elastic License" || args.Spec.License == "Elastic License 2.0" {
 					filespec.Source = mage.FieldsAllYML
 				} else {
 					filespec.Source = mage.FieldsYML
