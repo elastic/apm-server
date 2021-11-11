@@ -19,6 +19,7 @@ package beater
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -630,6 +631,10 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 		})
 	}
 
+	preconditions = append(preconditions, func(ctx context.Context) error {
+		return queryClusterUUID(ctx, esOutputClient)
+	})
+
 	if len(preconditions) == 0 {
 		return nil
 	}
@@ -968,4 +973,39 @@ func (r *chanReloader) serve(ctx context.Context, reloader reload.Reloadable) er
 			}
 		}
 	}
+}
+
+// TODO: This is copying behavior from libbeat:
+// https://github.com/elastic/beats/blob/b9ced47dba8bb55faa3b2b834fd6529d3c4d0919/libbeat/cmd/instance/beat.go#L927-L950
+// Remove this when cluster_uuid no longer needs to be queried from ES.
+func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error {
+	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	elasticsearchRegistry := stateRegistry.GetRegistry("outputs.elasticsearch")
+	// TODO: How can I just update a registry value?
+	elasticsearchRegistry.Remove("cluster_uuid")
+	clusterUUIDRegVar := monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
+
+	var response struct {
+		ClusterUUID string `json:"cluster_uuid"`
+	}
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		return err
+	}
+	resp, err := esClient.Perform(req.WithContext(ctx))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode > 299 {
+		return err
+	}
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return err
+	}
+
+	clusterUUIDRegVar.Set(response.ClusterUUID)
+	return nil
 }
