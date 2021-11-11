@@ -67,12 +67,12 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	metricsResult := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm*metric",
+	metricsResult := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.internal-*",
 		estest.TermQuery{Field: "metricset.name", Value: "service_destination"},
 	)
 	systemtest.ApproveEvents(t, t.Name()+"Metrics", metricsResult.Hits.Hits, "@timestamp")
 
-	txResult := systemtest.Elasticsearch.ExpectDocs(t, "apm*transaction",
+	txResult := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm-*",
 		estest.TermQuery{Field: "transaction.id", Value: tx.TraceContext().Span.String()},
 	)
 	systemtest.ApproveEvents(t, t.Name()+"Transaction", txResult.Hits.Hits,
@@ -147,7 +147,7 @@ func TestCompressedSpans(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	spanResults := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm*span",
+	spanResults := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm-*",
 		estest.TermQuery{Field: "span.type", Value: "db"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), spanResults.Hits.Hits)

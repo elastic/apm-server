@@ -51,7 +51,7 @@ func TestDropUnsampled(t *testing.T) {
 	tracer.StartTransaction("unsampled", transactionType).End()
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "apm-*", estest.TermQuery{
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "traces-apm*", estest.TermQuery{
 		Field: "transaction.type",
 		Value: transactionType,
 	})
@@ -60,8 +60,6 @@ func TestDropUnsampled(t *testing.T) {
 
 func TestTailSampling(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	err := systemtest.Fleet.InstallPackage(systemtest.IntegrationPackage.Name, systemtest.IntegrationPackage.Version)
-	require.NoError(t, err)
 
 	apmIntegration1 := newAPMIntegration(t, map[string]interface{}{
 		"tail_sampling_interval": "1s",
@@ -144,10 +142,7 @@ func TestTailSamplingUnlicensed(t *testing.T) {
 	waitForIntegration := false
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Output.Elasticsearch.Hosts = []string{es.Addr}
-	srv.Config.DataStreams = &apmservertest.DataStreamsConfig{
-		Enabled:            true,
-		WaitForIntegration: &waitForIntegration,
-	}
+	srv.Config.WaitForIntegration = &waitForIntegration
 	srv.Config.Sampling = &apmservertest.SamplingConfig{
 		Tail: &apmservertest.TailSamplingConfig{
 			Enabled:  true,

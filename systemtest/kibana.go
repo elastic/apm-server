@@ -69,9 +69,9 @@ func init() {
 }
 
 // InitFleet ensures Fleet is set up, destroys any existing agent policies previously
-// created by the system tests and unenrolls the associated agents, and uninstalls the
-// integration package if it is installed. After InitFleet returns successfully, the
-// IntegrationPackage var will be initialised.
+// created by the system tests and unenrolls the associated agents, uninstalls the
+// integration package if it is installed, and finally installs the integration pacakge.
+// After InitFleet returns successfully, the IntegrationPackage var will be initialised.
 func InitFleet() error {
 	if err := Fleet.Setup(); err != nil {
 		log.Fatal(err)
@@ -115,7 +115,7 @@ func InitFleet() error {
 	if IntegrationPackage == nil {
 		return errors.New("could not find package 'apm'")
 	}
-	return nil
+	return Fleet.InstallPackage(IntegrationPackage.Name, IntegrationPackage.Version)
 }
 
 // CreateAgentPolicy creates an Agent policy with the given name and namespace,
