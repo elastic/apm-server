@@ -41,7 +41,7 @@ exec { go get github.com/docker/libcompose }
 if (Test-Path "build") { Remove-Item -Recurse -Force build }
 New-Item -ItemType directory -Path build\coverage | Out-Null
 
-choco install python -y -r --no-progress --version 3.8.1.20200110
+choco install python -y -r --no-progress --version 3.8.5
 refreshenv
 $env:PATH = "C:\Python38;C:\Python38\Scripts;$env:PATH"
 $env:PYTHON_ENV = "$env:TEMP\python-env"
