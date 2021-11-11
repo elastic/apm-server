@@ -218,8 +218,10 @@ func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
 		},
 		Config: common.MustNewConfigFrom(map[string]interface{}{
 			"apm-server": map[string]interface{}{
-				"api_key": map[string]interface{}{
-					"enabled": true,
+				"auth": map[string]interface{}{
+					"api_key": map[string]interface{}{
+						"enabled": true,
+					},
 				},
 			},
 		}),
