@@ -34,15 +34,15 @@ pipeline {
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
     booleanParam(name: 'arm_ci', defaultValue: true, description: 'Enable ARM build')
-    booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
-    booleanParam(name: 'osx_ci', defaultValue: true, description: 'Enable OSX CI')
-    booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
-    booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
-    booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
-    booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
-    booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
-    booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
-    booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
+    booleanParam(name: 'linux_ci', defaultValue: false, description: 'Enable Linux build')
+    booleanParam(name: 'osx_ci', defaultValue: false, description: 'Enable OSX CI')
+    booleanParam(name: 'windows_ci', defaultValue: false, description: 'Enable Windows CI')
+    booleanParam(name: 'intake_ci', defaultValue: false, description: 'Enable test')
+    booleanParam(name: 'test_ci', defaultValue: false, description: 'Enable test')
+    booleanParam(name: 'test_sys_env_ci', defaultValue: false, description: 'Enable system and environment test')
+    booleanParam(name: 'bench_ci', defaultValue: false, description: 'Enable benchmarks')
+    booleanParam(name: 'release_ci', defaultValue: false, description: 'Enable build the release packages')
+    booleanParam(name: 'its_ci', defaultValue: false, description: 'Enable async ITs')
     string(name: 'DIAGNOSTIC_INTERVAL', defaultValue: "0", description: 'Elasticsearch detailed logging every X seconds')
     string(name: 'ES_LOG_LEVEL', defaultValue: "error", description: 'Elasticsearch error level')
   }
@@ -245,22 +245,32 @@ pipeline {
             HOME = "${env.WORKSPACE}"
           }
           steps {
+            sh "df -h"
             withGithubNotify(context: 'Build-Test - ARM') {
+              sh "df -h"
               deleteDir()
+              sh "df -h"
               unstash 'source'
+              sh "df -h"
               dir("${BASE_DIR}"){
+                sh "df -h"
                 withMageEnv(){
+                  sh "df -h"
                   sh(label: 'ARM build', script: '.ci/scripts/build.sh')
+                  sh "df -h"
                   sh(label: 'ARM Unit tests', script: './.ci/scripts/unit-test.sh')
+                  sh "df -h"
                 }
               }
             }
           }
           post {
             always {
+              sh "df -h"
               junit(allowEmptyResults: true,
                 keepLongStdio: true,
                 testResults: "${BASE_DIR}/build/TEST-*.xml")
+              sh "df -h"
             }
           }
         }
