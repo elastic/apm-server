@@ -49,7 +49,7 @@ func TestDefaultServiceEnvironment(t *testing.T) {
 	tracerSpecifiedEnvironment.StartTransaction("specified_environment", "type").End()
 	tracerSpecifiedEnvironment.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*",
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*",
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
 	environments := make(map[string]string)

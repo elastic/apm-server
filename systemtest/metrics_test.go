@@ -39,13 +39,8 @@ import (
 )
 
 func TestApprovedMetrics(t *testing.T) {
-	withDataStreams(t, testApprovedMetrics)
-}
-
-func testApprovedMetrics(t *testing.T, srv *apmservertest.Server) {
-	err := srv.Start()
-	require.NoError(t, err)
-
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServer(t)
 	eventsPayload, err := ioutil.ReadFile("../testdata/intake-v2/metricsets.ndjson")
 	require.NoError(t, err)
 
@@ -62,10 +57,15 @@ func testApprovedMetrics(t *testing.T, srv *apmservertest.Server) {
 	assert.NoError(t, err)
 
 	// Check the metrics documents are exactly as we expect.
-	indices := []string{"apm-*", "metrics-apm.*"}
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, ingestResult.Accepted, strings.Join(indices, ","), estest.TermQuery{
-		Field: "processor.event",
-		Value: "metric",
+	indices := []string{"metrics-apm*"}
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, ingestResult.Accepted, strings.Join(indices, ","), estest.BoolQuery{
+		Filter: []interface{}{
+			estest.TermQuery{Field: "processor.event", Value: "metric"},
+		},
+		MustNot: []interface{}{
+			// Ignore server-produced transaction metrics; we're only interested in the metrics sent by the agent.
+			estest.TermQuery{Field: "metricset.name", Value: "transaction"},
+		},
 	})
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 
@@ -97,7 +97,7 @@ func TestBreakdownMetrics(t *testing.T) {
 	tracer.SendMetrics(nil)
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*", estest.BoolQuery{
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.internal-*", estest.BoolQuery{
 		Filter: []interface{}{
 			estest.TermQuery{
 				Field: "processor.event",
@@ -135,7 +135,7 @@ func TestApplicationMetrics(t *testing.T) {
 	tracer.SendMetrics(nil)
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.app.*", estest.TermQuery{
 		Field: "metricset.name",
 		Value: "app",
 	})
@@ -164,7 +164,7 @@ func TestApplicationMetrics(t *testing.T) {
 
 	// Check that the index mapping has been updated for the custom
 	// metrics, with the expected dynamically mapped field types.
-	mappings := getFieldMappings(t, []string{"apm-*"}, []string{"a.b.c", "x.y.z"})
+	mappings := getFieldMappings(t, []string{"metrics-apm.app.*"}, []string{"a.b.c", "x.y.z"})
 	assert.Equal(t, map[string]interface{}{
 		"a.b.c": map[string]interface{}{
 			"full_name": "a.b.c",
