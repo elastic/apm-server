@@ -631,9 +631,11 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 		})
 	}
 
-	preconditions = append(preconditions, func(ctx context.Context) error {
-		return queryClusterUUID(ctx, esOutputClient)
-	})
+	if s.config.DataStreams.Enabled {
+		preconditions = append(preconditions, func(ctx context.Context) error {
+			return queryClusterUUID(ctx, esOutputClient)
+		})
+	}
 
 	if len(preconditions) == 0 {
 		return nil
@@ -980,10 +982,17 @@ func (r *chanReloader) serve(ctx context.Context, reloader reload.Reloadable) er
 // Remove this when cluster_uuid no longer needs to be queried from ES.
 func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
-	elasticsearchRegistry := stateRegistry.GetRegistry("outputs.elasticsearch")
+	outputES := "outputs.elasticsearch"
+	elasticsearchRegistry := stateRegistry.GetRegistry(outputES)
+	if elasticsearchRegistry == nil {
+		elasticsearchRegistry = stateRegistry.NewRegistry(outputES)
+	}
 	// TODO: How can I just update a registry value?
-	elasticsearchRegistry.Remove("cluster_uuid")
-	clusterUUIDRegVar := monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
+	clusterUUID := "cluster_uuid"
+	if elasticsearchRegistry.Get(clusterUUID) != nil {
+		elasticsearchRegistry.Remove(clusterUUID)
+	}
+	clusterUUIDRegVar := monitoring.NewString(elasticsearchRegistry, clusterUUID)
 
 	var response struct {
 		ClusterUUID string `json:"cluster_uuid"`

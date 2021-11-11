@@ -18,10 +18,13 @@
 package beater
 
 import (
+	"bytes"
 	"compress/zlib"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -46,6 +49,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 )
 
@@ -361,3 +365,44 @@ func Test_newDropLogsBeatProcessor(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, result)
 }
+
+func TestQueryClusterUUID(t *testing.T) {
+	ctx := context.Background()
+	clusterUUID := "abc123"
+	client := &mockClusterUUIDClient{ClusterUUID: clusterUUID}
+	err := queryClusterUUID(ctx, client)
+	require.NoError(t, err)
+
+	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	elasticsearchRegistry := stateRegistry.GetRegistry("outputs.elasticsearch")
+	require.NotNil(t, elasticsearchRegistry)
+
+	fs := monitoring.CollectFlatSnapshot(elasticsearchRegistry, monitoring.Full, false)
+	assert.Equal(t, clusterUUID, fs.Strings["cluster_uuid"])
+}
+
+type mockClusterUUIDClient struct {
+	ClusterUUID string `json:"cluster_uuid"`
+}
+
+func (c *mockClusterUUIDClient) Perform(r *http.Request) (*http.Response, error) {
+	m, err := json.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
+	resp := &http.Response{
+		StatusCode: 200,
+		Body:       &mockReadCloser{bytes.NewReader(m)},
+		Request:    r,
+	}
+	return resp, nil
+}
+
+func (c *mockClusterUUIDClient) NewBulkIndexer(_ elasticsearch.BulkIndexerConfig) (elasticsearch.BulkIndexer, error) {
+	return nil, nil
+}
+
+type mockReadCloser struct{ r io.Reader }
+
+func (r *mockReadCloser) Read(p []byte) (int, error) { return r.r.Read(p) }
+func (r *mockReadCloser) Close() error               { return nil }
