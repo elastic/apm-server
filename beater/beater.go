@@ -982,17 +982,11 @@ func (r *chanReloader) serve(ctx context.Context, reloader reload.Reloadable) er
 // Remove this when cluster_uuid no longer needs to be queried from ES.
 func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
-	outputES := "outputs.elasticsearch"
-	elasticsearchRegistry := stateRegistry.GetRegistry(outputES)
-	if elasticsearchRegistry == nil {
-		elasticsearchRegistry = stateRegistry.NewRegistry(outputES)
+	elasticsearchRegistry := stateRegistry.GetRegistry("outputs.elasticsearch")
+	s, ok := elasticsearchRegistry.Get("cluster_uuid").(*monitoring.String)
+	if !ok {
+		return fmt.Errorf("couldn't cast to String")
 	}
-	// TODO: How can I just update a registry value?
-	clusterUUID := "cluster_uuid"
-	if elasticsearchRegistry.Get(clusterUUID) != nil {
-		elasticsearchRegistry.Remove(clusterUUID)
-	}
-	clusterUUIDRegVar := monitoring.NewString(elasticsearchRegistry, clusterUUID)
 
 	var response struct {
 		ClusterUUID string `json:"cluster_uuid"`
@@ -1015,6 +1009,6 @@ func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error 
 		return err
 	}
 
-	clusterUUIDRegVar.Set(response.ClusterUUID)
+	s.Set(response.ClusterUUID)
 	return nil
 }
