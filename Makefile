@@ -110,7 +110,7 @@ NOTICE.txt: $(PYTHON) go.mod tools/go.mod
 add-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
 	@$(GOLICENSER) -exclude x-pack -exclude internal/otel_collector
-	@$(GOLICENSER) -license Elastic x-pack
+	@$(GOLICENSER) -license Elasticv2 x-pack
 endif
 
 ## get-version : Get the apm server version
@@ -174,7 +174,7 @@ check-changelogs: $(PYTHON)
 check-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
 	@$(GOLICENSER) -d -exclude build -exclude x-pack -exclude internal/otel_collector
-	@$(GOLICENSER) -d -exclude build -license Elastic x-pack
+	@$(GOLICENSER) -d -exclude build -license Elasticv2 x-pack
 endif
 
 .PHONY: check-docker-compose
