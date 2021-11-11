@@ -30,7 +30,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
-	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/template"
 
@@ -53,7 +52,7 @@ func TestMakeDefaultSupporter(t *testing.T) {
 
 	t.Run("StdSupporter", func(t *testing.T) {
 		s, err := buildSupporter(map[string]interface{}{
-			"apm-server.ilm.enabled":       "auto",
+			"apm-server.ilm.enabled":       true,
 			"setup.template.enabled":       "true",
 			"output.elasticsearch.enabled": "true",
 		})
@@ -63,14 +62,14 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		assert.NotNil(t, s.log)
 		assert.True(t, s.templateConfig.Enabled)
 		assert.Equal(t, "best_compression", s.templateConfig.Settings.Index["codec"])
-		assert.Equal(t, libilm.ModeAuto, s.ilmConfig.Mode)
+		assert.Equal(t, true, s.ilmConfig.Enabled)
 		assert.True(t, s.ilmConfig.Setup.Enabled)
 		assert.Equal(t, unmanaged.Config{}, s.unmanagedIdxConfig)
 	})
 
 	t.Run("ILMDisabled", func(t *testing.T) {
 		s, err := buildSupporter(map[string]interface{}{
-			"apm-server.ilm.enabled":       "false",
+			"apm-server.ilm.enabled":       false,
 			"setup.template.enabled":       "true",
 			"setup.template.name":          "custom",
 			"setup.template.pattern":       "custom",
@@ -78,7 +77,7 @@ func TestMakeDefaultSupporter(t *testing.T) {
 			"output.elasticsearch.enabled": "true",
 		})
 		require.NoError(t, err)
-		assert.Equal(t, libilm.ModeDisabled, s.ilmConfig.Mode)
+		assert.Equal(t, false, s.ilmConfig.Enabled)
 		assert.True(t, s.ilmConfig.Setup.Enabled)
 	})
 
@@ -135,7 +134,7 @@ func TestMakeDefaultSupporterDataStreamsWarnings(t *testing.T) {
 
 	attrs := map[string]interface{}{
 		"apm-server.data_streams.enabled":             "true",
-		"apm-server.ilm.enabled":                      "auto",
+		"apm-server.ilm.enabled":                      true,
 		"apm-server.register.ingest.pipeline.enabled": "true",
 		"output.elasticsearch.indices":                map[string]interface{}{},
 		"setup.template.name":                         "custom",
@@ -166,7 +165,7 @@ func TestMakeDefaultSupporterStandaloneWarnings(t *testing.T) {
 	}))
 
 	attrs := map[string]interface{}{
-		"apm-server.ilm.enabled":                      "auto",
+		"apm-server.ilm.enabled":                      true,
 		"apm-server.register.ingest.pipeline.enabled": "true",
 		"output.elasticsearch.indices":                map[string]interface{}{},
 		"setup.template.name":                         "custom",

@@ -24,6 +24,11 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed `apm-server.aggregation.transactions.enabled` configuration option {pull}6495[6495]
 - Removed `apm-server.aggregation.service_destinations.enabled` configuration option {pull}6503[6503]
 - Removed `apm-server.sampling.keep_unsampled` configuration option {pull}6514[6514]
+- Removed `apm-server.jaeger` configuration options {pull}6560[6560]
+- Removed `apm-server.instrumentation` configuration options in favor of `instrumentation` {pull}6560[6560]
+- Removed `apm-server.rum.{allowed_service,event_rate}` configuration option in favor of `apm-server.auth.anonymous.{allow_service,rate_limit}` {pull}6560[6560]
+- Removed `apm-server.{api_key,secret_token}` configuration options in favor of `apm-server.auth.{api_key,secret_token}` {pull}6560[6560]
+- Onboarding documents are no longer indexed {pull}6431[6431]
 
 [float]
 ==== Bug fixes
@@ -65,3 +70,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Add deprecation warning for `sampling.keep_unsampled=true` {pull}6285[6285]
 - `processors.*` config, which was never officially supported in apm-server, is now explicitly deprecated and will be removed in 8.0 {pull}6367[6367]
 - Support for uploading source maps to APM Server is deprecated, and will be removed in 8.0. Users should use the new Kibana REST API in conjunction with the integration package {pull}6432[6432]
+
+[float]
+==== Licensing Changes
+- Updated the `x-pack` source files license to the Elastic License 2.0 {pull}6524[6524]

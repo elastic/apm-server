@@ -132,7 +132,7 @@ func TestServerRoot(t *testing.T) {
 func TestServerRootWithToken(t *testing.T) {
 	token := "verysecret"
 	badToken := "Verysecret"
-	ucfg, err := common.NewConfigFrom(m{"secret_token": token})
+	ucfg, err := common.NewConfigFrom(m{"auth.secret_token": token})
 	assert.NoError(t, err)
 	apm, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
@@ -415,7 +415,7 @@ func TestServerJaegerGRPC(t *testing.T) {
 }
 
 func TestServerOTLPGRPC(t *testing.T) {
-	ucfg, err := common.NewConfigFrom(m{"secret_token": "abc123"})
+	ucfg, err := common.NewConfigFrom(m{"auth.secret_token": "abc123"})
 	assert.NoError(t, err)
 	server, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
@@ -528,7 +528,7 @@ func TestServerConfigReload(t *testing.T) {
 	assert.NotEmpty(t, healthcheck(addr1)) // non-empty as there's no auth required
 
 	// Reload config, causing the HTTP server to be restarted.
-	require.NoError(t, inputConfig.SetString("apm-server.secret_token", -1, "secret"))
+	require.NoError(t, inputConfig.SetString("apm-server.auth.secret_token", -1, "secret"))
 	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: inputConfig}})
 	require.NoError(t, err)
 

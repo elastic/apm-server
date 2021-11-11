@@ -67,24 +67,6 @@ func TestManager_VerifySetup(t *testing.T) {
 			version:    "6.2.0",
 			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
 		},
-		"ILMAutoButUnsupported": {
-			version: "6.2.0",
-			loadILM: libidxmgmt.LoadModeEnabled,
-			warn:    msgIlmDisabledES,
-		},
-		"ILMAutoCustomIndex": {
-			loadILM: libidxmgmt.LoadModeEnabled,
-			esCfg:   common.MapStr{"output.elasticsearch.index": "custom"},
-			warn:    msgIlmDisabledCfg,
-		},
-		"ILMAutoCustomIndices": {
-			loadILM: libidxmgmt.LoadModeEnabled,
-			esCfg: common.MapStr{"output.elasticsearch.indices": []common.MapStr{{
-				"index": "apm-custom-%{[observer.version]}-metric",
-				"when": map[string]interface{}{
-					"contains": map[string]interface{}{"processor.event": "metric"}}}}},
-			warn: msgIlmDisabledCfg,
-		},
 		"ILMTrueCustomIndex": {
 			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
 			esCfg: common.MapStr{"output.elasticsearch.index": "custom"},
@@ -311,12 +293,14 @@ func TestManager_SetupILM(t *testing.T) {
 			version:              "6.2.0",
 			loadMode:             libidxmgmt.LoadModeEnabled,
 			templatesILMDisabled: 4,
+			err:                  "ILM not supported",
 		},
 		"SetupOverwrite Default ES Unsupported ILM": {
 			cfg:                  common.MapStr{"apm-server.ilm.setup.overwrite": "true"},
 			version:              "6.2.0",
 			loadMode:             libidxmgmt.LoadModeEnabled,
 			templatesILMDisabled: 5,
+			err:                  "ILM not supported",
 		},
 		"ILM True ES Unsupported ILM": {
 			cfg:                  common.MapStr{"apm-server.ilm.enabled": "true"},
@@ -329,58 +313,13 @@ func TestManager_SetupILM(t *testing.T) {
 			cfg:      common.MapStr{"apm-server.ilm.setup.enabled": false},
 			loadMode: libidxmgmt.LoadModeEnabled,
 			version:  "6.2.0",
+			err:      "ILM not supported",
 		},
 		"ILM True ES Unsupported ILM setup disabled": {
 			cfg:      common.MapStr{"apm-server.ilm.setup.enabled": false, "apm-server.ilm.enabled": true},
 			loadMode: libidxmgmt.LoadModeEnabled,
 			version:  "6.2.0",
 			err:      "ILM not supported",
-		},
-	}
-	var testCasesILMNotSupportedByIndexSettings = map[string]testCase{
-		"ESIndexConfigured": {
-			cfg: common.MapStr{
-				"apm-server.ilm.enabled":       "auto",
-				"apm-server.ilm.setup.enabled": true,
-				"setup.template.name":          "custom",
-				"setup.template.pattern":       "custom",
-				"output.elasticsearch.index":   "custom"},
-			loadMode:             libidxmgmt.LoadModeEnabled,
-			templatesILMDisabled: 4,
-		},
-		"ESIndicesConfigured": {
-			cfg: common.MapStr{
-				"apm-server.ilm.enabled":       "auto",
-				"apm-server.ilm.setup.enabled": true,
-				"setup.template.name":          "custom",
-				"setup.template.pattern":       "custom",
-				"output.elasticsearch.indices": []common.MapStr{{
-					"index": "apm-custom-%{[observer.version]}-metric",
-					"when": map[string]interface{}{
-						"contains": map[string]interface{}{"processor.event": "metric"}}}}},
-			loadMode:             libidxmgmt.LoadModeEnabled,
-			templatesILMDisabled: 4,
-		},
-		"ESIndexConfigured setup disabled": {
-			cfg: common.MapStr{
-				"apm-server.ilm.enabled":       "auto",
-				"apm-server.ilm.setup.enabled": false,
-				"setup.template.name":          "custom",
-				"setup.template.pattern":       "custom",
-				"output.elasticsearch.index":   "custom"},
-			loadMode: libidxmgmt.LoadModeEnabled,
-		},
-		"ESIndicesConfigured setup disabled": {
-			cfg: common.MapStr{
-				"apm-server.ilm.enabled":       "auto",
-				"apm-server.ilm.setup.enabled": false,
-				"setup.template.name":          "custom",
-				"setup.template.pattern":       "custom",
-				"output.elasticsearch.indices": []common.MapStr{{
-					"index": "apm-custom-%{[observer.version]}-metric",
-					"when": map[string]interface{}{
-						"contains": map[string]interface{}{"processor.event": "metric"}}}}},
-			loadMode: libidxmgmt.LoadModeEnabled,
 		},
 	}
 
@@ -405,7 +344,6 @@ func TestManager_SetupILM(t *testing.T) {
 		testCasesSetupEnabled,
 		testCasesSetupDisabled,
 		testCasesILMNotSupportedByES,
-		testCasesILMNotSupportedByIndexSettings,
 		testCasesPolicyNotConfigured,
 	} {
 		for name, tc := range test {
@@ -481,17 +419,13 @@ func (h *mockClientHandler) Load(config template.TemplateConfig, _ beat.Info, fi
 	return nil
 }
 
-func (h *mockClientHandler) CheckILMEnabled(mode libilm.Mode) (bool, error) {
-	if mode == libilm.ModeDisabled {
+func (h *mockClientHandler) CheckILMEnabled(enabled bool) (bool, error) {
+	if !enabled {
 		return false, nil
 	}
 	avail := !h.esVersion.LessThan(esMinILMVersion)
 	if avail {
 		return true, nil
-	}
-
-	if mode == libilm.ModeAuto {
-		return false, nil
 	}
 	return false, ErrILMNotSupported
 }
