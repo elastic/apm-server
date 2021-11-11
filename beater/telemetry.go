@@ -22,7 +22,6 @@ import (
 	"github.com/elastic/apm-server/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
@@ -84,8 +83,7 @@ func recordRootConfig(info beat.Info, rootCfg *common.Config) error {
 	configMonitors.ilmSetupEnabled.Set(indexManagementCfg.ILM.Setup.Enabled)
 	configMonitors.ilmSetupOverwrite.Set(indexManagementCfg.ILM.Setup.Overwrite)
 	configMonitors.ilmSetupRequirePolicy.Set(indexManagementCfg.ILM.Setup.RequirePolicy)
-	mode := indexManagementCfg.ILM.Mode
-	configMonitors.ilmEnabled.Set(mode == ilm.ModeAuto || mode == ilm.ModeEnabled)
+	configMonitors.ilmEnabled.Set(indexManagementCfg.ILM.Enabled)
 	return nil
 }
 
