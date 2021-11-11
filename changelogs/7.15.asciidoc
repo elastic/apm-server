@@ -3,11 +3,8 @@
 
 https://github.com/elastic/apm-server/compare/7.14\...7.15[View commits]
 
-<<<<<<< HEAD
-=======
 * <<release-notes-7.15.2>>
 * <<release-notes-7.15.1>>
->>>>>>> 25fab305 (Update 7.15.asciidoc (#6564))
 * <<release-notes-7.15.0>>
 
 [float]
