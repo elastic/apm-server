@@ -617,6 +617,12 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 				)
 			})
 		}
+
+		if s.config.DataStreams.Enabled {
+			preconditions = append(preconditions, func(ctx context.Context) error {
+				return queryClusterUUID(ctx, esOutputClient)
+			})
+		}
 	}
 
 	// When running standalone with data streams enabled, by default we will add
@@ -628,12 +634,6 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 		}
 		preconditions = append(preconditions, func(ctx context.Context) error {
 			return checkIntegrationInstalled(ctx, kibanaClient, esOutputClient, s.logger)
-		})
-	}
-
-	if s.config.DataStreams.Enabled {
-		preconditions = append(preconditions, func(ctx context.Context) error {
-			return queryClusterUUID(ctx, esOutputClient)
 		})
 	}
 
