@@ -61,7 +61,6 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Added support for gzip compression to the experimental Elasticsearch output {pull}6449[6449]
 - Introduced a delete phase for all data streams. Traces, errors and logs are kept for 10 days, metrics are kept for 90 days {pull}6480[6480]
 - Changed RUM traces to use a dedicated data stream (`traces-apm.rum`). RUM traces are kept for 90 days {pull}6480[6480]
-- Updated the `x-pack` source files license to the Elastic License 2.0 {pull}6524[6524]
 
 [float]
 ==== Deprecated
@@ -71,3 +70,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Add deprecation warning for `sampling.keep_unsampled=true` {pull}6285[6285]
 - `processors.*` config, which was never officially supported in apm-server, is now explicitly deprecated and will be removed in 8.0 {pull}6367[6367]
 - Support for uploading source maps to APM Server is deprecated, and will be removed in 8.0. Users should use the new Kibana REST API in conjunction with the integration package {pull}6432[6432]
+
+[float]
+==== Licensing Changes
+- Updated the `x-pack` source files license to the Elastic License 2.0 {pull}6524[6524]
