@@ -109,17 +109,11 @@ func testPublish(t *testing.T, client *http.Client, req *http.Request, events <-
 	got := body(t, rsp)
 	assert.Equal(t, http.StatusAccepted, rsp.StatusCode, got)
 
-	onboarded := false
 	var docs [][]byte
 	for _, e := range collectEvents(events, time.Second) {
-		if e.Fields["processor"].(common.MapStr)["name"] == "onboarding" {
-			onboarded = true
-			continue
-		}
 		adjustMissingTimestamp(&e)
 		docs = append(docs, beatertest.EncodeEventDoc(e))
 	}
-	assert.True(t, onboarded)
 	return docs
 }
 
@@ -156,28 +150,6 @@ func TestPublishIntegration(t *testing.T) {
 			approvaltest.ApproveEventDocs(t, "test_approved_es_documents/TestPublishIntegration"+tc.name, docs)
 		})
 	}
-}
-
-func TestPublishIntegrationOnboarding(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping slow tc")
-	}
-
-	events := make(chan beat.Event)
-	defer close(events)
-	apm, err := setupServer(t, nil, nil, events)
-	require.NoError(t, err)
-	defer apm.Stop()
-
-	allEvents := collectEvents(events, time.Second)
-	require.Equal(t, 1, len(allEvents))
-	event := allEvents[0]
-	otype, err := event.Fields.GetValue("observer.type")
-	require.NoError(t, err)
-	assert.Equal(t, "test-apm-server", otype.(string))
-	hasListen, err := event.Fields.HasKey("observer.listening")
-	require.NoError(t, err)
-	assert.True(t, hasListen, "missing field: observer.listening")
 }
 
 func TestPublishIntegrationProfile(t *testing.T) {
