@@ -14,7 +14,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20211022123610-8dd9abb0616d // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.15.2-0.20211110120032-e3579b84b967
+	github.com/elastic/beats/v7 v7.15.3-0.20211110153420-56d28da73c65
 	github.com/elastic/ecs v1.11.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210922110810-e6f1f402a9ed // indirect
 	github.com/elastic/gmux v0.1.0
@@ -22,7 +22,7 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20210727161915-8cf93274b968
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.4.0 // indirect
-	github.com/elastic/go-ucfg v0.8.4-0.20200415140258-1232bd4774a6
+	github.com/elastic/go-ucfg v0.8.4
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v4.1.0+incompatible
@@ -70,7 +70,7 @@ require (
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
 	golang.org/x/net v0.0.0-20211109214657-ef0fda0de508
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20211109184856-51b60fd695b3 // indirect
+	golang.org/x/sys v0.0.0-20211110154304-99a53858aa08 // indirect
 	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6
 	golang.org/x/tools v0.1.7
 	google.golang.org/genproto v0.0.0-20211104193956-4c6863e31247 // indirect
