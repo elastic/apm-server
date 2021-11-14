@@ -375,21 +375,6 @@
                 "duration": {
                     "us": 3781
                 },
-                "http": {
-                    "method": "GET",
-                    "response": {
-                        "decoded_body_size": 401,
-                        "encoded_body_size": 356,
-                        "headers": {
-                            "Content-Type": [
-                                "application/json"
-                            ]
-                        },
-                        "status_code": 302,
-                        "transfer_size": 300.12
-                    }
-                },
-                "http.url.original": "http://localhost:8000",
                 "id": "1234567890aaaade",
                 "name": "GET users-authenticated",
                 "stacktrace": [

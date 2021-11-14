@@ -127,9 +127,6 @@
                 },
                 "id": "0147258369abcdef",
                 "name": "sp1",
-                "start": {
-                    "us": 10000
-                },
                 "type": "db"
             },
             "timestamp": {
