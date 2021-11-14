@@ -119,7 +119,6 @@ func InitFleet() error {
 // This should typically be used by tests instead of directly calling the
 // fleettest.Client.CreateAgentPolicy method.
 func CreateAgentPolicy(t testing.TB, name, namespace string, vars map[string]interface{}) (*fleettest.AgentPolicy, *fleettest.EnrollmentAPIKey) {
-
 	agentPolicy, key, err := Fleet.CreateAgentPolicy(name, namespace, agentPolicyDescription)
 	require.NoError(t, err)
 	t.Cleanup(func() { DestroyAgentPolicy(t, agentPolicy.ID) })
@@ -171,7 +170,10 @@ func destroyAgentPolicy(id ...string) error {
 //
 // The returned package policy is suitable for passing to Fleet.CreatePackagePolicy.
 func NewPackagePolicy(agentPolicy *fleettest.AgentPolicy, varValues map[string]interface{}) *fleettest.PackagePolicy {
-	packagePolicy := fleettest.NewPackagePolicy(IntegrationPackage, "apm", agentPolicy.Namespace, agentPolicy.ID)
+	// Package policy names must be globally unique. We generate unique agent
+	// policy names, so just append the package name to that.
+	packagePolicyName := agentPolicy.Name + "-apm"
+	packagePolicy := fleettest.NewPackagePolicy(IntegrationPackage, packagePolicyName, agentPolicy.Namespace, agentPolicy.ID)
 	packagePolicy.Package.Name = IntegrationPackage.Name
 	packagePolicy.Package.Version = IntegrationPackage.Version
 	packagePolicy.Package.Title = IntegrationPackage.Title
