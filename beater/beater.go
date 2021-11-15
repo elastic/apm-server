@@ -1002,7 +1002,7 @@ func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error 
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 299 {
-		return err
+		return fmt.Errorf("error querying cluster_uuid: status_code=%d", resp.StatusCode)
 	}
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
