@@ -27,7 +27,6 @@ import (
 	"go.elastic.co/apm"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model"
 )
@@ -44,10 +43,9 @@ type Reporter func(context.Context, PendingReq) error
 // number of events active in the system can exceed the queue size. Only the number of
 // concurrent HTTP requests trying to publish at the same time is limited.
 type Publisher struct {
-	stopped  chan struct{}
-	tracer   *apm.Tracer
-	client   beat.Client
-	pipeline string
+	stopped chan struct{}
+	tracer  *apm.Tracer
+	client  beat.Client
 
 	mu              sync.RWMutex
 	stopping        bool
@@ -63,17 +61,6 @@ type Transformer interface {
 	Transform(context.Context) []beat.Event
 }
 
-// PublisherConfig is a struct holding configuration information for the publisher.
-type PublisherConfig struct {
-	Info      beat.Info
-	Pipeline  string
-	Processor beat.ProcessorList
-}
-
-func (cfg *PublisherConfig) Validate() error {
-	return nil
-}
-
 var (
 	ErrFull          = errors.New("queue is full")
 	ErrChannelClosed = errors.New("can't send batch, publisher is being stopped")
@@ -83,16 +70,11 @@ var (
 //
 // GOMAXPROCS goroutines are started for forwarding events to libbeat.
 // Stop must be called to close the beat.Client and free resources.
-func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg PublisherConfig) (*Publisher, error) {
-	if err := cfg.Validate(); err != nil {
-		return nil, errors.Wrap(err, "invalid config")
-	}
-
-	processingCfg := beat.ProcessingConfig{Processor: cfg.Processor}
+func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer) (*Publisher, error) {
+	processingCfg := beat.ProcessingConfig{}
 	p := &Publisher{
-		tracer:   tracer,
-		stopped:  make(chan struct{}),
-		pipeline: cfg.Pipeline,
+		tracer:  tracer,
+		stopped: make(chan struct{}),
 
 		// One request will be actively processed by the
 		// worker, while the other concurrent requests will be buffered in the queue.
@@ -184,17 +166,9 @@ func (p *Publisher) Send(ctx context.Context, req PendingReq) error {
 }
 
 func (p *Publisher) run() {
-	var meta common.MapStr
-	if p.pipeline != "" {
-		meta = common.MapStr{"pipeline": p.pipeline}
-	}
-
 	ctx := context.Background()
 	for req := range p.pendingRequests {
 		events := req.Transformable.Transform(ctx)
-		for i := range events {
-			events[i].Meta = meta
-		}
 		p.client.PublishAll(events)
 	}
 }
