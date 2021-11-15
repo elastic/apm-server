@@ -261,10 +261,11 @@ release-manager-snapshot: release
 release-manager-release: release
 
 JAVA_ATTACHER_VERSION:=1.26.0
-JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION).jar
+JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
 JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
-JAVA_ATTACHER_URL:=https://search.maven.org/remotecontent?filepath=co/elastic/apm/apm-agent-attach-cli/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_JAR)
-JAVA_ATTACHER_SIG_URL:=https://search.maven.org/remotecontent?filepath=co/elastic/apm/apm-agent-attach-cli/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_SIG)
+JAVA_ATTACHER_BASE_URL:=https://repo1.maven.org/maven2/co/elastic/apm/apm-agent-attach-cli
+JAVA_ATTACHER_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_JAR)
+JAVA_ATTACHER_SIG_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_SIG)
 
 APM_AGENT_JAVA_PUB_KEY:=apm-agent-java-public-key.asc
 
