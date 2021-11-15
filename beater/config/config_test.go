@@ -179,7 +179,7 @@ func TestUnpackConfig(t *testing.T) {
 							EventLimit: 7200,
 							IPLimit:    2000,
 						},
-						configured: true,
+						enabledSet: true,
 					},
 				},
 				TLS: &tlscommon.ServerConfig{
