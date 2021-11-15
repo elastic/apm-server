@@ -30,6 +30,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed `apm-server.{api_key,secret_token}` configuration options in favor of `apm-server.auth.{api_key,secret_token}` {pull}6560[6560]
 - Onboarding documents are no longer indexed {pull}6431[6431]
 - Removed unused `span.start.us` field, and deprecated `span.http.*` fields {pull}6602[6602]
+- Removed `logging.ecs` and `logging.json` config {pull}6613[6613]
 
 [float]
 ==== Bug fixes
