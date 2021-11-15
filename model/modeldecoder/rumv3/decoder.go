@@ -579,10 +579,6 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		out.Stacktrace = make(model.Stacktrace, len(from.Stacktrace))
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
-	if from.Start.IsSet() {
-		val := from.Start.Val
-		out.Start = &val
-	}
 	if from.Sync.IsSet() {
 		val := from.Sync.Val
 		out.Sync = &val

@@ -247,12 +247,6 @@
                 "duration": {
                     "us": 32592
                 },
-                "http": {
-                    "method": "GET",
-                    "response": {
-                        "status_code": 200
-                    }
-                },
                 "id": "ddf109a4c4aa5f2b6e984548ca57774d",
                 "kind": "CLIENT",
                 "name": "span_name",

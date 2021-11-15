@@ -243,9 +243,6 @@
                 },
                 "id": "1234abcdef567895",
                 "name": "GET /api/types",
-                "start": {
-                    "us": 22000
-                },
                 "type": "request"
             },
             "timestamp": {
@@ -376,9 +373,6 @@
                 },
                 "id": "0123456a89012345",
                 "name": "GET /api/types",
-                "start": {
-                    "us": 1845
-                },
                 "subtype": "http",
                 "type": "request"
             },
@@ -508,9 +502,6 @@
                 },
                 "id": "abcde56a89012345",
                 "name": "get /api/types",
-                "start": {
-                    "us": 0
-                },
                 "subtype": "http",
                 "sync": false,
                 "type": "request"
@@ -670,16 +661,6 @@
                 "duration": {
                     "us": 3781
                 },
-                "http": {
-                    "method": "GET",
-                    "response": {
-                        "decoded_body_size": 401,
-                        "encoded_body_size": 356,
-                        "status_code": 200,
-                        "transfer_size": 300.12
-                    }
-                },
-                "http.url.original": "http://localhost:8000",
                 "id": "1234567890aaaade",
                 "name": "SELECT FROM product_types",
                 "stacktrace": [
@@ -731,9 +712,6 @@
                         }
                     }
                 ],
-                "start": {
-                    "us": 2830
-                },
                 "subtype": "postgresql",
                 "sync": true,
                 "type": "db"
@@ -1013,9 +991,6 @@
                 },
                 "id": "abcdef01234567",
                 "name": "SELECT FROM p_details",
-                "start": {
-                    "us": 2830
-                },
                 "subtype": "postgresql",
                 "type": "db"
             },
