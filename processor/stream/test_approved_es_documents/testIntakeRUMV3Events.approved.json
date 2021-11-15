@@ -322,9 +322,6 @@
                 },
                 "id": "bbd8bcc3be14d814",
                 "name": "Requesting and receiving the document",
-                "start": {
-                    "us": 4000
-                },
                 "subtype": "browser-timing",
                 "type": "hard-navigation"
             },
@@ -399,9 +396,6 @@
                 },
                 "id": "fc546e87a90a774f",
                 "name": "Parsing the document, executing sy. scripts",
-                "start": {
-                    "us": 14000
-                },
                 "subtype": "browser-timing",
                 "type": "hard-navigation"
             },
@@ -492,19 +486,8 @@
                 "duration": {
                     "us": 35060
                 },
-                "http": {
-                    "response": {
-                        "decoded_body_size": 676864,
-                        "encoded_body_size": 676864,
-                        "transfer_size": 677175
-                    }
-                },
-                "http.url.original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED",
                 "id": "fb8f717930697299",
                 "name": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
-                "start": {
-                    "us": 22534
-                },
                 "subtype": "script",
                 "type": "rc"
             },
@@ -582,9 +565,6 @@
                 },
                 "id": "9b80535c4403c9fb",
                 "name": "OpenTracing y",
-                "start": {
-                    "us": 96929
-                },
                 "type": "cu"
             },
             "timestamp": {
@@ -675,18 +655,8 @@
                 "duration": {
                     "us": 6724
                 },
-                "http": {
-                    "method": "GET",
-                    "response": {
-                        "status_code": 200
-                    }
-                },
-                "http.url.original": "http://localhost:8000/test/e2e/common/data.json?test=hamid",
                 "id": "5ecb8ee030749715",
                 "name": "GET /test/e2e/common/data.json",
-                "start": {
-                    "us": 98940
-                },
                 "subtype": "h",
                 "sync": true,
                 "type": "external"
@@ -782,18 +752,8 @@
                 "duration": {
                     "us": 11584
                 },
-                "http": {
-                    "method": "POST",
-                    "response": {
-                        "status_code": 200
-                    }
-                },
-                "http.url.original": "http://localhost:8003/data",
                 "id": "27f45fd274f976d4",
                 "name": "POST http://localhost:8003/data",
-                "start": {
-                    "us": 106520
-                },
                 "subtype": "h",
                 "sync": true,
                 "type": "external"
@@ -890,18 +850,8 @@
                 "duration": {
                     "us": 15949
                 },
-                "http": {
-                    "method": "POST",
-                    "response": {
-                        "status_code": 200
-                    }
-                },
-                "http.url.original": "http://localhost:8003/fetch",
                 "id": "a3c043330bc2015e",
                 "name": "POST http://localhost:8003/fetch",
-                "start": {
-                    "us": 119935
-                },
                 "subtype": "h",
                 "sync": false,
                 "type": "external"
@@ -1002,9 +952,6 @@
                         }
                     }
                 ],
-                "start": {
-                    "us": 120000
-                },
                 "subtype": "browser-timing",
                 "type": "hard-navigation"
             },

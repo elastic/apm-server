@@ -46,11 +46,6 @@ type Span struct {
 	// Action holds the span action: "query", "execute", etc.
 	Action string
 
-	// Start holds the span's offset from the transaction timestamp in milliseconds.
-	//
-	// TODO(axw) drop in 8.0. See https://github.com/elastic/apm-server/issues/6000)
-	Start *float64
-
 	// SelfTime holds the aggregated span durations, for breakdown metrics.
 	SelfTime AggregatedDuration
 
@@ -147,10 +142,6 @@ func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
 	span.maybeSetString("subtype", e.Subtype)
 	span.maybeSetString("action", e.Action)
 	span.maybeSetBool("sync", e.Sync)
-	if e.Start != nil {
-		start := time.Duration(*e.Start * float64(time.Millisecond))
-		span.set("start", common.MapStr{"us": int(start.Microseconds())})
-	}
 	if apmEvent.Processor == SpanProcessor {
 		// TODO(axw) set `event.duration` in 8.0, and remove this field.
 		// See https://github.com/elastic/apm-server/issues/5999

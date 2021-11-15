@@ -46,7 +46,6 @@
                 "duration": {
                     "us": 643000
                 },
-                "http.url.original": "http://localhost:8000/test/e2e/general-usecase/span",
                 "id": "aaaaaaaaaaaaaaaa",
                 "name": "transaction",
                 "stacktrace": [
@@ -123,9 +122,6 @@
                         }
                     }
                 ],
-                "start": {
-                    "us": 0
-                },
                 "type": "transaction"
             },
             "timestamp": {
