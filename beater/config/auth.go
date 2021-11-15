@@ -34,8 +34,7 @@ type AgentAuth struct {
 }
 
 func (a *AgentAuth) setAnonymousDefaults(logger *logp.Logger, rumEnabled bool) error {
-	if a.Anonymous.configured {
-		// Anonymous access explicitly configured.
+	if a.Anonymous.enabledSet {
 		return nil
 	}
 	if !a.APIKey.Enabled && a.SecretToken == "" {
@@ -90,7 +89,7 @@ type AnonymousAgentAuth struct {
 	AllowService []string  `config:"allow_service"`
 	RateLimit    RateLimit `config:"rate_limit"`
 
-	configured bool // anon explicitly defined
+	enabledSet bool // enabled explicitly set.
 }
 
 func (a *AnonymousAgentAuth) Unpack(in *common.Config) error {
@@ -98,7 +97,7 @@ func (a *AnonymousAgentAuth) Unpack(in *common.Config) error {
 	if err := in.Unpack((*underlyingAnonymousAgentAuth)(a)); err != nil {
 		return errors.Wrap(err, "error unpacking anon config")
 	}
-	a.configured = true
+	a.enabledSet = in.HasField("enabled")
 	return nil
 }
 
