@@ -88,21 +88,6 @@ apm-server:
     # Url to expose expvar.
     #url: "/debug/vars"
 
-  # A pipeline is a definition of processors applied to documents when ingesting them to Elasticsearch.
-  # Using pipelines involves two steps:
-  # (1) registering a pipeline
-  # (2) applying a pipeline during data ingestion (see `output.elasticsearch.pipeline`)
-  #
-  # You can manually register a pipeline, or use this configuration option to ensure
-  # the pipeline is loaded and registered at the configured Elasticsearch instances.
-  # Find the default pipeline configuration at `ingest/pipeline/definition.json`.
-  # Automatic pipeline registration requires the `output.elasticsearch` to be enabled and configured.
-  #register.ingest.pipeline:
-    # Registers APM pipeline definition in Elasticsearch on APM Server startup. Defaults to true.
-    #enabled: true
-    # Overwrites existing APM pipeline definition in Elasticsearch. Defaults to false.
-    #overwrite: false
-
 
   #---------------------------- APM Server - Secure Communication with Agents ----------------------------
 
@@ -496,12 +481,6 @@ output.elasticsearch:
   #  - index: "apm-%{[observer.version]}-onboarding-%{+yyyy.MM.dd}"
   #    when.contains:
   #      processor.event: "onboarding"
-
-  # A pipeline is a definition of processors applied to documents when ingesting them to Elasticsearch.
-  # APM Server comes with a default pipeline definition, located at `ingest/pipeline/definition.json`, which is
-  # loaded to Elasticsearch by default (see `apm-server.register.ingest.pipeline`).
-  # APM pipeline is enabled by default. To disable it, set `pipeline: _none`.
-  #pipeline: "apm"
 
   # Optional HTTP Path.
   #path: "/elasticsearch"
