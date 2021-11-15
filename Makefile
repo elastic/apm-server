@@ -262,17 +262,22 @@ release-manager-release: release
 
 JAVA_ATTACHER_VERSION:=1.26.0
 JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION).jar
-JAVA_ATTACHER_JAR_MD5:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION).jar.md5
+JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
 JAVA_ATTACHER_URL:=https://search.maven.org/remotecontent?filepath=co/elastic/apm/apm-agent-attach-cli/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_JAR)
-JAVA_ATTACHER_MD5_URL:=https://search.maven.org/remotecontent?filepath=co/elastic/apm/apm-agent-attach-cli/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_JAR_MD5)
+JAVA_ATTACHER_SIG_URL:=https://search.maven.org/remotecontent?filepath=co/elastic/apm/apm-agent-attach-cli/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_SIG)
 
-build/$(JAVA_ATTACHER_JAR_MD5):
-	@curl -sSL $(JAVA_ATTACHER_MD5_URL) > $@
-	@echo " build/$(JAVA_ATTACHER_JAR)" >> $@
+APM_AGENT_JAVA_PUB_KEY:=apm-agent-java-public-key.asc
 
-build/$(JAVA_ATTACHER_JAR): build/$(JAVA_ATTACHER_JAR_MD5)
+.imported-java-agent-pubkey:
+	@gpg --import $(APM_AGENT_JAVA_PUB_KEY)
+	@touch $@
+
+build/$(JAVA_ATTACHER_SIG):
+	curl -sSL $(JAVA_ATTACHER_SIG_URL) > $@
+
+build/$(JAVA_ATTACHER_JAR): build/$(JAVA_ATTACHER_SIG) .imported-java-agent-pubkey
 	curl -sSL $(JAVA_ATTACHER_URL) > $@
-	@md5sum --quiet -c $<
+	gpg --verify $< $@
 	@cp $@ build/java-attacher.jar
 
 .PHONY: release
