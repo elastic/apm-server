@@ -95,7 +95,7 @@ Most of the work here is done in `beats/x-pack/elastic-agent`
 
       # tar and compress
       cp build/fields/fields.yml .
-      tar cvf apm-server-<stack-version>-<platform>.tar apm-server LICENSE.txt NOTICE.txt README.md apm-server.yml ingest fields.yml
+      tar cvf apm-server-<stack-version>-<platform>.tar apm-server LICENSE.txt NOTICE.txt README.md apm-server.yml fields.yml
       gzip apm-server-<stack-version>-<platform>.tar
       sha512sum apm-server-<stack-version>-<platform>.tar.gz | tee apm-server-<stack-version>-<platform>.tar.gz.sha512
 

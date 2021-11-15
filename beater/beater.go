@@ -47,12 +47,10 @@ import (
 	"github.com/elastic/beats/v7/libbeat/licenser"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
-	"github.com/elastic/beats/v7/libbeat/processors"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
-	"github.com/elastic/apm-server/ingest/pipeline"
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
@@ -132,7 +130,6 @@ func NewCreator(args CreatorParams) beat.Creator {
 			b.OutputConfigReloader = bt.outputConfigReloader
 		}
 
-		bt.registerPipelineSetupCallback(b)
 		return bt, nil
 	}
 }
@@ -422,17 +419,6 @@ func (s *serverRunner) run(listener net.Listener) error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 
-	publisherConfig := publish.PublisherConfig{Pipeline: s.config.Pipeline}
-	if !s.config.DataStreams.Enabled {
-		// Logs are only supported with data streams;
-		// add a beat.Processor which drops them.
-		dropLogsProcessor, err := newDropLogsBeatProcessor()
-		if err != nil {
-			return err
-		}
-		publisherConfig.Processor = dropLogsProcessor
-	}
-
 	var kibanaClient kibana.Client
 	if s.config.Kibana.Enabled {
 		kibanaClient = kibana.NewConnectingClient(&s.config.Kibana)
@@ -484,16 +470,6 @@ func (s *serverRunner) run(listener net.Listener) error {
 		})
 	}
 
-	// Register a libbeat elasticsearch output connect callback which
-	// ensures the pipeline is installed. The callback does nothing
-	// when data streams are in use.
-	pipelineCallback := newPipelineElasticsearchConnectCallback(s.config)
-	callbackUUID, err = esoutput.RegisterConnectCallback(pipelineCallback)
-	if err != nil {
-		return err
-	}
-	defer esoutput.DeregisterConnectCallback(callbackUUID)
-
 	var sourcemapFetcher sourcemap.Fetcher
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
 		fetcher, err := newSourcemapFetcher(
@@ -518,7 +494,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	// be closed at shutdown time.
 	s.acker.Open()
 	pipeline := pipetool.WithACKer(s.pipeline, s.acker)
-	publisher, err := publish.NewPublisher(pipeline, s.tracer, publisherConfig)
+	publisher, err := publish.NewPublisher(pipeline, s.tracer)
 	if err != nil {
 		return err
 	}
@@ -742,57 +718,6 @@ func hasElasticsearchOutput(b *beat.Beat) bool {
 	return b.Config != nil && b.Config.Output.Name() == "elasticsearch"
 }
 
-// registerPipelineCallback registers a callback which is invoked when
-// `setup --pipelines` is called, to either register pipelines or return
-// an error depending on the configuration.
-func (bt *beater) registerPipelineSetupCallback(b *beat.Beat) {
-	if !hasElasticsearchOutput(b) {
-		bt.logger.Info("Output is not Elasticsearch: pipeline registration disabled")
-		return
-	}
-
-	if bt.config.DataStreams.Enabled {
-		bt.logger.Info("Data streams enabled: pipeline registration disabled")
-		b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
-			return errors.New("index pipeline setup must be performed externally when using data streams, by installing the 'apm' integration package")
-		}
-		return
-	}
-
-	if !bt.config.Register.Ingest.Pipeline.Enabled {
-		bt.logger.Info("Pipeline registration disabled")
-		return
-	}
-
-	bt.logger.Info("Registering pipeline callback")
-	overwrite := bt.config.Register.Ingest.Pipeline.Overwrite
-	path := bt.config.Register.Ingest.Pipeline.Path
-
-	// ensure setup cmd is working properly
-	b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
-		conn, err := eslegclient.NewConnectedClient(esConfig, b.Info.Beat)
-		if err != nil {
-			return err
-		}
-		return pipeline.RegisterPipelines(conn, overwrite, path)
-	}
-}
-
-// newPipelineElasticsearchConnectCallback returns an Elasticsearch connect
-// callback that ensures the configured pipeline is installed, if configured
-// to do so. If data streams are enabled, then pipeline registration is always
-// disabled.
-func newPipelineElasticsearchConnectCallback(cfg *config.Config) esoutput.ConnectCallback {
-	return func(conn *eslegclient.Connection) error {
-		if cfg.DataStreams.Enabled || !cfg.Register.Ingest.Pipeline.Enabled {
-			return nil
-		}
-		overwrite := cfg.Register.Ingest.Pipeline.Overwrite
-		path := cfg.Register.Ingest.Pipeline.Path
-		return pipeline.RegisterPipelines(conn, overwrite, path)
-	}
-}
-
 func initTracing(b *beat.Beat, cfg *config.Config, logger *logp.Logger) (*apm.Tracer, *tracerServer, error) {
 	tracer := b.Instrumentation.Tracer()
 	listener := b.Instrumentation.Listener()
@@ -902,20 +827,6 @@ func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...model.Ba
 		args.BatchProcessor = modelprocessor.Chained(processors)
 		return runServer(ctx, args)
 	}
-}
-
-func newDropLogsBeatProcessor() (beat.ProcessorList, error) {
-	return processors.New(processors.PluginConfig{
-		common.MustNewConfigFrom(map[string]interface{}{
-			"drop_event": map[string]interface{}{
-				"when": map[string]interface{}{
-					"contains": map[string]interface{}{
-						"processor.event": "log",
-					},
-				},
-			},
-		}),
-	})
 }
 
 // chanReloader implements libbeat/common/reload.Reloadable, converting
