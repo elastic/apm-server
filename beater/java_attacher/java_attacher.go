@@ -62,8 +62,7 @@ func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
 }
 
 // javaAttacher is bundled by the server
-// TODO: Figure out the real path
-var javaAttacher = filepath.FromSlash("/bin/apm-agent-attach-cli-1.24.0-slim.jar")
+var javaAttacher = filepath.FromSlash("./java-attacher.jar")
 
 func (j JavaAttacher) Run(ctx context.Context) error {
 	cmd := j.build(ctx)
