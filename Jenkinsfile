@@ -180,6 +180,7 @@ pipeline {
           }
           post {
             always {
+              archiveArtifacts(allowEmptyArchive: true, artifacts: "${BASE_DIR}/*chocolatey.log")
               junit(allowEmptyResults: true,
                 keepLongStdio: true,
                 testResults: "${BASE_DIR}/build/TEST-*.xml")

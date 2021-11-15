@@ -42,6 +42,7 @@ if (Test-Path "build") { Remove-Item -Recurse -Force build }
 New-Item -ItemType directory -Path build\coverage | Out-Null
 
 choco install python -y -r --no-progress --version 3.8.1.20200110
+cp C:\ProgramData\chocolatey\logs\chocolatey.log windows_build_chocolatey.log
 refreshenv
 $env:PATH = "C:\Python38;C:\Python38\Scripts;$env:PATH"
 $env:PYTHON_ENV = "$env:TEMP\python-env"

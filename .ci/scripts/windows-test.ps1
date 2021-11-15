@@ -29,6 +29,7 @@ $env:MAGEFILE_CACHE = "$env:WORKSPACE\.magefile"
 
 # Setup Python.
 choco install python -y -r --no-progress --version 3.8.1.20200110
+cp C:\ProgramData\chocolatey\logs\chocolatey.log windows_test_chocolatey.log
 refreshenv
 $env:PATH = "C:\Python38;C:\Python38\Scripts;$env:PATH"
 $env:PYTHON_ENV = "$env:TEMP\python-env"
