@@ -982,10 +982,29 @@ func (r *chanReloader) serve(ctx context.Context, reloader reload.Reloadable) er
 // Remove this when cluster_uuid no longer needs to be queried from ES.
 func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
-	elasticsearchRegistry := stateRegistry.GetRegistry("outputs.elasticsearch")
-	s, ok := elasticsearchRegistry.Get("cluster_uuid").(*monitoring.String)
-	if !ok {
-		return fmt.Errorf("couldn't cast to String")
+	outputES := "outputs.elasticsearch"
+	// Running under elastic-agent, the callback linked above is not
+	// registered until later, meaning we need to check and instantiate the
+	// registries if they don't exist.
+	elasticsearchRegistry := stateRegistry.GetRegistry(outputES)
+	if elasticsearchRegistry == nil {
+		elasticsearchRegistry = stateRegistry.NewRegistry(outputES)
+	}
+
+	var (
+		s  *monitoring.String
+		ok bool
+	)
+
+	clusterUUID := "cluster_uuid"
+	clusterUUIDRegVar := elasticsearchRegistry.Get(clusterUUID)
+	if clusterUUIDRegVar != nil {
+		s, ok = clusterUUIDRegVar.(*monitoring.String)
+		if !ok {
+			return fmt.Errorf("couldn't cast to String")
+		}
+	} else {
+		s = monitoring.NewString(elasticsearchRegistry, clusterUUID)
 	}
 
 	var response struct {

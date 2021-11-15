@@ -366,8 +366,7 @@ func Test_newDropLogsBeatProcessor(t *testing.T) {
 	require.Nil(t, result)
 }
 
-func TestQueryClusterUUID(t *testing.T) {
-	// This is replicating setup done by libbeat
+func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 	elasticsearchRegistry := stateRegistry.NewRegistry("outputs.elasticsearch")
 	monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
@@ -377,6 +376,21 @@ func TestQueryClusterUUID(t *testing.T) {
 	client := &mockClusterUUIDClient{ClusterUUID: clusterUUID}
 	err := queryClusterUUID(ctx, client)
 	require.NoError(t, err)
+
+	fs := monitoring.CollectFlatSnapshot(elasticsearchRegistry, monitoring.Full, false)
+	assert.Equal(t, clusterUUID, fs.Strings["cluster_uuid"])
+}
+
+func TestQueryClusterUUIDRegistriesDoNotExist(t *testing.T) {
+	ctx := context.Background()
+	clusterUUID := "abc123"
+	client := &mockClusterUUIDClient{ClusterUUID: clusterUUID}
+	err := queryClusterUUID(ctx, client)
+	require.NoError(t, err)
+
+	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	elasticsearchRegistry := stateRegistry.GetRegistry("outputs.elasticsearch")
+	require.NotNil(t, elasticsearchRegistry)
 
 	fs := monitoring.CollectFlatSnapshot(elasticsearchRegistry, monitoring.Full, false)
 	assert.Equal(t, clusterUUID, fs.Strings["cluster_uuid"])
