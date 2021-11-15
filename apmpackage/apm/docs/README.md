@@ -167,7 +167,6 @@ Traces are written to `traces-apm-*` data streams, except for RUM traces, which 
 | span.message.age.ms | Age of a message in milliseconds. | long |
 | span.message.queue.name | Name of the message queue or topic where the message is published or received. | keyword |
 | span.name | Generic designation of a span in the scope of a transaction. | keyword |
-| span.start.us | Offset relative to the transaction's timestamp identifying the start of the span, in microseconds. | long |
 | span.subtype | A further sub-division of the type (e.g. postgresql, elasticsearch) | keyword |
 | span.sync | Indicates whether the span was executed synchronously or asynchronously. | boolean |
 | span.type | Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc). | keyword |

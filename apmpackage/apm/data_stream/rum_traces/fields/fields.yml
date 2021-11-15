@@ -319,13 +319,6 @@
       type: keyword
       description: |
         Generic designation of a span in the scope of a transaction.
-    - name: start
-      type: group
-      fields:
-        - name: us
-          type: long
-          description: |
-            Offset relative to the transaction's timestamp identifying the start of the span, in microseconds.
     - name: subtype
       type: keyword
       description: |

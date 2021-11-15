@@ -177,7 +177,6 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Start.Reset()
 		mapToSpanModel(&input, &out)
-		require.Nil(t, out.Span.Start)
 		assert.Equal(t, reqTime, out.Timestamp)
 	})
 
