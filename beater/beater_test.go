@@ -348,24 +348,6 @@ func TestFleetStoreUsed(t *testing.T) {
 	assert.True(t, called)
 }
 
-func Test_newDropLogsBeatProcessor(t *testing.T) {
-	dropLogsProcessor, err := newDropLogsBeatProcessor()
-	require.NoError(t, err)
-
-	event := beat.Event{
-		Timestamp: time.Now(),
-		Fields: common.MapStr{
-			"processor": common.MapStr{
-				"event": "log",
-				"name":  "log",
-			},
-		},
-	}
-	result, err := dropLogsProcessor.Run(&event)
-	require.NoError(t, err)
-	require.Nil(t, result)
-}
-
 func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 	elasticsearchRegistry := stateRegistry.NewRegistry("outputs.elasticsearch")
