@@ -1002,13 +1002,6 @@ output.elasticsearch:
   # Unix epoch. Defaults to disabled.
   #interval: 0
 
-# Set to true to log messages in json format.
-#logging.json: true
-
-# Set to true, to log messages with minimal required Elastic Common Schema (ECS)
-# information. Recommended to use in combination with `logging.json=true`.
-#logging.ecs: true
-
 #=============================== HTTP Endpoint ===============================
 
 # apm-server can expose internal metrics through a HTTP endpoint. For security
