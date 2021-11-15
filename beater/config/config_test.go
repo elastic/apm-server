@@ -180,6 +180,10 @@ func TestUnpackConfig(t *testing.T) {
 							EventLimit: 7200,
 							IPLimit:    2000,
 						},
+<<<<<<< HEAD
+=======
+						enabledSet: true,
+>>>>>>> 443d4fb9 (config: Enable `auth.anonymous` when `rum.enabled` (#6607))
 					},
 				},
 				TLS: &tlscommon.ServerConfig{
