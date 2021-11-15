@@ -155,9 +155,6 @@
                 },
                 "id": "0123456a89012345",
                 "name": "GET /api/types",
-                "start": {
-                    "us": 1845
-                },
                 "type": "request"
             },
             "timestamp": {
