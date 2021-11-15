@@ -60,6 +60,10 @@ To run APM Server with debugging output enabled, run:
 ./apm-server -c apm-server.yml -e -d "*"
 ```
 
+APM Server expects index templates, ILM policies, and ingest pipelines to be set up externally.
+This should be done by [installing the APM integration](https://www.elastic.co/guide/en/fleet/current/fleet-quick-start-traces.html#add-apm-integration).
+When running APM Server directly, it is only necessary to install the integration and not to run an Elastic Agent.
+
 ### Testing
 
 For Testing check out the [testing guide](TESTING.md)
