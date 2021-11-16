@@ -582,12 +582,9 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 				)
 			})
 		}
-
-		if s.config.DataStreams.Enabled {
-			preconditions = append(preconditions, func(ctx context.Context) error {
-				return queryClusterUUID(ctx, esOutputClient)
-			})
-		}
+		preconditions = append(preconditions, func(ctx context.Context) error {
+			return queryClusterUUID(ctx, esOutputClient)
+		})
 	}
 
 	// When running standalone with data streams enabled, by default we will add
