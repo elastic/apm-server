@@ -254,7 +254,7 @@ func TestModelIndexerLogRateLimit(t *testing.T) {
 	err = indexer.Close(context.Background())
 	assert.NoError(t, err)
 
-	entries := logp.ObserverLogs().TakeAll()
+	entries := logp.ObserverLogs().FilterMessageSnippet("failed to index event").TakeAll()
 	require.Len(t, entries, 2)
 	messages := []string{entries[0].Message, entries[1].Message}
 	assert.ElementsMatch(t, []string{
@@ -313,6 +313,8 @@ func TestModelIndexerTracing(t *testing.T) {
 }
 
 func testModelIndexerTracing(t *testing.T, statusCode int, expectedOutcome string) {
+	logp.DevelopmentSetup(logp.ToObserverOutput())
+
 	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(statusCode)
 		scanner := bufio.NewScanner(r.Body)
@@ -366,6 +368,14 @@ func testModelIndexerTracing(t *testing.T, statusCode int, expectedOutcome strin
 	assert.Equal(t, "Elasticsearch: POST _bulk", payloads.Spans[0].Name)
 	assert.Equal(t, "db", payloads.Spans[0].Type)
 	assert.Equal(t, "elasticsearch", payloads.Spans[0].Subtype)
+
+	entries := logp.ObserverLogs().TakeAll()
+	assert.NotEmpty(t, entries)
+	for _, entry := range entries {
+		fields := entry.ContextMap()
+		assert.Equal(t, fmt.Sprintf("%x", payloads.Transactions[0].ID), fields["transaction.id"])
+		assert.Equal(t, fmt.Sprintf("%x", payloads.Transactions[0].TraceID), fields["trace.id"])
+	}
 }
 
 func BenchmarkModelIndexer(b *testing.B) {

@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"go.elastic.co/apm"
+	"go.elastic.co/apm/module/apmzap"
 	"go.elastic.co/fastjson"
 	"golang.org/x/sync/errgroup"
 
@@ -340,17 +341,24 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 	defer atomic.AddInt64(&i.bulkRequests, 1)
 
 	var tx *apm.Transaction
+	logger := i.logger
 	if i.config.Tracer != nil && i.config.Tracer.Recording() {
 		tx = i.config.Tracer.StartTransaction("flush", "output")
 		defer tx.End()
 		ctx = apm.ContextWithTransaction(ctx, tx)
 		tx.Outcome = "success"
+
+		// Add trace IDs to logger, to associate any per-item errors
+		// below with the trace.
+		for _, field := range apmzap.TraceContext(ctx) {
+			logger = logger.With(field)
+		}
 	}
 
 	resp, err := bulkIndexer.Flush(ctx)
 	if err != nil {
 		atomic.AddInt64(&i.eventsFailed, int64(n))
-		i.logger.With(logp.Error(err)).Error("bulk indexing request failed")
+		logger.With(logp.Error(err)).Error("bulk indexing request failed")
 		if tx != nil {
 			tx.Outcome = "failure"
 			apm.CaptureError(ctx, err).Send()
@@ -366,7 +374,7 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 				if info.Status == http.StatusTooManyRequests {
 					tooManyRequests++
 				}
-				i.logger.Errorf(
+				logger.Errorf(
 					"failed to index event (%s): %s",
 					info.Error.Type, info.Error.Reason,
 				)
@@ -384,6 +392,10 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 	if tooManyRequests > 0 {
 		atomic.AddInt64(&i.tooManyRequests, tooManyRequests)
 	}
+	logger.Debugf(
+		"bulk request completed: %d indexed, %d failed (%d exceeded capacity)",
+		eventsIndexed, eventsFailed, tooManyRequests,
+	)
 	return nil
 }
 
