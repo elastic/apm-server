@@ -42,52 +42,7 @@ require (
 
 require (
 	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect
-<<<<<<< HEAD
 	github.com/opencontainers/image-spec v1.0.1 // indirect
-	github.com/opencontainers/runc v0.1.1 // indirect
-=======
-	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/go-units v0.4.0 // indirect
-	github.com/elastic/go-licenser v0.3.1 // indirect
-	github.com/elastic/go-sysinfo v1.7.0 // indirect
-	github.com/elastic/go-windows v1.0.1 // indirect
-	github.com/gogo/googleapis v1.0.1-0.20180501115203-b23578765ee5 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
-	github.com/google/uuid v1.3.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
-	github.com/jcchavezs/porto v0.1.0 // indirect
-	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
-	github.com/magiconair/properties v1.8.5 // indirect
-	github.com/moby/sys/mount v0.2.0 // indirect
-	github.com/moby/sys/mountinfo v0.5.0 // indirect
-	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
-	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.0.1 // indirect
-	github.com/opencontainers/runc v1.0.2 // indirect
-	github.com/opentracing/opentracing-go v1.1.0 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/procfs v0.7.1 // indirect
-	github.com/santhosh-tekuri/jsonschema v1.2.4 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/tidwall/match v1.1.1 // indirect
-	github.com/tidwall/pretty v1.2.0 // indirect
-	github.com/tidwall/sjson v1.1.1 // indirect
-	go.opencensus.io v0.22.3 // indirect
-	go.opentelemetry.io/otel/internal/metric v0.23.0 // indirect
-	go.opentelemetry.io/proto/otlp v0.9.0 // indirect
-	go.uber.org/atomic v1.6.0 // indirect
-	go.uber.org/multierr v1.5.0 // indirect
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20211108170745-6635138e15ea // indirect
-	golang.org/x/text v0.3.6 // indirect
->>>>>>> e940c57c (Update module dependencies (#6615))
 	golang.org/x/tools v0.1.5 // indirect
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
 )
