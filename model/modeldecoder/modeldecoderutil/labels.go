@@ -53,24 +53,3 @@ func NormalizeLabelValues(labels common.MapStr) common.MapStr {
 	}
 	return labels
 }
-
-func numberToFloat64(v interface{}) (float64, bool) {
-	switch v := v.(type) {
-	case int:
-		return float64(v), true
-	case int32:
-		return float64(v), true
-	case int64:
-		return float64(v), true
-	case float32:
-		return float64(v), true
-	case float64:
-		return v, true
-	case json.Number:
-		if val, err := v.Float64(); err == nil {
-			return val, true
-		}
-		return 0, false
-	}
-	return 0, false
-}
