@@ -346,11 +346,12 @@ func customizePackaging() {
 
 		switch pkgType := args.Types[0]; pkgType {
 		case mage.Zip, mage.TarGz:
-			// No changes required.
+			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 		case mage.Docker:
 			args.Spec.ExtraVars["expose_ports"] = config.DefaultPort
 			args.Spec.ExtraVars["repository"] = "docker.elastic.co/apm"
+			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 		case mage.Deb, mage.RPM:
 			// Update config file owner.
@@ -358,6 +359,7 @@ func customizePackaging() {
 			pf.Owner = mage.BeatUser
 			args.Spec.Files["/etc/{{.BeatName}}/{{.BeatName}}.yml"] = pf
 			args.Spec.Files["/var/log/{{.BeatName}}"] = mage.PackageFile{Mode: 0750, Source: emptyDir, Owner: mage.BeatUser}
+			args.Spec.Files["/usr/share/{{.BeatName}}/bin/java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 			// Customise the pre-install and post-install scripts.
 			args.Spec.PreInstallScript = "packaging/files/linux/pre-install.sh.tmpl"
