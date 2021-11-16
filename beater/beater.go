@@ -19,6 +19,7 @@ package beater
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -603,6 +604,12 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 				)
 			})
 		}
+
+		if s.config.DataStreams.Enabled {
+			preconditions = append(preconditions, func(ctx context.Context) error {
+				return queryClusterUUID(ctx, esOutputClient)
+			})
+		}
 	}
 
 	// When running standalone with data streams enabled, by default we will add
@@ -890,4 +897,59 @@ func (r *chanReloader) serve(ctx context.Context, reloader reload.Reloadable) er
 			}
 		}
 	}
+}
+
+// TODO: This is copying behavior from libbeat:
+// https://github.com/elastic/beats/blob/b9ced47dba8bb55faa3b2b834fd6529d3c4d0919/libbeat/cmd/instance/beat.go#L927-L950
+// Remove this when cluster_uuid no longer needs to be queried from ES.
+func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error {
+	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	outputES := "outputs.elasticsearch"
+	// Running under elastic-agent, the callback linked above is not
+	// registered until later, meaning we need to check and instantiate the
+	// registries if they don't exist.
+	elasticsearchRegistry := stateRegistry.GetRegistry(outputES)
+	if elasticsearchRegistry == nil {
+		elasticsearchRegistry = stateRegistry.NewRegistry(outputES)
+	}
+
+	var (
+		s  *monitoring.String
+		ok bool
+	)
+
+	clusterUUID := "cluster_uuid"
+	clusterUUIDRegVar := elasticsearchRegistry.Get(clusterUUID)
+	if clusterUUIDRegVar != nil {
+		s, ok = clusterUUIDRegVar.(*monitoring.String)
+		if !ok {
+			return fmt.Errorf("couldn't cast to String")
+		}
+	} else {
+		s = monitoring.NewString(elasticsearchRegistry, clusterUUID)
+	}
+
+	var response struct {
+		ClusterUUID string `json:"cluster_uuid"`
+	}
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		return err
+	}
+	resp, err := esClient.Perform(req.WithContext(ctx))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode > 299 {
+		return fmt.Errorf("error querying cluster_uuid: status_code=%d", resp.StatusCode)
+	}
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return err
+	}
+
+	s.Set(response.ClusterUUID)
+	return nil
 }
