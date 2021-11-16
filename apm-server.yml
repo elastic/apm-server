@@ -261,75 +261,6 @@ apm-server:
     # Configure curve types for ECDHE based cipher suites.
     #ssl.curve_types: []
 
-  #---------------------------- APM Server - ILM Index Lifecycle Management ----------------------------
-
-  #ilm:
-    # Supported values are `auto`, `true` and `false`.
-    # `true`: Make use of Elasticsearch's Index Lifecycle Management (ILM) for APM indices. If no Elasticsearch output is
-    # configured or the configured instance does not support ILM, APM Server cannot apply ILM and must create
-    # unmanaged indices instead.
-    # `false`: APM Server does not make use of ILM in Elasticsearch.
-    # `auto`: If an Elasticsearch output is configured with default index and indices settings, and the configured
-    # Elasticsearch instance supports ILM, `auto` will resolve to `true`. Otherwise `auto` will resolve to `false`.
-    # Default value is `auto`.
-    #enabled: "auto"
-
-    #setup:
-      # Only disable setup if you want to set up everything related to ILM on your own.
-      # When setup is enabled, the APM Server creates:
-      # - aliases and ILM policies if `apm-server.ilm.enabled` resolves to `true`.
-      # - An ILM specific template per event type. This is required to map ILM aliases and policies to indices. In case
-      # ILM is disabled, the templates will be created without any ILM settings.
-      # Be aware that if you turn off setup, you need to manually manage event type specific templates on your own.
-      # If you simply want to disable ILM, use the above setting, `apm-server.ilm.enabled`, instead.
-      # Defaults to true.
-      #enabled: true
-
-      # Configure whether or not existing policies and ILM related templates should be updated. This needs to be
-      # set to true when customizing your policies.
-      # Defaults to false.
-      #overwrite: false
-
-      # Set `require_policy` to `false` when policies are set up outside of APM Server but referenced here.
-      # Default value is `true`.
-      #require_policy: true
-
-      # Customized mappings will be merged with the default setup, so you only need to configure mappings for the
-      # event types, policies, and index suffixes that you want to customize.
-      # Indices are named in this way: `apm-%{[observer.version]}-%{[event.type]}-{index_suffix}`,
-      # e.g., apm-7.9.0-span-custom*. The `index_suffix` is optional.
-      # NOTE: When configuring an `index_suffix`, ensure that no previously set up templates conflict with the
-      #       newly configured ones. If an index matches multiple templates with the same order, the settings of
-      #       the templates will override each other. Any conflicts need to be cleaned up manually.
-      # NOTE: When customizing `setup.template.name` and `setup.template.pattern`, ensure they still match the indices.
-      #mapping:
-        #- event_type: "error"
-        #  policy_name: "apm-rollover-30-days"
-        #  index_suffix: ""
-        #- event_type: "span"
-        #  policy_name: "apm-rollover-30-days"
-        #  index_suffix: ""
-        #- event_type: "transaction"
-        #  policy_name: "apm-rollover-30-days"
-        #  index_suffix: ""
-        #- event_type: "metric"
-        #  policy_name: "apm-rollover-30-days"
-        #  index_suffix: ""
-
-      # Configured policies are added to pre-defined default policies.
-      # If a policy with the same name as a default policy is configured, the configured policy overwrites the default policy.
-      #policies:
-        #- name: "apm-rollover-30-days"
-          #policy:
-            #phases:
-              #hot:
-                #actions:
-                  #rollover:
-                    #max_size: "50gb"
-                    #max_age: "30d"
-                  #set_priority:
-                    #priority: 100
-
 #================================= General =================================
 
 # Data is buffered in a memory queue before it is published to the configured output.
@@ -356,42 +287,6 @@ apm-server:
 # Sets the maximum number of CPUs that can be executing simultaneously. The
 # default is the number of logical CPUs available in the system.
 #max_procs:
-
-#================================= Template =================================
-
-# A template is used to set the mapping in Elasticsearch.
-# By default template loading is enabled and the template is loaded.
-# These settings can be adjusted to load your own template or overwrite existing ones.
-
-# Set to false to disable template loading.
-#setup.template.enabled: true
-
-# Template name. By default the template name is "apm-%{[observer.version]}"
-# The template name and pattern has to be set in case the elasticsearch index pattern is modified.
-#setup.template.name: "apm-%{[observer.version]}"
-
-# Template pattern. By default the template pattern is "apm-%{[observer.version]}-*" to apply to the default index settings.
-# The first part is the version of apm-server and then -* is used to match all daily indices.
-# The template name and pattern has to be set in case the elasticsearch index pattern is modified.
-#setup.template.pattern: "apm-%{[observer.version]}-*"
-
-# Path to fields.yml file to generate the template.
-#setup.template.fields: "${path.config}/fields.yml"
-
-# Overwrite existing template.
-#setup.template.overwrite: false
-
-# Elasticsearch template settings.
-#setup.template.settings:
-
-  # A dictionary of settings to place into the settings.index dictionary
-  # of the Elasticsearch template. For more details, please check
-  # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
-  #index:
-    #number_of_shards: 1
-    #codec: best_compression
-    #number_of_routing_shards: 30
-    #mapping.total_fields.limit: 2000
 
 #============================= Elastic Cloud =============================
 
@@ -438,49 +333,6 @@ output.elasticsearch:
 
   # Number of workers per Elasticsearch host.
   #worker: 1
-
-  # By using the configuration below, APM documents are stored to separate indices,
-  # depending on their `processor.event`:
-  # - error
-  # - transaction
-  # - span
-  # - sourcemap
-  #
-  # The indices are all prefixed with `apm-%{[observer.version]}`.
-  # To allow managing indices based on their age, all indices (except for sourcemaps)
-  # end with the information of the day they got indexed.
-  # e.g. "apm-7.3.0-transaction-2019.07.20"
-  #
-  # Be aware that you can only specify one Elasticsearch template.
-  # If you modify the index patterns you must also update these configurations accordingly,
-  # as they need to be aligned:
-  # * `setup.template.name`
-  # * `setup.template.pattern`
-  #index: "apm-%{[observer.version]}-%{+yyyy.MM.dd}"
-  #indices:
-  #  - index: "apm-%{[observer.version]}-sourcemap"
-  #    when.contains:
-  #      processor.event: "sourcemap"
-  #
-  #  - index: "apm-%{[observer.version]}-error-%{+yyyy.MM.dd}"
-  #    when.contains:
-  #      processor.event: "error"
-  #
-  #  - index: "apm-%{[observer.version]}-transaction-%{+yyyy.MM.dd}"
-  #    when.contains:
-  #      processor.event: "transaction"
-  #
-  #  - index: "apm-%{[observer.version]}-span-%{+yyyy.MM.dd}"
-  #    when.contains:
-  #      processor.event: "span"
-  #
-  #  - index: "apm-%{[observer.version]}-metric-%{+yyyy.MM.dd}"
-  #    when.contains:
-  #      processor.event: "metric"
-  #
-  #  - index: "apm-%{[observer.version]}-onboarding-%{+yyyy.MM.dd}"
-  #    when.contains:
-  #      processor.event: "onboarding"
 
   # Optional HTTP Path.
   #path: "/elasticsearch"
