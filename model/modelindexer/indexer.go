@@ -27,9 +27,11 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.elastic.co/fastjson"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/elasticsearch"
@@ -178,9 +180,10 @@ func (i *Indexer) ProcessBatch(ctx context.Context, batch *model.Batch) error {
 func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error {
 	r := getPooledReader()
 	beatEvent := event.BeatEvent(ctx)
-	if err := r.encoder.AddRaw(&beatEvent); err != nil {
+	if err := encodeBeatEvent(beatEvent, &r.jsonw); err != nil {
 		return err
 	}
+	r.reader.Reset(r.jsonw.Bytes())
 
 	r.indexBuilder.WriteString(event.DataStream.Type)
 	r.indexBuilder.WriteByte('-')
@@ -222,6 +225,53 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 			i.flushActiveLocked(context.Background())
 		}
 	}
+	return nil
+}
+
+func encodeBeatEvent(in beat.Event, out *fastjson.Writer) error {
+	out.RawByte('{')
+	out.RawString(`"@timestamp":"`)
+	out.Time(in.Timestamp, time.RFC3339)
+	out.RawByte('"')
+	for k, v := range in.Fields {
+		out.RawByte(',')
+		out.String(k)
+		out.RawByte(':')
+		if err := encodeAny(v, out); err != nil {
+			return err
+		}
+	}
+	out.RawByte('}')
+	return nil
+}
+
+func encodeAny(v interface{}, out *fastjson.Writer) error {
+	switch v := v.(type) {
+	case common.MapStr:
+		return encodeMap(v, out)
+	case map[string]interface{}:
+		return encodeMap(v, out)
+	default:
+		return fastjson.Marshal(out, v)
+	}
+}
+
+func encodeMap(v map[string]interface{}, out *fastjson.Writer) error {
+	out.RawByte('{')
+	first := true
+	for k, v := range v {
+		if first {
+			first = false
+		} else {
+			out.RawByte(',')
+		}
+		out.String(k)
+		out.RawByte(':')
+		if err := encodeAny(v, out); err != nil {
+			return err
+		}
+	}
+	out.RawByte('}')
 	return nil
 }
 
@@ -286,34 +336,29 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 var pool sync.Pool
 
 type pooledReader struct {
-	buf          bytes.Buffer
+	jsonw        fastjson.Writer
+	reader       *bytes.Reader
 	indexBuilder strings.Builder
-	encoder      encoder
 }
 
 func getPooledReader() *pooledReader {
 	if r, ok := pool.Get().(*pooledReader); ok {
 		return r
 	}
-	r := &pooledReader{}
-	r.encoder = eslegclient.NewJSONEncoder(&r.buf, false)
+	r := &pooledReader{reader: bytes.NewReader(nil)}
 	return r
 }
 
 func (r *pooledReader) Read(p []byte) (int, error) {
-	n, err := r.buf.Read(p)
+	n, err := r.reader.Read(p)
 	if err == io.EOF {
 		// Release the reader back into the pool after it has been consumed.
+		r.jsonw.Reset()
+		r.reader.Reset(nil)
 		r.indexBuilder.Reset()
-		r.encoder.Reset()
 		pool.Put(r)
 	}
 	return n, err
-}
-
-type encoder interface {
-	AddRaw(interface{}) error
-	Reset()
 }
 
 // Stats holds bulk indexing statistics.
