@@ -227,7 +227,7 @@
                 "ip": "127.0.0.1"
             },
             "labels": {
-                "wrapped_reporter": true
+                "wrapped_reporter": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",

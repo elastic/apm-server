@@ -76,12 +76,8 @@
   name: http.response.status_code
 - external: ecs
   name: http.version
-# TODO: change labels to be ECS compliant in 8.0 (https://github.com/elastic/apm-server/issues/3873)
-- name: labels
-  type: object
-  description: |
-    A flat mapping of user-defined labels with string, boolean or number values.
-  dynamic: true
+- external: ecs
+  name: labels
 - external: ecs
   name: observer.hostname
 - external: ecs

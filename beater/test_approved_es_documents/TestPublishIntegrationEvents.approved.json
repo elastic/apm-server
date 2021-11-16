@@ -207,12 +207,14 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
+                "ab_testing": "true",
                 "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "segment": 5
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
             },
             "message": "Request method 'POST' not supported",
+            "numeric_labels": {
+                "segment": 5
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
@@ -337,8 +339,10 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
-                "group": "experimental",
+                "ab_testing": "true",
+                "group": "experimental"
+            },
+            "numeric_labels": {
                 "segment": 5
             },
             "observer": {
@@ -531,11 +535,13 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
+                "ab_testing": "true",
                 "group": "experimental",
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "segment": 5,
-                "wrapped_reporter": true
+                "wrapped_reporter": "true"
+            },
+            "numeric_labels": {
+                "segment": 5
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -665,13 +671,15 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
-                "code": 200,
+                "ab_testing": "true",
                 "group": "experimental",
-                "segment": 5,
-                "success": true
+                "success": "true"
             },
             "metricset.name": "span_breakdown",
+            "numeric_labels": {
+                "code": 200,
+                "segment": 5
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",

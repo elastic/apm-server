@@ -68,12 +68,14 @@
   name: host.name
 - external: ecs
   name: host.os.platform
-# TODO: change labels to be ECS compliant in 8.0 (https://github.com/elastic/apm-server/issues/3873)
-- name: labels
-  type: object
-  description: |
-    A flat mapping of user-defined labels with string, boolean or number values.
+# In other data streams this field uses the `external: ecs` notation, however,
+# since `dynamic` is set to strict in this data stream, we need to re-declare
+# the field here for labels to work correctly.
+- type: object
+  name: labels
   dynamic: true
+  description: |
+    Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as keyword. Example: `docker` and `k8s` labels.
 - external: ecs
   name: observer.hostname
 - external: ecs

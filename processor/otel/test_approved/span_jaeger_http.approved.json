@@ -26,10 +26,12 @@
             },
             "labels": {
                 "component": "foo",
-                "double_a": 14.65,
-                "hasErrors": true,
-                "int_a": 148,
+                "hasErrors": "true",
                 "string_a_b": "some note"
+            },
+            "numeric_labels": {
+                "double_a": 14.65,
+                "int_a": 148
             },
             "parent": {
                 "id": "0000000058585858"
@@ -371,7 +373,7 @@
             },
             "labels": {
                 "event": "baggage",
-                "isValid": false
+                "isValid": "false"
             },
             "parent": {
                 "id": "0000000058585858"

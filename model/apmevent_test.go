@@ -80,7 +80,11 @@ func TestAPMEventFields(t *testing.T) {
 			Event:       Event{Outcome: outcome},
 			Session:     Session{ID: "session_id"},
 			URL:         URL{Original: "url"},
-			Labels:      common.MapStr{"a": "b", "c": 123},
+			Labels: common.MapStr{
+				"a": "b",
+				"c": true,
+				"d": float64(1234),
+			},
 			Message:     "bottle",
 			Transaction: &Transaction{},
 			Timestamp:   time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600)),
@@ -139,7 +143,10 @@ func TestAPMEventFields(t *testing.T) {
 			"url":     common.MapStr{"original": "url"},
 			"labels": common.MapStr{
 				"a": "b",
-				"c": 123,
+				"c": "true",
+			},
+			"numeric_labels": common.MapStr{
+				"d": float64(1234),
 			},
 			"message": "bottle",
 			"trace": common.MapStr{
