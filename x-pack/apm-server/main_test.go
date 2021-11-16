@@ -65,7 +65,6 @@ func TestMonitoring(t *testing.T) {
 	defer closeBadger() // close badger.DB so data dir can be deleted on Windows
 
 	cfg := config.DefaultConfig()
-	cfg.DataStreams.Enabled = true
 	cfg.Sampling.Tail.Enabled = true
 	cfg.Sampling.Tail.Policies = []config.TailSamplingPolicy{{SampleRate: 0.1}}
 

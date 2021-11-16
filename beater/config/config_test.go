@@ -246,7 +246,6 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				DefaultServiceEnvironment: "overridden",
 				DataStreams: DataStreamsConfig{
-					Enabled:            false,
 					WaitForIntegration: true,
 				},
 				WaitReadyInterval: 5 * time.Second,
@@ -390,7 +389,6 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				DataStreams: DataStreamsConfig{
-					Enabled:            false,
 					WaitForIntegration: false,
 				},
 				WaitReadyInterval: 5 * time.Second,
@@ -559,7 +557,6 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	ucfg, err := common.NewConfigFrom(`{
 		"rum.enabled":true,
 		"auth.api_key.enabled":true,
-		"data_streams.enabled":true,
 		"sampling.tail.policies":[{"sample_rate": 0.5}],
 	}`)
 	require.NoError(t, err)

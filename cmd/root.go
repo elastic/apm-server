@@ -19,7 +19,6 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"math"
 	"os"
 	"strconv"
@@ -36,13 +35,11 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/processing"
 
 	"github.com/elastic/apm-server/idxmgmt"
-	_ "github.com/elastic/apm-server/include" // include assets
 )
 
 const (
-	beatName        = "apm-server"
-	apmIndexPattern = "apm"
-	cloudEnv        = "CLOUD_APM_CAPACITY"
+	beatName = "apm-server"
+	cloudEnv = "CLOUD_APM_CAPACITY"
 )
 
 var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
@@ -75,14 +72,13 @@ var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
 // the GenRootCmdWithSettings.
 func DefaultSettings() instance.Settings {
 	return instance.Settings{
-		Name:        beatName,
-		IndexPrefix: apmIndexPattern,
-		Version:     defaultBeatVersion,
-		RunFlags:    pflag.NewFlagSet(beatName, pflag.ExitOnError),
+		Name:     beatName,
+		Version:  defaultBeatVersion,
+		RunFlags: pflag.NewFlagSet(beatName, pflag.ExitOnError),
 		Monitoring: report.Settings{
 			DefaultUsername: "apm_system",
 		},
-		IndexManagement: idxmgmt.MakeDefaultSupporter,
+		IndexManagement: idxmgmt.NewSupporter,
 		Processing:      processingSupport,
 		ConfigOverrides: libbeatConfigOverrides(),
 	}
@@ -116,35 +112,12 @@ func NewRootCommand(newBeat beat.Creator, settings instance.Settings) *cmd.Beats
 func modifyBuiltinCommands(rootCmd *cmd.BeatsRootCmd, settings instance.Settings) {
 	for _, cmd := range rootCmd.ExportCmd.Commands() {
 		switch cmd.Name() {
-		case "dashboard":
-			// remove `dashboard` from `export` commands
+		case "dashboard", "ilm-policy", "index-pattern", "template":
+			// Remove unsupported "export" subcommands.
 			rootCmd.ExportCmd.RemoveCommand(cmd)
-		case "template":
-			// only add defined flags to `export template` command
-			cmd.ResetFlags()
-			cmd.Flags().String("es.version", settings.Version, "Elasticsearch version")
-			cmd.Flags().String("dir", "", "Specify directory for printing template files. By default templates are printed to stdout.")
 		}
 	}
-
-	// only add defined flags to setup command
-	setup := rootCmd.SetupCmd
-	setup.Short = "Setup Elasticsearch index management components and pipelines (deprecated)"
-	setup.Long = `This command does initial setup of the environment:
-
- * Index management including loading Elasticsearch templates, ILM policies and write aliases.
- * Ingest pipelines
-
-` + idxmgmt.SetupDeprecatedWarning + "\n"
-
-	setup.ResetFlags()
-
-	//lint:ignore SA1019 Setting up template must still be supported until next major version upgrade.
-	tmplKey := cmd.TemplateKey
-	setup.Flags().Bool(tmplKey, false, "Setup index template")
-	setup.Flags().MarkDeprecated(tmplKey, fmt.Sprintf("please use --%s instead", cmd.IndexManagementKey))
-	setup.Flags().Bool(cmd.IndexManagementKey, false, "Setup Elasticsearch index management")
-	setup.Flags().Bool(cmd.PipelineKey, false, "Setup ingest pipelines")
+	rootCmd.RemoveCommand(rootCmd.SetupCmd)
 }
 
 func cloudValues(m map[string]interface{}) {
