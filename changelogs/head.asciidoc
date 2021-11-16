@@ -29,7 +29,9 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed `apm-server.rum.{allowed_service,event_rate}` configuration option in favor of `apm-server.auth.anonymous.{allow_service,rate_limit}` {pull}6560[6560]
 - Removed `apm-server.{api_key,secret_token}` configuration options in favor of `apm-server.auth.{api_key,secret_token}` {pull}6560[6560]
 - Onboarding documents are no longer indexed {pull}6431[6431]
+- Removed `apm-server.register.ingest.pipeline` and `output.elasticsearch.pipeline` configuration options {pull}6575[6575]
 - Removed unused `span.start.us` field, and deprecated `span.http.*` fields {pull}6602[6602]
+- Removed `logging.ecs` and `logging.json` config {pull}6613[6613]
 
 [float]
 ==== Bug fixes
@@ -62,6 +64,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Added support for gzip compression to the experimental Elasticsearch output {pull}6449[6449]
 - Introduced a delete phase for all data streams. Traces, errors and logs are kept for 10 days, metrics are kept for 90 days {pull}6480[6480]
 - Changed RUM traces to use a dedicated data stream (`traces-apm.rum`). RUM traces are kept for 90 days {pull}6480[6480]
+- When `auth.anonymous.enabled` isn't specified and RUM is enabled (`rum.enabled:true`), `auth.anonymous.enabled` will be set to `true` {pull}6607[6607]
 
 [float]
 ==== Deprecated

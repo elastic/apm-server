@@ -32,8 +32,6 @@ type configTelemetry struct {
 	rumEnabled                *monitoring.Bool
 	apiKeysEnabled            *monitoring.Bool
 	kibanaEnabled             *monitoring.Bool
-	pipelinesEnabled          *monitoring.Bool
-	pipelinesOverwrite        *monitoring.Bool
 	setupTemplateEnabled      *monitoring.Bool
 	setupTemplateOverwrite    *monitoring.Bool
 	setupTemplateAppendFields *monitoring.Bool
@@ -51,8 +49,6 @@ var configMonitors = &configTelemetry{
 	rumEnabled:                monitoring.NewBool(apmRegistry, "rum.enabled"),
 	apiKeysEnabled:            monitoring.NewBool(apmRegistry, "api_key.enabled"),
 	kibanaEnabled:             monitoring.NewBool(apmRegistry, "kibana.enabled"),
-	pipelinesEnabled:          monitoring.NewBool(apmRegistry, "register.ingest.pipeline.enabled"),
-	pipelinesOverwrite:        monitoring.NewBool(apmRegistry, "register.ingest.pipeline.overwrite"),
 	setupTemplateEnabled:      monitoring.NewBool(apmRegistry, "setup.template.enabled"),
 	setupTemplateOverwrite:    monitoring.NewBool(apmRegistry, "setup.template.overwrite"),
 	setupTemplateAppendFields: monitoring.NewBool(apmRegistry, "setup.template.append_fields"),
@@ -90,8 +86,6 @@ func recordAPMServerConfig(cfg *config.Config) {
 	configMonitors.apiKeysEnabled.Set(cfg.AgentAuth.APIKey.Enabled)
 	configMonitors.kibanaEnabled.Set(cfg.Kibana.Enabled)
 	configMonitors.sslEnabled.Set(cfg.TLS.IsEnabled())
-	configMonitors.pipelinesEnabled.Set(cfg.Register.Ingest.Pipeline.Enabled)
-	configMonitors.pipelinesOverwrite.Set(cfg.Register.Ingest.Pipeline.Overwrite)
 	configMonitors.tailSamplingEnabled.Set(cfg.Sampling.Tail.Enabled)
 	configMonitors.tailSamplingPolicies.Set(int64(len(cfg.Sampling.Tail.Policies)))
 }

@@ -138,8 +138,6 @@ func (s *Server) start(tls bool) error {
 	extra := map[string]interface{}{
 		// These are config attributes that we always specify,
 		// as the testing framework relies on them being set.
-		"logging.ecs":               true,
-		"logging.json":              true,
 		"logging.level":             "debug",
 		"logging.to_stderr":         true,
 		"apm-server.expvar.enabled": true,
