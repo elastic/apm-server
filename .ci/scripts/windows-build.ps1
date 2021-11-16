@@ -37,17 +37,5 @@ exec { go install github.com/magefile/mage }
 if (Test-Path "build") { Remove-Item -Recurse -Force build }
 New-Item -ItemType directory -Path build\coverage | Out-Null
 
-<<<<<<< HEAD
-choco install python -y -r --no-progress --version 3.8.5
-refreshenv
-$env:PATH = "C:\Python38;C:\Python38\Scripts;$env:PATH"
-$env:PYTHON_ENV = "$env:TEMP\python-env"
-python --version
-
-echo "Building fields.yml"
-exec { mage fields }
-
-=======
->>>>>>> 47cd8770 (ci: don't install python on Windows (#6623))
 echo "Building $env:beat"
 exec { mage build } "Build FAILURE"
