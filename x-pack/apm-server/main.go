@@ -97,10 +97,6 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 }
 
 func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, error) {
-	if !args.Config.DataStreams.Enabled {
-		return nil, errors.New("tail-based sampling requires data streams")
-	}
-
 	tailSamplingConfig := args.Config.Sampling.Tail
 	es, err := args.NewElasticsearchClient(tailSamplingConfig.ESConfig)
 	if err != nil {

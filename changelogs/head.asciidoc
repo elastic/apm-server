@@ -31,6 +31,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Onboarding documents are no longer indexed {pull}6431[6431]
 - Removed `apm-server.register.ingest.pipeline` and `output.elasticsearch.pipeline` configuration options {pull}6575[6575]
 - Removed unused `span.start.us` field, and deprecated `span.http.*` fields {pull}6602[6602]
+- Removed `apm-server.data_streams.enabled`, and `setup.*` configuration options {pull}6606[6606]
 - Removed `logging.ecs` and `logging.json` config {pull}6613[6613]
 
 [float]
