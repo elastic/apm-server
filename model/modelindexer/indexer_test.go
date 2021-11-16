@@ -61,11 +61,15 @@ func TestModelIndexer(t *testing.T) {
 			}
 
 			item := esutil.BulkIndexerResponseItem{Status: http.StatusCreated}
-			if len(result.Items) == 0 {
-				// Respond with an error for the first item. This will be recorded
-				// as a failure in indexing stats.
+			if len(result.Items) < 2 {
+				// Respond with an error for the first two items, with one
+				// indicating "too many requests". These will be recorded
+				// as failures in indexing stats.
 				result.HasErrors = true
 				item.Status = http.StatusInternalServerError
+				if len(result.Items) == 1 {
+					item.Status = http.StatusTooManyRequests
+				}
 			}
 			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: item})
 		}
@@ -92,9 +96,12 @@ func TestModelIndexer(t *testing.T) {
 	err = indexer.Close(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, modelindexer.Stats{
-		Added:  N,
-		Active: 0,
-		Failed: 1,
+		Added:           N,
+		Active:          0,
+		BulkRequests:    1,
+		Failed:          2,
+		Indexed:         N - 2,
+		TooManyRequests: 1,
 	}, indexer.Stats())
 }
 
@@ -195,9 +202,10 @@ func TestModelIndexerServerError(t *testing.T) {
 	err = indexer.Close(context.Background())
 	require.EqualError(t, err, "flush failed: [500 Internal Server Error] ")
 	assert.Equal(t, modelindexer.Stats{
-		Added:  1,
-		Active: 0,
-		Failed: 1,
+		Added:        1,
+		Active:       0,
+		BulkRequests: 1,
+		Failed:       1,
 	}, indexer.Stats())
 }
 

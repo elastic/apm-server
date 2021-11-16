@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -60,13 +61,17 @@ var ErrClosed = errors.New("model indexer closed")
 // Up to `config.MaxRequests` bulk requests may be flushing/active concurrently, to allow the
 // server to make progress encoding while Elasticsearch is busy servicing flushed bulk requests.
 type Indexer struct {
-	eventsAdded  int64
-	eventsActive int64
-	eventsFailed int64
-	config       Config
-	logger       *logp.Logger
-	available    chan *bulkIndexer
-	g            errgroup.Group
+	bulkRequests    int64
+	eventsAdded     int64
+	eventsActive    int64
+	eventsFailed    int64
+	eventsIndexed   int64
+	tooManyRequests int64
+
+	config    Config
+	logger    *logp.Logger
+	available chan *bulkIndexer
+	g         errgroup.Group
 
 	mu       sync.RWMutex
 	closing  bool
@@ -166,9 +171,12 @@ func (i *Indexer) Close(ctx context.Context) error {
 // Stats returns the bulk indexing stats.
 func (i *Indexer) Stats() Stats {
 	return Stats{
-		Added:  atomic.LoadInt64(&i.eventsAdded),
-		Active: atomic.LoadInt64(&i.eventsActive),
-		Failed: atomic.LoadInt64(&i.eventsFailed),
+		Added:           atomic.LoadInt64(&i.eventsAdded),
+		Active:          atomic.LoadInt64(&i.eventsActive),
+		BulkRequests:    atomic.LoadInt64(&i.bulkRequests),
+		Failed:          atomic.LoadInt64(&i.eventsFailed),
+		Indexed:         atomic.LoadInt64(&i.eventsIndexed),
+		TooManyRequests: atomic.LoadInt64(&i.tooManyRequests),
 	}
 }
 
@@ -322,26 +330,40 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 		return nil
 	}
 	defer atomic.AddInt64(&i.eventsActive, -int64(n))
+	defer atomic.AddInt64(&i.bulkRequests, 1)
+
 	resp, err := bulkIndexer.Flush(ctx)
 	if err != nil {
 		atomic.AddInt64(&i.eventsFailed, int64(n))
 		i.logger.With(logp.Error(err)).Error("bulk indexing request failed")
 		return err
 	}
-	var eventsFailed int64
+
+	var eventsFailed, eventsIndexed, tooManyRequests int64
 	for _, item := range resp.Items {
 		for _, info := range item {
 			if info.Error.Type != "" || info.Status > 201 {
 				eventsFailed++
+				if info.Status == http.StatusTooManyRequests {
+					tooManyRequests++
+				}
 				i.logger.Errorf(
 					"failed to index event (%s): %s",
 					info.Error.Type, info.Error.Reason,
 				)
+			} else {
+				eventsIndexed++
 			}
 		}
 	}
 	if eventsFailed > 0 {
 		atomic.AddInt64(&i.eventsFailed, eventsFailed)
+	}
+	if eventsIndexed > 0 {
+		atomic.AddInt64(&i.eventsIndexed, eventsIndexed)
+	}
+	if tooManyRequests > 0 {
+		atomic.AddInt64(&i.tooManyRequests, tooManyRequests)
 	}
 	return nil
 }
@@ -382,6 +404,17 @@ type Stats struct {
 	// Added holds the number of items added to the indexer.
 	Added int64
 
+	// BulkRequests holds the number of bulk requests completed.
+	BulkRequests int64
+
 	// Failed holds the number of indexing operations that failed.
 	Failed int64
+
+	// Indexed holds the number of indexing operations that have completed
+	// successfully.
+	Indexed int64
+
+	// TooManyRequests holds the number of indexing operations that failed due
+	// to Elasticsearch responding with 429 Too many Requests.
+	TooManyRequests int64
 }
