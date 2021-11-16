@@ -29,6 +29,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.elastic.co/apm"
 	"go.elastic.co/fastjson"
 	"golang.org/x/sync/errgroup"
 
@@ -104,6 +105,12 @@ type Config struct {
 	//
 	// If FlushInterval is zero, the default of 30 seconds will be used.
 	FlushInterval time.Duration
+
+	// Tracer holds an optional apm.Tracer to use for tracing bulk requests
+	// to Elasticsearch. Each bulk request is traced as a transaction.
+	//
+	// If Tracer is nil, requests will not be traced.
+	Tracer *apm.Tracer
 }
 
 // New returns a new Indexer that indexes events directly into data streams.
@@ -332,10 +339,22 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 	defer atomic.AddInt64(&i.eventsActive, -int64(n))
 	defer atomic.AddInt64(&i.bulkRequests, 1)
 
+	var tx *apm.Transaction
+	if i.config.Tracer != nil && i.config.Tracer.Recording() {
+		tx = i.config.Tracer.StartTransaction("flush", "output")
+		defer tx.End()
+		ctx = apm.ContextWithTransaction(ctx, tx)
+		tx.Outcome = "success"
+	}
+
 	resp, err := bulkIndexer.Flush(ctx)
 	if err != nil {
 		atomic.AddInt64(&i.eventsFailed, int64(n))
 		i.logger.With(logp.Error(err)).Error("bulk indexing request failed")
+		if tx != nil {
+			tx.Outcome = "failure"
+			apm.CaptureError(ctx, err).Send()
+		}
 		return err
 	}
 

@@ -669,6 +669,7 @@ func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.Batch
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
 		FlushInterval:    esConfig.FlushInterval,
+		Tracer:           s.tracer,
 	})
 	if err != nil {
 		return nil, nil, err
