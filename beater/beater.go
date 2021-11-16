@@ -50,6 +50,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 
 	"github.com/elastic/apm-server/beater/config"
+	javaattacher "github.com/elastic/apm-server/beater/java_attacher"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
@@ -416,13 +417,32 @@ func (s *serverRunner) run(listener net.Listener) error {
 	cfg := ucfg.Config(*s.rawConfig)
 	parentCfg := cfg.Parent()
 	// Check for an environment variable set when running in a cloud environment
-	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
+	eac := os.Getenv("ELASTIC_AGENT_CLOUD")
+	if eac != "" && s.config.Kibana.Enabled {
 		// Don't block server startup sending the config.
 		go func() {
 			if err := kibana.SendConfig(s.runServerContext, kibanaClient, parentCfg); err != nil {
 				s.logger.Infof("failed to upload config to kibana: %v", err)
 			}
 		}()
+	}
+
+	if s.config.JavaAttacherConfig.Enabled {
+		if eac == "" {
+			// We aren't running in a cloud environment
+			go func() {
+				attacher, err := javaattacher.New(s.config.JavaAttacherConfig)
+				if err != nil {
+					s.logger.Errorf("failed to start java attacher: %v", err)
+					return
+				}
+				if err := attacher.Run(s.runServerContext); err != nil {
+					s.logger.Errorf("failed to run java attacher: %v", err)
+				}
+			}()
+		} else {
+			s.logger.Error("java attacher not supported in cloud environments")
+		}
 	}
 
 	g, ctx := errgroup.WithContext(s.runServerContext)

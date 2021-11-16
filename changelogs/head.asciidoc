@@ -68,6 +68,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Changed RUM traces to use a dedicated data stream (`traces-apm.rum`). RUM traces are kept for 90 days {pull}6480[6480]
 - `apm-server` artifacts now have the apm java-attacher.jar packaged alongside them {pull}6593[6593]
 - When `auth.anonymous.enabled` isn't specified and RUM is enabled (`rum.enabled:true`), `auth.anonymous.enabled` will be set to `true` {pull}6607[6607]
+- Run the java attacher jar when configured and not in a cloud environment {pull}6617[6617]
 
 [float]
 ==== Deprecated
