@@ -232,4 +232,21 @@ replace (
 // command line flags and conflicting with command line flags added by libbeat.
 replace github.com/golang/glog => ./internal/glog
 
+// Exclude old modules (with security vulnerabilities) used only by tests of dependencies.
+exclude (
+	github.com/buger/jsonparser v0.0.0-20180808090653-f4dd9f5a6b44
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
+	github.com/gin-gonic/gin v1.5.0
+	github.com/opencontainers/runc v0.0.0-20190115041553-12f6a991201f
+	github.com/opencontainers/runc v1.0.0-rc9
+	go.mongodb.org/mongo-driver v1.0.3
+	go.mongodb.org/mongo-driver v1.1.1
+	go.mongodb.org/mongo-driver v1.3.0
+	go.mongodb.org/mongo-driver v1.3.4
+	go.mongodb.org/mongo-driver v1.4.3
+	go.mongodb.org/mongo-driver v1.4.4
+	go.mongodb.org/mongo-driver v1.4.6
+)
+
 replace go.opentelemetry.io/collector => ./internal/otel_collector

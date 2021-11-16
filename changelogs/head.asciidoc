@@ -38,6 +38,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 ==== Bug fixes
 - Use timestamp of original events for transaction/span metrics {pull}6311[6311]
 - Populate the timestamp field for `agent_config` metricsets {pull}6382[6382]
+- Query elasticsearch output `cluster_uuid` on startup {pull}6591[6591]
 
 [float]
 ==== Intake API Changes
