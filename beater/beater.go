@@ -542,7 +542,10 @@ func (s *serverRunner) run(listener net.Listener) error {
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
 	batchProcessor := make(modelprocessor.Chained, 0, 3)
-	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(publisher)
+	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
+		publisher,
+		newElasticsearchClient,
+	)
 	if err != nil {
 		return err
 	}
@@ -662,8 +665,16 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
 // and a cleanup function which should be called on server shutdown.
+<<<<<<< HEAD
 func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.BatchProcessor, func(context.Context) error, error) {
 	if s.elasticsearchOutputConfig == nil || !s.config.DataStreams.Enabled {
+=======
+func (s *serverRunner) newFinalBatchProcessor(
+	p *publish.Publisher,
+	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
+) (model.BatchProcessor, func(context.Context) error, error) {
+	if s.elasticsearchOutputConfig == nil {
+>>>>>>> f4330f84 (beater: ensure modelindexer waits for integration (#6650))
 		return p, func(context.Context) error { return nil }, nil
 	}
 
@@ -694,7 +705,7 @@ func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.Batch
 		}
 		flushBytes = int(b)
 	}
-	client, err := elasticsearch.NewClient(esConfig.Config)
+	client, err := newElasticsearchClient(esConfig.Config)
 	if err != nil {
 		return nil, nil, err
 	}
