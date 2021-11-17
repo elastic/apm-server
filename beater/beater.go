@@ -665,16 +665,11 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
 // and a cleanup function which should be called on server shutdown.
-<<<<<<< HEAD
-func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.BatchProcessor, func(context.Context) error, error) {
-	if s.elasticsearchOutputConfig == nil || !s.config.DataStreams.Enabled {
-=======
 func (s *serverRunner) newFinalBatchProcessor(
 	p *publish.Publisher,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
 ) (model.BatchProcessor, func(context.Context) error, error) {
-	if s.elasticsearchOutputConfig == nil {
->>>>>>> f4330f84 (beater: ensure modelindexer waits for integration (#6650))
+	if s.elasticsearchOutputConfig == nil || !s.config.DataStreams.Enabled {
 		return p, func(context.Context) error { return nil }, nil
 	}
 
