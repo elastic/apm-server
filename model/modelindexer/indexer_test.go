@@ -98,6 +98,59 @@ func TestModelIndexer(t *testing.T) {
 	}, indexer.Stats())
 }
 
+func TestModelIndexerEncoding(t *testing.T) {
+	var indexed []map[string]interface{}
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		scanner := bufio.NewScanner(r.Body)
+		var result elasticsearch.BulkIndexerResponse
+		for scanner.Scan() {
+			action := make(map[string]interface{})
+			if err := json.NewDecoder(strings.NewReader(scanner.Text())).Decode(&action); err != nil {
+				panic(err)
+			}
+			var actionType string
+			for actionType = range action {
+			}
+			if !scanner.Scan() {
+				panic("expected source")
+			}
+
+			var doc map[string]interface{}
+			if err := json.Unmarshal([]byte(scanner.Text()), &doc); err != nil {
+				panic(err)
+			}
+			indexed = append(indexed, doc)
+			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: {}})
+		}
+		json.NewEncoder(w).Encode(result)
+	})
+	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	batch := model.Batch{{
+		Timestamp: time.Unix(123, 456789111).UTC(),
+		DataStream: model.DataStream{
+			Type:      "logs",
+			Dataset:   "apm_server",
+			Namespace: "testing",
+		},
+	}}
+	err = indexer.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+
+	// Closing the indexer flushes enqueued events.
+	err = indexer.Close(context.Background())
+	require.NoError(t, err)
+
+	assert.Equal(t, []map[string]interface{}{{
+		"@timestamp":            "1970-01-01T00:02:03.456Z",
+		"data_stream.type":      "logs",
+		"data_stream.dataset":   "apm_server",
+		"data_stream.namespace": "testing",
+	}}, indexed)
+}
+
 func TestModelIndexerFlushInterval(t *testing.T) {
 	requests := make(chan struct{}, 1)
 	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
@@ -296,6 +349,26 @@ func TestModelIndexerCloseFlushContext(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for flush to unblock")
 	}
+}
+
+func TestModelIndexerUnknownResponseFields(t *testing.T) {
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"ingest_took":123}`))
+	})
+	indexer, err := modelindexer.New(client, modelindexer.Config{})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+		Type:      "logs",
+		Dataset:   "apm_server",
+		Namespace: "testing",
+	}}}
+	err = indexer.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+
+	err = indexer.Close(context.Background())
+	assert.NoError(t, err)
 }
 
 func BenchmarkModelIndexer(b *testing.B) {

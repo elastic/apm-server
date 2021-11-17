@@ -26,6 +26,7 @@ import (
 	"net/http"
 
 	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
 	"go.elastic.co/fastjson"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
@@ -174,7 +175,9 @@ func (b *bulkIndexer) Flush(ctx context.Context) (elasticsearch.BulkIndexerRespo
 			b.resp.HasErrors = iter.ReadBool()
 		case "items":
 			iter.ReadVal(&b.resp.Items)
+		default:
+			iter.Skip()
 		}
 	}
-	return b.resp, iter.Error
+	return b.resp, errors.Wrap(iter.Error, "error decoding bulk response")
 }
