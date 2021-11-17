@@ -40,6 +40,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Populate the timestamp field for `agent_config` metricsets {pull}6382[6382]
 - Query elasticsearch output `cluster_uuid` on startup {pull}6591[6591]
 - Skip unhandled fields in bulk responses in the experimental Elasticsearch output {pull}6631[6631]
+- Fix the format of `@timestamp` to include fractional seconds when using experimental Elasticsearch output {pull}6646[6646]
 
 [float]
 ==== Intake API Changes
