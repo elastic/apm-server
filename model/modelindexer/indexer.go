@@ -42,6 +42,11 @@ import (
 
 const (
 	logRateLimit = time.Minute
+
+	// timestampFormat formats timestamps according to Elasticsearch's
+	// strict_date_optional_time date format, which includes a fractional
+	// seconds component.
+	timestampFormat = "2006-01-02T15:04:05.000Z07:00"
 )
 
 // ErrClosed is returned from methods of closed Indexers.
@@ -244,7 +249,7 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 func encodeBeatEvent(in beat.Event, out *fastjson.Writer) error {
 	out.RawByte('{')
 	out.RawString(`"@timestamp":"`)
-	out.Time(in.Timestamp, time.RFC3339)
+	out.Time(in.Timestamp, timestampFormat)
 	out.RawByte('"')
 	for k, v := range in.Fields {
 		out.RawByte(',')
