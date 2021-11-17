@@ -21,11 +21,8 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -36,9 +33,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/dev-tools/mage"
-	"github.com/elastic/beats/v7/libbeat/asset"
-	"github.com/elastic/beats/v7/libbeat/generator/fields"
-	"github.com/elastic/beats/v7/licenses"
 
 	"github.com/elastic/apm-server/beater/config"
 )
@@ -189,107 +183,8 @@ func Version() error {
 
 // Update updates the generated files.
 func Update() error {
-	mg.Deps(Fields, Config)
+	mg.Deps(Config)
 	return nil
-}
-
-func Fields() error {
-	fieldsInclude := "include/fields.go"
-	xpackFieldsInclude := mage.XPackBeatDir(fieldsInclude)
-
-	ossFieldsModules := []string{"model"}
-	xpackFieldsModules := []string{mage.XPackBeatDir()}
-	allFieldsModules := append(ossFieldsModules[:], xpackFieldsModules...)
-
-	// Create include/fields.go and fields.yml from the OSS-only fields,
-	// and fields.all.yml from all fields.
-	if err := generateFieldsYAML(mage.FieldsYML, ossFieldsModules...); err != nil {
-		return err
-	}
-	if err := mage.GenerateFieldsGo(mage.FieldsYML, fieldsInclude); err != nil {
-		return err
-	}
-	if err := generateFieldsYAML(mage.FieldsAllYML, allFieldsModules...); err != nil {
-		return err
-	}
-
-	// Create x-pack/apm-server/include/fields.go from the X-Pack fields.
-	// These supplement the OSS fields, they don't replace them.
-	xpackBeatDir := mage.XPackBeatDir()
-	xpackBeatDirRel, err := filepath.Rel(mage.OSSBeatDir(), xpackBeatDir)
-	if err != nil {
-		return err
-	}
-	xpackFieldsYMLFiles, err := fields.CollectModuleFiles(xpackBeatDir)
-	if err != nil {
-		return err
-	}
-	xpackFieldsData, err := fields.GenerateFieldsYml(xpackFieldsYMLFiles)
-	if err != nil {
-		return err
-	}
-	assetData, err := asset.CreateAsset(
-		licenses.Elasticv2, mage.BeatName,
-		"XPackFields", // asset name
-		"include",     // package name
-		xpackFieldsData,
-		"asset.ModuleFieldsPri",
-		xpackBeatDirRel,
-	)
-	if err != nil {
-		panic(err)
-	}
-	return ioutil.WriteFile(xpackFieldsInclude, assetData, 0644)
-}
-
-func generateFieldsYAML(output string, modules ...string) error {
-	if err := mage.GenerateFieldsYAMLTo(output, modules...); err != nil {
-		return err
-	}
-	contents, err := ioutil.ReadFile(output)
-	if err != nil {
-		return err
-	}
-
-	// We don't use autodiscover at all, so we can remove those modules from our fields.
-	//
-	// TODO(axw) modify libbeat to make the "common" modules configurable.
-	beatsdir, err := mage.ElasticBeatsDir()
-	if err != nil {
-		return err
-	}
-	files, err := fields.CollectModuleFiles(filepath.Join(beatsdir, "libbeat", "autodiscover", "providers"))
-	if err != nil {
-		return err
-	}
-	var buf bytes.Buffer
-	for _, ymlfile := range files {
-		file, err := os.Open(ymlfile.Path)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-
-		buf.Reset()
-		prefix := strings.Repeat(" ", ymlfile.Indent)
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			buf.WriteString(prefix)
-			buf.WriteString(scanner.Text())
-			buf.WriteRune('\n')
-		}
-		if err := scanner.Err(); err != nil {
-			return err
-		}
-
-		// Remove the contents from the combined file.
-		if i := bytes.Index(contents, buf.Bytes()); i == -1 {
-			return fmt.Errorf("could not find contents of %s in fields.yml", ymlfile.Path)
-		} else {
-			contents = append(contents[:i], contents[i+buf.Len():]...)
-		}
-	}
-	return ioutil.WriteFile(output, contents, 0644)
 }
 
 // Use RACE_DETECTOR=true to enable the race detector.
@@ -331,26 +226,19 @@ func customizePackaging() {
 			switch filespec.Source {
 			case "{{ elastic_beats_dir }}/dev-tools/packaging/templates/common/README.md.tmpl":
 				args.Spec.Files[filename] = mage.PackageFile{Mode: 0644, Template: "packaging/files/README.md.tmpl"}
-			case "_meta/kibana.generated", "{{.BeatName}}.reference.yml":
+			case "_meta/kibana.generated", "fields.yml", "{{.BeatName}}.reference.yml":
 				delete(args.Spec.Files, filename)
-			case "fields.yml":
-				// Source fields.yml from the build directory.
-				if args.Spec.License == "Elastic License" || args.Spec.License == "Elastic License 2.0" {
-					filespec.Source = mage.FieldsAllYML
-				} else {
-					filespec.Source = mage.FieldsYML
-				}
-				args.Spec.Files[filename] = filespec
 			}
 		}
 
 		switch pkgType := args.Types[0]; pkgType {
 		case mage.Zip, mage.TarGz:
-			// No changes required.
+			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 		case mage.Docker:
 			args.Spec.ExtraVars["expose_ports"] = config.DefaultPort
 			args.Spec.ExtraVars["repository"] = "docker.elastic.co/apm"
+			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 		case mage.Deb, mage.RPM:
 			// Update config file owner.
@@ -358,6 +246,7 @@ func customizePackaging() {
 			pf.Owner = mage.BeatUser
 			args.Spec.Files["/etc/{{.BeatName}}/{{.BeatName}}.yml"] = pf
 			args.Spec.Files["/var/log/{{.BeatName}}"] = mage.PackageFile{Mode: 0750, Source: emptyDir, Owner: mage.BeatUser}
+			args.Spec.Files["/usr/share/{{.BeatName}}/bin/java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 			// Customise the pre-install and post-install scripts.
 			args.Spec.PreInstallScript = "packaging/files/linux/pre-install.sh.tmpl"

@@ -465,9 +465,6 @@ func TestServerConfigReload(t *testing.T) {
 		// Set an invalid host to illustrate that the static config
 		// is not used for defining the listening address.
 		"host": "testing.invalid:123",
-
-		// Data streams must be enabled when the server is managed.
-		"data_streams.enabled": true,
 	})
 	apmBeat, cfg := newBeat(t, cfg, nil, nil)
 	apmBeat.Manager = &mockManager{enabled: true}
@@ -566,8 +563,7 @@ func TestServerOutputConfigReload(t *testing.T) {
 	}()
 	reload.Register = reload.NewRegistry()
 
-	cfg := common.MustNewConfigFrom(map[string]interface{}{"data_streams.enabled": true})
-	apmBeat, cfg := newBeat(t, cfg, nil, nil)
+	apmBeat, cfg := newBeat(t, nil, nil, nil)
 	apmBeat.Manager = &mockManager{enabled: true}
 
 	runServerCalls := make(chan ServerParams, 1)
@@ -652,12 +648,18 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 	defer srv.Close()
 
 	cfg := common.MustNewConfigFrom(map[string]interface{}{
-		"data_streams.enabled": true,
-		"wait_ready_interval":  "100ms",
-		"kibana.enabled":       true,
-		"kibana.host":          srv.URL,
+		"wait_ready_interval": "100ms",
+		"kibana.enabled":      true,
+		"kibana.host":         srv.URL,
 	})
-	_, err := setupServer(t, cfg, nil, nil)
+
+	// newBeat sets `data_streams.wait_for_integration: false`,
+	// remove it so we test the default behaviour.
+	apmBeat, cfg := newBeat(t, cfg, nil, nil)
+	removed, err := cfg.Remove("data_streams.wait_for_integration", -1)
+	require.NoError(t, err)
+	require.True(t, removed)
+	_, err = setupBeater(t, apmBeat, cfg, nil)
 	require.NoError(t, err)
 
 	timeout := time.After(10 * time.Second)
@@ -708,10 +710,7 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	cfg := common.MustNewConfigFrom(map[string]interface{}{
-		"data_streams.enabled": true,
-		"wait_ready_interval":  "100ms",
-	})
+	cfg := common.MustNewConfigFrom(map[string]interface{}{"wait_ready_interval": "100ms"})
 	var beatConfig beat.BeatConfig
 	err := beatConfig.Output.Unpack(common.MustNewConfigFrom(map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
@@ -722,7 +721,13 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	}))
 	require.NoError(t, err)
 
-	beater, err := setupServer(t, cfg, &beatConfig, nil)
+	// newBeat sets `data_streams.wait_for_integration: false`,
+	// remove it so we test the default behaviour.
+	apmBeat, cfg := newBeat(t, cfg, &beatConfig, nil)
+	removed, err := cfg.Remove("data_streams.wait_for_integration", -1)
+	require.NoError(t, err)
+	require.True(t, removed)
+	beater, err := setupBeater(t, apmBeat, cfg, &beatConfig)
 	require.NoError(t, err)
 
 	// Send some events to the server. They should be accepted and enqueued.
@@ -799,11 +804,7 @@ func TestServerExperimentalElasticsearchOutput(t *testing.T) {
 	}()
 	reload.Register = reload.NewRegistry()
 
-	cfg := common.MustNewConfigFrom(map[string]interface{}{
-		"data_streams.enabled":              true,
-		"data_streams.wait_for_integration": false,
-	})
-	apmBeat, cfg := newBeat(t, cfg, nil, nil)
+	apmBeat, cfg := newBeat(t, nil, nil, nil)
 	apmBeat.Manager = &mockManager{enabled: true}
 	beater, err := newTestBeater(t, apmBeat, cfg, nil)
 	require.NoError(t, err)

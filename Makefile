@@ -79,20 +79,12 @@ bench:
 	@$(GO) test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
 
 ##############################################################################
-# Rules for updating config files, fields.yml, etc.
+# Rules for updating config files, etc.
 ##############################################################################
 
-update: fields go-generate add-headers build-package notice $(MAGE)
+update: go-generate add-headers build-package notice $(MAGE)
 	@$(MAGE) update
 	@go mod download all # make sure go.sum is complete
-
-fields_sources=\
-  $(shell find model -name fields.yml) \
-  $(shell find x-pack/apm-server/fields -name fields.yml)
-
-fields: include/fields.go x-pack/apm-server/include/fields.go
-include/fields.go x-pack/apm-server/include/fields.go: $(MAGE) magefile.go $(fields_sources)
-	@$(MAGE) fields
 
 config: apm-server.yml apm-server.docker.yml
 apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml
@@ -260,7 +252,28 @@ release-manager-snapshot: release
 .PHONY: release-manager-release
 release-manager-release: release
 
+JAVA_ATTACHER_VERSION:=1.27.0
+JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
+JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
+JAVA_ATTACHER_BASE_URL:=https://repo1.maven.org/maven2/co/elastic/apm/apm-agent-attach-cli
+JAVA_ATTACHER_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_JAR)
+JAVA_ATTACHER_SIG_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_SIG)
+
+APM_AGENT_JAVA_PUB_KEY:=apm-agent-java-public-key.asc
+
+.imported-java-agent-pubkey:
+	@gpg --import $(APM_AGENT_JAVA_PUB_KEY)
+	@touch $@
+
+build/$(JAVA_ATTACHER_SIG):
+	curl -sSL $(JAVA_ATTACHER_SIG_URL) > $@
+
+build/$(JAVA_ATTACHER_JAR): build/$(JAVA_ATTACHER_SIG) .imported-java-agent-pubkey
+	curl -sSL $(JAVA_ATTACHER_URL) > $@
+	gpg --verify $< $@
+	@cp $@ build/java-attacher.jar
+
 .PHONY: release
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
-release: $(MAGE)
+release: $(MAGE) build/$(JAVA_ATTACHER_JAR)
 	$(MAGE) package

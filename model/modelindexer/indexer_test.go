@@ -307,6 +307,26 @@ func TestModelIndexerCloseFlushContext(t *testing.T) {
 	}
 }
 
+func TestModelIndexerUnknownResponseFields(t *testing.T) {
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"ingest_took":123}`))
+	})
+	indexer, err := modelindexer.New(client, modelindexer.Config{})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+		Type:      "logs",
+		Dataset:   "apm_server",
+		Namespace: "testing",
+	}}}
+	err = indexer.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+
+	err = indexer.Close(context.Background())
+	assert.NoError(t, err)
+}
+
 func TestModelIndexerTracing(t *testing.T) {
 	testModelIndexerTracing(t, 200, "success")
 	testModelIndexerTracing(t, 400, "failure")

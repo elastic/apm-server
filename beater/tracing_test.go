@@ -37,10 +37,8 @@ func TestServerTracingEnabled(t *testing.T) {
 	for _, enabled := range []bool{false, true} {
 		t.Run(fmt.Sprint(enabled), func(t *testing.T) {
 			cfg := common.MustNewConfigFrom(m{
-				"host":                              "localhost:0",
-				"data_streams.enabled":              true,
-				"data_streams.wait_for_integration": false,
-				"instrumentation.enabled":           enabled,
+				"host":                    "localhost:0",
+				"instrumentation.enabled": enabled,
 			})
 			events := make(chan beat.Event, 10)
 			beater, err := setupServer(t, cfg, nil, events)
