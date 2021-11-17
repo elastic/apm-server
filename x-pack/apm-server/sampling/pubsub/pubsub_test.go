@@ -91,7 +91,9 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 					break
 				}
 				assert.NoError(t, err)
-				assert.Equal(t, map[string]interface{}{"create": map[string]interface{}{}}, action)
+				assert.Equal(t, map[string]interface{}{"create": map[string]interface{}{
+					"_index": dataStream.String(),
+				}}, action)
 
 				doc := make(map[string]interface{})
 				assert.NoError(t, d.Decode(&doc))
@@ -338,7 +340,7 @@ func newMockElasticsearchServer(t testing.TB) *mockElasticsearchServer {
 		}
 		panic(fmt.Errorf("unexpected URL path: %s", r.URL.Path))
 	})
-	mux.HandleFunc("/"+dataStream.String()+"/_bulk", m.handleBulk)
+	mux.HandleFunc("/_bulk", m.handleBulk)
 	mux.HandleFunc("/"+dataStream.String()+"/_stats/get", m.handleStats)
 	mux.HandleFunc("/index_name/_refresh", m.handleRefresh)
 	mux.HandleFunc("/index_name/_search", m.handleSearch)
