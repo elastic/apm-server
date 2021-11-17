@@ -18,73 +18,10 @@
 package model
 
 import (
-	"encoding/json"
-	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
-
-func filterLabels(labels common.MapStr, fn func(interface{}) interface{}) common.MapStr {
-	result := common.MapStr{}
-	for k, v := range labels {
-		if typeValue := fn(v); typeValue != nil {
-			if slice, ok := typeValue.([]interface{}); ok {
-				for i, elem := range slice {
-					result[fmt.Sprintf("%s_%d", k, i)] = elem
-				}
-			} else {
-				result[k] = typeValue
-			}
-		}
-	}
-	return result
-}
-
-func filterStringLabels(v interface{}) interface{} {
-	switch v := v.(type) {
-	case string:
-		return v
-	case bool:
-		return strconv.FormatBool(v)
-	case []interface{}:
-		res := make([]interface{}, 0, len(v))
-		for i := range v {
-			if val := filterStringLabels(v[i]); val != nil {
-				res = append(res, val)
-			}
-		}
-		return res
-	}
-	return nil
-}
-
-func filterNumberLabels(v interface{}) interface{} {
-	switch v := v.(type) {
-	case float64:
-		return v
-	case int64:
-		return float64(v)
-	case int32:
-		return float64(v)
-	case int:
-		return float64(v)
-	case json.Number:
-		if val, err := v.Float64(); err == nil {
-			return val
-		}
-	case []interface{}:
-		res := make([]interface{}, 0, len(v))
-		for i := range v {
-			if val := filterNumberLabels(v[i]); val != nil {
-				res = append(res, val)
-			}
-		}
-		return res
-	}
-	return nil
-}
 
 // Label keys are sanitized, replacing the reserved characters '.', '*' and '"'
 // with '_'. Null-valued labels are omitted.

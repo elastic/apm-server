@@ -120,6 +120,7 @@ Traces are written to `traces-apm-*` data streams, except for RUM traces, which 
 | network.carrier.name | Carrier name, eg. Vodafone, T-Mobile, etc. | keyword |
 | network.connection.subtype | Detailed network connection sub-type, e.g. "LTE", "CDMA" | keyword |
 | network.connection.type | Network connection type, eg. "wifi", "cell" | keyword |
+| numeric_labels | Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float. | object |
 | observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |
 | observer.hostname | Hostname of the observer. | keyword |
 | observer.id | Unique identifier of the APM Server. | keyword |
@@ -268,6 +269,7 @@ Application metrics are written to service-specific `metrics-apm.app.*-*` data s
 | labels | Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as keyword. Example: `docker` and `k8s` labels. | object |  |  |
 | metricset.name | Name of the set of metrics. | keyword |  |  |
 | network.connection.type | Network connection type, eg. "wifi", "cell" | keyword |  |  |
+| numeric_labels | Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float. | object |  |  |
 | observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |  |  |
 | observer.hostname | Hostname of the observer. | keyword |  |  |
 | observer.id | Unique identifier of the APM Server. | keyword |  |  |
@@ -522,6 +524,7 @@ Application errors are written to `logs-apm.error.*` data stream.
 | network.carrier.name | Carrier name, eg. Vodafone, T-Mobile, etc. | keyword |
 | network.connection.subtype | Detailed network connection sub-type, e.g. "LTE", "CDMA" | keyword |
 | network.connection.type | Network connection type, eg. "wifi", "cell" | keyword |
+| numeric_labels | Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float. | object |
 | observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |
 | observer.hostname | Hostname of the observer. | keyword |
 | observer.id | Unique identifier of the APM Server. | keyword |

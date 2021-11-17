@@ -54,14 +54,18 @@
                 }
             },
             "labels": {
-                "string_array_0": "a",
-                "string_array_1": "b",
+                "string_array": [
+                    "a",
+                    "b"
+                ],
                 "tag1": "one"
             },
             "numeric_labels": {
                 "double_value": 123.456,
-                "int_array_0": 1,
-                "int_array_1": 2,
+                "int_array": [
+                    1,
+                    2
+                ],
                 "tag2": 2
             },
             "process": {
@@ -193,14 +197,18 @@
                 }
             },
             "labels": {
-                "string_array_0": "a",
-                "string_array_1": "b",
+                "string_array": [
+                    "a",
+                    "b"
+                ],
                 "tag1": "one"
             },
             "numeric_labels": {
                 "double_value": 123.456,
-                "int_array_0": 1,
-                "int_array_1": 2,
+                "int_array": [
+                    1,
+                    2
+                ],
                 "tag2": 2
             },
             "parent": {

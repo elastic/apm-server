@@ -203,9 +203,6 @@
       type: keyword
       description: |
         Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
-# Since `dynamic: struct` is set at the data stream level, numeric_labels needs
-# to be explicitly set as a field in contrast with the other data streams which
-# have `dynamic` != strict.
 - name: numeric_labels
   type: object
   dynamic: true

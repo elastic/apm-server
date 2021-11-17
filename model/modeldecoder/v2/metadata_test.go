@@ -22,6 +22,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -84,6 +85,7 @@ func isUnmappedMetadataField(key string) bool {
 		"Observer.Type",
 		"Observer.Version",
 		"Observer.VersionMajor",
+		"NumericLabels", // Tested individually.
 		"Parent",
 		"Parent.ID",
 		"Process.CommandLine",
@@ -164,9 +166,9 @@ func TestDecodeMetadata(t *testing.T) {
 		decodeFn func(decoder.Decoder, *model.APMEvent) error
 	}{
 		{name: "decodeMetadata", decodeFn: DecodeMetadata,
-			input: `{"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}`},
+			input: `{"labels":{"a":"b","c":true,"d":1234,"e":1234.11},"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}`},
 		{name: "decodeNestedMetadata", decodeFn: DecodeNestedMetadata,
-			input: `{"metadata":{"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}}`},
+			input: `{"metadata":{"labels":{"a":"b","c":true,"d":1234,"e":1234.11},"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}}`},
 	} {
 		t.Run("decode", func(t *testing.T) {
 			var out model.APMEvent
@@ -175,6 +177,14 @@ func TestDecodeMetadata(t *testing.T) {
 			assert.Equal(t, model.APMEvent{
 				Service: model.Service{Name: "user-service"},
 				Agent:   model.Agent{Name: "go", Version: "1.0.0"},
+				Labels: common.MapStr{
+					"a": "b",
+					"c": "true",
+				},
+				NumericLabels: common.MapStr{
+					"d": float64(1234),
+					"e": float64(1234.11),
+				},
 			}, out)
 
 			err := tc.decodeFn(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &out)
@@ -280,6 +290,5 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.System.DeprecatedHostname.Reset()
 		assert.Empty(t, out.Host.Name)
 		assert.Empty(t, out.Host.Hostname)
-
 	})
 }

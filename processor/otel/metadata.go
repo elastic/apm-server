@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"go.opentelemetry.io/collector/model/pdata"
@@ -132,7 +133,10 @@ func translateResourceMetadata(resource pdata.Resource, out *model.APMEvent) {
 			if out.Labels == nil {
 				out.Labels = make(common.MapStr)
 			}
-			out.Labels[replaceDots(k)] = ifaceAttributeValue(v)
+			if out.NumericLabels == nil {
+				out.NumericLabels = make(common.MapStr)
+			}
+			setLabel(replaceDots(k), out, ifaceAttributeValue(v))
 		}
 		return true
 	})
@@ -200,12 +204,12 @@ func ifaceAttributeValue(v pdata.AttributeValue) interface{} {
 	switch v.Type() {
 	case pdata.AttributeValueTypeString:
 		return truncate(v.StringVal())
+	case pdata.AttributeValueTypeBool:
+		return strconv.FormatBool(v.BoolVal())
 	case pdata.AttributeValueTypeInt:
-		return v.IntVal()
+		return float64(v.IntVal())
 	case pdata.AttributeValueTypeDouble:
 		return v.DoubleVal()
-	case pdata.AttributeValueTypeBool:
-		return v.BoolVal()
 	case pdata.AttributeValueTypeArray:
 		return ifaceAnyValueArray(v.ArrayVal())
 	}
@@ -222,6 +226,32 @@ func ifaceAnyValueArray(array pdata.AnyValueArray) []interface{} {
 
 // initEventLabels initializes an event-specific label map, either making a copy
 // of commonLabels if it is non-nil, or otherwise creating a new map.
-func initEventLabels(commonLabels common.MapStr) common.MapStr {
-	return commonLabels.Clone()
+func initEventLabels(e *model.APMEvent) {
+	e.Labels = e.Labels.Clone()
+	e.NumericLabels = e.NumericLabels.Clone()
+}
+
+func setLabel(key string, event *model.APMEvent, v interface{}) {
+	switch v := v.(type) {
+	case string:
+		event.Labels[key] = v
+	case bool:
+		event.Labels[key] = strconv.FormatBool(v)
+	case float64:
+		event.NumericLabels[key] = v
+	case int64:
+		event.NumericLabels[key] = float64(v)
+	case []interface{}:
+		if len(v) == 0 {
+			return
+		}
+		switch v[0].(type) {
+		case string:
+			event.Labels[key] = v
+		case float64:
+			event.NumericLabels[key] = v
+		}
+	default:
+		panic(fmt.Sprintf("Unhandled %T, %+v\n", v, v))
+	}
 }

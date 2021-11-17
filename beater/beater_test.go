@@ -182,7 +182,7 @@ func newTestBeater(
 					if event.Labels == nil {
 						event.Labels = common.MapStr{}
 					}
-					event.Labels["wrapped_reporter"] = true
+					event.Labels["wrapped_reporter"] = "true"
 				}
 				return nil
 			}

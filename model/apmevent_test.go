@@ -82,8 +82,12 @@ func TestAPMEventFields(t *testing.T) {
 			URL:         URL{Original: "url"},
 			Labels: common.MapStr{
 				"a": "b",
-				"c": true,
-				"d": float64(1234),
+				"c": "true",
+				"d": []string{"true", "false"},
+			},
+			NumericLabels: common.MapStr{
+				"e": float64(1234),
+				"f": []float64{1234, 12311},
 			},
 			Message:     "bottle",
 			Transaction: &Transaction{},
@@ -144,9 +148,11 @@ func TestAPMEventFields(t *testing.T) {
 			"labels": common.MapStr{
 				"a": "b",
 				"c": "true",
+				"d": []string{"true", "false"},
 			},
 			"numeric_labels": common.MapStr{
-				"d": float64(1234),
+				"e": float64(1234),
+				"f": []float64{1234, 12311},
 			},
 			"message": "bottle",
 			"trace": common.MapStr{

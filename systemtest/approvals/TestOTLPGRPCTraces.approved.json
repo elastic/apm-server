@@ -13,11 +13,15 @@
                 "version": "dynamic"
             },
             "labels": {
-                "resource_attribute_array_0": "a",
-                "resource_attribute_array_1": "b",
+                "resource_attribute_array": [
+                    "a",
+                    "b"
+                ],
                 "resource_attribute_bool": "true",
-                "resource_attribute_bool_array_0": "true",
-                "resource_attribute_bool_array_1": "false"
+                "resource_attribute_bool_array": [
+                    "true",
+                    "false"
+                ]
             },
             "message": "a_span_event",
             "numeric_labels": {
@@ -67,14 +71,20 @@
                 "outcome": "unknown"
             },
             "labels": {
-                "resource_attribute_array_0": "a",
-                "resource_attribute_array_1": "b",
+                "resource_attribute_array": [
+                    "a",
+                    "b"
+                ],
                 "resource_attribute_bool": "true",
-                "resource_attribute_bool_array_0": "true",
-                "resource_attribute_bool_array_1": "false",
-                "span_attribute_array_0": "a",
-                "span_attribute_array_1": "b",
-                "span_attribute_array_2": "c"
+                "resource_attribute_bool_array": [
+                    "true",
+                    "false"
+                ],
+                "span_attribute_array": [
+                    "a",
+                    "b",
+                    "c"
+                ]
             },
             "numeric_labels": {
                 "resource_attribute_float": 123456.789,
