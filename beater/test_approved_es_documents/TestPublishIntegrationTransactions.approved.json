@@ -32,6 +32,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -165,6 +168,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -382,6 +388,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -535,6 +544,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -695,6 +707,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },

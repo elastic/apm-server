@@ -13,6 +13,9 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -297,6 +300,9 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -458,6 +464,9 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -648,6 +657,9 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm.internal",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },

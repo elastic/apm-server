@@ -6,6 +6,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.internal",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -69,6 +72,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -118,6 +124,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -168,6 +177,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -230,6 +242,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
