@@ -84,8 +84,10 @@
                 "hostname": "host-abc"
             },
             "labels": {
-                "sampler_param": 2,
                 "sampler_type": "ratelimiting"
+            },
+            "numeric_labels": {
+                "sampler_param": 2
             },
             "processor": {
                 "event": "transaction",

@@ -171,10 +171,7 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 	// map errorEvent specific data
 	if from.Context.IsSet() {
 		if len(from.Context.Tags) > 0 {
-			event.Labels = modeldecoderutil.MergeLabels(
-				event.Labels,
-				modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
-			)
+			modeldecoderutil.MergeLabels(from.Context.Tags, event)
 		}
 		if from.Context.Request.IsSet() {
 			event.HTTP.Request = &model.HTTPRequest{}
@@ -300,7 +297,7 @@ func mapToExceptionModel(from errorException, out *model.Exception) {
 func mapToMetadataModel(m *metadata, out *model.APMEvent) {
 	// Labels
 	if len(m.Labels) > 0 {
-		out.Labels = modeldecoderutil.NormalizeLabelValues(m.Labels.Clone())
+		modeldecoderutil.LabelsFrom(m.Labels, out)
 	}
 
 	// Service
@@ -543,10 +540,7 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		}
 	}
 	if len(from.Context.Tags) > 0 {
-		event.Labels = modeldecoderutil.MergeLabels(
-			event.Labels,
-			modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
-		)
+		modeldecoderutil.MergeLabels(from.Context.Tags, event)
 	}
 	if from.Duration.IsSet() {
 		duration := time.Duration(from.Duration.Val * float64(time.Millisecond))
@@ -651,10 +645,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 			out.Custom = modeldecoderutil.NormalizeLabelValues(from.Context.Custom.Clone())
 		}
 		if len(from.Context.Tags) > 0 {
-			event.Labels = modeldecoderutil.MergeLabels(
-				event.Labels,
-				modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
-			)
+			modeldecoderutil.MergeLabels(from.Context.Tags, event)
 		}
 		if from.Context.Request.IsSet() {
 			event.HTTP.Request = &model.HTTPRequest{}
