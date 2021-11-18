@@ -76,6 +76,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 		attribute.Bool("resource_attribute_bool", true),
 		attribute.BoolSlice("resource_attribute_bool_array", []bool{true, false}),
 		attribute.Float64("resource_attribute_float", 123456.789),
+		attribute.Float64Slice("resource_attribute_float_array", []float64{123456.789, 987654321.123456789}),
 		attribute.Int64("resource_attribute_int", 123456),
 	))
 	require.NoError(t, err)

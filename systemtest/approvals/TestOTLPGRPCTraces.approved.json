@@ -26,6 +26,10 @@
             "message": "a_span_event",
             "numeric_labels": {
                 "resource_attribute_float": 123456.789,
+                "resource_attribute_float_array": [
+                    123456.789,
+                    987654321.1234568
+                ],
                 "resource_attribute_int": 123456
             },
             "observer": {
@@ -88,6 +92,10 @@
             },
             "numeric_labels": {
                 "resource_attribute_float": 123456.789,
+                "resource_attribute_float_array": [
+                    123456.789,
+                    987654321.1234568
+                ],
                 "resource_attribute_int": 123456
             },
             "observer": {
