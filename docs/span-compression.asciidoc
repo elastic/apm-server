@@ -1,21 +1,28 @@
 [[span-compression]]
 === Span compression
 
-In some cases, the agents may collect large amounts of very similar or identical spans in a transaction.
-This can e.g. happen if spans are captured inside a loop, or for unoptimized SQL queries that use multiple queries instead of joins to fetch related data.
-In such cases, the upper limit of spans per transaction (by default 500 spans) can be reached quickly, causing the agent to stop capturing possibly more relevant spans for a given transaction.
+In some cases, APM agents may collect large amounts of very similar or identical spans in a transaction.
+For example, this can happen if spans are captured inside of a loop, or in unoptimized SQL queries that use multiple queries instead of joins to fetch related data.
+In such cases, the upper limit of spans per transaction (by default, 500 spans) can be reached quickly, causing the agent to stop capturing potentially more relevant spans for a given transaction.
 
 Such repeated similar spans often aren't very relevant for themselves, especially if they are of very short duration.
 They also can clutter the UI, and cause processing and storage overhead.
 
 To address this problem, the APM agents can compress such spans into a single span.
-The compressed span retains some information on the original spans, such as overall count and duration.
+The compressed span retains most of the original span information, such as overall duration and the number of spans it represents.
+
+Regardless of the compression strategy, a span is elegible for compression if:
+
+- It has not propagated its trace context.
+- Is an _exit_ span (such as database query spans).
+- Its outcome is not `"failure"`.
+
 
 [float]
 [[span-compression-strategy]]
 === Compression strategies
 
-The agent can select between two strategies to decide if two adjacent spans can be compressed.
+The APM agent can select between two strategies to decide if two adjacent spans can be compressed.
 Both strategies have the benefit that only one previous span needs to be kept in memory.
 This is important to ensure that the agent doesn't require large amounts of memory to enable span compression.
 
@@ -23,7 +30,7 @@ This is important to ensure that the agent doesn't require large amounts of memo
 [[span-compression-same]]
 ==== Same-Kind strategy
 
-The agent selects this strategy, if two adjacent spans have the same
+The agent selects this strategy if two adjacent spans have the same:
 
  * span type
  * span subtype
@@ -33,7 +40,7 @@ The agent selects this strategy, if two adjacent spans have the same
 [[span-compression-exact]]
 ==== Exact-Match strategy
 
-The agent selects this strategy, if two adjacent spans have the same
+The agent selects this strategy if two adjacent spans have the same:
 
  * span name
  * span type
