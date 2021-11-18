@@ -110,12 +110,6 @@ func filterNumberLabels(v interface{}) interface{} {
 	switch v := v.(type) {
 	case float64:
 		return v
-	case int64:
-		return float64(v)
-	case int32:
-		return float64(v)
-	case int:
-		return float64(v)
 	case []interface{}:
 		res := make([]interface{}, 0, len(v))
 		for i := range v {

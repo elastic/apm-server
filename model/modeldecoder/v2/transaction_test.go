@@ -565,7 +565,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input span
 		input.Context.Tags = common.MapStr{
 			"a": "b",
-			"c": 12315124131,
+			"c": float64(12315124131),
 			"d": 12315124131.12315124131,
 			"e": true,
 		}

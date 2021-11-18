@@ -224,8 +224,7 @@ func ifaceAnyValueArray(array pdata.AnyValueArray) []interface{} {
 	return values
 }
 
-// initEventLabels initializes an event-specific label map, either making a copy
-// of commonLabels if it is non-nil, or otherwise creating a new map.
+// initEventLabels initializes an event-specific labels from an event.
 func initEventLabels(e *model.APMEvent) {
 	e.Labels = e.Labels.Clone()
 	e.NumericLabels = e.NumericLabels.Clone()
@@ -251,7 +250,5 @@ func setLabel(key string, event *model.APMEvent, v interface{}) {
 		case float64:
 			event.NumericLabels[key] = v
 		}
-	default:
-		panic(fmt.Sprintf("Unhandled %T, %+v\n", v, v))
 	}
 }
