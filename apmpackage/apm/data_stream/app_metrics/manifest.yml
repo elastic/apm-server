@@ -16,3 +16,8 @@ elasticsearch:
         - histogram:
             mapping:
               type: histogram
+        - numeric_labels:
+            path_match: numeric_labels.*
+            mapping:
+              type: scaled_float
+              scaling_factor: 1000000

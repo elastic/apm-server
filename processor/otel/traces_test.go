@@ -594,23 +594,43 @@ func TestArrayLabels(t *testing.T) {
 	boolArray.ArrayVal().AppendEmpty().SetBoolVal(false)
 	boolArray.ArrayVal().AppendEmpty().SetBoolVal(true)
 
+	intArray := pdata.NewAttributeValueArray()
+	intArray.ArrayVal().AppendEmpty().SetIntVal(1234)
+	intArray.ArrayVal().AppendEmpty().SetIntVal(5678)
+
+	floatArray := pdata.NewAttributeValueArray()
+	floatArray.ArrayVal().AppendEmpty().SetDoubleVal(1234.5678)
+	floatArray.ArrayVal().AppendEmpty().SetDoubleVal(9123.234123123)
+
 	txEvent := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"string_array": stringArray,
 		"bool_array":   boolArray,
+		"int_array":    intArray,
+		"float_array":  floatArray,
 	})
 	assert.Equal(t, common.MapStr{
-		"bool_array":   []interface{}{false, true},
+		"bool_array":   []interface{}{"false", "true"},
 		"string_array": []interface{}{"string1", "string2"},
 	}, txEvent.Labels)
+	assert.Equal(t, common.MapStr{
+		"int_array":   []interface{}{float64(1234), float64(5678)},
+		"float_array": []interface{}{1234.5678, 9123.234123123},
+	}, txEvent.NumericLabels)
 
 	spanEvent := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{
 		"string_array": stringArray,
 		"bool_array":   boolArray,
+		"int_array":    intArray,
+		"float_array":  floatArray,
 	})
 	assert.Equal(t, common.MapStr{
-		"bool_array":   []interface{}{false, true},
+		"bool_array":   []interface{}{"false", "true"},
 		"string_array": []interface{}{"string1", "string2"},
 	}, spanEvent.Labels)
+	assert.Equal(t, common.MapStr{
+		"int_array":   []interface{}{float64(1234), float64(5678)},
+		"float_array": []interface{}{1234.5678, 9123.234123123},
+	}, spanEvent.NumericLabels)
 }
 
 func TestConsumeTracesExportTimestamp(t *testing.T) {

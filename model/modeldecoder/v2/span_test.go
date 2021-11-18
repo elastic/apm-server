@@ -445,4 +445,23 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			assert.Equal(t, "CONSUMER", event.Span.Kind)
 		})
 	})
+	t.Run("labels", func(t *testing.T) {
+		var input span
+		input.Context.Tags = common.MapStr{
+			"a": "b",
+			"c": float64(12315124131),
+			"d": 12315124131.12315124131,
+			"e": true,
+		}
+		var out model.APMEvent
+		mapToSpanModel(&input, &out)
+		assert.Equal(t, common.MapStr{
+			"a": "b",
+			"e": "true",
+		}, out.Labels)
+		assert.Equal(t, common.MapStr{
+			"c": float64(12315124131),
+			"d": float64(12315124131.12315124131),
+		}, out.NumericLabels)
+	})
 }

@@ -16,9 +16,22 @@
                 "resource_attribute_array": [
                     "a",
                     "b"
+                ],
+                "resource_attribute_bool": "true",
+                "resource_attribute_bool_array": [
+                    "true",
+                    "false"
                 ]
             },
             "message": "a_span_event",
+            "numeric_labels": {
+                "resource_attribute_float": 123456.789,
+                "resource_attribute_float_array": [
+                    123456.789,
+                    987654321.1234568
+                ],
+                "resource_attribute_int": 123456
+            },
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
@@ -66,11 +79,24 @@
                     "a",
                     "b"
                 ],
+                "resource_attribute_bool": "true",
+                "resource_attribute_bool_array": [
+                    "true",
+                    "false"
+                ],
                 "span_attribute_array": [
                     "a",
                     "b",
                     "c"
                 ]
+            },
+            "numeric_labels": {
+                "resource_attribute_float": 123456.789,
+                "resource_attribute_float_array": [
+                    123456.789,
+                    987654321.1234568
+                ],
+                "resource_attribute_int": 123456
             },
             "observer": {
                 "ephemeral_id": "dynamic",

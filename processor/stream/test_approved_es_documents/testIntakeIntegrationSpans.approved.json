@@ -288,9 +288,11 @@
             },
             "labels": {
                 "tag1": "value1",
+                "tag4": "true"
+            },
+            "numeric_labels": {
                 "tag2": 123,
-                "tag3": 12.34,
-                "tag4": true
+                "tag3": 12.34
             },
             "parent": {
                 "id": "abcdefabcdef7890"
