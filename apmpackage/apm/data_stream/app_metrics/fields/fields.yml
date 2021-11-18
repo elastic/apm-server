@@ -248,3 +248,8 @@
                 The total virtual memory the process has.
               metric_type: gauge
               unit: byte
+- name: numeric_labels
+  type: object
+  dynamic: true
+  description: |
+    Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.

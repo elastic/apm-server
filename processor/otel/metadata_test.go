@@ -222,8 +222,10 @@ func TestResourceLabels(t *testing.T) {
 	})
 	assert.Equal(t, common.MapStr{
 		"string_array": []interface{}{"abc", "def"},
-		"int_array":    []interface{}{int64(123), int64(456)},
 	}, metadata.Labels)
+	assert.Equal(t, common.MapStr{
+		"int_array": []interface{}{float64(123), float64(456)},
+	}, metadata.NumericLabels)
 }
 
 func transformResourceMetadata(t *testing.T, resourceAttrs map[string]pdata.AttributeValue) model.APMEvent {

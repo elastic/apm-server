@@ -62,17 +62,22 @@ type APMEvent struct {
 
 	// Timestamp holds the event timestamp.
 	//
-	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html
+	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-timestamp
 	Timestamp time.Time
 
-	// Labels holds labels to apply to the event.
+	// Labels holds the string (keyword) labels to apply to the event, stored as
+	// keywords. Supports slice values.
 	//
-	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html
+	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-labels
 	Labels common.MapStr
+
+	// NumericLabels holds the numeric (scaled_float) labels to apply to the event.
+	// Supports slice values.
+	NumericLabels common.MapStr
 
 	// Message holds the message for log events.
 	//
-	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html
+	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-message
 	Message string
 
 	Transaction   *Transaction
@@ -136,6 +141,7 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("cloud", e.Cloud.fields())
 	fields.maybeSetMapStr("network", e.Network.fields())
 	fields.maybeSetMapStr("labels", sanitizeLabels(e.Labels))
+	fields.maybeSetMapStr("numeric_labels", sanitizeLabels(e.NumericLabels))
 	fields.maybeSetMapStr("event", e.Event.fields())
 	fields.maybeSetMapStr("url", e.URL.fields())
 	fields.maybeSetMapStr("session", e.Session.fields())

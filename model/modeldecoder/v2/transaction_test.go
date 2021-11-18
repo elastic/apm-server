@@ -547,7 +547,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			input.Type.Reset()
 
 			mapToTransactionModel(&input, &event)
-			assert.Equal(t, common.MapStr{"double_attr": 123.456}, event.Labels)
+			assert.Equal(t, common.MapStr{}, event.Labels)
+			assert.Equal(t, common.MapStr{"double_attr": 123.456}, event.NumericLabels)
 		})
 
 		t.Run("kind", func(t *testing.T) {
@@ -559,5 +560,24 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, "CLIENT", event.Span.Kind)
 		})
+	})
+	t.Run("labels", func(t *testing.T) {
+		var input span
+		input.Context.Tags = common.MapStr{
+			"a": "b",
+			"c": float64(12315124131),
+			"d": 12315124131.12315124131,
+			"e": true,
+		}
+		var out model.APMEvent
+		mapToSpanModel(&input, &out)
+		assert.Equal(t, common.MapStr{
+			"a": "b",
+			"e": "true",
+		}, out.Labels)
+		assert.Equal(t, common.MapStr{
+			"c": float64(12315124131),
+			"d": float64(12315124131.12315124131),
+		}, out.NumericLabels)
 	})
 }

@@ -76,12 +76,13 @@
   name: http.response.status_code
 - external: ecs
   name: http.version
-# TODO: change labels to be ECS compliant in 8.0 (https://github.com/elastic/apm-server/issues/3873)
+# Ideally, we'd reference the ecs field "labels" and set the dynamic field to
+# true to overwrite any settings that might be set at the data stream level.
 - name: labels
   type: object
-  description: |
-    A flat mapping of user-defined labels with string, boolean or number values.
   dynamic: true
+  description: |
+    Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as keyword. Example: `docker` and `k8s` labels.
 - external: ecs
   name: message
 - external: ecs

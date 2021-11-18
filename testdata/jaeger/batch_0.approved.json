@@ -16,11 +16,13 @@
             },
             "labels": {
                 "as": "thrift",
-                "peer_ipv4": 2130706433,
-                "peer_port": 50535,
                 "peer_service": "driver-client",
-                "sampler_param": true,
+                "sampler_param": "true",
                 "sampler_type": "const"
+            },
+            "numeric_labels": {
+                "peer_ipv4": 2130706433,
+                "peer_port": 50535
             },
             "processor": {
                 "event": "transaction",
@@ -262,7 +264,9 @@
             },
             "labels": {
                 "event": "Search successful",
-                "level": "info",
+                "level": "info"
+            },
+            "numeric_labels": {
                 "num_drivers": 10
             },
             "processor": {
