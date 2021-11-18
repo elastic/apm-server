@@ -33,6 +33,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.elastic.co/apm/apmtest"
 	"go.elastic.co/fastjson"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -61,11 +62,15 @@ func TestModelIndexer(t *testing.T) {
 			}
 
 			item := esutil.BulkIndexerResponseItem{Status: http.StatusCreated}
-			if len(result.Items) == 0 {
-				// Respond with an error for the first item. This will be recorded
-				// as a failure in indexing stats.
+			if len(result.Items) < 2 {
+				// Respond with an error for the first two items, with one
+				// indicating "too many requests". These will be recorded
+				// as failures in indexing stats.
 				result.HasErrors = true
 				item.Status = http.StatusInternalServerError
+				if len(result.Items) == 1 {
+					item.Status = http.StatusTooManyRequests
+				}
 			}
 			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: item})
 		}
@@ -92,9 +97,12 @@ func TestModelIndexer(t *testing.T) {
 	err = indexer.Close(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, modelindexer.Stats{
-		Added:  N,
-		Active: 0,
-		Failed: 1,
+		Added:           N,
+		Active:          0,
+		BulkRequests:    1,
+		Failed:          2,
+		Indexed:         N - 2,
+		TooManyRequests: 1,
 	}, indexer.Stats())
 }
 
@@ -248,9 +256,10 @@ func TestModelIndexerServerError(t *testing.T) {
 	err = indexer.Close(context.Background())
 	require.EqualError(t, err, "flush failed: [500 Internal Server Error] ")
 	assert.Equal(t, modelindexer.Stats{
-		Added:  1,
-		Active: 0,
-		Failed: 1,
+		Added:        1,
+		Active:       0,
+		BulkRequests: 1,
+		Failed:       1,
 	}, indexer.Stats())
 }
 
@@ -298,7 +307,7 @@ func TestModelIndexerLogRateLimit(t *testing.T) {
 	err = indexer.Close(context.Background())
 	assert.NoError(t, err)
 
-	entries := logp.ObserverLogs().TakeAll()
+	entries := logp.ObserverLogs().FilterMessageSnippet("failed to index event").TakeAll()
 	require.Len(t, entries, 2)
 	messages := []string{entries[0].Message, entries[1].Message}
 	assert.ElementsMatch(t, []string{
@@ -369,6 +378,77 @@ func TestModelIndexerUnknownResponseFields(t *testing.T) {
 
 	err = indexer.Close(context.Background())
 	assert.NoError(t, err)
+}
+
+func TestModelIndexerTracing(t *testing.T) {
+	testModelIndexerTracing(t, 200, "success")
+	testModelIndexerTracing(t, 400, "failure")
+}
+
+func testModelIndexerTracing(t *testing.T, statusCode int, expectedOutcome string) {
+	logp.DevelopmentSetup(logp.ToObserverOutput())
+
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(statusCode)
+		scanner := bufio.NewScanner(r.Body)
+		result := elasticsearch.BulkIndexerResponse{HasErrors: true}
+		for i := 0; scanner.Scan(); i++ {
+			action := make(map[string]interface{})
+			if err := json.NewDecoder(strings.NewReader(scanner.Text())).Decode(&action); err != nil {
+				panic(err)
+			}
+			var actionType string
+			for actionType = range action {
+			}
+			if !scanner.Scan() {
+				panic("expected source")
+			}
+			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: {}})
+		}
+		json.NewEncoder(w).Encode(result)
+	})
+
+	tracer := apmtest.NewRecordingTracer()
+	indexer, err := modelindexer.New(client, modelindexer.Config{
+		FlushInterval: time.Minute,
+		Tracer:        tracer.Tracer,
+	})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	const N = 100
+	for i := 0; i < N; i++ {
+		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+			Type:      "logs",
+			Dataset:   "apm_server",
+			Namespace: "testing",
+		}}}
+		err := indexer.ProcessBatch(context.Background(), &batch)
+		require.NoError(t, err)
+	}
+
+	// Closing the indexer flushes enqueued events.
+	_ = indexer.Close(context.Background())
+
+	tracer.Flush(nil)
+	payloads := tracer.Payloads()
+	require.Len(t, payloads.Transactions, 1)
+	require.Len(t, payloads.Spans, 1)
+
+	assert.Equal(t, expectedOutcome, payloads.Transactions[0].Outcome)
+	assert.Equal(t, "output", payloads.Transactions[0].Type)
+	assert.Equal(t, "flush", payloads.Transactions[0].Name)
+	assert.Equal(t, "Elasticsearch: POST _bulk", payloads.Spans[0].Name)
+	assert.Equal(t, "db", payloads.Spans[0].Type)
+	assert.Equal(t, "elasticsearch", payloads.Spans[0].Subtype)
+
+	entries := logp.ObserverLogs().TakeAll()
+	assert.NotEmpty(t, entries)
+	for _, entry := range entries {
+		fields := entry.ContextMap()
+		assert.Equal(t, fmt.Sprintf("%x", payloads.Transactions[0].ID), fields["transaction.id"])
+		assert.Equal(t, fmt.Sprintf("%x", payloads.Transactions[0].TraceID), fields["trace.id"])
+	}
 }
 
 func BenchmarkModelIndexer(b *testing.B) {

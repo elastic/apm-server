@@ -681,6 +681,7 @@ func (s *serverRunner) newFinalBatchProcessor(
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
 		FlushInterval:    esConfig.FlushInterval,
+		Tracer:           s.tracer,
 	})
 	if err != nil {
 		return nil, nil, err
@@ -692,12 +693,18 @@ func (s *serverRunner) newFinalBatchProcessor(
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		stats := indexer.Stats()
+		v.OnKey("acked")
+		v.OnInt(stats.Indexed)
 		v.OnKey("active")
 		v.OnInt(stats.Active)
-		v.OnKey("total")
-		v.OnInt(stats.Added)
+		v.OnKey("batches")
+		v.OnInt(stats.BulkRequests)
 		v.OnKey("failed")
 		v.OnInt(stats.Failed)
+		v.OnKey("toomany")
+		v.OnInt(stats.TooManyRequests)
+		v.OnKey("total")
+		v.OnInt(stats.Added)
 	})
 	return indexer, indexer.Close, nil
 }
