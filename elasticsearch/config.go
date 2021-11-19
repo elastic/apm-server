@@ -68,11 +68,12 @@ type Config struct {
 // DefaultConfig returns a default config.
 func DefaultConfig() *Config {
 	return &Config{
-		Hosts:      []string{"localhost:9200"},
-		Protocol:   "http",
-		Timeout:    esConnectionTimeout,
-		MaxRetries: 3,
-		Backoff:    DefaultBackoffConfig,
+		Hosts:            []string{"localhost:9200"},
+		Protocol:         "http",
+		Timeout:          esConnectionTimeout,
+		MaxRetries:       3,
+		Backoff:          DefaultBackoffConfig,
+		CompressionLevel: 5,
 	}
 }
 
