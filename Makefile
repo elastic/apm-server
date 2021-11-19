@@ -108,7 +108,12 @@ endif
 ## get-version : Get the apm server version
 .PHONY: get-version
 get-version:
-	@grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '"'
+	@grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '" '
+
+## get-version : Get the apm package version
+.PHONY: get-package-version
+get-package-version:
+	@grep ^version: apmpackage/apm/manifest.yml | cut -d':' -f2 | tr -d " "
 
 ##############################################################################
 # Documentation.
@@ -178,6 +183,9 @@ check-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) check)
 	@diff -ru apmpackage/apm/data_stream/traces/fields apmpackage/apm/data_stream/rum_traces/fields || \
 		echo "-> 'traces-apm' and 'traces-apm.rum' data stream fields should be equal"
+	$(eval SERVER_V=$(shell make get-version))
+	$(eval PKG_V=$(shell make get-package-version))
+	@if [ $(SERVER_V) != $(PKG_V) ]; then echo "-> APM Server ($(SERVER_V)) and APM Package ($(PKG_V)) versions should be equal."; fi
 format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
