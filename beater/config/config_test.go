@@ -311,7 +311,7 @@ func TestUnpackConfig(t *testing.T) {
 				IdleTimeout:     45000000000,
 				ReadTimeout:     30000000000,
 				WriteTimeout:    30000000000,
-				ShutdownTimeout: 5000000000,
+				ShutdownTimeout: 30000000000,
 				AgentAuth: AgentAuth{
 					SecretToken: "1234random",
 					APIKey: APIKeyAgentAuth{
