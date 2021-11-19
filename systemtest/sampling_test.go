@@ -38,7 +38,10 @@ import (
 
 func TestDropUnsampled(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Monitoring = newFastMonitoringConfig()
+	err := srv.Start()
+	require.NoError(t, err)
 	defaultMetadataFilter := srv.EventMetadataFilter
 
 	// Send:
