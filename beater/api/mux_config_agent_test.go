@@ -54,14 +54,6 @@ func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
 }
 
 func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
-	t.Run("Off", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), AgentConfigPath)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusForbidden, rec.Code)
-		approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
-
-	})
-
 	t.Run("On", func(t *testing.T) {
 		queryString := map[string]string{"service.name": "service1"}
 		rec, err := requestToMuxerWithHeaderAndQueryString(configEnabledConfigAgent(), AgentConfigPath, http.MethodGet, nil, queryString)
@@ -100,10 +92,10 @@ func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
 
 func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
 	testMonitoringMiddleware(t, "/config/v1/agents", agent.MonitoringMap, map[request.ResultID]int{
-		request.IDRequestCount:            1,
-		request.IDResponseCount:           1,
-		request.IDResponseErrorsCount:     1,
-		request.IDResponseErrorsForbidden: 1,
+		request.IDRequestCount:               1,
+		request.IDResponseCount:              1,
+		request.IDResponseErrorsCount:        1,
+		request.IDResponseErrorsInvalidQuery: 1,
 	})
 }
 
