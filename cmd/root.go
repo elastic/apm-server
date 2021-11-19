@@ -19,9 +19,7 @@ package cmd
 
 import (
 	"errors"
-	"math"
 	"os"
-	"strconv"
 
 	"github.com/spf13/pflag"
 
@@ -58,12 +56,13 @@ var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
 		},
 		{
 			Check: func(_ *common.Config) bool {
-				return true
+				return os.Getenv(cloudEnv) != ""
 			},
 			Config: func() *common.Config {
-				m := map[string]interface{}{}
-				cloudValues(m)
-				return common.MustNewConfigFrom(m)
+				return common.MustNewConfigFrom(map[string]interface{}{
+					// default to medium compression on cloud
+					"output.elasticsearch.compression_level": 5,
+				})
 			}(),
 		}}
 }
@@ -118,34 +117,4 @@ func modifyBuiltinCommands(rootCmd *cmd.BeatsRootCmd, settings instance.Settings
 		}
 	}
 	rootCmd.RemoveCommand(rootCmd.SetupCmd)
-}
-
-func cloudValues(m map[string]interface{}) {
-	cap, err := strconv.ParseFloat(os.Getenv(cloudEnv), 64)
-	if err != nil {
-		return
-	}
-	multiplier := math.Round(cap / 512)
-	queueMemEvents := 2000 * multiplier
-	workers := math.Round(3.72549 + 1.626502*multiplier - 0.03826692*(multiplier*multiplier))
-	if cap > 8192 {
-		workers = 20 //plateau on number of workers
-	}
-	bulkMaxSize := math.Round(((queueMemEvents / 1.5) / workers))
-	m["output"] = map[string]interface{}{
-		"elasticsearch": map[string]interface{}{
-			"compression_level": 5, //default to medium compression on cloud
-			"worker":            workers,
-			"bulk_max_size":     bulkMaxSize,
-		},
-	}
-	m["queue"] = map[string]interface{}{
-		"mem": map[string]interface{}{
-			"events": queueMemEvents,
-			"flush": map[string]interface{}{
-				"min_events": bulkMaxSize,
-				"timeout":    "1s", //default aligned with cloud value
-			},
-		},
-	}
 }
