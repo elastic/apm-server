@@ -30,8 +30,9 @@ import (
 
 func TestNewDropUnsampled(t *testing.T) {
 	for _, dropRUM := range []bool{false, true} {
-		registry := monitoring.NewRegistry()
-		batchProcessor := modelprocessor.NewDropUnsampled(registry, dropRUM)
+		batchProcessor := modelprocessor.NewDropUnsampled(dropRUM)
+		counter := monitoring.Default.Get("apm-server.sampling.transactions_dropped").(*monitoring.Int)
+		counter.Set(0)
 
 		rumAgent := model.Agent{Name: "rum-js"}
 		t1 := &model.Transaction{ID: "t1", Sampled: false}
@@ -83,8 +84,12 @@ func TestNewDropUnsampled(t *testing.T) {
 		// Note: this processor is not order-preserving.
 		assert.ElementsMatch(t, expectedRemainingBatch, batch)
 		expectedMonitoring := monitoring.MakeFlatSnapshot()
-		expectedMonitoring.Ints["sampling.transactions_dropped"] = expectedTransactionsDropped
-		snapshot := monitoring.CollectFlatSnapshot(registry, monitoring.Full, false /* expvar*/)
+		expectedMonitoring.Ints["apm-server.sampling.transactions_dropped"] = expectedTransactionsDropped
+		snapshot := monitoring.CollectFlatSnapshot(
+			monitoring.Default,
+			monitoring.Full,
+			false, // expvar
+		)
 		assert.Equal(t, expectedMonitoring, snapshot)
 	}
 }

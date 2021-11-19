@@ -534,10 +534,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	batchProcessor = append(batchProcessor,
 		// The server always discards unsampled transactions. It is important that this
 		// is done just before calling the publisher to avoid affecting aggregations.
-		modelprocessor.NewDropUnsampled(
-			monitoring.Default.GetRegistry("apm-server"),
-			false, // don't drop RUM unsampled transactions
-		),
+		modelprocessor.NewDropUnsampled(false /* don't drop RUM unsampled transactions*/),
 		modelprocessor.DroppedSpansStatsDiscarder{},
 		finalBatchProcessor,
 	)

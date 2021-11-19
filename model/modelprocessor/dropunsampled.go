@@ -25,15 +25,19 @@ import (
 	"github.com/elastic/apm-server/model"
 )
 
+var (
+	monitoringRegistry         = monitoring.Default.NewRegistry("apm-server.sampling")
+	transactionsDroppedCounter = monitoring.NewInt(monitoringRegistry, "transactions_dropped")
+)
+
 // NewDropUnsampled returns a model.BatchProcessor which drops unsampled transaction events,
-// and counts them in a metric named `sampling.transactions_dropped` in the provided registry.
+// and counts them in a metric named `apm-server.sampling.transactions_dropped`.
 //
 // If dropRUM is false, only non-RUM unsampled transaction events are dropped; otherwise all
 // unsampled transaction events are dropped.
 //
 // This model.BatchProcessor does not guarantee order preservation of the remaining events.
-func NewDropUnsampled(registry *monitoring.Registry, dropRUM bool) model.BatchProcessor {
-	transactionsDroppedCounter := monitoring.NewInt(registry, "sampling.transactions_dropped")
+func NewDropUnsampled(dropRUM bool) model.BatchProcessor {
 	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 		events := *batch
 		for i := 0; i < len(events); {
