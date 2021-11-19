@@ -85,8 +85,8 @@ func TestDropUnsampled(t *testing.T) {
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 
 	doc := getBeatsMonitoringStats(t, srv, nil)
-	transactionsDropped := gjson.GetBytes(doc.RawSource, "apm-server.sampling.transactions_dropped")
-	assert.Equal(t, 1, transactionsDropped.Int())
+	transactionsDropped := gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.sampling.transactions_dropped")
+	assert.Equal(t, int64(1), transactionsDropped.Int())
 }
 
 func TestTailSampling(t *testing.T) {
