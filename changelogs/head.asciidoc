@@ -73,6 +73,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Added metrics for new Elasticsearch output: `libbeat.output.events.{acked,batches,toomany}`; added tracing and log correlation {pull}6630[6630]
 - Run the java attacher jar when configured and not in a cloud environment {pull}6617[6617]
 - The `labels` indexed field is now ECS compliant (string only) and added a new `numeric_labels` object that holds labels with numeric values {pull}6633[6633]
+- Modify default standalone apm-server config values to be more in line with the default managed apm-server values {pull}6675[6675]
 
 [float]
 ==== Deprecated
