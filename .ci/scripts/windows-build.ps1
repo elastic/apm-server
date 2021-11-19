@@ -27,13 +27,6 @@ $env:PATH = "$env:GOPATH\bin;C:\tools\mingw64\bin;$env:PATH"
 # each run starts from a clean slate.
 $env:MAGEFILE_CACHE = "$env:WORKSPACE\.magefile"
 
-# Setup Python.
-exec { choco install python -y -r --no-progress --version 3.8.1.20200110 }
-refreshenv
-$env:PATH = "C:\Python38;C:\Python38\Scripts;$env:PATH"
-$env:PYTHON_ENV = "$env:TEMP\python-env"
-exec { python --version }
-
 # Configure testing parameters.
 $env:TEST_COVERAGE = "true"
 $env:RACE_DETECTOR = "true"
@@ -46,17 +39,5 @@ New-Item -ItemType directory -Path build\coverage | Out-Null
 New-Item -ItemType directory -Path build\system-tests | Out-Null
 New-Item -ItemType directory -Path build\system-tests\run | Out-Null
 
-<<<<<<< HEAD
-choco install python -y -r --no-progress --version 3.8.5
-refreshenv
-$env:PATH = "C:\Python38;C:\Python38\Scripts;$env:PATH"
-$env:PYTHON_ENV = "$env:TEMP\python-env"
-python --version
-
-echo "Building fields.yml"
-exec { mage fields }
-
-=======
->>>>>>> 47cd8770 (ci: don't install python on Windows (#6623))
 echo "Building $env:beat"
 exec { mage build } "Build FAILURE"
