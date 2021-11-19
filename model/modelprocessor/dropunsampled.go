@@ -15,33 +15,30 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package sampling
+package modelprocessor
 
 import (
 	"context"
 
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
+
+	"github.com/elastic/apm-server/model"
 )
 
-var (
-	monitoringRegistry         = monitoring.Default.NewRegistry("apm-server.sampling")
-	transactionsDroppedCounter = monitoring.NewInt(monitoringRegistry, "transactions_dropped")
-)
-
-// NewDiscardUnsampledBatchProcessor returns a model.BatchProcessor which
-// discards unsampled transactions.
+// NewDropUnsampled returns a model.BatchProcessor which drops unsampled transaction events,
+// and counts them in a metric named `sampling.transactions_dropped` in the provided registry.
 //
-// The returned model.BatchProcessor does not guarantee order preservation
-// of events retained in the batch.
+// If dropRUM is false, only non-RUM unsampled transaction events are dropped; otherwise all
+// unsampled transaction events are dropped.
 //
-// TODO(axw) only discard non-RUM unsampled transactions.
-func NewDiscardUnsampledBatchProcessor() model.BatchProcessor {
+// This model.BatchProcessor does not guarantee order preservation of the remaining events.
+func NewDropUnsampled(registry *monitoring.Registry, dropRUM bool) model.BatchProcessor {
+	transactionsDroppedCounter := monitoring.NewInt(registry, "sampling.transactions_dropped")
 	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 		events := *batch
 		for i := 0; i < len(events); {
 			event := events[i]
-			if event.Processor != model.TransactionProcessor || event.Transaction == nil || event.Transaction.Sampled {
+			if !shouldDropUnsampled(&event, dropRUM) {
 				i++
 				continue
 			}
@@ -55,4 +52,11 @@ func NewDiscardUnsampledBatchProcessor() model.BatchProcessor {
 		*batch = events
 		return nil
 	})
+}
+
+func shouldDropUnsampled(event *model.APMEvent, dropRUM bool) bool {
+	if event.Processor != model.TransactionProcessor || event.Transaction == nil || event.Transaction.Sampled {
+		return false
+	}
+	return dropRUM || !isRUMAgentName(event.Agent.Name)
 }
