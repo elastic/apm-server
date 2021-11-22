@@ -159,6 +159,3 @@ POST /traces-apm-default/_rollover/
 It is also possible to create more granular index lifecycle policies that apply to individual namespaces.
 This process is similar to the above tutorial, but includes cloning and modify the existing index template to use
 a new `*@custom` component template.
-
-For more information on this process, see
-{fleet-guide}/data-streams.html#data-streams-ilm-tutorial[Tutorial: Customize data retention for integrations]
