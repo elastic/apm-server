@@ -640,7 +640,8 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 }
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
-// and a cleanup function which should be called on server shutdown.
+// and a cleanup function which should be called on server shutdown. If the output is
+// "elasticsearch", then we use modelindexer; otherwise we use the libbeat publisher.
 func (s *serverRunner) newFinalBatchProcessor(
 	p *publish.Publisher,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
@@ -649,25 +650,17 @@ func (s *serverRunner) newFinalBatchProcessor(
 		return p, func(context.Context) error { return nil }, nil
 	}
 
-	// Add `output.elasticsearch.experimental` config. If this is true and
-	// data streams are enabled, we'll use the model indexer processor.
 	var esConfig struct {
 		*elasticsearch.Config `config:",inline"`
-		Experimental          bool          `config:"experimental"`
 		FlushBytes            string        `config:"flush_bytes"`
 		FlushInterval         time.Duration `config:"flush_interval"`
 	}
 	esConfig.FlushInterval = time.Second
-
 	esConfig.Config = elasticsearch.DefaultConfig()
 	if err := s.elasticsearchOutputConfig.Unpack(&esConfig); err != nil {
 		return nil, nil, err
 	}
-	if !esConfig.Experimental {
-		return p, func(context.Context) error { return nil }, nil
-	}
 
-	s.logger.Info("using experimental model indexer")
 	var flushBytes int
 	if esConfig.FlushBytes != "" {
 		b, err := humanize.ParseBytes(esConfig.FlushBytes)
