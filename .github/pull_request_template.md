@@ -28,6 +28,7 @@ Once the PR is ready for review there should be no unticked boxes.
 -->
 
 - [ ] Update [CHANGELOG.asciidoc](https://github.com/elastic/apm-server/blob/master/CHANGELOG.asciidoc)
+- [ ] Update [package changelog.yml](https://github.com/elastic/apm-server/blob/master/apmpackage/apm/changelog.yml) (only if changes to `apmpackage` have been made)
 - [ ] Documentation has been updated
 
 For functional changes, consider:

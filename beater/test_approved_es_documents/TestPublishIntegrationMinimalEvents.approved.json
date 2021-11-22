@@ -6,6 +6,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -44,6 +47,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -84,6 +90,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -123,6 +132,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -155,9 +167,6 @@
                 },
                 "id": "0123456a89012345",
                 "name": "GET /api/types",
-                "start": {
-                    "us": 1845
-                },
                 "type": "request"
             },
             "timestamp": {
@@ -173,6 +182,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -220,6 +232,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -230,7 +245,7 @@
                 "ip": "127.0.0.1"
             },
             "labels": {
-                "wrapped_reporter": true
+                "wrapped_reporter": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -271,6 +286,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },

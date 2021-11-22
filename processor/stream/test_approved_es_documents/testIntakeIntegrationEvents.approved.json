@@ -203,9 +203,13 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
+                "ab_testing": "true",
                 "group": "experimental",
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true"
+            },
+            "numeric_labels": {
+                "code": 200,
                 "segment": 5
             },
             "parent": {
@@ -322,8 +326,13 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
+                "ab_testing": "true",
                 "group": "experimental",
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true"
+            },
+            "numeric_labels": {
+                "code": 200,
                 "segment": 5
             },
             "parent": {
@@ -375,21 +384,6 @@
                 "duration": {
                     "us": 3781
                 },
-                "http": {
-                    "method": "GET",
-                    "response": {
-                        "decoded_body_size": 401,
-                        "encoded_body_size": 356,
-                        "headers": {
-                            "Content-Type": [
-                                "application/json"
-                            ]
-                        },
-                        "status_code": 302,
-                        "transfer_size": 300.12
-                    }
-                },
-                "http.url.original": "http://localhost:8000",
                 "id": "1234567890aaaade",
                 "name": "GET users-authenticated",
                 "stacktrace": [
@@ -521,9 +515,13 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
+                "ab_testing": "true",
                 "group": "experimental",
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true"
+            },
+            "numeric_labels": {
+                "code": 200,
                 "segment": 5
             },
             "parent": {
@@ -644,11 +642,14 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
-                "code": 200,
+                "ab_testing": "true",
                 "group": "experimental",
-                "segment": 5,
-                "success": true
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true"
+            },
+            "numeric_labels": {
+                "code": 200,
+                "segment": 5
             },
             "process": {
                 "args": [

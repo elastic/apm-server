@@ -21,13 +21,13 @@ import (
 	"fmt"
 	"net"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"go.opentelemetry.io/collector/model/pdata"
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 const (
@@ -130,9 +130,12 @@ func translateResourceMetadata(resource pdata.Resource, out *model.APMEvent) {
 
 		default:
 			if out.Labels == nil {
-				out.Labels = make(common.MapStr)
+				out.Labels = make(model.Labels)
 			}
-			out.Labels[replaceDots(k)] = ifaceAttributeValue(v)
+			if out.NumericLabels == nil {
+				out.NumericLabels = make(model.NumericLabels)
+			}
+			setLabel(replaceDots(k), out, ifaceAttributeValue(v))
 		}
 		return true
 	})
@@ -163,12 +166,12 @@ func translateResourceMetadata(resource pdata.Resource, out *model.APMEvent) {
 		out.Agent.Name = AgentNameJaeger
 
 		// Translate known Jaeger labels.
-		if clientUUID, ok := out.Labels["client-uuid"].(string); ok {
-			out.Agent.EphemeralID = clientUUID
+		if clientUUID, ok := out.Labels["client-uuid"]; ok {
+			out.Agent.EphemeralID = clientUUID.Value
 			delete(out.Labels, "client-uuid")
 		}
-		if systemIP, ok := out.Labels["ip"].(string); ok {
-			out.Host.IP = net.ParseIP(systemIP)
+		if systemIP, ok := out.Labels["ip"]; ok {
+			out.Host.IP = net.ParseIP(systemIP.Value)
 			delete(out.Labels, "ip")
 		}
 	}
@@ -200,12 +203,12 @@ func ifaceAttributeValue(v pdata.AttributeValue) interface{} {
 	switch v.Type() {
 	case pdata.AttributeValueTypeString:
 		return truncate(v.StringVal())
+	case pdata.AttributeValueTypeBool:
+		return strconv.FormatBool(v.BoolVal())
 	case pdata.AttributeValueTypeInt:
-		return v.IntVal()
+		return float64(v.IntVal())
 	case pdata.AttributeValueTypeDouble:
 		return v.DoubleVal()
-	case pdata.AttributeValueTypeBool:
-		return v.BoolVal()
 	case pdata.AttributeValueTypeArray:
 		return ifaceAnyValueArray(v.ArrayVal())
 	}
@@ -220,8 +223,39 @@ func ifaceAnyValueArray(array pdata.AnyValueArray) []interface{} {
 	return values
 }
 
-// initEventLabels initializes an event-specific label map, either making a copy
-// of commonLabels if it is non-nil, or otherwise creating a new map.
-func initEventLabels(commonLabels common.MapStr) common.MapStr {
-	return commonLabels.Clone()
+// initEventLabels initializes an event-specific labels from an event.
+func initEventLabels(e *model.APMEvent) {
+	e.Labels = e.Labels.Clone()
+	e.NumericLabels = e.NumericLabels.Clone()
+}
+
+func setLabel(key string, event *model.APMEvent, v interface{}) {
+	switch v := v.(type) {
+	case string:
+		event.Labels.Set(key, v)
+	case bool:
+		event.Labels.Set(key, strconv.FormatBool(v))
+	case float64:
+		event.NumericLabels.Set(key, v)
+	case int64:
+		event.NumericLabels.Set(key, float64(v))
+	case []interface{}:
+		if len(v) == 0 {
+			return
+		}
+		switch v[0].(type) {
+		case string:
+			value := make([]string, len(v))
+			for i := range v {
+				value[i] = v[i].(string)
+			}
+			event.Labels.SetSlice(key, value)
+		case float64:
+			value := make([]float64, len(v))
+			for i := range v {
+				value[i] = v[i].(float64)
+			}
+			event.NumericLabels.SetSlice(key, value)
+		}
+	}
 }

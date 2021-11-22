@@ -165,9 +165,9 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, "d, e", out.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
 		assert.Equal(t, localhostIP, out.Client.IP, out.Client.IP.String())
-		assert.Equal(t, common.MapStr{
-			"init0": "init", "init1": "init", "init2": "init",
-			"overwritten0": "overwritten", "overwritten1": "overwritten",
+		assert.Equal(t, model.Labels{
+			"init0": {Value: "init"}, "init1": {Value: "init"}, "init2": {Value: "init"},
+			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
 		}, out.Labels)
 		// service values should be set
 		modeldecodertest.AssertStructValues(t, &out.Service, metadataExceptions("Node", "Agent.EphemeralID"), otherVal)
@@ -377,5 +377,24 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			ID:       "session_id",
 			Sequence: 123,
 		}, out.Session)
+	})
+	t.Run("labels", func(t *testing.T) {
+		var input transaction
+		input.Context.Tags = common.MapStr{
+			"a": "b",
+			"c": float64(12315124131),
+			"d": 12315124131.12315124131,
+			"e": true,
+		}
+		var out model.APMEvent
+		mapToTransactionModel(&input, &out)
+		assert.Equal(t, model.Labels{
+			"a": {Value: "b"},
+			"e": {Value: "true"},
+		}, out.Labels)
+		assert.Equal(t, model.NumericLabels{
+			"c": {Value: float64(12315124131)},
+			"d": {Value: float64(12315124131.12315124131)},
+		}, out.NumericLabels)
 	})
 }

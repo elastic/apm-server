@@ -203,3 +203,8 @@
       type: keyword
       description: |
         Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+- name: numeric_labels
+  type: object
+  dynamic: true
+  description: |
+    Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.

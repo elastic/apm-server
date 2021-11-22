@@ -127,3 +127,11 @@ func (DefaultMetadataFilter) FilterEventMetadata(m *EventMetadata) {
 	m.Service.Node = nil
 	m.Service.Name = "systemtest"
 }
+
+// EventMetadataFilterFunc is a function type that implements EventMetadataFilter.
+type EventMetadataFilterFunc func(*EventMetadata)
+
+// FilterEventMetadata calls f(m).
+func (f EventMetadataFilterFunc) FilterEventMetadata(m *EventMetadata) {
+	f(m)
+}

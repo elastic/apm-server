@@ -27,7 +27,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestReportFetch(t *testing.T) {
@@ -75,7 +74,7 @@ func TestReportFetch(t *testing.T) {
 	assert.ElementsMatch(t, []model.APMEvent{
 		{
 			Processor: model.MetricsetProcessor,
-			Labels:    common.MapStr{"etag": "abc123"},
+			Labels:    model.Labels{"etag": {Value: "abc123"}},
 			Metricset: &model.Metricset{
 				Name: "agent_config",
 				Samples: map[string]model.MetricsetSample{
@@ -85,7 +84,7 @@ func TestReportFetch(t *testing.T) {
 		},
 		{
 			Processor: model.MetricsetProcessor,
-			Labels:    common.MapStr{"etag": "def456"},
+			Labels:    model.Labels{"etag": {Value: "def456"}},
 			Metricset: &model.Metricset{
 				Name: "agent_config",
 				Samples: map[string]model.MetricsetSample{

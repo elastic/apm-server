@@ -18,10 +18,13 @@
 package beater
 
 import (
+	"bytes"
 	"compress/zlib"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -46,6 +49,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 )
 
@@ -78,6 +82,10 @@ func newBeat(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, even
 
 	combinedConfig := common.MustNewConfigFrom(map[string]interface{}{
 		"host": "localhost:0",
+
+		// Disable waiting for integration to be installed by default,
+		// to simplify tests. This feature is tested independently.
+		"data_streams.wait_for_integration": false,
 
 		// Enable instrumentation so the profile endpoint is
 		// available, but set the profiling interval to something
@@ -172,9 +180,9 @@ func newTestBeater(
 					// Add a label to test that everything
 					// goes through the wrapped reporter.
 					if event.Labels == nil {
-						event.Labels = common.MapStr{}
+						event.Labels = make(model.Labels)
 					}
-					event.Labels["wrapped_reporter"] = true
+					event.Labels.Set("wrapped_reporter", "true")
 				}
 				return nil
 			}
@@ -248,7 +256,7 @@ func (tb *testBeater) initClient(cfg *config.Config, listenAddr string) {
 	}
 }
 
-func TestTransformConfigIndex(t *testing.T) {
+func TestSourcemapIndexPattern(t *testing.T) {
 	test := func(t *testing.T, indexPattern, expected string) {
 		var requestPaths []string
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -344,20 +352,58 @@ func TestFleetStoreUsed(t *testing.T) {
 	assert.True(t, called)
 }
 
-func Test_newDropLogsBeatProcessor(t *testing.T) {
-	dropLogsProcessor, err := newDropLogsBeatProcessor()
+func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
+	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	elasticsearchRegistry := stateRegistry.NewRegistry("outputs.elasticsearch")
+	monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
+
+	ctx := context.Background()
+	clusterUUID := "abc123"
+	client := &mockClusterUUIDClient{ClusterUUID: clusterUUID}
+	err := queryClusterUUID(ctx, client)
 	require.NoError(t, err)
 
-	event := beat.Event{
-		Timestamp: time.Now(),
-		Fields: common.MapStr{
-			"processor": common.MapStr{
-				"event": "log",
-				"name":  "log",
-			},
-		},
-	}
-	result, err := dropLogsProcessor.Run(&event)
-	require.NoError(t, err)
-	require.Nil(t, result)
+	fs := monitoring.CollectFlatSnapshot(elasticsearchRegistry, monitoring.Full, false)
+	assert.Equal(t, clusterUUID, fs.Strings["cluster_uuid"])
 }
+
+func TestQueryClusterUUIDRegistriesDoNotExist(t *testing.T) {
+	ctx := context.Background()
+	clusterUUID := "abc123"
+	client := &mockClusterUUIDClient{ClusterUUID: clusterUUID}
+	err := queryClusterUUID(ctx, client)
+	require.NoError(t, err)
+
+	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	elasticsearchRegistry := stateRegistry.GetRegistry("outputs.elasticsearch")
+	require.NotNil(t, elasticsearchRegistry)
+
+	fs := monitoring.CollectFlatSnapshot(elasticsearchRegistry, monitoring.Full, false)
+	assert.Equal(t, clusterUUID, fs.Strings["cluster_uuid"])
+}
+
+type mockClusterUUIDClient struct {
+	ClusterUUID string `json:"cluster_uuid"`
+}
+
+func (c *mockClusterUUIDClient) Perform(r *http.Request) (*http.Response, error) {
+	m, err := json.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
+	resp := &http.Response{
+		StatusCode: 200,
+		Body:       &mockReadCloser{bytes.NewReader(m)},
+		Request:    r,
+	}
+	return resp, nil
+}
+
+func (c *mockClusterUUIDClient) NewBulkIndexer(_ elasticsearch.BulkIndexerConfig) (elasticsearch.BulkIndexer, error) {
+	return nil, nil
+}
+
+type mockReadCloser struct{ r io.Reader }
+
+func (r *mockReadCloser) Read(p []byte) (int, error) { return r.r.Read(p) }
+func (r *mockReadCloser) Close() error               { return nil }

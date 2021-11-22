@@ -19,6 +19,7 @@ package beater
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -46,19 +47,17 @@ import (
 	"github.com/elastic/beats/v7/libbeat/licenser"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
-	"github.com/elastic/beats/v7/libbeat/processors"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 
 	"github.com/elastic/apm-server/beater/config"
+	javaattacher "github.com/elastic/apm-server/beater/java_attacher"
 	"github.com/elastic/apm-server/elasticsearch"
-	"github.com/elastic/apm-server/ingest/pipeline"
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelindexer"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/sampling"
 	"github.com/elastic/apm-server/sourcemap"
 )
 
@@ -104,9 +103,6 @@ func NewCreator(args CreatorParams) beat.Creator {
 		if err != nil {
 			return nil, err
 		}
-		if err := recordRootConfig(b.Info, bt.rawConfig); err != nil {
-			bt.logger.Errorf("Error recording telemetry data", err)
-		}
 
 		if bt.config.Pprof.Enabled {
 			// Profiling rates should be set once, early on in the program.
@@ -114,12 +110,6 @@ func NewCreator(args CreatorParams) beat.Creator {
 			runtime.SetMutexProfileFraction(bt.config.Pprof.MutexProfileRate)
 			if bt.config.Pprof.MemProfileRate > 0 {
 				runtime.MemProfileRate = bt.config.Pprof.MemProfileRate
-			}
-		}
-
-		if !bt.config.DataStreams.Enabled {
-			if b.Manager != nil && b.Manager.Enabled() {
-				return nil, errors.New("data streams must be enabled when the server is managed")
 			}
 		}
 
@@ -131,7 +121,6 @@ func NewCreator(args CreatorParams) beat.Creator {
 			b.OutputConfigReloader = bt.outputConfigReloader
 		}
 
-		bt.registerPipelineSetupCallback(b)
 		return bt, nil
 	}
 }
@@ -276,12 +265,10 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 	if integrationConfig.DataStream != nil {
 		namespace = integrationConfig.DataStream.Namespace
 	}
-	apmServerCommonConfig := integrationConfig.APMServer
-	apmServerCommonConfig.Merge(common.MustNewConfigFrom(`{"data_streams.enabled": true}`))
 
 	r.mu.Lock()
 	r.namespace = namespace
-	r.rawConfig = apmServerCommonConfig
+	r.rawConfig = integrationConfig.APMServer
 	r.fleetConfig = &integrationConfig.Fleet
 	r.mu.Unlock()
 	return r.reload()
@@ -421,17 +408,6 @@ func (s *serverRunner) run(listener net.Listener) error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 
-	publisherConfig := publish.PublisherConfig{Pipeline: s.config.Pipeline}
-	if !s.config.DataStreams.Enabled {
-		// Logs are only supported with data streams;
-		// add a beat.Processor which drops them.
-		dropLogsProcessor, err := newDropLogsBeatProcessor()
-		if err != nil {
-			return err
-		}
-		publisherConfig.Processor = dropLogsProcessor
-	}
-
 	var kibanaClient kibana.Client
 	if s.config.Kibana.Enabled {
 		kibanaClient = kibana.NewConnectingClient(&s.config.Kibana)
@@ -440,13 +416,32 @@ func (s *serverRunner) run(listener net.Listener) error {
 	cfg := ucfg.Config(*s.rawConfig)
 	parentCfg := cfg.Parent()
 	// Check for an environment variable set when running in a cloud environment
-	if eac := os.Getenv("ELASTIC_AGENT_CLOUD"); eac != "" && s.config.Kibana.Enabled {
+	eac := os.Getenv("ELASTIC_AGENT_CLOUD")
+	if eac != "" && s.config.Kibana.Enabled {
 		// Don't block server startup sending the config.
 		go func() {
 			if err := kibana.SendConfig(s.runServerContext, kibanaClient, parentCfg); err != nil {
 				s.logger.Infof("failed to upload config to kibana: %v", err)
 			}
 		}()
+	}
+
+	if s.config.JavaAttacherConfig.Enabled {
+		if eac == "" {
+			// We aren't running in a cloud environment
+			go func() {
+				attacher, err := javaattacher.New(s.config.JavaAttacherConfig)
+				if err != nil {
+					s.logger.Errorf("failed to start java attacher: %v", err)
+					return
+				}
+				if err := attacher.Run(s.runServerContext); err != nil {
+					s.logger.Errorf("failed to run java attacher: %v", err)
+				}
+			}()
+		} else {
+			s.logger.Error("java attacher not supported in cloud environments")
+		}
 	}
 
 	g, ctx := errgroup.WithContext(s.runServerContext)
@@ -483,16 +478,6 @@ func (s *serverRunner) run(listener net.Listener) error {
 		})
 	}
 
-	// Register a libbeat elasticsearch output connect callback which
-	// ensures the pipeline is installed. The callback does nothing
-	// when data streams are in use.
-	pipelineCallback := newPipelineElasticsearchConnectCallback(s.config)
-	callbackUUID, err = esoutput.RegisterConnectCallback(pipelineCallback)
-	if err != nil {
-		return err
-	}
-	defer esoutput.DeregisterConnectCallback(callbackUUID)
-
 	var sourcemapFetcher sourcemap.Fetcher
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
 		fetcher, err := newSourcemapFetcher(
@@ -517,7 +502,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	// be closed at shutdown time.
 	s.acker.Open()
 	pipeline := pipetool.WithACKer(s.pipeline, s.acker)
-	publisher, err := publish.NewPublisher(pipeline, s.tracer, publisherConfig)
+	publisher, err := publish.NewPublisher(pipeline, s.tracer)
 	if err != nil {
 		return err
 	}
@@ -537,16 +522,23 @@ func (s *serverRunner) run(listener net.Listener) error {
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
 	batchProcessor := make(modelprocessor.Chained, 0, 3)
-	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(publisher)
+	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
+		publisher,
+		newElasticsearchClient,
+	)
 	if err != nil {
 		return err
 	}
 	defer closeFinalBatchProcessor(s.backgroundContext)
 
 	batchProcessor = append(batchProcessor,
-		// The server always discards unsampled transactions. It is important that this
-		// is done just before calling the publisher to avoid affecting aggregations.
-		sampling.NewDiscardUnsampledBatchProcessor(),
+		// The server always drops non-RUM unsampled transactions. We store RUM unsampled
+		// transactions as they are needed by the User Experience app, which performs
+		// aggregations over dimensions that are not available in transaction metrics.
+		//
+		// It is important that this is done just before calling the publisher to
+		// avoid affecting aggregations.
+		modelprocessor.NewDropUnsampled(false /* don't drop RUM unsampled transactions*/),
 		modelprocessor.DroppedSpansStatsDiscarder{},
 		finalBatchProcessor,
 	)
@@ -616,12 +608,15 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 				)
 			})
 		}
+		preconditions = append(preconditions, func(ctx context.Context) error {
+			return queryClusterUUID(ctx, esOutputClient)
+		})
 	}
 
 	// When running standalone with data streams enabled, by default we will add
 	// a precondition that ensures the integration is installed.
 	fleetManaged := s.beat.Manager != nil && s.beat.Manager.Enabled()
-	if !fleetManaged && s.config.DataStreams.Enabled && s.config.DataStreams.WaitForIntegration {
+	if !fleetManaged && s.config.DataStreams.WaitForIntegration {
 		if kibanaClient == nil && esOutputClient == nil {
 			return errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
 		}
@@ -645,31 +640,27 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 }
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
-// and a cleanup function which should be called on server shutdown.
-func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.BatchProcessor, func(context.Context) error, error) {
-	if s.elasticsearchOutputConfig == nil || !s.config.DataStreams.Enabled {
+// and a cleanup function which should be called on server shutdown. If the output is
+// "elasticsearch", then we use modelindexer; otherwise we use the libbeat publisher.
+func (s *serverRunner) newFinalBatchProcessor(
+	p *publish.Publisher,
+	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
+) (model.BatchProcessor, func(context.Context) error, error) {
+	if s.elasticsearchOutputConfig == nil {
 		return p, func(context.Context) error { return nil }, nil
 	}
 
-	// Add `output.elasticsearch.experimental` config. If this is true and
-	// data streams are enabled, we'll use the model indexer processor.
 	var esConfig struct {
 		*elasticsearch.Config `config:",inline"`
-		Experimental          bool          `config:"experimental"`
 		FlushBytes            string        `config:"flush_bytes"`
 		FlushInterval         time.Duration `config:"flush_interval"`
 	}
 	esConfig.FlushInterval = time.Second
-
 	esConfig.Config = elasticsearch.DefaultConfig()
 	if err := s.elasticsearchOutputConfig.Unpack(&esConfig); err != nil {
 		return nil, nil, err
 	}
-	if !esConfig.Experimental {
-		return p, func(context.Context) error { return nil }, nil
-	}
 
-	s.logger.Info("using experimental model indexer")
 	var flushBytes int
 	if esConfig.FlushBytes != "" {
 		b, err := humanize.ParseBytes(esConfig.FlushBytes)
@@ -678,7 +669,7 @@ func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.Batch
 		}
 		flushBytes = int(b)
 	}
-	client, err := elasticsearch.NewClient(esConfig.Config)
+	client, err := newElasticsearchClient(esConfig.Config)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -686,6 +677,7 @@ func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.Batch
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
 		FlushInterval:    esConfig.FlushInterval,
+		Tracer:           s.tracer,
 	})
 	if err != nil {
 		return nil, nil, err
@@ -697,12 +689,18 @@ func (s *serverRunner) newFinalBatchProcessor(p *publish.Publisher) (model.Batch
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		stats := indexer.Stats()
+		v.OnKey("acked")
+		v.OnInt(stats.Indexed)
 		v.OnKey("active")
 		v.OnInt(stats.Active)
-		v.OnKey("total")
-		v.OnInt(stats.Added)
+		v.OnKey("batches")
+		v.OnInt(stats.BulkRequests)
 		v.OnKey("failed")
 		v.OnInt(stats.Failed)
+		v.OnKey("toomany")
+		v.OnInt(stats.TooManyRequests)
+		v.OnKey("total")
+		v.OnInt(stats.Added)
 	})
 	return indexer, indexer.Close, nil
 }
@@ -717,15 +715,11 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 		newObserverBatchProcessor(s.beat.Info),
 		model.ProcessBatchFunc(ecsVersionBatchProcessor),
 		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
+		&modelprocessor.SetDataStream{Namespace: s.namespace},
 	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
 			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,
-		})
-	}
-	if s.config.DataStreams.Enabled {
-		processors = append(processors, &modelprocessor.SetDataStream{
-			Namespace: s.namespace,
 		})
 	}
 	return WrapRunServerWithProcessors(runServer, processors...)
@@ -733,57 +727,6 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 
 func hasElasticsearchOutput(b *beat.Beat) bool {
 	return b.Config != nil && b.Config.Output.Name() == "elasticsearch"
-}
-
-// registerPipelineCallback registers a callback which is invoked when
-// `setup --pipelines` is called, to either register pipelines or return
-// an error depending on the configuration.
-func (bt *beater) registerPipelineSetupCallback(b *beat.Beat) {
-	if !hasElasticsearchOutput(b) {
-		bt.logger.Info("Output is not Elasticsearch: pipeline registration disabled")
-		return
-	}
-
-	if bt.config.DataStreams.Enabled {
-		bt.logger.Info("Data streams enabled: pipeline registration disabled")
-		b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
-			return errors.New("index pipeline setup must be performed externally when using data streams, by installing the 'apm' integration package")
-		}
-		return
-	}
-
-	if !bt.config.Register.Ingest.Pipeline.Enabled {
-		bt.logger.Info("Pipeline registration disabled")
-		return
-	}
-
-	bt.logger.Info("Registering pipeline callback")
-	overwrite := bt.config.Register.Ingest.Pipeline.Overwrite
-	path := bt.config.Register.Ingest.Pipeline.Path
-
-	// ensure setup cmd is working properly
-	b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
-		conn, err := eslegclient.NewConnectedClient(esConfig, b.Info.Beat)
-		if err != nil {
-			return err
-		}
-		return pipeline.RegisterPipelines(conn, overwrite, path)
-	}
-}
-
-// newPipelineElasticsearchConnectCallback returns an Elasticsearch connect
-// callback that ensures the configured pipeline is installed, if configured
-// to do so. If data streams are enabled, then pipeline registration is always
-// disabled.
-func newPipelineElasticsearchConnectCallback(cfg *config.Config) esoutput.ConnectCallback {
-	return func(conn *eslegclient.Connection) error {
-		if cfg.DataStreams.Enabled || !cfg.Register.Ingest.Pipeline.Enabled {
-			return nil
-		}
-		overwrite := cfg.Register.Ingest.Pipeline.Overwrite
-		path := cfg.Register.Ingest.Pipeline.Path
-		return pipeline.RegisterPipelines(conn, overwrite, path)
-	}
 }
 
 func initTracing(b *beat.Beat, cfg *config.Config, logger *logp.Logger) (*apm.Tracer, *tracerServer, error) {
@@ -897,20 +840,6 @@ func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...model.Ba
 	}
 }
 
-func newDropLogsBeatProcessor() (beat.ProcessorList, error) {
-	return processors.New(processors.PluginConfig{
-		common.MustNewConfigFrom(map[string]interface{}{
-			"drop_event": map[string]interface{}{
-				"when": map[string]interface{}{
-					"contains": map[string]interface{}{
-						"processor.event": "log",
-					},
-				},
-			},
-		}),
-	})
-}
-
 // chanReloader implements libbeat/common/reload.Reloadable, converting
 // Reload calls into requests send to a channel consumed by serve.
 type chanReloader struct {
@@ -968,4 +897,59 @@ func (r *chanReloader) serve(ctx context.Context, reloader reload.Reloadable) er
 			}
 		}
 	}
+}
+
+// TODO: This is copying behavior from libbeat:
+// https://github.com/elastic/beats/blob/b9ced47dba8bb55faa3b2b834fd6529d3c4d0919/libbeat/cmd/instance/beat.go#L927-L950
+// Remove this when cluster_uuid no longer needs to be queried from ES.
+func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error {
+	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	outputES := "outputs.elasticsearch"
+	// Running under elastic-agent, the callback linked above is not
+	// registered until later, meaning we need to check and instantiate the
+	// registries if they don't exist.
+	elasticsearchRegistry := stateRegistry.GetRegistry(outputES)
+	if elasticsearchRegistry == nil {
+		elasticsearchRegistry = stateRegistry.NewRegistry(outputES)
+	}
+
+	var (
+		s  *monitoring.String
+		ok bool
+	)
+
+	clusterUUID := "cluster_uuid"
+	clusterUUIDRegVar := elasticsearchRegistry.Get(clusterUUID)
+	if clusterUUIDRegVar != nil {
+		s, ok = clusterUUIDRegVar.(*monitoring.String)
+		if !ok {
+			return fmt.Errorf("couldn't cast to String")
+		}
+	} else {
+		s = monitoring.NewString(elasticsearchRegistry, clusterUUID)
+	}
+
+	var response struct {
+		ClusterUUID string `json:"cluster_uuid"`
+	}
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		return err
+	}
+	resp, err := esClient.Perform(req.WithContext(ctx))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode > 299 {
+		return fmt.Errorf("error querying cluster_uuid: status_code=%d", resp.StatusCode)
+	}
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return err
+	}
+
+	s.Set(response.ClusterUUID)
+	return nil
 }

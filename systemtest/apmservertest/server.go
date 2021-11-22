@@ -138,16 +138,10 @@ func (s *Server) start(tls bool) error {
 	extra := map[string]interface{}{
 		// These are config attributes that we always specify,
 		// as the testing framework relies on them being set.
-		"logging.ecs":               true,
-		"logging.json":              true,
 		"logging.level":             "debug",
 		"logging.to_stderr":         true,
 		"apm-server.expvar.enabled": true,
 		"apm-server.host":           "127.0.0.1:0",
-
-		// TODO(axw) remove this when we switch over to data streams
-		// as the default and only indexing method.
-		"apm-server.data_streams.enabled": true,
 	}
 	if tls {
 		certPath, keyPath, caCertPath, err := s.initTLS()

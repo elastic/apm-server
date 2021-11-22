@@ -177,7 +177,6 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Start.Reset()
 		mapToSpanModel(&input, &out)
-		require.Nil(t, out.Span.Start)
 		assert.Equal(t, reqTime, out.Timestamp)
 	})
 
@@ -445,5 +444,24 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			mapToSpanModel(&input, &event)
 			assert.Equal(t, "CONSUMER", event.Span.Kind)
 		})
+	})
+	t.Run("labels", func(t *testing.T) {
+		var input span
+		input.Context.Tags = common.MapStr{
+			"a": "b",
+			"c": float64(12315124131),
+			"d": 12315124131.12315124131,
+			"e": true,
+		}
+		var out model.APMEvent
+		mapToSpanModel(&input, &out)
+		assert.Equal(t, model.Labels{
+			"a": {Value: "b"},
+			"e": {Value: "true"},
+		}, out.Labels)
+		assert.Equal(t, model.NumericLabels{
+			"c": {Value: float64(12315124131)},
+			"d": {Value: float64(12315124131.12315124131)},
+		}, out.NumericLabels)
 	})
 }

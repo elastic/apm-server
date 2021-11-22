@@ -21,53 +21,22 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestRecordConfigs(t *testing.T) {
 	resetCounters()
 	defer resetCounters()
 
-	info := beat.Info{Name: "apm-server", Version: "7.x"}
 	apmCfg := config.DefaultConfig()
 	apmCfg.AgentAuth.APIKey.Enabled = true
 	apmCfg.Kibana.Enabled = true
-	rootCfg := common.MustNewConfigFrom(map[string]interface{}{
-		"apm-server": map[string]interface{}{
-			"ilm": map[string]interface{}{
-				"setup": map[string]interface{}{
-					"enabled":        true,
-					"overwrite":      true,
-					"require_policy": false,
-				},
-			},
-		},
-		"setup": map[string]interface{}{
-			"template": map[string]interface{}{
-				"overwrite": true,
-			},
-		},
-	})
-	require.NoError(t, recordRootConfig(info, rootCfg))
 	recordAPMServerConfig(apmCfg)
 
-	assert.Equal(t, configMonitors.ilmSetupEnabled.Get(), true)
 	assert.Equal(t, configMonitors.rumEnabled.Get(), false)
 	assert.Equal(t, configMonitors.apiKeysEnabled.Get(), true)
 	assert.Equal(t, configMonitors.kibanaEnabled.Get(), true)
-	assert.Equal(t, configMonitors.pipelinesEnabled.Get(), true)
-	assert.Equal(t, configMonitors.pipelinesOverwrite.Get(), false)
-	assert.Equal(t, configMonitors.setupTemplateEnabled.Get(), true)
-	assert.Equal(t, configMonitors.setupTemplateOverwrite.Get(), true)
-	assert.Equal(t, configMonitors.setupTemplateAppendFields.Get(), false)
-	assert.Equal(t, configMonitors.ilmEnabled.Get(), true)
-	assert.Equal(t, configMonitors.ilmSetupEnabled.Get(), true)
-	assert.Equal(t, configMonitors.ilmSetupOverwrite.Get(), true)
-	assert.Equal(t, configMonitors.ilmSetupRequirePolicy.Get(), false)
 	assert.Equal(t, configMonitors.sslEnabled.Get(), false)
 }
 
@@ -76,13 +45,4 @@ func resetCounters() {
 	configMonitors.apiKeysEnabled.Set(false)
 	configMonitors.kibanaEnabled.Set(false)
 	configMonitors.sslEnabled.Set(false)
-	configMonitors.pipelinesEnabled.Set(false)
-	configMonitors.pipelinesOverwrite.Set(false)
-	configMonitors.setupTemplateEnabled.Set(false)
-	configMonitors.setupTemplateOverwrite.Set(false)
-	configMonitors.setupTemplateAppendFields.Set(false)
-	configMonitors.ilmSetupEnabled.Set(false)
-	configMonitors.ilmSetupOverwrite.Set(false)
-	configMonitors.ilmSetupRequirePolicy.Set(false)
-	configMonitors.ilmEnabled.Set(false)
 }

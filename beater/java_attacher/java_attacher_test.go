@@ -76,7 +76,7 @@ func TestBuild(t *testing.T) {
 
 	cmd := attacher.build(context.Background())
 
-	want := filepath.FromSlash("/usr/bin/java -jar /bin/apm-agent-attach-cli-1.24.0-slim.jar") +
+	want := filepath.FromSlash("/usr/bin/java -jar ./java-attacher.jar") +
 		" --continuous --log-level debug --download-agent-version 1.25.0 --exclude-user root --include-main MyApplication " +
 		"--include-main my-application.jar --include-vmarg elastic.apm.agent.attach=true " +
 		"--config server_url=http://localhost:8200 --config service_name=my-cool-service"

@@ -319,13 +319,6 @@
       type: keyword
       description: |
         Generic designation of a span in the scope of a transaction.
-    - name: start
-      type: group
-      fields:
-        - name: us
-          type: long
-          description: |
-            Offset relative to the transaction's timestamp identifying the start of the span, in microseconds.
     - name: subtype
       type: keyword
       description: |
@@ -427,3 +420,8 @@
       type: keyword
       description: |
         Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+- name: numeric_labels
+  type: object
+  dynamic: true
+  description: |
+    Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.

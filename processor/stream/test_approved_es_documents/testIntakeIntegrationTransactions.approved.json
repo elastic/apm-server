@@ -54,8 +54,13 @@
                 }
             },
             "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "tag1": "one",
-                "tag2": 2
+                "tag4": "false"
+            },
+            "numeric_labels": {
+                "tag2": 12,
+                "tag3": 12.45
             },
             "parent": {
                 "id": "abcdefabcdef01234567"
@@ -232,9 +237,11 @@
             "labels": {
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "tag1": "one",
+                "tag4": "false"
+            },
+            "numeric_labels": {
                 "tag2": 12,
-                "tag3": 12.45,
-                "tag4": false
+                "tag3": 12.45
             },
             "process": {
                 "args": [
@@ -381,8 +388,13 @@
                 }
             },
             "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "tag1": "one",
-                "tag2": 2
+                "tag4": "false"
+            },
+            "numeric_labels": {
+                "tag2": 12,
+                "tag3": 12.45
             },
             "process": {
                 "args": [
@@ -515,8 +527,13 @@
                 }
             },
             "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "tag1": "one",
-                "tag2": 2
+                "tag4": "false"
+            },
+            "numeric_labels": {
+                "tag2": 12,
+                "tag3": 12.45
             },
             "parent": {
                 "id": "abcdefabcdef01234567"
@@ -667,8 +684,13 @@
                 }
             },
             "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "tag1": "one",
-                "tag2": 2
+                "tag4": "false"
+            },
+            "numeric_labels": {
+                "tag2": 12,
+                "tag3": 12.45
             },
             "process": {
                 "args": [

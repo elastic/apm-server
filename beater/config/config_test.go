@@ -179,7 +179,7 @@ func TestUnpackConfig(t *testing.T) {
 							EventLimit: 7200,
 							IPLimit:    2000,
 						},
-						configured: true,
+						enabledSet: true,
 					},
 				},
 				TLS: &tlscommon.ServerConfig{
@@ -218,21 +218,11 @@ func TestUnpackConfig(t *testing.T) {
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
 				},
-				Register: RegisterConfig{
-					Ingest: IngestConfig{
-						Pipeline: PipelineConfig{
-							Enabled:   true,
-							Overwrite: false,
-							Path:      filepath.Join("tmp", "definition.json"),
-						},
-					},
-				},
 				Kibana: KibanaConfig{
 					Enabled:      true,
 					ClientConfig: defaultDecodedKibanaClientConfig,
 				},
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 2 * time.Minute}},
-				Pipeline:          defaultAPMPipeline,
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
 						Interval:                       time.Second,
@@ -256,7 +246,6 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				DefaultServiceEnvironment: "overridden",
 				DataStreams: DataStreamsConfig{
-					Enabled:            false,
 					WaitForIntegration: true,
 				},
 				WaitReadyInterval: 5 * time.Second,
@@ -375,17 +364,8 @@ func TestUnpackConfig(t *testing.T) {
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
 				},
-				Register: RegisterConfig{
-					Ingest: IngestConfig{
-						Pipeline: PipelineConfig{
-							Enabled: false,
-							Path:    filepath.Join("ingest", "pipeline", "definition.json"),
-						},
-					},
-				},
 				Kibana:            defaultKibanaConfig(),
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 30 * time.Second}},
-				Pipeline:          defaultAPMPipeline,
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
 						Interval:                       time.Minute,
@@ -409,7 +389,6 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				DataStreams: DataStreamsConfig{
-					Enabled:            false,
 					WaitForIntegration: false,
 				},
 				WaitReadyInterval: 5 * time.Second,
@@ -578,7 +557,6 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	ucfg, err := common.NewConfigFrom(`{
 		"rum.enabled":true,
 		"auth.api_key.enabled":true,
-		"data_streams.enabled":true,
 		"sampling.tail.policies":[{"sample_rate": 0.5}],
 	}`)
 	require.NoError(t, err)
