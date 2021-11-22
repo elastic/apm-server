@@ -180,9 +180,9 @@ func newTestBeater(
 					// Add a label to test that everything
 					// goes through the wrapped reporter.
 					if event.Labels == nil {
-						event.Labels = common.MapStr{}
+						event.Labels = make(model.Labels)
 					}
-					event.Labels["wrapped_reporter"] = "true"
+					event.Labels.Set("wrapped_reporter", "true")
 				}
 				return nil
 			}
