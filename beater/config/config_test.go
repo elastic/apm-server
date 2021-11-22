@@ -18,7 +18,6 @@
 package config
 
 import (
-	"crypto/tls"
 	"path/filepath"
 	"testing"
 	"time"
@@ -81,7 +80,22 @@ func TestUnpackConfig(t *testing.T) {
 				"write_timeout":         4 * time.Second,
 				"shutdown_timeout":      9 * time.Second,
 				"capture_personal_data": true,
-				"secret_token":          "1234random",
+				"auth": map[string]interface{}{
+					"secret_token": "1234random",
+					"api_key": map[string]interface{}{
+						"enabled":             true,
+						"limit":               200,
+						"elasticsearch.hosts": []string{"localhost:9201", "localhost:9202"},
+					},
+					"anonymous": map[string]interface{}{
+						"enabled":       true,
+						"allow_service": []string{"opbeans-rum"},
+						"rate_limit": map[string]interface{}{
+							"event_limit": 7200,
+							"ip_limit":    2000,
+						},
+					},
+				},
 				"output": map[string]interface{}{
 					"backoff.init": time.Second,
 					"backoff.max":  time.Minute,
@@ -98,14 +112,9 @@ func TestUnpackConfig(t *testing.T) {
 					"url":     "/debug/vars",
 				},
 				"rum": map[string]interface{}{
-					"enabled": true,
-					"event_rate": map[string]interface{}{
-						"limit":    7200,
-						"lru_size": 2000,
-					},
-					"allow_service_names": []string{"opbeans-rum"},
-					"allow_origins":       []string{"example*"},
-					"allow_headers":       []string{"Authorization"},
+					"enabled":       true,
+					"allow_origins": []string{"example*"},
+					"allow_headers": []string{"Authorization"},
 					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
 							"expiration": 8 * time.Minute,
@@ -127,15 +136,6 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				"kibana":                        map[string]interface{}{"enabled": "true"},
 				"agent.config.cache.expiration": "2m",
-				"jaeger.grpc.enabled":           true,
-				"jaeger.grpc.host":              "localhost:12345",
-				"jaeger.http.enabled":           true,
-				"jaeger.http.host":              "localhost:6789",
-				"api_key": map[string]interface{}{
-					"enabled":             true,
-					"limit":               200,
-					"elasticsearch.hosts": []string{"localhost:9201", "localhost:9202"},
-				},
 				"aggregation": map[string]interface{}{
 					"transactions": map[string]interface{}{
 						"interval":                         "1s",
@@ -179,6 +179,7 @@ func TestUnpackConfig(t *testing.T) {
 							EventLimit: 7200,
 							IPLimit:    2000,
 						},
+						enabledSet: true,
 					},
 				},
 				TLS: &tlscommon.ServerConfig{
@@ -194,17 +195,6 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				Pprof: PprofConfig{
 					Enabled: false,
-				},
-				SelfInstrumentation: InstrumentationConfig{
-					Profiling: ProfilingConfig{
-						CPU: CPUProfiling{
-							Interval: 1 * time.Minute,
-							Duration: 10 * time.Second,
-						},
-						Heap: HeapProfiling{
-							Interval: 1 * time.Minute,
-						},
-					},
 				},
 				RumConfig: RumConfig{
 					Enabled:      true,
@@ -228,40 +218,11 @@ func TestUnpackConfig(t *testing.T) {
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
 				},
-				Register: RegisterConfig{
-					Ingest: IngestConfig{
-						Pipeline: PipelineConfig{
-							Enabled:   true,
-							Overwrite: false,
-							Path:      filepath.Join("tmp", "definition.json"),
-						},
-					},
-				},
 				Kibana: KibanaConfig{
 					Enabled:      true,
 					ClientConfig: defaultDecodedKibanaClientConfig,
 				},
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 2 * time.Minute}},
-				Pipeline:          defaultAPMPipeline,
-				JaegerConfig: JaegerConfig{
-					GRPC: JaegerGRPCConfig{
-						Enabled: true,
-						Host:    "localhost:12345",
-						TLS: func() *tls.Config {
-							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
-								Enabled:     newBool(true),
-								Certificate: testdataCertificateConfig,
-								ClientAuth:  4,
-								CAs:         []string{"../../testdata/tls/ca.crt.pem"}})
-							require.NoError(t, err)
-							return tlsServerConfig.BuildServerConfig("localhost:12345")
-						}(),
-					},
-					HTTP: JaegerHTTPConfig{
-						Enabled: true,
-						Host:    "localhost:6789",
-					},
-				},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
 						Interval:                       time.Second,
@@ -285,7 +246,6 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				DefaultServiceEnvironment: "overridden",
 				DataStreams: DataStreamsConfig{
-					Enabled:            false,
 					WaitForIntegration: true,
 				},
 				WaitReadyInterval: 5 * time.Second,
@@ -293,8 +253,11 @@ func TestUnpackConfig(t *testing.T) {
 		},
 		"merge config with default": {
 			inpCfg: map[string]interface{}{
-				"host":         "localhost:3000",
-				"secret_token": "1234random",
+				"host": "localhost:3000",
+				"auth": map[string]interface{}{
+					"api_key.enabled": true,
+					"secret_token":    "1234random",
+				},
 				"ssl": map[string]interface{}{
 					"enabled":     true,
 					"certificate": "../../testdata/tls/certificate.pem",
@@ -331,8 +294,6 @@ func TestUnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"jaeger.grpc.enabled": true,
-				"api_key.enabled":     true,
 				"sampling.tail": map[string]interface{}{
 					"enabled":           false,
 					"policies":          []map[string]interface{}{{"sample_rate": 0.5}},
@@ -379,17 +340,6 @@ func TestUnpackConfig(t *testing.T) {
 				Pprof: PprofConfig{
 					Enabled: true,
 				},
-				SelfInstrumentation: InstrumentationConfig{
-					Profiling: ProfilingConfig{
-						CPU: CPUProfiling{
-							Interval: 1 * time.Minute,
-							Duration: 10 * time.Second,
-						},
-						Heap: HeapProfiling{
-							Interval: 1 * time.Minute,
-						},
-					},
-				},
 				RumConfig: RumConfig{
 					Enabled:      true,
 					AllowOrigins: []string{"*"},
@@ -414,36 +364,8 @@ func TestUnpackConfig(t *testing.T) {
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
 				},
-				Register: RegisterConfig{
-					Ingest: IngestConfig{
-						Pipeline: PipelineConfig{
-							Enabled: false,
-							Path:    filepath.Join("ingest", "pipeline", "definition.json"),
-						},
-					},
-				},
 				Kibana:            defaultKibanaConfig(),
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 30 * time.Second}},
-				Pipeline:          defaultAPMPipeline,
-				JaegerConfig: JaegerConfig{
-					GRPC: JaegerGRPCConfig{
-						Enabled: true,
-						Host:    "localhost:14250",
-						TLS: func() *tls.Config {
-							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
-								Enabled:     newBool(true),
-								Certificate: testdataCertificateConfig,
-								ClientAuth:  0,
-							})
-							require.NoError(t, err)
-							return tlsServerConfig.BuildServerConfig("localhost:14250")
-						}(),
-					},
-					HTTP: JaegerHTTPConfig{
-						Enabled: false,
-						Host:    "localhost:14268",
-					},
-				},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
 						Interval:                       time.Minute,
@@ -467,7 +389,6 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				DataStreams: DataStreamsConfig{
-					Enabled:            false,
 					WaitForIntegration: false,
 				},
 				WaitReadyInterval: 5 * time.Second,
@@ -517,14 +438,6 @@ func TestUnpackConfig(t *testing.T) {
 			cfg, err := NewConfig(inpCfg, nil)
 			require.NoError(t, err)
 			require.NotNil(t, cfg)
-			if test.outCfg.JaegerConfig.GRPC.TLS != nil || cfg.JaegerConfig.GRPC.TLS != nil {
-				// tlscommon captures closures for the following callbacks
-				// setting them to nil to skip these from comparison
-				cfg.JaegerConfig.GRPC.TLS.VerifyConnection = nil
-				test.outCfg.JaegerConfig.GRPC.TLS.VerifyConnection = nil
-				test.outCfg.JaegerConfig.GRPC.TLS.ClientCAs = nil
-				cfg.JaegerConfig.GRPC.TLS.ClientCAs = nil
-			}
 
 			assert.Equal(t, test.outCfg, cfg)
 		})
@@ -643,8 +556,7 @@ func TestAgentConfigs(t *testing.T) {
 func TestNewConfig_ESConfig(t *testing.T) {
 	ucfg, err := common.NewConfigFrom(`{
 		"rum.enabled":true,
-		"api_key.enabled":true,
-		"data_streams.enabled":true,
+		"auth.api_key.enabled":true,
 		"sampling.tail.policies":[{"sample_rate": 0.5}],
 	}`)
 	require.NoError(t, err)

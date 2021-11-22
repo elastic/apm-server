@@ -46,7 +46,7 @@ type Config struct {
 	Aggregation               *AggregationConfig `json:"apm-server.aggregation,omitempty"`
 	Sampling                  *SamplingConfig    `json:"apm-server.sampling,omitempty"`
 	RUM                       *RUMConfig         `json:"apm-server.rum,omitempty"`
-	DataStreams               *DataStreamsConfig `json:"apm-server.data_streams,omitempty"`
+	WaitForIntegration        *bool              `json:"apm-server.data_streams.wait_for_integration,omitempty"`
 	DefaultServiceEnvironment string             `json:"apm-server.default_service_environment,omitempty"`
 	KibanaAgentConfig         *KibanaAgentConfig `json:"apm-server.agent.config,omitempty"`
 	TLS                       *TLSConfig         `json:"apm-server.ssl,omitempty"`
@@ -196,12 +196,6 @@ type RUMSourcemapConfig struct {
 // RUMSourcemapCacheConfig holds sourcemap cache expiration.
 type RUMSourcemapCacheConfig struct {
 	Expiration time.Duration `json:"expiration,omitempty"`
-}
-
-// DataStreamsConfig holds APM Server data streams configuration.
-type DataStreamsConfig struct {
-	Enabled            bool  `json:"enabled"`
-	WaitForIntegration *bool `json:"wait_for_integration,omitempty"`
 }
 
 // APIKeyConfig holds agent auth configuration.

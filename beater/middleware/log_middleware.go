@@ -36,7 +36,6 @@ import (
 func LogMiddleware() Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			start := time.Now()
 			c.Logger = loggerWithRequestContext(c)
 			var err error
 			if c.Logger, err = loggerWithTraceContext(c); err != nil {
@@ -47,7 +46,7 @@ func LogMiddleware() Middleware {
 				return
 			}
 			h(c)
-			c.Logger = c.Logger.With("event.duration", time.Since(start))
+			c.Logger = c.Logger.With("event.duration", time.Since(c.Timestamp))
 			if c.MultipleWriteAttempts() {
 				c.Logger.Warn("multiple write attempts")
 			}

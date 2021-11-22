@@ -3,8 +3,17 @@
 
 https://github.com/elastic/apm-server/compare/7.14\...7.15[View commits]
 
+* <<release-notes-7.15.2>>
 * <<release-notes-7.15.1>>
 * <<release-notes-7.15.0>>
+
+[float]
+[[release-notes-7.15.2]]
+=== APM Server version 7.15.2
+
+https://github.com/elastic/apm-server/compare/v7.15.1\...v7.15.2[View commits]
+
+No significant changes.
 
 [float]
 [[release-notes-7.15.1]]

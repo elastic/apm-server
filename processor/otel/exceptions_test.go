@@ -44,7 +44,6 @@ import (
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestEncodeSpanEventsNonExceptions(t *testing.T) {
@@ -114,13 +113,14 @@ Caused by: LowLevelException
 	service, agent := languageOnlyMetadata("java")
 	transactionEvent, errorEvents := transformTransactionSpanEvents(t, "java", exceptionEvent1, exceptionEvent2)
 	assert.Equal(t, []model.APMEvent{{
-		Service:   service,
-		Agent:     agent,
-		Timestamp: timestamp,
-		Labels:    common.MapStr{},
-		Processor: model.ErrorProcessor,
-		Trace:     transactionEvent.Trace,
-		Parent:    model.Parent{ID: transactionEvent.Transaction.ID},
+		Service:       service,
+		Agent:         agent,
+		Timestamp:     timestamp,
+		Labels:        model.Labels{},
+		NumericLabels: model.NumericLabels{},
+		Processor:     model.ErrorProcessor,
+		Trace:         transactionEvent.Trace,
+		Parent:        model.Parent{ID: transactionEvent.Transaction.ID},
 		Transaction: &model.Transaction{
 			ID:      transactionEvent.Transaction.ID,
 			Type:    transactionEvent.Transaction.Type,
@@ -165,13 +165,14 @@ Caused by: LowLevelException
 			},
 		},
 	}, {
-		Service:   service,
-		Agent:     agent,
-		Timestamp: timestamp,
-		Labels:    common.MapStr{},
-		Processor: model.ErrorProcessor,
-		Trace:     transactionEvent.Trace,
-		Parent:    model.Parent{ID: transactionEvent.Transaction.ID},
+		Service:       service,
+		Agent:         agent,
+		Timestamp:     timestamp,
+		Labels:        model.Labels{},
+		NumericLabels: model.NumericLabels{},
+		Processor:     model.ErrorProcessor,
+		Trace:         transactionEvent.Trace,
+		Parent:        model.Parent{ID: transactionEvent.Transaction.ID},
 		Transaction: &model.Transaction{
 			ID:      transactionEvent.Transaction.ID,
 			Type:    transactionEvent.Transaction.Type,
@@ -325,13 +326,14 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 
 	service, agent := languageOnlyMetadata("COBOL")
 	assert.Equal(t, model.APMEvent{
-		Service:   service,
-		Agent:     agent,
-		Timestamp: timestamp,
-		Labels:    common.MapStr{},
-		Processor: model.ErrorProcessor,
-		Trace:     transactionEvent.Trace,
-		Parent:    model.Parent{ID: transactionEvent.Transaction.ID},
+		Service:       service,
+		Agent:         agent,
+		Timestamp:     timestamp,
+		Labels:        model.Labels{},
+		NumericLabels: model.NumericLabels{},
+		Processor:     model.ErrorProcessor,
+		Trace:         transactionEvent.Trace,
+		Parent:        model.Parent{ID: transactionEvent.Transaction.ID},
 		Transaction: &model.Transaction{
 			ID:      transactionEvent.Transaction.ID,
 			Type:    transactionEvent.Transaction.Type,

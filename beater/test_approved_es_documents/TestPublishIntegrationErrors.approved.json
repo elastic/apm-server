@@ -36,6 +36,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -384,6 +387,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -503,6 +509,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -618,6 +627,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -738,6 +750,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },

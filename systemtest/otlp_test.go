@@ -66,16 +66,18 @@ func init() {
 }
 
 func TestOTLPGRPCTraces(t *testing.T) {
-	withDataStreams(t, testOTLPGRPCTraces)
-}
-
-func testOTLPGRPCTraces(t *testing.T, srv *apmservertest.Server) {
-	srv.Start()
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServer(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	resource, err := resource.Merge(resource.Default(), sdkresource.NewSchemaless(
 		attribute.StringSlice("resource_attribute_array", []string{"a", "b"}),
+		attribute.Bool("resource_attribute_bool", true),
+		attribute.BoolSlice("resource_attribute_bool_array", []bool{true, false}),
+		attribute.Float64("resource_attribute_float", 123456.789),
+		attribute.Float64Slice("resource_attribute_float_array", []float64{123456.789, 987654321.123456789}),
+		attribute.Int64("resource_attribute_int", 123456),
 	))
 	require.NoError(t, err)
 
@@ -90,13 +92,8 @@ func testOTLPGRPCTraces(t *testing.T, srv *apmservertest.Server) {
 	})
 	require.NoError(t, err)
 
-	expectMin := 1
-	if srv.Config.DataStreams != nil && srv.Config.DataStreams.Enabled {
-		expectMin++ // span events only indexed into data streams
-	}
-
-	indices := "apm-*,traces-apm*,logs-apm*"
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, expectMin, indices, estest.BoolQuery{
+	indices := "traces-apm*,logs-apm*"
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, indices, estest.BoolQuery{
 		Should: []interface{}{
 			estest.TermQuery{Field: "processor.event", Value: "transaction"},
 			estest.TermQuery{Field: "processor.event", Value: "log"},
@@ -104,12 +101,6 @@ func testOTLPGRPCTraces(t *testing.T, srv *apmservertest.Server) {
 		MinimumShouldMatch: 1,
 	})
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
-
-	// Ensure that the log event was filtered by libbeat.
-	if srv.Config.DataStreams == nil || !srv.Config.DataStreams.Enabled {
-		filtered := srv.GetExpvar().Vars["libbeat.pipeline.events.filtered"].(float64)
-		assert.Equal(t, float64(1), filtered, "libbeat pipeline processor should have filtered the span log event")
-	}
 }
 
 func TestOTLPGRPCMetrics(t *testing.T) {
@@ -134,7 +125,7 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.app.*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "metric"},
 	}})
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
@@ -162,7 +153,7 @@ func TestOTLPGRPCAuth(t *testing.T) {
 		"Authorization": "Bearer abc123",
 	}))))
 	require.NoError(t, err)
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
+	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},
 	}})
 }
@@ -193,13 +184,13 @@ func TestOTLPClientIP(t *testing.T) {
 	require.NoError(t, err)
 
 	// Non-iOS agent documents should have no client.ip field set.
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
+	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
 		Field: "service.name", Value: "service1",
 	})
 	assert.False(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())
 
 	// iOS agent documents should have a client.ip field set.
-	result = systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
+	result = systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
 		Field: "service.name", Value: "service2",
 	})
 	assert.True(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())

@@ -25,7 +25,6 @@ import (
 	"go.opentelemetry.io/collector/model/pdata"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestResourceConventions(t *testing.T) {
@@ -220,10 +219,12 @@ func TestResourceLabels(t *testing.T) {
 		"string_array": stringArray,
 		"int_array":    intArray,
 	})
-	assert.Equal(t, common.MapStr{
-		"string_array": []interface{}{"abc", "def"},
-		"int_array":    []interface{}{int64(123), int64(456)},
+	assert.Equal(t, model.Labels{
+		"string_array": {Values: []string{"abc", "def"}},
 	}, metadata.Labels)
+	assert.Equal(t, model.NumericLabels{
+		"int_array": {Values: []float64{123, 456}},
+	}, metadata.NumericLabels)
 }
 
 func transformResourceMetadata(t *testing.T, resourceAttrs map[string]pdata.AttributeValue) model.APMEvent {

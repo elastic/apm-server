@@ -13,6 +13,9 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -207,12 +210,17 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
+                "ab_testing": "true",
                 "group": "experimental",
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "segment": 5
+                "success": "true",
+                "wrapped_reporter": "true"
             },
             "message": "Request method 'POST' not supported",
+            "numeric_labels": {
+                "code": 200,
+                "segment": 5
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
@@ -295,6 +303,9 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -337,8 +348,14 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
+                "ab_testing": "true",
                 "group": "experimental",
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true",
+                "wrapped_reporter": "true"
+            },
+            "numeric_labels": {
+                "code": 200,
                 "segment": 5
             },
             "observer": {
@@ -397,21 +414,6 @@
                 "duration": {
                     "us": 3781
                 },
-                "http": {
-                    "method": "GET",
-                    "response": {
-                        "decoded_body_size": 401,
-                        "encoded_body_size": 356,
-                        "headers": {
-                            "Content-Type": [
-                                "application/json"
-                            ]
-                        },
-                        "status_code": 302,
-                        "transfer_size": 300.12
-                    }
-                },
-                "http.url.original": "http://localhost:8000",
                 "id": "1234567890aaaade",
                 "name": "GET users-authenticated",
                 "stacktrace": [
@@ -469,6 +471,9 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -546,11 +551,15 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
+                "ab_testing": "true",
                 "group": "experimental",
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "segment": 5,
-                "wrapped_reporter": true
+                "success": "true",
+                "wrapped_reporter": "true"
+            },
+            "numeric_labels": {
+                "code": 200,
+                "segment": 5
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -657,6 +666,9 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm.internal",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -680,13 +692,17 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
-                "code": 200,
+                "ab_testing": "true",
                 "group": "experimental",
-                "segment": 5,
-                "success": true
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true",
+                "wrapped_reporter": "true"
             },
             "metricset.name": "span_breakdown",
+            "numeric_labels": {
+                "code": 200,
+                "segment": 5
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",

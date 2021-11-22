@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
@@ -88,7 +87,7 @@ func (r Reporter) Run(ctx context.Context) error {
 			batch = append(batch, model.APMEvent{
 				Timestamp: time.Now(),
 				Processor: model.MetricsetProcessor,
-				Labels:    common.MapStr{"etag": etag},
+				Labels:    model.Labels{"etag": {Value: etag}},
 				Metricset: &model.Metricset{
 					Name: "agent_config",
 					Samples: map[string]model.MetricsetSample{

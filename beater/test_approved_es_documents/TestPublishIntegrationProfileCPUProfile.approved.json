@@ -2,6 +2,9 @@
     "events": [
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -138,6 +141,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -220,6 +226,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -374,6 +383,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -456,6 +468,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -520,6 +535,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -620,6 +638,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -714,6 +735,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -802,6 +826,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -908,6 +935,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -1032,6 +1062,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -1090,6 +1123,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -1160,6 +1196,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -1266,6 +1305,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -1402,6 +1444,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -1466,6 +1511,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -1584,6 +1632,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -1690,6 +1741,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -1784,6 +1838,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -1878,6 +1935,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -2002,6 +2062,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -2060,6 +2123,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -2148,6 +2214,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -2212,6 +2281,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -2282,6 +2354,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -2412,6 +2487,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -2494,6 +2572,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -2552,6 +2633,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -2598,6 +2682,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -2680,6 +2767,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -2804,6 +2894,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -2916,6 +3009,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -3028,6 +3124,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -3104,6 +3203,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -3222,6 +3324,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -3286,6 +3391,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -3368,6 +3476,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -3438,6 +3549,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -3562,6 +3676,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -3734,6 +3851,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -3816,6 +3936,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -3916,6 +4039,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -4082,6 +4208,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -4140,6 +4269,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -4270,6 +4402,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -4388,6 +4523,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -4452,6 +4590,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -4540,6 +4681,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -4592,6 +4736,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -4668,6 +4815,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -4726,6 +4876,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -4856,6 +5009,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -4914,6 +5070,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -4960,6 +5119,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -5042,6 +5204,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -5154,6 +5319,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -5248,6 +5416,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -5324,6 +5495,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -5430,6 +5604,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -5536,6 +5713,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -5618,6 +5798,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -5742,6 +5925,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -5830,6 +6016,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -5924,6 +6113,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -6012,6 +6204,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -6088,6 +6283,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -6146,6 +6344,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -6258,6 +6459,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -6394,6 +6598,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -6542,6 +6749,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -6630,6 +6840,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -6688,6 +6901,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -6782,6 +6998,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -6936,6 +7155,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -7072,6 +7294,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -7196,6 +7421,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -7260,6 +7488,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -7330,6 +7561,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -7436,6 +7670,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -7476,6 +7713,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -7528,6 +7768,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -7598,6 +7841,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -7674,6 +7920,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -7750,6 +7999,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -7838,6 +8090,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -7950,6 +8205,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -8020,6 +8278,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -8096,6 +8357,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -8214,6 +8478,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -8284,6 +8551,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -8396,6 +8666,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -8490,6 +8763,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -8584,6 +8860,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -8636,6 +8915,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -8742,6 +9024,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -8818,6 +9103,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -8870,6 +9158,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -9006,6 +9297,9 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },

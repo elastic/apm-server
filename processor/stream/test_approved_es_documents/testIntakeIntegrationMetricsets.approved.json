@@ -10,10 +10,12 @@
                 "ip": "192.0.0.1"
             },
             "labels": {
-                "code": 200,
                 "some": "abc",
-                "success": true,
-                "tag1": "one",
+                "success": "true",
+                "tag1": "one"
+            },
+            "numeric_labels": {
+                "code": 200,
                 "tag2": 2
             },
             "process": {
@@ -61,7 +63,12 @@
                 "ip": "192.0.0.1"
             },
             "labels": {
-                "tag1": "one",
+                "some": "abc",
+                "success": "true",
+                "tag1": "one"
+            },
+            "numeric_labels": {
+                "code": 200,
                 "tag2": 2
             },
             "process": {
@@ -96,7 +103,12 @@
                 "ip": "192.0.0.1"
             },
             "labels": {
-                "tag1": "one",
+                "some": "abc",
+                "success": "true",
+                "tag1": "one"
+            },
+            "numeric_labels": {
+                "code": 200,
                 "tag2": 2
             },
             "process": {
@@ -133,7 +145,12 @@
                 "ip": "192.0.0.1"
             },
             "labels": {
-                "tag1": "one",
+                "some": "abc",
+                "success": "true",
+                "tag1": "one"
+            },
+            "numeric_labels": {
+                "code": 200,
                 "tag2": 2
             },
             "process": {
@@ -182,8 +199,9 @@
                 "ip": "192.0.0.1"
             },
             "labels": {
-                "tag1": "one",
-                "tag2": 2
+                "some": "abc",
+                "success": "true",
+                "tag1": "one"
             },
             "latency_distribution": {
                 "counts": [
@@ -196,6 +214,10 @@
                     2.2,
                     3.3
                 ]
+            },
+            "numeric_labels": {
+                "code": 200,
+                "tag2": 2
             },
             "process": {
                 "pid": 1234

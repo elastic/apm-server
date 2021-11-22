@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	otel_processor "github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/v7/libbeat/common"
 
 	"go.opentelemetry.io/collector/model/pdata"
 )
@@ -316,10 +315,7 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 
 	if from.Context.IsSet() {
 		if len(from.Context.Tags) > 0 {
-			event.Labels = modeldecoderutil.MergeLabels(
-				event.Labels,
-				modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
-			)
+			modeldecoderutil.MergeLabels(from.Context.Tags, event)
 		}
 		if from.Context.Request.IsSet() {
 			event.HTTP.Request = &model.HTTPRequest{}
@@ -482,7 +478,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 
 	// Labels
 	if len(from.Labels) > 0 {
-		out.Labels = modeldecoderutil.NormalizeLabelValues(from.Labels.Clone())
+		modeldecoderutil.LabelsFrom(from.Labels, out)
 	}
 
 	// Process
@@ -629,10 +625,7 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) bool {
 	}
 
 	if len(from.Tags) > 0 {
-		event.Labels = modeldecoderutil.MergeLabels(
-			event.Labels,
-			modeldecoderutil.NormalizeLabelValues(from.Tags),
-		)
+		modeldecoderutil.MergeLabels(from.Tags, event)
 	}
 
 	if from.Span.IsSet() {
@@ -954,10 +947,7 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		mapToAgentModel(from.Context.Service.Agent, &event.Agent)
 	}
 	if len(from.Context.Tags) > 0 {
-		event.Labels = modeldecoderutil.MergeLabels(
-			event.Labels,
-			modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
-		)
+		modeldecoderutil.MergeLabels(from.Context.Tags, event)
 	}
 	if from.Duration.IsSet() {
 		duration := time.Duration(from.Duration.Val * float64(time.Millisecond))
@@ -992,10 +982,6 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 	if len(from.Stacktrace) > 0 {
 		out.Stacktrace = make(model.Stacktrace, len(from.Stacktrace))
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
-	}
-	if from.Start.IsSet() {
-		val := from.Start.Val
-		out.Start = &val
 	}
 	if from.Sync.IsSet() {
 		val := from.Sync.Val
@@ -1092,10 +1078,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 			out.Custom = modeldecoderutil.NormalizeLabelValues(from.Context.Custom.Clone())
 		}
 		if len(from.Context.Tags) > 0 {
-			event.Labels = modeldecoderutil.MergeLabels(
-				event.Labels,
-				modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
-			)
+			modeldecoderutil.MergeLabels(from.Context.Tags, event)
 		}
 		if from.Context.Message.IsSet() {
 			out.Message = &model.Message{}
@@ -1256,7 +1239,10 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 		out.Span.Kind = from.SpanKind.Val
 	}
 	if out.Labels == nil {
-		out.Labels = make(common.MapStr)
+		out.Labels = make(model.Labels)
+	}
+	if out.NumericLabels == nil {
+		out.NumericLabels = make(model.NumericLabels)
 	}
 	// TODO: Does this work? Is there a way we can infer the status code,
 	// potentially in the actual attributes map?
@@ -1281,7 +1267,10 @@ const spanKindStringPrefix = "SPAN_KIND_"
 func mapOTelAttributesSpan(from otel, out *model.APMEvent) {
 	m := otelAttributeMap(&from)
 	if out.Labels == nil {
-		out.Labels = make(common.MapStr)
+		out.Labels = make(model.Labels)
+	}
+	if out.NumericLabels == nil {
+		out.NumericLabels = make(model.NumericLabels)
 	}
 	var spanKind pdata.SpanKind
 	if from.SpanKind.IsSet() {

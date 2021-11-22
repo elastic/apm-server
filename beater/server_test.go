@@ -132,7 +132,7 @@ func TestServerRoot(t *testing.T) {
 func TestServerRootWithToken(t *testing.T) {
 	token := "verysecret"
 	badToken := "Verysecret"
-	ucfg, err := common.NewConfigFrom(m{"secret_token": token})
+	ucfg, err := common.NewConfigFrom(m{"auth.secret_token": token})
 	assert.NoError(t, err)
 	apm, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
@@ -415,7 +415,7 @@ func TestServerJaegerGRPC(t *testing.T) {
 }
 
 func TestServerOTLPGRPC(t *testing.T) {
-	ucfg, err := common.NewConfigFrom(m{"secret_token": "abc123"})
+	ucfg, err := common.NewConfigFrom(m{"auth.secret_token": "abc123"})
 	assert.NoError(t, err)
 	server, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
@@ -465,9 +465,6 @@ func TestServerConfigReload(t *testing.T) {
 		// Set an invalid host to illustrate that the static config
 		// is not used for defining the listening address.
 		"host": "testing.invalid:123",
-
-		// Data streams must be enabled when the server is managed.
-		"data_streams.enabled": true,
 	})
 	apmBeat, cfg := newBeat(t, cfg, nil, nil)
 	apmBeat.Manager = &mockManager{enabled: true}
@@ -528,7 +525,7 @@ func TestServerConfigReload(t *testing.T) {
 	assert.NotEmpty(t, healthcheck(addr1)) // non-empty as there's no auth required
 
 	// Reload config, causing the HTTP server to be restarted.
-	require.NoError(t, inputConfig.SetString("apm-server.secret_token", -1, "secret"))
+	require.NoError(t, inputConfig.SetString("apm-server.auth.secret_token", -1, "secret"))
 	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: inputConfig}})
 	require.NoError(t, err)
 
@@ -566,8 +563,7 @@ func TestServerOutputConfigReload(t *testing.T) {
 	}()
 	reload.Register = reload.NewRegistry()
 
-	cfg := common.MustNewConfigFrom(map[string]interface{}{"data_streams.enabled": true})
-	apmBeat, cfg := newBeat(t, cfg, nil, nil)
+	apmBeat, cfg := newBeat(t, nil, nil, nil)
 	apmBeat.Manager = &mockManager{enabled: true}
 
 	runServerCalls := make(chan ServerParams, 1)
@@ -652,12 +648,18 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 	defer srv.Close()
 
 	cfg := common.MustNewConfigFrom(map[string]interface{}{
-		"data_streams.enabled": true,
-		"wait_ready_interval":  "100ms",
-		"kibana.enabled":       true,
-		"kibana.host":          srv.URL,
+		"wait_ready_interval": "100ms",
+		"kibana.enabled":      true,
+		"kibana.host":         srv.URL,
 	})
-	_, err := setupServer(t, cfg, nil, nil)
+
+	// newBeat sets `data_streams.wait_for_integration: false`,
+	// remove it so we test the default behaviour.
+	apmBeat, cfg := newBeat(t, cfg, nil, nil)
+	removed, err := cfg.Remove("data_streams.wait_for_integration", -1)
+	require.NoError(t, err)
+	require.True(t, removed)
+	_, err = setupBeater(t, apmBeat, cfg, nil)
 	require.NoError(t, err)
 
 	timeout := time.After(10 * time.Second)
@@ -708,10 +710,7 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	cfg := common.MustNewConfigFrom(map[string]interface{}{
-		"data_streams.enabled": true,
-		"wait_ready_interval":  "100ms",
-	})
+	cfg := common.MustNewConfigFrom(map[string]interface{}{"wait_ready_interval": "100ms"})
 	var beatConfig beat.BeatConfig
 	err := beatConfig.Output.Unpack(common.MustNewConfigFrom(map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
@@ -722,7 +721,13 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	}))
 	require.NoError(t, err)
 
-	beater, err := setupServer(t, cfg, &beatConfig, nil)
+	// newBeat sets `data_streams.wait_for_integration: false`,
+	// remove it so we test the default behaviour.
+	apmBeat, cfg := newBeat(t, cfg, &beatConfig, nil)
+	removed, err := cfg.Remove("data_streams.wait_for_integration", -1)
+	require.NoError(t, err)
+	require.True(t, removed)
+	beater, err := setupBeater(t, apmBeat, cfg, &beatConfig)
 	require.NoError(t, err)
 
 	// Send some events to the server. They should be accepted and enqueued.
@@ -799,11 +804,7 @@ func TestServerExperimentalElasticsearchOutput(t *testing.T) {
 	}()
 	reload.Register = reload.NewRegistry()
 
-	cfg := common.MustNewConfigFrom(map[string]interface{}{
-		"data_streams.enabled":              true,
-		"data_streams.wait_for_integration": false,
-	})
-	apmBeat, cfg := newBeat(t, cfg, nil, nil)
+	apmBeat, cfg := newBeat(t, nil, nil, nil)
 	apmBeat.Manager = &mockManager{enabled: true}
 	beater, err := newTestBeater(t, apmBeat, cfg, nil)
 	require.NoError(t, err)

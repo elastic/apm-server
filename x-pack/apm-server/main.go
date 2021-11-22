@@ -1,6 +1,6 @@
 // Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
-// or more contributor license agreements. Licensed under the Elastic License;
-// you may not use this file except in compliance with the Elastic License.
+// or more contributor license agreements. Licensed under the Elastic License 2.0;
+// you may not use this file except in compliance with the Elastic License 2.0.
 
 package main
 
@@ -97,10 +97,6 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 }
 
 func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, error) {
-	if !args.Config.DataStreams.Enabled {
-		return nil, errors.New("tail-based sampling requires data streams")
-	}
-
 	tailSamplingConfig := args.Config.Sampling.Tail
 	es, err := args.NewElasticsearchClient(tailSamplingConfig.ESConfig)
 	if err != nil {
@@ -231,11 +227,12 @@ func closeBadger() error {
 	return nil
 }
 
-var rootCmd = cmd.NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
-	WrapRunServer: wrapRunServer,
-}))
-
 func Main() error {
+	rootCmd := cmd.NewXPackRootCommand(
+		beater.NewCreator(beater.CreatorParams{
+			WrapRunServer: wrapRunServer,
+		}),
+	)
 	if err := rootCmd.Execute(); err != nil {
 		closeBadger()
 		return err

@@ -31,7 +31,6 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
 )
 
 type tracerServer struct {
@@ -42,9 +41,6 @@ type tracerServer struct {
 
 func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer, error) {
 	requests := make(chan tracerServerRequest)
-	nopReporter := func(ctx context.Context, _ publish.PendingReq) error {
-		return nil
-	}
 	processBatch := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 		result := make(chan error, 1)
 		request := tracerServerRequest{ctx: ctx, batch: batch, res: result}
@@ -72,7 +68,6 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 	mux, err := api.NewMux(
 		beat.Info{},
 		cfg,
-		nopReporter,
 		processBatch,
 		authenticator,
 		agentcfg.NewFetcher(cfg),

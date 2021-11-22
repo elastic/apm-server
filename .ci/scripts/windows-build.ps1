@@ -34,23 +34,8 @@ $env:RACE_DETECTOR = "true"
 # Install mage.
 exec { go install github.com/magefile/mage }
 
-echo "Fetching testing dependencies"
-# TODO (elastic/beats#5050): Use a vendored copy of this.
-exec { go get github.com/docker/libcompose }
-
 if (Test-Path "build") { Remove-Item -Recurse -Force build }
 New-Item -ItemType directory -Path build\coverage | Out-Null
-New-Item -ItemType directory -Path build\system-tests | Out-Null
-New-Item -ItemType directory -Path build\system-tests\run | Out-Null
-
-choco install python -y -r --no-progress --version 3.8.1.20200110
-refreshenv
-$env:PATH = "C:\Python38;C:\Python38\Scripts;$env:PATH"
-$env:PYTHON_ENV = "$env:TEMP\python-env"
-python --version
-
-echo "Building fields.yml"
-exec { mage fields }
 
 echo "Building $env:beat"
 exec { mage build } "Build FAILURE"

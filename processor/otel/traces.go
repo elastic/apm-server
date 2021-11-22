@@ -50,7 +50,6 @@ import (
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 	"google.golang.org/grpc/codes"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/datastreams"
@@ -203,7 +202,7 @@ func (c *Consumer) convertSpan(
 	name := otelSpan.Name()
 	spanID := otelSpan.SpanID().HexString()
 	event := baseEvent
-	event.Labels = initEventLabels(event.Labels)
+	initEventLabels(&event)
 	event.Timestamp = startTime.Add(timeDelta)
 	event.Trace.ID = otelSpan.TraceID().HexString()
 	event.Event.Duration = duration
@@ -228,12 +227,16 @@ func (c *Consumer) convertSpan(
 	if len(event.Labels) == 0 {
 		event.Labels = nil
 	}
+	if len(event.NumericLabels) == 0 {
+		event.NumericLabels = nil
+	}
 	*out = append(*out, event)
 
 	events := otelSpan.Events()
-	event.Labels = baseEvent.Labels         // only copy common labels to span events
-	event.Event.Outcome = ""                // don't set event.outcome for span events
-	event.Destination = model.Destination{} // don't set destination for span events
+	event.Labels = baseEvent.Labels               // only copy common labels to span events
+	event.NumericLabels = baseEvent.NumericLabels // only copy common labels to span events
+	event.Event.Outcome = ""                      // don't set event.outcome for span events
+	event.Destination = model.Destination{}       // don't set destination for span events
 	for i := 0; i < events.Len(); i++ {
 		*out = append(*out, convertSpanEvent(logger, events.At(i), event, timeDelta))
 	}
@@ -284,11 +287,11 @@ func TranslateTransaction(
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pdata.AttributeValueTypeArray:
-			event.Labels[k] = ifaceAnyValueArray(v.ArrayVal())
+			setLabel(k, event, ifaceAttributeValue(v))
 		case pdata.AttributeValueTypeBool:
-			event.Labels[k] = v.BoolVal()
+			setLabel(k, event, ifaceAttributeValue(v))
 		case pdata.AttributeValueTypeDouble:
-			event.Labels[k] = v.DoubleVal()
+			setLabel(k, event, ifaceAttributeValue(v))
 		case pdata.AttributeValueTypeInt:
 			switch kDots {
 			case semconv.AttributeHTTPStatusCode:
@@ -302,7 +305,7 @@ func TranslateTransaction(
 			case "rpc.grpc.status_code":
 				event.Transaction.Result = codes.Code(v.IntVal()).String()
 			default:
-				event.Labels[k] = v.IntVal()
+				setLabel(k, event, ifaceAttributeValue(v))
 			}
 		case pdata.AttributeValueTypeMap:
 		case pdata.AttributeValueTypeString:
@@ -331,7 +334,7 @@ func TranslateTransaction(
 			case "http.protocol":
 				if !strings.HasPrefix(stringval, "HTTP/") {
 					// Unexpected, store in labels for debugging.
-					event.Labels[k] = stringval
+					event.Labels.Set(k, stringval)
 					break
 				}
 				stringval = strings.TrimPrefix(stringval, "HTTP/")
@@ -395,7 +398,7 @@ func TranslateTransaction(
 				component = stringval
 				fallthrough
 			default:
-				event.Labels[k] = stringval
+				event.Labels.Set(k, stringval)
 			}
 		}
 		return true
@@ -455,7 +458,7 @@ func TranslateTransaction(
 
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate span metrics.
-		parseSamplerAttributes(samplerType, samplerParam, &event.Transaction.RepresentativeCount, event.Labels)
+		parseSamplerAttributes(samplerType, samplerParam, event)
 	} else {
 		event.Transaction.RepresentativeCount = 1
 	}
@@ -525,11 +528,11 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pdata.AttributeValueTypeArray:
-			event.Labels[k] = ifaceAnyValueArray(v.ArrayVal())
+			setLabel(k, event, ifaceAnyValueArray(v.ArrayVal()))
 		case pdata.AttributeValueTypeBool:
-			event.Labels[k] = v.BoolVal()
+			setLabel(k, event, strconv.FormatBool(v.BoolVal()))
 		case pdata.AttributeValueTypeDouble:
-			event.Labels[k] = v.DoubleVal()
+			setLabel(k, event, v.DoubleVal())
 		case pdata.AttributeValueTypeInt:
 			switch kDots {
 			case "http.status_code":
@@ -541,7 +544,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 			case "rpc.grpc.status_code":
 				// Ignored for spans.
 			default:
-				event.Labels[k] = v.IntVal()
+				setLabel(k, event, v.IntVal())
 			}
 		case pdata.AttributeValueTypeString:
 			stringval := truncate(v.StringVal())
@@ -648,7 +651,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 				component = stringval
 				fallthrough
 			default:
-				event.Labels[k] = stringval
+				event.Labels.Set(k, stringval)
 			}
 		}
 		return true
@@ -782,26 +785,31 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate transaction metrics.
-		parseSamplerAttributes(samplerType, samplerParam, &event.Span.RepresentativeCount, event.Labels)
+		parseSamplerAttributes(samplerType, samplerParam, event)
 	} else {
 		event.Span.RepresentativeCount = 1
 	}
 }
 
-func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, representativeCount *float64, labels common.MapStr) {
+func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, event *model.APMEvent) {
 	switch samplerType := samplerType.StringVal(); samplerType {
 	case "probabilistic":
 		probability := samplerParam.DoubleVal()
 		if probability > 0 && probability <= 1 {
-			*representativeCount = 1 / probability
+			if event.Span != nil {
+				event.Span.RepresentativeCount = 1 / probability
+			}
+			if event.Transaction != nil {
+				event.Transaction.RepresentativeCount = 1 / probability
+			}
 		}
 	default:
-		labels["sampler_type"] = samplerType
+		event.Labels.Set("sampler_type", samplerType)
 		switch samplerParam.Type() {
 		case pdata.AttributeValueTypeBool:
-			labels["sampler_param"] = samplerParam.BoolVal()
+			event.Labels.MaybeSet("sampler_param", samplerParam.BoolVal())
 		case pdata.AttributeValueTypeDouble:
-			labels["sampler_param"] = samplerParam.DoubleVal()
+			event.NumericLabels.Set("sampler_param", samplerParam.DoubleVal())
 		}
 	}
 }
@@ -813,14 +821,14 @@ func convertSpanEvent(
 	timeDelta time.Duration,
 ) model.APMEvent {
 	event := parent
-	event.Labels = initEventLabels(event.Labels)
+	initEventLabels(&event)
 	event.Transaction = nil
 	event.Span = nil
 	event.Timestamp = spanEvent.Timestamp().AsTime().Add(timeDelta)
 
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
 	if isJaeger {
-		event.Error = convertJaegerErrorSpanEvent(logger, spanEvent, event.Labels)
+		event.Error = convertJaegerErrorSpanEvent(logger, spanEvent, &event)
 	} else if spanEvent.Name() == "exception" {
 		// Translate exception span events to errors.
 		//
@@ -840,7 +848,7 @@ func convertSpanEvent(
 			case "exception.escaped":
 				exceptionEscaped = v.BoolVal()
 			default:
-				event.Labels[replaceDots(k)] = ifaceAttributeValue(v)
+				setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
 			}
 			return true
 		})
@@ -864,14 +872,14 @@ func convertSpanEvent(
 		event.DataStream.Type = datastreams.LogsType
 		event.Message = spanEvent.Name()
 		spanEvent.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
-			event.Labels[replaceDots(k)] = ifaceAttributeValue(v)
+			setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
 			return true
 		})
 	}
 	return event
 }
 
-func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, labels common.MapStr) *model.Error {
+func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, apmEvent *model.APMEvent) *model.Error {
 	var isError bool
 	var exMessage, exType string
 	logMessage := event.Name()
@@ -904,7 +912,7 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, lab
 		case "level":
 			isError = stringval == "error"
 		default:
-			labels[replaceDots(k)] = ifaceAttributeValue(v)
+			setLabel(replaceDots(k), apmEvent, ifaceAttributeValue(v))
 		}
 		return true
 	})

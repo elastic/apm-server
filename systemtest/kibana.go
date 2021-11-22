@@ -69,9 +69,9 @@ func init() {
 }
 
 // InitFleet ensures Fleet is set up, destroys any existing agent policies previously
-// created by the system tests and unenrolls the associated agents, and uninstalls the
-// integration package if it is installed. After InitFleet returns successfully, the
-// IntegrationPackage var will be initialised.
+// created by the system tests and unenrolls the associated agents, uninstalls the
+// integration package if it is installed, and finally installs the integration pacakge.
+// After InitFleet returns successfully, the IntegrationPackage var will be initialised.
 func InitFleet() error {
 	if err := Fleet.Setup(); err != nil {
 		log.Fatal(err)
@@ -115,7 +115,7 @@ func InitFleet() error {
 	if IntegrationPackage == nil {
 		return errors.New("could not find package 'apm'")
 	}
-	return nil
+	return Fleet.InstallPackage(IntegrationPackage.Name, IntegrationPackage.Version)
 }
 
 // CreateAgentPolicy creates an Agent policy with the given name and namespace,
@@ -128,7 +128,6 @@ func InitFleet() error {
 // This should typically be used by tests instead of directly calling the
 // fleettest.Client.CreateAgentPolicy method.
 func CreateAgentPolicy(t testing.TB, name, namespace string, vars map[string]interface{}) (*fleettest.AgentPolicy, *fleettest.EnrollmentAPIKey) {
-
 	agentPolicy, key, err := Fleet.CreateAgentPolicy(name, namespace, agentPolicyDescription)
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -178,7 +177,10 @@ func DestroyAgentPolicy(id ...string) error {
 //
 // The returned package policy is suitable for passing to Fleet.CreatePackagePolicy.
 func NewPackagePolicy(agentPolicy *fleettest.AgentPolicy, varValues map[string]interface{}) *fleettest.PackagePolicy {
-	packagePolicy := fleettest.NewPackagePolicy(IntegrationPackage, "apm", agentPolicy.Namespace, agentPolicy.ID)
+	// Package policy names must be globally unique. We generate unique agent
+	// policy names, so just append the package name to that.
+	packagePolicyName := agentPolicy.Name + "-apm"
+	packagePolicy := fleettest.NewPackagePolicy(IntegrationPackage, packagePolicyName, agentPolicy.Namespace, agentPolicy.ID)
 	packagePolicy.Package.Name = IntegrationPackage.Name
 	packagePolicy.Package.Version = IntegrationPackage.Version
 	packagePolicy.Package.Title = IntegrationPackage.Title

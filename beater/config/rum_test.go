@@ -38,7 +38,7 @@ func TestRumSetup(t *testing.T) {
 		"hosts": []interface{}{"cloud:9200"},
 	})
 
-	err := rum.setup(logp.NewLogger("test"), true, esCfg)
+	err := rum.setup(logp.NewLogger("test"), esCfg)
 
 	require.NoError(t, err)
 	assert.Equal(t, elasticsearch.Hosts{"cloud:9200"}, rum.SourceMapping.ESConfig.Hosts)

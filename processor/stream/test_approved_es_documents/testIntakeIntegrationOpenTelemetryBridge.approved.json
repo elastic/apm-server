@@ -54,16 +54,18 @@
                 }
             },
             "labels": {
+                "string_array": [
+                    "a",
+                    "b"
+                ],
+                "tag1": "one"
+            },
+            "numeric_labels": {
                 "double_value": 123.456,
                 "int_array": [
                     1,
                     2
                 ],
-                "string_array": [
-                    "a",
-                    "b"
-                ],
-                "tag1": "one",
                 "tag2": 2
             },
             "process": {
@@ -195,16 +197,18 @@
                 }
             },
             "labels": {
+                "string_array": [
+                    "a",
+                    "b"
+                ],
+                "tag1": "one"
+            },
+            "numeric_labels": {
                 "double_value": 123.456,
                 "int_array": [
                     1,
                     2
                 ],
-                "string_array": [
-                    "a",
-                    "b"
-                ],
-                "tag1": "one",
                 "tag2": 2
             },
             "parent": {
@@ -246,12 +250,6 @@
             "span": {
                 "duration": {
                     "us": 32592
-                },
-                "http": {
-                    "method": "GET",
-                    "response": {
-                        "status_code": 200
-                    }
                 },
                 "id": "ddf109a4c4aa5f2b6e984548ca57774d",
                 "kind": "CLIENT",

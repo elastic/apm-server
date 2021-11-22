@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/rumv3"
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
-	"github.com/elastic/apm-server/utility"
 )
 
 var (
@@ -207,7 +206,6 @@ func (p *Processor) HandleStream(
 		// no point in continuing if we couldn't read the metadata
 		return err
 	}
-	baseEvent.Timestamp = utility.RequestTime(ctx)
 
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
