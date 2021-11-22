@@ -264,7 +264,6 @@ func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middlewa
 		middleware.TimeoutMiddleware(),
 		middleware.RecoverPanicMiddleware(),
 		middleware.MonitoringMiddleware(m),
-		middleware.RequestTimeMiddleware(),
 	}
 }
 
@@ -310,9 +309,10 @@ func emptyRequestMetadata(c *request.Context) model.APMEvent {
 }
 
 func backendRequestMetadata(c *request.Context) model.APMEvent {
-	return model.APMEvent{Host: model.Host{
-		IP: c.ClientIP,
-	}}
+	return model.APMEvent{
+		Host:      model.Host{IP: c.ClientIP},
+		Timestamp: c.Timestamp,
+	}
 }
 
 func rumRequestMetadata(c *request.Context) model.APMEvent {
@@ -324,6 +324,7 @@ func rumRequestMetadata(c *request.Context) model.APMEvent {
 	return model.APMEvent{
 		Client:    model.Client{IP: c.ClientIP},
 		Source:    source,
+		Timestamp: c.Timestamp,
 		UserAgent: model.UserAgent{Original: c.UserAgent},
 	}
 }

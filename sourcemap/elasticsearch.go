@@ -25,6 +25,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/pkg/errors"
@@ -34,7 +35,6 @@ import (
 
 	"github.com/elastic/apm-server/elasticsearch"
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/utility"
 )
 
 const (
@@ -149,7 +149,7 @@ func query(name, version, path string) map[string]interface{} {
 					should(
 						// prefer full URL match
 						boostedTerm("sourcemap.bundle_filepath", path, 2.0),
-						term("sourcemap.bundle_filepath", utility.UrlPath(path)),
+						term("sourcemap.bundle_filepath", maybeParseURLPath(path)),
 					),
 				),
 			),
@@ -200,4 +200,14 @@ func searchFirst(query map[string]interface{}, source string, sort ...map[string
 		"sort":    sort,
 		"_source": source,
 	}
+}
+
+// maybeParseURLPath attempts to parse s as a URL, returning its path component
+// if successful. If s cannot be parsed as a URL, s is returned.
+func maybeParseURLPath(s string) string {
+	url, err := url.Parse(s)
+	if err != nil {
+		return s
+	}
+	return url.Path
 }
