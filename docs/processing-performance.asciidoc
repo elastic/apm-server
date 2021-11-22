@@ -1,0 +1,44 @@
+[[processing-and-performance]]
+=== Processing and performance
+
+APM Server performance depends on a number of factors: memory and CPU available,
+network latency, transaction sizes, workload patterns,
+agent and server settings, versions, and protocol.
+
+Let's look at a simple example that makes the following assumptions:
+
+* The load is generated in the same region as where APM Server and Elasticsearch are deployed.
+* We're using the default settings in cloud.
+* A small number of agents are reporting.
+
+This leaves us with relevant variables like payload and instance sizes.
+See the table below for approximations.
+As a reminder, events are
+<<data-model-transactions,transactions>> and
+<<data-model-spans,spans>>.
+
+[options="header"]
+|=======================================================================
+|Transaction/Instance |512Mb Instance |2Gb Instance |8Gb Instance
+|Small transactions
+
+_5 spans with 5 stack frames each_ |600 events/second |1200 events/second |4800 events/second
+|Medium transactions
+
+_15 spans with 15 stack frames each_ |300 events/second |600 events/second |2400 events/second
+|Large transactions
+
+_30 spans with 30 stack frames each_ |150 events/second |300 events/second |1400 events/second
+|=======================================================================
+
+In other words, a 512 Mb instance can process \~3 Mbs per second,
+while an 8 Gb instance can process ~20 Mbs per second.
+
+APM Server is CPU bound, so it scales better from 2 Gb to 8 Gb than it does from 512 Mb to 2 Gb.
+This is because larger instance types in Elastic Cloud come with much more computing power.
+
+Don't forget that the APM Server is stateless.
+Several instances running do not need to know about each other.
+This means that with a properly sized Elasticsearch instance, APM Server scales out linearly.
+
+NOTE: RUM deserves special consideration. The RUM agent runs in browsers, and there can be many thousands reporting to an APM Server with very variable network latency.
