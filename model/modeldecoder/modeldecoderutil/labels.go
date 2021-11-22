@@ -56,17 +56,6 @@ func MergeLabels(eventLabels common.MapStr, to *model.APMEvent) {
 	}
 }
 
-func mergeLabels(commonLabels, eventLabels common.MapStr) common.MapStr {
-	if commonLabels == nil {
-		return eventLabels.Clone()
-	}
-	combinedLabels := commonLabels.Clone()
-	for k, v := range eventLabels {
-		combinedLabels[k] = v
-	}
-	return combinedLabels
-}
-
 // NormalizeLabelValues transforms the values in labels, replacing any
 // instance of json.Number with libbeat/common.Float, and returning
 // labels.
