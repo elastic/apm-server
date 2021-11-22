@@ -35,3 +35,5 @@ https://www.elastic.co/subscriptions[Learn more about subscriptions].
 
 For additional questions and feature requests,
 visit our https://discuss.elastic.co/c/apm[discussion forum].
+
+include::processing-performance.asciidoc[]
