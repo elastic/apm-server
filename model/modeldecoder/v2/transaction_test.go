@@ -101,9 +101,9 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		// do not overwrite client.ip if already set in metadata
 		ip := modeldecodertest.DefaultValues().IP
 		assert.Equal(t, ip, out.Client.IP, out.Client.IP.String())
-		assert.Equal(t, common.MapStr{
-			"init0": "init", "init1": "init", "init2": "init",
-			"overwritten0": "overwritten", "overwritten1": "overwritten",
+		assert.Equal(t, model.Labels{
+			"init0": {Value: "init"}, "init1": {Value: "init"}, "init2": {Value: "init"},
+			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
 		}, out.Labels)
 		//assert.Equal(t, tLabels, out.Transaction.Labels)
 		exceptions := func(key string) bool { return false }
@@ -547,8 +547,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			input.Type.Reset()
 
 			mapToTransactionModel(&input, &event)
-			assert.Equal(t, common.MapStr{}, event.Labels)
-			assert.Equal(t, common.MapStr{"double_attr": 123.456}, event.NumericLabels)
+			assert.Equal(t, model.Labels{}, event.Labels)
+			assert.Equal(t, model.NumericLabels{"double_attr": {Value: 123.456}}, event.NumericLabels)
 		})
 
 		t.Run("kind", func(t *testing.T) {
@@ -571,13 +571,13 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		}
 		var out model.APMEvent
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, common.MapStr{
-			"a": "b",
-			"e": "true",
+		assert.Equal(t, model.Labels{
+			"a": {Value: "b"},
+			"e": {Value: "true"},
 		}, out.Labels)
-		assert.Equal(t, common.MapStr{
-			"c": float64(12315124131),
-			"d": float64(12315124131.12315124131),
+		assert.Equal(t, model.NumericLabels{
+			"c": {Value: float64(12315124131)},
+			"d": {Value: float64(12315124131.12315124131)},
 		}, out.NumericLabels)
 	})
 }

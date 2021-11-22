@@ -59,7 +59,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -174,7 +175,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "parent": {
                 "id": "0000000011111111"
@@ -406,7 +408,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "parent": {
                 "id": "ababcdcdefefabde"
@@ -536,7 +539,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -722,7 +726,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -846,7 +851,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "parent": {
                 "id": "abcdef0123456789"

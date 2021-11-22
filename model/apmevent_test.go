@@ -80,14 +80,14 @@ func TestAPMEventFields(t *testing.T) {
 			Event:       Event{Outcome: outcome},
 			Session:     Session{ID: "session_id"},
 			URL:         URL{Original: "url"},
-			Labels: common.MapStr{
-				"a": "b",
-				"c": "true",
-				"d": []string{"true", "false"},
+			Labels: map[string]LabelValue{
+				"a": {Value: "b"},
+				"c": {Value: "true"},
+				"d": {Values: []string{"true", "false"}},
 			},
-			NumericLabels: common.MapStr{
-				"e": float64(1234),
-				"f": []float64{1234, 12311},
+			NumericLabels: map[string]NumericLabelValue{
+				"e": {Value: float64(1234)},
+				"f": {Values: []float64{1234, 12311}},
 			},
 			Message:     "bottle",
 			Transaction: &Transaction{},
