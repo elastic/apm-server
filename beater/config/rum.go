@@ -60,7 +60,7 @@ type SourceMapping struct {
 	esConfigured bool
 }
 
-func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg *common.Config) error {
+func (c *RumConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
 	if !c.Enabled {
 		return nil
 	}

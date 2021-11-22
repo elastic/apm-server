@@ -3,12 +3,16 @@
         {
             "@timestamp": "dynamic",
             "agent": {
-                "name": "elastic-node"
+                "name": "go"
             },
+            "data_stream.dataset": "apm.internal",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "dynamic"
             },
             "event": {
+                "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -26,16 +30,15 @@
                 "name": "metric"
             },
             "service": {
-                "environment": "staging",
-                "name": "chatty-service"
+                "name": "systemtest"
             },
             "span": {
                 "destination": {
                     "service": {
-                        "resource": "example.com:443",
+                        "resource": "elasticsearch",
                         "response_time": {
-                            "count": 2,
-                            "sum.us": 123456
+                            "count": 4,
+                            "sum.us": 3600
                         }
                     }
                 }
@@ -44,12 +47,16 @@
         {
             "@timestamp": "dynamic",
             "agent": {
-                "name": "elastic-node"
+                "name": "go"
             },
+            "data_stream.dataset": "apm.internal",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "dynamic"
             },
             "event": {
+                "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -67,16 +74,15 @@
                 "name": "metric"
             },
             "service": {
-                "environment": "staging",
-                "name": "chatty-service"
+                "name": "systemtest"
             },
             "span": {
                 "destination": {
                     "service": {
-                        "resource": "mysql",
+                        "resource": "redis",
                         "response_time": {
-                            "count": 1,
-                            "sum.us": 9876543
+                            "count": 50,
+                            "sum.us": 5000
                         }
                     }
                 }

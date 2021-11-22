@@ -18,13 +18,7 @@
 package systemtest_test
 
 import (
-	"bytes"
-	"io"
 	"io/ioutil"
-	"mime/multipart"
-	"net/http"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -42,15 +36,14 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
+	sourcemap, err := ioutil.ReadFile("../testdata/sourcemap/bundle.js.map")
+	require.NoError(t, err)
+	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
 		"http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map",
-		"apm-agent-js",
-		"1.0.1",
 	)
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-sourcemap", nil)
 
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
+	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
 
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
@@ -68,14 +61,16 @@ func TestRUMSpanSourcemapping(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
+	sourcemap, err := ioutil.ReadFile("../testdata/sourcemap/bundle.js.map")
+	require.NoError(t, err)
+	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.0",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-		"apm-agent-js",
-		"1.0.0",
 	)
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-sourcemap", nil)
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-span", nil)
+	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
+		Field: "processor.event",
+		Value: "span",
+	})
 
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
@@ -83,38 +78,6 @@ func TestRUMSpanSourcemapping(t *testing.T) {
 		"@timestamp", "timestamp.us",
 		// RUM events have the source port recorded, and in the tests it will be dynamic
 		"source.port",
-	)
-}
-
-func TestDuplicateSourcemapWarning(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err := srv.Start()
-	require.NoError(t, err)
-
-	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
-		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-		"apm-agent-js",
-		"1.0.0",
-	)
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-sourcemap", nil)
-
-	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
-		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-		"apm-agent-js",
-		"1.0.0",
-	)
-	systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*-sourcemap", nil)
-
-	require.NoError(t, srv.Close())
-	var messages []string
-	for _, entry := range srv.Logs.All() {
-		messages = append(messages, entry.Message)
-	}
-	assert.Contains(t, messages,
-		`Overriding sourcemap for service apm-agent-js version 1.0.0 and `+
-			`file http://localhost:8000/test/e2e/general-usecase/bundle.js.map`,
 	)
 }
 
@@ -126,15 +89,17 @@ func TestNoMatchingSourcemap(t *testing.T) {
 	require.NoError(t, err)
 
 	// upload sourcemap with a wrong service version
-	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
+	sourcemap, err := ioutil.ReadFile("../testdata/sourcemap/bundle.js.map")
+	require.NoError(t, err)
+	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "2.0",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-		"apm-agent-js",
-		"2.0",
 	)
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-sourcemap", nil)
 
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-span", nil)
+	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
+		Field: "processor.event",
+		Value: "span",
+	})
 
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
@@ -145,43 +110,6 @@ func TestNoMatchingSourcemap(t *testing.T) {
 	)
 }
 
-func TestFetchLatestSourcemap(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err := srv.Start()
-	require.NoError(t, err)
-
-	// upload sourcemap file that finds no matchings
-	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
-		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-		"apm-agent-js",
-		"2.0",
-	)
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-sourcemap", nil)
-
-	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
-	assertSourcemapUpdated(t, result, false)
-	deleteIndex(t, "apm-*-error*")
-
-	// upload second sourcemap file with same key,
-	// that actually leads to proper matchings
-	// this also tests that the cache gets invalidated,
-	// as otherwise the former sourcemap would be taken from the cache.
-	// upload sourcemap file that finds no matchings
-	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
-		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-		"apm-agent-js",
-		"1.0.1",
-	)
-	systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*-sourcemap", nil)
-
-	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result = systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
-	assertSourcemapUpdated(t, result, true)
-}
-
 func TestSourcemapCaching(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
@@ -189,60 +117,23 @@ func TestSourcemapCaching(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	uploadSourcemap(t, srv, "../testdata/sourcemap/bundle.js.map",
+	sourcemap, err := ioutil.ReadFile("../testdata/sourcemap/bundle.js.map")
+	require.NoError(t, err)
+	sourcemapID := systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-		"apm-agent-js",
-		"1.0.1",
 	)
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*-sourcemap", nil)
 
 	// Index an error, applying source mapping and caching the source map in the process.
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*-error", nil)
+	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
 	assertSourcemapUpdated(t, result, true)
 
 	// Delete the source map and error, and try again.
-	deleteIndex(t, "apm-*-sourcemap*")
-	deleteIndex(t, "apm-*-error*")
+	systemtest.DeleteSourceMap(t, sourcemapID)
+	systemtest.CleanupElasticsearch(t)
 	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result = systemtest.Elasticsearch.ExpectMinDocs(t, 1, "apm-*-error", nil)
+	result = systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.error-*", nil)
 	assertSourcemapUpdated(t, result, true)
-}
-
-func uploadSourcemap(t *testing.T, srv *apmservertest.Server, sourcemapFile, bundleFilepath, serviceName, serviceVersion string) {
-	t.Helper()
-
-	req := newUploadSourcemapRequest(t, srv, sourcemapFile, bundleFilepath, serviceName, serviceVersion)
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusAccepted, resp.StatusCode, string(respBody))
-}
-
-func newUploadSourcemapRequest(t *testing.T, srv *apmservertest.Server, sourcemapFile, bundleFilepath, serviceName, serviceVersion string) *http.Request {
-	t.Helper()
-
-	var data bytes.Buffer
-	mw := multipart.NewWriter(&data)
-	require.NoError(t, mw.WriteField("service_name", serviceName))
-	require.NoError(t, mw.WriteField("service_version", serviceVersion))
-	require.NoError(t, mw.WriteField("bundle_filepath", bundleFilepath))
-
-	f, err := os.Open(sourcemapFile)
-	require.NoError(t, err)
-	defer f.Close()
-	sourcemapFileWriter, err := mw.CreateFormFile("sourcemap", filepath.Base(sourcemapFile))
-	require.NoError(t, err)
-	_, err = io.Copy(sourcemapFileWriter, f)
-	require.NoError(t, err)
-	require.NoError(t, mw.Close())
-
-	req, _ := http.NewRequest("POST", srv.URL+"/assets/v1/sourcemaps", &data)
-	req.Header.Add("Content-Type", mw.FormDataContentType())
-	return req
 }
 
 func deleteIndex(t *testing.T, name string) {

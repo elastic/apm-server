@@ -18,10 +18,8 @@
 package cmd
 
 import (
-	"fmt"
-	"math"
+	"errors"
 	"os"
-	"strconv"
 
 	"github.com/spf13/pflag"
 
@@ -32,17 +30,14 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring/report"
-	"github.com/elastic/beats/v7/libbeat/processors"
 	"github.com/elastic/beats/v7/libbeat/publisher/processing"
 
 	"github.com/elastic/apm-server/idxmgmt"
-	_ "github.com/elastic/apm-server/include" // include assets
 )
 
 const (
-	beatName        = "apm-server"
-	apmIndexPattern = "apm"
-	cloudEnv        = "CLOUD_APM_CAPACITY"
+	beatName = "apm-server"
+	cloudEnv = "CLOUD_APM_CAPACITY"
 )
 
 var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
@@ -56,19 +51,18 @@ var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
 					"metrics": map[string]interface{}{
 						"enabled": false,
 					},
-					"ecs":  true,
-					"json": true,
 				},
 			}),
 		},
 		{
 			Check: func(_ *common.Config) bool {
-				return true
+				return os.Getenv(cloudEnv) != ""
 			},
 			Config: func() *common.Config {
-				m := map[string]interface{}{}
-				cloudValues(m)
-				return common.MustNewConfigFrom(m)
+				return common.MustNewConfigFrom(map[string]interface{}{
+					// default to medium compression on cloud
+					"output.elasticsearch.compression_level": 5,
+				})
 			}(),
 		}}
 }
@@ -77,31 +71,33 @@ var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
 // the GenRootCmdWithSettings.
 func DefaultSettings() instance.Settings {
 	return instance.Settings{
-		Name:        beatName,
-		IndexPrefix: apmIndexPattern,
-		Version:     defaultBeatVersion,
-		RunFlags:    pflag.NewFlagSet(beatName, pflag.ExitOnError),
+		Name:     beatName,
+		Version:  defaultBeatVersion,
+		RunFlags: pflag.NewFlagSet(beatName, pflag.ExitOnError),
 		Monitoring: report.Settings{
 			DefaultUsername: "apm_system",
 		},
-		IndexManagement: idxmgmt.MakeDefaultSupporter,
+		IndexManagement: idxmgmt.NewSupporter,
 		Processing:      processingSupport,
 		ConfigOverrides: libbeatConfigOverrides(),
 	}
 }
 
-func processingSupport(info beat.Info, log *logp.Logger, beatCfg *common.Config) (processing.Supporter, error) {
-	supporter := processing.MakeDefaultSupport(false)
-	var cfg struct {
-		Processors processors.PluginConfig `config:"processors"`
+func processingSupport(_ beat.Info, _ *logp.Logger, beatCfg *common.Config) (processing.Supporter, error) {
+	if beatCfg.HasField("processors") {
+		return nil, errors.New("libbeat processors are not supported")
 	}
-	if err := beatCfg.Unpack(&cfg); err != nil {
-		return nil, err
-	}
-	if len(cfg.Processors) > 0 {
-		log.Warn("libbeat processors are unsupported and will be removed in 8.0")
-	}
-	return supporter(info, log, beatCfg)
+	return processingSupporter{}, nil
+}
+
+type processingSupporter struct{}
+
+func (processingSupporter) Close() error {
+	return nil
+}
+
+func (processingSupporter) Create(cfg beat.ProcessingConfig, _ bool) (beat.Processor, error) {
+	return cfg.Processor, nil
 }
 
 // NewRootCommand returns the "apm-server" root command.
@@ -115,63 +111,10 @@ func NewRootCommand(newBeat beat.Creator, settings instance.Settings) *cmd.Beats
 func modifyBuiltinCommands(rootCmd *cmd.BeatsRootCmd, settings instance.Settings) {
 	for _, cmd := range rootCmd.ExportCmd.Commands() {
 		switch cmd.Name() {
-		case "dashboard":
-			// remove `dashboard` from `export` commands
+		case "dashboard", "ilm-policy", "index-pattern", "template":
+			// Remove unsupported "export" subcommands.
 			rootCmd.ExportCmd.RemoveCommand(cmd)
-		case "template":
-			// only add defined flags to `export template` command
-			cmd.ResetFlags()
-			cmd.Flags().String("es.version", settings.Version, "Elasticsearch version")
-			cmd.Flags().String("dir", "", "Specify directory for printing template files. By default templates are printed to stdout.")
 		}
 	}
-
-	// only add defined flags to setup command
-	setup := rootCmd.SetupCmd
-	setup.Short = "Setup Elasticsearch index management components and pipelines (deprecated)"
-	setup.Long = `This command does initial setup of the environment:
-
- * Index management including loading Elasticsearch templates, ILM policies and write aliases.
- * Ingest pipelines
-
-` + idxmgmt.SetupDeprecatedWarning + "\n"
-
-	setup.ResetFlags()
-
-	//lint:ignore SA1019 Setting up template must still be supported until next major version upgrade.
-	tmplKey := cmd.TemplateKey
-	setup.Flags().Bool(tmplKey, false, "Setup index template")
-	setup.Flags().MarkDeprecated(tmplKey, fmt.Sprintf("please use --%s instead", cmd.IndexManagementKey))
-	setup.Flags().Bool(cmd.IndexManagementKey, false, "Setup Elasticsearch index management")
-	setup.Flags().Bool(cmd.PipelineKey, false, "Setup ingest pipelines")
-}
-
-func cloudValues(m map[string]interface{}) {
-	cap, err := strconv.ParseFloat(os.Getenv(cloudEnv), 64)
-	if err != nil {
-		return
-	}
-	multiplier := math.Round(cap / 512)
-	queueMemEvents := 2000 * multiplier
-	workers := math.Round(3.72549 + 1.626502*multiplier - 0.03826692*(multiplier*multiplier))
-	if cap > 8192 {
-		workers = 20 //plateau on number of workers
-	}
-	bulkMaxSize := math.Round(((queueMemEvents / 1.5) / workers))
-	m["output"] = map[string]interface{}{
-		"elasticsearch": map[string]interface{}{
-			"compression_level": 5, //default to medium compression on cloud
-			"worker":            workers,
-			"bulk_max_size":     bulkMaxSize,
-		},
-	}
-	m["queue"] = map[string]interface{}{
-		"mem": map[string]interface{}{
-			"events": queueMemEvents,
-			"flush": map[string]interface{}{
-				"min_events": bulkMaxSize,
-				"timeout":    "1s", //default aligned with cloud value
-			},
-		},
-	}
+	rootCmd.RemoveCommand(rootCmd.SetupCmd)
 }

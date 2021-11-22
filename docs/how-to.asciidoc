@@ -1,0 +1,23 @@
+[[how-to-guides]]
+== How-to guides
+
+Learn how to perform common APM configuration and management tasks.
+
+* <<source-map-how-to>>
+* <<ilm-how-to>>
+* <<jaeger-integration>>
+* <<ingest-pipelines>>
+* <<manage-storage>>
+* <<apm-tune-elasticsearch>>
+
+include::./source-map-how-to.asciidoc[]
+
+include::./ilm-how-to.asciidoc[]
+
+include::./jaeger-integration.asciidoc[]
+
+include::./ingest-pipelines.asciidoc[]
+
+include::./manage-storage.asciidoc[]
+
+include::./apm-tune-elasticsearch.asciidoc[]

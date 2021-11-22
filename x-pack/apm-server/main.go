@@ -1,6 +1,6 @@
 // Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
-// or more contributor license agreements. Licensed under the Elastic License;
-// you may not use this file except in compliance with the Elastic License.
+// or more contributor license agreements. Licensed under the Elastic License 2.0;
+// you may not use this file except in compliance with the Elastic License 2.0.
 
 package main
 
@@ -43,8 +43,8 @@ var (
 )
 
 type namedProcessor struct {
-	name string
 	processor
+	name string
 }
 
 type processor interface {
@@ -56,36 +56,33 @@ type processor interface {
 // newProcessors returns a list of processors which will process
 // events in sequential order, prior to the events being published.
 func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
-	var processors []namedProcessor
-	if args.Config.Aggregation.Transactions.Enabled {
-		const name = "transaction metrics aggregation"
-		args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation.Transactions)
-		agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-			BatchProcessor:                 args.BatchProcessor,
-			MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
-			MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
-			HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
-		})
-		if err != nil {
-			return nil, errors.Wrapf(err, "error creating %s", name)
-		}
-		processors = append(processors, namedProcessor{name: name, processor: agg})
-		aggregationMonitoringRegistry.Remove("txmetrics")
-		monitoring.NewFunc(aggregationMonitoringRegistry, "txmetrics", agg.CollectMonitoring, monitoring.Report)
+	processors := make([]namedProcessor, 0, 3)
+	const txName = "transaction metrics aggregation"
+	args.Logger.Infof("creating %s with config: %+v", txName, args.Config.Aggregation.Transactions)
+	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+		BatchProcessor:                 args.BatchProcessor,
+		MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
+		MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
+		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "error creating %s", txName)
 	}
-	if args.Config.Aggregation.ServiceDestinations.Enabled {
-		const name = "service destinations aggregation"
-		args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation.ServiceDestinations)
-		spanAggregator, err := spanmetrics.NewAggregator(spanmetrics.AggregatorConfig{
-			BatchProcessor: args.BatchProcessor,
-			Interval:       args.Config.Aggregation.ServiceDestinations.Interval,
-			MaxGroups:      args.Config.Aggregation.ServiceDestinations.MaxGroups,
-		})
-		if err != nil {
-			return nil, errors.Wrapf(err, "error creating %s", name)
-		}
-		processors = append(processors, namedProcessor{name: name, processor: spanAggregator})
+	processors = append(processors, namedProcessor{name: txName, processor: agg})
+	aggregationMonitoringRegistry.Remove("txmetrics")
+	monitoring.NewFunc(aggregationMonitoringRegistry, "txmetrics", agg.CollectMonitoring, monitoring.Report)
+
+	const spanName = "service destinations aggregation"
+	args.Logger.Infof("creating %s with config: %+v", spanName, args.Config.Aggregation.ServiceDestinations)
+	spanAggregator, err := spanmetrics.NewAggregator(spanmetrics.AggregatorConfig{
+		BatchProcessor: args.BatchProcessor,
+		Interval:       args.Config.Aggregation.ServiceDestinations.Interval,
+		MaxGroups:      args.Config.Aggregation.ServiceDestinations.MaxGroups,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "error creating %s", spanName)
 	}
+	processors = append(processors, namedProcessor{name: spanName, processor: spanAggregator})
 	if args.Config.Sampling.Tail.Enabled {
 		const name = "tail sampler"
 		sampler, err := newTailSamplingProcessor(args)
@@ -100,10 +97,6 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 }
 
 func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, error) {
-	if !args.Config.DataStreams.Enabled {
-		return nil, errors.New("tail-based sampling requires data streams")
-	}
-
 	tailSamplingConfig := args.Config.Sampling.Tail
 	es, err := args.NewElasticsearchClient(tailSamplingConfig.ESConfig)
 	if err != nil {
@@ -111,7 +104,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
-	badgerDB, err := getBadgerDB(storageDir)
+	badgerDB, err = getBadgerDB(storageDir)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get Badger database")
 	}
@@ -138,7 +131,8 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			IngestRateDecayFactor: tailSamplingConfig.IngestRateDecayFactor,
 		},
 		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
-			Elasticsearch: es,
+			CompressionLevel: tailSamplingConfig.ESConfig.CompressionLevel,
+			Elasticsearch:    es,
 			SampledTracesDataStream: sampling.DataStreamConfig{
 				Type:      "traces",
 				Dataset:   "apm.sampled",
@@ -233,11 +227,12 @@ func closeBadger() error {
 	return nil
 }
 
-var rootCmd = cmd.NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
-	WrapRunServer: wrapRunServer,
-}))
-
 func Main() error {
+	rootCmd := cmd.NewXPackRootCommand(
+		beater.NewCreator(beater.CreatorParams{
+			WrapRunServer: wrapRunServer,
+		}),
+	)
 	if err := rootCmd.Execute(); err != nil {
 		closeBadger()
 		return err

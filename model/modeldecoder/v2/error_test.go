@@ -197,4 +197,12 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		mapToErrorModel(&input, &out)
 		assert.Equal(t, "123", out.Error.Exception.Code)
 	})
+
+	t.Run("transaction-name", func(t *testing.T) {
+		var input errorEvent
+		var out model.APMEvent
+		input.Transaction.Name.Set("My Transaction")
+		mapToErrorModel(&input, &out)
+		assert.Equal(t, "My Transaction", out.Transaction.Name)
+	})
 }

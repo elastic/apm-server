@@ -20,7 +20,6 @@ package systemtest_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -34,66 +33,64 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
-func TestKeepUnsampled(t *testing.T) {
-	for _, keepUnsampled := range []bool{false, true} {
-		t.Run(fmt.Sprint(keepUnsampled), func(t *testing.T) {
-			systemtest.CleanupElasticsearch(t)
-			srv := apmservertest.NewUnstartedServer(t)
-			srv.Config.Sampling = &apmservertest.SamplingConfig{
-				KeepUnsampled: keepUnsampled,
-			}
-			err := srv.Start()
-			require.NoError(t, err)
-
-			// Send one unsampled transaction, and one sampled transaction.
-			transactionType := "TestKeepUnsampled"
-			tracer := srv.Tracer()
-			tracer.StartTransaction("sampled", transactionType).End()
-			tracer.SetSampler(apm.NewRatioSampler(0))
-			tracer.StartTransaction("unsampled", transactionType).End()
-			tracer.Flush(nil)
-
-			expectedTransactionDocs := 1
-			if keepUnsampled {
-				expectedTransactionDocs++
-			}
-
-			result := systemtest.Elasticsearch.ExpectMinDocs(t, expectedTransactionDocs, "apm-*", estest.TermQuery{
-				Field: "transaction.type",
-				Value: transactionType,
-			})
-			assert.Len(t, result.Hits.Hits, expectedTransactionDocs)
-		})
-	}
-}
-
-func TestKeepUnsampledWarning(t *testing.T) {
+func TestDropUnsampled(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.Sampling = &apmservertest.SamplingConfig{KeepUnsampled: false}
-	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		Transactions: &apmservertest.TransactionAggregationConfig{Enabled: false},
-	}
-	require.NoError(t, srv.Start())
-	require.NoError(t, srv.Close())
+	srv.Config.Monitoring = newFastMonitoringConfig()
+	err := srv.Start()
+	require.NoError(t, err)
+	defaultMetadataFilter := srv.EventMetadataFilter
 
-	var messages []string
-	for _, log := range srv.Logs.All() {
-		messages = append(messages, log.Message)
+	// Send:
+	// - one sampled transaction (should be stored)
+	// - one unsampled RUM transaction (should be be stored)
+	// - one unsampled backend transaction (should be dropped)
+	transactionType := "TestDropUnsampled"
+	timestamp := time.Unix(0, 0)
+	sendTransaction := func(sampled bool, agentName string) {
+		srv.EventMetadataFilter = apmservertest.EventMetadataFilterFunc(func(m *apmservertest.EventMetadata) {
+			defaultMetadataFilter.FilterEventMetadata(m)
+			m.Service.Agent.Name = agentName
+		})
+		tracer := srv.Tracer()
+		defer tracer.Flush(nil)
+		transactionName := "unsampled"
+		if sampled {
+			transactionName = "sampled"
+		}
+		timestamp = timestamp.Add(time.Second)
+		tx := tracer.StartTransactionOptions(transactionName, transactionType, apm.TransactionOptions{
+			Start: timestamp,
+			TraceContext: apm.TraceContext{
+				Trace:   apm.TraceID{1},
+				Options: apm.TraceOptions(0).WithRecorded(sampled),
+			},
+			TransactionID: apm.SpanID{2},
+		})
+		tx.Duration = time.Second
+		tx.End()
 	}
-	assert.Contains(t, messages, ""+
-		"apm-server.sampling.keep_unsampled and apm-server.aggregation.transactions.enabled are both false, "+
-		"which will lead to incorrect metrics being reported in the APM UI",
-	)
+	sendTransaction(false, "backend")
+	sendTransaction(false, "rum-js")
+	sendTransaction(true, "backend")
+
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*", estest.TermQuery{
+		Field: "transaction.type",
+		Value: transactionType,
+	})
+	assert.Len(t, result.Hits.Hits, 2)
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+
+	doc := getBeatsMonitoringStats(t, srv, nil)
+	transactionsDropped := gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.sampling.transactions_dropped")
+	assert.Equal(t, int64(1), transactionsDropped.Int())
 }
 
 func TestTailSampling(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	err := systemtest.Fleet.InstallPackage(systemtest.IntegrationPackage.Name, systemtest.IntegrationPackage.Version)
-	require.NoError(t, err)
 
 	apmIntegration1 := newAPMIntegration(t, map[string]interface{}{
 		"tail_sampling_interval": "1s",
@@ -176,10 +173,7 @@ func TestTailSamplingUnlicensed(t *testing.T) {
 	waitForIntegration := false
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Output.Elasticsearch.Hosts = []string{es.Addr}
-	srv.Config.DataStreams = &apmservertest.DataStreamsConfig{
-		Enabled:            true,
-		WaitForIntegration: &waitForIntegration,
-	}
+	srv.Config.WaitForIntegration = &waitForIntegration
 	srv.Config.Sampling = &apmservertest.SamplingConfig{
 		Tail: &apmservertest.TailSamplingConfig{
 			Enabled:  true,

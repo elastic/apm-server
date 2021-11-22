@@ -1,3 +1,0 @@
-{
-    "error": "forbidden request: Sourcemap upload endpoint is disabled. Configure the `apm-server.rum` section in apm-server.yml to enable sourcemap uploads. If you are not using the RUM agent, you can safely ignore this error."
-}

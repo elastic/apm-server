@@ -42,12 +42,11 @@ const (
 
 // Config holds APM Server configuration.
 type Config struct {
-	Jaeger                    *JaegerConfig      `json:"apm-server.jaeger,omitempty"`
 	Kibana                    *KibanaConfig      `json:"apm-server.kibana,omitempty"`
 	Aggregation               *AggregationConfig `json:"apm-server.aggregation,omitempty"`
 	Sampling                  *SamplingConfig    `json:"apm-server.sampling,omitempty"`
 	RUM                       *RUMConfig         `json:"apm-server.rum,omitempty"`
-	DataStreams               *DataStreamsConfig `json:"apm-server.data_streams,omitempty"`
+	WaitForIntegration        *bool              `json:"apm-server.data_streams.wait_for_integration,omitempty"`
 	DefaultServiceEnvironment string             `json:"apm-server.default_service_environment,omitempty"`
 	KibanaAgentConfig         *KibanaAgentConfig `json:"apm-server.agent.config,omitempty"`
 	TLS                       *TLSConfig         `json:"apm-server.ssl,omitempty"`
@@ -132,19 +131,9 @@ type KibanaConfig struct {
 	Password string `json:"password,omitempty"`
 }
 
-// JaegerConfig holds APM Server Jaeger intake configuration.
-type JaegerConfig struct {
-	GRPCEnabled bool   `json:"grpc.enabled,omitempty"`
-	GRPCHost    string `json:"grpc.host,omitempty"`
-	GRPCAuthTag string `json:"grpc.auth_tag,omitempty"`
-	HTTPEnabled bool   `json:"http.enabled,omitempty"`
-	HTTPHost    string `json:"http.host,omitempty"`
-}
-
 // SamplingConfig holds APM Server trace sampling configuration.
 type SamplingConfig struct {
-	KeepUnsampled bool                `json:"keep_unsampled"`
-	Tail          *TailSamplingConfig `json:"tail,omitempty"`
+	Tail *TailSamplingConfig `json:"tail,omitempty"`
 }
 
 // TailSamplingConfig holds APM Server tail-based sampling configuration.
@@ -207,12 +196,6 @@ type RUMSourcemapConfig struct {
 // RUMSourcemapCacheConfig holds sourcemap cache expiration.
 type RUMSourcemapCacheConfig struct {
 	Expiration time.Duration `json:"expiration,omitempty"`
-}
-
-// DataStreamsConfig holds APM Server data streams configuration.
-type DataStreamsConfig struct {
-	Enabled            bool  `json:"enabled"`
-	WaitForIntegration *bool `json:"wait_for_integration,omitempty"`
 }
 
 // APIKeyConfig holds agent auth configuration.
@@ -390,7 +373,6 @@ type AggregationConfig struct {
 
 // TransactionAggregationConfig holds APM Server transaction metrics aggregation configuration.
 type TransactionAggregationConfig struct {
-	Enabled  bool
 	Interval time.Duration
 }
 
@@ -398,18 +380,15 @@ func (m *TransactionAggregationConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Enabled  bool   `json:"enabled"`
 		Interval string `json:"interval,omitempty"`
 	}
 	return json.Marshal(config{
-		Enabled:  m.Enabled,
 		Interval: durationString(m.Interval),
 	})
 }
 
 // ServiceDestinationAggregationConfig holds APM Server service destination metrics aggregation configuration.
 type ServiceDestinationAggregationConfig struct {
-	Enabled  bool
 	Interval time.Duration
 }
 
@@ -417,11 +396,9 @@ func (s *ServiceDestinationAggregationConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Enabled  bool   `json:"enabled"`
 		Interval string `json:"interval,omitempty"`
 	}
 	return json.Marshal(config{
-		Enabled:  s.Enabled,
 		Interval: durationString(s.Interval),
 	})
 }

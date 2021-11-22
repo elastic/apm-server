@@ -24,6 +24,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -36,10 +38,8 @@ import (
 )
 
 func TestRUMXForwardedFor(t *testing.T) {
-	withDataStreams(t, testRUMXForwardedFor)
-}
-
-func testRUMXForwardedFor(t *testing.T, srv *apmservertest.Server) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
 	err := srv.Start()
 	require.NoError(t, err)
@@ -65,7 +65,7 @@ func testRUMXForwardedFor(t *testing.T, srv *apmservertest.Server) {
 	io.Copy(ioutil.Discard, resp.Body)
 	resp.Body.Close()
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*,traces-apm*,metrics-apm*", estest.TermsQuery{
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*,metrics-apm*", estest.TermsQuery{
 		Field:  "processor.event",
 		Values: []interface{}{"transaction", "metric"},
 	})
@@ -85,8 +85,11 @@ func TestRUMAllowServiceNames(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.AgentAuth.SecretToken = "abc123"
 	srv.Config.RUM = &apmservertest.RUMConfig{
-		Enabled:           true,
-		AllowServiceNames: []string{"allowed"},
+		Enabled: true,
+	}
+	srv.Config.AgentAuth.Anonymous = &apmservertest.AnonymousAuthConfig{
+		Enabled:      true,
+		AllowService: []string{"allowed"},
 	}
 	err := srv.Start()
 	require.NoError(t, err)
@@ -189,4 +192,29 @@ func TestRUMCORS(t *testing.T) {
 	assert.Equal(t, "blue", resp.Header.Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "POST, OPTIONS", resp.Header.Get("Access-Control-Allow-Methods"))
 	assert.Equal(t, "stick, door, Content-Type, Content-Encoding, Accept", resp.Header.Get("Access-Control-Allow-Headers"))
+}
+
+func TestRUMRoutingIntegration(t *testing.T) {
+	// This test asserts that the events that are coming from the RUM JS agent
+	// are sent to the appropriate datastream.
+	systemtest.CleanupElasticsearch(t)
+	apmIntegration := newAPMIntegration(t, nil)
+
+	body, err := os.Open(filepath.Join("..", "testdata", "intake-v3", "rum_events.ndjson"))
+	require.NoError(t, err)
+	defer body.Close()
+
+	req, err := http.NewRequest("POST", apmIntegration.URL+"/intake/v3/rum/events", body)
+	require.NoError(t, err)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm.rum*", nil)
+	systemtest.ApproveEvents(
+		t, t.Name(), result.Hits.Hits, "@timestamp", "timestamp.us",
+		"source.port", "source.ip", "client",
+	)
 }

@@ -1,0 +1,116 @@
+[[apm-integration]]
+== APM integration for {agent}
+
+++++
+<titleabbrev>APM integration ({agent})</titleabbrev>
+++++
+
+beta::[]
+
+{agent} is a single, unified way to add monitoring for logs, metrics, and other types of data to each host.
+The APM integration for {agent} assigns the APM input to a specified policy,
+and installs {es} templates and ingest node pipelines for APM data.
+When {agent} is assigned a policy with an APM input,
+{agent} will run the APM Server binary locally and listen for APM data.
+
+[discrete]
+[[apm-integration-get-started]]
+=== Get started
+
+Ready to jump in?
+Read through the <<apm-integration-limitations,APM integration limitations>>, then head over to the
+quick start guide: {observability-guide}/ingest-traces.html[Get application traces into the {stack}].
+
+[discrete]
+[[apm-integration-architecture]]
+=== Architecture
+
+If RUM is enabled, you must run {agent} centrally.
+If RUM is disabled, {agent} can be run on edge machines. To do this,
+download and enroll an {agent} on the same machines that your instrumented services run on.
+
+[discrete]
+[[apm-integration-limitations]]
+=== Limitations
+
+IMPORTANT: This integration is still in beta and does not have feature parity with standalone APM.
+Do not migrate production deployments.
+
+Data steams migration::
+Existing APM users will need to migrate to data streams to use the APM integration.
+This change cannot be reverted, and impacts how APM Server and its indices are configured -- see <<apm-integration-naming-scheme>> and <<apm-integration-configure>>.
+Additionally, users on {ece} require additional steps prior to migrating, like configuring TLS certificates for the connection between APM Server and {es}.
+
+Stack monitoring::
+<<monitoring,Stack monitoring>> is not yet available.
+
+Index lifecycle management (ILM)::
+A default ILM policy, named `traces-apm.traces-default_policy` is created for all event types.
+No default warm, cold, or delete data tiers are defined.
+It is not possible to configure this policy in APM Server or {agent}–
+it must be configured with {es} or {kib}.
+See {ref}/example-using-index-lifecycle-policy.html[Customize built-in ILM policies] for more information.
+
+Onboarding::
+APM Server no longer writes an onboarding document when setting up.
+
+Standalone mode::
+{fleet-guide}/install-standalone-elastic-agent.html[Standalone mode] is not currently supported.
+An {agent} with the APM integration enabled must be managed by fleet.
+
+Service names::
+Service names are case-insensitive and must be unique.
+See <<apm-integration-service-name>> for more information.
+
+Upgrading from prior {agent} versions::
+Due to changing API key permissions, an {agent} enrolled before version 7.12 is not compatible with the APM integration.
+You must enroll a new {agent} to use the integration.
+
+[discrete]
+[[apm-integration-terminology]]
+=== Terminology
+
+Agents::
+
+{agent} and APM agents are different components:
++
+{fleet-guide}/fleet-overview.html[**{agent}**] is a single,
+unified agent that you can deploy to hosts or containers to collect data and send it to the {stack}.
+Behind the scenes, {agent} runs APM Server to listen for `apm` data.
++
+{apm-overview-ref-v}/components.html[**APM agents**] are open source libraries written in the same language as your service.
+You may only need one, or you might use all of them.
+You install them into your service as you would install any other library.
+They instrument your code and collect performance data and errors at runtime.
+This data is sent to APM Server.
+
+Central management/configuration::
+
+// to do: add links to these docs
+Fleet central management and APM agent central configuration are two different features
+that can be accessed in {kib}:
++
+**Fleet central management** serves as the communication channel with your {agent}s;
+agents check in for the latest updates on a regular basis.
++
+**APM agent central configuration** allows you to fine-tune your agent configuration from within the APM app.
+Changes are automatically propagated to your APM agents, so there’s no need to redeploy your services.
+
+
+[discrete]
+[[apm-integration-versioning]]
+=== Package versioning
+
+The APM package is versioned separately from the Elastic Stack.
+In the future, we may align with Elastic Stack versioning.
+
+[discrete]
+[[apm-integration-learn-more]]
+=== Learn more
+
+* <<apm-integration-data-streams>>
+* {fleet-guide}/fleet-overview.html[Fleet overview]
+
+include::./data-streams.asciidoc[]
+
+include::./configure.asciidoc[]

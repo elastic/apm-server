@@ -48,7 +48,7 @@ IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode,
 
 Traces are comprised of [spans and transactions](https://www.elastic.co/guide/en/apm/get-started/current/apm-data-model.html).
 
-Traces are written to `traces-apm-*` data streams.
+Traces are written to `traces-apm-*` data streams, except for RUM traces, which are written to `traces-apm.rum-*`.
 
 **Exported fields**
 
@@ -113,16 +113,18 @@ Traces are written to `traces-apm-*` data streams.
 | kubernetes.node.name | Kubernetes node name | keyword |
 | kubernetes.pod.name | Kubernetes pod name | keyword |
 | kubernetes.pod.uid | Kubernetes Pod UID | keyword |
-| labels | A flat mapping of user-defined labels with string, boolean or number values. | object |
+| labels | Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as keyword. Example: `docker` and `k8s` labels. | object |
 | network.carrier.icc | ISO country code, eg. US | keyword |
 | network.carrier.mcc | Mobile country code | keyword |
 | network.carrier.mnc | Mobile network code | keyword |
 | network.carrier.name | Carrier name, eg. Vodafone, T-Mobile, etc. | keyword |
 | network.connection.subtype | Detailed network connection sub-type, e.g. "LTE", "CDMA" | keyword |
 | network.connection.type | Network connection type, eg. "wifi", "cell" | keyword |
+| numeric_labels | Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float. | object |
 | observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |
 | observer.hostname | Hostname of the observer. | keyword |
 | observer.id | Unique identifier of the APM Server. | keyword |
+| observer.name | Custom name of the observer. This is a name that can be given to an observer. This can be helpful for example if multiple firewalls of the same model are used in an organization. If no custom name is needed, the field can be left empty. | keyword |
 | observer.type | The type of the observer the data is coming from. There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`. | keyword |
 | observer.version | Observer version. | keyword |
 | observer.version_major | Major version number of the observer | byte |
@@ -162,10 +164,10 @@ Traces are written to `traces-apm-*` data streams.
 | span.destination.service.type | Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type. DEPRECATED: this field will be removed in a future release | keyword |
 | span.duration.us | Duration of the span, in microseconds. | long |
 | span.id | Unique identifier of the span within the scope of its trace. A span represents an operation within a transaction, such as a request to another service, or a database query. | keyword |
+| span.kind | "The kind of span: CLIENT, SERVER, PRODUCER, CONSUMER, or INTERNAL." | keyword |
 | span.message.age.ms | Age of a message in milliseconds. | long |
 | span.message.queue.name | Name of the message queue or topic where the message is published or received. | keyword |
 | span.name | Generic designation of a span in the scope of a transaction. | keyword |
-| span.start.us | Offset relative to the transaction's timestamp identifying the start of the span, in microseconds. | long |
 | span.subtype | A further sub-division of the type (e.g. postgresql, elasticsearch) | keyword |
 | span.sync | Indicates whether the span was executed synchronously or asynchronously. | boolean |
 | span.type | Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc). | keyword |
@@ -264,12 +266,14 @@ Application metrics are written to service-specific `metrics-apm.app.*-*` data s
 | kubernetes.node.name | Kubernetes node name | keyword |  |  |
 | kubernetes.pod.name | Kubernetes pod name | keyword |  |  |
 | kubernetes.pod.uid | Kubernetes Pod UID | keyword |  |  |
-| labels | A flat mapping of user-defined labels with string, boolean or number values. | object |  |  |
+| labels | Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as keyword. Example: `docker` and `k8s` labels. | object |  |  |
 | metricset.name | Name of the set of metrics. | keyword |  |  |
 | network.connection.type | Network connection type, eg. "wifi", "cell" | keyword |  |  |
+| numeric_labels | Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float. | object |  |  |
 | observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |  |  |
 | observer.hostname | Hostname of the observer. | keyword |  |  |
 | observer.id | Unique identifier of the APM Server. | keyword |  |  |
+| observer.name | Custom name of the observer. This is a name that can be given to an observer. This can be helpful for example if multiple firewalls of the same model are used in an organization. If no custom name is needed, the field can be left empty. | keyword |  |  |
 | observer.type | The type of the observer the data is coming from. There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`. | keyword |  |  |
 | observer.version | Observer version. | keyword |  |  |
 | observer.version_major | Major version number of the observer | byte |  |  |
@@ -378,12 +382,14 @@ Internal metrics are written to `metrics-apm.internal-*` data streams.
 | kubernetes.node.name | Kubernetes node name | keyword |  |
 | kubernetes.pod.name | Kubernetes pod name | keyword |  |
 | kubernetes.pod.uid | Kubernetes Pod UID | keyword |  |
-| labels | A flat mapping of user-defined labels with string, boolean or number values. | object |  |
+| labels | Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as keyword. Example: `docker` and `k8s` labels. | object |  |
 | metricset.name | Name of the set of metrics. | keyword |  |
 | network.connection.type | Network connection type, eg. "wifi", "cell" | keyword |  |
+| numeric_labels | Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float. | object |  |
 | observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |  |
 | observer.hostname | Hostname of the observer. | keyword |  |
 | observer.id | Unique identifier of the APM Server. | keyword |  |
+| observer.name | Custom name of the observer. This is a name that can be given to an observer. This can be helpful for example if multiple firewalls of the same model are used in an organization. If no custom name is needed, the field can be left empty. | keyword |  |
 | observer.type | The type of the observer the data is coming from. There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`. | keyword |  |
 | observer.version | Observer version. | keyword |  |
 | observer.version_major | Major version number of the observer | byte |  |
@@ -510,16 +516,19 @@ Application errors are written to `logs-apm.error.*` data stream.
 | kubernetes.node.name | Kubernetes node name | keyword |
 | kubernetes.pod.name | Kubernetes pod name | keyword |
 | kubernetes.pod.uid | Kubernetes Pod UID | keyword |
-| labels | A flat mapping of user-defined labels with string, boolean or number values. | object |
+| labels | Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as keyword. Example: `docker` and `k8s` labels. | object |
+| message | For log events the message field contains the log message, optimized for viewing in a log viewer. For structured logs without an original message field, other fields can be concatenated to form a human-readable summary of the event. If multiple messages exist, they can be combined into one message. | match_only_text |
 | network.carrier.icc | ISO country code, eg. US | keyword |
 | network.carrier.mcc | Mobile country code | keyword |
 | network.carrier.mnc | Mobile network code | keyword |
 | network.carrier.name | Carrier name, eg. Vodafone, T-Mobile, etc. | keyword |
 | network.connection.subtype | Detailed network connection sub-type, e.g. "LTE", "CDMA" | keyword |
 | network.connection.type | Network connection type, eg. "wifi", "cell" | keyword |
+| numeric_labels | Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float. | object |
 | observer.ephemeral_id | Ephemeral identifier of the APM Server. | keyword |
 | observer.hostname | Hostname of the observer. | keyword |
 | observer.id | Unique identifier of the APM Server. | keyword |
+| observer.name | Custom name of the observer. This is a name that can be given to an observer. This can be helpful for example if multiple firewalls of the same model are used in an organization. If no custom name is needed, the field can be left empty. | keyword |
 | observer.type | The type of the observer the data is coming from. There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`. | keyword |
 | observer.version | Observer version. | keyword |
 | observer.version_major | Major version number of the observer | byte |

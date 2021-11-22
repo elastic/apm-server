@@ -6,6 +6,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.internal",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -13,13 +16,15 @@
                 "ip": "127.0.0.1"
             },
             "labels": {
-                "code": 200,
                 "some": "abc",
-                "success": true,
-                "tag1": "one",
-                "tag2": 2
+                "success": "true",
+                "tag1": "one"
             },
             "metricset.name": "span_breakdown",
+            "numeric_labels": {
+                "code": 200,
+                "tag2": 2
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
@@ -67,6 +72,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -75,10 +83,12 @@
                 "ip": "127.0.0.1"
             },
             "labels": {
-                "tag1": "one",
-                "tag2": 2
+                "tag1": "one"
             },
             "metricset.name": "app",
+            "numeric_labels": {
+                "tag2": 2
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
@@ -114,6 +124,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -121,10 +134,12 @@
                 "ip": "127.0.0.1"
             },
             "labels": {
-                "tag1": "one",
-                "tag2": 2
+                "tag1": "one"
             },
             "metricset.name": "app",
+            "numeric_labels": {
+                "tag2": 2
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
@@ -162,6 +177,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -169,10 +187,12 @@
                 "ip": "127.0.0.1"
             },
             "labels": {
-                "tag1": "one",
-                "tag2": 2
+                "tag1": "one"
             },
             "metricset.name": "app",
+            "numeric_labels": {
+                "tag2": 2
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
@@ -222,6 +242,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -229,8 +252,7 @@
                 "ip": "127.0.0.1"
             },
             "labels": {
-                "tag1": "one",
-                "tag2": 2
+                "tag1": "one"
             },
             "latency_distribution": {
                 "counts": [
@@ -245,6 +267,9 @@
                 ]
             },
             "metricset.name": "app",
+            "numeric_labels": {
+                "tag2": 2
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",

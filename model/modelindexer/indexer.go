@@ -21,12 +21,16 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"net/http"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/module/apmzap"
 	"go.elastic.co/fastjson"
 	"golang.org/x/sync/errgroup"
 
@@ -41,6 +45,11 @@ import (
 
 const (
 	logRateLimit = time.Minute
+
+	// timestampFormat formats timestamps according to Elasticsearch's
+	// strict_date_optional_time date format, which includes a fractional
+	// seconds component.
+	timestampFormat = "2006-01-02T15:04:05.000Z07:00"
 )
 
 // ErrClosed is returned from methods of closed Indexers.
@@ -59,13 +68,17 @@ var ErrClosed = errors.New("model indexer closed")
 // Up to `config.MaxRequests` bulk requests may be flushing/active concurrently, to allow the
 // server to make progress encoding while Elasticsearch is busy servicing flushed bulk requests.
 type Indexer struct {
-	eventsAdded  int64
-	eventsActive int64
-	eventsFailed int64
-	config       Config
-	logger       *logp.Logger
-	available    chan *bulkIndexer
-	g            errgroup.Group
+	bulkRequests    int64
+	eventsAdded     int64
+	eventsActive    int64
+	eventsFailed    int64
+	eventsIndexed   int64
+	tooManyRequests int64
+
+	config    Config
+	logger    *logp.Logger
+	available chan *bulkIndexer
+	g         errgroup.Group
 
 	mu       sync.RWMutex
 	closing  bool
@@ -77,6 +90,12 @@ type Indexer struct {
 
 // Config holds configuration for Indexer.
 type Config struct {
+	// CompressionLevel holds the gzip compression level, from 0 (gzip.NoCompression)
+	// to 9 (gzip.BestCompression). Higher values provide greater compression, at a
+	// greater cost of CPU. The special value -1 (gzip.DefaultCompression) selects the
+	// default compression level.
+	CompressionLevel int
+
 	// MaxRequests holds the maximum number of bulk index requests to execute concurrently.
 	// The maximum memory usage of Indexer is thus approximately MaxRequests*FlushBytes.
 	//
@@ -92,11 +111,23 @@ type Config struct {
 	//
 	// If FlushInterval is zero, the default of 30 seconds will be used.
 	FlushInterval time.Duration
+
+	// Tracer holds an optional apm.Tracer to use for tracing bulk requests
+	// to Elasticsearch. Each bulk request is traced as a transaction.
+	//
+	// If Tracer is nil, requests will not be traced.
+	Tracer *apm.Tracer
 }
 
 // New returns a new Indexer that indexes events directly into data streams.
 func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 	logger := logp.NewLogger("modelindexer", logs.WithRateLimit(logRateLimit))
+	if cfg.CompressionLevel < -1 || cfg.CompressionLevel > 9 {
+		return nil, fmt.Errorf(
+			"expected CompressionLevel in range [-1,9], got %d",
+			cfg.CompressionLevel,
+		)
+	}
 	if cfg.MaxRequests <= 0 {
 		cfg.MaxRequests = 10
 	}
@@ -108,7 +139,7 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 	}
 	available := make(chan *bulkIndexer, cfg.MaxRequests)
 	for i := 0; i < cfg.MaxRequests; i++ {
-		available <- newBulkIndexer(client)
+		available <- newBulkIndexer(client, cfg.CompressionLevel)
 	}
 	return &Indexer{
 		config:    cfg,
@@ -153,9 +184,12 @@ func (i *Indexer) Close(ctx context.Context) error {
 // Stats returns the bulk indexing stats.
 func (i *Indexer) Stats() Stats {
 	return Stats{
-		Added:  atomic.LoadInt64(&i.eventsAdded),
-		Active: atomic.LoadInt64(&i.eventsActive),
-		Failed: atomic.LoadInt64(&i.eventsFailed),
+		Added:           atomic.LoadInt64(&i.eventsAdded),
+		Active:          atomic.LoadInt64(&i.eventsActive),
+		BulkRequests:    atomic.LoadInt64(&i.bulkRequests),
+		Failed:          atomic.LoadInt64(&i.eventsFailed),
+		Indexed:         atomic.LoadInt64(&i.eventsIndexed),
+		TooManyRequests: atomic.LoadInt64(&i.tooManyRequests),
 	}
 }
 
@@ -231,7 +265,7 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 func encodeBeatEvent(in beat.Event, out *fastjson.Writer) error {
 	out.RawByte('{')
 	out.RawString(`"@timestamp":"`)
-	out.Time(in.Timestamp, time.RFC3339)
+	out.Time(in.Timestamp, timestampFormat)
 	out.RawByte('"')
 	for k, v := range in.Fields {
 		out.RawByte(',')
@@ -309,27 +343,64 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 		return nil
 	}
 	defer atomic.AddInt64(&i.eventsActive, -int64(n))
+	defer atomic.AddInt64(&i.bulkRequests, 1)
+
+	var tx *apm.Transaction
+	logger := i.logger
+	if i.config.Tracer != nil && i.config.Tracer.Recording() {
+		tx = i.config.Tracer.StartTransaction("flush", "output")
+		defer tx.End()
+		ctx = apm.ContextWithTransaction(ctx, tx)
+		tx.Outcome = "success"
+
+		// Add trace IDs to logger, to associate any per-item errors
+		// below with the trace.
+		for _, field := range apmzap.TraceContext(ctx) {
+			logger = logger.With(field)
+		}
+	}
+
 	resp, err := bulkIndexer.Flush(ctx)
 	if err != nil {
 		atomic.AddInt64(&i.eventsFailed, int64(n))
-		i.logger.With(logp.Error(err)).Error("bulk indexing request failed")
+		logger.With(logp.Error(err)).Error("bulk indexing request failed")
+		if tx != nil {
+			tx.Outcome = "failure"
+			apm.CaptureError(ctx, err).Send()
+		}
 		return err
 	}
-	var eventsFailed int64
+
+	var eventsFailed, eventsIndexed, tooManyRequests int64
 	for _, item := range resp.Items {
 		for _, info := range item {
 			if info.Error.Type != "" || info.Status > 201 {
 				eventsFailed++
-				i.logger.Errorf(
+				if info.Status == http.StatusTooManyRequests {
+					tooManyRequests++
+				}
+				logger.Errorf(
 					"failed to index event (%s): %s",
 					info.Error.Type, info.Error.Reason,
 				)
+			} else {
+				eventsIndexed++
 			}
 		}
 	}
 	if eventsFailed > 0 {
 		atomic.AddInt64(&i.eventsFailed, eventsFailed)
 	}
+	if eventsIndexed > 0 {
+		atomic.AddInt64(&i.eventsIndexed, eventsIndexed)
+	}
+	if tooManyRequests > 0 {
+		atomic.AddInt64(&i.tooManyRequests, tooManyRequests)
+	}
+	logger.Debugf(
+		"bulk request completed: %d indexed, %d failed (%d exceeded capacity)",
+		eventsIndexed, eventsFailed, tooManyRequests,
+	)
 	return nil
 }
 
@@ -369,6 +440,17 @@ type Stats struct {
 	// Added holds the number of items added to the indexer.
 	Added int64
 
+	// BulkRequests holds the number of bulk requests completed.
+	BulkRequests int64
+
 	// Failed holds the number of indexing operations that failed.
 	Failed int64
+
+	// Indexed holds the number of indexing operations that have completed
+	// successfully.
+	Indexed int64
+
+	// TooManyRequests holds the number of indexing operations that failed due
+	// to Elasticsearch responding with 429 Too many Requests.
+	TooManyRequests int64
 }

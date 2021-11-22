@@ -21,7 +21,7 @@ import (
 	"context"
 
 	"github.com/elastic/beats/v7/libbeat/licenser"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
 // GetLicense gets the Elasticsearch licensing information.

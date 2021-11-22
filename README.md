@@ -44,7 +44,7 @@ in the same directory with the name apm-server.
 make
 ```
 
-You also need to create all files needed by the APM Server by running the additional command below.
+If you make code changes, you may also need to update the project by running the additional command below:
 
 ```
 make update
@@ -60,50 +60,21 @@ To run APM Server with debugging output enabled, run:
 ./apm-server -c apm-server.yml -e -d "*"
 ```
 
+APM Server expects index templates, ILM policies, and ingest pipelines to be set up externally.
+This should be done by [installing the APM integration](https://www.elastic.co/guide/en/fleet/current/fleet-quick-start-traces.html#add-apm-integration).
+When running APM Server directly, it is only necessary to install the integration and not to run an Elastic Agent.
+
 ### Testing
 
 For Testing check out the [testing guide](TESTING.md)
 
-### Update
-
-Each beat has a template for the mapping in elasticsearch and a documentation for the fields
-which is automatically generated based on `fields.yml`.
-To generate required configuration files and templates run:
-
-```
-make update
-```
-
-### Generate package
-
-APM-Server includes a script to generate an integration package to run with Fleet.
-To Generate a package run:
-
-```
-make fields gen-package
-```
-
-That command takes the existing `fields.yml` files and split them into `ecs.yml` and `fields.yml` files for each data stream type.
-It also generates a `README.md` with a field reference that will be shown in the integration package.
-
-After generating a package, `apmpackage/apm` should be manually copied to `elastic/integrations`.
-Then follow instructions in https://github.com/elastic/integrations/blob/master/CONTRIBUTING.md.
-
 ### Cleanup
-
-To clean APM Server source code, run the following commands:
-
-```
-make fmt
-```
 
 To clean up the build directory and generated artifacts, run:
 
 ```
 make clean
 ```
-
-For further development, check out the [beat developer guide](https://www.elastic.co/guide/en/beats/libbeat/current/new-beat.html).
 
 ### Contributing
 

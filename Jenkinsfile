@@ -245,22 +245,32 @@ pipeline {
             HOME = "${env.WORKSPACE}"
           }
           steps {
+            sh "df -h"
             withGithubNotify(context: 'Build-Test - ARM') {
+              sh "df -h"
               deleteDir()
+              sh "df -h"
               unstash 'source'
+              sh "df -h"
               dir("${BASE_DIR}"){
+                sh "df -h"
                 withMageEnv(){
+                  sh "df -h"
                   sh(label: 'ARM build', script: '.ci/scripts/build.sh')
+                  sh "df -h"
                   sh(label: 'ARM Unit tests', script: './.ci/scripts/unit-test.sh')
+                  sh "df -h"
                 }
               }
             }
           }
           post {
             always {
+              sh "df -h"
               junit(allowEmptyResults: true,
                 keepLongStdio: true,
                 testResults: "${BASE_DIR}/build/TEST-*.xml")
+              sh "df -h"
             }
           }
         }
@@ -364,9 +374,6 @@ pipeline {
                   keepLongStdio: true,
                   testResults: "TEST-*.xml"
                 )
-                catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
-                  tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests")
-                }
               }
             }
           }

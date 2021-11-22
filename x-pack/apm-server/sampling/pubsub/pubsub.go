@@ -1,11 +1,10 @@
 // Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
-// or more contributor license agreements. Licensed under the Elastic License;
-// you may not use this file except in compliance with the Elastic License.
+// or more contributor license agreements. Licensed under the Elastic License 2.0;
+// you may not use this file except in compliance with the Elastic License 2.0.
 
 package pubsub
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -16,15 +15,15 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"go.elastic.co/fastjson"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/elastic/go-elasticsearch/v7/esutil"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 
-	"github.com/elastic/apm-server/elasticsearch"
 	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelindexer"
 )
 
 // ErrClosed may be returned by Pubsub methods after the Close method is called.
@@ -61,12 +60,9 @@ func New(config Config) (*Pubsub, error) {
 // indexing them into Elasticsearch. PublishSampledTraceIDs returns when
 // ctx is canceled.
 func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceIDs <-chan string) error {
-	indexer, err := p.config.Client.NewBulkIndexer(elasticsearch.BulkIndexerConfig{
-		Index:         p.config.DataStream.String(),
-		FlushInterval: p.config.FlushInterval,
-		OnError: func(ctx context.Context, err error) {
-			p.config.Logger.With(logp.Error(err)).Debug("publishing sampled trace IDs failed")
-		},
+	indexer, err := modelindexer.New(p.config.Client, modelindexer.Config{
+		CompressionLevel: p.config.CompressionLevel,
+		FlushInterval:    p.config.FlushInterval,
 	})
 	if err != nil {
 		return err
@@ -92,21 +88,17 @@ func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceIDs <-chan str
 			}
 			return closeIndexer()
 		case id := <-traceIDs:
-			var json fastjson.Writer
-			p.marshalTraceIDDocument(&json, id, time.Now(), p.config.DataStream)
-			if err := indexer.Add(ctx, elasticsearch.BulkIndexerItem{
-				Action:    "create",
-				Body:      bytes.NewReader(json.Bytes()),
-				OnFailure: p.onBulkIndexerItemFailure,
-			}); err != nil {
+			doc := model.APMEvent{
+				Timestamp:  time.Now(),
+				DataStream: model.DataStream(p.config.DataStream),
+				Observer:   model.Observer{ID: p.config.BeatID},
+				Trace:      model.Trace{ID: id},
+			}
+			if err := indexer.ProcessBatch(ctx, &model.Batch{doc}); err != nil {
 				return err
 			}
 		}
 	}
-}
-
-func (p *Pubsub) onBulkIndexerItemFailure(ctx context.Context, item elasticsearch.BulkIndexerItem, resp elasticsearch.BulkIndexerResponseItem, err error) {
-	p.config.Logger.With(logp.Error(err)).Debug("publishing sampled trace ID failed", resp.Error)
 }
 
 // SubscribeSampledTraceIDs subscribes to sampled trace IDs after the given position,
@@ -327,23 +319,6 @@ func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Read
 		return fmt.Errorf("search request failed: %s", message)
 	}
 	return json.NewDecoder(resp.Body).Decode(out)
-}
-
-func (p *Pubsub) marshalTraceIDDocument(w *fastjson.Writer, traceID string, timestamp time.Time, dataStream DataStreamConfig) {
-	w.RawString(`{"@timestamp":"`)
-	w.Time(timestamp.UTC(), time.RFC3339Nano)
-	w.RawString(`","data_stream.type":`)
-	w.String(dataStream.Type)
-	w.RawString(`,"data_stream.dataset":`)
-	w.String(dataStream.Dataset)
-	w.RawString(`,"data_stream.namespace":`)
-	w.String(dataStream.Namespace)
-	w.RawString(`,"observer":{"id":`)
-	w.String(p.config.BeatID)
-	w.RawString(`},`)
-	w.RawString(`"trace":{"id":`)
-	w.String(traceID)
-	w.RawString(`}}`)
 }
 
 type traceIDDocument struct {

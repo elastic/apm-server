@@ -33,7 +33,7 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
 func TestTransactionAggregation(t *testing.T) {
@@ -46,14 +46,8 @@ func TestTransactionAggregation(t *testing.T) {
 	}
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		Transactions: &apmservertest.TransactionAggregationConfig{
-			Enabled:  true,
 			Interval: time.Second,
 		},
-	}
-	srv.Config.Sampling = &apmservertest.SamplingConfig{
-		// Drop unsampled transaction events, to show
-		// that we aggregate before they are dropped.
-		KeepUnsampled: false,
 	}
 	err := srv.Start()
 	require.NoError(t, err)
@@ -72,7 +66,7 @@ func TestTransactionAggregation(t *testing.T) {
 	}
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*",
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.internal-*",
 		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
@@ -85,7 +79,7 @@ func TestTransactionAggregation(t *testing.T) {
 	// the appropriate per-bucket doc_count values.
 	result = estest.SearchResult{}
 	_, err = systemtest.Elasticsearch.Do(context.Background(), &esapi.SearchRequest{
-		Index: []string{"apm-*"},
+		Index: []string{"metrics-apm.internal-*"},
 		Body: strings.NewReader(`{
   "size": 0,
   "query": {"exists":{"field":"transaction.duration.histogram"}},
@@ -120,7 +114,6 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		Transactions: &apmservertest.TransactionAggregationConfig{
-			Enabled: true,
 			// Set aggregation_interval to something that would cause
 			// a timeout if we were to wait that long. The server
 			// should flush metrics on shutdown without waiting for
@@ -142,14 +135,14 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
+	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*",
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
 
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.internal-*",
 		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
@@ -160,7 +153,6 @@ func TestServiceDestinationAggregation(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
-			Enabled:  true,
 			Interval: time.Second,
 		},
 	}
@@ -183,7 +175,7 @@ func TestServiceDestinationAggregation(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.internal-*",
 		estest.ExistsQuery{Field: "span.destination.service.response_time.count"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)

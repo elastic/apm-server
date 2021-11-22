@@ -24,12 +24,10 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/processors"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestCloudEnv(t *testing.T) {
@@ -38,62 +36,63 @@ func TestCloudEnv(t *testing.T) {
 	// no cloud environment variable set
 	settings := DefaultSettings()
 	assert.Len(t, settings.ConfigOverrides, 2)
-	assert.Equal(t, common.NewConfig(), settings.ConfigOverrides[1].Config)
-
-	assertEqual := func(t *testing.T, cfg *common.Config, key string, expected float64) {
-		val, err := cfg.Float(key, -1)
-		require.NoError(t, err)
-		assert.Equal(t, expected, val)
-	}
+	assert.False(t, settings.ConfigOverrides[1].Check(nil))
 
 	// cloud environment picked up
-	var cloudMatrix = map[string]struct {
-		worker      int
-		bulkMaxSize int
-		events      int
-		minEvents   int
-	}{
-		"512":   {5, 267, 2000, 267},
-		"1024":  {7, 381, 4000, 381},
-		"2048":  {10, 533, 8000, 533},
-		"4096":  {14, 762, 16000, 762},
-		"8192":  {20, 1067, 32000, 1067},
-		"16384": {20, 2133, 64000, 2133},
-		"32768": {20, 4267, 128000, 4267},
-	}
-	for capacity, throughputSettings := range cloudMatrix {
-		os.Setenv(cloudEnv, capacity)
-		settings = DefaultSettings()
-		assert.Len(t, settings.ConfigOverrides, 2)
-		cfg := settings.ConfigOverrides[1].Config
-		assert.NotNil(t, cfg)
-		assertEqual(t, cfg, "output.elasticsearch.worker", float64(throughputSettings.worker))
-		assertEqual(t, cfg, "output.elasticsearch.bulk_max_size", float64(throughputSettings.bulkMaxSize))
-		assertEqual(t, cfg, "queue.mem.events", float64(throughputSettings.events))
-		assertEqual(t, cfg, "queue.mem.flush.min_events", float64(throughputSettings.minEvents))
-		assertEqual(t, cfg, "output.elasticsearch.compression_level", 5)
-	}
+	os.Setenv(cloudEnv, "valuedoesnotmatter")
+	assert.True(t, settings.ConfigOverrides[1].Check(nil))
+	assert.Equal(t, common.MustNewConfigFrom(map[string]interface{}{
+		"output.elasticsearch.compression_level": 5,
+	}), settings.ConfigOverrides[1].Config)
 }
 
-func TestProcessorsDeprecated(t *testing.T) {
-	core, observed := observer.New(zapcore.DebugLevel)
-	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
-		return zapcore.NewTee(in, core)
-	}))
-
+func TestProcessorsDisallowed(t *testing.T) {
+	logger := logp.NewLogger("")
 	settings := DefaultSettings()
-	settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{}))
-	assert.Empty(t, observed.All())
 
-	settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{
+	// If no "processors" config is specified, the supporter.Create method should return nil.
+	supporter, err := settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{}))
+	assert.NoError(t, err)
+	assert.NotNil(t, supporter)
+	processor, err := supporter.Create(beat.ProcessingConfig{}, false)
+	assert.NoError(t, err)
+	assert.Nil(t, processor)
+
+	supporter, err = settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{
 		"processors": []interface{}{
 			map[string]interface{}{
 				"add_cloud_metadata": map[string]interface{}{},
 			},
 		},
 	}))
-	entries := observed.All()
-	require.Len(t, entries, 1)
-	assert.Equal(t, zapcore.WarnLevel, entries[0].Level)
-	assert.Equal(t, "libbeat processors are unsupported and will be removed in 8.0", entries[0].Message)
+	assert.EqualError(t, err, "libbeat processors are not supported")
+	assert.Nil(t, supporter)
+}
+
+func TestProcessorsFromConfigNotNil(t *testing.T) {
+	logger := logp.NewLogger("")
+	settings := DefaultSettings()
+
+	supporter, err := settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{}))
+	require.NoError(t, err)
+	assert.NotNil(t, supporter)
+
+	processors, err := processors.New(processors.PluginConfig{
+		common.MustNewConfigFrom(map[string]interface{}{
+			"drop_event": map[string]interface{}{
+				"when": map[string]interface{}{
+					"contains": map[string]interface{}{
+						"processor.event": "log",
+					},
+				},
+			},
+		}),
+	})
+	require.NoError(t, err)
+
+	// The supporter is used by the pipeline client to add any more processors.
+	// We're asserting that the processors are returned and not nil.
+	processor, err := supporter.Create(beat.ProcessingConfig{Processor: processors}, false)
+	assert.NoError(t, err)
+	assert.NotNil(t, processor)
 }

@@ -171,10 +171,7 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 	// map errorEvent specific data
 	if from.Context.IsSet() {
 		if len(from.Context.Tags) > 0 {
-			event.Labels = modeldecoderutil.MergeLabels(
-				event.Labels,
-				modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
-			)
+			modeldecoderutil.MergeLabels(from.Context.Tags, event)
 		}
 		if from.Context.Request.IsSet() {
 			event.HTTP.Request = &model.HTTPRequest{}
@@ -249,6 +246,9 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 		if from.Transaction.Sampled.IsSet() {
 			event.Transaction.Sampled = from.Transaction.Sampled.Val
 		}
+		if from.Transaction.Name.IsSet() {
+			event.Transaction.Name = from.Transaction.Name.Val
+		}
 		if from.Transaction.Type.IsSet() {
 			event.Transaction.Type = from.Transaction.Type.Val
 		}
@@ -297,7 +297,7 @@ func mapToExceptionModel(from errorException, out *model.Exception) {
 func mapToMetadataModel(m *metadata, out *model.APMEvent) {
 	// Labels
 	if len(m.Labels) > 0 {
-		out.Labels = modeldecoderutil.NormalizeLabelValues(m.Labels.Clone())
+		modeldecoderutil.LabelsFrom(m.Labels, out)
 	}
 
 	// Service
@@ -540,10 +540,7 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		}
 	}
 	if len(from.Context.Tags) > 0 {
-		event.Labels = modeldecoderutil.MergeLabels(
-			event.Labels,
-			modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
-		)
+		modeldecoderutil.MergeLabels(from.Context.Tags, event)
 	}
 	if from.Duration.IsSet() {
 		duration := time.Duration(from.Duration.Val * float64(time.Millisecond))
@@ -575,10 +572,6 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 	if len(from.Stacktrace) > 0 {
 		out.Stacktrace = make(model.Stacktrace, len(from.Stacktrace))
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
-	}
-	if from.Start.IsSet() {
-		val := from.Start.Val
-		out.Start = &val
 	}
 	if from.Sync.IsSet() {
 		val := from.Sync.Val
@@ -652,10 +645,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 			out.Custom = modeldecoderutil.NormalizeLabelValues(from.Context.Custom.Clone())
 		}
 		if len(from.Context.Tags) > 0 {
-			event.Labels = modeldecoderutil.MergeLabels(
-				event.Labels,
-				modeldecoderutil.NormalizeLabelValues(from.Context.Tags),
-			)
+			modeldecoderutil.MergeLabels(from.Context.Tags, event)
 		}
 		if from.Context.Request.IsSet() {
 			event.HTTP.Request = &model.HTTPRequest{}

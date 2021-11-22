@@ -78,12 +78,6 @@ type Server struct {
 	// http[s]://ipaddr:port with no trailing slash.
 	URL string
 
-	// JaegerGRPCAddr holds the address for the Jaeger gRPC server, if enabled.
-	JaegerGRPCAddr string
-
-	// JaegerHTTPURL holds the base URL for Jaeger HTTP, if enabled.
-	JaegerHTTPURL string
-
 	// TLS is optional TLS client configuration, populated with a new config
 	// after TLS is started.
 	TLS *tls.Config
@@ -144,8 +138,6 @@ func (s *Server) start(tls bool) error {
 	extra := map[string]interface{}{
 		// These are config attributes that we always specify,
 		// as the testing framework relies on them being set.
-		"logging.ecs":               true,
-		"logging.json":              true,
 		"logging.level":             "debug",
 		"logging.to_stderr":         true,
 		"apm-server.expvar.enabled": true,
@@ -281,22 +273,6 @@ func (s *Server) printCmdline(w io.Writer, args []string) {
 }
 
 func (s *Server) waitUntilListening(tls bool, logs *LogEntryIterator) error {
-	var (
-		elasticHTTPListeningAddr string
-		jaegerGRPCListeningAddr  string
-		jaegerHTTPListeningAddr  string
-	)
-
-	prefixes := map[string]*string{"Listening on": &elasticHTTPListeningAddr}
-	if s.Config.Jaeger != nil {
-		if s.Config.Jaeger.GRPCEnabled {
-			prefixes["Listening for Jaeger gRPC requests on"] = &jaegerGRPCListeningAddr
-		}
-		if s.Config.Jaeger.HTTPEnabled {
-			prefixes["Listening for Jaeger HTTP requests on"] = &jaegerHTTPListeningAddr
-		}
-	}
-
 	// First wait for the Beat UUID and server version to be logged.
 	for entry := range logs.C() {
 		if entry.Level != zapcore.InfoLevel || (entry.Message != "Beat info" && entry.Message != "Build info") {
@@ -321,6 +297,7 @@ func (s *Server) waitUntilListening(tls bool, logs *LogEntryIterator) error {
 		}
 	}
 
+	var elasticHTTPListeningAddr string
 	for entry := range logs.C() {
 		if entry.Level != zapcore.InfoLevel {
 			continue
@@ -330,32 +307,22 @@ func (s *Server) waitUntilListening(tls bool, logs *LogEntryIterator) error {
 			continue
 		}
 		prefix, addr := entry.Message[:sep], strings.TrimSpace(entry.Message[sep+1:])
-		paddr, ok := prefixes[prefix]
-		if !ok {
+		if prefix != "Listening on" {
 			continue
 		}
 		if _, _, err := net.SplitHostPort(addr); err != nil {
 			return fmt.Errorf("invalid listening address %q: %w", addr, err)
 		}
-		*paddr = addr
-		delete(prefixes, prefix)
-		if len(prefixes) == 0 {
-			break
-		}
+		elasticHTTPListeningAddr = addr
+		break
 	}
 
-	if len(prefixes) == 0 {
+	if elasticHTTPListeningAddr != "" {
 		urlScheme := "http"
 		if tls {
 			urlScheme = "https"
 		}
 		s.URL = makeURLString(urlScheme, elasticHTTPListeningAddr)
-		if s.Config.Jaeger != nil {
-			s.JaegerGRPCAddr = jaegerGRPCListeningAddr
-			if s.Config.Jaeger.HTTPEnabled {
-				s.JaegerHTTPURL = makeURLString(urlScheme, jaegerHTTPListeningAddr)
-			}
-		}
 		return nil
 	}
 

@@ -19,15 +19,24 @@ package modelindexer
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 
 	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
 	"go.elastic.co/fastjson"
 
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 
 	"github.com/elastic/apm-server/elasticsearch"
+)
+
+var (
+	gzipHeader = http.Header{"Content-Encoding": []string{"gzip"}}
+	newline    = []byte("\n")
 )
 
 // NOTE(axw) please avoid introducing apm-server specific details to this code;
@@ -51,19 +60,33 @@ type bulkIndexer struct {
 	client     elasticsearch.Client
 	itemsAdded int
 	jsonw      fastjson.Writer
+	gzipw      *gzip.Writer
+	copybuf    [32 * 1024]byte
+	writer     io.Writer
 	buf        bytes.Buffer
 	respBuf    bytes.Buffer
 	resp       elasticsearch.BulkIndexerResponse
 }
 
-func newBulkIndexer(client elasticsearch.Client) *bulkIndexer {
-	return &bulkIndexer{client: client}
+func newBulkIndexer(client elasticsearch.Client, compressionLevel int) *bulkIndexer {
+	b := &bulkIndexer{client: client}
+	if compressionLevel != gzip.NoCompression {
+		b.gzipw, _ = gzip.NewWriterLevel(&b.buf, compressionLevel)
+		b.writer = b.gzipw
+	} else {
+		b.writer = &b.buf
+	}
+	b.Reset()
+	return b
 }
 
 // BulkIndexer resets b, ready for a new request.
 func (b *bulkIndexer) Reset() {
 	b.itemsAdded = 0
 	b.buf.Reset()
+	if b.gzipw != nil {
+		b.gzipw.Reset(&b.buf)
+	}
 	b.respBuf.Reset()
 	b.resp = elasticsearch.BulkIndexerResponse{Items: b.resp.Items[:0]}
 }
@@ -81,10 +104,10 @@ func (b *bulkIndexer) Len() int {
 // Add encodes an item in the buffer.
 func (b *bulkIndexer) Add(item elasticsearch.BulkIndexerItem) error {
 	b.writeMeta(item)
-	if _, err := b.buf.ReadFrom(item.Body); err != nil {
+	if _, err := io.CopyBuffer(b.writer, item.Body, b.copybuf[:]); err != nil {
 		return err
 	}
-	b.buf.WriteRune('\n')
+	b.writer.Write(newline)
 	b.itemsAdded++
 	return nil
 }
@@ -105,7 +128,7 @@ func (b *bulkIndexer) writeMeta(item elasticsearch.BulkIndexerItem) {
 		b.jsonw.String(item.Index)
 	}
 	b.jsonw.RawString("}}\n")
-	b.buf.Write(b.jsonw.Bytes())
+	b.writer.Write(b.jsonw.Bytes())
 	b.jsonw.Reset()
 }
 
@@ -114,8 +137,16 @@ func (b *bulkIndexer) Flush(ctx context.Context) (elasticsearch.BulkIndexerRespo
 	if b.itemsAdded == 0 {
 		return elasticsearch.BulkIndexerResponse{}, nil
 	}
+	if b.gzipw != nil {
+		if err := b.gzipw.Flush(); err != nil {
+			return elasticsearch.BulkIndexerResponse{}, err
+		}
+	}
 
 	req := esapi.BulkRequest{Body: &b.buf}
+	if b.gzipw != nil {
+		req.Header = gzipHeader
+	}
 	res, err := req.Do(ctx, b.client)
 	if err != nil {
 		return elasticsearch.BulkIndexerResponse{}, err
@@ -144,7 +175,9 @@ func (b *bulkIndexer) Flush(ctx context.Context) (elasticsearch.BulkIndexerRespo
 			b.resp.HasErrors = iter.ReadBool()
 		case "items":
 			iter.ReadVal(&b.resp.Items)
+		default:
+			iter.Skip()
 		}
 	}
-	return b.resp, iter.Error
+	return b.resp, errors.Wrap(iter.Error, "error decoding bulk response")
 }
