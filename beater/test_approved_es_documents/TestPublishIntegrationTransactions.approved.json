@@ -61,11 +61,14 @@
                 }
             },
             "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "tag1": "one",
+                "tag4": "false",
                 "wrapped_reporter": "true"
             },
             "numeric_labels": {
-                "tag2": 2
+                "tag2": 12,
+                "tag3": 12.45
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -422,11 +425,14 @@
                 }
             },
             "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "tag1": "one",
+                "tag4": "false",
                 "wrapped_reporter": "true"
             },
             "numeric_labels": {
-                "tag2": 2
+                "tag2": 12,
+                "tag3": 12.45
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -573,11 +579,14 @@
                 }
             },
             "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "tag1": "one",
+                "tag4": "false",
                 "wrapped_reporter": "true"
             },
             "numeric_labels": {
-                "tag2": 2
+                "tag2": 12,
+                "tag3": 12.45
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -742,11 +751,14 @@
                 }
             },
             "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "tag1": "one",
+                "tag4": "false",
                 "wrapped_reporter": "true"
             },
             "numeric_labels": {
-                "tag2": 2
+                "tag2": 12,
+                "tag3": 12.45
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",

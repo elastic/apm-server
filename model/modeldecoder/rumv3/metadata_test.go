@@ -30,7 +30,6 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 // initializedMetadata returns a model.APMEvent populated with default values
@@ -86,6 +85,7 @@ func metadataExceptions(keys ...string) func(key string) bool {
 
 		// Dedicated test for it.
 		"NumericLabels",
+		"Labels",
 
 		// event-specific fields
 		"Error",
@@ -146,13 +146,13 @@ func TestDecodeNestedMetadata(t *testing.T) {
 		assert.Equal(t, model.APMEvent{
 			Service: model.Service{Name: "name"},
 			Agent:   model.Agent{Name: "go", Version: "1.0.0"},
-			Labels: common.MapStr{
-				"a": "b",
-				"c": "true",
+			Labels: model.Labels{
+				"a": {Value: "b"},
+				"c": {Value: "true"},
 			},
-			NumericLabels: common.MapStr{
-				"d": float64(1234),
-				"e": float64(1234.11),
+			NumericLabels: model.NumericLabels{
+				"d": {Value: float64(1234)},
+				"e": {Value: float64(1234.11)},
 			},
 		}, out)
 	})
@@ -160,9 +160,9 @@ func TestDecodeNestedMetadata(t *testing.T) {
 
 func TestDecodeMetadataMappingToModel(t *testing.T) {
 	expected := func(s string, ip net.IP, n int) model.APMEvent {
-		labels := common.MapStr{}
+		labels := model.Labels{}
 		for i := 0; i < n; i++ {
-			labels.Put(fmt.Sprintf("%s%v", s, i), s)
+			labels[fmt.Sprintf("%s%v", s, i)] = model.LabelValue{Value: s}
 		}
 		return model.APMEvent{
 			Agent: model.Agent{Name: s, Version: s},
