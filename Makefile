@@ -229,7 +229,7 @@ $(ELASTICPACKAGE): tools/go.mod
 
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
-$(PYTHON_BIN)/activate: $(MAGE)
+$(PYTHON_BIN)/activate: $(MAGE) script/requirements.txt
 	@$(MAGE) pythonEnv
 	@touch $@
 
