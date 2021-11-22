@@ -2,7 +2,8 @@ include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 :apm-integration-docs:
-:apm-package-dir: {docdir}/apm-package
+:apm-package-dir:    {docdir}/apm-package
+:obs-repo-dir:       {observability-docs-root}/docs/en
 
 :github_repo_link: https://github.com/elastic/apm-server/blob/v{version}
 ifeval::["{version}" == "8.0.0"]
