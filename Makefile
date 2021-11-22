@@ -110,7 +110,7 @@ endif
 get-version:
 	@grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '" '
 
-## get-version : Get the apm package version
+## get-package-version : Get the apm package version
 .PHONY: get-package-version
 get-package-version:
 	@grep ^version: apmpackage/apm/manifest.yml | cut -d':' -f2 | tr -d " "
