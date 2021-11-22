@@ -30,7 +30,6 @@ import (
 
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/utility"
 )
 
 const sourcemapArtifactType = "sourcemap"
@@ -74,12 +73,12 @@ func (s *kibanaFetcher) Fetch(ctx context.Context, name, version, path string) (
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
-	path = utility.UrlPath(path)
+	path = maybeParseURLPath(path)
 	for _, a := range result.Artifacts {
 		if a.Type != sourcemapArtifactType {
 			continue
 		}
-		if a.Body.ServiceName == name && a.Body.ServiceVersion == version && utility.UrlPath(a.Body.BundleFilepath) == path {
+		if a.Body.ServiceName == name && a.Body.ServiceVersion == version && maybeParseURLPath(a.Body.BundleFilepath) == path {
 			return parseSourceMap(string(a.Body.SourceMap))
 		}
 	}

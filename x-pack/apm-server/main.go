@@ -227,11 +227,12 @@ func closeBadger() error {
 	return nil
 }
 
-var rootCmd = cmd.NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
-	WrapRunServer: wrapRunServer,
-}))
-
 func Main() error {
+	rootCmd := cmd.NewXPackRootCommand(
+		beater.NewCreator(beater.CreatorParams{
+			WrapRunServer: wrapRunServer,
+		}),
+	)
 	if err := rootCmd.Execute(); err != nil {
 		closeBadger()
 		return err
