@@ -35,7 +35,7 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 [id="input-{input-type}-url-setting"]
 URL
 
-| The unchangeable, publicly reachable server URL for deployments on Elastic Cloud or ECK.
+| The publicly reachable server URL. For deployments on Elastic Cloud or ECK, the default is unchangeable.
 // end::url-setting[]
 
 // =============================================================================
@@ -375,7 +375,7 @@ This token is not used for RUM endpoints.
 [id="input-{input-type}-anonymous_enabled-setting"]
 Anonymous Agent access
 
-| (bool) Enable or disable anonymous authentication.
+| (bool) Enable or disable anonymous authentication. RUM agents do not support authentication, so disabling anonymous access will effectively disable RUM agents.
 
 *Default:* `true` (enabled)
 // end::anonymous_enabled-setting[]
