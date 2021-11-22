@@ -42,7 +42,7 @@ func (k *KibanaConfig) Unpack(cfg *common.Config) error {
 
 func defaultKibanaConfig() KibanaConfig {
 	return KibanaConfig{
-		Enabled:      true,
+		Enabled:      false,
 		ClientConfig: kibana.DefaultClientConfig(),
 	}
 }
