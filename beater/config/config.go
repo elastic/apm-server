@@ -123,7 +123,7 @@ func DefaultConfig() *Config {
 		MaxHeaderSize:   1 * 1024 * 1024, // 1mb
 		MaxConnections:  0,               // unlimited
 		IdleTimeout:     45 * time.Second,
-		ReadTimeout:     3600 * time.Second,
+		ReadTimeout:     30 * time.Second,
 		WriteTimeout:    30 * time.Second,
 		MaxEventSize:    300 * 1024, // 300 kb
 		ShutdownTimeout: 30 * time.Second,
