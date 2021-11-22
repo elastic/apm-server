@@ -127,7 +127,7 @@ Simultaneously accepted connections
 // tag::response_headers-setting[]
 |
 [id="input-{input-type}-response_headers-setting"]
-Custom HTTP headers
+Custom HTTP response headers
 
 | (text) Custom HTTP headers to add to HTTP responses. Useful for security policy compliance.
 
@@ -189,7 +189,7 @@ Enable RUM
 // tag::rum_allow_origins-setting[]
 |
 [id="input-{input-type}-rum_allow_origins-setting"]
-Origin Headers
+Allowed Origins
 
 | (text) A list of permitted origins for RUM support.
 User-agents send an Origin header that will be validated against this list.
@@ -222,7 +222,7 @@ Configured values are appended to the default list and used as the value for the
 [id="input-{input-type}-rum_response_headers-setting"]
 Custom HTTP response headers
 
-| (text) Custom HTTP headers to add to RUM responses. For example, for security policy compliance.
+| (text) Custom HTTP headers to add to RUM responses. For example, for security policy compliance. Headers set here are in addition to those set in the "Custom HTTP response headers", but only apply to RUM responses.
 
 *Default:* none
 // end::rum_response_headers-setting[]
@@ -385,7 +385,7 @@ Anonymous Agent access
 // tag::anonymous_allow_agent-setting[]
 |
 [id="input-{input-type}-anonymous_allow_agent-setting"]
-Allowed agents
+Allowed Anonymous agents
 
 | (array) A list of permitted APM agent names for anonymous authentication.
 Names in this list must match the agent's `agent.name`.
@@ -398,7 +398,7 @@ Names in this list must match the agent's `agent.name`.
 // tag::anonymous_allow_service-setting[]
 |
 [id="input-{input-type}-anonymous_allow_service-setting"]
-Allowed services
+Allowed Anonymous services
 
 | (array) A list of permitted service names for anonymous authentication.
 Names in this list must match the agent's `service.name`.
@@ -412,7 +412,7 @@ This can be used to limit the number of service-specific indices or data streams
 // tag::anonymous_rate_limit_ip_limit-setting[]
 |
 [id="input-{input-type}-anonymous_rate_limit_ip_limit-setting"]
-Rate limit (IP limit)
+Anonymous Rate limit (IP limit)
 
 | (int) The number of unique IP addresses to track in an LRU cache.
 IP addresses in the cache will be rate limited according to the `anonymous_rate_limit_event_limit` setting.
@@ -426,7 +426,7 @@ Consider increasing this default if your application has many concurrent clients
 // tag::anonymous_rate_limit_event_limit-setting[]
 |
 [id="input-{input-type}-anonymous_rate_limit_event_limit-setting"]
-Event rate limit (event limit)
+Anonymous Event rate limit (event limit)
 
 | (int) The maximum amount of events allowed to be sent to the APM Server anonymous auth endpoint per IP per second.
 
