@@ -1,18 +1,161 @@
 [[ilm-how-to]]
-=== Index lifecycle management (ILM)
+=== Index lifecycle management
 
-// todo: add more context and an example
+Index lifecycle policies allow you to automate the
+lifecycle of your APM indices as they grow and age.
+A default policy is applied to each APM data stream,
+but can be customized depending on your business needs.
 
-++++
-<titleabbrev>Customize index lifecycle management</titleabbrev>
-++++
+See {ref}/index-lifecycle-management.html[ILM: Manage the index lifecycle] to learn more.
 
-The index lifecycle management (ILM) feature in {es} allows you to automate the
-lifecycle of your APM Server indices as they grow and age.
-ILM is enabled by default, and a default policy is applied to all APM indices.
+[discrete]
+[[index-lifecycle-policies-default]]
+=== Default policies
 
-To view and edit these index lifecycle policies in {kib},
-select *Stack Management* / *Index Lifecycle Management*.
-Search for `apm`.
+The table below describes the default index lifecycle policy applied to each APM data stream.
+Each policy includes a rollover and delete definition:
 
-See {ref}/getting-started-index-lifecycle-management.html[manage the index lifecycle] for more information.
+* **Rollover**: Using rollover indices prevents a single index from growing too large and optimizes indexing and search performance. Rollover, i.e. writing to a new index, occurs after either an age or size metric is met.
+* **Delete**: The delete phase permanently removes the index after a time threshold is met.
+
+[cols="1,1,1",options="header"]
+|===
+|Data stream
+|Rollover after
+|Delete after
+
+|`traces-apm`
+|30 days / 50 gb
+|10 days
+
+|`traces-apm.rum`
+|30 days / 50 gb
+|90 days
+
+|`metrics-apm.profiling`
+|30 days / 50 gb
+|10 days
+
+|`metrics-apm.internal`
+|30 days / 50 gb
+|90 days
+
+|`metrics-apm.app`
+|30 days / 50 gb
+|90 days
+
+|`logs-apm.error`
+|30 days / 50 gb
+|10 days
+
+|===
+
+The APM index lifecycle policies can be viewed in {kib}.
+Navigate to *Stack Management* / *Index Lifecycle Management*, and search for `apm`.
+
+[discrete]
+[[data-streams-custom-policy]]
+=== Configure a custom index lifecycle policy
+
+When the APM package is installed, Fleet creates a default `*@custom` component template for each data stream.
+The easiest way to configure a custom index lifecycle policy per data stream is to edit this template.
+
+This tutorial explains how to apply a custom index lifecycle policy to the `traces-apm` data stream.
+
+[discrete]
+[[data-streams-custom-one]]
+=== Step 1: View data streams
+
+The **Data Streams** view in {kib} shows you the data streams,
+index templates, and index lifecycle policies associated with a given integration.
+
+. Navigate to **Stack Management** > **Index Management** > **Data Streams**.
+. Search for `traces-apm` to see all data streams associated with APM trace data.
+. In this example, I only have one data stream because I'm only using the `default` namespace.
+You may have more if your setup includes multiple namespaces.
++
+[role="screenshot"]
+image::images/data-stream-overview.png[Data streams info]
+
+[discrete]
+[[data-streams-custom-two]]
+=== Step 2: Create an index lifecycle policy
+
+. Navigate to **Stack Management** > **Index Lifecycle Policies**.
+. Click **Create policy**.
+
+Name your new policy; For this tutorial, I've chosen `custom-traces-apm-policy`.
+Customize the policy to your liking, and when you're done, click **Save policy**.
+
+[discrete]
+[[data-streams-custom-three]]
+=== Step 3: Apply the index lifecycle policy
+
+To apply your new index lifecylce policy to the `traces-apm-*` data stream,
+edit the `<data-stream-name>@custom` component template.
+
+. Click on the **Component Template** tab and search for `traces-apm`.
+. Select the `traces-apm@custom` template and click **Manage** > **Edit**.
+. Under **Index settings**, set the ILM policy name created in the previous step:
++
+[source,json]
+----
+{
+  "lifecycle": {
+    "name": "custom-traces-apm-policy"
+  }
+}
+----
+. Continue to **Review** and ensure your request looks similar to the image below.
+If it does, click **Create component template**.
++
+[role="screenshot"]
+image::images/create-component-template.png[Create component template]
+
+[discrete]
+[[data-streams-custom-four]]
+=== Step 4: Roll over the data stream (optional)
+
+To confirm that the data stream is now using the new index template and ILM policy,
+you can either repeat <<data-streams-custom-one,step one>>, or navigate to **Dev Tools ** and run the following:
+
+[source,bash]
+----
+GET /_data_stream/traces-apm-default <1>
+----
+<1> The name of the data stream we've been hacking on appended with your <namespace>
+
+The result should include the following:
+
+[source,json]
+----
+{
+  "data_streams" : [
+    {
+      ...
+      "template" : "traces-apm-default", <1>
+      "ilm_policy" : "custom-traces-apm-policy", <2>
+      ...
+    }
+  ]
+}
+----
+<1> The name of the custom index template created in step three
+<2> The name of the ILM policy applied to the new component template in step two
+
+New ILM policies only take effect when new indices are created,
+so you either must wait for a rollover to occur (usually after 30 days or when the index size reaches 50GB),
+or force a rollover using the {ref}/indices-rollover-index.html[{es} rollover API]:
+
+[source,bash]
+----
+POST /traces-apm-default/_rollover/
+----
+
+[discrete]
+[[data-streams-custom-policy-namespace]]
+=== Namespace-level index lifecycle policies
+
+It is also possible to create more granular index lifecycle policies that apply to individual namespaces.
+This process is similar to the above tutorial, but includes cloning and modify the existing index template to use
+a new `*@custom` component template.

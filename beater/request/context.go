@@ -22,6 +22,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 
@@ -46,6 +47,10 @@ type Context struct {
 	Logger         *logp.Logger
 	Authentication auth.AuthenticationDetails
 	Result         Result
+
+	// Timestamp holds the time at which the request was received by
+	// the server.
+	Timestamp time.Time
 
 	// SourceAddr holds the address of the (source) network peer.
 	SourceAddr net.Addr
@@ -91,7 +96,8 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	if r != nil {
 		c.SourceAddr = utility.ParseTCPAddr(r.RemoteAddr)
 		c.ClientIP = utility.ExtractIP(r)
-		c.UserAgent = utility.UserAgentHeader(r.Header)
+		c.UserAgent = strings.Join(r.Header["User-Agent"], ", ")
+		c.Timestamp = time.Now()
 	}
 }
 

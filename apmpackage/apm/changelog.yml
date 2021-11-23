@@ -1,6 +1,11 @@
 # newer versions go on top
 #
 # change type can be one of: enhancement, bugfix, breaking-change
+- version: "8.1.0"
+  changes:
+    - description: REPLACE ME WITH ACTUAL CHANGE LOG
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/1234
 - version: "8.0.0"
   changes:
     - description: Ingested labels are now stored as event.{labels,numeric_labels}

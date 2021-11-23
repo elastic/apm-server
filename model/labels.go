@@ -18,10 +18,103 @@
 package model
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
+
+type Labels map[string]LabelValue
+
+type LabelValue struct {
+	Value  string
+	Values []string
+}
+
+func (l Labels) MaybeSet(k string, v interface{}) bool {
+	switch v := v.(type) {
+	case string:
+		l[k] = LabelValue{Value: v}
+	case bool:
+		l[k] = LabelValue{Value: strconv.FormatBool(v)}
+	default:
+		return false
+	}
+	return true
+}
+
+func (l Labels) Set(k string, v string) {
+	l[k] = LabelValue{Value: v}
+}
+
+func (l Labels) SetSlice(k string, v []string) {
+	l[k] = LabelValue{Values: v}
+}
+
+func (l Labels) Clone() Labels {
+	cp := make(Labels)
+	for k, v := range l {
+		cp[k] = v
+	}
+	return cp
+}
+
+func (l Labels) fields() common.MapStr {
+	result := common.MapStr{}
+	for k, v := range l {
+		if v.Values != nil {
+			result[k] = v.Values
+		} else {
+			result[k] = v.Value
+		}
+	}
+	return sanitizeLabels(result)
+}
+
+type NumericLabels map[string]NumericLabelValue
+
+type NumericLabelValue struct {
+	Value  float64
+	Values []float64
+}
+
+func (l NumericLabels) MaybeSet(k string, v interface{}) bool {
+	switch v := v.(type) {
+	case float64:
+		l[k] = NumericLabelValue{Value: v}
+	default:
+		return false
+	}
+	return true
+}
+
+func (l NumericLabels) Set(k string, v float64) {
+	l[k] = NumericLabelValue{Value: v}
+}
+
+func (l NumericLabels) SetSlice(k string, v []float64) {
+	l[k] = NumericLabelValue{Values: v}
+}
+
+func (l NumericLabels) Clone() NumericLabels {
+	cp := make(NumericLabels)
+	for k, v := range l {
+		cp[k] = v
+	}
+	return cp
+}
+
+func (l NumericLabels) fields() common.MapStr {
+	result := common.MapStr{}
+	for k, v := range l {
+		if v.Values != nil {
+			result[k] = v.Values
+		} else {
+			result[k] = v.Value
+		}
+	}
+	return sanitizeLabels(result)
+}
 
 // Label keys are sanitized, replacing the reserved characters '.', '*' and '"'
 // with '_'. Null-valued labels are omitted.

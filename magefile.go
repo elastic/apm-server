@@ -192,18 +192,6 @@ func GoTestUnit(ctx context.Context) error {
 	return mage.GoTest(ctx, mage.DefaultGoTestUnitArgs())
 }
 
-// GoTestIntegration executes the Go integration tests.
-// Use TEST_COVERAGE=true to enable code coverage profiling.
-// Use RACE_DETECTOR=true to enable the race detector.
-func GoTestIntegration(ctx context.Context) error {
-	return mage.GoTest(ctx, mage.DefaultGoTestIntegrationArgs())
-}
-
-// PythonUnitTest executes the python system tests.
-func PythonUnitTest() error {
-	return mage.PythonTest(mage.DefaultPythonTestUnitArgs())
-}
-
 // -----------------------------------------------------------------------------
 
 func customizePackaging() {
@@ -289,9 +277,4 @@ func Check() error {
 func PythonEnv() error {
 	_, err := mage.PythonVirtualenv()
 	return err
-}
-
-// PythonAutopep8 executes autopep8 on all .py files.
-func PythonAutopep8() error {
-	return mage.PythonAutopep8()
 }

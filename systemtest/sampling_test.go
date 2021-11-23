@@ -39,23 +39,54 @@ import (
 func TestDropUnsampled(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Monitoring = newFastMonitoringConfig()
 	err := srv.Start()
 	require.NoError(t, err)
+	defaultMetadataFilter := srv.EventMetadataFilter
 
-	// Send one unsampled transaction, and one sampled transaction.
-	// Only the sampled transaction should be stored.
+	// Send:
+	// - one sampled transaction (should be stored)
+	// - one unsampled RUM transaction (should be be stored)
+	// - one unsampled backend transaction (should be dropped)
 	transactionType := "TestDropUnsampled"
-	tracer := srv.Tracer()
-	tracer.StartTransaction("sampled", transactionType).End()
-	tracer.SetSampler(apm.NewRatioSampler(0))
-	tracer.StartTransaction("unsampled", transactionType).End()
-	tracer.Flush(nil)
+	timestamp := time.Unix(0, 0)
+	sendTransaction := func(sampled bool, agentName string) {
+		srv.EventMetadataFilter = apmservertest.EventMetadataFilterFunc(func(m *apmservertest.EventMetadata) {
+			defaultMetadataFilter.FilterEventMetadata(m)
+			m.Service.Agent.Name = agentName
+		})
+		tracer := srv.Tracer()
+		defer tracer.Flush(nil)
+		transactionName := "unsampled"
+		if sampled {
+			transactionName = "sampled"
+		}
+		timestamp = timestamp.Add(time.Second)
+		tx := tracer.StartTransactionOptions(transactionName, transactionType, apm.TransactionOptions{
+			Start: timestamp,
+			TraceContext: apm.TraceContext{
+				Trace:   apm.TraceID{1},
+				Options: apm.TraceOptions(0).WithRecorded(sampled),
+			},
+			TransactionID: apm.SpanID{2},
+		})
+		tx.Duration = time.Second
+		tx.End()
+	}
+	sendTransaction(false, "backend")
+	sendTransaction(false, "rum-js")
+	sendTransaction(true, "backend")
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "traces-apm*", estest.TermQuery{
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*", estest.TermQuery{
 		Field: "transaction.type",
 		Value: transactionType,
 	})
-	assert.Len(t, result.Hits.Hits, 1)
+	assert.Len(t, result.Hits.Hits, 2)
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+
+	doc := getBeatsMonitoringStats(t, srv, nil)
+	transactionsDropped := gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.sampling.transactions_dropped")
+	assert.Equal(t, int64(1), transactionsDropped.Int())
 }
 
 func TestTailSampling(t *testing.T) {

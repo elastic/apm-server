@@ -58,7 +58,6 @@ import (
 	"github.com/elastic/apm-server/model/modelindexer"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/sampling"
 	"github.com/elastic/apm-server/sourcemap"
 )
 
@@ -533,9 +532,13 @@ func (s *serverRunner) run(listener net.Listener) error {
 	defer closeFinalBatchProcessor(s.backgroundContext)
 
 	batchProcessor = append(batchProcessor,
-		// The server always discards unsampled transactions. It is important that this
-		// is done just before calling the publisher to avoid affecting aggregations.
-		sampling.NewDiscardUnsampledBatchProcessor(),
+		// The server always drops non-RUM unsampled transactions. We store RUM unsampled
+		// transactions as they are needed by the User Experience app, which performs
+		// aggregations over dimensions that are not available in transaction metrics.
+		//
+		// It is important that this is done just before calling the publisher to
+		// avoid affecting aggregations.
+		modelprocessor.NewDropUnsampled(false /* don't drop RUM unsampled transactions*/),
 		modelprocessor.DroppedSpansStatsDiscarder{},
 		finalBatchProcessor,
 	)
