@@ -29,9 +29,9 @@ include::features.asciidoc[]
 
 include::how-to.asciidoc[]
 
-include::input-apm.asciidoc[]
+include::manage-storage.asciidoc[]
 
-include::data-streams.asciidoc[]
+include::input-apm.asciidoc[]
 
 include::secure-agent-communication.asciidoc[]
 
