@@ -19,6 +19,7 @@ package modeldecoderutil
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
@@ -43,9 +44,18 @@ func MergeLabels(eventLabels common.MapStr, to *model.APMEvent) {
 	if to.Labels == nil {
 		to.Labels = make(model.Labels)
 	}
-	for k, v := range NormalizeLabelValues(eventLabels.Clone()) {
-		if !to.NumericLabels.MaybeSet(k, v) {
-			to.Labels.MaybeSet(k, v)
+	for k, v := range eventLabels {
+		switch v := v.(type) {
+		case string:
+			to.Labels.Set(k, v)
+		case bool:
+			to.Labels.Set(k, strconv.FormatBool(v))
+		case float64:
+			to.NumericLabels.Set(k, v)
+		case json.Number:
+			if floatVal, err := v.Float64(); err == nil {
+				to.NumericLabels.Set(k, floatVal)
+			}
 		}
 	}
 	if len(to.NumericLabels) == 0 {
