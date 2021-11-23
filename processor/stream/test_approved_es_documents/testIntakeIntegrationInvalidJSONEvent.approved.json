@@ -10,7 +10,9 @@
                 "outcome": "unknown"
             },
             "host": {
-                "ip": "192.0.0.1"
+                "ip": [
+                    "192.0.0.1"
+                ]
             },
             "parent": {
                 "id": "abcdef0123456789"
