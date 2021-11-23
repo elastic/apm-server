@@ -148,7 +148,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -315,7 +317,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -483,7 +487,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -604,7 +610,8 @@
                 "version": "4.3.0"
             },
             "source": {
-                "ip": "12.53.12.1"
+                "ip": "12.53.12.1",
+                "port": 8080
             },
             "timestamp": {
                 "us": 1571657444929001
@@ -675,7 +682,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"

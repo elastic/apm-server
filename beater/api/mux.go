@@ -309,21 +309,20 @@ func emptyRequestMetadata(c *request.Context) model.APMEvent {
 }
 
 func backendRequestMetadata(c *request.Context) model.APMEvent {
+	var hostIP []net.IP
+	if c.ClientIP != nil {
+		hostIP = []net.IP{c.ClientIP}
+	}
 	return model.APMEvent{
-		Host:      model.Host{IP: c.ClientIP},
+		Host:      model.Host{IP: hostIP},
 		Timestamp: c.Timestamp,
 	}
 }
 
 func rumRequestMetadata(c *request.Context) model.APMEvent {
-	var source model.Source
-	if tcpAddr, ok := c.SourceAddr.(*net.TCPAddr); ok {
-		source.IP = tcpAddr.IP
-		source.Port = tcpAddr.Port
-	}
 	return model.APMEvent{
 		Client:    model.Client{IP: c.ClientIP},
-		Source:    source,
+		Source:    model.Source{IP: c.SourceIP, Port: c.SourcePort},
 		Timestamp: c.Timestamp,
 		UserAgent: model.UserAgent{Original: c.UserAgent},
 	}

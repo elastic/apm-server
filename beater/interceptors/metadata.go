@@ -26,7 +26,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/internal/netutil"
 )
 
 // ClientMetadata returns an interceptor that intercepts unary gRPC requests,
@@ -52,7 +52,7 @@ func ClientMetadata() grpc.UnaryServerInterceptor {
 				values.UserAgent = ua[0]
 			}
 			// Account for `forwarded`, `x-real-ip`, `x-forwarded-for` headers
-			if ip := utility.ExtractIPFromHeader(http.Header(md)); ip != nil {
+			if ip, _ := netutil.ClientAddrFromHeaders(http.Header(md)); ip != nil {
 				values.ClientIP = ip
 			}
 		}
