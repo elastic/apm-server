@@ -52,7 +52,6 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/approvaltest"
@@ -442,9 +441,9 @@ func TestDatabaseSpan(t *testing.T) {
 		UserName:  "billing_user",
 	}, event.Span.DB)
 
-	assert.Equal(t, common.MapStr{
-		"db_connection_string": connectionString,
-		"net_transport":        "IP.TCP",
+	assert.Equal(t, model.Labels{
+		"db_connection_string": {Value: connectionString},
+		"net_transport":        {Value: "IP.TCP"},
 	}, event.Labels)
 
 	assert.Equal(t, model.Destination{
@@ -608,13 +607,13 @@ func TestArrayLabels(t *testing.T) {
 		"int_array":    intArray,
 		"float_array":  floatArray,
 	})
-	assert.Equal(t, common.MapStr{
-		"bool_array":   []interface{}{"false", "true"},
-		"string_array": []interface{}{"string1", "string2"},
+	assert.Equal(t, model.Labels{
+		"bool_array":   {Values: []string{"false", "true"}},
+		"string_array": {Values: []string{"string1", "string2"}},
 	}, txEvent.Labels)
-	assert.Equal(t, common.MapStr{
-		"int_array":   []interface{}{float64(1234), float64(5678)},
-		"float_array": []interface{}{1234.5678, 9123.234123123},
+	assert.Equal(t, model.NumericLabels{
+		"int_array":   {Values: []float64{1234, 5678}},
+		"float_array": {Values: []float64{1234.5678, 9123.234123123}},
 	}, txEvent.NumericLabels)
 
 	spanEvent := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{
@@ -623,13 +622,13 @@ func TestArrayLabels(t *testing.T) {
 		"int_array":    intArray,
 		"float_array":  floatArray,
 	})
-	assert.Equal(t, common.MapStr{
-		"bool_array":   []interface{}{"false", "true"},
-		"string_array": []interface{}{"string1", "string2"},
+	assert.Equal(t, model.Labels{
+		"bool_array":   {Values: []string{"false", "true"}},
+		"string_array": {Values: []string{"string1", "string2"}},
 	}, spanEvent.Labels)
-	assert.Equal(t, common.MapStr{
-		"int_array":   []interface{}{float64(1234), float64(5678)},
-		"float_array": []interface{}{1234.5678, 9123.234123123},
+	assert.Equal(t, model.NumericLabels{
+		"int_array":   {Values: []float64{1234, 5678}},
+		"float_array": {Values: []float64{1234.5678, 9123.234123123}},
 	}, spanEvent.NumericLabels)
 }
 

@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	otel_processor "github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/v7/libbeat/common"
 
 	"go.opentelemetry.io/collector/model/pdata"
 )
@@ -1240,10 +1239,10 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 		out.Span.Kind = from.SpanKind.Val
 	}
 	if out.Labels == nil {
-		out.Labels = make(common.MapStr)
+		out.Labels = make(model.Labels)
 	}
 	if out.NumericLabels == nil {
-		out.NumericLabels = make(common.MapStr)
+		out.NumericLabels = make(model.NumericLabels)
 	}
 	// TODO: Does this work? Is there a way we can infer the status code,
 	// potentially in the actual attributes map?
@@ -1268,10 +1267,10 @@ const spanKindStringPrefix = "SPAN_KIND_"
 func mapOTelAttributesSpan(from otel, out *model.APMEvent) {
 	m := otelAttributeMap(&from)
 	if out.Labels == nil {
-		out.Labels = make(common.MapStr)
+		out.Labels = make(model.Labels)
 	}
 	if out.NumericLabels == nil {
-		out.NumericLabels = make(common.MapStr)
+		out.NumericLabels = make(model.NumericLabels)
 	}
 	var spanKind pdata.SpanKind
 	if from.SpanKind.IsSet() {

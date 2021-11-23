@@ -69,11 +69,11 @@ type APMEvent struct {
 	// keywords. Supports slice values.
 	//
 	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-labels
-	Labels common.MapStr
+	Labels Labels
 
 	// NumericLabels holds the numeric (scaled_float) labels to apply to the event.
 	// Supports slice values.
-	NumericLabels common.MapStr
+	NumericLabels NumericLabels
 
 	// Message holds the message for log events.
 	//
@@ -140,8 +140,8 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("kubernetes", e.Kubernetes.fields())
 	fields.maybeSetMapStr("cloud", e.Cloud.fields())
 	fields.maybeSetMapStr("network", e.Network.fields())
-	fields.maybeSetMapStr("labels", sanitizeLabels(e.Labels))
-	fields.maybeSetMapStr("numeric_labels", sanitizeLabels(e.NumericLabels))
+	fields.maybeSetMapStr("labels", e.Labels.fields())
+	fields.maybeSetMapStr("numeric_labels", e.NumericLabels.fields())
 	fields.maybeSetMapStr("event", e.Event.fields())
 	fields.maybeSetMapStr("url", e.URL.fields())
 	fields.maybeSetMapStr("session", e.Session.fields())

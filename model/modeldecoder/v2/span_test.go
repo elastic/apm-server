@@ -455,13 +455,13 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		}
 		var out model.APMEvent
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, common.MapStr{
-			"a": "b",
-			"e": "true",
+		assert.Equal(t, model.Labels{
+			"a": {Value: "b"},
+			"e": {Value: "true"},
 		}, out.Labels)
-		assert.Equal(t, common.MapStr{
-			"c": float64(12315124131),
-			"d": float64(12315124131.12315124131),
+		assert.Equal(t, model.NumericLabels{
+			"c": {Value: float64(12315124131)},
+			"d": {Value: float64(12315124131.12315124131)},
 		}, out.NumericLabels)
 	})
 }
