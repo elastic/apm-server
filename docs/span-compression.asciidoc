@@ -61,5 +61,5 @@ Spans with longer duration are not compressed. Please refer to the agent documen
 
 Support for span compression is available in these agents:
 
- * Go: {apm-go-ref}/configuration.html#config-span-compression-exact-match-duration[`ELASTIC_APM_SPAN_COMPRESSION_EXACT_MATCH_MAX_DURATION`], {apm-go-ref}/configuration.html#config-span-compression-same-kind-duration[`ELASTIC_APM_SPAN_COMPRESSION_SAME_KIND_MAX_DURATION`]
+ * Go: https://www.elastic.co/guide/en/apm/agent/go/master/configuration.html#config-span-compression-exact-match-duration[`ELASTIC_APM_SPAN_COMPRESSION_EXACT_MATCH_MAX_DURATION`], https://www.elastic.co/guide/en/apm/agent/go/master/configuration.html#config-span-compression-same-kind-duration[`ELASTIC_APM_SPAN_COMPRESSION_SAME_KIND_MAX_DURATION`]
  * Python: {apm-py-ref}/configuration.html#config-span-compression-exact-match-max_duration[`span_compression_exact_match_max_duration`], {apm-py-ref}/configuration.html#config-span-compression-same-kind-max-duration[`span_compression_same_kind_max_duration`]
