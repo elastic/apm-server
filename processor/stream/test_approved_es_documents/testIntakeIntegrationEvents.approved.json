@@ -141,7 +141,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "8ec7ceb99074",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -293,7 +295,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "8ec7ceb99074",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -447,7 +451,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "8ec7ceb99074",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -626,7 +632,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "8ec7ceb99074",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"

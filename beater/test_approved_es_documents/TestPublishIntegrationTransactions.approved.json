@@ -44,7 +44,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -183,7 +185,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -403,7 +407,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -562,7 +568,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -734,7 +742,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"

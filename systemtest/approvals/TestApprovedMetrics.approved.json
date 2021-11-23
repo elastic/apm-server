@@ -18,7 +18,9 @@
             },
             "go.memstats.heap.sys.bytes": 6520832,
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "labels": {
                 "some": "abc",
@@ -77,7 +79,9 @@
                 "ingested": "dynamic"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "labels": {
                 "some": "abc",
@@ -138,7 +142,9 @@
                 "ingested": "dynamic"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "labels": {
                 "some": "abc",
@@ -205,7 +211,9 @@
                 "ingested": "dynamic"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "labels": {
                 "some": "abc",
@@ -276,7 +284,9 @@
                 "ingested": "dynamic"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "labels": {
                 "some": "abc",

@@ -1,7 +1,10 @@
 {
     "architecture": "amd",
     "hostname": "host",
-    "ip": "127.0.0.1",
+    "ip": [
+        "127.0.0.1",
+        "::1"
+    ],
     "name": "custom hostname",
     "os": {
         "full": "Mac OS Mojave",

@@ -20,7 +20,9 @@
             "host": {
                 "architecture": "i386",
                 "hostname": "beowulf",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "beowulf",
                 "os": {
                     "platform": "minix"
