@@ -22,10 +22,12 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"sync/atomic"
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/go-sourcemap/sourcemap"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -83,6 +85,10 @@ func TestFleetFetch(t *testing.T) {
 }
 
 func TestFailedAndSuccessfulFleetHostsFetch(t *testing.T) {
+	type response struct {
+		consumer *sourcemap.Consumer
+		err      error
+	}
 	var (
 		apikey        = "supersecret"
 		name          = "webapp"
@@ -90,20 +96,42 @@ func TestFailedAndSuccessfulFleetHostsFetch(t *testing.T) {
 		path          = "/my/path/to/bundle.js.map"
 		c             = http.DefaultClient
 		sourceMapPath = "/api/fleet/artifact"
+		successc      = make(chan struct{})
+		errc          = make(chan struct{})
+		lastc         = make(chan struct{})
+		waitc         = make(chan struct{})
+		resc          = make(chan response)
+		wg            sync.WaitGroup
 	)
+	wg.Add(3)
+	defer func() {
+		close(successc)
+		close(errc)
+		close(lastc)
+		close(resc)
+	}()
 
 	hError := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wg.Done()
+		errc <- struct{}{}
 		http.Error(w, "err", http.StatusInternalServerError)
 	})
 	ts0 := httptest.NewServer(hError)
 
-	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	h1 := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wg.Done()
+		successc <- struct{}{}
 		wr := zlib.NewWriter(w)
 		defer wr.Close()
 		wr.Write([]byte(resp))
 	})
-	ts1 := httptest.NewServer(h)
-	ts2 := httptest.NewServer(h)
+	ts1 := httptest.NewServer(h1)
+	h2 := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wg.Done()
+		lastc <- struct{}{}
+		close(waitc)
+	})
+	ts2 := httptest.NewServer(h2)
 
 	fleetCfg := &config.Fleet{
 		Hosts:        []string{ts0.URL[7:], ts1.URL[7:], ts2.URL[7:]},
@@ -123,9 +151,21 @@ func TestFailedAndSuccessfulFleetHostsFetch(t *testing.T) {
 	f, err := NewFleetFetcher(c, fleetCfg, cfgs)
 	assert.NoError(t, err)
 
-	consumer, err := f.Fetch(context.Background(), name, version, path)
-	assert.NoError(t, err)
-	assert.NotNil(t, consumer)
+	go func() {
+		consumer, err := f.Fetch(context.Background(), name, version, path)
+		resc <- response{consumer, err}
+	}()
+	// Make sure every server has received a request
+	wg.Wait()
+	<-errc
+	<-successc
+	res := <-resc
+	assert.NoError(t, res.err)
+	assert.NotNil(t, res.consumer)
+
+	// Wait for h2
+	<-lastc
+	<-waitc
 }
 
 func TestAllFailedFleetHostsFetch(t *testing.T) {
