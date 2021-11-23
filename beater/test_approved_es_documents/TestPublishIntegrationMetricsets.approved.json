@@ -13,7 +13,9 @@
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "labels": {
                 "some": "abc",
@@ -80,13 +82,18 @@
             },
             "go.memstats.heap.sys.bytes": 6520832,
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "labels": {
+                "some": "abc",
+                "success": "true",
                 "tag1": "one"
             },
             "metricset.name": "app",
             "numeric_labels": {
+                "code": 200,
                 "tag2": 2
             },
             "observer": {
@@ -131,13 +138,18 @@
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "labels": {
+                "some": "abc",
+                "success": "true",
                 "tag1": "one"
             },
             "metricset.name": "app",
             "numeric_labels": {
+                "code": 200,
                 "tag2": 2
             },
             "observer": {
@@ -184,13 +196,18 @@
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "labels": {
+                "some": "abc",
+                "success": "true",
                 "tag1": "one"
             },
             "metricset.name": "app",
             "numeric_labels": {
+                "code": 200,
                 "tag2": 2
             },
             "observer": {
@@ -249,9 +266,13 @@
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "labels": {
+                "some": "abc",
+                "success": "true",
                 "tag1": "one"
             },
             "latency_distribution": {
@@ -268,6 +289,7 @@
             },
             "metricset.name": "app",
             "numeric_labels": {
+                "code": 200,
                 "tag2": 2
             },
             "observer": {

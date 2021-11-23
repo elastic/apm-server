@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 const dataset = "apm.firehose"
@@ -211,11 +210,12 @@ func processMetrics(event model.APMEvent, cwMetric cloudwatchMetric) model.APMEv
 	namespace = strings.ReplaceAll(namespace, "/", ".")
 	event.DataStream.Dataset = dataset + "-" + namespace
 
-	labels := common.MapStr{}
-	for k, v := range cwMetric.Dimensions {
-		labels[k] = v
+	if event.Labels == nil {
+		event.Labels = make(model.Labels)
 	}
-	event.Labels = labels
+	for k, v := range cwMetric.Dimensions {
+		event.Labels.Set(k, v)
+	}
 
 	var metricset model.Metricset
 	metricset.Name = namespace

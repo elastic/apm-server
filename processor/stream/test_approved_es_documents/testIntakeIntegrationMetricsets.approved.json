@@ -7,7 +7,9 @@
                 "version": "3.14.0"
             },
             "host": {
-                "ip": "192.0.0.1"
+                "ip": [
+                    "192.0.0.1"
+                ]
             },
             "labels": {
                 "some": "abc",
@@ -60,12 +62,17 @@
             },
             "go.memstats.heap.sys.bytes": 6520832,
             "host": {
-                "ip": "192.0.0.1"
+                "ip": [
+                    "192.0.0.1"
+                ]
             },
             "labels": {
+                "some": "abc",
+                "success": "true",
                 "tag1": "one"
             },
             "numeric_labels": {
+                "code": 200,
                 "tag2": 2
             },
             "process": {
@@ -97,12 +104,17 @@
                 "version": "3.14.0"
             },
             "host": {
-                "ip": "192.0.0.1"
+                "ip": [
+                    "192.0.0.1"
+                ]
             },
             "labels": {
+                "some": "abc",
+                "success": "true",
                 "tag1": "one"
             },
             "numeric_labels": {
+                "code": 200,
                 "tag2": 2
             },
             "process": {
@@ -136,12 +148,17 @@
                 "version": "3.14.0"
             },
             "host": {
-                "ip": "192.0.0.1"
+                "ip": [
+                    "192.0.0.1"
+                ]
             },
             "labels": {
+                "some": "abc",
+                "success": "true",
                 "tag1": "one"
             },
             "numeric_labels": {
+                "code": 200,
                 "tag2": 2
             },
             "process": {
@@ -187,9 +204,13 @@
                 "version": "3.14.0"
             },
             "host": {
-                "ip": "192.0.0.1"
+                "ip": [
+                    "192.0.0.1"
+                ]
             },
             "labels": {
+                "some": "abc",
+                "success": "true",
                 "tag1": "one"
             },
             "latency_distribution": {
@@ -205,6 +226,7 @@
                 ]
             },
             "numeric_labels": {
+                "code": 200,
                 "tag2": 2
             },
             "process": {

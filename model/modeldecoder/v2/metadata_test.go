@@ -18,6 +18,7 @@
 package v2
 
 import (
+	"net"
 	"reflect"
 	"strings"
 	"testing"
@@ -25,15 +26,23 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
 )
 
 func isMetadataException(key string) bool {
-	return isUnmappedMetadataField(key) || isEventField(key)
+	return isUnmappedMetadataField(key) || isEventField(key) || isIgnoredPrefix(key)
+}
+
+func isIgnoredPrefix(key string) bool {
+	ignore := []string{"Labels", "NumericLabels"}
+	for _, k := range ignore {
+		if strings.HasPrefix(key, k) {
+			return true
+		}
+	}
+	return false
 }
 
 // unmappedMetadataFields holds the list of model fields that have no equivalent
@@ -86,7 +95,6 @@ func isUnmappedMetadataField(key string) bool {
 		"Observer.Type",
 		"Observer.Version",
 		"Observer.VersionMajor",
-		"NumericLabels", // Tested individually.
 		"Parent",
 		"Parent.ID",
 		"Process.CommandLine",
@@ -178,13 +186,13 @@ func TestDecodeMetadata(t *testing.T) {
 			assert.Equal(t, model.APMEvent{
 				Service: model.Service{Name: "user-service"},
 				Agent:   model.Agent{Name: "go", Version: "1.0.0"},
-				Labels: common.MapStr{
-					"a": "b",
-					"c": "true",
+				Labels: model.Labels{
+					"a": {Value: "b"},
+					"c": {Value: "true"},
 				},
-				NumericLabels: common.MapStr{
-					"d": float64(1234),
-					"e": float64(1234.11),
+				NumericLabels: model.NumericLabels{
+					"d": {Value: float64(1234)},
+					"e": {Value: float64(1234.11)},
 				},
 			}, out)
 
@@ -256,7 +264,7 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
 		out2.Timestamp = otherVal.Time
-		out2.Host.IP = defaultVal.IP
+		out2.Host.IP = []net.IP{defaultVal.IP}
 		out2.Client.IP = defaultVal.IP
 		out2.Source.IP = defaultVal.IP
 		modeldecodertest.AssertStructValues(t, &out2, isMetadataException, otherVal)

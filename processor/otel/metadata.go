@@ -28,7 +28,6 @@ import (
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 const (
@@ -131,10 +130,10 @@ func translateResourceMetadata(resource pdata.Resource, out *model.APMEvent) {
 
 		default:
 			if out.Labels == nil {
-				out.Labels = make(common.MapStr)
+				out.Labels = make(model.Labels)
 			}
 			if out.NumericLabels == nil {
-				out.NumericLabels = make(common.MapStr)
+				out.NumericLabels = make(model.NumericLabels)
 			}
 			setLabel(replaceDots(k), out, ifaceAttributeValue(v))
 		}
@@ -167,12 +166,14 @@ func translateResourceMetadata(resource pdata.Resource, out *model.APMEvent) {
 		out.Agent.Name = AgentNameJaeger
 
 		// Translate known Jaeger labels.
-		if clientUUID, ok := out.Labels["client-uuid"].(string); ok {
-			out.Agent.EphemeralID = clientUUID
+		if clientUUID, ok := out.Labels["client-uuid"]; ok {
+			out.Agent.EphemeralID = clientUUID.Value
 			delete(out.Labels, "client-uuid")
 		}
-		if systemIP, ok := out.Labels["ip"].(string); ok {
-			out.Host.IP = net.ParseIP(systemIP)
+		if systemIP, ok := out.Labels["ip"]; ok {
+			if ip := net.ParseIP(systemIP.Value); ip != nil {
+				out.Host.IP = []net.IP{ip}
+			}
 			delete(out.Labels, "ip")
 		}
 	}
@@ -233,22 +234,30 @@ func initEventLabels(e *model.APMEvent) {
 func setLabel(key string, event *model.APMEvent, v interface{}) {
 	switch v := v.(type) {
 	case string:
-		event.Labels[key] = v
+		event.Labels.Set(key, v)
 	case bool:
-		event.Labels[key] = strconv.FormatBool(v)
+		event.Labels.Set(key, strconv.FormatBool(v))
 	case float64:
-		event.NumericLabels[key] = v
+		event.NumericLabels.Set(key, v)
 	case int64:
-		event.NumericLabels[key] = float64(v)
+		event.NumericLabels.Set(key, float64(v))
 	case []interface{}:
 		if len(v) == 0 {
 			return
 		}
 		switch v[0].(type) {
 		case string:
-			event.Labels[key] = v
+			value := make([]string, len(v))
+			for i := range v {
+				value[i] = v[i].(string)
+			}
+			event.Labels.SetSlice(key, value)
 		case float64:
-			event.NumericLabels[key] = v
+			value := make([]float64, len(v))
+			for i := range v {
+				value[i] = v[i].(float64)
+			}
+			event.NumericLabels.SetSlice(key, value)
 		}
 	}
 }

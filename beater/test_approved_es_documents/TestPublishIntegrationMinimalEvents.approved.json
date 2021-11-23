@@ -20,7 +20,9 @@
                 }
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "message": "error log message",
             "observer": {
@@ -63,7 +65,9 @@
                 "id": "abcdef0123456790"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "message": "error exception message",
             "observer": {
@@ -106,7 +110,9 @@
                 "id": "abcdef0123456791"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -142,7 +148,9 @@
                 "outcome": "unknown"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -192,7 +200,9 @@
                 "outcome": "unknown"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -242,7 +252,9 @@
                 "outcome": "unknown"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "labels": {
                 "wrapped_reporter": "true"
@@ -293,7 +305,9 @@
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "metricset.name": "app",
             "observer": {

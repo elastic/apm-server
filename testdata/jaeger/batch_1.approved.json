@@ -12,7 +12,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_location": "728,326"
@@ -55,7 +57,9 @@
             "data_stream.type": "logs",
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "event": "Found drivers",
@@ -90,7 +94,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T762465C"
@@ -142,7 +148,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "driver_id": "T762465C"
@@ -179,7 +187,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T762465C"
@@ -224,7 +234,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T712515C"
@@ -269,7 +281,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T752110C"
@@ -314,7 +328,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T757670C"
@@ -359,7 +375,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T781861C"
@@ -411,7 +429,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "driver_id": "T781861C"
@@ -448,7 +468,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T781861C"
@@ -493,7 +515,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T705860C"
@@ -538,7 +562,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T708771C"
@@ -583,7 +609,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T710624C"
@@ -628,7 +656,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T752547C"
@@ -680,7 +710,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "driver_id": "T752547C"
@@ -717,7 +749,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T752547C"
@@ -762,7 +796,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T757338C"

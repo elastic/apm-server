@@ -29,13 +29,12 @@ import (
 	"time"
 
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/internal/netutil"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecoderutil"
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	otel_processor "github.com/elastic/apm-server/processor/otel"
-	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/v7/libbeat/common"
 
 	"go.opentelemetry.io/collector/model/pdata"
 )
@@ -290,12 +289,15 @@ func mapToCloudModel(from contextCloud, cloud *model.Cloud) {
 func mapToClientModel(from contextRequest, source *model.Source, client *model.Client) {
 	// http.Request.Headers and http.Request.Socket are only set for backend events.
 	if source.IP == nil {
-		source.IP = utility.ParseIP(from.Socket.RemoteAddress.Val)
+		ip, port := netutil.ParseIPPort(
+			netutil.MaybeSplitHostPort(from.Socket.RemoteAddress.Val),
+		)
+		source.IP, source.Port = ip, int(port)
 	}
 	if client.IP == nil {
 		client.IP = source.IP
-		if ip := utility.ExtractIPFromHeader(from.Headers.Val); ip != nil {
-			client.IP = ip
+		if ip, port := netutil.ClientAddrFromHeaders(from.Headers.Val); ip != nil {
+			client.IP, client.Port = ip, int(port)
 		}
 	}
 }
@@ -1240,10 +1242,10 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 		out.Span.Kind = from.SpanKind.Val
 	}
 	if out.Labels == nil {
-		out.Labels = make(common.MapStr)
+		out.Labels = make(model.Labels)
 	}
 	if out.NumericLabels == nil {
-		out.NumericLabels = make(common.MapStr)
+		out.NumericLabels = make(model.NumericLabels)
 	}
 	// TODO: Does this work? Is there a way we can infer the status code,
 	// potentially in the actual attributes map?
@@ -1268,10 +1270,10 @@ const spanKindStringPrefix = "SPAN_KIND_"
 func mapOTelAttributesSpan(from otel, out *model.APMEvent) {
 	m := otelAttributeMap(&from)
 	if out.Labels == nil {
-		out.Labels = make(common.MapStr)
+		out.Labels = make(model.Labels)
 	}
 	if out.NumericLabels == nil {
-		out.NumericLabels = make(common.MapStr)
+		out.NumericLabels = make(model.NumericLabels)
 	}
 	var spanKind pdata.SpanKind
 	if from.SpanKind.IsSet() {

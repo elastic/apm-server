@@ -43,7 +43,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "os": {
                     "platform": "darwin"
                 }
@@ -59,7 +61,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -158,7 +161,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "os": {
                     "platform": "darwin"
                 }
@@ -174,7 +179,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "parent": {
                 "id": "0000000011111111"
@@ -271,7 +277,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "os": {
                     "platform": "darwin"
                 }
@@ -390,7 +398,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "os": {
                     "platform": "darwin"
                 }
@@ -406,7 +416,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "parent": {
                 "id": "ababcdcdefefabde"
@@ -509,7 +520,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "os": {
                     "platform": "darwin"
                 }
@@ -536,7 +549,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -706,7 +720,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "os": {
                     "platform": "darwin"
                 }
@@ -722,7 +738,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -830,7 +847,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "os": {
                     "platform": "darwin"
                 }
@@ -846,7 +865,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "parent": {
                 "id": "abcdef0123456789"

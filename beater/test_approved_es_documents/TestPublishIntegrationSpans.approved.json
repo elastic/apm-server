@@ -49,7 +49,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -66,7 +68,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -181,7 +184,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -198,7 +203,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -311,7 +317,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -447,7 +455,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -464,7 +474,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -583,7 +594,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -611,7 +624,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -797,7 +811,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -814,7 +830,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -938,7 +955,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -955,7 +974,8 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",

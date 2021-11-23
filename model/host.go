@@ -40,10 +40,8 @@ type Host struct {
 	// Type holds the host type, e.g. cloud instance machine type.
 	Type string
 
-	// IP holds the host IP address.
-	//
-	// TODO(axw) this should be a slice.
-	IP net.IP
+	// IP holds the IP addresses of the host.
+	IP []net.IP
 
 	// OS holds information about the operating system running on the host.
 	OS OS
@@ -58,8 +56,12 @@ func (h *Host) fields() common.MapStr {
 	fields.maybeSetString("name", h.Name)
 	fields.maybeSetString("architecture", h.Architecture)
 	fields.maybeSetString("type", h.Type)
-	if h.IP != nil {
-		fields.set("ip", h.IP.String())
+	if len(h.IP) > 0 {
+		ips := make([]string, len(h.IP))
+		for i, ip := range h.IP {
+			ips[i] = ip.String()
+		}
+		fields.set("ip", ips)
 	}
 	fields.maybeSetMapStr("os", h.OS.fields())
 	return common.MapStr(fields)

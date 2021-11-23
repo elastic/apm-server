@@ -334,7 +334,7 @@ func TranslateTransaction(
 			case "http.protocol":
 				if !strings.HasPrefix(stringval, "HTTP/") {
 					// Unexpected, store in labels for debugging.
-					event.Labels[k] = stringval
+					event.Labels.Set(k, stringval)
 					break
 				}
 				stringval = strings.TrimPrefix(stringval, "HTTP/")
@@ -398,7 +398,7 @@ func TranslateTransaction(
 				component = stringval
 				fallthrough
 			default:
-				event.Labels[k] = stringval
+				event.Labels.Set(k, stringval)
 			}
 		}
 		return true
@@ -651,7 +651,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 				component = stringval
 				fallthrough
 			default:
-				event.Labels[k] = stringval
+				event.Labels.Set(k, stringval)
 			}
 		}
 		return true
@@ -804,12 +804,12 @@ func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, even
 			}
 		}
 	default:
-		event.Labels["sampler_type"] = samplerType
+		event.Labels.Set("sampler_type", samplerType)
 		switch samplerParam.Type() {
 		case pdata.AttributeValueTypeBool:
-			event.Labels["sampler_param"] = strconv.FormatBool(samplerParam.BoolVal())
+			event.Labels.Set("sampler_param", strconv.FormatBool(samplerParam.BoolVal()))
 		case pdata.AttributeValueTypeDouble:
-			event.NumericLabels["sampler_param"] = samplerParam.DoubleVal()
+			event.NumericLabels.Set("sampler_param", samplerParam.DoubleVal())
 		}
 	}
 }

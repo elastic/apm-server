@@ -141,7 +141,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "8ec7ceb99074",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -205,9 +207,11 @@
             "labels": {
                 "ab_testing": "true",
                 "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true"
             },
             "numeric_labels": {
+                "code": 200,
                 "segment": 5
             },
             "parent": {
@@ -291,7 +295,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "8ec7ceb99074",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -325,9 +331,12 @@
             },
             "labels": {
                 "ab_testing": "true",
-                "group": "experimental"
+                "group": "experimental",
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true"
             },
             "numeric_labels": {
+                "code": 200,
                 "segment": 5
             },
             "parent": {
@@ -442,7 +451,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "8ec7ceb99074",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -512,9 +523,11 @@
             "labels": {
                 "ab_testing": "true",
                 "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true"
             },
             "numeric_labels": {
+                "code": 200,
                 "segment": 5
             },
             "parent": {
@@ -553,7 +566,8 @@
                 "version": "4.3.0"
             },
             "source": {
-                "ip": "12.53.12.1"
+                "ip": "12.53.12.1",
+                "port": 8080
             },
             "timestamp": {
                 "us": 1571657444929001
@@ -618,7 +632,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "8ec7ceb99074",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -637,6 +653,7 @@
             "labels": {
                 "ab_testing": "true",
                 "group": "experimental",
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "success": "true"
             },
             "numeric_labels": {

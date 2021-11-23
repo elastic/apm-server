@@ -61,7 +61,7 @@
     "os": {
       "platform": "Linux"
     },
-    "ip": "35.240.52.17",
+    "ip": ["35.240.52.17"],
     "architecture": "amd64"
   },
   "event": {

@@ -148,7 +148,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -212,10 +214,13 @@
             "labels": {
                 "ab_testing": "true",
                 "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true",
+                "wrapped_reporter": "true"
             },
             "message": "Request method 'POST' not supported",
             "numeric_labels": {
+                "code": 200,
                 "segment": 5
             },
             "observer": {
@@ -312,7 +317,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -346,9 +353,13 @@
             },
             "labels": {
                 "ab_testing": "true",
-                "group": "experimental"
+                "group": "experimental",
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true",
+                "wrapped_reporter": "true"
             },
             "numeric_labels": {
+                "code": 200,
                 "segment": 5
             },
             "observer": {
@@ -476,7 +487,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -547,9 +560,11 @@
                 "ab_testing": "true",
                 "group": "experimental",
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true",
                 "wrapped_reporter": "true"
             },
             "numeric_labels": {
+                "code": 200,
                 "segment": 5
             },
             "observer": {
@@ -595,7 +610,8 @@
                 "version": "4.3.0"
             },
             "source": {
-                "ip": "12.53.12.1"
+                "ip": "12.53.12.1",
+                "port": 8080
             },
             "timestamp": {
                 "us": 1571657444929001
@@ -666,7 +682,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -685,7 +703,9 @@
             "labels": {
                 "ab_testing": "true",
                 "group": "experimental",
-                "success": "true"
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true",
+                "wrapped_reporter": "true"
             },
             "metricset.name": "span_breakdown",
             "numeric_labels": {

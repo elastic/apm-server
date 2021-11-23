@@ -12,7 +12,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "as": "thrift",
@@ -60,7 +62,9 @@
             "data_stream.type": "logs",
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "event": "baggage",
@@ -91,7 +95,9 @@
             "data_stream.type": "logs",
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "event": "Searching for nearby drivers",
@@ -131,7 +137,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -177,7 +185,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -223,7 +233,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -260,7 +272,9 @@
             "data_stream.type": "logs",
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "event": "Search successful",

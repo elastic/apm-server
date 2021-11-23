@@ -44,7 +44,6 @@ import (
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestEncodeSpanEventsNonExceptions(t *testing.T) {
@@ -117,8 +116,8 @@ Caused by: LowLevelException
 		Service:       service,
 		Agent:         agent,
 		Timestamp:     timestamp,
-		Labels:        common.MapStr{},
-		NumericLabels: common.MapStr{},
+		Labels:        model.Labels{},
+		NumericLabels: model.NumericLabels{},
 		Processor:     model.ErrorProcessor,
 		Trace:         transactionEvent.Trace,
 		Parent:        model.Parent{ID: transactionEvent.Transaction.ID},
@@ -169,8 +168,8 @@ Caused by: LowLevelException
 		Service:       service,
 		Agent:         agent,
 		Timestamp:     timestamp,
-		Labels:        common.MapStr{},
-		NumericLabels: common.MapStr{},
+		Labels:        model.Labels{},
+		NumericLabels: model.NumericLabels{},
 		Processor:     model.ErrorProcessor,
 		Trace:         transactionEvent.Trace,
 		Parent:        model.Parent{ID: transactionEvent.Transaction.ID},
@@ -330,8 +329,8 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 		Service:       service,
 		Agent:         agent,
 		Timestamp:     timestamp,
-		Labels:        common.MapStr{},
-		NumericLabels: common.MapStr{},
+		Labels:        model.Labels{},
+		NumericLabels: model.NumericLabels{},
 		Processor:     model.ErrorProcessor,
 		Trace:         transactionEvent.Trace,
 		Parent:        model.Parent{ID: transactionEvent.Transaction.ID},
