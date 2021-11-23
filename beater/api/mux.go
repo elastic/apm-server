@@ -309,8 +309,12 @@ func emptyRequestMetadata(c *request.Context) model.APMEvent {
 }
 
 func backendRequestMetadata(c *request.Context) model.APMEvent {
+	var hostIP []net.IP
+	if c.ClientIP != nil {
+		hostIP = []net.IP{c.ClientIP}
+	}
 	return model.APMEvent{
-		Host:      model.Host{IP: c.ClientIP},
+		Host:      model.Host{IP: hostIP},
 		Timestamp: c.Timestamp,
 	}
 }

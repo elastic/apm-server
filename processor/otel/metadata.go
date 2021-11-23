@@ -171,7 +171,9 @@ func translateResourceMetadata(resource pdata.Resource, out *model.APMEvent) {
 			delete(out.Labels, "client-uuid")
 		}
 		if systemIP, ok := out.Labels["ip"]; ok {
-			out.Host.IP = net.ParseIP(systemIP.Value)
+			if ip := net.ParseIP(systemIP.Value); ip != nil {
+				out.Host.IP = []net.IP{ip}
+			}
 			delete(out.Labels, "ip")
 		}
 	}
