@@ -807,7 +807,7 @@ func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, even
 		event.Labels.Set("sampler_type", samplerType)
 		switch samplerParam.Type() {
 		case pdata.AttributeValueTypeBool:
-			event.Labels.MaybeSet("sampler_param", samplerParam.BoolVal())
+			event.Labels.Set("sampler_param", strconv.FormatBool(samplerParam.BoolVal()))
 		case pdata.AttributeValueTypeDouble:
 			event.NumericLabels.Set("sampler_param", samplerParam.DoubleVal())
 		}
