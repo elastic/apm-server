@@ -320,14 +320,9 @@ func backendRequestMetadata(c *request.Context) model.APMEvent {
 }
 
 func rumRequestMetadata(c *request.Context) model.APMEvent {
-	var source model.Source
-	if tcpAddr, ok := c.SourceAddr.(*net.TCPAddr); ok {
-		source.IP = tcpAddr.IP
-		source.Port = tcpAddr.Port
-	}
 	return model.APMEvent{
 		Client:    model.Client{IP: c.ClientIP},
-		Source:    source,
+		Source:    model.Source{IP: c.SourceIP, Port: c.SourcePort},
 		Timestamp: c.Timestamp,
 		UserAgent: model.UserAgent{Original: c.UserAgent},
 	}
