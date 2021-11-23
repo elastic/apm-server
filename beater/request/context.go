@@ -104,9 +104,8 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 
 	if r != nil {
 		ip, port := netutil.ParseIPPort(netutil.MaybeSplitHostPort(r.RemoteAddr))
-		c.SourceIP = ip
+		c.SourceIP, c.ClientIP = ip, ip
 		c.SourcePort = int(port)
-		c.ClientIP = ip
 		if ip, port := netutil.ClientAddrFromHeaders(r.Header); ip != nil {
 			c.ClientIP, c.ClientPort = ip, int(port)
 		}
