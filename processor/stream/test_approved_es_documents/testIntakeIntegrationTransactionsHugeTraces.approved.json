@@ -41,7 +41,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "os": {
                     "platform": "darwin"
                 }

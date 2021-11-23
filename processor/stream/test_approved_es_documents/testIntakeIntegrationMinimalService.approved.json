@@ -14,7 +14,9 @@
                 }
             },
             "host": {
-                "ip": "192.0.0.1"
+                "ip": [
+                    "192.0.0.1"
+                ]
             },
             "processor": {
                 "event": "error",
@@ -38,7 +40,9 @@
             },
             "go.memstats.heap.sys.bytes": 61235,
             "host": {
-                "ip": "192.0.0.1"
+                "ip": [
+                    "192.0.0.1"
+                ]
             },
             "processor": {
                 "event": "metric",

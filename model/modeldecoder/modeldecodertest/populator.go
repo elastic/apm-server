@@ -144,6 +144,8 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				elemVal = reflect.ValueOf(int64(values.Int))
 			case []float64:
 				elemVal = reflect.ValueOf(values.Float)
+			case []net.IP:
+				elemVal = reflect.ValueOf(values.IP)
 			case net.IP:
 				fieldVal = reflect.ValueOf(values.IP)
 			default:

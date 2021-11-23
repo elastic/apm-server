@@ -182,7 +182,7 @@ func TestIntegrationESOutput(t *testing.T) {
 			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
 			baseEvent := model.APMEvent{
-				Host:      model.Host{IP: net.ParseIP("192.0.0.1")},
+				Host:      model.Host{IP: []net.IP{net.ParseIP("192.0.0.1")}},
 				Timestamp: reqTimestamp,
 			}
 
