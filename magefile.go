@@ -45,7 +45,7 @@ func init() {
 	mage.SetBuildVariableSources(&mage.BuildVariableSources{
 		BeatVersion: filepath.Join(repo.RootDir, "cmd", "version.go"),
 		GoVersion:   filepath.Join(repo.RootDir, ".go-version"),
-		DocBranch:   filepath.Join(repo.RootDir, "docs/version.asciidoc"),
+		DocBranch:   filepath.Join(repo.RootDir, "docs/legacy/version.asciidoc"),
 	})
 
 	mage.BeatDescription = "Elastic APM Server"

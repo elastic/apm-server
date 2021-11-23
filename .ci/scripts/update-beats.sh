@@ -10,8 +10,8 @@ COMMIT_MESSAGE="Update to elastic/beats@$(go list -m -f {{.Version}} github.com/
 
 git checkout -b "update-beats-$(date "+%Y%m%d%H%M%S")"
 git add --ignore-errors go.mod go.sum NOTICE.txt \
-	.go-version docs/version.asciidoc \
-	docs/fields.asciidoc include/fields.go x-pack/apm-server/include/fields.go
+	.go-version docs/legacy/version.asciidoc \
+	docs/legacy/fields.asciidoc include/fields.go x-pack/apm-server/include/fields.go
 
 find . -maxdepth 2 -name Dockerfile -exec git add {} \;
 
