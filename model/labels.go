@@ -45,10 +45,16 @@ func (l Labels) SetSlice(k string, v []string) {
 	l[k] = LabelValue{Values: v}
 }
 
+// Clone creates a deep copy of Labels.
 func (l Labels) Clone() Labels {
 	cp := make(Labels)
 	for k, v := range l {
-		cp[k] = v
+		to := LabelValue{Value: v.Value}
+		if len(v.Values) > 0 {
+			to.Values = make([]string, len(v.Values))
+			copy(to.Values, v.Values)
+		}
+		cp[k] = to
 	}
 	return cp
 }
@@ -87,10 +93,16 @@ func (l NumericLabels) SetSlice(k string, v []float64) {
 	l[k] = NumericLabelValue{Values: v}
 }
 
+// Clone creates a deep copy of NumericLabels.
 func (l NumericLabels) Clone() NumericLabels {
 	cp := make(NumericLabels)
 	for k, v := range l {
-		cp[k] = v
+		to := NumericLabelValue{Value: v.Value}
+		if len(v.Values) > 0 {
+			to.Values = make([]float64, len(v.Values))
+			copy(to.Values, v.Values)
+		}
+		cp[k] = to
 	}
 	return cp
 }
