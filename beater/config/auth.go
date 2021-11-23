@@ -113,8 +113,6 @@ func defaultAnonymousAgentAuth() AnonymousAgentAuth {
 		Enabled:    false,
 		AllowAgent: []string{"rum-js", "js-base"},
 		RateLimit: RateLimit{
-			// TODO: Cloud is using the deprecated rum.rate_limit, should we update it there?
-			// https://github.com/elastic/cloud-assets/blob/master/stackpack/apm/config/apm-server.yml#L94-L99
 			EventLimit: 300,
 			IPLimit:    1000,
 		},
