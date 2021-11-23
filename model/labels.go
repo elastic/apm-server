@@ -18,29 +18,23 @@
 package model
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
+// Labels wraps a map[string]string or map[string][]string with utility
+// methods.
 type Labels map[string]LabelValue
 
+// LabelValue wraps a `string` or `[]slice` to be set as a value for a key.
+// Only one should be set, in cases where both are set, the `Values` field will
+// be used and `Value` will be ignored.
 type LabelValue struct {
-	Value  string
+	// Value holds the label `string` value.
+	Value string
+	// Values holds the label `[]string` value.
 	Values []string
-}
-
-func (l Labels) MaybeSet(k string, v interface{}) bool {
-	switch v := v.(type) {
-	case string:
-		l[k] = LabelValue{Value: v}
-	case bool:
-		l[k] = LabelValue{Value: strconv.FormatBool(v)}
-	default:
-		return false
-	}
-	return true
 }
 
 func (l Labels) Set(k string, v string) {
@@ -51,10 +45,16 @@ func (l Labels) SetSlice(k string, v []string) {
 	l[k] = LabelValue{Values: v}
 }
 
+// Clone creates a deep copy of Labels.
 func (l Labels) Clone() Labels {
 	cp := make(Labels)
 	for k, v := range l {
-		cp[k] = v
+		to := LabelValue{Value: v.Value}
+		if len(v.Values) > 0 {
+			to.Values = make([]string, len(v.Values))
+			copy(to.Values, v.Values)
+		}
+		cp[k] = to
 	}
 	return cp
 }
@@ -71,21 +71,18 @@ func (l Labels) fields() common.MapStr {
 	return sanitizeLabels(result)
 }
 
+// NumericLabels wraps a map[string]float64 or map[string][]float64 with utility
+// methods.
 type NumericLabels map[string]NumericLabelValue
 
+// NumericLabelValue wraps a `float64` or `[]float64` to be set as a value for a
+// key. Only one should be set, in cases where both are set, the `Values` field
+// will be used and `Value` will be ignored.
 type NumericLabelValue struct {
-	Value  float64
+	// Values holds holds the label `[]float64` value.
 	Values []float64
-}
-
-func (l NumericLabels) MaybeSet(k string, v interface{}) bool {
-	switch v := v.(type) {
-	case float64:
-		l[k] = NumericLabelValue{Value: v}
-	default:
-		return false
-	}
-	return true
+	// Value holds the label `float64` value.
+	Value float64
 }
 
 func (l NumericLabels) Set(k string, v float64) {
@@ -96,10 +93,16 @@ func (l NumericLabels) SetSlice(k string, v []float64) {
 	l[k] = NumericLabelValue{Values: v}
 }
 
+// Clone creates a deep copy of NumericLabels.
 func (l NumericLabels) Clone() NumericLabels {
 	cp := make(NumericLabels)
 	for k, v := range l {
-		cp[k] = v
+		to := NumericLabelValue{Value: v.Value}
+		if len(v.Values) > 0 {
+			to.Values = make([]float64, len(v.Values))
+			copy(to.Values, v.Values)
+		}
+		cp[k] = to
 	}
 	return cp
 }

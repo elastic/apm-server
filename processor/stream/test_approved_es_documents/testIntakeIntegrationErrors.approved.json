@@ -215,7 +215,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "myhostname",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "prod.example",
                 "os": {
                     "platform": "darwin"
@@ -387,7 +389,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "myhostname",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "prod.example",
                 "os": {
                     "platform": "darwin"
@@ -490,7 +494,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "myhostname",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "prod.example",
                 "os": {
                     "platform": "darwin"
@@ -593,7 +599,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "myhostname",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "prod.example",
                 "os": {
                     "platform": "darwin"
@@ -701,7 +709,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "myhostname",
-                "ip": "192.0.0.1",
+                "ip": [
+                    "192.0.0.1"
+                ],
                 "name": "prod.example",
                 "os": {
                     "platform": "darwin"
