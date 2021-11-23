@@ -31,9 +31,9 @@ type Labels map[string]LabelValue
 // Only one should be set, in cases where both are set, the `Values` field will
 // be used and `Value` will be ignored.
 type LabelValue struct {
-	// Holds the label `string` value.
+	// Value holds the label `string` value.
 	Value string
-	// Holds the label `[]string` value.
+	// Values holds the label `[]string` value.
 	Values []string
 }
 
@@ -79,9 +79,9 @@ type NumericLabels map[string]NumericLabelValue
 // key. Only one should be set, in cases where both are set, the `Values` field
 // will be used and `Value` will be ignored.
 type NumericLabelValue struct {
-	// Holds the label `[]float64` value.
+	// Values holds holds the label `[]float64` value.
 	Values []float64
-	// Holds the label `float64` value.
+	// Value holds the label `float64` value.
 	Value float64
 }
 

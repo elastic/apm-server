@@ -44,7 +44,7 @@ func MergeLabels(eventLabels common.MapStr, to *model.APMEvent) {
 	if to.Labels == nil {
 		to.Labels = make(model.Labels)
 	}
-	for k, v := range NormalizeLabelValues(eventLabels.Clone()) {
+	for k, v := range eventLabels {
 		switch v := v.(type) {
 		case string:
 			to.Labels.Set(k, v)
@@ -52,6 +52,10 @@ func MergeLabels(eventLabels common.MapStr, to *model.APMEvent) {
 			to.Labels.Set(k, strconv.FormatBool(v))
 		case float64:
 			to.NumericLabels.Set(k, v)
+		case json.Number:
+			if floatVal, err := v.Float64(); err == nil {
+				to.NumericLabels.Set(k, floatVal)
+			}
 		}
 	}
 	if len(to.NumericLabels) == 0 {
