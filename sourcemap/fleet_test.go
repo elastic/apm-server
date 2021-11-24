@@ -26,8 +26,9 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/go-sourcemap/sourcemap"
+
+	"github.com/elastic/apm-server/beater/config"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
