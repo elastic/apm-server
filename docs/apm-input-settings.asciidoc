@@ -20,7 +20,7 @@ OPTIONAL INFO AND EXAMPLE
 // tag::host-setting[]
 |
 [id="input-{input-type}-host-setting"]
-`host`
+Host
 
 | (text) Defines the host and port the server is listening on.
 Use `unix:/path/to.sock` to listen on a unix domain socket.
@@ -33,9 +33,9 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 // tag::url-setting[]
 |
 [id="input-{input-type}-url-setting"]
-`URL`
+URL
 
-| The unchangeable, publicly reachable server URL for deployments on Elastic Cloud or ECK.
+| The publicly reachable server URL. For deployments on Elastic Cloud or ECK, the default is unchangeable.
 // end::url-setting[]
 
 // =============================================================================
@@ -43,7 +43,7 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 // tag::max_header_bytes-setting[]
 |
 [id="input-{input-type}-max_header_bytes-setting"]
-`max_header_bytes`
+Maximum size of a request's header
 
 | (int) Maximum permitted size of a request's header accepted by the server to be processed (in Bytes).
 
@@ -55,7 +55,7 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 // tag::idle_timeout-setting[]
 |
 [id="input-{input-type}-idle_timeout-setting"]
-`idle_timeout`
+Idle time before underlying connection is closed
 
 | (text) Maximum amount of time to wait for the next incoming request before underlying connection is closed.
 
@@ -67,7 +67,7 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 // tag::read_timeout-setting[]
 |
 [id="input-{input-type}-read_timeout-setting"]
-`read_timeout`
+Maximum duration for reading an entire request
 
 | (text) Maximum permitted duration for reading an entire request.
 
@@ -79,7 +79,7 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 // tag::shutdown_timeout-setting[]
 |
 [id="input-{input-type}-shutdown_timeout-setting"]
-`shutdown_timeout`
+Maximum duration before releasing resources when shutting down
 
 | (text) Maximum duration in seconds before releasing resources when shutting down the server.
 
@@ -91,7 +91,7 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 // tag::write_timeout-setting[]
 |
 [id="input-{input-type}-write_timeout-setting"]
-`write_timeout`
+Maximum duration for writing a response
 
 | (text) Maximum permitted duration for writing a response.
 
@@ -103,7 +103,7 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 // tag::max_event_bytes-setting[]
 |
 [id="input-{input-type}-max_event_bytes-setting"]
-`max_event_bytes`
+Maximum size per event
 
 | (int) Maximum permitted size of an event accepted by the server to be processed (in Bytes).
 
@@ -115,7 +115,7 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 // tag::max_connections-setting[]
 |
 [id="input-{input-type}-max_connections-setting"]
-`max_connections`
+Simultaneously accepted connections
 
 | (int) Maximum number of TCP connections to accept simultaneously. `0` means unlimited.
 
@@ -127,7 +127,7 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 // tag::response_headers-setting[]
 |
 [id="input-{input-type}-response_headers-setting"]
-`response_headers`
+Custom HTTP response headers
 
 | (text) Custom HTTP headers to add to HTTP responses. Useful for security policy compliance.
 
@@ -138,7 +138,7 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 // tag::capture_personal_data-setting[]
 |
 [id="input-{input-type}-capture_personal_data-setting"]
-`capture_personal_data`
+Capture personal data
 
 | (bool) Capture personal data such as IP or User Agent.
 If true, APM Server captures the IP of the instrumented service and its User Agent if any.
@@ -151,7 +151,7 @@ If true, APM Server captures the IP of the instrumented service and its User Age
 // tag::default_service_environment-setting[]
 |
 [id="input-{input-type}-default_service_environment-setting"]
-`default_service_environment`
+Default Service Environment
 
 | (text) The default service environment for events without a defined service environment.
 
@@ -164,7 +164,7 @@ If true, APM Server captures the IP of the instrumented service and its User Age
 // tag::golang_xpvar-setting[]
 |
 [id="input-{input-type}-golang_xpvar-setting"]
-`golang_xpvar`
+Enable APM Server Golang expvar support
 
 | (bool) When set to `true`, the server exposes https://golang.org/pkg/expvar/[Golang expvar] under `/debug/vars`.
 
@@ -177,7 +177,7 @@ If true, APM Server captures the IP of the instrumented service and its User Age
 // tag::enable_rum-setting[]
 |
 [id="input-{input-type}-enable_rum-setting"]
-`enable_rum`
+Enable RUM
 
 | (bool) Enables and disables Real User Monitoring (RUM).
 
@@ -189,7 +189,7 @@ If true, APM Server captures the IP of the instrumented service and its User Age
 // tag::rum_allow_origins-setting[]
 |
 [id="input-{input-type}-rum_allow_origins-setting"]
-`rum_allow_origins`
+Allowed Origins
 
 | (text) A list of permitted origins for RUM support.
 User-agents send an Origin header that will be validated against this list.
@@ -204,7 +204,7 @@ An origin is made of a protocol scheme, host and port, without the URL path.
 // tag::rum_allow_headers-setting[]
 |
 [id="input-{input-type}-rum_allow_headers-setting"]
-`rum_allow_headers`
+Access-Control-Allow-Headers
 
 | (text) By default, HTTP requests made from the RUM agent to the APM integration are limited in the HTTP headers they are allowed to have.
 If any other headers are added, the request will be rejected by the browser due to Cross-Origin Resource Sharing (CORS) restrictions.
@@ -220,9 +220,9 @@ Configured values are appended to the default list and used as the value for the
 // tag::rum_response_headers-setting[]
 |
 [id="input-{input-type}-rum_response_headers-setting"]
-`rum_response_headers`
+Custom HTTP response headers
 
-| (text) Custom HTTP headers to add to RUM responses. For example, for security policy compliance.
+| (text) Custom HTTP headers to add to RUM responses. For example, for security policy compliance. Headers set here are in addition to those set in the "Custom HTTP response headers", but only apply to RUM responses.
 
 *Default:* none
 // end::rum_response_headers-setting[]
@@ -232,7 +232,7 @@ Configured values are appended to the default list and used as the value for the
 // tag::rum_library_frame_pattern-setting[]
 |
 [id="input-{input-type}-rum_library_frame_pattern-setting"]
-`rum_library_frame_pattern`
+Library Frame Pattern
 
 | (text) RegExp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
 If the RegExp matches, the stacktrace frame is considered to be a library frame.
@@ -248,7 +248,7 @@ This aims to provide an entry point for identifying issues.
 // tag::rum_exclude_from_grouping-setting[]
 |
 [id="input-{input-type}-rum_exclude_from_grouping-setting"]
-`rum_exclude_from_grouping`
+Exclude from grouping
 
 | (text) RegExp to be matched against a stacktrace frame's `file_name`.
 If the RegExp matches, the stacktrace frame is excluded from being used for calculating error groups.
@@ -261,7 +261,7 @@ If the RegExp matches, the stacktrace frame is excluded from being used for calc
 // tag::tls_enabled-setting[]
 |
 [id="input-{input-type}-tls_enabled-setting"]
-`tls_enabled`
+Enable TLS
 
 | (bool) Enable TLS.
 
@@ -273,7 +273,7 @@ If the RegExp matches, the stacktrace frame is excluded from being used for calc
 // tag::tls_certificate-setting[]
 |
 [id="input-{input-type}-tls_certificate-setting"]
-`tls_certificate`
+File path to server certificate
 
 | (text) The path to the file containing the certificate for server authentication. Required when TLS is enabled.
 
@@ -285,7 +285,7 @@ If the RegExp matches, the stacktrace frame is excluded from being used for calc
 // tag::tls_key-setting[]
 |
 [id="input-{input-type}-tls_key-setting"]
-`tls_key`
+File path to server certificate key
 
 | (text) The path to the file containing the Server certificate key. Required when TLS is enabled.
 
@@ -297,7 +297,7 @@ If the RegExp matches, the stacktrace frame is excluded from being used for calc
 // tag::tls_supported_protocols-setting[]
 |
 [id="input-{input-type}-tls_supported_protocols-setting"]
-`tls_supported_protocols`
+Supported protocol versions
 
 | (array) A list of allowed TLS protocol versions.
 
@@ -309,7 +309,7 @@ If the RegExp matches, the stacktrace frame is excluded from being used for calc
 // tag::tls_cipher_suites-setting[]
 |
 [id="input-{input-type}-tls_cipher_suites-setting"]
-`tls_cipher_suites`
+Cipher suites for TLS connections
 
 | (text) The list of cipher suites to use. The first entry has the highest priority.
 If this option is omitted, the Go crypto library’s https://golang.org/pkg/crypto/tls/[default suites] are used (recommended).
@@ -321,7 +321,7 @@ Note that TLS 1.3 cipher suites are not individually configurable in Go, so they
 // tag::tls_curve_types-setting[]
 |
 [id="input-{input-type}-tls_curve_types-setting"]
-`tls_curve_types`
+Curve types for ECDHE based cipher suites
 
 | (text) The list of curve types for ECDHE (Elliptic Curve Diffie-Hellman ephemeral key exchange).
 
@@ -333,7 +333,7 @@ Note that TLS 1.3 cipher suites are not individually configurable in Go, so they
 // tag::api_key_enabled-setting[]
 |
 [id="input-{input-type}-api_key_enabled-setting"]
-`api_key_enabled`
+API key for agent authentication
 
 | (bool) Enable or disable API key authorization between APM Server and APM agents.
 
@@ -345,7 +345,7 @@ Note that TLS 1.3 cipher suites are not individually configurable in Go, so they
 // tag::api_key_limit-setting[]
 |
 [id="input-{input-type}-api_key_limit-setting"]
-`api_key_limit`
+Number of keys
 
 | (int) Each unique API key triggers one request to Elasticsearch.
 This setting restricts the number of unique API keys are allowed per minute.
@@ -359,7 +359,7 @@ The minimum value for this setting should be the number of API keys configured i
 // tag::secret_token-setting[]
 |
 [id="input-{input-type}-secret_token-setting"]
-`secret_token`
+Secret token
 
 | (text) Authorization token for sending APM data.
 The same token must also be set in each APM agent.
@@ -373,9 +373,9 @@ This token is not used for RUM endpoints.
 // tag::anonymous_enabled-setting[]
 |
 [id="input-{input-type}-anonymous_enabled-setting"]
-`anonymous_enabled`
+Anonymous Agent access
 
-| (bool) Enable or disable anonymous authentication.
+| (bool) Enable or disable anonymous authentication. RUM agents do not support authentication, so disabling anonymous access will effectively disable RUM agents.
 
 *Default:* `true` (enabled)
 // end::anonymous_enabled-setting[]
@@ -385,7 +385,7 @@ This token is not used for RUM endpoints.
 // tag::anonymous_allow_agent-setting[]
 |
 [id="input-{input-type}-anonymous_allow_agent-setting"]
-`anonymous_allow_agent`
+Allowed Anonymous agents
 
 | (array) A list of permitted APM agent names for anonymous authentication.
 Names in this list must match the agent's `agent.name`.
@@ -398,7 +398,7 @@ Names in this list must match the agent's `agent.name`.
 // tag::anonymous_allow_service-setting[]
 |
 [id="input-{input-type}-anonymous_allow_service-setting"]
-`anonymous_allow_service`
+Allowed Anonymous services
 
 | (array) A list of permitted service names for anonymous authentication.
 Names in this list must match the agent's `service.name`.
@@ -412,7 +412,7 @@ This can be used to limit the number of service-specific indices or data streams
 // tag::anonymous_rate_limit_ip_limit-setting[]
 |
 [id="input-{input-type}-anonymous_rate_limit_ip_limit-setting"]
-`anonymous_rate_limit_ip_limit`
+Anonymous Rate limit (IP limit)
 
 | (int) The number of unique IP addresses to track in an LRU cache.
 IP addresses in the cache will be rate limited according to the `anonymous_rate_limit_event_limit` setting.
@@ -426,7 +426,7 @@ Consider increasing this default if your application has many concurrent clients
 // tag::anonymous_rate_limit_event_limit-setting[]
 |
 [id="input-{input-type}-anonymous_rate_limit_event_limit-setting"]
-`anonymous_rate_limit_event_limit`
+Anonymous Event rate limit (event limit)
 
 | (int) The maximum amount of events allowed to be sent to the APM Server anonymous auth endpoint per IP per second.
 
