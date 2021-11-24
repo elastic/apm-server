@@ -1,12 +1,12 @@
 [[components]]
-=== Components and documentation
+== Components and documentation
 
 Elastic APM consists of four components: *APM agents*, *APM Server*, *Elasticsearch*, and *Kibana*.
 
 image::./../legacy/guide/images/apm-architecture-cloud.png[Architecture of Elastic APM]
 
 [float]
-==== APM Agents
+=== APM Agents
 
 APM agents are open source libraries written in the same language as your service.
 You may only need one, or you might use all of them.
@@ -27,7 +27,7 @@ Each agent has its own documentation:
 * {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]
 
 [float]
-==== APM Server
+=== APM Server
 
 APM Server is a free and open application that receives performance data from your APM agents.
 It's a {apm-server-ref-v}/overview.html#why-separate-component[separate component by design],
@@ -45,14 +45,14 @@ Here you can learn more about {apm-server-ref-v}/getting-started-apm-server.html
 {apm-server-ref-v}/monitoring.html[monitoring], and more.
 
 [float]
-==== Elasticsearch
+=== Elasticsearch
 
 {ref}/index.html[Elasticsearch] is a highly scalable free and open full-text search and analytics engine.
 It allows you to store, search, and analyze large volumes of data quickly and in near real time.
 Elasticsearch is used to store APM performance metrics and make use of its aggregations.
 
 [float]
-==== Kibana APM app
+=== Kibana APM app
 
 {kibana-ref}/index.html[Kibana] is a free and open analytics and visualization platform designed to work with Elasticsearch.
 You use Kibana to search, view, and interact with data stored in Elasticsearch.

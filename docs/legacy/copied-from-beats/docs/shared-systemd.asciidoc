@@ -1,6 +1,8 @@
 [[running-with-systemd]]
 === {beatname_uc} and systemd
 
+IMPORTANT: {deprecation-notice-installation}
+
 The DEB and RPM packages include a service unit for Linux systems with
 systemd. On these systems, you can manage {beatname_uc} by using the usual
 systemd commands.
@@ -10,6 +12,7 @@ We recommend that the {beatname_pkg} process is run as a non-root user.
 Therefore, that is the default setup for {beatname_uc}'s DEB package and RPM installation.
 endif::apm-server[]
 
+[float]
 ==== Start and stop {beatname_uc}
 
 Use `systemctl` to start or stop {beatname_uc}:
@@ -37,7 +40,7 @@ sudo systemctl enable {beatname_pkg}
 sudo systemctl disable {beatname_pkg}
 ------------------------------------------------
 
-
+[float]
 ==== {beatname_uc} status and logs
 
 To get the service status, use `systemctl`:

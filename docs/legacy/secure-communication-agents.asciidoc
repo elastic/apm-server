@@ -1,6 +1,9 @@
 [[secure-communication-agents]]
 == Secure communication with APM agents
 
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, see <<secure-agent-communication>>.
+
 Communication between APM agents and APM Server can be both encrypted and authenticated.
 Encryption is achievable through <<ssl-setup>>.
 
@@ -25,11 +28,17 @@ for the RUM agent (through the browser) and the Jaeger agent.
 [[ssl-setup]]
 === SSL/TLS communication
 
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, see <<agent-tls>>.
+
 // Use the shared ssl short description
 include::./ssl-input.asciidoc[]
 
 [[api-key-legacy]]
 === API keys
+
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, see <<api-key>>.
 
 NOTE: API keys are sent as plain-text,
 so they only provide security when used in combination with <<ssl-setup,SSL/TLS>>.
@@ -492,6 +501,9 @@ The old configuration will continue to work until 8.0.0, and the new configurati
 [[secret-token-legacy]]
 === Secret token
 
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, see <<secret-token>>.
+
 You can configure a secret token to authorize requests to the APM Server.
 This ensures that only your agents are able to send data to your APM servers.
 Both the agents and the APM servers have to be configured with the same secret token.
@@ -580,6 +592,9 @@ This ensures encryption, but does not verify that you are sending data to the co
 
 [[secure-communication-unauthenticated]]
 === Anonymous authentication
+
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, see <<anonymous-auth>>.
 
 Elastic APM agents can send unauthenticated (anonymous) events to the APM Server.
 This is useful for agents that run on clients, like the Real User Monitoring (RUM) agent running in a browser,

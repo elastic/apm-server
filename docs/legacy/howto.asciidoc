@@ -1,6 +1,9 @@
 [[howto-guides]]
 = How-to guides
 
+IMPORTANT: {deprecation-notice-link}
+If you're using {fleet} and the Elastic APM integration, please see <<how-to-guides>> instead.
+
 Learn how to perform common {beatname_uc} configuration and management tasks.
 
 * <<sourcemaps>>

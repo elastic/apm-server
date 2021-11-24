@@ -2,6 +2,8 @@
 [[quick-start-overview]]
 === Quick start development environment
 
+IMPORTANT: {deprecation-notice-installation}
+
 // This tagged region is reused in the Observability docs.
 // tag::dev-environment[]
 ifeval::["{release-state}"=="unreleased"]

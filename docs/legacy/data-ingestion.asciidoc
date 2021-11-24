@@ -1,6 +1,9 @@
 [[tune-data-ingestion]]
 == Tune data ingestion
 
+IMPORTANT: {deprecation-notice-link}
+If you're using {fleet} and the Elastic APM integration, please see <<apm-tune-elasticsearch>> instead.
+
 This section explains how to adapt data ingestion according to your needs.
 
 * <<tune-apm-server>>
@@ -13,6 +16,8 @@ This section explains how to adapt data ingestion according to your needs.
 ++++
 <titleabbrev>APM Server</titleabbrev>
 ++++
+
+IMPORTANT: {deprecation-notice-link}
 
 * <<tune-output-config>>
 * <<adjust-queue-size>>
@@ -87,6 +92,9 @@ Increasing the <<config-auth-anon-event-limit,`rate_limit.event_limit`>> default
 ++++
 <titleabbrev>Elasticsearch</titleabbrev>
 ++++
+
+IMPORTANT: {deprecation-notice-link}
+If you're using {fleet} and the Elastic APM integration, please see <<apm-tune-elasticsearch>> instead.
 
 The Elasticsearch reference provides insight on tuning Elasticsearch.
 

@@ -5,6 +5,9 @@
 <titleabbrev>Manage Storage</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-link}
+If you're using {fleet} and the Elastic APM integration, please see <<manage-storage>> instead.
+
 * <<sizing-guide, Storage and sizing guide>>
 * <<processing-performance, Processing and performance>>
 * <<reduce-storage, Reduce storage usage>>
@@ -13,6 +16,9 @@
 
 [[sizing-guide]]
 === Storage and sizing guide
+
+IMPORTANT: {deprecation-notice-link}
+If you're using {fleet} and the Elastic APM integration, please see <<storage-guide>> instead.
 
 APM processing and storage costs are largely dominated by transactions, spans, and stack frames.
 
@@ -41,7 +47,7 @@ How little or much you use these APIs will also impact what a typical transactio
 
 If your sampling rate is very small, transactions will be the dominate storage cost.
 
-Here's a speculative reference: 
+Here's a speculative reference:
 
 [options="header"]
 |=======================================================================
@@ -70,14 +76,17 @@ These numbers do not account for Elasticsearch compression.
 
 APM data compresses quite well, so the storage cost in Elasticsearch will be considerably less:
 
-* Indexing 100 unsampled transactions per second for 1 hour results in 360,000 documents. These documents use around **50 Mb** of disk space.   
-* Indexing 10 transactions per second for 1 hour, each transaction with 10 spans, each span with 10 stack frames, results in 396,000 documents. These documents use around **200 Mb** of disk space. 
+* Indexing 100 unsampled transactions per second for 1 hour results in 360,000 documents. These documents use around **50 Mb** of disk space.
+* Indexing 10 transactions per second for 1 hour, each transaction with 10 spans, each span with 10 stack frames, results in 396,000 documents. These documents use around **200 Mb** of disk space.
 * Indexing 25 transactions per second for 1 hour, each transaction with 25 spans, each span with 25 stack frames, results in 2,340,000 documents. These documents use around **1.2 Gb** of disk space.
 
 NOTE: These examples were indexing the same data over and over with minimal variation. Because of that, the compression ratios observed of 80-90% are somewhat optimistic.
 
 [[processing-performance]]
 === Processing and performance
+
+IMPORTANT: {deprecation-notice-link}
+If you're using {fleet} and the Elastic APM integration, please see <<processing-and-performance>> instead.
 
 APM Server performance depends on a number of factors: memory and CPU available,
 network latency, transaction sizes, workload patterns,
@@ -100,7 +109,7 @@ As a reminder, events are
 |Transaction/Instance |512Mb Instance |2Gb Instance |8Gb Instance
 |Small transactions
 
-_5 spans with 5 stack frames each_ |600 events/second |1200 events/second |4800 events/second 
+_5 spans with 5 stack frames each_ |600 events/second |1200 events/second |4800 events/second
 |Medium transactions
 
 _15 spans with 15 stack frames each_ |300 events/second |600 events/second |2400 events/second
@@ -119,10 +128,13 @@ Don't forget that the APM Server is stateless.
 Several instances running do not need to know about each other.
 This means that with a properly sized Elasticsearch instance, APM Server scales out linearly.
 
-NOTE: RUM deserves special consideration. The RUM agent runs in browsers, and there can be many thousands reporting to an APM Server with very variable network latency. 
+NOTE: RUM deserves special consideration. The RUM agent runs in browsers, and there can be many thousands reporting to an APM Server with very variable network latency.
 
 [[reduce-storage]]
 === Reduce storage
+
+IMPORTANT: {deprecation-notice-link}
+If you're using {fleet} and the Elastic APM integration, please see <<reduce-apm-storage>> instead.
 
 The amount of storage for APM data depends on several factors:
 the number of services you are instrumenting, how much traffic the services see, agent and server settings,
@@ -246,6 +258,9 @@ Then click **delete indices**.
 [[manage-indices-kibana]]
 === Manage Indices via Kibana
 
+IMPORTANT: {deprecation-notice-link}
+If you're using {fleet} and the Elastic APM integration, please see <<reduce-apm-storage>> instead.
+
 The Kibana UI for {kibana-ref}/managing-indices.html[managing indices] allows you to view indices,
 index settings, mappings, document counts, used storage per index, and much more.
 You can also perform management operations, like deleting indices directly via the Kibana UI.
@@ -253,6 +268,9 @@ Finally, the UI supports applying bulk operations on several indices at once.
 
 [[update-existing-data]]
 === Update existing data
+
+IMPORTANT: {deprecation-notice-link}
+If you're using {fleet} and the Elastic APM integration, please see <<reduce-apm-storage>> instead.
 
 You might want to update documents that are already indexed.
 For example, if you your service name was set incorrectly.

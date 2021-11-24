@@ -65,6 +65,8 @@ endif::[]
 <titleabbrev>Command reference</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-installation}
+
 ifndef::no_dashboards[]
 {beatname_uc} provides a command-line interface for starting {beatname_uc} and
 performing common tasks, like testing configuration files and loading dashboards.
@@ -129,6 +131,7 @@ endif::[]
 Also see <<global-flags,Global flags>>.
 
 ifdef::apm-server[]
+[float]
 [[apikey-command]]
 ==== `apikey` command
 
@@ -259,6 +262,7 @@ Shows help for the `deploy` command.
 -----
 endif::[]
 
+[float]
 [[export-command]]
 ==== `export` command
 
@@ -393,6 +397,7 @@ ifdef::serverless[]
 -----
 endif::serverless[]
 
+[float]
 [[help-command]]
 ==== `help` command
 
@@ -426,6 +431,7 @@ Specifies the name of the command to show help for.
 -----
 
 ifndef::serverless[]
+[float]
 [[keystore-command]]
 ==== `keystore` command
 
@@ -484,6 +490,7 @@ See <<keystore>> for more examples.
 endif::[]
 
 ifeval::["{beatname_lc}"=="functionbeat"]
+[float]
 [[package-command]]
 ==== `package` command
 
@@ -604,6 +611,7 @@ endif::[]
 endif::[]
 
 ifndef::serverless[]
+[float]
 [[run-command]]
 ==== `run` command
 
@@ -733,7 +741,7 @@ Or:
 -----
 endif::[]
 
-
+[float]
 [[setup-command]]
 ==== `setup` command
 
@@ -858,6 +866,7 @@ endif::apm-server[]
 endif::[]
 // end::setup-command-tag[]
 
+[float]
 [[test-command]]
 ==== `test` command
 
@@ -946,6 +955,7 @@ Shows help for the `update` command.
 -----
 endif::[]
 
+[float]
 [[version-command]]
 ==== `version` command
 

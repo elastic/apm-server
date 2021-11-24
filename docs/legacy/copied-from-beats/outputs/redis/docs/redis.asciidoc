@@ -5,6 +5,8 @@
 <titleabbrev>Redis</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-installation}
+
 The Redis output inserts the events into a Redis list or a Redis channel.
 This output plugin is compatible with
 the https://www.elastic.co/guide/en/logstash/current/plugins-inputs-redis.html[Redis input plugin] for Logstash.

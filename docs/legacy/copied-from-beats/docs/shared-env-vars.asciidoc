@@ -19,6 +19,9 @@ ifdef::standalone[]
 
 endif::[]
 
+IMPORTANT: {deprecation-notice-installation}
+If you're using {fleet} and the Elastic APM integration, please see the {fleet-guide}[Fleet User Guide] instead.
+
 You can use environment variable references in the config file to
 set values that need to be configurable during deployment. To do this, use:
 

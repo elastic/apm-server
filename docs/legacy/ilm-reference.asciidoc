@@ -2,11 +2,12 @@
 [role="xpack"]
 == Configure Index lifecycle management (ILM)
 
-deprecated::[7.16.0,Users should now use the <<apm-integration>>. See <<apm-integration-ilm>>]
-
 ++++
 <titleabbrev>Index lifecycle management</titleabbrev>
 ++++
+
+IMPORTANT: {deprecation-notice-installation}
+If you're using {fleet} and the Elastic APM integration, please see <<ilm-how-to>> instead.
 
 The {ref}/getting-started-index-lifecycle-management.html[index lifecycle management] (ILM)
 feature in {es} allows you to automate the lifecycle of your APM Server indices as they grow and age.

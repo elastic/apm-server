@@ -5,6 +5,9 @@
 <titleabbrev>Create and upload source maps (RUM)</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-link}
+If you're using {fleet} and the Elastic APM integration, please see <<source-map-how-to>> instead.
+
 NOTE: This guide is only for standalone APM Server users. Users running the <<apm-integration,APM integration>>
 need to use the Kibana {kibana-ref}/rum-sourcemap-api.html[source map upload API] instead.
 

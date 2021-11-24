@@ -5,6 +5,9 @@
 <titleabbrev>Integrate with Jaeger</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-link}
+If you're using {fleet} and the Elastic APM integration, please see <<jaeger-integration>> instead.
+
 include::./jaeger-reference.asciidoc[tag=jaeger-intro]
 
 [float]
