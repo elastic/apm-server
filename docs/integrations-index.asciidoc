@@ -16,12 +16,8 @@ endif::[]
 
 :deprecation-notice-link: This documentation was written for the legacy method of installing and managing APM Server.
 
-// Settings
-// Add link to upgrading docs when they exist
 :deprecation-notice-config: This documentation refers to configuring the standalone (legacy) method of running APM Server. This method of running APM Server will be deprecated and removed in a future release. Please consider upgrading to {fleet} and the APM integration.
 
-// APM
-// Add link to upgrading docs when they exist
 :deprecation-notice-api: This documentation refers to the API of the standalone (legacy) method of running APM Server. This method of running APM Server will be deprecated and removed in a future release. Please consider upgrading to {fleet} and the APM integration.
 
 :deprecation-notice-data: This documentation refers to the standalone (legacy) method of running APM Server. This method of running APM Server will be deprecated and removed in a future release. Please consider upgrading to {fleet} and the APM integration.

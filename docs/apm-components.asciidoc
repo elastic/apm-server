@@ -1,12 +1,32 @@
 [[apm-components]]
-=== Components and documentation
+== Components and documentation
 
-Elastic APM consists of four components: *APM agents*, *Elastic Agent*, *Elasticsearch*, and *Kibana*.
+****
+There are two ways to install, run, and manage Elastic APM:
+
+* With the Elastic APM integration
+* With the standalone (legacy) APM Server binary
+
+This documentation focuses on option one: the **Elastic APM integration**.
+For standalone APM Server (legacy) documentation, please see the <<legacy-apm-overview>>
+and <<overview>>.
+****
+
+Elastic APM consists of four components: *APM agents*, the *Elastic APM integration*, *Elasticsearch*, and *Kibana*.
+Generally, there are two ways that these four components can work together:
+
+* Apm agents on edge machines send data to a centrally hosted APM integration:
 
 image::./images/apm-architecture.png[Architecture of Elastic APM]
 
+* Or, APM agents and the APM integration live on edge machines and enroll via a centrally hosted {agent}:
+
+image::./images/apm-architecture-two.png[Architecture of Elastic APM option two]
+
+Read on to learn more about each of these components!
+
 [float]
-==== APM Agents
+=== APM Agents
 
 APM agents are open source libraries written in the same language as your service.
 You may only need one, or you might use all of them.
@@ -27,26 +47,27 @@ Each agent has its own documentation:
 * {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]
 
 [float]
-==== Elastic Agent
+=== Elastic APM integration
 
-Elastic Agent is a single, unified way to add monitoring for logs, metrics, traces, and other types of data to each host.
-A single agent makes it easier and faster to deploy monitoring across your infrastructure.
-The agent’s single, unified policy makes it easier to add integrations for new data sources.
-
-The APM integration within Elastic Agent receives performance data from your APM agents,
+The APM integration receives performance data from your APM agents,
 validates and processes it, and then transforms the data into {es} documents.
 Removing this logic from APM agents help keeps them light, prevents certain security risks,
 and improves compatibility across the Elastic Stack.
 
+The Elastic integration runs on {fleet-guide}[{agent}]. {agent} is a single, unified way to add monitoring for logs,
+metrics, traces, and other types of data to each host.
+A single agent makes it easier and faster to deploy monitoring across your infrastructure.
+The agent’s single, unified policy makes it easier to add integrations for new data sources.
+
 [float]
-==== Elasticsearch
+=== Elasticsearch
 
 {ref}/index.html[Elasticsearch] is a highly scalable free and open full-text search and analytics engine.
 It allows you to store, search, and analyze large volumes of data quickly and in near real time.
 Elasticsearch is used to store APM performance metrics and make use of its aggregations.
 
 [float]
-==== Kibana APM app
+=== Kibana APM app
 
 {kibana-ref}/index.html[Kibana] is a free and open analytics and visualization platform designed to work with Elasticsearch.
 You use Kibana to search, view, and interact with data stored in Elasticsearch.
