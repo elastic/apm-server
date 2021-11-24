@@ -2,11 +2,7 @@
 :pull: https://github.com/elastic/apm-server/pull/
 
 [[apm-breaking]]
-== Breaking Changes
-
-// todo: integration APM Server release notes
-// (which might mean removing this entirely, or more likely, adding this content to headings in those notes)
-// fix all broken links once a new attribute is added
+=== Breaking Changes
 
 // These tagged regions are required for the stack-docs repo includes
 // tag::notable-v8-breaking-changes[]

@@ -1,0 +1,76 @@
+[[upgrading]]
+== Upgrade
+
+This guide gives general recommendations for upgrading Elastic APM.
+
+* <<apm-breaking>>
+* <<upgrade-to-apm-integration>>
+* <<upgrade-to-legacy-apm>>
+
+include::apm-breaking.asciidoc[]
+
+[[upgrade-to-apm-integration]]
+=== Upgrade to the Elastic APM integration
+
+// reuse arch diagram here
+
+[discrete]
+=== Why upgrade?
+
+// Are there other APM-specific reasons we can callout here?
+
+* Single, unified way to add monitoring for logs, metrics, traces, and other types of data to each host -- install one thing instead of multiple
+* Single, unified configuration -- no need to edit multiple configuration files
+* Elastic integrations ship data, but also provide out-of-the-box dashboards, visualizations, pipelines, and more
+* Data streams provide a reduced number of fields per index, more granular data control, and a flexible naming scheme
+
+[discrete]
+=== Considerations?
+
+* Not all settings/features are supported yet
+* `apm-server.yml` settings need to be readded to the integration
+
+[discrete]
+=== How-to
+
+. Upgrade to Fleet + APM integration
+. Switch to data streams --> APM settings --> Schema --> Data streams
+. Scale APM & Fleet up and out. Capacity to process events increases with the memory size (instead of tweaking output settings, increase from 2gb to 4gb for example). As of right now, you cannot overwrite ES output settings or change the output.
+. Navigate to the APM integration and update settings (like enabling RUM)
+. ???
+. Profit
+
+[[upgrade-to-legacy-apm]]
+=== Upgrade to legacy versions of Elastic APM
+
+. Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
+and Observability {observability-guide}/whats-new.html[What's new] content for important changes between
+your current APM version and the one you are upgrading to.
+
+. The Elastic Stack (Elasticsearch and Kibana) must be upgraded before APM Server.
+See the {stack-ref}/upgrading-elastic-stack.html[Elastic Stack Installation and Upgrade Guide] for guidance.
+
+. If applicable, read and understand the relevant APM Server upgrading guide:
+* <<upgrading-to-77,`7.7`>>
+* <<upgrading-to-70,`7.0`>>
+* <<upgrading-to-65,`6.5`>>
+
+. Install the new APM Server release.
+
+. Review the `apm-server.yml` configuration file.
+There may be newly added configuration options, and you'll want to be aware of their default settings.
+See <<configuring-howto-apm-server,configuring>> for more information on available options.
+
+. If you set up index patterns and dashboards manually by running `./apm-server setup`,
+rerun the command to update the index pattern and the dashboards.
+
+. Start the APM server.
++
+When you start the APM server after upgrading, it creates new indices that use the current version,
+and applies the correct template automatically.
+
+include::./upgrading-to-77.asciidoc[]
+
+include::./upgrading-to-70.asciidoc[]
+
+include::./upgrading-to-65.asciidoc[]
