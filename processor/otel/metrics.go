@@ -37,6 +37,7 @@ package otel
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -176,6 +177,9 @@ func numberSample(dp pdata.NumberDataPoint, metricType model.MetricType) (model.
 		value = float64(dp.IntVal())
 	case pdata.MetricValueTypeDouble:
 		value = dp.DoubleVal()
+		if math.IsNaN(value) || math.IsInf(value, 0) {
+			return model.MetricsetSample{}, false
+		}
 	default:
 		return model.MetricsetSample{}, false
 	}
