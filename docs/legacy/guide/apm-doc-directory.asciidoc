@@ -1,6 +1,9 @@
 [[components]]
 == Components and documentation
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<apm-components>>.
+
 Elastic APM consists of four components: *APM agents*, *APM Server*, *Elasticsearch*, and *Kibana*.
 
 image::./../legacy/guide/images/apm-architecture-cloud.png[Architecture of Elastic APM]

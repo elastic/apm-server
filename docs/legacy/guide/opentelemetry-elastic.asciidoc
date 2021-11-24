@@ -1,6 +1,9 @@
 [[open-telemetry-elastic]]
 === OpenTelemetry integration
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<open-telemetry>>.
+
 :ot-spec:       https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md
 :ot-contrib:    https://github.com/open-telemetry/opentelemetry-collector-contrib
 :ot-repo:       https://github.com/open-telemetry/opentelemetry-collector
@@ -20,6 +23,7 @@ Elastic OpenTelemetry integrations allow you to reuse your existing OpenTelemetr
 instrumentation to quickly analyze distributed traces and metrics to help you monitor
 business KPIs and technical components with the {stack}.
 
+[float]
 [[open-telemetry-elastic-protocol]]
 ==== APM Server native support of OpenTelemetry protocol
 
@@ -126,6 +130,7 @@ and built-in dashboards.
 
 You're now ready to export traces and metrics from your services and applications.
 
+[float]
 [[open-telemetry-elastic-metrics]]
 ==== Collect metrics
 
@@ -213,6 +218,7 @@ Both visualizations are now displayed on your custom dashboard.
 IMPORTANT: By default, Discover shows data for the last 15 minutes. If you have a time-based index
 and no data displays, you might need to increase the time range.
 
+[float]
 [[open-telemetry-aws-lambda-elastic]]
 ==== AWS Lambda Support
 
@@ -370,6 +376,7 @@ Here is an example of AWS Lambda Node.js function managed with Terraform and the
 
 * https://github.com/michaelhyatt/terraform-aws-nodejs-api-worker-otel/tree/v0.23[Sample Terraform code]
 
+[float]
 [[elastic-open-telemetry-known-limitations]]
 ==== Limitations
 

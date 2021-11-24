@@ -1,6 +1,8 @@
 [[troubleshooting]]
 = Troubleshoot
 
+IMPORTANT: {deprecation-notice-data}
+
 If you have issues installing or running APM Server,
 read the following tips:
 
