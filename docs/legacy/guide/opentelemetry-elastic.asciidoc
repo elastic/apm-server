@@ -79,6 +79,7 @@ Please note the required space between `Bearer` and `an_apm_secret_token`, and `
 You are now ready to collect traces and <<open-telemetry-elastic-metrics,metrics>> before <<open-telemetry-elastic-verify,verifying metrics>>
 and <<open-telemetry-elastic-kibana,visualizing metrics>> in {kib}.
 
+[float]
 [[open-telemetry-collector]]
 ===== Connect OpenTelemetry Collector instances
 
@@ -157,6 +158,7 @@ public void createOrder(HttpServletRequest request) {
 See the https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md[Open Telemetry Metrics API]
 for more information.
 
+[float]
 [[open-telemetry-elastic-verify]]
 ===== Verify OpenTelemetry metrics data
 
@@ -174,6 +176,7 @@ include::../../shared/open-kibana/open-kibana-widget.asciidoc[]
 . Narrow your search with a known OpenTelemetry field. For example, if you have an `order_value` field, add `order_value: *` to your search to return
 only OpenTelemetry metrics documents.
 
+[float]
 [[open-telemetry-elastic-kibana]]
 ===== Visualize in {kib}
 
@@ -226,6 +229,7 @@ AWS Lambda functions can be instrumented with OpenTelemetry and monitored with E
 
 To get started, follow the official AWS Distro for OpenTelemetry Lambda https://aws-otel.github.io/docs/getting-started/lambda[getting started documentation] and configure the OpenTelemetry Collector to output traces and metrics to your Elastic cluster.
 
+[float]
 [[open-telemetry-aws-lambda-elastic-java]]
 ===== Instrumenting AWS Lambda Java functions
 
@@ -302,6 +306,7 @@ Lambda layer for OpenTelemetry] (e.g. `arn:aws:lambda:eu-west-1:901920570463:lay
 *** `OTEL_PROPAGATORS="tracecontext, baggage"` to override the default setting that also enables X-Ray headers causing interferences between OpenTelemetry and X-Ray
 *** `OPENTELEMETRY_COLLECTOR_CONFIG_FILE="/var/task/opentelemetry-collector.yaml"` to specify the path to your OpenTelemetry Collector configuration
 
+[float]
 [[open-telemetry-aws-lambda-elastic-java-terraform]]
 ===== Instrumenting AWS Lambda Java functions with Terraform
 
@@ -312,6 +317,7 @@ Here is an example of AWS Lambda Java function managed with Terraform and the ht
 * Sample Terraform code: https://github.com/cyrille-leclerc/my-serverless-shopping-cart/tree/main/checkout-function/deploy
 * Note that the Terraform code to manage the HTTP API Gateway (https://github.com/cyrille-leclerc/my-serverless-shopping-cart/tree/main/utils/terraform/api-gateway-proxy[here]) is copied from the official OpenTelemetry Lambda sample https://github.com/open-telemetry/opentelemetry-lambda/tree/e72467a085a2a6e57af133032f85ac5b8bbbb8d1/utils[here]
 
+[float]
 [[open-telemetry-aws-lambda-elastic-nodejs]]
 ===== Instrumenting AWS Lambda Node.js functions
 
@@ -366,7 +372,7 @@ Lambda layer for OpenTelemetry]. For example, `arn:aws:lambda:eu-west-1:90192057
 ** `OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:55681/v1/traces"` this environment variable is required to be set until https://github.com/open-telemetry/opentelemetry-js/pull/2331[PR #2331] is merged and released.
 ** `OTEL_TRACES_SAMPLER="AlwaysOn"` define the required sampler strategy if it is not sent from the caller. Note that `Always_on` can potentially create a very large amount of data, so in production set the correct sampling configuration, as per the https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling[specification].
 
-
+[float]
 [[open-telemetry-aws-lambda-elastic-nodejs-terraform]]
 ===== Instrumenting AWS Lambda Node.js functions with Terraform
 
@@ -380,7 +386,7 @@ Here is an example of AWS Lambda Node.js function managed with Terraform and the
 [[elastic-open-telemetry-known-limitations]]
 ==== Limitations
 
-
+[float]
 [[elastic-open-telemetry-traces-limitations]]
 ===== OpenTelemetry traces
 
@@ -389,11 +395,13 @@ Here is an example of AWS Lambda Node.js function managed with Terraform and the
 * Inability in APM views to view the "Time Spent by Span Type" https://github.com/elastic/apm-server/issues/5747[#5747]
 * Metrics derived from traces (throughput, latency, and errors) are not accurate when traces are sampled before being ingested by Elastic Observability (ie by an OpenTelemetry Collector or OpenTelemetry APM agent or SDK) https://github.com/elastic/apm/issues/472[#472]
 
+[float]
 [[elastic-open-telemetry-metrics-limitations]]
 ===== OpenTelemetry metrics
 
 * Inability to see host metrics in Elastic Metrics Infrastructure view when using the OpenTelemetry Collector host metrics receiver https://github.com/elastic/apm-server/issues/5310[#5310]
 
+[float]
 [[elastic-open-telemetry-logs-limitations]]
 ===== OpenTelemetry logs
 
