@@ -102,13 +102,14 @@ func TestContext_Reset(t *testing.T) {
 			assert.Equal(t, 0, c.writeAttempts)
 		case "Result":
 			assertResultIsEmpty(t, cVal.Field(i).Interface().(Result))
-		case "SourceAddr":
-			assert.Equal(t, &net.TCPAddr{
-				IP:   net.ParseIP("10.1.2.3"),
-				Port: 1234,
-			}, cVal.Field(i).Interface())
+		case "SourceIP":
+			assert.Equal(t, net.ParseIP("10.1.2.3"), cVal.Field(i).Interface())
+		case "SourcePort":
+			assert.Equal(t, 1234, cVal.Field(i).Interface())
 		case "ClientIP":
 			assert.Equal(t, net.ParseIP("192.168.0.1"), cVal.Field(i).Interface())
+		case "ClientPort":
+			assert.Equal(t, 0, cVal.Field(i).Interface())
 		case "UserAgent":
 			assert.Equal(t, "ua2", cVal.Field(i).Interface())
 		case "Timestamp":

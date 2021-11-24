@@ -29,7 +29,6 @@ import (
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/utility"
 )
 
 // LogMiddleware returns a middleware taking care of logging processing a request in the middleware and the request handler
@@ -69,7 +68,13 @@ func loggerWithRequestContext(c *request.Context) *logp.Logger {
 		"url.original", c.Request.URL.String(),
 		"http.request.method", c.Request.Method,
 		"user_agent.original", c.Request.Header.Get(headers.UserAgent),
-		"source.address", utility.RemoteAddr(c.Request))
+	)
+	if c.SourceIP != nil {
+		logger = logger.With("source.address", c.SourceIP.String())
+	}
+	if c.ClientIP != nil && !c.ClientIP.Equal(c.SourceIP) {
+		logger = logger.With("client.ip", c.ClientIP.String())
+	}
 	if c.Request.ContentLength != -1 {
 		logger = logger.With("http.request.body.bytes", c.Request.ContentLength)
 	}

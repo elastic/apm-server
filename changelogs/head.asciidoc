@@ -41,6 +41,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Query elasticsearch output `cluster_uuid` on startup {pull}6591[6591]
 - Skip unhandled fields in bulk responses in the experimental Elasticsearch output {pull}6631[6631]
 - Fix the format of `@timestamp` to include fractional seconds when using experimental Elasticsearch output {pull}6646[6646]
+- In accord with ECS, the server logs now set `source.address` to the immediate network peer's IP address, and `client.ip` to the originating client IP if known {pull}6690[6690]
 - `host.ip` is now stored as an array, as specified by ECS {pull}6694[6694]
 
 [float]
