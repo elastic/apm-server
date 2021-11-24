@@ -68,13 +68,9 @@
   name: host.name
 - external: ecs
   name: host.os.platform
-# Ideally, we'd reference the ecs field "labels" and set the dynamic field to
-# true to overwrite any settings that might be set at the data stream level.
-- name: labels
-  type: object
+- external: ecs
+  name: labels
   dynamic: true
-  description: |
-    Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as keyword. Example: `docker` and `k8s` labels.
 - external: ecs
   name: observer.hostname
 - external: ecs
