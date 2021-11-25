@@ -87,6 +87,6 @@ include::./troubleshooting.asciidoc[leveloffset=+1]
 
 include::./upgrading.asciidoc[leveloffset=+1]
 
-include::{apm-package-dir}/apm-integration.asciidoc[]
+// include::{apm-package-dir}/apm-integration.asciidoc[]
 
 include::./redirects.asciidoc[]
