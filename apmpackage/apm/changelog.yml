@@ -3,6 +3,9 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "7.16.0"
   changes:
+    - description: auth.anonymous.rate_limit.{event_limit,ip_limit} defaults are now the same as in the default rate_limit struct.
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6715
     - description: updated package version to align with stack version
       type: enhancement
       link: https://github.com/elastic/apm-server/issues/4898
