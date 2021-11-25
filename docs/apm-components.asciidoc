@@ -47,6 +47,7 @@ Each agent has its own documentation:
 * {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]
 
 [float]
+[[apm-integration]]
 === Elastic APM integration
 
 The APM integration receives performance data from your APM agents,
