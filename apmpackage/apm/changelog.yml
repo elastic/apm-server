@@ -1,3 +1,6 @@
+# newer versions go on top
+#
+# change type can be one of: enhancement, bugfix, breaking-change
 - version: "7.16.0"
   changes:
     - description: auth.anonymous.rate_limit.{event_limit,ip_limit} defaults are now the same as in the default rate_limit struct.
