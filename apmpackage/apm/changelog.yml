@@ -3,6 +3,9 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "8.0.0"
   changes:
+    - description: Updated fields "@timestamp,data_stream.*,labels" to reference ecs
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6714
     - description: Ingested labels are now stored as event.{labels,numeric_labels}
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6633
