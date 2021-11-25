@@ -25,7 +25,7 @@ you can view https://www.elastic.co/guide/en/apm/server/6.4/overview.html[previo
 and APM Server.
 . Upgrade your {apm-agents-ref}/index.html[APM Agent].
 
-Check the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for more details on which APM agents are compatible with APM Server version 6.5.
+Check the <<agent-server-compatibility>> for more details on which APM agents are compatible with APM Server version 6.5.
 
 IMPORTANT: You must upgrade the APM Server before upgrading your APM Agent.
 New agents do not support APM Server <6.5 and will not work if you upgrade in the wrong order.
@@ -169,7 +169,7 @@ There have been a number of changes to the Elasticsearch schema for 6.5.
 An important change to note is the addition of the `trace` and `parent` keys,
 which have been added to errors, transactions, and spans.
 Both only hold a field `id`.
-These new keys are essential to taking advantage of APM's new {apm-overview-ref-v}/distributed-tracing.html[distributed tracing] feature.
+These new keys are essential to taking advantage of APM's new <<apm-distributed-tracing>> feature.
 
 [float]
 [[es-error-changes-65]]
