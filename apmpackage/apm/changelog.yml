@@ -3,6 +3,9 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "8.0.0"
   changes:
+    - description: auth.anonymous.rate_limit.{event_limit,ip_limit} defaults are now the same as in the default rate_limit struct.
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6715
     - description: Updated fields "@timestamp,data_stream.*,labels" to reference ecs
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6714
