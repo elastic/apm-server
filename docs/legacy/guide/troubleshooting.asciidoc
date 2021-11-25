@@ -35,3 +35,35 @@ https://www.elastic.co/subscriptions[Learn more about subscriptions].
 
 For additional questions and feature requests,
 visit our https://discuss.elastic.co/c/apm[discussion forum].
+
+// Felt cute, might delete later
+
+// [discrete]
+// [[apm-integration-terminology]]
+// === Terminology
+
+// Agents::
+
+// {agent} and APM agents are different components:
+// +
+// {fleet-guide}/fleet-overview.html[**{agent}**] is a single,
+// unified agent that you can deploy to hosts or containers to collect data and send it to the {stack}.
+// Behind the scenes, {agent} runs APM Server to listen for `apm` data.
+// +
+// {apm-overview-ref-v}/components.html[**APM agents**] are open source libraries written in the same language as your service.
+// You may only need one, or you might use all of them.
+// You install them into your service as you would install any other library.
+// They instrument your code and collect performance data and errors at runtime.
+// This data is sent to APM Server.
+
+// Central management/configuration::
+
+// // to do: add links to these docs
+// Fleet central management and APM agent central configuration are two different features
+// that can be accessed in {kib}:
+// +
+// **Fleet central management** serves as the communication channel with your {agent}s;
+// agents check in for the latest updates on a regular basis.
+// +
+// **APM agent central configuration** allows you to fine-tune your agent configuration from within the APM app.
+// Changes are automatically propagated to your APM agents, so there’s no need to redeploy your services.
