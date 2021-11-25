@@ -12,6 +12,7 @@
 * <<open-telemetry>>
 * <<log-correlation>>
 * <<cross-cluster-search>>
+* <<span-compression>>
 
 include::./apm-data-security.asciidoc[]
 
@@ -26,3 +27,5 @@ include::./open-telemetry.asciidoc[]
 include::./log-correlation.asciidoc[]
 
 include::./cross-cluster-search.asciidoc[]
+
+include::./span-compression.asciidoc[]
