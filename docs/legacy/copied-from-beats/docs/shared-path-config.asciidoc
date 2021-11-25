@@ -17,7 +17,7 @@
 <titleabbrev>Project paths</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 The `path` section of the +{beatname_lc}.yml+ config file contains configuration
 options that define where {beatname_uc} looks for its files. For example, {beatname_uc}

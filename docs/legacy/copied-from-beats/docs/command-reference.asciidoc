@@ -65,7 +65,7 @@ endif::[]
 <titleabbrev>Command reference</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 ifndef::no_dashboards[]
 {beatname_uc} provides a command-line interface for starting {beatname_uc} and

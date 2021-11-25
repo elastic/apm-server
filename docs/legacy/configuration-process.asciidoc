@@ -1,8 +1,8 @@
 [[configuration-process]]
 == General configuration options
 
-IMPORTANT: {deprecation-notice-installation}
-If you're using {fleet} and the Elastic APM integration, please see <<input-apm>> instead.
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, please see <<input-apm>> instead.
 
 Example config file:
 

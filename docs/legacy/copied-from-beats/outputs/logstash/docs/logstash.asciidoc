@@ -5,7 +5,7 @@
 <titleabbrev>Logstash</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 The {ls} output sends events directly to {ls} by using the lumberjack
 protocol, which runs over TCP. {ls} allows for additional processing and routing of

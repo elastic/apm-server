@@ -9,7 +9,7 @@ endif::apm-server[]
 ifdef::apm-server[]
 == SSL output settings
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 If you're using {fleet} and the Elastic APM integration, please see the {fleet-guide}[Fleet User Guide] instead.
 
 You can specify SSL options with any output that supports SSL, like {es}, {ls}, or Kafka.

@@ -5,7 +5,7 @@
 <titleabbrev>Kafka</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 The Kafka output sends events to Apache Kafka.
 

@@ -1,8 +1,8 @@
 [[agent-server-ssl]]
 === SSL input settings
 
-IMPORTANT: {deprecation-notice-installation}
-If you're using {fleet} and the Elastic APM integration, please see <<secure-agent-communication>> instead.
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, please see <<secure-agent-communication>> instead.
 
 You can specify the following options in the `apm-server.ssl` section of the +{beatname_lc}.yml+ config file.
 They apply to SSL/TLS communication between the APM Server and APM Agents.

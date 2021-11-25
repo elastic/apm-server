@@ -5,7 +5,7 @@
 <titleabbrev>Instrumentation</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 Libbeat uses the Elastic APM Go Agent to instrument its publishing pipeline.
 Currently, only the Elasticsearch output is instrumented.

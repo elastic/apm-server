@@ -1,7 +1,7 @@
 [[configuration-output-codec]]
 === Change the output codec
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 For outputs that do not require a specific encoding, you can change the encoding
 by using the codec configuration. You can specify either the `json` or `format`

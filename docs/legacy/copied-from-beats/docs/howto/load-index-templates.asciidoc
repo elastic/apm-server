@@ -1,7 +1,9 @@
 [id="{beatname_lc}-template"]
 == Load the {es} index template
 
-IMPORTANT: {deprecation-notice-link}
+deprecated::[7.16.0,Users should now use the <<apm-integration>> or configure <<data_streams.enabled,data streams>>. ]
+
+IMPORTANT: {deprecation-notice-data}
 
 {es} uses {ref}/index-templates.html[index templates] to define:
 

@@ -5,7 +5,7 @@
 <titleabbrev>Console</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 The Console output writes events in JSON format to stdout.
 

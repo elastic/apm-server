@@ -1,7 +1,7 @@
 [[running-with-systemd]]
 === {beatname_uc} and systemd
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 The DEB and RPM packages include a service unit for Linux systems with
 systemd. On these systems, you can manage {beatname_uc} by using the usual

@@ -5,7 +5,7 @@
 <titleabbrev>Kibana endpoint</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 Configuring the Kibana endpoint is required for
 {kibana-ref}/agent-configuration.html[APM Agent configuration in Kibana].

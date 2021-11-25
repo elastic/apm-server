@@ -5,7 +5,7 @@
 <titleabbrev>Real User Monitoring (RUM)</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 If you're using {fleet} and the Elastic APM integration, please see <<apm-rum>> instead.
 
 The {apm-rum-ref-v}/index.html[Real User Monitoring (RUM) agent] captures user interactions with clients such as web browsers.

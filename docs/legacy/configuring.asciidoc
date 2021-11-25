@@ -5,8 +5,8 @@
 <titleabbrev>Configure</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
-If you're using {fleet} and the Elastic APM integration, please see <<input-apm>> instead.
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, please see <<input-apm>> instead.
 
 include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 
@@ -57,8 +57,8 @@ include::./configuration-rum.asciidoc[]
 [[configuration-ssl-landing]]
 == SSL/TLS settings
 
-IMPORTANT: {deprecation-notice-installation}
-If you're using {fleet} and the Elastic APM integration, please see <<secure-agent-communication>> instead.
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, please see <<secure-agent-communication>> instead.
 
 SSL/TLS is available for:
 

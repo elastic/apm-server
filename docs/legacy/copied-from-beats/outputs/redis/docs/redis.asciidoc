@@ -5,7 +5,7 @@
 <titleabbrev>Redis</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 The Redis output inserts the events into a Redis list or a Redis channel.
 This output plugin is compatible with

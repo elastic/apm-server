@@ -5,7 +5,7 @@
 <titleabbrev>Kerberos</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 You can specify Kerberos options with any output or input that supports Kerberos, like {es}.
 

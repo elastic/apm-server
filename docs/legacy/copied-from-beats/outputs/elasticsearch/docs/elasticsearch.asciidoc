@@ -5,7 +5,7 @@
 <titleabbrev>Elasticsearch</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 The Elasticsearch output sends events directly to Elasticsearch using the Elasticsearch HTTP API.
 

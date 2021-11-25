@@ -6,7 +6,7 @@
 <titleabbrev>{ess}</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 ifdef::apm-server[]
 NOTE: This page refers to using a separate instance of APM Server with an existing

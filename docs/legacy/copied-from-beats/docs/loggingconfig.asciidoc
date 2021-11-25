@@ -17,7 +17,7 @@
 <titleabbrev>Logging</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 The `logging` section of the +{beatname_lc}.yml+ config file contains options
 for configuring the logging output.

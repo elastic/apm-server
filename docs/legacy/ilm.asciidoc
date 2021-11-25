@@ -2,8 +2,8 @@
 [role="xpack"]
 == Custom index lifecycle management with APM Server
 
-IMPORTANT: {deprecation-notice-link}
-If you're using {fleet} and the Elastic APM integration, please see <<ilm-how-to>> instead.
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, please see <<ilm-how-to>> instead.
 
 ++++
 <titleabbrev>Customize index lifecycle management</titleabbrev>

@@ -6,7 +6,7 @@
 <titleabbrev>Elasticsearch index template</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
+IMPORTANT: {deprecation-notice-config}
 
 The `setup.template` section of the +{beatname_lc}.yml+ config file specifies
 the {ref}/index-templates.html[index template] to use for setting
