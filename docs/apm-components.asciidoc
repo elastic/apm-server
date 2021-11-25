@@ -15,11 +15,11 @@ and <<overview>>.
 Elastic APM consists of four components: *APM agents*, the *Elastic APM integration*, *Elasticsearch*, and *Kibana*.
 Generally, there are two ways that these four components can work together:
 
-* Apm agents on edge machines send data to a centrally hosted APM integration:
+Apm agents on edge machines send data to a centrally hosted APM integration:
 
 image::./images/apm-architecture.png[Architecture of Elastic APM]
 
-* Or, APM agents and the APM integration live on edge machines and enroll via a centrally hosted {agent}:
+Or, APM agents and the APM integration live on edge machines and enroll via a centrally hosted {agent}:
 
 image::./images/apm-architecture-two.png[Architecture of Elastic APM option two]
 
