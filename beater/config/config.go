@@ -126,7 +126,7 @@ func DefaultConfig() *Config {
 		ReadTimeout:     30 * time.Second,
 		WriteTimeout:    30 * time.Second,
 		MaxEventSize:    300 * 1024, // 300 kb
-		ShutdownTimeout: 5 * time.Second,
+		ShutdownTimeout: 30 * time.Second,
 		AugmentEnabled:  true,
 		Expvar: ExpvarConfig{
 			Enabled: false,
