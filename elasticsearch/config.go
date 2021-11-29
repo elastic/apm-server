@@ -62,6 +62,8 @@ type Config struct {
 	// with modelindexer; it is otherwise ignored.
 	CompressionLevel int `config:"compression_level" validate:"min=0, max=9"`
 
+	EnableCompatibilityMode bool `config:"enable_compatibility_mode"`
+
 	elasticsearch.Backoff `config:"backoff"`
 }
 

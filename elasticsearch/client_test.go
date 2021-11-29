@@ -76,4 +76,26 @@ func TestClientCustomHeaders(t *testing.T) {
 
 	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
 	assert.Equal(t, "header", requestHeaders.Get("custom"))
+	assert.Equal(t, "", requestHeaders.Get("Accept"))
+}
+
+func TestCompatibility(t *testing.T) {
+	var requestHeaders http.Header
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestHeaders = r.Header
+	}))
+	defer srv.Close()
+
+	// compatibility header is set
+	cfg := Config{
+		Hosts:   Hosts{srv.URL},
+		Headers: map[string]string{"Content-Type": "application/vnd.elasticsearch+json; compatible-with=7"},
+	}
+
+	client, err := NewClient(&cfg)
+	require.NoError(t, err)
+
+	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
+	// The go-elasticsearch library takes care of setting
+	assert.Equal(t, "application/vnd.elasticsearch+json;compatible-with=7", requestHeaders.Get("Accept"))
 }
