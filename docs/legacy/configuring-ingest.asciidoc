@@ -4,7 +4,7 @@
 [[configuring-ingest-node]]
 == Parse data using ingest node pipelines
 
-deprecated::[7.16.0,Users should now use the <<apm-integration>>, which includes ingest node pipeline management. See <<apm-integration-pipelines>>]
+deprecated::[7.16.0,Users should now use the <<apm-integration>>, which includes ingest node pipeline management. If you've already upgraded, please see <<ingest-pipelines>> instead.]
 
 You can configure APM Server to use an {ref}/ingest.html[ingest node]
 to pre-process documents before indexing them in {es}.

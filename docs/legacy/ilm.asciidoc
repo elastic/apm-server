@@ -2,7 +2,8 @@
 [role="xpack"]
 == Custom index lifecycle management with APM Server
 
-deprecated::[7.16.0,Users should now use the <<apm-integration>>. See <<apm-integration-ilm>>]
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, please see <<ilm-how-to>> instead.
 
 ++++
 <titleabbrev>Customize index lifecycle management</titleabbrev>

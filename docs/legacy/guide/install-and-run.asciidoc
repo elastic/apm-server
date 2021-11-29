@@ -1,6 +1,8 @@
 [[install-and-run]]
 == Quick start guide
 
+IMPORTANT: {deprecation-notice-installation}
+
 This guide describes how to get started quickly with Elastic APM. You’ll learn how to:
 
 * Spin up {es}, {kib}, and APM Server on {ess}

@@ -1,6 +1,8 @@
 [[high-availability]]
 === High Availability
 
+IMPORTANT: {deprecation-notice-installation}
+
 To achieve high availability
 you can place multiple instances of APM Server behind a regular HTTP load balancer,
 for example HAProxy or nginx.
