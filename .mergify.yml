@@ -81,6 +81,7 @@ pull_request_rules:
     conditions:
       - label=automation
       - files=docker-compose.yml
+      - check-success=apm-ci/pr-merge
     actions:
       queue:
         method: squash
@@ -101,6 +102,7 @@ pull_request_rules:
       - label=automation
       - base~=^update-beats
       - files~=^(go.mod|go.sum|NOTICE.txt)
+      - check-success=apm-ci/pr-merge
     actions:
       queue:
         method: squash
