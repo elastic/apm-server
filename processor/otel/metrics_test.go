@@ -36,6 +36,7 @@ package otel_test
 
 import (
 	"context"
+	"math"
 	"testing"
 	"time"
 
@@ -199,6 +200,32 @@ func TestConsumeMetrics(t *testing.T) {
 			},
 		},
 	}}, events)
+}
+
+func TestConsumeMetricsNaN(t *testing.T) {
+	timestamp := time.Unix(123, 0).UTC()
+	metrics := pdata.NewMetrics()
+	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
+	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics().AppendEmpty()
+	metricSlice := instrumentationLibraryMetrics.Metrics()
+	appendMetric := func(name string, dataType pdata.MetricDataType) pdata.Metric {
+		metric := metricSlice.AppendEmpty()
+		metric.SetName(name)
+		metric.SetDataType(dataType)
+		return metric
+	}
+
+	for _, value := range []float64{math.NaN(), math.Inf(-1), math.Inf(1)} {
+		metric := appendMetric("gauge", pdata.MetricDataTypeGauge)
+		gauge := metric.Gauge()
+		dp := gauge.DataPoints().AppendEmpty()
+		dp.SetTimestamp(pdata.TimestampFromTime(timestamp))
+		dp.SetDoubleVal(value)
+	}
+
+	events, stats := transformMetrics(t, metrics)
+	assert.Equal(t, int64(3), stats.UnsupportedMetricsDropped)
+	assert.Empty(t, events)
 }
 
 func TestConsumeMetrics_JVM(t *testing.T) {
