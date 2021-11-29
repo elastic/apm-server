@@ -5,6 +5,9 @@
 <titleabbrev>Integrate with Jaeger</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, please see <<jaeger-integration>> instead.
+
 include::./jaeger-reference.asciidoc[tag=jaeger-intro]
 
 [float]

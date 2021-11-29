@@ -5,6 +5,9 @@
 <titleabbrev>Agent configuration</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-api}
+If you've already upgraded, see <<api-config>>.
+
 APM Server exposes an API endpoint that allows agents to query the server for configuration changes.
 More information on this feature is available in {kibana-ref}/agent-configuration.html[APM Agent configuration in Kibana].
 

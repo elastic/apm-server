@@ -1,6 +1,8 @@
 [[linux-seccomp]]
 == Use Linux Secure Computing Mode (seccomp)
 
+IMPORTANT: {deprecation-notice-config}
+
 beta[]
 
 On Linux 3.17 and later, {beatname_uc} can take advantage of secure computing

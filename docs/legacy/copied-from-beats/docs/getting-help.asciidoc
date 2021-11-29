@@ -9,6 +9,8 @@
 //// include::../../libbeat/docs/getting-help.asciidoc[]
 //////////////////////////////////////////////////////////////////////////
 
+IMPORTANT: {deprecation-notice-data}
+
 Start by searching the https://discuss.elastic.co/c/{discuss_forum}[{beatname_uc} discussion forum] for your issue. If you can't find a resolution, open a new issue or add a comment to an existing one. Make sure you provide the following information, and we'll help
 you troubleshoot the problem:
 
