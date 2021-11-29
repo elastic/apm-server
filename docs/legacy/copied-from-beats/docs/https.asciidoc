@@ -14,15 +14,13 @@
 [[securing-communication-elasticsearch]]
 == Secure communication with Elasticsearch
 
-<<<<<<< HEAD
+IMPORTANT: {deprecation-notice-config}
+
 To secure the communication between {beatname_uc} and Elasticsearch, you can use
 HTTPS and basic authentication. Basic authentication for Elasticsearch is
 available when you enable {security} (see
 {ref}/elasticsearch-security.html[Securing the {stack}] and configure {beatname_uc} to use {security-features}).
 If you aren't using {security}, you can use a web proxy instead.
-=======
-IMPORTANT: {deprecation-notice-config}
->>>>>>> d5bd996c (docs: Add "deprecating soon" notices (#6708))
 
 When sending data to a secured cluster through the `elasticsearch`
 output, {beatname_uc} can use any of the following authentication methods:
