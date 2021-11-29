@@ -5,6 +5,9 @@
 <titleabbrev>Jaeger</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, please see <<jaeger-integration>> instead.
+
 // this content is reused in the how-to guides
 // tag::jaeger-intro[]
 Elastic APM integrates with https://www.jaegertracing.io/[Jaeger], an open-source, distributed tracing system.

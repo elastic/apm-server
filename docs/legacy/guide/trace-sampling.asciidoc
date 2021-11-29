@@ -1,6 +1,9 @@
 [[trace-sampling]]
 === Transaction sampling
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<sampling>>.
+
 Elastic APM supports head-based, probability sampling.
 _Head-based_ means the sampling decision for each trace is made when that trace is initiated.
 _Probability sampling_ means that each trace has a defined and equal probability of being sampled.

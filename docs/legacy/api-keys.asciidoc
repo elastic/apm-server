@@ -2,6 +2,9 @@
 [[beats-api-keys]]
 == Grant access using API keys
 
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, see <<api-key>>.
+
 Instead of using usernames and passwords, you can use API keys to grant
 access to {es} resources. You can set API keys to expire at a certain time,
 and you can explicitly invalidate them. Any user with the `manage_api_key`

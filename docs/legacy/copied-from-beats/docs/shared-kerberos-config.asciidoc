@@ -5,6 +5,8 @@
 <titleabbrev>Kerberos</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-config}
+
 You can specify Kerberos options with any output or input that supports Kerberos, like {es}.
 
 The following encryption types are supported:

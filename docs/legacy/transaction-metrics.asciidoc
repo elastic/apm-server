@@ -6,7 +6,13 @@
 <titleabbrev>Transaction metrics</titleabbrev>
 ++++
 
+<<<<<<< HEAD
 When enabled, {beatname_uc} produces transaction histogram metrics that are used to power the APM app.
+=======
+IMPORTANT: {deprecation-notice-config}
+
+{beatname_uc} produces transaction histogram metrics that are used to power the APM app.
+>>>>>>> d5bd996c (docs: Add "deprecating soon" notices (#6708))
 Shifting this responsibility from APM app to APM Server removes the need to store unsampled transactions, reducing storage costs.
 
 Example config file:

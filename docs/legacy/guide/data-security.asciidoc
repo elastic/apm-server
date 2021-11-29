@@ -1,6 +1,9 @@
 [[data-security]]
 === Data security
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<apm-data-security>>.
+
 When setting up Elastic APM, it's essential to review all captured data carefully to ensure
 it does not contain sensitive information.
 When it does, we offer several different ways to filter, manipulate, or obfuscate this data.

@@ -13,6 +13,8 @@
 [[configuring-ssl-logstash]]
 == Secure communication with Logstash
 
+IMPORTANT: {deprecation-notice-config}
+
 You can use SSL mutual authentication to secure connections between {beatname_uc} and Logstash. This ensures that
 {beatname_uc} sends encrypted data to trusted Logstash servers only, and that the Logstash server receives data from
 trusted {beatname_uc} clients only.

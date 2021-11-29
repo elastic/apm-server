@@ -1,6 +1,9 @@
 [[troubleshooting-guide]]
 == Troubleshooting
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<troubleshoot-apm>>.
+
 If you run into trouble, there are three places you can look for help.
 
 [float]
