@@ -1,5 +1,6 @@
 include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
+include::./notices.asciidoc[]
 
 :apm-integration-docs:
 :apm-package-dir:    {docdir}/apm-package
@@ -45,8 +46,8 @@ include::upgrade.asciidoc[]
 
 include::release-notes.asciidoc[leveloffset=+1]
 
-// This includes the legacy APM Overview
+// Legacy APM Overview
 include::legacy/guide/index.asciidoc[]
 
-// This includes the legacy APM Server Reference
+// Legacy APM Server Reference
 include::legacy/index.asciidoc[]
