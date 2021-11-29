@@ -91,7 +91,7 @@ func TestNewSupporterWarnings(t *testing.T) {
 		warnings = append(warnings, record.Message)
 	}
 	assert.Equal(t, []string{
-		"`apm-server.data_streams` specified, but was removed in 8.0 and will be ignored: data streams are always enabled",
+		"`apm-server.data_streams.enabled` specified, but was removed in 8.0 and will be ignored: data streams are always enabled",
 		"`apm-server.ilm` specified, but was removed in 8.0 and will be ignored: ILM policies are managed by Fleet",
 		"`apm-server.register.ingest.pipeline` specified, but was removed in 8.0 and will be ignored: ingest pipelines are managed by Fleet",
 		"`output.elasticsearch.indices` specified, but was removed in 8.0 and will be ignored: indices cannot be customised, APM Server now produces data streams",
