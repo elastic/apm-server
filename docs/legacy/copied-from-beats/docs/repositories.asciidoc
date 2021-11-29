@@ -12,6 +12,8 @@
 [[setup-repositories]]
 === Repositories for APT and YUM
 
+IMPORTANT: {deprecation-notice-installation}
+
 We have repositories available for APT and YUM-based distributions. Note that we
 provide binary packages, but no source packages.
 

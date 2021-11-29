@@ -1,6 +1,9 @@
 [[apm-cross-cluster-search]]
 === Cross-cluster search
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<cross-cluster-search>>.
+
 Elastic APM utilizes Elasticsearch's cross-cluster search functionality.
 Cross-cluster search lets you run a single search request against one or more
 {ref}/modules-remote-clusters.html[remote clusters] --

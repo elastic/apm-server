@@ -1,6 +1,9 @@
 [[apm-features]]
 == Elastic APM features
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<features>>.
+
 ++++
 <titleabbrev>Features</titleabbrev>
 ++++

@@ -1,3 +1,4 @@
+[float]
 [[config-file-ownership]]
 ==== Configuration file ownership
 
@@ -36,6 +37,7 @@ can only be writable by the owner but the permissions are "-rw-rw-r--"
 To correct this problem, use +chmod go-w /etc/{beatname_lc}/{beatname_lc}.yml+ to
 remove write privileges from anyone other than the owner.
 
+[float]
 ===== Disabling strict permission checks
 
 You can disable strict permission checks from the command line by using

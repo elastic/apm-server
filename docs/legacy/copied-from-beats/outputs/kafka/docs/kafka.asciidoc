@@ -5,6 +5,8 @@
 <titleabbrev>Kafka</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-config}
+
 The Kafka output sends events to Apache Kafka.
 
 To use this output, edit the {beatname_uc} configuration file to disable the {es}

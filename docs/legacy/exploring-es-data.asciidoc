@@ -1,6 +1,9 @@
 [[exploring-es-data]]
 = Explore data in {es}
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<apm-data-streams>>.
+
 Elastic APM stores data for each {apm-overview-ref-v}/apm-data-model.html[event type]
 in separate indices. By default, <<ilm,Index Lifecylce Management (ILM)>> is enabled and event data is stored using the following index naming patterns:
 
