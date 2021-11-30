@@ -60,7 +60,7 @@ There are some limitations to be aware of:
 * This change cannot be reverted
 * Currently, only the {es} output is supported
 * APM runs under {agent} which, depending on the installation method, might be require root privileges
-* An {agent} with the APM integration enabled must be managed by fleet.
+* An {agent} with the APM integration enabled must be managed by {fleet}.
 
 In addition, if you haven't <<upgrade-to-data-streams>> yet, there are additional limitations to be aware of.
 
@@ -88,30 +88,30 @@ your current APM version and this one.
 
 [discrete]
 [[apm-integration-upgrade-2]]
-==== Add a Fleet Server
+==== Add a {fleet} Server
 
-Fleet Server is a component of the {stack} used to centrally manage {agent}s.
-The APM integration requires a Fleet Server to be running and accessible to your hosts.
-Add a Fleet Server by following {fleet-guide}/add-a-fleet-server.html[this guide].
+{fleet} Server is a component of the {stack} used to centrally manage {agent}s.
+The APM integration requires a {fleet} Server to be running and accessible to your hosts.
+Add a {fleet} Server by following {fleet-guide}/add-a-fleet-server.html[this guide].
 
 TIP: If you're upgrading a self-managed deployment of the {stack}, you'll need to enable
 {ref}/configuring-stack-security.html[{es} security] and the
 {ref}/security-settings.html[API key service].
 
-After adding your Fleet Server host and generating a service token, the in-product help in {kib}
-will provide a command to run to start an {agent} as a {fleet}.
+After adding your {fleet} Server host and generating a service token, the in-product help in {kib}
+will provide a command to run to start an {agent} as a {fleet} Server.
 Commands may require administrator privileges.
 
-Verify Fleet Server is running by navigating to **Fleet** > **Agents** in {kib}.
+Verify {fleet} Server is running by navigating to **Fleet** > **Agents** in {kib}.
 
 [discrete]
 [[apm-integration-upgrade-3]]
-==== Install a Fleet-managed {agent}
+==== Install a {fleet}-managed {agent}
 
-NOTE: It's possible to install the Elastic APM integration on the same {agent} that is running the Fleet Server integration. For this use case, skip this step.
+NOTE: It's possible to install the Elastic APM integration on the same {agent} that is running the {fleet} Server integration. For this use case, skip this step.
 
-The Fleet-managed {agent} will run the Elastic APM integration on your edge nodes, next to your applications.
-To install a Fleet-managed {agent}, follow {fleet-guide}/install-fleet-managed-elastic-agent.html[this guide].
+The {fleet}-managed {agent} will run the Elastic APM integration on your edge nodes, next to your applications.
+To install a {fleet}-managed {agent}, follow {fleet-guide}/install-fleet-managed-elastic-agent.html[this guide].
 
 [discrete]
 [[apm-integration-upgrade-4]]
@@ -122,8 +122,8 @@ validates and processes it, and then transforms the data into {es} documents.
 
 To add the APM integration, see <<add-apm-integration>>.
 Only complete the linked step (not the entire quick start guide).
-If you're adding the APM integration to a Fleet-managed {agent}, you can use the default policy.
-If you're adding the APM integration to the Fleet Server, use the policy that the Fleet Server is running on.
+If you're adding the APM integration to a {fleet}-managed {agent}, you can use the default policy.
+If you're adding the APM integration to the {fleet} Server, use the policy that the {fleet} Server is running on.
 
 TIP: You'll configure the APM integration in this step.
 See <<input-apm>> for a reference of all available settings.

@@ -1,7 +1,7 @@
 [[upgrade-to-data-streams]]
 === Upgrade to data streams
 
-* <<hy-upgrade-to-data-streams>>
+* <<why-upgrade-to-data-streams>>
 * <<considerations-data-streams>>
 * <<apm-data-streams-upgrade-steps>>
 * <<apm-data-streams-upgrade-steps-ess>>
@@ -61,14 +61,14 @@ Before enabling data streams in APM Server, the APM integration must be added to
 This enables Fleet to set up ingest templates, ILM policies,
 and ingest pipelines when APM Server tries to connect.
 
-In {kib}, navigate to **Management** > **Fleet**.
+. In {kib}, navigate to **Management** > **Fleet**.
 First time? The page may take a few minutes to load.
 
-Select **Agent policies** > **Default policy** and click **Add integration**.
+. Select **Agent policies** > **Default policy** and click **Add integration**.
 
-Search for and select **Elastic APM**. Under step one, select **APM integration**.
+. Search for and select **Elastic APM**. Under step one, select **APM integration**.
 
-Click **Add Elastic APM**. Configuring the integration is not required as we're only using the integration to set up {es} resources. Click **Save and Continue** and then **Add Elastic Agent later**.
+. Click **Add Elastic APM**. Configuring the integration is not required as we're only using the integration to set up {es} resources. Click **Save and Continue** and then **Add {agent} later** (you don't need to add an {agent} later).
 
 [discrete]
 [[apm-data-streams-upgrade-3]]
