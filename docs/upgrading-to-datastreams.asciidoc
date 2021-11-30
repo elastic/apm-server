@@ -1,0 +1,51 @@
+[[upgrade-to-data-streams]]
+=== Upgrade to data streams
+
+Data steams migration::
+Existing APM users will need to migrate to data streams to use the APM integration.
+This change cannot be reverted, and impacts how APM Server and its indices are configured -- see <<apm-integration-naming-scheme>> and <<apm-integration-configure>>.
+Additionally, users on {ece} require additional steps prior to migrating, like configuring TLS certificates for the connection between APM Server and {es}.
+
+
+[discrete]
+=== Migrate to Data streams
+
+Existing APM users need to migrate to data streams to use the APM integration.
+The integration does not have feature parity with standalone APM.
+Production deployments should not be migrated at this time.
+
+Migration limitations include:
+
+* This change cannot be reverted
+* This change impacts how APM Server and its indices are configured -- see <<apm-integration-naming-scheme>> and <<apm-integration-configure>>
+* Users on {ece} require additional steps prior to migrating, like configuring TLS certificates for the connection between APM Server and {es}
+
+
+
+
+
+
+Stack monitoring::
+<<monitoring,Stack monitoring>> is not yet available.
+
+Index lifecycle management (ILM)::
+A default ILM policy, named `traces-apm.traces-default_policy` is created for all event types.
+No default warm, cold, or delete data tiers are defined.
+It is not possible to configure this policy in APM Server or {agent}–
+it must be configured with {es} or {kib}.
+See {ref}/example-using-index-lifecycle-policy.html[Customize built-in ILM policies] for more information.
+
+Onboarding::
+APM Server no longer writes an onboarding document when setting up.
+
+Standalone mode::
+{fleet-guide}/install-standalone-elastic-agent.html[Standalone mode] is not currently supported.
+An {agent} with the APM integration enabled must be managed by fleet.
+
+Service names::
+Service names are case-insensitive and must be unique.
+See <<apm-integration-service-name>> for more information.
+
+Upgrading from prior {agent} versions::
+Due to changing API key permissions, an {agent} enrolled before version 7.12 is not compatible with the APM integration.
+You must enroll a new {agent} to use the integration.

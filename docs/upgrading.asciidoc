@@ -5,127 +5,16 @@ This guide gives general recommendations for upgrading Elastic APM.
 
 * <<agent-server-compatibility>>
 * <<apm-breaking>>
+* <<upgrade-to-data-streams>>
 * <<upgrade-to-apm-integration>>
 * <<upgrade-to-legacy-apm>>
 
 include::./agent-server-compatibility.asciidoc[]
 
-include::apm-breaking.asciidoc[]
+include::./apm-breaking.asciidoc[]
 
-[[upgrade-to-apm-integration]]
-=== Upgrade to the Elastic APM integration
+include::./upgrading-to-datastreams.asciidoc[]
 
-// reuse arch diagram here
+include::./upgrading-to-integration.asciidoc[]
 
-[discrete]
-=== Why upgrade?
-
-// Are there other APM-specific reasons we can callout here?
-
-* Single, unified way to add monitoring for logs, metrics, traces, and other types of data to each host -- install one thing instead of multiple
-* Single, unified configuration -- no need to edit multiple configuration files
-* Elastic integrations ship data, but also provide out-of-the-box dashboards, visualizations, pipelines, and more
-* Data streams provide a reduced number of fields per index, more granular data control, and a flexible naming scheme
-
-[discrete]
-=== Architecture
-
-// Is this still true?
-If RUM is enabled, you must run {agent} centrally.
-If RUM is disabled, {agent} can be run on edge machines. To do this,
-download and enroll an {agent} on the same machines that your instrumented services run on.
-
-[discrete]
-=== Limitations
-
-IMPORTANT: This integration is still in beta and does not have feature parity with standalone APM.
-Do not migrate production deployments.
-
-Data steams migration::
-Existing APM users will need to migrate to data streams to use the APM integration.
-This change cannot be reverted, and impacts how APM Server and its indices are configured -- see <<apm-integration-naming-scheme>> and <<apm-integration-configure>>.
-Additionally, users on {ece} require additional steps prior to migrating, like configuring TLS certificates for the connection between APM Server and {es}.
-
-Stack monitoring::
-<<monitoring,Stack monitoring>> is not yet available.
-
-Index lifecycle management (ILM)::
-A default ILM policy, named `traces-apm.traces-default_policy` is created for all event types.
-No default warm, cold, or delete data tiers are defined.
-It is not possible to configure this policy in APM Server or {agent}–
-it must be configured with {es} or {kib}.
-See {ref}/example-using-index-lifecycle-policy.html[Customize built-in ILM policies] for more information.
-
-Onboarding::
-APM Server no longer writes an onboarding document when setting up.
-
-Standalone mode::
-{fleet-guide}/install-standalone-elastic-agent.html[Standalone mode] is not currently supported.
-An {agent} with the APM integration enabled must be managed by fleet.
-
-Service names::
-Service names are case-insensitive and must be unique.
-See <<apm-integration-service-name>> for more information.
-
-Upgrading from prior {agent} versions::
-Due to changing API key permissions, an {agent} enrolled before version 7.12 is not compatible with the APM integration.
-You must enroll a new {agent} to use the integration.
-
-[discrete]
-=== Migrate to Data streams
-
-Existing APM users need to migrate to data streams to use the APM integration.
-The integration does not have feature parity with standalone APM.
-Production deployments should not be migrated at this time.
-
-Migration limitations include:
-
-* This change cannot be reverted
-* This change impacts how APM Server and its indices are configured -- see <<apm-integration-naming-scheme>> and <<apm-integration-configure>>
-* Users on {ece} require additional steps prior to migrating, like configuring TLS certificates for the connection between APM Server and {es}
-* Additional <<apm-integration-limitations,APM integration limitations>>
-
-[discrete]
-=== Migrate to the APM integration
-
-. Upgrade to Fleet + APM integration
-. Switch to data streams --> APM settings --> Schema --> Data streams
-. Scale APM & Fleet up and out. Capacity to process events increases with the memory size (instead of tweaking output settings, increase from 2gb to 4gb for example). As of right now, you cannot overwrite ES output settings or change the output.
-. Navigate to the APM integration and update settings (like enabling RUM)
-. ???
-. Profit
-
-[[upgrade-to-legacy-apm]]
-=== Upgrade to legacy versions of Elastic APM
-
-. Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and Observability {observability-guide}/whats-new.html[What's new] content for important changes between
-your current APM version and the one you are upgrading to.
-
-. The Elastic Stack (Elasticsearch and Kibana) must be upgraded before APM Server.
-See the {stack-ref}/upgrading-elastic-stack.html[Elastic Stack Installation and Upgrade Guide] for guidance.
-
-. If applicable, read and understand the relevant APM Server upgrading guide:
-* <<upgrading-to-77,`7.7`>>
-* <<upgrading-to-70,`7.0`>>
-* <<upgrading-to-65,`6.5`>>
-
-. Install the new APM Server release.
-
-. Review the `apm-server.yml` configuration file.
-There may be newly added configuration options, and you'll want to be aware of their default settings.
-See <<configuring-howto-apm-server,configuring>> for more information on available options.
-
-. If you set up index patterns and dashboards manually by running `./apm-server setup`,
-rerun the command to update the index pattern and the dashboards.
-
-. Start the APM server.
-+
-When you start the APM server after upgrading, it creates new indices that use the current version,
-and applies the correct template automatically.
-
-include::./upgrading-to-77.asciidoc[]
-
-include::./upgrading-to-70.asciidoc[]
-
-include::./upgrading-to-65.asciidoc[]
+include::./upgrading-to-legacy.asciidoc[]
