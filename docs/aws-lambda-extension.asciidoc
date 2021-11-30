@@ -1,0 +1,273 @@
+[[aws-lambda-extension]]
+= AWS Lambda Extension (Experimental)
+
+experimental::[]
+
+Elastic's APM Agents instrument AWS Lambda functions via an AWS Lambda Extension.
+
+[discrete]
+[[aws-lambda-arch]]
+== Extension Architecture
+
+Normally, during the execution of a Lambda function, there's only a single language process running in the AWS Lambda execution environment.  However, with an AWS Lambda Extension, Lambda users can run a _second_ process alongside their main service/application process.
+
+image:images/data-flow.png[image showing data flow from lambda function, to extension, to APM Server]
+
+By using a custom-built AWS Lambda Extension, Elastic APM Agents can send data to a locally running Lambda Extension process, and that process will forward data on to APM Server.  The Lambda Extension ensures that any latency between the Lambda function and the AWS Server instance will not cause latency in the Lambda function/Service itself.
+
+[discrete]
+[[aws-lambda-instrumenting]]
+== Instrumenting a Lambda Function
+
+The rest of this guide contains instructions for instrumenting a Lambda function. There are two high level steps to instrumenting an AWS Lambda function.
+
+1. Install the Lambda extension
+2. Configure the Agent and Lambda function handler
+
+We'll start with installing the Lambda extension.
+
+[discrete]
+[[aws-lambda-install]]
+== Installing the Lambda Extension
+
+Elastic offers an installer for adding the Lambda Extension to your Lambda functions. (If you'd prefer to skip the installer and manually install the extension, see the <<aws-lambda-install,Manual Installation>> section below.)
+
+This installer will:
+
+1. Compile the Lambda Extension from source (written in go)
+2. Publish the Lambda Extension as a layer
+3. Configure a named Lambda function with the just published layer
+4. Configure the required environmental variables
+
+If you'd rather manually install and configuration the Lambda Extension, see the Manual Installation section below.
+
+The installer is distributed via GitHub as a Node.js project.  Once you've cloned the repository and installed a version of Node.js, run the following commands.
+
+[source,shell]
+----
+    $ cd cli
+    $ npm install   # installs the dependencies for the cli
+    $ cp install.yaml.dist install.yaml
+    # edit install.yaml to use your values (see below)
+    $ ./elastic-lambda.js install
+----
+
+The `elastic-lambda.js` command assumes you have a `install.yaml` file configured.  There's a sample of this file distributed with the repository.  To use it, just copy the file and edit its contents.
+
+[source,shell]
+----
+    $ cp install.yaml install.yaml.dist
+----
+
+**Important**: The installer assumes your local environment is configured to authenticate against the AWS APIs using Amazon's standard environment variables.  Depending on your authentication method, this may look something like the following
+
+[source,shell]
+----
+    $ AWS_DEFAULT_REGION=us-west-2 \
+      AWS_ACCESS_KEY_ID=AKIAZEDJODE3B3UMDAKX \
+      AWS_SECRET_ACCESS_KEY=hmE7n1gfiyXzgwOQu2bxOA92HrVVWh8WG \
+      ./elastic-lambda.js install
+----
+
+[discrete]
+[[aws-lambda-configuring]]
+== Configuring the Installer
+
+A fully configured `install.yaml` might look like the following
+
+[source,yaml]
+----
+install:
+  config:
+    layer_name: "apm-lambda-extension"
+    function_name: "your-function-name"
+    lambda_env:
+      ELASTIC_APM_LOG_LEVEL: "info"
+      ELASTIC_APM_SECRET_TOKEN: "D...a"
+      ELASTIC_APM_SERVER_URL: "https://apm-server.example.com:443"
+      ELASTIC_APM_SERVICE_NAME: "Your Service Name"
+      ELASTIC_APM_DATA_RECEIVER_TIMEOUT_SECONDS: "15"
+----
+
+The meaning of each `install.yaml` configuration field is as follows.
+
+[discrete]
+[[aws-lambda-layer_name]]
+=== `layer_name`
+
+This is the name the compiler will use for your AWS Layer.  The default, `apm-lambda-extension`, should work for most scenarios.
+
+[discrete]
+[[aws-lambda-function_name]]
+=== `function_name`
+
+The name of your Lambda function.  The installer will use this to configure the correct Lambda function.  This must be the name of a function that already exists.
+
+[discrete]
+[[aws-lambda-lambda_env]]
+=== `lambda_env`
+
+The installer will use the key/value pairs in this section of the configuration file to add environment variables to your Lambda function.  The provided variables are those required to make the extension work correctly.
+
+[discrete]
+[[aws-lambda-log_level]]
+==== `ELASTIC_APM_LOG_LEVEL`
+
+The log level for the APM Agent.  Consult your https://www.elastic.co/guide/en/apm/agent/index.html[APM Agent's documentation] for more information.
+
+[discrete]
+[[aws-lambda-secret_token]]
+==== `ELASTIC_APM_SECRET_TOKEN`
+
+The APM secret token.  The extension will use this when communicating with APM Server.
+
+[discrete]
+[[aws-lambda-api_key]]
+==== `ELASTIC_APM_API_KEY`
+
+An alternative authentication method to the secret token.  The extension will use this when communicating with APM Server.
+
+[discrete]
+[[aws-lambda-server_url]]
+==== `ELASTIC_APM_SERVER_URL`
+
+Your APM Server URL.  This is the final destination for your data.
+
+[discrete]
+[[aws-lambda-service_name]]
+==== `ELASTIC_APM_SERVICE_NAME`
+
+The configured name of your application or service.  The APM Agent will use this value when reporting data to APM Server.
+If unset, the APM Agent will automatically set the value based on `AWS_LAMBDA_FUNCTION_NAME` or `context.functionName`.
+
+[discrete]
+[[aws-lambda-timeout_seconds]]
+==== `ELASTIC_APM_DATA_RECEIVER_TIMEOUT_SECONDS`
+
+The timeout value, in seconds, for the Lambda Extension's server.
+
+[discrete]
+[[aws-lambda-handler]]
+== Configuring the Agent and Lambda Function handler
+
+Once you've installed the extension, there's one last step to take. You'll need to wrap the Lambda function handler.
+
+[discrete]
+[[aws-lambda-nodejs]]
+=== Node.js
+
+In Node.js, you wrap a Lambda function handler using the following syntax.
+
+[source,js]
+----
+const apm = require('elastic-apm-node').start({/*...*/})
+exports.handler = apm.lambda(async function handler (event, context) {
+    const response = {
+      statusCode: 200,
+      body: "hello new async."
+    };
+    return response
+})
+----
+
+[discrete]
+[[aws-lambda-python]]
+=== Python
+
+In Python, you wrap a Lambda function handler using the following syntax.
+
+[source,python]
+----
+from elasticapm import capture_serverless
+@capture_serverless()
+def handler(event, context):
+    return {"statusCode": r.status_code, "body": "Success!"}
+----
+
+[discrete]
+[[aws-lambda-manual-instrumentation]]
+== Manual Installation
+
+It's possible to install and configure the extension manually.  In order to do so, you'll need to
+
+1. Download a release zip file
+2. Publish that release zip file as a Lambda layer
+3. Configure your function to use that layer
+4. Configure your function's environment variables correctly
+
+[discrete]
+[[aws-lambda-download-released]]
+=== Download a Released Extension
+
+The extension is released as a ZIP archive via https://github.com/elastic/apm-aws-lambda/releases[the GitHub releases page].  To download an archive, simply navigate to the latest version, and choose either the AMD64 or ARM64 release (depending on which architecture your Lambda function uses).
+
+image:images/assets.png[image of assets tab in releases]
+
+[discrete]
+[[aws-lambda-publish-layer]]
+=== Publish a Lambda layer
+
+Next, you'll want to take that release ZIP file and publish it https://docs.aws.amazon.com/lambda/latest/dg/invocation-layers.html?icmpid=docs_lambda_help[as a Lambda layer].  A Lambda layer is a zip file archive that contains additional code or files for your Lambda function.
+
+To do this, navigate to the Layers section of the AWS console, click the _Create layer_ button, and follow the prompts to upload the ZIP archive as a layer.
+
+image:images/layers.png[image of layers section in the Amazon Console]
+
+After publishing a layer, you'll receive a Version ARN.  This ARN is the layer's unique identifier.
+
+[discrete]
+[[aws-lambda-configure-layer]]
+=== Configure the Layer
+
+Once you've published a layer, you'll need to configure your function to use that layer. To add a layer
+
+1. Navigate to your function in the AWS Console
+2. Scroll to the Layers section and click the _Add a layer_ button image:images/config-layer.png[image of layer configuration section in AWS Console]
+3. Choose the _Specify an ARN_ radio button
+4. Enter the Version ARN of your layer in the _Specify an ARN_ text input
+5. Click the _Add_ button
+
+[discrete]
+[[aws-lambda-configure-env]]
+=== Configure your Environment Variables
+
+Finally, once the layer's in place you'll need to configure a few environmental variables.  To configure variables
+
+1. Navigate to your function in the AWS Console
+2. Click on the _Configuration_ tab
+3. Click on _Environment variables_
+4. Add the necessary variables.
+
+[discrete]
+[[aws-lambda-variables]]
+=== The Necessary Variables
+
+[discrete]
+[[aws-lambda-central_config]]
+==== `ELASTIC_APM_CENTRAL_CONFIG`
+
+The `ELASTIC_APM_CENTRAL_CONFIG` value _must_ be set to `false`. Central configuration does not work in a Lambda environment, and having this on will negatively impact the performance of your Lambda function.
+
+[discrete]
+[[aws-lambda-cloud_provider]]
+==== `ELASTIC_APM_CLOUD_PROVIDER`
+
+The `ELASTIC_APM_CLOUD_PROVIDER` value _must_ be set to `none`.  Amazon's Cloud Metadata APIs are not available in an AWS Lambda environment, and attempting to fetch this data will negatively impact the performance of your Lambda function.
+
+[discrete]
+[[aws-lambda-lambda_apm_server]]
+==== `ELASTIC_APM_LAMBDA_APM_SERVER`
+
+The `ELASTIC_APM_LAMBDA_APM_SERVER` controls where the Lambda extension will ship data.  This should be the URL of the final APM Server destination for your telemetry.
+
+[discrete]
+[[aws-lambda-apm_secret_token]]
+==== `ELASTIC_APM_SECRET_TOKEN` or `ELASTIC_APM_API_KEY`
+
+Either `ELASTIC_APM_API_KEY` or `ELASTIC_APM_SECRET_TOKEN` needs to be set.  This controls the authentication method that the extension uses when sending data to the URL configured via `ELASTIC_APM_LAMBDA_APM_SERVER`.
+
+[discrete]
+[[aws-lambda-apm_server_url]]
+==== `ELASTIC_APM_SERVER_URL`
+
+This _must_ be configured to the value `http://localhost:8200`.  This configuration field controls where your APM Agent sends data.  The extension listens for data on `localhost:8200`.
