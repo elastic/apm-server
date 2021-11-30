@@ -40,7 +40,7 @@ The new APM ecosystem offers a number of benefits:
 The Elastic APM integration consists of four components: *APM agents*, the *Elastic APM integration*, *Elasticsearch*, and *Kibana*.
 Generally, there are two ways that these four components can work together:
 
-Apm agents on edge machines send data to a centrally hosted APM integration:
+APM agents on edge machines send data to a centrally hosted APM integration:
 
 image::./images/apm-architecture.png[Architecture of Elastic APM]
 
