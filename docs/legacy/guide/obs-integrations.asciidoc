@@ -1,6 +1,9 @@
 [[observability-integrations]]
 === Observability integrations
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<log-correlation>>.
+
 Elastic APM supports integrations with other observability solutions.
 
 // remove float tag once other integrations are added

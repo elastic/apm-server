@@ -9,6 +9,8 @@
 //// include::../../libbeat/docs/debugging.asciidoc[]
 //////////////////////////////////////////////////////////////////////////
 
+IMPORTANT: {deprecation-notice-data}
+
 By default, {beatname_uc} sends all its output to syslog. When you run {beatname_uc} in
 the foreground, you can use the `-e` command line flag to redirect the output to
 standard error instead. For example:

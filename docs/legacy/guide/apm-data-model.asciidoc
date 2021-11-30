@@ -1,6 +1,9 @@
 [[apm-data-model]]
 == Data Model
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<data-model>>.
+
 Elastic APM agents capture different types of information from within their instrumented applications.
 These are known as events, and can be `spans`, `transactions`, `errors`, or `metrics`.
 
@@ -13,6 +16,9 @@ Events can contain additional <<metadata,metadata>> which further enriches your 
 
 [[transaction-spans]]
 === Spans
+
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<data-model>>.
 
 *Spans* contain information about the execution of a specific code path.
 They measure from the start to the end of an activity,
@@ -71,6 +77,9 @@ the APM app will calculate the difference and display a message.
 [[transactions]]
 === Transactions
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<data-model>>.
+
 *Transactions* are a special kind of <<transaction-spans,span>> that have additional attributes associated with them.
 They describe an event captured by an Elastic APM agent instrumenting a service.
 You can think of transactions as the highest level of work you’re measuring within a service.
@@ -121,6 +130,9 @@ Transactions are stored in {apm-server-ref-v}/transaction-indices.html[transacti
 [[errors]]
 === Errors
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<data-model>>.
+
 An error event contains at least
 information about the original `exception` that occurred
 or about a `log` created when the exception occurred.
@@ -151,6 +163,9 @@ Errors are stored in {apm-server-ref-v}/error-indices.html[error indices].
 [[metrics]]
 === Metrics
 
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<data-model>>.
+
 APM agents automatically pick up basic host-level metrics,
 including system and process-level CPU and memory metrics.
 Agent specific metrics are also available,
@@ -178,6 +193,9 @@ For a full list of tracked metrics, see the relevant agent documentation:
 // This heading is linked to from the APM UI section in Kibana
 [[metadata]]
 === Metadata
+
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<data-model>>.
 
 Metadata can enrich your events and make application performance monitoring even more useful.
 Let's explore the different types of metadata that Elastic APM offers.

@@ -18,6 +18,8 @@
 <titleabbrev>Output</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-config}
+
 You configure {beatname_uc} to write to a specific output by setting options
 in the Outputs section of the +{beatname_lc}.yml+ config file. Only a single
 output may be defined.

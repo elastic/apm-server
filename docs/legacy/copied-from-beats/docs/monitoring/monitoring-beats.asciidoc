@@ -6,6 +6,8 @@
 <titleabbrev>Monitor</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-monitor}
+
 You can use the {stack} {monitor-features} to gain insight into the health of
 ifndef::apm-server[]
 {beatname_uc} instances running in your environment.

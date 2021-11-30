@@ -12,6 +12,8 @@
 [[directory-layout]]
 === Directory layout
 
+IMPORTANT: {deprecation-notice-installation}
+
 The directory layout of an installation is as follows:
 
 [cols="<h,<,<m,<m",options="header",]
@@ -29,6 +31,7 @@ You can change these settings by using CLI flags or setting
 <<configuration-path,path options>> in the configuration file.
 endif::serverless[]
 
+[float]
 ==== Default paths
 
 {beatname_uc} uses the following default paths unless you explicitly change them.
@@ -100,6 +103,7 @@ ifndef::win_only[]
 endif::win_only[]
 
 ifdef::mac_os[]
+[float]
 ===== brew
 [cols="<h,<,<m",options="header",]
 |=======================================================================
