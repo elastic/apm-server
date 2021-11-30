@@ -6,6 +6,8 @@
 <titleabbrev>Set up</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-installation}
+
 Before reading this section, see the <<getting-started-apm-server,getting started documentation>>
 for basic installation and running instructions.
 

@@ -1,6 +1,9 @@
 [[configuration-process]]
 == General configuration options
 
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, please see <<input-apm>> instead.
+
 Example config file:
 
 ["source","yaml"]

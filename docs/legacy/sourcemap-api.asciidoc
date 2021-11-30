@@ -5,6 +5,9 @@
 <titleabbrev>Source map upload</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-api}
+If you've already upgraded, see <<source-map-how-to>>.
+
 IMPORTANT: You must <<configuration-rum,enable RUM support>> in the APM Server for this endpoint to work.
 
 The APM Server exposes an API endpoint to upload source maps for real user monitoring (RUM).

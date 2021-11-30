@@ -5,6 +5,9 @@
 <titleabbrev>Real User Monitoring (RUM)</titleabbrev>
 ++++
 
+IMPORTANT: {deprecation-notice-config}
+If you're using {fleet} and the Elastic APM integration, please see <<apm-rum>> instead.
+
 The {apm-rum-ref-v}/index.html[Real User Monitoring (RUM) agent] captures user interactions with clients such as web browsers.
 These interactions are sent as events to the APM Server.
 Because the RUM agent runs on the client side, the connection between agent and server is unauthenticated.

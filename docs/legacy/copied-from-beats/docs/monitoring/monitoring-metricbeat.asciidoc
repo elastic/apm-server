@@ -6,7 +6,9 @@
 <titleabbrev>Use {metricbeat} collection</titleabbrev>
 ++++
 
-In 7.3 and later, you can use {metricbeat} to collect data about {beatname_uc} 
+IMPORTANT: {deprecation-notice-monitor}
+
+In 7.3 and later, you can use {metricbeat} to collect data about {beatname_uc}
 and ship it to the monitoring cluster. The benefit of using {metricbeat} instead
 of internal collection is that the monitoring agent remains active even if the
 {beatname_uc} instance dies.
@@ -27,8 +29,8 @@ concurrently. If you don't want to run two instances concurrently, use
 endif::[]
 
 //Commenting out this link temporarily until the general monitoring docs can be
-//updated. 
-//To learn about monitoring in general, see 
+//updated.
+//To learn about monitoring in general, see
 //{ref}/monitor-elasticsearch-cluster.html[Monitor a cluster].
 
 //NOTE: The tagged regions are re-used in the Stack Overview.
@@ -71,7 +73,7 @@ http.port: 5067
 --
 // tag::disable-beat-collection[]
 Add the following setting in the {beatname_uc} configuration file
-(+{beatname_lc}.yml+): 
+(+{beatname_lc}.yml+):
 
 [source,yaml]
 ----------------------------------
@@ -79,7 +81,7 @@ monitoring.enabled: false
 ----------------------------------
 // end::disable-beat-collection[]
 
-For more information, see 
+For more information, see
 <<configuration-monitor,Monitoring configuration options>>.
 --
 
@@ -138,7 +140,7 @@ endif::[]
 +
 --
 // tag::enable-beat-module[]
-For example, to enable the default configuration in the `modules.d` directory, 
+For example, to enable the default configuration in the `modules.d` directory,
 run the following command, using the correct command syntax for your OS:
 
 ["source","sh",subs="attributes,callouts"]
@@ -146,9 +148,9 @@ run the following command, using the correct command syntax for your OS:
 metricbeat modules enable beat-xpack
 ----------------------------------------------------------------------
 
-For more information, see 
-{metricbeat-ref}/configuration-metricbeat.html[Configure modules] and 
-{metricbeat-ref}/metricbeat-module-beat.html[beat module]. 
+For more information, see
+{metricbeat-ref}/configuration-metricbeat.html[Configure modules] and
+{metricbeat-ref}/metricbeat-module-beat.html[beat module].
 // end::enable-beat-module[]
 --
 
@@ -170,7 +172,7 @@ The `modules.d/beat-xpack.yml` file contains the following settings:
   #password: "secret"
   xpack.enabled: true
 ----------------------------------
- 
+
 Set the `hosts`, `username`, and `password` settings as required by your
 environment. For other module settings, it's recommended that you accept the
 defaults.
@@ -179,7 +181,7 @@ By default, the module collects {beatname_uc} monitoring data from
 `localhost:5066`. If you exposed the metrics on a different host or port when
 you enabled the HTTP endpoint, update the `hosts` setting.
 
-To monitor multiple 
+To monitor multiple
 ifndef::apm-server[]
 {beats} agents,
 endif::[]
@@ -198,15 +200,15 @@ it via HTTPS. For example, use a `hosts` setting like `https://localhost:5066`.
 // end::configure-beat-module[]
 
 // tag::remote-monitoring-user[]
-If the Elastic {security-features} are enabled, you must also provide a user 
-ID and password so that {metricbeat} can collect metrics successfully: 
+If the Elastic {security-features} are enabled, you must also provide a user
+ID and password so that {metricbeat} can collect metrics successfully:
 
-.. Create a user on the {es} cluster that has the 
-`remote_monitoring_collector` {ref}/built-in-roles.html[built-in role]. 
+.. Create a user on the {es} cluster that has the
+`remote_monitoring_collector` {ref}/built-in-roles.html[built-in role].
 Alternatively, if it's available in your environment, use the
 `remote_monitoring_user` {ref}/built-in-users.html[built-in user].
 
-.. Add the `username` and `password` settings to the beat module configuration 
+.. Add the `username` and `password` settings to the beat module configuration
 file.
 // end::remote-monitoring-user[]
 --
@@ -224,19 +226,19 @@ other purposes, run the following command:
 ----------------------------------------------------------------------
 metricbeat modules disable system
 ----------------------------------------------------------------------
-// end::disable-system-module[] 
+// end::disable-system-module[]
 --
 
 . Identify where to send the monitoring data. +
 +
 --
-TIP: In production environments, we strongly recommend using a separate cluster 
-(referred to as the _monitoring cluster_) to store the data. Using a separate 
-monitoring cluster prevents production cluster outages from impacting your 
-ability to access your monitoring data. It also prevents monitoring activities 
+TIP: In production environments, we strongly recommend using a separate cluster
+(referred to as the _monitoring cluster_) to store the data. Using a separate
+monitoring cluster prevents production cluster outages from impacting your
+ability to access your monitoring data. It also prevents monitoring activities
 from impacting the performance of your production cluster.
 
-For example, specify the {es} output information in the {metricbeat} 
+For example, specify the {es} output information in the {metricbeat}
 configuration file (`metricbeat.yml`):
 
 [source,yaml]
@@ -244,14 +246,14 @@ configuration file (`metricbeat.yml`):
 output.elasticsearch:
   # Array of hosts to connect to.
   hosts: ["http://es-mon-1:9200", "http://es-mon2:9200"] <1>
-  
+
   # Optional protocol and basic auth credentials.
   #protocol: "https"
   #api_key:  "id:api_key" <2>
   #username: "elastic"
   #password: "changeme"
 ----------------------------------
-<1> In this example, the data is stored on a monitoring cluster with nodes 
+<1> In this example, the data is stored on a monitoring cluster with nodes
 `es-mon-1` and `es-mon-2`.
 <2> Specify one of `api_key` or `username`/`password`.
 
@@ -262,27 +264,27 @@ must access it via HTTPS. For example, use a `hosts` setting like
 IMPORTANT: The {es} {monitor-features} use ingest pipelines, therefore the
 cluster that stores the monitoring data must have at least one ingest node.
 
-If the {es} {security-features} are enabled on the monitoring cluster, you 
-must provide a valid user ID and password so that {metricbeat} can send metrics 
-successfully: 
+If the {es} {security-features} are enabled on the monitoring cluster, you
+must provide a valid user ID and password so that {metricbeat} can send metrics
+successfully:
 
-.. Create a user on the monitoring cluster that has the 
-`remote_monitoring_agent` {ref}/built-in-roles.html[built-in role]. 
+.. Create a user on the monitoring cluster that has the
+`remote_monitoring_agent` {ref}/built-in-roles.html[built-in role].
 Alternatively, if it's available in your environment, use the
-`remote_monitoring_user` {ref}/built-in-users.html[built-in user]. 
+`remote_monitoring_user` {ref}/built-in-users.html[built-in user].
 +
 TIP: If you're using index lifecycle management, the remote monitoring user
 requires additional privileges to create and read indices. For more
 information, see <<feature-roles>>.
 
-.. Add the `username` and `password` settings to the {es} output information in 
+.. Add the `username` and `password` settings to the {es} output information in
 the {metricbeat} configuration file.
 
-For more information about these configuration options, see 
+For more information about these configuration options, see
 {metricbeat-ref}/elasticsearch-output.html[Configure the {es} output].
 --
 
 . {metricbeat-ref}/metricbeat-starting.html[Start {metricbeat}] to begin
-collecting monitoring data. 
+collecting monitoring data.
 
-. {kibana-ref}/monitoring-data.html[View the monitoring data in {kib}]. 
+. {kibana-ref}/monitoring-data.html[View the monitoring data in {kib}].

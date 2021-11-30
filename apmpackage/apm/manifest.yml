@@ -70,10 +70,10 @@ policy_templates:
             multi: true
           - name: anonymous_rate_limit_event_limit
             type: integer
-            default: 10
+            default: 300
           - name: anonymous_rate_limit_ip_limit
             type: integer
-            default: 10000
+            default: 1000
           - name: default_service_environment
             type: text
           - name: rum_allow_origins

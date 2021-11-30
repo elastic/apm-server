@@ -1,16 +1,12 @@
-ifndef::apm-integration-docs[]
-[[overview]]
-== Free and open application performance monitoring
-endif::[]
+****
+There are two ways to install, run, and manage Elastic APM:
 
-ifdef::apm-integration-docs[]
-[[legacy-apm-overview]]
-== Free and open application performance monitoring
-endif::[]
+* With the Elastic APM integration
+* With the standalone (legacy) APM Server binary
 
-++++
-<titleabbrev>What is APM?</titleabbrev>
-++++
+This documentation focuses on option two: the **standalone (legacy) APM Server binary**.
+{deprecation-notice-installation}
+****
 
 Elastic APM is an application performance monitoring system built on the Elastic Stack.
 It allows you to monitor software services and applications in real-time, by
@@ -27,7 +23,7 @@ Elastic APM agents automatically pick up basic host-level metrics and agent-spec
 like JVM metrics in the Java Agent, and Go runtime metrics in the Go Agent.
 
 [float]
-=== Give Elastic APM a try
+== Give Elastic APM a try
 
 Learn more about the <<components,components>> that make up Elastic APM,
 or jump right into the <<install-and-run,quick start guide>>.
