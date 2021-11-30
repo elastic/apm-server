@@ -227,8 +227,8 @@ Elastic APM agents can send unauthenticated (anonymous) events to the APM Server
 An event is considered to be anonymous if no authentication token can be extracted from the incoming request.
 By default, these anonymous requests are rejected and an authentication error is returned.
 
-In some cases, however, it makes sense to allow anonymous requests--
-for example, when using an agent that run on the client, like the Real User Monitoring (RUM) agent running in a browser,
+In some cases, however, it makes sense to allow anonymous requests --
+for example, when using an agent that runs on the client, like the Real User Monitoring (RUM) agent running in a browser,
 or the iOS/Swift agent running in a user application.
 
 Because anyone can send anonymous events to the APM Server,
