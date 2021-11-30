@@ -27,6 +27,9 @@ apm-server:
     max_header_size: {{max_header_bytes}}
     read_timeout: {{read_timeout}}
     response_headers: {{response_headers}}
+    java_attacher:
+      enabled: {{java_attacher_enabled}}
+      discovery_rules: {{java_attacher_discovery_rules}}
     {{#if enable_rum}}
     rum:
         allow_headers:
