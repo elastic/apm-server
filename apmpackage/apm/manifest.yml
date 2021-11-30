@@ -123,6 +123,11 @@ policy_templates:
           - name: expvar_enabled
             type: bool
             default: false
+          - name: java_attacher_discovery_rules
+            type: yaml
+          - name: java_attacher_enabled
+            type: bool
+            default: false
           - name: tls_enabled
             type: bool
             default: false
