@@ -74,15 +74,15 @@ First time? The page may take a few minutes to load.
 [[apm-data-streams-upgrade-3]]
 ==== Configure APM Server to use data streams
 
-Stop APM Server and set <<_configuration_options_data_streams,`data_streams.enabled: true`>> in apm-server.yml:
-
+. Stop APM Server and set <<_configuration_options_data_streams,`data_streams.enabled: true`>> in apm-server.yml:
++
 [source,yaml]
 ----
 apm-server:
   data_streams.enabled: true
 ----
 
-<<apm-server-starting,Restart APM Server>>.
+. <<apm-server-starting,Restart APM Server>>.
 
 [discrete]
 [[apm-data-streams-upgrade-4]]

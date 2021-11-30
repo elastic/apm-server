@@ -62,8 +62,6 @@ There are some limitations to be aware of:
 * APM runs under {agent} which, depending on the installation method, might be require root privileges
 * An {agent} with the APM integration enabled must be managed by {fleet}.
 
-In addition, if you haven't <<upgrade-to-data-streams>> yet, there are additional limitations to be aware of.
-
 [discrete]
 [[apm-integration-upgrade-steps]]
 === Upgrade a self-managed cluster
