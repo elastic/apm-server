@@ -1,7 +1,7 @@
 title: APM RUM traces
 type: traces
 dataset: apm.rum
-ilm_policy: traces-apm.rum-traces-default_policy
+ilm_policy: traces-apm.rum_traces-default_policy
 elasticsearch:
   index_template:
     mappings:
