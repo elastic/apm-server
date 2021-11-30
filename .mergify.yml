@@ -79,9 +79,9 @@ pull_request_rules:
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
   - name: Automatic squash and merge with success checks and the file docker-compose.yml is modified.
     conditions:
+      - check-success=apm-ci/pr-merge
       - label=automation
       - files=docker-compose.yml
-      - check-success=apm-ci/pr-merge
     actions:
       queue:
         method: squash
@@ -99,10 +99,10 @@ pull_request_rules:
       delete_head_branch:
   - name: automatic merge when CI passes for the make update-beats
     conditions:
+      - check-success=apm-ci/pr-merge
       - label=automation
       - base~=^update-beats
       - files~=^(go.mod|go.sum|NOTICE.txt)
-      - check-success=apm-ci/pr-merge
     actions:
       queue:
         method: squash
