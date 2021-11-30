@@ -1,51 +1,98 @@
 [[upgrade-to-data-streams]]
 === Upgrade to data streams
 
-Data steams migration::
-Existing APM users will need to migrate to data streams to use the APM integration.
-This change cannot be reverted, and impacts how APM Server and its indices are configured -- see <<apm-integration-naming-scheme>> and <<apm-integration-configure>>.
-Additionally, users on {ece} require additional steps prior to migrating, like configuring TLS certificates for the connection between APM Server and {es}.
+* <<hy-upgrade-to-data-streams>>
+* <<considerations-data-streams>>
+* <<apm-data-streams-upgrade-steps>>
+* <<apm-data-streams-upgrade-steps-ess>>
 
+Classic indices are deprecated starting in version 7.16.0.
+This means that APM Server will no longer perform any index management -- index templates, ingest pipelines, and ILM policies will all be managed by {fleet}.
+
+Users that are not ready to <<upgrade-to-apm-integration>> should
+upgrade to data streams in the meantime.
 
 [discrete]
-=== Migrate to Data streams
+[[why-upgrade-to-data-streams]]
+=== Why upgrade?
 
-Existing APM users need to migrate to data streams to use the APM integration.
-The integration does not have feature parity with standalone APM.
-Production deployments should not be migrated at this time.
+Data streams offer a number of benefits over classic indices:
 
-Migration limitations include:
+**Data streams**:
+
+* Reduced number of fields per index, better space efficiency, and faster queries
+* More granular data control
+* Errors and metrics data streams are shared with other data sources -- which means better long-term integration with the logs and metrics apps
+* Removes template inheritance for ILM policies and makes use of new {es} index and component templates
+* Fixes <<server-resource-exists-not-alias>>
+
+[discrete]
+[[considerations-data-streams]]
+=== Data streams considerations
 
 * This change cannot be reverted
-* This change impacts how APM Server and its indices are configured -- see <<apm-integration-naming-scheme>> and <<apm-integration-configure>>
 * Users on {ece} require additional steps prior to migrating, like configuring TLS certificates for the connection between APM Server and {es}
 
+[discrete]
+[[apm-data-streams-upgrade-steps]]
+=== Upgrade a self-managed APM Server
 
+. <<apm-data-streams-upgrade-1>>
+. <<apm-data-streams-upgrade-2>>
+. <<apm-data-streams-upgrade-3>>
+. <<apm-data-streams-upgrade-4>>
 
+[discrete]
+[[apm-data-streams-upgrade-1]]
+==== Upgrade the Elastic Stack
 
+The Elastic Stack ({es} and {kib}) must be upgraded prior to APM Server.
+See the {stack-ref}/upgrading-elastic-stack.html[Elastic Stack Installation and Upgrade Guide] for guidance.
 
+Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
+and Observability {observability-guide}/whats-new.html[What's new] content for important changes between
+your current APM version and this one.
 
-Stack monitoring::
-<<monitoring,Stack monitoring>> is not yet available.
+[discrete]
+[[apm-data-streams-upgrade-2]]
+==== Add the APM integration
 
-Index lifecycle management (ILM)::
-A default ILM policy, named `traces-apm.traces-default_policy` is created for all event types.
-No default warm, cold, or delete data tiers are defined.
-It is not possible to configure this policy in APM Server or {agent}–
-it must be configured with {es} or {kib}.
-See {ref}/example-using-index-lifecycle-policy.html[Customize built-in ILM policies] for more information.
+Before enabling data streams in APM Server, the APM integration must be added to your cluster.
+This enables Fleet to set up ingest templates, ILM policies,
+and ingest pipelines when APM Server tries to connect.
 
-Onboarding::
-APM Server no longer writes an onboarding document when setting up.
+In {kib}, navigate to **Management** > **Fleet**.
+First time? The page may take a few minutes to load.
 
-Standalone mode::
-{fleet-guide}/install-standalone-elastic-agent.html[Standalone mode] is not currently supported.
-An {agent} with the APM integration enabled must be managed by fleet.
+Select **Agent policies** > **Default policy** and click **Add integration**.
 
-Service names::
-Service names are case-insensitive and must be unique.
-See <<apm-integration-service-name>> for more information.
+Search for and select **Elastic APM**. Under step one, select **APM integration**.
 
-Upgrading from prior {agent} versions::
-Due to changing API key permissions, an {agent} enrolled before version 7.12 is not compatible with the APM integration.
-You must enroll a new {agent} to use the integration.
+Click **Add Elastic APM**. Configuring the integration is not required as we're only using the integration to set up {es} resources. Click **Save and Continue** and then **Add Elastic Agent later**.
+
+[discrete]
+[[apm-data-streams-upgrade-3]]
+==== Configure APM Server to use data streams
+
+Stop APM Server and set <<_configuration_options_data_streams,`data_streams.enabled: true`>> in apm-server.yml:
+
+[source,yaml]
+----
+apm-server:
+  data_streams.enabled: true
+----
+
+<<apm-server-starting,Restart APM Server>>.
+
+[discrete]
+[[apm-data-streams-upgrade-4]]
+==== Configure resources
+
+* Index lifecycle management (ILM) needs to be reconfigured -- see <<ilm-how-to>> to learn about the default ILM policies applied to data streams and how to customize them.
+* Custom ingest pipelines need to be reconfigured -- see <<ingest-pipelines>> for more information on how to edit or view pipelines.
+
+[discrete]
+[[apm-data-streams-upgrade-steps-ess]]
+=== Upgrade an {ecloud} cluster
+
+// Will add tomorrow

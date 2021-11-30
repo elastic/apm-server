@@ -11,13 +11,15 @@
 [[why-upgrade-to-integrations]]
 === Why upgrade?
 
-The new APM ecosystem includes a number of benefits:
+The new APM ecosystem offers a number of benefits:
 
 **{fleet}**:
-* Single, unified way to add monitoring for logs, metrics, traces, and other types of data to each host -- install one thing instead of multiple
-* Single, unified configuration management -- no need to edit multiple configuration files
+
+* A single, unified way to add monitoring for logs, metrics, traces, and other types of data to each host -- install one thing instead of multiple
+* Central, unified configuration management -- no need to edit multiple configuration files
 
 **Data streams**:
+
 * Reduced number of fields per index, better space efficiency, and faster queries
 * More granular data control
 * Errors and metrics data streams are shared with other data sources -- which means better long-term integration with the logs and metrics apps
@@ -25,6 +27,7 @@ The new APM ecosystem includes a number of benefits:
 * Fixes <<server-resource-exists-not-alias>>
 
 **APM Integration**:
+
 * Easier to install APM on edge machines
 * Improved source map handling and APM agent configuration management
 * Less configuration
@@ -32,7 +35,7 @@ The new APM ecosystem includes a number of benefits:
 
 [discrete]
 [[apm-arch-upgrade]]
-=== Architecture
+=== APM integration architecture
 
 The Elastic APM integration consists of four components: *APM agents*, the *Elastic APM integration*, *Elasticsearch*, and *Kibana*.
 Generally, there are two ways that these four components can work together:
@@ -54,7 +57,7 @@ If RUM is disabled, {agent} can be run on edge machines.
 
 There are some limitations to be aware of:
 
-* Upgrading cannot be reversed
+* This change cannot be reverted
 * Currently, only the {es} output is supported
 * APM runs under {agent} which, depending on the installation method, might be require root privileges
 * An {agent} with the APM integration enabled must be managed by fleet.
@@ -122,7 +125,10 @@ Only complete the linked step (not the entire quick start guide).
 If you're adding the APM integration to a Fleet-managed {agent}, you can use the default policy.
 If you're adding the APM integration to the Fleet Server, use the policy that the Fleet Server is running on.
 
-Make note of the URL where APM Server is listening, and the secret token. Don't forget to
+TIP: You'll configure the APM integration in this step.
+See <<input-apm>> for a reference of all available settings.
+Make note of the URL where APM Server is listening, and if applicable, the secret token;
+you'll need these in the next step.
 
 [discrete]
 [[apm-integration-upgrade-5]]
@@ -153,9 +159,11 @@ Congratulations -- you've now upgraded to the latest and greatest in Elastic APM
 [[apm-integration-upgrade-steps-ess]]
 === Upgrade an {ecloud} cluster
 
-. Upgrade to Fleet + APM integration
-. Switch to data streams --> APM settings --> Schema --> Data streams
-. Scale APM & Fleet up and out. Capacity to process events increases with the memory size (instead of tweaking output settings, increase from 2gb to 4gb for example). As of right now, you cannot overwrite ES output settings or change the output.
-. Navigate to the APM integration and update settings (like enabling RUM)
-. ???
-. Profit
+// Will add tomorrow
+
+// . Upgrade to Fleet + APM integration
+// . Switch to data streams --> APM settings --> Schema --> Data streams
+// . Scale APM & Fleet up and out. Capacity to process events increases with the memory size (instead of tweaking output settings, increase from 2gb to 4gb for example). As of right now, you cannot overwrite ES output settings or change the output.
+// . Navigate to the APM integration and update settings (like enabling RUM)
+// . ???
+// . Profit
