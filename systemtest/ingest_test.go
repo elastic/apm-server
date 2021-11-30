@@ -18,8 +18,10 @@
 package systemtest_test
 
 import (
+	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,7 +33,7 @@ import (
 	"github.com/elastic/apm-server/systemtest/estest"
 )
 
-func TestIngestPipelinePipeline(t *testing.T) {
+func TestIngestPipeline(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServer(t)
 
@@ -75,4 +77,32 @@ func TestIngestPipelinePipeline(t *testing.T) {
 	span2Doc := getDoc(estest.TermQuery{Field: "span.id", Value: span2.TraceContext().Span.String()})
 	destinationIP = gjson.GetBytes(span2Doc.RawSource, "destination.ip")
 	assert.False(t, destinationIP.Exists()) // destination.address is not an IP
+}
+
+func TestIngestPipelineVersionEnforcement(t *testing.T) {
+	source := `{"observer": {"version": "100.200.300"}}` // apm-server version is too new
+	dataStreams := []string{
+		"traces-apm-default",
+		"traces-apm.rum-default",
+		"metrics-apm.internal-default",
+		"metrics-apm.app.service_name-default",
+		"logs-apm.error-default",
+	}
+
+	for _, dataStream := range dataStreams {
+		body := strings.NewReader(source)
+		resp, err := systemtest.Elasticsearch.Index(dataStream, body)
+		require.NoError(t, err)
+
+		respBody, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		resp.Body.Close()
+
+		if !assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, dataStream) {
+			continue
+		}
+		assert.Contains(t, string(respBody),
+			`Document produced by APM Server v100.200.300, which is newer than the installed APM integration`,
+		)
+	}
 }
