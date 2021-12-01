@@ -1,0 +1,64 @@
+{
+    "events": [
+        {
+            "@timestamp": "dynamic",
+            "agent_config_applied": 1,
+            "data_stream.dataset": "apm.internal",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "labels": {
+                "etag": "-"
+            },
+            "metricset.name": "agent_config",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent_config_applied": 1,
+            "data_stream.dataset": "apm.internal",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "labels": {
+                "etag": "4479ab6e227cc5fadc2056f9cfaf78f931f09bde"
+            },
+            "metricset.name": "agent_config",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            }
+        }
+    ]
+}
