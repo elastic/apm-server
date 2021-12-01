@@ -1,3 +1,7 @@
+queue_rules:
+  - name: default
+    conditions:
+      - check-success=apm-ci/pr-merge
 pull_request_rules:
   - name: ask to resolve conflict
     conditions:
@@ -79,9 +83,9 @@ pull_request_rules:
       - label=automation
       - files=docker-compose.yml
     actions:
-      merge:
+      queue:
         method: squash
-        strict: smart+fasttrack
+        name: default
   - name: delete upstream branch with changes on docker-compose.yml after merging/closing it
     conditions:
       - or:
@@ -100,9 +104,9 @@ pull_request_rules:
       - base~=^update-beats
       - files~=^(go.mod|go.sum|NOTICE.txt)
     actions:
-      merge:
+      queue:
         method: squash
-        strict: smart+fasttrack
+        name: default
   - name: delete upstream branch after merging changes for the make update-beats
     conditions:
       - or:
