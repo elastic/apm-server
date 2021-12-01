@@ -82,6 +82,7 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"Session",
 		"Trace",
 		"URL",
+		"Log",
 
 		// Dedicated test for it.
 		"NumericLabels",

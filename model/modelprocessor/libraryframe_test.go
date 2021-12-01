@@ -62,7 +62,7 @@ func TestSetLibraryFrames(t *testing.T) {
 	}, {
 		input: model.Batch{{
 			Error: &model.Error{
-				Log: &model.Log{
+				Log: &model.ErrorLog{
 					Stacktrace: model.Stacktrace{
 						{LibraryFrame: true, Filename: "foo.go"},
 						{LibraryFrame: false, AbsPath: "foobar.go"},
@@ -87,7 +87,7 @@ func TestSetLibraryFrames(t *testing.T) {
 		}},
 		output: model.Batch{{
 			Error: &model.Error{
-				Log: &model.Log{
+				Log: &model.ErrorLog{
 					Stacktrace: model.Stacktrace{
 						{LibraryFrame: true, Filename: "foo.go", Original: model.Original{LibraryFrame: true}},
 						{LibraryFrame: true, AbsPath: "foobar.go", Original: model.Original{LibraryFrame: false}},

@@ -210,7 +210,7 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 		out.ID = from.ID.Val
 	}
 	if from.Log.IsSet() {
-		log := model.Log{}
+		log := model.ErrorLog{}
 		if from.Log.Level.IsSet() {
 			log.Level = from.Log.Level.Val
 		}
