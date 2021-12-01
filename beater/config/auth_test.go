@@ -120,6 +120,37 @@ func TestAnonymousAgentAuth(t *testing.T) {
 					EventLimit: 300,
 					IPLimit:    1000,
 				},
+				enabledSet: false,
+				configured: true,
+			},
+		},
+		"rum_enabled_anon_inferred": {
+			cfg: common.MustNewConfigFrom(`{"auth.secret_token": "abc","rum.enabled":true,"auth.anonymous.allow_service":["service-one"]}`),
+			expectedConfig: AnonymousAgentAuth{
+				Enabled:      true,
+				AllowAgent:   []string{"rum-js", "js-base"},
+				AllowService: []string{"service-one"},
+				RateLimit: RateLimit{
+					EventLimit: 300,
+					IPLimit:    1000,
+				},
+				enabledSet: false,
+				configured: true,
+			},
+		},
+		"rum_enabled_anon_disabled": {
+			cfg: common.MustNewConfigFrom(
+				`{"auth.secret_token":"abc","rum.enabled":true,"auth.anonymous.enabled":false,"auth.anonymous.allow_service":["service-one"]}`,
+			),
+			expectedConfig: AnonymousAgentAuth{
+				Enabled:      false,
+				AllowAgent:   []string{"rum-js", "js-base"},
+				AllowService: []string{"service-one"},
+				RateLimit: RateLimit{
+					EventLimit: 300,
+					IPLimit:    1000,
+				},
+				enabledSet: true,
 				configured: true,
 			},
 		},
