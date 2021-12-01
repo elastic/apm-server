@@ -83,6 +83,8 @@ func TestCompatibility(t *testing.T) {
 	var requestHeaders http.Header
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestHeaders = r.Header
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		w.WriteHeader(200)
 	}))
 	defer srv.Close()
 
@@ -96,6 +98,7 @@ func TestCompatibility(t *testing.T) {
 	require.NoError(t, err)
 
 	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
-	// The go-elasticsearch library takes care of setting
+	// The go-elasticsearch library takes care of setting the headers
 	assert.Equal(t, "application/vnd.elasticsearch+json;compatible-with=7", requestHeaders.Get("Accept"))
+	assert.Equal(t, "application/vnd.elasticsearch+json;compatible-with=7", requestHeaders.Get("Content-Type"))
 }
