@@ -137,8 +137,6 @@ func TestBeatsConfigSynced(t *testing.T) {
 
 	// "hosts" is only expected in the local struct
 	delete(localStructFields, "hosts")
-	// "enable_compatibility_mode" is specific to the go-elasticsearch client, not present in libbeat
-	delete(localStructFields, "enable_compatibility_mode")
 
 	// We expect the libbeat struct to be a superset of all other
 	// fields defined in the local struct, with identical tags and

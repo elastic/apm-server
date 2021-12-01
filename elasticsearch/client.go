@@ -182,7 +182,7 @@ func newV7Client(
 	if strings.Contains(acceptHeader, "compatible-with=7") || strings.Contains(contentTypeHeader, "compatible-with=7") {
 		enableCompatibilityMode = true
 		headers.Del("Accept")
-		headers.Del(("Content-Type"))
+		headers.Del("Content-Type")
 	}
 
 	c, err := esv7.NewClient(esv7.Config{
