@@ -121,6 +121,7 @@ func TestAnonymousAgentAuth(t *testing.T) {
 					IPLimit:    1000,
 				},
 				enabledSet: false,
+				configured: true,
 			},
 		},
 		"rum_enabled_anon_inferred": {
@@ -134,6 +135,7 @@ func TestAnonymousAgentAuth(t *testing.T) {
 					IPLimit:    1000,
 				},
 				enabledSet: false,
+				configured: true,
 			},
 		},
 		"rum_enabled_anon_disabled": {
@@ -149,6 +151,7 @@ func TestAnonymousAgentAuth(t *testing.T) {
 					IPLimit:    1000,
 				},
 				enabledSet: true,
+				configured: true,
 			},
 		},
 		"deprecated_rum_allow_service_names": {

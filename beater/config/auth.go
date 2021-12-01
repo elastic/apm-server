@@ -90,6 +90,7 @@ type AnonymousAgentAuth struct {
 	RateLimit    RateLimit `config:"rate_limit"`
 
 	enabledSet bool // enabled explicitly set.
+	configured bool // auth.anonymous is explicitly set.
 }
 
 func (a *AnonymousAgentAuth) Unpack(in *common.Config) error {
@@ -98,6 +99,7 @@ func (a *AnonymousAgentAuth) Unpack(in *common.Config) error {
 		return errors.Wrap(err, "error unpacking anon config")
 	}
 	a.enabledSet = in.HasField("enabled")
+	a.configured = true
 	return nil
 }
 
