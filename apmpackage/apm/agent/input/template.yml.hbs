@@ -30,6 +30,7 @@ apm-server:
     java_attacher:
       enabled: {{java_attacher_enabled}}
       discovery-rules: {{java_attacher_discovery_rules}}
+      download-agent-version: {{java_attacher_agent_version}}
     {{#if enable_rum}}
     rum:
         allow_headers:
