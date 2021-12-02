@@ -34,9 +34,12 @@ func TestNew(t *testing.T) {
 	cfg := config.JavaAttacherConfig{JavaBin: ""}
 	jh := os.Getenv("JAVA_HOME")
 	os.Setenv("JAVA_HOME", "/usr/local")
+	f, err := os.Create(javaAttacher)
+	require.NoError(t, err)
 	defer func() {
 		// reset JAVA_HOME
 		os.Setenv("JAVA_HOME", jh)
+		os.Remove(f.Name())
 	}()
 
 	attacher, err := New(cfg)
@@ -63,13 +66,17 @@ func TestBuild(t *testing.T) {
 	cfg := config.JavaAttacherConfig{
 		Enabled:        true,
 		DiscoveryRules: args,
-		Config: map[string]string{
-			"service_name": "my-cool-service",
-			"server_url":   "http://localhost:8200",
+		Config: []map[string]string{
+			{"server_url": "http://localhost:8200"},
+			{"service_name": "my-cool-service"},
 		},
 		JavaBin:              "/usr/bin/java",
 		DownloadAgentVersion: "1.25.0",
 	}
+
+	f, err := os.Create(javaAttacher)
+	require.NoError(t, err)
+	defer os.Remove(f.Name())
 
 	attacher, err := New(cfg)
 	require.NoError(t, err)
