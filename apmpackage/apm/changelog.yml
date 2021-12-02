@@ -8,6 +8,12 @@
       link: https://github.com/elastic/apm-server/pull/1234
 - version: "8.0.0"
   changes:
+    - description: support setting `download-agent-version`
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6777
+    - description: java attacher config uses `discovery-rules`, not `discovery_rules`
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/6777
     - description: add java_attacher support
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6741
