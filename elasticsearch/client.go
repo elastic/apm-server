@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"go.elastic.co/apm/module/apmelasticsearch"
 
@@ -172,17 +173,30 @@ func newV7Client(
 	maxRetries int,
 	fn backoffFunc,
 ) (Client, error) {
+
+	// Set the compatibility configuration if compatibility headers are configured.
+	// Delete headers, as ES client takes care of setting them appropriately.
+	var enableCompatibilityMode bool
+	acceptHeader := headers.Get("Accept")
+	contentTypeHeader := headers.Get("Content-Type")
+	if strings.Contains(acceptHeader, "compatible-with=7") || strings.Contains(contentTypeHeader, "compatible-with=7") {
+		enableCompatibilityMode = true
+		headers.Del("Accept")
+		headers.Del("Content-Type")
+	}
+
 	c, err := esv7.NewClient(esv7.Config{
-		APIKey:               apikey,
-		Username:             user,
-		Password:             pwd,
-		Addresses:            addresses,
-		Transport:            transport,
-		Header:               headers,
-		RetryOnStatus:        retryableStatuses,
-		EnableRetryOnTimeout: true,
-		RetryBackoff:         fn,
-		MaxRetries:           maxRetries,
+		APIKey:                  apikey,
+		Username:                user,
+		Password:                pwd,
+		Addresses:               addresses,
+		Transport:               transport,
+		Header:                  headers,
+		RetryOnStatus:           retryableStatuses,
+		EnableRetryOnTimeout:    true,
+		RetryBackoff:            fn,
+		EnableCompatibilityMode: enableCompatibilityMode,
+		MaxRetries:              maxRetries,
 	})
 	if err != nil {
 		return nil, err
