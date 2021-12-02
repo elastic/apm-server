@@ -125,6 +125,8 @@ policy_templates:
             default: false
           - name: java_attacher_discovery_rules
             type: yaml
+          - name: java_attacher_agent_version
+            type: text
           - name: java_attacher_enabled
             type: bool
             default: false
