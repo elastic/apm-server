@@ -66,9 +66,8 @@ func TestBuild(t *testing.T) {
 	cfg := config.JavaAttacherConfig{
 		Enabled:        true,
 		DiscoveryRules: args,
-		Config: []map[string]string{
-			{"server_url": "http://localhost:8200"},
-			{"service_name": "my-cool-service"},
+		Config: map[string]string{
+			"server_url": "http://localhost:8200",
 		},
 		JavaBin:              "/usr/bin/java",
 		DownloadAgentVersion: "1.25.0",
@@ -86,7 +85,7 @@ func TestBuild(t *testing.T) {
 	want := filepath.FromSlash("/usr/bin/java -jar ./java-attacher.jar") +
 		" --continuous --log-level debug --download-agent-version 1.25.0 --exclude-user root --include-main MyApplication " +
 		"--include-main my-application.jar --include-vmarg elastic.apm.agent.attach=true " +
-		"--config server_url=http://localhost:8200 --config service_name=my-cool-service"
+		"--config server_url=http://localhost:8200"
 
 	cmdArgs := strings.Join(cmd.Args, " ")
 	assert.Equal(t, want, cmdArgs)
