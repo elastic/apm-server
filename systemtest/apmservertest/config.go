@@ -281,7 +281,7 @@ type OutputConfig struct {
 	Elasticsearch *ElasticsearchOutputConfig `json:"elasticsearch,omitempty"`
 }
 
-// ConsolehOutputConfig holds APM Server libbeat console output configuration.
+// ConsoleOutputConfig holds APM Server libbeat console output configuration.
 type ConsoleOutputConfig struct {
 	Enabled bool `json:"enabled"`
 }
@@ -293,44 +293,29 @@ type ElasticsearchOutputConfig struct {
 	Username string   `json:"username,omitempty"`
 	Password string   `json:"password,omitempty"`
 	APIKey   string   `json:"api_key,omitempty"`
+
+	// modelindexer settings
+	FlushBytes    string        `json:"flush_bytes,omitempty"`
+	FlushInterval time.Duration `json:"flush_interval,omitempty"`
 }
 
-// SetupConfig holds APM Server libbeat setup configuration.
-type SetupConfig struct {
-	IndexTemplate IndexTemplateConfig `json:"template.settings.index"`
-}
-
-// IndexTemplateConfig holds APM Server libbeat index template setup configuration.
-type IndexTemplateConfig struct {
-	Shards          int    `json:"number_of_shards,omitempty"`
-	Replicas        int    `json:"number_of_replicas"`
-	RefreshInterval string `json:"refresh_interval,omitempty"`
-}
-
-// QueueConfig holds APM Server libbeat queue configuration.
-type QueueConfig struct {
-	Memory *MemoryQueueConfig `json:"mem,omitempty"`
-}
-
-// MemoryQueueConfig holds APM Server libbeat in-memory queue configuration.
-type MemoryQueueConfig struct {
-	Events         int
-	FlushMinEvents int
-	FlushTimeout   time.Duration
-}
-
-func (m *MemoryQueueConfig) MarshalJSON() ([]byte, error) {
-	// time.Duration is encoded as int64.
-	// Convert time.Durations to durations, to encode as duration strings.
-	type config struct {
-		Events         int    `json:"events"`
-		FlushMinEvents int    `json:"flush.min_events"`
-		FlushTimeout   string `json:"flush.timeout,omitempty"`
-	}
-	return json.Marshal(config{
-		Events:         m.Events,
-		FlushMinEvents: m.FlushMinEvents,
-		FlushTimeout:   durationString(m.FlushTimeout),
+func (c *ElasticsearchOutputConfig) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Enabled       bool     `json:"enabled"`
+		Hosts         []string `json:"hosts,omitempty"`
+		Username      string   `json:"username,omitempty"`
+		Password      string   `json:"password,omitempty"`
+		APIKey        string   `json:"api_key,omitempty"`
+		FlushBytes    string   `json:"flush_bytes,omitempty"`
+		FlushInterval string   `json:"flush_interval,omitempty"`
+	}{
+		Enabled:       c.Enabled,
+		Hosts:         c.Hosts,
+		Username:      c.Username,
+		Password:      c.Password,
+		APIKey:        c.APIKey,
+		FlushBytes:    c.FlushBytes,
+		FlushInterval: durationString(c.FlushInterval),
 	})
 }
 
@@ -489,6 +474,8 @@ func defaultOutputConfig() OutputConfig {
 			)},
 			Username: getenvDefault("ES_USER", defaultElasticsearchUser),
 			Password: getenvDefault("ES_PASS", defaultElasticsearchPass),
+			// Lower the flush interval to 1ms to avoid delaying the tests.
+			FlushInterval: time.Millisecond,
 		}
 	default:
 		panic("APMSERVERTEST_DEFAULT_OUTPUT has unexpected value: " + v)

@@ -55,6 +55,16 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 		result.Hits.MinHitsCondition(min),
 		result.Hits.TotalHitsCondition(req),
 	)))
+
+	// Refresh the indices before issuing the search request.
+	refreshReq := esapi.IndicesRefreshRequest{
+		Index:           strings.Split(",", index),
+		ExpandWildcards: "all",
+	}
+	if _, err := refreshReq.Do(context.Background(), es.Transport); err != nil {
+		t.Fatalf("faled refreshing indices: %s: %s", index, err.Error())
+	}
+
 	if _, err := req.Do(context.Background(), &result, opts...); err != nil {
 		t.Fatal(err)
 	}
