@@ -89,4 +89,13 @@ func TestBuild(t *testing.T) {
 
 	cmdArgs := strings.Join(cmd.Args, " ")
 	assert.Equal(t, want, cmdArgs)
+
+	cfg.Config["service_name"] = "my-cool-service"
+	attacher, err = New(cfg)
+	require.NoError(t, err)
+
+	cmd = attacher.build(context.Background())
+	cmdArgs = strings.Join(cmd.Args, " ")
+	assert.Contains(t, cmdArgs, "--config server_url=http://localhost:8200")
+	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
 }
