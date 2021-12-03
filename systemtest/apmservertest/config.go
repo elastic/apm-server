@@ -70,12 +70,6 @@ type Config struct {
 
 	// Output holds configuration for the libbeat output.
 	Output OutputConfig `json:"output"`
-
-	// Setup holds configuration for libbeat setup.
-	Setup *SetupConfig `json:"setup,omitempty"`
-
-	// Queue holds configuration for the libbeat event queue.
-	Queue QueueConfig `json:"queue"`
 }
 
 // Args formats cfg as a list of arguments to pass to apm-server,
@@ -474,18 +468,6 @@ func DefaultConfig() Config {
 			Password: getenvDefault("KIBANA_PASS", defaultKibanaPass),
 		},
 		Output: defaultOutputConfig(),
-		Setup: &SetupConfig{
-			IndexTemplate: IndexTemplateConfig{
-				Shards:          1,
-				RefreshInterval: "250ms",
-			},
-		},
-		Queue: QueueConfig{
-			Memory: &MemoryQueueConfig{
-				Events:         4096,
-				FlushMinEvents: 0, // flush immediately
-			},
-		},
 	}
 }
 
