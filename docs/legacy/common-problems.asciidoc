@@ -353,6 +353,16 @@ POST _aliases
 }
 ----
 
+. Set the indexing complete on the cloned index
++
+["source","sh",subs="attributes"]
+----
+PUT apm-{version}-transaction-original/_settings
+{
+  "index.lifecycle.indexing_complete": true
+}
+----
+
 . APM Server will resume indexing to the write alias.
 Confirm that APM Server successfully resumes sending transactions:
 +
