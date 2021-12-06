@@ -25,6 +25,8 @@ PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
 PYTHON=$(PYTHON_BIN)/python
 
+APM_SERVER_VERSION=$(shell grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '" ')
+
 # Create a local config.mk file to override configuration,
 # e.g. for setting "GOLINT_UPSTREAM".
 -include config.mk
@@ -71,7 +73,7 @@ check-approvals: $(APPROVALS)
 	@$(APPROVALS)
 
 .PHONY: check
-check: $(MAGE) check-fmt check-headers check-package
+check: $(MAGE) check-fmt check-headers
 	@$(MAGE) check
 
 .PHONY: bench
@@ -108,12 +110,7 @@ endif
 ## get-version : Get the apm server version
 .PHONY: get-version
 get-version:
-	@grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '" '
-
-## get-package-version : Get the apm package version
-.PHONY: get-package-version
-get-package-version:
-	@grep ^version: apmpackage/apm/manifest.yml | cut -d':' -f2 | tr -d " "
+	@echo $(APM_SERVER_VERSION)
 
 ##############################################################################
 # Documentation.
@@ -178,19 +175,13 @@ endif
 check-docker-compose: $(PYTHON_BIN)
 	@PATH=$(PYTHON_BIN):$(PATH) ./script/check_docker_compose.sh $(BEATS_VERSION)
 
-.PHONY: check-package format-package build-package
-check-package: $(ELASTICPACKAGE)
-	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) check)
-	@diff -ru apmpackage/apm/data_stream/traces/fields apmpackage/apm/data_stream/rum_traces/fields || \
-		echo "-> 'traces-apm' and 'traces-apm.rum' data stream fields should be equal"
-	$(eval SERVER_V=$(shell make get-version))
-	$(eval PKG_V=$(shell make get-package-version))
-	@if [ $(SERVER_V) != $(PKG_V) ]; then echo "-> APM Server ($(SERVER_V)) and APM Package ($(PKG_V)) versions should be equal."; fi
+.PHONY: format-package build-package
 format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
-	@rm -fr ./build/integrations/apm/*
-	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) build)
+	@rm -fr ./build/integrations/apm/* ./build/apmpackage
+	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_VERSION)
+	@(cd ./build/apmpackage; $(CURDIR)/$(ELASTICPACKAGE) build && $(CURDIR)/$(ELASTICPACKAGE) check)
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
 check-fmt: check-gofmt check-autopep8
@@ -236,7 +227,7 @@ $(REVIEWDOG): tools/go.mod
 	$(GO) build -o $@ -modfile=$< github.com/reviewdog/reviewdog/cmd/reviewdog
 
 $(ELASTICPACKAGE): tools/go.mod
-	$(GO) build -o $@ -modfile=$< github.com/elastic/elastic-package
+	$(GO) build -o $@ -modfile=$< -ldflags '-X github.com/elastic/elastic-package/internal/version.CommitHash=anything' github.com/elastic/elastic-package
 
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
