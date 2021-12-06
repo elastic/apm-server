@@ -33,6 +33,9 @@
       type: keyword
       description: |
         Name of the set of metrics.
+- name: agent_config_applied
+  type: long
+  description: Value for agent_config_applied
 - name: network
   type: group
   description: |

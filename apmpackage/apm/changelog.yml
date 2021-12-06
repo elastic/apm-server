@@ -24,9 +24,17 @@
     - description: added new traces-apm.rum and individual ILM policies per data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6480
+<<<<<<< HEAD
     - description: updated package version to align with stack version
       type: enhancement
       link: https://github.com/elastic/obs-dc-team/issues/629
+=======
+- version: "7.16.1"
+  changes:
+    - description: Added `agent_config_applied` mapping to `metrics-apm.internal` data stream.
+      type: bugfix
+      link: https://github.com/elastic/apm-server/issues/6767
+>>>>>>> 29bcefc1 (datastream: Use internal metrics on empty service.name (#6767))
 - version: "7.16.0"
   changes:
     - description: updated package version to align with stack version
