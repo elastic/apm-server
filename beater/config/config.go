@@ -113,6 +113,10 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, err
 	}
 
+	if err := c.JavaAttacherConfig.setup(); err != nil {
+		return nil, err
+	}
+
 	return c, nil
 }
 
