@@ -47,13 +47,13 @@ func (j JavaAttacherConfig) setup() error {
 }
 
 var allowlist = map[string]struct{}{
-	"include-all":   {},
-	"include-main":  {},
-	"include-vmarg": {},
-	"include-user":  {},
-	"exclude-main":  {},
-	"exclude-vmarg": {},
-	"exclude-user":  {},
+	"include-all":    {},
+	"include-main":   {},
+	"include-vmargs": {},
+	"include-user":   {},
+	"exclude-main":   {},
+	"exclude-vmargs": {},
+	"exclude-user":   {},
 }
 
 func defaultJavaAttacherConfig() JavaAttacherConfig {
