@@ -49,7 +49,7 @@ func checkIntegrationInstalled(
 			err = &actionableError{
 				Err:         err,
 				Name:        "apm integration installed",
-				Remediation: "please install the apm integration",
+				Remediation: "please install the apm integration: https://ela.st/apm-integration-quickstart",
 			}
 		}
 	}()
