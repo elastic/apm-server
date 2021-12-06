@@ -23,7 +23,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 	"testing"
 	"time"
 
@@ -32,7 +31,6 @@ import (
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
-	"github.com/elastic/apm-server/systemtest/estest"
 )
 
 func TestAgentConfig(t *testing.T) {
@@ -105,14 +103,6 @@ func TestAgentConfig(t *testing.T) {
 		assert.Equal(t, configured2, settings)
 		assert.NotEqual(t, etags[url], resp.Header.Get("Etag"))
 	}
-
-	t.Log("waiting for the agent_config metrics to be published...")
-	waitForLogMessage(t, srv, "bulk request completed: 2 indexed", 1)
-
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.internal-*",
-		estest.TermQuery{Field: "metricset.name", Value: "agent_config"},
-	)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits[:2], "@timestamp")
 }
 
 func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, etag string) (map[string]string, *http.Response) {
@@ -151,24 +141,4 @@ func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, 
 		t.Fatalf("unexpected status %q", resp.Status)
 	}
 	return attrs, resp
-}
-
-func waitForLogMessage(t *testing.T, srv *apmservertest.Server, msg string, count int) {
-	timeout := time.After(30 * time.Second)
-	for {
-		for _, entry := range srv.Logs.All() {
-			if strings.HasPrefix(entry.Message, msg) {
-				count--
-				if count >= 0 {
-					return
-				}
-			}
-		}
-		select {
-		case <-time.After(time.Second):
-		case <-timeout:
-			t.Errorf(`log message "%s" not found in apm-server logs after 30s`, msg)
-			return
-		}
-	}
 }
