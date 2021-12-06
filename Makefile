@@ -110,11 +110,7 @@ endif
 ## get-version : Get the apm server version
 .PHONY: get-version
 get-version:
-<<<<<<< HEAD
-	@grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '"'
-=======
 	@echo $(APM_SERVER_VERSION)
->>>>>>> 40631477 (Reintroduce integration package generator (#6802))
 
 ##############################################################################
 # Documentation.
@@ -179,15 +175,7 @@ endif
 check-docker-compose: $(PYTHON_BIN)
 	@PATH=$(PYTHON_BIN):$(PATH) ./script/check_docker_compose.sh $(BEATS_VERSION)
 
-<<<<<<< HEAD
-.PHONY: check-package format-package build-package
-check-package: $(ELASTICPACKAGE)
-	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) check)
-	@diff -ru apmpackage/apm/data_stream/traces/fields apmpackage/apm/data_stream/rum_traces/fields || \
-		echo "-> 'traces-apm' and 'traces-apm.rum' data stream fields should be equal"
-=======
 .PHONY: format-package build-package
->>>>>>> 40631477 (Reintroduce integration package generator (#6802))
 format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
