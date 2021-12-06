@@ -42,7 +42,17 @@ func checkIntegrationInstalled(
 	kibanaClient kibana.Client,
 	esClient elasticsearch.Client,
 	logger *logp.Logger,
-) error {
+) (err error) {
+	defer func() {
+		if err != nil {
+			// We'd like to include some remediation actions when the APM Integration isn't installed.
+			err = &actionableError{
+				Err:         err,
+				Name:        "apm integration installed",
+				Remediation: "please install the apm integration",
+			}
+		}
+	}()
 	if kibanaClient != nil {
 		installed, err := checkIntegrationInstalledKibana(ctx, kibanaClient, logger)
 		if err != nil {
@@ -96,7 +106,7 @@ func checkIntegrationInstalledKibana(ctx context.Context, kibanaClient kibana.Cl
 	return result.Response.Status == "installed", nil
 }
 
-func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient elasticsearch.Client, logger *logp.Logger) (bool, error) {
+func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient elasticsearch.Client, _ *logp.Logger) (bool, error) {
 	// TODO(axw) generate the list of expected index templates.
 	templates := []string{
 		"traces-apm",
