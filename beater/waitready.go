@@ -19,6 +19,7 @@ package beater
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"time"
 
@@ -36,8 +37,9 @@ func waitReady(
 	logger *logp.Logger,
 	check func(context.Context) error,
 ) error {
-	logger.Info("waiting for preconditions")
+	logger.Info("blocking ingestion until all preconditions are satisfied")
 	tx := tracer.StartTransaction("wait_for_preconditions", "init")
+	defer tx.End()
 	ctx = apm.ContextWithTransaction(ctx, tx)
 	var ticker *time.Ticker
 	for {
@@ -55,7 +57,12 @@ func waitReady(
 			}
 		}
 		if err := check(ctx); err != nil {
-			logger.Errorf("error checking preconditions: %s", err)
+			var e *actionableError
+			if errors.As(err, &e) {
+				logger.Errorf("precondition '%s' failed: %s", e.Name, e.Error())
+			} else {
+				logger.Errorf("precondition failed: %s", err)
+			}
 			continue
 		}
 		return nil
