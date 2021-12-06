@@ -318,15 +318,53 @@ GET _cat/recovery/apm*transaction*?s=index&v=true&h=index,stage
 +
 When `stage: done`, you're ready to move on.
 
-. Delete the index that should be a write alias
+. Create the new APM transaction index
 +
 ["source","sh",subs="attributes"]
 ----
-DELETE apm-{version}-transaction
+PUT apm-{version}-transaction-000001
 ----
 
-. On the next connection attempt, APM Server will attempt to create a new write alias.
-Confirm that APM Server successfully created the write alias with:
+. Delete the index `apm-{version}-transaction` and create a write alias
++
+["source","sh",subs="attributes"]
+----
+POST _aliases
+{
+  "actions": [
+    {
+      "remove_index": { "index": "apm-{version}-transaction" }
+    },
+    {
+      "add": {
+        "index": "apm-{version}-transaction-000001",
+        "alias": "apm-{version}-transaction",
+        "is_write_index": true
+      }
+    },
+    {
+      "add": {
+        "index": "apm-{version}-transaction-original",
+        "alias": "apm-{version}-transaction",
+        "is_write_index": false
+      }
+    }
+]
+}
+----
+
+. Set the indexing complete on the cloned index
++
+["source","sh",subs="attributes"]
+----
+PUT apm-{version}-transaction-original/_settings
+{
+  "index.lifecycle.indexing_complete": true
+}
+----
+
+. APM Server will resume indexing to the write alias.
+Confirm that APM Server successfully resumes sending transactions:
 +
 ["source","sh",subs="attributes"]
 ----
