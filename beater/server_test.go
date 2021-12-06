@@ -657,7 +657,18 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 		"kibana.enabled":       true,
 		"kibana.host":          srv.URL,
 	})
+<<<<<<< HEAD
 	_, err := setupServer(t, cfg, nil, nil)
+=======
+
+	// newBeat sets `data_streams.wait_for_integration: false`,
+	// remove it so we test the default behaviour.
+	apmBeat, cfg := newBeat(t, cfg, nil, nil)
+	removed, err := cfg.Remove("data_streams.wait_for_integration", -1)
+	require.NoError(t, err)
+	require.True(t, removed)
+	beater, err := setupBeater(t, apmBeat, cfg, nil)
+>>>>>>> 2c5bfd3e (waitready: Add remediation to error message (#6796))
 	require.NoError(t, err)
 
 	timeout := time.After(10 * time.Second)
@@ -668,6 +679,10 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 			t.Fatal("timed out waiting for request")
 		}
 	}
+
+	logs := beater.logs.FilterMessageSnippet("please install the apm integration")
+	assert.Len(t, logs.All(), 2, "coundn't find remediation message logs")
+
 	select {
 	case <-requestCh:
 		t.Fatal("unexpected request")
@@ -764,6 +779,9 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for bulk request")
 	}
+
+	logs := beater.logs.FilterMessageSnippet("please install the apm integration")
+	assert.Len(t, logs.All(), 1, "coundn't find remediation message logs")
 
 	// Healthcheck should now report that the server is publish-ready.
 	resp, err = beater.client.Get(beater.baseURL + api.RootPath)
