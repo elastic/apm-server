@@ -39,7 +39,7 @@ func (j JavaAttacherConfig) setup() error {
 		}
 		for flag := range rule {
 			if _, ok := allowlist[flag]; !ok {
-				return fmt.Errorf("unrecognized discovery rule: %s", rule)
+				return fmt.Errorf("unrecognized discovery rule: --%s. Supported flags are available at https://www.elastic.co/guide/en/apm/agent/java/current/setup-attach-cli.html", flag)
 			}
 		}
 	}
