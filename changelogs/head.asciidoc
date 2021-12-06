@@ -44,6 +44,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - In accord with ECS, the server logs now set `source.address` to the immediate network peer's IP address, and `client.ip` to the originating client IP if known {pull}6690[6690]
 - `host.ip` is now stored as an array, as specified by ECS {pull}6694[6694]
 - NaN and +/-Inf values are now filtered out when translating OTLP metrics {pull}6698[6698]
+- Agent configuration metrics are now sent to the metrics-apm.internal* data stream {pull}6767[6767]
 
 [float]
 ==== Intake API Changes
