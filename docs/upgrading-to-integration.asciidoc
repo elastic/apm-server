@@ -25,6 +25,7 @@ The new APM ecosystem offers a number of benefits:
 * Errors and metrics data streams are shared with other data sources -- which means better long-term integration with the logs and metrics apps
 * Removes template inheritance for ILM policies and makes use of new {es} index and component templates
 * Fixes <<server-resource-exists-not-alias>>
+* RUM sourcemaps are not working with data streams in 7.16 -- this will be fixed in 8.0
 
 **APM Integration**:
 
@@ -32,6 +33,7 @@ The new APM ecosystem offers a number of benefits:
 * Improved source map handling and APM agent configuration management
 * Less configuration
 * Easier and less error-prone upgrade path
+* Zero-downtime configuration changes
 
 [discrete]
 [[apm-arch-upgrade]]
@@ -48,8 +50,9 @@ Or, APM agents and the APM integration live on edge machines and enroll via a ce
 
 image::./images/apm-architecture-two.png[Architecture of Elastic APM option two]
 
-NOTE: If RUM is enabled, you must run {agent} centrally.
-If RUM is disabled, {agent} can be run on edge machines.
+NOTE: In order to collect data from RUM and mobile agents, which run in browser and mobile applications,
+you must run {agent} centrally. For other applications, such as backend services,
+{agent} may be co-located on the edge machine.
 
 [discrete]
 [[apm-integration-upgrade-limitations]]
@@ -71,13 +74,12 @@ There are some limitations to be aware of:
 . <<apm-integration-upgrade-3>>
 . <<apm-integration-upgrade-4>>
 . <<apm-integration-upgrade-5>>
-. <<apm-integration-upgrade-6>>
 
 [discrete]
 [[apm-integration-upgrade-1]]
 ==== Upgrade the Elastic Stack
 
-The Elastic Stack ({es} and {kib}) must be upgraded to version 7.0 or higher.
+The Elastic Stack ({es} and {kib}) must be upgraded to version 7.14 or higher.
 See the {stack-ref}/upgrading-elastic-stack.html[Elastic Stack Installation and Upgrade Guide] for guidance.
 
 Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
@@ -125,27 +127,11 @@ If you're adding the APM integration to the {fleet} Server, use the policy that 
 
 TIP: You'll configure the APM integration in this step.
 See <<input-apm>> for a reference of all available settings.
-Make note of the URL where APM Server is listening, and if applicable, the secret token;
-you'll need these in the next step.
+As long as the APM integration is configured with the same secret token or you have API keys enabled on the same host,
+no reconfiguration is required in your APM agents.
 
 [discrete]
 [[apm-integration-upgrade-5]]
-==== Update APM agents
-
-Existing APM agents can now be updated to send data to the APM integration:
-
-* The APM Server URL should point to the newly configured APM integration
-* Ensure each service name is unique (service names are case-insensitive)
-* If required, update the <<secret-token,secret token>> or create a new API key <<api-key,API key>>
-
-The table below describes the basic configuration variables needed for each APM agent:
-
-include::./legacy/tab-widgets/install-agents-widget.asciidoc[]
-
-As APM agents are updated, data will begin to flow into the APM app in {kib}.
-
-[discrete]
-[[apm-integration-upgrade-6]]
 ==== Stop the legacy APM Server
 
 Once data from upgraded APM agents is visible in the APM app,

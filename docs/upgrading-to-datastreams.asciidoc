@@ -7,8 +7,6 @@
 * <<apm-data-streams-upgrade-steps-ess>>
 
 Classic indices are deprecated starting in version 7.16.0.
-This means that APM Server will no longer perform any index management -- index templates, ingest pipelines, and ILM policies will all be managed by {fleet}.
-
 Users that are not ready to <<upgrade-to-apm-integration>> should
 upgrade to data streams in the meantime.
 
@@ -30,8 +28,8 @@ Data streams offer a number of benefits over classic indices:
 [[considerations-data-streams]]
 === Data streams considerations
 
-* This change cannot be reverted
 * Users on {ece} require additional steps prior to migrating, like configuring TLS certificates for the connection between APM Server and {es}
+* RUM sourcemaps are not working with data streams in 7.16 -- this will be fixed in 8.0
 
 [discrete]
 [[apm-data-streams-upgrade-steps]]
@@ -88,8 +86,10 @@ apm-server:
 [[apm-data-streams-upgrade-4]]
 ==== Configure resources
 
-* Index lifecycle management (ILM) needs to be reconfigured -- see <<ilm-how-to>> to learn about the default ILM policies applied to data streams and how to customize them.
-* Custom ingest pipelines need to be reconfigured -- see <<ingest-pipelines>> for more information on how to edit or view pipelines.
+Need to customize anything?
+
+* See <<ilm-how-to>> to learn about the new default Index lifecycle management (ILM) policies applied to data streams and how to customize them.
+* See <<ingest-pipelines>> for more information on how to edit or view ingest pipelines.
 
 [discrete]
 [[apm-data-streams-upgrade-steps-ess]]
