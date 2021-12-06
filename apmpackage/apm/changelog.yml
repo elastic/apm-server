@@ -27,6 +27,9 @@
     - description: updated package version to align with stack version
       type: enhancement
       link: https://github.com/elastic/obs-dc-team/issues/629
+    - description: fixed the `sampled_traces` data stream's ILM policy name
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/6802
 - version: "7.16.1"
   changes:
     - description: Added `agent_config_applied` mapping to `metrics-apm.internal` data stream.
