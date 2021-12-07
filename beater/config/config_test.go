@@ -24,11 +24,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/elastic/apm-server/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 var testdataCertificateConfig = tlscommon.CertificateConfig{
@@ -62,6 +63,12 @@ func TestUnpackConfig(t *testing.T) {
 		"k4": []string{"v4"},
 	}
 
+	rumAugmentOverride := DefaultConfig()
+	rumAugmentOverride.augmentEnabledSet = true
+	rumAugmentOverride.AugmentEnabled = true
+	rumAugmentOverride.RumConfig.augmentEnabledSet = true
+	rumAugmentOverride.RumConfig.AugmentEnabled = false
+
 	tests := map[string]struct {
 		inpCfg map[string]interface{}
 		outCfg *Config
@@ -79,7 +86,7 @@ func TestUnpackConfig(t *testing.T) {
 				"read_timeout":          3 * time.Second,
 				"write_timeout":         4 * time.Second,
 				"shutdown_timeout":      9 * time.Second,
-				"capture_personal_data": true,
+				"capture_personal_data": false,
 				"auth": map[string]interface{}{
 					"secret_token": "1234random",
 					"api_key": map[string]interface{}{
@@ -189,7 +196,7 @@ func TestUnpackConfig(t *testing.T) {
 					ClientAuth:  4,
 					CAs:         []string{"../../testdata/tls/ca.crt.pem"},
 				},
-				AugmentEnabled: true,
+				augmentEnabledSet: true,
 				Expvar: ExpvarConfig{
 					Enabled: true,
 					URL:     "/debug/vars",
@@ -198,9 +205,10 @@ func TestUnpackConfig(t *testing.T) {
 					Enabled: false,
 				},
 				RumConfig: RumConfig{
-					Enabled:      true,
-					AllowOrigins: []string{"example*"},
-					AllowHeaders: []string{"Authorization"},
+					Enabled:        true,
+					AugmentEnabled: false,
+					AllowOrigins:   []string{"example*"},
+					AllowHeaders:   []string{"Authorization"},
 					SourceMapping: SourceMapping{
 						Enabled:      true,
 						Cache:        Cache{Expiration: 8 * time.Minute},
@@ -334,7 +342,6 @@ func TestUnpackConfig(t *testing.T) {
 					Certificate: testdataCertificateConfig,
 					ClientAuth:  0,
 				},
-				AugmentEnabled: true,
 				Expvar: ExpvarConfig{
 					Enabled: true,
 					URL:     "/debug/vars",
@@ -343,9 +350,10 @@ func TestUnpackConfig(t *testing.T) {
 					Enabled: true,
 				},
 				RumConfig: RumConfig{
-					Enabled:      true,
-					AllowOrigins: []string{"*"},
-					AllowHeaders: []string{},
+					Enabled:        true,
+					AugmentEnabled: true,
+					AllowOrigins:   []string{"*"},
+					AllowHeaders:   []string{},
 					SourceMapping: SourceMapping{
 						Enabled: true,
 						Cache: Cache{
@@ -429,6 +437,15 @@ func TestUnpackConfig(t *testing.T) {
 				},
 			},
 			outCfg: responseHeadersConfig,
+		},
+		"use both legacy top-level capture_personal_data and rum": {
+			inpCfg: map[string]interface{}{
+				"capture_personal_data": true,
+				"rum": map[string]interface{}{
+					"capture_personal_data": false,
+				},
+			},
+			outCfg: rumAugmentOverride,
 		},
 	}
 
@@ -584,4 +601,56 @@ func TestNewConfig_ESConfig(t *testing.T) {
 
 func newBool(v bool) *bool {
 	return &v
+}
+
+func Test_deprecatedWarnings(t *testing.T) {
+	deprecatedSettingLog := "apm-server.capture_personal_data is deprecated and will be removed " +
+		"in a future version, please use apm-server.rum.capture_personal_data instead"
+
+	bothSettingsLog := "apm-server.capture_personal_data and apm-server.rum.capture_personal_data " +
+		" are both set, apm-server.capture_personal_data will be ignored"
+
+	tests := []struct {
+		name string
+		c    map[string]interface{}
+		want []string
+	}{
+		{
+			name: "Using deprecated setting raises a log message",
+			c: map[string]interface{}{
+				"capture_personal_data": true,
+			},
+			want: []string{deprecatedSettingLog},
+		},
+		{
+			name: "Using both deprecated setting and the new setting raises log messages",
+			c: map[string]interface{}{
+				"capture_personal_data": true,
+				"rum": map[string]interface{}{
+					"capture_personal_data": true,
+				},
+			},
+			want: []string{deprecatedSettingLog, bothSettingsLog},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			inpCfg, err := common.NewConfigFrom(test.c)
+			assert.NoError(t, err)
+
+			c, err := NewConfig(inpCfg, nil)
+			require.NoError(t, err)
+
+			logp.DevelopmentSetup(logp.ToObserverOutput())
+			deprecatedWarnings(c, logp.L())
+
+			observed := logp.ObserverLogs()
+			for _, logMsg := range test.want {
+				filtered := observed.FilterMessageSnippet(logMsg).FilterLevelExact(zapcore.WarnLevel)
+				if filtered.Len() == 0 {
+					t.Errorf("didn't find 'warn' log message '%s' in %+v", logMsg, observed.All())
+				}
+			}
+		})
+	}
 }

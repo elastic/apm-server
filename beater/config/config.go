@@ -19,6 +19,7 @@ package config
 
 import (
 	"net"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -61,7 +62,6 @@ type Config struct {
 	ResponseHeaders           map[string][]string     `config:"response_headers"`
 	Expvar                    ExpvarConfig            `config:"expvar"`
 	Pprof                     PprofConfig             `config:"pprof"`
-	AugmentEnabled            bool                    `config:"capture_personal_data"`
 	RumConfig                 RumConfig               `config:"rum"`
 	Kibana                    KibanaConfig            `config:"kibana"`
 	KibanaAgentConfig         KibanaAgentConfig       `config:"agent.config"`
@@ -77,6 +77,20 @@ type Config struct {
 	// the integration package to be installed, and for checking the
 	// Elasticsearch license level.
 	WaitReadyInterval time.Duration `config:"wait_ready_interval"`
+
+	// Deprecated in 8.x, use rum.capture_personal_data instead.
+	// TODO(marclop): Remove in 9.0
+	AugmentEnabled    bool `config:"capture_personal_data"`
+	augmentEnabledSet bool
+}
+
+func (s *Config) Unpack(inp *common.Config) error {
+	type underlyingConfig Config
+	if err := inp.Unpack((*underlyingConfig)(s)); err != nil {
+		return err
+	}
+	s.augmentEnabledSet = inp.HasField("capture_personal_data")
+	return nil
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
@@ -84,7 +98,9 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 	logger := logp.NewLogger(logs.Config)
 	c := DefaultConfig()
 	if err := ucfg.Unpack(c); err != nil {
-		return nil, errors.Wrap(err, "Error processing configuration")
+		return nil, errors.Wrap(errors.New(strings.Replace(err.Error(),
+			" accessing config", "", 1)), "Error processing configuration",
+		)
 	}
 
 	if float64(int(c.KibanaAgentConfig.Cache.Expiration.Seconds())) != c.KibanaAgentConfig.Cache.Expiration.Seconds() {
@@ -117,6 +133,7 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, err
 	}
 
+	deprecatedWarnings(c, logger)
 	return c, nil
 }
 
@@ -131,7 +148,6 @@ func DefaultConfig() *Config {
 		WriteTimeout:    30 * time.Second,
 		MaxEventSize:    300 * 1024, // 300 kb
 		ShutdownTimeout: 30 * time.Second,
-		AugmentEnabled:  true,
 		Expvar: ExpvarConfig{
 			Enabled: false,
 			URL:     "/debug/vars",
@@ -146,5 +162,20 @@ func DefaultConfig() *Config {
 		AgentAuth:          defaultAgentAuth(),
 		JavaAttacherConfig: defaultJavaAttacherConfig(),
 		WaitReadyInterval:  5 * time.Second,
+	}
+}
+
+func deprecatedWarnings(c *Config, logger *logp.Logger) {
+	if c.augmentEnabledSet {
+		logger.Warn("apm-server.capture_personal_data is deprecated and will be removed " +
+			"in a future version, please use apm-server.rum.capture_personal_data instead",
+		)
+		if c.RumConfig.augmentEnabledSet {
+			logger.Warn("apm-server.capture_personal_data and apm-server.rum.capture_personal_data " +
+				" are both set, apm-server.capture_personal_data will be ignored",
+			)
+		} else {
+			c.RumConfig.AugmentEnabled = c.AugmentEnabled
+		}
 	}
 }

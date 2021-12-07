@@ -153,7 +153,7 @@ type routeBuilder struct {
 
 func (r *routeBuilder) profileHandler() (request.Handler, error) {
 	requestMetadataFunc := emptyRequestMetadata
-	if r.cfg.AugmentEnabled {
+	if r.cfg.RumConfig.AugmentEnabled {
 		requestMetadataFunc = backendRequestMetadata
 	}
 	h := profile.Handler(requestMetadataFunc, r.batchProcessor)
@@ -167,7 +167,7 @@ func (r *routeBuilder) firehoseHandler() (request.Handler, error) {
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
 	requestMetadataFunc := emptyRequestMetadata
-	if r.cfg.AugmentEnabled {
+	if r.cfg.RumConfig.AugmentEnabled {
 		requestMetadataFunc = backendRequestMetadata
 	}
 	h := intake.Handler(stream.BackendProcessor(r.cfg), requestMetadataFunc, r.batchProcessor)
@@ -176,7 +176,7 @@ func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
 
 func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *stream.Processor) func() (request.Handler, error) {
 	requestMetadataFunc := emptyRequestMetadata
-	if r.cfg.AugmentEnabled {
+	if r.cfg.RumConfig.AugmentEnabled {
 		requestMetadataFunc = rumRequestMetadata
 	}
 	return func() (request.Handler, error) {

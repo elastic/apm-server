@@ -41,12 +41,24 @@ const (
 // RumConfig holds config information related to the RUM endpoint
 type RumConfig struct {
 	Enabled             bool                `config:"enabled"`
+	AugmentEnabled      bool                `config:"capture_personal_data"`
 	AllowOrigins        []string            `config:"allow_origins"`
 	AllowHeaders        []string            `config:"allow_headers"`
 	ResponseHeaders     map[string][]string `config:"response_headers"`
 	LibraryPattern      string              `config:"library_pattern"`
 	ExcludeFromGrouping string              `config:"exclude_from_grouping"`
 	SourceMapping       SourceMapping       `config:"source_mapping"`
+
+	augmentEnabledSet bool
+}
+
+func (s *RumConfig) Unpack(inp *common.Config) error {
+	type underlyingRumConfig RumConfig
+	if err := inp.Unpack((*underlyingRumConfig)(s)); err != nil {
+		return errors.Wrap(err, "error unpacking rum config")
+	}
+	s.augmentEnabledSet = inp.HasField("capture_personal_data")
+	return nil
 }
 
 // SourceMapping holds sourcemap config information
@@ -115,6 +127,7 @@ func defaultSourcemapping() SourceMapping {
 
 func defaultRum() RumConfig {
 	return RumConfig{
+		AugmentEnabled:      true,
 		AllowOrigins:        []string{allowAllOrigins},
 		AllowHeaders:        []string{},
 		SourceMapping:       defaultSourcemapping(),
