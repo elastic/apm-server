@@ -43,7 +43,7 @@ func TestSetGroupingKey(t *testing.T) {
 				Exception: &model.Exception{
 					Type: "exception_type",
 				},
-				Log: &model.Log{
+				Log: &model.ErrorLog{
 					ParamMessage: "log_parammessage",
 				},
 			},
@@ -72,7 +72,7 @@ func TestSetGroupingKey(t *testing.T) {
 						},
 					}},
 				},
-				Log: &model.Log{Stacktrace: model.Stacktrace{{Filename: "abc"}}}, // ignored
+				Log: &model.ErrorLog{Stacktrace: model.Stacktrace{{Filename: "abc"}}}, // ignored
 			},
 			groupingKey: hashStrings(
 				"module", "func_1", "filename", "func_2", "classname", "func_4", "func_5", "func_6",
@@ -80,7 +80,7 @@ func TestSetGroupingKey(t *testing.T) {
 		},
 		"log_stacktrace": {
 			input: model.Error{
-				Log: &model.Log{
+				Log: &model.ErrorLog{
 					Stacktrace: model.Stacktrace{{Function: "function"}},
 				},
 			},
@@ -99,13 +99,13 @@ func TestSetGroupingKey(t *testing.T) {
 						Message: "message_4",
 					}},
 				},
-				Log: &model.Log{Message: "log_message"}, // ignored
+				Log: &model.ErrorLog{Message: "log_message"}, // ignored
 			},
 			groupingKey: hashStrings("message_1", "message_2", "message_3", "message_4"),
 		},
 		"log_message": {
 			input: model.Error{
-				Log: &model.Log{Message: "log_message"}, // ignored
+				Log: &model.ErrorLog{Message: "log_message"}, // ignored
 			},
 			groupingKey: hashStrings("log_message"),
 		},

@@ -44,18 +44,22 @@ var (
 	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)
 	gRPCTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.grpc.traces")
 	gRPCTracesMonitoringMap  = request.MonitoringMapForRegistry(gRPCTracesRegistry, monitoringKeys)
+	gRPCLogsRegistry         = monitoring.Default.NewRegistry("apm-server.otlp.grpc.logs")
+	gRPCLogsMonitoringMap    = request.MonitoringMapForRegistry(gRPCLogsRegistry, monitoringKeys)
 
 	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
 	// method name to its respective monitoring map.
 	RegistryMonitoringMaps = map[string]map[request.ResultID]*monitoring.Int{
 		metricsFullMethod: gRPCMetricsMonitoringMap,
 		tracesFullMethod:  gRPCTracesMonitoringMap,
+		logsFullMethod:    gRPCLogsMonitoringMap,
 	}
 )
 
 const (
 	metricsFullMethod = "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export"
 	tracesFullMethod  = "/opentelemetry.proto.collector.trace.v1.TraceService/Export"
+	logsFullMethod    = "/opentelemetry.proto.collector.logs.v1.LogsService/Export"
 )
 
 func init() {
@@ -68,6 +72,7 @@ func MethodAuthenticators(authenticator *auth.Authenticator) map[string]intercep
 	return map[string]interceptors.MethodAuthenticator{
 		metricsFullMethod: metadataMethodAuthenticator,
 		tracesFullMethod:  metadataMethodAuthenticator,
+		logsFullMethod:    metadataMethodAuthenticator,
 	}
 }
 
@@ -85,6 +90,9 @@ func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcesso
 	}
 	if err := otlpreceiver.RegisterMetricsReceiver(context.Background(), consumer, grpcServer); err != nil {
 		return errors.Wrap(err, "failed to register OTLP metrics receiver")
+	}
+	if err := otlpreceiver.RegisterLogsReceiver(context.Background(), consumer, grpcServer); err != nil {
+		return errors.Wrap(err, "failed to register OTLP logs receiver")
 	}
 	return nil
 }

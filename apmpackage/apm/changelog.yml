@@ -36,6 +36,9 @@
     - description: updated ingest pipelines to reject events from apm-servers newer than installed integration
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6791
+    - description: added event.{outcome,severity} and log.level to app_logs data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6791
 - version: "7.16.1"
   changes:
     - description: Added `agent_config_applied` mapping to `metrics-apm.internal` data stream.

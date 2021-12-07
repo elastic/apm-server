@@ -401,4 +401,4 @@ Here is an example of AWS Lambda Node.js function managed with Terraform and the
 [[open-telemetry-logs-limitations]]
 ===== OpenTelemetry logs
 
-* OpenTelemetry logs are not yet supported https://github.com/elastic/apm-server/issues/5491[#5491]
+* OpenTelemetry logs are supported with **beta support** from 8.0 https://github.com/elastic/apm-server/pull/6768[#6768].
