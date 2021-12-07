@@ -57,6 +57,17 @@ func TestSetDataStream(t *testing.T) {
 	}, {
 		input: model.APMEvent{
 			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{
+				Name: "agent_config",
+				Samples: map[string]model.MetricsetSample{
+					"agent_config_applied": {Value: 1},
+				},
+			},
+		},
+		output: model.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
+	}, {
+		input: model.APMEvent{
+			Processor: model.MetricsetProcessor,
 			Service:   model.Service{Name: "service-name"},
 			Metricset: &model.Metricset{},
 		},
