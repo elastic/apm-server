@@ -64,6 +64,12 @@ func TestAPMServerInstrumentation(t *testing.T) {
 				Field: "transaction.type",
 				Value: "request",
 			},
+			// Only look for the request made by the agent for sending events.
+			// There may be other requests, such as for central config.
+			estest.TermQuery{
+				Field: "transaction.name",
+				Value: "POST /intake/v2/events",
+			},
 		},
 	})
 
