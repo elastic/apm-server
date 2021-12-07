@@ -147,7 +147,7 @@ func TestBatchProcessor(t *testing.T) {
 	error2 := model.APMEvent{
 		Service: service,
 		Error: &model.Error{
-			Log: &model.Log{
+			Log: &model.ErrorLog{
 				Stacktrace: model.Stacktrace{{
 					AbsPath:  "bundle.js",
 					Lineno:   newInt(originalLinenoWithoutFilename),
@@ -197,7 +197,7 @@ func TestBatchProcessor(t *testing.T) {
 		},
 	}, span2.Span)
 	assert.Equal(t, &model.Error{
-		Log: &model.Log{
+		Log: &model.ErrorLog{
 			Stacktrace: model.Stacktrace{
 				cloneFrame(mappedFrameWithoutFilename),
 			},

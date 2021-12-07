@@ -25,6 +25,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
+	"go.opentelemetry.io/collector/model/otlpgrpc"
+	"go.opentelemetry.io/collector/model/pdata"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric"
@@ -42,6 +45,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -133,6 +137,28 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	// Make sure we report monitoring for the metrics consumer. Metric values are unit tested.
 	doc := getBeatsMonitoringStats(t, srv, nil)
 	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.otlp.grpc.metrics.consumer").Exists())
+}
+
+func TestOTLPGRPCLogs(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServer(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock())
+	require.NoError(t, err)
+	defer conn.Close()
+
+	logsClient := otlpgrpc.NewLogsClient(conn)
+
+	logs := newLogs("a log message")
+	_, err = logsClient.Export(ctx, logs)
+	require.NoError(t, err)
+
+	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm*", estest.TermQuery{
+		Field: "processor.event", Value: "log",
+	})
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestOTLPGRPCAuth(t *testing.T) {
@@ -428,4 +454,36 @@ func (m *idGeneratorFuncs) NewIDs(ctx context.Context) (trace.TraceID, trace.Spa
 
 func (m *idGeneratorFuncs) NewSpanID(ctx context.Context, traceID trace.TraceID) trace.SpanID {
 	return m.newSpanID(ctx, traceID)
+}
+
+func newLogs(body interface{}) pdata.Logs {
+	logs := pdata.NewLogs()
+	resourceLogs := logs.ResourceLogs().AppendEmpty()
+	logs.ResourceLogs().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		semconv.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString("go"),
+	})
+	instrumentationLogs := resourceLogs.InstrumentationLibraryLogs().AppendEmpty()
+	otelLog := instrumentationLogs.Logs().AppendEmpty()
+	otelLog.SetTraceID(pdata.NewTraceID([16]byte{1}))
+	otelLog.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	otelLog.SetName("doOperation()")
+	otelLog.SetSeverityNumber(pdata.SeverityNumberINFO)
+	otelLog.SetSeverityText("Info")
+	otelLog.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1, 0)))
+	otelLog.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"key":         pdata.NewAttributeValueString("value"),
+		"numeric_key": pdata.NewAttributeValueDouble(1234),
+	})
+
+	switch b := body.(type) {
+	case string:
+		otelLog.Body().SetStringVal(b)
+	case int:
+		otelLog.Body().SetIntVal(int64(b))
+	case float64:
+		otelLog.Body().SetDoubleVal(float64(b))
+	case bool:
+		otelLog.Body().SetBoolVal(b)
+	}
+	return logs
 }

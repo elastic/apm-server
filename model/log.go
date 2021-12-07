@@ -17,6 +17,8 @@
 
 package model
 
+import "github.com/elastic/beats/v7/libbeat/common"
+
 const (
 	AppLogsDataset = "apm.app"
 )
@@ -25,3 +27,17 @@ var (
 	// LogProcessor is the Processor value that should be assigned to log events.
 	LogProcessor = Processor{Name: "log", Event: "log"}
 )
+
+// Log holds information about a log, as defined by ECS.
+//
+// https://www.elastic.co/guide/en/ecs/current/ecs-log.html
+type Log struct {
+	// Level holds the log level of the log event.
+	Level string
+}
+
+func (e Log) fields() common.MapStr {
+	var fields mapStr
+	fields.maybeSetString("level", e.Level)
+	return common.MapStr(fields)
+}
