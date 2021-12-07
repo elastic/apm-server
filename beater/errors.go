@@ -15,27 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package config
+package beater
 
-import (
-	"testing"
+import "fmt"
 
-	"github.com/stretchr/testify/assert"
-)
+type actionableError struct {
+	Err         error
+	Name        string
+	Remediation string
+}
 
-func TestJavaAttacherConfig(t *testing.T) {
-	discoveryRules := []map[string]string{
-		map[string]string{"include-main": "main.jar"},
-		map[string]string{"include-vmargs": "elastic.apm.agent.attach=true"},
-		map[string]string{"exclude-user": "root"},
+func (e *actionableError) Error() string {
+	if e == nil || e.Err == nil {
+		return ""
 	}
-	config := JavaAttacherConfig{
-		Enabled:        true,
-		DiscoveryRules: discoveryRules,
+	if e.Remediation != "" {
+		return fmt.Sprintf("%s: to remediate, %s", e.Err.Error(), e.Remediation)
 	}
-
-	assert.NoError(t, config.setup())
-
-	config.DiscoveryRules = append(discoveryRules, map[string]string{"include-pid": "1001"})
-	assert.Error(t, config.setup())
+	return e.Err.Error()
 }
