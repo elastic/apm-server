@@ -2,13 +2,14 @@
 # Variables used for various build targets.
 ##############################################################################
 
-# Enforce use of modules.
-export GO111MODULE=on
-
 # Ensure the Go version in .go_version is installed and used.
 GOROOT?=$(shell ./script/run_with_go_ver go env GOROOT)
 GO:=$(GOROOT)/bin/go
 export PATH:=$(GOROOT)/bin:$(PATH)
+
+# By default we run tests with verbose output. This may be overridden, e.g.
+# scripts may set GOTESTFLAGS=-json to format test output for processing.
+GOTESTFLAGS?=-v
 
 GOOSBUILD:=./build/$(shell $(GO) env GOOS)
 APPROVALS=$(GOOSBUILD)/approvals
@@ -45,17 +46,13 @@ apm-server:
 apm-server-oss:
 	@$(GO) build -o $@
 
-.PHONY: apm-server.test
-apm-server.test:
-	$(GO) test -c -coverpkg=github.com/elastic/apm-server/... ./x-pack/apm-server
-
-.PHONY: apm-server-oss.test
-apm-server-oss.test:
-	$(GO) test -c -coverpkg=github.com/elastic/apm-server/...
-
 .PHONY: test
 test:
-	$(GO) test -v ./...
+	$(GO) test $(GOTESTFLAGS) ./...
+
+.PHONY: system-test
+system-test:
+	@(cd systemtest; $(GO) test $(GOTESTFLAGS) -timeout=20m ./...)
 
 .PHONY:
 clean: $(MAGE)
