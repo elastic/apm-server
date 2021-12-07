@@ -48,8 +48,8 @@ func getCommonPipeline(name string, version *common.Version) []map[string]interf
 // avoid version mismatch bugs.
 func getObserverVersionPipeline(version *common.Version) []map[string]interface{} {
 	observerVersionCheckIf := fmt.Sprintf(
-		"ctx.observer.version_major > %d || ctx.observer.version_minor > %d",
-		version.Major, version.Minor,
+		"ctx.observer.version_major > %d || (ctx.observer.version_major == %d && ctx.observer.version_minor > %d)",
+		version.Major, version.Major, version.Minor,
 	)
 	observerVersionCheckMessage := fmt.Sprintf(""+
 		"Document produced by APM Server v{{{observer.version}}}, "+

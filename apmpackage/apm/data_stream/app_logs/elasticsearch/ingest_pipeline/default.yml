@@ -1,0 +1,5 @@
+---
+description: Pipeline for ingesting APM application logs.
+processors:
+  - pipeline:
+      name: observer_version
