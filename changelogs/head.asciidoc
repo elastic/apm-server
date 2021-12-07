@@ -20,6 +20,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - Removed unused `span.start.us` field, and deprecated `span.http.*` fields {pull}6602[6602]
 - Removed `apm-server.data_streams.enabled`, and `setup.*` configuration options {pull}6606[6606]
 - Removed `logging.ecs` and `logging.json` config {pull}6613[6613]
+- Removed interpretation of non-standard "component" attribute from OpenTelemetry spans; changed default span type and subtypes {pull}6834[6834]
 
 [float]
 ==== Bug fixes
