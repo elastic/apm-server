@@ -136,7 +136,7 @@
                 "id": "b3ee9be3b687a611",
                 "name": "operation_name",
                 "sampled": true,
-                "type": "custom"
+                "type": "unknown"
             }
         }
     ]
