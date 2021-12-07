@@ -7,6 +7,11 @@
 
 This section summarizes the changes in each release.
 
+<<<<<<< HEAD
+=======
+* <<release-notes-8.0>>
+* <<release-notes-7.16>>
+>>>>>>> 114a928e (docs: add 7.16 release notes (#6818))
 * <<release-notes-7.15>>
 * <<release-notes-7.14>>
 * <<release-notes-7.13>>

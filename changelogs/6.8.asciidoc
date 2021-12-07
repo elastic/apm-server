@@ -25,6 +25,17 @@ https://github.com/elastic/apm-server/compare/6.7\...6.8[View commits]
 * <<release-notes-6.8.0>>
 
 [float]
+<<<<<<< HEAD
+=======
+[[release-notes-6.8.20]]
+=== APM Server version 6.8.20
+
+https://github.com/elastic/apm-server/compare/v6.8.19\...v6.8.20[View commits]
+
+No significant changes.
+
+[float]
+>>>>>>> 114a928e (docs: add 7.16 release notes (#6818))
 [[release-notes-6.8.19]]
 === APM Server version 6.8.19
 
