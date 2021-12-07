@@ -35,8 +35,6 @@ https://github.com/elastic/apm-server/compare/v7.15.2\...v7.16.0[View commits]
 - Skip unhandled fields in bulk responses in the experimental Elasticsearch output {pull}6631[6631]
 - Fix the format of `@timestamp` to include fractional seconds when using experimental Elasticsearch output {pull}6646[6646]
 - NaN and +/-Inf values are now filtered out when translating OTLP metrics {pull}6698[6698]
-- Agent configuration metrics are now sent to the metrics-apm.internal* data stream {pull}6767[6767]
-- Improve logged message when APM Server blocks ingestion to wait for the integration to be installed {pull}6796[6796]
 
 [float]
 ==== Intake API changes
