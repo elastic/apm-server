@@ -31,8 +31,6 @@ include::./apm-data-model.asciidoc[]
 
 include::./features.asciidoc[]
 
-include::./agent-server-compatibility.asciidoc[]
-
 include::./troubleshooting.asciidoc[]
 
 include::./apm-breaking-changes.asciidoc[]

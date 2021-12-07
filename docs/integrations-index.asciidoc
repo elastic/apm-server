@@ -40,9 +40,7 @@ include::api.asciidoc[]
 
 include::troubleshoot-apm.asciidoc[]
 
-include::apm-breaking.asciidoc[]
-
-include::upgrade.asciidoc[]
+include::upgrading.asciidoc[]
 
 include::release-notes.asciidoc[leveloffset=+1]
 
