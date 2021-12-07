@@ -107,10 +107,7 @@ func (c *Consumer) convertLogRecord(
 	if body := record.Body(); body.Type() != pdata.AttributeValueTypeNull {
 		event.Message = body.AsString()
 		if body.Type() == pdata.AttributeValueTypeMap {
-			body.MapVal().Range(func(k string, v pdata.AttributeValue) bool {
-				setLabel(k, &event, ifaceAttributeValue(v))
-				return true
-			})
+			setLabels(body.MapVal(), &event)
 		}
 	}
 	if traceID := record.TraceID(); !traceID.IsEmpty() {
@@ -123,11 +120,17 @@ func (c *Consumer) convertLogRecord(
 		event.Span.ID = spanID.HexString()
 	}
 	if attrs := record.Attributes(); attrs.Len() > 0 {
-		initEventLabels(&event)
-		attrs.Range(func(k string, v pdata.AttributeValue) bool {
-			setLabel(k, &event, ifaceAttributeValue(v))
-			return true
-		})
+		setLabels(attrs, &event)
 	}
 	return event
+}
+
+func setLabels(m pdata.AttributeMap, event *model.APMEvent) {
+	if event.Labels == nil || event.NumericLabels == nil {
+		initEventLabels(event)
+	}
+	m.Range(func(k string, v pdata.AttributeValue) bool {
+		setLabel(k, event, ifaceAttributeValue(v))
+		return true
+	})
 }

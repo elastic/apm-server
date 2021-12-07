@@ -79,7 +79,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - The `labels` indexed field is now ECS compliant (string only) and added a new `numeric_labels` object that holds labels with numeric values {pull}6633[6633]
 - Modify default standalone apm-server config values to be more in line with the default managed apm-server values {pull}6675[6675]
 - APM Server is now using a new Elasticsearch output implementation {pull}6656[6656]
-- APM Server now supports receiving OpenTelemetry Logs on the OTLP/GRPC receiver {pull}6768[6768]
+- APM Server now has beta support to receive OpenTelemetry Logs on the OTLP/GRPC receiver {pull}6768[6768]
 
 [float]
 ==== Deprecated

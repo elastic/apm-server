@@ -138,7 +138,7 @@ func newLogs(body interface{}) pdata.Logs {
 	case int:
 		otelLog.Body().SetIntVal(int64(b))
 	case float64:
-		otelLog.Body().SetDoubleVal(float64(b))
+		otelLog.Body().SetDoubleVal(b)
 	case bool:
 		otelLog.Body().SetBoolVal(b)
 		// case map[string]string:
