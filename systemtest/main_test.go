@@ -32,9 +32,6 @@ func TestMain(m *testing.M) {
 	if err := cleanupElasticsearch(); err != nil {
 		log.Fatal(err)
 	}
-	if err := InitFleet(); err != nil {
-		log.Fatal(err)
-	}
 	log.Println("INFO: setting up fleet...")
 	if err := InitFleet(); err != nil {
 		log.Fatal(err)
