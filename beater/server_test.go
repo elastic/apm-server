@@ -657,18 +657,7 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 		"kibana.enabled":       true,
 		"kibana.host":          srv.URL,
 	})
-<<<<<<< HEAD
-	_, err := setupServer(t, cfg, nil, nil)
-=======
-
-	// newBeat sets `data_streams.wait_for_integration: false`,
-	// remove it so we test the default behaviour.
-	apmBeat, cfg := newBeat(t, cfg, nil, nil)
-	removed, err := cfg.Remove("data_streams.wait_for_integration", -1)
-	require.NoError(t, err)
-	require.True(t, removed)
-	beater, err := setupBeater(t, apmBeat, cfg, nil)
->>>>>>> 2c5bfd3e (waitready: Add remediation to error message (#6796))
+	beater, err := setupServer(t, cfg, nil, nil)
 	require.NoError(t, err)
 
 	timeout := time.After(10 * time.Second)
