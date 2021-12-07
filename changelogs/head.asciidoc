@@ -45,6 +45,7 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - `host.ip` is now stored as an array, as specified by ECS {pull}6694[6694]
 - NaN and +/-Inf values are now filtered out when translating OTLP metrics {pull}6698[6698]
 - Agent configuration metrics are now sent to the metrics-apm.internal* data stream {pull}6767[6767]
+- Improve logged message when APM Server blocks ingestion to wait for the integration to be installed {pull}6796[6796]
 
 [float]
 ==== Intake API Changes
