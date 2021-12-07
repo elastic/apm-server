@@ -38,7 +38,7 @@ type Error struct {
 	Custom      common.MapStr
 
 	Exception *Exception
-	Log       *Log
+	Log       *ErrorLog
 }
 
 type Exception struct {
@@ -52,7 +52,7 @@ type Exception struct {
 	Cause      []Exception
 }
 
-type Log struct {
+type ErrorLog struct {
 	Message      string
 	Level        string
 	ParamMessage string

@@ -36,8 +36,8 @@ func (e *Exception) withCode(code string) *Exception {
 	return e
 }
 
-func baseLog() *Log {
-	return &Log{Message: "error log message"}
+func baseLog() *ErrorLog {
+	return &ErrorLog{Message: "error log message"}
 }
 
 func TestHandleExceptionTree(t *testing.T) {
@@ -132,7 +132,7 @@ func TestEventFields(t *testing.T) {
 	loggerName := "logger"
 	logMsg := "error log message"
 	paramMsg := "param message"
-	log := Log{
+	log := ErrorLog{
 		Level:        level,
 		Message:      logMsg,
 		ParamMessage: paramMsg,
