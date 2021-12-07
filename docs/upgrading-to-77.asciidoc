@@ -1,5 +1,5 @@
 [[upgrading-to-77]]
-== Upgrade to APM Server version 7.7
+==== Upgrade to APM Server version 7.7
 
 ++++
 <titleabbrev>Upgrade to version 7.7</titleabbrev>
