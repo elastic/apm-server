@@ -270,7 +270,6 @@ func TranslateTransaction(
 	var foundSpanType int
 	var message model.Message
 
-	var component string
 	var samplerType, samplerParam pdata.AttributeValue
 	attributes.Range(func(kDots string, v pdata.AttributeValue) bool {
 		if isJaeger {
@@ -394,9 +393,6 @@ func TranslateTransaction(
 				// should set this as a resource attribute (OTel) or tracer
 				// tag (Jaeger).
 				event.Service.Version = stringval
-			case "component":
-				component = stringval
-				fallthrough
 			default:
 				event.Labels.Set(k, stringval)
 			}
@@ -411,11 +407,7 @@ func TranslateTransaction(
 		case messagingSpan:
 			event.Transaction.Type = "messaging"
 		default:
-			if component != "" {
-				event.Transaction.Type = component
-			} else {
-				event.Transaction.Type = "custom"
-			}
+			event.Transaction.Type = "unknown"
 		}
 	}
 
@@ -510,7 +502,6 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 	var db model.DB
 	var destinationService model.DestinationService
 	var foundSpanType int
-	var component string
 	var rpcSystem string
 	var samplerType, samplerParam pdata.AttributeValue
 	attributes.Range(func(kDots string, v pdata.AttributeValue) bool {
@@ -647,9 +638,6 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 					// Prefer using peer.address for resource.
 					destinationService.Resource = stringval
 				}
-			case "component":
-				component = stringval
-				fallthrough
 			default:
 				event.Labels.Set(k, stringval)
 			}
@@ -765,10 +753,13 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 	default:
 		// Only set event.Span.Type if not already set
 		if event.Span.Type == "" {
-			event.Span.Type = "app"
-		}
-		if event.Span.Subtype == "" {
-			event.Span.Subtype = component
+			switch spanKind {
+			case pdata.SpanKindInternal:
+				event.Span.Type = "app"
+				event.Span.Subtype = "internal"
+			default:
+				event.Span.Type = "unknown"
+			}
 		}
 	}
 

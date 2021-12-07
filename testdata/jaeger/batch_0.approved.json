@@ -49,7 +49,7 @@
                 "id": "7be2fd98d0973be3",
                 "name": "Driver::findNearest",
                 "sampled": true,
-                "type": "custom"
+                "type": "unknown"
             }
         },
         {
@@ -163,7 +163,7 @@
             "transaction": {
                 "id": "7be2fd98d0973be3",
                 "sampled": true,
-                "type": "custom"
+                "type": "unknown"
             }
         },
         {
@@ -211,7 +211,7 @@
             "transaction": {
                 "id": "7be2fd98d0973be3",
                 "sampled": true,
-                "type": "custom"
+                "type": "unknown"
             }
         },
         {
@@ -259,7 +259,7 @@
             "transaction": {
                 "id": "7be2fd98d0973be3",
                 "sampled": true,
-                "type": "custom"
+                "type": "unknown"
             }
         },
         {
