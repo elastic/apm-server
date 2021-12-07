@@ -1,0 +1,205 @@
+[[upgrade-to-apm-integration]]
+=== Upgrade to the Elastic APM integration
+
+* <<why-upgrade-to-integrations>>
+* <<apm-arch-upgrade>>
+* <<apm-integration-upgrade-limitations>>
+* <<apm-integration-upgrade-steps>>
+* <<apm-integration-upgrade-steps-ess>>
+
+[discrete]
+[[why-upgrade-to-integrations]]
+=== Why upgrade?
+
+The new APM ecosystem offers a number of benefits:
+
+**{fleet}**:
+
+* A single, unified way to add monitoring for logs, metrics, traces, and other types of data to each host -- install one thing instead of multiple
+* Central, unified configuration management -- no need to edit multiple configuration files
+
+**Data streams**:
+
+* Reduced number of fields per index, better space efficiency, and faster queries
+* More granular data control
+* Errors and metrics data streams are shared with other data sources -- which means better long-term integration with the logs and metrics apps
+* Removes template inheritance for ILM policies and makes use of new {es} index and component templates
+* Fixes <<server-resource-exists-not-alias>>
+* RUM sourcemaps are not working with data streams in 7.16 -- this will be fixed in 8.0
+
+**APM Integration**:
+
+* Easier to install APM on edge machines
+* Improved source map handling and APM agent configuration management
+* Less configuration
+* Easier and less error-prone upgrade path
+* Zero-downtime configuration changes
+
+[discrete]
+[[apm-arch-upgrade]]
+=== APM integration architecture
+
+The Elastic APM integration consists of four components: *APM agents*, the *Elastic APM integration*, *Elasticsearch*, and *Kibana*.
+Generally, there are two ways that these four components can work together:
+
+APM agents on edge machines send data to a centrally hosted APM integration:
+
+image::./images/apm-architecture.png[Architecture of Elastic APM]
+
+Or, APM agents and the APM integration live on edge machines and enroll via a centrally hosted {agent}:
+
+image::./images/apm-architecture-two.png[Architecture of Elastic APM option two]
+
+NOTE: In order to collect data from RUM and mobile agents, which run in browser and mobile applications,
+you must run {agent} centrally. For other applications, such as backend services,
+{agent} may be co-located on the edge machine.
+
+[discrete]
+[[apm-integration-upgrade-limitations]]
+=== Limitations
+
+There are some limitations to be aware of:
+
+* This change cannot be reverted
+* Currently, only the {es} output is supported
+* APM runs under {agent} which, depending on the installation method, might be require root privileges
+* An {agent} with the APM integration enabled must be managed by {fleet}.
+
+[discrete]
+[[apm-integration-upgrade-steps]]
+=== Upgrade a self-managed cluster
+
+. <<apm-integration-upgrade-1>>
+. <<apm-integration-upgrade-2>>
+. <<apm-integration-upgrade-3>>
+. <<apm-integration-upgrade-4>>
+. <<apm-integration-upgrade-5>>
+
+[discrete]
+[[apm-integration-upgrade-1]]
+==== Upgrade the Elastic Stack
+
+The Elastic Stack ({es} and {kib}) must be upgraded to version 7.14 or higher.
+See the {stack-ref}/upgrading-elastic-stack.html[Elastic Stack Installation and Upgrade Guide] for guidance.
+
+Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
+and Observability {observability-guide}/whats-new.html[What's new] content for important changes between
+your current APM version and this one.
+
+[discrete]
+[[apm-integration-upgrade-2]]
+==== Add a {fleet} Server
+
+{fleet} Server is a component of the {stack} used to centrally manage {agent}s.
+The APM integration requires a {fleet} Server to be running and accessible to your hosts.
+Add a {fleet} Server by following {fleet-guide}/add-a-fleet-server.html[this guide].
+
+TIP: If you're upgrading a self-managed deployment of the {stack}, you'll need to enable
+{ref}/configuring-stack-security.html[{es} security] and the
+{ref}/security-settings.html[API key service].
+
+After adding your {fleet} Server host and generating a service token, the in-product help in {kib}
+will provide a command to run to start an {agent} as a {fleet} Server.
+Commands may require administrator privileges.
+
+Verify {fleet} Server is running by navigating to **Fleet** > **Agents** in {kib}.
+
+[discrete]
+[[apm-integration-upgrade-3]]
+==== Install a {fleet}-managed {agent}
+
+NOTE: It's possible to install the Elastic APM integration on the same {agent} that is running the {fleet} Server integration. For this use case, skip this step.
+
+The {fleet}-managed {agent} will run the Elastic APM integration on your edge nodes, next to your applications.
+To install a {fleet}-managed {agent}, follow {fleet-guide}/install-fleet-managed-elastic-agent.html[this guide].
+
+[discrete]
+[[apm-integration-upgrade-4]]
+==== Add the APM integration
+
+The APM integration receives performance data from your APM agents,
+validates and processes it, and then transforms the data into {es} documents.
+
+To add the APM integration, see <<add-apm-integration>>.
+Only complete the linked step (not the entire quick start guide).
+If you're adding the APM integration to a {fleet}-managed {agent}, you can use the default policy.
+If you're adding the APM integration to the {fleet} Server, use the policy that the {fleet} Server is running on.
+
+TIP: You'll configure the APM integration in this step.
+See <<input-apm>> for a reference of all available settings.
+As long as the APM integration is configured with the same secret token or you have API keys enabled on the same host,
+no reconfiguration is required in your APM agents.
+
+[discrete]
+[[apm-integration-upgrade-5]]
+==== Stop the legacy APM Server
+
+Once data from upgraded APM agents is visible in the APM app,
+it's safe to stop the legacy APM Server process.
+
+Congratulations -- you've now upgraded to the latest and greatest in Elastic APM!
+
+[discrete]
+[[apm-integration-upgrade-steps-ess]]
+=== Upgrade an {ecloud} cluster
+
+. <<apm-integration-upgrade-ess-1>>
+. <<apm-integration-upgrade-ess-2>>
+. <<apm-integration-upgrade-ess-3>>
+. <<apm-integration-upgrade-ess-4>>
+
+[discrete]
+[[apm-integration-upgrade-ess-1]]
+==== Upgrade the Elastic Stack
+
+Use the {ecloud} console to upgrade the {stack} to version {version}.
+See the {cloud}/ec-upgrade-deployment.html[{ess} upgrade guide] for details.
+
+[discrete]
+[[apm-integration-upgrade-ess-2]]
+==== Switch to Elastic Agent
+
+APM data collection will be interrupted while the migration is in progress.
+The process of migrating should only take a few minutes.
+
+With a Superuser account, complete the following steps:
+
+. In {kib}, navigate to **Observability** > **APM** > **Settings** > **Schema**.
++
+image::./images/schema-agent.png[switch to {agent}]
+
+. Click **Switch to {agent}**.
+Make a note of the `apm-server.yml` user settings that are incompatible with {agent}.
+Check the confirmation box and click **Switch to {agent}**.
++
+image::./images/agent-settings-migration.png[{agent} settings migration]
+
+{ecloud} will now create a Fleet Server instance to contain the new APM integration,
+and then will shut down the old APM server instance.
+Within minutes your data should begin appearing in the APM app again.
+
+[discrete]
+[[apm-integration-upgrade-ess-3]]
+==== Configure the APM integration
+
+You can now update settings that were removed during the upgrade.
+See <<input-apm>> for a reference of all available settings.
+
+In {kib}, navigate to **Mangement** > **Fleet**.
+Select the **Elastic Cloud Agent Policy**.
+Next to the **Elastic APM** integration, select **Actions** > **Edit integration**.
+
+[discrete]
+[[apm-integration-upgrade-ess-4]]
+==== Scale APM and Fleet
+
+Certain {es} output configuration options are not available with the APM integration.
+To ensure data is not lost, you can scale APM and Fleet up and out.
+APM's capacity to process events increases with the instance memory size.
+
+Go to the {ess-console}[{ecloud} console], select your deployment and click **Edit**.
+Here you can edit the number and size of each availability zone.
+
+image::./images/scale-apm.png[scale apm]
+
+Congratulations -- you’ve now upgraded to the latest and greatest in Elastic APM!

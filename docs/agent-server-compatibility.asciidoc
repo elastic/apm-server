@@ -1,11 +1,11 @@
 [[agent-server-compatibility]]
-== Agent and Server compatibility
+=== APM agent compatibility
 
-The chart below outlines the compatibility between different versions of the APM agents and the APM Server.
+The chart below outlines the compatibility between different versions of the APM agents and the APM integration/server.
 
 [options="header"]
 |====
-|Agent |Agent version |APM Server version
+|Language |APM agent version |APM integration/server version
 // Go
 .1+|**Go agent**
 |`1.x` |≥ `6.5`
