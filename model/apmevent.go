@@ -30,9 +30,6 @@ import (
 // Exactly one of the event fields should be non-nil.
 type APMEvent struct {
 	// DataStream optionally holds data stream identifiers.
-	//
-	// This will have the zero value when APM Server is run
-	// in standalone mode.
 	DataStream DataStream
 
 	ECSVersion  string
@@ -59,6 +56,7 @@ type APMEvent struct {
 	Child       Child
 	HTTP        HTTP
 	FAAS        FAAS
+	Log         Log
 
 	// Timestamp holds the event timestamp.
 	//
@@ -152,5 +150,6 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetString("message", e.Message)
 	fields.maybeSetMapStr("http", e.HTTP.fields())
 	fields.maybeSetMapStr("faas", e.FAAS.fields())
+	fields.maybeSetMapStr("log", e.Log.fields())
 	return event
 }
