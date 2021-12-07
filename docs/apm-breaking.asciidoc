@@ -7,7 +7,29 @@
 // These tagged regions are required for the stack-docs repo includes
 // tag::notable-v8-breaking-changes[]
 // end::notable-v8-breaking-changes[]
+// tag::717-bc[]
+// end::717-bc[]
+
+[float]
+[[breaking-changes-7.16]]
+=== 7.16
+
+The following breaking changes were introduced in 7.16:
+
 // tag::716-bc[]
+- Removed unused stacktrace/frame monitoring counters {pull}5984[5984]
+- Removed unused support for top-level metricsets and metricset tags for RUMv3 {pull}6065[6065]
+- Removed `apm-server.mode` configuration, and "experimental" fields {pull}6086[6086]
+- `transaction.sampled` is now only set for sampled transactions {pull}6066[6066]
+- Unknown metrics are dropped when `transaction.*` or `span.*` are present in a metricset {pull}6111[6111]
+- Removed `metricset.period` from service_destination metrics {pull}6111[6111]
+- Removed `http.request.socket` fields {pull}6152[6152]
+- Removed unused `transaction.duration.{count,sum.us}` metric fields {pull}6180[6180]
+- Removed `ProcessPending` self-instrumentation events {pull}6243[6243]
+- Removed warm phase from default ILM policy {pull}6322[6322]
+- Removed unused `transaction.breakdown.count` metric field {pull}6366[6366]
+- experimental:["This breaking change applies to the experimental tail-based sampling feature."] Changed `apm-server.sampling.tail.events.*` metrics semantics {pull}6273[6273]
+- experimental:["This breaking change applies to the experimental tail-based sampling feature."] Removed `apm-server.sampling.tail.storage_dir` config {pull}6236[6236]
 // end::716-bc[]
 
 [float]
@@ -16,10 +38,12 @@
 
 The following breaking changes were introduced in 7.15:
 
+// tag::715-bc[]
 - `network.connection_type` is now `network.connection.type` {pull}5671[5671]
 - `transaction.page` and `error.page` no longer recorded {pull}5872[5872]
 - experimental:["This breaking change applies to the experimental tail-based sampling feature."] `apm-server.sampling.tail` now requires `apm-server.data_streams.enabled` {pull}5952[5952]
 - beta:["This breaking change applies to the beta APM integration."] The `traces-sampled-*` data stream is now `traces-apm.sampled-*` {pull}5952[5952]
+// end::715-bc[]
 
 [float]
 [[breaking-changes-7.14]]
