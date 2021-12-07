@@ -32,6 +32,12 @@
     - description: fixed the `sampled_traces` data stream's ILM policy name
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/6802
+    - description: added app_logs data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6791
+    - description: updated ingest pipelines to reject events from apm-servers newer than installed integration
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6791
 - version: "7.16.1"
   changes:
     - description: Added `agent_config_applied` mapping to `metrics-apm.internal` data stream.

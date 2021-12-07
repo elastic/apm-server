@@ -39,7 +39,7 @@ func generatePackage(pkgfs fs.FS, version *common.Version) error {
 	// Walk files, performing some APM-specific validations and transformations as we go.
 	//
 	// We assume the target destination does not yet exist.
-	if err := fs.WalkDir(pkgfs, ".", func(path string, d fs.DirEntry, err error) error {
+	return fs.WalkDir(pkgfs, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -54,10 +54,7 @@ func generatePackage(pkgfs fs.FS, version *common.Version) error {
 			return nil
 		}
 		return renderFile(pkgfs, path, outputPath, version)
-	}); err != nil {
-		return err
-	}
-	return nil
+	})
 }
 
 func renderFile(pkgfs fs.FS, path, outputPath string, version *common.Version) error {

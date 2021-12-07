@@ -2,6 +2,8 @@
 description: Pipeline for ingesting APM RUM trace events.
 processors:
   - pipeline:
+      name: observer_version
+  - pipeline:
       name: user_agent
   - pipeline:
       name: client_geoip
