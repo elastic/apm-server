@@ -556,6 +556,22 @@ func TestMessagingSpan(t *testing.T) {
 	}, event.Span.DestinationService)
 }
 
+func TestSpanType(t *testing.T) {
+	// Internal spans default to app.internal.
+	event := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{}, func(s pdata.Span) {
+		s.SetKind(pdata.SpanKindInternal)
+	})
+	assert.Equal(t, "app", event.Span.Type)
+	assert.Equal(t, "internal", event.Span.Subtype)
+
+	// All other spans default to unknown.
+	event = transformSpanWithAttributes(t, map[string]pdata.AttributeValue{}, func(s pdata.Span) {
+		s.SetKind(pdata.SpanKindClient)
+	})
+	assert.Equal(t, "unknown", event.Span.Type)
+	assert.Equal(t, "", event.Span.Subtype)
+}
+
 func TestSpanNetworkAttributes(t *testing.T) {
 	networkAttributes := map[string]pdata.AttributeValue{
 		"net.host.connection.type":    pdata.NewAttributeValueString("cell"),

@@ -30,7 +30,7 @@
                     "us": 79000000
                 },
                 "sampled": true,
-                "type": "custom"
+                "type": "unknown"
             }
         },
         {
@@ -62,7 +62,7 @@
                 "duration": {
                     "us": 79000000
                 },
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -107,7 +107,7 @@
                     "us": 79000000
                 },
                 "sampled": true,
-                "type": "custom"
+                "type": "unknown"
             }
         }
     ]
