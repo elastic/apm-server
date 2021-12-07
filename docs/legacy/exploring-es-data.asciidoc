@@ -1,0 +1,97 @@
+[[exploring-es-data]]
+= Explore data in {es}
+
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<apm-data-streams>>.
+
+Elastic APM stores data for each {apm-overview-ref-v}/apm-data-model.html[event type]
+in separate indices. By default, <<ilm,Index Lifecylce Management (ILM)>> is enabled and event data is stored using the following index naming patterns:
+
+["source","text"]
+----
+apm-%{[version]}-transaction-000001
+apm-%{[version]}-span-000001
+apm-%{[version]}-error-000001
+apm-%{[version]}-metric-000001
+apm-%{[version]}-sourcemap
+----
+
+If you've disabled ILM and are instead using daily indices, the default index naming pattern is:
+
+["source","text"]
+----
+apm-%{[version]}-transaction-%{+yyyy.MM.dd}
+apm-%{[version]}-span-%{+yyyy.MM.dd}
+apm-%{[version]}-error-%{+yyyy.MM.dd}
+apm-%{[version]}-metric-%{+yyyy.MM.dd}
+apm-%{[version]}-sourcemap
+----
+
+TIP: If your APM data is being stored in a different format, you may be using an outdated `apm-server.yml` file. You must update your `apm-server.yml` file in order to take advantage of the new format of indices.
+
+[float]
+[[sample-apm-document]]
+== Sample APM documents
+
+Sample documents for each of the APM event types are available on these pages:
+
+* <<transaction-indices>>
+* <<span-indices>>
+* <<error-indices>>
+* <<metricset-indices>>
+* <<sourcemap-indices>>
+
+[float]
+[[elasticsearch-query-examples]]
+== Elasticsearch query examples
+
+The following examples enable you to interact with Elasticsearch's REST API.
+One possible way to do this is using Kibana's
+{kibana-ref}/console-kibana.html[Dev Tools console].
+
+Indices, templates, and index-level operations can also be manged via Kibana's
+{kibana-ref}/managing-indices.html[Index management] panel.
+
+To see an overview of existing indices, run:
+["source","sh"]
+----
+GET _cat/indices/apm*
+----
+// CONSOLE
+
+To query all documents collected with a specific APM Server version:
+["source","sh",subs="attributes"]
+----
+GET apm-{version}-*/_search
+----
+// CONSOLE
+
+To query a specific event type, for example, transactions:
+["source","sh",subs="attributes"]
+----
+GET apm-*transactions-*/_search
+----
+// CONSOLE
+
+If you are interested in the _settings_ and _mappings_ of the Elastic APM indices,
+first, run a query to find template names:
+
+["source","sh"]
+----
+GET _cat/templates/apm*
+----
+// CONSOLE
+
+Then, retrieve the specific template you are interested in:
+["source","sh"]
+----
+GET  /_template/your-template-name
+----
+// CONSOLE
+
+
+include::./transaction-indices.asciidoc[]
+include::./span-indices.asciidoc[]
+include::./error-indices.asciidoc[]
+include::./metricset-indices.asciidoc[]
+include::./sourcemap-indices.asciidoc[]

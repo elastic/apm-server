@@ -1,12 +1,12 @@
 [[upgrading-to-70]]
-== Upgrade to APM Server version 7.0
+==== Upgrade to APM Server version 7.0
 
 ++++
 <titleabbrev>Upgrade to version 7.0</titleabbrev>
 ++++
 
 Before upgrading to APM Server v7.0,
-there are some {apm-overview-ref-v}/breaking-7.0.0.html[breaking changes]
+there are some {apm-guide-ref}/breaking-7.0.0.html[breaking changes]
 in the APM Server and the APM UI that you should be aware of.
 
 [float]
@@ -19,7 +19,7 @@ to determine if you need to upgrade Elasticsearch and Kibana.
 . Upgrade {ref}/setup-upgrade.html[Elasticsearch].
 . Upgrade {kibana-ref}/upgrade.html[Kibana].
 . Ensure all of your APM agents are upgraded to a version that supports APM Server ≥ 6.5.
-The {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix]
+The <<agent-server-compatibility>>
 will help determine compatibility.
 . Upgrade APM Server (see below if upgrading from an RPM or Deb install).
 . Use the Kibana migration assistant, found in the Kibana Management tab,

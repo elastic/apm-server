@@ -30,7 +30,7 @@
                     "us": 79000000
                 },
                 "sampled": true,
-                "type": "custom"
+                "type": "unknown"
             }
         },
         {
@@ -62,7 +62,7 @@
                 "duration": {
                     "us": 79000000
                 },
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -84,8 +84,10 @@
                 "hostname": "host-abc"
             },
             "labels": {
-                "sampler_param": 2,
                 "sampler_type": "ratelimiting"
+            },
+            "numeric_labels": {
+                "sampler_param": 2
             },
             "processor": {
                 "event": "transaction",
@@ -105,7 +107,7 @@
                     "us": 79000000
                 },
                 "sampled": true,
-                "type": "custom"
+                "type": "unknown"
             }
         }
     ]

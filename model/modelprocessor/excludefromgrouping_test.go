@@ -60,7 +60,7 @@ func TestSetExcludeFromGrouping(t *testing.T) {
 	}, {
 		input: model.Batch{{
 			Error: &model.Error{
-				Log: &model.Log{
+				Log: &model.ErrorLog{
 					Stacktrace: model.Stacktrace{
 						{Filename: "foo.go"},
 					},
@@ -82,7 +82,7 @@ func TestSetExcludeFromGrouping(t *testing.T) {
 		}},
 		output: model.Batch{{
 			Error: &model.Error{
-				Log: &model.Log{
+				Log: &model.ErrorLog{
 					Stacktrace: model.Stacktrace{
 						{ExcludeFromGrouping: true, Filename: "foo.go"},
 					},

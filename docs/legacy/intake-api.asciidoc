@@ -1,0 +1,17 @@
+[[intake-api]]
+= API
+
+IMPORTANT: {deprecation-notice-api}
+If you've already upgraded, see <<api>>.
+
+The APM Server exposes endpoints for:
+
+* <<events-api,Events intake>>
+* <<sourcemap-api,Sourcemap upload>>
+* <<agent-configuration-api,Agent configuration>>
+* <<server-info,Server information>>
+
+include::./events-api.asciidoc[]
+include::./sourcemap-api.asciidoc[]
+include::./agent-configuration.asciidoc[]
+include::./server-info.asciidoc[]

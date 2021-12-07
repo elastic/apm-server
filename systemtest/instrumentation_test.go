@@ -50,7 +50,7 @@ func TestAPMServerInstrumentation(t *testing.T) {
 	tracer.StartTransaction("name", "type").End()
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{
+	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.BoolQuery{
 		Filter: []interface{}{
 			estest.TermQuery{
 				Field: "processor.event",
@@ -63,6 +63,12 @@ func TestAPMServerInstrumentation(t *testing.T) {
 			estest.TermQuery{
 				Field: "transaction.type",
 				Value: "request",
+			},
+			// Only look for the request made by the agent for sending events.
+			// There may be other requests, such as for central config.
+			estest.TermQuery{
+				Field: "transaction.name",
+				Value: "POST /intake/v2/events",
 			},
 		},
 	})
@@ -148,7 +154,7 @@ func TestAPMServerInstrumentationAuth(t *testing.T) {
 		tracer.StartTransaction("name", "type").End()
 		tracer.Flush(nil)
 
-		systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{
+		systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.BoolQuery{
 			Filter: []interface{}{
 				estest.TermQuery{
 					Field: "processor.event",
@@ -201,7 +207,7 @@ func TestAPMServerProfiling(t *testing.T) {
 		}
 		tracer.Flush(nil)
 
-		result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
+		result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.profiling*", estest.TermQuery{
 			Field: "processor.event",
 			Value: "profile",
 		})

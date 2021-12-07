@@ -1,0 +1,25 @@
+---
+description: Pipeline for ingesting APM application metrics.
+processors:
+  - pipeline:
+      name: observer_version
+  - pipeline:
+      name: user_agent
+  - pipeline:
+      name: client_geoip
+  - script:
+      # TODO(axw) handle unit in metric descriptions.
+      # See https://github.com/elastic/elasticsearch/issues/72536
+      if: ctx._metric_descriptions != null
+      source: |
+        Map dynamic_templates = new HashMap();
+        for (entry in ctx._metric_descriptions.entrySet()) {
+          String name = entry.getKey();
+          Map description = entry.getValue();
+          String metric_type = description.type;
+          if (metric_type == "histogram") {
+            dynamic_templates[name] = "histogram";
+          }
+        }
+        ctx._dynamic_templates = dynamic_templates;
+        ctx.remove("_metric_descriptions");

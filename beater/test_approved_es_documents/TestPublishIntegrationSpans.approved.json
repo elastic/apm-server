@@ -37,6 +37,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -46,7 +49,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -63,14 +68,14 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -166,6 +171,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -175,7 +183,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -192,14 +202,14 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "parent": {
                 "id": "0000000011111111"
@@ -243,9 +253,6 @@
                 },
                 "id": "1234abcdef567895",
                 "name": "GET /api/types",
-                "start": {
-                    "us": 22000
-                },
                 "type": "request"
             },
             "timestamp": {
@@ -296,6 +303,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -305,7 +315,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -323,16 +335,17 @@
             },
             "labels": {
                 "tag1": "value1",
+                "tag4": "true"
+            },
+            "numeric_labels": {
                 "tag2": 123,
-                "tag3": 12.34,
-                "tag4": true
+                "tag3": 12.34
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "parent": {
                 "id": "abcdefabcdef7890"
@@ -376,9 +389,6 @@
                 },
                 "id": "0123456a89012345",
                 "name": "GET /api/types",
-                "start": {
-                    "us": 1845
-                },
                 "subtype": "http",
                 "type": "request"
             },
@@ -430,6 +440,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -439,7 +452,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -456,14 +471,14 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "parent": {
                 "id": "ababcdcdefefabde"
@@ -508,9 +523,6 @@
                 },
                 "id": "abcde56a89012345",
                 "name": "get /api/types",
-                "start": {
-                    "us": 0
-                },
                 "subtype": "http",
                 "sync": false,
                 "type": "request"
@@ -561,6 +573,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "destination": {
                 "address": "0:0::0:1",
                 "ip": "0:0::0:1",
@@ -575,7 +590,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -603,14 +620,14 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -670,16 +687,6 @@
                 "duration": {
                     "us": 3781
                 },
-                "http": {
-                    "method": "GET",
-                    "response": {
-                        "decoded_body_size": 401,
-                        "encoded_body_size": 356,
-                        "status_code": 200,
-                        "transfer_size": 300.12
-                    }
-                },
-                "http.url.original": "http://localhost:8000",
                 "id": "1234567890aaaade",
                 "name": "SELECT FROM product_types",
                 "stacktrace": [
@@ -731,9 +738,6 @@
                         }
                     }
                 ],
-                "start": {
-                    "us": 2830
-                },
                 "subtype": "postgresql",
                 "sync": true,
                 "type": "db"
@@ -786,6 +790,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "destination": {
                 "address": "0:0::0:1",
                 "ip": "0:0::0:1"
@@ -799,7 +806,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -816,14 +825,14 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -928,6 +937,9 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -937,7 +949,9 @@
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "node-name",
                 "os": {
                     "platform": "darwin"
@@ -954,14 +968,14 @@
                 }
             },
             "labels": {
-                "tag1": "label1"
+                "tag1": "value1",
+                "tag4": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -1013,9 +1027,6 @@
                 },
                 "id": "abcdef01234567",
                 "name": "SELECT FROM p_details",
-                "start": {
-                    "us": 2830
-                },
                 "subtype": "postgresql",
                 "type": "db"
             },

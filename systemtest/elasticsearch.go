@@ -19,16 +19,15 @@ package systemtest
 
 import (
 	"context"
-	"net/http"
 	"net/url"
 	"testing"
 	"time"
 
-	"golang.org/x/sync/errgroup"
+	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/go-elasticsearch/v7"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/elastic/go-elasticsearch/v7/esutil"
+	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
@@ -87,81 +86,19 @@ func newElasticsearchConfig() elasticsearch.Config {
 	}
 }
 
-// CleanupElasticsearch deletes all indices, index templates,
-// and ingest node pipelines whose names start with "apm",
-// and deletes the default ILM policy "apm-rollover-30-days".
+// CleanupElasticsearch deletes all data streams created by APM Server.
 func CleanupElasticsearch(t testing.TB) {
-	const (
-		legacyPrefix     = "apm*" // Not "apm-*", as that would not capture the "apm" ingest pipeline.
-		apmTracesPrefix  = "traces-apm*"
-		apmMetricsPrefix = "metrics-apm*"
-		apmLogsPrefix    = "logs-apm*"
-	)
+	err := cleanupElasticsearch()
+	require.NoError(t, err)
+}
 
-	doReq := func(req estest.Request) error {
-		_, err := Elasticsearch.Do(context.Background(), req, nil)
-		if err, ok := err.(*estest.Error); ok && err.StatusCode == http.StatusNotFound {
-			return nil
-		}
-		return err
-	}
-
-	doParallel := func(requests ...estest.Request) {
-		t.Helper()
-		var g errgroup.Group
-		for _, req := range requests {
-			req := req // copy for closure
-			g.Go(func() error { return doReq(req) })
-		}
-		if err := g.Wait(); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Delete indices, data streams, and ingest pipelines.
-	if err := doReq(esapi.IndicesDeleteRequest{Index: []string{
-		legacyPrefix,
-		// traces-apm*, metrics-apm*, and logs-apm* could get created
-		// as indices instead of data streams in some tests, so issue
-		// index delete requests for those too.
-		apmTracesPrefix,
-		apmMetricsPrefix,
-		apmLogsPrefix,
-	}}); err != nil {
-		t.Fatal(err)
-	}
-	doParallel(
-		esapi.IndicesDeleteDataStreamRequest{Name: legacyPrefix},
-		esapi.IndicesDeleteDataStreamRequest{Name: apmTracesPrefix},
-		esapi.IndicesDeleteDataStreamRequest{Name: apmMetricsPrefix},
-		esapi.IndicesDeleteDataStreamRequest{Name: apmLogsPrefix},
-		esapi.IngestDeletePipelineRequest{PipelineID: legacyPrefix},
-	)
-
-	// Delete index templates after deleting data streams.
-	doParallel(
-		esapi.IndicesDeleteTemplateRequest{Name: legacyPrefix},
-		esapi.IndicesDeleteIndexTemplateRequest{Name: apmTracesPrefix},
-		esapi.IndicesDeleteIndexTemplateRequest{Name: apmMetricsPrefix},
-		esapi.IndicesDeleteIndexTemplateRequest{Name: apmLogsPrefix},
-	)
-
-	// Delete index templates after deleting data streams.
-	if err := doReq(esapi.IndicesDeleteIndexTemplateRequest{Name: legacyPrefix}); err != nil {
-		t.Fatal(err)
-	}
-
-	// Delete the ILM policy last or we'll get an error due to it being in use.
-	for {
-		err := doReq(esapi.ILMDeleteLifecycleRequest{Policy: "apm-rollover-30-days"})
-		if err == nil {
-			break
-		}
-		// Retry deleting, in case indices are still being deleted.
-		const delay = 100 * time.Millisecond
-		t.Logf("failed to delete ILM policy (retrying in %s): %s", delay, err)
-		time.Sleep(delay)
-	}
+func cleanupElasticsearch() error {
+	_, err := Elasticsearch.Do(context.Background(), &esapi.IndicesDeleteDataStreamRequest{Name: []string{
+		"traces-apm*",
+		"metrics-apm*",
+		"logs-apm*",
+	}}, nil)
+	return err
 }
 
 // ChangeUserPassword changes the password for a given user.

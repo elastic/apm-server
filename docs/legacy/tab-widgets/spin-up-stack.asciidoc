@@ -1,0 +1,51 @@
+// tag::ess[]
+There's no faster way to get started with Elastic APM than with our hosted {ess} on {ecloud}.
+{ess} is available on AWS, GCP, and Azure,
+and automatically configures APM Server to work with {es} and {kib}:
+
+. {ess-trial}[Get a free trial].
+
+. Log into {ess-console}[Elastic Cloud].
+
+. Click *Create deployment*.
+
+. Select *Elastic Observability* and give your deployment a name.
+
+. Click *Create deployment* and copy the password for the `elastic` user.
+
+. Select *APM* from the menu on the left and make note of the APM endpoint and APM Server secret token.
+You'll need these in step two.
+
+// end::ess[]
+
+// tag::self-managed[]
+To install and run {es} and {kib}, see {stack-gs}/get-started-elastic-stack.html[getting started with the {stack}].
+
+Next, install, set up, and run APM Server:
+
+. {apm-server-ref-v}/installing.html[Install APM Server].
+. {apm-server-ref-v}/apm-server-configuration.html[Set up APM Server]
+. {apm-server-ref-v}/setting-up-and-running.html[Start APM Server].
+
+Use the config file if you need to change the default configuration that APM Server uses to connect to {es},
+or if you need to specify credentials:
+
+* {apm-server-ref-v}/configuring-howto-apm-server.html[Configuring APM Server]
+** {apm-server-ref-v}/configuration-process.html[General configuration options]
+** {apm-server-ref-v}/configuring-output.html[Configure the {es} output]
+
+[[secure-api-access]]
+If you change the listen address from `localhost` to something that is accessible from outside of the machine,
+we recommend setting up firewall rules to ensure that only your own systems can access the API.
+Alternatively,
+you can use a {apm-server-ref-v}/securing-apm-server.html[TLS and a secret token or API key].
+
+If you have APM Server running on the same host as your service,
+you can configure it to listen on a Unix domain socket.
+
+[[more-information]]
+TIP: For detailed instructions on how to install and secure APM Server in your server environment,
+including details on how to run APM Server in a highly available environment,
+please see the full {apm-server-ref-v}/index.html[APM Server documentation].
+
+// end::self-managed[]

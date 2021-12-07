@@ -1,0 +1,70 @@
+[[jaeger]]
+== Jaeger integration
+
+++++
+<titleabbrev>Integrate with Jaeger</titleabbrev>
+++++
+
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, please see <<jaeger-integration>> instead.
+
+include::./jaeger-reference.asciidoc[tag=jaeger-intro]
+
+[float]
+[[jaeger-get-started]]
+==== Get started
+
+Connect your preexisting Jaeger setup to Elastic APM in three steps:
+
+* <<jaeger-configure-agent-client>>
+* <<jaeger-configure-sampling>>
+* <<jaeger-configure-start>>
+
+IMPORTANT: There are <<jaeger-caveats,caveats>> to this integration.
+
+[float]
+[[jaeger-configure-agent-client]]
+==== Configure Jaeger agents
+
+APM Server serves Jaeger gRPC over the same <<host,host and port>> as the Elastic APM agent protocol.
+
+include::./tab-widgets/jaeger-widget.asciidoc[]
+
+[float]
+[[jaeger-configure-sampling]]
+==== Configure Sampling
+
+APM Server supports probabilistic sampling, which can be used to reduce the amount of data that your agents collect and send.
+Probabilistic sampling makes a random sampling decision based on the configured sampling value.
+For example, a value of `.2` means that 20% of traces will be sampled.
+
+There are two different ways to configure the sampling rate of your Jaeger agents:
+
+* <<jaeger-configure-sampling-central,APM Agent central configuration (default)>>
+* <<jaeger-configure-sampling-local,Local sampling in each Jaeger client>>
+
+[float]
+[[jaeger-configure-sampling-central]]
+===== APM Agent central configuration (default)
+
+Central sampling, with APM Agent central configuration,
+allows Jaeger clients to poll APM Server for the sampling rate.
+This means sample rates can be configured on the fly, on a per-service and per-environment basis.
+
+include::./tab-widgets/jaeger-sampling-widget.asciidoc[]
+
+[float]
+[[jaeger-configure-sampling-local]]
+===== Local sampling in each Jaeger client
+
+If you don't have access to the APM app,
+you'll need to change the Jaeger client's `sampler.type` and `sampler.param`.
+This enables you to set the sampling configuration locally in each Jaeger client.
+See the official https://www.jaegertracing.io/docs/1.22/sampling/[Jaeger sampling documentation]
+for more information.
+
+[float]
+[[jaeger-configure-start]]
+==== Start sending span data
+
+That's it! Data sent from Jaeger clients to the APM Server can now be viewed in the APM app.

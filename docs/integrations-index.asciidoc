@@ -1,0 +1,51 @@
+include::./version.asciidoc[]
+include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
+include::./notices.asciidoc[]
+
+:apm-integration-docs:
+:apm-package-dir:    {docdir}/apm-package
+:obs-repo-dir:       {observability-docs-root}/docs/en
+
+:github_repo_link: https://github.com/elastic/apm-server/blob/v{version}
+ifeval::["{version}" == "8.0.0"]
+:github_repo_link: https://github.com/elastic/apm-server/blob/master
+endif::[]
+
+[[apm-user-guide]]
+= APM User Guide
+
+IMPORTANT: You are looking at preliminary documentation for a future release. For current documentation, see the
+https://www.elastic.co/guide/en/apm/get-started/current/index.html[APM Overview] or
+https://www.elastic.co/guide/en/apm/server/current/index.html[APM Server Reference].
+
+include::apm-overview.asciidoc[]
+
+include::apm-components.asciidoc[]
+
+include::apm-quick-start.asciidoc[]
+
+include::data-model.asciidoc[]
+
+include::features.asciidoc[]
+
+include::how-to.asciidoc[]
+
+include::manage-storage.asciidoc[]
+
+include::input-apm.asciidoc[]
+
+include::secure-agent-communication.asciidoc[]
+
+include::api.asciidoc[]
+
+include::troubleshoot-apm.asciidoc[]
+
+include::upgrading.asciidoc[]
+
+include::release-notes.asciidoc[leveloffset=+1]
+
+// Legacy APM Overview
+include::legacy/guide/index.asciidoc[]
+
+// Legacy APM Server Reference
+include::legacy/index.asciidoc[]

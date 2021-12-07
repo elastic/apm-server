@@ -28,8 +28,12 @@ func TestMain(m *testing.M) {
 	if err := StartStackContainers(); err != nil {
 		log.Fatal(err)
 	}
+	log.Println("INFO: cleaning up Elasticsearch...")
+	if err := cleanupElasticsearch(); err != nil {
+		log.Fatal(err)
+	}
 	log.Println("INFO: setting up fleet...")
-	if err := Fleet.Setup(); err != nil {
+	if err := InitFleet(); err != nil {
 		log.Fatal(err)
 	}
 	log.Println("INFO: running system tests...")

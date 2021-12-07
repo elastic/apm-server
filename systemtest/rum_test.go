@@ -24,6 +24,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -46,8 +48,12 @@ func TestRUMXForwardedFor(t *testing.T) {
 	require.NoError(t, err)
 	serverURL.Path = "/intake/v2/rum/events"
 
+	// Send one transaction and one set of breakdown metrics.
+	// They should both have geoIP enrichment applied.
 	const body = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}}}
-{"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}`
+{"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}
+{"metricset":{"samples":{"transaction.breakdown.count":{"value":12},"transaction.duration.sum.us":{"value":12},"transaction.duration.count":{"value":2},"transaction.self_time.sum.us":{"value":10},"transaction.self_time.count":{"value":2},"span.self_time.count":{"value":1},"span.self_time.sum.us":{"value":633.288}},"transaction":{"type":"request","name":"GET /"},"span":{"type":"external","subtype":"http"},"timestamp": 1496170422281000}}
+`
 
 	req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/x-ndjson")
@@ -59,7 +65,10 @@ func TestRUMXForwardedFor(t *testing.T) {
 	io.Copy(ioutil.Discard, resp.Body)
 	resp.Body.Close()
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{Field: "processor.event", Value: "transaction"})
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*,metrics-apm*", estest.TermsQuery{
+		Field:  "processor.event",
+		Values: []interface{}{"transaction", "metric"},
+	})
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
@@ -76,8 +85,11 @@ func TestRUMAllowServiceNames(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.AgentAuth.SecretToken = "abc123"
 	srv.Config.RUM = &apmservertest.RUMConfig{
-		Enabled:           true,
-		AllowServiceNames: []string{"allowed"},
+		Enabled: true,
+	}
+	srv.Config.AgentAuth.Anonymous = &apmservertest.AnonymousAuthConfig{
+		Enabled:      true,
+		AllowService: []string{"allowed"},
 	}
 	err := srv.Start()
 	require.NoError(t, err)
@@ -180,4 +192,29 @@ func TestRUMCORS(t *testing.T) {
 	assert.Equal(t, "blue", resp.Header.Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "POST, OPTIONS", resp.Header.Get("Access-Control-Allow-Methods"))
 	assert.Equal(t, "stick, door, Content-Type, Content-Encoding, Accept", resp.Header.Get("Access-Control-Allow-Headers"))
+}
+
+func TestRUMRoutingIntegration(t *testing.T) {
+	// This test asserts that the events that are coming from the RUM JS agent
+	// are sent to the appropriate datastream.
+	systemtest.CleanupElasticsearch(t)
+	apmIntegration := newAPMIntegration(t, nil)
+
+	body, err := os.Open(filepath.Join("..", "testdata", "intake-v3", "rum_events.ndjson"))
+	require.NoError(t, err)
+	defer body.Close()
+
+	req, err := http.NewRequest("POST", apmIntegration.URL+"/intake/v3/rum/events", body)
+	require.NoError(t, err)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm.rum*", nil)
+	systemtest.ApproveEvents(
+		t, t.Name(), result.Hits.Hits, "@timestamp", "timestamp.us",
+		"source.port", "source.ip", "client",
+	)
 }

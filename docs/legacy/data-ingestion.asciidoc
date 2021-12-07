@@ -1,0 +1,113 @@
+[[tune-data-ingestion]]
+== Tune data ingestion
+
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, please see <<apm-tune-elasticsearch>> instead.
+
+This section explains how to adapt data ingestion according to your needs.
+
+* <<tune-apm-server>>
+* <<tune-es>>
+
+
+[[tune-apm-server]]
+=== Tune APM Server
+
+++++
+<titleabbrev>APM Server</titleabbrev>
+++++
+
+IMPORTANT: {deprecation-notice-data}
+
+* <<tune-output-config>>
+* <<adjust-queue-size>>
+* <<add-apm-server-instances>>
+* <<reduce-payload-size>>
+* <<adjust-event-rate>>
+
+[[tune-output-config]]
+[float]
+==== Tune APM Server output parameters for your Elasticsearch cluster
+
+If your Elasticsearch cluster is not ingesting the amount of data you expect,
+you can tweak a few APM Server settings:
+
+* Adjust `output.elasticsearch.worker`.
+See {ref}/tune-for-indexing-speed.html[tune for indexing speed] for an overview.
+* Ensure `output.elasticsearch.bulk_max_size` is set to a high value, for example 5120.
+  The default of 50 is very conservative.
+* Ensure that `queue.mem.events` is set to a reasonable value compared to your other settings.
+A good rule of thumb is that `queue.mem.events` should equal `output.elasticsearch.worker` multiplied by `output.elasticsearch.bulk_max_size`.
+
+The <<configuring-output,output configuration>> section shows more details.
+
+[[adjust-queue-size]]
+[float]
+==== Adjust internal queue size
+
+APM Server uses an internal queue to buffer incoming events.
+A larger queue can retain more data if Elasticsearch is unavailable for longer periods,
+and it alleviates problems that might result from sudden spikes of traffic.
+You can adjust the queue size by overriding <<mem.events,`queue.mem.events`>>.
+Increasing <<mem.events,`queue.mem.events`>> can significantly affect APM Server memory usage.
+
+[[add-apm-server-instances]]
+[float]
+==== Add APM Server instances
+
+If the APM Server cannot process data quickly enough,
+you will see request timeouts.
+
+One way to solve this problem is to increase processing power.
+This can be done by either migrating your APM Server to a more powerful machine
+or adding more APM Server instances.
+Having several instances will also increase <<high-availability, availability>>.
+
+[[reduce-payload-size]]
+[float]
+==== Reduce the payload size
+
+Large payloads may result in request timeouts.
+You can reduce the payload size by decreasing the flush interval in the agents.
+This will cause agents to send smaller and more frequent requests.
+
+Optionally you can also <<reduce-sample-rate, reduce the sample rate>> or <<reduce-stacktrace, reduce the amount of stacktraces>>.
+
+Read more in the {apm-agents-ref}/index.html[agents documentation].
+
+[[adjust-event-rate]]
+[float]
+==== Adjust anonymous auth rate limit
+
+Agents make use of long running requests and flush as many events over a single request as possible.
+Thus, the rate limiter for anonymous authentication is bound to the number of _events_ sent per second, per IP.
+
+If the event rate limit is hit while events on an established request are sent, the request is not immediately terminated. The intake of events is only throttled to <<config-auth-anon-event-limit,`rate_limit.event_limit`>>, which means that events are queued and processed slower. Only when the allowed buffer queue is also full, does the request get terminated with a `429 - rate limit exceeded` HTTP response. If an agent tries to establish a new request, but the rate limit is already hit, a `429` will be sent immediately.
+
+Increasing the <<config-auth-anon-event-limit,`rate_limit.event_limit`>> default value will help avoid `rate limit exceeded` errors.
+
+[[tune-es]]
+=== Tune Elasticsearch
+
+++++
+<titleabbrev>Elasticsearch</titleabbrev>
+++++
+
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, please see <<apm-tune-elasticsearch>> instead.
+
+The Elasticsearch reference provides insight on tuning Elasticsearch.
+
+{ref}/tune-for-indexing-speed.html[Tune for indexing speed] provides information on:
+
+* Refresh interval
+* Disabling swapping
+* Optimizing filesystem cache
+* Considerations regarding faster hardware
+* Setting the indexing buffer size
+
+{ref}/tune-for-disk-usage.html[Tune for disk usage] provides information on:
+
+* Disabling unneeded features
+* Shard size
+* Shrink index

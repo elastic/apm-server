@@ -26,6 +26,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -70,6 +71,7 @@ func TestContext_Reset(t *testing.T) {
 	formTempFilename := formTempFile.Name()
 	formFile.Close()
 
+	before := time.Now()
 	c := Context{
 		Request: r1, w: w1,
 		Logger: logp.NewLogger(""),
@@ -100,15 +102,19 @@ func TestContext_Reset(t *testing.T) {
 			assert.Equal(t, 0, c.writeAttempts)
 		case "Result":
 			assertResultIsEmpty(t, cVal.Field(i).Interface().(Result))
-		case "SourceAddr":
-			assert.Equal(t, &net.TCPAddr{
-				IP:   net.ParseIP("10.1.2.3"),
-				Port: 1234,
-			}, cVal.Field(i).Interface())
+		case "SourceIP":
+			assert.Equal(t, net.ParseIP("10.1.2.3"), cVal.Field(i).Interface())
+		case "SourcePort":
+			assert.Equal(t, 1234, cVal.Field(i).Interface())
 		case "ClientIP":
 			assert.Equal(t, net.ParseIP("192.168.0.1"), cVal.Field(i).Interface())
+		case "ClientPort":
+			assert.Equal(t, 0, cVal.Field(i).Interface())
 		case "UserAgent":
 			assert.Equal(t, "ua2", cVal.Field(i).Interface())
+		case "Timestamp":
+			timestamp := cVal.Field(i).Interface().(time.Time)
+			assert.False(t, timestamp.Before(before))
 		default:
 			assert.Empty(t, cVal.Field(i).Interface(), cType.Field(i).Name)
 		}

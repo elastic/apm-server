@@ -1,0 +1,442 @@
+[[apm-data-security]]
+=== Data security
+
+When setting up Elastic APM, it's essential to review all captured data carefully to ensure
+it does not contain sensitive information.
+When it does, we offer several different ways to filter, manipulate, or obfuscate this data.
+
+**Built-in data filters**
+
+APM agents provide built-in support for filtering the following types of data:
+
+[options="header"]
+|====
+|Data type |Common sensitive data
+|<<filters-http-header>> |Passwords, credit card numbers, authorization, etc.
+|<<filters-http-body>> |Passwords, credit card numbers, etc.
+|<<filters-real-user-data>> |URLs visited, click events, user browser errors, resources used, etc.
+|<<filters-database-statements>> |Sensitive user or business information
+|====
+
+**Custom filters**
+
+There are two ways to filter other types APM data:
+
+|====
+|<<filters-ingest-pipeline,Ingest node pipeline>> | Applied at ingestion time.
+All agents and fields are supported. Data leaves the instrumented service.
+There are no performance overhead implications on the instrumented service.
+
+|<<filters-in-agent,APM agent filters>> | Not supported by all agents.
+Data is sanitized before leaving the instrumented service.
+Potential overhead implications on the instrumented service
+|====
+
+[discrete]
+[[filtering]]
+=== Built-in data filtering
+
+APM agents provide built-in support for filtering or obfuscating the following types of data.
+
+[discrete]
+[[filters-http-header]]
+==== HTTP headers
+
+By default, APM agents capture HTTP request and response headers (including cookies).
+Most Elastic APM agents provide the ability to sanitize HTTP header fields,
+including cookies and `application/x-www-form-urlencoded` data (POST form fields).
+Query string and captured request bodies, like `application/json` data, are not sanitized.
+
+The default list of sanitized fields attempts to target common field names for data relating to
+passwords, credit card numbers, authorization, etc., but can be customized to fit your data.
+This sensitive data never leaves the instrumented service.
+
+This setting supports {kibana-ref}/agent-configuration.html[Central configuration],
+which means the list of sanitized fields can be updated without needing to redeploy your services:
+
+* Go: {apm-go-ref-v}/configuration.html#config-sanitize-field-names[`ELASTIC_APM_SANITIZE_FIELD_NAMES`]
+* Java: {apm-java-ref-v}/config-core.html#config-sanitize-field-names[`sanitize_field_names`]
+* .NET: {apm-dotnet-ref-v}/config-core.html#config-sanitize-field-names[`sanitizeFieldNames`]
+* Node.js: {apm-node-ref-v}/configuration.html#sanitize-field-names[`sanitizeFieldNames`]
+// * PHP: {apm-php-ref-v}[``]
+* Python: {apm-py-ref-v}/configuration.html#config-sanitize-field-names[`sanitize_field_names`]
+* Ruby: {apm-ruby-ref-v}/configuration.html#config-sanitize-field-names[`sanitize_field_names`]
+
+Alternatively, you can completely disable the capturing of HTTP headers.
+This setting also supports {kibana-ref}/agent-configuration.html[Central configuration]:
+
+* Go: {apm-go-ref-v}/configuration.html#config-capture-headers[`ELASTIC_APM_CAPTURE_HEADERS`]
+* Java: {apm-java-ref-v}/config-core.html#config-sanitize-field-names[`capture_headers`]
+* .NET: {apm-dotnet-ref-v}/config-http.html#config-capture-headers[`CaptureHeaders`]
+* Node.js: {apm-node-ref-v}/configuration.html#capture-headers[`captureHeaders`]
+// * PHP: {apm-php-ref-v}[``]
+* Python: {apm-py-ref-v}/configuration.html#config-capture-headers[`capture_headers`]
+* Ruby: {apm-ruby-ref-v}/configuration.html#config-capture-headers[`capture_headers`]
+
+[discrete]
+[[filters-http-body]]
+==== HTTP bodies
+
+By default, the body of HTTP requests is not recorded.
+Request bodies often contain sensitive data like passwords or credit card numbers,
+so use care when enabling this feature.
+
+This setting supports {kibana-ref}/agent-configuration.html[Central configuration],
+which means the list of sanitized fields can be updated without needing to redeploy your services:
+
+* Go: {apm-go-ref-v}/configuration.html#config-capture-body[`ELASTIC_APM_CAPTURE_BODY`]
+* Java: {apm-java-ref-v}/config-core.html#config-sanitize-field-names[`capture_body`]
+* .NET: {apm-dotnet-ref-v}/config-http.html#config-capture-body[`CaptureBody`]
+* Node.js: {apm-node-ref-v}//configuration.html#capture-body[`captureBody`]
+// * PHP: {apm-php-ref-v}[``]
+* Python: {apm-py-ref-v}/configuration.html#config-capture-body[`capture_body`]
+* Ruby: {apm-ruby-ref-v}/configuration.html#config-capture-body[`capture_body`]
+
+[discrete]
+[[filters-real-user-data]]
+==== Real user monitoring data
+
+Protecting user data is important.
+For that reason, individual RUM instrumentations can be disabled in the RUM agent with the
+{apm-rum-ref-v}/configuration.html#disable-instrumentations[`disableInstrumentations`] configuration variable.
+Disabled instrumentations produce no spans or transactions.
+
+[options="header"]
+|====
+|Disable |Configuration value
+|HTTP requests |`fetch` and `xmlhttprequest`
+|Page load metrics including static resources |`page-load`
+|JavaScript errors on the browser |`error`
+|User click events including URLs visited, mouse clicks, and navigation events |`eventtarget`
+|Single page application route changes |`history`
+|====
+
+[discrete]
+[[filters-database-statements]]
+==== Database statements
+
+For SQL databases, APM agents do not capture the parameters of prepared statements.
+Note that Elastic APM currently does not make an effort to strip parameters of regular statements.
+Not using prepared statements makes your code vulnerable to SQL injection attacks,
+so be sure to use prepared statements.
+
+For non-SQL data stores, such as Elasticsearch or MongoDB,
+Elastic APM captures the full statement for queries.
+For inserts or updates, the full document is not stored.
+To filter or obfuscate data in non-SQL database statements,
+or to remove the statement entirely,
+you can set up an ingest node pipeline.
+
+[discrete]
+[[filters-agent-specific]]
+==== Agent-specific options
+
+Certain agents offer additional filtering and obfuscating options:
+
+**Agent configuration options**
+
+* (Node.js) Remove errors raised by the server-side process:
+Disable with {apm-node-ref-v}/configuration.html#capture-exceptions[captureExceptions].
+
+* (Java) Remove process arguments from transactions:
+* Disabled by default with {apm-java-ref-v}/config-reporter.html#config-include-process-args[`include_process_args`].
+
+[discrete]
+[[custom-filter]]
+=== Custom filters
+
+There are two ways to filter or obfuscate other types of APM data:
+
+* <<filters-ingest-pipeline>>
+* <<filters-in-agent>>
+
+[discrete]
+[[filters-ingest-pipeline]]
+==== Create an ingest node pipeline filter
+
+Ingest node pipelines specify a series of processors that transform data in a specific way.
+Transformation happens prior to indexing–inflicting no performance overhead on the monitored application.
+Pipelines are a flexible and easy way to filter or obfuscate Elastic APM data.
+
+**Example**
+
+Say you decide to <<filter-http-body,enable the capturing of HTTP request bodies>>,
+but quickly notice that sensitive information is being collected in the
+`http.request.body.original` field:
+
+[source,json]
+----
+{
+  "email": "test@abc.com",
+  "password": "hunter2"
+}
+----
+
+To obfuscate the passwords stored in the request body,
+use a series of {ref}/processors.html[ingest processors].
+To start, create a pipeline with a simple description and an empty array of processors:
+
+[source,json]
+----
+{
+  "pipeline": {
+    "description": "redact http.request.body.original.password",
+    "processors": [] <1>
+  }
+}
+----
+<1> The processors defined below will go in this array
+
+Add the first processor to the processors array.
+Because the agent captures the request body as a string, use the
+{ref}/json-processor.html[JSON processor] to convert the original field value into a structured JSON object.
+Save this JSON object in a new field:
+
+[source,json]
+----
+{
+  "json": {
+    "field": "http.request.body.original",
+    "target_field": "http.request.body.original_json",
+    "ignore_failure": true
+  }
+}
+----
+
+If `body.original_json` is not `null`, redact the `password` with the {ref}/set-processor.html[set processor],
+by setting the value of `body.original_json.password` to `"redacted"`:
+
+[source,json]
+----
+{
+  "set": {
+    "field": "http.request.body.original_json.password",
+    "value": "redacted",
+    "if": "ctx?.http?.request?.body?.original_json != null"
+  }
+}
+----
+
+Use the {ref}/convert-processor.html[convert processor] to convert the JSON value of `body.original_json` to a string and set it as the `body.original` value:
+
+[source,json]
+----
+{
+  "convert": {
+    "field": "http.request.body.original_json",
+    "target_field": "http.request.body.original",
+    "type": "string",
+    "if": "ctx?.http?.request?.body?.original_json != null",
+    "ignore_failure": true
+  }
+}
+----
+
+Finally, use the {ref}/remove-processor.html[remove processor] to remove the `body.original_json` field:
+
+[source,json]
+----
+{
+  "remove": {
+    "field": "http.request.body.original",
+    "if": "ctx?.http?.request?.body?.original_json != null",
+    "ignore_failure": true
+  }
+}
+----
+
+Now that the pipeline has been defined,
+use the {ref}/put-pipeline-api.html[create or update pipeline API] to register the new pipeline in {es}.
+Name the pipeline `apm_redacted_body_password`:
+
+[source,console]
+----
+PUT _ingest/pipeline/apm_redacted_body_password
+{
+  "description": "redact http.request.body.original.password",
+  "processors": [
+    {
+      "json": {
+        "field": "http.request.body.original",
+        "target_field": "http.request.body.original_json",
+        "ignore_failure": true
+      }
+    },
+    {
+      "set": {
+        "field": "http.request.body.original_json.password",
+        "value": "redacted",
+        "if": "ctx?.http?.request?.body?.original_json != null"
+      }
+    },
+    {
+      "convert": {
+        "field": "http.request.body.original_json",
+        "target_field": "http.request.body.original",
+        "type": "string",
+        "if": "ctx?.http?.request?.body?.original_json != null",
+        "ignore_failure": true
+      }
+    },
+    {
+      "remove": {
+        "field": "http.request.body.original_json",
+        "if": "ctx?.http?.request?.body?.original_json != null",
+        "ignore_failure": true
+      }
+    }
+  ]
+}
+----
+
+To make sure the `apm_redacted_body_password` pipeline works correctly,
+test it with the {ref}/simulate-pipeline-api.html[simulate pipeline API].
+This API allows you to run multiple documents through a pipeline to ensure it is working correctly.
+
+The request below simulates running three different documents through the pipeline:
+
+[source,console]
+----
+POST _ingest/pipeline/apm_redacted_body_password/_simulate
+{
+  "docs": [
+    {
+      "_source": { <1>
+        "http": {
+          "request": {
+            "body": {
+              "original": """{"email": "test@abc.com", "password": "hunter2"}"""
+            }
+          }
+        }
+      }
+    },
+    {
+      "_source": { <2>
+        "some-other-field": true
+      }
+    },
+    {
+      "_source": { <3>
+        "http": {
+          "request": {
+            "body": {
+              "original": """["invalid json" """
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+----
+<1> This document features the same sensitive data from the original example above
+<2> This document only contains an unrelated field
+<3> This document contains invalid JSON
+
+The API response should be similar to this:
+
+[source,json]
+----
+{
+  "docs" : [
+    {
+      "doc" : {
+        "_source" : {
+          "http" : {
+            "request" : {
+              "body" : {
+                "original" : {
+                  "password" : "redacted",
+                  "email" : "test@abc.com"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "doc" : {
+        "_source" : {
+          "nobody" : true
+        }
+      }
+    },
+    {
+      "doc" : {
+        "_source" : {
+          "http" : {
+            "request" : {
+              "body" : {
+                "original" : """["invalid json" """
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+----
+
+As you can see, only the first simulated document has a redacted password field.
+As expected, all other documents are unaffected.
+
+The final step in this process is to add the newly created `apm_redacted_body_password` pipeline
+to the default `apm` pipeline. This ensures that all APM data ingested into {es} runs through the pipeline.
+
+Get the current list of `apm` pipelines:
+
+[source,console]
+----
+GET _ingest/pipeline/apm
+----
+
+Append the newly created pipeline to the end of the processors array and register the `apm` pipeline.
+Your request will look similar to this:
+
+[source,console]
+----
+{
+  "apm" : {
+    "processors" : [
+      {
+        "pipeline" : {
+          "name" : "apm_user_agent"
+        }
+      },
+      {
+        "pipeline" : {
+          "name" : "apm_user_geo"
+        }
+      },
+      {
+        "pipeline": {
+        "name": "apm_redacted_body_password"
+      }
+    ],
+    "description" : "Default enrichment for APM events"
+  }
+}
+----
+
+That's it! Sit back and relax–passwords have been redacted from your APM HTTP body data.
+
+// TIP: See {apm-server-ref-v}/configuring-ingest-node.html[parse data using ingest node pipelines]
+// to learn more about the default `apm` pipeline.
+
+[discrete]
+[[filters-in-agent]]
+==== APM agent filters
+
+Some APM agents offer a way to manipulate or drop APM events _before_ they are sent to the APM Server.
+Please see the relevant agent's documentation for more information and examples:
+
+// * Go: {apm-go-ref-v}/[]
+// * Java: {apm-java-ref-v}/[]
+* .NET: {apm-dotnet-ref-v}/public-api.html#filter-api[Filter API].
+* Node.js: {apm-node-ref-v}/agent-api.html#apm-add-filter[`addFilter()`].
+// * PHP: {apm-php-ref-v}[]
+* Python: {apm-py-ref-v}/sanitizing-data.html[custom processors].
+// * Ruby: {apm-ruby-ref-v}/[]

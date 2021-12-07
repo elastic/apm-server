@@ -17,7 +17,7 @@
         },
         "host": {
             "architecture": "x64",
-            "ip": "127.0.0.1",
+            "ip": ["127.0.0.1"],
             "os": {
                 "platform": "darwin"
             }
@@ -84,101 +84,6 @@
             "name": "GET /api/types",
             "result": "failure",
             "sampled": true,
-            "span_count": {
-                "started": 0
-            },
-            "type": "request"
-        },
-        "user": {
-            "email": "foo@bar.com",
-            "id": "123user",
-            "name": "foo"
-        }
-    },
-    {
-        "@timestamp": "2017-05-30T18:53:42.000Z",
-        "agent": {
-            "name": "elastic-node",
-            "version": "3.14.0"
-        },
-        "container": {
-            "id": "container-id"
-        },
-        "ecs": {
-            "version": "1.12.0"
-        },
-        "event": {
-            "ingested": "2020-08-11T09:55:04.391568Z",
-            "outcome": "unknown"
-        },
-        "host": {
-            "architecture": "x64",
-            "ip": "127.0.0.1",
-            "os": {
-                "platform": "darwin"
-            }
-        },
-        "kubernetes": {
-            "namespace": "namespace1",
-            "pod": {
-                "name": "pod-name",
-                "uid": "pod-uid"
-            }
-        },
-        "observer": {
-            "ephemeral_id": "fb037b97-0027-401a-9dc4-17d162f2687f",
-            "hostname": "goat",
-            "id": "a4daf4ca-b280-4ede-90df-bf62482cec37",
-            "type": "apm-server",
-            "version": "8.0.0",
-            "version_major": 8
-        },
-        "process": {
-            "args": [
-                "node",
-                "server.js"
-            ],
-            "pid": 1234,
-            "ppid": 6789,
-            "title": "node"
-        },
-        "processor": {
-            "event": "transaction",
-            "name": "transaction"
-        },
-        "service": {
-            "environment": "staging",
-            "framework": {
-                "name": "Express",
-                "version": "1.2.3"
-            },
-            "language": {
-                "name": "ecmascript",
-                "version": "8"
-            },
-            "name": "1234_service-12a3",
-            "node": {
-                "name": "container-id"
-            },
-            "runtime": {
-                "name": "node",
-                "version": "8.0.0"
-            },
-            "version": "5.1.3"
-        },
-        "timestamp": {
-            "us": 1496170422000000
-        },
-        "trace": {
-            "id": "85925e55b43f4341aaaaaaaaaaaaaaaa"
-        },
-        "transaction": {
-            "duration": {
-                "us": 13980
-            },
-            "id": "85925e55b43f4341",
-            "name": "GET /api/types",
-            "result": "200",
             "span_count": {
                 "started": 0
             },

@@ -1,0 +1,58 @@
+// tag::ess[]
+. Log into {ess-console}[Elastic Cloud] and select your deployment.
+Copy your APM endpoint and APM Server secret token; you'll need these in the next step.
+
+. Configure APM Server as a collector for your Jaeger agents.
++
+As of this writing, the Jaeger agent binary offers the following CLI flags,
+which can be used to enable TLS, output to {ecloud}, and set the APM Server secret token:
++
+[source,terminal]
+----
+--reporter.grpc.tls.enabled=true
+--reporter.grpc.host-port=<apm-endpoint:443>
+--agent.tags="elastic-apm-auth=Bearer <secret-token>"
+----
+
+TIP: For the equivalent environment variables,
+change all letters to upper-case and replace punctuation with underscores (`_`).
+See the https://www.jaegertracing.io/docs/1.22/cli/[Jaeger CLI flags documentation] for more information.
+
+// end::ess[]
+
+// tag::self-managed[]
+. Configure APM Server as a collector for your Jaeger agents.
++
+As of this writing, the Jaeger agent binary offers the `--reporter.grpc.host-port` CLI flag.
+Use this to define the <<host,host and port>> that APM Server is listening on:
++
+[source,terminal]
+----
+--reporter.grpc.host-port=<apm-endpoint:8200>
+----
+
+. (Optional) Enable encryption
++
+When <<ssl-setup,SSL/TLS>> is enabled in APM Server, Jaeger agents must also enable TLS communication:
++
+[source,terminal]
+----
+--reporter.grpc.tls.enabled=true
+----
+
+. (Optional) Enable token-based authorization
++
+A <<secret-token-legacy,secret token>> or <<api-key-legacy,API key>> can be used to ensure only authorized
+Jaeger agents can send data to the APM Server.
+When enabled, use an agent level tag to authorize Jaeger agent communication with the APM Server:
++
+[source,terminal]
+----
+--agent.tags="elastic-apm-auth=Bearer <secret-token>"
+----
+
+TIP: For the equivalent environment variables,
+change all letters to upper-case and replace punctuation with underscores (`_`).
+See the https://www.jaegertracing.io/docs/1.22/cli/[Jaeger CLI flags documentation] for more information.
+
+// end::self-managed[]

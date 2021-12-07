@@ -36,7 +36,6 @@ func TestSpanTransformEmpty(t *testing.T) {
 
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
-	start := 0.65
 	hexID := "0147258369012345"
 	subtype := "amqp"
 	action := "publish"
@@ -57,9 +56,9 @@ func TestSpanTransform(t *testing.T) {
 				ID:                  hexID,
 				Name:                "myspan",
 				Type:                "myspantype",
+				Kind:                "CLIENT",
 				Subtype:             subtype,
 				Action:              action,
-				Start:               &start,
 				RepresentativeCount: 5,
 				Stacktrace:          Stacktrace{{AbsPath: path}},
 				DB: &DB{
@@ -83,7 +82,7 @@ func TestSpanTransform(t *testing.T) {
 					"id":       hexID,
 					"duration": common.MapStr{"us": int(duration.Microseconds())},
 					"name":     "myspan",
-					"start":    common.MapStr{"us": 650},
+					"kind":     "CLIENT",
 					"type":     "myspantype",
 					"subtype":  subtype,
 					"action":   action,
@@ -164,15 +163,7 @@ func TestSpanHTTPFields(t *testing.T) {
 			"original": event.URL.Original,
 		},
 		"span": common.MapStr{
-			"duration":          common.MapStr{"us": 0},
-			"http.url.original": event.URL.Original,
-			"http": common.MapStr{
-				"version": event.HTTP.Version,
-				"method":  event.HTTP.Request.Method,
-				"response": common.MapStr{
-					"status_code": event.HTTP.Response.StatusCode,
-				},
-			},
+			"duration": common.MapStr{"us": 0},
 		},
 	}, output.Fields)
 }

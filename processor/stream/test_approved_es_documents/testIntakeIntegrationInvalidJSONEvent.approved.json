@@ -10,7 +10,9 @@
                 "outcome": "unknown"
             },
             "host": {
-                "ip": "192.0.0.1"
+                "ip": [
+                    "192.0.0.1"
+                ]
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -34,9 +36,6 @@
                 },
                 "id": "abcdef01234567",
                 "name": "GET /api/types",
-                "start": {
-                    "us": 0
-                },
                 "type": "request"
             },
             "timestamp": {

@@ -1,0 +1,219 @@
+[[ilm-reference]]
+[role="xpack"]
+== Configure Index lifecycle management (ILM)
+
+++++
+<titleabbrev>Index lifecycle management</titleabbrev>
+++++
+
+deprecated::[7.16.0,Users should now use the <<apm-integration>>. If you're already using the APM integration, please see <<ilm-how-to>> instead. ]
+
+The {ref}/getting-started-index-lifecycle-management.html[index lifecycle management] (ILM)
+feature in {es} allows you to automate the lifecycle of your APM Server indices as they grow and age.
+
+IMPORTANT: ILM policies are only applied to indices created after the policies have taken effect.
+In other words, any indices present before ILM was configured still need to be managed manually.
+
+To learn how to define your own index lifecycle policies or rollover aliases,
+see <<ilm,customize index lifecycle management>>.
+
+[float]
+[[ilm-default]]
+=== Default policy
+
+ILM is enabled by default, and the default policy
+will be applied to all APM indices as long as all of the following conditions are true:
+
+* The Elasticsearch instance supports ILM.
+* `output.elasticsearch` is enabled.
+* Custom `index` or `indices` settings are not configured.
+
+The default ILM policy applies only a *hot* phase to all APM events:
+`span`, `transaction`, `error`, and `metric`.
+
+*Warm*, *cold*, and *delete* phases are not defined.
+
+* *Hot* -- Rollover data when the index reaches a maximum size of 50gb or a maximum age of 30 days:
+`max_size: 50gb`, `max_age: 30d`
+
+[float]
+[[ilm-default-config]]
+=== Default configuration
+
+[source,yml]
+----
+apm-server:
+  ilm:
+    enabled: "auto"
+    setup:
+      enabled: true
+      overwrite: false
+      require_policy: true
+      mapping:
+        - event_type: "error"
+          policy_name: "apm-rollover-30-days"
+          index_suffix: ""
+        - event_type: "span"
+          policy_name: "apm-rollover-30-days"
+          index_suffix: ""
+        - event_type: "transaction"
+          policy_name: "apm-rollover-30-days"
+          index_suffix: ""
+        - event_type: "metric"
+          policy_name: "apm-rollover-30-days"
+          index_suffix: ""
+      policies:
+        - name: "apm-rollover-30-days"
+          policy:
+            phases:
+              hot:
+                actions:
+                  rollover:
+                    max_size: "50gb"
+                    max_age: "30d"
+                  set_priority:
+                    priority: 100
+----
+
+[float]
+[[ilm-config-scenarios]]
+=== Configuration scenarios
+
+The following table can help you determine which options to configure when enabling,
+setting up, or disabling ILM:
+
+|=======================================================================
+2+|*Enable ILM and Enable ILM setup.*
+|_Details:_
+Create managed indices. Default policies and templates are written to Elasticsearch.
+
+_Successful if:_ A policy and template do not exist.
+
+_Example:_ Starting APM Server for the first time.
+
+|_Configure these options:_
+
+  <<ilm-enabled-config,`ilm.enabled:true`>>
+  <<ilm-setup-config,`ilm.setup.enabled:true`>>
+
+|_Details:_
+Create managed indices. Customized policies and templates are written to Elasticsearch.
+
+_Successful if:_ A policy and template already exists.
+
+_Example:_ You’re customizing a policy that’s already been sent to Elasticsearch.
+
+|_Configure these options:_
+
+  <<ilm-enabled-config,`ilm.enabled:true`>>
+  <<ilm-setup-config,`ilm.setup.enabled:true`>>
+  <<ilm-setup-overwrite-config,`ilm.setup.overwrite:true`>>
+
+2+|*Enable ILM and Disable ILM setup.*
+
+|_Details:_
+Use managed indices. No policies, rollover aliases and templates will be created by APM Server.
+
+_Example:_ You're creating your policies, rollover aliases and templates elsewhere, e.g., with Elasticsearch APIs.
+
+|_Configure these options:_
+
+  <<ilm-enabled-config,`ilm.enabled:true`>>
+  <<ilm-setup-config,`ilm.setup.enabled:false`>>
+
+2+|*Disable ILM to create unmanaged default indices.*
+
+|_Details:_
+Disable ILM to create unmanaged indices with default names. Ensure event specific templates are set up accordingly.
+
+|_Configure these options:_
+
+  <<ilm-enabled-config,`ilm.enabled:false`>>
+  <<ilm-setup-config,`ilm.setup.enabled:true`>>
+  <<ilm-setup-overwrite-config,`ilm.setup.overwrite:true`>>
+
+2+|*Create unmanaged custom Indices*
+
+|_Details:_
+Disable ILM to create unmanaged indices with custom names. Ensure event specific templates are set up accordingly.
+
+|_Configure these options:_
+
+  <<ilm-enabled-config,`ilm.enabled:auto`>>
+  <<ilm-setup-config,`ilm.setup.enabled:true`>>
+  <<ilm-setup-overwrite-config,`ilm.setup.overwrite:true`>>
+  `output.elasticsearch.index: "my-custom-index"`
+|=======================================================================
+
+[float]
+[[ilm-config-reference]]
+=== Configuration reference
+
+[float]
+[[ilm-enabled-config]]
+===== `ilm.enabled`
+
+Can be `"auto"`, `"true"`, or `"false"`. Defaults to `"auto"`.
+
+*`"auto"`*:
+APM Server will enable ILM only if all three of the conditions below are true.
+If any of the conditions are not met, ILM will be disabled.
+
+** The Elasticsearch instance supports ILM.
+** `output.elasticsearch` is enabled.
+** Custom `index` or `indices` settings are not configured.
+
+*`"true"`*:
+APM Server will ignore any configured index settings and enable ILM if both of the conditions below are true.
+If any of the conditions are not met, APM Server will disable ILM, create unmanaged indices, and an error will be logged.
+
+** `output.elasticsearch` is enabled.
+** The Elasticsearch instance supports ILM.
+
+*`"false"`*:
+Explicitly disables ILM.
+
+[float]
+[[ilm-setup-config]]
+===== `apm-server.ilm.setup.enabled`
+
+Defaults to `true`.
+
+When `true`, APM Server will create an ILM specific index template for each APM event type.
+This is required to map ILM aliases and policies to indices.
+
+When `false`, ILM setup is disabled. No policies, templates, or aliases will be created by APM Server.
+Only disable `ilm.setup` if you want to set up index management on your own.
+If you simply want to disable ILM, use `apm-server.ilm.enabled: false` instead.
+
+[float]
+[[ilm-setup-overwrite-config]]
+===== `apm-server.ilm.setup.overwrite`
+
+Defaults to `false`. When `false`, APM Server will not overwrite any existing policies or ILM related templates.
+When first setting up ILM, your initial template and policy will be applied.
+You must set this to `true` when customizing your policies and template for them to be applied,
+or if you want to switch between managed and unmanaged indices.
+
+[float]
+[[ilm-setup-policy-config]]
+===== `apm-server.ilm.setup.require_policy`
+
+Defaults to `true`, which means that an ILM policy must be defined in `apm-server.yml`.
+Changing this to `false` allows you to manually set up ILM policies and templates outside of APM Server,
+e.g., with Elasticsearch APIs.
+APM Server will still make use of ILM and connect your template with the defined mapping.
+
+[float]
+[[ilm-setup-mapping-config]]
+===== `apm-server.ilm.setup.mapping`
+
+Maps each event type to a corresponding `policy_name` and `index_suffix`.
+APM event types can only be `error`, `span`, `transaction`, and `metric`.
+If you attempt to map an index lifecycle policy to a different event type, APM Server will not start.
+If you only map a subset of APM event types, the default values will be used for omitted event types.
+If a policy is defined, it must be mapped to an event type to take effect.
+
+By default, the APM Server creates a template without a custom index suffix per event type. When defining custom
+index suffixes, always ensure that templates, that might have been set up previously, are removed or do not conflict.
+See <<custom-ilm-index-suffix,customizing an index suffix>> for more information.

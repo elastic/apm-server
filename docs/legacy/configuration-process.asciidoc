@@ -1,0 +1,207 @@
+[[configuration-process]]
+== General configuration options
+
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, please see <<input-apm>> instead.
+
+Example config file:
+
+["source","yaml"]
+----
+apm-server:
+  host: "localhost:8200"
+  rum:
+    enabled: true
+
+output:
+  elasticsearch:
+    hosts: ElasticsearchAddress:9200
+
+queue.mem.events: 4096
+
+max_procs: 4
+----
+
+NOTE: If you are using an X-Pack secured version of Elastic Stack,
+you need to specify credentials in the config file before you run the commands that set up and start APM Server.
+For example:
+
+[source,yaml]
+----
+output.elasticsearch:
+  hosts: ["ElasticsearchAddress:9200"]
+  username: "elastic"
+  password: "elastic"
+----
+
+[float]
+[[configuration-apm-server]]
+=== Configuration options: `apm-server.*`
+
+[[host]]
+[float]
+==== `host`
+Defines the host and port the server is listening on.
+Use "unix:/path/to.sock" to listen on a unix domain socket.
+Defaults to 'localhost:8200'.
+
+[[max_header_size]]
+[float]
+==== `max_header_size`
+Maximum permitted size of a request's header accepted by the server to be processed (in Bytes).
+Defaults to 1048576 Bytes (1 MB).
+
+[[idle_timeout]]
+[float]
+==== `idle_timeout`
+Maximum amount of time to wait for the next incoming request before underlying connection is closed.
+Defaults to 45 seconds.
+
+[[read_timeout]]
+[float]
+==== `read_timeout`
+Maximum permitted duration for reading an entire request.
+Defaults to 30 seconds.
+
+[[write_timeout]]
+[float]
+==== `write_timeout`
+Maximum permitted duration for writing a response.
+Defaults to 30 seconds.
+
+[[shutdown_timeout]]
+[float]
+==== `shutdown_timeout`
+Maximum duration in seconds before releasing resources when shutting down the server.
+Defaults to 5 seconds.
+
+[[max_event_size]]
+[float]
+==== `max_event_size`
+Maximum permitted size of an event accepted by the server to be processed (in Bytes).
+Defaults to 307200 Bytes.
+
+[float]
+[[configuration-other]]
+=== Configuration options: general
+
+[[max_connections]]
+[float]
+==== `max_connections`
+Maximum number of TCP connections to accept simultaneously.
+Default value is 0, which means _unlimited_.
+
+[[config-secret-token]]
+[float]
+==== `auth.secret_token`
+Authorization token for sending data to the APM server.
+If a token is set, the agents must send it in the following format:
+Authorization: Bearer <secret-token>.
+The token is not used for RUM endpoints. By default, no authorization token is set.
+
+It is recommended to use an authorization token in combination with SSL enabled.
+Read more about <<securing-apm-server, Securing APM Server>> and the <<secret-token-legacy, secret token>>.
+
+[[config-secret-token-legacy]]
+[float]
+==== `secret_token`
+
+deprecated::[7.14.0, Replaced by `auth.secret_token`. See <<config-secret-token>>]
+
+In versions prior to 7.14.0, secret token authorization was known as `apm-server.secret_token`. In 7.14.0 this was renamed `apm-server.auth.secret_token`.
+The old configuration will continue to work until 8.0.0, and the new configuration will take precedence.
+
+[[capture_personal_data]]
+[float]
+==== `capture_personal_data`
+If true,
+APM Server captures the IP of the instrumented service and its User Agent if any.
+Enabled by default.
+
+[[default_service_environment]]
+[float]
+==== `default_service_environment`
+Sets the default service environment to associate with data and requests received from agents which have no service environment defined.
+
+[[expvar.enabled]]
+[float]
+==== `expvar.enabled`
+When set to true APM Server exposes https://golang.org/pkg/expvar/[golang expvar].
+Disabled by default.
+
+[[expvar.url]]
+[float]
+==== `expvar.url`
+Configure the url to expose expvar.
+Defaults to `debug/vars`.
+
+[[instrumentation.enabled]]
+[float]
+==== `instrumentation.enabled`
+Enables self instrumentation of the APM Server itself.
+Disabled by default.
+
+[[register.ingest.pipeline.enabled]]
+[float]
+==== `register.ingest.pipeline.enabled`
+Loads the default pipeline definition to Elasticsearch on APM Server startup.
+Defaults to true.
+
+[[register.ingest.pipeline.overwrite]]
+[float]
+==== `register.ingest.pipeline.overwrite`
+Overwrites the existing APM pipeline definition in Elasticsearch.
+Defaults to false.
+
+[float]
+=== Configuration options: `queue.mem.*`
+Data is buffered in a memory queue before it is published to the configured output.
+`queue.mem.*` settings modify the queue behavior.
+
+[[mem.events]]
+[float]
+==== `events`
+Maximum number of events the memory queue can buffer.
+Read more about how this setting can be used for <<tune-data-ingestion, tuning data ingestion>>.
+Default value is 4096.
+
+[[mem.flush.min_events]]
+[float]
+==== `flush.min_events`
+Hints the minimum number of events stored in the queue,
+before providing a batch of events to the outputs.
+A value of 0 (the default) ensures events are immediately available to be sent to the outputs.
+
+[[mem.flush.timeout]]
+[float]
+==== `flush.timeout`
+Maximum duration after which events are available to the outputs,
+if the number of events stored in the queue is < `flush.min_events`.
+Default value is 1 second.
+
+[float]
+=== Configuration options: `max_procs`
+
+[[max_procs]]
+[float]
+==== `max_procs`
+Sets the maximum number of CPUs that can be executing simultaneously.
+The default is the number of logical CPUs available in the system.
+
+[float]
+=== Configuration options: `data_streams`
+
+[[data_streams.enabled]]
+[float]
+==== `enabled`
+Write events to Elasticsearch data streams instead of indices.
+Events will be written to `traces-*`, `logs-*`, and `metrics-*` data streams.
+Enabling data streams disables the setup of index templates, ILM policies, and ingest pipelines.
+Defaults to false.
+
+[[data_streams.wait_for_integration]]
+[float]
+==== `wait_for_integration`
+Wait for the `apm` Fleet integration to be installed by Kibana. Requires either <<kibana-enabled>>
+or for the <<elasticsearch-output, Elasticsearch output>> to be configured.
+Defaults to true.

@@ -1,0 +1,9 @@
+[[apm-quick-start]]
+== Quick start
+
+// * Point to EA APT/YUM
+// * Point to EA for running on Docker
+// * Point to EA for directory layout
+// * Point to EA for systemd
+
+include::{obs-repo-dir}/observability/ingest-traces.asciidoc[tag=apm-quick-start]

@@ -19,6 +19,8 @@ package sourcemap
 
 import (
 	"context"
+	"net/url"
+	"path"
 	"sync"
 	"time"
 
@@ -26,7 +28,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/utility"
 )
 
 // BatchProcessor is a model.BatchProcessor that performs source mapping for
@@ -34,8 +35,8 @@ import (
 // timeout expiring, will result in the StacktraceFrame.SourcemapError field
 // being set; the error will not be returned.
 type BatchProcessor struct {
-	// Store is the store to use for fetching source maps.
-	Store *Store
+	// Fetcher is the Fetcher to use for fetching source maps.
+	Fetcher Fetcher
 
 	// Timeout holds a timeout for each ProcessBatch call, to limit how
 	// much time is spent fetching source maps.
@@ -116,8 +117,8 @@ func (p BatchProcessor) processStacktraceFrame(
 		return false, ""
 	}
 
-	path := utility.CleanUrlPath(frame.AbsPath)
-	mapper, err := p.Store.Fetch(ctx, service.Name, service.Version, path)
+	path := maybeCleanURLPath(frame.AbsPath)
+	mapper, err := p.Fetcher.Fetch(ctx, service.Name, service.Version, path)
 	if err != nil {
 		frame.SourcemapError = err.Error()
 		getProcessorLogger().Debugf("failed to fetch source map: %s", frame.SourcemapError)
@@ -154,6 +155,17 @@ func (p BatchProcessor) processStacktraceFrame(
 		function = "<unknown>"
 	}
 	return true, function
+}
+
+// maybeCleanURLPath attempts to parse s as a URL, returning it with its path
+// component cleaned. If s cannot be parsed as a URL, s is returned.
+func maybeCleanURLPath(s string) string {
+	url, err := url.Parse(s)
+	if err != nil {
+		return s
+	}
+	url.Path = path.Clean(url.Path)
+	return url.String()
 }
 
 func getProcessorLogger() *logp.Logger {

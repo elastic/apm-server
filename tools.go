@@ -19,11 +19,11 @@
 // track them in go.mod. See:
 //     https://github.com/golang/go/wiki/Modules#how-can-i-track-tool-dependencies-for-a-module
 
-//+build tools
+//go:build tools
+// +build tools
 
 package main
 
 import (
-	_ "github.com/jstemmer/go-junit-report" // go.mod/go.sum
-	_ "gotest.tools/gotestsum/cmd"          // go.mod/go.sum
+	_ "gotest.tools/gotestsum/cmd" // go.mod/go.sum
 )

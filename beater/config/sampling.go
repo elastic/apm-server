@@ -29,10 +29,6 @@ import (
 
 // SamplingConfig holds configuration related to sampling.
 type SamplingConfig struct {
-	// KeepUnsampled controls whether unsampled
-	// transactions should be recorded. Deprecated.
-	KeepUnsampled bool `config:"keep_unsampled"`
-
 	// Tail holds tail-sampling configuration.
 	Tail TailSamplingConfig `config:"tail"`
 }
@@ -107,12 +103,9 @@ func (c *TailSamplingConfig) Validate() error {
 	return nil
 }
 
-func (c *TailSamplingConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg *common.Config) error {
+func (c *TailSamplingConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
 	if !c.Enabled {
 		return nil
-	}
-	if !dataStreamsEnabled {
-		return errors.New("tail-sampling requires data streams to be enabled")
 	}
 	if !c.esConfigured && outputESCfg != nil {
 		log.Info("Falling back to elasticsearch output for tail-sampling")
@@ -126,9 +119,7 @@ func (c *TailSamplingConfig) setup(log *logp.Logger, dataStreamsEnabled bool, ou
 func defaultSamplingConfig() SamplingConfig {
 	tail := defaultTailSamplingConfig()
 	return SamplingConfig{
-		// In 8.0 this will be set to false, and later removed.
-		KeepUnsampled: true,
-		Tail:          tail,
+		Tail: tail,
 	}
 }
 

@@ -1,0 +1,86 @@
+[[configuring-howto-apm-server]]
+= Configure APM Server
+
+++++
+<titleabbrev>Configure</titleabbrev>
+++++
+
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, please see <<input-apm>> instead.
+
+include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
+
+* <<configuration-process>>
+* <<configuration-anonymous>>
+* <<configuration-template>>
+* <<ilm-reference>>
+* <<configuration-instrumentation>>
+* <<jaeger-reference>>
+* <<configuration-kerberos>>
+* <<setup-kibana-endpoint>>
+* <<configuration-logging>>
+* <<configuring-output>>
+* <<configuration-path>>
+* <<configuration-rum>>
+* <<configuration-ssl-landing>>
+* <<transaction-metrics>>
+* <<using-environ-vars>>
+
+include::./configuration-process.asciidoc[]
+
+include::./configuration-anonymous.asciidoc[]
+
+include::{libbeat-dir}/template-config.asciidoc[]
+
+include::./ilm-reference.asciidoc[]
+
+include::{libbeat-dir}/shared-instrumentation.asciidoc[]
+
+include::./jaeger-reference.asciidoc[]
+
+ifndef::no_kerberos[]
+include::{libbeat-dir}/shared-kerberos-config.asciidoc[]
+endif::[]
+
+include::./configure-kibana-endpoint.asciidoc[]
+
+include::{libbeat-dir}/loggingconfig.asciidoc[]
+
+:no-redis-output:
+include::{libbeat-dir}/outputconfig.asciidoc[]
+
+include::{libbeat-dir}/shared-path-config.asciidoc[]
+
+include::./configuration-rum.asciidoc[]
+
+// BEGIN SSL SECTION --------------------------------------------
+[[configuration-ssl-landing]]
+== SSL/TLS settings
+
+IMPORTANT: {deprecation-notice-config}
+If you've already upgraded, please see <<secure-agent-communication>> instead.
+
+SSL/TLS is available for:
+
+* <<agent-server-ssl,APM Server **inputs**>> (APM Agents)
+* <<configuration-ssl,APM Server **outputs**>> that support SSL, like {es}, {ls}, or Kafka.
+
+Additional information on getting started with SSL/TLS is available in <<securing-apm-server>>.
+
+// The leveloffset attribute pushes all headings in the included document down by
+// the specified number of levels. It is required here because the shared Beats
+// documentation was created as a level 1 heading. In the APM book, this level
+// would break the DTD. Using leveloffset +1, we can include this file here.
+// It's important to reset the level heading after including a file.
+:leveloffset: +1
+include::{libbeat-dir}/shared-ssl-config.asciidoc[]
+:leveloffset: -1
+
+include::ssl-input-settings.asciidoc[]
+// END SSL SECTION --------------------------------------------
+
+include::./transaction-metrics.asciidoc[]
+
+:standalone:
+include::{libbeat-dir}/shared-env-vars.asciidoc[]
+:standalone!:

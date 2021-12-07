@@ -3,136 +3,30 @@
         {
             "@timestamp": "dynamic",
             "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
+                "name": "go",
+                "version": "0.0.0"
             },
-            "client": {
-                "geo": {
-                    "continent_name": "North America",
-                    "country_iso_code": "US",
-                    "country_name": "United States",
-                    "location": {
-                        "lat": 37.751,
-                        "lon": -97.822
-                    }
-                },
-                "ip": "12.53.12.1"
-            },
-            "cloud": {
-                "account": {
-                    "id": "account_id",
-                    "name": "account_name"
-                },
-                "availability_zone": "cloud_availability_zone",
-                "instance": {
-                    "id": "instance_id",
-                    "name": "instance_name"
-                },
-                "machine": {
-                    "type": "machine_type"
-                },
-                "project": {
-                    "id": "project_id",
-                    "name": "project_name"
-                },
-                "provider": "cloud_provider",
-                "region": "cloud_region",
-                "service": {
-                    "name": "lambda"
-                }
-            },
-            "container": {
-                "id": "container-id"
-            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "dynamic"
             },
             "event": {
+                "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
             "host": {
-                "architecture": "x64",
-                "hostname": "node-name",
-                "ip": "127.0.0.1",
-                "name": "node-name",
+                "architecture": "i386",
+                "hostname": "beowulf",
+                "ip": [
+                    "127.0.0.1"
+                ],
+                "name": "beowulf",
                 "os": {
-                    "platform": "darwin"
+                    "platform": "minix"
                 }
-            },
-            "http": {
-                "request": {
-                    "body": {
-                        "original": {
-                            "additional": {
-                                "bar": 123,
-                                "req": "additional information"
-                            },
-                            "str": "hello world"
-                        }
-                    },
-                    "cookies": {
-                        "c1": "v1",
-                        "c2": "v2"
-                    },
-                    "env": {
-                        "GATEWAY_INTERFACE": "CGI/1.1",
-                        "SERVER_SOFTWARE": "nginx"
-                    },
-                    "headers": {
-                        "Array": [
-                            "foo",
-                            "bar",
-                            "baz"
-                        ],
-                        "Content-Type": [
-                            "text/html"
-                        ],
-                        "Cookie": [
-                            "c1=v1, c2=v2"
-                        ],
-                        "Some-Other-Header": [
-                            "foo"
-                        ],
-                        "User-Agent": [
-                            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
-                            "Mozilla Chrome Edge"
-                        ]
-                    },
-                    "method": "POST",
-                    "referrer": "http://localhost:8000/test/e2e/"
-                },
-                "response": {
-                    "decoded_body_size": 29.9,
-                    "encoded_body_size": 26.9,
-                    "finished": true,
-                    "headers": {
-                        "Content-Type": [
-                            "application/json"
-                        ]
-                    },
-                    "headers_sent": true,
-                    "status_code": 200,
-                    "transfer_size": 25.8
-                },
-                "version": "1.1"
-            },
-            "kubernetes": {
-                "namespace": "namespace1",
-                "node": {
-                    "name": "node-name"
-                },
-                "pod": {
-                    "name": "pod-name",
-                    "uid": "pod-uid"
-                }
-            },
-            "labels": {
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "tag1": "one",
-                "tag2": 12,
-                "tag3": 12.45,
-                "tag4": false
             },
             "observer": {
                 "ephemeral_id": "dynamic",
@@ -143,99 +37,43 @@
                 "version_major": "dynamic"
             },
             "process": {
-                "args": [
-                    "node",
-                    "server.js"
-                ],
-                "pid": 1234,
-                "ppid": 6789,
-                "title": "node"
+                "pid": 1,
+                "title": "systemtest.test"
             },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
             },
             "service": {
-                "environment": "staging",
-                "framework": {
-                    "name": "Express",
-                    "version": "1.2.3"
-                },
                 "language": {
-                    "name": "ecmascript",
-                    "version": "8"
+                    "name": "go",
+                    "version": "2.0"
                 },
-                "name": "chatty-service",
+                "name": "systemtest",
                 "node": {
-                    "name": "chatty-node"
+                    "name": "beowulf"
                 },
                 "runtime": {
-                    "name": "node",
-                    "version": "7.0"
-                },
-                "version": "5.1.3"
+                    "name": "gc",
+                    "version": "2.0"
+                }
             },
-            "source": {
-                "ip": "12.53.12.1"
-            },
-            "timestamp": {
-                "us": 1496170407154000
-            },
+            "timestamp": "dynamic",
             "trace": {
-                "id": "646df3b8b5279e982cc12a2f1ac004f3"
+                "id": "dynamic"
             },
             "transaction": {
-                "custom": {
-                    "(": "not a valid regex and that is fine",
-                    "and_objects": {
-                        "foo": [
-                            "bar",
-                            "baz"
-                        ]
-                    },
-                    "my_key": 1,
-                    "some_other_value": "foo bar"
-                },
                 "duration": {
-                    "us": 32592
+                    "us": 30000
                 },
-                "id": "ddf109a4c4aa5f2b6e984548ca57774c",
-                "name": "GET /api/types",
-                "result": "success",
+                "id": "dynamic",
+                "name": "huge-traces",
                 "sampled": true,
                 "span_count": {
-                    "dropped": 3,
-                    "started": 20
+                    "dropped": 54,
+                    "started": 0
                 },
-                "type": "request"
-            },
-            "url": {
-                "domain": "www.example.com",
-                "fragment": "#hash",
-                "full": "https://www.example.com/p/a/t/h?query=string#hash",
-                "original": "/p/a/t/h?query=string#hash",
-                "path": "/p/a/t/h",
-                "port": 8080,
-                "query": "?query=string",
-                "scheme": "https"
-            },
-            "user": {
-                "domain": "ldap://abc",
-                "id": "99",
-                "name": "foo"
-            },
-            "user_agent": {
-                "device": {
-                    "name": "Mac"
-                },
-                "name": "Chrome",
-                "original": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge",
-                "os": {
-                    "full": "Mac OS X 10.10.5",
-                    "name": "Mac OS X",
-                    "version": "10.10.5"
-                },
-                "version": "51.0.2704.103"
+                "type": "type"
             }
         }
     ]

@@ -33,7 +33,10 @@ type SetDataStream struct {
 // ProcessBatch sets data stream fields for each event in b.
 func (s *SetDataStream) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	for i := range *b {
-		s.setDataStream(&(*b)[i])
+		(*b)[i].DataStream.Namespace = s.Namespace
+		if (*b)[i].DataStream.Type == "" || (*b)[i].DataStream.Dataset == "" {
+			s.setDataStream(&(*b)[i])
+		}
 	}
 	return nil
 }
@@ -43,6 +46,11 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 	case model.SpanProcessor, model.TransactionProcessor:
 		event.DataStream.Type = datastreams.TracesType
 		event.DataStream.Dataset = model.TracesDataset
+		// In order to maintain different ILM policies, RUM traces are sent to
+		// a different datastream.
+		if isRUMAgentName(event.Agent.Name) {
+			event.DataStream.Dataset = model.RUMTracesDataset
+		}
 	case model.ErrorProcessor:
 		event.DataStream.Type = datastreams.LogsType
 		event.DataStream.Dataset = model.ErrorsDataset
@@ -55,7 +63,8 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		// (i.e. breakdown metrics, transaction and span metrics) will
 		// be stored separately from application and runtime metrics.
 		event.DataStream.Dataset = model.InternalMetricsDataset
-		if event.Transaction == nil && event.Span == nil {
+		if event.Transaction == nil && event.Span == nil &&
+			event.Service.Name != "" {
 			event.DataStream.Dataset = fmt.Sprintf(
 				"%s.%s", model.AppMetricsDataset,
 				datastreams.NormalizeServiceName(event.Service.Name),
@@ -65,5 +74,13 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		event.DataStream.Type = datastreams.MetricsType
 		event.DataStream.Dataset = model.ProfilesDataset
 	}
-	event.DataStream.Namespace = s.Namespace
+}
+
+func isRUMAgentName(agentName string) bool {
+	switch agentName {
+	// These are all the known agents that send "RUM" data to the APM Server.
+	case "rum-js", "js-base", "iOS/swift":
+		return true
+	}
+	return false
 }

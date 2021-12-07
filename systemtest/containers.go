@@ -34,19 +34,22 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
+	"github.com/gofrs/uuid"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
-	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v8"
 )
 
 const (
@@ -54,6 +57,38 @@ const (
 
 	fleetServerPort = "8220"
 )
+
+var (
+	containerReaper         *testcontainers.Reaper
+	initContainerReaperOnce sync.Once
+)
+
+// InitContainerReaper initialises the testcontainers container reaper,
+// which will ensure all containers started by testcontainers are removed
+// after some time if they are left running when the systemtest process
+// exits.
+func initContainerReaper() {
+	dockerProvider, err := testcontainers.NewDockerProvider()
+	if err != nil {
+		panic(err)
+	}
+
+	sessionUUID := uuid.Must(uuid.NewV4())
+	containerReaper, err = testcontainers.NewReaper(
+		context.Background(),
+		sessionUUID.String(),
+		dockerProvider,
+		testcontainers.ReaperDefaultImage,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// The connection will be closed on exit.
+	if _, err = containerReaper.Connect(); err != nil {
+		panic(err)
+	}
+}
 
 // StartStackContainers starts Docker containers for Elasticsearch and Kibana.
 //
@@ -103,8 +138,15 @@ func NewUnstartedElasticsearchContainer() (*ElasticsearchContainer, error) {
 	req := testcontainers.ContainerRequest{
 		Image:      container.Image,
 		AutoRemove: true,
+		SkipReaper: true, // we use our own reaping logic
 	}
 	req.WaitingFor = wait.ForHTTP("/").WithPort("9200/tcp")
+
+	initContainerReaperOnce.Do(initContainerReaper)
+	req.Labels = make(map[string]string)
+	for k, v := range containerReaper.Labels() {
+		req.Labels[k] = v
+	}
 
 	for port := range containerDetails.Config.ExposedPorts {
 		req.ExposedPorts = append(req.ExposedPorts, string(port))
@@ -285,10 +327,13 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		Host:   net.JoinHostPort(fleetServerIPAddress, fleetServerPort),
 	}
 	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
-	hostCACertPath, err := filepath.Abs("../testing/docker/fleet-server/ca.pem")
-	if err != nil {
-		return nil, err
+
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("could not locate systemtest directory")
 	}
+	systemtestDir := filepath.Dir(filename)
+	hostCACertPath := filepath.Join(systemtestDir, "../testing/docker/fleet-server/ca.pem")
 
 	// Use the same stack version as used for fleet-server.
 	agentImageVersion := fleetServerContainer.Image[strings.LastIndex(fleetServerContainer.Image, ":")+1:]
@@ -301,9 +346,10 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		return nil, err
 	}
 	stackVersion := agentImageDetails.Config.Labels["org.label-schema.version"]
+	vcsRef := agentImageDetails.Config.Labels["org.label-schema.vcs-ref"]
 
 	// Build a custom elastic-agent image with a locally built apm-server binary injected.
-	agentImage, err = buildElasticAgentImage(context.Background(), docker, stackVersion, agentImageVersion)
+	agentImage, err = buildElasticAgentImage(context.Background(), docker, stackVersion, agentImageVersion, vcsRef)
 	if err != nil {
 		return nil, err
 	}
@@ -317,9 +363,11 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 			"FLEET_URL": fleetServerURL.String(),
 			"FLEET_CA":  containerCACertPath,
 		},
+		SkipReaper: true, // we use our own reaping logic
 	}
 	return &ElasticAgentContainer{
 		request:      req,
+		Reap:         true,
 		StackVersion: agentImageVersion,
 	}, nil
 }
@@ -328,6 +376,12 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 type ElasticAgentContainer struct {
 	container testcontainers.Container
 	request   testcontainers.ContainerRequest
+
+	// Reap entrols whether the container will be automatically reaped if
+	// the controlling process exits. This is true by default, and may be
+	// set to false before the container is started to prevent the container
+	// from being stoped and removed.
+	Reap bool
 
 	// StackVersion holds the stack version of the container image,
 	// e.g. 8.0.0-SNAPSHOT.
@@ -366,6 +420,13 @@ func (c *ElasticAgentContainer) Start() error {
 	}
 	c.request.ExposedPorts = c.ExposedPorts
 	c.request.WaitingFor = c.WaitingFor
+	if c.Reap {
+		initContainerReaperOnce.Do(initContainerReaper)
+		c.request.Labels = make(map[string]string)
+		for k, v := range containerReaper.Labels() {
+			c.request.Labels[k] = v
+		}
+	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: c.request,
@@ -415,6 +476,45 @@ func (c *ElasticAgentContainer) Logs(ctx context.Context) (io.ReadCloser, error)
 	return c.container.Logs(ctx)
 }
 
+// Exec executes a command in the container, and returns its stdout and stderr.
+func (c *ElasticAgentContainer) Exec(ctx context.Context, cmd ...string) (stdout, stderr []byte, _ error) {
+	docker, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer docker.Close()
+
+	response, err := docker.ContainerExecCreate(ctx, c.container.GetContainerID(), types.ExecConfig{
+		AttachStderr: true,
+		AttachStdout: true,
+		Cmd:          cmd,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Consume all the exec output.
+	resp, err := docker.ContainerExecAttach(ctx, response.ID, types.ExecStartCheck{})
+	if err != nil {
+		return nil, nil, err
+	}
+	defer resp.Close()
+	var stdoutBuf, stderrBuf bytes.Buffer
+	if _, err := stdcopy.StdCopy(&stdoutBuf, &stderrBuf, resp.Reader); err != nil {
+		return nil, nil, err
+	}
+
+	// Return an error if the command exited non-zero.
+	execResp, err := docker.ContainerExecInspect(ctx, response.ID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if execResp.ExitCode != 0 {
+		return nil, nil, fmt.Errorf("process exited with code %d", execResp.ExitCode)
+	}
+	return stdoutBuf.Bytes(), stderrBuf.Bytes(), nil
+}
+
 func pullDockerImage(ctx context.Context, docker *client.Client, imageRef string) error {
 	rc, err := docker.ImagePull(context.Background(), imageRef, types.ImagePullOptions{})
 	if err != nil {
@@ -438,7 +538,7 @@ func matchFleetServerAPIStatusHealthy(r io.Reader) bool {
 }
 
 // buildElasticAgentImage builds a Docker image from the published image with a locally built apm-server injected.
-func buildElasticAgentImage(ctx context.Context, docker *client.Client, stackVersion, imageVersion string) (string, error) {
+func buildElasticAgentImage(ctx context.Context, docker *client.Client, stackVersion, imageVersion, vcsRef string) (string, error) {
 	imageName := fmt.Sprintf("elastic-agent-systemtest:%s", imageVersion)
 	log.Printf("Building image %s...", imageName)
 
@@ -448,7 +548,8 @@ func buildElasticAgentImage(ctx context.Context, docker *client.Client, stackVer
 	if arch == "amd64" {
 		arch = "x86_64"
 	}
-	apmServerInstallDir := fmt.Sprintf("./state/data/install/apm-server-%s-linux-%s", stackVersion, arch)
+	vcsRefShort := vcsRef[:6]
+	apmServerInstallDir := fmt.Sprintf("./data/elastic-agent-%s/install/apm-server-%s-linux-%s", vcsRefShort, stackVersion, arch)
 	apmServerBinary, err := apmservertest.BuildServerBinary("linux")
 	if err != nil {
 		return "", err

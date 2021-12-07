@@ -1,429 +1,159 @@
-- name: agent
-  type: group
-  fields:
-    - name: ephemeral_id
-      type: keyword
-      description: |
-        The Ephemeral ID identifies a running process.
-    - name: name
-      type: keyword
-      description: |
-        Name of the agent used.
-    - name: version
-      type: keyword
-      description: |
-        Version of the agent used.
-- name: client
-  type: group
-  fields:
-    - name: domain
-      type: keyword
-      description: |
-        Client domain.
-      ignore_above: 1024
-    - name: ip
-      type: ip
-      description: |
-        IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
-    - name: port
-      type: long
-      description: |
-        Port of the client.
-- name: cloud
-  title: Cloud
-  type: group
-  description: |
-    Cloud metadata reported by agents
-  fields:
-    - name: account
-      type: group
-      fields:
-        - name: id
-          level: extended
-          type: keyword
-          description: Cloud account ID
-          ignore_above: 1024
-        - name: name
-          level: extended
-          type: keyword
-          description: Cloud account name
-          ignore_above: 1024
-    - name: availability_zone
-      level: extended
-      type: keyword
-      description: Cloud availability zone name
-      ignore_above: 1024
-    - name: instance
-      type: group
-      fields:
-        - name: id
-          level: extended
-          type: keyword
-          description: Cloud instance/machine ID
-          ignore_above: 1024
-        - name: name
-          level: extended
-          type: keyword
-          description: Cloud instance/machine name
-          ignore_above: 1024
-    - name: machine
-      type: group
-      fields:
-        - name: type
-          level: extended
-          type: keyword
-          description: Cloud instance/machine type
-          ignore_above: 1024
-    - name: project
-      type: group
-      fields:
-        - name: id
-          level: extended
-          type: keyword
-          description: Cloud project ID
-          ignore_above: 1024
-        - name: name
-          level: extended
-          type: keyword
-          description: Cloud project name
-          ignore_above: 1024
-    - name: provider
-      level: extended
-      type: keyword
-      description: Cloud provider name
-      ignore_above: 1024
-    - name: region
-      level: extended
-      type: keyword
-      description: Cloud region name
-      ignore_above: 1024
-    - name: service
-      type: group
-      fields:
-        - name: name
-          level: extended
-          type: keyword
-          description: |
-            Cloud service name, intended to distinguish services running on different platforms within a provider.
-          ignore_above: 1024
-- name: container
-  title: Container
-  type: group
-  description: |
-    Container fields are used for meta information about the specific container that is the source of information. These fields help correlate data based containers from any runtime.
-  fields:
-    - name: id
-      type: keyword
-      description: |
-        Unique container id.
-- name: destination
-  title: Destination
-  type: group
-  description: |-
-    Destination fields describe details about the destination of a packet/event.
-    Destination fields are usually populated in conjunction with source fields.
-  fields:
-    - name: address
-      level: extended
-      type: keyword
-      description: Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
-      ignore_above: 1024
-    - name: ip
-      level: core
-      type: ip
-      description: IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.
-    - name: port
-      level: core
-      type: long
-      format: string
-      description: Port of the destination.
-- name: event
-  type: group
-  fields:
-    - name: outcome
-      level: core
-      type: keyword
-      description: |
-        `event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.
-      ignore_above: 1024
-- name: host
-  type: group
-  description: |
-    Optional host fields.
-  fields:
-    - name: architecture
-      type: keyword
-      description: |
-        The architecture of the host the event was recorded on.
-    - name: hostname
-      type: keyword
-      description: |
-        The hostname of the host the event was recorded on.
-    - name: ip
-      type: ip
-      description: |
-        IP of the host that records the event.
-    - name: name
-      type: keyword
-      description: |
-        Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.
-    - name: os
-      title: Operating System
-      type: group
-      description: |
-        The OS fields contain information about the operating system.
-      fields:
-        - name: platform
-          type: keyword
-          description: |
-            The platform of the host the event was recorded on.
-- name: http
-  type: group
-  fields:
-    - name: request
-      type: group
-      fields:
-        - name: method
-          type: keyword
-          description: |
-            The http method of the request leading to this event.
-        - name: referrer
-          type: keyword
-          description: Referrer for this HTTP request.
-          ignore_above: 1024
-    - name: response
-      type: group
-      fields:
-        - name: status_code
-          type: long
-          description: |
-            The status code of the HTTP response.
-    - name: version
-      type: keyword
-      description: |
-        The http version of the request leading to this event.
-- name: labels
-  type: object
-  description: |
-    A flat mapping of user-defined labels with string, boolean or number values.
+- external: ecs
+  name: agent.ephemeral_id
+- external: ecs
+  name: agent.name
+- external: ecs
+  name: agent.version
+- external: ecs
+  name: client.domain
+- external: ecs
+  name: client.ip
+- external: ecs
+  name: client.port
+- external: ecs
+  name: client.geo.city_name
+- external: ecs
+  name: client.geo.continent_name
+- external: ecs
+  name: client.geo.country_iso_code
+- external: ecs
+  name: client.geo.country_name
+- external: ecs
+  name: client.geo.location
+- external: ecs
+  name: client.geo.region_iso_code
+- external: ecs
+  name: client.geo.region_name
+- external: ecs
+  name: cloud.account.id
+- external: ecs
+  name: cloud.account.name
+- external: ecs
+  name: cloud.availability_zone
+- external: ecs
+  name: cloud.instance.id
+- external: ecs
+  name: cloud.instance.name
+- external: ecs
+  name: cloud.machine.type
+- external: ecs
+  name: cloud.project.id
+- external: ecs
+  name: cloud.project.name
+- external: ecs
+  name: cloud.provider
+- external: ecs
+  name: cloud.region
+- external: ecs
+  name: cloud.service.name
+- external: ecs
+  name: container.id
+- external: ecs
+  name: destination.address
+- external: ecs
+  name: destination.ip
+- external: ecs
+  name: destination.port
+- external: ecs
+  name: ecs.version
+- external: ecs
+  name: event.outcome
+- external: ecs
+  name: host.architecture
+- external: ecs
+  name: host.hostname
+- external: ecs
+  name: host.ip
+- external: ecs
+  name: host.name
+- external: ecs
+  name: host.os.platform
+- external: ecs
+  name: http.request.method
+- external: ecs
+  name: http.request.referrer
+- external: ecs
+  name: http.response.status_code
+- external: ecs
+  name: http.version
+- external: ecs
+  name: labels
   dynamic: true
-  object_type_params:
-    - object_type: keyword
-    - object_type: boolean
-    - object_type: scaled_float
-      scaling_factor: 1000000
-- name: observer
-  type: group
-  fields:
-    - name: hostname
-      type: keyword
-      description: |
-        Hostname of the APM Server.
-    - name: type
-      type: keyword
-      description: |
-        The type will be set to `apm-server`.
-    - name: version
-      type: keyword
-      description: |
-        APM Server version.
-- name: process
-  type: group
-  description: |
-    Information pertaining to the running process where the data was collected
-  fields:
-    - name: args
-      level: extended
-      type: keyword
-      description: |
-        Process arguments. May be filtered to protect sensitive information.
-    - name: pid
-      type: long
-      description: |
-        Numeric process ID of the service process.
-    - name: ppid
-      type: long
-      description: |
-        Numeric ID of the service's parent process.
-    - name: title
-      type: keyword
-      description: |
-        Service process title.
-- name: service
-  type: group
-  description: |
-    Service fields.
-  fields:
-    - name: environment
-      type: keyword
-      description: |
-        Service environment.
-    - name: id
-      type: keyword
-      description: |
-        Immutable id of the service emitting this event.
-    - name: name
-      type: keyword
-      description: |
-        Immutable name of the service emitting this event.
-    - name: node
-      type: group
-      fields:
-        - name: name
-          type: keyword
-          description: |
-            Unique meaningful name of the service node.
-    - name: version
-      type: keyword
-      description: |
-        Version of the service emitting this event.
-- name: source
-  type: group
-  fields:
-    - name: domain
-      type: keyword
-      description: |
-        Source domain.
-      ignore_above: 1024
-    - name: ip
-      type: ip
-      description: |
-        IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
-    - name: port
-      type: long
-      description: |
-        Port of the source.
-- name: span
-  type: group
-  fields:
-    - name: id
-      type: keyword
-      description: |
-        The ID of the span stored as hex encoded string.
-- name: trace
-  type: group
-  fields:
-    - name: id
-      type: keyword
-      description: |
-        The ID of the trace to which the event belongs to.
-- name: transaction
-  type: group
-  fields:
-    - name: id
-      type: keyword
-      description: |
-        The transaction ID.
-- name: url
-  type: group
-  description: |
-    A complete Url, with scheme, host and path.
-  fields:
-    - name: domain
-      type: keyword
-      description: |
-        The hostname of the request, e.g. "example.com".
-    - name: fragment
-      type: keyword
-      description: |
-        A fragment specifying a location in a web page , e.g. "top".
-    - name: full
-      type: keyword
-      description: |
-        The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
-    - name: path
-      type: keyword
-      description: |
-        The path of the request, e.g. "/search".
-    - name: port
-      type: long
-      description: |
-        The port of the request, e.g. 443.
-    - name: query
-      type: keyword
-      description: |
-        The query string of the request, e.g. "q=elasticsearch".
-    - name: scheme
-      type: keyword
-      description: |
-        The protocol of the request, e.g. "https:".
-- name: user
-  type: group
-  fields:
-    - name: domain
-      type: keyword
-      description: |
-        Domain of the logged in user.
-    - name: email
-      type: keyword
-      description: |
-        Email of the logged in user.
-    - name: id
-      type: keyword
-      description: |
-        Identifier of the logged in user.
-    - name: name
-      type: keyword
-      description: |
-        The username of the logged in user.
-- name: user_agent
-  title: User agent
-  type: group
-  description: |
-    The user_agent fields normally come from a browser request. They often show up in web service logs coming from the parsed user agent string.
-  fields:
-    - name: device
-      title: Device
-      type: group
-      description: |
-        Information concerning the device.
-      fields:
-        - name: name
-          type: keyword
-          description: |
-            Name of the device.
-    - name: name
-      type: keyword
-      description: |
-        Name of the user agent.
-    - name: original
-      type: keyword
-      description: |
-        Unparsed version of the user_agent.
-      multi_fields:
-        - name: text
-          type: text
-    - name: os
-      title: Operating System
-      type: group
-      description: |
-        The OS fields contain information about the operating system.
-      fields:
-        - name: family
-          type: keyword
-          description: |
-            OS family (such as redhat, debian, freebsd, windows).
-        - name: full
-          type: keyword
-          description: |
-            Operating system name, including the version or code name.
-        - name: kernel
-          type: keyword
-          description: |
-            Operating system kernel version as a raw string.
-        - name: name
-          type: keyword
-          description: |
-            Operating system name, without the version.
-        - name: platform
-          type: keyword
-          description: |
-            Operating system platform (such centos, ubuntu, windows).
-        - name: version
-          type: keyword
-          description: |
-            Operating system version as a raw string.
-    - name: version
-      type: keyword
-      description: |
-        Version of the user agent.
+- external: ecs
+  name: observer.hostname
+- external: ecs
+  name: observer.name
+- external: ecs
+  name: observer.type
+- external: ecs
+  name: observer.version
+- external: ecs
+  name: process.args
+- external: ecs
+  name: process.pid
+- external: ecs
+  name: process.ppid
+- external: ecs
+  name: process.title
+- external: ecs
+  name: service.environment
+- external: ecs
+  name: service.name
+- external: ecs
+  name: service.node.name
+- external: ecs
+  name: service.version
+- external: ecs
+  name: source.domain
+- external: ecs
+  name: source.ip
+- external: ecs
+  name: source.port
+- external: ecs
+  name: span.id
+- external: ecs
+  name: trace.id
+- external: ecs
+  name: transaction.id
+- external: ecs
+  name: url.domain
+- external: ecs
+  name: url.fragment
+- external: ecs
+  name: url.full
+- external: ecs
+  name: url.path
+- external: ecs
+  name: url.port
+- external: ecs
+  name: url.query
+- external: ecs
+  name: url.scheme
+- external: ecs
+  name: user.domain
+- external: ecs
+  name: user.email
+- external: ecs
+  name: user.id
+- external: ecs
+  name: user.name
+- external: ecs
+  name: user_agent.device.name
+- external: ecs
+  name: user_agent.name
+- external: ecs
+  name: user_agent.original
+- external: ecs
+  name: user_agent.os.family
+- external: ecs
+  name: user_agent.os.full
+- external: ecs
+  name: user_agent.os.kernel
+- external: ecs
+  name: user_agent.os.name
+- external: ecs
+  name: user_agent.os.platform
+- external: ecs
+  name: user_agent.os.version
+- external: ecs
+  name: user_agent.version

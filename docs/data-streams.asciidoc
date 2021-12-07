@@ -1,0 +1,85 @@
+[[apm-data-streams]]
+=== Data streams
+
+****
+{agent} uses data streams to store append-only time series data across multiple indices.
+Data streams are well-suited for logs, metrics, traces, and other continuously generated data,
+and offer a host of benefits over other indexing strategies:
+
+* Reduced number of fields per index
+* More granular data control
+* Flexible naming scheme
+* Fewer ingest permissions required
+
+See the {fleet-guide}/data-streams.html[Fleet and Elastic Agent Guide] to learn more.
+****
+
+[discrete]
+[[apm-data-streams-naming-scheme]]
+=== Data stream naming scheme
+
+APM data follows the `<type>-<dataset>-<namespace>` naming scheme.
+The `type` and `dataset` are predefined by the APM integration,
+but the `namespace` is your opportunity to customize how different types of data are stored in {es}.
+There is no recommendation for what to use as your namespace--it is intentionally flexible.
+For example, you might create namespaces for each of your environments,
+like `dev`, `prod`, `production`, etc.
+Or, you might create namespaces that correspond to strategic business units within your organization.
+
+[discrete]
+[[apm-data-streams-list]]
+=== APM data streams
+
+By type, the APM data streams are:
+
+Traces::
+
+Traces are comprised of {apm-guide-ref}/data-model.html[spans and transactions].
+Traces are stored in the following data streams:
+
+- Application traces: `traces-apm-<namespace>`
+- RUM and iOS agent application traces: `traces-apm.rum-<namespace>`
+
+Metrics::
+
+Metrics include application-based metrics and basic system metrics.
+Metrics are stored in the following data streams:
+
+- APM internal metrics: `metrics-apm.internal-<namespace>`
+- APM profiling metrics: `metrics-apm.profiling-<namespace>`
+- Application metrics: `metrics-apm.app.<service.name>-<namespace>`
++
+Application metrics include the instrumented service's name--defined in each APM agent's
+configuration--in the data stream name.
+Service names therefore must follow certain index naming rules.
++
+[%collapsible]
+.Service name rules
+====
+* Service names are case-insensitive and must be unique.
+For example, you cannot have a service named `Foo` and another named `foo`.
+* Special characters will be removed from service names and replaced with underscores (`_`).
+Special characters include:
++
+[source,text]
+----
+'\\', '/', '*', '?', '"', '<', '>', '|', ' ', ',', '#', ':', '-'
+----
+====
+
+Logs::
+
+Logs include application error events and application logs.
+Logs are stored in the following data streams:
+
+- APM error/exception logging: `logs-apm.error-<namespace>`
+
+[discrete]
+[[apm-data-streams-next]]
+=== What's next?
+
+* Data streams define not only how data is stored in {es}, but also how data is retained over time.
+See <<ilm-how-to>> to learn how to create your own data retention policies.
+
+* See <<manage-storage>> for information on APM storage and processing costs,
+processing and performance, and other index management features.

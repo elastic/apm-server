@@ -33,7 +33,7 @@
                     "us": 0
                 },
                 "sampled": true,
-                "type": "amqp"
+                "type": "unknown"
             }
         }
     ]

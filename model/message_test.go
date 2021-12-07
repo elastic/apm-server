@@ -25,8 +25,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/apm-server/tests"
 )
 
 func TestMessaging_Fields(t *testing.T) {
@@ -36,12 +34,13 @@ func TestMessaging_Fields(t *testing.T) {
 	m = &Message{}
 	require.Nil(t, m.Fields())
 
+	ageMillis := 1577958057123
 	m = &Message{
 		QueueName:  "orders",
 		RoutingKey: "a_routing_key",
 		Body:       "order confirmed",
 		Headers:    http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-		AgeMillis:  tests.IntPtr(1577958057123),
+		AgeMillis:  &ageMillis,
 	}
 	outp := common.MapStr{
 		"queue":       common.MapStr{"name": "orders"},

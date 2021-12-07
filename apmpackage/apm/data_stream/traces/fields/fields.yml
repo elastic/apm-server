@@ -150,10 +150,6 @@
       type: keyword
       description: |
         Unique identifier of the APM Server.
-    - name: listening
-      type: keyword
-      description: |
-        Address the server is listening on.
     - name: version_major
       type: byte
       description: |
@@ -169,7 +165,7 @@
   type: keyword
   description: Processor event.
 - name: processor.name
-  type: keyword
+  type: constant_keyword
   description: Processor name.
 - name: service
   type: group
@@ -243,6 +239,10 @@
       type: keyword
       description: |
         The specific kind of event within the sub-type represented by the span (e.g. query, connect)
+    - name: kind
+      type: keyword
+      description: |
+        "The kind of span: CLIENT, SERVER, PRODUCER, CONSUMER, or INTERNAL."
     - name: composite
       type: group
       fields:
@@ -319,13 +319,6 @@
       type: keyword
       description: |
         Generic designation of a span in the scope of a transaction.
-    - name: start
-      type: group
-      fields:
-        - name: us
-          type: long
-          description: |
-            Offset relative to the transaction's timestamp identifying the start of the span, in microseconds.
     - name: subtype
       type: keyword
       description: |
@@ -385,11 +378,6 @@
       description: |
         A user-defined mapping of groups of marks in milliseconds.
       dynamic: true
-    - name: marks.*.*
-      type: object
-      description: |
-        A user-defined mapping of groups of marks in milliseconds.
-      dynamic: true
     - name: message
       type: group
       fields:
@@ -432,3 +420,8 @@
       type: keyword
       description: |
         Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+- name: numeric_labels
+  type: object
+  dynamic: true
+  description: |
+    Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.

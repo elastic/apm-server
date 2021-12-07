@@ -9,6 +9,9 @@
             "client": {
                 "ip": "127.0.0.1"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "dynamic"
             },
@@ -252,6 +255,7 @@
                 }
             },
             "event": {
+                "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
             "http": {

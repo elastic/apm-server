@@ -1,0 +1,22 @@
+[[apm-tune-elasticsearch]]
+=== Tune {es} for data ingestion
+
+++++
+<titleabbrev>Tune {es}</titleabbrev>
+++++
+
+The {es} Reference provides insight on tuning {es}.
+
+{ref}/tune-for-indexing-speed.html[Tune for indexing speed] provides information on:
+
+* Refresh interval
+* Disabling swapping
+* Optimizing filesystem cache
+* Considerations regarding faster hardware
+* Setting the indexing buffer size
+
+{ref}/tune-for-disk-usage.html[Tune for disk usage] provides information on:
+
+* Disabling unneeded features
+* Shard size
+* Shrink index

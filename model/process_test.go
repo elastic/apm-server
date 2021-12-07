@@ -23,8 +23,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/tests"
 )
 
 func TestProcessTransform(t *testing.T) {
@@ -36,6 +34,7 @@ func TestProcessTransform(t *testing.T) {
 		"server.js",
 	}
 
+	ppid := 456
 	tests := []struct {
 		Process Process
 		Output  common.MapStr
@@ -47,7 +46,7 @@ func TestProcessTransform(t *testing.T) {
 		{
 			Process: Process{
 				Pid:         123,
-				Ppid:        tests.IntPtr(456),
+				Ppid:        &ppid,
 				Title:       processTitle,
 				Argv:        argv,
 				CommandLine: commandLine,

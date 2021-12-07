@@ -11,7 +11,14 @@ cleanup() {
 }
 trap cleanup EXIT
 
-make update apm-server docker-system-tests
+make update apm-server
 
-# TODO(axw) make this part of the "system-tests" target
-(cd systemtest && go test -v ./...)
+# Start docker-compose environment first, so it doesn't count towards the test timeout.
+docker-compose up -d
+
+OUTPUT_DIR="$(pwd)/build"
+OUTPUT_JSON_FILE="$OUTPUT_DIR/TEST-go-system_tests.out.json"
+OUTPUT_JUNIT_FILE="$OUTPUT_DIR/TEST-go-system_tests.xml"
+
+export GOTESTFLAGS="-v -json"
+gotestsum --no-color -f standard-quiet --jsonfile "$OUTPUT_JSON_FILE" --junitfile "$OUTPUT_JUNIT_FILE" --raw-command -- make system-test

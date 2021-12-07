@@ -13,6 +13,9 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -145,7 +148,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -207,18 +212,22 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
+                "ab_testing": "true",
                 "group": "experimental",
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "segment": 5
+                "success": "true",
+                "wrapped_reporter": "true"
             },
             "message": "Request method 'POST' not supported",
+            "numeric_labels": {
+                "code": 200,
+                "segment": 5
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "parent": {
                 "id": "9632587410abcdef"
@@ -295,6 +304,9 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -304,7 +316,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -337,16 +351,21 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
+                "ab_testing": "true",
                 "group": "experimental",
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true",
+                "wrapped_reporter": "true"
+            },
+            "numeric_labels": {
+                "code": 200,
                 "segment": 5
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -397,21 +416,6 @@
                 "duration": {
                     "us": 3781
                 },
-                "http": {
-                    "method": "GET",
-                    "response": {
-                        "decoded_body_size": 401,
-                        "encoded_body_size": 356,
-                        "headers": {
-                            "Content-Type": [
-                                "application/json"
-                            ]
-                        },
-                        "status_code": 302,
-                        "transfer_size": 300.12
-                    }
-                },
-                "http.url.original": "http://localhost:8000",
                 "id": "1234567890aaaade",
                 "name": "GET users-authenticated",
                 "stacktrace": [
@@ -469,6 +473,9 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -478,7 +485,9 @@
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -546,18 +555,21 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
+                "ab_testing": "true",
                 "group": "experimental",
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "segment": 5,
-                "wrapped_reporter": true
+                "success": "true",
+                "wrapped_reporter": "true"
+            },
+            "numeric_labels": {
+                "code": 200,
+                "segment": 5
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "parent": {
                 "id": "abcdefabcdef01234567"
@@ -595,7 +607,8 @@
                 "version": "4.3.0"
             },
             "source": {
-                "ip": "12.53.12.1"
+                "ip": "12.53.12.1",
+                "port": 8080
             },
             "timestamp": {
                 "us": 1571657444929001
@@ -657,13 +670,18 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm.internal",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
-                "ip": "127.0.0.1",
+                "ip": [
+                    "127.0.0.1"
+                ],
                 "name": "host1",
                 "os": {
                     "platform": "Linux"
@@ -680,19 +698,22 @@
                 }
             },
             "labels": {
-                "ab_testing": true,
-                "code": 200,
+                "ab_testing": "true",
                 "group": "experimental",
-                "segment": 5,
-                "success": true
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "success": "true",
+                "wrapped_reporter": "true"
             },
             "metricset.name": "span_breakdown",
+            "numeric_labels": {
+                "code": 200,
+                "segment": 5
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "process": {
                 "args": [
@@ -735,7 +756,6 @@
                 "type": "db"
             },
             "transaction": {
-                "breakdown.count": 12,
                 "name": "GET/",
                 "type": "request"
             }

@@ -1,0 +1,55 @@
+[x-pack]
+[[transaction-metrics]]
+== Configure transaction metrics
+
+++++
+<titleabbrev>Transaction metrics</titleabbrev>
+++++
+
+IMPORTANT: {deprecation-notice-config}
+
+{beatname_uc} produces transaction histogram metrics that are used to power the APM app.
+Shifting this responsibility from APM app to APM Server removes the need to store unsampled transactions, reducing storage costs.
+
+Example config file:
+
+["source","yaml"]
+----
+apm-server:
+  aggregation:
+    transactions:
+      interval: 1m
+----
+
+[float]
+[[configuration-aggregation]]
+=== Configuration options: `apm-server.aggregation.transactions.*`
+
+[[transactions-interval]]
+[float]
+==== `interval`
+
+Controls the frequency of metrics publication.
+
+Default: `1m`.
+
+[[transactions-max_groups]]
+[float]
+==== `max_groups`
+
+Maximum number of transaction groups to keep track of.
+Once exceeded, APM Server devolves into recording a metrics document for each transaction that is not in one
+of the transaction groups being tracked.
+
+Default: `10000`.
+
+[[transactions-hdrhistogram_significant_figures]]
+[float]
+==== `hdrhistogram_significant_figures`
+
+The fixed, worst-case percentage error (specified as a number of significant digits)
+to maintain for recorded metrics.
+Supported values are `1` through `5`.
+See {ref}/search-aggregations-metrics-percentile-aggregation.html#_hdr_histogram_2[HDR histogram] for more information.
+
+Default: `2`.

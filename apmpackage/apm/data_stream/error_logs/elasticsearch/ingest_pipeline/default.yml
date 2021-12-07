@@ -1,0 +1,16 @@
+---
+description: Pipeline for ingesting APM error events.
+processors:
+  - pipeline:
+      name: observer_version
+  - pipeline:
+      name: user_agent
+  - pipeline:
+      name: client_geoip
+  - script:
+      if: ctx.error?.exception?.length != null && ctx.error?.exception?.length > 0
+      source: ctx.error.grouping_name = ctx.error.exception[0].message
+  - set:
+      if: ctx.error?.log?.message != null
+      field: error.grouping_name
+      copy_from: error.log.message

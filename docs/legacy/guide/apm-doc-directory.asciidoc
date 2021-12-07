@@ -1,0 +1,73 @@
+[[components]]
+== Components and documentation
+
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<apm-components>>.
+
+Elastic APM consists of four components: *APM agents*, *APM Server*, *Elasticsearch*, and *Kibana*.
+
+image::./../legacy/guide/images/apm-architecture-cloud.png[Architecture of Elastic APM]
+
+[float]
+=== APM Agents
+
+APM agents are open source libraries written in the same language as your service.
+You may only need one, or you might use all of them.
+You install them into your service as you would install any other library.
+They instrument your code and collect performance data and errors at runtime.
+This data is buffered for a short period and sent on to APM Server.
+
+Each agent has its own documentation:
+
+* {apm-go-ref-v}/introduction.html[Go agent]
+* {apm-ios-ref-v}/intro.html[iOS agent]
+* {apm-java-ref-v}/intro.html[Java agent]
+* {apm-dotnet-ref-v}/intro.html[.NET agent]
+* {apm-node-ref-v}/intro.html[Node.js agent]
+* {apm-php-ref-v}/intro.html[PHP agent]
+* {apm-py-ref-v}/getting-started.html[Python agent]
+* {apm-ruby-ref-v}/introduction.html[Ruby agent]
+* {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]
+
+[float]
+=== APM Server
+
+APM Server is a free and open application that receives performance data from your APM agents.
+It's a {apm-server-ref-v}/overview.html#why-separate-component[separate component by design],
+which helps keep the agents light, prevents certain security risks, and improves compatibility across the Elastic Stack.
+
+After the APM Server has validated and processed events from the APM agents,
+the server transforms the data into Elasticsearch documents and stores them in corresponding
+{apm-server-ref-v}/exploring-es-data.html[Elasticsearch indices].
+In a matter of seconds, you can start viewing your application performance data in the Kibana APM app.
+
+The {apm-server-ref-v}/index.html[APM Server reference] provides everything you need when it comes to working with the server.
+Here you can learn more about {apm-server-ref-v}/getting-started-apm-server.html[installation],
+{apm-server-ref-v}/configuring-howto-apm-server.html[configuration],
+{apm-server-ref-v}/securing-apm-server.html[security],
+{apm-server-ref-v}/monitoring.html[monitoring], and more.
+
+[float]
+=== Elasticsearch
+
+{ref}/index.html[Elasticsearch] is a highly scalable free and open full-text search and analytics engine.
+It allows you to store, search, and analyze large volumes of data quickly and in near real time.
+Elasticsearch is used to store APM performance metrics and make use of its aggregations.
+
+[float]
+=== Kibana APM app
+
+{kibana-ref}/index.html[Kibana] is a free and open analytics and visualization platform designed to work with Elasticsearch.
+You use Kibana to search, view, and interact with data stored in Elasticsearch.
+
+Since application performance monitoring is all about visualizing data and detecting bottlenecks,
+it's crucial you understand how to use the {kibana-ref}/xpack-apm.html[APM app] in Kibana.
+The following sections will help you get started:
+
+* {apm-app-ref}/apm-ui.html[Set up]
+* {apm-app-ref}/apm-getting-started.html[Get started]
+* {apm-app-ref}/apm-how-to.html[How-to guides]
+
+APM also has built-in integrations with Machine learning. To learn more about this feature,
+or the anomaly detection feature that's built on top of it,
+refer to {kibana-ref}/machine-learning-integration.html[Machine learning integration].

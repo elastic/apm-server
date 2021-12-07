@@ -37,6 +37,7 @@ package otel
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -108,11 +109,17 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 		event.Timestamp = key.timestamp.Add(timeDelta)
 		event.Metricset = &model.Metricset{Samples: ms.samples}
 		if ms.attributes.Len() > 0 {
-			event.Labels = initEventLabels(event.Labels)
+			initEventLabels(&event)
 			ms.attributes.Range(func(k string, v pdata.AttributeValue) bool {
-				event.Labels[k] = ifaceAttributeValue(v)
+				setLabel(k, &event, ifaceAttributeValue(v))
 				return true
 			})
+			if len(event.Labels) == 0 {
+				event.Labels = nil
+			}
+			if len(event.NumericLabels) == 0 {
+				event.NumericLabels = nil
+			}
 		}
 		*out = append(*out, event)
 	}
@@ -176,6 +183,9 @@ func numberSample(dp pdata.NumberDataPoint, metricType model.MetricType) (model.
 		value = float64(dp.IntVal())
 	case pdata.MetricValueTypeDouble:
 		value = dp.DoubleVal()
+		if math.IsNaN(value) || math.IsInf(value, 0) {
+			return model.MetricsetSample{}, false
+		}
 	default:
 		return model.MetricsetSample{}, false
 	}

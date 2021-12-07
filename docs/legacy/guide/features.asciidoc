@@ -1,0 +1,34 @@
+[[apm-features]]
+== Elastic APM features
+
+IMPORTANT: {deprecation-notice-data}
+If you've already upgraded, see <<features>>.
+
+++++
+<titleabbrev>Features</titleabbrev>
+++++
+
+* <<data-security>>
+* <<distributed-tracing>>
+* <<rum>>
+* <<trace-sampling>>
+* <<opentracing>>
+* <<open-telemetry-elastic>>
+* <<observability-integrations>>
+* <<apm-cross-cluster-search>>
+
+include::./data-security.asciidoc[]
+
+include::./distributed-tracing.asciidoc[]
+
+include::./rum.asciidoc[]
+
+include::./trace-sampling.asciidoc[]
+
+include::./opentracing.asciidoc[]
+
+include::./opentelemetry-elastic.asciidoc[]
+
+include::./obs-integrations.asciidoc[]
+
+include::./cross-cluster-search.asciidoc[]

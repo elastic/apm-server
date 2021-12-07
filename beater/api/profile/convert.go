@@ -91,7 +91,7 @@ func appendProfileSampleBatch(pp *profile.Profile, baseEvent model.APMEvent, out
 		event.Labels = event.Labels.Clone()
 		if n := len(sample.Label); n > 0 {
 			for k, v := range sample.Label {
-				event.Labels[k] = v
+				event.Labels.SetSlice(k, v)
 			}
 		}
 

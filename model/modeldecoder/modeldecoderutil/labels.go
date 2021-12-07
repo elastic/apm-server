@@ -19,24 +19,51 @@ package modeldecoderutil
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/elastic/beats/v7/libbeat/common"
+
+	"github.com/elastic/apm-server/model"
 )
 
-// MergeLabels merges eventLabels onto commonLabels. This is used for
+// LabelsFrom populates the Labels and NumericLabels.
+func LabelsFrom(from common.MapStr, to *model.APMEvent) {
+	to.NumericLabels = make(model.NumericLabels)
+	to.Labels = make(model.Labels)
+	MergeLabels(from, to)
+}
+
+// MergeLabels merges eventLabels into the APMEvent. This is used for
 // combining event-specific labels onto (metadata) global labels.
 //
-// If commonLabels is non-nil, it is first cloned. If commonLabels
-// is nil, then eventLabels is cloned.
-func MergeLabels(commonLabels, eventLabels common.MapStr) common.MapStr {
-	if commonLabels == nil {
-		return eventLabels.Clone()
+// If eventLabels is non-nil, it is first cloned.
+func MergeLabels(eventLabels common.MapStr, to *model.APMEvent) {
+	if to.NumericLabels == nil {
+		to.NumericLabels = make(model.NumericLabels)
 	}
-	combinedLabels := commonLabels.Clone()
+	if to.Labels == nil {
+		to.Labels = make(model.Labels)
+	}
 	for k, v := range eventLabels {
-		combinedLabels[k] = v
+		switch v := v.(type) {
+		case string:
+			to.Labels.Set(k, v)
+		case bool:
+			to.Labels.Set(k, strconv.FormatBool(v))
+		case float64:
+			to.NumericLabels.Set(k, v)
+		case json.Number:
+			if floatVal, err := v.Float64(); err == nil {
+				to.NumericLabels.Set(k, floatVal)
+			}
+		}
 	}
-	return combinedLabels
+	if len(to.NumericLabels) == 0 {
+		to.NumericLabels = nil
+	}
+	if len(to.Labels) == 0 {
+		to.Labels = nil
+	}
 }
 
 // NormalizeLabelValues transforms the values in labels, replacing any
@@ -47,7 +74,7 @@ func NormalizeLabelValues(labels common.MapStr) common.MapStr {
 		switch v := v.(type) {
 		case json.Number:
 			if floatVal, err := v.Float64(); err == nil {
-				labels[k] = common.Float(floatVal)
+				labels[k] = floatVal
 			}
 		}
 	}

@@ -2,18 +2,22 @@
     "events": [
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -138,18 +142,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -220,18 +228,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -374,18 +386,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -456,18 +472,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -520,18 +540,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -620,18 +644,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -714,18 +742,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -802,18 +834,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -908,18 +944,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -1032,18 +1072,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -1090,18 +1134,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -1160,18 +1208,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -1266,18 +1318,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -1402,18 +1458,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -1466,18 +1526,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -1584,18 +1648,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -1690,18 +1758,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -1784,18 +1856,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -1878,18 +1954,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -2002,18 +2082,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -2060,18 +2144,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -2148,18 +2236,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -2212,18 +2304,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -2282,18 +2378,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -2412,18 +2512,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -2494,18 +2598,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -2552,18 +2660,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -2598,18 +2710,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -2680,18 +2796,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -2804,18 +2924,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -2916,18 +3040,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -3028,18 +3156,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -3104,18 +3236,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -3222,18 +3358,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -3286,18 +3426,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -3368,18 +3512,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -3438,18 +3586,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -3562,18 +3714,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -3734,18 +3890,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -3816,18 +3976,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -3916,18 +4080,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -4082,18 +4250,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -4140,18 +4312,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -4270,18 +4446,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -4388,18 +4568,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -4452,18 +4636,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -4540,18 +4728,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -4592,18 +4784,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -4668,18 +4864,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -4726,18 +4926,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -4856,18 +5060,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -4914,18 +5122,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -4960,18 +5172,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -5042,18 +5258,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -5154,18 +5374,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -5248,18 +5472,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -5324,18 +5552,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -5430,18 +5662,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -5536,18 +5772,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -5618,18 +5858,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -5742,18 +5986,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -5830,18 +6078,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -5924,18 +6176,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -6012,18 +6268,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -6088,18 +6348,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -6146,18 +6410,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -6258,18 +6526,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -6394,18 +6666,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -6542,18 +6818,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -6630,18 +6910,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -6688,18 +6972,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -6782,18 +7070,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -6936,18 +7228,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -7072,18 +7368,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -7196,18 +7496,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -7260,18 +7564,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -7330,18 +7638,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -7436,18 +7748,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -7476,18 +7792,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -7528,18 +7848,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -7598,18 +7922,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -7674,18 +8002,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -7750,18 +8082,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -7838,18 +8174,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -7950,18 +8290,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -8020,18 +8364,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -8096,18 +8444,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -8214,18 +8566,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -8284,18 +8640,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -8396,18 +8756,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -8490,18 +8854,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -8584,18 +8952,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -8636,18 +9008,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -8742,18 +9118,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -8818,18 +9198,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -8870,18 +9254,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",
@@ -9006,18 +9394,22 @@
         },
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
+            "data_stream.dataset": "apm.profiling",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "profile",

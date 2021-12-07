@@ -1,0 +1,38 @@
+include::../../version.asciidoc[]
+include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
+
+:apm-ref-all: https://www.elastic.co/guide/en/apm/get-started/
+
+ifndef::apm-integration-docs[]
+[[gettting-started]]
+= APM Overview
+endif::[]
+
+ifdef::apm-integration-docs[]
+// Overwrite links to the APM Overview and APM Server Ref. Point to APM Guide instead.
+:apm-overview-ref-v: {apm-guide-ref}
+:apm-guide-ref: {apm-guide-ref}
+:apm-server-ref-v: {apm-guide-ref}
+:apm-server-ref: {apm-guide-ref}
+
+[[legacy-apm-overview]]
+= Legacy APM Overview
+
+include::./overview.asciidoc[]
+endif::[]
+
+include::./apm-doc-directory.asciidoc[]
+
+include::./install-and-run.asciidoc[]
+
+include::./quick-start-overview.asciidoc[]
+
+include::./apm-data-model.asciidoc[]
+
+include::./features.asciidoc[]
+
+include::./troubleshooting.asciidoc[]
+
+include::./apm-breaking-changes.asciidoc[]
+
+include::./redirects.asciidoc[]

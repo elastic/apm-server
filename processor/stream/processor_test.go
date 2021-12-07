@@ -36,7 +36,6 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/utility"
 )
 
 func TestHandlerReadStreamError(t *testing.T) {
@@ -122,6 +121,9 @@ func TestIntegrationESOutput(t *testing.T) {
 		name: "OptionalTimestamps",
 		path: "optional-timestamps.ndjson",
 	}, {
+		name: "OpenTelemetryBridge",
+		path: "otel-bridge.ndjson",
+	}, {
 		name: "InvalidEvent",
 		path: "invalid-event.ndjson",
 		errors: []error{
@@ -177,16 +179,16 @@ func TestIntegrationESOutput(t *testing.T) {
 			var accepted int
 			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
-			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
 			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
 			baseEvent := model.APMEvent{
-				Host: model.Host{IP: net.ParseIP("192.0.0.1")},
+				Host:      model.Host{IP: []net.IP{net.ParseIP("192.0.0.1")}},
+				Timestamp: reqTimestamp,
 			}
 
 			p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
 			var actualResult Result
-			err = p.HandleStream(ctx, baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
+			err = p.HandleStream(context.Background(), baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			if test.err != nil {
 				assert.Equal(t, test.err, err)
 			} else {
@@ -212,18 +214,18 @@ func TestIntegrationRum(t *testing.T) {
 			var accepted int
 			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
-			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
 			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
 			baseEvent := model.APMEvent{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Source:    model.Source{IP: net.ParseIP("192.0.0.1")},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.2")}, // X-Forwarded-For
+				Timestamp: reqTimestamp,
 			}
 
 			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024})
 			var actualResult Result
-			err = p.HandleStream(ctx, baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
+			err = p.HandleStream(context.Background(), baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
 			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})
@@ -245,18 +247,18 @@ func TestRUMV3(t *testing.T) {
 			var accepted int
 			name := fmt.Sprintf("test_approved_es_documents/testIntake%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
-			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
 			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
 			baseEvent := model.APMEvent{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Source:    model.Source{IP: net.ParseIP("192.0.0.1")},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.2")}, // X-Forwarded-For
+				Timestamp: reqTimestamp,
 			}
 
 			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024})
 			var actualResult Result
-			err = p.HandleStream(ctx, baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
+			err = p.HandleStream(context.Background(), baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
 			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})

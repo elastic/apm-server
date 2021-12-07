@@ -25,7 +25,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -55,6 +54,9 @@ func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
 		cfg.JavaBin = filepath.FromSlash(cfg.JavaBin)
 	}
 	logger := logp.NewLogger("java-attacher")
+	if _, err := os.Stat(javaAttacher); err != nil {
+		return JavaAttacher{}, err
+	}
 	return JavaAttacher{
 		cfg:    cfg,
 		logger: logger,
@@ -62,8 +64,7 @@ func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
 }
 
 // javaAttacher is bundled by the server
-// TODO: Figure out the real path
-var javaAttacher = filepath.FromSlash("/bin/apm-agent-attach-cli-1.24.0-slim.jar")
+var javaAttacher = filepath.FromSlash("./java-attacher.jar")
 
 func (j JavaAttacher) Run(ctx context.Context) error {
 	cmd := j.build(ctx)
@@ -132,19 +133,13 @@ func (j JavaAttacher) formatArgs() []string {
 
 	for _, flag := range j.cfg.DiscoveryRules {
 		for name, value := range flag {
-			args = append(args, makeArg("--"+name, value))
+			args = append(args, "--"+name, value)
 		}
 	}
 	cfg := make([]string, 0, len(j.cfg.Config))
 	for k, v := range j.cfg.Config {
-		cfg = append(cfg, "--config "+k+"="+v)
+		cfg = append(cfg, "--config", k+"="+v)
 	}
-	// we want a predictable order for testing
-	sort.Strings(cfg)
 
 	return append(args, cfg...)
-}
-
-func makeArg(flagName string, args ...string) string {
-	return flagName + " " + strings.Join(args, " ")
 }

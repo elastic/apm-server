@@ -1,6 +1,6 @@
 // Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
-// or more contributor license agreements. Licensed under the Elastic License;
-// you may not use this file except in compliance with the Elastic License.
+// or more contributor license agreements. Licensed under the Elastic License 2.0;
+// you may not use this file except in compliance with the Elastic License 2.0.
 
 package txmetrics_test
 
@@ -454,8 +454,12 @@ func TestAggregationFields(t *testing.T) {
 		&input.Service.Environment,
 		&input.Service.Name,
 		&input.Service.Version,
+		&input.Service.Node.Name,
 		&input.Container.ID,
 		&input.Kubernetes.PodName,
+		&input.Cloud.Provider,
+		&input.Cloud.Region,
+		&input.Cloud.AvailabilityZone,
 	}
 
 	var expected []model.APMEvent

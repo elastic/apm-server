@@ -61,37 +61,17 @@ type Transformer interface {
 	Transform(context.Context) []beat.Event
 }
 
-// PublisherConfig is a struct holding configuration information for the publisher.
-type PublisherConfig struct {
-	Info      beat.Info
-	Pipeline  string
-	Namespace string
-	Processor beat.ProcessorList
-}
-
-func (cfg *PublisherConfig) Validate() error {
-	return nil
-}
-
 var (
 	ErrFull          = errors.New("queue is full")
 	ErrChannelClosed = errors.New("can't send batch, publisher is being stopped")
 )
 
-// newPublisher creates a new publisher instance.
+// NewPublisher creates a new publisher instance.
 //
 // GOMAXPROCS goroutines are started for forwarding events to libbeat.
 // Stop must be called to close the beat.Client and free resources.
-func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConfig) (*Publisher, error) {
-	if err := cfg.Validate(); err != nil {
-		return nil, errors.Wrap(err, "invalid config")
-	}
-
-	processingCfg := beat.ProcessingConfig{Processor: cfg.Processor}
-	if cfg.Pipeline != "" {
-		processingCfg.Meta = map[string]interface{}{"pipeline": cfg.Pipeline}
-	}
-
+func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer) (*Publisher, error) {
+	processingCfg := beat.ProcessingConfig{}
 	p := &Publisher{
 		tracer:  tracer,
 		stopped: make(chan struct{}),

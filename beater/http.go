@@ -31,7 +31,6 @@ import (
 
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -42,7 +41,6 @@ type httpServer struct {
 	*http.Server
 	cfg          *config.Config
 	logger       *logp.Logger
-	reporter     publish.Reporter
 	grpcListener net.Listener
 	httpListener net.Listener
 }
@@ -52,7 +50,6 @@ func newHTTPServer(
 	info beat.Info,
 	cfg *config.Config,
 	handler http.Handler,
-	reporter publish.Reporter,
 	listener net.Listener,
 ) (*httpServer, error) {
 
@@ -83,7 +80,7 @@ func newHTTPServer(
 		return nil, err
 	}
 
-	return &httpServer{server, cfg, logger, reporter, grpcListener, listener}, nil
+	return &httpServer{server, cfg, logger, grpcListener, listener}, nil
 }
 
 func (h *httpServer) start() error {
@@ -97,14 +94,6 @@ func (h *httpServer) start() error {
 		}
 	} else {
 		h.logger.Info("RUM endpoints disabled.")
-	}
-
-	if !h.cfg.DataStreams.Enabled {
-		// Create the "onboarding" document, which contains the server's
-		// listening address. We only do this if data streams are not enabled,
-		// as onboarding documents are incompatible with data streams.
-		// Onboarding documents should be replaced by Fleet status later.
-		notifyListening(context.Background(), h.httpListener.Addr(), h.reporter)
 	}
 
 	if h.cfg.TLS.IsEnabled() {

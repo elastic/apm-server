@@ -52,7 +52,6 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/approvaltest"
@@ -442,9 +441,9 @@ func TestDatabaseSpan(t *testing.T) {
 		UserName:  "billing_user",
 	}, event.Span.DB)
 
-	assert.Equal(t, common.MapStr{
-		"db_connection_string": connectionString,
-		"net_transport":        "IP.TCP",
+	assert.Equal(t, model.Labels{
+		"db_connection_string": {Value: connectionString},
+		"net_transport":        {Value: "IP.TCP"},
 	}, event.Labels)
 
 	assert.Equal(t, model.Destination{
@@ -557,6 +556,22 @@ func TestMessagingSpan(t *testing.T) {
 	}, event.Span.DestinationService)
 }
 
+func TestSpanType(t *testing.T) {
+	// Internal spans default to app.internal.
+	event := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{}, func(s pdata.Span) {
+		s.SetKind(pdata.SpanKindInternal)
+	})
+	assert.Equal(t, "app", event.Span.Type)
+	assert.Equal(t, "internal", event.Span.Subtype)
+
+	// All other spans default to unknown.
+	event = transformSpanWithAttributes(t, map[string]pdata.AttributeValue{}, func(s pdata.Span) {
+		s.SetKind(pdata.SpanKindClient)
+	})
+	assert.Equal(t, "unknown", event.Span.Type)
+	assert.Equal(t, "", event.Span.Subtype)
+}
+
 func TestSpanNetworkAttributes(t *testing.T) {
 	networkAttributes := map[string]pdata.AttributeValue{
 		"net.host.connection.type":    pdata.NewAttributeValueString("cell"),
@@ -594,23 +609,43 @@ func TestArrayLabels(t *testing.T) {
 	boolArray.ArrayVal().AppendEmpty().SetBoolVal(false)
 	boolArray.ArrayVal().AppendEmpty().SetBoolVal(true)
 
+	intArray := pdata.NewAttributeValueArray()
+	intArray.ArrayVal().AppendEmpty().SetIntVal(1234)
+	intArray.ArrayVal().AppendEmpty().SetIntVal(5678)
+
+	floatArray := pdata.NewAttributeValueArray()
+	floatArray.ArrayVal().AppendEmpty().SetDoubleVal(1234.5678)
+	floatArray.ArrayVal().AppendEmpty().SetDoubleVal(9123.234123123)
+
 	txEvent := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"string_array": stringArray,
 		"bool_array":   boolArray,
+		"int_array":    intArray,
+		"float_array":  floatArray,
 	})
-	assert.Equal(t, common.MapStr{
-		"bool_array":   []interface{}{false, true},
-		"string_array": []interface{}{"string1", "string2"},
+	assert.Equal(t, model.Labels{
+		"bool_array":   {Values: []string{"false", "true"}},
+		"string_array": {Values: []string{"string1", "string2"}},
 	}, txEvent.Labels)
+	assert.Equal(t, model.NumericLabels{
+		"int_array":   {Values: []float64{1234, 5678}},
+		"float_array": {Values: []float64{1234.5678, 9123.234123123}},
+	}, txEvent.NumericLabels)
 
 	spanEvent := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{
 		"string_array": stringArray,
 		"bool_array":   boolArray,
+		"int_array":    intArray,
+		"float_array":  floatArray,
 	})
-	assert.Equal(t, common.MapStr{
-		"bool_array":   []interface{}{false, true},
-		"string_array": []interface{}{"string1", "string2"},
+	assert.Equal(t, model.Labels{
+		"bool_array":   {Values: []string{"false", "true"}},
+		"string_array": {Values: []string{"string1", "string2"}},
 	}, spanEvent.Labels)
+	assert.Equal(t, model.NumericLabels{
+		"int_array":   {Values: []float64{1234, 5678}},
+		"float_array": {Values: []float64{1234.5678, 9123.234123123}},
+	}, spanEvent.NumericLabels)
 }
 
 func TestConsumeTracesExportTimestamp(t *testing.T) {

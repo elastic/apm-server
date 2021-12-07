@@ -1,6 +1,6 @@
 // Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
-// or more contributor license agreements. Licensed under the Elastic License;
-// you may not use this file except in compliance with the Elastic License.
+// or more contributor license agreements. Licensed under the Elastic License 2.0;
+// you may not use this file except in compliance with the Elastic License 2.0.
 
 package txmetrics
 
@@ -351,10 +351,15 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 		serviceEnvironment: event.Service.Environment,
 		serviceName:        event.Service.Name,
 		serviceVersion:     event.Service.Version,
+		serviceNodeName:    event.Service.Node.Name,
 
 		hostname:          event.Host.Hostname,
 		containerID:       event.Container.ID,
 		kubernetesPodName: event.Kubernetes.PodName,
+
+		cloudProvider:         event.Cloud.Provider,
+		cloudRegion:           event.Cloud.Region,
+		cloudAvailabilityZone: event.Cloud.AvailabilityZone,
 	}
 }
 
@@ -378,7 +383,13 @@ func makeMetricset(
 		Service: model.Service{
 			Name:        key.serviceName,
 			Version:     key.serviceVersion,
+			Node:        model.ServiceNode{Name: key.serviceNodeName},
 			Environment: key.serviceEnvironment,
+		},
+		Cloud: model.Cloud{
+			Provider:         key.cloudProvider,
+			Region:           key.cloudRegion,
+			AvailabilityZone: key.cloudAvailabilityZone,
 		},
 		Host: model.Host{
 			Hostname: key.hostname,
@@ -426,19 +437,23 @@ type metricsMapEntry struct {
 
 // NOTE(axw) the dimensions should be kept in sync with docs/metricset-indices.asciidoc.
 type transactionAggregationKey struct {
-	timestamp          time.Time
-	traceRoot          bool
-	agentName          string
-	containerID        string
-	hostname           string
-	kubernetesPodName  string
-	serviceEnvironment string
-	serviceName        string
-	serviceVersion     string
-	transactionName    string
-	transactionResult  string
-	transactionType    string
-	eventOutcome       string
+	timestamp             time.Time
+	traceRoot             bool
+	agentName             string
+	containerID           string
+	hostname              string
+	kubernetesPodName     string
+	cloudProvider         string
+	cloudRegion           string
+	cloudAvailabilityZone string
+	serviceEnvironment    string
+	serviceName           string
+	serviceVersion        string
+	serviceNodeName       string
+	transactionName       string
+	transactionResult     string
+	transactionType       string
+	eventOutcome          string
 }
 
 func (k *transactionAggregationKey) hash() uint64 {
@@ -453,9 +468,13 @@ func (k *transactionAggregationKey) hash() uint64 {
 	h.WriteString(k.containerID)
 	h.WriteString(k.hostname)
 	h.WriteString(k.kubernetesPodName)
+	h.WriteString(k.cloudProvider)
+	h.WriteString(k.cloudRegion)
+	h.WriteString(k.cloudAvailabilityZone)
 	h.WriteString(k.serviceEnvironment)
 	h.WriteString(k.serviceName)
 	h.WriteString(k.serviceVersion)
+	h.WriteString(k.serviceNodeName)
 	h.WriteString(k.transactionName)
 	h.WriteString(k.transactionResult)
 	h.WriteString(k.transactionType)

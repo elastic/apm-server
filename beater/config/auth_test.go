@@ -54,11 +54,12 @@ func TestAPIKeyAgentAuth_ESConfig(t *testing.T) {
 				Enabled:     true,
 				LimitPerMin: 100,
 				ESConfig: &elasticsearch.Config{
-					Hosts:      elasticsearch.Hosts{"localhost:9200"},
-					Protocol:   "http",
-					Timeout:    7 * time.Second,
-					MaxRetries: 3,
-					Backoff:    elasticsearch.DefaultBackoffConfig,
+					Hosts:            elasticsearch.Hosts{"localhost:9200"},
+					Protocol:         "http",
+					Timeout:          7 * time.Second,
+					MaxRetries:       3,
+					CompressionLevel: 5,
+					Backoff:          elasticsearch.DefaultBackoffConfig,
 				},
 				configured:   true,
 				esConfigured: true,
@@ -76,28 +77,27 @@ func TestAPIKeyAgentAuth_ESConfig(t *testing.T) {
 				Enabled:     true,
 				LimitPerMin: 20,
 				ESConfig: &elasticsearch.Config{
-					Timeout:    5 * time.Second,
-					Username:   "foo",
-					Password:   "bar",
-					Protocol:   "http",
-					Hosts:      elasticsearch.Hosts{"192.0.0.168:9200"},
-					MaxRetries: 3,
-					Backoff:    elasticsearch.DefaultBackoffConfig,
+					Timeout:          5 * time.Second,
+					Username:         "foo",
+					Password:         "bar",
+					Protocol:         "http",
+					Hosts:            elasticsearch.Hosts{"192.0.0.168:9200"},
+					MaxRetries:       3,
+					CompressionLevel: 5,
+					Backoff:          elasticsearch.DefaultBackoffConfig,
 				},
 				configured: true,
 			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			for _, key := range []string{"api_key", "auth.api_key"} {
-				input := common.NewConfig()
-				if tc.cfg != nil {
-					input.SetChild(key, -1, tc.cfg)
-				}
-				cfg, err := NewConfig(input, tc.esCfg)
-				require.NoError(t, err)
-				assert.Equal(t, tc.expectedConfig, cfg.AgentAuth.APIKey)
+			input := common.NewConfig()
+			if tc.cfg != nil {
+				input.SetChild("auth.api_key", -1, tc.cfg)
 			}
+			cfg, err := NewConfig(input, tc.esCfg)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedConfig, cfg.AgentAuth.APIKey)
 		})
 	}
 }
@@ -120,40 +120,35 @@ func TestAnonymousAgentAuth(t *testing.T) {
 					EventLimit: 300,
 					IPLimit:    1000,
 				},
-				configured: true,
+				enabledSet: false,
 			},
 		},
-		"deprecated_rum_allow_service_names": {
-			cfg: common.MustNewConfigFrom(`{"rum.allow_service_names":["service-two"]}`),
+		"rum_enabled_anon_inferred": {
+			cfg: common.MustNewConfigFrom(`{"auth.secret_token": "abc","rum.enabled":true,"auth.anonymous.allow_service":["service-one"]}`),
 			expectedConfig: AnonymousAgentAuth{
-				AllowAgent:   []string{"rum-js", "js-base"},
-				AllowService: []string{"service-two"},
-				RateLimit: RateLimit{
-					EventLimit: 300,
-					IPLimit:    1000,
-				},
-			},
-		},
-		"deprecated_rum_event_rate": {
-			cfg: common.MustNewConfigFrom(`{"rum.event_rate.limit":1,"rum.event_rate.lru_size":2}`),
-			expectedConfig: AnonymousAgentAuth{
-				AllowAgent: []string{"rum-js", "js-base"},
-				RateLimit: RateLimit{
-					EventLimit: 1,
-					IPLimit:    2,
-				},
-			},
-		},
-		"deprecated_rum_allow_service_names_conflict": {
-			cfg: common.MustNewConfigFrom(`{"auth.anonymous.allow_service":["service-one"], "rum.allow_service_names":["service-two"]}`),
-			expectedConfig: AnonymousAgentAuth{
+				Enabled:      true,
 				AllowAgent:   []string{"rum-js", "js-base"},
 				AllowService: []string{"service-one"},
 				RateLimit: RateLimit{
 					EventLimit: 300,
 					IPLimit:    1000,
 				},
-				configured: true,
+				enabledSet: false,
+			},
+		},
+		"rum_enabled_anon_disabled": {
+			cfg: common.MustNewConfigFrom(
+				`{"auth.secret_token":"abc","rum.enabled":true,"auth.anonymous.enabled":false,"auth.anonymous.allow_service":["service-one"]}`,
+			),
+			expectedConfig: AnonymousAgentAuth{
+				Enabled:      false,
+				AllowAgent:   []string{"rum-js", "js-base"},
+				AllowService: []string{"service-one"},
+				RateLimit: RateLimit{
+					EventLimit: 300,
+					IPLimit:    1000,
+				},
+				enabledSet: true,
 			},
 		},
 	} {
@@ -176,14 +171,6 @@ func TestSecretTokenAuth(t *testing.T) {
 		},
 		"secret_token_auth": {
 			cfg:      common.MustNewConfigFrom(`{"auth.secret_token":"token-one"}`),
-			expected: "token-one",
-		},
-		"deprecated_secret_token": {
-			cfg:      common.MustNewConfigFrom(`{"secret_token":"token-two"}`),
-			expected: "token-two",
-		},
-		"deprecated_secret_token_conflict": {
-			cfg:      common.MustNewConfigFrom(`{"auth.secret_token":"token-one","secret_token":"token-two"}`),
 			expected: "token-one",
 		},
 	} {

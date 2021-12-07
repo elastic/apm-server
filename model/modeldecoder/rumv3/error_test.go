@@ -97,9 +97,9 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		// do not overwrite client.ip if already set in metadata
 		ip := modeldecodertest.DefaultValues().IP
 		assert.Equal(t, ip, out.Client.IP, out.Client.IP.String())
-		assert.Equal(t, common.MapStr{
-			"init0": "init", "init1": "init", "init2": "init",
-			"overwritten0": "overwritten", "overwritten1": "overwritten",
+		assert.Equal(t, model.Labels{
+			"init0": {Value: "init"}, "init1": {Value: "init"}, "init2": {Value: "init"},
+			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
 		}, out.Labels)
 		// service and user values should be set
 		modeldecodertest.AssertStructValues(t, &out.Service, metadataExceptions("Node", "Agent.EphemeralID"), otherVal)
@@ -200,5 +200,13 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		input.Exception.Code.Set(123.456)
 		mapToErrorModel(&input, &out)
 		assert.Equal(t, "123", out.Error.Exception.Code)
+	})
+
+	t.Run("transaction-name", func(t *testing.T) {
+		var input errorEvent
+		var out model.APMEvent
+		input.Transaction.Name.Set("My Transaction")
+		mapToErrorModel(&input, &out)
+		assert.Equal(t, "My Transaction", out.Transaction.Name)
 	})
 }

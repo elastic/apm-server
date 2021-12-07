@@ -803,17 +803,21 @@ func (val *errorLog) validate() error {
 }
 
 func (val *errorTransactionRef) IsSet() bool {
-	return val.Sampled.IsSet() || val.Type.IsSet()
+	return val.Sampled.IsSet() || val.Name.IsSet() || val.Type.IsSet()
 }
 
 func (val *errorTransactionRef) Reset() {
 	val.Sampled.Reset()
+	val.Name.Reset()
 	val.Type.Reset()
 }
 
 func (val *errorTransactionRef) validate() error {
 	if !val.IsSet() {
 		return nil
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'t': validation rule 'maxLength(1024)' violated")
@@ -1009,11 +1013,10 @@ func (val *transactionMetricset) validate() error {
 }
 
 func (val *transactionMetricsetSamples) IsSet() bool {
-	return val.TransactionBreakdownCount.IsSet() || val.SpanSelfTimeCount.IsSet() || val.SpanSelfTimeSum.IsSet()
+	return val.SpanSelfTimeCount.IsSet() || val.SpanSelfTimeSum.IsSet()
 }
 
 func (val *transactionMetricsetSamples) Reset() {
-	val.TransactionBreakdownCount.Reset()
 	val.SpanSelfTimeCount.Reset()
 	val.SpanSelfTimeSum.Reset()
 }
@@ -1021,9 +1024,6 @@ func (val *transactionMetricsetSamples) Reset() {
 func (val *transactionMetricsetSamples) validate() error {
 	if !val.IsSet() {
 		return nil
-	}
-	if err := val.TransactionBreakdownCount.validate(); err != nil {
-		return errors.Wrapf(err, "xbc")
 	}
 	if err := val.SpanSelfTimeCount.validate(); err != nil {
 		return errors.Wrapf(err, "ysc")

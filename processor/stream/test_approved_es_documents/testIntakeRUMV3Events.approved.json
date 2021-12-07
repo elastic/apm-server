@@ -188,61 +188,6 @@
             "source": {
                 "ip": "192.0.0.1"
             },
-            "transaction": {
-                "breakdown.count": 1,
-                "name": "general-usecase-initial-p-load",
-                "type": "p-load"
-            },
-            "user": {
-                "email": "user@email.com",
-                "id": "123",
-                "name": "John Doe"
-            },
-            "user_agent": {
-                "original": "rum-2.0"
-            }
-        },
-        {
-            "@timestamp": "2018-08-01T10:00:00.000Z",
-            "agent": {
-                "name": "js-base",
-                "version": "4.8.1"
-            },
-            "client": {
-                "ip": "192.0.0.2"
-            },
-            "labels": {
-                "testTagKey": "testTagValue"
-            },
-            "network": {
-                "connection": {
-                    "type": "5G"
-                }
-            },
-            "processor": {
-                "event": "metric",
-                "name": "metric"
-            },
-            "service": {
-                "environment": "prod",
-                "framework": {
-                    "name": "angular",
-                    "version": "2"
-                },
-                "language": {
-                    "name": "javascript",
-                    "version": "6"
-                },
-                "name": "apm-a-rum-test-e2e-general-usecase",
-                "runtime": {
-                    "name": "v8",
-                    "version": "8.0"
-                },
-                "version": "0.0.1"
-            },
-            "source": {
-                "ip": "192.0.0.1"
-            },
             "span": {
                 "self_time": {
                     "count": 1,
@@ -377,9 +322,6 @@
                 },
                 "id": "bbd8bcc3be14d814",
                 "name": "Requesting and receiving the document",
-                "start": {
-                    "us": 4000
-                },
                 "subtype": "browser-timing",
                 "type": "hard-navigation"
             },
@@ -454,9 +396,6 @@
                 },
                 "id": "fc546e87a90a774f",
                 "name": "Parsing the document, executing sy. scripts",
-                "start": {
-                    "us": 14000
-                },
                 "subtype": "browser-timing",
                 "type": "hard-navigation"
             },
@@ -547,19 +486,8 @@
                 "duration": {
                     "us": 35060
                 },
-                "http": {
-                    "response": {
-                        "decoded_body_size": 676864,
-                        "encoded_body_size": 676864,
-                        "transfer_size": 677175
-                    }
-                },
-                "http.url.original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED",
                 "id": "fb8f717930697299",
                 "name": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
-                "start": {
-                    "us": 22534
-                },
                 "subtype": "script",
                 "type": "rc"
             },
@@ -637,9 +565,6 @@
                 },
                 "id": "9b80535c4403c9fb",
                 "name": "OpenTracing y",
-                "start": {
-                    "us": 96929
-                },
                 "type": "cu"
             },
             "timestamp": {
@@ -730,18 +655,8 @@
                 "duration": {
                     "us": 6724
                 },
-                "http": {
-                    "method": "GET",
-                    "response": {
-                        "status_code": 200
-                    }
-                },
-                "http.url.original": "http://localhost:8000/test/e2e/common/data.json?test=hamid",
                 "id": "5ecb8ee030749715",
                 "name": "GET /test/e2e/common/data.json",
-                "start": {
-                    "us": 98940
-                },
                 "subtype": "h",
                 "sync": true,
                 "type": "external"
@@ -837,18 +752,8 @@
                 "duration": {
                     "us": 11584
                 },
-                "http": {
-                    "method": "POST",
-                    "response": {
-                        "status_code": 200
-                    }
-                },
-                "http.url.original": "http://localhost:8003/data",
                 "id": "27f45fd274f976d4",
                 "name": "POST http://localhost:8003/data",
-                "start": {
-                    "us": 106520
-                },
                 "subtype": "h",
                 "sync": true,
                 "type": "external"
@@ -945,18 +850,8 @@
                 "duration": {
                     "us": 15949
                 },
-                "http": {
-                    "method": "POST",
-                    "response": {
-                        "status_code": 200
-                    }
-                },
-                "http.url.original": "http://localhost:8003/fetch",
                 "id": "a3c043330bc2015e",
                 "name": "POST http://localhost:8003/fetch",
-                "start": {
-                    "us": 119935
-                },
                 "subtype": "h",
                 "sync": false,
                 "type": "external"
@@ -1057,9 +952,6 @@
                         }
                     }
                 ],
-                "start": {
-                    "us": 120000
-                },
                 "subtype": "browser-timing",
                 "type": "hard-navigation"
             },

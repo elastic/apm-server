@@ -1,0 +1,380 @@
+[[common-problems]]
+== Common problems
+
+IMPORTANT: {deprecation-notice-data}
+
+This section describes common problems you might encounter with APM Server.
+
+* <<no-data-indexed>>
+* <<bad-request>>
+* <<event-too-large>>
+* <<unauthorized>>
+* <<forbidden>>
+* <<queue-full>>
+* <<request-timed-out>>
+* <<ssl-client-fails>>
+* <<field-limit-exceeded>>
+* <<io-timeout>>
+* <<server-es-down>>
+* <<server-resource-exists-not-alias>>
+
+[[no-data-indexed]]
+[float]
+=== No data is indexed
+If no data shows up in Elasticsearch, first check that the APM components are properly connected.
+
+To ensure that APM Server configuration is valid and it can connect to the configured output, Elasticsearch by default,
+run the following commands:
+
+["source","sh"]
+------------------------------------------------------------
+apm-server test config
+apm-server test output
+------------------------------------------------------------
+
+To see if the agent can connect to the APM Server, send requests to the instrumented service and look for lines
+containing `[request]` in the APM Server logs.
+
+If no requests are logged, it might be that SSL is <<ssl-client-fails, misconfigured>> or that the host is wrong.
+Particularly, if you are using Docker, ensure to bind to the right interface (for example, set
+`apm-server.host = 0.0.0.0:8200` to match any IP) and set the `SERVER_URL` setting in the agent accordingly.
+
+
+
+If you see requests coming through the APM Server but they are not accepted (response code other than `202`), consider
+the response code to narrow down the possible causes (see sections below).
+
+Another reason for data not showing up is that the agent is not auto-instrumenting something you were expecting, check
+the {apm-agents-ref}/index.html[agent documentation] for details on what is automatically instrumented.
+
+APM Server currently relies on Elasticsearch to create indices that do not exist.
+As a result, Elasticsearch must be configured to allow {ref}/docs-index_.html#index-creation[automatic index creation] for APM indices.
+
+[[bad-request]]
+[float]
+=== HTTP 400: Data decoding error / Data validation error
+
+The most likely cause for this error is using incompatible versions of APM agent and APM Server.
+See the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for more information.
+
+[[event-too-large]]
+[float]
+=== HTTP 400: Event too large
+
+APM agents communicate with the APM server by sending events in an HTTP request. Each event is sent as its own line in the HTTP request body. If events are too large, you should consider increasing the <<max_event_size,`max_event_size`>>
+setting in the APM Server, and adjusting relevant settings in the agent.
+
+[[unauthorized]]
+[float]
+=== HTTP 401: Invalid token
+
+The <<secret-token-legacy, secret token>> in the request header doesn't match the configured in the APM Server.
+
+[[forbidden]]
+[float]
+=== HTTP 403: Forbidden request
+
+Either you are sending requests to a <<configuration-rum, RUM>> endpoint without RUM enabled, or a request
+is coming from an origin not specified in `apm-server.rum.allow_origins`. See the <<configuration-rum, RUM configuration>>.
+
+[[queue-full]]
+[float]
+=== HTTP 503: Queue is full
+
+APM Server has an internal queue that helps to:
+
+* Buffer data temporarily if Elasticsearch is intermittently unavailable
+* Handle sudden large spikes of data
+* Send documents to Elasticsearch in bulk, instead of individually
+
+When the queue has reached the maximum size,
+APM Server returns an HTTP 503 status with the message "Queue is full".
+
+A full queue generally means that the agents collect more data than APM server can process.
+This might happen when APM Server is not configured properly for your Elasticsearch cluster size,
+or because your Elasticsearch cluster is underpowered or not configured properly for the given workload.
+
+The queue can also fill up if Elasticsearch runs out of disk space.
+
+If the APM Server only returns 503 responses, it indicates that an Elasticsearch disk might be full.
+If the APM Server returns interleaved 503 and 202 responses, it indicates that the APM Server can't process that much data.
+
+You have a few options to solve this problem:
+
+* <<reduce-storage, Reduce storage>>
+* <<tune-output-config>>
+* <<adjust-queue-size>>
+* <<tune-es, Tune Elasticsearch for higher ingestion>>
+
+[[request-timed-out]]
+[float]
+=== HTTP 503: Request timed out waiting to be processed
+
+This happens when APM Server exceeds the maximum number of requests that it can process concurrently.
+
+To alleviate this problem, you can try to:
+
+* <<reduce-sample-rate>>
+* <<reduce-stacktrace>>
+* <<reduce-payload-size>>
+* <<add-apm-server-instances>>
+
+[float]
+[[ssl-client-fails]]
+=== SSL client fails to connect
+
+The target host running might be unreachable or the certificate may not be valid. To resolve your issue:
+
+* Make sure that the APM Server process on the target host is running and you can connect to it.
+First, try to ping the target host to verify that you can reach it from the host running {beatname_uc}.
+Then use either `nc` or `telnet` to make sure that the port is available. For example:
++
+[source,shell]
+----------------------------------------------------------------------
+ping <hostname or IP>
+telnet <hostname or IP> 5044
+----------------------------------------------------------------------
+
+* Verify that the certificate is valid and that the hostname and IP match.
++
+
+* Use OpenSSL to test connectivity to the target server and diagnose problems.
+See the https://www.openssl.org/docs/manmaster/apps/s_client.html[OpenSSL documentation] for more info.
+
+[float]
+==== Common SSL-Related Errors and Resolutions
+
+Here are some common errors and ways to fix them:
+
+* <<cannot-validate-certificate,x509: cannot validate certificate>>
+* <<getsockopt-no-route-to-host,getsockopt: no route to host>>
+* <<getsockopt-connection-refused,getsockopt: connection refused>>
+* <<target-machine-refused-connection,No connection could be made because the target machine actively refused it>>
+
+[float]
+[[cannot-validate-certificate]]
+===== x509: cannot validate certificate for <IP address> because it doesn't contain any IP SANs
+
+This happens because your certificate is only valid for the hostname present in the Subject field.
+
+To resolve this problem, try one of these solutions:
+
+* Create a DNS entry for the hostname, mapping it to the server's IP.
+* Create an entry in `/etc/hosts` for the hostname. Or, on Windows, add an entry to
+`C:\Windows\System32\drivers\etc\hosts`.
+* Re-create the server certificate and add a SubjectAltName (SAN) for the IP address of the server. This makes the
+server's certificate valid for both the hostname and the IP address.
+
+[float]
+[[getsockopt-no-route-to-host]]
+===== getsockopt: no route to host
+
+This is not an SSL problem. It's a networking problem. Make sure the two hosts can communicate.
+
+[float]
+[[getsockopt-connection-refused]]
+===== getsockopt: connection refused
+
+This is not an SSL problem. Make sure that Logstash is running and that there is no firewall blocking the traffic.
+
+[float]
+[[target-machine-refused-connection]]
+===== No connection could be made because the target machine actively refused it
+
+A firewall is refusing the connection. Check if a firewall is blocking the traffic on the client, the network, or the
+destination host.
+
+[[field-limit-exceeded]]
+[float]
+=== Field limit exceeded
+
+When adding too many distinct tag keys on a transaction or span,
+you risk creating a link:{ref}/mapping.html#mapping-limit-settings[mapping explosion].
+
+For example,
+you should avoid that user-specified data,
+like URL parameters,
+is used as a tag key.
+Likewise,
+using the current timestamp or a user ID as a tag key is not a good idea.
+However,
+tag *values* with a high cardinality are not a problem.
+Just try to keep the number of distinct tag keys at a minimum.
+
+The symptom of a mapping explosion is that transactions and spans are not indexed anymore after a certain time.
+Usually,
+on the next day,
+the spans and transactions will be indexed again because a new index is created each day.
+But as soon as the field limit is reached,
+indexing stops again.
+
+In the agent logs,
+you won't see a sign of failures as the APM server asynchronously sends the data it received from the agents to Elasticsearch.
+However,
+the APM server and Elasticsearch log a warning like this:
+
+[source,logs]
+----
+{\"type\":\"illegal_argument_exception\",\"reason\":\"Limit of total fields [1000] in index [apm-7.0.0-transaction-2017.05.30] has been exceeded\"}
+----
+
+[[io-timeout]]
+[float]
+=== I/O Timeout
+
+I/O Timeouts can occur when your timeout settings across the stack are not configured correctly,
+especially when using a load balancer.
+
+You may see an error like the one below in the agent logs, and/or a similar error on the APM Server side:
+
+[source,logs]
+----------------------------------------------------------------------
+[ElasticAPM] APM Server responded with an error:
+"read tcp 123.34.22.313:8200->123.34.22.40:41602: i/o timeout"
+----------------------------------------------------------------------
+
+To fix this, ensure timeouts are incrementing from the {apm-agents-ref}[APM agent],
+through your load balancer, to the <<read_timeout,APM Server>>.
+
+By default, the agent timeouts are set at 10 seconds, and the server timeout is set at 30 seconds.
+Your load balancer should be set somewhere between these numbers.
+
+For example:
+
+[source,txt]
+----------------------------------------------------------------------
+APM agent --> Load Balancer  --> APM Server
+   10s            15s               30s
+----------------------------------------------------------------------
+
+[[server-es-down]]
+[float]
+=== What happens when APM Server or Elasticsearch is down?
+
+*If Elasticsearch is down*
+
+If Elasticsearch goes down, the APM Server will keep data in memory until Elasticsearch is back up,
+or until it runs out of space in its internal in-memory queue.
+You can <<adjust-queue-size,adjust the internal queue size>> if necessary.
+When the queue becomes full, APM Server will respond with <<queue-full,`HTTP 503: Queue is full`>>,
+and data will be lost.
+
+*If APM Server is down*
+
+Some agents have internal queues or buffers that will temporarily store data if the APM Server goes down.
+As a general rule of thumb, queues fill up quickly. Assume data will be lost if APM Server goes down.
+Adjusting these queues/buffers can increase the agent's overhead, so use caution when updating default values.
+
+* **Go agent** - Circular buffer with configurable size:
+{apm-go-ref}/configuration.html#config-api-buffer-size[`ELASTIC_APM_BUFFER_SIZE`].
+// * **iOS agent** - ??
+* **Java agent** - Internal buffer with configurable size:
+{apm-java-ref}/config-reporter.html#config-max-queue-size[`max_queue_size`].
+* **Node.js agent** - No internal queue. Data is lost.
+* **PHP agent** - No internal queue. Data is lost.
+* **Python agent** - Internal {apm-py-ref}/tuning-and-overhead.html#tuning-queue[Transaction queue]
+with configurable size and time between flushes.
+* **Ruby agent** - Internal queue with configurable size:
+{apm-ruby-ref}/configuration.html#config-api-buffer-size[`api_buffer_size`].
+* **RUM agent** - No internal queue. Data is lost.
+* **.NET agent** - No internal queue. Data is lost.
+
+[[server-resource-exists-not-alias]]
+[float]
+=== +resource \'apm-{version}-$type' exists, but it is not an alias+
+
+This error occurs when APM Server attempts to write to an index instead of an alias.
+One way this can happen, is when indices are manually deleted after APM Server's setup process.
+Another possibility is that indices were manually set up, but not properly linked with ILM.
+
+To fix this issue, perform the steps below. This example assumes +apm-{version}-transaction+ is the problem index.
+Update the steps with the index version and type that are specific to your error.
+
+. Block writes to the index:
++
+["source","sh",subs="attributes"]
+----
+PUT apm-{version}-transaction/_settings
+{
+  "settings": {
+    "index.blocks.write": true
+  }
+}
+----
+
+. Clone the index to retain data (optional)
++
+["source","sh",subs="attributes"]
+----
+POST apm-{version}-transaction/_clone/apm-{version}-transaction-original
+----
++
+You can check the progress of the clone with:
++
+["source","sh",subs="attributes"]
+----
+GET _cat/recovery/apm*transaction*?s=index&v=true&h=index,stage
+----
++
+When `stage: done`, you're ready to move on.
+
+. Create the new APM transaction index
++
+["source","sh",subs="attributes"]
+----
+PUT apm-{version}-transaction-000001
+----
+
+. Delete the index `apm-{version}-transaction` and create a write alias
++
+["source","sh",subs="attributes"]
+----
+POST _aliases
+{
+  "actions": [
+    {
+      "remove_index": { "index": "apm-{version}-transaction" }
+    },
+    {
+      "add": {
+        "index": "apm-{version}-transaction-000001",
+        "alias": "apm-{version}-transaction",
+        "is_write_index": true
+      }
+    },
+    {
+      "add": {
+        "index": "apm-{version}-transaction-original",
+        "alias": "apm-{version}-transaction",
+        "is_write_index": false
+      }
+    }
+]
+}
+----
+
+. Set the indexing complete on the cloned index
++
+["source","sh",subs="attributes"]
+----
+PUT apm-{version}-transaction-original/_settings
+{
+  "index.lifecycle.indexing_complete": true
+}
+----
+
+. APM Server will resume indexing to the write alias.
+Confirm that APM Server successfully resumes sending transactions:
++
+["source","sh",subs="attributes"]
+----
+GET _cat/aliases/apm*transaction*?s=index&v=true&h=alias,index,is_write_index
+----
++
+If successful, you'll see the following:
++
+["source","sh",subs="attributes"]
+----
+alias                 index                        is_write_index
+apm-{version}-transaction apm-{version}-transaction-000001 true
+----

@@ -883,6 +883,29 @@
       ],
       "maxLength": 1024
     },
+    "otel": {
+      "description": "OTel contains unmapped OpenTelemetry attributes.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "attributes": {
+          "description": "Attributes hold the unmapped OpenTelemetry attributes.",
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "span_kind": {
+          "description": "SpanKind holds the incoming OpenTelemetry span kind.",
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
     "outcome": {
       "description": "Outcome of the transaction with a limited set of permitted values, describing the success or failure of the transaction from the service's perspective. It is used for calculating error rates for incoming requests. Permitted values: success, failure, unknown.",
       "type": [

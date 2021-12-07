@@ -1,14 +1,14 @@
 format_version: 1.0.0
 name: apm
 title: Elastic APM
-version: 7.16.0
+version: generated
 license: basic
 description: Ingest APM data
 type: integration
 categories: ["elastic_stack", "monitoring"]
 release: ga
 conditions:
-  kibana.version: "^7.16.0"
+  kibana.version: generated
 icons:
   - src: /img/logo_apm.svg
     title: APM Logo
@@ -31,6 +31,9 @@ screenshots:
     title: apm app service map
     size: 1440x1025
     type: image/png
+elasticsearch:
+  privileges:
+    cluster: ['cluster:monitor/main']
 policy_templates:
   - name: apmserver
     title: Elastic APM Integration
@@ -67,10 +70,10 @@ policy_templates:
             multi: true
           - name: anonymous_rate_limit_event_limit
             type: integer
-            default: 10
+            default: 300
           - name: anonymous_rate_limit_ip_limit
             type: integer
-            default: 10000
+            default: 1000
           - name: default_service_environment
             type: text
           - name: rum_allow_origins
@@ -120,6 +123,13 @@ policy_templates:
           - name: expvar_enabled
             type: bool
             default: false
+          - name: java_attacher_discovery_rules
+            type: yaml
+          - name: java_attacher_agent_version
+            type: text
+          - name: java_attacher_enabled
+            type: bool
+            default: false
           - name: tls_enabled
             type: bool
             default: false
@@ -137,6 +147,10 @@ policy_templates:
           - name: tls_curve_types
             type: text
             multi: true
+          - name: tail_sampling_policies
+            type: yaml
+          - name: tail_sampling_interval
+            type: text
         template_path: template.yml.hbs
 owner:
   github: elastic/apm-server

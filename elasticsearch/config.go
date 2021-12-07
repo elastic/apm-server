@@ -58,17 +58,22 @@ type Config struct {
 	Headers      map[string]string `config:"headers"`
 	MaxRetries   int               `config:"max_retries"`
 
+	// CompressionLevel holds the gzip compression level used when bulk indexing
+	// with modelindexer; it is otherwise ignored.
+	CompressionLevel int `config:"compression_level" validate:"min=0, max=9"`
+
 	elasticsearch.Backoff `config:"backoff"`
 }
 
 // DefaultConfig returns a default config.
 func DefaultConfig() *Config {
 	return &Config{
-		Hosts:      []string{"localhost:9200"},
-		Protocol:   "http",
-		Timeout:    esConnectionTimeout,
-		MaxRetries: 3,
-		Backoff:    DefaultBackoffConfig,
+		Hosts:            []string{"localhost:9200"},
+		Protocol:         "http",
+		Timeout:          esConnectionTimeout,
+		MaxRetries:       3,
+		Backoff:          DefaultBackoffConfig,
+		CompressionLevel: 5,
 	}
 }
 

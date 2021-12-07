@@ -22,13 +22,14 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/headers"
+	"github.com/elastic/apm-server/internal/netutil"
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/utility"
 )
 
 const (
@@ -47,15 +48,28 @@ type Context struct {
 	Authentication auth.AuthenticationDetails
 	Result         Result
 
-	// SourceAddr holds the address of the (source) network peer.
-	SourceAddr net.Addr
+	// Timestamp holds the time at which the request was received by
+	// the server.
+	Timestamp time.Time
+
+	// SourceIP holds the IP address of the (source) network peer.
+	SourceIP net.IP
+
+	// SourceIP holds the port of the (source) network peer, or zero
+	// if unknown.
+	SourcePort int
 
 	// ClientIP holds the IP address of the originating client,
 	// as recorded in Forwarded, X-Forwarded-For, etc.
 	//
-	// For requests without one of the forwarded headers, this will
-	// have the same value as SourceIP.
+	// For TCP-based requests without one of the forwarded headers,
+	// this will have the same value as SourceIP.
 	ClientIP net.IP
+
+	// ClientPort holds the port of the originating client, as
+	// recorded in the Forwarded header. This will be zero unless
+	// the port is recorded in the Forwarded header.
+	ClientPort int
 
 	// UserAgent holds the User-Agent request header value.
 	UserAgent string
@@ -89,9 +103,14 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Result.Reset()
 
 	if r != nil {
-		c.SourceAddr = utility.ParseTCPAddr(r.RemoteAddr)
-		c.ClientIP = utility.ExtractIP(r)
-		c.UserAgent = utility.UserAgentHeader(r.Header)
+		ip, port := netutil.ParseIPPort(netutil.MaybeSplitHostPort(r.RemoteAddr))
+		c.SourceIP, c.ClientIP = ip, ip
+		c.SourcePort = int(port)
+		if ip, port := netutil.ClientAddrFromHeaders(r.Header); ip != nil {
+			c.ClientIP, c.ClientPort = ip, int(port)
+		}
+		c.UserAgent = strings.Join(r.Header["User-Agent"], ", ")
+		c.Timestamp = time.Now()
 	}
 }
 

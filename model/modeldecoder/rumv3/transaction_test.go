@@ -49,15 +49,14 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		eventBase := initializedMetadata()
 		eventBase.Timestamp = now
 		input := modeldecoder.Input{Base: eventBase}
-		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"xds":{"v":2048},"xbc":{"v":4096}}},{"sa":{"ysc":{"v":5}},"y":{"t":"span_type","su":"span_subtype"}}]}}`
+		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"ysc":{"v":5}},"y":{"t":"span_type","su":"span_subtype"}}]}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch model.Batch
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &batch))
-		require.Len(t, batch, 4) // 1 transaction, 2 metricsets, 1 span
+		require.Len(t, batch, 3) // 1 transaction, 1 metricset, 1 span
 		require.NotNil(t, batch[0].Transaction)
 		require.NotNil(t, batch[1].Metricset)
-		require.NotNil(t, batch[2].Metricset)
-		require.NotNil(t, batch[3].Span)
+		require.NotNil(t, batch[2].Span)
 
 		assert.Equal(t, "request", batch[0].Transaction.Type)
 		// fall back to request time
@@ -69,28 +68,22 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		// fields.
 		assert.Equal(t, &model.Metricset{}, batch[1].Metricset)
 		assert.Equal(t, &model.Transaction{
-			Name:           "tr-a",
-			Type:           "request",
-			BreakdownCount: 4096,
-		}, batch[1].Transaction)
-		assert.Equal(t, &model.Metricset{}, batch[2].Metricset)
-		assert.Equal(t, &model.Transaction{
 			Name: "tr-a",
 			Type: "request",
-		}, batch[2].Transaction)
+		}, batch[1].Transaction)
 		assert.Equal(t, &model.Span{
 			Type:     "span_type",
 			Subtype:  "span_subtype",
 			SelfTime: model.AggregatedDuration{Count: 5},
-		}, batch[2].Span)
-		assert.Equal(t, now, batch[2].Timestamp)
+		}, batch[1].Span)
+		assert.Equal(t, now, batch[1].Timestamp)
 
 		// ensure nested spans are decoded
 		start := time.Duration(20 * 1000 * 1000)
-		assert.Equal(t, now.Add(start), batch[3].Timestamp) //add start to timestamp
-		assert.Equal(t, "100", batch[3].Transaction.ID)
-		assert.Equal(t, "1", batch[3].Trace.ID)
-		assert.Equal(t, "100", batch[3].Parent.ID)
+		assert.Equal(t, now.Add(start), batch[2].Timestamp) // add start to timestamp
+		assert.Equal(t, "100", batch[2].Transaction.ID)
+		assert.Equal(t, "1", batch[2].Trace.ID)
+		assert.Equal(t, "100", batch[2].Parent.ID)
 
 		for _, event := range batch {
 			modeldecodertest.AssertStructValues(
@@ -172,9 +165,9 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, "d, e", out.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
 		assert.Equal(t, localhostIP, out.Client.IP, out.Client.IP.String())
-		assert.Equal(t, common.MapStr{
-			"init0": "init", "init1": "init", "init2": "init",
-			"overwritten0": "overwritten", "overwritten1": "overwritten",
+		assert.Equal(t, model.Labels{
+			"init0": {Value: "init"}, "init1": {Value: "init"}, "init2": {Value: "init"},
+			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
 		}, out.Labels)
 		// service values should be set
 		modeldecodertest.AssertStructValues(t, &out.Service, metadataExceptions("Node", "Agent.EphemeralID"), otherVal)
@@ -197,7 +190,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		exceptions := func(key string) bool {
 			for _, s := range []string{
 				// values not set for RUM v3
-				"RepresentativeCount", "Message", "DroppedSpansStats",
+				"Kind", "RepresentativeCount", "Message", "DroppedSpansStats",
 				// Not set for transaction events:
 				"AggregatedDuration",
 				"AggregatedDuration.Count",
@@ -240,6 +233,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		exceptions := func(key string) bool {
 			for _, s := range []string{
 				// values not set for RUM v3
+				"Kind",
 				"ChildIDs",
 				"Composite",
 				"DB",
@@ -383,5 +377,24 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			ID:       "session_id",
 			Sequence: 123,
 		}, out.Session)
+	})
+	t.Run("labels", func(t *testing.T) {
+		var input transaction
+		input.Context.Tags = common.MapStr{
+			"a": "b",
+			"c": float64(12315124131),
+			"d": 12315124131.12315124131,
+			"e": true,
+		}
+		var out model.APMEvent
+		mapToTransactionModel(&input, &out)
+		assert.Equal(t, model.Labels{
+			"a": {Value: "b"},
+			"e": {Value: "true"},
+		}, out.Labels)
+		assert.Equal(t, model.NumericLabels{
+			"c": {Value: float64(12315124131)},
+			"d": {Value: float64(12315124131.12315124131)},
+		}, out.NumericLabels)
 	})
 }

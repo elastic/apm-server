@@ -1,6 +1,6 @@
 // Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
-// or more contributor license agreements. Licensed under the Elastic License;
-// you may not use this file except in compliance with the Elastic License.
+// or more contributor license agreements. Licensed under the Elastic License 2.0;
+// you may not use this file except in compliance with the Elastic License 2.0.
 
 package pubsub
 
@@ -20,6 +20,10 @@ type Config struct {
 	// Client holds an Elasticsearch client, for indexing and searching for
 	// trace ID observations.
 	Client elasticsearch.Client
+
+	// CompressionLevel holds the gzip compression level to use when bulk indexing.
+	// See model/modelindexer.Config.CompressionLevel for details.
+	CompressionLevel int
 
 	// DataStream holds the data stream.
 	DataStream DataStreamConfig

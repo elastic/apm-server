@@ -1,0 +1,235 @@
+[[secure-agent-communication]]
+== Secure communication with APM agents
+
+Communication between APM agents and {agent} can be both encrypted and authenticated.
+It is strongly recommended to use both TLS encryption and authentication as secrets are sent as plain text.
+
+* <<agent-tls,TLS encryption>>
+* <<api-key,API key authentication>>
+* <<secret-token,Secret token authentication>>
+
+As soon as an authenticated communication is enabled,
+requests without a valid token or API key will be denied.
+If both API keys and a secret token are enabled, APM agents can choose whichever mechanism they support.
+
+In some use-cases, like when an APM agent is running on the client side,
+authentication is not possible. See <<anonymous-auth>> for more information.
+
+[[agent-tls]]
+=== APM agent TLS communication
+
+TLS is disabled by default.
+When TLS is enabled for APM Server inbound communication, agents will verify the identity
+of the APM Server by authenticating its certificate.
+
+Enable TLS in the APM integration configuration panel; a certificate and corresponding private key are required.
+The certificate and private key can either be issued by a trusted certificate authority (CA)
+or be <<agent-self-sign,self-signed>>.
+
+[float]
+[[agent-self-sign]]
+=== Use a self-signed certificate
+
+[float]
+[[agent-self-sign-1]]
+==== Step 1: Create a self-signed certificate
+
+The {es} distribution offers the `certutil` tool for the creation of self-signed certificates:
+
+1. Create a CA: `./bin/elasticsearch-certutil ca --pem`. You'll be prompted to enter the desired
+location of the output zip archive containing the certificate and the private key.
+2. Extract the contents of the CA archive.
+3. Create the self-signed certificate: `./bin/elasticsearch-certutil cert --ca-cert
+<path-to-ca-crt>/ca.crt --ca-key <path-to-ca-key>/ca.key --pem --name localhost`
+4. Extract the certificate and key from the resulted zip archive.
+
+[float]
+[[agent-self-sign-2]]
+==== Step 2: Configure the APM integration
+
+Configure the APM integration to point to the extracted certificate and key.
+
+[float]
+[[agent-self-sign-3]]
+==== Step 3: Configure APM agents
+
+When the APM server uses a certificate that is not chained to a publicly-trusted certificate
+(e.g. self-signed), additional configuration is required in the APM agent:
+
+* *Go agent*: certificate pinning through {apm-go-ref}/configuration.html#config-server-cert[`ELASTIC_APM_SERVER_CERT`]
+* *Python agent*: certificate pinning through {apm-py-ref}/configuration.html#config-server-cert[`server_cert`]
+* *Ruby agent*: certificate pinning through {apm-ruby-ref}/configuration.html#config-ssl-ca-cert[`server_ca_cert`]
+* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-server-cert[`ServerCert`]
+* *NodeJS agent*: custom CA setting through {apm-node-ref}/configuration.html#server-ca-cert-file[`serverCaCertFile`]
+* *Java agent*: adding the certificate to the JVM `trustStore`.
+See {apm-java-ref}/ssl-configuration.html#ssl-server-authentication[APM Server authentication] for more details.
+
+We do not recommend disabling APM agent verification of the server's certificate, but it is possible:
+
+* *Go agent*: {apm-go-ref}/configuration.html#config-verify-server-cert[`ELASTIC_APM_VERIFY_SERVER_CERT`]
+* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-verify-server-cert[`VerifyServerCert`]
+* *Java agent*: {apm-java-ref}/config-reporter.html#config-verify-server-cert[`verify_server_cert`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-verify-server-cert[`verify_server_cert`]
+* *Python agent*: {apm-py-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
+* *Ruby agent*: {apm-ruby-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
+* *NodeJS agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]
+
+[float]
+[[agent-client-cert]]
+=== Client certificate authentication
+
+APM Server does not require agents to provide a certificate for authentication,
+and there is no dedicated support for SSL/TLS client certificate authentication in Elastic’s backend agents.
+
+[[api-key]]
+=== API keys
+
+IMPORTANT: API keys are sent as plain-text,
+so they only provide security when used in combination with <<agent-tls,TLS>>.
+
+Enable API key authorization in the APM integration configuration panel.
+When enabled, API keys are used to authorize requests to the APM Server.
+
+You can assign one or more unique privileges to each API key:
+
+* *Agent configuration* (`config_agent:read`): Required for agents to read
+{kibana-ref}/agent-configuration.html[Agent configuration remotely].
+* *Ingest* (`event:write`): Required for ingesting agent events.
+
+To secure the communication between APM Agents and the APM Server with API keys,
+make sure <<agent-tls,TLS>> is enabled, then complete these steps:
+
+. <<enable-api-key,Enable API keys>>
+. <<create-an-api-key,Create an API key in {kib}>>
+. <<agent-api-key,Set the API key in your APM agents>>
+
+[[enable-api-key]]
+[float]
+=== Enable API keys
+
+Enable API key authorization in the APM integration configuration panel.
+You should also set a limit on the number of unique API keys that APM Server allows per minute;
+this value should be the number of unique API keys configured in your monitored services.
+
+[[create-an-api-key]]
+[float]
+=== Create an API key in {kib}
+
+[role="screenshot"]
+image::images/api-key-create.png[API key creation]
+
+In {kib}, navigate to **Stack Management** > **API keys** and click **Create API key**.
+
+Enter a name for your API key and select **Restrict privileges**.
+In the role descriptors box, copy and paste the following JSON.
+This example creates an API key with privileges for ingesting APM events
+and reading agent central configuration:
+
+[source,json]
+----
+{
+   "apm": {
+      "applications": [
+         {
+            "application": "apm",
+            "privileges": ["event:write", "config_agent:read"], <1>
+            "resources": ["*"]
+         }
+      ]
+   }
+}
+----
+<1> This example adds both API privileges to the new API key.
+Privileges are described <<api-key,above>>. Remove any privileges that you do not need.
+
+To set an expiration date for the API key, select **Expire after time**
+and input the lifetime of the API key in days.
+
+Click **Create API key** and then copy the Base64 encoded API key.
+You will need this for the next step, and you will not be able to view it again.
+
+[role="screenshot"]
+image::images/api-key-copy.png[API key copy base64]
+
+[[agent-api-key]]
+[float]
+=== Set the API key in your APM agents
+
+You can now apply your newly created API keys in the configuration of each of your APM agents.
+See the relevant agent documentation for additional information:
+
+// Not relevant for RUM and iOS
+* *Go agent*: {apm-go-ref}/configuration.html#config-api-key[`ELASTIC_APM_API_KEY`]
+* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-api-key[`ApiKey`]
+* *Java agent*: {apm-java-ref}/config-reporter.html#config-api-key[`api_key`]
+* *Node.js agent*: {apm-node-ref}/configuration.html#api-key[`apiKey`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-api-key[`api_key`]
+* *Python agent*: {apm-py-ref}/configuration.html#config-api-key[`api_key`]
+* *Ruby agent*: {apm-ruby-ref}/configuration.html#config-api-key[`api_key`]
+
+[[secret-token]]
+=== Secret token
+
+IMPORTANT: Secret tokens are sent as plain-text,
+so they only provide security when used in combination with <<agent-tls,TLS>>.
+
+Define a secret token in the APM integration configuration panel.
+When defined, secret tokens are used to authorize requests to the APM Server.
+Both the APM agent and APM integration must be configured with the same secret token for the request to be accepted.
+
+To secure the communication between APM agents and the APM Server with a secret token:
+
+. Make sure <<agent-tls,TLS>> is enabled
+. <<create-secret-token,Create a secret token>>
+. <<configure-secret-token,Configure the secret token in your APM agents>>
+
+NOTE: Secret tokens are not applicable for the RUM Agent,
+as there is no way to prevent them from being publicly exposed.
+
+[float]
+[[create-secret-token]]
+=== Create a secret token
+
+Define a secret token in the APM integration configuration panel.
+Alternatively, {ess} and {ece} deployments provision a secret token when the deployment is created.
+The secret token can be found and reset in the {ecloud} console under **Deployments** -- **APM & Fleet**.
+
+[[configure-secret-token]]
+[float]
+=== Configure the secret token in your APM agents
+
+Each Elastic APM agent has a configuration option to set the value of the secret token:
+
+* *Go agent*: {apm-go-ref}/configuration.html#config-secret-token[`ELASTIC_APM_SECRET_TOKEN`]
+* *iOS agent*: {apm-ios-ref-v}/configuration.html#secretToken[`secretToken`]
+* *Java agent*: {apm-java-ref}/config-reporter.html#config-secret-token[`secret_token`]
+* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-secret-token[`ELASTIC_APM_SECRET_TOKEN`]
+* *Node.js agent*: {apm-node-ref}/configuration.html#secret-token[`Secret Token`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-secret-token[`secret_token`]
+* *Python agent*: {apm-py-ref}/configuration.html#config-secret-token[`secret_token`]
+* *Ruby agent*: {apm-ruby-ref}/configuration.html#config-secret-token[`secret_token`]
+
+In addition to setting the secret token, ensure the configured server URL uses `HTTPS` instead of `HTTP`:
+
+* *Go agent*: {apm-go-ref}/configuration.html#config-server-url[`ELASTIC_APM_SERVER_URL`]
+* *Java agent*: {apm-java-ref}/config-reporter.html#config-server-urls[`server_urls`]
+* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-server-url[`ServerUrl`]
+* *Node.js agent*: {apm-node-ref}/configuration.html#server-url[`serverUrl`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-server-url[`server_url`]
+* *Python agent*: {apm-py-ref}/[`server_url`]
+* *Ruby agent*: {apm-ruby-ref}/configuration.html#config-server-url[`server_url`]
+
+
+[[anonymous-auth]]
+=== Anonymous authentication
+
+Elastic APM agents can send unauthenticated (anonymous) events to the APM Server.
+An event is considered to be anonymous if no authentication token can be extracted from the incoming request.
+By default, these anonymous requests are rejected and an authentication error is returned.
+
+In some cases, however, it makes sense to allow anonymous requests --
+for example, when using an agent that runs on the client, like the Real User Monitoring (RUM) agent running in a browser,
+or the iOS/Swift agent running in a user application.
+
+Because anyone can send anonymous events to the APM Server,
+additional configuration variables are available to rate limit the number anonymous events the APM Server processes.

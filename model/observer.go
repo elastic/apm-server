@@ -26,13 +26,12 @@ import (
 //
 // https://www.elastic.co/guide/en/ecs/current/ecs-observer.html
 type Observer struct {
-	EphemeralID  string
-	Hostname     string
-	ID           string
-	Name         string
-	Type         string
-	Version      string
-	VersionMajor int
+	EphemeralID string
+	Hostname    string
+	ID          string
+	Name        string
+	Type        string
+	Version     string
 }
 
 func (o *Observer) Fields() common.MapStr {
@@ -43,8 +42,5 @@ func (o *Observer) Fields() common.MapStr {
 	fields.maybeSetString("name", o.Name)
 	fields.maybeSetString("type", o.Type)
 	fields.maybeSetString("version", o.Version)
-	if o.VersionMajor > 0 {
-		fields.set("version_major", o.VersionMajor)
-	}
 	return common.MapStr(fields)
 }

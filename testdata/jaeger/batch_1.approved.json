@@ -12,7 +12,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_location": "728,326"
@@ -36,7 +38,7 @@
                 },
                 "id": "6e09e8bcefd6b828",
                 "name": "FindDriverIDs",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827704954062
@@ -55,7 +57,9 @@
             "data_stream.type": "logs",
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "event": "Found drivers",
@@ -90,7 +94,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T762465C"
@@ -114,7 +120,7 @@
                 },
                 "id": "333295bfb438ea03",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827704973809
@@ -142,7 +148,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "driver_id": "T762465C"
@@ -179,7 +187,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T762465C"
@@ -203,7 +213,7 @@
                 },
                 "id": "627c37a97e475c2f",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827705007578
@@ -224,7 +234,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T712515C"
@@ -248,7 +260,7 @@
                 },
                 "id": "7bd7663d39c5a847",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827705016845
@@ -269,7 +281,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T752110C"
@@ -293,7 +307,7 @@
                 },
                 "id": "6b4051dd2a5e2366",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827705029415
@@ -314,7 +328,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T757670C"
@@ -338,7 +354,7 @@
                 },
                 "id": "6df97a86b9b3451b",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827705040082
@@ -359,7 +375,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T781861C"
@@ -383,7 +401,7 @@
                 },
                 "id": "614811d6c498bfb0",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827705054046
@@ -411,7 +429,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "driver_id": "T781861C"
@@ -448,7 +468,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T781861C"
@@ -472,7 +494,7 @@
                 },
                 "id": "231604559da84d61",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827705089459
@@ -493,7 +515,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T705860C"
@@ -517,7 +541,7 @@
                 },
                 "id": "61f7ecf24d13c36a",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827705101278
@@ -538,7 +562,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T708771C"
@@ -562,7 +588,7 @@
                 },
                 "id": "2ef335bad24accc2",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827705113531
@@ -583,7 +609,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T710624C"
@@ -607,7 +635,7 @@
                 },
                 "id": "38ec645e7201224d",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827705125567
@@ -628,7 +656,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T752547C"
@@ -652,7 +682,7 @@
                 },
                 "id": "0242ee3774d9eab1",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827705132896
@@ -680,7 +710,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "driver_id": "T752547C"
@@ -717,7 +749,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T752547C"
@@ -741,7 +775,7 @@
                 },
                 "id": "6a63d1e81cfc7d95",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827705172618
@@ -762,7 +796,9 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13"
+                "ip": [
+                    "10.0.0.13"
+                ]
             },
             "labels": {
                 "param_driverID": "T757338C"
@@ -786,7 +822,7 @@
                 },
                 "id": "2b4c28f02b272f17",
                 "name": "GetDriver",
-                "type": "app"
+                "type": "unknown"
             },
             "timestamp": {
                 "us": 1576827705186670

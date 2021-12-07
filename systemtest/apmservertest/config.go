@@ -42,12 +42,11 @@ const (
 
 // Config holds APM Server configuration.
 type Config struct {
-	Jaeger                    *JaegerConfig      `json:"apm-server.jaeger,omitempty"`
 	Kibana                    *KibanaConfig      `json:"apm-server.kibana,omitempty"`
 	Aggregation               *AggregationConfig `json:"apm-server.aggregation,omitempty"`
 	Sampling                  *SamplingConfig    `json:"apm-server.sampling,omitempty"`
 	RUM                       *RUMConfig         `json:"apm-server.rum,omitempty"`
-	DataStreams               *DataStreamsConfig `json:"apm-server.data_streams,omitempty"`
+	WaitForIntegration        *bool              `json:"apm-server.data_streams.wait_for_integration,omitempty"`
 	DefaultServiceEnvironment string             `json:"apm-server.default_service_environment,omitempty"`
 	KibanaAgentConfig         *KibanaAgentConfig `json:"apm-server.agent.config,omitempty"`
 	TLS                       *TLSConfig         `json:"apm-server.ssl,omitempty"`
@@ -71,12 +70,6 @@ type Config struct {
 
 	// Output holds configuration for the libbeat output.
 	Output OutputConfig `json:"output"`
-
-	// Setup holds configuration for libbeat setup.
-	Setup *SetupConfig `json:"setup,omitempty"`
-
-	// Queue holds configuration for the libbeat event queue.
-	Queue QueueConfig `json:"queue"`
 }
 
 // Args formats cfg as a list of arguments to pass to apm-server,
@@ -132,19 +125,9 @@ type KibanaConfig struct {
 	Password string `json:"password,omitempty"`
 }
 
-// JaegerConfig holds APM Server Jaeger intake configuration.
-type JaegerConfig struct {
-	GRPCEnabled bool   `json:"grpc.enabled,omitempty"`
-	GRPCHost    string `json:"grpc.host,omitempty"`
-	GRPCAuthTag string `json:"grpc.auth_tag,omitempty"`
-	HTTPEnabled bool   `json:"http.enabled,omitempty"`
-	HTTPHost    string `json:"http.host,omitempty"`
-}
-
 // SamplingConfig holds APM Server trace sampling configuration.
 type SamplingConfig struct {
-	KeepUnsampled bool                `json:"keep_unsampled"`
-	Tail          *TailSamplingConfig `json:"tail,omitempty"`
+	Tail *TailSamplingConfig `json:"tail,omitempty"`
 }
 
 // TailSamplingConfig holds APM Server tail-based sampling configuration.
@@ -207,12 +190,6 @@ type RUMSourcemapConfig struct {
 // RUMSourcemapCacheConfig holds sourcemap cache expiration.
 type RUMSourcemapCacheConfig struct {
 	Expiration time.Duration `json:"expiration,omitempty"`
-}
-
-// DataStreamsConfig holds APM Server data streams configuration.
-type DataStreamsConfig struct {
-	Enabled            bool  `json:"enabled"`
-	WaitForIntegration *bool `json:"wait_for_integration,omitempty"`
 }
 
 // APIKeyConfig holds agent auth configuration.
@@ -304,7 +281,7 @@ type OutputConfig struct {
 	Elasticsearch *ElasticsearchOutputConfig `json:"elasticsearch,omitempty"`
 }
 
-// ConsolehOutputConfig holds APM Server libbeat console output configuration.
+// ConsoleOutputConfig holds APM Server libbeat console output configuration.
 type ConsoleOutputConfig struct {
 	Enabled bool `json:"enabled"`
 }
@@ -316,44 +293,29 @@ type ElasticsearchOutputConfig struct {
 	Username string   `json:"username,omitempty"`
 	Password string   `json:"password,omitempty"`
 	APIKey   string   `json:"api_key,omitempty"`
+
+	// modelindexer settings
+	FlushBytes    string        `json:"flush_bytes,omitempty"`
+	FlushInterval time.Duration `json:"flush_interval,omitempty"`
 }
 
-// SetupConfig holds APM Server libbeat setup configuration.
-type SetupConfig struct {
-	IndexTemplate IndexTemplateConfig `json:"template.settings.index"`
-}
-
-// IndexTemplateConfig holds APM Server libbeat index template setup configuration.
-type IndexTemplateConfig struct {
-	Shards          int    `json:"number_of_shards,omitempty"`
-	Replicas        int    `json:"number_of_replicas"`
-	RefreshInterval string `json:"refresh_interval,omitempty"`
-}
-
-// QueueConfig holds APM Server libbeat queue configuration.
-type QueueConfig struct {
-	Memory *MemoryQueueConfig `json:"mem,omitempty"`
-}
-
-// MemoryQueueConfig holds APM Server libbeat in-memory queue configuration.
-type MemoryQueueConfig struct {
-	Events         int
-	FlushMinEvents int
-	FlushTimeout   time.Duration
-}
-
-func (m *MemoryQueueConfig) MarshalJSON() ([]byte, error) {
-	// time.Duration is encoded as int64.
-	// Convert time.Durations to durations, to encode as duration strings.
-	type config struct {
-		Events         int    `json:"events"`
-		FlushMinEvents int    `json:"flush.min_events"`
-		FlushTimeout   string `json:"flush.timeout,omitempty"`
-	}
-	return json.Marshal(config{
-		Events:         m.Events,
-		FlushMinEvents: m.FlushMinEvents,
-		FlushTimeout:   durationString(m.FlushTimeout),
+func (c *ElasticsearchOutputConfig) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Enabled       bool     `json:"enabled"`
+		Hosts         []string `json:"hosts,omitempty"`
+		Username      string   `json:"username,omitempty"`
+		Password      string   `json:"password,omitempty"`
+		APIKey        string   `json:"api_key,omitempty"`
+		FlushBytes    string   `json:"flush_bytes,omitempty"`
+		FlushInterval string   `json:"flush_interval,omitempty"`
+	}{
+		Enabled:       c.Enabled,
+		Hosts:         c.Hosts,
+		Username:      c.Username,
+		Password:      c.Password,
+		APIKey:        c.APIKey,
+		FlushBytes:    c.FlushBytes,
+		FlushInterval: durationString(c.FlushInterval),
 	})
 }
 
@@ -390,7 +352,6 @@ type AggregationConfig struct {
 
 // TransactionAggregationConfig holds APM Server transaction metrics aggregation configuration.
 type TransactionAggregationConfig struct {
-	Enabled  bool
 	Interval time.Duration
 }
 
@@ -398,18 +359,15 @@ func (m *TransactionAggregationConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Enabled  bool   `json:"enabled"`
 		Interval string `json:"interval,omitempty"`
 	}
 	return json.Marshal(config{
-		Enabled:  m.Enabled,
 		Interval: durationString(m.Interval),
 	})
 }
 
 // ServiceDestinationAggregationConfig holds APM Server service destination metrics aggregation configuration.
 type ServiceDestinationAggregationConfig struct {
-	Enabled  bool
 	Interval time.Duration
 }
 
@@ -417,11 +375,9 @@ func (s *ServiceDestinationAggregationConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Enabled  bool   `json:"enabled"`
 		Interval string `json:"interval,omitempty"`
 	}
 	return json.Marshal(config{
-		Enabled:  s.Enabled,
 		Interval: durationString(s.Interval),
 	})
 }
@@ -497,18 +453,6 @@ func DefaultConfig() Config {
 			Password: getenvDefault("KIBANA_PASS", defaultKibanaPass),
 		},
 		Output: defaultOutputConfig(),
-		Setup: &SetupConfig{
-			IndexTemplate: IndexTemplateConfig{
-				Shards:          1,
-				RefreshInterval: "250ms",
-			},
-		},
-		Queue: QueueConfig{
-			Memory: &MemoryQueueConfig{
-				Events:         4096,
-				FlushMinEvents: 0, // flush immediately
-			},
-		},
 	}
 }
 
@@ -530,6 +474,8 @@ func defaultOutputConfig() OutputConfig {
 			)},
 			Username: getenvDefault("ES_USER", defaultElasticsearchUser),
 			Password: getenvDefault("ES_PASS", defaultElasticsearchPass),
+			// Lower the flush interval to 1ms to avoid delaying the tests.
+			FlushInterval: time.Millisecond,
 		}
 	default:
 		panic("APMSERVERTEST_DEFAULT_OUTPUT has unexpected value: " + v)

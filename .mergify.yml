@@ -1,3 +1,7 @@
+queue_rules:
+  - name: default
+    conditions:
+      - check-success=apm-ci/pr-merge
 pull_request_rules:
   - name: ask to resolve conflict
     conditions:
@@ -13,17 +17,29 @@ pull_request_rules:
             git merge upstream/{{base}}
             git push upstream {{head}}
             ```
-  - name: backport patches to 7.x branch
+  - name: backport patches to 8.0 branch
     conditions:
       - merged
       - base=master
-      - label=backport-7.x
+      - label=backport-8.0
     actions:
       backport:
         assignees:
           - "{{ author }}"
         branches:
-          - "7.x"
+          - "8.0"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 7.16 branch
+    conditions:
+      - merged
+      - base=master
+      - label=backport-7.16
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "7.16"
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
   - name: backport patches to 7.15 branch
     conditions:
@@ -67,9 +83,9 @@ pull_request_rules:
       - label=automation
       - files=docker-compose.yml
     actions:
-      merge:
+      queue:
         method: squash
-        strict: smart+fasttrack
+        name: default
   - name: delete upstream branch with changes on docker-compose.yml after merging/closing it
     conditions:
       - or:
@@ -88,9 +104,9 @@ pull_request_rules:
       - base~=^update-beats
       - files~=^(go.mod|go.sum|NOTICE.txt)
     actions:
-      merge:
+      queue:
         method: squash
-        strict: smart+fasttrack
+        name: default
   - name: delete upstream branch after merging changes for the make update-beats
     conditions:
       - or:
@@ -125,3 +141,14 @@ pull_request_rules:
       label:
         remove:
           - backport-skip
+  - name: notify the backport has not been merged yet
+    conditions:
+      - -merged
+      - -closed
+      - author=mergify[bot]
+      - "#check-success>0"
+      - schedule=Mon-Mon 06:00-10:00[Europe/Paris]
+    actions:
+      comment:
+        message: |
+          This pull request has not been merged yet. Could you please review and merge it @{{ assignee | join(', @') }}? 🙏

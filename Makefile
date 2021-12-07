@@ -2,13 +2,14 @@
 # Variables used for various build targets.
 ##############################################################################
 
-# Enforce use of modules.
-export GO111MODULE=on
-
 # Ensure the Go version in .go_version is installed and used.
 GOROOT?=$(shell ./script/run_with_go_ver go env GOROOT)
 GO:=$(GOROOT)/bin/go
 export PATH:=$(GOROOT)/bin:$(PATH)
+
+# By default we run tests with verbose output. This may be overridden, e.g.
+# scripts may set GOTESTFLAGS=-json to format test output for processing.
+GOTESTFLAGS?=-v
 
 GOOSBUILD:=./build/$(shell $(GO) env GOOS)
 APPROVALS=$(GOOSBUILD)/approvals
@@ -24,6 +25,8 @@ ELASTICPACKAGE=$(GOOSBUILD)/elastic-package
 PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
 PYTHON=$(PYTHON_BIN)/python
+
+APM_SERVER_VERSION=$(shell grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '" ')
 
 # Create a local config.mk file to override configuration,
 # e.g. for setting "GOLINT_UPSTREAM".
@@ -43,17 +46,13 @@ apm-server:
 apm-server-oss:
 	@$(GO) build -o $@
 
-.PHONY: apm-server.test
-apm-server.test:
-	$(GO) test -c -coverpkg=github.com/elastic/apm-server/... ./x-pack/apm-server
-
-.PHONY: apm-server-oss.test
-apm-server-oss.test:
-	$(GO) test -c -coverpkg=github.com/elastic/apm-server/...
-
 .PHONY: test
 test:
-	$(GO) test -v ./...
+	$(GO) test $(GOTESTFLAGS) ./...
+
+.PHONY: system-test
+system-test:
+	@(cd systemtest; $(GO) test $(GOTESTFLAGS) -timeout=20m ./...)
 
 .PHONY:
 clean: $(MAGE)
@@ -63,14 +62,6 @@ clean: $(MAGE)
 # Checks/tests.
 ##############################################################################
 
-# SYSTEM_TEST_TARGET is passed to nosetests in "system-tests".
-#
-# This may be overridden to specify which tests to run.
-SYSTEM_TEST_TARGET?=./tests/system
-
-# PYTEST_OPTIONS is passed to pytest in "system-tests".
-PYTEST_OPTIONS?=--timeout=90 --durations=20 --junit-xml=build/TEST-system.xml
-
 .PHONY: check-full
 check-full: update check golint staticcheck check-docker-compose
 
@@ -79,54 +70,20 @@ check-approvals: $(APPROVALS)
 	@$(APPROVALS)
 
 .PHONY: check
-check: $(MAGE) check-fmt check-headers check-package
+check: $(MAGE) check-fmt check-headers
 	@$(MAGE) check
 
 .PHONY: bench
 bench:
 	@$(GO) test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
 
-.PHONY: system-tests
-system-tests: $(PYTHON_BIN) apm-server.test
-	INTEGRATION_TESTS=1 TZ=UTC $(PYTHON_BIN)/pytest $(PYTEST_OPTIONS) $(SYSTEM_TEST_TARGET)
-
-.PHONY: docker-system-tests
-docker-system-tests: export SYSTEM_TEST_TARGET:=$(SYSTEM_TEST_TARGET)
-docker-system-tests: docker-compose.override.yml
-	docker-compose build
-	docker-compose run --rm -T beat make system-tests
-
-# docker-compose.override.yml holds overrides for docker-compose.yml.
-#
-# Create this to ensure the UID used inside docker-compose is the same
-# as the current user on the host, so files are created with the same
-# privileges.
-#
-# Note that this target is intentionally non-.PHONY, so that users can
-# modify the resulting file without it being overwritten. To recreate
-# the file, remove it.
-docker-compose.override.yml:
-	printf "version: '2.3'\nservices:\n beat:\n  build:\n   args: [UID=%d]" $(shell id -u) > $@
-
 ##############################################################################
-# Rules for updating config files, fields.yml, etc.
+# Rules for updating config files, etc.
 ##############################################################################
 
-update: fields go-generate add-headers copy-docs gen-package notice $(MAGE)
+update: go-generate add-headers build-package notice $(MAGE)
 	@$(MAGE) update
-
-fields_sources=\
-  $(shell find model -name fields.yml) \
-  $(shell find x-pack/apm-server/fields -name fields.yml)
-
-.PHONY: gen-package gen-package-only
-gen-package: gen-package-only format-package build-package
-gen-package-only: $(GENPACKAGE)
-	@$(GENPACKAGE)
-
-fields: include/fields.go x-pack/apm-server/include/fields.go
-include/fields.go x-pack/apm-server/include/fields.go: $(MAGE) magefile.go $(fields_sources)
-	@$(MAGE) fields
+	@go mod download all # make sure go.sum is complete
 
 config: apm-server.yml apm-server.docker.yml
 apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml
@@ -134,7 +91,7 @@ apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml
 
 .PHONY: go-generate
 go-generate:
-	@$(GO) generate . ./ingest/pipeline
+	@$(GO) generate .
 
 notice: NOTICE.txt
 NOTICE.txt: $(PYTHON) go.mod tools/go.mod
@@ -144,37 +101,26 @@ NOTICE.txt: $(PYTHON) go.mod tools/go.mod
 add-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
 	@$(GOLICENSER) -exclude x-pack -exclude internal/otel_collector
-	@$(GOLICENSER) -license Elastic x-pack
+	@$(GOLICENSER) -license Elasticv2 x-pack
 endif
 
 ## get-version : Get the apm server version
 .PHONY: get-version
 get-version:
-	@grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '"'
+	@echo $(APM_SERVER_VERSION)
 
 ##############################################################################
 # Documentation.
 ##############################################################################
 
 .PHONY: docs
-docs: copy-docs
+docs:
 	@rm -rf build/html_docs
 	sh script/build_apm_docs.sh apm-server docs/index.asciidoc build
 
 .PHONY: update-beats-docs
 update-beats-docs: $(PYTHON)
 	@$(PYTHON) script/copy-docs.py
-
-.PHONY: copy-docs
-copy-docs:
-	@mkdir -p docs/data/intake-api/generated/sourcemap
-	@cp testdata/intake-v2/events.ndjson docs/data/intake-api/generated/
-	@cp testdata/intake-v3/rum_events.ndjson docs/data/intake-api/generated/rum_v3_events.ndjson
-	@cp testdata/sourcemap/bundle.js.map docs/data/intake-api/generated/sourcemap/
-	@mkdir -p docs/data/elasticsearch/generated/
-	@cp tests/system/error.approved.json docs/data/elasticsearch/generated/errors.json
-	@cp tests/system/transaction.approved.json docs/data/elasticsearch/generated/transactions.json
-	@cp tests/system/spans.approved.json docs/data/elasticsearch/generated/spans.json
 
 ##############################################################################
 # Beats synchronisation.
@@ -219,20 +165,20 @@ check-changelogs: $(PYTHON)
 check-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
 	@$(GOLICENSER) -d -exclude build -exclude x-pack -exclude internal/otel_collector
-	@$(GOLICENSER) -d -exclude build -license Elastic x-pack
+	@$(GOLICENSER) -d -exclude build -license Elasticv2 x-pack
 endif
 
 .PHONY: check-docker-compose
 check-docker-compose: $(PYTHON_BIN)
 	@PATH=$(PYTHON_BIN):$(PATH) ./script/check_docker_compose.sh $(BEATS_VERSION)
 
-.PHONY: check-package format-package build-package
-check-package: $(ELASTICPACKAGE)
-	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) check)
+.PHONY: format-package build-package
 format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
-	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) build)
+	@rm -fr ./build/integrations/apm/* ./build/apmpackage
+	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_VERSION)
+	@(cd ./build/apmpackage; $(CURDIR)/$(ELASTICPACKAGE) build && $(CURDIR)/$(ELASTICPACKAGE) check)
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
 check-fmt: check-gofmt check-autopep8
@@ -262,10 +208,6 @@ $(BIN_MAGE): go.mod
 $(MAGE): magefile.go $(BIN_MAGE)
 	$(BIN_MAGE) -compile=$@
 
-.PHONY: $(GENPACKAGE)
-$(GENPACKAGE):
-	@$(GO) build -o $@ github.com/elastic/apm-server/apmpackage/cmd/gen-package
-
 $(GOLINT): go.mod
 	$(GO) build -o $@ golang.org/x/lint/golint
 
@@ -282,7 +224,7 @@ $(REVIEWDOG): tools/go.mod
 	$(GO) build -o $@ -modfile=$< github.com/reviewdog/reviewdog/cmd/reviewdog
 
 $(ELASTICPACKAGE): tools/go.mod
-	$(GO) build -o $@ -modfile=$< github.com/elastic/elastic-package
+	$(GO) build -o $@ -modfile=$< -ldflags '-X github.com/elastic/elastic-package/internal/version.CommitHash=anything' github.com/elastic/elastic-package
 
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
@@ -306,7 +248,28 @@ release-manager-snapshot: release
 .PHONY: release-manager-release
 release-manager-release: release
 
+JAVA_ATTACHER_VERSION:=1.27.0
+JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
+JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
+JAVA_ATTACHER_BASE_URL:=https://repo1.maven.org/maven2/co/elastic/apm/apm-agent-attach-cli
+JAVA_ATTACHER_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_JAR)
+JAVA_ATTACHER_SIG_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_SIG)
+
+APM_AGENT_JAVA_PUB_KEY:=apm-agent-java-public-key.asc
+
+.imported-java-agent-pubkey:
+	@gpg --import $(APM_AGENT_JAVA_PUB_KEY)
+	@touch $@
+
+build/$(JAVA_ATTACHER_SIG):
+	curl -sSL $(JAVA_ATTACHER_SIG_URL) > $@
+
+build/$(JAVA_ATTACHER_JAR): build/$(JAVA_ATTACHER_SIG) .imported-java-agent-pubkey
+	curl -sSL $(JAVA_ATTACHER_URL) > $@
+	gpg --verify $< $@
+	@cp $@ build/java-attacher.jar
+
 .PHONY: release
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
-release: $(MAGE)
+release: $(MAGE) build/$(JAVA_ATTACHER_JAR)
 	$(MAGE) package

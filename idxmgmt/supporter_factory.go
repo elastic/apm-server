@@ -22,165 +22,92 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common/fmtstr"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/beats/v7/libbeat/template"
+	"github.com/elastic/beats/v7/libbeat/outputs"
+	"github.com/elastic/beats/v7/libbeat/outputs/outil"
 
-	"github.com/elastic/apm-server/idxmgmt/ilm"
-	"github.com/elastic/apm-server/idxmgmt/unmanaged"
+	"github.com/elastic/apm-server/datastreams"
 	logs "github.com/elastic/apm-server/log"
 )
 
-type IndexManagementConfig struct {
-	DataStreams bool
-	Template    template.TemplateConfig
-	ILM         ilm.Config
-	Output      common.ConfigNamespace
-
-	unmanagedIdxCfg                 unmanaged.Config
-	registerIngestPipelineSpecified bool
-	setupTemplateSpecified          bool
-	ilmSpecified                    bool
-}
-
-// MakeDefaultSupporter creates a new idxmgmt.Supporter, using the given root config.
-//
-// The Supporter will operate in one of three modes: data streams, legacy
-// managed, and legacy unmanaged. The legacy modes exist purely to run
-// apm-server without data streams or Fleet integration.
-//
-// If (Fleet) management is enabled, then any index, template, and ILM config
-// defined will be ignored and warnings logged. Index (data stream) names will
-// be well defined, based on the data type, service name, and user-defined
-// namespace.
-//
-// If management is disabled, then the Supporter will operate in one of the
-// legacy modes based on configuration.
-func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.Config) (idxmgmt.Supporter, error) {
-	cfg, err := NewIndexManagementConfig(info, configRoot)
-	if err != nil {
-		return nil, err
-	}
-	log = namedLogger(log)
-	cfg.logWarnings(log)
-	if cfg.DataStreams {
-		return dataStreamsSupporter{}, nil
-	}
-	return newSupporter(log, info, cfg)
-}
-
-func namedLogger(log *logp.Logger) *logp.Logger {
+// NewSupporter creates a new idxmgmt.Supporter which directs all events
+// to data streams. The given root config will be checked for deprecated/removed
+// configuration, and if any are present warnings will be logged.
+func NewSupporter(log *logp.Logger, info beat.Info, configRoot *common.Config) (idxmgmt.Supporter, error) {
 	if log == nil {
-		return logp.NewLogger(logs.IndexManagement)
+		log = logp.NewLogger(logs.IndexManagement)
+	} else {
+		log = log.Named(logs.IndexManagement)
 	}
-	return log.Named(logs.IndexManagement)
+	if configRoot != nil {
+		logWarnings(log, configRoot)
+	}
+	return dataStreamsSupporter{}, nil
 }
 
-// NewIndexManagementConfig extracts and validates index management config from info and configRoot.
-func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*IndexManagementConfig, error) {
-	var cfg struct {
-		DataStreams            *common.Config         `config:"apm-server.data_streams"`
-		RegisterIngestPipeline *common.Config         `config:"apm-server.register.ingest.pipeline"`
-		ILM                    *common.Config         `config:"apm-server.ilm"`
-		Template               *common.Config         `config:"setup.template"`
-		Output                 common.ConfigNamespace `config:"output"`
+func logWarnings(log *logp.Logger, cfg *common.Config) {
+	type deprecatedConfig struct {
+		name string
+		info string
 	}
-
-	var setupTemplateSpecified bool
-	if configRoot != nil {
-		ok, err := configRoot.Has("setup.template", -1)
+	deprecatedConfigs := []deprecatedConfig{
+		{"apm-server.data_streams.enabled", "data streams are always enabled"},
+		{"apm-server.ilm", "ILM policies are managed by Fleet"},
+		{"apm-server.register.ingest.pipeline", "ingest pipelines are managed by Fleet"},
+		{"output.elasticsearch.index", "indices cannot be customised, APM Server now produces data streams"},
+		{"output.elasticsearch.indices", "indices cannot be customised, APM Server now produces data streams"},
+		{"setup.template", "index templates are managed by Fleet"},
+	}
+	format := "`%s` specified, but was removed in 8.0 and will be ignored: %s"
+	for _, deprecated := range deprecatedConfigs {
+		ok, err := cfg.Has(deprecated.name, -1)
 		if err != nil {
-			return nil, err
+			log.Warn(err)
+		} else if ok {
+			log.Warnf(format, deprecated.name, deprecated.info)
 		}
-		setupTemplateSpecified = ok
 	}
+}
 
-	configRoot, err := mergeDefaultConfig(configRoot)
+type dataStreamsSupporter struct{}
+
+// BuildSelector returns an outputs.IndexSelector which routes events through
+// to data streams based on well-defined data_stream.* fields in events.
+func (dataStreamsSupporter) BuildSelector(*common.Config) (outputs.IndexSelector, error) {
+	fmtstr, err := fmtstr.CompileEvent(datastreams.IndexFormat)
 	if err != nil {
-		return nil, errors.Wrap(err, "merging config defaults failed")
-	}
-	if err := configRoot.Unpack(&cfg); err != nil {
 		return nil, err
 	}
-
-	templateConfig := template.DefaultConfig()
-	if err := cfg.Template.Unpack(&templateConfig); err != nil {
-		return nil, errors.Wrap(err, "unpacking template config failed")
-	}
-
-	ilmConfig, err := ilm.NewConfig(info, cfg.ILM)
+	expr, err := outil.FmtSelectorExpr(fmtstr, "", outil.SelectorLowerCase)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating ILM config fails")
+		return nil, err
 	}
-
-	var unmanagedIdxCfg unmanaged.Config
-	if cfg.Output.Name() == esKey {
-		if err := cfg.Output.Config().Unpack(&unmanagedIdxCfg); err != nil {
-			return nil, errors.Wrap(err, "failed to unpack output.elasticsearch config")
-		}
-		if err := checkTemplateESSettings(templateConfig, &unmanagedIdxCfg); err != nil {
-			return nil, err
-		}
-	}
-
-	return &IndexManagementConfig{
-		DataStreams: cfg.DataStreams.Enabled(),
-		Output:      cfg.Output,
-		Template:    templateConfig,
-		ILM:         ilmConfig,
-
-		unmanagedIdxCfg:                 unmanagedIdxCfg,
-		registerIngestPipelineSpecified: cfg.RegisterIngestPipeline != nil,
-		setupTemplateSpecified:          setupTemplateSpecified,
-		ilmSpecified:                    cfg.ILM != nil,
-	}, nil
+	return outil.MakeSelector(expr), nil
 }
 
-func checkTemplateESSettings(tmplCfg template.TemplateConfig, indexCfg *unmanaged.Config) error {
-	if !tmplCfg.Enabled || indexCfg == nil {
-		return nil
-	}
-	if indexCfg.Index != "" && (tmplCfg.Name == "" || tmplCfg.Pattern == "") {
-		return errors.New("`setup.template.name` and `setup.template.pattern` have to be set if `output.elasticsearch` index name is modified")
-	}
-	return nil
+// Enabled always returns false, indicating that this idxmgmt.Supporter does
+// not setting up templates or ILM policies.
+func (dataStreamsSupporter) Enabled() bool {
+	return false
 }
 
-func (cfg *IndexManagementConfig) logWarnings(log *logp.Logger) {
-	format := "deprecated config `%s` specified. This config will be removed in 8.0."
-	if cfg.DataStreams {
-		format = "`%s` specified, but will be ignored as data streams are enabled"
-	}
-	if cfg.setupTemplateSpecified {
-		log.Warnf(format, "setup.template")
-	}
-	if cfg.ilmSpecified {
-		log.Warnf(format, "apm-server.ilm")
-	}
-	if cfg.registerIngestPipelineSpecified {
-		log.Warnf(format, "apm-server.register.ingest.pipeline")
-	}
-	if cfg.unmanagedIdxCfg.Customized() {
-		log.Warnf(format, "output.elasticsearch.{index,indices}")
-	}
+// Manager returns a no-op idxmgmt.Manager.
+func (dataStreamsSupporter) Manager(client idxmgmt.ClientHandler, assets idxmgmt.Asseter) idxmgmt.Manager {
+	return dataStreamsManager{}
 }
 
-func mergeDefaultConfig(configRoot *common.Config) (*common.Config, error) {
-	defaultConfig := common.MustNewConfigFrom(`
-setup.template.settings:
-  index:
-    codec: best_compression
-    mapping.total_fields.limit: 2000
-    number_of_shards: 1
-  _source.enabled: true`)
-	if configRoot == nil {
-		return defaultConfig, nil
-	}
-	// NOTE(axw) it's important that we merge onto the root config,
-	// due to how config variable resolution works; variables are
-	// resolved using the root of the left-most config in the merge.
-	//
-	// We merge the root config back over the defaults to ensure
-	// user-defined config takes precedence.
-	return common.MergeConfigs(configRoot, defaultConfig, configRoot)
+type dataStreamsManager struct{}
+
+// VerifySetup always returns true and an empty string, to avoid logging
+// duplicate warnings.
+func (dataStreamsManager) VerifySetup(template, ilm idxmgmt.LoadMode) (bool, string) {
+	// Just return true to avoid logging warnings. We'll error out in Setup.
+	return true, ""
+}
+
+// Setup will always return an error, in response to manual setup (i.e. `apm-server setup`).
+func (dataStreamsManager) Setup(template, ilm idxmgmt.LoadMode) error {
+	return errors.New("index setup must be performed externally when using data streams, by installing the 'apm' integration package")
 }

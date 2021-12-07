@@ -25,6 +25,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
+	"go.opentelemetry.io/collector/model/otlpgrpc"
+	"go.opentelemetry.io/collector/model/pdata"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric"
@@ -42,6 +45,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -66,16 +70,18 @@ func init() {
 }
 
 func TestOTLPGRPCTraces(t *testing.T) {
-	withDataStreams(t, testOTLPGRPCTraces)
-}
-
-func testOTLPGRPCTraces(t *testing.T, srv *apmservertest.Server) {
-	srv.Start()
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServer(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	resource, err := resource.Merge(resource.Default(), sdkresource.NewSchemaless(
 		attribute.StringSlice("resource_attribute_array", []string{"a", "b"}),
+		attribute.Bool("resource_attribute_bool", true),
+		attribute.BoolSlice("resource_attribute_bool_array", []bool{true, false}),
+		attribute.Float64("resource_attribute_float", 123456.789),
+		attribute.Float64Slice("resource_attribute_float_array", []float64{123456.789, 987654321.123456789}),
+		attribute.Int64("resource_attribute_int", 123456),
 	))
 	require.NoError(t, err)
 
@@ -90,13 +96,8 @@ func testOTLPGRPCTraces(t *testing.T, srv *apmservertest.Server) {
 	})
 	require.NoError(t, err)
 
-	expectMin := 1
-	if srv.Config.DataStreams != nil && srv.Config.DataStreams.Enabled {
-		expectMin++ // span events only indexed into data streams
-	}
-
-	indices := "apm-*,traces-apm*,logs-apm*"
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, expectMin, indices, estest.BoolQuery{
+	indices := "traces-apm*,logs-apm*"
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, indices, estest.BoolQuery{
 		Should: []interface{}{
 			estest.TermQuery{Field: "processor.event", Value: "transaction"},
 			estest.TermQuery{Field: "processor.event", Value: "log"},
@@ -128,7 +129,7 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.app.*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "metric"},
 	}})
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
@@ -136,6 +137,28 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	// Make sure we report monitoring for the metrics consumer. Metric values are unit tested.
 	doc := getBeatsMonitoringStats(t, srv, nil)
 	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.otlp.grpc.metrics.consumer").Exists())
+}
+
+func TestOTLPGRPCLogs(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServer(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock())
+	require.NoError(t, err)
+	defer conn.Close()
+
+	logsClient := otlpgrpc.NewLogsClient(conn)
+
+	logs := newLogs("a log message")
+	_, err = logsClient.Export(ctx, logs)
+	require.NoError(t, err)
+
+	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm*", estest.TermQuery{
+		Field: "processor.event", Value: "log",
+	})
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestOTLPGRPCAuth(t *testing.T) {
@@ -156,7 +179,7 @@ func TestOTLPGRPCAuth(t *testing.T) {
 		"Authorization": "Bearer abc123",
 	}))))
 	require.NoError(t, err)
-	systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
+	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},
 	}})
 }
@@ -187,13 +210,13 @@ func TestOTLPClientIP(t *testing.T) {
 	require.NoError(t, err)
 
 	// Non-iOS agent documents should have no client.ip field set.
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
+	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
 		Field: "service.name", Value: "service1",
 	})
 	assert.False(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())
 
 	// iOS agent documents should have a client.ip field set.
-	result = systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
+	result = systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
 		Field: "service.name", Value: "service2",
 	})
 	assert.True(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())
@@ -286,9 +309,7 @@ func TestOTLPRateLimit(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	sendEvent := func(ip string) error {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
+	sendEvent := func(ctx context.Context, ip string) error {
 		exporter := newOTLPTraceExporter(t, srv,
 			otlptracegrpc.WithHeaders(map[string]string{"x-real-ip": ip}),
 			otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{Enabled: false}),
@@ -302,18 +323,27 @@ func TestOTLPRateLimit(t *testing.T) {
 	}
 
 	// Check that for the configured IP limit (2), we can handle 3*event_limit without being rate limited.
-	var g errgroup.Group
+	g, ctx := errgroup.WithContext(context.Background())
 	for i := 0; i < sendEventLimit; i++ {
-		g.Go(func() error { return sendEvent("10.11.12.13") })
-		g.Go(func() error { return sendEvent("10.11.12.14") })
+		g.Go(func() error { return sendEvent(ctx, "10.11.12.13") })
+		g.Go(func() error { return sendEvent(ctx, "10.11.12.14") })
 	}
 	err = g.Wait()
 	assert.NoError(t, err)
 
 	// The rate limiter cache only has space for 2 IPs, so the 3rd one reuses an existing
-	// limiter, which will have already been exhausted.
-	err = sendEvent("10.11.12.15")
+	// limiter which should have already been exhausted. However, the rate limiter may be
+	// replenished before the test can run with a third IP, so we cannot test this behaviour
+	// exactly. Instead, we just test that rate limiting is effective generally, and defer
+	// more thorough testing to unit tests.
+	for i := 0; i < sendEventLimit*2; i++ {
+		g.Go(func() error { return sendEvent(ctx, "10.11.12.13") })
+		g.Go(func() error { return sendEvent(ctx, "10.11.12.14") })
+		g.Go(func() error { return sendEvent(ctx, "11.11.12.15") })
+	}
+	err = g.Wait()
 	require.Error(t, err)
+
 	errStatus, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.ResourceExhausted, errStatus.Code())
@@ -431,4 +461,36 @@ func (m *idGeneratorFuncs) NewIDs(ctx context.Context) (trace.TraceID, trace.Spa
 
 func (m *idGeneratorFuncs) NewSpanID(ctx context.Context, traceID trace.TraceID) trace.SpanID {
 	return m.newSpanID(ctx, traceID)
+}
+
+func newLogs(body interface{}) pdata.Logs {
+	logs := pdata.NewLogs()
+	resourceLogs := logs.ResourceLogs().AppendEmpty()
+	logs.ResourceLogs().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		semconv.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString("go"),
+	})
+	instrumentationLogs := resourceLogs.InstrumentationLibraryLogs().AppendEmpty()
+	otelLog := instrumentationLogs.Logs().AppendEmpty()
+	otelLog.SetTraceID(pdata.NewTraceID([16]byte{1}))
+	otelLog.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	otelLog.SetName("doOperation()")
+	otelLog.SetSeverityNumber(pdata.SeverityNumberINFO)
+	otelLog.SetSeverityText("Info")
+	otelLog.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1, 0)))
+	otelLog.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"key":         pdata.NewAttributeValueString("value"),
+		"numeric_key": pdata.NewAttributeValueDouble(1234),
+	})
+
+	switch b := body.(type) {
+	case string:
+		otelLog.Body().SetStringVal(b)
+	case int:
+		otelLog.Body().SetIntVal(int64(b))
+	case float64:
+		otelLog.Body().SetDoubleVal(float64(b))
+	case bool:
+		otelLog.Body().SetBoolVal(b)
+	}
+	return logs
 }

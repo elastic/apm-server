@@ -1,0 +1,88 @@
+[[sourcemap-api]]
+== Source map upload API
+
+++++
+<titleabbrev>Source map upload</titleabbrev>
+++++
+
+IMPORTANT: {deprecation-notice-api}
+If you've already upgraded, see <<source-map-how-to>>.
+
+IMPORTANT: You must <<configuration-rum,enable RUM support>> in the APM Server for this endpoint to work.
+
+The APM Server exposes an API endpoint to upload source maps for real user monitoring (RUM).
+See the <<sourcemaps,create and upload source maps>> guide to get started.
+
+If you're using the <<apm-integration,APM integration>>,
+you must use the Kibana {kibana-ref}/rum-sourcemap-api.html[source map upload API] instead.
+
+[[sourcemap-endpoint]]
+[float]
+=== Upload endpoint
+Send a `HTTP POST` request with the `Content-Type` header set to `multipart/form-data` to the source map endpoint:
+
+[source,bash]
+------------------------------------------------------------
+http(s)://{hostname}:{port}/assets/v1/sourcemaps
+------------------------------------------------------------
+
+[[sourcemap-request-fields]]
+[float]
+==== Request Fields
+The request must include some fields needed to identify `source map` correctly later on:
+
+* `service_name`
+* `service_version`
+* `sourcemap` - must follow the https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k[Source map revision 3 proposal]
+spec and be attached as a `file upload`.
+* `bundle_filepath` - the absolute path of the final bundle as it is used in the web application
+
+You can configure an <<api-key-legacy,API key>> or <<secret-token-legacy,secret token>> to restrict sourcemap uploads.
+
+[float]
+[[sourcemap-apply]]
+==== How source maps are applied
+
+APM Server attempts to find the correct source map for each `stack trace frame` in an event.
+To do this, it tries the following:
+
+* Compare the event's `service.name` with the source map's `service_name`
+* Compare the event's `service.version` with the source map's `service_version`
+* Compare the stack trace frame's `abs_path` with the source map's `bundle_filepath`
+
+While comparing the stack trace frame's `abs_path` with the source map's `bundle_filepath`, the search logic will prioritize `abs_path` full matching:
+[source,console]
+---------------------------------------------------------------------------
+{
+  "sourcemap.bundle_filepath": "http://localhost/static/js/bundle.js"
+}
+---------------------------------------------------------------------------
+
+But if there is no full match, it also accepts source maps that match only the URLs path (without the host). 
+[source,console]
+---------------------------------------------------------------------------
+{
+  "sourcemap.bundle_filepath": "/static/js/bundle.js"
+}
+---------------------------------------------------------------------------
+
+If a source map is found, the `stack trace frame` attributes `filename`, `function`, `line number`, and `column number` are overwritten,
+and `abs path` is https://golang.org/pkg/path/#Clean[cleaned] to be the shortest path name equivalent to the given path name.
+If multiple source maps are found,
+the one with the latest upload timestamp is used.
+
+[[sourcemap-api-examples]]
+[float]
+==== Example
+
+Example source map request including an optional <<secret-token-legacy, secret token>> "mysecret":
+
+["source","sh",subs="attributes"]
+---------------------------------------------------------------------------
+curl -X POST http://127.0.0.1:8200/assets/v1/sourcemaps \
+  -H "Authorization: Bearer mysecret" \
+  -F service_name="test-service" \
+  -F service_version="1.0" \
+  -F bundle_filepath="http://localhost/static/js/bundle.js" \
+  -F sourcemap=@bundle.js.map
+---------------------------------------------------------------------------

@@ -1,0 +1,128 @@
+[[setup-kibana-endpoint]]
+== Configure the Kibana endpoint
+
+++++
+<titleabbrev>Kibana endpoint</titleabbrev>
+++++
+
+IMPORTANT: {deprecation-notice-config}
+
+Configuring the Kibana endpoint is required for
+{kibana-ref}/agent-configuration.html[APM Agent configuration in Kibana].
+You configure the endpoint in the `apm-server.kibana` section of the
++{beatname_lc}.yml+ config file.
+
+Here's a sample configuration:
+
+[source,yaml]
+----
+apm-server.kibana.enabled: true
+apm-server.kibana.host: "http://localhost:5601"
+----
+
+[float]
+=== Considerations
+
+* If your setup uses a <<config-secret-token,secret token>> for Agent/Server communication,
+the same token is used to secure this endpoint.
+* It's important to still set relevant defaults locally in each Agent's configuration.
+If APM Server is unreachable, slow to respond, returns an error, etc.,
+defaults set in the agent will apply according to their precedence.
+* APM Server needs sufficient Kibana privileges to manage central configuration.
+See <<privileges-agent-central-config>> for a list of required privileges.
+
+[float]
+=== Kibana endpoint configuration options
+
+You can specify the following options in the `apm-server.kibana` section of the
++{beatname_lc}.yml+ config file:
+
+[float]
+[[kibana-enabled]]
+==== `apm-server.kibana.enabled`
+
+Defaults to `false`. Must be `true` to use APM Agent configuration.
+
+[float]
+[[kibana-host]]
+==== `apm-server.kibana.host`
+
+The Kibana host that APM Server will communicate with. The default is
+`127.0.0.1:5601`. The value of `host` can be a `URL` or `IP:PORT`. For example: `http://192.15.3.2`, `192:15.3.2:5601` or `http://192.15.3.2:6701/path`. If no
+port is specified, `5601` is used.
+
+NOTE: When a node is defined as an `IP:PORT`, the _scheme_ and _path_ are taken
+from the <<kibana-protocol-option,apm-server.kibana.protocol>> and
+<<kibana-path-option,apm-server.kibana.path>> config options.
+
+IPv6 addresses must be defined using the following format:
+`https://[2001:db8::1]:5601`.
+
+[float]
+[[kibana-protocol-option]]
+==== `apm-server.kibana.protocol`
+
+The name of the protocol Kibana is reachable on. The options are: `http` or
+`https`. The default is `http`. However, if you specify a URL for host, the
+value of `protocol` is overridden by whatever scheme you specify in the URL.
+
+Example config:
+
+[source,yaml]
+----
+apm-server.kibana.host: "192.0.2.255:5601"
+apm-server.kibana.protocol: "http"
+apm-server.kibana.path: /kibana
+----
+
+
+[float]
+==== `apm-server.kibana.username`
+
+The basic authentication username for connecting to Kibana.
+
+[float]
+==== `apm-server.kibana.password`
+
+The basic authentication password for connecting to Kibana.
+
+[float]
+[[kibana-path-option]]
+==== `apm-server.kibana.path`
+
+An HTTP path prefix that is prepended to the HTTP API calls. This is useful for
+the cases where Kibana listens behind an HTTP reverse proxy that exports the API
+under a custom prefix.
+
+[float]
+==== `apm-server.kibana.ssl.enabled`
+
+Enables {beatname_uc} to use SSL settings when connecting to Kibana via HTTPS.
+If you configure {beatname_uc} to connect over HTTPS, this setting defaults to
+`true` and {beatname_uc} uses the default SSL settings.
+
+Example configuration:
+
+[source,yaml]
+----
+apm-server.kibana.host: "https://192.0.2.255:5601"
+apm-server.kibana.ssl.enabled: true
+apm-server.kibana.ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+apm-server.kibana.ssl.certificate: "/etc/pki/client/cert.pem"
+apm-server.kibana.ssl.key: "/etc/pki/client/cert.key"
+----
+
+For information on the additional SSL configuration options,
+see <<configuration-ssl>>.
+
+[float]
+=== Agent Config configuration options
+
+You can specify the following options in the `apm-server.agent.config` section of the
++{beatname_lc}.yml+ config file:
+
+[float]
+==== `agent.config.cache.expiration`
+
+When using APM Agent configuration, information fetched from Kibana will be cached in memory.
+This setting specifies the time before cache key expiration. Defaults to 30 seconds.

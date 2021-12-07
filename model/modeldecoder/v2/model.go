@@ -398,6 +398,9 @@ type errorTransactionRef struct {
 	// is captured. If a transaction is unsampled no spans and less context
 	// information will be reported.
 	Sampled nullable.Bool `json:"sampled"`
+	// Name is the generic designation of a transaction in the scope of a
+	// single service, eg: 'GET /users/:id'.
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
 	// Type expresses the correlated transaction's type as keyword that has
 	// specific relevance within the service's domain,
 	// eg: 'request', 'backgroundjob'.
@@ -619,6 +622,8 @@ type metricset struct {
 	Tags common.MapStr `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// Transaction holds selected information about the correlated transaction.
 	Transaction metricsetTransactionRef `json:"transaction"`
+	// Service holds selected information about the correlated service.
+	Service metricsetServiceRef `json:"service"`
 }
 
 type metricsetSampleValue struct {
@@ -674,6 +679,13 @@ type metricsetTransactionRef struct {
 	Type nullable.String `json:"type" validate:"maxLength=1024"`
 }
 
+type metricsetServiceRef struct {
+	// Name of the correlated service.
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
+	// Version of the correlated service.
+	Version nullable.String `json:"version" validate:"maxLength=1024"`
+}
+
 type span struct {
 	// Action holds the specific kind of event within the sub-type represented
 	// by the span (e.g. query, connect)
@@ -695,6 +707,8 @@ type span struct {
 	// a limited set of permitted values describing the success or failure of
 	// the span. It can be used for calculating error rates for outgoing requests.
 	Outcome nullable.String `json:"outcome" validate:"enum=enumOutcome"`
+	// OTel contains unmapped OpenTelemetry attributes.
+	OTel otel `json:"otel"`
 	// ParentID holds the hex encoded 64 random bits ID of the parent
 	// transaction or span.
 	ParentID nullable.String `json:"parent_id" validate:"required,maxLength=1024"`
@@ -874,6 +888,8 @@ type transaction struct {
 	// Name is the generic designation of a transaction in the scope of a
 	// single service, eg: 'GET /users/:id'.
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
+	// OTel contains unmapped OpenTelemetry attributes.
+	OTel otel `json:"otel"`
 	// Outcome of the transaction with a limited set of permitted values,
 	// describing the success or failure of the transaction from the service's
 	// perspective. It is used for calculating error rates for incoming requests.
@@ -908,6 +924,13 @@ type transaction struct {
 	// UserExperience holds metrics for measuring real user experience.
 	// This information is only sent by RUM agents.
 	UserExperience transactionUserExperience `json:"experience"`
+}
+
+type otel struct {
+	// SpanKind holds the incoming OpenTelemetry span kind.
+	SpanKind nullable.String `json:"span_kind"`
+	// Attributes hold the unmapped OpenTelemetry attributes.
+	Attributes map[string]interface{} `json:"attributes"`
 }
 
 type transactionSession struct {

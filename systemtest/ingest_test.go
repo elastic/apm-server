@@ -18,30 +18,36 @@
 package systemtest_test
 
 import (
-	"context"
-	"errors"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
 
-	"go.elastic.co/apm"
-
-	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/elastic/go-elasticsearch/v7/esutil"
-
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
 )
 
-func TestIngestPipelinePipeline(t *testing.T) {
+func TestIngestPipeline(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServer(t)
 
 	tracer := srv.Tracer()
+	httpRequest := &http.Request{
+		URL: &url.URL{},
+		Header: http.Header{
+			"User-Agent": []string{
+				"Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0",
+			},
+		},
+	}
 	tx := tracer.StartTransaction("name", "type")
+	tx.Context.SetHTTPRequest(httpRequest)
 	span1 := tx.StartSpan("name", "type", nil)
 	// If a destination address is recorded, and it is a valid
 	// IPv4 or IPv6 address, it will be copied to destination.ip.
@@ -53,84 +59,50 @@ func TestIngestPipelinePipeline(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	getSpanDoc := func(spanID string) estest.SearchHit {
-		result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
-			Field: "span.id",
-			Value: spanID,
-		})
+	getDoc := func(query estest.TermQuery) estest.SearchHit {
+		result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", query)
 		require.Len(t, result.Hits.Hits, 1)
 		return result.Hits.Hits[0]
 	}
 
-	span1Doc := getSpanDoc(span1.TraceContext().Span.String())
+	txDoc := getDoc(estest.TermQuery{Field: "processor.event", Value: "transaction"})
+	assert.Equal(t, httpRequest.Header.Get("User-Agent"), gjson.GetBytes(txDoc.RawSource, "user_agent.original").String())
+	assert.Equal(t, "Firefox", gjson.GetBytes(txDoc.RawSource, "user_agent.name").String())
+
+	span1Doc := getDoc(estest.TermQuery{Field: "span.id", Value: span1.TraceContext().Span.String()})
 	destinationIP := gjson.GetBytes(span1Doc.RawSource, "destination.ip")
 	assert.True(t, destinationIP.Exists())
 	assert.Equal(t, "::1", destinationIP.String())
 
-	span2Doc := getSpanDoc(span2.TraceContext().Span.String())
+	span2Doc := getDoc(estest.TermQuery{Field: "span.id", Value: span2.TraceContext().Span.String()})
 	destinationIP = gjson.GetBytes(span2Doc.RawSource, "destination.ip")
 	assert.False(t, destinationIP.Exists()) // destination.address is not an IP
 }
 
-func TestDataStreamMigrationIngestPipeline(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
-
-	// Send a transaction, span, error, and metrics.
-	tracer := srv.Tracer()
-	tracer.RegisterMetricsGatherer(apm.GatherMetricsFunc(func(ctx context.Context, m *apm.Metrics) error {
-		m.Add("custom_metric", nil, 123)
-		return nil
-	}))
-	tx := tracer.StartTransaction("name", "type")
-	span := tx.StartSpan("name", "type", nil)
-	tracer.NewError(errors.New("boom")).Send()
-	span.End()
-	tx.End()
-	tracer.Flush(nil)
-	tracer.SendMetrics(nil)
-
-	// We expect at least 6 events:
-	// - onboarding
-	// - transaction
-	// - span
-	// - error
-	// - internal metricset
-	// - app metricset
-	for _, query := range []interface{}{
-		estest.TermQuery{Field: "processor.event", Value: "onboarding"},
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
-		estest.TermQuery{Field: "processor.event", Value: "span"},
-		estest.TermQuery{Field: "processor.event", Value: "error"},
-		estest.TermQuery{Field: "metricset.name", Value: "transaction_breakdown"},
-		estest.TermQuery{Field: "metricset.name", Value: "app"},
-	} {
-		systemtest.Elasticsearch.ExpectDocs(t, "apm-*", query)
+func TestIngestPipelineVersionEnforcement(t *testing.T) {
+	source := `{"observer": {"version": "100.200.300"}}` // apm-server version is too new
+	dataStreams := []string{
+		"traces-apm-default",
+		"traces-apm.rum-default",
+		"metrics-apm.internal-default",
+		"metrics-apm.app.service_name-default",
+		"logs-apm.error-default",
 	}
 
-	refresh := true
-	_, err := systemtest.Elasticsearch.Do(context.Background(), &esapi.ReindexRequest{
-		Refresh: &refresh,
-		Body: esutil.NewJSONReader(map[string]interface{}{
-			"source": map[string]interface{}{
-				"index": "apm-*",
-			},
-			"dest": map[string]interface{}{
-				"index":    "apm-migration",
-				"pipeline": "apm_data_stream_migration",
-				"op_type":  "create",
-			},
-		}),
-	}, nil)
-	require.NoError(t, err)
+	for _, dataStream := range dataStreams {
+		body := strings.NewReader(source)
+		resp, err := systemtest.Elasticsearch.Index(dataStream, body)
+		require.NoError(t, err)
 
-	// There should only be an onboarding doc in "apm-migration".
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-migration", nil)
-	require.Len(t, result.Hits.Hits, 1)
-	assert.Equal(t, "onboarding", gjson.GetBytes(result.Hits.Hits[0].RawSource, "processor.event").String())
+		respBody, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		resp.Body.Close()
 
-	systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm-migrated", nil) // transaction, span
-	systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.error-migrated", nil)
-	systemtest.Elasticsearch.ExpectMinDocs(t, 1, "metrics-apm.internal-migrated", nil)
-	systemtest.Elasticsearch.ExpectMinDocs(t, 1, "metrics-apm.app.systemtest-migrated", nil)
+		if !assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "%s: %s", dataStream, respBody) {
+			continue
+		}
+		assert.Contains(t, string(respBody),
+			`Document produced by APM Server v100.200.300, which is newer than the installed APM integration`,
+		)
+	}
 }

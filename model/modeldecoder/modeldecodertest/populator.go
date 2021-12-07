@@ -30,19 +30,22 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 )
 
 // Values used for populating the model structs
 type Values struct {
-	Str        string
-	Int        int
-	Float      float64
-	Bool       bool
-	Time       time.Time
-	Duration   time.Duration
-	IP         net.IP
-	HTTPHeader http.Header
+	Str             string
+	Int             int
+	Float           float64
+	Bool            bool
+	Time            time.Time
+	Duration        time.Duration
+	IP              net.IP
+	HTTPHeader      http.Header
+	LabelVal        model.LabelValue
+	NumericLabelVal model.NumericLabelValue
 	// N controls how many elements are added to a slice or a map
 	N int
 }
@@ -51,15 +54,17 @@ type Values struct {
 func DefaultValues() *Values {
 	initTime, _ := time.Parse(time.RFC3339, "2020-10-10T10:00:00Z")
 	return &Values{
-		Str:        "init",
-		Int:        1,
-		Float:      0.5,
-		Bool:       true,
-		Time:       initTime,
-		Duration:   time.Second,
-		IP:         net.ParseIP("127.0.0.1"),
-		HTTPHeader: http.Header{http.CanonicalHeaderKey("user-agent"): []string{"a", "b", "c"}},
-		N:          3,
+		Str:             "init",
+		Int:             1,
+		Float:           0.5,
+		Bool:            true,
+		Time:            initTime,
+		Duration:        time.Second,
+		IP:              net.ParseIP("127.0.0.1"),
+		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"a", "b", "c"}},
+		LabelVal:        model.LabelValue{Value: "init"},
+		NumericLabelVal: model.NumericLabelValue{Value: 0.5},
+		N:               3,
 	}
 }
 
@@ -67,15 +72,17 @@ func DefaultValues() *Values {
 func NonDefaultValues() *Values {
 	updatedTime, _ := time.Parse(time.RFC3339, "2020-12-10T10:00:00Z")
 	return &Values{
-		Str:        "overwritten",
-		Int:        12,
-		Float:      3.5,
-		Bool:       false,
-		Time:       updatedTime,
-		Duration:   time.Minute,
-		IP:         net.ParseIP("192.168.0.1"),
-		HTTPHeader: http.Header{http.CanonicalHeaderKey("user-agent"): []string{"d", "e"}},
-		N:          2,
+		Str:             "overwritten",
+		Int:             12,
+		Float:           3.5,
+		Bool:            false,
+		Time:            updatedTime,
+		Duration:        time.Minute,
+		IP:              net.ParseIP("192.168.0.1"),
+		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"d", "e"}},
+		LabelVal:        model.LabelValue{Value: "overwritten"},
+		NumericLabelVal: model.NumericLabelValue{Value: 3.5},
+		N:               2,
 	}
 }
 
@@ -137,6 +144,8 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				elemVal = reflect.ValueOf(int64(values.Int))
 			case []float64:
 				elemVal = reflect.ValueOf(values.Float)
+			case []net.IP:
+				elemVal = reflect.ValueOf(values.IP)
 			case net.IP:
 				fieldVal = reflect.ValueOf(values.IP)
 			default:
@@ -159,6 +168,10 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				elemVal = reflect.ValueOf(values.Str)
 			case map[string]float64:
 				elemVal = reflect.ValueOf(values.Float)
+			case model.Labels:
+				elemVal = reflect.ValueOf(values.LabelVal)
+			case model.NumericLabels:
+				elemVal = reflect.ValueOf(values.NumericLabelVal)
 			default:
 				if f.Type().Elem().Kind() != reflect.Struct {
 					panic(fmt.Sprintf("unhandled type %s for key %s", v, key))
@@ -270,6 +283,12 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			m := common.MapStr{}
 			for i := 0; i < values.N; i++ {
 				m.Put(fmt.Sprintf("%s%v", values.Str, i), values.Str)
+			}
+			newVal = m
+		case model.Labels:
+			m := model.Labels{}
+			for i := 0; i < values.N; i++ {
+				m[fmt.Sprintf("%s%v", values.Str, i)] = model.LabelValue{Value: values.Str}
 			}
 			newVal = m
 		case []string:

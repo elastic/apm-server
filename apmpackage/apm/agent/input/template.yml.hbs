@@ -27,6 +27,10 @@ apm-server:
     max_header_size: {{max_header_bytes}}
     read_timeout: {{read_timeout}}
     response_headers: {{response_headers}}
+    java_attacher:
+      enabled: {{java_attacher_enabled}}
+      discovery-rules: {{java_attacher_discovery_rules}}
+      download-agent-version: {{java_attacher_agent_version}}
     {{#if enable_rum}}
     rum:
         allow_headers:
@@ -63,3 +67,12 @@ apm-server:
         {{/each}}
     {{/if}}
     write_timeout: {{write_timeout}}
+    {{#if tail_sampling_policies}}
+    sampling:
+      tail:
+        enabled: true
+        {{#if tail_sampling_interval}}
+        interval: {{tail_sampling_interval}}
+        {{/if}}
+        policies: {{tail_sampling_policies}}
+    {{/if}}

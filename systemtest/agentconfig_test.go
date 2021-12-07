@@ -19,6 +19,8 @@ package systemtest_test
 
 import (
 	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 	"net/url"
 	"testing"
@@ -32,6 +34,8 @@ import (
 )
 
 func TestAgentConfig(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+
 	serviceName := "systemtest_service"
 	serviceEnvironment := "testing"
 	systemtest.DeleteAgentConfig(t, serviceName, "")
@@ -44,7 +48,7 @@ func TestAgentConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	// Run apm-server under Fleet, exercising the Fleet agent config implementation.
-	apmIntegration := initAPMIntegration(t, map[string]interface{}{})
+	apmIntegration := newAPMIntegration(t, map[string]interface{}{})
 	serverURLs := []string{srv.URL, apmIntegration.URL}
 
 	expectChange := func(serverURL string, etag string) (map[string]string, *http.Response) {
@@ -115,6 +119,15 @@ func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, 
 		req.Header.Set("If-None-Match", etag)
 	}
 	resp, err := http.DefaultClient.Do(req)
+
+	maxRetries := 10
+	var retries int
+	for errors.Is(err, io.EOF) && retries < maxRetries {
+		retries++
+		t.Logf("apm-server returned EOF on read, retry %d/%d...", retries, maxRetries)
+		<-time.After(500 * time.Millisecond)
+		resp, err = http.DefaultClient.Do(req)
+	}
 	require.NoError(t, err)
 	defer resp.Body.Close()
 

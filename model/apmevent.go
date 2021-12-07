@@ -30,9 +30,6 @@ import (
 // Exactly one of the event fields should be non-nil.
 type APMEvent struct {
 	// DataStream optionally holds data stream identifiers.
-	//
-	// This will have the zero value when APM Server is run
-	// in standalone mode.
 	DataStream DataStream
 
 	ECSVersion  string
@@ -59,20 +56,26 @@ type APMEvent struct {
 	Child       Child
 	HTTP        HTTP
 	FAAS        FAAS
+	Log         Log
 
 	// Timestamp holds the event timestamp.
 	//
-	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html
+	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-timestamp
 	Timestamp time.Time
 
-	// Labels holds labels to apply to the event.
+	// Labels holds the string (keyword) labels to apply to the event, stored as
+	// keywords. Supports slice values.
 	//
-	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html
-	Labels common.MapStr
+	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-labels
+	Labels Labels
+
+	// NumericLabels holds the numeric (scaled_float) labels to apply to the event.
+	// Supports slice values.
+	NumericLabels NumericLabels
 
 	// Message holds the message for log events.
 	//
-	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html
+	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-message
 	Message string
 
 	Transaction   *Transaction
@@ -135,7 +138,8 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetMapStr("kubernetes", e.Kubernetes.fields())
 	fields.maybeSetMapStr("cloud", e.Cloud.fields())
 	fields.maybeSetMapStr("network", e.Network.fields())
-	fields.maybeSetMapStr("labels", sanitizeLabels(e.Labels))
+	fields.maybeSetMapStr("labels", e.Labels.fields())
+	fields.maybeSetMapStr("numeric_labels", e.NumericLabels.fields())
 	fields.maybeSetMapStr("event", e.Event.fields())
 	fields.maybeSetMapStr("url", e.URL.fields())
 	fields.maybeSetMapStr("session", e.Session.fields())
@@ -146,28 +150,6 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	fields.maybeSetString("message", e.Message)
 	fields.maybeSetMapStr("http", e.HTTP.fields())
 	fields.maybeSetMapStr("faas", e.FAAS.fields())
-	if e.Processor == SpanProcessor {
-		// Deprecated: copy url.original and http.* to span.http.* for backwards compatibility.
-		//
-		// TODO(axw) remove this in 8.0: https://github.com/elastic/apm-server/issues/5995
-		var spanHTTPFields mapStr
-		spanHTTPFields.maybeSetString("version", e.HTTP.Version)
-		if e.HTTP.Request != nil {
-			spanHTTPFields.maybeSetString("method", e.HTTP.Request.Method)
-		}
-		if e.HTTP.Response != nil {
-			spanHTTPFields.maybeSetMapStr("response", e.HTTP.Response.fields())
-		}
-		if len(spanHTTPFields) != 0 || e.URL.Original != "" {
-			spanFieldsMap, ok := event.Fields["span"].(common.MapStr)
-			if !ok {
-				spanFieldsMap = make(common.MapStr)
-				event.Fields["span"] = spanFieldsMap
-			}
-			spanFields := mapStr(spanFieldsMap)
-			spanFields.maybeSetMapStr("http", common.MapStr(spanHTTPFields))
-			spanFields.maybeSetString("http.url.original", e.URL.Original)
-		}
-	}
+	fields.maybeSetMapStr("log", e.Log.fields())
 	return event
 }

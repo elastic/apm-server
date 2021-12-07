@@ -36,10 +36,20 @@ type Event struct {
 
 	// Outcome holds the event outcome: "success", "failure", or "unknown".
 	Outcome string
+
+	// Severity holds the numeric severity of the event for log events.
+	Severity int64
+
+	// Severity holds the action captured by the event for log events.
+	Action string
 }
 
 func (e *Event) fields() common.MapStr {
 	var fields mapStr
 	fields.maybeSetString("outcome", e.Outcome)
+	fields.maybeSetString("action", e.Action)
+	if e.Severity > 0 {
+		fields.set("severity", e.Severity)
+	}
 	return common.MapStr(fields)
 }

@@ -1,0 +1,46 @@
+[[agent-server-compatibility]]
+=== APM agent compatibility
+
+The chart below outlines the compatibility between different versions of the APM agents and the APM integration/server.
+
+[options="header"]
+|====
+|Language |APM agent version |APM integration/server version
+// Go
+.1+|**Go agent**
+|`1.x` |≥ `6.5`
+
+// iOS
+.1+|**iOS agent**
+|`0.x` |≥ `7.14`
+
+// Java
+.1+|**Java agent**
+|`1.x`|≥ `6.5`
+
+// .NET
+.1+|**.NET agent**
+|`1.x` |≥ `6.5`
+
+// Node
+.1+|**Node.js agent**
+|`3.x` |≥ `6.6`
+
+// PHP
+.1+|**PHP agent**
+|`1.x` |≥ `7.0`
+
+// Python
+.1+|**Python agent**
+|`6.x` |≥ `6.6`
+
+// Ruby
+.2+|**Ruby agent**
+|`3.x` |≥ `6.5`
+|`4.x` |≥ `6.5`
+
+// RUM
+.2+|**JavaScript RUM agent**
+|`4.x` |≥ `6.5`
+|`5.x` |≥ `7.0`
+|====

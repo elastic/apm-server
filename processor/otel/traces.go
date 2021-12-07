@@ -50,7 +50,6 @@ import (
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 	"google.golang.org/grpc/codes"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/datastreams"
@@ -203,7 +202,7 @@ func (c *Consumer) convertSpan(
 	name := otelSpan.Name()
 	spanID := otelSpan.SpanID().HexString()
 	event := baseEvent
-	event.Labels = initEventLabels(event.Labels)
+	initEventLabels(&event)
 	event.Timestamp = startTime.Add(timeDelta)
 	event.Trace.ID = otelSpan.TraceID().HexString()
 	event.Event.Duration = duration
@@ -216,31 +215,38 @@ func (c *Consumer) convertSpan(
 			Name:    name,
 			Sampled: true,
 		}
-		translateTransaction(otelSpan, otelLibrary, &event)
+		TranslateTransaction(otelSpan.Attributes(), otelSpan.Status(), otelLibrary, &event)
 	} else {
 		event.Processor = model.SpanProcessor
 		event.Span = &model.Span{
 			ID:   spanID,
 			Name: name,
 		}
-		translateSpan(otelSpan, &event)
+		TranslateSpan(otelSpan.Kind(), otelSpan.Attributes(), &event)
 	}
 	if len(event.Labels) == 0 {
 		event.Labels = nil
 	}
+	if len(event.NumericLabels) == 0 {
+		event.NumericLabels = nil
+	}
 	*out = append(*out, event)
 
 	events := otelSpan.Events()
-	event.Labels = baseEvent.Labels         // only copy common labels to span events
-	event.Event.Outcome = ""                // don't set event.outcome for span events
-	event.Destination = model.Destination{} // don't set destination for span events
+	event.Labels = baseEvent.Labels               // only copy common labels to span events
+	event.NumericLabels = baseEvent.NumericLabels // only copy common labels to span events
+	event.Event.Outcome = ""                      // don't set event.outcome for span events
+	event.Destination = model.Destination{}       // don't set destination for span events
 	for i := 0; i < events.Len(); i++ {
 		*out = append(*out, convertSpanEvent(logger, events.At(i), event, timeDelta))
 	}
 }
 
-func translateTransaction(
-	span pdata.Span,
+// TranslateTransaction converts incoming otlp/otel trace data into the
+// expected elasticsearch format.
+func TranslateTransaction(
+	attributes pdata.AttributeMap,
+	spanStatus pdata.SpanStatus,
 	library pdata.InstrumentationLibrary,
 	event *model.APMEvent,
 ) {
@@ -252,7 +258,6 @@ func translateTransaction(
 	)
 
 	var (
-		isHTTP         bool
 		httpScheme     string
 		httpURL        string
 		httpServerName string
@@ -262,14 +267,11 @@ func translateTransaction(
 		httpResponse   model.HTTPResponse
 	)
 
-	var (
-		isMessaging bool
-		message     model.Message
-	)
+	var foundSpanType int
+	var message model.Message
 
-	var component string
 	var samplerType, samplerParam pdata.AttributeValue
-	span.Attributes().Range(func(kDots string, v pdata.AttributeValue) bool {
+	attributes.Range(func(kDots string, v pdata.AttributeValue) bool {
 		if isJaeger {
 			switch kDots {
 			case "sampler.type":
@@ -284,15 +286,15 @@ func translateTransaction(
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pdata.AttributeValueTypeArray:
-			event.Labels[k] = ifaceAnyValueArray(v.ArrayVal())
+			setLabel(k, event, ifaceAttributeValue(v))
 		case pdata.AttributeValueTypeBool:
-			event.Labels[k] = v.BoolVal()
+			setLabel(k, event, ifaceAttributeValue(v))
 		case pdata.AttributeValueTypeDouble:
-			event.Labels[k] = v.DoubleVal()
+			setLabel(k, event, ifaceAttributeValue(v))
 		case pdata.AttributeValueTypeInt:
 			switch kDots {
 			case semconv.AttributeHTTPStatusCode:
-				isHTTP = true
+				foundSpanType = httpSpan
 				httpResponse.StatusCode = int(v.IntVal())
 				http.Response = &httpResponse
 			case semconv.AttributeNetPeerPort:
@@ -302,44 +304,45 @@ func translateTransaction(
 			case "rpc.grpc.status_code":
 				event.Transaction.Result = codes.Code(v.IntVal()).String()
 			default:
-				event.Labels[k] = v.IntVal()
+				setLabel(k, event, ifaceAttributeValue(v))
 			}
+		case pdata.AttributeValueTypeMap:
 		case pdata.AttributeValueTypeString:
 			stringval := truncate(v.StringVal())
 			switch kDots {
 			// http.*
 			case semconv.AttributeHTTPMethod:
-				isHTTP = true
+				foundSpanType = httpSpan
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
 			case semconv.AttributeHTTPURL, semconv.AttributeHTTPTarget, "http.path":
-				isHTTP = true
+				foundSpanType = httpSpan
 				httpURL = stringval
 			case semconv.AttributeHTTPHost:
-				isHTTP = true
+				foundSpanType = httpSpan
 				httpHost = stringval
 			case semconv.AttributeHTTPScheme:
-				isHTTP = true
+				foundSpanType = httpSpan
 				httpScheme = stringval
 			case semconv.AttributeHTTPStatusCode:
 				if intv, err := strconv.Atoi(stringval); err == nil {
-					isHTTP = true
+					foundSpanType = httpSpan
 					httpResponse.StatusCode = intv
 					http.Response = &httpResponse
 				}
 			case "http.protocol":
 				if !strings.HasPrefix(stringval, "HTTP/") {
 					// Unexpected, store in labels for debugging.
-					event.Labels[k] = stringval
+					event.Labels.Set(k, stringval)
 					break
 				}
 				stringval = strings.TrimPrefix(stringval, "HTTP/")
 				fallthrough
 			case semconv.AttributeHTTPFlavor:
-				isHTTP = true
+				foundSpanType = httpSpan
 				http.Version = stringval
 			case semconv.AttributeHTTPServerName:
-				isHTTP = true
+				foundSpanType = httpSpan
 				httpServerName = stringval
 			case semconv.AttributeHTTPClientIP:
 				event.Client.IP = net.ParseIP(stringval)
@@ -369,7 +372,7 @@ func translateTransaction(
 			// messaging.*
 			case "message_bus.destination", semconv.AttributeMessagingDestination:
 				message.QueueName = stringval
-				isMessaging = true
+				foundSpanType = messagingSpan
 
 			// rpc.*
 			//
@@ -382,7 +385,6 @@ func translateTransaction(
 			case semconv.AttributeRPCMethod:
 
 			// miscellaneous
-			case "span.kind": // filter out
 			case "type":
 				event.Transaction.Type = stringval
 			case semconv.AttributeServiceVersion:
@@ -391,29 +393,26 @@ func translateTransaction(
 				// should set this as a resource attribute (OTel) or tracer
 				// tag (Jaeger).
 				event.Service.Version = stringval
-			case "component":
-				component = stringval
-				fallthrough
 			default:
-				event.Labels[k] = stringval
+				event.Labels.Set(k, stringval)
 			}
 		}
 		return true
 	})
 
 	if event.Transaction.Type == "" {
-		if isHTTP {
+		switch foundSpanType {
+		case httpSpan:
 			event.Transaction.Type = "request"
-		} else if isMessaging {
+		case messagingSpan:
 			event.Transaction.Type = "messaging"
-		} else if component != "" {
-			event.Transaction.Type = component
-		} else {
-			event.Transaction.Type = "custom"
+		default:
+			event.Transaction.Type = "unknown"
 		}
 	}
 
-	if isHTTP {
+	switch foundSpanType {
+	case httpSpan:
 		event.HTTP = http
 
 		// Set outcome nad result from status code.
@@ -441,9 +440,7 @@ func translateTransaction(
 			}
 		}
 		event.URL = model.ParseURL(httpURL, httpHost, httpScheme)
-	}
-
-	if isMessaging {
+	case messagingSpan:
 		event.Transaction.Message = &message
 	}
 
@@ -453,13 +450,13 @@ func translateTransaction(
 
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate span metrics.
-		parseSamplerAttributes(samplerType, samplerParam, &event.Transaction.RepresentativeCount, event.Labels)
+		parseSamplerAttributes(samplerType, samplerParam, event)
 	} else {
 		event.Transaction.RepresentativeCount = 1
 	}
 
 	if event.Transaction.Result == "" {
-		event.Transaction.Result = spanStatusResult(span.Status())
+		event.Transaction.Result = spanStatusResult(spanStatus)
 	}
 	if name := library.Name(); name != "" {
 		event.Service.Framework.Name = name
@@ -467,7 +464,17 @@ func translateTransaction(
 	}
 }
 
-func translateSpan(span pdata.Span, event *model.APMEvent) {
+const (
+	appSpan int = iota
+	dbSpan
+	httpSpan
+	messagingSpan
+	rpcSpan
+)
+
+// TranslateSpan converts incoming otlp/otel trace data into the
+// expected elasticsearch format.
+func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event *model.APMEvent) {
 	isJaeger := strings.HasPrefix(event.Agent.Name, "Jaeger")
 
 	var (
@@ -494,11 +501,10 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 	var message model.Message
 	var db model.DB
 	var destinationService model.DestinationService
-	var isDBSpan, isHTTPSpan, isMessagingSpan, isRPCSpan bool
-	var component string
+	var foundSpanType int
 	var rpcSystem string
 	var samplerType, samplerParam pdata.AttributeValue
-	span.Attributes().Range(func(kDots string, v pdata.AttributeValue) bool {
+	attributes.Range(func(kDots string, v pdata.AttributeValue) bool {
 		if isJaeger {
 			switch kDots {
 			case "sampler.type":
@@ -513,44 +519,45 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pdata.AttributeValueTypeArray:
-			event.Labels[k] = ifaceAnyValueArray(v.ArrayVal())
+			setLabel(k, event, ifaceAnyValueArray(v.ArrayVal()))
 		case pdata.AttributeValueTypeBool:
-			event.Labels[k] = v.BoolVal()
+			setLabel(k, event, strconv.FormatBool(v.BoolVal()))
 		case pdata.AttributeValueTypeDouble:
-			event.Labels[k] = v.DoubleVal()
+			setLabel(k, event, v.DoubleVal())
 		case pdata.AttributeValueTypeInt:
 			switch kDots {
 			case "http.status_code":
 				httpResponse.StatusCode = int(v.IntVal())
 				http.Response = &httpResponse
-				isHTTPSpan = true
+				foundSpanType = httpSpan
 			case semconv.AttributeNetPeerPort, "peer.port":
 				netPeerPort = int(v.IntVal())
 			case "rpc.grpc.status_code":
 				// Ignored for spans.
 			default:
-				event.Labels[k] = v.IntVal()
+				setLabel(k, event, v.IntVal())
 			}
 		case pdata.AttributeValueTypeString:
 			stringval := truncate(v.StringVal())
+
 			switch kDots {
 			// http.*
 			case semconv.AttributeHTTPHost:
 				httpHost = stringval
-				isHTTPSpan = true
+				foundSpanType = httpSpan
 			case semconv.AttributeHTTPScheme:
 				httpScheme = stringval
-				isHTTPSpan = true
+				foundSpanType = httpSpan
 			case semconv.AttributeHTTPTarget:
 				httpTarget = stringval
-				isHTTPSpan = true
+				foundSpanType = httpSpan
 			case semconv.AttributeHTTPURL:
 				httpURL = stringval
-				isHTTPSpan = true
+				foundSpanType = httpSpan
 			case semconv.AttributeHTTPMethod:
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
-				isHTTPSpan = true
+				foundSpanType = httpSpan
 
 			// db.*
 			case "sql.query":
@@ -561,16 +568,16 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 			case semconv.AttributeDBStatement:
 				// Statement should not be truncated, use original string value.
 				db.Statement = v.StringVal()
-				isDBSpan = true
+				foundSpanType = dbSpan
 			case semconv.AttributeDBName, "db.instance":
 				db.Instance = stringval
-				isDBSpan = true
+				foundSpanType = dbSpan
 			case semconv.AttributeDBSystem, "db.type":
 				db.Type = stringval
-				isDBSpan = true
+				foundSpanType = dbSpan
 			case semconv.AttributeDBUser:
 				db.UserName = stringval
-				isDBSpan = true
+				foundSpanType = dbSpan
 
 			// net.*
 			case semconv.AttributeNetPeerName, "peer.hostname":
@@ -602,15 +609,15 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 			// messaging.*
 			case "message_bus.destination", semconv.AttributeMessagingDestination:
 				message.QueueName = stringval
-				isMessagingSpan = true
+				foundSpanType = messagingSpan
 			case semconv.AttributeMessagingOperation:
 				messageOperation = stringval
-				isMessagingSpan = true
+				foundSpanType = messagingSpan
 			case semconv.AttributeMessagingSystem:
 				messageSystem = stringval
 				destinationService.Resource = stringval
 				destinationService.Name = stringval
-				isMessagingSpan = true
+				foundSpanType = messagingSpan
 
 			// rpc.*
 			//
@@ -619,7 +626,7 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 			// like we do with Elastic APM agents.
 			case semconv.AttributeRPCSystem:
 				rpcSystem = stringval
-				isRPCSpan = true
+				foundSpanType = rpcSpan
 			case semconv.AttributeRPCService:
 			case semconv.AttributeRPCMethod:
 
@@ -631,11 +638,8 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 					// Prefer using peer.address for resource.
 					destinationService.Resource = stringval
 				}
-			case "component":
-				component = stringval
-				fallthrough
 			default:
-				event.Labels[k] = stringval
+				event.Labels.Set(k, stringval)
 			}
 		}
 		return true
@@ -647,74 +651,63 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 		destAddr = netPeerIP
 	}
 
-	if isHTTPSpan {
-		var fullURL *url.URL
-		if httpURL != "" {
-			fullURL, _ = url.Parse(httpURL)
-		} else if httpTarget != "" {
-			// Build http.url from http.scheme, http.target, etc.
-			if u, err := url.Parse(httpTarget); err == nil {
-				fullURL = u
-				fullURL.Scheme = httpScheme
-				if httpHost == "" {
-					// Set host from net.peer.*
-					httpHost = destAddr
-					if destPort > 0 {
-						httpHost = net.JoinHostPort(httpHost, strconv.Itoa(destPort))
-					}
+	var fullURL *url.URL
+	if httpURL != "" {
+		fullURL, _ = url.Parse(httpURL)
+	} else if httpTarget != "" {
+		// Build http.url from http.scheme, http.target, etc.
+		if u, err := url.Parse(httpTarget); err == nil {
+			fullURL = u
+			fullURL.Scheme = httpScheme
+			if httpHost == "" {
+				// Set host from net.peer.*
+				httpHost = destAddr
+				if destPort > 0 {
+					httpHost = net.JoinHostPort(httpHost, strconv.Itoa(destPort))
 				}
-				fullURL.Host = httpHost
-				httpURL = fullURL.String()
 			}
-		}
-		if fullURL != nil {
-			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
-			hostname := truncate(url.Hostname())
-			var port int
-			portString := url.Port()
-			if portString != "" {
-				port, _ = strconv.Atoi(portString)
-			} else {
-				port = schemeDefaultPort(url.Scheme)
-			}
-
-			// Set destination.{address,port} from the HTTP URL,
-			// replacing peer.* based values to ensure consistency.
-			destAddr = hostname
-			if port > 0 {
-				destPort = port
-			}
-
-			// Set destination.service.* from the HTTP URL, unless peer.service was specified.
-			if destinationService.Name == "" {
-				resource := url.Host
-				if port > 0 && port == schemeDefaultPort(url.Scheme) {
-					hasDefaultPort := portString != ""
-					if hasDefaultPort {
-						// Remove the default port from destination.service.name.
-						url.Host = hostname
-					} else {
-						// Add the default port to destination.service.resource.
-						resource = fmt.Sprintf("%s:%d", resource, port)
-					}
-				}
-				destinationService.Name = url.String()
-				destinationService.Resource = resource
-			}
+			fullURL.Host = httpHost
+			httpURL = fullURL.String()
 		}
 	}
+	if fullURL != nil {
+		url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
+		hostname := truncate(url.Hostname())
+		var port int
+		portString := url.Port()
+		if portString != "" {
+			port, _ = strconv.Atoi(portString)
+		} else {
+			port = schemeDefaultPort(url.Scheme)
+		}
 
-	if isRPCSpan {
-		// Set destination.service.* from the peer address, unless peer.service was specified.
+		// Set destination.{address,port} from the HTTP URL,
+		// replacing peer.* based values to ensure consistency.
+		destAddr = hostname
+		if port > 0 {
+			destPort = port
+		}
+
+		// Set destination.service.* from the HTTP URL, unless peer.service was specified.
 		if destinationService.Name == "" {
-			destHostPort := net.JoinHostPort(destAddr, strconv.Itoa(destPort))
-			destinationService.Name = destHostPort
-			destinationService.Resource = destHostPort
+			resource := url.Host
+			if port > 0 && port == schemeDefaultPort(url.Scheme) {
+				hasDefaultPort := portString != ""
+				if hasDefaultPort {
+					// Remove the default port from destination.service.name.
+					url.Host = hostname
+				} else {
+					// Add the default port to destination.service.resource.
+					resource = fmt.Sprintf("%s:%d", resource, port)
+				}
+			}
+			destinationService.Name = url.String()
+			destinationService.Resource = resource
 		}
 	}
 
-	switch {
-	case isHTTPSpan:
+	switch foundSpanType {
+	case httpSpan:
 		if httpResponse.StatusCode > 0 {
 			if event.Event.Outcome == outcomeUnknown {
 				event.Event.Outcome = clientHTTPStatusCodeOutcome(httpResponse.StatusCode)
@@ -725,7 +718,7 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 		event.Span.Subtype = subtype
 		event.HTTP = http
 		event.URL.Original = httpURL
-	case isDBSpan:
+	case dbSpan:
 		event.Span.Type = "db"
 		if db.Type != "" {
 			event.Span.Subtype = db.Type
@@ -737,10 +730,10 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 			}
 		}
 		event.Span.DB = &db
-	case isMessagingSpan:
+	case messagingSpan:
 		event.Span.Type = "messaging"
 		event.Span.Subtype = messageSystem
-		if messageOperation == "" && span.Kind() == pdata.SpanKindProducer {
+		if messageOperation == "" && spanKind == pdata.SpanKindProducer {
 			messageOperation = "send"
 		}
 		event.Span.Action = messageOperation
@@ -748,12 +741,26 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 			destinationService.Resource += "/" + message.QueueName
 		}
 		event.Span.Message = &message
-	case isRPCSpan:
+	case rpcSpan:
+		// Set destination.service.* from the peer address, unless peer.service was specified.
+		if destinationService.Name == "" {
+			destHostPort := net.JoinHostPort(destAddr, strconv.Itoa(destPort))
+			destinationService.Name = destHostPort
+			destinationService.Resource = destHostPort
+		}
 		event.Span.Type = "external"
 		event.Span.Subtype = rpcSystem
 	default:
-		event.Span.Type = "app"
-		event.Span.Subtype = component
+		// Only set event.Span.Type if not already set
+		if event.Span.Type == "" {
+			switch spanKind {
+			case pdata.SpanKindInternal:
+				event.Span.Type = "app"
+				event.Span.Subtype = "internal"
+			default:
+				event.Span.Type = "unknown"
+			}
+		}
 	}
 
 	if destAddr != "" {
@@ -769,26 +776,31 @@ func translateSpan(span pdata.Span, event *model.APMEvent) {
 
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate transaction metrics.
-		parseSamplerAttributes(samplerType, samplerParam, &event.Span.RepresentativeCount, event.Labels)
+		parseSamplerAttributes(samplerType, samplerParam, event)
 	} else {
 		event.Span.RepresentativeCount = 1
 	}
 }
 
-func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, representativeCount *float64, labels common.MapStr) {
+func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, event *model.APMEvent) {
 	switch samplerType := samplerType.StringVal(); samplerType {
 	case "probabilistic":
 		probability := samplerParam.DoubleVal()
 		if probability > 0 && probability <= 1 {
-			*representativeCount = 1 / probability
+			if event.Span != nil {
+				event.Span.RepresentativeCount = 1 / probability
+			}
+			if event.Transaction != nil {
+				event.Transaction.RepresentativeCount = 1 / probability
+			}
 		}
 	default:
-		labels["sampler_type"] = samplerType
+		event.Labels.Set("sampler_type", samplerType)
 		switch samplerParam.Type() {
 		case pdata.AttributeValueTypeBool:
-			labels["sampler_param"] = samplerParam.BoolVal()
+			event.Labels.Set("sampler_param", strconv.FormatBool(samplerParam.BoolVal()))
 		case pdata.AttributeValueTypeDouble:
-			labels["sampler_param"] = samplerParam.DoubleVal()
+			event.NumericLabels.Set("sampler_param", samplerParam.DoubleVal())
 		}
 	}
 }
@@ -800,14 +812,14 @@ func convertSpanEvent(
 	timeDelta time.Duration,
 ) model.APMEvent {
 	event := parent
-	event.Labels = initEventLabels(event.Labels)
+	initEventLabels(&event)
 	event.Transaction = nil
 	event.Span = nil
 	event.Timestamp = spanEvent.Timestamp().AsTime().Add(timeDelta)
 
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
 	if isJaeger {
-		event.Error = convertJaegerErrorSpanEvent(logger, spanEvent, event.Labels)
+		event.Error = convertJaegerErrorSpanEvent(logger, spanEvent, &event)
 	} else if spanEvent.Name() == "exception" {
 		// Translate exception span events to errors.
 		//
@@ -827,7 +839,7 @@ func convertSpanEvent(
 			case "exception.escaped":
 				exceptionEscaped = v.BoolVal()
 			default:
-				event.Labels[replaceDots(k)] = ifaceAttributeValue(v)
+				setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
 			}
 			return true
 		})
@@ -851,14 +863,14 @@ func convertSpanEvent(
 		event.DataStream.Type = datastreams.LogsType
 		event.Message = spanEvent.Name()
 		spanEvent.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
-			event.Labels[replaceDots(k)] = ifaceAttributeValue(v)
+			setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
 			return true
 		})
 	}
 	return event
 }
 
-func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, labels common.MapStr) *model.Error {
+func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, apmEvent *model.APMEvent) *model.Error {
 	var isError bool
 	var exMessage, exType string
 	logMessage := event.Name()
@@ -891,7 +903,7 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, lab
 		case "level":
 			isError = stringval == "error"
 		default:
-			labels[replaceDots(k)] = ifaceAttributeValue(v)
+			setLabel(replaceDots(k), apmEvent, ifaceAttributeValue(v))
 		}
 		return true
 	})
@@ -904,7 +916,7 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, lab
 	}
 	e := &model.Error{}
 	if logMessage != "" {
-		e.Log = &model.Log{Message: logMessage}
+		e.Log = &model.ErrorLog{Message: logMessage}
 	}
 	if exMessage != "" || exType != "" {
 		e.Exception = &model.Exception{

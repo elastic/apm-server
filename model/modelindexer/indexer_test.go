@@ -19,6 +19,7 @@ package modelindexer_test
 
 import (
 	"bufio"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -29,11 +30,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.elastic.co/apm/apmtest"
+	"go.elastic.co/fastjson"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/go-elasticsearch/v7/esutil"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
@@ -58,18 +62,17 @@ func TestModelIndexer(t *testing.T) {
 			}
 
 			item := esutil.BulkIndexerResponseItem{Status: http.StatusCreated}
-			if len(result.Items) == 0 {
-				// Respond with an error for the first item. This will be recorded
-				// as a failure in indexing stats.
+			if len(result.Items) < 2 {
+				// Respond with an error for the first two items, with one
+				// indicating "too many requests". These will be recorded
+				// as failures in indexing stats.
 				result.HasErrors = true
 				item.Status = http.StatusInternalServerError
+				if len(result.Items) == 1 {
+					item.Status = http.StatusTooManyRequests
+				}
 			}
 			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: item})
-
-			if scanner.Scan() && scanner.Text() != "" {
-				// Both the libbeat event encoder and bulk indexer add an empty line.
-				panic("expected empty line")
-			}
 		}
 		atomic.AddInt64(&indexed, int64(len(result.Items)))
 		json.NewEncoder(w).Encode(result)
@@ -94,10 +97,66 @@ func TestModelIndexer(t *testing.T) {
 	err = indexer.Close(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, modelindexer.Stats{
-		Added:  N,
-		Active: 0,
-		Failed: 1,
+		Added:           N,
+		Active:          0,
+		BulkRequests:    1,
+		Failed:          2,
+		Indexed:         N - 2,
+		TooManyRequests: 1,
 	}, indexer.Stats())
+}
+
+func TestModelIndexerEncoding(t *testing.T) {
+	var indexed []map[string]interface{}
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		scanner := bufio.NewScanner(r.Body)
+		var result elasticsearch.BulkIndexerResponse
+		for scanner.Scan() {
+			action := make(map[string]interface{})
+			if err := json.NewDecoder(strings.NewReader(scanner.Text())).Decode(&action); err != nil {
+				panic(err)
+			}
+			var actionType string
+			for actionType = range action {
+			}
+			if !scanner.Scan() {
+				panic("expected source")
+			}
+
+			var doc map[string]interface{}
+			if err := json.Unmarshal([]byte(scanner.Text()), &doc); err != nil {
+				panic(err)
+			}
+			indexed = append(indexed, doc)
+			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: {}})
+		}
+		json.NewEncoder(w).Encode(result)
+	})
+	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	batch := model.Batch{{
+		Timestamp: time.Unix(123, 456789111).UTC(),
+		DataStream: model.DataStream{
+			Type:      "logs",
+			Dataset:   "apm_server",
+			Namespace: "testing",
+		},
+	}}
+	err = indexer.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+
+	// Closing the indexer flushes enqueued events.
+	err = indexer.Close(context.Background())
+	require.NoError(t, err)
+
+	assert.Equal(t, []map[string]interface{}{{
+		"@timestamp":            "1970-01-01T00:02:03.456Z",
+		"data_stream.type":      "logs",
+		"data_stream.dataset":   "apm_server",
+		"data_stream.namespace": "testing",
+	}}, indexed)
 }
 
 func TestModelIndexerFlushInterval(t *testing.T) {
@@ -197,9 +256,10 @@ func TestModelIndexerServerError(t *testing.T) {
 	err = indexer.Close(context.Background())
 	require.EqualError(t, err, "flush failed: [500 Internal Server Error] ")
 	assert.Equal(t, modelindexer.Stats{
-		Added:  1,
-		Active: 0,
-		Failed: 1,
+		Added:        1,
+		Active:       0,
+		BulkRequests: 1,
+		Failed:       1,
 	}, indexer.Stats())
 }
 
@@ -228,10 +288,6 @@ func TestModelIndexerLogRateLimit(t *testing.T) {
 				item.Error.Reason = "error_reason_odd"
 			}
 			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: item})
-			if scanner.Scan() && scanner.Text() != "" {
-				// Both the libbeat event encoder and bulk indexer add an empty line.
-				panic("expected empty line")
-			}
 		}
 		json.NewEncoder(w).Encode(result)
 	})
@@ -251,10 +307,13 @@ func TestModelIndexerLogRateLimit(t *testing.T) {
 	err = indexer.Close(context.Background())
 	assert.NoError(t, err)
 
-	entries := logp.ObserverLogs().TakeAll()
+	entries := logp.ObserverLogs().FilterMessageSnippet("failed to index event").TakeAll()
 	require.Len(t, entries, 2)
-	assert.Equal(t, "failed to index event (error_type): error_reason_even", entries[0].Message)
-	assert.Equal(t, "failed to index event (error_type): error_reason_odd", entries[1].Message)
+	messages := []string{entries[0].Message, entries[1].Message}
+	assert.ElementsMatch(t, []string{
+		"failed to index event (error_type): error_reason_even",
+		"failed to index event (error_type): error_reason_odd",
+	}, messages)
 }
 
 func TestModelIndexerCloseFlushContext(t *testing.T) {
@@ -301,35 +360,167 @@ func TestModelIndexerCloseFlushContext(t *testing.T) {
 	}
 }
 
-func BenchmarkModelIndexer(b *testing.B) {
-	var indexed int64
-	client := newMockElasticsearchClient(b, func(w http.ResponseWriter, r *http.Request) {
+func TestModelIndexerUnknownResponseFields(t *testing.T) {
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"ingest_took":123}`))
+	})
+	indexer, err := modelindexer.New(client, modelindexer.Config{})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+		Type:      "logs",
+		Dataset:   "apm_server",
+		Namespace: "testing",
+	}}}
+	err = indexer.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+
+	err = indexer.Close(context.Background())
+	assert.NoError(t, err)
+}
+
+func TestModelIndexerTracing(t *testing.T) {
+	testModelIndexerTracing(t, 200, "success")
+	testModelIndexerTracing(t, 400, "failure")
+}
+
+func testModelIndexerTracing(t *testing.T, statusCode int, expectedOutcome string) {
+	logp.DevelopmentSetup(logp.ToObserverOutput())
+
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(statusCode)
 		scanner := bufio.NewScanner(r.Body)
-		var n int64
-		for scanner.Scan() {
-			if scanner.Scan() {
-				n++
+		result := elasticsearch.BulkIndexerResponse{HasErrors: true}
+		for i := 0; scanner.Scan(); i++ {
+			action := make(map[string]interface{})
+			if err := json.NewDecoder(strings.NewReader(scanner.Text())).Decode(&action); err != nil {
+				panic(err)
 			}
-			if scanner.Scan() && scanner.Text() != "" {
-				panic("expected empty line")
+			var actionType string
+			for actionType = range action {
 			}
+			if !scanner.Scan() {
+				panic("expected source")
+			}
+			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: {}})
 		}
-		atomic.AddInt64(&indexed, n)
-		fmt.Fprintln(w, "{}")
+		json.NewEncoder(w).Encode(result)
 	})
 
-	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Second})
+	tracer := apmtest.NewRecordingTracer()
+	indexer, err := modelindexer.New(client, modelindexer.Config{
+		FlushInterval: time.Minute,
+		Tracer:        tracer.Tracer,
+	})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	const N = 100
+	for i := 0; i < N; i++ {
+		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+			Type:      "logs",
+			Dataset:   "apm_server",
+			Namespace: "testing",
+		}}}
+		err := indexer.ProcessBatch(context.Background(), &batch)
+		require.NoError(t, err)
+	}
+
+	// Closing the indexer flushes enqueued events.
+	_ = indexer.Close(context.Background())
+
+	tracer.Flush(nil)
+	payloads := tracer.Payloads()
+	require.Len(t, payloads.Transactions, 1)
+	require.Len(t, payloads.Spans, 1)
+
+	assert.Equal(t, expectedOutcome, payloads.Transactions[0].Outcome)
+	assert.Equal(t, "output", payloads.Transactions[0].Type)
+	assert.Equal(t, "flush", payloads.Transactions[0].Name)
+	assert.Equal(t, "Elasticsearch: POST _bulk", payloads.Spans[0].Name)
+	assert.Equal(t, "db", payloads.Spans[0].Type)
+	assert.Equal(t, "elasticsearch", payloads.Spans[0].Subtype)
+
+	entries := logp.ObserverLogs().TakeAll()
+	assert.NotEmpty(t, entries)
+	for _, entry := range entries {
+		fields := entry.ContextMap()
+		assert.Equal(t, fmt.Sprintf("%x", payloads.Transactions[0].ID), fields["transaction.id"])
+		assert.Equal(t, fmt.Sprintf("%x", payloads.Transactions[0].TraceID), fields["trace.id"])
+	}
+}
+
+func BenchmarkModelIndexer(b *testing.B) {
+	b.Run("NoCompression", func(b *testing.B) {
+		benchmarkModelIndexer(b, gzip.NoCompression)
+	})
+	b.Run("BestSpeed", func(b *testing.B) {
+		benchmarkModelIndexer(b, gzip.BestSpeed)
+	})
+	b.Run("DefaultCompression", func(b *testing.B) {
+		benchmarkModelIndexer(b, gzip.DefaultCompression)
+	})
+	b.Run("BestCompression", func(b *testing.B) {
+		benchmarkModelIndexer(b, gzip.BestCompression)
+	})
+}
+
+func benchmarkModelIndexer(b *testing.B, compressionLevel int) {
+	var indexed int64
+	client := newMockElasticsearchClient(b, func(w http.ResponseWriter, r *http.Request) {
+		body := r.Body
+		switch r.Header.Get("Content-Encoding") {
+		case "gzip":
+			r, err := gzip.NewReader(body)
+			if err != nil {
+				panic(err)
+			}
+			defer r.Close()
+			body = r
+		}
+
+		var n int64
+		var jsonw fastjson.Writer
+		jsonw.RawString(`{"items":[`)
+		first := true
+		scanner := bufio.NewScanner(body)
+		for scanner.Scan() {
+			// Action is always "create", skip decoding to avoid
+			// inflating allocations in benchmark.
+			if !scanner.Scan() {
+				panic("expected source")
+			}
+			if first {
+				first = false
+			} else {
+				jsonw.RawByte(',')
+			}
+			jsonw.RawString(`{"create":{"status":201}}`)
+			n++
+		}
+		jsonw.RawString(`]}`)
+		w.Write(jsonw.Bytes())
+		atomic.AddInt64(&indexed, n)
+	})
+
+	indexer, err := modelindexer.New(client, modelindexer.Config{
+		CompressionLevel: compressionLevel,
+		FlushInterval:    time.Second,
+	})
 	require.NoError(b, err)
 	defer indexer.Close(context.Background())
 
-	batch := model.Batch{
-		model.APMEvent{
-			Processor: model.TransactionProcessor,
-			Timestamp: time.Now(),
-		},
-	}
 	b.RunParallel(func(pb *testing.PB) {
+		batch := model.Batch{
+			model.APMEvent{
+				Processor:   model.TransactionProcessor,
+				Transaction: &model.Transaction{},
+			},
+		}
 		for pb.Next() {
+			batch[0].Timestamp = time.Now()
+			batch[0].Transaction.ID = uuid.Must(uuid.NewV4()).String()
 			if err := indexer.ProcessBatch(context.Background(), &batch); err != nil {
 				b.Fatal(err)
 			}

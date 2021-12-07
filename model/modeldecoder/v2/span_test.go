@@ -18,13 +18,16 @@
 package v2
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
@@ -87,6 +90,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			case
 				// RepresentativeCount is tested further down in test 'sample-rate'
 				"RepresentativeCount",
+				// Kind is tested further down
+				"Kind",
 
 				// Not set for spans:
 				"DestinationService.ResponseTime",
@@ -113,6 +118,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var out1, out2 model.APMEvent
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
+		input.OTel.Reset()
 		mapToSpanModel(&input, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
@@ -121,6 +127,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
+		input.OTel.Reset()
 		mapToSpanModel(&input, &out2)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out2.Span, exceptions, otherVal)
@@ -170,7 +177,6 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Start.Reset()
 		mapToSpanModel(&input, &out)
-		require.Nil(t, out.Span.Start)
 		assert.Equal(t, reqTime, out.Timestamp)
 	})
 
@@ -178,6 +184,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var input span
 		var out model.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+		input.OTel.Reset()
 		// sample rate is set to > 0
 		input.SampleRate.Set(0.25)
 		mapToSpanModel(&input, &out)
@@ -242,5 +249,219 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var out model.APMEvent
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, common.MapStr{"a": []string{"b", "c"}}, out.HTTP.Response.Headers)
+	})
+
+	t.Run("otel-bridge", func(t *testing.T) {
+		t.Run("http", func(t *testing.T) {
+			expected := model.URL{
+				Original: "https://testing.invalid:80/foo?bar",
+			}
+			attrs := map[string]interface{}{
+				"http.scheme":   "https",
+				"net.peer.name": "testing.invalid",
+				"net.peer.ip":   "::1", // net.peer.name preferred
+				"net.peer.port": json.Number("80"),
+				"http.target":   "/foo?bar",
+			}
+			var input span
+			var event model.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
+			input.Type.Reset()
+
+			mapToSpanModel(&input, &event)
+			assert.Equal(t, expected, event.URL)
+			assert.Equal(t, "CLIENT", event.Span.Kind)
+		})
+
+		t.Run("http-destination", func(t *testing.T) {
+			expectedDestination := model.Destination{
+				Address: "testing.invalid",
+				Port:    443,
+			}
+			expectedDestinationService := &model.DestinationService{
+				Type:     "external",
+				Name:     "https://testing.invalid",
+				Resource: "testing.invalid:443",
+			}
+			attrs := map[string]interface{}{
+				"http.url": "https://testing.invalid:443/foo?bar",
+			}
+
+			var input span
+			var event model.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
+			input.Type.Reset()
+
+			mapToSpanModel(&input, &event)
+			assert.Equal(t, expectedDestination, event.Destination)
+			assert.Equal(t, expectedDestinationService, event.Span.DestinationService)
+			assert.Equal(t, "CLIENT", event.Span.Kind)
+		})
+
+		t.Run("db", func(t *testing.T) {
+			connectionString := "Server=shopdb.example.com;Database=ShopDb;Uid=billing_user;TableCache=true;UseCompression=True;MinimumPoolSize=10;MaximumPoolSize=50;"
+			attrs := map[string]interface{}{
+				"db.system":            "mysql",
+				"db.connection_string": connectionString,
+				"db.user":              "billing_user",
+				"db.name":              "ShopDb",
+				"db.statement":         "SELECT * FROM orders WHERE order_id = 'o4711'",
+				"net.peer.name":        "shopdb.example.com",
+				"net.peer.ip":          "192.0.2.12",
+				"net.peer.port":        3306,
+				"net.transport":        "IP.TCP",
+			}
+
+			var input span
+			var event model.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
+			input.Type.Reset()
+			input.Action.Reset()
+			mapToSpanModel(&input, &event)
+
+			assert.Equal(t, "db", event.Span.Type)
+			assert.Equal(t, "mysql", event.Span.Subtype)
+			assert.Equal(t, "", event.Span.Action)
+			assert.Equal(t, "CLIENT", event.Span.Kind)
+
+			assert.Equal(t, &model.DB{
+				Instance:  "ShopDb",
+				Statement: "SELECT * FROM orders WHERE order_id = 'o4711'",
+				Type:      "mysql",
+				UserName:  "billing_user",
+			}, event.Span.DB)
+		})
+
+		t.Run("rpc", func(t *testing.T) {
+			attrs := map[string]interface{}{
+				"rpc.system":           "grpc",
+				"rpc.service":          "myservice.EchoService",
+				"rpc.method":           "exampleMethod",
+				"rpc.grpc.status_code": json.Number(strconv.Itoa(int(codes.Unavailable))),
+				"net.peer.ip":          "10.20.30.40",
+				"net.peer.port":        json.Number("123"),
+			}
+
+			var input span
+			var event model.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
+			input.Type.Reset()
+			input.Action.Reset()
+			mapToSpanModel(&input, &event)
+
+			assert.Equal(t, "external", event.Span.Type)
+			assert.Equal(t, "grpc", event.Span.Subtype)
+			assert.Equal(t, model.Destination{
+				Address: "10.20.30.40",
+				Port:    123,
+			}, event.Destination)
+			assert.Equal(t, "CLIENT", event.Span.Kind)
+			assert.Equal(t, &model.DestinationService{
+				Type:     "external",
+				Name:     "10.20.30.40:123",
+				Resource: "10.20.30.40:123",
+			}, event.Span.DestinationService)
+		})
+
+		t.Run("messaging", func(t *testing.T) {
+			attrs := map[string]interface{}{
+				"messaging.system":      "kafka",
+				"messaging.destination": "myTopic",
+				"net.peer.ip":           "10.20.30.40",
+				"net.peer.port":         json.Number("123"),
+			}
+
+			var input span
+			var event model.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Set("PRODUCER")
+			input.Type.Reset()
+			mapToSpanModel(&input, &event)
+
+			assert.Equal(t, "messaging", event.Span.Type)
+			assert.Equal(t, "kafka", event.Span.Subtype)
+			assert.Equal(t, "send", event.Span.Action)
+			assert.Equal(t, "PRODUCER", event.Span.Kind)
+			assert.Equal(t, model.Destination{
+				Address: "10.20.30.40",
+				Port:    123,
+			}, event.Destination)
+			assert.Equal(t, &model.DestinationService{
+				Type:     "messaging",
+				Name:     "kafka",
+				Resource: "kafka/myTopic",
+			}, event.Span.DestinationService)
+
+		})
+
+		t.Run("network", func(t *testing.T) {
+			attrs := map[string]interface{}{
+				"net.host.connection.type":    "cell",
+				"net.host.connection.subtype": "LTE",
+				"net.host.carrier.name":       "Vodafone",
+				"net.host.carrier.mnc":        "01",
+				"net.host.carrier.mcc":        "101",
+				"net.host.carrier.icc":        "UK",
+			}
+			var input span
+			var event model.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			input.OTel.Attributes = attrs
+			input.Type.Reset()
+			mapToSpanModel(&input, &event)
+
+			expected := model.Network{
+				Connection: model.NetworkConnection{
+					Type:    "cell",
+					Subtype: "LTE",
+				},
+				Carrier: model.NetworkCarrier{
+					Name: "Vodafone",
+					MNC:  "01",
+					MCC:  "101",
+					ICC:  "UK",
+				},
+			}
+			assert.Equal(t, expected, event.Network)
+			assert.Equal(t, "INTERNAL", event.Span.Kind)
+		})
+
+		t.Run("kind", func(t *testing.T) {
+			var input span
+			var event model.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			input.OTel.SpanKind.Set("CONSUMER")
+
+			mapToSpanModel(&input, &event)
+			assert.Equal(t, "CONSUMER", event.Span.Kind)
+		})
+	})
+	t.Run("labels", func(t *testing.T) {
+		var input span
+		input.Context.Tags = common.MapStr{
+			"a": "b",
+			"c": float64(12315124131),
+			"d": 12315124131.12315124131,
+			"e": true,
+		}
+		var out model.APMEvent
+		mapToSpanModel(&input, &out)
+		assert.Equal(t, model.Labels{
+			"a": {Value: "b"},
+			"e": {Value: "true"},
+		}, out.Labels)
+		assert.Equal(t, model.NumericLabels{
+			"c": {Value: float64(12315124131)},
+			"d": {Value: float64(12315124131.12315124131)},
+		}, out.NumericLabels)
 	})
 }

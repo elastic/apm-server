@@ -1,0 +1,14 @@
+[[how-to-guides]]
+== How-to guides
+
+Learn how to perform common APM configuration and management tasks.
+
+* <<source-map-how-to>>
+* <<jaeger-integration>>
+* <<ingest-pipelines>>
+
+include::./source-map-how-to.asciidoc[]
+
+include::./jaeger-integration.asciidoc[]
+
+include::./ingest-pipelines.asciidoc[]

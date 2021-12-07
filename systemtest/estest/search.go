@@ -23,8 +23,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/elastic/go-elasticsearch/v7/esutil"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 // ExpectDocs searches index with query, returning the results.
@@ -55,6 +55,16 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 		result.Hits.MinHitsCondition(min),
 		result.Hits.TotalHitsCondition(req),
 	)))
+
+	// Refresh the indices before issuing the search request.
+	refreshReq := esapi.IndicesRefreshRequest{
+		Index:           strings.Split(",", index),
+		ExpandWildcards: "all",
+	}
+	if _, err := refreshReq.Do(context.Background(), es.Transport); err != nil {
+		t.Fatalf("failed refreshing indices: %s: %s", index, err.Error())
+	}
+
 	if _, err := req.Do(context.Background(), &result, opts...); err != nil {
 		t.Fatal(err)
 	}

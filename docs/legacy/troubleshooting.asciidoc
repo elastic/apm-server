@@ -1,0 +1,45 @@
+[[troubleshooting]]
+= Troubleshoot
+
+IMPORTANT: {deprecation-notice-data}
+
+If you have issues installing or running APM Server,
+read the following tips:
+
+* <<common-problems>>
+* <<enable-apm-server-debugging>>
+* <<getting-help>>
+
+Other sections in the documentation may also be helpful:
+
+* <<sizing-guide, Storage and sizing guide>>
+* <<processing-performance, Processing and performance>>
+* <<tune-apm-server, Tune APM Server>>
+* <<tune-es, Tune Elasticsearch>>
+* {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix]
+
+If your issue is potentially related to other components of the APM ecosystem,
+don't forget to check the relevant troubleshooting guides:
+
+* {kibana-ref}/troubleshooting.html[APM app troubleshooting]
+* {apm-dotnet-ref-v}/troubleshooting.html[.NET agent troubleshooting]
+* {apm-go-ref-v}/troubleshooting.html[Go agent troubleshooting]
+* {apm-ios-ref-v}/troubleshooting.html[iOS agent troubleshooting]
+* {apm-java-ref-v}/trouble-shooting.html[Java agent troubleshooting]
+* {apm-node-ref-v}/troubleshooting.html[Node.js agent troubleshooting]
+* {apm-php-ref-v}/troubleshooting.html[PHP agent troubleshooting]
+* {apm-py-ref-v}/troubleshooting.html[Python agent troubleshooting]
+* {apm-ruby-ref-v}/debugging.html[Ruby agent troubleshooting]
+* {apm-rum-ref-v}/troubleshooting.html[RUM troubleshooting]
+
+include::common-problems.asciidoc[]
+
+[[enable-apm-server-debugging]]
+== Debug
+
+include::{libbeat-dir}/debugging.asciidoc[]
+
+[[getting-help]]
+== Get help
+
+include::{libbeat-dir}/getting-help.asciidoc[]

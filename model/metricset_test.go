@@ -126,10 +126,9 @@ func TestTransformMetricsetTransaction(t *testing.T) {
 	event := APMEvent{
 		Processor: MetricsetProcessor,
 		Transaction: &Transaction{
-			Name:           "transaction_name",
-			Type:           "transaction_type",
-			Result:         "transaction_result",
-			BreakdownCount: 123,
+			Name:   "transaction_name",
+			Type:   "transaction_type",
+			Result: "transaction_result",
 			DurationHistogram: Histogram{
 				Counts: []int64{1, 2, 3},
 				Values: []float64{4.5, 6.0, 9.0},
@@ -142,10 +141,9 @@ func TestTransformMetricsetTransaction(t *testing.T) {
 		"processor":      common.MapStr{"name": "metric", "event": "metric"},
 		"metricset.name": "transaction",
 		"transaction": common.MapStr{
-			"name":            "transaction_name",
-			"type":            "transaction_type",
-			"result":          "transaction_result",
-			"breakdown.count": 123,
+			"name":   "transaction_name",
+			"type":   "transaction_type",
+			"result": "transaction_result",
 			"duration.histogram": common.MapStr{
 				"counts": []int64{1, 2, 3},
 				"values": []float64{4.5, 6.0, 9.0},

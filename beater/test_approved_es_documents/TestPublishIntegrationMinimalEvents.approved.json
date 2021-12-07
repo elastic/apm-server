@@ -6,6 +6,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -17,15 +20,16 @@
                 }
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "message": "error log message",
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "error",
@@ -44,6 +48,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -57,15 +64,16 @@
                 "id": "abcdef0123456790"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "message": "error exception message",
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "error",
@@ -84,6 +92,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -97,14 +108,15 @@
                 "id": "abcdef0123456791"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "error",
@@ -123,6 +135,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -130,14 +145,15 @@
                 "outcome": "unknown"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "parent": {
                 "id": "ab23456a89012345"
@@ -155,9 +171,6 @@
                 },
                 "id": "0123456a89012345",
                 "name": "GET /api/types",
-                "start": {
-                    "us": 1845
-                },
                 "type": "request"
             },
             "timestamp": {
@@ -173,6 +186,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -180,14 +196,15 @@
                 "outcome": "unknown"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "parent": {
                 "id": "ab23456a89012345"
@@ -220,6 +237,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "ecs": {
                 "version": "1.12.0"
             },
@@ -227,17 +247,18 @@
                 "outcome": "unknown"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "labels": {
-                "wrapped_reporter": true
+                "wrapped_reporter": "true"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "transaction",
@@ -271,19 +292,23 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
             "ecs": {
                 "version": "1.12.0"
             },
             "host": {
-                "ip": "127.0.0.1"
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "metricset.name": "app",
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "1.2.3",
-                "version_major": 1
+                "version": "1.2.3"
             },
             "processor": {
                 "event": "metric",

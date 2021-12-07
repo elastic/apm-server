@@ -11,18 +11,11 @@
 
 1. Actual work
     - Make changes in `apmpackage/apm` and/or code as needed
-    - Run `make update`. That will update fields, pipeline and doc files based on apm-server fields and pipeline defs.
+    - Run `make build-package`
 
-2. Run the registry
-    - Checkout a fresh master from the registry and run `mage build`
-    - Copy `apmpackage/apm` in apm-server to `build/package-storage/packages/apm/<version>` in the registry
-    - `go run .`
-
-3. Run the stack
-    - Update Kibana settings with `xpack.fleet.registryUrl: http://localhost:8080`
-    - Start Kibana and Elasticsearch with X-Pack enabled. One way to do it is with a local Kibana:
-        - `yarn es snapshot --license trial --ssl -E xpack.security.authc.api_key.enabled=true`
-        - `yarn start --ssl`
+2. Run the registry and stack
+    - Run `docker-compose up -d`: this will run package-registry with the locally-built package mounted, and will
+      start Elasticsearch and Kibana pointed at the local registry.
 
 4. Test
     - Go to the Fleet UI, install the integration and test what you need. You generally will want to have a look at the
@@ -38,19 +31,6 @@
     Do *NOT* override any existing packages. Instead, bump the qualifier version (eg: `0.1.0-dev.1` to `0.1.0-dev.2`)
     both in the folder name and the content (`manifest.yml` and `default.json` pipelines)
     - You can `cd script && python copy_package.py` for this.
-
-#### Create a new package version
-
-Follow steps described above, except:
-
-1. New local version
-    - Bump the version in `apmpackage/apm/manifest.yml`
-    - Then do any changes in the new folder. The rest of the steps are the same.
-
-2. First dev version
-    - When copying to the `package-storage`, create the first version qualifier instead of bumping the last one.
-      Eg: `apm/0.2.0` -> `apm/0.2.0-dev.1`
-
 
 #### Run the Elastic Agent
 
@@ -94,8 +74,7 @@ Most of the work here is done in `beats/x-pack/elastic-agent`
       make && make update
 
       # tar and compress
-      cp build/fields/fields.yml .
-      tar cvf apm-server-<stack-version>-<platform>.tar apm-server LICENSE.txt NOTICE.txt README.md apm-server.yml ingest fields.yml
+      tar cvf apm-server-<stack-version>-<platform>.tar apm-server LICENSE.txt NOTICE.txt README.md apm-server.yml
       gzip apm-server-<stack-version>-<platform>.tar
       sha512sum apm-server-<stack-version>-<platform>.tar.gz | tee apm-server-<stack-version>-<platform>.tar.gz.sha512
 
@@ -120,10 +99,3 @@ Most of the work here is done in `beats/x-pack/elastic-agent`
 Generally it should be done between FF and release.
 1. Remove the qualifier version from the package
 2. Push to the corresponding production branch(es)
-
-
-### Caveats
-
-Fleet is under active development and this guide might become obsolete quickly.
-
-Take everything with a grain of salt.
