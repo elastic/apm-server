@@ -35,20 +35,20 @@ func TestSetErrorMessage(t *testing.T) {
 		input:   model.Error{},
 		message: "",
 	}, {
-		input:   model.Error{Log: &model.Log{Message: "log_message"}},
+		input:   model.Error{Log: &model.ErrorLog{Message: "log_message"}},
 		message: "log_message",
 	}, {
 		input:   model.Error{Exception: &model.Exception{Message: "exception_message"}},
 		message: "exception_message",
 	}, {
 		input: model.Error{
-			Log:       &model.Log{},
+			Log:       &model.ErrorLog{},
 			Exception: &model.Exception{Message: "exception_message"},
 		},
 		message: "exception_message",
 	}, {
 		input: model.Error{
-			Log:       &model.Log{Message: "log_message"},
+			Log:       &model.ErrorLog{Message: "log_message"},
 			Exception: &model.Exception{Message: "exception_message"},
 		},
 		message: "log_message",

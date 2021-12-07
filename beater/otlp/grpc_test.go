@@ -133,6 +133,53 @@ func TestConsumeMetrics(t *testing.T) {
 	}, actual)
 }
 
+func TestConsumeLogs(t *testing.T) {
+	var batches []model.Batch
+	var reportError error
+	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+		batches = append(batches, *batch)
+		return reportError
+	}
+
+	conn := newServer(t, batchProcessor)
+	client := otlpgrpc.NewLogsClient(conn)
+
+	// Send a minimal log to verify that everything is connected properly.
+	//
+	// We intentionally do not check the published event contents; those are
+	// tested in processor/otel.
+	logs := pdata.NewLogs()
+	log := logs.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().Logs().AppendEmpty()
+	log.SetName("log_name")
+
+	_, err := client.Export(context.Background(), logs)
+	assert.NoError(t, err)
+	require.Len(t, batches, 1)
+
+	reportError = errors.New("failed to publish events")
+	_, err = client.Export(context.Background(), logs)
+	assert.Error(t, err)
+	errStatus := status.Convert(err)
+	assert.Equal(t, "failed to publish events", errStatus.Message())
+	require.Len(t, batches, 2)
+	assert.Len(t, batches[0], 1)
+	assert.Len(t, batches[1], 1)
+
+	actual := map[string]interface{}{}
+	monitoring.GetRegistry("apm-server.otlp.grpc.logs").Do(monitoring.Full, func(key string, value interface{}) {
+		actual[key] = value
+	})
+	assert.Equal(t, map[string]interface{}{
+		"request.count":                int64(2),
+		"response.count":               int64(2),
+		"response.errors.count":        int64(1),
+		"response.valid.count":         int64(1),
+		"response.errors.ratelimit":    int64(0),
+		"response.errors.timeout":      int64(0),
+		"response.errors.unauthorized": int64(0),
+	}, actual)
+}
+
 func newServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientConn {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)

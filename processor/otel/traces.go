@@ -925,7 +925,7 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, apm
 	}
 	e := &model.Error{}
 	if logMessage != "" {
-		e.Log = &model.Log{Message: logMessage}
+		e.Log = &model.ErrorLog{Message: logMessage}
 	}
 	if exMessage != "" || exType != "" {
 		e.Exception = &model.Exception{
