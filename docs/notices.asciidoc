@@ -3,17 +3,13 @@
 
 // Generic "running" message
 // Usually followed by a link to the corresponding APM integration docs
-// Link to upgrade docs will be added in #6709
-:deprecation-notice-data: This documentation refers to the standalone (legacy) method of running APM Server. This method of running APM Server will be deprecated and removed in a future release. Please consider upgrading to the Elastic APM integration.
+:deprecation-notice-data: This documentation refers to the standalone (legacy) method of running APM Server. This method of running APM Server will be deprecated and removed in a future release. Please consider <<upgrade-to-apm-integration,upgrading to the Elastic APM integration>>.
 
 // For monitoring docs
-// Link to upgrade docs will be added in #6709
-:deprecation-notice-monitor: This documentation refers to monitoring the standalone (legacy) APM Server. This method of running APM Server will be deprecated and removed in a future release. Please consider upgrading to {fleet} and the APM integration.
+:deprecation-notice-monitor: This documentation refers to monitoring the standalone (legacy) APM Server. This method of running APM Server will be deprecated and removed in a future release. Please consider <<upgrade-to-apm-integration,upgrading to {fleet} and the APM integration>>.
 
 // For configuration docs
-// Link to upgrade docs will be added in #6709
-:deprecation-notice-config: This documentation refers to configuring the standalone (legacy) APM Server. This method of running APM Server will be deprecated and removed in a future release. Please consider upgrading to {fleet} and the APM integration.
+:deprecation-notice-config: This documentation refers to configuring the standalone (legacy) APM Server. This method of running APM Server will be deprecated and removed in a future release. Please consider <<upgrade-to-apm-integration,upgrading to {fleet} and the APM integration>>.
 
 // For API docs
-// Link to upgrade docs will be added in #6709
-:deprecation-notice-api: This documentation refers to the API of the standalone (legacy) APM Server. This method of running APM Server will be deprecated and removed in a future release. Please consider upgrading to {fleet} and the APM integration.
+:deprecation-notice-api: This documentation refers to the API of the standalone (legacy) APM Server. This method of running APM Server will be deprecated and removed in a future release. Please consider <<upgrade-to-apm-integration,upgrading to {fleet} and the APM integration>>.

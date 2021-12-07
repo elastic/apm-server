@@ -88,12 +88,17 @@ func newElasticsearchConfig() elasticsearch.Config {
 
 // CleanupElasticsearch deletes all data streams created by APM Server.
 func CleanupElasticsearch(t testing.TB) {
+	err := cleanupElasticsearch()
+	require.NoError(t, err)
+}
+
+func cleanupElasticsearch() error {
 	_, err := Elasticsearch.Do(context.Background(), &esapi.IndicesDeleteDataStreamRequest{Name: []string{
 		"traces-apm*",
 		"metrics-apm*",
 		"logs-apm*",
 	}}, nil)
-	require.NoError(t, err)
+	return err
 }
 
 // ChangeUserPassword changes the password for a given user.
