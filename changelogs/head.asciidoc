@@ -44,5 +44,9 @@ https://github.com/elastic/apm-server/compare/7.15\...master[View commits]
 - APM Server now has beta support to receive OpenTelemetry Logs on the OTLP/GRPC receiver {pull}6768[6768]
 
 [float]
+==== Deprecated
+- `apm-server.capture_personal_data` is deprecated and `apm-server.rum.capture_personal_data` should be used instead {pull}6835[6835]
+
+[float]
 ==== Licensing Changes
 - Updated the `x-pack` source files license to the Elastic License 2.0 {pull}6524[6524]
