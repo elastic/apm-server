@@ -25,7 +25,6 @@ The new APM ecosystem offers a number of benefits:
 * Errors and metrics data streams are shared with other data sources -- which means better long-term integration with the logs and metrics apps
 * Removes template inheritance for ILM policies and makes use of new {es} index and component templates
 * Fixes <<server-resource-exists-not-alias>>
-* RUM sourcemaps are not working with data streams in 7.16 -- this will be fixed in 8.0
 
 **APM Integration**:
 
