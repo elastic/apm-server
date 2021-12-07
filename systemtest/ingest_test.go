@@ -98,7 +98,7 @@ func TestIngestPipelineVersionEnforcement(t *testing.T) {
 		require.NoError(t, err)
 		resp.Body.Close()
 
-		if !assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, dataStream) {
+		if !assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "%s: %s", dataStream, respBody) {
 			continue
 		}
 		assert.Contains(t, string(respBody),
