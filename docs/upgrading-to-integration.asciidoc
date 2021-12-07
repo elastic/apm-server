@@ -143,11 +143,63 @@ Congratulations -- you've now upgraded to the latest and greatest in Elastic APM
 [[apm-integration-upgrade-steps-ess]]
 === Upgrade an {ecloud} cluster
 
-// Will add tomorrow
+. <<apm-integration-upgrade-ess-1>>
+. <<apm-integration-upgrade-ess-2>>
+. <<apm-integration-upgrade-ess-3>>
+. <<apm-integration-upgrade-ess-4>>
 
-// . Upgrade to Fleet + APM integration
-// . Switch to data streams --> APM settings --> Schema --> Data streams
-// . Scale APM & Fleet up and out. Capacity to process events increases with the memory size (instead of tweaking output settings, increase from 2gb to 4gb for example). As of right now, you cannot overwrite ES output settings or change the output.
-// . Navigate to the APM integration and update settings (like enabling RUM)
-// . ???
-// . Profit
+[discrete]
+[[apm-integration-upgrade-ess-1]]
+==== Upgrade the Elastic Stack
+
+Use the {ecloud} console to upgrade the {stack} to version {version}.
+See the {cloud}/ec-upgrade-deployment.html[{ess} upgrade guide] for details.
+
+[discrete]
+[[apm-integration-upgrade-ess-2]]
+==== Switch to Elastic Agent
+
+APM data collection will be interrupted while the migration is in progress.
+The process of migrating should only take a few minutes.
+
+With a Superuser account, complete the following steps:
+
+. In {kib}, navigate to **Observability** > **APM** > **Settings** > **Schema**.
++
+image::./images/schema-agent.png[switch to {agent}]
+
+. Click **Switch to {agent}**.
+Make a note of the `apm-server.yml` user settings that are incompatible with {agent}.
+Check the confirmation box and click **Switch to {agent}**.
++
+image::./images/agent-settings-migration.png[{agent} settings migration]
+
+{ecloud} will now create a Fleet Server instance to contain the new APM integration,
+and then will shut down the old APM server instance.
+Within minutes your data should begin appearing in the APM app again.
+
+[discrete]
+[[apm-integration-upgrade-ess-3]]
+==== Configure the APM integration
+
+You can now update settings that were removed during the upgrade.
+See <<input-apm>> for a reference of all available settings.
+
+In {kib}, navigate to **Mangement** > **Fleet**.
+Select the **Elastic Cloud Agent Policy**.
+Next to the **Elastic APM** integration, select **Actions** > **Edit integration**.
+
+[discrete]
+[[apm-integration-upgrade-ess-4]]
+==== Scale APM and Fleet
+
+Certain {es} output configuration options are not available with the APM integration.
+To ensure data is not lost, you can scale APM and Fleet up and out.
+APM's capacity to process events increases with the instance memory size.
+
+Go to the {ess-console}[{ecloud} console], select your deployment and click **Edit**.
+Here you can edit the number and size of each availability zone.
+
+image::./images/scale-apm.png[scale apm]
+
+Congratulations -- you’ve now upgraded to the latest and greatest in Elastic APM!

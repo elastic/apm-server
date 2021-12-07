@@ -4,7 +4,6 @@
 * <<why-upgrade-to-data-streams>>
 * <<considerations-data-streams>>
 * <<apm-data-streams-upgrade-steps>>
-* <<apm-data-streams-upgrade-steps-ess>>
 
 Classic indices are deprecated starting in version 7.16.0.
 Users that are not ready to <<upgrade-to-apm-integration>> should
@@ -90,9 +89,3 @@ Need to customize anything?
 
 * See <<ilm-how-to>> to learn about the new default Index lifecycle management (ILM) policies applied to data streams and how to customize them.
 * See <<ingest-pipelines>> for more information on how to edit or view ingest pipelines.
-
-[discrete]
-[[apm-data-streams-upgrade-steps-ess]]
-=== Upgrade an {ecloud} cluster
-
-// Will add tomorrow
