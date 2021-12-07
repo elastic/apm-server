@@ -39,7 +39,7 @@ func (j JavaAttacherConfig) setup() error {
 		}
 		for flag := range rule {
 			if _, ok := allowlist[flag]; !ok {
-				return fmt.Errorf("unrecognized discovery rule: %s", rule)
+				return fmt.Errorf("unrecognized discovery rule: --%s. Supported flags are available at https://www.elastic.co/guide/en/apm/agent/java/current/setup-attach-cli.html", flag)
 			}
 		}
 	}
@@ -47,13 +47,13 @@ func (j JavaAttacherConfig) setup() error {
 }
 
 var allowlist = map[string]struct{}{
-	"include-all":   {},
-	"include-main":  {},
-	"include-vmarg": {},
-	"include-user":  {},
-	"exclude-main":  {},
-	"exclude-vmarg": {},
-	"exclude-user":  {},
+	"include-all":    {},
+	"include-main":   {},
+	"include-vmargs": {},
+	"include-user":   {},
+	"exclude-main":   {},
+	"exclude-vmargs": {},
+	"exclude-user":   {},
 }
 
 func defaultJavaAttacherConfig() JavaAttacherConfig {

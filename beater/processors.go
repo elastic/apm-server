@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/ecs/code/go/ecs"
 
 	"github.com/elastic/apm-server/beater/auth"
@@ -75,10 +74,6 @@ func ecsVersionBatchProcessor(ctx context.Context, b *model.Batch) error {
 // newObserverBatchProcessor returns a model.BatchProcessor that sets observer
 // fields from info.
 func newObserverBatchProcessor(info beat.Info) model.ProcessBatchFunc {
-	var versionMajor int
-	if version, err := common.NewVersion(info.Version); err == nil {
-		versionMajor = version.Major
-	}
 	return func(ctx context.Context, b *model.Batch) error {
 		for i := range *b {
 			observer := &(*b)[i].Observer
@@ -90,7 +85,6 @@ func newObserverBatchProcessor(info beat.Info) model.ProcessBatchFunc {
 			}
 			observer.Type = info.Beat
 			observer.Version = info.Version
-			observer.VersionMajor = versionMajor
 		}
 		return nil
 	}

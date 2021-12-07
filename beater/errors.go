@@ -15,32 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package beater
 
-import (
-	"github.com/elastic/beats/v7/libbeat/common"
-)
+import "fmt"
 
-// Observer describes a special network, security, or application device used to detect,
-// observe, or create network, security, or application-related events and metrics.
-//
-// https://www.elastic.co/guide/en/ecs/current/ecs-observer.html
-type Observer struct {
-	EphemeralID string
-	Hostname    string
-	ID          string
+type actionableError struct {
+	Err         error
 	Name        string
-	Type        string
-	Version     string
+	Remediation string
 }
 
-func (o *Observer) Fields() common.MapStr {
-	var fields mapStr
-	fields.maybeSetString("ephemeral_id", o.EphemeralID)
-	fields.maybeSetString("hostname", o.Hostname)
-	fields.maybeSetString("id", o.ID)
-	fields.maybeSetString("name", o.Name)
-	fields.maybeSetString("type", o.Type)
-	fields.maybeSetString("version", o.Version)
-	return common.MapStr(fields)
+func (e *actionableError) Error() string {
+	if e == nil || e.Err == nil {
+		return ""
+	}
+	if e.Remediation != "" {
+		return fmt.Sprintf("%s: to remediate, %s", e.Err.Error(), e.Remediation)
+	}
+	return e.Err.Error()
 }
