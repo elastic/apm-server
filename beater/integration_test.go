@@ -99,17 +99,6 @@ func testPublish(t *testing.T, client *http.Client, req *http.Request, events <-
 	got := body(t, rsp)
 	assert.Equal(t, http.StatusAccepted, rsp.StatusCode, got)
 
-<<<<<<< HEAD
-	onboarded := false
-	var docs [][]byte
-	for _, e := range collectEvents(events, time.Second) {
-		if e.Fields["processor"].(common.MapStr)["name"] == "onboarding" {
-			onboarded = true
-			continue
-		}
-		adjustMissingTimestamp(&e)
-		docs = append(docs, beatertest.EncodeEventDoc(e))
-=======
 	var result struct {
 		Accepted int
 	}
@@ -117,17 +106,21 @@ func testPublish(t *testing.T, client *http.Client, req *http.Request, events <-
 	require.NoError(t, err)
 
 	var docs [][]byte
+	onboarded := false
 	timeout := time.NewTimer(time.Second)
 	defer timeout.Stop()
 	for len(docs) != result.Accepted {
 		select {
 		case event := <-events:
+			if event.Fields["processor"].(common.MapStr)["name"] == "onboarding" {
+				onboarded = true
+				continue
+			}
 			adjustMissingTimestamp(&event)
 			docs = append(docs, beatertest.EncodeEventDoc(event))
 		case <-timeout.C:
 			t.Fatal("timed out waiting for events")
 		}
->>>>>>> d35b6214 (beater: improve tests (#6850))
 	}
 	assert.True(t, onboarded)
 	return docs
@@ -179,9 +172,13 @@ func TestPublishIntegrationOnboarding(t *testing.T) {
 	require.NoError(t, err)
 	defer apm.Stop()
 
-	allEvents := collectEvents(events, time.Second)
-	require.Equal(t, 1, len(allEvents))
-	event := allEvents[0]
+	var event beat.Event
+	select {
+	case event = <-events:
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for events")
+	}
+
 	otype, err := event.Fields.GetValue("observer.type")
 	require.NoError(t, err)
 	assert.Equal(t, "test-apm-server", otype.(string))
