@@ -26,7 +26,7 @@ import (
 func TestJavaAttacherConfig(t *testing.T) {
 	discoveryRules := []map[string]string{
 		map[string]string{"include-main": "main.jar"},
-		map[string]string{"include-vmargs": "elastic.apm.agent.attach=true"},
+		map[string]string{"include-vmarg": "elastic.apm.agent.attach=true"},
 		map[string]string{"exclude-user": "root"},
 	}
 	config := JavaAttacherConfig{
