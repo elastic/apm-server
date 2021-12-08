@@ -372,6 +372,7 @@ func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
 
 func TestQueryClusterUUIDRegistriesDoNotExist(t *testing.T) {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	stateRegistry.Clear()
 	defer stateRegistry.Clear()
 
 	ctx := context.Background()
