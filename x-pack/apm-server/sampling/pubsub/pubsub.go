@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
@@ -68,25 +69,23 @@ func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceIDs <-chan str
 		return err
 	}
 
-	var closeIndexerOnce sync.Once
-	var closeIndexerErr error
-	closeIndexer := func() error {
-		closeIndexerOnce.Do(func() {
-			ctx, cancel := context.WithTimeout(context.Background(), p.config.FlushInterval)
-			defer cancel()
-			closeIndexerErr = indexer.Close(ctx)
-		})
-		return closeIndexerErr
+	result := p.indexSampledTraceIDs(ctx, traceIDs, indexer)
+	ctx, cancel := context.WithTimeout(context.Background(), p.config.FlushInterval)
+	defer cancel()
+	if err := indexer.Close(ctx); err != nil {
+		result = multierror.Append(result, err)
 	}
-	defer closeIndexer()
+	return result
+}
 
+func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan string, indexer *modelindexer.Indexer) error {
 	for {
 		select {
 		case <-ctx.Done():
 			if err := ctx.Err(); err != context.Canceled {
 				return err
 			}
-			return closeIndexer()
+			return nil
 		case id := <-traceIDs:
 			doc := model.APMEvent{
 				Timestamp:  time.Now(),

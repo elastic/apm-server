@@ -106,17 +106,7 @@ func newBaseRunServer(listener net.Listener) RunServerFunc {
 		if err != nil {
 			return err
 		}
-		done := make(chan struct{})
-		defer close(done)
-		go func() {
-			select {
-			case <-ctx.Done():
-				srv.stop()
-			case <-done:
-			}
-		}()
-		go srv.agentcfgFetchReporter.Run(ctx)
-		return srv.run()
+		return srv.run(ctx)
 	}
 }
 
@@ -239,21 +229,24 @@ func newGRPCServer(
 	return srv, nil
 }
 
-func (s server) run() error {
+func (s server) run(ctx context.Context) error {
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
-	var g errgroup.Group
+	defer s.logger.Infof("Server stopped")
+
+	g, ctx := errgroup.WithContext(ctx)
+	g.Go(func() error { return s.agentcfgFetchReporter.Run(ctx) })
 	g.Go(s.httpServer.start)
 	g.Go(func() error {
 		return s.grpcServer.Serve(s.httpServer.grpcListener)
 	})
+	g.Go(func() error {
+		<-ctx.Done()
+		s.grpcServer.GracefulStop()
+		s.httpServer.stop()
+		return nil
+	})
 	if err := g.Wait(); err != http.ErrServerClosed {
 		return err
 	}
-	s.logger.Infof("Server stopped")
 	return nil
-}
-
-func (s server) stop() {
-	s.grpcServer.GracefulStop()
-	s.httpServer.stop()
 }

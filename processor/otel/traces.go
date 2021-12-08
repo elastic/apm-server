@@ -465,7 +465,7 @@ func TranslateTransaction(
 }
 
 const (
-	appSpan int = iota
+	_ int = iota
 	dbSpan
 	httpSpan
 	messagingSpan

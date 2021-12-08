@@ -29,12 +29,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/common/transport"
-	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
-	"github.com/elastic/go-ucfg"
-
 	"github.com/dustin/go-humanize"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
@@ -43,11 +39,15 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
+	"github.com/elastic/beats/v7/libbeat/common/transport"
+	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/licenser"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
+	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-server/beater/config"
 	javaattacher "github.com/elastic/apm-server/beater/java_attacher"
@@ -146,8 +146,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	if err := bt.run(ctx, cancel, b); err != nil {
 		return err
 	}
-	bt.waitPublished.Wait(ctx)
-	return nil
+	return bt.waitPublished.Wait(ctx)
 }
 
 func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *beat.Beat) error {
@@ -496,18 +495,6 @@ func (s *serverRunner) run(listener net.Listener) error {
 		sourcemapFetcher = cachingFetcher
 	}
 
-	// When the publisher stops cleanly it will close its pipeline client,
-	// calling the acker's Close method. We need to call Open for each new
-	// publisher to ensure we wait for all clients and enqueued events to
-	// be closed at shutdown time.
-	s.acker.Open()
-	pipeline := pipetool.WithACKer(s.pipeline, s.acker)
-	publisher, err := publish.NewPublisher(pipeline, s.tracer)
-	if err != nil {
-		return err
-	}
-	defer publisher.Stop(s.backgroundContext)
-
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
 	runServer := newBaseRunServer(listener)
@@ -522,15 +509,10 @@ func (s *serverRunner) run(listener net.Listener) error {
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
 	batchProcessor := make(modelprocessor.Chained, 0, 3)
-	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
-		publisher,
-		newElasticsearchClient,
-	)
+	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(newElasticsearchClient)
 	if err != nil {
 		return err
 	}
-	defer closeFinalBatchProcessor(s.backgroundContext)
-
 	batchProcessor = append(batchProcessor,
 		// The server always drops non-RUM unsampled transactions. We store RUM unsampled
 		// transactions as they are needed by the User Experience app, which performs
@@ -557,10 +539,11 @@ func (s *serverRunner) run(listener net.Listener) error {
 			NewElasticsearchClient: newElasticsearchClient,
 		})
 	})
-	if err := g.Wait(); err != nil {
-		return err
+	result := g.Wait()
+	if err := closeFinalBatchProcessor(s.backgroundContext); err != nil {
+		result = multierror.Append(result, err)
 	}
-	return publisher.Stop(s.backgroundContext)
+	return result
 }
 
 // waitReady waits until the server is ready to index events.
@@ -643,11 +626,20 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 // and a cleanup function which should be called on server shutdown. If the output is
 // "elasticsearch", then we use modelindexer; otherwise we use the libbeat publisher.
 func (s *serverRunner) newFinalBatchProcessor(
-	p *publish.Publisher,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
 ) (model.BatchProcessor, func(context.Context) error, error) {
 	if s.elasticsearchOutputConfig == nil {
-		return p, func(context.Context) error { return nil }, nil
+		// When the publisher stops cleanly it will close its pipeline client,
+		// calling the acker's Close method. We need to call Open for each new
+		// publisher to ensure we wait for all clients and enqueued events to
+		// be closed at shutdown time.
+		s.acker.Open()
+		pipeline := pipetool.WithACKer(s.pipeline, s.acker)
+		publisher, err := publish.NewPublisher(pipeline, s.tracer)
+		if err != nil {
+			return nil, nil, err
+		}
+		return publisher, publisher.Stop, nil
 	}
 
 	var esConfig struct {
@@ -784,10 +776,6 @@ func newSourcemapFetcher(
 ) (sourcemap.Fetcher, error) {
 	// When running under Fleet we only fetch via Fleet Server.
 	if fleetCfg != nil {
-		var (
-			c  = *http.DefaultClient
-			rt = http.DefaultTransport
-		)
 		var tlsConfig *tlscommon.TLSConfig
 		var err error
 		if fleetCfg.TLS.IsEnabled() {
@@ -800,15 +788,15 @@ func newSourcemapFetcher(
 		dialer := transport.NetDialer(timeout)
 		tlsDialer := transport.TLSDialer(dialer, tlsConfig, timeout)
 
-		rt = &http.Transport{
+		client := *http.DefaultClient
+		client.Transport = apmhttp.WrapRoundTripper(&http.Transport{
 			Proxy:           http.ProxyFromEnvironment,
 			Dial:            dialer.Dial,
 			DialTLS:         tlsDialer.Dial,
 			TLSClientConfig: tlsConfig.ToConfig(),
-		}
+		})
 
-		c.Transport = apmhttp.WrapRoundTripper(rt)
-		return sourcemap.NewFleetFetcher(&c, fleetCfg, cfg.Metadata)
+		return sourcemap.NewFleetFetcher(&client, fleetCfg, cfg.Metadata)
 	}
 
 	// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.

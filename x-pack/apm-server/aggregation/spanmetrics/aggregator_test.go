@@ -28,7 +28,7 @@ func BenchmarkAggregateSpan(b *testing.B) {
 	span := makeSpan("test_service", "agent", "test_destination", "success", time.Second, 1)
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			agg.ProcessBatch(context.Background(), &model.Batch{span})
+			_ = agg.ProcessBatch(context.Background(), &model.Batch{span})
 		}
 	})
 }
