@@ -127,11 +127,17 @@ func generateJSONPropertySlice(info *fieldInfo, parent *property, child *propert
 	items := property{Type: &propertyType{names: []propertyTypeName{itemsType}, required: true}}
 	switch itemsType {
 	case TypeNameInteger:
-		setPropertyRulesInteger(info, &items)
+		if err := setPropertyRulesInteger(info, &items); err != nil {
+			return err
+		}
 	case TypeNameNumber:
-		setPropertyRulesNumber(info, &items)
+		if err := setPropertyRulesNumber(info, &items); err != nil {
+			return err
+		}
 	case TypeNameString:
-		setPropertyRulesString(info, &items)
+		if err := setPropertyRulesString(info, &items); err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("unhandled slice item type %s", itemsType)
 	}

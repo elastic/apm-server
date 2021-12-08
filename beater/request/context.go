@@ -91,7 +91,10 @@ func NewContext() *Context {
 // extracted for handlers.
 func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	if c.Request != nil && c.Request.MultipartForm != nil {
-		c.Request.MultipartForm.RemoveAll()
+		err := c.Request.MultipartForm.RemoveAll()
+		if err != nil && c.Logger != nil {
+			c.Logger.Errorw("failed to remove temporary form files", "error", err)
+		}
 	}
 
 	*c = Context{

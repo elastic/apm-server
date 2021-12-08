@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package generatortest
+package testdata
 
 //lint:file-ignore U1000 Ignore all unused code, it's used for json schema code generation in tests
 

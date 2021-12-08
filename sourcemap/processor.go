@@ -96,7 +96,7 @@ func (p BatchProcessor) processException(ctx context.Context, service *model.Ser
 // - lineno
 // - abs_path is set to the cleaned abs_path
 // - sourcemap.updated is set to true
-func (p BatchProcessor) processStacktraceFrames(ctx context.Context, service *model.Service, frames ...*model.StacktraceFrame) error {
+func (p BatchProcessor) processStacktraceFrames(ctx context.Context, service *model.Service, frames ...*model.StacktraceFrame) {
 	prevFunction := "<anonymous>"
 	for i := len(frames) - 1; i >= 0; i-- {
 		frame := frames[i]
@@ -104,7 +104,6 @@ func (p BatchProcessor) processStacktraceFrames(ctx context.Context, service *mo
 			prevFunction = function
 		}
 	}
-	return nil
 }
 
 func (p BatchProcessor) processStacktraceFrame(

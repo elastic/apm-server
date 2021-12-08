@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/xeipuuv/gojsonschema"
 
-	"github.com/elastic/apm-server/model/modeldecoder/generator/generatortest"
+	"github.com/elastic/apm-server/model/modeldecoder/generator/testdata"
 )
 
 type testcase struct {
@@ -40,7 +40,7 @@ func nameOf(i interface{}) string {
 }
 
 func TestSchemaString(t *testing.T) {
-	schema := generateJSONSchema(t, nameOf(generatortest.String{}))
+	schema := generateJSONSchema(t, nameOf(testdata.String{}))
 	assertValid(t, schema, []testcase{
 		{n: "enum", data: `{"required":"closed"}`},
 		{n: "minLength", data: `{"required":"open","nullable":"12"}`},
@@ -61,7 +61,7 @@ func TestSchemaString(t *testing.T) {
 }
 
 func TestSchemaNumbers(t *testing.T) {
-	schema := generateJSONSchema(t, nameOf(generatortest.Number{}))
+	schema := generateJSONSchema(t, nameOf(testdata.Number{}))
 	assertValid(t, schema, []testcase{
 		{n: "int-min", data: `{"required":1}`},
 		{n: "int-max", data: `{"required":250}`},
@@ -80,7 +80,7 @@ func TestSchemaNumbers(t *testing.T) {
 }
 
 func TestSchemaBool(t *testing.T) {
-	schema := generateJSONSchema(t, nameOf(generatortest.Bool{}))
+	schema := generateJSONSchema(t, nameOf(testdata.Bool{}))
 	assertValid(t, schema, []testcase{
 		{n: "valid", data: `{"required":true}`},
 		{n: "nullable", data: `{"required":false,"nullable":null}`},
@@ -92,7 +92,7 @@ func TestSchemaBool(t *testing.T) {
 }
 
 func TestSchemaHTTPHeader(t *testing.T) {
-	schema := generateJSONSchema(t, nameOf(generatortest.HTTPHeader{}))
+	schema := generateJSONSchema(t, nameOf(testdata.HTTPHeader{}))
 	assertValid(t, schema, []testcase{
 		{n: "http-header", data: `{"required":{"a":"v","b":["v1","v2"],"a":["v2"]}}`},
 		{n: "nullable", data: `{"required":{"a":"v"},"nullable":null}`},
@@ -104,7 +104,7 @@ func TestSchemaHTTPHeader(t *testing.T) {
 		{n: "violation-type", data: `{"required":{"a":{"b":"v"}}}`}})
 }
 func TestSchemaInterface(t *testing.T) {
-	schema := generateJSONSchema(t, nameOf(generatortest.Interface{}))
+	schema := generateJSONSchema(t, nameOf(testdata.Interface{}))
 	assertValid(t, schema, []testcase{
 		{n: "str-minLength", data: `{"required":"12"}`},
 		{n: "str-maxLength", data: `{"required":"12345"}`},
@@ -133,7 +133,7 @@ func TestSchemaInterface(t *testing.T) {
 }
 
 func TestSchemaMap(t *testing.T) {
-	schema := generateJSONSchema(t, nameOf(generatortest.Map{}))
+	schema := generateJSONSchema(t, nameOf(testdata.Map{}))
 	assertValid(t, schema, []testcase{
 		{n: "required", data: `{"required":{"aab":"abcde"}}`},
 		{n: "all-types", data: `{"required":{"aab":1,"abab":"abcde","bbb":true}}`},
@@ -156,7 +156,7 @@ func TestSchemaMap(t *testing.T) {
 }
 
 func TestSchemaSliceStruct(t *testing.T) {
-	schema := generateJSONSchema(t, nameOf(generatortest.Slice{}))
+	schema := generateJSONSchema(t, nameOf(testdata.Slice{}))
 	assertValid(t, schema, []testcase{
 		{n: "required", data: `{"required":["cc","cc","ccc","cc"]}`},
 		{n: "valid", data: `{"required":["cc"],"nullable":["b"]}`},
@@ -175,7 +175,7 @@ func TestSchemaSliceStruct(t *testing.T) {
 }
 
 func TestSchemaRequiredIfAny(t *testing.T) {
-	schema := generateJSONSchema(t, nameOf(generatortest.RequiredIfAny{}))
+	schema := generateJSONSchema(t, nameOf(testdata.RequiredIfAny{}))
 	assertValid(t, schema, []testcase{
 		{n: "all", data: `{"a":"a","b":"b","c":"c","d":"d"}`},
 		{n: "only-required", data: `{"d":"d"}`},
@@ -190,7 +190,7 @@ func TestSchemaRequiredIfAny(t *testing.T) {
 }
 
 func TestSchemaRequiredAnyOf(t *testing.T) {
-	schema := generateJSONSchema(t, nameOf(generatortest.RequiredAnyOf{}))
+	schema := generateJSONSchema(t, nameOf(testdata.RequiredAnyOf{}))
 	assertValid(t, schema, []testcase{
 		{n: "all", data: `{"a":1,"b":2}`},
 		{n: "a", data: `{"a":1}`},
@@ -201,7 +201,7 @@ func TestSchemaRequiredAnyOf(t *testing.T) {
 }
 
 func TestSchemaOnlyExported(t *testing.T) {
-	schema := generateJSONSchema(t, nameOf(generatortest.Exported{}))
+	schema := generateJSONSchema(t, nameOf(testdata.Exported{}))
 	assertValid(t, schema, []testcase{
 		{n: "valid", data: `{"b":1}`},
 		{n: "unexported-no-type-checking", data: `{"a":1.5,"_":0.7}`}})
@@ -216,7 +216,7 @@ func validate(schema string, data string) (*gojsonschema.Result, error) {
 }
 
 func generateJSONSchema(t *testing.T, root string) string {
-	p := path.Join("github.com", "elastic", "apm-server", "model", "modeldecoder", "generator", "generatortest")
+	p := path.Join("github.com", "elastic", "apm-server", "model", "modeldecoder", "generator", "testdata")
 	parsed, err := Parse(p)
 	require.NoError(t, err, err)
 	jsonSchema, err := NewJSONSchemaGenerator(parsed)

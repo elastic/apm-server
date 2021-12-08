@@ -42,7 +42,6 @@ const (
 
 	msgInvalidQuery       = "invalid query"
 	msgMethodUnsupported  = "method not supported"
-	msgNoKibanaConnection = "unable to retrieve connection to Kibana"
 	msgServiceUnavailable = "service unavailable"
 )
 

@@ -44,7 +44,7 @@ func generateNullableStringValidation(w io.Writer, fields []structField, f struc
 				return errors.Wrap(err, "nullableString")
 			}
 		default:
-			errors.Wrap(errUnhandledTagRule(rule), "nullableString")
+			return errors.Wrap(errUnhandledTagRule(rule), "nullableString")
 		}
 	}
 	return nil

@@ -107,7 +107,9 @@ func (b *bulkIndexer) Add(item elasticsearch.BulkIndexerItem) error {
 	if _, err := io.CopyBuffer(b.writer, item.Body, b.copybuf[:]); err != nil {
 		return err
 	}
-	b.writer.Write(newline)
+	if _, err := b.writer.Write(newline); err != nil {
+		return err
+	}
 	b.itemsAdded++
 	return nil
 }

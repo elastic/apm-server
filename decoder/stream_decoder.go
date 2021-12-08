@@ -65,7 +65,7 @@ func (dec *NDJSONStreamDecoder) resetDecoder() {
 func (dec *NDJSONStreamDecoder) Decode(v interface{}) error {
 	defer dec.resetLatestLineReader()
 	if dec.latestLineReader.Size() == 0 {
-		dec.ReadAhead()
+		_, _ = dec.ReadAhead() // error checked below
 	}
 	if len(dec.latestLine) == 0 || (dec.latestError != nil && !dec.isEOF) {
 		return dec.latestError

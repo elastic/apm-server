@@ -282,7 +282,9 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 		case common.MapStr:
 			m := common.MapStr{}
 			for i := 0; i < values.N; i++ {
-				m.Put(fmt.Sprintf("%s%v", values.Str, i), values.Str)
+				if _, err := m.Put(fmt.Sprintf("%s%v", values.Str, i), values.Str); err != nil {
+					panic(err)
+				}
 			}
 			newVal = m
 		case model.Labels:
