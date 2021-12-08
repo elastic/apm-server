@@ -19,6 +19,7 @@ package beater
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -39,18 +40,6 @@ import (
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/beatertest"
 )
-
-func collectEvents(events <-chan beat.Event, timeout time.Duration) []beat.Event {
-	var collected []beat.Event
-	for {
-		select {
-		case event := <-events:
-			collected = append(collected, event)
-		case <-time.After(timeout):
-			return collected
-		}
-	}
-}
 
 var timestampOverride = time.Date(2019, 1, 9, 21, 40, 53, 690, time.UTC)
 
@@ -104,11 +93,13 @@ func testPublishProfile(t *testing.T, apm *testBeater, events <-chan beat.Event,
 // It posts a payload to a running APM server via the intake API and gathers the resulting
 // documents that would normally be published to Elasticsearch.
 func testPublish(t *testing.T, client *http.Client, req *http.Request, events <-chan beat.Event) [][]byte {
+	req.URL.RawQuery = "verbose=true"
 	rsp, err := client.Do(req)
 	require.NoError(t, err)
 	got := body(t, rsp)
 	assert.Equal(t, http.StatusAccepted, rsp.StatusCode, got)
 
+<<<<<<< HEAD
 	onboarded := false
 	var docs [][]byte
 	for _, e := range collectEvents(events, time.Second) {
@@ -118,6 +109,25 @@ func testPublish(t *testing.T, client *http.Client, req *http.Request, events <-
 		}
 		adjustMissingTimestamp(&e)
 		docs = append(docs, beatertest.EncodeEventDoc(e))
+=======
+	var result struct {
+		Accepted int
+	}
+	err = json.Unmarshal([]byte(got), &result)
+	require.NoError(t, err)
+
+	var docs [][]byte
+	timeout := time.NewTimer(time.Second)
+	defer timeout.Stop()
+	for len(docs) != result.Accepted {
+		select {
+		case event := <-events:
+			adjustMissingTimestamp(&event)
+			docs = append(docs, beatertest.EncodeEventDoc(event))
+		case <-timeout.C:
+			t.Fatal("timed out waiting for events")
+		}
+>>>>>>> d35b6214 (beater: improve tests (#6850))
 	}
 	assert.True(t, onboarded)
 	return docs
