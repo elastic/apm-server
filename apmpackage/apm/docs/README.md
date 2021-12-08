@@ -342,6 +342,7 @@ Internal metrics are written to `metrics-apm.internal-*` data streams.
 | agent.ephemeral_id | Ephemeral identifier of this agent (if one exists). This id normally changes across restarts, but `agent.id` does not. | keyword |  |
 | agent.name | Custom name of the agent. This is a name that can be given to an agent. This can be helpful if for example two Filebeat instances are running on the same host but a human readable separation is needed on which Filebeat instance data is coming from. If no name is given, the name is often left empty. | keyword |  |
 | agent.version | Version of the agent. | keyword |  |
+| agent_config_applied | Value for agent_config_applied | long |  |
 | client.domain | Client domain. | keyword |  |
 | client.geo.city_name | City name. | keyword |  |
 | client.geo.continent_name | Name of the continent. | keyword |  |

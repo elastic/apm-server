@@ -286,9 +286,7 @@ func TestOTLPRateLimit(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	sendEvent := func(ip string) error {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
+	sendEvent := func(ctx context.Context, ip string) error {
 		exporter := newOTLPTraceExporter(t, srv,
 			otlptracegrpc.WithHeaders(map[string]string{"x-real-ip": ip}),
 			otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{Enabled: false}),
@@ -302,18 +300,27 @@ func TestOTLPRateLimit(t *testing.T) {
 	}
 
 	// Check that for the configured IP limit (2), we can handle 3*event_limit without being rate limited.
-	var g errgroup.Group
+	g, ctx := errgroup.WithContext(context.Background())
 	for i := 0; i < sendEventLimit; i++ {
-		g.Go(func() error { return sendEvent("10.11.12.13") })
-		g.Go(func() error { return sendEvent("10.11.12.14") })
+		g.Go(func() error { return sendEvent(ctx, "10.11.12.13") })
+		g.Go(func() error { return sendEvent(ctx, "10.11.12.14") })
 	}
 	err = g.Wait()
 	assert.NoError(t, err)
 
 	// The rate limiter cache only has space for 2 IPs, so the 3rd one reuses an existing
-	// limiter, which will have already been exhausted.
-	err = sendEvent("10.11.12.15")
+	// limiter which should have already been exhausted. However, the rate limiter may be
+	// replenished before the test can run with a third IP, so we cannot test this behaviour
+	// exactly. Instead, we just test that rate limiting is effective generally, and defer
+	// more thorough testing to unit tests.
+	for i := 0; i < sendEventLimit*2; i++ {
+		g.Go(func() error { return sendEvent(ctx, "10.11.12.13") })
+		g.Go(func() error { return sendEvent(ctx, "10.11.12.14") })
+		g.Go(func() error { return sendEvent(ctx, "11.11.12.15") })
+	}
+	err = g.Wait()
 	require.Error(t, err)
+
 	errStatus, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.ResourceExhausted, errStatus.Code())
