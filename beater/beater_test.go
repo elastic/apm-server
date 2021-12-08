@@ -354,6 +354,9 @@ func TestFleetStoreUsed(t *testing.T) {
 
 func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	stateRegistry.Clear()
+	defer stateRegistry.Clear()
+
 	elasticsearchRegistry := stateRegistry.NewRegistry("outputs.elasticsearch")
 	monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
 
@@ -368,13 +371,16 @@ func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
 }
 
 func TestQueryClusterUUIDRegistriesDoNotExist(t *testing.T) {
+	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	stateRegistry.Clear()
+	defer stateRegistry.Clear()
+
 	ctx := context.Background()
 	clusterUUID := "abc123"
 	client := &mockClusterUUIDClient{ClusterUUID: clusterUUID}
 	err := queryClusterUUID(ctx, client)
 	require.NoError(t, err)
 
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 	elasticsearchRegistry := stateRegistry.GetRegistry("outputs.elasticsearch")
 	require.NotNil(t, elasticsearchRegistry)
 
