@@ -114,7 +114,7 @@ func testPublish(t *testing.T, client *http.Client, req *http.Request, events <-
 			adjustMissingTimestamp(&event)
 			docs = append(docs, beatertest.EncodeEventDoc(event))
 		case <-timeout.C:
-			break
+			t.Fatal("timed out waiting for events")
 		}
 	}
 	return docs
