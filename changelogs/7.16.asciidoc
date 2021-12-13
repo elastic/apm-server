@@ -3,13 +3,30 @@
 
 https://github.com/elastic/apm-server/compare/7.15\...7.16[View commits]
 
+* <<release-notes-7.16.1>>
 * <<release-notes-7.16.0>>
+
+[float]
+[[release-notes-7.16.1]]
+=== APM version 7.16.1
+
+[float]
+==== Bug fixes
+- Agent configuration metrics are now sent to the `metrics-apm.internal*` data stream {pull}6767[6767]
+- Improve logged message when APM Server blocks ingestion to wait for the integration to be installed {pull}6796[6796]
 
 [float]
 [[release-notes-7.16.0]]
 === APM version 7.16.0
 
 https://github.com/elastic/apm-server/compare/v7.15.2\...v7.16.0[View commits]
+
+****
+The APM integration for {agent} is now generally available!
+This new APM ecosystem brings a number of new benefits to Elastic APM.
+Learn more about this change in the {apm-guide-ref}/upgrade-to-apm-integration.html[Upgrade guide].
+Documentation for standalone APM Server has moved to the {apm-guide-ref}/legacy-apm-overview.html[Legacy APM Overview] and {apm-guide-ref}/overview.html[Legacy APM Server Reference].
+****
 
 [float]
 ==== Breaking Changes
