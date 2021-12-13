@@ -10,6 +10,8 @@ https://github.com/elastic/apm-server/compare/7.15\...7.16[View commits]
 [[release-notes-7.16.1]]
 === APM version 7.16.1
 
+https://github.com/elastic/apm-server/compare/v7.16.0\...v7.16.1[View commits]
+
 [float]
 ==== Bug fixes
 - Agent configuration metrics are now sent to the `metrics-apm.internal*` data stream {pull}6767[6767]
