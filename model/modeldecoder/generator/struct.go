@@ -44,7 +44,9 @@ func generateStructValidation(w io.Writer, fields []structField, f structField, 
 		case tagRequired:
 			ruleNullableRequired(w, f)
 		case tagRequiredAnyOf:
-			ruleRequiredOneOf(w, fields, rule.value)
+			if err := ruleRequiredOneOf(w, fields, rule.value); err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("unhandled tag rule '%s'", rule)
 		}

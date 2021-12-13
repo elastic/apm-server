@@ -188,9 +188,9 @@ func processFirehose(firehose firehose, baseEvent model.APMEvent) (model.Batch, 
 			var cwMetric cloudwatchMetric
 			err = json.Unmarshal([]byte(line), &cwMetric)
 			if err == nil && cwMetric.MetricStreamName != "" {
-				event = processMetrics(baseEvent, cwMetric)
+				event = processMetrics(event, cwMetric)
 			} else {
-				event = processLogs(baseEvent, firehose, line)
+				event = processLogs(event, firehose, line)
 			}
 			batch = append(batch, event)
 		}

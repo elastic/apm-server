@@ -59,6 +59,10 @@
 - external: ecs
   name: event.outcome
 - external: ecs
+  name: event.severity
+- external: ecs
+  name: event.action
+- external: ecs
   name: host.architecture
 - external: ecs
   name: host.hostname
@@ -79,6 +83,10 @@
 - external: ecs
   name: labels
   dynamic: true
+- external: ecs
+  name: log.level
+- external: ecs
+  name: message
 - external: ecs
   name: observer.hostname
 - external: ecs

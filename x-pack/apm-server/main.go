@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/dgraph-io/badger/v2"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
@@ -233,14 +234,11 @@ func Main() error {
 			WrapRunServer: wrapRunServer,
 		}),
 	)
-	if err := rootCmd.Execute(); err != nil {
-		closeBadger()
-		return err
-	}
+	result := rootCmd.Execute()
 	if err := closeBadger(); err != nil {
-		return err
+		result = multierror.Append(result, err)
 	}
-	return nil
+	return result
 }
 
 func main() {

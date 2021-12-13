@@ -40,7 +40,7 @@ func TestSetCulprit(t *testing.T) {
 	}, {
 		input: model.Error{
 			Culprit: "already_set",
-			Log: &model.Log{
+			Log: &model.ErrorLog{
 				Stacktrace: model.Stacktrace{{SourcemapUpdated: false, Filename: "foo.go"}},
 			},
 		},
@@ -48,7 +48,7 @@ func TestSetCulprit(t *testing.T) {
 	}, {
 		input: model.Error{
 			Culprit: "already_set",
-			Log: &model.Log{
+			Log: &model.ErrorLog{
 				Stacktrace: model.Stacktrace{{SourcemapUpdated: true, LibraryFrame: true, Filename: "foo.go"}},
 			},
 		},
@@ -56,7 +56,7 @@ func TestSetCulprit(t *testing.T) {
 	}, {
 		input: model.Error{
 			Culprit: "already_set",
-			Log: &model.Log{
+			Log: &model.ErrorLog{
 				Stacktrace: model.Stacktrace{
 					{SourcemapUpdated: true, LibraryFrame: true, Filename: "foo.go"},
 					{SourcemapUpdated: true, LibraryFrame: false, Filename: "foo2.go"},
@@ -67,7 +67,7 @@ func TestSetCulprit(t *testing.T) {
 	}, {
 		input: model.Error{
 			Culprit: "already_set",
-			Log: &model.Log{
+			Log: &model.ErrorLog{
 				Stacktrace: model.Stacktrace{{SourcemapUpdated: true, LibraryFrame: true, Filename: "foo.go"}},
 			},
 			Exception: &model.Exception{
@@ -77,7 +77,7 @@ func TestSetCulprit(t *testing.T) {
 		culprit: "foo2.go",
 	}, {
 		input: model.Error{
-			Log: &model.Log{
+			Log: &model.ErrorLog{
 				Stacktrace: model.Stacktrace{
 					{SourcemapUpdated: true, Classname: "AbstractFactoryManagerBean", Function: "toString"},
 				},

@@ -43,7 +43,9 @@ func EncodeEventDocs(es ...beat.Event) [][]byte {
 func EncodeEventDoc(e beat.Event) []byte {
 	var buf bytes.Buffer
 	encoder := eslegclient.NewJSONEncoder(&buf, false)
-	encoder.AddRaw(&e)
+	if err := encoder.AddRaw(&e); err != nil {
+		panic(err)
+	}
 
 	var indented bytes.Buffer
 	if err := json.Indent(&indented, buf.Bytes(), "", "  "); err != nil {

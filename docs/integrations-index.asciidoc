@@ -14,10 +14,6 @@ endif::[]
 [[apm-user-guide]]
 = APM User Guide
 
-IMPORTANT: You are looking at preliminary documentation for a future release. For current documentation, see the
-https://www.elastic.co/guide/en/apm/get-started/current/index.html[APM Overview] or
-https://www.elastic.co/guide/en/apm/server/current/index.html[APM Server Reference].
-
 include::apm-overview.asciidoc[]
 
 include::apm-components.asciidoc[]
@@ -40,9 +36,7 @@ include::api.asciidoc[]
 
 include::troubleshoot-apm.asciidoc[]
 
-include::apm-breaking.asciidoc[]
-
-include::upgrade.asciidoc[]
+include::upgrading.asciidoc[]
 
 include::release-notes.asciidoc[leveloffset=+1]
 

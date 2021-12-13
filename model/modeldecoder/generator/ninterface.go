@@ -41,7 +41,7 @@ func generateNullableInterfaceValidation(w io.Writer, fields []structField, f st
 				return errors.Wrap(err, "nullableInterface")
 			}
 		default:
-			errors.Wrap(errUnhandledTagRule(rule), "nullableInterface")
+			return errors.Wrap(errUnhandledTagRule(rule), "nullableInterface")
 		}
 	}
 	return nil

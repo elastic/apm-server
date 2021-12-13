@@ -141,9 +141,6 @@ func ruleRequiredOneOf(w io.Writer, fields []structField, tagValue string) error
   return fmt.Errorf("requires at least one of the fields '%v'")
 }
 `[1:], tagValue)
-	if len(oneOf) != 0 {
-		return fmt.Errorf("unhandled 'requiredOneOf' field name(s)")
-	}
 	return nil
 }
 

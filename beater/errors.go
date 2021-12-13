@@ -15,40 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package config
+package beater
 
-import (
-	"fmt"
-	"net/url"
-)
+import "fmt"
 
-type urls []*url.URL
+type actionableError struct {
+	Err         error
+	Name        string
+	Remediation string
+}
 
-func (u *urls) Unpack(c interface{}) error {
-	if c == nil {
-		return nil
+func (e *actionableError) Error() string {
+	if e == nil || e.Err == nil {
+		return ""
 	}
-	hosts, ok := c.([]interface{})
-	if !ok {
-		return fmt.Errorf("hosts must be a list, got: %#v", c)
+	if e.Remediation != "" {
+		return fmt.Sprintf("%s: to remediate, %s", e.Err.Error(), e.Remediation)
 	}
-	if len(hosts) == 0 {
-		return nil
-	}
-
-	nu := make(urls, len(hosts))
-	for i, host := range hosts {
-		h, ok := host.(string)
-		if !ok {
-			return fmt.Errorf("host must be a string, got: %#v", h)
-		}
-		url, err := url.Parse(h)
-		if err != nil {
-			return err
-		}
-		nu[i] = url
-	}
-	*u = nu
-
-	return nil
+	return e.Err.Error()
 }

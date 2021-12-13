@@ -85,7 +85,9 @@ func generateCode(path string, pkg string, parsed *generator.Parsed, root []stri
 	if err != nil {
 		panic(err)
 	}
-	ioutil.WriteFile(out, formatted, 0644)
+	if err := ioutil.WriteFile(out, formatted, 0644); err != nil {
+		panic(err)
+	}
 }
 
 func generateJSONSchema(path string, pkg string, parsed *generator.Parsed, root []string) {
@@ -101,6 +103,8 @@ func generateJSONSchema(path string, pkg string, parsed *generator.Parsed, root 
 			panic(err)
 		}
 		out := filepath.Join(outPath, fmt.Sprintf("%s.json", strings.TrimSuffix(rootEventName, "Event")))
-		ioutil.WriteFile(out, b.Bytes(), 0644)
+		if err := ioutil.WriteFile(out, b.Bytes(), 0644); err != nil {
+			panic(err)
+		}
 	}
 }

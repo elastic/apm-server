@@ -85,6 +85,6 @@ include::./fields.asciidoc[leveloffset=+1]
 
 include::./troubleshooting.asciidoc[leveloffset=+1]
 
-include::./upgrading.asciidoc[leveloffset=+1]
+include::./breaking-changes.asciidoc[leveloffset=+1]
 
 include::./redirects.asciidoc[]

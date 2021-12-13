@@ -36,7 +36,7 @@ func generateNullableIntValidation(w io.Writer, fields []structField, f structFi
 		case tagRequired:
 			ruleNullableRequired(w, f)
 		default:
-			errors.Wrap(errUnhandledTagRule(rule), "nullableInt")
+			return errors.Wrap(errUnhandledTagRule(rule), "nullableInt")
 		}
 	}
 	return nil

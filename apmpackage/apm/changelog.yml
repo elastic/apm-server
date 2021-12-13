@@ -29,6 +29,23 @@
     - description: added new traces-apm.rum and individual ILM policies per data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6480
+    - description: fixed the `sampled_traces` data stream's ILM policy name
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/6802
+    - description: added app_logs data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6791
+    - description: updated ingest pipelines to reject events from apm-servers newer than installed integration
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6791
+    - description: added event.{outcome,severity} and log.level to app_logs data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6791
+- version: "7.16.1"
+  changes:
+    - description: Added `agent_config_applied` mapping to `metrics-apm.internal` data stream.
+      type: bugfix
+      link: https://github.com/elastic/apm-server/issues/6767
 - version: "7.16.0"
   changes:
     - description: updated package version to align with stack version
