@@ -1,0 +1,49 @@
+digraph G {
+    rankdir=LR;
+	compound=true;
+
+	edge [ arrowhead=open arrowtail=open ]
+	subgraph cluster_service_1 {
+		label = "service 1";
+		color=lightgrey;
+		node [color=lightgrey;]
+		agent1 agent2 agent3;
+	}
+
+	subgraph cluster_service_2 {
+		label = "service 2";
+		color=lightgrey;
+		node [color=lightgrey;]
+		agent4 agent5 agent6;
+	}
+
+	subgraph cluster_Server {
+		label = "APM Server";
+
+		// Data Path
+		node [ shape=box ]
+  		{agent1 agent2 agent3 agent4 agent5 agent6} -> Intake;
+  		Intake -> model_indexer [ style=bold ]
+  		
+  		subgraph cluster_model_indexer_pool {
+  		    label = "bulk_indexer_pool";
+  		    color=red
+  		    node [ shape=box ]
+            bulk_0
+            bulk_1
+            bulk_2
+            "bulk_.."
+  		}
+  		
+  		model_indexer -> bulk_0 [ style=bold lhead=cluster_model_indexer_pool color=red ]
+  	
+  	    node [ color=red ]
+  		CPU;
+  		Memory;
+  		Network;
+	}
+
+	// Data Path
+	bulk_0 -> elasticsearch [ style=bold ltail=cluster_model_indexer_pool color=red ]
+	elasticsearch [ shape=cylinder color=red ]
+}

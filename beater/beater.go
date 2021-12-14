@@ -49,9 +49,12 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 	"github.com/elastic/go-ucfg"
 
+	"github.com/elastic/apm-server/adaptive"
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/config"
 	javaattacher "github.com/elastic/apm-server/beater/java_attacher"
 	"github.com/elastic/apm-server/elasticsearch"
+	"github.com/elastic/apm-server/healthmonitor"
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
@@ -508,11 +511,39 @@ func (s *serverRunner) run(listener net.Listener) error {
 	}
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
-	batchProcessor := make(modelprocessor.Chained, 0, 3)
-	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(newElasticsearchClient)
+	// TODO(marclop): Parametrize
+	// Allow 5% 429 to be tolerated.
+	indexerMonitor := healthmonitor.NewModelIndexerMetric(0.05)
+	monitor, err := healthmonitor.New(10*time.Second, 5*time.Minute, indexerMonitor)
 	if err != nil {
 		return err
 	}
+	decisions, err := monitor.Run(ctx)
+	if err != nil {
+		return err
+	}
+	defer monitor.Stop(ctx)
+
+	// TODO:(marclop): parametrize.
+	adaptiveAgentConfig := adaptive.NewAgentConfig(0.2, 1)
+	wrapFetcher := func(f agentcfg.Fetcher) agentcfg.Fetcher {
+		return agentcfg.NewModifier(f, adaptiveAgentConfig)
+	}
+
+	adaptiveProcessor := adaptive.NewProcessor(decisions, adaptiveAgentConfig)
+	go adaptiveProcessor.Run()
+
+	batchProcessor := make(modelprocessor.Chained, 0, 3)
+	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
+		newElasticsearchClient,
+	)
+	if err != nil {
+		return err
+	}
+	if indexer, ok := finalBatchProcessor.(*modelindexer.Indexer); ok {
+		go indexerMonitor.Monitor(ctx, indexer, 10*time.Second)
+	}
+
 	batchProcessor = append(batchProcessor,
 		// The server always drops non-RUM unsampled transactions. We store RUM unsampled
 		// transactions as they are needed by the User Experience app, which performs
@@ -537,6 +568,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 			SourcemapFetcher:       sourcemapFetcher,
 			PublishReady:           publishReady,
 			NewElasticsearchClient: newElasticsearchClient,
+			WrapFetcher:            wrapFetcher,
 		})
 	})
 	result := g.Wait()

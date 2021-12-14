@@ -97,6 +97,9 @@ type ServerParams struct {
 	// client's transport such that requests will be blocked until data
 	// streams have been initialised.
 	NewElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error)
+
+	// WrapFetcher if set, it will wrap the created fetcher.
+	WrapFetcher func(agentcfg.Fetcher) agentcfg.Fetcher
 }
 
 // newBaseRunServer returns the base RunServerFunc.
@@ -120,7 +123,11 @@ type server struct {
 }
 
 func newServer(args ServerParams, listener net.Listener) (server, error) {
-	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(args.Config), args.BatchProcessor, 30*time.Second)
+	fetcher := agentcfg.NewFetcher(args.Config)
+	if args.WrapFetcher != nil {
+		fetcher = args.WrapFetcher(fetcher)
+	}
+	agentcfgFetchReporter := agentcfg.NewReporter(fetcher, args.BatchProcessor, 30*time.Second)
 
 	ratelimitStore, err := ratelimit.NewStore(
 		args.Config.AgentAuth.Anonymous.RateLimit.IPLimit,

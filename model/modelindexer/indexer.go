@@ -190,6 +190,7 @@ func (i *Indexer) Stats() Stats {
 		Failed:          atomic.LoadInt64(&i.eventsFailed),
 		Indexed:         atomic.LoadInt64(&i.eventsIndexed),
 		TooManyRequests: atomic.LoadInt64(&i.tooManyRequests),
+		Available:       uint64(len(i.available)),
 	}
 }
 
@@ -408,8 +409,8 @@ var pool sync.Pool
 
 type pooledReader struct {
 	jsonw        fastjson.Writer
-	reader       *bytes.Reader
 	indexBuilder strings.Builder
+	reader       *bytes.Reader
 }
 
 func getPooledReader() *pooledReader {
@@ -436,6 +437,9 @@ func (r *pooledReader) Read(p []byte) (int, error) {
 type Stats struct {
 	// Active holds the active number of items waiting in the indexer's queue.
 	Active int64
+
+	// Available number of bulk indexers.
+	Available uint64
 
 	// Added holds the number of items added to the indexer.
 	Added int64

@@ -1,0 +1,57 @@
+digraph G {
+	compound=true;
+
+	edge [ arrowhead=open arrowtail=open ]
+	subgraph cluster_service_1 {
+		label = "service 1";
+		color=lightgrey;
+		node [color=lightgrey;]
+		a1 a2 a3;
+	}
+
+	subgraph cluster_service_2 {
+		label = "service 2";
+		color=lightgrey;
+		node [color=lightgrey;]
+		a4 a5 a6;
+	}
+
+	subgraph cluster_Server {
+		label = "APM Server";
+
+		// Data Path
+		node [ shape=box ]
+  		{a1 a2 a3 a4 a5 a6} -> Intake;
+  		Intake -> model_indexer [ style=bold ]
+
+		// config Path
+  		config -> {a1 a2 a3 a4 a5 a6} [ style="dashed" color=gray] 
+		config -> fetcher [ style=dashed dir=both color=gray label=agent_config ]
+
+		node [ style=dotted ]
+		Intake -> "svc#:ingest_rate:e/s" [ style=dotted lhead=cluster_server_metrics ]
+		model_indexer -> "indexer:response_time" [ style=dotted lhead=cluster_server_metrics ]
+
+		// To add components
+		subgraph cluster_server_metrics {
+			graph [ style=dotted ]
+			label = "Adaptive Sampling\nMetrics";
+			node [ shape=box style=dotted ]
+			"svc#:ingest_rate:e/s"
+			"indexer:response_time"
+		}
+		subgraph cluster_adaptive_sampler {
+			graph [ style=dotted ]
+			label = "Adaptive\nSampler";
+			monitor -> "svc#:ingest_rate:e/s" [ dir=both style=dotted lhead=cluster_server_metrics ]
+		}
+	}
+
+	// Data Path
+	model_indexer -> elasticsearch [ style=bold ]
+	monitor -> elasticsearch [ style=dotted label=new_agent_config ]
+	elasticsearch [ shape=cylinder]
+
+	// config Path
+	fetcher -> elasticsearch [ style=dashed dir=both color=gray] 
+}

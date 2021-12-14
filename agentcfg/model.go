@@ -36,7 +36,7 @@ const (
 var (
 	// UnrestrictedSettings are settings considered safe to be returned to all requesters,
 	// including unauthenticated ones such as RUM.
-	UnrestrictedSettings = map[string]bool{"transaction_sample_rate": true}
+	UnrestrictedSettings = map[string]bool{TransactionSamplingRateKey: true}
 )
 
 // Result models a Kibana response
