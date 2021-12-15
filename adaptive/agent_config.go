@@ -18,6 +18,9 @@
 package adaptive
 
 import (
+	"crypto/md5"
+	"fmt"
+	"hash"
 	"math"
 	"strconv"
 	"sync"
@@ -32,6 +35,7 @@ type AgentConfig struct {
 	factor   float64
 	max      float64
 	min      float64
+	hash     hash.Hash
 	decision DecisionType
 	logger   logp.Logger
 }
@@ -41,6 +45,7 @@ func NewAgentConfig(min, max float64) *AgentConfig {
 		max:    math.Min(max, 1),
 		min:    math.Max(min, 0.001),
 		logger: *logp.NewLogger("adaptive_agent_config"),
+		hash:   md5.New(),
 	}
 }
 
@@ -51,7 +56,7 @@ func (a *AgentConfig) Do(decision Decision) error {
 	case DecisionDownsample:
 		a.mu.Lock()
 		defer a.mu.Unlock()
-		a.factor = math.Min(math.Max(decision.Factor+a.factor, a.min), 1)
+		a.factor = math.Min(math.Max(decision.Factor+a.factor, a.min), a.max)
 		a.decision = decision.Type
 		a.logger.Infof("received adaptive downsample decision, resulting factor: -%0.5f", a.factor)
 	case DecisionUpsample:
@@ -75,19 +80,20 @@ func (a *AgentConfig) Adapt(result *agentcfg.Result) {
 			defer a.mu.RUnlock()
 
 			delta := f * a.factor
-			var result float64
+			var newRate float64
 			switch a.decision {
 			case DecisionDownsample:
-				result = f - delta
+				newRate = f - delta
 			case DecisionUpsample:
-				result = f + delta
+				newRate = f + delta
 			default:
 				return
 			}
-			a.logger.Infof("adapted sampling rate to: %0.5f", result)
-			settings[agentcfg.TransactionSamplingRateKey] = strconv.FormatFloat(
-				result, 'f', 5, 64,
-			)
+			a.logger.Infof("adapted sampling rate to: %0.5f", newRate)
+			formattedFloat := strconv.FormatFloat(newRate, 'f', 5, 64)
+			settings[agentcfg.TransactionSamplingRateKey] = formattedFloat
+			result.Source.Etag = fmt.Sprintf("%x", a.hash.Sum([]byte(formattedFloat)))
+			a.hash.Reset()
 		}
 	}
 }
