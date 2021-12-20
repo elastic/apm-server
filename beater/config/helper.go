@@ -33,6 +33,10 @@ func (u *urls) Unpack(c interface{}) error {
 		return fmt.Errorf("hosts must be a list, got: %#v", c)
 	}
 
+	if len(hosts) == 0 {
+		return nil
+	}
+
 	nu := make(urls, len(hosts))
 	for i, host := range hosts {
 		h, ok := host.(string)
