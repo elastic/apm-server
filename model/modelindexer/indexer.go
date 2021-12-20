@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strings"
 	"sync"
@@ -38,6 +39,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
+	"github.com/elastic/apm-server/adaptive"
 	"github.com/elastic/apm-server/elasticsearch"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
@@ -76,6 +78,7 @@ type Indexer struct {
 	tooManyRequests int64
 
 	config    Config
+	client    elasticsearch.Client
 	logger    *logp.Logger
 	available chan *bulkIndexer
 	g         errgroup.Group
@@ -142,6 +145,7 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		available <- newBulkIndexer(client, cfg.CompressionLevel)
 	}
 	return &Indexer{
+		client:    client,
 		config:    cfg,
 		logger:    logger,
 		available: available,
@@ -194,6 +198,54 @@ func (i *Indexer) Stats() Stats {
 	}
 }
 
+// Name returns the adaptive action name.
+func (i *Indexer) Name() string { return "ModelIndexer" }
+
+// Do up/downscales the available bulk indexers.
+func (i *Indexer) Do(decision adaptive.Decision) error {
+	// TODO(marclop): Potentially add a disable flag.
+	// TODO(marclop): Extract logic.
+	switch decision.Type {
+	case adaptive.DecisionIndexerUpscale:
+		i.mu.Lock()
+		defer i.mu.Unlock()
+		i.logger.Infof("bulk indexer upscaling decision received: %0.2f", decision.Factor)
+		oldCap := cap(i.available)
+		bulkN := float64(oldCap)*decision.Factor + float64(oldCap)
+		newCap := int(math.Round(bulkN))
+		oldAvailable := i.available
+		i.available = make(chan *bulkIndexer, newCap)
+		// First add the bulkers that have already allocated their buffer, then
+		// create a few more until the capacity has been filled.
+		for n := 0; n < len(oldAvailable); n++ {
+			i.available <- <-oldAvailable
+		}
+		for n := 0; len(i.available) < cap(i.available); n++ {
+			i.available <- newBulkIndexer(i.client, i.config.CompressionLevel)
+		}
+		i.logger.Infof("bulk indexer upscaling decision completed, upscaled to: %d", newCap)
+	case adaptive.DecisionIndexerDownscale:
+		i.mu.Lock()
+		defer i.mu.Unlock()
+		i.logger.Infof("bulk indexer downscaling decision received: %0.2f", decision.Factor)
+		oldCap := cap(i.available)
+		bulkN := float64(oldCap) - float64(oldCap)*decision.Factor
+		newCap := int(math.Round(bulkN))
+		oldAvailable := i.available
+		i.available = make(chan *bulkIndexer, newCap)
+		// First add the bulkers that have already allocated their buffer, then
+		// create a few more until the capacity has been filled.
+		for n := 0; n < len(oldAvailable); n++ {
+			i.available <- <-oldAvailable
+		}
+		for n := 0; len(i.available) < cap(i.available); n++ {
+			i.available <- newBulkIndexer(i.client, i.config.CompressionLevel)
+		}
+		i.logger.Infof("bulk indexer downscaling decision completed, downscaled to: %d", newCap)
+	}
+	return nil
+}
+
 // ProcessBatch creates a document for each event in batch, and adds them to the
 // Elasticsearch bulk indexer.
 //
@@ -230,6 +282,8 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 	i.activeMu.Lock()
 	defer i.activeMu.Unlock()
 	if i.active == nil {
+		// TODO(marclop): we could time the time that obtaining an available
+		// indexer takes.
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -363,8 +417,13 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 
 	resp, err := bulkIndexer.Flush(ctx)
 	if err != nil {
-		atomic.AddInt64(&i.eventsFailed, int64(n))
 		logger.With(logp.Error(err)).Error("bulk indexing request failed")
+		// 429 may be returned as errors from the bulk indexer.
+		if strings.Contains(err.Error(), "429 Too Many Requests") {
+			atomic.AddInt64(&i.tooManyRequests, int64(n))
+		} else {
+			atomic.AddInt64(&i.eventsFailed, int64(n))
+		}
 		if tx != nil {
 			tx.Outcome = "failure"
 			apm.CaptureError(ctx, err).Send()

@@ -512,9 +512,9 @@ func (s *serverRunner) run(listener net.Listener) error {
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
 	// TODO(marclop): Parametrize
-	// Allow 5% 429 to be tolerated.
-	indexerMonitor := healthmonitor.NewModelIndexerMetric(0.05)
-	monitor, err := healthmonitor.New(10*time.Second, 5*time.Minute, indexerMonitor)
+	// Allow 1% 429 to be tolerated before downscaling.
+	indexerMonitor := healthmonitor.NewModelIndexerMetric(0.01)
+	monitor, err := healthmonitor.New(10*time.Second, 2*time.Minute, indexerMonitor)
 	if err != nil {
 		return err
 	}
@@ -525,13 +525,10 @@ func (s *serverRunner) run(listener net.Listener) error {
 	defer monitor.Stop(ctx)
 
 	// TODO:(marclop): parametrize.
-	adaptiveAgentConfig := adaptive.NewAgentConfig(0.2, 1)
+	adaptiveAgentConfig := adaptive.NewAgentConfig(0.001, 1)
 	wrapFetcher := func(f agentcfg.Fetcher) agentcfg.Fetcher {
-		return agentcfg.NewModifier(f, adaptiveAgentConfig)
+		return agentcfg.NewModifier(f, true, adaptiveAgentConfig)
 	}
-
-	adaptiveProcessor := adaptive.NewProcessor(decisions, adaptiveAgentConfig)
-	go adaptiveProcessor.Run()
 
 	batchProcessor := make(modelprocessor.Chained, 0, 3)
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
@@ -540,9 +537,15 @@ func (s *serverRunner) run(listener net.Listener) error {
 	if err != nil {
 		return err
 	}
+
+	adaptiveActions := []adaptive.Action{adaptiveAgentConfig}
 	if indexer, ok := finalBatchProcessor.(*modelindexer.Indexer); ok {
 		go indexerMonitor.Monitor(ctx, indexer, 10*time.Second)
+		adaptiveActions = append(adaptiveActions, indexer)
 	}
+
+	adaptiveProcessor := adaptive.NewProcessor(decisions, adaptiveActions...)
+	go adaptiveProcessor.Run()
 
 	batchProcessor = append(batchProcessor,
 		// The server always drops non-RUM unsampled transactions. We store RUM unsampled

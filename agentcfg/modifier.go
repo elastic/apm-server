@@ -17,34 +17,36 @@
 
 package agentcfg
 
-import "context"
-
-// Modifier wraps a fetcher and runs a series of config adapters when the
-// retrieved agent configuration is found.
-type Modifier struct {
-	f Fetcher
-
-	adapters []Adapter
-}
+import (
+	"context"
+)
 
 // Adapter defines the behavior of adapters.
 type Adapter interface {
 	Adapt(*Result)
 }
 
+// Modifier wraps a fetcher and runs a series of config adapters when the
+// retrieved agent configuration is found.
+type Modifier struct {
+	f Fetcher
+
+	adapters   []Adapter
+	adaptEmpty bool
+}
+
 // NewModifier returns a new instance of Modifier.
-func NewModifier(f Fetcher, adapters ...Adapter) *Modifier {
-	return &Modifier{f: f, adapters: adapters}
+func NewModifier(f Fetcher, adaptEmpty bool, adapters ...Adapter) *Modifier {
+	return &Modifier{f: f, adapters: adapters, adaptEmpty: adaptEmpty}
 }
 
 // Fetch wraps the fetcher's Fetch() and executes all the adapters on the
-// retrieved configuration if not empty.
+// retrieved configuration.
 func (f *Modifier) Fetch(ctx context.Context, query Query) (Result, error) {
-	res, err := f.f.Fetch(ctx, query)
-	if err != nil {
-		return zeroResult(), err
+	res, _ := f.f.Fetch(ctx, query)
+	if f.adaptEmpty && len(res.Source.Settings) == 0 {
+		res.Source.Agent = query.Service.Name
 	}
-
 	for _, adapter := range f.adapters {
 		adapter.Adapt(&res)
 	}

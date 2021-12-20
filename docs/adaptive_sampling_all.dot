@@ -30,25 +30,32 @@ digraph G {
 
 		node [ style=dotted ]
 		
+		subgraph cluster_server_modifier {
+			graph [ style=dotted ]
+			label = "Config Modifier";
+			fetcher -> ratio_adjustment [ style=dotted dir=both color=gray label=modify ]
+			ratio_adjustment
+		}
 
 		// To add components
 		subgraph cluster_server_metrics {
 			graph [ style=dotted ]
 			label = "Adaptive Sampling\nMetrics";
 			node [ shape=box style=dotted ]
+			"indexer:429_rate"
 			"indexer:response_time"
 		}
 		subgraph cluster_adaptive_sampler {
 			graph [ style=dotted ]
 			label = "Adaptive\nSampler";
-			monitor -> "indexer:response_time" [ dir=both style=dotted lhead=cluster_server_metrics ]
+			monitor -> "indexer:response_time" [ dir=both style=dotted lhead=cluster_server_metrics label=monitor_interval ]
+			monitor -> ratio_adjustment [ dir=both style=dotted lhead=cluster_server_metrics ]
 		}
 	}
 
 	// Data Path
 	model_indexer -> elasticsearch [ style=bold ]
 	model_indexer -> "indexer:response_time" [ style=dotted lhead=cluster_server_metrics ]
-	monitor -> elasticsearch [ style=dotted label=new_agent_config ]
 	elasticsearch [ shape=cylinder]
 
 	// config Path

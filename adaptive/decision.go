@@ -26,7 +26,7 @@ const (
 	DecisionDownsample
 
 	// DecisionUpsample should be used to signal that upsampling should be
-	// applied where needed.
+	// applied where needed. Not implemented.
 	DecisionUpsample
 
 	// DecisionIndexerDownscale is not implemented.

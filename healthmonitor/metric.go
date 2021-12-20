@@ -19,6 +19,7 @@ package healthmonitor
 
 import (
 	"context"
+	"math"
 	"sync/atomic"
 	"time"
 
@@ -39,6 +40,9 @@ type ModelIndexerMetric struct {
 	esTooManyH *hdrhistogram.Histogram
 	freeBulkN  uint64
 	target     float64
+
+	lowBulkC  uint64
+	highBulkC uint64
 }
 
 // NewModelIndexerMetric creates a ModelIndexerRatioMetric with a target
@@ -50,44 +54,79 @@ func NewModelIndexerMetric(target float64) *ModelIndexerMetric {
 	return &ModelIndexerMetric{
 		target:     target,
 		esTooManyH: hdrhistogram.New(0, 100, 2),
-		freeBulkN:  100,
+		freeBulkN:  10,
 	}
 }
 
 // BreachedTarget returns the adaptive sampling decision.
 func (m *ModelIndexerMetric) BreachedTarget() adaptive.Decision {
-	// TODO(marclop): using the median is quite arbitrary, test different
-	// scenarios and metrics to see which one fits the bill better.
-	metric := m.esTooManyH.Mean()
-	if metric >= m.target {
+	// TODO(marclop): This needs to be removed, only using it for debugging
+	// purposes.
+	logger := logp.NewLogger("model_indexer_monitor")
+	defer logger.Infof("FreeBulk: %d, 429Rate: %0.2f%%",
+		atomic.LoadUint64(&m.freeBulkN), m.esTooManyH.Mean(),
+	)
+
+	// TODO(marclop): downscaling the number of bulkers when 429 are received
+	// may be a good strategy, especially if the number of bulk indexers has
+	// been upscaled.
+	if metric := m.esTooManyH.Mean() / float64(100); metric >= m.target {
+		downPct := 0.15
 		return adaptive.Decision{
 			Type: adaptive.DecisionDownsample,
-			// TODO(marclop): Come up with a good formula.
-			Factor: 0.20 + metric - m.target,
+			// TODO(marclop): Come up with a better formula.
+			Factor: downPct + metric - math.Min(m.target, downPct),
 		}
-	} else if atomic.LoadUint64(&m.freeBulkN) < 2 {
+	} else if atomic.LoadUint64(&m.freeBulkN) == 0 {
 		// If the Elasticsearch 429 error rate is lower than the threshold and
 		// the number of available bulk indexers is low, we want to increase the
-		// number of bulk indexers by 50%.
+		// number of bulk indexers by 20%, but only after consecutive readings.
+		if atomic.LoadUint64(&m.lowBulkC) < 12 {
+			atomic.AddUint64(&m.lowBulkC, 1)
+			return adaptive.Decision{}
+		}
+		// Reset the counter.
+		atomic.StoreUint64(&m.lowBulkC, 0)
 		return adaptive.Decision{
 			Type:   adaptive.DecisionIndexerUpscale,
-			Factor: 0.5,
+			Factor: 0.1,
+		}
+	} else if c := atomic.LoadUint64(&m.freeBulkN); c >= 10 {
+		// TODO(marclop): record total number of indexers and compare dynamic threshold.
+		if atomic.LoadUint64(&m.highBulkC) < 24 {
+			atomic.AddUint64(&m.highBulkC, 1)
+			return adaptive.Decision{}
+		}
+		// Reset the counter.
+		atomic.StoreUint64(&m.highBulkC, 0)
+		return adaptive.Decision{
+			Type:   adaptive.DecisionIndexerDownscale,
+			Factor: 0.1,
 		}
 	}
+	// Reset the consecutive counters.
+	atomic.StoreUint64(&m.lowBulkC, 0)
+	atomic.StoreUint64(&m.highBulkC, 0)
 	return adaptive.Decision{}
 }
 
 // Accumulate receives a stats structure and accumulates the 429/total ratio in
 // the histogram.
 func (m *ModelIndexerMetric) Accumulate(stats modelindexer.Stats) error {
-	atomic.StoreUint64(&m.freeBulkN, stats.Available)
-	// TODO(marclop): Determine how long to keep the history for, wouldn't be a
-	// bad thing to reset the histogram after a certain amount of values have
-	// been recorded.
+	// Weigh the last measurement more heavily.
+	atomic.StoreUint64(&m.freeBulkN,
+		(atomic.LoadUint64(&m.freeBulkN)+(stats.Available*2))/3,
+	)
 	if stats.TooManyRequests > 0 && stats.Added > 0 {
-		return m.esTooManyH.RecordValueAtomic(
-			int64(stats.TooManyRequests / stats.Added * 100),
-		)
+		// If the accumulate rate is every 10s, 60 metrics will give us 10m
+		// worth of data from the moment that TooManyRequests are recorded.
+		if m.esTooManyH.TotalCount() > 60 {
+			m.esTooManyH.Reset()
+		}
+
+		return m.esTooManyH.RecordValueAtomic(int64(
+			float64(stats.TooManyRequests) / float64(stats.Added) * 100.0,
+		))
 	}
 	return nil
 }

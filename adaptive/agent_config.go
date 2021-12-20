@@ -20,33 +20,39 @@ package adaptive
 import (
 	"crypto/md5"
 	"fmt"
-	"hash"
 	"math"
+	"math/rand"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/elastic/apm-server/agentcfg"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 // AgentConfig configures
 type AgentConfig struct {
-	mu       sync.RWMutex
-	factor   float64
-	max      float64
-	min      float64
-	hash     hash.Hash
-	decision DecisionType
-	logger   logp.Logger
+	mu          sync.RWMutex
+	logger      *logp.Logger
+	max         float64
+	min         float64
+	ttl         time.Duration
+	decision    DecisionType
+	downsamples map[time.Time]float64
+	rand        *rand.Rand
 }
 
 func NewAgentConfig(min, max float64) *AgentConfig {
-	return &AgentConfig{
-		max:    math.Min(max, 1),
-		min:    math.Max(min, 0.001),
-		logger: *logp.NewLogger("adaptive_agent_config"),
-		hash:   md5.New(),
+	agent := &AgentConfig{
+		max:         math.Min(max, 0.9999),
+		min:         math.Max(min, 0.001),
+		logger:      logp.NewLogger("adaptive_agent_config", logs.WithRateLimit(30*time.Second)),
+		downsamples: make(map[time.Time]float64),
+		ttl:         6 * time.Minute,
+		rand:        rand.New(rand.NewSource(time.Now().Unix())),
 	}
+	return agent
 }
 
 func (a *AgentConfig) Name() string { return "adaptive_agent_config" }
@@ -56,15 +62,24 @@ func (a *AgentConfig) Do(decision Decision) error {
 	case DecisionDownsample:
 		a.mu.Lock()
 		defer a.mu.Unlock()
-		a.factor = math.Min(math.Max(decision.Factor+a.factor, a.min), a.max)
+
+		// Every time a downsampling decision is received, we renew all the
+		// downsampling entries.
+		now := time.Now()
+		for ts, f := range a.downsamples {
+			// Remove entries that are older than 60m.
+			if ts.Add(time.Hour).Before(now) {
+				delete(a.downsamples, ts)
+			} else if ts.After(now) {
+				a.downsamples[time.Now().Add(a.ttl).Add(time.Minute*time.Duration(a.rand.Intn(10)))] = f
+				delete(a.downsamples, ts)
+			}
+		}
+		a.downsamples[time.Now().Add(a.ttl)] = decision.Factor
 		a.decision = decision.Type
-		a.logger.Infof("received adaptive downsample decision, resulting factor: -%0.5f", a.factor)
+		a.logger.Infof("received adaptive downsample decision, factor: -%0.5f, entries: %d", decision.Factor, len(a.downsamples))
 	case DecisionUpsample:
-		a.mu.Lock()
-		defer a.mu.Unlock()
-		a.factor = math.Min(decision.Factor+a.factor, a.max)
-		a.decision = decision.Type
-		a.logger.Infof("received adaptive upsample decision, resulting factor: +%0.5f", a.factor)
+		a.logger.Warn("received adaptive upsample decision, but no handler is implemented")
 	}
 	return nil
 }
@@ -73,27 +88,51 @@ func (a *AgentConfig) Do(decision Decision) error {
 // with the stored factor and decision. If no adapative decision has been
 // taken, adapt won't do anything.
 func (a *AgentConfig) Adapt(result *agentcfg.Result) {
+	// NOTE(marclop): Assuming that agents have the default sampling rate
+	// may lead to increased load if the agents have a sampling rate lower
+	// than 1 set and no central configuration is set up.
+	// Ideally, we'd record each service's sampling rate and change that.
+	rate := 1.0
 	settings := result.Source.Settings
-	if v, ok := settings[agentcfg.TransactionSamplingRateKey]; ok {
-		if f, err := strconv.ParseFloat(v, 64); err == nil {
-			a.mu.RLock()
-			defer a.mu.RUnlock()
-
-			delta := f * a.factor
-			var newRate float64
-			switch a.decision {
-			case DecisionDownsample:
-				newRate = f - delta
-			case DecisionUpsample:
-				newRate = f + delta
-			default:
-				return
-			}
-			a.logger.Infof("adapted sampling rate to: %0.5f", newRate)
-			formattedFloat := strconv.FormatFloat(newRate, 'f', 5, 64)
-			settings[agentcfg.TransactionSamplingRateKey] = formattedFloat
-			result.Source.Etag = fmt.Sprintf("%x", a.hash.Sum([]byte(formattedFloat)))
-			a.hash.Reset()
+	key := agentcfg.TransactionSamplingRateKey
+	if v, ok := settings[key]; ok {
+		if r, err := strconv.ParseFloat(v, 64); err == nil {
+			rate = r
 		}
 	}
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+
+	newRate := a.newRate(rate)
+	if newRate == -1 {
+		return
+	}
+
+	newSettings := make(map[string]string)
+	for k, v := range result.Source.Settings {
+		newSettings[k] = v
+	}
+	formattedFloat := strconv.FormatFloat(newRate, 'f', 5, 64)
+	newSettings[key] = formattedFloat
+	result.Source.Settings = newSettings
+	a.logger.Infof("adapted sampling rate to: %s", formattedFloat)
+	result.Source.Etag = fmt.Sprintf("%x", md5.Sum([]byte(formattedFloat)))
+}
+
+func (a *AgentConfig) newRate(rate float64) float64 {
+	if a.decision != DecisionDownsample {
+		return -1.0
+	}
+
+	now := time.Now()
+	newRate := rate
+	for expiry, factor := range a.downsamples {
+		if now.Before(expiry) {
+			newRate = newRate - newRate*factor
+		}
+	}
+	if newRate < a.min {
+		return a.min
+	}
+	return newRate
 }
