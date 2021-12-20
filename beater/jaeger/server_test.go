@@ -38,6 +38,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -62,7 +63,9 @@ func TestApprovals(t *testing.T) {
 		"batch_0", "batch_1",
 	} {
 		t.Run(name, func(t *testing.T) {
-			tc := testcase{cfg: cfg, grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()}}
+			tc := testcase{cfg: cfg, grpcDialOpts: []grpc.DialOption{grpc.WithTransportCredentials(
+				insecure.NewCredentials(),
+			)}}
 			tc.setup(t)
 			defer tc.teardown(t)
 
@@ -89,6 +92,9 @@ func TestApprovals(t *testing.T) {
 }
 
 func TestServerIntegration(t *testing.T) {
+	insecureOpt := grpc.WithTransportCredentials(
+		insecure.NewCredentials(),
+	)
 	for name, tc := range map[string]testcase{
 		"default config": {
 			cfg: config.DefaultConfig(),
@@ -100,7 +106,7 @@ func TestServerIntegration(t *testing.T) {
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
 				return cfg
 			}(),
-			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+			grpcDialOpts: []grpc.DialOption{insecureOpt},
 		},
 		"default config with Jaeger gRPC and Kibana enabled": {
 			cfg: func() *config.Config {
@@ -111,7 +117,7 @@ func TestServerIntegration(t *testing.T) {
 				cfg.Kibana.Host = "non-existing:1234"
 				return cfg
 			}(),
-			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+			grpcDialOpts: []grpc.DialOption{insecureOpt},
 		},
 		"default config with Jaeger HTTP enabled": {
 			cfg: func() *config.Config {
@@ -130,7 +136,7 @@ func TestServerIntegration(t *testing.T) {
 				cfg.JaegerConfig.HTTP.Host = "localhost:0"
 				return cfg
 			}(),
-			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+			grpcDialOpts: []grpc.DialOption{insecureOpt},
 		},
 		"with Jaeger gRPC enabled and TLS disabled": {
 			cfg: &config.Config{
@@ -141,7 +147,7 @@ func TestServerIntegration(t *testing.T) {
 					},
 				},
 			},
-			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+			grpcDialOpts: []grpc.DialOption{insecureOpt},
 		},
 		"with Jaeger gRPC enabled and TLS enabled, client configured with CA cert": {
 			cfg: &config.Config{
@@ -238,7 +244,7 @@ func TestServerIntegration(t *testing.T) {
 				cfg.JaegerConfig.HTTP.Host = "localhost:0"
 				return cfg
 			}(),
-			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+			grpcDialOpts: []grpc.DialOption{insecureOpt},
 		},
 		"secret token and auth_tag set, but no auth_tag sent by agent": {
 			cfg: func() *config.Config {
@@ -249,7 +255,7 @@ func TestServerIntegration(t *testing.T) {
 				cfg.JaegerConfig.GRPC.AuthTag = "authorization"
 				return cfg
 			}(),
-			grpcDialOpts:           []grpc.DialOption{grpc.WithInsecure()},
+			grpcDialOpts:           []grpc.DialOption{insecureOpt},
 			grpcSendSpanShouldFail: true, // unauthorized
 		},
 		"secret token and auth_tag set, auth_tag sent by agent": {
@@ -261,7 +267,7 @@ func TestServerIntegration(t *testing.T) {
 				cfg.JaegerConfig.GRPC.AuthTag = "authorization"
 				return cfg
 			}(),
-			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+			grpcDialOpts: []grpc.DialOption{insecureOpt},
 			processTags: map[string]string{
 				"authorization": "Bearer hunter2",
 				"not":           "hotdog",

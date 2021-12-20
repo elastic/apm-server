@@ -34,6 +34,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
@@ -49,7 +50,9 @@ func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 	addr := srv.JaegerGRPCAddr
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(
+		insecure.NewCredentials(),
+	))
 	require.NoError(t, err)
 	defer conn.Close()
 
