@@ -44,7 +44,7 @@ func TestConfigURLs(t *testing.T) {
 		{
 			// use default
 			cfg:  map[string][]interface{}{"hosts": nil},
-			want: &defaultTestURLConfig,
+			want: &testURLConfig{Hosts: urls{}},
 		},
 		{
 			// invalid URL
