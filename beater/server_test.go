@@ -43,6 +43,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
@@ -404,7 +405,10 @@ func TestServerJaegerGRPC(t *testing.T) {
 
 	baseURL, err := url.Parse(server.baseURL)
 	require.NoError(t, err)
-	conn, err := grpc.Dial(baseURL.Host, grpc.WithInsecure())
+
+	conn, err := grpc.Dial(baseURL.Host, grpc.WithTransportCredentials(
+		insecure.NewCredentials(),
+	))
 	require.NoError(t, err)
 	defer conn.Close()
 
@@ -434,7 +438,9 @@ func TestServerOTLPGRPC(t *testing.T) {
 		return conn.Invoke(ctx, "/opentelemetry.proto.collector.trace.v1.TraceService/Export", request, response)
 	}
 
-	conn, err := grpc.Dial(baseURL.Host, grpc.WithInsecure())
+	conn, err := grpc.Dial(baseURL.Host, grpc.WithTransportCredentials(
+		insecure.NewCredentials(),
+	))
 	require.NoError(t, err)
 	defer conn.Close()
 
