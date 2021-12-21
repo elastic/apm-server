@@ -14,7 +14,7 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "metricset.name": "service_destination",
             "observer": {
