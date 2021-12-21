@@ -14,7 +14,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/testcontainers/testcontainers-go v0.11.2-0.20211110075312-4b5710b46477
 	github.com/tidwall/gjson v1.9.3
-	go.elastic.co/apm v1.14.1-0.20211027055810-a8ec1811e727
+	go.elastic.co/apm v1.15.0
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/otel v1.0.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.23.0

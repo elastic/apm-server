@@ -15,7 +15,7 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "host": {
                 "hostname": "beowulf",
@@ -41,7 +41,7 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:abc:b61e418e611e87bb"
+                "instance": "systemtest:abc:b6eeda30c70385b7"
             },
             "transaction": {
                 "duration.histogram": {
@@ -72,7 +72,7 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "host": {
                 "hostname": "beowulf",
@@ -98,7 +98,7 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:def:faf17465cd8ab27d"
+                "instance": "systemtest:def:c63bff75abf09bf1"
             },
             "transaction": {
                 "duration.histogram": {

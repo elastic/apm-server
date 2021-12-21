@@ -51,11 +51,11 @@ require (
 	github.com/tidwall/sjson v1.1.1 // indirect
 	github.com/urso/magetools v0.0.0-20200125210132-c2e338f92f3a // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
-	go.elastic.co/apm v1.14.0
-	go.elastic.co/apm/module/apmelasticsearch v1.14.0
-	go.elastic.co/apm/module/apmgrpc v1.14.0
-	go.elastic.co/apm/module/apmhttp v1.14.0
-	go.elastic.co/apm/module/apmzap v1.14.0
+	go.elastic.co/apm v1.15.0
+	go.elastic.co/apm/module/apmelasticsearch v1.15.0
+	go.elastic.co/apm/module/apmgrpc v1.15.0
+	go.elastic.co/apm/module/apmhttp v1.15.0
+	go.elastic.co/apm/module/apmzap v1.15.0
 	go.elastic.co/ecszap v1.0.0 // indirect
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/collector v0.34.0
