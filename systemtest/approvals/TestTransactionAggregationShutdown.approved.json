@@ -15,7 +15,7 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "host": {
                 "hostname": "beowulf",
@@ -41,7 +41,7 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:name:813c266c38717bab"
+                "instance": "systemtest:name:cd8001d7e44db64"
             },
             "transaction": {
                 "duration.histogram": {
