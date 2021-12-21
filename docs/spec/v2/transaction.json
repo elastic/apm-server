@@ -827,7 +827,7 @@
           ]
         },
         "id": {
-          "description": "A unique identifier of the serverless function the transaction belongs to.",
+          "description": "A unique identifier of the invoked serverless function.",
           "type": [
             "null",
             "string"
