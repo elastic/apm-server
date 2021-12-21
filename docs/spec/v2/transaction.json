@@ -826,6 +826,13 @@
             "string"
           ]
         },
+        "id": {
+          "description": "A unique identifier of the invoked serverless function.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
         "trigger": {
           "description": "Trigger attributes.",
           "type": [

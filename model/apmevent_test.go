@@ -103,6 +103,7 @@ func TestAPMEventFields(t *testing.T) {
 				},
 			},
 			FAAS: FAAS{
+				ID:               "faasID",
 				Coldstart:        &coldstart,
 				Execution:        "execution",
 				TriggerType:      "http",
@@ -177,6 +178,7 @@ func TestAPMEventFields(t *testing.T) {
 				},
 			},
 			"faas": common.MapStr{
+				"id":                 "faasID",
 				"coldstart":          true,
 				"execution":          "execution",
 				"trigger.type":       "http",
