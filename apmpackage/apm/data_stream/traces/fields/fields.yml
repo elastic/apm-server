@@ -35,6 +35,10 @@
   description: |
     Function as a service fields.
   fields:
+    - name: id
+      type: keyword
+      description: |
+        A unique identifier of the invoked serverless function.
     - name: coldstart
       type: boolean
       description: |
