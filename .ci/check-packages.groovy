@@ -59,7 +59,7 @@ pipeline {
             setEnvVar('VERSION', params.get('VERSION'))
           }
         }
-        gitCheckout(basedir: "${BASE_DIR}", repo: 'git@github.com:elastic/beats-tester.git', branch: 'master', credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba')
+        gitCheckout(basedir: "${BASE_DIR}", repo: 'git@github.com:elastic/beats-tester.git', branch: 'main', credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba')
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
