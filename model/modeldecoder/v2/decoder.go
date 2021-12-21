@@ -228,6 +228,9 @@ func decodeIntoMetadataRoot(d decoder.Decoder, m *metadataRoot) error {
 
 func mapToFAASModel(from faas, faas *model.FAAS) {
 	if from.IsSet() {
+		if from.ID.IsSet() {
+			faas.ID = from.ID.Val
+		}
 		if from.Coldstart.IsSet() {
 			faas.Coldstart = &from.Coldstart.Val
 		}

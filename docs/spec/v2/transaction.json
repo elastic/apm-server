@@ -826,6 +826,13 @@
             "string"
           ]
         },
+        "id": {
+          "description": "A unique identifier representing one or several functions.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
         "trigger": {
           "description": "Trigger attributes.",
           "type": [

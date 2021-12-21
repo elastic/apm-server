@@ -21,6 +21,7 @@ import "github.com/elastic/beats/v7/libbeat/common"
 
 // FAAS holds information about a function as a service.
 type FAAS struct {
+	ID               string
 	Coldstart        *bool
 	Execution        string
 	TriggerType      string
@@ -29,6 +30,7 @@ type FAAS struct {
 
 func (f *FAAS) fields() common.MapStr {
 	var fields mapStr
+	fields.maybeSetString("id", f.ID)
 	fields.maybeSetBool("coldstart", f.Coldstart)
 	fields.maybeSetString("execution", f.Execution)
 	fields.maybeSetString("trigger.type", f.TriggerType)

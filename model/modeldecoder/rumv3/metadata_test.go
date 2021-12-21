@@ -60,6 +60,7 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"Destination",
 		"ECSVersion",
 		"FAAS",
+		"FAAS.ID",
 		"FAAS.Coldstart",
 		"FAAS.Execution",
 		"FAAS.TriggerType",

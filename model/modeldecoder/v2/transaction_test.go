@@ -144,11 +144,13 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	t.Run("faas", func(t *testing.T) {
 		var input transaction
 		var out model.APMEvent
+		input.FAAS.ID.Set("faasID")
 		input.FAAS.Coldstart.Set(true)
 		input.FAAS.Execution.Set("execution")
 		input.FAAS.Trigger.Type.Set("http")
 		input.FAAS.Trigger.RequestID.Set("abc123")
 		mapToTransactionModel(&input, &out)
+		assert.Equal(t, "faasID", out.FAAS.ID)
 		assert.True(t, *out.FAAS.Coldstart)
 		assert.Equal(t, "execution", out.FAAS.Execution)
 		assert.Equal(t, "http", out.FAAS.TriggerType)
