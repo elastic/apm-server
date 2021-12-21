@@ -3218,11 +3218,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm
-Version: v1.14.0
+Version: v1.15.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm@v1.14.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm@v1.15.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3429,11 +3429,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm@v1.14.0/LICENSE:
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmelasticsearch
-Version: v1.14.0
+Version: v1.15.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasticsearch@v1.14.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasticsearch@v1.15.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3640,11 +3640,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasti
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmgrpc
-Version: v1.14.0
+Version: v1.15.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc@v1.14.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc@v1.15.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3851,11 +3851,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc@v
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmhttp
-Version: v1.14.0
+Version: v1.15.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp@v1.14.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp@v1.15.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4062,11 +4062,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp@v
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmzap
-Version: v1.14.0
+Version: v1.15.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmzap@v1.14.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmzap@v1.15.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
