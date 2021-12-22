@@ -2187,10 +2187,11 @@ func (val *transactionDroppedSpansDurationSum) validate() error {
 }
 
 func (val *faas) IsSet() bool {
-	return val.Coldstart.IsSet() || val.Execution.IsSet() || val.Trigger.IsSet()
+	return val.ID.IsSet() || val.Coldstart.IsSet() || val.Execution.IsSet() || val.Trigger.IsSet()
 }
 
 func (val *faas) Reset() {
+	val.ID.Reset()
 	val.Coldstart.Reset()
 	val.Execution.Reset()
 	val.Trigger.Reset()

@@ -70,6 +70,7 @@ func isUnmappedMetadataField(key string) bool {
 		"Destination.Port",
 		"ECSVersion",
 		"FAAS",
+		"FAAS.ID",
 		"FAAS.Coldstart",
 		"FAAS.Execution",
 		"FAAS.TriggerType",

@@ -97,6 +97,8 @@ type context struct {
 }
 
 type faas struct {
+	// A unique identifier of the invoked serverless function.
+	ID nullable.String `json:"id"`
 	// Indicates whether a function invocation was a cold start or not.
 	Coldstart nullable.Bool `json:"coldstart"`
 	// The request id of the function invocation.
