@@ -176,7 +176,7 @@ copy-docs:
 # Beats synchronisation.
 ##############################################################################
 
-BEATS_VERSION?=7.16
+BEATS_VERSION?=7.17
 BEATS_MODULE:=$(shell $(GO) list -m -f {{.Path}} all | grep github.com/elastic/beats)
 
 .PHONY: update-beats
@@ -195,7 +195,7 @@ update-beats-module:
 ##############################################################################
 
 GOLINT_TARGETS?=$(shell $(GO) list ./...)
-GOLINT_UPSTREAM?=origin/7.16
+GOLINT_UPSTREAM?=origin/7.17
 REVIEWDOG_FLAGS?=-conf=reviewdog.yml -f=golint -diff="git diff $(GOLINT_UPSTREAM)"
 GOLINT_COMMAND=$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) $(REVIEWDOG_FLAGS)
 
