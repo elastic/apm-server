@@ -263,6 +263,34 @@ func TestModelIndexerServerError(t *testing.T) {
 	}, indexer.Stats())
 }
 
+func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusTooManyRequests)
+	})
+	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+		Type:      "logs",
+		Dataset:   "apm_server",
+		Namespace: "testing",
+	}}}
+	err = indexer.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+
+	// Closing the indexer flushes enqueued events.
+	err = indexer.Close(context.Background())
+	require.EqualError(t, err, "flush failed: [429 Too Many Requests] ")
+	assert.Equal(t, modelindexer.Stats{
+		Added:           1,
+		Active:          0,
+		BulkRequests:    1,
+		Failed:          0,
+		TooManyRequests: 1,
+	}, indexer.Stats())
+}
+
 func TestModelIndexerLogRateLimit(t *testing.T) {
 	logp.DevelopmentSetup(logp.ToObserverOutput())
 
