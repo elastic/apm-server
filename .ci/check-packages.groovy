@@ -47,11 +47,11 @@ pipeline {
                             selector: upstream(fallbackToLastSuccessful: true))
               def props = readProperties(file: 'beats-tester.properties')
               setEnvVar('APM_URL_BASE', props.get('APM_URL_BASE', ''))
-              setEnvVar('VERSION', props.get('VERSION', '8.0.0-SNAPSHOT'))
+              setEnvVar('VERSION', props.get('VERSION', '7.16.0-SNAPSHOT'))
             } catch(err) {
               log(level: 'WARN', text: "copyArtifacts failed. Fallback to the head of the branch as used to be.")
               setEnvVar('APM_URL_BASE', params.get('APM_URL_BASE', 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots'))
-              setEnvVar('VERSION', params.get('VERSION', '8.0.0-SNAPSHOT'))
+              setEnvVar('VERSION', params.get('VERSION', '7.16.0-SNAPSHOT'))
             }
           } else {
             log(level: 'INFO', text: "No started by upstream pipeline. Fallback to the head of the branch as used to be.")
