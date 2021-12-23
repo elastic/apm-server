@@ -1,0 +1,141 @@
+{
+    "events": [
+        {
+            "@timestamp": "2018-08-09T15:04:05.999Z",
+            "agent": {
+                "ephemeral_id": "abcdef123",
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "container": {
+                "id": "container-id"
+            },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
+            "ecs": {
+                "version": "dynamic"
+            },
+            "error": {
+                "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
+                "grouping_name": "Cannot read property 'baz' of undefined",
+                "id": "abcdef0123456789",
+                "log": {
+                    "level": "custom log level",
+                    "message": "Cannot read property 'baz' of undefined"
+                }
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "host": {
+                "architecture": "x64",
+                "hostname": "node-name",
+                "ip": [
+                    "127.0.0.1"
+                ],
+                "name": "prod.example",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
+            "message": "Cannot read property 'baz' of undefined",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "parent": {
+                "id": "9632587410abcdef"
+            },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-abc"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
+            },
+            "timestamp": {
+                "us": 1533827045999000
+            },
+            "trace": {
+                "id": "0123456789abcdeffedcba0123456789"
+            },
+            "transaction": {
+                "id": "1234567890987654",
+                "name": "mytx",
+                "sampled": true,
+                "type": "request"
+            },
+            "user": {
+                "domain": "ldap://abc",
+                "email": "bar@example.com",
+                "id": "123",
+                "name": "bar"
+            }
+        }
+    ]
+}
