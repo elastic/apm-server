@@ -29,7 +29,7 @@ pipeline {
   }
   parameters {
     string(name: 'APM_URL_BASE', defaultValue: 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots', description: 'The location where the APM packages should be downloaded from')
-    string(name: 'VERSION', defaultValue: '7.11.0-SNAPSHOT', description: 'The package version to test (modify the job configuration to add a new version)')
+    string(name: 'VERSION', defaultValue: '7.16.0-SNAPSHOT', description: 'The package version to test (modify the job configuration to add a new version)')
   }
   stages {
     stage('Checkout') {
