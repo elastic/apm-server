@@ -771,6 +771,7 @@
             },
             "transaction": {
                 "id": "1234567890987654",
+                "name": "mytx",
                 "sampled": true,
                 "type": "request"
             },
