@@ -102,8 +102,6 @@ If the APM Server returns interleaved 503 and 202 responses, it indicates that t
 You have a few options to solve this problem:
 
 * <<reduce-storage, Reduce storage>>
-* <<tune-output-config>>
-* <<adjust-queue-size>>
 * <<tune-es, Tune Elasticsearch for higher ingestion>>
 
 [[request-timed-out]]
@@ -253,11 +251,14 @@ APM agent --> Load Balancer  --> APM Server
 
 *If Elasticsearch is down*
 
-If Elasticsearch goes down, the APM Server will keep data in memory until Elasticsearch is back up,
-or until it runs out of space in its internal in-memory queue.
-You can <<adjust-queue-size,adjust the internal queue size>> if necessary.
-When the queue becomes full, APM Server will respond with <<queue-full,`HTTP 503: Queue is full`>>,
-and data will be lost.
+// Need to update this with dev feedback
+// If ES goes down, is all data lost?
+
+// If Elasticsearch goes down, the APM Server will keep data in memory until Elasticsearch is back up,
+// or until it runs out of space in its internal in-memory queue.
+// You can <<adjust-queue-size,adjust the internal queue size>> if necessary.
+// When the queue becomes full, APM Server will respond with <<queue-full,`HTTP 503: Queue is full`>>,
+// and data will be lost.
 
 *If APM Server is down*
 

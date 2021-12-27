@@ -17,8 +17,6 @@ output:
   elasticsearch:
     hosts: ElasticsearchAddress:9200
 
-queue.mem.events: 4096
-
 max_procs: 4
 ----
 
@@ -152,32 +150,6 @@ Defaults to true.
 ==== `register.ingest.pipeline.overwrite`
 Overwrites the existing APM pipeline definition in Elasticsearch.
 Defaults to false.
-
-[float]
-=== Configuration options: `queue.mem.*`
-Data is buffered in a memory queue before it is published to the configured output.
-`queue.mem.*` settings modify the queue behavior.
-
-[[mem.events]]
-[float]
-==== `events`
-Maximum number of events the memory queue can buffer.
-Read more about how this setting can be used for <<tune-data-ingestion, tuning data ingestion>>.
-Default value is 4096.
-
-[[mem.flush.min_events]]
-[float]
-==== `flush.min_events`
-Hints the minimum number of events stored in the queue,
-before providing a batch of events to the outputs.
-A value of 0 (the default) ensures events are immediately available to be sent to the outputs.
-
-[[mem.flush.timeout]]
-[float]
-==== `flush.timeout`
-Maximum duration after which events are available to the outputs,
-if the number of events stored in the queue is < `flush.min_events`.
-Default value is 1 second.
 
 [float]
 === Configuration options: `max_procs`
