@@ -58,8 +58,8 @@ ifeval::["{release-state}"=="prerelease"]
 --------------------------------------------------
 echo "deb https://artifacts.elastic.co/packages/{major-version}-prerelease/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-{major-version}-prerelease.list
 --------------------------------------------------
-+
 endif::[]
+
 ifeval::["{release-state}"=="released"]
 . Save the repository definition to  +/etc/apt/sources.list.d/elastic-{major-version}.list+:
 +
@@ -67,8 +67,6 @@ ifeval::["{release-state}"=="released"]
 --------------------------------------------------
 echo "deb https://artifacts.elastic.co/packages/{major-version}/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-{major-version}.list
 --------------------------------------------------
-+
-endif::[]
 +
 [WARNING]
 ==================================================
@@ -79,7 +77,10 @@ entry, but we do not provide a source package.
 If you have added the `deb-src` entry by mistake, you will see an error like
 the following:
 
-    Unable to find expected entry 'main/source/Sources' in Release file (Wrong sources.list entry or malformed file)
+["source","txt",subs="attributes"]
+----
+Unable to find expected entry 'main/source/Sources' in Release file (Wrong sources.list entry or malformed file)
+----
 
 Simply delete the `deb-src` entry from the `/etc/apt/sources.list` file, and the installation should work as expected.
 ==================================================
