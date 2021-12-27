@@ -614,6 +614,16 @@ Set `max_retries` to a value less than 0 to retry until all events are published
 The default is 3.
 endif::[]
 
+===== `flush_bytes`
+
+The bulk request size threshold, in bytes, before flushing to {es}.
+The value must have a suffix, e.g. `"1MB"`. The default is `5MB`.
+
+===== `flush_interval`
+
+The maximum duration to accumulate events for a bulk request before being flushed to {es}.
+The value must have a duration suffix, e.g. `"5s"`. The default is `1s`.
+
 ===== `backoff.init`
 
 The number of seconds to wait before trying to reconnect to Elasticsearch after

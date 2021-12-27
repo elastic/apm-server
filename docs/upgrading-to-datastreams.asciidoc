@@ -21,7 +21,7 @@ Data streams offer a number of benefits over classic indices:
 * More granular data control
 * Errors and metrics data streams are shared with other data sources -- which means better long-term integration with the logs and metrics apps
 * Removes template inheritance for ILM policies and makes use of new {es} index and component templates
-* Fixes <<server-resource-exists-not-alias>>
+* Fixes +resource \'apm-{version}-$type' exists, but it is not an alias+ error
 
 [discrete]
 [[considerations-data-streams]]
