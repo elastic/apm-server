@@ -286,7 +286,7 @@ func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
 		Added:           1,
 		Active:          0,
 		BulkRequests:    1,
-		Failed:          0,
+		Failed:          1,
 		TooManyRequests: 1,
 	}, indexer.Stats())
 }
