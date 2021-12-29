@@ -12,8 +12,6 @@ include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 
 * <<configuration-process>>
 * <<configuration-anonymous>>
-* <<configuration-template>>
-* <<ilm-reference>>
 * <<configuration-instrumentation>>
 * <<jaeger-reference>>
 * <<configuration-kerberos>>
@@ -29,10 +27,6 @@ include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 include::./configuration-process.asciidoc[]
 
 include::./configuration-anonymous.asciidoc[]
-
-include::{libbeat-dir}/template-config.asciidoc[]
-
-include::./ilm-reference.asciidoc[]
 
 include::{libbeat-dir}/shared-instrumentation.asciidoc[]
 

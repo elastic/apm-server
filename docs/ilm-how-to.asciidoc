@@ -1,5 +1,12 @@
+//////////////////////////////////////////////////////////////////////////
+// This content is reused in the Legacy ILM documentation
+//////////////////////////////////////////////////////////////////////////
+
 [[ilm-how-to]]
 === Index lifecycle management
+
+:append-legacy:
+// tag::ilm-integration[]
 
 Index lifecycle policies allow you to automate the
 lifecycle of your APM indices as they grow and age.
@@ -9,7 +16,7 @@ but can be customized depending on your business needs.
 See {ref}/index-lifecycle-management.html[ILM: Manage the index lifecycle] to learn more.
 
 [discrete]
-[[index-lifecycle-policies-default]]
+[id="index-lifecycle-policies-default{append-legacy}"]
 === Default policies
 
 The table below describes the default index lifecycle policy applied to each APM data stream.
@@ -53,17 +60,20 @@ Each policy includes a rollover and delete definition:
 The APM index lifecycle policies can be viewed in {kib}.
 Navigate to *Stack Management* / *Index Lifecycle Management*, and search for `apm`.
 
+TIP: Default ILM policies can change between minor versions.
+This is not considered a breaking change as index management should continually improve and adapt to new features.
+
 [discrete]
-[[data-streams-custom-policy]]
+[id="data-streams-custom-policy{append-legacy}"]
 === Configure a custom index lifecycle policy
 
-When the APM package is installed, Fleet creates a default `*@custom` component template for each data stream.
+When the APM integration is installed, Fleet creates a default `*@custom` component template for each data stream.
 The easiest way to configure a custom index lifecycle policy per data stream is to edit this template.
 
 This tutorial explains how to apply a custom index lifecycle policy to the `traces-apm` data stream.
 
 [discrete]
-[[data-streams-custom-one]]
+[id="data-streams-custom-one{append-legacy}"]
 === Step 1: View data streams
 
 The **Data Streams** view in {kib} shows you the data streams,
@@ -78,7 +88,7 @@ You may have more if your setup includes multiple namespaces.
 image::images/data-stream-overview.png[Data streams info]
 
 [discrete]
-[[data-streams-custom-two]]
+[id="data-streams-custom-two{append-legacy}"]
 === Step 2: Create an index lifecycle policy
 
 . Navigate to **Stack Management** > **Index Lifecycle Policies**.
@@ -88,7 +98,7 @@ Name your new policy; For this tutorial, I've chosen `custom-traces-apm-policy`.
 Customize the policy to your liking, and when you're done, click **Save policy**.
 
 [discrete]
-[[data-streams-custom-three]]
+[id="data-streams-custom-three{append-legacy}"]
 === Step 3: Apply the index lifecycle policy
 
 To apply your new index lifecylce policy to the `traces-apm-*` data stream,
@@ -113,7 +123,7 @@ If it does, click **Create component template**.
 image::images/create-component-template.png[Create component template]
 
 [discrete]
-[[data-streams-custom-four]]
+[id="data-streams-custom-four{append-legacy}"]
 === Step 4: Roll over the data stream (optional)
 
 To confirm that the data stream is now using the new index template and ILM policy,
@@ -153,9 +163,11 @@ POST /traces-apm-default/_rollover/
 ----
 
 [discrete]
-[[data-streams-custom-policy-namespace]]
+[id="data-streams-custom-policy-namespace{append-legacy}"]
 === Namespace-level index lifecycle policies
 
 It is also possible to create more granular index lifecycle policies that apply to individual namespaces.
 This process is similar to the above tutorial, but includes cloning and modify the existing index template to use
 a new `*@custom` component template.
+
+// end::ilm-integration[]

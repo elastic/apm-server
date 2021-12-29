@@ -10,8 +10,6 @@ requirements and the minimum privileges required to use specific features.
 
 Typically, you need to create the following separate roles:
 
-* <<privileges-to-setup-beats,Setup role>>: To set up index templates and
-other dependencies.
 * <<privileges-to-publish-events,Writer role>>: To publish events collected by {beatname_uc}.
 * <<privileges-to-publish-monitoring,Monitoring role>>: One for sending monitoring
 information, and another for viewing it.
@@ -34,124 +32,7 @@ In general, there are three types of privileges you'll work with:
 ***********************************  ***********************************
 ////
 
-[[privileges-to-setup-beats]]
-=== Grant privileges and roles needed for setup
-
-++++
-<titleabbrev>Create a _setup_ user</titleabbrev>
-++++
-
-IMPORTANT: {deprecation-notice-config}
-
-IMPORTANT: Setting up {beatname_uc} is an admin-level task that requires extra
-privileges. As a best practice, grant the setup role to administrators only, and
-use a more restrictive role for event publishing.
-
-Administrators who set up {beatname_uc} typically need to load the index template,
-set up ILM aliases, templates, and policies, and register ingest pipelines.
-
-To grant users the required privileges for setup:
-
-. Create a *setup role*, called something like +{beat_default_index_prefix}_setup+, that has
-the following privileges:
-+
-[options="header"]
-|====
-|Type | Privilege | Purpose
-
-|Cluster
-|`manage_ilm`
-|All index lifecycle management operations related to managing policies
-
-|Index
-|`manage` on +{beat_default_index_prefix}-*+ indices
-|All index administration privileges
-|====
-
-. Assign the *setup role*, along with the following built-in roles, to users who
-need to set up {beatname_uc}:
-+
-[options="header"]
-|====
-|Role | Purpose
-
-|`ingest_admin`
-|Set up index templates and ingest pipelines
-|====
-
-NOTE: These instructions assume that you are using the default name for
-{beatname_uc} indices (+{beat_default_index_prefix}-*+).
-If you are using a custom index name, modify the privileges to
-match your index naming pattern.
-
-[float]
-==== Partial setup
-
-In some instances, you may want to create a less-privileged user for a specific setup task.
-
-[float]
-===== Set up index templates
-
-APM Server loads an index template to Elasticsearch at setup time.
-The following privileges are required for this task:
-
-[options="header"]
-|====
-|Type | Privilege | Purpose
-
-|Cluster
-|`manage_index_template`
-|All operations on index templates
-|====
-
-See <<configuration-template>> for more information.
-
-[float]
-===== Set up ILM
-
-Index lifecycle management (ILM) allows you to automate the lifecycle of your APM Server indices as they grow and age.
-To set up and configure ILM, the following privileges are required:
-
-[options="header"]
-|====
-|Type | Privilege | Purpose
-
-|Cluster
-|`manage_index_template`
-|All operations on index templates
-
-|Cluster
-|`manage_ilm`
-|All index lifecycle management operations related to managing policies.
-
-|Index
-|`manage` on +{beat_default_index_prefix}-*+ indices
-|All index administration privileges
-|====
-
-See <<ilm-reference>> for more information.
-
-[float]
-===== Set up ingest pipelines
-
-Ingest pipelines allow you to pre-process documents in Elasticsearch before indexing them.
-The following privileges are required to manage pipelines:
-
-[options="header"]
-|====
-|Type | Privilege | Purpose
-
-|Cluster
-|`manage_pipeline`
-|All operations on ingest pipelines
-|====
-
-See <<pipeline-option-es>> for more information.
-
-////
-***********************************  ***********************************
-***********************************  ***********************************
-////
+// QQ: How are privs for writing events impacted by data stream changes?
 
 [[privileges-to-publish-events]]
 === Grant privileges and roles needed for writing events
@@ -161,10 +42,6 @@ See <<pipeline-option-es>> for more information.
 ++++
 
 IMPORTANT: {deprecation-notice-config}
-
-IMPORTANT: To minimize the privileges required by the writer role,
-use the <<privileges-to-setup-beats,setup role>> to pre-load dependencies.
-This section assumes that you've done that.
 
 {beatname_uc} users that publish events to {es} need to create and write to +{beat_default_index_prefix}-*+
 indices, upload and read sourcemaps, read API keys from Elasticsearch, and perform self-instrumentation.

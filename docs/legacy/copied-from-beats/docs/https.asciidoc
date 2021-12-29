@@ -140,8 +140,7 @@ setup.kibana:
   username: "{beat_default_index_prefix}_kib_setup" <1>
   password: "{pwd}" <2>
 ----
-<1> This user needs privileges required to set up dashboards. To create a user like this,
-see <<privileges-to-setup-beats>>.
+<1> This user needs privileges required to set up dashboards
 <2> This example shows a hard-coded password, but you should store sensitive
 values
 ifndef::serverless[]
