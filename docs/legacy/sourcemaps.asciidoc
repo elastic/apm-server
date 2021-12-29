@@ -114,7 +114,6 @@ include::./tab-widgets/kibana-endpoint-widget.asciidoc[]
 
 Kibana exposes a {kibana-ref}/rum-sourcemap-api.html[source map endpoint] for uploading source maps.
 Source maps can be uploaded as a string, or as a file upload.
-Before uploading a source map, ensure that RUM support is enabled in the APM integration
 
 Let's look at two different ways to upload a source map: curl and a custom application.
 Each example includes the four fields necessary for APM Server to later map minified code to its source:
@@ -179,3 +178,6 @@ request.post({url: 'http://localhost:5601/api/apm/sourcemaps',formData: formData
   }
 })
 ----
+
+That's it! New exception stack traces should now be correctly mapped to your source code.
+Don't forget to enable RUM support in the APM integration if you haven't already.
