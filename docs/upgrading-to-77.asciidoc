@@ -22,8 +22,7 @@ Failing to follow the upgrade steps will result in increased span metadata inges
 
 . In order to avoid breaking custom pipeline definitions,
 pipelines are not overwritten when restarting APM Server.
-Enable pipeline overwriting by setting <<register.ingest.pipeline.overwrite,`register.ingest.pipeline.overwrite`>>
-to `true`.
+Enable pipeline overwriting by setting `register.ingest.pipeline.overwrite` to `true`.
 
 . Copy any custom pipelines you've created or altered to the `apm` pipeline definition file, located at
 `ingest/pipeline/definition.json`.

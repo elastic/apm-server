@@ -71,7 +71,9 @@ First time? The page may take a few minutes to load.
 [[apm-data-streams-upgrade-3]]
 ==== Configure APM Server to use data streams
 
-. Stop APM Server and set <<_configuration_options_data_streams,`data_streams.enabled: true`>> in apm-server.yml:
+// This will need to be changed for 8.0.0.
+// Covered in https://github.com/elastic/observability-docs/issues/975
+. Stop APM Server and set `data_streams.enabled: true` in apm-server.yml:
 +
 [source,yaml]
 ----

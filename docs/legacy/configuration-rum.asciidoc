@@ -166,5 +166,5 @@ Default: `"apm-*-sourcemap*"`
 === Ingest pipelines
 
 The default APM Server pipeline includes processors that enrich RUM data prior to indexing in {es}.
-See the <<default-pipeline,default ingest pipeline>> for details on how to locate,
+See the <<default-pipeline-legacy,default ingest pipeline>> for details on how to locate,
 edit, or disable this pre-processing.
