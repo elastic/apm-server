@@ -164,18 +164,3 @@ request.post({url: 'http://localhost:5601/api/apm/sourcemaps',formData: formData
   }
 })
 ----
-
-// todo: add links when they exist
-
-// [float]
-// [[source-map-done]]
-// === Next steps
-
-// That's it! The source map has been uploaded to Elasticsearch,
-// and any new exception stack traces should now be correctly mapped to your source code.
-
-// More information:
-
-// * <<sourcemap-indices,Source map indices>>
-// * <<sourcemap-api,Source map upload API reference>>.
-// * <<sourcemap-apply,How source maps are applied>>.

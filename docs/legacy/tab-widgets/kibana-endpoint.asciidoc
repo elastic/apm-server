@@ -1,0 +1,22 @@
+// tag::ess[]
+
+The {kib} endpoint is automatically enabled and configured in {ecloud}.
+
+// end::ess[]
+
+// tag::self-managed[]
+
+Enable and configure the {kib} endpoint in the `apm-server.kibana` section of the `apm-server.yml`
+config file. A basic configuration might look like this:
+
+[source,yml]
+----
+apm-server.kibana.enabled: true
+apm-server.kibana.host: "http://localhost:5601"
+apm-server.kibana.username: "user"
+apm-server.kibana.password: "pass"
+----
+
+See <<setup-kibana-endpoint>> for a full list of configuration options.
+
+// end::self-managed[]
