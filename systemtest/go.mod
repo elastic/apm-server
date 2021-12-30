@@ -96,4 +96,5 @@ replace (
 	github.com/containerd/containerd => github.com/containerd/containerd v1.5.8
 	github.com/elastic/apm-server/approvaltest => ../approvaltest
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
+	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3
 )
