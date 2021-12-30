@@ -58,6 +58,7 @@ ifeval::["{release-state}"=="prerelease"]
 --------------------------------------------------
 echo "deb https://artifacts.elastic.co/packages/{major-version}-prerelease/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-{major-version}-prerelease.list
 --------------------------------------------------
++
 endif::[]
 
 ifeval::["{release-state}"=="released"]
@@ -68,6 +69,7 @@ ifeval::["{release-state}"=="released"]
 echo "deb https://artifacts.elastic.co/packages/{major-version}/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-{major-version}.list
 --------------------------------------------------
 +
+endif::[]
 [WARNING]
 ==================================================
 To add the Elastic repository, make sure that you use the `echo` method  shown
