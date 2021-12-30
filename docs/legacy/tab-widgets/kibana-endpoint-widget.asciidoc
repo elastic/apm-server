@@ -1,0 +1,40 @@
+++++
+<div class="tabs" data-tab-group="kibana-endpoint">
+  <div role="tablist" aria-label="Kibana endpoint">
+    <button role="tab"
+            aria-selected="true"
+            aria-controls="ess-kib-endpoint-tab"
+            id="ess-kib-endpoint">
+      Elasticsearch Service
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="sm-kib-endpoint-tab"
+            id="sm-kib-endpoint"
+            tabindex="-1">
+      Self-managed
+    </button>
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="ess-kib-endpoint-tab"
+       aria-labelledby="ess-kib-endpoint">
+++++
+
+include::kibana-endpoint.asciidoc[tag=ess]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="sm-kib-endpoint-tab"
+       aria-labelledby="sm-kib-endpoint"
+       hidden="">
+++++
+
+include::kibana-endpoint.asciidoc[tag=self-managed]
+
+++++
+  </div>
+</div>
+++++
