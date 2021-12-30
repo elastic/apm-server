@@ -7,12 +7,6 @@
 
 IMPORTANT: {deprecation-notice-data}
 If you've already upgraded, please see <<source-map-how-to>> instead.
-<<<<<<< HEAD
-
-NOTE: This guide is only for standalone APM Server users. Users running the <<apm-integration,APM integration>>
-need to use the Kibana {kibana-ref}/rum-sourcemap-api.html[source map upload API] instead.
-=======
->>>>>>> 1059458e (docs: update source map docs for 8.0 (#6927))
 
 Minifying JavaScript bundles in production is a common practice;
 it can greatly improve the load time and network latency of your applications.
