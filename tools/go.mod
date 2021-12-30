@@ -178,6 +178,8 @@ require (
 exclude (
 	github.com/dgrijalva/jwt-go v0.0.0-20170104182250-a601269ab70c
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/opencontainers/image-spec v1.0.0
+	github.com/opencontainers/image-spec v1.0.1
 	go.mongodb.org/mongo-driver v1.0.3
 	go.mongodb.org/mongo-driver v1.1.2
 )

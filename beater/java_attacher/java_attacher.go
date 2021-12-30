@@ -133,17 +133,6 @@ func (j JavaAttacher) formatArgs() []string {
 
 	for _, flag := range j.cfg.DiscoveryRules {
 		for name, value := range flag {
-			if strings.HasSuffix(name, "vmarg") {
-				// TODO(stn): the bundled version of
-				// java-attacher, 1.27.0, only supports
-				// `-vmargs`. This will be changed to `-vmarg`
-				// in the future. For consistency in naming and
-				// with other projects, expose `-vmarg` to the
-				// user, but internally convert it. This should
-				// be removed once the bundled java-attacher
-				// version supports `-vmarg`.
-				name += "s"
-			}
 			args = append(args, "--"+name, value)
 		}
 	}
