@@ -203,15 +203,12 @@ https://brew.sh/[Homebrew] package manager. First, tap the Elastic Homebrew repo
 brew tap elastic/tap
 -------------------------
 
-Next, use `brew install` to install the default distribution of APM Server:
+Next, use `brew install` to install APM Server:
 
 [source,sh]
 -------------------------
 brew install elastic/tap/apm-server-full
 -------------------------
-
-This installs the most recently released default distribution of APM Server.
-To install the OSS distribution, specify `elastic/tap/apm-server-oss`.
 
 endif::[]
 
