@@ -156,7 +156,7 @@ func (b *bulkIndexer) Flush(ctx context.Context) (elasticsearch.BulkIndexerRespo
 	defer res.Body.Close()
 	if res.IsError() {
 		if res.StatusCode == http.StatusTooManyRequests {
-			return elasticsearch.BulkIndexerResponse{}, &errorTooManyRequests{res: res}
+			return elasticsearch.BulkIndexerResponse{}, errorTooManyRequests{res: res}
 		}
 		return elasticsearch.BulkIndexerResponse{}, fmt.Errorf("flush failed: %s", res.String())
 	}
@@ -191,6 +191,6 @@ type errorTooManyRequests struct {
 	res *esapi.Response
 }
 
-func (e *errorTooManyRequests) Error() string {
+func (e errorTooManyRequests) Error() string {
 	return fmt.Sprintf("flush failed: %s", e.res.String())
 }
