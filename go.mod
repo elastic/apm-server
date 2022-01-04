@@ -199,13 +199,13 @@ replace (
 	github.com/elastic/apm-server/approvaltest => ./approvaltest
 	github.com/fsnotify/fsevents => github.com/elastic/fsevents v0.0.0-20181029231046-e1d381a4d270
 	github.com/fsnotify/fsnotify => github.com/adriansr/fsnotify v0.0.0-20180417234312-c9bbe1f46f1d
+	// We replace golang/glog, which is used by ristretto, to avoid polluting the
+	// command line flags and conflicting with command line flags added by libbeat.
+	github.com/golang/glog => ./internal/glog
+	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 	github.com/tonistiigi/fifo => github.com/containerd/fifo v0.0.0-20190816180239-bda0ff6ed73c
 	golang.org/x/tools => golang.org/x/tools v0.1.2
 )
-
-// We replace golang/glog, which is used by ristretto, to avoid polluting the
-// command line flags and conflicting with command line flags added by libbeat.
-replace github.com/golang/glog => ./internal/glog
 
 // Exclude old modules (with security vulnerabilities) used only by tests of dependencies.
 exclude (
@@ -216,6 +216,7 @@ exclude (
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/opencontainers/runc v0.0.0-20190115041553-12f6a991201f
 	github.com/opencontainers/runc v1.0.0-rc9
+	github.com/opencontainers/runc v1.0.2
 	go.mongodb.org/mongo-driver v1.0.3
 	go.mongodb.org/mongo-driver v1.1.1
 	go.mongodb.org/mongo-driver v1.3.0
