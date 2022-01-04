@@ -368,6 +368,12 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 			tx.Outcome = "failure"
 			apm.CaptureError(ctx, err).Send()
 		}
+
+		var errTooMany errorTooManyRequests
+		// 429 may be returned as errors from the bulk indexer.
+		if errors.As(err, &errTooMany) {
+			atomic.AddInt64(&i.tooManyRequests, int64(n))
+		}
 		return err
 	}
 
