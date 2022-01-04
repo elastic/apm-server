@@ -19,7 +19,9 @@ package systemtest_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -120,6 +122,19 @@ func TestTailSampling(t *testing.T) {
 	tracer1.Flush(nil)
 	tracer2.Flush(nil)
 
+	defer func() {
+		if t.Failed() {
+			t.Logf("Tracer 1 stats: %+v", tracer1.Stats())
+			t.Logf("Tracer 2 stats: %+v", tracer2.Stats())
+
+			enc := json.NewEncoder(os.Stdout)
+			stats1 := apmIntegration1.getBeatsMonitoringStats(t, nil)
+			enc.Encode(stats1.Metrics["apm-server"].(map[string]interface{})["sampling"])
+			stats2 := apmIntegration2.getBeatsMonitoringStats(t, nil)
+			enc.Encode(stats2.Metrics["apm-server"].(map[string]interface{})["sampling"])
+		}
+	}()
+
 	// Flush the data stream while the test is running, as we have no
 	// control over the settings for the sampled traces index template.
 	refreshPeriodically(t, 250*time.Millisecond, "traces-apm.sampled-*")
@@ -133,7 +148,7 @@ func TestTailSampling(t *testing.T) {
 		}).WithSize(total).Do(context.Background(), &result,
 			estest.WithCondition(result.Hits.MinHitsCondition(expected)),
 		)
-		require.NoError(t, err)
+		require.NoError(t, err, "did not find transaction type: %s", transactionType)
 		assert.Equal(t, expected, len(result.Hits.Hits), transactionType)
 	}
 

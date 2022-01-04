@@ -31,7 +31,6 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -314,26 +313,10 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		return nil, err
 	}
 
-	var fleetServerIPAddress string
 	var networks []string
-	for network, settings := range fleetServerContainerDetails.NetworkSettings.Networks {
+	for network := range fleetServerContainerDetails.NetworkSettings.Networks {
 		networks = append(networks, network)
-		if fleetServerIPAddress == "" && settings.IPAddress != "" {
-			fleetServerIPAddress = settings.IPAddress
-		}
 	}
-	fleetServerURL := &url.URL{
-		Scheme: "https",
-		Host:   net.JoinHostPort(fleetServerIPAddress, fleetServerPort),
-	}
-	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
-
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		panic("could not locate systemtest directory")
-	}
-	systemtestDir := filepath.Dir(filename)
-	hostCACertPath := filepath.Join(systemtestDir, "../testing/docker/fleet-server/ca.pem")
 
 	// Use the same stack version as used for fleet-server.
 	agentImageVersion := fleetServerContainer.Image[strings.LastIndex(fleetServerContainer.Image, ":")+1:]
@@ -354,15 +337,31 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		return nil, err
 	}
 
+	// Reuse the ENV defined in the docker-compose container.
+	env := make(map[string]string)
+	for _, envVar := range fleetServerContainerDetails.Config.Env {
+		idx := strings.IndexRune(envVar, '=')
+		// Do not install the fleet-server integration or initialize the Kibana
+		// fleet.
+		dontSkip := !strings.HasPrefix(envVar, "KIBANA_FLEET_SETUP") &&
+			!strings.HasPrefix(envVar, "FLEET_SERVER_ENABLE")
+		if idx > 0 && dontSkip {
+			env[envVar[:idx]] = envVar[idx+1:]
+		}
+	}
+
+	// Reuse the bindmounts defined in the docker-compose container.
+	bindmounts := make(map[string]string)
+	for _, mount := range fleetServerContainerDetails.Mounts {
+		bindmounts[mount.Source] = mount.Destination
+	}
+
 	req := testcontainers.ContainerRequest{
 		Image:      agentImage,
-		AutoRemove: true,
 		Networks:   networks,
-		BindMounts: map[string]string{hostCACertPath: containerCACertPath},
-		Env: map[string]string{
-			"FLEET_URL": fleetServerURL.String(),
-			"FLEET_CA":  containerCACertPath,
-		},
+		BindMounts: bindmounts,
+		Env:        env,
+		AutoRemove: true,
 		SkipReaper: true, // we use our own reaping logic
 	}
 	return &ElasticAgentContainer{
