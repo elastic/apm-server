@@ -53,7 +53,7 @@ Metrics are duplicated so you can refer to them by either the OpenTelemetry or E
 === View ingest pipelines
 
 To view or edit a default pipelines in {kib},
-select *Stack Management* / *Ingest Pipelines*.
+select **Stack Management** > **Ingest Pipelines**.
 Search for `apm`.
 
 See {ref}/ingest.html[ingest node pipelines] for more information.
@@ -66,5 +66,27 @@ IMPORTANT: Fleet-managed index templates are overwritten on reinstall/upgrade.
 Any customizations to index pipelines are not persisted when upgrading.
 When editing {fleet}-managed index templates, ensure that the package-provided pipeline is still called.
 
+// tutorial would be something like this:
+. Find the pipeline **Stack Management** > **Index Management** > **Index Templates** > `traces-apm`.
+. **Settings** >
++
+[source,json]
+----
+{
+  "index": {
+    "default_pipeline": "traces-apm-{version}"
+  }
+}
+----
+
+// Edit default
+. **Stack Management** > **Ingest Pipelines** > Search for +traces-apm-{version}+.
+. **Manage** > **Edit** to edit the default pipeline.
+
+// Add custom pipeline
+. **Stack Management** > **Ingest Pipelines** > **Create pipeline**
+. Create it
+. **Stack Management** > **Ingest Pipelines** > Search for +traces-apm-{version}+.
+. **Manage** > **Edit** to edit the default pipeline. Add the new pipeline as the final step.
 
 // end::ingest-pipelines[]

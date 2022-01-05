@@ -1,0 +1,35 @@
+// to do: reuse in legacy docs
+
+[[custom-index-template]]
+=== Custom index template
+
+Index templates are used to configure the backing indices of data streams as they are created.
+These index templates can be composed of multiple component templates--reusable building blocks
+that configure index mappings, settings, and aliases.
+
+When you install the APM integration, {fleet} creates a default `*custom` component template for each data stream.
+You can edit this `*custom` component template to customize your {es} indices.
+
+// View index/component templates
+
+The default APM index templates can be viewed in {kib}.
+Navigate to **Stack Management** > **Index Management** > **Index Templates**, and search for `apm`.
+Select any of the APM index templates to view its component templates.
+
+// Customize index template
+// Some kind of Kibana tutorial would go here
+
+. **Stack Management** > **Index Management** > **Component Templates**, search for `traces-apm`
+. **Manage** > **Edit**
+. Add any custom index settings or mappings
+// Changes to component templates do not affect existing indices,
+// including a stream’s backing indices... so rollover
+. Force rollover `POST /traces-apm-default/_rollover/`
+. See if it worked? GET /_index_template/traces-apm
+
+And then I'm guessing everything is lost on upgrade.
+So there should be warnings about that.
+
+// Learn more links
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/index-templates.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-component-template.html
