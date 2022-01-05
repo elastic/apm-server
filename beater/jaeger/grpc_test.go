@@ -34,6 +34,7 @@ import (
 	"go.opentelemetry.io/collector/model/pdata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -258,7 +259,7 @@ func newServer(t *testing.T, batchProcessor model.BatchProcessor, agentcfgFetche
 
 	go srv.Serve(lis)
 	t.Cleanup(srv.GracefulStop)
-	conn, err := grpc.Dial(lis.Addr().String(), grpc.WithInsecure())
+	conn, err := grpc.Dial(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	t.Cleanup(func() { conn.Close() })
 	return conn
