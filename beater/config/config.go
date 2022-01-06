@@ -114,7 +114,8 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 	}
 
 	if err := c.JavaAttacherConfig.setup(); err != nil {
-		return nil, err
+		logger.Warnf("failed to setup java-attacher: %v", err)
+		c.JavaAttacherConfig = defaultJavaAttacherConfig()
 	}
 
 	return c, nil
