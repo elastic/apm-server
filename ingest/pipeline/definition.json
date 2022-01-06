@@ -1,61 +1,123 @@
-[
-{
-  "id": "apm",
-  "body": {
-    "description" : "Default enrichment for APM events",
-    "processors" : [
-      {
-        "pipeline": {
-          "name": "apm_user_agent"
+[{
+    "id": "apm",
+    "body": {
+      "description": "Default enrichment for APM events",
+      "processors": [{
+          "pipeline": {
+            "name": "apm_user_agent"
+          }
+        },
+        {
+          "pipeline": {
+            "name": "apm_user_geo"
+          }
+        },
+        {
+          "pipeline": {
+            "name": "apm_ingest_timestamp"
+          }
+        },
+        {
+          "pipeline": {
+            "name": "apm_remove_span_metadata"
+          }
+        },
+        {
+          "pipeline": {
+            "name": "apm_metrics_dynamic_template",
+            "if": "ctx.processor?.event == 'metric'"
+          }
         }
-      },
-      {
-        "pipeline": {
-          "name": "apm_user_geo"
-        }
-      }
-    ]
-  }
-},
-{
-  "id": "apm_user_agent",
-  "body": {
-    "description" : "Add user agent information for APM events",
-    "processors" : [
-      {
-        "user_agent" : {
+      ]
+    }
+  },
+  {
+    "id": "apm_user_agent",
+    "body": {
+      "description": "Add user agent information for APM events",
+      "processors": [{
+        "user_agent": {
           "field": "user_agent.original",
           "target_field": "user_agent",
           "ignore_missing": true,
           "ignore_failure": true
         }
-      }
-    ]
-  }
-},
-{
-  "id": "apm_user_geo",
-  "body": {
-    "description" : "Add user geo information for APM events",
-    "processors" : [
-      {
-        "geoip" : {
+      }]
+    }
+  },
+  {
+    "id": "apm_remove_span_metadata",
+    "body": {
+      "description": "Removes metadata fields available already on the parent transaction, to save storage",
+      "processors": [{
+        "remove": {
+          "field": [
+            "host",
+            "process",
+            "user",
+            "user_agent",
+            "container",
+            "kubernetes",
+            "service.node",
+            "service.version",
+            "service.language",
+            "service.runtime",
+            "service.framework"
+          ],
+          "if": "ctx.processor?.event == 'span'",
+          "ignore_failure": true,
+          "ignore_missing": true
+        }
+      }]
+    }
+  },
+  {
+    "id": "apm_ingest_timestamp",
+    "body": {
+      "description": "Add an ingest timestamp for APM events",
+      "processors": [{
+        "set": {
+          "field": "event.ingested",
+          "if": "ctx.processor?.event != 'span'",
+          "value": "{{_ingest.timestamp}}"
+        }
+      }]
+    }
+  },
+  {
+    "id": "apm_user_geo",
+    "body": {
+      "description": "Add user geo information for APM events",
+      "processors": [{
+        "geoip": {
           "database_file": "GeoLite2-City.mmdb",
           "field": "client.ip",
           "target_field": "client.geo",
           "ignore_missing": true,
-          "on_failure": [
-            {
-              "remove": {
-                  "field": "client.ip",
-                  "ignore_missing": true,
-                  "ignore_failure": true
-              }
+          "on_failure": [{
+            "remove": {
+              "field": "client.ip",
+              "ignore_missing": true,
+              "ignore_failure": true
             }
-          ]
+          }]
         }
-      }
-    ]
-  }
+      }]
+    }
+  },
+
+  {
+    "id": "apm_metrics_dynamic_template",
+    "body": {
+      "description": "Set dynamic_templates for application metrics",
+      "processors": [
+        {
+          "script": {
+            "if": "ctx._metric_descriptions != null",
+            "source": "Map dynamic_templates = new HashMap();\nfor (entry in ctx._metric_descriptions.entrySet()) {\n  String name = entry.getKey();\n  Map description = entry.getValue();\n  String metric_type = description.type;\n  if (metric_type == \"histogram\") {\n    dynamic_templates[name] = \"histogram\";\n  }\n}\nctx._dynamic_templates = dynamic_templates;\nctx.remove(\"_metric_descriptions\");\n"
+          }
+        }
+      ]
+   }
 }
 ]
