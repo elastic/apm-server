@@ -27,7 +27,14 @@ apm-server:
     max_header_size: {{max_header_bytes}}
     read_timeout: {{read_timeout}}
     response_headers: {{response_headers}}
+<<<<<<< HEAD
     {{#if enable_rum}}
+=======
+    java_attacher:
+      enabled: {{java_attacher_enabled}}
+      discovery-rules: {{java_attacher_discovery_rules}}
+      download-agent-version: {{java_attacher_agent_version}}
+>>>>>>> 9c6b2288 ([apmpackage] fix booleans for package upgrade (#7004))
     rum:
         allow_headers:
         {{#each rum_allow_headers}}
@@ -41,9 +48,7 @@ apm-server:
         exclude_from_grouping: {{rum_exclude_from_grouping}}
         library_pattern: {{rum_library_pattern}}
         response_headers: {{rum_response_headers}}
-    {{/if}}
     shutdown_timeout: {{shutdown_timeout}}
-    {{#if tls_enabled}}
     ssl:
         enabled: {{tls_enabled}}
         certificate: {{tls_certificate}}
@@ -61,14 +66,11 @@ apm-server:
         {{#each tls_curve_types}}
           - {{this}}
         {{/each}}
-    {{/if}}
     write_timeout: {{write_timeout}}
-    {{#if tail_sampling_policies}}
     sampling:
       tail:
-        enabled: true
+        enabled: {{#if tail_sampling_policies}}true{{else}}false{{/if}}
         {{#if tail_sampling_interval}}
         interval: {{tail_sampling_interval}}
         {{/if}}
         policies: {{tail_sampling_policies}}
-    {{/if}}
