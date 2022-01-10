@@ -65,7 +65,7 @@ apm-server:
     write_timeout: {{write_timeout}}
     sampling:
       tail:
-        enabled: {{if tail_sampling_policies}}true{{else}}false{{/if}}
+        enabled: {{#if tail_sampling_policies}}true{{else}}false{{/if}}
         {{#if tail_sampling_interval}}
         interval: {{tail_sampling_interval}}
         {{/if}}
