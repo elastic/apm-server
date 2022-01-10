@@ -52,6 +52,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	javaattacher "github.com/elastic/apm-server/beater/java_attacher"
 	"github.com/elastic/apm-server/elasticsearch"
+	_ "github.com/elastic/apm-server/include"
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
