@@ -9,11 +9,11 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dlclark/regexp2 v1.4.0 // indirect
-	github.com/dop251/goja v0.0.0-20220102113305-2298ace6d09d // indirect
+	github.com/dop251/goja v0.0.0-20220108163712-ddea1f44690e // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20211022123610-8dd9abb0616d // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220104093938-eaa3b32524a9
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220108134649-2874b62f4ee2
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210922110810-e6f1f402a9ed // indirect
 	github.com/elastic/gmux v0.2.0
@@ -30,7 +30,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/jaegertracing/jaeger v1.25.0
 	github.com/jcchavezs/porto v0.4.0 // indirect
-	github.com/josephspurrier/goversioninfo v1.3.0 // indirect
+	github.com/josephspurrier/goversioninfo v1.4.0 // indirect
 	github.com/json-iterator/go v1.1.12
 	github.com/libp2p/go-reuseport v0.0.2
 	github.com/magefile/mage v1.12.1
@@ -56,14 +56,14 @@ require (
 	go.opentelemetry.io/collector v0.34.0
 	go.opentelemetry.io/collector/model v0.34.0
 	go.uber.org/multierr v1.7.0 // indirect
-	go.uber.org/zap v1.19.1
+	go.uber.org/zap v1.20.0
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
-	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f
+	golang.org/x/net v0.0.0-20220107192237-5cfca573fb4d
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 	golang.org/x/tools v0.1.8
-	google.golang.org/genproto v0.0.0-20211223182754-3ac035c7e7cb // indirect
+	google.golang.org/genproto v0.0.0-20220107163113-42d7afdf6368 // indirect
 	google.golang.org/grpc v1.43.0
 	gotest.tools/gotestsum v1.7.0
 	howett.net/plist v1.0.0 // indirect

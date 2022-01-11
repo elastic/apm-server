@@ -70,6 +70,19 @@ func TestUnpackConfig(t *testing.T) {
 			inpCfg: map[string]interface{}{},
 			outCfg: DefaultConfig(),
 		},
+		"invalid java-attacher config": {
+			inpCfg: map[string]interface{}{
+				"java_attacher": map[string]interface{}{
+					"enabled": true,
+					"discovery-rules": []map[string]interface{}{
+						map[string]interface{}{
+							"disallowed-key": "opbeans",
+						},
+					},
+				},
+			},
+			outCfg: DefaultConfig(),
+		},
 		"overwrite default": {
 			inpCfg: map[string]interface{}{
 				"host":                  "localhost:3000",
