@@ -84,7 +84,7 @@ func TestBuild(t *testing.T) {
 
 	want := filepath.FromSlash("/usr/bin/java -jar ./java-attacher.jar") +
 		" --continuous --log-level debug --download-agent-version 1.25.0 --exclude-user root --include-main MyApplication " +
-		"--include-main my-application.jar --include-vmargs elastic.apm.agent.attach=true " +
+		"--include-main my-application.jar --include-vmarg elastic.apm.agent.attach=true " +
 		"--config server_url=http://localhost:8200"
 
 	cmdArgs := strings.Join(cmd.Args, " ")
