@@ -1,0 +1,19 @@
+[[release-notes-head]]
+== APM version HEAD
+
+https://github.com/elastic/apm-server/compare/8.0\...main[View commits]
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Bug fixes
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+
+- `apm-server` artifacts now have the apm java-attacher.jar packaged alongside them {pull}6593[6593]
+- Run the java attacher jar when configured and not in a cloud environment {pull}6617[6617]
