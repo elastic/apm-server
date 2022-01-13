@@ -139,6 +139,11 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
 
+	// To avoid flaky tests, we wait for an additional 1s after the transaction
+	// has been indexed so the can aggregate the transaction before the server
+	// is stopped.
+	<-time.After(time.Second)
+
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
 
