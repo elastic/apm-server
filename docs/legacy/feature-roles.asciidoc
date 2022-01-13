@@ -43,15 +43,14 @@ In general, there are three types of privileges you'll work with:
 
 IMPORTANT: {deprecation-notice-config}
 
-{beatname_uc} users that publish events to {es} need to create and write to +{beat_default_index_prefix}-*+
-indices, upload and read sourcemaps, read API keys from Elasticsearch, and perform self-instrumentation.
+APM users that publish events to {es} need privileges to write to APM data streams.
 
 [float]
 ==== General writer role
 
-To grant an APM Server user the required privileges for writing events to {es}:
+To grant an APM user the required privileges for writing events to {es}:
 
-. Create a *general writer role*, called something like +{beat_default_index_prefix}_writer+,
+. Create a *general writer role*, called something like `apm_writer`,
 that has the following privileges:
 +
 [options="header"]
@@ -59,57 +58,18 @@ that has the following privileges:
 |Type | Privilege | Purpose
 
 |Index
-|`create_doc` on +{beat_default_index_prefix}-*+ indices
+|`auto_configure` on `traces-apm*`, `logs-apm*`, and `metrics-apm*` indices
+|Permits auto-creation of indices and data streams
+
+|Index
+|`create_doc` on `traces-apm*`, `logs-apm*`, and `metrics-apm*` indices
 |Write events into {es}
-
-|Index
-|`create_index` on +{beat_default_index_prefix}-*+ indices
-|Create APM indices in {es}
 |====
 
-. If <<configuration-rum,real user monitoring>> and <<sourcemaps,sourcemaps>> are enabled,
-assign the following additional privileges to the *general writer role*:
-+
-[options="header"]
-|====
-|Type | Privilege | Purpose
+. Assign the *general writer role* to users who need to publish APM data.
 
-|Index
-|`read` on +{beat_default_index_prefix}-*sourcemap+ indices
-|Read sourcemaps from {es}
-|====
-
-. Assign the *general writer role* to users who need to publish {beatname_uc} data.
-
-[float]
-==== Specific writer roles
-
-Instead of creating a *general writer role*,
-individual publishing tasks, like writing events or uploading sourcemaps,
-can be performed by dedicated users with stricter privileges.
-
-[float]
-===== Sourcemap writer role
-
-To create an {beatname_uc} user that can write sourcemaps to {es}:
-
-. Create a *sourcemap writer role*, called something like +{beat_default_index_prefix}_sourcemap+,
-that has the following privileges:
-+
-[options="header"]
-|====
-|Type | Privilege | Purpose
-
-|Index
-|`create_doc` on +{beat_default_index_prefix}-*+ indices
-|Write APM events into {es}
-
-|Index
-|`create_index` on +{beat_default_index_prefix}-*+ indices
-|Create APM indices in {es}
-|====
-
-. Assign the *sourcemap writer role* to users who need to publish sourcemaps.
+TIP: Uploading a RUM source map? Separate privileges are required.
+See {kibana-ref}/rum-sourcemap-api.html[RUM source map API] for more details.
 
 ////
 ***********************************  ***********************************
