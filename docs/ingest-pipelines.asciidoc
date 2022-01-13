@@ -24,37 +24,8 @@ To view or edit a default pipelines in {kib},
 select **Stack Management** > **Ingest Pipelines**.
 Search for `apm`.
 
+It is not currently possible to edit or add pipelines that persist through upgrades.
+
 See {ref}/ingest.html[ingest node pipelines] for more information.
-
-[float]
-[id="custom-pipelines{append-legacy}"]
-=== Add a custom ingest pipeline
-
-IMPORTANT: Fleet-managed index templates are overwritten on reinstall/upgrade.
-Any customizations to index pipelines are not persisted when upgrading.
-When editing {fleet}-managed index templates, ensure that the package-provided pipeline is still called.
-
-// tutorial would be something like this:
-. Find the pipeline **Stack Management** > **Index Management** > **Index Templates** > `traces-apm`.
-. **Settings** >
-+
-[source,json]
-----
-{
-  "index": {
-    "default_pipeline": "traces-apm-{version}"
-  }
-}
-----
-
-// Edit default
-. **Stack Management** > **Ingest Pipelines** > Search for +traces-apm-{version}+.
-. **Manage** > **Edit** to edit the default pipeline.
-
-// Add custom pipeline
-. **Stack Management** > **Ingest Pipelines** > **Create pipeline**
-. Create it
-. **Stack Management** > **Ingest Pipelines** > Search for +traces-apm-{version}+.
-. **Manage** > **Edit** to edit the default pipeline. Add the new pipeline as the final step.
 
 // end::ingest-pipelines[]
