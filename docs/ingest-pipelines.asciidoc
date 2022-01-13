@@ -17,38 +17,6 @@ The default APM pipelines are defined in index templates that {fleet} loads into
 {es} then uses the index pattern in these index templates to match pipelines to APM data streams.
 
 [discrete]
-[id="default-pipeline{append-legacy}"]
-=== Default ingest pipelines
-
-// QQ: Do we want to doc these still?
-// Should we doc them on a per data-stream basis?
-
-The APM integration ships with a number of default ingest pipelines.
-
-[horizontal]
-Add ingest timestamp::
-Adds an ingest timestamp (`event.ingested`) to APM events.
-
-Add user agent::
-Adds `user_agent` information to APM events.
-
-Geo-IP data::
-Enriches APM data by adding user {ref}/geoip-processor.html[Geo-IP data] to the `client.geo` field.
-
-Remove span metadata::
-To save storage, metadata fields that are available on the parent transaction, like `host`,
-`kubernetes`, and `container`, are removed.
-
-Error grouping::
-Adds the `error.grouping_name` field to error documents.
-This groups similar errors together in the APM app.
-
-OpenTelemetry Metrics::
-Copies well-known OpenTelemetry metrics to their Elastic APM counterparts, enabling visualization in the APM app.
-For example, the OpenTelemetry metric field `runtime.jvm.gc.time` is copied to the Elastic APM metric field `jvm.gc.time`.
-Metrics are duplicated so you can refer to them by either the OpenTelemetry or Elastic APM metric name.
-
-[discrete]
 [id="view-edit-default-pipelines{append-legacy}"]
 === View ingest pipelines
 

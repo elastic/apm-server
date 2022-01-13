@@ -5,7 +5,7 @@
 <titleabbrev>Upgrade to version 7.7</titleabbrev>
 ++++
 
-Version 7.7 adds a new `apm_remove_span_metadata` processor to the default <<default-pipeline,`apm` ingest pipeline>>.
+Version 7.7 adds a new `apm_remove_span_metadata` processor to the default `apm` ingest pipeline.
 To save storage, this processor removes span metadata fields, like `host`, `kubernetes`, and `container`,
 that are already available on the parent transaction.
 
