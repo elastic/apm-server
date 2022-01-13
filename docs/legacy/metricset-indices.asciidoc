@@ -92,7 +92,7 @@ You can filter and group by these dimensions (some of which are optional, for ex
 * `cloud.project.id`: The cloud project identifier of the service that served the transaction
 * `cloud.project.name`: The cloud project name of the service that served the transaction
 * `cloud.service.name`: The cloud service name of the service that served the transaction
-* `faas.coldstart`: Whether a service running  of the service that served the transaction
+* `faas.coldstart`: Whether the _serverless_ service that served the transaction had a cold start.
 * `faas.trigger.type`: The trigger type that the function / lambda was executed by of the service that served the transaction
 --
 
