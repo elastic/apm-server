@@ -250,14 +250,9 @@ APM agent --> Load Balancer  --> APM Server
 
 *If Elasticsearch is down*
 
-// Need to update this with dev feedback
-// If ES goes down, is all data lost?
-
-// If Elasticsearch goes down, the APM Server will keep data in memory until Elasticsearch is back up,
-// or until it runs out of space in its internal in-memory queue.
-// You can <<adjust-queue-size,adjust the internal queue size>> if necessary.
-// When the queue becomes full, APM Server will respond with <<queue-full,`HTTP 503: Queue is full`>>,
-// and data will be lost.
+If Elasticsearch goes down, APM will keep some data in its internal in-memory queue.
+When the queue fills up, APM will respond with <<queue-full,`HTTP 503: Queue is full`>> and
+block requests until there is space available or until the request timeout is reached.
 
 *If APM Server is down*
 
