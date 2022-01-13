@@ -79,9 +79,9 @@ services:
       FLEET_SERVER_CERT_KEY: /etc/pki/tls/private/fleet-server-key.pem
       FLEET_URL: https://fleet-server:8220
       KIBANA_FLEET_SETUP: "true"
-      KIBANA_HOST: "http://kibana:5601"
-      KIBANA_USERNAME: "${ES_SUPERUSER_USER:-admin}"
-      KIBANA_PASSWORD: "${ES_SUPERUSER_PASS:-changeme}"
+      KIBANA_FLEET_HOST: "http://kibana:5601"
+      KIBANA_FLEET_USERNAME: "${ES_SUPERUSER_USER:-admin}"
+      KIBANA_FLEET_PASSWORD: "${ES_SUPERUSER_PASS:-changeme}"
     depends_on:
       elasticsearch: { condition: service_healthy }
       kibana: { condition: service_healthy }
