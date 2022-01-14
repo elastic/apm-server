@@ -80,7 +80,7 @@ You can filter and group by these dimensions (some of which are optional, for ex
 * `service.runtime.name`: The runtime name of the service that served the transaction, for example `jRuby`
 * `service.runtime.version`: The runtime version that served the transaction
 * `host.hostname`: The hostname of the service that served the transaction
-* `host.os.platform`: The platform name of the service that served the transaction, for example `linux`.
+* `host.os.platform`: The platform name of the service that served the transaction, for example `linux`
 * `container.id`: The container ID of the service that served the transaction
 * `kubernetes.pod.name`: The name of the Kubernetes pod running the service that served the transaction
 * `cloud.provider`: The cloud provider hosting the service instance that served the transaction

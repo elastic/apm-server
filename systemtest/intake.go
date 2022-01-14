@@ -32,13 +32,11 @@ import (
 
 func SendRUMEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {
 	f := openFile(t, payloadFile)
-	defer f.Close()
 	sendEventsPayload(t, srv, "/intake/v2/rum/events", f)
 }
 
 func SendBackendEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {
 	f := openFile(t, payloadFile)
-	defer f.Close()
 	sendEventsPayload(t, srv, "/intake/v2/events", f)
 }
 
@@ -64,6 +62,10 @@ func openFile(t *testing.T, p string) *os.File {
 	f, err := os.Open(p)
 	if err != nil {
 		t.Fatal(err)
+	} else {
+		t.Cleanup(func() {
+			f.Close()
+		})
 	}
 	return f
 }
