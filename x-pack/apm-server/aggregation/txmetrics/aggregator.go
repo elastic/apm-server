@@ -347,19 +347,34 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 		transactionType:   event.Transaction.Type,
 		eventOutcome:      event.Event.Outcome,
 
-		agentName:          event.Agent.Name,
-		serviceEnvironment: event.Service.Environment,
-		serviceName:        event.Service.Name,
-		serviceVersion:     event.Service.Version,
-		serviceNodeName:    event.Service.Node.Name,
+		agentName:             event.Agent.Name,
+		serviceEnvironment:    event.Service.Environment,
+		serviceName:           event.Service.Name,
+		serviceVersion:        event.Service.Version,
+		serviceNodeName:       event.Service.Node.Name,
+		serviceRuntimeName:    event.Service.Runtime.Name,
+		serviceRuntimeVersion: event.Service.Runtime.Version,
+
+		serviceLanguageName:    event.Service.Language.Name,
+		serviceLanguageVersion: event.Service.Language.Version,
 
 		hostname:          event.Host.Hostname,
+		hostOSPlatform:    event.Host.OS.Platform,
 		containerID:       event.Container.ID,
 		kubernetesPodName: event.Kubernetes.PodName,
 
 		cloudProvider:         event.Cloud.Provider,
 		cloudRegion:           event.Cloud.Region,
 		cloudAvailabilityZone: event.Cloud.AvailabilityZone,
+		cloudServiceName:      event.Cloud.ServiceName,
+		cloudAccountID:        event.Cloud.AccountID,
+		cloudAccountName:      event.Cloud.AccountName,
+		cloudProjectID:        event.Cloud.ProjectID,
+		cloudProjectName:      event.Cloud.ProjectName,
+		cloudMachineType:      event.Cloud.MachineType,
+
+		faasColdstart:   event.FAAS.Coldstart,
+		faasTriggerType: event.FAAS.TriggerType,
 	}
 }
 
@@ -385,17 +400,38 @@ func makeMetricset(
 			Version:     key.serviceVersion,
 			Node:        model.ServiceNode{Name: key.serviceNodeName},
 			Environment: key.serviceEnvironment,
+			Runtime: model.Runtime{
+				Name:    key.serviceRuntimeName,
+				Version: key.serviceRuntimeVersion,
+			},
+			Language: model.Language{
+				Name:    key.serviceLanguageName,
+				Version: key.serviceLanguageVersion,
+			},
 		},
 		Cloud: model.Cloud{
 			Provider:         key.cloudProvider,
 			Region:           key.cloudRegion,
 			AvailabilityZone: key.cloudAvailabilityZone,
+			ServiceName:      key.cloudServiceName,
+			AccountID:        key.cloudAccountID,
+			AccountName:      key.cloudAccountName,
+			MachineType:      key.cloudMachineType,
+			ProjectID:        key.cloudProjectID,
+			ProjectName:      key.cloudProjectName,
 		},
 		Host: model.Host{
 			Hostname: key.hostname,
+			OS: model.OS{
+				Platform: key.hostOSPlatform,
+			},
 		},
 		Event: model.Event{
 			Outcome: key.eventOutcome,
+		},
+		FAAS: model.FAAS{
+			Coldstart:   key.faasColdstart,
+			TriggerType: key.faasTriggerType,
 		},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
@@ -431,29 +467,42 @@ func newMetrics(maxGroups int) *metrics {
 }
 
 type metricsMapEntry struct {
-	transactionAggregationKey
 	transactionMetrics
+	transactionAggregationKey
 }
 
 // NOTE(axw) the dimensions should be kept in sync with docs/metricset-indices.asciidoc.
 type transactionAggregationKey struct {
-	timestamp             time.Time
-	traceRoot             bool
-	agentName             string
-	containerID           string
-	hostname              string
-	kubernetesPodName     string
-	cloudProvider         string
-	cloudRegion           string
-	cloudAvailabilityZone string
-	serviceEnvironment    string
-	serviceName           string
-	serviceVersion        string
-	serviceNodeName       string
-	transactionName       string
-	transactionResult     string
-	transactionType       string
-	eventOutcome          string
+	timestamp              time.Time
+	faasColdstart          *bool
+	agentName              string
+	hostOSPlatform         string
+	kubernetesPodName      string
+	cloudProvider          string
+	cloudRegion            string
+	cloudAvailabilityZone  string
+	cloudServiceName       string
+	cloudAccountID         string
+	cloudAccountName       string
+	cloudMachineType       string
+	cloudProjectID         string
+	cloudProjectName       string
+	serviceEnvironment     string
+	serviceName            string
+	serviceVersion         string
+	serviceNodeName        string
+	serviceRuntimeName     string
+	serviceRuntimeVersion  string
+	serviceLanguageName    string
+	serviceLanguageVersion string
+	transactionName        string
+	transactionResult      string
+	transactionType        string
+	eventOutcome           string
+	faasTriggerType        string
+	hostname               string
+	containerID            string
+	traceRoot              bool
 }
 
 func (k *transactionAggregationKey) hash() uint64 {
@@ -464,21 +513,36 @@ func (k *transactionAggregationKey) hash() uint64 {
 	if k.traceRoot {
 		h.WriteString("1")
 	}
+	if k.faasColdstart != nil && *k.faasColdstart {
+		h.WriteString("1")
+	}
 	h.WriteString(k.agentName)
 	h.WriteString(k.containerID)
 	h.WriteString(k.hostname)
+	h.WriteString(k.hostOSPlatform)
 	h.WriteString(k.kubernetesPodName)
 	h.WriteString(k.cloudProvider)
 	h.WriteString(k.cloudRegion)
 	h.WriteString(k.cloudAvailabilityZone)
+	h.WriteString(k.cloudServiceName)
+	h.WriteString(k.cloudAccountID)
+	h.WriteString(k.cloudAccountName)
+	h.WriteString(k.cloudMachineType)
+	h.WriteString(k.cloudProjectID)
+	h.WriteString(k.cloudProjectName)
 	h.WriteString(k.serviceEnvironment)
 	h.WriteString(k.serviceName)
 	h.WriteString(k.serviceVersion)
 	h.WriteString(k.serviceNodeName)
+	h.WriteString(k.serviceRuntimeName)
+	h.WriteString(k.serviceRuntimeVersion)
+	h.WriteString(k.serviceLanguageName)
+	h.WriteString(k.serviceLanguageVersion)
 	h.WriteString(k.transactionName)
 	h.WriteString(k.transactionResult)
 	h.WriteString(k.transactionType)
 	h.WriteString(k.eventOutcome)
+	h.WriteString(k.faasTriggerType)
 	return h.Sum64()
 }
 

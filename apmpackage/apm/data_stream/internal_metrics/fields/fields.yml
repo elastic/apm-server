@@ -1,3 +1,16 @@
+- name: faas
+  type: group
+  description: |
+    Function as a service fields.
+  fields:
+    - name: coldstart
+      type: boolean
+      description: |
+        Boolean indicating whether the function invocation was a coldstart or not.
+    - name: trigger.type
+      type: keyword
+      description: |
+        The trigger type.
 - name: kubernetes
   title: Kubernetes
   type: group
