@@ -1,332 +1,167 @@
-- description: |-
-    Ephemeral identifier of this agent (if one exists).
-    This id normally changes across restarts, but `agent.id` does not.
+- external: ecs
   name: agent.ephemeral_id
-  type: keyword
-- description: |-
-    Custom name of the agent.
-    This is a name that can be given to an agent. This can be helpful if for example two Filebeat instances are running on the same host but a human readable separation is needed on which Filebeat instance data is coming from.
-    If no name is given, the name is often left empty.
+- external: ecs
   name: agent.name
-  type: keyword
-- description: Version of the agent.
+- external: ecs
   name: agent.version
-  type: keyword
-- description: Client domain.
+- external: ecs
   name: client.domain
-  type: keyword
-- description: IP address of the client (IPv4 or IPv6).
+- external: ecs
   name: client.ip
-  type: ip
-- description: Port of the client.
+- external: ecs
   name: client.port
-  type: long
-- description: City name.
+- external: ecs
   name: client.geo.city_name
-  type: keyword
-- description: Name of the continent.
+- external: ecs
   name: client.geo.continent_name
-  type: keyword
-- description: Country ISO code.
+- external: ecs
   name: client.geo.country_iso_code
-  type: keyword
-- description: Country name.
+- external: ecs
   name: client.geo.country_name
-  type: keyword
-- description: Longitude and latitude.
+- external: ecs
   name: client.geo.location
-  type: geo_point
-- description: Region ISO code.
+- external: ecs
   name: client.geo.region_iso_code
-  type: keyword
-- description: Region name.
+- external: ecs
   name: client.geo.region_name
-  type: keyword
-- description: |-
-    The cloud account or organization id used to identify different entities in a multi-tenant environment.
-    Examples: AWS account id, Google Cloud ORG Id, or other unique identifier.
+- external: ecs
   name: cloud.account.id
-  type: keyword
-- description: |-
-    The cloud account name or alias used to identify different entities in a multi-tenant environment.
-    Examples: AWS account name, Google Cloud ORG display name.
+- external: ecs
   name: cloud.account.name
-  type: keyword
-- description: Availability zone in which this host, resource, or service is located.
+- external: ecs
   name: cloud.availability_zone
-  type: keyword
-- description: Instance ID of the host machine.
+- external: ecs
   name: cloud.instance.id
-  type: keyword
-- description: Instance name of the host machine.
+- external: ecs
   name: cloud.instance.name
-  type: keyword
-- description: Machine type of the host machine.
+- external: ecs
   name: cloud.machine.type
-  type: keyword
-- description: |-
-    The cloud project identifier.
-    Examples: Google Cloud Project id, Azure Project id.
+- external: ecs
   name: cloud.project.id
-  type: keyword
-- description: |-
-    The cloud project name.
-    Examples: Google Cloud Project name, Azure Project name.
+- external: ecs
   name: cloud.project.name
-  type: keyword
-- description: Name of the cloud provider. Example values are aws, azure, gcp, or digitalocean.
+- external: ecs
   name: cloud.provider
-  type: keyword
-- description: Region in which this host, resource, or service is located.
+- external: ecs
   name: cloud.region
-  type: keyword
-- description: |-
-    The cloud service name is intended to distinguish services running on different platforms within a provider, eg AWS EC2 vs Lambda, GCP GCE vs App Engine, Azure VM vs App Server.
-    Examples: app engine, app service, cloud run, fargate, lambda.
+- external: ecs
   name: cloud.service.name
-  type: keyword
-- description: Unique container id.
+- external: ecs
   name: container.id
-  type: keyword
-- description: |-
-    Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field.
-    Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+- external: ecs
   name: destination.address
-  type: keyword
-- description: IP address of the destination (IPv4 or IPv6).
+- external: ecs
   name: destination.ip
-  type: ip
-- description: Port of the destination.
+- external: ecs
   name: destination.port
-  type: long
-- description: |-
-    ECS version this event conforms to. `ecs.version` is a required field and must exist in all events.
-    When querying across multiple indices -- which may conform to slightly different ECS versions -- this field lets integrations adjust to the schema version of the events.
+- external: ecs
   name: ecs.version
-  type: keyword
-- description: |-
-    This is one of four ECS Categorization Fields, and indicates the lowest level in the ECS category hierarchy.
-    `event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.
-    Note that when a single transaction is described in multiple events, each event may populate different values of `event.outcome`, according to their perspective.
-    Also note that in the case of a compound event (a single event that contains multiple logical events), this field should be populated with the value that best captures the overall success or failure from the perspective of the event producer.
-    Further note that not all events will have an associated outcome. For example, this field is generally not populated for metric events, events with `event.type:info`, or any events for which an outcome does not make logical sense.
+- external: ecs
   name: event.outcome
-  type: keyword
-- description: |-
-    The numeric severity of the event according to your event source.
-    What the different severity values mean can be different between sources and use cases. It's up to the implementer to make sure severities are consistent across events from the same source.
-    The Syslog severity belongs in `log.syslog.severity.code`. `event.severity` is meant to represent the severity according to the event source (e.g. firewall, IDS). If the event source does not publish its own severity, you may optionally copy the `log.syslog.severity.code` to `event.severity`.
+- external: ecs
   name: event.severity
-  type: long
-- description: |-
-    The action captured by the event.
-    This describes the information in the event. It is more specific than `event.category`. Examples are `group-add`, `process-started`, `file-created`. The value is normally defined by the implementer.
+- external: ecs
   name: event.action
-  type: keyword
-- description: Operating system architecture.
+- external: ecs
   name: host.architecture
-  type: keyword
-- description: |-
-    Hostname of the host.
-    It normally contains what the `hostname` command returns on the host machine.
+- external: ecs
   name: host.hostname
-  type: keyword
-- description: Host ip addresses.
+- external: ecs
   name: host.ip
-  type: ip
-- description: |-
-    Name of the host.
-    It can contain what `hostname` returns on Unix systems, the fully qualified domain name, or a name specified by the user. The sender decides which value to use.
+- external: ecs
   name: host.name
-  type: keyword
-- description: Operating system platform (such centos, ubuntu, windows).
+- external: ecs
   name: host.os.platform
-  type: keyword
-- description: |-
-    HTTP request method.
-    Prior to ECS 1.6.0 the following guidance was provided:
-    "The field value must be normalized to lowercase for querying."
-    As of ECS 1.6.0, the guidance is deprecated because the original case of the method may be useful in anomaly detection.  Original case will be mandated in ECS 2.0.0
+- external: ecs
   name: http.request.method
-  type: keyword
-- description: Referrer for this HTTP request.
+- external: ecs
   name: http.request.referrer
-  type: keyword
-- description: HTTP response status code.
+- external: ecs
   name: http.response.status_code
-  type: long
-- description: HTTP version.
+- external: ecs
   name: http.version
-  type: keyword
-- description: |-
-    Custom key/value pairs.
-    Can be used to add meta information to events. Should not contain nested objects. All values are stored as keyword.
-    Example: `docker` and `k8s` labels.
-  dynamic: true
+- external: ecs
   name: labels
-  type: object
-- description: |-
-    Original log level of the log event.
-    If the source of the event provides a log level or textual severity, this is the one that goes in `log.level`. If your source doesn't specify one, you may put your event transport's severity here (e.g. Syslog severity).
-    Some examples are `warn`, `err`, `i`, `informational`.
+  dynamic: true
+- external: ecs
   name: log.level
-  type: keyword
-- description: |-
-    For log events the message field contains the log message, optimized for viewing in a log viewer.
-    For structured logs without an original message field, other fields can be concatenated to form a human-readable summary of the event.
-    If multiple messages exist, they can be combined into one message.
+- external: ecs
   name: message
-  type: match_only_text
-- description: Hostname of the observer.
+- external: ecs
   name: observer.hostname
-  type: keyword
-- description: |-
-    Custom name of the observer.
-    This is a name that can be given to an observer. This can be helpful for example if multiple firewalls of the same model are used in an organization.
-    If no custom name is needed, the field can be left empty.
+- external: ecs
   name: observer.name
-  type: keyword
-- description: |-
-    The type of the observer the data is coming from.
-    There is no predefined list of observer types. Some examples are `forwarder`, `firewall`, `ids`, `ips`, `proxy`, `poller`, `sensor`, `APM server`.
+- external: ecs
   name: observer.type
-  type: keyword
-- description: Observer version.
+- external: ecs
   name: observer.version
-  type: keyword
-- description: |-
-    Array of process arguments, starting with the absolute path to the executable.
-    May be filtered to protect sensitive information.
+- external: ecs
   name: process.args
-  type: keyword
-- description: Process id.
+- external: ecs
   name: process.pid
-  type: long
-- description: Parent process' pid.
+- external: ecs
   name: process.ppid
-  type: long
-- description: |-
-    Process title.
-    The proctitle, some times the same as process name. Can also be different: for example a browser setting its title to the web page currently opened.
+- external: ecs
   name: process.title
-  type: keyword
-- description: |-
-    Identifies the environment where the service is running.
-    If the same service runs in different environments (production, staging, QA, development, etc.), the environment can identify other instances of the same service. Can also group services and applications from the same environment.
+- external: ecs
   name: service.environment
-  type: keyword
-- description: |-
-    Name of the service data is collected from.
-    The name of the service is normally user given. This allows for distributed services that run on multiple hosts to correlate the related instances based on the name.
-    In the case of Elasticsearch the `service.name` could contain the cluster name. For Beats the `service.name` is by default a copy of the `service.type` field if no name is specified.
+- external: ecs
   name: service.name
-  type: keyword
-- description: |-
-    Name of a service node.
-    This allows for two nodes of the same service running on the same host to be differentiated. Therefore, `service.node.name` should typically be unique across nodes of a given service.
-    In the case of Elasticsearch, the `service.node.name` could contain the unique node name within the Elasticsearch cluster. In cases where the service doesn't have the concept of a node name, the host name or container name can be used to distinguish running instances that make up this service. If those do not provide uniqueness (e.g. multiple instances of the service running on the same host) - the node name can be manually set.
+- external: ecs
   name: service.node.name
-  type: keyword
-- description: |-
-    Version of the service the data was collected from.
-    This allows to look at a data set only for a specific version of a service.
+- external: ecs
   name: service.version
-  type: keyword
-- description: Source domain.
+- external: ecs
   name: source.domain
-  type: keyword
-- description: IP address of the source (IPv4 or IPv6).
+- external: ecs
   name: source.ip
-  type: ip
-- description: Port of the source.
+- external: ecs
   name: source.port
-  type: long
-- description: |-
-    Unique identifier of the span within the scope of its trace.
-    A span represents an operation within a transaction, such as a request to another service, or a database query.
+- external: ecs
   name: span.id
-  type: keyword
-- description: |-
-    Unique identifier of the trace.
-    A trace groups multiple events like transactions that belong together. For example, a user request handled by multiple inter-connected services.
+- external: ecs
   name: trace.id
-  type: keyword
-- description: |-
-    Unique identifier of the transaction within the scope of its trace.
-    A transaction is the highest level of work measured within a service, such as a request to a server.
+- external: ecs
   name: transaction.id
-  type: keyword
-- description: |-
-    Domain of the url, such as "www.elastic.co".
-    In some cases a URL may refer to an IP and/or port directly, without a domain name. In this case, the IP address would go to the `domain` field.
-    If the URL contains a literal IPv6 address enclosed by `[` and `]` (IETF RFC 2732), the `[` and `]` characters should also be captured in the `domain` field.
+- external: ecs
   name: url.domain
-  type: keyword
-- description: |-
-    Portion of the url after the `#`, such as "top".
-    The `#` is not part of the fragment.
+- external: ecs
   name: url.fragment
-  type: keyword
-- description: If full URLs are important to your use case, they should be stored in `url.full`, whether this field is reconstructed or present in the event source.
+- external: ecs
   name: url.full
-  type: wildcard
-- description: Path of the request, such as "/search".
+- external: ecs
   name: url.path
-  type: wildcard
-- description: Port of the request, such as 443.
+- external: ecs
   name: url.port
-  type: long
-- description: |-
-    The query field describes the query string of the request, such as "q=elasticsearch".
-    The `?` is excluded from the query string. If a URL contains no `?`, there is no query field. If there is a `?` but no query, the query field exists with an empty string. The `exists` query can be used to differentiate between the two cases.
+- external: ecs
   name: url.query
-  type: keyword
-- description: |-
-    Scheme of the request, such as "https".
-    Note: The `:` is not part of the scheme.
+- external: ecs
   name: url.scheme
-  type: keyword
-- description: |-
-    Name of the directory the user is a member of.
-    For example, an LDAP or Active Directory domain name.
+- external: ecs
   name: user.domain
-  type: keyword
-- description: User email address.
+- external: ecs
   name: user.email
-  type: keyword
-- description: Unique identifier of the user.
+- external: ecs
   name: user.id
-  type: keyword
-- description: Short name or login of the user.
+- external: ecs
   name: user.name
-  type: keyword
-- description: Name of the device.
+- external: ecs
   name: user_agent.device.name
-  type: keyword
-- description: Name of the user agent.
+- external: ecs
   name: user_agent.name
-  type: keyword
-- description: Unparsed user_agent string.
+- external: ecs
   name: user_agent.original
-  type: keyword
-- description: OS family (such as redhat, debian, freebsd, windows).
+- external: ecs
   name: user_agent.os.family
-  type: keyword
-- description: Operating system name, including the version or code name.
+- external: ecs
   name: user_agent.os.full
-  type: keyword
-- description: Operating system kernel version as a raw string.
+- external: ecs
   name: user_agent.os.kernel
-  type: keyword
-- description: Operating system name, without the version.
+- external: ecs
   name: user_agent.os.name
-  type: keyword
-- description: Operating system platform (such centos, ubuntu, windows).
+- external: ecs
   name: user_agent.os.platform
-  type: keyword
-- description: Operating system version as a raw string.
+- external: ecs
   name: user_agent.os.version
-  type: keyword
-- description: Version of the user agent.
+- external: ecs
   name: user_agent.version
-  type: keyword
