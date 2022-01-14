@@ -18,9 +18,11 @@
 package systemtest
 
 import (
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -29,19 +31,21 @@ import (
 )
 
 func SendRUMEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {
-	sendEventsPayload(t, srv, "/intake/v2/rum/events", payloadFile)
+	f := openFile(t, payloadFile)
+	sendEventsPayload(t, srv, "/intake/v2/rum/events", f)
 }
 
 func SendBackendEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {
-	sendEventsPayload(t, srv, "/intake/v2/events", payloadFile)
+	f := openFile(t, payloadFile)
+	sendEventsPayload(t, srv, "/intake/v2/events", f)
 }
 
-func sendEventsPayload(t *testing.T, srv *apmservertest.Server, urlPath, payloadFile string) {
-	t.Helper()
+func SendBackendEventsLiteral(t *testing.T, srv *apmservertest.Server, raw string) {
+	sendEventsPayload(t, srv, "/intake/v2/events", strings.NewReader(raw))
+}
 
-	f, err := os.Open(payloadFile)
-	require.NoError(t, err)
-	defer f.Close()
+func sendEventsPayload(t *testing.T, srv *apmservertest.Server, urlPath string, f io.Reader) {
+	t.Helper()
 
 	req, _ := http.NewRequest("POST", srv.URL+urlPath, f)
 	req.Header.Add("Content-Type", "application/x-ndjson")
@@ -52,4 +56,16 @@ func sendEventsPayload(t *testing.T, srv *apmservertest.Server, urlPath, payload
 	respBody, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusAccepted, resp.StatusCode, string(respBody))
+}
+
+func openFile(t *testing.T, p string) *os.File {
+	f, err := os.Open(p)
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		t.Cleanup(func() {
+			f.Close()
+		})
+	}
+	return f
 }

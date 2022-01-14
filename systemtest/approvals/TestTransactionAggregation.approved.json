@@ -1,6 +1,106 @@
 {
     "events": [
         {
+            "@timestamp": "2021-09-15T20:11:06.000Z",
+            "_doc_count": 1,
+            "agent": {
+                "name": "elastic-node"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "container": {
+                "id": "container-id"
+            },
+            "data_stream.dataset": "apm.internal",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "faas": {
+                "coldstart": false,
+                "trigger.type": "http"
+            },
+            "host": {
+                "os": {
+                    "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "pod": {
+                    "name": "pod-name"
+                }
+            },
+            "metricset.name": "transaction",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "environment": "staging",
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-123"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
+            },
+            "timeseries": {
+                "instance": "1234_service-12a3:faas:79025e353867655"
+            },
+            "transaction": {
+                "duration.histogram": {
+                    "counts": [
+                        1
+                    ],
+                    "values": [
+                        38911
+                    ]
+                },
+                "name": "faas",
+                "result": "success",
+                "root": true,
+                "type": "lambda"
+            }
+        },
+        {
             "@timestamp": "2006-01-02T15:04:05.000Z",
             "_doc_count": 5,
             "agent": {
@@ -19,7 +119,10 @@
             },
             "host": {
                 "hostname": "beowulf",
-                "name": "beowulf"
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
+                }
             },
             "metricset.name": "transaction",
             "observer": {
@@ -35,13 +138,21 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go",
+                    "version": "2.0"
+                },
                 "name": "systemtest",
                 "node": {
                     "name": "beowulf"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "2.0"
                 }
             },
             "timeseries": {
-                "instance": "systemtest:abc:b6eeda30c70385b7"
+                "instance": "systemtest:abc:dfc3744f1e810e09"
             },
             "transaction": {
                 "duration.histogram": {
@@ -76,7 +187,10 @@
             },
             "host": {
                 "hostname": "beowulf",
-                "name": "beowulf"
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
+                }
             },
             "metricset.name": "transaction",
             "observer": {
@@ -92,13 +206,21 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go",
+                    "version": "2.0"
+                },
                 "name": "systemtest",
                 "node": {
                     "name": "beowulf"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "2.0"
                 }
             },
             "timeseries": {
-                "instance": "systemtest:def:c63bff75abf09bf1"
+                "instance": "systemtest:def:d38209d39a15f662"
             },
             "transaction": {
                 "duration.histogram": {
