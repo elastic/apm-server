@@ -32,8 +32,6 @@ In general, there are three types of privileges you'll work with:
 ***********************************  ***********************************
 ////
 
-// QQ: How are privs for writing events impacted by data stream changes?
-
 [[privileges-to-publish-events]]
 === Grant privileges and roles needed for writing events
 

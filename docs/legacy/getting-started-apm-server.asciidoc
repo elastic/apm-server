@@ -247,15 +247,6 @@ ILM policies, and ingest pipelines. APM Server will only connect to {es} _after_
 . Click **Save and continue**.
 . Click **Add Elastic Agent later**. You do not need to run an {agent} to complete the setup.
 
-// Should we doc a workaround like this?
-// ----
-// curl localhost:5601/api/fleet/epm/packages/apm/{version} -X POST \
-// -H "Content-Type: application/json" \
-// -H "kbn-xsrf: kibana" \
-// -u elastic:changeme \
-// -d '{"force":true}'
-// ----
-
 [float]
 ===== Configure APM
 
