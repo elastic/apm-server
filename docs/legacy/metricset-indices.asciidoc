@@ -75,12 +75,25 @@ You can filter and group by these dimensions (some of which are optional, for ex
 * `service.version`: The version of the service that served the transaction
 * `service.node.name`: The name of the service instance that served the transaction
 * `service.environment`: The environment of the service that served the transaction
+* `service.language.name`: The language name of the service that served the transaction, for example `Go`
+* `service.language.version`: The language version of the service that served the transaction
+* `service.runtime.name`: The runtime name of the service that served the transaction, for example `jRuby`
+* `service.runtime.version`: The runtime version that served the transaction
 * `host.hostname`: The hostname of the service that served the transaction
+* `host.os.platform`: The platform name of the service that served the transaction, for example `linux`
 * `container.id`: The container ID of the service that served the transaction
 * `kubernetes.pod.name`: The name of the Kubernetes pod running the service that served the transaction
 * `cloud.provider`: The cloud provider hosting the service instance that served the transaction
 * `cloud.region`: The cloud region hosting the service instance that served the transaction
 * `cloud.availability_zone`: The cloud availability zone hosting the service instance that served the transaction
+* `cloud.account.id`: The cloud account id of the service that served the transaction
+* `cloud.account.name`: The cloud account name of the service that served the transaction
+* `cloud.machine.type`: The cloud machine type or instance type of the service that served the transaction
+* `cloud.project.id`: The cloud project identifier of the service that served the transaction
+* `cloud.project.name`: The cloud project name of the service that served the transaction
+* `cloud.service.name`: The cloud service name of the service that served the transaction
+* `faas.coldstart`: Whether the _serverless_ service that served the transaction had a cold start.
+* `faas.trigger.type`: The trigger type that the function / lambda was executed by of the service that served the transaction
 --
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
