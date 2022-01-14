@@ -66,10 +66,14 @@ that has the following privileges:
 |Write events into {es}
 |====
 
+. If <<configuration-rum,real user monitoring>> is enabled, additional privileges are required to read source maps.
+See {kibana-ref}/rum-sourcemap-api.html[RUM source map API] for more details.
+Assign these extra privileges to the *general writer role*.
+
 . Assign the *general writer role* to users who need to publish APM data.
 
 TIP: Uploading a RUM source map? Separate privileges are required.
-See {kibana-ref}/rum-sourcemap-api.html[RUM source map API] for more details.
+
 
 ////
 ***********************************  ***********************************
