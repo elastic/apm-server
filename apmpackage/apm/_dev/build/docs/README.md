@@ -2,6 +2,8 @@
 
 The APM integration installs Elasticsearch templates and ingest node pipelines for APM data.
 
+To learn more about the APM Integration architecture, see [APM Components](https://ela.st/apm-components).
+
 ### Quick start
 
 Ready to jump in? Read the [APM quick start](https://ela.st/quick-start-apm).
@@ -10,7 +12,7 @@ Ready to jump in? Read the [APM quick start](https://ela.st/quick-start-apm).
 
 Add the APM integration to an Elastic Agent policy to create an `apm` input.
 Any Elastic Agents set up with this policy will run an APM Server binary locally.
-Don't forget to configure the APM Server `host` if it needs to be accessed from outside, like when running in Docker.
+Don't forget to configure the APM Server `host`, especially if it needs to be accessed from outside, like when running in Docker.
 Then, configure your APM agents to communicate with APM Server.
 
 If you have Real User Monitoring (RUM) enabled, you must run Elastic Agent centrally.
@@ -28,21 +30,14 @@ or you could namespace data by business unit. It is your choice.
 
 See [APM data streams](https://ela.st/apm-data-streams) for more information.
 
-## Compatibility and limitations
+## Compatibility
 
-The APM integration requires Kibana v7.12 and Elasticsearch with at least the basic license.
-This version is experimental and has some limitations, listed bellow:
+The APM integration requires Kibana and Elasticsearch `7.12.x`+ with at least the basic license.
+The APM integration version should match the Elastic Stack Major.Minor version. For example,
+the APM integration version `7.16.2` should be run with the Elastic Stack `7.16.x`.
 
-- Sourcemaps need to be uploaded to Elasticsearch directly.
-- You need to create specific API keys for sourcemaps and central configuration.
-- You can't use an Elastic Agent enrolled before 7.12.
-- Not all settings are supported.
-- The `apm` templates, pipelines, and ILM settings that ship with this integration cannot be configured or changed with Fleet;
-changes must be made with Elasticsearch APIs or Kibana's Stack Management.
-
-See [APM integration limitations](https://ela.st/apm-integration-limitations) for more information.
-
-IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode, you must install the APM integration before ingestion starts.
+IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode, you must install the APM integration,
+otherwise the APM Server will not ingest any events.
 
 ## Traces
 
