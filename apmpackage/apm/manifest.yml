@@ -1,7 +1,7 @@
 format_version: 1.0.0
 name: apm
 title: Elastic APM
-version: 7.16.1
+version: 7.16.2
 license: basic
 description: Ingest APM data
 type: integration
