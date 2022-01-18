@@ -89,6 +89,89 @@ func (c *Consumer) convertResourceMetrics(resourceMetrics pdata.ResourceMetrics,
 	}
 }
 
+// This builder groups system metrics with the same name in a map entry, allowing to perform aggregation
+// Otel specification : https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/system-metrics.md
+// ex : total memory = system.memory.usage (state = free) + system.memory.usage (state = used)
+type apmMetricBuilder struct {
+	metricList []pdata.Metric
+	metricName string
+}
+
+func (b *apmMetricBuilder) build(ms metricsets) {
+	switch b.metricName {
+	// Compute and upsert system.memory.total
+	case "system.memory.usage":
+		var freeDp pdata.NumberDataPoint
+		var freeSample model.MetricsetSample
+		var usedDp pdata.NumberDataPoint
+		var usedSample model.MetricsetSample
+		for _, metric := range b.metricList {
+			dps := metric.Sum().DataPoints()
+			for i := 0; i < dps.Len(); i++ {
+				dp := dps.At(i)
+				if sample, ok := numberSample(dp, model.MetricTypeCounter); ok {
+					dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+						if k == "state" {
+							switch v.StringVal() {
+							case "used":
+								usedDp = dp
+								usedSample = sample
+							case "free":
+								freeDp = dp
+								freeSample = sample
+							}
+						}
+						return true
+					})
+				}
+			}
+		}
+		if freeDp != (pdata.NumberDataPoint{}) && usedDp != (pdata.NumberDataPoint{}) {
+			ms.upsertOne(
+				freeDp.Timestamp().AsTime(),
+				"system.memory.total",
+				pdata.NewAttributeMap(),
+				model.MetricsetSample{Type: model.MetricTypeCounter, Value: freeSample.Value + usedSample.Value},
+			)
+		}
+
+	// Compute system.cpu.total.norm.pct
+	// Sum all non-idle utilization metrics	and average over the number of cores
+	case "system.cpu.utilization":
+		activeProp := float64(0)
+		activeCpus := make(map[string]bool)
+		var bufferDp pdata.NumberDataPoint
+		for _, metric := range b.metricList {
+			dps := metric.Gauge().DataPoints()
+			for i := 0; i < dps.Len(); i++ {
+				dp := dps.At(i)
+				bufferDp = dp
+				if sample, ok := numberSample(dp, model.MetricTypeCounter); ok {
+					dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+						if k == "state" && v.StringVal() != "idle" {
+							if sample.Value > 1 {
+								activeProp += 1
+							} else {
+								activeProp += sample.Value
+							}
+						}
+						if k == "cpu" {
+							activeCpus[v.StringVal()] = true
+						}
+						return true
+					})
+				}
+			}
+		}
+		ms.upsertOne(
+			bufferDp.Timestamp().AsTime(),
+			"system.cpu.total.norm.pct",
+			pdata.NewAttributeMap(),
+			model.MetricsetSample{Type: model.MetricTypeGauge, Value: activeProp / float64(len(activeCpus))},
+		)
+	}
+}
+
 func (c *Consumer) convertInstrumentationLibraryMetrics(
 	in pdata.InstrumentationLibraryMetrics,
 	baseEvent model.APMEvent,
@@ -98,10 +181,22 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 	ms := make(metricsets)
 	otelMetrics := in.Metrics()
 	var unsupported int64
+	apmMetricBuilderTracker := make(map[string]*apmMetricBuilder)
 	for i := 0; i < otelMetrics.Len(); i++ {
+		currentBuilder, exists := apmMetricBuilderTracker[otelMetrics.At(i).Name()]
+		if exists {
+			currentBuilder.metricList = append(currentBuilder.metricList, otelMetrics.At(i))
+		} else {
+			currentBuilder := apmMetricBuilder{metricList: make([]pdata.Metric, 0), metricName: otelMetrics.At(i).Name()}
+			currentBuilder.metricList = append(currentBuilder.metricList, otelMetrics.At(i))
+			apmMetricBuilderTracker[otelMetrics.At(i).Name()] = &currentBuilder
+		}
 		if !c.addMetric(otelMetrics.At(i), ms) {
 			unsupported++
 		}
+	}
+	for key := range apmMetricBuilderTracker {
+		apmMetricBuilderTracker[key].build(ms)
 	}
 	for key, ms := range ms {
 		event := baseEvent
@@ -316,6 +411,23 @@ func (ms metricsets) upsert(timestamp time.Time, name string, attributes pdata.A
 			return true
 		})
 		ms.upsertOne(timestamp, elasticapmName, elasticapmAttributes, sample)
+	case "system.memory.usage":
+		// Translation of Otel memory metrics
+		// system.memory.usage (state=free) -> system.memory.actual.free
+		// system.memory.usage (state=used) -> system.memory.actual.used.bytes
+		var elasticapmName string
+		attributes.Range(func(k string, v pdata.AttributeValue) bool {
+			if k == "state" {
+				switch v.StringVal() {
+				case "used":
+					elasticapmName = "system.memory.actual.used.bytes"
+				case "free":
+					elasticapmName = "system.memory.actual.free"
+				}
+			}
+			return true
+		})
+		ms.upsertOne(timestamp, elasticapmName, pdata.NewAttributeMap(), sample)
 	}
 }
 
