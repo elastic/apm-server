@@ -1,0 +1,113 @@
+- name: http
+  type: group
+  fields:
+    - name: request
+      type: group
+      fields:
+        - name: headers
+          type: object
+          description: |
+            The canonical headers of the monitored HTTP request.
+    - name: response
+      type: group
+      fields:
+        - name: finished
+          type: boolean
+          description: |
+            Used by the Node agent to indicate when in the response life cycle an error has occurred.
+        - name: headers
+          type: object
+          description: |
+            The canonical headers of the monitored HTTP response.
+- name: kubernetes
+  title: Kubernetes
+  type: group
+  description: |
+    Kubernetes metadata reported by agents
+  fields:
+    - name: namespace
+      type: keyword
+      description: |
+        Kubernetes namespace
+    - name: node
+      type: group
+      fields:
+        - name: name
+          type: keyword
+          description: |
+            Kubernetes node name
+    - name: pod
+      type: group
+      fields:
+        - name: name
+          type: keyword
+          description: |
+            Kubernetes pod name
+        - name: uid
+          type: keyword
+          description: |
+            Kubernetes Pod UID
+- name: observer
+  type: group
+  fields:
+    - name: ephemeral_id
+      type: keyword
+      description: |
+        Ephemeral identifier of the APM Server.
+    - name: id
+      type: keyword
+      description: |
+        Unique identifier of the APM Server.
+    - name: version_major
+      type: byte
+      description: |
+        Major version number of the observer
+- name: processor.event
+  type: constant_keyword
+  description: Processor event.
+- name: processor.name
+  type: constant_keyword
+  description: Processor name.
+- name: service
+  type: group
+  description: |
+    Service fields.
+  fields:
+    - name: framework
+      type: group
+      fields:
+        - name: name
+          type: keyword
+          description: |
+            Name of the framework used.
+        - name: version
+          type: keyword
+          description: |
+            Version of the framework used.
+    - name: language
+      type: group
+      fields:
+        - name: name
+          type: keyword
+          description: |
+            Name of the programming language used.
+        - name: version
+          type: keyword
+          description: |
+            Version of the programming language used.
+    - name: runtime
+      type: group
+      fields:
+        - name: name
+          type: keyword
+          description: |
+            Name of the runtime used.
+        - name: version
+          type: keyword
+          description: |
+            Version of the runtime used.
+- name: numeric_labels
+  type: object
+  dynamic: true
+  description: |
+    Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.

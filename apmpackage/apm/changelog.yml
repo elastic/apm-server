@@ -1,6 +1,11 @@
 # newer versions go on top
 #
 # change type can be one of: enhancement, bugfix, breaking-change
+- version: "7.16.2"
+  changes:
+    - description: added app_logs data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7079
 - version: "7.16.1"
   changes:
     - description: Added `agent_config_applied` mapping to `metrics-apm.internal` data stream.
