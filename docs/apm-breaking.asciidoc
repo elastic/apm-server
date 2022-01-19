@@ -128,7 +128,7 @@ The following breaking changes have been introduced in 7.5:
 * Introduced dedicated `apm-server.ilm.setup.*` flags.
 This means you can now customize ILM behavior from within the APM Server configuration.
 As a side effect, `setup.template.*` settings will be ignored for ILM related templates per event type.
-See {apm-guide-ref}/ilm.html#ilm-setup[set up ILM] for more information.
+See {apm-guide-ref}/ilm.html[set up ILM] for more information.
 
 * By default, ILM policies will not longer be versioned.
 All event types will switch to the new default policy: rollover after 30 days or when reaching a size 50gb.

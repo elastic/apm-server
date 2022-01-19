@@ -24,19 +24,22 @@ See {ref}/ccr-getting-started.html[managing remote clusters] for detailed inform
 Alternatively, you can {ref}/modules-remote-clusters.html#configuring-remote-clusters[configure remote clusters]
 in Elasticsearch's `elasticsearch.yml` file.
 
-*Step 2. Edit the default APM app index pattern.*
+*Step 2. Edit the default APM app data views.*
 
-The APM app index pattern determines from which clusters and indices to display data.
-Index patterns follow this convention: `<cluster-names>:<pattern>`.
-The default value is `apm-*`, which displays data from any index beginning with `apm-`.
+APM app data views determine which clusters and indices to display data from.
+Data views follow this convention: `<cluster-name>:<index-pattern>`.
 
-To display data from the local cluster, and all remote clusters,
-you'll need to update the index pattern to: `*:apm-*,apm-*`.
-You can also specify certain clusters to display data from, for example, `obs-1:apm-*,obs-2:apm-*`.
+To display data from all remote clusters and the local cluster,
+duplicate and prepend the defaults with `*:`.
+For example, the default data view for Error indices is `logs-apm*,apm*`.
+To add all remote clusters, change this to `*:logs-apm*,*:apm*,logs-apm*,apm*`
 
-There are two ways to edit the default index pattern:
+You can also specify certain clusters to display data from, for example,
+`cluster-one:logs-apm*,cluster-one:apm*,logs-apm*,apm*`.
+
+There are two ways to edit the default data view:
 
 * In the APM app -- Navigate to *APM* > *Settings* > *Indices*, and change all `xpack.apm.indices.*` values to
-include the new index pattern, e.g., `*:apm-*,apm-*`.
-* In `kibana.yml` -- All of the {kibana-ref}/apm-settings-kb.html[`xpack.apm.indices.*`] configuration values must
-include the new index pattern, e.g., `*:apm-*,apm-*`.
+include remote clusters.
+* In `kibana.yml` -- Update the {kibana-ref}/apm-settings-kb.html[`xpack.apm.indices.*`] configuration values to
+include remote clusters.
