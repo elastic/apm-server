@@ -7,10 +7,10 @@
 <titleabbrev>Input settings</titleabbrev>
 ++++
 
-To edit the APM integration input settings, open {kib}, select **Add data**,
-and search for and select "Elastic APM".
-If the integration is already installed, under the polices tab, select **Actions** > **Edit integration**.
-If the integration has not been installed, select **Add Elastic APM**.
+To edit the APM integration input settings:
+
+. Open {kib}, click **Add data**, and search for and select "Elastic APM".
+. Under the polices tab, select **Actions** > **Edit integration**.
 
 [float]
 [[apm-input-general-settings]]

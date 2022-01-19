@@ -5,7 +5,7 @@
 <titleabbrev>Upgrade to version 7.7</titleabbrev>
 ++++
 
-Version 7.7 adds a new `apm_remove_span_metadata` processor to the default <<default-pipeline,`apm` ingest pipeline>>.
+Version 7.7 adds a new `apm_remove_span_metadata` processor to the default `apm` ingest pipeline.
 To save storage, this processor removes span metadata fields, like `host`, `kubernetes`, and `container`,
 that are already available on the parent transaction.
 
@@ -22,15 +22,14 @@ Failing to follow the upgrade steps will result in increased span metadata inges
 
 . In order to avoid breaking custom pipeline definitions,
 pipelines are not overwritten when restarting APM Server.
-Enable pipeline overwriting by setting <<register.ingest.pipeline.overwrite,`register.ingest.pipeline.overwrite`>>
-to `true`.
+Enable pipeline overwriting by setting `register.ingest.pipeline.overwrite` to `true`.
 
 . Copy any custom pipelines you've created or altered to the `apm` pipeline definition file, located at
 `ingest/pipeline/definition.json`.
 
 . Restart APM Server.
 
-An alternate upgrade method is to use the <<setup-command,`setup` command>>.
+An alternate upgrade method is to use the `setup` command.
 This upgrade method can be useful if you're using an output other than Elasticsearch.
 In this case, you can use the command line to disable the active output
 and point APM Server at your Elasticsearch cluster.
