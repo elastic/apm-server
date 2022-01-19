@@ -70,9 +70,6 @@ Assign these extra privileges to the *general writer role*.
 
 . Assign the *general writer role* to users who need to publish APM data.
 
-TIP: Uploading a RUM source map? Separate privileges are required.
-
-
 ////
 ***********************************  ***********************************
 ***********************************  ***********************************

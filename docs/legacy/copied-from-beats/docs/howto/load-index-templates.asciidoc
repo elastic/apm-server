@@ -1,5 +1,5 @@
 [id="{beatname_lc}-template"]
-== Load a custom {es} index template
+== View the {es} index template
 
 // Appends `-legacy` to each section's ID so that they are different from the APM integration IDs
 :append-legacy: -legacy

@@ -29,7 +29,7 @@ Enable pipeline overwriting by setting `register.ingest.pipeline.overwrite` to `
 
 . Restart APM Server.
 
-An alternate upgrade method is to use the <<setup-command,`setup` command>>.
+An alternate upgrade method is to use the `setup` command.
 This upgrade method can be useful if you're using an output other than Elasticsearch.
 In this case, you can use the command line to disable the active output
 and point APM Server at your Elasticsearch cluster.

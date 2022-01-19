@@ -1,7 +1,7 @@
 [[configuring-ingest-node]]
 == Parse data using ingest node pipelines
 
-deprecated::[7.16.0,Users should now use the <<apm-integration>>. If you've already upgraded, please see <<ingest-pipelines>> instead.]
+deprecated::[7.16.0,Users should now use the <<apm-integration>>. See <<ingest-pipelines>> if you've already upgraded.]
 
 // Appends `-legacy` to each section's ID so that they are different from the APM integration IDs
 :append-legacy: -legacy
