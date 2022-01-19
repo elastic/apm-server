@@ -112,15 +112,6 @@ Configure escaping of HTML in strings. Set to `true` to enable escaping.
 
 The default value is `false`.
 
-
-===== `worker`
-
-The number of workers per configured host publishing events to Elasticsearch. This
-is best used with load balancing mode enabled. Example: If you have 2 hosts and
-3 workers, in total 6 workers are started (3 for each host).
-
-The default value is `1`.
-
 ===== `api_key`
 
 Instead of using a username and password, you can use API keys to secure communication
@@ -181,11 +172,12 @@ then proxy environment variables are used. See the
 https://golang.org/pkg/net/http/#ProxyFromEnvironment[Go documentation]
 for more information about the environment variables.
 
+// output.elasticsearch.index has been removed from APM Server
+ifndef::apm-server[]
+
 [[index-option-es]]
 ===== `index`
 
-// Begin exclude for APM Server docs
-ifndef::apm-server[]
 The index name to write events to when you're using daily indices. The default is
 +"{beatname_lc}-%{[{beat_version_key}]}-%{+yyyy.MM.dd}"+, for example,
 +"{beatname_lc}-{version}-{localdate}"+. If you change this setting, you also
@@ -224,44 +216,16 @@ With this configuration, all events with `log_type: normal` are sent to an
 index named +normal-{version}-{localdate}+, and all events with
 `log_type: critical` are sent to an index named
 +critical-{version}-{localdate}+.
-endif::apm-server[]
-// End exclude for APM Server docs
-
-// Start include for APM Server docs
-ifdef::apm-server[]
-The index name to write events to when you're using daily indices. The default is
-+"apm-%{[{beat_version_key}]}-{type}-%{+yyyy.MM.dd}"+ (for example,
-+"apm-{version}-transaction-{localdate}"+). If you change this setting,
-you need to configure the `setup.template.name` and `setup.template.pattern` options
-(see <<configuration-template>>).
-
-When <<ilm,index lifecycle management (ILM)>> is enabled, the default `index` is
-+"apm-%{[{beat_version_key}]}-{type}-%{index_num}"+ (for example,
-+"apm-{version}-transaction-000001"+). **Defining a custom `index` here will disable <<ilm>>**.
-
-You can set the index dynamically by using a format string to access any event
-field. For example, this configuration uses the field, `processor.event` to separate
-events into different indices:
-
-["source","yaml",subs="attributes"]
-------------------------------------------------------------------------------
-output.elasticsearch:
-  hosts: ["http://localhost:9200"]
-  index: "apm-%{[observer.version]}-%{[processor.event]}-%{+yyyy.MM.dd}\" <1>
-------------------------------------------------------------------------------
-<1> +{beat_version_key}+ is a field managed by Beats that is added to every document;
-It holds the current version of APM Server. We recommend including
-+{beat_version_key}+ in the index name to avoid mapping issues when you upgrade
-{beatname_uc}.
-
-endif::apm-server[]
-// End include for APM Server docs
 
 TIP: To learn how to add custom fields to events, see the
 <<libbeat-configuration-fields,`fields`>> option.
 
 See the <<indices-option-es,`indices`>> setting for other ways to set the index
 dynamically.
+endif::apm-server[]
+
+// output.elasticsearch.indices has been removed from APM Server
+ifndef::apm-server[]
 
 [[indices-option-es]]
 ===== `indices`
@@ -293,7 +257,6 @@ All the <<conditions,conditions>> supported by processors are also supported
 here.
 endif::no-processors[]
 
-ifndef::apm-server[]
 The following example sets the index based on whether the `message` field
 contains the specified string:
 
@@ -337,75 +300,6 @@ The `mappings` setting simplifies the configuration, but is limited to string
 values. You cannot specify format strings within the mapping pairs.
 endif::apm-server[]
 
-ifdef::apm-server[]
-The following example sets the index based on whether the `processor.event` field
-contains the specified string:
-
-["source","yaml",subs="attributes"]
-------------------------------------------------------------------------------
-output.elasticsearch:
-  hosts: ["http://localhost:9200"]
-  indices:
-   - index: "apm-%{[observer.version]}-sourcemap"
-      when.contains:
-        processor.event: "sourcemap"
-
-   - index: "apm-%{[observer.version]}-error-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "error"
-
-   - index: "apm-%{[observer.version]}-transaction-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "transaction"
-
-   - index: "apm-%{[observer.version]}-span-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "span"
-
-   - index: "apm-%{[observer.version]}-metric-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "metric"
-
-   - index: "apm-%{[observer.version]}-onboarding-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "onboarding"
-------------------------------------------------------------------------------
-
-NOTE: `observer` refers to {beatname_uc}. We recommend including
-+{beat_version_key}+ in the name to avoid mapping issues when you upgrade
-{beatname_uc}.
-
-This is the default configuration for {beatname_uc} when ILM is disabled, and results in indices
-named in the following format: +"apm-%{[{beat_version_key}]}-{type}-%{+yyyy.MM.dd}"+
-For example: +"apm-{version}-transaction-{localdate}"+.
-
-The following example sets the index by taking the name returned by the `index`
-format string and mapping it to a new name that's used for the index:
-
-["source","yaml"]
-------------------------------------------------------------------------------
-output.elasticsearch:
-  hosts: ["http://localhost:9200"]
-  indices:
-    - index: "%{[processor.event]}"
-      mappings:
-        sourcemap:    "apm-sourcemap"
-        error:        "apm-error"
-        transaction:  "apm-transaction"
-        span:         "apm-span"
-        metric:       "apm-metric"
-        onboarding:   "apm-onboarding"
-      default:        "apm"
-------------------------------------------------------------------------------
-
-This configuration results in indices named `apm-sourcemap`, `apm-error`, etc.
-
-The `mappings` setting simplifies the configuration, but is limited to string
-values. You cannot specify format strings within the mapping pairs.
-endif::apm-server[]
-
-//TODO: MOVE ILM OPTIONS TO APPEAR LOGICALLY BASED ON LOCATION IN THE YAML FILE.
-
 ifndef::no_ilm[]
 [[ilm-es]]
 ===== `ilm`
@@ -430,7 +324,6 @@ output.elasticsearch:
 
 For more information, see <<configuring-ingest-node>>.
 
-ifndef::apm-server[]
 You can set the ingest node pipeline dynamically by using a format string to
 access any event field. For example, this configuration uses a custom field,
 `fields.log_type`, to set the pipeline for each event:
@@ -445,27 +338,6 @@ output.elasticsearch:
 With this configuration, all events with `log_type: normal` are sent to a pipeline
 named `normal_pipeline`, and all events with `log_type: critical` are sent to a
 pipeline named `critical_pipeline`.
-endif::apm-server[]
-
-ifdef::apm-server[]
-You can set the ingest node pipeline dynamically by using a format string to
-access any event field. For example, this configuration uses the field,
-`processor.event`, to set the pipeline for each event:
-
-["source","yaml",subs="attributes"]
-------------------------------------------------------------------------------
-output.elasticsearch:
-  hosts: ["http://localhost:9200"]
-  pipeline: "%{[processor.event]}_pipeline"
-------------------------------------------------------------------------------
-
-With this configuration, all events with `processor.event: transaction` are sent to a pipeline
-named `transaction_pipeline`. Similarly, all events with `processor.event: error` are sent to a
-pipeline named `error_pipeline`.
-
-The default pipeline is `apm`. To disable this, or any other pipeline, set
-`output.elasticsearch.pipeline: _none`.
-endif::apm-server[]
 
 TIP: To learn how to add custom fields to events, see the
 <<libbeat-configuration-fields,`fields`>> option.
@@ -501,7 +373,6 @@ All the <<conditions,conditions>> supported by processors are also supported
 here.
 endif::no-processors[]
 
-ifndef::apm-server[]
 The following example sends events to a specific pipeline based on whether the
 `message` field contains the specified string:
 
@@ -539,69 +410,6 @@ output.elasticsearch:
 With this configuration, all events with `log_type: critical` are sent to
 `sev1_pipeline`, all events with `log_type: normal` are sent to a
 `sev2_pipeline`, and all other events are sent to `sev3_pipeline`.
-endif::apm-server[]
-
-ifdef::apm-server[]
-The following example sends events to a specific pipeline based on whether the
-`processor.event` field contains the specified string:
-
-["source","yaml"]
-------------------------------------------------------------------------------
-output.elasticsearch:
-  hosts: ["http://localhost:9200"]
-  pipelines:
-    - pipeline: "sourcemap_pipeline"
-      when.contains:
-        processor.event: "sourcemap"
-
-    - pipeline: "error_pipeline"
-      when.contains:
-        processor.event: "error"
-
-    - pipeline: "transaction_pipeline"
-      when.contains:
-        processor.event: "transaction"
-
-    - pipeline: "span_pipeline"
-      when.contains:
-        processor.event: "span"
-
-    - pipeline: "metric_pipeline"
-      when.contains:
-        processor.event: "metric"
-
-    - pipeline: "onboarding_pipeline"
-      when.contains:
-        processor.event: "onboarding"
-------------------------------------------------------------------------------
-
-
-The following example sets the pipeline by taking the name returned by the
-`pipeline` format string and mapping it to a new name that's used for the
-pipeline:
-
-["source","yaml"]
-------------------------------------------------------------------------------
-output.elasticsearch:
-  hosts: ["http://localhost:9200"]
-  pipelines:
-    - pipeline: "%{[processor.event]}"
-      mappings:
-        sourcemap:    "sourcemap_pipeline"
-        error:        "error_pipeline"
-        transaction:  "transaction_pipeline"
-        span:         "span_pipeline"
-        metric:       "metric_pipeline"
-        onboarding:   "onboarding_pipeline"
-      default: "apm_pipeline"
-------------------------------------------------------------------------------
-
-With this configuration, all events with `processor.event: transaction` are sent to a pipeline
-named `transaction_pipeline`, all events with `processor.event: error` are sent to a
-pipeline named `error_pipeline`, etc.
-
-NOTE: Defining any pipeline will deactivate the default `apm` pipeline.
-endif::apm-server[]
 
 For more information about ingest node pipelines, see
 <<configuring-ingest-node>>.
@@ -623,22 +431,15 @@ Set `max_retries` to a value less than 0 to retry until all events are published
 The default is 3.
 endif::[]
 
+===== `flush_bytes`
 
-===== `bulk_max_size`
+The bulk request size threshold, in bytes, before flushing to {es}.
+The value must have a suffix, e.g. `"1MB"`. The default is `5MB`.
 
-The maximum number of events to bulk in a single Elasticsearch bulk API index request. The default is 50.
+===== `flush_interval`
 
-Events can be collected into batches. {beatname_uc} will split batches larger than `bulk_max_size`
-into multiple batches.
-
-Specifying a larger batch size can improve performance by lowering the overhead of sending events.
-However big batch sizes can also increase processing times, which might result in
-API errors, killed connections, timed-out publishing requests, and, ultimately, lower
-throughput.
-
-Setting `bulk_max_size` to values less than or equal to 0 disables the
-splitting of batches. When splitting is disabled, the queue decides on the
-number of events to be contained in a batch.
+The maximum duration to accumulate events for a bulk request before being flushed to {es}.
+The value must have a duration suffix, e.g. `"5s"`. The default is `1s`.
 
 ===== `backoff.init`
 

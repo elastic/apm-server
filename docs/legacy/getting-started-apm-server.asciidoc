@@ -7,27 +7,25 @@
 
 IMPORTANT: {deprecation-notice-installation}
 
-// This section was copied from the APM Overview
-// Switch to tagged regions when available
-The easiest way to get started with APM Server is by using our
-https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
-Elastic Cloud. The {es} Service is available on AWS, GCP, and Azure,
+IMPORTANT: Starting in version 8.0.0, {fleet} uses to the APM integration to set up and manage APM index templates,
+ILM policies, and ingest pipelines. APM Server will only connect to {es} _after_ the APM integration has been installed.
+
+The easiest way to get started with Elastic APM is by using our
+{ess-product}[hosted {es} Service] on {ecloud}.
+The {es} Service is available on AWS, GCP, and Azure,
 and automatically configures APM Server to work with {es} and {kib}.
 
 [float]
 === Hosted Elasticsearch Service
 
 Skip managing your own {es}, {kib}, and APM Server by using our
-https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
+{ess-product}[hosted {es} Service] on
 Elastic Cloud.
 
 image::images/apm-architecture-cloud.png[Install Elastic APM on cloud]
 
 {ess-trial}[Try out the {es} Service for free],
-and then begin configuring your own user settings right in the Elasticsearch Service Console.
-Any changes are automatically appended to the `apm-server.yml` configuration file for your instance.
-A full list of configuration options is available in Elastic Cloud's
-{cloud}/ec-manage-apm-settings.html[Add APM user settings].
+then see {cloud}/ec-manage-apm-settings.html[Add APM user settings] for information on how to configure Elastic APM.
 
 [float]
 === Install and manage the stack yourself
@@ -229,64 +227,49 @@ IMPORTANT: {deprecation-notice-installation}
 [float]
 ==== Elastic Cloud
 
-If you're running APM Server in Elastic cloud, you can configure your own user settings right in the Elasticsearch Service Console.
-Any changes are automatically appended to the `apm-server.yml` configuration file for your instance.
-
-Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user settings] documentation.
+If you're running APM in Elastic cloud,
+see {cloud}/ec-manage-apm-settings.html[Add APM user settings] for information on how to configure Elastic APM.
 
 [float]
 ==== Self installation
 
-You can edit the `apm-server.yml` configuration file to customize it to your needs.
-The location of this file varies by platform, but the <<directory-layout>> will help you locate it.
-All available configuration options are outlined in
-{apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
+Starting in version 8.0.0, {fleet} uses to the APM integration to set up and manage APM index templates,
+ILM policies, and ingest pipelines. APM Server will only connect to {es} _after_ the APM integration has been installed.
 
 [float]
-===== Standalone setup (data streams)
+===== Install the APM integration
 
-If you're running APM Server as a standalone process, we recommend that you configure <<data_streams.enabled,`data_streams.enabled`>>
-to write events to data streams in the same way as the <<apm-integration>>. You will need to install the APM
-integration package to set up Elasticsearch before APM Server becomes operative.
+. Open {kib} and select **Add integrations** > **Elastic APM**.
+. Click **APM integration**.
+. Click **Add Elastic APM**.
+. Click **Save and continue**.
+. Click **Add Elastic Agent later**. You do not need to run an {agent} to complete the setup.
 
 [float]
-[[index-template-config]]
-===== Standalone setup (classic indices)
+===== Configure APM
 
-deprecated::[7.16.0,Users should now use the <<apm-integration>> or configure <<data_streams.enabled,data streams>>. ]
+Configure APM by editing the `apm-server.yml` configuration file.
+The location of this file varies by platform--see the <<directory-layout>> for help locating it.
 
-When running APM Server standalone with classic indices,
-we recommend that you run the `setup` command before starting {beatname_uc}.
+A minimal configuration file might look like this:
 
-The `setup` command sets up the initial environment, including the Elasticsearch index template,
-and ILM write alias. In Elasticsearch, {ref}/index-templates.html[index templates]
-are used to define field settings and mappings.
+[source,yaml]
+----
+apm-server:
+  host: "localhost:8200" <1>
+output.elasticsearch:
+  hosts: ["localhost:9200"] <2>
+  username: "elastic" <3>
+  password: "changeme" <4>
+----
+<1> The `host:port` APM Server listens on.
+<2> The {es} `host:port` to connect to.
+<3> This example uses basic authentication.
+The user provided here needs the privileges required to publish events to {es}.
+To create a dedicated user for this role, see <<privileges-to-publish-events>>.
+<4> We've hard-coded the password here,
+but you should store sensitive values in the <<keystore,secrets keystore>>.
 
-IMPORTANT: The {kibana-ref}/xpack-apm.html[Kibana APM UI] relies on specific mappings.
-Changing the default mapping or failing to setup the initial mapping may break the APM UI.
-
-The recommended index template file for {beatname_uc} is installed by the {beatname_uc} packages.
-To see the template that comes bundled with {beatname_uc}, run `apm-server export template`.
-If you accept the default configuration,
-{beatname_uc} will load the template automatically after successfully connecting to Elasticsearch.
-If a template already exists, it will not be overwritten unless you've explicitly configured {beatname_uc} to do so.
-Running `apm-server -e setup template` will force a template overwrite.
-
-NOTE: Index templates cannot be applied retroactively.
-They are only applied at index creation time.
-Changing a template will have no impact on existing indices.
-This means you need to ensure the correct index template is loaded from day one.
-
-Full details on the `setup` command are below:
-
-// This include attribute uses tagged regions to pull the **setup-command** instructions
-// in from command-reference.asciidoc. There is also a tagged region for **attributes**
-// as these are defined locally in the command reference file, but must also be accessed here.
-include::{libbeat-dir}/command-reference.asciidoc[tag=attributes]
-include::{libbeat-dir}/command-reference.asciidoc[tag=setup-command-tag]
-
-Once APM Server has been set up, you can edit the `apm-server.yml` configuration file to customize it to your needs.
-The location of this file varies by platform, but the <<directory-layout>> will help you locate it.
 All available configuration options are outlined in
 {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
 
