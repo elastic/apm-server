@@ -8,7 +8,7 @@
       link: https://github.com/elastic/apm-server/pull/7033
     - description: Added field `tail_sampling_enabled`
       type: enhancement
-      link: https://github.com/elastic/apm-server/pull/7033
+      link: https://github.com/elastic/apm-server/pull/7099
 - version: "8.0.0"
   changes:
     - description: support setting `download-agent-version`
