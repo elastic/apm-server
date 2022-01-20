@@ -5,6 +5,7 @@ This guide gives general recommendations for upgrading Elastic APM.
 
 * <<agent-server-compatibility>>
 * <<apm-breaking>>
+* <<upgrading-to-717>>
 * <<upgrade-to-data-streams>>
 * <<upgrade-to-apm-integration>>
 * <<upgrade-to-legacy-apm>>
@@ -12,6 +13,8 @@ This guide gives general recommendations for upgrading Elastic APM.
 include::./agent-server-compatibility.asciidoc[]
 
 include::./apm-breaking.asciidoc[]
+
+include::./upgrading-to-717.asciidoc[]
 
 include::./upgrading-to-datastreams.asciidoc[]
 

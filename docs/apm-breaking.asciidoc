@@ -7,7 +7,13 @@
 // These tagged regions are required for the stack-docs repo includes
 // tag::notable-v8-breaking-changes[]
 // end::notable-v8-breaking-changes[]
+
+[float]
+[[breaking-changes-7.17]]
+=== 7.17
+
 // tag::717-bc[]
+There are no breaking changes in APM Server.
 // end::717-bc[]
 
 [float]
