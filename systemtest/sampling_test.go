@@ -95,11 +95,13 @@ func TestTailSampling(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 
 	apmIntegration1 := newAPMIntegration(t, map[string]interface{}{
+		"tail_sampling_enabled":  true,
 		"tail_sampling_interval": "1s",
 		"tail_sampling_policies": []map[string]interface{}{{"sample_rate": 0.5}},
 	})
 
 	apmIntegration2 := newAPMIntegration(t, map[string]interface{}{
+		"tail_sampling_enabled":  true,
 		"tail_sampling_interval": "1s",
 		"tail_sampling_policies": []map[string]interface{}{{"sample_rate": 0.5}},
 	})

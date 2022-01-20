@@ -151,6 +151,8 @@ policy_templates:
             type: yaml
           - name: tail_sampling_interval
             type: text
+          - name: tail_sampling_enabled
+            type: bool
         template_path: template.yml.hbs
 owner:
   github: elastic/apm-server
