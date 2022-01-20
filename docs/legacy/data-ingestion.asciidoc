@@ -19,37 +19,9 @@ This section explains how to adapt data ingestion according to your needs.
 
 IMPORTANT: {deprecation-notice-data}
 
-* <<tune-output-config>>
-* <<adjust-queue-size>>
 * <<add-apm-server-instances>>
 * <<reduce-payload-size>>
 * <<adjust-event-rate>>
-
-[[tune-output-config]]
-[float]
-==== Tune APM Server output parameters for your Elasticsearch cluster
-
-If your Elasticsearch cluster is not ingesting the amount of data you expect,
-you can tweak a few APM Server settings:
-
-* Adjust `output.elasticsearch.worker`.
-See {ref}/tune-for-indexing-speed.html[tune for indexing speed] for an overview.
-* Ensure `output.elasticsearch.bulk_max_size` is set to a high value, for example 5120.
-  The default of 50 is very conservative.
-* Ensure that `queue.mem.events` is set to a reasonable value compared to your other settings.
-A good rule of thumb is that `queue.mem.events` should equal `output.elasticsearch.worker` multiplied by `output.elasticsearch.bulk_max_size`.
-
-The <<configuring-output,output configuration>> section shows more details.
-
-[[adjust-queue-size]]
-[float]
-==== Adjust internal queue size
-
-APM Server uses an internal queue to buffer incoming events.
-A larger queue can retain more data if Elasticsearch is unavailable for longer periods,
-and it alleviates problems that might result from sudden spikes of traffic.
-You can adjust the queue size by overriding <<mem.events,`queue.mem.events`>>.
-Increasing <<mem.events,`queue.mem.events`>> can significantly affect APM Server memory usage.
 
 [[add-apm-server-instances]]
 [float]

@@ -120,7 +120,9 @@ endif::[]
 ifndef::serverless[]
 |<<run-command,`run`>> |{run-command-short-desc}.
 endif::[]
+ifndef::apm-server[]
 |<<setup-command,`setup`>> |{setup-command-short-desc}.
+endif::apm-server[]
 |<<test-command,`test`>> |{test-command-short-desc}.
 ifeval::["{beatname_lc}"=="functionbeat"]
 |<<update-command,`update`>> |{update-command-short-desc}.
@@ -741,6 +743,7 @@ Or:
 -----
 endif::[]
 
+ifndef::apm-server[]
 [float]
 [[setup-command]]
 ==== `setup` command
@@ -865,6 +868,8 @@ endif::apm-server[]
 
 endif::[]
 // end::setup-command-tag[]
+
+endif::apm-server[]
 
 [float]
 [[test-command]]
