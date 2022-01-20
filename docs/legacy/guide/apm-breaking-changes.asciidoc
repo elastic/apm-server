@@ -133,7 +133,7 @@ No breaking changes.
 // tag::notable-v77-breaking-changes[]
 There are no breaking changes in APM Server.
 However, a previously hardcoded feature is now configurable.
-Failing to follow these {apm-server-ref-v}/upgrading-to-77.html[upgrade steps] will result in increased span metadata ingestion when upgrading to version 7.7.
+Failing to follow these {apm-guide-7x}/upgrading-to-77.html[upgrade steps] will result in increased span metadata ingestion when upgrading to version 7.7.
 // end::notable-v77-breaking-changes[]
 
 [[breaking-7.6.0]]

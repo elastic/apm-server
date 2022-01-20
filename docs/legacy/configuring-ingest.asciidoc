@@ -33,7 +33,7 @@ adding user {ref}/geoip-processor.html[Geo-IP data] to the `client.geo` field.
 Adds an ingest timestamp for APM events.
 
 `apm_remove_span_metadata`::
-added:[7.7,"Upgrading? See <<upgrading-to-77,upgrading to 7.7>>"]
+added:[7.7,"Upgrading? See {apm-guide-7x}/upgrading-to-77.html[Upgrade to 7.7]"]
 To save storage, removes metadata fields, like `host`, `kubernetes`, and `container`,
 that are already available on the parent transaction.
 +
