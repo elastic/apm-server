@@ -1,5 +1,5 @@
-[![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=apm-server/apm-server-mbp/master)](https://apm-ci.elastic.co/job/apm-server/job/apm-server-mbp/view/change-requests/job/master/)
-[![codecov.io](https://codecov.io/github/elastic/apm-server/coverage.svg?branch=master)](https://codecov.io/github/elastic/apm-server?branch=master)
+[![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=apm-server/apm-server-mbp/main)](https://apm-ci.elastic.co/job/apm-server/job/apm-server-mbp/view/change-requests/job/main/)
+[![codecov.io](https://codecov.io/github/elastic/apm-server/coverage.svg?branch=main)](https://codecov.io/github/elastic/apm-server?branch=main)
 
 # APM Server
 
@@ -96,7 +96,7 @@ below.
 ### Updating libbeat
 
 By running `make update-beats` the `github.com/elastic/beats/vN` module will be updated to the most recent
-commit from the master branch, and a minimal set of files will be copied into the apm-server tree.
+commit from the main branch, and a minimal set of files will be copied into the apm-server tree.
 
 You can specify an alternative branch or commit by specifying the `BEATS_VERSION` variable, such as:
 
