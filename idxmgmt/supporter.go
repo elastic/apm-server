@@ -57,8 +57,6 @@ type supporter struct {
 
 type indexSelector outil.Selector
 
-type ilmSelector outil.Selector
-
 // autoSelector is an outputs.IndexSelector that delegates to either an
 // unmanaged or ILM index selector depending on whether ILM is enabled.
 type autoSelector struct {
@@ -103,7 +101,7 @@ func (s *supporter) BuildSelector(_ *common.Config) (outputs.IndexSelector, erro
 	if err != nil {
 		return nil, err
 	}
-	managedSelector, err := s.buildSelector(s.ilmConfig.SelectorConfig())
+	ilmSelector, err := s.buildSelector(s.ilmConfig.SelectorConfig())
 	if err != nil {
 		return nil, err
 	}
@@ -112,9 +110,9 @@ func (s *supporter) BuildSelector(_ *common.Config) (outputs.IndexSelector, erro
 	case libilm.ModeDisabled:
 		return indexSelector(unmanagedSelector), nil
 	case libilm.ModeEnabled:
-		return ilmSelector(managedSelector), nil
+		return indexSelector(ilmSelector), nil
 	}
-	return &autoSelector{ilmEnabled: &s.ilmEnabled, unmanaged: unmanagedSelector, ilm: managedSelector}, nil
+	return &autoSelector{ilmEnabled: &s.ilmEnabled, unmanaged: unmanagedSelector, ilm: ilmSelector}, nil
 }
 
 func (s *supporter) buildSelector(cfg *common.Config, err error) (outil.Selector, error) {
@@ -145,10 +143,8 @@ func (s *autoSelector) Select(evt *beat.Event) (string, error) {
 }
 
 func (s *autoSelector) IsAlias() bool {
-	if s.ilmEnabled.Load() {
-		return true
-	}
-	return s.unmanaged.IsAlias()
+	//TODO(simitt): should return true for ILM to safeguard that an alias is set up
+	return false
 }
 
 // Select either returns the index from the event's metadata or the regular index.
@@ -160,19 +156,8 @@ func (s indexSelector) Select(evt *beat.Event) (string, error) {
 }
 
 func (s indexSelector) IsAlias() bool {
-	return outil.Selector(s).IsAlias()
-}
-
-// Select either returns the index from the event's metadata or the regular index.
-func (s ilmSelector) Select(evt *beat.Event) (string, error) {
-	if idx := getEventCustomIndex(evt); idx != "" {
-		return idx, nil
-	}
-	return outil.Selector(s).Select(evt)
-}
-
-func (s ilmSelector) IsAlias() bool {
-	return true
+	//TODO(simitt): should return true for ILM to safeguard that an alias is set up
+	return false
 }
 
 // this logic is copied and aligned with handling in beats.

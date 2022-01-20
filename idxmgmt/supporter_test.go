@@ -93,7 +93,6 @@ func TestIndexSupport_BuildSelector(t *testing.T) {
 		expected string
 		cfg      common.MapStr
 		fields   common.MapStr
-		alias    bool
 	}
 
 	cases := map[string]testdata{
@@ -132,18 +131,16 @@ func TestIndexSupport_BuildSelector(t *testing.T) {
 			withIlm: "apm-7.0.0-sourcemap",
 			fields:  common.MapStr{"processor.event": "sourcemap"},
 		},
-		"MetaInformationAlias": {
+		"MetaInformationAlia-lowercased": {
 			noIlm:   "apm-7.0.0-meta",
-			withIlm: "apm-7.0.0-meta", //meta alias overwrite ilm
-			ilmAuto: "apm-7.0.0-meta",
+			withIlm: "apm-7.0.0-meta", //meta overwrites ilm
 			fields:  common.MapStr{"processor.event": "span"},
 			meta:    common.MapStr{"alias": "APM-7.0.0-meta", "index": "test-123"},
 			cfg:     common.MapStr{"output.elasticsearch.index": "apm-customized"},
 		},
 		"MetaInformationIndex": {
 			noIlm:   fmt.Sprintf("apm-7.0.0-%s", day),
-			withIlm: fmt.Sprintf("apm-7.0.0-%s", day), //meta index overwrites ilm
-			ilmAuto: fmt.Sprintf("apm-7.0.0-%s", day),
+			withIlm: fmt.Sprintf("apm-7.0.0-%s", day), //meta overwrites ilm
 			fields:  common.MapStr{"processor.event": "span"},
 			meta:    common.MapStr{"index": "APM-7.0.0"},
 			cfg:     common.MapStr{"output.elasticsearch.index": "apm-customized"},
@@ -199,9 +196,6 @@ func TestIndexSupport_BuildSelector(t *testing.T) {
 			idx, err := s.Select(testEvent(test.fields, test.meta))
 			require.NoError(t, err)
 			assert.Equal(t, test.expected, idx)
-
-			// test if alias
-			assert.Equal(t, test.alias, s.IsAlias())
 		})
 	}
 
@@ -213,29 +207,24 @@ func TestIndexSupport_BuildSelector(t *testing.T) {
 		//ilm true and supported
 		test.cfg["apm-server.ilm.enabled"] = true
 		test.expected = test.withIlm
-		test.alias = true
 		checkIndexSelector(t, "ILMTrueSupported"+name, test, ilmSupportedHandler)
 
 		//ilm=false
 		test.cfg["apm-server.ilm.enabled"] = false
 		test.expected = test.noIlm
-		test.alias = false
 		checkIndexSelector(t, "ILMFalse"+name, test, ilmSupportedHandler)
 
 		//ilm=auto and supported
 		test.cfg["apm-server.ilm.enabled"] = "auto"
 		test.expected = test.withIlm
-		test.alias = true
 		if test.ilmAuto != "" {
 			test.expected = test.ilmAuto
-			test.alias = false
 		}
 		checkIndexSelector(t, "ILMAutoSupported"+name, test, ilmSupportedHandler)
 
 		//ilm auto but unsupported
 		test.cfg["apm-server.ilm.enabled"] = "auto"
 		test.expected = test.noIlm
-		test.alias = false
 		checkIndexSelector(t, "ILMAutoUnsupported"+name, test, ilmUnsupportedHandler)
 	}
 }
