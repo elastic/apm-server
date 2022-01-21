@@ -30,24 +30,24 @@
             },
             "span": {
                 "composite": {
-                    "compression_strategy": "same_kind",
-                    "count": 50,
+                    "compression_strategy": "exact_match",
+                    "count": 5,
                     "sum": {
-                        "us": 50000
+                        "us": 20000
                     }
                 },
                 "destination": {
                     "service": {
-                        "resource": "redis",
+                        "resource": "elasticsearch",
                         "type": "db"
                     }
                 },
                 "duration": {
-                    "us": 50000
+                    "us": 20000
                 },
                 "id": "dynamic",
-                "name": "Calls to redis",
-                "subtype": "redis",
+                "name": "_bulk",
+                "subtype": "elasticsearch",
                 "type": "db"
             },
             "timestamp": "dynamic",
@@ -88,24 +88,24 @@
             },
             "span": {
                 "composite": {
-                    "compression_strategy": "exact_match",
-                    "count": 5,
+                    "compression_strategy": "same_kind",
+                    "count": 50,
                     "sum": {
-                        "us": 20000
+                        "us": 50000
                     }
                 },
                 "destination": {
                     "service": {
-                        "resource": "elasticsearch",
+                        "resource": "redis",
                         "type": "db"
                     }
                 },
                 "duration": {
-                    "us": 20000
+                    "us": 50000
                 },
                 "id": "dynamic",
-                "name": "_bulk",
-                "subtype": "elasticsearch",
+                "name": "Calls to redis",
+                "subtype": "redis",
                 "type": "db"
             },
             "timestamp": "dynamic",
