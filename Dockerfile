@@ -1,11 +1,11 @@
 FROM golang:1.17.5
-MAINTAINER Nicolas Ruflin <ruflin@elastic.co>
 
 RUN set -x && \
     apt-get update && \
-    apt-get install -y --no-install-recommends \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
          netcat python3 python3-pip python3-venv && \
     apt-get clean
+
 
 ENV PYTHON_ENV=/tmp/python-env
 
