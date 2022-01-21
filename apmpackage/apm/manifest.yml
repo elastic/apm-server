@@ -153,6 +153,7 @@ policy_templates:
             type: text
           - name: tail_sampling_enabled
             type: bool
+            default: false
         template_path: template.yml.hbs
 owner:
   github: elastic/apm-server
