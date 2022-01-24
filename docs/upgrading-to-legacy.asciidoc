@@ -1,31 +1,12 @@
 [[upgrade-to-legacy-apm]]
-=== Upgrade to legacy versions of Elastic APM
+=== Legacy upgrade guides
 
-. Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and Observability {observability-guide}/whats-new.html[What's new] content for important changes between
-your current APM version and the one you are upgrading to.
+Legacy upgrade guides are available for certain versions of Elastic APM.
+Read and understand these guides prior to upgrading through these versions.
 
-. The Elastic Stack (Elasticsearch and Kibana) must be upgraded before APM Server.
-See the {stack-ref}/upgrading-elastic-stack.html[Elastic Stack Installation and Upgrade Guide] for guidance.
-
-. If applicable, read and understand the relevant APM Server upgrading guide:
 * <<upgrading-to-77,`7.7`>>
 * <<upgrading-to-70,`7.0`>>
 * <<upgrading-to-65,`6.5`>>
-
-. Install the new APM Server release.
-
-. Review the `apm-server.yml` configuration file.
-There may be newly added configuration options, and you'll want to be aware of their default settings.
-See <<configuring-howto-apm-server,configuring>> for more information on available options.
-
-. If you set up index patterns and dashboards manually by running `./apm-server setup`,
-rerun the command to update the index pattern and the dashboards.
-
-. Start the APM server.
-+
-When you start the APM server after upgrading, it creates new indices that use the current version,
-and applies the correct template automatically.
 
 include::./upgrading-to-77.asciidoc[]
 
