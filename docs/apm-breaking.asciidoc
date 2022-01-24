@@ -11,6 +11,43 @@
 [float]
 [[breaking-changes-8.0]]
 === 8.0
+
+// todo: this is rough for now. still need to link to relevant docs
+// and pull in more from release notes.
+
 // tag::80-bc[]
-// *todo
+* All index management has been removed from APM Server;
+{fleet} is now entirely responsible for setting up index templates, index lifecycle polices,
+and index pipelines.
+* APM Server now only writes to well-defined data streams;
+writing to classic indices is no longer supported.
+* APM Server has a new {es} output implementation with defaults that should be sufficient for
+most use cases.
+
+As a result of the above changes, the following index management and index tuning configuration variables
+have been removed:
+
+* `apm-server.ilm.*``
+* `apm-server.register.ingest.pipeline.*`
+* `output.elasticsearch.bulk_max_size`
+* `output.elasticsearch.index`
+* `output.elasticsearch.indices`
+* `output.elasticsearch.pipeline`
+* `output.elasticsearch.pipelines`
+* `output.elasticsearch.worker`
+* `queue.*`
+* `setup.*`
+
+The following configuration variables have been introduced:
+
+* `output.elasticsearch.flush_bytes`: threshold for bulk request size, in bytes (with suffix), before flushing to {es}. The value must have a suffix, e.g. `"1MB"`, and defaults to `5MB`.
+* `output.elasticsearch.flush_interval`: max duration for accumulating events for a bulk request before it is flushed to {es}. The value must have a duration suffix, e.g. `"5s"`, and defaults to `1s`.
+
+// talk about no queue
+// see https://github.com/elastic/apm-server/issues/6662 for more
+// jaeger
+// instrumentation
+// source map upload endpoint
+// onboarding docs
+
 // end::80-bc[]
