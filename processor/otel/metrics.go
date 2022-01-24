@@ -38,6 +38,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -134,12 +135,11 @@ func (b *apmMetricBuilder) build(ms metricsets) {
 				model.MetricsetSample{Type: model.MetricTypeCounter, Value: freeSample.Value + usedSample.Value},
 			)
 		}
-
 	// Compute system.cpu.total.norm.pct
 	// Sum all non-idle utilization metrics	and average over the number of cores
 	case "system.cpu.utilization":
 		activeProp := float64(0)
-		activeCpus := make(map[string]bool)
+		numberCpus := 1
 		var bufferDp pdata.NumberDataPoint
 		for _, metric := range b.metricList {
 			dps := metric.Gauge().DataPoints()
@@ -156,7 +156,10 @@ func (b *apmMetricBuilder) build(ms metricsets) {
 							}
 						}
 						if k == "cpu" {
-							activeCpus[v.StringVal()] = true
+							cpuId, _ := strconv.Atoi(v.StringVal())
+							if cpuId+1 > numberCpus {
+								numberCpus = cpuId + 1
+							}
 						}
 						return true
 					})
@@ -167,7 +170,7 @@ func (b *apmMetricBuilder) build(ms metricsets) {
 			bufferDp.Timestamp().AsTime(),
 			"system.cpu.total.norm.pct",
 			pdata.NewAttributeMap(),
-			model.MetricsetSample{Type: model.MetricTypeGauge, Value: activeProp / float64(len(activeCpus))},
+			model.MetricsetSample{Type: model.MetricTypeGauge, Value: activeProp / float64(numberCpus)},
 		)
 	}
 }
