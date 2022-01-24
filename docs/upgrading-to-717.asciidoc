@@ -1,4 +1,48 @@
 [[upgrading-to-717]]
-==== Upgrade to version 7.17
+=== Upgrade to version 7.17
 
-// content coming soon
+// Prior to upgrading, complete the following tasks:
+
+// . Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
+// and Observability {observability-guide}/whats-new.html[What's new] content for important changes between
+// your current APM version and the one you are upgrading to.
+
+// . The Elastic Stack (Elasticsearch and Kibana) must be upgraded to version 7.17 before APM.
+// See the {stack-ref}/upgrading-elastic-stack.html[Elastic Stack Installation and Upgrade Guide] for guidance.
+
+[float]
+[[upgrading-apm]]
+=== Upgrade APM
+
+// Starting in version 7.14, there are two methods of running Elastic APM.
+// Determine which method you're running, then use the links below to find the correct upgrading guide.
+
+// * Standalone (legacy): This mode has been deprecated and will be removed in a future release.
+// Users on standalone mode run the APM Server binary to collect, parse, and send data to the {stack}.
+// * {fleet} + APM integration: Users in this mode run {fleet} and the APM integration.
+
+// * <<upgrade-717-self-standalone>>
+// * <<upgrade-717-self-integration>>
+
+
+[[upgrade-717-self-standalone]]
+==== Upgrade self-installation standalone (legacy) to 7.17
+// coming soon
+
+// . Install the new APM Server release.
+
+// . Review the `apm-server.yml` configuration file.
+// There may be newly added configuration options, and you'll want to be aware of their default settings.
+// See <<configuring-howto-apm-server,configuring>> for more information on available options.
+
+// . If you set up index patterns and dashboards manually by running `./apm-server setup`,
+// rerun the command to update the index pattern and the dashboards.
+
+// . Start the APM server.
+// +
+// When you start the APM server after upgrading, it creates new indices that use the current version,
+// and applies the correct template automatically.
+
+[[upgrade-717-self-integration]]
+==== Upgrade self-installation APM integration to 717
+// coming soon
