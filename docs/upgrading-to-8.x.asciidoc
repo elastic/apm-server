@@ -1,7 +1,7 @@
 [[upgrading-to-8.x]]
 === Upgrade to version {version}
 
-Version 8.0 of Elastic APM offers a number of benefits over previous versions:
+Version {version} of Elastic APM offers a number of benefits over previous versions:
 
 * Reduced number of fields per index, better space efficiency, and faster queries
 * More granular data control
@@ -25,7 +25,7 @@ See the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
 and Observability {observability-guide}/whats-new.html[What's new] for full details.
 
 [float]
-=== Upgrade path
+=== Find your upgrade guide
 
 Starting in version 7.14, there are two ways to run Elastic APM.
 Determine which method you're using, then use the links below to find the correct upgrading guide.
@@ -62,37 +62,40 @@ Only use this guide if both of the following are true:
 [float]
 ==== Prerequisites
 
-* Prior to upgrading to version {version}, {es}, {kib},
+. Prior to upgrading to version {version}, {es}, {kib},
 and APM Server must be upgraded to version 7.17.
 ** To upgrade {es} and {kib},
 see the https://www.elastic.co/guide/en/elastic-stack/7.17/upgrading-elastic-stack.html[{stack} Installation and Upgrade Guide]
 ** To upgrade APM Server to version 7.17, see
 {apm-guide-7x}/upgrading-to-717.html[upgrade to version 7.17].
 
-* Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
+. Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
 and Observability {observability-guide}/whats-new.html[What's new] content.
 
 [float]
 ==== Upgrade steps
 
-. **Upgrade the {stack} to version 8.0**
+. **Upgrade the {stack} to version {version}**
 +
-The {stack} ({es} and {kib}) must be upgraded before APM.
+The {stack} ({es} and {kib}) must be upgraded before APM Server.
 See the {stack-ref}/upgrading-elastic-stack.html[{stack} Installation and Upgrade Guide] for guidance.
 
 . **Install the APM integration via the {fleet} UI**
 +
-If you've previously installed the APM integration,
-use the {fleet} UI to upgrade the APM integration to version {version}.
-
-. **Upgrade APM Server**
+include::legacy/getting-started-apm-server.asciidoc[tag=why-apm-integration]
 +
-See <<installing,install the new APM Server release>> for instructions.
+--
+include::legacy/getting-started-apm-server.asciidoc[tag=install-apm-integration]
+--
+
+. **Install the {version} APM Server release**
++
+See <<installing,install>> to find the command that works with your system.
 +
 [WARNING]
 ====
-If you upgrade APM Server to version 8.0.0 before installing the APM integration, you will see error logs similar to the following. You must go back and install the APM integration before data can be ingested in {es}.
-+
+If you install version {version} of APM Server before installing the APM integration, you will see error logs similar to the following. You must go back and install the APM integration before data can be ingested into {es}.
+
 [source,json]
 ----
 ...
@@ -111,8 +114,14 @@ and <<configuring-howto-apm-server>> for a list of all available configuration o
 
 . **Start the APM Server**
 +
-See <<apm-server-starting,start the APM Server>>.
-You should see your data flowing into the APM app again.
+To start the APM Server, run:
++
+[source,bash]
+----
+./apm-server -e
+----
++
+Additional details are available in <<apm-server-starting,start the APM Server>>.
 
 . **(Optional) Upgrade to the APM integration**
 +
@@ -137,29 +146,36 @@ Only use this guide if both of the following are true:
 [float]
 ==== Prerequisites
 
-* Prior to upgrading to version {version}, {es}, and {kib}
+. Prior to upgrading to version {version}, {es}, and {kib}
 must be upgraded to version 7.17. To upgrade {es} and {kib},
 see the https://www.elastic.co/guide/en/elastic-stack/7.17/upgrading-elastic-stack.html[{stack} Installation and Upgrade Guide]
 
-* Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
+. Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
 and Observability {observability-guide}/whats-new.html[What's new] content.
 
 [float]
 ==== Upgrade steps
 
-. Upgrade the {stack} to 8.0
+. Upgrade the {stack} to version {version}.
 +
 The {stack} ({es} and {kib}) must be upgraded before {agent}.
 See the {stack-ref}/upgrading-elastic-stack.html[{stack} Installation and Upgrade Guide] for guidance.
 
-. Upgrade the APM integration to version 8.0.
-// happens automatically
-
-. Upgrade {agent} to 8.0
+. Upgrade {agent} to version {version}.
+As a part of this process, the APM integration will automatically upgrade to version {version}.
 +
-To upgrade {agent}, see {fleet-guide}/upgrade-elastic-agent.html[Upgrade {agent}]
+--
+. In {fleet}, select **Agents**.
 
-You should see your data flowing into the APM app again.
+. Under **Agents**, click **Upgrade available** to see a list of agents that you can upgrade.
+
+. Choose **Upgrade agent** from the **Actions** menu next to the agent you want to upgrade.
+The **Upgrade agent** option is grayed out when an upgrade is unavailable, or
+the {kib} version is lower than the agent version.
+--
++
+For more details, or for bulk upgrade instructions, see
+{fleet-guide}/upgrade-elastic-agent.html[Upgrade {agent}]
 
 // ********************************************************
 
@@ -170,14 +186,21 @@ You should see your data flowing into the APM app again.
 <titleabbrev>{ecloud} standalone (legacy)</titleabbrev>
 ++++
 
+This upgrade guide is for the standalone (legacy) method of running APM Server.
+Only use this guide if both of the following are true:
+
+* You're using {ecloud}.
+* You're using the APM Server binary, i.e. you haven't upgraded to the Elastic APM integration.
+
+Follow these steps to upgrade:
+
 . Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
 and Observability {observability-guide}/whats-new.html[What's new] content.
 
 . Upgrade {ecloud} to {version},
 See https://www.elastic.co/guide/en/cloud/current/ec-upgrade-deployment.html[Upgrade versions] for instructions.
 
-. (Optional) Upgrade to the APM integration
-+
+. (Optional) Upgrade to the APM integration.
 Got time for one more upgrade?
 See <<upgrade-to-apm-integration>>.
 
@@ -190,12 +213,21 @@ See <<upgrade-to-apm-integration>>.
 <titleabbrev>{ecloud} APM integration</titleabbrev>
 ++++
 
+This upgrade guide is for the Elastic APM integration.
+Only use this guide if both of the following are true:
+
+* You're using {ecloud}.
+* You have already upgraded to and are running {fleet} and the Elastic APM integration.
+
+Follow these steps to upgrade:
+
 . Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
 and Observability {observability-guide}/whats-new.html[What's new] content.
 
 . Upgrade your {ecloud} instance to {version}.
+See https://www.elastic.co/guide/en/cloud/current/ec-upgrade-deployment.html[Upgrade versions] for details.
 The APM integration will automatically be upgraded to version {version} as a part of this process.
-See https://www.elastic.co/guide/en/cloud/current/ec-upgrade-deployment.html[Upgrade versions] for instructions.
+
 
 NOTE: {ece} users require additional TLS setup.
 See {ece-ref}/ece-manage-apm-settings.html[Add APM user settings] for more information.
