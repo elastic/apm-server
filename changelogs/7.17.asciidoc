@@ -11,4 +11,6 @@ https://github.com/elastic/apm-server/compare/7.16\...7.17[View commits]
 
 https://github.com/elastic/apm-server/compare/v7.16.3\...v7.17.0[View commits]
 
-No significant changes.
+[float]
+==== Changes
+- Change Docker base image from CentOS 7 to Ubuntu 20.04 {pull}7101[7101]

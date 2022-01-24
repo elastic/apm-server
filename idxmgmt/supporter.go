@@ -142,12 +142,22 @@ func (s *autoSelector) Select(evt *beat.Event) (string, error) {
 	return s.unmanaged.Select(evt)
 }
 
+func (s *autoSelector) IsAlias() bool {
+	//TODO(simitt): should return true for ILM to safeguard that an alias is set up
+	return false
+}
+
 // Select either returns the index from the event's metadata or the regular index.
 func (s indexSelector) Select(evt *beat.Event) (string, error) {
 	if idx := getEventCustomIndex(evt); idx != "" {
 		return idx, nil
 	}
 	return outil.Selector(s).Select(evt)
+}
+
+func (s indexSelector) IsAlias() bool {
+	//TODO(simitt): should return true for ILM to safeguard that an alias is set up
+	return false
 }
 
 // this logic is copied and aligned with handling in beats.
