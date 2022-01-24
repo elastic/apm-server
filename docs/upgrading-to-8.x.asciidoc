@@ -1,15 +1,15 @@
 [[upgrading-to-8.x]]
 === Upgrade to version {version}
 
-Version {version} of Elastic APM offers a number of benefits over previous versions:
+This guide explains the upgrade process for version {version}.
+For a detailed look at what's new, see:
 
-* Reduced number of fields per index, better space efficiency, and faster queries
-* More granular data control
-* Errors and metrics data streams are shared with other data sources -- which means better long-term integration with the logs and metrics apps
-* Removes template inheritance for index lifecycle policies and makes use of new {es} index and component templates
+* {observability-guide}/whats-new.html[What's new in Observability]
+* {kibana-ref}/whats-new.html[What's new in {kib}]
+* {ref}/release-highlights.html[{es} release highlights]
 
 [float]
-=== Notable changes
+=== Notable APM changes
 
 * All index management has been removed from APM Server;
 {fleet} is now entirely responsible for setting up index templates, index lifecycle polices,
@@ -21,8 +21,7 @@ most use cases.
 
 As a result of the above changes,
 a number of index management and index tuning configuration variables have been removed.
-See the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and Observability {observability-guide}/whats-new.html[What's new] for full details.
+See the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>> for full details.
 
 [float]
 === Find your upgrade guide
