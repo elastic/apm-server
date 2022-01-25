@@ -3,6 +3,41 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "7.16.2"
   changes:
+<<<<<<< HEAD
+=======
+    - description: Added field mapping for `faas.coldstart` and `faas.trigger.type`
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7033
+    - description: added `error.id` field to `error_logs` data stream
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/7123
+- version: "8.0.0"
+  changes:
+    - description: support setting `download-agent-version`
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6777
+    - description: java attacher config uses `discovery-rules`, not `discovery_rules`
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/6777
+    - description: add java_attacher support
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6741
+    - description: auth.anonymous.rate_limit.{event_limit,ip_limit} defaults are now the same as in the default rate_limit struct.
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6715
+    - description: Updated fields "@timestamp,data_stream.*,labels" to reference ecs
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6714
+    - description: Ingested labels are now stored as event.{labels,numeric_labels}
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6633
+    - description: added new traces-apm.rum and individual ILM policies per data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/6480
+    - description: fixed the `sampled_traces` data stream's ILM policy name
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/6802
+>>>>>>> 23a06e3a (Map `error.id` in error_logs data stream (#7123))
     - description: added app_logs data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7079
