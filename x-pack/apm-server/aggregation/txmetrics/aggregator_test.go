@@ -441,10 +441,12 @@ func TestAggregationFields(t *testing.T) {
 	go agg.Run()
 	defer agg.Stop(context.Background())
 
+	falseP := false
 	input := model.APMEvent{
 		Processor:   model.TransactionProcessor,
 		Transaction: &model.Transaction{RepresentativeCount: 1},
 	}
+	input.FAAS.Coldstart = &falseP
 	inputFields := []*string{
 		&input.Transaction.Name,
 		&input.Transaction.Result,
@@ -460,6 +462,21 @@ func TestAggregationFields(t *testing.T) {
 		&input.Cloud.Provider,
 		&input.Cloud.Region,
 		&input.Cloud.AvailabilityZone,
+		&input.Cloud.AccountID,
+		&input.Cloud.AccountName,
+		&input.Cloud.ProjectID,
+		&input.Cloud.ProjectName,
+		&input.Cloud.MachineType,
+		&input.Cloud.ServiceName,
+		&input.Service.Language.Name,
+		&input.Service.Language.Version,
+		&input.Service.Runtime.Name,
+		&input.Service.Runtime.Version,
+		&input.Host.OS.Platform,
+		&input.FAAS.TriggerType,
+	}
+	boolInputFields := []*bool{
+		input.FAAS.Coldstart,
 	}
 
 	var expected []model.APMEvent
@@ -491,6 +508,12 @@ func TestAggregationFields(t *testing.T) {
 			assert.Zero(t, agg.AggregateTransaction(input))
 			addExpectedCount(2)
 		}
+	}
+	for _, field := range boolInputFields {
+		*field = true
+		assert.Zero(t, agg.AggregateTransaction(input))
+		assert.Zero(t, agg.AggregateTransaction(input))
+		addExpectedCount(2)
 	}
 
 	if false {

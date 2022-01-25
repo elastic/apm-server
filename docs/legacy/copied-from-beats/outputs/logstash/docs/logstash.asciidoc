@@ -39,9 +39,6 @@ output.logstash:
 The `hosts` option specifies the {ls} server and the port (`5044`) where {ls} is configured to listen for incoming
 Beats connections.
 
-For this configuration, you must <<load-template-manually,load the index template into {es} manually>>
-because the options for auto loading the template are only available for the {es} output.
-
 ifeval::["{beatname_lc}"=="filebeat"]
 Want to use <<filebeat-modules,{beatname_uc} modules>> with {ls}? You need to do
 some extra setup. For more information, see
