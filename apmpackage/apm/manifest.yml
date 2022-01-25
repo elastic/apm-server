@@ -1,14 +1,14 @@
 format_version: 1.0.0
 name: apm
 title: Elastic APM
-version: 7.16.2
+version: 7.17.0
 license: basic
 description: Ingest APM data
 type: integration
 categories: ["elastic_stack", "monitoring"]
 release: ga
 conditions:
-  kibana.version: "^7.16.0"
+  kibana.version: "^7.17.0"
 icons:
   - src: /img/logo_apm.svg
     title: APM Logo
