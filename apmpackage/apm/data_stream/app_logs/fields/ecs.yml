@@ -57,9 +57,11 @@
 - external: ecs
   name: ecs.version
 - external: ecs
-  name: error.id
-- external: ecs
   name: event.outcome
+- external: ecs
+  name: event.severity
+- external: ecs
+  name: event.action
 - external: ecs
   name: host.architecture
 - external: ecs
@@ -78,12 +80,11 @@
   name: http.response.status_code
 - external: ecs
   name: http.version
-# TODO: change labels to be ECS compliant in 8.0 (https://github.com/elastic/apm-server/issues/3873)
-- name: labels
-  type: object
-  description: |
-    A flat mapping of user-defined labels with string, boolean or number values.
+- external: ecs
+  name: labels
   dynamic: true
+- external: ecs
+  name: log.level
 - external: ecs
   name: message
 - external: ecs
