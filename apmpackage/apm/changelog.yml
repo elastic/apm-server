@@ -6,7 +6,7 @@
     - description: Added field mapping for `faas.coldstart` and `faas.trigger.type`
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7033
-    - desscription: added `error.id` field to `error_logs` data stream
+    - description: added `error.id` field to `error_logs` data stream
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/7123
 - version: "8.0.0"
