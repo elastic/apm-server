@@ -489,6 +489,7 @@ Application errors are written to `logs-apm.error.*` data stream.
 | error.exception.type | The type of the original error, e.g. the Java exception class name. | keyword |
 | error.grouping_key | Hash of select properties of the logged error for grouping purposes. | keyword |
 | error.grouping_name | Name to associate with an error group. Errors belonging to the same group (same grouping_key) may have differing values for grouping_name. Consumers may choose one arbitrarily. | keyword |
+| error.id | Unique identifier for the error. | keyword |
 | error.log.level | The severity of the record. | keyword |
 | error.log.logger_name | The name of the logger instance used. | keyword |
 | error.log.message | The additionally logged error message. | text |
