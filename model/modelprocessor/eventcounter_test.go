@@ -40,6 +40,7 @@ func TestEventCounter(t *testing.T) {
 	expected := monitoring.MakeFlatSnapshot()
 	expected.Ints["processor.span.transformations"] = 1
 	expected.Ints["processor.transaction.transformations"] = 2
+	expected.Ints["processor.unknown.transformations"] = 1
 
 	registry := monitoring.NewRegistry()
 	processor := modelprocessor.NewEventCounter(registry)
@@ -47,5 +48,4 @@ func TestEventCounter(t *testing.T) {
 	assert.NoError(t, err)
 	snapshot := monitoring.CollectFlatSnapshot(registry, monitoring.Full, false)
 	assert.Equal(t, expected, snapshot)
-
 }

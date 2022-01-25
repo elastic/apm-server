@@ -52,7 +52,9 @@ func (c *EventCounter) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	for _, event := range *b {
 		pe := event.Processor.Event
 		if pe == "" {
-			continue
+			// We want to know if we're processing receiving events
+			// without a known type.
+			pe = "unknown"
 		}
 		c.mu.RLock()
 		eventCounter := c.eventCounters[pe]
