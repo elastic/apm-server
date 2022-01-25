@@ -558,10 +558,6 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 					Type:  "counter",
 					Value: 4773351424,
 				},
-				"system.memory.actual.used.bytes": {
-					Type:  "counter",
-					Value: 3563778048,
-				},
 				"system.memory.total": {
 					Type:  "counter",
 					Value: 8337129472,
