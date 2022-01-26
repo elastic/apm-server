@@ -7,171 +7,47 @@
 // These tagged regions are required for the stack-docs repo includes
 // tag::notable-v8-breaking-changes[]
 // end::notable-v8-breaking-changes[]
-// tag::717-bc[]
-// end::717-bc[]
 
 [float]
-[[breaking-changes-7.16]]
-=== 7.16
+[[breaking-changes-8.0]]
+=== 8.0
 
-The following breaking changes were introduced in 7.16:
+// todo: this is rough for now. still need to link to relevant docs
+// and pull in more from release notes.
 
-// tag::716-bc[]
-- Removed unused stacktrace/frame monitoring counters {pull}5984[5984]
-- Removed unused support for top-level metricsets and metricset tags for RUMv3 {pull}6065[6065]
-- Removed `apm-server.mode` configuration, and "experimental" fields {pull}6086[6086]
-- `transaction.sampled` is now only set for sampled transactions {pull}6066[6066]
-- Unknown metrics are dropped when `transaction.*` or `span.*` are present in a metricset {pull}6111[6111]
-- Removed `metricset.period` from service_destination metrics {pull}6111[6111]
-- Removed `http.request.socket` fields {pull}6152[6152]
-- Removed unused `transaction.duration.{count,sum.us}` metric fields {pull}6180[6180]
-- Removed `ProcessPending` self-instrumentation events {pull}6243[6243]
-- Removed warm phase from default ILM policy {pull}6322[6322]
-- Removed unused `transaction.breakdown.count` metric field {pull}6366[6366]
-- experimental:["This breaking change applies to the experimental tail-based sampling feature."] Changed `apm-server.sampling.tail.events.*` metrics semantics {pull}6273[6273]
-- experimental:["This breaking change applies to the experimental tail-based sampling feature."] Removed `apm-server.sampling.tail.storage_dir` config {pull}6236[6236]
-// end::716-bc[]
+// tag::80-bc[]
+* All index management has been removed from APM Server;
+{fleet} is now entirely responsible for setting up index templates, index lifecycle polices,
+and index pipelines.
+* APM Server now only writes to well-defined data streams;
+writing to classic indices is no longer supported.
+* APM Server has a new {es} output implementation with defaults that should be sufficient for
+most use cases.
 
-[float]
-[[breaking-changes-7.15]]
-=== 7.15
+As a result of the above changes, the following index management and index tuning configuration variables
+have been removed:
 
-The following breaking changes were introduced in 7.15:
+* `apm-server.ilm.*``
+* `apm-server.register.ingest.pipeline.*`
+* `output.elasticsearch.bulk_max_size`
+* `output.elasticsearch.index`
+* `output.elasticsearch.indices`
+* `output.elasticsearch.pipeline`
+* `output.elasticsearch.pipelines`
+* `output.elasticsearch.worker`
+* `queue.*`
+* `setup.*`
 
-// tag::715-bc[]
-- `network.connection_type` is now `network.connection.type` {pull}5671[5671]
-- `transaction.page` and `error.page` no longer recorded {pull}5872[5872]
-- experimental:["This breaking change applies to the experimental tail-based sampling feature."] `apm-server.sampling.tail` now requires `apm-server.data_streams.enabled` {pull}5952[5952]
-- beta:["This breaking change applies to the beta APM integration."] The `traces-sampled-*` data stream is now `traces-apm.sampled-*` {pull}5952[5952]
-// end::715-bc[]
+The following configuration variables have been introduced:
 
-[float]
-[[breaking-changes-7.14]]
-=== 7.14
-There are no breaking changes in APM Server.
+* `output.elasticsearch.flush_bytes`: threshold for bulk request size, in bytes (with suffix), before flushing to {es}. The value must have a suffix, e.g. `"1MB"`, and defaults to `5MB`.
+* `output.elasticsearch.flush_interval`: max duration for accumulating events for a bulk request before it is flushed to {es}. The value must have a duration suffix, e.g. `"5s"`, and defaults to `1s`.
 
-[float]
-[[breaking-changes-7.13]]
-=== 7.13
-There are no breaking changes in APM Server.
+// talk about no queue
+// see https://github.com/elastic/apm-server/issues/6662 for more
+// jaeger
+// instrumentation
+// source map upload endpoint
+// onboarding docs
 
-[float]
-[[breaking-changes-7.12]]
-=== 7.12
-
-There are three breaking changes to be aware of;
-these changes only impact users ingesting data with
-{apm-guide-ref}/jaeger.html[Jaeger clients].
-
-* Leading 0s are no longer removed from Jaeger client trace/span ids.
-+
---
-This change ensures distributed tracing continues to work across platforms by creating
-consistent, full trace/span IDs from Jaeger clients, Elastic APM agents,
-and OpenTelemetry SDKs.
---
-
-* Jaeger spans will now have a type of "app" where they previously were "custom".
-+
---
-If the Jaeger span type is not inferred, it will now be "app".
-This aligns with the OpenTelemetry Collector exporter
-and improves the functionality of the _time spent by span type_ charts in the APM app.
---
-
-* Jaeger spans may now have a more accurate outcome of "unknown".
-+
---
-Previously, a "success" outcome was assumed when a span didn't fail.
-The new default assigns "unknown", and only sets an outcome of "success" or "failure" when
-the outcome is explicitly known.
-This change aligns with Elastic APM agents and the OpenTelemetry Collector exporter.
---
-
-[float]
-[[breaking-changes-7.11]]
-=== 7.11
-There are no breaking changes in APM Server.
-
-[float]
-[[breaking-changes-7.10]]
-=== 7.10
-There are no breaking changes in APM Server.
-
-[float]
-[[breaking-changes-7.9]]
-=== 7.9
-There are no breaking changes in APM Server.
-
-[float]
-[[breaking-changes-7.8]]
-=== 7.8
-There are no breaking changes in APM Server.
-
-[float]
-[[breaking-changes-7.7]]
-=== 7.7
-There are no breaking changes in APM Server.
-However, a previously hardcoded feature is now configurable.
-Failing to follow these <<upgrading-to-77,upgrade steps>> will result in increased span metadata ingestion when upgrading to version 7.7.
-
-[float]
-[[breaking-changes-7.6]]
-=== 7.6
-There are no breaking changes in APM Server.
-
-[float]
-[[breaking-changes-7.5]]
-=== 7.5
-The following breaking changes have been introduced in 7.5:
-
-* Introduced dedicated `apm-server.ilm.setup.*` flags.
-This means you can now customize ILM behavior from within the APM Server configuration.
-As a side effect, `setup.template.*` settings will be ignored for ILM related templates per event type.
-See {apm-guide-ref}/ilm.html[set up ILM] for more information.
-
-* By default, ILM policies will not longer be versioned.
-All event types will switch to the new default policy: rollover after 30 days or when reaching a size 50gb.
-See {apm-guide-ref}/ilm.html[default policy] for more information.
-
-* To make use of all the new features introduced in 7.5,
-you must ensure you are using version 7.5+ of APM Server and version 7.5+ of Kibana.
-
-[float]
-[[breaking-changes-7.0]]
-=== 7.0
-The following breaking changes have been introduced in 7.0:
-
-* Removed deprecated Intake v1 API endpoints.
-Upgrade agents to a version that supports APM Server ≥ 6.5.
-{apm-guide-ref}/breaking-7.0.0.html#breaking-remove-v1[More information].
-* Moved fields in Elasticsearch to be compliant with the Elastic Common Schema (ECS).
-{apm-guide-ref}/breaking-7.0.0.html#breaking-ecs[More information and changed fields].
-* {beats-ref}/breaking-changes-7.0.html[Breaking changes in libbeat]
-
-[float]
-[[breaking-changes-6.5]]
-=== 6.5
-There are no breaking changes in APM Server.
-Advanced users may find the <<upgrading-to-65,upgrading to 6.5 guide>> useful.
-
-[float]
-[[breaking-changes-6.4]]
-=== 6.4
-The following breaking changes have been introduced in 6.4:
-
-* Indexing the `onboarding` document in it's own index by default.
-
-[float]
-[[breaking-changes-6.3]]
-=== 6.3
-The following breaking changes have been introduced in 6.3:
-
-* Indexing events in separate indices by default.
-// * {beats-ref-63}/breaking-changes-6.3.html[Breaking changes in libbeat]
-
-[float]
-[[breaking-changes-6.2]]
-=== 6.2
-
-APM Server is now GA (generally available).
+// end::80-bc[]
