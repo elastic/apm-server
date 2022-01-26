@@ -6,6 +6,9 @@
     - description: Added field mapping for `faas.coldstart` and `faas.trigger.type`
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7033
+    - description: Added field `tail_sampling_enabled`
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7099
     - description: added `error.id` field to `error_logs` data stream
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/7123
