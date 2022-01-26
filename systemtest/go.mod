@@ -8,7 +8,7 @@ require (
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20211026132249-f55eeca23be5
 	github.com/gofrs/uuid v4.1.0+incompatible
-	github.com/google/pprof v0.0.0-20210406223550-17a10ee72223
+	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
 	github.com/jaegertracing/jaeger v1.18.1
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/stretchr/testify v1.7.0

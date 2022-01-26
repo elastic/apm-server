@@ -32,6 +32,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -44,7 +45,7 @@ func TestJaegerGRPCMuxed(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Monitoring = newFastMonitoringConfig()
 	require.NoError(t, srv.Start())
-	testJaegerGRPC(t, srv, serverAddr(srv), grpc.WithInsecure())
+	testJaegerGRPC(t, srv, serverAddr(srv), grpc.WithTransportCredentials(insecure.NewCredentials()))
 }
 
 func TestJaegerGRPCMuxedTLS(t *testing.T) {
@@ -83,7 +84,7 @@ func TestJaegerGRPCSampling(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure())
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	defer conn.Close()
 
@@ -101,7 +102,7 @@ func TestJaegerGRPCAuth(t *testing.T) {
 	srv.Config.AgentAuth.SecretToken = "secret"
 	require.NoError(t, srv.Start())
 
-	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure())
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	defer conn.Close()
 

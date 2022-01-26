@@ -47,6 +47,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -145,7 +146,7 @@ func TestOTLPGRPCLogs(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	require.NoError(t, err)
 	defer conn.Close()
 
