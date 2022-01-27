@@ -86,12 +86,13 @@ func NewCreator(args CreatorParams) beat.Creator {
 			logger = logp.NewLogger(logs.Beater)
 		}
 		bt := &beater{
-			rawConfig:            ucfg,
-			stopped:              false,
-			logger:               logger,
-			wrapRunServer:        args.WrapRunServer,
-			waitPublished:        publish.NewWaitPublishedAcker(),
-			outputConfigReloader: newChanReloader(),
+			rawConfig:                 ucfg,
+			stopped:                   false,
+			logger:                    logger,
+			wrapRunServer:             args.WrapRunServer,
+			waitPublished:             publish.NewWaitPublishedAcker(),
+			outputConfigReloader:      newChanReloader(),
+			libbeatMonitoringRegistry: monitoring.Default.GetRegistry("libbeat"),
 		}
 
 		var elasticsearchOutputConfig *common.Config
@@ -126,12 +127,13 @@ func NewCreator(args CreatorParams) beat.Creator {
 }
 
 type beater struct {
-	rawConfig            *common.Config
-	config               *config.Config
-	logger               *logp.Logger
-	wrapRunServer        func(RunServerFunc) RunServerFunc
-	waitPublished        *publish.WaitPublishedAcker
-	outputConfigReloader *chanReloader
+	rawConfig                 *common.Config
+	config                    *config.Config
+	logger                    *logp.Logger
+	wrapRunServer             func(RunServerFunc) RunServerFunc
+	waitPublished             *publish.WaitPublishedAcker
+	outputConfigReloader      *chanReloader
+	libbeatMonitoringRegistry *monitoring.Registry
 
 	mutex      sync.Mutex // guards stopServer and stopped
 	stopServer func()
@@ -165,12 +167,13 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 	reloader := reloader{
 		runServerContext: ctx,
 		args: sharedServerRunnerParams{
-			Beat:          b,
-			WrapRunServer: bt.wrapRunServer,
-			Logger:        bt.logger,
-			Tracer:        tracer,
-			TracerServer:  tracerServer,
-			Acker:         bt.waitPublished,
+			Beat:                      b,
+			WrapRunServer:             bt.wrapRunServer,
+			Logger:                    bt.logger,
+			Tracer:                    tracer,
+			TracerServer:              tracerServer,
+			Acker:                     bt.waitPublished,
+			LibbeatMonitoringRegistry: bt.libbeatMonitoringRegistry,
 		},
 	}
 
@@ -349,6 +352,7 @@ type serverRunner struct {
 	tracer                    *apm.Tracer
 	tracerServer              *tracerServer
 	wrapRunServer             func(RunServerFunc) RunServerFunc
+	libbeatMonitoringRegistry *monitoring.Registry
 }
 
 type serverRunnerParams struct {
@@ -361,12 +365,13 @@ type serverRunnerParams struct {
 }
 
 type sharedServerRunnerParams struct {
-	Beat          *beat.Beat
-	WrapRunServer func(RunServerFunc) RunServerFunc
-	Logger        *logp.Logger
-	Tracer        *apm.Tracer
-	TracerServer  *tracerServer
-	Acker         *publish.WaitPublishedAcker
+	Beat                      *beat.Beat
+	WrapRunServer             func(RunServerFunc) RunServerFunc
+	Logger                    *logp.Logger
+	Tracer                    *apm.Tracer
+	TracerServer              *tracerServer
+	Acker                     *publish.WaitPublishedAcker
+	LibbeatMonitoringRegistry *monitoring.Registry
 }
 
 func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunner, error) {
@@ -399,6 +404,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		tracer:                    args.Tracer,
 		tracerServer:              args.TracerServer,
 		wrapRunServer:             args.WrapRunServer,
+		libbeatMonitoringRegistry: args.LibbeatMonitoringRegistry,
 	}, nil
 }
 
@@ -639,6 +645,10 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 	return waitReady(ctx, s.config.WaitReadyInterval, s.tracer, s.logger, check)
 }
 
+// This mutex must be held when updating the libbeat monitoring registry,
+// as there may be multiple servers running concurrently.
+var monitoringRegistryMu sync.Mutex
+
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
 // and a cleanup function which should be called on server shutdown. If the output is
 // "elasticsearch", then we use modelindexer; otherwise we use the libbeat publisher.
@@ -646,7 +656,13 @@ func (s *serverRunner) newFinalBatchProcessor(
 	p *publish.Publisher,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
 ) (model.BatchProcessor, func(context.Context) error, error) {
+
+	monitoringRegistryMu.Lock()
+	defer monitoringRegistryMu.Unlock()
+
 	if s.elasticsearchOutputConfig == nil {
+		monitoring.Default.Remove("libbeat")
+		monitoring.Default.Add("libbeat", s.libbeatMonitoringRegistry, monitoring.Full)
 		return p, func(context.Context) error { return nil }, nil
 	}
 
@@ -683,8 +699,8 @@ func (s *serverRunner) newFinalBatchProcessor(
 		return nil, nil, err
 	}
 
-	// Remove libbeat output counters, and install our own callback which uses the modelindexer stats.
-	monitoring.Default.Remove("libbeat.output.events")
+	// Install our own libbeat.output.events-compatible metrics callback which uses the modelindexer stats.
+	monitoring.Default.Remove("libbeat")
 	monitoring.NewFunc(monitoring.Default, "libbeat.output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
