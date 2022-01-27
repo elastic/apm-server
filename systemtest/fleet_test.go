@@ -57,6 +57,37 @@ func TestFleetIntegration(t *testing.T) {
 	)
 }
 
+func TestFleetIntegrationBeatsMonitoring(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	apmIntegration := newAPMIntegration(t, nil)
+
+	const N = 15
+	for i := 0; i < N; i++ {
+		tx := apmIntegration.Tracer.StartTransaction("name", "type")
+		tx.Duration = time.Second
+		tx.End()
+	}
+	apmIntegration.Tracer.Flush(nil)
+	systemtest.Elasticsearch.ExpectMinDocs(t, N, "traces-*", nil)
+
+	var metrics struct {
+		Libbeat map[string]interface{}
+	}
+	apmIntegration.getBeatsMonitoringStats(t, &metrics)
+	assert.Equal(t, map[string]interface{}{
+		"output": map[string]interface{}{
+			"events": map[string]interface{}{
+				"acked":   float64(N),
+				"active":  0.0,
+				"batches": 1.0,
+				"failed":  0.0,
+				"toomany": 0.0,
+				"total":   float64(N),
+			},
+		},
+	}, metrics.Libbeat)
+}
+
 func TestFleetIntegrationAnonymousAuth(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	apmIntegration := newAPMIntegration(t, map[string]interface{}{
