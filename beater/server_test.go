@@ -52,6 +52,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/management"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	pubs "github.com/elastic/beats/v7/libbeat/publisher"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
@@ -786,7 +787,7 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	assert.Equal(t, true, out["publish_ready"])
 }
 
-func TestServerExperimentalElasticsearchOutput(t *testing.T) {
+func TestServerElasticsearchOutput(t *testing.T) {
 	bulkCh := make(chan *http.Request, 1)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -812,6 +813,11 @@ func TestServerExperimentalElasticsearchOutput(t *testing.T) {
 	}()
 	reload.Register = reload.NewRegistry()
 
+	// Pre-create the libbeat registry with some variables that should not
+	// be reported, as we define our own libbeat metrics registry.
+	monitoring.Default.Remove("libbeat.whatever")
+	monitoring.NewInt(monitoring.Default, "libbeat.whatever")
+
 	apmBeat, cfg := newBeat(t, nil, nil, nil)
 	apmBeat.Manager = &mockManager{enabled: true}
 	beater, err := newTestBeater(t, apmBeat, cfg, nil)
@@ -819,15 +825,14 @@ func TestServerExperimentalElasticsearchOutput(t *testing.T) {
 	beater.start()
 
 	// Reload output config to show that apm-server will switch to the
-	// experimental output dynamically.
+	// output dynamically.
 	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{
 		Config: common.MustNewConfigFrom(map[string]interface{}{
 			"elasticsearch": map[string]interface{}{
-				"hosts":        []string{srv.URL},
-				"experimental": true,
-				"flush_bytes":  "1kb", // test data is >1kb
-				"backoff":      map[string]interface{}{"init": "1ms", "max": "1ms"},
-				"max_retries":  0,
+				"hosts":       []string{srv.URL},
+				"flush_bytes": "1kb", // test data is >1kb
+				"backoff":     map[string]interface{}{"init": "1ms", "max": "1ms"},
+				"max_retries": 0,
 			},
 		}),
 	})
@@ -870,6 +875,16 @@ func TestServerExperimentalElasticsearchOutput(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for bulk request")
 	}
+
+	snapshot := monitoring.CollectFlatSnapshot(monitoring.Default.GetRegistry("libbeat"), monitoring.Full, false)
+	assert.Equal(t, map[string]int64{
+		"output.events.acked":   0,
+		"output.events.active":  5,
+		"output.events.batches": 0,
+		"output.events.failed":  0,
+		"output.events.toomany": 0,
+		"output.events.total":   5,
+	}, snapshot.Ints)
 }
 
 type chanClient struct {
