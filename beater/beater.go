@@ -661,23 +661,9 @@ func (s *serverRunner) newFinalBatchProcessor(
 	defer monitoringRegistryMu.Unlock()
 
 	if s.elasticsearchOutputConfig == nil {
-<<<<<<< HEAD
-		return p, func(context.Context) error { return nil }, nil
-=======
-		// When the publisher stops cleanly it will close its pipeline client,
-		// calling the acker's Close method. We need to call Open for each new
-		// publisher to ensure we wait for all clients and enqueued events to
-		// be closed at shutdown time.
-		s.acker.Open()
-		pipeline := pipetool.WithACKer(s.pipeline, s.acker)
-		publisher, err := publish.NewPublisher(pipeline, s.tracer)
-		if err != nil {
-			return nil, nil, err
-		}
 		monitoring.Default.Remove("libbeat")
 		monitoring.Default.Add("libbeat", s.libbeatMonitoringRegistry, monitoring.Full)
-		return publisher, publisher.Stop, nil
->>>>>>> c01f7b4d (Fix libbeat metrics replacement (#7143))
+		return p, func(context.Context) error { return nil }, nil
 	}
 
 	var esConfig struct {
