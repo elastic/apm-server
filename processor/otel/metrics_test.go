@@ -481,7 +481,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"system.cpu.total.norm.pct": {
-					Type:  "gauge",
 					Value: 0.39000000000000007,
 				},
 			},
@@ -555,11 +554,9 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"system.memory.actual.free": {
-					Type:  "counter",
 					Value: 4773351424,
 				},
 				"system.memory.total": {
-					Type:  "counter",
 					Value: 8337129472,
 				},
 			},
@@ -618,7 +615,6 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"jvm.memory.heap.used": {
-					Type:  "gauge",
 					Value: 42,
 				},
 			},
@@ -650,11 +646,9 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"jvm.gc.time": {
-					Type:  "counter",
 					Value: 9,
 				},
 				"jvm.gc.count": {
-					Type:  "counter",
 					Value: 2,
 				},
 			},

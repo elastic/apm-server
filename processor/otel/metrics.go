@@ -90,7 +90,7 @@ func (c *Consumer) convertResourceMetrics(resourceMetrics pdata.ResourceMetrics,
 	}
 }
 
-// Otel specification : https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/system-metrics.md
+// OTel specification : https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/system-metrics.md
 type apmMetricsBuilder struct {
 	// Host CPU metrics
 	cpuCount                 int // from system.cpu.utilization's cpu attribute
@@ -106,7 +106,7 @@ type apmMetricsBuilder struct {
 	jvmMemory  map[jvmMemoryKey]apmMetricValue
 }
 
-func NewApmMetricsBuilder() *apmMetricsBuilder {
+func newAPMMetricsBuilder() *apmMetricsBuilder {
 	var b apmMetricsBuilder
 	b.jvmGCTime = make(map[string]apmMetricValue)
 	b.jvmGCCount = make(map[string]apmMetricValue)
@@ -165,11 +165,7 @@ func (b *apmMetricsBuilder) accumulate(m pdata.Metric) {
 				case "system.cpu.utilization":
 					if cpuState, exists := dp.Attributes().Get("state"); exists {
 						if cpuState.StringVal() != "idle" {
-							if sample.Value > 1 {
-								b.nonIdleCPUUtilizationSum.value += 1
-							} else {
-								b.nonIdleCPUUtilizationSum.value += sample.Value
-							}
+							b.nonIdleCPUUtilizationSum.value += sample.Value
 							b.nonIdleCPUUtilizationSum.timestamp = dp.Timestamp().AsTime()
 						}
 					}
@@ -206,7 +202,7 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	if b.freeMemoryBytes.value > 0 {
 		ms.upsertOne(
 			b.freeMemoryBytes.timestamp, "system.memory.actual.free", pdata.NewAttributeMap(),
-			model.MetricsetSample{Type: model.MetricTypeCounter, Value: b.freeMemoryBytes.value},
+			model.MetricsetSample{Value: b.freeMemoryBytes.value},
 		)
 	}
 	// system.memory.total
@@ -215,7 +211,7 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	if totalMemoryBytes > 0 {
 		ms.upsertOne(
 			b.freeMemoryBytes.timestamp, "system.memory.total", pdata.NewAttributeMap(),
-			model.MetricsetSample{Type: model.MetricTypeCounter, Value: totalMemoryBytes},
+			model.MetricsetSample{Value: totalMemoryBytes},
 		)
 	}
 	// system.cpu.total.norm.pct
@@ -223,7 +219,7 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	if b.nonIdleCPUUtilizationSum.value > 0 && b.cpuCount > 0 {
 		ms.upsertOne(
 			b.nonIdleCPUUtilizationSum.timestamp, "system.cpu.total.norm.pct", pdata.NewAttributeMap(),
-			model.MetricsetSample{Type: model.MetricTypeGauge, Value: b.nonIdleCPUUtilizationSum.value / float64(b.cpuCount)},
+			model.MetricsetSample{Value: b.nonIdleCPUUtilizationSum.value / float64(b.cpuCount)},
 		)
 	}
 	// jvm.gc.time
@@ -233,7 +229,7 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 		elasticapmAttributes.Insert("name", pdata.NewAttributeValueString(k))
 		ms.upsertOne(
 			v.timestamp, "jvm.gc.time", elasticapmAttributes,
-			model.MetricsetSample{Type: model.MetricTypeCounter, Value: v.value},
+			model.MetricsetSample{Value: v.value},
 		)
 	}
 	// jvm.gc.count
@@ -243,15 +239,15 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 		elasticapmAttributes.Insert("name", pdata.NewAttributeValueString(k))
 		ms.upsertOne(
 			v.timestamp, "jvm.gc.count", elasticapmAttributes,
-			model.MetricsetSample{Type: model.MetricTypeCounter, Value: v.value},
+			model.MetricsetSample{Value: v.value},
 		)
 	}
-	// jvm.gc.count
+	// jvm.memory.<area>.<type>
 	// Direct translation of runtime.jvm.memory.area (area = xxx, type = xxx)
 	for k, v := range b.jvmMemory {
 		ms.upsertOne(
 			v.timestamp, fmt.Sprintf("jvm.memory.%s.%s", k.area, k.type_), pdata.NewAttributeMap(),
-			model.MetricsetSample{Type: model.MetricTypeGauge, Value: v.value},
+			model.MetricsetSample{Value: v.value},
 		)
 	}
 }
@@ -265,7 +261,7 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 	ms := make(metricsets)
 	otelMetrics := in.Metrics()
 	var unsupported int64
-	var builder = NewApmMetricsBuilder()
+	builder := newAPMMetricsBuilder()
 	for i := 0; i < otelMetrics.Len(); i++ {
 		builder.accumulate(otelMetrics.At(i))
 		if !c.addMetric(otelMetrics.At(i), ms) {
