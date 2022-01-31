@@ -8,30 +8,7 @@
 This section summarizes the changes in each release.
 
 * <<release-notes-8.0>>
-* <<release-notes-7.16>>
-* <<release-notes-7.15>>
-* <<release-notes-7.14>>
-* <<release-notes-7.13>>
-* <<release-notes-7.12>>
-* <<release-notes-7.11>>
-* <<release-notes-7.10>>
-* <<release-notes-7.9>>
-* <<release-notes-7.8>>
-* <<release-notes-7.7>>
-* <<release-notes-7.6>>
-* <<release-notes-7.5>>
-* <<release-notes-7.4>>
-* <<release-notes-7.3>>
-* <<release-notes-7.2>>
-* <<release-notes-7.1>>
-* <<release-notes-7.0>>
-* <<release-notes-6.8>>
-* <<release-notes-6.7>>
-* <<release-notes-6.6>>
-* <<release-notes-6.5>>
-* <<release-notes-6.4>>
-* <<release-notes-6.3>>
-* <<release-notes-6.2>>
-* <<release-notes-6.1>>
+
+Looking for a previous version? See the {apm-guide-7x}/release-notes.html[7.x release notes].
 
 include::{root-dir}/CHANGELOG.asciidoc[]
