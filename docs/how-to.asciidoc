@@ -6,9 +6,12 @@ Learn how to perform common APM configuration and management tasks.
 * <<source-map-how-to>>
 * <<jaeger-integration>>
 * <<ingest-pipelines>>
+* <<custom-index-template>>
 
 include::./source-map-how-to.asciidoc[]
 
 include::./jaeger-integration.asciidoc[]
 
 include::./ingest-pipelines.asciidoc[]
+
+include::./custom-index-template.asciidoc[]

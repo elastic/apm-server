@@ -26,6 +26,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :repo: apm-server
 :no_kibana:
 :no_ilm:
+:no-pipeline:
 :no-processors:
 :no-indices-rules:
 :no_dashboards:

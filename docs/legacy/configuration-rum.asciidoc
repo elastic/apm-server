@@ -31,7 +31,6 @@ apm-server.rum.library_pattern: "node_modules|bower_components|~"
 apm-server.rum.exclude_from_grouping: "^/webpack"
 apm-server.rum.source_mapping.enabled: true
 apm-server.rum.source_mapping.cache.expiration: 5m
-apm-server.rum.source_mapping.index_pattern: "apm-*-sourcemap*"
 ----
 
 [float]
@@ -135,6 +134,8 @@ Default: `"^/webpack"` (excludes stacktrace frames that have a filename starting
 [float]
 ==== `source_mapping.enabled`
 Used to enable/disable <<sourcemaps,sourcemapping>> for RUM events.
+When enabled, the APM Server needs additional privileges to read source maps.
+See <<privileges-to-publish-events>> for more details.
 
 Default: `true`
 
@@ -157,8 +158,8 @@ Default: `5m` (5 minutes)
 
 [float]
 ==== `source_mapping.index_pattern`
-Source maps are stored in a separate index `apm-%{[observer.version]}-sourcemap` by default.
-If changed, a matching index pattern needs to be specified here.
+Previous versions of APM Server stored source maps in `apm-%{[observer.version]}-sourcemap` indices.
+Search source maps stored in an older version with this setting.
 
 Default: `"apm-*-sourcemap*"`
 
@@ -166,5 +167,4 @@ Default: `"apm-*-sourcemap*"`
 === Ingest pipelines
 
 The default APM Server pipeline includes processors that enrich RUM data prior to indexing in {es}.
-See the <<default-pipeline,default ingest pipeline>> for details on how to locate,
-edit, or disable this pre-processing.
+See <<ingest-pipelines>> for details on how to locate, edit, or disable this pre-processing.

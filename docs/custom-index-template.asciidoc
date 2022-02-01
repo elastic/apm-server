@@ -1,0 +1,50 @@
+//////////////////////////////////////////////////////////////////////////
+// This content is reused in the Legacy ILM documentation
+// ids look like this
+// [id="name-name{append-legacy}"]
+//////////////////////////////////////////////////////////////////////////
+
+[[custom-index-template]]
+=== View the {es} index template
+
+:append-legacy:
+// tag::index-template-integration[]
+
+Index templates are used to configure the backing indices of data streams as they are created.
+These index templates are composed of multiple component templates--reusable building blocks
+that configure index mappings, settings, and aliases.
+
+The default APM index templates can be viewed in {kib}.
+Navigate to **Stack Management** > **Index Management** > **Index Templates**, and search for `apm`.
+Select any of the APM index templates to view their relevant component templates.
+
+It is not currently possible to make changes to index templates that persist through version upgrades.
+
+// end::index-template-integration[]
+
+// *************
+// Notes for when it's possible to persist custom index templates
+// *************
+
+// [discrete]
+// [id="index-template-view{append-legacy}"]
+// === Edit the {es} index template
+
+// Custom index template tutorial
+
+// When you install the APM integration, {fleet} creates a default `@custom` component template for each data stream.
+// You can edit this `@custom` component template to customize your {es} indices.
+
+// . **Stack Management** > **Index Management** > **Component Templates**, search for `traces-apm`
+// . **Manage** > **Edit**
+// . Add any custom index settings or mappings
+// Changes to component templates do not affect existing indices,
+// including a stream’s backing indices... so rollover
+// . Force rollover `POST /traces-apm-default/_rollover/`
+// . See if it worked? GET /_index_template/traces-apm
+
+// Everything is lost on upgrade
+
+// Learn more links
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/index-templates.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-component-template.html
