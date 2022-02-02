@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/fleettest"
@@ -194,13 +195,6 @@ func NewPackagePolicy(agentPolicy *fleettest.AgentPolicy, varValues map[string]i
 			}
 			varMap := map[string]interface{}{"type": inputVar.Type}
 			if value != nil {
-				if inputVar.Type == "yaml" {
-					encoded, err := json.Marshal(value)
-					if err != nil {
-						panic(err)
-					}
-					value = string(encoded)
-				}
 				varMap["value"] = value
 			}
 			vars[inputVar.Name] = varMap
@@ -220,7 +214,14 @@ func inputVarDefault(inputVar fleettest.PackagePolicyTemplateInputVar) interface
 		return ":8200"
 	}
 	if inputVar.Default != nil {
-		return inputVar.Default
+		defaultValue := inputVar.Default
+		if inputVar.Type == "yaml" {
+			var v interface{}
+			if err := yaml.Unmarshal([]byte(defaultValue.(string)), &v); err != nil {
+				panic(err)
+			}
+		}
+		return defaultValue
 	}
 	if inputVar.Multi {
 		return []interface{}{}
