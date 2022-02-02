@@ -54,8 +54,6 @@ import (
 
 const (
 	startContainersTimeout = 5 * time.Minute
-
-	fleetServerPort = "8220"
 )
 
 var (
@@ -314,17 +312,9 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		return nil, err
 	}
 
-	var fleetServerIPAddress string
 	var networks []string
-	for network, settings := range fleetServerContainerDetails.NetworkSettings.Networks {
+	for network := range fleetServerContainerDetails.NetworkSettings.Networks {
 		networks = append(networks, network)
-		if fleetServerIPAddress == "" && settings.IPAddress != "" {
-			fleetServerIPAddress = settings.IPAddress
-		}
-	}
-	fleetServerURL := &url.URL{
-		Scheme: "https",
-		Host:   net.JoinHostPort(fleetServerIPAddress, fleetServerPort),
 	}
 	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
 	hostCACertPath, err := filepath.Abs("../testing/docker/fleet-server/ca.pem")
@@ -357,7 +347,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		Networks:   networks,
 		BindMounts: map[string]string{hostCACertPath: containerCACertPath},
 		Env: map[string]string{
-			"FLEET_URL": fleetServerURL.String(),
+			"FLEET_URL": "https://fleet-server:8220",
 			"FLEET_CA":  containerCACertPath,
 		},
 		SkipReaper: true, // we use our own reaping logic
