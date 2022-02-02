@@ -27,7 +27,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"gopkg.in/yaml.v3"
 
@@ -138,6 +137,8 @@ func Main() error {
 
 	agent.ExposedPorts = []string{"8200"}
 	agent.WaitingFor = wait.ForHTTP("/").WithPort("8200/tcp").WithStartupTimeout(5 * time.Minute)
+	agent.Stdout = os.Stdout
+	agent.Stderr = os.Stderr
 	if err := agent.Start(); err != nil {
 		return err
 	}
@@ -145,18 +146,8 @@ func Main() error {
 	serverURL := &url.URL{Scheme: "http", Host: agent.Addrs["8200"]}
 	log.Printf("Elastic Agent container started")
 	log.Printf(" - APM Server listening on %s", serverURL)
-
-	// Send elastic-agent container logs to stdout/stderr.
-	logs, err := agent.Logs(context.Background())
-	if err != nil {
-		return err
-	}
-	defer logs.Close()
-	if _, err := stdcopy.StdCopy(os.Stdout, os.Stderr, logs); err != nil {
-		return err
-	}
-
-	return nil
+	_, err = agent.Wait(context.Background())
+	return err
 }
 
 func main() {
