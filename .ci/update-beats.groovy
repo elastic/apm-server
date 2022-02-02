@@ -32,7 +32,7 @@ pipeline {
   }
   triggers {
     // Only master branch will run on a timer basis
-    cron(env.BRANCH_NAME == 'master' ? 'H H(4-5) * * 1,5' : '')
+    cron(env.BRANCH_NAME == '7.17' ? 'H H(4-5) * * 1,5' : '')
   }
   options {
     timeout(time: 1, unit: 'HOURS')
