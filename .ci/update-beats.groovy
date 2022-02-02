@@ -30,9 +30,6 @@ pipeline {
     JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
     PIPELINE_LOG_LEVEL = 'INFO'
   }
-  triggers {
-    cron(env.BRANCH_NAME == '7.17' ? 'H H(4-5) * * 1,5' : '')
-  }
   options {
     timeout(time: 1, unit: 'HOURS')
     buildDiscarder(logRotator(numToKeepStr: '5', artifactNumToKeepStr: '5'))
