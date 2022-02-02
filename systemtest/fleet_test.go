@@ -18,6 +18,7 @@
 package systemtest_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -135,8 +136,11 @@ func newAPMIntegration(t testing.TB, vars map[string]interface{}) apmIntegration
 	_, enrollmentAPIKey := systemtest.CreateAgentPolicy(t, policyName, "default", vars)
 
 	// Enroll an elastic-agent to run the APM integration.
+	var output bytes.Buffer
 	agent, err := systemtest.NewUnstartedElasticAgentContainer()
 	require.NoError(t, err)
+	agent.Stdout = &output
+	agent.Stderr = &output
 	agent.FleetEnrollmentToken = enrollmentAPIKey.APIKey
 	t.Cleanup(func() { agent.Close() })
 	t.Cleanup(func() {
@@ -144,12 +148,7 @@ func newAPMIntegration(t testing.TB, vars map[string]interface{}) apmIntegration
 		if !t.Failed() {
 			return
 		}
-		if logs, err := agent.Logs(context.Background()); err == nil {
-			defer logs.Close()
-			if out, err := ioutil.ReadAll(logs); err == nil {
-				t.Logf("elastic-agent logs: %s", out)
-			}
-		}
+		t.Logf("elastic-agent logs: %s", output.String())
 	})
 
 	// Start elastic-agent with port 8200 exposed, and wait for the server to service

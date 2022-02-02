@@ -354,6 +354,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	}
 	return &ElasticAgentContainer{
 		request: req,
+		exited:  make(chan struct{}),
 		Reap:    true,
 	}, nil
 }
@@ -362,6 +363,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 type ElasticAgentContainer struct {
 	container testcontainers.Container
 	request   testcontainers.ContainerRequest
+	exited    chan struct{}
 
 	// Reap entrols whether the container will be automatically reaped if
 	// the controlling process exits. This is true by default, and may be
@@ -383,6 +385,14 @@ type ElasticAgentContainer struct {
 	// use for enrolling the agent with Fleet. The agent will only enroll
 	// if this is specified.
 	FleetEnrollmentToken string
+
+	// Stdout, if non-nil, holds a writer to which the container's stdout
+	// will be written.
+	Stdout io.Writer
+
+	// Stderr, if non-nil, holds a writer to which the container's stderr
+	// will be written.
+	Stderr io.Writer
 }
 
 // Start starts the container.
@@ -418,9 +428,29 @@ func (c *ElasticAgentContainer) Start() error {
 	}
 	c.container = container
 
-	if err := container.Start(ctx); err != nil {
-		return err
+	// Start a goroutine to read logs, and signal when the container process has exited.
+	if c.Stdout != nil || c.Stderr != nil {
+		go func() {
+			defer close(c.exited)
+			defer cancel()
+			stdout, stderr := c.Stdout, c.Stderr
+			if stdout == nil {
+				stdout = io.Discard
+			}
+			if stderr == nil {
+				stderr = io.Discard
+			}
+			_ = c.copyLogs(stdout, stderr)
+		}()
 	}
+
+	if err := container.Start(ctx); err != nil {
+		if err != context.Canceled {
+			return fmt.Errorf("failed to start container: %w", err)
+		}
+		return errors.New("failed to start container")
+	}
+
 	if len(c.request.ExposedPorts) > 0 {
 		hostIP, err := container.Host(ctx)
 		if err != nil {
@@ -440,6 +470,41 @@ func (c *ElasticAgentContainer) Start() error {
 	return nil
 }
 
+func (c *ElasticAgentContainer) copyLogs(stdout, stderr io.Writer) error {
+	// Wait for the container to be running (or have gone past that),
+	// or ContainerLogs will return immediately.
+	ctx := context.Background()
+	for {
+		state, err := c.container.State(ctx)
+		if err != nil {
+			return err
+		}
+		if state.Status != "created" {
+			break
+		}
+	}
+
+	docker, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return err
+	}
+	defer docker.Close()
+
+	options := types.ContainerLogsOptions{
+		ShowStdout: stdout != nil,
+		ShowStderr: stderr != nil,
+		Follow:     true,
+	}
+	rc, err := docker.ContainerLogs(ctx, c.container.GetContainerID(), options)
+	if err != nil {
+		return err
+	}
+	defer rc.Close()
+
+	_, err = stdcopy.StdCopy(stdout, stderr, rc)
+	return err
+}
+
 // Close terminates and removes the container.
 func (c *ElasticAgentContainer) Close() error {
 	if c.container == nil {
@@ -448,14 +513,14 @@ func (c *ElasticAgentContainer) Close() error {
 	return c.container.Terminate(context.Background())
 }
 
-// Logs returns an io.ReadCloser that can be used for reading the
-// container's combined stdout/stderr log. If the container has not
-// been created by Start(), Logs will return an error.
-func (c *ElasticAgentContainer) Logs(ctx context.Context) (io.ReadCloser, error) {
-	if c.container == nil {
-		return nil, errors.New("container not created")
+// Wait waits for the container process to exit, and returns its state.
+func (c *ElasticAgentContainer) Wait(ctx context.Context) (*types.ContainerState, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-c.exited:
+		return c.container.State(ctx)
 	}
-	return c.container.Logs(ctx)
 }
 
 // Exec executes a command in the container, and returns its stdout and stderr.
