@@ -31,7 +31,6 @@ pipeline {
     PIPELINE_LOG_LEVEL = 'INFO'
   }
   triggers {
-    // Only master branch will run on a timer basis
     cron(env.BRANCH_NAME == '7.17' ? 'H H(4-5) * * 1,5' : '')
   }
   options {
