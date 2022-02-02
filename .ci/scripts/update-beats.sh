@@ -9,15 +9,9 @@ make update-beats
 COMMIT_MESSAGE="Update to elastic/beats@$(go list -m -f {{.Version}} github.com/elastic/beats/... | cut -d- -f3)"
 
 git checkout -b "update-beats-$(date "+%Y%m%d%H%M%S")"
-<<<<<<< HEAD
-git add go.mod go.sum NOTICE.txt \
-	.go-version docs/version.asciidoc \
-	docs/fields.asciidoc include/fields.go x-pack/apm-server/include/fields.go
-=======
 git add --ignore-errors go.mod go.sum NOTICE.txt \
 	.go-version docs/version.asciidoc
 
->>>>>>> ea46964f (update beats: fix new file location (#6700))
 find . -maxdepth 2 -name Dockerfile -exec git add {} \;
 
 git diff --staged --quiet || git commit -m "$COMMIT_MESSAGE"
