@@ -361,11 +361,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 
 	return &ElasticAgentContainer{
 		request:      req,
-<<<<<<< HEAD
-=======
 		exited:       make(chan struct{}),
-		Reap:         true,
->>>>>>> 9d67ac11 (systemtest: fix elastic-agent log copying (#7163))
 		StackVersion: agentImageVersion,
 	}, nil
 }
