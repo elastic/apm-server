@@ -195,6 +195,13 @@ func NewPackagePolicy(agentPolicy *fleettest.AgentPolicy, varValues map[string]i
 			}
 			varMap := map[string]interface{}{"type": inputVar.Type}
 			if value != nil {
+				if inputVar.Type == "yaml" {
+					encoded, err := json.Marshal(value)
+					if err != nil {
+						panic(err)
+					}
+					value = string(encoded)
+				}
 				varMap["value"] = value
 			}
 			vars[inputVar.Name] = varMap
@@ -220,6 +227,7 @@ func inputVarDefault(inputVar fleettest.PackagePolicyTemplateInputVar) interface
 			if err := yaml.Unmarshal([]byte(defaultValue.(string)), &v); err != nil {
 				panic(err)
 			}
+			defaultValue = v
 		}
 		return defaultValue
 	}
