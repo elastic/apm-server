@@ -149,8 +149,12 @@ policy_templates:
             multi: true
           - name: tail_sampling_policies
             type: yaml
+            multi: true
+            default: |
+              - sample_rate: 0.1
           - name: tail_sampling_interval
             type: text
+            default: "1m"
           - name: tail_sampling_enabled
             type: bool
             default: false
