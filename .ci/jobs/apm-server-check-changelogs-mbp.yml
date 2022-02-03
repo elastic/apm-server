@@ -12,6 +12,10 @@
         discover-pr-forks-trust: permission
         discover-pr-origin: merge-current
         discover-tags: false
+<<<<<<< HEAD
+=======
+        head-filter-regex: '(main|6\.8|7\.1[6789]|8\.\d+|PR-.*)'
+>>>>>>> 7c194b96 (apm-server: main (#7098))
         notification-context: 'apm-ci'
         property-strategies:
           all-branches:

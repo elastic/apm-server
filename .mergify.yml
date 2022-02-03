@@ -23,6 +23,7 @@ pull_request_rules:
         assignees:
           - "{{ author }}"
         branches:
+<<<<<<< HEAD
           - "7.x"
         title: "[7.x] {{ title }} (backport #{{ number }})"
   - name: backport patches to 7.15 branch
@@ -30,6 +31,51 @@ pull_request_rules:
       - merged
       - base=master
       - label=v7.15.0
+=======
+          - "8.1"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 8.0 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-8.0
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.0"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 7.17 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-7.17
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "7.17"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 7.16 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-7.16
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "7.16"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 7.15 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-7.15
+>>>>>>> 7c194b96 (apm-server: main (#7098))
     actions:
       backport:
         assignees:
@@ -40,8 +86,13 @@ pull_request_rules:
   - name: backport patches to 7.14 branch
     conditions:
       - merged
+<<<<<<< HEAD
       - base=master
       - label=v7.14.0
+=======
+      - base=main
+      - label=backport-7.14
+>>>>>>> 7c194b96 (apm-server: main (#7098))
     actions:
       backport:
         assignees:
@@ -52,8 +103,13 @@ pull_request_rules:
   - name: backport patches to 7.13 branch
     conditions:
       - merged
+<<<<<<< HEAD
       - base=master
       - label=v7.13.0
+=======
+      - base=main
+      - label=backport-7.13
+>>>>>>> 7c194b96 (apm-server: main (#7098))
     actions:
       backport:
         assignees:
@@ -112,4 +168,43 @@ pull_request_rules:
         - label=automation
         - head~=^update-beats
     actions:
+<<<<<<< HEAD
       delete_head_branch:
+=======
+      delete_head_branch:
+  - name: notify the backport policy
+    conditions:
+      - -label~=^backport
+      - base=main
+    actions:
+      comment:
+        message: |
+          This pull request does not have a backport label. Could you fix it @{{author}}? 🙏
+          To fixup this pull request, you need to add the backport labels for the needed
+          branches, such as:
+          * `backport-7.x` is the label to automatically backport to the `7.x` branch.
+          * `backport-7./d` is the label to automatically backport to the `7./d` branch. `/d` is the digit
+
+          **NOTE**: `backport-skip` has been added to this pull request.
+      label:
+        add:
+          - backport-skip
+  - name: remove backport-skip label
+    conditions:
+      - label~=^backport-\d
+    actions:
+      label:
+        remove:
+          - backport-skip
+  - name: notify the backport has not been merged yet
+    conditions:
+      - -merged
+      - -closed
+      - author=mergify[bot]
+      - "#check-success>0"
+      - schedule=Mon-Mon 06:00-10:00[Europe/Paris]
+    actions:
+      comment:
+        message: |
+          This pull request has not been merged yet. Could you please review and merge it @{{ assignee | join(', @') }}? 🙏
+>>>>>>> 7c194b96 (apm-server: main (#7098))

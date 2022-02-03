@@ -1,7 +1,7 @@
 # APM Server-Testing
 
 ## Automated Testing
-The tests are built on top of the [Beats Test Framework](https://github.com/elastic/beats/blob/master/docs/devguide/testing.asciidoc), where you can find a detailed description on how to run the test suite.
+The tests are built on top of the [Beats Test Framework](https://github.com/elastic/beats/blob/main/docs/devguide/testing.asciidoc), where you can find a detailed description on how to run the test suite.
 
 ### Quick Overview
 
@@ -64,7 +64,7 @@ With your changes in the current working tree, do:
 ```
 $ go get -u golang.org/x/tools/cmd/benchcmp
 $ make bench > new.txt
-$ git checkout master
+$ git checkout main
 $ make bench > old.txt
 $ benchcmp old.txt new.txt
 ```

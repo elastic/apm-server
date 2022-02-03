@@ -9,7 +9,7 @@ include::./notices.asciidoc[]
 
 :github_repo_link: https://github.com/elastic/apm-server/blob/v{version}
 ifeval::["{version}" == "8.0.0"]
-:github_repo_link: https://github.com/elastic/apm-server/blob/master
+:github_repo_link: https://github.com/elastic/apm-server/blob/main
 endif::[]
 
 [[apm-user-guide]]

@@ -68,7 +68,7 @@ Once your changes are ready to submit for review:
 
 ### Workflow
 
-All feature development and most bug fixes hit the master branch first.
+All feature development and most bug fixes hit the main branch first.
 Pull requests should be reviewed by someone with commit access.
 Once approved,
 the author of the pull request,

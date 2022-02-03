@@ -244,7 +244,7 @@ Loading dashboards from APM Server is no longer supported. Please see the {kiban
 Loading Kibana dashboards from APM Server is no longer supported.
 Please use the {kibana-ref}/xpack-apm.html[Kibana APM UI] instead.
 As an alternative, a small number of dashboards and visualizations are available in the
-https://github.com/elastic/apm-contrib/tree/master/kibana[apm-contrib] repository.
+https://github.com/elastic/apm-contrib/tree/main/kibana[apm-contrib] repository.
 
 // [role="exclude",id="rum"]
 // === Rum
