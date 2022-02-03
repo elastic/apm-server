@@ -54,8 +54,6 @@ import (
 
 const (
 	startContainersTimeout = 5 * time.Minute
-
-	fleetServerPort = "8220"
 )
 
 var (
@@ -314,17 +312,9 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		return nil, err
 	}
 
-	var fleetServerIPAddress string
 	var networks []string
-	for network, settings := range fleetServerContainerDetails.NetworkSettings.Networks {
+	for network := range fleetServerContainerDetails.NetworkSettings.Networks {
 		networks = append(networks, network)
-		if fleetServerIPAddress == "" && settings.IPAddress != "" {
-			fleetServerIPAddress = settings.IPAddress
-		}
-	}
-	fleetServerURL := &url.URL{
-		Scheme: "https",
-		Host:   net.JoinHostPort(fleetServerIPAddress, fleetServerPort),
 	}
 	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
 	hostCACertPath, err := filepath.Abs("../testing/docker/fleet-server/ca.pem")
@@ -332,12 +322,9 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		return nil, err
 	}
 
-	// Use the same stack version as used for fleet-server.
+	// Use the same elastic-agent image as used for fleet-server.
 	agentImageVersion := fleetServerContainer.Image[strings.LastIndex(fleetServerContainer.Image, ":")+1:]
 	agentImage := "docker.elastic.co/beats/elastic-agent:" + agentImageVersion
-	if err := pullDockerImage(context.Background(), docker, agentImage); err != nil {
-		return nil, err
-	}
 	agentImageDetails, _, err := docker.ImageInspectWithRaw(context.Background(), agentImage)
 	if err != nil {
 		return nil, err
@@ -357,7 +344,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		Networks:   networks,
 		BindMounts: map[string]string{hostCACertPath: containerCACertPath},
 		Env: map[string]string{
-			"FLEET_URL": fleetServerURL.String(),
+			"FLEET_URL": "https://fleet-server:8220",
 			"FLEET_CA":  containerCACertPath,
 		},
 		SkipReaper: true, // we use our own reaping logic
@@ -370,8 +357,8 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	}
 
 	return &ElasticAgentContainer{
-		request:      req,
-		StackVersion: agentImageVersion,
+		request: req,
+		exited:  make(chan struct{}),
 	}, nil
 }
 
@@ -379,10 +366,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 type ElasticAgentContainer struct {
 	container testcontainers.Container
 	request   testcontainers.ContainerRequest
-
-	// StackVersion holds the stack version of the container image,
-	// e.g. 8.0.0-SNAPSHOT.
-	StackVersion string
+	exited    chan struct{}
 
 	// ExposedPorts holds an optional list of ports to expose to the host.
 	ExposedPorts []string
@@ -398,6 +382,14 @@ type ElasticAgentContainer struct {
 	// use for enrolling the agent with Fleet. The agent will only enroll
 	// if this is specified.
 	FleetEnrollmentToken string
+
+	// Stdout, if non-nil, holds a writer to which the container's stdout
+	// will be written.
+	Stdout io.Writer
+
+	// Stderr, if non-nil, holds a writer to which the container's stderr
+	// will be written.
+	Stderr io.Writer
 }
 
 // Start starts the container.
@@ -426,9 +418,29 @@ func (c *ElasticAgentContainer) Start() error {
 	}
 	c.container = container
 
-	if err := container.Start(ctx); err != nil {
-		return err
+	// Start a goroutine to read logs, and signal when the container process has exited.
+	if c.Stdout != nil || c.Stderr != nil {
+		go func() {
+			defer close(c.exited)
+			defer cancel()
+			stdout, stderr := c.Stdout, c.Stderr
+			if stdout == nil {
+				stdout = io.Discard
+			}
+			if stderr == nil {
+				stderr = io.Discard
+			}
+			_ = c.copyLogs(stdout, stderr)
+		}()
 	}
+
+	if err := container.Start(ctx); err != nil {
+		if err != context.Canceled {
+			return fmt.Errorf("failed to start container: %w", err)
+		}
+		return errors.New("failed to start container")
+	}
+
 	if len(c.request.ExposedPorts) > 0 {
 		hostIP, err := container.Host(ctx)
 		if err != nil {
@@ -448,6 +460,41 @@ func (c *ElasticAgentContainer) Start() error {
 	return nil
 }
 
+func (c *ElasticAgentContainer) copyLogs(stdout, stderr io.Writer) error {
+	// Wait for the container to be running (or have gone past that),
+	// or ContainerLogs will return immediately.
+	ctx := context.Background()
+	for {
+		state, err := c.container.State(ctx)
+		if err != nil {
+			return err
+		}
+		if state.Status != "created" {
+			break
+		}
+	}
+
+	docker, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return err
+	}
+	defer docker.Close()
+
+	options := types.ContainerLogsOptions{
+		ShowStdout: stdout != nil,
+		ShowStderr: stderr != nil,
+		Follow:     true,
+	}
+	rc, err := docker.ContainerLogs(ctx, c.container.GetContainerID(), options)
+	if err != nil {
+		return err
+	}
+	defer rc.Close()
+
+	_, err = stdcopy.StdCopy(stdout, stderr, rc)
+	return err
+}
+
 // Close terminates and removes the container.
 func (c *ElasticAgentContainer) Close() error {
 	if c.container == nil {
@@ -456,14 +503,14 @@ func (c *ElasticAgentContainer) Close() error {
 	return c.container.Terminate(context.Background())
 }
 
-// Logs returns an io.ReadCloser that can be used for reading the
-// container's combined stdout/stderr log. If the container has not
-// been created by Start(), Logs will return an error.
-func (c *ElasticAgentContainer) Logs(ctx context.Context) (io.ReadCloser, error) {
-	if c.container == nil {
-		return nil, errors.New("container not created")
+// Wait waits for the container process to exit, and returns its state.
+func (c *ElasticAgentContainer) Wait(ctx context.Context) (*types.ContainerState, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-c.exited:
+		return c.container.State(ctx)
 	}
-	return c.container.Logs(ctx)
 }
 
 // Exec executes a command in the container, and returns its stdout and stderr.
@@ -503,16 +550,6 @@ func (c *ElasticAgentContainer) Exec(ctx context.Context, cmd ...string) (stdout
 		return nil, nil, fmt.Errorf("process exited with code %d", execResp.ExitCode)
 	}
 	return stdoutBuf.Bytes(), stderrBuf.Bytes(), nil
-}
-
-func pullDockerImage(ctx context.Context, docker *client.Client, imageRef string) error {
-	rc, err := docker.ImagePull(context.Background(), imageRef, types.ImagePullOptions{})
-	if err != nil {
-		return err
-	}
-	defer rc.Close()
-	_, err = io.Copy(ioutil.Discard, rc)
-	return err
 }
 
 func matchFleetServerAPIStatusHealthy(r io.Reader) bool {
