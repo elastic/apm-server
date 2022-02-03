@@ -357,15 +357,8 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	}
 
 	return &ElasticAgentContainer{
-<<<<<<< HEAD
-		request:      req,
-		exited:       make(chan struct{}),
-		StackVersion: agentImageVersion,
-=======
 		request: req,
 		exited:  make(chan struct{}),
-		Reap:    true,
->>>>>>> 8010904c (systemtest: don't pull elastic-agent image (#7162))
 	}, nil
 }
 
@@ -374,18 +367,6 @@ type ElasticAgentContainer struct {
 	container testcontainers.Container
 	request   testcontainers.ContainerRequest
 	exited    chan struct{}
-
-<<<<<<< HEAD
-	// StackVersion holds the stack version of the container image,
-	// e.g. 8.0.0-SNAPSHOT.
-	StackVersion string
-=======
-	// Reap entrols whether the container will be automatically reaped if
-	// the controlling process exits. This is true by default, and may be
-	// set to false before the container is started to prevent the container
-	// from being stoped and removed.
-	Reap bool
->>>>>>> 8010904c (systemtest: don't pull elastic-agent image (#7162))
 
 	// ExposedPorts holds an optional list of ports to expose to the host.
 	ExposedPorts []string
