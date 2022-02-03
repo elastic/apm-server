@@ -78,7 +78,7 @@ pipeline {
 def createPullRequest(Map args = [:]) {
   def title = '[automation] update libbeat and beats packaging'
   def message = createPRDescription()
-  def labels = "automation"
+  def labels = "automation,backport-skip"
   if (params.DRY_RUN_MODE) {
     log(level: 'INFO', text: "DRY-RUN: createPullRequest(labels: ${labels}, message: '${message}')")
     return
