@@ -126,7 +126,7 @@ update-beats-docs: $(PYTHON)
 # Beats synchronisation.
 ##############################################################################
 
-BEATS_VERSION?=master
+BEATS_VERSION?=main
 BEATS_MODULE:=$(shell $(GO) list -m -f {{.Path}} all | grep github.com/elastic/beats)
 
 .PHONY: update-beats
@@ -145,7 +145,7 @@ update-beats-module:
 ##############################################################################
 
 GOLINT_TARGETS?=$(shell $(GO) list ./...)
-GOLINT_UPSTREAM?=origin/master
+GOLINT_UPSTREAM?=origin/main
 REVIEWDOG_FLAGS?=-conf=reviewdog.yml -f=golint -diff="git diff $(GOLINT_UPSTREAM)"
 GOLINT_COMMAND=$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) $(REVIEWDOG_FLAGS)
 
