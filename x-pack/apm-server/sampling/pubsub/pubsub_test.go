@@ -340,8 +340,12 @@ func newMockElasticsearchServer(t testing.TB) *mockElasticsearchServer {
 	mux.HandleFunc("/"+dataStream.String()+"/_stats/get", m.handleStats)
 	mux.HandleFunc("/index_name/_refresh", m.handleRefresh)
 	mux.HandleFunc("/index_name/_search", m.handleSearch)
+	var withElasticProduct http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		mux.ServeHTTP(w, r)
+	}
 
-	m.srv = httptest.NewServer(mux)
+	m.srv = httptest.NewServer(withElasticProduct)
 	t.Cleanup(m.srv.Close)
 	return m
 }
