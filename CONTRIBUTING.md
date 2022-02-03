@@ -34,7 +34,7 @@ Please read our [pull request template](.github/pull_request_template.md), which
 
 ### Workflow
 
-All feature development and most bug fixes hit the master branch first.
+All feature development and most bug fixes hit the main branch first.
 Pull requests should be reviewed by someone with commit access.
 Once approved,
 the author of the pull request,
