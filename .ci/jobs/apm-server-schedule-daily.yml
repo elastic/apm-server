@@ -1,6 +1,6 @@
 ---
 - job:
-    name: apm-server-schedule-daily
+    name: apm-server/apm-server-schedule-daily
     display-name: Jobs scheduled daily (weekdays)
     description: Jobs scheduled daily (weekdays)
     project-type: pipeline
