@@ -322,12 +322,9 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		return nil, err
 	}
 
-	// Use the same stack version as used for fleet-server.
+	// Use the same elastic-agent image as used for fleet-server.
 	agentImageVersion := fleetServerContainer.Image[strings.LastIndex(fleetServerContainer.Image, ":")+1:]
 	agentImage := "docker.elastic.co/beats/elastic-agent:" + agentImageVersion
-	if err := pullDockerImage(context.Background(), docker, agentImage); err != nil {
-		return nil, err
-	}
 	agentImageDetails, _, err := docker.ImageInspectWithRaw(context.Background(), agentImage)
 	if err != nil {
 		return nil, err
@@ -360,9 +357,8 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	}
 
 	return &ElasticAgentContainer{
-		request:      req,
-		exited:       make(chan struct{}),
-		StackVersion: agentImageVersion,
+		request: req,
+		exited:  make(chan struct{}),
 	}, nil
 }
 
@@ -371,10 +367,6 @@ type ElasticAgentContainer struct {
 	container testcontainers.Container
 	request   testcontainers.ContainerRequest
 	exited    chan struct{}
-
-	// StackVersion holds the stack version of the container image,
-	// e.g. 8.0.0-SNAPSHOT.
-	StackVersion string
 
 	// ExposedPorts holds an optional list of ports to expose to the host.
 	ExposedPorts []string
@@ -558,16 +550,6 @@ func (c *ElasticAgentContainer) Exec(ctx context.Context, cmd ...string) (stdout
 		return nil, nil, fmt.Errorf("process exited with code %d", execResp.ExitCode)
 	}
 	return stdoutBuf.Bytes(), stderrBuf.Bytes(), nil
-}
-
-func pullDockerImage(ctx context.Context, docker *client.Client, imageRef string) error {
-	rc, err := docker.ImagePull(context.Background(), imageRef, types.ImagePullOptions{})
-	if err != nil {
-		return err
-	}
-	defer rc.Close()
-	_, err = io.Copy(ioutil.Discard, rc)
-	return err
 }
 
 func matchFleetServerAPIStatusHealthy(r io.Reader) bool {
