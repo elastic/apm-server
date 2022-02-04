@@ -3,9 +3,6 @@
 If this is your first contribution, please review and sign our contributor agreement -
 https://www.elastic.co/contributor-agreement.
 
-<<<<<<< HEAD
-See also https://github.com/elastic/apm-server/blob/master/CONTRIBUTING.md for more tips on contributing.
-=======
 Guidelines:
  - Prefer small PRs, and split changes into multiple logical commits where they must
    be delivered in a single PR.
@@ -14,11 +11,9 @@ Guidelines:
    and you should not force-push any changes.
 
 See also https://github.com/elastic/apm-server/blob/main/CONTRIBUTING.md for more tips on contributing.
->>>>>>> 7c194b96 (apm-server: main (#7098))
 -->
 
 <!--
-<<<<<<< HEAD
 Replace this comment with a description of what is being changed by this PR and why.
 
 If this PR should close an issue, please add one of the magic keywords
@@ -38,7 +33,6 @@ Major changes require a number of considerations including impact on:
 * telemetry
 * Elasticsearch Service (https://cloud.elastic.co)
 * Elastic Cloud Enterprise (https://www.elastic.co/products/ece)
-=======
 Describe your change in the title and description, and provide a motivation for the
 change and rationale for the approach taken.
 -->
@@ -71,5 +65,4 @@ If it is self-explanatory, delete this section.
 <!--
 Reference the related issue(s), and make use of magic keywords where it makes sense
 https://help.github.com/articles/closing-issues-using-keywords/.
->>>>>>> 7c194b96 (apm-server: main (#7098))
 -->
