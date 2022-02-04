@@ -13,8 +13,6 @@ pull_request_rules:
             git merge upstream/{{base}}
             git push upstream {{head}}
             ```
-<<<<<<< HEAD
-=======
   - name: backport patches to 8.1 branch
     conditions:
       - merged
@@ -51,7 +49,6 @@ pull_request_rules:
         branches:
           - "7.17"
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
->>>>>>> 7c194b96 (apm-server: main (#7098))
   - name: backport patches to 7.16 branch
     conditions:
       - merged

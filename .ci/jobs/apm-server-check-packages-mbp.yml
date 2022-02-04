@@ -12,11 +12,7 @@
         discover-pr-forks-trust: permission
         discover-pr-origin: merge-current
         discover-tags: false
-<<<<<<< HEAD
-        head-filter-regex: '(master|7\.1\d|8\.\d+)'
-=======
         head-filter-regex: '(main|7\.1[6789]|8\.\d+)'
->>>>>>> 7c194b96 (apm-server: main (#7098))
         notification-context: 'beats-tester'
         build-strategies:
         - skip-initial-build: true
