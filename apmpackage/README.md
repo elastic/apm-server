@@ -28,13 +28,8 @@
     - Go to the Fleet UI, install the integration and test what you need. You generally will want to have a look at the
    installed assets (ie. templates and pipelines), and the generated `apm` input in the policy.
     - If you need to change the package, you *must* remove the installed integration first. You can use the UI
-<<<<<<< HEAD
-    or the API, eg: `curl -X DELETE -k -u elastic:changeme https://localhost:5601/abc/api/fleet/epm/packages/apm-0.1.0 -H 'kbn-xsrf: xyz'`
-    See [API docs](https://github.com/elastic/kibana/tree/master/x-pack/plugins/fleet/dev_docs/api) for details.
-=======
     or the API, eg: `curl -X DELETE -u admin:changeme -H kbn-xsrf:true http://localhost:5601/api/fleet/epm/packages/apm-0.1.0`
     See [API docs](https://github.com/elastic/kibana/tree/main/x-pack/plugins/fleet/dev_docs/api) for details.
->>>>>>> 7c194b96 (apm-server: main (#7098))
     You normally don't need to restart the registry (an exception to this is eg. if you change a `hbs` template file).
 
 5. Upload to the snapshot registry

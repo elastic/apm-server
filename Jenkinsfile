@@ -32,13 +32,8 @@ pipeline {
     issueCommentTrigger("(${obltGitHubComments()}|^run\\W+(?:the\\W+)?(hey-apm|package|arm)\\W+tests|^/test|^/hey-apm|^/package)")
   }
   parameters {
-<<<<<<< HEAD
-    booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
-    booleanParam(name: 'arm_ci', defaultValue: false, description: 'Enable ARM build')
-=======
     booleanParam(name: 'Run_As_Main_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on main branch.')
     booleanParam(name: 'arm_ci', defaultValue: true, description: 'Enable ARM build')
->>>>>>> 7c194b96 (apm-server: main (#7098))
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
     booleanParam(name: 'osx_ci', defaultValue: true, description: 'Enable OSX CI')
     booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
