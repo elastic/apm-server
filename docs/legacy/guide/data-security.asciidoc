@@ -17,7 +17,7 @@ Elastic APM provides built-in support for filtering the following types of data:
 |Data type |Common sensitive data
 |<<filter-http-header>> |Passwords, credit card numbers, authorization, etc.
 |<<filter-http-body>> |Passwords, credit card numbers, etc.
-|<<filters-personal-data>> |Client IP address and user agent.
+|<<filter-personal-data>> |Client IP address and user agent.
 |<<filter-real-user-data>> |URLs visited, click events, user browser errors, resources used, etc.
 |<<filter-database-statements>> |Sensitive user or business information
 |====
@@ -97,7 +97,7 @@ which means the list of sanitized fields can be updated without needing to redep
 * Ruby: {apm-ruby-ref-v}/configuration.html#config-capture-body[`capture_body`]
 
 [discrete]
-[[filters-personal-data]]
+[[filter-personal-data]]
 ==== Personal data
 
 By default, the APM Server captures some personal data associated with trace events:

@@ -44,7 +44,7 @@ Use the <<config-auth-anon-allow-agent>> and <<config-auth-anon-allow-service>> 
 `agent.name` and `service.name` of each incoming request match a specified list.
 
 Additionally, the APM Server can rate-limit unauthenticated requests based on the client IP address
-(`client.ip`) of the request with <<rate_limit.event_limit>>.
+(`client.ip`) of the request with <<config-auth-anon-event-limit>>.
 This allows you to specify the maximum number of requests allowed per unique IP address, per second.
 
 [float]
