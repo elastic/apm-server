@@ -100,7 +100,7 @@ which means the list of sanitized fields can be updated without needing to redep
 By default, the APM Server captures some personal data associated with trace events:
 
 * `client.ip`: The client's IP address. Typically derived from the HTTP headers of incoming requests.
-`client.ip` is also used in conjunction with the {ref}/geoip-processor[`geoip` processor] to assign
+`client.ip` is also used in conjunction with the {ref}/geoip-processor.html[`geoip` processor] to assign
 geographical information to trace events. To learn more about how `client.ip` is derived,
 see <<derive-client-ip>>.
 * `user_agent`: User agent data, including the client operating system, device name, vendor, and version.
