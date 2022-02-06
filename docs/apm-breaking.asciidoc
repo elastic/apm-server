@@ -7,6 +7,8 @@
 // These tagged regions are required for the stack-docs repo includes
 // tag::81-bc[]
 // end::81-bc[]
+// tag::notable-v8-breaking-changes[]
+// end::notable-v8-breaking-changes[]
 
 This section describes the breaking changes and deprecations introduced in this release
 and previous minor versions.
