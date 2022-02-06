@@ -8,46 +8,103 @@
 // tag::notable-v8-breaking-changes[]
 // end::notable-v8-breaking-changes[]
 
+This section describes the breaking changes and deprecations introduced in this release
+and previous minor versions.
+
 [float]
 [[breaking-changes-8.0]]
 === 8.0
 
-// todo: this is rough for now. still need to link to relevant docs
-// and pull in more from release notes.
-
 // tag::80-bc[]
-* All index management has been removed from APM Server;
+The following breaking changes are introduced in APM version 8.0.
+
+[float]
+==== Indices are now manged by {fleet}
+
+All index management has been removed from APM Server;
 {fleet} is now entirely responsible for setting up index templates, index lifecycle polices,
 and index pipelines.
-* APM Server now only writes to well-defined data streams;
-writing to classic indices is no longer supported.
-* APM Server has a new {es} output implementation with defaults that should be sufficient for
-most use cases.
 
-As a result of the above changes, the following index management and index tuning configuration variables
-have been removed:
+As a part of this change, the following settings have been removed:
 
-* `apm-server.ilm.*``
+* `apm-server.ilm.*`
 * `apm-server.register.ingest.pipeline.*`
-* `output.elasticsearch.bulk_max_size`
+* `setup.*`
+
+[float]
+==== Data streams by default
+
+APM Server now only writes to well-defined data streams;
+writing to classic indices is no longer supported.
+
+As a part of this change, the following settings have been removed:
+
+* `apm-server.data_streams.enabled`
 * `output.elasticsearch.index`
 * `output.elasticsearch.indices`
 * `output.elasticsearch.pipeline`
 * `output.elasticsearch.pipelines`
+
+[float]
+==== New {es} output
+
+APM Server has a new {es} output implementation with defaults that should be sufficient for
+most use cases; it should no longer be necessary to manually tune the output
+of APM Server.
+
+As a part of this change, the following settings have been removed:
+
+* `output.elasticsearch.bulk_max_size`
 * `output.elasticsearch.worker`
 * `queue.*`
-* `setup.*`
 
-The following configuration variables have been introduced:
+[float]
+==== New source map upload endpoint
 
-* `output.elasticsearch.flush_bytes`: threshold for bulk request size, in bytes (with suffix), before flushing to {es}. The value must have a suffix, e.g. `"1MB"`, and defaults to `5MB`.
-* `output.elasticsearch.flush_interval`: max duration for accumulating events for a bulk request before it is flushed to {es}. The value must have a duration suffix, e.g. `"5s"`, and defaults to `1s`.
+The source map upload endpoint has been removed from APM Server.
+Source maps should now be uploaded directly to {kib} instead.
 
-// talk about no queue
-// see https://github.com/elastic/apm-server/issues/6662 for more
-// jaeger
-// instrumentation
-// source map upload endpoint
-// onboarding docs
+[float]
+==== Legacy Jaeger endpoints have been removed
 
+The legacy Jaeger gRPC and HTTP endpoints have been removed from APM Server.
+
+As a part of this change, the following settings have been removed:
+
+* `apm-server.jaeger`
+
+[float]
+==== All removed and changed settings
+
+A complete list of all removed settings (in alphabetical order)
+
+[source,yml]
+----
+apm-server.data_streams.enabled
+apm-server.ilm.*
+apm-server.jaeger
+apm-server.register.ingest.pipeline.*
+apm-server.sampling.keep_unsampled
+output.elasticsearch.bulk_max_size
+output.elasticsearch.index
+output.elasticsearch.indices
+output.elasticsearch.pipeline
+output.elasticsearch.pipelines
+output.elasticsearch.worker
+queue.*
+setup.*
+----
+
+A complete list of renamed settings (in alphabetical order)
+
+[source,yml]
+----
+previous setting                --> new setting
+
+apm-server.api_key              --> apm-server.auth.api_key
+apm-server.instrumentation      --> instrumentation
+apm-server.rum.allowed_service  --> apm-server.auth.anonymous.allow_service
+apm-server.rum.event_rate       --> apm-server.auth.anonymous.rate_limit
+apm-server.secret_token         --> apm-server.auth.secret_token
+----
 // end::80-bc[]
