@@ -5,8 +5,8 @@
 === Breaking Changes
 
 // These tagged regions are required for the stack-docs repo includes
-// tag::notable-v8-breaking-changes[]
-// end::notable-v8-breaking-changes[]
+// tag::81-bc[]
+// end::81-bc[]
 
 This section describes the breaking changes and deprecations introduced in this release
 and previous minor versions.
@@ -76,7 +76,8 @@ As a part of this change, the following settings have been removed:
 [float]
 ==== All removed and changed settings
 
-A complete list of all removed settings (in alphabetical order)
+Below is a list of all **removed settings** (in alphabetical order) for
+users upgrading a standalone (legacy) APM Server to {stack} version 8.0.
 
 [source,yml]
 ----
@@ -95,7 +96,8 @@ queue.*
 setup.*
 ----
 
-A complete list of renamed settings (in alphabetical order)
+Below is a list of **renamed settings** (in alphabetical order) for
+users upgrading a standalone (legacy) APM Server to {stack} version 8.0.
 
 [source,yml]
 ----
@@ -107,4 +109,41 @@ apm-server.rum.allowed_service  --> apm-server.auth.anonymous.allow_service
 apm-server.rum.event_rate       --> apm-server.auth.anonymous.rate_limit
 apm-server.secret_token         --> apm-server.auth.secret_token
 ----
+
+[float]
+==== Supported {ecloud} settings
+
+Below is a list of all **supported settings** (in alphabetical order) for
+users upgrading an {ecloud} standalone (legacy) cluster to {stack} version 8.0.
+Any previously supported settings not listed below will be removed when upgrading.
+
+[source,yml]
+----
+apm-server.agent.config.cache.expiration
+apm-server.aggregation.transactions.* //experimental
+apm-server.auth.anonymous.allow_agent
+apm-server.auth.anonymous.allow_service
+apm-server.auth.anonymous.rate_limit.event_limit
+apm-server.auth.anonymous.rate_limit.ip_limit
+apm-server.auth.api_key.enabled
+apm-server.auth.api_key.limit
+apm-server.capture_personal_data
+apm-server.default_service_environment
+apm-server.max_event_size
+apm-server.rum.allow_headers
+apm-server.rum.allow_origins
+apm-server.rum.enabled
+apm-server.rum.exclude_from_grouping
+apm-server.rum.library_pattern
+apm-server.rum.source_mapping.enabled
+apm-server.rum.source_mapping.cache.expiration
+logging.level
+logging.selectors
+logging.metrics.enabled
+logging.metrics.period
+max_procs
+output.elasticsearch.flush_bytes
+output.elasticsearch.flush_interval
+----
+
 // end::80-bc[]
