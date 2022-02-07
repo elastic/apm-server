@@ -122,7 +122,7 @@ func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient elasti
 	for _, template := range templates {
 		template := template // copy for closure
 		g.Go(func() error {
-			req := esapi.IndicesGetIndexTemplateRequest{Name: []string{template}}
+			req := esapi.IndicesGetIndexTemplateRequest{Name: template}
 			resp, err := req.Do(ctx, esClient)
 			if err != nil {
 				return err
