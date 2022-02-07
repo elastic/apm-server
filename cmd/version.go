@@ -18,4 +18,4 @@
 package cmd
 
 // name matches github.com/elastic/beats/v7/dev-tools/mage/settings.go parseBeatVersion
-const defaultBeatVersion = "8.1.0"
+const defaultBeatVersion = "8.2.0"

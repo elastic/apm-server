@@ -116,6 +116,7 @@ func (rt *channelClientRoundTripper) RoundTrip(r *http.Request) (*http.Response,
 		panic(fmt.Errorf("unhandled path %q %q", r.Method, r.URL.Path))
 	}
 	recorder := httptest.NewRecorder()
+	recorder.Header().Set("X-Elastic-Product", "Elasticsearch")
 	if err := handler(r, recorder); err != nil {
 		return nil, err
 	}
