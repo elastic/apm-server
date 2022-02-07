@@ -42,7 +42,7 @@ var (
 	force     bool
 	keep      bool
 	namespace string
-	vars      varsFlag
+	vars      = make(varsFlag)
 )
 
 func init() {
