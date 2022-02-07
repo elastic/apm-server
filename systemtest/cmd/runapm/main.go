@@ -38,19 +38,12 @@ const (
 )
 
 var (
-<<<<<<< HEAD
-	force     bool
-	keep      bool
-	namespace string
-	vars      varsFlag
-=======
 	force            bool
 	reinstallPackage bool
 	keep             bool
 	policyName       string
 	namespace        string
 	vars             = make(varsFlag)
->>>>>>> e045440e (runapm: make policy name and reinstall flags (#7197))
 )
 
 func init() {
