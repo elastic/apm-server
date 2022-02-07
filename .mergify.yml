@@ -20,7 +20,7 @@ pull_request_rules:
   - name: backport patches to 8.1 branch
     conditions:
       - merged
-      - base=master
+      - base=main
       - label=backport-8.1
     actions:
       backport:

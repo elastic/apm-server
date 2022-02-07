@@ -75,6 +75,7 @@ func TestModelIndexer(t *testing.T) {
 			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: item})
 		}
 		atomic.AddInt64(&indexed, int64(len(result.Items)))
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		json.NewEncoder(w).Encode(result)
 	})
 	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute})
@@ -130,6 +131,7 @@ func TestModelIndexerEncoding(t *testing.T) {
 			indexed = append(indexed, doc)
 			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: {}})
 		}
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		json.NewEncoder(w).Encode(result)
 	})
 	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute})
@@ -317,6 +319,7 @@ func TestModelIndexerLogRateLimit(t *testing.T) {
 			}
 			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: item})
 		}
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		json.NewEncoder(w).Encode(result)
 	})
 	indexer, err := modelindexer.New(client, modelindexer.Config{FlushBytes: 500})
@@ -390,6 +393,7 @@ func TestModelIndexerCloseFlushContext(t *testing.T) {
 
 func TestModelIndexerUnknownResponseFields(t *testing.T) {
 	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		w.Write([]byte(`{"ingest_took":123}`))
 	})
 	indexer, err := modelindexer.New(client, modelindexer.Config{})
@@ -417,6 +421,7 @@ func testModelIndexerTracing(t *testing.T, statusCode int, expectedOutcome strin
 	logp.DevelopmentSetup(logp.ToObserverOutput())
 
 	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		w.WriteHeader(statusCode)
 		scanner := bufio.NewScanner(r.Body)
 		result := elasticsearch.BulkIndexerResponse{HasErrors: true}
