@@ -52,10 +52,9 @@ releases of 8.0.0.
 - Modify default standalone apm-server config values to be more in line with the default managed apm-server values {pull}6675[6675]
 - APM Server now has beta support to receive OpenTelemetry Logs on the OTLP/GRPC receiver {pull}6768[6768]
 - experimental:[] Add support for CloudWatch metric streams through firehose endpoint {pull}6380[6380]
-- Upgrade Go to 1.16.5 {pull}5454[5454]
 - Add HTTP span fields as top level ECS fields {pull}5396[5396]
 - Introduce `apm-server.auth.anonymous.*` config {pull}5623[5623]
-- Upgrade Go to 1.16.6 {pull}5754[5754]
+- Upgrade Go to 1.17.6 {pull}7207[7207]
 - Introduce ingest pipeline `apm_data_stream_migration` for migrating pre-data stream indices {pull}5768[5768]
 
 [float]
