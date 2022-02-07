@@ -9,7 +9,7 @@ beta::[]
 
 ****
 This documentation is for a previous release of Elastic APM.
-To upgrade to the current version, see {apm-guide-ref}/upgrade.html[Upgrade Elastic APM].
+To upgrade to the current version, see {apm-guide-7x}/upgrade.html[Upgrade Elastic APM].
 ****
 
 {agent} is a single, unified way to add monitoring for logs, metrics, and other types of data to each host.
