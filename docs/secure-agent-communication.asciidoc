@@ -251,7 +251,7 @@ This allows you to specify the maximum number of requests allowed per unique IP 
 [[derive-client-ip]]
 === Deriving an incoming request's `client.ip` address
 
-Due to CDNs, proxies, etc., the remote IP address of an incoming request might be different
+Due to proxies, the remote IP address of an incoming request might be different
 from the end-user's actual IP address. For this reason,
 the APM Server attempts to derive the IP address of an incoming request from HTTP headers.
 The supported headers are parsed in the following order:
