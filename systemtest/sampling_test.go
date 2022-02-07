@@ -90,8 +90,6 @@ func TestDropUnsampled(t *testing.T) {
 }
 
 func TestTailSampling(t *testing.T) {
-	// We should remove the skip once the issue is resolved.
-	t.Skip("Skipped due: https://github.com/elastic/fleet-server/issues/1048")
 	systemtest.CleanupElasticsearch(t)
 
 	apmIntegration1 := newAPMIntegration(t, map[string]interface{}{
