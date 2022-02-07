@@ -51,8 +51,8 @@ This allows you to specify the maximum number of requests allowed per unique IP 
 [[config-auth-anon-client-ip]]
 ==== Deriving an incoming request's `client.ip` address
 
-Due to CDNs, proxies, etc., the remote IP address of an incoming request might be different
-from the end-user's actual IP address. For this reason,
+The remote IP address of an incoming request might be different
+from the end-user's actual IP address, for example, because of a proxy. For this reason,
 the APM Server attempts to derive the IP address of an incoming request from HTTP headers.
 The supported headers are parsed in the following order:
 
@@ -61,6 +61,21 @@ The supported headers are parsed in the following order:
 3. `X-Forwarded-For`
 
 If none of these headers are present, the remote address for the incoming request is used.
+
+[float]
+[[config-auth-anon-client-ip-concerns]]
+==== Using a reverse proxy or load balancer
+
+HTTP headers are easily modified;
+it's possible for anyone to spoof the derived `client.ip` value by changing or setting,
+for example, the value of the `X-Forwarded-For` header.
+For this reason, if all of your clients are not trusted,
+we recommend setting up a reverse proxy or load balancer in front of the APM Server.
+
+Using a proxy allows you to clear any existing IP-forwarding HTTP headers,
+and replace them with one set by the proxy.
+This prevents malicious users from cycling spoofed IP addresses to bypass the
+APM Server's rate limiting feature.
 
 [float]
 [[config-auth-anon]]
