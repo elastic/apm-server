@@ -33,7 +33,7 @@ Elastic APM Server natively supports the OpenTelemetry protocol.
 This means trace data and metrics collected from your applications and infrastructure can
 be sent directly to Elastic APM Server using the OpenTelemetry protocol.
 
-image::./../legacy/guide/images/open-telemetry-protocol-arch.png[OpenTelemetry Elastic architecture diagram]
+image::./images/open-telemetry-protocol-arch.png[OpenTelemetry Elastic architecture diagram]
 
 [float]
 [[instrument-apps-otel]]
@@ -182,8 +182,9 @@ TSVB within {kib} is the recommended visualization for OpenTelemetry metrics. TS
 In this example eCommerce OpenTelemetry dashboard, there are four visualizations: sales, order count, product cache, and system load. The dashboard provides us with business
 KPI metrics, along with performance-related metrics.
 
+
 [role="screenshot"]
-image::./../legacy/guide/images/ecommerce-dashboard.png[OpenTelemetry visualizations]
+image::./images/ecommerce-dashboard.png[OpenTelemetry visualizations]
 
 Let's look at how this dashboard was created, specifically the Sales USD and System load visualizations.
 
