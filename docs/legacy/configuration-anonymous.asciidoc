@@ -69,7 +69,7 @@ If none of these headers are present, the remote address for the incoming reques
 HTTP headers are easily modified;
 it's possible for anyone to spoof the derived `client.ip` value by changing or setting,
 for example, the value of the `X-Forwarded-For` header.
-For this reason, if all of your clients are not trusted,
+For this reason, if any of your clients are not trusted,
 we recommend setting up a reverse proxy or load balancer in front of the APM Server.
 
 Using a proxy allows you to clear any existing IP-forwarding HTTP headers,
