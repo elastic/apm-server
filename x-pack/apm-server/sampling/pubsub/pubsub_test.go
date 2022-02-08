@@ -153,7 +153,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 			// The previous _search responded non-empty, and the greatest
 			// _seq_no was not equal to the global checkpoint: _search again
 			// after _seq_no 2.
-			assertSearchQueryFilterEqual(`[{"range":{"_seq_no":{"lte":99}}}]`, body)
+			assertSearchQueryFilterEqual(`[{"range":{"_seq_no":{"lte":99}}},{"range":{"_seq_no":{"gt":2}}}]`, body)
 			ms.searchResults = []searchHit{
 				newSearchHit(3, "trace_3"),
 				newSearchHit(98, "trace_98"),
@@ -163,7 +163,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 			// _seq_no was not equal to the global checkpoint: _search again
 			// after _seq_no 98. This time we respond with no hits, so the
 			// subscriber goes back to sleep.
-			assertSearchQueryFilterEqual(`[{"range":{"_seq_no":{"lte":99}}}]`, body)
+			assertSearchQueryFilterEqual(`[{"range":{"_seq_no":{"lte":99}}},{"range":{"_seq_no":{"gt":98}}}]`, body)
 			ms.searchResults = nil
 		case 4:
 			// The search now has an exclusive lower bound of the previously
@@ -175,10 +175,24 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 			}
 		case 5:
 			// After advancing the global checkpoint, a new search will be made
-			// with increased lower and upper bounds.
-			assertSearchQueryFilterEqual(`[{"range":{"_seq_no":{"lte":100}}},{"range":{"_seq_no":{"gt":99}}}]`, body)
-			ms.searchResults = []searchHit{
-				newSearchHit(100, "trace_100"),
+			// with increased lower and upper bounds. Each search can return at
+			// most 1000 results.
+			assertSearchQueryFilterEqual(`[{"range":{"_seq_no":{"lte":1200}}},{"range":{"_seq_no":{"gt":99}}}]`, body)
+			ms.searchResults = []searchHit{}
+			for i := 100; i <= 1100; i++ {
+				ms.searchResults = append(ms.searchResults,
+					newSearchHit(int64(i), fmt.Sprintf("trace_%d", i)),
+				)
+			}
+		case 6:
+			// The previous search returned the maximum size, so another search
+			// is made for the remainder.
+			assertSearchQueryFilterEqual(`[{"range":{"_seq_no":{"lte":1200}}},{"range":{"_seq_no":{"gt":1100}}}]`, body)
+			ms.searchResults = []searchHit{}
+			for i := 1101; i <= 1200; i++ {
+				ms.searchResults = append(ms.searchResults,
+					newSearchHit(int64(i), fmt.Sprintf("trace_%d", i)),
+				)
 			}
 		}
 	}
@@ -211,9 +225,11 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 
 	// Advance global checkpoint, expect a new search and new position to be reported.
 	ms.statsGlobalCheckpointMu.Lock()
-	ms.statsGlobalCheckpoint = 100
+	ms.statsGlobalCheckpoint = 1200
 	ms.statsGlobalCheckpointMu.Unlock()
-	assert.Equal(t, "trace_100", expectValue(t, ids))
+	for i := 100; i <= 1200; i++ {
+		assert.Equal(t, fmt.Sprintf("trace_%d", i), expectValue(t, ids))
+	}
 	select {
 	case pos2 := <-positions:
 		assert.NotEqual(t, pos, pos2)
@@ -340,8 +356,12 @@ func newMockElasticsearchServer(t testing.TB) *mockElasticsearchServer {
 	mux.HandleFunc("/"+dataStream.String()+"/_stats/get", m.handleStats)
 	mux.HandleFunc("/index_name/_refresh", m.handleRefresh)
 	mux.HandleFunc("/index_name/_search", m.handleSearch)
+	var withElasticProduct http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		mux.ServeHTTP(w, r)
+	}
 
-	m.srv = httptest.NewServer(mux)
+	m.srv = httptest.NewServer(withElasticProduct)
 	t.Cleanup(m.srv.Close)
 	return m
 }

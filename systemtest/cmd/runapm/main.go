@@ -34,20 +34,23 @@ import (
 )
 
 const (
-	policyName        = "runapm"
 	policyDescription = "policy created by apm-server/systemtest/cmd/runapm"
 )
 
 var (
-	force     bool
-	keep      bool
-	namespace string
-	vars      = make(varsFlag)
+	force            bool
+	reinstallPackage bool
+	keep             bool
+	policyName       string
+	namespace        string
+	vars             = make(varsFlag)
 )
 
 func init() {
+	flag.StringVar(&policyName, "policy", "runapm", "Agent policy name")
 	flag.StringVar(&namespace, "namespace", "default", "Agent policy namespace")
 	flag.BoolVar(&force, "f", false, "Force agent policy creation, deleting existing policy if found")
+	flag.BoolVar(&reinstallPackage, "reinstall", true, "Reinstall APM integration package")
 	flag.BoolVar(&keep, "keep", false, "If true, agent policy and agent will not be destroyed on exit")
 	flag.Var(vars, "var", "Define a package var (k=v), with values being YAML-encoded; can be specified more than once")
 }
@@ -99,7 +102,7 @@ func Main() error {
 			}
 		}
 	}
-	if err := systemtest.InitFleet(); err != nil {
+	if err := systemtest.InitFleetPackage(reinstallPackage); err != nil {
 		return err
 	}
 
