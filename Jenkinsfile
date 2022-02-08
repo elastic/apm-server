@@ -32,7 +32,7 @@ pipeline {
     issueCommentTrigger("(${obltGitHubComments()}|^run\\W+(?:the\\W+)?(hey-apm|package|arm)\\W+tests|^/test|^/hey-apm|^/package)")
   }
   parameters {
-    booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
+    booleanParam(name: 'Run_As_Main_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on main branch.')
     booleanParam(name: 'arm_ci', defaultValue: true, description: 'Enable ARM build')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
     booleanParam(name: 'osx_ci', defaultValue: true, description: 'Enable OSX CI')
@@ -379,11 +379,11 @@ pipeline {
             beforeAgent true
             allOf {
               anyOf {
-                branch 'master'
+                branch 'main'
                 branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
                 branch pattern: 'v\\d?', comparator: 'REGEXP'
                 tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
-                expression { return params.Run_As_Master_Branch }
+                expression { return params.Run_As_Main_Branch }
               }
               expression { return params.bench_ci }
               expression { return env.ONLY_DOCS == "false" }
@@ -440,12 +440,12 @@ pipeline {
               expression { return params.release_ci }
               expression { return env.ONLY_DOCS == "false" }
               anyOf {
-                branch 'master'
+                branch 'main'
                 branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
                 tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
                 expression { return isPR() && env.BEATS_UPDATED != "false" }
                 expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
-                expression { return params.Run_As_Master_Branch }
+                expression { return params.Run_As_Main_Branch }
               }
             }
           }
@@ -497,7 +497,7 @@ pipeline {
             allOf {
               anyOf {
                 changeRequest()
-                expression { return !params.Run_As_Master_Branch }
+                expression { return !params.Run_As_Main_Branch }
               }
               expression { return params.its_ci }
               expression { return env.ONLY_DOCS == "false" }

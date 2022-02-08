@@ -10,7 +10,7 @@ Guidelines:
  - Once the PR is marked ready for review it is expected to pass all tests and linting,
    and you should not force-push any changes.
 
-See also https://github.com/elastic/apm-server/blob/master/CONTRIBUTING.md for more tips on contributing.
+See also https://github.com/elastic/apm-server/blob/main/CONTRIBUTING.md for more tips on contributing.
 -->
 
 ## Motivation/summary
@@ -27,8 +27,8 @@ Delete irrelevant items. The changelog should only be updated for user-facing ch
 Once the PR is ready for review there should be no unticked boxes.
 -->
 
-- [ ] Update [CHANGELOG.asciidoc](https://github.com/elastic/apm-server/blob/master/CHANGELOG.asciidoc)
-- [ ] Update [package changelog.yml](https://github.com/elastic/apm-server/blob/master/apmpackage/apm/changelog.yml) (only if changes to `apmpackage` have been made)
+- [ ] Update [CHANGELOG.asciidoc](https://github.com/elastic/apm-server/blob/main/CHANGELOG.asciidoc)
+- [ ] Update [package changelog.yml](https://github.com/elastic/apm-server/blob/main/apmpackage/apm/changelog.yml) (only if changes to `apmpackage` have been made)
 - [ ] Documentation has been updated
 
 For functional changes, consider:

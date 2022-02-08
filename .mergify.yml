@@ -13,10 +13,46 @@ pull_request_rules:
             git merge upstream/{{base}}
             git push upstream {{head}}
             ```
-  - name: backport patches to 7.16 branch
+  - name: backport patches to 8.1 branch
     conditions:
       - merged
       - base=master
+      - label=backport-8.1
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.1"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 8.0 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-8.0
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.0"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 7.17 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-7.17
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "7.17"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 7.16 branch
+    conditions:
+      - merged
+      - base=main
       - label=backport-7.16
     actions:
       backport:
@@ -28,7 +64,7 @@ pull_request_rules:
   - name: backport patches to 7.15 branch
     conditions:
       - merged
-      - base=master
+      - base=main
       - label=backport-7.15
     actions:
       backport:
@@ -40,7 +76,7 @@ pull_request_rules:
   - name: backport patches to 7.14 branch
     conditions:
       - merged
-      - base=master
+      - base=main
       - label=backport-7.14
     actions:
       backport:
@@ -52,7 +88,7 @@ pull_request_rules:
   - name: backport patches to 7.13 branch
     conditions:
       - merged
-      - base=master
+      - base=main
       - label=backport-7.13
     actions:
       backport:
@@ -104,7 +140,7 @@ pull_request_rules:
   - name: notify the backport policy
     conditions:
       - -label~=^backport
-      - base=master
+      - base=main
     actions:
       comment:
         message: |

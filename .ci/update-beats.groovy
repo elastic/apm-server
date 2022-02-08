@@ -31,8 +31,8 @@ pipeline {
     PIPELINE_LOG_LEVEL = 'INFO'
   }
   triggers {
-    // Only master branch will run on a timer basis
-    cron(env.BRANCH_NAME == 'master' ? 'H H(4-5) * * 1,5' : '')
+    // Only main branch will run on a timer basis
+    cron(env.BRANCH_NAME == 'main' ? 'H H(4-5) * * 1,5' : '')
   }
   options {
     timeout(time: 1, unit: 'HOURS')
