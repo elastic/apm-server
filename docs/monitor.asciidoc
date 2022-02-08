@@ -31,6 +31,13 @@ To collect and ship monitoring data:
 [[configure-ea-monitoring-data]]
 ==== Configure {agent} to send monitoring data
 
+****
+Before you can monitor APM,
+you must have monitoring data for the {es} production cluster.
+To learn how, see {ref}/configuring-metricbeat.html[Collect {es} monitoring data with Metricbeat].
+Alternatively, open the **Stack Monitoring** app in {kib} and follow the in-product guide.
+****
+
 . Enable monitoring of {agent} by adding the following settings to your `elastic-agent.yml` configuration file:
 +
 --
@@ -202,6 +209,6 @@ For more information about these configuration options, see
 --
 
 . {metricbeat-ref}/metricbeat-starting.html[Start {metricbeat}] to begin
-collecting monitoring data.
+collecting APM monitoring data.
 
 . {kibana-ref}/monitoring-data.html[View the monitoring data in {kib}].
