@@ -76,6 +76,11 @@ As a part of this change, the following settings have been removed:
 * `apm-server.jaeger`
 
 [float]
+==== Homebrew no longer supported
+
+APM Server no longer supports installation via Homebrew.
+
+[float]
 ==== All removed and changed settings
 
 Below is a list of all **removed settings** (in alphabetical order) for
