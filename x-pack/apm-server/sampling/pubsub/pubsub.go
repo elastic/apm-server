@@ -298,6 +298,7 @@ func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, ind
 			}
 		}
 		maxObservedSeqno = result.Hits.Hits[len(result.Hits.Hits)-1].Seqno
+		minSeqno = maxObservedSeqno
 	}
 	return maxObservedSeqno, nil
 }
