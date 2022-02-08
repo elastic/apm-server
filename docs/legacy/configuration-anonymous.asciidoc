@@ -34,6 +34,50 @@ is set to `true`, and <<config-auth-anon-enabled,`apm-server.auth.anonymous.enab
 See <<configuration-rum>> for additional RUM configuration options.
 
 [float]
+[[config-auth-anon-mitigating]]
+=== Mitigating malicious requests
+
+There are a few configuration variables that can mitigate the impact of malicious requests to an
+unauthenticated APM Server endpoint.
+
+Use the <<config-auth-anon-allow-agent>> and <<config-auth-anon-allow-service>> configs to ensure that the
+`agent.name` and `service.name` of each incoming request match a specified list.
+
+Additionally, the APM Server can rate-limit unauthenticated requests based on the client IP address
+(`client.ip`) of the request with <<config-auth-anon-event-limit>>.
+This allows you to specify the maximum number of requests allowed per unique IP address, per second.
+
+[float]
+[[config-auth-anon-client-ip]]
+==== Deriving an incoming request's `client.ip` address
+
+The remote IP address of an incoming request might be different
+from the end-user's actual IP address, for example, because of a proxy. For this reason,
+the APM Server attempts to derive the IP address of an incoming request from HTTP headers.
+The supported headers are parsed in the following order:
+
+1. `Forwarded`
+2. `X-Real-Ip`
+3. `X-Forwarded-For`
+
+If none of these headers are present, the remote address for the incoming request is used.
+
+[float]
+[[config-auth-anon-client-ip-concerns]]
+==== Using a reverse proxy or load balancer
+
+HTTP headers are easily modified;
+it's possible for anyone to spoof the derived `client.ip` value by changing or setting,
+for example, the value of the `X-Forwarded-For` header.
+For this reason, if any of your clients are not trusted,
+we recommend setting up a reverse proxy or load balancer in front of the APM Server.
+
+Using a proxy allows you to clear any existing IP-forwarding HTTP headers,
+and replace them with one set by the proxy.
+This prevents malicious users from cycling spoofed IP addresses to bypass the
+APM Server's rate limiting feature.
+
+[float]
 [[config-auth-anon]]
 === Configuration reference
 
@@ -77,15 +121,5 @@ Default: `1000`
 [[config-auth-anon-event-limit]]
 ==== `rate_limit.event_limit`
 The maximum number of events allowed per second, per agent IP address.
-
-The APM Server first attempts to derive the IP address from proxy headers. The
-supported headers are parsed in the following order:
-
-- `Forwarded`
-- `X-Real-Ip`
-- `X-Forwarded-For`
-
-If none of these headers is present, the remote address for the incoming
-request is used.
 
 Default: `300`
