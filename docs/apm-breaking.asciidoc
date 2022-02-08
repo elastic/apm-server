@@ -122,7 +122,7 @@ Any previously supported settings not listed below will be removed when upgradin
 [source,yml]
 ----
 apm-server.agent.config.cache.expiration
-apm-server.aggregation.transactions.* //experimental
+apm-server.aggregation.transactions.*
 apm-server.auth.anonymous.allow_agent
 apm-server.auth.anonymous.allow_service
 apm-server.auth.anonymous.rate_limit.event_limit
