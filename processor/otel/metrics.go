@@ -120,9 +120,9 @@ type apmMetricValue struct {
 }
 
 type jvmMemoryKey struct {
-	area  string
-	type_ string
-	pool  string // will be "" for non-pool specific memory metrics
+	area    string
+	jvmType string
+	pool    string // will be "" for non-pool specific memory metrics
 }
 
 // accumulate processes m, translating to and accumulating equivalent Elastic APM metrics in b.
@@ -169,10 +169,10 @@ func (b *apmMetricsBuilder) accumulate(m pdata.Metric) {
 							b.nonIdleCPUUtilizationSum.timestamp = dp.Timestamp().AsTime()
 						}
 					}
-					if cpuIdStr, exists := dp.Attributes().Get("cpu"); exists {
-						cpuId, _ := strconv.Atoi(cpuIdStr.StringVal())
-						if cpuId+1 > b.cpuCount {
-							b.cpuCount = cpuId + 1
+					if cpuIDStr, exists := dp.Attributes().Get("cpu"); exists {
+						cpuID, _ := strconv.Atoi(cpuIDStr.StringVal())
+						if cpuID+1 > b.cpuCount {
+							b.cpuCount = cpuID + 1
 						}
 					}
 				case "runtime.jvm.memory.area":
@@ -182,13 +182,13 @@ func (b *apmMetricsBuilder) accumulate(m pdata.Metric) {
 						case "area":
 							key.area = v.AsString()
 						case "type":
-							key.type_ = v.AsString()
+							key.jvmType = v.AsString()
 						case "pool":
 							key.pool = v.AsString()
 						}
 						return true
 					})
-					if key.area != "" && key.type_ != "" {
+					if key.area != "" && key.jvmType != "" {
 						b.jvmMemory[key] = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
 					}
 				}
@@ -251,9 +251,9 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 		var elasticapmMetricName string
 		if k.pool != "" {
 			elasticapmAttributes.Insert("name", pdata.NewAttributeValueString(k.pool))
-			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.pool.%s", k.area, k.type_)
+			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.pool.%s", k.area, k.jvmType)
 		} else {
-			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.%s", k.area, k.type_)
+			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.%s", k.area, k.jvmType)
 		}
 		ms.upsertOne(
 			v.timestamp, elasticapmMetricName, elasticapmAttributes,
