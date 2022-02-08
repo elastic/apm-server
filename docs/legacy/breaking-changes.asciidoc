@@ -107,7 +107,6 @@ Upgrade agents to a version that supports APM Server ≥ 6.5.
 {apm-guide-ref}/breaking-7.0.0.html#breaking-remove-v1[More information].
 * Moved fields in Elasticsearch to be compliant with the Elastic Common Schema (ECS).
 {apm-guide-ref}/breaking-7.0.0.html#breaking-ecs[More information and changed fields].
-* {beats-ref}/breaking-changes-7.0.html[Breaking changes in libbeat]
 
 [float]
 === 6.5
