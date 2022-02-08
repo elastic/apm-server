@@ -12,6 +12,7 @@ See <<apm-server-configuration>> for more information.
 
 [float]
 ==== Bug fixes
+- Fix infinite loop in tail-based sampling subscriber causing high CPU and repeated Elasticsearch searches {pull}7211[7211]
 
 [float]
 ==== Intake API Changes
