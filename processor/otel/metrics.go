@@ -183,6 +183,8 @@ func (b *apmMetricsBuilder) accumulate(m pdata.Metric) {
 							key.area = v.AsString()
 						case "type":
 							key.type_ = v.AsString()
+						case "pool":
+							key.pool = v.AsString()
 						}
 						return true
 					})
@@ -245,8 +247,16 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	// jvm.memory.<area>.<type>
 	// Direct translation of runtime.jvm.memory.area (area = xxx, type = xxx)
 	for k, v := range b.jvmMemory {
+		elasticapmAttributes := pdata.NewAttributeMap()
+		var elasticapmMetricName string
+		if k.pool != "" {
+			elasticapmAttributes.Insert("name", pdata.NewAttributeValueString(k.pool))
+			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.pool.%s", k.area, k.type_)
+		} else {
+			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.%s", k.area, k.type_)
+		}
 		ms.upsertOne(
-			v.timestamp, fmt.Sprintf("jvm.memory.%s.%s", k.area, k.type_), pdata.NewAttributeMap(),
+			v.timestamp, elasticapmMetricName, elasticapmAttributes,
 			model.MetricsetSample{Value: v.value},
 		)
 	}

@@ -603,23 +603,16 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		"area": pdata.NewAttributeValueString("heap"),
 		"type": pdata.NewAttributeValueString("used"),
 	})
+	addInt64Gauge("runtime.jvm.memory.area", 24, map[string]pdata.AttributeValue{
+		"area": pdata.NewAttributeValueString("heap"),
+		"type": pdata.NewAttributeValueString("used"),
+		"pool": pdata.NewAttributeValueString("eden"),
+	})
 
 	events, _ := transformMetrics(t, metrics)
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
 	assert.ElementsMatch(t, []model.APMEvent{{
-		Agent:     agent,
-		Service:   service,
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"jvm.memory.heap.used": {
-					Value: 42,
-				},
-			},
-		},
-	}, {
 		Agent:     agent,
 		Service:   service,
 		Labels:    model.Labels{"gc": {Value: "G1 Young Generation"}},
@@ -664,6 +657,45 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 				"runtime.jvm.memory.area": {
 					Type:  "gauge",
 					Value: 42,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"jvm.memory.heap.used": {
+					Value: 42,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"area": {Value: "heap"}, "type": {Value: "used"}, "pool": {Value: "eden"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"runtime.jvm.memory.area": {
+					Type:  "gauge",
+					Value: 24,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"name": {Value: "eden"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"jvm.memory.heap.pool.used": {
+					Value: 24,
 				},
 			},
 		},
