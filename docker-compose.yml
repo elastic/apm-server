@@ -47,20 +47,17 @@ services:
       retries: 300
       interval: 1s
     environment:
-      SERVER_HOST: 0.0.0.0
-      STATUS_ALLOWANONYMOUS: "true"
-      ELASTICSEARCH_URL: elasticsearch:9200
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
       ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-kibana_system_user}"
       ELASTICSEARCH_PASSWORD: "${KIBANA_ES_PASS:-changeme}"
-      XPACK_XPACK_MAIN_TELEMETRY_ENABLED: "false"
-      XPACK_SECURITY_ENCRYPTIONKEY: "fhjskloppd678ehkdfdlliverpoolfcr"
-      XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: "fhjskloppd678ehkdfdlliverpoolfcr"
-      XPACK_FLEET_AGENTS_ELASTICSEARCH_HOST: "http://elasticsearch:9200"
-      XPACK_FLEET_AGENTS_TLSCHECKDISABLED: "true"
+      XPACK_FLEET_AGENTS_FLEET_SERVER_HOSTS: '["https://fleet-server:8220"]'
+      XPACK_FLEET_AGENTS_ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
       XPACK_FLEET_REGISTRYURL: "http://package-registry:8080"
     depends_on:
       elasticsearch: { condition: service_healthy }
       package-registry: { condition: service_healthy }
+    volumes:
+      - "./testing/docker/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml"
 
   fleet-server:
     image: docker.elastic.co/beats/elastic-agent:8.1.0-dbc834fd-SNAPSHOT
@@ -72,6 +69,7 @@ services:
       interval: 1s
     environment:
       FLEET_SERVER_ENABLE: "1"
+      FLEET_SERVER_POLICY_ID: "fleet-server-apm"
       FLEET_SERVER_ELASTICSEARCH_HOST: http://elasticsearch:9200
       FLEET_SERVER_ELASTICSEARCH_USERNAME: "${ES_SUPERUSER_USER:-admin}"
       FLEET_SERVER_ELASTICSEARCH_PASSWORD: "${ES_SUPERUSER_PASS:-changeme}"
