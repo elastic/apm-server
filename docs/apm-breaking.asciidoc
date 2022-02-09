@@ -5,49 +5,152 @@
 === Breaking Changes
 
 // These tagged regions are required for the stack-docs repo includes
+// tag::81-bc[]
+// end::81-bc[]
 // tag::notable-v8-breaking-changes[]
 // end::notable-v8-breaking-changes[]
+
+This section describes the breaking changes and deprecations introduced in this release
+and previous minor versions.
 
 [float]
 [[breaking-changes-8.0]]
 === 8.0
 
-// todo: this is rough for now. still need to link to relevant docs
-// and pull in more from release notes.
-
 // tag::80-bc[]
-* All index management has been removed from APM Server;
+The following breaking changes are introduced in APM version 8.0.
+
+[float]
+==== Indices are now manged by {fleet}
+
+All index management has been removed from APM Server;
 {fleet} is now entirely responsible for setting up index templates, index lifecycle polices,
 and index pipelines.
-* APM Server now only writes to well-defined data streams;
-writing to classic indices is no longer supported.
-* APM Server has a new {es} output implementation with defaults that should be sufficient for
-most use cases.
 
-As a result of the above changes, the following index management and index tuning configuration variables
-have been removed:
+As a part of this change, the following settings have been removed:
 
-* `apm-server.ilm.*``
+* `apm-server.ilm.*`
 * `apm-server.register.ingest.pipeline.*`
-* `output.elasticsearch.bulk_max_size`
+* `setup.*`
+
+[float]
+==== Data streams by default
+
+APM Server now only writes to well-defined data streams;
+writing to classic indices is no longer supported.
+
+As a part of this change, the following settings have been removed:
+
+* `apm-server.data_streams.enabled`
 * `output.elasticsearch.index`
 * `output.elasticsearch.indices`
 * `output.elasticsearch.pipeline`
 * `output.elasticsearch.pipelines`
+
+[float]
+==== New {es} output
+
+APM Server has a new {es} output implementation with defaults that should be sufficient for
+most use cases; it should no longer be necessary to manually tune the output
+of APM Server.
+
+As a part of this change, the following settings have been removed:
+
+* `output.elasticsearch.bulk_max_size`
 * `output.elasticsearch.worker`
 * `queue.*`
-* `setup.*`
 
-The following configuration variables have been introduced:
+[float]
+==== New source map upload endpoint
 
-* `output.elasticsearch.flush_bytes`: threshold for bulk request size, in bytes (with suffix), before flushing to {es}. The value must have a suffix, e.g. `"1MB"`, and defaults to `5MB`.
-* `output.elasticsearch.flush_interval`: max duration for accumulating events for a bulk request before it is flushed to {es}. The value must have a duration suffix, e.g. `"5s"`, and defaults to `1s`.
+The source map upload endpoint has been removed from APM Server.
+Source maps should now be uploaded directly to {kib} instead.
 
-// talk about no queue
-// see https://github.com/elastic/apm-server/issues/6662 for more
-// jaeger
-// instrumentation
-// source map upload endpoint
-// onboarding docs
+[float]
+==== Legacy Jaeger endpoints have been removed
+
+The legacy Jaeger gRPC and HTTP endpoints have been removed from APM Server.
+
+As a part of this change, the following settings have been removed:
+
+* `apm-server.jaeger`
+
+[float]
+==== Homebrew no longer supported
+
+APM Server no longer supports installation via Homebrew.
+
+[float]
+==== All removed and changed settings
+
+Below is a list of all **removed settings** (in alphabetical order) for
+users upgrading a standalone (legacy) APM Server to {stack} version 8.0.
+
+[source,yml]
+----
+apm-server.data_streams.enabled
+apm-server.ilm.*
+apm-server.jaeger
+apm-server.register.ingest.pipeline.*
+apm-server.sampling.keep_unsampled
+output.elasticsearch.bulk_max_size
+output.elasticsearch.index
+output.elasticsearch.indices
+output.elasticsearch.pipeline
+output.elasticsearch.pipelines
+output.elasticsearch.worker
+queue.*
+setup.*
+----
+
+Below is a list of **renamed settings** (in alphabetical order) for
+users upgrading a standalone (legacy) APM Server to {stack} version 8.0.
+
+[source,yml]
+----
+previous setting                --> new setting
+
+apm-server.api_key              --> apm-server.auth.api_key
+apm-server.instrumentation      --> instrumentation
+apm-server.rum.allowed_service  --> apm-server.auth.anonymous.allow_service
+apm-server.rum.event_rate       --> apm-server.auth.anonymous.rate_limit
+apm-server.secret_token         --> apm-server.auth.secret_token
+----
+
+[float]
+==== Supported {ecloud} settings
+
+Below is a list of all **supported settings** (in alphabetical order) for
+users upgrading an {ecloud} standalone (legacy) cluster to {stack} version 8.0.
+Any previously supported settings not listed below will be removed when upgrading.
+
+[source,yml]
+----
+apm-server.agent.config.cache.expiration
+apm-server.aggregation.transactions.*
+apm-server.auth.anonymous.allow_agent
+apm-server.auth.anonymous.allow_service
+apm-server.auth.anonymous.rate_limit.event_limit
+apm-server.auth.anonymous.rate_limit.ip_limit
+apm-server.auth.api_key.enabled
+apm-server.auth.api_key.limit
+apm-server.capture_personal_data
+apm-server.default_service_environment
+apm-server.max_event_size
+apm-server.rum.allow_headers
+apm-server.rum.allow_origins
+apm-server.rum.enabled
+apm-server.rum.exclude_from_grouping
+apm-server.rum.library_pattern
+apm-server.rum.source_mapping.enabled
+apm-server.rum.source_mapping.cache.expiration
+logging.level
+logging.selectors
+logging.metrics.enabled
+logging.metrics.period
+max_procs
+output.elasticsearch.flush_bytes
+output.elasticsearch.flush_interval
+----
 
 // end::80-bc[]
