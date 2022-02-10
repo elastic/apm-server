@@ -13,7 +13,7 @@
         discover-pr-forks-trust: permission
         discover-pr-origin: merge-current
         discover-tags: true
-        head-filter-regex: '(master|6\.8|7\.1[6789]|8\.\d+|PR-.*|v[0-9].*)'
+        head-filter-regex: '(main|6\.8|7\.1[6789]|8\.\d+|PR-.*|v[0-9].*)'
         notification-context: 'apm-ci'
         repo: apm-server
         repo-owner: elastic

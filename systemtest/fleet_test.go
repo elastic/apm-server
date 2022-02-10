@@ -18,6 +18,7 @@
 package systemtest_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -55,6 +56,37 @@ func TestFleetIntegration(t *testing.T) {
 		"@timestamp", "timestamp.us",
 		"trace.id", "transaction.id",
 	)
+}
+
+func TestFleetIntegrationBeatsMonitoring(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	apmIntegration := newAPMIntegration(t, nil)
+
+	const N = 15
+	for i := 0; i < N; i++ {
+		tx := apmIntegration.Tracer.StartTransaction("name", "type")
+		tx.Duration = time.Second
+		tx.End()
+	}
+	apmIntegration.Tracer.Flush(nil)
+	systemtest.Elasticsearch.ExpectMinDocs(t, N, "traces-*", nil)
+
+	var metrics struct {
+		Libbeat map[string]interface{}
+	}
+	apmIntegration.getBeatsMonitoringStats(t, &metrics)
+	assert.Equal(t, map[string]interface{}{
+		"output": map[string]interface{}{
+			"events": map[string]interface{}{
+				"acked":   float64(N),
+				"active":  0.0,
+				"batches": 1.0,
+				"failed":  0.0,
+				"toomany": 0.0,
+				"total":   float64(N),
+			},
+		},
+	}, metrics.Libbeat)
 }
 
 func TestFleetIntegrationAnonymousAuth(t *testing.T) {
@@ -104,8 +136,11 @@ func newAPMIntegration(t testing.TB, vars map[string]interface{}) apmIntegration
 	_, enrollmentAPIKey := systemtest.CreateAgentPolicy(t, policyName, "default", vars)
 
 	// Enroll an elastic-agent to run the APM integration.
+	var output bytes.Buffer
 	agent, err := systemtest.NewUnstartedElasticAgentContainer()
 	require.NoError(t, err)
+	agent.Stdout = &output
+	agent.Stderr = &output
 	agent.FleetEnrollmentToken = enrollmentAPIKey.APIKey
 	t.Cleanup(func() { agent.Close() })
 	t.Cleanup(func() {
@@ -113,12 +148,7 @@ func newAPMIntegration(t testing.TB, vars map[string]interface{}) apmIntegration
 		if !t.Failed() {
 			return
 		}
-		if logs, err := agent.Logs(context.Background()); err == nil {
-			defer logs.Close()
-			if out, err := ioutil.ReadAll(logs); err == nil {
-				t.Logf("elastic-agent logs: %s", out)
-			}
-		}
+		t.Logf("elastic-agent logs: %s", output.String())
 	})
 
 	// Start elastic-agent with port 8200 exposed, and wait for the server to service

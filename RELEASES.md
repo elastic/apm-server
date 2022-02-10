@@ -5,7 +5,7 @@
 * Backport all relevant commits
 
   e.g. start with following command to see which files differ that are not necessarily expected:
-  `git diff elastic/master --name-only | grep -v '^vendor/' | grep -v '^docs/' | grep -v '^_beats'`
+  `git diff elastic/main --name-only | grep -v '^vendor/' | grep -v '^docs/' | grep -v '^_beats'`
 
 * Update beats
 
@@ -13,13 +13,13 @@
 
 * Update Changelog
 
-  * Review existing [changelogs/head](https://github.com/elastic/apm-server/tree/master/changelogs/head.asciidoc) to ensure all relevant notes have been added
+  * Review existing [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) to ensure all relevant notes have been added
   * Move changelogs from _head_ to _release_version_:
-    * Minor version: Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/master/changelogs/head.asciidoc)
+    * Minor version: Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc)
       If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file.
     * Patch version: Add new section to existing release notes. ([Sample PR](https://github.com/elastic/apm-server/pull/2064/files))
 
-    Create PR in `master` and backport.
+    Create PR in `main` and backport.
 
   * Run the [`check_changelogs.py`](script/check_changelogs.py) script to ensure changelogs are synced across branches. This will soon be a PR check.
   * Don't forget to update the "SUPPORTED_VERSIONS" to include a new branch if necessary.
@@ -37,16 +37,16 @@
   `go get github.com/elastic/go-elasticsearch/v$major@$major.$minor`
 
 * The following may also need to be updated manually:
-    * APM Overview's [release highlights](https://github.com/elastic/apm-server/blob/master/docs/guide/apm-release-notes.asciidoc) - Anything exciting across the APM stack!
-    * APM Overview's [breaking changes](https://github.com/elastic/apm-server/blob/master/docs/guide/apm-breaking-changes.asciidoc) - Any breaking changes across the APM stack.
-    * APM Server's [breaking changes](https://github.com/elastic/apm-server/blob/master/docs/breaking-changes.asciidoc) - Any APM Server breaking changes.
-    * APM Server's [upgrade guide](https://github.com/elastic/apm-server/blob/master/docs/upgrading.asciidoc).
+    * APM Overview's [release highlights](https://github.com/elastic/apm-server/blob/main/docs/guide/apm-release-notes.asciidoc) - Anything exciting across the APM stack!
+    * APM Overview's [breaking changes](https://github.com/elastic/apm-server/blob/main/docs/guide/apm-breaking-changes.asciidoc) - Any breaking changes across the APM stack.
+    * APM Server's [breaking changes](https://github.com/elastic/apm-server/blob/main/docs/breaking-changes.asciidoc) - Any APM Server breaking changes.
+    * APM Server's [upgrade guide](https://github.com/elastic/apm-server/blob/main/docs/upgrading.asciidoc).
 
-* For major releases, update and smoke test the dev quick start [`docker-compose.yml`](https://github.com/elastic/apm-server/blob/master/docs/guide/docker-compose.yml).
+* For major releases, update and smoke test the dev quick start [`docker-compose.yml`](https://github.com/elastic/apm-server/blob/main/docs/guide/docker-compose.yml).
 
 ## After feature freeze
 
-* Update [.mergify.yml](https://github.com/elastic/apm-server/blob/master/.mergify.yml) with a new backport rule for the next version.
+* Update [.mergify.yml](https://github.com/elastic/apm-server/blob/main/.mergify.yml) with a new backport rule for the next version.
 
 ## On release day
 
@@ -62,7 +62,7 @@
 
 ## When compatibility between Agents & Server changes
 
-* Update the [agent/server compatibility matrix](https://github.com/elastic/apm-server/blob/master/docs/guide/agent-server-compatibility.asciidoc).
+* Update the [agent/server compatibility matrix](https://github.com/elastic/apm-server/blob/main/docs/guide/agent-server-compatibility.asciidoc).
 
 ## Templates
 

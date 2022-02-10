@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/fleettest"
@@ -87,7 +88,13 @@ func InitFleet() error {
 	if err := DestroyAgentPolicy(ids...); err != nil {
 		return fmt.Errorf("failed to destroy agent policy: %w", err)
 	}
+	return InitFleetPackage(true)
+}
 
+// InitFleetPackage installs or reinstalls the APM integration package, and
+// sets IntegrationPackage to the install package. InitFleetPackage assumes
+// that Fleet has been set up already.
+func InitFleetPackage(reinstall bool) error {
 	packages, err := Fleet.ListPackages()
 	if err != nil {
 		return err
@@ -103,6 +110,9 @@ func InitFleet() error {
 			return err
 		}
 		if IntegrationPackage.Status == "installed" {
+			if !reinstall {
+				return nil
+			}
 			if err := Fleet.DeletePackage(pkg.Name, pkg.Version); err != nil {
 				return fmt.Errorf(
 					"failed to delete package %s-%s: %w",
@@ -115,7 +125,11 @@ func InitFleet() error {
 	if IntegrationPackage == nil {
 		return errors.New("could not find package 'apm'")
 	}
-	return Fleet.InstallPackage(IntegrationPackage.Name, IntegrationPackage.Version)
+	if err := Fleet.InstallPackage(IntegrationPackage.Name, IntegrationPackage.Version); err != nil {
+		return err
+	}
+	IntegrationPackage, err = Fleet.Package(IntegrationPackage.Name, IntegrationPackage.Version)
+	return err
 }
 
 // CreateAgentPolicy creates an Agent policy with the given name and namespace,
@@ -220,7 +234,15 @@ func inputVarDefault(inputVar fleettest.PackagePolicyTemplateInputVar) interface
 		return ":8200"
 	}
 	if inputVar.Default != nil {
-		return inputVar.Default
+		defaultValue := inputVar.Default
+		if inputVar.Type == "yaml" {
+			var v interface{}
+			if err := yaml.Unmarshal([]byte(defaultValue.(string)), &v); err != nil {
+				panic(err)
+			}
+			defaultValue = v
+		}
+		return defaultValue
 	}
 	if inputVar.Multi {
 		return []interface{}{}

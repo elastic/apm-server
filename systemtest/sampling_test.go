@@ -90,16 +90,16 @@ func TestDropUnsampled(t *testing.T) {
 }
 
 func TestTailSampling(t *testing.T) {
-	// We should remove the skip once the issue is resolved.
-	t.Skip("Skipped due: https://github.com/elastic/fleet-server/issues/1048")
 	systemtest.CleanupElasticsearch(t)
 
 	apmIntegration1 := newAPMIntegration(t, map[string]interface{}{
+		"tail_sampling_enabled":  true,
 		"tail_sampling_interval": "1s",
 		"tail_sampling_policies": []map[string]interface{}{{"sample_rate": 0.5}},
 	})
 
 	apmIntegration2 := newAPMIntegration(t, map[string]interface{}{
+		"tail_sampling_enabled":  true,
 		"tail_sampling_interval": "1s",
 		"tail_sampling_policies": []map[string]interface{}{{"sample_rate": 0.5}},
 	})

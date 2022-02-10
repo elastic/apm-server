@@ -1,17 +1,7 @@
 [[upgrade-to-apm-integration]]
 === Upgrade to the Elastic APM integration
 
-* <<why-upgrade-to-integrations>>
-* <<apm-arch-upgrade>>
-* <<apm-integration-upgrade-limitations>>
-* <<apm-integration-upgrade-steps>>
-* <<apm-integration-upgrade-steps-ess>>
-
-[discrete]
-[[why-upgrade-to-integrations]]
-=== Why upgrade?
-
-The new APM ecosystem offers a number of benefits:
+The APM integration offers a number of benefits over the standalone method of running APM Server:
 
 **{fleet}**:
 
@@ -24,7 +14,7 @@ The new APM ecosystem offers a number of benefits:
 * More granular data control
 * Errors and metrics data streams are shared with other data sources -- which means better long-term integration with the logs and metrics apps
 * Removes template inheritance for ILM policies and makes use of new {es} index and component templates
-* Fixes <<server-resource-exists-not-alias>>
+* Fixes +resource \'apm-{version}-$type' exists, but it is not an alias+ error
 
 **APM Integration**:
 
@@ -65,8 +55,21 @@ There are some limitations to be aware of:
 * An {agent} with the APM integration enabled must be managed by {fleet}.
 
 [discrete]
+=== Upgrade
+
+Select a guide below to get started.
+
+* <<apm-integration-upgrade-steps>>
+* <<apm-integration-upgrade-steps-ess>>
+
+// ********************************************************
+
 [[apm-integration-upgrade-steps]]
-=== Upgrade a self-managed cluster
+==== Upgrade a self-installation to the APM integration
+
+++++
+<titleabbrev>Upgrade a self-installation</titleabbrev>
+++++
 
 . <<apm-integration-upgrade-1>>
 . <<apm-integration-upgrade-2>>
@@ -138,9 +141,14 @@ it's safe to stop the legacy APM Server process.
 
 Congratulations -- you've now upgraded to the latest and greatest in Elastic APM!
 
-[discrete]
+// ********************************************************
+
 [[apm-integration-upgrade-steps-ess]]
-=== Upgrade an {ecloud} cluster
+==== Upgrade an {ecloud} cluster to the APM integration
+
+++++
+<titleabbrev>Upgrade an {ecloud} cluster</titleabbrev>
+++++
 
 . <<apm-integration-upgrade-ess-1>>
 . <<apm-integration-upgrade-ess-2>>

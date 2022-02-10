@@ -133,7 +133,7 @@ No breaking changes.
 // tag::notable-v77-breaking-changes[]
 There are no breaking changes in APM Server.
 However, a previously hardcoded feature is now configurable.
-Failing to follow these {apm-server-ref-v}/upgrading-to-77.html[upgrade steps] will result in increased span metadata ingestion when upgrading to version 7.7.
+Failing to follow these {apm-guide-7x}/upgrading-to-77.html[upgrade steps] will result in increased span metadata ingestion when upgrading to version 7.7.
 // end::notable-v77-breaking-changes[]
 
 [[breaking-7.6.0]]
@@ -153,7 +153,7 @@ APM Server::
 * Introduced dedicated `apm-server.ilm.setup.*` flags.
 This means you can now customize ILM behavior from within the APM Server configuration.
 As a side effect, `setup.template.*` settings will be ignored for ILM related templates per event type.
-See {apm-server-ref}/ilm.html#ilm-setup[set up ILM] for more information.
+See {apm-server-ref}/ilm.html[set up ILM] for more information.
 +
 * By default, ILM policies will not longer be versioned.
 All event types will switch to the new default policy: rollover after 30 days or when reaching a size 50gb.

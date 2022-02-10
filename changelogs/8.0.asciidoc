@@ -3,10 +3,84 @@
 
 https://github.com/elastic/apm-server/compare/7.17\...8.0[View commits]
 
+* <<release-notes-8.0.0>>
+* <<release-notes-8.0.0-rc2>>
 * <<release-notes-8.0.0-rc1>>
 * <<release-notes-8.0.0-beta1>>
 * <<release-notes-8.0.0-alpha2>>
 * <<release-notes-8.0.0-alpha1>>
+
+[float]
+[[release-notes-8.0.0]]
+=== APM version 8.0.0
+
+https://github.com/elastic/apm-server/compare/v7.16.3\...v8.0.0[View commits]
+
+These release notes include all changes made in the alpha, beta, and RC
+releases of 8.0.0.
+
+[float]
+==== Breaking Changes
+- Removed source map upload endpoint {pull}6447[6447]
+- Removed unsupported libbeat `processors` configuration {pull}6474[6474]
+- Removed `apm-server.aggregation.transactions.enabled` configuration option {pull}6495[6495]
+- Removed `apm-server.aggregation.service_destinations.enabled` configuration option {pull}6503[6503]
+- Removed legacy Jaeger gRPC/HTTP endpoints {pull}6417[6417]
+- Removed `apm-server.jaeger` configuration options {pull}6560[6560]
+- Removed `apm-server.instrumentation` configuration options in favor of `instrumentation` {pull}6560[6560]
+- Removed `apm-server.rum.{allowed_service,event_rate}` configuration option in favor of `apm-server.auth.anonymous.{allow_service,rate_limit}` {pull}6560[6560]
+- Removed `apm-server.{api_key,secret_token}` configuration options in favor of `apm-server.auth.{api_key,secret_token}` {pull}6560[6560]
+- Removed unused `span.start.us` field, and deprecated `span.http.*` fields {pull}6602[6602]
+- Removed `apm-server.register.ingest.pipeline` and `output.elasticsearch.pipeline` configuration options {pull}6575[6575]
+- Removed `logging.ecs` and `logging.json` config {pull}6613[6613]
+- Removed `apm-server.data_streams.enabled`, and `setup.*` configuration options {pull}6606[6606]
+- Removed `apm-server.sampling.keep_unsampled` configuration option; non-RUM unsampled transactions are always dropped {pull}6514[6514] {pull}6669[6669]
+- Removed interpretation of non-standard "component" attribute from OpenTelemetry spans; changed default span type and subtypes {pull}6834[6834]
+- Onboarding documents are no longer indexed {pull}6431[6431]
+- APM Server now responds with 403 (HTTP) and PermissionDenied (gRPC) for authenticated but unauthorized requests {pull}5545[5545]
+- `sourcemap.error` and `sourcemap.updated` are no longer set due to failing to find a matching source map {pull}5631[5631]
+- Removed `service.name` from dataset {pull}5451[5451]
+
+[float]
+==== Added
+- Introduced a delete phase for all data streams. Traces, errors and logs are kept for 10 days, metrics are kept for 90 days {pull}6480[6480]
+- Changed RUM traces to use a dedicated data stream (`traces-apm.rum`). RUM traces are kept for 90 days {pull}6480[6480]
+- Standalone apm-server can now fetch source maps uploaded to Kibana, when `apm-server.kibana` is configured {pull}6447[6447]
+- Added metrics for new Elasticsearch output: `libbeat.output.events.{acked,batches,toomany}`; added tracing and log correlation {pull}6630[6630]
+- The `labels` indexed field is now ECS compliant (string only) and added a new `numeric_labels` object that holds labels with numeric values {pull}6633[6633]
+- APM Server is now using a new Elasticsearch output implementation {pull}6656[6656]
+- Modify default standalone apm-server config values to be more in line with the default managed apm-server values {pull}6675[6675]
+- APM Server now has beta support to receive OpenTelemetry Logs on the OTLP/GRPC receiver {pull}6768[6768]
+- experimental: Add support for CloudWatch metric streams through firehose endpoint {pull}6380[6380]
+- Add HTTP span fields as top level ECS fields {pull}5396[5396]
+- Introduce `apm-server.auth.anonymous.*` config {pull}5623[5623]
+- Upgrade Go to 1.17.6 {pull}7207[7207]
+- Introduce ingest pipeline `apm_data_stream_migration` for migrating pre-data stream indices {pull}5768[5768]
+
+[float]
+==== Bug fixes
+- `host.ip` is now stored as an array, as specified by ECS {pull}6694[6694]
+- In accord with ECS, the server logs now set `source.address` to the immediate network peer's IP address, and `client.ip` to the originating client IP if known {pull}6690[6690]
+- Agent configuration metrics are now sent to the metrics-apm.internal* data stream {pull}6767[6767]
+- Improve logged message when APM Server blocks ingestion to wait for the integration to be installed {pull}6796[6796]
+
+[float]
+==== Intake API Changes
+- `transaction.name` was added to the error objects in the intake API {pull}6539[6539]
+- Add support for composite spans in the intake API {pull}5661[5661]
+- Allow to overwrite `service.name` and `service.version` for metricset objects  {pull}6407[6407]
+
+[float]
+==== Licensing Changes
+- Updated the `x-pack` source files license to the Elastic License 2.0 {pull}6524[6524]
+
+[float]
+[[release-notes-8.0.0-rc2]]
+=== APM version 8.0.0-rc2
+
+https://github.com/elastic/apm-server/compare/v8.0.0-rc1\...v8.0.0-rc2[View commits]
+
+No significant changes.
 
 [float]
 [[release-notes-8.0.0-rc1]]
