@@ -1,6 +1,11 @@
 # newer versions go on top
 #
 # change type can be one of: enhancement, bugfix, breaking-change
+- version: "8.0.1"
+  changes:
+    - description: Placeholder.
+      type: bugfix
+      link: https://github.com/elastic/apm-server/issues/<placeholder>
 - version: "8.0.0"
   changes:
     - description: added `error.id` field to `error_logs` data stream
