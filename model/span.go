@@ -52,6 +52,7 @@ type Span struct {
 	Message    *Message
 	Stacktrace Stacktrace
 	Sync       *bool
+	Links      []SpanLink
 
 	DB                 *DB
 	DestinationService *DestinationService
@@ -157,5 +158,12 @@ func (e *Span) fields() common.MapStr {
 		span.set("stacktrace", st)
 	}
 	span.maybeSetMapStr("self_time", e.SelfTime.fields())
+	if n := len(e.Links); n > 0 {
+		links := make([]common.MapStr, n)
+		for i, link := range e.Links {
+			links[i] = link.fields()
+		}
+		span.set("links", links)
+	}
 	return common.MapStr(span)
 }

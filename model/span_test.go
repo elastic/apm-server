@@ -44,6 +44,7 @@ func TestSpanTransform(t *testing.T) {
 	timestampUs := timestamp.UnixNano() / 1000
 	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", 5
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
+	links := []SpanLink{{Span: Span{ID: "linked_span"}, Trace: Trace{ID: "linked_trace"}}}
 
 	tests := []struct {
 		Span   Span
@@ -75,6 +76,7 @@ func TestSpanTransform(t *testing.T) {
 				},
 				Message:   &Message{QueueName: "users"},
 				Composite: &Composite{Count: 10, Sum: 1.1, CompressionStrategy: "exact_match"},
+				Links:     links,
 			},
 			Output: common.MapStr{
 				"processor": common.MapStr{"name": "transaction", "event": "span"},
@@ -110,6 +112,10 @@ func TestSpanTransform(t *testing.T) {
 						"sum":                  common.MapStr{"us": 1100},
 						"compression_strategy": "exact_match",
 					},
+					"links": []common.MapStr{{
+						"span":  common.MapStr{"id": "linked_span"},
+						"trace": common.MapStr{"id": "linked_trace"},
+					}},
 				},
 				"timestamp": common.MapStr{"us": int(timestampUs)},
 			},

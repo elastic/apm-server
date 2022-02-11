@@ -94,6 +94,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				"Kind",
 
 				// Not set for spans:
+				"Links",
 				"DestinationService.ResponseTime",
 				"DestinationService.ResponseTime.Count",
 				"DestinationService.ResponseTime.Sum",

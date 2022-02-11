@@ -247,6 +247,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				// ExcludeFromGrouping is set when processing the event
 				"Stacktrace.ExcludeFromGrouping",
 				// Not set for span events:
+				"Links",
 				"DestinationService.ResponseTime",
 				"DestinationService.ResponseTime.Count",
 				"DestinationService.ResponseTime.Sum",
