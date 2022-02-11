@@ -2,6 +2,273 @@
 
 ## Unreleased
 
+## v0.44.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Deprecate `service.NewConfigProvider`, and a new version `service.MustNewConfigProvider` (#4734).
+- Updated to OTLP 0.12.0. Deprecated traces and metrics messages that existed
+  in 0.11.0 are no longer converted to the messages and fields that replaced the deprecated ones.
+  Received deprecated messages and fields will be now ignored. In OTLP/JSON in the
+  instrumentationLibraryLogs object the "logs" field is now named "logRecords" (#4724)
+
+## 💡 Enhancements 💡
+
+- Invalid requests now return an appropriate unsupported (`405`) or method not allowed (`415`) response (#4735)
+- `client.Info`: Add Host property for Metadata (#4736)
+
+## v0.43.1 Beta
+
+## 🧰 Bug fixes 🧰
+
+- ExpandStringValues function support to map[string]interface{} (#4748) 
+
+## v0.43.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Change configmapprovider.Provider to accept a location for retrieve (#4657)
+- Change Properties Provider to be a Converter (#4666)
+- Define a type `WatcherFunc` for onChange func instead of func pointer (#4656)
+- Remove deprecated `configtest.LoadConfig` and `configtest.LoadConfigAndValidate` (#4659)
+- Move service.ConfigMapConverterFunc to config.MapConverterFunc (#4673)
+  - Add context to config.MapConverterFunc (#4678)
+- Builder: the skip compilation should only be supplied as a CLI flag. Previously, it was possible to specify that in the YAML file, contrary to the original intention (#4645)
+- Builder: Remove deprecated config option module::core (#4693)
+- Remove deprecate flags --metrics-level and --metrics-addr (#4695)
+  - Usages of `--metrics-level={VALUE}` can be replaced by `--set=service.telemetry.metrics.level={VALUE}`;
+  - Usages of `--metrics-addr={VALUE}` can be replaced by `--set=service.telemetry.metrics.address={VALUE}`;
+- Updated confighttp `ToClient` to support passing telemetry settings for instrumenting otlphttp exporter(#4449)
+- Deprecate `configtelemetry.Level.Set()` (#4700)
+- Remove support to some arches and platforms from `ocb` (opentelemetry-collector-builder) (#4710)
+- Remove deprecated legacy path ("v1/trace") support for otlp http receiver (#4720)
+- Change the `service.NewDefaultConfigProvider` to accept a slice of location strings (#4727).
+
+## 🧰 Bug fixes 🧰
+
+- Ensure Windows path (e.g: C:) is recognized as a file path (#4726)
+- Fix structured logging issue for windows service (#4686)
+
+## 💡 Enhancements 💡
+
+- Expose experimental API `configmapprovider.NewExpandConverter()` (#4672)
+- `service.NewConfigProvider`: copy slice argument, disallow changes from caller to the input slice (#4729)
+- `confighttp` and `configgrpc`: New config option `include_metadata` to persist request metadata/headers in `client.Info.Metadata` (experimental) (#4547)
+- Remove expand cases that cannot happen with config.Map (#4649)
+- Add `max_request_body_size` to confighttp.HTTPServerSettings (#4677)
+- Move `compression.go` into `confighttp.go` to internalize functions in `compression.go` file. (#4651)
+  - create `configcompression` package to manage compression methods in `confighttp` and `configgrpc`
+- Add support for cgroupv2 memory limit (#4654)
+- Enable end users to provide multiple files for config location (#4727)
+
+## v0.42.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Remove `configmapprovider.NewInMemory()` (#4507)
+- Disallow direct implementation of `configmapprovider.Retrieved` (#4577)
+- `configauth`: remove interceptor functions from the ServerAuthenticator interface (#4583)
+- Replace ConfigMapProvider and ConfigUnmarshaler in collector settings by one simpler ConfigProvider (#4590)
+- Remove deprecated consumererror.Combine (#4597)
+- Remove `configmapprovider.NewDefault`, `configmapprovider.NewExpand`, `configmapprovider.NewMerge` (#4600)
+  - The merge functionality is now embedded into `service.NewConfigProvider` (#4637).
+- Move `configtest.LoadConfig` and `configtest.LoadConfigAndValidate` to `servicetest` (#4606)
+- Builder: Remove deprecated `include-core` flag (#4616)
+- Collector telemetry level must now be accessed through an atomic function. (#4549)
+
+## 💡 Enhancements 💡
+
+- `confighttp`: add client-side compression support. (#4441)
+  - Each exporter should remove `compression` field if they have and should use `confighttp.HTTPClientSettings`
+- Allow more zap logger configs: `disable_caller`, `disable_stacktrace`, `output_paths`, `error_output_paths`, `initial_fields` (#1048)
+- Allow the custom zap logger encoding (#4532)
+- Collector self-metrics may now be configured through the configuration file. (#4069)
+  - CLI flags for configuring self-metrics are deprecated and will be removed
+    in a future release.
+  - `service.telemetry.metrics.level` and `service.telemetry.metrics.address`
+    should be used to configure collector self-metrics.
+- `configauth`: add helpers to create new server authenticators. (#4558)
+- Refactor `configgrpc` for compression methods (#4624)
+- Add an option to allow `config.Map` conversion in the `service.ConfigProvider` (#4634)
+- Added support to expose gRPC framework's logs as part of collector logs (#4501)
+- Builder: Enable unmarshal exact to help finding hard to find typos #4644
+
+## 🧰 Bug fixes 🧰
+
+- Fix merge config map provider to close the watchers (#4570)
+- Fix expand map provider to call close on the base provider (#4571)
+- Fix correct the value of `otelcol_exporter_send_failed_requests` (#4629)
+- `otlp` receiver: Fix legacy port cfg value override and HTTP server starting bug (#4631)
+
+## v0.41.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Remove reference to `defaultcomponents` in core and deprecate `include_core` flag (#4087)
+- Remove `config.NewConfigMapFrom[File|Buffer]`, add testonly version (#4502)
+- `configtls`: TLS 1.2 is the new default mininum version (#4503)
+- `confighttp`: `ToServer` now accepts a `component.Host`, in line with gRPC's counterpart (#4514)
+- CORS configuration for OTLP/HTTP receivers has been moved into a `cors:` block, instead of individual `cors_allowed_origins` and `cors_allowed_headers` settings (#4492)
+
+## 💡 Enhancements 💡
+
+- OTLP/HTTP receivers now support setting the `Access-Control-Max-Age` header for CORS caching. (#4492)
+- `client.Info` pre-populated for all receivers using common helpers like `confighttp` and `configgrpc` (#4423)
+
+## 🧰 Bug fixes 🧰
+
+- Fix handling of corrupted records by persistent buffer (experimental) (#4475)
+
+## 💡 Enhancements 💡
+
+- Extending the contribution guide to help clarify what is acceptable defaults and recommendations.
+
+## v0.40.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Package `client` refactored (#4416) and auth data included in it (#4422). Final PR to be merged in the next release (#4423)
+- Remove `pdata.AttributeMap.InitFromMap` (#4429)
+- Updated configgrpc `ToDialOptions` to support passing providers to instrumentation library (#4451)
+- Make state information propagation non-blocking on the collector (#4460)
+
+## 💡 Enhancements 💡
+
+- Add semconv 1.7.0 and 1.8.0 (#4452)
+- Added `feature-gates` CLI flag for controlling feature gate state. (#4368)
+- Add a default user-agent header to the OTLP/gRPC and OTLP/HTTP exporters containing collector build information (#3970)
+
+## v0.39.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Remove deprecated config (already no-op) `ballast_size_mib` in memorylimiterprocessor (#4365)
+- Remove `config.Receivers`, `config.Exporters`, `config.Processors`, and `config.Extensions`. Use map directly (#4344)
+- Remove `component.BaseProcessorFactory`, use `processorhelper.NewFactory` instead (#4175)
+- Force usage of `exporterhelper.NewFactory` to implement `component.ExporterFactory` (#4338)
+- Force usage of `receiverhelper.NewFactory` to implement `component.ReceiverFactory` (#4338)
+- Force usage of `extensionhelper.NewFactory` to implement `component.ExtensionFactory` (#4338)
+- Move `service/parserprovider` package to `config/configmapprovider` (#4206)
+  - Rename `MapProvider` interface to `Provider`
+  - Remove `MapProvider` from helper names
+- Renamed slice-valued `pdata` types and functions for consistency. (#4325)
+  - Rename `pdata.AnyValueArray` to `pdata.AttributeValueSlice`
+  - Rename `ArrayVal()` to `SliceVal()`
+  - Rename `SetArrayVal()` to `SetSliceVal()`
+- Remove `config.Pipeline.Name` (#4326)
+- Rename `config.Mapprovider` as `configmapprovider.Provider` (#4337)
+- Move `config.WatchableRetrieved` and `config.Retrieved` interfaces to `config/configmapprovider` package (#4337)
+- Remove `config.Pipeline.InputDataType` (#4343)
+- otlpexporter: Do not retry on PermissionDenied and Unauthenticated (#4349)
+- Enable configuring collector metrics through service config file. (#4069)
+  - New `service::telemetry::metrics` structure added to configuration
+  - Existing metrics configuration CLI flags are deprecated and to be
+    removed in the future.
+  - `--metrics-prefix` is no longer operative; the prefix is determined by
+    the value of `service.buildInfo.Command`.
+  - `--add-instance-id` is no longer operative; an instance ID will always be added.
+- Remove deprecated funcs `consumererror.As[Traces|Metrics|Logs]` (#4364)
+- Remove support to expand env variables in default configs (#4366)
+
+## 💡 Enhancements 💡
+
+- Supports more compression methods(`snappy` and `zstd`) for configgrpc, in addition to current `gzip` (#4088)
+- Moved the OpenTelemetry Collector Builder to core (#4307)
+
+## 🧰 Bug fixes 🧰
+
+- Fix AggregationTemporality and IsMonotonic when metric descriptors are split in the batch processor (#4389)
+
+## v0.38.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Removed `configauth.HTTPClientAuthenticator` and `configauth.GRPCClientAuthenticator` in favor of `configauth.ClientAuthenticator`. (#4255)
+- Rename `parserprovider.MapProvider` as `config.MapProvider`. (#4178)
+- Rename `parserprovider.Watchable` as `config.WatchableMapProvider`. (#4178)
+- Remove deprecated no-op flags to setup Collector's logging "--log-level", "--log-profile", "--log-format". (#4213)
+- Move `cmd/pdatagen` as internal package `model/internal/cmd/pdatagen`. (#4243)
+- Use directly the ComponentID in configauth. (#4238)
+- Refactor configauth, getters use the map instead of iteration. (#4234)
+- Change scraperhelper to follow the recommended append model for pdata. (#4202)
+
+## 💡 Enhancements 💡
+
+- Update proto to 0.11.0. (#4209)
+- Change pdata to use the newly added [Traces|Metrics|Logs]Data. (#4214)
+- Add ExponentialHistogram field to pdata. (#4219)
+- Make sure otlphttp exporter tests include TraceID and SpanID. (#4268)
+- Use multimod tool in release process. (#4229)
+- Change queue metrics to use opencensus metrics instead of stats, close to otel-go. (#4220)
+- Make receiver data delivery guarantees explicit (#4262)
+- Simplify unmarshal logic by adding more supported hooks. (#4237)
+- Add unmarshaler for otlpgrpc.[*]Request and otlpgrp.[*]Response (#4215)
+
+## v0.37.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Move `configcheck.ValidateConfigFromFactories` as internal function in service package (#3876)
+- Rename `configparser.Parser` as `config.Map` (#4075)
+- Rename `component.DefaultBuildInfo()` to `component.NewDefaultBuildInfo()` (#4129)
+- Rename `consumererror.Permanent` to `consumererror.NewPermanent` (#4118)
+- Rename `config.NewID` to `config.NewComponentID` and `config.NewIDFromString` to `config.NewComponentIDFromString` (#4137)
+- Rename `config.NewIDWithName` to `config.NewComponentIDWithName` (#4151)
+- Move `extension/storage` to `extension/experimental/storage` (#4082)
+- Rename `obsreporttest.SetupRecordedMetricsTest()` to `obsreporttest.SetupTelemetry()` and `obsreporttest.TestTelemetrySettings` to `obsreporttest.TestTelemetry` (#4157)
+
+## 💡 Enhancements 💡
+
+- Add Gen dependabot into CI (#4083)
+- Update OTLP to v0.10.0 (#4045).
+- Add Flags field to NumberDataPoint, HistogramDataPoint, SummaryDataPoint (#4081).
+- Add feature gate library (#4108)
+- Add version to the internal telemetry metrics (#4140)
+
+## 🧰 Bug fixes 🧰
+
+- Fix panic when not using `service.NewCommand` (#4139)
+
+## v0.36.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Remove deprecated pdata.AttributeMapToMap (#3994)
+- Move ValidateConfig from configcheck to configtest (#3956)
+- Remove `mem-ballast-size-mib`, already deprecated and no-op (#4005)
+- Remove `semconv.AttributeMessageType` (#4020)
+- Remove `semconv.AttributeHTTPStatusText` (#4015)
+- Remove squash on `configtls.TLSClientSetting` and move TLS client configs under `tls` (#4063)
+- Rename TLS server config `*configtls.TLSServerSetting` from `tls_settings` to `tls` (#4063)
+- Split `service.Collector` from the `cobra.Command` (#4074)
+- Rename `memorylimiter` to `memorylimiterprocessor` (#4064)
+
+## 💡 Enhancements 💡
+
+- Create new semconv package for v1.6.1 (#3948)
+- Add AttributeValueBytes support to AsString (#4002)
+- Add AttributeValueTypeBytes support to AttributeMap.AsRaw (#4003)
+- Add MeterProvider to TelemetrySettings (#4031)
+- Add configuration to setup collector logs via config file. (#4009)
+
+## v0.35.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Remove the legacy gRPC port(`55680`) support in OTLP receiver (#3966)
+- Rename configparser.Parser to configparser.ConfigMap (#3964)
+- Remove obsreport.ScraperContext, embed into StartMetricsOp (#3969)
+- Remove dependency on deprecated go.opentelemetry.io/otel/oteltest (#3979)
+- Remove deprecated pdata.AttributeValueToString (#3953)
+- Remove deprecated pdata.TimestampFromTime. Closes: #3925 (#3935)
+
+## 💡 Enhancements 💡
+
+- Add TelemetryCreateSettings (#3984)
+- Only initialize collector telemetry once (#3918)
+- Add trace context info to LogRecord log (#3959)
+- Add new view for AWS ECS health check extension. (#3776)
+
 ## v0.34.0 Beta
 
 ## 🛑 Breaking changes 🛑
@@ -47,7 +314,7 @@
 
 - Rename `configloader` interface to `configunmarshaler` (#3774)
 - Remove `LabelsMap` from all the metrics points (#3706)
-- Update generated K8S attribute labels to fix capitalization (#3823) 
+- Update generated K8S attribute labels to fix capitalization (#3823)
 
 ## 💡 Enhancements 💡
 
@@ -147,28 +414,28 @@ This release is marked as "bad" since the metrics pipelines will produce bad dat
 - zipkinv1 implement directly Unmarshaler interface (#3504)
 - zipkinv2 implement directly Marshaler/Unmarshaler interface (#3505)
 - Change exporterhelper to accept ExporterCreateSettings instead of just logger (#3569)
-- Deprecate Resize() from pdata slice APIs (#3573) 
+- Deprecate Resize() from pdata slice APIs (#3573)
 - Use Func pattern in processorhelper, consistent with others (#3570)
 
 ## 💡 Enhancements 💡
 
 - Update OTLP to v0.8.0 (#3572)
-- Migrate from OpenCensus to OpenTelemetry for internal tracing (#3567) 
-- Move internal/pdatagrpc to model/otlpgrpc (#3507) 
+- Migrate from OpenCensus to OpenTelemetry for internal tracing (#3567)
+- Move internal/pdatagrpc to model/otlpgrpc (#3507)
 - Move internal/otlp to model/otlp (#3508)
 - Create http Server via Config, enable cors and decompression (#3513)
 - Allow users to set min and max TLS versions (#3591)
 - Support setting ballast size in percentage of total Mem in ballast extension (#3456)
 - Publish go.opentelemetry.io/collector/model as a separate module (#3530)
-- Pass a TracerProvider via construct settings to all the components (#3592) 
+- Pass a TracerProvider via construct settings to all the components (#3592)
 - Make graceful shutdown optional (#3577)
 
 ## 🧰 Bug fixes 🧰
 
 - `scraperhelper`: Include the scraper name in log messages (#3487)
-- `scraperhelper`: fix case when returned pdata is empty (#3520) 
-- Record the correct number of points not metrics in Kafka receiver (#3553) 
-- Validate the Prometheus configuration (#3589) 
+- `scraperhelper`: fix case when returned pdata is empty (#3520)
+- Record the correct number of points not metrics in Kafka receiver (#3553)
+- Validate the Prometheus configuration (#3589)
 
 ## v0.29.0 Beta
 
@@ -342,7 +609,6 @@ This release is marked as "bad" since the metrics pipelines will produce bad dat
 - Fix service zpages (#2996)
 - `batch` processor: Fix to avoid reordering and send max size (#3029)
 
-
 ## v0.25.0 Beta
 
 ## 🛑 Breaking changes 🛑
@@ -377,7 +643,7 @@ This release is marked as "bad" since the metrics pipelines will produce bad dat
 ## 🧰 Bug fixes 🧰
 
 - `prometheus` receiver:
-  - Treat Summary and Histogram metrics without "_sum" counter as valid metric (#2812)
+  - Treat Summary and Histogram metrics without "\_sum" counter as valid metric (#2812)
   - Add `job` and `instance` as well-known labels (#2897)
 - `prometheusremotewrite` exporter:
   - Sort Sample by Timestamp to avoid out of order errors (#2941)
@@ -391,7 +657,7 @@ This release is marked as "bad" since the metrics pipelines will produce bad dat
 
 - Remove legacy internal metrics for memorylimiter processor, `spans_dropped` and `trace_batches_dropped` (#2841)
   - For `spans_dropped` use `processor/refused_spans` with `processor=memorylimiter`
-- Rename pdata.*.[Start|End]Time to pdata.*.[Start|End]Timestamp (#2847)
+- Rename pdata._.[Start|End]Time to pdata._.[Start|End]Timestamp (#2847)
 - Rename pdata.DoubleExemplar to pdata.Exemplar (#2804)
 - Rename pdata.DoubleHistogram to pdata.Histogram (#2797)
 - Rename pdata.DoubleSummary to pdata.Summary (#2774)
@@ -533,6 +799,7 @@ This release is marked as "bad" since the metrics pipelines will produce bad dat
 ## v0.19.0 Beta
 
 ## 🛑 Breaking changes 🛑
+
 - Remove deprecated `queued_retry` processor
 - Remove deprecated configs from `resource` processor: `type` (set "opencensus.type" key in "attributes.upsert" map instead) and `labels` (use "attributes.upsert" instead).
 
@@ -551,6 +818,7 @@ This release is marked as "bad" since the metrics pipelines will produce bad dat
 ## v0.18.0 Beta
 
 ## 🛑 Breaking changes 🛑
+
 - Rename host metrics according to metrics spec and rename `swap` scraper to `paging` (#2311)
 
 ## 💡 Enhancements 💡
@@ -784,12 +1052,14 @@ This release is marked as "bad" since the metrics pipelines will produce bad dat
   - This is a temporary change, and will affect mostly OpenCensus users who use metrics.
 
 ## 💡 Enhancements 💡
+
 - Support zipkin proto in `kafka` receiver (#1646)
 - Prometheus Remote Write Exporter supporting Cortex (#1577, #1643)
 - Add deployment environment semantic convention (#1722)
 - Add logs support to `batch` and `resource` processors (#1723, #1729)
 
 ## 🧰 Bug fixes 🧰
+
 - Identify config error when expected map is other value type (#1641)
 - Fix Kafka receiver closing ready channel multiple times (#1696)
 - Fix a panic issue while processing Zipkin spans with an empty service name (#1742)
@@ -808,10 +1078,12 @@ This release is marked as "bad" since the metrics pipelines will produce bad dat
 - Remove `ConsumerOld` interfaces (#1631)
 
 ## 🚀 New components 🚀
+
 - `prometheusremotewrite` exporter: Send metrics data in Prometheus TimeSeries format to Cortex or any Prometheus (#1544)
 - `kafka` receiver: Receive traces from Kafka (#1410)
 
 ## 💡 Enhancements 💡
+
 - `kafka` exporter: Enable queueing, retry, timeout (#1455)
 - Add `Headers` field in HTTPClientSettings (#1552)
 - Change OpenCensus receiver (#1556) and exporter (#1571) to the new interfaces
@@ -822,6 +1094,7 @@ This release is marked as "bad" since the metrics pipelines will produce bad dat
 - Make Kafka payload encoding configurable (#1584)
 
 ## 🧰 Bug fixes 🧰
+
 - Stop further processing if `filterprocessor` filters all data (#1500)
 - `processscraper`: Use same scrape time for all data points coming from same process (#1539)
 - Ensure that time conversion for 0 returns nil timestamps or Time where IsZero returns true (#1550)
@@ -927,7 +1200,7 @@ This release is marked as "bad" since the metrics pipelines will produce bad dat
 ## 🛑 Breaking changes 🛑
 
 - **Update OTLP to v0.4.0 (#1142)**: Collector will be incompatible with any other sender or receiver of OTLP protocol
-of different versions
+  of different versions
 - Make "--new-metrics" command line flag the default (#1148)
 - Change `endpoint` to `url` in Zipkin exporter config (#1186)
 - Change `tls_credentials` to `tls_settings` in Jaegar receiver config (#1233)
@@ -966,8 +1239,8 @@ Released 2020-06-16
 
 ## 🛑 Breaking changes 🛑
 
-- `isEnabled` configuration option removed (#909) 
-- `thrift_tchannel` protocol moved from `jaeger` receiver to `jaeger_legacy` in contrib (#636) 
+- `isEnabled` configuration option removed (#909)
+- `thrift_tchannel` protocol moved from `jaeger` receiver to `jaeger_legacy` in contrib (#636)
 
 ## ⚠️ Major changes ⚠️
 
@@ -975,7 +1248,7 @@ Released 2020-06-16
 - Internal API Changes (only impacts contributors)
   - Add context to `Start` and `Stop` methods in the component (#790)
   - Rename `AttributeValue` and `AttributeMap` method names (#781)
-(other breaking changes in the internal trace data types)
+    (other breaking changes in the internal trace data types)
   - Change entire repo to use the new vanityurl go.opentelemetry.io/collector (#977)
 
 ## 🚀 New components 🚀
@@ -983,49 +1256,48 @@ Released 2020-06-16
 - Receivers
   - `hostmetrics` receiver with CPU (#862), disk (#921), load (#974), filesystem (#926), memory (#911), network (#930), and virtual memory (#989) support
 - Processors
-  - `batch` for batching received metrics (#1060) 
-  - `filter` for filtering (dropping) received metrics (#1001) 
+  - `batch` for batching received metrics (#1060)
+  - `filter` for filtering (dropping) received metrics (#1001)
 
 ## 💡 Enhancements 💡
 
 - `otlp` receiver implement HTTP X-Protobuf (#1021)
-- Exporters: Support mTLS in gRPC exporters (#927) 
-- Extensions: Add `zpages` for service (servicez, pipelinez, extensions) (#894) 
+- Exporters: Support mTLS in gRPC exporters (#927)
+- Extensions: Add `zpages` for service (servicez, pipelinez, extensions) (#894)
 
 ## 🧰 Bug fixes 🧰
 
-- Add missing logging for metrics at `debug` level (#1108) 
-- Fix setting internal status code in `jaeger` receivers (#1105) 
-- `zipkin` export fails on span without timestamp when used with `queued_retry` (#1068) 
-- Fix `zipkin` receiver status code conversion (#996) 
+- Add missing logging for metrics at `debug` level (#1108)
+- Fix setting internal status code in `jaeger` receivers (#1105)
+- `zipkin` export fails on span without timestamp when used with `queued_retry` (#1068)
+- Fix `zipkin` receiver status code conversion (#996)
 - Remove extra send/receive annotations with using `zipkin` v1 (#960)
-- Fix resource attribute mutation bug when exporting in `jaeger` proto (#907) 
-- Fix metric/spans count, add tests for nil entries in the slices (#787) 
-
+- Fix resource attribute mutation bug when exporting in `jaeger` proto (#907)
+- Fix metric/spans count, add tests for nil entries in the slices (#787)
 
 ## 🧩 Components 🧩
 
 ### Traces
 
-| Receivers | Processors | Exporters |
-|:----------:|:-----------:|:----------:|
-| Jaeger | Attributes | File |
-| OpenCensus | Batch | Jaeger |
-| OTLP | Memory Limiter | Logging |
-| Zipkin | Queued Retry | OpenCensus |
-| | Resource | OTLP |
-| | Sampling | Zipkin |
-| | Span ||
+| Receivers  |   Processors   | Exporters  |
+| :--------: | :------------: | :--------: |
+|   Jaeger   |   Attributes   |    File    |
+| OpenCensus |     Batch      |   Jaeger   |
+|    OTLP    | Memory Limiter |  Logging   |
+|   Zipkin   |  Queued Retry  | OpenCensus |
+|            |    Resource    |    OTLP    |
+|            |    Sampling    |   Zipkin   |
+|            |      Span      |            |
 
 ### Metrics
 
-| Receivers | Processors | Exporters |
-|:----------:|:-----------:|:----------:|
-| HostMetrics | Batch | File |
-| OpenCensus | Filter | Logging |
-| OTLP | Memory Limiter | OpenCensus |
-| Prometheus || OTLP |
-| VM Metrics || Prometheus |
+|  Receivers  |   Processors   | Exporters  |
+| :---------: | :------------: | :--------: |
+| HostMetrics |     Batch      |    File    |
+| OpenCensus  |     Filter     |  Logging   |
+|    OTLP     | Memory Limiter | OpenCensus |
+| Prometheus  |                |    OTLP    |
+| VM Metrics  |                | Prometheus |
 
 ### Extensions
 
@@ -1033,34 +1305,32 @@ Released 2020-06-16
 - Performance Profiler
 - zPages
 
-
 ## v0.3.0 Beta
 
 Released 2020-03-30
 
 ### Breaking changes
 
--  Make prometheus receiver config loading strict. #697 
-Prometheus receiver will now fail fast if the config contains unused keys in it.
+- Make prometheus receiver config loading strict. #697
+  Prometheus receiver will now fail fast if the config contains unused keys in it.
 
 ### Changes and fixes
 
 - Enable best effort serve by default of Prometheus Exporter (https://github.com/orijtech/prometheus-go-metrics-exporter/pull/6)
-- Fix null pointer exception in the logging exporter #743 
-- Remove unnecessary condition to have at least one processor #744 
+- Fix null pointer exception in the logging exporter #743
+- Remove unnecessary condition to have at least one processor #744
 
 ### Components
 
-| Receivers / Exporters | Processors | Extensions |
-|:---------------------:|:-----------:|:-----------:|
-| Jaeger | Attributes | Health Check |
-| OpenCensus | Batch | Performance Profiler |
-| OpenTelemetry | Memory Limiter | zPages |
-| Zipkin | Queued Retry | |
-| | Resource | |
-| | Sampling | |
-| | Span | |
-
+| Receivers / Exporters |   Processors   |      Extensions      |
+| :-------------------: | :------------: | :------------------: |
+|        Jaeger         |   Attributes   |     Health Check     |
+|      OpenCensus       |     Batch      | Performance Profiler |
+|     OpenTelemetry     | Memory Limiter |        zPages        |
+|        Zipkin         |  Queued Retry  |                      |
+|                       |    Resource    |                      |
+|                       |    Sampling    |                      |
+|                       |      Span      |                      |
 
 ## v0.2.8 Alpha
 
@@ -1069,8 +1339,7 @@ Alpha v0.2.8 of OpenTelemetry Collector
 - Implemented OTLP receiver and exporter.
 - Added ability to pass config to the service programmatically (useful for custom builds).
 - Improved own metrics / observability.
-- Refactored component and factory interface definitions (breaking change #683) 
-
+- Refactored component and factory interface definitions (breaking change #683)
 
 ## v0.2.7 Alpha
 
@@ -1081,15 +1350,13 @@ Alpha v0.2.7 of OpenTelemetry Collector
 - Include resource labels for Zipkin exporter
 - New `HASH` action to attribute processor
 
-
-
 ## v0.2.6 Alpha
 
 Alpha v0.2.6 of OpenTelemetry Collector.
+
 - Update metrics prefix to `otelcol` and expose command line argument to modify the prefix value.
 - Extend Span processor to have include/exclude span logic.
 - Batch dropped span now emits zero when no spans are dropped.
-
 
 ## v0.2.5 Alpha
 
@@ -1097,7 +1364,6 @@ Alpha v0.2.5 of OpenTelemetry Collector.
 
 - Regexp-based filtering of spans based on service names.
 - Ability to choose strict or regexp matching for include/exclude filters.
-
 
 ## v0.2.4 Alpha
 
@@ -1108,7 +1374,6 @@ Alpha v0.2.4 of OpenTelemetry Collector.
 - File exporter for debugging.
 - Span processor is now enabled by default.
 
-
 ## v0.2.3 Alpha
 
 Alpha v0.2.3 of OpenTelemetry Collector.
@@ -1118,7 +1383,6 @@ Changes:
 9778b16 Refactor Jaeger Receiver config (#490)
 ec4ad0c Remove workers from OpenCensus receiver implementation (#497)
 4e01fa3 Update k8s config to use opentelemetry docker image and configuration (#459)
-
 
 ## v0.2.2 Alpha
 
@@ -1131,7 +1395,6 @@ Main changes visible to users since previous release:
 
 Note: v0.2.1 never existed and is skipped since it was tainted in some dependencies.
 
-
 ## v0.2.0 Alpha
 
 Alpha v0.2 of OpenTelemetry Collector.
@@ -1140,11 +1403,11 @@ Docker image: omnition/opentelemetry-collector:v0.2.0 (we are working on getting
 
 Main changes visible to users since previous release:
 
-* Rename from `service` to `collector`, the binary is now named `otelcol`
+- Rename from `service` to `collector`, the binary is now named `otelcol`
 
-* Configuration reorganized and using strict mode
+- Configuration reorganized and using strict mode
 
-* Concurrency issues for pipelines transforming data addressed
+- Concurrency issues for pipelines transforming data addressed
 
 Commits:
 
@@ -1170,7 +1433,6 @@ d205393 Add Owais to codeowners (#339)
 8fa6afe Translate OC resource labels to Jaeger process tags (#325)
 ```
 
-
 ## v0.0.2 Alpha
 
 Alpha release of OpenTelemetry Service.
@@ -1194,13 +1456,11 @@ fed4ed2 Add support to record metrics for metricsexporter (#315)
 0068d0a Passthrough CORS allowed origins (#260)
 ```
 
-
 ## v0.0.1 Alpha
 
 This is the first alpha release of OpenTelemetry Service.
 
 Docker image: omnition/opentelemetry-service:v0.0.1
-
 
 [v0.3.0]: https://github.com/open-telemetry/opentelemetry-collector/compare/v0.2.10...v0.3.0
 [v0.2.10]: https://github.com/open-telemetry/opentelemetry-collector/compare/v0.2.8...v0.2.10

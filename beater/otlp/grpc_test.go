@@ -57,12 +57,14 @@ func TestConsumeTraces(t *testing.T) {
 	span := traces.ResourceSpans().AppendEmpty().InstrumentationLibrarySpans().AppendEmpty().Spans().AppendEmpty()
 	span.SetName("operation_name")
 
-	_, err := client.Export(context.Background(), traces)
+	tracesRequest := otlpgrpc.NewTracesRequest()
+	tracesRequest.SetTraces(traces)
+	_, err := client.Export(context.Background(), tracesRequest)
 	assert.NoError(t, err)
 	require.Len(t, batches, 1)
 
 	reportError = errors.New("failed to publish events")
-	_, err = client.Export(context.Background(), traces)
+	_, err = client.Export(context.Background(), tracesRequest)
 	assert.Error(t, err)
 	errStatus := status.Convert(err)
 	assert.Equal(t, "failed to publish events", errStatus.Message())
@@ -104,11 +106,13 @@ func TestConsumeMetrics(t *testing.T) {
 	metric.SetDataType(pdata.MetricDataTypeSummary)
 	metric.Summary().DataPoints().AppendEmpty()
 
-	_, err := client.Export(context.Background(), metrics)
+	metricsRequest := otlpgrpc.NewMetricsRequest()
+	metricsRequest.SetMetrics(metrics)
+	_, err := client.Export(context.Background(), metricsRequest)
 	assert.NoError(t, err)
 
 	reportError = errors.New("failed to publish events")
-	_, err = client.Export(context.Background(), metrics)
+	_, err = client.Export(context.Background(), metricsRequest)
 	assert.Error(t, err)
 
 	errStatus := status.Convert(err)
@@ -153,12 +157,14 @@ func TestConsumeLogs(t *testing.T) {
 	log := logs.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().Logs().AppendEmpty()
 	log.SetName("log_name")
 
-	_, err := client.Export(context.Background(), logs)
+	logsRequest := otlpgrpc.NewLogsRequest()
+	logsRequest.SetLogs(logs)
+	_, err := client.Export(context.Background(), logsRequest)
 	assert.NoError(t, err)
 	require.Len(t, batches, 1)
 
 	reportError = errors.New("failed to publish events")
-	_, err = client.Export(context.Background(), logs)
+	_, err = client.Export(context.Background(), logsRequest)
 	assert.Error(t, err)
 	errStatus := status.Convert(err)
 	assert.Equal(t, "failed to publish events", errStatus.Message())

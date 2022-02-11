@@ -116,9 +116,7 @@ func TestConsumerConsumeLogs(t *testing.T) {
 func newLogs(body interface{}) pdata.Logs {
 	logs := pdata.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
-	logs.ResourceLogs().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		semconv.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString("go"),
-	})
+	logs.ResourceLogs().At(0).Resource().Attributes().InsertString(semconv.AttributeTelemetrySDKLanguage, "go")
 	instrumentationLogs := resourceLogs.InstrumentationLibraryLogs().AppendEmpty()
 	otelLog := instrumentationLogs.Logs().AppendEmpty()
 	otelLog.SetTraceID(pdata.NewTraceID([16]byte{1}))
@@ -127,10 +125,8 @@ func newLogs(body interface{}) pdata.Logs {
 	otelLog.SetSeverityNumber(pdata.SeverityNumberINFO)
 	otelLog.SetSeverityText("Info")
 	otelLog.SetTimestamp(pdata.NewTimestampFromTime(time.Now()))
-	otelLog.Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		"key":         pdata.NewAttributeValueString("value"),
-		"numeric_key": pdata.NewAttributeValueDouble(1234),
-	})
+	otelLog.Attributes().InsertString("key", "value")
+	otelLog.Attributes().InsertDouble("numeric_key", 1234)
 
 	switch b := body.(type) {
 	case string:

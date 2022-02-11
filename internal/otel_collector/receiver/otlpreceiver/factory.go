@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package otlpreceiver
+package otlpreceiver // import "go.opentelemetry.io/collector/receiver/otlpreceiver"
 
 import (
 	"context"
@@ -32,7 +32,6 @@ const (
 
 	defaultGRPCEndpoint = "0.0.0.0:4317"
 	defaultHTTPEndpoint = "0.0.0.0:4318"
-	legacyGRPCEndpoint  = "0.0.0.0:55680"
 	legacyHTTPEndpoint  = "0.0.0.0:55681"
 )
 
@@ -49,7 +48,7 @@ func NewFactory() component.ReceiverFactory {
 // createDefaultConfig creates the default configuration for receiver.
 func createDefaultConfig() config.Receiver {
 	return &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewID(typeStr)),
+		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
 		Protocols: Protocols{
 			GRPC: &configgrpc.GRPCServerSettings{
 				NetAddr: confignet.NetAddr{
@@ -74,7 +73,7 @@ func createTracesReceiver(
 	nextConsumer consumer.Traces,
 ) (component.TracesReceiver, error) {
 	r := receivers.GetOrAdd(cfg, func() component.Component {
-		return newOtlpReceiver(cfg.(*Config), set.Logger)
+		return newOtlpReceiver(cfg.(*Config), set)
 	})
 
 	if err := r.Unwrap().(*otlpReceiver).registerTraceConsumer(nextConsumer); err != nil {
@@ -91,7 +90,7 @@ func createMetricsReceiver(
 	consumer consumer.Metrics,
 ) (component.MetricsReceiver, error) {
 	r := receivers.GetOrAdd(cfg, func() component.Component {
-		return newOtlpReceiver(cfg.(*Config), set.Logger)
+		return newOtlpReceiver(cfg.(*Config), set)
 	})
 
 	if err := r.Unwrap().(*otlpReceiver).registerMetricsConsumer(consumer); err != nil {
@@ -108,7 +107,7 @@ func createLogReceiver(
 	consumer consumer.Logs,
 ) (component.LogsReceiver, error) {
 	r := receivers.GetOrAdd(cfg, func() component.Component {
-		return newOtlpReceiver(cfg.(*Config), set.Logger)
+		return newOtlpReceiver(cfg.(*Config), set)
 	})
 
 	if err := r.Unwrap().(*otlpReceiver).registerLogsConsumer(consumer); err != nil {

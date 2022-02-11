@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package exporterhelper
+package exporterhelper // import "go.opentelemetry.io/collector/exporter/exporterhelper"
 
 import (
 	"context"
@@ -23,8 +23,13 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/consumer/consumerhelper"
+	"go.opentelemetry.io/collector/exporter/exporterhelper/internal"
+	"go.opentelemetry.io/collector/model/otlp"
 	"go.opentelemetry.io/collector/model/pdata"
 )
+
+var logsMarshaler = otlp.NewProtobufLogsMarshaler()
+var logsUnmarshaler = otlp.NewProtobufLogsUnmarshaler()
 
 type logsRequest struct {
 	baseRequest
@@ -40,9 +45,19 @@ func newLogsRequest(ctx context.Context, ld pdata.Logs, pusher consumerhelper.Co
 	}
 }
 
+func newLogsRequestUnmarshalerFunc(pusher consumerhelper.ConsumeLogsFunc) internal.RequestUnmarshaler {
+	return func(bytes []byte) (internal.PersistentRequest, error) {
+		logs, err := logsUnmarshaler.UnmarshalLogs(bytes)
+		if err != nil {
+			return nil, err
+		}
+		return newLogsRequest(context.Background(), logs, pusher), nil
+	}
+}
+
 func (req *logsRequest) onError(err error) request {
 	var logError consumererror.Logs
-	if consumererror.AsLogs(err, &logError) {
+	if errors.As(err, &logError) {
 		return newLogsRequest(req.ctx, logError.GetLogs(), req.pusher)
 	}
 	return req
@@ -50,6 +65,10 @@ func (req *logsRequest) onError(err error) request {
 
 func (req *logsRequest) export(ctx context.Context) error {
 	return req.pusher(ctx, req.ld)
+}
+
+func (req *logsRequest) Marshal() ([]byte, error) {
+	return logsMarshaler.MarshalLogs(req.ld)
 }
 
 func (req *logsRequest) count() int {
@@ -81,7 +100,7 @@ func NewLogsExporter(
 	}
 
 	bs := fromOptions(options...)
-	be := newBaseExporter(cfg, set, bs)
+	be := newBaseExporter(cfg, set, bs, config.LogsDataType, newLogsRequestUnmarshalerFunc(pusher))
 	be.wrapConsumerSender(func(nextSender requestSender) requestSender {
 		return &logsExporterWithObservability{
 			obsrep:     be.obsrep,
@@ -93,7 +112,7 @@ func NewLogsExporter(
 		req := newLogsRequest(ctx, ld, pusher)
 		err := be.sender.send(req)
 		if errors.Is(err, errSendingQueueIsFull) {
-			be.obsrep.recordLogsEnqueueFailure(req.context(), req.count())
+			be.obsrep.recordLogsEnqueueFailure(req.context(), int64(req.count()))
 		}
 		return err
 	}, bs.consumerOptions...)

@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package otlpreceiver
+package otlpreceiver // import "go.opentelemetry.io/collector/receiver/otlpreceiver"
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"sync"
 
 	"github.com/gorilla/mux"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	"go.opentelemetry.io/collector/component"
@@ -29,16 +29,10 @@ import (
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/model/otlp"
 	"go.opentelemetry.io/collector/model/otlpgrpc"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/internal/logs"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/internal/metrics"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/internal/trace"
-)
-
-const (
-	pbContentType   = "application/x-protobuf"
-	jsonContentType = "application/json"
 )
 
 // otlpReceiver is the type that exposes Trace and Metrics reception.
@@ -53,16 +47,16 @@ type otlpReceiver struct {
 	logReceiver     *logs.Receiver
 	shutdownWG      sync.WaitGroup
 
-	logger *zap.Logger
+	settings component.ReceiverCreateSettings
 }
 
 // newOtlpReceiver just creates the OpenTelemetry receiver services. It is the caller's
 // responsibility to invoke the respective Start*Reception methods as well
 // as the various Stop*Reception methods to end it.
-func newOtlpReceiver(cfg *Config, logger *zap.Logger) *otlpReceiver {
+func newOtlpReceiver(cfg *Config, settings component.ReceiverCreateSettings) *otlpReceiver {
 	r := &otlpReceiver{
-		cfg:    cfg,
-		logger: logger,
+		cfg:      cfg,
+		settings: settings,
 	}
 	if cfg.HTTP != nil {
 		r.httpMux = mux.NewRouter()
@@ -72,7 +66,7 @@ func newOtlpReceiver(cfg *Config, logger *zap.Logger) *otlpReceiver {
 }
 
 func (r *otlpReceiver) startGRPCServer(cfg *configgrpc.GRPCServerSettings, host component.Host) error {
-	r.logger.Info("Starting GRPC server on endpoint " + cfg.NetAddr.Endpoint)
+	r.settings.Logger.Info("Starting GRPC server on endpoint " + cfg.NetAddr.Endpoint)
 
 	gln, err := cfg.ToListener()
 	if err != nil {
@@ -90,9 +84,9 @@ func (r *otlpReceiver) startGRPCServer(cfg *configgrpc.GRPCServerSettings, host 
 }
 
 func (r *otlpReceiver) startHTTPServer(cfg *confighttp.HTTPServerSettings, host component.Host) error {
-	r.logger.Info("Starting HTTP server on endpoint " + cfg.Endpoint)
+	r.settings.Logger.Info("Starting HTTP server on endpoint " + cfg.Endpoint)
 	var hln net.Listener
-	hln, err := r.cfg.HTTP.ToListener()
+	hln, err := cfg.ToListener()
 	if err != nil {
 		return err
 	}
@@ -111,7 +105,7 @@ func (r *otlpReceiver) startProtocolServers(host component.Host) error {
 	var err error
 	if r.cfg.GRPC != nil {
 		var opts []grpc.ServerOption
-		opts, err = r.cfg.GRPC.ToServerOption(host.GetExtensions())
+		opts, err = r.cfg.GRPC.ToServerOption(host, r.settings.TelemetrySettings)
 		if err != nil {
 			return err
 		}
@@ -133,39 +127,37 @@ func (r *otlpReceiver) startProtocolServers(host component.Host) error {
 		if err != nil {
 			return err
 		}
-		if r.cfg.GRPC.NetAddr.Endpoint == defaultGRPCEndpoint {
-			r.logger.Info("Setting up a second GRPC listener on legacy endpoint " + legacyGRPCEndpoint)
-
-			// Copy the config.
-			cfgLegacyGRPC := r.cfg.GRPC
-			// And use the legacy endpoint.
-			cfgLegacyGRPC.NetAddr.Endpoint = legacyGRPCEndpoint
-			err = r.startGRPCServer(cfgLegacyGRPC, host)
-			if err != nil {
-				return err
-			}
-		}
 	}
 	if r.cfg.HTTP != nil {
-		r.serverHTTP = r.cfg.HTTP.ToServer(
+		r.serverHTTP, err = r.cfg.HTTP.ToServer(
+			host,
+			r.settings.TelemetrySettings,
 			r.httpMux,
 			confighttp.WithErrorHandler(errorHandler),
 		)
+		if err != nil {
+			return err
+		}
+
 		err = r.startHTTPServer(r.cfg.HTTP, host)
 		if err != nil {
 			return err
 		}
 		if r.cfg.HTTP.Endpoint == defaultHTTPEndpoint {
-			r.logger.Info("Setting up a second HTTP listener on legacy endpoint " + legacyHTTPEndpoint)
+			r.settings.Logger.Info("Setting up a second HTTP listener on legacy endpoint " + legacyHTTPEndpoint)
 
 			// Copy the config.
-			cfgLegacyHTTP := r.cfg.HTTP
+			cfgLegacyHTTP := *(r.cfg.HTTP)
 			// And use the legacy endpoint.
 			cfgLegacyHTTP.Endpoint = legacyHTTPEndpoint
-			err = r.startHTTPServer(cfgLegacyHTTP, host)
+			err = r.startHTTPServer(&cfgLegacyHTTP, host)
 			if err != nil {
 				return err
 			}
+		}
+		if r.cfg.HTTP.Endpoint == legacyHTTPEndpoint {
+			r.settings.Logger.Warn(fmt.Sprintf("Legacy HTTP endpoint %v is configured, please use %v instead.",
+				legacyHTTPEndpoint, defaultHTTPEndpoint))
 		}
 	}
 
@@ -194,67 +186,72 @@ func (r *otlpReceiver) Shutdown(ctx context.Context) error {
 	return err
 }
 
-var tracesPbUnmarshaler = otlp.NewProtobufTracesUnmarshaler()
-var tracesJSONUnmarshaler = otlp.NewJSONTracesUnmarshaler()
-
 func (r *otlpReceiver) registerTraceConsumer(tc consumer.Traces) error {
 	if tc == nil {
 		return componenterror.ErrNilNextConsumer
 	}
-	r.traceReceiver = trace.New(r.cfg.ID(), tc)
+	r.traceReceiver = trace.New(r.cfg.ID(), tc, r.settings)
 	if r.httpMux != nil {
 		r.httpMux.HandleFunc("/v1/traces", func(resp http.ResponseWriter, req *http.Request) {
-			handleTraces(resp, req, pbContentType, r.traceReceiver, tracesPbUnmarshaler)
-		}).Methods(http.MethodPost).Headers("Content-Type", pbContentType)
-		// For backwards compatibility see https://github.com/open-telemetry/opentelemetry-collector/issues/1968
-		r.httpMux.HandleFunc("/v1/trace", func(resp http.ResponseWriter, req *http.Request) {
-			handleTraces(resp, req, pbContentType, r.traceReceiver, tracesPbUnmarshaler)
+			handleTraces(resp, req, r.traceReceiver, pbEncoder)
 		}).Methods(http.MethodPost).Headers("Content-Type", pbContentType)
 		r.httpMux.HandleFunc("/v1/traces", func(resp http.ResponseWriter, req *http.Request) {
-			handleTraces(resp, req, jsonContentType, r.traceReceiver, tracesJSONUnmarshaler)
+			handleTraces(resp, req, r.traceReceiver, jsEncoder)
 		}).Methods(http.MethodPost).Headers("Content-Type", jsonContentType)
-		// For backwards compatibility see https://github.com/open-telemetry/opentelemetry-collector/issues/1968
-		r.httpMux.HandleFunc("/v1/trace", func(resp http.ResponseWriter, req *http.Request) {
-			handleTraces(resp, req, jsonContentType, r.traceReceiver, tracesJSONUnmarshaler)
-		}).Methods(http.MethodPost).Headers("Content-Type", jsonContentType)
+		r.httpMux.HandleFunc("/v1/traces", func(resp http.ResponseWriter, req *http.Request) {
+			handleUnmatchedRequests(resp, req)
+		})
 	}
 	return nil
 }
-
-var metricsPbUnmarshaler = otlp.NewProtobufMetricsUnmarshaler()
-var metricsJSONUnmarshaler = otlp.NewJSONMetricsUnmarshaler()
 
 func (r *otlpReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 	if mc == nil {
 		return componenterror.ErrNilNextConsumer
 	}
-	r.metricsReceiver = metrics.New(r.cfg.ID(), mc)
+	r.metricsReceiver = metrics.New(r.cfg.ID(), mc, r.settings)
 	if r.httpMux != nil {
 		r.httpMux.HandleFunc("/v1/metrics", func(resp http.ResponseWriter, req *http.Request) {
-			handleMetrics(resp, req, pbContentType, r.metricsReceiver, metricsPbUnmarshaler)
+			handleMetrics(resp, req, r.metricsReceiver, pbEncoder)
 		}).Methods(http.MethodPost).Headers("Content-Type", pbContentType)
 		r.httpMux.HandleFunc("/v1/metrics", func(resp http.ResponseWriter, req *http.Request) {
-			handleMetrics(resp, req, jsonContentType, r.metricsReceiver, metricsJSONUnmarshaler)
+			handleMetrics(resp, req, r.metricsReceiver, jsEncoder)
 		}).Methods(http.MethodPost).Headers("Content-Type", jsonContentType)
+		r.httpMux.HandleFunc("/v1/metrics", func(resp http.ResponseWriter, req *http.Request) {
+			handleUnmatchedRequests(resp, req)
+		})
 	}
 	return nil
 }
-
-var logsPbUnmarshaler = otlp.NewProtobufLogsUnmarshaler()
-var logsJSONUnmarshaler = otlp.NewJSONLogsUnmarshaler()
 
 func (r *otlpReceiver) registerLogsConsumer(lc consumer.Logs) error {
 	if lc == nil {
 		return componenterror.ErrNilNextConsumer
 	}
-	r.logReceiver = logs.New(r.cfg.ID(), lc)
+	r.logReceiver = logs.New(r.cfg.ID(), lc, r.settings)
 	if r.httpMux != nil {
 		r.httpMux.HandleFunc("/v1/logs", func(w http.ResponseWriter, req *http.Request) {
-			handleLogs(w, req, pbContentType, r.logReceiver, logsPbUnmarshaler)
+			handleLogs(w, req, r.logReceiver, pbEncoder)
 		}).Methods(http.MethodPost).Headers("Content-Type", pbContentType)
 		r.httpMux.HandleFunc("/v1/logs", func(w http.ResponseWriter, req *http.Request) {
-			handleLogs(w, req, jsonContentType, r.logReceiver, logsJSONUnmarshaler)
+			handleLogs(w, req, r.logReceiver, jsEncoder)
 		}).Methods(http.MethodPost).Headers("Content-Type", jsonContentType)
+		r.httpMux.HandleFunc("/v1/logs", func(resp http.ResponseWriter, req *http.Request) {
+			handleUnmatchedRequests(resp, req)
+		})
 	}
 	return nil
+}
+
+func handleUnmatchedRequests(resp http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		status := http.StatusMethodNotAllowed
+		writeResponse(resp, "text/plain", status, []byte(fmt.Sprintf("%v method not allowed, supported: [POST]", status)))
+		return
+	}
+	if req.Header.Get("Content-Type") == "" {
+		status := http.StatusUnsupportedMediaType
+		writeResponse(resp, "text/plain", status, []byte(fmt.Sprintf("%v unsupported media type, supported: [%s, %s]", status, jsonContentType, pbContentType)))
+		return
+	}
 }

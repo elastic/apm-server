@@ -208,12 +208,12 @@ func TestResourceConventions(t *testing.T) {
 
 func TestResourceLabels(t *testing.T) {
 	stringArray := pdata.NewAttributeValueArray()
-	stringArray.ArrayVal().AppendEmpty().SetStringVal("abc")
-	stringArray.ArrayVal().AppendEmpty().SetStringVal("def")
+	stringArray.SliceVal().AppendEmpty().SetStringVal("abc")
+	stringArray.SliceVal().AppendEmpty().SetStringVal("def")
 
 	intArray := pdata.NewAttributeValueArray()
-	intArray.ArrayVal().AppendEmpty().SetIntVal(123)
-	intArray.ArrayVal().AppendEmpty().SetIntVal(456)
+	intArray.SliceVal().AppendEmpty().SetIntVal(123)
+	intArray.SliceVal().AppendEmpty().SetIntVal(456)
 
 	metadata := transformResourceMetadata(t, map[string]pdata.AttributeValue{
 		"string_array": stringArray,
@@ -229,7 +229,7 @@ func TestResourceLabels(t *testing.T) {
 
 func transformResourceMetadata(t *testing.T, resourceAttrs map[string]pdata.AttributeValue) model.APMEvent {
 	traces, spans := newTracesSpans()
-	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(resourceAttrs)
+	pdata.NewAttributeMapFromMap(resourceAttrs).CopyTo(traces.ResourceSpans().At(0).Resource().Attributes())
 	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))

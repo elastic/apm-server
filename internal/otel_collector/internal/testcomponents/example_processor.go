@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package testcomponents
+package testcomponents // import "go.opentelemetry.io/collector/internal/testcomponents"
 
 import (
 	"context"
@@ -45,7 +45,7 @@ var ExampleProcessorFactory = processorhelper.NewFactory(
 // CreateDefaultConfig creates the default configuration for the Processor.
 func createDefaultConfig() config.Processor {
 	return &ExampleProcessorCfg{
-		ProcessorSettings: config.NewProcessorSettings(config.NewID(procType)),
+		ProcessorSettings: config.NewProcessorSettings(config.NewComponentID(procType)),
 		ExtraSetting:      "some export string",
 		ExtraMapSetting:   nil,
 		ExtraListSetting:  nil,

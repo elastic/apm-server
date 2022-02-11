@@ -12,27 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package componenttest
+package componenttest // import "go.opentelemetry.io/collector/component/componenttest"
 
 import (
 	"context"
-
-	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenthelper"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/internal/internalinterface"
 )
 
 // NewNopProcessorCreateSettings returns a new nop settings for Create*Processor functions.
 func NewNopProcessorCreateSettings() component.ProcessorCreateSettings {
 	return component.ProcessorCreateSettings{
-		Logger:         zap.NewNop(),
-		TracerProvider: trace.NewNoopTracerProvider(),
-		BuildInfo:      component.DefaultBuildInfo(),
+		TelemetrySettings: NewNopTelemetrySettings(),
+		BuildInfo:         component.NewDefaultBuildInfo(),
 	}
 }
 
@@ -42,7 +39,7 @@ type nopProcessorConfig struct {
 
 // nopProcessorFactory is factory for nopProcessor.
 type nopProcessorFactory struct {
-	component.BaseProcessorFactory
+	internalinterface.BaseInternal
 }
 
 var nopProcessorFactoryInstance = &nopProcessorFactory{}
@@ -60,7 +57,7 @@ func (f *nopProcessorFactory) Type() config.Type {
 // CreateDefaultConfig creates the default configuration for the Processor.
 func (f *nopProcessorFactory) CreateDefaultConfig() config.Processor {
 	return &nopProcessorConfig{
-		ProcessorSettings: config.NewProcessorSettings(config.NewID("nop")),
+		ProcessorSettings: config.NewProcessorSettings(config.NewComponentID("nop")),
 	}
 }
 
@@ -95,12 +92,12 @@ func (f *nopProcessorFactory) CreateLogsProcessor(
 }
 
 var nopProcessorInstance = &nopProcessor{
-	Component: componenthelper.New(),
-	Consumer:  consumertest.NewNop(),
+	Consumer: consumertest.NewNop(),
 }
 
 // nopProcessor stores consumed traces and metrics for testing purposes.
 type nopProcessor struct {
-	component.Component
+	componenthelper.StartFunc
+	componenthelper.ShutdownFunc
 	consumertest.Consumer
 }

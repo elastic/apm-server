@@ -12,17 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package service
+package service // import "go.opentelemetry.io/collector/service"
 
 import (
 	"go.opentelemetry.io/contrib/zpages"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configunmarshaler"
-	"go.opentelemetry.io/collector/service/parserprovider"
 )
 
 // svcSettings holds configuration for building a new service.
@@ -36,11 +33,8 @@ type svcSettings struct {
 	// Config represents the configuration of the service.
 	Config *config.Config
 
-	// Logger represents the logger used for all the components.
-	Logger *zap.Logger
-
-	// TracerProvider represents the TracerProvider used for all the components.
-	TracerProvider trace.TracerProvider
+	// Telemetry represents the service configured telemetry for all the components.
+	Telemetry component.TelemetrySettings
 
 	// ZPagesSpanProcessor represents the SpanProcessor for tracez page.
 	ZPagesSpanProcessor *zpages.SpanProcessor
@@ -63,17 +57,9 @@ type CollectorSettings struct {
 	// and manually handle the signals to shutdown the collector.
 	DisableGracefulShutdown bool
 
-	// ParserProvider provides the configuration's Parser.
-	// If it is not provided a default provider is used. The default provider loads the configuration
-	// from a config file define by the --config command line flag and overrides component's configuration
-	// properties supplied via --set command line flag.
-	// If the provider is parserprovider.Watchable, collector
-	// may reload the configuration upon error.
-	ParserProvider parserprovider.ParserProvider
-
-	// ConfigUnmarshaler unmarshalls the configuration's Parser into the service configuration.
-	// If it is not provided a default unmarshaler is used.
-	ConfigUnmarshaler configunmarshaler.ConfigUnmarshaler
+	// ConfigProvider provides the service configuration.
+	// If the provider watches for configuration change, collector may reload the new configuration upon changes.
+	ConfigProvider ConfigProvider
 
 	// LoggingOptions provides a way to change behavior of zap logging.
 	LoggingOptions []zap.Option

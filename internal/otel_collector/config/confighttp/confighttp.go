@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package confighttp
+package confighttp // import "go.opentelemetry.io/collector/config/confighttp"
 
 import (
 	"crypto/tls"
@@ -28,9 +28,11 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configauth"
+	"go.opentelemetry.io/collector/config/configcompression"
 	"go.opentelemetry.io/collector/config/configtls"
-	"go.opentelemetry.io/collector/internal/middleware"
 )
+
+const headerContentEncoding = "Content-Encoding"
 
 // HTTPClientSettings defines settings for creating an HTTP client.
 type HTTPClientSettings struct {
@@ -38,7 +40,7 @@ type HTTPClientSettings struct {
 	Endpoint string `mapstructure:"endpoint"`
 
 	// TLSSetting struct exposes TLS client configuration.
-	TLSSetting configtls.TLSClientSetting `mapstructure:",squash"`
+	TLSSetting configtls.TLSClientSetting `mapstructure:"tls,omitempty"`
 
 	// ReadBufferSize for HTTP client. See http.Transport.ReadBufferSize.
 	ReadBufferSize int `mapstructure:"read_buffer_size"`
@@ -58,10 +60,45 @@ type HTTPClientSettings struct {
 
 	// Auth configuration for outgoing HTTP calls.
 	Auth *configauth.Authentication `mapstructure:"auth,omitempty"`
+
+	// The compression key for supported compression types within collector.
+	Compression configcompression.CompressionType `mapstructure:"compression"`
+
+	// MaxIdleConns is used to set a limit to the maximum idle HTTP connections the client can keep open.
+	// There's an already set value, and we want to override it only if an explicit value provided
+	MaxIdleConns *int `mapstructure:"max_idle_conns"`
+
+	// MaxIdleConnsPerHost is used to set a limit to the maximum idle HTTP connections the host can keep open.
+	// There's an already set value, and we want to override it only if an explicit value provided
+	MaxIdleConnsPerHost *int `mapstructure:"max_idle_conns_per_host"`
+
+	// MaxConnsPerHost limits the total number of connections per host, including connections in the dialing,
+	// active, and idle states.
+	// There's an already set value, and we want to override it only if an explicit value provided
+	MaxConnsPerHost *int `mapstructure:"max_conns_per_host"`
+
+	// IdleConnTimeout is the maximum amount of time a connection will remain open before closing itself.
+	// There's an already set value, and we want to override it only if an explicit value provided
+	IdleConnTimeout *time.Duration `mapstructure:"idle_conn_timeout"`
+}
+
+// DefaultHTTPClientSettings returns HTTPClientSettings type object with
+// the default values of 'MaxIdleConns' and 'IdleConnTimeout'.
+// Other config options are not added as they are initialized with 'zero value' by GoLang as default.
+// We encourage to use this function to create an object of HTTPClientSettings.
+func DefaultHTTPClientSettings() HTTPClientSettings {
+	// The default values are taken from the values of 'DefaultTransport' of 'http' package.
+	maxIdleConns := 100
+	idleConnTimeout := 90 * time.Second
+
+	return HTTPClientSettings{
+		MaxIdleConns:    &maxIdleConns,
+		IdleConnTimeout: &idleConnTimeout,
+	}
 }
 
 // ToClient creates an HTTP client.
-func (hcs *HTTPClientSettings) ToClient(ext map[config.ComponentID]component.Extension) (*http.Client, error) {
+func (hcs *HTTPClientSettings) ToClient(ext map[config.ComponentID]component.Extension, settings component.TelemetrySettings) (*http.Client, error) {
 	tlsCfg, err := hcs.TLSSetting.LoadTLSConfig()
 	if err != nil {
 		return nil, err
@@ -77,6 +114,22 @@ func (hcs *HTTPClientSettings) ToClient(ext map[config.ComponentID]component.Ext
 		transport.WriteBufferSize = hcs.WriteBufferSize
 	}
 
+	if hcs.MaxIdleConns != nil {
+		transport.MaxIdleConns = *hcs.MaxIdleConns
+	}
+
+	if hcs.MaxIdleConnsPerHost != nil {
+		transport.MaxIdleConnsPerHost = *hcs.MaxIdleConnsPerHost
+	}
+
+	if hcs.MaxConnsPerHost != nil {
+		transport.MaxConnsPerHost = *hcs.MaxConnsPerHost
+	}
+
+	if hcs.IdleConnTimeout != nil {
+		transport.IdleConnTimeout = *hcs.IdleConnTimeout
+	}
+
 	clientTransport := (http.RoundTripper)(transport)
 	if len(hcs.Headers) > 0 {
 		clientTransport = &headerRoundTripper{
@@ -84,18 +137,28 @@ func (hcs *HTTPClientSettings) ToClient(ext map[config.ComponentID]component.Ext
 			headers:   hcs.Headers,
 		}
 	}
+	// wrapping http transport with otelhttp transport to enable otel instrumenetation
+	if settings.TracerProvider != nil && settings.MeterProvider != nil {
+		clientTransport = otelhttp.NewTransport(
+			clientTransport,
+			otelhttp.WithTracerProvider(settings.TracerProvider),
+			otelhttp.WithMeterProvider(settings.MeterProvider),
+			otelhttp.WithPropagators(otel.GetTextMapPropagator()),
+		)
+	}
+
+	// Compress the body using specified compression methods if non-empty string is provided.
+	// Supporting gzip, zlib, deflate, snappy, and zstd; none is treated as uncompressed.
+	if configcompression.IsCompressed(hcs.Compression) {
+		clientTransport = newCompressRoundTripper(clientTransport, hcs.Compression)
+	}
 
 	if hcs.Auth != nil {
 		if ext == nil {
 			return nil, fmt.Errorf("extensions configuration not found")
 		}
 
-		componentID, cperr := config.NewIDFromString(hcs.Auth.AuthenticatorName)
-		if cperr != nil {
-			return nil, cperr
-		}
-
-		httpCustomAuthRoundTripper, aerr := configauth.GetHTTPClientAuthenticator(ext, componentID)
+		httpCustomAuthRoundTripper, aerr := hcs.Auth.GetClientAuthenticator(ext)
 		if aerr != nil {
 			return nil, aerr
 		}
@@ -140,19 +203,20 @@ type HTTPServerSettings struct {
 	Endpoint string `mapstructure:"endpoint"`
 
 	// TLSSetting struct exposes TLS client configuration.
-	TLSSetting *configtls.TLSServerSetting `mapstructure:"tls_settings, omitempty"`
+	TLSSetting *configtls.TLSServerSetting `mapstructure:"tls, omitempty"`
 
-	// CorsOrigins are the allowed CORS origins for HTTP/JSON requests to grpc-gateway adapter
-	// for the OTLP receiver. See github.com/rs/cors
-	// An empty list means that CORS is not enabled at all. A wildcard (*) can be
-	// used to match any origin or one or more characters of an origin.
-	CorsOrigins []string `mapstructure:"cors_allowed_origins"`
+	// CORS configures the server for HTTP cross-origin resource sharing (CORS).
+	CORS *CORSSettings `mapstructure:"cors,omitempty"`
 
-	// CorsHeaders are the allowed CORS headers for HTTP/JSON requests to grpc-gateway adapter
-	// for the OTLP receiver. See github.com/rs/cors
-	// CORS needs to be enabled first by providing a non-empty list in CorsOrigins
-	// A wildcard (*) can be used to match any header.
-	CorsHeaders []string `mapstructure:"cors_allowed_headers"`
+	// Auth for this receiver
+	Auth *configauth.Authentication `mapstructure:"auth,omitempty"`
+
+	// MaxRequestBodySize sets the maximum request body size in bytes
+	MaxRequestBodySize int64 `mapstructure:"max_request_body_size,omitempty"`
+
+	// IncludeMetadata propagates the client metadata from the incoming requests to the downstream consumers
+	// Experimental: *NOTE* this option is subject to change or removal in the future.
+	IncludeMetadata bool `mapstructure:"include_metadata,omitempty"`
 }
 
 // ToListener creates a net.Listener.
@@ -176,7 +240,7 @@ func (hss *HTTPServerSettings) ToListener() (net.Listener, error) {
 // toServerOptions has options that change the behavior of the HTTP server
 // returned by HTTPServerSettings.ToServer().
 type toServerOptions struct {
-	errorHandler middleware.ErrorHandler
+	errorHandler
 }
 
 // ToServerOption is an option to change the behavior of the HTTP server
@@ -184,48 +248,110 @@ type toServerOptions struct {
 type ToServerOption func(opts *toServerOptions)
 
 // WithErrorHandler overrides the HTTP error handler that gets invoked
-// when there is a failure inside middleware.HTTPContentDecompressor.
-func WithErrorHandler(e middleware.ErrorHandler) ToServerOption {
+// when there is a failure inside httpContentDecompressor.
+func WithErrorHandler(e errorHandler) ToServerOption {
 	return func(opts *toServerOptions) {
 		opts.errorHandler = e
 	}
 }
 
 // ToServer creates an http.Server from settings object.
-func (hss *HTTPServerSettings) ToServer(handler http.Handler, opts ...ToServerOption) *http.Server {
+func (hss *HTTPServerSettings) ToServer(host component.Host, settings component.TelemetrySettings, handler http.Handler, opts ...ToServerOption) (*http.Server, error) {
 	serverOpts := &toServerOptions{}
 	for _, o := range opts {
 		o(serverOpts)
 	}
 
-	handler = middleware.HTTPContentDecompressor(
+	handler = httpContentDecompressor(
 		handler,
-		middleware.WithErrorHandler(serverOpts.errorHandler),
+		withErrorHandlerForDecompressor(serverOpts.errorHandler),
 	)
 
-	if len(hss.CorsOrigins) > 0 {
+	if hss.MaxRequestBodySize > 0 {
+		handler = maxRequestBodySizeInterceptor(handler, hss.MaxRequestBodySize)
+	}
+
+	if hss.CORS != nil && len(hss.CORS.AllowedOrigins) > 0 {
 		co := cors.Options{
-			AllowedOrigins:   hss.CorsOrigins,
+			AllowedOrigins:   hss.CORS.AllowedOrigins,
 			AllowCredentials: true,
-			AllowedHeaders:   hss.CorsHeaders,
+			AllowedHeaders:   hss.CORS.AllowedHeaders,
+			MaxAge:           hss.CORS.MaxAge,
 		}
 		handler = cors.New(co).Handler(handler)
 	}
 	// TODO: emit a warning when non-empty CorsHeaders and empty CorsOrigins.
+
+	if hss.Auth != nil {
+		authenticator, err := hss.Auth.GetServerAuthenticator(host.GetExtensions())
+		if err != nil {
+			return nil, err
+		}
+
+		handler = authInterceptor(handler, authenticator.Authenticate)
+	}
 
 	// Enable OpenTelemetry observability plugin.
 	// TODO: Consider to use component ID string as prefix for all the operations.
 	handler = otelhttp.NewHandler(
 		handler,
 		"",
-		otelhttp.WithTracerProvider(otel.GetTracerProvider()),
+		otelhttp.WithTracerProvider(settings.TracerProvider),
+		otelhttp.WithMeterProvider(settings.MeterProvider),
 		otelhttp.WithPropagators(otel.GetTextMapPropagator()),
 		otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
 			return r.URL.Path
 		}),
 	)
 
+	// wrap the current handler in an interceptor that will add client.Info to the request's context
+	handler = &clientInfoHandler{
+		next:            handler,
+		includeMetadata: hss.IncludeMetadata,
+	}
+
 	return &http.Server{
 		Handler: handler,
-	}
+	}, nil
+}
+
+// CORSSettings configures a receiver for HTTP cross-origin resource sharing (CORS).
+// See the underlying https://github.com/rs/cors package for details.
+type CORSSettings struct {
+	// AllowedOrigins sets the allowed values of the Origin header for
+	// HTTP/JSON requests to an OTLP receiver. An origin may contain a
+	// wildcard (*) to replace 0 or more characters (e.g.,
+	// "http://*.domain.com", or "*" to allow any origin).
+	AllowedOrigins []string `mapstructure:"allowed_origins"`
+
+	// AllowedHeaders sets what headers will be allowed in CORS requests.
+	// The Accept, Accept-Language, Content-Type, and Content-Language
+	// headers are implicitly allowed. If no headers are listed,
+	// X-Requested-With will also be accepted by default. Include "*" to
+	// allow any request header.
+	AllowedHeaders []string `mapstructure:"allowed_headers,omitempty"`
+
+	// MaxAge sets the value of the Access-Control-Max-Age response header.
+	// Set it to the number of seconds that browsers should cache a CORS
+	// preflight response for.
+	MaxAge int `mapstructure:"max_age,omitempty"`
+}
+
+func authInterceptor(next http.Handler, authenticate configauth.AuthenticateFunc) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx, err := authenticate(r.Context(), r.Header)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func maxRequestBodySizeInterceptor(next http.Handler, maxRecvSize int64) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.Body = http.MaxBytesReader(w, r.Body, maxRecvSize)
+		next.ServeHTTP(w, r)
+	})
 }

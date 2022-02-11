@@ -104,7 +104,7 @@ func (c *Consumer) convertLogRecord(
 	event.Event.Severity = int64(record.SeverityNumber())
 	event.Event.Action = record.Name()
 	event.Log.Level = record.SeverityText()
-	if body := record.Body(); body.Type() != pdata.AttributeValueTypeNull {
+	if body := record.Body(); body.Type() != pdata.AttributeValueTypeEmpty {
 		event.Message = body.AsString()
 		if body.Type() == pdata.AttributeValueTypeMap {
 			setLabels(body.MapVal(), &event)

@@ -519,7 +519,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pdata.AttributeValueTypeArray:
-			setLabel(k, event, ifaceAnyValueArray(v.ArrayVal()))
+			setLabel(k, event, ifaceAttributeValueSlice(v.SliceVal()))
 		case pdata.AttributeValueTypeBool:
 			setLabel(k, event, strconv.FormatBool(v.BoolVal()))
 		case pdata.AttributeValueTypeDouble:
