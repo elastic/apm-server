@@ -25,10 +25,11 @@ pipeline {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
     HOME = "${env.WORKSPACE}"
-    NOTIFY_TO = credentials('notify-to')
+    NOTIFY_TO = 'update-beats+apm-server@elastic.co'
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
     PIPELINE_LOG_LEVEL = 'INFO'
+    SLACK_CHANNEL = '#apm-server'
   }
   triggers {
     // Only main branch will run on a timer basis
@@ -76,6 +77,9 @@ pipeline {
     cleanup {
       notifyBuildResult(prComment: false)
     }
+    unsuccessful {
+      notifyStatus(slackStatus: 'warning', subject: "[${env.REPO}@${env.BRANCH_NAME}] has NOT been updated", body: "Build: (<${env.RUN_DISPLAY_URL}|here>) for further details.")
+    }
   }
 }
 
@@ -90,6 +94,7 @@ def createPullRequest(Map args = [:]) {
   def branchName = (isPR()) ? env.CHANGE_TARGET : env.BRANCH_NAME
   if (anyChangesToBeSubmitted("${branchName}")) {
     githubCreatePullRequest(title: "${title}", labels: "${labels}", description: "${message}", base: "${branchName}")
+    notifyStatus(slackStatus: 'good', subject: "[${env.REPO}@${env.BRANCH_NAME}] Pull Request with the update is ready to be reviewed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>) for further details.")
   } else {
     log(level: 'INFO', text: "There are no changes to be submitted.")
   }
@@ -101,4 +106,13 @@ def anyChangesToBeSubmitted(String branch) {
 
 def createPRDescription() {
   return """### What \n Update with libbeat and beats packaging."""
+}
+
+def notifyStatus(def args = [:]) {
+  releaseNotification(slackChannel: "${env.SLACK_CHANNEL}",
+                      slackColor: args.slackStatus,
+                      slackCredentialsId: 'jenkins-slack-integration-token',
+                      to: "${env.NOTIFY_TO}",
+                      subject: args.subject,
+                      body: args.body)
 }
