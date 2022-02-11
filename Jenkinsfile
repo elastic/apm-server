@@ -78,9 +78,9 @@ pipeline {
             }
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
             // Skip all the stages except docs for PR's with asciidoc changes only
-            whenTrue(isPR()) {
-              setEnvVar('ONLY_DOCS', isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true))
-            }
+            //whenTrue(isPR()) {
+            //  setEnvVar('ONLY_DOCS', isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true))
+            //}
           }
         }
       }
@@ -118,7 +118,7 @@ pipeline {
       }
     }
     stage('Build and Test'){
-      failFast false
+      //failFast false
       parallel {
         /**
         Build on a linux environment.
