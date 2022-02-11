@@ -47,21 +47,13 @@ func TestTransactionTransform(t *testing.T) {
 		Msg         string
 	}{
 		{
-			Transaction: Transaction{},
-			Output: common.MapStr{
-				"duration": common.MapStr{"us": 65980},
-			},
-			Msg: "Empty Transaction",
-		},
-		{
 			Transaction: Transaction{
 				ID:   id,
 				Type: "tx",
 			},
 			Output: common.MapStr{
-				"id":       id,
-				"type":     "tx",
-				"duration": common.MapStr{"us": 65980},
+				"id":   id,
+				"type": "tx",
 			},
 			Msg: "SpanCount empty",
 		},
@@ -74,7 +66,6 @@ func TestTransactionTransform(t *testing.T) {
 			Output: common.MapStr{
 				"id":         id,
 				"type":       "tx",
-				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"started": 14},
 			},
 			Msg: "SpanCount only contains `started`",
@@ -88,7 +79,6 @@ func TestTransactionTransform(t *testing.T) {
 			Output: common.MapStr{
 				"id":         id,
 				"type":       "tx",
-				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"dropped": 5},
 			},
 			Msg: "SpanCount only contains `dropped`",
@@ -108,7 +98,6 @@ func TestTransactionTransform(t *testing.T) {
 				"name":       "mytransaction",
 				"type":       "tx",
 				"result":     "tx result",
-				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"started": 14, "dropped": 5},
 				"sampled":    true,
 				"root":       true,
@@ -148,7 +137,6 @@ func TestTransactionTransform(t *testing.T) {
 				"name":       "mytransaction",
 				"type":       "tx",
 				"result":     "tx result",
-				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"started": 14, "dropped": 5},
 				"dropped_spans_stats": []common.MapStr{
 					{
@@ -173,7 +161,6 @@ func TestTransactionTransform(t *testing.T) {
 		event := APMEvent{
 			Processor:   TransactionProcessor,
 			Transaction: &test.Transaction,
-			Event:       Event{Duration: duration},
 		}
 		beatEvent := event.BeatEvent(context.Background())
 		assert.Equal(t, test.Output, beatEvent.Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
@@ -230,8 +217,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"node":    common.MapStr{"name": serviceNodeName},
 		},
 		"transaction": common.MapStr{
-			"duration": common.MapStr{"us": 0},
-			"sampled":  true,
+			"sampled": true,
 			"custom": common.MapStr{
 				"foo_bar": "baz",
 			},

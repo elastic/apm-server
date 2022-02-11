@@ -29,9 +29,7 @@ import (
 type Event struct {
 	// Duration holds the event duration.
 	//
-	// TODO(axw) emit an `event.duration` field with the duration in
-	// nanoseconds, in 8.0. For now we emit event-specific duration fields.
-	// See https://github.com/elastic/apm-server/issues/5999
+	// Duration is only added as a field (`duration`) if greater than zero.
 	Duration time.Duration
 
 	// Outcome holds the event outcome: "success", "failure", or "unknown".
@@ -50,6 +48,9 @@ func (e *Event) fields() common.MapStr {
 	fields.maybeSetString("action", e.Action)
 	if e.Severity > 0 {
 		fields.set("severity", e.Severity)
+	}
+	if e.Duration > 0 {
+		fields.set("duration", e.Duration.Nanoseconds())
 	}
 	return common.MapStr(fields)
 }
