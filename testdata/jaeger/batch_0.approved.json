@@ -8,6 +8,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 243417000,
                 "outcome": "unknown"
             },
             "host": {
@@ -43,9 +44,6 @@
                 "id": "00000000000000007be2fd98d0973be3"
             },
             "transaction": {
-                "duration": {
-                    "us": 243417
-                },
                 "id": "7be2fd98d0973be3",
                 "name": "Driver::findNearest",
                 "sampled": true,

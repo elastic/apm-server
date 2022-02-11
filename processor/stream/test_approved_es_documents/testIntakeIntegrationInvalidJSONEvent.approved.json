@@ -7,6 +7,7 @@
                 "version": "3.14.0"
             },
             "event": {
+                "duration": 141581000,
                 "outcome": "unknown"
             },
             "host": {
@@ -31,9 +32,6 @@
                 "name": "1234_service-12a3"
             },
             "span": {
-                "duration": {
-                    "us": 141581
-                },
                 "id": "abcdef01234567",
                 "name": "GET /api/types",
                 "type": "request"

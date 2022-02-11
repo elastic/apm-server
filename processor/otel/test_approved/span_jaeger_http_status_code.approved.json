@@ -11,6 +11,7 @@
                 "port": 80
             },
             "event": {
+                "duration": 79000000000,
                 "outcome": "success"
             },
             "host": {
@@ -44,9 +45,6 @@
                         "resource": "foo.bar.com:80",
                         "type": "external"
                     }
-                },
-                "duration": {
-                    "us": 79000000
                 },
                 "id": "0000000041414646",
                 "name": "HTTP GET",

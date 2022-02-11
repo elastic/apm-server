@@ -29,9 +29,6 @@
                 "us": 1576500418000768
             },
             "transaction": {
-                "duration": {
-                    "us": 0
-                },
                 "message": {
                     "queue": {
                         "name": "queue-abc"

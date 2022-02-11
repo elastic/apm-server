@@ -7,6 +7,7 @@
                 "version": "unknown"
             },
             "event": {
+                "duration": 79000000000,
                 "outcome": "unknown"
             },
             "host": {
@@ -29,9 +30,6 @@
                 "name": "unknown"
             },
             "span": {
-                "duration": {
-                    "us": 79000000
-                },
                 "id": "0000000041414646",
                 "type": "unknown"
             },

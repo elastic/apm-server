@@ -10,6 +10,7 @@
                 "ip": "192.0.0.2"
             },
             "event": {
+                "duration": 643000000,
                 "outcome": "unknown"
             },
             "http": {
@@ -40,9 +41,6 @@
                 "id": "611f4fa950f04631aaaaaaaaaaaaaaaa"
             },
             "transaction": {
-                "duration": {
-                    "us": 643000
-                },
                 "experience": {
                     "cls": 1,
                     "fid": 2,
@@ -77,6 +75,7 @@
                 "ip": "192.0.0.2"
             },
             "event": {
+                "duration": 643000000,
                 "outcome": "unknown"
             },
             "network": {
@@ -99,9 +98,6 @@
                 "ip": "192.0.0.1"
             },
             "span": {
-                "duration": {
-                    "us": 643000
-                },
                 "id": "aaaaaaaaaaaaaaaa",
                 "name": "transaction",
                 "stacktrace": [

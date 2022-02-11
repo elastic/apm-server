@@ -7,6 +7,7 @@
                 "version": "unknown"
             },
             "event": {
+                "duration": 79000000000,
                 "outcome": "unknown"
             },
             "host": {
@@ -26,9 +27,6 @@
                 "us": 1576500418000768
             },
             "transaction": {
-                "duration": {
-                    "us": 79000000
-                },
                 "sampled": true,
                 "type": "unknown"
             }
@@ -40,6 +38,7 @@
                 "version": "unknown"
             },
             "event": {
+                "duration": 79000000000,
                 "outcome": "unknown"
             },
             "host": {
@@ -59,9 +58,6 @@
                 "name": "unknown"
             },
             "span": {
-                "duration": {
-                    "us": 79000000
-                },
                 "type": "unknown"
             },
             "timestamp": {
@@ -78,6 +74,7 @@
                 "version": "unknown"
             },
             "event": {
+                "duration": 79000000000,
                 "outcome": "unknown"
             },
             "host": {
@@ -103,9 +100,6 @@
                 "us": 1576500418000768
             },
             "transaction": {
-                "duration": {
-                    "us": 79000000
-                },
                 "sampled": true,
                 "type": "unknown"
             }

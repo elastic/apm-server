@@ -7,6 +7,7 @@
                 "version": "unknown"
             },
             "event": {
+                "duration": 79000000000,
                 "outcome": "failure"
             },
             "host": {
@@ -48,9 +49,6 @@
                 "id": "00000000000000000000000046467830"
             },
             "transaction": {
-                "duration": {
-                    "us": 79000000
-                },
                 "id": "0000000041414646",
                 "name": "HTTP GET",
                 "result": "HTTP 4xx",
