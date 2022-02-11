@@ -19,6 +19,7 @@ require (
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-alpha.0.20220127111727-5269e7e57568
 	github.com/elastic/go-hdrhistogram v0.1.0
+	github.com/elastic/go-lookslike v0.3.0
 	github.com/elastic/go-ucfg v0.8.4
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
@@ -65,11 +66,10 @@ require (
 	golang.org/x/tools v0.1.9
 	google.golang.org/genproto v0.0.0-20220210181026-6fee9acbd336 // indirect
 	google.golang.org/grpc v1.44.0
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gotest.tools/gotestsum v1.7.0
 	howett.net/plist v1.0.0 // indirect
 )
-
-require gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 
 require (
 	github.com/Microsoft/go-winio v0.5.1 // indirect
