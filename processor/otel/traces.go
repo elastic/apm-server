@@ -235,7 +235,7 @@ func (c *Consumer) convertSpan(
 	events := otelSpan.Events()
 	event.Labels = baseEvent.Labels               // only copy common labels to span events
 	event.NumericLabels = baseEvent.NumericLabels // only copy common labels to span events
-	event.Event.Outcome = ""                      // don't set event.outcome for span events
+	event.Event = model.Event{}                   // don't copy event.* to span events
 	event.Destination = model.Destination{}       // don't set destination for span events
 	for i := 0; i < events.Len(); i++ {
 		*out = append(*out, convertSpanEvent(logger, events.At(i), event, timeDelta))
