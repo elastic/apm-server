@@ -87,7 +87,7 @@ func (c *Consumer) convertInstrumentationLibraryLogs(
 	timeDelta time.Duration,
 	out *model.Batch,
 ) {
-	otelLogs := in.Logs()
+	otelLogs := in.LogRecords()
 	for i := 0; i < otelLogs.Len(); i++ {
 		event := c.convertLogRecord(otelLogs.At(i), baseEvent, timeDelta)
 		*out = append(*out, event)

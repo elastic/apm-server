@@ -149,13 +149,13 @@ func TestConsumeLogs(t *testing.T) {
 	conn := newServer(t, batchProcessor)
 	client := otlpgrpc.NewLogsClient(conn)
 
-	// Send a minimal log to verify that everything is connected properly.
+	// Send a minimal log record to verify that everything is connected properly.
 	//
 	// We intentionally do not check the published event contents; those are
 	// tested in processor/otel.
 	logs := pdata.NewLogs()
-	log := logs.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().Logs().AppendEmpty()
-	log.SetName("log_name")
+	logRecord := logs.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().LogRecords().AppendEmpty()
+	logRecord.SetName("log_name")
 
 	logsRequest := otlpgrpc.NewLogsRequest()
 	logsRequest.SetLogs(logs)
