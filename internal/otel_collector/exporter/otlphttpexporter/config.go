@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package otlphttpexporter
+package otlphttpexporter // import "go.opentelemetry.io/collector/exporter/otlphttpexporter"
 
 import (
 	"go.opentelemetry.io/collector/config"
@@ -35,10 +35,6 @@ type Config struct {
 
 	// The URL to send logs to. If omitted the Endpoint + "/v1/logs" will be used.
 	LogsEndpoint string `mapstructure:"logs_endpoint"`
-
-	// The compression key for supported compression types within
-	// collector. Currently the only supported mode is `gzip`.
-	Compression string `mapstructure:"compression"`
 }
 
 var _ config.Exporter = (*Config)(nil)

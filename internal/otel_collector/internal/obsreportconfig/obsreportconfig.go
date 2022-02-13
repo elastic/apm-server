@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package obsreportconfig
+package obsreportconfig // import "go.opentelemetry.io/collector/internal/obsreportconfig"
 
 import (
+	"sync/atomic"
+
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -24,7 +26,7 @@ import (
 )
 
 var (
-	Level = configtelemetry.LevelBasic
+	globalLevel = int32(configtelemetry.LevelBasic)
 )
 
 // ObsMetrics wraps OpenCensus View for Collector observability metrics
@@ -35,10 +37,11 @@ type ObsMetrics struct {
 // Configure is used to control the settings that will be used by the obsreport
 // package.
 func Configure(level configtelemetry.Level) *ObsMetrics {
-	Level = level
+	atomic.StoreInt32(&globalLevel, int32(level))
+
 	var views []*view.View
 
-	if Level != configtelemetry.LevelNone {
+	if Level() != configtelemetry.LevelNone {
 		obsMetricViews := allViews()
 		views = append(views, obsMetricViews.Views...)
 	}
@@ -46,6 +49,10 @@ func Configure(level configtelemetry.Level) *ObsMetrics {
 	return &ObsMetrics{
 		Views: views,
 	}
+}
+
+func Level() configtelemetry.Level {
+	return configtelemetry.Level(atomic.LoadInt32(&globalLevel))
 }
 
 // allViews return the list of all views that needs to be configured.
@@ -77,16 +84,21 @@ func allViews() *ObsMetrics {
 	measures = []*stats.Int64Measure{
 		obsmetrics.ExporterSentSpans,
 		obsmetrics.ExporterFailedToSendSpans,
-		obsmetrics.ExporterFailedToEnqueueSpans,
 		obsmetrics.ExporterSentMetricPoints,
 		obsmetrics.ExporterFailedToSendMetricPoints,
-		obsmetrics.ExporterFailedToEnqueueMetricPoints,
 		obsmetrics.ExporterSentLogRecords,
 		obsmetrics.ExporterFailedToSendLogRecords,
-		obsmetrics.ExporterFailedToEnqueueLogRecords,
 	}
 	tagKeys = []tag.Key{obsmetrics.TagKeyExporter}
 	views = append(views, genViews(measures, tagKeys, view.Sum())...)
+
+	errorNumberView := &view.View{
+		Name:        obsmetrics.ExporterPrefix + "send_failed_requests",
+		Description: "number of times exporters failed to send requests to the destination",
+		Measure:     obsmetrics.ExporterFailedToSendSpans,
+		Aggregation: view.Count(),
+	}
+	views = append(views, errorNumberView)
 
 	// Processor views.
 	measures = []*stats.Int64Measure{

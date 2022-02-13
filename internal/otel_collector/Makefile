@@ -2,9 +2,7 @@ include ./Makefile.Common
 
 # This is the code that we want to run lint, etc.
 ALL_SRC := $(shell find . -name '*.go' \
-							-not -path './cmd/schemagen/*' \
 							-not -path './internal/tools/*' \
-							-not -path './examples/demo/app/*' \
 							-not -path './model/internal/data/protogen/*' \
 							-not -path './service/internal/zpages/tmplgen/*' \
 							-type f | sort)
@@ -31,8 +29,8 @@ CONTRIB_PATH=$(CURDIR)/../opentelemetry-collector-contrib
 COMP_REL_PATH=service/defaultcomponents/defaults.go
 MOD_NAME=go.opentelemetry.io/collector
 
-GO_ACC=go-acc
 ADDLICENSE=addlicense
+GOCOVMERGE=gocovmerge
 MISSPELL=misspell -error
 MISSPELL_CORRECTION=misspell -w
 
@@ -51,7 +49,7 @@ version:
 	@echo ${VERSION}
 
 .PHONY: all
-all: checklicense checkdoc misspell goimpi golint gotest otelcol
+all: checklicense checkdoc misspell goimpi golint gotest
 
 all-modules:
 	@echo $(ALL_MODULES) | tr ' ' '\n' | sort
@@ -60,13 +58,9 @@ all-modules:
 gomoddownload:
 	@$(MAKE) for-all CMD="go mod download"
 
-.PHONY: gotestinstall
-gotestinstall:
-	@$(MAKE) for-all CMD="make test GOTEST_OPT=\"-i\""
-
 .PHONY: gotest
 gotest:
-	@$(MAKE) for-all CMD="make test"
+	@$(MAKE) for-all CMD="make test test-unstable"
 
 .PHONY: gobenchmark
 gobenchmark:
@@ -74,14 +68,16 @@ gobenchmark:
 
 .PHONY: gotest-with-cover
 gotest-with-cover:
-	@echo pre-compiling tests
-	@time $(GOTEST) -i ./...
-	$(GO_ACC) ./...
-	go tool cover -html=coverage.txt -o coverage.html
+	@$(MAKE) for-all CMD="make test-with-cover"
+	$(GOCOVMERGE) $$(find . -name coverage.out) > coverage.txt
+
+.PHONY: goporto
+goporto:
+	@$(MAKE) for-all CMD="make porto"
 
 .PHONY: golint
 golint:
-	@$(MAKE) for-all CMD="make lint"
+	@$(MAKE) for-all CMD="make lint lint-unstable"
 
 .PHONY: goimpi
 goimpi:
@@ -133,31 +129,20 @@ install-tools:
 	cd $(TOOLS_MOD_DIR) && go install github.com/client9/misspell/cmd/misspell
 	cd $(TOOLS_MOD_DIR) && go install github.com/golangci/golangci-lint/cmd/golangci-lint
 	cd $(TOOLS_MOD_DIR) && go install github.com/google/addlicense
-	cd $(TOOLS_MOD_DIR) && go install github.com/jstemmer/go-junit-report
-	cd $(TOOLS_MOD_DIR) && go install github.com/mjibson/esc
 	cd $(TOOLS_MOD_DIR) && go install github.com/ory/go-acc
 	cd $(TOOLS_MOD_DIR) && go install github.com/pavius/impi/cmd/impi
 	cd $(TOOLS_MOD_DIR) && go install github.com/tcnksm/ghr
-	cd $(TOOLS_MOD_DIR) && go install go.opentelemetry.io/build-tools/semconvgen
+	cd $(TOOLS_MOD_DIR) && go install github.com/wadey/gocovmerge
 	cd $(TOOLS_MOD_DIR) && go install go.opentelemetry.io/build-tools/checkdoc
+	cd $(TOOLS_MOD_DIR) && go install go.opentelemetry.io/build-tools/semconvgen
 	cd $(TOOLS_MOD_DIR) && go install golang.org/x/exp/cmd/apidiff
 	cd $(TOOLS_MOD_DIR) && go install golang.org/x/tools/cmd/goimports
-
-.PHONY: otelcol
-otelcol:
-	go generate ./...
-	$(MAKE) build-binary-internal
+	cd $(TOOLS_MOD_DIR) && go install github.com/jcchavezs/porto/cmd/porto
+	cd $(TOOLS_MOD_DIR) && go install go.opentelemetry.io/build-tools/multimod
 
 .PHONY: run
-run:
-	GO111MODULE=on go run --race ./cmd/otelcol/... --config ${RUN_CONFIG} ${RUN_ARGS}
-
-.PHONY: docker-component # Not intended to be used directly
-docker-component: check-component
-	GOOS=linux $(MAKE) $(COMPONENT)
-	cp ./bin/$(COMPONENT)_linux_amd64 ./cmd/$(COMPONENT)/$(COMPONENT)
-	docker build -t $(COMPONENT) ./cmd/$(COMPONENT)/
-	rm ./cmd/$(COMPONENT)/$(COMPONENT)
+run: otelcorecol
+	./bin/otelcorecol_$(GOOS)_$(GOARCH) --config ${RUN_CONFIG} ${RUN_ARGS}
 
 .PHONY: for-all
 for-all:
@@ -205,44 +190,15 @@ delete-tag:
 	 	git tag -d "$${dir:2}/$${TAG}" ); \
 	done
 
-.PHONY: docker-otelcol
-docker-otelcol:
-	COMPONENT=otelcol $(MAKE) docker-component
+# Build the Collector executable.
+.PHONY: otelcorecol
+otelcorecol:
+	pushd cmd/otelcorecol && GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ../../bin/otelcorecol_$(GOOS)_$(GOARCH) \
+		$(BUILD_INFO) -tags $(GO_BUILD_TAGS) ./cmd/otelcorecol && popd
 
-# build collector binaries with different OS and Architecture
-.PHONY: binaries-all-sys
-binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64
-
-.PHONY: binaries-darwin_amd64
-binaries-darwin_amd64:
-	GOOS=darwin  GOARCH=amd64 $(MAKE) build-binary-internal
-
-.PHONY: binaries-darwin_arm64
-binaries-darwin_arm64:
-	GOOS=darwin  GOARCH=arm64 $(MAKE) build-binary-internal
-
-.PHONY: binaries-linux_amd64
-binaries-linux_amd64:
-	GOOS=linux   GOARCH=amd64 $(MAKE) build-binary-internal
-
-.PHONY: binaries-linux_arm64
-binaries-linux_arm64:
-	GOOS=linux   GOARCH=arm64 $(MAKE) build-binary-internal
-
-.PHONY: binaries-windows_amd64
-binaries-windows_amd64:
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) build-binary-internal
-
-.PHONY: build-binary-internal
-build-binary-internal:
-	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
-
-.PHONY: deb-rpm-package
-%-package: ARCH ?= amd64
-%-package:
-	$(MAKE) binaries-linux_$(ARCH)
-	docker build -t otelcol-fpm internal/buildscripts/packaging/fpm
-	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) otelcol-fpm
+.PHONY: genotelcorecol
+genotelcorecol:
+	pushd cmd/builder/ && go run ./ --skip-compilation --config ../otelcorecol/builder-config.yaml --output-path ../otelcorecol && popd
 
 .PHONY: genmdata
 genmdata:
@@ -257,8 +213,9 @@ internal-gendependabot:
 	@echo "    schedule:" >> ${DEPENDABOT_PATH};
 	@echo "      interval: \"weekly\"" >> ${DEPENDABOT_PATH};
 
+# This target should run on /bin/bash since the syntax DIR=$${dir:1} is not supported by /bin/sh.
 .PHONY: gendependabot
-gendependabot:
+gendependabot: $(eval SHELL:=/bin/bash)
 	@echo "Recreating ${DEPENDABOT_PATH} file"
 	@echo "# File generated by \"make gendependabot\"; DO NOT EDIT." > ${DEPENDABOT_PATH}
 	@echo "" >> ${DEPENDABOT_PATH}
@@ -276,6 +233,9 @@ gendependabot:
 # The source directory for OTLP ProtoBufs.
 OPENTELEMETRY_PROTO_SRC_DIR=model/internal/opentelemetry-proto
 
+# The SHA matching the current version of the proto to use
+OPENTELEMETRY_PROTO_VERSION=v0.12.0
+
 # Find all .proto files.
 OPENTELEMETRY_PROTO_FILES := $(subst $(OPENTELEMETRY_PROTO_SRC_DIR)/,,$(wildcard $(OPENTELEMETRY_PROTO_SRC_DIR)/opentelemetry/proto/*/v1/*.proto $(OPENTELEMETRY_PROTO_SRC_DIR)/opentelemetry/proto/collector/*/v1/*.proto))
 
@@ -292,13 +252,18 @@ DOCKER_PROTOBUF ?= otel/build-protobuf:0.4.1
 PROTOC := docker run --rm -u ${shell id -u} -v${PWD}:${PWD} -w${PWD}/$(PROTO_INTERMEDIATE_DIR) ${DOCKER_PROTOBUF} --proto_path=${PWD}
 PROTO_INCLUDES := -I/usr/include/github.com/gogo/protobuf -I./
 
+# Cleanup temporary directory
+genproto-cleanup:
+	rm -Rf ${OPENTELEMETRY_PROTO_SRC_DIR}
+
 # Generate OTLP Protobuf Go files. This will place generated files in PROTO_TARGET_GEN_DIR.
-genproto:
-	git submodule update --init
-	# Call a sub-make to ensure OPENTELEMETRY_PROTO_FILES is populated after the submodule
-	# files are present.
+genproto: genproto-cleanup
+	mkdir -p ${OPENTELEMETRY_PROTO_SRC_DIR}
+	curl -sSL https://api.github.com/repos/open-telemetry/opentelemetry-proto/tarball/${OPENTELEMETRY_PROTO_VERSION} | tar xz --strip 1 -C ${OPENTELEMETRY_PROTO_SRC_DIR}
+	# Call a sub-make to ensure OPENTELEMETRY_PROTO_FILES is populated
 	$(MAKE) genproto_sub
 	$(MAKE) fmt
+	$(MAKE) genproto-cleanup
 
 genproto_sub:
 	@echo Generating code for the following files:
@@ -329,7 +294,7 @@ genproto_sub:
 # Generate structs, functions and tests for pdata package. Must be used after any changes
 # to proto and after running `make genproto`
 genpdata:
-	go run cmd/pdatagen/main.go
+	go run model/internal/cmd/pdatagen/main.go
 	$(MAKE) fmt
 
 # Generate semantic convention constants. Requires a clone of the opentelemetry-specification repo
@@ -388,3 +353,12 @@ endif
 .PHONY: apidiff-compare
 apidiff-compare:
 	@$(foreach pkg,$(ALL_PKGS),$(call exec-command,./internal/buildscripts/compare-apidiff.sh -p $(pkg)))
+
+.PHONY: multimod-verify
+multimod-verify: install-tools
+	@echo "Validating versions.yaml"
+	multimod verify
+
+.PHONY: multimod-prerelease
+multimod-prerelease: install-tools
+	multimod prerelease -v ./versions.yaml -m collector-base

@@ -12,25 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package componenttest
+package componenttest // import "go.opentelemetry.io/collector/component/componenttest"
 
 import (
 	"context"
 
-	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenthelper"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/internal/internalinterface"
 )
 
 // NewNopExtensionCreateSettings returns a new nop settings for Create*Extension functions.
 func NewNopExtensionCreateSettings() component.ExtensionCreateSettings {
 	return component.ExtensionCreateSettings{
-		Logger:         zap.NewNop(),
-		TracerProvider: trace.NewNoopTracerProvider(),
-		BuildInfo:      component.DefaultBuildInfo(),
+		TelemetrySettings: NewNopTelemetrySettings(),
+		BuildInfo:         component.NewDefaultBuildInfo(),
 	}
 }
 
@@ -39,7 +36,9 @@ type nopExtensionConfig struct {
 }
 
 // nopExtensionFactory is factory for nopExtension.
-type nopExtensionFactory struct{}
+type nopExtensionFactory struct {
+	internalinterface.BaseInternal
+}
 
 var nopExtensionFactoryInstance = &nopExtensionFactory{}
 
@@ -56,7 +55,7 @@ func (f *nopExtensionFactory) Type() config.Type {
 // CreateDefaultConfig creates the default configuration for the Extension.
 func (f *nopExtensionFactory) CreateDefaultConfig() config.Extension {
 	return &nopExtensionConfig{
-		ExtensionSettings: config.NewExtensionSettings(config.NewID("nop")),
+		ExtensionSettings: config.NewExtensionSettings(config.NewComponentID("nop")),
 	}
 }
 
@@ -69,11 +68,10 @@ func (f *nopExtensionFactory) CreateExtension(
 	return nopExtensionInstance, nil
 }
 
-var nopExtensionInstance = &nopExtension{
-	Component: componenthelper.New(),
-}
+var nopExtensionInstance = &nopExtension{}
 
 // nopExtension stores consumed traces and metrics for testing purposes.
 type nopExtension struct {
-	component.Component
+	componenthelper.StartFunc
+	componenthelper.ShutdownFunc
 }

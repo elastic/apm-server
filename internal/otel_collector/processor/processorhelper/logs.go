@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package processorhelper
+package processorhelper // import "go.opentelemetry.io/collector/processor/processorhelper"
 
 import (
 	"context"
@@ -34,7 +34,8 @@ import (
 type ProcessLogsFunc func(context.Context, pdata.Logs) (pdata.Logs, error)
 
 type logProcessor struct {
-	component.Component
+	componenthelper.StartFunc
+	componenthelper.ShutdownFunc
 	consumer.Logs
 }
 
@@ -75,7 +76,8 @@ func NewLogsProcessor(
 	}
 
 	return &logProcessor{
-		Component: componenthelper.New(bs.componentOptions...),
-		Logs:      logsConsumer,
+		StartFunc:    bs.StartFunc,
+		ShutdownFunc: bs.ShutdownFunc,
+		Logs:         logsConsumer,
 	}, nil
 }

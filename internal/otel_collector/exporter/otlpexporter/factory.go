@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package otlpexporter
+package otlpexporter // import "go.opentelemetry.io/collector/exporter/otlpexporter"
 
 import (
 	"context"
@@ -41,7 +41,7 @@ func NewFactory() component.ExporterFactory {
 
 func createDefaultConfig() config.Exporter {
 	return &Config{
-		ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		TimeoutSettings:  exporterhelper.DefaultTimeoutSettings(),
 		RetrySettings:    exporterhelper.DefaultRetrySettings(),
 		QueueSettings:    exporterhelper.DefaultQueueSettings(),
@@ -58,7 +58,7 @@ func createTracesExporter(
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.TracesExporter, error) {
-	oce, err := newExporter(cfg)
+	oce, err := newExporter(cfg, set.TelemetrySettings, set.BuildInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func createMetricsExporter(
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.MetricsExporter, error) {
-	oce, err := newExporter(cfg)
+	oce, err := newExporter(cfg, set.TelemetrySettings, set.BuildInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func createLogsExporter(
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.LogsExporter, error) {
-	oce, err := newExporter(cfg)
+	oce, err := newExporter(cfg, set.TelemetrySettings, set.BuildInfo)
 	if err != nil {
 		return nil, err
 	}

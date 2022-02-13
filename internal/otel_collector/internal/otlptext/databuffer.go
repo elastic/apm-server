@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package otlptext
+package otlptext // import "go.opentelemetry.io/collector/internal/otlptext"
 
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -78,6 +79,10 @@ func (b *dataBuffer) logMetricDataPoints(m pdata.Metric) {
 		data := m.Histogram()
 		b.logEntry("     -> AggregationTemporality: %s", data.AggregationTemporality().String())
 		b.logDoubleHistogramDataPoints(data.DataPoints())
+	case pdata.MetricDataTypeExponentialHistogram:
+		data := m.ExponentialHistogram()
+		b.logEntry("     -> AggregationTemporality: %s", data.AggregationTemporality().String())
+		b.logExponentialHistogramDataPoints(data.DataPoints())
 	case pdata.MetricDataTypeSummary:
 		data := m.Summary()
 		b.logDoubleSummaryDataPoints(data.DataPoints())
@@ -128,6 +133,54 @@ func (b *dataBuffer) logDoubleHistogramDataPoints(ps pdata.HistogramDataPointSli
 	}
 }
 
+func (b *dataBuffer) logExponentialHistogramDataPoints(ps pdata.ExponentialHistogramDataPointSlice) {
+	for i := 0; i < ps.Len(); i++ {
+		p := ps.At(i)
+		b.logEntry("ExponentialHistogramDataPoints #%d", i)
+		b.logDataPointAttributes(p.Attributes())
+
+		b.logEntry("StartTimestamp: %s", p.StartTimestamp())
+		b.logEntry("Timestamp: %s", p.Timestamp())
+		b.logEntry("Count: %d", p.Count())
+		b.logEntry("Sum: %f", p.Sum())
+
+		scale := int(p.Scale())
+		factor := math.Ldexp(math.Ln2, -scale)
+		// Note: the equation used here, which is
+		//   math.Exp(index * factor)
+		// reports +Inf as the _lower_ boundary of the bucket nearest
+		// infinity, which is incorrect and can be addressed in various
+		// ways.  The OTel-Go implementation of this histogram pending
+		// in https://github.com/open-telemetry/opentelemetry-go/pull/2393
+		// uses a lookup table for the last finite boundary, which can be
+		// easily computed using `math/big` (for scales up to 20).
+
+		negB := p.Negative().BucketCounts()
+		posB := p.Positive().BucketCounts()
+
+		for i := 0; i < len(negB); i++ {
+			pos := len(negB) - i - 1
+			index := p.Negative().Offset() + int32(pos)
+			count := p.Negative().BucketCounts()[pos]
+			lower := math.Exp(float64(index) * factor)
+			upper := math.Exp(float64(index+1) * factor)
+			b.logEntry("Bucket (%f, %f], Count: %d", -upper, -lower, count)
+		}
+
+		if p.ZeroCount() != 0 {
+			b.logEntry("Bucket [0, 0], Count: %d", p.ZeroCount())
+		}
+
+		for pos := 0; pos < len(posB); pos++ {
+			index := p.Positive().Offset() + int32(pos)
+			count := p.Positive().BucketCounts()[pos]
+			lower := math.Exp(float64(index) * factor)
+			upper := math.Exp(float64(index+1) * factor)
+			b.logEntry("Bucket [%f, %f), Count: %d", lower, upper, count)
+		}
+	}
+}
+
 func (b *dataBuffer) logDoubleSummaryDataPoints(ps pdata.SummaryDataPointSlice) {
 	for i := 0; i < ps.Len(); i++ {
 		p := ps.At(i)
@@ -149,14 +202,6 @@ func (b *dataBuffer) logDoubleSummaryDataPoints(ps pdata.SummaryDataPointSlice) 
 
 func (b *dataBuffer) logDataPointAttributes(labels pdata.AttributeMap) {
 	b.logAttributeMap("Data point attributes", labels)
-}
-
-func (b *dataBuffer) logLogRecord(lr pdata.LogRecord) {
-	b.logEntry("Timestamp: %s", lr.Timestamp())
-	b.logEntry("Severity: %s", lr.SeverityText())
-	b.logEntry("ShortName: %s", lr.Name())
-	b.logEntry("Body: %s", attributeValueToString(lr.Body()))
-	b.logAttributeMap("Attributes", lr.Attributes())
 }
 
 func (b *dataBuffer) logEvents(description string, se pdata.SpanEventSlice) {
@@ -219,7 +264,7 @@ func attributeValueToString(av pdata.AttributeValue) string {
 	case pdata.AttributeValueTypeInt:
 		return strconv.FormatInt(av.IntVal(), 10)
 	case pdata.AttributeValueTypeArray:
-		return attributeValueArrayToString(av.ArrayVal())
+		return attributeValueSliceToString(av.SliceVal())
 	case pdata.AttributeValueTypeMap:
 		return attributeMapToString(av.MapVal())
 	default:
@@ -227,7 +272,7 @@ func attributeValueToString(av pdata.AttributeValue) string {
 	}
 }
 
-func attributeValueArrayToString(av pdata.AnyValueArray) string {
+func attributeValueSliceToString(av pdata.AttributeValueSlice) string {
 	var b strings.Builder
 	b.WriteByte('[')
 	for i := 0; i < av.Len(); i++ {

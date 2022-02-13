@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package builder // import "go.opentelemetry.io/collector/service/internal/builder"
 
 import (
 	"context"
 	"fmt"
 
-	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/multierr"
 	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/consumererror"
+	"go.opentelemetry.io/collector/service/internal/components"
 	"go.opentelemetry.io/collector/service/internal/fanoutconsumer"
 )
 
@@ -37,6 +37,8 @@ type builtPipeline struct {
 	firstMC consumer.Metrics
 	firstLC consumer.Logs
 
+	// Config is the configuration of this Pipeline.
+	Config *config.Pipeline
 	// MutatesData is set to true if any processors in the pipeline
 	// can mutate the TraceData or MetricsData input argument.
 	MutatesData bool
@@ -45,12 +47,12 @@ type builtPipeline struct {
 }
 
 // BuiltPipelines is a map of build pipelines created from pipeline configs.
-type BuiltPipelines map[*config.Pipeline]*builtPipeline
+type BuiltPipelines map[config.ComponentID]*builtPipeline
 
 func (bps BuiltPipelines) StartProcessors(ctx context.Context, host component.Host) error {
 	for _, bp := range bps {
 		bp.logger.Info("Pipeline is starting...")
-		hostWrapper := newHostWrapper(host, bp.logger)
+		hostWrapper := components.NewHostWrapper(host, bp.logger)
 		// Start in reverse order, starting from the back of processors pipeline.
 		// This is important so that processors that are earlier in the pipeline and
 		// reference processors that are later in the pipeline do not start sending
@@ -66,49 +68,45 @@ func (bps BuiltPipelines) StartProcessors(ctx context.Context, host component.Ho
 }
 
 func (bps BuiltPipelines) ShutdownProcessors(ctx context.Context) error {
-	var errs []error
+	var errs error
 	for _, bp := range bps {
 		bp.logger.Info("Pipeline is shutting down...")
 		for _, p := range bp.processors {
-			if err := p.Shutdown(ctx); err != nil {
-				errs = append(errs, err)
-			}
+			errs = multierr.Append(errs, p.Shutdown(ctx))
 		}
 		bp.logger.Info("Pipeline is shutdown.")
 	}
 
-	return consumererror.Combine(errs)
+	return errs
 }
 
 // pipelinesBuilder builds Pipelines from config.
 type pipelinesBuilder struct {
-	logger         *zap.Logger
-	tracerProvider trace.TracerProvider
-	buildInfo      component.BuildInfo
-	config         *config.Config
-	exporters      Exporters
-	factories      map[config.Type]component.ProcessorFactory
+	settings  component.TelemetrySettings
+	buildInfo component.BuildInfo
+	config    *config.Config
+	exporters Exporters
+	factories map[config.Type]component.ProcessorFactory
 }
 
 // BuildPipelines builds pipeline processors from config. Requires exporters to be already
 // built via BuildExporters.
 func BuildPipelines(
-	logger *zap.Logger,
-	tracerProvider trace.TracerProvider,
+	settings component.TelemetrySettings,
 	buildInfo component.BuildInfo,
 	config *config.Config,
 	exporters Exporters,
 	factories map[config.Type]component.ProcessorFactory,
 ) (BuiltPipelines, error) {
-	pb := &pipelinesBuilder{logger, tracerProvider, buildInfo, config, exporters, factories}
+	pb := &pipelinesBuilder{settings, buildInfo, config, exporters, factories}
 
 	pipelineProcessors := make(BuiltPipelines)
-	for _, pipeline := range pb.config.Service.Pipelines {
-		firstProcessor, err := pb.buildPipeline(context.Background(), pipeline)
+	for pipelineID, pipeline := range pb.config.Service.Pipelines {
+		bp, err := pb.buildPipeline(context.Background(), pipelineID, pipeline)
 		if err != nil {
 			return nil, err
 		}
-		pipelineProcessors[pipeline] = firstProcessor
+		pipelineProcessors[pipelineID] = bp
 	}
 
 	return pipelineProcessors, nil
@@ -117,7 +115,7 @@ func BuildPipelines(
 // Builds a pipeline of processors. Returns the first processor in the pipeline.
 // The last processor in the pipeline will be plugged to fan out the data into exporters
 // that are configured for this pipeline.
-func (pb *pipelinesBuilder) buildPipeline(ctx context.Context, pipelineCfg *config.Pipeline) (*builtPipeline, error) {
+func (pb *pipelinesBuilder) buildPipeline(ctx context.Context, pipelineID config.ComponentID, pipelineCfg *config.Pipeline) (*builtPipeline, error) {
 
 	// BuildProcessors the pipeline backwards.
 
@@ -126,16 +124,19 @@ func (pb *pipelinesBuilder) buildPipeline(ctx context.Context, pipelineCfg *conf
 	var mc consumer.Metrics
 	var lc consumer.Logs
 
-	switch pipelineCfg.InputType {
+	// Take into consideration the Capabilities for the exporter as well.
+	mutatesConsumedData := false
+	switch pipelineID.Type() {
 	case config.TracesDataType:
 		tc = pb.buildFanoutExportersTracesConsumer(pipelineCfg.Exporters)
+		mutatesConsumedData = tc.Capabilities().MutatesData
 	case config.MetricsDataType:
 		mc = pb.buildFanoutExportersMetricsConsumer(pipelineCfg.Exporters)
+		mutatesConsumedData = mc.Capabilities().MutatesData
 	case config.LogsDataType:
 		lc = pb.buildFanoutExportersLogsConsumer(pipelineCfg.Exporters)
+		mutatesConsumedData = lc.Capabilities().MutatesData
 	}
-
-	mutatesConsumedData := false
 
 	processors := make([]component.Processor, len(pipelineCfg.Processors))
 
@@ -161,65 +162,87 @@ func (pb *pipelinesBuilder) buildPipeline(ctx context.Context, pipelineCfg *conf
 		// which we will build in the next loop iteration).
 		var err error
 		set := component.ProcessorCreateSettings{
-			Logger:         pb.logger.With(zap.String(zapKindKey, zapKindProcessor), zap.String(zapNameKey, procID.String())),
-			TracerProvider: pb.tracerProvider,
-			BuildInfo:      pb.buildInfo,
+			TelemetrySettings: component.TelemetrySettings{
+				Logger: pb.settings.Logger.With(
+					zap.String(components.ZapKindKey, components.ZapKindProcessor),
+					zap.String(components.ZapNameKey, procID.String())),
+				TracerProvider: pb.settings.TracerProvider,
+				MeterProvider:  pb.settings.MeterProvider,
+				MetricsLevel:   pb.config.Telemetry.Metrics.Level,
+			},
+			BuildInfo: pb.buildInfo,
 		}
 
-		switch pipelineCfg.InputType {
+		switch pipelineID.Type() {
 		case config.TracesDataType:
 			var proc component.TracesProcessor
-			proc, err = factory.CreateTracesProcessor(ctx, set, procCfg, tc)
-			if proc != nil {
-				mutatesConsumedData = mutatesConsumedData || proc.Capabilities().MutatesData
+			if proc, err = factory.CreateTracesProcessor(ctx, set, procCfg, tc); err != nil {
+				return nil, fmt.Errorf("error creating processor %q in pipeline %q: %w", procID, pipelineID, err)
 			}
+			// Check if the factory really created the processor.
+			if proc == nil {
+				return nil, fmt.Errorf("factory for %v produced a nil processor", procID)
+			}
+			mutatesConsumedData = mutatesConsumedData || proc.Capabilities().MutatesData
 			processors[i] = proc
 			tc = proc
 		case config.MetricsDataType:
 			var proc component.MetricsProcessor
-			proc, err = factory.CreateMetricsProcessor(ctx, set, procCfg, mc)
-			if proc != nil {
-				mutatesConsumedData = mutatesConsumedData || proc.Capabilities().MutatesData
+			if proc, err = factory.CreateMetricsProcessor(ctx, set, procCfg, mc); err != nil {
+				return nil, fmt.Errorf("error creating processor %q in pipeline %q: %w", procID, pipelineID, err)
 			}
+			// Check if the factory really created the processor.
+			if proc == nil {
+				return nil, fmt.Errorf("factory for %v produced a nil processor", procID)
+			}
+			mutatesConsumedData = mutatesConsumedData || proc.Capabilities().MutatesData
 			processors[i] = proc
 			mc = proc
 
 		case config.LogsDataType:
 			var proc component.LogsProcessor
-			proc, err = factory.CreateLogsProcessor(ctx, set, procCfg, lc)
-			if proc != nil {
-				mutatesConsumedData = mutatesConsumedData || proc.Capabilities().MutatesData
+			if proc, err = factory.CreateLogsProcessor(ctx, set, procCfg, lc); err != nil {
+				return nil, fmt.Errorf("error creating processor %q in pipeline %q: %w", procID, pipelineID, err)
 			}
+			// Check if the factory really created the processor.
+			if proc == nil {
+				return nil, fmt.Errorf("factory for %v produced a nil processor", procID)
+			}
+			mutatesConsumedData = mutatesConsumedData || proc.Capabilities().MutatesData
 			processors[i] = proc
 			lc = proc
 
 		default:
 			return nil, fmt.Errorf("error creating processor %q in pipeline %q, data type %s is not supported",
-				procID, pipelineCfg.Name, pipelineCfg.InputType)
-		}
-
-		if err != nil {
-			return nil, fmt.Errorf("error creating processor %q in pipeline %q: %v",
-				procID, pipelineCfg.Name, err)
-		}
-
-		// Check if the factory really created the processor.
-		if tc == nil && mc == nil && lc == nil {
-			return nil, fmt.Errorf("factory for %v produced a nil processor", procID)
+				procID, pipelineID, pipelineID.Type())
 		}
 	}
 
-	pipelineLogger := pb.logger.With(zap.String("pipeline_name", pipelineCfg.Name),
-		zap.String("pipeline_datatype", string(pipelineCfg.InputType)))
+	pipelineLogger := pb.settings.Logger.With(zap.String(components.ZapNameKey, components.ZapKindPipeline),
+		zap.String(components.ZapNameKey, pipelineID.String()))
 	pipelineLogger.Info("Pipeline was built.")
 
+	// Some consumers may not correctly implement the Capabilities,
+	// and ignore the next consumer when calculated the Capabilities.
+	// Because of this wrap the first consumer if any consumers in the pipeline
+	// mutate the data and the first says that it doesn't.
+	if tc != nil {
+		tc = capabilitiesTraces{Traces: tc, capabilities: consumer.Capabilities{MutatesData: mutatesConsumedData}}
+	}
+	if mc != nil {
+		mc = capabilitiesMetrics{Metrics: mc, capabilities: consumer.Capabilities{MutatesData: mutatesConsumedData}}
+	}
+	if lc != nil {
+		lc = capabilitiesLogs{Logs: lc, capabilities: consumer.Capabilities{MutatesData: mutatesConsumedData}}
+	}
 	bp := &builtPipeline{
-		pipelineLogger,
-		tc,
-		mc,
-		lc,
-		mutatesConsumedData,
-		processors,
+		logger:      pipelineLogger,
+		firstTC:     tc,
+		firstMC:     mc,
+		firstLC:     lc,
+		Config:      pipelineCfg,
+		MutatesData: mutatesConsumedData,
+		processors:  processors,
 	}
 
 	return bp, nil
@@ -253,7 +276,7 @@ func (pb *pipelinesBuilder) buildFanoutExportersMetricsConsumer(exporterIDs []co
 
 	var exporters []consumer.Metrics
 	for _, builtExp := range builtExporters {
-		exporters = append(exporters, builtExp.getMetricExporter())
+		exporters = append(exporters, builtExp.getMetricsExporter())
 	}
 
 	// Create a junction point that fans out to all exporters.
@@ -265,9 +288,36 @@ func (pb *pipelinesBuilder) buildFanoutExportersLogsConsumer(exporterIDs []confi
 
 	exporters := make([]consumer.Logs, len(builtExporters))
 	for i, builtExp := range builtExporters {
-		exporters[i] = builtExp.getLogExporter()
+		exporters[i] = builtExp.getLogsExporter()
 	}
 
 	// Create a junction point that fans out to all exporters.
 	return fanoutconsumer.NewLogs(exporters)
+}
+
+type capabilitiesLogs struct {
+	consumer.Logs
+	capabilities consumer.Capabilities
+}
+
+func (mts capabilitiesLogs) Capabilities() consumer.Capabilities {
+	return mts.capabilities
+}
+
+type capabilitiesMetrics struct {
+	consumer.Metrics
+	capabilities consumer.Capabilities
+}
+
+func (mts capabilitiesMetrics) Capabilities() consumer.Capabilities {
+	return mts.capabilities
+}
+
+type capabilitiesTraces struct {
+	consumer.Traces
+	capabilities consumer.Capabilities
+}
+
+func (mts capabilitiesTraces) Capabilities() consumer.Capabilities {
+	return mts.capabilities
 }

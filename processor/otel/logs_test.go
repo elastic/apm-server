@@ -116,35 +116,31 @@ func TestConsumerConsumeLogs(t *testing.T) {
 func newLogs(body interface{}) pdata.Logs {
 	logs := pdata.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
-	logs.ResourceLogs().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		semconv.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString("go"),
-	})
+	logs.ResourceLogs().At(0).Resource().Attributes().InsertString(semconv.AttributeTelemetrySDKLanguage, "go")
 	instrumentationLogs := resourceLogs.InstrumentationLibraryLogs().AppendEmpty()
-	otelLog := instrumentationLogs.Logs().AppendEmpty()
-	otelLog.SetTraceID(pdata.NewTraceID([16]byte{1}))
-	otelLog.SetSpanID(pdata.NewSpanID([8]byte{2}))
-	otelLog.SetName("doOperation()")
-	otelLog.SetSeverityNumber(pdata.SeverityNumberINFO)
-	otelLog.SetSeverityText("Info")
-	otelLog.SetTimestamp(pdata.NewTimestampFromTime(time.Now()))
-	otelLog.Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		"key":         pdata.NewAttributeValueString("value"),
-		"numeric_key": pdata.NewAttributeValueDouble(1234),
-	})
+	otelLogRecord := instrumentationLogs.LogRecords().AppendEmpty()
+	otelLogRecord.SetTraceID(pdata.NewTraceID([16]byte{1}))
+	otelLogRecord.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	otelLogRecord.SetName("doOperation()")
+	otelLogRecord.SetSeverityNumber(pdata.SeverityNumberINFO)
+	otelLogRecord.SetSeverityText("Info")
+	otelLogRecord.SetTimestamp(pdata.NewTimestampFromTime(time.Now()))
+	otelLogRecord.Attributes().InsertString("key", "value")
+	otelLogRecord.Attributes().InsertDouble("numeric_key", 1234)
 
 	switch b := body.(type) {
 	case string:
-		otelLog.Body().SetStringVal(b)
+		otelLogRecord.Body().SetStringVal(b)
 	case int:
-		otelLog.Body().SetIntVal(int64(b))
+		otelLogRecord.Body().SetIntVal(int64(b))
 	case float64:
-		otelLog.Body().SetDoubleVal(b)
+		otelLogRecord.Body().SetDoubleVal(b)
 	case bool:
-		otelLog.Body().SetBoolVal(b)
+		otelLogRecord.Body().SetBoolVal(b)
 		// case map[string]string:
 		// TODO(marclop) figure out how to set the body since it cannot be set
 		// as a map.
-		// otelLog.Body()
+		// otelLogRecord.Body()
 	}
 	return logs
 }
