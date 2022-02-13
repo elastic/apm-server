@@ -42,6 +42,7 @@
                 "version": "1.12.0"
             },
             "event": {
+                "duration": 32592981,
                 "outcome": "success"
             },
             "host": {
@@ -191,9 +192,6 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foo bar"
-                },
-                "duration": {
-                    "us": 32592
                 },
                 "id": "ddf109a4c4aa5f2b6e984548ca57774c",
                 "name": "GET /api/types",

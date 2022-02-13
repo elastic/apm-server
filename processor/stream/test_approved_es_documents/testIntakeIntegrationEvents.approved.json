@@ -290,6 +290,7 @@
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
             "event": {
+                "duration": 3781912,
                 "outcome": "success"
             },
             "host": {
@@ -385,9 +386,6 @@
                         "name": "postgres"
                     }
                 },
-                "duration": {
-                    "us": 3781
-                },
                 "id": "1234567890aaaade",
                 "name": "GET users-authenticated",
                 "stacktrace": [
@@ -446,6 +444,7 @@
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
             "event": {
+                "duration": 32592981,
                 "outcome": "success"
             },
             "host": {
@@ -586,9 +585,6 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foobar"
-                },
-                "duration": {
-                    "us": 32592
                 },
                 "id": "4340a8e0df1906ecbfa9",
                 "name": "ResourceHttpRequestHandler",

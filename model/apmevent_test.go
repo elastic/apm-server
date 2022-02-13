@@ -46,6 +46,7 @@ func TestAPMEventFields(t *testing.T) {
 	httpRequestMethod := "post"
 	httpRequestBody := "<html><marquee>hello world</marquee></html>"
 	coldstart := true
+	eventDuration := time.Microsecond
 
 	for _, test := range []struct {
 		input  APMEvent
@@ -77,7 +78,7 @@ func TestAPMEventFields(t *testing.T) {
 			Destination: Destination{Address: destinationAddress, Port: destinationPort},
 			Process:     Process{Pid: pid},
 			User:        User{ID: uid, Email: mail},
-			Event:       Event{Outcome: outcome},
+			Event:       Event{Outcome: outcome, Duration: eventDuration},
 			Session:     Session{ID: "session_id"},
 			URL:         URL{Original: "url"},
 			Labels: map[string]LabelValue{
@@ -143,7 +144,7 @@ func TestAPMEventFields(t *testing.T) {
 				"ip":      destinationAddress,
 				"port":    destinationPort,
 			},
-			"event":   common.MapStr{"outcome": outcome},
+			"event":   common.MapStr{"outcome": outcome, "duration": eventDuration.Nanoseconds()},
 			"session": common.MapStr{"id": "session_id"},
 			"url":     common.MapStr{"original": "url"},
 			"labels": common.MapStr{

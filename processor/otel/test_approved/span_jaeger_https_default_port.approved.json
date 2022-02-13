@@ -11,6 +11,7 @@
                 "port": 443
             },
             "event": {
+                "duration": 79000000000,
                 "outcome": "unknown"
             },
             "host": {
@@ -36,9 +37,6 @@
                         "resource": "foo.bar.com:443",
                         "type": "external"
                     }
-                },
-                "duration": {
-                    "us": 79000000
                 },
                 "id": "0000000041414646",
                 "name": "HTTPS GET",

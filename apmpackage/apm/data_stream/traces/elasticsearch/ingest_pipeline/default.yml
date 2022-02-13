@@ -7,6 +7,8 @@ processors:
       name: user_agent
   - pipeline:
       name: client_geoip
+  - pipeline:
+      name: event_duration
   - remove:
       # Remove some metadata from spans that is available in the parent transaction, to cut down on storage costs.
       if: ctx.processor?.event == 'span'

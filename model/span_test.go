@@ -78,14 +78,14 @@ func TestSpanTransform(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"processor": common.MapStr{"name": "transaction", "event": "span"},
+				"event":     common.MapStr{"duration": duration.Nanoseconds()},
 				"span": common.MapStr{
-					"id":       hexID,
-					"duration": common.MapStr{"us": int(duration.Microseconds())},
-					"name":     "myspan",
-					"kind":     "CLIENT",
-					"type":     "myspantype",
-					"subtype":  subtype,
-					"action":   action,
+					"id":      hexID,
+					"name":    "myspan",
+					"kind":    "CLIENT",
+					"type":    "myspantype",
+					"subtype": subtype,
+					"action":  action,
 					"stacktrace": []common.MapStr{{
 						"exclude_from_grouping": false,
 						"abs_path":              path,
@@ -161,9 +161,6 @@ func TestSpanHTTPFields(t *testing.T) {
 		},
 		"url": common.MapStr{
 			"original": event.URL.Original,
-		},
-		"span": common.MapStr{
-			"duration": common.MapStr{"us": 0},
 		},
 	}, output.Fields)
 }

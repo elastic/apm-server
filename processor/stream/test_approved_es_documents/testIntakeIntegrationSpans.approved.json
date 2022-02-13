@@ -38,6 +38,7 @@
                 "id": "container-id"
             },
             "event": {
+                "duration": 141581000,
                 "outcome": "success"
             },
             "host": {
@@ -99,9 +100,6 @@
             },
             "span": {
                 "action": "query.custom",
-                "duration": {
-                    "us": 141581
-                },
                 "id": "abcdef01234567",
                 "name": "GET /api/types",
                 "subtype": "postgresql",
@@ -156,6 +154,7 @@
                 "id": "container-id"
             },
             "event": {
+                "duration": 32592981,
                 "outcome": "unknown"
             },
             "host": {
@@ -216,9 +215,6 @@
                 "version": "5.1.3"
             },
             "span": {
-                "duration": {
-                    "us": 32592
-                },
                 "id": "1234abcdef567895",
                 "name": "GET /api/types",
                 "type": "request"
@@ -272,6 +268,7 @@
                 "id": "container-id"
             },
             "event": {
+                "duration": 3564298,
                 "outcome": "unknown"
             },
             "host": {
@@ -336,9 +333,6 @@
                 "version": "5.1.3"
             },
             "span": {
-                "duration": {
-                    "us": 3564
-                },
                 "id": "0123456a89012345",
                 "name": "GET /api/types",
                 "subtype": "http",
@@ -393,6 +387,7 @@
                 "id": "container-id"
             },
             "event": {
+                "duration": 13980298,
                 "outcome": "unknown"
             },
             "host": {
@@ -454,9 +449,6 @@
             },
             "span": {
                 "action": "call",
-                "duration": {
-                    "us": 13980
-                },
                 "id": "abcde56a89012345",
                 "name": "get /api/types",
                 "subtype": "http",
@@ -515,6 +507,7 @@
                 "port": 5432
             },
             "event": {
+                "duration": 3781912,
                 "outcome": "success"
             },
             "host": {
@@ -603,9 +596,6 @@
                         "resource": "postgresql",
                         "type": "db"
                     }
-                },
-                "duration": {
-                    "us": 3781
                 },
                 "id": "1234567890aaaade",
                 "name": "SELECT FROM product_types",
@@ -715,6 +705,7 @@
                 "ip": "0:0::0:1"
             },
             "event": {
+                "duration": 141581000,
                 "outcome": "unknown"
             },
             "host": {
@@ -776,9 +767,6 @@
             },
             "span": {
                 "action": "receive",
-                "duration": {
-                    "us": 141581
-                },
                 "id": "00xxx12312312312",
                 "message": {
                     "age": {
@@ -842,6 +830,7 @@
                 "id": "container-id"
             },
             "event": {
+                "duration": 378191200,
                 "outcome": "success"
             },
             "host": {
@@ -909,9 +898,6 @@
                     "sum": {
                         "us": 359298
                     }
-                },
-                "duration": {
-                    "us": 378191
                 },
                 "id": "abcdef01234567",
                 "name": "SELECT FROM p_details",

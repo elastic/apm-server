@@ -109,7 +109,13 @@ func TestHandleExceptionTree(t *testing.T) {
 	}}, exceptionField)
 }
 
-func TestEventFields(t *testing.T) {
+func TestErrorFieldsEmpty(t *testing.T) {
+	event := APMEvent{Error: &Error{}}
+	beatEvent := event.BeatEvent(context.Background())
+	assert.Empty(t, beatEvent.Fields)
+}
+
+func TestErrorFields(t *testing.T) {
 	id := "45678"
 	culprit := "some trigger"
 
@@ -143,10 +149,6 @@ func TestEventFields(t *testing.T) {
 		Error  Error
 		Output common.MapStr
 	}{
-		"minimal": {
-			Error:  Error{},
-			Output: common.MapStr(nil),
-		},
 		"withGroupingKey": {
 			Error:  Error{GroupingKey: "foo"},
 			Output: common.MapStr{"grouping_key": "foo"},
