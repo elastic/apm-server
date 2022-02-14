@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package exporterhelper
+package exporterhelper // import "go.opentelemetry.io/collector/exporter/exporterhelper"
 
 import (
 	"context"
@@ -21,9 +21,9 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenthelper"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumerhelper"
+	"go.opentelemetry.io/collector/exporter/exporterhelper/internal"
 	"go.opentelemetry.io/collector/obsreport"
 )
 
@@ -52,6 +52,9 @@ type request interface {
 	onError(error) request
 	// Returns the count of spans/metric points or log records.
 	count() int
+
+	// PersistentRequest provides interface with additional capabilities required by persistent queue
+	internal.PersistentRequest
 }
 
 // requestSender is an abstraction of a sender for a request independent of the type of the data (traces, metrics, logs).
@@ -61,7 +64,8 @@ type requestSender interface {
 
 // baseRequest is a base implementation for the request.
 type baseRequest struct {
-	ctx context.Context
+	ctx                        context.Context
+	processingFinishedCallback func()
 }
 
 func (req *baseRequest) context() context.Context {
@@ -72,10 +76,21 @@ func (req *baseRequest) setContext(ctx context.Context) {
 	req.ctx = ctx
 }
 
+func (req *baseRequest) SetOnProcessingFinished(callback func()) {
+	req.processingFinishedCallback = callback
+}
+
+func (req *baseRequest) OnProcessingFinished() {
+	if req.processingFinishedCallback != nil {
+		req.processingFinishedCallback()
+	}
+}
+
 // baseSettings represents all the options that users can configure.
 type baseSettings struct {
-	componentOptions []componenthelper.Option
-	consumerOptions  []consumerhelper.Option
+	componenthelper.StartFunc
+	componenthelper.ShutdownFunc
+	consumerOptions []consumerhelper.Option
 	TimeoutSettings
 	QueueSettings
 	RetrySettings
@@ -106,7 +121,7 @@ type Option func(*baseSettings)
 // The default start function does nothing and always returns nil.
 func WithStart(start componenthelper.StartFunc) Option {
 	return func(o *baseSettings) {
-		o.componentOptions = append(o.componentOptions, componenthelper.WithStart(start))
+		o.StartFunc = start
 	}
 }
 
@@ -114,7 +129,7 @@ func WithStart(start componenthelper.StartFunc) Option {
 // The default shutdown function does nothing and always returns nil.
 func WithShutdown(shutdown componenthelper.ShutdownFunc) Option {
 	return func(o *baseSettings) {
-		o.componentOptions = append(o.componentOptions, componenthelper.WithShutdown(shutdown))
+		o.ShutdownFunc = shutdown
 	}
 }
 
@@ -153,25 +168,38 @@ func WithCapabilities(capabilities consumer.Capabilities) Option {
 
 // baseExporter contains common fields between different exporter types.
 type baseExporter struct {
-	component.Component
+	componenthelper.StartFunc
+	componenthelper.ShutdownFunc
 	obsrep   *obsExporter
 	sender   requestSender
 	qrSender *queuedRetrySender
 }
 
-func newBaseExporter(cfg config.Exporter, set component.ExporterCreateSettings, bs *baseSettings) *baseExporter {
-	be := &baseExporter{
-		Component: componenthelper.New(bs.componentOptions...),
-	}
+func newBaseExporter(cfg config.Exporter, set component.ExporterCreateSettings, bs *baseSettings, signal config.DataType, reqUnmarshaler internal.RequestUnmarshaler) *baseExporter {
+	be := &baseExporter{}
 
 	be.obsrep = newObsExporter(obsreport.ExporterSettings{
-		Level:                  configtelemetry.GetMetricsLevelFlagValue(),
+		Level:                  set.MetricsLevel,
 		ExporterID:             cfg.ID(),
 		ExporterCreateSettings: set,
-	})
-	be.qrSender = newQueuedRetrySender(cfg.ID().String(), bs.QueueSettings, bs.RetrySettings, &timeoutSender{cfg: bs.TimeoutSettings}, set.Logger)
+	}, globalInstruments)
+	be.qrSender = newQueuedRetrySender(cfg.ID(), signal, bs.QueueSettings, bs.RetrySettings, reqUnmarshaler, &timeoutSender{cfg: bs.TimeoutSettings}, set.Logger)
 	be.sender = be.qrSender
+	be.StartFunc = func(ctx context.Context, host component.Host) error {
+		// First start the wrapped exporter.
+		if err := bs.StartFunc.Start(ctx, host); err != nil {
+			return err
+		}
 
+		// If no error then start the queuedRetrySender.
+		return be.qrSender.start(ctx, host)
+	}
+	be.ShutdownFunc = func(ctx context.Context) error {
+		// First shutdown the queued retry sender
+		be.qrSender.shutdown()
+		// Last shutdown the wrapped exporter itself.
+		return bs.ShutdownFunc.Shutdown(ctx)
+	}
 	return be
 }
 
@@ -179,25 +207,6 @@ func newBaseExporter(cfg config.Exporter, set component.ExporterCreateSettings, 
 // This can be used to wrap with observability (create spans, record metrics) the consumer sender.
 func (be *baseExporter) wrapConsumerSender(f func(consumer requestSender) requestSender) {
 	be.qrSender.consumerSender = f(be.qrSender.consumerSender)
-}
-
-// Start all senders and exporter and is invoked during service start.
-func (be *baseExporter) Start(ctx context.Context, host component.Host) error {
-	// First start the wrapped exporter.
-	if err := be.Component.Start(ctx, host); err != nil {
-		return err
-	}
-
-	// If no error then start the queuedRetrySender.
-	return be.qrSender.start()
-}
-
-// Shutdown all senders and exporter and is invoked during service shutdown.
-func (be *baseExporter) Shutdown(ctx context.Context) error {
-	// First shutdown the queued retry sender
-	be.qrSender.shutdown()
-	// Last shutdown the wrapped exporter itself.
-	return be.Component.Shutdown(ctx)
 }
 
 // timeoutSender is a request sender that adds a `timeout` to every request that passes this sender.

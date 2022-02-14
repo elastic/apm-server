@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package metrics
+package metrics // import "go.opentelemetry.io/collector/receiver/otlpreceiver/internal/metrics"
 
 import (
 	"context"
 
-	"go.opentelemetry.io/collector/client"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/otlpgrpc"
-	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/obsreport"
 )
 
@@ -37,22 +36,23 @@ type Receiver struct {
 }
 
 // New creates a new Receiver reference.
-func New(id config.ComponentID, nextConsumer consumer.Metrics) *Receiver {
+func New(id config.ComponentID, nextConsumer consumer.Metrics, set component.ReceiverCreateSettings) *Receiver {
 	return &Receiver{
 		nextConsumer: nextConsumer,
-		obsrecv:      obsreport.NewReceiver(obsreport.ReceiverSettings{ReceiverID: id, Transport: receiverTransport}),
+		obsrecv: obsreport.NewReceiver(obsreport.ReceiverSettings{
+			ReceiverID:             id,
+			Transport:              receiverTransport,
+			ReceiverCreateSettings: set,
+		}),
 	}
 }
 
 // Export implements the service Export metrics func.
-func (r *Receiver) Export(ctx context.Context, md pdata.Metrics) (otlpgrpc.MetricsResponse, error) {
+func (r *Receiver) Export(ctx context.Context, req otlpgrpc.MetricsRequest) (otlpgrpc.MetricsResponse, error) {
+	md := req.Metrics()
 	dataPointCount := md.DataPointCount()
 	if dataPointCount == 0 {
 		return otlpgrpc.NewMetricsResponse(), nil
-	}
-
-	if c, ok := client.FromGRPC(ctx); ok {
-		ctx = client.NewContext(ctx, c)
 	}
 
 	ctx = r.obsrecv.StartMetricsOp(ctx)

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package testcomponents
+package testcomponents // import "go.opentelemetry.io/collector/internal/testcomponents"
 
 import (
 	"context"
@@ -40,7 +40,7 @@ var ExampleExtensionFactory = extensionhelper.NewFactory(extType, createExtensio
 // CreateDefaultConfig creates the default configuration for the Extension.
 func createExtensionDefaultConfig() config.Extension {
 	return &ExampleExtensionCfg{
-		ExtensionSettings: config.NewExtensionSettings(config.NewID(extType)),
+		ExtensionSettings: config.NewExtensionSettings(config.NewComponentID(extType)),
 		ExtraSetting:      "extra string setting",
 		ExtraMapSetting:   nil,
 		ExtraListSetting:  nil,

@@ -12,26 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package componenttest
+package componenttest // import "go.opentelemetry.io/collector/component/componenttest"
 
 import (
 	"context"
-
-	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenthelper"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/internal/internalinterface"
 )
 
 // NewNopExporterCreateSettings returns a new nop settings for Create*Exporter functions.
 func NewNopExporterCreateSettings() component.ExporterCreateSettings {
 	return component.ExporterCreateSettings{
-		Logger:         zap.NewNop(),
-		TracerProvider: trace.NewNoopTracerProvider(),
-		BuildInfo:      component.DefaultBuildInfo(),
+		TelemetrySettings: NewNopTelemetrySettings(),
+		BuildInfo:         component.NewDefaultBuildInfo(),
 	}
 }
 
@@ -40,7 +37,9 @@ type nopExporterConfig struct {
 }
 
 // nopExporterFactory is factory for nopExporter.
-type nopExporterFactory struct{}
+type nopExporterFactory struct {
+	internalinterface.BaseInternal
+}
 
 var nopExporterFactoryInstance = &nopExporterFactory{}
 
@@ -57,7 +56,7 @@ func (f *nopExporterFactory) Type() config.Type {
 // CreateDefaultConfig creates the default configuration for the Exporter.
 func (f *nopExporterFactory) CreateDefaultConfig() config.Exporter {
 	return &nopExporterConfig{
-		ExporterSettings: config.NewExporterSettings(config.NewID("nop")),
+		ExporterSettings: config.NewExporterSettings(config.NewComponentID("nop")),
 	}
 }
 
@@ -89,12 +88,12 @@ func (f *nopExporterFactory) CreateLogsExporter(
 }
 
 var nopExporterInstance = &nopExporter{
-	Component: componenthelper.New(),
-	Consumer:  consumertest.NewNop(),
+	Consumer: consumertest.NewNop(),
 }
 
 // nopExporter stores consumed traces and metrics for testing purposes.
 type nopExporter struct {
-	component.Component
+	componenthelper.StartFunc
+	componenthelper.ShutdownFunc
 	consumertest.Consumer
 }

@@ -10,6 +10,7 @@
                 "ip": "192.0.0.2"
             },
             "event": {
+                "duration": 295000000,
                 "outcome": "success"
             },
             "http": {
@@ -79,9 +80,6 @@
             "transaction": {
                 "custom": {
                     "testContext": "testContext"
-                },
-                "duration": {
-                    "us": 295000
                 },
                 "experience": {
                     "cls": 1,
@@ -279,6 +277,7 @@
                 "ip": "192.0.0.2"
             },
             "event": {
+                "duration": 2000000,
                 "outcome": "unknown"
             },
             "labels": {
@@ -317,9 +316,6 @@
                 "ip": "192.0.0.1"
             },
             "span": {
-                "duration": {
-                    "us": 2000
-                },
                 "id": "bbd8bcc3be14d814",
                 "name": "Requesting and receiving the document",
                 "subtype": "browser-timing",
@@ -353,6 +349,7 @@
                 "ip": "192.0.0.2"
             },
             "event": {
+                "duration": 106000000,
                 "outcome": "unknown"
             },
             "labels": {
@@ -391,9 +388,6 @@
                 "ip": "192.0.0.1"
             },
             "span": {
-                "duration": {
-                    "us": 106000
-                },
                 "id": "fc546e87a90a774f",
                 "name": "Parsing the document, executing sy. scripts",
                 "subtype": "browser-timing",
@@ -431,6 +425,7 @@
                 "port": 8000
             },
             "event": {
+                "duration": 35060000,
                 "outcome": "unknown"
             },
             "http": {
@@ -483,9 +478,6 @@
                         "type": "rc"
                     }
                 },
-                "duration": {
-                    "us": 35060
-                },
                 "id": "fb8f717930697299",
                 "name": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
                 "subtype": "script",
@@ -522,6 +514,7 @@
                 "ip": "192.0.0.2"
             },
             "event": {
+                "duration": 198070000,
                 "outcome": "unknown"
             },
             "labels": {
@@ -560,9 +553,6 @@
                 "ip": "192.0.0.1"
             },
             "span": {
-                "duration": {
-                    "us": 198070
-                },
                 "id": "9b80535c4403c9fb",
                 "name": "OpenTracing y",
                 "type": "cu"
@@ -599,6 +589,7 @@
                 "port": 8000
             },
             "event": {
+                "duration": 6724999,
                 "outcome": "success"
             },
             "http": {
@@ -652,9 +643,6 @@
                         "type": "external"
                     }
                 },
-                "duration": {
-                    "us": 6724
-                },
                 "id": "5ecb8ee030749715",
                 "name": "GET /test/e2e/common/data.json",
                 "subtype": "h",
@@ -696,6 +684,7 @@
                 "port": 8003
             },
             "event": {
+                "duration": 11584999,
                 "outcome": "success"
             },
             "http": {
@@ -749,9 +738,6 @@
                         "type": "external"
                     }
                 },
-                "duration": {
-                    "us": 11584
-                },
                 "id": "27f45fd274f976d4",
                 "name": "POST http://localhost:8003/data",
                 "subtype": "h",
@@ -793,6 +779,7 @@
                 "port": 8003
             },
             "event": {
+                "duration": 15949999,
                 "outcome": "success"
             },
             "http": {
@@ -847,9 +834,6 @@
                         "type": "external"
                     }
                 },
-                "duration": {
-                    "us": 15949
-                },
                 "id": "a3c043330bc2015e",
                 "name": "POST http://localhost:8003/fetch",
                 "subtype": "h",
@@ -887,6 +871,7 @@
                 "ip": "192.0.0.2"
             },
             "event": {
+                "duration": 2000000,
                 "outcome": "success"
             },
             "labels": {
@@ -925,9 +910,6 @@
                 "ip": "192.0.0.1"
             },
             "span": {
-                "duration": {
-                    "us": 2000
-                },
                 "id": "bc7665dc25629379",
                 "name": "Fire \"DOMContentLoaded\" event",
                 "stacktrace": [

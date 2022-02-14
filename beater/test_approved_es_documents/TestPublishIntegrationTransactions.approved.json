@@ -39,6 +39,7 @@
                 "version": "1.12.0"
             },
             "event": {
+                "duration": 32592981,
                 "outcome": "unknown"
             },
             "host": {
@@ -121,9 +122,6 @@
                 "id": "0123456789abcdef0123456789abcdef"
             },
             "transaction": {
-                "duration": {
-                    "us": 32592
-                },
                 "id": "945254c567a5417e",
                 "sampled": true,
                 "span_count": {
@@ -179,6 +177,7 @@
                 "version": "1.12.0"
             },
             "event": {
+                "duration": 32592981,
                 "outcome": "success"
             },
             "host": {
@@ -329,9 +328,6 @@
                     "my_key": 1,
                     "some_other_value": "foo bar"
                 },
-                "duration": {
-                    "us": 32592
-                },
                 "id": "4340a8e0df1906ecbfa9",
                 "name": "GET /api/types",
                 "result": "success",
@@ -400,6 +396,7 @@
                 "version": "1.12.0"
             },
             "event": {
+                "duration": 13980558,
                 "outcome": "unknown"
             },
             "host": {
@@ -484,9 +481,6 @@
                 "id": "0acd456789abcdef0123456789abcdef"
             },
             "transaction": {
-                "duration": {
-                    "us": 13980
-                },
                 "experience": {
                     "cls": 1,
                     "fid": 2,
@@ -560,6 +554,7 @@
                 "version": "1.12.0"
             },
             "event": {
+                "duration": 3000000,
                 "outcome": "unknown"
             },
             "host": {
@@ -646,9 +641,6 @@
                 "id": "0123456789abcdef0123456789abcdef"
             },
             "transaction": {
-                "duration": {
-                    "us": 3000
-                },
                 "id": "00xxxxFFaaaa1234",
                 "message": {
                     "age": {
@@ -727,6 +719,7 @@
                 "version": "1.12.0"
             },
             "event": {
+                "duration": 38853000,
                 "outcome": "unknown"
             },
             "faas": {
@@ -817,9 +810,6 @@
                 "id": "eb56529a1f461c5e7e2f66ecb075e983"
             },
             "transaction": {
-                "duration": {
-                    "us": 38853
-                },
                 "id": "142e61450efb8574",
                 "name": "july-2021-delete-after-july-31",
                 "result": "success",

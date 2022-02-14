@@ -1372,10 +1372,10 @@ func otelAttributeValue(k string, v interface{}) (pdata.AttributeValue, bool) {
 		}
 	case []interface{}:
 		array := pdata.NewAttributeValueArray()
-		array.ArrayVal().EnsureCapacity(len(v))
+		array.SliceVal().EnsureCapacity(len(v))
 		for i := range v {
 			if elem, ok := otelAttributeValue(k, v[i]); ok {
-				elem.CopyTo(array.ArrayVal().AppendEmpty())
+				elem.CopyTo(array.SliceVal().AppendEmpty())
 			}
 		}
 		return array, true

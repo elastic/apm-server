@@ -12,26 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package componenttest
+package componenttest // import "go.opentelemetry.io/collector/component/componenttest"
 
 import (
 	"context"
-
-	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenthelper"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/internal/internalinterface"
 )
 
 // NewNopReceiverCreateSettings returns a new nop settings for Create*Receiver functions.
 func NewNopReceiverCreateSettings() component.ReceiverCreateSettings {
 	return component.ReceiverCreateSettings{
-		Logger:         zap.NewNop(),
-		TracerProvider: trace.NewNoopTracerProvider(),
-		BuildInfo:      component.DefaultBuildInfo(),
+		TelemetrySettings: NewNopTelemetrySettings(),
+		BuildInfo:         component.NewDefaultBuildInfo(),
 	}
 }
 
@@ -40,7 +37,9 @@ type nopReceiverConfig struct {
 }
 
 // nopReceiverFactory is factory for nopReceiver.
-type nopReceiverFactory struct{}
+type nopReceiverFactory struct {
+	internalinterface.BaseInternal
+}
 
 var nopReceiverFactoryInstance = &nopReceiverFactory{}
 
@@ -51,13 +50,13 @@ func NewNopReceiverFactory() component.ReceiverFactory {
 
 // Type gets the type of the Receiver config created by this factory.
 func (f *nopReceiverFactory) Type() config.Type {
-	return config.NewID("nop").Type()
+	return config.NewComponentID("nop").Type()
 }
 
 // CreateDefaultConfig creates the default configuration for the Receiver.
 func (f *nopReceiverFactory) CreateDefaultConfig() config.Receiver {
 	return &nopReceiverConfig{
-		ReceiverSettings: config.NewReceiverSettings(config.NewID("nop")),
+		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID("nop")),
 	}
 }
 
@@ -91,11 +90,10 @@ func (f *nopReceiverFactory) CreateLogsReceiver(
 	return nopReceiverInstance, nil
 }
 
-var nopReceiverInstance = &nopReceiver{
-	Component: componenthelper.New(),
-}
+var nopReceiverInstance = &nopReceiver{}
 
 // nopReceiver stores consumed traces and metrics for testing purposes.
 type nopReceiver struct {
-	component.Component
+	componenthelper.StartFunc
+	componenthelper.ShutdownFunc
 }

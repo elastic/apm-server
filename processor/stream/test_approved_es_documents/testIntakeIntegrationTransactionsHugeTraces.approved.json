@@ -36,6 +36,7 @@
                 "id": "container-id"
             },
             "event": {
+                "duration": 32592981,
                 "outcome": "success"
             },
             "host": {
@@ -196,9 +197,6 @@
                         "outcome": "success"
                     }
                 ],
-                "duration": {
-                    "us": 32592
-                },
                 "id": "ddf109a4c4aa5f2b6e984548ca57774c",
                 "name": "GET /api/types",
                 "result": "success",

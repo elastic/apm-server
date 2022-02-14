@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package logs
+package logs // import "go.opentelemetry.io/collector/receiver/otlpreceiver/internal/logs"
 
 import (
 	"context"
 
-	"go.opentelemetry.io/collector/client"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/otlpgrpc"
-	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/obsreport"
 )
 
@@ -37,22 +36,23 @@ type Receiver struct {
 }
 
 // New creates a new Receiver reference.
-func New(id config.ComponentID, nextConsumer consumer.Logs) *Receiver {
+func New(id config.ComponentID, nextConsumer consumer.Logs, set component.ReceiverCreateSettings) *Receiver {
 	return &Receiver{
 		nextConsumer: nextConsumer,
-		obsrecv:      obsreport.NewReceiver(obsreport.ReceiverSettings{ReceiverID: id, Transport: receiverTransport}),
+		obsrecv: obsreport.NewReceiver(obsreport.ReceiverSettings{
+			ReceiverID:             id,
+			Transport:              receiverTransport,
+			ReceiverCreateSettings: set,
+		}),
 	}
 }
 
 // Export implements the service Export logs func.
-func (r *Receiver) Export(ctx context.Context, ld pdata.Logs) (otlpgrpc.LogsResponse, error) {
+func (r *Receiver) Export(ctx context.Context, req otlpgrpc.LogsRequest) (otlpgrpc.LogsResponse, error) {
+	ld := req.Logs()
 	numSpans := ld.LogRecordCount()
 	if numSpans == 0 {
 		return otlpgrpc.NewLogsResponse(), nil
-	}
-
-	if c, ok := client.FromGRPC(ctx); ok {
-		ctx = client.NewContext(ctx, c)
 	}
 
 	ctx = r.obsrecv.StartLogsOp(ctx)

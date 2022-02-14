@@ -12,17 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package obsreporttest
+package obsreporttest // import "go.opentelemetry.io/collector/obsreport/obsreporttest"
 
 import (
+	"context"
+	"fmt"
 	"reflect"
 	"sort"
-	"testing"
 
-	"github.com/stretchr/testify/require"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	"go.uber.org/multierr"
 
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/internal/obsreportconfig"
@@ -42,124 +47,185 @@ var (
 	processorTag, _ = tag.NewKey("processor")
 )
 
-// SetupRecordedMetricsTest does setup the testing environment to check the metrics recorded by receivers, producers or exporters.
-// The returned function should be deferred.
-func SetupRecordedMetricsTest() (func(), error) {
+type TestTelemetry struct {
+	component.TelemetrySettings
+	SpanRecorder *tracetest.SpanRecorder
+	views        []*view.View
+}
+
+// ToExporterCreateSettings returns ExporterCreateSettings with configured TelemetrySettings
+func (tts *TestTelemetry) ToExporterCreateSettings() component.ExporterCreateSettings {
+	exporterSettings := componenttest.NewNopExporterCreateSettings()
+	exporterSettings.TelemetrySettings = tts.TelemetrySettings
+	return exporterSettings
+}
+
+// ToProcessorCreateSettings returns ProcessorCreateSettings with configured TelemetrySettings
+func (tts *TestTelemetry) ToProcessorCreateSettings() component.ProcessorCreateSettings {
+	processorSettings := componenttest.NewNopProcessorCreateSettings()
+	processorSettings.TelemetrySettings = tts.TelemetrySettings
+	return processorSettings
+}
+
+// ToReceiverCreateSettings returns ReceiverCreateSettings with configured TelemetrySettings
+func (tts *TestTelemetry) ToReceiverCreateSettings() component.ReceiverCreateSettings {
+	receiverSettings := componenttest.NewNopReceiverCreateSettings()
+	receiverSettings.TelemetrySettings = tts.TelemetrySettings
+	return receiverSettings
+}
+
+// Shutdown unregisters any views and shuts down the SpanRecorder
+func (tts *TestTelemetry) Shutdown(ctx context.Context) error {
+	view.Unregister(tts.views...)
+	return tts.SpanRecorder.Shutdown(ctx)
+}
+
+// SetupTelemetry does setup the testing environment to check the metrics recorded by receivers, producers or exporters.
+// The caller should defer a call to Shutdown the returned TestTelemetry.
+func SetupTelemetry() (TestTelemetry, error) {
+	sr := new(tracetest.SpanRecorder)
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(sr))
+
+	settings := TestTelemetry{
+		TelemetrySettings: componenttest.NewNopTelemetrySettings(),
+		SpanRecorder:      sr,
+	}
+	settings.TracerProvider = tp
 	obsMetrics := obsreportconfig.Configure(configtelemetry.LevelNormal)
-	views := obsMetrics.Views
-	err := view.Register(views...)
+	settings.views = obsMetrics.Views
+	err := view.Register(settings.views...)
 	if err != nil {
-		return nil, err
+		return settings, err
 	}
 
-	return func() {
-		view.Unregister(views...)
-	}, err
+	return settings, err
 }
 
 // CheckExporterTraces checks that for the current exported values for trace exporter metrics match given values.
-// When this function is called it is required to also call SetupRecordedMetricsTest as first thing.
-func CheckExporterTraces(t *testing.T, exporter config.ComponentID, acceptedSpans, droppedSpans int64) {
+// When this function is called it is required to also call SetupTelemetry as first thing.
+func CheckExporterTraces(_ TestTelemetry, exporter config.ComponentID, sentSpans, sendFailedSpans int64) error {
 	exporterTags := tagsForExporterView(exporter)
-	checkValueForView(t, exporterTags, acceptedSpans, "exporter/sent_spans")
-	checkValueForView(t, exporterTags, droppedSpans, "exporter/send_failed_spans")
+	if sendFailedSpans > 0 {
+		return multierr.Combine(
+			checkValueForView(exporterTags, sentSpans, "exporter/sent_spans"),
+			checkValueForView(exporterTags, sendFailedSpans, "exporter/send_failed_spans"))
+	}
+	return checkValueForView(exporterTags, sentSpans, "exporter/sent_spans")
 }
 
 // CheckExporterMetrics checks that for the current exported values for metrics exporter metrics match given values.
-// When this function is called it is required to also call SetupRecordedMetricsTest as first thing.
-func CheckExporterMetrics(t *testing.T, exporter config.ComponentID, acceptedMetricsPoints, droppedMetricsPoints int64) {
+// When this function is called it is required to also call SetupTelemetry as first thing.
+func CheckExporterMetrics(_ TestTelemetry, exporter config.ComponentID, sentMetricsPoints, sendFailedMetricsPoints int64) error {
 	exporterTags := tagsForExporterView(exporter)
-	checkValueForView(t, exporterTags, acceptedMetricsPoints, "exporter/sent_metric_points")
-	checkValueForView(t, exporterTags, droppedMetricsPoints, "exporter/send_failed_metric_points")
+	if sendFailedMetricsPoints > 0 {
+		return multierr.Combine(
+			checkValueForView(exporterTags, sentMetricsPoints, "exporter/sent_metric_points"),
+			checkValueForView(exporterTags, sendFailedMetricsPoints, "exporter/send_failed_metric_points"))
+	}
+	return checkValueForView(exporterTags, sentMetricsPoints, "exporter/sent_metric_points")
 }
 
 // CheckExporterLogs checks that for the current exported values for logs exporter metrics match given values.
-// When this function is called it is required to also call SetupRecordedMetricsTest as first thing.
-func CheckExporterLogs(t *testing.T, exporter config.ComponentID, acceptedLogRecords, droppedLogRecords int64) {
+// When this function is called it is required to also call SetupTelemetry as first thing.
+func CheckExporterLogs(_ TestTelemetry, exporter config.ComponentID, sentLogRecords, sendFailedLogRecords int64) error {
 	exporterTags := tagsForExporterView(exporter)
-	checkValueForView(t, exporterTags, acceptedLogRecords, "exporter/sent_log_records")
-	checkValueForView(t, exporterTags, droppedLogRecords, "exporter/send_failed_log_records")
+	if sendFailedLogRecords > 0 {
+		return multierr.Combine(
+			checkValueForView(exporterTags, sentLogRecords, "exporter/sent_log_records"),
+			checkValueForView(exporterTags, sendFailedLogRecords, "exporter/send_failed_log_records"))
+	}
+	return checkValueForView(exporterTags, sentLogRecords, "exporter/sent_log_records")
 }
 
 // CheckProcessorTraces checks that for the current exported values for trace exporter metrics match given values.
-// When this function is called it is required to also call SetupRecordedMetricsTest as first thing.
-func CheckProcessorTraces(t *testing.T, processor config.ComponentID, acceptedSpans, refusedSpans, droppedSpans int64) {
+// When this function is called it is required to also call SetupTelemetry as first thing.
+func CheckProcessorTraces(_ TestTelemetry, processor config.ComponentID, acceptedSpans, refusedSpans, droppedSpans int64) error {
 	processorTags := tagsForProcessorView(processor)
-	checkValueForView(t, processorTags, acceptedSpans, "processor/accepted_spans")
-	checkValueForView(t, processorTags, refusedSpans, "processor/refused_spans")
-	checkValueForView(t, processorTags, droppedSpans, "processor/dropped_spans")
+	return multierr.Combine(
+		checkValueForView(processorTags, acceptedSpans, "processor/accepted_spans"),
+		checkValueForView(processorTags, refusedSpans, "processor/refused_spans"),
+		checkValueForView(processorTags, droppedSpans, "processor/dropped_spans"))
 }
 
 // CheckProcessorMetrics checks that for the current exported values for metrics exporter metrics match given values.
-// When this function is called it is required to also call SetupRecordedMetricsTest as first thing.
-func CheckProcessorMetrics(t *testing.T, processor config.ComponentID, acceptedMetricPoints, refusedMetricPoints, droppedMetricPoints int64) {
+// When this function is called it is required to also call SetupTelemetry as first thing.
+func CheckProcessorMetrics(_ TestTelemetry, processor config.ComponentID, acceptedMetricPoints, refusedMetricPoints, droppedMetricPoints int64) error {
 	processorTags := tagsForProcessorView(processor)
-	checkValueForView(t, processorTags, acceptedMetricPoints, "processor/accepted_metric_points")
-	checkValueForView(t, processorTags, refusedMetricPoints, "processor/refused_metric_points")
-	checkValueForView(t, processorTags, droppedMetricPoints, "processor/dropped_metric_points")
+	return multierr.Combine(
+		checkValueForView(processorTags, acceptedMetricPoints, "processor/accepted_metric_points"),
+		checkValueForView(processorTags, refusedMetricPoints, "processor/refused_metric_points"),
+		checkValueForView(processorTags, droppedMetricPoints, "processor/dropped_metric_points"))
 }
 
 // CheckProcessorLogs checks that for the current exported values for logs exporter metrics match given values.
-// When this function is called it is required to also call SetupRecordedMetricsTest as first thing.
-func CheckProcessorLogs(t *testing.T, processor config.ComponentID, acceptedLogRecords, refusedLogRecords, droppedLogRecords int64) {
+// When this function is called it is required to also call SetupTelemetry as first thing.
+func CheckProcessorLogs(_ TestTelemetry, processor config.ComponentID, acceptedLogRecords, refusedLogRecords, droppedLogRecords int64) error {
 	processorTags := tagsForProcessorView(processor)
-	checkValueForView(t, processorTags, acceptedLogRecords, "processor/accepted_log_records")
-	checkValueForView(t, processorTags, refusedLogRecords, "processor/refused_log_records")
-	checkValueForView(t, processorTags, droppedLogRecords, "processor/dropped_log_records")
+	return multierr.Combine(
+		checkValueForView(processorTags, acceptedLogRecords, "processor/accepted_log_records"),
+		checkValueForView(processorTags, refusedLogRecords, "processor/refused_log_records"),
+		checkValueForView(processorTags, droppedLogRecords, "processor/dropped_log_records"))
 }
 
 // CheckReceiverTraces checks that for the current exported values for trace receiver metrics match given values.
-// When this function is called it is required to also call SetupRecordedMetricsTest as first thing.
-func CheckReceiverTraces(t *testing.T, receiver config.ComponentID, protocol string, acceptedSpans, droppedSpans int64) {
+// When this function is called it is required to also call SetupTelemetry as first thing.
+func CheckReceiverTraces(_ TestTelemetry, receiver config.ComponentID, protocol string, acceptedSpans, droppedSpans int64) error {
 	receiverTags := tagsForReceiverView(receiver, protocol)
-	checkValueForView(t, receiverTags, acceptedSpans, "receiver/accepted_spans")
-	checkValueForView(t, receiverTags, droppedSpans, "receiver/refused_spans")
+	return multierr.Combine(
+		checkValueForView(receiverTags, acceptedSpans, "receiver/accepted_spans"),
+		checkValueForView(receiverTags, droppedSpans, "receiver/refused_spans"))
 }
 
 // CheckReceiverLogs checks that for the current exported values for logs receiver metrics match given values.
-// When this function is called it is required to also call SetupRecordedMetricsTest as first thing.
-func CheckReceiverLogs(t *testing.T, receiver config.ComponentID, protocol string, acceptedLogRecords, droppedLogRecords int64) {
+// When this function is called it is required to also call SetupTelemetry as first thing.
+func CheckReceiverLogs(_ TestTelemetry, receiver config.ComponentID, protocol string, acceptedLogRecords, droppedLogRecords int64) error {
 	receiverTags := tagsForReceiverView(receiver, protocol)
-	checkValueForView(t, receiverTags, acceptedLogRecords, "receiver/accepted_log_records")
-	checkValueForView(t, receiverTags, droppedLogRecords, "receiver/refused_log_records")
+	return multierr.Combine(
+		checkValueForView(receiverTags, acceptedLogRecords, "receiver/accepted_log_records"),
+		checkValueForView(receiverTags, droppedLogRecords, "receiver/refused_log_records"))
 }
 
 // CheckReceiverMetrics checks that for the current exported values for metrics receiver metrics match given values.
-// When this function is called it is required to also call SetupRecordedMetricsTest as first thing.
-func CheckReceiverMetrics(t *testing.T, receiver config.ComponentID, protocol string, acceptedMetricPoints, droppedMetricPoints int64) {
+// When this function is called it is required to also call SetupTelemetry as first thing.
+func CheckReceiverMetrics(_ TestTelemetry, receiver config.ComponentID, protocol string, acceptedMetricPoints, droppedMetricPoints int64) error {
 	receiverTags := tagsForReceiverView(receiver, protocol)
-	checkValueForView(t, receiverTags, acceptedMetricPoints, "receiver/accepted_metric_points")
-	checkValueForView(t, receiverTags, droppedMetricPoints, "receiver/refused_metric_points")
+	return multierr.Combine(
+		checkValueForView(receiverTags, acceptedMetricPoints, "receiver/accepted_metric_points"),
+		checkValueForView(receiverTags, droppedMetricPoints, "receiver/refused_metric_points"))
 }
 
 // CheckScraperMetrics checks that for the current exported values for metrics scraper metrics match given values.
-// When this function is called it is required to also call SetupRecordedMetricsTest as first thing.
-func CheckScraperMetrics(t *testing.T, receiver config.ComponentID, scraper config.ComponentID, scrapedMetricPoints, erroredMetricPoints int64) {
+// When this function is called it is required to also call SetupTelemetry as first thing.
+func CheckScraperMetrics(_ TestTelemetry, receiver config.ComponentID, scraper config.ComponentID, scrapedMetricPoints, erroredMetricPoints int64) error {
 	scraperTags := tagsForScraperView(receiver, scraper)
-	checkValueForView(t, scraperTags, scrapedMetricPoints, "scraper/scraped_metric_points")
-	checkValueForView(t, scraperTags, erroredMetricPoints, "scraper/errored_metric_points")
+	return multierr.Combine(
+		checkValueForView(scraperTags, scrapedMetricPoints, "scraper/scraped_metric_points"),
+		checkValueForView(scraperTags, erroredMetricPoints, "scraper/errored_metric_points"))
 }
 
 // checkValueForView checks that for the current exported value in the view with the given name
 // for {LegacyTagKeyReceiver: receiverName} is equal to "value".
-func checkValueForView(t *testing.T, wantTags []tag.Tag, value int64, vName string) {
+func checkValueForView(wantTags []tag.Tag, value int64, vName string) error {
 	// Make sure the tags slice is sorted by tag keys.
 	sortTags(wantTags)
 
 	rows, err := view.RetrieveData(vName)
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
 
 	for _, row := range rows {
 		// Make sure the tags slice is sorted by tag keys.
 		sortTags(row.Tags)
 		if reflect.DeepEqual(wantTags, row.Tags) {
 			sum := row.Data.(*view.SumData)
-			require.Equal(t, float64(value), sum.Value)
-			return
+			if float64(value) != sum.Value {
+				return fmt.Errorf("[%s]: values did no match, wanted %f got %f", vName, float64(value), sum.Value)
+			}
+			return nil
 		}
 	}
-
-	require.Failf(t, "could not find tags", "wantTags: %s in rows %v", wantTags, rows)
+	return fmt.Errorf("[%s]: could not find tags, wantTags: %s in rows %v", vName, wantTags, rows)
 }
 
 // tagsForReceiverView returns the tags that are needed for the receiver views.

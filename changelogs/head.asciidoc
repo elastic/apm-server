@@ -9,6 +9,7 @@ See <<apm-server-configuration>> for more information.
 
 [float]
 ==== Breaking Changes
+- APM Server now emits events with `event.duration`, and renames the field to `<event>.duration.us` in an ingest pipeline {pull}7261[7261]
 
 [float]
 ==== Bug fixes
