@@ -23,3 +23,4 @@ See <<apm-server-configuration>> for more information.
 - `apm-server` artifacts now have the apm java-attacher.jar packaged alongside them {pull}6593[6593]
 - Run the java attacher jar when configured and not in a cloud environment {pull}6617[6617]
 - Added several dimensions to the aggregated transaction metrics {pull}7033[7033]
+- Implemented translation of OpenTelemetry host system metrics (CPU utilization / Memory usage) {pull}7090[7090]

@@ -218,6 +218,342 @@ func TestConsumeMetricsNaN(t *testing.T) {
 	assert.Empty(t, events)
 }
 
+func TestConsumeMetricsHostCPU(t *testing.T) {
+	metrics := pdata.NewMetrics()
+	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
+	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics().AppendEmpty()
+	metricSlice := instrumentationLibraryMetrics.Metrics()
+	appendMetric := func(name string, dataType pdata.MetricDataType) pdata.Metric {
+		metric := metricSlice.AppendEmpty()
+		metric.SetName(name)
+		metric.SetDataType(dataType)
+		return metric
+	}
+
+	timestamp := time.Unix(123, 0).UTC()
+	addFloat64Gauge := func(name string, value float64, attributes map[string]pdata.AttributeValue) {
+		metric := appendMetric(name, pdata.MetricDataTypeGauge)
+		sum := metric.Gauge()
+		dp := sum.DataPoints().AppendEmpty()
+		dp.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
+		dp.SetDoubleVal(value)
+		pdata.NewAttributeMapFromMap(attributes).CopyTo(dp.Attributes())
+	}
+
+	addFloat64Gauge("system.cpu.utilization", 0.8, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("idle"),
+		"cpu":   pdata.NewAttributeValueString("0"),
+	})
+	addFloat64Gauge("system.cpu.utilization", 0.1, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("system"),
+		"cpu":   pdata.NewAttributeValueString("0"),
+	})
+	addFloat64Gauge("system.cpu.utilization", 0.1, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("user"),
+		"cpu":   pdata.NewAttributeValueString("0"),
+	})
+
+	addFloat64Gauge("system.cpu.utilization", 0.45, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("idle"),
+		"cpu":   pdata.NewAttributeValueString("1"),
+	})
+	addFloat64Gauge("system.cpu.utilization", 0.05, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("system"),
+		"cpu":   pdata.NewAttributeValueString("1"),
+	})
+	addFloat64Gauge("system.cpu.utilization", 0.5, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("user"),
+		"cpu":   pdata.NewAttributeValueString("1"),
+	})
+
+	addFloat64Gauge("system.cpu.utilization", 0.59, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("idle"),
+		"cpu":   pdata.NewAttributeValueString("2"),
+	})
+	addFloat64Gauge("system.cpu.utilization", 0.01, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("system"),
+		"cpu":   pdata.NewAttributeValueString("2"),
+	})
+	addFloat64Gauge("system.cpu.utilization", 0.4, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("user"),
+		"cpu":   pdata.NewAttributeValueString("2"),
+	})
+
+	addFloat64Gauge("system.cpu.utilization", 0.6, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("idle"),
+		"cpu":   pdata.NewAttributeValueString("3"),
+	})
+	addFloat64Gauge("system.cpu.utilization", 0.3, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("system"),
+		"cpu":   pdata.NewAttributeValueString("3"),
+	})
+	addFloat64Gauge("system.cpu.utilization", 0.1, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("user"),
+		"cpu":   pdata.NewAttributeValueString("3"),
+	})
+
+	events, _ := transformMetrics(t, metrics)
+	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
+	agent := model.Agent{Name: "otlp", Version: "unknown"}
+	assert.ElementsMatch(t, []model.APMEvent{{
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "idle"}, "cpu": {Value: "0"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.utilization": {
+					Type:  "gauge",
+					Value: 0.8,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "system"}, "cpu": {Value: "0"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.utilization": {
+					Type:  "gauge",
+					Value: 0.1,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "user"}, "cpu": {Value: "0"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.utilization": {
+					Type:  "gauge",
+					Value: 0.1,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "idle"}, "cpu": {Value: "1"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.utilization": {
+					Type:  "gauge",
+					Value: 0.45,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "system"}, "cpu": {Value: "1"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.utilization": {
+					Type:  "gauge",
+					Value: 0.05,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "user"}, "cpu": {Value: "1"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.utilization": {
+					Type:  "gauge",
+					Value: 0.5,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "idle"}, "cpu": {Value: "2"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.utilization": {
+					Type:  "gauge",
+					Value: 0.59,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "system"}, "cpu": {Value: "2"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.utilization": {
+					Type:  "gauge",
+					Value: 0.01,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "user"}, "cpu": {Value: "2"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.utilization": {
+					Type:  "gauge",
+					Value: 0.4,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "idle"}, "cpu": {Value: "3"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.utilization": {
+					Type:  "gauge",
+					Value: 0.6,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "system"}, "cpu": {Value: "3"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.utilization": {
+					Type:  "gauge",
+					Value: 0.3,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "user"}, "cpu": {Value: "3"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.utilization": {
+					Type:  "gauge",
+					Value: 0.1,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.cpu.total.norm.pct": {
+					Value: 0.39000000000000007,
+				},
+			},
+		},
+	}}, events)
+}
+
+func TestConsumeMetricsHostMemory(t *testing.T) {
+	metrics := pdata.NewMetrics()
+	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
+	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics().AppendEmpty()
+	metricSlice := instrumentationLibraryMetrics.Metrics()
+	appendMetric := func(name string, dataType pdata.MetricDataType) pdata.Metric {
+		metric := metricSlice.AppendEmpty()
+		metric.SetName(name)
+		metric.SetDataType(dataType)
+		return metric
+	}
+
+	timestamp := time.Unix(123, 0).UTC()
+	addInt64Sum := func(name string, value int64, attributes map[string]pdata.AttributeValue) {
+		metric := appendMetric(name, pdata.MetricDataTypeSum)
+		sum := metric.Sum()
+		dp := sum.DataPoints().AppendEmpty()
+		dp.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
+		dp.SetIntVal(value)
+		pdata.NewAttributeMapFromMap(attributes).CopyTo(dp.Attributes())
+	}
+	addInt64Sum("system.memory.usage", 4773351424, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("free"),
+	})
+	addInt64Sum("system.memory.usage", 3563778048, map[string]pdata.AttributeValue{
+		"state": pdata.NewAttributeValueString("used"),
+	})
+	events, _ := transformMetrics(t, metrics)
+	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
+	agent := model.Agent{Name: "otlp", Version: "unknown"}
+	assert.ElementsMatch(t, []model.APMEvent{{
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "free"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.memory.usage": {
+					Type:  "counter",
+					Value: 4773351424,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"state": {Value: "used"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.memory.usage": {
+					Type:  "counter",
+					Value: 3563778048,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.memory.actual.free": {
+					Value: 4773351424,
+				},
+				"system.memory.total": {
+					Value: 8337129472,
+				},
+			},
+		},
+	}}, events)
+}
+
 func TestConsumeMetrics_JVM(t *testing.T) {
 	metrics := pdata.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
@@ -257,24 +593,16 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		"area": pdata.NewAttributeValueString("heap"),
 		"type": pdata.NewAttributeValueString("used"),
 	})
+	addInt64Gauge("runtime.jvm.memory.area", 24, map[string]pdata.AttributeValue{
+		"area": pdata.NewAttributeValueString("heap"),
+		"type": pdata.NewAttributeValueString("used"),
+		"pool": pdata.NewAttributeValueString("eden"),
+	})
 
 	events, _ := transformMetrics(t, metrics)
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
 	assert.ElementsMatch(t, []model.APMEvent{{
-		Agent:     agent,
-		Service:   service,
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"jvm.memory.heap.used": {
-					Type:  "gauge",
-					Value: 42,
-				},
-			},
-		},
-	}, {
 		Agent:     agent,
 		Service:   service,
 		Labels:    model.Labels{"gc": {Value: "G1 Young Generation"}},
@@ -301,11 +629,9 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Metricset: &model.Metricset{
 			Samples: map[string]model.MetricsetSample{
 				"jvm.gc.time": {
-					Type:  "counter",
 					Value: 9,
 				},
 				"jvm.gc.count": {
-					Type:  "counter",
 					Value: 2,
 				},
 			},
@@ -321,6 +647,45 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 				"runtime.jvm.memory.area": {
 					Type:  "gauge",
 					Value: 42,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"jvm.memory.heap.used": {
+					Value: 42,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"area": {Value: "heap"}, "type": {Value: "used"}, "pool": {Value: "eden"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"runtime.jvm.memory.area": {
+					Type:  "gauge",
+					Value: 24,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"name": {Value: "eden"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"jvm.memory.heap.pool.used": {
+					Value: 24,
 				},
 			},
 		},
