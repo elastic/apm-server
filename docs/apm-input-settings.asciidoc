@@ -434,3 +434,99 @@ Anonymous Event rate limit (event limit)
 // end::anonymous_rate_limit_event_limit-setting[]
 
 // =============================================================================
+
+// tag::tail_sampling_enabled-setting[]
+|
+[id="input-{input-type}-tail_sampling_enabled"]
+Enable Tail-based sampling
+
+| (bool) Enable and disable tail-based sampling.
+
+*Default:* `false`
+// end::tail_sampling_enabled-setting[]
+
+// =============================================================================
+
+// tag::tail_sampling_interval-setting[]
+|
+[id="input-{input-type}-tail_sampling_interval"]
+Interval
+
+| (duration) Synchronization interval for multiple APM Servers.
+Should be in the order of tens of seconds or low minutes.
+
+*Default:* `1m`
+// end::tail_sampling_interval-setting[]
+
+// =============================================================================
+
+// tag::tail_sampling_policies-setting[]
+|
+[id="input-{input-type}-tail_sampling_policies"]
+Policies
+
+| (`[]policy`) Events are matched in the exact order of how policies are specified.
+Every policy needs to specify a sample rate.
+A trace needs to match all policy constraints to match a policy.
+Specify one policy at the end of the list with only a sample rate.
+This policy is applied to all traces that do not match a more fine grained policy.
+
+Required when tail-based sampling is enabled.
+// end::tail_sampling_policies-setting[]
+
+// =============================================================================
+
+// tag::sample_rate-setting[]
+|
+[id="input-{input-type}-sample_rate"]
+Sample rate
+
+| (int) Required in each policy. The sample rate to apply to trace events matching this policy.
+
+// end::sample_rate-setting[]
+
+// =============================================================================
+
+// tag::trace_name-setting[]
+|
+[id="input-{input-type}-trace_name"]
+Trace name
+
+| (string) The trace name for events to match a policy.
+
+// end::trace_name-setting[]
+
+// =============================================================================
+
+// tag::trace_outcome-setting[]
+|
+[id="input-{input-type}-trace_outcome"]
+Trace outcome
+
+| (string) The trace outcome for events to match a policy.
+
+// end::trace_outcome-setting[]
+
+// =============================================================================
+
+// tag::service_name-setting[]
+|
+[id="input-{input-type}-service_name"]
+Service name
+
+| (string) The service name for events to match a policy.
+
+// end::service_name-setting[]
+
+// =============================================================================
+
+// tag::service_env-setting[]
+|
+[id="input-{input-type}-service_env"]
+Service Environment
+
+| (string) The service environment for events to match a policy.
+
+// end::service_env-setting[]
+
+// =============================================================================

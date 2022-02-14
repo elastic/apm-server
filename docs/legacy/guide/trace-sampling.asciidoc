@@ -12,6 +12,9 @@ For example, a sampling value of `.2` indicates a transaction sample rate of `20
 This means that only `20%` of traces will send and retain all of their associated information.
 The remaining traces will drop contextual information to reduce the transfer and storage size of the trace.
 
+TIP: The APM integration supports both head-based and tail-based sampling.
+Learn more <<sampling,here>>.
+
 [float]
 ==== Why sample?
 
