@@ -49,12 +49,8 @@ import (
 
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
-<<<<<<< HEAD
 	"github.com/elastic/go-elasticsearch/v7"
-=======
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
->>>>>>> ec38207e (systemtest: wait for geoIP database availability (#7272))
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
 const (
