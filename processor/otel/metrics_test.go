@@ -235,9 +235,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		metric := appendMetric(name, pdata.MetricDataTypeGauge)
 		sum := metric.Gauge()
 		dp := sum.DataPoints().AppendEmpty()
-		dp.SetTimestamp(pdata.TimestampFromTime(timestamp))
+		dp.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
 		dp.SetDoubleVal(value)
-		dp.Attributes().InitFromMap(attributes)
+		pdata.NewAttributeMapFromMap(attributes).CopyTo(dp.Attributes())
 	}
 
 	addFloat64Gauge("system.cpu.utilization", 0.8, map[string]pdata.AttributeValue{
@@ -495,9 +495,9 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		metric := appendMetric(name, pdata.MetricDataTypeSum)
 		sum := metric.Sum()
 		dp := sum.DataPoints().AppendEmpty()
-		dp.SetTimestamp(pdata.TimestampFromTime(timestamp))
+		dp.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
 		dp.SetIntVal(value)
-		dp.Attributes().InitFromMap(attributes)
+		pdata.NewAttributeMapFromMap(attributes).CopyTo(dp.Attributes())
 	}
 	addInt64Sum("system.memory.usage", 4773351424, map[string]pdata.AttributeValue{
 		"state": pdata.NewAttributeValueString("free"),
