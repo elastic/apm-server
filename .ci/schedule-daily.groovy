@@ -53,7 +53,7 @@ def getBranchName(branch) {
   if (branch.contains('8.<next-minor>')) {
     return bumpUtils.getMajorMinor(bumpUtils.getNextMinorReleaseFor8())
   }
-  // special macro to look for the next minor version
+  // special macro to look for the next patch version
   if (branch.contains('8.<next-patch>')) {
     return bumpUtils.getMajorMinor(bumpUtils.getNextPatchReleaseFor8())
   }
