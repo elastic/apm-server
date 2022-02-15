@@ -20,7 +20,7 @@ pipeline {
   stages {
     stage('Nighly update Beats builds') {
       steps {
-        updateBeatsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>', '7.<next-minor>'])
+        updateBeatsBuilds(branches: ['main', '8.<minor>', '8.<next-minor>', '8.<next-patch>', '7.<minor>'])
       }
     }
   }
