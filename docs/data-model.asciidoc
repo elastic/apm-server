@@ -175,6 +175,55 @@ For a full list of tracked metrics, see the relevant agent documentation:
 * {apm-py-ref-v}/metrics.html[Python]
 * {apm-ruby-ref-v}/metrics.html[Ruby]
 
+[float]
+==== Transaction metrics
+
+To power {kibana-ref}/xpack-apm.html[APM app] visualizations,
+APM Server aggregates transaction events into latency distribution metrics.
+
+*`transaction.duration.histogram`*::
++
+--
+This metric measures the latency distribution of transaction groups,
+used to power visualizations and analytics in Elastic APM.
+
+These metric documents can be identified by searching for `metricset.name: transaction`.
+
+You can filter and group by these dimensions (some of which are optional, for example `container.id`):
+
+* `transaction.name`: The name of the transaction, for example `GET /`
+* `transaction.type`: The type of the transaction, for example `request`
+* `transaction.result`: The result of the transaction, for example `HTTP 2xx`
+* `transaction.root`: A boolean flag indicating whether the transaction is the root of a trace
+* `event.outcome`: The outcome of the transaction, for example `success`
+* `agent.name`: The name of the APM agent that instrumented the transaction, for example `java`
+* `service.name`: The name of the service that served the transaction
+* `service.version`: The version of the service that served the transaction
+* `service.node.name`: The name of the service instance that served the transaction
+* `service.environment`: The environment of the service that served the transaction
+* `service.language.name`: The language name of the service that served the transaction, for example `Go`
+* `service.language.version`: The language version of the service that served the transaction
+* `service.runtime.name`: The runtime name of the service that served the transaction, for example `jRuby`
+* `service.runtime.version`: The runtime version that served the transaction
+* `host.hostname`: The hostname of the service that served the transaction
+* `host.os.platform`: The platform name of the service that served the transaction, for example `linux`
+* `container.id`: The container ID of the service that served the transaction
+* `kubernetes.pod.name`: The name of the Kubernetes pod running the service that served the transaction
+* `cloud.provider`: The cloud provider hosting the service instance that served the transaction
+* `cloud.region`: The cloud region hosting the service instance that served the transaction
+* `cloud.availability_zone`: The cloud availability zone hosting the service instance that served the transaction
+* `cloud.account.id`: The cloud account id of the service that served the transaction
+* `cloud.account.name`: The cloud account name of the service that served the transaction
+* `cloud.machine.type`: The cloud machine type or instance type of the service that served the transaction
+* `cloud.project.id`: The cloud project identifier of the service that served the transaction
+* `cloud.project.name`: The cloud project name of the service that served the transaction
+* `cloud.service.name`: The cloud service name of the service that served the transaction
+* `faas.coldstart`: Whether the _serverless_ service that served the transaction had a cold start
+* `faas.trigger.type`: The trigger type that the function / lambda was executed by of the service that served the transaction
+--
+
+The `@timestamp` field of these documents holds the start of the aggregation interval.
+
 // This heading is linked to from the APM UI section in Kibana
 [[data-model-metadata]]
 === Metadata
