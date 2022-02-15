@@ -77,9 +77,7 @@ pipeline {
                 "^packaging.*",
                 "^vendor/github.com/elastic/beats.*"
               ]
-              withGoEnv(){
-                setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
-              }
+              setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
               env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
               // Skip all the stages except docs for PR's with asciidoc changes only
               whenTrue(isPR()) {
@@ -115,9 +113,7 @@ pipeline {
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
-              withGoEnv(){
-                sh(label: 'Run intake', script: './.ci/scripts/intake.sh')
-              }
+              sh(label: 'Run intake', script: './.ci/scripts/intake.sh')
             }
           }
         }
