@@ -18,6 +18,8 @@
 package systemtest_test
 
 import (
+	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -31,6 +33,7 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
 func TestIngestPipeline(t *testing.T) {
@@ -104,5 +107,69 @@ func TestIngestPipelineVersionEnforcement(t *testing.T) {
 		assert.Contains(t, string(respBody),
 			`Document produced by APM Server v100.200.300, which is newer than the installed APM integration`,
 		)
+	}
+}
+
+func TestIngestPipelineEventDuration(t *testing.T) {
+	type test struct {
+		source                        string
+		expectedTransactionDurationUS interface{}
+		expectedSpanDurationUS        interface{}
+	}
+
+	tests := []test{{
+		// No transaction.* field, no update.
+		source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, "processor": {"event": "transaction"}}`,
+	}, {
+		// Set transaction.duration.us to zero if event.duration not found.
+		source:                        `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, "processor": {"event": "transaction"}, "transaction": {}}`,
+		expectedTransactionDurationUS: 0.0,
+	}, {
+		// Set span.duration.us to event.duration/1000.
+		source:                 `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, "processor": {"event": "span"}, "event": {"duration": 2500}, "span": {}}`,
+		expectedSpanDurationUS: 2.0,
+	}, {
+		// Leave transaction.duration.us (from older versions of APM Server) alone.
+		source:                        `{"@timestamp": "2022-02-15", "observer": {"version": "8.1.0"}, "processor": {"event": "transaction"}, "transaction": {"duration": {"us": 123}}}`,
+		expectedTransactionDurationUS: 123.0,
+	}}
+
+	for _, test := range tests {
+		var indexResponse struct {
+			Index string `json:"_index"`
+			ID    string `json:"_id"`
+		}
+		_, err := systemtest.Elasticsearch.Do(context.Background(), esapi.IndexRequest{
+			Index:   "traces-apm-default",
+			Body:    strings.NewReader(test.source),
+			Refresh: "true",
+		}, &indexResponse)
+		require.NoError(t, err)
+
+		var doc struct {
+			Source json.RawMessage `json:"_source"`
+		}
+		_, err = systemtest.Elasticsearch.Do(context.Background(), esapi.GetRequest{
+			Index:      indexResponse.Index,
+			DocumentID: indexResponse.ID,
+		}, &doc)
+		require.NoError(t, err)
+
+		// event.duration should always be removed.
+		assert.False(t, gjson.GetBytes(doc.Source, "event.duration").Exists())
+
+		transactionDurationUS := gjson.GetBytes(doc.Source, "transaction.duration.us")
+		if test.expectedTransactionDurationUS != nil {
+			assert.Equal(t, test.expectedTransactionDurationUS, transactionDurationUS.Value())
+		} else {
+			assert.False(t, transactionDurationUS.Exists())
+		}
+
+		spanDurationUS := gjson.GetBytes(doc.Source, "span.duration.us")
+		if test.expectedSpanDurationUS != nil {
+			assert.Equal(t, test.expectedSpanDurationUS, spanDurationUS.Value())
+		} else {
+			assert.False(t, spanDurationUS.Exists())
+		}
 	}
 }
