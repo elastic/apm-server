@@ -62,24 +62,29 @@ pipeline {
                     shallow: false, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         setEnvVar("GO_VERSION", readFile("${BASE_DIR}/.go-version").trim())
-        script {
-          dir("${BASE_DIR}"){
-            def regexps =[
-              "^_beats.*",
-              "^apm-server.yml",
-              "^apm-server.docker.yml",
-              "^magefile.go",
-              "^ingest.*",
-              "^packaging.*",
-              "^vendor/github.com/elastic/beats.*"
-            ]
-            withGoEnv(){
-              setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
-            }
-            env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
-            // Skip all the stages except docs for PR's with asciidoc changes only
-            whenTrue(isPR()) {
-              setEnvVar('ONLY_DOCS', isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true))
+        // TODO: NODE_LABELS is not set when using k8s, maybe there is a workaround
+        //       to override this, or make the according changes in the NODE_LABELS
+        //       consumers to detect if running within a pod.
+        withEnv(["NODE_LABELS='x86_64 linux'"]) {
+          script {
+            dir("${BASE_DIR}"){
+              def regexps =[
+                "^_beats.*",
+                "^apm-server.yml",
+                "^apm-server.docker.yml",
+                "^magefile.go",
+                "^ingest.*",
+                "^packaging.*",
+                "^vendor/github.com/elastic/beats.*"
+              ]
+              withGoEnv(){
+                setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
+              }
+              env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
+              // Skip all the stages except docs for PR's with asciidoc changes only
+              whenTrue(isPR()) {
+                setEnvVar('ONLY_DOCS', isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true))
+              }
             }
           }
         }
