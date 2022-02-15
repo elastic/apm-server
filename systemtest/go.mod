@@ -7,7 +7,7 @@ require (
 	github.com/docker/docker v20.10.10+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/go-elasticsearch/v7 v7.8.0
+	github.com/elastic/go-elasticsearch/v7 v7.17.0
 	github.com/elastic/go-sysinfo v1.7.0 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/gofrs/uuid v4.1.0+incompatible

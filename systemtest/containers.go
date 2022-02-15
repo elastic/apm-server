@@ -50,10 +50,12 @@ import (
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
 const (
 	startContainersTimeout = 5 * time.Minute
+	waitHealthyInterval    = 5 * time.Second
 )
 
 var (
@@ -110,6 +112,7 @@ func StartStackContainers() error {
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error { return waitContainerHealthy(ctx, "kibana") })
 	g.Go(func() error { return waitContainerHealthy(ctx, "fleet-server") })
+	g.Go(func() error { return waitGeoIPDatabase(ctx) })
 	return g.Wait()
 }
 
@@ -191,9 +194,49 @@ func waitContainerHealthy(ctx context.Context, serviceName string) error {
 			log.Printf("Waiting for %s container (%s) to become healthy", serviceName, container.ID)
 			first = false
 		}
-		time.Sleep(5 * time.Second)
+		time.Sleep(waitHealthyInterval)
 	}
 	return nil
+}
+
+// Elasticsearch downloads the geoIP database after starting up, and then refreshes it
+// periodically. In CI the cluster will be fresh, so we wait for the database to be
+// downloaded before running any tests which may depend on it being available.
+func waitGeoIPDatabase(ctx context.Context) error {
+	type geoIPDatabase struct {
+		Name string
+	}
+	type nodeGeoIPStats struct {
+		Databases []geoIPDatabase
+	}
+
+	first := true
+	for {
+		var out struct {
+			Nodes map[string]nodeGeoIPStats
+		}
+		_, err := Elasticsearch.Do(ctx, esapi.IngestGeoIPStatsRequest{}, &out)
+		if err != nil {
+			return err
+		}
+
+		if n := len(out.Nodes); n != 1 {
+			return fmt.Errorf("expected 1 node, got %d", n)
+		}
+		for _, nodeStats := range out.Nodes {
+			for _, db := range nodeStats.Databases {
+				if db.Name == "GeoLite2-City.mmdb" {
+					return nil
+				}
+			}
+		}
+
+		if first {
+			log.Printf("Waiting for geoIP database to be downloaded")
+			first = false
+		}
+		time.Sleep(waitHealthyInterval)
+	}
 }
 
 func stackContainerInfo(ctx context.Context, docker *client.Client, name string) (*types.Container, error) {
