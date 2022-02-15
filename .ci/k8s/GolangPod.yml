@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: 1-17-6
+    image: golang:1.17.6-stretch
+    command:
+    - sleep
+    args:
+    - infinity

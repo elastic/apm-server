@@ -2,7 +2,7 @@
 @Library('apm@current') _
 
 pipeline {
-  agent { label 'linux && immutable' }
+  agent { kubernetes { yamlFile '.ci/k8s/GolangPod.yml' } }
   environment {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
@@ -52,7 +52,6 @@ pipeline {
     */
     stage('Checkout') {
       environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
       }
       options { skipDefaultCheckout() }
@@ -62,6 +61,7 @@ pipeline {
         gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true,
                     shallow: false, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
+        setEnvVar("GO_VERSION", readFile("${BASE_DIR}/.go-version").trim())
         script {
           dir("${BASE_DIR}"){
             def regexps =[
@@ -95,7 +95,6 @@ pipeline {
     stage('Intake') {
       options { skipDefaultCheckout() }
       environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
       }
       when {
@@ -107,11 +106,13 @@ pipeline {
       }
       steps {
         withGithubNotify(context: 'Intake') {
-          deleteDir()
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            withGoEnv(){
-              sh(label: 'Run intake', script: './.ci/scripts/intake.sh')
+          runInPod(env.GO_VERSION) {
+            deleteDir()
+            unstash 'source'
+            dir("${BASE_DIR}"){
+              withGoEnv(){
+                sh(label: 'Run intake', script: './.ci/scripts/intake.sh')
+              }
             }
           }
         }
@@ -134,13 +135,15 @@ pipeline {
           }
           steps {
             withGithubNotify(context: 'Build - Linux') {
-              deleteDir()
-              unstash 'source'
-              dir(BASE_DIR){
-                withMageEnv(){
-                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
-                    sleep randomNumber(min: 5, max: 10)
-                    sh(label: 'Linux build', script: './.ci/scripts/build.sh')
+              runInPod(env.GO_VERSION) {
+                deleteDir()
+                unstash 'source'
+                dir(BASE_DIR){
+                  withMageEnv(){
+                    retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                      sleep randomNumber(min: 5, max: 10)
+                      sh(label: 'Linux build', script: './.ci/scripts/build.sh')
+                    }
                   }
                 }
               }
@@ -278,10 +281,8 @@ pipeline {
           Run unit tests and report junit results.
         */
         stage('Unit Test') {
-          agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             HOME = "${env.WORKSPACE}"
             TEST_COVERAGE = "true"
           }
@@ -294,11 +295,13 @@ pipeline {
           }
           steps {
             withGithubNotify(context: 'Unit Tests', tab: 'tests') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                withMageEnv(){
-                  sh(label: 'Run Unit tests', script: './.ci/scripts/unit-test.sh')
+              runInPod(env.GO_VERSION) {
+                deleteDir()
+                unstash 'source'
+                dir("${BASE_DIR}"){
+                  withMageEnv(){
+                    sh(label: 'Run Unit tests', script: './.ci/scripts/unit-test.sh')
+                  }
                 }
               }
             }
@@ -544,6 +547,16 @@ pipeline {
     }
     cleanup {
       notifyBuildResult()
+    }
+  }
+}
+
+
+def runInPod(version, Closure body) {
+  container(version.replaceAll('\\.', '-')) {
+    // run within a unique workspace folder to avoid clashing with multiple siblings pods.
+    dir(UUID.randomUUID().toString()) {
+      body()
     }
   }
 }
