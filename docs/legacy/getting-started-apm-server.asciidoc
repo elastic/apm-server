@@ -216,6 +216,10 @@ ILM policies, and ingest pipelines. APM Server will only send data to {es} _afte
 
 // This content is reused in the upgrading guide
 // tag::install-apm-integration[]
+NOTE: An internet connection is required to install the APM integration.
+If your environment has network traffic restrictions, there are ways to work around this requirement.
+See {fleet-guide}/air-gapped.html[Air-gapped environments] for more information.
+
 . Open {kib} and select **Add integrations** > **Elastic APM**.
 . Click **APM integration**.
 . Click **Add Elastic APM**.
