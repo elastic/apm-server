@@ -131,10 +131,9 @@ func CleanupElasticsearch(t testing.TB) {
 		t.Fatal(err)
 	}
 	doParallel(
-		esapi.IndicesDeleteDataStreamRequest{Name: legacyPrefix},
-		esapi.IndicesDeleteDataStreamRequest{Name: apmTracesPrefix},
-		esapi.IndicesDeleteDataStreamRequest{Name: apmMetricsPrefix},
-		esapi.IndicesDeleteDataStreamRequest{Name: apmLogsPrefix},
+		esapi.IndicesDeleteDataStreamRequest{Name: []string{
+			legacyPrefix, apmTracesPrefix, apmMetricsPrefix, apmLogsPrefix,
+		}},
 		esapi.IngestDeletePipelineRequest{PipelineID: legacyPrefix},
 	)
 
