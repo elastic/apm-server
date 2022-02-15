@@ -112,11 +112,17 @@ var clientGeoIPPipeline = []map[string]interface{}{{
 	},
 }}
 
+// This pipeline translates `event.duration` (defaulting to zero if not
+// found) to `transaction.duration.us` or `span.duration.us` depending on
+// the event type, and then removes `event.duration`. Older versions of
+// APM Server will send `<event>.duration.us`, in which case we skip this
+// pipeline.
+//
 // TODO(axw) remove this pipeline when we are ready to migrate the UI to
 // `event.duration`. See https://github.com/elastic/apm-server/issues/5999.
 var eventDurationPipeline = []map[string]interface{}{{
 	"script": map[string]interface{}{
-		"if": "ctx.processor?.event != null && ctx.get(ctx.processor.event) != null",
+		"if": "ctx.processor?.event != null && ctx.get(ctx.processor.event) != null && ctx.get(ctx.processor.event)?.duration == null",
 		"source": strings.TrimSpace(`
 def durationNanos = ctx.event?.duration ?: 0;
 def eventType = ctx.processor.event;
