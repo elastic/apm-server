@@ -707,6 +707,27 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	assert.Equal(t, spanDuration, batch[1].Event.Duration)
 }
 
+func TestSpanLinks(t *testing.T) {
+	linkedTraceID := pdata.NewTraceID([16]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15})
+	linkedSpanID := pdata.NewSpanID([8]byte{7, 6, 5, 4, 3, 2, 1, 0})
+	spanLink := pdata.NewSpanLink()
+	spanLink.SetSpanID(linkedSpanID)
+	spanLink.SetTraceID(linkedTraceID)
+
+	txEvent := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{}, func(span pdata.Span) {
+		spanLink.CopyTo(span.Links().AppendEmpty())
+	})
+	spanEvent := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{}, func(span pdata.Span) {
+		spanLink.CopyTo(span.Links().AppendEmpty())
+	})
+	for _, event := range []model.APMEvent{txEvent, spanEvent} {
+		assert.Equal(t, []model.SpanLink{{
+			Span:  model.Span{ID: "0706050403020100"},
+			Trace: model.Trace{ID: "000102030405060708090a0b0c0d0e0f"},
+		}}, event.Span.Links)
+	}
+}
+
 func TestConsumer_JaegerMetadata(t *testing.T) {
 	jaegerBatch := jaegermodel.Batch{
 		Spans: []*jaegermodel.Span{{
