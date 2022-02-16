@@ -247,6 +247,17 @@
       type: keyword
       description: |
         "The kind of span: CLIENT, SERVER, PRODUCER, CONSUMER, or INTERNAL."
+    - name: links
+      type: group
+      fields:
+        - name: trace.id
+          type: keyword
+          description: |
+            Unique identifier of the linked trace.
+        - name: span.id
+          type: keyword
+          description: |
+            Unique identifier of the linked span.
     - name: composite
       type: group
       fields:
