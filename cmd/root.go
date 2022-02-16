@@ -64,7 +64,19 @@ var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
 					"output.elasticsearch.compression_level": 5,
 				})
 			}(),
-		}}
+		},
+		{
+			Check: func(_ *common.Config) bool {
+				return true
+			},
+			Config: func() *common.Config {
+				// default to turning off seccomp
+				return common.MustNewConfigFrom(map[string]interface{}{
+					"seccomp.enabled": false,
+				})
+			}(),
+		},
+	}
 }
 
 // DefaultSettings return the default settings for APM Server to pass into
