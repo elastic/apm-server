@@ -26,3 +26,4 @@ See <<apm-server-configuration>> for more information.
 - Added several dimensions to the aggregated transaction metrics {pull}7033[7033]
 - Implemented translation of OpenTelemetry host system metrics (CPU utilization / Memory usage) {pull}7090[7090]
 - Added support for storing OpenTelemetry span links as `span.links` {pull}7291[7291]
+- Added data stream namespace configuration for standalone with `apm-server.data_streams.namespace` {pull}XXX[XXX]
