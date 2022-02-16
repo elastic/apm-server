@@ -202,6 +202,12 @@ func customizePackaging() {
 
 	for idx := len(mage.Packages) - 1; idx >= 0; idx-- {
 		args := &mage.Packages[idx]
+		pkgType := args.Types[0]
+		if pkgType == mage.DMG {
+			// We do not build macOS packages.
+			mage.Packages = append(mage.Packages[:idx], mage.Packages[idx+1:]...)
+			continue
+		}
 
 		// Replace the generic Beats README.md with an APM specific one, and remove files unused by apm-server.
 		for filename, filespec := range args.Spec.Files {
