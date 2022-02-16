@@ -20,7 +20,7 @@ pipeline {
   stages {
     stage('Nighly update Beats builds') {
       steps {
-        updateBeatsBuilds(branches: ['main', '8.<minor>', '7.<minor>', '7.<next-minor>'])
+        updateBeatsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
       }
     }
   }
@@ -32,32 +32,8 @@ pipeline {
 }
 
 def updateBeatsBuilds(Map args = [:]) {
-  def branches = []
-  // Expand macros and filter duplicated matches.
-  args.branches.each { branch ->
-    def branchName = getBranchName(branch)
-    if (!branches.contains(branchName)) {
-      branches << branchName
-    }
-  }
+  def branches = getBranchesFromAliases(aliases: args.branches)
   branches.each { branch ->
     build(job: "apm-server/update-beats-mbp/${branch}", wait: false, propagate: false)
   }
-}
-
-def getBranchName(branch) {
-  // special macro to look for the latest minor version
-  if (branch.contains('8.<minor>')) {
-   return bumpUtils.getMajorMinor(bumpUtils.getCurrentMinorReleaseFor8())
-  }
-  if (branch.contains('8.<next-minor>')) {
-    return bumpUtils.getMajorMinor(bumpUtils.getNextMinorReleaseFor8())
-  }
-  if (branch.contains('7.<minor>')) {
-    return bumpUtils.getMajorMinor(bumpUtils.getCurrentMinorReleaseFor7())
-  }
-  if (branch.contains('7.<next-minor>')) {
-    return bumpUtils.getMajorMinor(bumpUtils.getNextMinorReleaseFor7())
-  }
-  return branch
 }
