@@ -107,6 +107,63 @@ func TestOTLPGRPCTraces(t *testing.T) {
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
+func TestOTLPGRPCTraceSpanLinks(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServer(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var spanContext1, spanContext2 trace.SpanContext
+	err := withOTLPTracer(newOTLPTracerProvider(newOTLPTraceExporter(t, srv)), func(tracer trace.Tracer) {
+		_, span := tracer.Start(ctx, "publish")
+		span.End()
+		spanContext1 = span.SpanContext()
+
+		_, span = tracer.Start(ctx, "subscribe", trace.WithLinks(trace.Link{SpanContext: spanContext1}))
+		spanContext2 = span.SpanContext()
+		span.End()
+	})
+	require.NoError(t, err)
+
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*", estest.BoolQuery{
+		Should: []interface{}{
+			estest.TermQuery{
+				Field: "trace.id",
+				Value: spanContext1.TraceID().String(),
+			},
+			estest.TermQuery{
+				Field: "span.links.trace.id",
+				Value: spanContext1.TraceID().String(),
+			},
+		},
+		MinimumShouldMatch: 1,
+	})
+
+	span1 := result.Hits.Hits[0]
+	span2 := result.Hits.Hits[1]
+	if gjson.GetBytes(span1.RawSource, "span.links").Exists() {
+		span1, span2 = span2, span1
+	}
+	assert.Equal(t,
+		spanContext1.TraceID().String(),
+		gjson.GetBytes(span1.RawSource, "trace.id").String(),
+	)
+	assert.Equal(t,
+		spanContext2.TraceID().String(),
+		gjson.GetBytes(span2.RawSource, "trace.id").String(),
+	)
+
+	assert.False(t, gjson.GetBytes(span1.RawSource, "span.links").Exists())
+	links := gjson.GetBytes(span2.RawSource, "span.links")
+	assert.True(t, links.Exists())
+	assert.Equal(t, []interface{}{
+		map[string]interface{}{
+			"span":  map[string]interface{}{"id": spanContext1.SpanID().String()},
+			"trace": map[string]interface{}{"id": spanContext1.TraceID().String()},
+		},
+	}, links.Value())
+}
+
 func TestOTLPGRPCMetrics(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)

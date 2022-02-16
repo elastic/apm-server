@@ -6,6 +6,9 @@
     - description: updated traces and rum_traces ingest pipelines to translate `event.duration` to `<event>.duration.us`
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7261
+    - description: added `span.links` fields to traces and rum_traces data streams
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7291
 - version: "8.1.0"
   changes:
     - description: Added field mapping for `faas.coldstart` and `faas.trigger.type`

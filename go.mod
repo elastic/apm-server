@@ -13,6 +13,7 @@ require (
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-alpha.0.20220127111727-5269e7e57568
 	github.com/elastic/go-hdrhistogram v0.1.0
+	github.com/elastic/go-lookslike v0.3.0
 	github.com/elastic/go-ucfg v0.8.4
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v4.2.0+incompatible

@@ -224,6 +224,7 @@ func (c *Consumer) convertSpan(
 		}
 		TranslateSpan(otelSpan.Kind(), otelSpan.Attributes(), &event)
 	}
+	translateSpanLinks(&event, otelSpan.Links())
 	if len(event.Labels) == 0 {
 		event.Labels = nil
 	}
@@ -942,6 +943,24 @@ func setErrorContext(out *model.APMEvent, parent model.APMEvent) {
 	}
 	if parent.Span != nil {
 		out.Parent.ID = parent.Span.ID
+	}
+}
+
+func translateSpanLinks(out *model.APMEvent, in pdata.SpanLinkSlice) {
+	n := in.Len()
+	if n == 0 {
+		return
+	}
+	if out.Span == nil {
+		out.Span = &model.Span{}
+	}
+	out.Span.Links = make([]model.SpanLink, n)
+	for i := 0; i < n; i++ {
+		link := in.At(i)
+		out.Span.Links[i] = model.SpanLink{
+			Span:  model.Span{ID: link.SpanID().HexString()},
+			Trace: model.Trace{ID: link.TraceID().HexString()},
+		}
 	}
 }
 
