@@ -436,15 +436,13 @@ func mapToServiceModel(from contextService, out *model.Service) {
 	}
 	if from.Name.IsSet() {
 		out.Name = from.Name.Val
+		out.Version = from.Version.Val
 	}
 	if from.Runtime.Name.IsSet() {
 		out.Runtime.Name = from.Runtime.Name.Val
 	}
 	if from.Runtime.Version.IsSet() {
 		out.Runtime.Version = from.Runtime.Version.Val
-	}
-	if from.Version.IsSet() {
-		out.Version = from.Version.Val
 	}
 }
 

@@ -261,8 +261,7 @@
                 "runtime": {
                     "name": "Java",
                     "version": "10.0.2"
-                },
-                "version": "4.3.0"
+                }
             },
             "source": {
                 "ip": "12.53.12.1"
@@ -400,8 +399,7 @@
                 "runtime": {
                     "name": "Java",
                     "version": "10.0.2"
-                },
-                "version": "4.3.0"
+                }
             },
             "span": {
                 "action": "connect",
@@ -602,8 +600,7 @@
                 "runtime": {
                     "name": "Java",
                     "version": "10.0.2"
-                },
-                "version": "4.3.0"
+                }
             },
             "source": {
                 "ip": "12.53.12.1",
