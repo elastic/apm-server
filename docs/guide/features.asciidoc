@@ -1,4 +1,4 @@
-[[apm-features]]
+[id="apm-features",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/features.html"]
 == Elastic APM features
 
 ++++

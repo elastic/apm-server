@@ -1,4 +1,4 @@
-[[agent-configuration-api]]
+[id="agent-configuration-api",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/api-config.html"]
 == Agent configuration API
 
 ++++

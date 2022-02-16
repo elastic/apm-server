@@ -1,4 +1,4 @@
-[[howto-guides]]
+[id="howto-guides",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/how-to-guides.html"]
 = How-to guides
 
 [partintro]

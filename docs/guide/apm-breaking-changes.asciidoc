@@ -1,7 +1,7 @@
 :issue: https://github.com/elastic/apm-server/issues/
 :pull: https://github.com/elastic/apm-server/pull/
 
-[[apm-breaking-changes]]
+[id="apm-breaking-changes",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/apm-breaking.html"]
 == Breaking changes
 
 This section discusses the changes that you need to be aware of when migrating your application from one version of APM to another.

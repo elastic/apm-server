@@ -1,4 +1,4 @@
-[[apm-data-model]]
+[id="apm-data-model",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/data-model.html"]
 == Data Model
 
 Elastic APM agents capture different types of information from within their instrumented applications.
@@ -11,7 +11,7 @@ These are known as events, and can be `spans`, `transactions`, `errors`, or `met
 
 Events can contain additional <<metadata,metadata>> which further enriches your data.
 
-[[transaction-spans]]
+[id="transaction-spans",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/data-model-spans.html"]
 === Spans
 
 *Spans* contain information about the execution of a specific code path.
@@ -68,7 +68,7 @@ Agents know how many spans a transaction should have;
 if the number of expected spans does not equal the number of spans received by the APM Server,
 the APM app will calculate the difference and display a message.
 
-[[transactions]]
+[id="transactions",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/data-model-transactions.html"]
 === Transactions
 
 *Transactions* are a special kind of <<transaction-spans,span>> that have additional attributes associated with them.
@@ -118,7 +118,7 @@ non-keyword fields (e.g. `span.db.statement`) to 10,000 characters.
 
 Transactions are stored in {apm-server-ref-v}/transaction-indices.html[transaction indices].
 
-[[errors]]
+[id="errors",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/data-model-errors.html"]
 === Errors
 
 An error event contains at least
@@ -148,7 +148,7 @@ non-keyword fields (e.g. `error.exception.message`) to 10,000 characters.
 
 Errors are stored in {apm-server-ref-v}/error-indices.html[error indices].
 
-[[metrics]]
+[id="metrics",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/data-model-metrics.html"]
 === Metrics
 
 APM agents automatically pick up basic host-level metrics,
@@ -176,7 +176,7 @@ For a full list of tracked metrics, see the relevant agent documentation:
 * {apm-ruby-ref-v}/metrics.html[Ruby]
 
 // This heading is linked to from the APM UI section in Kibana
-[[metadata]]
+[id="metadata",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/data-model-metadata.html"]
 === Metadata
 
 Metadata can enrich your events and make application performance monitoring even more useful.

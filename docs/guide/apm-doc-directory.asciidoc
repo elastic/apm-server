@@ -1,4 +1,4 @@
-[[components]]
+[id="components",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/apm-components.html"]
 === Components and documentation
 
 Elastic APM consists of four components: *APM agents*, *APM Server*, *Elasticsearch*, and *Kibana*.

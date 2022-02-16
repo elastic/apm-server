@@ -11,7 +11,7 @@ Templates, pipelines, index lifecycle management, etc.,
 cannot be configured with APM Server or Fleet, and must instead be configured in {kib} or with
 {es} APIs.
 
-[[apm-integration-templates]]
+[id="apm-integration-templates",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/custom-index-template.html"]
 === Index templates
 
 The APM integration loads default index templates into {es}.
@@ -22,7 +22,7 @@ Search for `apm`.
 
 See {ref}/index-templates.html[index templates] for more information.
 
-[[apm-integration-pipelines]]
+[id="apm-integration-pipelines",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/ingest-pipelines.html"]
 === Pipelines
 
 The APM integration loads default ingest node pipelines into {es}.
@@ -33,7 +33,7 @@ Search for `apm`.
 
 See {ref}/ingest.html[ingest node pipelines] for more information.
 
-[[apm-integration-ilm]]
+[id="apm-integration-ilm",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/ilm-how-to.html"]
 === Index lifecycle management (ILM)
 
 The index lifecycle management (ILM) feature in {es} allows you to automate the

@@ -1,4 +1,4 @@
-[[data-security]]
+[id="data-security",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/apm-data-security.html"]
 === Data security
 
 When setting up Elastic APM, it's essential to review all captured data carefully to ensure

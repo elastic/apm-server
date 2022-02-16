@@ -1,7 +1,7 @@
 :issue: https://github.com/elastic/apm-server/issues/
 :pull: https://github.com/elastic/apm-server/pull/
 
-[[breaking-changes]]
+[id="breaking-changes",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/apm-breaking.html"]
 == Breaking Changes
 APM Server is built on top of {beats-ref}/index.html[libbeat].
 As such, any breaking change in libbeat is also considered to be a breaking change in APM Server.

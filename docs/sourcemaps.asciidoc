@@ -1,4 +1,4 @@
-[[sourcemaps]]
+[id="sourcemaps",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/source-map-how-to.html"]
 == How to apply source maps to error stack traces when using minified bundles
 
 ++++

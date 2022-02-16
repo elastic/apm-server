@@ -1,4 +1,4 @@
-[[apm-integration-data-streams]]
+[id="apm-integration-data-streams",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/apm-data-streams.html"]
 == Data streams
 
 ****

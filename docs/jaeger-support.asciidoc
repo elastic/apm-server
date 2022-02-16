@@ -1,4 +1,4 @@
-[[jaeger]]
+[id="jaeger",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/jaeger-integration.html"]
 == Jaeger integration
 
 ++++

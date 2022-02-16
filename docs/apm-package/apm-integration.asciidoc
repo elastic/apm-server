@@ -1,4 +1,4 @@
-[[apm-integration]]
+[id="apm-integration",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/upgrade-to-apm-integration.html"]
 = APM integration for {agent}
 
 ++++

@@ -1,4 +1,4 @@
-[[metricset-api]]
+[id="metricset-api",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/api-metricset.html"]
 === Metrics
 
 Metrics contain application metric data captured by an APM agent.

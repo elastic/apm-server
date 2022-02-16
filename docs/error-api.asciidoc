@@ -1,4 +1,4 @@
-[[error-api]]
+[id="error-api",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/api-error.html"]
 === Errors
 
 An error or a logged error message captured by an agent occurring in a monitored service.

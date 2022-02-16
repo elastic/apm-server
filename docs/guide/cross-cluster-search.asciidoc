@@ -1,4 +1,4 @@
-[[apm-cross-cluster-search]]
+[id="apm-cross-cluster-search",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/cross-cluster-search.html"]
 === Cross-cluster search
 
 Elastic APM utilizes Elasticsearch's cross-cluster search functionality.
