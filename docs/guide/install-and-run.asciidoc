@@ -1,4 +1,4 @@
-[[install-and-run]]
+[id="install-and-run",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/apm-quick-start.html"]
 == Quick start guide
 
 This guide describes how to get started quickly with Elastic APM. You’ll learn how to:

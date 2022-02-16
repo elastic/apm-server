@@ -1,4 +1,4 @@
-[[secure-communication-agents]]
+[id="secure-communication-agents",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/secure-agent-communication.html"]
 == Secure communication with APM agents
 
 Communication between APM agents and APM Server can be both encrypted and authenticated.
@@ -22,7 +22,7 @@ There is a less straightforward and more restrictive way to authenticate clients
 <<ssl-client-authentication,SSL/TLS client authentication>>, which is currently a mainstream option only
 for the RUM agent (through the browser) and the Jaeger agent.
 
-[[ssl-setup]]
+[id="ssl-setup",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/agent-tls.html"]
 === SSL/TLS communication
 
 // Use the shared ssl short description

@@ -1,4 +1,4 @@
-[[open-telemetry-elastic]]
+[id="open-telemetry-elastic",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/open-telemetry.html"]
 === OpenTelemetry integration
 
 :ot-spec:       https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md

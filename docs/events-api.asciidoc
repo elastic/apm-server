@@ -1,4 +1,4 @@
-[[events-api]]
+[id="events-api",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/api-events.html"]
 == Events Intake API
 
 ++++

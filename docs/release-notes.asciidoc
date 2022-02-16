@@ -1,6 +1,6 @@
 :root-dir: ../
 
-[[release-notes]]
+[id="release-notes",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/release-notes.html"]
 = Release notes
 :issue: https://github.com/elastic/apm-server/issues/
 :pull: https://github.com/elastic/apm-server/pull/

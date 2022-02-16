@@ -1,4 +1,4 @@
-[[agent-server-compatibility]]
+[id="agent-server-compatibility",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/agent-server-compatibility.html"]
 == Agent and Server compatibility
 
 The chart below outlines the compatibility between different versions of the APM agents and the APM Server.

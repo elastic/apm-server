@@ -1,4 +1,4 @@
-[[configuration-anonymous]]
+[id="configuration-anonymous",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/anonymous-auth.html"]
 == Anonymous auth configuration options
 
 ++++

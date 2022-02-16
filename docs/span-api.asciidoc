@@ -1,4 +1,4 @@
-[[span-api]]
+[id="span-api",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/api-span.html"]
 === Spans
 
 Spans are events captured by an agent occurring in a monitored service.

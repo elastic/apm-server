@@ -1,4 +1,4 @@
-[[distributed-tracing]]
+[id="distributed-tracing",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/apm-distributed-tracing.html"]
 === Distributed tracing
 
 A `trace` is a group of <<transactions,transactions>> and <<transaction-spans,spans>> with a common root.

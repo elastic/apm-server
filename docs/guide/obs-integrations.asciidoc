@@ -1,4 +1,4 @@
-[[observability-integrations]]
+[id="observability-integrations",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/log-correlation.html"]
 === Observability integrations
 
 Elastic APM supports integrations with other observability solutions.

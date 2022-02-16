@@ -1,4 +1,4 @@
-[[transaction-api]]
+[id="transaction-api",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/api-transaction.html"]
 === Transactions
 
 Transactions are events corresponding to an incoming request or similar task occurring in a monitored service.

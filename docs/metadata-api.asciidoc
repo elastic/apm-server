@@ -1,4 +1,4 @@
-[[metadata-api]]
+[id="metadata-api",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/api-metadata.html"]
 === Metadata
 
 Every new connection to the APM Server starts with a `metadata` stanza.

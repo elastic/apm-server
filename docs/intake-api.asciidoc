@@ -1,4 +1,4 @@
-[[intake-api]]
+[id="intake-api",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/api-events.html"]
 = API
 
 [partintro]

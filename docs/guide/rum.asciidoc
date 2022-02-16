@@ -1,4 +1,4 @@
-[[rum]]
+[id="rum",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/apm-rum.html"]
 === Real User Monitoring (RUM)
 Real User Monitoring captures user interaction with clients such as web browsers.
 The {apm-rum-ref-v}[JavaScript Agent] is Elastic’s RUM Agent.

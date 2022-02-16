@@ -1,4 +1,4 @@
-[[server-info]]
+[id="server-info",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/api-info.html"]
 == Server Information API
 
 ++++

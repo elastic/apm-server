@@ -1,5 +1,5 @@
 [role="xpack"]
-[[beats-api-keys]]
+[id="beats-api-keys",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/api-key.html"]
 == Grant access using API keys
 
 Instead of using usernames and passwords, you can use API keys to grant

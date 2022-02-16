@@ -1,4 +1,4 @@
-[[trace-sampling]]
+[id="trace-sampling",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/sampling.html"]
 === Transaction sampling
 
 Elastic APM supports head-based, probability sampling.

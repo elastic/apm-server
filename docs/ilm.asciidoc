@@ -1,4 +1,4 @@
-[[ilm]]
+[id="ilm",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/ilm-how-to.html"]
 [role="xpack"]
 == Custom index lifecycle management with APM Server
 

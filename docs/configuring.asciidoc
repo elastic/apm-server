@@ -1,4 +1,4 @@
-[[configuring-howto-apm-server]]
+[id="configuring-howto-apm-server",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/configuring-howto-apm-server.html"]
 = Configure APM Server
 
 [partintro]

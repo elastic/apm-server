@@ -1,6 +1,6 @@
 :input-type: apm
 
-[[input-apm]]
+[id="input-apm",canonical-url="https://www.elastic.co/guide/en/apm/guide/current/input-apm.html"]
 == APM input settings
 
 ++++
