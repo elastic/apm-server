@@ -56,6 +56,8 @@ path:
   data: /home/apm-server/data
   home: /home/apm-server
   logs: /home/apm-server/logs
+seccomp:
+  enabled: false
 `[1:], "/home/apm-server", tempdir)
 	assert.Equal(t, expectedConfig, string(out))
 }
@@ -63,6 +65,7 @@ path:
 func TestExportConfigOverrideDefaults(t *testing.T) {
 	cmd, tempdir := exportConfigCommand(t,
 		"-E", "logging.metrics.enabled=true",
+		"-E", "seccomp.enabled=true",
 	)
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err)
@@ -76,6 +79,8 @@ path:
   data: /home/apm-server/data
   home: /home/apm-server
   logs: /home/apm-server/logs
+seccomp:
+  enabled: true
 `[1:], "/home/apm-server", tempdir)
 	assert.Equal(t, expectedConfig, string(out))
 }
