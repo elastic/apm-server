@@ -127,6 +127,14 @@ func TestConsumeMetrics(t *testing.T) {
 	invalidHistogramDP.SetExplicitBounds([]float64{1, 2, 3})
 	expectDropped++
 
+	metric = appendMetric("invalid_histogram_metric2", pdata.MetricDataTypeHistogram)
+	invalidHistogram = metric.Histogram()
+	invalidHistogramDP = invalidHistogram.DataPoints().AppendEmpty()
+	invalidHistogramDP.SetTimestamp(pdata.NewTimestampFromTime(timestamp0))
+	invalidHistogramDP.SetBucketCounts([]uint64{1})
+	invalidHistogramDP.SetExplicitBounds([]float64{}) // should be non-empty
+	expectDropped++
+
 	// Summary metrics are not yet supported, and will be dropped.
 	metric = appendMetric("summary_metric", pdata.MetricDataTypeSummary)
 	metric.Summary().DataPoints().AppendEmpty()
