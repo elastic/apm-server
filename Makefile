@@ -249,12 +249,6 @@ release-manager-snapshot: release
 release-manager-release: release
 
 .PHONY: release
-release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
-release: $(MAGE) $(PYTHON) build/$(JAVA_ATTACHER_JAR) build/dependencies.csv
-	$(MAGE) package
-
-build/dependencies.csv: go.mod
-	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
 
 JAVA_ATTACHER_VERSION:=1.28.4
 JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
@@ -264,6 +258,13 @@ JAVA_ATTACHER_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATT
 JAVA_ATTACHER_SIG_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_SIG)
 
 APM_AGENT_JAVA_PUB_KEY:=apm-agent-java-public-key.asc
+
+release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
+release: $(MAGE) $(PYTHON) build/$(JAVA_ATTACHER_JAR) build/dependencies.csv
+	$(MAGE) package
+
+build/dependencies.csv: go.mod
+	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
 
 .imported-java-agent-pubkey:
 	@gpg --import $(APM_AGENT_JAVA_PUB_KEY)
