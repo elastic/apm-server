@@ -15,6 +15,7 @@ See <<apm-server-configuration>> for more information.
 ==== Bug fixes
 - Fix infinite loop in tail-based sampling subscriber causing high CPU and repeated Elasticsearch searches {pull}7211[7211]
 - Do not overwrite `service version` if no transaction/error/... specific `service.name` is givven {pull}7281[7281]
+- Fix panic when processing OpenTelemetry histogram metrics without bounds {pull}7316[7316]
 
 [float]
 ==== Intake API Changes
