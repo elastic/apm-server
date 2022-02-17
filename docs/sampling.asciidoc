@@ -16,7 +16,7 @@ Elastic APM supports two types of sampling:
 [[head-based-sampling]]
 ==== Head-based sampling
 
-In head-based sampling, the sampling decision for each trace is made when that trace is initiated.
+In head-based sampling, the sampling decision for each trace is made when the trace is initiated.
 Each trace has a defined and equal probability of being sampled.
 
 For example, a sampling value of `.2` indicates a transaction sample rate of `20%`.
@@ -52,10 +52,14 @@ image::./images/dt-sampling-example-2.png[Distributed tracing and head based sam
 In tail-based sampling, the sampling decision for each trace is made after the trace has completed.
 This means all traces will be analyzed against a set of rules, or policies, which will determine the rate at which they are sampled.
 
-Tail-based sampling reduces the risk of discarding important data, because the sampling decision is only made _after_
-each trace has been analyzed.
-However, because traces are all initially observed,
-storage and transfer costs may be higher than with head-based sampling.
+Unlike head-based sampling, each trace does not have an equal probability of being sampled.
+Because slower traces are more interesting than faster ones, tail-based sampling uses weighted random sampling -- so
+traces with a longer root transaction duration are more likely to be sampled than traces with a fast root transaction duration.
+
+A downside of tail-based sampling is that it results in more data being sent from APM agents to the APM Server.
+The APM Server will therefore use more CPU, memory, and disk than with head-based sampling.
+However, because the tail-based sampling decision happens in APM Server, there is less data to transfer from APM Server to {es}.
+So running APM Server close to your instrumented services can reduce any increase in transfer costs that tail-based sampling brings.
 
 See <<configure-tail-based-sampling>> to get started.
 
@@ -71,21 +75,20 @@ the sampled traces would look something like this:
 image::./images/dt-sampling-example-3.png[Distributed tracing and tail based sampling example one]
 
 [float]
-=== Sampled data
+=== Sampled data and visualizations
 
 A sampled trace retains all data associated with it.
+A non-sampled trace drops all <<data-model-spans,span>> and <<data-model-transactions,transaction>> data^1^.
+Regardless of the sampling decision, all traces retain <<data-model-errors,error>> data.
 
-Non-sampled traces drop <<transaction-spans,`span`>> data.
-Spans contain more granular information about what is happening within a transaction,
-like external requests or database calls.
-Spans also contain contextual information and labels.
+Sampling does not impact aggregated transaction and span <<data-model-metrics,metrics>>.
+This means that the visualizations in the APM app, like latency, throughput, time spent by span type, failed transaction rate,
+errors, error rate, etc., will always accurately reflect *all* of your application's requests,
+regardless of the configured sampling rate.
 
-Regardless of the sampling decision, all traces retain transaction and error data.
-This means the following data will always accurately reflect *all* of your application's requests, regardless of the configured sampling rate:
-
-* Transaction duration and transactions per minute
-* Transaction breakdown metrics
-* Errors, error occurrence, and error rate
+^1^ Real User Monitoring (RUM) traces are an exception to this rule.
+The {kib} apps that utilize RUM data depend on transaction events,
+so non-sampled RUM traces retain transaction data -- only span data is dropped.
 
 [float]
 === Sample rates
@@ -99,22 +102,9 @@ Here are some examples:
 * Services with considerably more traffic than others might be safe to sample at lower rates
 * Routes that are more important than others might be sampled at higher rates
 * A production service environment might warrant a higher sampling rate than a development environment
+* Failed trace outcomes might be more interesting than successful traces -- thus requiring a higher sample rate
 
 Regardless of the above, cost conscious customers are likely to be fine with a lower sample rate.
-
-[float]
-=== APM app implications
-
-The APM app always knows which transactions have and haven't been sampled.
-This prevents the app from showing broken traces.
-In addition, because transaction and error data is never sampled,
-you can always expect metrics and errors to be accurately reflected in the APM app.
-
-*Service maps*
-
-Service maps rely on distributed traces to draw connections between services.
-A minimum required version of APM agents is required for Service maps to work.
-See {kibana-ref}/service-maps.html[Service maps] for more information.
 
 [[configure-head-based-sampling]]
 ==== Configure head-based sampling
