@@ -465,13 +465,13 @@ Should be in the order of tens of seconds or low minutes.
 [id="input-{input-type}-tail_sampling_policies"]
 Policies
 
-| (`[]policy`) Events are matched in the exact order of how policies are specified.
-Every policy needs to specify a sample rate.
-A trace needs to match all policy constraints to match a policy.
-Specify one policy at the end of the list with only a sample rate.
-This policy is applied to all traces that do not match a more fine grained policy.
+| (`[]policy`) Criteria used to match a root transaction to a sample rate.
+Order is important; the first policy on the list that an event matches is the winner.
+Each policy list must conclude with a default policy that only specifies a sample rate.
+The default policy is used to catch remaining trace events that don’t match a stricter policy.
 
 Required when tail-based sampling is enabled.
+
 // end::tail_sampling_policies-setting[]
 
 // =============================================================================
@@ -481,7 +481,10 @@ Required when tail-based sampling is enabled.
 [id="input-{input-type}-sample_rate"]
 Sample rate
 
-| (int) Required in each policy. The sample rate to apply to trace events matching this policy.
+`sample_rate`
+
+| (int) The sample rate to apply to trace events matching this policy.
+Required in each policy.
 
 // end::sample_rate-setting[]
 
@@ -491,6 +494,8 @@ Sample rate
 |
 [id="input-{input-type}-trace_name"]
 Trace name
+
+`trace.name`
 
 | (string) The trace name for events to match a policy.
 
@@ -503,7 +508,10 @@ Trace name
 [id="input-{input-type}-trace_outcome"]
 Trace outcome
 
+`trace.outcome`
+
 | (string) The trace outcome for events to match a policy.
+Trace outcome can be `success`, `failure`, or `unknown`.
 
 // end::trace_outcome-setting[]
 
@@ -513,6 +521,8 @@ Trace outcome
 |
 [id="input-{input-type}-service_name"]
 Service name
+
+`service.name`
 
 | (string) The service name for events to match a policy.
 
@@ -524,6 +534,8 @@ Service name
 |
 [id="input-{input-type}-service_env"]
 Service Environment
+
+`service.environment`
 
 | (string) The service environment for events to match a policy.
 

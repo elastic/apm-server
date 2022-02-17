@@ -82,7 +82,7 @@ include::./apm-input-settings.asciidoc[tag=anonymous_rate_limit_event_limit-sett
 [[apm-input-tail-sampling-settings]]
 === Tail-based sampling
 
-Top-level tail-based sampling configurations:
+**Top-level tail-based sampling settings:**
 
 [cols="2*<a"]
 |===
@@ -91,7 +91,7 @@ include::./apm-input-settings.asciidoc[tag=tail_sampling_interval-setting]
 include::./apm-input-settings.asciidoc[tag=tail_sampling_policies-setting]
 |===
 
-Policy configurations:
+**Policy settings:**
 
 [cols="2*<a"]
 |===

@@ -2,13 +2,10 @@
 === Transaction sampling
 
 Distributed tracing can generate a substantial amount of data.
-More data can mean more cost and more noise to sift through.
+More data can mean higher costs and more noise to sift through.
 Sampling aims to lower the amount of data ingested and the effort required to analyze that data --
 all while still making it easy to find anomalous patterns in your applications, detect outages, track errors,
 and lower MTTR.
-
-// In other words, in most cases, you can still find anomalous patterns in your applications, detect outages, track errors,
-// and lower MTTR, even when sampling at less than `100%`.
 
 Elastic APM supports two types of sampling:
 
@@ -27,8 +24,8 @@ This means that only `20%` of traces will send and retain all of their associate
 The remaining traces will drop contextual information to reduce the transfer and storage size of the trace.
 
 Head-based sampling is quick and easy to set up.
-The downside of this type of sampling is that it's entirely random -- good
-data might be discarded purely due to random chance.
+Its downside is that it's entirely random -- good
+data might be discarded purely due to chance.
 
 See <<configure-head-based-sampling>> to get started.
 
@@ -55,8 +52,8 @@ image::./images/dt-sampling-example-2.png[Distributed tracing and head based sam
 In tail-based sampling, the sampling decision for each trace is made after the trace has completed.
 This means all traces will be analyzed against a set of rules, or policies, which will determine the rate at which they are sampled.
 
-Tail-based sampling reduces the risk of discarding important data, because the sampling decision is only made after
-all traces have been analyzed.
+Tail-based sampling reduces the risk of discarding important data, because the sampling decision is only made _after_
+each trace has been analyzed.
 However, because traces are all initially observed,
 storage and transfer costs may be higher than with head-based sampling.
 
@@ -96,10 +93,14 @@ This means the following data will always accurately reflect *all* of your appli
 What's the best sampling rate? Unfortunately, there isn't one.
 Sampling is dependent on your data, the throughput of your application, data retainment policies, and other factors.
 A sampling rate from `.1%` to `100%` would all be considered normal.
-You may even decide to have a unique sample rate per service -- for example, if a certain service
-experiences considerably more or less traffic than another.
+You'll likely decide on a unique sample rate for different scenarios.
+Here are some examples:
 
-// Regardless, cost conscious customers are likely to be fine with a lower sample rate.
+* Services with considerably more traffic than others might be safe to sample at lower rates
+* Routes that are more important than others might be sampled at higher rates
+* A production service environment might warrant a higher sampling rate than a development environment
+
+Regardless of the above, cost conscious customers are likely to be fine with a lower sample rate.
 
 [float]
 === APM app implications
@@ -147,8 +148,7 @@ See the relevant agent's documentation for more details:
 [[configure-tail-based-sampling]]
 ==== Configure tail-based sampling
 
-Tail-based sampling is enabled in the APM integration settings.
-
+Enable tail-based sampling in the <<input-apm,APM integration settings>>.
 When enabled, trace events are mapped to sampling policies.
 Each sampling policy must specify a sample rate, and can optionally specify other conditions.
 All of the policy conditions must be true for a trace event to match it.
@@ -182,7 +182,7 @@ or traces with any other name
 ===== Configuration reference
 
 :input-type: tbs
-Top-level tail-based sampling configurations:
+**Top-level tail-based sampling settings:**
 
 // This looks like the root service name/env, trace name/env, and trace outcome
 
@@ -193,7 +193,7 @@ include::./apm-input-settings.asciidoc[tag=tail_sampling_interval-setting]
 include::./apm-input-settings.asciidoc[tag=tail_sampling_policies-setting]
 |===
 
-Policy configurations:
+**Policy settings:**
 
 [cols="2*<a"]
 |===
