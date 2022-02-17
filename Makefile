@@ -248,6 +248,14 @@ release-manager-snapshot: release
 .PHONY: release-manager-release
 release-manager-release: release
 
+.PHONY: release
+release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
+release: $(MAGE) $(PYTHON) build/$(JAVA_ATTACHER_JAR) build/dependencies.csv
+	$(MAGE) package
+
+build/dependencies.csv: go.mod
+	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
+
 JAVA_ATTACHER_VERSION:=1.28.4
 JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
 JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
@@ -268,8 +276,3 @@ build/$(JAVA_ATTACHER_JAR): build/$(JAVA_ATTACHER_SIG) .imported-java-agent-pubk
 	curl -sSL $(JAVA_ATTACHER_URL) > $@
 	gpg --verify $< $@
 	@cp $@ build/java-attacher.jar
-
-.PHONY: release
-release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
-release: $(MAGE) build/$(JAVA_ATTACHER_JAR)
-	$(MAGE) package
