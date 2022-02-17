@@ -383,7 +383,7 @@ func histogramSample(bucketCounts []uint64, explicitBounds []float64) (model.Met
 	//
 	// The values in the explicit_bounds array must be strictly increasing.
 	//
-	if len(bucketCounts) != len(explicitBounds)+1 {
+	if len(bucketCounts) != len(explicitBounds)+1 || len(explicitBounds) == 0 {
 		return model.MetricsetSample{}, false
 	}
 
