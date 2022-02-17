@@ -224,6 +224,7 @@ func (c *Consumer) convertSpan(
 		}
 		TranslateSpan(otelSpan.Kind(), otelSpan.Attributes(), &event)
 	}
+	translateSpanLinks(&event, otelSpan.Links())
 	if len(event.Labels) == 0 {
 		event.Labels = nil
 	}
@@ -235,7 +236,7 @@ func (c *Consumer) convertSpan(
 	events := otelSpan.Events()
 	event.Labels = baseEvent.Labels               // only copy common labels to span events
 	event.NumericLabels = baseEvent.NumericLabels // only copy common labels to span events
-	event.Event.Outcome = ""                      // don't set event.outcome for span events
+	event.Event = model.Event{}                   // don't copy event.* to span events
 	event.Destination = model.Destination{}       // don't set destination for span events
 	for i := 0; i < events.Len(); i++ {
 		*out = append(*out, convertSpanEvent(logger, events.At(i), event, timeDelta))
@@ -519,7 +520,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pdata.AttributeValueTypeArray:
-			setLabel(k, event, ifaceAnyValueArray(v.ArrayVal()))
+			setLabel(k, event, ifaceAttributeValueSlice(v.SliceVal()))
 		case pdata.AttributeValueTypeBool:
 			setLabel(k, event, strconv.FormatBool(v.BoolVal()))
 		case pdata.AttributeValueTypeDouble:
@@ -942,6 +943,24 @@ func setErrorContext(out *model.APMEvent, parent model.APMEvent) {
 	}
 	if parent.Span != nil {
 		out.Parent.ID = parent.Span.ID
+	}
+}
+
+func translateSpanLinks(out *model.APMEvent, in pdata.SpanLinkSlice) {
+	n := in.Len()
+	if n == 0 {
+		return
+	}
+	if out.Span == nil {
+		out.Span = &model.Span{}
+	}
+	out.Span.Links = make([]model.SpanLink, n)
+	for i := 0; i < n; i++ {
+		link := in.At(i)
+		out.Span.Links[i] = model.SpanLink{
+			Span:  model.Span{ID: link.SpanID().HexString()},
+			Trace: model.Trace{ID: link.TraceID().HexString()},
+		}
 	}
 }
 

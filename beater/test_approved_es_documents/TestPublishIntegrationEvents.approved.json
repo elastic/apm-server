@@ -261,8 +261,7 @@
                 "runtime": {
                     "name": "Java",
                     "version": "10.0.2"
-                },
-                "version": "4.3.0"
+                }
             },
             "source": {
                 "ip": "12.53.12.1"
@@ -311,6 +310,7 @@
                 "version": "1.12.0"
             },
             "event": {
+                "duration": 3781912,
                 "outcome": "success"
             },
             "host": {
@@ -399,8 +399,7 @@
                 "runtime": {
                     "name": "Java",
                     "version": "10.0.2"
-                },
-                "version": "4.3.0"
+                }
             },
             "span": {
                 "action": "connect",
@@ -412,9 +411,6 @@
                     "user": {
                         "name": "postgres"
                     }
-                },
-                "duration": {
-                    "us": 3781
                 },
                 "id": "1234567890aaaade",
                 "name": "GET users-authenticated",
@@ -480,6 +476,7 @@
                 "version": "1.12.0"
             },
             "event": {
+                "duration": 32592981,
                 "outcome": "success"
             },
             "host": {
@@ -603,8 +600,7 @@
                 "runtime": {
                     "name": "Java",
                     "version": "10.0.2"
-                },
-                "version": "4.3.0"
+                }
             },
             "source": {
                 "ip": "12.53.12.1",
@@ -627,9 +623,6 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foobar"
-                },
-                "duration": {
-                    "us": 32592
                 },
                 "id": "4340a8e0df1906ecbfa9",
                 "name": "ResourceHttpRequestHandler",

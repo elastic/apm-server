@@ -602,20 +602,20 @@ func TestSpanNetworkAttributes(t *testing.T) {
 
 func TestArrayLabels(t *testing.T) {
 	stringArray := pdata.NewAttributeValueArray()
-	stringArray.ArrayVal().AppendEmpty().SetStringVal("string1")
-	stringArray.ArrayVal().AppendEmpty().SetStringVal("string2")
+	stringArray.SliceVal().AppendEmpty().SetStringVal("string1")
+	stringArray.SliceVal().AppendEmpty().SetStringVal("string2")
 
 	boolArray := pdata.NewAttributeValueArray()
-	boolArray.ArrayVal().AppendEmpty().SetBoolVal(false)
-	boolArray.ArrayVal().AppendEmpty().SetBoolVal(true)
+	boolArray.SliceVal().AppendEmpty().SetBoolVal(false)
+	boolArray.SliceVal().AppendEmpty().SetBoolVal(true)
 
 	intArray := pdata.NewAttributeValueArray()
-	intArray.ArrayVal().AppendEmpty().SetIntVal(1234)
-	intArray.ArrayVal().AppendEmpty().SetIntVal(5678)
+	intArray.SliceVal().AppendEmpty().SetIntVal(1234)
+	intArray.SliceVal().AppendEmpty().SetIntVal(5678)
 
 	floatArray := pdata.NewAttributeValueArray()
-	floatArray.ArrayVal().AppendEmpty().SetDoubleVal(1234.5678)
-	floatArray.ArrayVal().AppendEmpty().SetDoubleVal(9123.234123123)
+	floatArray.SliceVal().AppendEmpty().SetDoubleVal(1234.5678)
+	floatArray.SliceVal().AppendEmpty().SetDoubleVal(9123.234123123)
 
 	txEvent := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"string_array": stringArray,
@@ -661,9 +661,7 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 
 	now := time.Now()
 	exportTimestamp := now.Add(-timeDelta)
-	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		"telemetry.sdk.elastic_export_timestamp": pdata.NewAttributeValueInt(exportTimestamp.UnixNano()),
-	})
+	traces.ResourceSpans().At(0).Resource().Attributes().InsertInt("telemetry.sdk.elastic_export_timestamp", exportTimestamp.UnixNano())
 
 	// Offsets are start times relative to the export timestamp.
 	transactionOffset := -2 * time.Second
@@ -679,24 +677,22 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	otelSpan1 := otelSpans.Spans().AppendEmpty()
 	otelSpan1.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan1.SetSpanID(pdata.NewSpanID([8]byte{2}))
-	otelSpan1.SetStartTimestamp(pdata.TimestampFromTime(exportedTransactionTimestamp))
-	otelSpan1.SetEndTimestamp(pdata.TimestampFromTime(exportedTransactionTimestamp.Add(transactionDuration)))
+	otelSpan1.SetStartTimestamp(pdata.NewTimestampFromTime(exportedTransactionTimestamp))
+	otelSpan1.SetEndTimestamp(pdata.NewTimestampFromTime(exportedTransactionTimestamp.Add(transactionDuration)))
 
 	otelSpan2 := otelSpans.Spans().AppendEmpty()
 	otelSpan2.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan2.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	otelSpan2.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
-	otelSpan2.SetStartTimestamp(pdata.TimestampFromTime(exportedSpanTimestamp))
-	otelSpan2.SetEndTimestamp(pdata.TimestampFromTime(exportedSpanTimestamp.Add(spanDuration)))
+	otelSpan2.SetStartTimestamp(pdata.NewTimestampFromTime(exportedSpanTimestamp))
+	otelSpan2.SetEndTimestamp(pdata.NewTimestampFromTime(exportedSpanTimestamp.Add(spanDuration)))
 
 	otelSpanEvent := otelSpan2.Events().AppendEmpty()
-	otelSpanEvent.SetTimestamp(pdata.TimestampFromTime(exportedExceptionTimestamp))
+	otelSpanEvent.SetTimestamp(pdata.NewTimestampFromTime(exportedExceptionTimestamp))
 	otelSpanEvent.SetName("exception")
-	otelSpanEvent.Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		"exception.type":       pdata.NewAttributeValueString("the_type"),
-		"exception.message":    pdata.NewAttributeValueString("the_message"),
-		"exception.stacktrace": pdata.NewAttributeValueString("the_stacktrace"),
-	})
+	otelSpanEvent.Attributes().InsertString("exception.type", "the_type")
+	otelSpanEvent.Attributes().InsertString("exception.message", "the_message")
+	otelSpanEvent.Attributes().InsertString("exception.stacktrace", "the_stacktrace")
 
 	batch := transformTraces(t, traces)
 	require.Len(t, batch, 3)
@@ -709,6 +705,27 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	// Durations should be unaffected.
 	assert.Equal(t, transactionDuration, batch[0].Event.Duration)
 	assert.Equal(t, spanDuration, batch[1].Event.Duration)
+}
+
+func TestSpanLinks(t *testing.T) {
+	linkedTraceID := pdata.NewTraceID([16]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15})
+	linkedSpanID := pdata.NewSpanID([8]byte{7, 6, 5, 4, 3, 2, 1, 0})
+	spanLink := pdata.NewSpanLink()
+	spanLink.SetSpanID(linkedSpanID)
+	spanLink.SetTraceID(linkedTraceID)
+
+	txEvent := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{}, func(span pdata.Span) {
+		spanLink.CopyTo(span.Links().AppendEmpty())
+	})
+	spanEvent := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{}, func(span pdata.Span) {
+		spanLink.CopyTo(span.Links().AppendEmpty())
+	})
+	for _, event := range []model.APMEvent{txEvent, spanEvent} {
+		assert.Equal(t, []model.SpanLink{{
+			Span:  model.Span{ID: "0706050403020100"},
+			Trace: model.Trace{ID: "000102030405060708090a0b0c0d0e0f"},
+		}}, event.Span.Links)
+	}
 }
 
 func TestConsumer_JaegerMetadata(t *testing.T) {
@@ -1254,7 +1271,7 @@ func transformTransactionWithAttributes(t *testing.T, attrs map[string]pdata.Att
 	for _, fn := range configFns {
 		fn(otelSpan)
 	}
-	otelSpan.Attributes().InitFromMap(attrs)
+	pdata.NewAttributeMapFromMap(attrs).CopyTo(otelSpan.Attributes())
 	events := transformTraces(t, traces)
 	return events[0]
 }
@@ -1268,16 +1285,14 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeV
 	for _, fn := range configFns {
 		fn(otelSpan)
 	}
-	otelSpan.Attributes().InitFromMap(attrs)
+	pdata.NewAttributeMapFromMap(attrs).CopyTo(otelSpan.Attributes())
 	events := transformTraces(t, traces)
 	return events[0]
 }
 
 func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (transaction model.APMEvent, events []model.APMEvent) {
 	traces, spans := newTracesSpans()
-	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		semconv.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
-	})
+	traces.ResourceSpans().At(0).Resource().Attributes().InsertString(semconv.AttributeTelemetrySDKLanguage, language)
 	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))

@@ -60,7 +60,7 @@ type ErrorLog struct {
 	Stacktrace   Stacktrace
 }
 
-func (e *Error) setFields(fields *mapStr) {
+func (e *Error) fields() common.MapStr {
 	var errorFields mapStr
 	errorFields.maybeSetString("id", e.ID)
 	if e.Exception != nil {
@@ -71,7 +71,7 @@ func (e *Error) setFields(fields *mapStr) {
 	errorFields.maybeSetString("culprit", e.Culprit)
 	errorFields.maybeSetMapStr("custom", customFields(e.Custom))
 	errorFields.maybeSetString("grouping_key", e.GroupingKey)
-	fields.set("error", common.MapStr(errorFields))
+	return common.MapStr(errorFields)
 }
 
 func (e *Error) logFields() common.MapStr {

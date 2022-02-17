@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configtls
+package configtls // import "go.opentelemetry.io/collector/config/configtls"
 
 import (
 	"crypto/tls"
@@ -178,7 +178,7 @@ func (c TLSServerSetting) LoadTLSConfig() (*tls.Config, error) {
 
 func convertVersion(v string) (uint16, error) {
 	if v == "" {
-		return 0, nil // default
+		return tls.VersionTLS12, nil // default
 	}
 	val, ok := tlsVersions[v]
 	if !ok {

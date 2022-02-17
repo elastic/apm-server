@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package otlphttpexporter
+package otlphttpexporter // import "go.opentelemetry.io/collector/exporter/otlphttpexporter"
 
 import (
 	"bytes"
@@ -23,8 +23,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"runtime"
 	"strconv"
-	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -33,11 +33,9 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
-	"go.opentelemetry.io/collector/internal/middleware"
-	"go.opentelemetry.io/collector/model/otlp"
+	"go.opentelemetry.io/collector/model/otlpgrpc"
 	"go.opentelemetry.io/collector/model/pdata"
 )
 
@@ -49,13 +47,10 @@ type exporter struct {
 	metricsURL string
 	logsURL    string
 	logger     *zap.Logger
+	settings   component.TelemetrySettings
+	// Default user-agent header.
+	userAgent string
 }
-
-var (
-	tracesMarshaler  = otlp.NewProtobufTracesMarshaler()
-	metricsMarshaler = otlp.NewProtobufMetricsMarshaler()
-	logsMarshaler    = otlp.NewProtobufLogsMarshaler()
-)
 
 const (
 	headerRetryAfter         = "Retry-After"
@@ -63,7 +58,7 @@ const (
 )
 
 // Crete new exporter.
-func newExporter(cfg config.Exporter, logger *zap.Logger) (*exporter, error) {
+func newExporter(cfg config.Exporter, set component.ExporterCreateSettings) (*exporter, error) {
 	oCfg := cfg.(*Config)
 
 	if oCfg.Endpoint != "" {
@@ -73,53 +68,56 @@ func newExporter(cfg config.Exporter, logger *zap.Logger) (*exporter, error) {
 		}
 	}
 
+	userAgent := fmt.Sprintf("%s/%s (%s/%s)",
+		set.BuildInfo.Description, set.BuildInfo.Version, runtime.GOOS, runtime.GOARCH)
+
 	// client construction is deferred to start
 	return &exporter{
-		config: oCfg,
-		logger: logger,
+		config:    oCfg,
+		logger:    set.Logger,
+		userAgent: userAgent,
+		settings:  set.TelemetrySettings,
 	}, nil
 }
 
 // start actually creates the HTTP client. The client construction is deferred till this point as this
 // is the only place we get hold of Extensions which are required to construct auth round tripper.
 func (e *exporter) start(_ context.Context, host component.Host) error {
-	client, err := e.config.HTTPClientSettings.ToClient(host.GetExtensions())
+	client, err := e.config.HTTPClientSettings.ToClient(host.GetExtensions(), e.settings)
 	if err != nil {
 		return err
-	}
-
-	if e.config.Compression != "" {
-		if strings.ToLower(e.config.Compression) == configgrpc.CompressionGzip {
-			client.Transport = middleware.NewCompressRoundTripper(client.Transport)
-		} else {
-			return fmt.Errorf("unsupported compression type %q", e.config.Compression)
-		}
 	}
 	e.client = client
 	return nil
 }
 
 func (e *exporter) pushTraces(ctx context.Context, td pdata.Traces) error {
-	request, err := tracesMarshaler.MarshalTraces(td)
+	tr := otlpgrpc.NewTracesRequest()
+	tr.SetTraces(td)
+	request, err := tr.Marshal()
 	if err != nil {
-		return consumererror.Permanent(err)
+		return consumererror.NewPermanent(err)
 	}
 
 	return e.export(ctx, e.tracesURL, request)
 }
 
 func (e *exporter) pushMetrics(ctx context.Context, md pdata.Metrics) error {
-	request, err := metricsMarshaler.MarshalMetrics(md)
+	tr := otlpgrpc.NewMetricsRequest()
+	tr.SetMetrics(md)
+	request, err := tr.Marshal()
 	if err != nil {
-		return consumererror.Permanent(err)
+		return consumererror.NewPermanent(err)
 	}
 	return e.export(ctx, e.metricsURL, request)
 }
 
 func (e *exporter) pushLogs(ctx context.Context, ld pdata.Logs) error {
-	request, err := logsMarshaler.MarshalLogs(ld)
+	tr := otlpgrpc.NewLogsRequest()
+	tr.SetLogs(ld)
+	request, err := tr.Marshal()
 	if err != nil {
-		return consumererror.Permanent(err)
+		return consumererror.NewPermanent(err)
 	}
 
 	return e.export(ctx, e.logsURL, request)
@@ -129,9 +127,10 @@ func (e *exporter) export(ctx context.Context, url string, request []byte) error
 	e.logger.Debug("Preparing to make HTTP request", zap.String("url", url))
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(request))
 	if err != nil {
-		return consumererror.Permanent(err)
+		return consumererror.NewPermanent(err)
 	}
 	req.Header.Set("Content-Type", "application/x-protobuf")
+	req.Header.Set("User-Agent", e.userAgent)
 
 	resp, err := e.client.Do(req)
 	if err != nil {
@@ -180,10 +179,10 @@ func (e *exporter) export(ctx context.Context, url string, request []byte) error
 
 	if resp.StatusCode == http.StatusBadRequest {
 		// Report the failure as permanent if the server thinks the request is malformed.
-		return consumererror.Permanent(formattedErr)
+		return consumererror.NewPermanent(formattedErr)
 	}
 
-	// All other errors are retryable, so don't wrap them in consumererror.Permanent().
+	// All other errors are retryable, so don't wrap them in consumererror.NewPermanent().
 	return formattedErr
 }
 

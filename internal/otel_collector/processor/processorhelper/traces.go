@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package processorhelper
+package processorhelper // import "go.opentelemetry.io/collector/processor/processorhelper"
 
 import (
 	"context"
@@ -34,7 +34,8 @@ import (
 type ProcessTracesFunc func(context.Context, pdata.Traces) (pdata.Traces, error)
 
 type tracesProcessor struct {
-	component.Component
+	componenthelper.StartFunc
+	componenthelper.ShutdownFunc
 	consumer.Traces
 }
 
@@ -76,7 +77,8 @@ func NewTracesProcessor(
 	}
 
 	return &tracesProcessor{
-		Component: componenthelper.New(bs.componentOptions...),
-		Traces:    traceConsumer,
+		StartFunc:    bs.StartFunc,
+		ShutdownFunc: bs.ShutdownFunc,
+		Traces:       traceConsumer,
 	}, nil
 }

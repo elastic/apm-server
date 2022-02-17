@@ -212,15 +212,15 @@ func ifaceAttributeValue(v pdata.AttributeValue) interface{} {
 	case pdata.AttributeValueTypeDouble:
 		return v.DoubleVal()
 	case pdata.AttributeValueTypeArray:
-		return ifaceAnyValueArray(v.ArrayVal())
+		return ifaceAttributeValueSlice(v.SliceVal())
 	}
 	return nil
 }
 
-func ifaceAnyValueArray(array pdata.AnyValueArray) []interface{} {
-	values := make([]interface{}, array.Len())
+func ifaceAttributeValueSlice(slice pdata.AttributeValueSlice) []interface{} {
+	values := make([]interface{}, slice.Len())
 	for i := range values {
-		values[i] = ifaceAttributeValue(array.At(i))
+		values[i] = ifaceAttributeValue(slice.At(i))
 	}
 	return values
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package exporterhelper
+package exporterhelper // import "go.opentelemetry.io/collector/exporter/exporterhelper"
 
 import (
 	"context"
@@ -23,8 +23,13 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/consumer/consumerhelper"
+	"go.opentelemetry.io/collector/exporter/exporterhelper/internal"
+	"go.opentelemetry.io/collector/model/otlp"
 	"go.opentelemetry.io/collector/model/pdata"
 )
+
+var tracesMarshaler = otlp.NewProtobufTracesMarshaler()
+var tracesUnmarshaler = otlp.NewProtobufTracesUnmarshaler()
 
 type tracesRequest struct {
 	baseRequest
@@ -40,9 +45,24 @@ func newTracesRequest(ctx context.Context, td pdata.Traces, pusher consumerhelpe
 	}
 }
 
+func newTraceRequestUnmarshalerFunc(pusher consumerhelper.ConsumeTracesFunc) internal.RequestUnmarshaler {
+	return func(bytes []byte) (internal.PersistentRequest, error) {
+		traces, err := tracesUnmarshaler.UnmarshalTraces(bytes)
+		if err != nil {
+			return nil, err
+		}
+		return newTracesRequest(context.Background(), traces, pusher), nil
+	}
+}
+
+// Marshal provides serialization capabilities required by persistent queue
+func (req *tracesRequest) Marshal() ([]byte, error) {
+	return tracesMarshaler.MarshalTraces(req.td)
+}
+
 func (req *tracesRequest) onError(err error) request {
 	var traceError consumererror.Traces
-	if consumererror.AsTraces(err, &traceError) {
+	if errors.As(err, &traceError) {
 		return newTracesRequest(req.ctx, traceError.GetTraces(), req.pusher)
 	}
 	return req
@@ -82,7 +102,7 @@ func NewTracesExporter(
 	}
 
 	bs := fromOptions(options...)
-	be := newBaseExporter(cfg, set, bs)
+	be := newBaseExporter(cfg, set, bs, config.TracesDataType, newTraceRequestUnmarshalerFunc(pusher))
 	be.wrapConsumerSender(func(nextSender requestSender) requestSender {
 		return &tracesExporterWithObservability{
 			obsrep:     be.obsrep,
@@ -94,7 +114,7 @@ func NewTracesExporter(
 		req := newTracesRequest(ctx, td, pusher)
 		err := be.sender.send(req)
 		if errors.Is(err, errSendingQueueIsFull) {
-			be.obsrep.recordTracesEnqueueFailure(req.context(), req.count())
+			be.obsrep.recordTracesEnqueueFailure(req.context(), int64(req.count()))
 		}
 		return err
 	}, bs.consumerOptions...)

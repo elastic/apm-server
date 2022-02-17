@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package exporterhelper
+package exporterhelper // import "go.opentelemetry.io/collector/exporter/exporterhelper"
 
 import (
 	"context"
@@ -23,8 +23,13 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/consumer/consumerhelper"
+	"go.opentelemetry.io/collector/exporter/exporterhelper/internal"
+	"go.opentelemetry.io/collector/model/otlp"
 	"go.opentelemetry.io/collector/model/pdata"
 )
+
+var metricsMarshaler = otlp.NewProtobufMetricsMarshaler()
+var metricsUnmarshaler = otlp.NewProtobufMetricsUnmarshaler()
 
 type metricsRequest struct {
 	baseRequest
@@ -40,9 +45,19 @@ func newMetricsRequest(ctx context.Context, md pdata.Metrics, pusher consumerhel
 	}
 }
 
+func newMetricsRequestUnmarshalerFunc(pusher consumerhelper.ConsumeMetricsFunc) internal.RequestUnmarshaler {
+	return func(bytes []byte) (internal.PersistentRequest, error) {
+		metrics, err := metricsUnmarshaler.UnmarshalMetrics(bytes)
+		if err != nil {
+			return nil, err
+		}
+		return newMetricsRequest(context.Background(), metrics, pusher), nil
+	}
+}
+
 func (req *metricsRequest) onError(err error) request {
 	var metricsError consumererror.Metrics
-	if consumererror.AsMetrics(err, &metricsError) {
+	if errors.As(err, &metricsError) {
 		return newMetricsRequest(req.ctx, metricsError.GetMetrics(), req.pusher)
 	}
 	return req
@@ -50,6 +65,11 @@ func (req *metricsRequest) onError(err error) request {
 
 func (req *metricsRequest) export(ctx context.Context) error {
 	return req.pusher(ctx, req.md)
+}
+
+// Marshal provides serialization capabilities required by persistent queue
+func (req *metricsRequest) Marshal() ([]byte, error) {
+	return metricsMarshaler.MarshalMetrics(req.md)
 }
 
 func (req *metricsRequest) count() int {
@@ -81,7 +101,7 @@ func NewMetricsExporter(
 	}
 
 	bs := fromOptions(options...)
-	be := newBaseExporter(cfg, set, bs)
+	be := newBaseExporter(cfg, set, bs, config.MetricsDataType, newMetricsRequestUnmarshalerFunc(pusher))
 	be.wrapConsumerSender(func(nextSender requestSender) requestSender {
 		return &metricsSenderWithObservability{
 			obsrep:     be.obsrep,
@@ -93,7 +113,7 @@ func NewMetricsExporter(
 		req := newMetricsRequest(ctx, md, pusher)
 		err := be.sender.send(req)
 		if errors.Is(err, errSendingQueueIsFull) {
-			be.obsrep.recordMetricsEnqueueFailure(req.context(), req.count())
+			be.obsrep.recordMetricsEnqueueFailure(req.context(), int64(req.count()))
 		}
 		return err
 	}, bs.consumerOptions...)

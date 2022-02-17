@@ -763,6 +763,7 @@ func mapToServiceModel(from contextService, out *model.Service) {
 	}
 	if from.Name.IsSet() {
 		out.Name = from.Name.Val
+		out.Version = from.Version.Val
 	}
 	if from.Node.Name.IsSet() {
 		out.Node.Name = from.Node.Name.Val
@@ -772,9 +773,6 @@ func mapToServiceModel(from contextService, out *model.Service) {
 	}
 	if from.Runtime.Version.IsSet() {
 		out.Runtime.Version = from.Runtime.Version.Val
-	}
-	if from.Version.IsSet() {
-		out.Version = from.Version.Val
 	}
 	if from.Origin.IsSet() {
 		outOrigin := &model.ServiceOrigin{}
@@ -1372,10 +1370,10 @@ func otelAttributeValue(k string, v interface{}) (pdata.AttributeValue, bool) {
 		}
 	case []interface{}:
 		array := pdata.NewAttributeValueArray()
-		array.ArrayVal().EnsureCapacity(len(v))
+		array.SliceVal().EnsureCapacity(len(v))
 		for i := range v {
 			if elem, ok := otelAttributeValue(k, v[i]); ok {
-				elem.CopyTo(array.ArrayVal().AppendEmpty())
+				elem.CopyTo(array.SliceVal().AppendEmpty())
 			}
 		}
 		return array, true

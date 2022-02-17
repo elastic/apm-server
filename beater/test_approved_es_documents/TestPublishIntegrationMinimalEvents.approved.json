@@ -142,6 +142,7 @@
                 "version": "1.12.0"
             },
             "event": {
+                "duration": 3564298,
                 "outcome": "unknown"
             },
             "host": {
@@ -166,9 +167,6 @@
                 "name": "1234_service-12a3"
             },
             "span": {
-                "duration": {
-                    "us": 3564
-                },
                 "id": "0123456a89012345",
                 "name": "GET /api/types",
                 "type": "request"
@@ -193,6 +191,7 @@
                 "version": "1.12.0"
             },
             "event": {
+                "duration": 3564298,
                 "outcome": "unknown"
             },
             "host": {
@@ -217,9 +216,6 @@
                 "name": "1234_service-12a3"
             },
             "span": {
-                "duration": {
-                    "us": 3564
-                },
                 "id": "0123456a89012345",
                 "name": "GET /api/types",
                 "type": "request"
@@ -244,6 +240,7 @@
                 "version": "1.12.0"
             },
             "event": {
+                "duration": 32592981,
                 "outcome": "unknown"
             },
             "host": {
@@ -274,9 +271,6 @@
                 "id": "01234567890123456789abcdefabcdef"
             },
             "transaction": {
-                "duration": {
-                    "us": 32592
-                },
                 "id": "abcdef1478523690",
                 "sampled": true,
                 "span_count": {

@@ -52,6 +52,7 @@ type Span struct {
 	Message    *Message
 	Stacktrace Stacktrace
 	Sync       *bool
+	Links      []SpanLink
 
 	DB                 *DB
 	DestinationService *DestinationService
@@ -133,7 +134,7 @@ func (c *Composite) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
+func (e *Span) fields() common.MapStr {
 	var span mapStr
 	span.maybeSetString("name", e.Name)
 	span.maybeSetString("type", e.Type)
@@ -142,11 +143,6 @@ func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
 	span.maybeSetString("subtype", e.Subtype)
 	span.maybeSetString("action", e.Action)
 	span.maybeSetBool("sync", e.Sync)
-	if apmEvent.Processor == SpanProcessor {
-		// TODO(axw) set `event.duration` in 8.0, and remove this field.
-		// See https://github.com/elastic/apm-server/issues/5999
-		span.set("duration", common.MapStr{"us": int(apmEvent.Event.Duration.Microseconds())})
-	}
 	span.maybeSetMapStr("db", e.DB.fields())
 	span.maybeSetMapStr("message", e.Message.Fields())
 	span.maybeSetMapStr("composite", e.Composite.fields())
@@ -162,5 +158,12 @@ func (e *Span) setFields(fields *mapStr, apmEvent *APMEvent) {
 		span.set("stacktrace", st)
 	}
 	span.maybeSetMapStr("self_time", e.SelfTime.fields())
-	fields.maybeSetMapStr("span", common.MapStr(span))
+	if n := len(e.Links); n > 0 {
+		links := make([]common.MapStr, n)
+		for i, link := range e.Links {
+			links[i] = link.fields()
+		}
+		span.set("links", links)
+	}
+	return common.MapStr(span)
 }

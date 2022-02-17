@@ -38,6 +38,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -89,6 +90,178 @@ func (c *Consumer) convertResourceMetrics(resourceMetrics pdata.ResourceMetrics,
 	}
 }
 
+// OTel specification : https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/system-metrics.md
+type apmMetricsBuilder struct {
+	// Host CPU metrics
+	cpuCount                 int // from system.cpu.utilization's cpu attribute
+	nonIdleCPUUtilizationSum apmMetricValue
+
+	// Host memory metrics
+	freeMemoryBytes apmMetricValue
+	usedMemoryBytes apmMetricValue
+
+	// JVM metrics
+	jvmGCTime  map[string]apmMetricValue
+	jvmGCCount map[string]apmMetricValue
+	jvmMemory  map[jvmMemoryKey]apmMetricValue
+}
+
+func newAPMMetricsBuilder() *apmMetricsBuilder {
+	var b apmMetricsBuilder
+	b.jvmGCTime = make(map[string]apmMetricValue)
+	b.jvmGCCount = make(map[string]apmMetricValue)
+	b.jvmMemory = make(map[jvmMemoryKey]apmMetricValue)
+	return &b
+}
+
+type apmMetricValue struct {
+	timestamp time.Time
+	value     float64
+}
+
+type jvmMemoryKey struct {
+	area    string
+	jvmType string
+	pool    string // will be "" for non-pool specific memory metrics
+}
+
+// accumulate processes m, translating to and accumulating equivalent Elastic APM metrics in b.
+func (b *apmMetricsBuilder) accumulate(m pdata.Metric) {
+
+	switch m.DataType() {
+	case pdata.MetricDataTypeSum:
+		dpsCounter := m.Sum().DataPoints()
+		for i := 0; i < dpsCounter.Len(); i++ {
+			dp := dpsCounter.At(i)
+			if sample, ok := numberSample(dp, model.MetricTypeCounter); ok {
+				switch m.Name() {
+				case "system.memory.usage":
+					if memoryState, exists := dp.Attributes().Get("state"); exists {
+						switch memoryState.StringVal() {
+						case "used":
+							b.usedMemoryBytes = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
+						case "free":
+							b.freeMemoryBytes = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
+						}
+					}
+				case "runtime.jvm.gc.collection", "runtime.jvm.gc.time":
+					if gcName, exists := dp.Attributes().Get("gc"); exists {
+						b.jvmGCTime[gcName.StringVal()] = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
+					}
+				case "runtime.jvm.gc.count":
+					if gcName, exists := dp.Attributes().Get("gc"); exists {
+						b.jvmGCCount[gcName.StringVal()] = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
+					}
+				}
+			}
+		}
+	case pdata.MetricDataTypeGauge:
+		// Gauge metrics accumulation
+		dpsGauge := m.Gauge().DataPoints()
+		for i := 0; i < dpsGauge.Len(); i++ {
+			dp := dpsGauge.At(i)
+			if sample, ok := numberSample(dp, model.MetricTypeGauge); ok {
+				switch m.Name() {
+				case "system.cpu.utilization":
+					if cpuState, exists := dp.Attributes().Get("state"); exists {
+						if cpuState.StringVal() != "idle" {
+							b.nonIdleCPUUtilizationSum.value += sample.Value
+							b.nonIdleCPUUtilizationSum.timestamp = dp.Timestamp().AsTime()
+						}
+					}
+					if cpuIDStr, exists := dp.Attributes().Get("cpu"); exists {
+						cpuID, _ := strconv.Atoi(cpuIDStr.StringVal())
+						if cpuID+1 > b.cpuCount {
+							b.cpuCount = cpuID + 1
+						}
+					}
+				case "runtime.jvm.memory.area":
+					var key jvmMemoryKey
+					dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+						switch k {
+						case "area":
+							key.area = v.AsString()
+						case "type":
+							key.jvmType = v.AsString()
+						case "pool":
+							key.pool = v.AsString()
+						}
+						return true
+					})
+					if key.area != "" && key.jvmType != "" {
+						b.jvmMemory[key] = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
+					}
+				}
+			}
+		}
+	}
+}
+
+// emit upserts Elastic APM metrics into ms from information accumulated in b.
+func (b *apmMetricsBuilder) emit(ms metricsets) {
+	// system.memory.actual.free
+	// Direct translation of system.memory.usage (state = free)
+	if b.freeMemoryBytes.value > 0 {
+		ms.upsertOne(
+			b.freeMemoryBytes.timestamp, "system.memory.actual.free", pdata.NewAttributeMap(),
+			model.MetricsetSample{Value: b.freeMemoryBytes.value},
+		)
+	}
+	// system.memory.total
+	// system.memory.usage (state = free) + system.memory.usage (state = used)
+	totalMemoryBytes := b.freeMemoryBytes.value + b.usedMemoryBytes.value
+	if totalMemoryBytes > 0 {
+		ms.upsertOne(
+			b.freeMemoryBytes.timestamp, "system.memory.total", pdata.NewAttributeMap(),
+			model.MetricsetSample{Value: totalMemoryBytes},
+		)
+	}
+	// system.cpu.total.norm.pct
+	// Averaging of non-idle CPU utilization over all CPU cores
+	if b.nonIdleCPUUtilizationSum.value > 0 && b.cpuCount > 0 {
+		ms.upsertOne(
+			b.nonIdleCPUUtilizationSum.timestamp, "system.cpu.total.norm.pct", pdata.NewAttributeMap(),
+			model.MetricsetSample{Value: b.nonIdleCPUUtilizationSum.value / float64(b.cpuCount)},
+		)
+	}
+	// jvm.gc.time
+	// Direct translation of runtime.jvm.gc.time or runtime.jvm.gc.collection
+	for k, v := range b.jvmGCTime {
+		elasticapmAttributes := pdata.NewAttributeMap()
+		elasticapmAttributes.Insert("name", pdata.NewAttributeValueString(k))
+		ms.upsertOne(
+			v.timestamp, "jvm.gc.time", elasticapmAttributes,
+			model.MetricsetSample{Value: v.value},
+		)
+	}
+	// jvm.gc.count
+	// Direct translation of runtime.jvm.gc.count
+	for k, v := range b.jvmGCCount {
+		elasticapmAttributes := pdata.NewAttributeMap()
+		elasticapmAttributes.Insert("name", pdata.NewAttributeValueString(k))
+		ms.upsertOne(
+			v.timestamp, "jvm.gc.count", elasticapmAttributes,
+			model.MetricsetSample{Value: v.value},
+		)
+	}
+	// jvm.memory.<area>.<type>
+	// Direct translation of runtime.jvm.memory.area (area = xxx, type = xxx)
+	for k, v := range b.jvmMemory {
+		elasticapmAttributes := pdata.NewAttributeMap()
+		var elasticapmMetricName string
+		if k.pool != "" {
+			elasticapmAttributes.Insert("name", pdata.NewAttributeValueString(k.pool))
+			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.pool.%s", k.area, k.jvmType)
+		} else {
+			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.%s", k.area, k.jvmType)
+		}
+		ms.upsertOne(
+			v.timestamp, elasticapmMetricName, elasticapmAttributes,
+			model.MetricsetSample{Value: v.value},
+		)
+	}
+}
+
 func (c *Consumer) convertInstrumentationLibraryMetrics(
 	in pdata.InstrumentationLibraryMetrics,
 	baseEvent model.APMEvent,
@@ -98,11 +271,14 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 	ms := make(metricsets)
 	otelMetrics := in.Metrics()
 	var unsupported int64
+	builder := newAPMMetricsBuilder()
 	for i := 0; i < otelMetrics.Len(); i++ {
+		builder.accumulate(otelMetrics.At(i))
 		if !c.addMetric(otelMetrics.At(i), ms) {
 			unsupported++
 		}
 	}
+	builder.emit(ms)
 	for key, ms := range ms {
 		event := baseEvent
 		event.Processor = model.MetricsetProcessor
@@ -278,45 +454,6 @@ func (ms metricsets) upsert(timestamp time.Time, name string, attributes pdata.A
 	// We always record metrics as they are given. We also copy some
 	// well-known OpenTelemetry metrics to their Elastic APM equivalents.
 	ms.upsertOne(timestamp, name, attributes, sample)
-
-	switch name {
-	case "runtime.jvm.memory.area":
-		// runtime.jvm.memory.area -> jvm.memory.{area}.{type}
-		// Copy label "gc" to "name".
-		var areaValue, typeValue string
-		attributes.Range(func(k string, v pdata.AttributeValue) bool {
-			switch k {
-			case "area":
-				areaValue = v.AsString()
-			case "type":
-				typeValue = v.AsString()
-			}
-			return true
-		})
-		if areaValue != "" && typeValue != "" {
-			elasticapmName := fmt.Sprintf("jvm.memory.%s.%s", areaValue, typeValue)
-			ms.upsertOne(timestamp, elasticapmName, pdata.NewAttributeMap(), sample)
-		}
-	case "runtime.jvm.gc.collection":
-		// This is the old name for runtime.jvm.gc.time.
-		name = "runtime.jvm.gc.time"
-		fallthrough
-	case "runtime.jvm.gc.time", "runtime.jvm.gc.count":
-		// Chop off the "runtime." prefix, i.e. runtime.jvm.gc.time -> jvm.gc.time.
-		// OpenTelemetry and Elastic APM metrics are both defined in milliseconds.
-		elasticapmName := name[len("runtime."):]
-
-		// Copy label "gc" to "name".
-		elasticapmAttributes := pdata.NewAttributeMap()
-		attributes.Range(func(k string, v pdata.AttributeValue) bool {
-			if k == "gc" {
-				elasticapmAttributes.Insert("name", v)
-				return false
-			}
-			return true
-		})
-		ms.upsertOne(timestamp, elasticapmName, elasticapmAttributes, sample)
-	}
 }
 
 func (ms metricsets) upsertOne(timestamp time.Time, name string, attributes pdata.AttributeMap, sample model.MetricsetSample) {

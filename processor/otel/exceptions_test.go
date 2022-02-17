@@ -52,10 +52,10 @@ func TestEncodeSpanEventsNonExceptions(t *testing.T) {
 
 	incompleteExceptionEvent := pdata.NewSpanEvent()
 	incompleteExceptionEvent.SetName("exception")
-	incompleteExceptionEvent.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+	incompleteExceptionEvent.Attributes().InsertString(
 		// At least one of exception.message and exception.type is required.
-		semconv.AttributeExceptionStacktrace: pdata.NewAttributeValueString("stacktrace"),
-	})
+		semconv.AttributeExceptionStacktrace, "stacktrace",
+	)
 
 	_, events := transformTransactionSpanEvents(t, "java", nonExceptionEvent, incompleteExceptionEvent)
 	require.Len(t, events, 2)
@@ -67,13 +67,12 @@ func TestEncodeSpanEventsJavaExceptions(t *testing.T) {
 	timestamp := time.Unix(123, 0).UTC()
 
 	exceptionEvent1 := pdata.NewSpanEvent()
-	exceptionEvent1.SetTimestamp(pdata.TimestampFromTime(timestamp))
+	exceptionEvent1.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
 	exceptionEvent1.SetName("exception")
-	exceptionEvent1.Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		"exception.type":    pdata.NewAttributeValueString("java.net.ConnectException.OSError"),
-		"exception.message": pdata.NewAttributeValueString("Division by zero"),
-		"exception.escaped": pdata.NewAttributeValueBool(true),
-		"exception.stacktrace": pdata.NewAttributeValueString(`
+	exceptionEvent1.Attributes().InsertString("exception.type", "java.net.ConnectException.OSError")
+	exceptionEvent1.Attributes().InsertString("exception.message", "Division by zero")
+	exceptionEvent1.Attributes().InsertBool("exception.escaped", true)
+	exceptionEvent1.Attributes().InsertString("exception.stacktrace", `
 Exception in thread "main" java.lang.RuntimeException: Test exception
 	at com.example.GenerateTrace.methodB(GenerateTrace.java:13)
 	at com.example.GenerateTrace.methodA(GenerateTrace.java:9)
@@ -81,16 +80,14 @@ Exception in thread "main" java.lang.RuntimeException: Test exception
 	at com.foo.loader/foo@9.0/com.foo.Main.run(Main.java)
 	at com.foo.loader//com.foo.bar.App.run(App.java:12)
 	at java.base/java.lang.Thread.run(Unknown Source)
-`[1:],
-		),
-	})
+`[1:])
+
 	exceptionEvent2 := pdata.NewSpanEvent()
-	exceptionEvent2.SetTimestamp(pdata.TimestampFromTime(timestamp))
+	exceptionEvent2.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
 	exceptionEvent2.SetName("exception")
-	exceptionEvent2.Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		"exception.type":    pdata.NewAttributeValueString("HighLevelException"),
-		"exception.message": pdata.NewAttributeValueString("MidLevelException: LowLevelException"),
-		"exception.stacktrace": pdata.NewAttributeValueString(`
+	exceptionEvent2.Attributes().InsertString("exception.type", "HighLevelException")
+	exceptionEvent2.Attributes().InsertString("exception.message", "MidLevelException: LowLevelException")
+	exceptionEvent2.Attributes().InsertString("exception.stacktrace", `
 HighLevelException: MidLevelException: LowLevelException
 	at Junk.a(Junk.java:13)
 	at Junk.main(Junk.java:4)
@@ -106,9 +103,7 @@ Caused by: LowLevelException
 	at Junk.e(Junk.java:37)
 	at Junk.d(Junk.java:34)
 	at Junk.c(Junk.java:21)
-	... 3 more`[1:],
-		),
-	})
+	... 3 more`[1:])
 
 	service, agent := languageOnlyMetadata("java")
 	transactionEvent, errorEvents := transformTransactionSpanEvents(t, "java", exceptionEvent1, exceptionEvent2)
@@ -291,10 +286,8 @@ Caused by: whatever
 	for _, stacktrace := range stacktraces {
 		event := pdata.NewSpanEvent()
 		event.SetName("exception")
-		event.Attributes().InitFromMap(map[string]pdata.AttributeValue{
-			"exception.type":       pdata.NewAttributeValueString("ExceptionType"),
-			"exception.stacktrace": pdata.NewAttributeValueString(stacktrace),
-		})
+		event.Attributes().InsertString("exception.type", "ExceptionType")
+		event.Attributes().InsertString("exception.stacktrace", stacktrace)
 		events = append(events, event)
 	}
 
@@ -311,13 +304,11 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 	timestamp := time.Unix(123, 0).UTC()
 
 	exceptionEvent := pdata.NewSpanEvent()
-	exceptionEvent.SetTimestamp(pdata.TimestampFromTime(timestamp))
+	exceptionEvent.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
 	exceptionEvent.SetName("exception")
-	exceptionEvent.Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		"exception.type":       pdata.NewAttributeValueString("the_type"),
-		"exception.message":    pdata.NewAttributeValueString("the_message"),
-		"exception.stacktrace": pdata.NewAttributeValueString("the_stacktrace"),
-	})
+	exceptionEvent.Attributes().InsertString("exception.type", "the_type")
+	exceptionEvent.Attributes().InsertString("exception.message", "the_message")
+	exceptionEvent.Attributes().InsertString("exception.stacktrace", "the_stacktrace")
 
 	// For languages where we do not explicitly parse the stacktrace,
 	// the raw stacktrace is stored as an attribute on the exception.

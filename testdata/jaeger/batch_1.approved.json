@@ -8,6 +8,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 19711000,
                 "outcome": "unknown"
             },
             "host": {
@@ -33,9 +34,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 19711
-                },
                 "id": "6e09e8bcefd6b828",
                 "name": "FindDriverIDs",
                 "type": "unknown"
@@ -90,6 +88,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 33732000,
                 "outcome": "failure"
             },
             "host": {
@@ -115,9 +114,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 33732
-                },
                 "id": "333295bfb438ea03",
                 "name": "GetDriver",
                 "type": "unknown"
@@ -183,6 +179,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 9240000,
                 "outcome": "unknown"
             },
             "host": {
@@ -208,9 +205,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 9240
-                },
                 "id": "627c37a97e475c2f",
                 "name": "GetDriver",
                 "type": "unknown"
@@ -230,6 +224,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 12561000,
                 "outcome": "unknown"
             },
             "host": {
@@ -255,9 +250,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 12561
-                },
                 "id": "7bd7663d39c5a847",
                 "name": "GetDriver",
                 "type": "unknown"
@@ -277,6 +269,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 10630000,
                 "outcome": "unknown"
             },
             "host": {
@@ -302,9 +295,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 10630
-                },
                 "id": "6b4051dd2a5e2366",
                 "name": "GetDriver",
                 "type": "unknown"
@@ -324,6 +314,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 13946000,
                 "outcome": "unknown"
             },
             "host": {
@@ -349,9 +340,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 13946
-                },
                 "id": "6df97a86b9b3451b",
                 "name": "GetDriver",
                 "type": "unknown"
@@ -371,6 +359,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 35375000,
                 "outcome": "failure"
             },
             "host": {
@@ -396,9 +385,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 35375
-                },
                 "id": "614811d6c498bfb0",
                 "name": "GetDriver",
                 "type": "unknown"
@@ -464,6 +450,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 11802000,
                 "outcome": "unknown"
             },
             "host": {
@@ -489,9 +476,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 11802
-                },
                 "id": "231604559da84d61",
                 "name": "GetDriver",
                 "type": "unknown"
@@ -511,6 +495,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 12236000,
                 "outcome": "unknown"
             },
             "host": {
@@ -536,9 +521,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 12236
-                },
                 "id": "61f7ecf24d13c36a",
                 "name": "GetDriver",
                 "type": "unknown"
@@ -558,6 +540,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 11986000,
                 "outcome": "unknown"
             },
             "host": {
@@ -583,9 +566,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 11986
-                },
                 "id": "2ef335bad24accc2",
                 "name": "GetDriver",
                 "type": "unknown"
@@ -605,6 +585,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 7311000,
                 "outcome": "unknown"
             },
             "host": {
@@ -630,9 +611,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 7311
-                },
                 "id": "38ec645e7201224d",
                 "name": "GetDriver",
                 "type": "unknown"
@@ -652,6 +630,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 39602000,
                 "outcome": "failure"
             },
             "host": {
@@ -677,9 +656,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 39602
-                },
                 "id": "0242ee3774d9eab1",
                 "name": "GetDriver",
                 "type": "unknown"
@@ -745,6 +721,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 14029000,
                 "outcome": "unknown"
             },
             "host": {
@@ -770,9 +747,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 14029
-                },
                 "id": "6a63d1e81cfc7d95",
                 "name": "GetDriver",
                 "type": "unknown"
@@ -792,6 +766,7 @@
                 "version": "2.20.1"
             },
             "event": {
+                "duration": 10431000,
                 "outcome": "unknown"
             },
             "host": {
@@ -817,9 +792,6 @@
                 "name": "redis"
             },
             "span": {
-                "duration": {
-                    "us": 10431
-                },
                 "id": "2b4c28f02b272f17",
                 "name": "GetDriver",
                 "type": "unknown"

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package scrapererror
+package scrapererror // import "go.opentelemetry.io/collector/receiver/scrapererror"
 
 import (
-	"go.opentelemetry.io/collector/consumer/consumererror"
+	"go.uber.org/multierr"
 )
 
 // ScrapeErrors contains multiple PartialScrapeErrors and can also contain generic errors.
@@ -45,9 +45,10 @@ func (s *ScrapeErrors) Combine() error {
 		}
 	}
 
+	combined := multierr.Combine(s.errs...)
 	if !partialScrapeErr {
-		return consumererror.Combine(s.errs)
+		return combined
 	}
 
-	return NewPartialScrapeError(consumererror.Combine(s.errs), s.failedScrapeCount)
+	return NewPartialScrapeError(combined, s.failedScrapeCount)
 }

@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package builder // import "go.opentelemetry.io/collector/service/internal/builder"
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
-	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/multierr"
 	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/consumererror"
+	"go.opentelemetry.io/collector/service/internal/components"
 	"go.opentelemetry.io/collector/service/internal/fanoutconsumer"
 )
 
@@ -41,7 +41,7 @@ type builtReceiver struct {
 
 // Start starts the receiver.
 func (rcv *builtReceiver) Start(ctx context.Context, host component.Host) error {
-	return rcv.receiver.Start(ctx, host)
+	return rcv.receiver.Start(ctx, components.NewHostWrapper(host, rcv.logger))
 }
 
 // Shutdown stops the receiver.
@@ -54,15 +54,12 @@ type Receivers map[config.ComponentID]*builtReceiver
 
 // ShutdownAll stops all receivers.
 func (rcvs Receivers) ShutdownAll(ctx context.Context) error {
-	var errs []error
+	var err error
 	for _, rcv := range rcvs {
-		err := rcv.Shutdown(ctx)
-		if err != nil {
-			errs = append(errs, err)
-		}
+		err = multierr.Append(err, rcv.Shutdown(ctx))
 	}
 
-	return consumererror.Combine(errs)
+	return err
 }
 
 // StartAll starts all receivers.
@@ -70,7 +67,7 @@ func (rcvs Receivers) StartAll(ctx context.Context, host component.Host) error {
 	for _, rcv := range rcvs {
 		rcv.logger.Info("Receiver is starting...")
 
-		if err := rcv.Start(ctx, newHostWrapper(host, rcv.logger)); err != nil {
+		if err := rcv.Start(ctx, host); err != nil {
 			return err
 		}
 		rcv.logger.Info("Receiver started.")
@@ -87,8 +84,7 @@ type receiversBuilder struct {
 
 // BuildReceivers builds Receivers from config.
 func BuildReceivers(
-	logger *zap.Logger,
-	tracerProvider trace.TracerProvider,
+	settings component.TelemetrySettings,
 	buildInfo component.BuildInfo,
 	cfg *config.Config,
 	builtPipelines BuiltPipelines,
@@ -99,12 +95,18 @@ func BuildReceivers(
 	receivers := make(Receivers)
 	for recvID, recvCfg := range cfg.Receivers {
 		set := component.ReceiverCreateSettings{
-			Logger:         logger.With(zap.String(zapKindKey, zapKindReceiver), zap.String(zapNameKey, recvID.String())),
-			TracerProvider: tracerProvider,
-			BuildInfo:      buildInfo,
+			TelemetrySettings: component.TelemetrySettings{
+				Logger: settings.Logger.With(
+					zap.String(components.ZapKindKey, components.ZapKindReceiver),
+					zap.String(components.ZapNameKey, recvID.String())),
+				TracerProvider: settings.TracerProvider,
+				MeterProvider:  settings.MeterProvider,
+				MetricsLevel:   cfg.Telemetry.Metrics.Level,
+			},
+			BuildInfo: buildInfo,
 		}
 
-		rcv, err := rb.buildReceiver(context.Background(), set, recvCfg)
+		rcv, err := rb.buildReceiver(context.Background(), set, recvID, recvCfg)
 		if err != nil {
 			if err == errUnusedReceiver {
 				set.Logger.Info("Ignoring receiver as it is not used by any pipeline")
@@ -136,27 +138,23 @@ func (rb *receiversBuilder) findPipelinesToAttach(receiverID config.ComponentID)
 	// attached to this receiver according to configuration.
 
 	pipelinesToAttach := make(attachedPipelines)
-	pipelinesToAttach[config.TracesDataType] = make([]*builtPipeline, 0)
-	pipelinesToAttach[config.MetricsDataType] = make([]*builtPipeline, 0)
 
 	// Iterate over all pipelines.
-	for _, pipelineCfg := range rb.config.Service.Pipelines {
+	for pipelineID, pipelineCfg := range rb.config.Service.Pipelines {
 		// Get the first processor of the pipeline.
-		pipelineProcessor := rb.builtPipelines[pipelineCfg]
+		pipelineProcessor := rb.builtPipelines[pipelineID]
 		if pipelineProcessor == nil {
-			return nil, fmt.Errorf("cannot find pipeline processor for pipeline %s",
-				pipelineCfg.Name)
+			return nil, fmt.Errorf("cannot find pipeline %q", pipelineID)
 		}
 
 		// Is this receiver attached to the pipeline?
 		if hasReceiver(pipelineCfg, receiverID) {
-			if _, exists := pipelinesToAttach[pipelineCfg.InputType]; !exists {
-				pipelinesToAttach[pipelineCfg.InputType] = make([]*builtPipeline, 0)
+			if _, exists := pipelinesToAttach[pipelineID.Type()]; !exists {
+				pipelinesToAttach[pipelineID.Type()] = make([]*builtPipeline, 0)
 			}
 
 			// Yes, add it to the list of pipelines of corresponding data type.
-			pipelinesToAttach[pipelineCfg.InputType] =
-				append(pipelinesToAttach[pipelineCfg.InputType], pipelineProcessor)
+			pipelinesToAttach[pipelineID.Type()] = append(pipelinesToAttach[pipelineID.Type()], pipelineProcessor)
 		}
 	}
 
@@ -168,6 +166,7 @@ func attachReceiverToPipelines(
 	set component.ReceiverCreateSettings,
 	factory component.ReceiverFactory,
 	dataType config.DataType,
+	id config.ComponentID,
 	cfg config.Receiver,
 	rcv *builtReceiver,
 	builtPipelines []*builtPipeline,
@@ -199,14 +198,14 @@ func attachReceiverToPipelines(
 		if err == componenterror.ErrDataTypeIsNotSupported {
 			return fmt.Errorf(
 				"receiver %v does not support %s but it was used in a %s pipeline",
-				cfg.ID(), dataType, dataType)
+				id, dataType, dataType)
 		}
-		return fmt.Errorf("cannot create receiver %v: %w", cfg.ID(), err)
+		return fmt.Errorf("cannot create receiver %v: %w", id, err)
 	}
 
 	// Check if the factory really created the receiver.
 	if createdReceiver == nil {
-		return fmt.Errorf("factory for %v produced a nil receiver", cfg.ID())
+		return fmt.Errorf("factory for %v produced a nil receiver", id)
 	}
 
 	if rcv.receiver != nil {
@@ -215,10 +214,10 @@ func attachReceiverToPipelines(
 		// that CreateTracesReceiver and CreateMetricsReceiver return the same value.
 		if rcv.receiver != createdReceiver {
 			return fmt.Errorf(
-				"factory for %v is implemented incorrectly: "+
-					"CreateTracesReceiver and CreateMetricsReceiver must return the same "+
-					"receiver pointer when creating receivers of different data types",
-				cfg.ID(),
+				"factory for %q is implemented incorrectly: "+
+					"CreateTracesReceiver, CreateMetricsReceiver and CreateLogsReceiver must return "+
+					"the same receiver pointer when creating receivers of different data types",
+				id,
 			)
 		}
 	}
@@ -229,16 +228,16 @@ func attachReceiverToPipelines(
 	return nil
 }
 
-func (rb *receiversBuilder) buildReceiver(ctx context.Context, set component.ReceiverCreateSettings, cfg config.Receiver) (*builtReceiver, error) {
+func (rb *receiversBuilder) buildReceiver(ctx context.Context, set component.ReceiverCreateSettings, id config.ComponentID, cfg config.Receiver) (*builtReceiver, error) {
 
 	// First find pipelines that must be attached to this receiver.
-	pipelinesToAttach, err := rb.findPipelinesToAttach(cfg.ID())
+	pipelinesToAttach, err := rb.findPipelinesToAttach(id)
 	if err != nil {
 		return nil, err
 	}
 
 	// Prepare to build the receiver.
-	factory := rb.factories[cfg.ID().Type()]
+	factory := rb.factories[id.Type()]
 	if factory == nil {
 		return nil, fmt.Errorf("receiver factory not found for: %v", cfg.ID())
 	}
@@ -255,8 +254,7 @@ func (rb *receiversBuilder) buildReceiver(ctx context.Context, set component.Rec
 
 		// Attach the corresponding part of the receiver to all pipelines that require
 		// this data type.
-		err := attachReceiverToPipelines(ctx, set, factory, dataType, cfg, rcv, pipelines)
-		if err != nil {
+		if err = attachReceiverToPipelines(ctx, set, factory, dataType, id, cfg, rcv, pipelines); err != nil {
 			return nil, err
 		}
 	}
@@ -269,76 +267,28 @@ func (rb *receiversBuilder) buildReceiver(ctx context.Context, set component.Rec
 }
 
 func buildFanoutTraceConsumer(pipelines []*builtPipeline) consumer.Traces {
-	// Optimize for the case when there is only one processor, no need to create junction point.
-	if len(pipelines) == 1 {
-		return pipelines[0].firstTC
-	}
-
 	var pipelineConsumers []consumer.Traces
-	anyPipelineMutatesData := false
 	for _, pipeline := range pipelines {
 		pipelineConsumers = append(pipelineConsumers, pipeline.firstTC)
-		anyPipelineMutatesData = anyPipelineMutatesData || pipeline.MutatesData
 	}
-
 	// Create a junction point that fans out to all pipelines.
-	if anyPipelineMutatesData {
-		// If any pipeline mutates data use a cloning fan out connector
-		// so that it is safe to modify fanned out data.
-		// TODO: if there are more than 2 pipelines only clone data for pipelines that
-		// declare the intent to mutate the data. Pipelines that do not mutate the data
-		// can consume shared data.
-		return fanoutconsumer.NewTracesCloning(pipelineConsumers)
-	}
 	return fanoutconsumer.NewTraces(pipelineConsumers)
 }
 
 func buildFanoutMetricConsumer(pipelines []*builtPipeline) consumer.Metrics {
-	// Optimize for the case when there is only one processor, no need to create junction point.
-	if len(pipelines) == 1 {
-		return pipelines[0].firstMC
-	}
-
 	var pipelineConsumers []consumer.Metrics
-	anyPipelineMutatesData := false
 	for _, pipeline := range pipelines {
 		pipelineConsumers = append(pipelineConsumers, pipeline.firstMC)
-		anyPipelineMutatesData = anyPipelineMutatesData || pipeline.MutatesData
 	}
-
 	// Create a junction point that fans out to all pipelines.
-	if anyPipelineMutatesData {
-		// If any pipeline mutates data use a cloning fan out connector
-		// so that it is safe to modify fanned out data.
-		// TODO: if there are more than 2 pipelines only clone data for pipelines that
-		// declare the intent to mutate the data. Pipelines that do not mutate the data
-		// can consume shared data.
-		return fanoutconsumer.NewMetricsCloning(pipelineConsumers)
-	}
 	return fanoutconsumer.NewMetrics(pipelineConsumers)
 }
 
 func buildFanoutLogConsumer(pipelines []*builtPipeline) consumer.Logs {
-	// Optimize for the case when there is only one processor, no need to create junction point.
-	if len(pipelines) == 1 {
-		return pipelines[0].firstLC
-	}
-
 	var pipelineConsumers []consumer.Logs
-	anyPipelineMutatesData := false
 	for _, pipeline := range pipelines {
 		pipelineConsumers = append(pipelineConsumers, pipeline.firstLC)
-		anyPipelineMutatesData = anyPipelineMutatesData || pipeline.MutatesData
 	}
-
 	// Create a junction point that fans out to all pipelines.
-	if anyPipelineMutatesData {
-		// If any pipeline mutates data use a cloning fan out connector
-		// so that it is safe to modify fanned out data.
-		// TODO: if there are more than 2 pipelines only clone data for pipelines that
-		// declare the intent to mutate the data. Pipelines that do not mutate the data
-		// can consume shared data.
-		return fanoutconsumer.NewLogsCloning(pipelineConsumers)
-	}
 	return fanoutconsumer.NewLogs(pipelineConsumers)
 }

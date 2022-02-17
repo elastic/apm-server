@@ -91,20 +91,22 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 		Timestamp: e.Timestamp,
 		Fields:    make(common.MapStr),
 	}
+	fields := (*mapStr)(&event.Fields)
+
 	if e.Transaction != nil {
-		e.Transaction.setFields((*mapStr)(&event.Fields), e)
+		fields.maybeSetMapStr("transaction", e.Transaction.fields())
 	}
 	if e.Span != nil {
-		e.Span.setFields((*mapStr)(&event.Fields), e)
+		fields.maybeSetMapStr("span", e.Span.fields())
 	}
 	if e.Metricset != nil {
 		e.Metricset.setFields((*mapStr)(&event.Fields))
 	}
 	if e.Error != nil {
-		e.Error.setFields((*mapStr)(&event.Fields))
+		fields.maybeSetMapStr("error", e.Error.fields())
 	}
 	if e.ProfileSample != nil {
-		e.ProfileSample.setFields((*mapStr)(&event.Fields))
+		fields.maybeSetMapStr("profile", e.ProfileSample.fields())
 	}
 
 	// Set high resolution timestamp.
@@ -118,7 +120,6 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 	}
 
 	// Set top-level field sets.
-	fields := (*mapStr)(&event.Fields)
 	event.Timestamp = e.Timestamp
 	e.DataStream.setFields(fields)
 	if e.ECSVersion != "" {

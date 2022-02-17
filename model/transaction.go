@@ -83,13 +83,8 @@ type SpanCount struct {
 	Started *int
 }
 
-func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
+func (e *Transaction) fields() common.MapStr {
 	var transaction mapStr
-	if apmEvent.Processor == TransactionProcessor {
-		// TODO(axw) set `event.duration` in 8.0, and remove this field.
-		// See https://github.com/elastic/apm-server/issues/5999
-		transaction.set("duration", common.MapStr{"us": int(apmEvent.Event.Duration.Microseconds())})
-	}
 	transaction.maybeSetString("id", e.ID)
 	transaction.maybeSetString("type", e.Type)
 	transaction.maybeSetMapStr("duration.histogram", e.DurationHistogram.fields())
@@ -122,7 +117,7 @@ func (e *Transaction) setFields(fields *mapStr, apmEvent *APMEvent) {
 	if len(dss) > 0 {
 		transaction.set("dropped_spans_stats", dss)
 	}
-	fields.maybeSetMapStr("transaction", common.MapStr(transaction))
+	return common.MapStr(transaction)
 }
 
 type TransactionMarks map[string]TransactionMark

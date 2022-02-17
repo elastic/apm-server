@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -38,6 +39,7 @@ func getCommonPipeline(name string, version *common.Version) []map[string]interf
 		"observer_version": getObserverVersionPipeline(version),
 		"user_agent":       userAgentPipeline,
 		"client_geoip":     clientGeoIPPipeline,
+		"event_duration":   eventDurationPipeline,
 	}
 	return commonPipelines[name]
 }
@@ -107,5 +109,30 @@ var clientGeoIPPipeline = []map[string]interface{}{{
 				"ignore_failure": true,
 			},
 		}},
+	},
+}}
+
+// This pipeline translates `event.duration` (defaulting to zero if not
+// found) to `transaction.duration.us` or `span.duration.us` depending on
+// the event type, and then removes `event.duration`. Older versions of
+// APM Server will send `<event>.duration.us`, in which case we skip this
+// pipeline.
+//
+// TODO(axw) remove this pipeline when we are ready to migrate the UI to
+// `event.duration`. See https://github.com/elastic/apm-server/issues/5999.
+var eventDurationPipeline = []map[string]interface{}{{
+	"script": map[string]interface{}{
+		"if": "ctx.processor?.event != null && ctx.get(ctx.processor.event) != null && ctx.get(ctx.processor.event)?.duration == null",
+		"source": strings.TrimSpace(`
+def durationNanos = ctx.event?.duration ?: 0;
+def eventType = ctx.processor.event;
+ctx.get(ctx.processor.event).duration = ["us": (int)(durationNanos/1000)];
+`),
+	},
+}, {
+	"remove": map[string]interface{}{
+		"field":          "event.duration",
+		"ignore_missing": true,
+		"ignore_failure": true,
 	},
 }}
