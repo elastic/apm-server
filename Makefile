@@ -301,5 +301,34 @@ release-manager-release: release
 
 .PHONY: release
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
+<<<<<<< HEAD
 release: $(MAGE)
 	$(MAGE) package
+=======
+release: $(MAGE) $(PYTHON) build/$(JAVA_ATTACHER_JAR) build/dependencies.csv
+	$(MAGE) package
+
+build/dependencies.csv: go.mod
+	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
+
+JAVA_ATTACHER_VERSION:=1.28.4
+JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
+JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
+JAVA_ATTACHER_BASE_URL:=https://repo1.maven.org/maven2/co/elastic/apm/apm-agent-attach-cli
+JAVA_ATTACHER_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_JAR)
+JAVA_ATTACHER_SIG_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_SIG)
+
+APM_AGENT_JAVA_PUB_KEY:=apm-agent-java-public-key.asc
+
+.imported-java-agent-pubkey:
+	@gpg --import $(APM_AGENT_JAVA_PUB_KEY)
+	@touch $@
+
+build/$(JAVA_ATTACHER_SIG):
+	curl -sSL $(JAVA_ATTACHER_SIG_URL) > $@
+
+build/$(JAVA_ATTACHER_JAR): build/$(JAVA_ATTACHER_SIG) .imported-java-agent-pubkey
+	curl -sSL $(JAVA_ATTACHER_URL) > $@
+	gpg --verify $< $@
+	@cp $@ build/java-attacher.jar
+>>>>>>> 4b3419cf (Makefile: build dependencies.csv (#7328))
