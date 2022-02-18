@@ -19,6 +19,8 @@ package config
 
 // DataStreamsConfig holds data streams configuration.
 type DataStreamsConfig struct {
+	Namespace string `config:"namespace"`
+
 	// WaitForIntegration controls whether APM Server waits for the Fleet
 	// integration package to be installed before indexing events.
 	//
@@ -32,6 +34,7 @@ type DataStreamsConfig struct {
 
 func defaultDataStreamsConfig() DataStreamsConfig {
 	return DataStreamsConfig{
+		Namespace:          "default",
 		WaitForIntegration: true,
 	}
 }

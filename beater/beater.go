@@ -205,7 +205,6 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		})
 	} else {
 		// Management disabled, use statically defined config.
-		reloader.namespace = "default"
 		reloader.rawConfig = bt.rawConfig
 		if b.Config != nil {
 			reloader.outputConfig = b.Config.Output
@@ -299,7 +298,6 @@ func (r *reloader) reload() error {
 
 	runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
 		sharedServerRunnerParams: r.args,
-		Namespace:                r.namespace,
 		RawConfig:                r.rawConfig,
 		FleetConfig:              r.fleetConfig,
 		OutputConfig:             r.outputConfig,
@@ -357,7 +355,6 @@ type serverRunner struct {
 type serverRunnerParams struct {
 	sharedServerRunnerParams
 
-	Namespace    string
 	RawConfig    *common.Config
 	FleetConfig  *config.Fleet
 	OutputConfig common.ConfigNamespace
@@ -397,7 +394,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		fleetConfig:               args.FleetConfig,
 		acker:                     args.Acker,
 		pipeline:                  args.Beat.Publisher,
-		namespace:                 args.Namespace,
+		namespace:                 cfg.DataStreams.Namespace,
 		beat:                      args.Beat,
 		logger:                    args.Logger,
 		tracer:                    args.Tracer,
