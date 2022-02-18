@@ -74,19 +74,19 @@ func TestConsumerConsumeLogs(t *testing.T) {
 			Severity: int64(pdata.SeverityNumberINFO),
 			Action:   "doOperation()",
 		},
-		Log:   model.Log{Level: "Info"},
-		Span:  &model.Span{ID: "0200000000000000"},
-		Trace: model.Trace{ID: "01000000000000000000000000000000"},
-		Labels: model.Labels{
-			"key": model.LabelValue{Value: "value"},
-		},
-		NumericLabels: model.NumericLabels{
-			"numeric_key": model.NumericLabelValue{Value: 1234},
-		},
+		Log:           model.Log{Level: "Info"},
+		Span:          &model.Span{ID: "0200000000000000"},
+		Trace:         model.Trace{ID: "01000000000000000000000000000000"},
+		Labels:        model.Labels{},
+		NumericLabels: model.NumericLabels{},
 	}
 	test := func(name string, body interface{}, expectedMessage string) {
 		t.Run(name, func(t *testing.T) {
-			logs := newLogs(body)
+			logs := pdata.NewLogs()
+			resourceLogs := logs.ResourceLogs().AppendEmpty()
+			logs.ResourceLogs().At(0).Resource().Attributes().InsertString(semconv.AttributeTelemetrySDKLanguage, "go")
+			instrumentationLogs := resourceLogs.InstrumentationLibraryLogs().AppendEmpty()
+			newLogRecord(body).CopyTo(instrumentationLogs.LogRecords().AppendEmpty())
 
 			var processed model.Batch
 			var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
@@ -113,20 +113,57 @@ func TestConsumerConsumeLogs(t *testing.T) {
 	// TODO(marclop): How to test map body
 }
 
-func newLogs(body interface{}) pdata.Logs {
+func TestConsumerConsumeLogsLabels(t *testing.T) {
 	logs := pdata.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
-	logs.ResourceLogs().At(0).Resource().Attributes().InsertString(semconv.AttributeTelemetrySDKLanguage, "go")
+	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
+	resourceAttrs.InsertString(semconv.AttributeTelemetrySDKLanguage, "go")
+	resourceAttrs.InsertString("key0", "zero")
 	instrumentationLogs := resourceLogs.InstrumentationLibraryLogs().AppendEmpty()
-	otelLogRecord := instrumentationLogs.LogRecords().AppendEmpty()
+
+	record1 := newLogRecord("whatever")
+	record1.Attributes().InsertString("key1", "one")
+	record1.CopyTo(instrumentationLogs.LogRecords().AppendEmpty())
+
+	record2 := newLogRecord("andever")
+	record2.Attributes().InsertDouble("key2", 2)
+	record2.CopyTo(instrumentationLogs.LogRecords().AppendEmpty())
+
+	record3 := newLogRecord("amen")
+	record3.Attributes().InsertString("key3", "three")
+	record3.Attributes().InsertInt("key4", 4)
+	record3.CopyTo(instrumentationLogs.LogRecords().AppendEmpty())
+
+	var processed model.Batch
+	var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
+		if processed != nil {
+			panic("already processes batch")
+		}
+		processed = *batch
+		assert.NotNil(t, processed[0].Timestamp)
+		processed[0].Timestamp = time.Time{}
+		return nil
+	}
+	consumer := otel.Consumer{Processor: processor}
+	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+
+	assert.Len(t, processed, 3)
+	assert.Equal(t, model.Labels{"key0": {Value: "zero"}, "key1": {Value: "one"}}, processed[0].Labels)
+	assert.Empty(t, processed[0].NumericLabels)
+	assert.Equal(t, model.Labels{"key0": {Value: "zero"}}, processed[1].Labels)
+	assert.Equal(t, model.NumericLabels{"key2": {Value: 2}}, processed[1].NumericLabels)
+	assert.Equal(t, model.Labels{"key0": {Value: "zero"}, "key3": {Value: "three"}}, processed[2].Labels)
+	assert.Equal(t, model.NumericLabels{"key4": {Value: 4}}, processed[2].NumericLabels)
+}
+
+func newLogRecord(body interface{}) pdata.LogRecord {
+	otelLogRecord := pdata.NewLogRecord()
 	otelLogRecord.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelLogRecord.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	otelLogRecord.SetName("doOperation()")
 	otelLogRecord.SetSeverityNumber(pdata.SeverityNumberINFO)
 	otelLogRecord.SetSeverityText("Info")
 	otelLogRecord.SetTimestamp(pdata.NewTimestampFromTime(time.Now()))
-	otelLogRecord.Attributes().InsertString("key", "value")
-	otelLogRecord.Attributes().InsertDouble("numeric_key", 1234)
 
 	switch b := body.(type) {
 	case string:
@@ -142,5 +179,5 @@ func newLogs(body interface{}) pdata.Logs {
 		// as a map.
 		// otelLogRecord.Body()
 	}
-	return logs
+	return otelLogRecord
 }
