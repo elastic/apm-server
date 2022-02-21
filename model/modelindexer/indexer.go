@@ -80,12 +80,13 @@ type Indexer struct {
 	available chan *bulkIndexer
 	g         errgroup.Group
 
-	mu       sync.RWMutex
-	closing  bool
-	closed   chan struct{}
-	activeMu sync.Mutex
-	active   *bulkIndexer
-	timer    *time.Timer
+	mu           sync.RWMutex
+	closing      bool
+	closed       chan struct{}
+	activeMu     sync.Mutex
+	active       *bulkIndexer
+	timer        *time.Timer
+	timerStopped chan struct{}
 }
 
 // Config holds configuration for Indexer.
@@ -142,10 +143,11 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		available <- newBulkIndexer(client, cfg.CompressionLevel)
 	}
 	return &Indexer{
-		config:    cfg,
-		logger:    logger,
-		available: available,
-		closed:    make(chan struct{}),
+		config:       cfg,
+		logger:       logger,
+		available:    available,
+		closed:       make(chan struct{}),
+		timerStopped: make(chan struct{}),
 	}, nil
 }
 
@@ -161,7 +163,7 @@ func (i *Indexer) Close(ctx context.Context) error {
 		i.closing = true
 
 		// Close i.closed when ctx is cancelled,
-		// unblock any ongoing flush attempts.
+		// unblocking any ongoing flush attempts.
 		done := make(chan struct{})
 		defer close(done)
 		go func() {
@@ -173,10 +175,10 @@ func (i *Indexer) Close(ctx context.Context) error {
 		}()
 
 		i.activeMu.Lock()
-		defer i.activeMu.Unlock()
 		if i.active != nil && i.timer.Stop() {
-			i.flushActiveLocked(ctx)
+			i.timerStopped <- struct{}{}
 		}
+		i.activeMu.Unlock()
 	}
 	return i.g.Wait()
 }
@@ -235,13 +237,20 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 		case i.active = <-i.available:
 		}
 		if i.timer == nil {
-			i.timer = time.AfterFunc(
-				i.config.FlushInterval,
-				i.flushActive,
-			)
+			i.timer = time.NewTimer(i.config.FlushInterval)
 		} else {
 			i.timer.Reset(i.config.FlushInterval)
 		}
+		i.g.Go(func() error {
+			// The timer may be stopped by i.Close or when
+			// i.config.FlushBytes is exceeded, in which case
+			// i.timerStopped will be signalled.
+			select {
+			case <-i.timerStopped:
+			case <-i.timer.C:
+			}
+			return i.flushActive(context.Background())
+		})
 	}
 
 	if err := i.active.Add(elasticsearch.BulkIndexerItem{
@@ -256,7 +265,7 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 
 	if i.active.Len() >= i.config.FlushBytes {
 		if i.timer.Stop() {
-			i.flushActiveLocked(context.Background())
+			i.timerStopped <- struct{}{}
 		}
 	}
 	return nil
@@ -309,13 +318,7 @@ func encodeMap(v map[string]interface{}, out *fastjson.Writer) error {
 	return nil
 }
 
-func (i *Indexer) flushActive() {
-	i.activeMu.Lock()
-	defer i.activeMu.Unlock()
-	i.flushActiveLocked(context.Background())
-}
-
-func (i *Indexer) flushActiveLocked(ctx context.Context) {
+func (i *Indexer) flushActive(ctx context.Context) error {
 	// Create a child context which is cancelled when the context passed to i.Close is cancelled.
 	flushed := make(chan struct{})
 	ctx, cancel := context.WithCancel(ctx)
@@ -326,15 +329,15 @@ func (i *Indexer) flushActiveLocked(ctx context.Context) {
 		case <-flushed:
 		}
 	}()
+
+	i.activeMu.Lock()
+	defer i.activeMu.Unlock()
 	bulkIndexer := i.active
 	i.active = nil
-	i.g.Go(func() error {
-		defer close(flushed)
-		err := i.flush(ctx, bulkIndexer)
-		bulkIndexer.Reset()
-		i.available <- bulkIndexer
-		return err
-	})
+	err := i.flush(ctx, bulkIndexer)
+	bulkIndexer.Reset()
+	i.available <- bulkIndexer
+	return err
 }
 
 func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {

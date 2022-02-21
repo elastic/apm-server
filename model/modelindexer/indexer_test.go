@@ -356,7 +356,9 @@ func TestModelIndexerCloseFlushContext(t *testing.T) {
 		case <-r.Context().Done():
 		}
 	})
-	indexer, err := modelindexer.New(client, modelindexer.Config{})
+	indexer, err := modelindexer.New(client, modelindexer.Config{
+		FlushInterval: time.Millisecond,
+	})
 	require.NoError(t, err)
 	defer indexer.Close(context.Background())
 
