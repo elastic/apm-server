@@ -301,5 +301,8 @@ release-manager-release: release
 
 .PHONY: release
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
-release: $(MAGE)
+release: $(MAGE) build/dependencies.csv
 	$(MAGE) package
+
+build/dependencies.csv: go.mod
+	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
