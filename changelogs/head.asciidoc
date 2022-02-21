@@ -16,6 +16,7 @@ See <<apm-server-configuration>> for more information.
 - Fix infinite loop in tail-based sampling subscriber causing high CPU and repeated Elasticsearch searches {pull}7211[7211]
 - Do not overwrite `service version` if no transaction/error/... specific `service.name` is givven {pull}7281[7281]
 - Fix panic when processing OpenTelemetry histogram metrics without bounds {pull}7316[7316]
+- Fix mixing of labels across OpenTelemetry log records {pull}7358[7358]
 - Fix waiting for events to be flushed when shutting down APM Server {pull}7352[7352]
 
 [float]
