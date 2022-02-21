@@ -72,6 +72,7 @@ func (c *Consumer) convertResourceLogs(resourceLogs pdata.ResourceLogs, receiveT
 	resource := resourceLogs.Resource()
 	baseEvent := model.APMEvent{Processor: model.LogProcessor}
 	translateResourceMetadata(resource, &baseEvent)
+
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
 		timeDelta = receiveTimestamp.Sub(exportTimestamp)
 	}
@@ -100,6 +101,7 @@ func (c *Consumer) convertLogRecord(
 	timeDelta time.Duration,
 ) model.APMEvent {
 	event := baseEvent
+	initEventLabels(&event)
 	event.Timestamp = record.Timestamp().AsTime().Add(timeDelta)
 	event.Event.Severity = int64(record.SeverityNumber())
 	event.Event.Action = record.Name()
@@ -126,9 +128,6 @@ func (c *Consumer) convertLogRecord(
 }
 
 func setLabels(m pdata.AttributeMap, event *model.APMEvent) {
-	if event.Labels == nil || event.NumericLabels == nil {
-		initEventLabels(event)
-	}
 	m.Range(func(k string, v pdata.AttributeValue) bool {
 		setLabel(k, event, ifaceAttributeValue(v))
 		return true
