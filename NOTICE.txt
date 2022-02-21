@@ -260,11 +260,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20220216195525-4387615408c0
+Version: v7.0.0-alpha2.0.20220218003035-7829fd38e92c
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220216195525-4387615408c0/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220218003035-7829fd38e92c/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -14144,11 +14144,11 @@ Contents of probable licence file $GOMODCACHE/github.com/xdg/stringprep@v1.0.3/L
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/ecszap
-Version: v1.0.0
+Version: v1.0.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/ecszap@v1.0.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/ecszap@v1.0.1/LICENSE:
 
 
                                  Apache License
@@ -16286,11 +16286,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20220216160803-4663080d8bc8
+Version: v0.0.0-20220217155828-d576998c0009
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220216160803-4663080d8bc8/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220217155828-d576998c0009/LICENSE:
 
 
                                  Apache License
