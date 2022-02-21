@@ -14,6 +14,7 @@ See <<apm-server-configuration>> for more information.
 ==== Bug fixes
 - Fix infinite loop in tail-based sampling subscriber causing high CPU and repeated Elasticsearch searches {pull}7211[7211]
 - Fix panic when processing OpenTelemetry histogram metrics without bounds {pull}7316[7316]
+- Fix mixing of labels across OpenTelemetry log records {pull}7358[7358]
 
 [float]
 ==== Intake API Changes
