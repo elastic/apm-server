@@ -86,7 +86,7 @@ func TestConsumerConsumeLogs(t *testing.T) {
 			resourceLogs := logs.ResourceLogs().AppendEmpty()
 			logs.ResourceLogs().At(0).Resource().Attributes().InsertString(semconv.AttributeTelemetrySDKLanguage, "go")
 			instrumentationLogs := resourceLogs.InstrumentationLibraryLogs().AppendEmpty()
-			newLogRecord(body).CopyTo(instrumentationLogs.LogRecords().AppendEmpty())
+			newLogRecord(body).CopyTo(instrumentationLogs.Logs().AppendEmpty())
 
 			var processed model.Batch
 			var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
@@ -116,23 +116,6 @@ func TestConsumerConsumeLogs(t *testing.T) {
 func TestConsumerConsumeLogsLabels(t *testing.T) {
 	logs := pdata.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
-<<<<<<< HEAD
-	logs.ResourceLogs().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		semconv.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString("go"),
-	})
-	instrumentationLogs := resourceLogs.InstrumentationLibraryLogs().AppendEmpty()
-	otelLog := instrumentationLogs.Logs().AppendEmpty()
-	otelLog.SetTraceID(pdata.NewTraceID([16]byte{1}))
-	otelLog.SetSpanID(pdata.NewSpanID([8]byte{2}))
-	otelLog.SetName("doOperation()")
-	otelLog.SetSeverityNumber(pdata.SeverityNumberINFO)
-	otelLog.SetSeverityText("Info")
-	otelLog.SetTimestamp(pdata.NewTimestampFromTime(time.Now()))
-	otelLog.Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		"key":         pdata.NewAttributeValueString("value"),
-		"numeric_key": pdata.NewAttributeValueDouble(1234),
-	})
-=======
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
 	resourceAttrs.InsertString(semconv.AttributeTelemetrySDKLanguage, "go")
 	resourceAttrs.InsertString("key0", "zero")
@@ -140,16 +123,16 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 
 	record1 := newLogRecord("whatever")
 	record1.Attributes().InsertString("key1", "one")
-	record1.CopyTo(instrumentationLogs.LogRecords().AppendEmpty())
+	record1.CopyTo(instrumentationLogs.Logs().AppendEmpty())
 
 	record2 := newLogRecord("andever")
 	record2.Attributes().InsertDouble("key2", 2)
-	record2.CopyTo(instrumentationLogs.LogRecords().AppendEmpty())
+	record2.CopyTo(instrumentationLogs.Logs().AppendEmpty())
 
 	record3 := newLogRecord("amen")
 	record3.Attributes().InsertString("key3", "three")
 	record3.Attributes().InsertInt("key4", 4)
-	record3.CopyTo(instrumentationLogs.LogRecords().AppendEmpty())
+	record3.CopyTo(instrumentationLogs.Logs().AppendEmpty())
 
 	var processed model.Batch
 	var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
@@ -181,17 +164,16 @@ func newLogRecord(body interface{}) pdata.LogRecord {
 	otelLogRecord.SetSeverityNumber(pdata.SeverityNumberINFO)
 	otelLogRecord.SetSeverityText("Info")
 	otelLogRecord.SetTimestamp(pdata.NewTimestampFromTime(time.Now()))
->>>>>>> afdd45ef (processor/otel: copy shared labels for logs (#7358))
 
 	switch b := body.(type) {
 	case string:
-		otelLog.Body().SetStringVal(b)
+		otelLogRecord.Body().SetStringVal(b)
 	case int:
-		otelLog.Body().SetIntVal(int64(b))
+		otelLogRecord.Body().SetIntVal(int64(b))
 	case float64:
-		otelLog.Body().SetDoubleVal(b)
+		otelLogRecord.Body().SetDoubleVal(b)
 	case bool:
-		otelLog.Body().SetBoolVal(b)
+		otelLogRecord.Body().SetBoolVal(b)
 		// case map[string]string:
 		// TODO(marclop) figure out how to set the body since it cannot be set
 		// as a map.
