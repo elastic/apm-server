@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -33,6 +34,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.elastic.co/apm"
 	"go.elastic.co/apm/apmtest"
 	"go.elastic.co/fastjson"
 
@@ -43,6 +45,10 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelindexer"
 )
+
+func init() {
+	apm.DefaultTracer.Close()
+}
 
 func TestModelIndexer(t *testing.T) {
 	var indexed int64
@@ -393,6 +399,40 @@ func TestModelIndexerCloseFlushContext(t *testing.T) {
 	}
 }
 
+func TestModelIndexerFlushGoroutineStopped(t *testing.T) {
+	bulkHandler := func(w http.ResponseWriter, r *http.Request) {}
+	config := newMockElasticsearchClientConfig(t, bulkHandler)
+	httpTransport, _ := elasticsearch.NewHTTPTransport(config)
+	httpTransport.DisableKeepAlives = true // disable to avoid persistent conn goroutines
+	client, _ := elasticsearch.NewClientParams(elasticsearch.ClientParams{
+		Config:    config,
+		Transport: httpTransport,
+	})
+
+	indexer, err := modelindexer.New(client, modelindexer.Config{FlushBytes: 1})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	before := runtime.NumGoroutine()
+	for i := 0; i < 100; i++ {
+		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+			Type:      "logs",
+			Dataset:   "apm_server",
+			Namespace: "testing",
+		}}}
+		err := indexer.ProcessBatch(context.Background(), &batch)
+		require.NoError(t, err)
+	}
+
+	var after int
+	deadline := time.Now().Add(10 * time.Second)
+	for after != before && time.Now().Before(deadline) {
+		time.Sleep(100 * time.Millisecond)
+		after = runtime.NumGoroutine()
+	}
+	assert.Equal(t, before, after, "Leaked %d goroutines", after-before)
+}
+
 func TestModelIndexerUnknownResponseFields(t *testing.T) {
 	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -444,6 +484,7 @@ func testModelIndexerTracing(t *testing.T, statusCode int, expectedOutcome strin
 	})
 
 	tracer := apmtest.NewRecordingTracer()
+	defer tracer.Close()
 	indexer, err := modelindexer.New(client, modelindexer.Config{
 		FlushInterval: time.Minute,
 		Tracer:        tracer.Tracer,
@@ -570,6 +611,15 @@ func benchmarkModelIndexer(b *testing.B, compressionLevel int) {
 }
 
 func newMockElasticsearchClient(t testing.TB, bulkHandler http.HandlerFunc) elasticsearch.Client {
+	config := newMockElasticsearchClientConfig(t, bulkHandler)
+	client, err := elasticsearch.NewClient(config)
+	require.NoError(t, err)
+	return client
+}
+
+func newMockElasticsearchClientConfig(
+	t testing.TB, bulkHandler http.HandlerFunc,
+) *elasticsearch.Config {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -582,8 +632,5 @@ func newMockElasticsearchClient(t testing.TB, bulkHandler http.HandlerFunc) elas
 	config := elasticsearch.DefaultConfig()
 	config.Hosts = elasticsearch.Hosts{srv.URL}
 	config.Backoff.Max = time.Nanosecond
-
-	client, err := elasticsearch.NewClient(config)
-	require.NoError(t, err)
-	return client
+	return config
 }

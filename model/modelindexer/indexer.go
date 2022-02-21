@@ -321,6 +321,7 @@ func encodeMap(v map[string]interface{}, out *fastjson.Writer) error {
 func (i *Indexer) flushActive(ctx context.Context) error {
 	// Create a child context which is cancelled when the context passed to i.Close is cancelled.
 	flushed := make(chan struct{})
+	defer close(flushed)
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		defer cancel()
