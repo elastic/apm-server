@@ -266,7 +266,7 @@ func TestModelIndexerServerError(t *testing.T) {
 }
 
 func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
-	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, _ *http.Request) {
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTooManyRequests)
 	})
 	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute})
@@ -579,6 +579,8 @@ func newMockElasticsearchClient(t testing.TB, bulkHandler http.HandlerFunc) elas
 
 	config := elasticsearch.DefaultConfig()
 	config.Hosts = elasticsearch.Hosts{srv.URL}
+	config.Backoff.Max = time.Nanosecond
+
 	client, err := elasticsearch.NewClient(config)
 	require.NoError(t, err)
 	return client
