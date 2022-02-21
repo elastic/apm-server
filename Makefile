@@ -304,5 +304,5 @@ release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
 release: $(MAGE) build/dependencies.csv
 	$(MAGE) package
 
-build/dependencies.csv: go.mod
+build/dependencies.csv: $(PYTHON) go.mod
 	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
