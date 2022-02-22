@@ -142,16 +142,15 @@ func newV8Client(
 	fn backoffFunc,
 ) (Client, error) {
 	c, err := esv8.NewClient(esv8.Config{
-		APIKey:               apikey,
-		Username:             user,
-		Password:             pwd,
-		Addresses:            addresses,
-		Transport:            transport,
-		Header:               headers,
-		RetryOnStatus:        retryableStatuses,
-		EnableRetryOnTimeout: true,
-		RetryBackoff:         fn,
-		MaxRetries:           maxRetries,
+		APIKey:        apikey,
+		Username:      user,
+		Password:      pwd,
+		Addresses:     addresses,
+		Transport:     transport,
+		Header:        headers,
+		RetryOnStatus: retryableStatuses,
+		RetryBackoff:  fn,
+		MaxRetries:    maxRetries,
 	})
 	if err != nil {
 		return nil, err

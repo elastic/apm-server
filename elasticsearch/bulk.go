@@ -73,7 +73,7 @@ type BulkIndexerItem struct {
 	Index           string
 	Action          string
 	DocumentID      string
-	Body            io.Reader
+	Body            io.ReadSeeker
 	RetryOnConflict *int
 
 	OnSuccess func(context.Context, BulkIndexerItem, BulkIndexerResponseItem)        // Per item
