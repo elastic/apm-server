@@ -423,11 +423,11 @@ func TestModelIndexerFlushGoroutineStopped(t *testing.T) {
 
 	var after int
 	deadline := time.Now().Add(10 * time.Second)
-	for after != before && time.Now().Before(deadline) {
+	for after > before && time.Now().Before(deadline) {
 		time.Sleep(100 * time.Millisecond)
 		after = runtime.NumGoroutine()
 	}
-	assert.Equal(t, before, after, "Leaked %d goroutines", after-before)
+	assert.GreaterOrEqual(t, before, after, "Leaked %d goroutines", after-before)
 }
 
 func TestModelIndexerUnknownResponseFields(t *testing.T) {
