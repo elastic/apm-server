@@ -473,6 +473,7 @@ func TestAggregationFields(t *testing.T) {
 		&input.Service.Runtime.Name,
 		&input.Service.Runtime.Version,
 		&input.Host.OS.Platform,
+		&input.FAAS.ID,
 		&input.FAAS.TriggerType,
 	}
 	boolInputFields := []*bool{

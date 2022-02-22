@@ -12,6 +12,9 @@
     - description: added `error.id` field to `error_logs` data stream
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/7123
+    - description: Added field mapping for `faas.id` to internal_metrics data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7361
 - version: "8.0.0"
   changes:
     - description: support setting `download-agent-version`
