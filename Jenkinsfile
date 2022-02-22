@@ -138,8 +138,8 @@ pipeline {
               unstash 'source'
               dir(BASE_DIR){
                 withMageEnv(){
-                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
-                    sleep randomNumber(min: 5, max: 10)
+                  // Retry in case there are any errors to avoid temporary glitches
+                  retryWithSleep(retries: 2) {
                     sh(label: 'Linux build', script: './.ci/scripts/build.sh')
                   }
                 }
@@ -169,8 +169,8 @@ pipeline {
               unstash 'source'
               dir(BASE_DIR){
                 withMageEnv(){
-                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
-                    sleep randomNumber(min: 5, max: 10)
+                  // Retry in case there are any errors to avoid temporary glitches
+                  retryWithSleep(retries: 2) {
                     powershell(label: 'Windows build', script: '.\\.ci\\scripts\\windows-build.ps1')
                     powershell(label: 'Run Window tests', script: '.\\.ci\\scripts\\windows-test.ps1')
                   }
@@ -205,8 +205,8 @@ pipeline {
               unstash 'source'
               dir(BASE_DIR){
                 withMageEnv(){
-                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
-                    sleep randomNumber(min: 5, max: 10)
+                  // Retry in case there are any errors to avoid temporary glitches
+                  retryWithSleep(retries: 2) {
                     powershell(label: 'Windows build', script: '.\\.ci\\scripts\\windows-build.ps1')
                     powershell(label: 'Run Window tests', script: '.\\.ci\\scripts\\windows-test.ps1')
                   }
@@ -247,8 +247,8 @@ pipeline {
               unstash 'source'
               dir(BASE_DIR){
                 withMageEnv(){
-                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
-                    sleep randomNumber(min: 5, max: 10)
+                  // Retry in case there are any errors to avoid temporary glitches
+                  retryWithSleep(retries: 2) {
                     sh(label: 'OSX build', script: '.ci/scripts/build-darwin.sh')
                     sh(label: 'Run Unit tests', script: '.ci/scripts/test-darwin.sh')
                   }
