@@ -186,6 +186,42 @@ pipeline {
             }
           }
         }
+        stage('windows2022 build-test') {
+          agent { label 'windows-2022-immutable' }
+          options {
+            skipDefaultCheckout()
+            warnError('Windows execution failed')
+          }
+          when {
+            beforeAgent true
+            allOf {
+              expression { return params.windows_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
+          }
+          steps {
+            withGithubNotify(context: 'Build-Test - Windows2022') {
+              deleteDir()
+              unstash 'source'
+              dir(BASE_DIR){
+                withMageEnv(){
+                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                    sleep randomNumber(min: 5, max: 10)
+                    powershell(label: 'Windows build', script: '.\\.ci\\scripts\\windows-build.ps1')
+                    powershell(label: 'Run Window tests', script: '.\\.ci\\scripts\\windows-test.ps1')
+                  }
+                }
+              }
+            }
+          }
+          post {
+            always {
+              junit(allowEmptyResults: true,
+                keepLongStdio: true,
+                testResults: "${BASE_DIR}/build/TEST-*.xml")
+            }
+          }
+        }
         /**
         Build on a mac environment.
         */
