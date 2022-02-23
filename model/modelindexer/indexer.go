@@ -442,6 +442,10 @@ func (r *pooledReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
+func (r *pooledReader) Seek(offset int64, whence int) (int64, error) {
+	return r.reader.Seek(offset, whence)
+}
+
 // Stats holds bulk indexing statistics.
 type Stats struct {
 	// Active holds the active number of items waiting in the indexer's queue.

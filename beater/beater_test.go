@@ -294,6 +294,7 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	var called bool
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		w.Write(validSourcemap)
 	}))
 	defer ts.Close()
