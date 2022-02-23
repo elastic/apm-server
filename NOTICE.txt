@@ -576,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.17.1-0.20220217155056-8a15f8986e23
+Version: v7.17.1-0.20220222164119-a3b92b48c535
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.17.1-0.20220217155056-8a15f8986e23/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.17.1-0.20220222164119-a3b92b48c535/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -19947,11 +19947,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20220209214540-3681064d5158
+Version: v0.0.0-20220222200937-f2425489ef4c
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220222200937-f2425489ef4c/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -20058,11 +20058,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20220218161850-94dd64e39d7c
+Version: v0.0.0-20220222213610-43724f9ea8cf
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220218161850-94dd64e39d7c/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220222213610-43724f9ea8cf/LICENSE:
 
 
                                  Apache License
