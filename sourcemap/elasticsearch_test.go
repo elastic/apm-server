@@ -166,6 +166,7 @@ func newUnavailableElasticsearchClient(t testing.TB) elasticsearch.Client {
 // with the given status code and response body.
 func newMockElasticsearchClient(t testing.TB, statusCode int, responseBody io.Reader) elasticsearch.Client {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		w.WriteHeader(statusCode)
 		if responseBody != nil {
 			io.Copy(w, responseBody)
