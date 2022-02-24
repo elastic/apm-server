@@ -41,3 +41,4 @@ Dockerfile.bck
 version.asciidoc.bck
 .imported-java-agent-pubkey
 /agent
+go.work
