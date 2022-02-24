@@ -260,11 +260,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20220222225828-d76e44587e88
+Version: v7.0.0-alpha2.0.20220223231714-b1d41b1a37ec
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220222225828-d76e44587e88/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220223231714-b1d41b1a37ec/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -17826,11 +17826,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20220222200937-f2425489ef4c
+Version: v0.0.0-20220224003255-dbe011f71a99
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220222200937-f2425489ef4c/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220224003255-dbe011f71a99/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
