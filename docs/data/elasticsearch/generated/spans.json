@@ -27,8 +27,7 @@
             "hostname": "ix.lan",
             "id": "a49b4a08-689a-4724-8050-8bd0ae043281",
             "type": "apm-server",
-            "version": "8.0.0",
-            "version_major": 8
+            "version": "8.0.0"
         },
         "parent": {
             "id": "945254c567a5417e"
@@ -141,8 +140,7 @@
             "hostname": "goat",
             "id": "17ad47dd-5671-4c89-979f-ef4533565ba2",
             "type": "apm-server",
-            "version": "8.0.0",
-            "version_major": 8
+            "version": "8.0.0"
         },
         "parent": {
             "id": "85925e55b43f4342"
@@ -210,8 +208,7 @@
             "hostname": "goat",
             "id": "17ad47dd-5671-4c89-979f-ef4533565ba2",
             "type": "apm-server",
-            "version": "8.0.0",
-            "version_major": 8
+            "version": "8.0.0"
         },
         "parent": {
             "id": "945254c567a5417e"
@@ -263,8 +260,7 @@
             "hostname": "goat",
             "id": "17ad47dd-5671-4c89-979f-ef4533565ba2",
             "type": "apm-server",
-            "version": "8.0.0",
-            "version_major": 8
+            "version": "8.0.0"
         },
         "parent": {
             "id": "945254c567a5417e"
@@ -322,8 +318,7 @@
             "hostname": "goat",
             "id": "17ad47dd-5671-4c89-979f-ef4533565ba2",
             "type": "apm-server",
-            "version": "8.0.0",
-            "version_major": 8
+            "version": "8.0.0"
         },
         "parent": {
             "id": "945254c567a5417e"

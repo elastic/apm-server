@@ -43,8 +43,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -134,8 +133,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -213,8 +211,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -292,8 +289,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "bbd8bcc3be14d814"
@@ -372,8 +368,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -440,8 +435,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -544,8 +538,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -622,8 +615,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -713,8 +705,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "1ef08ac234fca23b455d9e27c660f1ab"
