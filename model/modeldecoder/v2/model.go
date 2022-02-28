@@ -105,6 +105,10 @@ type faas struct {
 	Execution nullable.String `json:"execution"`
 	// Trigger attributes.
 	Trigger trigger `json:"trigger"`
+	// The lambda function name.
+	Name nullable.String `json:"name"`
+	// The lambda function version.
+	Version nullable.String `json:"version"`
 }
 
 type trigger struct {
