@@ -18,7 +18,7 @@ See <<apm-server-configuration>> for more information.
 - Fix panic when processing OpenTelemetry histogram metrics without bounds {pull}7316[7316]
 - Fix mixing of labels across OpenTelemetry log records {pull}7358[7358]
 - Fix waiting for events to be flushed when shutting down APM Server {pull}7352[7352]
-- Fix missing stack monitoring metrics {pull}74xx[74xx]
+- Fix missing stack monitoring metrics {pull}7428[7428]
 
 [float]
 ==== Intake API Changes
