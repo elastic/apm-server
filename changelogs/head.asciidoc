@@ -21,6 +21,7 @@ See <<apm-server-configuration>> for more information.
 
 [float]
 ==== Intake API Changes
+- Support for `faas.name` and `faas.version` added to intake and transaction metrics {pull}7427[7427]
 
 [float]
 ==== Added
