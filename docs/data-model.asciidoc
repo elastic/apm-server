@@ -151,6 +151,14 @@ Errors are stored in error indices.
 [[data-model-metrics]]
 === Metrics
 
+**Metrics** measure the state of a system by gathering information on a regular interval. There are two types of APM metrics:
+
+* **System metrics**: Basic infrastructure and application metrics.
+* **Calculated metrics**: Aggregated trace event metrics used to power visualizations in the APM app.
+
+[float]
+==== System metrics
+
 APM agents automatically pick up basic host-level metrics,
 including system and process-level CPU and memory metrics.
 Agent specific metrics are also available,
@@ -176,9 +184,9 @@ For a full list of tracked metrics, see the relevant agent documentation:
 * {apm-ruby-ref-v}/metrics.html[Ruby]
 
 [float]
-==== APM-defined metrics
+==== Calculated metrics
 
-The APM Agents and APM Server also calculate metrics from trace events, used to power various features of Elastic APM.
+APM agents and APM Server calculate metrics from trace events to power visualizations in the APM app.
 These metrics are described below.
 
 [float]
