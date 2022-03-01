@@ -9,6 +9,9 @@
     - description: added `span.links` fields to traces and rum_traces data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7291
+    - description: Added field mapping for `faas.name` and `faas.version` to internal_metrics data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7427
 - version: "8.1.0"
   changes:
     - description: Added field mapping for `faas.coldstart` and `faas.trigger.type`
