@@ -18,7 +18,9 @@
 package benchtest
 
 import (
+	"context"
 	"crypto/tls"
+	"embed"
 	"errors"
 	"fmt"
 	"log"
@@ -34,6 +36,10 @@ import (
 
 	"go.elastic.co/apm/stacktrace"
 )
+
+// traces holds the current stored traces.
+//go:embed traces/*
+var traces embed.FS
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
 type BenchmarkFunc func(*testing.B)
@@ -80,6 +86,10 @@ func addExpvarMetrics(result testing.BenchmarkResult, before, after expvar) {
 	result.MemBytes = after.MemStats.TotalAlloc - before.MemStats.TotalAlloc
 	result.Bytes = after.UncompressedBytes - before.UncompressedBytes
 	result.Extra["events/sec"] = float64(after.TotalEvents-before.TotalEvents) / result.T.Seconds()
+	result.Extra["txs/sec"] = float64(after.TransactionsProcessed-before.TransactionsProcessed) / result.T.Seconds()
+	result.Extra["spans/sec"] = float64(after.SpansProcessed-before.SpansProcessed) / result.T.Seconds()
+	result.Extra["metrics/sec"] = float64(after.MetricsProcessed-before.MetricsProcessed) / result.T.Seconds()
+	result.Extra["errors/sec"] = float64(after.ErrorsProcessed-before.ErrorsProcessed) / result.T.Seconds()
 
 	// Record the number of error responses returned by the server: lower is better.
 	errorResponsesAfter := after.ErrorElasticResponses + after.ErrorOTLPTracesResponses + after.ErrorOTLPMetricsResponses
@@ -168,11 +178,20 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		}
 	}
 
+	// Warmup the APM Server before beggining the benchmarks.
+	if h, err := newTraceHandler(`traces/*.ndjson`); err == nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		h.WarmUpServer(ctx, *warmupEvents)
+		waitInactive(5 * time.Second)
+	}
+
 	for _, agents := range agentsList {
 		runtime.GOMAXPROCS(int(agents))
 		for _, benchmark := range benchmarks {
 			name := fullBenchmarkName(benchmark.name, agents)
 			for i := 0; i < int(*count); i++ {
+				waitInactive(10 * time.Second)
 				profileChan := profiles.record(name)
 				result, ok, err := runBenchmark(benchmark.f)
 				if err != nil {
@@ -191,4 +210,10 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		}
 	}
 	return nil
+}
+
+func waitInactive(timeout time.Duration) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	WaitUntilServerInactive(ctx)
 }

@@ -27,6 +27,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
+	"github.com/elastic/apm-server/systemtest/benchtest/tracehandler"
+
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/transport"
 )
@@ -90,4 +92,25 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 	}
 	tb.Cleanup(func() { exporter.Shutdown(context.Background()) })
 	return exporter
+}
+
+// NewTraceHandler creates a tracehandler which loads the files matching the
+// passed regex.
+func NewTraceHandler(tb testing.TB, p string) *tracehandler.Handler {
+	h, err := newTraceHandler(p)
+	if err != nil {
+		tb.Fatal(err)
+	}
+	return h
+}
+
+func newTraceHandler(p string) (*tracehandler.Handler, error) {
+	transp, err := transport.NewHTTPTransport()
+	if err != nil {
+		return nil, err
+	}
+	transp.SetServerURL(serverURL)
+	transp.SetSecretToken(*secretToken)
+
+	return tracehandler.New(p, transp, traces, *warmupEvents)
 }

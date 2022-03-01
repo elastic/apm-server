@@ -43,6 +43,9 @@ var (
 	mutexprofile = flag.String("mutexprofile", "", "Write a mutex contention profile to the file  before exiting.")
 	blockprofile = flag.String("blockprofile", "", "Write a goroutine blocking profile to the file before exiting.")
 
+	warmupEvents      = flag.Uint("warmup-events", 5000, "The number of events that will be used to warm up the APM Server before each benchmark")
+	inactiveThreshold = flag.Uint("inactive-events", 10, "The threshold of active events in the APM Server the benchmark execution waits to be below before benchmarking starts")
+
 	agentsList []int
 	serverURL  *url.URL
 	runRE      *regexp.Regexp

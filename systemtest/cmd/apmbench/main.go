@@ -21,6 +21,7 @@ import (
 	"context"
 	"log"
 	"testing"
+	"time"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
@@ -59,10 +60,55 @@ func BenchmarkOTLPTraces(b *testing.B) {
 	})
 }
 
+func BenchmarkAgentGo(b *testing.B) {
+	benchmarkAgent(b, `traces/go.*.ndjson`)
+}
+
+func BenchmarkAgentNodeJS(b *testing.B) {
+	benchmarkAgent(b, `traces/nodejs.*.ndjson`)
+}
+
+func BenchmarkAgentPython(b *testing.B) {
+	benchmarkAgent(b, `traces/python.*.ndjson`)
+}
+
+func BenchmarkAgentRuby(b *testing.B) {
+	benchmarkAgent(b, `traces/ruby.*.ndjson`)
+}
+
+func benchmarkAgent(b *testing.B, expr string) {
+	h := benchtest.NewTraceHandler(b, expr)
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			n, err := h.SendBatches(context.Background())
+			if err != nil {
+				b.Error("failed sending batches:", err)
+				return
+			}
+			if n == 0 {
+				b.Errorf(
+					"no events sent, ensure the '%s' matches a trace file", expr,
+				)
+				return
+			}
+		}
+	})
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := benchtest.WaitUntilServerInactive(ctx); err != nil {
+		b.Fatal(err)
+	}
+}
+
 func main() {
 	if err := benchtest.Run(
 		Benchmark1000Transactions,
 		BenchmarkOTLPTraces,
+		BenchmarkAgentGo,
+		BenchmarkAgentNodeJS,
+		BenchmarkAgentPython,
+		BenchmarkAgentRuby,
 	); err != nil {
 		log.Fatal(err)
 	}
