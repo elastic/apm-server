@@ -3,12 +3,27 @@
 
 https://github.com/elastic/apm-server/compare/7.17\...8.0[View commits]
 
+* <<release-notes-8.0.1>>
 * <<release-notes-8.0.0>>
 * <<release-notes-8.0.0-rc2>>
 * <<release-notes-8.0.0-rc1>>
 * <<release-notes-8.0.0-beta1>>
 * <<release-notes-8.0.0-alpha2>>
 * <<release-notes-8.0.0-alpha1>>
+
+[float]
+[[release-notes-8.0.1]]
+=== APM version 8.0.1
+
+coming::[8.0.1]
+
+https://github.com/elastic/apm-server/compare/v8.0.0\...v8.0.1[View commits]
+
+[float]
+==== Bug fixes
+
+- Fix mixing of labels across OpenTelemetry log records {pull}7358[7358]
+- Fix panic when processing OpenTelemetry histogram metrics without bounds {pull}7316[7316]
 
 [float]
 [[release-notes-8.0.0]]

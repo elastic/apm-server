@@ -35,7 +35,7 @@ func TestCloudEnv(t *testing.T) {
 
 	// no cloud environment variable set
 	settings := DefaultSettings()
-	assert.Len(t, settings.ConfigOverrides, 2)
+	assert.Len(t, settings.ConfigOverrides, 3)
 	assert.False(t, settings.ConfigOverrides[1].Check(nil))
 
 	// cloud environment picked up

@@ -81,6 +81,9 @@ apm-server:
   # request from the agent.
   #default_service_environment:
 
+  # All events will be recorded in this data stream namespace when not managed by fleet.
+  # data_streams.namespace: default
+
   # Enable APM Server Golang expvar support (https://golang.org/pkg/expvar/).
   #expvar:
     #enabled: false
