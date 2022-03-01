@@ -877,6 +877,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	}
 
 	snapshot := monitoring.CollectFlatSnapshot(monitoring.Default.GetRegistry("libbeat"), monitoring.Full, false)
+	assert.Equal(t, map[string]string{"output.type": "elasticsearch"}, snapshot.Strings)
 	assert.Equal(t, map[string]int64{
 		"output.events.acked":   0,
 		"output.events.active":  5,
@@ -884,6 +885,8 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		"output.events.failed":  0,
 		"output.events.toomany": 0,
 		"output.events.total":   5,
+		"pipeline.events.total": 5,
+		"output.write.bytes":    10,
 	}, snapshot.Ints)
 }
 

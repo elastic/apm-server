@@ -690,22 +690,32 @@ func (s *serverRunner) newFinalBatchProcessor(
 
 	// Install our own libbeat.output.events-compatible metrics callback which uses the modelindexer stats.
 	monitoring.Default.Remove("libbeat")
-	monitoring.NewFunc(monitoring.Default, "libbeat.output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
+	monitoring.NewFunc(monitoring.Default, "libbeat.output", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		stats := indexer.Stats()
-		v.OnKey("acked")
+		v.OnKey("events.acked")
 		v.OnInt(stats.Indexed)
-		v.OnKey("active")
+		v.OnKey("events.active")
 		v.OnInt(stats.Active)
-		v.OnKey("batches")
+		v.OnKey("events.batches")
 		v.OnInt(stats.BulkRequests)
-		v.OnKey("failed")
+		v.OnKey("events.failed")
 		v.OnInt(stats.Failed)
-		v.OnKey("toomany")
+		v.OnKey("events.toomany")
 		v.OnInt(stats.TooManyRequests)
-		v.OnKey("total")
+		v.OnKey("events.total")
 		v.OnInt(stats.Added)
+		v.OnKey("write.bytes")
+		v.OnInt(stats.BytesTotal)
+		v.OnKey("type")
+		v.OnString("elasticsearch")
+	})
+	monitoring.NewFunc(monitoring.Default, "libbeat.pipeline.events", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		v.OnKey("total")
+		v.OnInt(indexer.Stats().Added)
 	})
 	return indexer, indexer.Close, nil
 }

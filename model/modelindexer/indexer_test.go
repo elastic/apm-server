@@ -110,6 +110,7 @@ func TestModelIndexer(t *testing.T) {
 		Failed:          2,
 		Indexed:         N - 2,
 		TooManyRequests: 1,
+		BytesTotal:      19000,
 	}, indexer.Stats())
 }
 
@@ -268,6 +269,7 @@ func TestModelIndexerServerError(t *testing.T) {
 		Active:       0,
 		BulkRequests: 1,
 		Failed:       1,
+		BytesTotal:   190,
 	}, indexer.Stats())
 }
 
@@ -296,6 +298,7 @@ func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
 		BulkRequests:    1,
 		Failed:          1,
 		TooManyRequests: 1,
+		BytesTotal:      190,
 	}, indexer.Stats())
 }
 
