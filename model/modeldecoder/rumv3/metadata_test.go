@@ -65,6 +65,8 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"FAAS.Execution",
 		"FAAS.TriggerType",
 		"FAAS.TriggerRequestID",
+		"FAAS.Name",
+		"FAAS.Version",
 		"Experimental",
 		"HTTP",
 		"Kubernetes",

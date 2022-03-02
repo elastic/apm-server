@@ -26,6 +26,8 @@ type FAAS struct {
 	Execution        string
 	TriggerType      string
 	TriggerRequestID string
+	Name             string
+	Version          string
 }
 
 func (f *FAAS) fields() common.MapStr {
@@ -35,5 +37,7 @@ func (f *FAAS) fields() common.MapStr {
 	fields.maybeSetString("execution", f.Execution)
 	fields.maybeSetString("trigger.type", f.TriggerType)
 	fields.maybeSetString("trigger.request_id", f.TriggerRequestID)
+	fields.maybeSetString("name", f.Name)
+	fields.maybeSetString("version", f.Version)
 	return common.MapStr(fields)
 }

@@ -9,6 +9,9 @@
     - description: added `span.links` fields to traces and rum_traces data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7291
+    - description: Added field mapping for `faas.name` and `faas.version` to internal_metrics data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7427
     - description: removed `observer.version_major` field
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7399
