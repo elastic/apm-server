@@ -243,6 +243,12 @@ func mapToFAASModel(from faas, faas *model.FAAS) {
 		if from.Trigger.RequestID.IsSet() {
 			faas.TriggerRequestID = from.Trigger.RequestID.Val
 		}
+		if from.Name.IsSet() {
+			faas.Name = from.Name.Val
+		}
+		if from.Version.IsSet() {
+			faas.Version = from.Version.Val
+		}
 	}
 }
 
