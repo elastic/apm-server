@@ -73,8 +73,15 @@ func TestAPMEventFields(t *testing.T) {
 				Hostname: hostname,
 				Name:     host,
 			},
-			Client:      Client{Domain: "client.domain"},
-			Source:      Source{IP: net.ParseIP("127.0.0.1"), Port: 1234},
+			Client: Client{Domain: "client.domain"},
+			Source: Source{
+				IP:   net.ParseIP("127.0.0.1"),
+				Port: 1234,
+				NAT: &nat{
+					IP:   net.ParseIP("10.10.10.10"),
+					Port: 3333,
+				},
+			},
 			Destination: Destination{Address: destinationAddress, Port: destinationPort},
 			Process:     Process{Pid: pid},
 			User:        User{ID: uid, Email: mail},
@@ -140,7 +147,14 @@ func TestAPMEventFields(t *testing.T) {
 			},
 			"user":   common.MapStr{"id": "12321", "email": "user@email.com"},
 			"client": common.MapStr{"domain": "client.domain"},
-			"source": common.MapStr{"ip": "127.0.0.1", "port": 1234},
+			"source": common.MapStr{
+				"ip":   "127.0.0.1",
+				"port": 1234,
+				"nat": common.MapStr{
+					"ip":   "10.10.10.10",
+					"port": 3333,
+				},
+			},
 			"destination": common.MapStr{
 				"address": destinationAddress,
 				"ip":      destinationAddress,
