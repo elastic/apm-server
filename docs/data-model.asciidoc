@@ -270,7 +270,7 @@ The `@timestamp` field of these documents holds the start of the aggregation int
 ===== Service-destination metrics
 
 To power {kibana-ref}/xpack-apm.html[APM app] visualizations,
-APM Server aggregates span events into "service destination" metrics.
+APM Server aggregates span events into service-destination metrics.
 
 *`span.destination.service.response_time.count`* and *`span.destination.service.response_time.sum.us`*::
 +
