@@ -59,17 +59,26 @@ type Context struct {
 	// if unknown.
 	SourcePort int
 
-	// ClientIP holds the IP address of the originating client,
-	// as recorded in Forwarded, X-Forwarded-For, etc.
+	// ClientIP holds the IP address of the originating client.
 	//
-	// For TCP-based requests without one of the forwarded headers,
-	// this will have the same value as SourceIP.
+	// For TCP-based requests this will have the same value as SourceIP.
 	ClientIP net.IP
 
-	// ClientPort holds the port of the originating client, as
-	// recorded in the Forwarded header. This will be zero unless
-	// the port is recorded in the Forwarded header.
+	// ClientPort holds the port of the (source) network peer, or zero if
+	// unknown.
 	ClientPort int
+
+	// SourceNATIP holds the IP address of the originating gRPC client, if known,
+	// as recorded in Forwarded, X-Forwarded-For, etc.
+	//
+	// For requests without one of the forwarded headers, this will be
+	// blank.
+	SourceNATIP net.IP
+
+	// SourceNATPort holds the port of the originating client, as recorded
+	// in the Forwarded header. This will be zero unless the port is
+	// recorded in the Forwarded header.
+	SourceNATPort int
 
 	// UserAgent holds the User-Agent request header value.
 	UserAgent string
@@ -108,9 +117,11 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	if r != nil {
 		ip, port := netutil.ParseIPPort(netutil.MaybeSplitHostPort(r.RemoteAddr))
 		c.SourceIP, c.ClientIP = ip, ip
-		c.SourcePort = int(port)
+		c.SourcePort, c.ClientPort = int(port), int(port)
 		if ip, port := netutil.ClientAddrFromHeaders(r.Header); ip != nil {
-			c.ClientIP, c.ClientPort = ip, int(port)
+			// Question: the issue doesn't list source.nat.port.
+			// Should we add this?
+			c.SourceNATIP, c.SourceNATPort = ip, int(port)
 		}
 		c.UserAgent = strings.Join(r.Header["User-Agent"], ", ")
 		c.Timestamp = time.Now()
