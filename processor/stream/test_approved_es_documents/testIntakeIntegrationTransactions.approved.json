@@ -663,8 +663,10 @@
             "faas": {
                 "coldstart": false,
                 "execution": "2e13b309-23e1-417f-8bf7-074fc96bc683",
+                "name": "faasName",
                 "trigger.request_id": "FuH2Cir_vHcEMUA=",
-                "trigger.type": "http"
+                "trigger.type": "http",
+                "version": "1.0.0"
             },
             "host": {
                 "architecture": "x64",
