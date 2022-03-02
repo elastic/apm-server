@@ -77,7 +77,7 @@ func TestAPMEventFields(t *testing.T) {
 			Source: Source{
 				IP:   net.ParseIP("127.0.0.1"),
 				Port: 1234,
-				NAT: &nat{
+				NAT: &NAT{
 					IP:   net.ParseIP("10.10.10.10"),
 					Port: 3333,
 				},

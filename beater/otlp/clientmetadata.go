@@ -51,6 +51,9 @@ func SetClientMetadata(ctx context.Context, batch *model.Batch) error {
 			if event.Client.IP == nil {
 				event.Client.IP = clientMetadata.ClientIP
 			}
+			if clientMetadata.SourceNATIP != nil {
+				event.Source.NAT = &model.NAT{IP: clientMetadata.SourceNATIP}
+			}
 		}
 	}
 	return nil
