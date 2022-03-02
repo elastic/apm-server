@@ -520,8 +520,8 @@ github.com/eclipse/paho.mqtt.golang v1.2.0/go.mod h1:H9keYFcgq3Qr5OUJm/JZI/i6U7j
 github.com/eclipse/paho.mqtt.golang v1.3.5 h1:sWtmgNxYM9P2sP+xEItMozsR3w0cqZFlqnNN1bdl41Y=
 github.com/eclipse/paho.mqtt.golang v1.3.5/go.mod h1:eTzb4gxwwyWpqBUHGQZ4ABAV7+Jgm1PklsYT/eo8Hcc=
 github.com/edsrzf/mmap-go v1.0.0/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220228205639-9845db252a85 h1:zy5Jib58euS5gXtYGqfzTSIGMFXzvOjfi6ZCGkk9HNA=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220228205639-9845db252a85/go.mod h1:JYWe2imk/uiS3rAdWlnCAT8XrTo34f/D8u4r4jBU4sw=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220301191059-a73ce3233dce h1:R5BanWhPAQxw/pXc2hcSKHJEmQPQY5Vgm8qvDVUPs1g=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220301191059-a73ce3233dce/go.mod h1:JYWe2imk/uiS3rAdWlnCAT8XrTo34f/D8u4r4jBU4sw=
 github.com/elastic/ecs v1.12.0 h1:u6WZ2AWtxv5vHvTQ4EuVZdWZ51mKHQ2UIltRePcta5U=
 github.com/elastic/ecs v1.12.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/elastic-agent-client/v7 v7.0.0-20210727140539-f0905d9377f6/go.mod h1:uh/Gj9a0XEbYoM4NYz4LvaBVARz3QXLmlNjsrKY9fTc=
@@ -2418,8 +2418,8 @@ google.golang.org/genproto v0.0.0-20210924002016-3dee208752a0/go.mod h1:5CzLGKJ6
 google.golang.org/genproto v0.0.0-20211018162055-cf77aa76bad2/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
 google.golang.org/genproto v0.0.0-20211019152133-63b7e35f4404/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
 google.golang.org/genproto v0.0.0-20211021150943-2b146023228c/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
-google.golang.org/genproto v0.0.0-20220228195345-15d65a4533f7 h1:ntPPoHzFW6Xp09ueznmahONZufyoSakK/piXnr2BU3I=
-google.golang.org/genproto v0.0.0-20220228195345-15d65a4533f7/go.mod h1:kGP+zUP2Ddo0ayMi4YuN7C3WZyJvGLZRh8Z5wnAqvEI=
+google.golang.org/genproto v0.0.0-20220301145929-1ac2ace0dbf7 h1:6fWaU2vz6/23eNdMU1V00ZPO5AZFQ2SLsO6r/z0Z2H0=
+google.golang.org/genproto v0.0.0-20220301145929-1ac2ace0dbf7/go.mod h1:kGP+zUP2Ddo0ayMi4YuN7C3WZyJvGLZRh8Z5wnAqvEI=
 google.golang.org/grpc v1.8.0/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.14.0/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.17.0/go.mod h1:6QZJwpn2B+Zp71q/5VxRsJ6NXXVCE5NRUHRo+f3cWCs=
