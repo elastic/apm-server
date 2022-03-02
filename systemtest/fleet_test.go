@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -85,6 +86,15 @@ func TestFleetIntegrationBeatsMonitoring(t *testing.T) {
 				"toomany": 0.0,
 				"total":   float64(N),
 			},
+			"type": "elasticsearch",
+			"write": map[string]interface{}{
+				"bytes": float64(10),
+			},
+		},
+		"pipeline": map[string]interface{}{
+			"events": map[string]interface{}{
+				"total": float64(N),
+			},
 		},
 	}, metrics.Libbeat)
 }
@@ -142,13 +152,18 @@ func newAPMIntegration(t testing.TB, vars map[string]interface{}) apmIntegration
 	agent.Stdout = &output
 	agent.Stderr = &output
 	agent.FleetEnrollmentToken = enrollmentAPIKey.APIKey
-	t.Cleanup(func() { agent.Close() })
 	t.Cleanup(func() {
 		// Log the elastic-agent container output if the test fails.
 		if !t.Failed() {
 			return
 		}
 		t.Logf("elastic-agent logs: %s", output.String())
+		if log, err := agent.APMServerlog(); err == nil {
+			t.Log("apm-server logs:")
+			io.Copy(os.Stdout, log)
+			log.Close()
+		}
+		agent.Close()
 	})
 
 	// Start elastic-agent with port 8200 exposed, and wait for the server to service

@@ -556,6 +556,13 @@ func (c *ElasticAgentContainer) Close() error {
 	return c.container.Terminate(context.Background())
 }
 
+func (c *ElasticAgentContainer) APMServerlog() (io.ReadCloser, error) {
+	return c.container.CopyFileFromContainer(
+		context.Background(),
+		"/usr/share/elastic-agent/state/data/logs/default/apm-server-20220302-1.ndjson",
+	)
+}
+
 // Wait waits for the container process to exit, and returns its state.
 func (c *ElasticAgentContainer) Wait(ctx context.Context) (*types.ContainerState, error) {
 	select {
