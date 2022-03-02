@@ -361,7 +361,8 @@ func TestHTTPTransactionSource(t *testing.T) {
 			IP:     net.ParseIP(expectedIP),
 			Port:   expectedPort,
 		}, event.Source)
-		assert.Equal(t, model.Client(event.Source), event.Client)
+		want := model.Client{IP: event.Source.IP, Port: event.Source.Port, Domain: event.Source.Domain}
+		assert.Equal(t, want, event.Client)
 	}
 
 	t.Run("net.peer.ip_port", func(t *testing.T) {
