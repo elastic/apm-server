@@ -15,12 +15,15 @@
     - description: Added field mapping for `faas.name` and `faas.version` to internal_metrics data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7427
+<<<<<<< HEAD
     - description: removed `observer.version_major` field
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7399
     - description: added field mapping for `url.original` to traces, rum_traces, app_logs, and error_logs
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/7698
+=======
+>>>>>>> 4ff43c91 (add faas.{name,verson} to tx + txmetrics (#7427))
 - version: "8.1.0"
   changes:
     - description: Added field mapping for `faas.coldstart` and `faas.trigger.type`
