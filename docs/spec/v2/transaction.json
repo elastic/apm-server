@@ -833,6 +833,13 @@
             "string"
           ]
         },
+        "name": {
+          "description": "The lambda function name.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
         "trigger": {
           "description": "Trigger attributes.",
           "type": [
@@ -855,6 +862,13 @@
               ]
             }
           }
+        },
+        "version": {
+          "description": "The lambda function version.",
+          "type": [
+            "null",
+            "string"
+          ]
         }
       }
     },
