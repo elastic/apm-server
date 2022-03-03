@@ -1,0 +1,35 @@
+server.host: 0.0.0.0
+status.allowAnonymous: true
+monitoring.ui.container.elasticsearch.enabled: true
+telemetry.enabled: false
+xpack.security.encryptionKey: fhjskloppd678ehkdfdlliverpoolfcr
+xpack.encryptedSavedObjects.encryptionKey: fhjskloppd678ehkdfdlliverpoolfcr
+
+xpack.fleet.packages:
+  - name: fleet_server
+    version: latest
+  - name: apm
+    version: latest
+xpack.fleet.agentPolicies:
+  - name: Fleet Server (APM)
+    id: fleet-server-apm
+    is_default_fleet_server: true
+    is_managed: false
+    namespace: default
+    package_policies:
+      - name: fleet_server-apm
+        id: default-fleet-server
+        package:
+          name: fleet_server
+      - name: apm-server
+        id: default-apm-server
+        package:
+          name: apm
+        inputs:
+          - type: apm
+            enabled: true
+            vars:
+              - name: host
+                value: 0.0.0.0:8200
+              - name: expvar_enabled
+                value: true

@@ -1,4 +1,4 @@
-version: '2.3'
+version: '3.9'
 services:
   # This is a proxy used to block beats until all services are healthy.
   # See: https://github.com/docker/compose/issues/4369
@@ -61,6 +61,7 @@ services:
 
   fleet-server:
     image: docker.elastic.co/beats/elastic-agent:8.2.0-43df679f-SNAPSHOT
+    entrypoint: /fleet-server/entrypoint.sh
     ports:
       - 8220:8220
     healthcheck:
@@ -86,6 +87,7 @@ services:
     volumes:
       - "./testing/docker/fleet-server/certificate.pem:/etc/pki/tls/certs/fleet-server.pem"
       - "./testing/docker/fleet-server/key.pem:/etc/pki/tls/private/fleet-server-key.pem"
+      - "./testing/docker/fleet-server/:/fleet-server/"
 
   package-registry:
     image: docker.elastic.co/package-registry/distribution:snapshot
@@ -98,3 +100,18 @@ services:
     volumes:
       - "./testing/docker/package-registry/config.yml:/package-registry/config.yml"
       - "./build/integrations/apm:/packages/local/apm"
+
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:8.2.0-43df679f-SNAPSHOT
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-admin}"
+      ELASTICSEARCH_PASSWORD: "${KIBANA_ES_PASS:-changeme}"
+    depends_on:
+      elasticsearch: { condition: service_healthy }
+      fleet-server: { condition: service_healthy }
+    volumes:
+      - "./testing/docker/metricbeat/elasticsearch-xpack.yml://usr/share/metricbeat/modules.d/elasticsearch-xpack.yml"
+      - "./testing/docker/metricbeat/apm-server.yml://usr/share/metricbeat/modules.d/apm-server.yml"
+    profiles:
+      - monitoring
