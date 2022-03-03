@@ -646,10 +646,16 @@ func (s *serverRunner) newFinalBatchProcessor(
 		if err != nil {
 			return nil, nil, err
 		}
-		withMonitoringRegistryLocked(func() {
-			monitoring.Default.Remove("libbeat")
-			monitoring.Default.Add("libbeat", s.libbeatMonitoringRegistry, monitoring.Full)
-		})
+		// We only want to restore the previous Libbeat registry if the output
+		// has a name, otherwise, keep the libbeat registry as is. This is to
+		// account for cases where the output config may be sent empty by the
+		// Elastic Agent.
+		if s.beat.Config == nil || s.beat.Config.Output.Name() != "" {
+			withMonitoringRegistryLocked(func() {
+				monitoring.Default.Remove("libbeat")
+				monitoring.Default.Add("libbeat", s.libbeatMonitoringRegistry, monitoring.Full)
+			})
+		}
 		return publisher, publisher.Stop, nil
 	}
 
@@ -700,9 +706,6 @@ func (s *serverRunner) newFinalBatchProcessor(
 		outputType := monitoring.NewString(monitoring.Default.GetRegistry("libbeat.output"), "type")
 		outputType.Set("elasticsearch")
 		monitoring.NewFunc(monitoring.Default, "libbeat.output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
-			if l := monitoring.Default.Get("libbeat"); l != nil {
-				s.logger.Infof("during: %p %+v\n", l, l)
-			}
 			v.OnRegistryStart()
 			defer v.OnRegistryFinished()
 			stats := indexer.Stats()
