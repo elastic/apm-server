@@ -556,6 +556,16 @@ func (c *ElasticAgentContainer) Close() error {
 	return c.container.Terminate(context.Background())
 }
 
+// APMServerLog returns the contents of the APM Sever log file.
+func (c *ElasticAgentContainer) APMServerLog() (io.ReadCloser, error) {
+	return c.container.CopyFileFromContainer(
+		context.Background(), fmt.Sprintf(
+			"/usr/share/elastic-agent/state/data/logs/default/apm-server-%s-1.ndjson",
+			time.Now().Format("20060102"),
+		),
+	)
+}
+
 // Wait waits for the container process to exit, and returns its state.
 func (c *ElasticAgentContainer) Wait(ctx context.Context) (*types.ContainerState, error) {
 	select {
