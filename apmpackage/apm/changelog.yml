@@ -40,7 +40,7 @@
     - description: `auth.anonymous.rate_limit.{event_limit,ip_limit}` defaults are now the same as in the default rate_limit struct.
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6715
-    - description: Updated fields "@timestamp,data_stream.*,labels" to reference ecs
+    - description: Updated fields `@timestamp`, `data_stream.*`, and `labels` to reference ecs
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6714
     - description: Ingested labels are now stored as `event.{labels,numeric_labels}`
