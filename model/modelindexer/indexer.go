@@ -65,6 +65,7 @@ var ErrClosed = errors.New("model indexer closed")
 // Up to `config.MaxRequests` bulk requests may be flushing/active concurrently, to allow the
 // server to make progress encoding while Elasticsearch is busy servicing flushed bulk requests.
 type Indexer struct {
+<<<<<<< HEAD
 	eventsAdded  int64
 	eventsActive int64
 	eventsFailed int64
@@ -72,6 +73,20 @@ type Indexer struct {
 	logger       *logp.Logger
 	available    chan *bulkIndexer
 	g            errgroup.Group
+=======
+	bulkRequests    int64
+	eventsAdded     int64
+	eventsActive    int64
+	eventsFailed    int64
+	eventsIndexed   int64
+	tooManyRequests int64
+	bytesTotal      int64
+
+	config    Config
+	logger    *logp.Logger
+	available chan *bulkIndexer
+	g         errgroup.Group
+>>>>>>> 2bc3af8e (modelindexer: Report all Stack Monitoring metrics (#7428))
 
 	mu           sync.RWMutex
 	closing      bool
@@ -173,9 +188,19 @@ func (i *Indexer) Close(ctx context.Context) error {
 // Stats returns the bulk indexing stats.
 func (i *Indexer) Stats() Stats {
 	return Stats{
+<<<<<<< HEAD
 		Added:  atomic.LoadInt64(&i.eventsAdded),
 		Active: atomic.LoadInt64(&i.eventsActive),
 		Failed: atomic.LoadInt64(&i.eventsFailed),
+=======
+		Added:           atomic.LoadInt64(&i.eventsAdded),
+		Active:          atomic.LoadInt64(&i.eventsActive),
+		BulkRequests:    atomic.LoadInt64(&i.bulkRequests),
+		Failed:          atomic.LoadInt64(&i.eventsFailed),
+		Indexed:         atomic.LoadInt64(&i.eventsIndexed),
+		TooManyRequests: atomic.LoadInt64(&i.tooManyRequests),
+		BytesTotal:      atomic.LoadInt64(&i.bytesTotal),
+>>>>>>> 2bc3af8e (modelindexer: Report all Stack Monitoring metrics (#7428))
 	}
 }
 
@@ -331,6 +356,27 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 		return nil
 	}
 	defer atomic.AddInt64(&i.eventsActive, -int64(n))
+<<<<<<< HEAD
+=======
+	defer atomic.AddInt64(&i.bulkRequests, 1)
+
+	var tx *apm.Transaction
+	logger := i.logger
+	if i.config.Tracer != nil && i.config.Tracer.Recording() {
+		tx = i.config.Tracer.StartTransaction("flush", "output")
+		defer tx.End()
+		ctx = apm.ContextWithTransaction(ctx, tx)
+		tx.Outcome = "success"
+
+		// Add trace IDs to logger, to associate any per-item errors
+		// below with the trace.
+		for _, field := range apmzap.TraceContext(ctx) {
+			logger = logger.With(field)
+		}
+	}
+
+	atomic.AddInt64(&i.bytesTotal, int64(bulkIndexer.buf.Len()))
+>>>>>>> 2bc3af8e (modelindexer: Report all Stack Monitoring metrics (#7428))
 	resp, err := bulkIndexer.Flush(ctx)
 	if err != nil {
 		atomic.AddInt64(&i.eventsFailed, int64(n))
@@ -393,4 +439,18 @@ type Stats struct {
 
 	// Failed holds the number of indexing operations that failed.
 	Failed int64
+<<<<<<< HEAD
+=======
+
+	// Indexed holds the number of indexing operations that have completed
+	// successfully.
+	Indexed int64
+
+	// TooManyRequests holds the number of indexing operations that failed due
+	// to Elasticsearch responding with 429 Too many Requests.
+	TooManyRequests int64
+
+	// BytesTotal represents the total number of bytes that
+	BytesTotal int64
+>>>>>>> 2bc3af8e (modelindexer: Report all Stack Monitoring metrics (#7428))
 }

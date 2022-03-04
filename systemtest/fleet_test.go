@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -58,6 +59,49 @@ func TestFleetIntegration(t *testing.T) {
 	)
 }
 
+<<<<<<< HEAD
+=======
+func TestFleetIntegrationBeatsMonitoring(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	apmIntegration := newAPMIntegration(t, nil)
+
+	const N = 15
+	for i := 0; i < N; i++ {
+		tx := apmIntegration.Tracer.StartTransaction("name", "type")
+		tx.Duration = time.Second
+		tx.End()
+	}
+	apmIntegration.Tracer.Flush(nil)
+	systemtest.Elasticsearch.ExpectMinDocs(t, N, "traces-*", nil)
+
+	var metrics struct {
+		Libbeat map[string]interface{}
+	}
+	apmIntegration.getBeatsMonitoringStats(t, &metrics)
+	assert.Equal(t, map[string]interface{}{
+		"output": map[string]interface{}{
+			"events": map[string]interface{}{
+				"acked":   float64(N),
+				"active":  0.0,
+				"batches": 1.0,
+				"failed":  0.0,
+				"toomany": 0.0,
+				"total":   float64(N),
+			},
+			"type": "elasticsearch",
+			"write": map[string]interface{}{
+				"bytes": float64(10),
+			},
+		},
+		"pipeline": map[string]interface{}{
+			"events": map[string]interface{}{
+				"total": float64(N),
+			},
+		},
+	}, metrics.Libbeat)
+}
+
+>>>>>>> 2bc3af8e (modelindexer: Report all Stack Monitoring metrics (#7428))
 func TestFleetIntegrationAnonymousAuth(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	apmIntegration := newAPMIntegration(t, map[string]interface{}{
@@ -111,13 +155,18 @@ func newAPMIntegration(t testing.TB, vars map[string]interface{}) apmIntegration
 	agent.Stdout = &output
 	agent.Stderr = &output
 	agent.FleetEnrollmentToken = enrollmentAPIKey.APIKey
-	t.Cleanup(func() { agent.Close() })
 	t.Cleanup(func() {
 		// Log the elastic-agent container output if the test fails.
 		if !t.Failed() {
 			return
 		}
 		t.Logf("elastic-agent logs: %s", output.String())
+		if log, err := agent.APMServerLog(); err == nil {
+			t.Log("apm-server logs:")
+			io.Copy(os.Stdout, log)
+			log.Close()
+		}
+		agent.Close()
 	})
 
 	// Start elastic-agent with port 8200 exposed, and wait for the server to service

@@ -874,6 +874,32 @@ func TestServerExperimentalElasticsearchOutput(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for bulk request")
 	}
+<<<<<<< HEAD
+=======
+
+	snapshot := monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("libbeat"), monitoring.Full, false)
+	assert.Equal(t, map[string]interface{}{
+		"output": map[string]interface{}{
+			"events": map[string]interface{}{
+				"acked":   int64(0),
+				"active":  int64(5),
+				"batches": int64(0),
+				"failed":  int64(0),
+				"toomany": int64(0),
+				"total":   int64(5),
+			},
+			"type": "elasticsearch",
+			"write": map[string]interface{}{
+				"bytes": int64(10),
+			},
+		},
+		"pipeline": map[string]interface{}{
+			"events": map[string]interface{}{
+				"total": int64(5),
+			},
+		},
+	}, snapshot)
+>>>>>>> 2bc3af8e (modelindexer: Report all Stack Monitoring metrics (#7428))
 }
 
 type chanClient struct {
