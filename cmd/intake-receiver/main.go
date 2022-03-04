@@ -15,6 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+//go:generate bash ../../script/intake-receiver-version.sh
 package main
 
 import (
@@ -50,23 +51,18 @@ func main() {
 	flag.String("E", "", "apm-server compatibility option")
 	flag.String("httpprof", "", "apm-server compatibility option")
 
-	var host, version, folder string
+	var host, folder string
 	flag.StringVar(&host, "host", ":8200", "port that the server will listen to")
-	// TODO(marclop) how to keep this version in sync with `../cmd/version.go`?
-	flag.StringVar(&version, "version", "8.2.0", "APM Server version")
-	flag.StringVar(&folder, "folder", "traces", "The path where the received intake date will be stored")
+	flag.StringVar(&folder, "folder", "events", "The path where the received intake events will be stored")
 	flag.Parse()
 
 	// Create a context that will be cancelled when an interrupt is received.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
 
-	if folder != "." {
-		if err := os.MkdirAll(folder, 0755); err != nil {
-			log.Fatalln(err)
-		}
+	if err := os.MkdirAll(folder, 0755); err != nil {
+		log.Fatalln(err)
 	}
-
 	var agentFileMap fileMap
 	defer agentFileMap.m.Range(func(_, v interface{}) bool {
 		if f, ok := v.(*syncFile); ok && f != nil {
@@ -164,6 +160,11 @@ func (h requestHandler) handleRequest(r *http.Request) (int, error) {
 		body, err = zlib.NewReader(r.Body)
 	case "gzip":
 		body, err = gzip.NewReader(r.Body)
+	case "":
+	default:
+		return http.StatusBadRequest, fmt.Errorf(
+			"Content-Encoding %s not supported", encoding,
+		)
 	}
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf(
@@ -208,10 +209,6 @@ func (h requestHandler) processBatch(body io.ReadCloser, buf io.Writer, meta *me
 	var decodedMeta bool
 	var err error
 	for scanner.Scan() {
-		if err := scanner.Err(); err != nil {
-			return err
-		}
-
 		line := scanner.Bytes()
 		// Discard any lines that are at the maximum allowed length and aren't
 		// completely scanned.
@@ -228,11 +225,14 @@ func (h requestHandler) processBatch(body io.ReadCloser, buf io.Writer, meta *me
 		if e := json.Unmarshal(scanner.Bytes(), &meta); e != nil {
 			// TODO(marclop) multierror?
 			err = e
-			// Continue scanning
+			// Continue scanning, like we do in the APM Server itself.
 			continue
 		}
 		decodedMeta = meta.V2.Service.Agent != nil ||
 			meta.V3RUM.Service.Agent.Name != ""
+	}
+	if err := scanner.Err(); err != nil {
+		return err
 	}
 	return err
 }
@@ -275,7 +275,7 @@ func (m *fileMap) Set(p string, f *syncFile) { m.m.Store(p, f) }
 
 type syncFile struct {
 	// We want to avoid multiple requests writing to the same file at the same
-	// time, since may lead to incorrect traces.
+	// time, since may lead to incorrect events.
 	mu sync.Mutex
 	*os.File
 }
@@ -302,7 +302,7 @@ type fileMap struct {
 type metadata struct {
 	V2    v2Metadata    `json:"metadata,omitempty"`
 	V3RUM v3RUMMetadata `json:"m,omitempty"`
-	// TODO(marclop), we could do some decoding of the received data
+	// NOTE(marclop), we could do some decoding of the received data
 	// to accumulate statistics.
 }
 
