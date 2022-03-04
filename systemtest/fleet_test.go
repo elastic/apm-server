@@ -158,7 +158,7 @@ func newAPMIntegration(t testing.TB, vars map[string]interface{}) apmIntegration
 			return
 		}
 		t.Logf("elastic-agent logs: %s", output.String())
-		if log, err := agent.APMServerlog(); err == nil {
+		if log, err := agent.APMServerLog(); err == nil {
 			t.Log("apm-server logs:")
 			io.Copy(os.Stdout, log)
 			log.Close()

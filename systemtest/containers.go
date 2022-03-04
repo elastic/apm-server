@@ -556,10 +556,13 @@ func (c *ElasticAgentContainer) Close() error {
 	return c.container.Terminate(context.Background())
 }
 
-func (c *ElasticAgentContainer) APMServerlog() (io.ReadCloser, error) {
+// APMServerLog returns the contents of the APM Sever log file.
+func (c *ElasticAgentContainer) APMServerLog() (io.ReadCloser, error) {
 	return c.container.CopyFileFromContainer(
-		context.Background(),
-		"/usr/share/elastic-agent/state/data/logs/default/apm-server-20220302-1.ndjson",
+		context.Background(), fmt.Sprintf(
+			"/usr/share/elastic-agent/state/data/logs/default/apm-server-%s-1.ndjson",
+			time.Now().Format("20060102"),
+		),
 	)
 }
 

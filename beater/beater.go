@@ -649,7 +649,7 @@ func (s *serverRunner) newFinalBatchProcessor(
 		if err != nil {
 			return nil, nil, err
 		}
-		// We only want to restore the previous Libbeat registry if the output
+		// We only want to restore the previous libbeat registry if the output
 		// has a name, otherwise, keep the libbeat registry as is. This is to
 		// account for cases where the output config may be sent empty by the
 		// Elastic Agent.
