@@ -656,14 +656,35 @@ func (s *serverRunner) newFinalBatchProcessor(
 	p *publish.Publisher,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
 ) (model.BatchProcessor, func(context.Context) error, error) {
-
 	monitoringRegistryMu.Lock()
 	defer monitoringRegistryMu.Unlock()
 
 	if s.elasticsearchOutputConfig == nil {
+<<<<<<< HEAD
 		monitoring.Default.Remove("libbeat")
 		monitoring.Default.Add("libbeat", s.libbeatMonitoringRegistry, monitoring.Full)
 		return p, func(context.Context) error { return nil }, nil
+=======
+		// When the publisher stops cleanly it will close its pipeline client,
+		// calling the acker's Close method. We need to call Open for each new
+		// publisher to ensure we wait for all clients and enqueued events to
+		// be closed at shutdown time.
+		s.acker.Open()
+		pipeline := pipetool.WithACKer(s.pipeline, s.acker)
+		publisher, err := publish.NewPublisher(pipeline, s.tracer)
+		if err != nil {
+			return nil, nil, err
+		}
+		// We only want to restore the previous libbeat registry if the output
+		// has a name, otherwise, keep the libbeat registry as is. This is to
+		// account for cases where the output config may be sent empty by the
+		// Elastic Agent.
+		if s.beat.Config != nil && s.beat.Config.Output.Name() != "" {
+			monitoring.Default.Remove("libbeat")
+			monitoring.Default.Add("libbeat", s.libbeatMonitoringRegistry, monitoring.Full)
+		}
+		return publisher, publisher.Stop, nil
+>>>>>>> 2bc3af8e (modelindexer: Report all Stack Monitoring metrics (#7428))
 	}
 
 	var esConfig struct {
@@ -699,8 +720,18 @@ func (s *serverRunner) newFinalBatchProcessor(
 		return nil, nil, err
 	}
 
-	// Install our own libbeat.output.events-compatible metrics callback which uses the modelindexer stats.
+	// Install our own libbeat-compatible metrics callback which uses the modelindexer stats.
+	// All the metrics below are required to be reported to be able to display all relevant
+	// fields in the Stack Monitoring UI.
 	monitoring.Default.Remove("libbeat")
+	monitoring.NewFunc(monitoring.Default, "libbeat.output.write", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		v.OnKey("bytes")
+		v.OnInt(indexer.Stats().BytesTotal)
+	})
+	outputType := monitoring.NewString(monitoring.Default.GetRegistry("libbeat.output"), "type")
+	outputType.Set("elasticsearch")
 	monitoring.NewFunc(monitoring.Default, "libbeat.output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
@@ -717,6 +748,12 @@ func (s *serverRunner) newFinalBatchProcessor(
 		v.OnInt(stats.TooManyRequests)
 		v.OnKey("total")
 		v.OnInt(stats.Added)
+	})
+	monitoring.NewFunc(monitoring.Default, "libbeat.pipeline.events", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		v.OnKey("total")
+		v.OnInt(indexer.Stats().Added)
 	})
 	return indexer, indexer.Close, nil
 }

@@ -74,6 +74,7 @@ type Indexer struct {
 	eventsFailed    int64
 	eventsIndexed   int64
 	tooManyRequests int64
+	bytesTotal      int64
 
 	config    Config
 	logger    *logp.Logger
@@ -192,6 +193,7 @@ func (i *Indexer) Stats() Stats {
 		Failed:          atomic.LoadInt64(&i.eventsFailed),
 		Indexed:         atomic.LoadInt64(&i.eventsIndexed),
 		TooManyRequests: atomic.LoadInt64(&i.tooManyRequests),
+		BytesTotal:      atomic.LoadInt64(&i.bytesTotal),
 	}
 }
 
@@ -364,6 +366,7 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 		}
 	}
 
+	atomic.AddInt64(&i.bytesTotal, int64(bulkIndexer.buf.Len()))
 	resp, err := bulkIndexer.Flush(ctx)
 	if err != nil {
 		atomic.AddInt64(&i.eventsFailed, int64(n))
@@ -463,4 +466,7 @@ type Stats struct {
 	// TooManyRequests holds the number of indexing operations that failed due
 	// to Elasticsearch responding with 429 Too many Requests.
 	TooManyRequests int64
+
+	// BytesTotal represents the total number of bytes that
+	BytesTotal int64
 }
