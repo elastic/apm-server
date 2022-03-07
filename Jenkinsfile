@@ -186,7 +186,7 @@ pipeline {
             }
           }
         }
-        stage('windows2022 build-test') {
+        stage('windows-2022 build-test') {
           agent { label 'windows-2022-immutable' }
           options {
             skipDefaultCheckout()
@@ -200,7 +200,7 @@ pipeline {
             }
           }
           steps {
-            withGithubNotify(context: 'Build-Test - Windows2022') {
+            withGithubNotify(context: 'Build-Test - Windows-2022') {
               deleteDir()
               unstash 'source'
               dir(BASE_DIR){
