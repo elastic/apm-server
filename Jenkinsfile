@@ -161,6 +161,7 @@ pipeline {
               anyOf {
                 expression { return params.windows_ci }
                 expression { return env.GITHUB_COMMENT?.contains('windows')}
+                expression { matchesPrLabel(label: 'ci:windows') }
               }
               expression { return env.ONLY_DOCS == "false" }
             }
@@ -199,6 +200,7 @@ pipeline {
               anyOf {
                 expression { return params.windows_ci }
                 expression { return env.GITHUB_COMMENT?.contains('windows')}
+                expression { matchesPrLabel(label: 'ci:windows') }
               }
               expression { return env.ONLY_DOCS == "false" }
             }
