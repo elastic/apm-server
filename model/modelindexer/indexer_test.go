@@ -102,6 +102,9 @@ func TestModelIndexer(t *testing.T) {
 	// Closing the indexer flushes enqueued events.
 	err = indexer.Close(context.Background())
 	require.NoError(t, err)
+	stats := indexer.Stats()
+	assert.GreaterOrEqual(t, stats.BytesTotal, int64(18500))
+	stats.BytesTotal = 0
 	assert.Equal(t, modelindexer.Stats{
 		Added:           N,
 		Active:          0,
@@ -109,7 +112,7 @@ func TestModelIndexer(t *testing.T) {
 		Failed:          2,
 		Indexed:         N - 2,
 		TooManyRequests: 1,
-	}, indexer.Stats())
+	}, stats)
 }
 
 func TestModelIndexerEncoding(t *testing.T) {
@@ -261,12 +264,15 @@ func TestModelIndexerServerError(t *testing.T) {
 	// Closing the indexer flushes enqueued events.
 	err = indexer.Close(context.Background())
 	require.EqualError(t, err, "flush failed: [500 Internal Server Error] ")
+	stats := indexer.Stats()
+	assert.GreaterOrEqual(t, stats.BytesTotal, int64(185))
+	stats.BytesTotal = 0
 	assert.Equal(t, modelindexer.Stats{
 		Added:        1,
 		Active:       0,
 		BulkRequests: 1,
 		Failed:       1,
-	}, indexer.Stats())
+	}, stats)
 }
 
 func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
@@ -288,13 +294,16 @@ func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
 	// Closing the indexer flushes enqueued events.
 	err = indexer.Close(context.Background())
 	require.EqualError(t, err, "flush failed: [429 Too Many Requests] ")
+	stats := indexer.Stats()
+	assert.GreaterOrEqual(t, stats.BytesTotal, int64(185))
+	stats.BytesTotal = 0
 	assert.Equal(t, modelindexer.Stats{
 		Added:           1,
 		Active:          0,
 		BulkRequests:    1,
 		Failed:          1,
 		TooManyRequests: 1,
-	}, indexer.Stats())
+	}, stats)
 }
 
 func TestModelIndexerLogRateLimit(t *testing.T) {
