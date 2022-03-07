@@ -29,7 +29,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger("(${obltGitHubComments()}|^run\\W+(?:the\\W+)?(hey-apm|package|arm)\\W+tests|^/test|^/hey-apm|^/package)")
+    issueCommentTrigger("(${obltGitHubComments()}|^run\\W+(?:the\\W+)?(hey-apm|package|arm|windows)\\W+tests|^/test|^/hey-apm|^/package|^/test windows)")
   }
   parameters {
     booleanParam(name: 'Run_As_Main_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on main branch.')
@@ -158,7 +158,10 @@ pipeline {
           when {
             beforeAgent true
             allOf {
-              expression { return params.windows_ci }
+              anyOf {
+                expression { return params.windows_ci }
+                expression { return env.GITHUB_COMMENT?.contains('windows')}
+              }
               expression { return env.ONLY_DOCS == "false" }
             }
           }
@@ -193,7 +196,10 @@ pipeline {
           when {
             beforeAgent true
             allOf {
-              expression { return params.windows_ci }
+              anyOf {
+                expression { return params.windows_ci }
+                expression { return env.GITHUB_COMMENT?.contains('windows')}
+              }
               expression { return env.ONLY_DOCS == "false" }
             }
           }
