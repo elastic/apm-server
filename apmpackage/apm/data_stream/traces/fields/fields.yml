@@ -55,6 +55,14 @@
       type: keyword
       description: |
         The trigger type.
+    - name: name
+      type: keyword
+      description: |
+        The lambda function name.
+    - name: version
+      type: keyword
+      description: |
+        The lambda function version.
 - name: http
   type: group
   fields:

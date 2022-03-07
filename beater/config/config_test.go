@@ -261,6 +261,7 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				DefaultServiceEnvironment: "overridden",
 				DataStreams: DataStreamsConfig{
+					Namespace:          "default",
 					WaitForIntegration: true,
 				},
 				WaitReadyInterval: 5 * time.Second,
@@ -315,7 +316,10 @@ func TestUnpackConfig(t *testing.T) {
 					"interval":          "2m",
 					"ingest_rate_decay": 1.0,
 				},
-				"data_streams.wait_for_integration": false,
+				"data_streams": map[string]interface{}{
+					"namespace":            "foo",
+					"wait_for_integration": false,
+				},
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -404,6 +408,7 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				DataStreams: DataStreamsConfig{
+					Namespace:          "foo",
 					WaitForIntegration: false,
 				},
 				WaitReadyInterval: 5 * time.Second,

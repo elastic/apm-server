@@ -205,7 +205,6 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		})
 	} else {
 		// Management disabled, use statically defined config.
-		reloader.namespace = "default"
 		reloader.rawConfig = bt.rawConfig
 		if b.Config != nil {
 			reloader.outputConfig = b.Config.Output
@@ -299,7 +298,6 @@ func (r *reloader) reload() error {
 
 	runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
 		sharedServerRunnerParams: r.args,
-		Namespace:                r.namespace,
 		RawConfig:                r.rawConfig,
 		FleetConfig:              r.fleetConfig,
 		OutputConfig:             r.outputConfig,
@@ -357,7 +355,6 @@ type serverRunner struct {
 type serverRunnerParams struct {
 	sharedServerRunnerParams
 
-	Namespace    string
 	RawConfig    *common.Config
 	FleetConfig  *config.Fleet
 	OutputConfig common.ConfigNamespace
@@ -397,7 +394,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		fleetConfig:               args.FleetConfig,
 		acker:                     args.Acker,
 		pipeline:                  args.Beat.Publisher,
-		namespace:                 args.Namespace,
+		namespace:                 cfg.DataStreams.Namespace,
 		beat:                      args.Beat,
 		logger:                    args.Logger,
 		tracer:                    args.Tracer,
@@ -638,7 +635,6 @@ var monitoringRegistryMu sync.Mutex
 func (s *serverRunner) newFinalBatchProcessor(
 	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
 ) (model.BatchProcessor, func(context.Context) error, error) {
-
 	monitoringRegistryMu.Lock()
 	defer monitoringRegistryMu.Unlock()
 
@@ -653,8 +649,14 @@ func (s *serverRunner) newFinalBatchProcessor(
 		if err != nil {
 			return nil, nil, err
 		}
-		monitoring.Default.Remove("libbeat")
-		monitoring.Default.Add("libbeat", s.libbeatMonitoringRegistry, monitoring.Full)
+		// We only want to restore the previous libbeat registry if the output
+		// has a name, otherwise, keep the libbeat registry as is. This is to
+		// account for cases where the output config may be sent empty by the
+		// Elastic Agent.
+		if s.beat.Config != nil && s.beat.Config.Output.Name() != "" {
+			monitoring.Default.Remove("libbeat")
+			monitoring.Default.Add("libbeat", s.libbeatMonitoringRegistry, monitoring.Full)
+		}
 		return publisher, publisher.Stop, nil
 	}
 
@@ -691,8 +693,18 @@ func (s *serverRunner) newFinalBatchProcessor(
 		return nil, nil, err
 	}
 
-	// Install our own libbeat.output.events-compatible metrics callback which uses the modelindexer stats.
+	// Install our own libbeat-compatible metrics callback which uses the modelindexer stats.
+	// All the metrics below are required to be reported to be able to display all relevant
+	// fields in the Stack Monitoring UI.
 	monitoring.Default.Remove("libbeat")
+	monitoring.NewFunc(monitoring.Default, "libbeat.output.write", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		v.OnKey("bytes")
+		v.OnInt(indexer.Stats().BytesTotal)
+	})
+	outputType := monitoring.NewString(monitoring.Default.GetRegistry("libbeat.output"), "type")
+	outputType.Set("elasticsearch")
 	monitoring.NewFunc(monitoring.Default, "libbeat.output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
@@ -709,6 +721,12 @@ func (s *serverRunner) newFinalBatchProcessor(
 		v.OnInt(stats.TooManyRequests)
 		v.OnKey("total")
 		v.OnInt(stats.Added)
+	})
+	monitoring.NewFunc(monitoring.Default, "libbeat.pipeline.events", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		v.OnKey("total")
+		v.OnInt(indexer.Stats().Added)
 	})
 	return indexer, indexer.Close, nil
 }

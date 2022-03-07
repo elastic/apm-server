@@ -374,7 +374,10 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 		cloudMachineType:      event.Cloud.MachineType,
 
 		faasColdstart:   event.FAAS.Coldstart,
+		faasID:          event.FAAS.ID,
 		faasTriggerType: event.FAAS.TriggerType,
+		faasName:        event.FAAS.Name,
+		faasVersion:     event.FAAS.Version,
 	}
 }
 
@@ -431,7 +434,10 @@ func makeMetricset(
 		},
 		FAAS: model.FAAS{
 			Coldstart:   key.faasColdstart,
+			ID:          key.faasID,
 			TriggerType: key.faasTriggerType,
+			Name:        key.faasName,
+			Version:     key.faasVersion,
 		},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
@@ -475,6 +481,9 @@ type metricsMapEntry struct {
 type transactionAggregationKey struct {
 	timestamp              time.Time
 	faasColdstart          *bool
+	faasID                 string
+	faasName               string
+	faasVersion            string
 	agentName              string
 	hostOSPlatform         string
 	kubernetesPodName      string
@@ -542,7 +551,10 @@ func (k *transactionAggregationKey) hash() uint64 {
 	h.WriteString(k.transactionResult)
 	h.WriteString(k.transactionType)
 	h.WriteString(k.eventOutcome)
+	h.WriteString(k.faasID)
 	h.WriteString(k.faasTriggerType)
+	h.WriteString(k.faasName)
+	h.WriteString(k.faasVersion)
 	return h.Sum64()
 }
 

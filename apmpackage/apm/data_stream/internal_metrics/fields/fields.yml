@@ -7,10 +7,22 @@
       type: boolean
       description: |
         Boolean indicating whether the function invocation was a coldstart or not.
+    - name: id
+      type: keyword
+      description: |
+        A unique identifier of the invoked serverless function.
     - name: trigger.type
       type: keyword
       description: |
         The trigger type.
+    - name: name
+      type: keyword
+      description: |
+        The lambda function name.
+    - name: version
+      type: keyword
+      description: |
+        The lambda function version.
 - name: kubernetes
   title: Kubernetes
   type: group
