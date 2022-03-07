@@ -75,6 +75,8 @@ func isUnmappedMetadataField(key string) bool {
 		"FAAS.Execution",
 		"FAAS.TriggerType",
 		"FAAS.TriggerRequestID",
+		"FAAS.Name",
+		"FAAS.Version",
 		"HTTP",
 		"HTTP.Request",
 		"HTTP.Response",

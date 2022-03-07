@@ -475,6 +475,8 @@ func TestAggregationFields(t *testing.T) {
 		&input.Host.OS.Platform,
 		&input.FAAS.ID,
 		&input.FAAS.TriggerType,
+		&input.FAAS.Name,
+		&input.FAAS.Version,
 	}
 	boolInputFields := []*bool{
 		input.FAAS.Coldstart,
