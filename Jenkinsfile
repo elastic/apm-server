@@ -154,7 +154,6 @@ pipeline {
           agent { label 'windows-2019-immutable' }
           options {
             skipDefaultCheckout()
-            warnError('Windows execution failed')
           }
           when {
             beforeAgent true
@@ -190,7 +189,6 @@ pipeline {
           agent { label 'windows-2022-immutable' }
           options {
             skipDefaultCheckout()
-            warnError('Windows execution failed')
           }
           when {
             beforeAgent true
