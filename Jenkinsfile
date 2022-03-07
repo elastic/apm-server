@@ -150,7 +150,7 @@ pipeline {
         /**
         Build and Test on a windows environment.
         */
-        stage('windows build-test') {
+        stage('windows-2019 build-test') {
           agent { label 'windows-2019-immutable' }
           options {
             skipDefaultCheckout()
@@ -163,7 +163,7 @@ pipeline {
             }
           }
           steps {
-            withGithubNotify(context: 'Build-Test - Windows') {
+            withGithubNotify(context: 'Build-Test - Windows-2019') {
               deleteDir()
               unstash 'source'
               dir(BASE_DIR){
