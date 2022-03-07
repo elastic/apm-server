@@ -81,10 +81,10 @@ A sampled trace retains all data associated with it.
 A non-sampled trace drops all <<data-model-spans,span>> and <<data-model-transactions,transaction>> data^1^.
 Regardless of the sampling decision, all traces retain <<data-model-errors,error>> data.
 
-Sampling does not impact aggregated transaction and span <<data-model-metrics,metrics>>.
-This means that the visualizations in the APM app, like latency, throughput, time spent by span type, failed transaction rate,
-errors, error rate, etc., will always accurately reflect *all* of your application's requests,
-regardless of the configured sampling rate.
+Some visualizations in the APM app, like latency, are powered by aggregated transaction and span <<data-model-metrics,metrics>>.
+Metrics are based on sampled traces and weighted by the inverse sampling rate.
+For example, if you sample at 5%, each trace is counted as 20.
+As a result, as the variance of latency increases, or the sampling rate decreases, your level of error will increase.
 
 ^1^ Real User Monitoring (RUM) traces are an exception to this rule.
 The {kib} apps that utilize RUM data depend on transaction events,
