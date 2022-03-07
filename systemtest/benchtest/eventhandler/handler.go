@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package tracehandler
+package eventhandler
 
 import (
 	"bufio"
@@ -29,7 +29,7 @@ import (
 	"go.elastic.co/apm/transport"
 )
 
-const maxScanTokenSize = 300 * 1024
+const maxScanTokenSize = 300 * 1024 // 300Kb.
 
 var (
 	metaHeader    = []byte(`{"metadata":`)
@@ -42,6 +42,8 @@ type batch struct {
 	items uint
 }
 
+// Handler is used to replay a set of stored events to a remote APM Server
+// using a transport.
 type Handler struct {
 	transport    transport.Transport
 	batches      []batch
@@ -105,6 +107,7 @@ func New(p string, t transport.Transport, storage fs.FS, warmup uint) (*Handler,
 				scanned++
 				continue
 			}
+
 			// Since the current token is a metadata line, it means that we've
 			// read the start of the next batch, because of that, we'll flush,
 			// close and copy the compressed contents. After we've ensured that

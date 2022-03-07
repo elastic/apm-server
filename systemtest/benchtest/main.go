@@ -37,9 +37,9 @@ import (
 	"go.elastic.co/apm/stacktrace"
 )
 
-// traces holds the current stored traces.
-//go:embed traces/*
-var traces embed.FS
+// events holds the current stored events.
+//go:embed events/*.ndjson
+var events embed.FS
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
 type BenchmarkFunc func(*testing.B)
@@ -179,7 +179,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 	}
 
 	// Warmup the APM Server before beggining the benchmarks.
-	if h, err := newTraceHandler(`traces/*.ndjson`); err == nil {
+	if h, err := newEventHandler(`.*.ndjson`); err == nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		h.WarmUpServer(ctx, *warmupEvents)

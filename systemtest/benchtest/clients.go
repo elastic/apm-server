@@ -27,7 +27,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/elastic/apm-server/systemtest/benchtest/tracehandler"
+	"github.com/elastic/apm-server/systemtest/benchtest/eventhandler"
 
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/transport"
@@ -94,17 +94,17 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 	return exporter
 }
 
-// NewTraceHandler creates a tracehandler which loads the files matching the
+// NewEventHandler creates a eventhandler which loads the files matching the
 // passed regex.
-func NewTraceHandler(tb testing.TB, p string) *tracehandler.Handler {
-	h, err := newTraceHandler(p)
+func NewEventHandler(tb testing.TB, p string) *eventhandler.Handler {
+	h, err := newEventHandler(p)
 	if err != nil {
 		tb.Fatal(err)
 	}
 	return h
 }
 
-func newTraceHandler(p string) (*tracehandler.Handler, error) {
+func newEventHandler(p string) (*eventhandler.Handler, error) {
 	transp, err := transport.NewHTTPTransport()
 	if err != nil {
 		return nil, err
@@ -112,5 +112,5 @@ func newTraceHandler(p string) (*tracehandler.Handler, error) {
 	transp.SetServerURL(serverURL)
 	transp.SetSecretToken(*secretToken)
 
-	return tracehandler.New(p, transp, traces, *warmupEvents)
+	return eventhandler.New(p, transp, events, *warmupEvents)
 }

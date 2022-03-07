@@ -61,23 +61,23 @@ func BenchmarkOTLPTraces(b *testing.B) {
 }
 
 func BenchmarkAgentGo(b *testing.B) {
-	benchmarkAgent(b, `traces/go.*.ndjson`)
+	benchmarkAgent(b, `go.*.ndjson`)
 }
 
 func BenchmarkAgentNodeJS(b *testing.B) {
-	benchmarkAgent(b, `traces/nodejs.*.ndjson`)
+	benchmarkAgent(b, `nodejs.*.ndjson`)
 }
 
 func BenchmarkAgentPython(b *testing.B) {
-	benchmarkAgent(b, `traces/python.*.ndjson`)
+	benchmarkAgent(b, `python.*.ndjson`)
 }
 
 func BenchmarkAgentRuby(b *testing.B) {
-	benchmarkAgent(b, `traces/ruby.*.ndjson`)
+	benchmarkAgent(b, `ruby.*.ndjson`)
 }
 
 func benchmarkAgent(b *testing.B, expr string) {
-	h := benchtest.NewTraceHandler(b, expr)
+	h := benchtest.NewEventHandler(b, expr)
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
