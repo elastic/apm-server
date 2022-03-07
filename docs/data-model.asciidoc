@@ -260,8 +260,6 @@ You can filter and group by these dimensions (some of which are optional, for ex
 * `faas.coldstart`: Whether the _serverless_ service that served the transaction had a cold start
 * `faas.trigger.type`: The trigger type that the lambda function was executed by of the service that served the transaction
 * `faas.id`: The unique identifier of the invoked serverless function
-* `faas.name`: The name of the lambda function
-* `faas.version`: The version of the lambda function
 --
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
