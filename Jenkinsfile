@@ -36,7 +36,7 @@ pipeline {
     booleanParam(name: 'arm_ci', defaultValue: true, description: 'Enable ARM build')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
     booleanParam(name: 'osx_ci', defaultValue: true, description: 'Enable OSX CI')
-    booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
+    booleanParam(name: 'windows_ci', defaultValue: false, description: 'Enable Windows CI')
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
