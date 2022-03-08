@@ -1,21 +1,13 @@
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/8.0\...main[View commits]
-
-Starting in version 8.0.0, {fleet} uses the APM integration to set up and manage APM index templates,
-ILM policies, and ingest pipelines. APM Server will only send data to {es} _after_ the APM integration has been installed.
-See <<apm-server-configuration>> for more information.
+https://github.com/elastic/apm-server/compare/8.1\...main[View commits]
 
 [float]
 ==== Breaking Changes
 
 [float]
 ==== Bug fixes
-- Fix infinite loop in tail-based sampling subscriber causing high CPU and repeated Elasticsearch searches {pull}7211[7211]
-- Fix panic when processing OpenTelemetry histogram metrics without bounds {pull}7316[7316]
-- Fix mixing of labels across OpenTelemetry log records {pull}7358[7358]
-- Fix waiting for events to be flushed when shutting down APM Server {pull}7352[7352]
 - Fix missing stack monitoring metrics {pull}7428[7428]
 
 [float]
@@ -23,6 +15,8 @@ See <<apm-server-configuration>> for more information.
 
 [float]
 ==== Added
+
+
+// still waiting on these?
 - `apm-server` artifacts now have the apm java-attacher.jar packaged alongside them {pull}6593[6593]
 - Run the java attacher jar when configured and not in a cloud environment {pull}6617[6617]
-- Added several dimensions to the aggregated transaction metrics {pull}7033[7033]
