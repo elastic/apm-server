@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"context"
+	"errors"
 	"io"
 	"io/fs"
 	"regexp"
@@ -93,15 +94,17 @@ func New(p string, t transport.Transport, storage fs.FS, warmup uint) (*Handler,
 			if len(line) == 0 {
 				continue
 			}
+			// TODO(marclop): Suppport RUM headers and handle them differently.
+			if bytes.HasPrefix(line, rumMetaHeader) {
+				return errors.New("rum data support not implemented")
+			}
 
 			if !wroteMeta {
 				writer.WriteLine(line)
 				wroteMeta = true
 				continue
 			}
-			// TODO(marclop): RUM headers should be handled differently.
-			isMeta := bytes.HasPrefix(line, metaHeader) ||
-				bytes.HasPrefix(line, rumMetaHeader)
+			isMeta := bytes.HasPrefix(line, metaHeader)
 			if !isMeta {
 				writer.WriteLine(line)
 				scanned++
@@ -138,6 +141,9 @@ func New(p string, t transport.Transport, storage fs.FS, warmup uint) (*Handler,
 	})
 	if err != nil {
 		return nil, err
+	}
+	if len(h.batches) == 0 {
+		return nil, errors.New("eventhandler: regex matched no files, please specify a valid regex")
 	}
 	return &h, nil
 }

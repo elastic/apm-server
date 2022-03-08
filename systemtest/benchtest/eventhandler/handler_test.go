@@ -74,6 +74,31 @@ func newHandler(t *testing.T, dir, expr string) (*Handler, *mockTransport) {
 	return h, transp
 }
 
+func TestHandlerNew(t *testing.T) {
+	storage := os.DirFS("testdata")
+	t.Run("success-matches-files", func(t *testing.T) {
+		h, err := New(`python.*.ndjson`, nil, storage, 0)
+		require.NoError(t, err)
+		assert.Greater(t, len(h.batches), 0)
+	})
+	t.Run("failure-matches-no-files", func(t *testing.T) {
+		h, err := New(`go.*.ndjson`, nil, storage, 0)
+		require.EqualError(t, err, "eventhandler: regex matched no files, please specify a valid regex")
+		assert.Nil(t, h)
+	})
+	t.Run("failure-invalid-regex", func(t *testing.T) {
+		h, err := New(`****`, nil, storage, 0)
+		require.EqualError(t, err, "error parsing regexp: missing argument to repetition operator: `*`")
+		assert.Nil(t, h)
+	})
+	t.Run("failure-rum-data", func(t *testing.T) {
+		storage := os.DirFS(filepath.Join("..", "..", "..", "testdata", "intake-v3"))
+		h, err := New(`.*.ndjson`, nil, storage, 0)
+		require.EqualError(t, err, "rum data support not implemented")
+		assert.Nil(t, h)
+	})
+}
+
 func TestHandlerSendBatches(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		handler, transp := newHandler(t, "testdata", "python.*.ndjson")
@@ -99,6 +124,16 @@ func TestHandlerSendBatches(t *testing.T) {
 		assert.Equal(t, transp.received, uint(0))
 		assert.Equal(t, n, uint(0))
 	})
+	t.Run("sendstream-returns-error", func(t *testing.T) {
+		storage := os.DirFS("testdata")
+		handler, err := New(`python.*.ndjson`, &mockTransport{}, storage, 0)
+		require.NoError(t, err)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		n, err := handler.SendBatches(ctx)
+		assert.Error(t, err)
+		assert.Equal(t, n, uint(0))
+	})
 }
 
 func TestHandlerWarmUp(t *testing.T) {
@@ -117,7 +152,16 @@ func TestHandlerWarmUp(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 		err := h.WarmUpServer(ctx, 10)
-		assert.Error(t, err)
+		assert.ErrorIs(t, err, context.Canceled)
 		assert.Equal(t, transp.received, uint(0))
+	})
+	t.Run("cancel-withot-events", func(t *testing.T) {
+		h, transp := newHandler(t, "testdata", "python.*.ndjson")
+		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+		defer cancel()
+		err := h.WarmUpServer(ctx, 100000)
+		assert.ErrorIs(t, err, context.DeadlineExceeded)
+		assert.Greater(t, transp.received, uint(0))
+		assert.Less(t, transp.received, uint(100000))
 	})
 }
