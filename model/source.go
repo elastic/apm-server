@@ -48,7 +48,9 @@ func (s *Source) fields() common.MapStr {
 		fields.set("port", s.Port)
 	}
 	if s.NAT != nil {
-		fields.set("nat", s.NAT.fields())
+		if nat := s.NAT.fields(); len(nat) > 0 {
+			fields.set("nat", nat)
+		}
 	}
 	return common.MapStr(fields)
 }
