@@ -1,2 +1,3 @@
 include::./changelogs/head.asciidoc[]
+include::./changelogs/8.1.asciidoc[]
 include::./changelogs/8.0.asciidoc[]
