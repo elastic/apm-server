@@ -119,9 +119,9 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 		c.SourceIP, c.ClientIP = ip, ip
 		c.SourcePort, c.ClientPort = int(port), int(port)
 		if ip, port := netutil.ClientAddrFromHeaders(r.Header); ip != nil {
-			// Question: the issue doesn't list source.nat.port.
-			// Should we add this?
-			c.SourceNATIP, c.SourceNATPort = ip, int(port)
+			c.SourceNATIP, c.SourceNATPort = c.ClientIP, c.ClientPort
+			c.SourceIP, c.ClientIP = ip, ip
+			c.SourcePort, c.ClientPort = int(port), int(port)
 		}
 		c.UserAgent = strings.Join(r.Header["User-Agent"], ", ")
 		c.Timestamp = time.Now()

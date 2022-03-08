@@ -305,12 +305,10 @@ func mapToClientModel(from contextRequest, source *model.Source, client *model.C
 	}
 	if client.IP == nil {
 		client.IP = source.IP
-		// TODO: Should this be removed now that the originating
-		// client's IP should be stored in both source.ip and
-		// client.ip?
-		// https://github.com/elastic/apm-server/issues/7029#issuecomment-1010677750
 		if ip, port := netutil.ClientAddrFromHeaders(from.Headers.Val); ip != nil {
+			source.NAT = &model.NAT{IP: source.IP, Port: source.Port}
 			client.IP, client.Port = ip, int(port)
+			source.IP, source.Port = client.IP, client.Port
 		}
 	}
 }

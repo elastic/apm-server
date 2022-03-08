@@ -52,8 +52,10 @@ func ClientMetadata() grpc.UnaryServerInterceptor {
 				values.UserAgent = ua[0]
 			}
 			// Account for `forwarded`, `x-real-ip`, `x-forwarded-for` headers
-			if ip, _ := netutil.ClientAddrFromHeaders(http.Header(md)); ip != nil {
-				values.SourceNATIP = ip
+			if ip, port := netutil.ClientAddrFromHeaders(http.Header(md)); ip != nil {
+				values.SourceNATIP = values.ClientIP
+				values.ClientIP = ip
+				values.SourceAddr = &net.TCPAddr{IP: ip, Port: int(port)}
 			}
 		}
 		ctx = context.WithValue(ctx, clientMetadataKey{}, values)
