@@ -67,7 +67,7 @@ In the first example, `Service A` samples at `.5` (`50%`). In the second, `Servi
 Each subsequent service respects the initial sampling decision, regardless of their configured sample rate.
 The result is a sampling percentage that matches the initiating service:
 
-image::./../legacy/guide/images/dt-sampling-example.png[How sampling impacts distributed tracing]
+image::./images/dt-sampling-example.png[How sampling impacts distributed tracing]
 
 [float]
 ==== APM app implications

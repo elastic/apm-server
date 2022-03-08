@@ -22,7 +22,7 @@ TLS is disabled by default.
 When TLS is enabled for APM Server inbound communication, agents will verify the identity
 of the APM Server by authenticating its certificate.
 
-Enable TLS in the APM integration configuration panel; a certificate and corresponding private key are required.
+Enable TLS in the <<input-apm,APM integration settings>>; a certificate and corresponding private key are required.
 The certificate and private key can either be issued by a trusted certificate authority (CA)
 or be <<agent-self-sign,self-signed>>.
 
@@ -87,7 +87,7 @@ and there is no dedicated support for SSL/TLS client certificate authentication 
 IMPORTANT: API keys are sent as plain-text,
 so they only provide security when used in combination with <<agent-tls,TLS>>.
 
-Enable API key authorization in the APM integration configuration panel.
+Enable API key authorization in the <<input-apm,APM integration settings>>.
 When enabled, API keys are used to authorize requests to the APM Server.
 
 You can assign one or more unique privileges to each API key:
@@ -107,7 +107,7 @@ make sure <<agent-tls,TLS>> is enabled, then complete these steps:
 [float]
 === Enable API keys
 
-Enable API key authorization in the APM integration configuration panel.
+Enable API key authorization in the <<input-apm,APM integration settings>>.
 You should also set a limit on the number of unique API keys that APM Server allows per minute;
 this value should be the number of unique API keys configured in your monitored services.
 
@@ -173,7 +173,7 @@ See the relevant agent documentation for additional information:
 IMPORTANT: Secret tokens are sent as plain-text,
 so they only provide security when used in combination with <<agent-tls,TLS>>.
 
-Define a secret token in the APM integration configuration panel.
+Define a secret token in the <<input-apm,APM integration settings>>.
 When defined, secret tokens are used to authorize requests to the APM Server.
 Both the APM agent and APM integration must be configured with the same secret token for the request to be accepted.
 
@@ -190,7 +190,7 @@ as there is no way to prevent them from being publicly exposed.
 [[create-secret-token]]
 === Create a secret token
 
-Define a secret token in the APM integration configuration panel.
+Define a secret token in the <<input-apm,APM integration settings>>.
 Alternatively, {ess} and {ece} deployments provision a secret token when the deployment is created.
 The secret token can be found and reset in the {ecloud} console under **Deployments** -- **APM & Fleet**.
 
