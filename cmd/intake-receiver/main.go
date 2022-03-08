@@ -80,8 +80,8 @@ func main() {
 	}
 	mux := http.NewServeMux()
 	mux.Handle("/", rh.rootHandler())
-	// TODO(marclop): intake/v2/rum is not supported.
-	for _, p := range []string{"/intake/v2/events", "/intake/v3/rum/events"} {
+	// TODO(marclop): intake/v2/rum and /intake/v3/rum/events are not supported.
+	for _, p := range []string{"/intake/v2/events"} {
 		mux.Handle(p, rh.eventHandler())
 	}
 	srv := http.Server{
@@ -118,16 +118,21 @@ type requestHandler struct {
 
 func (h requestHandler) rootHandler() http.Handler {
 	return logHandler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
+		switch r.URL.Path {
+		case "/":
 			rw.WriteHeader(200)
 			rw.Write([]byte(h.rootResponse))
-			return
+		case "/config/v1/agents":
+			// Prevent the APM Agents from logging errors.
+			rw.WriteHeader(200)
+			rw.Write([]byte(`{}`))
+		default:
+			http.Error(
+				rw,
+				fmt.Sprintf(" %s is not implemented", r.URL.Path),
+				http.StatusNotImplemented,
+			)
 		}
-		http.Error(
-			rw,
-			fmt.Sprintf(" %s is not implemented", r.URL.Path),
-			http.StatusNotImplemented,
-		)
 	}))
 }
 
@@ -228,8 +233,8 @@ func (h requestHandler) processBatch(body io.ReadCloser, buf io.Writer, meta *me
 			// Continue scanning, like we do in the APM Server itself.
 			continue
 		}
-		decodedMeta = meta.V2.Service.Agent != nil ||
-			meta.V3RUM.Service.Agent.Name != ""
+		// TODO(marclop) support RUM.
+		decodedMeta = meta.V2.Service.Agent != nil
 	}
 	if err := scanner.Err(); err != nil {
 		return err
