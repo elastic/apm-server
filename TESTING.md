@@ -59,7 +59,7 @@ not completely test the supported and recommended APM Server setup. To reuse the
 ease testing, you can inject an `apm-server` binary in the Elastic Agent container so a locally built version can be
 tested while making changes to the APM Server or before a release is published.
 
-To do so, you can build the binary locally with and copy the apm-server binary to the folder that is bindmounted in the
+To do so, you can build the binary locally and copy the apm-server binary to the folder that is bindmounted in the
 Elastic Agent docker container:
 
 ```console
@@ -74,7 +74,7 @@ The workflow that needs to be followed is:
 3. Once everything is up and running, make sure the APM Integration is installed and assigned to the Fleet Policy.
 4. Restart the `fleet-server` container: `docker-compose restart fleet-server`.
 
-We need to restart the Elastic Agent container after the APM Server as extracted by the ELastic Agaent has been run
+We need to restart the Elastic Agent container after the APM Server as extracted by the Elastic Agaent has been run
 at least once, since we rely on the paths to be created, otherwise, the binary will be overwritten by Elastic Agent.
 
 Alternatively, run `testing/stack-monitoring.sh`. The script follows a similar workflow and install the APM Integration
