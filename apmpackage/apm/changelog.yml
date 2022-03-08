@@ -40,13 +40,13 @@
     - description: add java_attacher support
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6741
-    - description: auth.anonymous.rate_limit.{event_limit,ip_limit} defaults are now the same as in the default rate_limit struct.
+    - description: the `auth.anonymous.rate_limit.{event_limit,ip_limit}` defaults are now the same as in the default rate_limit struct.
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6715
-    - description: Updated fields "@timestamp,data_stream.*,labels" to reference ecs
+    - description: Updated fields `@timestamp`, `data_stream.*`, and `labels` to reference ecs
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6714
-    - description: Ingested labels are now stored as event.{labels,numeric_labels}
+    - description: Ingested labels are now stored as `event.{labels,numeric_labels}`
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6633
     - description: added new traces-apm.rum and individual ILM policies per data stream
@@ -61,7 +61,7 @@
     - description: updated ingest pipelines to reject events from apm-servers newer than installed integration
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6791
-    - description: added event.{outcome,severity} and log.level to app_logs data stream
+    - description: added `event.{outcome,severity}` and `log.level` to app_logs data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6791
 - version: "7.16.1"
@@ -74,13 +74,13 @@
     - description: updated package version to align with stack version
       type: enhancement
       link: https://github.com/elastic/apm-server/issues/4898
-    - description: added client.geo fields to internal_metrics
+    - description: added `client.geo` fields to internal_metrics
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/6359
     - description: removed unused fields
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6359
-    - description: changed processor.{name,event} to constant_keyword where possible
+    - description: changed `processor.{name,event}` to constant_keyword where possible
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6359
     - description: changed to data-stream specific ingest pipelines
@@ -111,20 +111,20 @@
     - description: added anonymous auth config, replace some RUM config
       type: breaking-change
       link: https://github.com/elastic/apm-server/pull/5623
-    - description: updated to use new apm-server.auth config
+    - description: updated to use new `apm-server.auth` config
       type: breaking-change
       link: https://github.com/elastic/apm-server/pull/5691
 - version: "0.3.0"
   changes:
-    - description: added apm-server.url config
+    - description: added `apm-server.url` config
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/5332
-    - description: removed apm-server.kibana.api_key config
+    - description: removed `apm-server.kibana.api_key` config
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/5380
 - version: "0.2.0"
   changes:
-    - description: added support for apm-server.rum.allow_service_names
+    - description: added support for `apm-server.rum.allow_service_names`
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/5030
     - description: added support a configurable default service environment
