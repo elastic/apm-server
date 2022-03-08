@@ -42,17 +42,17 @@ and continues to propagate the trace.
 In this example, Elastic's Ruby agent communicates with Elastic's Java agent.
 Both support the `traceparent` header, and trace data is successfully propagated.
 
-image::./legacy/guide/images/dt-trace-ex1.png[How traceparent propagation works]
+image::./images/dt-trace-ex1.png[How traceparent propagation works]
 
 In this example, Elastic's Ruby agent communicates with OpenTelemetry's Java agent.
 Both support the `traceparent` header, and trace data is successfully propagated.
 
-image::./legacy/guide/images/dt-trace-ex2.png[How traceparent propagation works]
+image::./images/dt-trace-ex2.png[How traceparent propagation works]
 
 In this example, the trace meets a piece of middleware that doesn't propagate the `traceparent` header.
 The distributed trace ends and any further communication will result in a new trace.
 
-image::./legacy/guide/images/dt-trace-ex3.png[How traceparent propagation works]
+image::./images/dt-trace-ex3.png[How traceparent propagation works]
 
 
 [float]
@@ -83,7 +83,7 @@ For backward-compatibility purposes, new versions of Elastic agents still suppor
 The APM app's timeline visualization provides a visual deep-dive into each of your application's traces:
 
 [role="screenshot"]
-image::./legacy/guide/images/apm-distributed-tracing.png[Distributed tracing in the APM UI]
+image::./images/apm-distributed-tracing.png[Distributed tracing in the APM UI]
 
 [float]
 === Manual distributed tracing

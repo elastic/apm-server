@@ -58,7 +58,7 @@ and improves compatibility across the Elastic Stack.
 The Elastic integration runs on {fleet-guide}[{agent}]. {agent} is a single, unified way to add monitoring for logs,
 metrics, traces, and other types of data to each host.
 A single agent makes it easier and faster to deploy monitoring across your infrastructure.
-The agent’s single, unified policy makes it easier to add integrations for new data sources.
+The agent's single, unified policy makes it easier to add integrations for new data sources.
 
 [float]
 === Elasticsearch
