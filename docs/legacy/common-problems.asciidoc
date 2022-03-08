@@ -298,7 +298,7 @@ Central configuration can also be disabled at the APM agent level.
 
 For cause #2, investigate why {es} is not responding in a timely manner.
 {kib}'s queries to {es} are simple, so it may just be that {es} is unhealthy.
-If that's not the problem, you may need to use {ref}index-modules-slowlog.html[Search Slow Log] to investigate your {es} logs.
+If that's not the problem, you may need to use {ref}/index-modules-slowlog.html[Search Slow Log] to investigate your {es} logs.
 
 To avoid this problem entirely,
 we recommend <<upgrade-to-apm-integration,upgrading to the Elastic APM integration>>.
