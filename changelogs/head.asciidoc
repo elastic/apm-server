@@ -19,6 +19,7 @@ See <<apm-server-configuration>> for more information.
 - Fix mixing of labels across OpenTelemetry log records {pull}7358[7358]
 - Fix waiting for events to be flushed when shutting down APM Server {pull}7352[7352]
 - Fix missing stack monitoring metrics {pull}7428[7428]
+- Ensure that the server is configured and ready before receiving configuration {pull}7488[7488]
 
 [float]
 ==== Intake API Changes
