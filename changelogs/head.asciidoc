@@ -18,9 +18,11 @@ See <<apm-server-configuration>> for more information.
 - Fix panic when processing OpenTelemetry histogram metrics without bounds {pull}7316[7316]
 - Fix mixing of labels across OpenTelemetry log records {pull}7358[7358]
 - Fix waiting for events to be flushed when shutting down APM Server {pull}7352[7352]
+- Fix missing stack monitoring metrics {pull}7428[7428]
 
 [float]
 ==== Intake API Changes
+- Support for `faas.name` and `faas.version` added to intake and transaction metrics {pull}7427[7427]
 
 [float]
 ==== Added

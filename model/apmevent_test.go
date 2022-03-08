@@ -109,6 +109,8 @@ func TestAPMEventFields(t *testing.T) {
 				Execution:        "execution",
 				TriggerType:      "http",
 				TriggerRequestID: "abc123",
+				Name:             "faasName",
+				Version:          "1.0.0",
 			},
 			Cloud: Cloud{
 				Origin: &CloudOrigin{
@@ -184,6 +186,8 @@ func TestAPMEventFields(t *testing.T) {
 				"execution":          "execution",
 				"trigger.type":       "http",
 				"trigger.request_id": "abc123",
+				"name":               "faasName",
+				"version":            "1.0.0",
 			},
 			"cloud": common.MapStr{
 				"origin": common.MapStr{
