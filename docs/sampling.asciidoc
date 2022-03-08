@@ -2,7 +2,7 @@
 === Transaction sampling
 
 Distributed tracing can generate a substantial amount of data.
-More data can mean higher costs and more noise to sift through.
+More data can mean higher costs and more noise.
 Sampling aims to lower the amount of data ingested and the effort required to analyze that data --
 all while still making it easy to find anomalous patterns in your applications, detect outages, track errors,
 and lower MTTR.
@@ -24,7 +24,7 @@ This means that only `20%` of traces will send and retain all of their associate
 The remaining traces will drop contextual information to reduce the transfer and storage size of the trace.
 
 Head-based sampling is quick and easy to set up.
-Its downside is that it's entirely random -- good
+Its downside is that it's entirely random -- interesting
 data might be discarded purely due to chance.
 
 See <<configure-head-based-sampling>> to get started.
@@ -144,7 +144,7 @@ Each sampling policy must specify a sample rate, and can optionally specify othe
 All of the policy conditions must be true for a trace event to match it.
 
 Trace events are matched to policies in the order specified.
-Each policy list should conclude with a default policy -- one that only specifies a sample rate.
+Each policy list must conclude with a default policy -- one that only specifies a sample rate.
 This default policy is used to catch remaining trace events that don't match a stricter policy.
 Requiring this default policy ensures that traces are only dropped intentionally.
 If you enable tail-based sampling and send a transaction that does not match any of the policies,
