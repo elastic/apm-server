@@ -17,6 +17,7 @@ This section describes common problems you might encounter with APM Server.
 * <<io-timeout>>
 * <<server-es-down>>
 * <<server-resource-exists-not-alias>>
+* <<central-config-troubleshooting>>
 
 [[no-data-indexed]]
 [float]
@@ -38,8 +39,6 @@ containing `[request]` in the APM Server logs.
 If no requests are logged, it might be that SSL is <<ssl-client-fails, misconfigured>> or that the host is wrong.
 Particularly, if you are using Docker, ensure to bind to the right interface (for example, set
 `apm-server.host = 0.0.0.0:8200` to match any IP) and set the `SERVER_URL` setting in the agent accordingly.
-
-
 
 If you see requests coming through the APM Server but they are not accepted (response code other than `202`), consider
 the response code to narrow down the possible causes (see sections below).
@@ -136,7 +135,6 @@ telnet <hostname or IP> 5044
 ----------------------------------------------------------------------
 
 * Verify that the certificate is valid and that the hostname and IP match.
-+
 
 * Use OpenSSL to test connectivity to the target server and diagnose problems.
 See the https://www.openssl.org/docs/manmaster/apps/s_client.html[OpenSSL documentation] for more info.
@@ -378,3 +376,34 @@ If successful, you'll see the following:
 alias                 index                        is_write_index
 apm-{version}-transaction apm-{version}-transaction-000001 true
 ----
+
+[[central-config-troubleshooting]]
+[float]
+=== `/api/apm/settings/agent-configuration/search` errors
+
+If you're instrumenting and starting a lot of services at the same time
+or using a very large number of service or environment names,
+you may see the following APM Server logs related to APM agent central configuration:
+
+* `.../api/apm/settings/agent-configuration/search: context canceled`
+* `.../api/apm/settings/agent-configuration/search: net/http: TLS handshake timeout`
+
+There are two possible causes:
+
+1. {kib} is overwhelmed by the number of requests coming from APM Server.
+2. {es} can't reply quickly enough to {kib}.
+
+For cause #1, try one or more of the following:
+
+* Increase the <<elasticsearch-output,`apm-server.kibana.timeout`>> setting.
+* Increase the <<setup-kibana-endpoint,`agent.config.cache.expiration`>>.
+* Increase Kibana's resources so that it is able to manage more requests.
+* If you're not using APM central configuration, disable it with <<setup-kibana-endpoint,`apm-server.kibana.enabled`>>.
+Central configuration can also be disabled at the APM agent level.
+
+For cause #2, investigate why {es} is not responding in a timely manner.
+{kib}'s queries to {es} are simple, so it may just be that {es} is unhealthy.
+If that's not the problem, you may need to use {ref}/index-modules-slowlog.html[Search Slow Log] to investigate your {es} logs.
+
+To avoid this problem entirely,
+we recommend <<upgrade-to-apm-integration,upgrading to the Elastic APM integration>>.
