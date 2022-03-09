@@ -112,6 +112,9 @@ service:
     metrics:
       receivers: [otlp]
       exporters: [logging, otlp/elastic]
+    logs: <8>
+      receivers: [otlp]
+      exporters: [logging, otlp/elastic]
 ----
 <1> The receivers, such as
 the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver[OTLP receiver], that forward data emitted by APM agents or the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/hostmetricsreceiver[host metrics receiver].
@@ -121,9 +124,7 @@ the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver
 <5> Hostname and port of the APM Server endpoint. For example, `elastic-apm-server:8200`.
 <6> Credential for Elastic APM <<secret-token,secret token authorization>> (`Authorization: "Bearer a_secret_token"`) or <<api-key,API key authorization>> (`Authorization: "ApiKey an_api_key"`).
 <7> Environment-specific configuration parameters can be conveniently passed in as environment variables documented https://opentelemetry.io/docs/collector/configuration/#configuration-environment-variables[here] (e.g. `ELASTIC_APM_SERVER_ENDPOINT` and `ELASTIC_APM_SERVER_TOKEN`).
-
-TIP: When collecting infrastructure metrics, we recommend evaluating {metricbeat-ref}/metricbeat-overview.html[{metricbeat}] to get a mature collector with more integrations
-and built-in dashboards.
+<8> To send OpenTelemetry logs to Elastic Stack version 8.0+, declare a `logs` pipeline.
 
 You're now ready to export traces and metrics from your services and applications.
 
@@ -289,6 +290,9 @@ service:
     metrics:
       receivers: [otlp]
       exporters: [logging, otlp/elastic]
+    logs:
+      receivers: [otlp]
+      exporters: [logging, otlp/elastic]
 ----
 <1> Environment-specific configuration parameters can be conveniently passed in as environment variables: `ELASTIC_OTLP_ENDPOINT` and `ELASTIC_OTLP_TOKEN`
 
@@ -350,6 +354,9 @@ service:
       receivers: [otlp]
       exporters: [logging, otlp/elastic]
     metrics:
+      receivers: [otlp]
+      exporters: [logging, otlp/elastic]
+    logs:
       receivers: [otlp]
       exporters: [logging, otlp/elastic]
 ----
