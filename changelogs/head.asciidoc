@@ -9,8 +9,8 @@ https://github.com/elastic/apm-server/compare/8.1\...main[View commits]
 
 [float]
 ==== Bug fixes
+- Do not overwrite `service version` if no transaction/error/... specific `service.name` is given {pull}7281[7281]
 - Fix missing stack monitoring metrics {pull}7428[7428]
-- Do not overwrite `service version` if no transaction/error/... specific `service.name` is givven {pull}7281[7281]
 
 [float]
 ==== Intake API Changes
