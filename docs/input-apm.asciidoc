@@ -79,4 +79,28 @@ include::./apm-input-settings.asciidoc[tag=anonymous_rate_limit_ip_limit-setting
 include::./apm-input-settings.asciidoc[tag=anonymous_rate_limit_event_limit-setting]
 |===
 
+[float]
+[[apm-input-tail-sampling-settings]]
+=== Tail-based sampling
+
+**Top-level tail-based sampling settings:**
+
+[cols="2*<a"]
+|===
+include::./apm-input-settings.asciidoc[tag=tail_sampling_enabled-setting]
+include::./apm-input-settings.asciidoc[tag=tail_sampling_interval-setting]
+include::./apm-input-settings.asciidoc[tag=tail_sampling_policies-setting]
+|===
+
+**Policy settings:**
+
+[cols="2*<a"]
+|===
+include::./apm-input-settings.asciidoc[tag=sample_rate-setting]
+include::./apm-input-settings.asciidoc[tag=trace_name-setting]
+include::./apm-input-settings.asciidoc[tag=trace_outcome-setting]
+include::./apm-input-settings.asciidoc[tag=service_name-setting]
+include::./apm-input-settings.asciidoc[tag=service_env-setting]
+|===
+
 :input-type!:
