@@ -1,0 +1,19 @@
+[[release-notes-8.1]]
+== APM version 8.1
+
+https://github.com/elastic/apm-server/compare/8.0\...8.1[View commits]
+
+* <<release-notes-8.1.0>>
+
+[float]
+[[release-notes-8.1.0]]
+=== APM version 8.1.0
+
+[float]
+==== Added
+- Tail-based sampling is now generally available
+- Added several dimensions to the aggregated transaction metrics {pull}7033[7033]
+
+[float]
+==== Bug fixes
+- Fix infinite loop in tail-based sampling subscriber causing high CPU and repeated Elasticsearch searches {pull}7211[7211]
