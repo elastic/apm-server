@@ -92,6 +92,7 @@ apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml
 .PHONY: go-generate
 go-generate:
 	@$(GO) generate .
+	@cd cmd/intake-receiver && APM_SERVER_VERSION=$(APM_SERVER_VERSION) $(GO) generate .
 
 notice: NOTICE.txt
 NOTICE.txt: $(PYTHON) go.mod tools/go.mod

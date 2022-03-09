@@ -42,3 +42,5 @@ version.asciidoc.bck
 .imported-java-agent-pubkey
 /agent
 go.work
+cmd/intake-receiver/intake-receiver
+cmd/intake-receiver/events
