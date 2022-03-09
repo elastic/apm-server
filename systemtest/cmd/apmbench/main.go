@@ -77,24 +77,21 @@ func BenchmarkAgentRuby(b *testing.B) {
 }
 
 func benchmarkAgent(b *testing.B, expr string) {
-	h := benchtest.NewEventHandler(b, expr)
-	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
+		h := benchtest.NewEventHandler(b, expr)
 		for pb.Next() {
 			n, err := h.SendBatches(context.Background())
 			if err != nil {
 				b.Error("failed sending batches:", err)
-				return
 			}
 			if n == 0 {
 				b.Errorf(
 					"no events sent, ensure the '%s' matches a trace file", expr,
 				)
-				return
 			}
 		}
 	})
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	if err := benchtest.WaitUntilServerInactive(ctx); err != nil {
 		b.Fatal(err)

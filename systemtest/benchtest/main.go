@@ -180,10 +180,12 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 
 	// Warmup the APM Server before beggining the benchmarks.
 	if h, err := newEventHandler(`.*.ndjson`); err == nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		h.WarmUpServer(ctx, *warmupEvents)
-		waitInactive(5 * time.Second)
+		ctx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+		WaitUntilServerInactive(ctx)
 	}
 
 	for _, agents := range agentsList {
@@ -191,7 +193,6 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		for _, benchmark := range benchmarks {
 			name := fullBenchmarkName(benchmark.name, agents)
 			for i := 0; i < int(*count); i++ {
-				waitInactive(10 * time.Second)
 				profileChan := profiles.record(name)
 				result, ok, err := runBenchmark(benchmark.f)
 				if err != nil {
@@ -210,10 +211,4 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		}
 	}
 	return nil
-}
-
-func waitInactive(timeout time.Duration) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	WaitUntilServerInactive(ctx)
 }
