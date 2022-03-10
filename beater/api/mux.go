@@ -320,14 +320,14 @@ func backendRequestMetadata(c *request.Context) model.APMEvent {
 }
 
 func rumRequestMetadata(c *request.Context) model.APMEvent {
-	nat := new(model.NAT)
-	if c.SourceNATIP != nil {
-		nat = &model.NAT{IP: c.SourceNATIP, Port: c.SourceNATPort}
-	}
-	return model.APMEvent{
+	e := model.APMEvent{
 		Client:    model.Client{IP: c.ClientIP},
-		Source:    model.Source{IP: c.SourceIP, Port: c.SourcePort, NAT: nat},
+		Source:    model.Source{IP: c.SourceIP, Port: c.SourcePort},
 		Timestamp: c.Timestamp,
 		UserAgent: model.UserAgent{Original: c.UserAgent},
 	}
+	if c.SourceNATIP != nil {
+		e.Source.NAT = &model.NAT{IP: c.SourceNATIP, Port: c.SourceNATPort}
+	}
+	return e
 }
