@@ -21,6 +21,7 @@ pipeline {
     stage('Nighly update Beats builds') {
       steps {
         updateBeatsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
+        runWindowsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
       }
     }
   }
@@ -35,5 +36,16 @@ def updateBeatsBuilds(Map args = [:]) {
   def branches = getBranchesFromAliases(aliases: args.branches)
   branches.each { branch ->
     build(job: "apm-server/update-beats-mbp/${branch}", wait: false, propagate: false)
+  }
+}
+
+def runWindowsBuilds(Map args = [:]) {
+  def branches = getBranchesFromAliases(aliases: args.branches)
+  branches.each { branch ->
+    build(job: "apm-server/apm-server-mbp/${branch}",
+          parameters: [
+            booleanParam(name: 'windows_ci', value: true)
+          ],
+          wait: false, propagate: false)
   }
 }
