@@ -478,69 +478,6 @@ pipeline {
             }
           }
         }
-        stage('Package') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            SNAPSHOT = "true"
-          }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.release_ci }
-              expression { return env.ONLY_DOCS == "false" }
-              anyOf {
-                branch 'main'
-                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
-                expression { return isPR() && env.BEATS_UPDATED != "false" }
-                expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
-                expression { return params.Run_As_Main_Branch }
-              }
-            }
-          }
-          stages {
-            stage('Package') {
-              steps {
-                withGithubNotify(context: 'Package') {
-                  deleteDir()
-                  unstash 'source'
-                  dir("${BASE_DIR}"){
-                    withMageEnv(){
-                      sh(label: 'Build packages', script: './.ci/scripts/package.sh')
-                      dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-                      sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
-                    }
-                  }
-                }
-              }
-            }
-            stage('Publish') {
-              environment {
-                BUCKET_URI = """${isPR() ? "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}" : "gs://${JOB_GCS_BUCKET}/snapshots"}"""
-              }
-              steps {
-                // Upload files to the default location
-                googleStorageUpload(bucket: "${BUCKET_URI}",
-                  credentialsId: "${JOB_GCS_CREDENTIALS}",
-                  pathPrefix: "${BASE_DIR}/build/distributions/",
-                  pattern: "${BASE_DIR}/build/distributions/**/*",
-                  sharedPublicly: true,
-                  showInline: true)
-
-                // Copy those files to another location with the sha commit to test them afterward.
-                googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}",
-                  credentialsId: "${JOB_GCS_CREDENTIALS}",
-                  pathPrefix: "${BASE_DIR}/build/distributions/",
-                  pattern: "${BASE_DIR}/build/distributions/**/*",
-                  sharedPublicly: true,
-                  showInline: true)
-              }
-            }
-          }
-        }
         stage('APM Integration Tests') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
@@ -568,6 +505,95 @@ pipeline {
           post {
             always {
               junit(testResults: "**/*-junit*.xml", allowEmptyResults: true, keepLongStdio: true)
+            }
+          }
+        }
+      }
+    }
+    stage('Package') {
+      when {
+        beforeAgent true
+        allOf {
+          expression { return params.release_ci }
+          expression { return env.ONLY_DOCS == "false" }
+          anyOf {
+            branch 'main'
+            branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+            tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
+            expression { return isPR() && env.BEATS_UPDATED != "false" }
+            expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
+            expression { return params.Run_As_Main_Branch }
+          }
+        }
+      }
+      options { skipDefaultCheckout() }
+      environment {
+        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+        HOME = "${env.WORKSPACE}"
+        SNAPSHOT = "true"
+      }
+      matrix {
+        agent {
+          label "${PLATFORM}"
+        }
+        axes {
+          axis {
+            name 'PLATFORM'
+            values 'linux && immutable', 'arm'
+          }
+        }
+        stages {
+          stage('Package') {
+            environment {
+              PLATFORMS = "${isArm() ? 'linux/arm64' : 'linux/amd64'}"
+              NEW_TAG =  "${isArm() ? env.GIT_BASE_COMMIT + '-arm' : env.GIT_BASE_COMMIT}"
+            }
+            steps {
+              withGithubNotify(context: "Package-${PLATFORM}") {
+                deleteDir()
+                unstash 'source'
+                dir("${BASE_DIR}"){
+                  withMageEnv(){
+                    sh(label: 'Build packages', script: './.ci/scripts/package.sh')
+                    dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
+                    sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${NEW_TAG} ${env.DOCKER_IMAGE}")
+                  }
+                }
+              }
+            }
+          }
+          stage('Publish') {
+            environment {
+              BUCKET_URI = """${isPR() ? "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}" : "gs://${JOB_GCS_BUCKET}/snapshots"}"""
+            }
+            steps {
+              // Upload files to the default location
+              googleStorageUpload(bucket: "${BUCKET_URI}",
+                credentialsId: "${JOB_GCS_CREDENTIALS}",
+                pathPrefix: "${BASE_DIR}/build/distributions/",
+                pattern: "${BASE_DIR}/build/distributions/**/*",
+                sharedPublicly: true,
+                showInline: true)
+
+              // Copy those files to another location with the sha commit to test them afterward.
+              googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}",
+                credentialsId: "${JOB_GCS_CREDENTIALS}",
+                pathPrefix: "${BASE_DIR}/build/distributions/",
+                pattern: "${BASE_DIR}/build/distributions/**/*",
+                sharedPublicly: true,
+                showInline: true)
+            }
+          }
+          stage('DRA') {
+            when {
+              beforeAgent true
+              anyOf {
+                branch 'main'
+                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+              }
+            }
+            steps {
+              echo 'TBD'
             }
           }
         }
