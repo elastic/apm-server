@@ -1,8 +1,8 @@
 ---
 - job:
-    name: apm-server/apm-server-mbp
-    display-name: APM Server
-    description: APM Server
+    name: apm-server/apm-server-package-mbp
+    display-name: APM Server Package
+    description: APM Server Package
     project-type: multibranch
     concurrent: true
     script-path: .ci/packaging.groovy
