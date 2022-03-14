@@ -6,7 +6,8 @@ pipeline {
   environment {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
-    NOTIFY_TO = credentials('notify-to')
+    SLACK_CHANNEL = '#apm-server'
+    NOTIFY_TO = 'build-apm+apm-server@elastic.co'
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
@@ -598,6 +599,11 @@ pipeline {
           }
         }
       }
+      post {
+        failure {
+          notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
+        }
+      }
     }
   }
   post {
@@ -614,4 +620,13 @@ pipeline {
       notifyBuildResult()
     }
   }
+}
+
+def notifyStatus(def args = [:]) {
+  releaseNotification(slackChannel: "${env.SLACK_CHANNEL}",
+                      slackColor: args.slackStatus,
+                      slackCredentialsId: 'jenkins-slack-integration-token',
+                      to: "${env.NOTIFY_TO}",
+                      subject: args.subject,
+                      body: args.body)
 }
