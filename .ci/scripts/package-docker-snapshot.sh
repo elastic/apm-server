@@ -11,7 +11,8 @@ set -euo pipefail
 NEW_TAG=${1:?Docker tag is not set}
 NEW_IMAGE=${2:?Docker image is not set}
 
-export PLATFORMS='linux/amd64'
+# linux/amd64 is in the default list already
+export PLATFORMS="${PLATFORMS:-+linux/amd64}"
 export TYPE='docker'
 export SNAPSHOT='true'
 export IMAGE="docker.elastic.co/apm/apm-server"
