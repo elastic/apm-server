@@ -611,7 +611,7 @@ pipeline {
         }
       }
       steps {
-        googleStorageDownload(bucketUri: "gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}",
+        googleStorageDownload(bucketUri: "gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}/*.*",
                               credentialsId: "${JOB_GCS_CREDENTIALS}",
                               localDirectory: "${BASE_DIR}/build/distributions")
         dir("${BASE_DIR}") {
