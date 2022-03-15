@@ -596,7 +596,9 @@ pipeline {
               }
             }
             steps {
-              echo 'TBD'
+              dir("${BASE_DIR}") {
+                sh(label: 'release-manager.sh', script: ".ci/scripts/release-manager.sh")
+              }
             }
           }
         }
