@@ -3,6 +3,9 @@
 # This script is executed by the release snapshot stage.
 # It requires the below environment variables:
 # - BRANCH_NAME
+# - VAULT_ADDR
+# - VAULT_ROLE_ID
+# - VAULT_SECRET_ID
 #
 set -uexo pipefail
 
@@ -14,7 +17,6 @@ chmod -R a+w build/distributions
 IMAGE=docker.elastic.co/infra/release-manager:latest
 docker pull $IMAGE
 
-set +x
 # Generate checksum files and upload to GCS
 docker run --rm \
   --name release-manager \

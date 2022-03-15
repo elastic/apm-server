@@ -595,7 +595,17 @@ pipeline {
             }
             steps {
               dir("${BASE_DIR}") {
-                sh(label: 'release-manager.sh', script: ".ci/scripts/release-manager.sh")
+                // Read from vault and prepare/mask the password with the vault secret/role to
+                // interact with by the release manager process.
+                // withSecretVault signature uses user_* and pass_* , those names are a bit misleading
+                // but there is no way to change the signaure since it is already used.
+                withSecretVault(secret: 'secret/apm-team/ci/release-manager-snapshot',
+                                user_key: 'VAULT_ROLE_ID', user_var_name: 'role_id',
+                                pass_key: 'VAULT_SECRET_ID', pass_var_name: 'secret_id'){
+                  withEnvMask(vars: [ [var: 'VAULT_ROLE_ID', password: env.role_id], [var: 'VAULT_SECRET_ID', password: env.secret_id]]) {
+                    sh(label: 'release-manager.sh', script: ".ci/scripts/release-manager.sh")
+                  }
+                }
               }
             }
           }
