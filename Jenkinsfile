@@ -518,8 +518,8 @@ pipeline {
           expression { return params.release_ci }
           expression { return env.ONLY_DOCS == "false" }
           anyOf {
+            changeRequest()
             branch 'main'
-            branch 'test/dra-1'
             branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
             tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
             expression { return isPR() && env.BEATS_UPDATED != "false" }
@@ -590,8 +590,8 @@ pipeline {
             when {
               beforeAgent true
               anyOf {
+                changeRequest()
                 branch 'main'
-                branch 'test/dra-1'
                 branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
               }
             }
