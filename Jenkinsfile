@@ -615,7 +615,8 @@ pipeline {
       }
       post {
         failure {
-          notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
+          echo 'disabled'
+          // notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
         }
       }
     }
