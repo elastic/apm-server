@@ -22,8 +22,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "0000000000000001"
@@ -89,8 +88,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "0000000000000001"
