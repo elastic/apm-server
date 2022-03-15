@@ -555,8 +555,8 @@ pipeline {
                 deleteDir()
                 unstash 'source'
                 dir("${BASE_DIR}"){
-                  withMageEnv(){
-                    sh(label: 'Build packages', script: 'make release-manager-snapshot')
+                  withMageEnv() {
+                    sh(label: 'Build packages', script: './.ci/scripts/package.sh')
                     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
                     sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${NEW_TAG} ${env.DOCKER_IMAGE}")
                   }
@@ -584,6 +584,7 @@ pipeline {
                 pattern: "${BASE_DIR}/build/distributions/**/*",
                 sharedPublicly: true,
                 showInline: true)
+              archiveArtifacts(artifacts: "${BASE_DIR}/build/dependencies.csv")
             }
           }
           stage('DRA') {
