@@ -26,8 +26,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "process": {
                 "pid": 1234
@@ -76,8 +75,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "process": {
                 "pid": 1234
@@ -128,8 +126,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "process": {
                 "pid": 1234
@@ -198,8 +195,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "process": {
                 "pid": 1234
@@ -251,8 +247,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "process": {
                 "pid": 1234
