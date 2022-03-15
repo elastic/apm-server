@@ -585,32 +585,46 @@ pipeline {
                 pattern: "${BASE_DIR}/build/distributions/**/*",
                 sharedPublicly: true,
                 showInline: true)
-              archiveArtifacts(artifacts: "${BASE_DIR}/build/dependencies.csv")
+              googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}",
+                credentialsId: "${JOB_GCS_CREDENTIALS}",
+                pathPrefix: "${BASE_DIR}/build/",
+                pattern: "${BASE_DIR}/build/dependencies.csv",
+                sharedPublicly: true,
+                showInline: true)
             }
           }
-          stage('DRA') {
-            when {
-              beforeAgent true
-              anyOf {
-                changeRequest()
-                branch 'main'
-                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-              }
-            }
-            steps {
-              dir("${BASE_DIR}") {
-                // Read from vault and prepare/mask the password with the vault secret/role to
-                // interact with by the release manager process.
-                // withSecretVault signature uses user_* and pass_* , those names are a bit misleading
-                // but there is no way to change the signaure since it is already used.
-                withSecretVault(secret: 'secret/apm-team/ci/release-manager-snapshot',
-                                user_key: 'VAULT_ROLE_ID', user_var_name: 'role_id',
-                                pass_key: 'VAULT_SECRET_ID', pass_var_name: 'secret_id'){
-                  withEnvMask(vars: [ [var: 'VAULT_ROLE_ID', password: env.role_id], [var: 'VAULT_SECRET_ID', password: env.secret_id]]) {
-                    sh(label: 'release-manager.sh', script: ".ci/scripts/release-manager.sh")
-                  }
-                }
-              }
+        }
+      }
+      post {
+        failure {
+          echo 'disabled'
+          // notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
+        }
+      }
+    }
+    stage('DRA') {
+      when {
+        beforeAgent true
+        anyOf {
+          changeRequest()
+          branch 'main'
+          branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+        }
+      }
+      steps {
+        googleStorageDownload(bucketUri: "gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}",
+                              credentialsId: "${JOB_GCS_CREDENTIALS}",
+                              localDirectory: "${BASE_DIR}/build/distributions")
+        dir("${BASE_DIR}") {
+          // Read from vault and prepare/mask the password with the vault secret/role to
+          // interact with by the release manager process.
+          // withSecretVault signature uses user_* and pass_* , those names are a bit misleading
+          // but there is no way to change the signaure since it is already used.
+          withSecretVault(secret: 'secret/apm-team/ci/release-manager-snapshot',
+                          user_key: 'VAULT_ROLE_ID', user_var_name: 'role_id',
+                          pass_key: 'VAULT_SECRET_ID', pass_var_name: 'secret_id'){
+            withEnvMask(vars: [ [var: 'VAULT_ROLE_ID', password: env.role_id], [var: 'VAULT_SECRET_ID', password: env.secret_id]]) {
+              sh(label: 'release-manager.sh', script: ".ci/scripts/release-manager.sh")
             }
           }
         }
