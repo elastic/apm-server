@@ -515,6 +515,7 @@ pipeline {
       when {
         beforeAgent true
         allOf {
+          expression { return false }
           expression { return params.release_ci }
           expression { return env.ONLY_DOCS == "false" }
           anyOf {
@@ -611,7 +612,7 @@ pipeline {
       }
       // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
       environment {
-        URI_SUFFIX = "commits/${env.GIT_BASE_COMMIT}"
+        URI_SUFFIX = "commits/628bb0007b2cfd943d486d5bde5ad433b921c1eb"
         PATH_PREFIX = "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}"
       }
       steps {
