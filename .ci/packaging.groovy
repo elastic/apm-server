@@ -10,10 +10,7 @@ pipeline {
     NOTIFY_TO = 'build-apm+apm-server@elastic.co'
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
-    DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
-    DOCKER_REGISTRY = 'docker.elastic.co'
-    DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
-    ONLY_DOCS = "false"
+    SNAPSHOT = "true"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -49,6 +46,10 @@ pipeline {
           }
         }
       }
+      environment {
+        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+        HOME = "${env.WORKSPACE}"
+      }
       stage('Checkout') {
         environment {
           PATH = "${env.PATH}:${env.WORKSPACE}/bin"
@@ -67,23 +68,13 @@ pipeline {
         }
       }
       stage('Package') {
-        when {
-          beforeAgent true
-          allOf {
-            expression { return env.ONLY_DOCS == "false" }
-            anyOf {
-              branch 'main'
-              branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-              expression { return env.GITHUB_COMMENT?.contains('/package')}
-            }
-          }
+        // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
+        environment {
+          URI_SUFFIX = "commits/${env.GIT_BASE_COMMIT}"
+          PATH_PREFIX = "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}"
+          BUCKET_URI = """${isPR() ? "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}" : "gs://${JOB_GCS_BUCKET}/snapshots"}"""
         }
         options { skipDefaultCheckout() }
-        environment {
-          PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-          HOME = "${env.WORKSPACE}"
-          SNAPSHOT = "true"
-        }
         matrix {
           agent {
             label "${PLATFORM}"
@@ -98,39 +89,50 @@ pipeline {
             stage('Package') {
               environment {
                 PLATFORMS = "${isArm() ? 'linux/arm64' : 'linux/amd64'}"
-                NEW_TAG =  "${isArm() ? env.GIT_BASE_COMMIT + '-arm' : env.GIT_BASE_COMMIT}"
+                PACKAGES = "${isArm() ? 'docker' : ''}"
               }
               steps {
-                withGithubNotify(context: "Package-${PLATFORM}") {
-                  deleteDir()
-                  unstash 'source'
-                  dir("${BASE_DIR}"){
-                    withMageEnv(){
-                      sh(label: 'Build packages', script: './.ci/scripts/package.sh')
-                      dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-                      sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${NEW_TAG} ${env.DOCKER_IMAGE}")
-                    }
+                deleteDir()
+                unstash 'source'
+                dir("${BASE_DIR}"){
+                  withMageEnv() {
+                    sh(label: 'Build packages', script: './.ci/scripts/package.sh')
                   }
                 }
               }
             }
-            stage('DRA') {
-              when {
-                beforeAgent true
-                anyOf {
-                  branch 'main'
-                  branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-                }
-              }
+            stage('Publish') {
               steps {
-                echo 'TBD'
+                // Copy those files to another location with the sha commit to test them afterward.
+                googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}",
+                  credentialsId: "${JOB_GCS_CREDENTIALS}",
+                  pathPrefix: "${BASE_DIR}/build/distributions/",
+                  pattern: "${BASE_DIR}/build/distributions/**/*",
+                  sharedPublicly: true,
+                  showInline: true)
+                googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}",
+                  credentialsId: "${JOB_GCS_CREDENTIALS}",
+                  pathPrefix: "${BASE_DIR}/build/",
+                  pattern: "${BASE_DIR}/build/dependencies.csv",
+                  sharedPublicly: true,
+                  showInline: true)
               }
             }
           }
         }
-        post {
-          failure {
-            notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
+      }
+      stage('DRA') {
+        steps {
+          googleStorageDownload(bucketUri: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}/*",
+                                credentialsId: "${JOB_GCS_CREDENTIALS}",
+                                localDirectory: "${BASE_DIR}/build/distributions",
+                                pathPrefix: env.PATH_PREFIX)
+          dir("${BASE_DIR}") {
+            script {
+              getVaultSecret.readSecretWrapper {
+                sh(label: 'release-manager.sh', script: '.ci/scripts/release-manager.sh')
+              }
+            }
           }
         }
       }
@@ -139,6 +141,10 @@ pipeline {
   post {
     cleanup {
       notifyBuildResult()
+    }
+    failure {
+      echo 'disabled'
+    // notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
     }
   }
 }
