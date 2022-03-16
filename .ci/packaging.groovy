@@ -23,7 +23,6 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('(?i)^\\/package$')
     // disable upstream trigger on a PR basis
     upstream("apm-server/apm-server-mbp/${ env.JOB_BASE_NAME.startsWith('PR-') ? 'none' : env.JOB_BASE_NAME }")
   }
