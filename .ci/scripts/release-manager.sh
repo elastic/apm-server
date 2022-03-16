@@ -13,6 +13,18 @@ set -uexo pipefail
 chmod -R a+r build/distributions/*
 chmod -R a+w build/distributions
 
+# rename docker files to support the unified release format.
+# TODO: this could be supported by the package system itself
+for i in build/distributions/*docker.tar.gz*
+do
+    mv "$i" "${i/linux-arm64.docker.tar.gz/docker-image-arm64.tar.gz}"
+done
+
+for i in build/distributions/*docker.tar.gz*
+do
+    mv "$i" "${i/linux-amd64.docker.tar.gz/docker-image.tar.gz}"
+done
+
 # ensure the latest image has been pulled
 IMAGE=docker.elastic.co/infra/release-manager:latest
 docker pull --quiet $IMAGE
