@@ -611,10 +611,16 @@ pipeline {
           branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
         }
       }
+      // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
+      environment {
+        URI_SUFFIX = "commits/${env.GIT_BASE_COMMIT}"
+        PATH_PREFIX = "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}"
+      }
       steps {
-        googleStorageDownload(bucketUri: "gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}/*",
+        googleStorageDownload(bucketUri: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}/*",
                               credentialsId: "${JOB_GCS_CREDENTIALS}",
-                              localDirectory: "${BASE_DIR}/build/distributions")
+                              localDirectory: "${BASE_DIR}/build/distributions",
+                              pathPrefix: env.PATH_PREFIX)
         dir("${BASE_DIR}") {
           script {
             getVaultSecret.readSecretWrapper {
