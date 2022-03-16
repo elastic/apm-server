@@ -58,12 +58,9 @@ pipeline {
         steps {
           pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
           deleteDir()
-          gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true,
+          gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: false,
                       shallow: false, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
           stash allowEmpty: true, name: 'source', useDefaultExcludes: false
-          dir("${BASE_DIR}"){
-            setEnvVar('ONLY_DOCS', isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true))
-          }
         }
       }
       stage('Package') {
