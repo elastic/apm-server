@@ -558,8 +558,6 @@ pipeline {
                 dir("${BASE_DIR}"){
                   withMageEnv() {
                     sh(label: 'Make release-manager-snapshot', script: 'make release-manager-snapshot')
-                    dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-                    sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${NEW_TAG} ${env.DOCKER_IMAGE}")
                   }
                 }
               }
