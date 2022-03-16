@@ -260,11 +260,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20220314190126-c52699616a8a
+Version: v7.0.0-alpha2.0.20220316003303-ab30a0234e1c
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220314190126-c52699616a8a/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220316003303-ab30a0234e1c/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -17752,11 +17752,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.0.0-20220314234724-5d542ad81a58
+Version: v0.0.0-20220315160706-3147a52a75dd
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20220314234724-5d542ad81a58/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20220315160706-3147a52a75dd/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -17826,11 +17826,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20220310020820-b874c991c1a5
+Version: v0.0.0-20220315194320-039c03cc5b86
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220310020820-b874c991c1a5/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220315194320-039c03cc5b86/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
