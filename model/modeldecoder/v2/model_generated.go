@@ -1651,7 +1651,7 @@ func (val *spanRoot) validate() error {
 }
 
 func (val *span) IsSet() bool {
-	return val.Action.IsSet() || (len(val.ChildIDs) > 0) || val.Composite.IsSet() || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.OTel.IsSet() || val.ParentID.IsSet() || val.SampleRate.IsSet() || (len(val.Stacktrace) > 0) || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Type.IsSet()
+	return val.Action.IsSet() || (len(val.ChildIDs) > 0) || val.Composite.IsSet() || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.OTel.IsSet() || val.ParentID.IsSet() || val.SampleRate.IsSet() || (len(val.Stacktrace) > 0) || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Type.IsSet() || (len(val.Links) > 0)
 }
 
 func (val *span) Reset() {
@@ -1677,6 +1677,10 @@ func (val *span) Reset() {
 	val.TraceID.Reset()
 	val.TransactionID.Reset()
 	val.Type.Reset()
+	for i := range val.Links {
+		val.Links[i].Reset()
+	}
+	val.Links = val.Links[:0]
 }
 
 func (val *span) validate() error {
@@ -1758,6 +1762,11 @@ func (val *span) validate() error {
 	}
 	if !val.Type.IsSet() {
 		return fmt.Errorf("'type' required")
+	}
+	for _, elem := range val.Links {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "links")
+		}
 	}
 	if !val.Start.IsSet() && !val.Timestamp.IsSet() {
 		return fmt.Errorf("requires at least one of the fields 'start;timestamp'")
@@ -1983,6 +1992,34 @@ func (val *otel) validate() error {
 	return nil
 }
 
+func (val *spanLink) IsSet() bool {
+	return val.SpanID.IsSet() || val.TraceID.IsSet()
+}
+
+func (val *spanLink) Reset() {
+	val.SpanID.Reset()
+	val.TraceID.Reset()
+}
+
+func (val *spanLink) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.SpanID.IsSet() && utf8.RuneCountInString(val.SpanID.Val) > 1024 {
+		return fmt.Errorf("'span_id': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.SpanID.IsSet() {
+		return fmt.Errorf("'span_id' required")
+	}
+	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
+		return fmt.Errorf("'trace_id': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.TraceID.IsSet() {
+		return fmt.Errorf("'trace_id' required")
+	}
+	return nil
+}
+
 func (val *transactionRoot) IsSet() bool {
 	return val.Transaction.IsSet()
 }
@@ -2002,7 +2039,7 @@ func (val *transactionRoot) validate() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || (len(val.DroppedSpanStats) > 0) || val.Duration.IsSet() || val.FAAS.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.OTel.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.Session.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
+	return val.Context.IsSet() || (len(val.DroppedSpanStats) > 0) || val.Duration.IsSet() || val.FAAS.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.OTel.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.Session.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet() || (len(val.Links) > 0)
 }
 
 func (val *transaction) Reset() {
@@ -2028,6 +2065,10 @@ func (val *transaction) Reset() {
 	val.TraceID.Reset()
 	val.Type.Reset()
 	val.UserExperience.Reset()
+	for i := range val.Links {
+		val.Links[i].Reset()
+	}
+	val.Links = val.Links[:0]
 }
 
 func (val *transaction) validate() error {
@@ -2107,6 +2148,11 @@ func (val *transaction) validate() error {
 	}
 	if err := val.UserExperience.validate(); err != nil {
 		return errors.Wrapf(err, "experience")
+	}
+	for _, elem := range val.Links {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "links")
+		}
 	}
 	return nil
 }

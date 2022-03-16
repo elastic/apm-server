@@ -1,0 +1,3 @@
+{"metadata": { "service": {"name": "1234_service-12a3", "agent": {"version": "3.14.0", "name": "elastic-node"}}}}
+{"span": {"id": "0123456a89012345", "trace_id": "0123456789abcdef0123456789abcdef", "parent_id": "ab23456a89012345", "name": "GET /api/types", "type": "request", "start": 1.845, "duration": 3.5642981, "links": [{"span_id": "linked_span_1", "trace_id": "linked_trace_1"}]}}
+{"transaction": {"trace_id": "01234567890123456789abcdefabcdef", "id": "abcdef1478523690", "type": "request", "duration": 32.592981, "span_count": {"started": 0}, "links": [{"span_id": "linked_span_2", "trace_id": "linked_trace_2"}, {"span_id": "linked_span_3", "trace_id": "linked_trace_3"}]}}

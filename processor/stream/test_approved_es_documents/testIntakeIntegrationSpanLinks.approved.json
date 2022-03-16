@@ -1,0 +1,108 @@
+{
+    "events": [
+        {
+            "@timestamp": "2018-08-01T10:00:00.001Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "event": {
+                "duration": 3564298,
+                "outcome": "unknown"
+            },
+            "host": {
+                "ip": [
+                    "192.0.0.1"
+                ]
+            },
+            "parent": {
+                "id": "ab23456a89012345"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
+            },
+            "span": {
+                "id": "0123456a89012345",
+                "links": [
+                    {
+                        "span": {
+                            "id": "linked_span_1"
+                        },
+                        "trace": {
+                            "id": "linked_trace_1"
+                        }
+                    }
+                ],
+                "name": "GET /api/types",
+                "type": "request"
+            },
+            "timestamp": {
+                "us": 1533117600001845
+            },
+            "trace": {
+                "id": "0123456789abcdef0123456789abcdef"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00.000Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "event": {
+                "duration": 32592981,
+                "outcome": "unknown"
+            },
+            "host": {
+                "ip": [
+                    "192.0.0.1"
+                ]
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
+            },
+            "span": {
+                "links": [
+                    {
+                        "span": {
+                            "id": "linked_span_2"
+                        },
+                        "trace": {
+                            "id": "linked_trace_2"
+                        }
+                    },
+                    {
+                        "span": {
+                            "id": "linked_span_3"
+                        },
+                        "trace": {
+                            "id": "linked_trace_3"
+                        }
+                    }
+                ]
+            },
+            "timestamp": {
+                "us": 1533117600000000
+            },
+            "trace": {
+                "id": "01234567890123456789abcdefabcdef"
+            },
+            "transaction": {
+                "id": "abcdef1478523690",
+                "sampled": true,
+                "span_count": {
+                    "started": 0
+                },
+                "type": "request"
+            }
+        }
+    ]
+}
