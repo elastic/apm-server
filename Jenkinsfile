@@ -547,7 +547,7 @@ pipeline {
         stages {
           stage('Package') {
             environment {
-              PLATFORMS = "${isArm() ? 'linux/arm64' : 'linux/amd64'}"
+              PLATFORMS = "${isArm() ? 'linux/arm64' : ''}"
               NEW_TAG = "${isArm() ? env.GIT_BASE_COMMIT + '-arm' : env.GIT_BASE_COMMIT}"
               PACKAGES = "${isArm() ? 'docker' : ''}"
             }
@@ -557,7 +557,7 @@ pipeline {
                 unstash 'source'
                 dir("${BASE_DIR}"){
                   withMageEnv() {
-                    sh(label: 'Build packages', script: './.ci/scripts/package.sh')
+                    sh(label: 'Make release-manager-snapshot', script: 'make release-manager-snapshot')
                     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
                     sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${NEW_TAG} ${env.DOCKER_IMAGE}")
                   }
