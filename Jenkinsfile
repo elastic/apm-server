@@ -616,8 +616,10 @@ pipeline {
                               credentialsId: "${JOB_GCS_CREDENTIALS}",
                               localDirectory: "${BASE_DIR}/build/distributions")
         dir("${BASE_DIR}") {
-          getVaultSecret.readSecretWrapper {
-            sh(label: 'release-manager.sh', script: '.ci/scripts/release-manager.sh')
+          script {
+            getVaultSecret.readSecretWrapper {
+              sh(label: 'release-manager.sh', script: '.ci/scripts/release-manager.sh')
+            }
           }
         }
       }
