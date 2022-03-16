@@ -15,7 +15,7 @@ chmod -R a+w build/distributions
 
 # ensure the latest image has been pulled
 IMAGE=docker.elastic.co/infra/release-manager:latest
-docker pull $IMAGE
+docker pull --quiet $IMAGE
 
 # Generate checksum files and upload to GCS
 docker run --rm \
@@ -23,7 +23,7 @@ docker run --rm \
   -e VAULT_ADDR \
   -e VAULT_ROLE_ID \
   -e VAULT_SECRET_ID \
-  --mount type=bind,readonly=false,src="$PWD/build/distributions",target=/artifacts \
+  --mount type=bind,readonly=false,src="$PWD",target=/artifacts \
   "$IMAGE" \
     cli collect \
       --project apm-server \
