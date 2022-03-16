@@ -15,12 +15,13 @@ chmod -R a+w build/distributions
 
 # rename docker files to support the unified release format.
 # TODO: this could be supported by the package system itself
-for i in build/distributions/*docker.tar.gz*
+#       or the unified release process the one to do the transformation
+for i in build/distributions/*linux-arm64.docker.tar.gz*
 do
     mv "$i" "${i/linux-arm64.docker.tar.gz/docker-image-arm64.tar.gz}"
 done
 
-for i in build/distributions/*docker.tar.gz*
+for i in build/distributions/*linux-amd64.docker.tar.gz*
 do
     mv "$i" "${i/linux-amd64.docker.tar.gz/docker-image.tar.gz}"
 done
