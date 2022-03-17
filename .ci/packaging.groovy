@@ -11,6 +11,8 @@ pipeline {
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     SNAPSHOT = "true"
+    DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
+    DOCKER_REGISTRY = 'docker.elastic.co'
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -129,6 +131,7 @@ pipeline {
                                   localDirectory: "${BASE_DIR}/build/distributions",
                                   pathPrefix: env.PATH_PREFIX)
             dir("${BASE_DIR}") {
+              dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
               script {
                 getVaultSecret.readSecretWrapper {
                   sh(label: 'release-manager.sh', script: '.ci/scripts/release-manager.sh')
