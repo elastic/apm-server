@@ -259,6 +259,7 @@ func (s *Server) initTLS() (serverCertPath, serverKeyPath, caCertPath string, _ 
 	s.TLS = &tls.Config{
 		Certificates: []tls.Certificate{clientCert},
 		RootCAs:      certpool,
+		MinVersion:   tls.VersionTLS12,
 	}
 	return serverCertPath, serverKeyPath, clientCertPath, nil
 }
