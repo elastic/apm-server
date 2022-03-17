@@ -53,10 +53,6 @@ pipeline {
       }
       stages {
         stage('Checkout') {
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-          }
           options { skipDefaultCheckout() }
           steps {
             pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
