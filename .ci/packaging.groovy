@@ -50,7 +50,7 @@ pipeline {
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
-        URI_SUFFIX = "commits/acf7debb75ae9c7d45c4ad95ce79e13dc166ee80"
+        URI_SUFFIX = "commits/${env.GIT_BASE_COMMIT}"
         // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
         PATH_PREFIX = "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}"
       }
@@ -70,10 +70,6 @@ pipeline {
           }
         }
         stage('Package') {
-          when {
-            beforeAgent true
-            expression { return false }
-          }
           options { skipDefaultCheckout() }
           matrix {
             agent {
