@@ -93,7 +93,7 @@ pipeline {
                   unstash 'source'
                   dir("${BASE_DIR}"){
                     withMageEnv() {
-                      sh(label: 'Make release-manager-snapshot', script: 'make release-manager-snapshot')
+                      sh(label: 'make release-manager-snapshot', script: 'make release-manager-snapshot')
                     }
                   }
                 }
