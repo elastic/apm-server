@@ -52,32 +52,32 @@ type Context struct {
 	// the server.
 	Timestamp time.Time
 
-	// SourceIP holds the IP address of the (source) network peer.
+	// SourceIP holds the IP address of the originating client, if known,
+	// as recorded in Forwarded, X-Forwarded-For, etc.
 	SourceIP net.IP
 
-	// SourceIP holds the port of the (source) network peer, or zero
-	// if unknown.
+	// SourcePort holds the port of the originating client, as recorded in
+	// the Forwarded header. This will be zero unless the port is recorded
+	// in the Forwarded header.
 	SourcePort int
 
-	// ClientIP holds the IP address of the originating client.
+	// ClientIP holds the IP address of the originating client, if known,
+	// as recorded in Forwarded, X-Forwarded-For, etc.
 	//
 	// For TCP-based requests this will have the same value as SourceIP.
 	ClientIP net.IP
 
-	// ClientPort holds the port of the (source) network peer, or zero if
-	// unknown.
+	// ClientPort holds the port of the originating client, as recorded in
+	// the Forwarded header. This will be zero unless the port is recorded
+	// in the Forwarded header.
 	ClientPort int
 
-	// SourceNATIP holds the IP address of the originating gRPC client, if known,
-	// as recorded in Forwarded, X-Forwarded-For, etc.
-	//
-	// For requests without one of the forwarded headers, this will be
-	// blank.
+	// SourceNATIP holds the IP address of the (source) network peer, or
+	// zero if unknown.
 	SourceNATIP net.IP
 
-	// SourceNATPort holds the port of the originating client, as recorded
-	// in the Forwarded header. This will be zero unless the port is
-	// recorded in the Forwarded header.
+	// SourceIP holds the port of the (source) network peer, or zero if
+	// unknown.
 	SourceNATPort int
 
 	// UserAgent holds the User-Agent request header value.
