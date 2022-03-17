@@ -305,7 +305,9 @@ func firehoseMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.I
 }
 
 func emptyRequestMetadata(c *request.Context) model.APMEvent {
-	return model.APMEvent{}
+	return model.APMEvent{
+		Timestamp: c.Timestamp,
+	}
 }
 
 func backendRequestMetadata(c *request.Context) model.APMEvent {
