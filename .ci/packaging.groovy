@@ -50,9 +50,6 @@ pipeline {
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
-        URI_SUFFIX = "commits/${env.GIT_BASE_COMMIT}"
-        // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
-        PATH_PREFIX = "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}"
       }
       stages {
         stage('Checkout') {
@@ -67,6 +64,11 @@ pipeline {
             gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: false,
                         shallow: false, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
             stash allowEmpty: true, name: 'source', useDefaultExcludes: false
+            // set environment variables globally since they are used afterwards but GIT_BASE_COMMIT won't
+            // be available until gitCheckout is executed.
+            setEnvVar('URI_SUFFIX', "commits/${env.GIT_BASE_COMMIT}")
+            // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
+            setEnvVar('PATH_PREFIX', "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}")
           }
         }
         stage('Package') {
