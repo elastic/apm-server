@@ -816,16 +816,6 @@ type: keyword
 
 --
 
-*`observer.version_major`*::
-+
---
-Major version number of the observer
-
-
-type: byte
-
---
-
 *`observer.type`*::
 +
 --
@@ -1989,16 +1979,6 @@ APM Server version.
 type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
-
---
-
-*`observer.version_major`*::
-+
---
-Major version number of the observer
-
-
-type: byte
 
 --
 
@@ -3307,16 +3287,6 @@ APM Server version.
 type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
-
---
-
-*`observer.version_major`*::
-+
---
-Major version number of the observer
-
-
-type: byte
 
 --
 
@@ -5048,16 +5018,6 @@ type: keyword
 
 --
 
-*`observer.version_major`*::
-+
---
-Major version number of the observer
-
-
-type: byte
-
---
-
 *`observer.type`*::
 +
 --
@@ -6319,16 +6279,6 @@ APM Server version.
 type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
-
---
-
-*`observer.version_major`*::
-+
---
-Major version number of the observer
-
-
-type: byte
 
 --
 
