@@ -49,84 +49,86 @@ pipeline {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
       }
-      stage('Checkout') {
-        environment {
-          PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-          HOME = "${env.WORKSPACE}"
-        }
-        options { skipDefaultCheckout() }
-        steps {
-          pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
-          deleteDir()
-          gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: false,
-                      shallow: false, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
-          stash allowEmpty: true, name: 'source', useDefaultExcludes: false
-        }
-      }
-      stage('Package') {
-        // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
-        environment {
-          URI_SUFFIX = "commits/${env.GIT_BASE_COMMIT}"
-          PATH_PREFIX = "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}"
-          BUCKET_URI = """${isPR() ? "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}" : "gs://${JOB_GCS_BUCKET}/snapshots"}"""
-        }
-        options { skipDefaultCheckout() }
-        matrix {
-          agent {
-            label "${PLATFORM}"
+      stages {
+        stage('Checkout') {
+          environment {
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
           }
-          axes {
-            axis {
-              name 'PLATFORM'
-              values 'linux && immutable', 'arm'
+          options { skipDefaultCheckout() }
+          steps {
+            pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
+            deleteDir()
+            gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: false,
+                        shallow: false, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
+            stash allowEmpty: true, name: 'source', useDefaultExcludes: false
+          }
+        }
+        stage('Package') {
+          // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
+          environment {
+            URI_SUFFIX = "commits/${env.GIT_BASE_COMMIT}"
+            PATH_PREFIX = "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}"
+            BUCKET_URI = """${isPR() ? "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}" : "gs://${JOB_GCS_BUCKET}/snapshots"}"""
+          }
+          options { skipDefaultCheckout() }
+          matrix {
+            agent {
+              label "${PLATFORM}"
             }
-          }
-          stages {
-            stage('Package') {
-              environment {
-                PLATFORMS = "${isArm() ? 'linux/arm64' : ''}"
-                PACKAGES = "${isArm() ? 'docker' : ''}"
+            axes {
+              axis {
+                name 'PLATFORM'
+                values 'linux && immutable', 'arm'
               }
-              steps {
-                deleteDir()
-                unstash 'source'
-                dir("${BASE_DIR}"){
-                  withMageEnv() {
-                    sh(label: 'Make release-manager-snapshot', script: 'make release-manager-snapshot')
+            }
+            stages {
+              stage('Package') {
+                environment {
+                  PLATFORMS = "${isArm() ? 'linux/arm64' : ''}"
+                  PACKAGES = "${isArm() ? 'docker' : ''}"
+                }
+                steps {
+                  deleteDir()
+                  unstash 'source'
+                  dir("${BASE_DIR}"){
+                    withMageEnv() {
+                      sh(label: 'Make release-manager-snapshot', script: 'make release-manager-snapshot')
+                    }
                   }
                 }
               }
-            }
-            stage('Publish') {
-              steps {
-                // Copy those files to another location with the sha commit to test them afterward.
-                googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}",
-                  credentialsId: "${JOB_GCS_CREDENTIALS}",
-                  pathPrefix: "${BASE_DIR}/build/distributions/",
-                  pattern: "${BASE_DIR}/build/distributions/**/*",
-                  sharedPublicly: true,
-                  showInline: true)
-                googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}",
-                  credentialsId: "${JOB_GCS_CREDENTIALS}",
-                  pathPrefix: "${BASE_DIR}/build/",
-                  pattern: "${BASE_DIR}/build/dependencies.csv",
-                  sharedPublicly: true,
-                  showInline: true)
+              stage('Publish') {
+                steps {
+                  // Copy those files to another location with the sha commit to test them afterward.
+                  googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}",
+                    credentialsId: "${JOB_GCS_CREDENTIALS}",
+                    pathPrefix: "${BASE_DIR}/build/distributions/",
+                    pattern: "${BASE_DIR}/build/distributions/**/*",
+                    sharedPublicly: true,
+                    showInline: true)
+                  googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}",
+                    credentialsId: "${JOB_GCS_CREDENTIALS}",
+                    pathPrefix: "${BASE_DIR}/build/",
+                    pattern: "${BASE_DIR}/build/dependencies.csv",
+                    sharedPublicly: true,
+                    showInline: true)
+                }
               }
             }
           }
         }
-      }
-      stage('DRA') {
-        steps {
-          googleStorageDownload(bucketUri: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}/*",
-                                credentialsId: "${JOB_GCS_CREDENTIALS}",
-                                localDirectory: "${BASE_DIR}/build/distributions",
-                                pathPrefix: env.PATH_PREFIX)
-          dir("${BASE_DIR}") {
-            script {
-              getVaultSecret.readSecretWrapper {
-                sh(label: 'release-manager.sh', script: '.ci/scripts/release-manager.sh')
+        stage('DRA') {
+          steps {
+            googleStorageDownload(bucketUri: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}/*",
+                                  credentialsId: "${JOB_GCS_CREDENTIALS}",
+                                  localDirectory: "${BASE_DIR}/build/distributions",
+                                  pathPrefix: env.PATH_PREFIX)
+            dir("${BASE_DIR}") {
+              script {
+                getVaultSecret.readSecretWrapper {
+                  sh(label: 'release-manager.sh', script: '.ci/scripts/release-manager.sh')
+                }
               }
             }
           }
