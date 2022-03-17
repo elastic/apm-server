@@ -40,7 +40,7 @@ docker run --rm \
   "$IMAGE" \
     cli collect \
       --project apm-server \
-      --branch "main" \
+      --branch "$BRANCH_NAME" \
       --commit "$(git rev-parse HEAD)" \
       --workflow "snapshot" \
       --artifact-set main
