@@ -48,6 +48,9 @@ pipeline {
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
+        URI_SUFFIX = "commits/${env.GIT_BASE_COMMIT}"
+        // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
+        PATH_PREFIX = "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}"
       }
       stages {
         stage('Checkout') {
@@ -65,12 +68,6 @@ pipeline {
           }
         }
         stage('Package') {
-          // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
-          environment {
-            URI_SUFFIX = "commits/${env.GIT_BASE_COMMIT}"
-            PATH_PREFIX = "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}"
-            BUCKET_URI = """${isPR() ? "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}" : "gs://${JOB_GCS_BUCKET}/snapshots"}"""
-          }
           options { skipDefaultCheckout() }
           matrix {
             agent {
@@ -107,12 +104,15 @@ pipeline {
                     pattern: "${BASE_DIR}/build/distributions/**/*",
                     sharedPublicly: true,
                     showInline: true)
-                  googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}",
-                    credentialsId: "${JOB_GCS_CREDENTIALS}",
-                    pathPrefix: "${BASE_DIR}/build/",
-                    pattern: "${BASE_DIR}/build/dependencies.csv",
-                    sharedPublicly: true,
-                    showInline: true)
+                  // Copy the dependencies files if no ARM
+                  whenFalse(isArm()) {
+                    googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}",
+                      credentialsId: "${JOB_GCS_CREDENTIALS}",
+                      pathPrefix: "${BASE_DIR}/build/",
+                      pattern: "${BASE_DIR}/build/dependencies.csv",
+                      sharedPublicly: true,
+                      showInline: true)
+                  }
                 }
               }
             }
