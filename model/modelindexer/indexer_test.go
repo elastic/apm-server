@@ -635,11 +635,10 @@ func newMockElasticsearchClientConfig(
 	t testing.TB, bulkHandler http.HandlerFunc,
 ) *elasticsearch.Config {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
+		bulkHandler.ServeHTTP(w, r)
 	})
-	mux.Handle("/_bulk", bulkHandler)
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
 

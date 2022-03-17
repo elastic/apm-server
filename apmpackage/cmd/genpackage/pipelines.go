@@ -78,11 +78,10 @@ func getObserverVersionPipeline(version *common.Version) []map[string]interface{
 			"message": observerVersionCheckMessage,
 		},
 	}, {
-		// Remove observer.version_minor and observer.version_patch fields introduced above,
-		// leaving only observer.version_major which is used by the UI.
+		// Remove observer.version_major, observer.version_minor and observer.version_patch fields introduced above,
 		"remove": map[string]interface{}{
 			"ignore_missing": true,
-			"field":          []string{"observer.version_minor", "observer.version_patch"},
+			"field":          []string{"observer.version_major", "observer.version_minor", "observer.version_patch"},
 		},
 	}}
 }

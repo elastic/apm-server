@@ -33,8 +33,7 @@
     "id": "6657d6e6-f3e8-4ce4-aa22-e7fe2ad77b5e",
     "type": "apm-server",
     "ephemeral_id": "b7f21735-d283-4945-ab80-ce8df494a207",
-    "version": "7.15.0",
-    "version_major": 7
+    "version": "7.15.0"
   },
   "@timestamp": "2021-09-14T09:52:49.454Z",
   "ecs": {
