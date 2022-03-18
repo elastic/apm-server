@@ -538,39 +538,6 @@ pipeline {
             }
           }
         }
-<<<<<<< HEAD
-        stage('APM Integration Tests') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          when {
-            beforeAgent true
-            allOf {
-              anyOf {
-                changeRequest()
-                expression { return !params.Run_As_Master_Branch }
-              }
-              expression { return params.its_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'APM Integration Tests') {
-              script {
-                def buildObject = build(job: env.ITS_PIPELINE, propagate: false, wait: true,
-                      parameters: [string(name: 'INTEGRATION_TEST', value: 'All'),
-                                  string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${env.GIT_BASE_COMMIT}")])
-                copyArtifacts(projectName: env.ITS_PIPELINE, selector: specific(buildNumber: buildObject.number.toString()))
-              }
-            }
-          }
-          post {
-            always {
-              junit(testResults: "**/*-junit*.xml", allowEmptyResults: true, keepLongStdio: true)
-            }
-          }
-        }
-=======
->>>>>>> f8def45e (ci: remove APM Integration Tests stage (#7569))
       }
     }
   }
