@@ -16,6 +16,7 @@ https://github.com/elastic/apm-server/compare/8.1\...main[View commits]
 [float]
 ==== Intake API Changes
 - Support for `faas.name` and `faas.version` added to intake and transaction metrics {pull}7427[7427]
+- If proxy headers are present: `source.ip` and `client.ip` set to header values, and `source.nat.ip` set to incoming request IP {pull}7444[7444]
 - Updated intake v2 with support for `links` in `transaction` and `span` events {pull}7553[7553]
 
 [float]

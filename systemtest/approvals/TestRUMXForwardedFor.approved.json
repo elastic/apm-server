@@ -44,8 +44,10 @@
                 "name": "rum-js-test"
             },
             "source": {
-                "ip": "127.0.0.1",
-                "port": "dynamic"
+                "ip": "220.244.41.16",
+                "nat": {
+                    "ip": "127.0.0.1"
+                }
             },
             "span": {
                 "self_time": {
@@ -112,8 +114,10 @@
                 "name": "rum-js-test"
             },
             "source": {
-                "ip": "127.0.0.1",
-                "port": "dynamic"
+                "ip": "220.244.41.16",
+                "nat": {
+                    "ip": "127.0.0.1"
+                }
             },
             "timestamp": {
                 "us": "dynamic"
