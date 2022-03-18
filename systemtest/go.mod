@@ -37,6 +37,8 @@ require (
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.5.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v0.27.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.5.0 // indirect
 )
 
 require (
