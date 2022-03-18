@@ -101,13 +101,6 @@ sudo apt-get update && sudo apt-get install {beatname_pkg}
 --------------------------------------------------
 sudo systemctl enable {beatname_pkg}
 --------------------------------------------------
-+
-If your system does not use `systemd` then run:
-+
-["source","sh",subs="attributes"]
---------------------------------------------------
-sudo update-rc.d {beatname_pkg} defaults 95 10
---------------------------------------------------
 
 endif::[]
 
