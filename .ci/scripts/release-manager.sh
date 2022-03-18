@@ -9,6 +9,8 @@
 #
 set -uexo pipefail
 
+source /usr/local/bin/bash_standard_lib.sh
+
 # set required permissions on artifacts and directory
 chmod -R a+r build/distributions/*
 chmod -R a+w build/distributions
@@ -33,7 +35,7 @@ done
 
 # ensure the latest image has been pulled
 IMAGE=docker.elastic.co/infra/release-manager:latest
-docker pull --quiet $IMAGE
+(retry 3 docker pull "${IMAGE}") || echo "Error pulling ${IMAGE} Docker image, we continue"
 
 # Generate checksum files and upload to GCS
 docker run --rm \
