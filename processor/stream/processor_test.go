@@ -124,6 +124,9 @@ func TestIntegrationESOutput(t *testing.T) {
 		name: "OpenTelemetryBridge",
 		path: "otel-bridge.ndjson",
 	}, {
+		name: "SpanLinks",
+		path: "span-links.ndjson",
+	}, {
 		name: "InvalidEvent",
 		path: "invalid-event.ndjson",
 		errors: []error{

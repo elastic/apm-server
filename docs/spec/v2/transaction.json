@@ -877,6 +877,33 @@
       "type": "string",
       "maxLength": 1024
     },
+    "links": {
+      "description": "Links holds links to other spans, potentially in other traces.",
+      "type": [
+        "null",
+        "array"
+      ],
+      "items": {
+        "type": "object",
+        "properties": {
+          "span_id": {
+            "description": "SpanID holds the ID of the linked span.",
+            "type": "string",
+            "maxLength": 1024
+          },
+          "trace_id": {
+            "description": "TraceID holds the ID of the linked span's trace.",
+            "type": "string",
+            "maxLength": 1024
+          }
+        },
+        "required": [
+          "span_id",
+          "trace_id"
+        ]
+      },
+      "minItems": 0
+    },
     "marks": {
       "description": "Marks capture the timing of a significant event during the lifetime of a transaction. Marks are organized into groups and can be set by the user or the agent. Marks are only reported by RUM agents.",
       "type": [
