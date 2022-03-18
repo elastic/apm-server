@@ -41,7 +41,7 @@ pipeline {
               currentBuild.result = 'NOT_BUILT'
               currentBuild.description = "The build has been skipped"
               currentBuild.displayName = "#${BUILD_NUMBER}-(Skipped)"
-              echo("the build has been skipped due the trigger is a branch scan and the allow ones are manual, GitHub comment, and upstream job")
+              echo("the build has been skipped due the trigger is a branch scan and the allowed ones are manual, GitHub comment, and upstream job")
             }
             return ret
           }
