@@ -10,7 +10,6 @@ pipeline {
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
-    ITS_PIPELINE = 'apm-integration-tests-selector-mbp/main'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
@@ -42,8 +41,6 @@ pipeline {
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
-    booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
-    string(name: 'DIAGNOSTIC_INTERVAL', defaultValue: "0", description: 'Elasticsearch detailed logging every X seconds')
     string(name: 'ES_LOG_LEVEL', defaultValue: "error", description: 'Elasticsearch error level')
   }
   stages {
@@ -541,6 +538,7 @@ pipeline {
             }
           }
         }
+<<<<<<< HEAD
         stage('APM Integration Tests') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
@@ -571,6 +569,8 @@ pipeline {
             }
           }
         }
+=======
+>>>>>>> f8def45e (ci: remove APM Integration Tests stage (#7569))
       }
     }
   }
