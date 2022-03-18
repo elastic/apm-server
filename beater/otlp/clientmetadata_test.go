@@ -32,6 +32,7 @@ import (
 func TestSetClientMetadata(t *testing.T) {
 	ip1234 := net.ParseIP("1.2.3.4")
 	ip5678 := net.ParseIP("5.6.7.8")
+	ip10 := net.ParseIP("10.10.10.10")
 
 	for _, test := range []struct {
 		ctx      context.Context
@@ -75,6 +76,24 @@ func TestSetClientMetadata(t *testing.T) {
 			Agent:  model.Agent{Name: "iOS/swift"},
 			Client: model.Client{IP: ip5678},
 			Source: model.Source{IP: ip1234, Port: 4321},
+		},
+	}, {
+		ctx: interceptors.ContextWithClientMetadata(context.Background(), interceptors.ClientMetadataValues{
+			SourceAddr:  &net.TCPAddr{IP: ip1234, Port: 4321},
+			SourceNATIP: ip10,
+			ClientIP:    ip5678,
+		}),
+		in: model.APMEvent{
+			Agent: model.Agent{Name: "iOS/swift"},
+		},
+		expected: model.APMEvent{
+			Agent:  model.Agent{Name: "iOS/swift"},
+			Client: model.Client{IP: ip5678},
+			Source: model.Source{
+				IP:   ip1234,
+				Port: 4321,
+				NAT:  &model.NAT{IP: ip10},
+			},
 		},
 	}} {
 		batch := model.Batch{test.in}
