@@ -4,7 +4,7 @@
             "@timestamp": "dynamic",
             "agent": {
                 "name": "opentelemetry/go",
-                "version": "1.0.0"
+                "version": "1.5.0"
             },
             "data_stream.dataset": "apm.app.unknown_service_systemtest_test",
             "data_stream.namespace": "default",
