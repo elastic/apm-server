@@ -76,10 +76,6 @@ type Context struct {
 	// zero if unknown.
 	SourceNATIP net.IP
 
-	// SourceIP holds the port of the (source) network peer, or zero if
-	// unknown.
-	SourceNATPort int
-
 	// UserAgent holds the User-Agent request header value.
 	UserAgent string
 
@@ -119,7 +115,7 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 		c.SourceIP, c.ClientIP = ip, ip
 		c.SourcePort, c.ClientPort = int(port), int(port)
 		if ip, port := netutil.ClientAddrFromHeaders(r.Header); ip != nil {
-			c.SourceNATIP, c.SourceNATPort = c.ClientIP, c.ClientPort
+			c.SourceNATIP = c.ClientIP
 			c.SourceIP, c.ClientIP = ip, ip
 			c.SourcePort, c.ClientPort = int(port), int(port)
 		}

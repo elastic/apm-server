@@ -78,8 +78,7 @@ func TestAPMEventFields(t *testing.T) {
 				IP:   net.ParseIP("127.0.0.1"),
 				Port: 1234,
 				NAT: &NAT{
-					IP:   net.ParseIP("10.10.10.10"),
-					Port: 3333,
+					IP: net.ParseIP("10.10.10.10"),
 				},
 			},
 			Destination: Destination{Address: destinationAddress, Port: destinationPort},
@@ -150,10 +149,7 @@ func TestAPMEventFields(t *testing.T) {
 			"source": common.MapStr{
 				"ip":   "127.0.0.1",
 				"port": 1234,
-				"nat": common.MapStr{
-					"ip":   "10.10.10.10",
-					"port": 3333,
-				},
+				"nat":  common.MapStr{"ip": "10.10.10.10"},
 			},
 			"destination": common.MapStr{
 				"address": destinationAddress,

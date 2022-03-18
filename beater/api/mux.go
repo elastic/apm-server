@@ -327,7 +327,7 @@ func rumRequestMetadata(c *request.Context) model.APMEvent {
 		UserAgent: model.UserAgent{Original: c.UserAgent},
 	}
 	if c.SourceNATIP != nil {
-		e.Source.NAT = &model.NAT{IP: c.SourceNATIP, Port: c.SourceNATPort}
+		e.Source.NAT = &model.NAT{IP: c.SourceNATIP}
 	}
 	return e
 }

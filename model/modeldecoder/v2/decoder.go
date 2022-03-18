@@ -306,7 +306,7 @@ func mapToClientModel(from contextRequest, source *model.Source, client *model.C
 	if client.IP == nil {
 		client.IP = source.IP
 		if ip, port := netutil.ClientAddrFromHeaders(from.Headers.Val); ip != nil {
-			source.NAT = &model.NAT{IP: source.IP, Port: source.Port}
+			source.NAT = &model.NAT{IP: source.IP}
 			client.IP, client.Port = ip, int(port)
 			source.IP, source.Port = client.IP, client.Port
 		}

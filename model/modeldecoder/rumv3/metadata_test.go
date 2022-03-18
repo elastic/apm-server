@@ -46,7 +46,7 @@ func initializedMetadata() model.APMEvent {
 	out.Client.Domain = "init"
 	out.Client.IP = net.ParseIP("127.0.0.1")
 	out.Client.Port = 1
-	nat := &model.NAT{IP: net.ParseIP("127.0.0.1"), Port: 1}
+	nat := &model.NAT{IP: net.ParseIP("127.0.0.1")}
 	out.Source = model.Source{IP: out.Client.IP, Port: out.Client.Port, Domain: out.Client.Domain, NAT: nat}
 	return out
 }
@@ -194,10 +194,7 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 				Domain: "init",
 				IP:     net.ParseIP("127.0.0.1"),
 				Port:   1,
-				NAT: &model.NAT{
-					IP:   net.ParseIP("127.0.0.1"),
-					Port: 1,
-				},
+				NAT:    &model.NAT{IP: net.ParseIP("127.0.0.1")},
 			},
 		}
 	}
@@ -239,7 +236,7 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 		out1.Client.Domain = "init"
 		out1.Client.IP = net.ParseIP("127.0.0.1")
 		out1.Client.Port = 1
-		nat := &model.NAT{IP: out1.Client.IP, Port: 1}
+		nat := &model.NAT{IP: out1.Client.IP}
 		out1.Source = model.Source{IP: out1.Client.IP, Port: out1.Client.Port, Domain: out1.Client.Domain, NAT: nat}
 		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), out1)
 

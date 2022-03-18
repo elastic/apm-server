@@ -59,18 +59,12 @@ func (s *Source) fields() common.MapStr {
 type NAT struct {
 	// IP holds the translated IP address.
 	IP net.IP
-
-	// Port holds the translated IP port.
-	Port int
 }
 
 func (n *NAT) fields() common.MapStr {
 	var fields mapStr
 	if n.IP != nil {
 		fields.set("ip", n.IP.String())
-	}
-	if n.Port > 0 {
-		fields.set("port", n.Port)
 	}
 	return common.MapStr(fields)
 }

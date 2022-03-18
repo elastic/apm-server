@@ -112,8 +112,6 @@ func TestContext_Reset(t *testing.T) {
 			assert.Equal(t, 0, cVal.Field(i).Interface())
 		case "SourceNATIP":
 			assert.Equal(t, net.ParseIP("10.1.2.3"), cVal.Field(i).Interface())
-		case "SourceNATPort":
-			assert.Equal(t, 1234, cVal.Field(i).Interface())
 		case "UserAgent":
 			assert.Equal(t, "ua2", cVal.Field(i).Interface())
 		case "Timestamp":
