@@ -118,20 +118,25 @@ pipeline {
             }
           }
         }
-        stage('DRA') {
+        stage('DRA combine') {
           steps {
             googleStorageDownload(bucketUri: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}/*",
                                   credentialsId: "${JOB_GCS_CREDENTIALS}",
                                   localDirectory: "${BASE_DIR}/build/distributions",
                                   pathPrefix: env.PATH_PREFIX)
-            dir("${BASE_DIR}") {
-              dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-              script {
-                getVaultSecret.readSecretWrapper {
-                  sh(label: 'release-manager.sh', script: '.ci/scripts/release-manager.sh')
-                }
-              }
-            }
+          }
+        }
+        stage('DRA-snapshot') {
+          steps {
+            releaseManager(type: 'snapshot')
+          }
+        }
+        stage('DRA-staging') {
+          when {
+            not { branch 'main' }
+          }
+          steps {
+            releaseManager(type: 'staging')
           }
         }
       }
@@ -143,6 +148,17 @@ pipeline {
     }
     failure {
       notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
+    }
+  }
+}
+
+def releaseManager(def args = [:]) {
+  dir("${BASE_DIR}") {
+    dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
+    script {
+      getVaultSecret.readSecretWrapper {
+        sh(label: 'release-manager.sh', script: ".ci/scripts/release-manager.sh ${args.type}")
+      }
     }
   }
 }

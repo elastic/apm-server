@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 #
-# This script is executed by the release snapshot stage.
+# This script is executed by the DRA stage.
 # It requires the below environment variables:
 # - BRANCH_NAME
 # - VAULT_ADDR
 # - VAULT_ROLE_ID
 # - VAULT_SECRET_ID
+# It can be published as snapshot or staging, for such you uses
+# the paramater $0 "snapshot" or $0 "staging"
 #
 set -uexo pipefail
+
+readonly TYPE=${1:-snapshot}
 
 # set required permissions on artifacts and directory
 chmod -R a+r build/distributions/*
@@ -47,5 +51,5 @@ docker run --rm \
       --project apm-server \
       --branch "$BRANCH_NAME" \
       --commit "$(git rev-parse HEAD)" \
-      --workflow "snapshot" \
+      --workflow "$TYPE" \
       --artifact-set main
