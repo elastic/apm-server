@@ -19,8 +19,12 @@ chmod -R a+w build/distributions
 
 # rename dependencies.csv to the name expected by release-manager.
 VERSION=$(make get-version)
+FINAL_VERSION=$VERSION-SNAPSHOT
+if [ "$TYPE" != "snapshot" ] ; then
+  FINAL_VERSION=$VERSION
+fi
 mv build/distributions/dependencies.csv \
-   build/distributions/dependencies-$VERSION-SNAPSHOT.csv
+   build/distributions/dependencies-"$FINAL_VERSION".csv
 
 # rename docker files to support the unified release format.
 # TODO: this could be supported by the package system itself
