@@ -17,11 +17,12 @@ docker.elastic.co/beats-dev/golang-crossbuild:${GO_VERSION}-main-debian8
 docker.elastic.co/beats-dev/golang-crossbuild:${GO_VERSION}-mips
 docker.elastic.co/beats-dev/golang-crossbuild:${GO_VERSION}-ppc
 docker.elastic.co/beats-dev/golang-crossbuild:${GO_VERSION}-s390x
+docker.elastic.co/infra/release-manager:latest
 golang:${GO_VERSION}
 "
 if [ -x "$(command -v docker)" ]; then
   for image in ${DOCKER_IMAGES}
   do
-  (retry 2 docker pull ${image}) || echo "Error pulling ${image} Docker image, we continue"
+  (retry 2 docker pull "${image}") || echo "Error pulling ${image} Docker image, we continue"
   done
 fi
