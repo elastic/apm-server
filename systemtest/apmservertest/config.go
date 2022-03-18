@@ -50,7 +50,6 @@ type Config struct {
 	DefaultServiceEnvironment string             `json:"apm-server.default_service_environment,omitempty"`
 	KibanaAgentConfig         *KibanaAgentConfig `json:"apm-server.agent.config,omitempty"`
 	TLS                       *TLSConfig         `json:"apm-server.ssl,omitempty"`
-	CapturePersonalData       *bool              `json:"apm-server.capture_personal_data,omitempty"`
 
 	// AgentAuth holds configuration for APM agent authorization.
 	AgentAuth AgentAuthConfig `json:"apm-server.auth"`

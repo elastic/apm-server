@@ -37,11 +37,6 @@ const (
 	ReceivedSuffix = ".received.json"
 )
 
-type Dynamic struct {
-	Name  string
-	Check func(val interface{}) bool
-}
-
 // ApproveEventDocs compares the given event documents with
 // the contents of the file in "<name>.approved.json".
 //
@@ -49,7 +44,7 @@ type Dynamic struct {
 // will be replaced with a static string for comparison.
 //
 // If the events differ, then the test will fail.
-func ApproveEventDocs(t testing.TB, name string, eventDocs [][]byte, dynamic ...Dynamic) {
+func ApproveEventDocs(t testing.TB, name string, eventDocs [][]byte, dynamic ...string) {
 	t.Helper()
 
 	// Rewrite all dynamic fields to have a known value,
@@ -57,17 +52,13 @@ func ApproveEventDocs(t testing.TB, name string, eventDocs [][]byte, dynamic ...
 	events := make([]interface{}, len(eventDocs))
 	for i, doc := range eventDocs {
 		for _, field := range dynamic {
-			existing := gjson.GetBytes(doc, field.Name)
+			existing := gjson.GetBytes(doc, field)
 			if !existing.Exists() {
 				continue
 			}
 
-			if field.Check != nil && !field.Check(existing.Str) {
-				t.Fatal(fmt.Errorf("calling Check() for dynamic field %v failed", field.Name))
-			}
-
 			var err error
-			doc, err = sjson.SetBytes(doc, field.Name, "dynamic")
+			doc, err = sjson.SetBytes(doc, field, "dynamic")
 			if err != nil {
 				t.Fatal(err)
 			}

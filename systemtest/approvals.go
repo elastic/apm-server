@@ -18,11 +18,9 @@
 package systemtest
 
 import (
-	"fmt"
 	"path/filepath"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/tidwall/gjson"
 
@@ -46,30 +44,14 @@ func ApproveEvents(t testing.TB, name string, hits []estest.SearchHit, dynamic .
 	//
 	// Ignore their values in comparisons, but compare
 	// existence: either the field exists in both, or neither.
-	approvalDynamic := []approvaltest.Dynamic{
-		approvaltest.Dynamic{Name: "ecs.version"},
-		approvaltest.Dynamic{Name: "event.ingested"},
-		approvaltest.Dynamic{Name: "observer.ephemeral_id"},
-		approvaltest.Dynamic{Name: "observer.hostname"},
-		approvaltest.Dynamic{Name: "observer.id"},
-		approvaltest.Dynamic{Name: "observer.version"},
-	}
-	for _, name := range dynamic {
-		d := approvaltest.Dynamic{Name: name}
-		if name == "@timestamp" {
-			d.Check = func(val interface{}) bool {
-				if val == nil {
-					return true
-				}
-				parsedT, err := time.Parse("2006-01-02T15:04:05.000Z07:00", fmt.Sprintf("%v", val))
-				if err != nil {
-					t.Fatal(fmt.Errorf("parsing timestamp failed with %v", err))
-				}
-				return !parsedT.IsZero()
-			}
-		}
-		approvalDynamic = append(approvalDynamic, d)
-	}
+	dynamic = append([]string{
+		"ecs.version",
+		"event.ingested",
+		"observer.ephemeral_id",
+		"observer.hostname",
+		"observer.id",
+		"observer.version",
+	}, dynamic...)
 
 	// Sort events for repeatable diffs.
 	sort.Sort(apmEventSearchHits(hits))
@@ -78,7 +60,7 @@ func ApproveEvents(t testing.TB, name string, hits []estest.SearchHit, dynamic .
 	for i, hit := range hits {
 		sources[i] = hit.RawSource
 	}
-	approvaltest.ApproveEventDocs(t, filepath.Join("approvals", name), sources, approvalDynamic...)
+	approvaltest.ApproveEventDocs(t, filepath.Join("approvals", name), sources, dynamic...)
 }
 
 var apmEventSortFields = []string{
