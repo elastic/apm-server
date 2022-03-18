@@ -33,6 +33,9 @@ type Source struct {
 
 	// Port holds the client's IP port.
 	Port int
+
+	// NAT holds the translated source based NAT sessions.
+	NAT *NAT
 }
 
 func (s *Source) fields() common.MapStr {
@@ -43,6 +46,25 @@ func (s *Source) fields() common.MapStr {
 	}
 	if s.Port > 0 {
 		fields.set("port", s.Port)
+	}
+	if s.NAT != nil {
+		if nat := s.NAT.fields(); len(nat) > 0 {
+			fields.set("nat", nat)
+		}
+	}
+	return common.MapStr(fields)
+}
+
+// NAT holds information about the translated source of a network exchange.
+type NAT struct {
+	// IP holds the translated IP address.
+	IP net.IP
+}
+
+func (n *NAT) fields() common.MapStr {
+	var fields mapStr
+	if n.IP != nil {
+		fields.set("ip", n.IP.String())
 	}
 	return common.MapStr(fields)
 }

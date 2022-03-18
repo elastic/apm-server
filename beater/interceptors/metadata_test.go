@@ -60,8 +60,9 @@ func TestClientMetadata(t *testing.T) {
 		peer:     &peer.Peer{Addr: tcpAddr},
 		metadata: metadata.Pairs("X-Real-Ip", "5.6.7.8"),
 		expected: ClientMetadataValues{
-			SourceAddr: tcpAddr,
-			ClientIP:   net.ParseIP("5.6.7.8"),
+			SourceAddr:  &net.TCPAddr{IP: net.ParseIP("5.6.7.8")},
+			ClientIP:    net.ParseIP("5.6.7.8"),
+			SourceNATIP: tcpAddr.IP,
 		},
 	}, {
 		metadata: metadata.Pairs("User-Agent", "User-Agent"),

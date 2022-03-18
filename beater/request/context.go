@@ -52,24 +52,29 @@ type Context struct {
 	// the server.
 	Timestamp time.Time
 
-	// SourceIP holds the IP address of the (source) network peer.
+	// SourceIP holds the IP address of the originating client, if known,
+	// as recorded in Forwarded, X-Forwarded-For, etc.
 	SourceIP net.IP
 
-	// SourceIP holds the port of the (source) network peer, or zero
-	// if unknown.
+	// SourcePort holds the port of the originating client, as recorded in
+	// the Forwarded header. This will be zero unless the port is recorded
+	// in the Forwarded header.
 	SourcePort int
 
-	// ClientIP holds the IP address of the originating client,
+	// ClientIP holds the IP address of the originating client, if known,
 	// as recorded in Forwarded, X-Forwarded-For, etc.
 	//
-	// For TCP-based requests without one of the forwarded headers,
-	// this will have the same value as SourceIP.
+	// For TCP-based requests this will have the same value as SourceIP.
 	ClientIP net.IP
 
-	// ClientPort holds the port of the originating client, as
-	// recorded in the Forwarded header. This will be zero unless
-	// the port is recorded in the Forwarded header.
+	// ClientPort holds the port of the originating client, as recorded in
+	// the Forwarded header. This will be zero unless the port is recorded
+	// in the Forwarded header.
 	ClientPort int
+
+	// SourceNATIP holds the IP address of the (source) network peer, or
+	// zero if unknown.
+	SourceNATIP net.IP
 
 	// UserAgent holds the User-Agent request header value.
 	UserAgent string
@@ -108,9 +113,11 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	if r != nil {
 		ip, port := netutil.ParseIPPort(netutil.MaybeSplitHostPort(r.RemoteAddr))
 		c.SourceIP, c.ClientIP = ip, ip
-		c.SourcePort = int(port)
+		c.SourcePort, c.ClientPort = int(port), int(port)
 		if ip, port := netutil.ClientAddrFromHeaders(r.Header); ip != nil {
-			c.ClientIP, c.ClientPort = ip, int(port)
+			c.SourceNATIP = c.ClientIP
+			c.SourceIP, c.ClientIP = ip, ip
+			c.SourcePort, c.ClientPort = int(port), int(port)
 		}
 		c.UserAgent = strings.Join(r.Header["User-Agent"], ", ")
 		c.Timestamp = time.Now()
