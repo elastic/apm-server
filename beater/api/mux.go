@@ -302,6 +302,7 @@ func baseRequestMetadata(c *request.Context) model.APMEvent {
 	}
 }
 
+<<<<<<< HEAD
 func backendRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.APMEvent {
 	if !cfg.AugmentEnabled {
 		return baseRequestMetadata
@@ -315,7 +316,19 @@ func backendRequestMetadataFunc(cfg *config.Config) func(c *request.Context) mod
 			Host:      model.Host{IP: hostIP},
 			Timestamp: c.Timestamp,
 		}
+=======
+func rumRequestMetadata(c *request.Context) model.APMEvent {
+	e := model.APMEvent{
+		Client:    model.Client{IP: c.ClientIP},
+		Source:    model.Source{IP: c.SourceIP, Port: c.SourcePort},
+		Timestamp: c.Timestamp,
+		UserAgent: model.UserAgent{Original: c.UserAgent},
+>>>>>>> 27d244ea (Add `source.nat.ip` (#7444))
 	}
+	if c.SourceNATIP != nil {
+		e.Source.NAT = &model.NAT{IP: c.SourceNATIP}
+	}
+	return e
 }
 
 func rumRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.APMEvent {
