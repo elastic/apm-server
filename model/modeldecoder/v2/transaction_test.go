@@ -34,6 +34,7 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
+	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -569,7 +570,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		})
 	})
 	t.Run("labels", func(t *testing.T) {
-		var input span
+		var input transaction
 		input.Context.Tags = common.MapStr{
 			"a": "b",
 			"c": float64(12315124131),
@@ -577,7 +578,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			"e": true,
 		}
 		var out model.APMEvent
-		mapToSpanModel(&input, &out)
+		mapToTransactionModel(&input, &out)
 		assert.Equal(t, model.Labels{
 			"a": {Value: "b"},
 			"e": {Value: "true"},
@@ -586,5 +587,25 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			"c": {Value: float64(12315124131)},
 			"d": {Value: float64(12315124131.12315124131)},
 		}, out.NumericLabels)
+	})
+	t.Run("links", func(t *testing.T) {
+		var input transaction
+		input.Links = []spanLink{{
+			SpanID:  nullable.String{Val: "span1"},
+			TraceID: nullable.String{Val: "trace1"},
+		}, {
+			SpanID:  nullable.String{Val: "span2"},
+			TraceID: nullable.String{Val: "trace2"},
+		}}
+		var out model.APMEvent
+		mapToTransactionModel(&input, &out)
+
+		assert.Equal(t, []model.SpanLink{{
+			Span:  model.Span{ID: "span1"},
+			Trace: model.Trace{ID: "trace1"},
+		}, {
+			Span:  model.Span{ID: "span2"},
+			Trace: model.Trace{ID: "trace2"},
+		}}, out.Span.Links)
 	})
 }

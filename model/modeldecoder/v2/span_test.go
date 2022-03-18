@@ -35,6 +35,7 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
+	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 )
 
 func TestResetSpanOnRelease(t *testing.T) {
@@ -86,6 +87,10 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 
 	t.Run("span-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
+			if strings.HasPrefix(key, "Links") {
+				// Links are tested below in the 'links' test.
+				return true
+			}
 			switch key {
 			case
 				// RepresentativeCount is tested further down in test 'sample-rate'
@@ -94,7 +99,6 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				"Kind",
 
 				// Not set for spans:
-				"Links",
 				"DestinationService.ResponseTime",
 				"DestinationService.ResponseTime.Count",
 				"DestinationService.ResponseTime.Sum",
@@ -446,6 +450,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			assert.Equal(t, "CONSUMER", event.Span.Kind)
 		})
 	})
+
 	t.Run("labels", func(t *testing.T) {
 		var input span
 		input.Context.Tags = common.MapStr{
@@ -464,5 +469,26 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			"c": {Value: float64(12315124131)},
 			"d": {Value: float64(12315124131.12315124131)},
 		}, out.NumericLabels)
+	})
+
+	t.Run("links", func(t *testing.T) {
+		var input span
+		input.Links = []spanLink{{
+			SpanID:  nullable.String{Val: "span1"},
+			TraceID: nullable.String{Val: "trace1"},
+		}, {
+			SpanID:  nullable.String{Val: "span2"},
+			TraceID: nullable.String{Val: "trace2"},
+		}}
+		var out model.APMEvent
+		mapToSpanModel(&input, &out)
+
+		assert.Equal(t, []model.SpanLink{{
+			Span:  model.Span{ID: "span1"},
+			Trace: model.Trace{ID: "trace1"},
+		}, {
+			Span:  model.Span{ID: "span2"},
+			Trace: model.Trace{ID: "trace2"},
+		}}, out.Span.Links)
 	})
 }
