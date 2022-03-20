@@ -152,11 +152,7 @@ type routeBuilder struct {
 }
 
 func (r *routeBuilder) profileHandler() (request.Handler, error) {
-	requestMetadataFunc := emptyRequestMetadata
-	if r.cfg.AugmentEnabled {
-		requestMetadataFunc = backendRequestMetadata
-	}
-	h := profile.Handler(requestMetadataFunc, r.batchProcessor)
+	h := profile.Handler(backendRequestMetadataFunc(r.cfg), r.batchProcessor)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, profile.MonitoringMap)...)
 }
 
@@ -166,19 +162,11 @@ func (r *routeBuilder) firehoseHandler() (request.Handler, error) {
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
-	requestMetadataFunc := emptyRequestMetadata
-	if r.cfg.AugmentEnabled {
-		requestMetadataFunc = backendRequestMetadata
-	}
-	h := intake.Handler(stream.BackendProcessor(r.cfg), requestMetadataFunc, r.batchProcessor)
+	h := intake.Handler(stream.BackendProcessor(r.cfg), backendRequestMetadataFunc(r.cfg), r.batchProcessor)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
 func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *stream.Processor) func() (request.Handler, error) {
-	requestMetadataFunc := emptyRequestMetadata
-	if r.cfg.AugmentEnabled {
-		requestMetadataFunc = rumRequestMetadata
-	}
 	return func() (request.Handler, error) {
 		var batchProcessors modelprocessor.Chained
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
@@ -207,7 +195,7 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *strea
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
-		h := intake.Handler(newProcessor(r.cfg), requestMetadataFunc, batchProcessors)
+		h := intake.Handler(newProcessor(r.cfg), rumRequestMetadataFunc(r.cfg), batchProcessors)
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 	}
 }
@@ -304,30 +292,42 @@ func firehoseMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.I
 	return firehoseMiddleware
 }
 
-func emptyRequestMetadata(c *request.Context) model.APMEvent {
-	return model.APMEvent{}
-}
-
-func backendRequestMetadata(c *request.Context) model.APMEvent {
-	var hostIP []net.IP
-	if c.ClientIP != nil {
-		hostIP = []net.IP{c.ClientIP}
-	}
+func baseRequestMetadata(c *request.Context) model.APMEvent {
 	return model.APMEvent{
-		Host:      model.Host{IP: hostIP},
 		Timestamp: c.Timestamp,
 	}
 }
 
-func rumRequestMetadata(c *request.Context) model.APMEvent {
-	e := model.APMEvent{
-		Client:    model.Client{IP: c.ClientIP},
-		Source:    model.Source{IP: c.SourceIP, Port: c.SourcePort},
-		Timestamp: c.Timestamp,
-		UserAgent: model.UserAgent{Original: c.UserAgent},
+func backendRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.APMEvent {
+	if !cfg.AugmentEnabled {
+		return baseRequestMetadata
 	}
-	if c.SourceNATIP != nil {
-		e.Source.NAT = &model.NAT{IP: c.SourceNATIP}
+	return func(c *request.Context) model.APMEvent {
+		var hostIP []net.IP
+		if c.ClientIP != nil {
+			hostIP = []net.IP{c.ClientIP}
+		}
+		return model.APMEvent{
+			Host:      model.Host{IP: hostIP},
+			Timestamp: c.Timestamp,
+		}
 	}
-	return e
+}
+
+func rumRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.APMEvent {
+	if !cfg.AugmentEnabled {
+		return baseRequestMetadata
+	}
+	return func(c *request.Context) model.APMEvent {
+		e:=  model.APMEvent{
+			Client:    model.Client{IP: c.ClientIP},
+			Source:    model.Source{IP: c.SourceIP, Port: c.SourcePort},
+			Timestamp: c.Timestamp,
+			UserAgent: model.UserAgent{Original: c.UserAgent},
+		}
+		if c.SourceNATIP != nil {
+			e.Source.NAT = &model.NAT{IP: c.SourceNATIP}
+		}
+		return e
+	}
 }
