@@ -36,6 +36,7 @@ done
 # ensure the latest image has been pulled
 IMAGE=docker.elastic.co/infra/release-manager:latest
 (retry 3 docker pull --quiet "${IMAGE}") || echo "Error pulling ${IMAGE} Docker image, we continue"
+docker images --filter=reference=$IMAGE
 
 # Generate checksum files and upload to GCS
 docker run --rm \
