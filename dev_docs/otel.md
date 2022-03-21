@@ -39,7 +39,7 @@ APM Server embeds a small amount of the OpenTelemetry Collector code to service 
 None of the OpenTelemetry Collector exporters, processors, configuration, and so on, are used or supported.
 
 There is currently no policy for synchronising to the latest OpenTelemetry Collector version; this is done ad hoc.
-We vendor the opentelemetry-collector code under `internal/otel_collector` so that we can exort some of its internals
+We vendor the opentelemetry-collector code under `internal/otel_collector` so that we can export some of its internals
 to APM Server.
 
 To update to the latest version, update modules `go.opentelemetry.io/collector/...` to the latest version, and
