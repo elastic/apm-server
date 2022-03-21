@@ -4,6 +4,7 @@
 https://github.com/elastic/apm-server/compare/8.0\...8.1[View commits]
 
 * <<release-notes-8.1.0>>
+* <<release-notes-8.1.2>>
 
 [float]
 [[release-notes-8.1.0]]
@@ -17,3 +18,14 @@ https://github.com/elastic/apm-server/compare/8.0\...8.1[View commits]
 [float]
 ==== Bug fixes
 - Fix infinite loop in tail-based sampling subscriber causing high CPU and repeated Elasticsearch searches {pull}7211[7211]
+
+https://github.com/elastic/apm-server/compare/8.1.0\...8.1.2[View commits]
+
+[float]
+[[release-notes-8.1.2]]
+=== APM version 8.1.2
+
+[float]
+==== Bug fixes
+- Fix missing stack monitoring metrics {pull}7428[7428]
+- Fix setting a timestamp on RUM data when capturing personal data is disabled {pull}7567[7567]
