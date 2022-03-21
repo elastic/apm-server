@@ -168,12 +168,5 @@ sudo yum install {beatname_pkg}
 --------------------------------------------------
 sudo systemctl enable {beatname_pkg}
 --------------------------------------------------
-+
-If your system does not use `systemd` then run:
-+
-["source","sh",subs="attributes"]
---------------------------------------------------
-sudo chkconfig --add {beatname_pkg}
---------------------------------------------------
 
 endif::[]
