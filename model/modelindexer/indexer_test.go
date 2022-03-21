@@ -468,6 +468,40 @@ func TestModelIndexerUnknownResponseFields(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestModelIndexerProcessedEventsMetrics(t *testing.T) {
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {})
+	indexer, err := modelindexer.New(client, modelindexer.Config{})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	services := []model.Service{
+		{Name: "apm-agent-go", Version: "1.3"},
+		{Name: "apm-agent-go", Version: "1.3"},
+		{Name: "apm-agent-go", Version: "1.3"},
+		{Name: "apm-agent-node", Version: "1.2"},
+		{Name: "apm-agent-node", Version: "1.2"},
+		{Name: "apm-agent-java", Version: "1.1"},
+	}
+	ds := model.DataStream{
+		Type:      "metrics",
+		Dataset:   "apm_server",
+		Namespace: "testing",
+	}
+
+	batch := model.Batch{}
+	for _, service := range services {
+		batch = append(batch, model.APMEvent{Timestamp: time.Now(), DataStream: ds, Service: service})
+	}
+	err = indexer.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+
+	assert.Equal(t, []modelindexer.Service{
+		{Labels: []apm.MetricLabel{apm.MetricLabel{Name: "service.name", Value: "apm-agent-go"}, apm.MetricLabel{Name: "service.version", Value: "1.3"}}, Val: 3},
+		{Labels: []apm.MetricLabel{apm.MetricLabel{Name: "service.name", Value: "apm-agent-node"}, apm.MetricLabel{Name: "service.version", Value: "1.2"}}, Val: 2},
+		{Labels: []apm.MetricLabel{apm.MetricLabel{Name: "service.name", Value: "apm-agent-java"}, apm.MetricLabel{Name: "service.version", Value: "1.1"}}, Val: 1},
+	}, indexer.Stats().Services)
+}
+
 func TestModelIndexerTracing(t *testing.T) {
 	testModelIndexerTracing(t, 200, "success")
 	testModelIndexerTracing(t, 400, "failure")

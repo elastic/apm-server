@@ -88,6 +88,19 @@ type Indexer struct {
 	active       *bulkIndexer
 	timer        *time.Timer
 	timerStopped chan struct{}
+	services     map[string]service
+}
+
+type service struct {
+	val    int64
+	mu     sync.RWMutex
+	labels []apm.MetricLabel
+}
+
+// Service represents per-service name metrics for processed events.
+type Service struct {
+	Val    int64
+	Labels []apm.MetricLabel
 }
 
 // Config holds configuration for Indexer.
@@ -149,6 +162,7 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		available:    available,
 		closed:       make(chan struct{}),
 		timerStopped: make(chan struct{}),
+		services:     make(map[string]service),
 	}, nil
 }
 
@@ -186,7 +200,7 @@ func (i *Indexer) Close(ctx context.Context) error {
 
 // Stats returns the bulk indexing stats.
 func (i *Indexer) Stats() Stats {
-	return Stats{
+	stats := Stats{
 		Added:           atomic.LoadInt64(&i.eventsAdded),
 		Active:          atomic.LoadInt64(&i.eventsActive),
 		BulkRequests:    atomic.LoadInt64(&i.bulkRequests),
@@ -195,6 +209,22 @@ func (i *Indexer) Stats() Stats {
 		TooManyRequests: atomic.LoadInt64(&i.tooManyRequests),
 		BytesTotal:      atomic.LoadInt64(&i.bytesTotal),
 	}
+	i.mu.RLock()
+	defer i.mu.RUnlock()
+	if len(i.services) > 0 {
+		services := make([]Service, 0, len(i.services))
+		for _, s := range i.services {
+			labels := make([]apm.MetricLabel, len(s.labels))
+			copy(labels, s.labels)
+			services = append(services, Service{
+				// Is this atomic.Load necessary?
+				Val:    atomic.LoadInt64(&s.val),
+				Labels: labels,
+			})
+		}
+		stats.Services = services
+	}
+	return stats
 }
 
 // ProcessBatch creates a document for each event in batch, and adds them to the
@@ -264,6 +294,19 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 	}
 	atomic.AddInt64(&i.eventsAdded, 1)
 	atomic.AddInt64(&i.eventsActive, 1)
+
+	if serviceName := event.Service.Name + "." + event.Service.Version; serviceName != "." {
+		s, ok := i.services[serviceName]
+		if !ok {
+			labels := []apm.MetricLabel{
+				{Name: "service.name", Value: event.Service.Name},
+				{Name: "service.version", Value: event.Service.Version},
+			}
+			s = service{val: 0, labels: labels}
+		}
+		atomic.AddInt64(&s.val, 1)
+		i.services[serviceName] = s
+	}
 
 	if i.active.Len() >= i.config.FlushBytes {
 		if i.timer.Stop() {
@@ -473,4 +516,8 @@ type Stats struct {
 
 	// BytesTotal represents the total number of bytes that
 	BytesTotal int64
+
+	// Service is a slice of metrics representing processed events per
+	// service name.
+	Services []Service
 }
