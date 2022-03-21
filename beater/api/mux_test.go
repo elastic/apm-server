@@ -54,6 +54,7 @@ func TestBackendRequestMetadata(t *testing.T) {
 	assert.Equal(t, tNow, event.Timestamp)
 	assert.NotEqual(t, model.Host{}, event.Host)
 }
+
 func TestRUMRequestMetadata(t *testing.T) {
 	tNow := time.Now()
 	c := &request.Context{Timestamp: tNow}

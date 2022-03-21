@@ -25,6 +25,10 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
+
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/api/firehose"
@@ -41,9 +45,6 @@ import (
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/sourcemap"
-	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 const (
@@ -319,7 +320,7 @@ func rumRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.A
 		return baseRequestMetadata
 	}
 	return func(c *request.Context) model.APMEvent {
-		e:=  model.APMEvent{
+		e := model.APMEvent{
 			Client:    model.Client{IP: c.ClientIP},
 			Source:    model.Source{IP: c.SourceIP, Port: c.SourcePort},
 			Timestamp: c.Timestamp,
