@@ -7,6 +7,7 @@ https://github.com/elastic/apm-server/compare/8.1\...main[View commits]
 ==== Breaking Changes
 - APM Server now emits events with `event.duration`, and renames the field to `<event>.duration.us` in an ingest pipeline {pull}7261[7261]
 - Remove `observer.version_major` {pull}7399[7399]
+- APM Server no longer ships with SystemV init scripts or the go-daemon wrapper; use systemd {pull}7576[7576]
 
 [float]
 ==== Bug fixes
