@@ -27,7 +27,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/magefile/mage/mg"
 	"github.com/pkg/errors"
@@ -67,30 +66,12 @@ func GolangCrossBuild() error {
 	return mage.GolangCrossBuild(mage.DefaultGolangCrossBuildArgs())
 }
 
-// BuildGoDaemon builds the go-daemon binary (use crossBuildGoDaemon).
-func BuildGoDaemon() error {
-	return mage.BuildGoDaemon()
-}
-
-// CrossBuild cross-builds the beat for all target platforms.
-func CrossBuild() error {
-	return mage.CrossBuild()
-}
-
-func CrossBuildXPack() error {
-	return mage.CrossBuildXPack()
-}
-
-// CrossBuildGoDaemon cross-builds the go-daemon binary using Docker.
-func CrossBuildGoDaemon() error {
-	return mage.CrossBuildGoDaemon()
-}
-
 // Clean cleans all generated files and build artifacts.
 func Clean() error {
 	return mage.Clean()
 }
 
+// Config generates apm-server.yml and apm-server.docker.yml.
 func Config() error {
 	if err := mage.Config(mage.ShortConfigType, shortConfigFileParams(), "."); err != nil {
 		return err
@@ -104,8 +85,6 @@ func shortConfigFileParams() mage.ConfigFileParams {
 		ExtraVars: map[string]interface{}{
 			"elasticsearch_hostport": "localhost:9200",
 			"listen_hostport":        "localhost:" + config.DefaultPort,
-			"jaeger_grpc_hostport":   "localhost:14250",
-			"jaeger_http_hostport":   "localhost:14268",
 		},
 	}
 }
@@ -116,8 +95,6 @@ func dockerConfigFileParams() mage.ConfigFileParams {
 		ExtraVars: map[string]interface{}{
 			"elasticsearch_hostport": "elasticsearch:9200",
 			"listen_hostport":        "0.0.0.0:" + config.DefaultPort,
-			"jaeger_grpc_hostport":   "0.0.0.0:14250",
-			"jaeger_http_hostport":   "0.0.0.0:14268",
 		},
 	}
 }
@@ -150,28 +127,33 @@ func filterPackages(types string) {
 	mage.Packages = packages
 }
 
-// Package packages the Beat for distribution.
+// Package builds and packages apm-server for distribution.
+//
 // Use SNAPSHOT=true to build snapshots.
 // Use PLATFORMS to control the target platforms. eg linux/amd64
 // Use TYPES to control the target types. eg docker
 func Package() error {
-	start := time.Now()
-	defer func() { fmt.Println("package ran for", time.Since(start)) }()
+	mg.Deps(Update)
+	mg.Deps(func() error {
+		// TODO(axw) when we disable cgo, build all binaries using
+		// Go's native cross-compiling (GOOS=..., GOARCH=...)
+		return mage.CrossBuildXPack()
+	})
+	return PackageOnly()
+}
 
-	mage.UseElasticBeatPackaging()
+// PackageOnly packages apm-server for distribution, relying on
+// the binaries having already been built. See Package for more.
+func PackageOnly() error {
+	mage.MustUsePackaging("elastic_beat_xpack_separate_binaries", "dev-tools/packaging/packages.yml")
 	customizePackaging()
-
 	if packageTypes := os.Getenv("TYPES"); packageTypes != "" {
 		filterPackages(packageTypes)
-	}
-
-	if os.Getenv("SKIP_BUILD") != "true" {
-		mg.Deps(Update)
-		mg.Deps(CrossBuild, CrossBuildXPack, CrossBuildGoDaemon)
 	}
 	return mage.Package()
 }
 
+// Version prints out the qualified stack version.
 func Version() error {
 	v, err := mage.BeatQualifiedVersion()
 	if err != nil {
@@ -236,15 +218,14 @@ func customizePackaging() {
 				args.Spec.PostInstallScript = "packaging/files/linux/deb-post-install.sh.tmpl"
 			}
 
+			// All our supported Linux distros have systemd, so don't package any SystemV init scripts or go-daemon.
+			delete(args.Spec.Files, "/usr/share/{{.BeatName}}/bin/{{.BeatName}}-god")
+			delete(args.Spec.Files, "/etc/init.d/{{.BeatServiceName}}")
+
 		default:
 			panic(errors.Errorf("unhandled package type: %v", pkgType))
 		}
 	}
-}
-
-// DumpVariables writes the template variables and values to stdout.
-func DumpVariables() error {
-	return mage.DumpVariables()
 }
 
 func Check() error {

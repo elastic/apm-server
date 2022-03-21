@@ -1024,3 +1024,10 @@ type mockManager struct {
 func (m *mockManager) Enabled() bool {
 	return m.enabled
 }
+
+func (m *mockManager) Start() error {
+	return nil
+}
+
+func (m *mockManager) Stop() {
+}

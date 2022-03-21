@@ -526,6 +526,8 @@ func TestSpanRequiredValidationRules(t *testing.T) {
 		"composite.count":                      nil,
 		"composite.sum":                        nil,
 		"composite.compression_strategy":       nil,
+		"links.span_id":                        nil,
+		"links.trace_id":                       nil,
 	}
 	cb := assertRequiredFn(t, requiredKeys, event.validate)
 	modeldecodertest.SetZeroStructValue(&event, cb)
@@ -557,6 +559,8 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 		"experience.longtask.sum":   nil,
 		"experience.longtask.max":   nil,
 		"session.id":                nil,
+		"links.span_id":             nil,
+		"links.trace_id":            nil,
 	}
 	cb := assertRequiredFn(t, requiredKeys, event.validate)
 	modeldecodertest.SetZeroStructValue(&event, cb)
