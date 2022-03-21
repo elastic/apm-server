@@ -484,15 +484,14 @@ func sendOTLPMetrics(
 ) error {
 	exporter := newOTLPMetricExporter(t, srv)
 	controller := controller.New(
-		processor.New(aggregator, exporter),
+		processor.NewFactory(aggregator, exporter),
 		controller.WithExporter(exporter),
 		controller.WithCollectPeriod(time.Minute),
 	)
 	if err := controller.Start(context.Background()); err != nil {
 		return err
 	}
-	meterProvider := controller.MeterProvider()
-	meter := metric.Must(meterProvider.Meter("test-meter"))
+	meter := metric.Must(controller.Meter("test-meter"))
 	recordMetrics(meter)
 
 	// Stopping the controller will collect and export metrics.
