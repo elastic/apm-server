@@ -299,15 +299,6 @@ func baseRequestMetadata(c *request.Context) model.APMEvent {
 	}
 }
 
-<<<<<<< HEAD
-func rumRequestMetadata(c *request.Context) model.APMEvent {
-	return model.APMEvent{
-		Client:    model.Client{IP: c.ClientIP},
-		Source:    model.Source{IP: c.SourceIP, Port: c.SourcePort},
-		Timestamp: c.Timestamp,
-		UserAgent: model.UserAgent{Original: c.UserAgent},
-	}
-=======
 func backendRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.APMEvent {
 	if !cfg.AugmentEnabled {
 		return baseRequestMetadata
@@ -329,16 +320,11 @@ func rumRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.A
 		return baseRequestMetadata
 	}
 	return func(c *request.Context) model.APMEvent {
-		e := model.APMEvent{
+		return model.APMEvent{
 			Client:    model.Client{IP: c.ClientIP},
 			Source:    model.Source{IP: c.SourceIP, Port: c.SourcePort},
 			Timestamp: c.Timestamp,
 			UserAgent: model.UserAgent{Original: c.UserAgent},
 		}
-		if c.SourceNATIP != nil {
-			e.Source.NAT = &model.NAT{IP: c.SourceNATIP}
-		}
-		return e
 	}
->>>>>>> f1be74a4 (Always set timestamp on APMEvents for incoming http requests (#7567))
 }
