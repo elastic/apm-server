@@ -19,6 +19,7 @@ package modelprocessor_test
 
 import (
 	"context"
+	"math/rand"
 	"testing"
 
 	"github.com/elastic/apm-server/model"
@@ -93,4 +94,33 @@ func TestServiceCounter(t *testing.T) {
 			},
 		},
 	}, metrics)
+}
+
+func TestServiceLimit(t *testing.T) {
+	counter := modelprocessor.NewServiceCounter()
+	batch := make(model.Batch, 20000)
+	for i := range batch {
+		service := model.Service{Name: genServiceName()}
+		batch[i] = model.APMEvent{Service: service}
+	}
+
+	err := counter.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+
+	tracer := apmtest.NewRecordingTracer()
+	defer tracer.Close()
+	tracer.RegisterMetricsGatherer(counter)
+	tracer.SendMetrics(nil)
+	metrics := tracer.Payloads().Metrics[1:]
+	assert.Less(t, len(metrics), 10000)
+}
+
+func genServiceName() string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+	s := make([]rune, 12)
+	for i := range s {
+		s[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(s)
 }

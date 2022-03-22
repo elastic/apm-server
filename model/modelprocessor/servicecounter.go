@@ -27,6 +27,9 @@ import (
 	"github.com/elastic/apm-server/model"
 )
 
+// Limit the number of services recorded to 10000 to prevent memory exhaustion.
+const serviceLimit = 10000
+
 // ServiceCounter is a model.BatchProcessor that counts the number of events processed,
 // partitioned by service.name and service.version.
 type ServiceCounter struct {
@@ -65,8 +68,16 @@ func (c *ServiceCounter) ProcessBatch(ctx context.Context, b *model.Batch) error
 		if serviceName := event.Service.Name + event.Service.Version; serviceName != "" {
 			c.mu.RLock()
 			s, ok := c.services[serviceName]
+			limit := len(c.services) >= serviceLimit
 			c.mu.RUnlock()
 			if !ok {
+				if limit {
+					// We've hit the service limit.
+					// Continue processing in case we have
+					// services that are already recorded
+					// in c.services.
+					continue
+				}
 				labels := []apm.MetricLabel{
 					{Name: "service.name", Value: event.Service.Name},
 					{Name: "service.version", Value: event.Service.Version},
