@@ -736,13 +736,6 @@ func (s *serverRunner) newFinalBatchProcessor(
 		v.OnKey("total")
 		v.OnInt(indexer.Stats().Added)
 	})
-	s.tracer.RegisterMetricsGatherer(apm.GatherMetricsFunc(func(ctx context.Context, m *apm.Metrics) error {
-		for _, service := range indexer.Stats().Services {
-			// TODO: Metric name?
-			m.Add("processed_events", service.Labels, float64(service.Val))
-		}
-		return nil
-	}))
 	return indexer, indexer.Close, nil
 }
 
