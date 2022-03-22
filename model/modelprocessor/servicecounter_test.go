@@ -96,6 +96,129 @@ func TestServiceCounter(t *testing.T) {
 	}, metrics)
 }
 
+func TestServiceReset(t *testing.T) {
+	counter := modelprocessor.NewServiceCounter()
+	services := []model.Service{
+		{Name: "apm-agent-go", Version: "1.3"},
+		{Name: "apm-agent-go", Version: "1.3"},
+		{Name: "apm-agent-go", Version: "1.3"},
+		{Name: "apm-agent-node", Version: "1.2"},
+		{Name: "apm-agent-node", Version: "1.2"},
+		{Name: "apm-agent-java", Version: "1.1"},
+	}
+
+	batch := model.Batch{}
+	for _, service := range services {
+		batch = append(batch, model.APMEvent{Service: service})
+	}
+	err := counter.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+
+	tracer := apmtest.NewRecordingTracer()
+	defer tracer.Close()
+	tracer.RegisterMetricsGatherer(counter)
+	tracer.SendMetrics(nil)
+	metrics := tracer.Payloads().Metrics[1:]
+	for i := range metrics {
+		metrics[i].Timestamp = agent.Time{}
+	}
+
+	assert.Equal(t, []agent.Metrics{
+		{
+			Labels: agent.StringMap{
+				{Key: "service.name", Value: "apm-agent-go"},
+				{Key: "service.version", Value: "1.3"},
+			},
+			Samples: map[string]agent.Metric{
+				"processed_events": {
+					Value: 3,
+				},
+			},
+		},
+		{
+			Labels: agent.StringMap{
+				{Key: "service.name", Value: "apm-agent-java"},
+				{Key: "service.version", Value: "1.1"},
+			},
+			Samples: map[string]agent.Metric{
+				"processed_events": {
+					Value: 1,
+				},
+			},
+		},
+		{
+			Labels: agent.StringMap{
+				{Key: "service.name", Value: "apm-agent-node"},
+				{Key: "service.version", Value: "1.2"},
+			},
+			Samples: map[string]agent.Metric{
+				"processed_events": {
+					Value: 2,
+				},
+			},
+		},
+	}, metrics)
+
+	services = []model.Service{
+		{Name: "apm-agent-node", Version: "1.2"},
+		{Name: "apm-agent-java", Version: "1.1"},
+		{Name: "apm-agent-java", Version: "1.1"},
+		{Name: "apm-agent-ruby", Version: "1.0"},
+		{Name: "apm-agent-ruby", Version: "1.0"},
+		{Name: "apm-agent-ruby", Version: "1.0"},
+	}
+
+	batch = model.Batch{}
+	for _, service := range services {
+		batch = append(batch, model.APMEvent{Service: service})
+	}
+	err = counter.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+
+	tracer.ResetPayloads()
+	tracer.SendMetrics(nil)
+	metrics = tracer.Payloads().Metrics[1:]
+	for i := range metrics {
+		metrics[i].Timestamp = agent.Time{}
+	}
+
+	assert.Equal(t, []agent.Metrics{
+		{
+			Labels: agent.StringMap{
+				{Key: "service.name", Value: "apm-agent-java"},
+				{Key: "service.version", Value: "1.1"},
+			},
+			Samples: map[string]agent.Metric{
+				"processed_events": {
+					Value: 2,
+				},
+			},
+		},
+		{
+			Labels: agent.StringMap{
+				{Key: "service.name", Value: "apm-agent-node"},
+				{Key: "service.version", Value: "1.2"},
+			},
+			Samples: map[string]agent.Metric{
+				"processed_events": {
+					Value: 1,
+				},
+			},
+		},
+		{
+			Labels: agent.StringMap{
+				{Key: "service.name", Value: "apm-agent-ruby"},
+				{Key: "service.version", Value: "1.0"},
+			},
+			Samples: map[string]agent.Metric{
+				"processed_events": {
+					Value: 3,
+				},
+			},
+		},
+	}, metrics)
+}
+
 func TestServiceLimit(t *testing.T) {
 	counter := modelprocessor.NewServiceCounter()
 	batch := make(model.Batch, 20000)

@@ -59,6 +59,9 @@ func (c *ServiceCounter) GatherMetrics(ctx context.Context, m *apm.Metrics) erro
 		// TODO: Metric name?
 		m.Add("processed_events", s.labels, float64(s.val))
 	}
+	// Re-set c.services, since we're only reporting the deltas for a
+	// service within a collection period.
+	c.services = make(map[string]service)
 	return nil
 }
 
