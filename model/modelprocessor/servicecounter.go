@@ -48,7 +48,7 @@ func NewServiceCounter() *ServiceCounter {
 	}
 }
 
-// TODO: Access to tracer + modelprocessor.ServiceCounter
+// GatherMetrics implements the MetricsGatherer interface.
 func (c *ServiceCounter) GatherMetrics(ctx context.Context, m *apm.Metrics) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -59,7 +59,7 @@ func (c *ServiceCounter) GatherMetrics(ctx context.Context, m *apm.Metrics) erro
 	return nil
 }
 
-// ProcessBatch counts events in b, grouping by APMEvent.Processor.Event.
+// ProcessBatch counts events in b, grouping by APMEvent.Service.{Name,Version}.
 func (c *ServiceCounter) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	for _, event := range *b {
 		if serviceName := event.Service.Name + event.Service.Version; serviceName != "" {
