@@ -151,10 +151,6 @@
       type: keyword
       description: |
         Unique identifier of the APM Server.
-    - name: version_major
-      type: byte
-      description: |
-        Major version number of the observer
 - name: parent
   type: group
   fields:

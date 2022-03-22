@@ -130,6 +130,7 @@ func isUnmappedMetadataField(key string) bool {
 		"Source.Domain",
 		"Source.IP",
 		"Source.Port",
+		"Source.NAT",
 		"Trace",
 		"Trace.ID",
 		"URL",

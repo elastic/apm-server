@@ -7,6 +7,7 @@
 
 This section summarizes the changes in each release.
 
+* <<release-notes-8.1>>
 * <<release-notes-8.0>>
 
 Looking for a previous version? See the {apm-guide-7x}/release-notes.html[7.x release notes].

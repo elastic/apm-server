@@ -10,7 +10,6 @@ pipeline {
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
-    ITS_PIPELINE = 'apm-integration-tests-selector-mbp/main'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
@@ -29,21 +28,19 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger("(${obltGitHubComments()}|^run\\W+(?:the\\W+)?(hey-apm|package|arm)\\W+tests|^/test|^/hey-apm|^/package)")
+    issueCommentTrigger("(${obltGitHubComments()}|^run\\W+(?:the\\W+)?(hey-apm|package|arm|windows)\\W+tests|^/test|^/hey-apm|^/package|^/test windows)")
   }
   parameters {
     booleanParam(name: 'Run_As_Main_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on main branch.')
     booleanParam(name: 'arm_ci', defaultValue: true, description: 'Enable ARM build')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
     booleanParam(name: 'osx_ci', defaultValue: true, description: 'Enable OSX CI')
-    booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
+    booleanParam(name: 'windows_ci', defaultValue: false, description: 'Enable Windows CI')
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
-    booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
-    string(name: 'DIAGNOSTIC_INTERVAL', defaultValue: "0", description: 'Elasticsearch detailed logging every X seconds')
     string(name: 'ES_LOG_LEVEL', defaultValue: "error", description: 'Elasticsearch error level')
   }
   stages {
@@ -138,8 +135,8 @@ pipeline {
               unstash 'source'
               dir(BASE_DIR){
                 withMageEnv(){
-                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
-                    sleep randomNumber(min: 5, max: 10)
+                  // Retry in case there are any errors to avoid temporary glitches
+                  retryWithSleep(retries: 2) {
                     sh(label: 'Linux build', script: './.ci/scripts/build.sh')
                   }
                 }
@@ -150,27 +147,69 @@ pipeline {
         /**
         Build and Test on a windows environment.
         */
-        stage('windows build-test') {
+        stage('windows-2019 build-test') {
           agent { label 'windows-2019-immutable' }
           options {
             skipDefaultCheckout()
-            warnError('Windows execution failed')
           }
           when {
             beforeAgent true
             allOf {
-              expression { return params.windows_ci }
+              anyOf {
+                expression { return params.windows_ci }
+                expression { return env.GITHUB_COMMENT?.contains('windows')}
+                expression { matchesPrLabel(label: 'ci:windows') }
+              }
               expression { return env.ONLY_DOCS == "false" }
             }
           }
           steps {
-            withGithubNotify(context: 'Build-Test - Windows') {
+            withGithubNotify(context: 'Build-Test - Windows-2019') {
               deleteDir()
               unstash 'source'
               dir(BASE_DIR){
                 withMageEnv(){
-                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
-                    sleep randomNumber(min: 5, max: 10)
+                  // Retry in case there are any errors to avoid temporary glitches
+                  retryWithSleep(retries: 2) {
+                    powershell(label: 'Windows build', script: '.\\.ci\\scripts\\windows-build.ps1')
+                    powershell(label: 'Run Window tests', script: '.\\.ci\\scripts\\windows-test.ps1')
+                  }
+                }
+              }
+            }
+          }
+          post {
+            always {
+              junit(allowEmptyResults: true,
+                keepLongStdio: true,
+                testResults: "${BASE_DIR}/build/TEST-*.xml")
+            }
+          }
+        }
+        stage('windows-2022 build-test') {
+          agent { label 'windows-2022-immutable' }
+          options {
+            skipDefaultCheckout()
+          }
+          when {
+            beforeAgent true
+            allOf {
+              anyOf {
+                expression { return params.windows_ci }
+                expression { return env.GITHUB_COMMENT?.contains('windows')}
+                expression { matchesPrLabel(label: 'ci:windows') }
+              }
+              expression { return env.ONLY_DOCS == "false" }
+            }
+          }
+          steps {
+            withGithubNotify(context: 'Build-Test - Windows-2022') {
+              deleteDir()
+              unstash 'source'
+              dir(BASE_DIR){
+                withMageEnv(){
+                  // Retry in case there are any errors to avoid temporary glitches
+                  retryWithSleep(retries: 2) {
                     powershell(label: 'Windows build', script: '.\\.ci\\scripts\\windows-build.ps1')
                     powershell(label: 'Run Window tests', script: '.\\.ci\\scripts\\windows-test.ps1')
                   }
@@ -211,8 +250,8 @@ pipeline {
               unstash 'source'
               dir(BASE_DIR){
                 withMageEnv(){
-                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
-                    sleep randomNumber(min: 5, max: 10)
+                  // Retry in case there are any errors to avoid temporary glitches
+                  retryWithSleep(retries: 2) {
                     sh(label: 'OSX build', script: '.ci/scripts/build-darwin.sh')
                     sh(label: 'Run Unit tests', script: '.ci/scripts/test-darwin.sh')
                   }
@@ -496,36 +535,6 @@ pipeline {
                   sharedPublicly: true,
                   showInline: true)
               }
-            }
-          }
-        }
-        stage('APM Integration Tests') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          when {
-            beforeAgent true
-            allOf {
-              anyOf {
-                changeRequest()
-                expression { return !params.Run_As_Main_Branch }
-              }
-              expression { return params.its_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'APM Integration Tests') {
-              script {
-                def buildObject = build(job: env.ITS_PIPELINE, propagate: false, wait: true,
-                      parameters: [string(name: 'INTEGRATION_TEST', value: 'All'),
-                                  string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${env.GIT_BASE_COMMIT}")])
-                copyArtifacts(projectName: env.ITS_PIPELINE, selector: specific(buildNumber: buildObject.number.toString()))
-              }
-            }
-          }
-          post {
-            always {
-              junit(testResults: "**/*-junit*.xml", allowEmptyResults: true, keepLongStdio: true)
             }
           }
         }

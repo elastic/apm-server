@@ -25,8 +25,7 @@
                 "hostname": "dynamic",
                 "id": "dynamic",
                 "type": "apm-server",
-                "version": "dynamic",
-                "version_major": "dynamic"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "611f4fa950f04631"

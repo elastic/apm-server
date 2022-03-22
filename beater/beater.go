@@ -203,6 +203,14 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 				ctx, reload.ReloadableFunc(reloader.reloadOutput),
 			)
 		})
+
+		// Start the manager after all the hooks are initialized
+		// and defined this ensure reloading consistency..
+		if err := b.Manager.Start(); err != nil {
+			return err
+		}
+		defer b.Manager.Stop()
+
 	} else {
 		// Management disabled, use statically defined config.
 		reloader.rawConfig = bt.rawConfig

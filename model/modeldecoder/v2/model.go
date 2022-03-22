@@ -741,7 +741,10 @@ type span struct {
 	// Type holds the span's type, and can have specific keywords
 	// within the service's domain (eg: 'request', 'backgroundjob', etc)
 	Type nullable.String `json:"type" validate:"required,maxLength=1024"`
-	_    struct{}        `validate:"requiredAnyOf=start;timestamp"`
+	// Links holds links to other spans, potentially in other traces.
+	Links []spanLink `json:"links"`
+
+	_ struct{} `validate:"requiredAnyOf=start;timestamp"`
 }
 
 type spanContext struct {
@@ -930,6 +933,8 @@ type transaction struct {
 	// UserExperience holds metrics for measuring real user experience.
 	// This information is only sent by RUM agents.
 	UserExperience transactionUserExperience `json:"experience"`
+	// Links holds links to other spans, potentially in other traces.
+	Links []spanLink `json:"links"`
 }
 
 type otel struct {
@@ -1030,4 +1035,12 @@ type transactionDroppedSpansDuration struct {
 type transactionDroppedSpansDurationSum struct {
 	// Us represents the summation of the span duration.
 	Us nullable.Int `json:"us" validate:"min=0"`
+}
+
+type spanLink struct {
+	// SpanID holds the ID of the linked span.
+	SpanID nullable.String `json:"span_id" validate:"required,maxLength=1024"`
+
+	// TraceID holds the ID of the linked span's trace.
+	TraceID nullable.String `json:"trace_id" validate:"required,maxLength=1024"`
 }

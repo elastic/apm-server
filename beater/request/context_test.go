@@ -103,13 +103,15 @@ func TestContext_Reset(t *testing.T) {
 		case "Result":
 			assertResultIsEmpty(t, cVal.Field(i).Interface().(Result))
 		case "SourceIP":
-			assert.Equal(t, net.ParseIP("10.1.2.3"), cVal.Field(i).Interface())
+			assert.Equal(t, net.ParseIP("192.168.0.1"), cVal.Field(i).Interface())
 		case "SourcePort":
-			assert.Equal(t, 1234, cVal.Field(i).Interface())
+			assert.Equal(t, 0, cVal.Field(i).Interface())
 		case "ClientIP":
 			assert.Equal(t, net.ParseIP("192.168.0.1"), cVal.Field(i).Interface())
 		case "ClientPort":
 			assert.Equal(t, 0, cVal.Field(i).Interface())
+		case "SourceNATIP":
+			assert.Equal(t, net.ParseIP("10.1.2.3"), cVal.Field(i).Interface())
 		case "UserAgent":
 			assert.Equal(t, "ua2", cVal.Field(i).Interface())
 		case "Timestamp":

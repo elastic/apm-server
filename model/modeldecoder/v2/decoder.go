@@ -306,7 +306,9 @@ func mapToClientModel(from contextRequest, source *model.Source, client *model.C
 	if client.IP == nil {
 		client.IP = source.IP
 		if ip, port := netutil.ClientAddrFromHeaders(from.Headers.Val); ip != nil {
+			source.NAT = &model.NAT{IP: source.IP}
 			client.IP, client.Port = ip, int(port)
+			source.IP, source.Port = client.IP, client.Port
 		}
 	}
 }
@@ -1016,6 +1018,9 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 	if from.OTel.IsSet() {
 		mapOTelAttributesSpan(from.OTel, event)
 	}
+	if len(from.Links) > 0 {
+		mapSpanLinks(from.Links, &out.Links)
+	}
 }
 
 func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
@@ -1240,6 +1245,13 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 		}
 		mapOTelAttributesTransaction(from.OTel, event)
 	}
+
+	if len(from.Links) > 0 {
+		if event.Span == nil {
+			event.Span = &model.Span{}
+		}
+		mapSpanLinks(from.Links, &event.Span.Links)
+	}
 }
 
 func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
@@ -1401,4 +1413,14 @@ func isOTelDoubleAttribute(k string) bool {
 		return true
 	}
 	return false
+}
+
+func mapSpanLinks(from []spanLink, out *[]model.SpanLink) {
+	*out = make([]model.SpanLink, len(from))
+	for i, link := range from {
+		(*out)[i] = model.SpanLink{
+			Span:  model.Span{ID: link.SpanID.Val},
+			Trace: model.Trace{ID: link.TraceID.Val},
+		}
+	}
 }
