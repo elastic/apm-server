@@ -20,7 +20,6 @@ package modelprocessor_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
@@ -42,15 +41,10 @@ func TestServiceCounter(t *testing.T) {
 		{Name: "apm-agent-node", Version: "1.2"},
 		{Name: "apm-agent-java", Version: "1.1"},
 	}
-	ds := model.DataStream{
-		Type:      "metrics",
-		Dataset:   "apm_server",
-		Namespace: "testing",
-	}
 
 	batch := model.Batch{}
 	for _, service := range services {
-		batch = append(batch, model.APMEvent{Timestamp: time.Now(), DataStream: ds, Service: service})
+		batch = append(batch, model.APMEvent{Service: service})
 	}
 	err := counter.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
@@ -99,5 +93,4 @@ func TestServiceCounter(t *testing.T) {
 			},
 		},
 	}, metrics)
-
 }
