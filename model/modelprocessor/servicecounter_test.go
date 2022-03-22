@@ -25,6 +25,7 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
 
+	"go.elastic.co/apm"
 	"go.elastic.co/apm/apmtest"
 	agent "go.elastic.co/apm/model"
 
@@ -50,14 +51,7 @@ func TestServiceCounter(t *testing.T) {
 	err := counter.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
 
-	tracer := apmtest.NewRecordingTracer()
-	defer tracer.Close()
-	tracer.RegisterMetricsGatherer(counter)
-	tracer.SendMetrics(nil)
-	metrics := tracer.Payloads().Metrics[1:]
-	for i := range metrics {
-		metrics[i].Timestamp = agent.Time{}
-	}
+	metrics := gatherMetrics(counter)[1:]
 
 	assert.Equal(t, []agent.Metrics{
 		{
@@ -114,14 +108,7 @@ func TestServiceReset(t *testing.T) {
 	err := counter.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
 
-	tracer := apmtest.NewRecordingTracer()
-	defer tracer.Close()
-	tracer.RegisterMetricsGatherer(counter)
-	tracer.SendMetrics(nil)
-	metrics := tracer.Payloads().Metrics[1:]
-	for i := range metrics {
-		metrics[i].Timestamp = agent.Time{}
-	}
+	metrics := gatherMetrics(counter)[1:]
 
 	assert.Equal(t, []agent.Metrics{
 		{
@@ -175,12 +162,7 @@ func TestServiceReset(t *testing.T) {
 	err = counter.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
 
-	tracer.ResetPayloads()
-	tracer.SendMetrics(nil)
-	metrics = tracer.Payloads().Metrics[1:]
-	for i := range metrics {
-		metrics[i].Timestamp = agent.Time{}
-	}
+	metrics = gatherMetrics(counter)[1:]
 
 	assert.Equal(t, []agent.Metrics{
 		{
@@ -230,11 +212,7 @@ func TestServiceLimit(t *testing.T) {
 	err := counter.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
 
-	tracer := apmtest.NewRecordingTracer()
-	defer tracer.Close()
-	tracer.RegisterMetricsGatherer(counter)
-	tracer.SendMetrics(nil)
-	metrics := tracer.Payloads().Metrics[1:]
+	metrics := gatherMetrics(counter)[1:]
 	assert.Less(t, len(metrics), 10000)
 }
 
@@ -246,4 +224,16 @@ func genServiceName() string {
 		s[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(s)
+}
+
+func gatherMetrics(g apm.MetricsGatherer) []agent.Metrics {
+	tracer := apmtest.NewRecordingTracer()
+	defer tracer.Close()
+	tracer.RegisterMetricsGatherer(g)
+	tracer.SendMetrics(nil)
+	metrics := tracer.Payloads().Metrics
+	for i := range metrics {
+		metrics[i].Timestamp = agent.Time{}
+	}
+	return metrics
 }
