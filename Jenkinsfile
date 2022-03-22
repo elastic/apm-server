@@ -16,6 +16,7 @@ pipeline {
     DOCKER_REGISTRY = 'docker.elastic.co'
     DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
     ONLY_DOCS = "false"
+    RUN_WINDOWS = "false"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -78,6 +79,7 @@ pipeline {
             whenTrue(isPR()) {
               setEnvVar('ONLY_DOCS', isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true))
             }
+            setEnvVar('RUN_WINDOWS', ((params.windows_ci || env.GITHUB_COMMENT?.contains('windows') || matchesPrLabel(label: 'ci:windows')) && env.ONLY_DOCS == "false"))
           }
         }
       }
@@ -154,14 +156,7 @@ pipeline {
           }
           when {
             beforeAgent true
-            allOf {
-              anyOf {
-                expression { return params.windows_ci }
-                expression { return env.GITHUB_COMMENT?.contains('windows')}
-                expression { matchesPrLabel(label: 'ci:windows') }
-              }
-              expression { return env.ONLY_DOCS == "false" }
-            }
+            expression { return env.RUN_WINDOWS == "true" }
           }
           steps {
             withGithubNotify(context: 'Build-Test - Windows-2019') {
@@ -193,14 +188,7 @@ pipeline {
           }
           when {
             beforeAgent true
-            allOf {
-              anyOf {
-                expression { return params.windows_ci }
-                expression { return env.GITHUB_COMMENT?.contains('windows')}
-                expression { matchesPrLabel(label: 'ci:windows') }
-              }
-              expression { return env.ONLY_DOCS == "false" }
-            }
+            expression { return env.RUN_WINDOWS == "true" }
           }
           steps {
             withGithubNotify(context: 'Build-Test - Windows-2022') {
