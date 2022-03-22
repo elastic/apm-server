@@ -740,6 +740,8 @@ func (s *serverRunner) newFinalBatchProcessor(
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
+	serviceCounter := modelprocessor.NewServiceCounter()
+	s.tracer.RegisterMetricsGatherer(serviceCounter)
 	processors := []model.BatchProcessor{
 		modelprocessor.SetHostHostname{},
 		modelprocessor.SetServiceNodeName{},
@@ -749,6 +751,7 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 		newObserverBatchProcessor(s.beat.Info),
 		model.ProcessBatchFunc(ecsVersionBatchProcessor),
 		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
+		serviceCounter,
 		&modelprocessor.SetDataStream{Namespace: s.namespace},
 	}
 	if s.config.DefaultServiceEnvironment != "" {
