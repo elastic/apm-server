@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "description": "Elastic APM benchmark for Rally",
+  "data-streams": [
+    {"name": "traces-apm*"},
+    {"name": "metrics-apm*"},
+    {"name": "logs-apm*"}
+  ],
+  "corpora": [
+    {"name": "apm-events", "documents": [{% include "corpora/http_and_sql.json" %}]}
+  ],
+  "schedule": [
+    {
+      "operation": {
+        "operation-type": "delete-data-stream",
+	"data-stream": [
+          "traces-apm*",
+          "metrics-apm*",
+          "logs-apm*"
+	]
+      }
+    },
+    {
+      "operation": {
+        "operation-type": "cluster-health",
+        "request-params": {
+          "wait_for_status": "green"
+        },
+        "retry-until-success": true
+      }
+    },
+    {
+      "operation": {
+        "operation-type": "bulk",
+        "bulk-size": 5000
+      }
+    }
+  ]
+}

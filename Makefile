@@ -278,3 +278,24 @@ build/$(JAVA_ATTACHER_JAR): build/$(JAVA_ATTACHER_SIG) .imported-java-agent-pubk
 	curl -sSL $(JAVA_ATTACHER_URL) > $@
 	gpg --verify $< $@
 	@cp $@ build/java-attacher.jar
+
+##############################################################################
+# Rally -- Elasticsearch performance benchmarking.
+##############################################################################
+
+RALLY_EXTRA_FLAGS?=
+RALLY_CLIENT_OPTIONS?=basic_auth_user:'admin',basic_auth_password:'changeme'
+RALLY_FLAGS?=--pipeline=benchmark-only --client-options="$(RALLY_CLIENT_OPTIONS)" $(RALLY_EXTRA_FLAGS)
+
+.PHONY: rally
+rally: $(PYTHON_BIN)/esrally rally/corpora/.generated
+	@$(PYTHON_BIN)/esrally race --track-path=rally --kill-running-processes $(RALLY_FLAGS)
+
+$(PYTHON_BIN)/esrally: $(PYTHON_BIN)
+	@$(PYTHON_BIN)/pip install -U esrally
+
+rally/corpora: rally/corpora/.generated
+rally/corpora/.generated: rally/gencorpora/main.go rally/gencorpora/api.go rally/gencorpora/go.mod
+	@rm -fr rally/corpora && mkdir rally/corpora
+	@cd rally/gencorpora && $(GO) run .
+	@touch $@
