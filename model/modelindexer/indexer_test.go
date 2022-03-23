@@ -51,7 +51,10 @@ func init() {
 }
 
 func TestModelIndexer(t *testing.T) {
-	var indexed int64
+	var (
+		indexed             int64
+		productOriginHeader string
+	)
 	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
 		scanner := bufio.NewScanner(r.Body)
 		var result elasticsearch.BulkIndexerResponse
@@ -81,6 +84,7 @@ func TestModelIndexer(t *testing.T) {
 			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: item})
 		}
 		atomic.AddInt64(&indexed, int64(len(result.Items)))
+		productOriginHeader = r.Header.Get("X-Elastic-Product-Origin")
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		json.NewEncoder(w).Encode(result)
 	})
@@ -114,6 +118,7 @@ func TestModelIndexer(t *testing.T) {
 		Indexed:         N - 2,
 		TooManyRequests: 1,
 	}, stats)
+	assert.Equal(t, "observability", productOriginHeader)
 }
 
 func TestModelIndexerEncoding(t *testing.T) {
