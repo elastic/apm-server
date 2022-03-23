@@ -81,30 +81,20 @@ func queryExpvar(out *expvar) error {
 }
 
 // WaitUntilServerInactive blocks until one of the conditions occurs:
-// * APM Server output active events are lower than `warmupInactive`.
+// * APM Server is inactive (has no "active" events on the output buffer).
 // * HTTP call returns with an error
 // * Context is done.
 func WaitUntilServerInactive(ctx context.Context) error {
-	errChan := make(chan error)
-	go func() {
-		var result expvar
-		defer close(errChan)
-		for {
-			select {
-			case <-ctx.Done():
-				errChan <- ctx.Err()
-				return
-			default:
-			}
+	result := expvar{LibbeatStats: LibbeatStats{ActiveEvents: 1}}
+	for result.ActiveEvents > 0 {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
 			if err := queryExpvar(&result); err != nil {
-				errChan <- err
-				return
-			}
-			if result.ActiveEvents < int64(*inactiveThreshold) {
-				return
+				return err
 			}
 		}
-	}()
-
-	return <-errChan
+	}
+	return nil
 }

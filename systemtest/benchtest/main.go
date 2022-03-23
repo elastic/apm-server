@@ -37,6 +37,8 @@ import (
 	"go.elastic.co/apm/stacktrace"
 )
 
+const waitInactiveTimeout = 30 * time.Second
+
 // events holds the current stored events.
 //go:embed events/*.ndjson
 var events embed.FS
@@ -62,6 +64,7 @@ func runBenchmark(f func(b *testing.B)) (testing.BenchmarkResult, bool, error) {
 			ok = !b.Failed()
 			return
 		}
+		b.ResetTimer()
 		f(b)
 		for !b.Failed() {
 			if err := queryExpvar(&after); err != nil {
@@ -180,12 +183,16 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 
 	// Warmup the APM Server before beggining the benchmarks.
 	if h, err := newEventHandler(`.*.ndjson`); err == nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
-		h.WarmUpServer(ctx, *warmupEvents)
-		ctx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
+		if err := h.WarmUpServer(ctx, *warmupEvents); err != nil {
+			return fmt.Errorf("failed warming up apm-server: %w", err)
+		}
+		ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
 		defer cancel()
-		WaitUntilServerInactive(ctx)
+		if err := WaitUntilServerInactive(ctx); err != nil {
+			return fmt.Errorf("received error waiting for server inactive: %w", err)
+		}
 	}
 
 	for _, agents := range agentsList {

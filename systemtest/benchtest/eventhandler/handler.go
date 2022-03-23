@@ -26,8 +26,6 @@ import (
 	"io"
 	"io/fs"
 	"regexp"
-
-	"go.elastic.co/apm/transport"
 )
 
 const maxScanTokenSize = 300 * 1024 // 300Kb.
@@ -44,15 +42,15 @@ type batch struct {
 }
 
 // Handler is used to replay a set of stored events to a remote APM Server
-// using a transport.
+// using a ReplayTransport.
 type Handler struct {
-	transport    transport.Transport
+	transport    *Transport
 	batches      []batch
 	warmupEvents uint
 }
 
-// New creates a new tracehandler.Handler
-func New(p string, t transport.Transport, storage fs.FS, warmup uint) (*Handler, error) {
+// New creates a new tracehandler.Handler.
+func New(p string, t *Transport, storage fs.FS, warmup uint) (*Handler, error) {
 	r, err := regexp.Compile(p)
 	if err != nil {
 		return nil, err
@@ -159,10 +157,8 @@ func (h *Handler) SendBatches(ctx context.Context) (uint, error) {
 		default:
 			defer r.Seek(0, io.SeekStart)
 		}
-		// TODO(marclop) by reusing the Go agent's transport, we're not able to
-		// set the user agent accordingly. We will need to identify when we have
-		// RUM data and use a different method for sending the traces.
-		if err := h.transport.SendStream(ctx, r); err != nil {
+		// NOTE(marclop) RUM event replaying is not yet supported.
+		if err := h.transport.SendV2Events(ctx, r); err != nil {
 			return err
 		}
 		sentEvents += events

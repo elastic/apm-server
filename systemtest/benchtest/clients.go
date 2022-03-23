@@ -105,12 +105,12 @@ func NewEventHandler(tb testing.TB, p string) *eventhandler.Handler {
 }
 
 func newEventHandler(p string) (*eventhandler.Handler, error) {
-	transp, err := transport.NewHTTPTransport()
+	// We call the HTTPTransport constructor to avoid copying all the config
+	// parsing that creates the `*http.Client`.
+	t, err := transport.NewHTTPTransport()
 	if err != nil {
 		return nil, err
 	}
-	transp.SetServerURL(serverURL)
-	transp.SetSecretToken(*secretToken)
-
+	transp := eventhandler.NewTransport(t.Client, serverURL.String(), *secretToken)
 	return eventhandler.New(p, transp, events, *warmupEvents)
 }

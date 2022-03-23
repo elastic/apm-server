@@ -43,8 +43,7 @@ var (
 	mutexprofile = flag.String("mutexprofile", "", "Write a mutex contention profile to the file  before exiting.")
 	blockprofile = flag.String("blockprofile", "", "Write a goroutine blocking profile to the file before exiting.")
 
-	warmupEvents      = flag.Uint("warmup-events", 5000, "The number of events that will be used to warm up the APM Server before each benchmark")
-	inactiveThreshold = flag.Uint("inactive-events", 10, "The threshold of active events in the APM Server the benchmark execution waits to be below before benchmarking starts")
+	warmupEvents = flag.Uint("warmup-events", 5000, "The number of events that will be used to warm up the APM Server before each benchmark")
 
 	agentsList []int
 	serverURL  *url.URL
@@ -71,7 +70,7 @@ func parseFlags() error {
 		}
 		n, err := strconv.Atoi(val)
 		if err != nil || n <= 0 {
-			return fmt.Errorf("invalid value %q for -agents\n", val)
+			return fmt.Errorf("invalid value %q for -agents", val)
 		}
 		agentsList = append(agentsList, n)
 	}

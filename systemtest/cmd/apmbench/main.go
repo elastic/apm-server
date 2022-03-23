@@ -21,7 +21,6 @@ import (
 	"context"
 	"log"
 	"testing"
-	"time"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
@@ -91,11 +90,6 @@ func benchmarkAgent(b *testing.B, expr string) {
 			}
 		}
 	})
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-	if err := benchtest.WaitUntilServerInactive(ctx); err != nil {
-		b.Fatal(err)
-	}
 }
 
 func main() {

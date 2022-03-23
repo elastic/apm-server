@@ -22,10 +22,11 @@ import (
 	"bytes"
 	"compress/zlib"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -35,23 +36,37 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type mockTransport struct {
+type mockServer struct {
 	got      *bytes.Buffer
+	close    func()
 	received uint
 }
 
-func (t *mockTransport) SendStream(_ context.Context, r io.Reader) error {
+func (t *mockServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if t.got == nil {
-		return errors.New("buffer not specified")
+		http.Error(w, "buffer not specified", 500)
+		return
+	}
+	if r.Body == nil {
+		http.Error(w, "body is empty", 500)
+		return
 	}
 
-	zreader, err := zlib.NewReader(r)
-	if err != nil {
-		return fmt.Errorf("zlib.NewReader(): %v", err)
+	var reader io.Reader
+	switch r.Header.Get("Content-Encoding") {
+	case "deflate":
+		zreader, err := zlib.NewReader(r.Body)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("zlib.NewReader(): %v", err), 400)
+			return
+		}
+		defer zreader.Close()
+		reader = zreader
+	default:
+		reader = r.Body
 	}
-	defer zreader.Close()
 
-	scanner := bufio.NewScanner(zreader)
+	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		line := scanner.Bytes()
 		isMeta := bytes.HasPrefix(line, metaHeader) ||
@@ -62,16 +77,18 @@ func (t *mockTransport) SendStream(_ context.Context, r io.Reader) error {
 		t.got.Write(line)
 		t.got.Write([]byte("\n"))
 	}
-	return nil
+	w.WriteHeader(http.StatusAccepted)
 }
 
-func newHandler(t *testing.T, dir, expr string) (*Handler, *mockTransport) {
+func newHandler(t *testing.T, dir, expr string) (*Handler, *mockServer) {
 	t.Helper()
-	transp := &mockTransport{got: &bytes.Buffer{}}
-	storage := os.DirFS(dir)
-	h, err := New(expr, transp, storage, 0)
+	ms := &mockServer{got: &bytes.Buffer{}}
+	srv := httptest.NewServer(ms)
+	ms.close = srv.Close
+	transp := NewTransport(srv.Client(), srv.URL, "")
+	h, err := New(expr, transp, os.DirFS(dir), 0)
 	require.NoError(t, err)
-	return h, transp
+	return h, ms
 }
 
 func TestHandlerNew(t *testing.T) {
@@ -101,7 +118,8 @@ func TestHandlerNew(t *testing.T) {
 
 func TestHandlerSendBatches(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		handler, transp := newHandler(t, "testdata", "python.*.ndjson")
+		handler, srv := newHandler(t, "testdata", "python.*.ndjson")
+		t.Cleanup(srv.close)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 		n, err := handler.SendBatches(ctx)
@@ -110,24 +128,25 @@ func TestHandlerSendBatches(t *testing.T) {
 		b, err := ioutil.ReadFile(filepath.Join("testdata", "python-test.ndjson"))
 		assert.NoError(t, err)
 
-		assert.Equal(t, string(b), transp.got.String()) // Ensure the contents match.
-		assert.Equal(t, uint(32), transp.received)
+		assert.Equal(t, string(b), srv.got.String()) // Ensure the contents match.
+		assert.Equal(t, uint(32), srv.received)
 		assert.Equal(t, uint(32), n)             // Ensure there are 32 events (minus metadata).
 		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
 	})
 	t.Run("cancel-before-sendbatches", func(t *testing.T) {
-		handler, transp := newHandler(t, "testdata", "python.*.ndjson")
+		handler, srv := newHandler(t, "testdata", "python.*.ndjson")
+		t.Cleanup(srv.close)
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 		n, err := handler.SendBatches(ctx)
 		assert.Error(t, err)
-		assert.Equal(t, transp.received, uint(0))
+		assert.Equal(t, srv.received, uint(0))
 		assert.Equal(t, n, uint(0))
 	})
-	t.Run("sendstream-returns-error", func(t *testing.T) {
-		storage := os.DirFS("testdata")
-		handler, err := New(`python.*.ndjson`, &mockTransport{}, storage, 0)
-		require.NoError(t, err)
+	t.Run("returns-error", func(t *testing.T) {
+		handler, srv := newHandler(t, "testdata", `python.*.ndjson`)
+		// Close the server prematurely to force an error.
+		srv.close()
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		n, err := handler.SendBatches(ctx)
@@ -138,30 +157,33 @@ func TestHandlerSendBatches(t *testing.T) {
 
 func TestHandlerWarmUp(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		h, transp := newHandler(t, "testdata", "python.*.ndjson")
+		h, srv := newHandler(t, "testdata", "python.*.ndjson")
+		t.Cleanup(srv.close)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 		// Warm up with more events than  saved.
 		warmupEvents := uint(1000)
 		err := h.WarmUpServer(ctx, warmupEvents)
 		assert.NoError(t, err)
-		assert.GreaterOrEqual(t, transp.received, warmupEvents)
+		assert.GreaterOrEqual(t, srv.received, warmupEvents)
 	})
 	t.Run("cancel-before-warmup", func(t *testing.T) {
-		h, transp := newHandler(t, "testdata", "python.*.ndjson")
+		h, srv := newHandler(t, "testdata", "python.*.ndjson")
+		t.Cleanup(srv.close)
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 		err := h.WarmUpServer(ctx, 10)
 		assert.ErrorIs(t, err, context.Canceled)
-		assert.Equal(t, transp.received, uint(0))
+		assert.Equal(t, srv.received, uint(0))
 	})
-	t.Run("cancel-withot-events", func(t *testing.T) {
-		h, transp := newHandler(t, "testdata", "python.*.ndjson")
+	t.Run("cancel-without-events", func(t *testing.T) {
+		h, srv := newHandler(t, "testdata", "python.*.ndjson")
+		t.Cleanup(srv.close)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 		defer cancel()
 		err := h.WarmUpServer(ctx, 100000)
 		assert.ErrorIs(t, err, context.DeadlineExceeded)
-		assert.Greater(t, transp.received, uint(0))
-		assert.Less(t, transp.received, uint(100000))
+		assert.Greater(t, srv.received, uint(0))
+		assert.Less(t, srv.received, uint(100000))
 	})
 }
