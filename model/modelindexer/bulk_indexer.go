@@ -141,7 +141,7 @@ func (b *bulkIndexer) Flush(ctx context.Context) (elasticsearch.BulkIndexerRespo
 		return elasticsearch.BulkIndexerResponse{}, nil
 	}
 	if b.gzipw != nil {
-		if err := b.gzipw.Flush(); err != nil {
+		if err := b.gzipw.Close(); err != nil {
 			return elasticsearch.BulkIndexerResponse{}, err
 		}
 	}
