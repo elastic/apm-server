@@ -34,7 +34,7 @@ apm-server:
     rum:
         allow_headers:
         {{#each rum_allow_headers}}
-          - {{this}}
+          - "{{this}}"
         {{/each}}
         allow_origins:
         {{#each rum_allow_origins}}
