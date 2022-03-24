@@ -52,8 +52,10 @@ func ClientMetadata() grpc.UnaryServerInterceptor {
 				values.UserAgent = ua[0]
 			}
 			// Account for `forwarded`, `x-real-ip`, `x-forwarded-for` headers
-			if ip, _ := netutil.ClientAddrFromHeaders(http.Header(md)); ip != nil {
+			if ip, port := netutil.ClientAddrFromHeaders(http.Header(md)); ip != nil {
+				values.SourceNATIP = values.ClientIP
 				values.ClientIP = ip
+				values.SourceAddr = &net.TCPAddr{IP: ip, Port: int(port)}
 			}
 		}
 		ctx = context.WithValue(ctx, clientMetadataKey{}, values)
@@ -82,9 +84,13 @@ type ClientMetadataValues struct {
 	// ClientIP holds the IP address of the originating gRPC client, if known,
 	// as recorded in Forwarded, X-Forwarded-For, etc.
 	//
-	// For requests without one of the forwarded headers, this will have the
-	// same value as the IP in SourceAddr.
+	// For requests without one of the forwarded headers, this will be
+	// blank.
 	ClientIP net.IP
+
+	// SourceNATIP holds the IP address of the originating gRPC client, if
+	// known.
+	SourceNATIP net.IP
 
 	// UserAgent holds the User-Agent for the gRPC client, if known.
 	UserAgent string

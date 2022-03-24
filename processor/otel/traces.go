@@ -446,7 +446,7 @@ func TranslateTransaction(
 	}
 
 	if event.Client.IP == nil {
-		event.Client = model.Client(event.Source)
+		event.Client = model.Client{IP: event.Source.IP, Port: event.Source.Port, Domain: event.Source.Domain}
 	}
 
 	if samplerType != (pdata.AttributeValue{}) {

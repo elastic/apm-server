@@ -51,7 +51,6 @@ func ApproveEvents(t testing.TB, name string, hits []estest.SearchHit, dynamic .
 		"observer.hostname",
 		"observer.id",
 		"observer.version",
-		"observer.version_major",
 	}, dynamic...)
 
 	// Sort events for repeatable diffs.

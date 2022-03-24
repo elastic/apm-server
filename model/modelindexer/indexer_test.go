@@ -23,6 +23,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"runtime"
@@ -51,39 +52,26 @@ func init() {
 }
 
 func TestModelIndexer(t *testing.T) {
-	var (
-		indexed             int64
-		productOriginHeader string
-	)
+	var productOriginHeader string
 	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
-		scanner := bufio.NewScanner(r.Body)
-		var result elasticsearch.BulkIndexerResponse
-		for scanner.Scan() {
-			action := make(map[string]interface{})
-			if err := json.NewDecoder(strings.NewReader(scanner.Text())).Decode(&action); err != nil {
-				panic(err)
+		_, result := decodeBulkRequest(r.Body)
+		result.HasErrors = true
+		// Respond with an error for the first two items, with one indicating
+		// "too many requests". These will be recorded as failures in indexing
+		// stats.
+		for i := range result.Items {
+			if i >= 2 {
+				break
 			}
-			var actionType string
-			for actionType = range action {
+			status := http.StatusInternalServerError
+			if i == 1 {
+				status = http.StatusTooManyRequests
 			}
-			if !scanner.Scan() {
-				panic("expected source")
+			for action, item := range result.Items[i] {
+				item.Status = status
+				result.Items[i][action] = item
 			}
-
-			item := esutil.BulkIndexerResponseItem{Status: http.StatusCreated}
-			if len(result.Items) < 2 {
-				// Respond with an error for the first two items, with one
-				// indicating "too many requests". These will be recorded
-				// as failures in indexing stats.
-				result.HasErrors = true
-				item.Status = http.StatusInternalServerError
-				if len(result.Items) == 1 {
-					item.Status = http.StatusTooManyRequests
-				}
-			}
-			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: item})
 		}
-		atomic.AddInt64(&indexed, int64(len(result.Items)))
 		productOriginHeader = r.Header.Get("X-Elastic-Product-Origin")
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		json.NewEncoder(w).Encode(result)
@@ -124,31 +112,14 @@ func TestModelIndexer(t *testing.T) {
 func TestModelIndexerEncoding(t *testing.T) {
 	var indexed []map[string]interface{}
 	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
-		scanner := bufio.NewScanner(r.Body)
 		var result elasticsearch.BulkIndexerResponse
-		for scanner.Scan() {
-			action := make(map[string]interface{})
-			if err := json.NewDecoder(strings.NewReader(scanner.Text())).Decode(&action); err != nil {
-				panic(err)
-			}
-			var actionType string
-			for actionType = range action {
-			}
-			if !scanner.Scan() {
-				panic("expected source")
-			}
-
-			var doc map[string]interface{}
-			if err := json.Unmarshal([]byte(scanner.Text()), &doc); err != nil {
-				panic(err)
-			}
-			indexed = append(indexed, doc)
-			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: {}})
-		}
+		indexed, result = decodeBulkRequest(r.Body)
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		json.NewEncoder(w).Encode(result)
 	})
-	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute})
+	indexer, err := modelindexer.New(client, modelindexer.Config{
+		FlushInterval: time.Minute,
+	})
 	require.NoError(t, err)
 	defer indexer.Close(context.Background())
 
@@ -173,6 +144,56 @@ func TestModelIndexerEncoding(t *testing.T) {
 		"data_stream.dataset":   "apm_server",
 		"data_stream.namespace": "testing",
 	}}, indexed)
+}
+
+func TestModelIndexerCompressionLevel(t *testing.T) {
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		body, err := gzip.NewReader(r.Body)
+		require.NoError(t, err)
+		defer func() {
+			err := body.Close()
+			require.NoError(t, err)
+		}()
+		_, result := decodeBulkRequest(body)
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		json.NewEncoder(w).Encode(result)
+	})
+	indexer, err := modelindexer.New(client, modelindexer.Config{
+		CompressionLevel: gzip.BestSpeed,
+		FlushInterval:    time.Minute,
+	})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	batch := model.Batch{{
+		Timestamp: time.Unix(123, 456789111).UTC(),
+		DataStream: model.DataStream{
+			Type:      "logs",
+			Dataset:   "apm_server",
+			Namespace: "testing",
+		},
+	}}
+	err = indexer.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+
+	// Closing the indexer flushes enqueued events.
+	err = indexer.Close(context.Background())
+	require.NoError(t, err)
+	stats := indexer.Stats()
+	// BUG(axw) stats.BytesTotal is incorrect when using compression,
+	// as we count the internal buffer size before flushing/closing
+	// the gzip writer. For consistency with libbeat, we may want to
+	// count the size of bytes written on the wire; but I think we
+	// have some flexibility here.
+	stats.BytesTotal = 0
+	assert.Equal(t, modelindexer.Stats{
+		Added:           1,
+		Active:          0,
+		BulkRequests:    1,
+		Failed:          0,
+		Indexed:         1,
+		TooManyRequests: 0,
+	}, stats)
 }
 
 func TestModelIndexerFlushInterval(t *testing.T) {
@@ -479,21 +500,7 @@ func testModelIndexerTracing(t *testing.T, statusCode int, expectedOutcome strin
 	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		w.WriteHeader(statusCode)
-		scanner := bufio.NewScanner(r.Body)
-		result := elasticsearch.BulkIndexerResponse{HasErrors: true}
-		for i := 0; scanner.Scan(); i++ {
-			action := make(map[string]interface{})
-			if err := json.NewDecoder(strings.NewReader(scanner.Text())).Decode(&action); err != nil {
-				panic(err)
-			}
-			var actionType string
-			for actionType = range action {
-			}
-			if !scanner.Scan() {
-				panic("expected source")
-			}
-			result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: {}})
-		}
+		_, result := decodeBulkRequest(r.Body)
 		json.NewEncoder(w).Encode(result)
 	})
 
@@ -539,6 +546,34 @@ func testModelIndexerTracing(t *testing.T, statusCode int, expectedOutcome strin
 		assert.Equal(t, fmt.Sprintf("%x", payloads.Transactions[0].ID), fields["transaction.id"])
 		assert.Equal(t, fmt.Sprintf("%x", payloads.Transactions[0].TraceID), fields["trace.id"])
 	}
+}
+
+func decodeBulkRequest(body io.Reader) ([]map[string]interface{}, elasticsearch.BulkIndexerResponse) {
+	scanner := bufio.NewScanner(body)
+	var indexed []map[string]interface{}
+	var result elasticsearch.BulkIndexerResponse
+	for scanner.Scan() {
+		action := make(map[string]interface{})
+		if err := json.NewDecoder(strings.NewReader(scanner.Text())).Decode(&action); err != nil {
+			panic(err)
+		}
+		var actionType string
+		for actionType = range action {
+		}
+		if !scanner.Scan() {
+			panic("expected source")
+		}
+
+		var doc map[string]interface{}
+		if err := json.Unmarshal([]byte(scanner.Text()), &doc); err != nil {
+			panic(err)
+		}
+		indexed = append(indexed, doc)
+
+		item := esutil.BulkIndexerResponseItem{Status: http.StatusCreated}
+		result.Items = append(result.Items, map[string]esutil.BulkIndexerResponseItem{actionType: item})
+	}
+	return indexed, result
 }
 
 func BenchmarkModelIndexer(b *testing.B) {
@@ -635,11 +670,10 @@ func newMockElasticsearchClientConfig(
 	t testing.TB, bulkHandler http.HandlerFunc,
 ) *elasticsearch.Config {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
+		bulkHandler.ServeHTTP(w, r)
 	})
-	mux.Handle("/_bulk", bulkHandler)
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
 
