@@ -32,6 +32,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/dev-tools/mage"
+	"github.com/elastic/beats/v7/dev-tools/mage/target/build"
 
 	"github.com/elastic/apm-server/beater/config"
 )
@@ -65,6 +66,15 @@ func Build() error {
 // Do not use directly, use crossBuild instead.
 func GolangCrossBuild() error {
 	return mage.GolangCrossBuild(mage.DefaultGolangCrossBuildArgs())
+}
+
+// AssembleDarwinUniversal merges the darwin/amd64 and darwin/arm64 into a single
+// universal binary using `lipo`. It assumes the darwin/amd64 and darwin/arm64
+// were built and only performs the merge.
+//
+// This is used by crossbuild.
+func AssembleDarwinUniversal() error {
+	return build.AssembleDarwinUniversal()
 }
 
 // Clean cleans all generated files and build artifacts.
