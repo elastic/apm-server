@@ -20,6 +20,7 @@ package modelprocessor_test
 import (
 	"context"
 	"math/rand"
+	"os"
 	"testing"
 
 	"github.com/elastic/apm-server/model"
@@ -209,11 +210,17 @@ func TestServiceLimit(t *testing.T) {
 		batch[i] = model.APMEvent{Service: service}
 	}
 
+	originalBufSize := os.Getenv("ELASTIC_APM_METRICS_BUFFER_SIZE")
+	defer func() {
+		os.Setenv("ELASTIC_APM_METRICS_BUFFER_SIZE", originalBufSize)
+	}()
+	os.Setenv("ELASTIC_APM_METRICS_BUFFER_SIZE", "10MB")
+
 	err := counter.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
 
 	metrics := gatherMetrics(counter)[1:]
-	assert.Less(t, len(metrics), 10000)
+	assert.Equal(t, len(metrics), 10000)
 }
 
 func genServiceName() string {
