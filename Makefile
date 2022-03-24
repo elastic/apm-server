@@ -21,6 +21,8 @@ REVIEWDOG=$(GOOSBUILD)/reviewdog
 STATICCHECK=$(GOOSBUILD)/staticcheck
 ELASTICPACKAGE=$(GOOSBUILD)/elastic-package
 
+APM_SERVER_VERSION=$(shell grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '" ')
+
 PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
 PYTHON=$(PYTHON_BIN)/python
@@ -146,7 +148,7 @@ endif
 ## get-version : Get the apm server version
 .PHONY: get-version
 get-version:
-	@grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '" '
+	@echo $(APM_SERVER_VERSION)
 
 ##############################################################################
 # Documentation.
