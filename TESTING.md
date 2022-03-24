@@ -52,6 +52,9 @@ setup is non trivial and has been automated in `testing/stack-monitoring.sh`. Th
 stack components, modify the necessary files and once finished, you'll be able to test or ensure that Stack Monitoring
 is working as expected.
 
+Note that the `testing/stack-monitoring.sh` script relies on `systemtest/cmd/runapm`, and will use a locally built
+version of APM Server (see more information below).
+
 ### Injecting an APM Server binary into Elastic Agent
 
 Since APM Server is now run by the Elastic Agent in managed mode, only testing the APM Server in Standalone mode will
@@ -59,23 +62,25 @@ not completely test the supported and recommended APM Server setup. To reuse the
 ease testing, you can inject an `apm-server` binary in the Elastic Agent container so a locally built version can be
 tested while making changes to the APM Server or before a release is published.
 
-To do so, you can build the binary locally and copy the apm-server binary to the folder that is bindmounted in the
-Elastic Agent docker container:
+To do so, you can leverage the existing `systemtest/cmd/runpm` program which creates an Elastic Agent container, the
+required fleet policies, and exposes the APM Server port using a random binding.
 
 ```console
-$ GOOS=linux make
-$ cp apm-server testing/docker/fleet-server
+$ cd systemtest/cmd/runapm
+$ go run main.go -h
+Usage of /var/folders/35/r4w8sbqj2md1sg944kpnzyth0000gn/T/go-build3644709196/b001/exe/main:
+  -d    If true, runapm will exit after the agent container has been started
+  -f    Force agent policy creation, deleting existing policy if found
+  -keep
+        If true, agent policy and agent will not be destroyed on exit
+  -name string
+        Docker container name to use, defaults to random
+  -namespace string
+        Agent policy namespace (default "default")
+  -policy string
+        Agent policy name (default "runapm")
+  -reinstall
+        Reinstall APM integration package (default true)
+  -var value
+        Define a package var (k=v), with values being YAML-encoded; can be specified more than once
 ```
-
-The workflow that needs to be followed is:
-
-1. Build the APM Server and copy it to the expected folder (As shown above).
-2. `docker-compose up -d`.
-3. Once everything is up and running, make sure the APM Integration is installed and assigned to the Fleet Policy.
-4. Restart the `fleet-server` container: `docker-compose restart fleet-server`.
-
-We need to restart the Elastic Agent container after the APM Server as extracted by the Elastic Agaent has been run
-at least once, since we rely on the paths to be created, otherwise, the binary will be overwritten by Elastic Agent.
-
-Alternatively, run `testing/stack-monitoring.sh`. The script follows a similar workflow and install the APM Integration
-by default, so you don't have to worry about the details.

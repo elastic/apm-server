@@ -42,3 +42,4 @@ version.asciidoc.bck
 .imported-java-agent-pubkey
 /agent
 go.work
+testing/docker/metricbeat/apm-server.yml

@@ -61,7 +61,6 @@ services:
 
   fleet-server:
     image: docker.elastic.co/beats/elastic-agent:8.2.0-a12f7069-SNAPSHOT
-    entrypoint: /fleet-server/entrypoint.sh
     ports:
       - 8220:8220
     healthcheck:
@@ -87,7 +86,6 @@ services:
     volumes:
       - "./testing/docker/fleet-server/certificate.pem:/etc/pki/tls/certs/fleet-server.pem"
       - "./testing/docker/fleet-server/key.pem:/etc/pki/tls/private/fleet-server-key.pem"
-      - "./testing/docker/fleet-server/:/fleet-server/"
 
   package-registry:
     image: docker.elastic.co/package-registry/distribution:snapshot
