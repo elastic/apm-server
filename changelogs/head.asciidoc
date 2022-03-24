@@ -13,12 +13,17 @@ See <<apm-server-configuration>> for more information.
 
 [float]
 ==== Bug fixes
+<<<<<<< HEAD
 - Fix infinite loop in tail-based sampling subscriber causing high CPU and repeated Elasticsearch searches {pull}7211[7211]
 - Do not overwrite `service version` if no transaction/error/... specific `service.name` is givven {pull}7281[7281]
 - Fix panic when processing OpenTelemetry histogram metrics without bounds {pull}7316[7316]
 - Fix mixing of labels across OpenTelemetry log records {pull}7358[7358]
 - Fix waiting for events to be flushed when shutting down APM Server {pull}7352[7352]
 - Fix missing stack monitoring metrics {pull}7428[7428]
+=======
+- Do not overwrite `service version` if no transaction/error/... specific `service.name` is given {pull}7281[7281]
+- modelindexer: Fix indexing performance regression due to locking bug {pull}7649[7649]
+>>>>>>> b951097a (modelindexer: Reduce locking on flushActive (#7649))
 
 [float]
 ==== Intake API Changes
