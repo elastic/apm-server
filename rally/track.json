@@ -1,132 +1,39 @@
-{% if index_count is not defined %}
-{% set index_count=1 %}
-{% endif %}
-
-{% import "rally.helpers" as rally with context %}
 {
   "version": 2,
-  "description": "APM benchmark for Rally",
-  "indices": [
-    {
-      "name": "apm-error",
-      "body": "index.json",
-      "types": [ "type" ]
-    },
-    {
-      "name": "apm-transaction",
-      "body": "index.json",
-      "types": [ "type" ]
-    },
-    {
-      "name": "apm-span",
-      "body": "index.json",
-      "types": [ "type" ]
-    },
-    {
-      "name": "apm-transaction-tags",
-      "body": "index.json",
-      "types": [ "type" ]
-    },
-    {
-      "name": "apm-span-tags",
-      "body": "index.json",
-      "types": [ "type" ]
-    },
-    {% set comma = joiner() %}
-    {% for item in range(index_count) %}
-    {{ comma() }}
-    {
-      "name": "apm-error-{{item}}",
-      "body": "index.json",
-      "types": [ "type" ]
-    },
-    {
-      "name": "apm-transaction-{{item}}",
-      "body": "index.json",
-      "types": [ "type" ]
-    },
-    {
-      "name": "apm-span-{{item}}",
-      "body": "index.json",
-      "types": [ "type" ]
-    }
-    {% endfor %}
+  "description": "Elastic APM benchmark for Rally",
+  "data-streams": [
+    {"name": "traces-apm*"},
+    {"name": "metrics-apm*"},
+    {"name": "logs-apm*"}
   ],
   "corpora": [
+    {"name": "apm-events", "documents": [{% include "corpora/http_and_sql.json" %}]}
+  ],
+  "schedule": [
     {
-      "name": "apm-events",
-      "target-type": "type",
-      "base-url": "http://benchmarks.elasticsearch.org.s3.amazonaws.com/corpora/apm",
-      "documents": [
-        {
-          "target-index": "apm-error",
-          "source-file": "error.json.bz2",
-          "document-count": 182500,
-          "compressed-bytes": 159931147,
-          "uncompressed-bytes": 3919105320 
-        },
-        {
-          "target-index": "apm-transaction",
-          "source-file": "transaction.json.bz2",
-          "document-count": 766996,
-          "compressed-bytes": 52249328,
-          "uncompressed-bytes": 1137180428
-        },
-        {
-          "target-index": "apm-span",
-          "source-file": "span.json.bz2",
-          "document-count": 1457292,
-          "compressed-bytes": 250706365,
-          "uncompressed-bytes": 13361279823
-        }
-      ]
+      "operation": {
+        "operation-type": "delete-data-stream",
+	"data-stream": [
+          "traces-apm*",
+          "metrics-apm*",
+          "logs-apm*"
+	]
+      }
     },
     {
-      "name": "apm-events-with-tags",
-      "target-type": "type",
-      "documents": [
-        {
-          "target-index": "apm-transaction-tags",
-          "source-file": "corpora/transaction-tags.json",
-          "document-count": 383498
+      "operation": {
+        "operation-type": "cluster-health",
+        "request-params": {
+          "wait_for_status": "green"
         },
-        {
-          "target-index": "apm-span-tags",
-          "source-file": "corpora/span-tags.json",
-          "document-count": 485764
-        }
-      ]
+        "retry-until-success": true
+      }
     },
-    {% set comma = joiner() %}
-    {% for item in range(index_count) %}
-    {{ comma() }}
     {
-      "name": "apm-events-{{item}}",
-      "target-type": "type",
-      "documents": [
-        {
-          "target-index": "apm-error-{{item}}",
-          "source-file": "corpora/error-{{item}}.json",
-          "document-count": 18250
-        },
-        {
-          "target-index": "apm-transaction-{{item}}",
-          "source-file": "corpora/transaction-{{item}}.json",
-          "document-count": 383498
-        },
-        {
-          "target-index": "apm-span-{{item}}",
-          "source-file": "corpora/span-{{item}}.json",
-          "document-count": 485764
-        }
-      ]
+      "operation": {
+        "operation-type": "bulk",
+        "bulk-size": 5000
+      }
     }
-    {% endfor %}
-  ],
-  "operations": [
-    {{ rally.collect(parts="operations/*.json") }}
-  ],
-  "challenges": [
-    {{ rally.collect(parts="challenges/*.json") }}
   ]
 }
