@@ -13,6 +13,7 @@ https://github.com/elastic/apm-server/compare/8.1\...main[View commits]
 [float]
 ==== Bug fixes
 - Do not overwrite `service version` if no transaction/error/... specific `service.name` is given {pull}7281[7281]
+- modelindexer: Fix indexing performance regression due to locking bug {pull}7649[7649]
 
 [float]
 ==== Intake API Changes
