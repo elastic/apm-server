@@ -13,6 +13,7 @@ pipeline {
     SNAPSHOT = "true"
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
+    DIGESTED_MESSAGE = ''
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -140,6 +141,14 @@ pipeline {
               }
             }
           }
+          post {
+            failure {
+              dir("${BASE_DIR}") {
+                sh(label: 'release-manager-report.sh', script: '.ci/scripts/release-manager-report.sh')
+                setEnvVar('DIGESTED_MESSAGE', "${readFile(file: 'release-manager-report.out')}")
+              }
+            }
+          }
         }
       }
     }
@@ -149,7 +158,7 @@ pipeline {
       notifyBuildResult(prComment: false)
     }
     failure {
-      notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
+      notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>) \n${env.DIGESTED_MESSAGE}")
     }
   }
 }

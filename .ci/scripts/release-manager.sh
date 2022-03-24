@@ -52,4 +52,4 @@ docker run --rm \
       --commit "$(git rev-parse HEAD)" \
       --workflow "snapshot" \
       --artifact-set main \
-      --version "${VERSION}"
+      --version "${VERSION}" | tee release-manager-report.out
