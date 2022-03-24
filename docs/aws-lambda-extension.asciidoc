@@ -1,4 +1,4 @@
 // Pulls the AWS Lambda extension docs from here:
 // https://github.com/elastic/apm-aws-lambda/blob/main/docs/aws-lambda-extension.asciidoc
 
-include::{apm-aws-repo-dir}/aws-lambda-extension.asciidoc[]
+include::{apm-aws-repo-dir}/monitoring-aws-lambda.asciidoc[]
