@@ -119,7 +119,8 @@ func Main() error {
 	if err := systemtest.Fleet.CreatePackagePolicy(packagePolicy); err != nil {
 		return err
 	}
-	if !keep || background {
+	reap := !keep || !background
+	if reap {
 		defer func() {
 			log.Println("Destroying agent policy")
 			if err := systemtest.DestroyAgentPolicy(agentPolicy.ID); err != nil {
@@ -137,7 +138,7 @@ func Main() error {
 	}
 	agent.Reap = !keep
 	agent.FleetEnrollmentToken = key.APIKey
-	if !keep || background {
+	if reap {
 		defer func() {
 			log.Println("Terminating agent")
 			agent.Close()

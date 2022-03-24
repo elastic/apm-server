@@ -100,7 +100,7 @@ services:
       - "./build/integrations/apm:/packages/local/apm"
 
   metricbeat:
-    image: docker.elastic.co/beats/metricbeat:8.2.0-a12f7069-SNAPSHOT
+    image: docker.elastic.co/beats/metricbeat:8.2.0-4509f321-SNAPSHOT
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
       ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-admin}"
