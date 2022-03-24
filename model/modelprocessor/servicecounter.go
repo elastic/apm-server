@@ -34,7 +34,7 @@ const serviceLimit = 10000
 // partitioned by service.name and service.version.
 type ServiceCounter struct {
 	mu       sync.RWMutex
-	services map[string]service
+	services map[serviceKey]*service
 }
 
 // service represents per-service name metrics for processed events.
@@ -43,55 +43,61 @@ type service struct {
 	labels []apm.MetricLabel
 }
 
+type serviceKey struct {
+	name, version string
+}
+
 // NewServiceCounter returns an ServiceCounter that counts events processed,
 // paritioned by service.name and service.version.
 func NewServiceCounter() *ServiceCounter {
 	return &ServiceCounter{
-		services: make(map[string]service),
+		services: make(map[serviceKey]*service),
 	}
 }
 
 // GatherMetrics implements the MetricsGatherer interface.
 func (c *ServiceCounter) GatherMetrics(ctx context.Context, m *apm.Metrics) error {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	for _, s := range c.services {
 		// TODO: Metric name?
 		m.Add("processed_events", s.labels, float64(s.val))
 	}
 	// Re-set c.services, since we're only reporting the deltas for a
 	// service within a collection period.
-	c.services = make(map[string]service)
+	c.services = make(map[serviceKey]*service)
 	return nil
 }
+
+var unknownServiceKey = serviceKey{"unknown", "unknown"}
 
 // ProcessBatch counts events in b, grouping by APMEvent.Service.{Name,Version}.
 func (c *ServiceCounter) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	for _, event := range *b {
-		if serviceName := event.Service.Name + event.Service.Version; serviceName != "" {
-			c.mu.RLock()
-			s, ok := c.services[serviceName]
-			limit := len(c.services) >= serviceLimit
-			c.mu.RUnlock()
-			if !ok {
-				if limit {
-					// We've hit the service limit.
-					// Continue processing in case we have
-					// services that are already recorded
-					// in c.services.
-					continue
-				}
-				labels := []apm.MetricLabel{
-					{Name: "service.name", Value: event.Service.Name},
-					{Name: "service.version", Value: event.Service.Version},
-				}
-				s = service{val: 0, labels: labels}
-			}
-			atomic.AddInt64(&s.val, 1)
+		key := serviceKey{name: event.Service.Name, version: event.Service.Version}
+		c.mu.RLock()
+		s, ok := c.services[key]
+		limit := len(c.services) >= serviceLimit
+		c.mu.RUnlock()
+		if !ok {
 			c.mu.Lock()
-			c.services[serviceName] = s
+			if limit {
+				// We've hit the service limit, increment the
+				// "unknown" bucket.
+				key = unknownServiceKey
+			}
+			s, ok = c.services[key]
+			if !ok {
+				labels := []apm.MetricLabel{
+					{Name: "service.name", Value: key.name},
+					{Name: "service.version", Value: key.version},
+				}
+				s = &service{val: 0, labels: labels}
+				c.services[key] = s
+			}
 			c.mu.Unlock()
 		}
+		atomic.AddInt64(&s.val, 1)
 	}
 	return nil
 }

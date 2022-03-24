@@ -19,7 +19,7 @@ package modelprocessor_test
 
 import (
 	"context"
-	"math/rand"
+	"fmt"
 	"os"
 	"testing"
 
@@ -206,7 +206,7 @@ func TestServiceLimit(t *testing.T) {
 	counter := modelprocessor.NewServiceCounter()
 	batch := make(model.Batch, 20000)
 	for i := range batch {
-		service := model.Service{Name: genServiceName()}
+		service := model.Service{Name: fmt.Sprintf("service%d", i)}
 		batch[i] = model.APMEvent{Service: service}
 	}
 
@@ -220,17 +220,9 @@ func TestServiceLimit(t *testing.T) {
 	require.NoError(t, err)
 
 	metrics := gatherMetrics(counter)[1:]
-	assert.Equal(t, len(metrics), 10000)
-}
-
-func genServiceName() string {
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-
-	s := make([]rune, 12)
-	for i := range s {
-		s[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(s)
+	// Limit is 10000 named services, and the "unknown" service for
+	// overflow.
+	assert.Equal(t, len(metrics), 10001)
 }
 
 func gatherMetrics(g apm.MetricsGatherer) []agent.Metrics {
