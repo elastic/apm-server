@@ -316,9 +316,9 @@ func (i *Indexer) flushActive(ctx context.Context) error {
 	}()
 
 	i.activeMu.Lock()
-	defer i.activeMu.Unlock()
 	bulkIndexer := i.active
 	i.active = nil
+	i.activeMu.Unlock()
 	err := i.flush(ctx, bulkIndexer)
 	bulkIndexer.Reset()
 	i.available <- bulkIndexer
