@@ -53,6 +53,7 @@ func init() {
 	mage.XPackDir = "x-pack"
 	mage.BeatUser = "apm-server"
 	mage.CrossBuildMountModcache = true
+	mage.VirtualenvReqs = []string{filepath.Join(repo.RootDir, "script", "requirements.txt")}
 }
 
 // Build builds the Beat binary.
