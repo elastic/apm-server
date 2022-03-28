@@ -133,7 +133,7 @@ def releaseManager(def args = [:]) {
   googleStorageDownload(bucketUri: "${bucketLocation}/*",
                         credentialsId: "${JOB_GCS_CREDENTIALS}",
                         localDirectory: "${BASE_DIR}/build/distributions",
-                        pathPrefix: env.PATH_PREFIX)
+                        pathPrefix: "${env.PATH_PREFIX}/${args.type}")
   dir("${BASE_DIR}") {
     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
     script {
