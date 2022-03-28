@@ -10,7 +10,6 @@ pipeline {
     NOTIFY_TO = 'build-apm+apm-server@elastic.co'
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
-    SNAPSHOT = "true"
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
   }
@@ -79,6 +78,10 @@ pipeline {
                 name 'PLATFORM'
                 values 'linux && immutable', 'arm'
               }
+              axis {
+                name 'TYPE'
+                values 'snapshot', 'staging'
+              }
             }
             stages {
               stage('Package') {
@@ -87,53 +90,18 @@ pipeline {
                   PACKAGES = "${isArm() ? 'docker' : ''}"
                 }
                 steps {
-                  deleteDir()
-                  unstash 'source'
-                  dir("${BASE_DIR}"){
-                    withMageEnv() {
-                      sh(label: 'make release-manager-snapshot', script: 'make release-manager-snapshot')
-                    }
-                  }
+                  package(type: env.TYPE)
                 }
               }
               stage('Publish') {
                 steps {
-                  // Copy those files to another location with the sha commit to test them afterward.
-                  googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}",
-                    credentialsId: "${JOB_GCS_CREDENTIALS}",
-                    pathPrefix: "${BASE_DIR}/build/distributions/",
-                    pattern: "${BASE_DIR}/build/distributions/**/*",
-                    sharedPublicly: true,
-                    showInline: true)
-                  // Copy the dependencies files if no ARM
-                  whenFalse(isArm()) {
-                    googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}",
-                      credentialsId: "${JOB_GCS_CREDENTIALS}",
-                      pathPrefix: "${BASE_DIR}/build/",
-                      pattern: "${BASE_DIR}/build/dependencies.csv",
-                      sharedPublicly: true,
-                      showInline: true)
-                  }
+                  publishArtifacts(type: env.TYPE)
                 }
               }
             }
           }
         }
-        stage('DRA combine') {
-          // The Unified Release process keeps moving branches as soon as a new
-          // minor version is created, therefore old release branches won't be able
-          // to use the release manager as their definition is removed.
-          when {
-            expression { return env.IS_BRANCH_AVAILABLE == "true" }
-          }
-          steps {
-            googleStorageDownload(bucketUri: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}/*",
-                                  credentialsId: "${JOB_GCS_CREDENTIALS}",
-                                  localDirectory: "${BASE_DIR}/build/distributions",
-                                  pathPrefix: env.PATH_PREFIX)
-          }
-        }
-        stage('DRA-snapshot') {
+        stage('DRA') {
           // The Unified Release process keeps moving branches as soon as a new
           // minor version is created, therefore old release branches won't be able
           // to use the release manager as their definition is removed.
@@ -142,20 +110,9 @@ pipeline {
           }
           steps {
             releaseManager(type: 'snapshot')
-          }
-        }
-        stage('DRA-staging') {
-          // The Unified Release process keeps moving branches as soon as a new
-          // minor version is created, therefore old release branches won't be able
-          // to use the release manager as their definition is removed.
-          when {
-            expression { return env.IS_BRANCH_AVAILABLE == "true" }
-          }
-          when {
-            not { branch 'main' }
-          }
-          steps {
-            releaseManager(type: 'staging')
+            whenFalse(env.BRANCH_NAME.equals('main')) {
+              releaseManager(type: 'staging')
+            }
           }
         }
       }
@@ -172,6 +129,11 @@ pipeline {
 }
 
 def releaseManager(def args = [:]) {
+  def bucketLocation = getBucketLocation(args.type)
+  googleStorageDownload(bucketUri: "${bucketLocation}/*",
+                        credentialsId: "${JOB_GCS_CREDENTIALS}",
+                        localDirectory: "${BASE_DIR}/build/distributions",
+                        pathPrefix: env.PATH_PREFIX)
   dir("${BASE_DIR}") {
     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
     script {
@@ -180,6 +142,45 @@ def releaseManager(def args = [:]) {
       }
     }
   }
+}
+
+def package(def args = [:]) {
+  def type = args.type
+  def makeGoal = 'release-manager-snapshot'
+  if (type.equals('staging')) {
+    makeGoal = 'release-manager-release'
+  }
+  deleteDir()
+  unstash 'source'
+  dir("${BASE_DIR}"){
+    withMageEnv() {
+      sh(label: 'make release-manager', script: "make ${makeGoal}")
+    }
+  }
+}
+
+def publishArtifacts(def args = [:]) {
+  def bucketLocation = getBucketLocation(args.type)
+  // Copy those files to another location with the sha commit to test them afterward.
+  googleStorageUpload(bucket: "${bucketLocation}",
+    credentialsId: "${JOB_GCS_CREDENTIALS}",
+    pathPrefix: "${BASE_DIR}/build/distributions/",
+    pattern: "${BASE_DIR}/build/distributions/**/*",
+    sharedPublicly: true,
+    showInline: true)
+  // Copy the dependencies files if no ARM
+  whenFalse(isArm()) {
+    googleStorageUpload(bucket: "${bucketLocation}",
+      credentialsId: "${JOB_GCS_CREDENTIALS}",
+      pathPrefix: "${BASE_DIR}/build/",
+      pattern: "${BASE_DIR}/build/dependencies.csv",
+      sharedPublicly: true,
+      showInline: true)
+  }
+}
+
+def getBucketLocation(type) {
+  return "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}/${type}"
 }
 
 def notifyStatus(def args = [:]) {
