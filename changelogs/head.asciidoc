@@ -11,6 +11,10 @@ https://github.com/elastic/apm-server/compare/8.1\...main[View commits]
 - When gzip compressing Elasticsearch bulk requests, set the end of stream marker {pull}7624[7624]
 
 [float]
+==== Deprecations
+- Deprecation of APM Server support for 32-bit architecture {pull}7678[7678]
+
+[float]
 ==== Bug fixes
 - Do not overwrite `service version` if no transaction/error/... specific `service.name` is given {pull}7281[7281]
 - modelindexer: Fix indexing performance regression due to locking bug {pull}7649[7649]
