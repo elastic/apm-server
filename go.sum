@@ -1034,6 +1034,7 @@ github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 h1:EGx4pi6eqNxGa
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75 h1:f0n1xnMSmBLzVfsMMvriDyA75NB/oBgILX2GcHXIQzY=
 github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75/go.mod h1:g2644b03hfBX9Ov0ZBDgXXens4rxSxmqFBbhvKv2yVA=
+github.com/gorilla/context v1.1.1 h1:AWwleXJkX/nhcU9bZSnZoi3h/qGYqQAGhq6zZe/aQW8=
 github.com/gorilla/context v1.1.1/go.mod h1:kBGZzfjB9CEq2AlWe17Uuf7NDRt0dE0s8S51q0aT7Yg=
 github.com/gorilla/handlers v1.5.1 h1:9lRY6j8DEeeBT10CvO9hGW0gmky0BprnvDI5vfhUHH4=
 github.com/gorilla/handlers v1.5.1/go.mod h1:t8XrUpc4KVXb7HGyJ4/cEnwQiaxrX/hz1Zv/4g96P1Q=
@@ -1971,6 +1972,8 @@ go.elastic.co/apm v1.15.0/go.mod h1:dylGv2HKR0tiCV+wliJz1KHtDyuD8SPe69oV7VyK6WY=
 go.elastic.co/apm/module/apmelasticsearch v1.7.2/go.mod h1:ZyNFuyWdt42GBZkz0SogoLzDBrBGj4orxpiUuxYeYq8=
 go.elastic.co/apm/module/apmelasticsearch v1.15.0 h1:c5/qg+9AYe1QCGhu7FGqoydY9NNkNzc+iRpJJXRK/WE=
 go.elastic.co/apm/module/apmelasticsearch v1.15.0/go.mod h1:TO6L5GJoJNavqJfksrUnnEG485VNQvZRpsmrwJW9LN8=
+go.elastic.co/apm/module/apmgorilla v1.15.0 h1:1yTAksffgaFXYEIwlLRiQnxLfy3p3RtpDw8HDupIJfY=
+go.elastic.co/apm/module/apmgorilla v1.15.0/go.mod h1:+23mZudYvZ9VgxCQjseLo9EF5gkKEr0KSQBupw+rzP8=
 go.elastic.co/apm/module/apmgrpc v1.15.0 h1:Z7h58uuMJUoYXK6INFunlcGEXZQ18QKAhPh6NFYDNHE=
 go.elastic.co/apm/module/apmgrpc v1.15.0/go.mod h1:IEbTGJzY5Xx737PkHDT3bbzh9syovK+IfAlckJsUgPE=
 go.elastic.co/apm/module/apmhttp v1.7.2/go.mod h1:sTFWiWejnhSdZv6+dMgxGec2Nxe/ZKfHfz/xtRM+cRY=
