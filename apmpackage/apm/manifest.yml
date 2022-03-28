@@ -79,7 +79,7 @@ policy_templates:
           - name: rum_allow_origins
             type: text
             multi: true
-            default: ['*']
+            default: ['"*"']
           - name: rum_allow_headers
             type: text
             multi: true
