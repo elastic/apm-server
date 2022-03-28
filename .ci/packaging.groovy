@@ -69,6 +69,9 @@ pipeline {
         }
         stage('Package') {
           options { skipDefaultCheckout() }
+          when {
+            expression { return false }
+          }
           matrix {
             agent {
               label "${PLATFORM}"
