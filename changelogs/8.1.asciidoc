@@ -13,6 +13,9 @@ https://github.com/elastic/apm-server/compare/8.0\...8.1[View commits]
 
 https://github.com/elastic/apm-server/compare/8.1.1\...8.1.2[View commits]
 
+This release includes two APM Server bug fixes.
+Users running APM Server version 8.0.0 and above should upgrade immediately.
+
 [float]
 ==== Breaking changes
 - When gzip compressing Elasticsearch bulk requests, set the end of stream marker {pull}7624[7624]
@@ -20,6 +23,7 @@ https://github.com/elastic/apm-server/compare/8.1.1\...8.1.2[View commits]
 [float]
 ==== Bug fixes
 - Fix setting a timestamp on RUM data when capturing personal data is disabled {pull}7567[7567]
+- modelindexer: Fix indexing performance regression due to locking bug {pull}7649[7649]
 
 [float]
 [[release-notes-8.1.1]]
