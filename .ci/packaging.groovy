@@ -6,8 +6,8 @@ pipeline {
   environment {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
-    SLACK_CHANNEL = '#apm-server'
-    NOTIFY_TO = 'build-apm+apm-server@elastic.co'
+    SLACK_CHANNEL = 'UJ2J1AZV2'
+    NOTIFY_TO = 'build-apm+victor.martinez@elastic.co'
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
@@ -64,7 +64,7 @@ pipeline {
             setEnvVar('URI_SUFFIX', "commits/${env.GIT_BASE_COMMIT}")
             // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
             setEnvVar('PATH_PREFIX', "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}")
-            setEnvVar('IS_BRANCH_AVAILABLE', isBranchUnifiedReleaseAvailable(env.BRANCH_NAME))
+            setEnvVar('IS_BRANCH_AVAILABLE', isBranchUnifiedReleaseAvailable('main'))
           }
         }
         stage('Package') {
