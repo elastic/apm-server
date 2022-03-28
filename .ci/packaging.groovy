@@ -118,6 +118,11 @@ pipeline {
               }
             }
           }
+          post {
+            failure {
+              notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}@${env.BRANCH_NAME}] package failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
+            }
+          }
         }
         stage('DRA') {
           // The Unified Release process keeps moving branches as soon as a new
@@ -125,6 +130,9 @@ pipeline {
           // to use the release manager as their definition is removed.
           when {
             expression { return env.IS_BRANCH_AVAILABLE == "true" }
+          }
+          environment {
+            DRA_OUTPUT = 'release-manager-report.out'
           }
           steps {
             googleStorageDownload(bucketUri: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}/*",
@@ -135,9 +143,15 @@ pipeline {
               dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
               script {
                 getVaultSecret.readSecretWrapper {
-                  sh(label: 'release-manager.sh', script: '.ci/scripts/release-manager.sh')
+                  sh(label: 'release-manager.sh', script: ".ci/scripts/release-manager.sh | tee ${env.DRA_OUTPUT}")
                 }
               }
+            }
+          }
+          post {
+            failure {
+              releaseManagerAnalyser(file: "${BASE_DIR}/${env.DRA_OUTPUT}")
+              notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)\n${env.DIGESTED_MESSAGE}")
             }
           }
         }
@@ -147,9 +161,6 @@ pipeline {
   post {
     cleanup {
       notifyBuildResult(prComment: false)
-    }
-    failure {
-      notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
     }
   }
 }
