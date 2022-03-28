@@ -38,7 +38,7 @@ apm-server:
         {{/each}}
         allow_origins:
         {{#each rum_allow_origins}}
-          - {{this}}
+          - "{{this}}"
         {{/each}}
         enabled: {{enable_rum}}
         exclude_from_grouping: {{rum_exclude_from_grouping}}
