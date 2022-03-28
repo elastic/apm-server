@@ -43,26 +43,24 @@ should "Squash and merge".
 
 ### Backports
 
-Before or during review,
-a committer will tag the pull request with the target version(s).
-Once a version is released,
-new features are frozen for that minor version and will not be backported.
-For example,
-if 7.10 was just released,
-the soonest a new feature will be released is 7.11,
-not 7.10.1.
+Before or during review, a committer will label the pull request with `backport-<branch>` for the
+prior release branches to which the changes should be backported. For example, say the next minor
+release is 8.2, and a bug fix is implemented which should be backported to 8.1.next. The pull request
+should be developed against main, with the `backport-8.1` label applied. Once the pull request is merged,
+it will be automatically backported to the 8.1 branch.
+
+Once a version is released, new features are frozen for that minor version and will not be backported.
+For example, if 7.10 was just released, the soonest a new feature will be released is 7.11, not 7.10.1.
+
 Breaking changes may need to wait until the next major version.
 See [semver](https://semver.org/) for general information about major/minor versions.
-Bug fixes may be backported on a case by case basis.
-The committer of the original pull request,
-typically the author,
-is responsible for backporting the changes to the target versions.
-Each backport is performed through its own pull request,
-tagged with the target version and "backport",
-and merged with "Create a merge commit".
+
+Bug fixes may be backported on a case by case basis. The committer of the original pull request,
+typically the author, is responsible for backporting the changes to the target versions.
 Straightforward backports may be merged without review.
 
-[Backport](https://github.com/sqren/backport) is recommended for automating the backport process.
+As an alternative to backport automation through `backport-<branch>` labels (e.g. when automation fails),
+we sometimes use [Backport](https://github.com/sqren/backport).
 
 ### Examples
 

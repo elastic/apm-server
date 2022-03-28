@@ -7,11 +7,13 @@ https://github.com/elastic/apm-server/compare/8.1\...main[View commits]
 ==== Breaking Changes
 - APM Server now emits events with `event.duration`, and renames the field to `<event>.duration.us` in an ingest pipeline {pull}7261[7261]
 - Remove `observer.version_major` {pull}7399[7399]
+- APM Server no longer ships with SystemV init scripts or the go-daemon wrapper; use systemd {pull}7576[7576]
+- When gzip compressing Elasticsearch bulk requests, set the end of stream marker {pull}7624[7624]
 
 [float]
 ==== Bug fixes
 - Do not overwrite `service version` if no transaction/error/... specific `service.name` is given {pull}7281[7281]
-- Fix missing stack monitoring metrics {pull}7428[7428]
+- modelindexer: Fix indexing performance regression due to locking bug {pull}7649[7649]
 
 [float]
 ==== Intake API Changes

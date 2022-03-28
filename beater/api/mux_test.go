@@ -19,9 +19,11 @@ package api
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,6 +40,39 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
+
+func TestBackendRequestMetadata(t *testing.T) {
+	tNow := time.Now()
+	c := &request.Context{Timestamp: tNow}
+	cfg := &config.Config{AugmentEnabled: true}
+	event := backendRequestMetadataFunc(cfg)(c)
+	assert.Equal(t, tNow, event.Timestamp)
+	assert.Equal(t, model.Host{}, event.Host)
+
+	c.ClientIP = net.ParseIP("127.0.0.1")
+	event = backendRequestMetadataFunc(cfg)(c)
+	assert.Equal(t, tNow, event.Timestamp)
+	assert.NotEqual(t, model.Host{}, event.Host)
+}
+
+func TestRUMRequestMetadata(t *testing.T) {
+	tNow := time.Now()
+	c := &request.Context{Timestamp: tNow}
+	cfg := &config.Config{AugmentEnabled: true}
+	event := rumRequestMetadataFunc(cfg)(c)
+	assert.Equal(t, tNow, event.Timestamp)
+	assert.Equal(t, model.Client{}, event.Client)
+	assert.Equal(t, model.Source{}, event.Source)
+	assert.Equal(t, model.UserAgent{}, event.UserAgent)
+
+	ip := net.ParseIP("127.0.0.1")
+	c = &request.Context{Timestamp: tNow, ClientIP: ip, SourceIP: ip, UserAgent: "firefox"}
+	event = rumRequestMetadataFunc(cfg)(c)
+	assert.Equal(t, tNow, event.Timestamp)
+	assert.NotEqual(t, model.Client{}, event.Client)
+	assert.NotEqual(t, model.Source{}, event.Source)
+	assert.NotEqual(t, model.UserAgent{}, event.UserAgent)
+}
 
 func requestToMuxerWithPattern(cfg *config.Config, pattern string) (*httptest.ResponseRecorder, error) {
 	r := httptest.NewRequest(http.MethodPost, pattern, nil)

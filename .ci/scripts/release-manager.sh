@@ -12,6 +12,7 @@
 set -uexo pipefail
 
 readonly TYPE=${1:-snapshot}
+source /usr/local/bin/bash_standard_lib.sh
 
 # set required permissions on artifacts and directory
 chmod -R a+r build/distributions/*
@@ -41,7 +42,8 @@ done
 
 # ensure the latest image has been pulled
 IMAGE=docker.elastic.co/infra/release-manager:latest
-docker pull --quiet $IMAGE
+(retry 3 docker pull --quiet "${IMAGE}") || echo "Error pulling ${IMAGE} Docker image, we continue"
+docker images --filter=reference=$IMAGE
 
 # Generate checksum files and upload to GCS
 docker run --rm \
@@ -56,4 +58,5 @@ docker run --rm \
       --branch "$BRANCH_NAME" \
       --commit "$(git rev-parse HEAD)" \
       --workflow "$TYPE" \
-      --artifact-set main
+      --artifact-set main \
+      --version "${VERSION}"

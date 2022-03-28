@@ -3,11 +3,36 @@
 
 https://github.com/elastic/apm-server/compare/8.0\...8.1[View commits]
 
+// * <<release-notes-8.1.2>>
+* <<release-notes-8.1.1>>
 * <<release-notes-8.1.0>>
+
+// [float]
+// [[release-notes-8.1.2]]
+// === APM version 8.1.2
+
+// https://github.com/elastic/apm-server/compare/8.1.1\...8.1.2[View commits]
+
+// [float]
+// ==== Bug fixes
+// - Fix setting a timestamp on RUM data when capturing personal data is disabled {pull}7567[7567]
+
+[float]
+[[release-notes-8.1.1]]
+=== APM version 8.1.1
+
+https://github.com/elastic/apm-server/compare/8.1.0\...8.1.1[View commits]
+
+[float]
+==== Bug fixes
+- Fix missing stack monitoring metrics {pull}7428[7428]
+
 
 [float]
 [[release-notes-8.1.0]]
 === APM version 8.1.0
+
+https://github.com/elastic/apm-server/compare/8.0.1\...8.1.0[View commits]
 
 [float]
 ==== Added
