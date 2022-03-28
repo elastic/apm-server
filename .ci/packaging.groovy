@@ -129,6 +129,8 @@ pipeline {
 }
 
 def releaseManager(def args = [:]) {
+  deleteDir()
+  unstash 'source'
   def bucketLocation = getBucketLocation(args.type)
   googleStorageDownload(bucketUri: "${bucketLocation}/*",
                         credentialsId: "${JOB_GCS_CREDENTIALS}",
