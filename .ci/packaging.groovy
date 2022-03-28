@@ -90,7 +90,7 @@ pipeline {
                   PACKAGES = "${isArm() ? 'docker' : ''}"
                 }
                 steps {
-                  package(type: env.TYPE)
+                  runPackage(type: env.TYPE)
                 }
               }
               stage('Publish') {
@@ -144,7 +144,7 @@ def releaseManager(def args = [:]) {
   }
 }
 
-def package(def args = [:]) {
+def runPackage(def args = [:]) {
   def type = args.type
   def makeGoal = 'release-manager-snapshot'
   if (type.equals('staging')) {
