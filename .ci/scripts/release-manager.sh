@@ -53,10 +53,10 @@ docker run --rm \
   -e VAULT_SECRET_ID \
   --mount type=bind,readonly=false,src="$PWD",target=/artifacts \
   "$IMAGE" \
-    cli collect \
+    cli list \
       --project apm-server \
       --branch "$BRANCH_NAME" \
       --commit "$(git rev-parse HEAD)" \
       --workflow "$TYPE" \
       --artifact-set main \
-      --version "${VERSION}"
+      --version "${VERSION}" || true
