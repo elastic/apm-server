@@ -176,14 +176,17 @@ func TestHandlerWarmUp(t *testing.T) {
 		assert.ErrorIs(t, err, context.Canceled)
 		assert.Equal(t, srv.received, uint(0))
 	})
-	t.Run("cancel-without-events", func(t *testing.T) {
+	t.Run("cancel-deadline-exceeded", func(t *testing.T) {
 		h, srv := newHandler(t, "testdata", "python.*.ndjson")
 		t.Cleanup(srv.close)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 		defer cancel()
-		err := h.WarmUpServer(ctx, 100000)
+		warmupEvents := uint(100000)
+		err := h.WarmUpServer(ctx, warmupEvents)
 		assert.ErrorIs(t, err, context.DeadlineExceeded)
 		assert.Greater(t, srv.received, uint(0))
-		assert.Less(t, srv.received, uint(100000))
+		// Assert that the sent events are less than the desired since the
+		// context was cancelled on timeout.
+		assert.Less(t, srv.received, warmupEvents)
 	})
 }
