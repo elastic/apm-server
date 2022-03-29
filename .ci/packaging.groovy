@@ -7,7 +7,7 @@ pipeline {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
     SLACK_CHANNEL = 'UJ2J1AZV2'
-    NOTIFY_TO = 'build-apm+victor.martinez@elastic.co'
+    NOTIFY_TO = 'victor.martinez+package-apm@elastic.co'
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
@@ -29,7 +29,7 @@ pipeline {
   }
   stages {
     stage('Filter build') {
-      agent { label 'ubuntu-18 && immutable' }
+      agent { label 'master' }
       when {
         beforeAgent true
         anyOf {
@@ -52,6 +52,9 @@ pipeline {
       }
       stages {
         stage('Checkout') {
+          when {
+            expression { return false }
+          }
           options { skipDefaultCheckout() }
           steps {
             pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
@@ -69,13 +72,10 @@ pipeline {
         }
         stage('Package') {
           options { skipDefaultCheckout() }
-          when {
-            expression { return false }
-          }
           matrix {
-            agent {
-              label "${PLATFORM}"
-            }
+            //agent {
+            //  label "${PLATFORM}"
+            //}
             axes {
               axis {
                 name 'PLATFORM'
@@ -90,10 +90,10 @@ pipeline {
               stage('Package') {
                 when {
                   beforeAgent true
-                  // Exclude running staging for the main branch since
+                  // Exclude running staging for the PR-7683 branch since
                   // it's an expensive operation and it's not used for releases
                   allOf {
-                    not { branch 'main' }
+                    not { branch 'PR-7683' }
                     expression { TYPE != 'staging'}
                   }
                 }
@@ -102,7 +102,7 @@ pipeline {
                   PACKAGES = "${isArm() ? 'docker' : ''}"
                 }
                 steps {
-                  runPackage(type: env.TYPE)
+                  echo "runPackage(type: env.TYPE)"
                 }
               }
               stage('Publish') {
@@ -111,12 +111,12 @@ pipeline {
                   // Exclude running staging for the main branch since
                   // it's an expensive operation and it's not used for releases
                   allOf {
-                    not { branch 'main' }
+                    not { branch 'PR-7683' }
                     expression { TYPE != 'staging'}
                   }
                 }
                 steps {
-                  publishArtifacts(type: env.TYPE)
+                  echo "publishArtifacts(type: env.TYPE)"
                 }
               }
             }
@@ -130,9 +130,9 @@ pipeline {
             expression { return env.IS_BRANCH_AVAILABLE == "true" }
           }
           steps {
-            releaseManager(type: 'snapshot')
-            whenFalse(env.BRANCH_NAME.equals('main')) {
-              releaseManager(type: 'staging')
+            echo "releaseManager(type: 'snapshot')"
+            whenFalse(env.BRANCH_NAME.equals('PR-7683')) {
+              echo "releaseManager(type: 'staging')"
             }
           }
         }
