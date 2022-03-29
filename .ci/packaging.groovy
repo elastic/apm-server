@@ -104,6 +104,11 @@ pipeline {
               }
             }
           }
+          post {
+            failure {
+              notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] package failed")
+            }
+          }
         }
         stage('DRA') {
           // The Unified Release process keeps moving branches as soon as a new
@@ -112,10 +117,20 @@ pipeline {
           when {
             expression { return env.IS_BRANCH_AVAILABLE == "true" }
           }
+          environment {
+            DRA_OUTPUT = 'release-manager-report.out'
+          }
           steps {
             releaseManager(type: 'snapshot')
             whenFalse(env.BRANCH_NAME.equals('main')) {
               releaseManager(type: 'staging')
+            }
+          }
+          post {
+            failure {
+              notifyStatus(analyse: true,
+                           file: "${BASE_DIR}/${env.DRA_OUTPUT}",
+                           subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed")
             }
           }
         }
@@ -125,9 +140,6 @@ pipeline {
   post {
     cleanup {
       notifyBuildResult(prComment: false)
-    }
-    failure {
-      notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
     }
   }
 }
@@ -144,7 +156,7 @@ def releaseManager(def args = [:]) {
     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
     script {
       getVaultSecret.readSecretWrapper {
-        sh(label: 'release-manager.sh', script: ".ci/scripts/release-manager.sh ${args.type}")
+        sh(label: 'release-manager.sh', script: ".ci/scripts/release-manager.sh ${args.type} | tee ${env.DRA_OUTPUT}")
       }
     }
   }
@@ -190,12 +202,17 @@ def getBucketLocation(type) {
 }
 
 def notifyStatus(def args = [:]) {
-  releaseNotification(slackChannel: "${env.SLACK_CHANNEL}",
-                      slackColor: args.slackStatus,
-                      slackCredentialsId: 'jenkins-slack-integration-token',
-                      to: "${env.NOTIFY_TO}",
-                      subject: args.subject,
-                      body: args.body)
+  def releaseManagerFile = args.get('file', '')
+  def analyse = args.get('analyse', false)
+  def subject = args.get('subject', '')
+  releaseManagerNotification(file: releaseManagerFile,
+                             analyse: analyse,
+                             slackChannel: "${env.SLACK_CHANNEL}",
+                             slackColor: 'danger',
+                             slackCredentialsId: 'jenkins-slack-integration-token',
+                             to: "${env.NOTIFY_TO}",
+                             subject: subject,
+                             body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
 }
 
 def runIfNoMainAndNoStaging(Closure body) {
