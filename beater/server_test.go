@@ -326,9 +326,9 @@ func TestServerNoContentType(t *testing.T) {
 
 	req := makeTransactionRequest(t, apm.baseURL)
 	rsp, err := apm.client.Do(req)
-	if assert.NoError(t, err) {
-		assert.Equal(t, http.StatusBadRequest, rsp.StatusCode, body(t, rsp))
-	}
+	require.NoError(t, err)
+	defer rsp.Body.Close()
+	assert.Equal(t, http.StatusAccepted, rsp.StatusCode)
 }
 
 func TestServerSourcemapElasticsearch(t *testing.T) {
