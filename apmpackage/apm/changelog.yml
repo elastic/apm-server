@@ -3,14 +3,9 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "8.1.2"
   changes:
-    - description: Placeholder.
+    - description: added field mapping for `url.original` to traces, rum_traces, app_logs, and error_logs
       type: bugfix
-      link: https://github.com/elastic/apm-server/issues/<placeholder>
-- version: "8.1.1"
-  changes:
-    - description: Placeholder.
-      type: bugfix
-      link: https://github.com/elastic/apm-server/issues/<placeholder>
+      link: https://github.com/elastic/apm-server/pull/7698
 - version: "8.1.0"
   changes:
     - description: Added field mapping for `faas.coldstart` and `faas.trigger.type`
