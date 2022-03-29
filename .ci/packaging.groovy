@@ -65,6 +65,9 @@ pipeline {
             // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
             setEnvVar('PATH_PREFIX', "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}")
             setEnvVar('IS_BRANCH_AVAILABLE', isBranchUnifiedReleaseAvailable(env.BRANCH_NAME))
+            dir("${BASE_DIR}"){
+              setEnvVar('VERSION', sh(label: 'Get version', script: 'make get-version', returnStdout: true)?.trim())
+            }
           }
         }
         stage('Package') {
@@ -154,10 +157,13 @@ def releaseManager(def args = [:]) {
                         pathPrefix: "${env.PATH_PREFIX}/${args.type}")
   dir("${BASE_DIR}") {
     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-    script {
-      getVaultSecret.readSecretWrapper {
-        sh(label: 'release-manager.sh', script: ".ci/scripts/release-manager.sh ${args.type} | tee ${env.DRA_OUTPUT}")
-      }
+    getVaultSecret.readSecretWrapper {
+      sh(label: 'release-manager.sh', script: ".ci/scripts/prepare-release-manager.sh")
+      releaseManager(project: 'apm-server',
+                     version: env.VERSION,
+                     type: args.type,
+                     artifactsFolder: 'build/distributions',
+                     outputFile: env.DRA_OUTPUT)
     }
   }
 }
