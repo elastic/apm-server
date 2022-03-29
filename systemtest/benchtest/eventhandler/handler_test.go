@@ -47,11 +47,6 @@ func (t *mockServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "buffer not specified", 500)
 		return
 	}
-	if r.Body == nil {
-		http.Error(w, "body is empty", 500)
-		return
-	}
-
 	var reader io.Reader
 	switch r.Header.Get("Content-Encoding") {
 	case "deflate":
@@ -94,23 +89,23 @@ func newHandler(t *testing.T, dir, expr string) (*Handler, *mockServer) {
 func TestHandlerNew(t *testing.T) {
 	storage := os.DirFS("testdata")
 	t.Run("success-matches-files", func(t *testing.T) {
-		h, err := New(`python.*.ndjson`, nil, storage, 0)
+		h, err := New(`python*.ndjson`, nil, storage, 0)
 		require.NoError(t, err)
 		assert.Greater(t, len(h.batches), 0)
 	})
 	t.Run("failure-matches-no-files", func(t *testing.T) {
-		h, err := New(`go.*.ndjson`, nil, storage, 0)
-		require.EqualError(t, err, "eventhandler: regex matched no files, please specify a valid regex")
+		h, err := New(`go*.ndjson`, nil, storage, 0)
+		require.EqualError(t, err, "eventhandler: glob matched no files, please specify a valid glob pattern")
 		assert.Nil(t, h)
 	})
-	t.Run("failure-invalid-regex", func(t *testing.T) {
-		h, err := New(`****`, nil, storage, 0)
-		require.EqualError(t, err, "error parsing regexp: missing argument to repetition operator: `*`")
+	t.Run("failure-invalid-glob", func(t *testing.T) {
+		h, err := New(``, nil, storage, 0)
+		require.EqualError(t, err, "eventhandler: glob matched no files, please specify a valid glob pattern")
 		assert.Nil(t, h)
 	})
 	t.Run("failure-rum-data", func(t *testing.T) {
 		storage := os.DirFS(filepath.Join("..", "..", "..", "testdata", "intake-v3"))
-		h, err := New(`.*.ndjson`, nil, storage, 0)
+		h, err := New(`*.ndjson`, nil, storage, 0)
 		require.EqualError(t, err, "rum data support not implemented")
 		assert.Nil(t, h)
 	})
@@ -118,7 +113,7 @@ func TestHandlerNew(t *testing.T) {
 
 func TestHandlerSendBatches(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		handler, srv := newHandler(t, "testdata", "python.*.ndjson")
+		handler, srv := newHandler(t, "testdata", "python*.ndjson")
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
@@ -134,7 +129,7 @@ func TestHandlerSendBatches(t *testing.T) {
 		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
 	})
 	t.Run("cancel-before-sendbatches", func(t *testing.T) {
-		handler, srv := newHandler(t, "testdata", "python.*.ndjson")
+		handler, srv := newHandler(t, "testdata", "python*.ndjson")
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
@@ -144,7 +139,7 @@ func TestHandlerSendBatches(t *testing.T) {
 		assert.Equal(t, n, uint(0))
 	})
 	t.Run("returns-error", func(t *testing.T) {
-		handler, srv := newHandler(t, "testdata", `python.*.ndjson`)
+		handler, srv := newHandler(t, "testdata", `python*.ndjson`)
 		// Close the server prematurely to force an error.
 		srv.close()
 		ctx, cancel := context.WithCancel(context.Background())
@@ -157,7 +152,7 @@ func TestHandlerSendBatches(t *testing.T) {
 
 func TestHandlerWarmUp(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		h, srv := newHandler(t, "testdata", "python.*.ndjson")
+		h, srv := newHandler(t, "testdata", "python*.ndjson")
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
@@ -168,7 +163,7 @@ func TestHandlerWarmUp(t *testing.T) {
 		assert.GreaterOrEqual(t, srv.received, warmupEvents)
 	})
 	t.Run("cancel-before-warmup", func(t *testing.T) {
-		h, srv := newHandler(t, "testdata", "python.*.ndjson")
+		h, srv := newHandler(t, "testdata", "python*.ndjson")
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
@@ -177,7 +172,7 @@ func TestHandlerWarmUp(t *testing.T) {
 		assert.Equal(t, srv.received, uint(0))
 	})
 	t.Run("cancel-deadline-exceeded", func(t *testing.T) {
-		h, srv := newHandler(t, "testdata", "python.*.ndjson")
+		h, srv := newHandler(t, "testdata", "python*.ndjson")
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 		defer cancel()

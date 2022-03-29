@@ -89,7 +89,7 @@ func WaitUntilServerInactive(ctx context.Context) error {
 	for result.ActiveEvents > 0 {
 		select {
 		case <-ctx.Done():
-			return nil
+			return ctx.Err()
 		default:
 			if err := queryExpvar(&result); err != nil {
 				return err

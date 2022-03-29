@@ -60,19 +60,19 @@ func BenchmarkOTLPTraces(b *testing.B) {
 }
 
 func BenchmarkAgentGo(b *testing.B) {
-	benchmarkAgent(b, `go.*.ndjson`)
+	benchmarkAgent(b, `go*.ndjson`)
 }
 
 func BenchmarkAgentNodeJS(b *testing.B) {
-	benchmarkAgent(b, `nodejs.*.ndjson`)
+	benchmarkAgent(b, `nodejs*.ndjson`)
 }
 
 func BenchmarkAgentPython(b *testing.B) {
-	benchmarkAgent(b, `python.*.ndjson`)
+	benchmarkAgent(b, `python*.ndjson`)
 }
 
 func BenchmarkAgentRuby(b *testing.B) {
-	benchmarkAgent(b, `ruby.*.ndjson`)
+	benchmarkAgent(b, `ruby*.ndjson`)
 }
 
 func benchmarkAgent(b *testing.B, expr string) {

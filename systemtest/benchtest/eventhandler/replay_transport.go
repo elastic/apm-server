@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// Transport sends the contents of a reader to a remote APM Server.w
+// Transport sends the contents of a reader to a remote APM Server.
 type Transport struct {
 	client        *http.Client
 	intakeHeaders http.Header
@@ -71,8 +71,9 @@ func (t *Transport) sendEvents(req *http.Request, r io.Reader) error {
 	case http.StatusOK, http.StatusAccepted:
 		return nil
 	}
-	b, err := ioutil.ReadAll(res.Body)
+
 	msg := fmt.Sprintf("unexpected apm server response %d", res.StatusCode)
+	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return errors.New(msg)
 	}

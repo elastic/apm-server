@@ -25,10 +25,7 @@ import (
 	"errors"
 	"io"
 	"io/fs"
-	"regexp"
 )
-
-const maxScanTokenSize = 300 * 1024 // 300Kb.
 
 var (
 	metaHeader    = []byte(`{"metadata":`)
@@ -51,11 +48,6 @@ type Handler struct {
 
 // New creates a new tracehandler.Handler.
 func New(p string, t *Transport, storage fs.FS, warmup uint) (*Handler, error) {
-	r, err := regexp.Compile(p)
-	if err != nil {
-		return nil, err
-	}
-
 	var buf bytes.Buffer
 	zw, err := zlib.NewWriterLevel(&buf, zlib.BestCompression)
 	if err != nil {
@@ -65,27 +57,22 @@ func New(p string, t *Transport, storage fs.FS, warmup uint) (*Handler, error) {
 		buf:     &buf,
 		zwriter: zw,
 	}
-	scannerBuf := make([]byte, maxScanTokenSize)
 
 	h := Handler{
 		transport:    t,
 		warmupEvents: warmup,
 	}
-	err = fs.WalkDir(storage, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() || !r.MatchString(path) {
-			return nil
-		}
 
+	matches, err := fs.Glob(storage, p)
+	if err != nil {
+		return nil, err
+	}
+	for _, path := range matches {
 		f, err := storage.Open(path)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		s := bufio.NewScanner(f)
-		s.Buffer(scannerBuf, 0)
-		var wroteMeta bool
 		var scanned uint
 		for s.Scan() {
 			line := s.Bytes()
@@ -94,54 +81,47 @@ func New(p string, t *Transport, storage fs.FS, warmup uint) (*Handler, error) {
 			}
 			// TODO(marclop): Suppport RUM headers and handle them differently.
 			if bytes.HasPrefix(line, rumMetaHeader) {
-				return errors.New("rum data support not implemented")
+				return nil, errors.New("rum data support not implemented")
 			}
 
-			if !wroteMeta {
-				writer.WriteLine(line)
-				wroteMeta = true
-				continue
-			}
-			isMeta := bytes.HasPrefix(line, metaHeader)
-			if !isMeta {
+			if isMeta := bytes.HasPrefix(line, metaHeader); !isMeta {
 				writer.WriteLine(line)
 				scanned++
 				continue
 			}
 
 			// Since the current token is a metadata line, it means that we've
-			// read the start of the next batch, because of that, we'll flush,
-			// close and copy the compressed contents. After we've ensured that
-			// we've written the whole batch to the buffer, we reset it and the
+			// read the start of the batch, because of that, we'll only flush,
+			// close and copy the compressed contents when the scanned events
+			// are greater than 0. The first iteration will only write the meta
+			// and continue decoding events.
+			// After writing the whole batch to the buffer, we reset it and the
 			// zlib.Writer so it can be used for the next iteration.
-			if err := writer.FlushClose(); err != nil {
-				return err
+			if scanned > 0 {
+				if err := writer.Close(); err != nil {
+					return nil, err
+				}
+				h.batches = append(h.batches, batch{
+					r:     bytes.NewReader(writer.Bytes()),
+					items: scanned,
+				})
 			}
-			h.batches = append(h.batches, batch{
-				r:     bytes.NewReader(writer.Bytes()),
-				items: scanned,
-			})
 			writer.Reset()
 			writer.WriteLine(line)
 			scanned = 0
 		}
 
-		if err := writer.FlushClose(); err != nil {
-			return err
+		if err := writer.Close(); err != nil {
+			return nil, err
 		}
 		h.batches = append(h.batches, batch{
 			r:     bytes.NewReader(writer.Bytes()),
 			items: scanned,
 		})
-		buf.Reset()
 		writer.Reset()
-		return nil
-	})
-	if err != nil {
-		return nil, err
 	}
 	if len(h.batches) == 0 {
-		return nil, errors.New("eventhandler: regex matched no files, please specify a valid regex")
+		return nil, errors.New("eventhandler: glob matched no files, please specify a valid glob pattern")
 	}
 	return &h, nil
 }
@@ -151,12 +131,7 @@ func New(p string, t *Transport, storage fs.FS, warmup uint) (*Handler, error) {
 func (h *Handler) SendBatches(ctx context.Context) (uint, error) {
 	var sentEvents uint
 	sendEvents := func(r io.ReadSeeker, events uint) error {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-			defer r.Seek(0, io.SeekStart)
-		}
+		defer r.Seek(0, io.SeekStart)
 		// NOTE(marclop) RUM event replaying is not yet supported.
 		if err := h.transport.SendV2Events(ctx, r); err != nil {
 			return err
@@ -213,9 +188,6 @@ func (w *compressedWriter) Bytes() []byte {
 	return tmp
 }
 
-func (w *compressedWriter) FlushClose() error {
-	if err := w.zwriter.Flush(); err != nil {
-		return err
-	}
+func (w *compressedWriter) Close() error {
 	return w.zwriter.Close()
 }

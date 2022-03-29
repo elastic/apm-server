@@ -20,6 +20,7 @@ package benchtest
 import (
 	"context"
 	"crypto/tls"
+	"path/filepath"
 	"testing"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -112,5 +113,5 @@ func newEventHandler(p string) (*eventhandler.Handler, error) {
 		return nil, err
 	}
 	transp := eventhandler.NewTransport(t.Client, serverURL.String(), *secretToken)
-	return eventhandler.New(p, transp, events, *warmupEvents)
+	return eventhandler.New(filepath.Join("events", p), transp, events, *warmupEvents)
 }
