@@ -142,15 +142,6 @@ pipeline {
       }
     }
   }
-  post {
-    cleanup {
-      deleteDir()
-      notifyBuildResult(prComment: false)
-    }
-    failure {
-      notifyStatus(slackStatus: 'danger', subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed", body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
-    }
-  }
 }
 
 def releaseManager(def args = [:]) {
