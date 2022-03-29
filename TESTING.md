@@ -39,31 +39,28 @@ $ make bench > old.txt
 $ benchcmp old.txt new.txt
 ```
 
-## Local testing
+## Manual testing
 
 Often, we need to manually test the integration between different features, PR testing or pre-release testing.
 Our `docker-compose.yml` contains the basic components that make up the Elastic Stack for the APM Server.
 
 ### Testing Stack monitoring
 
-APM Server publishes a set of metrics that are consumed consumed either by Metricbeat or sent by the APM Server
-to an Elasticsearch cluster. Some of these metrics are used to power the Stack Monitoring UI. The stack monitoring
-setup is non trivial and has been automated in `testing/stack-monitoring.sh`. The script will launch the necessary
-stack components, modify the necessary files and once finished, you'll be able to test or ensure that Stack Monitoring
-is working as expected.
+APM Server publishes a set of metrics that are consumed either by Metricbeat or sent by the APM Server to an
+Elasticsearch cluster. Some of these metrics are used to power the Stack Monitoring UI. The stack monitoring
+setup is non trivial and has been automated in `testing/stack-monitoring.sh`. The script will launch the
+necessary stack components, modify the necessary files and once finished, you'll be able to test or ensure
+that Stack Monitoring is working as expected.
 
 Note that the `testing/stack-monitoring.sh` script relies on `systemtest/cmd/runapm`, and will use a locally built
 version of APM Server (see more information below).
 
 ### Injecting an APM Server binary into Elastic Agent
 
-Since APM Server is now run by the Elastic Agent in managed mode, only testing the APM Server in Standalone mode will
-not completely test the supported and recommended APM Server setup. To reuse the `docker-compose.yml` components and
-ease testing, you can inject an `apm-server` binary in the Elastic Agent container so a locally built version can be
-tested while making changes to the APM Server or before a release is published.
-
-To do so, you can leverage the existing `systemtest/cmd/runpm` program which creates an Elastic Agent container, the
-required fleet policies, and exposes the APM Server port using a random binding.
+APM Server can be run in either standalone or managed mode by the ELastic Agent. To facilitate manual testing of
+APM Server in managed mode, it is possible to inject a locally built `apm-server` binary via `systemtest/cmd/runpm`.
+It requires having the apm-server docker-compose project running and creates the required fleet policies, and exposes
+the APM Server port using a random binding that is printed to the standard output after the container has started.
 
 ```console
 $ cd systemtest/cmd/runapm
