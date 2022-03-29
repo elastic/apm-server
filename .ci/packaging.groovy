@@ -87,14 +87,14 @@ pipeline {
                   PACKAGES = "${isArm() ? 'docker' : ''}"
                 }
                 steps {
-                  whenFalse(env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
+                  whenFalse(env.BRANCH_NAME.equals('PR-7683') && env.TYPE == 'staging') {
                     echo "runPackage - ${env.BRANCH_NAME} - ${env.TYPE} - ${PLATFORM}"
                   }
                 }
               }
               stage('Publish') {
                 steps {
-                  whenFalse(env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
+                  whenFalse(env.BRANCH_NAME.equals('PR-7683') && env.TYPE == 'staging') {
                     echo "publishArtifacts - ${env.BRANCH_NAME} - ${env.TYPE} - ${PLATFORM}"
                   }
                 }
@@ -111,7 +111,7 @@ pipeline {
           }
           steps {
             echo "releaseManager(type: 'snapshot')"
-            whenFalse(env.BRANCH_NAME.equals('main')) {
+            whenFalse(env.BRANCH_NAME.equals('PR-7683')) {
               echo "releaseManager(type: 'staging')"
             }
           }
