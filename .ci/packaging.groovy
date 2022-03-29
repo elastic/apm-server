@@ -187,7 +187,7 @@ def notifyStatus(def args = [:]) {
                       body: args.body)
 }
 
-def runIfNoMainAndNoStaging(match, Closure body) {
+def runIfNoMainAndNoStaging(Closure body) {
   if (env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
     body()
   } else {
