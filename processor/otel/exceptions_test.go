@@ -296,7 +296,7 @@ Caused by: whatever
 
 	for i, event := range errorEvents {
 		assert.Empty(t, event.Error.Exception.Stacktrace)
-		assert.Equal(t, map[string]interface{}{"stacktrace": stacktraces[i]}, event.Error.Exception.Attributes)
+		assert.Equal(t, stacktraces[i], event.Error.StackTrace)
 	}
 }
 
@@ -311,7 +311,7 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 	exceptionEvent.Attributes().InsertString("exception.stacktrace", "the_stacktrace")
 
 	// For languages where we do not explicitly parse the stacktrace,
-	// the raw stacktrace is stored as an attribute on the exception.
+	// the raw stacktrace is stored as error.stack_trace.
 	transactionEvent, errorEvents := transformTransactionSpanEvents(t, "COBOL", exceptionEvent)
 	require.Len(t, errorEvents, 1)
 
@@ -335,10 +335,8 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 				Type:    "the_type",
 				Message: "the_message",
 				Handled: newBool(true),
-				Attributes: map[string]interface{}{
-					"stacktrace": "the_stacktrace",
-				},
 			},
+			StackTrace: "the_stacktrace",
 		},
 	}, errorEvents[0])
 }

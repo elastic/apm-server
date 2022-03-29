@@ -19,6 +19,7 @@ package systemtest_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -92,15 +93,26 @@ func TestOTLPGRPCTraces(t *testing.T) {
 			attribute.StringSlice("span_attribute_array", []string{"a", "b", "c"}),
 		))
 		span.AddEvent("a_span_event", trace.WithTimestamp(startTime.Add(time.Millisecond)))
+		span.RecordError(
+			errors.New("kablamo"),
+			// NOTE(axw) don't use trace.WithStackTrace(true), as the stack trace value
+			// may change over time (e.g. due to changes in Go's testing package).
+			trace.WithAttributes(attribute.String(
+				semconv.AttributeExceptionStacktrace,
+				"not an actual real stack trace",
+			)),
+			trace.WithTimestamp(startTime.Add(2*time.Millisecond)),
+		)
 		span.End(trace.WithTimestamp(endTime))
 	})
 	require.NoError(t, err)
 
 	indices := "traces-apm*,logs-apm*"
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, indices, estest.BoolQuery{
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 3, indices, estest.BoolQuery{
 		Should: []interface{}{
 			estest.TermQuery{Field: "processor.event", Value: "transaction"},
 			estest.TermQuery{Field: "processor.event", Value: "log"},
+			estest.TermQuery{Field: "processor.event", Value: "error"},
 		},
 		MinimumShouldMatch: 1,
 	})

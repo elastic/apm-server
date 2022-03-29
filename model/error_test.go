@@ -178,6 +178,12 @@ func TestErrorFields(t *testing.T) {
 				"exception": []common.MapStr{{"message": "exception message", "code": "13"}},
 			},
 		},
+		"withStackTrace": {
+			Error: Error{StackTrace: "raw stack trace"},
+			Output: common.MapStr{
+				"stack_trace": "raw stack trace",
+			},
+		},
 		"withFrames": {
 			Error: Error{
 				ID:        id,
