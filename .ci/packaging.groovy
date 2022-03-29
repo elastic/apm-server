@@ -85,35 +85,21 @@ pipeline {
             }
             stages {
               stage('Package') {
-                when {
-                  beforeAgent true
-                  // Exclude running staging for the main branch since
-                  // it's an expensive operation and it's not used for releases
-                  allOf {
-                    not { branch 'main' }
-                    expression { TYPE != 'staging'}
-                  }
-                }
                 environment {
                   PLATFORMS = "${isArm() ? 'linux/arm64' : ''}"
                   PACKAGES = "${isArm() ? 'docker' : ''}"
                 }
                 steps {
-                  runPackage(type: env.TYPE)
+                  runIfNoMainAndNoStaging() {
+                    runPackage(type: env.TYPE)
+                  }
                 }
               }
               stage('Publish') {
-                when {
-                  beforeAgent true
-                  // Exclude running staging for the main branch since
-                  // it's an expensive operation and it's not used for releases
-                  allOf {
-                    not { branch 'main' }
-                    expression { TYPE != 'staging'}
-                  }
-                }
                 steps {
-                  publishArtifacts(type: env.TYPE)
+                  runIfNoMainAndNoStaging() {
+                    publishArtifacts(type: env.TYPE)
+                  }
                 }
               }
             }
@@ -210,4 +196,12 @@ def notifyStatus(def args = [:]) {
                       to: "${env.NOTIFY_TO}",
                       subject: args.subject,
                       body: args.body)
+}
+
+def runIfNoMainAndNoStaging(Closure body) {
+  if (env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
+    echo 'INFO: staging artifacts for the main branch are not required.'
+  } else {
+    body()
+  }
 }
