@@ -52,7 +52,9 @@ func TestServerTracingEnabled(t *testing.T) {
 
 			if enabled {
 				select {
-				case <-events:
+				case e := <-events:
+					transactionName, _ := e.Fields.GetValue("transaction.name")
+					assert.Equal(t, "GET unknown route", transactionName)
 				case <-time.After(10 * time.Second):
 					t.Fatal("timed out waiting for event")
 				}
