@@ -13,6 +13,13 @@ trap cleanup EXIT
 
 make update apm-server
 
+
+echo "-> START OF DEBUG INFORMATION"
+docker version
+docker-compose version
+docker info
+echo "-> END OF DEBUG INFORMATION"
+
 # Start docker-compose environment first, so it doesn't count towards the test timeout.
 docker-compose up -d
 
