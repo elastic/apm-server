@@ -12,6 +12,7 @@ pipeline {
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
+    IS_BRANCH_AVAILABLE = 'true'
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -92,9 +93,10 @@ pipeline {
                   beforeAgent true
                   // Exclude running staging for the PR-7683 branch since
                   // it's an expensive operation and it's not used for releases
-                  allOf {
-                    not { branch 'PR-7683' }
-                    expression { TYPE != 'staging'}
+                  not {
+                    expression {
+                      env.BRANCH_NAME.equals('PR-7683') && env.TYPE == 'staging'
+                    }
                   }
                 }
                 environment {
@@ -110,9 +112,10 @@ pipeline {
                   beforeAgent true
                   // Exclude running staging for the main branch since
                   // it's an expensive operation and it's not used for releases
-                  allOf {
-                    not { branch 'PR-7683' }
-                    expression { TYPE != 'staging'}
+                  not {
+                    expression {
+                      env.BRANCH_NAME.equals('PR-7683') && env.TYPE == 'staging'
+                    }
                   }
                 }
                 steps {
@@ -141,6 +144,7 @@ pipeline {
   }
   post {
     cleanup {
+      deleteDir()
       notifyBuildResult(prComment: false)
     }
     failure {
