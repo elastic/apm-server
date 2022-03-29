@@ -136,6 +136,7 @@ func TestPublishIntegration(t *testing.T) {
 		{payload: "transactions.ndjson", name: "Transactions"},
 		{payload: "transactions-huge_traces.ndjson", name: "TransactionsHugeTraces"},
 		{payload: "minimal.ndjson", name: "MinimalEvents"},
+		{payload: "unknown-span-type.ndjson", name: "UnknownSpanType"},
 	} {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
