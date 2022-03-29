@@ -82,37 +82,21 @@ pipeline {
             }
             stages {
               stage('Package') {
-                when {
-                  beforeAgent true
-                  // Exclude running staging for the PR-7683 branch since
-                  // it's an expensive operation and it's not used for releases
-                  not {
-                    expression {
-                      env.BRANCH_NAME.equals('main') && env.TYPE == 'staging'
-                    }
-                  }
-                }
                 environment {
                   PLATFORMS = "${isArm() ? 'linux/arm64' : ''}"
                   PACKAGES = "${isArm() ? 'docker' : ''}"
                 }
                 steps {
-                  echo "runPackage - ${env.BRANCH_NAME} - ${env.TYPE} - ${PLATFORM}"
+                  whenFalse(env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
+                    echo "runPackage - ${env.BRANCH_NAME} - ${env.TYPE} - ${PLATFORM}"
+                  }
                 }
               }
               stage('Publish') {
-                when {
-                  beforeAgent true
-                  // Exclude running staging for the main branch since
-                  // it's an expensive operation and it's not used for releases
-                  not {
-                    expression {
-                      env.BRANCH_NAME.equals('main') && env.TYPE == 'staging'
-                    }
-                  }
-                }
                 steps {
-                  echo "publishArtifacts - ${env.BRANCH_NAME} - ${env.TYPE} - ${PLATFORM}"
+                  whenFalse(env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
+                    echo "publishArtifacts - ${env.BRANCH_NAME} - ${env.TYPE} - ${PLATFORM}"
+                  }
                 }
               }
             }
