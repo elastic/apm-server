@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 #
-# This script is executed by the release snapshot stage.
+# This script is executed by the DRA stage.
 # It requires the below environment variables:
 # - BRANCH_NAME
 # - VAULT_ADDR
 # - VAULT_ROLE_ID
 # - VAULT_SECRET_ID
+# It can be published as snapshot or staging, for such you uses
+# the paramater $0 "snapshot" or $0 "staging"
 #
 set -uexo pipefail
 
+readonly TYPE=${1:-snapshot}
 source /usr/local/bin/bash_standard_lib.sh
 
 # set required permissions on artifacts and directory
@@ -17,8 +20,12 @@ chmod -R a+w build/distributions
 
 # rename dependencies.csv to the name expected by release-manager.
 VERSION=$(make get-version)
+FINAL_VERSION=$VERSION-SNAPSHOT
+if [ "$TYPE" != "snapshot" ] ; then
+  FINAL_VERSION=$VERSION
+fi
 mv build/distributions/dependencies.csv \
-   build/distributions/dependencies-$VERSION-SNAPSHOT.csv
+   build/distributions/dependencies-"$FINAL_VERSION".csv
 
 # rename docker files to support the unified release format.
 # TODO: this could be supported by the package system itself
@@ -50,6 +57,6 @@ docker run --rm \
       --project apm-server \
       --branch "$BRANCH_NAME" \
       --commit "$(git rev-parse HEAD)" \
-      --workflow "snapshot" \
+      --workflow "$TYPE" \
       --artifact-set main \
       --version "${VERSION}"
