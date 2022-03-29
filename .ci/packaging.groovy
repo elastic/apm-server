@@ -189,8 +189,8 @@ def notifyStatus(def args = [:]) {
 
 def runIfNoMainAndNoStaging(Closure body) {
   if (env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
-    body()
-  } else {
     echo 'INFO: staging artifacts for the main branch are not required.'
+  } else {
+    body()
   }
 }
