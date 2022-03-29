@@ -30,7 +30,7 @@ pipeline {
   }
   stages {
     stage('Filter build') {
-      agent { label 'linux && immutable' }
+      agent { label 'metal' }
       when {
         beforeAgent true
         anyOf {
@@ -97,7 +97,7 @@ pipeline {
                   PACKAGES = "${isArm() ? 'docker' : ''}"
                 }
                 steps {
-                  echo "runPackage(type: env.TYPE)"
+                  echo "runPackage - ${env.BRANCH_NAME} - ${env.TYPE}"
                 }
               }
               stage('Publish') {
@@ -112,7 +112,7 @@ pipeline {
                   }
                 }
                 steps {
-                  echo "publishArtifacts(type: env.TYPE)"
+                  echo "publishArtifacts - ${env.BRANCH_NAME} - ${env.TYPE}"
                 }
               }
             }
