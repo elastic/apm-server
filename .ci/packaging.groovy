@@ -87,14 +87,14 @@ pipeline {
                   PACKAGES = "${isArm() ? 'docker' : ''}"
                 }
                 steps {
-                  whenFalse(env.BRANCH_NAME.equals('PR-7683') && env.TYPE == 'staging') {
+                  runIfNoMainAndNoStaging() {
                     echo "runPackage - ${env.BRANCH_NAME} - ${env.TYPE} - ${PLATFORM}"
                   }
                 }
               }
               stage('Publish') {
                 steps {
-                  whenFalse(env.BRANCH_NAME.equals('PR-7683') && env.TYPE == 'staging') {
+                  runIfNoMainAndNoStaging() {
                     echo "publishArtifacts - ${env.BRANCH_NAME} - ${env.TYPE} - ${PLATFORM}"
                   }
                 }
@@ -185,4 +185,12 @@ def notifyStatus(def args = [:]) {
                       to: "${env.NOTIFY_TO}",
                       subject: args.subject,
                       body: args.body)
+}
+
+def runIfNoMainAndNoStaging(match, Closure body) {
+  if (env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
+    body()
+  } else {
+    echo 'INFO: staging artifacts for the main branch are not required.'
+  }
 }
