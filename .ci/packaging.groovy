@@ -30,6 +30,7 @@ pipeline {
   stages {
     stage('Filter build') {
       agent { label 'ubuntu-18 && immutable' }
+      options { skipDefaultCheckout() }
       when {
         beforeAgent true
         anyOf {
@@ -85,6 +86,7 @@ pipeline {
             }
             stages {
               stage('Package') {
+                options { skipDefaultCheckout() }
                 environment {
                   PLATFORMS = "${isArm() ? 'linux/arm64' : ''}"
                   PACKAGES = "${isArm() ? 'docker' : ''}"
@@ -96,6 +98,7 @@ pipeline {
                 }
               }
               stage('Publish') {
+                options { skipDefaultCheckout() }
                 steps {
                   runIfNoMainAndNoStaging() {
                     publishArtifacts(type: env.TYPE)
@@ -111,6 +114,7 @@ pipeline {
           }
         }
         stage('DRA') {
+          options { skipDefaultCheckout() }
           // The Unified Release process keeps moving branches as soon as a new
           // minor version is created, therefore old release branches won't be able
           // to use the release manager as their definition is removed.
