@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
 # This script is executed by the DRA stage.
-# It can be published as snapshot or staging, for such you uses
+# It prepares the required files to be consumed by the release-manager
+# It can be published as snapshot or staging, for such you use
 # the paramater $0 "snapshot" or $0 "staging"
 #
 set -uexo pipefail

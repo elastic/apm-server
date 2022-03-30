@@ -124,9 +124,9 @@ pipeline {
             DRA_OUTPUT = 'release-manager-report.out'
           }
           steps {
-            releaseManager(type: 'snapshot')
+            releaseManager(type: 'snapshot', outputFile: env.DRA_OUTPUT)
             whenFalse(env.BRANCH_NAME.equals('main')) {
-              releaseManager(type: 'staging')
+              releaseManager(type: 'staging', outputFile: env.DRA_OUTPUT)
             }
           }
           post {
@@ -158,12 +158,12 @@ def releaseManager(def args = [:]) {
   dir("${BASE_DIR}") {
     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
     getVaultSecret.readSecretWrapper {
-      sh(label: 'release-manager.sh', script: ".ci/scripts/prepare-release-manager.sh")
+      sh(label: 'prepare-release-manager-artifacts', script: ".ci/scripts/prepare-release-manager.sh")
       releaseManager(project: 'apm-server',
                      version: env.VERSION,
                      type: args.type,
                      artifactsFolder: 'build/distributions',
-                     outputFile: env.DRA_OUTPUT)
+                     outputFile: args.outputFile)
     }
   }
 }
