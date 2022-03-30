@@ -463,13 +463,13 @@ func (s *serverRunner) run(listener net.Listener) error {
 	}
 
 	g, ctx := errgroup.WithContext(s.runServerContext)
-	indedDocCountField := &modelprocessor.IndexDocCountField{}
+	indexDocCountField := &modelprocessor.IndexDocCountField{}
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
 	publishReady := make(chan struct{})
 	g.Go(func() error {
 		defer close(publishReady)
-		err := s.waitReady(ctx, kibanaClient, indedDocCountField)
+		err := s.waitReady(ctx, kibanaClient, indexDocCountField)
 		return errors.Wrap(err, "error waiting for server to be ready")
 	})
 	callbackUUID, err := esoutput.RegisterConnectCallback(func(*eslegclient.Connection) error {
@@ -550,7 +550,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
 	batchProcessor := make(modelprocessor.Chained, 0, 4)
-	batchProcessor = append(batchProcessor, indedDocCountField)
+	batchProcessor = append(batchProcessor, indexDocCountField)
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
 		publisher,
 		newElasticsearchClient,
@@ -594,7 +594,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 }
 
 // waitReady waits until the server is ready to index events.
-func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client, indedDocCountField *modelprocessor.IndexDocCountField) error {
+func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client, indexDocCountField *modelprocessor.IndexDocCountField) error {
 	var preconditions []func(context.Context) error
 	var esOutputClient elasticsearch.Client
 	if s.elasticsearchOutputConfig != nil {
@@ -645,7 +645,7 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 				if err != nil {
 					return errors.Wrap(err, "failed to query cluster info")
 				}
-				indedDocCountField.SetESClusterVersion(clusterVersion)
+				indexDocCountField.SetESClusterVersion(clusterVersion)
 				return setClusterUUID(clusterUUID)
 			})
 		}
