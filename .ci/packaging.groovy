@@ -33,10 +33,10 @@ pipeline {
       when {
         beforeAgent true
         anyOf {
-          // TODO: test purposes
-          return true
           triggeredBy cause: "IssueCommentCause"
           expression {
+            // TODO: test purposes
+            return true
             def ret = isUserTrigger() || isUpstreamTrigger()
             if(!ret){
               currentBuild.result = 'NOT_BUILT'
