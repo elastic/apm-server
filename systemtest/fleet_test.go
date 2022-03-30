@@ -86,7 +86,8 @@ func TestFleetIntegrationBeatsMonitoring(t *testing.T) {
 				"toomany": 0.0,
 				"total":   float64(N),
 			},
-			"type": "elasticsearch",
+			"availableBulkIndexers": float64(10),
+			"type":                  "elasticsearch",
 			"write": map[string]interface{}{
 				"bytes": float64(10),
 			},
