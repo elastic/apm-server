@@ -49,6 +49,7 @@ var elasticsearchSupportsDocCount = common.MustNewVersion("7.11.0")
 func (i *IndexDocCountField) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	i.mu.RLock()
 	if i.version == nil {
+		i.mu.RUnlock()
 		return nil
 	}
 	version := *(i.version)
