@@ -240,7 +240,6 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 		case <-ctx.Done():
 			return ctx.Err()
 		case i.active = <-i.available:
-			// i.mu.RLock currently held
 			atomic.StoreInt64(&i.availableBulkIndexers, int64(len(i.available)))
 		}
 		if i.timer == nil {
@@ -345,7 +344,6 @@ func (i *Indexer) flushActive(ctx context.Context) error {
 	err := i.flush(ctx, bulkIndexer)
 	bulkIndexer.Reset()
 	i.available <- bulkIndexer
-	// i.mu.RLock currently held
 	atomic.StoreInt64(&i.availableBulkIndexers, int64(len(i.available)))
 	return err
 }
