@@ -730,6 +730,13 @@ func (s *serverRunner) newFinalBatchProcessor(
 		v.OnKey("total")
 		v.OnInt(stats.Added)
 	})
+	// TODO: Where do we want to put this metric?
+	monitoring.NewFunc(monitoring.Default, "libbeat.output", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		v.OnKey("available_indexers")
+		v.OnInt(indexer.Stats().AvailableBulkIndexers)
+	})
 	monitoring.NewFunc(monitoring.Default, "libbeat.pipeline.events", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
