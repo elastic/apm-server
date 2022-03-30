@@ -106,7 +106,8 @@ pipeline {
           }
           post {
             failure {
-              notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] package failed")
+              notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] package failed.",
+                           body: 'Contact the Productivity team [#observablt-robots] if you need further assistance.')
             }
           }
         }
@@ -130,7 +131,8 @@ pipeline {
             failure {
               notifyStatus(analyse: true,
                            file: "${BASE_DIR}/${env.DRA_OUTPUT}",
-                           subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed")
+                           subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed.",
+                           body: 'Contact the Release Platform team [#platform-release].')
             }
           }
         }
@@ -205,6 +207,7 @@ def notifyStatus(def args = [:]) {
   def releaseManagerFile = args.get('file', '')
   def analyse = args.get('analyse', false)
   def subject = args.get('subject', '')
+  def body = args.get('body', '')
   releaseManagerNotification(file: releaseManagerFile,
                              analyse: analyse,
                              slackChannel: "${env.SLACK_CHANNEL}",
@@ -212,7 +215,7 @@ def notifyStatus(def args = [:]) {
                              slackCredentialsId: 'jenkins-slack-integration-token',
                              to: "${env.NOTIFY_TO}",
                              subject: subject,
-                             body: "Build: (<${env.RUN_DISPLAY_URL}|here>)")
+                             body: "Build: (<${env.RUN_DISPLAY_URL}|here>).\n ${body}")
 }
 
 def runIfNoMainAndNoStaging(Closure body) {
