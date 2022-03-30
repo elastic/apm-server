@@ -24,7 +24,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"go.elastic.co/apm/module/apmelasticsearch"
+	"go.elastic.co/apm/module/apmelasticsearch/v2"
 
 	esv8 "github.com/elastic/go-elasticsearch/v8"
 	esapiv8 "github.com/elastic/go-elasticsearch/v8/esapi"

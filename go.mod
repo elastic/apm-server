@@ -34,12 +34,12 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	github.com/xeipuuv/gojsonschema v1.2.0
-	go.elastic.co/apm v1.15.0
-	go.elastic.co/apm/module/apmelasticsearch v1.15.0
-	go.elastic.co/apm/module/apmgorilla v1.15.0
-	go.elastic.co/apm/module/apmgrpc v1.15.0
-	go.elastic.co/apm/module/apmhttp v1.15.0
-	go.elastic.co/apm/module/apmzap v1.15.0
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.0.0
+	go.elastic.co/apm/module/apmgorilla/v2 v2.0.0
+	go.elastic.co/apm/module/apmgrpc/v2 v2.0.0
+	go.elastic.co/apm/module/apmhttp/v2 v2.0.0
+	go.elastic.co/apm/module/apmzap/v2 v2.0.0
+	go.elastic.co/apm/v2 v2.0.0
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/collector v0.44.0
 	go.opentelemetry.io/collector/model v0.44.0
@@ -77,6 +77,7 @@ require (
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210922110810-e6f1f402a9ed // indirect
+	github.com/elastic/elastic-agent-libs v0.1.1 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.1.0 // indirect
 	github.com/elastic/go-concert v0.2.0 // indirect
 	github.com/elastic/go-licenser v0.4.0 // indirect
@@ -158,6 +159,9 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
+	go.elastic.co/apm v1.11.0 // indirect
+	go.elastic.co/apm/module/apmelasticsearch v1.7.2 // indirect
+	go.elastic.co/apm/module/apmhttp v1.7.2 // indirect
 	go.elastic.co/ecszap v1.0.1 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.28.0 // indirect

@@ -24,8 +24,8 @@ import (
 	"encoding/json"
 	"io"
 
-	"go.elastic.co/apm/model"
-	"go.elastic.co/apm/transport"
+	"go.elastic.co/apm/v2/model"
+	"go.elastic.co/apm/v2/transport"
 	"go.elastic.co/fastjson"
 )
 

@@ -36,8 +36,8 @@ import (
 	"testing"
 	"time"
 
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/transport"
+	"go.elastic.co/apm/v2"
+	"go.elastic.co/apm/v2/transport"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -447,19 +447,20 @@ func (s *Server) Tracer() *apm.Tracer {
 	if err != nil {
 		s.tb.Fatal(err)
 	}
-	httpTransport, err := transport.NewHTTPTransport()
+	httpTransport, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{
+		ServerURLs:      []*url.URL{serverURL},
+		SecretToken:     s.Config.AgentAuth.SecretToken,
+		TLSClientConfig: s.TLS,
+	})
 	if err != nil {
 		s.tb.Fatal(err)
 	}
-	httpTransport.SetServerURL(serverURL)
-	httpTransport.SetSecretToken(s.Config.AgentAuth.SecretToken)
-	httpTransport.Client.Transport.(*http.Transport).TLSClientConfig = s.TLS
 
-	var transport transport.Transport = httpTransport
+	opts := apm.TracerOptions{Transport: httpTransport}
 	if s.EventMetadataFilter != nil {
-		transport = NewFilteringTransport(httpTransport, s.EventMetadataFilter)
+		opts.Transport = NewFilteringTransport(httpTransport, s.EventMetadataFilter)
 	}
-	tracer, err := apm.NewTracerOptions(apm.TracerOptions{Transport: transport})
+	tracer, err := apm.NewTracerOptions(opts)
 	if err != nil {
 		s.tb.Fatal(err)
 	}

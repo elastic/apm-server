@@ -23,7 +23,7 @@ import (
 	"io"
 	"sync"
 
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 
 	"github.com/pkg/errors"
 
