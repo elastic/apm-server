@@ -110,7 +110,7 @@ pipeline {
           post {
             failure {
               notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] package failed.",
-                           body: 'Contact the Productivity team if you need further assistance')
+                           body: 'Contact the Productivity team [#observablt-robots] if you need further assistance.')
             }
           }
         }
@@ -136,7 +136,7 @@ pipeline {
               notifyStatus(analyse: true,
                            file: "${BASE_DIR}/${env.DRA_OUTPUT}",
                            subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed.",
-                           body: 'Contact the Release Platform team')
+                           body: 'Contact the Release Platform team [#platform-release].')
             }
           }
         }
