@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@test/releaseManager') _
+@Library('apm@current') _
 
 pipeline {
   agent none
@@ -36,8 +36,6 @@ pipeline {
         anyOf {
           triggeredBy cause: "IssueCommentCause"
           expression {
-            // TODO: test purposes
-            return true
             def ret = isUserTrigger() || isUpstreamTrigger()
             if(!ret){
               currentBuild.result = 'NOT_BUILT'
@@ -64,22 +62,16 @@ pipeline {
             stash allowEmpty: true, name: 'source', useDefaultExcludes: false
             // set environment variables globally since they are used afterwards but GIT_BASE_COMMIT won't
             // be available until gitCheckout is executed.
-            //TODO: test purposes
-            //setEnvVar('URI_SUFFIX', "commits/${env.GIT_BASE_COMMIT}")
-            setEnvVar('URI_SUFFIX', "commits/a1531adc7407ff667a898c14c037bd4ec89127ba")
+            setEnvVar('URI_SUFFIX', "commits/${env.GIT_BASE_COMMIT}")
             // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
             setEnvVar('PATH_PREFIX', "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}")
-            // TODO: test purposes
-            //setEnvVar('IS_BRANCH_AVAILABLE', isBranchUnifiedReleaseAvailable(env.BRANCH_NAME))
-            setEnvVar('IS_BRANCH_AVAILABLE', true)
+            setEnvVar('IS_BRANCH_AVAILABLE', isBranchUnifiedReleaseAvailable(env.BRANCH_NAME))
             dir("${BASE_DIR}"){
               setEnvVar('VERSION', sh(label: 'Get version', script: 'make get-version', returnStdout: true)?.trim())
             }
           }
         }
         stage('Package') {
-          //TODO: test purposes
-          when { expression { return false } }
           options { skipDefaultCheckout() }
           matrix {
             agent {
@@ -172,14 +164,11 @@ def runReleaseManager(def args = [:]) {
   dir("${BASE_DIR}") {
     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
     sh(label: 'prepare-release-manager-artifacts', script: ".ci/scripts/prepare-release-manager.sh")
-    //TODO: for testing purposes
-    withEnv(["BRANCH_NAME=main"]){
     releaseManager(project: 'apm-server',
                    version: env.VERSION,
                    type: args.type,
                    artifactsFolder: 'build/distributions',
                    outputFile: args.outputFile)
-    }
   }
 }
 
@@ -238,9 +227,7 @@ def notifyStatus(def args = [:]) {
 }
 
 def runIfNoMainAndNoStaging(Closure body) {
-  // TODO: test purposes
-  //if (env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
-  if (env.TYPE == 'staging') {
+  if (env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
     echo 'INFO: staging artifacts for the main branch are not required.'
   } else {
     body()
