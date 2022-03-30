@@ -23,6 +23,7 @@ https://github.com/elastic/apm-server/compare/8.1\...main[View commits]
 - Updated intake v2 with support for `links` in `transaction` and `span` events {pull}7553[7553]
 - If an agent sends a transaction or span with type unspecified, the server now sets a default value of "unknown" {pull}7688[7688]
 - Content-Type and Content-Encoding are no longer required for intake {pull}7686[7686]
+- For OpenTelemetry exception span events, stack traces that cannot be parsed will now be stored in `event.stack_trace` {pull}7706[7706]
 
 [float]
 ==== Added

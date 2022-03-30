@@ -21,6 +21,9 @@
     - description: added field mapping for `url.original` to traces, rum_traces, app_logs, and error_logs
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/7698
+    - description: added field mapping for `error.stack_trace` to error_logs
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7706
 - version: "8.1.0"
   changes:
     - description: Added field mapping for `faas.coldstart` and `faas.trigger.type`
