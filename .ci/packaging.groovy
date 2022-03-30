@@ -134,7 +134,7 @@ pipeline {
             expression { return env.IS_BRANCH_AVAILABLE == "true" }
           }
           environment {
-            DRA_OUTPUT = 'release-manager-report.txt'
+            DRA_OUTPUT = 'release-manager.out'
           }
           steps {
             runReleaseManager(type: 'snapshot', outputFile: env.DRA_OUTPUT)
