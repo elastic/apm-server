@@ -128,9 +128,9 @@ pipeline {
             DRA_OUTPUT = 'release-manager-report.out'
           }
           steps {
-            releaseManager(type: 'snapshot', outputFile: env.DRA_OUTPUT)
+            runReleaseManager(type: 'snapshot', outputFile: env.DRA_OUTPUT)
             whenFalse(env.BRANCH_NAME.equals('main')) {
-              releaseManager(type: 'staging', outputFile: env.DRA_OUTPUT)
+              runReleaseManager(type: 'staging', outputFile: env.DRA_OUTPUT)
             }
           }
           post {
@@ -151,7 +151,7 @@ pipeline {
   }
 }
 
-def releaseManager(def args = [:]) {
+def runReleaseManager(def args = [:]) {
   deleteDir()
   unstash 'source'
   def bucketLocation = getBucketLocation(args.type)
