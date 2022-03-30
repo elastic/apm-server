@@ -750,6 +750,7 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 		model.ProcessBatchFunc(ecsVersionBatchProcessor),
 		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
 		&modelprocessor.SetDataStream{Namespace: s.namespace},
+		modelprocessor.SetUnknownSpanType{},
 	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{

@@ -23,6 +23,7 @@ import (
 	"net/http/pprof"
 	"regexp"
 
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -74,7 +75,8 @@ const (
 	FirehosePath = "/firehose"
 )
 
-// NewMux registers apm handlers to paths building up the APM Server API.
+// NewMux creates a new gorilla/mux router, with routes registered for handling the
+// APM Server API.
 func NewMux(
 	beatInfo beat.Info,
 	beaterConfig *config.Config,
@@ -85,10 +87,11 @@ func NewMux(
 	sourcemapFetcher sourcemap.Fetcher,
 	fleetManaged bool,
 	publishReady func() bool,
-) (*http.ServeMux, error) {
+) (*mux.Router, error) {
 	pool := request.NewContextPool()
-	mux := http.NewServeMux()
 	logger := logp.NewLogger(logs.Handler)
+	router := mux.NewRouter()
+	router.NotFoundHandler = pool.HTTPHandler(notFoundHandler)
 
 	builder := routeBuilder{
 		info:             beatInfo,
@@ -123,23 +126,23 @@ func NewMux(
 			return nil, err
 		}
 		logger.Infof("Path %s added to request handler", route.path)
-		mux.Handle(route.path, pool.HTTPHandler(h))
+		router.Handle(route.path, pool.HTTPHandler(h))
 	}
 	if beaterConfig.Expvar.Enabled {
 		path := beaterConfig.Expvar.URL
 		logger.Infof("Path %s added to request handler", path)
-		mux.Handle(path, http.HandlerFunc(debugVarsHandler))
+		router.Handle(path, http.HandlerFunc(debugVarsHandler))
 	}
 	if beaterConfig.Pprof.Enabled {
 		const path = "/debug/pprof"
 		logger.Infof("Path %s added to request handler", path)
-		mux.Handle(path+"/", http.HandlerFunc(pprof.Index))
-		mux.Handle(path+"/cmdline", http.HandlerFunc(pprof.Cmdline))
-		mux.Handle(path+"/profile", http.HandlerFunc(pprof.Profile))
-		mux.Handle(path+"/symbol", http.HandlerFunc(pprof.Symbol))
-		mux.Handle(path+"/trace", http.HandlerFunc(pprof.Trace))
+		router.Handle(path+"/", http.HandlerFunc(pprof.Index))
+		router.Handle(path+"/cmdline", http.HandlerFunc(pprof.Cmdline))
+		router.Handle(path+"/profile", http.HandlerFunc(pprof.Profile))
+		router.Handle(path+"/symbol", http.HandlerFunc(pprof.Symbol))
+		router.Handle(path+"/trace", http.HandlerFunc(pprof.Trace))
 	}
-	return mux, nil
+	return router, nil
 }
 
 type routeBuilder struct {
@@ -331,4 +334,9 @@ func rumRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.A
 		}
 		return e
 	}
+}
+
+func notFoundHandler(c *request.Context) {
+	c.Result.SetDefault(request.IDResponseErrorsNotFound)
+	c.Write()
 }

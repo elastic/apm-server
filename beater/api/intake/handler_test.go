@@ -153,6 +153,26 @@ func TestIntakeHandler(t *testing.T) {
 	}
 }
 
+func TestIntakeHandlerContentType(t *testing.T) {
+	for _, contentType := range []string{
+		"",
+		"application/x-ndjson",
+		"application/x-ndjson; charset=utf-8",
+	} {
+		tc := testcaseIntakeHandler{
+			path:        "errors.ndjson",
+			contentType: contentType,
+			code:        http.StatusAccepted,
+			id:          request.IDResponseValidAccepted,
+		}
+
+		tc.setup(t)
+		h := Handler(tc.processor, emptyRequestMetadata, tc.batchProcessor)
+		h(tc.c)
+		assert.Equal(t, tc.code, tc.w.Code, tc.c.Result.Err)
+	}
+}
+
 type testcaseIntakeHandler struct {
 	c              *request.Context
 	w              *httptest.ResponseRecorder
@@ -160,6 +180,7 @@ type testcaseIntakeHandler struct {
 	processor      *stream.Processor
 	batchProcessor model.BatchProcessor
 	path           string
+	contentType    string
 
 	code int
 	id   request.ResultID
@@ -179,12 +200,14 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 		require.NoError(t, err)
 
 		tc.r = httptest.NewRequest("POST", "/", bytes.NewBuffer(data))
-		tc.r.Header.Add("Content-Type", "application/x-ndjson")
 	}
 	q := tc.r.URL.Query()
 	q.Add("verbose", "")
 	tc.r.URL.RawQuery = q.Encode()
 	tc.r.Header.Add("Accept", "application/json")
+	if tc.contentType != "" {
+		tc.r.Header.Set("Content-Type", tc.contentType)
+	}
 
 	tc.w = httptest.NewRecorder()
 	tc.c = request.NewContext()
@@ -211,7 +234,6 @@ func compressedRequest(t *testing.T, compressionType string, compressPayload boo
 	}
 	require.NoError(t, err)
 	req := httptest.NewRequest(http.MethodPost, "/", &buf)
-	req.Header.Set(headers.ContentType, "application/x-ndjson")
 	req.Header.Set(headers.ContentEncoding, compressionType)
 	return req
 }
