@@ -887,7 +887,8 @@ func TestServerElasticsearchOutput(t *testing.T) {
 				"toomany": int64(0),
 				"total":   int64(5),
 			},
-			"type": "elasticsearch",
+			"availableBulkIndexers": int64(10),
+			"type":                  "elasticsearch",
 			"write": map[string]interface{}{
 				"bytes": int64(10),
 			},

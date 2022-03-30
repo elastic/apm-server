@@ -145,11 +145,12 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		available <- newBulkIndexer(client, cfg.CompressionLevel)
 	}
 	return &Indexer{
-		config:       cfg,
-		logger:       logger,
-		available:    available,
-		closed:       make(chan struct{}),
-		timerStopped: make(chan struct{}),
+		availableBulkIndexers: int64(len(available)),
+		config:                cfg,
+		logger:                logger,
+		available:             available,
+		closed:                make(chan struct{}),
+		timerStopped:          make(chan struct{}),
 	}, nil
 }
 

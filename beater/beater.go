@@ -713,6 +713,8 @@ func (s *serverRunner) newFinalBatchProcessor(
 	})
 	outputType := monitoring.NewString(monitoring.Default.GetRegistry("libbeat.output"), "type")
 	outputType.Set("elasticsearch")
+	availableBulkIndexers := monitoring.NewInt(monitoring.Default.GetRegistry("libbeat.output"), "availableBulkIndexers")
+	availableBulkIndexers.Set(indexer.Stats().AvailableBulkIndexers)
 	monitoring.NewFunc(monitoring.Default, "libbeat.output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
@@ -729,13 +731,6 @@ func (s *serverRunner) newFinalBatchProcessor(
 		v.OnInt(stats.TooManyRequests)
 		v.OnKey("total")
 		v.OnInt(stats.Added)
-	})
-	// TODO: Where do we want to put this metric?
-	monitoring.NewFunc(monitoring.Default, "libbeat.output", func(_ monitoring.Mode, v monitoring.Visitor) {
-		v.OnRegistryStart()
-		defer v.OnRegistryFinished()
-		v.OnKey("available_indexers")
-		v.OnInt(indexer.Stats().AvailableBulkIndexers)
 	})
 	monitoring.NewFunc(monitoring.Default, "libbeat.pipeline.events", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
