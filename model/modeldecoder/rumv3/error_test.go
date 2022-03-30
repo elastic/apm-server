@@ -47,6 +47,7 @@ func TestDecodeNestedError(t *testing.T) {
 		now := time.Now()
 		eventBase := initializedMetadata()
 		eventBase.Timestamp = now
+		eventBase.SetDocCount = true
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"e":{"id":"a-b-c","timestamp":1599996822281000,"log":{"mg":"abc"}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))

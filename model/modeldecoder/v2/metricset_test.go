@@ -46,6 +46,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		defaultVal := modeldecodertest.DefaultValues()
 		_, eventBase := initializedInputMetadata(defaultVal)
 		eventBase.Timestamp = now
+		eventBase.SetDocCount = true
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"metricset":{"timestamp":1599996822281000,"samples":{"a.b":{"value":2048}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))

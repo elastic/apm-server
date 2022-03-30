@@ -50,6 +50,7 @@ func TestDecodeNestedSpan(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		defaultVal := modeldecodertest.DefaultValues()
 		_, eventBase := initializedInputMetadata(defaultVal)
+		eventBase.SetDocCount = true
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"span":{"duration":100,"id":"a-b-c","name":"s","parent_id":"parent-123","trace_id":"trace-ab","type":"db","start":143}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))

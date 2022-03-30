@@ -30,9 +30,10 @@ import (
 
 func TestMetricset(t *testing.T) {
 	tests := []struct {
-		Metricset *Metricset
-		Output    common.MapStr
-		Msg       string
+		Metricset   *Metricset
+		Output      common.MapStr
+		Msg         string
+		setDocCount bool
 	}{
 		{
 			Metricset: &Metricset{},
@@ -64,9 +65,20 @@ func TestMetricset(t *testing.T) {
 				TimeseriesInstanceID: "foo",
 				DocCount:             6,
 			},
+			setDocCount: true,
 			Output: common.MapStr{
 				"timeseries": common.MapStr{"instance": "foo"},
 				"_doc_count": int64(6),
+			},
+			Msg: "Timeseries instance and _doc_count",
+		},
+		{
+			Metricset: &Metricset{
+				TimeseriesInstanceID: "foo",
+				DocCount:             6,
+			},
+			Output: common.MapStr{
+				"timeseries": common.MapStr{"instance": "foo"},
 			},
 			Msg: "Timeseries instance and _doc_count",
 		},
@@ -116,7 +128,7 @@ func TestMetricset(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		event := APMEvent{Metricset: test.Metricset}
+		event := APMEvent{Metricset: test.Metricset, SetDocCount: test.setDocCount}
 		outputEvent := event.BeatEvent(context.Background())
 		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}

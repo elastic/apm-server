@@ -49,6 +49,7 @@ func TestDecodeNestedError(t *testing.T) {
 		defaultVal := modeldecodertest.DefaultValues()
 		_, eventBase := initializedInputMetadata(defaultVal)
 		eventBase.Timestamp = now
+		eventBase.SetDocCount = true
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"error":{"id":"a-b-c","timestamp":1599996822281000,"log":{"message":"abc"}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
