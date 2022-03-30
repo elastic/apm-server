@@ -140,9 +140,10 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 		err := indexer.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
 	}
-	// Indexer has not been flushed, there is one active bulk indexer.
 	stats := indexer.Stats()
 	stats.BytesTotal = 0
+	// FlushBytes is set arbitrarily low, forcing a flush on each new
+	// event. There should be no available bulk indexers.
 	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkIndexers: 0}, stats)
 
 	wg.Add(-10)
