@@ -3,8 +3,19 @@
 
 https://github.com/elastic/apm-server/compare/7.16\...7.17[View commits]
 
+* <<release-notes-7.17.2>>
 * <<release-notes-7.17.1>>
 * <<release-notes-7.17.0>>
+
+[float]
+[[release-notes-7.17.2]]
+=== APM version 7.17.2
+
+https://github.com/elastic/apm-server/compare/v7.17.1\...v7.17.2[View commits]
+
+[float]
+==== Bug fixes
+- modelindexer: Fix indexing performance regression due to locking bug {pull}7649[7649]
 
 [float]
 [[release-notes-7.17.1]]
