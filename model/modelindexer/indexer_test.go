@@ -28,6 +28,7 @@ import (
 	"net/http/httptest"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -90,7 +91,8 @@ func TestModelIndexer(t *testing.T) {
 		err := indexer.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
 	}
-	assert.Equal(t, modelindexer.Stats{Added: N, Active: N}, indexer.Stats())
+	// Indexer has not been flushed, there is one active bulk indexer.
+	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkIndexers: 9}, indexer.Stats())
 
 	// Closing the indexer flushes enqueued events.
 	err = indexer.Close(context.Background())
@@ -99,14 +101,61 @@ func TestModelIndexer(t *testing.T) {
 	assert.GreaterOrEqual(t, stats.BytesTotal, int64(18500))
 	stats.BytesTotal = 0
 	assert.Equal(t, modelindexer.Stats{
-		Added:           N,
-		Active:          0,
-		BulkRequests:    1,
-		Failed:          2,
-		Indexed:         N - 2,
-		TooManyRequests: 1,
+		Added:                 N,
+		Active:                0,
+		BulkRequests:          1,
+		Failed:                2,
+		Indexed:               N - 2,
+		TooManyRequests:       1,
+		AvailableBulkIndexers: 10,
 	}, stats)
 	assert.Equal(t, "observability", productOriginHeader)
+}
+
+func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
+	var wg sync.WaitGroup
+	wg.Add(10)
+	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		// Wait until signaled to service requests
+		wg.Wait()
+		_, result := decodeBulkRequest(r.Body)
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		json.NewEncoder(w).Encode(result)
+	})
+	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute, FlushBytes: 1})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	const N = 10
+	for i := 0; i < N; i++ {
+		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+			Type:      "logs",
+			Dataset:   "apm_server",
+			Namespace: "testing",
+		}}}
+		// TODO: There's a race between hitting the limit `FlushBytes`
+		// and switching to the new active bulk indexer, hence the
+		// sleep between batches to allow this swap.
+		time.Sleep(50 * time.Millisecond)
+		err := indexer.ProcessBatch(context.Background(), &batch)
+		require.NoError(t, err)
+	}
+	// Indexer has not been flushed, there is one active bulk indexer.
+	stats := indexer.Stats()
+	stats.BytesTotal = 0
+	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkIndexers: 0}, stats)
+
+	wg.Add(-10)
+	err = indexer.Close(context.Background())
+	require.NoError(t, err)
+	stats = indexer.Stats()
+	stats.BytesTotal = 0
+	assert.Equal(t, modelindexer.Stats{
+		Added:                 N,
+		BulkRequests:          N,
+		Indexed:               N,
+		AvailableBulkIndexers: 10,
+	}, stats)
 }
 
 func TestModelIndexerEncoding(t *testing.T) {
@@ -187,12 +236,13 @@ func TestModelIndexerCompressionLevel(t *testing.T) {
 	// have some flexibility here.
 	stats.BytesTotal = 0
 	assert.Equal(t, modelindexer.Stats{
-		Added:           1,
-		Active:          0,
-		BulkRequests:    1,
-		Failed:          0,
-		Indexed:         1,
-		TooManyRequests: 0,
+		Added:                 1,
+		Active:                0,
+		BulkRequests:          1,
+		Failed:                0,
+		Indexed:               1,
+		TooManyRequests:       0,
+		AvailableBulkIndexers: 10,
 	}, stats)
 }
 
@@ -296,10 +346,11 @@ func TestModelIndexerServerError(t *testing.T) {
 	assert.GreaterOrEqual(t, stats.BytesTotal, int64(185))
 	stats.BytesTotal = 0
 	assert.Equal(t, modelindexer.Stats{
-		Added:        1,
-		Active:       0,
-		BulkRequests: 1,
-		Failed:       1,
+		Added:                 1,
+		Active:                0,
+		BulkRequests:          1,
+		Failed:                1,
+		AvailableBulkIndexers: 10,
 	}, stats)
 }
 
@@ -326,11 +377,12 @@ func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
 	assert.GreaterOrEqual(t, stats.BytesTotal, int64(185))
 	stats.BytesTotal = 0
 	assert.Equal(t, modelindexer.Stats{
-		Added:           1,
-		Active:          0,
-		BulkRequests:    1,
-		Failed:          1,
-		TooManyRequests: 1,
+		Added:                 1,
+		Active:                0,
+		BulkRequests:          1,
+		Failed:                1,
+		TooManyRequests:       1,
+		AvailableBulkIndexers: 10,
 	}, stats)
 }
 

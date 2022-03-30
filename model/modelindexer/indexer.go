@@ -68,13 +68,14 @@ var ErrClosed = errors.New("model indexer closed")
 // Up to `config.MaxRequests` bulk requests may be flushing/active concurrently, to allow the
 // server to make progress encoding while Elasticsearch is busy servicing flushed bulk requests.
 type Indexer struct {
-	bulkRequests    int64
-	eventsAdded     int64
-	eventsActive    int64
-	eventsFailed    int64
-	eventsIndexed   int64
-	tooManyRequests int64
-	bytesTotal      int64
+	bulkRequests          int64
+	eventsAdded           int64
+	eventsActive          int64
+	eventsFailed          int64
+	eventsIndexed         int64
+	tooManyRequests       int64
+	bytesTotal            int64
+	availableBulkIndexers int64
 
 	config    Config
 	logger    *logp.Logger
@@ -187,13 +188,14 @@ func (i *Indexer) Close(ctx context.Context) error {
 // Stats returns the bulk indexing stats.
 func (i *Indexer) Stats() Stats {
 	return Stats{
-		Added:           atomic.LoadInt64(&i.eventsAdded),
-		Active:          atomic.LoadInt64(&i.eventsActive),
-		BulkRequests:    atomic.LoadInt64(&i.bulkRequests),
-		Failed:          atomic.LoadInt64(&i.eventsFailed),
-		Indexed:         atomic.LoadInt64(&i.eventsIndexed),
-		TooManyRequests: atomic.LoadInt64(&i.tooManyRequests),
-		BytesTotal:      atomic.LoadInt64(&i.bytesTotal),
+		Added:                 atomic.LoadInt64(&i.eventsAdded),
+		Active:                atomic.LoadInt64(&i.eventsActive),
+		BulkRequests:          atomic.LoadInt64(&i.bulkRequests),
+		Failed:                atomic.LoadInt64(&i.eventsFailed),
+		Indexed:               atomic.LoadInt64(&i.eventsIndexed),
+		TooManyRequests:       atomic.LoadInt64(&i.tooManyRequests),
+		BytesTotal:            atomic.LoadInt64(&i.bytesTotal),
+		AvailableBulkIndexers: atomic.LoadInt64(&i.availableBulkIndexers),
 	}
 }
 
@@ -237,6 +239,8 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 		case <-ctx.Done():
 			return ctx.Err()
 		case i.active = <-i.available:
+			// i.mu.RLock currently held
+			atomic.StoreInt64(&i.availableBulkIndexers, int64(len(i.available)))
 		}
 		if i.timer == nil {
 			i.timer = time.NewTimer(i.config.FlushInterval)
@@ -340,6 +344,8 @@ func (i *Indexer) flushActive(ctx context.Context) error {
 	err := i.flush(ctx, bulkIndexer)
 	bulkIndexer.Reset()
 	i.available <- bulkIndexer
+	// i.mu.RLock currently held
+	atomic.StoreInt64(&i.availableBulkIndexers, int64(len(i.available)))
 	return err
 }
 
@@ -473,4 +479,8 @@ type Stats struct {
 
 	// BytesTotal represents the total number of bytes that
 	BytesTotal int64
+
+	// AvailableBulkIndexers represents the number of bulk indexers
+	// available for making bulk index requests.
+	AvailableBulkIndexers int64
 }
