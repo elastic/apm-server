@@ -14,6 +14,5 @@ Not all features of the OpenTracing API are supported. In addition, there are so
 * {apm-go-ref}/opentracing.html[Go agent]
 * {apm-java-ref}/opentracing-bridge.html[Java agent]
 * {apm-node-ref}/opentracing.html[Node.js agent]
-* {apm-py-ref}/opentracing-bridge.html[Python agent]
 * {apm-ruby-ref}/opentracing.html[Ruby agent]
 * {apm-rum-ref}/opentracing.html[JavaScript Real User Monitoring (RUM) agent]
