@@ -6,8 +6,8 @@ pipeline {
   environment {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
-    SLACK_CHANNEL = '#apm-server'
-    NOTIFY_TO = 'build-apm+apm-server@elastic.co'
+    SLACK_CHANNEL = 'UJ2J1AZV2'
+    NOTIFY_TO = 'victor.martinez+apm-server@elastic.co'
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
@@ -167,11 +167,14 @@ def runReleaseManager(def args = [:]) {
     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
     getVaultSecret.readSecretWrapper {
       sh(label: 'prepare-release-manager-artifacts', script: ".ci/scripts/prepare-release-manager.sh")
+      //TODO: for testing purposes
+      withEnv(["BRANCH_NAME=main"]){
       releaseManager(project: 'apm-server',
                      version: env.VERSION,
                      type: args.type,
                      artifactsFolder: 'build/distributions',
                      outputFile: args.outputFile)
+      }
     }
   }
 }
