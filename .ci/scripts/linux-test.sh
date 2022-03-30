@@ -14,9 +14,7 @@ trap cleanup EXIT
 make update apm-server
 
 # Start docker-compose environment first, so it doesn't count towards the test timeout.
-which docker-compose
-${PYTHON_ENV}/build/ve/linux/bin/docker-compose up -d
-export PATH=$PATH:${PYTHON_ENV}/build/ve/linux/bin
+docker-compose up -d
 
 OUTPUT_DIR="$(pwd)/build"
 OUTPUT_JSON_FILE="$OUTPUT_DIR/TEST-go-system_tests.out.json"
