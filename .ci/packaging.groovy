@@ -33,6 +33,8 @@ pipeline {
       when {
         beforeAgent true
         anyOf {
+          // TODO: test purposes
+          return true
           triggeredBy cause: "IssueCommentCause"
           expression {
             def ret = isUserTrigger() || isUpstreamTrigger()
@@ -64,7 +66,9 @@ pipeline {
             setEnvVar('URI_SUFFIX', "commits/${env.GIT_BASE_COMMIT}")
             // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
             setEnvVar('PATH_PREFIX', "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}")
-            setEnvVar('IS_BRANCH_AVAILABLE', isBranchUnifiedReleaseAvailable(env.BRANCH_NAME))
+            // TODO: test purposes
+            //setEnvVar('IS_BRANCH_AVAILABLE', isBranchUnifiedReleaseAvailable(env.BRANCH_NAME))
+            setEnvVar('IS_BRANCH_AVAILABLE', true)
             dir("${BASE_DIR}"){
               setEnvVar('VERSION', sh(label: 'Get version', script: 'make get-version', returnStdout: true)?.trim())
             }
@@ -222,7 +226,9 @@ def notifyStatus(def args = [:]) {
 }
 
 def runIfNoMainAndNoStaging(Closure body) {
-  if (env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
+  // TODO: test purposes
+  //if (env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
+  if (env.TYPE == 'staging') {
     echo 'INFO: staging artifacts for the main branch are not required.'
   } else {
     body()
