@@ -46,15 +46,15 @@ func (i *IndexDocCountField) SetESClusterVersion(version *common.Version) {
 var elasticsearchSupportsDocCount = common.MustNewVersion("7.11.0")
 
 // ProcessBatch sets whether the APMEvent should include _doc_comment on metricsets.
-func (id *IndexDocCountField) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	id.mu.RLock()
-	if id.version == nil {
+func (i *IndexDocCountField) ProcessBatch(ctx context.Context, b *model.Batch) error {
+	i.mu.RLock()
+	if i.version == nil {
 		return nil
 	}
-	version := *(id.version)
-	id.mu.RUnlock()
-	for i := range *b {
-		(&(*b)[i]).SetDocCount = !version.LessThan(elasticsearchSupportsDocCount)
+	version := *(i.version)
+	i.mu.RUnlock()
+	for j := range *b {
+		(&(*b)[j]).SetDocCount = !version.LessThan(elasticsearchSupportsDocCount)
 	}
 	return nil
 }
