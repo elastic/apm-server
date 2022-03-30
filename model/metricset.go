@@ -133,11 +133,11 @@ func (a *AggregatedDuration) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (me *Metricset) setFields(fields *mapStr) {
+func (me *Metricset) setFields(fields *mapStr, setDocCount bool) {
 	if me.TimeseriesInstanceID != "" {
 		fields.set("timeseries", common.MapStr{"instance": me.TimeseriesInstanceID})
 	}
-	if me.DocCount > 0 {
+	if me.DocCount > 0 && setDocCount {
 		fields.set("_doc_count", me.DocCount)
 	}
 	fields.maybeSetString("metricset.name", me.Name)

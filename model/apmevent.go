@@ -80,6 +80,9 @@ type APMEvent struct {
 	Metricset     *Metricset
 	Error         *Error
 	ProfileSample *ProfileSample
+
+	// SetDocCount tracks if it should set _doc_count on metricset
+	SetDocCount bool
 }
 
 // BeatEvent converts e to a beat.Event.
@@ -95,7 +98,7 @@ func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
 		e.Span.setFields((*mapStr)(&event.Fields), e)
 	}
 	if e.Metricset != nil {
-		e.Metricset.setFields((*mapStr)(&event.Fields))
+		e.Metricset.setFields((*mapStr)(&event.Fields), e.SetDocCount)
 	}
 	if e.Error != nil {
 		e.Error.setFields((*mapStr)(&event.Fields))
