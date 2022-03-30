@@ -171,16 +171,14 @@ def runReleaseManager(def args = [:]) {
                         pathPrefix: "${env.PATH_PREFIX}/${args.type}")
   dir("${BASE_DIR}") {
     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-    getVaultSecret.readSecretWrapper {
-      sh(label: 'prepare-release-manager-artifacts', script: ".ci/scripts/prepare-release-manager.sh")
-      //TODO: for testing purposes
-      withEnv(["BRANCH_NAME=main"]){
-      releaseManager(project: 'apm-server',
-                     version: env.VERSION,
-                     type: args.type,
-                     artifactsFolder: 'build/distributions',
-                     outputFile: args.outputFile)
-      }
+    sh(label: 'prepare-release-manager-artifacts', script: ".ci/scripts/prepare-release-manager.sh")
+    //TODO: for testing purposes
+    withEnv(["BRANCH_NAME=main"]){
+    releaseManager(project: 'apm-server',
+                   version: env.VERSION,
+                   type: args.type,
+                   artifactsFolder: 'build/distributions',
+                   outputFile: args.outputFile)
     }
   }
 }
