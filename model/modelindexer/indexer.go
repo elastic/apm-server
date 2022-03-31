@@ -240,7 +240,7 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 		case <-ctx.Done():
 			return ctx.Err()
 		case i.active = <-i.available:
-			atomic.StoreInt64(&i.availableBulkRequests, int64(len(i.available)))
+			atomic.AddInt64(&i.availableBulkRequests, -1)
 		}
 		if i.timer == nil {
 			i.timer = time.NewTimer(i.config.FlushInterval)
@@ -344,7 +344,7 @@ func (i *Indexer) flushActive(ctx context.Context) error {
 	err := i.flush(ctx, bulkIndexer)
 	bulkIndexer.Reset()
 	i.available <- bulkIndexer
-	atomic.StoreInt64(&i.availableBulkRequests, int64(len(i.available)))
+	atomic.AddInt64(&i.availableBulkRequests, 1)
 	return err
 }
 
