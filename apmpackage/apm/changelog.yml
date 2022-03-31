@@ -1,6 +1,11 @@
 # newer versions go on top
 #
 # change type can be one of: enhancement, bugfix, breaking-change
+- version: "7.17.3"
+  changes:
+    - description: Placeholder.
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/<placeholder>
 - version: "7.17.2"
   changes:
     - description: added field mapping for `url.original` to traces, rum_traces, app_logs, and error_logs
