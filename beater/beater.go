@@ -165,7 +165,7 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 
 	// add deprecation warning if running on a 32-bit system
 	if runtime.GOARCH == "386" {
-		bt.logger.Warn("deprecated target architecture: 32-bit systems support will be removed")
+		bt.logger.Warn("deprecation notice: support for 32-bit system target architecture will be removed in an upcoming version")
 	}
 
 	reloader := reloader{
