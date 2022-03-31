@@ -55,7 +55,9 @@ func (i *IndexDocCountField) ProcessBatch(ctx context.Context, b *model.Batch) e
 	version := *(i.version)
 	i.mu.RUnlock()
 	for j := range *b {
-		(&(*b)[j]).SetDocCount = !version.LessThan(elasticsearchSupportsDocCount)
+		if (&(*b)[j]).Metricset != nil && version.LessThan(elasticsearchSupportsDocCount) {
+			(&(*b)[j]).Metricset.DocCount = 0
+		}
 	}
 	return nil
 }

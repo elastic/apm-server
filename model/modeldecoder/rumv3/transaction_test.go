@@ -48,7 +48,6 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		now := time.Now()
 		eventBase := initializedMetadata()
 		eventBase.Timestamp = now
-		eventBase.SetDocCount = true
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"ysc":{"v":5}},"y":{"t":"span_type","su":"span_subtype"}}]}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))

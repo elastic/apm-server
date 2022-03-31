@@ -202,7 +202,6 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		defaultVal := modeldecodertest.DefaultValues()
 		input, out := initializedInputMetadata(defaultVal)
 		out.Timestamp = defaultVal.Time
-		out.SetDocCount = true
 
 		// iterate through model and assert values are set
 		modeldecodertest.AssertStructValues(t, &out, isMetadataException, defaultVal)
@@ -216,7 +215,6 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.Reset()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		out.Timestamp = otherVal.Time
-		out.SetDocCount = false
 		mapToMetadataModel(&input, &out)
 		modeldecodertest.AssertStructValues(t, &out, isMetadataException, otherVal)
 
@@ -233,7 +231,6 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		defaultVal := modeldecodertest.DefaultValues()
 		input, out1 := initializedInputMetadata(defaultVal)
 		out1.Timestamp = defaultVal.Time
-		out1.SetDocCount = true
 
 		// iterate through model and assert values are set
 		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)
@@ -251,7 +248,6 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		out2.Host.IP = defaultVal.IP
 		out2.Client.IP = defaultVal.IP
 		out2.Source.IP = defaultVal.IP
-		out2.SetDocCount = false
 		modeldecodertest.AssertStructValues(t, &out2, isMetadataException, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)
 	})
