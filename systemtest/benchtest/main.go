@@ -18,7 +18,9 @@
 package benchtest
 
 import (
+	"context"
 	"crypto/tls"
+	"embed"
 	"errors"
 	"fmt"
 	"log"
@@ -34,6 +36,12 @@ import (
 
 	"go.elastic.co/apm/stacktrace"
 )
+
+const waitInactiveTimeout = 30 * time.Second
+
+// events holds the current stored events.
+//go:embed events/*.ndjson
+var events embed.FS
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
 type BenchmarkFunc func(*testing.B)
@@ -56,6 +64,7 @@ func runBenchmark(f func(b *testing.B)) (testing.BenchmarkResult, bool, error) {
 			ok = !b.Failed()
 			return
 		}
+		b.ResetTimer()
 		f(b)
 		for !b.Failed() {
 			if err := queryExpvar(&after); err != nil {
@@ -80,6 +89,10 @@ func addExpvarMetrics(result testing.BenchmarkResult, before, after expvar) {
 	result.MemBytes = after.MemStats.TotalAlloc - before.MemStats.TotalAlloc
 	result.Bytes = after.UncompressedBytes - before.UncompressedBytes
 	result.Extra["events/sec"] = float64(after.TotalEvents-before.TotalEvents) / result.T.Seconds()
+	result.Extra["txs/sec"] = float64(after.TransactionsProcessed-before.TransactionsProcessed) / result.T.Seconds()
+	result.Extra["spans/sec"] = float64(after.SpansProcessed-before.SpansProcessed) / result.T.Seconds()
+	result.Extra["metrics/sec"] = float64(after.MetricsProcessed-before.MetricsProcessed) / result.T.Seconds()
+	result.Extra["errors/sec"] = float64(after.ErrorsProcessed-before.ErrorsProcessed) / result.T.Seconds()
 
 	// Record the number of error responses returned by the server: lower is better.
 	errorResponsesAfter := after.ErrorElasticResponses + after.ErrorOTLPTracesResponses + after.ErrorOTLPMetricsResponses
@@ -165,6 +178,20 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 			if n := len(fullBenchmarkName(benchmark.name, agents)); n > maxLen {
 				maxLen = n
 			}
+		}
+	}
+
+	// Warmup the APM Server before beggining the benchmarks.
+	if h, err := newEventHandler(`.*.ndjson`); err == nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+		if err := h.WarmUpServer(ctx, *warmupEvents); err != nil {
+			return fmt.Errorf("failed warming up apm-server: %w", err)
+		}
+		ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
+		defer cancel()
+		if err := WaitUntilServerInactive(ctx); err != nil {
+			return fmt.Errorf("received error waiting for server inactive: %w", err)
 		}
 	}
 

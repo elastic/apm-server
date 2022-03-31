@@ -26,3 +26,6 @@ if [ -x "$(command -v docker)" ]; then
   (retry 2 docker pull "${image}") || echo "Error pulling ${image} Docker image, we continue"
   done
 fi
+
+# To fetch all the required toolchain (docker images) that might change overtime
+make release-manager-snapshot || true
