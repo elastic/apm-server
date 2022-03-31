@@ -75,7 +75,7 @@ type Indexer struct {
 	eventsIndexed         int64
 	tooManyRequests       int64
 	bytesTotal            int64
-	availableBulkIndexers int64
+	availableBulkRequests int64
 
 	config    Config
 	logger    *logp.Logger
@@ -145,7 +145,7 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		available <- newBulkIndexer(client, cfg.CompressionLevel)
 	}
 	return &Indexer{
-		availableBulkIndexers: int64(len(available)),
+		availableBulkRequests: int64(len(available)),
 		config:                cfg,
 		logger:                logger,
 		available:             available,
@@ -196,7 +196,7 @@ func (i *Indexer) Stats() Stats {
 		Indexed:               atomic.LoadInt64(&i.eventsIndexed),
 		TooManyRequests:       atomic.LoadInt64(&i.tooManyRequests),
 		BytesTotal:            atomic.LoadInt64(&i.bytesTotal),
-		AvailableBulkIndexers: atomic.LoadInt64(&i.availableBulkIndexers),
+		AvailableBulkRequests: atomic.LoadInt64(&i.availableBulkRequests),
 	}
 }
 
@@ -240,7 +240,7 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 		case <-ctx.Done():
 			return ctx.Err()
 		case i.active = <-i.available:
-			atomic.StoreInt64(&i.availableBulkIndexers, int64(len(i.available)))
+			atomic.StoreInt64(&i.availableBulkRequests, int64(len(i.available)))
 		}
 		if i.timer == nil {
 			i.timer = time.NewTimer(i.config.FlushInterval)
@@ -344,7 +344,7 @@ func (i *Indexer) flushActive(ctx context.Context) error {
 	err := i.flush(ctx, bulkIndexer)
 	bulkIndexer.Reset()
 	i.available <- bulkIndexer
-	atomic.StoreInt64(&i.availableBulkIndexers, int64(len(i.available)))
+	atomic.StoreInt64(&i.availableBulkRequests, int64(len(i.available)))
 	return err
 }
 
@@ -481,5 +481,5 @@ type Stats struct {
 
 	// AvailableBulkIndexers represents the number of bulk indexers
 	// available for making bulk index requests.
-	AvailableBulkIndexers int64
+	AvailableBulkRequests int64
 }

@@ -92,7 +92,7 @@ func TestModelIndexer(t *testing.T) {
 		require.NoError(t, err)
 	}
 	// Indexer has not been flushed, there is one active bulk indexer.
-	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkIndexers: 9}, indexer.Stats())
+	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 9}, indexer.Stats())
 
 	// Closing the indexer flushes enqueued events.
 	err = indexer.Close(context.Background())
@@ -107,7 +107,7 @@ func TestModelIndexer(t *testing.T) {
 		Failed:                2,
 		Indexed:               N - 2,
 		TooManyRequests:       1,
-		AvailableBulkIndexers: 10,
+		AvailableBulkRequests: 10,
 	}, stats)
 	assert.Equal(t, "observability", productOriginHeader)
 }
@@ -144,7 +144,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	stats.BytesTotal = 0
 	// FlushBytes is set arbitrarily low, forcing a flush on each new
 	// event. There should be no available bulk indexers.
-	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkIndexers: 0}, stats)
+	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 0}, stats)
 
 	wg.Add(-10)
 	err = indexer.Close(context.Background())
@@ -155,7 +155,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 		Added:                 N,
 		BulkRequests:          N,
 		Indexed:               N,
-		AvailableBulkIndexers: 10,
+		AvailableBulkRequests: 10,
 	}, stats)
 }
 
@@ -243,7 +243,7 @@ func TestModelIndexerCompressionLevel(t *testing.T) {
 		Failed:                0,
 		Indexed:               1,
 		TooManyRequests:       0,
-		AvailableBulkIndexers: 10,
+		AvailableBulkRequests: 10,
 	}, stats)
 }
 
@@ -351,7 +351,7 @@ func TestModelIndexerServerError(t *testing.T) {
 		Active:                0,
 		BulkRequests:          1,
 		Failed:                1,
-		AvailableBulkIndexers: 10,
+		AvailableBulkRequests: 10,
 	}, stats)
 }
 
@@ -383,7 +383,7 @@ func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
 		BulkRequests:          1,
 		Failed:                1,
 		TooManyRequests:       1,
-		AvailableBulkIndexers: 10,
+		AvailableBulkRequests: 10,
 	}, stats)
 }
 

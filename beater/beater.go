@@ -713,8 +713,8 @@ func (s *serverRunner) newFinalBatchProcessor(
 	})
 	outputType := monitoring.NewString(monitoring.Default.GetRegistry("libbeat.output"), "type")
 	outputType.Set("elasticsearch")
-	availableBulkIndexers := monitoring.NewInt(monitoring.Default.GetRegistry("libbeat.output"), "availableBulkIndexers")
-	availableBulkIndexers.Set(indexer.Stats().AvailableBulkIndexers)
+	availableBulkIndexers := monitoring.NewInt(monitoring.Default.GetRegistry("libbeat.output"), "available_bulk_requests")
+	availableBulkIndexers.Set(indexer.Stats().AvailableBulkRequests)
 	monitoring.NewFunc(monitoring.Default, "libbeat.output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
