@@ -476,7 +476,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 		// Lowest version of elasticsearch that supports _doc_count being added by
 		// apm-server.
 		elasticsearchSupportsDocCount := common.MustNewVersion("7.11.0")
-		if esClusterVersion != nil && esClusterVersion.LessThan(elasticsearchSupportsDocCount) {
+		if s.elasticsearchOutputConfig != nil && esClusterVersion != nil && esClusterVersion.LessThan(elasticsearchSupportsDocCount) {
 			placeholderBatchProcessor.Set(modelprocessor.UnsetIndexDocCountField{})
 		}
 		return nil
