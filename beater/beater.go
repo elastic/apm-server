@@ -469,8 +469,12 @@ func (s *serverRunner) run(listener net.Listener) error {
 	publishReady := make(chan struct{})
 	g.Go(func() error {
 		defer close(publishReady)
-		err := s.waitReady(ctx, kibanaClient, indexDocCountField)
-		return errors.Wrap(err, "error waiting for server to be ready")
+		esClusterVersion, err := s.waitReady(ctx, kibanaClient)
+		if err != nil {
+			return errors.Wrap(err, "error waiting for server to be ready")
+		}
+		indexDocCountField.SetESClusterVersion(esClusterVersion)
+		return nil
 	})
 	callbackUUID, err := esoutput.RegisterConnectCallback(func(*eslegclient.Connection) error {
 		select {
@@ -594,18 +598,19 @@ func (s *serverRunner) run(listener net.Listener) error {
 }
 
 // waitReady waits until the server is ready to index events.
-func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client, indexDocCountField *modelprocessor.IndexDocCountField) error {
+func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client) (*common.Version, error) {
 	var preconditions []func(context.Context) error
+	var esClusterVersion *common.Version
 	var esOutputClient elasticsearch.Client
 	if s.elasticsearchOutputConfig != nil {
 		esConfig := elasticsearch.DefaultConfig()
 		err := s.elasticsearchOutputConfig.Unpack(&esConfig)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		esOutputClient, err = elasticsearch.NewClient(esConfig)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -645,7 +650,7 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 				if err != nil {
 					return errors.Wrap(err, "failed to query cluster info")
 				}
-				indexDocCountField.SetESClusterVersion(clusterVersion)
+				esClusterVersion = clusterVersion
 				return setClusterUUID(clusterUUID)
 			})
 		}
@@ -656,7 +661,7 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 	fleetManaged := s.beat.Manager != nil && s.beat.Manager.Enabled()
 	if !fleetManaged && s.config.DataStreams.Enabled && s.config.DataStreams.WaitForIntegration {
 		if kibanaClient == nil && esOutputClient == nil {
-			return errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
+			return nil, errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
 		}
 		preconditions = append(preconditions, func(ctx context.Context) error {
 			return checkIntegrationInstalled(ctx, kibanaClient, esOutputClient, s.logger)
@@ -664,7 +669,7 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 	}
 
 	if len(preconditions) == 0 {
-		return nil
+		return nil, nil
 	}
 	check := func(ctx context.Context) error {
 		for _, pre := range preconditions {
@@ -674,7 +679,7 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 		}
 		return nil
 	}
-	return waitReady(ctx, s.config.WaitReadyInterval, s.tracer, s.logger, check)
+	return esClusterVersion, waitReady(ctx, s.config.WaitReadyInterval, s.tracer, s.logger, check)
 }
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
