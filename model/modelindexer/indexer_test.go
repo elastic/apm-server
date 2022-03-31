@@ -28,7 +28,6 @@ import (
 	"net/http/httptest"
 	"runtime"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -113,11 +112,10 @@ func TestModelIndexer(t *testing.T) {
 }
 
 func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
-	var wg sync.WaitGroup
-	wg.Add(10)
+	unblockRequests := make(chan struct{})
 	client := newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
 		// Wait until signaled to service requests
-		wg.Wait()
+		<-unblockRequests
 		_, result := decodeBulkRequest(r.Body)
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		json.NewEncoder(w).Encode(result)
@@ -142,7 +140,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	// event. There should be no available bulk indexers.
 	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 0}, stats)
 
-	wg.Add(-10)
+	close(unblockRequests)
 	err = indexer.Close(context.Background())
 	require.NoError(t, err)
 	stats = indexer.Stats()
