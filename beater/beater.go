@@ -549,7 +549,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	}
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
-	batchProcessor := make(modelprocessor.Chained, 0, 4)
+	var batchProcessor modelprocessor.Chained
 	batchProcessor = append(batchProcessor, indexDocCountField)
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
 		publisher,
