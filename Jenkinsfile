@@ -445,11 +445,6 @@ pipeline {
               anyOf {
                 branch 'main'
                 branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-<<<<<<< HEAD
-                branch pattern: '\\d+\\.x', comparator: 'REGEXP'
-                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
-=======
->>>>>>> 9b6fc026 (jjbb: remove tags and update branches (#7747))
                 expression { return isPR() && env.BEATS_UPDATED != "false" }
                 expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
                 expression { return params.Run_As_Main_Branch }

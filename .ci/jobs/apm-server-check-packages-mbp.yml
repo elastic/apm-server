@@ -21,11 +21,7 @@
                 name: 'main'
                 case-sensitive: true
             - regex-name:
-<<<<<<< HEAD
-                regex: '7\.1\d'
-=======
                 regex: '7\.17'
->>>>>>> 9b6fc026 (jjbb: remove tags and update branches (#7747))
                 case-sensitive: true
             - regex-name:
                 regex: '8\.\d+'
