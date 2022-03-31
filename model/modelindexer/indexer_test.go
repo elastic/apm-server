@@ -133,10 +133,6 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 			Dataset:   "apm_server",
 			Namespace: "testing",
 		}}}
-		// TODO: There's a race between hitting the limit `FlushBytes`
-		// and switching to the new active bulk indexer, hence the
-		// sleep between batches to allow this swap.
-		time.Sleep(50 * time.Millisecond)
 		err := indexer.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
 	}

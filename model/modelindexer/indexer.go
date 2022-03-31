@@ -86,6 +86,7 @@ type Indexer struct {
 	closing      bool
 	closed       chan struct{}
 	activeMu     sync.Mutex
+	activeCond   *sync.Cond
 	active       *bulkIndexer
 	timer        *time.Timer
 	timerStopped chan struct{}
@@ -144,14 +145,16 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 	for i := 0; i < cfg.MaxRequests; i++ {
 		available <- newBulkIndexer(client, cfg.CompressionLevel)
 	}
-	return &Indexer{
+	indexer := &Indexer{
 		availableBulkRequests: int64(len(available)),
 		config:                cfg,
 		logger:                logger,
 		available:             available,
 		closed:                make(chan struct{}),
 		timerStopped:          make(chan struct{}),
-	}, nil
+	}
+	indexer.activeCond = sync.NewCond(&indexer.activeMu)
+	return indexer, nil
 }
 
 // Close closes the indexer, first flushing any queued events.
@@ -235,6 +238,11 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 
 	i.activeMu.Lock()
 	defer i.activeMu.Unlock()
+	for i.active != nil && i.active.Len() >= i.config.FlushBytes {
+		// The active bulk indexer is full: wait for it to be
+		// switched out by the background flushActive goroutine.
+		i.activeCond.Wait()
+	}
 	if i.active == nil {
 		select {
 		case <-ctx.Done():
@@ -340,6 +348,7 @@ func (i *Indexer) flushActive(ctx context.Context) error {
 	i.activeMu.Lock()
 	bulkIndexer := i.active
 	i.active = nil
+	i.activeCond.Broadcast()
 	i.activeMu.Unlock()
 	err := i.flush(ctx, bulkIndexer)
 	bulkIndexer.Reset()
