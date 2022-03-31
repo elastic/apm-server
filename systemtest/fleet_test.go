@@ -87,7 +87,7 @@ func TestFleetIntegrationBeatsMonitoring(t *testing.T) {
 				"total":   float64(N),
 			},
 			"bulk_requests": map[string]interface{}{
-				"available": float64(9),
+				"available": float64(10),
 				"completed": 1.0,
 			},
 			"type": "elasticsearch",
