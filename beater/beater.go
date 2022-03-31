@@ -463,7 +463,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	}
 
 	g, ctx := errgroup.WithContext(s.runServerContext)
-	indexDocCountField := &modelprocessor.IndexDocCountField{}
+	placeholderBatchProcessor := new(modelprocessor.Placeholder)
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
 	publishReady := make(chan struct{})
@@ -473,7 +473,12 @@ func (s *serverRunner) run(listener net.Listener) error {
 		if err != nil {
 			return errors.Wrap(err, "error waiting for server to be ready")
 		}
-		indexDocCountField.SetESClusterVersion(esClusterVersion)
+		// Lowest version of elasticsearch that supports _doc_count being added by
+		// apm-server.
+		elasticsearchSupportsDocCount := common.MustNewVersion("7.11.0")
+		if esClusterVersion != nil && esClusterVersion.LessThan(elasticsearchSupportsDocCount) {
+			placeholderBatchProcessor.Set(modelprocessor.UnsetIndexDocCountField{})
+		}
 		return nil
 	})
 	callbackUUID, err := esoutput.RegisterConnectCallback(func(*eslegclient.Connection) error {
@@ -554,7 +559,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
 	var batchProcessor modelprocessor.Chained
-	batchProcessor = append(batchProcessor, indexDocCountField)
+	batchProcessor = append(batchProcessor, placeholderBatchProcessor)
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
 		publisher,
 		newElasticsearchClient,
