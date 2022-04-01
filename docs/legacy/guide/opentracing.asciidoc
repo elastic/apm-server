@@ -16,7 +16,8 @@ Not all features of the OpenTracing API are supported, and there are some Elasti
 * {apm-go-ref-v}/opentracing.html[Go agent]
 * {apm-java-ref-v}/opentracing-bridge.html[Java agent]
 * {apm-node-ref-v}/opentracing.html[Node.js agent]
-* {apm-py-ref-v}/opentelemetry-bridge.html[Python agent]
+// * {apm-py-ref-v}/opentelemetry-bridge.html[Python agent]
+* https://www.elastic.co/guide/en/apm/agent/python/6.x/opentelemetry-bridge.html[Python agent]
 * {apm-ruby-ref-v}/opentracing.html[Ruby agent]
 * {apm-rum-ref-v}/opentracing.html[JavaScript Real User Monitoring (RUM) agent]
 
