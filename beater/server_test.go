@@ -685,6 +685,123 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 	}
 }
 
+func TestServerElasticsearchDoesNotSupportDocCount(t *testing.T) {
+	var mu sync.Mutex
+	var tracesRequests int
+	tracesRequestsCh := make(chan int)
+	bulkCh := make(chan struct{}, 1)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		// We must send a valid JSON response for the libbeat
+		// elasticsearch client to send bulk requests.
+		fmt.Fprintln(w, `{"cluster_uuid": "abc123", "version":{"number":"8.0.0"}}`)
+	})
+	mux.HandleFunc("/_index_template/", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		template := path.Base(r.URL.Path)
+		if template == "traces-apm" {
+			tracesRequests++
+			if tracesRequests == 1 {
+				w.WriteHeader(404)
+			}
+			tracesRequestsCh <- tracesRequests
+		}
+	})
+	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("bulk request received")
+		bts, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		fmt.Println(string(bts))
+		select {
+		case bulkCh <- struct{}{}:
+		default:
+		}
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	// TODO: How to enable aggregation so DocCount is set on incoming
+	// documents?
+	cfg := common.MustNewConfigFrom(map[string]interface{}{
+		"data_streams.enabled":             true,
+		"wait_ready_interval":              "100ms",
+		"aggregation.transactions.enabled": true,
+	})
+	var beatConfig beat.BeatConfig
+	err := beatConfig.Output.Unpack(common.MustNewConfigFrom(map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"hosts":       []string{srv.URL},
+			"backoff":     map[string]interface{}{"init": "10ms", "max": "10ms"},
+			"max_retries": 1000,
+		},
+	}))
+	require.NoError(t, err)
+
+	beater, err := setupServer(t, cfg, &beatConfig, nil)
+	require.NoError(t, err)
+
+	metricsets, err := ioutil.ReadFile("../testdata/intake-v2/metricsets.ndjson")
+	if err != nil {
+		t.Fatalf("Failed to read test data: %v", err)
+	}
+	req, err := http.NewRequest(http.MethodPost, beater.baseURL+api.IntakePath, bytes.NewReader(metricsets))
+	if err != nil {
+		t.Fatalf("Failed to create test request object: %v", err)
+	}
+
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	resp, err := beater.client.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
+	resp.Body.Close()
+
+	// Healthcheck should report that the server is not publish-ready.
+	resp, err = beater.client.Get(beater.baseURL + api.RootPath)
+	require.NoError(t, err)
+	out := decodeJSONMap(t, resp.Body)
+	resp.Body.Close()
+	assert.Equal(t, false, out["publish_ready"])
+
+	// Indexing should be blocked until we receive from tracesRequestsCh.
+	select {
+	case <-bulkCh:
+		t.Fatal("unexpected bulk request")
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	timeout := time.After(10 * time.Second)
+	var done bool
+	for !done {
+		select {
+		case n := <-tracesRequestsCh:
+			done = n == 2
+		case <-timeout:
+			t.Fatal("timed out waiting for request")
+		}
+	}
+
+	// libbeat should keep retrying, and finally succeed now it is unblocked.
+	select {
+	case <-bulkCh:
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for bulk request")
+	}
+
+	logs := beater.logs.FilterMessageSnippet("please install the apm integration")
+	assert.Len(t, logs.All(), 1, "coundn't find remediation message logs")
+
+	// Healthcheck should now report that the server is publish-ready.
+	resp, err = beater.client.Get(beater.baseURL + api.RootPath)
+	require.NoError(t, err)
+	out = decodeJSONMap(t, resp.Body)
+	resp.Body.Close()
+	assert.Equal(t, true, out["publish_ready"])
+}
+
 func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	var mu sync.Mutex
 	var tracesRequests int
