@@ -887,10 +887,6 @@ func TestServerElasticsearchOutput(t *testing.T) {
 				"toomany": int64(0),
 				"total":   int64(5),
 			},
-			"bulk_requests": map[string]interface{}{
-				"available": int64(9),
-				"completed": int64(0),
-			},
 			"type": "elasticsearch",
 			"write": map[string]interface{}{
 				"bytes": int64(10),
@@ -899,6 +895,15 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		"pipeline": map[string]interface{}{
 			"events": map[string]interface{}{
 				"total": int64(5),
+			},
+		},
+	}, snapshot)
+	snapshot = monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("output"), monitoring.Full, false)
+	assert.Equal(t, map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"bulk_requests": map[string]interface{}{
+				"available": int64(9),
+				"completed": int64(0),
 			},
 		},
 	}, snapshot)
