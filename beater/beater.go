@@ -163,6 +163,11 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		defer tracer.Close()
 	}
 
+	// add deprecation warning if running on a 32-bit system
+	if runtime.GOARCH == "386" {
+		bt.logger.Warn("deprecation notice: support for 32-bit system target architecture will be removed in an upcoming version")
+	}
+
 	reloader := reloader{
 		runServerContext: ctx,
 		args: sharedServerRunnerParams{
@@ -750,6 +755,7 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 		model.ProcessBatchFunc(ecsVersionBatchProcessor),
 		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
 		&modelprocessor.SetDataStream{Namespace: s.namespace},
+		modelprocessor.SetUnknownSpanType{},
 	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{

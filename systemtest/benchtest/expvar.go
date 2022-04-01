@@ -18,6 +18,7 @@
 package benchtest
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"runtime"
@@ -46,6 +47,10 @@ type expvar struct {
 type ElasticResponseStats struct {
 	TotalElasticResponses int64 `json:"apm-server.server.response.count"`
 	ErrorElasticResponses int64 `json:"apm-server.server.response.errors.count"`
+	TransactionsProcessed int64 `json:"apm-server.processor.transaction.transformations"`
+	SpansProcessed        int64 `json:"apm-server.processor.span.transformations"`
+	MetricsProcessed      int64 `json:"apm-server.processor.metric.transformations"`
+	ErrorsProcessed       int64 `json:"apm-server.processor.error.transformations"`
 }
 
 type OTLPResponseStats struct {
@@ -73,4 +78,23 @@ func queryExpvar(out *expvar) error {
 	}
 	defer resp.Body.Close()
 	return json.NewDecoder(resp.Body).Decode(out)
+}
+
+// WaitUntilServerInactive blocks until one of the conditions occurs:
+// * APM Server is inactive (has no "active" events on the output buffer).
+// * HTTP call returns with an error
+// * Context is done.
+func WaitUntilServerInactive(ctx context.Context) error {
+	result := expvar{LibbeatStats: LibbeatStats{ActiveEvents: 1}}
+	for result.ActiveEvents > 0 {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			if err := queryExpvar(&result); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

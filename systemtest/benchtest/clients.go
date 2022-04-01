@@ -20,12 +20,15 @@ package benchtest
 import (
 	"context"
 	"crypto/tls"
+	"path/filepath"
 	"testing"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	"github.com/elastic/apm-server/systemtest/benchtest/eventhandler"
 
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/transport"
@@ -90,4 +93,25 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 	}
 	tb.Cleanup(func() { exporter.Shutdown(context.Background()) })
 	return exporter
+}
+
+// NewEventHandler creates a eventhandler which loads the files matching the
+// passed regex.
+func NewEventHandler(tb testing.TB, p string) *eventhandler.Handler {
+	h, err := newEventHandler(p)
+	if err != nil {
+		tb.Fatal(err)
+	}
+	return h
+}
+
+func newEventHandler(p string) (*eventhandler.Handler, error) {
+	// We call the HTTPTransport constructor to avoid copying all the config
+	// parsing that creates the `*http.Client`.
+	t, err := transport.NewHTTPTransport()
+	if err != nil {
+		return nil, err
+	}
+	transp := eventhandler.NewTransport(t.Client, serverURL.String(), *secretToken)
+	return eventhandler.New(filepath.Join("events", p), transp, events, *warmupEvents)
 }
