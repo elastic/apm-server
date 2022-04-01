@@ -66,6 +66,9 @@ pipeline {
             // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
             setEnvVar('PATH_PREFIX', "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}")
             setEnvVar('IS_BRANCH_AVAILABLE', isBranchUnifiedReleaseAvailable(env.BRANCH_NAME))
+            dir("${BASE_DIR}"){
+              setEnvVar('VERSION', sh(label: 'Get version', script: 'make get-version', returnStdout: true)?.trim())
+            }
           }
         }
         stage('Package') {
@@ -123,12 +126,12 @@ pipeline {
             expression { return env.IS_BRANCH_AVAILABLE == "true" }
           }
           environment {
-            DRA_OUTPUT = 'release-manager-report.out'
+            DRA_OUTPUT = 'release-manager.out'
           }
           steps {
-            releaseManager(type: 'snapshot')
+            runReleaseManager(type: 'snapshot', outputFile: env.DRA_OUTPUT)
             whenFalse(env.BRANCH_NAME.equals('main')) {
-              releaseManager(type: 'staging')
+              runReleaseManager(type: 'staging', outputFile: env.DRA_OUTPUT)
             }
           }
           post {
@@ -150,7 +153,7 @@ pipeline {
   }
 }
 
-def releaseManager(def args = [:]) {
+def runReleaseManager(def args = [:]) {
   deleteDir()
   unstash 'source'
   def bucketLocation = getBucketLocation(args.type)
@@ -160,11 +163,12 @@ def releaseManager(def args = [:]) {
                         pathPrefix: "${env.PATH_PREFIX}/${args.type}")
   dir("${BASE_DIR}") {
     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-    script {
-      getVaultSecret.readSecretWrapper {
-        sh(label: 'release-manager.sh', script: ".ci/scripts/release-manager.sh ${args.type} | tee ${env.DRA_OUTPUT}")
-      }
-    }
+    sh(label: 'prepare-release-manager-artifacts', script: ".ci/scripts/prepare-release-manager.sh")
+    releaseManager(project: 'apm-server',
+                   version: env.VERSION,
+                   type: args.type,
+                   artifactsFolder: 'build/distributions',
+                   outputFile: args.outputFile)
   }
 }
 
