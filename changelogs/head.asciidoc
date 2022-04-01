@@ -10,6 +10,10 @@ https://github.com/elastic/apm-server/compare/8.1\...main[View commits]
 - APM Server no longer ships with SystemV init scripts or the go-daemon wrapper; use systemd {pull}7576[7576]
 
 [float]
+==== Deprecations
+- Deprecation of APM Server support for 32-bit architecture {pull}7678[7678]
+
+[float]
 ==== Bug fixes
 - Do not overwrite `service version` if no transaction/error/... specific `service.name` is given {pull}7281[7281]
 - Set transaction name to "<method> unknown route" for unknown HTTP routes, in APM Server instrumentation {pull}7679[7679]
