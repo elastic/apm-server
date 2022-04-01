@@ -59,7 +59,7 @@ func TestFleetIntegration(t *testing.T) {
 	)
 }
 
-func TestFleetIntegrationBeatsMonitoring(t *testing.T) {
+func TestFleetIntegrationMonitoring(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	apmIntegration := newAPMIntegration(t, nil)
 
@@ -74,6 +74,7 @@ func TestFleetIntegrationBeatsMonitoring(t *testing.T) {
 
 	var metrics struct {
 		Libbeat map[string]interface{}
+		Output  map[string]interface{}
 	}
 	apmIntegration.getBeatsMonitoringStats(t, &metrics)
 	assert.Equal(t, map[string]interface{}{
@@ -97,6 +98,14 @@ func TestFleetIntegrationBeatsMonitoring(t *testing.T) {
 			},
 		},
 	}, metrics.Libbeat)
+	assert.Equal(t, map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"bulk_requests": map[string]interface{}{
+				"available": float64(10),
+				"completed": 1.0,
+			},
+		},
+	}, metrics.Output)
 }
 
 func TestFleetIntegrationAnonymousAuth(t *testing.T) {
