@@ -386,7 +386,6 @@ pipeline {
                 branch 'main'
                 branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
                 branch pattern: 'v\\d?', comparator: 'REGEXP'
-                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
                 expression { return params.Run_As_Main_Branch }
               }
               expression { return params.bench_ci }
@@ -446,8 +445,6 @@ pipeline {
               anyOf {
                 branch 'main'
                 branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-                branch pattern: '\\d+\\.x', comparator: 'REGEXP'
-                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
                 expression { return isPR() && env.BEATS_UPDATED != "false" }
                 expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
                 expression { return params.Run_As_Main_Branch }
