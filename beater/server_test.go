@@ -898,6 +898,15 @@ func TestServerElasticsearchOutput(t *testing.T) {
 			},
 		},
 	}, snapshot)
+	snapshot = monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("output"), monitoring.Full, false)
+	assert.Equal(t, map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"bulk_requests": map[string]interface{}{
+				"available": int64(9),
+				"completed": int64(0),
+			},
+		},
+	}, snapshot)
 }
 
 type chanClient struct {
