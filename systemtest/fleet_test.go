@@ -156,7 +156,7 @@ func newAPMIntegration(t testing.TB, vars map[string]interface{}) apmIntegration
 
 	// Enroll an elastic-agent to run the APM integration.
 	var output bytes.Buffer
-	agent, err := systemtest.NewUnstartedElasticAgentContainer()
+	agent, err := systemtest.NewUnstartedElasticAgentContainer(systemtest.ContainerConfig{})
 	require.NoError(t, err)
 	agent.Stdout = &output
 	agent.Stderr = &output
