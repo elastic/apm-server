@@ -326,9 +326,9 @@ func TestServerNoContentType(t *testing.T) {
 
 	req := makeTransactionRequest(t, apm.baseURL)
 	rsp, err := apm.client.Do(req)
-	if assert.NoError(t, err) {
-		assert.Equal(t, http.StatusBadRequest, rsp.StatusCode, body(t, rsp))
-	}
+	require.NoError(t, err)
+	defer rsp.Body.Close()
+	assert.Equal(t, http.StatusAccepted, rsp.StatusCode)
 }
 
 func TestServerSourcemapElasticsearch(t *testing.T) {
@@ -895,6 +895,15 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		"pipeline": map[string]interface{}{
 			"events": map[string]interface{}{
 				"total": int64(5),
+			},
+		},
+	}, snapshot)
+	snapshot = monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("output"), monitoring.Full, false)
+	assert.Equal(t, map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"bulk_requests": map[string]interface{}{
+				"available": int64(9),
+				"completed": int64(0),
 			},
 		},
 	}, snapshot)

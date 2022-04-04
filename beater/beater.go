@@ -163,6 +163,11 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		defer tracer.Close()
 	}
 
+	// add deprecation warning if running on a 32-bit system
+	if runtime.GOARCH == "386" {
+		bt.logger.Warn("deprecation notice: support for 32-bit system target architecture will be removed in an upcoming version")
+	}
+
 	reloader := reloader{
 		runServerContext: ctx,
 		args: sharedServerRunnerParams{
@@ -736,6 +741,16 @@ func (s *serverRunner) newFinalBatchProcessor(
 		v.OnKey("total")
 		v.OnInt(indexer.Stats().Added)
 	})
+	monitoring.Default.Remove("output")
+	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.bulk_requests", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		stats := indexer.Stats()
+		v.OnKey("available")
+		v.OnInt(stats.AvailableBulkRequests)
+		v.OnKey("completed")
+		v.OnInt(stats.BulkRequests)
+	})
 	return indexer, indexer.Close, nil
 }
 
@@ -753,6 +768,7 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
 		serviceCounter,
 		&modelprocessor.SetDataStream{Namespace: s.namespace},
+		modelprocessor.SetUnknownSpanType{},
 	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{

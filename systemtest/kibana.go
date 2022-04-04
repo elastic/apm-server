@@ -20,13 +20,15 @@ package systemtest
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -56,6 +58,8 @@ var (
 
 	// IntegrationPackage holds the "apm" integration package details.
 	IntegrationPackage *fleettest.Package
+
+	integrationPackageVersion string
 )
 
 func init() {
@@ -67,6 +71,22 @@ func init() {
 	u.User = url.UserPassword(adminKibanaUser, adminKibanaPass)
 	KibanaURL = u
 	Fleet = fleettest.NewClient(KibanaURL.String())
+
+	// Identify the integration package version in build/integrations/apm.
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		log.Fatal("could not locate systemtest directory")
+	}
+	systemtestDir := filepath.Dir(filename)
+	apmIntegrationBuildDir := filepath.Join(systemtestDir, "..", "build", "integrations", "apm")
+	entries, err := os.ReadDir(apmIntegrationBuildDir)
+	if err != nil {
+		log.Fatalf("error reading build/integrations/apm (run `make build-package`?): %s", err)
+	}
+	if n := len(entries); n != 1 {
+		log.Fatalf("expected 1 entry in build/integrations/apm, got %d (run `make build-package`?)", n)
+	}
+	integrationPackageVersion = entries[0].Name()
 }
 
 // InitFleet ensures Fleet is set up, destroys any existing agent policies previously
@@ -95,40 +115,11 @@ func InitFleet() error {
 // sets IntegrationPackage to the install package. InitFleetPackage assumes
 // that Fleet has been set up already.
 func InitFleetPackage(reinstall bool) error {
-	packages, err := Fleet.ListPackages()
+	err := Fleet.InstallPackage("apm", integrationPackageVersion)
 	if err != nil {
 		return err
 	}
-	for _, pkg := range packages {
-		if pkg.Name != "apm" {
-			continue
-		}
-		// ListPackages does not return all package details,
-		// so we call Package to get them.
-		IntegrationPackage, err = Fleet.Package(pkg.Name, pkg.Version)
-		if err != nil {
-			return err
-		}
-		if IntegrationPackage.Status == "installed" {
-			if !reinstall {
-				return nil
-			}
-			if err := Fleet.DeletePackage(pkg.Name, pkg.Version); err != nil {
-				return fmt.Errorf(
-					"failed to delete package %s-%s: %w",
-					pkg.Name, pkg.Version, err,
-				)
-			}
-		}
-		break
-	}
-	if IntegrationPackage == nil {
-		return errors.New("could not find package 'apm'")
-	}
-	if err := Fleet.InstallPackage(IntegrationPackage.Name, IntegrationPackage.Version); err != nil {
-		return err
-	}
-	IntegrationPackage, err = Fleet.Package(IntegrationPackage.Name, IntegrationPackage.Version)
+	IntegrationPackage, err = Fleet.Package("apm", integrationPackageVersion)
 	return err
 }
 
