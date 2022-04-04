@@ -12,8 +12,8 @@
         discover-pr-forks-strategy: merge-current
         discover-pr-forks-trust: permission
         discover-pr-origin: merge-current
-        discover-tags: true
-        head-filter-regex: '(main|6\.8|7\.1[6789]|8\.\d+|PR-.*|v[0-9].*)'
+        discover-tags: false
+        head-filter-regex: '(main|7\.17|8\.\d+|PR-.*)'
         notification-context: 'apm-ci'
         repo: apm-server
         repo-owner: elastic
@@ -21,9 +21,6 @@
         ssh-checkout:
           credentials: f6c7695a-671e-4f4f-a331-acdce44ff9ba
         build-strategies:
-        - tags:
-            ignore-tags-older-than: -1
-            ignore-tags-newer-than: -1
         - regular-branches: true
         - change-request:
             ignore-target-only-changes: false
