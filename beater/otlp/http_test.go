@@ -120,10 +120,7 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 		actual[key] = value
 	})
 	assert.Equal(t, map[string]interface{}{
-		// In the request we send above,
-		// the metrics do not have a type and so
-		// we treat them as unsupported metrics.
-		"consumer.unsupported_dropped": int64(1),
+		"consumer.unsupported_dropped": int64(0),
 
 		"request.count":                int64(1),
 		"response.count":               int64(1),
