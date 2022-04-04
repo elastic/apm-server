@@ -19,6 +19,7 @@ package modelprocessor
 
 import (
 	"context"
+	"sync"
 
 	"github.com/elastic/apm-server/model"
 )
@@ -26,16 +27,21 @@ import (
 // Placeholder calls the underlying BatchProcessor. If no BatchProcessor is
 // set, it is a no-op.
 type Placeholder struct {
+	mu sync.RWMutex
 	bp model.BatchProcessor
 }
 
 // Set sets the underlying BatchProcessor on Placeholder.
 func (p *Placeholder) Set(bp model.BatchProcessor) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.bp = bp
 }
 
 // ProcessBatch calls the undeerlying BatchProcessor, if set.
 func (p *Placeholder) ProcessBatch(ctx context.Context, batch *model.Batch) error {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
 	if p.bp != nil {
 		return p.bp.ProcessBatch(ctx, batch)
 	}
