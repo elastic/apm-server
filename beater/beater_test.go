@@ -44,6 +44,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
@@ -64,12 +65,18 @@ type testBeater struct {
 	client     *http.Client
 }
 
-func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*testBeater, error) {
+func setupServer(
+	t *testing.T,
+	cfg *common.Config,
+	beatConfig *beat.BeatConfig,
+	events chan beat.Event,
+	batchProcessors ...model.BatchProcessor,
+) (*testBeater, error) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
 	apmBeat, cfg := newBeat(t, cfg, beatConfig, events)
-	return setupBeater(t, apmBeat, cfg, beatConfig)
+	return setupBeater(t, apmBeat, cfg, beatConfig, batchProcessors...)
 }
 
 func newBeat(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*beat.Beat, *common.Config) {
@@ -132,8 +139,9 @@ func setupBeater(
 	apmBeat *beat.Beat,
 	ucfg *common.Config,
 	beatConfig *beat.BeatConfig,
+	batchProcessors ...model.BatchProcessor,
 ) (*testBeater, error) {
-	tb, err := newTestBeater(t, apmBeat, ucfg, beatConfig)
+	tb, err := newTestBeater(t, apmBeat, ucfg, beatConfig, batchProcessors...)
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +165,7 @@ func newTestBeater(
 	apmBeat *beat.Beat,
 	ucfg *common.Config,
 	beatConfig *beat.BeatConfig,
+	batchProcessors ...model.BatchProcessor,
 ) (*testBeater, error) {
 
 	core, observedLogs := observer.New(zapcore.DebugLevel)
@@ -167,7 +176,8 @@ func newTestBeater(
 	createBeater := NewCreator(CreatorParams{
 		Logger: logger,
 		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
-			var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+			var processor model.BatchProcessor
+			processor = model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 				for i := range *batch {
 					event := &(*batch)[i]
 					if event.Processor != model.TransactionProcessor {
@@ -180,7 +190,11 @@ func newTestBeater(
 					}
 					event.Labels["wrapped_reporter"] = true
 				}
+
 				return nil
+			})
+			if batchProcessors != nil {
+				processor = append(modelprocessor.Chained{processor}, batchProcessors...)
 			}
 			return WrapRunServerWithProcessors(runServer, processor)
 		},
