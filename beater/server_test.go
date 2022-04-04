@@ -777,6 +777,7 @@ func TestServerElasticsearchDoesNotSupportDocCount(t *testing.T) {
 		}
 	}
 
+	time.Sleep(100 * time.Millisecond)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	resp, err := beater.client.Do(req)
 	assert.NoError(t, err)
