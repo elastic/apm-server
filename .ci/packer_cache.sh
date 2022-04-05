@@ -40,8 +40,8 @@ if docker version >/dev/null ; then
   set -e
   echo "Change ownership of all files inside the specific folder from root/root to current user/group"
   set -x
-  docker run -v "$(pwd)":/beat ${DOCKER_IMAGE} sh -c "find /beat -user 0 -exec chown -h $(id -u):$(id -g) {} \;"
+  docker run -v "$(pwd)":/beat ${DOCKER_IMAGE} sh -c "find /beat -user 0 -exec chown -h $(id -u):$(id -g) {} \;" || true
 fi
 
 echo "Change permissions with write access of all files"
-chmod -R +w .
+chmod -R +w . || true
