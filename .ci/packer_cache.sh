@@ -27,7 +27,7 @@ if [ -x "$(command -v docker)" ]; then
   done
 fi
 
-echo "Fetch all the required toolchain (docker images) that might change overtime"
+echo "Fetch all the required toolchain (docker images) that might change over time"
 make release-manager-snapshot || true
 
 if docker version >/dev/null ; then
