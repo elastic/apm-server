@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220401113721-7e22a97892a8
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220405015957-e999979b268e
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-elasticsearch/v8 v8.1.0
