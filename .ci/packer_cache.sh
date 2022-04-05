@@ -27,5 +27,21 @@ if [ -x "$(command -v docker)" ]; then
   done
 fi
 
-# To fetch all the required toolchain (docker images) that might change overtime
+echo "Fetch all the required toolchain (docker images) that might change over time"
 make release-manager-snapshot || true
+
+if docker version >/dev/null ; then
+  ## Detect architecture to support ARM specific docker images.
+  ARCH=$(uname -m| tr '[:upper:]' '[:lower:]')
+  DOCKER_IMAGE=alpine:3.4
+  if [ "${ARCH}" == "aarch64" ] ; then
+    DOCKER_IMAGE=arm64v8/alpine:3
+  fi
+  set -e
+  echo "Change ownership of all files inside the specific folder from root/root to current user/group"
+  set -x
+  docker run -v "$(pwd)":/beat ${DOCKER_IMAGE} sh -c "find /beat -user 0 -exec chown -h $(id -u):$(id -g) {} \;" || true
+fi
+
+echo "Change permissions with write access of all files"
+chmod -R +w . || true

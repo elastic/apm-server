@@ -163,7 +163,7 @@ def runReleaseManager(def args = [:]) {
                         pathPrefix: "${env.PATH_PREFIX}/${args.type}")
   dir("${BASE_DIR}") {
     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-    sh(label: 'prepare-release-manager-artifacts', script: ".ci/scripts/prepare-release-manager.sh")
+    sh(label: "prepare-release-manager-artifacts ${args.type}", script: ".ci/scripts/prepare-release-manager.sh ${args.type}")
     releaseManager(project: 'apm-server',
                    version: env.VERSION,
                    type: args.type,

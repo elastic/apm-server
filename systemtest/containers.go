@@ -334,8 +334,12 @@ func (c *ElasticsearchContainer) Close() error {
 	return c.container.Terminate(context.Background())
 }
 
+type ContainerConfig struct {
+	Name string
+}
+
 // NewUnstartedElasticAgentContainer returns a new ElasticAgentContainer.
-func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
+func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentContainer, error) {
 	// Create a testcontainer.ContainerRequest to run Elastic Agent.
 	// We pull some configuration from the Kibana docker-compose service,
 	// such as the Docker network to use.
@@ -385,6 +389,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	}
 
 	req := testcontainers.ContainerRequest{
+		Name:       opts.Name,
 		Image:      agentImage,
 		AutoRemove: true,
 		Networks:   networks,

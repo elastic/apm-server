@@ -41,17 +41,21 @@ var (
 	force            bool
 	reinstallPackage bool
 	keep             bool
+	background       bool
 	policyName       string
 	namespace        string
+	containerName    string
 	vars             = make(varsFlag)
 )
 
 func init() {
 	flag.StringVar(&policyName, "policy", "runapm", "Agent policy name")
 	flag.StringVar(&namespace, "namespace", "default", "Agent policy namespace")
+	flag.StringVar(&containerName, "name", "", "Docker container name to use, defaults to random")
 	flag.BoolVar(&force, "f", false, "Force agent policy creation, deleting existing policy if found")
 	flag.BoolVar(&reinstallPackage, "reinstall", true, "Reinstall APM integration package")
 	flag.BoolVar(&keep, "keep", false, "If true, agent policy and agent will not be destroyed on exit")
+	flag.BoolVar(&background, "d", false, "If true, runapm will exit after the agent container has been started")
 	flag.Var(vars, "var", "Define a package var (k=v), with values being YAML-encoded; can be specified more than once")
 }
 
@@ -115,7 +119,8 @@ func Main() error {
 	if err := systemtest.Fleet.CreatePackagePolicy(packagePolicy); err != nil {
 		return err
 	}
-	if !keep {
+	reap := !keep || !background
+	if reap {
 		defer func() {
 			log.Println("Destroying agent policy")
 			if err := systemtest.DestroyAgentPolicy(agentPolicy.ID); err != nil {
@@ -125,13 +130,15 @@ func Main() error {
 	}
 
 	log.Println("Creating Elastic Agent container")
-	agent, err := systemtest.NewUnstartedElasticAgentContainer()
+	agent, err := systemtest.NewUnstartedElasticAgentContainer(systemtest.ContainerConfig{
+		Name: containerName,
+	})
 	if err != nil {
 		return err
 	}
 	agent.Reap = !keep
 	agent.FleetEnrollmentToken = key.APIKey
-	if !keep {
+	if reap {
 		defer func() {
 			log.Println("Terminating agent")
 			agent.Close()
@@ -149,6 +156,9 @@ func Main() error {
 	serverURL := &url.URL{Scheme: "http", Host: agent.Addrs["8200"]}
 	log.Printf("Elastic Agent container started")
 	log.Printf(" - APM Server listening on %s", serverURL)
+	if background {
+		return nil
+	}
 	_, err = agent.Wait(context.Background())
 	return err
 }
