@@ -44,6 +44,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
@@ -64,12 +65,18 @@ type testBeater struct {
 	client     *http.Client
 }
 
-func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*testBeater, error) {
+func setupServer(
+	t *testing.T,
+	cfg *common.Config,
+	beatConfig *beat.BeatConfig,
+	events chan beat.Event,
+	batchProcessors ...model.BatchProcessor,
+) (*testBeater, error) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
 	apmBeat, cfg := newBeat(t, cfg, beatConfig, events)
-	return setupBeater(t, apmBeat, cfg, beatConfig)
+	return setupBeater(t, apmBeat, cfg, beatConfig, batchProcessors...)
 }
 
 func newBeat(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*beat.Beat, *common.Config) {
@@ -132,8 +139,9 @@ func setupBeater(
 	apmBeat *beat.Beat,
 	ucfg *common.Config,
 	beatConfig *beat.BeatConfig,
+	batchProcessors ...model.BatchProcessor,
 ) (*testBeater, error) {
-	tb, err := newTestBeater(t, apmBeat, ucfg, beatConfig)
+	tb, err := newTestBeater(t, apmBeat, ucfg, beatConfig, batchProcessors...)
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +165,7 @@ func newTestBeater(
 	apmBeat *beat.Beat,
 	ucfg *common.Config,
 	beatConfig *beat.BeatConfig,
+	batchProcessors ...model.BatchProcessor,
 ) (*testBeater, error) {
 
 	core, observedLogs := observer.New(zapcore.DebugLevel)
@@ -167,7 +176,8 @@ func newTestBeater(
 	createBeater := NewCreator(CreatorParams{
 		Logger: logger,
 		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
-			var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+			var processor model.BatchProcessor
+			processor = model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 				for i := range *batch {
 					event := &(*batch)[i]
 					if event.Processor != model.TransactionProcessor {
@@ -180,7 +190,11 @@ func newTestBeater(
 					}
 					event.Labels["wrapped_reporter"] = true
 				}
+
 				return nil
+			})
+			if batchProcessors != nil {
+				processor = append(modelprocessor.Chained{processor}, batchProcessors...)
 			}
 			return WrapRunServerWithProcessors(runServer, processor)
 		},
@@ -351,7 +365,22 @@ func TestFleetStoreUsed(t *testing.T) {
 	assert.True(t, called)
 }
 
-func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
+func TestQueryClusterInfo(t *testing.T) {
+	ctx := context.Background()
+	clusterUUID := "abc123"
+	clusterVersionString := "1.0.0"
+	clusterVersion := common.MustNewVersion(clusterVersionString)
+	client := &mockClusterUUIDClient{
+		ClusterUUID: clusterUUID,
+		Version:     esVersion{Number: clusterVersionString},
+	}
+	gotClusterUUID, gotClusterVersion, err := queryClusterInfo(ctx, client)
+	require.NoError(t, err)
+	assert.Equal(t, clusterUUID, gotClusterUUID)
+	assert.Equal(t, clusterVersion, gotClusterVersion)
+}
+
+func TestSetClusterUUIDRegistriesExist(t *testing.T) {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 	stateRegistry.Clear()
 	defer stateRegistry.Clear()
@@ -359,25 +388,21 @@ func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
 	elasticsearchRegistry := stateRegistry.NewRegistry("outputs.elasticsearch")
 	monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
 
-	ctx := context.Background()
 	clusterUUID := "abc123"
-	client := &mockClusterUUIDClient{ClusterUUID: clusterUUID}
-	err := queryClusterUUID(ctx, client)
+	err := setClusterUUID(clusterUUID)
 	require.NoError(t, err)
 
 	fs := monitoring.CollectFlatSnapshot(elasticsearchRegistry, monitoring.Full, false)
 	assert.Equal(t, clusterUUID, fs.Strings["cluster_uuid"])
 }
 
-func TestQueryClusterUUIDRegistriesDoNotExist(t *testing.T) {
+func TestSetClusterUUIDRegistriesDoNotExist(t *testing.T) {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 	stateRegistry.Clear()
 	defer stateRegistry.Clear()
 
-	ctx := context.Background()
 	clusterUUID := "abc123"
-	client := &mockClusterUUIDClient{ClusterUUID: clusterUUID}
-	err := queryClusterUUID(ctx, client)
+	err := setClusterUUID(clusterUUID)
 	require.NoError(t, err)
 
 	elasticsearchRegistry := stateRegistry.GetRegistry("outputs.elasticsearch")
@@ -388,7 +413,12 @@ func TestQueryClusterUUIDRegistriesDoNotExist(t *testing.T) {
 }
 
 type mockClusterUUIDClient struct {
-	ClusterUUID string `json:"cluster_uuid"`
+	ClusterUUID string    `json:"cluster_uuid"`
+	Version     esVersion `json:"version"`
+}
+
+type esVersion struct {
+	Number string `json:"number"`
 }
 
 func (c *mockClusterUUIDClient) Perform(r *http.Request) (*http.Response, error) {

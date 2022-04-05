@@ -18,6 +18,7 @@
 package beater
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -62,6 +63,7 @@ import (
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
+	"github.com/elastic/apm-server/model"
 )
 
 type m map[string]interface{}
@@ -682,6 +684,111 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 	case <-requestCh:
 		t.Fatal("unexpected request")
 	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func TestServerElasticsearchDoesNotSupportDocCount(t *testing.T) {
+	var mu sync.Mutex
+	var tracesRequests int
+	tracesRequestsCh := make(chan int)
+	bulkCh := make(chan struct{})
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		// We must send a valid JSON response for the libbeat
+		// elasticsearch client to send bulk requests.
+		fmt.Fprintln(w, `{"cluster_uuid": "abc123", "version":{"number":"1.0.0"}}`)
+	})
+	mux.HandleFunc("/_index_template/", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		template := path.Base(r.URL.Path)
+		if template == "traces-apm" {
+			tracesRequests++
+			if tracesRequests == 1 {
+				w.WriteHeader(404)
+			}
+			tracesRequestsCh <- tracesRequests
+		}
+	})
+	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
+		var b struct {
+			DocCount int `json:"_doc_count"`
+		}
+		scanner := bufio.NewScanner(r.Body)
+		scanner.Scan() // we want the second line of json
+		require.NoError(t, scanner.Err())
+		scanner.Scan()
+		require.NoError(t, scanner.Err())
+		err := json.Unmarshal(scanner.Bytes(), &b)
+		require.NoError(t, err)
+		if b.DocCount == 0 {
+			select {
+			case bulkCh <- struct{}{}:
+			default:
+			}
+		}
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	cfg := common.MustNewConfigFrom(map[string]interface{}{
+		"data_streams.enabled": true,
+		"wait_ready_interval":  "100ms",
+	})
+	var beatConfig beat.BeatConfig
+	err := beatConfig.Output.Unpack(common.MustNewConfigFrom(map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"hosts":       []string{srv.URL},
+			"backoff":     map[string]interface{}{"init": "10ms", "max": "10ms"},
+			"max_retries": 1000,
+		},
+	}))
+	require.NoError(t, err)
+
+	var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+		for i := range *batch {
+			event := &(*batch)[i]
+			if event.Metricset != nil {
+				event.Metricset.DocCount = 1
+			}
+		}
+		return nil
+	}
+	beater, err := setupServer(t, cfg, &beatConfig, nil, processor)
+	require.NoError(t, err)
+
+	metricsets, err := ioutil.ReadFile("../testdata/intake-v2/metricsets.ndjson")
+	if err != nil {
+		t.Fatalf("Failed to read test data: %v", err)
+	}
+	req, err := http.NewRequest(http.MethodPost, beater.baseURL+api.IntakePath, bytes.NewReader(metricsets))
+	if err != nil {
+		t.Fatalf("Failed to create test request object: %v", err)
+	}
+
+	timeout := time.After(10 * time.Second)
+	var done bool
+	for !done {
+		select {
+		case n := <-tracesRequestsCh:
+			done = n == 2
+		case <-timeout:
+			t.Fatal("timed out waiting for request")
+		}
+	}
+
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	resp, err := beater.client.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
+	resp.Body.Close()
+
+	// wait for request with _doc_count = 0 to successfully go through.
+	select {
+	case <-bulkCh:
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for bulk request")
 	}
 }
 

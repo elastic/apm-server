@@ -463,14 +463,23 @@ func (s *serverRunner) run(listener net.Listener) error {
 	}
 
 	g, ctx := errgroup.WithContext(s.runServerContext)
-
+	placeholderBatchProcessor := new(modelprocessor.Placeholder)
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
 	publishReady := make(chan struct{})
 	g.Go(func() error {
 		defer close(publishReady)
-		err := s.waitReady(ctx, kibanaClient)
-		return errors.Wrap(err, "error waiting for server to be ready")
+		esClusterVersion, err := s.waitReady(ctx, kibanaClient)
+		if err != nil {
+			return errors.Wrap(err, "error waiting for server to be ready")
+		}
+		// Lowest version of elasticsearch that supports _doc_count being added by
+		// apm-server.
+		elasticsearchSupportsDocCount := common.MustNewVersion("7.11.0")
+		if s.elasticsearchOutputConfig != nil && esClusterVersion != nil && esClusterVersion.LessThan(elasticsearchSupportsDocCount) {
+			placeholderBatchProcessor.Set(modelprocessor.UnsetIndexDocCountField{})
+		}
+		return nil
 	})
 	callbackUUID, err := esoutput.RegisterConnectCallback(func(*eslegclient.Connection) error {
 		select {
@@ -549,7 +558,8 @@ func (s *serverRunner) run(listener net.Listener) error {
 	}
 	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
-	batchProcessor := make(modelprocessor.Chained, 0, 3)
+	var batchProcessor modelprocessor.Chained
+	batchProcessor = append(batchProcessor, placeholderBatchProcessor)
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
 		publisher,
 		newElasticsearchClient,
@@ -593,18 +603,19 @@ func (s *serverRunner) run(listener net.Listener) error {
 }
 
 // waitReady waits until the server is ready to index events.
-func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client) error {
+func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client) (*common.Version, error) {
 	var preconditions []func(context.Context) error
+	var esClusterVersion *common.Version
 	var esOutputClient elasticsearch.Client
 	if s.elasticsearchOutputConfig != nil {
 		esConfig := elasticsearch.DefaultConfig()
 		err := s.elasticsearchOutputConfig.Unpack(&esConfig)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		esOutputClient, err = elasticsearch.NewClient(esConfig)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -640,7 +651,12 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 
 		if s.config.DataStreams.Enabled {
 			preconditions = append(preconditions, func(ctx context.Context) error {
-				return queryClusterUUID(ctx, esOutputClient)
+				clusterUUID, clusterVersion, err := queryClusterInfo(ctx, esOutputClient)
+				if err != nil {
+					return errors.Wrap(err, "failed to query cluster info")
+				}
+				esClusterVersion = clusterVersion
+				return setClusterUUID(clusterUUID)
 			})
 		}
 	}
@@ -650,7 +666,7 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 	fleetManaged := s.beat.Manager != nil && s.beat.Manager.Enabled()
 	if !fleetManaged && s.config.DataStreams.Enabled && s.config.DataStreams.WaitForIntegration {
 		if kibanaClient == nil && esOutputClient == nil {
-			return errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
+			return nil, errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
 		}
 		preconditions = append(preconditions, func(ctx context.Context) error {
 			return checkIntegrationInstalled(ctx, kibanaClient, esOutputClient, s.logger)
@@ -658,7 +674,7 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 	}
 
 	if len(preconditions) == 0 {
-		return nil
+		return nil, nil
 	}
 	check := func(ctx context.Context) error {
 		for _, pre := range preconditions {
@@ -668,7 +684,7 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 		}
 		return nil
 	}
-	return waitReady(ctx, s.config.WaitReadyInterval, s.tracer, s.logger, check)
+	return esClusterVersion, waitReady(ctx, s.config.WaitReadyInterval, s.tracer, s.logger, check)
 }
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
@@ -1057,10 +1073,37 @@ func (r *chanReloader) serve(ctx context.Context, reloader reload.Reloadable) er
 	}
 }
 
+func queryClusterInfo(ctx context.Context, esClient elasticsearch.Client) (string, *common.Version, error) {
+	var response struct {
+		ClusterUUID string `json:"cluster_uuid"`
+		Version     struct {
+			Number *common.Version `json:"number"`
+		} `json:"version"`
+	}
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		return "", nil, err
+	}
+	resp, err := esClient.Perform(req.WithContext(ctx))
+	if err != nil {
+		return "", nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode > 299 {
+		return "", nil, fmt.Errorf("error querying cluster: status_code=%d", resp.StatusCode)
+	}
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return "", nil, err
+	}
+	return response.ClusterUUID, response.Version.Number, nil
+}
+
 // TODO: This is copying behavior from libbeat:
 // https://github.com/elastic/beats/blob/b9ced47dba8bb55faa3b2b834fd6529d3c4d0919/libbeat/cmd/instance/beat.go#L927-L950
 // Remove this when cluster_uuid no longer needs to be queried from ES.
-func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error {
+func setClusterUUID(clusterUUID string) error {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 	outputES := "outputs.elasticsearch"
 	// Running under elastic-agent, the callback linked above is not
@@ -1076,38 +1119,17 @@ func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error 
 		ok bool
 	)
 
-	clusterUUID := "cluster_uuid"
-	clusterUUIDRegVar := elasticsearchRegistry.Get(clusterUUID)
+	uuidKey := "cluster_uuid"
+	clusterUUIDRegVar := elasticsearchRegistry.Get(uuidKey)
 	if clusterUUIDRegVar != nil {
 		s, ok = clusterUUIDRegVar.(*monitoring.String)
 		if !ok {
 			return fmt.Errorf("couldn't cast to String")
 		}
 	} else {
-		s = monitoring.NewString(elasticsearchRegistry, clusterUUID)
+		s = monitoring.NewString(elasticsearchRegistry, uuidKey)
 	}
 
-	var response struct {
-		ClusterUUID string `json:"cluster_uuid"`
-	}
-
-	req, err := http.NewRequest("GET", "/", nil)
-	if err != nil {
-		return err
-	}
-	resp, err := esClient.Perform(req.WithContext(ctx))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode > 299 {
-		return fmt.Errorf("error querying cluster_uuid: status_code=%d", resp.StatusCode)
-	}
-	err = json.NewDecoder(resp.Body).Decode(&response)
-	if err != nil {
-		return err
-	}
-
-	s.Set(response.ClusterUUID)
+	s.Set(clusterUUID)
 	return nil
 }
