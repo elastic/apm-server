@@ -6,7 +6,6 @@ license: basic
 description: Ingest APM data
 type: integration
 categories: ["elastic_stack", "monitoring"]
-release: ga
 conditions:
   kibana.version: generated
 icons:
