@@ -6,6 +6,9 @@
     - description: Placeholder
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/123
+    - description: Remove the release tag
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7792
 - version: "8.2.0"
   changes:
     - description: Field mapping for `source.nat.ip` and `source.nat.port` added to data streams
