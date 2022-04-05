@@ -722,10 +722,11 @@ func TestServerElasticsearchDoesNotSupportDocCount(t *testing.T) {
 		require.NoError(t, scanner.Err())
 		err := json.Unmarshal(scanner.Bytes(), &b)
 		require.NoError(t, err)
-		assert.Equal(t, 0, b.DocCount)
-		select {
-		case bulkCh <- struct{}{}:
-		default:
+		if b.DocCount == 0 {
+			select {
+			case bulkCh <- struct{}{}:
+			default:
+			}
 		}
 	})
 	srv := httptest.NewServer(mux)
@@ -777,14 +778,13 @@ func TestServerElasticsearchDoesNotSupportDocCount(t *testing.T) {
 		}
 	}
 
-	time.Sleep(100 * time.Millisecond)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	resp, err := beater.client.Do(req)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
 	resp.Body.Close()
 
-	// wait for request to successfully go through.
+	// wait for request with _doc_count = 0 to successfully go through.
 	select {
 	case <-bulkCh:
 	case <-time.After(10 * time.Second):
