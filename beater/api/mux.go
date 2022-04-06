@@ -20,8 +20,9 @@ package api
 import (
 	"net"
 	"net/http"
-	"net/http/pprof"
+	httppprof "net/http/pprof"
 	"regexp"
+	"runtime/pprof"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -136,11 +137,16 @@ func NewMux(
 	if beaterConfig.Pprof.Enabled {
 		const path = "/debug/pprof"
 		logger.Infof("Path %s added to request handler", path)
-		router.Handle(path+"/", http.HandlerFunc(pprof.Index))
-		router.Handle(path+"/cmdline", http.HandlerFunc(pprof.Cmdline))
-		router.Handle(path+"/profile", http.HandlerFunc(pprof.Profile))
-		router.Handle(path+"/symbol", http.HandlerFunc(pprof.Symbol))
-		router.Handle(path+"/trace", http.HandlerFunc(pprof.Trace))
+
+		pprofRouter := router.PathPrefix(path).Subrouter().StrictSlash(true)
+		pprofRouter.Handle("/", http.HandlerFunc(httppprof.Index))
+		for _, p := range pprof.Profiles() {
+			pprofRouter.Handle("/"+p.Name(), http.HandlerFunc(httppprof.Index))
+		}
+		pprofRouter.Handle("/cmdline", http.HandlerFunc(httppprof.Cmdline))
+		pprofRouter.Handle("/profile", http.HandlerFunc(httppprof.Profile))
+		pprofRouter.Handle("/symbol", http.HandlerFunc(httppprof.Symbol))
+		pprofRouter.Handle("/trace", http.HandlerFunc(httppprof.Trace))
 	}
 	return router, nil
 }
