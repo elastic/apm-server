@@ -900,6 +900,25 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	}, snapshot)
 }
 
+func TestServerPProf(t *testing.T) {
+	ucfg, err := common.NewConfigFrom(m{"pprof.enabled": true})
+	assert.NoError(t, err)
+	server, err := setupServer(t, ucfg, nil, nil)
+	require.NoError(t, err)
+	defer server.Stop()
+
+	for _, path := range []string{
+		"/debug/pprof",
+		"/debug/pprof/goroutine",
+		"/debug/pprof/cmdline",
+	} {
+		resp, err := http.Get(server.baseURL + path)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode, path)
+	}
+}
+
 type chanClient struct {
 	done    chan struct{}
 	Channel chan beat.Event
