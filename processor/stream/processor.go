@@ -50,30 +50,35 @@ const (
 
 type decodeMetadataFunc func(decoder.Decoder, *model.APMEvent) error
 
+// Processor decodes a stream
 type Processor struct {
-	MaxEventSize     int
 	streamReaderPool sync.Pool
 	decodeMetadata   decodeMetadataFunc
+	sem              chan struct{}
+	MaxEventSize     int
 }
 
-func BackendProcessor(cfg *config.Config) *Processor {
+func BackendProcessor(cfg *config.Config, sem chan struct{}) *Processor {
 	return &Processor{
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: v2.DecodeNestedMetadata,
+		sem:            sem,
 	}
 }
 
-func RUMV2Processor(cfg *config.Config) *Processor {
+func RUMV2Processor(cfg *config.Config, sem chan struct{}) *Processor {
 	return &Processor{
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: v2.DecodeNestedMetadata,
+		sem:            sem,
 	}
 }
 
-func RUMV3Processor(cfg *config.Config) *Processor {
+func RUMV3Processor(cfg *config.Config, sem chan struct{}) *Processor {
 	return &Processor{
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: rumv3.DecodeNestedMetadata,
+		sem:            sem,
 	}
 }
 
@@ -198,8 +203,24 @@ func (p *Processor) HandleStream(
 	processor model.BatchProcessor,
 	result *Result,
 ) error {
+	// Since processor.ProcessBatch can block for some time until all the batch
+	// is added to the modelindexer's cache and there isn't a fail-fast rejection,
+	// we want to cap how many in-flight requests are read at any time.
+	// Defaults to 200 (N), only allowing N requests to read and cache Y events
+	// (determined by batchSize) from the batch, effectively limitting the decoding
+	// concurrency to N batches at any time, which should be a good ceiling. The
+	// ceiling also reduces the contention on the modelindexer.activeMu.
+	select {
+	case p.sem <- struct{}{}:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
 	sr := p.getStreamReader(reader)
-	defer sr.release()
+	defer func() {
+		sr.release()
+		<-p.sem
+	}()
 
 	// first item is the metadata object
 	if err := p.readMetadata(sr, &baseEvent); err != nil {

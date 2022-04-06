@@ -77,6 +77,11 @@ type Config struct {
 	// the integration package to be installed, and for checking the
 	// Elasticsearch license level.
 	WaitReadyInterval time.Duration `config:"wait_ready_interval"`
+
+	// MaxConcurrentDecoders sets the limit on the number of concurrent batches
+	// that can be decoded at one time. This effectively limits the amount of
+	// memory consumed by the processors decodeing the incoming intake events.
+	MaxConcurrentDecoders uint `config:"max_concurrent_decoders"`
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
@@ -137,15 +142,16 @@ func DefaultConfig() *Config {
 			Enabled: false,
 			URL:     "/debug/vars",
 		},
-		Pprof:              PprofConfig{Enabled: false},
-		RumConfig:          defaultRum(),
-		Kibana:             defaultKibanaConfig(),
-		KibanaAgentConfig:  defaultKibanaAgentConfig(),
-		Aggregation:        defaultAggregationConfig(),
-		Sampling:           defaultSamplingConfig(),
-		DataStreams:        defaultDataStreamsConfig(),
-		AgentAuth:          defaultAgentAuth(),
-		JavaAttacherConfig: defaultJavaAttacherConfig(),
-		WaitReadyInterval:  5 * time.Second,
+		Pprof:                 PprofConfig{Enabled: false},
+		RumConfig:             defaultRum(),
+		Kibana:                defaultKibanaConfig(),
+		KibanaAgentConfig:     defaultKibanaAgentConfig(),
+		Aggregation:           defaultAggregationConfig(),
+		Sampling:              defaultSamplingConfig(),
+		DataStreams:           defaultDataStreamsConfig(),
+		AgentAuth:             defaultAgentAuth(),
+		JavaAttacherConfig:    defaultJavaAttacherConfig(),
+		WaitReadyInterval:     5 * time.Second,
+		MaxConcurrentDecoders: 200,
 	}
 }
