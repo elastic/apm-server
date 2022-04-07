@@ -89,7 +89,7 @@ func TestIntakeHandler(t *testing.T) {
 		"TooLarge": {
 			path: "errors.ndjson",
 			processor: func() *stream.Processor {
-				p := stream.BackendProcessor(config.DefaultConfig())
+				p := stream.BackendProcessor(config.DefaultConfig(), make(chan struct{}, 1))
 				p.MaxEventSize = 10
 				return p
 			}(),
@@ -168,7 +168,7 @@ type testcaseIntakeHandler struct {
 func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	if tc.processor == nil {
 		cfg := config.DefaultConfig()
-		tc.processor = stream.BackendProcessor(cfg)
+		tc.processor = stream.BackendProcessor(cfg, make(chan struct{}, cfg.MaxConcurrentDecoders))
 	}
 	if tc.batchProcessor == nil {
 		tc.batchProcessor = modelprocessor.Nop{}
