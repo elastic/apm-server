@@ -34,7 +34,7 @@ import (
 	"testing"
 	"time"
 
-	"go.elastic.co/apm/stacktrace"
+	"go.elastic.co/apm/v2/stacktrace"
 )
 
 const waitInactiveTimeout = 30 * time.Second
