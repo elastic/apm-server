@@ -20,6 +20,7 @@ package benchtest
 import (
 	"context"
 	"crypto/tls"
+	"net/url"
 	"path/filepath"
 	"testing"
 
@@ -30,24 +31,20 @@ import (
 
 	"github.com/elastic/apm-server/systemtest/benchtest/eventhandler"
 
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/transport"
+	"go.elastic.co/apm/v2"
+	"go.elastic.co/apm/v2/transport"
 )
-
-func init() {
-	// Close default tracer, we'll create new ones.
-	apm.DefaultTracer.Close()
-}
 
 // NewTracer returns a new Elastic APM tracer, configured
 // to send to the target APM Server.
 func NewTracer(tb testing.TB) *apm.Tracer {
-	httpTransport, err := transport.NewHTTPTransport()
+	httpTransport, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{
+		ServerURLs:  []*url.URL{serverURL},
+		SecretToken: *secretToken,
+	})
 	if err != nil {
 		tb.Fatal(err)
 	}
-	httpTransport.SetServerURL(serverURL)
-	httpTransport.SetSecretToken(*secretToken)
 	tracer, err := apm.NewTracerOptions(apm.TracerOptions{
 		Transport: httpTransport,
 	})
@@ -108,7 +105,7 @@ func NewEventHandler(tb testing.TB, p string) *eventhandler.Handler {
 func newEventHandler(p string) (*eventhandler.Handler, error) {
 	// We call the HTTPTransport constructor to avoid copying all the config
 	// parsing that creates the `*http.Client`.
-	t, err := transport.NewHTTPTransport()
+	t, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{})
 	if err != nil {
 		return nil, err
 	}

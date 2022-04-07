@@ -260,11 +260,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20220401113721-7e22a97892a8
+Version: v7.0.0-alpha2.0.20220406201110-091ad7f932ae
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220401113721-7e22a97892a8/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220406201110-091ad7f932ae/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -3254,12 +3254,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 --------------------------------------------------------------------------------
-Dependency : go.elastic.co/apm
-Version: v1.15.0
+Dependency : go.elastic.co/apm/module/apmelasticsearch/v2
+Version: v2.0.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm@v1.15.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasticsearch/v2@v2.0.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3465,12 +3465,12 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm@v1.15.0/LICENSE:
 
 
 --------------------------------------------------------------------------------
-Dependency : go.elastic.co/apm/module/apmelasticsearch
-Version: v1.15.0
+Dependency : go.elastic.co/apm/module/apmgorilla/v2
+Version: v2.0.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasticsearch@v1.15.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgorilla/v2@v2.0.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3676,12 +3676,12 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasti
 
 
 --------------------------------------------------------------------------------
-Dependency : go.elastic.co/apm/module/apmgorilla
-Version: v1.15.0
+Dependency : go.elastic.co/apm/module/apmgrpc/v2
+Version: v2.0.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgorilla@v1.15.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc/v2@v2.0.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3887,12 +3887,12 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgorill
 
 
 --------------------------------------------------------------------------------
-Dependency : go.elastic.co/apm/module/apmgrpc
-Version: v1.15.0
+Dependency : go.elastic.co/apm/module/apmhttp/v2
+Version: v2.0.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc@v1.15.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp/v2@v2.0.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4098,12 +4098,12 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc@v
 
 
 --------------------------------------------------------------------------------
-Dependency : go.elastic.co/apm/module/apmhttp
-Version: v1.15.0
+Dependency : go.elastic.co/apm/module/apmzap/v2
+Version: v2.0.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp@v1.15.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmzap/v2@v2.0.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4309,12 +4309,12 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp@v
 
 
 --------------------------------------------------------------------------------
-Dependency : go.elastic.co/apm/module/apmzap
-Version: v1.15.0
+Dependency : go.elastic.co/apm/v2
+Version: v2.0.1-0.20220407125121-b69a26718dfa
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmzap@v1.15.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/v2@v2.0.1-0.20220407125121-b69a26718dfa/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -18037,11 +18037,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20220403205710-6acee93ad0eb
+Version: v0.0.0-20220406163625-3f8b81556e12
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220403205710-6acee93ad0eb/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220406163625-3f8b81556e12/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18148,11 +18148,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20220401170504-314d38edb7de
+Version: v0.0.0-20220405205423-9d709892a2bf
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220401170504-314d38edb7de/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220405205423-9d709892a2bf/LICENSE:
 
 
                                  Apache License

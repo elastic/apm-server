@@ -8,6 +8,7 @@ require (
 	github.com/reviewdog/reviewdog v0.13.1-0.20211107024453-1ccbebf6b175
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	go.elastic.co/go-licence-detector v0.5.0
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	honnef.co/go/tools v0.3.0
 )
 

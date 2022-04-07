@@ -25,8 +25,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
 
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/apmtest"
+	"go.elastic.co/apm/v2"
+	"go.elastic.co/apm/v2/apmtest"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"

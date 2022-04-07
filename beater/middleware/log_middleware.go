@@ -22,7 +22,7 @@ import (
 
 	"github.com/gofrs/uuid"
 
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 

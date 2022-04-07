@@ -35,6 +35,10 @@ func SendRUMEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile s
 	sendEventsPayload(t, srv, "/intake/v2/rum/events", f)
 }
 
+func SendRUMEventsLiteral(t *testing.T, srv *apmservertest.Server, raw string) {
+	sendEventsPayload(t, srv, "/intake/v2/rum/events", strings.NewReader(raw))
+}
+
 func SendBackendEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {
 	f := openFile(t, payloadFile)
 	sendEventsPayload(t, srv, "/intake/v2/events", f)

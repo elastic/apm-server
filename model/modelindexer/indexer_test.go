@@ -35,8 +35,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/apmtest"
+	"go.elastic.co/apm/v2/apmtest"
 	"go.elastic.co/fastjson"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -46,10 +45,6 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelindexer"
 )
-
-func init() {
-	apm.DefaultTracer.Close()
-}
 
 func TestModelIndexer(t *testing.T) {
 	var productOriginHeader string
