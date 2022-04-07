@@ -20,6 +20,8 @@ package stream
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
@@ -29,13 +31,15 @@ import (
 )
 
 func BenchmarkBackendProcessor(b *testing.B) {
-	processor := BackendProcessor(config.DefaultConfig())
+	cfg := config.DefaultConfig()
+	processor := BackendProcessor(cfg, make(chan struct{}, cfg.MaxConcurrentDecoders))
 	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v2/*.ndjson"))
 	benchmarkStreamProcessor(b, processor, files)
 }
 
 func BenchmarkRUMV3Processor(b *testing.B) {
-	processor := RUMV3Processor(config.DefaultConfig())
+	cfg := config.DefaultConfig()
+	processor := RUMV3Processor(cfg, make(chan struct{}, cfg.MaxConcurrentDecoders))
 	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v3/rum_*.ndjson"))
 	benchmarkStreamProcessor(b, processor, files)
 }
@@ -65,6 +69,42 @@ func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string
 	for _, f := range files {
 		b.Run(filepath.Base(f), func(b *testing.B) {
 			benchmark(b, f)
+		})
+	}
+}
+
+func BenchmarkBackendProcessorParallel(b *testing.B) {
+	for _, max := range []uint{0, 2, 4, 8} { // 0 is for default size.
+		b.Run(fmt.Sprint(b.Name(), max), func(b *testing.B) {
+			cfg := config.DefaultConfig()
+			if max > 0 {
+				cfg.MaxConcurrentDecoders = max
+			}
+			processor := BackendProcessor(cfg, make(chan struct{}, cfg.MaxConcurrentDecoders))
+			files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v2/*.ndjson"))
+			benchmarkStreamProcessorParallel(b, processor, files)
+		})
+	}
+}
+
+func benchmarkStreamProcessorParallel(b *testing.B, processor *Processor, files []string) {
+	const batchSize = 10
+	batchProcessor := nopBatchProcessor{}
+	for _, f := range files {
+		b.Run(filepath.Base(f), func(b *testing.B) {
+			data, err := ioutil.ReadFile(f)
+			if err != nil {
+				b.Error(err)
+			}
+			b.SetBytes(int64(len(data)))
+			b.RunParallel(func(p *testing.PB) {
+				r := bytes.NewReader(data)
+				for p.Next() {
+					var result Result
+					processor.HandleStream(context.Background(), model.APMEvent{}, r, batchSize, batchProcessor, &result)
+					r.Seek(0, io.SeekStart)
+				}
+			})
 		})
 	}
 }

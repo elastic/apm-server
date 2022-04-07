@@ -85,14 +85,15 @@ func TestUnpackConfig(t *testing.T) {
 		},
 		"overwrite default": {
 			inpCfg: map[string]interface{}{
-				"host":                  "localhost:3000",
-				"max_header_size":       8,
-				"max_event_size":        100,
-				"idle_timeout":          5 * time.Second,
-				"read_timeout":          3 * time.Second,
-				"write_timeout":         4 * time.Second,
-				"shutdown_timeout":      9 * time.Second,
-				"capture_personal_data": true,
+				"host":                    "localhost:3000",
+				"max_header_size":         8,
+				"max_event_size":          100,
+				"idle_timeout":            5 * time.Second,
+				"read_timeout":            3 * time.Second,
+				"write_timeout":           4 * time.Second,
+				"shutdown_timeout":        9 * time.Second,
+				"capture_personal_data":   true,
+				"max_concurrent_decoders": 100,
 				"auth": map[string]interface{}{
 					"secret_token": "1234random",
 					"api_key": map[string]interface{}{
@@ -162,13 +163,14 @@ func TestUnpackConfig(t *testing.T) {
 				"default_service_environment": "overridden",
 			},
 			outCfg: &Config{
-				Host:            "localhost:3000",
-				MaxHeaderSize:   8,
-				MaxEventSize:    100,
-				IdleTimeout:     5000000000,
-				ReadTimeout:     3000000000,
-				WriteTimeout:    4000000000,
-				ShutdownTimeout: 9000000000,
+				Host:                  "localhost:3000",
+				MaxHeaderSize:         8,
+				MaxEventSize:          100,
+				IdleTimeout:           5000000000,
+				ReadTimeout:           3000000000,
+				WriteTimeout:          4000000000,
+				ShutdownTimeout:       9000000000,
+				MaxConcurrentDecoders: 100,
 				AgentAuth: AgentAuth{
 					SecretToken: "1234random",
 					APIKey: APIKeyAgentAuth{
@@ -318,13 +320,14 @@ func TestUnpackConfig(t *testing.T) {
 				"data_streams.wait_for_integration": false,
 			},
 			outCfg: &Config{
-				Host:            "localhost:3000",
-				MaxHeaderSize:   1048576,
-				MaxEventSize:    307200,
-				IdleTimeout:     45000000000,
-				ReadTimeout:     30000000000,
-				WriteTimeout:    30000000000,
-				ShutdownTimeout: 30000000000,
+				Host:                  "localhost:3000",
+				MaxHeaderSize:         1048576,
+				MaxEventSize:          307200,
+				IdleTimeout:           45000000000,
+				ReadTimeout:           30000000000,
+				WriteTimeout:          30000000000,
+				ShutdownTimeout:       30000000000,
+				MaxConcurrentDecoders: 200,
 				AgentAuth: AgentAuth{
 					SecretToken: "1234random",
 					APIKey: APIKeyAgentAuth{

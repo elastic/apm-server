@@ -98,6 +98,7 @@ func NewMux(
 		ratelimitStore:   ratelimitStore,
 		sourcemapFetcher: sourcemapFetcher,
 		fleetManaged:     fleetManaged,
+		intakeSemaphore:  make(chan struct{}, beaterConfig.MaxConcurrentDecoders),
 	}
 
 	type route struct {
@@ -150,6 +151,7 @@ type routeBuilder struct {
 	ratelimitStore   *ratelimit.Store
 	sourcemapFetcher sourcemap.Fetcher
 	fleetManaged     bool
+	intakeSemaphore  chan struct{}
 }
 
 func (r *routeBuilder) profileHandler() (request.Handler, error) {
@@ -163,11 +165,11 @@ func (r *routeBuilder) firehoseHandler() (request.Handler, error) {
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
-	h := intake.Handler(stream.BackendProcessor(r.cfg), backendRequestMetadataFunc(r.cfg), r.batchProcessor)
+	h := intake.Handler(stream.BackendProcessor(r.cfg, r.intakeSemaphore), backendRequestMetadataFunc(r.cfg), r.batchProcessor)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
-func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *stream.Processor) func() (request.Handler, error) {
+func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config, chan struct{}) *stream.Processor) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		var batchProcessors modelprocessor.Chained
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
@@ -196,7 +198,7 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *strea
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
-		h := intake.Handler(newProcessor(r.cfg), rumRequestMetadataFunc(r.cfg), batchProcessors)
+		h := intake.Handler(newProcessor(r.cfg, r.intakeSemaphore), rumRequestMetadataFunc(r.cfg), batchProcessors)
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 	}
 }
