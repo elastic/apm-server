@@ -81,6 +81,7 @@ type Config struct {
 	// MaxConcurrentDecoders sets the limit on the number of concurrent batches
 	// that can be decoded at one time. This effectively limits the amount of
 	// memory consumed by the processors decodeing the incoming intake events.
+	// This setting is beta and subject to breaking changes and removal.
 	MaxConcurrentDecoders uint `config:"max_concurrent_decoders"`
 }
 

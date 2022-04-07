@@ -50,7 +50,11 @@ const (
 
 type decodeMetadataFunc func(decoder.Decoder, *model.APMEvent) error
 
-// Processor decodes a stream
+// Processor decodes a streams and is safe for concurrent use. The processor
+// accepts a channel that is used as a semaphore to control the maximum
+// concurrent number of stream decode operations that can happen at any time.
+// The buffered channel is meant to be shared between all the processors so
+// the concurrency limit is shared between all the intake endpoints.
 type Processor struct {
 	streamReaderPool sync.Pool
 	decodeMetadata   decodeMetadataFunc
