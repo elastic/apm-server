@@ -1975,6 +1975,8 @@ go.elastic.co/apm/module/apmzap/v2 v2.0.0 h1:6rPEb5jkvgpfgCbvqvTNEvsF35BqwDFkxw0
 go.elastic.co/apm/module/apmzap/v2 v2.0.0/go.mod h1:HpmtBFTanf5DDxwKTeKY5o4ZgC8OQQXcvwgt0ZKXxDQ=
 go.elastic.co/apm/v2 v2.0.0 h1:5BeBh+oIrVbMwPrW3uO9Uxm4w7HpKy92lYl5Rfj69Kg=
 go.elastic.co/apm/v2 v2.0.0/go.mod h1:KGQn56LtRmkQjt2qw4+c1Jz8gv9rCBUU/m21uxrqcps=
+go.elastic.co/apm/v2 v2.0.1-0.20220407125121-b69a26718dfa h1:2AV46ajzrNFjhQMBmKvDt/f2R8ej3nXz+yWvl+KWurw=
+go.elastic.co/apm/v2 v2.0.1-0.20220407125121-b69a26718dfa/go.mod h1:KGQn56LtRmkQjt2qw4+c1Jz8gv9rCBUU/m21uxrqcps=
 go.elastic.co/ecszap v1.0.0/go.mod h1:HTUi+QRmr3EuZMqxPX+5fyOdMNfUu5iPebgfhgsTJYQ=
 go.elastic.co/ecszap v1.0.1 h1:mBxqEJAEXBlpi5+scXdzL7LTFGogbuxipJC0KTZicyA=
 go.elastic.co/ecszap v1.0.1/go.mod h1:SVjazT+QgNeHSGOCUHvRgN+ZRj5FkB7IXQQsncdF57A=
