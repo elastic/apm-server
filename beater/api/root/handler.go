@@ -49,12 +49,6 @@ type HandlerConfig struct {
 func Handler(cfg HandlerConfig) request.Handler {
 
 	return func(c *request.Context) {
-		if c.Request.URL.Path != "/" {
-			c.Result.SetDefault(request.IDResponseErrorsNotFound)
-			c.Write()
-			return
-		}
-
 		serverInfo := common.MapStr{
 			"build_date": version.BuildTime().Format(time.RFC3339),
 			"build_sha":  version.Commit(),

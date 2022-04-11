@@ -326,9 +326,9 @@ func TestServerNoContentType(t *testing.T) {
 
 	req := makeTransactionRequest(t, apm.baseURL)
 	rsp, err := apm.client.Do(req)
-	if assert.NoError(t, err) {
-		assert.Equal(t, http.StatusBadRequest, rsp.StatusCode, body(t, rsp))
-	}
+	require.NoError(t, err)
+	defer rsp.Body.Close()
+	assert.Equal(t, http.StatusAccepted, rsp.StatusCode)
 }
 
 func TestServerSourcemapElasticsearch(t *testing.T) {
@@ -898,6 +898,34 @@ func TestServerElasticsearchOutput(t *testing.T) {
 			},
 		},
 	}, snapshot)
+	snapshot = monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("output"), monitoring.Full, false)
+	assert.Equal(t, map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"bulk_requests": map[string]interface{}{
+				"available": int64(9),
+				"completed": int64(0),
+			},
+		},
+	}, snapshot)
+}
+
+func TestServerPProf(t *testing.T) {
+	ucfg, err := common.NewConfigFrom(m{"pprof.enabled": true})
+	assert.NoError(t, err)
+	server, err := setupServer(t, ucfg, nil, nil)
+	require.NoError(t, err)
+	defer server.Stop()
+
+	for _, path := range []string{
+		"/debug/pprof",
+		"/debug/pprof/goroutine",
+		"/debug/pprof/cmdline",
+	} {
+		resp, err := http.Get(server.baseURL + path)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode, path)
+	}
 }
 
 type chanClient struct {

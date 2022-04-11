@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/pkg/errors"
-	"go.elastic.co/apm/apmtest"
+	"go.elastic.co/apm/v2/apmtest"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"

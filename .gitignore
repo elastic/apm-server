@@ -42,5 +42,6 @@ version.asciidoc.bck
 .imported-java-agent-pubkey
 /agent
 go.work
+testing/docker/metricbeat/apm-server.yml
 cmd/intake-receiver/intake-receiver
 cmd/intake-receiver/events

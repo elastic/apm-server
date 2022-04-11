@@ -59,10 +59,47 @@ func BenchmarkOTLPTraces(b *testing.B) {
 	})
 }
 
+func BenchmarkAgentGo(b *testing.B) {
+	benchmarkAgent(b, `go*.ndjson`)
+}
+
+func BenchmarkAgentNodeJS(b *testing.B) {
+	benchmarkAgent(b, `nodejs*.ndjson`)
+}
+
+func BenchmarkAgentPython(b *testing.B) {
+	benchmarkAgent(b, `python*.ndjson`)
+}
+
+func BenchmarkAgentRuby(b *testing.B) {
+	benchmarkAgent(b, `ruby*.ndjson`)
+}
+
+func benchmarkAgent(b *testing.B, expr string) {
+	b.RunParallel(func(pb *testing.PB) {
+		h := benchtest.NewEventHandler(b, expr)
+		for pb.Next() {
+			n, err := h.SendBatches(context.Background())
+			if err != nil {
+				b.Error("failed sending batches:", err)
+			}
+			if n == 0 {
+				b.Errorf(
+					"no events sent, ensure the '%s' matches a trace file", expr,
+				)
+			}
+		}
+	})
+}
+
 func main() {
 	if err := benchtest.Run(
 		Benchmark1000Transactions,
 		BenchmarkOTLPTraces,
+		BenchmarkAgentGo,
+		BenchmarkAgentNodeJS,
+		BenchmarkAgentPython,
+		BenchmarkAgentRuby,
 	); err != nil {
 		log.Fatal(err)
 	}

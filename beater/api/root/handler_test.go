@@ -31,14 +31,6 @@ import (
 )
 
 func TestRootHandler(t *testing.T) {
-	t.Run("404", func(t *testing.T) {
-		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/abc/xyz")
-		Handler(HandlerConfig{Version: "1.2.3"})(c)
-
-		assert.Equal(t, http.StatusNotFound, w.Code)
-		assert.Equal(t, `{"error":"404 page not found"}`+"\n", w.Body.String())
-	})
-
 	t.Run("ok", func(t *testing.T) {
 		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
 		Handler(HandlerConfig{Version: "1.2.3"})(c)

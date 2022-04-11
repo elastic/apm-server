@@ -23,9 +23,9 @@ import (
 	"net/http"
 	"time"
 
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/module/apmgrpc"
-	"go.elastic.co/apm/module/apmhttp"
+	"go.elastic.co/apm/module/apmgorilla/v2"
+	"go.elastic.co/apm/module/apmgrpc/v2"
+	"go.elastic.co/apm/v2"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
@@ -152,7 +152,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	}
 
 	// Create an HTTP server for serving Elastic APM agent requests.
-	mux, err := api.NewMux(
+	router, err := api.NewMux(
 		args.Info, args.Config, batchProcessor,
 		authenticator, agentcfgFetchReporter, ratelimitStore,
 		args.SourcemapFetcher, args.Managed, publishReady,
@@ -160,8 +160,8 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	if err != nil {
 		return server{}, err
 	}
-	handler := apmhttp.Wrap(mux, apmhttp.WithServerRequestIgnorer(doNotTrace), apmhttp.WithTracer(args.Tracer))
-	httpServer, err := newHTTPServer(args.Logger, args.Info, args.Config, handler, listener)
+	apmgorilla.Instrument(router, apmgorilla.WithRequestIgnorer(doNotTrace), apmgorilla.WithTracer(args.Tracer))
+	httpServer, err := newHTTPServer(args.Logger, args.Info, args.Config, router, listener)
 	if err != nil {
 		return server{}, err
 	}
