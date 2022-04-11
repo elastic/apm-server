@@ -32,8 +32,8 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/module/apmhttp"
+	"go.elastic.co/apm/module/apmhttp/v2"
+	"go.elastic.co/apm/v2"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -161,6 +161,11 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 	}
 	if tracer != nil {
 		defer tracer.Close()
+	}
+
+	// add deprecation warning if running on a 32-bit system
+	if runtime.GOARCH == "386" {
+		bt.logger.Warn("deprecation notice: support for 32-bit system target architecture will be removed in an upcoming version")
 	}
 
 	reloader := reloader{
@@ -735,6 +740,16 @@ func (s *serverRunner) newFinalBatchProcessor(
 		defer v.OnRegistryFinished()
 		v.OnKey("total")
 		v.OnInt(indexer.Stats().Added)
+	})
+	monitoring.Default.Remove("output")
+	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.bulk_requests", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		stats := indexer.Stats()
+		v.OnKey("available")
+		v.OnInt(stats.AvailableBulkRequests)
+		v.OnKey("completed")
+		v.OnInt(stats.BulkRequests)
 	})
 	return indexer, indexer.Close, nil
 }

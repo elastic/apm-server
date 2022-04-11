@@ -20,6 +20,8 @@ package benchtest
 import (
 	"context"
 	"crypto/tls"
+	"net/url"
+	"path/filepath"
 	"testing"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -27,24 +29,22 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/transport"
-)
+	"github.com/elastic/apm-server/systemtest/benchtest/eventhandler"
 
-func init() {
-	// Close default tracer, we'll create new ones.
-	apm.DefaultTracer.Close()
-}
+	"go.elastic.co/apm/v2"
+	"go.elastic.co/apm/v2/transport"
+)
 
 // NewTracer returns a new Elastic APM tracer, configured
 // to send to the target APM Server.
 func NewTracer(tb testing.TB) *apm.Tracer {
-	httpTransport, err := transport.NewHTTPTransport()
+	httpTransport, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{
+		ServerURLs:  []*url.URL{serverURL},
+		SecretToken: *secretToken,
+	})
 	if err != nil {
 		tb.Fatal(err)
 	}
-	httpTransport.SetServerURL(serverURL)
-	httpTransport.SetSecretToken(*secretToken)
 	tracer, err := apm.NewTracerOptions(apm.TracerOptions{
 		Transport: httpTransport,
 	})
@@ -90,4 +90,25 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 	}
 	tb.Cleanup(func() { exporter.Shutdown(context.Background()) })
 	return exporter
+}
+
+// NewEventHandler creates a eventhandler which loads the files matching the
+// passed regex.
+func NewEventHandler(tb testing.TB, p string) *eventhandler.Handler {
+	h, err := newEventHandler(p)
+	if err != nil {
+		tb.Fatal(err)
+	}
+	return h
+}
+
+func newEventHandler(p string) (*eventhandler.Handler, error) {
+	// We call the HTTPTransport constructor to avoid copying all the config
+	// parsing that creates the `*http.Client`.
+	t, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{})
+	if err != nil {
+		return nil, err
+	}
+	transp := eventhandler.NewTransport(t.Client, serverURL.String(), *secretToken)
+	return eventhandler.New(filepath.Join("events", p), transp, events, *warmupEvents)
 }

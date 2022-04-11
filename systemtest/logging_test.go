@@ -29,7 +29,7 @@ import (
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.elastic.co/apm/apmtest"
+	"go.elastic.co/apm/v2/apmtest"
 	"go.elastic.co/fastjson"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.uber.org/zap/zapcore"

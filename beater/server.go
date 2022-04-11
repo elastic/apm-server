@@ -23,9 +23,9 @@ import (
 	"net/http"
 	"time"
 
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/module/apmgorilla"
-	"go.elastic.co/apm/module/apmgrpc"
+	"go.elastic.co/apm/module/apmgorilla/v2"
+	"go.elastic.co/apm/module/apmgrpc/v2"
+	"go.elastic.co/apm/v2"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
