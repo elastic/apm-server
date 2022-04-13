@@ -132,6 +132,8 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 			for _, s := range []string{
 				// GroupingKey is set by a model processor
 				"GroupingKey",
+				// StackTrace is only set by processor/otel
+				"StackTrace",
 				// stacktrace original and sourcemap values are set when sourcemapping is applied
 				"Exception.Stacktrace.Original",
 				"Exception.Stacktrace.Sourcemap",
