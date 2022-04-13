@@ -14,7 +14,9 @@ https://github.com/elastic/apm-server/compare/7.16\...7.17[View commits]
 
 https://github.com/elastic/apm-server/compare/v7.17.2\...v7.17.3[View commits]
 
-No significant changes.
+[float]
+==== Bug fixes
+- APM Server will no longer set `_doc_count` fields when used with an old (<7.11.0) version of Elasticsearch. This metadata field was added in Elasticsearch 7.12.0; setting it in earlier versions causes problems on upgrade. {pull}7704[7704]
 
 [float]
 [[release-notes-7.17.2]]
