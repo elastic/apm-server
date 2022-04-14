@@ -36,8 +36,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/transport"
+	"go.elastic.co/apm/v2"
+	"go.elastic.co/apm/v2/transport"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
@@ -183,18 +183,21 @@ func newAPMIntegration(t testing.TB, vars map[string]interface{}) apmIntegration
 	require.NoError(t, err)
 	serverURL := &url.URL{Scheme: "http", Host: agent.Addrs["8200"]}
 
+	var secretToken string
+	if token, ok := vars["secret_token"].(string); ok {
+		secretToken = token
+	}
 	// Create a Tracer which sends to the APM Server running under Elastic Agent.
-	httpTransport, err := transport.NewHTTPTransport()
+	httpTransport, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{
+		SecretToken: secretToken,
+		ServerURLs:  []*url.URL{serverURL},
+	})
 	require.NoError(t, err)
 	origTransport := httpTransport.Client.Transport
-	if secretToken, ok := vars["secret_token"].(string); ok {
-		httpTransport.SetSecretToken(secretToken)
-	}
 	httpTransport.Client.Transport = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 		r.Header.Set("X-Real-Ip", "10.11.12.13")
 		return origTransport.RoundTrip(r)
 	})
-	httpTransport.SetServerURL(serverURL)
 	tracer, err := apm.NewTracerOptions(apm.TracerOptions{
 		Transport: apmservertest.NewFilteringTransport(
 			httpTransport,

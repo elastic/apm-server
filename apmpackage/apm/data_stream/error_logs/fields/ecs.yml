@@ -59,6 +59,8 @@
 - external: ecs
   name: error.id
 - external: ecs
+  name: error.stack_trace
+- external: ecs
   name: event.outcome
 - external: ecs
   name: host.architecture

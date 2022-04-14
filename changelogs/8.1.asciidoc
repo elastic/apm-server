@@ -3,18 +3,29 @@
 
 https://github.com/elastic/apm-server/compare/8.0\...8.1[View commits]
 
+* <<release-notes-8.1.3>>
 * <<release-notes-8.1.2>>
 * <<release-notes-8.1.1>>
 * <<release-notes-8.1.0>>
+
+[float]
+[[release-notes-8.1.3]]
+=== APM version 8.1.3
+
+https://github.com/elastic/apm-server/compare/v8.1.2\...v8.1.3[View commits]
+
+This release includes an important APM Server bug fix.
+Users running APM Server version 8.0.0 and above should upgrade immediately.
+
+[float]
+==== Bug fixes
+- Fix a bug that caused the APM Server to run out of memory when it receives events from a high number of APM agents {pull}7809[7809]
 
 [float]
 [[release-notes-8.1.2]]
 === APM version 8.1.2
 
 https://github.com/elastic/apm-server/compare/8.1.1\...8.1.2[View commits]
-
-This release includes several APM Server bug fixes.
-Users running APM Server version 8.0.0 and above should upgrade immediately.
 
 [float]
 ==== Bug fixes

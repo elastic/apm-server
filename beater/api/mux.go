@@ -20,8 +20,9 @@ package api
 import (
 	"net"
 	"net/http"
-	"net/http/pprof"
+	httppprof "net/http/pprof"
 	"regexp"
+	"runtime/pprof"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -101,6 +102,7 @@ func NewMux(
 		ratelimitStore:   ratelimitStore,
 		sourcemapFetcher: sourcemapFetcher,
 		fleetManaged:     fleetManaged,
+		intakeSemaphore:  make(chan struct{}, beaterConfig.MaxConcurrentDecoders),
 	}
 
 	type route struct {
@@ -136,11 +138,16 @@ func NewMux(
 	if beaterConfig.Pprof.Enabled {
 		const path = "/debug/pprof"
 		logger.Infof("Path %s added to request handler", path)
-		router.Handle(path+"/", http.HandlerFunc(pprof.Index))
-		router.Handle(path+"/cmdline", http.HandlerFunc(pprof.Cmdline))
-		router.Handle(path+"/profile", http.HandlerFunc(pprof.Profile))
-		router.Handle(path+"/symbol", http.HandlerFunc(pprof.Symbol))
-		router.Handle(path+"/trace", http.HandlerFunc(pprof.Trace))
+
+		pprofRouter := router.PathPrefix(path).Subrouter().StrictSlash(true)
+		pprofRouter.Handle("/", http.HandlerFunc(httppprof.Index))
+		for _, p := range pprof.Profiles() {
+			pprofRouter.Handle("/"+p.Name(), http.HandlerFunc(httppprof.Index))
+		}
+		pprofRouter.Handle("/cmdline", http.HandlerFunc(httppprof.Cmdline))
+		pprofRouter.Handle("/profile", http.HandlerFunc(httppprof.Profile))
+		pprofRouter.Handle("/symbol", http.HandlerFunc(httppprof.Symbol))
+		pprofRouter.Handle("/trace", http.HandlerFunc(httppprof.Trace))
 	}
 	return router, nil
 }
@@ -153,6 +160,7 @@ type routeBuilder struct {
 	ratelimitStore   *ratelimit.Store
 	sourcemapFetcher sourcemap.Fetcher
 	fleetManaged     bool
+	intakeSemaphore  chan struct{}
 }
 
 func (r *routeBuilder) profileHandler() (request.Handler, error) {
@@ -166,11 +174,11 @@ func (r *routeBuilder) firehoseHandler() (request.Handler, error) {
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
-	h := intake.Handler(stream.BackendProcessor(r.cfg), backendRequestMetadataFunc(r.cfg), r.batchProcessor)
+	h := intake.Handler(stream.BackendProcessor(r.cfg, r.intakeSemaphore), backendRequestMetadataFunc(r.cfg), r.batchProcessor)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
-func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *stream.Processor) func() (request.Handler, error) {
+func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config, chan struct{}) *stream.Processor) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		var batchProcessors modelprocessor.Chained
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
@@ -199,7 +207,7 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config) *strea
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
-		h := intake.Handler(newProcessor(r.cfg), rumRequestMetadataFunc(r.cfg), batchProcessors)
+		h := intake.Handler(newProcessor(r.cfg, r.intakeSemaphore), rumRequestMetadataFunc(r.cfg), batchProcessors)
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 	}
 }

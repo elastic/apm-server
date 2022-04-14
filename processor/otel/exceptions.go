@@ -67,13 +67,10 @@ func convertOpenTelemetryExceptionSpanEvent(
 	}
 	if exceptionStacktrace != "" {
 		if err := setExceptionStacktrace(exceptionStacktrace, language, exceptionError.Exception); err != nil {
-			// Couldn't parse stacktrace, just add it as an attribute to the
-			// exception so the user can still access it.
+			// Couldn't parse stacktrace, set it as `error.stack_trace` instead.
 			exceptionError.Exception.Stacktrace = nil
 			exceptionError.Exception.Cause = nil
-			exceptionError.Exception.Attributes = map[string]interface{}{
-				"stacktrace": exceptionStacktrace,
-			}
+			exceptionError.StackTrace = exceptionStacktrace
 		}
 	}
 	return &exceptionError
