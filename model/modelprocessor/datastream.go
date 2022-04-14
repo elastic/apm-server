@@ -59,17 +59,7 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		event.DataStream.Dataset = model.AppLogsDataset
 	case model.MetricsetProcessor:
 		event.DataStream.Type = datastreams.MetricsType
-		// Metrics that include well-defined transaction/span fields
-		// (i.e. breakdown metrics, transaction and span metrics) will
-		// be stored separately from application and runtime metrics.
-		event.DataStream.Dataset = model.InternalMetricsDataset
-		if event.Transaction == nil && event.Span == nil &&
-			event.Service.Name != "" {
-			event.DataStream.Dataset = fmt.Sprintf(
-				"%s.%s", model.AppMetricsDataset,
-				datastreams.NormalizeServiceName(event.Service.Name),
-			)
-		}
+		event.DataStream.Dataset = metricsetDataset(event)
 	case model.ProfileProcessor:
 		event.DataStream.Type = datastreams.MetricsType
 		event.DataStream.Dataset = model.ProfilesDataset
@@ -80,6 +70,120 @@ func isRUMAgentName(agentName string) bool {
 	switch agentName {
 	// These are all the known agents that send "RUM" data to the APM Server.
 	case "rum-js", "js-base", "iOS/swift":
+		return true
+	}
+	return false
+}
+
+func metricsetDataset(event *model.APMEvent) string {
+	if event.Transaction != nil || event.Span != nil || event.Service.Name == "" {
+		// Metrics that include well-defined transaction/span fields
+		// (i.e. breakdown metrics, transaction and span metrics) will
+		// be stored separately from custom application metrics.
+		return model.InternalMetricsDataset
+	}
+
+	if event.Metricset != nil {
+		// Well-defined system/runtime metrics are stored in the shared
+		// "internal" metrics data stream, as they are not application-specific.
+		//
+		// TODO(axw) agents should indicate that a metricset is internal.
+		// If a metricset is identified as internal, then we'll ignore any
+		// metrics that we don't already know about; otherwise they will end
+		// up creating service-specific data streams.
+		internal := true
+		for name := range event.Metricset.Samples {
+			if !isKnownAgentMetric(name) {
+				internal = false
+				break
+			}
+		}
+		if internal {
+			return model.InternalMetricsDataset
+		}
+	}
+
+	// All other metrics are assumed to be application-specific metrics,
+	// and so will be stored in an application-specific data stream.
+	return fmt.Sprintf(
+		"%s.%s", model.AppMetricsDataset,
+		datastreams.NormalizeServiceName(event.Service.Name),
+	)
+}
+
+func isKnownAgentMetric(name string) bool {
+	// TODO(axw) generate this list by parsing data stream fields.
+	switch name {
+	case
+		// System
+		"system.cpu.total.norm.pct",
+		"system.process.cpu.total.norm.pct",
+		"system.process.cpu.user.norm.pct",
+		"system.process.cpu.system.norm.pct",
+		"system.memory.total",
+		"system.memory.actual.free",
+		"system.process.memory.size",
+		"system.process.memory.rss.bytes",
+		"system.process.cgroup.memory.mem.limit.bytes",
+		"system.process.cgroup.memory.mem.usage.bytes",
+
+		// JVM
+		"jvm.memory.heap.used",
+		"jvm.memory.heap.committed",
+		"jvm.memory.heap.max",
+		"jvm.memory.heap.pool.used",
+		"jvm.memory.heap.pool.committed",
+		"jvm.memory.heap.pool.max",
+		"jvm.memory.non_heap.used",
+		"jvm.memory.non_heap.committed",
+		"jvm.memory.non_heap.max",
+		"jvm.thread.count",
+		"jvm.gc.count",
+		"jvm.gc.time",
+		"jvm.gc.alloc",
+
+		// Go runtime
+		"golang.goroutines",
+		"golang.heap.allocations.mallocs",
+		"golang.heap.allocations.frees",
+		"golang.heap.allocations.objects",
+		"golang.heap.allocations.total",
+		"golang.heap.allocations.allocated",
+		"golang.heap.allocations.idle",
+		"golang.heap.allocations.active",
+		"golang.heap.system.total",
+		"golang.heap.system.obtained",
+		"golang.heap.system.stack",
+		"golang.heap.system.released",
+		"golang.heap.gc.total_pause.ns",
+		"golang.heap.gc.total_count",
+		"golang.heap.gc.next_gc_limit",
+		"golang.heap.gc.cpu_fraction",
+
+		// .NET/CLR
+		"clr.gc.count",
+		"clr.gc.gen0size",
+		"clr.gc.gen1size",
+		"clr.gc.gen2size",
+		"clr.gc.gen3size",
+		"clr.gc.time",
+
+		// Node.js
+		"nodejs.handles.active",
+		"nodejs.requests.active",
+		"nodejs.eventloop.delay.avg.ms",
+		"nodejs.memory.heap.allocated.bytes",
+		"nodejs.memory.heap.used.bytes",
+		"nodejs.memory.external.bytes",
+		"nodejs.memory.arrayBuffers.bytes",
+
+		// Ruby
+		"ruby.gc.count",
+		"ruby.threads",
+		"ruby.heap.slots.live",
+		"ruby.heap.slots.free",
+		"ruby.heap.allocations.total",
+		"ruby.gc.time":
 		return true
 	}
 	return false
