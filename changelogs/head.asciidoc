@@ -27,6 +27,7 @@ https://github.com/elastic/apm-server/compare/8.1\...main[View commits]
 - If an agent sends a transaction or span with type unspecified, the server now sets a default value of "unknown" {pull}7688[7688]
 - Content-Type and Content-Encoding are no longer required for intake {pull}7686[7686]
 - For OpenTelemetry exception span events, stack traces that cannot be parsed will now be stored in `event.stack_trace` {pull}7706[7706]
+- Support for ingesting `service.target.type` and `service.target.name` added to intake API for spans {pull}7870[7870]
 
 [float]
 ==== Added
