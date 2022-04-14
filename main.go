@@ -18,6 +18,7 @@
 package main
 
 //go:generate go run model/modeldecoder/generator/cmd/main.go
+//go:generate go run model/modelprocessor/generate_internal_metrics.go
 //go:generate bash script/vendor_otel.sh
 
 import (

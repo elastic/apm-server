@@ -93,7 +93,7 @@ func metricsetDataset(event *model.APMEvent) string {
 		// up creating service-specific data streams.
 		internal := true
 		for name := range event.Metricset.Samples {
-			if !isKnownAgentMetric(name) {
+			if !isInternalMetricName(name) {
 				internal = false
 				break
 			}
@@ -109,82 +109,4 @@ func metricsetDataset(event *model.APMEvent) string {
 		"%s.%s", model.AppMetricsDataset,
 		datastreams.NormalizeServiceName(event.Service.Name),
 	)
-}
-
-func isKnownAgentMetric(name string) bool {
-	// TODO(axw) generate this list by parsing data stream fields.
-	switch name {
-	case
-		// System
-		"system.cpu.total.norm.pct",
-		"system.process.cpu.total.norm.pct",
-		"system.process.cpu.user.norm.pct",
-		"system.process.cpu.system.norm.pct",
-		"system.memory.total",
-		"system.memory.actual.free",
-		"system.process.memory.size",
-		"system.process.memory.rss.bytes",
-		"system.process.cgroup.memory.mem.limit.bytes",
-		"system.process.cgroup.memory.mem.usage.bytes",
-
-		// JVM
-		"jvm.memory.heap.used",
-		"jvm.memory.heap.committed",
-		"jvm.memory.heap.max",
-		"jvm.memory.heap.pool.used",
-		"jvm.memory.heap.pool.committed",
-		"jvm.memory.heap.pool.max",
-		"jvm.memory.non_heap.used",
-		"jvm.memory.non_heap.committed",
-		"jvm.memory.non_heap.max",
-		"jvm.thread.count",
-		"jvm.gc.count",
-		"jvm.gc.time",
-		"jvm.gc.alloc",
-
-		// Go runtime
-		"golang.goroutines",
-		"golang.heap.allocations.mallocs",
-		"golang.heap.allocations.frees",
-		"golang.heap.allocations.objects",
-		"golang.heap.allocations.total",
-		"golang.heap.allocations.allocated",
-		"golang.heap.allocations.idle",
-		"golang.heap.allocations.active",
-		"golang.heap.system.total",
-		"golang.heap.system.obtained",
-		"golang.heap.system.stack",
-		"golang.heap.system.released",
-		"golang.heap.gc.total_pause.ns",
-		"golang.heap.gc.total_count",
-		"golang.heap.gc.next_gc_limit",
-		"golang.heap.gc.cpu_fraction",
-
-		// .NET/CLR
-		"clr.gc.count",
-		"clr.gc.gen0size",
-		"clr.gc.gen1size",
-		"clr.gc.gen2size",
-		"clr.gc.gen3size",
-		"clr.gc.time",
-
-		// Node.js
-		"nodejs.handles.active",
-		"nodejs.requests.active",
-		"nodejs.eventloop.delay.avg.ms",
-		"nodejs.memory.heap.allocated.bytes",
-		"nodejs.memory.heap.used.bytes",
-		"nodejs.memory.external.bytes",
-		"nodejs.memory.arrayBuffers.bytes",
-
-		// Ruby
-		"ruby.gc.count",
-		"ruby.threads",
-		"ruby.heap.slots.live",
-		"ruby.heap.slots.free",
-		"ruby.heap.allocations.total",
-		"ruby.gc.time":
-		return true
-	}
-	return false
 }
