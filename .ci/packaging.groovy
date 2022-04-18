@@ -131,6 +131,11 @@ pipeline {
               echo 'Create PR'
             }
           }
+          post {
+            failure {
+              notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] apmpackage failed.")
+            }
+          }
         }
         stage('DRA') {
           options { skipDefaultCheckout() }
