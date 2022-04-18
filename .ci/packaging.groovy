@@ -68,7 +68,7 @@ pipeline {
             setEnvVar('IS_BRANCH_AVAILABLE', isBranchUnifiedReleaseAvailable(env.BRANCH_NAME))
             dir("${BASE_DIR}"){
               setEnvVar('VERSION', sh(label: 'Get version', script: 'make get-version', returnStdout: true)?.trim())
-              // The apmpackage stage gets triggers as described in https://github.com/elastic/apm-server/issues/6970
+              // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
               setEnvVar('IS_APM_PACKAGE', isGitRegionMatch(patterns: [ '(cmd/version.go|apmpackage/.*|.ci/packaging.groovy)' ], comparator: 'regexp'))
             }
           }
