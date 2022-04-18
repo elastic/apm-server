@@ -242,13 +242,18 @@ $(APPROVALS):
 ##############################################################################
 # Rules for the package-storage.
 ##############################################################################
-#	@rm -fr $(PACKAGESTORAGE)
-#	@git clone --branch snapshot --single-branch git@github.com:elastic/package-storage.git $(PACKAGESTORAGE)
 package-storage-snapshot:
+	@rm -fr $(PACKAGESTORAGE)
+	@git clone --branch snapshot --single-branch git@github.com:elastic/package-storage.git $(PACKAGESTORAGE)
 	@echo "INFO: Does the package-storage version matches the version in the APM Server?"
-	@([ -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && build/integrations/apm/$(APM_SERVER_VERSION)/* $(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)/ || echo ' NO. $(APM_SERVER_VERSION) does not match the version in the package-storage')
+	@([ -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && cp -rf build/integrations/apm/$(APM_SERVER_VERSION)/* $(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)/ || echo ' NO. $(APM_SERVER_VERSION) does not match the version in the package-storage.')
 	@echo "INFO: Otherwise, if the package-storage version does not match the version in the APM Server."
-	@echo " TBD"
+	@([ ! -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && echo ' TBD' || echo ' NO. $(APM_SERVER_VERSION) does match the version in the package-storage.')
+
+## get-package-storage-location : Get the package storage location
+.PHONY: get-package-storage-location
+get-package-storage-location:
+	@echo $(PACKAGESTORAGEAPM)
 
 ##############################################################################
 # Release manager.
