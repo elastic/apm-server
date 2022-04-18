@@ -242,12 +242,13 @@ $(APPROVALS):
 ##############################################################################
 # Rules for the package-storage.
 ##############################################################################
+#	@rm -fr $(PACKAGESTORAGE)
+#	@git clone --branch snapshot --single-branch git@github.com:elastic/package-storage.git $(PACKAGESTORAGE)
 package-storage-snapshot:
-	@rm -fr $(PACKAGESTORAGE)
-	@git clone --branch snapshot --single-branch git@github.com:elastic/package-storage.git $(PACKAGESTORAGE)
-	@echo "if packages/apm matches with the current apm-server version"
-	@([ -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && build/integrations/apm/$(APM_SERVER_VERSION)/* $(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)/ || echo '$(APM_SERVER_VERSION) does not match the version in the package-storage')
-	@echo "if packages/apm doesn't match the current apm-server version.TBD"
+	@echo "INFO: Does the package-storage version matches the version in the APM Server?"
+	@([ -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && build/integrations/apm/$(APM_SERVER_VERSION)/* $(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)/ || echo ' NO. $(APM_SERVER_VERSION) does not match the version in the package-storage')
+	@echo "INFO: Otherwise, if the package-storage version does not match the version in the APM Server."
+	@echo " TBD"
 
 ##############################################################################
 # Release manager.
