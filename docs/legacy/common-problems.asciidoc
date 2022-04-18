@@ -6,6 +6,7 @@ IMPORTANT: {deprecation-notice-data}
 This section describes common problems you might encounter with APM Server.
 
 * <<no-data-indexed-legacy>>
+* <<data-indexed-no-apm-legacy>>
 * <<bad-request-legacy>>
 * <<event-too-large-legacy>>
 * <<unauthorized-legacy>>
@@ -21,6 +22,7 @@ This section describes common problems you might encounter with APM Server.
 [[no-data-indexed-legacy]]
 [float]
 === No data is indexed
+
 If no data shows up in Elasticsearch, first check that the APM components are properly connected.
 
 To ensure that APM Server configuration is valid and it can connect to the configured output, Elasticsearch by default,
@@ -47,6 +49,81 @@ the {apm-agents-ref}/index.html[agent documentation] for details on what is auto
 
 APM Server currently relies on Elasticsearch to create indices that do not exist.
 As a result, Elasticsearch must be configured to allow {ref}/docs-index_.html#index-creation[automatic index creation] for APM indices.
+
+[[data-indexed-no-apm-legacy]]
+[float]
+=== Data is indexed but doesn't appear in the APM UI
+
+The APM app relies on index mappings to query and display data.
+If your APM data isn't showing up in the APM app, but is elsewhere in {kib}, like the Discover app,
+you may have a missing index mapping.
+
+You can determine if a field was mapped correctly with the `_mapping` API.
+For example, run the following command in the {kib} {kibana-ref}/console-kibana.html[console].
+This will display the field data type of the `service.name` field.
+
+[source,curl]
+----
+GET apm-*/_mapping/field/service.name
+----
+
+If the `mapping.name.type` is `"text"`, your APM indices were not setup correctly.
+
+[source,yml]
+----
+"mappings" : {
+   "service.name" : {
+      "full_name" : "service.name",
+      "mapping" : {
+         "name" : {
+            "type" : "text", <1>
+            "fields" : {
+               "keyword" : {
+                  "type" : "keyword",
+                  "ignore_above" : 256
+               }
+            }
+         }
+      }
+   }
+}
+----
+<1> The `service.name` `mapping.name.type` would be `"keyword"` if this field had been setup correctly.
+
+To fix this problem, you must delete and recreate your APM indices as index templates cannot be applied retroactively.
+
+. Stop your APM Server(s) so they are not writing any new documents.
+
+. Delete your existing `apm-*` indices.
+In the {kib} console, run:
++
+[source,curl]
+----
+DELETE apm-*
+----
++
+Alternatively, you can use the {kibana-ref}index-mgmt.html[Index Management] page in {kib}.
+Select all `apm-*` index templates and navigate to **Manage Indices** > **Delete Indices**.
+
+. Starting in version 8.0.0, {fleet} uses to the APM integration to set up and manage APM index templates.
+Install the APM integration by following these steps:
++
+--
+include::./getting-started-apm-server.asciidoc[tag=install-apm-integration]
+--
+
+. Start APM Server.
+
+. Verify the correct index templates were installed. In the {kib} console, run:
++
+[source,curl]
+----
+GET _template/apm-*
+----
++
+Alternatively, you can use the {kibana-ref}index-mgmt.html[**Index Management**] page in {kib}.
+On the **Index Templates** tab, search for `apm` under **Legacy Index Templates**.
+
 
 [[bad-request-legacy]]
 [float]

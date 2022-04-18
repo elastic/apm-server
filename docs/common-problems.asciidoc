@@ -1,6 +1,10 @@
 [[common-problems]]
 === Common problems
 
+This section describes common problems for users running {agent} and the APM integration.
+If you're using the standalone (legacy) APM Server binary, see
+<<common-problems-legacy,legacy common problems>> instead.
+
 * <<no-data-indexed>>
 * <<common-response-codes>>
 * <<common-ssl-problems>>
