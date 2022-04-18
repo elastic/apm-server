@@ -117,6 +117,16 @@ pipeline {
             }
           }
         }
+        stage('apmpackage') {
+          options { skipDefaultCheckout() }
+          steps {
+            runWithMage(script: "make build-package") {
+              echo 'elastic-package check'
+              echo 'Push the new apm package to the snapshot'
+              echo 'Create PR'
+            }
+          }
+        }
         stage('DRA') {
           options { skipDefaultCheckout() }
           // The Unified Release process keeps moving branches as soon as a new
@@ -172,19 +182,26 @@ def runReleaseManager(def args = [:]) {
   }
 }
 
+def runWithMage(def args = [:], Closure body = {}) {
+  def command = args.script
+  def label = args.get('label', command)
+  deleteDir()
+  unstash 'source'
+  dir("${BASE_DIR}"){
+    withMageEnv() {
+      sh(label: label, script: command)
+      body()
+    }
+  }
+}
+
 def runPackage(def args = [:]) {
   def type = args.type
   def makeGoal = 'release-manager-snapshot'
   if (type.equals('staging')) {
     makeGoal = 'release-manager-release'
   }
-  deleteDir()
-  unstash 'source'
-  dir("${BASE_DIR}"){
-    withMageEnv() {
-      sh(label: 'make release-manager', script: "make ${makeGoal}")
-    }
-  }
+  runWithMage(label: 'make release-manager', script: "make ${makeGoal}")
 }
 
 def publishArtifacts(def args = [:]) {
