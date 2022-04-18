@@ -130,7 +130,7 @@ pipeline {
               setEnvVar('PACKAGE_STORAGE_LOCATION', sh(label: 'get-package-storage-location', script: 'make get-package-storage-location', returnStdout: true)?.trim())
               dir(env.PACKAGE_STORAGE_LOCATION) {
                 echo '1. Git add/commit changes'
-                echo '2. Create PR'
+                echo "2. Create PR. title: Publish apm-${VERSION} to snapshot"
               }
             }
           }

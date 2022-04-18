@@ -23,6 +23,7 @@ STATICCHECK=$(GOOSBUILD)/staticcheck
 ELASTICPACKAGE=$(GOOSBUILD)/elastic-package
 PACKAGESTORAGE=./build/.package-storage
 PACKAGESTORAGEAPM=$(PACKAGESTORAGE)/packages/apm
+BUILDINTEGRATIONSAPM=./build/integrations/apm
 
 PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
@@ -179,7 +180,7 @@ check-docker-compose: $(PYTHON_BIN)
 format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
-	@rm -fr ./build/integrations/apm/* ./build/apmpackage
+	@rm -fr $(BUILDINTEGRATIONSAPM)/* ./build/apmpackage
 	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_VERSION)
 	@(cd ./build/apmpackage; $(CURDIR)/$(ELASTICPACKAGE) build && $(CURDIR)/$(ELASTICPACKAGE) check)
 
@@ -245,10 +246,11 @@ $(APPROVALS):
 package-storage-snapshot:
 	@rm -fr $(PACKAGESTORAGE)
 	@git clone --branch snapshot --single-branch git@github.com:elastic/package-storage.git $(PACKAGESTORAGE)
-	@echo "INFO: Does the package-storage version matches the version in the APM Server?"
-	@([ -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && cp -rf build/integrations/apm/$(APM_SERVER_VERSION)/* $(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)/ || echo ' NO. $(APM_SERVER_VERSION) does not match the version in the package-storage.')
-	@echo "INFO: Otherwise, if the package-storage version does not match the version in the APM Server."
-	@([ ! -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && echo ' TBD' || echo ' NO. $(APM_SERVER_VERSION) does match the version in the package-storage.')
+	@echo "INFO: Rename the package-storage version if APM Server version does not match."
+	@([ ! -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && (cd $(PACKAGESTORAGEAPM) ; git mv * $(APM_SERVER_VERSION) ; cd -) || true)
+	@echo "INFO: Copy the apmpackage in the package-storage."
+	@([ -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && cp -rf $(BUILDINTEGRATIONSAPM)/$(APM_SERVER_VERSION)/* $(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)/ || true)
+	@echo "INFO: You can now proceed with the PR creation."
 
 ## get-package-storage-location : Get the package storage location
 .PHONY: get-package-storage-location
