@@ -6,7 +6,6 @@
 * <<common-ssl-problems>>
 * <<io-timeout>>
 * <<server-es-down>>
-* <<central-config-troubleshooting>>
 
 [float]
 [[no-data-indexed]]
