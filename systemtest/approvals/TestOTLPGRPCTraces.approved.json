@@ -1,6 +1,89 @@
 {
     "events": [
         {
+            "@timestamp": "1970-01-01T00:02:03.002Z",
+            "agent": {
+                "name": "opentelemetry/go",
+                "version": "1.5.0"
+            },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
+            "ecs": {
+                "version": "dynamic"
+            },
+            "error": {
+                "exception": [
+                    {
+                        "handled": true,
+                        "message": "kablamo",
+                        "type": "*errors.errorString"
+                    }
+                ],
+                "grouping_key": "14f4d08792a45fce53a46c93851e36e1",
+                "grouping_name": "kablamo",
+                "stack_trace": "not an actual real stack trace"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "labels": {
+                "resource_attribute_array": [
+                    "a",
+                    "b"
+                ],
+                "resource_attribute_bool": "true",
+                "resource_attribute_bool_array": [
+                    "true",
+                    "false"
+                ]
+            },
+            "message": "kablamo",
+            "numeric_labels": {
+                "resource_attribute_float": 123456.789,
+                "resource_attribute_float_array": [
+                    123456.789,
+                    987654321.1234568
+                ],
+                "resource_attribute_int": 123456
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "b3ee9be3b687a611"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "framework": {
+                    "name": "systemtest"
+                },
+                "language": {
+                    "name": "go"
+                },
+                "name": "unknown_service_systemtest_test"
+            },
+            "timestamp": {
+                "us": 123002000
+            },
+            "trace": {
+                "id": "d2acbef8b37655e48548fd9d61ad6114"
+            },
+            "transaction": {
+                "id": "b3ee9be3b687a611",
+                "sampled": true,
+                "type": "unknown"
+            }
+        },
+        {
             "@timestamp": "1970-01-01T00:02:03.001Z",
             "agent": {
                 "name": "opentelemetry/go",

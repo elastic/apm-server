@@ -29,8 +29,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/module/apmzap"
+	"go.elastic.co/apm/module/apmzap/v2"
+	"go.elastic.co/apm/v2"
 	"go.elastic.co/fastjson"
 	"golang.org/x/sync/errgroup"
 

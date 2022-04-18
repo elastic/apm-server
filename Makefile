@@ -209,8 +209,8 @@ $(BIN_MAGE): go.mod
 $(MAGE): magefile.go $(BIN_MAGE)
 	$(BIN_MAGE) -compile=$@
 
-$(GOLINT): go.mod
-	$(GO) build -o $@ golang.org/x/lint/golint
+$(GOLINT): tools/go.mod
+	$(GO) build -o $@ -modfile=$< golang.org/x/lint/golint
 
 $(GOIMPORTS): go.mod
 	$(GO) build -o $@ golang.org/x/tools/cmd/goimports

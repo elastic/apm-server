@@ -37,6 +37,11 @@ type Error struct {
 	Culprit     string
 	Custom      common.MapStr
 
+	// StackTrace holds an unparsed stack trace.
+	//
+	// This may be set when a stack trace cannot be parsed.
+	StackTrace string
+
 	Exception *Exception
 	Log       *ErrorLog
 }
@@ -71,6 +76,7 @@ func (e *Error) fields() common.MapStr {
 	errorFields.maybeSetString("culprit", e.Culprit)
 	errorFields.maybeSetMapStr("custom", customFields(e.Custom))
 	errorFields.maybeSetString("grouping_key", e.GroupingKey)
+	errorFields.maybeSetString("stack_trace", e.StackTrace)
 	return common.MapStr(errorFields)
 }
 

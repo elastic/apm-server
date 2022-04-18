@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -40,49 +40,47 @@ func TestDropUnsampled(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Monitoring = newFastMonitoringConfig()
+	srv.Config.RUM = &apmservertest.RUMConfig{
+		Enabled: true,
+	}
+	srv.Config.AgentAuth.Anonymous = &apmservertest.AnonymousAuthConfig{
+		Enabled: true,
+	}
 	err := srv.Start()
 	require.NoError(t, err)
-	defaultMetadataFilter := srv.EventMetadataFilter
 
-	// Send:
-	// - one sampled transaction (should be stored)
-	// - one unsampled RUM transaction (should be be stored)
-	// - one unsampled backend transaction (should be dropped)
-	transactionType := "TestDropUnsampled"
-	timestamp := time.Unix(0, 0)
-	sendTransaction := func(sampled bool, agentName string) {
-		srv.EventMetadataFilter = apmservertest.EventMetadataFilterFunc(func(m *apmservertest.EventMetadata) {
-			defaultMetadataFilter.FilterEventMetadata(m)
-			m.Service.Agent.Name = agentName
-		})
-		tracer := srv.Tracer()
-		defer tracer.Flush(nil)
-		transactionName := "unsampled"
-		if sampled {
-			transactionName = "sampled"
-		}
-		timestamp = timestamp.Add(time.Second)
-		tx := tracer.StartTransactionOptions(transactionName, transactionType, apm.TransactionOptions{
-			Start: timestamp,
-			TraceContext: apm.TraceContext{
-				Trace:   apm.TraceID{1},
-				Options: apm.TraceOptions(0).WithRecorded(sampled),
-			},
-			TransactionID: apm.SpanID{2},
-		})
-		tx.Duration = time.Second
-		tx.End()
-	}
-	sendTransaction(false, "backend")
-	sendTransaction(false, "rum-js")
-	sendTransaction(true, "backend")
+	// Sampled transaction (should be stored)
+	tracer := srv.Tracer()
+	tx := tracer.StartTransactionOptions("sampled", "TestDropUnsampled", apm.TransactionOptions{
+		Start: time.Unix(0, 0), // set timestamp for sorting purposes
+	})
+	tx.Duration = time.Second
+	tx.End()
+	tracer.Flush(nil)
+
+	// Unsampled backend transaction (should be dropped)
+	systemtest.SendBackendEventsLiteral(t, srv, `
+{"metadata":{"service":{"name":"allowed","version":"1.0.0","agent":{"name":"backend","version":"0.0.0"}}}}
+{"transaction":{"sampled":false,"trace_id":"xyz","id":"yz","type":"TestDropUnsampled","duration":0,"span_count":{"started":1},"context":{"service":{"name":"allowed"}}}}`[1:])
+
+	// Unsampled RUM transaction (should be stored)
+	systemtest.SendRUMEventsLiteral(t, srv, `
+{"metadata":{"service":{"name":"allowed","version":"1.0.0","agent":{"name":"rum-js","version":"0.0.0"}}}}
+{"transaction":{"sampled":false,"trace_id":"x","id":"y","type":"TestDropUnsampled","duration":0,"span_count":{"started":1},"context":{"service":{"name":"allowed"}}}}`[1:])
 
 	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*", estest.TermQuery{
 		Field: "transaction.type",
-		Value: transactionType,
+		Value: "TestDropUnsampled",
 	})
 	assert.Len(t, result.Hits.Hits, 2)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits,
+		// RUM timestamps are set by the server based on the time the payload is received.
+		"@timestamp", "timestamp.us",
+		// RUM events have the source port recorded, and in the tests it will be dynamic
+		"source.port",
+		// Ignore dynamically generated trace/transaction ID
+		"trace.id", "transaction.id",
+	)
 
 	doc := getBeatsMonitoringStats(t, srv, nil)
 	transactionsDropped := gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.sampling.transactions_dropped")
