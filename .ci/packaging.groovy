@@ -126,8 +126,7 @@ pipeline {
           }
           steps {
             runWithMage(script: "make build-package") {
-              echo 'elastic-package check'
-              echo 'Push the new apm package to the snapshot'
+              sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
               echo 'Create PR'
             }
           }

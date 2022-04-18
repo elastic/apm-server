@@ -21,6 +21,8 @@ MAGE=$(GOOSBUILD)/mage
 REVIEWDOG=$(GOOSBUILD)/reviewdog
 STATICCHECK=$(GOOSBUILD)/staticcheck
 ELASTICPACKAGE=$(GOOSBUILD)/elastic-package
+PACKAGESTORAGE=./build/.package-storage
+PACKAGESTORAGEAPM=$(PACKAGESTORAGE)/packages/apm
 
 PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
@@ -236,6 +238,16 @@ $(PYTHON_BIN)/activate: $(MAGE) script/requirements.txt
 .PHONY: $(APPROVALS)
 $(APPROVALS):
 	@$(GO) build -o $@ github.com/elastic/apm-server/approvaltest/cmd/check-approvals
+
+##############################################################################
+# Rules for the package-storage.
+##############################################################################
+package-storage-snapshot:
+	@rm -fr $(PACKAGESTORAGE)
+	@git clone --branch snapshot --single-branch git@github.com:elastic/package-storage.git $(PACKAGESTORAGE)
+	@echo "if packages/apm matches with the current apm-server version"
+	@([ -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && build/integrations/apm/$(APM_SERVER_VERSION)/* $(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)/ || echo '$(APM_SERVER_VERSION) does not match the version in the package-storage')
+	@echo "if packages/apm doesn't match the current apm-server version.TBD"
 
 ##############################################################################
 # Release manager.
