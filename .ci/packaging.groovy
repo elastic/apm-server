@@ -83,6 +83,7 @@ pipeline {
               sh(script: "make build-package", label: "make build-package")
               sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
               withGhEnv(version: '2.4.0') {
+                setupAPMGitEmail(global: true)
                 sh(label: 'create-package-storage-pull-request', script: 'make create-package-storage-pull-request')
               }
             }

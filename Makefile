@@ -259,6 +259,7 @@ package-storage-snapshot:
 create-package-storage-pull-request:
 	@cd $(PACKAGESTORAGE) ; git checkout -b update-apm-$(APM_SERVER_VERSION)-$(shell date "+%Y%m%d%H%M%S")
 	@cd $(PACKAGESTORAGE) ; git diff --staged --quiet || ( git add . ; git commit -m "[automation] Publish apm-$(APM_SERVER_VERSION)" )
+	@cd $(PACKAGESTORAGE) ; git push
 	@cd $(PACKAGESTORAGE) ; \
 		gh pr create \
 			--title "Publish apm-$(APM_SERVER_VERSION)" \
