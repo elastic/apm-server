@@ -488,6 +488,13 @@
                 }
               }
             },
+            "id": {
+              "description": "ID holds a unique identifier for the service.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
             "language": {
               "description": "Language holds information about the programming language of the monitored service.",
               "type": [
@@ -594,12 +601,28 @@
                 }
               }
             },
-            "string": {
-              "description": "ID holds a unique identifier for the service.",
+            "target": {
+              "description": "Target holds information about the outgoing service in case of an outgoing event",
               "type": [
                 "null",
-                "string"
-              ]
+                "object"
+              ],
+              "properties": {
+                "name": {
+                  "description": "Immutable name of the target service for the event",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "type": {
+                  "description": "Immutable type of the target service for the event",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                }
+              }
             },
             "version": {
               "description": "Version of the monitored service.",

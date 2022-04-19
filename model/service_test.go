@@ -26,10 +26,11 @@ import (
 )
 
 var (
-	version, environment  = "5.1.3", "staging"
-	langName, langVersion = "ecmascript", "8"
-	rtName, rtVersion     = "node", "8.0.0"
-	fwName, fwVersion     = "Express", "1.2.3"
+	version, environment   = "5.1.3", "staging"
+	langName, langVersion  = "ecmascript", "8"
+	rtName, rtVersion      = "node", "8.0.0"
+	fwName, fwVersion      = "Express", "1.2.3"
+	targetName, targetType = "testdb", "oracle"
 )
 
 func TestServiceTransform(t *testing.T) {
@@ -61,6 +62,10 @@ func TestServiceTransform(t *testing.T) {
 					Version: fwVersion,
 				},
 				Node: ServiceNode{Name: serviceNodeName},
+				Target: &ServiceTarget{
+					Name: targetName,
+					Type: targetType,
+				},
 			},
 			Fields: common.MapStr{
 				"name":        "myService",
@@ -79,6 +84,10 @@ func TestServiceTransform(t *testing.T) {
 					"version": "1.2.3",
 				},
 				"node": common.MapStr{"name": serviceNodeName},
+				"target": common.MapStr{
+					"name": "testdb",
+					"type": "oracle",
+				},
 			},
 		},
 	}
