@@ -267,7 +267,7 @@ type contextService struct {
 	// monitored service.
 	Framework contextServiceFramework `json:"framework"`
 	// ID holds a unique identifier for the service.
-	ID nullable.String `json:"string"`
+	ID nullable.String `json:"id"`
 	// Language holds information about the programming language of the
 	// monitored service.
 	Language contextServiceLanguage `json:"language"`
