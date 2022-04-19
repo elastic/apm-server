@@ -80,9 +80,9 @@ pipeline {
           }
           steps {
             runWithMage() {
-              sh(script: "make build-package", label: "make build-package")
-              sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
               withGitContext() {
+                sh(script: 'make build-package', label: 'make build-package')
+                sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
                 sh(label: 'create-package-storage-pull-request', script: 'make create-package-storage-pull-request')
               }
             }
@@ -276,16 +276,16 @@ def withGitContext(Closure body) {
     try {
       // within the package-storage workspace then configure the credentials to be able to push the changes
       dir(env.PACKAGE_STORAGE_LOCATION) {
-        //${ORG_NAME}
-        sh(label: 'Setup git remote URL', script: """git config remote.origin.url "https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/v1v/${REPO_NAME}.git" """)
+        sh(label: 'Setup git context', script: """git config remote.origin.url "https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${ORG_NAME}/${REPO_NAME}.git" """)
       }
       // run the given body to prepare the changes and push the changes
       withGhEnv(version: '2.4.0') {
         body()
       }
     } finally {
-      //${ORG_NAME}
-      sh(label: 'Rollback git context', script: """git config remote.origin.url "https://github.com/v1v/${env.REPO_NAME}.git" """)
+      dir(env.PACKAGE_STORAGE_LOCATION) {
+        sh(label: 'Rollback git context', script: """git config remote.origin.url "https://github.com/${ORG_NAME}/${env.REPO_NAME}.git" """)
+      }
     }
   }
 }

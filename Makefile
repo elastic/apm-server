@@ -248,7 +248,7 @@ $(APPROVALS):
 .PHONY: package-storage-snapshot
 package-storage-snapshot:
 	@rm -fr $(PACKAGESTORAGE)
-	@git clone --branch snapshot --single-branch git@github.com:v1v/package-storage.git $(PACKAGESTORAGE)
+	@gh repo clone elastic/package-storage $(PACKAGESTORAGE) -- --branch snapshot --single-branch
 	@echo "INFO: Rename the package-storage version if APM Server version does not match."
 	@([ ! -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && (cd $(PACKAGESTORAGEAPM) ; git mv * $(APM_SERVER_VERSION) ; cd -) || true)
 	@echo "INFO: Copy the apmpackage in the package-storage."
@@ -266,10 +266,9 @@ create-package-storage-pull-request:
 			--title "Publish apm-$(APM_SERVER_VERSION)" \
 			--body "Automated by $${BUILD_URL}" \
 			--label automation \
-			--assignee v1v \
 			--base snapshot \
-			--repo v1v/package-storage
-
+			--head $(PACKAGESTORAGEBRANCH) \
+			--repo elastic/package-storage
 
 ## get-package-storage-location : Get the package storage location
 .PHONY: get-package-storage-location
