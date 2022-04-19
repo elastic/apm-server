@@ -247,7 +247,7 @@ $(APPROVALS):
 .PHONY: package-storage-snapshot
 package-storage-snapshot:
 	@rm -fr $(PACKAGESTORAGE)
-	@git clone --branch snapshot --single-branch git@github.com:elastic/package-storage.git $(PACKAGESTORAGE)
+	@git clone --branch snapshot --single-branch git@github.com:v1v/package-storage.git $(PACKAGESTORAGE)
 	@echo "INFO: Rename the package-storage version if APM Server version does not match."
 	@([ ! -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && (cd $(PACKAGESTORAGEAPM) ; git mv * $(APM_SERVER_VERSION) ; cd -) || true)
 	@echo "INFO: Copy the apmpackage in the package-storage."
@@ -264,7 +264,8 @@ create-package-storage-pull-request:
 			--title "Publish apm-$(APM_SERVER_VERSION)" \
 			--body "Automated by $${BUILD_URL}" \
 			--label automation \
-			--reviewer v1v
+			--reviewer v1v \
+			--repo v1v/package-storage
 
 ##############################################################################
 # Release manager.
