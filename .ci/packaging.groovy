@@ -125,7 +125,8 @@ pipeline {
             expression { return env.IS_APM_PACKAGE == "true" }
           }
           steps {
-            runWithMage(script: "make build-package") {
+            runWithMage() {
+              sh(script: "make build-package", label: "make build-package")
               sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
               setEnvVar('PACKAGE_STORAGE_LOCATION', sh(label: 'get-package-storage-location', script: 'make get-package-storage-location', returnStdout: true)?.trim())
               dir(env.PACKAGE_STORAGE_LOCATION) {
@@ -195,14 +196,11 @@ def runReleaseManager(def args = [:]) {
   }
 }
 
-def runWithMage(def args = [:], Closure body = {}) {
-  def command = args.script
-  def label = args.get('label', command)
+def runWithMage(Closure body) {
   deleteDir()
   unstash 'source'
   dir("${BASE_DIR}"){
     withMageEnv() {
-      sh(label: label, script: command)
       body()
     }
   }
@@ -214,7 +212,9 @@ def runPackage(def args = [:]) {
   if (type.equals('staging')) {
     makeGoal = 'release-manager-release'
   }
-  runWithMage(label: 'make release-manager', script: "make ${makeGoal}")
+  runWithMage() {
+    sh(label: "make ${makeGoal}", script: "make ${makeGoal}")
+  }
 }
 
 def publishArtifacts(def args = [:]) {
