@@ -795,6 +795,16 @@ func mapToServiceModel(from contextService, out *model.Service) {
 		}
 		out.Origin = outOrigin
 	}
+	if from.Target.IsSet() {
+		outTarget := &model.ServiceTarget{}
+		if from.Target.Name.IsSet() {
+			outTarget.Name = from.Target.Name.Val
+		}
+		if from.Target.Type.IsSet() {
+			outTarget.Type = from.Target.Type.Val
+		}
+		out.Target = outTarget
+	}
 }
 
 func mapToAgentModel(from contextServiceAgent, out *model.Agent) {

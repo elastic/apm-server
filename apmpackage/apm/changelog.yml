@@ -3,9 +3,9 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "8.3.0"
   changes:
-    - description: Placeholder
+    - description: Field mapping for `target.name` and `target.type` added to traces data stream
       type: enhancement
-      link: https://github.com/elastic/apm-server/pull/123
+      link: https://github.com/elastic/apm-server/pull/7870
     - description: Remove the release tag
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7792
@@ -29,6 +29,9 @@
     - description: added field mapping for `url.original` to traces, rum_traces, app_logs, and error_logs
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/7698
+    - description: added field mapping for `error.stack_trace` to error_logs
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7706
 - version: "8.1.0"
   changes:
     - description: Added field mapping for `faas.coldstart` and `faas.trigger.type`
