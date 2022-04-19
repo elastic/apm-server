@@ -196,6 +196,8 @@ The APM Server timeout can be configured by updating the
 
 *If Elasticsearch is down*
 
+APM Server does not have an internal queue to buffer requests,
+but instead leverages an HTTP request timeout to act as back-pressure.
 If Elasticsearch goes down, the APM Server will eventually deny incoming requests.
 Both the APM Server and APM agent(s) will issue logs accordingly.
 

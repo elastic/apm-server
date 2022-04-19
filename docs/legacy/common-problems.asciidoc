@@ -152,33 +152,6 @@ The <<secret-token-legacy, secret token>> in the request header doesn't match th
 Either you are sending requests to a <<configuration-rum, RUM>> endpoint without RUM enabled, or a request
 is coming from an origin not specified in `apm-server.rum.allow_origins`. See the <<configuration-rum, RUM configuration>>.
 
-[[queue-full-legacy]]
-[float]
-=== HTTP 503: Queue is full
-
-APM Server has an internal queue that helps to:
-
-* Buffer data temporarily if Elasticsearch is intermittently unavailable
-* Handle sudden large spikes of data
-* Send documents to Elasticsearch in bulk, instead of individually
-
-When the queue has reached the maximum size,
-APM Server returns an HTTP 503 status with the message "Queue is full".
-
-A full queue generally means that the agents collect more data than APM server can process.
-This might happen when APM Server is not configured properly for your Elasticsearch cluster size,
-or because your Elasticsearch cluster is underpowered or not configured properly for the given workload.
-
-The queue can also fill up if Elasticsearch runs out of disk space.
-
-If the APM Server only returns 503 responses, it indicates that an Elasticsearch disk might be full.
-If the APM Server returns interleaved 503 and 202 responses, it indicates that the APM Server can't process that much data.
-
-You have a few options to solve this problem:
-
-* <<reduce-storage, Reduce storage>>
-* <<tune-es, Tune Elasticsearch for higher ingestion>>
-
 [[request-timed-out-legacy]]
 [float]
 === HTTP 503: Request timed out waiting to be processed
@@ -325,9 +298,10 @@ APM agent --> Load Balancer  --> APM Server
 
 *If Elasticsearch is down*
 
-If Elasticsearch goes down, APM will keep some data in its internal in-memory queue.
-When the queue fills up, APM will respond with <<queue-full-legacy,`HTTP 503: Queue is full`>> and
-block requests until there is space available or until the request timeout is reached.
+APM Server does not have an internal queue to buffer requests,
+but instead leverages an HTTP request timeout to act as back-pressure.
+If Elasticsearch goes down, the APM Server will eventually deny incoming requests.
+Both the APM Server and APM agent(s) will issue logs accordingly.
 
 *If APM Server is down*
 
