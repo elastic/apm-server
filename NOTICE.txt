@@ -260,11 +260,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20220412142919-fea8a7003359
+Version: v7.0.0-alpha2.0.20220418062912-1740cbd1353a
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220412142919-fea8a7003359/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220418062912-1740cbd1353a/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -5007,11 +5007,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.0.0-20220412020605-290c469a71a5
+Version: v0.0.0-20220418201149-a630d4f3e7a2
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20220412020605-290c469a71a5/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20220418201149-a630d4f3e7a2/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -7303,11 +7303,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-client/v7
-Version: v7.0.0-20210922110810-e6f1f402a9ed
+Version: v7.0.0-20220413160217-a3cee549fb99
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.0.0-20210922110810-e6f1f402a9ed/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.0.0-20220413160217-a3cee549fb99/LICENSE.txt:
 
 ELASTIC LICENSE AGREEMENT
 
@@ -18148,11 +18148,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20220407144326-9054f6ed7bac
+Version: v0.0.0-20220414192740-2d67ff6cf2b4
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220407144326-9054f6ed7bac/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220414192740-2d67ff6cf2b4/LICENSE:
 
 
                                  Apache License
