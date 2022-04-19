@@ -257,7 +257,7 @@ package-storage-snapshot:
 ## create-package-storage-pull-request : Create the pull request for the package storage
 .PHONY: create-package-storage-pull-request
 create-package-storage-pull-request:
-	@cd $(PACKAGESTORAGE) ; git checkout -b update-apm-$(APM_SERVER_VERSION)
+	@cd $(PACKAGESTORAGE) ; git checkout -b update-apm-$(APM_SERVER_VERSION)-$(shell date "+%Y%m%d%H%M%S")
 	@cd $(PACKAGESTORAGE) ; git add . ; git commit -m "[automation] Publish apm-$(APM_SERVER_VERSION)"
 	@cd $(PACKAGESTORAGE) ; \
 		gh pr create \
