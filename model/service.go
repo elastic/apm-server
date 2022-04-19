@@ -33,6 +33,7 @@ type Service struct {
 	Node        ServiceNode
 
 	Origin *ServiceOrigin
+	Target *ServiceTarget
 }
 
 // ServiceOrigin holds information about the service that originated a
@@ -41,6 +42,13 @@ type ServiceOrigin struct {
 	ID      string
 	Name    string
 	Version string
+}
+
+// ServiceTarget holds information about the target service in case of
+// an outgoing event w.r.t. the instrumented service
+type ServiceTarget struct {
+	Name string
+	Type string
 }
 
 //Language has an optional version and name
@@ -106,6 +114,13 @@ func (s *Service) Fields() common.MapStr {
 		origin.maybeSetString("version", s.Origin.Version)
 		origin.maybeSetString("id", s.Origin.ID)
 		svc.maybeSetMapStr("origin", common.MapStr(origin))
+	}
+
+	if s.Target != nil {
+		var target mapStr
+		target.maybeSetString("name", s.Target.Name)
+		target.maybeSetString("type", s.Target.Type)
+		svc.maybeSetMapStr("target", common.MapStr(target))
 	}
 
 	return common.MapStr(svc)

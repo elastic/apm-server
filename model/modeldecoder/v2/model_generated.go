@@ -1118,7 +1118,7 @@ func (val *contextRequestURL) validate() error {
 }
 
 func (val *contextService) IsSet() bool {
-	return val.Agent.IsSet() || val.Environment.IsSet() || val.Framework.IsSet() || val.ID.IsSet() || val.Language.IsSet() || val.Name.IsSet() || val.Node.IsSet() || val.Origin.IsSet() || val.Runtime.IsSet() || val.Version.IsSet()
+	return val.Agent.IsSet() || val.Environment.IsSet() || val.Framework.IsSet() || val.ID.IsSet() || val.Language.IsSet() || val.Name.IsSet() || val.Node.IsSet() || val.Origin.IsSet() || val.Runtime.IsSet() || val.Target.IsSet() || val.Version.IsSet()
 }
 
 func (val *contextService) Reset() {
@@ -1131,6 +1131,7 @@ func (val *contextService) Reset() {
 	val.Node.Reset()
 	val.Origin.Reset()
 	val.Runtime.Reset()
+	val.Target.Reset()
 	val.Version.Reset()
 }
 
@@ -1164,6 +1165,9 @@ func (val *contextService) validate() error {
 	}
 	if err := val.Runtime.validate(); err != nil {
 		return errors.Wrapf(err, "runtime")
+	}
+	if err := val.Target.validate(); err != nil {
+		return errors.Wrapf(err, "target")
 	}
 	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
@@ -1294,6 +1298,22 @@ func (val *contextServiceRuntime) validate() error {
 	}
 	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *contextServiceTarget) IsSet() bool {
+	return val.Name.IsSet() || val.Type.IsSet()
+}
+
+func (val *contextServiceTarget) Reset() {
+	val.Name.Reset()
+	val.Type.Reset()
+}
+
+func (val *contextServiceTarget) validate() error {
+	if !val.IsSet() {
+		return nil
 	}
 	return nil
 }
