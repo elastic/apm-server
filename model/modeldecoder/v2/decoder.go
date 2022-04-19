@@ -23,6 +23,7 @@ import (
 	"io"
 	"net/http"
 	"net/textproto"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -65,6 +66,11 @@ var (
 			return &transactionRoot{}
 		},
 	}
+)
+
+var (
+	patternWithSingleSlash   = regexp.MustCompile(`^([a-z]+)/(\w+)$`)
+	patternWithOnlyAlphabets = regexp.MustCompile(`^[a-z]+$`)
 )
 
 func fetchErrorRoot() *errorRoot {
@@ -968,6 +974,9 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		mapToServiceModel(from.Context.Service, &event.Service)
 		mapToAgentModel(from.Context.Service.Agent, &event.Agent)
 	}
+	if !from.Context.Service.Target.Type.IsSet() {
+		event.Service.Target = inferFromResource(from.Context.Destination.Service.Resource)
+	}
 	if len(from.Context.Tags) > 0 {
 		modeldecoderutil.MergeLabels(from.Context.Tags, event)
 	}
@@ -1433,4 +1442,20 @@ func mapSpanLinks(from []spanLink, out *[]model.SpanLink) {
 			Trace: model.Trace{ID: link.TraceID.Val},
 		}
 	}
+}
+
+func inferFromResource(res nullable.String) *model.ServiceTarget {
+	outTarget := &model.ServiceTarget{}
+	if res.IsSet() {
+		submatch := patternWithSingleSlash.FindStringSubmatch(res.Val)
+		if submatch != nil {
+			outTarget.Type = submatch[1]
+			outTarget.Name = submatch[2]
+		} else if patternWithOnlyAlphabets.MatchString(res.Val) {
+			outTarget.Type = res.Val
+		} else {
+			outTarget.Name = res.Val
+		}
+	}
+	return outTarget
 }

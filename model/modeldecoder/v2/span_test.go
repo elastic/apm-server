@@ -98,6 +98,9 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				// Kind is tested further down
 				"Kind",
 
+				// Derived using service.target.*
+				"DestinationService.Resource",
+
 				// Not set for spans:
 				"DestinationService.ResponseTime",
 				"DestinationService.ResponseTime.Count",
