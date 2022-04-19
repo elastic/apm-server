@@ -82,8 +82,7 @@ pipeline {
             runWithMage() {
               sh(script: "make build-package", label: "make build-package")
               sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
-              withGhEnv(version: '2.4.0') {
-                setupAPMGitEmail(global: true)
+              withGitContext() {
                 sh(label: 'create-package-storage-pull-request', script: 'make create-package-storage-pull-request')
               }
             }
@@ -260,5 +259,32 @@ def runIfNoMainAndNoStaging(Closure body) {
     echo 'INFO: staging artifacts for the main branch are not required.'
   } else {
     body()
+  }
+}
+
+/**
+* Prepare the context to be able to create the branch, push the changes and create the pull request
+*
+* NOTE: This particular implementation requires to checkout with the step gitCheckout
+*/
+def withGitContext(Closure body) {
+  setupAPMGitEmail(global: true)
+  setEnvVar('PACKAGE_STORAGE_LOCATION', sh(label: 'get-package-storage-location', script: 'make get-package-storage-location', returnStdout: true)?.trim())
+  dir(env.PACKAGE_STORAGE_LOCATION) {
+    withCredentials([usernamePassword(credentialsId: '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken',
+                                      passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GITHUB_USER')]) {
+      try {
+        sh(label: 'Setup git remote URL', script: "git config remote.origin.url \"https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${ORG_NAME}/${REPO_NAME}.git\"")
+        withGhEnv(version: '2.4.0') {
+          body()
+        }
+      } finally {
+        // Rollback to the previous context
+        sh(label: 'Rollback git context', script: """
+          git config remote.origin.url "https://github.com/${env.ORG_NAME}/${env.REPO_NAME}.git"
+          git config remote.upstream.url "https://github.com/${env.ORG_NAME}/${env.REPO_NAME}.git"
+        """)
+      }
+    }
   }
 }

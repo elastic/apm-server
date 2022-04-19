@@ -270,6 +270,12 @@ create-package-storage-pull-request:
 			--base snapshot \
 			--repo v1v/package-storage
 
+
+## get-package-storage-location : Get the package storage location
+.PHONY: get-package-storage-location
+get-package-storage-location:
+	@echo $(PACKAGESTORAGEBRANCH)
+
 ##############################################################################
 # Release manager.
 ##############################################################################
