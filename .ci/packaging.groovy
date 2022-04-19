@@ -269,20 +269,23 @@ def runIfNoMainAndNoStaging(Closure body) {
 */
 def withGitContext(Closure body) {
   setupAPMGitEmail(global: true)
+  // get the the workspace for the package-storage repository
   setEnvVar('PACKAGE_STORAGE_LOCATION', sh(label: 'get-package-storage-location', script: 'make get-package-storage-location', returnStdout: true)?.trim())
-  dir(env.PACKAGE_STORAGE_LOCATION) {
-    withCredentials([usernamePassword(credentialsId: '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken',
-                                      passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GITHUB_USER')]) {
-      try {
+  withCredentials([usernamePassword(credentialsId: '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken',
+                                    passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GITHUB_USER')]) {
+    try {
+      // within the package-storage workspace then configure the credentials to be able to push the changes
+      dir(env.PACKAGE_STORAGE_LOCATION) {
         //${ORG_NAME}
         sh(label: 'Setup git remote URL', script: """git config remote.origin.url "https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/v1v/${REPO_NAME}.git" """)
-        withGhEnv(version: '2.4.0') {
-          body()
-        }
-      } finally {
-        //${ORG_NAME}
-        sh(label: 'Rollback git context', script: """git config remote.origin.url "https://github.com/v1v/${env.REPO_NAME}.git" """)
       }
+      // run the given body to prepare the changes and push the changes
+      withGhEnv(version: '2.4.0') {
+        body()
+      }
+    } finally {
+      //${ORG_NAME}
+      sh(label: 'Rollback git context', script: """git config remote.origin.url "https://github.com/v1v/${env.REPO_NAME}.git" """)
     }
   }
 }
