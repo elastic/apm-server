@@ -73,6 +73,28 @@ pipeline {
             }
           }
         }
+        stage('apmpackage') {
+          options { skipDefaultCheckout() }
+          when {
+            expression { return env.IS_APM_PACKAGE == "true" }
+          }
+          steps {
+            runWithMage() {
+              sh(script: "make build-package", label: "make build-package")
+              sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
+              setEnvVar('PACKAGE_STORAGE_LOCATION', sh(label: 'get-package-storage-location', script: 'make get-package-storage-location', returnStdout: true)?.trim())
+              dir(env.PACKAGE_STORAGE_LOCATION) {
+                echo '1. Git add/commit changes'
+                echo "2. Create PR. title: Publish apm-${VERSION} to snapshot"
+              }
+            }
+          }
+          post {
+            failure {
+              notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] apmpackage failed.")
+            }
+          }
+        }
         stage('Package') {
           options { skipDefaultCheckout() }
           matrix {
@@ -116,28 +138,6 @@ pipeline {
             failure {
               notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] package failed.",
                            body: 'Contact the Productivity team [#observablt-robots] if you need further assistance.')
-            }
-          }
-        }
-        stage('apmpackage') {
-          options { skipDefaultCheckout() }
-          when {
-            expression { return env.IS_APM_PACKAGE == "true" }
-          }
-          steps {
-            runWithMage() {
-              sh(script: "make build-package", label: "make build-package")
-              sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
-              setEnvVar('PACKAGE_STORAGE_LOCATION', sh(label: 'get-package-storage-location', script: 'make get-package-storage-location', returnStdout: true)?.trim())
-              dir(env.PACKAGE_STORAGE_LOCATION) {
-                echo '1. Git add/commit changes'
-                echo "2. Create PR. title: Publish apm-${VERSION} to snapshot"
-              }
-            }
-          }
-          post {
-            failure {
-              notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] apmpackage failed.")
             }
           }
         }
