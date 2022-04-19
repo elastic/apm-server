@@ -248,25 +248,30 @@ $(APPROVALS):
 .PHONY: package-storage-snapshot
 package-storage-snapshot:
 	@rm -fr $(PACKAGESTORAGE)
-	@gh repo clone elastic/package-storage $(PACKAGESTORAGE) -- --branch snapshot --single-branch
-	@echo "INFO: Copy the apmpackage in the package-storage."
-	@([ -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && cp -rf $(BUILDINTEGRATIONSAPM)/$(APM_SERVER_VERSION) $(PACKAGESTORAGEAPM)/ || true)
-	@echo "INFO: You can now proceed with the PR creation."
+	gh repo clone elastic/package-storage $(PACKAGESTORAGE) -- --branch snapshot --single-branch
+	cp -rf $(BUILDINTEGRATIONSAPM)/$(APM_SERVER_VERSION) $(PACKAGESTORAGEAPM)/
 
 ## create-package-storage-pull-request : Create the pull request for the package storage
 .PHONY: create-package-storage-pull-request
 create-package-storage-pull-request:
-	@cd $(PACKAGESTORAGE) ; git checkout -b $(PACKAGESTORAGEBRANCH)
-	@cd $(PACKAGESTORAGE) ; git diff --staged --quiet || ( git add . ; git commit -m "[automation] Publish apm-$(APM_SERVER_VERSION)" )
-	@cd $(PACKAGESTORAGE) ; git push --set-upstream origin $(PACKAGESTORAGEBRANCH)
 	@cd $(PACKAGESTORAGE) ; \
+		echo "INFO: create branch" ; \
+		git checkout -b $(PACKAGESTORAGEBRANCH) ; \
+		echo "INFO: add files if any" ; \
+		git add . ; \
+		echo "INFO: commit changes if any" ; \
+		git diff --staged --quiet || git commit -m "[automation] Publish apm-$(APM_SERVER_VERSION)" ; \
+		echo "INFO: show remote details" ; \
+		git remote -v ; \
+		echo "INFO: push branch" ; \
+		git push --set-upstream origin $(PACKAGESTORAGEBRANCH) ; \
+		echo "INFO: create pull request" ; \
 		gh pr create \
 			--title "Publish apm-$(APM_SERVER_VERSION)" \
 			--body "Automated by $${BUILD_URL}" \
 			--label automation \
 			--base snapshot \
-			--head $(PACKAGESTORAGEBRANCH) \
-			--repo elastic/package-storage
+			--head $(PACKAGESTORAGEBRANCH)
 
 ## get-package-storage-location : Get the package storage location
 .PHONY: get-package-storage-location
