@@ -11,7 +11,6 @@ This section describes common problems you might encounter with APM Server.
 * <<event-too-large-legacy>>
 * <<unauthorized-legacy>>
 * <<forbidden-legacy>>
-* <<queue-full-legacy>>
 * <<request-timed-out-legacy>>
 * <<ssl-client-fails-legacy>>
 * <<field-limit-exceeded-legacy>>
