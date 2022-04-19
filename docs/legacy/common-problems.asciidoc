@@ -101,7 +101,7 @@ In the {kib} console, run:
 DELETE apm-*
 ----
 +
-Alternatively, you can use the {kibana-ref}index-mgmt.html[Index Management] page in {kib}.
+Alternatively, you can use the {kibana-ref}/index-mgmt.html[Index Management] page in {kib}.
 Select all `apm-*` index templates and navigate to **Manage Indices** > **Delete Indices**.
 
 . Starting in version 8.0.0, {fleet} uses to the APM integration to set up and manage APM index templates.
@@ -120,7 +120,7 @@ include::./getting-started-apm-server.asciidoc[tag=install-apm-integration]
 GET _template/apm-*
 ----
 +
-Alternatively, you can use the {kibana-ref}index-mgmt.html[**Index Management**] page in {kib}.
+Alternatively, you can use the {kibana-ref}/index-mgmt.html[**Index Management**] page in {kib}.
 On the **Index Templates** tab, search for `apm` under **Legacy Index Templates**.
 
 
