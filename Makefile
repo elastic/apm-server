@@ -248,7 +248,7 @@ $(APPROVALS):
 .PHONY: package-storage-snapshot
 package-storage-snapshot:
 	@rm -fr $(PACKAGESTORAGE)
-	gh repo clone elastic/package-storage $(PACKAGESTORAGE) -- --branch snapshot --single-branch
+	git clone https://github.com/elastic/package-storage.git $(PACKAGESTORAGE) --branch snapshot --single-branch --depth=1
 	cp -rf $(BUILDINTEGRATIONSAPM)/$(APM_SERVER_VERSION) $(PACKAGESTORAGEAPM)/
 
 ## create-package-storage-pull-request : Create the pull request for the package storage

@@ -80,9 +80,9 @@ pipeline {
           }
           steps {
             runWithMage() {
+              sh(script: 'make build-package', label: 'make build-package')
+              sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
               withGitContext() {
-                sh(script: 'make build-package', label: 'make build-package')
-                sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
                 sh(label: 'create-package-storage-pull-request', script: 'make create-package-storage-pull-request')
               }
             }
