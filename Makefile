@@ -243,6 +243,8 @@ $(APPROVALS):
 ##############################################################################
 # Rules for the package-storage.
 ##############################################################################
+## package-storage-snapshot : Clone the package-storage@snapshot and copy the apmpachage folder
+.PHONY: package-storage-snapshot
 package-storage-snapshot:
 	@rm -fr $(PACKAGESTORAGE)
 	@git clone --branch snapshot --single-branch git@github.com:elastic/package-storage.git $(PACKAGESTORAGE)
@@ -252,10 +254,17 @@ package-storage-snapshot:
 	@([ -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && cp -rf $(BUILDINTEGRATIONSAPM)/$(APM_SERVER_VERSION)/* $(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)/ || true)
 	@echo "INFO: You can now proceed with the PR creation."
 
-## get-package-storage-location : Get the package storage location
-.PHONY: get-package-storage-location
-get-package-storage-location:
-	@echo $(PACKAGESTORAGEAPM)
+## create-package-storage-pull-request : Create the pull request for the package storage
+.PHONY: create-package-storage-pull-request
+create-package-storage-pull-request:
+	@cd $(PACKAGESTORAGE) ; git checkout -b update-apm-$(APM_SERVER_VERSION)
+	@cd $(PACKAGESTORAGE) ; git add . ; git commit -m "[automation] Publish apm-$(APM_SERVER_VERSION)"
+	@cd $(PACKAGESTORAGE) ; \
+		gh pr create \
+			--title "Publish apm-$(APM_SERVER_VERSION)" \
+			--body "Automated by $${BUILD_URL}" \
+			--label automation \
+			--reviewer v1v
 
 ##############################################################################
 # Release manager.

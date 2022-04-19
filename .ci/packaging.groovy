@@ -82,10 +82,8 @@ pipeline {
             runWithMage() {
               sh(script: "make build-package", label: "make build-package")
               sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
-              setEnvVar('PACKAGE_STORAGE_LOCATION', sh(label: 'get-package-storage-location', script: 'make get-package-storage-location', returnStdout: true)?.trim())
-              dir(env.PACKAGE_STORAGE_LOCATION) {
-                echo '1. Git add/commit changes'
-                echo "2. Create PR. title: Publish apm-${VERSION} to snapshot"
+              withGhEnv(version: '2.4.0') {
+                sh(label: 'create-package-storage-pull-request', script: 'make create-package-storage-pull-request')
               }
             }
           }
