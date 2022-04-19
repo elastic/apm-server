@@ -6,8 +6,8 @@ pipeline {
   environment {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
-    SLACK_CHANNEL = 'UJ2J1AZV2'
-    NOTIFY_TO = 'victor.martinez+apm-server@elastic.co'
+    SLACK_CHANNEL = '#apm-server'
+    NOTIFY_TO = 'build-apm+apm-server@elastic.co'
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
@@ -73,26 +73,6 @@ pipeline {
             }
           }
         }
-        stage('apmpackage') {
-          options { skipDefaultCheckout() }
-          when {
-            expression { return env.IS_APM_PACKAGE == "true" }
-          }
-          steps {
-            runWithMage() {
-              sh(script: 'make build-package', label: 'make build-package')
-              sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
-              withGitContext() {
-                sh(label: 'create-package-storage-pull-request', script: 'make create-package-storage-pull-request')
-              }
-            }
-          }
-          post {
-            failure {
-              notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] apmpackage failed.")
-            }
-          }
-        }
         stage('Package') {
           options { skipDefaultCheckout() }
           matrix {
@@ -136,6 +116,26 @@ pipeline {
             failure {
               notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] package failed.",
                            body: 'Contact the Productivity team [#observablt-robots] if you need further assistance.')
+            }
+          }
+        }
+        stage('apmpackage') {
+          options { skipDefaultCheckout() }
+          when {
+            expression { return env.IS_APM_PACKAGE == "true" }
+          }
+          steps {
+            runWithMage() {
+              sh(script: 'make build-package', label: 'make build-package')
+              sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
+              withGitContext() {
+                sh(label: 'create-package-storage-pull-request', script: 'make create-package-storage-pull-request')
+              }
+            }
+          }
+          post {
+            failure {
+              notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] apmpackage failed")
             }
           }
         }
