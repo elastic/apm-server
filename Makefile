@@ -24,6 +24,7 @@ ELASTICPACKAGE=$(GOOSBUILD)/elastic-package
 PACKAGESTORAGE=./build/.package-storage
 PACKAGESTORAGEAPM=$(PACKAGESTORAGE)/packages/apm
 BUILDINTEGRATIONSAPM=./build/integrations/apm
+PACKAGESTORAGEBRANCH=update-apm-$(shell date "+%Y%m%d%H%M%S")
 
 PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
@@ -257,9 +258,9 @@ package-storage-snapshot:
 ## create-package-storage-pull-request : Create the pull request for the package storage
 .PHONY: create-package-storage-pull-request
 create-package-storage-pull-request:
-	@cd $(PACKAGESTORAGE) ; git checkout -b update-apm-$(APM_SERVER_VERSION)-$(shell date "+%Y%m%d%H%M%S")
+	@cd $(PACKAGESTORAGE) ; git checkout -b $(PACKAGESTORAGEBRANCH)
 	@cd $(PACKAGESTORAGE) ; git diff --staged --quiet || ( git add . ; git commit -m "[automation] Publish apm-$(APM_SERVER_VERSION)" )
-	@cd $(PACKAGESTORAGE) ; git push
+	@cd $(PACKAGESTORAGE) ; git push --set-upstream origin $(PACKAGESTORAGEBRANCH)
 	@cd $(PACKAGESTORAGE) ; \
 		gh pr create \
 			--title "Publish apm-$(APM_SERVER_VERSION)" \
