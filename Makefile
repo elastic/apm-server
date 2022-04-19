@@ -276,7 +276,7 @@ create-package-storage-pull-request:
 ## get-package-storage-location : Get the package storage location
 .PHONY: get-package-storage-location
 get-package-storage-location:
-	@echo $(PACKAGESTORAGEBRANCH)
+	@echo $(PACKAGESTORAGE)
 
 ##############################################################################
 # Release manager.

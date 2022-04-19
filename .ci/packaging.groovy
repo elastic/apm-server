@@ -276,7 +276,7 @@ def withGitContext(Closure body) {
     try {
       // within the package-storage workspace then configure the credentials to be able to push the changes
       dir(env.PACKAGE_STORAGE_LOCATION) {
-        sh(label: 'Setup git context', script: """git config remote.origin.url "https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${ORG_NAME}/${REPO_NAME}.git" """)
+        sh(label: 'Setup git context', script: """git config remote.origin.url "https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${ORG_NAME}/package-storage.git" """)
       }
       // run the given body to prepare the changes and push the changes
       withGhEnv(version: '2.4.0') {
@@ -284,7 +284,7 @@ def withGitContext(Closure body) {
       }
     } finally {
       dir(env.PACKAGE_STORAGE_LOCATION) {
-        sh(label: 'Rollback git context', script: """git config remote.origin.url "https://github.com/${ORG_NAME}/${env.REPO_NAME}.git" """)
+        sh(label: 'Rollback git context', script: """git config remote.origin.url "https://github.com/${ORG_NAME}/package-storage.git" """)
       }
     }
   }
