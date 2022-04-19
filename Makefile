@@ -249,10 +249,8 @@ $(APPROVALS):
 package-storage-snapshot:
 	@rm -fr $(PACKAGESTORAGE)
 	@gh repo clone elastic/package-storage $(PACKAGESTORAGE) -- --branch snapshot --single-branch
-	@echo "INFO: Rename the package-storage version if APM Server version does not match."
-	@([ ! -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && (cd $(PACKAGESTORAGEAPM) ; git mv * $(APM_SERVER_VERSION) ; cd -) || true)
 	@echo "INFO: Copy the apmpackage in the package-storage."
-	@([ -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && cp -rf $(BUILDINTEGRATIONSAPM)/$(APM_SERVER_VERSION)/* $(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)/ || true)
+	@([ -d "$(PACKAGESTORAGEAPM)/$(APM_SERVER_VERSION)" ] && cp -rf $(BUILDINTEGRATIONSAPM)/$(APM_SERVER_VERSION) $(PACKAGESTORAGEAPM)/ || true)
 	@echo "INFO: You can now proceed with the PR creation."
 
 ## create-package-storage-pull-request : Create the pull request for the package storage
