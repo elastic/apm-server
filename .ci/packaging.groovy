@@ -274,16 +274,14 @@ def withGitContext(Closure body) {
     withCredentials([usernamePassword(credentialsId: '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken',
                                       passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GITHUB_USER')]) {
       try {
-        sh(label: 'Setup git remote URL', script: "git config remote.origin.url \"https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${ORG_NAME}/${REPO_NAME}.git\"")
+        //${ORG_NAME}
+        sh(label: 'Setup git remote URL', script: """git config remote.origin.url "https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/v1v/${REPO_NAME}.git" """)
         withGhEnv(version: '2.4.0') {
           body()
         }
       } finally {
-        // Rollback to the previous context
-        sh(label: 'Rollback git context', script: """
-          git config remote.origin.url "https://github.com/${env.ORG_NAME}/${env.REPO_NAME}.git"
-          git config remote.upstream.url "https://github.com/${env.ORG_NAME}/${env.REPO_NAME}.git"
-        """)
+        //${ORG_NAME}
+        sh(label: 'Rollback git context', script: """git config remote.origin.url "https://github.com/v1v/${env.REPO_NAME}.git" """)
       }
     }
   }
