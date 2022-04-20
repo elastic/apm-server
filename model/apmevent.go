@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -86,7 +85,7 @@ type APMEvent struct {
 }
 
 // BeatEvent converts e to a beat.Event.
-func (e *APMEvent) BeatEvent(ctx context.Context) beat.Event {
+func (e *APMEvent) BeatEvent() beat.Event {
 	event := beat.Event{
 		Timestamp: e.Timestamp,
 		Fields:    make(common.MapStr),
