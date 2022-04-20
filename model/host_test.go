@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"encoding/json"
 	"net"
 	"path/filepath"
@@ -52,7 +51,7 @@ func TestSystemTransformation(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			event := &APMEvent{Host: host, Transaction: &Transaction{}}
-			beatEvent := event.BeatEvent(context.Background())
+			beatEvent := event.BeatEvent()
 
 			resultJSON, err := json.Marshal(beatEvent.Fields["host"])
 			require.NoError(t, err)

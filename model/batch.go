@@ -48,7 +48,7 @@ type Batch []APMEvent
 func (b *Batch) Transform(ctx context.Context) []beat.Event {
 	out := make([]beat.Event, len(*b))
 	for i, event := range *b {
-		out[i] = event.BeatEvent(ctx)
+		out[i] = event.BeatEvent()
 	}
 	return out
 }
