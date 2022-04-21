@@ -72,7 +72,8 @@ setting in the APM integration, and adjusting relevant settings in the agent.
 [float]
 ==== HTTP 401: Invalid token
 
-The <<secret-token,secret token>> in the request header doesn't match the secret token configured in the APM integration.
+Either the <<secret-token>> in the request header doesn't match the secret token configured in the APM integration,
+or the <<api-key>> is invalid.
 
 [[forbidden]]
 [float]
@@ -192,20 +193,18 @@ The APM Server timeout can be configured by updating the
 
 [[server-es-down]]
 [float]
-=== What happens when APM Server or Elasticsearch is down?
-
-*If Elasticsearch is down*
+=== What happens when APM Server or {es} is down?
 
 APM Server does not have an internal queue to buffer requests,
 but instead leverages an HTTP request timeout to act as back-pressure.
-If Elasticsearch goes down, the APM Server will eventually deny incoming requests.
+If {es} goes down, the APM Server will eventually deny incoming requests.
 Both the APM Server and APM agent(s) will issue logs accordingly.
 
-*If APM Server is down*
+If either {es} or the APM Server goes down,
+some APM agents have internal queues or buffers that will temporarily store data.
+As a general rule of thumb, queues fill up quickly. Assume data will be lost if APM Server or {es} goes down.
 
-Some agents have internal queues or buffers that will temporarily store data if the APM Server goes down.
-As a general rule of thumb, queues fill up quickly. Assume data will be lost if APM Server goes down.
-Adjusting these queues/buffers can increase the agent's overhead, so use caution when updating default values.
+Adjusting APM agent queues/buffers can increase the agent's overhead, so use caution when updating default values.
 
 * **Go agent** - Circular buffer with configurable size:
 {apm-go-ref}/configuration.html#config-api-buffer-size[`ELASTIC_APM_BUFFER_SIZE`].

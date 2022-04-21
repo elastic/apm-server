@@ -104,7 +104,7 @@ DELETE apm-*
 Alternatively, you can use the {ref}/index-mgmt.html[Index Management] page in {kib}.
 Select all `apm-*` index templates and navigate to **Manage Indices** > **Delete Indices**.
 
-. Starting in version 8.0.0, {fleet} uses to the APM integration to set up and manage APM index templates.
+. Starting in version 8.0.0, {fleet} uses the APM integration to set up and manage APM index templates.
 Install the APM integration by following these steps:
 +
 --
