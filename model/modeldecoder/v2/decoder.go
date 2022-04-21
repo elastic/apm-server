@@ -262,13 +262,18 @@ func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *model.Transa
 			if f.Outcome.IsSet() {
 				to.Outcome = f.Outcome.Val
 			}
-
 			if f.Duration.IsSet() {
 				to.Duration.Count = f.Duration.Count.Val
 				sum := f.Duration.Sum
 				if sum.IsSet() {
 					to.Duration.Sum = time.Duration(sum.Us.Val) * time.Microsecond
 				}
+			}
+			if f.ServiceTargetType.IsSet() {
+				to.ServiceTargetType = f.ServiceTargetType.Val
+			}
+			if f.ServiceTargetName.IsSet() {
+				to.ServiceTargetName = f.ServiceTargetName.Val
 			}
 
 			tx.DroppedSpansStats = append(tx.DroppedSpansStats, to)

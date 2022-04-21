@@ -25,7 +25,7 @@ func BenchmarkAggregateSpan(b *testing.B) {
 	})
 	require.NoError(b, err)
 
-	span := makeSpan("test_service", "agent", "test_destination", "success", time.Second, 1)
+	span := makeSpan("test_service", "agent", "test_destination", "trg_type", "trg_name", "success", time.Second, 1)
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			_ = agg.ProcessBatch(context.Background(), &model.Batch{span})
@@ -76,20 +76,28 @@ func TestAggregatorRun(t *testing.T) {
 		serviceName string
 		agentName   string
 		destination string
+		targetType  string
+		targetName  string
 		outcome     string
 		count       float64
 	}
 
 	destinationX := "destination-X"
 	destinationZ := "destination-Z"
+	trgTypeX := "trg-type-X"
+	trgNameX := "trg-name-X"
+	trgTypeZ := "trg-type-Z"
+	trgNameZ := "trg-name-Z"
 	inputs := []input{
-		{serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "success", count: 2},
-		{serviceName: "service-A", agentName: "java", destination: destinationX, outcome: "success", count: 1},
-		{serviceName: "service-B", agentName: "python", destination: destinationZ, outcome: "success", count: 1},
-		{serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "success", count: 1},
-		{serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "success", count: 0},
-		{serviceName: "service-A", agentName: "java", outcome: "success", count: 1}, // no destination
-		{serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "failure", count: 1},
+		{serviceName: "service-A", agentName: "java", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 2},
+		{serviceName: "service-A", agentName: "java", destination: destinationX, targetType: trgTypeX, targetName: trgNameX, outcome: "success", count: 1},
+		{serviceName: "service-B", agentName: "python", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 1},
+		{serviceName: "service-A", agentName: "java", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 1},
+		{serviceName: "service-A", agentName: "java", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 0},
+		{serviceName: "service-A", agentName: "java", outcome: "success", count: 1},                                             // no destination or service target
+		{serviceName: "service-A", agentName: "java", targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 1}, // no destination
+		// {serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "success", count: 1},               // no service target, possible?
+		{serviceName: "service-A", agentName: "java", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "failure", count: 1},
 	}
 
 	var wg sync.WaitGroup
@@ -97,7 +105,7 @@ func TestAggregatorRun(t *testing.T) {
 		wg.Add(1)
 		go func(in input) {
 			defer wg.Done()
-			span := makeSpan(in.serviceName, in.agentName, in.destination, in.outcome, 100*time.Millisecond, in.count)
+			span := makeSpan(in.serviceName, in.agentName, in.destination, in.targetType, in.targetName, in.outcome, 100*time.Millisecond, in.count)
 			batch := model.Batch{span}
 			for i := 0; i < 100; i++ {
 				err := agg.ProcessBatch(context.Background(), &batch)
@@ -116,8 +124,14 @@ func TestAggregatorRun(t *testing.T) {
 	metricsets := batchMetricsets(t, batch)
 
 	assert.ElementsMatch(t, []model.APMEvent{{
-		Agent:     model.Agent{Name: "java"},
-		Service:   model.Service{Name: "service-A"},
+		Agent: model.Agent{Name: "java"},
+		Service: model.Service{
+			Name: "service-A",
+			Target: &model.ServiceTarget{
+				Type: trgTypeX,
+				Name: trgNameX,
+			},
+		},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service_destination"},
@@ -131,8 +145,14 @@ func TestAggregatorRun(t *testing.T) {
 			},
 		},
 	}, {
-		Agent:     model.Agent{Name: "java"},
-		Service:   model.Service{Name: "service-A"},
+		Agent: model.Agent{Name: "java"},
+		Service: model.Service{
+			Name: "service-A",
+			Target: &model.ServiceTarget{
+				Type: trgTypeZ,
+				Name: trgNameZ,
+			},
+		},
 		Event:     model.Event{Outcome: "failure"},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service_destination"},
@@ -146,8 +166,14 @@ func TestAggregatorRun(t *testing.T) {
 			},
 		},
 	}, {
-		Agent:     model.Agent{Name: "java"},
-		Service:   model.Service{Name: "service-A"},
+		Agent: model.Agent{Name: "java"},
+		Service: model.Service{
+			Name: "service-A",
+			Target: &model.ServiceTarget{
+				Type: trgTypeZ,
+				Name: trgNameZ,
+			},
+		},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service_destination"},
@@ -161,8 +187,14 @@ func TestAggregatorRun(t *testing.T) {
 			},
 		},
 	}, {
-		Agent:     model.Agent{Name: "python"},
-		Service:   model.Service{Name: "service-B"},
+		Agent: model.Agent{Name: "python"},
+		Service: model.Service{
+			Name: "service-B",
+			Target: &model.ServiceTarget{
+				Type: trgTypeZ,
+				Name: trgNameZ,
+			},
+		},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service_destination"},
@@ -193,7 +225,7 @@ func TestAggregateCompositeSpan(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	span := makeSpan("service-A", "java", "final_destination", "success", time.Second, 2)
+	span := makeSpan("service-A", "java", "final_destination", "trg_type", "trg_name", "success", time.Second, 2)
 	span.Span.Composite = &model.Composite{Count: 25, Sum: 700 /* milliseconds */}
 	err = agg.ProcessBatch(context.Background(), &model.Batch{span})
 	require.NoError(t, err)
@@ -206,8 +238,14 @@ func TestAggregateCompositeSpan(t *testing.T) {
 	metricsets := batchMetricsets(t, batch)
 
 	assert.Equal(t, []model.APMEvent{{
-		Agent:     model.Agent{Name: "java"},
-		Service:   model.Service{Name: "service-A"},
+		Agent: model.Agent{Name: "java"},
+		Service: model.Service{
+			Name: "service-A",
+			Target: &model.ServiceTarget{
+				Type: "trg_type",
+				Name: "trg_name",
+			},
+		},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service_destination"},
@@ -233,8 +271,14 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := model.APMEvent{
-		Agent:   model.Agent{Name: "go"},
-		Service: model.Service{Name: "go-service"},
+		Agent: model.Agent{Name: "go"},
+		Service: model.Service{
+			Name: "go-service",
+			Target: &model.ServiceTarget{
+				Type: "",
+				Name: "",
+			},
+		},
 		Event: model.Event{
 			Outcome:  "success",
 			Duration: 10 * time.Second,
@@ -282,8 +326,14 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 
 	assert.ElementsMatch(t, []model.APMEvent{
 		{
-			Agent:     model.Agent{Name: "go"},
-			Service:   model.Service{Name: "go-service"},
+			Agent: model.Agent{Name: "go"},
+			Service: model.Service{
+				Name: "go-service",
+				Target: &model.ServiceTarget{
+					Type: "",
+					Name: "",
+				},
+			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{Name: "service_destination"},
@@ -298,8 +348,14 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			},
 		},
 		{
-			Agent:     model.Agent{Name: "go"},
-			Service:   model.Service{Name: "go-service"},
+			Agent: model.Agent{Name: "go"},
+			Service: model.Service{
+				Name: "go-service",
+				Target: &model.ServiceTarget{
+					Type: "",
+					Name: "",
+				},
+			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{Name: "service_destination"},
@@ -327,7 +383,7 @@ func TestAggregateTimestamp(t *testing.T) {
 
 	t0 := time.Unix(0, 0)
 	for _, ts := range []time.Time{t0, t0.Add(15 * time.Second), t0.Add(30 * time.Second)} {
-		span := makeSpan("service_name", "agent_name", "destination", "success", 100*time.Millisecond, 1)
+		span := makeSpan("service_name", "agent_name", "destination", "trg_type", "trg_name", "success", 100*time.Millisecond, 1)
 		span.Timestamp = ts
 		batch := model.Batch{span}
 		err = agg.ProcessBatch(context.Background(), &batch)
@@ -362,8 +418,8 @@ func TestAggregatorOverflow(t *testing.T) {
 	// as we have configured the spanmetrics with a maximum of two buckets.
 	batch := make(model.Batch, 20)
 	for i := 0; i < len(batch); i += 2 {
-		batch[i] = makeSpan("service", "agent", "destination1", "success", 100*time.Millisecond, 1)
-		batch[i+1] = makeSpan("service", "agent", "destination2", "success", 100*time.Millisecond, 1)
+		batch[i] = makeSpan("service", "agent", "destination1", "trg_type_1", "trg_name_1", "success", 100*time.Millisecond, 1)
+		batch[i+1] = makeSpan("service", "agent", "destination2", "trg_type_2", "trg_name_2", "success", 100*time.Millisecond, 1)
 	}
 	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
@@ -371,7 +427,7 @@ func TestAggregatorOverflow(t *testing.T) {
 
 	// The third group will return a metricset for immediate publication.
 	for i := 0; i < 2; i++ {
-		batch = append(batch, makeSpan("service", "agent", "destination3", "success", 100*time.Millisecond, 1))
+		batch = append(batch, makeSpan("service", "agent", "destination3", "trg_type_3", "trg_name_3", "success", 100*time.Millisecond, 1))
 	}
 	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
@@ -381,8 +437,14 @@ func TestAggregatorOverflow(t *testing.T) {
 
 	for _, m := range metricsets {
 		assert.Equal(t, model.APMEvent{
-			Agent:     model.Agent{Name: "agent"},
-			Service:   model.Service{Name: "service"},
+			Agent: model.Agent{Name: "agent"},
+			Service: model.Service{
+				Name: "service",
+				Target: &model.ServiceTarget{
+					Type: "trg_type_3",
+					Name: "trg_name_3",
+				},
+			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{Name: "service_destination"},
@@ -400,7 +462,7 @@ func TestAggregatorOverflow(t *testing.T) {
 }
 
 func makeSpan(
-	serviceName, agentName, destinationServiceResource, outcome string,
+	serviceName, agentName, destinationServiceResource, targetType, targetName, outcome string,
 	duration time.Duration,
 	count float64,
 ) model.APMEvent {
@@ -420,6 +482,12 @@ func makeSpan(
 	if destinationServiceResource != "" {
 		event.Span.DestinationService = &model.DestinationService{
 			Resource: destinationServiceResource,
+		}
+	}
+	if targetType != "" {
+		event.Service.Target = &model.ServiceTarget{
+			Type: targetType,
+			Name: targetName,
 		}
 	}
 	return event
