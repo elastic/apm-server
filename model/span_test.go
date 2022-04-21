@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -30,7 +29,7 @@ import (
 func TestSpanTransformEmpty(t *testing.T) {
 	var event APMEvent
 	event.Span = &Span{}
-	beatEvent := event.BeatEvent(context.Background())
+	beatEvent := event.BeatEvent()
 	assert.Empty(t, beatEvent.Fields)
 }
 
@@ -129,7 +128,7 @@ func TestSpanTransform(t *testing.T) {
 			Timestamp: timestamp,
 			Event:     Event{Duration: duration},
 		}
-		output := event.BeatEvent(context.Background())
+		output := event.BeatEvent()
 		assert.Equal(t, test.Output, output.Fields, test.Msg)
 	}
 }
@@ -150,7 +149,7 @@ func TestSpanHTTPFields(t *testing.T) {
 		URL: URL{Original: "http://localhost"},
 	}
 
-	output := event.BeatEvent(context.Background())
+	output := event.BeatEvent()
 	assert.Equal(t, common.MapStr{
 		"processor": common.MapStr{
 			"name":  "transaction",
