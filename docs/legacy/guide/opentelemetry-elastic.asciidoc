@@ -199,7 +199,7 @@ Let's look at how this dashboard was created, specifically the Sales USD and Sys
 . Click *Create new* and then select *TSVB*.
 . For the label name, enter Sales USD, and then select the following:
 +
-* Aggregation: `Positive Rate`.
+* Aggregation: `Counter Rate`.
 * Field: `order_sum`.
 * Scale: `auto`.
 * Group by: `Everything`
