@@ -35,9 +35,6 @@ They include attributes like function name, file name and path, line number, etc
 TIP: Most agents limit keyword fields, like `span.id`, to 1024 characters,
 and non-keyword fields, like `span.start.us`, to 10,000 characters.
 
-Spans are stored in span indices.
-This storage is separate from transaction indices by default.
-
 [float]
 [[data-model-dropped-spans]]
 ==== Dropped spans
@@ -67,6 +64,29 @@ Because of this, unforeseen errors may cause spans to go missing.
 Agents know how many spans a transaction should have;
 if the number of expected spans does not equal the number of spans received by the APM Server,
 the APM app will calculate the difference and display a message.
+
+[float]
+==== Data streams
+
+Spans are stored with transactions in the following data streams:
+
+include::./data-streams.asciidoc[tag=traces-data-streams]
+
+See <<apm-data-streams>> to learn more.
+
+[float]
+==== Example span document
+
+This example shows what span documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+[source,json]
+----
+include::./data/elasticsearch/generated/spans.json[]
+----
+====
 
 [[data-model-transactions]]
 === Transactions
@@ -116,7 +136,28 @@ e.g. `GET /users/:id`, `UsersController#show`, etc.
 TIP: Most agents limit keyword fields (e.g. `labels`) to 1024 characters,
 non-keyword fields (e.g. `span.db.statement`) to 10,000 characters.
 
-Transactions are stored in transaction indices.
+[float]
+==== Data streams
+
+Transactions are stored with spans in the following data streams:
+
+include::./data-streams.asciidoc[tag=traces-data-streams]
+
+See <<apm-data-streams>> to learn more.
+
+[float]
+==== Example transaction document
+
+This example shows what transaction documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+[source,json]
+----
+include::./data/elasticsearch/generated/transactions.json[]
+----
+====
 
 [[data-model-errors]]
 === Errors
@@ -147,6 +188,29 @@ TIP: Most agents limit keyword fields (e.g. `error.id`) to 1024 characters,
 non-keyword fields (e.g. `error.exception.message`) to 10,000 characters.
 
 Errors are stored in error indices.
+
+[float]
+==== Data streams
+
+Errors are stored in the following data streams:
+
+include::./data-streams.asciidoc[tag=logs-data-streams]
+
+See <<apm-data-streams>> to learn more.
+
+[float]
+==== Example error document
+
+This example shows what error documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+[source,json]
+----
+include::./data/elasticsearch/generated/errors.json[]
+----
+====
 
 [[data-model-metrics]]
 === Metrics
@@ -293,10 +357,25 @@ You can filter and group by these dimensions:
 The `@timestamp` field of these documents holds the start of the aggregation interval.
 
 [float]
+==== Data streams
+
+Metrics are stored in the following data streams:
+
+include::./data-streams.asciidoc[tag=metrics-data-streams]
+
+See <<apm-data-streams>> to learn more.
+
+[float]
 ==== Example metric document
 
-Below is an example of a metric document as stored in Elasticsearch, containing JVM metrics produced by the {apm-java-agent}.
-The document contains two related metrics: `jvm.gc.time` and `jvm.gc.count`. These are accompanied by various fields describing
+This example shows what metric documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+This example contains JVM metrics produced by the {apm-java-agent}.
+and contains two related metrics: `jvm.gc.time` and `jvm.gc.count`. These are accompanied by various fields describing
 the environment in which the metrics were captured: service name, host name, Kubernetes pod UID, container ID, process ID, and more.
 These fields make it possible to search and aggregate across various dimensions, such as by service, host, and Kubernetes pod.
 
@@ -304,6 +383,7 @@ These fields make it possible to search and aggregate across various dimensions,
 ----
 include::./data/elasticsearch/metricset.json[]
 ----
+====
 
 // This heading is linked to from the APM UI section in Kibana
 [[data-model-metadata]]
