@@ -516,38 +516,6 @@
                 }
               }
             },
-<<<<<<< HEAD
-            "string": {
-              "description": "ID holds a unique identifier for the service.",
-              "type": [
-                "null",
-                "string"
-              ]
-=======
-            "target": {
-              "description": "Target holds information about the outgoing service in case of an outgoing event",
-              "type": [
-                "null",
-                "object"
-              ],
-              "properties": {
-                "name": {
-                  "description": "Immutable name of the target service for the event",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "type": {
-                  "description": "Immutable type of the target service for the event",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                }
-              }
->>>>>>> a72e4618 (Fix typo in {span,transaction}.service.origin.id (#7794))
-            },
             "version": {
               "description": "Version of the monitored service.",
               "type": [
