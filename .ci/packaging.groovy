@@ -12,6 +12,7 @@ pipeline {
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
+    DRA_OUTPUT = 'release-manager.out'
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -139,7 +140,7 @@ pipeline {
             }
           }
         }
-        stage('DRA') {
+        stage('DRA Snapshot') {
           options { skipDefaultCheckout() }
           // The Unified Release process keeps moving branches as soon as a new
           // minor version is created, therefore old release branches won't be able
@@ -147,14 +148,31 @@ pipeline {
           when {
             expression { return env.IS_BRANCH_AVAILABLE == "true" }
           }
-          environment {
-            DRA_OUTPUT = 'release-manager.out'
-          }
           steps {
             runReleaseManager(type: 'snapshot', outputFile: env.DRA_OUTPUT)
-            whenFalse(env.BRANCH_NAME.equals('main')) {
-              runReleaseManager(type: 'staging', outputFile: env.DRA_OUTPUT)
+          }
+          post {
+            failure {
+              notifyStatus(analyse: true,
+                           file: "${BASE_DIR}/${env.DRA_OUTPUT}",
+                           subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed.",
+                           body: 'Contact the Release Platform team [#platform-release].')
             }
+          }
+        }
+        stage('DRA Staging') {
+          options { skipDefaultCheckout() }
+          when {
+            allOf {
+              // The Unified Release process keeps moving branches as soon as a new
+              // minor version is created, therefore old release branches won't be able
+              // to use the release manager as their definition is removed.
+              expression { return env.IS_BRANCH_AVAILABLE == "true" }
+              not { branch 'main' }
+            }
+          }
+          steps {
+            runReleaseManager(type: 'staging', outputFile: env.DRA_OUTPUT)
           }
           post {
             failure {

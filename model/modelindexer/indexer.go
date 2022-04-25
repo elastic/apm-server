@@ -223,7 +223,7 @@ func (i *Indexer) ProcessBatch(ctx context.Context, batch *model.Batch) error {
 
 func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error {
 	r := getPooledReader()
-	beatEvent := event.BeatEvent(ctx)
+	beatEvent := event.BeatEvent()
 	if err := encodeBeatEvent(beatEvent, &r.jsonw); err != nil {
 		return err
 	}

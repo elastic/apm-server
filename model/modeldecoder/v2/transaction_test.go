@@ -142,6 +142,18 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, "1.0", out.Service.Origin.Version)
 	})
 
+	t.Run("service.target", func(t *testing.T) {
+		var input transaction
+		var out model.APMEvent
+		target := contextServiceTarget{}
+		target.Name.Set("testdb")
+		target.Type.Set("oracle")
+		input.Context.Service.Target = target
+		mapToTransactionModel(&input, &out)
+		assert.Equal(t, "testdb", out.Service.Target.Name)
+		assert.Equal(t, "oracle", out.Service.Target.Type)
+	})
+
 	t.Run("faas", func(t *testing.T) {
 		var input transaction
 		var out model.APMEvent

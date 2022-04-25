@@ -267,7 +267,7 @@ type contextService struct {
 	// monitored service.
 	Framework contextServiceFramework `json:"framework"`
 	// ID holds a unique identifier for the service.
-	ID nullable.String `json:"string"`
+	ID nullable.String `json:"id"`
 	// Language holds information about the programming language of the
 	// monitored service.
 	Language contextServiceLanguage `json:"language"`
@@ -280,8 +280,18 @@ type contextService struct {
 	// Runtime holds information about the language runtime running the
 	// monitored service
 	Runtime contextServiceRuntime `json:"runtime"`
+	// Target holds information about the outgoing service in case of
+	// an outgoing event
+	Target contextServiceTarget `json:"target"`
 	// Version of the monitored service.
 	Version nullable.String `json:"version" validate:"maxLength=1024"`
+}
+
+type contextServiceTarget struct {
+	// Immutable name of the target service for the event
+	Name nullable.String `json:"name"`
+	// Immutable type of the target service for the event
+	Type nullable.String `json:"type"`
 }
 
 type contextServiceOrigin struct {
