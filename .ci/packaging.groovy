@@ -291,7 +291,7 @@ def runIfNoMainAndNoStaging(Closure body) {
 def withGitContext(Closure body) {
   setupAPMGitEmail(global: true)
   // get the the workspace for the package-storage repository
-  setEnvVar('PACKAGE_STORAGE_LOCATION', sh(label: 'get-package-storage-location', script: 'make get-package-storage-location', returnStdout: true)?.trim())
+  setEnvVar('PACKAGE_STORAGE_LOCATION', sh(label: 'get-package-storage-location', script: 'make --no-print-directory -C .ci/scripts get-package-storage-location', returnStdout: true)?.trim())
   withCredentials([usernamePassword(credentialsId: '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken',
                                     passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GITHUB_USER')]) {
     try {
