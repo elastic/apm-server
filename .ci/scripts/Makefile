@@ -6,7 +6,7 @@ BUILDINTEGRATIONSAPM=../../build/integrations/apm
 PACKAGESTORAGE=../../build/.package-storage
 PACKAGESTORAGEAPM=$(PACKAGESTORAGE)/packages/apm
 PACKAGESTORAGEBRANCH=update-apm-$(shell date "+%Y%m%d%H%M%S")
-APM_SERVER_VERSION=$(shell make -C ../../ get-version)
+APM_SERVER_VERSION=$(shell make --no-print-directory -C ../../ get-version)
 
 ##############################################################################
 # Rules for the package-storage.
