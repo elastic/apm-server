@@ -6,8 +6,8 @@ pipeline {
   environment {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
-    SLACK_CHANNEL = '#apm-server'
-    NOTIFY_TO = 'build-apm+apm-server@elastic.co'
+    SLACK_CHANNEL = 'UJ2J1AZV2'
+    NOTIFY_TO = 'victor.martinez+apm-server@elastic.co'
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
@@ -70,11 +70,14 @@ pipeline {
             dir("${BASE_DIR}"){
               setEnvVar('VERSION', sh(label: 'Get version', script: 'make get-version', returnStdout: true)?.trim())
               // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
-              setEnvVar('IS_APM_PACKAGE', isGitRegionMatch(patterns: [ '(cmd/version.go|apmpackage/.*|.ci/packaging.groovy)' ], comparator: 'regexp'))
+              setEnvVar('IS_APM_PACKAGE', 'true')
             }
           }
         }
         stage('Package') {
+          when {
+            expression { return false }
+          }
           options { skipDefaultCheckout() }
           matrix {
             agent {
