@@ -32,7 +32,13 @@ create-package-storage-pull-request:
 		git remote -v ; \
 		echo "INFO: push branch" ; \
 		git push --set-upstream origin $(PACKAGE_STORAGE_BRANCH) ; \
-		echo "INFO: create pull request"
+		echo "INFO: create pull request" ; \
+		gh pr create \
+			--title "Publish apm-$(APM_SERVER_VERSION)" \
+			--body "Automated by $${BUILD_URL}" \
+			--label automation \
+			--base snapshot \
+			--head $(PACKAGE_STORAGE_BRANCH)
 
 ## get-package-storage-location : Get the package storage location
 .PHONY: get-package-storage-location
