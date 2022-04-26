@@ -34,6 +34,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/time/rate"
 )
 
 type mockServer struct {
@@ -117,7 +118,7 @@ func TestHandlerSendBatches(t *testing.T) {
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		n, err := handler.SendBatches(ctx)
+		n, err := handler.SendBatches(ctx, rate.NewLimiter(rate.Inf, 0))
 		assert.NoError(t, err)
 
 		b, err := ioutil.ReadFile(filepath.Join("testdata", "python-test.ndjson"))
@@ -133,7 +134,7 @@ func TestHandlerSendBatches(t *testing.T) {
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
-		n, err := handler.SendBatches(ctx)
+		n, err := handler.SendBatches(ctx, rate.NewLimiter(rate.Inf, 0))
 		assert.Error(t, err)
 		assert.Equal(t, srv.received, uint(0))
 		assert.Equal(t, n, uint(0))
@@ -144,8 +145,47 @@ func TestHandlerSendBatches(t *testing.T) {
 		srv.close()
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		n, err := handler.SendBatches(ctx)
+		n, err := handler.SendBatches(ctx, rate.NewLimiter(rate.Inf, 0))
 		assert.Error(t, err)
+		assert.Equal(t, n, uint(0))
+	})
+	t.Run("success-with-rate-limit", func(t *testing.T) {
+		handler, srv := newHandler(t, "testdata", "python*.ndjson")
+		t.Cleanup(srv.close)
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		// 16 + 9 (1st sec) + 9 (2nd sec) > 32 (total send)
+		n, err := handler.SendBatches(ctx, rate.NewLimiter(9, 16)) // batch size is of len 16
+		assert.NoError(t, err)
+
+		b, err := ioutil.ReadFile(filepath.Join("testdata", "python-test.ndjson"))
+		assert.NoError(t, err)
+
+		assert.Equal(t, string(b), srv.got.String()) // Ensure the contents match.
+		assert.Equal(t, 2, len(handler.batches))     // Ensure there are 2 batches.
+		assert.Equal(t, uint(32), srv.received)
+		assert.Equal(t, uint(32), n) // Ensure there are 32 events (minus metadata).
+	})
+	t.Run("failure-with-rate-limit", func(t *testing.T) {
+		handler, srv := newHandler(t, "testdata", "python*.ndjson")
+		t.Cleanup(srv.close)
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+		defer cancel()
+		// 16 + 9 (1st sec) < 32 (total send)
+		n, err := handler.SendBatches(ctx, rate.NewLimiter(9, 16)) // batch size is of len 16
+		assert.Error(t, err)
+		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
+		assert.Equal(t, uint(16), srv.received)  // Only the first batch is read
+		assert.Equal(t, uint(16), n)
+	})
+	t.Run("burst-greater-than-bucket-error", func(t *testing.T) {
+		handler, srv := newHandler(t, "testdata", "python*.ndjson")
+		t.Cleanup(srv.close)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		n, err := handler.SendBatches(ctx, rate.NewLimiter(10, 10)) // batch size of 16 > bucket size of 10
+		assert.Error(t, err)
+		assert.Equal(t, uint(0), srv.received)
 		assert.Equal(t, n, uint(0))
 	})
 }

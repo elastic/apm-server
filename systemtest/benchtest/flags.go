@@ -44,6 +44,7 @@ var (
 	blockprofile = flag.String("blockprofile", "", "Write a goroutine blocking profile to the file before exiting.")
 
 	warmupEvents = flag.Uint("warmup-events", 5000, "The number of events that will be used to warm up the APM Server before each benchmark")
+	maxEPS       = flag.Int("max-eps", -1, "Max event rate with a burst size of max(1000, 2*max-eps), defaults to Inf")
 
 	agentsList []int
 	serverURL  *url.URL

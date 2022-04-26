@@ -25,6 +25,8 @@ import (
 	"errors"
 	"io"
 	"io/fs"
+
+	"golang.org/x/time/rate"
 )
 
 var (
@@ -128,7 +130,7 @@ func New(p string, t *Transport, storage fs.FS, warmup uint) (*Handler, error) {
 
 // SendBatches sends the loaded trace data to the configured transport. Returns
 // the total number of documents sent and any transport errors.
-func (h *Handler) SendBatches(ctx context.Context) (uint, error) {
+func (h *Handler) SendBatches(ctx context.Context, l *rate.Limiter) (uint, error) {
 	var sentEvents uint
 	sendEvents := func(r io.ReadSeeker, events uint) error {
 		defer r.Seek(0, io.SeekStart)
@@ -140,6 +142,9 @@ func (h *Handler) SendBatches(ctx context.Context) (uint, error) {
 		return nil
 	}
 	for _, batch := range h.batches {
+		if err := l.WaitN(ctx, int(batch.items)); err != nil {
+			return sentEvents, err
+		}
 		if err := sendEvents(batch.r, batch.items); err != nil {
 			return sentEvents, err
 		}
@@ -152,7 +157,8 @@ func (h *Handler) SendBatches(ctx context.Context) (uint, error) {
 func (h *Handler) WarmUpServer(ctx context.Context, threshold uint) error {
 	var events uint
 	for events < threshold {
-		n, err := h.SendBatches(ctx)
+		// Disable limiter for warmup events
+		n, err := h.SendBatches(ctx, rate.NewLimiter(rate.Inf, 0))
 		if err != nil {
 			return err
 		}

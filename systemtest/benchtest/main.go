@@ -35,6 +35,7 @@ import (
 	"time"
 
 	"go.elastic.co/apm/v2/stacktrace"
+	"golang.org/x/time/rate"
 )
 
 const waitInactiveTimeout = 30 * time.Second
@@ -44,7 +45,7 @@ const waitInactiveTimeout = 30 * time.Second
 var events embed.FS
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
-type BenchmarkFunc func(*testing.B)
+type BenchmarkFunc func(context.Context, *testing.B, *rate.Limiter)
 
 const benchmarkFuncPrefix = "Benchmark"
 
@@ -53,7 +54,7 @@ type benchmark struct {
 	f    BenchmarkFunc
 }
 
-func runBenchmark(f func(b *testing.B)) (testing.BenchmarkResult, bool, error) {
+func runBenchmark(ctx context.Context, f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 	// Run the benchmark. testing.Benchmark will invoke the function
 	// multiple times, but only returns the final result.
 	var ok bool
@@ -64,8 +65,10 @@ func runBenchmark(f func(b *testing.B)) (testing.BenchmarkResult, bool, error) {
 			ok = !b.Failed()
 			return
 		}
+
+		limiter := getLimiter(*maxEPS)
 		b.ResetTimer()
-		f(b)
+		f(ctx, b, limiter)
 		for !b.Failed() {
 			if err := queryExpvar(&after); err != nil {
 				b.Error(err)
@@ -119,6 +122,22 @@ func benchmarkFuncName(f BenchmarkFunc) (string, error) {
 		return "", fmt.Errorf("benchmark function names must begin with %q (got %q)", fullName, benchmarkFuncPrefix)
 	}
 	return name, nil
+}
+
+func getLimiter(rateLimit int) *rate.Limiter {
+	if rateLimit < 0 {
+		return rate.NewLimiter(rate.Inf, 0)
+	}
+	return rate.NewLimiter(rate.Limit(rateLimit), getBurstSize(rateLimit))
+}
+
+func getBurstSize(rateLimit int) int {
+	burst := rateLimit * 2
+	// Allow for a batch to have 1000 events minimum
+	if burst < 1000 {
+		burst = 1000
+	}
+	return burst
 }
 
 // Run runs the given benchmarks according to the flags defined.
@@ -201,7 +220,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 			name := fullBenchmarkName(benchmark.name, agents)
 			for i := 0; i < int(*count); i++ {
 				profileChan := profiles.record(name)
-				result, ok, err := runBenchmark(benchmark.f)
+				result, ok, err := runBenchmark(context.Background(), benchmark.f)
 				if err != nil {
 					return err
 				}

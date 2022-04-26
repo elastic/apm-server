@@ -23,15 +23,19 @@ import (
 	"testing"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/systemtest/benchtest"
 )
 
-func Benchmark1000Transactions(b *testing.B) {
+func Benchmark1000Transactions(ctx context.Context, b *testing.B, l *rate.Limiter) {
 	b.RunParallel(func(pb *testing.PB) {
 		tracer := benchtest.NewTracer(b)
 		for pb.Next() {
 			for i := 0; i < 1000; i++ {
+				if err := l.Wait(ctx); err != nil {
+					b.Fatal(err)
+				}
 				tracer.StartTransaction("name", "type").End()
 			}
 			// TODO(axw) implement a transport that enables streaming
@@ -43,7 +47,7 @@ func Benchmark1000Transactions(b *testing.B) {
 	})
 }
 
-func BenchmarkOTLPTraces(b *testing.B) {
+func BenchmarkOTLPTraces(ctx context.Context, b *testing.B, l *rate.Limiter) {
 	b.RunParallel(func(pb *testing.PB) {
 		exporter := benchtest.NewOTLPExporter(b)
 		tracerProvider := sdktrace.NewTracerProvider(
@@ -52,6 +56,9 @@ func BenchmarkOTLPTraces(b *testing.B) {
 		)
 		tracer := tracerProvider.Tracer("tracer")
 		for pb.Next() {
+			if err := l.Wait(ctx); err != nil {
+				b.Fatal(err)
+			}
 			_, span := tracer.Start(context.Background(), "name")
 			span.End()
 		}
@@ -59,27 +66,27 @@ func BenchmarkOTLPTraces(b *testing.B) {
 	})
 }
 
-func BenchmarkAgentGo(b *testing.B) {
-	benchmarkAgent(b, `go*.ndjson`)
+func BenchmarkAgentGo(ctx context.Context, b *testing.B, l *rate.Limiter) {
+	benchmarkAgent(ctx, b, l, `go*.ndjson`)
 }
 
-func BenchmarkAgentNodeJS(b *testing.B) {
-	benchmarkAgent(b, `nodejs*.ndjson`)
+func BenchmarkAgentNodeJS(ctx context.Context, b *testing.B, l *rate.Limiter) {
+	benchmarkAgent(ctx, b, l, `nodejs*.ndjson`)
 }
 
-func BenchmarkAgentPython(b *testing.B) {
-	benchmarkAgent(b, `python*.ndjson`)
+func BenchmarkAgentPython(ctx context.Context, b *testing.B, l *rate.Limiter) {
+	benchmarkAgent(ctx, b, l, `python*.ndjson`)
 }
 
-func BenchmarkAgentRuby(b *testing.B) {
-	benchmarkAgent(b, `ruby*.ndjson`)
+func BenchmarkAgentRuby(ctx context.Context, b *testing.B, l *rate.Limiter) {
+	benchmarkAgent(ctx, b, l, `ruby*.ndjson`)
 }
 
-func benchmarkAgent(b *testing.B, expr string) {
+func benchmarkAgent(ctx context.Context, b *testing.B, l *rate.Limiter, expr string) {
 	b.RunParallel(func(pb *testing.PB) {
 		h := benchtest.NewEventHandler(b, expr)
 		for pb.Next() {
-			n, err := h.SendBatches(context.Background())
+			n, err := h.SendBatches(ctx, l)
 			if err != nil {
 				b.Error("failed sending batches:", err)
 			}
