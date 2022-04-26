@@ -128,9 +128,9 @@ pipeline {
           steps {
             runWithMage() {
               sh(script: 'make build-package', label: 'make build-package')
-              sh(label: 'package-storage-snapshot', script: 'make package-storage-snapshot')
+              sh(label: 'package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
               withGitContext() {
-                sh(label: 'create-package-storage-pull-request', script: 'make create-package-storage-pull-request')
+                sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
               }
             }
           }

@@ -21,10 +21,6 @@ MAGE=$(GOOSBUILD)/mage
 REVIEWDOG=$(GOOSBUILD)/reviewdog
 STATICCHECK=$(GOOSBUILD)/staticcheck
 ELASTICPACKAGE=$(GOOSBUILD)/elastic-package
-PACKAGESTORAGE=./build/.package-storage
-PACKAGESTORAGEAPM=$(PACKAGESTORAGE)/packages/apm
-BUILDINTEGRATIONSAPM=./build/integrations/apm
-PACKAGESTORAGEBRANCH=update-apm-$(shell date "+%Y%m%d%H%M%S")
 
 PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
@@ -181,7 +177,7 @@ check-docker-compose: $(PYTHON_BIN)
 format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
-	@rm -fr $(BUILDINTEGRATIONSAPM)/* ./build/apmpackage
+	@rm -fr ./build/integrations/apm/* ./build/apmpackage
 	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_VERSION)
 	@(cd ./build/apmpackage; $(CURDIR)/$(ELASTICPACKAGE) build && $(CURDIR)/$(ELASTICPACKAGE) check)
 
@@ -240,43 +236,6 @@ $(PYTHON_BIN)/activate: $(MAGE) script/requirements.txt
 .PHONY: $(APPROVALS)
 $(APPROVALS):
 	@$(GO) build -o $@ github.com/elastic/apm-server/approvaltest/cmd/check-approvals
-
-##############################################################################
-# Rules for the package-storage.
-##############################################################################
-## package-storage-snapshot : Clone the package-storage@snapshot and copy the apmpachage folder
-.PHONY: package-storage-snapshot
-package-storage-snapshot:
-	@rm -fr $(PACKAGESTORAGE)
-	git clone https://github.com/elastic/package-storage.git $(PACKAGESTORAGE) --branch snapshot --single-branch --depth=1
-	cp -rf $(BUILDINTEGRATIONSAPM)/$(APM_SERVER_VERSION) $(PACKAGESTORAGEAPM)/
-
-## create-package-storage-pull-request : Create the pull request for the package storage
-.PHONY: create-package-storage-pull-request
-create-package-storage-pull-request:
-	@cd $(PACKAGESTORAGE) ; \
-		echo "INFO: create branch" ; \
-		git checkout -b $(PACKAGESTORAGEBRANCH) ; \
-		echo "INFO: add files if any" ; \
-		git add . ; \
-		echo "INFO: commit changes if any" ; \
-		git diff --staged --quiet || git commit -m "[automation] Publish apm-$(APM_SERVER_VERSION)" ; \
-		echo "INFO: show remote details" ; \
-		git remote -v ; \
-		echo "INFO: push branch" ; \
-		git push --set-upstream origin $(PACKAGESTORAGEBRANCH) ; \
-		echo "INFO: create pull request" ; \
-		gh pr create \
-			--title "Publish apm-$(APM_SERVER_VERSION)" \
-			--body "Automated by $${BUILD_URL}" \
-			--label automation \
-			--base snapshot \
-			--head $(PACKAGESTORAGEBRANCH)
-
-## get-package-storage-location : Get the package storage location
-.PHONY: get-package-storage-location
-get-package-storage-location:
-	@echo $(PACKAGESTORAGE)
 
 ##############################################################################
 # Release manager.
