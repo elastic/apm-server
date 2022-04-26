@@ -38,7 +38,8 @@ create-package-storage-pull-request:
 			--body "Automated by $${BUILD_URL}" \
 			--label automation \
 			--base snapshot \
-			--head $(PACKAGE_STORAGE_BRANCH)
+			--head $(PACKAGE_STORAGE_BRANCH) \
+			--reviewer elastic/apm-server
 
 ## get-package-storage-location : Get the package storage location
 .PHONY: get-package-storage-location
