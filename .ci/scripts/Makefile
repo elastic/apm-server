@@ -3,7 +3,8 @@
 ##############################################################################
 
 BUILDINTEGRATIONSAPM=../../build/integrations/apm
-PACKAGESTORAGE=../../build/.package-storage
+PACKAGESTORAGE=build/.package-storage
+PACKAGESTORAGE_PATH=../../$(PACKAGESTORAGE)
 PACKAGESTORAGEAPM=$(PACKAGESTORAGE)/packages/apm
 PACKAGESTORAGEBRANCH=update-apm-$(shell date "+%Y%m%d%H%M%S")
 APM_SERVER_VERSION=$(shell make --no-print-directory -C ../../ get-version)
@@ -14,14 +15,14 @@ APM_SERVER_VERSION=$(shell make --no-print-directory -C ../../ get-version)
 ## package-storage-snapshot : Clone the package-storage@snapshot and copy the apmpachage folder
 .PHONY: package-storage-snapshot
 package-storage-snapshot:
-	@rm -fr $(PACKAGESTORAGE)
-	git clone https://github.com/elastic/package-storage.git $(PACKAGESTORAGE) --branch snapshot --single-branch --depth=1
+	@rm -fr $(PACKAGESTORAGE_PATH)
+	git clone https://github.com/elastic/package-storage.git $(PACKAGESTORAGE_PATH) --branch snapshot --single-branch --depth=1
 	cp -rf $(BUILDINTEGRATIONSAPM)/$(APM_SERVER_VERSION) $(PACKAGESTORAGEAPM)/
 
 ## create-package-storage-pull-request : Create the pull request for the package storage
 .PHONY: create-package-storage-pull-request
 create-package-storage-pull-request:
-	@cd $(PACKAGESTORAGE) ; \
+	@cd $(PACKAGESTORAGE_PATH) ; \
 		echo "INFO: create branch" ; \
 		git checkout -b $(PACKAGESTORAGEBRANCH) ; \
 		echo "INFO: add files if any" ; \
