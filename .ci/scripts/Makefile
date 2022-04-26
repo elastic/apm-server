@@ -4,7 +4,7 @@
 
 BUILD=../../build
 PACKAGE_STORAGE=.package-storage
-PACKAGE_STORAGE_PATH=$(BUILD)/$(PACKAGESTORAGE)
+PACKAGE_STORAGE_PATH=$(BUILD)/$(PACKAGE_STORAGE)
 PACKAGE_STORAGE_BRANCH=update-apm-$(shell date "+%Y%m%d%H%M%S")
 APM_SERVER_VERSION=$(shell make --no-print-directory -C ../../ get-version)
 
