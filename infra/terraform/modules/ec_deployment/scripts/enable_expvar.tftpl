@@ -1,0 +1,24 @@
+#!/bin/bash
+
+KIBANA_ENDPOINT=${kibana_url}/api/fleet/package_policies/elastic-cloud-apm
+KIBANA_AUTH=elastic:${elastic_password}
+
+# Check if the policy has expvar disabled:
+POLICY=$(curl -sk -u $${KIBANA_AUTH} $${KIBANA_ENDPOINT})
+
+echo $${POLICY} | grep '"expvar_enabled":{"type":"bool","value":true}' > /dev/null 2>&1
+if [[ $? -eq 0 ]]; then
+    echo "expvar already enabled"
+    exit 0
+fi
+
+# Download and modify the APM policy
+echo $${POLICY} |\
+    jq 'del(.item.id)' | jq 'del(.item.elasticsearch)'| jq 'del(.item.inputs[].compiled_input)' | jq 'del(.item.revision)' |\
+    jq 'del(.item.created_at)' | jq 'del(.item.created_by)' | jq 'del(.item.updated_at)' | jq 'del(.item.updated_by)' |\
+    jq '.item | select(.inputs[].policy_template == "apmserver") .inputs[].vars.expvar_enabled = {type: "bool", value: true}' > policy.json
+
+# Update the policy
+curl -s -H 'content-type: application/json' -H 'kbn-xsrf: true' -X PUT -k -d@policy.json -u $${KIBANA_AUTH} $${KIBANA_ENDPOINT}
+
+rm -f policy.json
