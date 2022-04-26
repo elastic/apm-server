@@ -25,7 +25,6 @@ https://github.com/elastic/apm-server/compare/8.1.3\...8.2.0[View commits]
 ==== Bug fixes
 - Do not overwrite `service version` if no transaction/error/... specific `service.name` is given {pull}7281[7281]
 - Set transaction name to `"<method> unknown route"` for unknown HTTP routes in APM Server instrumentation {pull}7679[7679]
-- Fix a bug that caused the APM Server to run out of memory it receives events from a high number of APM agents {pull}7809[7809]
 
 [float]
 ==== Intake API Changes
