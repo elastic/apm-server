@@ -260,11 +260,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20220412142919-fea8a7003359
+Version: v7.0.0-alpha2.0.20220425225606-56df883ca93b
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220412142919-fea8a7003359/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220425225606-56df883ca93b/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -5007,11 +5007,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.0.0-20220412020605-290c469a71a5
+Version: v0.0.0-20220425223048-2871e0cb64e4
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20220412020605-290c469a71a5/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20220425223048-2871e0cb64e4/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -5118,11 +5118,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.45.0
+Version: v1.46.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.45.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.46.0/LICENSE:
 
 
                                  Apache License
@@ -7303,11 +7303,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-client/v7
-Version: v7.0.0-20210922110810-e6f1f402a9ed
+Version: v7.0.0-20220413160217-a3cee549fb99
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.0.0-20210922110810-e6f1f402a9ed/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.0.0-20220413160217-a3cee549fb99/LICENSE.txt:
 
 ELASTIC LICENSE AGREEMENT
 
@@ -18037,11 +18037,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20220412211240-33da011f77ad
+Version: v0.0.0-20220422013727-9388b58f7150
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220412211240-33da011f77ad/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220422013727-9388b58f7150/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18148,11 +18148,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20220407144326-9054f6ed7bac
+Version: v0.0.0-20220422154200-b37d22cd5731
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220407144326-9054f6ed7bac/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220422154200-b37d22cd5731/LICENSE:
 
 
                                  Apache License
