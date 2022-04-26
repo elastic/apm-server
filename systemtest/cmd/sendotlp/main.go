@@ -20,6 +20,7 @@ package main
 import (
 	"context"
 	"errors"
+	"google.golang.org/grpc/credentials"
 	"log"
 	"os"
 	"time"
@@ -56,8 +57,10 @@ func Main(ctx context.Context) error {
 	}
 	log.Printf("Sending OTLP data to %s ($%s)", endpoint, otelEndpointEnv)
 
-	var otlpTraceExporterOptions []otlptracegrpc.Option
-	otlpTraceExporterOptions = append(otlpTraceExporterOptions, otlptracegrpc.WithInsecure())
+	otlpTraceExporterOptions := []otlptracegrpc.Option{
+		otlptracegrpc.WithEndpoint(endpoint),
+		otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, "")),
+	}
 	otlpTraceExporter, err := otlptracegrpc.New(ctx, otlpTraceExporterOptions...)
 	if err != nil {
 		return err
@@ -73,8 +76,10 @@ func Main(ctx context.Context) error {
 	)
 	tracerProvider := sdktrace.NewTracerProvider(tracerProviderOptions...)
 
-	var otlpMetricExporterOptions []otlpmetricgrpc.Option
-	otlpMetricExporterOptions = append(otlpMetricExporterOptions, otlpmetricgrpc.WithInsecure())
+	otlpMetricExporterOptions := []otlpmetricgrpc.Option{
+		otlpmetricgrpc.WithEndpoint(endpoint),
+		otlpmetricgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, "")),
+	}
 	otlpMetricExporter, err := otlpmetricgrpc.New(ctx, otlpMetricExporterOptions...)
 	if err != nil {
 		return err
