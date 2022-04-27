@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"time"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
@@ -52,8 +53,8 @@ import (
 var (
 	endpoint = flag.String(
 		"endpoint",
-		"http://localhost:8200",
-		"target URL to which sendotlp will send spans and metrics",
+		getenvDefault("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:8200"),
+		"target URL to which sendotlp will send spans and metrics ($OTEL_EXPORTER_OTLP_ENDPOINT)",
 	)
 
 	secretToken = flag.String(
@@ -67,6 +68,14 @@ var (
 		"set log level to one of DEBUG, INFO (default), WARN, ERROR, DPANIC, PANIC, FATAL",
 	)
 )
+
+func getenvDefault(key, defaultVal string) string {
+	val := os.Getenv(key)
+	if val != "" {
+		return val
+	}
+	return defaultVal
+}
 
 func main() {
 	flag.Parse()
