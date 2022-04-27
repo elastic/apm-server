@@ -56,6 +56,12 @@ var (
 		"target URL to which sendotlp will send spans and metrics",
 	)
 
+	secretToken = flag.String(
+		"secret-token",
+		"",
+		"Elastic APM secret token",
+	)
+
 	logLevel = zap.LevelFlag(
 		"loglevel", zapcore.InfoLevel,
 		"set log level to one of DEBUG, INFO (default), WARN, ERROR, DPANIC, PANIC, FATAL",
@@ -118,7 +124,15 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) error {
 		return err
 	}
 
-	otlpTraceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(grpcConn))
+	headers := make(map[string]string)
+	if *secretToken != "" {
+		headers["Authorization"] = "Bearer " + *secretToken
+	}
+
+	otlpTraceExporter, err := otlptracegrpc.New(ctx,
+		otlptracegrpc.WithGRPCConn(grpcConn),
+		otlptracegrpc.WithHeaders(headers),
+	)
 	if err != nil {
 		return err
 	}
@@ -129,7 +143,10 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) error {
 	)
 	tracerProvider := sdktrace.NewTracerProvider(tracerProviderOptions...)
 
-	otlpMetricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithGRPCConn(grpcConn))
+	otlpMetricExporter, err := otlpmetricgrpc.New(ctx,
+		otlpmetricgrpc.WithGRPCConn(grpcConn),
+		otlpmetricgrpc.WithHeaders(headers),
+	)
 	if err != nil {
 		return err
 	}
