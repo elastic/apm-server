@@ -67,7 +67,7 @@ func runBenchmark(ctx context.Context, f BenchmarkFunc) (testing.BenchmarkResult
 			return
 		}
 
-		limiter := getLimiter(maxEPM)
+		limiter := getNewLimiter()
 		b.ResetTimer()
 		f(ctx, b, limiter)
 		for !b.Failed() {
@@ -125,11 +125,11 @@ func benchmarkFuncName(f BenchmarkFunc) (string, error) {
 	return name, nil
 }
 
-func getLimiter(epm int) *rate.Limiter {
-	if epm <= 0 {
+func getNewLimiter() *rate.Limiter {
+	if maxEPM <= 0 {
 		return rate.NewLimiter(rate.Inf, 0)
 	}
-	eps := float64(epm) / float64(60)
+	eps := float64(maxEPM) / float64(60)
 	return rate.NewLimiter(rate.Limit(eps), getBurstSize(int(math.Ceil(eps))))
 }
 
@@ -203,7 +203,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 	}
 
 	// Warmup the APM Server before beggining the benchmarks.
-	if h, err := newEventHandler(`.*.ndjson`); err == nil {
+	if h, err := newEventHandler(`.*.ndjson`, getNewLimiter()); err == nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
 		if err := h.WarmUpServer(ctx, *warmupEvents); err != nil {

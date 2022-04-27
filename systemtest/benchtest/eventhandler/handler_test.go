@@ -76,37 +76,38 @@ func (t *mockServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
-func newHandler(t *testing.T, dir, expr string) (*Handler, *mockServer) {
+func newHandler(t *testing.T, dir, expr string, l *rate.Limiter) (*Handler, *mockServer) {
 	t.Helper()
 	ms := &mockServer{got: &bytes.Buffer{}}
 	srv := httptest.NewServer(ms)
 	ms.close = srv.Close
 	transp := NewTransport(srv.Client(), srv.URL, "")
-	h, err := New(expr, transp, os.DirFS(dir), 0)
+	h, err := New(expr, transp, os.DirFS(dir), l, 0)
 	require.NoError(t, err)
 	return h, ms
 }
 
 func TestHandlerNew(t *testing.T) {
 	storage := os.DirFS("testdata")
+	infLimiter := rate.NewLimiter(rate.Inf, 0)
 	t.Run("success-matches-files", func(t *testing.T) {
-		h, err := New(`python*.ndjson`, nil, storage, 0)
+		h, err := New(`python*.ndjson`, nil, storage, infLimiter, 0)
 		require.NoError(t, err)
 		assert.Greater(t, len(h.batches), 0)
 	})
 	t.Run("failure-matches-no-files", func(t *testing.T) {
-		h, err := New(`go*.ndjson`, nil, storage, 0)
+		h, err := New(`go*.ndjson`, nil, storage, infLimiter, 0)
 		require.EqualError(t, err, "eventhandler: glob matched no files, please specify a valid glob pattern")
 		assert.Nil(t, h)
 	})
 	t.Run("failure-invalid-glob", func(t *testing.T) {
-		h, err := New(``, nil, storage, 0)
+		h, err := New(``, nil, storage, infLimiter, 0)
 		require.EqualError(t, err, "eventhandler: glob matched no files, please specify a valid glob pattern")
 		assert.Nil(t, h)
 	})
 	t.Run("failure-rum-data", func(t *testing.T) {
 		storage := os.DirFS(filepath.Join("..", "..", "..", "testdata", "intake-v3"))
-		h, err := New(`*.ndjson`, nil, storage, 0)
+		h, err := New(`*.ndjson`, nil, storage, infLimiter, 0)
 		require.EqualError(t, err, "rum data support not implemented")
 		assert.Nil(t, h)
 	})
@@ -114,11 +115,11 @@ func TestHandlerNew(t *testing.T) {
 
 func TestHandlerSendBatches(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		handler, srv := newHandler(t, "testdata", "python*.ndjson")
+		handler, srv := newHandler(t, "testdata", "python*.ndjson", rate.NewLimiter(rate.Inf, 0))
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		n, err := handler.SendBatches(ctx, rate.NewLimiter(rate.Inf, 0))
+		n, err := handler.SendBatches(ctx)
 		assert.NoError(t, err)
 
 		b, err := ioutil.ReadFile(filepath.Join("testdata", "python-test.ndjson"))
@@ -130,32 +131,32 @@ func TestHandlerSendBatches(t *testing.T) {
 		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
 	})
 	t.Run("cancel-before-sendbatches", func(t *testing.T) {
-		handler, srv := newHandler(t, "testdata", "python*.ndjson")
+		handler, srv := newHandler(t, "testdata", "python*.ndjson", rate.NewLimiter(rate.Inf, 0))
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
-		n, err := handler.SendBatches(ctx, rate.NewLimiter(rate.Inf, 0))
+		n, err := handler.SendBatches(ctx)
 		assert.Error(t, err)
 		assert.Equal(t, srv.received, uint(0))
 		assert.Equal(t, n, uint(0))
 	})
 	t.Run("returns-error", func(t *testing.T) {
-		handler, srv := newHandler(t, "testdata", `python*.ndjson`)
+		handler, srv := newHandler(t, "testdata", `python*.ndjson`, rate.NewLimiter(rate.Inf, 0))
 		// Close the server prematurely to force an error.
 		srv.close()
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		n, err := handler.SendBatches(ctx, rate.NewLimiter(rate.Inf, 0))
+		n, err := handler.SendBatches(ctx)
 		assert.Error(t, err)
 		assert.Equal(t, n, uint(0))
 	})
 	t.Run("success-with-rate-limit", func(t *testing.T) {
-		handler, srv := newHandler(t, "testdata", "python*.ndjson")
+		handler, srv := newHandler(t, "testdata", "python*.ndjson", rate.NewLimiter(9, 16))
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
+		n, err := handler.SendBatches(ctx)
 		// 16 + 9 (1st sec) + 9 (2nd sec) > 32 (total send)
-		n, err := handler.SendBatches(ctx, rate.NewLimiter(9, 16)) // batch size is of len 16
 		assert.NoError(t, err)
 
 		b, err := ioutil.ReadFile(filepath.Join("testdata", "python-test.ndjson"))
@@ -167,23 +168,23 @@ func TestHandlerSendBatches(t *testing.T) {
 		assert.Equal(t, uint(32), n) // Ensure there are 32 events (minus metadata).
 	})
 	t.Run("failure-with-rate-limit", func(t *testing.T) {
-		handler, srv := newHandler(t, "testdata", "python*.ndjson")
+		handler, srv := newHandler(t, "testdata", "python*.ndjson", rate.NewLimiter(9, 16))
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		defer cancel()
+		n, err := handler.SendBatches(ctx)
 		// 16 + 9 (1st sec) < 32 (total send)
-		n, err := handler.SendBatches(ctx, rate.NewLimiter(9, 16)) // batch size is of len 16
 		assert.Error(t, err)
 		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
 		assert.Equal(t, uint(16), srv.received)  // Only the first batch is read
 		assert.Equal(t, uint(16), n)
 	})
 	t.Run("burst-greater-than-bucket-error", func(t *testing.T) {
-		handler, srv := newHandler(t, "testdata", "python*.ndjson")
+		handler, srv := newHandler(t, "testdata", "python*.ndjson", rate.NewLimiter(10, 10))
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		n, err := handler.SendBatches(ctx, rate.NewLimiter(10, 10)) // batch size of 16 > bucket size of 10
+		n, err := handler.SendBatches(ctx)
 		assert.Error(t, err)
 		assert.Equal(t, uint(0), srv.received)
 		assert.Equal(t, n, uint(0))
@@ -192,7 +193,7 @@ func TestHandlerSendBatches(t *testing.T) {
 
 func TestHandlerWarmUp(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		h, srv := newHandler(t, "testdata", "python*.ndjson")
+		h, srv := newHandler(t, "testdata", "python*.ndjson", rate.NewLimiter(rate.Inf, 0))
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
@@ -203,7 +204,7 @@ func TestHandlerWarmUp(t *testing.T) {
 		assert.GreaterOrEqual(t, srv.received, warmupEvents)
 	})
 	t.Run("cancel-before-warmup", func(t *testing.T) {
-		h, srv := newHandler(t, "testdata", "python*.ndjson")
+		h, srv := newHandler(t, "testdata", "python*.ndjson", rate.NewLimiter(rate.Inf, 0))
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
@@ -212,7 +213,7 @@ func TestHandlerWarmUp(t *testing.T) {
 		assert.Equal(t, srv.received, uint(0))
 	})
 	t.Run("cancel-deadline-exceeded", func(t *testing.T) {
-		h, srv := newHandler(t, "testdata", "python*.ndjson")
+		h, srv := newHandler(t, "testdata", "python*.ndjson", rate.NewLimiter(rate.Inf, 0))
 		t.Cleanup(srv.close)
 		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 		defer cancel()

@@ -26,6 +26,7 @@ import (
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
@@ -94,15 +95,15 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 
 // NewEventHandler creates a eventhandler which loads the files matching the
 // passed regex.
-func NewEventHandler(tb testing.TB, p string) *eventhandler.Handler {
-	h, err := newEventHandler(p)
+func NewEventHandler(tb testing.TB, p string, l *rate.Limiter) *eventhandler.Handler {
+	h, err := newEventHandler(p, l)
 	if err != nil {
 		tb.Fatal(err)
 	}
 	return h
 }
 
-func newEventHandler(p string) (*eventhandler.Handler, error) {
+func newEventHandler(p string, l *rate.Limiter) (*eventhandler.Handler, error) {
 	// We call the HTTPTransport constructor to avoid copying all the config
 	// parsing that creates the `*http.Client`.
 	t, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{})
@@ -110,5 +111,5 @@ func newEventHandler(p string) (*eventhandler.Handler, error) {
 		return nil, err
 	}
 	transp := eventhandler.NewTransport(t.Client, serverURL.String(), *secretToken)
-	return eventhandler.New(filepath.Join("events", p), transp, events, *warmupEvents)
+	return eventhandler.New(filepath.Join("events", p), transp, events, l, *warmupEvents)
 }

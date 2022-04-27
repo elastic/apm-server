@@ -84,9 +84,9 @@ func BenchmarkAgentRuby(ctx context.Context, b *testing.B, l *rate.Limiter) {
 
 func benchmarkAgent(ctx context.Context, b *testing.B, l *rate.Limiter, expr string) {
 	b.RunParallel(func(pb *testing.PB) {
-		h := benchtest.NewEventHandler(b, expr)
+		h := benchtest.NewEventHandler(b, expr, l)
 		for pb.Next() {
-			n, err := h.SendBatches(ctx, l)
+			n, err := h.SendBatches(ctx)
 			if err != nil {
 				b.Error("failed sending batches:", err)
 			}
