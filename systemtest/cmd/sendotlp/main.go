@@ -133,6 +133,7 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) error {
 	if err != nil {
 		return err
 	}
+	defer grpcConn.Close()
 
 	traceOptions := []otlptracegrpc.Option{otlptracegrpc.WithGRPCConn(grpcConn)}
 	metricOptions := []otlpmetricgrpc.Option{otlpmetricgrpc.WithGRPCConn(grpcConn)}
@@ -198,7 +199,7 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) error {
 	if err := otlpTraceExporter.Shutdown(ctx); err != nil {
 		return err
 	}
-	return nil
+	return grpcConn.Close()
 }
 
 func generateSpans(ctx context.Context, tracer trace.Tracer) error {
