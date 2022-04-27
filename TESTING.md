@@ -85,10 +85,10 @@ set to `true` to be able to calculate basic throughput measurements, but `apm-se
 be set to `true` if any of `-blockprofile`, `-cpuprofile`, `-memprofile` or `-mutexprofile` flags are set.
 
 The default behavior of `apmbench` is to send the captured events to the target APM Server as fast as possible
-with the configured number of `-agents`. The `-agents` flag determines how many concurrent goroutines will be used to
-send the events to the APM Server in parallel. The `-max-eps` can be used to specify the maximum number of events per
-second to send to the APM server instead of the default behaviour. To benchmark the APM Server in setup similar to
-what we'd see in production, the number of agents should be high (>`500`).
+with the configured number of `-agents`. The `-agents` flag determines how many concurrent goroutines will be used
+to send the events to the APM Server in parallel. The `-max-rate` can be used to specify rate of events, as `eps`
+or `epm` to send to the APM server instead of the default behaviour. To benchmark the APM Server in setup similar
+to what we'd see in production, the number of agents should be high (>`500`).
 
 By default, `apmbench` will warm up the APM Server by sending N events to the APM Server before any of the
 benchmark scenarios are run. That N can be configured via `-warmup-events` and defaults to a conservative number.

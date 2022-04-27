@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"reflect"
@@ -66,7 +67,7 @@ func runBenchmark(ctx context.Context, f BenchmarkFunc) (testing.BenchmarkResult
 			return
 		}
 
-		limiter := getLimiter(*maxEPS)
+		limiter := getLimiter(maxEPM)
 		b.ResetTimer()
 		f(ctx, b, limiter)
 		for !b.Failed() {
@@ -124,15 +125,16 @@ func benchmarkFuncName(f BenchmarkFunc) (string, error) {
 	return name, nil
 }
 
-func getLimiter(rateLimit int) *rate.Limiter {
-	if rateLimit < 0 {
+func getLimiter(epm int) *rate.Limiter {
+	if epm < 0 {
 		return rate.NewLimiter(rate.Inf, 0)
 	}
-	return rate.NewLimiter(rate.Limit(rateLimit), getBurstSize(rateLimit))
+	eps := float64(epm) / float64(60)
+	return rate.NewLimiter(rate.Limit(eps), getBurstSize(int(math.Ceil(eps))))
 }
 
-func getBurstSize(rateLimit int) int {
-	burst := rateLimit * 2
+func getBurstSize(eps int) int {
+	burst := eps * 2
 	// Allow for a batch to have 1000 events minimum
 	if burst < 1000 {
 		burst = 1000
