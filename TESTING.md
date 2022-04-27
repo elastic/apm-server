@@ -85,9 +85,10 @@ set to `true` to be able to calculate basic throughput measurements, but `apm-se
 be set to `true` if any of `-blockprofile`, `-cpuprofile`, `-memprofile` or `-mutexprofile` flags are set.
 
 The default behavior of `apmbench` is to send the captured events to the target APM Server as fast as possible
-with the configured number of `-agents`. This flag determines how many concurrent goroutines will be used to
-send the events to the APM Server in parallel. To benchmark the APM Server in setup similar to what we'd see
-in production, the number of agents should be high (>`500`).
+with the configured number of `-agents`. The `-agents` flag determines how many concurrent goroutines will be used to
+send the events to the APM Server in parallel. The `-max-eps` can be used to specify the maximum number of events per
+second to send to the APM server instead of the default behaviour. To benchmark the APM Server in setup similar to
+what we'd see in production, the number of agents should be high (>`500`).
 
 By default, `apmbench` will warm up the APM Server by sending N events to the APM Server before any of the
 benchmark scenarios are run. That N can be configured via `-warmup-events` and defaults to a conservative number.
@@ -119,7 +120,7 @@ version of APM Server (see more information below).
 ### Injecting an APM Server binary into Elastic Agent
 
 APM Server can be run in either standalone or managed mode by the ELastic Agent. To facilitate manual testing of
-APM Server in managed mode, it is possible to inject a locally built `apm-server` binary via `systemtest/cmd/runpm`.
+APM Server in managed mode, it is possible to inject a locally built `apm-server` binary via `systemtest/cmd/runapm`.
 It requires having the apm-server docker-compose project running and creates the required fleet policies, and exposes
 the APM Server port using a random binding that is printed to the standard output after the container has started.
 
