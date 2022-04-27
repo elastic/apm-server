@@ -144,7 +144,7 @@ func BenchmarkPublisher(b *testing.B) {
 		},
 		outputGroup,
 		pipeline.Settings{
-			WaitCloseMode:  pipeline.WaitOnClientClose,
+			WaitCloseMode:  pipeline.WaitOnPipelineClose,
 			InputQueueSize: 2048,
 		},
 	)
