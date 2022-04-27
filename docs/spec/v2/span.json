@@ -403,6 +403,13 @@
                 }
               }
             },
+            "id": {
+              "description": "ID holds a unique identifier for the service.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
             "language": {
               "description": "Language holds information about the programming language of the monitored service.",
               "type": [
@@ -508,13 +515,6 @@
                   "maxLength": 1024
                 }
               }
-            },
-            "string": {
-              "description": "ID holds a unique identifier for the service.",
-              "type": [
-                "null",
-                "string"
-              ]
             },
             "target": {
               "description": "Target holds information about the outgoing service in case of an outgoing event",

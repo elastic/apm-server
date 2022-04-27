@@ -33,21 +33,24 @@ Or, you might create namespaces that correspond to strategic business units with
 By type, the APM data streams are:
 
 Traces::
-
 Traces are comprised of {apm-guide-ref}/data-model.html[spans and transactions].
 Traces are stored in the following data streams:
-
++
+// tag::traces-data-streams[]
 - Application traces: `traces-apm-<namespace>`
 - RUM and iOS agent application traces: `traces-apm.rum-<namespace>`
+// end::traces-data-streams[]
+
 
 Metrics::
-
 Metrics include application-based metrics and basic system metrics.
 Metrics are stored in the following data streams:
-
++
+// tag::metrics-data-streams[]
 - APM internal metrics: `metrics-apm.internal-<namespace>`
 - APM profiling metrics: `metrics-apm.profiling-<namespace>`
 - Application metrics: `metrics-apm.app.<service.name>-<namespace>`
+// end::metrics-data-streams[]
 +
 Application metrics include the instrumented service's name--defined in each APM agent's
 configuration--in the data stream name.
@@ -67,12 +70,14 @@ Special characters include:
 ----
 ====
 
-Logs::
 
+Logs::
 Logs include application error events and application logs.
 Logs are stored in the following data streams:
-
++
+// tag::logs-data-streams[]
 - APM error/exception logging: `logs-apm.error-<namespace>`
+// end::logs-data-streams[]
 
 [discrete]
 [[apm-data-streams-next]]

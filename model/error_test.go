@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -75,7 +74,7 @@ func TestHandleExceptionTree(t *testing.T) {
 		},
 	}
 
-	beatEvent := event.BeatEvent(context.Background())
+	beatEvent := event.BeatEvent()
 	exceptionField, err := beatEvent.Fields.GetValue("error.exception")
 	require.NoError(t, err)
 	assert.Equal(t, []common.MapStr{{
@@ -111,7 +110,7 @@ func TestHandleExceptionTree(t *testing.T) {
 
 func TestErrorFieldsEmpty(t *testing.T) {
 	event := APMEvent{Error: &Error{}}
-	beatEvent := event.BeatEvent(context.Background())
+	beatEvent := event.BeatEvent()
 	assert.Empty(t, beatEvent.Fields)
 }
 
@@ -219,7 +218,7 @@ func TestErrorFields(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			event := APMEvent{Error: &tc.Error}
-			beatEvent := event.BeatEvent(context.Background())
+			beatEvent := event.BeatEvent()
 			assert.Equal(t, tc.Output, beatEvent.Fields["error"])
 		})
 	}

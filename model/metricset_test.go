@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -117,7 +116,7 @@ func TestMetricset(t *testing.T) {
 
 	for idx, test := range tests {
 		event := APMEvent{Metricset: test.Metricset}
-		outputEvent := event.BeatEvent(context.Background())
+		outputEvent := event.BeatEvent()
 		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -136,7 +135,7 @@ func TestTransformMetricsetTransaction(t *testing.T) {
 		},
 		Metricset: &Metricset{Name: "transaction"},
 	}
-	beatEvent := event.BeatEvent(context.Background())
+	beatEvent := event.BeatEvent()
 	assert.Equal(t, common.MapStr{
 		"processor":      common.MapStr{"name": "metric", "event": "metric"},
 		"metricset.name": "transaction",
@@ -172,7 +171,7 @@ func TestTransformMetricsetSpan(t *testing.T) {
 		},
 		Metricset: &Metricset{Name: "span"},
 	}
-	beatEvent := event.BeatEvent(context.Background())
+	beatEvent := event.BeatEvent()
 	assert.Equal(t, common.MapStr{
 		"processor":      common.MapStr{"name": "metric", "event": "metric"},
 		"metricset.name": "span",
