@@ -126,7 +126,7 @@ func benchmarkFuncName(f BenchmarkFunc) (string, error) {
 }
 
 func getLimiter(epm int) *rate.Limiter {
-	if epm < 0 {
+	if epm <= 0 {
 		return rate.NewLimiter(rate.Inf, 0)
 	}
 	eps := float64(epm) / float64(60)

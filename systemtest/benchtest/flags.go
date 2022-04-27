@@ -44,7 +44,7 @@ var (
 	blockprofile = flag.String("blockprofile", "", "Write a goroutine blocking profile to the file before exiting.")
 
 	warmupEvents = flag.Uint("warmup-events", 5000, "The number of events that will be used to warm up the APM Server before each benchmark")
-	maxRate      = flag.String("max-rate", "-1eps", "Max event rate, as eps or epm, with a burst size of max(1000, 2*eps), defaults to Inf")
+	maxRate      = flag.String("max-rate", "-1eps", "Max event rate with a burst size of max(1000, 2*eps), >= 0 values evaluate to Inf")
 
 	maxEPM     int
 	agentsList []int
