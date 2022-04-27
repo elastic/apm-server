@@ -47,6 +47,7 @@ import (
 	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/grpclog"
 )
 
@@ -97,7 +98,7 @@ func main() {
 }
 
 func Main(ctx context.Context, logger *zap.SugaredLogger) error {
-	var insecure bool
+	var transportCredentials credentials.TransportCredentials
 	endpointURL, err := url.Parse(*endpoint)
 	if err != nil {
 		return fmt.Errorf("failed to parse endpoint: %w", err)
@@ -107,11 +108,13 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) error {
 		if endpointURL.Port() == "" {
 			endpointURL.Host = net.JoinHostPort(endpointURL.Host, "80")
 		}
-		insecure = true
+		// If http:// is specified, then use insecure (plaintext).
+		transportCredentials = insecure.NewCredentials()
 	case "https":
 		if endpointURL.Port() == "" {
 			endpointURL.Host = net.JoinHostPort(endpointURL.Host, "443")
 		}
+		transportCredentials = credentials.NewClientTLSFromCert(nil, "")
 	default:
 		return fmt.Errorf(
 			"endpoint must be prefixed with http:// or https://",
@@ -120,16 +123,7 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) error {
 	logger.Infof("sending OTLP data to %s", endpointURL.String())
 	grpcEndpoint := endpointURL.Host
 
-	var grpcDialOptions []grpc.DialOption
-	if insecure {
-		// If http:// is specified, then use insecure (plaintext).
-		grpcDialOptions = append(grpcDialOptions, grpc.WithInsecure())
-	} else {
-		grpcDialOptions = append(grpcDialOptions, grpc.WithTransportCredentials(
-			credentials.NewClientTLSFromCert(nil, ""),
-		))
-	}
-	grpcConn, err := grpc.DialContext(ctx, grpcEndpoint, grpcDialOptions...)
+	grpcConn, err := grpc.DialContext(ctx, grpcEndpoint, grpc.WithTransportCredentials(transportCredentials))
 	if err != nil {
 		return err
 	}
