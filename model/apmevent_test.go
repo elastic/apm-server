@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"net"
 	"testing"
 	"time"
@@ -219,7 +218,7 @@ func TestAPMEventFields(t *testing.T) {
 			"timestamp": common.MapStr{"us": 1546525024908596},
 		},
 	}} {
-		event := test.input.BeatEvent(context.Background())
+		event := test.input.BeatEvent()
 		assert.Equal(t, test.output, event.Fields)
 	}
 }

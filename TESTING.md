@@ -20,7 +20,7 @@ Following workflow is intended:
 * Run `make test`, which will create a `*.received.json` file for every newly created or changed snapshot.
 * Run `make check-approvals` to review and interactively accept the changes.
 
-## Benchmarking
+## Micro Benchmarking
 
 To run simple benchmark tests, run:
 
@@ -38,6 +38,67 @@ $ git checkout main
 $ make bench > old.txt
 $ benchcmp old.txt new.txt
 ```
+
+## Macro Benchmarking
+
+The macro benchmarking focuses on measuring the APM Server's performance (throughput) and how changes in the
+codebase impact that performance.
+
+Our legacy benchmarking leverages [Hey APM](https://github.com/elastic/hey-apm) to run daily benchmarks that
+aim to measure the overal APM Server's throughput covering a variety of cases, all of which are generated with
+the APM Go agent at the same time the benchmark is executed, limitting the complexity and variety of data that
+is generated for the benchmark scenarios. The results of these benchmarks are then indexed into Elasticsearch
+weekly reports that compare the current results against the last week, month and 3 months are reported in Slack.
+
+The new benchmarking framework using [`apmbench`](systemtest/cmd/apmbench) uses pre-recorded APM Agent events
+for the benchmarks. This allows us to generate richer event which can be used to assess the Server's throughput.
+The [APM Integration testing](https://github.com/elastic/apm-integration-testing) is used to generate the events,
+and [`intake-receiver`](cmd/intake-receiver/README.md) will capture the events that are sent to the intake API.
+`apmbench` will also generate additional metrics compared to Hey APM, allowing for better understanding of where
+any potential bottlenecks may be, and how APM Server consumes the available resources.
+
+_TODO(marclop): convert the dot diagrams from dot to mermaid so they can be read in Markdown documents_
+
+The applications that are used to generate the stored traces, may not always use the `apm-integration-testing`,
+instead, we may want to write specific applications that generate a specific type of events, rather than re-use
+the existing [opbeans applications](https://github.com/elastic?q=opbeans&type=all).
+
+### Re-generate captured events
+
+The events are currently commited in the `apm-server` repository (`apm-server/systemtest/benchtest/events`). This
+may change in the near future, and instead, we'll download the stored traces on-demand and upload/update them
+periodically.
+
+```console
+# Navigate to your local copy of 'elastic/apm-integration-testing'.
+$ SLEEP=180 STACK_VERSION=8.1.2 RPM=5000; ./scripts/compose.py start $STACK_VERSION --opbeans-go-loadgen-rpm ${RPM} --opbeans-python-loadgen-rpm ${RPM} --opbeans-node-loadgen-rpm $((${RPM} * 2)) --opbeans-ruby-loadgen-rpm ${RPM} --with-opbeans-go --no-apm-server-self-instrument --with-opbeans-python --with-opbeans-ruby --with-opbeans-node --apm-server-record --loadgen-no-ws && sleep $SLEEP && make copy-events; docker-compose down
+...
+# Copy the generated traces to the location where `apmbench` expects them to be (`apm-server/systemtest/benchtest/events`).
+# Assuming that the `apm-server` repository has been checked out at the same level as `apm-integration-testing`.
+$ cp -r events ../apm-server/systemtest/benchtest/events
+```
+
+### Running `apmbench`
+
+`apmbench` is located in `systemtest/cmd/apmbench` and can target any APM Server with `apm-server.expvar.enabled`
+set to `true` to be able to calculate basic throughput measurements, but `apm-server.pprof.enabled` should also
+be set to `true` if any of `-blockprofile`, `-cpuprofile`, `-memprofile` or `-mutexprofile` flags are set.
+
+The default behavior of `apmbench` is to send the captured events to the target APM Server as fast as possible
+with the configured number of `-agents`. This flag determines how many concurrent goroutines will be used to
+send the events to the APM Server in parallel. To benchmark the APM Server in setup similar to what we'd see
+in production, the number of agents should be high (>`500`).
+
+By default, `apmbench` will warm up the APM Server by sending N events to the APM Server before any of the
+benchmark scenarios are run. That N can be configured via `-warmup-events` and defaults to a conservative number.
+
+The default `-benchtime` is `1s` which, for our purposes isn't a great default, so if you're benchmarking
+changes to the APM Server you'll want to set the duration to at least `30s` to have some quick feedback, our
+periodic benchmarks should aim to benchmark for longer to allow any long-queue effects to be detected.
+
+The rest of the flags configure the `apmbench` so it can target an APM Server, these can be configured via the
+set flags, or their `ELASTIC_APM_<UPPERCASE FLAG NAME>` alternative, for example, to configure the server URL
+set `ELASTIC_APM_SERVER_URL` to the full URL of the APM Server you'd like to benchmark.
 
 ## Manual testing
 

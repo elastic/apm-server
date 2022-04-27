@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -30,7 +29,7 @@ import (
 
 func TestTransactionTransformEmpty(t *testing.T) {
 	event := APMEvent{Transaction: &Transaction{}}
-	beatEvent := event.BeatEvent(context.Background())
+	beatEvent := event.BeatEvent()
 	assert.Empty(t, beatEvent.Fields)
 }
 
@@ -162,7 +161,7 @@ func TestTransactionTransform(t *testing.T) {
 			Processor:   TransactionProcessor,
 			Transaction: &test.Transaction,
 		}
-		beatEvent := event.BeatEvent(context.Background())
+		beatEvent := event.BeatEvent()
 		assert.Equal(t, test.Output, beatEvent.Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -198,7 +197,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		},
 	}
 
-	event := txWithContext.BeatEvent(context.Background())
+	event := txWithContext.BeatEvent()
 	assert.Equal(t, common.MapStr{
 		"processor":  common.MapStr{"name": "transaction", "event": "transaction"},
 		"user":       common.MapStr{"id": "123", "name": "jane"},
@@ -254,7 +253,7 @@ func TestTransactionTransformMarks(t *testing.T) {
 
 	for idx, test := range tests {
 		event := APMEvent{Transaction: &test.Transaction}
-		beatEvent := event.BeatEvent(context.Background())
+		beatEvent := event.BeatEvent()
 		marks, _ := beatEvent.Fields.GetValue("transaction.marks")
 		assert.Equal(t, test.Output, marks, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}

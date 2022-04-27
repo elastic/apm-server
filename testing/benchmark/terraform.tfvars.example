@@ -1,0 +1,49 @@
+user_name = "USER"
+
+# The ESS region where the deployment will be provisioned. See the full list
+# in https://www.elastic.co/guide/en/cloud/current/ec-reference-regions.html.
+# region = "gcp-europe-west1"
+
+# The deployment template for the ESS deployment. The names will differ between
+# cloud providers (GCP, AWS and Azure have slightly different names).
+# https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html.
+# deployment_template = "gcp-compute-optimized-v2
+
+# The stack version for the ESS deployment, this can be any
+# of the available stack pack versions.
+# stack_version = "8.3.0"
+
+# The size of the APM Server. It is possible to go over 8GB, and cloud
+# will provision additional instances / 8gb, for example, if 16gb is
+# set, then there will be 2 x 8gb APM Servers in the same AZ.
+# apm_server_size = "8g"
+
+# The number of AZs the APM Server should span.
+# apm_server_zone_count = 2
+
+# The Elasticsearch cluster node size.
+# elasticsearch_size = "1g"
+
+# The number of AZs the Elasticsearch cluster should have.
+# elasticsearch_zone_count = 1
+
+# Override the docker image tag the ESS resources will use. Useful to
+# target a specific build, rather than a snapshot or released version.
+# docker_image_tag_override = "8.3.0-2c8f9574-SNAPSHOT"
+
+# Override the base docker image that is used to create the ESS deployment.
+# It is necessary to specify the full map even when only a single image will
+# be changed.
+# docker_image_override = {
+#    "elasticsearch" : "docker.elastic.co/cloud-release/elasticsearch-cloud-ess",
+#    "kibana" : "docker.elastic.co/cloud-release/kibana-cloud",
+#    "apm" : "docker.elastic.co/cloud-release/elastic-agent-cloud",
+#  }
+
+# The AWS region for the worker machine, please note that gcp and aws regions
+# have a slightly different nomenclature.
+# worker_region = "eu-west-1"
+
+# Override the path where the compiled apmbench binary is going to be uploaded.
+# Defaults to `../../systemtest/cmd/apmbench`.
+# apmbench_bin_path = "."
