@@ -31,6 +31,8 @@ import (
 	_ "golang.org/x/lint/golint"                     // go.mod/go.sum
 	_ "honnef.co/go/tools/cmd/staticcheck"           // go.mod/go.sum
 
+	_ "github.com/terraform-docs/terraform-docs" // go.mod/go.sum
+
 	_ "github.com/elastic/elastic-package" // go.mod/go.sum
 	_ "github.com/elastic/go-licenser"     // go.mod/go.sum
 )
