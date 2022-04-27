@@ -83,6 +83,7 @@ func main() {
 	zapcfg.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
 	zapcfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	zapcfg.Encoding = "console"
+	zapcfg.Level = zap.NewAtomicLevelAt(*logLevel)
 	logger, err := zapcfg.Build()
 	if err != nil {
 		panic(err)
