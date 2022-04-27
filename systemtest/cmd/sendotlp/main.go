@@ -60,7 +60,7 @@ var (
 	secretToken = flag.String(
 		"secret-token",
 		"",
-		"Elastic APM secret token",
+		"Elastic APM secret token. Note: setting this overrides $OTEL_EXPORTER_OTLP_HEADERS",
 	)
 
 	logLevel = zap.LevelFlag(
@@ -134,15 +134,17 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) error {
 		return err
 	}
 
-	headers := make(map[string]string)
+	traceOptions := []otlptracegrpc.Option{otlptracegrpc.WithGRPCConn(grpcConn)}
+	metricOptions := []otlpmetricgrpc.Option{otlpmetricgrpc.WithGRPCConn(grpcConn)}
 	if *secretToken != "" {
-		headers["Authorization"] = "Bearer " + *secretToken
+		// If -secret-token is specified then we set headers explicitly,
+		// overriding anything set in $OTEL_EXPORTER_OTLP_HEADERS.
+		headers := map[string]string{"Authorization": "Bearer " + *secretToken}
+		traceOptions = append(traceOptions, otlptracegrpc.WithHeaders(headers))
+		metricOptions = append(metricOptions, otlpmetricgrpc.WithHeaders(headers))
 	}
 
-	otlpTraceExporter, err := otlptracegrpc.New(ctx,
-		otlptracegrpc.WithGRPCConn(grpcConn),
-		otlptracegrpc.WithHeaders(headers),
-	)
+	otlpTraceExporter, err := otlptracegrpc.New(ctx, traceOptions...)
 	if err != nil {
 		return err
 	}
@@ -153,10 +155,7 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) error {
 	)
 	tracerProvider := sdktrace.NewTracerProvider(tracerProviderOptions...)
 
-	otlpMetricExporter, err := otlpmetricgrpc.New(ctx,
-		otlpmetricgrpc.WithGRPCConn(grpcConn),
-		otlpmetricgrpc.WithHeaders(headers),
-	)
+	otlpMetricExporter, err := otlpmetricgrpc.New(ctx, metricOptions...)
 	if err != nil {
 		return err
 	}
