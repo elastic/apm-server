@@ -21,6 +21,7 @@ MAGE=$(GOOSBUILD)/mage
 REVIEWDOG=$(GOOSBUILD)/reviewdog
 STATICCHECK=$(GOOSBUILD)/staticcheck
 ELASTICPACKAGE=$(GOOSBUILD)/elastic-package
+TERRAFORMDOCS=$(GOOSBUILD)/terraform-docs
 
 PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
@@ -115,9 +116,18 @@ get-version:
 ##############################################################################
 
 .PHONY: docs
-docs:
+docs: tf-docs
 	@rm -rf build/html_docs
 	sh script/build_apm_docs.sh apm-server docs/index.asciidoc build
+
+.PHONY: tf-docs
+tf-docs: $(TERRAFORMDOCS) $(addsuffix /README.md,$(wildcard testing/infra/terraform/modules/*))
+
+testing/infra/terraform/modules/%/README.md: .FORCE
+	$(TERRAFORMDOCS) markdown --hide-empty --header-from header.md --output-file=README.md --output-mode replace $(subst README.md,,$@)
+
+.PHONY: .FORCE
+.FORCE:
 
 .PHONY: update-beats-docs
 update-beats-docs: $(PYTHON)
@@ -226,6 +236,9 @@ $(REVIEWDOG): tools/go.mod
 
 $(ELASTICPACKAGE): tools/go.mod
 	$(GO) build -o $@ -modfile=$< -ldflags '-X github.com/elastic/elastic-package/internal/version.CommitHash=anything' github.com/elastic/elastic-package
+
+$(TERRAFORMDOCS): tools/go.mod
+	$(GO) build -o $@ -modfile=$< github.com/terraform-docs/terraform-docs
 
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
