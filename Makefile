@@ -121,8 +121,13 @@ docs: tf-docs
 	sh script/build_apm_docs.sh apm-server docs/index.asciidoc build
 
 .PHONY: tf-docs
-tf-docs: $(TERRAFORMDOCS)
-	@$(foreach dir, $(wildcard infra/terraform/modules/*),terraform-docs markdown --hide-empty --header-from header.md --output-file=README.md --output-mode replace $(dir);)
+tf-docs: $(TERRAFORMDOCS) $(addsuffix /README.md,$(wildcard testing/infra/terraform/modules/*))
+
+testing/infra/terraform/modules/%/README.md: .FORCE
+	$(TERRAFORMDOCS) markdown --hide-empty --header-from header.md --output-file=README.md --output-mode replace $(subst README.md,,$@)
+
+.PHONY: .FORCE
+.FORCE:
 
 .PHONY: update-beats-docs
 update-beats-docs: $(PYTHON)

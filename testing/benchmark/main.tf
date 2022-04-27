@@ -23,7 +23,7 @@ locals {
 }
 
 module "ec_deployment" {
-  source = "../../infra/terraform/modules/ec_deployment"
+  source = "../infra/terraform/modules/ec_deployment"
 
   region        = var.ess_region
   stack_version = var.stack_version
@@ -42,7 +42,7 @@ module "ec_deployment" {
 }
 
 module "benchmark_worker" {
-  source = "../../infra/terraform/modules/benchmark_executor"
+  source = "../infra/terraform/modules/benchmark_executor"
   region = var.worker_region
 
   user_name = var.user_name
