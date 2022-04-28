@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"reflect"
@@ -31,6 +32,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -181,22 +183,11 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		}
 	}
 
-	// Warmup the APM Server before beggining the benchmarks.
-	if h, err := newEventHandler(`.*.ndjson`); err == nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancel()
-		if err := h.WarmUpServer(ctx, *warmupEvents); err != nil {
-			return fmt.Errorf("failed warming up apm-server: %w", err)
-		}
-		ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
-		defer cancel()
-		if err := WaitUntilServerInactive(ctx); err != nil {
-			return fmt.Errorf("received error waiting for server inactive: %w", err)
-		}
-	}
-
 	for _, agents := range agentsList {
 		runtime.GOMAXPROCS(int(agents))
+		if err := warmup(agents, *warmupEvents); err != nil {
+			return fmt.Errorf("warm-up failed with %d agents: %v", agents, err)
+		}
 		for _, benchmark := range benchmarks {
 			name := fullBenchmarkName(benchmark.name, agents)
 			for i := 0; i < int(*count); i++ {
@@ -216,6 +207,35 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 				}
 			}
 		}
+	}
+	return nil
+}
+
+func warmup(agents int, events uint) error {
+	// Warmup the APM Server before beggining the benchmarks.
+	// Assume a base ingest rate of at least 5000 per second, and dynamically
+	// set the context timeout based on this ingest rate, or if lower, default
+	// to 15 seconds. The default 5000 / 5000 = 1, so the default 15 seconds
+	// will be used instead.
+	timeout := time.Duration(math.Max(float64(events/5000), 15)) * time.Second
+	var wg sync.WaitGroup
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	for i := 0; i < agents; i++ {
+		if h, err := newEventHandler(`*.ndjson`); err == nil {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				h.WarmUpServer(ctx, events)
+			}()
+		}
+	}
+	wg.Wait()
+	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
+	defer cancel()
+	if err := WaitUntilServerInactive(ctx); err != nil {
+		return fmt.Errorf("received error waiting for server inactive: %w", err)
 	}
 	return nil
 }
