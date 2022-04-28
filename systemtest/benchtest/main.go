@@ -243,13 +243,15 @@ func warmup(agents int, events uint) error {
 	defer cancel()
 
 	for i := 0; i < agents; i++ {
-		if h, err := newEventHandler(`*.ndjson`, getNewLimiter()); err == nil {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				h.WarmUpServer(ctx, events)
-			}()
+		h, err := newEventHandler(`*.ndjson`, getNewLimiter())
+		if err != nil {
+			return fmt.Errorf("unable to create warm-up handler: %w", err)
 		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			h.WarmUpServer(ctx, events)
+		}()
 	}
 	wg.Wait()
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
