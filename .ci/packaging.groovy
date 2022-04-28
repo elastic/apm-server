@@ -14,6 +14,7 @@ pipeline {
     DOCKER_REGISTRY = 'docker.elastic.co'
     DRA_OUTPUT = 'release-manager.out'
     COMMIT = "${params?.COMMIT}"
+    JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -312,7 +313,10 @@ def withGitContext(Closure body) {
 def smartGitCheckout() {
   // Checkout the given commit
   if (env.COMMIT?.trim()) {
-    gitCheckout(basedir: "${BASE_DIR}", branch: env.COMMIT)
+    gitCheckout(basedir: "${BASE_DIR}",
+                branch: "${env.COMMIT}",
+                credentialsId: "${JOB_GIT_CREDENTIALS}",
+                repo: "https://github.com/elastic/${REPO}.git")
   } else {
     gitCheckout(basedir: "${BASE_DIR}",
                 githubNotifyFirstTimeContributor: false,
