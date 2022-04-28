@@ -13,6 +13,8 @@ pipeline {
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
     DRA_OUTPUT = 'release-manager.out'
+    COMMIT = "${params?.COMMIT}"
+    JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -24,9 +26,8 @@ pipeline {
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
     quietPeriod(10)
   }
-  triggers {
-    // disable upstream trigger on a PR basis
-    upstream("apm-server/apm-server-mbp/${ env.JOB_BASE_NAME.startsWith('PR-') ? 'none' : env.JOB_BASE_NAME }")
+  parameters {
+    string(name: 'COMMIT', defaultValue: '', description: 'The Git commit to be used (empty will checkout the latest commit)')
   }
   stages {
     stage('Filter build') {
@@ -58,9 +59,8 @@ pipeline {
           steps {
             pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
             deleteDir()
-            gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: false,
-                        shallow: false, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
-            stash allowEmpty: true, name: 'source', useDefaultExcludes: false
+            smartGitCheckout()
+            stash(allowEmpty: true, name: 'source', useDefaultExcludes: false)
             // set environment variables globally since they are used afterwards but GIT_BASE_COMMIT won't
             // be available until gitCheckout is executed.
             setEnvVar('URI_SUFFIX', "commits/${env.GIT_BASE_COMMIT}")
@@ -251,3 +251,50 @@ def runIfNoMainAndNoStaging(Closure body) {
     body()
   }
 }
+<<<<<<< HEAD
+=======
+
+/**
+* Prepare the context to be able to create the branch, push the changes and create the pull request
+*
+* NOTE: This particular implementation requires to checkout with the step gitCheckout
+*/
+def withGitContext(Closure body) {
+  setupAPMGitEmail(global: true)
+  // get the the workspace for the package-storage repository
+  setEnvVar('PACKAGE_STORAGE_LOCATION', sh(label: 'get-package-storage-location', script: 'make --no-print-directory -C .ci/scripts get-package-storage-location', returnStdout: true)?.trim())
+  withCredentials([usernamePassword(credentialsId: '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken',
+                                    passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GITHUB_USER')]) {
+    try {
+      echo("env.PACKAGE_STORAGE_LOCATION=${env.PACKAGE_STORAGE_LOCATION}")
+      // within the package-storage workspace then configure the credentials to be able to push the changes
+      dir(env.PACKAGE_STORAGE_LOCATION) {
+        sh(label: 'List files', script: 'ls -1')
+        sh(label: 'Setup git context', script: """git config remote.origin.url "https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${ORG_NAME}/package-storage.git" """)
+      }
+      // run the given body to prepare the changes and push the changes
+      withGhEnv(version: '2.4.0') {
+        body()
+      }
+    } finally {
+      dir(env.PACKAGE_STORAGE_LOCATION) {
+        sh(label: 'Rollback git context', script: """git config remote.origin.url "https://github.com/${ORG_NAME}/package-storage.git" """)
+      }
+    }
+  }
+}
+
+def smartGitCheckout() {
+  // Checkout the given commit
+  if (env.COMMIT?.trim()) {
+    gitCheckout(basedir: "${BASE_DIR}",
+                branch: "${env.COMMIT}",
+                credentialsId: "${JOB_GIT_CREDENTIALS}",
+                repo: "https://github.com/elastic/${REPO}.git")
+  } else {
+    gitCheckout(basedir: "${BASE_DIR}",
+                githubNotifyFirstTimeContributor: false,
+                shallow: false)
+  }
+}
+>>>>>>> 80d5eddb (ci: use downstream pattern (#7982))
