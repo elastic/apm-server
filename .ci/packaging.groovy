@@ -15,6 +15,7 @@ pipeline {
     DRA_OUTPUT = 'release-manager.out'
     COMMIT = "${params?.COMMIT}"
     JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
+    DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -107,7 +108,18 @@ pipeline {
                 options { skipDefaultCheckout() }
                 steps {
                   runIfNoMainAndNoStaging() {
-                    publishArtifacts(type: env.TYPE)
+                    publishArtifactsDev()
+                  }
+                }
+              }
+              stage('Publish for DRA') {
+                options { skipDefaultCheckout() }
+                when {
+                  expression { return env.IS_BRANCH_AVAILABLE == "true" }
+                }
+                steps {
+                  runIfNoMainAndNoStaging() {
+                    publishArtifactsDRA(type: env.TYPE)
                   }
                 }
               }
@@ -233,10 +245,27 @@ def runPackage(def args = [:]) {
   }
 }
 
+def publishArtifactsDev() {
+  def bucketLocation = "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}"
+  if (isPR()) {
+    bucketLocation = "gs://${JOB_GCS_BUCKET}/snapshots"
+  }
+  publishArtifacts(bucketLocation: bucketLocation)
+  publishArtifacts(bucketLocation: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}")
+
+  dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
+  dir("${BASE_DIR}"){
+    sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+  }
+}
+
+def publishArtifactsDRA(def args = [:]) {
+  publishArtifacts(bucketLocation: getBucketLocation(args.type))
+}
+
 def publishArtifacts(def args = [:]) {
-  def bucketLocation = getBucketLocation(args.type)
   // Copy those files to another location with the sha commit to test them afterward.
-  googleStorageUpload(bucket: "${bucketLocation}",
+  googleStorageUpload(bucket: "${args.bucketLocation}",
     credentialsId: "${JOB_GCS_CREDENTIALS}",
     pathPrefix: "${BASE_DIR}/build/distributions/",
     pattern: "${BASE_DIR}/build/distributions/**/*",
@@ -244,7 +273,7 @@ def publishArtifacts(def args = [:]) {
     showInline: true)
   // Copy the dependencies files if no ARM
   whenFalse(isArm()) {
-    googleStorageUpload(bucket: "${bucketLocation}",
+    googleStorageUpload(bucket: "${args.bucketLocation}",
       credentialsId: "${JOB_GCS_CREDENTIALS}",
       pathPrefix: "${BASE_DIR}/build/",
       pattern: "${BASE_DIR}/build/dependencies.csv",
