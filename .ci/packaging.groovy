@@ -251,38 +251,6 @@ def runIfNoMainAndNoStaging(Closure body) {
     body()
   }
 }
-<<<<<<< HEAD
-=======
-
-/**
-* Prepare the context to be able to create the branch, push the changes and create the pull request
-*
-* NOTE: This particular implementation requires to checkout with the step gitCheckout
-*/
-def withGitContext(Closure body) {
-  setupAPMGitEmail(global: true)
-  // get the the workspace for the package-storage repository
-  setEnvVar('PACKAGE_STORAGE_LOCATION', sh(label: 'get-package-storage-location', script: 'make --no-print-directory -C .ci/scripts get-package-storage-location', returnStdout: true)?.trim())
-  withCredentials([usernamePassword(credentialsId: '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken',
-                                    passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GITHUB_USER')]) {
-    try {
-      echo("env.PACKAGE_STORAGE_LOCATION=${env.PACKAGE_STORAGE_LOCATION}")
-      // within the package-storage workspace then configure the credentials to be able to push the changes
-      dir(env.PACKAGE_STORAGE_LOCATION) {
-        sh(label: 'List files', script: 'ls -1')
-        sh(label: 'Setup git context', script: """git config remote.origin.url "https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${ORG_NAME}/package-storage.git" """)
-      }
-      // run the given body to prepare the changes and push the changes
-      withGhEnv(version: '2.4.0') {
-        body()
-      }
-    } finally {
-      dir(env.PACKAGE_STORAGE_LOCATION) {
-        sh(label: 'Rollback git context', script: """git config remote.origin.url "https://github.com/${ORG_NAME}/package-storage.git" """)
-      }
-    }
-  }
-}
 
 def smartGitCheckout() {
   // Checkout the given commit
@@ -297,4 +265,3 @@ def smartGitCheckout() {
                 shallow: false)
   }
 }
->>>>>>> 80d5eddb (ci: use downstream pattern (#7982))
