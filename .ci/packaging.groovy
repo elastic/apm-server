@@ -108,18 +108,12 @@ pipeline {
                 options { skipDefaultCheckout() }
                 steps {
                   runIfNoMainAndNoStaging() {
-                    publishArtifactsDev()
-                  }
-                }
-              }
-              stage('Publish for DRA') {
-                options { skipDefaultCheckout() }
-                when {
-                  expression { return env.IS_BRANCH_AVAILABLE == "true" }
-                }
-                steps {
-                  runIfNoMainAndNoStaging() {
-                    publishArtifactsDRA(type: env.TYPE)
+                    whenTrue(env.IS_BRANCH_AVAILABLE == "true") {
+                      publishArtifactsDRA(type: env.TYPE)
+                    }
+                    whenFalse(env.IS_BRANCH_AVAILABLE == "true" && env.TYPE == "snapshot") {
+                      publishArtifactsDev()
+                    }
                   }
                 }
               }
