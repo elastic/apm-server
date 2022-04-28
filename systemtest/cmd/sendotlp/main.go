@@ -20,17 +20,19 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
+	"flag"
+	"fmt"
+	"net"
+	"net/url"
 	"os"
 	"time"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
-	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/sdkapi"
 	"go.opentelemetry.io/otel/sdk/export/metric/aggregation"
+	"go.opentelemetry.io/otel/sdk/instrumentation"
 	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
 	"go.opentelemetry.io/otel/sdk/metric/export"
@@ -38,52 +40,121 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zapgrpc"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/grpclog"
 )
 
+var (
+	endpoint = flag.String(
+		"endpoint",
+		getenvDefault("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:8200"),
+		"target URL to which sendotlp will send spans and metrics ($OTEL_EXPORTER_OTLP_ENDPOINT)",
+	)
+
+	secretToken = flag.String(
+		"secret-token",
+		"",
+		"Elastic APM secret token. Note: setting this overrides $OTEL_EXPORTER_OTLP_HEADERS",
+	)
+
+	logLevel = zap.LevelFlag(
+		"loglevel", zapcore.InfoLevel,
+		"set log level to one of DEBUG, INFO (default), WARN, ERROR, DPANIC, PANIC, FATAL",
+	)
+)
+
+func getenvDefault(key, defaultVal string) string {
+	val := os.Getenv(key)
+	if val != "" {
+		return val
+	}
+	return defaultVal
+}
+
 func main() {
-	if err := Main(context.Background()); err != nil {
-		log.Fatal(err)
+	flag.Parse()
+	zapcfg := zap.NewProductionConfig()
+	zapcfg.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
+	zapcfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	zapcfg.Encoding = "console"
+	zapcfg.Level = zap.NewAtomicLevelAt(*logLevel)
+	logger, err := zapcfg.Build()
+	if err != nil {
+		panic(err)
+	}
+	defer logger.Sync()
+	grpclog.SetLogger(zapgrpc.NewLogger(logger, zapgrpc.WithDebug()))
+
+	if err := Main(context.Background(), logger.Sugar()); err != nil {
+		logger.Fatal("error sending data", zap.Error(err))
 	}
 }
 
-func Main(ctx context.Context) error {
-	const otelEndpointEnv = "OTEL_EXPORTER_OTLP_ENDPOINT"
-	endpoint := os.Getenv(otelEndpointEnv)
-	if endpoint == "" {
-		endpoint = "http://localhost:8200"
-		os.Setenv(otelEndpointEnv, endpoint)
+func Main(ctx context.Context, logger *zap.SugaredLogger) error {
+	var transportCredentials credentials.TransportCredentials
+	endpointURL, err := url.Parse(*endpoint)
+	if err != nil {
+		return fmt.Errorf("failed to parse endpoint: %w", err)
 	}
-	log.Printf("Sending OTLP data to %s ($%s)", endpoint, otelEndpointEnv)
+	switch endpointURL.Scheme {
+	case "http":
+		if endpointURL.Port() == "" {
+			endpointURL.Host = net.JoinHostPort(endpointURL.Host, "80")
+		}
+		// If http:// is specified, then use insecure (plaintext).
+		transportCredentials = insecure.NewCredentials()
+	case "https":
+		if endpointURL.Port() == "" {
+			endpointURL.Host = net.JoinHostPort(endpointURL.Host, "443")
+		}
+		transportCredentials = credentials.NewClientTLSFromCert(nil, "")
+	default:
+		return fmt.Errorf(
+			"endpoint must be prefixed with http:// or https://",
+		)
+	}
+	logger.Infof("sending OTLP data to %s", endpointURL.String())
+	grpcEndpoint := endpointURL.Host
 
-	var otlpTraceExporterOptions []otlptracegrpc.Option
-	otlpTraceExporterOptions = append(otlpTraceExporterOptions, otlptracegrpc.WithInsecure())
-	otlpTraceExporter, err := otlptracegrpc.New(ctx, otlpTraceExporterOptions...)
+	grpcConn, err := grpc.DialContext(ctx, grpcEndpoint, grpc.WithTransportCredentials(transportCredentials))
 	if err != nil {
 		return err
 	}
-	stdoutTraceExporter, err := stdouttrace.New()
+	defer grpcConn.Close()
+
+	traceOptions := []otlptracegrpc.Option{otlptracegrpc.WithGRPCConn(grpcConn)}
+	metricOptions := []otlpmetricgrpc.Option{otlpmetricgrpc.WithGRPCConn(grpcConn)}
+	if *secretToken != "" {
+		// If -secret-token is specified then we set headers explicitly,
+		// overriding anything set in $OTEL_EXPORTER_OTLP_HEADERS.
+		headers := map[string]string{"Authorization": "Bearer " + *secretToken}
+		traceOptions = append(traceOptions, otlptracegrpc.WithHeaders(headers))
+		metricOptions = append(metricOptions, otlpmetricgrpc.WithHeaders(headers))
+	}
+
+	otlpTraceExporter, err := otlptracegrpc.New(ctx, traceOptions...)
 	if err != nil {
 		return err
 	}
 	var tracerProviderOptions []sdktrace.TracerProviderOption
 	tracerProviderOptions = append(tracerProviderOptions,
-		sdktrace.WithSyncer(stdoutTraceExporter),
+		sdktrace.WithSyncer(loggingExporter{logger.Desugar()}),
 		sdktrace.WithSyncer(otlpTraceExporter),
 	)
 	tracerProvider := sdktrace.NewTracerProvider(tracerProviderOptions...)
 
-	var otlpMetricExporterOptions []otlpmetricgrpc.Option
-	otlpMetricExporterOptions = append(otlpMetricExporterOptions, otlpmetricgrpc.WithInsecure())
-	otlpMetricExporter, err := otlpmetricgrpc.New(ctx, otlpMetricExporterOptions...)
+	otlpMetricExporter, err := otlpmetricgrpc.New(ctx, metricOptions...)
 	if err != nil {
 		return err
 	}
-	stdoutMetricExporter, err := stdoutmetric.New()
-	if err != nil {
-		return err
-	}
-	metricExporter := chainMetricExporter{stdoutMetricExporter, otlpMetricExporter}
+	metricExporter := chainMetricExporter{loggingExporter{logger.Desugar()}, otlpMetricExporter}
 	metricsController := controller.New(
 		processor.NewFactory(
 			simple.NewWithHistogramDistribution(
@@ -122,7 +193,7 @@ func Main(ctx context.Context) error {
 	if err := otlpTraceExporter.Shutdown(ctx); err != nil {
 		return err
 	}
-	return nil
+	return grpcConn.Close()
 }
 
 func generateSpans(ctx context.Context, tracer trace.Tracer) error {
@@ -167,6 +238,73 @@ func (c chainMetricExporter) Export(ctx context.Context, resource *resource.Reso
 	return nil
 }
 
-func (c chainMetricExporter) TemporalityFor(descriptor *sdkapi.Descriptor, aggregationKind aggregation.Kind) aggregation.Temporality {
-	panic("unexpected call")
+func (chainMetricExporter) TemporalityFor(desc *sdkapi.Descriptor, kind aggregation.Kind) aggregation.Temporality {
+	return aggregation.StatelessTemporalitySelector().TemporalityFor(desc, kind)
+}
+
+type loggingExporter struct {
+	logger *zap.Logger
+}
+
+func (loggingExporter) Shutdown(ctx context.Context) error {
+	return nil
+}
+
+func (loggingExporter) MarshalLog() interface{} {
+	return "loggingExporter"
+}
+
+func (e loggingExporter) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error {
+	for _, span := range tracetest.SpanStubsFromReadOnlySpans(spans) {
+		e.logger.Info("exporting span", zap.Any("span", span))
+	}
+	return nil
+}
+
+func (e loggingExporter) Export(ctx context.Context, resource *resource.Resource, r export.InstrumentationLibraryReader) error {
+	return r.ForEach(func(_ instrumentation.Library, mr export.Reader) error {
+		return mr.ForEach(e, func(record export.Record) error {
+			fields := []zap.Field{zap.Namespace("metric")}
+
+			desc := record.Descriptor()
+			fields = append(fields, zap.String("name", desc.Name()))
+			fields = append(fields, zap.String("kind", desc.InstrumentKind().String()))
+			if unit := desc.Unit(); unit != "" {
+				fields = append(fields, zap.String("unit", string(unit)))
+			}
+			fields = append(fields, zap.Time("start_time", record.StartTime()))
+			fields = append(fields, zap.Time("end_time", record.EndTime()))
+
+			agg := record.Aggregation()
+			if agg, ok := agg.(aggregation.Histogram); ok {
+				buckets, err := agg.Histogram()
+				if err != nil {
+					return err
+				}
+				fields = append(fields, zap.Float64s("boundaries", buckets.Boundaries))
+				fields = append(fields, zap.Uint64s("counts", buckets.Counts))
+			}
+			if agg, ok := agg.(aggregation.Sum); ok {
+				sum, err := agg.Sum()
+				if err != nil {
+					return err
+				}
+				fields = append(fields, zap.Float64("sum", sum.CoerceToFloat64(desc.NumberKind())))
+			}
+			if agg, ok := agg.(aggregation.Count); ok {
+				count, err := agg.Count()
+				if err != nil {
+					return err
+				}
+				fields = append(fields, zap.Uint64("count", count))
+			}
+
+			e.logger.Info("exporting metric", fields...)
+			return nil
+		})
+	})
+}
+
+func (loggingExporter) TemporalityFor(desc *sdkapi.Descriptor, kind aggregation.Kind) aggregation.Temporality {
+	return aggregation.StatelessTemporalitySelector().TemporalityFor(desc, kind)
 }
