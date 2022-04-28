@@ -28,12 +28,12 @@ import (
 	"github.com/elastic/apm-server/systemtest/benchtest"
 )
 
-func Benchmark1000Transactions(ctx context.Context, b *testing.B, l *rate.Limiter) {
+func Benchmark1000Transactions(b *testing.B, l *rate.Limiter) {
 	b.RunParallel(func(pb *testing.PB) {
 		tracer := benchtest.NewTracer(b)
 		for pb.Next() {
 			for i := 0; i < 1000; i++ {
-				if err := l.Wait(ctx); err != nil {
+				if err := l.Wait(context.Background()); err != nil {
 					b.Fatal(err)
 				}
 				tracer.StartTransaction("name", "type").End()
@@ -47,7 +47,7 @@ func Benchmark1000Transactions(ctx context.Context, b *testing.B, l *rate.Limite
 	})
 }
 
-func BenchmarkOTLPTraces(ctx context.Context, b *testing.B, l *rate.Limiter) {
+func BenchmarkOTLPTraces(b *testing.B, l *rate.Limiter) {
 	b.RunParallel(func(pb *testing.PB) {
 		exporter := benchtest.NewOTLPExporter(b)
 		tracerProvider := sdktrace.NewTracerProvider(
@@ -56,7 +56,7 @@ func BenchmarkOTLPTraces(ctx context.Context, b *testing.B, l *rate.Limiter) {
 		)
 		tracer := tracerProvider.Tracer("tracer")
 		for pb.Next() {
-			if err := l.Wait(ctx); err != nil {
+			if err := l.Wait(context.Background()); err != nil {
 				b.Fatal(err)
 			}
 			_, span := tracer.Start(context.Background(), "name")
@@ -66,27 +66,27 @@ func BenchmarkOTLPTraces(ctx context.Context, b *testing.B, l *rate.Limiter) {
 	})
 }
 
-func BenchmarkAgentGo(ctx context.Context, b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(ctx, b, l, `go*.ndjson`)
+func BenchmarkAgentGo(b *testing.B, l *rate.Limiter) {
+	benchmarkAgent(b, l, `go*.ndjson`)
 }
 
-func BenchmarkAgentNodeJS(ctx context.Context, b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(ctx, b, l, `nodejs*.ndjson`)
+func BenchmarkAgentNodeJS(b *testing.B, l *rate.Limiter) {
+	benchmarkAgent(b, l, `nodejs*.ndjson`)
 }
 
-func BenchmarkAgentPython(ctx context.Context, b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(ctx, b, l, `python*.ndjson`)
+func BenchmarkAgentPython(b *testing.B, l *rate.Limiter) {
+	benchmarkAgent(b, l, `python*.ndjson`)
 }
 
-func BenchmarkAgentRuby(ctx context.Context, b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(ctx, b, l, `ruby*.ndjson`)
+func BenchmarkAgentRuby(b *testing.B, l *rate.Limiter) {
+	benchmarkAgent(b, l, `ruby*.ndjson`)
 }
 
-func benchmarkAgent(ctx context.Context, b *testing.B, l *rate.Limiter, expr string) {
+func benchmarkAgent(b *testing.B, l *rate.Limiter, expr string) {
 	b.RunParallel(func(pb *testing.PB) {
 		h := benchtest.NewEventHandler(b, expr, l)
 		for pb.Next() {
-			n, err := h.SendBatches(ctx)
+			n, err := h.SendBatches(context.Background())
 			if err != nil {
 				b.Error("failed sending batches:", err)
 			}

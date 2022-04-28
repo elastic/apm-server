@@ -46,7 +46,7 @@ const waitInactiveTimeout = 30 * time.Second
 var events embed.FS
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
-type BenchmarkFunc func(context.Context, *testing.B, *rate.Limiter)
+type BenchmarkFunc func(*testing.B, *rate.Limiter)
 
 const benchmarkFuncPrefix = "Benchmark"
 
@@ -55,7 +55,7 @@ type benchmark struct {
 	f    BenchmarkFunc
 }
 
-func runBenchmark(ctx context.Context, f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
+func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 	// Run the benchmark. testing.Benchmark will invoke the function
 	// multiple times, but only returns the final result.
 	var ok bool
@@ -69,7 +69,7 @@ func runBenchmark(ctx context.Context, f BenchmarkFunc) (testing.BenchmarkResult
 
 		limiter := getNewLimiter()
 		b.ResetTimer()
-		f(ctx, b, limiter)
+		f(b, limiter)
 		for !b.Failed() {
 			if err := queryExpvar(&after); err != nil {
 				b.Error(err)
@@ -222,7 +222,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 			name := fullBenchmarkName(benchmark.name, agents)
 			for i := 0; i < int(*count); i++ {
 				profileChan := profiles.record(name)
-				result, ok, err := runBenchmark(context.Background(), benchmark.f)
+				result, ok, err := runBenchmark(benchmark.f)
 				if err != nil {
 					return err
 				}
