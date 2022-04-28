@@ -37,6 +37,7 @@ import (
 	"time"
 
 	"go.elastic.co/apm/v2/stacktrace"
+	"golang.org/x/time/rate"
 )
 
 const waitInactiveTimeout = 30 * time.Second
@@ -46,7 +47,7 @@ const waitInactiveTimeout = 30 * time.Second
 var events embed.FS
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
-type BenchmarkFunc func(*testing.B)
+type BenchmarkFunc func(*testing.B, *rate.Limiter)
 
 const benchmarkFuncPrefix = "Benchmark"
 
@@ -55,7 +56,7 @@ type benchmark struct {
 	f    BenchmarkFunc
 }
 
-func runBenchmark(f func(b *testing.B)) (testing.BenchmarkResult, bool, error) {
+func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 	// Run the benchmark. testing.Benchmark will invoke the function
 	// multiple times, but only returns the final result.
 	var ok bool
@@ -66,8 +67,10 @@ func runBenchmark(f func(b *testing.B)) (testing.BenchmarkResult, bool, error) {
 			ok = !b.Failed()
 			return
 		}
+
+		limiter := getNewLimiter()
 		b.ResetTimer()
-		f(b)
+		f(b, limiter)
 		for !b.Failed() {
 			if err := queryExpvar(&after); err != nil {
 				b.Error(err)
@@ -121,6 +124,23 @@ func benchmarkFuncName(f BenchmarkFunc) (string, error) {
 		return "", fmt.Errorf("benchmark function names must begin with %q (got %q)", fullName, benchmarkFuncPrefix)
 	}
 	return name, nil
+}
+
+func getNewLimiter() *rate.Limiter {
+	if maxEPM <= 0 {
+		return rate.NewLimiter(rate.Inf, 0)
+	}
+	eps := float64(maxEPM) / float64(60)
+	return rate.NewLimiter(rate.Limit(eps), getBurstSize(int(math.Ceil(eps))))
+}
+
+func getBurstSize(eps int) int {
+	burst := eps * 2
+	// Allow for a batch to have 1000 events minimum
+	if burst < 1000 {
+		burst = 1000
+	}
+	return burst
 }
 
 // Run runs the given benchmarks according to the flags defined.
@@ -223,7 +243,7 @@ func warmup(agents int, events uint) error {
 	defer cancel()
 
 	for i := 0; i < agents; i++ {
-		if h, err := newEventHandler(`*.ndjson`); err == nil {
+		if h, err := newEventHandler(`*.ndjson`, getNewLimiter()); err == nil {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()

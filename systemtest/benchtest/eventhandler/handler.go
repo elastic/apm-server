@@ -25,6 +25,8 @@ import (
 	"errors"
 	"io"
 	"io/fs"
+
+	"golang.org/x/time/rate"
 )
 
 var (
@@ -42,12 +44,13 @@ type batch struct {
 // using a ReplayTransport.
 type Handler struct {
 	transport    *Transport
+	limiter      *rate.Limiter
 	batches      []batch
 	warmupEvents uint
 }
 
 // New creates a new tracehandler.Handler.
-func New(p string, t *Transport, storage fs.FS, warmup uint) (*Handler, error) {
+func New(p string, t *Transport, storage fs.FS, l *rate.Limiter, warmup uint) (*Handler, error) {
 	var buf bytes.Buffer
 	zw, err := zlib.NewWriterLevel(&buf, zlib.BestCompression)
 	if err != nil {
@@ -61,6 +64,7 @@ func New(p string, t *Transport, storage fs.FS, warmup uint) (*Handler, error) {
 	h := Handler{
 		transport:    t,
 		warmupEvents: warmup,
+		limiter:      l,
 	}
 
 	matches, err := fs.Glob(storage, p)
@@ -140,6 +144,9 @@ func (h *Handler) SendBatches(ctx context.Context) (uint, error) {
 		return nil
 	}
 	for _, batch := range h.batches {
+		if err := h.limiter.WaitN(ctx, int(batch.items)); err != nil {
+			return sentEvents, err
+		}
 		if err := sendEvents(batch.r, batch.items); err != nil {
 			return sentEvents, err
 		}
