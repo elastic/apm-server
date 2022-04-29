@@ -260,11 +260,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20220426201537-adea6ea556ea
+Version: v7.0.0-alpha2.0.20220427162857-d5fe415c845b
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220426201537-adea6ea556ea/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220427162857-d5fe415c845b/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -17963,11 +17963,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.0.0-20220411220226-7b82a4e95df4
+Version: v0.0.0-20220427172511-eb4f295cb31f
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20220411220226-7b82a4e95df4/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20220427172511-eb4f295cb31f/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -19769,11 +19769,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : k8s.io/api
-Version: v0.23.0
+Version: v0.23.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/k8s.io/api@v0.23.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/k8s.io/api@v0.23.1/LICENSE:
 
 
                                  Apache License
@@ -19981,11 +19981,11 @@ Contents of probable licence file $GOMODCACHE/k8s.io/api@v0.23.0/LICENSE:
 
 --------------------------------------------------------------------------------
 Dependency : k8s.io/apimachinery
-Version: v0.23.0
+Version: v0.23.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/k8s.io/apimachinery@v0.23.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/k8s.io/apimachinery@v0.23.1/LICENSE:
 
 
                                  Apache License
@@ -20193,11 +20193,11 @@ Contents of probable licence file $GOMODCACHE/k8s.io/apimachinery@v0.23.0/LICENS
 
 --------------------------------------------------------------------------------
 Dependency : k8s.io/client-go
-Version: v0.23.0
+Version: v0.23.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/k8s.io/client-go@v0.23.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/k8s.io/client-go@v0.23.1/LICENSE:
 
 
                                  Apache License

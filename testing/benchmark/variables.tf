@@ -50,9 +50,13 @@ variable "elasticsearch_zone_count" {
 }
 
 variable "docker_image_tag_override" {
-  default     = ""
+  default = {
+    "elasticsearch" : "",
+    "kibana" : "",
+    "apm" : "",
+  }
   description = "Optional docker image tag override"
-  type        = string
+  type        = map(string)
 }
 
 variable "docker_image_override" {
