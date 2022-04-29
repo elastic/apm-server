@@ -253,8 +253,8 @@ def publishArtifactsDev() {
   if (isPR()) {
     bucketLocation = "gs://${JOB_GCS_BUCKET}/snapshots"
   }
-  publishArtifacts(bucketLocation: bucketLocation)
-  publishArtifacts(bucketLocation: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}")
+  uploadArtifacts(bucketLocation: bucketLocation)
+  uploadArtifacts(bucketLocation: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}")
 
   dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
   dir("${BASE_DIR}"){
@@ -263,10 +263,10 @@ def publishArtifactsDev() {
 }
 
 def publishArtifactsDRA(def args = [:]) {
-  publishArtifacts(bucketLocation: getBucketLocation(args.type))
+  uploadArtifacts(bucketLocation: getBucketLocation(args.type))
 }
 
-def publishArtifacts(def args = [:]) {
+def uploadArtifacts(def args = [:]) {
   // Copy those files to another location with the sha commit to test them afterward.
   googleStorageUpload(bucket: "${args.bucketLocation}",
     credentialsId: "${JOB_GCS_CREDENTIALS}",
