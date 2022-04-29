@@ -473,10 +473,26 @@ pipeline {
             }
           }
         }
+        stage('Downstream - Package - PR') {
+          options { skipDefaultCheckout() }
+          when {
+            beforeAgent true
+            changeRequest()
+          }
+          steps {
+            build(job: "apm-server/apm-server-package-mbp/${env.JOB_BASE_NAME}",
+                  propagate: false,
+                  wait: false,
+                  parameters: [string(name: 'COMMIT', value: "${env.GIT_BASE_COMMIT}")])
+          }
+        }
       }
     }
-    stage('Downstream') {
+    stage('Downstream - Package') {
       options { skipDefaultCheckout() }
+      when {
+        not { changeRequest() }
+      }
       steps {
         build(job: "apm-server/apm-server-package-mbp/${env.JOB_BASE_NAME}",
               propagate: false,
