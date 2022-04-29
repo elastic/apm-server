@@ -15,7 +15,7 @@ require (
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220427070747-bf8f1cbf91c7
 	github.com/elastic/ecs v1.12.0
-	github.com/elastic/elastic-agent-client/v7 v7.0.0-20220413160217-a3cee549fb99 // indirect
+	github.com/elastic/elastic-agent-client/v7 v7.0.0-20220428192325-4803740e8b5f // indirect
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20220127104600-bc3eb8ef52ea
 	github.com/elastic/go-hdrhistogram v0.1.0

@@ -7085,11 +7085,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-client/v7
-Version: v7.0.0-20220413160217-a3cee549fb99
+Version: v7.0.0-20220428192325-4803740e8b5f
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.0.0-20220413160217-a3cee549fb99/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.0.0-20220428192325-4803740e8b5f/LICENSE.txt:
 
 ELASTIC LICENSE AGREEMENT
 
