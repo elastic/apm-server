@@ -203,11 +203,17 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		}
 	}
 
-	for _, agents := range agentsList {
-		runtime.GOMAXPROCS(int(agents))
+	// Warm up the APM Server with the specified `-agents`. Only the first
+	// value in the list will be used.
+	if len(agentsList) > 0 {
+		agents := agentsList[0]
 		if err := warmup(agents, *warmupEvents); err != nil {
 			return fmt.Errorf("warm-up failed with %d agents: %v", agents, err)
 		}
+	}
+
+	for _, agents := range agentsList {
+		runtime.GOMAXPROCS(int(agents))
 		for _, benchmark := range benchmarks {
 			name := fullBenchmarkName(benchmark.name, agents)
 			for i := 0; i < int(*count); i++ {
@@ -232,7 +238,6 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 }
 
 func warmup(agents int, events uint) error {
-	// Warmup the APM Server before beggining the benchmarks.
 	// Assume a base ingest rate of at least 5000 per second, and dynamically
 	// set the context timeout based on this ingest rate, or if lower, default
 	// to 15 seconds. The default 5000 / 5000 = 1, so the default 15 seconds
