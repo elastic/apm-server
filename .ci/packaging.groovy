@@ -106,12 +106,7 @@ pipeline {
                 options { skipDefaultCheckout() }
                 steps {
                   runIfNoMainAndNoStaging() {
-                    whenTrue(env.IS_BRANCH_AVAILABLE == "true") {
-                      publishArtifactsDRA(type: env.TYPE)
-                    }
-                    whenFalse(env.IS_BRANCH_AVAILABLE == "true" && env.TYPE == "snapshot") {
-                      publishArtifactsDev()
-                    }
+                    publishArtifacts()
                   }
                 }
               }
@@ -226,6 +221,18 @@ def runWithMage(Closure body) {
   dir("${BASE_DIR}"){
     withMageEnv() {
       body()
+    }
+  }
+}
+
+def publishArtifacts() {
+  if(env.IS_BRANCH_AVAILABLE == "true") {
+    publishArtifactsDRA(type: env.TYPE)
+  } else {
+    if (env.TYPE == "snapshot") {
+      publishArtifactsDev()
+    } else {
+      echo "publishArtifacts: type is not required to be published for this particular branch/PR"
     }
   }
 }
