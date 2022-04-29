@@ -462,7 +462,8 @@ pipeline {
               dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
               dir("${BASE_DIR}"){
                 withMageEnv(){
-                  sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+                  sh(label: 'Package', script: "./.ci/scripts/package-docker.sh")
+                  sh(label: 'Push', script: "./.ci/scripts/push-docker.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
                 }
               }
               build(job: 'apm-server/apm-hey-test-benchmark', propagate: true, wait: true,
