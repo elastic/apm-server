@@ -463,7 +463,7 @@ pipeline {
               dir("${BASE_DIR}"){
                 withMageEnv(){
                   sh(label: 'Package', script: "./.ci/scripts/package-docker.sh")
-                  sh(label: 'Push', script: "./.ci/scripts/push-docker.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+                  sh(label: 'Push', script: "./.ci/scripts/push-docker.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_REGISTRY}/observability-ci/apm-server")
                 }
               }
               build(job: 'apm-server/apm-hey-test-benchmark', propagate: true, wait: true,
