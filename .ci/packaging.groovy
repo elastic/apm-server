@@ -123,7 +123,8 @@ pipeline {
         stage('apmpackage') {
           options { skipDefaultCheckout() }
           when {
-            expression { return env.IS_APM_PACKAGE == "true" }
+            // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
+            changeset pattern: '(cmd/version.go|apmpackage/.*|.ci/packaging.groovy)', comparator: 'REGEXP'
           }
           steps {
             runWithMage() {
