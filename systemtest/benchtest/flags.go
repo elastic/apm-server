@@ -44,7 +44,9 @@ var (
 	blockprofile = flag.String("blockprofile", "", "Write a goroutine blocking profile to the file before exiting.")
 
 	warmupEvents = flag.Uint("warmup-events", 5000, "The number of events that will be used to warm up the APM Server before each benchmark")
+	maxRate      = flag.String("max-rate", "-1eps", "Max event rate with a burst size of max(1000, 2*eps), >= 0 values evaluate to Inf")
 
+	maxEPM     int
 	agentsList []int
 	serverURL  *url.URL
 	runRE      *regexp.Regexp
@@ -91,6 +93,25 @@ func parseFlags() error {
 		runRE = re
 	} else {
 		runRE = regexp.MustCompile(".")
+	}
+
+	// Parse -max-rate
+	errStr := "invalid value %s for -max-rate, valid examples: 5eps or 10epm"
+	r := strings.Split(*maxRate, "ep")
+	if len(r) != 2 {
+		return fmt.Errorf(errStr, *maxRate)
+	}
+	rateVal, err := strconv.Atoi(r[0])
+	if err != nil {
+		return fmt.Errorf(errStr, *maxRate)
+	}
+	switch r[1] {
+	case "s":
+		maxEPM = rateVal * 60
+	case "m":
+		maxEPM = rateVal
+	default:
+		return fmt.Errorf(errStr, *maxRate)
 	}
 
 	// Set flags in package testing.
