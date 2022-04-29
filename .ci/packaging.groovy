@@ -229,7 +229,7 @@ def publishArtifacts() {
   if(env.IS_BRANCH_AVAILABLE == "true") {
     publishArtifactsDRA(type: env.TYPE)
   } else {
-    if (env.TYPE == "snapshot") {
+    if (env.TYPE == "snapshot" && !isArm()) {
       publishArtifactsDev()
     } else {
       echo "publishArtifacts: type is not required to be published for this particular branch/PR"
