@@ -459,10 +459,10 @@ pipeline {
             withGithubNotify(context: 'Hey-Apm') {
               deleteDir()
               unstash 'source'
-              dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
               dir("${BASE_DIR}"){
                 withMageEnv(){
                   sh(label: 'Package', script: "./.ci/scripts/package-docker.sh")
+                  dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
                   sh(label: 'Push', script: "./.ci/scripts/push-docker.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_REGISTRY}/observability-ci/apm-server")
                 }
               }
