@@ -249,7 +249,7 @@ def publishArtifactsDev() {
 
   dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
   dir("${BASE_DIR}"){
-    sh(label: 'Push', script: "./.ci/scripts/push-docker ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+    sh(label: 'Push', script: "./.ci/scripts/push-docker.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
   }
 }
 
