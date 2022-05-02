@@ -1,25 +1,28 @@
 [[troubleshoot-apm]]
 == Troubleshooting
 
-If you run into trouble, there are three places you can look for help.
+This section provides solutions to <<common-problems>>
+and <<processing-and-performance>> guidance.
+
+For additional help, see the links below.
 
 [float]
 [[troubleshooting-docs]]
 === Troubleshooting documentation
 
-Elastic Agent, the APM app, and each APM agent has a troubleshooting guide:
+Elastic Agent, the APM app, and each APM agent has its own troubleshooting guide:
 
-// todo: add Elastic Agent
-* {kibana-ref}/troubleshooting.html[APM app troubleshooting]
-* {apm-dotnet-ref-v}/troubleshooting.html[.NET agent troubleshooting]
-* {apm-go-ref-v}/troubleshooting.html[Go agent troubleshooting]
-* {apm-ios-ref-v}/troubleshooting.html[iOS agent troubleshooting]
-* {apm-java-ref-v}/trouble-shooting.html[Java agent troubleshooting]
-* {apm-node-ref-v}/troubleshooting.html[Node.js agent troubleshooting]
-* {apm-php-ref-v}/troubleshooting.html[PHP agent troubleshooting]
-* {apm-py-ref-v}/troubleshooting.html[Python agent troubleshooting]
-* {apm-ruby-ref-v}/debugging.html[Ruby agent troubleshooting]
-* {apm-rum-ref-v}/troubleshooting.html[RUM troubleshooting]
+* {fleet-guide-ref}/troubleshooting-intro.html[*Fleet and Elastic Agent* troubleshooting]
+* {kibana-ref}/troubleshooting.html[*APM app* troubleshooting]
+* {apm-dotnet-ref-v}/troubleshooting.html[*.NET agent* troubleshooting]
+* {apm-go-ref-v}/troubleshooting.html[*Go agent* troubleshooting]
+* {apm-ios-ref-v}/troubleshooting.html[*iOS agent* troubleshooting]
+* {apm-java-ref-v}/trouble-shooting.html[*Java agent* troubleshooting]
+* {apm-node-ref-v}/troubleshooting.html[*Node.js agent* troubleshooting]
+* {apm-php-ref-v}/troubleshooting.html[*PHP agent* troubleshooting]
+* {apm-py-ref-v}/troubleshooting.html[*Python agent* troubleshooting]
+* {apm-ruby-ref-v}/debugging.html[*Ruby agent* troubleshooting]
+* {apm-rum-ref-v}/troubleshooting.html[*RUM agent* troubleshooting]
 
 [float]
 [[elastic-support]]
@@ -35,5 +38,7 @@ https://www.elastic.co/subscriptions[Learn more about subscriptions].
 
 For additional questions and feature requests,
 visit our https://discuss.elastic.co/c/apm[discussion forum].
+
+include::common-problems.asciidoc[]
 
 include::processing-performance.asciidoc[]
