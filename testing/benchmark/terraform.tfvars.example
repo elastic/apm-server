@@ -29,7 +29,13 @@ user_name = "USER"
 
 # Override the docker image tag the ESS resources will use. Useful to
 # target a specific build, rather than a snapshot or released version.
-# docker_image_tag_override = "8.3.0-2c8f9574-SNAPSHOT"
+# If you'd like to only override a single tag, set the other values to
+# an empty string.
+# docker_image_tag_override = {
+#   "elasticsearch" : "8.2.0-SNAPSHOT",
+#   "kibana" : "8.2.0-SNAPSHOT",
+#   "apm" : "8.2.0-1-SNAPSHOT",
+# }
 
 # Override the base docker image that is used to create the ESS deployment.
 # It is necessary to specify the full map even when only a single image will

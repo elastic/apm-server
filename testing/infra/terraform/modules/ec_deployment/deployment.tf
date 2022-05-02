@@ -23,25 +23,25 @@ resource "ec_deployment" "deployment" {
       zone_count = var.elasticsearch_zone_count
     }
     dynamic "config" {
-      for_each = var.docker_image_tag_override != "" ? [var.docker_image["elasticsearch"]] : []
+      for_each = var.docker_image_tag_override["elasticsearch"] != "" ? [var.docker_image["elasticsearch"]] : []
       content {
-        docker_image = "${config.value}:${var.docker_image_tag_override}"
+        docker_image = "${config.value}:${var.docker_image_tag_override["elasticsearch"]}"
       }
     }
   }
   kibana {
     dynamic "config" {
-      for_each = var.docker_image_tag_override != "" ? [var.docker_image["kibana"]] : []
+      for_each = var.docker_image_tag_override["kibana"] != "" ? [var.docker_image["kibana"]] : []
       content {
-        docker_image = "${config.value}:${var.docker_image_tag_override}"
+        docker_image = "${config.value}:${var.docker_image_tag_override["kibana"]}"
       }
     }
   }
   apm {
     dynamic "config" {
-      for_each = var.docker_image_tag_override != "" ? [var.docker_image["apm"]] : []
+      for_each = var.docker_image_tag_override["apm"] != "" ? [var.docker_image["apm"]] : []
       content {
-        docker_image = "${config.value}:${var.docker_image_tag_override}"
+        docker_image = "${config.value}:${var.docker_image_tag_override["apm"]}"
       }
     }
     topology {

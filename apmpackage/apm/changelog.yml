@@ -9,6 +9,9 @@
     - description: Remove the release tag
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7792
+    - description: Added config option for `pprof_enabled`
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/8002
     - description: Added field mappings for system, process, and runtime metrics to internal metrics data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7882

@@ -536,6 +536,23 @@ pipeline {
             }
           }
         }
+        stage('Downstream') {
+          options { skipDefaultCheckout() }
+          when {
+            beforeAgent true
+            anyOf {
+              branch 'main'
+              branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+              expression { return params.Run_As_Main_Branch }
+            }
+          }
+          steps {
+            build(job: "apm-server/apm-server-package-mbp/${env.JOB_BASE_NAME}",
+                  propagate: false,
+                  wait: false,
+                  parameters: [string(name: 'COMMIT', value: "${env.GIT_BASE_COMMIT}")])
+          }
+        }
       }
     }
   }

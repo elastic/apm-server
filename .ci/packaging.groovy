@@ -13,6 +13,8 @@ pipeline {
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
     DRA_OUTPUT = 'release-manager.out'
+    COMMIT = "${params?.COMMIT}"
+    JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -24,9 +26,8 @@ pipeline {
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
     quietPeriod(10)
   }
-  triggers {
-    // disable upstream trigger on a PR basis
-    upstream("apm-server/apm-server-mbp/${ env.JOB_BASE_NAME.startsWith('PR-') ? 'none' : env.JOB_BASE_NAME }")
+  parameters {
+    string(name: 'COMMIT', defaultValue: '', description: 'The Git commit to be used (empty will checkout the latest commit)')
   }
   stages {
     stage('Filter build') {
@@ -58,9 +59,8 @@ pipeline {
           steps {
             pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
             deleteDir()
-            gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: false,
-                        shallow: false, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
-            stash allowEmpty: true, name: 'source', useDefaultExcludes: false
+            smartGitCheckout()
+            stash(allowEmpty: true, name: 'source', useDefaultExcludes: false)
             // set environment variables globally since they are used afterwards but GIT_BASE_COMMIT won't
             // be available until gitCheckout is executed.
             setEnvVar('URI_SUFFIX', "commits/${env.GIT_BASE_COMMIT}")
@@ -69,8 +69,6 @@ pipeline {
             setEnvVar('IS_BRANCH_AVAILABLE', isBranchUnifiedReleaseAvailable(env.BRANCH_NAME))
             dir("${BASE_DIR}"){
               setEnvVar('VERSION', sh(label: 'Get version', script: 'make get-version', returnStdout: true)?.trim())
-              // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
-              setEnvVar('IS_APM_PACKAGE', isGitRegionMatch(patterns: [ '(cmd/version.go|apmpackage/.*|.ci/packaging.groovy)' ], comparator: 'regexp'))
             }
           }
         }
@@ -123,7 +121,8 @@ pipeline {
         stage('apmpackage') {
           options { skipDefaultCheckout() }
           when {
-            expression { return env.IS_APM_PACKAGE == "true" }
+            // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
+            changeset pattern: '(cmd/version.go|apmpackage/.*|.ci/packaging.groovy)', comparator: 'REGEXP'
           }
           steps {
             runWithMage() {
@@ -307,5 +306,19 @@ def withGitContext(Closure body) {
         sh(label: 'Rollback git context', script: """git config remote.origin.url "https://github.com/${ORG_NAME}/package-storage.git" """)
       }
     }
+  }
+}
+
+def smartGitCheckout() {
+  // Checkout the given commit
+  if (env.COMMIT?.trim()) {
+    gitCheckout(basedir: "${BASE_DIR}",
+                branch: "${env.COMMIT}",
+                credentialsId: "${JOB_GIT_CREDENTIALS}",
+                repo: "https://github.com/elastic/${REPO}.git")
+  } else {
+    gitCheckout(basedir: "${BASE_DIR}",
+                githubNotifyFirstTimeContributor: false,
+                shallow: false)
   }
 }
