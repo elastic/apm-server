@@ -97,16 +97,20 @@ pipeline {
                   PACKAGES = "${isArm() ? 'docker' : ''}"
                 }
                 steps {
-                  runIfNoMainAndNoStaging() {
-                    runPackage(type: env.TYPE)
+                  withGithubNotify(context: "Package-${TYPE}-${PLATFORM}") {
+                    runIfNoMainAndNoStaging() {
+                      runPackage(type: env.TYPE)
+                    }
                   }
                 }
               }
               stage('Publish') {
                 options { skipDefaultCheckout() }
                 steps {
-                  runIfNoMainAndNoStaging() {
-                    publishArtifacts()
+                  withGithubNotify(context: "Publish-${TYPE}-${PLATFORM}") {
+                    runIfNoMainAndNoStaging() {
+                      publishArtifacts()
+                    }
                   }
                 }
               }
@@ -129,11 +133,13 @@ pipeline {
             }
           }
           steps {
-            runWithMage() {
-              sh(script: 'make build-package', label: 'make build-package')
-              sh(label: 'package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
-              withGitContext() {
-                sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
+            withGithubNotify(context: 'apmpackage') {
+              runWithMage() {
+                sh(script: 'make build-package', label: 'make build-package')
+                sh(label: 'package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
+                withGitContext() {
+                  sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
+                }
               }
             }
           }
