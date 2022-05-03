@@ -12,6 +12,7 @@ on:
       - 8.*
       - "7.17"
 
+jobs:
   macos:
     runs-on: macos-latest
     steps:
