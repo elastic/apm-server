@@ -1,0 +1,37 @@
+name: macos
+
+on:
+  push:
+    branches:
+      - main
+      - 8.*
+      - "7.17"
+  pull_request:
+    branches:
+      - main
+      - 8.*
+      - "7.17"
+
+  macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: get go version
+      run: |
+        gv=$(cat .go-version)
+        echo "::set-output name=go::$gv"
+      id: version
+
+    - name: install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: "${{steps.version.outputs.go}}"
+
+    - name: Install dependencies
+      run:  go get -u github.com/magefile/mage
+
+    - name: Run build
+      run: .ci/scripts/build.sh
+
+    - name: Run test
+      run: .ci/scripts/unit-test.sh

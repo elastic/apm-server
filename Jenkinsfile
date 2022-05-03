@@ -237,6 +237,8 @@ pipeline {
           when {
             beforeAgent true
             allOf {
+              // TODO: use github actions temporarily.
+              expression { return false }
               expression { return params.osx_ci }
               expression { return env.ONLY_DOCS == "false" }
             }
