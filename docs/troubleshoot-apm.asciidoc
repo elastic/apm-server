@@ -3,7 +3,6 @@
 
 This section provides solutions to <<common-problems>>
 and <<processing-and-performance>> guidance.
-
 For additional help, see the links below.
 
 [float]
@@ -12,7 +11,7 @@ For additional help, see the links below.
 
 Elastic Agent, the APM app, and each APM agent has its own troubleshooting guide:
 
-* {fleet-guide-ref}/troubleshooting-intro.html[*Fleet and Elastic Agent* troubleshooting]
+* {fleet-guide}/troubleshooting-intro.html[*Fleet and Elastic Agent* troubleshooting]
 * {kibana-ref}/troubleshooting.html[*APM app* troubleshooting]
 * {apm-dotnet-ref-v}/troubleshooting.html[*.NET agent* troubleshooting]
 * {apm-go-ref-v}/troubleshooting.html[*Go agent* troubleshooting]
