@@ -15,8 +15,6 @@ on:
 jobs:
   macos:
     runs-on: macos-latest
-    env:
-      WORKSPACE: $GITHUB_WORKSPACE
     steps:
     - uses: actions/checkout@v2
     - name: get go version
@@ -34,7 +32,10 @@ jobs:
       run:  go get -u github.com/magefile/mage
 
     - name: Run build
-      run: .ci/scripts/build.sh
+      run: make apm-server
 
-    - name: Run test
-      run: .ci/scripts/unit-test.sh
+    - name: Run update
+      run: make update
+
+    - name: Run goTestUnit
+      run: mage goTestUnit
