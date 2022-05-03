@@ -66,7 +66,7 @@ This will display the field data type of the `service.name` field.
 GET apm-*/_mapping/field/service.name
 ----
 
-If the `mapping.name.type` is `"text"`, your APM indices were not setup correctly.
+If the `mapping.name.type` is `"text"`, your APM indices were not set up correctly.
 
 [source,yml]
 ----
@@ -87,7 +87,7 @@ If the `mapping.name.type` is `"text"`, your APM indices were not setup correctl
    }
 }
 ----
-<1> The `service.name` `mapping.name.type` would be `"keyword"` if this field had been setup correctly.
+<1> The `service.name` `mapping.name.type` would be `"keyword"` if this field had been set up correctly.
 
 To fix this problem, you must delete and recreate your APM indices as index templates cannot be applied retroactively.
 
