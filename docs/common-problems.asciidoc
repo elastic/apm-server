@@ -22,15 +22,15 @@ If no data shows up in {es}, first make sure that your APM components are proper
 In {kib} open **Fleet** and find the host that is running the APM integration;
 confirm that its status is **Healthy**.
 If it isn't, check the {agent} logs to diagnose potential causes.
-See {fleet-guide-ref}/view-elastic-agent-status.html[view {agent} status] to learn more.
+See {fleet-guide}/view-elastic-agent-status.html[view {agent} status] to learn more.
 
-**Is {apm-server} happy?**
+**Is APM Server happy?**
 
 In {kib}, open **Fleet** and select the host that is running the APM integration.
 Open the **Logs** tab and select the `elastic_agent.apm_server` dataset.
 Look for any APM Server errors that could help diagnose the problem.
 
-**Can the {apm-agent} connect to {apm-server}**
+**Can the {apm-agent} connect to APM Server**
 
 To determine if the APM agent can connect to the APM Server, send requests to the instrumented service and look for lines
 containing `[request]` in the APM Server logs.
