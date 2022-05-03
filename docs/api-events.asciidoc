@@ -68,7 +68,7 @@ the error response is sent.
 
 Some errors, not relating to specific events,
 may terminate the request immediately.
-For example: queue is full, IP rate limit reached, wrong metadata, etc.
+For example: IP rate limit reached, wrong metadata, etc.
 If at any point one of these errors is encountered,
 it is added to the internal array and immediately returned.
 
@@ -88,7 +88,7 @@ An example error response might look something like this:
       "message": "<json-decoding-err>",
       "document": "<ndjson-obj>"
     },{
-      "message": "queue is full" <3>
+      "message": "too many requests" <3>
     },
   ],
   "accepted": 2320 <4>
