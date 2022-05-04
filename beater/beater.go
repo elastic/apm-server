@@ -37,16 +37,16 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
-	"github.com/elastic/beats/v7/libbeat/common/transport"
-	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/licenser"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/transport"
+	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -78,7 +78,7 @@ type CreatorParams struct {
 // NewCreator returns a new beat.Creator which creates beaters
 // using the provided CreatorParams.
 func NewCreator(args CreatorParams) beat.Creator {
-	return func(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
+	return func(b *beat.Beat, ucfg *agentconfig.C) (beat.Beater, error) {
 		logger := args.Logger
 		if logger != nil {
 			logger = logger.Named(logs.Beater)
@@ -95,7 +95,7 @@ func NewCreator(args CreatorParams) beat.Creator {
 			libbeatMonitoringRegistry: monitoring.Default.GetRegistry("libbeat"),
 		}
 
-		var elasticsearchOutputConfig *common.Config
+		var elasticsearchOutputConfig *agentconfig.C
 		if hasElasticsearchOutput(b) {
 			elasticsearchOutputConfig = b.Config.Output.Config()
 		}
@@ -127,7 +127,7 @@ func NewCreator(args CreatorParams) beat.Creator {
 }
 
 type beater struct {
-	rawConfig                 *common.Config
+	rawConfig                 *agentconfig.C
 	config                    *config.Config
 	logger                    *logp.Logger
 	wrapRunServer             func(RunServerFunc) RunServerFunc
@@ -248,8 +248,8 @@ type reloader struct {
 
 	mu           sync.Mutex
 	namespace    string
-	rawConfig    *common.Config
-	outputConfig common.ConfigNamespace
+	rawConfig    *agentconfig.C
+	outputConfig agentconfig.Namespace
 	fleetConfig  *config.Fleet
 	runner       *serverRunner
 }
@@ -289,7 +289,7 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 }
 
 func (r *reloader) reloadOutput(config *reload.ConfigWithMeta) error {
-	var outputConfig common.ConfigNamespace
+	var outputConfig agentconfig.Namespace
 	if config != nil {
 		if err := config.Config.Unpack(&outputConfig); err != nil {
 			return err
@@ -354,8 +354,8 @@ type serverRunner struct {
 	acker                     *publish.WaitPublishedAcker
 	namespace                 string
 	config                    *config.Config
-	rawConfig                 *common.Config
-	elasticsearchOutputConfig *common.Config
+	rawConfig                 *agentconfig.C
+	elasticsearchOutputConfig *agentconfig.C
 	fleetConfig               *config.Fleet
 	beat                      *beat.Beat
 	logger                    *logp.Logger
@@ -368,9 +368,9 @@ type serverRunner struct {
 type serverRunnerParams struct {
 	sharedServerRunnerParams
 
-	RawConfig    *common.Config
+	RawConfig    *agentconfig.C
 	FleetConfig  *config.Fleet
-	OutputConfig common.ConfigNamespace
+	OutputConfig agentconfig.Namespace
 }
 
 type sharedServerRunnerParams struct {
@@ -384,7 +384,7 @@ type sharedServerRunnerParams struct {
 }
 
 func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunner, error) {
-	var esOutputConfig *common.Config
+	var esOutputConfig *agentconfig.C
 	if args.OutputConfig.Name() == "elasticsearch" {
 		esOutputConfig = args.OutputConfig.Config()
 	}

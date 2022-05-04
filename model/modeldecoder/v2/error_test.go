@@ -31,7 +31,7 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestResetErrorOnRelease(t *testing.T) {
@@ -172,8 +172,8 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out model.APMEvent
 		mapToErrorModel(&input, &out)
-		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
-		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.HTTP.Response.Headers)
+		assert.Equal(t, mapstr.M{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
+		assert.Equal(t, mapstr.M{"f": []string{"g"}}, out.HTTP.Response.Headers)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {

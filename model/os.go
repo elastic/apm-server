@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // OS holds information about the operating system.
@@ -36,10 +36,10 @@ type OS struct {
 	Type string
 }
 
-func (o *OS) fields() common.MapStr {
+func (o *OS) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("platform", o.Platform)
 	fields.maybeSetString("full", o.Full)
 	fields.maybeSetString("type", o.Type)
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

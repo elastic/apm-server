@@ -20,8 +20,8 @@ package config
 import (
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/config"
 
 	"github.com/elastic/apm-server/elasticsearch"
 )
@@ -58,7 +58,7 @@ type APIKeyAgentAuth struct {
 	esConfigured bool // api_key.elasticsearch explicitly defined
 }
 
-func (a *APIKeyAgentAuth) Unpack(in *common.Config) error {
+func (a *APIKeyAgentAuth) Unpack(in *config.C) error {
 	type underlyingAPIKeyAgentAuth APIKeyAgentAuth
 	if err := in.Unpack((*underlyingAPIKeyAgentAuth)(a)); err != nil {
 		return errors.Wrap(err, "error unpacking api_key config")
@@ -68,7 +68,7 @@ func (a *APIKeyAgentAuth) Unpack(in *common.Config) error {
 	return nil
 }
 
-func (a *APIKeyAgentAuth) setup(log *logp.Logger, outputESCfg *common.Config) error {
+func (a *APIKeyAgentAuth) setup(log *logp.Logger, outputESCfg *config.C) error {
 	if !a.Enabled || a.esConfigured || outputESCfg == nil {
 		return nil
 	}
@@ -92,7 +92,7 @@ type AnonymousAgentAuth struct {
 	enabledSet bool // enabled explicitly set.
 }
 
-func (a *AnonymousAgentAuth) Unpack(in *common.Config) error {
+func (a *AnonymousAgentAuth) Unpack(in *config.C) error {
 	type underlyingAnonymousAgentAuth AnonymousAgentAuth
 	if err := in.Unpack((*underlyingAnonymousAgentAuth)(a)); err != nil {
 		return errors.Wrap(err, "error unpacking anon config")

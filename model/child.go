@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Child holds information about the children of a trace event.
@@ -27,10 +27,10 @@ type Child struct {
 	ID []string
 }
 
-func (c *Child) fields() common.MapStr {
+func (c *Child) fields() mapstr.M {
 	var fields mapStr
 	if len(c.ID) > 0 {
 		fields.set("id", c.ID)
 	}
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

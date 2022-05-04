@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // UserExperience holds real user (browser) experience metrics.
@@ -52,7 +52,7 @@ type LongtaskMetrics struct {
 	Max float64
 }
 
-func (u *UserExperience) Fields() common.MapStr {
+func (u *UserExperience) Fields() mapstr.M {
 	if u == nil {
 		return nil
 	}
@@ -67,11 +67,11 @@ func (u *UserExperience) Fields() common.MapStr {
 		fields.set("tbt", u.TotalBlockingTime)
 	}
 	if u.Longtask.Count >= 0 {
-		fields.set("longtask", common.MapStr{
+		fields.set("longtask", mapstr.M{
 			"count": u.Longtask.Count,
 			"sum":   u.Longtask.Sum,
 			"max":   u.Longtask.Max,
 		})
 	}
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

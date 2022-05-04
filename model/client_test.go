@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestClientFields(t *testing.T) {
@@ -31,13 +31,13 @@ func TestClientFields(t *testing.T) {
 		domain string
 		ip     net.IP
 		port   int
-		out    common.MapStr
+		out    mapstr.M
 	}{
 		"Empty":  {out: nil},
-		"IPv4":   {ip: net.ParseIP("192.0.0.1"), out: common.MapStr{"ip": "192.0.0.1"}},
-		"IPv6":   {ip: net.ParseIP("2001:db8::68"), out: common.MapStr{"ip": "2001:db8::68"}},
-		"Port":   {port: 123, out: common.MapStr{"port": 123}},
-		"Domain": {domain: "testing.invalid", out: common.MapStr{"domain": "testing.invalid"}},
+		"IPv4":   {ip: net.ParseIP("192.0.0.1"), out: mapstr.M{"ip": "192.0.0.1"}},
+		"IPv6":   {ip: net.ParseIP("2001:db8::68"), out: mapstr.M{"ip": "2001:db8::68"}},
+		"Port":   {port: 123, out: mapstr.M{"port": 123}},
+		"Domain": {domain: "testing.invalid", out: mapstr.M{"domain": "testing.invalid"}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			c := Client{

@@ -27,10 +27,10 @@ import (
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/cmd"
 	"github.com/elastic/beats/v7/libbeat/cmd/instance"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring/report"
 	"github.com/elastic/beats/v7/libbeat/publisher/processing"
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
 
 	"github.com/elastic/apm-server/idxmgmt"
 )
@@ -43,10 +43,10 @@ const (
 var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
 	return []cfgfile.ConditionalOverride{
 		{
-			Check: func(_ *common.Config) bool {
+			Check: func(_ *agentconfig.C) bool {
 				return true
 			},
-			Config: common.MustNewConfigFrom(map[string]interface{}{
+			Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
 				"logging": map[string]interface{}{
 					"metrics": map[string]interface{}{
 						"enabled": false,
@@ -55,23 +55,23 @@ var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
 			}),
 		},
 		{
-			Check: func(_ *common.Config) bool {
+			Check: func(_ *agentconfig.C) bool {
 				return os.Getenv(cloudEnv) != ""
 			},
-			Config: func() *common.Config {
-				return common.MustNewConfigFrom(map[string]interface{}{
+			Config: func() *agentconfig.C {
+				return agentconfig.MustNewConfigFrom(map[string]interface{}{
 					// default to medium compression on cloud
 					"output.elasticsearch.compression_level": 5,
 				})
 			}(),
 		},
 		{
-			Check: func(_ *common.Config) bool {
+			Check: func(_ *agentconfig.C) bool {
 				return true
 			},
-			Config: func() *common.Config {
+			Config: func() *agentconfig.C {
 				// default to turning off seccomp
-				return common.MustNewConfigFrom(map[string]interface{}{
+				return agentconfig.MustNewConfigFrom(map[string]interface{}{
 					"seccomp.enabled": false,
 				})
 			}(),
@@ -95,7 +95,7 @@ func DefaultSettings() instance.Settings {
 	}
 }
 
-func processingSupport(_ beat.Info, _ *logp.Logger, beatCfg *common.Config) (processing.Supporter, error) {
+func processingSupport(_ beat.Info, _ *logp.Logger, beatCfg *agentconfig.C) (processing.Supporter, error) {
 	if beatCfg.HasField("processors") {
 		return nil, errors.New("libbeat processors are not supported")
 	}

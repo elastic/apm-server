@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 const (
@@ -59,7 +59,7 @@ type Transaction struct {
 	Marks          TransactionMarks
 	Message        *Message
 	SpanCount      SpanCount
-	Custom         common.MapStr
+	Custom         mapstr.M
 	UserExperience *UserExperience
 
 	// DroppedSpanStats holds a list of the spans that were dropped by an
@@ -83,7 +83,7 @@ type SpanCount struct {
 	Started *int
 }
 
-func (e *Transaction) fields() common.MapStr {
+func (e *Transaction) fields() mapstr.M {
 	var transaction mapStr
 	transaction.maybeSetString("id", e.ID)
 	transaction.maybeSetString("type", e.Type)
@@ -95,7 +95,7 @@ func (e *Transaction) fields() common.MapStr {
 	transaction.maybeSetMapStr("message", e.Message.Fields())
 	transaction.maybeSetMapStr("experience", e.UserExperience.Fields())
 	if e.SpanCount.Dropped != nil || e.SpanCount.Started != nil {
-		spanCount := common.MapStr{}
+		spanCount := mapstr.M{}
 		if e.SpanCount.Dropped != nil {
 			spanCount["dropped"] = *e.SpanCount.Dropped
 		}
@@ -110,19 +110,19 @@ func (e *Transaction) fields() common.MapStr {
 	if e.Root {
 		transaction.set("root", e.Root)
 	}
-	var dss []common.MapStr
+	var dss []mapstr.M
 	for _, v := range e.DroppedSpansStats {
 		dss = append(dss, v.fields())
 	}
 	if len(dss) > 0 {
 		transaction.set("dropped_spans_stats", dss)
 	}
-	return common.MapStr(transaction)
+	return mapstr.M(transaction)
 }
 
 type TransactionMarks map[string]TransactionMark
 
-func (m TransactionMarks) fields() common.MapStr {
+func (m TransactionMarks) fields() mapstr.M {
 	if len(m) == 0 {
 		return nil
 	}
@@ -130,16 +130,16 @@ func (m TransactionMarks) fields() common.MapStr {
 	for k, v := range m {
 		out.maybeSetMapStr(sanitizeLabelKey(k), v.fields())
 	}
-	return common.MapStr(out)
+	return mapstr.M(out)
 }
 
 type TransactionMark map[string]float64
 
-func (m TransactionMark) fields() common.MapStr {
+func (m TransactionMark) fields() mapstr.M {
 	if len(m) == 0 {
 		return nil
 	}
-	out := make(common.MapStr, len(m))
+	out := make(mapstr.M, len(m))
 	for k, v := range m {
 		out[sanitizeLabelKey(k)] = v
 	}
@@ -152,12 +152,12 @@ type DroppedSpanStats struct {
 	Duration                   AggregatedDuration
 }
 
-func (stat DroppedSpanStats) fields() common.MapStr {
+func (stat DroppedSpanStats) fields() mapstr.M {
 	var out mapStr
 	out.maybeSetString("destination_service_resource",
 		stat.DestinationServiceResource,
 	)
 	out.maybeSetString("outcome", stat.Outcome)
 	out.maybeSetMapStr("duration", stat.Duration.fields())
-	return common.MapStr(out)
+	return mapstr.M(out)
 }

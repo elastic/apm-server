@@ -22,12 +22,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/config"
 )
 
 func TestSamplingPoliciesValidation(t *testing.T) {
 	t.Run("MinimallyValid", func(t *testing.T) {
-		_, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{
+		_, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
 			"sampling.tail.policies": []map[string]interface{}{{
 				"sample_rate": 0.5,
 			}},
@@ -35,13 +35,13 @@ func TestSamplingPoliciesValidation(t *testing.T) {
 		assert.NoError(t, err)
 	})
 	t.Run("NoPolicies", func(t *testing.T) {
-		_, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{
+		_, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
 			"sampling.tail.enabled": true,
 		}), nil)
 		assert.EqualError(t, err, "Error processing configuration: invalid tail sampling config: no policies specified accessing 'sampling.tail'")
 	})
 	t.Run("NoDefaultPolicies", func(t *testing.T) {
-		_, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{
+		_, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
 			"sampling.tail.policies": []map[string]interface{}{{
 				"service.name": "foo",
 				"sample_rate":  0.5,
