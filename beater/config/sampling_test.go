@@ -20,8 +20,9 @@ package config
 import (
 	"testing"
 
-	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/elastic-agent-libs/config"
 )
 
 func TestSamplingPoliciesValidation(t *testing.T) {

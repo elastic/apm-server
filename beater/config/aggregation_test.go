@@ -20,9 +20,10 @@ package config
 import (
 	"testing"
 
-	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/elastic-agent-libs/config"
 )
 
 func TestAggregationConfigInvalid(t *testing.T) {

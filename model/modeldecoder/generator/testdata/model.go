@@ -58,8 +58,8 @@ type Interface struct {
 }
 
 type Map struct {
-	Required  mapstr.M        `json:"required" validate:"required,inputTypesVals=string;bool;number,maxLengthVals=5,patternKeys=patternB"`
-	Nullable  mapstr.M        `json:"nullable"`
+	Required  mapstr.M             `json:"required" validate:"required,inputTypesVals=string;bool;number,maxLengthVals=5,patternKeys=patternB"`
+	Nullable  mapstr.M             `json:"nullable"`
 	Nested    map[string]NestedMap `json:"nested_a" validate:"patternKeys=patternB"`
 	StructMap NestedStruct         `json:"nested_b"`
 }

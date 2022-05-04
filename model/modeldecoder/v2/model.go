@@ -872,7 +872,7 @@ type stacktraceFrame struct {
 	PreContext []string `json:"pre_context"`
 	// Vars is a flat mapping of local variables of the frame.
 	Vars mapstr.M `json:"vars"`
-	_    struct{}      `validate:"requiredAnyOf=classname;filename"`
+	_    struct{} `validate:"requiredAnyOf=classname;filename"`
 }
 
 type spanComposite struct {
