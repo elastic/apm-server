@@ -6,7 +6,7 @@ IMPORTANT: {deprecation-notice-data}
 If you have issues installing or running APM Server,
 read the following tips:
 
-* <<common-problems>>
+* <<common-problems-legacy>>
 * <<enable-apm-server-debugging>>
 * <<getting-help>>
 

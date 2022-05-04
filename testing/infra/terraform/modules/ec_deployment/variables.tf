@@ -61,9 +61,13 @@ variable "elasticsearch_zone_count" {
 # Docker image overrides
 
 variable "docker_image_tag_override" {
-  default     = ""
-  description = "Optional docker image tag override"
-  type        = string
+  default = {
+    "elasticsearch" : "",
+    "kibana" : "",
+    "apm" : "",
+  }
+  description = "Optional docker image tag overrides, The full map needs to be specified"
+  type        = map(string)
 }
 
 variable "docker_image" {
@@ -73,7 +77,7 @@ variable "docker_image" {
     "apm" : "docker.elastic.co/cloud-release/elastic-agent-cloud",
   }
   type        = map(string)
-  description = "Optional docker image overrides. All "
+  description = "Optional docker image overrides. The full map needs to be specified"
 }
 
 # Enable APM Server's expvar

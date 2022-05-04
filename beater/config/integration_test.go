@@ -24,18 +24,18 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/beats/v7/libbeat/common"
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
 )
 
 func TestIntegrationConfigMissingAPMServer(t *testing.T) {
-	cfg, err := config.NewIntegrationConfig(common.NewConfig())
+	cfg, err := config.NewIntegrationConfig(agentconfig.NewConfig())
 	assert.Error(t, err)
 	assert.Nil(t, cfg)
 	assert.EqualError(t, err, "'apm-server' not found in integration config")
 }
 
 func TestIntegrationConfigValid(t *testing.T) {
-	cfg, err := config.NewIntegrationConfig(common.MustNewConfigFrom(map[string]interface{}{
+	cfg, err := config.NewIntegrationConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"apm-server": map[string]interface{}{},
 	}))
 	require.NoError(t, err)

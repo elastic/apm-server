@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 var (
@@ -38,7 +38,7 @@ func TestServiceTransform(t *testing.T) {
 
 	tests := []struct {
 		Service Service
-		Fields  common.MapStr
+		Fields  mapstr.M
 	}{
 		{
 			Service: Service{},
@@ -67,24 +67,24 @@ func TestServiceTransform(t *testing.T) {
 					Type: targetType,
 				},
 			},
-			Fields: common.MapStr{
+			Fields: mapstr.M{
 				"name":        "myService",
 				"version":     "5.1.3",
 				"environment": "staging",
-				"language": common.MapStr{
+				"language": mapstr.M{
 					"name":    "ecmascript",
 					"version": "8",
 				},
-				"runtime": common.MapStr{
+				"runtime": mapstr.M{
 					"name":    "node",
 					"version": "8.0.0",
 				},
-				"framework": common.MapStr{
+				"framework": mapstr.M{
 					"name":    "Express",
 					"version": "1.2.3",
 				},
-				"node": common.MapStr{"name": serviceNodeName},
-				"target": common.MapStr{
+				"node": mapstr.M{"name": serviceNodeName},
+				"target": mapstr.M{
 					"name": "testdb",
 					"type": "oracle",
 				},

@@ -28,9 +28,10 @@ import (
 	"go.elastic.co/apm/v2"
 	"go.elastic.co/apm/v2/apmtest"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/logp/configure"
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/headers"
@@ -98,7 +99,7 @@ func TestLogMiddleware(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// log setup
 			configure.Logging("APM Server test",
-				common.MustNewConfigFrom(`{"ecs":true}`))
+				agentconfig.MustNewConfigFrom(`{"ecs":true}`))
 			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 
 			// prepare and record request
@@ -121,7 +122,7 @@ func TestLogMiddleware(t *testing.T) {
 			assert.Equal(t, tc.message, entry.Message)
 
 			encoder := zapcore.NewMapObjectEncoder()
-			ec := common.MapStr{}
+			ec := mapstr.M{}
 			for _, f := range entry.Context {
 				f.AddTo(encoder)
 				ec.DeepUpdate(encoder.Fields)

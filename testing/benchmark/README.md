@@ -64,6 +64,12 @@ The main commands are:
   - `BENCHMARK_TIME`: Set the amount of time to run each benchmark scenario for. 5m.
   - `BENCHMARK_RUN`: Set the expression that matches the benchmark scenarios to run. Defaults to Benchmark (all).
   - `BENCHMARK_RESULT`: Set the output file where the results of the benchmark will be written.
+- `index-benchmark-result`: Indexes `$(BENCHMARK_RESULT)` to an Elasticsearch cluster. Can be configured with:
+  - `GOBENCH_INDEX`: Set the Elasticsearch index where the benchmark results will be stored. Defaults to `gobench`.
+  - `GOBENCH_USERNAME`: Set the Elasticsearch username to use for authentication. Defaults to `admin`.
+  - `GOBENCH_PASSWORD`: Set the Elasticsearch password to use for authentication. Defaults to `changeme`.
+  - `GOBENCH_HOST`: Set the Elasticsearch host where the results will be indexed Defaults to `http://localhost:9200`.
+  - `GOBENCH_TAGS`: Set additional tags to include in the Elasticsearch documents. No default.
 
 Helper commands
 

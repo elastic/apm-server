@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 type Process struct {
@@ -30,7 +30,7 @@ type Process struct {
 	Executable  string
 }
 
-func (p *Process) fields() common.MapStr {
+func (p *Process) fields() mapstr.M {
 	var proc mapStr
 	if p.Pid != 0 {
 		proc.set("pid", p.Pid)
@@ -44,5 +44,5 @@ func (p *Process) fields() common.MapStr {
 	proc.maybeSetString("title", p.Title)
 	proc.maybeSetString("command_line", p.CommandLine)
 	proc.maybeSetString("executable", p.Executable)
-	return common.MapStr(proc)
+	return mapstr.M(proc)
 }

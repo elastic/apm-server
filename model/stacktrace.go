@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 type Stacktrace []*StacktraceFrame
@@ -33,7 +33,7 @@ type StacktraceFrame struct {
 	Module       string
 	Function     string
 	LibraryFrame bool
-	Vars         common.MapStr
+	Vars         mapstr.M
 	PreContext   []string
 	PostContext  []string
 
@@ -54,18 +54,18 @@ type Original struct {
 	LibraryFrame bool
 }
 
-func (st Stacktrace) transform() []common.MapStr {
+func (st Stacktrace) transform() []mapstr.M {
 	if len(st) == 0 {
 		return nil
 	}
-	frames := make([]common.MapStr, len(st))
+	frames := make([]mapstr.M, len(st))
 	for i, frame := range st {
 		frames[i] = frame.transform()
 	}
 	return frames
 }
 
-func (s *StacktraceFrame) transform() common.MapStr {
+func (s *StacktraceFrame) transform() mapstr.M {
 	var m mapStr
 	m.maybeSetString("filename", s.Filename)
 	m.maybeSetString("classname", s.Classname)
@@ -86,20 +86,20 @@ func (s *StacktraceFrame) transform() common.MapStr {
 	if len(s.PostContext) > 0 {
 		context.set("post", s.PostContext)
 	}
-	m.maybeSetMapStr("context", common.MapStr(context))
+	m.maybeSetMapStr("context", mapstr.M(context))
 
 	var line mapStr
 	line.maybeSetIntptr("number", s.Lineno)
 	line.maybeSetIntptr("column", s.Colno)
 	line.maybeSetString("context", s.ContextLine)
-	m.maybeSetMapStr("line", common.MapStr(line))
+	m.maybeSetMapStr("line", mapstr.M(line))
 
 	var sm mapStr
 	if s.SourcemapUpdated {
 		sm.set("updated", true)
 	}
 	sm.maybeSetString("error", s.SourcemapError)
-	m.maybeSetMapStr("sourcemap", common.MapStr(sm))
+	m.maybeSetMapStr("sourcemap", mapstr.M(sm))
 
 	var orig mapStr
 	if s.Original.LibraryFrame {
@@ -113,7 +113,7 @@ func (s *StacktraceFrame) transform() common.MapStr {
 		orig.maybeSetIntptr("colno", s.Original.Colno)
 		orig.maybeSetIntptr("lineno", s.Original.Lineno)
 	}
-	m.maybeSetMapStr("original", common.MapStr(orig))
+	m.maybeSetMapStr("original", mapstr.M(orig))
 
-	return common.MapStr(m)
+	return mapstr.M(m)
 }

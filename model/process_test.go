@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestProcessTransform(t *testing.T) {
@@ -37,7 +37,7 @@ func TestProcessTransform(t *testing.T) {
 	ppid := 456
 	tests := []struct {
 		Process Process
-		Output  common.MapStr
+		Output  mapstr.M
 	}{
 		{
 			Process: Process{},
@@ -52,7 +52,7 @@ func TestProcessTransform(t *testing.T) {
 				CommandLine: commandLine,
 				Executable:  executablePath,
 			},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"pid":          123,
 				"ppid":         456,
 				"title":        processTitle,

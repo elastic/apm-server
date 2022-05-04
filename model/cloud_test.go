@@ -22,13 +22,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestCloudFields(t *testing.T) {
 	tests := []struct {
 		Cloud  Cloud
-		Output common.MapStr
+		Output mapstr.M
 	}{
 		{
 			Cloud:  Cloud{},
@@ -47,20 +47,20 @@ func TestCloudFields(t *testing.T) {
 				Provider:         "gcp",
 				Region:           "australia-southeast1",
 			},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"availability_zone": "australia-southeast1-a",
-				"account": common.MapStr{
+				"account": mapstr.M{
 					"id":   "acct123",
 					"name": "my-dev-account",
 				},
-				"instance": common.MapStr{
+				"instance": mapstr.M{
 					"id":   "inst-foo123xyz",
 					"name": "my-instance",
 				},
-				"machine": common.MapStr{
+				"machine": mapstr.M{
 					"type": "n1-highcpu-96",
 				},
-				"project": common.MapStr{
+				"project": mapstr.M{
 					"id":   "snazzy-bobsled-123",
 					"name": "Development",
 				},

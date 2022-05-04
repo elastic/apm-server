@@ -22,9 +22,9 @@ import (
 	"testing"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/processors"
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,7 +41,7 @@ func TestCloudEnv(t *testing.T) {
 	// cloud environment picked up
 	os.Setenv(cloudEnv, "valuedoesnotmatter")
 	assert.True(t, settings.ConfigOverrides[1].Check(nil))
-	assert.Equal(t, common.MustNewConfigFrom(map[string]interface{}{
+	assert.Equal(t, agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"output.elasticsearch.compression_level": 5,
 	}), settings.ConfigOverrides[1].Config)
 }
@@ -51,14 +51,14 @@ func TestProcessorsDisallowed(t *testing.T) {
 	settings := DefaultSettings()
 
 	// If no "processors" config is specified, the supporter.Create method should return nil.
-	supporter, err := settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{}))
+	supporter, err := settings.Processing(beat.Info{}, logger, agentconfig.MustNewConfigFrom(map[string]interface{}{}))
 	assert.NoError(t, err)
 	assert.NotNil(t, supporter)
 	processor, err := supporter.Create(beat.ProcessingConfig{}, false)
 	assert.NoError(t, err)
 	assert.Nil(t, processor)
 
-	supporter, err = settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{
+	supporter, err = settings.Processing(beat.Info{}, logger, agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"processors": []interface{}{
 			map[string]interface{}{
 				"add_cloud_metadata": map[string]interface{}{},
@@ -73,12 +73,12 @@ func TestProcessorsFromConfigNotNil(t *testing.T) {
 	logger := logp.NewLogger("")
 	settings := DefaultSettings()
 
-	supporter, err := settings.Processing(beat.Info{}, logger, common.MustNewConfigFrom(map[string]interface{}{}))
+	supporter, err := settings.Processing(beat.Info{}, logger, agentconfig.MustNewConfigFrom(map[string]interface{}{}))
 	require.NoError(t, err)
 	assert.NotNil(t, supporter)
 
 	processors, err := processors.New(processors.PluginConfig{
-		common.MustNewConfigFrom(map[string]interface{}{
+		agentconfig.MustNewConfigFrom(map[string]interface{}{
 			"drop_event": map[string]interface{}{
 				"when": map[string]interface{}{
 					"contains": map[string]interface{}{

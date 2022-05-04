@@ -18,16 +18,16 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // customFields transforms in, returning a copy with sanitized keys,
 // suitable for storing as "custom" in transaction and error documents.
-func customFields(in common.MapStr) common.MapStr {
+func customFields(in mapstr.M) mapstr.M {
 	if len(in) == 0 {
 		return nil
 	}
-	out := make(common.MapStr, len(in))
+	out := make(mapstr.M, len(in))
 	for k, v := range in {
 		out[sanitizeLabelKey(k)] = v
 	}

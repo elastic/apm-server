@@ -31,7 +31,7 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestResetTransactionOnRelease(t *testing.T) {
@@ -359,8 +359,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out model.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, common.MapStr{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
-		assert.Equal(t, common.MapStr{"f": []string{"g"}}, out.HTTP.Response.Headers)
+		assert.Equal(t, mapstr.M{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
+		assert.Equal(t, mapstr.M{"f": []string{"g"}}, out.HTTP.Response.Headers)
 	})
 
 	t.Run("session", func(t *testing.T) {
@@ -381,7 +381,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	})
 	t.Run("labels", func(t *testing.T) {
 		var input transaction
-		input.Context.Tags = common.MapStr{
+		input.Context.Tags = mapstr.M{
 			"a": "b",
 			"c": float64(12315124131),
 			"d": 12315124131.12315124131,

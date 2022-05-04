@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 type UserAgent struct {
@@ -31,9 +31,9 @@ type UserAgent struct {
 	Name string
 }
 
-func (u *UserAgent) fields() common.MapStr {
+func (u *UserAgent) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("original", u.Original)
 	fields.maybeSetString("name", u.Name)
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }
