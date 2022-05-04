@@ -123,35 +123,6 @@ pipeline {
             }
           }
         }
-<<<<<<< HEAD
-=======
-        stage('apmpackage') {
-          options { skipDefaultCheckout() }
-          when {
-            allOf {
-              // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
-              changeset pattern: '(cmd/version.go|apmpackage/.*|.ci/packaging.groovy)', comparator: 'REGEXP'
-              not { changeRequest() }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'apmpackage') {
-              runWithMage() {
-                sh(script: 'make build-package', label: 'make build-package')
-                sh(label: 'package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
-                withGitContext() {
-                  sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
-                }
-              }
-            }
-          }
-          post {
-            failure {
-              notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] apmpackage failed")
-            }
-          }
-        }
->>>>>>> 42902743 (ci: run the packaging only once (#7998))
         stage('DRA Snapshot') {
           options { skipDefaultCheckout() }
           // The Unified Release process keeps moving branches as soon as a new
@@ -224,18 +195,6 @@ def runReleaseManager(def args = [:]) {
   }
 }
 
-<<<<<<< HEAD
-=======
-def runWithMage(Closure body) {
-  deleteDir()
-  unstash 'source'
-  dir("${BASE_DIR}"){
-    withMageEnv() {
-      body()
-    }
-  }
-}
-
 def publishArtifacts() {
   if(env.IS_BRANCH_AVAILABLE == "true") {
     publishArtifactsDRA(type: env.TYPE)
@@ -248,7 +207,6 @@ def publishArtifacts() {
   }
 }
 
->>>>>>> 42902743 (ci: run the packaging only once (#7998))
 def runPackage(def args = [:]) {
   def type = args.type
   def makeGoal = 'release-manager-snapshot'
