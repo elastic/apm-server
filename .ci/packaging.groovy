@@ -15,6 +15,7 @@ pipeline {
     DRA_OUTPUT = 'release-manager.out'
     COMMIT = "${params?.COMMIT}"
     JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
+    DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -96,16 +97,20 @@ pipeline {
                   PACKAGES = "${isArm() ? 'docker' : ''}"
                 }
                 steps {
-                  runIfNoMainAndNoStaging() {
-                    runPackage(type: env.TYPE)
+                  withGithubNotify(context: "Package-${TYPE}-${PLATFORM}") {
+                    runIfNoMainAndNoStaging() {
+                      runPackage(type: env.TYPE)
+                    }
                   }
                 }
               }
               stage('Publish') {
                 options { skipDefaultCheckout() }
                 steps {
-                  runIfNoMainAndNoStaging() {
-                    publishArtifacts(type: env.TYPE)
+                  withGithubNotify(context: "Publish-${TYPE}-${PLATFORM}") {
+                    runIfNoMainAndNoStaging() {
+                      publishArtifacts()
+                    }
                   }
                 }
               }
@@ -118,6 +123,35 @@ pipeline {
             }
           }
         }
+<<<<<<< HEAD
+=======
+        stage('apmpackage') {
+          options { skipDefaultCheckout() }
+          when {
+            allOf {
+              // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
+              changeset pattern: '(cmd/version.go|apmpackage/.*|.ci/packaging.groovy)', comparator: 'REGEXP'
+              not { changeRequest() }
+            }
+          }
+          steps {
+            withGithubNotify(context: 'apmpackage') {
+              runWithMage() {
+                sh(script: 'make build-package', label: 'make build-package')
+                sh(label: 'package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
+                withGitContext() {
+                  sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
+                }
+              }
+            }
+          }
+          post {
+            failure {
+              notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] apmpackage failed")
+            }
+          }
+        }
+>>>>>>> 42902743 (ci: run the packaging only once (#7998))
         stage('DRA Snapshot') {
           options { skipDefaultCheckout() }
           // The Unified Release process keeps moving branches as soon as a new
@@ -190,6 +224,31 @@ def runReleaseManager(def args = [:]) {
   }
 }
 
+<<<<<<< HEAD
+=======
+def runWithMage(Closure body) {
+  deleteDir()
+  unstash 'source'
+  dir("${BASE_DIR}"){
+    withMageEnv() {
+      body()
+    }
+  }
+}
+
+def publishArtifacts() {
+  if(env.IS_BRANCH_AVAILABLE == "true") {
+    publishArtifactsDRA(type: env.TYPE)
+  } else {
+    if (env.TYPE == "snapshot" && !isArm()) {
+      publishArtifactsDev()
+    } else {
+      echo "publishArtifacts: type is not required to be published for this particular branch/PR"
+    }
+  }
+}
+
+>>>>>>> 42902743 (ci: run the packaging only once (#7998))
 def runPackage(def args = [:]) {
   def type = args.type
   def makeGoal = 'release-manager-snapshot'
@@ -205,10 +264,27 @@ def runPackage(def args = [:]) {
   }
 }
 
-def publishArtifacts(def args = [:]) {
-  def bucketLocation = getBucketLocation(args.type)
+def publishArtifactsDev() {
+  def bucketLocation = "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}"
+  if (isPR()) {
+    bucketLocation = "gs://${JOB_GCS_BUCKET}/snapshots"
+  }
+  uploadArtifacts(bucketLocation: bucketLocation)
+  uploadArtifacts(bucketLocation: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}")
+
+  dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
+  dir("${BASE_DIR}"){
+    sh(label: 'Push', script: "./.ci/scripts/push-docker.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+  }
+}
+
+def publishArtifactsDRA(def args = [:]) {
+  uploadArtifacts(bucketLocation: getBucketLocation(args.type))
+}
+
+def uploadArtifacts(def args = [:]) {
   // Copy those files to another location with the sha commit to test them afterward.
-  googleStorageUpload(bucket: "${bucketLocation}",
+  googleStorageUpload(bucket: "${args.bucketLocation}",
     credentialsId: "${JOB_GCS_CREDENTIALS}",
     pathPrefix: "${BASE_DIR}/build/distributions/",
     pattern: "${BASE_DIR}/build/distributions/**/*",
@@ -216,7 +292,7 @@ def publishArtifacts(def args = [:]) {
     showInline: true)
   // Copy the dependencies files if no ARM
   whenFalse(isArm()) {
-    googleStorageUpload(bucket: "${bucketLocation}",
+    googleStorageUpload(bucket: "${args.bucketLocation}",
       credentialsId: "${JOB_GCS_CREDENTIALS}",
       pathPrefix: "${BASE_DIR}/build/",
       pattern: "${BASE_DIR}/build/dependencies.csv",
