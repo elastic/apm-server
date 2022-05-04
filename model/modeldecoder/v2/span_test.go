@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
@@ -253,7 +253,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		input.Context.HTTP.Response.Headers.Set(http.Header{"a": []string{"b", "c"}})
 		var out model.APMEvent
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, common.MapStr{"a": []string{"b", "c"}}, out.HTTP.Response.Headers)
+		assert.Equal(t, mapstr.M{"a": []string{"b", "c"}}, out.HTTP.Response.Headers)
 	})
 
 	t.Run("otel-bridge", func(t *testing.T) {
@@ -453,7 +453,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 
 	t.Run("labels", func(t *testing.T) {
 		var input span
-		input.Context.Tags = common.MapStr{
+		input.Context.Tags = mapstr.M{
 			"a": "b",
 			"c": float64(12315124131),
 			"d": 12315124131.12315124131,

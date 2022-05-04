@@ -21,7 +21,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // URL describes an URL and its components
@@ -80,8 +80,8 @@ func truncate(s string) string {
 	return s
 }
 
-// fields returns common.MapStr holding transformed data for attribute url.
-func (url *URL) fields() common.MapStr {
+// fields returns mapstr.M holding transformed data for attribute url.
+func (url *URL) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("full", url.Full)
 	fields.maybeSetString("fragment", url.Fragment)
@@ -93,5 +93,5 @@ func (url *URL) fields() common.MapStr {
 	fields.maybeSetString("original", url.Original)
 	fields.maybeSetString("scheme", url.Scheme)
 	fields.maybeSetString("query", url.Query)
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

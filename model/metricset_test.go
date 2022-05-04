@@ -24,23 +24,23 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestMetricset(t *testing.T) {
 	tests := []struct {
 		Metricset *Metricset
-		Output    common.MapStr
+		Output    mapstr.M
 		Msg       string
 	}{
 		{
 			Metricset: &Metricset{},
-			Output:    common.MapStr{},
+			Output:    mapstr.M{},
 			Msg:       "Payload with empty metric.",
 		},
 		{
 			Metricset: &Metricset{Name: "raj"},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"metricset.name": "raj",
 			},
 			Msg: "Payload with metricset name.",
@@ -52,7 +52,7 @@ func TestMetricset(t *testing.T) {
 					"some.gauge": {Value: 9.16},
 				},
 			},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"a.counter":  612.0,
 				"some.gauge": 9.16,
 			},
@@ -63,8 +63,8 @@ func TestMetricset(t *testing.T) {
 				TimeseriesInstanceID: "foo",
 				DocCount:             6,
 			},
-			Output: common.MapStr{
-				"timeseries": common.MapStr{"instance": "foo"},
+			Output: mapstr.M{
+				"timeseries": mapstr.M{"instance": "foo"},
 				"_doc_count": int64(6),
 			},
 			Msg: "Timeseries instance and _doc_count",
@@ -90,22 +90,22 @@ func TestMetricset(t *testing.T) {
 					},
 				},
 			},
-			Output: common.MapStr{
-				"latency_histogram": common.MapStr{
+			Output: mapstr.M{
+				"latency_histogram": mapstr.M{
 					"counts": []int64{1, 2, 3},
 					"values": []float64{1.1, 2.2, 3.3},
 				},
 				"just_type": 123.0,
 				"just_unit": 0.99,
-				"_metric_descriptions": common.MapStr{
-					"latency_histogram": common.MapStr{
+				"_metric_descriptions": mapstr.M{
+					"latency_histogram": mapstr.M{
 						"type": "histogram",
 						"unit": "s",
 					},
-					"just_type": common.MapStr{
+					"just_type": mapstr.M{
 						"type": "counter",
 					},
-					"just_unit": common.MapStr{
+					"just_unit": mapstr.M{
 						"unit": "percent",
 					},
 				},
@@ -136,14 +136,14 @@ func TestTransformMetricsetTransaction(t *testing.T) {
 		Metricset: &Metricset{Name: "transaction"},
 	}
 	beatEvent := event.BeatEvent()
-	assert.Equal(t, common.MapStr{
-		"processor":      common.MapStr{"name": "metric", "event": "metric"},
+	assert.Equal(t, mapstr.M{
+		"processor":      mapstr.M{"name": "metric", "event": "metric"},
 		"metricset.name": "transaction",
-		"transaction": common.MapStr{
+		"transaction": mapstr.M{
 			"name":   "transaction_name",
 			"type":   "transaction_type",
 			"result": "transaction_result",
-			"duration.histogram": common.MapStr{
+			"duration.histogram": mapstr.M{
 				"counts": []int64{1, 2, 3},
 				"values": []float64{4.5, 6.0, 9.0},
 			},
@@ -172,20 +172,20 @@ func TestTransformMetricsetSpan(t *testing.T) {
 		Metricset: &Metricset{Name: "span"},
 	}
 	beatEvent := event.BeatEvent()
-	assert.Equal(t, common.MapStr{
-		"processor":      common.MapStr{"name": "metric", "event": "metric"},
+	assert.Equal(t, mapstr.M{
+		"processor":      mapstr.M{"name": "metric", "event": "metric"},
 		"metricset.name": "span",
-		"span": common.MapStr{
+		"span": mapstr.M{
 			"type":    "span_type",
 			"subtype": "span_subtype",
-			"self_time": common.MapStr{
+			"self_time": mapstr.M{
 				"count":  123,
 				"sum.us": int64(1000),
 			},
-			"destination": common.MapStr{
-				"service": common.MapStr{
+			"destination": mapstr.M{
+				"service": mapstr.M{
 					"resource": "destination_service_resource",
-					"response_time": common.MapStr{
+					"response_time": mapstr.M{
 						"count":  456,
 						"sum.us": int64(1000000),
 					},

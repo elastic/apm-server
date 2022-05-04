@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestUserFields(t *testing.T) {
@@ -33,7 +33,7 @@ func TestUserFields(t *testing.T) {
 
 	tests := []struct {
 		User   User
-		Output common.MapStr
+		Output mapstr.M
 	}{
 		{
 			User:   User{},
@@ -46,7 +46,7 @@ func TestUserFields(t *testing.T) {
 				Email:  email,
 				Name:   name,
 			},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"domain": "ldap://abc",
 				"id":     "1234",
 				"email":  "test@mail.co",

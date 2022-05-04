@@ -20,7 +20,7 @@ package model
 import (
 	"net"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Client holds information about the client of a request.
@@ -35,7 +35,7 @@ type Client struct {
 	Port int
 }
 
-func (c *Client) fields() common.MapStr {
+func (c *Client) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("domain", c.Domain)
 	if c.IP != nil {
@@ -44,5 +44,5 @@ func (c *Client) fields() common.MapStr {
 	if c.Port > 0 {
 		fields.set("port", c.Port)
 	}
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

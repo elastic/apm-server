@@ -17,7 +17,7 @@
 
 package model
 
-import "github.com/elastic/beats/v7/libbeat/common"
+import "github.com/elastic/elastic-agent-libs/mapstr"
 
 const (
 	AppLogsDataset = "apm.app"
@@ -36,8 +36,8 @@ type Log struct {
 	Level string
 }
 
-func (e Log) fields() common.MapStr {
+func (e Log) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("level", e.Level)
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

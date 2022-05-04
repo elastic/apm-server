@@ -21,12 +21,12 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/fmtstr"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	"github.com/elastic/beats/v7/libbeat/outputs/outil"
+	"github.com/elastic/elastic-agent-libs/config"
 
 	"github.com/elastic/apm-server/datastreams"
 	logs "github.com/elastic/apm-server/log"
@@ -35,7 +35,7 @@ import (
 // NewSupporter creates a new idxmgmt.Supporter which directs all events
 // to data streams. The given root config will be checked for deprecated/removed
 // configuration, and if any are present warnings will be logged.
-func NewSupporter(log *logp.Logger, info beat.Info, configRoot *common.Config) (idxmgmt.Supporter, error) {
+func NewSupporter(log *logp.Logger, info beat.Info, configRoot *config.C) (idxmgmt.Supporter, error) {
 	if log == nil {
 		log = logp.NewLogger(logs.IndexManagement)
 	} else {
@@ -47,7 +47,7 @@ func NewSupporter(log *logp.Logger, info beat.Info, configRoot *common.Config) (
 	return dataStreamsSupporter{}, nil
 }
 
-func logWarnings(log *logp.Logger, cfg *common.Config) {
+func logWarnings(log *logp.Logger, cfg *config.C) {
 	type deprecatedConfig struct {
 		name string
 		info string
@@ -75,7 +75,7 @@ type dataStreamsSupporter struct{}
 
 // BuildSelector returns an outputs.IndexSelector which routes events through
 // to data streams based on well-defined data_stream.* fields in events.
-func (dataStreamsSupporter) BuildSelector(*common.Config) (outputs.IndexSelector, error) {
+func (dataStreamsSupporter) BuildSelector(*config.C) (outputs.IndexSelector, error) {
 	fmtstr, err := fmtstr.CompileEvent(datastreams.IndexFormat)
 	if err != nil {
 		return nil, err
