@@ -20,7 +20,7 @@ package model
 import (
 	"net"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Source holds information about the source of a network exchange.
@@ -38,7 +38,7 @@ type Source struct {
 	NAT *NAT
 }
 
-func (s *Source) fields() common.MapStr {
+func (s *Source) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("domain", s.Domain)
 	if s.IP != nil {
@@ -52,7 +52,7 @@ func (s *Source) fields() common.MapStr {
 			fields.set("nat", nat)
 		}
 	}
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }
 
 // NAT holds information about the translated source of a network exchange.
@@ -61,10 +61,10 @@ type NAT struct {
 	IP net.IP
 }
 
-func (n *NAT) fields() common.MapStr {
+func (n *NAT) fields() mapstr.M {
 	var fields mapStr
 	if n.IP != nil {
 		fields.set("ip", n.IP.String())
 	}
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

@@ -23,8 +23,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/elasticsearch"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/config"
 )
 
 // SamplingConfig holds configuration related to sampling.
@@ -70,7 +70,7 @@ type TailSamplingPolicy struct {
 	SampleRate float64 `config:"sample_rate" validate:"min=0, max=1"`
 }
 
-func (c *TailSamplingConfig) Unpack(in *common.Config) error {
+func (c *TailSamplingConfig) Unpack(in *config.C) error {
 	type tailSamplingConfig TailSamplingConfig
 	cfg := tailSamplingConfig(defaultTailSamplingConfig())
 	if err := in.Unpack(&cfg); err != nil {
@@ -103,7 +103,7 @@ func (c *TailSamplingConfig) Validate() error {
 	return nil
 }
 
-func (c *TailSamplingConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
+func (c *TailSamplingConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 	if !c.Enabled {
 		return nil
 	}

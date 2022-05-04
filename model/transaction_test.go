@@ -24,7 +24,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestTransactionTransformEmpty(t *testing.T) {
@@ -42,7 +42,7 @@ func TestTransactionTransform(t *testing.T) {
 
 	tests := []struct {
 		Transaction Transaction
-		Output      common.MapStr
+		Output      mapstr.M
 		Msg         string
 	}{
 		{
@@ -50,7 +50,7 @@ func TestTransactionTransform(t *testing.T) {
 				ID:   id,
 				Type: "tx",
 			},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"id":   id,
 				"type": "tx",
 			},
@@ -62,10 +62,10 @@ func TestTransactionTransform(t *testing.T) {
 				Type:      "tx",
 				SpanCount: SpanCount{Started: &startedSpans},
 			},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"id":         id,
 				"type":       "tx",
-				"span_count": common.MapStr{"started": 14},
+				"span_count": mapstr.M{"started": 14},
 			},
 			Msg: "SpanCount only contains `started`",
 		},
@@ -75,10 +75,10 @@ func TestTransactionTransform(t *testing.T) {
 				Type:      "tx",
 				SpanCount: SpanCount{Dropped: &dropped},
 			},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"id":         id,
 				"type":       "tx",
-				"span_count": common.MapStr{"dropped": 5},
+				"span_count": mapstr.M{"dropped": 5},
 			},
 			Msg: "SpanCount only contains `dropped`",
 		},
@@ -92,12 +92,12 @@ func TestTransactionTransform(t *testing.T) {
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
 				Root:      true,
 			},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"id":         id,
 				"name":       "mytransaction",
 				"type":       "tx",
 				"result":     "tx result",
-				"span_count": common.MapStr{"started": 14, "dropped": 5},
+				"span_count": mapstr.M{"started": 14, "dropped": 5},
 				"sampled":    true,
 				"root":       true,
 			},
@@ -131,21 +131,21 @@ func TestTransactionTransform(t *testing.T) {
 				},
 				Root: true,
 			},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"id":         id,
 				"name":       "mytransaction",
 				"type":       "tx",
 				"result":     "tx result",
-				"span_count": common.MapStr{"started": 14, "dropped": 5},
-				"dropped_spans_stats": []common.MapStr{
+				"span_count": mapstr.M{"started": 14, "dropped": 5},
+				"dropped_spans_stats": []mapstr.M{
 					{
 						"destination_service_resource": "mysql://server:3306",
-						"duration":                     common.MapStr{"count": 5, "sum.us": int64(65980)},
+						"duration":                     mapstr.M{"count": 5, "sum.us": int64(65980)},
 						"outcome":                      "success",
 					},
 					{
 						"destination_service_resource": "http://elasticsearch:9200",
-						"duration":                     common.MapStr{"count": 15, "sum.us": int64(65980)},
+						"duration":                     mapstr.M{"count": 15, "sum.us": int64(65980)},
 						"outcome":                      "unknown",
 					},
 				},
@@ -191,38 +191,38 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		UserAgent: UserAgent{Original: userAgent},
 		URL:       URL{Original: url},
 		Transaction: &Transaction{
-			Custom:  common.MapStr{"foo.bar": "baz"},
+			Custom:  mapstr.M{"foo.bar": "baz"},
 			Message: &Message{QueueName: "routeUser"},
 			Sampled: true,
 		},
 	}
 
 	event := txWithContext.BeatEvent()
-	assert.Equal(t, common.MapStr{
-		"processor":  common.MapStr{"name": "transaction", "event": "transaction"},
-		"user":       common.MapStr{"id": "123", "name": "jane"},
-		"user_agent": common.MapStr{"original": userAgent},
-		"host": common.MapStr{
+	assert.Equal(t, mapstr.M{
+		"processor":  mapstr.M{"name": "transaction", "event": "transaction"},
+		"user":       mapstr.M{"id": "123", "name": "jane"},
+		"user_agent": mapstr.M{"original": userAgent},
+		"host": mapstr.M{
 			"architecture": "darwin",
 			"hostname":     "a.b.c",
 			"name":         "jane",
-			"os": common.MapStr{
+			"os": mapstr.M{
 				"platform": "x64",
 			},
 		},
-		"service": common.MapStr{
+		"service": mapstr.M{
 			"name":    serviceName,
 			"version": serviceVersion,
-			"node":    common.MapStr{"name": serviceNodeName},
+			"node":    mapstr.M{"name": serviceNodeName},
 		},
-		"transaction": common.MapStr{
+		"transaction": mapstr.M{
 			"sampled": true,
-			"custom": common.MapStr{
+			"custom": mapstr.M{
 				"foo_bar": "baz",
 			},
-			"message": common.MapStr{"queue": common.MapStr{"name": "routeUser"}},
+			"message": mapstr.M{"queue": mapstr.M{"name": "routeUser"}},
 		},
-		"url": common.MapStr{
+		"url": mapstr.M{
 			"original": url,
 		},
 	}, event.Fields)
@@ -231,7 +231,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 func TestTransactionTransformMarks(t *testing.T) {
 	tests := []struct {
 		Transaction Transaction
-		Output      common.MapStr
+		Output      mapstr.M
 		Msg         string
 	}{
 		{
@@ -242,8 +242,8 @@ func TestTransactionTransformMarks(t *testing.T) {
 					},
 				},
 			},
-			Output: common.MapStr{
-				"a_b": common.MapStr{
+			Output: mapstr.M{
+				"a_b": mapstr.M{
 					"c_d": float64(123),
 				},
 			},

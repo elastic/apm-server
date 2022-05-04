@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Processor identifies an event type, and is used for routing events
@@ -30,9 +30,9 @@ type Processor struct {
 	Event string
 }
 
-func (p *Processor) fields() common.MapStr {
+func (p *Processor) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("name", p.Name)
 	fields.maybeSetString("event", p.Event)
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

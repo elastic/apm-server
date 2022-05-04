@@ -28,15 +28,16 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/datastreams"
 )
 
 func TestNewSupporter(t *testing.T) {
-	supporter, err := NewSupporter(nil, beat.Info{}, common.MustNewConfigFrom(map[string]interface{}{}))
+	supporter, err := NewSupporter(nil, beat.Info{}, config.MustNewConfigFrom(map[string]interface{}{}))
 	require.NoError(t, err)
 	require.NotNil(t, supporter)
 
@@ -58,7 +59,7 @@ func TestNewSupporter(t *testing.T) {
 	selector, err := supporter.BuildSelector(nil)
 	require.NoError(t, err)
 	index, err := selector.Select(&beat.Event{
-		Fields: common.MapStr{
+		Fields: mapstr.M{
 			datastreams.TypeField:      datastreams.TracesType,
 			datastreams.DatasetField:   "apm",
 			datastreams.NamespaceField: "production",
@@ -83,7 +84,7 @@ func TestNewSupporterWarnings(t *testing.T) {
 		"setup.template.pattern":                      "custom",
 	}
 
-	NewSupporter(logger, beat.Info{}, common.MustNewConfigFrom(attrs))
+	NewSupporter(logger, beat.Info{}, config.MustNewConfigFrom(attrs))
 
 	var warnings []string
 	for _, record := range observed.All() {

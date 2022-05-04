@@ -21,13 +21,13 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/model"
 )
 
 // LabelsFrom populates the Labels and NumericLabels.
-func LabelsFrom(from common.MapStr, to *model.APMEvent) {
+func LabelsFrom(from mapstr.M, to *model.APMEvent) {
 	to.NumericLabels = make(model.NumericLabels)
 	to.Labels = make(model.Labels)
 	MergeLabels(from, to)
@@ -37,7 +37,7 @@ func LabelsFrom(from common.MapStr, to *model.APMEvent) {
 // combining event-specific labels onto (metadata) global labels.
 //
 // If eventLabels is non-nil, it is first cloned.
-func MergeLabels(eventLabels common.MapStr, to *model.APMEvent) {
+func MergeLabels(eventLabels mapstr.M, to *model.APMEvent) {
 	if to.NumericLabels == nil {
 		to.NumericLabels = make(model.NumericLabels)
 	}
@@ -69,7 +69,7 @@ func MergeLabels(eventLabels common.MapStr, to *model.APMEvent) {
 // NormalizeLabelValues transforms the values in labels, replacing any
 // instance of json.Number with libbeat/common.Float, and returning
 // labels.
-func NormalizeLabelValues(labels common.MapStr) common.MapStr {
+func NormalizeLabelValues(labels mapstr.M) mapstr.M {
 	for k, v := range labels {
 		switch v := v.(type) {
 		case json.Number:

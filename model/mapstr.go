@@ -17,9 +17,9 @@
 
 package model
 
-import "github.com/elastic/beats/v7/libbeat/common"
+import "github.com/elastic/elastic-agent-libs/mapstr"
 
-type mapStr common.MapStr
+type mapStr mapstr.M
 
 func (m *mapStr) set(k string, v interface{}) {
 	if *m == nil {
@@ -60,7 +60,7 @@ func (m *mapStr) maybeSetFloat64ptr(k string, v *float64) bool {
 	return false
 }
 
-func (m *mapStr) maybeSetMapStr(k string, v common.MapStr) bool {
+func (m *mapStr) maybeSetMapStr(k string, v mapstr.M) bool {
 	if len(v) > 0 {
 		m.set(k, v)
 		return true

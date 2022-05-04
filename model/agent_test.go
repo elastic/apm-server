@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 const (
@@ -32,7 +32,7 @@ const (
 func TestAgentFields(t *testing.T) {
 	tests := []struct {
 		Agent  Agent
-		Fields common.MapStr
+		Fields mapstr.M
 	}{
 		{
 			Agent:  Agent{},
@@ -43,7 +43,7 @@ func TestAgentFields(t *testing.T) {
 				Name:    agentName,
 				Version: agentVersion,
 			},
-			Fields: common.MapStr{
+			Fields: mapstr.M{
 				"name":    "elastic-node",
 				"version": "1.0.0",
 			},

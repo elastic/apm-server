@@ -17,7 +17,7 @@
 
 package model
 
-import "github.com/elastic/beats/v7/libbeat/common"
+import "github.com/elastic/elastic-agent-libs/mapstr"
 
 // FAAS holds information about a function as a service.
 type FAAS struct {
@@ -30,7 +30,7 @@ type FAAS struct {
 	Version          string
 }
 
-func (f *FAAS) fields() common.MapStr {
+func (f *FAAS) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("id", f.ID)
 	fields.maybeSetBool("coldstart", f.Coldstart)
@@ -39,5 +39,5 @@ func (f *FAAS) fields() common.MapStr {
 	fields.maybeSetString("trigger.request_id", f.TriggerRequestID)
 	fields.maybeSetString("name", f.Name)
 	fields.maybeSetString("version", f.Version)
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

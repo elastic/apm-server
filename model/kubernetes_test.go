@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestKubernetesTransform(t *testing.T) {
@@ -30,7 +30,7 @@ func TestKubernetesTransform(t *testing.T) {
 
 	tests := []struct {
 		Kubernetes Kubernetes
-		Output     common.MapStr
+		Output     mapstr.M
 	}{
 		{
 			Kubernetes: Kubernetes{},
@@ -43,10 +43,10 @@ func TestKubernetesTransform(t *testing.T) {
 				PodName:   podname,
 				PodUID:    poduid,
 			},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"namespace": namespace,
-				"node":      common.MapStr{"name": nodename},
-				"pod": common.MapStr{
+				"node":      mapstr.M{"name": nodename},
+				"pod": mapstr.M{
 					"uid":  poduid,
 					"name": podname,
 				},

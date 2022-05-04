@@ -29,9 +29,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/logp/configure"
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
 )
 
 func TestLogging(t *testing.T) {
@@ -72,7 +72,7 @@ func TestLogging(t *testing.T) {
 	} {
 		configure.Logging(
 			"APM Server test",
-			common.MustNewConfigFrom(`{"ecs":true}`),
+			agentconfig.MustNewConfigFrom(`{"ecs":true}`),
 		)
 		require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 		logger := logp.NewLogger("interceptor.logging.test")

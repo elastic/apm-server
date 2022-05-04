@@ -20,7 +20,7 @@ package model
 import (
 	"net"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Destination holds information about the destination of a request.
@@ -29,7 +29,7 @@ type Destination struct {
 	Port    int
 }
 
-func (d *Destination) fields() common.MapStr {
+func (d *Destination) fields() mapstr.M {
 	var fields mapStr
 	if fields.maybeSetString("address", d.Address) {
 		// Copy destination.address to destination.ip if it's a valid IP.
@@ -43,5 +43,5 @@ func (d *Destination) fields() common.MapStr {
 	if d.Port > 0 {
 		fields.set("port", d.Port)
 	}
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }
