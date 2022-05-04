@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestStacktraceTransform(t *testing.T) {
@@ -42,7 +42,7 @@ func TestStacktraceTransform(t *testing.T) {
 	mappedClassname := "mapped classname"
 	mappedAbsPath := "mapped path"
 
-	vars := common.MapStr{"a": "abc", "b": 123}
+	vars := mapstr.M{"a": "abc", "b": 123}
 
 	contextLine := "context line"
 	preContext := []string{"before1", "before2"}
@@ -50,7 +50,7 @@ func TestStacktraceTransform(t *testing.T) {
 
 	tests := []struct {
 		Stacktrace Stacktrace
-		Output     []common.MapStr
+		Output     []mapstr.M
 		Msg        string
 	}{
 		{
@@ -60,7 +60,7 @@ func TestStacktraceTransform(t *testing.T) {
 		},
 		{
 			Stacktrace: Stacktrace{&StacktraceFrame{}},
-			Output:     []common.MapStr{{"exclude_from_grouping": false}},
+			Output:     []mapstr.M{{"exclude_from_grouping": false}},
 			Msg:        "Stacktrace with empty Frame",
 		},
 		{
@@ -75,13 +75,13 @@ func TestStacktraceTransform(t *testing.T) {
 				LibraryFrame: true,
 				Vars:         vars,
 			}},
-			Output: []common.MapStr{{
+			Output: []mapstr.M{{
 				"abs_path":  "original path",
 				"filename":  "original filename",
 				"function":  "original function",
 				"classname": "original classname",
 				"module":    "original module",
-				"line": common.MapStr{
+				"line": mapstr.M{
 					"number": 111,
 					"column": 222,
 				},
@@ -114,21 +114,21 @@ func TestStacktraceTransform(t *testing.T) {
 				PreContext:          preContext,
 				PostContext:         postContext,
 			}},
-			Output: []common.MapStr{{
+			Output: []mapstr.M{{
 				"abs_path":  "mapped path",
 				"filename":  "mapped filename",
 				"function":  "mapped function",
 				"classname": "mapped classname",
-				"line": common.MapStr{
+				"line": mapstr.M{
 					"number":  333,
 					"column":  444,
 					"context": "context line",
 				},
-				"context": common.MapStr{
+				"context": mapstr.M{
 					"pre":  preContext,
 					"post": postContext,
 				},
-				"original": common.MapStr{
+				"original": mapstr.M{
 					"abs_path":  "original path",
 					"filename":  "original filename",
 					"function":  "original function",
@@ -137,7 +137,7 @@ func TestStacktraceTransform(t *testing.T) {
 					"colno":     222,
 				},
 				"exclude_from_grouping": true,
-				"sourcemap": common.MapStr{
+				"sourcemap": mapstr.M{
 					"updated": true,
 					"error":   "boom",
 				},

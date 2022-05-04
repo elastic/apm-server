@@ -21,16 +21,16 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
-// HTTPHeadersToMap converts h to a common.MapStr, suitable for
+// HTTPHeadersToMap converts h to a mapstr.M, suitable for
 // use in model.HTTP.{Request,Response}.Headers.
-func HTTPHeadersToMap(h http.Header) common.MapStr {
+func HTTPHeadersToMap(h http.Header) mapstr.M {
 	if len(h) == 0 {
 		return nil
 	}
-	m := make(common.MapStr, len(h))
+	m := make(mapstr.M, len(h))
 	for k, v := range h {
 		m[k] = v
 	}

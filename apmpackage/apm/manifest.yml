@@ -6,7 +6,6 @@ license: basic
 description: Ingest APM data
 type: integration
 categories: ["elastic_stack", "monitoring"]
-release: ga
 conditions:
   kibana.version: generated
 icons:
@@ -121,6 +120,9 @@ policy_templates:
           - name: response_headers
             type: yaml
           - name: expvar_enabled
+            type: bool
+            default: false
+          - name: pprof_enabled
             type: bool
             default: false
           - name: java_attacher_discovery_rules

@@ -20,7 +20,7 @@ package model
 import (
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 const (
@@ -46,7 +46,7 @@ type ProfileSampleStackframe struct {
 	Line     int64
 }
 
-func (p *ProfileSample) fields() common.MapStr {
+func (p *ProfileSample) fields() mapstr.M {
 	var profileFields mapStr
 	profileFields.maybeSetString("id", p.ProfileID)
 	if p.Duration > 0 {
@@ -54,7 +54,7 @@ func (p *ProfileSample) fields() common.MapStr {
 	}
 
 	if len(p.Stack) > 0 {
-		stackFields := make([]common.MapStr, len(p.Stack))
+		stackFields := make([]mapstr.M, len(p.Stack))
 		for i, frame := range p.Stack {
 			frameFields := mapStr{
 				"id":       frame.ID,
@@ -65,7 +65,7 @@ func (p *ProfileSample) fields() common.MapStr {
 					frameFields.set("line", frame.Line)
 				}
 			}
-			stackFields[i] = common.MapStr(frameFields)
+			stackFields[i] = mapstr.M(frameFields)
 		}
 		profileFields.set("stack", stackFields)
 		profileFields.set("top", stackFields[0])
@@ -73,5 +73,5 @@ func (p *ProfileSample) fields() common.MapStr {
 	for k, v := range p.Values {
 		profileFields.set(k, v)
 	}
-	return common.MapStr(profileFields)
+	return mapstr.M(profileFields)
 }

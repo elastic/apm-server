@@ -13,6 +13,9 @@ pipeline {
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
     DRA_OUTPUT = 'release-manager.out'
+    COMMIT = "${params?.COMMIT}"
+    JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
+    DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -24,9 +27,8 @@ pipeline {
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
     quietPeriod(10)
   }
-  triggers {
-    // disable upstream trigger on a PR basis
-    upstream("apm-server/apm-server-mbp/${ env.JOB_BASE_NAME.startsWith('PR-') ? 'none' : env.JOB_BASE_NAME }")
+  parameters {
+    string(name: 'COMMIT', defaultValue: '', description: 'The Git commit to be used (empty will checkout the latest commit)')
   }
   stages {
     stage('Filter build') {
@@ -58,9 +60,8 @@ pipeline {
           steps {
             pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
             deleteDir()
-            gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: false,
-                        shallow: false, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
-            stash allowEmpty: true, name: 'source', useDefaultExcludes: false
+            smartGitCheckout()
+            stash(allowEmpty: true, name: 'source', useDefaultExcludes: false)
             // set environment variables globally since they are used afterwards but GIT_BASE_COMMIT won't
             // be available until gitCheckout is executed.
             setEnvVar('URI_SUFFIX', "commits/${env.GIT_BASE_COMMIT}")
@@ -69,8 +70,6 @@ pipeline {
             setEnvVar('IS_BRANCH_AVAILABLE', isBranchUnifiedReleaseAvailable(env.BRANCH_NAME))
             dir("${BASE_DIR}"){
               setEnvVar('VERSION', sh(label: 'Get version', script: 'make get-version', returnStdout: true)?.trim())
-              // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
-              setEnvVar('IS_APM_PACKAGE', isGitRegionMatch(patterns: [ '(cmd/version.go|apmpackage/.*|.ci/packaging.groovy)' ], comparator: 'regexp'))
             }
           }
         }
@@ -98,16 +97,20 @@ pipeline {
                   PACKAGES = "${isArm() ? 'docker' : ''}"
                 }
                 steps {
-                  runIfNoMainAndNoStaging() {
-                    runPackage(type: env.TYPE)
+                  withGithubNotify(context: "Package-${TYPE}-${PLATFORM}") {
+                    runIfNoMainAndNoStaging() {
+                      runPackage(type: env.TYPE)
+                    }
                   }
                 }
               }
               stage('Publish') {
                 options { skipDefaultCheckout() }
                 steps {
-                  runIfNoMainAndNoStaging() {
-                    publishArtifacts(type: env.TYPE)
+                  withGithubNotify(context: "Publish-${TYPE}-${PLATFORM}") {
+                    runIfNoMainAndNoStaging() {
+                      publishArtifacts()
+                    }
                   }
                 }
               }
@@ -123,14 +126,20 @@ pipeline {
         stage('apmpackage') {
           options { skipDefaultCheckout() }
           when {
-            expression { return env.IS_APM_PACKAGE == "true" }
+            allOf {
+              // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
+              changeset pattern: '(cmd/version.go|apmpackage/.*|.ci/packaging.groovy)', comparator: 'REGEXP'
+              not { changeRequest() }
+            }
           }
           steps {
-            runWithMage() {
-              sh(script: 'make build-package', label: 'make build-package')
-              sh(label: 'package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
-              withGitContext() {
-                sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
+            withGithubNotify(context: 'apmpackage') {
+              runWithMage() {
+                sh(script: 'make build-package', label: 'make build-package')
+                sh(label: 'package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
+                withGitContext() {
+                  sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
+                }
               }
             }
           }
@@ -222,6 +231,18 @@ def runWithMage(Closure body) {
   }
 }
 
+def publishArtifacts() {
+  if(env.IS_BRANCH_AVAILABLE == "true") {
+    publishArtifactsDRA(type: env.TYPE)
+  } else {
+    if (env.TYPE == "snapshot" && !isArm()) {
+      publishArtifactsDev()
+    } else {
+      echo "publishArtifacts: type is not required to be published for this particular branch/PR"
+    }
+  }
+}
+
 def runPackage(def args = [:]) {
   def type = args.type
   def makeGoal = 'release-manager-snapshot'
@@ -233,10 +254,27 @@ def runPackage(def args = [:]) {
   }
 }
 
-def publishArtifacts(def args = [:]) {
-  def bucketLocation = getBucketLocation(args.type)
+def publishArtifactsDev() {
+  def bucketLocation = "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}"
+  if (isPR()) {
+    bucketLocation = "gs://${JOB_GCS_BUCKET}/snapshots"
+  }
+  uploadArtifacts(bucketLocation: bucketLocation)
+  uploadArtifacts(bucketLocation: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}")
+
+  dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
+  dir("${BASE_DIR}"){
+    sh(label: 'Push', script: "./.ci/scripts/push-docker.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+  }
+}
+
+def publishArtifactsDRA(def args = [:]) {
+  uploadArtifacts(bucketLocation: getBucketLocation(args.type))
+}
+
+def uploadArtifacts(def args = [:]) {
   // Copy those files to another location with the sha commit to test them afterward.
-  googleStorageUpload(bucket: "${bucketLocation}",
+  googleStorageUpload(bucket: "${args.bucketLocation}",
     credentialsId: "${JOB_GCS_CREDENTIALS}",
     pathPrefix: "${BASE_DIR}/build/distributions/",
     pattern: "${BASE_DIR}/build/distributions/**/*",
@@ -244,7 +282,7 @@ def publishArtifacts(def args = [:]) {
     showInline: true)
   // Copy the dependencies files if no ARM
   whenFalse(isArm()) {
-    googleStorageUpload(bucket: "${bucketLocation}",
+    googleStorageUpload(bucket: "${args.bucketLocation}",
       credentialsId: "${JOB_GCS_CREDENTIALS}",
       pathPrefix: "${BASE_DIR}/build/",
       pattern: "${BASE_DIR}/build/dependencies.csv",
@@ -307,5 +345,19 @@ def withGitContext(Closure body) {
         sh(label: 'Rollback git context', script: """git config remote.origin.url "https://github.com/${ORG_NAME}/package-storage.git" """)
       }
     }
+  }
+}
+
+def smartGitCheckout() {
+  // Checkout the given commit
+  if (env.COMMIT?.trim()) {
+    gitCheckout(basedir: "${BASE_DIR}",
+                branch: "${env.COMMIT}",
+                credentialsId: "${JOB_GIT_CREDENTIALS}",
+                repo: "https://github.com/elastic/${REPO}.git")
+  } else {
+    gitCheckout(basedir: "${BASE_DIR}",
+                githubNotifyFirstTimeContributor: false,
+                shallow: false)
   }
 }

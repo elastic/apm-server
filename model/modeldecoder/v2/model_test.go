@@ -32,7 +32,7 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 //
@@ -190,9 +190,9 @@ func TestReset(t *testing.T) {
 			`{"labels":{"a":"new"}}}`,
 			`{}`}
 		expected := []metadata{
-			{Labels: common.MapStr{"a": "1", "b": "s", "c": true}},
-			{Labels: common.MapStr{"a": "new"}},
-			{Labels: common.MapStr{}}}
+			{Labels: mapstr.M{"a": "1", "b": "s", "c": true}},
+			{Labels: mapstr.M{"a": "new"}},
+			{Labels: mapstr.M{}}}
 		for i := 0; i < len(inputs); i++ {
 			out.Reset()
 			decode(t, inputs[i], &out)

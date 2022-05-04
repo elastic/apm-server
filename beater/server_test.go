@@ -48,7 +48,6 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/management"
@@ -59,6 +58,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/processing"
 	"github.com/elastic/beats/v7/libbeat/publisher/queue"
 	"github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
 
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
@@ -134,7 +134,7 @@ func TestServerRoot(t *testing.T) {
 func TestServerRootWithToken(t *testing.T) {
 	token := "verysecret"
 	badToken := "Verysecret"
-	ucfg, err := common.NewConfigFrom(m{"auth.secret_token": token})
+	ucfg, err := agentconfig.NewConfigFrom(m{"auth.secret_token": token})
 	assert.NoError(t, err)
 	apm, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
@@ -175,7 +175,7 @@ func TestServerTcpNoPort(t *testing.T) {
 			t.Error(err)
 		}
 	}
-	ucfg, err := common.NewConfigFrom(map[string]interface{}{
+	ucfg, err := agentconfig.NewConfigFrom(map[string]interface{}{
 		"host": "localhost",
 	})
 	assert.NoError(t, err)
@@ -204,7 +204,7 @@ func TestServerOkUnix(t *testing.T) {
 	}
 
 	addr := tmpTestUnix(t)
-	ucfg, err := common.NewConfigFrom(map[string]interface{}{"host": "unix:" + addr})
+	ucfg, err := agentconfig.NewConfigFrom(map[string]interface{}{"host": "unix:" + addr})
 	assert.NoError(t, err)
 	btr, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
@@ -231,7 +231,7 @@ func TestServerHealth(t *testing.T) {
 }
 
 func TestServerRumSwitch(t *testing.T) {
-	ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": []string{"*"}}})
+	ucfg, err := agentconfig.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": []string{"*"}}})
 	assert.NoError(t, err)
 	apm, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
@@ -250,7 +250,7 @@ func TestServerSourcemapBadConfig(t *testing.T) {
 	// to create config with an empty hosts list.
 	t.Skip("test is broken, config is no longer invalid")
 
-	ucfg, err := common.NewConfigFrom(
+	ucfg, err := agentconfig.NewConfigFrom(
 		m{"rum": m{"enabled": true, "source_mapping": m{"elasticsearch": m{"hosts": []string{}}}}},
 	)
 	require.NoError(t, err)
@@ -299,7 +299,7 @@ func TestServerCORS(t *testing.T) {
 
 	for idx, test := range tests {
 		t.Run(fmt.Sprint(idx), func(t *testing.T) {
-			ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": test.allowedOrigins}})
+			ucfg, err := agentconfig.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": test.allowedOrigins}})
 			assert.NoError(t, err)
 			apm, err := setupServer(t, ucfg, nil, nil)
 			require.NoError(t, err)
@@ -380,11 +380,11 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			ucfg, err := common.NewConfigFrom(tc.config)
+			ucfg, err := agentconfig.NewConfigFrom(tc.config)
 			require.NoError(t, err)
 
 			var beatConfig beat.BeatConfig
-			ocfg, err := common.NewConfigFrom(tc.outputConfig)
+			ocfg, err := agentconfig.NewConfigFrom(tc.outputConfig)
 			require.NoError(t, err)
 			require.NoError(t, beatConfig.Output.Unpack(ocfg))
 
@@ -417,7 +417,7 @@ func TestServerJaegerGRPC(t *testing.T) {
 }
 
 func TestServerOTLPGRPC(t *testing.T) {
-	ucfg, err := common.NewConfigFrom(m{"auth.secret_token": "abc123"})
+	ucfg, err := agentconfig.NewConfigFrom(m{"auth.secret_token": "abc123"})
 	assert.NoError(t, err)
 	server, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
@@ -463,7 +463,7 @@ func TestServerConfigReload(t *testing.T) {
 	}()
 	reload.Register = reload.NewRegistry()
 
-	cfg := common.MustNewConfigFrom(map[string]interface{}{
+	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
 		// Set an invalid host to illustrate that the static config
 		// is not used for defining the listening address.
 		"host": "testing.invalid:123",
@@ -489,14 +489,14 @@ func TestServerConfigReload(t *testing.T) {
 	}
 
 	// The config must contain an "apm-server" section, and will be rejected otherwise.
-	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: common.NewConfig()}})
+	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: agentconfig.NewConfig()}})
 	assert.EqualError(t, err, "'apm-server' not found in integration config")
 
 	// Creating the socket listener is performed synchronously in the Reload method
 	// to ensure zero downtime when reloading an already running server. Illustrate
 	// that the socket listener is created synhconously in Reload by attempting to
 	// reload with an invalid host.
-	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: common.MustNewConfigFrom(map[string]interface{}{
+	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"apm-server": map[string]interface{}{
 			"host": "testing.invalid:123",
 		},
@@ -504,7 +504,7 @@ func TestServerConfigReload(t *testing.T) {
 	require.Error(t, err)
 	assert.Regexp(t, "listen tcp: lookup testing.invalid: .*", err.Error())
 
-	inputConfig := common.MustNewConfigFrom(map[string]interface{}{
+	inputConfig := agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"apm-server": map[string]interface{}{
 			"host": "localhost:0",
 		},
@@ -540,7 +540,7 @@ func TestServerConfigReload(t *testing.T) {
 	assert.Error(t, err)
 
 	// Reload output config, should also cause HTTP server to be restarted.
-	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{Config: common.NewConfig()})
+	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{Config: agentconfig.NewConfig()})
 	assert.NoError(t, err)
 
 	addr3, err := beater.waitListenAddr(1 * time.Second)
@@ -596,7 +596,7 @@ func TestServerOutputConfigReload(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}
 
-	inputConfig := common.MustNewConfigFrom(map[string]interface{}{
+	inputConfig := agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"apm-server": map[string]interface{}{
 			"host": "localhost:0",
 			"sampling.tail": map[string]interface{}{
@@ -615,7 +615,7 @@ func TestServerOutputConfigReload(t *testing.T) {
 
 	// Reloaded output config should be passed into apm-server config.
 	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{
-		Config: common.MustNewConfigFrom(map[string]interface{}{
+		Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
 			"elasticsearch.username": "updated",
 		}),
 	})
@@ -649,7 +649,7 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	cfg := common.MustNewConfigFrom(map[string]interface{}{
+	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"wait_ready_interval": "100ms",
 		"kibana.enabled":      true,
 		"kibana.host":         srv.URL,
@@ -716,9 +716,9 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	cfg := common.MustNewConfigFrom(map[string]interface{}{"wait_ready_interval": "100ms"})
+	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{"wait_ready_interval": "100ms"})
 	var beatConfig beat.BeatConfig
-	err := beatConfig.Output.Unpack(common.MustNewConfigFrom(map[string]interface{}{
+	err := beatConfig.Output.Unpack(agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
 			"hosts":       []string{srv.URL},
 			"backoff":     map[string]interface{}{"init": "10ms", "max": "10ms"},
@@ -827,7 +827,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	// Reload output config to show that apm-server will switch to the
 	// output dynamically.
 	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{
-		Config: common.MustNewConfigFrom(map[string]interface{}{
+		Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
 			"elasticsearch": map[string]interface{}{
 				"hosts":       []string{srv.URL},
 				"flush_bytes": "1kb", // test data is >1kb
@@ -851,7 +851,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}
 
-	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: common.MustNewConfigFrom(map[string]interface{}{
+	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"apm-server": map[string]interface{}{
 			"host": "localhost:0",
 		},
@@ -910,7 +910,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 }
 
 func TestServerPProf(t *testing.T) {
-	ucfg, err := common.NewConfigFrom(m{"pprof.enabled": true})
+	ucfg, err := agentconfig.NewConfigFrom(m{"pprof.enabled": true})
 	assert.NoError(t, err)
 	server, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
@@ -976,12 +976,12 @@ func (d *dummyOutputClient) Publish(_ context.Context, batch pubs.Batch) error {
 func (d *dummyOutputClient) Close() error   { return nil }
 func (d *dummyOutputClient) String() string { return "" }
 
-func dummyPipeline(cfg *common.Config, info beat.Info, clients ...outputs.Client) *pipeline.Pipeline {
+func dummyPipeline(cfg *agentconfig.C, info beat.Info, clients ...outputs.Client) *pipeline.Pipeline {
 	if len(clients) == 0 {
 		clients = []outputs.Client{&dummyOutputClient{}}
 	}
 	if cfg == nil {
-		cfg = common.NewConfig()
+		cfg = agentconfig.NewConfig()
 	}
 	processors, err := processing.MakeDefaultSupport(false)(info, logp.NewLogger("testbeat"), cfg)
 	if err != nil {

@@ -24,7 +24,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestAPMEventFields(t *testing.T) {
@@ -49,7 +49,7 @@ func TestAPMEventFields(t *testing.T) {
 
 	for _, test := range []struct {
 		input  APMEvent
-		output common.MapStr
+		output mapstr.M
 	}{{
 		input: APMEvent{
 			ECSVersion: "1.0.0",
@@ -126,70 +126,70 @@ func TestAPMEventFields(t *testing.T) {
 				},
 			},
 		},
-		output: common.MapStr{
+		output: mapstr.M{
 			// common fields
-			"ecs":       common.MapStr{"version": "1.0.0"},
-			"agent":     common.MapStr{"version": "1.0.0", "name": "elastic-node"},
-			"observer":  common.MapStr{"type": "apm-server"},
-			"container": common.MapStr{"id": containerID},
-			"host":      common.MapStr{"hostname": hostname, "name": host},
-			"process":   common.MapStr{"pid": pid},
-			"service": common.MapStr{
+			"ecs":       mapstr.M{"version": "1.0.0"},
+			"agent":     mapstr.M{"version": "1.0.0", "name": "elastic-node"},
+			"observer":  mapstr.M{"type": "apm-server"},
+			"container": mapstr.M{"id": containerID},
+			"host":      mapstr.M{"hostname": hostname, "name": host},
+			"process":   mapstr.M{"pid": pid},
+			"service": mapstr.M{
 				"name": "myservice",
-				"node": common.MapStr{"name": serviceNodeName},
-				"origin": common.MapStr{
+				"node": mapstr.M{"name": serviceNodeName},
+				"origin": mapstr.M{
 					"id":      "abc123",
 					"name":    "myservice",
 					"version": "1.0",
 				},
 			},
-			"user":   common.MapStr{"id": "12321", "email": "user@email.com"},
-			"client": common.MapStr{"domain": "client.domain"},
-			"source": common.MapStr{
+			"user":   mapstr.M{"id": "12321", "email": "user@email.com"},
+			"client": mapstr.M{"domain": "client.domain"},
+			"source": mapstr.M{
 				"ip":   "127.0.0.1",
 				"port": 1234,
-				"nat":  common.MapStr{"ip": "10.10.10.10"},
+				"nat":  mapstr.M{"ip": "10.10.10.10"},
 			},
-			"destination": common.MapStr{
+			"destination": mapstr.M{
 				"address": destinationAddress,
 				"ip":      destinationAddress,
 				"port":    destinationPort,
 			},
-			"event":   common.MapStr{"outcome": outcome, "duration": eventDuration.Nanoseconds()},
-			"session": common.MapStr{"id": "session_id"},
-			"url":     common.MapStr{"original": "url"},
-			"labels": common.MapStr{
+			"event":   mapstr.M{"outcome": outcome, "duration": eventDuration.Nanoseconds()},
+			"session": mapstr.M{"id": "session_id"},
+			"url":     mapstr.M{"original": "url"},
+			"labels": mapstr.M{
 				"a": "b",
 				"c": "true",
 				"d": []string{"true", "false"},
 			},
-			"numeric_labels": common.MapStr{
+			"numeric_labels": mapstr.M{
 				"e": float64(1234),
 				"f": []float64{1234, 12311},
 			},
 			"message": "bottle",
-			"trace": common.MapStr{
+			"trace": mapstr.M{
 				"id": traceID,
 			},
-			"processor": common.MapStr{
+			"processor": mapstr.M{
 				"name":  "processor_name",
 				"event": "processor_event",
 			},
-			"parent": common.MapStr{
+			"parent": mapstr.M{
 				"id": parentID,
 			},
-			"child": common.MapStr{
+			"child": mapstr.M{
 				"id": childID,
 			},
-			"http": common.MapStr{
-				"request": common.MapStr{
+			"http": mapstr.M{
+				"request": mapstr.M{
 					"method": "post",
 					"body": mapStr{
 						"original": httpRequestBody,
 					},
 				},
 			},
-			"faas": common.MapStr{
+			"faas": mapstr.M{
 				"id":                 "faasID",
 				"coldstart":          true,
 				"execution":          "execution",
@@ -198,8 +198,8 @@ func TestAPMEventFields(t *testing.T) {
 				"name":               "faasName",
 				"version":            "1.0.0",
 			},
-			"cloud": common.MapStr{
-				"origin": common.MapStr{
+			"cloud": mapstr.M{
+				"origin": mapstr.M{
 					"account.id":   "accountID",
 					"provider":     "aws",
 					"region":       "us-west-1",
@@ -212,10 +212,10 @@ func TestAPMEventFields(t *testing.T) {
 			Processor: TransactionProcessor,
 			Timestamp: time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600)),
 		},
-		output: common.MapStr{
-			"processor": common.MapStr{"name": "transaction", "event": "transaction"},
+		output: mapstr.M{
+			"processor": mapstr.M{"name": "transaction", "event": "transaction"},
 			// timestamp.us is added for transactions, spans, and errors.
-			"timestamp": common.MapStr{"us": 1546525024908596},
+			"timestamp": mapstr.M{"us": 1546525024908596},
 		},
 	}} {
 		event := test.input.BeatEvent()

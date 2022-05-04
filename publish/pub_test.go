@@ -33,7 +33,6 @@ import (
 	"go.elastic.co/apm/v2/apmtest"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/outputs"
@@ -43,6 +42,8 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 	"github.com/elastic/beats/v7/libbeat/publisher/queue"
 	"github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
+	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
@@ -68,7 +69,7 @@ func TestPublisherStop(t *testing.T) {
 	// time has elapsed.
 	for {
 		err := publisher.Send(context.Background(), publish.PendingReq{
-			Transformable: makeTransformable(beat.Event{Fields: make(common.MapStr)}),
+			Transformable: makeTransformable(beat.Event{Fields: make(mapstr.M)}),
 		})
 		if err == publish.ErrFull {
 			break
@@ -83,7 +84,7 @@ func TestPublisherStop(t *testing.T) {
 
 	// Set an output which acknowledges events immediately, unblocking publisher.Stop.
 	assert.NoError(t, pipeline.OutputReloader().Reload(nil,
-		func(outputs.Observer, common.ConfigNamespace) (outputs.Group, error) {
+		func(outputs.Observer, config.Namespace) (outputs.Group, error) {
 			return outputs.Group{Clients: []outputs.Client{&mockClient{}}}, nil
 		},
 	))
@@ -127,7 +128,7 @@ func BenchmarkPublisher(b *testing.B) {
 
 	supporter, err := idxmgmt.DefaultSupport(logp.NewLogger("beater_test"), beat.Info{}, nil)
 	require.NoError(b, err)
-	outputGroup, err := outputs.Load(supporter, beat.Info{}, nil, "elasticsearch", common.MustNewConfigFrom(map[string]interface{}{
+	outputGroup, err := outputs.Load(supporter, beat.Info{}, nil, "elasticsearch", config.MustNewConfigFrom(map[string]interface{}{
 		"hosts": []interface{}{srv.URL},
 	}))
 	require.NoError(b, err)
@@ -144,7 +145,7 @@ func BenchmarkPublisher(b *testing.B) {
 		},
 		outputGroup,
 		pipeline.Settings{
-			WaitCloseMode:  pipeline.WaitOnClientClose,
+			WaitCloseMode:  pipeline.WaitOnPipelineClose,
 			InputQueueSize: 2048,
 		},
 	)

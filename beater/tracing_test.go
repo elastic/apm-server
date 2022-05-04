@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
 )
 
 func TestServerTracingEnabled(t *testing.T) {
@@ -36,7 +36,7 @@ func TestServerTracingEnabled(t *testing.T) {
 
 	for _, enabled := range []bool{false, true} {
 		t.Run(fmt.Sprint(enabled), func(t *testing.T) {
-			cfg := common.MustNewConfigFrom(m{
+			cfg := agentconfig.MustNewConfigFrom(m{
 				"host":                    "localhost:0",
 				"instrumentation.enabled": enabled,
 			})

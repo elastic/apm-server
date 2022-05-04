@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Observer describes a special network, security, or application device used to detect,
@@ -34,7 +34,7 @@ type Observer struct {
 	Version     string
 }
 
-func (o *Observer) Fields() common.MapStr {
+func (o *Observer) Fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("ephemeral_id", o.EphemeralID)
 	fields.maybeSetString("hostname", o.Hostname)
@@ -42,5 +42,5 @@ func (o *Observer) Fields() common.MapStr {
 	fields.maybeSetString("name", o.Name)
 	fields.maybeSetString("type", o.Type)
 	fields.maybeSetString("version", o.Version)
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

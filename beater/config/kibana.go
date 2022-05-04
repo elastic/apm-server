@@ -20,8 +20,8 @@ package config
 import (
 	"strings"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/kibana"
+	"github.com/elastic/elastic-agent-libs/config"
 )
 
 type KibanaConfig struct {
@@ -30,7 +30,7 @@ type KibanaConfig struct {
 	kibana.ClientConfig `config:",inline"`
 }
 
-func (k *KibanaConfig) Unpack(cfg *common.Config) error {
+func (k *KibanaConfig) Unpack(cfg *config.C) error {
 	type kibanaConfig KibanaConfig
 	if err := cfg.Unpack((*kibanaConfig)(k)); err != nil {
 		return err

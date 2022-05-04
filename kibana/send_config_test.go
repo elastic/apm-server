@@ -25,13 +25,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/go-ucfg"
 )
 
 func TestFlattenAndFormat(t *testing.T) {
 	tlsFieldsCount, loggingFieldCount := 0, 0
-	cc, err := common.NewConfigWithYAML([]byte(serverYAML), "apm-server.yml")
+	cc, err := config.NewConfigWithYAML([]byte(serverYAML), "apm-server.yml")
 	c := ucfg.Config(*cc)
 	require.NoError(t, err)
 

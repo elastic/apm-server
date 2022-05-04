@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Agent describes an Elastic APM agent.
@@ -28,10 +28,10 @@ type Agent struct {
 	EphemeralID string
 }
 
-func (a *Agent) fields() common.MapStr {
+func (a *Agent) fields() mapstr.M {
 	var agent mapStr
 	agent.maybeSetString("name", a.Name)
 	agent.maybeSetString("version", a.Version)
 	agent.maybeSetString("ephemeral_id", a.EphemeralID)
-	return common.MapStr(agent)
+	return mapstr.M(agent)
 }

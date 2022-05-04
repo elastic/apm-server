@@ -34,7 +34,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api"
@@ -47,7 +47,7 @@ var timestampOverride = time.Date(2019, 1, 9, 21, 40, 53, 690, time.UTC)
 func adjustMissingTimestamp(event *beat.Event) {
 	if time.Since(event.Timestamp) < 5*time.Minute {
 		event.Timestamp = timestampOverride
-		if event.Fields["processor"].(common.MapStr)["name"] == "metric" {
+		if event.Fields["processor"].(mapstr.M)["name"] == "metric" {
 			return
 		}
 		event.Fields.Put("timestamp.us", timestampOverride.UnixNano()/1000)

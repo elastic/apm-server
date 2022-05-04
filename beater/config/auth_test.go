@@ -25,13 +25,13 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/elasticsearch"
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/config"
 )
 
 func TestAPIKeyAgentAuth_ESConfig(t *testing.T) {
 	for name, tc := range map[string]struct {
-		cfg            *common.Config
-		esCfg          *common.Config
+		cfg            *config.C
+		esCfg          *config.C
 		expectedConfig APIKeyAgentAuth
 	}{
 		"default": {
@@ -39,7 +39,7 @@ func TestAPIKeyAgentAuth_ESConfig(t *testing.T) {
 			expectedConfig: defaultAPIKeyAgentAuth(),
 		},
 		"ES config missing": {
-			cfg: common.MustNewConfigFrom(`{"enabled": true}`),
+			cfg: config.MustNewConfigFrom(`{"enabled": true}`),
 			expectedConfig: APIKeyAgentAuth{
 				Enabled:     true,
 				LimitPerMin: 100,
@@ -48,8 +48,8 @@ func TestAPIKeyAgentAuth_ESConfig(t *testing.T) {
 			},
 		},
 		"ES configured": {
-			cfg:   common.MustNewConfigFrom(`{"enabled": true, "elasticsearch.timeout":"7s"}`),
-			esCfg: common.MustNewConfigFrom(`{"hosts":["186.0.0.168:9200"]}`),
+			cfg:   config.MustNewConfigFrom(`{"enabled": true, "elasticsearch.timeout":"7s"}`),
+			esCfg: config.MustNewConfigFrom(`{"hosts":["186.0.0.168:9200"]}`),
 			expectedConfig: APIKeyAgentAuth{
 				Enabled:     true,
 				LimitPerMin: 100,
@@ -67,12 +67,12 @@ func TestAPIKeyAgentAuth_ESConfig(t *testing.T) {
 		},
 		"disabled with ES from output": {
 			cfg:            nil,
-			esCfg:          common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`),
+			esCfg:          config.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`),
 			expectedConfig: defaultAPIKeyAgentAuth(),
 		},
 		"ES from output": {
-			cfg:   common.MustNewConfigFrom(`{"enabled": true, "limit": 20}`),
-			esCfg: common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"],"username":"foo","password":"bar"}`),
+			cfg:   config.MustNewConfigFrom(`{"enabled": true, "limit": 20}`),
+			esCfg: config.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"],"username":"foo","password":"bar"}`),
 			expectedConfig: APIKeyAgentAuth{
 				Enabled:     true,
 				LimitPerMin: 20,
@@ -91,7 +91,7 @@ func TestAPIKeyAgentAuth_ESConfig(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			input := common.NewConfig()
+			input := config.NewConfig()
 			if tc.cfg != nil {
 				input.SetChild("auth.api_key", -1, tc.cfg)
 			}
@@ -104,15 +104,15 @@ func TestAPIKeyAgentAuth_ESConfig(t *testing.T) {
 
 func TestAnonymousAgentAuth(t *testing.T) {
 	for name, tc := range map[string]struct {
-		cfg            *common.Config
+		cfg            *config.C
 		expectedConfig AnonymousAgentAuth
 	}{
 		"default": {
-			cfg:            common.NewConfig(),
+			cfg:            config.NewConfig(),
 			expectedConfig: defaultAnonymousAgentAuth(),
 		},
 		"allow_service": {
-			cfg: common.MustNewConfigFrom(`{"auth.anonymous.allow_service":["service-one"]}`),
+			cfg: config.MustNewConfigFrom(`{"auth.anonymous.allow_service":["service-one"]}`),
 			expectedConfig: AnonymousAgentAuth{
 				AllowAgent:   []string{"rum-js", "js-base"},
 				AllowService: []string{"service-one"},
@@ -124,7 +124,7 @@ func TestAnonymousAgentAuth(t *testing.T) {
 			},
 		},
 		"rum_enabled_anon_inferred": {
-			cfg: common.MustNewConfigFrom(`{"auth.secret_token": "abc","rum.enabled":true,"auth.anonymous.allow_service":["service-one"]}`),
+			cfg: config.MustNewConfigFrom(`{"auth.secret_token": "abc","rum.enabled":true,"auth.anonymous.allow_service":["service-one"]}`),
 			expectedConfig: AnonymousAgentAuth{
 				Enabled:      true,
 				AllowAgent:   []string{"rum-js", "js-base"},
@@ -137,7 +137,7 @@ func TestAnonymousAgentAuth(t *testing.T) {
 			},
 		},
 		"rum_enabled_anon_disabled": {
-			cfg: common.MustNewConfigFrom(
+			cfg: config.MustNewConfigFrom(
 				`{"auth.secret_token":"abc","rum.enabled":true,"auth.anonymous.enabled":false,"auth.anonymous.allow_service":["service-one"]}`,
 			),
 			expectedConfig: AnonymousAgentAuth{
@@ -162,15 +162,15 @@ func TestAnonymousAgentAuth(t *testing.T) {
 
 func TestSecretTokenAuth(t *testing.T) {
 	for name, tc := range map[string]struct {
-		cfg      *common.Config
+		cfg      *config.C
 		expected string
 	}{
 		"default": {
-			cfg:      common.NewConfig(),
+			cfg:      config.NewConfig(),
 			expected: "",
 		},
 		"secret_token_auth": {
-			cfg:      common.MustNewConfigFrom(`{"auth.secret_token":"token-one"}`),
+			cfg:      config.MustNewConfigFrom(`{"auth.secret_token":"token-one"}`),
 			expected: "token-one",
 		},
 	} {

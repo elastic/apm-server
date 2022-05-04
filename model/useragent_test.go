@@ -22,22 +22,22 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestUserAgentFields(t *testing.T) {
 	tests := []struct {
 		UserAgent UserAgent
-		Output    common.MapStr
+		Output    mapstr.M
 	}{{
 		UserAgent: UserAgent{},
 		Output:    nil,
 	}, {
 		UserAgent: UserAgent{Original: "rum-1.0"},
-		Output:    common.MapStr{"original": "rum-1.0"},
+		Output:    mapstr.M{"original": "rum-1.0"},
 	}, {
 		UserAgent: UserAgent{Name: "mosaic"},
-		Output:    common.MapStr{"name": "mosaic"},
+		Output:    mapstr.M{"name": "mosaic"},
 	}}
 
 	for _, test := range tests {

@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestContainerTransform(t *testing.T) {
@@ -30,7 +30,7 @@ func TestContainerTransform(t *testing.T) {
 
 	tests := []struct {
 		Container Container
-		Output    common.MapStr
+		Output    mapstr.M
 	}{
 		{
 			Container: Container{},
@@ -38,23 +38,23 @@ func TestContainerTransform(t *testing.T) {
 		},
 		{
 			Container: Container{ID: id},
-			Output:    common.MapStr{"id": id},
+			Output:    mapstr.M{"id": id},
 		},
 		{
 			Container: Container{Name: "container_name"},
-			Output:    common.MapStr{"name": "container_name"},
+			Output:    mapstr.M{"name": "container_name"},
 		},
 		{
 			Container: Container{Runtime: "container_runtime"},
-			Output:    common.MapStr{"runtime": "container_runtime"},
+			Output:    mapstr.M{"runtime": "container_runtime"},
 		},
 		{
 			Container: Container{ImageName: "image_name"},
-			Output:    common.MapStr{"image": common.MapStr{"name": "image_name"}},
+			Output:    mapstr.M{"image": mapstr.M{"name": "image_name"}},
 		},
 		{
 			Container: Container{ImageTag: "image_tag"},
-			Output:    common.MapStr{"image": common.MapStr{"tag": "image_tag"}},
+			Output:    mapstr.M{"image": mapstr.M{"tag": "image_tag"}},
 		},
 	}
 

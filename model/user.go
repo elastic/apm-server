@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 type User struct {
@@ -28,11 +28,11 @@ type User struct {
 	Name   string
 }
 
-func (u *User) fields() common.MapStr {
+func (u *User) fields() mapstr.M {
 	var user mapStr
 	user.maybeSetString("domain", u.Domain)
 	user.maybeSetString("id", u.ID)
 	user.maybeSetString("email", u.Email)
 	user.maybeSetString("name", u.Name)
-	return common.MapStr(user)
+	return mapstr.M(user)
 }

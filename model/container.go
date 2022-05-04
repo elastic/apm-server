@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 type Container struct {
@@ -29,7 +29,7 @@ type Container struct {
 	ImageTag  string
 }
 
-func (c *Container) fields() common.MapStr {
+func (c *Container) fields() mapstr.M {
 	var container mapStr
 	container.maybeSetString("name", c.Name)
 	container.maybeSetString("id", c.ID)
@@ -38,6 +38,6 @@ func (c *Container) fields() common.MapStr {
 	var image mapStr
 	image.maybeSetString("name", c.ImageName)
 	image.maybeSetString("tag", c.ImageTag)
-	container.maybeSetMapStr("image", common.MapStr(image))
-	return common.MapStr(container)
+	container.maybeSetMapStr("image", mapstr.M(image))
+	return mapstr.M(container)
 }

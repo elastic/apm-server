@@ -28,7 +28,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
@@ -164,7 +164,7 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 			fieldVal = reflect.MakeMapWithSize(f.Type(), values.N)
 			var elemVal reflect.Value
 			switch v := f.Interface().(type) {
-			case map[string]interface{}, common.MapStr:
+			case map[string]interface{}, mapstr.M:
 				elemVal = reflect.ValueOf(values.Str)
 			case map[string]float64:
 				elemVal = reflect.ValueOf(values.Float)
@@ -216,9 +216,6 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				}
 			}
 		case reflect.Ptr:
-			if f.IsNil() {
-				fieldVal = reflect.Zero(f.Type())
-			}
 			return
 		default:
 			fieldVal = reflect.Value{}
@@ -279,8 +276,8 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 				m[fmt.Sprintf("%s%v", values.Str, i)] = values.Str
 			}
 			newVal = m
-		case common.MapStr:
-			m := common.MapStr{}
+		case mapstr.M:
+			m := mapstr.M{}
 			for i := 0; i < values.N; i++ {
 				if _, err := m.Put(fmt.Sprintf("%s%v", values.Str, i), values.Str); err != nil {
 					panic(err)

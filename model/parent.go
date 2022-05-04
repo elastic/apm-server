@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Parent holds information about the parent of a trace event.
@@ -27,8 +27,8 @@ type Parent struct {
 	ID string
 }
 
-func (p *Parent) fields() common.MapStr {
+func (p *Parent) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("id", p.ID)
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }
