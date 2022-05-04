@@ -39,6 +39,7 @@ pipeline {
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
+    booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     string(name: 'ES_LOG_LEVEL', defaultValue: "error", description: 'Elasticsearch error level')
   }
   stages {
@@ -477,7 +478,16 @@ pipeline {
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
-            changeRequest()
+            allOf {
+              expression { return params.release_ci }
+              expression { return env.ONLY_DOCS == "false" }
+              changeRequest()
+              anyOf {
+                expression { return env.BEATS_UPDATED != "false" }
+                expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
+                expression { return params.Run_As_Main_Branch }
+              }
+            }
           }
           steps {
             build(job: "apm-server/apm-server-package-mbp/${env.JOB_BASE_NAME}",
