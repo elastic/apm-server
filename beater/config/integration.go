@@ -20,11 +20,11 @@ package config
 import (
 	"errors"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 )
 
-func NewIntegrationConfig(rootConfig *common.Config) (*IntegrationConfig, error) {
+func NewIntegrationConfig(rootConfig *config.C) (*IntegrationConfig, error) {
 	config := &IntegrationConfig{
 		DataStream: &DataStream{
 			Namespace: "default",
@@ -41,15 +41,15 @@ func NewIntegrationConfig(rootConfig *common.Config) (*IntegrationConfig, error)
 
 // IntegrationConfig that comes from Elastic Agent
 type IntegrationConfig struct {
-	ID         string         `config:"id"`
-	Name       string         `config:"name"`
-	Revision   int            `config:"revision"`
-	Type       string         `config:"type"`
-	UseOutput  string         `config:"use_output"`
-	Meta       *Meta          `config:"meta"`
-	DataStream *DataStream    `config:"data_stream"`
-	APMServer  *common.Config `config:"apm-server"`
-	Fleet      Fleet          `config:"fleet"`
+	ID         string      `config:"id"`
+	Name       string      `config:"name"`
+	Revision   int         `config:"revision"`
+	Type       string      `config:"type"`
+	UseOutput  string      `config:"use_output"`
+	Meta       *Meta       `config:"meta"`
+	DataStream *DataStream `config:"data_stream"`
+	APMServer  *config.C   `config:"apm-server"`
+	Fleet      Fleet       `config:"fleet"`
 }
 
 type DataStream struct {

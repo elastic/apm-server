@@ -20,7 +20,7 @@ package model
 import (
 	"net"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 type Host struct {
@@ -47,7 +47,7 @@ type Host struct {
 	OS OS
 }
 
-func (h *Host) fields() common.MapStr {
+func (h *Host) fields() mapstr.M {
 	if h == nil {
 		return nil
 	}
@@ -64,5 +64,5 @@ func (h *Host) fields() common.MapStr {
 		fields.set("ip", ips)
 	}
 	fields.maybeSetMapStr("os", h.OS.fields())
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

@@ -23,8 +23,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/config"
 
 	"github.com/elastic/apm-server/elasticsearch"
 )
@@ -60,7 +60,7 @@ type SourceMapping struct {
 	esConfigured bool
 }
 
-func (c *RumConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
+func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 	if !c.Enabled {
 		return nil
 	}
@@ -93,7 +93,7 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
 	return nil
 }
 
-func (s *SourceMapping) Unpack(inp *common.Config) error {
+func (s *SourceMapping) Unpack(inp *config.C) error {
 	type underlyingSourceMapping SourceMapping
 	if err := inp.Unpack((*underlyingSourceMapping)(s)); err != nil {
 		return errors.Wrap(err, "error unpacking sourcemapping config")

@@ -20,7 +20,7 @@ package root
 import (
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/beats/v7/libbeat/version"
 
@@ -49,7 +49,7 @@ type HandlerConfig struct {
 func Handler(cfg HandlerConfig) request.Handler {
 
 	return func(c *request.Context) {
-		serverInfo := common.MapStr{
+		serverInfo := mapstr.M{
 			"build_date": version.BuildTime().Format(time.RFC3339),
 			"build_sha":  version.Commit(),
 			"version":    cfg.Version,

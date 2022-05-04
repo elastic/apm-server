@@ -17,7 +17,7 @@
 
 package model
 
-import "github.com/elastic/beats/v7/libbeat/common"
+import "github.com/elastic/elastic-agent-libs/mapstr"
 
 type Network struct {
 	// Connection holds information about a network connection.
@@ -54,25 +54,25 @@ type NetworkCarrier struct {
 	ICC string
 }
 
-func (n *Network) fields() common.MapStr {
+func (n *Network) fields() mapstr.M {
 	var network mapStr
 	network.maybeSetMapStr("connection", n.Connection.fields())
 	network.maybeSetMapStr("carrier", n.Carrier.fields())
-	return common.MapStr(network)
+	return mapstr.M(network)
 }
 
-func (c *NetworkConnection) fields() common.MapStr {
+func (c *NetworkConnection) fields() mapstr.M {
 	var connection mapStr
 	connection.maybeSetString("type", c.Type)
 	connection.maybeSetString("subtype", c.Subtype)
-	return common.MapStr(connection)
+	return mapstr.M(connection)
 }
 
-func (c *NetworkCarrier) fields() common.MapStr {
+func (c *NetworkCarrier) fields() mapstr.M {
 	var carrier mapStr
 	carrier.maybeSetString("mcc", c.MCC)
 	carrier.maybeSetString("mnc", c.MNC)
 	carrier.maybeSetString("icc", c.ICC)
 	carrier.maybeSetString("name", c.Name)
-	return common.MapStr(carrier)
+	return mapstr.M(carrier)
 }

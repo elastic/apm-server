@@ -21,7 +21,7 @@ package testdata
 
 import (
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 var (
@@ -58,8 +58,8 @@ type Interface struct {
 }
 
 type Map struct {
-	Required  common.MapStr        `json:"required" validate:"required,inputTypesVals=string;bool;number,maxLengthVals=5,patternKeys=patternB"`
-	Nullable  common.MapStr        `json:"nullable"`
+	Required  mapstr.M        `json:"required" validate:"required,inputTypesVals=string;bool;number,maxLengthVals=5,patternKeys=patternB"`
+	Nullable  mapstr.M        `json:"nullable"`
 	Nested    map[string]NestedMap `json:"nested_a" validate:"patternKeys=patternB"`
 	StructMap NestedStruct         `json:"nested_b"`
 }

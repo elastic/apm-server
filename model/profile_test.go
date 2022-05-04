@@ -27,7 +27,7 @@ import (
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestProfileSampleTransform(t *testing.T) {
@@ -66,21 +66,21 @@ func TestProfileSampleTransform(t *testing.T) {
 
 	assert.Equal(t, beat.Event{
 		Timestamp: timestamp,
-		Fields: common.MapStr{
-			"profile": common.MapStr{
+		Fields: mapstr.M{
+			"profile": mapstr.M{
 				"id":                "profile_id",
 				"duration":          int64(10 * time.Second),
 				"cpu.ns":            int64(123),
 				"wall.us":           int64(789),
 				"inuse_space.bytes": int64(456),
 				"samples.count":     int64(1),
-				"top": common.MapStr{
+				"top": mapstr.M{
 					"function": "foo",
 					"filename": "foo.go",
 					"line":     int64(1),
 					"id":       "foo_id",
 				},
-				"stack": []common.MapStr{{
+				"stack": []mapstr.M{{
 					"function": "foo",
 					"filename": "foo.go",
 					"line":     int64(1),

@@ -20,7 +20,7 @@ package model
 import (
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Event holds information about an event, in ECS terms.
@@ -42,7 +42,7 @@ type Event struct {
 	Action string
 }
 
-func (e *Event) fields() common.MapStr {
+func (e *Event) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("outcome", e.Outcome)
 	fields.maybeSetString("action", e.Action)
@@ -52,5 +52,5 @@ func (e *Event) fields() common.MapStr {
 	if e.Duration > 0 {
 		fields.set("duration", e.Duration.Nanoseconds())
 	}
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

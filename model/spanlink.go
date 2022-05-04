@@ -17,7 +17,7 @@
 
 package model
 
-import "github.com/elastic/beats/v7/libbeat/common"
+import "github.com/elastic/elastic-agent-libs/mapstr"
 
 // SpanLink represents a link between two span events,
 // possibly (but not necessarily) in different traces.
@@ -29,9 +29,9 @@ type SpanLink struct {
 	Trace Trace
 }
 
-func (l *SpanLink) fields() common.MapStr {
+func (l *SpanLink) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetMapStr("span", l.Span.fields())
 	fields.maybeSetMapStr("trace", l.Trace.fields())
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

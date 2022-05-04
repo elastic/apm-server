@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 var (
@@ -35,7 +35,7 @@ type Error struct {
 
 	GroupingKey string
 	Culprit     string
-	Custom      common.MapStr
+	Custom      mapstr.M
 
 	// StackTrace holds an unparsed stack trace.
 	//
@@ -65,7 +65,7 @@ type ErrorLog struct {
 	Stacktrace   Stacktrace
 }
 
-func (e *Error) fields() common.MapStr {
+func (e *Error) fields() mapstr.M {
 	var errorFields mapStr
 	errorFields.maybeSetString("id", e.ID)
 	if e.Exception != nil {
@@ -77,10 +77,10 @@ func (e *Error) fields() common.MapStr {
 	errorFields.maybeSetMapStr("custom", customFields(e.Custom))
 	errorFields.maybeSetString("grouping_key", e.GroupingKey)
 	errorFields.maybeSetString("stack_trace", e.StackTrace)
-	return common.MapStr(errorFields)
+	return mapstr.M(errorFields)
 }
 
-func (e *Error) logFields() common.MapStr {
+func (e *Error) logFields() mapstr.M {
 	if e.Log == nil {
 		return nil
 	}
@@ -92,10 +92,10 @@ func (e *Error) logFields() common.MapStr {
 	if st := e.Log.Stacktrace.transform(); len(st) > 0 {
 		log.set("stacktrace", st)
 	}
-	return common.MapStr(log)
+	return mapstr.M(log)
 }
 
-func (e *Exception) appendFields(out []common.MapStr, parentOffset int) []common.MapStr {
+func (e *Exception) appendFields(out []mapstr.M, parentOffset int) []mapstr.M {
 	offset := len(out)
 	var fields mapStr
 	fields.maybeSetString("message", e.Message)
@@ -113,13 +113,13 @@ func (e *Exception) appendFields(out []common.MapStr, parentOffset int) []common
 		fields.set("attributes", e.Attributes)
 	}
 	if n := len(e.Stacktrace); n > 0 {
-		frames := make([]common.MapStr, n)
+		frames := make([]mapstr.M, n)
 		for i, frame := range e.Stacktrace {
 			frames[i] = frame.transform()
 		}
 		fields.set("stacktrace", frames)
 	}
-	out = append(out, common.MapStr(fields))
+	out = append(out, mapstr.M(fields))
 	for _, cause := range e.Cause {
 		out = cause.appendFields(out, offset)
 	}

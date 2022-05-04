@@ -21,7 +21,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -42,12 +42,12 @@ func TestMessaging_Fields(t *testing.T) {
 		Headers:    http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
 		AgeMillis:  &ageMillis,
 	}
-	outp := common.MapStr{
-		"queue":       common.MapStr{"name": "orders"},
+	outp := mapstr.M{
+		"queue":       mapstr.M{"name": "orders"},
 		"routing_key": "a_routing_key",
 		"body":        "order confirmed",
 		"headers":     http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-		"age":         common.MapStr{"ms": 1577958057123},
+		"age":         mapstr.M{"ms": 1577958057123},
 	}
 	assert.Equal(t, outp, m.Fields())
 }

@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Service bundles together information related to the monitored service and
@@ -73,8 +73,8 @@ type ServiceNode struct {
 	Name string
 }
 
-//Fields transforms a service instance into a common.MapStr
-func (s *Service) Fields() common.MapStr {
+//Fields transforms a service instance into a mapstr.M
+func (s *Service) Fields() mapstr.M {
 	if s == nil {
 		return nil
 	}
@@ -91,21 +91,21 @@ func (s *Service) Fields() common.MapStr {
 	lang.maybeSetString("name", s.Language.Name)
 	lang.maybeSetString("version", s.Language.Version)
 	if lang != nil {
-		svc.set("language", common.MapStr(lang))
+		svc.set("language", mapstr.M(lang))
 	}
 
 	var runtime mapStr
 	runtime.maybeSetString("name", s.Runtime.Name)
 	runtime.maybeSetString("version", s.Runtime.Version)
 	if runtime != nil {
-		svc.set("runtime", common.MapStr(runtime))
+		svc.set("runtime", mapstr.M(runtime))
 	}
 
 	var framework mapStr
 	framework.maybeSetString("name", s.Framework.Name)
 	framework.maybeSetString("version", s.Framework.Version)
 	if framework != nil {
-		svc.set("framework", common.MapStr(framework))
+		svc.set("framework", mapstr.M(framework))
 	}
 
 	if s.Origin != nil {
@@ -113,22 +113,22 @@ func (s *Service) Fields() common.MapStr {
 		origin.maybeSetString("name", s.Origin.Name)
 		origin.maybeSetString("version", s.Origin.Version)
 		origin.maybeSetString("id", s.Origin.ID)
-		svc.maybeSetMapStr("origin", common.MapStr(origin))
+		svc.maybeSetMapStr("origin", mapstr.M(origin))
 	}
 
 	if s.Target != nil {
 		var target mapStr
 		target.maybeSetString("name", s.Target.Name)
 		target.maybeSetString("type", s.Target.Type)
-		svc.maybeSetMapStr("target", common.MapStr(target))
+		svc.maybeSetMapStr("target", mapstr.M(target))
 	}
 
-	return common.MapStr(svc)
+	return mapstr.M(svc)
 }
 
-func (n *ServiceNode) fields() common.MapStr {
+func (n *ServiceNode) fields() mapstr.M {
 	if n.Name != "" {
-		return common.MapStr{"name": n.Name}
+		return mapstr.M{"name": n.Name}
 	}
 	return nil
 }

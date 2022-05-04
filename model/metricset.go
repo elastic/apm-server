@@ -20,7 +20,7 @@ package model
 import (
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 const (
@@ -104,14 +104,14 @@ type Histogram struct {
 	Counts []int64
 }
 
-func (h *Histogram) fields() common.MapStr {
+func (h *Histogram) fields() mapstr.M {
 	if len(h.Counts) == 0 {
 		return nil
 	}
 	var fields mapStr
 	fields.set("counts", h.Counts)
 	fields.set("values", h.Values)
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }
 
 // AggregatedDuration holds a count and sum of aggregated durations.
@@ -123,19 +123,19 @@ type AggregatedDuration struct {
 	Sum time.Duration
 }
 
-func (a *AggregatedDuration) fields() common.MapStr {
+func (a *AggregatedDuration) fields() mapstr.M {
 	if a.Count == 0 {
 		return nil
 	}
 	var fields mapStr
 	fields.set("count", a.Count)
 	fields.set("sum.us", a.Sum.Microseconds())
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }
 
 func (me *Metricset) setFields(fields *mapStr) {
 	if me.TimeseriesInstanceID != "" {
-		fields.set("timeseries", common.MapStr{"instance": me.TimeseriesInstanceID})
+		fields.set("timeseries", mapstr.M{"instance": me.TimeseriesInstanceID})
 	}
 	if me.DocCount > 0 {
 		fields.set("_doc_count", me.DocCount)
@@ -149,9 +149,9 @@ func (me *Metricset) setFields(fields *mapStr) {
 		var md mapStr
 		md.maybeSetString("type", string(sample.Type))
 		md.maybeSetString("unit", sample.Unit)
-		metricDescriptions.maybeSetMapStr(name, common.MapStr(md))
+		metricDescriptions.maybeSetMapStr(name, mapstr.M(md))
 	}
-	fields.maybeSetMapStr("_metric_descriptions", common.MapStr(metricDescriptions))
+	fields.maybeSetMapStr("_metric_descriptions", mapstr.M(metricDescriptions))
 }
 
 func (s *MetricsetSample) set(name string, fields *mapStr) {

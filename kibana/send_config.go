@@ -27,7 +27,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/go-ucfg"
 )
 
@@ -79,12 +79,12 @@ func format(m map[string]interface{}) map[string]interface{} {
 }
 
 func flattenAndClean(conf *ucfg.Config) (map[string]interface{}, error) {
-	m := common.MapStr{}
+	m := mapstr.M{}
 	if err := conf.Unpack(m); err != nil {
 		return nil, err
 	}
 	flat := m.Flatten()
-	out := make(common.MapStr, len(flat))
+	out := make(mapstr.M, len(flat))
 	for k, v := range flat {
 		// remove if elasticsearch is NOT in the front position?
 		// *.elasticsearch.* according to axw

@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Trace holds information about a distributed trace.
@@ -27,8 +27,8 @@ type Trace struct {
 	ID string
 }
 
-func (t *Trace) fields() common.MapStr {
+func (t *Trace) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("id", t.ID)
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

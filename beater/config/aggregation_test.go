@@ -20,10 +20,9 @@ package config
 import (
 	"testing"
 
+	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestAggregationConfigInvalid(t *testing.T) {
@@ -57,7 +56,7 @@ func TestAggregationConfigInvalid(t *testing.T) {
 		expect: "Error processing configuration: requires value <= 5 accessing 'aggregation.transactions.hdrhistogram_significant_figures'",
 	}} {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{
+			_, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
 				test.key: test.value,
 			}), nil)
 			require.Error(t, err)
@@ -67,7 +66,7 @@ func TestAggregationConfigInvalid(t *testing.T) {
 }
 
 func TestAggregationConfigDefault(t *testing.T) {
-	cfg, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{}), nil)
+	cfg, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{}), nil)
 	require.NoError(t, err)
 	assert.Equal(t, defaultAggregationConfig(), cfg.Aggregation)
 }
