@@ -28,8 +28,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/apm-server/systemtest"
 	"gopkg.in/yaml.v2"
+
+	"github.com/elastic/apm-server/systemtest"
 )
 
 var (
