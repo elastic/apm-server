@@ -90,7 +90,24 @@ func TestSetDataStream(t *testing.T) {
 			Agent:     model.Agent{Name: "rum-js"},
 			Processor: model.MetricsetProcessor,
 			Service:   model.Service{Name: "service-name"},
-			Metricset: &model.Metricset{},
+			Metricset: &model.Metricset{
+				Samples: map[string]model.MetricsetSample{
+					"system.memory.total": {}, // known agent metric
+				},
+			},
+		},
+		output: model.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
+	}, {
+		input: model.APMEvent{
+			Agent:     model.Agent{Name: "rum-js"},
+			Processor: model.MetricsetProcessor,
+			Service:   model.Service{Name: "service-name"},
+			Metricset: &model.Metricset{
+				Samples: map[string]model.MetricsetSample{
+					"system.memory.total": {}, // known agent metric
+					"custom_metric":       {}, // custom metric
+				},
+			},
 		},
 		output: model.DataStream{Type: "metrics", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
@@ -119,13 +136,6 @@ func TestSetDataStream(t *testing.T) {
 			},
 		},
 		output: model.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
-	}, {
-		input: model.APMEvent{
-			Processor: model.MetricsetProcessor,
-			Service:   model.Service{Name: "service-name"},
-			Metricset: &model.Metricset{},
-		},
-		output: model.DataStream{Type: "metrics", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
 		input: model.APMEvent{
 			Processor:     model.ProfileProcessor,
