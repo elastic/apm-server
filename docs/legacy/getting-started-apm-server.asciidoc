@@ -7,7 +7,7 @@
 
 IMPORTANT: {deprecation-notice-installation}
 
-IMPORTANT: Starting in version 8.0.0, {fleet} uses to the APM integration to set up and manage APM index templates,
+IMPORTANT: Starting in version 8.0.0, {fleet} uses the APM integration to set up and manage APM index templates,
 ILM policies, and ingest pipelines. APM Server will only send data to {es} _after_ the APM integration has been installed.
 
 The easiest way to get started with Elastic APM is by using our
@@ -207,7 +207,7 @@ see {cloud}/ec-manage-apm-settings.html[Add APM user settings] for information o
 
 // This content is reused in the upgrading guide
 // tag::why-apm-integration[]
-Starting in version 8.0.0, {fleet} uses to the APM integration to set up and manage APM index templates,
+Starting in version 8.0.0, {fleet} uses the APM integration to set up and manage APM index templates,
 ILM policies, and ingest pipelines. APM Server will only send data to {es} _after_ the APM integration has been installed.
 // end::why-apm-integration[]
 

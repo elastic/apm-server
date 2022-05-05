@@ -34,7 +34,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/cmd/instance"
-	"github.com/elastic/beats/v7/libbeat/common"
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
@@ -213,10 +213,10 @@ func makeAPIKeyRun(settings instance.Settings, json *bool, f apikeyRunFunc) cobr
 // apm-server.api_key.enabled is implicitly true
 func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
 	settings.ConfigOverrides = append(settings.ConfigOverrides, cfgfile.ConditionalOverride{
-		Check: func(_ *common.Config) bool {
+		Check: func(_ *agentconfig.C) bool {
 			return true
 		},
-		Config: common.MustNewConfigFrom(map[string]interface{}{
+		Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
 			"apm-server": map[string]interface{}{
 				"auth": map[string]interface{}{
 					"api_key": map[string]interface{}{
@@ -237,7 +237,7 @@ func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
 		return nil, nil, err
 	}
 
-	var esOutputCfg *common.Config
+	var esOutputCfg *agentconfig.C
 	if beat.Config.Output.Name() == "elasticsearch" {
 		esOutputCfg = beat.Config.Output.Config()
 	}

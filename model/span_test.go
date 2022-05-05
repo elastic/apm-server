@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestSpanTransformEmpty(t *testing.T) {
@@ -47,7 +47,7 @@ func TestSpanTransform(t *testing.T) {
 
 	tests := []struct {
 		Span   Span
-		Output common.MapStr
+		Output mapstr.M
 		Msg    string
 	}{
 		{
@@ -77,46 +77,46 @@ func TestSpanTransform(t *testing.T) {
 				Composite: &Composite{Count: 10, Sum: 1.1, CompressionStrategy: "exact_match"},
 				Links:     links,
 			},
-			Output: common.MapStr{
-				"processor": common.MapStr{"name": "transaction", "event": "span"},
-				"event":     common.MapStr{"duration": duration.Nanoseconds()},
-				"span": common.MapStr{
+			Output: mapstr.M{
+				"processor": mapstr.M{"name": "transaction", "event": "span"},
+				"event":     mapstr.M{"duration": duration.Nanoseconds()},
+				"span": mapstr.M{
 					"id":      hexID,
 					"name":    "myspan",
 					"kind":    "CLIENT",
 					"type":    "myspantype",
 					"subtype": subtype,
 					"action":  action,
-					"stacktrace": []common.MapStr{{
+					"stacktrace": []mapstr.M{{
 						"exclude_from_grouping": false,
 						"abs_path":              path,
 					}},
-					"db": common.MapStr{
+					"db": mapstr.M{
 						"instance":      instance,
 						"statement":     statement,
 						"type":          dbType,
-						"user":          common.MapStr{"name": user},
+						"user":          mapstr.M{"name": user},
 						"rows_affected": rowsAffected,
 					},
-					"destination": common.MapStr{
-						"service": common.MapStr{
+					"destination": mapstr.M{
+						"service": mapstr.M{
 							"type":     destServiceType,
 							"name":     destServiceName,
 							"resource": destServiceResource,
 						},
 					},
-					"message": common.MapStr{"queue": common.MapStr{"name": "users"}},
-					"composite": common.MapStr{
+					"message": mapstr.M{"queue": mapstr.M{"name": "users"}},
+					"composite": mapstr.M{
 						"count":                10,
-						"sum":                  common.MapStr{"us": 1100},
+						"sum":                  mapstr.M{"us": 1100},
 						"compression_strategy": "exact_match",
 					},
-					"links": []common.MapStr{{
-						"span":  common.MapStr{"id": "linked_span"},
-						"trace": common.MapStr{"id": "linked_trace"},
+					"links": []mapstr.M{{
+						"span":  mapstr.M{"id": "linked_span"},
+						"trace": mapstr.M{"id": "linked_trace"},
 					}},
 				},
-				"timestamp": common.MapStr{"us": int(timestampUs)},
+				"timestamp": mapstr.M{"us": int(timestampUs)},
 			},
 		},
 	}
@@ -150,21 +150,21 @@ func TestSpanHTTPFields(t *testing.T) {
 	}
 
 	output := event.BeatEvent()
-	assert.Equal(t, common.MapStr{
-		"processor": common.MapStr{
+	assert.Equal(t, mapstr.M{
+		"processor": mapstr.M{
 			"name":  "transaction",
 			"event": "span",
 		},
-		"http": common.MapStr{
+		"http": mapstr.M{
 			"version": event.HTTP.Version,
-			"request": common.MapStr{
+			"request": mapstr.M{
 				"method": event.HTTP.Request.Method,
 			},
-			"response": common.MapStr{
+			"response": mapstr.M{
 				"status_code": event.HTTP.Response.StatusCode,
 			},
 		},
-		"url": common.MapStr{
+		"url": mapstr.M{
 			"original": event.URL.Original,
 		},
 	}, output.Fields)

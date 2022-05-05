@@ -20,7 +20,7 @@ package model
 import (
 	"strings"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Labels wraps a map[string]string or map[string][]string with utility
@@ -59,8 +59,8 @@ func (l Labels) Clone() Labels {
 	return cp
 }
 
-func (l Labels) fields() common.MapStr {
-	result := common.MapStr{}
+func (l Labels) fields() mapstr.M {
+	result := mapstr.M{}
 	for k, v := range l {
 		if v.Values != nil {
 			result[k] = v.Values
@@ -107,8 +107,8 @@ func (l NumericLabels) Clone() NumericLabels {
 	return cp
 }
 
-func (l NumericLabels) fields() common.MapStr {
-	result := common.MapStr{}
+func (l NumericLabels) fields() mapstr.M {
+	result := mapstr.M{}
 	for k, v := range l {
 		if v.Values != nil {
 			result[k] = v.Values
@@ -121,7 +121,7 @@ func (l NumericLabels) fields() common.MapStr {
 
 // Label keys are sanitized, replacing the reserved characters '.', '*' and '"'
 // with '_'. Null-valued labels are omitted.
-func sanitizeLabels(labels common.MapStr) common.MapStr {
+func sanitizeLabels(labels mapstr.M) mapstr.M {
 	for k, v := range labels {
 		if v == nil {
 			delete(labels, k)

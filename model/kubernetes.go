@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 type Kubernetes struct {
@@ -28,21 +28,21 @@ type Kubernetes struct {
 	PodUID    string
 }
 
-func (k *Kubernetes) fields() common.MapStr {
+func (k *Kubernetes) fields() mapstr.M {
 	var kubernetes mapStr
 	kubernetes.maybeSetString("namespace", k.Namespace)
 
 	var node mapStr
 	if node.maybeSetString("name", k.NodeName) {
-		kubernetes.set("node", common.MapStr(node))
+		kubernetes.set("node", mapstr.M(node))
 	}
 
 	var pod mapStr
 	pod.maybeSetString("name", k.PodName)
 	pod.maybeSetString("uid", k.PodUID)
 	if pod != nil {
-		kubernetes.set("pod", common.MapStr(pod))
+		kubernetes.set("pod", mapstr.M(pod))
 	}
 
-	return common.MapStr(kubernetes)
+	return mapstr.M(kubernetes)
 }

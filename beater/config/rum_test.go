@@ -23,8 +23,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/elasticsearch"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/config"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -34,7 +34,7 @@ func TestRumSetup(t *testing.T) {
 	rum.SourceMapping.esConfigured = true
 	rum.Enabled = true
 	rum.SourceMapping.ESConfig = &elasticsearch.Config{APIKey: "id:apikey"}
-	esCfg := common.MustNewConfigFrom(map[string]interface{}{
+	esCfg := config.MustNewConfigFrom(map[string]interface{}{
 		"hosts": []interface{}{"cloud:9200"},
 	})
 

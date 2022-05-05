@@ -35,8 +35,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/elasticsearch"
 	logs "github.com/elastic/apm-server/log"
@@ -304,7 +304,7 @@ func encodeBeatEvent(in beat.Event, out *fastjson.Writer) error {
 
 func encodeAny(v interface{}, out *fastjson.Writer) error {
 	switch v := v.(type) {
-	case common.MapStr:
+	case mapstr.M:
 		return encodeMap(v, out)
 	case map[string]interface{}:
 		return encodeMap(v, out)

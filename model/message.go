@@ -20,7 +20,7 @@ package model
 import (
 	"net/http"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Message holds information about a recorded message, such as the message body and meta information
@@ -33,16 +33,16 @@ type Message struct {
 }
 
 // Fields returns a MapStr holding the transformed message information
-func (m *Message) Fields() common.MapStr {
+func (m *Message) Fields() mapstr.M {
 	if m == nil {
 		return nil
 	}
 	var fields mapStr
 	if m.QueueName != "" {
-		fields.set("queue", common.MapStr{"name": m.QueueName})
+		fields.set("queue", mapstr.M{"name": m.QueueName})
 	}
 	if m.AgeMillis != nil {
-		fields.set("age", common.MapStr{"ms": *m.AgeMillis})
+		fields.set("age", mapstr.M{"ms": *m.AgeMillis})
 	}
 	if len(m.Headers) > 0 {
 		fields.set("headers", m.Headers)
@@ -50,5 +50,5 @@ func (m *Message) Fields() common.MapStr {
 	fields.maybeSetString("body", m.Body)
 	fields.maybeSetString("routing_key", m.RoutingKey)
 
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

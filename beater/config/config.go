@@ -23,9 +23,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/config"
 
 	logs "github.com/elastic/apm-server/log"
 )
@@ -86,7 +86,7 @@ type Config struct {
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
-func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error) {
+func NewConfig(ucfg *config.C, outputESCfg *config.C) (*Config, error) {
 	logger := logp.NewLogger(logs.Config)
 	c := DefaultConfig()
 	if err := ucfg.Unpack(c); err != nil {

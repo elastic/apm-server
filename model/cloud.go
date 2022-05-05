@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // Cloud holds information about the cloud computing environment
@@ -46,7 +46,7 @@ type CloudOrigin struct {
 	ServiceName string
 }
 
-func (c *Cloud) fields() common.MapStr {
+func (c *Cloud) fields() mapstr.M {
 	var fields mapStr
 
 	var account, instance, machine, project, service mapStr
@@ -59,12 +59,12 @@ func (c *Cloud) fields() common.MapStr {
 	project.maybeSetString("name", c.ProjectName)
 	service.maybeSetString("name", c.ServiceName)
 
-	fields.maybeSetMapStr("account", common.MapStr(account))
+	fields.maybeSetMapStr("account", mapstr.M(account))
 	fields.maybeSetString("availability_zone", c.AvailabilityZone)
-	fields.maybeSetMapStr("instance", common.MapStr(instance))
-	fields.maybeSetMapStr("machine", common.MapStr(machine))
-	fields.maybeSetMapStr("project", common.MapStr(project))
-	fields.maybeSetMapStr("service", common.MapStr(service))
+	fields.maybeSetMapStr("instance", mapstr.M(instance))
+	fields.maybeSetMapStr("machine", mapstr.M(machine))
+	fields.maybeSetMapStr("project", mapstr.M(project))
+	fields.maybeSetMapStr("service", mapstr.M(service))
 	fields.maybeSetString("provider", c.Provider)
 	fields.maybeSetString("region", c.Region)
 	if c.Origin != nil {
@@ -73,7 +73,7 @@ func (c *Cloud) fields() common.MapStr {
 		origin.maybeSetString("provider", c.Origin.Provider)
 		origin.maybeSetString("region", c.Origin.Region)
 		origin.maybeSetString("service.name", c.Origin.ServiceName)
-		fields.maybeSetMapStr("origin", common.MapStr(origin))
+		fields.maybeSetMapStr("origin", mapstr.M(origin))
 	}
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }

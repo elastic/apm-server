@@ -17,7 +17,7 @@
 
 package model
 
-import "github.com/elastic/beats/v7/libbeat/common"
+import "github.com/elastic/elastic-agent-libs/mapstr"
 
 // Session holds information about a group of related transactions, such as
 // a sequence of web interactions.
@@ -31,11 +31,11 @@ type Session struct {
 	Sequence int
 }
 
-func (s *Session) fields() common.MapStr {
+func (s *Session) fields() mapstr.M {
 	if s.ID == "" {
 		return nil
 	}
-	out := common.MapStr{"id": s.ID}
+	out := mapstr.M{"id": s.ID}
 	if s.Sequence > 0 {
 		out["sequence"] = s.Sequence
 	}

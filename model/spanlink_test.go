@@ -22,13 +22,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestSpanLinkFields(t *testing.T) {
 	tests := []struct {
 		Input    SpanLink
-		Expected common.MapStr
+		Expected mapstr.M
 	}{{
 		Input:    SpanLink{},
 		Expected: nil,
@@ -36,24 +36,24 @@ func TestSpanLinkFields(t *testing.T) {
 		Input: SpanLink{
 			Span: Span{ID: "span_id"},
 		},
-		Expected: common.MapStr{
-			"span": common.MapStr{"id": "span_id"},
+		Expected: mapstr.M{
+			"span": mapstr.M{"id": "span_id"},
 		},
 	}, {
 		Input: SpanLink{
 			Trace: Trace{ID: "trace_id"},
 		},
-		Expected: common.MapStr{
-			"trace": common.MapStr{"id": "trace_id"},
+		Expected: mapstr.M{
+			"trace": mapstr.M{"id": "trace_id"},
 		},
 	}, {
 		Input: SpanLink{
 			Span:  Span{ID: "span_id"},
 			Trace: Trace{ID: "trace_id"},
 		},
-		Expected: common.MapStr{
-			"span":  common.MapStr{"id": "span_id"},
-			"trace": common.MapStr{"id": "trace_id"},
+		Expected: mapstr.M{
+			"span":  mapstr.M{"id": "span_id"},
+			"trace": mapstr.M{"id": "trace_id"},
 		},
 	}}
 	for _, test := range tests {

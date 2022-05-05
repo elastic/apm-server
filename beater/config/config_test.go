@@ -25,8 +25,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+	"github.com/elastic/elastic-agent-libs/config"
 
 	"github.com/elastic/apm-server/elasticsearch"
 )
@@ -455,7 +455,7 @@ func TestUnpackConfig(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			inpCfg, err := common.NewConfigFrom(test.inpCfg)
+			inpCfg, err := config.NewConfigFrom(test.inpCfg)
 			assert.NoError(t, err)
 
 			cfg, err := NewConfig(inpCfg, nil)
@@ -517,7 +517,7 @@ func TestTLSSettings(t *testing.T) {
 			},
 		} {
 			t.Run(name, func(t *testing.T) {
-				ucfgCfg, err := common.NewConfigFrom(tc.config)
+				ucfgCfg, err := config.NewConfigFrom(tc.config)
 				require.NoError(t, err)
 
 				cfg, err := NewConfig(ucfgCfg, nil)
@@ -550,26 +550,26 @@ func TestTLSSettings(t *testing.T) {
 
 func TestAgentConfig(t *testing.T) {
 	t.Run("InvalidValueTooSmall", func(t *testing.T) {
-		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}), nil)
+		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}), nil)
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("InvalidUnit", func(t *testing.T) {
-		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}), nil)
+		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}), nil)
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil)
+		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil)
 		require.NoError(t, err)
 		assert.Equal(t, time.Second*123, cfg.KibanaAgentConfig.Cache.Expiration)
 	})
 }
 
 func TestAgentConfigs(t *testing.T) {
-	cfg, err := NewConfig(common.MustNewConfigFrom(`{"agent_config":[{"service.environment":"production","config":{"transaction_sample_rate":0.5}}]}`), nil)
+	cfg, err := NewConfig(config.MustNewConfigFrom(`{"agent_config":[{"service.environment":"production","config":{"transaction_sample_rate":0.5}}]}`), nil)
 	require.NoError(t, err)
 	assert.NotNil(t, cfg)
 	assert.Len(t, cfg.AgentConfigs, 1)
@@ -577,7 +577,7 @@ func TestAgentConfigs(t *testing.T) {
 }
 
 func TestNewConfig_ESConfig(t *testing.T) {
-	ucfg, err := common.NewConfigFrom(`{
+	ucfg, err := config.NewConfigFrom(`{
 		"rum.enabled":true,
 		"auth.api_key.enabled":true,
 		"sampling.tail.policies":[{"sample_rate": 0.5}],
@@ -592,7 +592,7 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.Sampling.Tail.ESConfig)
 
 	// with es config
-	outputESCfg := common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`)
+	outputESCfg := config.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`)
 	cfg, err = NewConfig(ucfg, outputESCfg)
 	require.NoError(t, err)
 	assert.NotNil(t, cfg.RumConfig.SourceMapping.ESConfig)
