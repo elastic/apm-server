@@ -12,7 +12,8 @@ or obfuscate sensitive information during or before ingestion:
 * <<built-in-data-filters>>
 * <<custom-data-filters>>
 
-If sensitive data has already been ingested into the {stack}, it's possible to remove or redact it.
+In addition to utilizing filters, you should regularly review the <<sensitive-fields,sensitive fields>> table to ensure
+sensitive data is not being ingested. If it is, it's possible to remove or redact it.
 See <<data-security-delete>> for more information.
 
 [float]
@@ -50,6 +51,28 @@ Data is sanitized before leaving the instrumented service.
 Potential overhead implications on the instrumented service
 |====
 // end::custom-filters[]
+
+[float]
+[[sensitive-fields]]
+==== Sensitive fields
+
+You should review the following fields regularly to ensure sensitive data is not being captured:
+
+[options="header"]
+|====
+| Field | Description | Remedy
+| `client.ip` | The client IP address, as forwarded by proxy. | <<filters-personal-data>>
+| `http.request.body.original` | The body of the monitored HTTP request. | <<filters-http-body>>
+| `http.request.headers` | The canonical headers of the monitored HTTP request. | <<filters-http-header>>
+| `http.request.socket.remote_address` | The address of the last proxy or end-user (if no proxy). | <<custom-filter>>
+| `http.response.headers` | The canonical headers of the monitored HTTP response. | <<filters-http-header>>
+| `process.args` | Process arguments. | <<filters-database-statements>>
+| `span.db.statement` | Database statement. | <<filters-database-statements>>
+| `stacktrace.vars` | A flat mapping of local variables captured in the stack frame | <<custom-filter>>
+| `url.query` | The query string of the request, e.g. `?pass=hunter2`. | <<custom-filter>>
+| `user.*` | Logged-in user information. | <<custom-filter>>
+| `user_agent.*` | Device and version making the network request. | <<filters-personal-data>>
+|====
 
 // ****************************************************************
 
@@ -190,6 +213,9 @@ include::./apm-data-security.asciidoc[tag=custom-filters]
 Ingest node pipelines specify a series of processors that transform data in a specific way.
 Transformation happens prior to indexing--inflicting no performance overhead on the monitored application.
 Pipelines are a flexible and easy way to filter or obfuscate Elastic APM data.
+
+WARNING: Changes to the default APM pipeline do not persist through upgrades.
+You will need to re-add custom ingest pipelines after every upgrade.
 
 **Example**
 
@@ -416,13 +442,15 @@ As expected, only the first simulated document has a redacted password field.
 All other documents are unaffected.
 
 The final step in this process is to add the newly created `apm_redacted_body_password` pipeline
-to the default APM pipeline. Each APM data stream has its own default pipeline depending on the type of data being ingested:
+to the default APM pipeline.
+
+Pipelines are defined per data stream, and APM data streams are dependent on the type of data being ingested:
 
 include::./data-streams.asciidoc[tag=traces-data-streams]
 include::./data-streams.asciidoc[tag=metrics-data-streams]
 include::./data-streams.asciidoc[tag=logs-data-streams]
 
-In this case, we're interested in redacting application tracing data,
+In this example, we're interested in redacting application tracing data,
 so we'll edit the `traces-apm-<namespace>` ingest pipeline.
 
 Navigate to **Stack Management** > **Index Management** > **Data Streams**.
@@ -433,16 +461,14 @@ Select **Settings** and find the name of the `default_pipeline`; in this example
 Navigate to **Stack Management** > **Index Pipelines** and search for +traces-apm-{version}+.
 Select **Manage** > **Edit**.
 
-WARNING: Do not edit any of the predefined pipeline steps or you may break the APM integration and APM UI.
+WARNING: Do not edit any of the predefined pipeline steps or you may break the APM UI.
 
 At the end of the pipeline, select **Add a processor**.
 Select the `Pipeline` processor, and use the Pipeline name we created in the previous step, `apm_redacted_body_password`.
 Select **Add** and finally, **Save pipeline**.
 
-WARNING: Changes to the default APM pipeline do not persist through upgrades.
-You will need to readd custom pipelines after every upgrade.
-
-That's it! Sit back and relax--passwords have been redacted from your APM HTTP body data.
+That's it! Passwords will now be redacted from your APM HTTP body data.
+Don't forget to re-add your custom pipelines after each version upgrade.
 
 [discrete]
 [[filters-in-agent]]
@@ -464,39 +490,13 @@ Please see the relevant agent's documentation for more information and examples:
 [[data-security-delete]]
 ==== Delete sensitive data
 
-If sensitive data has already been ingested into the {stack}, it's possible to remove or redact it.
-The following fields should be reviewed regularly to ensure sensitive data is not being captured:
-
-[options="header"]
-|====
-| Field | Description | Remedy
-| `client.ip` | The client IP address, as forwarded by proxy. | <<filters-personal-data>>
-| `http.request.body.original` | The body of the monitored HTTP request. | <<filters-http-body>>
-| `http.request.headers` | The canonical headers of the monitored HTTP request. | <<filters-http-header>>
-| `http.request.socket.remote_address` | The address of the last proxy or end-user (if no proxy). | <<custom-filter>>
-| `http.response.headers` | The canonical headers of the monitored HTTP response. | <<filters-http-header>>
-| `process.args` | Process arguments. | <<filters-database-statements>>
-| `span.db.statement` | Database statement. | <<filters-database-statements>>
-| `stacktrace.vars` | A flat mapping of local variables captured in the stack frame | <<custom-filter>>
-| `url.query` | The query string of the request, e.g. `?pass=hunter2`. | <<custom-filter>>
-| `user.*` | Logged-in user information. | <<custom-filter>>
-| `user_agent.*` | Device and version making the network request. | <<filters-personal-data>>
-|====
-
-[float]
-[[data-security-remove]]
-==== Remove or redact data
-
 If you accidentally ingest sensitive data, follow these steps to remove or redact the offending data:
 
-. Stop collecting sensitive data.
-+
-Use the *remedy* column of the sensitive fields table above to determine how to stop collecting
-the sensitive data.
+. Stop collecting the sensitive data.
+Use the *remedy* column of the <<sensitive-fields,sensitive fields>> table to determine how to stop collecting
+the offending data.
 
-. Delete or redact the ingested data.
-+
-With data collection fixed, you can now delete or redact the offending data:
+. Delete or redact the ingested data. With data collection fixed, you can now delete or redact the offending data:
 +
 * <<redact-field-data>>
 * <<delete-doc-data>>
