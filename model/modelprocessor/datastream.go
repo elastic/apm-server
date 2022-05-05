@@ -59,17 +59,7 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		event.DataStream.Dataset = model.AppLogsDataset
 	case model.MetricsetProcessor:
 		event.DataStream.Type = datastreams.MetricsType
-		// Metrics that include well-defined transaction/span fields
-		// (i.e. breakdown metrics, transaction and span metrics) will
-		// be stored separately from application and runtime metrics.
-		event.DataStream.Dataset = model.InternalMetricsDataset
-		if event.Transaction == nil && event.Span == nil &&
-			event.Service.Name != "" {
-			event.DataStream.Dataset = fmt.Sprintf(
-				"%s.%s", model.AppMetricsDataset,
-				datastreams.NormalizeServiceName(event.Service.Name),
-			)
-		}
+		event.DataStream.Dataset = metricsetDataset(event)
 	case model.ProfileProcessor:
 		event.DataStream.Type = datastreams.MetricsType
 		event.DataStream.Dataset = model.ProfilesDataset
@@ -83,4 +73,40 @@ func isRUMAgentName(agentName string) bool {
 		return true
 	}
 	return false
+}
+
+func metricsetDataset(event *model.APMEvent) string {
+	if event.Transaction != nil || event.Span != nil || event.Service.Name == "" {
+		// Metrics that include well-defined transaction/span fields
+		// (i.e. breakdown metrics, transaction and span metrics) will
+		// be stored separately from custom application metrics.
+		return model.InternalMetricsDataset
+	}
+
+	if event.Metricset != nil {
+		// Well-defined system/runtime metrics are stored in the shared
+		// "internal" metrics data stream, as they are not application-specific.
+		//
+		// TODO(axw) agents should indicate that a metricset is internal.
+		// If a metricset is identified as internal, then we'll ignore any
+		// metrics that we don't already know about; otherwise they will end
+		// up creating service-specific data streams.
+		internal := true
+		for name := range event.Metricset.Samples {
+			if !isInternalMetricName(name) {
+				internal = false
+				break
+			}
+		}
+		if internal {
+			return model.InternalMetricsDataset
+		}
+	}
+
+	// All other metrics are assumed to be application-specific metrics,
+	// and so will be stored in an application-specific data stream.
+	return fmt.Sprintf(
+		"%s.%s", model.AppMetricsDataset,
+		datastreams.NormalizeServiceName(event.Service.Name),
+	)
 }
