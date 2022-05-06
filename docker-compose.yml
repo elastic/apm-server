@@ -60,6 +60,7 @@ services:
       - "./testing/docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml"
       - "./testing/docker/elasticsearch/users:/usr/share/elasticsearch/config/users"
       - "./testing/docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles"
+      - "./testing/docker/elasticsearch/ingest-geoip:/usr/share/elasticsearch/config/ingest-geoip"
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.17.4-153c53bf-SNAPSHOT
