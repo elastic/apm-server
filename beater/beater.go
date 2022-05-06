@@ -677,6 +677,7 @@ func (s *serverRunner) newFinalBatchProcessor(
 		*elasticsearch.Config `config:",inline"`
 		FlushBytes            string        `config:"flush_bytes"`
 		FlushInterval         time.Duration `config:"flush_interval"`
+		MaxRequests           int           `config:"max_requests"`
 	}
 	esConfig.FlushInterval = time.Second
 	esConfig.Config = elasticsearch.DefaultConfig()
@@ -701,6 +702,7 @@ func (s *serverRunner) newFinalBatchProcessor(
 		FlushBytes:       flushBytes,
 		FlushInterval:    esConfig.FlushInterval,
 		Tracer:           s.tracer,
+		MaxRequests:      esConfig.MaxRequests,
 	})
 	if err != nil {
 		return nil, nil, err
