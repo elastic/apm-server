@@ -19,6 +19,7 @@ package apmservertest
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
@@ -161,7 +162,9 @@ func (s *Server) start(tls bool) error {
 	args := append(cfgargs, s.args...)
 	args = append(args, "--path.home", ".") // working directory, s.Dir
 
-	s.cmd = ServerCommand("run", args...)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	s.cmd = ServerCommand(ctx, "run", args...)
 	s.cmd.Dir = s.Dir
 
 	// This speeds up tests by forcing the self-instrumentation
@@ -182,7 +185,15 @@ func (s *Server) start(tls bool) error {
 		return err
 	}
 	s.Dir = s.cmd.Dir
-	s.tb.Cleanup(func() { s.Close() })
+	s.tb.Cleanup(func() {
+		errc := make(chan error)
+		go func() { <-errc; close(errc) }()
+		select {
+		case errc <- s.Close():
+		case <-time.After(10 * time.Second):
+			cancel()
+		}
+	})
 
 	logfile := createLogfile(s.tb, "apm-server")
 	closeLogfile := true

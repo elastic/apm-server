@@ -18,6 +18,7 @@
 package apmservertest
 
 import (
+	"context"
 	"io/ioutil"
 	"log"
 	"os"
@@ -32,14 +33,14 @@ import (
 
 // ServerCommand returns a ServerCmd (wrapping os/exec) for running
 // apm-server with args.
-func ServerCommand(subcommand string, args ...string) *ServerCmd {
+func ServerCommand(ctx context.Context, subcommand string, args ...string) *ServerCmd {
 	binary, buildErr := BuildServerBinary(runtime.GOOS)
 	if buildErr != nil {
 		// Dummy command; Start etc. will return the build error.
 		binary = "/usr/bin/false"
 	}
 	args = append([]string{subcommand}, args...)
-	cmd := exec.Command(binary, args...)
+	cmd := exec.CommandContext(ctx, binary, args...)
 	cmd.SysProcAttr = serverCommandSysProcAttr
 	return &ServerCmd{
 		Cmd:        cmd,
