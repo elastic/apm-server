@@ -95,6 +95,7 @@ You can assign one or more unique privileges to each API key:
 * *Agent configuration* (`config_agent:read`): Required for agents to read
 {kibana-ref}/agent-configuration.html[Agent configuration remotely].
 * *Ingest* (`event:write`): Required for ingesting agent events.
+* *Sourcemap* (`sourcemap:write`): Required for uploading sourcemaps to {kib}.
 
 To secure the communication between APM Agents and the APM Server with API keys,
 make sure <<agent-tls,TLS>> is enabled, then complete these steps:
@@ -122,6 +123,9 @@ privileges.
 
 The user creating an APM agent API key must have at least the `manage_own_api_key` cluster privilege
 and the APM application-level privileges that it wishes to grant.
+In addition, if you're creating an API key from the APM UI,
+you'll need the appropriate Kibana Space and Feature privileges.
+
 The example below uses the Kibana {kibana-ref}/role-management-api.html[role management API]
 to create a role named `apm_agent_key_role`.
 
@@ -129,21 +133,59 @@ to create a role named `apm_agent_key_role`.
 ----
 POST /_security/role/apm_agent_key_role
 {
-  "cluster": ["manage_own_api_key"],
-  "applications": [{
-    "application": "apm",
-    "privileges": ["event:write", "config_agent:read"],
-    "resources": ["*"]
-  }]
+   "cluster": [ "manage_own_api_key" ],
+   "applications": [
+      {
+         "application":"apm",
+         "privileges":[
+            "event:write",
+            "config_agent:read",
+            "sourcemap:write"
+         ],
+         "resources":[ "*" ]
+      },
+      { <1>
+         "application":"kibana-.kibana",
+         "privileges":[ "feature_apm.all" ],
+         "resources":[ "space:default" ] <2>
+      }
+   ]
 }
 ----
+<1> The privileges added in this object only apply to roles that will be creating API keys in the APM UI.
+If you don't have access to the APM UI, you can omit this object and skip to <<create-an-api-key-alternate>>.
+<2> Assigns privileges for the default space.
 
 Assign the newly created `apm_agent_key_role` role to any user that wishes to create APM agent API keys.
 
 [[create-an-api-key]]
 [float]
-=== Create an API key in {kib}
+=== Create an API key in the APM UI
 
+Using a superuser account, or a user with the role created in the previous step,
+open {kib} and navigate to **Observability** > **APM** > **Settings** > **Agent keys**.
+Enter a name for your API key and select at least one privilege.
+
+For example, to create an API key that can be used to ingest APM events
+and read agent central configuration, select `config_agent:read` and `event:write`.
+Or, to create an API key that can be used to upload RUM sourcemaps to {kib}, select `sourcemap:write`
+(and then be sure to read our <<source-map-how-to,how to upload source maps>> guide).
+
+Click **Create APM Agent key** and copy the Base64 encoded API key.
+You will need this for the next step, and you will not be able to view it again.
+
+[role="screenshot"]
+image::images/apm-ui-api-key.png[APM UI API key]
+
+[[create-an-api-key-alternate]]
+[float]
+=== Create an API key in {kib} Stack Management
+
+If you don't have access to the APM UI, API keys can be created in {kib} Stack Management.
+
+[%collapsible]
+.Expand for more information
+====
 Using a superuser account, or a user with the role created in the previous step,
 open {kib} and navigate to **Stack Management** > **API keys** and click **Create API key**.
 
@@ -177,6 +219,7 @@ You will need this for the next step, and you will not be able to view it again.
 
 [role="screenshot"]
 image::images/api-key-copy.png[API key copy base64]
+====
 
 [[agent-api-key]]
 [float]
