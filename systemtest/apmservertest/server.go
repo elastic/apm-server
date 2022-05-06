@@ -187,11 +187,16 @@ func (s *Server) start(tls bool) error {
 	s.Dir = s.cmd.Dir
 	s.tb.Cleanup(func() {
 		errc := make(chan error)
-		go func() { <-errc; close(errc) }()
+		go func() { errc <- s.Close() }()
 		select {
-		case errc <- s.Close():
+		case <-errc:
+			close(errc)
 		case <-time.After(10 * time.Second):
 			cancel()
+			// Channel receive on errc never happened. Start up a
+			// goroutine to receive on errc and then clean up the
+			// associated resources.
+			go func() { <-errc; close(errc) }()
 		}
 	})
 
