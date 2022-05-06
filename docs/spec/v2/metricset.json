@@ -2,6 +2,13 @@
   "$id": "docs/spec/v2/metricset",
   "type": "object",
   "properties": {
+    "internal": {
+      "description": "Internal indicates that the metricset contains only \"internal\" metrics: well-defined metrics produced by Elastic APM agents, as opposed to custom application metrics.  If Internal is null, then APM Server will assume true if the set contains only metrics known by APM Server to be internal. If Internal is true, then APM Server will ignore any metrics it does not know about.",
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
     "samples": {
       "description": "Samples hold application metrics collected from the agent.",
       "type": "object",

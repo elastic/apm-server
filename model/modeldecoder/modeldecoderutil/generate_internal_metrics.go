@@ -37,7 +37,7 @@ func main() {
 		log.Fatal("runtime.Caller failed")
 	}
 	modelprocessorDir := filepath.Dir(file)
-	repoRoot := filepath.Join(modelprocessorDir, "..", "..")
+	repoRoot := filepath.Join(modelprocessorDir, "..", "..", "..")
 
 	internalMetricsFieldsDir := filepath.Join(repoRoot, "apmpackage", "apm", "data_stream", "internal_metrics", "fields")
 	files, err := filepath.Glob(filepath.Join(internalMetricsFieldsDir, "*_metrics.yml"))
@@ -84,9 +84,11 @@ type field struct {
 }
 
 var tmpl = template.Must(template.New("").Parse(`
-package modelprocessor
+package modeldecoderutil
 
-func isInternalMetricName(name string) bool {
+// IsInternalMetricName reports whether or not a metric name is a known
+// internal metric: runtime, system, or process metrics reported by agents.
+func IsInternalMetricName(name string) bool {
 	switch name {
 	{{range . -}}
 	case "{{.}}":

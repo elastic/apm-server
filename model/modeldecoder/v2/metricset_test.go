@@ -18,6 +18,7 @@
 package v2
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -25,6 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
@@ -83,13 +85,21 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		return false
 	}
 
+	noTransaction := func(key string, field, value reflect.Value) bool {
+		// Tested by TestDecodeMetricsetTransaction
+		return !strings.HasPrefix(key, "transaction")
+	}
+	noInternal := func(key string, field, value reflect.Value) bool {
+		// Tested by TestDecodeMetricsetInternal
+		return key != "internal"
+	}
+
 	t.Run("metricset-values", func(t *testing.T) {
 		var input metricset
 		var out1, out2 model.APMEvent
 		now := time.Now().Add(time.Second)
 		defaultVal := modeldecodertest.DefaultValues()
-		modeldecodertest.SetStructValues(&input, defaultVal)
-		input.Transaction.Reset() // tested by TestDecodeMetricsetInternal
+		modeldecodertest.SetStructValues(&input, defaultVal, noTransaction, noInternal)
 
 		mapToMetricsetModel(&input, &out1)
 		input.Reset()
@@ -128,8 +138,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		// leave Timestamp unmodified if eventTime is zero
 		out1.Timestamp = now
 		defaultVal.Update(time.Time{})
-		modeldecodertest.SetStructValues(&input, defaultVal)
-		input.Transaction.Reset()
+		modeldecodertest.SetStructValues(&input, defaultVal, noTransaction, noInternal)
 		mapToMetricsetModel(&input, &out1)
 		defaultVal.Update(now)
 		input.Reset()
@@ -137,8 +146,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
-		modeldecodertest.SetStructValues(&input, otherVal)
-		input.Transaction.Reset()
+		modeldecodertest.SetStructValues(&input, otherVal, noTransaction, noInternal)
 		mapToMetricsetModel(&input, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Metricset, exceptions, otherVal)
 		otherSamples := map[string]model.MetricsetSample{
@@ -168,6 +176,81 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 }
 
 func TestDecodeMetricsetInternal(t *testing.T) {
+	test := func(testname, input string, expectedDataStream model.DataStream, expectedSamples map[string]model.MetricsetSample) {
+		t.Run(testname, func(t *testing.T) {
+			var batch model.Batch
+			err := DecodeNestedMetricset(
+				decoder.NewJSONDecoder(strings.NewReader(input)),
+				&modeldecoder.Input{}, &batch,
+			)
+			require.NoError(t, err)
+			require.Len(t, batch, 1)
+			assert.Equal(t, expectedDataStream, batch[0].DataStream)
+			assert.Equal(t, expectedSamples, batch[0].Metricset.Samples)
+		})
+	}
+
+	// Because "internal" is set to true, all unknown metrics will be discarded.
+	internalDataStream := model.DataStream{Type: "metrics", Dataset: model.InternalMetricsDataset}
+	test("internal_true", `{
+		"metricset": {
+			"timestamp": 0,
+			"internal": true,
+			"samples": {
+				"system.memory.total": {"value": 456},
+				"custom.metric": {"value": 999}
+			}
+		}
+	}`, internalDataStream, map[string]model.MetricsetSample{
+		"system.memory.total": {Value: 456},
+	})
+
+	// Because "internal" is set to false, all metrics will be kept and the
+	// dataset will be left to be set later.
+	test("internal_false", `{
+		"metricset": {
+			"timestamp": 0,
+			"internal": false,
+			"samples": {
+				"system.memory.total": {"value": 456},
+				"custom.metric": {"value": 999}
+			}
+		}
+	}`, model.DataStream{}, map[string]model.MetricsetSample{
+		"system.memory.total": {Value: 456},
+		"custom.metric":       {Value: 999},
+	})
+
+	// Because "internal" is unset, the presence of only known internal
+	// metrics will cause the dataset to be set to internal.
+	test("internal_unset_all_internal", `{
+		"metricset": {
+			"timestamp": 0,
+			"samples": {
+				"system.memory.total": {"value": 456}
+			}
+		}
+	}`, internalDataStream, map[string]model.MetricsetSample{
+		"system.memory.total": {Value: 456},
+	})
+
+	// Because "internal" is unset, the presence of any unknown metrics will
+	// cause the dataset to be left to be set later.
+	test("internal_unset_all_internal", `{
+		"metricset": {
+			"timestamp": 0,
+			"samples": {
+				"system.memory.total": {"value": 456},
+				"custom.metric": {"value": 999}
+			}
+		}
+	}`, model.DataStream{}, map[string]model.MetricsetSample{
+		"system.memory.total": {Value: 456},
+		"custom.metric":       {Value: 999},
+	})
+}
+
+func TestDecodeMetricsetTransaction(t *testing.T) {
 	var batch model.Batch
 
 	// There are no known metrics in the samples. Because "transaction" is set,
@@ -210,6 +293,10 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 	assert.Equal(t, model.Batch{{
 		Timestamp: time.Unix(0, 0).UTC(),
 		Processor: model.MetricsetProcessor,
+		DataStream: model.DataStream{
+			Type:    datastreams.MetricsType,
+			Dataset: model.InternalMetricsDataset,
+		},
 		Metricset: &model.Metricset{},
 		Transaction: &model.Transaction{
 			Name: "transaction_name",
@@ -263,6 +350,10 @@ func TestDecodeMetricsetServiceName(t *testing.T) {
 	assert.Equal(t, model.Batch{{
 		Timestamp: time.Unix(0, 0).UTC(),
 		Processor: model.MetricsetProcessor,
+		DataStream: model.DataStream{
+			Type:    datastreams.MetricsType,
+			Dataset: model.InternalMetricsDataset,
+		},
 		Metricset: &model.Metricset{},
 		Service: model.Service{
 			Name:        "ow_service_name",
@@ -321,6 +412,10 @@ func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
 	assert.Equal(t, model.Batch{{
 		Timestamp: time.Unix(0, 0).UTC(),
 		Processor: model.MetricsetProcessor,
+		DataStream: model.DataStream{
+			Type:    datastreams.MetricsType,
+			Dataset: model.InternalMetricsDataset,
+		},
 		Metricset: &model.Metricset{},
 		Service: model.Service{
 			Name:        "ow_service_name",
@@ -379,6 +474,10 @@ func TestDecodeMetricsetServiceVersion(t *testing.T) {
 	assert.Equal(t, model.Batch{{
 		Timestamp: time.Unix(0, 0).UTC(),
 		Processor: model.MetricsetProcessor,
+		DataStream: model.DataStream{
+			Type:    datastreams.MetricsType,
+			Dataset: model.InternalMetricsDataset,
+		},
 		Metricset: &model.Metricset{},
 		Service: model.Service{
 			Name:        "service_name",

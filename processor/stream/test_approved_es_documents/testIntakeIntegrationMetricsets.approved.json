@@ -6,6 +6,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.internal",
+            "data_stream.type": "metrics",
             "host": {
                 "ip": [
                     "192.0.0.1"
@@ -100,6 +102,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.internal",
+            "data_stream.type": "metrics",
             "host": {
                 "ip": [
                     "192.0.0.1"
@@ -233,6 +237,48 @@
                     "name": "node-1"
                 }
             },
+            "user": {
+                "email": "user@mail.com",
+                "id": "axb123hg",
+                "name": "logged-in-user"
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:41.368Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream.dataset": "apm.internal",
+            "data_stream.type": "metrics",
+            "host": {
+                "ip": [
+                    "192.0.0.1"
+                ]
+            },
+            "labels": {
+                "tag1": "one"
+            },
+            "numeric_labels": {
+                "tag2": 2
+            },
+            "process": {
+                "pid": 1234
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
+                }
+            },
+            "system.memory.total": 123,
             "user": {
                 "email": "user@mail.com",
                 "id": "axb123hg",

@@ -23,21 +23,20 @@ import (
 	"github.com/elastic/apm-server/model"
 )
 
-// SetInternalMetrics extracts well-known internal metrics from event.Metricset.Samples,
+//func
+
+// SetSpanMetrics extracts well-known span metrics from event.Metricset.Samples,
 // setting the appropriate field on event.Span (if non-nil) and finally setting
 // event.Metricset.Samples to nil.
 //
-// Any unknown metrics sent by agents in a metricset with transaction.* set will be
-// silently discarded.
+// Any unknown metrics sent by agents in a metricset with transaction.* set will
+// be silently discarded. We check for transaction.* rather than span.* so that
+// we drop deprecated transaction.self_time.* metrics.
 //
-// SetInternalMetrics returns true if any known metric samples were found, and false
-// otherwise. If no known metric samples were found, the caller may opt to omit the
-// metricset altogether.
-func SetInternalMetrics(event *model.APMEvent) bool {
-	if event.Transaction == nil {
-		// Not an internal metricset.
-		return false
-	}
+// SetSpanMetrics returns true if any known span metric samples were found, and
+// false otherwise. If no known metric samples were found, the caller may opt to
+// omit the metricset altogether.
+func SetSpanMetrics(event *model.APMEvent) bool {
 	var haveMetrics bool
 	if event.Span != nil {
 		for k, v := range event.Metricset.Samples {

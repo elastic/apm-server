@@ -92,20 +92,7 @@ func TestSetDataStream(t *testing.T) {
 			Service:   model.Service{Name: "service-name"},
 			Metricset: &model.Metricset{
 				Samples: map[string]model.MetricsetSample{
-					"system.memory.total": {}, // known agent metric
-				},
-			},
-		},
-		output: model.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
-	}, {
-		input: model.APMEvent{
-			Agent:     model.Agent{Name: "rum-js"},
-			Processor: model.MetricsetProcessor,
-			Service:   model.Service{Name: "service-name"},
-			Metricset: &model.Metricset{
-				Samples: map[string]model.MetricsetSample{
-					"system.memory.total": {}, // known agent metric
-					"custom_metric":       {}, // custom metric
+					"a_metric": {},
 				},
 			},
 		},

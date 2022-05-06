@@ -83,25 +83,9 @@ func metricsetDataset(event *model.APMEvent) string {
 		return model.InternalMetricsDataset
 	}
 
-	if event.Metricset != nil {
-		// Well-defined system/runtime metrics are stored in the shared
-		// "internal" metrics data stream, as they are not application-specific.
-		//
-		// TODO(axw) agents should indicate that a metricset is internal.
-		// If a metricset is identified as internal, then we'll ignore any
-		// metrics that we don't already know about; otherwise they will end
-		// up creating service-specific data streams.
-		internal := true
-		for name := range event.Metricset.Samples {
-			if !isInternalMetricName(name) {
-				internal = false
-				break
-			}
-		}
-		if internal {
-			return model.InternalMetricsDataset
-		}
-	}
+	// Well-defined system/runtime metrics are stored in the shared
+	// "internal" metrics data stream, as they are not application-specific.
+	// This is handled in modeldecoder.
 
 	// All other metrics are assumed to be application-specific metrics,
 	// and so will be stored in an application-specific data stream.

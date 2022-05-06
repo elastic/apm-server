@@ -1496,11 +1496,12 @@ func (val *metricsetRoot) validate() error {
 }
 
 func (val *metricset) IsSet() bool {
-	return val.Timestamp.IsSet() || (len(val.Samples) > 0) || val.Span.IsSet() || (len(val.Tags) > 0) || val.Transaction.IsSet() || val.Service.IsSet()
+	return val.Timestamp.IsSet() || val.Internal.IsSet() || (len(val.Samples) > 0) || val.Span.IsSet() || (len(val.Tags) > 0) || val.Transaction.IsSet() || val.Service.IsSet()
 }
 
 func (val *metricset) Reset() {
 	val.Timestamp.Reset()
+	val.Internal.Reset()
 	for k := range val.Samples {
 		delete(val.Samples, k)
 	}

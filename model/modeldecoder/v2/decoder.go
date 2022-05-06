@@ -29,6 +29,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/internal/netutil"
 	"github.com/elastic/apm-server/model"
@@ -666,6 +667,7 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) bool {
 	}
 
 	ok := true
+	internal := false
 	if from.Transaction.IsSet() {
 		event.Transaction = &model.Transaction{}
 		if from.Transaction.Name.IsSet() {
@@ -675,9 +677,39 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) bool {
 			event.Transaction.Type = from.Transaction.Type.Val
 		}
 		// Transaction fields specified: this is an APM-internal metricset.
+		internal = true
 		// If there are no known metric samples, we return false so the
 		// metricset is not added to the batch.
-		ok = modeldecoderutil.SetInternalMetrics(event)
+		ok = modeldecoderutil.SetSpanMetrics(event)
+	} else if from.Internal.IsSet() {
+		internal = from.Internal.Val
+		if internal {
+			// The agent has indicated that the metricset is internal.
+			// Check that all metrics are known to be internal, and drop
+			// those that aren't. This is necessary as the internal
+			// metrics data stream uses strict mappping.
+			for name := range event.Metricset.Samples {
+				if !modeldecoderutil.IsInternalMetricName(name) {
+					delete(event.Metricset.Samples, name)
+				}
+			}
+		}
+	} else {
+		// Internal has not been specified: detect whether the metricset
+		// contains only known runtime, system, or process metrics. These
+		// are stored in the shared "internal" metrics data stream, as they
+		// are not application-specific.
+		internal = true
+		for name := range event.Metricset.Samples {
+			if !modeldecoderutil.IsInternalMetricName(name) {
+				internal = false
+				break
+			}
+		}
+	}
+	if ok && internal {
+		event.DataStream.Type = datastreams.MetricsType
+		event.DataStream.Dataset = model.InternalMetricsDataset
 	}
 
 	if from.Service.Name.IsSet() {

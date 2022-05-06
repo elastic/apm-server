@@ -629,16 +629,30 @@ type metricset struct {
 	// Timestamp holds the recorded time of the event, UTC based and formatted
 	// as microseconds since Unix epoch
 	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
+
+	// Internal indicates that the metricset contains only "internal" metrics:
+	// well-defined metrics produced by Elastic APM agents, as opposed to
+	// custom application metrics.
+	//
+	// If Internal is null, then APM Server will assume true if the set contains
+	// only metrics known by APM Server to be internal. If Internal is true, then
+	// APM Server will ignore any metrics it does not know about.
+	Internal nullable.Bool `json:"internal"`
+
 	// Samples hold application metrics collected from the agent.
 	Samples map[string]metricsetSampleValue `json:"samples" validate:"required,patternKeys=patternNoAsteriskQuote"`
+
 	// Span holds selected information about the correlated transaction.
 	Span metricsetSpanRef `json:"span"`
+
 	// Tags are a flat mapping of user-defined tags. On the agent side, tags
 	// are called labels. Allowed value types are string, boolean and number
 	// values. Tags are indexed and searchable.
 	Tags mapstr.M `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
+
 	// Transaction holds selected information about the correlated transaction.
 	Transaction metricsetTransactionRef `json:"transaction"`
+
 	// Service holds selected information about the correlated service.
 	Service metricsetServiceRef `json:"service"`
 }

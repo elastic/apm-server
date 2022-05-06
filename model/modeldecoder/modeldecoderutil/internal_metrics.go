@@ -15,9 +15,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modelprocessor
+package modeldecoderutil
 
-func isInternalMetricName(name string) bool {
+// IsInternalMetricName reports whether or not a metric name is a known
+// internal metric: runtime, system, or process metrics reported by agents.
+func IsInternalMetricName(name string) bool {
 	switch name {
 	case "clr.gc.count":
 		return true
