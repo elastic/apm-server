@@ -22,13 +22,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestObserverFields(t *testing.T) {
 	tests := []struct {
 		Observer Observer
-		Fields   common.MapStr
+		Fields   mapstr.M
 	}{
 		{
 			Observer: Observer{},
@@ -43,7 +43,7 @@ func TestObserverFields(t *testing.T) {
 				Type:        "observer_type",
 				Version:     "observer_version",
 			},
-			Fields: common.MapStr{
+			Fields: mapstr.M{
 				"ephemeral_id": "observer_ephemeral_id",
 				"hostname":     "observer_hostname",
 				"id":           "observer_id",

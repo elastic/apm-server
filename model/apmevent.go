@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // APMEvent holds the details of an APM event.
@@ -88,7 +88,7 @@ type APMEvent struct {
 func (e *APMEvent) BeatEvent() beat.Event {
 	event := beat.Event{
 		Timestamp: e.Timestamp,
-		Fields:    make(common.MapStr),
+		Fields:    make(mapstr.M),
 	}
 	fields := (*mapStr)(&event.Fields)
 
@@ -114,7 +114,7 @@ func (e *APMEvent) BeatEvent() beat.Event {
 	if !e.Timestamp.IsZero() {
 		switch e.Processor {
 		case TransactionProcessor, SpanProcessor, ErrorProcessor:
-			event.Fields["timestamp"] = common.MapStr{"us": int(e.Timestamp.UnixNano() / 1000)}
+			event.Fields["timestamp"] = mapstr.M{"us": int(e.Timestamp.UnixNano() / 1000)}
 		}
 	}
 
@@ -122,7 +122,7 @@ func (e *APMEvent) BeatEvent() beat.Event {
 	event.Timestamp = e.Timestamp
 	e.DataStream.setFields(fields)
 	if e.ECSVersion != "" {
-		fields.set("ecs", common.MapStr{"version": e.ECSVersion})
+		fields.set("ecs", mapstr.M{"version": e.ECSVersion})
 	}
 	fields.maybeSetMapStr("service", e.Service.Fields())
 	fields.maybeSetMapStr("agent", e.Agent.fields())

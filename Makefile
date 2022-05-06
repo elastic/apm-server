@@ -2,32 +2,15 @@
 # Variables used for various build targets.
 ##############################################################################
 
-# Ensure the Go version in .go_version is installed and used.
-GOROOT?=$(shell ./script/run_with_go_ver go env GOROOT)
-GO:=$(GOROOT)/bin/go
-export PATH:=$(GOROOT)/bin:$(PATH)
+include go.make
 
 # By default we run tests with verbose output. This may be overridden, e.g.
 # scripts may set GOTESTFLAGS=-json to format test output for processing.
 GOTESTFLAGS?=-v
 
-GOOSBUILD:=./build/$(shell $(GO) env GOOS)
-APPROVALS=$(GOOSBUILD)/approvals
-GENPACKAGE=$(GOOSBUILD)/genpackage
-GOIMPORTS=$(GOOSBUILD)/goimports
-GOLICENSER=$(GOOSBUILD)/go-licenser
-GOLINT=$(GOOSBUILD)/golint
-MAGE=$(GOOSBUILD)/mage
-REVIEWDOG=$(GOOSBUILD)/reviewdog
-STATICCHECK=$(GOOSBUILD)/staticcheck
-ELASTICPACKAGE=$(GOOSBUILD)/elastic-package
-TERRAFORMDOCS=$(GOOSBUILD)/terraform-docs
-
 PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
 PYTHON=$(PYTHON_BIN)/python
-
-APM_SERVER_VERSION=$(shell grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '" ')
 
 # Create a local config.mk file to override configuration,
 # e.g. for setting "GOLINT_UPSTREAM".
@@ -185,11 +168,11 @@ check-docker-compose: $(PYTHON_BIN)
 
 .PHONY: format-package build-package
 format-package: $(ELASTICPACKAGE)
-	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) format)
+	@(cd apmpackage/apm; $(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
 	@rm -fr ./build/integrations/apm/* ./build/apmpackage
 	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_VERSION)
-	@(cd ./build/apmpackage; $(CURDIR)/$(ELASTICPACKAGE) build && $(CURDIR)/$(ELASTICPACKAGE) check)
+	@(cd ./build/apmpackage; $(ELASTICPACKAGE) build && $(ELASTICPACKAGE) check)
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
 check-fmt: check-gofmt check-autopep8
@@ -209,46 +192,11 @@ autopep8: $(PYTHON_BIN)
 # Rules for creating and installing build tools.
 ##############################################################################
 
-BIN_MAGE=$(GOOSBUILD)/bin/mage
-
-# BIN_MAGE is the standard "mage" binary.
-$(BIN_MAGE): go.mod
-	$(GO) build -o $@ github.com/magefile/mage
-
-# MAGE is the compiled magefile.
-$(MAGE): magefile.go $(BIN_MAGE)
-	$(BIN_MAGE) -compile=$@
-
-$(GOLINT): tools/go.mod
-	$(GO) build -o $@ -modfile=$< golang.org/x/lint/golint
-
-$(GOIMPORTS): go.mod
-	$(GO) build -o $@ golang.org/x/tools/cmd/goimports
-
-$(STATICCHECK): tools/go.mod
-	$(GO) build -o $@ -modfile=$< honnef.co/go/tools/cmd/staticcheck
-
-$(GOLICENSER): tools/go.mod
-	$(GO) build -o $@ -modfile=$< github.com/elastic/go-licenser
-
-$(REVIEWDOG): tools/go.mod
-	$(GO) build -o $@ -modfile=$< github.com/reviewdog/reviewdog/cmd/reviewdog
-
-$(ELASTICPACKAGE): tools/go.mod
-	$(GO) build -o $@ -modfile=$< -ldflags '-X github.com/elastic/elastic-package/internal/version.CommitHash=anything' github.com/elastic/elastic-package
-
-$(TERRAFORMDOCS): tools/go.mod
-	$(GO) build -o $@ -modfile=$< github.com/terraform-docs/terraform-docs
-
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
 $(PYTHON_BIN)/activate: $(MAGE) script/requirements.txt
 	@$(MAGE) pythonEnv
 	@touch $@
-
-.PHONY: $(APPROVALS)
-$(APPROVALS):
-	@$(GO) build -o $@ github.com/elastic/apm-server/approvaltest/cmd/check-approvals
 
 ##############################################################################
 # Release manager.

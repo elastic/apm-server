@@ -22,13 +22,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestUserExperienceFields(t *testing.T) {
 	tests := []struct {
 		Input    *UserExperience
-		Expected common.MapStr
+		Expected mapstr.M
 	}{{
 		Input:    nil,
 		Expected: nil,
@@ -51,11 +51,11 @@ func TestUserExperienceFields(t *testing.T) {
 				Max:   1,
 			},
 		},
-		Expected: common.MapStr{
+		Expected: mapstr.M{
 			"cls": 1.0,
 			"fid": 2.3,
 			"tbt": 4.56,
-			"longtask": common.MapStr{
+			"longtask": mapstr.M{
 				"count": 3,
 				"sum":   2.0,
 				"max":   1.0,

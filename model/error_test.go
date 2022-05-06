@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func baseException() *Exception {
@@ -77,9 +77,9 @@ func TestHandleExceptionTree(t *testing.T) {
 	beatEvent := event.BeatEvent()
 	exceptionField, err := beatEvent.Fields.GetValue("error.exception")
 	require.NoError(t, err)
-	assert.Equal(t, []common.MapStr{{
+	assert.Equal(t, []mapstr.M{{
 		"message": "message0",
-		"stacktrace": []common.MapStr{{
+		"stacktrace": []mapstr.M{{
 			"exclude_from_grouping": false,
 			"filename":              "file0",
 		}},
@@ -122,7 +122,7 @@ func TestErrorFields(t *testing.T) {
 	module := "error module"
 	exMsg := "exception message"
 	handled := false
-	attributes := common.MapStr{"k1": "val1"}
+	attributes := mapstr.M{"k1": "val1"}
 	exception := Exception{
 		Type:       errorType,
 		Code:       "13",
@@ -146,40 +146,40 @@ func TestErrorFields(t *testing.T) {
 
 	tests := map[string]struct {
 		Error  Error
-		Output common.MapStr
+		Output mapstr.M
 	}{
 		"withGroupingKey": {
 			Error:  Error{GroupingKey: "foo"},
-			Output: common.MapStr{"grouping_key": "foo"},
+			Output: mapstr.M{"grouping_key": "foo"},
 		},
 		"withLog": {
 			Error: Error{Log: baseLog()},
-			Output: common.MapStr{
-				"log": common.MapStr{"message": "error log message"},
+			Output: mapstr.M{
+				"log": mapstr.M{"message": "error log message"},
 			},
 		},
 		"withLogAndException": {
 			Error: Error{Exception: baseException(), Log: baseLog()},
-			Output: common.MapStr{
-				"exception": []common.MapStr{{"message": "exception message"}},
-				"log":       common.MapStr{"message": "error log message"},
+			Output: mapstr.M{
+				"exception": []mapstr.M{{"message": "exception message"}},
+				"log":       mapstr.M{"message": "error log message"},
 			},
 		},
 		"withException": {
 			Error: Error{Exception: baseException()},
-			Output: common.MapStr{
-				"exception": []common.MapStr{{"message": "exception message"}},
+			Output: mapstr.M{
+				"exception": []mapstr.M{{"message": "exception message"}},
 			},
 		},
 		"stringCode": {
 			Error: Error{Exception: baseException().withCode("13")},
-			Output: common.MapStr{
-				"exception": []common.MapStr{{"message": "exception message", "code": "13"}},
+			Output: mapstr.M{
+				"exception": []mapstr.M{{"message": "exception message", "code": "13"}},
 			},
 		},
 		"withStackTrace": {
 			Error: Error{StackTrace: "raw stack trace"},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"stack_trace": "raw stack trace",
 			},
 		},
@@ -190,22 +190,22 @@ func TestErrorFields(t *testing.T) {
 				Exception: &exception,
 				Log:       &log,
 			},
-			Output: common.MapStr{
+			Output: mapstr.M{
 				"id":      "45678",
 				"culprit": "some trigger",
-				"exception": []common.MapStr{{
-					"stacktrace": []common.MapStr{{
+				"exception": []mapstr.M{{
+					"stacktrace": []mapstr.M{{
 						"filename":              "st file",
 						"exclude_from_grouping": false,
 					}},
 					"code":       "13",
 					"message":    "exception message",
 					"module":     "error module",
-					"attributes": common.MapStr{"k1": "val1"},
+					"attributes": mapstr.M{"k1": "val1"},
 					"type":       "error type",
 					"handled":    false,
 				}},
-				"log": common.MapStr{
+				"log": mapstr.M{
 					"message":       "error log message",
 					"param_message": "param message",
 					"logger_name":   "logger",

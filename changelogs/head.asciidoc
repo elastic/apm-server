@@ -19,6 +19,8 @@ https://github.com/elastic/apm-server/compare/8.2\...main[View commits]
 
 [float]
 ==== Added
+- System, process, and well-defined runtime metrics are now sent to the shared `metrics-apm.internal-<namespace>` data stream {pull}7882[7882]
+- Number of parallel bulk requests are now configurable via `output.elasticsearch.max_requests` {pull}8055[8055]
 
 
 // Added but still being debugged

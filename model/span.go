@@ -20,7 +20,7 @@ package model
 import (
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 var (
@@ -93,7 +93,7 @@ type Composite struct {
 	CompressionStrategy string
 }
 
-func (db *DB) fields() common.MapStr {
+func (db *DB) fields() mapstr.M {
 	if db == nil {
 		return nil
 	}
@@ -104,12 +104,12 @@ func (db *DB) fields() common.MapStr {
 	fields.maybeSetString("link", db.Link)
 	fields.maybeSetIntptr("rows_affected", db.RowsAffected)
 	if user.maybeSetString("name", db.UserName) {
-		fields.set("user", common.MapStr(user))
+		fields.set("user", mapstr.M(user))
 	}
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }
 
-func (d *DestinationService) fields() common.MapStr {
+func (d *DestinationService) fields() mapstr.M {
 	if d == nil {
 		return nil
 	}
@@ -118,23 +118,23 @@ func (d *DestinationService) fields() common.MapStr {
 	fields.maybeSetString("name", d.Name)
 	fields.maybeSetString("resource", d.Resource)
 	fields.maybeSetMapStr("response_time", d.ResponseTime.fields())
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }
 
-func (c *Composite) fields() common.MapStr {
+func (c *Composite) fields() mapstr.M {
 	if c == nil {
 		return nil
 	}
 	var fields mapStr
 	sumDuration := time.Duration(c.Sum * float64(time.Millisecond))
-	fields.set("sum", common.MapStr{"us": int(sumDuration.Microseconds())})
+	fields.set("sum", mapstr.M{"us": int(sumDuration.Microseconds())})
 	fields.set("count", c.Count)
 	fields.set("compression_strategy", c.CompressionStrategy)
 
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }
 
-func (e *Span) fields() common.MapStr {
+func (e *Span) fields() mapstr.M {
 	var span mapStr
 	span.maybeSetString("name", e.Name)
 	span.maybeSetString("type", e.Type)
@@ -147,9 +147,9 @@ func (e *Span) fields() common.MapStr {
 	span.maybeSetMapStr("message", e.Message.Fields())
 	span.maybeSetMapStr("composite", e.Composite.fields())
 	if destinationServiceFields := e.DestinationService.fields(); len(destinationServiceFields) > 0 {
-		destinationMap, ok := span["destination"].(common.MapStr)
+		destinationMap, ok := span["destination"].(mapstr.M)
 		if !ok {
-			destinationMap = make(common.MapStr)
+			destinationMap = make(mapstr.M)
 			span.set("destination", destinationMap)
 		}
 		destinationMap["service"] = destinationServiceFields
@@ -159,11 +159,11 @@ func (e *Span) fields() common.MapStr {
 	}
 	span.maybeSetMapStr("self_time", e.SelfTime.fields())
 	if n := len(e.Links); n > 0 {
-		links := make([]common.MapStr, n)
+		links := make([]mapstr.M, n)
 		for i, link := range e.Links {
 			links[i] = link.fields()
 		}
 		span.set("links", links)
 	}
-	return common.MapStr(span)
+	return mapstr.M(span)
 }

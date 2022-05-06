@@ -20,7 +20,7 @@ package rumv3
 import (
 	"encoding/json"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 )
@@ -54,7 +54,7 @@ type context struct {
 	// Custom can contain additional metadata to be stored with the event.
 	// The format is unspecified and can be deeply nested objects.
 	// The information will not be indexed or searchable in Elasticsearch.
-	Custom common.MapStr `json:"cu"`
+	Custom mapstr.M `json:"cu"`
 	// Page holds information related to the current page and page referers.
 	// It is only sent from RUM agents.
 	Page contextPage `json:"p"`
@@ -70,7 +70,7 @@ type context struct {
 	Service contextService `json:"se"`
 	// Tags are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Tags are indexed and searchable.
-	Tags common.MapStr `json:"g" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Tags mapstr.M `json:"g" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// User holds information about the correlated user for this event. If
 	// user data are provided here, all user related information from metadata
 	// is ignored, otherwise the metadata's user information will be stored
@@ -87,7 +87,7 @@ type contextPage struct {
 
 type contextRequest struct {
 	// Env holds environment variable information passed to the monitored service.
-	Env common.MapStr `json:"en"`
+	Env mapstr.M `json:"en"`
 	// Headers includes any HTTP headers sent by the requester. Cookies will
 	// be taken by headers if supplied.
 	Headers nullable.HTTPHeader `json:"he"`
@@ -190,7 +190,7 @@ type errorEvent struct {
 
 type errorException struct {
 	// Attributes of the exception.
-	Attributes common.MapStr `json:"at"`
+	Attributes mapstr.M `json:"at"`
 	// Code that is set when the error happened, e.g. database error code.
 	Code nullable.Interface `json:"cd" validate:"inputTypes=string;int,maxLength=1024"`
 	// Cause can hold a collection of error exceptions representing chained
@@ -245,7 +245,7 @@ type errorTransactionRef struct {
 type metadata struct {
 	// Labels are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Labels are indexed and searchable.
-	Labels common.MapStr `json:"l" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Labels mapstr.M `json:"l" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// Service metadata about the monitored service.
 	Service metadataService `json:"se" validate:"required"`
 	// User metadata, which can be overwritten on a per event basis.
@@ -386,7 +386,7 @@ type spanContext struct {
 	Service spanContextService `json:"se"`
 	// Tags are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Tags are indexed and searchable.
-	Tags common.MapStr `json:"g" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Tags mapstr.M `json:"g" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 }
 
 type spanContextDestination struct {

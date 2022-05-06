@@ -45,12 +45,12 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/beats/v7/libbeat/outputs"
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
 )
 
 type testBeater struct {
@@ -64,7 +64,7 @@ type testBeater struct {
 	client     *http.Client
 }
 
-func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*testBeater, error) {
+func setupServer(t *testing.T, cfg *agentconfig.C, beatConfig *beat.BeatConfig, events chan beat.Event) (*testBeater, error) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
@@ -72,7 +72,7 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, 
 	return setupBeater(t, apmBeat, cfg, beatConfig)
 }
 
-func newBeat(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*beat.Beat, *common.Config) {
+func newBeat(t *testing.T, cfg *agentconfig.C, beatConfig *beat.BeatConfig, events chan beat.Event) (*beat.Beat, *agentconfig.C) {
 	info := beat.Info{
 		Beat:        "test-apm-server",
 		IndexPrefix: "test-apm-server",
@@ -80,7 +80,7 @@ func newBeat(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, even
 		ID:          uuid.Must(uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492")),
 	}
 
-	combinedConfig := common.MustNewConfigFrom(map[string]interface{}{
+	combinedConfig := agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"host": "localhost:0",
 
 		// Disable waiting for integration to be installed by default,
@@ -134,7 +134,7 @@ func newBeat(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, even
 func setupBeater(
 	t *testing.T,
 	apmBeat *beat.Beat,
-	ucfg *common.Config,
+	ucfg *agentconfig.C,
 	beatConfig *beat.BeatConfig,
 ) (*testBeater, error) {
 	tb, err := newTestBeater(t, apmBeat, ucfg, beatConfig)
@@ -159,7 +159,7 @@ func setupBeater(
 func newTestBeater(
 	t *testing.T,
 	apmBeat *beat.Beat,
-	ucfg *common.Config,
+	ucfg *agentconfig.C,
 	beatConfig *beat.BeatConfig,
 ) (*testBeater, error) {
 

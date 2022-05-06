@@ -22,13 +22,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestNetworkTransform(t *testing.T) {
 	tests := []struct {
 		Network Network
-		Output  common.MapStr
+		Output  mapstr.M
 	}{
 		{
 			Network: Network{},
@@ -47,12 +47,12 @@ func TestNetworkTransform(t *testing.T) {
 					ICC:  "UK",
 				},
 			},
-			Output: common.MapStr{
-				"connection": common.MapStr{
+			Output: mapstr.M{
+				"connection": mapstr.M{
 					"type":    "cell",
 					"subtype": "LTE",
 				},
-				"carrier": common.MapStr{
+				"carrier": mapstr.M{
 					"name": "Vodafone",
 					"mcc":  "234",
 					"mnc":  "03",

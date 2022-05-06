@@ -9,6 +9,12 @@ BENCHMARK_TIME ?= 5m
 BENCHMARK_RUN ?= Benchmark
 BENCHMARK_RESULT ?= benchmark-result.txt
 
+GOBENCH_INDEX ?= gobench
+GOBENCH_USERNAME ?= admin
+GOBENCH_PASSWORD ?= changeme
+GOBENCH_HOST ?= http://localhost:9200
+GOBENCH_DEFAULT_TAGS = "apm_server_version=$(APM_SERVER_VERSION)"
+
 SSH_USER ?= ec2-user
 SSH_OPTS ?= -o LogLevel=ERROR -o StrictHostKeyChecking=no
 SSH_KEY ?= ~/.ssh/id_rsa_terraform
@@ -16,6 +22,8 @@ WORKER_IP = $(shell terraform output -raw public_ip)
 
 # This profile will also be used by the Terraform provider.
 export AWS_PROFILE ?= default
+
+include $(shell git rev-parse --show-toplevel)/go.make
 
 .default: all
 
@@ -41,7 +49,7 @@ terraform.tfvars:
 .PHONY: apmbench
 apmbench:
 	@echo "-> Building apmbench..."
-	@cd $(APMBENCH_PATH) && GOOS=$(APMBENCH_GOOS) GOARCH=$(APMBENCH_GOARCH) go build .
+	@cd $(APMBENCH_PATH) && GOOS=$(APMBENCH_GOOS) GOARCH=$(APMBENCH_GOARCH) $(GO) build .
 
 .PHONY: init
 init:
@@ -61,6 +69,11 @@ run-benchmark:
 	-benchtime=$(BENCHMARK_TIME) -count=$(BENCHMARK_COUNT) -warmup-events=$(BENCHMARK_WARMUP) \
 	-agents=$(BENCHMARK_AGENTS)" 2>&1 | tee $(BENCHMARK_RESULT)
 
+.PHONY: index-benchmark-results
+index-benchmark-results: $(GOBENCH)
+	@cat $(BENCHMARK_RESULT) | $(GOBENCH) -es $(GOBENCH_HOST) -es-username $(GOBENCH_USERNAME) -es-password $(GOBENCH_PASSWORD) \
+	-index $(GOBENCH_INDEX) -tag "$(GOBENCH_DEFAULT_TAGS),$(GOBENCH_TAGS)"
+
 $(SSH_KEY):
 	ssh-keygen -t rsa -b 4096 -C "$(USER)@elastic.co" -N "" -f $(SSH_KEY)
 
@@ -70,4 +83,5 @@ ssh:
 
 .PHONY: docker-override-committed-version
 docker-override-committed-version:
-	@echo "export TF_VAR_docker_image_tag_override=$(shell grep docker.elastic.co/ ../../docker-compose.yml |grep SNAPSHOT| cut -d ':' -f3|uniq)"
+	$(eval TAG := $(shell grep docker.elastic.co/ ../../docker-compose.yml |grep SNAPSHOT| cut -d ':' -f3|uniq))
+	@echo 'export TF_VAR_docker_image_tag_override={"elasticsearch":"$(TAG)","kibana":"$(TAG)","apm":"$(TAG)"}'

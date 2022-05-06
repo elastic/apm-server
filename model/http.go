@@ -18,7 +18,7 @@
 package model
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 // HTTP holds information about an HTTP request and/or response.
@@ -36,9 +36,9 @@ type HTTPRequest struct {
 
 	// Non-ECS fields:
 
-	Headers common.MapStr
-	Env     common.MapStr
-	Cookies common.MapStr
+	Headers mapstr.M
+	Env     mapstr.M
+	Cookies mapstr.M
 }
 
 // HTTPResponse holds information about an HTTP response.
@@ -47,7 +47,7 @@ type HTTPResponse struct {
 
 	// Non-ECS fields:
 
-	Headers         common.MapStr
+	Headers         mapstr.M
 	Finished        *bool
 	HeadersSent     *bool
 	TransferSize    *float64
@@ -55,7 +55,7 @@ type HTTPResponse struct {
 	DecodedBodySize *float64
 }
 
-func (h *HTTP) fields() common.MapStr {
+func (h *HTTP) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("version", h.Version)
 	if h.Request != nil {
@@ -64,10 +64,10 @@ func (h *HTTP) fields() common.MapStr {
 	if h.Response != nil {
 		fields.maybeSetMapStr("response", h.Response.fields())
 	}
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }
 
-func (h *HTTPRequest) fields() common.MapStr {
+func (h *HTTPRequest) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("method", h.Method)
 	fields.maybeSetString("referrer", h.Referrer)
@@ -79,10 +79,10 @@ func (h *HTTPRequest) fields() common.MapStr {
 		body.set("original", h.Body)
 		fields.set("body", body)
 	}
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }
 
-func (h *HTTPResponse) fields() common.MapStr {
+func (h *HTTPResponse) fields() mapstr.M {
 	var fields mapStr
 	if h.StatusCode > 0 {
 		fields.set("status_code", h.StatusCode)
@@ -93,5 +93,5 @@ func (h *HTTPResponse) fields() common.MapStr {
 	fields.maybeSetFloat64ptr("transfer_size", h.TransferSize)
 	fields.maybeSetFloat64ptr("encoded_body_size", h.EncodedBodySize)
 	fields.maybeSetFloat64ptr("decoded_body_size", h.DecodedBodySize)
-	return common.MapStr(fields)
+	return mapstr.M(fields)
 }
