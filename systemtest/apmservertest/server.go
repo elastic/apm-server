@@ -163,7 +163,6 @@ func (s *Server) start(tls bool) error {
 	args = append(args, "--path.home", ".") // working directory, s.Dir
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	s.cmd = ServerCommand(ctx, "run", args...)
 	s.cmd.Dir = s.Dir
 
@@ -187,12 +186,12 @@ func (s *Server) start(tls bool) error {
 	s.Dir = s.cmd.Dir
 	s.tb.Cleanup(func() {
 		errc := make(chan error)
+		defer cancel()
 		go func() { errc <- s.Close() }()
 		select {
 		case <-errc:
 			close(errc)
 		case <-time.After(10 * time.Second):
-			cancel()
 			// Channel receive on errc never happened. Start up a
 			// goroutine to receive on errc and then clean up the
 			// associated resources.
