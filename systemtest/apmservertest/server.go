@@ -19,6 +19,7 @@ package apmservertest
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
@@ -161,7 +162,8 @@ func (s *Server) start(tls bool) error {
 	args := append(cfgargs, s.args...)
 	args = append(args, "--path.home", ".") // working directory, s.Dir
 
-	s.cmd = ServerCommand("run", args...)
+	ctx, cancel := context.WithCancel(context.Background())
+	s.cmd = ServerCommand(ctx, "run", args...)
 	s.cmd.Dir = s.Dir
 
 	// This speeds up tests by forcing the self-instrumentation
@@ -182,7 +184,20 @@ func (s *Server) start(tls bool) error {
 		return err
 	}
 	s.Dir = s.cmd.Dir
-	s.tb.Cleanup(func() { s.Close() })
+	s.tb.Cleanup(func() {
+		errc := make(chan error)
+		defer cancel()
+		go func() { errc <- s.Close() }()
+		select {
+		case <-errc:
+			close(errc)
+		case <-time.After(10 * time.Second):
+			// Channel receive on errc never happened. Start up a
+			// goroutine to receive on errc and then clean up the
+			// associated resources.
+			go func() { <-errc; close(errc) }()
+		}
+	})
 
 	logfile := createLogfile(s.tb, "apm-server")
 	closeLogfile := true
