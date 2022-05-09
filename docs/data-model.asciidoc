@@ -1,3 +1,6 @@
+:span-name-type-sheet: https://docs.google.com/spreadsheets/d/1SmWeX5AeqUcayrArUauS_CxGgsjwRgMYH4ZY8yQsMhQ/edit#gid=644582948
+:span-spec: https://github.com/elastic/apm/blob/main/tests/agents/json-specs/span_types.json
+
 [[data-model]]
 == Data Model
 
@@ -26,8 +29,9 @@ Among other things, spans can contain:
 * A `transaction.id` attribute that refers to its parent <<data-model-transactions,transaction>>.
 * A `parent.id` attribute that refers to its parent span or transaction.
 * Its start time and duration.
-* A `name`.
-* A `type`, `subtype`, and `action`.
+* A `name`, `type`, `subtype`, and `action`—see the {span-name-type-sheet}[span name/type alignment]
+sheet for span name patterns and examples by APM agent.
+In addition, some APM agents test against a public {span-spec}[span type/subtype spec].
 * An optional `stack trace`. Stack traces consist of stack frames,
 which represent a function call on the call stack.
 They include attributes like function name, file name and path, line number, etc.
