@@ -34,7 +34,7 @@ import (
 // ServerCommand returns a ServerCmd (wrapping os/exec) for running
 // apm-server with args.
 func ServerCommand(ctx context.Context, subcommand string, args ...string) *ServerCmd {
-	binary, buildErr := BuildServerBinary(runtime.GOOS)
+	binary, buildErr := BuildServerBinary(runtime.GOOS, runtime.GOARCH)
 	if buildErr != nil {
 		// Dummy command; Start etc. will return the build error.
 		binary = "/usr/bin/false"
@@ -152,7 +152,7 @@ func (c *ServerCmd) cleanup() {
 
 // BuildServerBinary builds the apm-server binary for the given GOOS,
 // returning its absolute path.
-func BuildServerBinary(goos string) (string, error) {
+func BuildServerBinary(goos, goarch string) (string, error) {
 	// Build apm-server binary in the repo root, unless
 	// we're building for another GOOS, in which case we
 	// suffix the binary with that GOOS and place it in
@@ -181,6 +181,9 @@ func BuildServerBinary(goos string) (string, error) {
 	log.Println("Building apm-server...")
 	cmd := exec.Command("go", "build", "-o", abspath, "./x-pack/apm-server")
 	cmd.Env = append(os.Environ(), "GOOS="+goos)
+	if goarch != "" {
+		cmd.Env = append(cmd.Env, "GOARCH="+goarch)
+	}
 	cmd.Dir = repoRoot
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

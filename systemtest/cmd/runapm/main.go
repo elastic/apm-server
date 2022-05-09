@@ -24,6 +24,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -45,10 +46,12 @@ var (
 	policyName       string
 	namespace        string
 	containerName    string
+	arch             string
 	vars             = make(varsFlag)
 )
 
 func init() {
+	flag.StringVar(&arch, "arch", runtime.GOARCH, "The architecture to use for the APM Server and Docker Image")
 	flag.StringVar(&policyName, "policy", "runapm", "Agent policy name")
 	flag.StringVar(&namespace, "namespace", "default", "Agent policy namespace")
 	flag.StringVar(&containerName, "name", "", "Docker container name to use, defaults to random")
@@ -131,7 +134,7 @@ func Main() error {
 
 	log.Println("Creating Elastic Agent container")
 	agent, err := systemtest.NewUnstartedElasticAgentContainer(systemtest.ContainerConfig{
-		Name: containerName,
+		Name: containerName, Arch: arch,
 	})
 	if err != nil {
 		return err
