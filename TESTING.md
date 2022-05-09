@@ -155,8 +155,8 @@ project containers to be up and running with `systemtest/cmd/buildapm`.
 `buildapm` reads the `docker-compose.yml` at the root of the repository and uses that information to build an Elastic Agent
 docker image with an APM Server bundled that contains any local changes you might have made.
 
-By default, the same architecture (or platform in Docker lingo) as your local machine will be used. This may not be ideal
-if you have an architecture different than `amd64`, so you can specify the `-arch` flag.
+By default, the `amd64` architecture (or platform in Docker lingo) will be used. This may not be ideal if you run a machine
+with a different architecture than `amd64`, but you can specify the `-arch` flag.
 
 ```console
 $ cd systemtest/cmd/buildapm

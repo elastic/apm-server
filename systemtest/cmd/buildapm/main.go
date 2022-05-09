@@ -24,7 +24,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -38,7 +37,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&arch, "arch", runtime.GOARCH, "The architecture to use for the APM Server and Docker Image")
+	flag.StringVar(&arch, "arch", `amd64`, "The architecture to use for the APM Server and Docker Image")
 	rand.Seed(time.Now().Unix())
 }
 
