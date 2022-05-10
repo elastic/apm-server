@@ -50,6 +50,10 @@ user_name = "USER"
 # have a slightly different nomenclature.
 # worker_region = "eu-west-1"
 
+# The AWS instance_type for the worker machine. The higher the number of agents,
+# the more CPUs the instance_type should have.
+# worker_instance_type = "c6i.xlarge"
+
 # Override the path where the compiled apmbench binary is going to be uploaded.
 # Defaults to `../../systemtest/cmd/apmbench`.
 # apmbench_bin_path = "."

@@ -65,8 +65,8 @@ type LibbeatStats struct {
 	TotalEvents  int64 `json:"libbeat.output.events.total"`
 }
 
-func queryExpvar(out *expvar) error {
-	req, err := http.NewRequest("GET", *server+"/debug/vars", nil)
+func queryExpvar(out *expvar, srv string) error {
+	req, err := http.NewRequest("GET", srv+"/debug/vars", nil)
 	if err != nil {
 		return err
 	}
@@ -84,14 +84,14 @@ func queryExpvar(out *expvar) error {
 // * APM Server is inactive (has no "active" events on the output buffer).
 // * HTTP call returns with an error
 // * Context is done.
-func WaitUntilServerInactive(ctx context.Context) error {
+func WaitUntilServerInactive(ctx context.Context, server string) error {
 	result := expvar{LibbeatStats: LibbeatStats{ActiveEvents: 1}}
 	for result.ActiveEvents > 0 {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			if err := queryExpvar(&result); err != nil {
+			if err := queryExpvar(&result, server); err != nil {
 				return err
 			}
 		}

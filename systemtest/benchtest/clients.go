@@ -96,20 +96,20 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 // NewEventHandler creates a eventhandler which loads the files matching the
 // passed regex.
 func NewEventHandler(tb testing.TB, p string, l *rate.Limiter) *eventhandler.Handler {
-	h, err := newEventHandler(p, l)
+	h, err := newEventHandler(p, serverURL.String(), *secretToken, l)
 	if err != nil {
 		tb.Fatal(err)
 	}
 	return h
 }
 
-func newEventHandler(p string, l *rate.Limiter) (*eventhandler.Handler, error) {
+func newEventHandler(p, url, token string, l *rate.Limiter) (*eventhandler.Handler, error) {
 	// We call the HTTPTransport constructor to avoid copying all the config
 	// parsing that creates the `*http.Client`.
 	t, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{})
 	if err != nil {
 		return nil, err
 	}
-	transp := eventhandler.NewTransport(t.Client, serverURL.String(), *secretToken)
-	return eventhandler.New(filepath.Join("events", p), transp, events, l, *warmupEvents)
+	transp := eventhandler.NewTransport(t.Client, url, token)
+	return eventhandler.New(filepath.Join("events", p), transp, events, l)
 }
