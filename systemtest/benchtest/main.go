@@ -32,9 +32,11 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/joeshaw/multierror"
 	"go.elastic.co/apm/v2/stacktrace"
 	"golang.org/x/time/rate"
 )
@@ -61,17 +63,17 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 	var ok bool
 	var before, after expvar
 	result := testing.Benchmark(func(b *testing.B) {
-		if err := queryExpvar(&before); err != nil {
+		if err := queryExpvar(&before, *server); err != nil {
 			b.Error(err)
 			ok = !b.Failed()
 			return
 		}
 
-		limiter := getNewLimiter()
+		limiter := getNewLimiter(maxEPM)
 		b.ResetTimer()
 		f(b, limiter)
 		for !b.Failed() {
-			if err := queryExpvar(&after); err != nil {
+			if err := queryExpvar(&after, *server); err != nil {
 				b.Error(err)
 				break
 			}
@@ -125,11 +127,11 @@ func benchmarkFuncName(f BenchmarkFunc) (string, error) {
 	return name, nil
 }
 
-func getNewLimiter() *rate.Limiter {
-	if maxEPM <= 0 {
+func getNewLimiter(epm int) *rate.Limiter {
+	if epm <= 0 {
 		return rate.NewLimiter(rate.Inf, 0)
 	}
-	eps := float64(maxEPM) / float64(60)
+	eps := float64(epm) / float64(60)
 	return rate.NewLimiter(rate.Limit(eps), getBurstSize(int(math.Ceil(eps))))
 }
 
@@ -202,17 +204,12 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		}
 	}
 
-	// Warmup the APM Server before beggining the benchmarks.
-	if h, err := newEventHandler(`.*.ndjson`, getNewLimiter()); err == nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancel()
-		if err := h.WarmUpServer(ctx, *warmupEvents); err != nil {
-			return fmt.Errorf("failed warming up apm-server: %w", err)
-		}
-		ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
-		defer cancel()
-		if err := WaitUntilServerInactive(ctx); err != nil {
-			return fmt.Errorf("received error waiting for server inactive: %w", err)
+	// Warm up the APM Server with the specified `-agents`. Only the first
+	// value in the list will be used.
+	if len(agentsList) > 0 && *warmupEvents > 0 {
+		agents := agentsList[0]
+		if err := warmup(agents, *warmupEvents, serverURL.String(), *secretToken); err != nil {
+			return fmt.Errorf("warm-up failed with %d agents: %v", agents, err)
 		}
 	}
 
@@ -239,4 +236,60 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		}
 	}
 	return nil
+}
+
+func warmup(agents int, events uint, url, token string) error {
+	// Assume a base ingest rate of at least 2000 per second, and dynamically
+	// set the context timeout based on this ingest rate, or if lower, default
+	// to 15 seconds. The default 5000 / 2000 ~= 2, so the default 15 seconds
+	// will be used instead. Additionally, the number of agents is also taken
+	// into account, since each of the agents will send the number of specified
+	// events to the APM Server, increasing its load.
+	timeout := warmupTimeout(2000, events, maxEPM, agents)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	errs := make(chan error, agents)
+	rl := getNewLimiter(maxEPM)
+	var wg sync.WaitGroup
+	for i := 0; i < agents; i++ {
+		h, err := newEventHandler(`*.ndjson`, url, token, rl)
+		if err != nil {
+			return fmt.Errorf("unable to create warm-up handler: %w", err)
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := h.WarmUpServer(ctx, events); err != nil {
+				errs <- err
+			}
+		}()
+	}
+	wg.Wait()
+	close(errs)
+	var merr multierror.Errors
+	for err := range errs {
+		if err != nil {
+			merr = append(merr, err)
+		}
+	}
+	if err := merr.Err(); err != nil {
+		return err
+	}
+	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
+	defer cancel()
+	if err := WaitUntilServerInactive(ctx, url); err != nil {
+		return fmt.Errorf("received error waiting for server inactive: %w", err)
+	}
+	return nil
+}
+
+// warmupTimeout calculates the timeout for the warm up.
+func warmupTimeout(ingestRate float64, events uint, epm, agents int) time.Duration {
+	if epm > 0 {
+		ingestRate = math.Min(ingestRate, float64(epm/60))
+	}
+	return time.Duration(math.Max(
+		float64(events)/float64(ingestRate)*float64(agents), 15,
+	)) * time.Second
 }

@@ -43,14 +43,23 @@ type batch struct {
 // Handler is used to replay a set of stored events to a remote APM Server
 // using a ReplayTransport.
 type Handler struct {
-	transport    *Transport
-	limiter      *rate.Limiter
-	batches      []batch
-	warmupEvents uint
+	transport *Transport
+	limiter   *rate.Limiter
+	batches   []batch
 }
 
-// New creates a new tracehandler.Handler.
-func New(p string, t *Transport, storage fs.FS, l *rate.Limiter, warmup uint) (*Handler, error) {
+// New creates a new tracehandler.Handler from a glob expression, a filesystem,
+// Transport and an optional rate limitter. If the rate limitter is empty, an
+// infinite rate limitter will be used. and The glob expression must match one
+// file containing one or more batches.
+// The file contents should be in plain text, but the in-memory representation
+// will use zlib compression (BestCompression) to avoid compressing the batches
+// while benchmarking and optimizing memory usage.
+func New(p string, t *Transport, storage fs.FS, l *rate.Limiter) (*Handler, error) {
+	if t == nil {
+		return nil, errors.New("empty transport received")
+	}
+
 	var buf bytes.Buffer
 	zw, err := zlib.NewWriterLevel(&buf, zlib.BestCompression)
 	if err != nil {
@@ -60,11 +69,12 @@ func New(p string, t *Transport, storage fs.FS, l *rate.Limiter, warmup uint) (*
 		buf:     &buf,
 		zwriter: zw,
 	}
-
+	if l == nil {
+		l = rate.NewLimiter(rate.Inf, 0)
+	}
 	h := Handler{
-		transport:    t,
-		warmupEvents: warmup,
-		limiter:      l,
+		transport: t,
+		limiter:   l,
 	}
 
 	matches, err := fs.Glob(storage, p)
@@ -134,38 +144,44 @@ func New(p string, t *Transport, storage fs.FS, l *rate.Limiter, warmup uint) (*
 // the total number of documents sent and any transport errors.
 func (h *Handler) SendBatches(ctx context.Context) (uint, error) {
 	var sentEvents uint
-	sendEvents := func(r io.ReadSeeker, events uint) error {
-		defer r.Seek(0, io.SeekStart)
-		// NOTE(marclop) RUM event replaying is not yet supported.
-		if err := h.transport.SendV2Events(ctx, r); err != nil {
-			return err
-		}
-		sentEvents += events
-		return nil
-	}
 	for _, batch := range h.batches {
-		if err := h.limiter.WaitN(ctx, int(batch.items)); err != nil {
+		sent, err := h.sendBatch(ctx, batch)
+		if err != nil {
 			return sentEvents, err
 		}
-		if err := sendEvents(batch.r, batch.items); err != nil {
-			return sentEvents, err
-		}
+		sentEvents += sent
 	}
 	return sentEvents, nil
+}
+
+func (h *Handler) sendBatch(ctx context.Context, b batch) (uint, error) {
+	if err := h.limiter.WaitN(ctx, int(b.items)); err != nil {
+		return 0, err
+	}
+	defer b.r.Seek(0, io.SeekStart)
+	// NOTE(marclop) RUM event replaying is not yet supported.
+	if err := h.transport.SendV2Events(ctx, b.r); err != nil {
+		return 0, err
+	}
+	return b.items, nil
 }
 
 // WarmUpServer will "warm up" the remote APM Server by sending events until
 // the configured threshold is met.
 func (h *Handler) WarmUpServer(ctx context.Context, threshold uint) error {
 	var events uint
-	for events < threshold {
-		n, err := h.SendBatches(ctx)
-		if err != nil {
-			return err
+	for {
+		for _, batch := range h.batches {
+			n, err := h.sendBatch(ctx, batch)
+			if err != nil {
+				return err
+			}
+			events += n
+			if events >= threshold {
+				return nil
+			}
 		}
-		events += n
 	}
-	return nil
 }
 
 type compressedWriter struct {
