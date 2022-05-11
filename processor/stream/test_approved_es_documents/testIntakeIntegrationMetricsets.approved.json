@@ -67,12 +67,9 @@
                 ]
             },
             "labels": {
-                "some": "abc",
-                "success": "true",
                 "tag1": "one"
             },
             "numeric_labels": {
-                "code": 200,
                 "tag2": 2
             },
             "process": {
@@ -109,12 +106,9 @@
                 ]
             },
             "labels": {
-                "some": "abc",
-                "success": "true",
                 "tag1": "one"
             },
             "numeric_labels": {
-                "code": 200,
                 "tag2": 2
             },
             "process": {
@@ -153,12 +147,9 @@
                 ]
             },
             "labels": {
-                "some": "abc",
-                "success": "true",
                 "tag1": "one"
             },
             "numeric_labels": {
-                "code": 200,
                 "tag2": 2
             },
             "process": {
@@ -209,8 +200,6 @@
                 ]
             },
             "labels": {
-                "some": "abc",
-                "success": "true",
                 "tag1": "one"
             },
             "latency_distribution": {
@@ -226,7 +215,6 @@
                 ]
             },
             "numeric_labels": {
-                "code": 200,
                 "tag2": 2
             },
             "process": {
