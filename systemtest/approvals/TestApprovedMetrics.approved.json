@@ -23,13 +23,10 @@
                 ]
             },
             "labels": {
-                "some": "abc",
-                "success": "true",
                 "tag1": "one"
             },
             "metricset.name": "app",
             "numeric_labels": {
-                "code": 200,
                 "tag2": 2
             },
             "observer": {
@@ -83,13 +80,10 @@
                 ]
             },
             "labels": {
-                "some": "abc",
-                "success": "true",
                 "tag1": "one"
             },
             "metricset.name": "app",
             "numeric_labels": {
-                "code": 200,
                 "tag2": 2
             },
             "observer": {
@@ -145,13 +139,10 @@
                 ]
             },
             "labels": {
-                "some": "abc",
-                "success": "true",
                 "tag1": "one"
             },
             "metricset.name": "app",
             "numeric_labels": {
-                "code": 200,
                 "tag2": 2
             },
             "observer": {
@@ -213,8 +204,6 @@
                 ]
             },
             "labels": {
-                "some": "abc",
-                "success": "true",
                 "tag1": "one"
             },
             "latency_distribution": {
@@ -231,7 +220,6 @@
             },
             "metricset.name": "app",
             "numeric_labels": {
-                "code": 200,
                 "tag2": 2
             },
             "observer": {
