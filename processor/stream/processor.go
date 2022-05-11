@@ -161,7 +161,9 @@ func (p *Processor) readBatch(
 			// required for backwards compatibility - sending empty lines was permitted in previous versions
 			continue
 		}
-		input := modeldecoder.Input{Base: baseEvent}
+		// We copy the event for each iteration of the batch, as to avoid
+		// shallow copies of Labels and NumericLabels.
+		input := modeldecoder.Input{Base: copyEvent(baseEvent)}
 		switch eventType := p.identifyEventType(body); string(eventType) {
 		case errorEventType:
 			err = v2.DecodeNestedError(reader, &input, batch)
@@ -306,4 +308,17 @@ func (sr *streamReader) wrapError(err error) error {
 		}
 	}
 	return err
+}
+
+// copyEvent returns a shallow copy of the APMEvent with a deep copy of the
+// labels and numeric labels.
+func copyEvent(e model.APMEvent) model.APMEvent {
+	var out = e
+	if out.Labels != nil {
+		out.Labels = out.Labels.Clone()
+	}
+	if out.NumericLabels != nil {
+		out.NumericLabels = out.NumericLabels.Clone()
+	}
+	return out
 }

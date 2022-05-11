@@ -207,11 +207,9 @@
             "labels": {
                 "ab_testing": "true",
                 "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "success": "true"
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
             },
             "numeric_labels": {
-                "code": 200,
                 "segment": 5
             },
             "parent": {
@@ -334,12 +332,9 @@
             },
             "labels": {
                 "ab_testing": "true",
-                "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "success": "true"
+                "group": "experimental"
             },
             "numeric_labels": {
-                "code": 200,
                 "segment": 5
             },
             "parent": {
@@ -523,11 +518,9 @@
             "labels": {
                 "ab_testing": "true",
                 "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "success": "true"
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
             },
             "numeric_labels": {
-                "code": 200,
                 "segment": 5
             },
             "parent": {
@@ -649,7 +642,6 @@
             "labels": {
                 "ab_testing": "true",
                 "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "success": "true"
             },
             "numeric_labels": {
