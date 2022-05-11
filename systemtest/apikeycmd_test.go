@@ -58,7 +58,7 @@ func apiKeyCommandConfig(cfg apmservertest.Config, subcommand string, args ...st
 	userargs := args
 	args = append([]string{subcommand}, esargs...)
 	args = append(args, userargs...)
-	return apmservertest.ServerCommand("apikey", args...)
+	return apmservertest.ServerCommand(context.Background(), "apikey", args...)
 }
 
 func TestAPIKeyCreate(t *testing.T) {

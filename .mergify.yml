@@ -137,7 +137,7 @@ pull_request_rules:
     conditions:
       - check-success=apm-ci/pr-merge
       - label=automation
-      - base~=^update-beats
+      - head~=^update-beats
       - files~=^(go.mod|go.sum|NOTICE.txt)
     actions:
       queue:

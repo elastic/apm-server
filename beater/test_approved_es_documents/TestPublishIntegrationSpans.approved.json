@@ -69,8 +69,7 @@
                 }
             },
             "labels": {
-                "tag1": "value1",
-                "tag4": "true"
+                "tag1": "label1"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -201,8 +200,7 @@
                 }
             },
             "labels": {
-                "tag1": "value1",
-                "tag4": "true"
+                "tag1": "label1"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -466,8 +464,7 @@
                 }
             },
             "labels": {
-                "tag1": "value1",
-                "tag4": "true"
+                "tag1": "label1"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -613,8 +610,7 @@
                 }
             },
             "labels": {
-                "tag1": "value1",
-                "tag4": "true"
+                "tag1": "label1"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -819,8 +815,7 @@
                 }
             },
             "labels": {
-                "tag1": "value1",
-                "tag4": "true"
+                "tag1": "label1"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -960,8 +955,7 @@
                 }
             },
             "labels": {
-                "tag1": "value1",
-                "tag4": "true"
+                "tag1": "label1"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",

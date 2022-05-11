@@ -2,7 +2,7 @@ APMBENCH_PATH ?= ../../systemtest/cmd/apmbench
 APMBENCH_GOOS ?= linux
 APMBENCH_GOARCH ?= amd64
 
-BENCHMARK_WARMUP ?= 4500000
+BENCHMARK_WARMUP ?= 50000
 BENCHMARK_AGENTS ?= 64
 BENCHMARK_COUNT ?= 2
 BENCHMARK_TIME ?= 5m
@@ -23,12 +23,12 @@ WORKER_IP = $(shell terraform output -raw public_ip)
 # This profile will also be used by the Terraform provider.
 export AWS_PROFILE ?= default
 
-include $(shell git rev-parse --show-toplevel)/go.make
-
 .default: all
 
 .PHONY: all
 all: $(SSH_KEY) terraform.tfvars apmbench auth apply
+
+include $(shell git rev-parse --show-toplevel)/go.make
 
 .PHONY: auth
 auth: init-aws-profile
@@ -84,4 +84,4 @@ ssh:
 .PHONY: docker-override-committed-version
 docker-override-committed-version:
 	$(eval TAG := $(shell grep docker.elastic.co/ ../../docker-compose.yml |grep SNAPSHOT| cut -d ':' -f3|uniq))
-	@echo 'export TF_VAR_docker_image_tag_override={"elasticsearch":"$(TAG)","kibana":"$(TAG)","apm":"$(TAG)"}'
+	@echo 'export TF_VAR_docker_image_tag_override={\"elasticsearch\":\"$(TAG)\",\"kibana\":\"$(TAG)\",\"apm\":\"$(TAG)\"}'
