@@ -18,6 +18,7 @@
 package systemtest_test
 
 import (
+	"sort"
 	"testing"
 	"time"
 
@@ -133,6 +134,15 @@ func TestCompressedSpans(t *testing.T) {
 	spanResults := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm*span",
 		estest.TermQuery{Field: "span.type", Value: "db"},
 	)
+	hits := spanResults.Hits.Hits
+	// The results return in a random order; sort them so we can compare
+	// against the stored approved document.
+	sort.Slice(hits, func(i, j int) bool {
+		span := hits[i].Source["span"].(map[string]interface{})
+		composite := span["composite"].(map[string]interface{})
+		compressionStrategy := composite["compression_strategy"].(string)
+		return compressionStrategy == "same_kind"
+	})
 	systemtest.ApproveEvents(t, t.Name(), spanResults.Hits.Hits,
 		append(txIgnoreFields, "span.id", "parent")...,
 	)
