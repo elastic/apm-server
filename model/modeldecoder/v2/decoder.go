@@ -69,8 +69,8 @@ var (
 )
 
 var (
-	patternWithSingleSlash   = regexp.MustCompile(`^([a-z]+)/(\w+)$`)
-	patternWithOnlyAlphabets = regexp.MustCompile(`^[a-z]+$`)
+	reWithSingleSlashExpr   = regexp.MustCompile(`^([a-z]+)/(\w+)$`)
+	reWithOnlyAlphabetsExpr = regexp.MustCompile(`^[a-z]+$`)
 )
 
 func fetchErrorRoot() *errorRoot {
@@ -974,8 +974,9 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		mapToServiceModel(from.Context.Service, &event.Service)
 		mapToAgentModel(from.Context.Service.Agent, &event.Agent)
 	}
-	if !from.Context.Service.Target.Type.IsSet() {
-		event.Service.Target = inferFromResource(from.Context.Destination.Service.Resource)
+	if !from.Context.Service.Target.Type.IsSet() && from.Context.Destination.Service.Resource.IsSet() {
+		outTarget := targetFromDestinationResource(from.Context.Destination.Service.Resource.Val)
+		event.Service.Target = &outTarget
 	}
 	if len(from.Context.Tags) > 0 {
 		modeldecoderutil.MergeLabels(from.Context.Tags, event)
@@ -1444,18 +1445,14 @@ func mapSpanLinks(from []spanLink, out *[]model.SpanLink) {
 	}
 }
 
-func inferFromResource(res nullable.String) *model.ServiceTarget {
-	outTarget := &model.ServiceTarget{}
-	if res.IsSet() {
-		submatch := patternWithSingleSlash.FindStringSubmatch(res.Val)
-		if submatch != nil {
-			outTarget.Type = submatch[1]
-			outTarget.Name = submatch[2]
-		} else if patternWithOnlyAlphabets.MatchString(res.Val) {
-			outTarget.Type = res.Val
-		} else {
-			outTarget.Name = res.Val
-		}
+func targetFromDestinationResource(res string) (target model.ServiceTarget) {
+	if submatch := reWithSingleSlashExpr.FindStringSubmatch(res); submatch != nil {
+		target.Type = submatch[1]
+		target.Name = submatch[2]
+	} else if reWithOnlyAlphabetsExpr.MatchString(res) {
+		target.Type = res
+	} else {
+		target.Name = res
 	}
-	return outTarget
+	return
 }
