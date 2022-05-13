@@ -18,7 +18,8 @@ The default APM index templates can be viewed in {kib}.
 Navigate to **Stack Management** > **Index Management** > **Index Templates**, and search for `apm`.
 Select any of the APM index templates to view their relevant component templates.
 
-It is not currently possible to make changes to index templates that persist through version upgrades.
+It is possible to make changes to index templates that persist through version upgrades using the component templates
+named `@custom`, declared in the built-in `apm` index templates.
 
 // end::index-template-integration[]
 
