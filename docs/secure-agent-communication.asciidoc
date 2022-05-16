@@ -122,7 +122,7 @@ privileges.
 
 The user creating an APM agent API key must have at least the `manage_own_api_key` cluster privilege
 and the APM application-level privileges that it wishes to grant.
-In addition, if you're creating an API key from the APM UI,
+In addition, if you're creating an API key from the APM app,
 you'll need the appropriate Kibana Space and Feature privileges.
 
 The example below uses the Kibana {kibana-ref}/role-management-api.html[role management API]
@@ -150,15 +150,15 @@ POST /_security/role/apm_agent_key_role
    ]
 }
 ----
-<1> The privileges added in this object only apply to roles that will create API keys in the APM UI.
-If you don't have access to the APM UI, you can omit this object and skip to <<create-an-api-key-alternate>>.
+<1> The privileges added in this object only apply to roles that will create API keys in the APM app.
+If you don't have access to the APM app, you can omit this object and skip to <<create-an-api-key-alternate>>.
 <2> Assigns privileges for the default space.
 
 Assign the newly created `apm_agent_key_role` role to any user that wishes to create APM agent API keys.
 
 [[create-an-api-key]]
 [float]
-=== Create an API key in the APM UI
+=== Create an API key in the APM app
 
 Using a superuser account, or a user with the role created in the previous step,
 open {kib} and navigate to **Observability** > **APM** > **Settings** > **Agent keys**.
@@ -175,13 +175,13 @@ Click **Create APM Agent key** and copy the Base64 encoded API key.
 You will need this for the next step, and you will not be able to view it again.
 
 [role="screenshot"]
-image::images/apm-ui-api-key.png[APM UI API key]
+image::images/apm-ui-api-key.png[APM app API key]
 
 [[create-an-api-key-alternate]]
 [float]
 === Create an API key in {kib} Stack Management
 
-If you don't have access to the APM UI, API keys can be created in {kib} Stack Management.
+If you don't have access to the APM app, API keys can be created in {kib} Stack Management.
 
 [%collapsible]
 .Expand for more information
