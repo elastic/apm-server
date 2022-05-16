@@ -4,7 +4,7 @@
 
 package eventstorage
 
-import "github.com/elastic/beats/v7/libbeat/logp"
+import "github.com/elastic/elastic-agent-libs/logp"
 
 // LogpAdaptor adapts logp.Logger to the badger.Logger interface.
 type LogpAdaptor struct {

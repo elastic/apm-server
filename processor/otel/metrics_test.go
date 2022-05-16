@@ -46,7 +46,7 @@ import (
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
-	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func TestConsumeMetrics(t *testing.T) {
