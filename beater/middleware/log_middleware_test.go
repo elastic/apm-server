@@ -28,9 +28,9 @@ import (
 	"go.elastic.co/apm/v2"
 	"go.elastic.co/apm/v2/apmtest"
 
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/configure"
-	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/beater/beatertest"

@@ -29,9 +29,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/configure"
-	agentconfig "github.com/elastic/elastic-agent-libs/config"
 )
 
 func TestLogging(t *testing.T) {
