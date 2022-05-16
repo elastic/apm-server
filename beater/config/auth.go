@@ -20,7 +20,7 @@ package config
 import (
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/config"
 
 	"github.com/elastic/apm-server/elasticsearch"

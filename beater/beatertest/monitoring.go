@@ -20,7 +20,7 @@ package beatertest
 import (
 	"fmt"
 
-	"github.com/elastic/beats/v7/libbeat/monitoring"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-server/beater/request"
 )

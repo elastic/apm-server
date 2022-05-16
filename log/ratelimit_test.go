@@ -27,7 +27,7 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func TestWithRateLimit(t *testing.T) {

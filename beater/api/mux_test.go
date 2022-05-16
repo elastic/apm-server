@@ -38,7 +38,7 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestBackendRequestMetadata(t *testing.T) {

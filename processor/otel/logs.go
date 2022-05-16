@@ -43,7 +43,7 @@ import (
 
 	apmserverlogs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 var jsonLogsMarshaler = otlp.NewJSONLogsMarshaler()
