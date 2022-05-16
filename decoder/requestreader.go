@@ -23,7 +23,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/elastic/beats/v7/libbeat/monitoring"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 var (
