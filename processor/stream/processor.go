@@ -22,6 +22,7 @@ import (
 	"context"
 	"io"
 	"sync"
+	"time"
 
 	"go.elastic.co/apm/v2"
 
@@ -33,6 +34,7 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/rumv3"
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
+	"github.com/elastic/apm-server/publish"
 )
 
 var (
@@ -210,22 +212,25 @@ func (p *Processor) HandleStream(
 	result *Result,
 ) error {
 	// Since processor.ProcessBatch can block for some time until all the batch
-	// is added to the modelindexer's cache and there isn't a fail-fast rejection,
-	// we want to cap how many in-flight requests are read at any time.
+	// is added to the modelindexer's cache and there isn't a fail-fast rejection
+	// at that layer, we cap how many in-flight requests are read at any time.
 	// Defaults to 200 (N), only allowing N requests to read and cache Y events
 	// (determined by batchSize) from the batch, effectively limitting the decoding
 	// concurrency to N batches at any time, which should be a good ceiling. The
 	// ceiling also reduces the contention on the modelindexer.activeMu.
-	select {
-	case p.sem <- struct{}{}:
-	case <-ctx.Done():
-		return ctx.Err()
+	// Furthermore, locking the semaphore will only wait for the specified D timer
+	// providing an efficient fail-fast when batches cannot be serviced in time.
+	// NOTE(marclop) should the timer be configurable? Is `1s` an acceptable wait
+	// period?
+	unlock, err := p.acquireLock(ctx, time.Second)
+	if err != nil {
+		return err
 	}
 
 	sr := p.getStreamReader(reader)
 	defer func() {
 		sr.release()
-		<-p.sem
+		unlock()
 	}()
 
 	// first item is the metadata object
@@ -270,6 +275,23 @@ func (p *Processor) getStreamReader(r io.Reader) *streamReader {
 		processor:           p,
 		NDJSONStreamDecoder: decoder.NewNDJSONStreamDecoder(r, p.MaxEventSize),
 	}
+}
+
+func (p *Processor) acquireLock(ctx context.Context, d time.Duration) (func(), error) {
+	select {
+	case p.sem <- struct{}{}:
+	default:
+		t := acquireTimer(d)
+		defer releaseTimer(t)
+		select {
+		case p.sem <- struct{}{}:
+		case <-t.C:
+			return nil, publish.ErrFull
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+	return func() { <-p.sem }, nil
 }
 
 // streamReader wraps NDJSONStreamReader, converting errors to stream errors.
@@ -321,4 +343,29 @@ func copyEvent(e model.APMEvent) model.APMEvent {
 		out.NumericLabels = out.NumericLabels.Clone()
 	}
 	return out
+}
+
+var timerPool sync.Pool
+
+func acquireTimer(d time.Duration) *time.Timer {
+	v := timerPool.Get()
+	if v == nil {
+		return time.NewTimer(d)
+	}
+	t := v.(*time.Timer)
+	if t.Reset(d) {
+		// This may happen when an active timer was put in the pool. Since
+		// we don't necessarily want to deal with stopping and re-setting
+		// that timer again, it's best to create a new timer and return it.
+		return time.NewTimer(d)
+	}
+	return t
+}
+
+func releaseTimer(tm *time.Timer) {
+	// Return the timer to the pool when it hasn't fired and can be reused,
+	// otherwise, the timer reference is lost and should be garbage collected.
+	if tm.Stop() {
+		timerPool.Put(tm)
+	}
 }
