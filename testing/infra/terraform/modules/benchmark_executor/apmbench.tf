@@ -5,12 +5,9 @@ locals {
 resource "null_resource" "apmbench" {
   count = var.apmbench_bin_path != "" ? 1 : 0
 
-  depends_on = [local_file.envrc]
-
   triggers = {
     apmbench  = filesha1("${var.apmbench_bin_path}/apmbench")
     worker_ip = module.ec2_instance.public_ip
-    envrc     = local_file.envrc.id
   }
 
   connection {
@@ -27,16 +24,32 @@ resource "null_resource" "apmbench" {
     destination = "bin/apmbench"
   }
 
+  provisioner "remote-exec" {
+    inline = ["chmod +x ~/bin/apmbench"]
+  }
+}
+
+resource "null_resource" "envrc" {
+  depends_on = [local_file.envrc]
+
+  triggers = {
+    worker_ip = module.ec2_instance.public_ip
+    envrc     = local_file.envrc.id
+  }
+
+  connection {
+    host        = module.ec2_instance.public_ip
+    user        = local.user
+    private_key = file(var.private_key)
+  }
+
   provisioner "file" {
     source      = ".envrc"
     destination = ".envrc"
   }
 
   provisioner "remote-exec" {
-    inline = [
-      "chmod +x ~/bin/apmbench",
-      "grep .envrc .bashrc || echo '. .envrc' >> .bashrc",
-    ]
+    inline = ["grep .envrc .bashrc || echo '. .envrc' >> .bashrc"]
   }
 }
 

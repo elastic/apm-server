@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/logp"
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"

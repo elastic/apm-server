@@ -18,6 +18,7 @@
 package systemtest_test
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -39,7 +40,7 @@ func exportConfigCommand(t *testing.T, args ...string) (_ *apmservertest.ServerC
 
 	allArgs := []string{"config", "--path.home", tempdir}
 	allArgs = append(allArgs, args...)
-	return apmservertest.ServerCommand("export", allArgs...), tempdir
+	return apmservertest.ServerCommand(context.Background(), "export", allArgs...), tempdir
 }
 
 func TestExportConfigDefaults(t *testing.T) {

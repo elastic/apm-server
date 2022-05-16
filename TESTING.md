@@ -117,7 +117,7 @@ that Stack Monitoring is working as expected.
 Note that the `testing/stack-monitoring.sh` script relies on `systemtest/cmd/runapm`, and will use a locally built
 version of APM Server (see more information below).
 
-### Injecting an APM Server binary into Elastic Agent
+### Running an Elastic Agent container with a locally built APM Server
 
 APM Server can be run in either standalone or managed mode by the ELastic Agent. To facilitate manual testing of
 APM Server in managed mode, it is possible to inject a locally built `apm-server` binary via `systemtest/cmd/runapm`.
@@ -128,6 +128,8 @@ the APM Server port using a random binding that is printed to the standard outpu
 $ cd systemtest/cmd/runapm
 $ go run main.go -h
 Usage of /var/folders/35/r4w8sbqj2md1sg944kpnzyth0000gn/T/go-build3644709196/b001/exe/main:
+  -arch string
+    	The architecture to use for the APM Server and Docker Image (default runtime.GOARCH)
   -d    If true, runapm will exit after the agent container has been started
   -f    Force agent policy creation, deleting existing policy if found
   -keep
@@ -142,4 +144,30 @@ Usage of /var/folders/35/r4w8sbqj2md1sg944kpnzyth0000gn/T/go-build3644709196/b00
         Reinstall APM integration package (default true)
   -var value
         Define a package var (k=v), with values being YAML-encoded; can be specified more than once
+```
+
+### Building an Elastic Agent container image with a locally built APM Server
+
+It's possible to run `runapm` (as pictured above) and re-use the image that `runapm` builds to use in docker-compose
+files or run in ECE / ESS. However, it's also possible to only build a docker image without requiring the docker-compose
+project containers to be up and running with `systemtest/cmd/buildapm`.
+
+`buildapm` reads the `docker-compose.yml` at the root of the repository and uses that information to build an Elastic Agent
+docker image with an APM Server bundled that contains any local changes you might have made.
+
+By default, the `amd64` architecture (or platform in Docker lingo) will be used. This may not be ideal if you run a machine
+with a different architecture than `amd64`, but you can specify the `-arch` flag.
+
+```console
+$ cd systemtest/cmd/buildapm
+$ go run main.go -arch arm64
+2022/05/05 17:50:18 Building image elastic-agent-systemtest:8.3.0-7f585873-SNAPSHOT (arm64) from elastic-agent-systemtest:8.3.0-7f585873-SNAPSHOT...
+2022/05/05 17:50:18 Building apm-server...
+2022/05/05 17:50:18 Built /Users/marclop/repos/elastic/apm-server/build/apm-server-linux
+2022/05/05 17:50:25 Built image elastic-agent-systemtest:8.3.0-7f585873-SNAPSHOT (arm64)
+$  go run main.go -arch amd64
+2022/05/05 17:50:35 Building image elastic-agent-systemtest:8.3.0-7f585873-SNAPSHOT (amd64) from elastic-agent-systemtest:8.3.0-7f585873-SNAPSHOT...
+2022/05/05 17:50:35 Building apm-server...
+2022/05/05 17:50:43 Built /Users/marclop/repos/elastic/apm-server/build/apm-server-linux
+2022/05/05 17:50:49 Built image elastic-agent-systemtest:8.3.0-7f585873-SNAPSHOT (amd64)
 ```
