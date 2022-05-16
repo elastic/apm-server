@@ -95,7 +95,6 @@ You can assign one or more unique privileges to each API key:
 * *Agent configuration* (`config_agent:read`): Required for agents to read
 {kibana-ref}/agent-configuration.html[Agent configuration remotely].
 * *Ingest* (`event:write`): Required for ingesting agent events.
-* *Sourcemap* (`sourcemap:write`): Required for uploading sourcemaps to {kib}.
 
 To secure the communication between APM Agents and the APM Server with API keys,
 make sure <<agent-tls,TLS>> is enabled, then complete these steps:
@@ -139,8 +138,7 @@ POST /_security/role/apm_agent_key_role
          "application":"apm",
          "privileges":[
             "event:write",
-            "config_agent:read",
-            "sourcemap:write"
+            "config_agent:read"
          ],
          "resources":[ "*" ]
       },
@@ -152,7 +150,7 @@ POST /_security/role/apm_agent_key_role
    ]
 }
 ----
-<1> The privileges added in this object only apply to roles that will be creating API keys in the APM UI.
+<1> The privileges added in this object only apply to roles that will create API keys in the APM UI.
 If you don't have access to the APM UI, you can omit this object and skip to <<create-an-api-key-alternate>>.
 <2> Assigns privileges for the default space.
 
@@ -168,8 +166,10 @@ Enter a name for your API key and select at least one privilege.
 
 For example, to create an API key that can be used to ingest APM events
 and read agent central configuration, select `config_agent:read` and `event:write`.
-Or, to create an API key that can be used to upload RUM sourcemaps to {kib}, select `sourcemap:write`
-(and then be sure to read our <<source-map-how-to,how to upload source maps>> guide).
+
+IMPORTANT: The `sourcemap:write` privilege is outdated and will be removed in a future release.
+To learn more about the privileges required to upload a source map,
+see the {kibana-ref}/rum-sourcemap-api.html[RUM source map API].
 
 Click **Create APM Agent key** and copy the Base64 encoded API key.
 You will need this for the next step, and you will not be able to view it again.
