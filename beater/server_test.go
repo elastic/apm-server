@@ -49,9 +49,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
-	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/management"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	pubs "github.com/elastic/beats/v7/libbeat/publisher"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
@@ -59,6 +57,8 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/queue"
 	"github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
@@ -502,7 +502,7 @@ func TestServerConfigReload(t *testing.T) {
 		},
 	})}})
 	require.Error(t, err)
-	assert.Regexp(t, "listen tcp: lookup testing.invalid: .*", err.Error())
+	assert.Regexp(t, "listen tcp: lookup testing.invalid.*", err.Error())
 
 	inputConfig := agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"apm-server": map[string]interface{}{
