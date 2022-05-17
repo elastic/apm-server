@@ -19,8 +19,6 @@ package systemtest_test
 
 import (
 	"encoding/json"
-	"errors"
-	"io"
 	"net/http"
 	"net/url"
 	"testing"
@@ -123,9 +121,9 @@ func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, 
 
 	maxRetries := 10
 	var retries int
-	for errors.Is(err, io.EOF) && retries < maxRetries {
+	for err != nil && retries < maxRetries {
 		retries++
-		t.Logf("apm-server returned EOF on read, retry %d/%d...", retries, maxRetries)
+		t.Logf(`apm-server returned err="%v" on read, retry %d/%d...`, err, retries, maxRetries)
 		<-time.After(500 * time.Millisecond)
 		resp, err = c.Do(req)
 	}
