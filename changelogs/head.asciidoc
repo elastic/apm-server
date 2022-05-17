@@ -5,6 +5,7 @@ https://github.com/elastic/apm-server/compare/8.2\...main[View commits]
 
 [float]
 ==== Breaking Changes
+- Removed support for experimental firehose endpoint for CloudWatch metric streams {pull}8109[8109]
 
 [float]
 ==== Deprecations
