@@ -494,4 +494,43 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			Trace: model.Trace{ID: "trace2"},
 		}}, out.Span.Links)
 	})
+
+	t.Run("service-target", func(t *testing.T) {
+		for _, tc := range []struct {
+			name                         string
+			inTargetType, inTargetName   string
+			outTargetType, outTargetName string
+			resource                     string
+		}{
+			{name: "target-type-set", inTargetType: "some-type", outTargetType: "some-type", outTargetName: ""},
+			{name: "target-type-infer-both", resource: "postgres/testdb", outTargetType: "postgres", outTargetName: "testdb"},
+			{name: "target-type-infer-type", resource: "mysql", outTargetType: "mysql", outTargetName: ""},
+			{name: "target-type-infer-name", resource: "my-db", outTargetType: "", outTargetName: "my-db"},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				var input span
+				defaultVal := modeldecodertest.DefaultValues()
+				modeldecodertest.SetStructValues(&input, defaultVal)
+				if tc.inTargetType != "" {
+					input.Context.Service.Target.Type.Set(tc.inTargetType)
+				} else {
+					input.Context.Service.Target.Type.Reset()
+				}
+				if tc.inTargetName != "" {
+					input.Context.Service.Target.Name.Set(tc.inTargetName)
+				} else {
+					input.Context.Service.Target.Name.Reset()
+				}
+				if tc.resource != "" {
+					input.Context.Destination.Service.Resource.Set(tc.resource)
+				} else {
+					input.Context.Destination.Service.Resource.Reset()
+				}
+				var out model.APMEvent
+				mapToSpanModel(&input, &out)
+				assert.Equal(t, tc.outTargetType, out.Service.Target.Type)
+				assert.Equal(t, tc.outTargetName, out.Service.Target.Name)
+			})
+		}
+	})
 }
