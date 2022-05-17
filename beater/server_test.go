@@ -933,44 +933,6 @@ func TestServerPProf(t *testing.T) {
 	}
 }
 
-type chanClient struct {
-	done    chan struct{}
-	Channel chan beat.Event
-}
-
-func newChanClientWith(ch chan beat.Event) *chanClient {
-	if ch == nil {
-		ch = make(chan beat.Event, 1)
-	}
-	c := &chanClient{
-		done:    make(chan struct{}),
-		Channel: ch,
-	}
-	return c
-}
-
-func (c *chanClient) Close() error {
-	close(c.done)
-	return nil
-}
-
-// Publish will publish every event in the batch on the channel. Options will be ignored.
-// Always returns without error.
-func (c *chanClient) Publish(_ context.Context, batch pubs.Batch) error {
-	for _, event := range batch.Events() {
-		select {
-		case <-c.done:
-		case c.Channel <- event.Content:
-		}
-	}
-	batch.ACK()
-	return nil
-}
-
-func (c *chanClient) String() string {
-	return "event capturing test client"
-}
-
 type dummyOutputClient struct {
 }
 

@@ -20,6 +20,7 @@ package modelindexertest
 import (
 	"bufio"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -33,22 +34,27 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 
 	"github.com/elastic/apm-server/elasticsearch"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelindexer"
 )
 
-// NewMockElasticsearchClientChannelOutput returns an elasticsearch.Client which sends bulk indexed documents to the out channel.
-func NewChannelOutputElasticsearchClient(t testing.TB, out chan<- []byte) elasticsearch.Client {
+// AppendEncodedBatch encodes batch to JSON-encoded documents, appending them
+// to out and returning the extended slice. AppendEncodedBatch will fail the
+// test if event encoding incurs any errors.
+func AppendEncodedBatch(t testing.TB, out [][]byte, batch model.Batch) [][]byte {
 	var bulkHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		docs, response := DecodeBulkRequest(r)
 		defer json.NewEncoder(w).Encode(response)
-		for _, doc := range docs {
-			select {
-			case <-r.Context().Done():
-				return
-			case out <- doc:
-			}
-		}
+		out = append(out, docs...)
 	}
-	return NewMockElasticsearchClient(t, bulkHandler)
+	client := NewMockElasticsearchClient(t, bulkHandler)
+	indexer, err := modelindexer.New(client, modelindexer.Config{})
+	require.NoError(t, err)
+	err = indexer.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+	err = indexer.Close(context.Background())
+	require.NoError(t, err)
+	return out
 }
 
 // DecodeBulkRequest decodes a /_bulk request's body, returning the decoded documents and a response body.
@@ -101,14 +107,9 @@ func NewMockElasticsearchClient(t testing.TB, bulkHandler http.HandlerFunc) elas
 
 // NewMockElasticsearchClientConfig starts an httptest.Server, and returns an *elasticsearch.Config which
 // sends /_bulk requests to bulkHandler. The httptest.Server will be closed via t.Cleanup.
-func NewMockElasticsearchClientConfig(
-	t testing.TB, bulkHandler http.HandlerFunc,
-) *elasticsearch.Config {
+func NewMockElasticsearchClientConfig(t testing.TB, bulkHandler http.HandlerFunc) *elasticsearch.Config {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		bulkHandler.ServeHTTP(w, r)
-	})
+	HandleBulk(mux, bulkHandler)
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
 
@@ -116,4 +117,13 @@ func NewMockElasticsearchClientConfig(
 	config.Hosts = elasticsearch.Hosts{srv.URL}
 	config.Backoff.Max = time.Nanosecond
 	return config
+}
+
+// HandleBulk registers bulkHandler with mux for handling /_bulk requests,
+// wrapping bulkHandler to conform with go-elasticsearch version checking.
+func HandleBulk(mux *http.ServeMux, bulkHandler http.HandlerFunc) {
+	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		bulkHandler.ServeHTTP(w, r)
+	})
 }
