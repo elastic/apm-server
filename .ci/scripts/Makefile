@@ -26,20 +26,23 @@ create-package-storage-pull-request:
 		git checkout -b $(PACKAGE_STORAGE_BRANCH) ; \
 		echo "INFO: add files if any" ; \
 		git add . ; \
+		echo "INFO: any changes" ; \
+		rm .changes 2>/dev/null || true ; \
+		git diff --staged --quiet || touch .changes ; \
 		echo "INFO: commit changes if any" ; \
-		git diff --staged --quiet || git commit -m "[automation] Publish apm-$(APM_SERVER_VERSION)" ; \
+		test -f .changes && git commit -m "[automation] Publish apm-$(APM_SERVER_VERSION)" || true ; \
 		echo "INFO: show remote details" ; \
 		git remote -v ; \
-		echo "INFO: push branch" ; \
-		git push --set-upstream origin $(PACKAGE_STORAGE_BRANCH) ; \
-		echo "INFO: create pull request" ; \
-		gh pr create \
+		echo "INFO: push branch if changes" ; \
+		test -f .changes && git push --set-upstream origin $(PACKAGE_STORAGE_BRANCH) || true ; \
+		echo "INFO: create pull request if changes" ; \
+		test -f .changes && gh pr create \
 			--title "Publish apm-$(APM_SERVER_VERSION)" \
 			--body "Automated by $${BUILD_URL}" \
 			--label automation \
 			--base snapshot \
 			--head $(PACKAGE_STORAGE_BRANCH) \
-			--reviewer elastic/apm-server
+			--reviewer elastic/apm-server || true ; \
 
 ## get-package-storage-location : Get the package storage location
 .PHONY: get-package-storage-location
