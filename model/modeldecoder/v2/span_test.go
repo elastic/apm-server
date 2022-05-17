@@ -502,10 +502,10 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			outTargetType, outTargetName string
 			resource                     string
 		}{
-			{name: "target-type-set", inTargetType: "some-type", outTargetType: "some-type", outTargetName: ""},
-			{name: "target-type-infer-both", resource: "postgres/testdb", outTargetType: "postgres", outTargetName: "testdb"},
-			{name: "target-type-infer-type", resource: "mysql", outTargetType: "mysql", outTargetName: ""},
-			{name: "target-type-infer-name", resource: "my-db", outTargetType: "", outTargetName: "my-db"},
+			{name: "passed-as-input", inTargetType: "some-type", outTargetType: "some-type", outTargetName: ""},
+			{name: "infer-from-resource", resource: "postgres/testdb", outTargetType: "postgres", outTargetName: "testdb"},
+			{name: "infer-only-type-from-resource", resource: "mysql", outTargetType: "mysql", outTargetName: ""},
+			{name: "infer-only-name-from-resource", resource: "my-db", outTargetType: "", outTargetName: "my-db"},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				var input span
