@@ -69,8 +69,10 @@ var (
 )
 
 var (
-	reWithSingleSlashExpr   = regexp.MustCompile(`^([a-z]+)/(\w+)$`)
-	reWithOnlyAlphabetsExpr = regexp.MustCompile(`^[a-z]+$`)
+	// reForServiceTargetExpr regex will capture service target type and name
+	// Service target type comprises of only lowercase alphabets
+	// Service target name comprises of all word characters
+	reForServiceTargetExpr = regexp.MustCompile(`^([a-z]+)(?:/(\w+))?$`)
 )
 
 func fetchErrorRoot() *errorRoot {
@@ -1446,12 +1448,12 @@ func mapSpanLinks(from []spanLink, out *[]model.SpanLink) {
 }
 
 func targetFromDestinationResource(res string) (target model.ServiceTarget) {
-	if submatch := reWithSingleSlashExpr.FindStringSubmatch(res); submatch != nil {
+	submatch := reForServiceTargetExpr.FindStringSubmatch(res)
+	switch len(submatch) {
+	case 3:
 		target.Type = submatch[1]
 		target.Name = submatch[2]
-	} else if reWithOnlyAlphabetsExpr.MatchString(res) {
-		target.Type = res
-	} else {
+	default:
 		target.Name = res
 	}
 	return
