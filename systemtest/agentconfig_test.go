@@ -118,7 +118,8 @@ func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, 
 	if etag != "" {
 		req.Header.Set("If-None-Match", etag)
 	}
-	resp, err := http.DefaultClient.Do(req)
+	c := http.Client{Timeout: 5 * time.Second}
+	resp, err := c.Do(req)
 
 	maxRetries := 10
 	var retries int
@@ -126,7 +127,7 @@ func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, 
 		retries++
 		t.Logf("apm-server returned EOF on read, retry %d/%d...", retries, maxRetries)
 		<-time.After(500 * time.Millisecond)
-		resp, err = http.DefaultClient.Do(req)
+		resp, err = c.Do(req)
 	}
 	require.NoError(t, err)
 	defer resp.Body.Close()
