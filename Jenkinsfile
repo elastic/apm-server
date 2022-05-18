@@ -2,7 +2,7 @@
 @Library('apm@current') _
 
 pipeline {
-  agent { label 'orka && darwin' }
+  agent { label 'orka && darwin && x86_64' }
   environment {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
@@ -234,7 +234,7 @@ pipeline {
         Build on a mac environment.
         */
         stage('OSX build-test') {
-          agent { label 'orka && darwin' }
+          agent { label 'orka && darwin && x86_64' }
           options {
             skipDefaultCheckout()
             warnError('OSX execution failed')
