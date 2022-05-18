@@ -29,7 +29,7 @@ import (
 	"github.com/pkg/errors"
 
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 const (
