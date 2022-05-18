@@ -249,6 +249,38 @@ POST /apm-*/_delete_by_query
 See {ref}/docs-delete-by-query.html[delete by query] for further information on this topic.
 
 [float]
+[[delete-other-apm-data]]
+===== Delete other APM data
+
+In addition to trace event data, there are other APM indices that you may wish to delete data from.
+
+APM {kibana-ref}/custom-links.html[custom links] are stored in the `.apm-custom-link` index.
+To delete all custom links, run:
+
+[source,console]
+----
+POST /.apm-custom-link/_delete_by_query
+{
+  "query": {
+    "match_all": {}
+  }
+}
+----
+
+APM agent {kibana-ref}/agent-configuration.html[central configuration] data is stored in the `.apm-agent-configuration` index.
+To delete all central agent configurations, run:
+
+[source,console]
+----
+POST /.apm-agent-configuration/_delete_by_query
+{
+  "query": {
+    "match_all": {}
+  }
+}
+----
+
+[float]
 [[delete-data-kibana]]
 ===== Delete data via Kibana Index Management UI
 
@@ -283,7 +315,7 @@ To do this, you can use the {ref}/docs-update-by-query.html[Update By Query API]
 
 To rename a service, send the following request:
 
-["source","sh"]
+["source","console"]
 ------------------------------------------------------------
 POST /apm-*/_update_by_query
 {
