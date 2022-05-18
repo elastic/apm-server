@@ -54,6 +54,11 @@ pipeline {
       }
       options { skipDefaultCheckout() }
       steps {
+        // as long as it's not provided by the image
+        sh '''
+          curl -sL -o /usr/local/bin/gvm https://github.com/andrewkroh/gvm/releases/download/v0.4.1/gvm-darwin-amd64
+          chmod +x /usr/local/bin/gvm
+        '''
         //pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true,
@@ -246,6 +251,11 @@ pipeline {
           }
           steps {
             withGithubNotify(context: 'Build-Test - OSX') {
+              // as long as it's not provided by the image
+              sh '''
+                curl -sL -o /usr/local/bin/gvm https://github.com/andrewkroh/gvm/releases/download/v0.4.1/gvm-darwin-amd64
+                chmod +x /usr/local/bin/gvm
+              '''
               deleteDir()
               unstash 'source'
               dir(BASE_DIR){
