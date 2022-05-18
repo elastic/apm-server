@@ -228,7 +228,7 @@ pipeline {
         Build on a mac environment.
         */
         stage('OSX build-test') {
-          agent { label 'macosx && x86_64' }
+          agent { label 'orka && darwin' }
           options {
             skipDefaultCheckout()
             warnError('OSX execution failed')
