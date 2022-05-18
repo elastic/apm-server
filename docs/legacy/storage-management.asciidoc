@@ -224,7 +224,7 @@ INFO      "delete_indices" action completed.
 ===== Delete data matching a query
 
 You can delete documents matching a specific query.
-For example, all documents with a given `context.service.name` use the following request:
+For example, all documents with a given `service.name` use the following request:
 
 ["source","sh"]
 ------------------------------------------------------------
@@ -235,7 +235,7 @@ POST /apm-*/_delete_by_query
       "must": [
         {
           "term": {
-            "context.service.name": {
+            "service.name": {
               "value": "old-service-name"
             }
           }
@@ -289,13 +289,13 @@ POST /apm-*/_update_by_query
 {
   "query": {
     "term": {
-      "context.service.name": {
+      "service.name": {
         "value": "old-service-name"
       }
     }
   },
   "script": {
-    "source": "ctx._source.context.service.name = 'new-service-name'",
+    "source": "ctx._source.service.name = 'new-service-name'",
     "lang": "painless"
   }
 }
