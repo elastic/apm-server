@@ -180,7 +180,7 @@ func BuildServerBinary(goos, goarch string) (string, error) {
 
 	log.Println("Building apm-server...")
 	cmd := exec.Command("go", "build", "-o", abspath, "./x-pack/apm-server")
-	cmd.Env = append(os.Environ(), "GOOS="+goos)
+	cmd.Env = append(os.Environ(), "GOOS="+goos, "CGO_ENABLED=0")
 	if goarch != "" {
 		cmd.Env = append(cmd.Env, "GOARCH="+goarch)
 	}
