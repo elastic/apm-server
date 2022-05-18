@@ -96,7 +96,7 @@ func TestAggregatorRun(t *testing.T) {
 		{serviceName: "service-A", agentName: "java", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 0},
 		{serviceName: "service-A", agentName: "java", outcome: "success", count: 1},                                             // no destination or service target
 		{serviceName: "service-A", agentName: "java", targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 1}, // no destination
-		// {serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "success", count: 1},               // no service target, possible?
+		{serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "success", count: 1},                  // no service target
 		{serviceName: "service-A", agentName: "java", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "failure", count: 1},
 	}
 
