@@ -777,7 +777,7 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	}
 
 	logs := beater.logs.FilterMessageSnippet("please install the apm integration")
-	assert.Len(t, logs.All(), 1, "coundn't find remediation message logs")
+	assert.Len(t, logs.All(), 1, "couldn't find remediation message logs")
 
 	// Healthcheck should now report that the server is publish-ready.
 	resp, err = beater.client.Get(beater.baseURL + api.RootPath)
