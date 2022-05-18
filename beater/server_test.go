@@ -788,7 +788,6 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 }
 
 func TestServerElasticsearchOutput(t *testing.T) {
-	bulkCh := make(chan *http.Request, 1)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -796,14 +795,19 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		// elasticsearch client to send bulk requests.
 		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
 	})
+
+	done := make(chan struct{})
+	bulkCh := make(chan *http.Request, 1)
 	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
 		select {
 		case bulkCh <- r:
 		default:
 		}
+		<-done // block all requests from completing until test is done
 	})
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
+	defer close(done)
 
 	// The beater has no way of unregistering itself from reload.Register,
 	// so we create a fresh registry and replace it after the test.
@@ -898,6 +902,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 			},
 		},
 	}, snapshot)
+
 	snapshot = monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("output"), monitoring.Full, false)
 	assert.Equal(t, map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
