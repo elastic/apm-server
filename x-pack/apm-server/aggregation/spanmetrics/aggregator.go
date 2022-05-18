@@ -208,7 +208,7 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 }
 
 func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
-	if event.Span.DestinationService == nil || event.Span.DestinationService.Resource == "" || event.Service.Target == nil {
+	if (event.Span.DestinationService == nil || event.Span.DestinationService.Resource == "") && event.Service.Target == nil {
 		return model.APMEvent{}
 	}
 	if event.Span.RepresentativeCount <= 0 {
