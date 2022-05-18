@@ -28,7 +28,7 @@ export AWS_PROFILE ?= default
 .PHONY: all
 all: $(SSH_KEY) terraform.tfvars apmbench auth apply
 
-include $(shell git rev-parse --show-toplevel)/go.make
+include $(shell git rev-parse --show-toplevel)/go.mk
 
 .PHONY: auth
 auth: init-aws-profile
