@@ -32,7 +32,7 @@ You can edit this `@custom` component template to customize your {es} indices.
 First, determine which <<apm-data-streams,data stream>> you'd like to edit.
 Then, open {kib} and navigate to **Stack Management** > **Index Management** > **Component Templates**.
 
-Custom component templates are named following this pattern: `<name_of_data_stream>@custom`
+Custom component templates are named following this pattern: `<name_of_data_stream>@custom`.
 Search for the name of the data stream, like `traces-apm`, and select its custom component template.
 In this example, that'd be, `traces-apm@custom`.
 Then click **Manage** > **Edit**.
@@ -74,7 +74,7 @@ For example, to roll over the `traces-apm-default` data stream, run:
 
 [source,console]
 ----
-POST /traces-apm-default/_rollover/ <1>
+POST /traces-apm-default/_rollover/
 ----
 
 // end::index-template-integration[]
