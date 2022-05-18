@@ -40,7 +40,8 @@ func Test_warmup(t *testing.T) {
 	}
 	cases := []testCase{
 		{1, []uint{100, 1000}},
-		{16, []uint{100, 1000, 100000}},
+		{16, []uint{100, 1000, 10000}},
+		{64, []uint{100, 1000}},
 	}
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("%d_agent_%v_events", c.agents, c.events), func(t *testing.T) {
@@ -73,11 +74,11 @@ func Test_warmup(t *testing.T) {
 				var localReceive uint64
 				var readMeta bool
 				for scanner.Scan() {
-					if !readMeta {
+					if readMeta {
+						localReceive++
+					} else {
 						readMeta = true
-						continue
 					}
-					localReceive++
 				}
 				atomic.AddUint64(&received, localReceive)
 				w.WriteHeader(http.StatusAccepted)
@@ -115,6 +116,15 @@ func Test_warmupTimeout(t *testing.T) {
 			expected: 15 * time.Second,
 		},
 		{
+			name: "5000 events 500 agents",
+			args: args{
+				ingestRate: 1000,
+				events:     5000,
+				agents:     500,
+			},
+			expected: 78125 * time.Second,
+		},
+		{
 			name: "50k events",
 			args: args{
 				ingestRate: 1000,
@@ -133,13 +143,13 @@ func Test_warmupTimeout(t *testing.T) {
 			expected: 80 * time.Second,
 		},
 		{
-			name: "default events, 32 agents",
+			name: "default events 32 agents",
 			args: args{
 				ingestRate: 1000,
 				events:     5000,
 				agents:     32,
 			},
-			expected: 160 * time.Second,
+			expected: 320 * time.Second,
 		},
 		{
 			name: "default events 12000 epm (200/s) yields a bigger timeout",
@@ -149,7 +159,7 @@ func Test_warmupTimeout(t *testing.T) {
 				epm:        200 * 60,
 				agents:     32,
 			},
-			expected: 800 * time.Second,
+			expected: 1600 * time.Second,
 		},
 	}
 	for _, tt := range tests {

@@ -239,13 +239,13 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 }
 
 func warmup(agents int, events uint, url, token string) error {
-	// Assume a base ingest rate of at least 2000 per second, and dynamically
+	// Assume a base ingest rate of at least 1000 per second, and dynamically
 	// set the context timeout based on this ingest rate, or if lower, default
-	// to 15 seconds. The default 5000 / 2000 ~= 2, so the default 15 seconds
+	// to 15 seconds. The default 5000 / 1000 ~= 5, so the default 15 seconds
 	// will be used instead. Additionally, the number of agents is also taken
 	// into account, since each of the agents will send the number of specified
 	// events to the APM Server, increasing its load.
-	timeout := warmupTimeout(2000, events, maxEPM, agents)
+	timeout := warmupTimeout(1000, events, maxEPM, agents)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -289,7 +289,11 @@ func warmupTimeout(ingestRate float64, events uint, epm, agents int) time.Durati
 	if epm > 0 {
 		ingestRate = math.Min(ingestRate, float64(epm/60))
 	}
+	// For every 16 agent agents, we want to increase the timeout multiplier.
+	// Since more work needs to be done concurrently both on the APM Server
+	// and `apmbench`.
+	factor := math.Max(1, float64(agents)/16)
 	return time.Duration(math.Max(
-		float64(events)/float64(ingestRate)*float64(agents), 15,
+		float64(events)/float64(ingestRate)*float64(agents)*factor, 15,
 	)) * time.Second
 }
