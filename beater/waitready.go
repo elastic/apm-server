@@ -18,8 +18,10 @@
 package beater
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"time"
 
@@ -79,10 +81,17 @@ func waitReady(
 type waitReadyRoundTripper struct {
 	*http.Transport
 	ready <-chan struct{}
+	drain <-chan struct{}
 }
 
 func (c *waitReadyRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	select {
+	case <-c.drain:
+		return &http.Response{
+			Request:    r,
+			StatusCode: http.StatusPreconditionFailed,
+			Body:       io.NopCloser(new(bytes.Buffer)),
+		}, nil
 	case <-c.ready:
 	case <-r.Context().Done():
 		return nil, r.Context().Err()

@@ -464,10 +464,17 @@ func (s *serverRunner) run(listener net.Listener) error {
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
 	publishReady := make(chan struct{})
+	drain := make(chan struct{})
 	g.Go(func() error {
-		defer close(publishReady)
-		err := s.waitReady(ctx, kibanaClient)
-		return errors.Wrap(err, "error waiting for server to be ready")
+		if err := s.waitReady(ctx, kibanaClient); err != nil {
+			// One or more preconditions failed; drop events.
+			close(drain)
+			return errors.Wrap(err, "error waiting for server to be ready")
+		}
+		// All preconditions have been met; start indexing documents
+		// into elasticsearch.
+		close(publishReady)
+		return nil
 	})
 	callbackUUID, err := esoutput.RegisterConnectCallback(func(*eslegclient.Connection) error {
 		select {
@@ -486,7 +493,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 		if err != nil {
 			return nil, err
 		}
-		transport := &waitReadyRoundTripper{Transport: httpTransport, ready: publishReady}
+		transport := &waitReadyRoundTripper{Transport: httpTransport, ready: publishReady, drain: drain}
 		return elasticsearch.NewClientParams(elasticsearch.ClientParams{
 			Config:    cfg,
 			Transport: transport,
