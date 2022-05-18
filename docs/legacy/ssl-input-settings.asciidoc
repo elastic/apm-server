@@ -61,7 +61,7 @@ If `certificate_authorities` is empty or not set, the trusted certificate author
 If `certificate_authorities` is set, `client_authentication` will be automatically set to `required`.
 Sending client certificates is currently only supported by the RUM agent through the browser,
 the Java agent (see {apm-java-ref-v}/ssl-configuration.html[Agent certificate authentication]),
-and by the Jaeger agent.
+and the Jaeger agent.
 
 [float]
 ==== `client_authentication`
@@ -72,7 +72,7 @@ If `certificate_authorities` has been specified, this setting will automatically
 This option only needs to be configured when the agent is expected to provide a client certificate.
 Sending client certificates is currently only supported by the RUM agent through the browser,
 the Java agent (see {apm-java-ref-v}/ssl-configuration.html[Agent certificate authentication]),
-and by the Jaeger agent.
+and the Jaeger agent.
 
 * `none` - Disables client authentication.
 * `optional` - When a client certificate is given, the server will verify it.
