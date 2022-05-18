@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/8.2\...main[View commits]
 
 [float]
 ==== Deprecations
+- `span.context.destination.service.resource` is deprecated {pull}7925[7925]
 
 [float]
 ==== Bug fixes
@@ -18,6 +19,7 @@ https://github.com/elastic/apm-server/compare/8.2\...main[View commits]
 ==== Intake API Changes
 - For OpenTelemetry exception span events, stack traces that cannot be parsed will now be stored in `event.stack_trace` {pull}7706[7706]
 - Support for ingesting `service.target.type` and `service.target.name` added to intake API for spans {pull}7870[7870]
+- Derive `service.target.{type, name}` fields for older agents from `span.context.destination.service.resource` {pull}7925[7925]
 
 [float]
 ==== Added

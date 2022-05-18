@@ -80,7 +80,7 @@ type DB struct {
 type DestinationService struct {
 	Type     string // Deprecated
 	Name     string // Deprecated
-	Resource string
+	Resource string // Deprecated
 
 	// ResponseTime holds aggregated span durations for the destination service resource.
 	ResponseTime AggregatedDuration
