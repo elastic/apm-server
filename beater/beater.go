@@ -467,7 +467,9 @@ func (s *serverRunner) run(listener net.Listener) error {
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
 	publishReady := make(chan struct{})
+	drain := make(chan struct{})
 	g.Go(func() error {
+<<<<<<< HEAD
 		defer close(publishReady)
 		esClusterVersion, err := s.waitReady(ctx, kibanaClient)
 		if err != nil {
@@ -479,6 +481,16 @@ func (s *serverRunner) run(listener net.Listener) error {
 		if s.elasticsearchOutputConfig != nil && esClusterVersion != nil && esClusterVersion.LessThan(elasticsearchSupportsDocCount) {
 			placeholderBatchProcessor.Set(modelprocessor.UnsetIndexDocCountField{})
 		}
+=======
+		if err := s.waitReady(ctx, kibanaClient); err != nil {
+			// One or more preconditions failed; drop events.
+			close(drain)
+			return errors.Wrap(err, "error waiting for server to be ready")
+		}
+		// All preconditions have been met; start indexing documents
+		// into elasticsearch.
+		close(publishReady)
+>>>>>>> a15e8375 (Prevent index failed precondition (#8152))
 		return nil
 	})
 	callbackUUID, err := esoutput.RegisterConnectCallback(func(*eslegclient.Connection) error {
@@ -498,10 +510,13 @@ func (s *serverRunner) run(listener net.Listener) error {
 		if err != nil {
 			return nil, err
 		}
-		transport := &waitReadyRoundTripper{Transport: httpTransport, ready: publishReady}
+		transport := &waitReadyRoundTripper{Transport: httpTransport, ready: publishReady, drain: drain}
 		return elasticsearch.NewClientParams(elasticsearch.ClientParams{
 			Config:    cfg,
 			Transport: transport,
+			RetryOnError: func(_ *http.Request, err error) bool {
+				return !errors.Is(err, errServerShuttingDown)
+			},
 		})
 	}
 
