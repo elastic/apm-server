@@ -54,9 +54,6 @@ pipeline {
       }
       options { skipDefaultCheckout() }
       steps {
-        sh(label: 'debug orka', script: '''
-            env | sort
-            cat /etc/paths''')
         //pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true,
@@ -249,9 +246,6 @@ pipeline {
           }
           steps {
             withGithubNotify(context: 'Build-Test - OSX') {
-              sh(label: 'debug orka', script: '''
-                  env | sort'
-                  cat /etc/paths''')
               deleteDir()
               unstash 'source'
               dir(BASE_DIR){
