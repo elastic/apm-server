@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eox pipefail
 
-pythonVersion=3.7.7
+pythonVersion=3.10.0
 
 if command -v python 2> /dev/null ; then
     set +e
