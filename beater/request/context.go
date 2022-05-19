@@ -79,7 +79,9 @@ type Context struct {
 	// UserAgent holds the User-Agent request header value.
 	UserAgent string
 
-	w             http.ResponseWriter
+	// W is exported to enable passing Context to OTLP handlers
+	// An alternate solution would be to implement context.WriteHeaders()
+	W             http.ResponseWriter
 	writeAttempts int
 }
 
@@ -91,7 +93,7 @@ func NewContext() *Context {
 // Reset allows to reuse a context by removing all request specific information.
 //
 // It is valid to call Reset(nil, nil), which will just clear all information.
-// If w and r are non-nil, the context will be associated with them for handling
+// If W and r are non-nil, the context will be associated with them for handling
 // the request, and information such as the user agent and source IP will be
 // extracted for handlers.
 func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
@@ -106,7 +108,7 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 		Request:        r,
 		Logger:         nil,
 		Authentication: auth.AuthenticationDetails{},
-		w:              w,
+		W:              w,
 	}
 	c.Result.Reset()
 
@@ -126,7 +128,7 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 
 // Header returns the http.Header of the context's writer
 func (c *Context) Header() http.Header {
-	return c.w.Header()
+	return c.W.Header()
 }
 
 // MultipleWriteAttempts returns a boolean set to true if Write() was called multiple times.
@@ -144,11 +146,11 @@ func (c *Context) Write() {
 	}
 	c.writeAttempts++
 
-	c.w.Header().Set(headers.XContentTypeOptions, "nosniff")
+	c.W.Header().Set(headers.XContentTypeOptions, "nosniff")
 
 	body := c.Result.Body
 	if body == nil {
-		c.w.WriteHeader(c.Result.StatusCode)
+		c.W.WriteHeader(c.Result.StatusCode)
 		return
 	}
 
@@ -161,12 +163,12 @@ func (c *Context) Write() {
 
 	var err error
 	if c.acceptJSON() {
-		c.w.Header().Set(headers.ContentType, "application/json")
-		c.w.WriteHeader(c.Result.StatusCode)
+		c.W.Header().Set(headers.ContentType, "application/json")
+		c.W.WriteHeader(c.Result.StatusCode)
 		err = c.writeJSON(body, true)
 	} else {
-		c.w.Header().Set(headers.ContentType, "text/plain; charset=utf-8")
-		c.w.WriteHeader(c.Result.StatusCode)
+		c.W.Header().Set(headers.ContentType, "text/plain; charset=utf-8")
+		c.W.WriteHeader(c.Result.StatusCode)
 		err = c.writePlain(body)
 	}
 	if err != nil {
@@ -185,7 +187,7 @@ func (c *Context) acceptJSON() bool {
 }
 
 func (c *Context) writeJSON(body interface{}, pretty bool) error {
-	enc := json.NewEncoder(c.w)
+	enc := json.NewEncoder(c.W)
 	if pretty {
 		enc.SetIndent("", "  ")
 	}
@@ -194,7 +196,7 @@ func (c *Context) writeJSON(body interface{}, pretty bool) error {
 
 func (c *Context) writePlain(body interface{}) error {
 	if b, ok := body.(string); ok {
-		_, err := c.w.Write([]byte(b + "\n"))
+		_, err := c.W.Write([]byte(b + "\n"))
 		return err
 	}
 	// unexpected behavior to return json but changing this would be breaking

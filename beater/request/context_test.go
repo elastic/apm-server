@@ -73,7 +73,7 @@ func TestContext_Reset(t *testing.T) {
 
 	before := time.Now()
 	c := Context{
-		Request: r1, w: w1,
+		Request: r1, W: w1,
 		Logger: logp.NewLogger(""),
 		Result: Result{
 			StatusCode: http.StatusServiceUnavailable,
@@ -96,8 +96,8 @@ func TestContext_Reset(t *testing.T) {
 			assert.Equal(t, r2, cVal.Field(i).Interface())
 		case "Authentication":
 			assert.Equal(t, auth.AuthenticationDetails{}, cVal.Field(i).Interface())
-		case "w":
-			assert.Equal(t, w2, c.w)
+		case "W":
+			assert.Equal(t, w2, c.W)
 		case "writeAttempts":
 			assert.Equal(t, 0, c.writeAttempts)
 		case "Result":
@@ -127,7 +127,7 @@ func TestContext_Header(t *testing.T) {
 	w := httptest.NewRecorder()
 	w.Header().Set(headers.Etag, "abcd")
 	w.Header().Set(headers.Bearer, "foo")
-	c := Context{w: w}
+	c := Context{W: w}
 
 	h := http.Header{headers.Etag: []string{"abcd"}, headers.Bearer: []string{"foo"}}
 	assert.Equal(t, h, c.Header())
@@ -247,11 +247,11 @@ func TestContext_Write(t *testing.T) {
 }
 
 func testHeaderXContentTypeOptions(t *testing.T, c *Context) {
-	assert.Equal(t, "nosniff", c.w.Header().Get(headers.XContentTypeOptions))
+	assert.Equal(t, "nosniff", c.W.Header().Get(headers.XContentTypeOptions))
 }
 
 func testHeader(t *testing.T, c *Context, expected string) {
-	assert.Equal(t, expected, c.w.Header().Get(headers.ContentType))
+	assert.Equal(t, expected, c.W.Header().Get(headers.ContentType))
 	testHeaderXContentTypeOptions(t, c)
 }
 
