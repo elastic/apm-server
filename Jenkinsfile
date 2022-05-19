@@ -49,7 +49,7 @@ pipeline {
     */
     stage('Checkout') {
       environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+        PATH = "${env.PATH}:${env.WORKSPACE}/bin:/usr/local/bin"
         HOME = "${env.WORKSPACE}"
       }
       options { skipDefaultCheckout() }
@@ -248,6 +248,7 @@ pipeline {
           }
           environment {
             HOME = "${env.WORKSPACE}"
+            PATH = "${env.PATH}:/usr/local/bin"
           }
           steps {
             withGithubNotify(context: 'Build-Test - OSX') {
