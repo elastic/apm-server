@@ -55,7 +55,7 @@ pipeline {
       options { skipDefaultCheckout() }
       steps {
         sh(label: 'debug orka', script: '''
-            env | sort'
+            env | sort
             cat /etc/paths''')
         //pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
