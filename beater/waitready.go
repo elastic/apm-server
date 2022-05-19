@@ -18,10 +18,8 @@
 package beater
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"net/http"
 	"time"
 
@@ -84,14 +82,12 @@ type waitReadyRoundTripper struct {
 	drain <-chan struct{}
 }
 
+var errServerShuttingDown = errors.New("server shutting down")
+
 func (c *waitReadyRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	select {
 	case <-c.drain:
-		return &http.Response{
-			Request:    r,
-			StatusCode: http.StatusPreconditionFailed,
-			Body:       io.NopCloser(new(bytes.Buffer)),
-		}, nil
+		return nil, errServerShuttingDown
 	case <-c.ready:
 	case <-r.Context().Done():
 		return nil, r.Context().Err()

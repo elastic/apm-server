@@ -497,6 +497,9 @@ func (s *serverRunner) run(listener net.Listener) error {
 		return elasticsearch.NewClientParams(elasticsearch.ClientParams{
 			Config:    cfg,
 			Transport: transport,
+			RetryOnError: func(_ *http.Request, err error) bool {
+				return !errors.Is(err, errServerShuttingDown)
+			},
 		})
 	}
 
