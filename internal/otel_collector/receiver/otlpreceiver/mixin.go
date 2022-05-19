@@ -16,6 +16,8 @@ package otlpreceiver
 
 import (
 	"context"
+	"go.opentelemetry.io/collector/component/componenterror"
+	"net/http"
 
 	"go.opentelemetry.io/otel/metric"
 	apitrace "go.opentelemetry.io/otel/trace"
@@ -48,24 +50,72 @@ var settings = component.ReceiverCreateSettings{
 	},
 }
 
-// RegisterTraceReceiver registers the trace receiver with a gRPC server.
-func RegisterTraceReceiver(ctx context.Context, consumer consumer.Traces, serverGRPC *grpc.Server) error {
+type HTTPReceivers struct {
+	TracesR  *trace.Receiver
+	MetricsR *metrics.Receiver
+	LogsR    *logs.Receiver
+}
 
+// GRPC Receivers
+
+// RegisterGRPCTraceReceiver registers the trace receiver with a gRPC server.
+func RegisterGRPCTraceReceiver(ctx context.Context, consumer consumer.Traces, serverGRPC *grpc.Server) error {
 	receiver := trace.New(config.NewComponentID("otlp"), consumer, settings)
 	otlpgrpc.RegisterTracesServer(serverGRPC, receiver)
 	return nil
 }
 
-// RegisterMetricsReceiver registers the metrics receiver with a gRPC server.
-func RegisterMetricsReceiver(ctx context.Context, consumer consumer.Metrics, serverGRPC *grpc.Server) error {
+// RegisterGRPCMetricsReceiver registers the metrics receiver with a gRPC server.
+func RegisterGRPCMetricsReceiver(ctx context.Context, consumer consumer.Metrics, serverGRPC *grpc.Server) error {
 	receiver := metrics.New(config.NewComponentID("otlp"), consumer, settings)
 	otlpgrpc.RegisterMetricsServer(serverGRPC, receiver)
 	return nil
 }
 
-// RegisterLogsReceiver registers the logs receiver with a gRPC server.
-func RegisterLogsReceiver(ctx context.Context, consumer consumer.Logs, serverGRPC *grpc.Server) error {
+// RegisterGRPCLogsReceiver registers the logs receiver with a gRPC server.
+func RegisterGRPCLogsReceiver(ctx context.Context, consumer consumer.Logs, serverGRPC *grpc.Server) error {
 	receiver := logs.New(config.NewComponentID("otlp"), consumer, settings)
 	otlpgrpc.RegisterLogsServer(serverGRPC, receiver)
 	return nil
+}
+
+// HTTP Receivers
+
+func NewHTTPTraceReceiver(ctx context.Context, consumer consumer.Traces) (*trace.Receiver, error) {
+	receiver := trace.New(config.NewComponentID("otlp"), consumer, settings)
+	if consumer == nil {
+		return nil, componenterror.ErrNilNextConsumer
+	}
+
+	return receiver, nil
+}
+
+func HandleHTTPTraces(resp http.ResponseWriter, req *http.Request, traceReceiver *trace.Receiver) {
+	handleTraces(resp, req, traceReceiver, pbEncoder)
+}
+
+func NewHTTPMetricsReceiver(ctx context.Context, consumer consumer.Metrics) (*metrics.Receiver, error) {
+	receiver := metrics.New(config.NewComponentID("otlp"), consumer, settings)
+	if consumer == nil {
+		return nil, componenterror.ErrNilNextConsumer
+	}
+
+	return receiver, nil
+}
+
+func HandleHTTPMetrics(resp http.ResponseWriter, req *http.Request, metricsReceiver *metrics.Receiver) {
+	handleMetrics(resp, req, metricsReceiver, pbEncoder)
+}
+
+func NewHTTPLogsReceiver(ctx context.Context, consumer consumer.Logs) (*logs.Receiver, error) {
+	receiver := logs.New(config.NewComponentID("otlp"), consumer, settings)
+	if consumer == nil {
+		return nil, componenterror.ErrNilNextConsumer
+	}
+
+	return receiver, nil
+}
+
+func HandleHTTPLogs(resp http.ResponseWriter, req *http.Request, logsReceiver *logs.Receiver) {
+	handleLogs(resp, req, logsReceiver, pbEncoder)
 }
