@@ -245,7 +245,9 @@ func warmup(agents int, events uint, url, token string) error {
 	// will be used instead. Additionally, the number of agents is also taken
 	// into account, since each of the agents will send the number of specified
 	// events to the APM Server, increasing its load.
-	timeout := warmupTimeout(1000, events, maxEPM, agents)
+	// Also account the GOMAXPROCS setting, since it will dictate the goroutines
+	// that are scheduled at any time.
+	timeout := warmupTimeout(1000, events, maxEPM, agents, runtime.GOMAXPROCS(0))
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -285,15 +287,14 @@ func warmup(agents int, events uint, url, token string) error {
 }
 
 // warmupTimeout calculates the timeout for the warm up.
-func warmupTimeout(ingestRate float64, events uint, epm, agents int) time.Duration {
+func warmupTimeout(ingestRate float64, events uint, epm, agents, cpus int) time.Duration {
 	if epm > 0 {
 		ingestRate = math.Min(ingestRate, float64(epm/60))
 	}
-	// For every 16 agent agents, we want to increase the timeout multiplier.
-	// Since more work needs to be done concurrently both on the APM Server
-	// and `apmbench`.
-	factor := math.Max(1, float64(agents)/16)
-	return time.Duration(math.Max(
-		float64(events)/float64(ingestRate)*float64(agents)*factor, 15,
-	)) * time.Second
+	// Divide the number of agents (concurrency) by the number of gomaxprocs.
+	// This allows the timeout calculation to respect how much concurrent work
+	// the apmbench runner can do.
+	factor := math.Max(1, float64(agents)/float64(cpus))
+	timeoutSeconds := float64(events) / float64(ingestRate) * float64(agents) * factor
+	return time.Duration(math.Max(timeoutSeconds, 15)) * time.Second
 }
