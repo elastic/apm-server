@@ -208,7 +208,7 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 }
 
 func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
-	if (event.Span.DestinationService == nil || event.Span.DestinationService.Resource == "") && event.Service.Target == nil {
+	if event.Span.DestinationService == nil || event.Span.DestinationService.Resource == "" {
 		return model.APMEvent{}
 	}
 	if event.Span.RepresentativeCount <= 0 {
@@ -341,16 +341,20 @@ type spanMetrics struct {
 }
 
 func makeMetricset(key aggregationKey, metrics spanMetrics) model.APMEvent {
+	var target *model.ServiceTarget
+	if key.targetName != "" || key.targetType != "" {
+		target = &model.ServiceTarget{
+			Type: key.targetType,
+			Name: key.targetName,
+		}
+	}
 	return model.APMEvent{
 		Timestamp: key.timestamp,
 		Agent:     model.Agent{Name: key.agentName},
 		Service: model.Service{
 			Name:        key.serviceName,
 			Environment: key.serviceEnvironment,
-			Target: &model.ServiceTarget{
-				Type: key.targetType,
-				Name: key.targetName,
-			},
+			Target:      target,
 		},
 		Event: model.Event{
 			Outcome: key.outcome,

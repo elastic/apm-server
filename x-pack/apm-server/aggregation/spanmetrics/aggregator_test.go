@@ -187,6 +187,23 @@ func TestAggregatorRun(t *testing.T) {
 			},
 		},
 	}, {
+		Agent: model.Agent{Name: "java"},
+		Service: model.Service{
+			Name: "service-A",
+		},
+		Event:     model.Event{Outcome: "success"},
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{Name: "service_destination"},
+		Span: &model.Span{
+			DestinationService: &model.DestinationService{
+				Resource: destinationZ,
+				ResponseTime: model.AggregatedDuration{
+					Count: 100,
+					Sum:   10 * time.Second,
+				},
+			},
+		},
+	}, {
 		Agent: model.Agent{Name: "python"},
 		Service: model.Service{
 			Name: "service-B",
@@ -270,14 +287,10 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	tx := model.APMEvent{
+	txWithoutServiceTarget := model.APMEvent{
 		Agent: model.Agent{Name: "go"},
 		Service: model.Service{
 			Name: "go-service",
-			Target: &model.ServiceTarget{
-				Type: "",
-				Name: "",
-			},
 		},
 		Event: model.Event{
 			Outcome:  "success",
@@ -307,6 +320,33 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 		},
 	}
 
+	txWithServiceTarget := model.APMEvent{
+		Agent: model.Agent{Name: "go"},
+		Service: model.Service{
+			Name: "go-service",
+		},
+		Event: model.Event{
+			Outcome:  "success",
+			Duration: 10 * time.Second,
+		},
+		Processor: model.TransactionProcessor,
+		Transaction: &model.Transaction{
+			RepresentativeCount: 1,
+			DroppedSpansStats: []model.DroppedSpanStats{
+				{
+					DestinationServiceResource: "postgres/testdb",
+					ServiceTargetType:          "postgres",
+					ServiceTargetName:          "testdb",
+					Outcome:                    "success",
+					Duration: model.AggregatedDuration{
+						Count: 10,
+						Sum:   1500 * time.Microsecond,
+					},
+				},
+			},
+		},
+	}
+
 	txWithNoRepresentativeCount := model.APMEvent{
 		Processor: model.TransactionProcessor,
 		Transaction: &model.Transaction{
@@ -314,7 +354,13 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			DroppedSpansStats:   make([]model.DroppedSpanStats, 1),
 		},
 	}
-	err = agg.ProcessBatch(context.Background(), &model.Batch{tx, txWithNoRepresentativeCount})
+	err = agg.ProcessBatch(
+		context.Background(),
+		&model.Batch{
+			txWithoutServiceTarget,
+			txWithServiceTarget,
+			txWithNoRepresentativeCount,
+		})
 	require.NoError(t, err)
 
 	// Start the aggregator after processing to ensure metrics are aggregated deterministically.
@@ -329,10 +375,6 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			Agent: model.Agent{Name: "go"},
 			Service: model.Service{
 				Name: "go-service",
-				Target: &model.ServiceTarget{
-					Type: "",
-					Name: "",
-				},
 			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
@@ -352,9 +394,27 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			Service: model.Service{
 				Name: "go-service",
 				Target: &model.ServiceTarget{
-					Type: "",
-					Name: "",
+					Type: "postgres",
+					Name: "testdb",
 				},
+			},
+			Event:     model.Event{Outcome: "success"},
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{Name: "service_destination"},
+			Span: &model.Span{
+				DestinationService: &model.DestinationService{
+					Resource: "postgres/testdb",
+					ResponseTime: model.AggregatedDuration{
+						Count: 10,
+						Sum:   1500 * time.Microsecond,
+					},
+				},
+			},
+		},
+		{
+			Agent: model.Agent{Name: "go"},
+			Service: model.Service{
+				Name: "go-service",
 			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
