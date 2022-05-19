@@ -72,7 +72,7 @@ var (
 	// reForServiceTargetExpr regex will capture service target type and name
 	// Service target type comprises of only lowercase alphabets
 	// Service target name comprises of all word characters
-	reForServiceTargetExpr = regexp.MustCompile(`^([a-z]+)(?:/(\w+))?$`)
+	reForServiceTargetExpr = regexp.MustCompile(`^([a-z][a-z0-9]*)(?:/(\w+))?$`)
 )
 
 func fetchErrorRoot() *errorRoot {
