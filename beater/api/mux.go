@@ -18,13 +18,13 @@
 package api
 
 import (
-	"github.com/elastic/apm-server/beater/otlp"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"net"
 	"net/http"
 	httppprof "net/http/pprof"
 	"regexp"
 	"runtime/pprof"
+
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -41,6 +41,7 @@ import (
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/middleware"
+	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/beater/request"
 	logs "github.com/elastic/apm-server/log"
@@ -182,21 +183,21 @@ func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
 func (r *routeBuilder) backendOtlpTracesIntakeHandler(otlpReceivers *otlpreceiver.HTTPReceivers) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := intake.OtlpTracesHandler(otlpReceivers)
-		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, otlp.HttpTracesMonitoringMap)...)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, otlp.HTTPTracesMonitoringMap)...)
 	}
 }
 
 func (r *routeBuilder) backendOtlpMetricsIntakeHandler(otlpReceivers *otlpreceiver.HTTPReceivers) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := intake.OtlpMetricsHandler(otlpReceivers)
-		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, otlp.HttpMetricsMonitoringMap)...)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, otlp.HTTPMetricsMonitoringMap)...)
 	}
 }
 
 func (r *routeBuilder) backendOtlpLogsIntakeHandler(otlpReceivers *otlpreceiver.HTTPReceivers) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := intake.OtlpLogsHandler(otlpReceivers)
-		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, otlp.HttpLogsMonitoringMap)...)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, otlp.HTTPLogsMonitoringMap)...)
 	}
 }
 

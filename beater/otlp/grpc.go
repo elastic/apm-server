@@ -19,6 +19,7 @@ package otlp
 
 import (
 	"context"
+
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"google.golang.org/grpc"

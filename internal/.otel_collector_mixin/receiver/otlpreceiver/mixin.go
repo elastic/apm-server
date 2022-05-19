@@ -16,8 +16,9 @@ package otlpreceiver
 
 import (
 	"context"
-	"go.opentelemetry.io/collector/component/componenterror"
 	"net/http"
+
+	"go.opentelemetry.io/collector/component/componenterror"
 
 	"go.opentelemetry.io/otel/metric"
 	apitrace "go.opentelemetry.io/otel/trace"
