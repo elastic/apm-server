@@ -5,7 +5,7 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 )

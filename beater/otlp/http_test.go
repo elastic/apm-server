@@ -12,7 +12,7 @@ import (
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/model/otlpgrpc"
