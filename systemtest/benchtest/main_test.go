@@ -40,7 +40,7 @@ func Test_warmup(t *testing.T) {
 	}
 	cases := []testCase{
 		{1, []uint{100, 1000}},
-		{16, []uint{100, 1000, 10000}},
+		{16, []uint{1000, 10000}},
 		{64, []uint{100, 1000}},
 	}
 	for _, c := range cases {
