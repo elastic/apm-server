@@ -49,13 +49,11 @@ pipeline {
     */
     stage('Checkout') {
       environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin:/usr/local/bin"
+        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
       }
       options { skipDefaultCheckout() }
       steps {
-        // as long as it's not provided by the image
-        sh 'env | sort'
         //pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true,
@@ -245,15 +243,11 @@ pipeline {
           }
           environment {
             HOME = "${env.WORKSPACE}"
-            PATH = "${env.PATH}:/usr/local/bin"
+            //PATH = "${env.PATH}:/usr/local/bin"
           }
           steps {
             withGithubNotify(context: 'Build-Test - OSX') {
-              // as long as it's not provided by the image
-              sh '''
-                curl -sL -o /usr/local/bin/gvm https://github.com/andrewkroh/gvm/releases/download/v0.4.1/gvm-darwin-amd64
-                chmod +x /usr/local/bin/gvm
-              '''
+              sh 'env | sort'
               deleteDir()
               unstash 'source'
               dir(BASE_DIR){
