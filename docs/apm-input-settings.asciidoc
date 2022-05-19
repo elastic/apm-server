@@ -23,7 +23,7 @@ OPTIONAL INFO AND EXAMPLE
 Host
 
 | (text) Defines the host and port the server is listening on.
-Use `unix:/path/to.sock` to listen on a unix domain socket.
+Use `unix:/path/to.sock` to listen on a Unix domain socket.
 
 *Default:* `localhost:8200`
 // end::host-setting[]
@@ -35,7 +35,7 @@ Use `unix:/path/to.sock` to listen on a unix domain socket.
 [id="input-{input-type}-url-setting"]
 URL
 
-| The publicly reachable server URL. For deployments on Elastic Cloud or ECK, the default is unchangeable.
+| The publicly reachable server URL. For deployments on {ecloud} or ECK, the default is unchangeable.
 // end::url-setting[]
 
 // =============================================================================
@@ -234,8 +234,8 @@ Custom HTTP response headers
 [id="input-{input-type}-rum_library_frame_pattern-setting"]
 Library Frame Pattern
 
-| (text) RegExp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
-If the RegExp matches, the stacktrace frame is considered to be a library frame.
+| (text) RegExp to be matched against a stack trace frame's `file_name` and `abs_path` attributes.
+If the RegExp matches, the stack trace frame is considered to be a library frame.
 When source mapping is applied, the `error.culprit` is set to reflect the _function_ and the _filename_
 of the first non-library frame.
 This aims to provide an entry point for identifying issues.
@@ -250,10 +250,10 @@ This aims to provide an entry point for identifying issues.
 [id="input-{input-type}-rum_exclude_from_grouping-setting"]
 Exclude from grouping
 
-| (text) RegExp to be matched against a stacktrace frame's `file_name`.
-If the RegExp matches, the stacktrace frame is excluded from being used for calculating error groups.
+| (text) RegExp to be matched against a stack trace frame's `file_name`.
+If the RegExp matches, the stack trace frame is excluded from being used for calculating error groups.
 
-*Default:* `"^/webpack"` (excludes stacktrace frames that have a filename starting with `/webpack`)
+*Default:* `"^/webpack"` (excludes stack trace frames that have a filename starting with `/webpack`)
 // end::rum_exclude_from_grouping-setting[]
 
 // =============================================================================
@@ -347,7 +347,7 @@ API key for agent authentication
 [id="input-{input-type}-api_key_limit-setting"]
 Number of keys
 
-| (int) Each unique API key triggers one request to Elasticsearch.
+| (int) Each unique API key triggers one request to {es}.
 This setting restricts the number of unique API keys are allowed per minute.
 The minimum value for this setting should be the number of API keys configured in your monitored services.
 
@@ -362,7 +362,7 @@ The minimum value for this setting should be the number of API keys configured i
 Secret token
 
 | (text) Authorization token for sending APM data.
-The same token must also be set in each APM agent.
+The same token must also be set in each {apm-agent}.
 This token is not used for RUM endpoints.
 
 *Default:* No secret token set
@@ -387,7 +387,7 @@ Anonymous Agent access
 [id="input-{input-type}-anonymous_allow_agent-setting"]
 Allowed Anonymous agents
 
-| (array) A list of permitted APM agent names for anonymous authentication.
+| (array) A list of permitted {apm-agent} names for anonymous authentication.
 Names in this list must match the agent's `agent.name`.
 
 *Default:* `[rum-js, js-base, iOS/swift]` (only RUM and iOS/Swift agent events are accepted)
@@ -414,7 +414,7 @@ This can be used to limit the number of service-specific indices or data streams
 [id="input-{input-type}-anonymous_rate_limit_ip_limit-setting"]
 Anonymous Rate limit (IP limit)
 
-| (int) The number of unique IP addresses to track in an LRU cache.
+| (int) The number of unique IP addresses to track in an least recently used (LRU) cache.
 IP addresses in the cache will be rate limited according to the `anonymous_rate_limit_event_limit` setting.
 Consider increasing this default if your application has many concurrent clients.
 
