@@ -28,7 +28,7 @@ pipeline {
   }
   triggers {
     issueCommentTrigger("(${obltGitHubComments()}|^run\\W+(?:the\\W+)?(hey-apm|package|arm|windows)\\W+tests|^/test|^/hey-apm|^/package|^/test windows)")
-    cron 'H/15 * * * *'
+    cron '@hourly'
   }
   parameters {
     booleanParam(name: 'Run_As_Main_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on main branch.')
