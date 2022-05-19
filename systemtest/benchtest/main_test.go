@@ -30,7 +30,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_warmup(t *testing.T) {
@@ -40,8 +39,6 @@ func Test_warmup(t *testing.T) {
 	}
 	cases := []testCase{
 		{1, []uint{100, 1000}},
-		{16, []uint{1000, 10000}},
-		{64, []uint{100, 1000}},
 	}
 	for _, c := range cases {
 		for _, events := range c.events {
@@ -85,7 +82,7 @@ func Test_warmup(t *testing.T) {
 				}))
 				defer srv.Close()
 				err := warmup(c.agents, events, srv.URL, "")
-				require.NoError(t, err)
+				assert.NoError(t, err)
 				assert.GreaterOrEqual(t, received, uint64(events))
 			})
 		}
