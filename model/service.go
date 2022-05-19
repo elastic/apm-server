@@ -117,10 +117,7 @@ func (s *Service) Fields() mapstr.M {
 	}
 
 	if s.Target != nil {
-		var target mapStr
-		target.maybeSetString("name", s.Target.Name)
-		target.maybeSetString("type", s.Target.Type)
-		svc.maybeSetMapStr("target", mapstr.M(target))
+		svc.maybeSetMapStr("target", s.Target.fields())
 	}
 
 	return mapstr.M(svc)
@@ -131,4 +128,11 @@ func (n *ServiceNode) fields() mapstr.M {
 		return mapstr.M{"name": n.Name}
 	}
 	return nil
+}
+
+func (t *ServiceTarget) fields() mapstr.M {
+	if t.Name == "" && t.Type == "" {
+		return nil
+	}
+	return mapstr.M{"name": t.Name, "type": t.Type}
 }
