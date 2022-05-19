@@ -116,6 +116,16 @@ func Test_warmupTimeout(t *testing.T) {
 			expected: 15 * time.Second,
 		},
 		{
+			name: "default warmup",
+			args: args{
+				ingestRate: 1000,
+				events:     100,
+				agents:     16,
+				cpus:       2,
+			},
+			expected: 128 * time.Second,
+		},
+		{
 			name: "5000 events 500 agents",
 			args: args{
 				ingestRate: 1000,

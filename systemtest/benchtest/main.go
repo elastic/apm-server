@@ -295,6 +295,7 @@ func warmupTimeout(ingestRate float64, events uint, epm, agents, cpus int) time.
 	// This allows the timeout calculation to respect how much concurrent work
 	// the apmbench runner can do.
 	factor := math.Max(1, float64(agents)/float64(cpus))
-	timeoutSeconds := float64(events) / float64(ingestRate) * float64(agents) * factor
+	timeoutSeconds := math.Max(float64(events)/ingestRate, 1) *
+		float64(agents) * factor
 	return time.Duration(math.Max(timeoutSeconds, 15)) * time.Second
 }
