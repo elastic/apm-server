@@ -18,6 +18,8 @@
 package api
 
 import (
+	"github.com/elastic/apm-server/beater/otlp"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"net"
 	"net/http"
 	httppprof "net/http/pprof"
@@ -74,6 +76,13 @@ const (
 	// FirehosePath defines the path to ingest firehose logs.
 	// This endpoint is experimental and subject to breaking changes and removal.
 	FirehosePath = "/firehose"
+
+	// OtlpTracesIntakePath defines the path to ingest OpenTelemetry traces (HTTP Collector)
+	OtlpTracesIntakePath = "/v1/traces"
+	// OtlpMetricsIntakePath defines the path to ingest OpenTelemetry metrics (HTTP Collector)
+	OtlpMetricsIntakePath = "/v1/metrics"
+	// OtlpLogsIntakePath defines the path to ingest OpenTelemetry logs (HTTP Collector)
+	OtlpLogsIntakePath = "/v1/logs"
 )
 
 // NewMux creates a new gorilla/mux router, with routes registered for handling the
@@ -86,6 +95,7 @@ func NewMux(
 	fetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
 	sourcemapFetcher sourcemap.Fetcher,
+	otlpReceivers *otlpreceiver.HTTPReceivers,
 	fleetManaged bool,
 	publishReady func() bool,
 ) (*mux.Router, error) {
@@ -120,6 +130,9 @@ func NewMux(
 		{ProfilePath, builder.profileHandler},
 		// The firehose endpoint is experimental and subject to breaking changes and removal.
 		{FirehosePath, builder.firehoseHandler},
+		{OtlpTracesIntakePath, builder.backendOtlpTracesIntakeHandler(otlpReceivers)},
+		{OtlpMetricsIntakePath, builder.backendOtlpMetricsIntakeHandler(otlpReceivers)},
+		{OtlpLogsIntakePath, builder.backendOtlpLogsIntakeHandler(otlpReceivers)},
 	}
 
 	for _, route := range routeMap {
@@ -176,6 +189,27 @@ func (r *routeBuilder) firehoseHandler() (request.Handler, error) {
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
 	h := intake.Handler(stream.BackendProcessor(r.cfg, r.intakeSemaphore), backendRequestMetadataFunc(r.cfg), r.batchProcessor)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
+}
+
+func (r *routeBuilder) backendOtlpTracesIntakeHandler(otlpReceivers *otlpreceiver.HTTPReceivers) func() (request.Handler, error) {
+	return func() (request.Handler, error) {
+		h := intake.OtlpTracesHandler(otlpReceivers)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, otlp.HttpTracesMonitoringMap)...)
+	}
+}
+
+func (r *routeBuilder) backendOtlpMetricsIntakeHandler(otlpReceivers *otlpreceiver.HTTPReceivers) func() (request.Handler, error) {
+	return func() (request.Handler, error) {
+		h := intake.OtlpMetricsHandler(otlpReceivers)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, otlp.HttpMetricsMonitoringMap)...)
+	}
+}
+
+func (r *routeBuilder) backendOtlpLogsIntakeHandler(otlpReceivers *otlpreceiver.HTTPReceivers) func() (request.Handler, error) {
+	return func() (request.Handler, error) {
+		h := intake.OtlpLogsHandler(otlpReceivers)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, otlp.HttpLogsMonitoringMap)...)
+	}
 }
 
 func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config, chan struct{}) *stream.Processor) func() (request.Handler, error) {

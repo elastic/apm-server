@@ -72,7 +72,8 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 		authenticator,
 		agentcfg.NewFetcher(cfg),
 		ratelimitStore,
-		nil,                         // no sourcemap store
+		nil, // no sourcemap store
+		nil,
 		false,                       // not managed
 		func() bool { return true }, // ready for publishing
 	)

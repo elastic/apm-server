@@ -151,11 +151,16 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		}
 	}
 
+	otlpReceivers, err := otlp.NewHTTPReceivers(batchProcessor)
+	if err != nil {
+		return server{}, err
+	}
+
 	// Create an HTTP server for serving Elastic APM agent requests.
 	router, err := api.NewMux(
 		args.Info, args.Config, batchProcessor,
 		authenticator, agentcfgFetchReporter, ratelimitStore,
-		args.SourcemapFetcher, args.Managed, publishReady,
+		args.SourcemapFetcher, otlpReceivers, args.Managed, publishReady,
 	)
 	if err != nil {
 		return server{}, err
@@ -207,7 +212,7 @@ func newGRPCServer(
 			apmInterceptor,
 			interceptors.ClientMetadata(),
 			interceptors.Logging(logger),
-			interceptors.Metrics(logger, otlp.RegistryMonitoringMaps, jaeger.RegistryMonitoringMaps),
+			interceptors.Metrics(logger, otlp.GRPCRegistryMonitoringMaps, jaeger.RegistryMonitoringMaps),
 			interceptors.Timeout(),
 			authInterceptor,
 			interceptors.AnonymousRateLimit(ratelimitStore),

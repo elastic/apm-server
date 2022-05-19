@@ -166,6 +166,7 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		agentcfg.NewFetcher(cfg),
 		ratelimitStore,
 		m.SourcemapFetcher,
+		nil,
 		m.Managed,
 		func() bool { return true },
 	)
