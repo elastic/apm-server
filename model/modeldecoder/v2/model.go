@@ -812,6 +812,7 @@ type spanContextDestinationService struct {
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
 	// Resource identifies the destination service resource being operated on
 	// e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name'
+	// DEPRECATED: this field will be removed in a future release
 	Resource nullable.String `json:"resource" validate:"required,maxLength=1024"`
 	// Type of the destination service, e.g. db, elasticsearch. Should
 	// typically be the same as span.type.
@@ -1027,6 +1028,11 @@ type transactionDroppedSpanStats struct {
 	// DestinationServiceResource identifies the destination service resource
 	// being operated on. e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name'.
 	DestinationServiceResource nullable.String `json:"destination_service_resource" validate:"maxLength=1024"`
+	// ServiceTargetType identifies the type of the target service being operated on
+	// e.g. 'oracle', 'rabbitmq'
+	ServiceTargetType nullable.String `json:"service_target_type" validate:"maxLength=512"`
+	// ServiceTargetName identifies the instance name of the target service being operated on
+	ServiceTargetName nullable.String `json:"service_target_name" validate:"maxLength=512"`
 	// Outcome of the span: success, failure, or unknown. Outcome may be one of
 	// a limited set of permitted values describing the success or failure of
 	// the span. It can be used for calculating error rates for outgoing requests.

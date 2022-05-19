@@ -1,0 +1,75 @@
+- name: golang.goroutines
+  type: long
+  metric_type: counter
+  description: The number of goroutines that currently exist.
+- name: golang.heap.allocations.mallocs
+  type: long
+  metric_type: counter
+  description: The number of mallocs.
+- name: golang.heap.allocations.frees
+  type: long
+  metric_type: counter
+  description: The number of frees.
+- name: golang.heap.allocations.objects
+  type: long
+  metric_type: counter
+  description: The total number of allocated objects.
+- name: golang.heap.allocations.total
+  type: long
+  metric_type: counter
+  unit: byte
+  description: Bytes allocated (even if freed) throughout the lifetime.
+- name: golang.heap.allocations.allocated
+  type: long
+  metric_type: gauge
+  unit: byte
+  description: Bytes allocated and not yet freed (same as Alloc from runtime.MemStats).
+- name: golang.heap.allocations.idle
+  type: long
+  metric_type: gauge
+  unit: byte
+  description: Bytes in idle spans.
+- name: golang.heap.allocations.active
+  type: long
+  metric_type: gauge
+  unit: byte
+  description: Bytes in non-idle spans.
+- name: golang.heap.system.total
+  type: long
+  metric_type: gauge
+  unit: byte
+  description: Total bytes obtained from system (sum of XxxSys from runtime.MemStats).
+- name: golang.heap.system.obtained
+  type: long
+  metric_type: gauge
+  unit: byte
+  description: Via HeapSys from runtime.MemStats, bytes obtained from system. heap_sys = heap_idle + heap_inuse.
+- name: golang.heap.system.stack
+  type: long
+  metric_type: gauge
+  unit: byte
+  description: Bytes of stack memory obtained from the OS.
+- name: golang.heap.system.released
+  type: long
+  metric_type: gauge
+  unit: byte
+  description: Bytes released to the OS.
+- name: golang.heap.gc.total_pause.ns
+  type: long
+  metric_type: counter
+  unit: nanos
+  description: The total garbage collection duration in nanoseconds.
+- name: golang.heap.gc.total_count
+  type: long
+  metric_type: counter
+  description: The total number of garbage collections.
+- name: golang.heap.gc.next_gc_limit
+  type: long
+  metric_type: gauge
+  unit: byte
+  description: Target heap size of the next garbage collection cycle.
+- name: golang.heap.gc.cpu_fraction
+  type: scaled_float
+  metric_type: gauge
+  unit: percent
+  description: Fraction of CPU time used by garbage collection.

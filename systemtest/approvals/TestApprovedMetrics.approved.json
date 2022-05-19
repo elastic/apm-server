@@ -23,13 +23,10 @@
                 ]
             },
             "labels": {
-                "some": "abc",
-                "success": "true",
                 "tag1": "one"
             },
             "metricset.name": "app",
             "numeric_labels": {
-                "code": 200,
                 "tag2": 2
             },
             "observer": {
@@ -67,7 +64,7 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.dataset": "apm.internal",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
             "ecs": {
@@ -83,13 +80,10 @@
                 ]
             },
             "labels": {
-                "some": "abc",
-                "success": "true",
                 "tag1": "one"
             },
             "metricset.name": "app",
             "numeric_labels": {
-                "code": 200,
                 "tag2": 2
             },
             "observer": {
@@ -145,13 +139,10 @@
                 ]
             },
             "labels": {
-                "some": "abc",
-                "success": "true",
                 "tag1": "one"
             },
             "metricset.name": "app",
             "numeric_labels": {
-                "code": 200,
                 "tag2": 2
             },
             "observer": {
@@ -213,8 +204,6 @@
                 ]
             },
             "labels": {
-                "some": "abc",
-                "success": "true",
                 "tag1": "one"
             },
             "latency_distribution": {
@@ -231,7 +220,6 @@
             },
             "metricset.name": "app",
             "numeric_labels": {
-                "code": 200,
                 "tag2": 2
             },
             "observer": {
