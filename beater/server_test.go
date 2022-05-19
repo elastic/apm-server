@@ -808,9 +808,9 @@ func TestServerFailedPreconditionDoesNotIndex(t *testing.T) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{"wait_ready_interval": "100ms"})
+	cfg := common.MustNewConfigFrom(map[string]interface{}{"wait_ready_interval": "100ms"})
 	var beatConfig beat.BeatConfig
-	err := beatConfig.Output.Unpack(agentconfig.MustNewConfigFrom(map[string]interface{}{
+	err := beatConfig.Output.Unpack(common.MustNewConfigFrom(map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
 			"hosts": []string{srv.URL},
 		},
