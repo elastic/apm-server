@@ -32,7 +32,10 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "systemtest"
+                "name": "systemtest",
+                "target": {
+                    "type": "redis"
+                }
             },
             "span": {
                 "composite": {
@@ -98,7 +101,10 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "systemtest"
+                "name": "systemtest",
+                "target": {
+                    "type": "elasticsearch"
+                }
             },
             "span": {
                 "composite": {

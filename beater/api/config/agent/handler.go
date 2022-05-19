@@ -28,7 +28,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/monitoring"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/auth"
