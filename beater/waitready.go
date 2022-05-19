@@ -79,10 +79,15 @@ func waitReady(
 type waitReadyRoundTripper struct {
 	*http.Transport
 	ready <-chan struct{}
+	drain <-chan struct{}
 }
+
+var errServerShuttingDown = errors.New("server shutting down")
 
 func (c *waitReadyRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	select {
+	case <-c.drain:
+		return nil, errServerShuttingDown
 	case <-c.ready:
 	case <-r.Context().Done():
 		return nil, r.Context().Err()
