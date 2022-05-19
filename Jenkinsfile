@@ -249,8 +249,8 @@ pipeline {
                 withMageEnv(){
                   // Retry in case there are any errors to avoid temporary glitches
                   retryWithSleep(retries: 2) {
-                    sh(label: 'OSX build', script: '.ci/scripts/build-darwin.sh')
-                    sh(label: 'Run Unit tests', script: '.ci/scripts/test-darwin.sh')
+                    sh(label: 'OSX build', script: '.ci/scripts/build.sh')
+                    sh(label: 'Run Unit tests', script: '.ci/scripts/unit-test.sh')
                   }
                 }
               }
