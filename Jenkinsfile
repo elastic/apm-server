@@ -243,11 +243,12 @@ pipeline {
           }
           environment {
             HOME = "${env.WORKSPACE}"
-            //PATH = "${env.PATH}:/usr/local/bin"
           }
           steps {
             withGithubNotify(context: 'Build-Test - OSX') {
-              sh 'env | sort'
+              sh(label: 'debug orka', script: '''
+                  env | sort'
+                  cat /etc/paths''')
               deleteDir()
               unstash 'source'
               dir(BASE_DIR){
