@@ -812,6 +812,7 @@ type spanContextDestinationService struct {
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
 	// Resource identifies the destination service resource being operated on
 	// e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name'
+	// DEPRECATED: this field will be removed in a future release
 	Resource nullable.String `json:"resource" validate:"required,maxLength=1024"`
 	// Type of the destination service, e.g. db, elasticsearch. Should
 	// typically be the same as span.type.
