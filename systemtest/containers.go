@@ -294,6 +294,7 @@ func (c *ElasticsearchContainer) Close() error {
 type ContainerConfig struct {
 	Name             string
 	Arch             string
+	BaseImage        string
 	BaseImageVersion string
 	VCSRef           string
 	StackVersion     string
@@ -306,6 +307,9 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 	// such as the Docker network to use.
 	if opts.Arch == "" {
 		opts.Arch = runtime.GOARCH
+	}
+	if opts.BaseImage == "" {
+		opts.BaseImage = "docker.elastic.co/beats/elastic-agent"
 	}
 
 	docker, err := client.NewClientWithOpts(client.FromEnv)
@@ -349,7 +353,7 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 
 	// Build a custom elastic-agent image with a locally built apm-server binary injected.
 	agentImage, err := buildElasticAgentImage(context.Background(),
-		docker, opts.StackVersion, opts.BaseImageVersion, opts.VCSRef, opts.Arch,
+		docker, opts.StackVersion, opts.BaseImage, opts.BaseImageVersion, opts.VCSRef, opts.Arch,
 	)
 	if err != nil {
 		return nil, err
@@ -607,9 +611,9 @@ func matchFleetServerAPIStatusHealthy(r io.Reader) bool {
 }
 
 // buildElasticAgentImage builds a Docker image from the published image with a locally built apm-server injected.
-func buildElasticAgentImage(ctx context.Context, docker *client.Client, stackVersion, imageVersion, vcsRef, arch string) (string, error) {
+func buildElasticAgentImage(ctx context.Context, docker *client.Client, stackVersion, image, imageVersion, vcsRef, arch string) (string, error) {
 	imageName := fmt.Sprintf("elastic-agent-systemtest:%s", imageVersion)
-	log.Printf("Building image %s (%s) from %s...", imageName, arch, imageName)
+	log.Printf("Building image %s (%s) from %s:%s...", imageName, arch, image, imageVersion)
 
 	// Build apm-server, and copy it into the elastic-agent container's "install" directory.
 	// This bypasses downloading the artifact.
@@ -632,7 +636,7 @@ func buildElasticAgentImage(ctx context.Context, docker *client.Client, stackVer
 	// Generate Dockerfile contents.
 	var dockerfile bytes.Buffer
 	platform := fmt.Sprintf("linux/%s", arch)
-	fmt.Fprintf(&dockerfile, "FROM --platform=%s docker.elastic.co/beats/elastic-agent:%s\n", platform, imageVersion)
+	fmt.Fprintf(&dockerfile, "FROM --platform=%s %s:%s\n", platform, image, imageVersion)
 	fmt.Fprintf(&dockerfile, "COPY --chown=elastic-agent:elastic-agent apm-server apm-server.yml %s/\n", apmServerInstallDir)
 
 	// Files to generate in the build context.

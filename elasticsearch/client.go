@@ -82,6 +82,10 @@ type ClientParams struct {
 	// If Transport is nil, then a net/http.Transport will be constructed
 	// with NewHTTPTransport(Config).
 	Transport http.RoundTripper
+
+	// RetryOnError indicates which client errors should be retried.
+	// Optional.
+	RetryOnError func(*http.Request, error) bool
 }
 
 // NewClient returns a stack version-aware Elasticsearch client,
@@ -130,6 +134,7 @@ func NewClientParams(args ClientParams) (Client, error) {
 		apmelasticsearch.WrapRoundTripper(transport),
 		args.Config.MaxRetries,
 		exponentialBackoff(args.Config.Backoff),
+		args.RetryOnError,
 	)
 }
 
@@ -140,6 +145,7 @@ func newV8Client(
 	transport http.RoundTripper,
 	maxRetries int,
 	fn backoffFunc,
+	retry func(*http.Request, error) bool,
 ) (Client, error) {
 	c, err := esv8.NewClient(esv8.Config{
 		APIKey:        apikey,
@@ -151,6 +157,7 @@ func newV8Client(
 		RetryOnStatus: retryableStatuses,
 		RetryBackoff:  fn,
 		MaxRetries:    maxRetries,
+		RetryOnError:  retry,
 	})
 	if err != nil {
 		return nil, err

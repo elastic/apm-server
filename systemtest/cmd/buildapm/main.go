@@ -33,11 +33,13 @@ import (
 )
 
 var (
-	arch string
+	arch       string
+	cloudImage bool
 )
 
 func init() {
 	flag.StringVar(&arch, "arch", `amd64`, "The architecture to use for the APM Server and Docker Image")
+	flag.BoolVar(&cloudImage, "cloud", false, "Toggle to the Elastic Agent cloud image as the base")
 	rand.Seed(time.Now().Unix())
 }
 
@@ -71,16 +73,20 @@ func Main() error {
 		return fmt.Errorf("unexpected fleet-server image tag: %s", tag)
 	}
 
-	agent, err := systemtest.NewUnstartedElasticAgentContainer(systemtest.ContainerConfig{
+	opts := systemtest.ContainerConfig{
 		Arch:             arch,
 		BaseImageVersion: tag,
 		StackVersion:     parts[0],
 		VCSRef:           parts[1],
-	})
+	}
+	if cloudImage {
+		opts.BaseImage = "docker.elastic.co/cloud-release/elastic-agent-cloud"
+	}
+
+	agent, err := systemtest.NewUnstartedElasticAgentContainer(opts)
 	if err != nil {
 		return err
 	}
-
 	return agent.Close()
 }
 
