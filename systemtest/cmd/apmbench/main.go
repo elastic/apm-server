@@ -86,15 +86,7 @@ func benchmarkAgent(b *testing.B, l *rate.Limiter, expr string) {
 	b.RunParallel(func(pb *testing.PB) {
 		h := benchtest.NewEventHandler(b, expr, l)
 		for pb.Next() {
-			n, err := h.SendBatches(context.Background())
-			if err != nil {
-				b.Error("failed sending batches:", err)
-			}
-			if n == 0 {
-				b.Errorf(
-					"no events sent, ensure the '%s' matches a trace file", expr,
-				)
-			}
+			h.SendBatches(context.Background())
 		}
 	})
 }
