@@ -1,8 +1,21 @@
 #!/usr/bin/env bash
 set -eox pipefail
 
-# Setup python3
 pythonVersion=3.7.7
+
+if command -v python 2> /dev/null ; then
+    set +e
+    echo "Found Python. Checking version.."
+    FOUND_PYTHON_VERSION=$(python --version|awk '{print $2}')
+    if [ "$FOUND_PYTHON_VERSION" == "$pythonVersion" ]
+    then
+        echo "Versions match. No need to install Python. Exiting."
+        exit 0
+    fi
+    set -e
+fi
+
+# Setup python3
 rm -fr "${HOME}/.pyenv"
 if ! command -v pyenv 2> /dev/null ; then
     curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
