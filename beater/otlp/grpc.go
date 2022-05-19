@@ -23,7 +23,7 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"google.golang.org/grpc"
 
-	"github.com/elastic/beats/v7/libbeat/monitoring"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/interceptors"
