@@ -24,7 +24,9 @@ import (
 	"io"
 	"io/ioutil"
 	"path/filepath"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
@@ -107,4 +109,54 @@ func benchmarkStreamProcessorParallel(b *testing.B, processor *Processor, files 
 			})
 		})
 	}
+}
+
+func BenchmarkBackendProcessorParallelSemSize(b *testing.B) {
+	for _, semSize := range []uint{1, 2, 4, 8} {
+		b.Run(fmt.Sprint(semSize), func(b *testing.B) {
+			benchmarkBackendProcessorParallelSemSize(b, semSize)
+		})
+	}
+}
+
+func benchmarkBackendProcessorParallelSemSize(b *testing.B, size uint) {
+	cfg := config.DefaultConfig()
+	cfg.MaxConcurrentDecoders = size
+	processor := BackendProcessor(cfg, make(chan struct{}, cfg.MaxConcurrentDecoders))
+	file := "../../testdata/intake-v2/heavy.ndjson"
+	const batchSize = 10
+	batchProcessor := nopBatchProcessor{}
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		b.Error(err)
+	}
+	b.SetBytes(int64(len(data)))
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	b.ResetTimer()
+	b.RunParallel(func(p *testing.PB) {
+		r := bytes.NewReader(data)
+		for p.Next() {
+			var result Result
+			processor.HandleStream(ctx, model.APMEvent{}, r, batchSize, batchProcessor, &result)
+			r.Seek(0, io.SeekStart)
+		}
+	})
+}
+
+type mutexBatchProcessor struct {
+	rwm sync.RWMutex
+	mu  sync.Mutex
+}
+
+func (p *mutexBatchProcessor) ProcessBatch(_ context.Context, b *model.Batch) error {
+	p.rwm.RLock()
+	defer p.rwm.RUnlock()
+	// Simulate modelindexer
+	for range *b {
+		p.mu.Lock()
+		p.mu.Unlock()
+	}
+	return nil
 }

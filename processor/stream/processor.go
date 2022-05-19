@@ -281,11 +281,9 @@ func (p *Processor) acquireLock(ctx context.Context, d time.Duration) (func(), e
 	select {
 	case p.sem <- struct{}{}:
 	default:
-		t := acquireTimer(d)
-		defer releaseTimer(t)
 		select {
 		case p.sem <- struct{}{}:
-		case <-t.C:
+		case <-time.After(d):
 			return nil, publish.ErrFull
 		case <-ctx.Done():
 			return nil, ctx.Err()
@@ -343,29 +341,4 @@ func copyEvent(e model.APMEvent) model.APMEvent {
 		out.NumericLabels = out.NumericLabels.Clone()
 	}
 	return out
-}
-
-var timerPool sync.Pool
-
-func acquireTimer(d time.Duration) *time.Timer {
-	v := timerPool.Get()
-	if v == nil {
-		return time.NewTimer(d)
-	}
-	t := v.(*time.Timer)
-	if t.Reset(d) {
-		// This may happen when an active timer was put in the pool. Since
-		// we don't necessarily want to deal with stopping and re-setting
-		// that timer again, it's best to create a new timer and return it.
-		return time.NewTimer(d)
-	}
-	return t
-}
-
-func releaseTimer(tm *time.Timer) {
-	// Return the timer to the pool when it hasn't fired and can be reused,
-	// otherwise, the timer reference is lost and should be garbage collected.
-	if tm.Stop() {
-		timerPool.Put(tm)
-	}
 }
