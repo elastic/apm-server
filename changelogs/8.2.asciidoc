@@ -3,7 +3,18 @@
 
 https://github.com/elastic/apm-server/compare/8.1\...8.2[View commits]
 
+* <<release-notes-8.2.1>>
 * <<release-notes-8.2.0>>
+
+[float]
+[[release-notes-8.2.1]]
+=== APM version 8.2.1
+
+https://github.com/elastic/apm-server/compare/8.2\...8.2.1[View commits]
+
+[float]
+==== Bug fixes
+- Fix a bug that caused some of the decoded events to have incorrect labels {pull}8081[8081]
 
 [float]
 [[release-notes-8.2.0]]
