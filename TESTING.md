@@ -158,16 +158,24 @@ docker image with an APM Server bundled that contains any local changes you migh
 By default, the `amd64` architecture (or platform in Docker lingo) will be used. This may not be ideal if you run a machine
 with a different architecture than `amd64`, but you can specify the `-arch` flag.
 
+Additionally, if `-cloud` is set, the Elastic Agent cloud image will be used as the base image, so changes can be packaged
+and tested in ESS / ECE (See our internal documentation on these for how to use them).
+
 ```console
 $ cd systemtest/cmd/buildapm
 $ go run main.go -arch arm64
-2022/05/05 17:50:18 Building image elastic-agent-systemtest:8.3.0-7f585873-SNAPSHOT (arm64) from elastic-agent-systemtest:8.3.0-7f585873-SNAPSHOT...
+2022/05/05 17:50:18 Building elastic-agent-systemtest:8.3.0-e4aa1f83-SNAPSHOT (arm64) from docker.elastic.co/beats/elastic-agent:8.3.0-e4aa1f83-SNAPSHOT...
 2022/05/05 17:50:18 Building apm-server...
 2022/05/05 17:50:18 Built /Users/marclop/repos/elastic/apm-server/build/apm-server-linux
-2022/05/05 17:50:25 Built image elastic-agent-systemtest:8.3.0-7f585873-SNAPSHOT (arm64)
+2022/05/05 17:50:25 Built elastic-agent-systemtest:8.3.0-e4aa1f83-SNAPSHOT (arm64)
 $  go run main.go -arch amd64
-2022/05/05 17:50:35 Building image elastic-agent-systemtest:8.3.0-7f585873-SNAPSHOT (amd64) from elastic-agent-systemtest:8.3.0-7f585873-SNAPSHOT...
+2022/05/05 17:50:35 Building elastic-agent-systemtest:8.3.0-e4aa1f83-SNAPSHOT (amd64) from docker.elastic.co/beats/elastic-agent:8.3.0-e4aa1f83-SNAPSHOT...
 2022/05/05 17:50:35 Building apm-server...
 2022/05/05 17:50:43 Built /Users/marclop/repos/elastic/apm-server/build/apm-server-linux
-2022/05/05 17:50:49 Built image elastic-agent-systemtest:8.3.0-7f585873-SNAPSHOT (amd64)
+2022/05/05 17:50:49 Built elastic-agent-systemtest:8.3.0-e4aa1f83-SNAPSHOT (amd64)
+# go run main.go -cloud
+2022/05/19 11:08:04 Building image elastic-agent-systemtest:8.3.0-e4aa1f83-SNAPSHOT (amd64) from docker.elastic.co/cloud-release/elastic-agent-cloud:8.3.0-e4aa1f83-SNAPSHOT...
+2022/05/19 11:08:04 Building apm-server...
+2022/05/19 11:08:04 Built /Users/marclop/repos/elastic/apm-server/build/apm-server-linux
+2022/05/19 11:09:07 Built image elastic-agent-systemtest:8.3.0-e4aa1f83-SNAPSHOT (amd64)
 ```
