@@ -1089,6 +1089,7 @@
                     "version": "8.0.0"
                 },
                 "target": {
+                    "name": "",
                     "type": "postgresql"
                 }
             },
@@ -1294,7 +1295,8 @@
                     "version": "8.0.0"
                 },
                 "target": {
-                    "name": "localhost:8080"
+                    "name": "localhost:8080",
+                    "type": ""
                 },
                 "version": "5.1.3"
             },
