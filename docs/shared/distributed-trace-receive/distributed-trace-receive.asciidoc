@@ -2,7 +2,7 @@
 
 // Need help with this example
 
-1. Parse the incoming TraceContext with
+1. Parse the incoming `TraceContext` with
 https://godoc.org/go.elastic.co/apm/module/apmhttp#ParseTraceparentHeader[`ParseTraceparentHeader`] or
 https://godoc.org/go.elastic.co/apm/module/apmhttp#ParseTracestateHeader[`ParseTracestateHeader`].
 
@@ -23,10 +23,10 @@ opts := apm.TransactionOptions{
 }
 transaction := apm.DefaultTracer.StartTransactionOptions("GET /", "request", opts) <4>
 ----
-<1> Parse the TraceParent header
-<2> Parse the tracestate header
+<1> Parse the `TraceParent` header
+<2> Parse the `Tracestate` header
 <3> Set the parent trace context
-<4> Start a new transaction as a child of the received TraceContext
+<4> Start a new transaction as a child of the received `TraceContext`
 
 // end::go[]
 
@@ -162,7 +162,7 @@ you can create child spans, or use any other agent API methods as you typically 
 
 // tag::python[]
 
-1. Create a TraceParent object from a string or HTTP header.
+1. Create a `TraceParent` object from a string or HTTP header.
 
 2. Start a new transaction as a child of the `TraceParent` by passing in a `TraceParent` object.
 
@@ -173,7 +173,7 @@ Example using HTTP headers:
 parent = elasticapm.trace_parent_from_headers(headers_dict) <1>
 client.begin_transaction('processors', trace_parent=parent) <2>
 ----
-<1> Create a TraceParent object from HTTP headers formed as a dictionary
+<1> Create a `TraceParent` object from HTTP headers formed as a dictionary
 <2> Begin a new transaction as a child of the received `TraceParent`
 
 TIP: See the {apm-py-ref}/api.html#traceparent-api[`TraceParent` API] for additional examples.
@@ -203,6 +203,6 @@ end
 <1> Parse the incoming `TraceContext`
 <2> Create a transaction as a child of the incoming `TraceContext`
 <3> Create a span as a child of the newly created transaction. `trace_context` is optional here,
-as spans are automatically created as a child of their parent's transaction's TraceContext when none is passed.
+as spans are automatically created as a child of their parent's transaction's `TraceContext` when none is passed.
 
 // end::ruby[]

@@ -34,7 +34,7 @@ func appendProfileSampleBatch(pp *profile.Profile, baseEvent model.APMEvent, out
 
 	// Precompute value field names for use in each event.
 	// TODO(axw) limit to well-known value names?
-	baseEvent.Timestamp = time.Unix(0, pp.TimeNanos)
+	baseEvent.Timestamp = time.Unix(0, pp.TimeNanos).UTC()
 	valueFieldNames := make([]string, len(pp.SampleType))
 	for i, sampleType := range pp.SampleType {
 		sampleUnit := normalizeUnit(sampleType.Unit)

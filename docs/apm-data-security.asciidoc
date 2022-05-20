@@ -46,7 +46,7 @@ Custom filters allow you to filter or redact other types of APM data on ingestio
 // All agents and fields are supported. Data leaves the instrumented service.
 // There are no performance overhead implications on the instrumented service.
 
-|<<filters-in-agent,APM agent filters>> | Not supported by all agents.
+|<<filters-in-agent,{apm-agent} filters>> | Not supported by all agents.
 Data is sanitized before leaving the instrumented service.
 Potential overhead implications on the instrumented service
 |====
@@ -178,7 +178,7 @@ Note that Elastic APM currently does not make an effort to strip parameters of r
 Not using prepared statements makes your code vulnerable to SQL injection attacks,
 so be sure to use prepared statements.
 
-For non-SQL data stores, such as Elasticsearch or MongoDB,
+For non-SQL data stores, such as {es} or MongoDB,
 Elastic APM captures the full statement for queries.
 For inserts or updates, the full document is not stored.
 To filter or obfuscate data in non-SQL database statements,

@@ -32,39 +32,51 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api"
-	"github.com/elastic/apm-server/beater/beatertest"
 )
+
+const timestampFormat = "2006-01-02T15:04:05.000Z07:00"
 
 var timestampOverride = time.Date(2019, 1, 9, 21, 40, 53, 690, time.UTC)
 
 // adjustMissingTimestamp sets @timestamp and timestamp.us to known values for events that originally omitted a ts
-func adjustMissingTimestamp(event *beat.Event) {
-	if time.Since(event.Timestamp) < 5*time.Minute {
-		event.Timestamp = timestampOverride
-		if event.Fields["processor"].(mapstr.M)["name"] == "metric" {
-			return
-		}
-		event.Fields.Put("timestamp.us", timestampOverride.UnixNano()/1000)
+func adjustMissingTimestamp(doc []byte) []byte {
+	timestampField := gjson.GetBytes(doc, "@timestamp")
+	timestamp, err := time.Parse(timestampFormat, timestampField.String())
+	if err != nil {
+		panic(err)
 	}
+	if time.Since(timestamp) < 5*time.Minute {
+		var err error
+		doc, err = sjson.SetBytes(doc, "@timestamp", timestampOverride.Format(timestampFormat))
+		if err != nil {
+			panic(err)
+		}
+		if gjson.GetBytes(doc, "processor.name").String() != "metric" {
+			doc, err = sjson.SetBytes(doc, "timestamp.us", timestampOverride.UnixNano()/1000)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+	return doc
 }
 
 // testPublishIntake exercises the publishing pipeline, from apm-server intake to beat publishing.
 // It posts a payload to a running APM server via the intake API and gathers the resulting documents that would
 // normally be published to Elasticsearch.
-func testPublishIntake(t *testing.T, apm *testBeater, events <-chan beat.Event, payload io.Reader) [][]byte {
+func testPublishIntake(t *testing.T, apm *testBeater, docs <-chan []byte, payload io.Reader) [][]byte {
 	req, err := http.NewRequest(http.MethodPost, apm.baseURL+api.IntakePath, payload)
 	require.NoError(t, err)
 	req.Header.Add("Content-Type", "application/x-ndjson")
-	return testPublish(t, apm.client, req, events)
+	return testPublish(t, apm.client, req, docs)
 }
 
-func testPublishProfile(t *testing.T, apm *testBeater, events <-chan beat.Event, metadata, profile io.Reader) [][]byte {
+func testPublishProfile(t *testing.T, apm *testBeater, docs <-chan []byte, metadata, profile io.Reader) [][]byte {
 	var buf bytes.Buffer
 	mpw := multipart.NewWriter(&buf)
 	writePart := func(name, contentType string, body io.Reader) {
@@ -86,13 +98,31 @@ func testPublishProfile(t *testing.T, apm *testBeater, events <-chan beat.Event,
 	req, err := http.NewRequest(http.MethodPost, apm.baseURL+api.ProfilePath, &buf)
 	require.NoError(t, err)
 	req.Header.Add("Content-Type", mpw.FormDataContentType())
-	return testPublish(t, apm.client, req, events)
+	return testPublish(t, apm.client, req, docs)
 }
 
 // testPublish exercises the publishing pipeline, from apm-server intake to beat publishing.
 // It posts a payload to a running APM server via the intake API and gathers the resulting
 // documents that would normally be published to Elasticsearch.
-func testPublish(t *testing.T, client *http.Client, req *http.Request, events <-chan beat.Event) [][]byte {
+func testPublish(t *testing.T, client *http.Client, req *http.Request, docsChan <-chan []byte) [][]byte {
+	// The request may block until events are published, so we receive them in the background.
+	acceptedCh := make(chan int, 1)
+	var docs [][]byte
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		var accepted int
+		for accepted == 0 || len(docs) != accepted {
+			select {
+			case n := <-acceptedCh:
+				accepted = n
+			case doc := <-docsChan:
+				doc = adjustMissingTimestamp(doc)
+				docs = append(docs, doc)
+			}
+		}
+	}()
+
 	req.URL.RawQuery = "verbose=true"
 	rsp, err := client.Do(req)
 	require.NoError(t, err)
@@ -104,19 +134,9 @@ func testPublish(t *testing.T, client *http.Client, req *http.Request, events <-
 	}
 	err = json.Unmarshal([]byte(got), &result)
 	require.NoError(t, err)
+	acceptedCh <- result.Accepted
 
-	var docs [][]byte
-	timeout := time.NewTimer(time.Second)
-	defer timeout.Stop()
-	for len(docs) != result.Accepted {
-		select {
-		case event := <-events:
-			adjustMissingTimestamp(&event)
-			docs = append(docs, beatertest.EncodeEventDoc(event))
-		case <-timeout.C:
-			t.Fatal("timed out waiting for events")
-		}
-	}
+	<-done
 	return docs
 }
 
@@ -140,17 +160,15 @@ func TestPublishIntegration(t *testing.T) {
 	} {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			// fresh APM Server for each run
-			events := make(chan beat.Event)
-			defer close(events)
-			apm, err := setupServer(t, nil, nil, events)
+			docsChan := make(chan []byte)
+			apm, err := setupServer(t, nil, nil, docsChan)
 			require.NoError(t, err)
 			defer apm.Stop()
 
 			b, err := ioutil.ReadFile(filepath.Join("../testdata/intake-v2", tc.payload))
 			require.NoError(t, err)
-			docs := testPublishIntake(t, apm, events, bytes.NewReader(b))
+			docs := testPublishIntake(t, apm, docsChan, bytes.NewReader(b))
 			approvaltest.ApproveEventDocs(t, "test_approved_es_documents/TestPublishIntegration"+tc.name, docs)
 		})
 	}
@@ -171,11 +189,9 @@ func TestPublishIntegrationProfile(t *testing.T) {
 	} {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
 			// fresh APM Server for each run
-			events := make(chan beat.Event)
-			defer close(events)
-			apm, err := setupServer(t, nil, nil, events)
+			docsChan := make(chan []byte)
+			apm, err := setupServer(t, nil, nil, docsChan)
 			require.NoError(t, err)
 			defer apm.Stop()
 
@@ -188,7 +204,7 @@ func TestPublishIntegrationProfile(t *testing.T) {
 			profileBytes, err := ioutil.ReadFile(filepath.Join("../testdata/profile", tc.profile))
 			require.NoError(t, err)
 
-			docs := testPublishProfile(t, apm, events, metadata, bytes.NewReader(profileBytes))
+			docs := testPublishProfile(t, apm, docsChan, metadata, bytes.NewReader(profileBytes))
 			approvaltest.ApproveEventDocs(t, "test_approved_es_documents/TestPublishIntegrationProfile"+name, docs,
 				"profile.id", // ignore profile.id, it's randomly generated by the server
 			)

@@ -51,12 +51,11 @@ import (
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 	"google.golang.org/grpc/codes"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-server/approvaltest"
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelindexer/modelindexertest"
 	"github.com/elastic/apm-server/processor/otel"
 )
 
@@ -765,12 +764,14 @@ func TestConsumer_JaegerMetadata(t *testing.T) {
 		}),
 	}} {
 		t.Run(tc.name, func(t *testing.T) {
-			var events []beat.Event
-			recorder := eventRecorderBatchProcessor(&events)
+			var batches []*model.Batch
+			recorder := batchRecorderBatchProcessor(&batches)
 			jaegerBatch.Process = tc.process
 			traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
 			require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
-			approveEvents(t, "metadata_"+tc.name, events)
+
+			docs := encodeBatch(t, batches...)
+			approveEventDocs(t, "metadata_"+tc.name, docs)
 		})
 	}
 }
@@ -821,8 +822,8 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 	require.Len(t, batches, 1)
 	batch := *batches[0]
 
-	events := transformBatch(context.Background(), batches...)
-	approveEvents(t, "jaeger_sampling_rate", events)
+	docs := encodeBatch(t, batches...)
+	approveEventDocs(t, "jaeger_sampling_rate", docs)
 
 	tx1 := batch[0].Transaction
 	span := batch[1].Span
@@ -970,10 +971,12 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 			}
 			traces := jaegertranslator.ProtoBatchToInternalTraces(batch)
 
-			var events []beat.Event
-			recorder := eventRecorderBatchProcessor(&events)
+			var batches []*model.Batch
+			recorder := batchRecorderBatchProcessor(&batches)
 			require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
-			approveEvents(t, "transaction_"+tc.name, events)
+
+			docs := encodeBatch(t, batches...)
+			approveEventDocs(t, "transaction_"+tc.name, docs)
 		})
 	}
 }
@@ -1083,10 +1086,12 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 			}
 			traces := jaegertranslator.ProtoBatchToInternalTraces(batch)
 
-			var events []beat.Event
-			recorder := eventRecorderBatchProcessor(&events)
+			var batches []*model.Batch
+			recorder := batchRecorderBatchProcessor(&batches)
 			require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
-			approveEvents(t, "span_"+tc.name, events)
+
+			docs := encodeBatch(t, batches...)
+			approveEventDocs(t, "span_"+tc.name, docs)
 		})
 	}
 }
@@ -1209,24 +1214,16 @@ func batchRecorderBatchProcessor(out *[]*model.Batch) model.BatchProcessor {
 	})
 }
 
-func eventRecorderBatchProcessor(out *[]beat.Event) model.BatchProcessor {
-	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
-		*out = append(*out, transformBatch(ctx, batch)...)
-		return nil
-	})
-}
-
-func transformBatch(ctx context.Context, batches ...*model.Batch) []beat.Event {
-	var out []beat.Event
+func encodeBatch(t testing.TB, batches ...*model.Batch) [][]byte {
+	var docs [][]byte
 	for _, batch := range batches {
-		out = append(out, batch.Transform(ctx)...)
+		docs = modelindexertest.AppendEncodedBatch(t, docs, *batch)
 	}
-	return out
+	return docs
 }
 
-func approveEvents(t testing.TB, name string, events []beat.Event) {
+func approveEventDocs(t testing.TB, name string, docs [][]byte) {
 	t.Helper()
-	docs := beatertest.EncodeEventDocs(events...)
 	approvaltest.ApproveEventDocs(t, filepath.Join("test_approved", name), docs)
 }
 
