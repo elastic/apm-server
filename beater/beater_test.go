@@ -44,13 +44,14 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelindexer/modelindexertest"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
-	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 type testBeater struct {
@@ -64,15 +65,15 @@ type testBeater struct {
 	client     *http.Client
 }
 
-func setupServer(t *testing.T, cfg *agentconfig.C, beatConfig *beat.BeatConfig, events chan beat.Event) (*testBeater, error) {
+func setupServer(t *testing.T, cfg *agentconfig.C, beatConfig *beat.BeatConfig, docsOut chan<- []byte) (*testBeater, error) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
-	apmBeat, cfg := newBeat(t, cfg, beatConfig, events)
+	apmBeat, cfg := newBeat(t, cfg, beatConfig, docsOut)
 	return setupBeater(t, apmBeat, cfg, beatConfig)
 }
 
-func newBeat(t *testing.T, cfg *agentconfig.C, beatConfig *beat.BeatConfig, events chan beat.Event) (*beat.Beat, *agentconfig.C) {
+func newBeat(t *testing.T, cfg *agentconfig.C, beatConfig *beat.BeatConfig, docsOut chan<- []byte) (*beat.Beat, *agentconfig.C) {
 	info := beat.Info{
 		Beat:        "test-apm-server",
 		IndexPrefix: "test-apm-server",
@@ -86,30 +87,59 @@ func newBeat(t *testing.T, cfg *agentconfig.C, beatConfig *beat.BeatConfig, even
 		// Disable waiting for integration to be installed by default,
 		// to simplify tests. This feature is tested independently.
 		"data_streams.wait_for_integration": false,
-
-		// Enable instrumentation so the profile endpoint is
-		// available, but set the profiling interval to something
-		// long enough that it won't kick in.
-		"instrumentation": map[string]interface{}{
-			"enabled": true,
-			"profiling": map[string]interface{}{
-				"cpu": map[string]interface{}{
-					"enabled":  true,
-					"interval": "360s",
-				},
-			},
-		},
 	})
 	if cfg != nil {
 		require.NoError(t, cfg.Unpack(combinedConfig))
 	}
 
 	var pub beat.Pipeline
-	if events != nil {
-		// capture events using the supplied channel
-		pubClient := newChanClientWith(events)
-		pub = dummyPipeline(cfg, info, pubClient)
-	} else if beatConfig != nil && beatConfig.Output.Name() == "elasticsearch" {
+	if docsOut != nil {
+		// Clear the state monitoring registry to avoid panicking due
+		// to double registration.
+		stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+		stateRegistry.Clear()
+		defer stateRegistry.Clear()
+
+		// beatConfig must be nil if an event channel is supplied.
+		require.Nil(t, beatConfig)
+		beatConfig = &beat.BeatConfig{}
+
+		mux := http.NewServeMux()
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("X-Elastic-Product", "Elasticsearch")
+			// We must send a valid JSON response for the initial
+			// Elasticsearch cluster UUID query.
+			fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
+		})
+		modelindexertest.HandleBulk(mux, func(w http.ResponseWriter, r *http.Request) {
+			docs, response := modelindexertest.DecodeBulkRequest(r)
+			defer json.NewEncoder(w).Encode(response)
+			for _, doc := range docs {
+				var buf bytes.Buffer
+				if err := json.Indent(&buf, doc, "", "  "); err != nil {
+					panic(err)
+				}
+				select {
+				case <-r.Context().Done():
+				case docsOut <- buf.Bytes():
+				}
+			}
+		})
+		srv := httptest.NewServer(mux)
+		t.Cleanup(srv.Close)
+
+		err := beatConfig.Output.Unpack(agentconfig.MustNewConfigFrom(map[string]interface{}{
+			"elasticsearch": map[string]interface{}{
+				"enabled":      true,
+				"hosts":        []string{srv.URL},
+				"flush_bytes":  "1", // no delay
+				"max_requests": "1", // only 1 concurrent request, for event ordering
+			},
+		}))
+		require.NoError(t, err)
+	}
+
+	if beatConfig != nil && beatConfig.Output.Name() == "elasticsearch" {
 		// capture events using the configured elasticsearch output
 		supporter, err := idxmgmt.DefaultSupport(logp.NewLogger("beater_test"), info, nil)
 		require.NoError(t, err)

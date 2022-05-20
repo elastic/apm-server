@@ -25,8 +25,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 // Metrics returns a grpc.UnaryServerInterceptor that increments metrics

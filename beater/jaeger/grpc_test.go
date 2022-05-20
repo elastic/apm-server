@@ -38,16 +38,16 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/auth"
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/kibana/kibanatest"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelindexer/modelindexertest"
 )
 
 func TestPostSpans(t *testing.T) {
@@ -116,9 +116,11 @@ func newPostSpansRequest(t *testing.T) *api_v2.PostSpansRequest {
 func TestApprovals(t *testing.T) {
 	for _, name := range []string{"batch_0", "batch_1"} {
 		t.Run(name, func(t *testing.T) {
-			var batches []model.Batch
+			var batches int
+			var docs [][]byte
 			var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
-				batches = append(batches, *batch)
+				batches++
+				docs = modelindexertest.AppendEncodedBatch(t, docs, *batch)
 				return nil
 			}
 			conn := newServer(t, processor, nil)
@@ -134,9 +136,7 @@ func TestApprovals(t *testing.T) {
 			_, err = client.PostSpans(context.Background(), &request)
 			require.NoError(t, err)
 
-			require.Len(t, batches, 1)
-			events := batches[0].Transform(context.Background())
-			docs := beatertest.EncodeEventDocs(events...)
+			require.Equal(t, 1, batches)
 			approvaltest.ApproveEventDocs(t, f, docs)
 		})
 	}

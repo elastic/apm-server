@@ -214,13 +214,10 @@
             "labels": {
                 "ab_testing": "true",
                 "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "success": "true",
-                "wrapped_reporter": "true"
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
             },
             "message": "Request method 'POST' not supported",
             "numeric_labels": {
-                "code": 200,
                 "segment": 5
             },
             "observer": {
@@ -355,13 +352,9 @@
             },
             "labels": {
                 "ab_testing": "true",
-                "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "success": "true",
-                "wrapped_reporter": "true"
+                "group": "experimental"
             },
             "numeric_labels": {
-                "code": 200,
                 "segment": 5
             },
             "observer": {
@@ -558,11 +551,9 @@
                 "ab_testing": "true",
                 "group": "experimental",
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "success": "true",
                 "wrapped_reporter": "true"
             },
             "numeric_labels": {
-                "code": 200,
                 "segment": 5
             },
             "observer": {
@@ -696,9 +687,7 @@
             "labels": {
                 "ab_testing": "true",
                 "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "success": "true",
-                "wrapped_reporter": "true"
+                "success": "true"
             },
             "metricset.name": "span_breakdown",
             "numeric_labels": {

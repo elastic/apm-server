@@ -19,7 +19,7 @@ package beater
 
 import (
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 var apmRegistry = monitoring.GetNamespace("state").GetRegistry().NewRegistry("apm-server")

@@ -24,6 +24,7 @@ import (
 	"io/ioutil"
 	"net"
 	"path/filepath"
+	"strings"
 	"testing"
 	"testing/iotest"
 	"time"
@@ -32,9 +33,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/approvaltest"
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelindexer/modelindexertest"
 	"github.com/elastic/apm-server/publish"
 )
 
@@ -268,11 +269,48 @@ func TestRUMV3(t *testing.T) {
 	}
 }
 
+func TestLabelLeak(t *testing.T) {
+	payload := `{"metadata": {"service": {"name": "testsvc", "environment": "staging", "version": null, "agent": {"name": "python", "version": "6.9.1"}, "language": {"name": "python", "version": "3.10.4"}, "runtime": {"name": "CPython", "version": "3.10.4"}, "framework": {"name": "flask", "version": "2.1.1"}}, "process": {"pid": 2112739, "ppid": 2112738, "argv": ["/home/stuart/workspace/sdh/581/venv/lib/python3.10/site-packages/flask/__main__.py", "run"], "title": null}, "system": {"hostname": "slaptop", "architecture": "x86_64", "platform": "linux"}, "labels": {"ci_commit": "unknown", "numeric": 1}}}
+{"transaction": {"id": "88dee29a6571b948", "trace_id": "ba7f5d18ac4c7f39d1ff070c79b2bea5", "name": "GET /withlabels", "type": "request", "duration": 1.6199999999999999, "result": "HTTP 2xx", "timestamp": 1652185276804681, "outcome": "success", "sampled": true, "span_count": {"started": 0, "dropped": 0}, "sample_rate": 1.0, "context": {"request": {"env": {"REMOTE_ADDR": "127.0.0.1", "SERVER_NAME": "127.0.0.1", "SERVER_PORT": "5000"}, "method": "GET", "socket": {"remote_address": "127.0.0.1"}, "cookies": {}, "headers": {"host": "localhost:5000", "user-agent": "curl/7.81.0", "accept": "*/*", "app-os": "Android", "content-type": "application/json; charset=utf-8", "content-length": "29"}, "url": {"full": "http://localhost:5000/withlabels?second_with_labels", "protocol": "http:", "hostname": "localhost", "pathname": "/withlabels", "port": "5000", "search": "?second_with_labels"}}, "response": {"status_code": 200, "headers": {"Content-Type": "application/json", "Content-Length": "14"}}, "tags": {"appOs": "Android", "email_set": "hello@hello.com", "time_set": 1652185276}}}}
+{"transaction": {"id": "ba5c6d6c1ab44bd1", "trace_id": "88c0a00431531a80c5ca9a41fe115f41", "name": "GET /nolabels", "type": "request", "duration": 0.652, "result": "HTTP 2xx", "timestamp": 1652185278813952, "outcome": "success", "sampled": true, "span_count": {"started": 0, "dropped": 0}, "sample_rate": 1.0, "context": {"request": {"env": {"REMOTE_ADDR": "127.0.0.1", "SERVER_NAME": "127.0.0.1", "SERVER_PORT": "5000"}, "method": "GET", "socket": {"remote_address": "127.0.0.1"}, "cookies": {}, "headers": {"host": "localhost:5000", "user-agent": "curl/7.81.0", "accept": "*/*"}, "url": {"full": "http://localhost:5000/nolabels?third_no_label", "protocol": "http:", "hostname": "localhost", "pathname": "/nolabels", "port": "5000", "search": "?third_no_label"}}, "response": {"status_code": 200, "headers": {"Content-Type": "text/html; charset=utf-8", "Content-Length": "14"}}, "tags": {}}}}`
+
+	baseEvent := model.APMEvent{
+		Host: model.Host{IP: []net.IP{net.ParseIP("192.0.0.1")}},
+	}
+
+	var processed *model.Batch
+	batchProcessor := model.ProcessBatchFunc(func(_ context.Context, b *model.Batch) error {
+		processed = b
+		return nil
+	})
+
+	p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+	var actualResult Result
+	err := p.HandleStream(context.Background(), baseEvent, strings.NewReader(payload), 10, batchProcessor, &actualResult)
+	require.NoError(t, err)
+
+	txs := *processed
+	assert.Len(t, txs, 2)
+	// Assert first tx
+	assert.Equal(t, model.NumericLabels{
+		"time_set": {Value: 1652185276},
+		"numeric":  {Value: 1},
+	}, txs[0].NumericLabels)
+	assert.Equal(t, model.Labels{
+		"appOs":     {Value: "Android"},
+		"email_set": {Value: "hello@hello.com"},
+		"ci_commit": {Value: "unknown"},
+	}, txs[0].Labels)
+
+	// Assert second tx
+	assert.Equal(t, model.NumericLabels{"numeric": {Value: 1}}, txs[1].NumericLabels)
+	assert.Equal(t, model.Labels{"ci_commit": {Value: "unknown"}}, txs[1].Labels)
+}
+
 func makeApproveEventsBatchProcessor(t *testing.T, name string, count *int) model.BatchProcessor {
 	return model.ProcessBatchFunc(func(ctx context.Context, b *model.Batch) error {
-		events := b.Transform(ctx)
-		*count += len(events)
-		docs := beatertest.EncodeEventDocs(events...)
+		docs := modelindexertest.AppendEncodedBatch(t, nil, *b)
+		*count += len(docs)
 		approvaltest.ApproveEventDocs(t, name, docs)
 		return nil
 	})
