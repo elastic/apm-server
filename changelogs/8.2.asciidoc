@@ -3,7 +3,18 @@
 
 https://github.com/elastic/apm-server/compare/8.1\...8.2[View commits]
 
+* <<release-notes-8.2.1>>
 * <<release-notes-8.2.0>>
+
+[float]
+[[release-notes-8.2.1]]
+=== APM version 8.2.1
+
+https://github.com/elastic/apm-server/compare/8.2.0\...8.2.1[View commits]
+
+[float]
+==== Bug fixes
+- Fixes a bug that caused events within batches with `metadata.labels` set to contain labels from other events in the same batch {pull}8081[8081]
 
 [float]
 [[release-notes-8.2.0]]

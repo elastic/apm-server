@@ -35,8 +35,13 @@ require (
 )
 
 require (
+	github.com/containerd/imgcrypt v1.1.4 // indirect
+	github.com/containerd/typeurl v1.0.2 // indirect
+	github.com/containers/ocicrypt v1.1.3 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/miekg/pkcs11 v1.1.1 // indirect
+	github.com/stefanberger/go-pkcs11uri v0.0.0-20201008174630-78d3cae3a980 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.5.0 // indirect
 )
 
