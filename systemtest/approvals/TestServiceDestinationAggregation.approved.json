@@ -31,7 +31,6 @@
             "service": {
                 "name": "systemtest",
                 "target": {
-                    "name": "",
                     "type": "resource"
                 }
             },

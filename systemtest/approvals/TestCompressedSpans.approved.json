@@ -34,7 +34,6 @@
             "service": {
                 "name": "systemtest",
                 "target": {
-                    "name": "",
                     "type": "redis"
                 }
             },
@@ -104,7 +103,6 @@
             "service": {
                 "name": "systemtest",
                 "target": {
-                    "name": "",
                     "type": "elasticsearch"
                 }
             },

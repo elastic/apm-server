@@ -103,7 +103,6 @@ func TestServiceTransform(t *testing.T) {
 				"name": "myService",
 				"node": mapstr.M{"name": serviceNodeName},
 				"target": mapstr.M{
-					"name": "",
 					"type": "test",
 				},
 			},
