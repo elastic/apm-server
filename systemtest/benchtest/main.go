@@ -39,6 +39,8 @@ import (
 	"github.com/joeshaw/multierror"
 	"go.elastic.co/apm/v2/stacktrace"
 	"golang.org/x/time/rate"
+
+	"github.com/elastic/apm-server/systemtest/benchtest/expvarmetrics"
 )
 
 const waitInactiveTimeout = 30 * time.Second
@@ -61,9 +63,13 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 	// Run the benchmark. testing.Benchmark will invoke the function
 	// multiple times, but only returns the final result.
 	var ok bool
-	var before, after expvar
+	var collector *expvarmetrics.Collector
 	result := testing.Benchmark(func(b *testing.B) {
-		if err := queryExpvar(&before, *server); err != nil {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		var err error
+		collector, err = expvarmetrics.StartNewCollector(ctx, *server, 100*time.Millisecond)
+		if err != nil {
 			b.Error(err)
 			ok = !b.Failed()
 			return
@@ -72,38 +78,44 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 		limiter := getNewLimiter(maxEPM)
 		b.ResetTimer()
 		f(b, limiter)
-		for !b.Failed() {
-			if err := queryExpvar(&after, *server); err != nil {
+		if !b.Failed() {
+			watcher, err := collector.AddWatch(expvarmetrics.ActiveEvents, 0)
+			if err != nil {
 				b.Error(err)
-				break
+			} else if status := <-watcher; !status {
+				b.Error("failed to wait for APM server to be inactive")
 			}
-			if after.ActiveEvents == 0 {
-				break
-			}
-			time.Sleep(100 * time.Millisecond)
 		}
 		ok = !b.Failed()
 	})
 	if result.Extra != nil {
-		addExpvarMetrics(result, before, after)
+		addExpvarMetrics(result, collector)
 	}
 	return result, ok, nil
 }
 
-func addExpvarMetrics(result testing.BenchmarkResult, before, after expvar) {
-	result.MemAllocs = after.MemStats.Mallocs - before.MemStats.Mallocs
-	result.MemBytes = after.MemStats.TotalAlloc - before.MemStats.TotalAlloc
-	result.Bytes = after.UncompressedBytes - before.UncompressedBytes
-	result.Extra["events/sec"] = float64(after.TotalEvents-before.TotalEvents) / result.T.Seconds()
-	result.Extra["txs/sec"] = float64(after.TransactionsProcessed-before.TransactionsProcessed) / result.T.Seconds()
-	result.Extra["spans/sec"] = float64(after.SpansProcessed-before.SpansProcessed) / result.T.Seconds()
-	result.Extra["metrics/sec"] = float64(after.MetricsProcessed-before.MetricsProcessed) / result.T.Seconds()
-	result.Extra["errors/sec"] = float64(after.ErrorsProcessed-before.ErrorsProcessed) / result.T.Seconds()
+func addExpvarMetrics(result testing.BenchmarkResult, collector *expvarmetrics.Collector) {
+	result.MemAllocs = uint64(collector.Delta(expvarmetrics.MemAllocs))
+	result.MemBytes = uint64(collector.Delta(expvarmetrics.MemBytes))
+	result.Bytes = collector.Delta(expvarmetrics.Bytes)
+	result.Extra["events/sec"] = float64(collector.Delta(expvarmetrics.TotalEvents)) / result.T.Seconds()
+	result.Extra["txs/sec"] = float64(collector.Delta(expvarmetrics.TransactionsProcessed)) / result.T.Seconds()
+	result.Extra["spans/sec"] = float64(collector.Delta(expvarmetrics.SpansProcessed)) / result.T.Seconds()
+	result.Extra["metrics/sec"] = float64(collector.Delta(expvarmetrics.MetricsProcessed)) / result.T.Seconds()
+	result.Extra["errors/sec"] = float64(collector.Delta(expvarmetrics.ErrorsProcessed)) / result.T.Seconds()
+	result.Extra["gc"] = float64(collector.Delta(expvarmetrics.NumGC))
+	result.Extra["gc_pause_ns"] = float64(collector.Delta(expvarmetrics.PauseTotalNs))
+	result.Extra["start_rss"] = float64(collector.Get(expvarmetrics.RSSMemoryBytes).First)
+	result.Extra["end_rss"] = float64(collector.Get(expvarmetrics.RSSMemoryBytes).Last)
+	result.Extra["max_goroutines"] = float64(collector.Get(expvarmetrics.Goroutines).Max)
+	result.Extra["max_heap_alloc"] = float64(collector.Get(expvarmetrics.HeapAlloc).Max)
+	result.Extra["max_heap_objects"] = float64(collector.Get(expvarmetrics.HeapObjects).Max)
+	result.Extra["min_available_indexers"] = float64(collector.Get(expvarmetrics.AvailableBulkRequests).Min)
 
 	// Record the number of error responses returned by the server: lower is better.
-	errorResponsesAfter := after.ErrorElasticResponses + after.ErrorOTLPTracesResponses + after.ErrorOTLPMetricsResponses
-	errorResponsesBefore := before.ErrorElasticResponses + before.ErrorOTLPTracesResponses + before.ErrorOTLPMetricsResponses
-	errorResponses := errorResponsesAfter - errorResponsesBefore
+	errorResponses := collector.Delta(expvarmetrics.ErrorElasticResponses) +
+		collector.Delta(expvarmetrics.ErrorOTLPTracesResponses) +
+		collector.Delta(expvarmetrics.ErrorOTLPMetricsResponses)
 	result.Extra["error_responses/sec"] = float64(errorResponses) / result.T.Seconds()
 }
 
@@ -280,7 +292,7 @@ func warmup(agents int, events uint, url, token string) error {
 	}
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
 	defer cancel()
-	if err := WaitUntilServerInactive(ctx, url); err != nil {
+	if err := expvarmetrics.WaitUntilServerInactive(ctx, url); err != nil {
 		return fmt.Errorf("received error waiting for server inactive: %w", err)
 	}
 	return nil
