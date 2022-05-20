@@ -296,8 +296,6 @@ type ContainerConfig struct {
 	Arch             string
 	BaseImage        string
 	BaseImageVersion string
-	VCSRef           string
-	StackVersion     string
 }
 
 // NewUnstartedElasticAgentContainer returns a new ElasticAgentContainer.
@@ -336,26 +334,21 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		// Use the same elastic-agent image as used for fleet-server.
 		opts.BaseImageVersion = fleetServerContainer.Image[strings.LastIndex(fleetServerContainer.Image, ":")+1:]
 	}
-	if opts.StackVersion == "" || opts.VCSRef == "" {
-		imageDetails, err := inspectImage(context.Background(),
-			docker,
-			fmt.Sprintf("%s:%s", opts.BaseImage, opts.BaseImageVersion),
-			opts.Arch,
-		)
-		if err != nil {
-			return nil, err
-		}
-		if opts.StackVersion == "" {
-			opts.StackVersion = imageDetails.Config.Labels["org.label-schema.version"]
-		}
-		if opts.VCSRef == "" {
-			opts.VCSRef = imageDetails.Config.Labels["org.label-schema.vcs-ref"]
-		}
+	imageDetails, err := inspectImage(context.Background(),
+		docker,
+		fmt.Sprintf("%s:%s", opts.BaseImage, opts.BaseImageVersion),
+		opts.Arch,
+	)
+	if err != nil {
+		return nil, err
 	}
+
+	stackVersion := imageDetails.Config.Labels["org.label-schema.version"]
+	vCSRef := imageDetails.Config.Labels["org.label-schema.vcs-ref"]
 
 	// Build a custom elastic-agent image with a locally built apm-server binary injected.
 	agentImage, err := buildElasticAgentImage(context.Background(),
-		docker, opts.StackVersion, opts.BaseImage, opts.BaseImageVersion, opts.VCSRef, opts.Arch,
+		docker, stackVersion, opts.BaseImage, opts.BaseImageVersion, vCSRef, opts.Arch,
 	)
 	if err != nil {
 		return nil, err
@@ -404,9 +397,7 @@ func inspectImage(ctx context.Context, docker *client.Client, ref, arch string) 
 		if _, err := docker.ImageLoad(ctx, r, false); err != nil {
 			return details, err
 		}
-		details, _, err = docker.ImageInspectWithRaw(
-			context.Background(), ref,
-		)
+		details, _, err = docker.ImageInspectWithRaw(ctx, ref)
 		return details, err
 	}
 	return details, nil
