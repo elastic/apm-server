@@ -119,9 +119,7 @@ func (s *Service) Fields() mapstr.M {
 	if s.Target != nil {
 		var target mapStr
 		target.maybeSetString("name", s.Target.Name)
-		if s.Target.Type != "" || s.Target.Name != "" {
-			target.set("type", s.Target.Type)
-		}
+		target.set("type", s.Target.Type)
 		svc.maybeSetMapStr("target", mapstr.M(target))
 	}
 

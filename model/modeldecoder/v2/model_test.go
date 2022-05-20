@@ -285,6 +285,7 @@ func TestErrorRequiredValidationRules(t *testing.T) {
 		"log.message":                          nil,
 		"parent_id":                            nil, //requiredIf
 		"trace_id":                             nil, //requiredIf
+		"context.service.target.type":          nil,
 	}
 	cb := assertRequiredFn(t, requiredKeys, event.validate)
 	modeldecodertest.SetZeroStructValue(&event, cb)
@@ -528,6 +529,7 @@ func TestSpanRequiredValidationRules(t *testing.T) {
 		"composite.compression_strategy":       nil,
 		"links.span_id":                        nil,
 		"links.trace_id":                       nil,
+		"context.service.target.type":          nil,
 	}
 	cb := assertRequiredFn(t, requiredKeys, event.validate)
 	modeldecodertest.SetZeroStructValue(&event, cb)
@@ -548,19 +550,20 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 	// iterate through struct, remove every key one by one
 	// and test that validation behaves as expected
 	requiredKeys := map[string]interface{}{
-		"duration":                  nil,
-		"id":                        nil,
-		"span_count":                nil,
-		"span_count.started":        nil,
-		"trace_id":                  nil,
-		"type":                      nil,
-		"context.request.method":    nil,
-		"experience.longtask.count": nil,
-		"experience.longtask.sum":   nil,
-		"experience.longtask.max":   nil,
-		"session.id":                nil,
-		"links.span_id":             nil,
-		"links.trace_id":            nil,
+		"duration":                    nil,
+		"id":                          nil,
+		"span_count":                  nil,
+		"span_count.started":          nil,
+		"trace_id":                    nil,
+		"type":                        nil,
+		"context.request.method":      nil,
+		"experience.longtask.count":   nil,
+		"experience.longtask.sum":     nil,
+		"experience.longtask.max":     nil,
+		"session.id":                  nil,
+		"links.span_id":               nil,
+		"links.trace_id":              nil,
+		"context.service.target.type": nil,
 	}
 	cb := assertRequiredFn(t, requiredKeys, event.validate)
 	modeldecodertest.SetZeroStructValue(&event, cb)

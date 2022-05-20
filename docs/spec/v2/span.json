@@ -532,12 +532,12 @@
                 },
                 "type": {
                   "description": "Immutable type of the target service for the event",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
+                  "type": "string"
                 }
-              }
+              },
+              "required": [
+                "type"
+              ]
             },
             "version": {
               "description": "Version of the monitored service.",

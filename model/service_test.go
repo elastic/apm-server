@@ -125,20 +125,6 @@ func TestServiceTransform(t *testing.T) {
 				},
 			},
 		},
-		{
-			Service: Service{
-				Name: serviceName,
-				Node: ServiceNode{Name: serviceNodeName},
-				Target: &ServiceTarget{
-					Name: "",
-					Type: "",
-				},
-			},
-			Fields: mapstr.M{
-				"name": "myService",
-				"node": mapstr.M{"name": serviceNodeName},
-			},
-		},
 	}
 
 	for _, test := range tests {
