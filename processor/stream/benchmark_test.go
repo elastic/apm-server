@@ -125,7 +125,7 @@ func benchmarkBackendProcessorParallelSemSize(b *testing.B, size uint) {
 	processor := BackendProcessor(cfg, make(chan struct{}, cfg.MaxConcurrentDecoders))
 	file := "../../testdata/intake-v2/heavy.ndjson"
 	const batchSize = 10
-	batchProcessor := nopBatchProcessor{}
+	batchProcessor := mutexBatchProcessor{}
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		b.Error(err)
@@ -139,7 +139,7 @@ func benchmarkBackendProcessorParallelSemSize(b *testing.B, size uint) {
 		r := bytes.NewReader(data)
 		for p.Next() {
 			var result Result
-			processor.HandleStream(ctx, model.APMEvent{}, r, batchSize, batchProcessor, &result)
+			processor.HandleStream(ctx, model.APMEvent{}, r, batchSize, &batchProcessor, &result)
 			r.Seek(0, io.SeekStart)
 		}
 	})
