@@ -9,6 +9,7 @@ pipeline {
     AWS_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-aws-account-auth'
     GCP_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-account-auth'
     EC_KEY_SECRET = 'secret/observability-team/ci/elastic-cloud/observability-team'
+    TERRAFORM_VERSION = '1.1.9'
   }
 
   options {
