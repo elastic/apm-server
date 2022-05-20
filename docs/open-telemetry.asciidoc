@@ -327,8 +327,7 @@ Here is an example of AWS Lambda Java function managed with Terraform and the ht
 
 NOTE: For a better startup time, we recommend using SDK-based instrumentation for manual instrumentation of the code rather than auto instrumentation.
 
-// lint ignore js
-To instrument AWS Lambda Node.js functions, see https://aws-otel.github.io/docs/getting-started/lambda/lambda-js[AWS Distro for OpenTelemetry Lambda Support For JS].
+To instrument AWS Lambda Node.js functions, see https://aws-otel.github.io/docs/getting-started/lambda/lambda-js[AWS Distro for OpenTelemetry Lambda Support For JavaScript].
 
 The configuration of the OpenTelemetry Collector, with the definition of the Elastic {observability} endpoint, can be added to the root directory of the Lambda binaries: `src/main/resources/opentelemetry-collector.yaml`.
 
@@ -368,12 +367,11 @@ service:
 
 Configure the AWS Lambda Node.js function:
 
-// lint ignore js
 * https://docs.aws.amazon.com/lambda/latest/dg/API_Layer.html[Function
 layer]: The latest https://aws-otel.github.io/docs/getting-started/lambda/lambda-js[AWS
 Lambda layer for OpenTelemetry]. For example, `arn:aws:lambda:eu-west-1:901920570463:layer:aws-otel-nodejs-ver-0-23-0:1`)
 * https://docs.aws.amazon.com/lambda/latest/dg/API_TracingConfig.html[`TracingConfig` / Mode] set to `PassTrough`
-* https://docs.aws.amazon.com/lambda/latest/dg/API_FunctionConfiguration.html[`FunctionConfiguration` / Timeout] set to more than 10 seconds to support the cold start of the Lambda JS Runtime
+* https://docs.aws.amazon.com/lambda/latest/dg/API_FunctionConfiguration.html[`FunctionConfiguration` / Timeout] set to more than 10 seconds to support the cold start of the Lambda JavaScript Runtime
 * Export the environment variables:
 ** `AWS_LAMBDA_EXEC_WRAPPER="/opt/otel-handler"` for wrapping handlers proxied through the API Gateway. See https://aws-otel.github.io/docs/getting-started/lambda/lambda-js#enable-auto-instrumentation-for-your-lambda-function[enable auto instrumentation for your lambda-function].
 ** `OTEL_PROPAGATORS="tracecontext"` to override the default setting that also enables X-Ray headers causing interferences between OpenTelemetry and X-Ray

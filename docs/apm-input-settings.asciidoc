@@ -414,7 +414,7 @@ This can be used to limit the number of service-specific indices or data streams
 [id="input-{input-type}-anonymous_rate_limit_ip_limit-setting"]
 Anonymous Rate limit (IP limit)
 
-| (int) The number of unique IP addresses to track in an least recently used (LRU) cache.
+| (int) The number of unique IP addresses to track in a least recently used (LRU) cache.
 IP addresses in the cache will be rate limited according to the `anonymous_rate_limit_event_limit` setting.
 Consider increasing this default if your application has many concurrent clients.
 
