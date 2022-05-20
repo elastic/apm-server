@@ -130,6 +130,17 @@
           type: keyword
           description: |
             Version of the runtime used.
+    - name: target
+      type: group
+      fields:
+        - name: name
+          type: keyword
+          description: |
+            Target service for which data is collected.
+        - name: type
+          type: keyword
+          description: |
+            Type of the target service for which data is collected
 - name: span
   type: group
   fields:

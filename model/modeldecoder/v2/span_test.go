@@ -98,6 +98,9 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				// Kind is tested further down
 				"Kind",
 
+				// Derived using service.target.*
+				"DestinationService.Resource",
+
 				// Not set for spans:
 				"DestinationService.ResponseTime",
 				"DestinationService.ResponseTime.Count",
@@ -490,5 +493,44 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			Span:  model.Span{ID: "span2"},
 			Trace: model.Trace{ID: "trace2"},
 		}}, out.Span.Links)
+	})
+
+	t.Run("service-target", func(t *testing.T) {
+		for _, tc := range []struct {
+			name                         string
+			inTargetType, inTargetName   string
+			outTargetType, outTargetName string
+			resource                     string
+		}{
+			{name: "passed-as-input", inTargetType: "some-type", outTargetType: "some-type", outTargetName: ""},
+			{name: "infer-from-resource", resource: "postgres/testdb", outTargetType: "postgres", outTargetName: "testdb"},
+			{name: "infer-only-type-from-resource", resource: "mysql", outTargetType: "mysql", outTargetName: ""},
+			{name: "infer-only-name-from-resource", resource: "my-db", outTargetType: "", outTargetName: "my-db"},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				var input span
+				defaultVal := modeldecodertest.DefaultValues()
+				modeldecodertest.SetStructValues(&input, defaultVal)
+				if tc.inTargetType != "" {
+					input.Context.Service.Target.Type.Set(tc.inTargetType)
+				} else {
+					input.Context.Service.Target.Type.Reset()
+				}
+				if tc.inTargetName != "" {
+					input.Context.Service.Target.Name.Set(tc.inTargetName)
+				} else {
+					input.Context.Service.Target.Name.Reset()
+				}
+				if tc.resource != "" {
+					input.Context.Destination.Service.Resource.Set(tc.resource)
+				} else {
+					input.Context.Destination.Service.Resource.Reset()
+				}
+				var out model.APMEvent
+				mapToSpanModel(&input, &out)
+				assert.Equal(t, tc.outTargetType, out.Service.Target.Type)
+				assert.Equal(t, tc.outTargetName, out.Service.Target.Name)
+			})
+		}
 	})
 }

@@ -23,6 +23,7 @@ import (
 	"io"
 	"net/http"
 	"net/textproto"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -65,6 +66,13 @@ var (
 			return &transactionRoot{}
 		},
 	}
+)
+
+var (
+	// reForServiceTargetExpr regex will capture service target type and name
+	// Service target type comprises of only lowercase alphabets
+	// Service target name comprises of all word characters
+	reForServiceTargetExpr = regexp.MustCompile(`^([a-z]+)(?:/(\w+))?$`)
 )
 
 func fetchErrorRoot() *errorRoot {
@@ -262,13 +270,18 @@ func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *model.Transa
 			if f.Outcome.IsSet() {
 				to.Outcome = f.Outcome.Val
 			}
-
 			if f.Duration.IsSet() {
 				to.Duration.Count = f.Duration.Count.Val
 				sum := f.Duration.Sum
 				if sum.IsSet() {
 					to.Duration.Sum = time.Duration(sum.Us.Val) * time.Microsecond
 				}
+			}
+			if f.ServiceTargetType.IsSet() {
+				to.ServiceTargetType = f.ServiceTargetType.Val
+			}
+			if f.ServiceTargetName.IsSet() {
+				to.ServiceTargetName = f.ServiceTargetName.Val
 			}
 
 			tx.DroppedSpansStats = append(tx.DroppedSpansStats, to)
@@ -968,6 +981,10 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		mapToServiceModel(from.Context.Service, &event.Service)
 		mapToAgentModel(from.Context.Service.Agent, &event.Agent)
 	}
+	if !from.Context.Service.Target.Type.IsSet() && from.Context.Destination.Service.Resource.IsSet() {
+		outTarget := targetFromDestinationResource(from.Context.Destination.Service.Resource.Val)
+		event.Service.Target = &outTarget
+	}
 	if len(from.Context.Tags) > 0 {
 		modeldecoderutil.MergeLabels(from.Context.Tags, event)
 	}
@@ -1433,4 +1450,16 @@ func mapSpanLinks(from []spanLink, out *[]model.SpanLink) {
 			Trace: model.Trace{ID: link.TraceID.Val},
 		}
 	}
+}
+
+func targetFromDestinationResource(res string) (target model.ServiceTarget) {
+	submatch := reForServiceTargetExpr.FindStringSubmatch(res)
+	switch len(submatch) {
+	case 3:
+		target.Type = submatch[1]
+		target.Name = submatch[2]
+	default:
+		target.Name = res
+	}
+	return
 }
