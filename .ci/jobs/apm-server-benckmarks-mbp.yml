@@ -1,8 +1,8 @@
 ---
 - job:
     name: apm-server/benchmarks
-    display-name: APM Server Benchmarks
-    description: APM Server Benchmarks
+    display-name: APM Server Benchmarks (apmbench)
+    description: APM Server Benchmarks (apmbench)
     project-type: multibranch
     concurrent: true
     script-path: .ci/benchmarks.groovy
