@@ -337,17 +337,19 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		opts.BaseImageVersion = fleetServerContainer.Image[strings.LastIndex(fleetServerContainer.Image, ":")+1:]
 	}
 	if opts.StackVersion == "" || opts.VCSRef == "" {
-		agentImageDetails, _, err := docker.ImageInspectWithRaw(context.Background(),
-			"docker.elastic.co/beats/elastic-agent:"+opts.BaseImageVersion,
+		imageDetails, err := inspectImage(context.Background(),
+			docker,
+			fmt.Sprintf("%s:%s", opts.BaseImage, opts.BaseImageVersion),
+			opts.Arch,
 		)
 		if err != nil {
 			return nil, err
 		}
 		if opts.StackVersion == "" {
-			opts.StackVersion = agentImageDetails.Config.Labels["org.label-schema.version"]
+			opts.StackVersion = imageDetails.Config.Labels["org.label-schema.version"]
 		}
 		if opts.VCSRef == "" {
-			opts.VCSRef = agentImageDetails.Config.Labels["org.label-schema.vcs-ref"]
+			opts.VCSRef = imageDetails.Config.Labels["org.label-schema.vcs-ref"]
 		}
 	}
 
@@ -383,6 +385,31 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		exited:  make(chan struct{}),
 		Reap:    true,
 	}, nil
+}
+
+func inspectImage(ctx context.Context, docker *client.Client, ref, arch string) (types.ImageInspect, error) {
+	details, _, err := docker.ImageInspectWithRaw(ctx, ref)
+	if err != nil {
+		if !client.IsErrNotFound(err) {
+			return details, err
+		}
+		log.Printf("pulling docker image %s...", ref)
+		r, err := docker.ImagePull(ctx, ref, types.ImagePullOptions{
+			Platform: fmt.Sprintf("linux/%s", arch),
+		})
+		if err != nil {
+			return details, fmt.Errorf("failed pulling docker image %s: %v", ref, err)
+		}
+		defer r.Close()
+		if _, err := docker.ImageLoad(ctx, r, false); err != nil {
+			return details, err
+		}
+		details, _, err = docker.ImageInspectWithRaw(
+			context.Background(), ref,
+		)
+		return details, err
+	}
+	return details, nil
 }
 
 // ElasticAgentContainer represents an ephemeral Elastic Agent container.
