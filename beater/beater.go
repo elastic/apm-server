@@ -314,6 +314,7 @@ func (r *reloader) reload() error {
 		RawConfig:                r.rawConfig,
 		FleetConfig:              r.fleetConfig,
 		OutputConfig:             r.outputConfig,
+		Namespace:                r.namespace,
 	})
 	if err != nil {
 		return err
@@ -371,6 +372,7 @@ type serverRunnerParams struct {
 	RawConfig    *agentconfig.C
 	FleetConfig  *config.Fleet
 	OutputConfig agentconfig.Namespace
+	Namespace    string
 }
 
 type sharedServerRunnerParams struct {
@@ -395,6 +397,9 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 	}
 
 	runServerContext, cancel := context.WithCancel(ctx)
+	if args.Namespace == "" {
+		args.Namespace = cfg.DataStreams.Namespace
+	}
 	return &serverRunner{
 		backgroundContext:      ctx,
 		runServerContext:       runServerContext,
@@ -407,7 +412,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		fleetConfig:               args.FleetConfig,
 		acker:                     args.Acker,
 		pipeline:                  args.Beat.Publisher,
-		namespace:                 cfg.DataStreams.Namespace,
+		namespace:                 args.Namespace,
 		beat:                      args.Beat,
 		logger:                    args.Logger,
 		tracer:                    args.Tracer,
