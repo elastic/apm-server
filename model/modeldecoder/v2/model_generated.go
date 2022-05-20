@@ -2178,11 +2178,13 @@ func (val *transaction) validate() error {
 }
 
 func (val *transactionDroppedSpanStats) IsSet() bool {
-	return val.DestinationServiceResource.IsSet() || val.Outcome.IsSet() || val.Duration.IsSet()
+	return val.DestinationServiceResource.IsSet() || val.ServiceTargetType.IsSet() || val.ServiceTargetName.IsSet() || val.Outcome.IsSet() || val.Duration.IsSet()
 }
 
 func (val *transactionDroppedSpanStats) Reset() {
 	val.DestinationServiceResource.Reset()
+	val.ServiceTargetType.Reset()
+	val.ServiceTargetName.Reset()
 	val.Outcome.Reset()
 	val.Duration.Reset()
 }
@@ -2193,6 +2195,12 @@ func (val *transactionDroppedSpanStats) validate() error {
 	}
 	if val.DestinationServiceResource.IsSet() && utf8.RuneCountInString(val.DestinationServiceResource.Val) > 1024 {
 		return fmt.Errorf("'destination_service_resource': validation rule 'maxLength(1024)' violated")
+	}
+	if val.ServiceTargetType.IsSet() && utf8.RuneCountInString(val.ServiceTargetType.Val) > 512 {
+		return fmt.Errorf("'service_target_type': validation rule 'maxLength(512)' violated")
+	}
+	if val.ServiceTargetName.IsSet() && utf8.RuneCountInString(val.ServiceTargetName.Val) > 512 {
+		return fmt.Errorf("'service_target_name': validation rule 'maxLength(512)' violated")
 	}
 	if val.Outcome.Val != "" {
 		var matchEnum bool

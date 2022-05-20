@@ -228,7 +228,18 @@ func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
 		duration = time.Duration(event.Span.Composite.Sum * float64(time.Millisecond))
 	}
 
-	key := makeAggregationKey(event, event.Span.DestinationService.Resource, a.config.Interval)
+	var serviceTargetType, serviceTargetName string
+	if event.Service.Target != nil {
+		serviceTargetType = event.Service.Target.Type
+		serviceTargetName = event.Service.Target.Name
+	}
+	key := makeAggregationKey(
+		event,
+		event.Span.DestinationService.Resource,
+		serviceTargetType,
+		serviceTargetName,
+		a.config.Interval,
+	)
 	metrics := spanMetrics{
 		count: float64(count) * event.Span.RepresentativeCount,
 		sum:   float64(duration) * event.Span.RepresentativeCount,
@@ -248,7 +259,13 @@ func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.Dr
 		return model.APMEvent{}
 	}
 
-	key := makeAggregationKey(event, dss.DestinationServiceResource, a.config.Interval)
+	key := makeAggregationKey(
+		event,
+		dss.DestinationServiceResource,
+		dss.ServiceTargetType,
+		dss.ServiceTargetName,
+		a.config.Interval,
+	)
 	metrics := spanMetrics{
 		count: float64(dss.Duration.Count) * representativeCount,
 		sum:   float64(dss.Duration.Sum) * representativeCount,
@@ -292,12 +309,16 @@ type aggregationKey struct {
 	serviceEnvironment string
 	agentName          string
 
+	// target
+	targetType string
+	targetName string
+
 	// destination
 	resource string
 	outcome  string
 }
 
-func makeAggregationKey(event *model.APMEvent, resource string, interval time.Duration) aggregationKey {
+func makeAggregationKey(event *model.APMEvent, resource, targetType, targetName string, interval time.Duration) aggregationKey {
 	return aggregationKey{
 		// Group metrics by time interval.
 		timestamp: event.Timestamp.Truncate(interval),
@@ -305,6 +326,9 @@ func makeAggregationKey(event *model.APMEvent, resource string, interval time.Du
 		serviceName:        event.Service.Name,
 		serviceEnvironment: event.Service.Environment,
 		agentName:          event.Agent.Name,
+
+		targetType: targetType,
+		targetName: targetName,
 
 		resource: resource,
 		outcome:  event.Event.Outcome,
@@ -317,12 +341,20 @@ type spanMetrics struct {
 }
 
 func makeMetricset(key aggregationKey, metrics spanMetrics) model.APMEvent {
+	var target *model.ServiceTarget
+	if key.targetName != "" || key.targetType != "" {
+		target = &model.ServiceTarget{
+			Type: key.targetType,
+			Name: key.targetName,
+		}
+	}
 	return model.APMEvent{
 		Timestamp: key.timestamp,
 		Agent:     model.Agent{Name: key.agentName},
 		Service: model.Service{
 			Name:        key.serviceName,
 			Environment: key.serviceEnvironment,
+			Target:      target,
 		},
 		Event: model.Event{
 			Outcome: key.outcome,
