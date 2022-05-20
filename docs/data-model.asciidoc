@@ -117,7 +117,7 @@ A transaction contains:
 * Data about the environment in which the event is recorded:
 ** Service - environment, framework, language, etc.
 ** Host - architecture, hostname, IP, etc.
-** Process - arguments, PID, PPID, etc.
+** Process - args, PID, PPID, etc.
 ** URL - full, domain, port, query, etc.
 ** <<data-model-user,User>> - (if supplied) email, ID, username, etc.
 * Other relevant information depending on the agent. Example: The JavaScript RUM agent captures transaction marks,
@@ -181,7 +181,7 @@ via the `transaction.id`.
 * Data about the environment in which the event is recorded:
 ** Service - environment, framework, language, etc.
 ** Host - architecture, hostname, IP, etc.
-** Process - arguments, PID, PPID, etc.
+** Process - args, PID, PPID, etc.
 ** URL - full, domain, port, query, etc.
 ** <<data-model-user,User>> - (if supplied) email, ID, username, etc.
 
