@@ -36,7 +36,7 @@ Also see:
 [float]
 ==== Added
 
-- Perform Basic license check on Elasticsearch connect {pull}2077[2077].
+- Perform Basic license check on {es} connect {pull}2077[2077].
 - Update Elastic APM Go agent to v1.1.2 {pull}1711[1711], {pull}1728[1728].
 - Update response format of the healthcheck handler and prettyfy all JSON responses {pull}1748[1748].
 - Add `transaction.type` to error data {pull}1781[1781].
@@ -44,7 +44,7 @@ Also see:
 - Add `observer.version_major` {pull}1857[1857].
 - Move default index configuration to code {pull}1865[1865].
 - Change default user-agent pipeline to index information under root key `user_agent` {pull}1871[1871].
-- Use _doc as document type for Elasticsearch >= 7.0.0 https://github.com/elastic/beats/pull/9056[beats/9057].
+- Use _doc as document type for {es} >= 7.0.0 https://github.com/elastic/beats/pull/9056[beats/9057].
 - Automatically cap signed integers to 63bits https://github.com/elastic/beats/pull/8991[beats/8991].
 - Build default distribution under the Elastic License. {pull}1645[1645].
 - Log to journald under systemd by default rather than file. To revert this behaviour override BEAT_LOG_OPTS with an empty value https://github.com/elastic/beats/pull/8942[beats/8942] via {pull}1645[1645].
@@ -146,7 +146,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-alpha1\...v7.0.0-alpha2[Vie
 ==== Added
 
 - Update Go to 1.11.2 {pull}1605[1605].
-- Use _doc as document type for Elasticsearch >= 7.0.0 https://github.com/elastic/beats/pull/9056[beats/9057].
+- Use _doc as document type for {es} >= 7.0.0 https://github.com/elastic/beats/pull/9056[beats/9057].
 - Automatically cap signed integers to 63bits https://github.com/elastic/beats/pull/8991[beats/8991].
 - Build default distribution under the Elastic License. {pull}1645[1645].
 - Log to journald under systemd by default rather than file. To revert this behaviour override BEAT_LOG_OPTS with an empty value https://github.com/elastic/beats/pull/8942[beats/8942] via {pull}1645[1645].

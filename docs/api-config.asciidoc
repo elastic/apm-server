@@ -2,7 +2,7 @@
 === Agent configuration API
 
 APM Server exposes an API endpoint that allows agents to query the server for configuration changes.
-More information on this feature is available in {kibana-ref}/agent-configuration.html[APM Agent configuration in Kibana].
+More information on this feature is available in {kibana-ref}/agent-configuration.html[{apm-agent} configuration in {kib}].
 
 [float]
 [[api-config-endpoint]]
@@ -46,8 +46,8 @@ http(s)://{hostname}:{port}/config/v1/agents
 ==== Responses
 
 * Successful - `200`
-* Kibana endpoint is disabled - `403`
-* Kibana is unreachable - `503`
+* {kib} endpoint is disabled - `403`
+* {kib} is unreachable - `503`
 
 [float]
 [[api-config-api-example]]

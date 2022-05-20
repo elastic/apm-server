@@ -1,7 +1,7 @@
 [[api-metricset]]
 ==== Metrics
 
-Metrics contain application metric data captured by an APM agent.
+Metrics contain application metric data captured by an {apm-agent}.
 
 [[api-metricset-schema]]
 [float]
