@@ -296,8 +296,6 @@ type ContainerConfig struct {
 	Arch             string
 	BaseImage        string
 	BaseImageVersion string
-	VCSRef           string
-	StackVersion     string
 }
 
 // NewUnstartedElasticAgentContainer returns a new ElasticAgentContainer.
@@ -336,24 +334,21 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		// Use the same elastic-agent image as used for fleet-server.
 		opts.BaseImageVersion = fleetServerContainer.Image[strings.LastIndex(fleetServerContainer.Image, ":")+1:]
 	}
-	if opts.StackVersion == "" || opts.VCSRef == "" {
-		agentImageDetails, _, err := docker.ImageInspectWithRaw(context.Background(),
-			"docker.elastic.co/beats/elastic-agent:"+opts.BaseImageVersion,
-		)
-		if err != nil {
-			return nil, err
-		}
-		if opts.StackVersion == "" {
-			opts.StackVersion = agentImageDetails.Config.Labels["org.label-schema.version"]
-		}
-		if opts.VCSRef == "" {
-			opts.VCSRef = agentImageDetails.Config.Labels["org.label-schema.vcs-ref"]
-		}
+	imageDetails, err := inspectImage(context.Background(),
+		docker,
+		fmt.Sprintf("%s:%s", opts.BaseImage, opts.BaseImageVersion),
+		opts.Arch,
+	)
+	if err != nil {
+		return nil, err
 	}
+
+	stackVersion := imageDetails.Config.Labels["org.label-schema.version"]
+	vCSRef := imageDetails.Config.Labels["org.label-schema.vcs-ref"]
 
 	// Build a custom elastic-agent image with a locally built apm-server binary injected.
 	agentImage, err := buildElasticAgentImage(context.Background(),
-		docker, opts.StackVersion, opts.BaseImage, opts.BaseImageVersion, opts.VCSRef, opts.Arch,
+		docker, stackVersion, opts.BaseImage, opts.BaseImageVersion, vCSRef, opts.Arch,
 	)
 	if err != nil {
 		return nil, err
@@ -383,6 +378,29 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		exited:  make(chan struct{}),
 		Reap:    true,
 	}, nil
+}
+
+func inspectImage(ctx context.Context, docker *client.Client, ref, arch string) (types.ImageInspect, error) {
+	details, _, err := docker.ImageInspectWithRaw(ctx, ref)
+	if err != nil {
+		if !client.IsErrNotFound(err) {
+			return details, err
+		}
+		log.Printf("pulling docker image %s...", ref)
+		r, err := docker.ImagePull(ctx, ref, types.ImagePullOptions{
+			Platform: fmt.Sprintf("linux/%s", arch),
+		})
+		if err != nil {
+			return details, fmt.Errorf("failed pulling docker image %s: %v", ref, err)
+		}
+		defer r.Close()
+		if _, err := docker.ImageLoad(ctx, r, false); err != nil {
+			return details, err
+		}
+		details, _, err = docker.ImageInspectWithRaw(ctx, ref)
+		return details, err
+	}
+	return details, nil
 }
 
 // ElasticAgentContainer represents an ephemeral Elastic Agent container.
