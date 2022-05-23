@@ -27,16 +27,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/apm-server/beater/config"
-
 	"go.elastic.co/apm/module/apmhttp/v2"
 	"go.elastic.co/apm/v2"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/backoff"
-	"github.com/elastic/beats/v7/libbeat/kibana"
+	libbeatversion "github.com/elastic/beats/v7/libbeat/version"
+	"github.com/elastic/elastic-agent-libs/kibana"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/version"
 
+	"github.com/elastic/apm-server/beater/config"
 	logs "github.com/elastic/apm-server/log"
 )
 
@@ -52,9 +52,9 @@ type Client interface {
 	// Send tries to send request to Kibana and returns unparsed response
 	Send(context.Context, string, string, url.Values, http.Header, io.Reader) (*http.Response, error)
 	// GetVersion returns Kibana version or an error
-	GetVersion(context.Context) (common.Version, error)
+	GetVersion(context.Context) (version.V, error)
 	// SupportsVersion compares given version to version of connected Kibana instance
-	SupportsVersion(context.Context, *common.Version, bool) (bool, error)
+	SupportsVersion(context.Context, *version.V, bool) (bool, error)
 }
 
 // ConnectingClient implements Client interface
@@ -100,20 +100,20 @@ func (c *ConnectingClient) Send(ctx context.Context, method, extraPath string, p
 
 // GetVersion returns Kibana version or an error
 // If no connection is established an error is returned
-func (c *ConnectingClient) GetVersion(ctx context.Context) (common.Version, error) {
+func (c *ConnectingClient) GetVersion(ctx context.Context) (version.V, error) {
 	span, _ := apm.StartSpan(ctx, "GetVersion", "app")
 	defer span.End()
 	c.m.RLock()
 	defer c.m.RUnlock()
 	if c.client == nil {
-		return common.Version{}, errNotConnected
+		return version.V{}, errNotConnected
 	}
 	return c.client.GetVersion(), nil
 }
 
 // SupportsVersion checks if connected Kibana instance is compatible to given version
 // If no connection is established an error is returned
-func (c *ConnectingClient) SupportsVersion(ctx context.Context, v *common.Version, retry bool) (bool, error) {
+func (c *ConnectingClient) SupportsVersion(ctx context.Context, v *version.V, retry bool) (bool, error) {
 	span, ctx := apm.StartSpan(ctx, "SupportsVersion", "app")
 	defer span.End()
 	log := logp.NewLogger(logs.Kibana)
@@ -127,7 +127,12 @@ func (c *ConnectingClient) SupportsVersion(ctx context.Context, v *common.Versio
 	if !retry || upToDate {
 		return upToDate, nil
 	}
-	client, err := kibana.NewClientWithConfig(c.clientConfig(), "apm-server")
+	client, err := kibana.NewClientWithConfig(
+		c.clientConfig(), "apm-server",
+		libbeatversion.GetDefaultVersion(),
+		libbeatversion.Commit(),
+		libbeatversion.BuildTime().String(),
+	)
 	if err != nil {
 		log.Errorf("failed to obtain connection to Kibana: %s", err.Error())
 		return upToDate, err
@@ -148,7 +153,12 @@ func (c *ConnectingClient) connect() error {
 	if c.client != nil {
 		return nil
 	}
-	client, err := kibana.NewClientWithConfig(c.clientConfig(), "apm-server")
+	client, err := kibana.NewClientWithConfig(
+		c.clientConfig(), "apm-server",
+		libbeatversion.GetDefaultVersion(),
+		libbeatversion.Commit(),
+		libbeatversion.BuildTime().String(),
+	)
 	if err != nil {
 		return err
 	}
