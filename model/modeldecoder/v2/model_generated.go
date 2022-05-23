@@ -1315,8 +1315,8 @@ func (val *contextServiceTarget) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	if !val.Type.IsSet() {
-		return fmt.Errorf("'type' required")
+	if !val.Type.IsSet() && !val.Name.IsSet() {
+		return fmt.Errorf("requires at least one of the fields 'type;name'")
 	}
 	return nil
 }

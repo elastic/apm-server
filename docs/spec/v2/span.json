@@ -532,11 +532,33 @@
                 },
                 "type": {
                   "description": "Immutable type of the target service for the event",
-                  "type": "string"
+                  "type": [
+                    "null",
+                    "string"
+                  ]
                 }
               },
-              "required": [
-                "type"
+              "anyOf": [
+                {
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                },
+                {
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
               ]
             },
             "version": {
