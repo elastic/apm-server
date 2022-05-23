@@ -84,7 +84,7 @@ func NewHandler(
 // requests.
 func (h *handler) Handle(c *request.Context) {
 	// error handling
-	c.Header().Set(headers.CacheControl, errCacheControl)
+	c.ResponseWriter.Header().Set(headers.CacheControl, errCacheControl)
 
 	query, queryErr := buildQuery(c)
 	if queryErr != nil {
@@ -141,9 +141,9 @@ func (h *handler) Handle(c *request.Context) {
 	}
 
 	// configuration successfully fetched
-	c.Header().Set(headers.CacheControl, h.cacheControl)
-	c.Header().Set(headers.Etag, fmt.Sprintf("\"%s\"", result.Source.Etag))
-	c.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
+	c.ResponseWriter.Header().Set(headers.CacheControl, h.cacheControl)
+	c.ResponseWriter.Header().Set(headers.Etag, fmt.Sprintf("\"%s\"", result.Source.Etag))
+	c.ResponseWriter.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
 
 	if result.Source.Etag == ifNoneMatch(c) {
 		c.Result.SetDefault(request.IDResponseValidNotModified)

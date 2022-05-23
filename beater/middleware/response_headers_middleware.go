@@ -27,7 +27,7 @@ func ResponseHeadersMiddleware(headers map[string][]string) Middleware {
 		return func(c *request.Context) {
 			for k, v := range headers {
 				for _, s := range v {
-					c.Header().Add(k, s)
+					c.ResponseWriter.Header().Add(k, s)
 				}
 			}
 			h(c)
