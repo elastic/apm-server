@@ -89,7 +89,7 @@ func (h *handler) Handle(c *request.Context) {
 	query, queryErr := buildQuery(c)
 	if queryErr != nil {
 		extractQueryError(c, queryErr)
-		c.Write()
+		c.WriteResult()
 		return
 	}
 	if query.Service.Environment == "" {
@@ -109,7 +109,7 @@ func (h *handler) Handle(c *request.Context) {
 			c.Result.SetDefault(request.IDResponseErrorsServiceUnavailable)
 			c.Result.Err = err
 		}
-		c.Write()
+		c.WriteResult()
 		return
 	}
 	if c.Authentication.Method == auth.MethodAnonymous {
@@ -136,7 +136,7 @@ func (h *handler) Handle(c *request.Context) {
 			apm.CaptureError(c.Request.Context(), err).Send()
 			extractInternalError(c, err)
 		}
-		c.Write()
+		c.WriteResult()
 		return
 	}
 
@@ -150,7 +150,7 @@ func (h *handler) Handle(c *request.Context) {
 	} else {
 		c.Result.SetWithBody(request.IDResponseValidOK, result.Source.Settings)
 	}
-	c.Write()
+	c.WriteResult()
 }
 
 func buildQuery(c *request.Context) (agentcfg.Query, error) {

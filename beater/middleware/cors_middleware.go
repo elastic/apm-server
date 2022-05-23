@@ -73,7 +73,7 @@ func CORSMiddleware(allowedOrigins, allowedHeaders []string) Middleware {
 				c.Header().Set(headers.ContentLength, "0")
 
 				c.Result.SetDefault(request.IDResponseValidOK)
-				c.Write()
+				c.WriteResult()
 
 			} else if validOrigin {
 				// we need to check the origin and set the ACAO header in both the OPTIONS preflight and the actual request
@@ -83,7 +83,7 @@ func CORSMiddleware(allowedOrigins, allowedHeaders []string) Middleware {
 			} else {
 				c.Result.SetWithError(request.IDResponseErrorsForbidden,
 					errors.New("origin: '"+origin+"' is not allowed"))
-				c.Write()
+				c.WriteResult()
 			}
 		}, nil
 	}

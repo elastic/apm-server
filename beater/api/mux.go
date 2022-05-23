@@ -348,5 +348,5 @@ func rumRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.A
 
 func notFoundHandler(c *request.Context) {
 	c.Result.SetDefault(request.IDResponseErrorsNotFound)
-	c.Write()
+	c.WriteResult()
 }

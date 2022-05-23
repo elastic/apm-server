@@ -31,7 +31,7 @@ func KillSwitchMiddleware(enabled bool, errorMessage string) Middleware {
 				h(c)
 			} else {
 				c.Result.SetWithError(request.IDResponseErrorsForbidden, errors.New(errorMessage))
-				c.Write()
+				c.WriteResult()
 			}
 		}, nil
 	}

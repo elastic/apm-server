@@ -138,9 +138,9 @@ func TestContext_Write(t *testing.T) {
 	t.Run("SecondWrite", func(t *testing.T) {
 		c, w := mockContextAccept("*/*")
 		c.Result = Result{Body: nil, StatusCode: http.StatusAccepted}
-		c.Write()
+		c.WriteResult()
 		c.Result = Result{Body: nil, StatusCode: http.StatusBadRequest}
-		c.Write()
+		c.WriteResult()
 
 		testHeaderXContentTypeOptions(t, c)
 		assert.Equal(t, http.StatusAccepted, w.Code)
@@ -150,7 +150,7 @@ func TestContext_Write(t *testing.T) {
 	t.Run("EmptyBody", func(t *testing.T) {
 		c, w := mockContextAccept("*/*")
 		c.Result = Result{Body: nil, StatusCode: http.StatusAccepted}
-		c.Write()
+		c.WriteResult()
 
 		testHeaderXContentTypeOptions(t, c)
 		assert.Equal(t, http.StatusAccepted, w.Code)
@@ -161,7 +161,7 @@ func TestContext_Write(t *testing.T) {
 		c, w := mockContextAccept("")
 		body := "bar"
 		c.Result = Result{StatusCode: http.StatusBadRequest, Body: body}
-		c.Write()
+		c.WriteResult()
 
 		testHeader(t, c, "text/plain; charset=utf-8")
 		assert.Equal(t, `{"error":"bar"}`+"\n", w.Body.String())
@@ -172,7 +172,7 @@ func TestContext_Write(t *testing.T) {
 		c, w := mockContextAccept("text/html")
 		body := "bar"
 		c.Result = Result{StatusCode: http.StatusOK, Body: body}
-		c.Write()
+		c.WriteResult()
 
 		testHeader(t, c, "text/plain; charset=utf-8")
 		assert.Equal(t, `bar`+"\n", w.Body.String())
@@ -183,7 +183,7 @@ func TestContext_Write(t *testing.T) {
 		c, w := mockContextAccept("application/text")
 		body := map[string]interface{}{"xyz": "bar"}
 		c.Result = Result{StatusCode: http.StatusBadRequest, Body: body}
-		c.Write()
+		c.WriteResult()
 
 		testHeader(t, c, "text/plain; charset=utf-8")
 		assert.Equal(t, `{"xyz":"bar"}`+"\n", w.Body.String())
@@ -236,7 +236,7 @@ func TestContext_Write(t *testing.T) {
 			t.Run(name, func(t *testing.T) {
 				c, w := mockContextAccept(tc.acceptHeader)
 				c.Result = Result{StatusCode: http.StatusNotModified, Body: tc.body}
-				c.Write()
+				c.WriteResult()
 
 				testHeader(t, c, tc.expectedHeader)
 				assert.Equal(t, tc.expectedBody, w.Body.String())

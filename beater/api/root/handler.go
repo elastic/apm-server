@@ -62,6 +62,6 @@ func Handler(cfg HandlerConfig) request.Handler {
 		if c.Authentication.Method != auth.MethodAnonymous {
 			c.Result.Body = serverInfo
 		}
-		c.Write()
+		c.WriteResult()
 	}
 }

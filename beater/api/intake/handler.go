@@ -208,7 +208,7 @@ func writeResult(c *request.Context, id request.ResultID, statusCode int, result
 		body = result
 	}
 	c.Result.Set(id, statusCode, request.MapResultIDToStatus[id].Keyword, body, err)
-	c.Write()
+	c.WriteResult()
 }
 
 type compressedRequestReaderError struct {
