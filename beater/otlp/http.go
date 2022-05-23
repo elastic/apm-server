@@ -39,7 +39,7 @@ var (
 )
 
 func init() {
-	monitoring.NewFunc(httpMetricsRegistry, "httpConsumer", collectMetricsMonitoring, monitoring.Report)
+	monitoring.NewFunc(httpMetricsRegistry, "consumer", collectMetricsMonitoring, monitoring.Report)
 }
 
 func NewHTTPReceivers(processor model.BatchProcessor) (*otlpreceiver.HTTPReceivers, error) {

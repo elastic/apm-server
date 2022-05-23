@@ -51,7 +51,7 @@ var (
 )
 
 func init() {
-	monitoring.NewFunc(gRPCMetricsRegistry, "gRPCConsumer", collectMetricsMonitoring, monitoring.Report)
+	monitoring.NewFunc(gRPCMetricsRegistry, "consumer", collectMetricsMonitoring, monitoring.Report)
 }
 
 // MethodAuthenticators returns a map of all supported OTLP/gRPC methods to authenticators.
