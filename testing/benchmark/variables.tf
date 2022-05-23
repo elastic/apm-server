@@ -87,3 +87,13 @@ variable "worker_instance_type" {
   type        = string
   description = "Optional instance type to use for the worker VM"
 }
+
+variable "private_key" {
+  default = "~/.ssh/id_rsa_terraform"
+  type    = string
+}
+
+variable "public_key" {
+  default = "~/.ssh/id_rsa_terraform.pub"
+  type    = string
+}

@@ -16,6 +16,14 @@ provider "ec" {}
 
 provider "aws" {
   region = var.worker_region
+  default_tags {
+    tags = {
+      environment  = "ci"
+      repo         = "apm-server"
+      branch       = "benchmarks_2_job"
+      build        = "1"      
+    }
+  }
 }
 
 locals {
@@ -52,4 +60,7 @@ module "benchmark_worker" {
 
   apmbench_bin_path = var.apmbench_bin_path
   instance_type     = var.worker_instance_type
+
+  public_key        = var.public_key
+  private_key       = var.private_key
 }
