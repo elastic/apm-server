@@ -151,7 +151,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		}
 	}
 
-	otlpReceivers, err := otlp.NewHTTPReceivers(batchProcessor)
+	otlpReceivers, err := otlp.NewHTTPHandlers(batchProcessor)
 	if err != nil {
 		return server{}, err
 	}

@@ -126,7 +126,7 @@ func TestConsumeMetricsGRPC(t *testing.T) {
 		// In both of the requests we send above,
 		// the metrics do not have a type and so
 		// we treat them as unsupported metrics.
-		"gRPCConsumer.unsupported_dropped": int64(2),
+		"consumer.unsupported_dropped": int64(2),
 
 		"request.count":                int64(2),
 		"response.count":               int64(2),

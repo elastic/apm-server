@@ -42,25 +42,25 @@ func init() {
 	monitoring.NewFunc(httpMetricsRegistry, "consumer", collectMetricsMonitoring, monitoring.Report)
 }
 
-func NewHTTPReceivers(processor model.BatchProcessor) (*otlpreceiver.HTTPReceivers, error) {
+func NewHTTPHandlers(processor model.BatchProcessor) (*otlpreceiver.HTTPHandlers, error) {
 	consumer := &otel.Consumer{Processor: processor}
 	setCurrentMonitoredConsumer(consumer)
 
-	tracesR, err := otlpreceiver.NewHTTPTraceReceiver(context.Background(), consumer)
+	tracesHandler, err := otlpreceiver.TracesHTTPHandler(context.Background(), consumer)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create OTLP trace receiver")
 	}
-	metricsR, err := otlpreceiver.NewHTTPMetricsReceiver(context.Background(), consumer)
+	metricsHandler, err := otlpreceiver.MetricsHTTPHandler(context.Background(), consumer)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create OTLP metrics receiver")
 	}
-	logsR, err := otlpreceiver.NewHTTPLogsReceiver(context.Background(), consumer)
+	logsHandler, err := otlpreceiver.LogsHTTPHandler(context.Background(), consumer)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create OTLP logs receiver")
 	}
-	return &otlpreceiver.HTTPReceivers{
-		TracesR:  tracesR,
-		MetricsR: metricsR,
-		LogsR:    logsR,
+	return &otlpreceiver.HTTPHandlers{
+		TraceHandler:   tracesHandler,
+		MetricsHandler: metricsHandler,
+		LogsHandler:    logsHandler,
 	}, nil
 }

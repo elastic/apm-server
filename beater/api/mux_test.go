@@ -27,6 +27,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/approvaltest"
@@ -166,7 +167,7 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		agentcfg.NewFetcher(cfg),
 		ratelimitStore,
 		m.SourcemapFetcher,
-		nil,
+		&otlpreceiver.HTTPHandlers{},
 		m.Managed,
 		func() bool { return true },
 	)

@@ -51,10 +51,10 @@ var settings = component.ReceiverCreateSettings{
 	},
 }
 
-type HTTPReceivers struct {
-	TracesR  *trace.Receiver
-	MetricsR *metrics.Receiver
-	LogsR    *logs.Receiver
+type HTTPHandlers struct {
+	TraceHandler   http.HandlerFunc
+	MetricsHandler http.HandlerFunc
+	LogsHandler    http.HandlerFunc
 }
 
 // GRPC Receivers
@@ -82,41 +82,32 @@ func RegisterGRPCLogsReceiver(ctx context.Context, consumer consumer.Logs, serve
 
 // HTTP Receivers
 
-func NewHTTPTraceReceiver(ctx context.Context, consumer consumer.Traces) (*trace.Receiver, error) {
+func TracesHTTPHandler(ctx context.Context, consumer consumer.Traces) (http.HandlerFunc, error) {
 	receiver := trace.New(config.NewComponentID("otlp"), consumer, settings)
 	if consumer == nil {
 		return nil, componenterror.ErrNilNextConsumer
 	}
-
-	return receiver, nil
+	return func(w http.ResponseWriter, r *http.Request) {
+		handleTraces(w, r, receiver, pbEncoder)
+	}, nil
 }
 
-func HandleHTTPTraces(resp http.ResponseWriter, req *http.Request, traceReceiver *trace.Receiver) {
-	handleTraces(resp, req, traceReceiver, pbEncoder)
-}
-
-func NewHTTPMetricsReceiver(ctx context.Context, consumer consumer.Metrics) (*metrics.Receiver, error) {
+func MetricsHTTPHandler(ctx context.Context, consumer consumer.Metrics) (http.HandlerFunc, error) {
 	receiver := metrics.New(config.NewComponentID("otlp"), consumer, settings)
 	if consumer == nil {
 		return nil, componenterror.ErrNilNextConsumer
 	}
-
-	return receiver, nil
+	return func(w http.ResponseWriter, r *http.Request) {
+		handleMetrics(w, r, receiver, pbEncoder)
+	}, nil
 }
 
-func HandleHTTPMetrics(resp http.ResponseWriter, req *http.Request, metricsReceiver *metrics.Receiver) {
-	handleMetrics(resp, req, metricsReceiver, pbEncoder)
-}
-
-func NewHTTPLogsReceiver(ctx context.Context, consumer consumer.Logs) (*logs.Receiver, error) {
+func LogsHTTPHandler(ctx context.Context, consumer consumer.Logs) (http.HandlerFunc, error) {
 	receiver := logs.New(config.NewComponentID("otlp"), consumer, settings)
 	if consumer == nil {
 		return nil, componenterror.ErrNilNextConsumer
 	}
-
-	return receiver, nil
-}
-
-func HandleHTTPLogs(resp http.ResponseWriter, req *http.Request, logsReceiver *logs.Receiver) {
-	handleLogs(resp, req, logsReceiver, pbEncoder)
+	return func(w http.ResponseWriter, r *http.Request) {
+		handleLogs(w, r, receiver, pbEncoder)
+	}, nil
 }

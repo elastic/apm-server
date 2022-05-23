@@ -91,7 +91,7 @@ func NewMux(
 	fetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
 	sourcemapFetcher sourcemap.Fetcher,
-	otlpReceivers *otlpreceiver.HTTPReceivers,
+	otlpHandlers *otlpreceiver.HTTPHandlers,
 	fleetManaged bool,
 	publishReady func() bool,
 ) (*mux.Router, error) {
@@ -124,9 +124,9 @@ func NewMux(
 		{IntakePath, builder.backendIntakeHandler},
 		// The profile endpoint is in Beta
 		{ProfilePath, builder.profileHandler},
-		{OtlpTracesIntakePath, builder.backendOtlpTracesIntakeHandler(otlpReceivers)},
-		{OtlpMetricsIntakePath, builder.backendOtlpMetricsIntakeHandler(otlpReceivers)},
-		{OtlpLogsIntakePath, builder.backendOtlpLogsIntakeHandler(otlpReceivers)},
+		{OtlpTracesIntakePath, builder.backendOtlpIntakeHandler(otlpHandlers.TraceHandler, otlp.HTTPTracesMonitoringMap)},
+		{OtlpMetricsIntakePath, builder.backendOtlpIntakeHandler(otlpHandlers.MetricsHandler, otlp.HTTPMetricsMonitoringMap)},
+		{OtlpLogsIntakePath, builder.backendOtlpIntakeHandler(otlpHandlers.LogsHandler, otlp.HTTPLogsMonitoringMap)},
 	}
 
 	for _, route := range routeMap {
@@ -180,24 +180,10 @@ func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
-func (r *routeBuilder) backendOtlpTracesIntakeHandler(otlpReceivers *otlpreceiver.HTTPReceivers) func() (request.Handler, error) {
+func (r *routeBuilder) backendOtlpIntakeHandler(handler http.HandlerFunc, monitoringMap map[request.ResultID]*monitoring.Int) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		h := intake.OtlpTracesHandler(otlpReceivers)
-		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, otlp.HTTPTracesMonitoringMap)...)
-	}
-}
-
-func (r *routeBuilder) backendOtlpMetricsIntakeHandler(otlpReceivers *otlpreceiver.HTTPReceivers) func() (request.Handler, error) {
-	return func() (request.Handler, error) {
-		h := intake.OtlpMetricsHandler(otlpReceivers)
-		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, otlp.HTTPMetricsMonitoringMap)...)
-	}
-}
-
-func (r *routeBuilder) backendOtlpLogsIntakeHandler(otlpReceivers *otlpreceiver.HTTPReceivers) func() (request.Handler, error) {
-	return func() (request.Handler, error) {
-		h := intake.OtlpLogsHandler(otlpReceivers)
-		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, otlp.HTTPLogsMonitoringMap)...)
+		h := intake.OtlpHandler(handler)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, monitoringMap)...)
 	}
 }
 

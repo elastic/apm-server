@@ -22,6 +22,8 @@ import (
 	"net"
 	"net/http"
 
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 
@@ -73,7 +75,7 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 		agentcfg.NewFetcher(cfg),
 		ratelimitStore,
 		nil, // no sourcemap store
-		nil,
+		&otlpreceiver.HTTPHandlers{},
 		false,                       // not managed
 		func() bool { return true }, // ready for publishing
 	)

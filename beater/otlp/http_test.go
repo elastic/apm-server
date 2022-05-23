@@ -124,7 +124,7 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 		// In the request we send above,
 		// the metrics do not have a type and so
 		// we treat them as unsupported metrics.
-		"httpConsumer.unsupported_dropped": int64(1),
+		"consumer.unsupported_dropped": int64(1),
 
 		"request.count":                int64(1),
 		"response.count":               int64(1),
@@ -184,12 +184,12 @@ func TestConsumeLogsHTTP(t *testing.T) {
 func newHTTPServer(t *testing.T, batchProcessor model.BatchProcessor) string {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
-	receivers, err := otlp.NewHTTPReceivers(batchProcessor)
+	handlers, err := otlp.NewHTTPHandlers(batchProcessor)
 	require.NoError(t, err)
 	cfg := &config.Config{}
 	auth, _ := auth.NewAuthenticator(cfg.AgentAuth)
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
-	router, err := api.NewMux(beat.Info{Version: "1.2.3"}, cfg, batchProcessor, auth, agentcfg.NewFetcher(cfg), ratelimitStore, nil, receivers, false, func() bool { return true })
+	router, err := api.NewMux(beat.Info{Version: "1.2.3"}, cfg, batchProcessor, auth, agentcfg.NewFetcher(cfg), ratelimitStore, nil, handlers, false, func() bool { return true })
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}
 	go srv.Serve(lis)

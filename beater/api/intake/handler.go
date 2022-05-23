@@ -99,6 +99,12 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 	}
 }
 
+func OtlpHandler(handler http.HandlerFunc) request.Handler {
+	return func(c *request.Context) {
+		handler(c.W, c.Request)
+	}
+}
+
 func validateRequest(c *request.Context) error {
 	if c.Request.Method != http.MethodPost {
 		return errMethodNotAllowed
