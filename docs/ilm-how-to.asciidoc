@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 [[ilm-how-to]]
-=== Index lifecycle management
+=== {ilm-cap}
 
 :append-legacy:
 // tag::ilm-integration[]
@@ -13,7 +13,7 @@ lifecycle of your APM indices as they grow and age.
 A default policy is applied to each APM data stream,
 but can be customized depending on your business needs.
 
-See {ref}/index-lifecycle-management.html[ILM: Manage the index lifecycle] to learn more.
+See {ref}/index-lifecycle-management.html[{ilm-init}: Manage the index lifecycle] to learn more.
 
 [discrete]
 [id="index-lifecycle-policies-default{append-legacy}"]
@@ -32,42 +32,42 @@ Each policy includes a rollover and delete definition:
 |Delete after
 
 |`traces-apm`
-|30 days / 50 gb
+|30 days / 50 GB
 |10 days
 
 |`traces-apm.rum`
-|30 days / 50 gb
+|30 days / 50 GB
 |90 days
 
 |`metrics-apm.profiling`
-|30 days / 50 gb
+|30 days / 50 GB
 |10 days
 
 |`metrics-apm.internal`
-|30 days / 50 gb
+|30 days / 50 GB
 |90 days
 
 |`metrics-apm.app`
-|30 days / 50 gb
+|30 days / 50 GB
 |90 days
 
 |`logs-apm.error`
-|30 days / 50 gb
+|30 days / 50 GB
 |10 days
 
 |===
 
 The APM index lifecycle policies can be viewed in {kib}.
-Navigate to *Stack Management* / *Index Lifecycle Management*, and search for `apm`.
+Navigate to *{stack-manage-app}* / *Index Lifecycle Management*, and search for `apm`.
 
-TIP: Default ILM policies can change between minor versions.
+TIP: Default {ilm-init} policies can change between minor versions.
 This is not considered a breaking change as index management should continually improve and adapt to new features.
 
 [discrete]
 [id="data-streams-custom-policy{append-legacy}"]
 === Configure a custom index lifecycle policy
 
-When the APM integration is installed, Fleet creates a default `*@custom` component template for each data stream.
+When the APM integration is installed, {fleet} creates a default `*@custom` component template for each data stream.
 The easiest way to configure a custom index lifecycle policy per data stream is to edit this template.
 
 This tutorial explains how to apply a custom index lifecycle policy to the `traces-apm` data stream.
@@ -79,7 +79,7 @@ This tutorial explains how to apply a custom index lifecycle policy to the `trac
 The **Data Streams** view in {kib} shows you the data streams,
 index templates, and index lifecycle policies associated with a given integration.
 
-. Navigate to **Stack Management** > **Index Management** > **Data Streams**.
+. Navigate to **{stack-manage-app}** > **Index Management** > **Data Streams**.
 . Search for `traces-apm` to see all data streams associated with APM trace data.
 . In this example, I only have one data stream because I'm only using the `default` namespace.
 You may have more if your setup includes multiple namespaces.
@@ -91,7 +91,7 @@ image::images/data-stream-overview.png[Data streams info]
 [id="data-streams-custom-two{append-legacy}"]
 === Step 2: Create an index lifecycle policy
 
-. Navigate to **Stack Management** > **Index Lifecycle Policies**.
+. Navigate to **{stack-manage-app}** > **Index Lifecycle Policies**.
 . Click **Create policy**.
 
 Name your new policy; For this tutorial, I've chosen `custom-traces-apm-policy`.
@@ -101,12 +101,12 @@ Customize the policy to your liking, and when you're done, click **Save policy**
 [id="data-streams-custom-three{append-legacy}"]
 === Step 3: Apply the index lifecycle policy
 
-To apply your new index lifecylce policy to the `traces-apm-*` data stream,
+To apply your new index lifecycle policy to the `traces-apm-*` data stream,
 edit the `<data-stream-name>@custom` component template.
 
 . Click on the **Component Template** tab and search for `traces-apm`.
 . Select the `traces-apm@custom` template and click **Manage** > **Edit**.
-. Under **Index settings**, set the ILM policy name created in the previous step:
+. Under **Index settings**, set the {ilm-init} policy name created in the previous step:
 +
 [source,json]
 ----
@@ -126,8 +126,8 @@ image::images/create-component-template.png[Create component template]
 [id="data-streams-custom-four{append-legacy}"]
 === Step 4: Roll over the data stream (optional)
 
-To confirm that the data stream is now using the new index template and ILM policy,
-you can either repeat <<data-streams-custom-one,step one>>, or navigate to **Dev Tools ** and run the following:
+To confirm that the data stream is now using the new index template and {ilm-init} policy,
+you can either repeat <<data-streams-custom-one,step one>>, or navigate to **{dev-tools-app}** and run the following:
 
 [source,bash]
 ----
@@ -151,10 +151,10 @@ The result should include the following:
 }
 ----
 <1> The name of the custom index template created in step three
-<2> The name of the ILM policy applied to the new component template in step two
+<2> The name of the {ilm-init} policy applied to the new component template in step two
 
-New ILM policies only take effect when new indices are created,
-so you either must wait for a rollover to occur (usually after 30 days or when the index size reaches 50GB),
+New {ilm-init} policies only take effect when new indices are created,
+so you either must wait for a rollover to occur (usually after 30 days or when the index size reaches 50 GB),
 or force a rollover using the {ref}/indices-rollover-index.html[{es} rollover API]:
 
 [source,bash]

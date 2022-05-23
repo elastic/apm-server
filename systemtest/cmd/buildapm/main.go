@@ -68,16 +68,9 @@ func Main() error {
 		return fmt.Errorf("invalid fleet-server image: %s", image)
 	}
 	tag := image[i+1:]
-	parts := strings.Split(tag, "-")
-	if len(parts) < 2 {
-		return fmt.Errorf("unexpected fleet-server image tag: %s", tag)
-	}
-
 	opts := systemtest.ContainerConfig{
 		Arch:             arch,
 		BaseImageVersion: tag,
-		StackVersion:     parts[0],
-		VCSRef:           parts[1],
 	}
 	if cloudImage {
 		opts.BaseImage = "docker.elastic.co/cloud-release/elastic-agent-cloud"

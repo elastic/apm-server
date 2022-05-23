@@ -3,7 +3,18 @@
 
 https://github.com/elastic/apm-server/compare/8.1\...8.2[View commits]
 
+* <<release-notes-8.2.1>>
 * <<release-notes-8.2.0>>
+
+[float]
+[[release-notes-8.2.1]]
+=== APM version 8.2.1
+
+https://github.com/elastic/apm-server/compare/8.2.0\...8.2.1[View commits]
+
+[float]
+==== Bug fixes
+- Fixes a bug that caused events within batches with `metadata.labels` set to contain labels from other events in the same batch {pull}8081[8081]
 
 [float]
 [[release-notes-8.2.0]]
@@ -15,7 +26,7 @@ https://github.com/elastic/apm-server/compare/8.1.3\...8.2.0[View commits]
 ==== Breaking Changes
 - APM Server now emits events with `event.duration` and renames the field to `<event>.duration.us` in an ingest pipeline {pull}7261[7261]
 - Removed `observer.version_major` {pull}7399[7399]
-- APM Server no longer ships with SystemV init scripts or the go-daemon wrapper; use systemd {pull}7576[7576]
+- APM Server no longer ships with System V init scripts or the go-daemon wrapper; use systemd {pull}7576[7576]
 
 [float]
 ==== Deprecations
