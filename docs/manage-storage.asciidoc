@@ -6,7 +6,7 @@ Each data stream ships with a customizable <<ilm-how-to,index lifecycle policy>>
 
 The <<storage-guide,storage and sizing guide>> attempts to define a "typical" storage reference for Elastic APM,
 and there are additional settings you can tweak to <<reduce-apm-storage,reduce storage>>,
-or to <<apm-tune-elasticsearch,tune data ingestion in Elasticsearch>>.
+or to <<apm-tune-elasticsearch,tune data ingestion in {es}>>.
 
 include::./data-streams.asciidoc[]
 
@@ -17,7 +17,7 @@ include::./ilm-how-to.asciidoc[]
 
 APM processing and storage costs are largely dominated by transactions, spans, and stack frames.
 
-* <<data-model-transactions,*Transactions*>> describe an event captured by an Elastic APM agent instrumenting a service.
+* <<data-model-transactions,*Transactions*>> describe an event captured by an Elastic {apm-agent} instrumenting a service.
 They are the highest level of work being measuring within a service.
 * <<data-model-spans,*Spans*>> belong to transactions. They measure from the start to end of an activity,
 and contain information about a specific code path that has been executed.
@@ -58,20 +58,20 @@ Small transactions are the most common.
 ==== Typical storage
 
 Consider the following typical storage reference.
-These numbers do not account for Elasticsearch compression.
+These numbers do not account for {es} compression.
 
-* 1 unsampled transaction is **~1 Kb**
-* 1 span with 10 stack frames is **~4 Kb**
-* 1 span with 50 stack frames is **~20 Kb**
-* 1 transaction with 10 spans, each with 10 stack frames is **~50 Kb**
-* 1 transaction with 25 spans, each with 25 spans is **250-300 Kb**
-* 100 transactions with 10 spans, each with 10 stack frames, sampled at 90% is **600 Kb**
+* 1 unsampled transaction is **~1 KB**
+* 1 span with 10 stack frames is **~4 KB**
+* 1 span with 50 stack frames is **~20 KB**
+* 1 transaction with 10 spans, each with 10 stack frames is **~50 KB**
+* 1 transaction with 25 spans, each with 25 spans is **250-300 KB**
+* 100 transactions with 10 spans, each with 10 stack frames, sampled at 90% is **600 KB**
 
-APM data compresses quite well, so the storage cost in Elasticsearch will be considerably less:
+APM data compresses quite well, so the storage cost in {es} will be considerably less:
 
-* Indexing 100 unsampled transactions per second for 1 hour results in 360,000 documents. These documents use around **50 Mb** of disk space.
-* Indexing 10 transactions per second for 1 hour, each transaction with 10 spans, each span with 10 stack frames, results in 396,000 documents. These documents use around **200 Mb** of disk space.
-* Indexing 25 transactions per second for 1 hour, each transaction with 25 spans, each span with 25 stack frames, results in 2,340,000 documents. These documents use around **1.2 Gb** of disk space.
+* Indexing 100 unsampled transactions per second for 1 hour results in 360,000 documents. These documents use around **50 MB** of disk space.
+* Indexing 10 transactions per second for 1 hour, each transaction with 10 spans, each span with 10 stack frames, results in 396,000 documents. These documents use around **200 MB** of disk space.
+* Indexing 25 transactions per second for 1 hour, each transaction with 25 spans, each span with 25 stack frames, results in 2,340,000 documents. These documents use around **1.2 GB** of disk space.
 
 NOTE: These examples were indexing the same data over and over with minimal variation. Because of that, the compression ratios observed of 80-90% are somewhat optimistic.
 
@@ -92,13 +92,13 @@ The transaction sample rate is a configuration setting of each agent.
 Reducing it does not affect the collection of metrics such as _Transactions per second_.
 
 [float]
-==== Reduce collected stacktrace information
+==== Reduce collected stack trace information
 
 Elastic APM agents collect `stacktrace` information under certain circumstances.
 This can be very helpful in identifying issues in your code,
 but it also comes with an overhead at collection time and increases the storage usage.
 
-Stacktrace collection settings are managed in each agent.
+Stack trace collection settings are managed in each agent.
 
 [float]
 ==== Delete data
@@ -109,15 +109,15 @@ deleting data collected for specific services or customers,
 or deleting specific indices.
 
 Depending on your use case,
-you can delete data periodically with <<delete-data-with-ilm,index lifecycle management>>,
+you can delete data periodically with <<delete-data-with-ilm,{ilm}>>,
 {curator-ref-current}[Curator], the {ref}/docs-delete-by-query.html[Delete By Query API],
-or in the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
+or in the {kibana-ref}/managing-indices.html[{kib} Index Management UI].
 
 [float]
 [[delete-data-with-ilm]]
-===== Delete data with ILM
+===== Delete data with {ilm-init}
 
-Index Lifecycle management (ILM) enables you to automate how you want to manage your indices over time.
+Index Lifecycle management ({ilm-init}) enables you to automate how you want to manage your indices over time.
 You can base actions on factors such as shard size and performance requirements.
 See <<ilm-how-to>> to learn more.
 
@@ -144,16 +144,16 @@ POST /.ds-*-apm*/_delete_by_query
 
 [float]
 [[delete-data-in-kibana]]
-===== Delete data via Kibana Index Management UI
+===== Delete data via {kib} Index Management UI
 
 Select the indices you want to delete, and click **Manage indices** to see the available actions.
 Then click **delete indices**.
 
 [float]
 [[manage-indices-in-kibana]]
-=== Manage Indices via Kibana
+=== Manage Indices via {kib}
 
-Kibana's {ref}/index-mgmt.html[index management] allows you to manage your cluster's
+{kib}'s {ref}/index-mgmt.html[index management] allows you to manage your cluster's
 indices, data streams, index templates, and much more.
 
 [float]
@@ -189,6 +189,6 @@ POST /.ds-*-apm*/_update_by_query?expand_wildcards=all
 ------------------------------------------------------------
 // CONSOLE
 
-TIP: Remember to also change the service name in the {apm-agents-ref}/index.html[APM agent configuration].
+TIP: Remember to also change the service name in the {apm-agents-ref}/index.html[{apm-agent} configuration].
 
 include::./apm-tune-elasticsearch.asciidoc[]
