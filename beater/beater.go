@@ -247,7 +247,6 @@ type reloader struct {
 	args             sharedServerRunnerParams
 
 	mu           sync.Mutex
-	namespace    string
 	rawConfig    *agentconfig.C
 	outputConfig agentconfig.Namespace
 	fleetConfig  *config.Fleet
