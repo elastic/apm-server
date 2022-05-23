@@ -94,9 +94,9 @@ API keys can only have the same or lower access rights than the user that create
 Instead of using a superuser account to create API keys, you can create a role with the minimum required
 privileges.
 
-The user creating an APM agent API key must have at least the `manage_own_api_key` cluster privilege
+The user creating an {apm-agent} API key must have at least the `manage_own_api_key` cluster privilege
 and the APM application-level privileges that it wishes to grant.
-The example below uses the Kibana {kibana-ref}/role-management-api.html[role management API]
+The example below uses the {kib} {kibana-ref}/role-management-api.html[role management API]
 to create a role named `apm_agent_key_role`.
 
 [source,js]
@@ -112,14 +112,14 @@ POST /_security/role/apm_agent_key_role
 }
 ----
 
-Assign the newly created `apm_agent_key_role` role to any user that wishes to create APM agent API keys.
+Assign the newly created `apm_agent_key_role` role to any user that wishes to create {apm-agent} API keys.
 
 [[create-api-key]]
 [float]
 === Create an API key
 
 Using a superuser account, or a user with the role created in the previous step,
-open {kib}, navigate to **Stack Management** > **API keys** and click **Create API key**.
+open {kib}, navigate to **{stack-manage-app}** > **API keys** and click **Create API key**.
 
 Enter a name for your API key and select **Restrict privileges**.
 In the role descriptors box, copy and paste the following JSON.
@@ -172,7 +172,7 @@ See the relevant agent documentation for additional information:
 [float]
 === Alternate API key creation methods
 
-API keys can also be created and validated outside of Kibana:
+API keys can also be created and validated outside of {kib}:
 
 * <<create-api-key-workflow-apm-server>>
 * <<create-api-key-workflow-es>>
@@ -267,7 +267,7 @@ A full list of `apikey` subcommands and flags is available in the <<apikey-comma
 [float]
 ==== {es} API key workflow
 
-It is also possible to create API keys using the Elasticsearch
+It is also possible to create API keys using the {es}
 {ref}/security-api-create-api-key.html[create API key API].
 
 This example creates an API key named `java-002`:
@@ -389,7 +389,7 @@ You can specify the following options in the `apm-server.auth.api_key.*` section
 +{beatname_lc}.yml+ configuration file.
 They apply to API key communication between the APM Server and APM Agents.
 
-NOTE: These settings are different from the API key settings used for Elasticsearch output and monitoring.
+NOTE: These settings are different from the API key settings used for {es} output and monitoring.
 
 [float]
 ===== `enabled`
@@ -404,7 +404,7 @@ When enabled, third-party APM agents must include a valid API key in the followi
 [float]
 ===== `limit`
 
-Each unique API key triggers one request to Elasticsearch.
+Each unique API key triggers one request to {es}.
 This setting restricts the number of unique API keys are allowed per minute.
 The minimum value for this setting should be the number of API keys configured in your monitored services.
 The default `limit` is `100`.
@@ -418,14 +418,14 @@ If none are set, configuration settings from the `apm-server.output` section wil
 [float]
 ===== `elasticsearch.hosts`
 
-API keys are fetched from Elasticsearch.
-This configuration needs to point to a secured Elasticsearch cluster that is able to serve API key requests.
+API keys are fetched from {es}.
+This configuration needs to point to a secured {es} cluster that is able to serve API key requests.
 
 
 [float]
 ===== `elasticsearch.protocol`
 
-The name of the protocol Elasticsearch is reachable on.
+The name of the protocol {es} is reachable on.
 The options are: `http` or `https`. The default is `http`.
 If nothing is configured, configuration settings from the `output` section will be reused.
 
@@ -438,14 +438,14 @@ If nothing is configured, configuration settings from the `output` section will 
 [float]
 ===== `elasticsearch.proxy_url`
 
-The URL of the proxy to use when connecting to the Elasticsearch servers.
+The URL of the proxy to use when connecting to the {es} servers.
 The value may be either a complete URL or a "host[:port]", in which case the "http"scheme is assumed.
 If nothing is configured, configuration settings from the `output` section will be reused.
 
 [float]
 ===== `elasticsearch.timeout`
 
-The http request timeout in seconds for the Elasticsearch request.
+The HTTP request timeout in seconds for the {es} request.
 If nothing is configured, configuration settings from the `output` section will be reused.
 
 [float]
@@ -553,6 +553,7 @@ as there is no way to prevent them from being publicly exposed.
 
 **APM Server configuration**
 
+// lint ignore fleet
 NOTE: {ess} and {ece} deployments provision a secret token when the deployment is created.
 The secret token can be found and reset in the {ecloud} console under **Deployments** -- **APM & Fleet**.
 
@@ -601,7 +602,7 @@ Some agents also allow you to specify a custom certificate authority for connect
 * *Python agent*: certificate pinning through {apm-py-ref}/configuration.html#config-server-cert[`server_cert`]
 * *Ruby agent*: certificate pinning through {apm-ruby-ref}/configuration.html#config-ssl-ca-cert[`server_ca_cert`]
 * *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-server-cert[`ServerCert`]
-* *NodeJS agent*: custom CA setting through {apm-node-ref}/configuration.html#server-ca-cert-file[`serverCaCertFile`]
+* *Node.js agent*: custom CA setting through {apm-node-ref}/configuration.html#server-ca-cert-file[`serverCaCertFile`]
 * *Java agent*: adding the certificate to the JVM `trustStore`.
 See {apm-java-ref}/ssl-configuration.html#ssl-server-authentication[APM Server authentication] for more details.
 
@@ -615,7 +616,7 @@ This ensures encryption, but does not verify that you are sending data to the co
 * *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-verify-server-cert[`verify_server_cert`]
 * *Python agent*: {apm-py-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
 * *Ruby agent*: {apm-ruby-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
-* *NodeJS agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]
+* *Node.js agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]
 
 [[secure-communication-unauthenticated]]
 === Anonymous authentication

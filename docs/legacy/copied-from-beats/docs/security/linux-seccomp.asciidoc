@@ -22,7 +22,7 @@ can be customized through configuration as well.
 
 A seccomp policy is architecture specific due to the fact that system calls vary
 by architecture. {beatname_uc} includes an allowlist seccomp policy for the
-amd64 and 386 architectures. You can view those policies
+AMD64 and 386 architectures. You can view those policies
 https://github.com/elastic/beats/tree/{branch}/libbeat/common/seccomp[here].
 
 [float]
@@ -87,9 +87,9 @@ actions that are available depend on the kernel version.
 - `allow` - The kernel will allow the system call to execute.
 
 [float]
-=== Auditbeat Reports Seccomp Violations
+=== {auditbeat} Reports Seccomp Violations
 
-You can use Auditbeat to report any seccomp violations that occur on the system.
-The kernel generates an event for each violation and Auditbeat reports the
+You can use {auditbeat} to report any seccomp violations that occur on the system.
+The kernel generates an event for each violation and {auditbeat} reports the
 event. The `event.action` value will be `violated-seccomp-policy` and the event
 will contain information about the process and system call.
