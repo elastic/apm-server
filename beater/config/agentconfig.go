@@ -23,11 +23,37 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
+
+	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
+
+	"github.com/elastic/apm-server/elasticsearch"
 )
 
-// KibanaAgentConfig holds remote agent config information
-type KibanaAgentConfig struct {
-	Cache Cache `config:"cache"`
+const msgInvalidConfigAgentCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
+
+// DynamicAgentConfig configuration for dynamically querying agent configuration
+// via Elasticsearch or Kibana.
+type DynamicAgentConfig struct {
+	ESConfig *elasticsearch.Config `config:"elasticsearch"`
+	Cache    Cache                 `config:"cache"`
+}
+
+func (c *DynamicAgentConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
+	if float64(int(c.Cache.Expiration.Seconds())) != c.Cache.Expiration.Seconds() {
+		return errors.New(msgInvalidConfigAgentCfg)
+	}
+
+	if outputESCfg == nil {
+		return nil
+	}
+	log.Info("using Elasticsearch output config for fetching agent config")
+	if err := outputESCfg.Unpack(c.ESConfig); err != nil {
+		return errors.Wrap(err, "unpacking Elasticsearch config into agent config")
+	}
+	return nil
 }
 
 // Cache holds config information about cache expiration
@@ -35,12 +61,11 @@ type Cache struct {
 	Expiration time.Duration `config:"expiration"`
 }
 
-// defaultKibanaAgentConfig holds the default KibanaAgentConfig
-func defaultKibanaAgentConfig() KibanaAgentConfig {
-	return KibanaAgentConfig{
-		Cache: Cache{
-			Expiration: 30 * time.Second,
-		},
+// defaultDynamicAgentConfig holds the default DynamicAgentConfig
+func defaultDynamicAgentConfig() DynamicAgentConfig {
+	return DynamicAgentConfig{
+		ESConfig: elasticsearch.DefaultConfig(),
+		Cache:    Cache{Expiration: 30 * time.Second},
 	}
 }
 

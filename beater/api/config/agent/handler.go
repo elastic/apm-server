@@ -32,7 +32,6 @@ import (
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/auth"
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 )
@@ -62,14 +61,14 @@ type handler struct {
 
 func NewHandler(
 	f agentcfg.Fetcher,
-	config config.KibanaAgentConfig,
+	cacheExpiration time.Duration,
 	defaultServiceEnvironment string,
 	allowAnonymousAgents []string,
 ) request.Handler {
 	if f == nil {
 		panic("fetcher must not be nil")
 	}
-	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
+	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", cacheExpiration.Seconds())
 	h := &handler{
 		f:                         f,
 		cacheControl:              cacheControl,

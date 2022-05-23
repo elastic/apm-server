@@ -70,7 +70,7 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 		cfg,
 		processBatch,
 		authenticator,
-		agentcfg.NewFetcher(cfg),
+		agentcfg.NewDirectFetcher(nil), // unused
 		ratelimitStore,
 		nil,                         // no sourcemap store
 		false,                       // not managed

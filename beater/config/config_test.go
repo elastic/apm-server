@@ -239,7 +239,7 @@ func TestUnpackConfig(t *testing.T) {
 					Enabled:      true,
 					ClientConfig: defaultDecodedKibanaClientConfig,
 				},
-				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 2 * time.Minute}},
+				DynamicAgentConfig: DynamicAgentConfig{Cache: Cache{Expiration: 2 * time.Minute}},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
 						Interval:                       time.Second,
@@ -386,8 +386,8 @@ func TestUnpackConfig(t *testing.T) {
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
 				},
-				Kibana:            defaultKibanaConfig(),
-				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 30 * time.Second}},
+				Kibana:             defaultKibanaConfig(),
+				DynamicAgentConfig: DynamicAgentConfig{Cache: Cache{Expiration: 30 * time.Second}},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
 						Interval:                       time.Minute,
@@ -564,7 +564,7 @@ func TestAgentConfig(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil)
 		require.NoError(t, err)
-		assert.Equal(t, time.Second*123, cfg.KibanaAgentConfig.Cache.Expiration)
+		assert.Equal(t, time.Second*123, cfg.DynamicAgentConfig.Cache.Expiration)
 	})
 }
 

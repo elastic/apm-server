@@ -33,8 +33,6 @@ import (
 const (
 	// DefaultPort of APM Server
 	DefaultPort = "8200"
-
-	msgInvalidConfigAgentCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
 )
 
 var (
@@ -64,7 +62,7 @@ type Config struct {
 	AugmentEnabled            bool                    `config:"capture_personal_data"`
 	RumConfig                 RumConfig               `config:"rum"`
 	Kibana                    KibanaConfig            `config:"kibana"`
-	KibanaAgentConfig         KibanaAgentConfig       `config:"agent.config"`
+	DynamicAgentConfig        DynamicAgentConfig      `config:"agent.config"`
 	Aggregation               AggregationConfig       `config:"aggregation"`
 	Sampling                  SamplingConfig          `config:"sampling"`
 	DataStreams               DataStreamsConfig       `config:"data_streams"`
@@ -93,14 +91,14 @@ func NewConfig(ucfg *config.C, outputESCfg *config.C) (*Config, error) {
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
 
-	if float64(int(c.KibanaAgentConfig.Cache.Expiration.Seconds())) != c.KibanaAgentConfig.Cache.Expiration.Seconds() {
-		return nil, errors.New(msgInvalidConfigAgentCfg)
-	}
-
 	for i := range c.AgentConfigs {
 		if err := c.AgentConfigs[i].setup(); err != nil {
 			return nil, err
 		}
+	}
+
+	if err := c.DynamicAgentConfig.setup(logger, outputESCfg); err != nil {
+		return nil, err
 	}
 
 	if err := c.RumConfig.setup(logger, outputESCfg); err != nil {
@@ -146,7 +144,7 @@ func DefaultConfig() *Config {
 		Pprof:                 PprofConfig{Enabled: false},
 		RumConfig:             defaultRum(),
 		Kibana:                defaultKibanaConfig(),
-		KibanaAgentConfig:     defaultKibanaAgentConfig(),
+		DynamicAgentConfig:    defaultDynamicAgentConfig(),
 		Aggregation:           defaultAggregationConfig(),
 		Sampling:              defaultSamplingConfig(),
 		DataStreams:           defaultDataStreamsConfig(),

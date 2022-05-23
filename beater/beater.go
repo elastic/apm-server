@@ -50,6 +50,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 	"github.com/elastic/go-ucfg"
 
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/config"
 	javaattacher "github.com/elastic/apm-server/beater/java_attacher"
 	"github.com/elastic/apm-server/elasticsearch"
@@ -537,6 +538,11 @@ func (s *serverRunner) run(listener net.Listener) error {
 		sourcemapFetcher = cachingFetcher
 	}
 
+	agentcfgFetcher, err := newAgentConfigFetcher(s.config, kibanaClient, newElasticsearchClient)
+	if err != nil {
+		return err
+	}
+
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
 	runServer := newBaseRunServer(listener)
@@ -567,6 +573,10 @@ func (s *serverRunner) run(listener net.Listener) error {
 		finalBatchProcessor,
 	)
 
+	agentcfgReporter := agentcfg.NewReporter(agentcfgFetcher, batchProcessor, 30*time.Second)
+	agentcfgFetcher = agentcfgReporter
+	g.Go(func() error { return agentcfgReporter.Run(ctx) })
+
 	g.Go(func() error {
 		return runServer(ctx, ServerParams{
 			Info:                   s.beat.Info,
@@ -575,6 +585,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 			Namespace:              s.namespace,
 			Logger:                 s.logger,
 			Tracer:                 s.tracer,
+			AgentConfigFetcher:     agentcfgFetcher,
 			BatchProcessor:         batchProcessor,
 			SourcemapFetcher:       sourcemapFetcher,
 			PublishReady:           publishReady,
@@ -898,6 +909,29 @@ func newSourcemapFetcher(
 	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, index)
 	chained = append(chained, esFetcher)
 	return chained, nil
+}
+
+func newAgentConfigFetcher(
+	cfg *config.Config,
+	kibanaClient kibana.Client,
+	newElasticsearchClient func(*elasticsearch.Config) (elasticsearch.Client, error),
+) (agentcfg.Fetcher, error) {
+
+	var fetcher agentcfg.Fetcher
+	switch {
+	case cfg.AgentConfigs != nil:
+		fetcher = agentcfg.NewDirectFetcher(cfg.AgentConfigs)
+	case kibanaClient != nil:
+		fetcher = agentcfg.NewKibanaFetcher(kibanaClient, cfg.DynamicAgentConfig.Cache.Expiration)
+	default:
+		// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.
+		esClient, err := newElasticsearchClient(cfg.DynamicAgentConfig.ESConfig)
+		if err != nil {
+			return nil, err
+		}
+		fetcher = agentcfg.NewElasticsearchFetcher(esClient, cfg.DynamicAgentConfig.Cache.Expiration)
+	}
+	return agentcfg.SanitizingFetcher{fetcher}, nil
 }
 
 // WrapRunServerWithProcessors wraps runServer such that it wraps args.Reporter

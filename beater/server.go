@@ -21,7 +21,6 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"time"
 
 	"go.elastic.co/apm/module/apmgorilla/v2"
 	"go.elastic.co/apm/module/apmgrpc/v2"
@@ -72,6 +71,10 @@ type ServerParams struct {
 	// for self-instrumentation.
 	Tracer *apm.Tracer
 
+	// AgentConfigFetcher holds an agentcfg.Fetcher, or nil if no agent
+	// config fetching method is enabled.
+	AgentConfigFetcher agentcfg.Fetcher
+
 	// SourcemapFetcher holds a sourcemap.Fetcher, or nil if source
 	// mapping is disabled.
 	SourcemapFetcher sourcemap.Fetcher
@@ -111,17 +114,14 @@ func newBaseRunServer(listener net.Listener) RunServerFunc {
 }
 
 type server struct {
-	logger                *logp.Logger
-	cfg                   *config.Config
-	agentcfgFetchReporter agentcfg.Reporter
+	logger *logp.Logger
+	cfg    *config.Config
 
 	httpServer *httpServer
 	grpcServer *grpc.Server
 }
 
 func newServer(args ServerParams, listener net.Listener) (server, error) {
-	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(args.Config), args.BatchProcessor, 30*time.Second)
-
 	ratelimitStore, err := ratelimit.NewStore(
 		args.Config.AgentAuth.Anonymous.RateLimit.IPLimit,
 		args.Config.AgentAuth.Anonymous.RateLimit.EventLimit,
@@ -154,7 +154,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	// Create an HTTP server for serving Elastic APM agent requests.
 	router, err := api.NewMux(
 		args.Info, args.Config, batchProcessor,
-		authenticator, agentcfgFetchReporter, ratelimitStore,
+		authenticator, args.AgentConfigFetcher, ratelimitStore,
 		args.SourcemapFetcher, args.Managed, publishReady,
 	)
 	if err != nil {
@@ -169,18 +169,17 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	// Create a gRPC server for OTLP and Jaeger.
 	grpcServer, err := newGRPCServer(
 		args.Logger, args.Config, args.Tracer,
-		authenticator, batchProcessor, agentcfgFetchReporter, ratelimitStore,
+		authenticator, batchProcessor, args.AgentConfigFetcher, ratelimitStore,
 	)
 	if err != nil {
 		return server{}, err
 	}
 
 	return server{
-		logger:                args.Logger,
-		cfg:                   args.Config,
-		httpServer:            httpServer,
-		grpcServer:            grpcServer,
-		agentcfgFetchReporter: agentcfgFetchReporter,
+		logger:     args.Logger,
+		cfg:        args.Config,
+		httpServer: httpServer,
+		grpcServer: grpcServer,
 	}, nil
 }
 
@@ -234,7 +233,6 @@ func (s server) run(ctx context.Context) error {
 	defer s.logger.Infof("Server stopped")
 
 	g, ctx := errgroup.WithContext(ctx)
-	g.Go(func() error { return s.agentcfgFetchReporter.Run(ctx) })
 	g.Go(s.httpServer.start)
 	g.Go(func() error {
 		return s.grpcServer.Serve(s.httpServer.grpcListener)
