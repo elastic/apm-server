@@ -37,8 +37,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/version"
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/approvaltest"
@@ -197,7 +197,7 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 			// with an invalid (too old) Kibana version.
 			params: &api_v2.SamplingStrategyParameters{ServiceName: authorizedServiceName},
 			fetcher: agentcfg.NewKibanaFetcher(
-				kibanatest.MockKibana(200, nil, *common.MustNewVersion("7.4.0"), true),
+				kibanatest.MockKibana(200, nil, *version.MustNew("7.4.0"), true),
 				time.Second,
 			),
 			expectedErrMsg: "agent remote configuration not supported",
