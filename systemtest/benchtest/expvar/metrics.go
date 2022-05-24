@@ -64,8 +64,8 @@ type watchItem struct {
 // Collector defines a metric collector which queries expvar
 // endpoint periodically and aggregates the collected metrics.
 //
-// Watche is a one-time hook into collector to know about when
-// the a specific state of a metric is observed by the collector.
+// Watch is a one-time hook into collector to know about when
+// a specific state of a metric is observed by the collector.
 type Collector struct {
 	l       sync.Mutex
 	metrics map[Metric]AggregateStats
@@ -100,21 +100,21 @@ func (c *Collector) Delta(m Metric) int64 {
 	return stats.Last - stats.First
 }
 
-// AddWatch configures a new watcher for a given metric. The
-// watcher is deleted after the specified expected value is
+// AddWatch configures a new watch for a given metric. The
+// watch is deleted after the specified expected value is
 // observed.
 //
-// Watcher returns a read only channel to observe the state
+// AddWatch returns a read only channel to observe the state
 // of the watch. A true event on this channel refers to an
 // observation with the expected value while a false event
 // refers to an error in the collector. Both cases end the
-// lifecycle of the watcher.
+// lifecycle of the watch.
 func (c *Collector) AddWatch(m Metric, expected int64) (<-chan bool, error) {
 	c.l.Lock()
 	defer c.l.Unlock()
 
 	if _, ok := c.watches[m]; ok {
-		return nil, errors.New("watcher already exists for the given metric")
+		return nil, errors.New("watch already exists for the given metric")
 	}
 
 	out := make(chan bool, 1)
@@ -154,8 +154,8 @@ func (c *Collector) processMetric(m Metric, val int64) {
 	stats := c.metrics[m]
 	c.metrics[m] = c.updateMetric(stats, val)
 
-	if watcher, ok := c.watches[m]; ok && watcher.validator(val) {
-		watcher.notifyChan <- true
+	if watch, ok := c.watches[m]; ok && watch.validator(val) {
+		watch.notifyChan <- true
 		delete(c.watches, m)
 	}
 }
