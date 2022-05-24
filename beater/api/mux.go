@@ -24,11 +24,10 @@ import (
 	"regexp"
 	"runtime/pprof"
 
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
+	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -91,7 +90,7 @@ func NewMux(
 	fetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
 	sourcemapFetcher sourcemap.Fetcher,
-	otlpHandlers *otlpreceiver.HTTPHandlers,
+	otlpConsumer *otel.Consumer,
 	fleetManaged bool,
 	publishReady func() bool,
 ) (*mux.Router, error) {
@@ -115,6 +114,12 @@ func NewMux(
 		path      string
 		handlerFn func() (request.Handler, error)
 	}
+
+	otlpHandlers, err := otlp.NewHTTPHandlers(otlpConsumer)
+	if err != nil {
+		return nil, err
+	}
+
 	routeMap := []route{
 		{RootPath, builder.rootHandler(publishReady)},
 		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher)},
@@ -124,9 +129,9 @@ func NewMux(
 		{IntakePath, builder.backendIntakeHandler},
 		// The profile endpoint is in Beta
 		{ProfilePath, builder.profileHandler},
-		{OtlpTracesIntakePath, builder.backendOtlpIntakeHandler(otlpHandlers.TraceHandler, otlp.HTTPTracesMonitoringMap)},
-		{OtlpMetricsIntakePath, builder.backendOtlpIntakeHandler(otlpHandlers.MetricsHandler, otlp.HTTPMetricsMonitoringMap)},
-		{OtlpLogsIntakePath, builder.backendOtlpIntakeHandler(otlpHandlers.LogsHandler, otlp.HTTPLogsMonitoringMap)},
+		{OtlpTracesIntakePath, builder.otlpHandler(otlpHandlers.TraceHandler, otlp.HTTPTracesMonitoringMap)},
+		{OtlpMetricsIntakePath, builder.otlpHandler(otlpHandlers.MetricsHandler, otlp.HTTPMetricsMonitoringMap)},
+		{OtlpLogsIntakePath, builder.otlpHandler(otlpHandlers.LogsHandler, otlp.HTTPLogsMonitoringMap)},
 	}
 
 	for _, route := range routeMap {
@@ -180,9 +185,11 @@ func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
-func (r *routeBuilder) backendOtlpIntakeHandler(handler http.HandlerFunc, monitoringMap map[request.ResultID]*monitoring.Int) func() (request.Handler, error) {
+func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, monitoringMap map[request.ResultID]*monitoring.Int) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		h := intake.OtlpHandler(handler)
+		h := func(c *request.Context) {
+			handler(c.ResponseWriter, c.Request)
+		}
 		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, monitoringMap)...)
 	}
 }

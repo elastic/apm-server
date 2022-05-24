@@ -27,7 +27,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/approvaltest"
@@ -37,6 +36,7 @@ import (
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -167,7 +167,7 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		agentcfg.NewFetcher(cfg),
 		ratelimitStore,
 		m.SourcemapFetcher,
-		&otlpreceiver.HTTPHandlers{},
+		&otel.Consumer{},
 		m.Managed,
 		func() bool { return true },
 	)

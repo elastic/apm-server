@@ -21,6 +21,7 @@ import (
 	"sync"
 
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
@@ -35,11 +36,14 @@ var (
 	currentMonitoredConsumer   *otel.Consumer
 )
 
-const (
-	metricsFullMethod = "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export"
-	tracesFullMethod  = "/opentelemetry.proto.collector.trace.v1.TraceService/Export"
-	logsFullMethod    = "/opentelemetry.proto.collector.logs.v1.LogsService/Export"
-)
+func NewOTLPConsumer(processor model.BatchProcessor) *otel.Consumer {
+	// TODO(axw) stop assuming we have only one OTLP gRPC service running
+	// at any time, and instead aggregate metrics from consumers that are
+	// dynamically registered and unregistered.
+	consumer := &otel.Consumer{Processor: processor}
+	setCurrentMonitoredConsumer(consumer)
+	return consumer
+}
 
 func collectMetricsMonitoring(mode monitoring.Mode, V monitoring.Visitor) {
 	V.OnRegistryStart()

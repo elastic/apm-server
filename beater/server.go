@@ -29,6 +29,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
+	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -151,16 +152,17 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		}
 	}
 
-	otlpReceivers, err := otlp.NewHTTPHandlers(batchProcessor)
 	if err != nil {
 		return server{}, err
 	}
+
+	otlpConsumer := otlp.NewOTLPConsumer(batchProcessor)
 
 	// Create an HTTP server for serving Elastic APM agent requests.
 	router, err := api.NewMux(
 		args.Info, args.Config, batchProcessor,
 		authenticator, agentcfgFetchReporter, ratelimitStore,
-		args.SourcemapFetcher, otlpReceivers, args.Managed, publishReady,
+		args.SourcemapFetcher, otlpConsumer, args.Managed, publishReady,
 	)
 	if err != nil {
 		return server{}, err
@@ -174,7 +176,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	// Create a gRPC server for OTLP and Jaeger.
 	grpcServer, err := newGRPCServer(
 		args.Logger, args.Config, args.Tracer,
-		authenticator, batchProcessor, agentcfgFetchReporter, ratelimitStore,
+		authenticator, batchProcessor, agentcfgFetchReporter, ratelimitStore, otlpConsumer,
 	)
 	if err != nil {
 		return server{}, err
@@ -197,6 +199,7 @@ func newGRPCServer(
 	batchProcessor model.BatchProcessor,
 	agentcfgFetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
+	otlpConsumer *otel.Consumer,
 ) (*grpc.Server, error) {
 	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
 	authInterceptor := interceptors.Auth(
@@ -228,7 +231,7 @@ func newGRPCServer(
 	}
 
 	jaeger.RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)
-	if err := otlp.RegisterGRPCServices(srv, batchProcessor); err != nil {
+	if err := otlp.RegisterGRPCServices(srv, otlpConsumer); err != nil {
 		return nil, err
 	}
 	return srv, nil

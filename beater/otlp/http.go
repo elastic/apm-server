@@ -24,7 +24,6 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
@@ -42,10 +41,7 @@ func init() {
 	monitoring.NewFunc(httpMetricsRegistry, "consumer", collectMetricsMonitoring, monitoring.Report)
 }
 
-func NewHTTPHandlers(processor model.BatchProcessor) (*otlpreceiver.HTTPHandlers, error) {
-	consumer := &otel.Consumer{Processor: processor}
-	setCurrentMonitoredConsumer(consumer)
-
+func NewHTTPHandlers(consumer *otel.Consumer) (*otlpreceiver.HTTPHandlers, error) {
 	tracesHandler, err := otlpreceiver.TracesHTTPHandler(context.Background(), consumer)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create OTLP trace receiver")
