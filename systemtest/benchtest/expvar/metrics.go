@@ -37,7 +37,6 @@ const (
 	MetricsProcessed
 	ErrorsProcessed
 	NumGC
-	GCPauseTotalNs
 	RSSMemoryBytes
 	Goroutines
 	HeapAlloc
@@ -145,7 +144,6 @@ func (c *Collector) addExpvar(e expvar) {
 	c.processMetric(ErrorOTLPTracesResponses, e.ErrorOTLPTracesResponses)
 	c.processMetric(ErrorOTLPMetricsResponses, e.ErrorOTLPMetricsResponses)
 	c.processMetric(NumGC, int64(e.NumGC))
-	c.processMetric(GCPauseTotalNs, int64(e.PauseTotalNs))
 	c.processMetric(MemAllocs, int64(e.Mallocs))
 	c.processMetric(MemBytes, int64(e.TotalAlloc))
 	c.processMetric(HeapAlloc, int64(e.HeapAlloc))

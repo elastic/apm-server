@@ -89,12 +89,12 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 		ok = !b.Failed()
 	})
 	if result.Extra != nil {
-		addexpvar(result, collector, *detailed)
+		addExpvarMetrics(result, collector, *detailed)
 	}
 	return result, ok, nil
 }
 
-func addexpvar(result testing.BenchmarkResult, collector *expvar.Collector, detailed bool) {
+func addExpvarMetrics(result testing.BenchmarkResult, collector *expvar.Collector, detailed bool) {
 	result.Bytes = collector.Delta(expvar.Bytes)
 	result.MemAllocs = uint64(collector.Delta(expvar.MemAllocs))
 	result.MemBytes = uint64(collector.Delta(expvar.MemBytes))
@@ -105,13 +105,11 @@ func addexpvar(result testing.BenchmarkResult, collector *expvar.Collector, deta
 		result.Extra["metrics/sec"] = float64(collector.Delta(expvar.MetricsProcessed)) / result.T.Seconds()
 		result.Extra["errors/sec"] = float64(collector.Delta(expvar.ErrorsProcessed)) / result.T.Seconds()
 		result.Extra["gc_cycles"] = float64(collector.Delta(expvar.NumGC))
-		result.Extra["gc_pause_ns"] = float64(collector.Delta(expvar.GCPauseTotalNs))
-		result.Extra["start_rss"] = float64(collector.Get(expvar.RSSMemoryBytes).First)
-		result.Extra["end_rss"] = float64(collector.Get(expvar.RSSMemoryBytes).Last)
+		result.Extra["max_rss"] = float64(collector.Get(expvar.RSSMemoryBytes).Max)
 		result.Extra["max_goroutines"] = float64(collector.Get(expvar.Goroutines).Max)
 		result.Extra["max_heap_alloc"] = float64(collector.Get(expvar.HeapAlloc).Max)
 		result.Extra["max_heap_objects"] = float64(collector.Get(expvar.HeapObjects).Max)
-		result.Extra["min_available_indexers"] = float64(collector.Get(expvar.AvailableBulkRequests).Min)
+		result.Extra["mean_available_indexers"] = float64(collector.Get(expvar.AvailableBulkRequests).Mean)
 	}
 
 	// Record the number of error responses returned by the server: lower is better.
