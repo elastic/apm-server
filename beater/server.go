@@ -224,6 +224,7 @@ func newGRPCServer(
 			model.ProcessBatchFunc(otlp.SetClientMetadata),
 			batchProcessor,
 		}
+		otlpConsumer.Processor = batchProcessor
 	}
 
 	jaeger.RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)
