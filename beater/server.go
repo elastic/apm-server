@@ -152,10 +152,6 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		}
 	}
 
-	if err != nil {
-		return server{}, err
-	}
-
 	otlpConsumer := otlp.NewOTLPConsumer(batchProcessor)
 
 	// Create an HTTP server for serving Elastic APM agent requests.
