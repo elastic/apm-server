@@ -7,7 +7,7 @@ This provides general metadata concerning the other objects in the stream.
 Rather than send this metadata information from the agent multiple times,
 the APM Server hangs on to this information and applies it to other objects in the stream as necessary.
 
-TIP: Metadata is stored under `context` when viewing documents in Elasticsearch.
+TIP: Metadata is stored under `context` when viewing documents in {es}.
 
 * <<api-kubernetes-data>>
 * <<api-metadata-schema>>
@@ -16,11 +16,11 @@ TIP: Metadata is stored under `context` when viewing documents in Elasticsearch.
 [float]
 ==== Kubernetes data
 
-APM agents automatically read kubernetes data and send it to the APM Server.
+APM agents automatically read Kubernetes data and send it to the APM Server.
 In most instances, agents are able to read this data from inside the container.
 If this is not the case, or if you wish to override this data, you can set environment variables for the agents to read.
-These environment variable are set via the kubernetes https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/#use-pod-fields-as-values-for-environment-variables[Downward API].
-Here's how you would add the environment variables to your kubernetes pod spec:
+These environment variable are set via the Kubernetes https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/#use-pod-fields-as-values-for-environment-variables[Downward API].
+Here's how you would add the environment variables to your Kubernetes pod spec:
 
 [source,yaml]
 ----
@@ -47,10 +47,10 @@ The table below maps these environment variables to the APM metadata event field
 [options="header"]
 |=====
 |Environment variable |Metadata field name
-|KUBERNETES_NODE_NAME |system.kubernetes.node.name
-|KUBERNETES_POD_NAME |system.kubernetes.pod.name
-|KUBERNETES_NAMESPACE |system.kubernetes.namespace
-|KUBERNETES_POD_UID	|system.kubernetes.pod.uid
+| `KUBERNETES_NODE_NAME` |system.kubernetes.node.name
+| `KUBERNETES_POD_NAME` |system.kubernetes.pod.name
+| `KUBERNETES_NAMESPACE` |system.kubernetes.namespace
+| `KUBERNETES_POD_UID`	|system.kubernetes.pod.uid
 |=====
 
 [[api-metadata-schema]]

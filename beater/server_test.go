@@ -777,7 +777,7 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	}
 
 	logs := beater.logs.FilterMessageSnippet("please install the apm integration")
-	assert.Len(t, logs.All(), 1, "coundn't find remediation message logs")
+	assert.Len(t, logs.All(), 1, "couldn't find remediation message logs")
 
 	// Healthcheck should now report that the server is publish-ready.
 	resp, err = beater.client.Get(beater.baseURL + api.RootPath)
@@ -787,8 +787,8 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	assert.Equal(t, true, out["publish_ready"])
 }
 
-func TestServerElasticsearchOutput(t *testing.T) {
-	bulkCh := make(chan *http.Request, 1)
+func TestServerFailedPreconditionDoesNotIndex(t *testing.T) {
+	bulkCh := make(chan struct{}, 1)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -796,14 +796,83 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		// elasticsearch client to send bulk requests.
 		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
 	})
+	mux.HandleFunc("/_index_template/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(404)
+	})
 	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
 		select {
-		case bulkCh <- r:
+		case bulkCh <- struct{}{}:
 		default:
 		}
 	})
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
+
+	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{"wait_ready_interval": "100ms"})
+	var beatConfig beat.BeatConfig
+	err := beatConfig.Output.Unpack(agentconfig.MustNewConfigFrom(map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"hosts": []string{srv.URL},
+		},
+	}))
+	require.NoError(t, err)
+
+	// newBeat sets `data_streams.wait_for_integration: false`,
+	// remove it so we test the default behaviour.
+	apmBeat, cfg := newBeat(t, cfg, &beatConfig, nil)
+	removed, err := cfg.Remove("data_streams.wait_for_integration", -1)
+	require.NoError(t, err)
+	require.True(t, removed)
+	beater, err := setupBeater(t, apmBeat, cfg, &beatConfig)
+	require.NoError(t, err)
+
+	// Send some events to the server. They should be accepted and enqueued.
+	req := makeTransactionRequest(t, beater.baseURL)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	resp, err := beater.client.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
+	resp.Body.Close()
+
+	// Healthcheck should report that the server is not publish-ready.
+	resp, err = beater.client.Get(beater.baseURL + api.RootPath)
+	require.NoError(t, err)
+	out := decodeJSONMap(t, resp.Body)
+	resp.Body.Close()
+	assert.Equal(t, false, out["publish_ready"])
+
+	// Stop the server.
+	beater.beater.Stop()
+
+	// No documents should be indexed.
+	select {
+	case <-bulkCh:
+		t.Fatal("unexpected bulk request")
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func TestServerElasticsearchOutput(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		// We must send a valid JSON response for the libbeat
+		// elasticsearch client to send bulk requests.
+		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
+	})
+
+	done := make(chan struct{})
+	bulkCh := make(chan *http.Request, 1)
+	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case bulkCh <- r:
+		default:
+		}
+		<-done // block all requests from completing until test is done
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	defer close(done)
 
 	// The beater has no way of unregistering itself from reload.Register,
 	// so we create a fresh registry and replace it after the test.
@@ -898,6 +967,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 			},
 		},
 	}, snapshot)
+
 	snapshot = monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("output"), monitoring.Full, false)
 	assert.Equal(t, map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
@@ -926,44 +996,6 @@ func TestServerPProf(t *testing.T) {
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode, path)
 	}
-}
-
-type chanClient struct {
-	done    chan struct{}
-	Channel chan beat.Event
-}
-
-func newChanClientWith(ch chan beat.Event) *chanClient {
-	if ch == nil {
-		ch = make(chan beat.Event, 1)
-	}
-	c := &chanClient{
-		done:    make(chan struct{}),
-		Channel: ch,
-	}
-	return c
-}
-
-func (c *chanClient) Close() error {
-	close(c.done)
-	return nil
-}
-
-// Publish will publish every event in the batch on the channel. Options will be ignored.
-// Always returns without error.
-func (c *chanClient) Publish(_ context.Context, batch pubs.Batch) error {
-	for _, event := range batch.Events() {
-		select {
-		case <-c.done:
-		case c.Channel <- event.Content:
-		}
-	}
-	batch.ACK()
-	return nil
-}
-
-func (c *chanClient) String() string {
-	return "event capturing test client"
 }
 
 type dummyOutputClient struct {

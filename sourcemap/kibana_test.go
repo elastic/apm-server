@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	libbeatkibana "github.com/elastic/beats/v7/libbeat/kibana"
+	libkibana "github.com/elastic/elastic-agent-libs/kibana"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/kibana"
@@ -152,7 +152,7 @@ func newTestKibanaFetcher(t testing.TB, h http.HandlerFunc) Fetcher {
 
 	// Wait for client to connect.
 	kibanaClient := kibana.NewConnectingClient(&config.KibanaConfig{
-		ClientConfig: libbeatkibana.ClientConfig{
+		ClientConfig: libkibana.ClientConfig{
 			Host: srv.Listener.Addr().String(),
 		},
 	})

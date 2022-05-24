@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/version"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/kibana"
@@ -38,7 +38,7 @@ type m map[string]interface{}
 
 var (
 	testExpiration = time.Nanosecond
-	mockVersion    = *common.MustNewVersion("7.5.0")
+	mockVersion    = *version.MustNew("7.5.0")
 )
 
 func TestFetcher_Fetch(t *testing.T) {
