@@ -26,8 +26,8 @@ https://github.com/elastic/apm-server/compare/v7.6.2\...v7.7.0[View commits]
 
 [float]
 ==== Bug fixes
-* Merge default values with custom Elasticsearch config for API Keys and add `required` tag for `host` {pull}3342[3342]
-* Merge default values with custom Source map Elasticsearch config {pull}3355[3355]
+* Merge default values with custom {es} config for API Keys and add `required` tag for `host` {pull}3342[3342]
+* Merge default values with custom Source map {es} config {pull}3355[3355]
 
 [float]
 ==== Intake API Changes

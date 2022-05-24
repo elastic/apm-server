@@ -29,7 +29,7 @@ https://github.com/elastic/apm-server/compare/8.1.1\...8.1.2[View commits]
 
 [float]
 ==== Bug fixes
-- When gzip compressing Elasticsearch bulk requests, set the end of stream marker {pull}7624[7624]
+- When gzip compressing {es} bulk requests, set the end of stream marker {pull}7624[7624]
 - Fix setting a timestamp on RUM data when capturing personal data is disabled {pull}7567[7567]
 - modelindexer: Fix indexing performance regression due to locking bug {pull}7649[7649]
 
@@ -57,4 +57,4 @@ https://github.com/elastic/apm-server/compare/8.0.1\...8.1.0[View commits]
 
 [float]
 ==== Bug fixes
-- Fix infinite loop in tail-based sampling subscriber causing high CPU and repeated Elasticsearch searches {pull}7211[7211]
+- Fix infinite loop in tail-based sampling subscriber causing high CPU and repeated {es} searches {pull}7211[7211]

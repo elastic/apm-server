@@ -34,8 +34,8 @@ To collect and ship monitoring data:
 ****
 Before you can monitor APM,
 you must have monitoring data for the {es} production cluster.
-To learn how, see {ref}/configuring-metricbeat.html[Collect {es} monitoring data with Metricbeat].
-Alternatively, open the **Stack Monitoring** app in {kib} and follow the in-product guide.
+To learn how, see {ref}/configuring-metricbeat.html[Collect {es} monitoring data with {metricbeat}].
+Alternatively, open the **{stack-monitor-app}** app in {kib} and follow the in-product guide.
 ****
 
 . Enable monitoring of {agent} by adding the following settings to your `elastic-agent.yml` configuration file:
@@ -147,7 +147,7 @@ file.
 --
 By default, the {metricbeat-ref}/metricbeat-module-system.html[system module] is
 enabled. The information it collects, however, is not shown on the
-*Stack Monitoring* page in {kib}. Unless you want to use that information for
+*{stack-monitor-app}* page in {kib}. Unless you want to use that information for
 other purposes, run the following command:
 
 ["source","sh",subs="attributes,callouts"]

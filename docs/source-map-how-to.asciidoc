@@ -10,11 +10,11 @@ and not something you only do when you see unhelpful errors.
 That's because uploading source maps after errors happen won't make old errors magically readable —
 errors must occur again for source mapping to occur.
 
-Here's an example of an exception stack trace in the APM app when using minified code.
+Here's an example of an exception stack trace in the {apm-app} when using minified code.
 As you can see, it's not very helpful.
 
 [role="screenshot"]
-image::images/source-map-before.png[APM app without source mapping]
+image::images/source-map-before.png[{apm-app} without source mapping]
 
 With a source map, minified files are mapped back to the original source code,
 allowing you to maintain the speed advantage of minified code,
@@ -22,9 +22,9 @@ without losing the ability to quickly and easily debug your application.
 Here's the same example as before, but with a source map uploaded and applied:
 
 [role="screenshot"]
-image::images/source-map-after.png[APM app with source mapping]
+image::images/source-map-after.png[{apm-app} with source mapping]
 
-Follow the steps below to enable source mapping your error stack traces in the APM app:
+Follow the steps below to enable source mapping your error stack traces in the {apm-app}:
 
 * <<source-map-rum-initialize>>
 * <<source-map-rum-generate>>
@@ -95,9 +95,9 @@ module.exports = {
 
 [float]
 [[source-map-rum-upload]]
-=== Upload the source map to Kibana
+=== Upload the source map to {kib}
 
-Kibana exposes a {kibana-ref}/rum-sourcemap-api.html[source map endpoint] for uploading source maps.
+{kib} exposes a {kibana-ref}/rum-sourcemap-api.html[source map endpoint] for uploading source maps.
 Source maps can be uploaded as a string, or as a file upload.
 Before uploading a source map, ensure that RUM support is enabled in the APM integration
 

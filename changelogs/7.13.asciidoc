@@ -45,7 +45,7 @@ https://github.com/elastic/apm-server/compare/v7.13.0\...v7.13.1[View commits]
 * Fix document grouping of translated OpenTelemetry Java metrics {pull}5309[5309]
 * model/modeldecoder: fix 32-bit timestamp decoding {pull}5308[5308]
 * OpenTelemetry: record array attributes as labels {pull}5286[5286]
-* Don't auto-disable ILM due to a failure to communicate with Elasticsearch {pull}5264[5264]
+* Don't auto-disable {ilm-init} due to a failure to communicate with {es} {pull}5264[5264]
 
 [float]
 [[release-notes-7.13.0]]
@@ -56,7 +56,7 @@ https://github.com/elastic/apm-server/compare/v7.12.1\...v7.13.0[View commits]
 [float]
 ==== Bug fixes
 * Fix `setup.template` config merging {pull}4950[4950]
-* The server now responds with 503 instead of 401 when failure is unrelated to API Key validity, e.g. if Elasticsearch is inaccessible {pull}5053[5053]
+* The server now responds with 503 instead of 401 when failure is unrelated to API Key validity, e.g. if {es} is inaccessible {pull}5053[5053]
 * Fix panic due to misaligned 64-bit access on 32-bit architectures {pull}5277[5277]
 
 [float]

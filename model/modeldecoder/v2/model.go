@@ -292,6 +292,7 @@ type contextServiceTarget struct {
 	Name nullable.String `json:"name"`
 	// Immutable type of the target service for the event
 	Type nullable.String `json:"type"`
+	_    struct{}        `validate:"requiredAnyOf=type;name"`
 }
 
 type contextServiceOrigin struct {
