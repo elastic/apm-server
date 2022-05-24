@@ -54,7 +54,7 @@ API keys can have one or more of these privileges:
 * *Agent configuration* (`config_agent:read`): Required for agents to read
 {kibana-ref}/agent-configuration.html[Agent configuration remotely].
 * *Ingest* (`event:write`): Required for ingesting Agent events.
-* *Sourcemap* (`sourcemap:write`): Required for <<sourcemaps,uploading sourcemaps>>.
+* *Source map* (`sourcemap:write`): Required for <<sourcemaps,uploading source maps>>.
 
 To secure the communication between APM Agents and the APM Server with API keys,
 make sure <<ssl-setup,SSL/TLS>> is enabled, then complete these steps:
@@ -124,7 +124,7 @@ open {kib}, navigate to **{stack-manage-app}** > **API keys** and click **Create
 Enter a name for your API key and select **Restrict privileges**.
 In the role descriptors box, copy and paste the following JSON.
 This example creates an API key with privileges for ingesting APM events,
-reading agent central configuration, uploading a sourcemap:
+reading agent central configuration, uploading a source map:
 
 [source,json]
 ----

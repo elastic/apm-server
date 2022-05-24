@@ -209,7 +209,7 @@ When used with `info`, specifies the API key to query (multiple matches are poss
 When used with `invalidate`, specifies the API key to delete (multiple matches are possible).
 
 *`--sourcemap`*::
-Required for uploading sourcemaps. Valid with the `create` and `verify` subcommands.
+Required for uploading source maps. Valid with the `create` and `verify` subcommands.
 When used with `create`, gives the `sourcemap:write` privilege to the created key.
 When used with `verify`, asks for the `sourcemap:write` privilege.
 

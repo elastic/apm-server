@@ -23,7 +23,7 @@ OPTIONAL INFO AND EXAMPLE
 Host
 
 | (text) Defines the host and port the server is listening on.
-Use `unix:/path/to.sock` to listen on a unix domain socket.
+Use `"unix:/path/to.sock"` to listen on a unix domain socket.
 
 *Default:* `localhost:8200`
 // end::host-setting[]

@@ -156,7 +156,7 @@ As a side effect, `setup.template.*` settings will be ignored for {ilm-init} rel
 See {apm-server-ref}/ilm.html[set up {ilm-init}] for more information.
 +
 * By default, {ilm-init} policies will not longer be versioned.
-All event types will switch to the new default policy: rollover after 30 days or when reaching a size 50 GB.
+All event types will switch to the new default policy: rollover after 30 days or when reaching a size of 50 GB.
 See {apm-server-ref}/ilm.html[default policy] for more information.
 
 APM::

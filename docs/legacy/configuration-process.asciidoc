@@ -40,7 +40,7 @@ output.elasticsearch:
 [float]
 ==== `host`
 Defines the host and port the server is listening on.
-Use `unix:/path/to.sock` to listen on a Unix domain socket.
+Use `"unix:/path/to.sock"` to listen on a Unix domain socket.
 Defaults to 'localhost:8200'.
 
 [[max_header_size]]

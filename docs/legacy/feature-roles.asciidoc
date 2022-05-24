@@ -246,7 +246,7 @@ also assign the appropriate `apm` application-level privileges:
 +
 * To **receive Agent configuration**, assign `config_agent:read`.
 * To **ingest agent data**, assign `event:write`.
-* To **upload sourcemaps**, assign `sourcemap:write`.
+* To **upload source maps**, assign `sourcemap:write`.
 
 . Assign the **API key role** to users that need to create and manage API keys.
 Users with this role can only create API keys that have the same or lower access rights.

@@ -31,7 +31,7 @@ There are three breaking changes to be aware of;
 these changes only impact users ingesting data with
 {apm-server-ref-v}/jaeger.html[Jaeger clients].
 
-* Leading 0 seconds are no longer removed from Jaeger client trace/span ids.
+* Leading zeros are no longer removed from Jaeger client trace/span ids.
 +
 --
 This change ensures distributed tracing continues to work across platforms by creating
@@ -92,7 +92,7 @@ As a side effect, `setup.template.*` settings will be ignored for {ilm-init} rel
 See {apm-server-ref}/ilm.html[set up {ilm-init}] for more information.
 
 * By default, {ilm-init} policies will not longer be versioned.
-All event types will switch to the new default policy: rollover after 30 days or when reaching a size 50 GB.
+All event types will switch to the new default policy: rollover after 30 days or when reaching a size of 50 GB.
 See {apm-server-ref}/ilm.html[default policy] for more information.
 
 * To make use of all the new features introduced in 7.5,
