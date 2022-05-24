@@ -72,12 +72,12 @@ const (
 
 	IntakeRUMV3Path = "/intake/v3/rum/events"
 
-	// OtlpTracesIntakePath defines the path to ingest OpenTelemetry traces (HTTP Collector)
-	OtlpTracesIntakePath = "/v1/traces"
-	// OtlpMetricsIntakePath defines the path to ingest OpenTelemetry metrics (HTTP Collector)
-	OtlpMetricsIntakePath = "/v1/metrics"
-	// OtlpLogsIntakePath defines the path to ingest OpenTelemetry logs (HTTP Collector)
-	OtlpLogsIntakePath = "/v1/logs"
+	// OTLPTracesIntakePath defines the path to ingest OpenTelemetry traces (HTTP Collector)
+	OTLPTracesIntakePath = "/v1/traces"
+	// OTLPMetricsIntakePath defines the path to ingest OpenTelemetry metrics (HTTP Collector)
+	OTLPMetricsIntakePath = "/v1/metrics"
+	// OTLPLogsIntakePath defines the path to ingest OpenTelemetry logs (HTTP Collector)
+	OTLPLogsIntakePath = "/v1/logs"
 )
 
 // NewMux creates a new gorilla/mux router, with routes registered for handling the
@@ -129,9 +129,9 @@ func NewMux(
 		{IntakePath, builder.backendIntakeHandler},
 		// The profile endpoint is in Beta
 		{ProfilePath, builder.profileHandler},
-		{OtlpTracesIntakePath, builder.otlpHandler(otlpHandlers.TraceHandler, otlp.HTTPTracesMonitoringMap)},
-		{OtlpMetricsIntakePath, builder.otlpHandler(otlpHandlers.MetricsHandler, otlp.HTTPMetricsMonitoringMap)},
-		{OtlpLogsIntakePath, builder.otlpHandler(otlpHandlers.LogsHandler, otlp.HTTPLogsMonitoringMap)},
+		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.TraceHandler, otlp.HTTPTracesMonitoringMap)},
+		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.MetricsHandler, otlp.HTTPMetricsMonitoringMap)},
+		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.LogsHandler, otlp.HTTPLogsMonitoringMap)},
 	}
 
 	for _, route := range routeMap {
