@@ -13,7 +13,6 @@ https://github.com/elastic/apm-server/compare/8.2\...main[View commits]
 
 [float]
 ==== Bug fixes
-- Fix a bug that caused some of the decoded events to have incorrect labels {pull}8081[8081]
 
 [float]
 ==== Intake API Changes
