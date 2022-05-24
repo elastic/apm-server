@@ -2,7 +2,7 @@
 #
 # change type can be one of: enhancement, bugfix, breaking-change
 
-- version: "8.2.1"
+- version: "8.2.2"
   changes:
     - description: Placeholder
       type: enhancement
