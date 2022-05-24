@@ -165,13 +165,11 @@ func (c *Collector) processMetric(m Metric, val int64) {
 func (c *Collector) updateMetric(stats AggregateStats, value int64) AggregateStats {
 	// Initialize for first value
 	if stats.samples == 0 {
-		stats.First = value
-		stats.Min = value
-		stats.Max = value
+		stats.First, stats.Min, stats.Max = value, value, value
 	}
 
 	stats.Last = value
-	stats.samples += 1
+	stats.samples++
 	stats.Mean += (float64(value) - stats.Mean) / float64(stats.samples)
 	if stats.Min > value {
 		stats.Min = value

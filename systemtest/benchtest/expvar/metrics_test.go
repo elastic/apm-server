@@ -121,7 +121,6 @@ func getTestServer(t *testing.T) *httptest.Server {
 			}
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprintf(`{"beat.runtime.goroutines": %d}`, atomic.AddUint64(&count, 1))))
-			count++
 		}),
 	)
 }
