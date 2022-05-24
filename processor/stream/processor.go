@@ -281,9 +281,11 @@ func (p *Processor) acquireLock(ctx context.Context, d time.Duration) (func(), e
 	select {
 	case p.sem <- struct{}{}:
 	default:
+		t := time.NewTimer(d)
+		defer t.Stop()
 		select {
 		case p.sem <- struct{}{}:
-		case <-time.After(d):
+		case <-t.C:
 			return nil, publish.ErrFull
 		case <-ctx.Done():
 			return nil, ctx.Err()

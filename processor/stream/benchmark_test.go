@@ -154,8 +154,9 @@ func (p *mutexBatchProcessor) ProcessBatch(_ context.Context, b *model.Batch) er
 	p.rwm.RLock()
 	defer p.rwm.RUnlock()
 	// Simulate modelindexer
-	for range *b {
+	for _, b := range *b {
 		p.mu.Lock()
+		_ = b
 		p.mu.Unlock()
 	}
 	return nil
