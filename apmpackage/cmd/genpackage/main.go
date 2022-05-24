@@ -27,15 +27,15 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/version"
 )
 
 var (
-	outputDir = flag.String("o", "", "directory into which the package will be rendered (required)")
-	version   = flag.String("version", "", "integration package version (required)")
+	outputDir  = flag.String("o", "", "directory into which the package will be rendered (required)")
+	pkgVersion = flag.String("version", "", "integration package version (required)")
 )
 
-func generatePackage(pkgfs fs.FS, version *common.Version) error {
+func generatePackage(pkgfs fs.FS, version *version.V) error {
 	// Walk files, performing some APM-specific validations and transformations as we go.
 	//
 	// We assume the target destination does not yet exist.
@@ -57,7 +57,7 @@ func generatePackage(pkgfs fs.FS, version *common.Version) error {
 	})
 }
 
-func renderFile(pkgfs fs.FS, path, outputPath string, version *common.Version) error {
+func renderFile(pkgfs fs.FS, path, outputPath string, version *version.V) error {
 	content, err := fs.ReadFile(pkgfs, path)
 	if err != nil {
 		return err
@@ -85,11 +85,11 @@ func renderFile(pkgfs fs.FS, path, outputPath string, version *common.Version) e
 
 func main() {
 	flag.Parse()
-	if *outputDir == "" || *version == "" {
+	if *outputDir == "" || *pkgVersion == "" {
 		flag.Usage()
 		os.Exit(2)
 	}
-	version := common.MustNewVersion(*version)
+	version := version.MustNew(*pkgVersion)
 
 	// Locate the apmpackage/apm directory.
 	_, file, _, ok := runtime.Caller(0)

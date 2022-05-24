@@ -15,7 +15,7 @@ These index templates are composed of multiple component templates--reusable bui
 that configure index mappings, settings, and aliases.
 
 The default APM index templates can be viewed in {kib}.
-Navigate to **Stack Management** > **Index Management** > **Index Templates**, and search for `apm`.
+Navigate to **{stack-manage-app}** > **Index Management** > **Index Templates**, and search for `apm`.
 Select any of the APM index templates to view their relevant component templates.
 
 [discrete]
@@ -23,14 +23,14 @@ Select any of the APM index templates to view their relevant component templates
 === Edit the {es} index template
 
 WARNING: Custom index mappings may conflict with the mappings defined by the APM integration
-and may break the APM integration and APM app in {kib}.
+and may break the APM integration and {apm-app} in {kib}.
 Do not change or customize any default mappings.
 
 When you install the APM integration, {fleet} creates a default `@custom` component template for each data stream.
 You can edit this `@custom` component template to customize your {es} indices.
 
 First, determine which <<apm-data-streams,data stream>> you'd like to edit.
-Then, open {kib} and navigate to **Stack Management** > **Index Management** > **Component Templates**.
+Then, open {kib} and navigate to **{stack-manage-app}** > **Index Management** > **Component Templates**.
 
 Custom component templates are named following this pattern: `<name_of_data_stream>@custom`.
 Search for the name of the data stream, like `traces-apm`, and select its custom component template.

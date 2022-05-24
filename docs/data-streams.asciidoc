@@ -11,7 +11,7 @@ and offer a host of benefits over other indexing strategies:
 * Flexible naming scheme
 * Fewer ingest permissions required
 
-See the {fleet-guide}/data-streams.html[Fleet and Elastic Agent Guide] to learn more.
+See the {fleet-guide}/data-streams.html[{fleet} and {agent} Guide] to learn more.
 ****
 
 [discrete]
@@ -52,7 +52,7 @@ Metrics are stored in the following data streams:
 - Application metrics: `metrics-apm.app.<service.name>-<namespace>`
 // end::metrics-data-streams[]
 +
-Application metrics include the instrumented service's name--defined in each APM agent's
+Application metrics include the instrumented service's name--defined in each {apm-agent}'s
 configuration--in the data stream name.
 Service names therefore must follow certain index naming rules.
 +

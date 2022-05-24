@@ -33,9 +33,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/approvaltest"
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelindexer/modelindexertest"
 	"github.com/elastic/apm-server/publish"
 )
 
@@ -309,9 +309,8 @@ func TestLabelLeak(t *testing.T) {
 
 func makeApproveEventsBatchProcessor(t *testing.T, name string, count *int) model.BatchProcessor {
 	return model.ProcessBatchFunc(func(ctx context.Context, b *model.Batch) error {
-		events := b.Transform(ctx)
-		*count += len(events)
-		docs := beatertest.EncodeEventDocs(events...)
+		docs := modelindexertest.AppendEncodedBatch(t, nil, *b)
+		*count += len(docs)
 		approvaltest.ApproveEventDocs(t, name, docs)
 		return nil
 	})
