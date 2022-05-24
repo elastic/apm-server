@@ -15,34 +15,36 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package expvarmetrics
+package expvar
 
 import (
 	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestStart(t *testing.T) {
 	server := getTestServer(t)
 	defer server.Close()
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	c, err := StartNewCollector(ctx, server.URL, 10*time.Second)
 	assert.NoError(t, err)
-	assert.Equal(t, int64(1), c.Get(Goroutines).sampleCount)
+	assert.Equal(t, int64(1), c.Get(Goroutines).samples)
 	assert.Equal(t, int64(1), c.Get(Goroutines).First)
 }
 
 func TestAggregate(t *testing.T) {
 	server := getTestServer(t)
 	defer server.Close()
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	c, _ := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
 	<-time.After(55 * time.Millisecond)
@@ -50,13 +52,13 @@ func TestAggregate(t *testing.T) {
 	assert.GreaterOrEqual(t, stats.Last, int64(6))
 	assert.Equal(t, stats.Last, stats.Max)
 	assert.Equal(t, stats.First, stats.Min)
-	assert.Equal(t, float64(stats.Last*(stats.Last+1))/float64(2*stats.sampleCount), stats.Mean)
+	assert.Equal(t, float64(stats.Last*(stats.Last+1))/float64(2*stats.samples), stats.Mean)
 }
 
 func TestWatch(t *testing.T) {
 	server := getTestServer(t)
 	defer server.Close()
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	c, _ := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
 	watcher, err := c.AddWatch(Goroutines, 5)
@@ -70,15 +72,55 @@ func TestWatch(t *testing.T) {
 	}
 }
 
+func TestWatchFalse(t *testing.T) {
+	server := getTestServer(t)
+	defer server.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	c, _ := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
+	watcher, err := c.AddWatch(Goroutines, 20)
+	require.NoError(t, err)
+	cancel()
+	select {
+	case w := <-watcher:
+		assert.False(t, w)
+	case <-time.After(100 * time.Millisecond):
+		assert.Fail(t, "timed out while waiting for watcher")
+	}
+}
+
+func TestWatchNonBlocking(t *testing.T) {
+	server := getTestServer(t)
+	defer server.Close()
+	timeout := 100 * time.Millisecond
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	c, _ := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
+	watcher, err := c.AddWatch(Goroutines, 5)
+	require.NoError(t, err)
+
+	// Wait for the context to be cancelled.
+	<-time.After(timeout)
+
+	// Verify the values are updated even when there isn't an active receiver
+	// on the watch.
+	assert.GreaterOrEqual(t, c.Get(Goroutines).Max, int64(5))
+	select {
+	case w := <-watcher:
+		assert.True(t, w)
+	case <-time.After(100 * time.Millisecond):
+		assert.Fail(t, "timed out while waiting for watcher")
+	}
+}
+
 func getTestServer(t *testing.T) *httptest.Server {
-	count := 1
+	var count uint64
 	return httptest.NewServer(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path != "/debug/vars" {
 				t.Errorf("unexpcted path: %s", r.URL.Path)
 			}
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(fmt.Sprintf(`{"beat.runtime.goroutines": %d}`, count)))
+			w.Write([]byte(fmt.Sprintf(`{"beat.runtime.goroutines": %d}`, atomic.AddUint64(&count, 1))))
 			count++
 		}),
 	)
