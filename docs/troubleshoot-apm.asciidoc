@@ -9,10 +9,10 @@ For additional help, see the links below.
 [[troubleshooting-docs]]
 === Troubleshooting documentation
 
-Elastic Agent, the APM app, and each APM agent has its own troubleshooting guide:
+{agent}, the {apm-app}, and each {apm-agent} has its own troubleshooting guide:
 
-* {fleet-guide}/troubleshooting-intro.html[*Fleet and Elastic Agent* troubleshooting]
-* {kibana-ref}/troubleshooting.html[*APM app* troubleshooting]
+* {fleet-guide}/troubleshooting-intro.html[*{fleet} and {agent}* troubleshooting]
+* {kibana-ref}/troubleshooting.html[*{apm-app}* troubleshooting]
 * {apm-dotnet-ref-v}/troubleshooting.html[*.NET agent* troubleshooting]
 * {apm-go-ref-v}/troubleshooting.html[*Go agent* troubleshooting]
 * {apm-ios-ref-v}/troubleshooting.html[*iOS agent* troubleshooting]

@@ -25,14 +25,14 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/version"
 )
 
 const (
 	integrationName = "apm"
 )
 
-func transformFile(path string, content []byte, version *common.Version) ([]byte, error) {
+func transformFile(path string, content []byte, version *version.V) ([]byte, error) {
 	if path == "manifest.yml" {
 		return transformPackageManifest(content, version)
 	}
@@ -45,7 +45,7 @@ func transformFile(path string, content []byte, version *common.Version) ([]byte
 	return content, nil
 }
 
-func transformPackageManifest(content []byte, version *common.Version) ([]byte, error) {
+func transformPackageManifest(content []byte, version *version.V) ([]byte, error) {
 	var doc yaml.Node
 	if err := yaml.Unmarshal(content, &doc); err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func transformPackageManifest(content []byte, version *common.Version) ([]byte, 
 	return marshalYAML(&doc)
 }
 
-func transformDataStreamManifest(path string, content []byte, version *common.Version) ([]byte, error) {
+func transformDataStreamManifest(path string, content []byte, version *version.V) ([]byte, error) {
 	var doc yaml.Node
 	if err := yaml.Unmarshal(content, &doc); err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func transformDataStreamManifest(path string, content []byte, version *common.Ve
 	return content, nil
 }
 
-func transformIngestPipeline(path string, content []byte, version *common.Version) ([]byte, error) {
+func transformIngestPipeline(path string, content []byte, version *version.V) ([]byte, error) {
 	var doc yaml.Node
 	if err := yaml.Unmarshal(content, &doc); err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func transformIngestPipeline(path string, content []byte, version *common.Versio
 // resolveIngestPipelineReferences resolves pipeline processors to common
 // pipelines defined in common_pipelines.yml, which holds a map of pipeline
 // names to sequences of processors.
-func resolveIngestPipelineReferences(doc *yaml.Node, version *common.Version) error {
+func resolveIngestPipelineReferences(doc *yaml.Node, version *version.V) error {
 	processorsNode := yamlMapLookup(doc.Content[0], "processors")
 	for i := 0; i < len(processorsNode.Content); i++ {
 		node := processorsNode.Content[i]

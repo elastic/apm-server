@@ -42,7 +42,7 @@ https://github.com/elastic/apm-server/compare/v7.14.2\...v7.15.0[View commits]
 [float]
 ==== Bug fixes
 - corrected OTel attribute names for `net.host.connection.*` {pull}5671[5671]
-- Fix response to agent config when running under Fleet with no agent config defined {pull}5917[5917]
+- Fix response to agent config when running under {fleet} with no agent config defined {pull}5917[5917]
 - Fix handling of OTLP sum/gauge metrics with integer values {pull}6106[6106]
 
 [float]
