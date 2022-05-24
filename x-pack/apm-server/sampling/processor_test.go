@@ -597,17 +597,10 @@ func TestStorageGC(t *testing.T) {
 		return vlogs
 	}
 
-<<<<<<< HEAD
-	// Process spans until more than one value log file has been created,
-	// but the first one does not exist (has been garbage collected).
-	for len(vlogFilenames()) < 3 {
-		writeBatch(50000)
-=======
 	// Process spans until value log files have been created.
 	// Garbage collection is disabled at this time.
 	for len(vlogFilenames()) < 3 {
 		writeBatch(500)
->>>>>>> c00efb98 (sampling: speed up TestStorageGC (#8186))
 	}
 
 	config.StorageGCInterval = 10 * time.Millisecond
