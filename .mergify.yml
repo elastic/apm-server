@@ -27,7 +27,7 @@ pull_request_rules:
         assignees:
           - "{{ author }}"
         branches:
-          - "8.32"
+          - "8.3"
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"          
   - name: backport patches to 8.2 branch
     conditions:
