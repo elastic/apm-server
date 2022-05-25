@@ -30,6 +30,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// The test server used in the test file creates a series of natural numbers.
+// Due to the queryExpvar logic to send multiple requests and aggregate them
+// every term in the series is multiplied by a factor of factorBasedOnQueryExpvar
+//
+// TODO: @lahsivjar the logic of querying expvar leaks into these
+// test cases due to the logic in test server to keep the aggregation
+// deterministing for unit testing
+var factorBasedOnQueryExpvar = 12
+
 func TestStart(t *testing.T) {
 	server := getTestServer(t)
 	defer server.Close()
@@ -39,7 +48,7 @@ func TestStart(t *testing.T) {
 	c, err := StartNewCollector(ctx, server.URL, 10*time.Second)
 	assert.NoError(t, err)
 	assert.Equal(t, int64(1), c.Get(Goroutines).samples)
-	assert.Equal(t, int64(1), c.Get(Goroutines).First)
+	assert.Equal(t, int64(1)*int64(factorBasedOnQueryExpvar), c.Get(Goroutines).First)
 }
 
 func TestAggregate(t *testing.T) {
@@ -51,10 +60,11 @@ func TestAggregate(t *testing.T) {
 	<-time.After(55 * time.Millisecond)
 
 	stats := c.Get(Goroutines)
-	assert.GreaterOrEqual(t, stats.Last, int64(6))
+	expectedMean := (float64(stats.samples*(stats.samples+1)) / float64(2*stats.samples)) * float64(factorBasedOnQueryExpvar)
+	assert.GreaterOrEqual(t, stats.Last, int64(6)*int64(factorBasedOnQueryExpvar))
 	assert.Equal(t, stats.Last, stats.Max)
 	assert.Equal(t, stats.First, stats.Min)
-	assert.Equal(t, float64(stats.Last*(stats.Last+1))/float64(2*stats.samples), stats.Mean)
+	assert.Equal(t, expectedMean, stats.Mean)
 }
 
 func TestWatchMetric(t *testing.T) {
@@ -64,12 +74,12 @@ func TestWatchMetric(t *testing.T) {
 	defer cancel()
 	c, _ := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
 
-	watcher, err := c.WatchMetric(Goroutines, 5)
+	watcher, err := c.WatchMetric(Goroutines, int64(5*factorBasedOnQueryExpvar))
 	assert.NoError(t, err)
 	select {
 	case w := <-watcher:
 		assert.True(t, w)
-		assert.GreaterOrEqual(t, c.Get(Goroutines).Last, int64(5))
+		assert.GreaterOrEqual(t, c.Get(Goroutines).Last, int64(5)*int64(factorBasedOnQueryExpvar))
 	case <-time.After(100 * time.Millisecond):
 		assert.Fail(t, "timed out while waiting for watcher")
 	}
@@ -84,7 +94,7 @@ func TestWatchMetricFail(t *testing.T) {
 	<-time.After(100 * time.Millisecond)
 
 	_, err := c.WatchMetric(Goroutines, 10)
-	assert.Error(t, err)
+	assert.ErrorContains(t, err, "collector has stopped")
 }
 
 func TestWatchMetricFalse(t *testing.T) {
@@ -111,14 +121,14 @@ func TestWatchMetricNonBlocking(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	c, _ := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
-	watcher, err := c.WatchMetric(Goroutines, 5)
+	watcher, err := c.WatchMetric(Goroutines, int64(5*factorBasedOnQueryExpvar))
 	require.NoError(t, err)
 	// Wait for the context to be cancelled.
 	<-time.After(timeout)
 
 	// Verify the values are updated even when there isn't an active receiver
 	// on the watch.
-	assert.GreaterOrEqual(t, c.Get(Goroutines).Max, int64(5))
+	assert.GreaterOrEqual(t, c.Get(Goroutines).Max, int64(5*factorBasedOnQueryExpvar))
 	select {
 	case w := <-watcher:
 		assert.True(t, w)
@@ -134,6 +144,7 @@ func getTestServer(t *testing.T) *httptest.Server {
 			if r.URL.Path != "/debug/vars" {
 				t.Errorf("unexpcted path: %s", r.URL.Path)
 			}
+			w.Header().Set(cloudProxyHeader, "1")
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprintf(`{"beat.runtime.goroutines": %d}`, atomic.AddUint64(&count, 1))))
 		}),

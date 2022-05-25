@@ -114,6 +114,7 @@ func queryExpvar(ctx context.Context, out *expvar, srv string) error {
 		aggregateOTLPResponseStats(s.OTLPResponseStats, &result.OTLPResponseStats)
 		aggregateLibbeatStats(s.LibbeatStats, &result.LibbeatStats)
 		result.UncompressedBytes += s.UncompressedBytes
+		result.AvailableBulkRequests += s.AvailableBulkRequests
 	}
 	*out = result
 	return nil
@@ -185,6 +186,8 @@ func aggregateMemStats(from runtime.MemStats, to *runtime.MemStats) {
 func aggregateLibbeatStats(from LibbeatStats, to *LibbeatStats) {
 	to.ActiveEvents += from.ActiveEvents
 	to.TotalEvents += from.TotalEvents
+	to.Goroutines += from.Goroutines
+	to.RSSMemoryBytes += from.RSSMemoryBytes
 }
 
 func aggregateResponseStats(from ElasticResponseStats, to *ElasticResponseStats) {
