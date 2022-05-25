@@ -39,10 +39,10 @@ This check is no longer performed, so the field has been removed.
 For details, see https://github.com/elastic/apm-server/pull/7399[PR #7399].
 
 [float]
-==== APM Server no longer ships with SystemV init scripts or the go-daemon wrapper
+==== APM Server no longer ships with System V init scripts or the go-daemon wrapper
 
 As of version 8.1.0, all Linux distributions supported by APM Server support systemd.
-As a result, APM Server no longer ships with SystemV init scripts or the go-daemon wrapper; use systemd instead.
+As a result, APM Server no longer ships with System V init scripts or the go-daemon wrapper; use systemd instead.
 
 For details, see https://github.com/elastic/apm-server/pull/7576[PR #7576].
 

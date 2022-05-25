@@ -55,35 +55,35 @@ func CORSMiddleware(allowedOrigins, allowedHeaders []string) Middleware {
 				// setting the ACAO header is the way to tell the browser to go ahead with the request
 				if validOrigin {
 					// do not set the configured origin(s), echo the received origin instead
-					c.Header().Set(headers.AccessControlAllowOrigin, origin)
+					c.ResponseWriter.Header().Set(headers.AccessControlAllowOrigin, origin)
 				}
 
 				// tell browsers to cache response requestHeaders for up to 1 hour (browsers might ignore this)
-				c.Header().Set(headers.AccessControlMaxAge, "3600")
+				c.ResponseWriter.Header().Set(headers.AccessControlMaxAge, "3600")
 				// origin must be part of the cache key so that we can handle multiple allowed origins
-				c.Header().Set(headers.Vary, "Origin")
+				c.ResponseWriter.Header().Set(headers.Vary, "Origin")
 
 				// required if Access-Control-Request-Method and Access-Control-Request-Headers are in the requestHeaders
-				c.Header().Set(headers.AccessControlAllowMethods, supportedMethods)
+				c.ResponseWriter.Header().Set(headers.AccessControlAllowMethods, supportedMethods)
 				h := append(allowedHeaders, supportedHeaders...)
-				c.Header().Set(headers.AccessControlAllowHeaders, strings.Join(h, ", "))
+				c.ResponseWriter.Header().Set(headers.AccessControlAllowHeaders, strings.Join(h, ", "))
 
-				c.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
+				c.ResponseWriter.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
 
-				c.Header().Set(headers.ContentLength, "0")
+				c.ResponseWriter.Header().Set(headers.ContentLength, "0")
 
 				c.Result.SetDefault(request.IDResponseValidOK)
-				c.Write()
+				c.WriteResult()
 
 			} else if validOrigin {
 				// we need to check the origin and set the ACAO header in both the OPTIONS preflight and the actual request
-				c.Header().Set(headers.AccessControlAllowOrigin, origin)
+				c.ResponseWriter.Header().Set(headers.AccessControlAllowOrigin, origin)
 				h(c)
 
 			} else {
 				c.Result.SetWithError(request.IDResponseErrorsForbidden,
 					errors.New("origin: '"+origin+"' is not allowed"))
-				c.Write()
+				c.WriteResult()
 			}
 		}, nil
 	}

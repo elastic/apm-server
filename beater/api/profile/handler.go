@@ -189,7 +189,7 @@ func Handler(requestMetadataFunc RequestMetadataFunc, processor model.BatchProce
 		} else {
 			c.Result.SetWithBody(request.IDResponseValidAccepted, result)
 		}
-		c.Write()
+		c.WriteResult()
 	}
 }
 

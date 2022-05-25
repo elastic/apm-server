@@ -84,12 +84,12 @@ func NewHandler(
 // requests.
 func (h *handler) Handle(c *request.Context) {
 	// error handling
-	c.Header().Set(headers.CacheControl, errCacheControl)
+	c.ResponseWriter.Header().Set(headers.CacheControl, errCacheControl)
 
 	query, queryErr := buildQuery(c)
 	if queryErr != nil {
 		extractQueryError(c, queryErr)
-		c.Write()
+		c.WriteResult()
 		return
 	}
 	if query.Service.Environment == "" {
@@ -109,7 +109,7 @@ func (h *handler) Handle(c *request.Context) {
 			c.Result.SetDefault(request.IDResponseErrorsServiceUnavailable)
 			c.Result.Err = err
 		}
-		c.Write()
+		c.WriteResult()
 		return
 	}
 	if c.Authentication.Method == auth.MethodAnonymous {
@@ -136,21 +136,21 @@ func (h *handler) Handle(c *request.Context) {
 			apm.CaptureError(c.Request.Context(), err).Send()
 			extractInternalError(c, err)
 		}
-		c.Write()
+		c.WriteResult()
 		return
 	}
 
 	// configuration successfully fetched
-	c.Header().Set(headers.CacheControl, h.cacheControl)
-	c.Header().Set(headers.Etag, fmt.Sprintf("\"%s\"", result.Source.Etag))
-	c.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
+	c.ResponseWriter.Header().Set(headers.CacheControl, h.cacheControl)
+	c.ResponseWriter.Header().Set(headers.Etag, fmt.Sprintf("\"%s\"", result.Source.Etag))
+	c.ResponseWriter.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
 
 	if result.Source.Etag == ifNoneMatch(c) {
 		c.Result.SetDefault(request.IDResponseValidNotModified)
 	} else {
 		c.Result.SetWithBody(request.IDResponseValidOK, result.Source.Settings)
 	}
-	c.Write()
+	c.WriteResult()
 }
 
 func buildQuery(c *request.Context) (agentcfg.Query, error) {

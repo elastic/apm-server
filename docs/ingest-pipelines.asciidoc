@@ -21,7 +21,7 @@ The default APM pipelines are defined in index templates that {fleet} loads into
 === View ingest pipelines
 
 To view or edit a default pipelines in {kib},
-select **Stack Management** > **Ingest Pipelines**.
+select **{stack-manage-app}** > **Ingest Pipelines**.
 Search for `apm`.
 
 It is not currently possible to edit or add pipelines that persist through upgrades.

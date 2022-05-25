@@ -4,7 +4,7 @@
 This guide explains the upgrade process for version {version}.
 For a detailed look at what's new, see:
 
-* {observability-guide}/whats-new.html[What's new in Observability]
+* {observability-guide}/whats-new.html[What's new in {observability}]
 * {kibana-ref}/whats-new.html[What's new in {kib}]
 * {ref}/release-highlights.html[{es} release highlights]
 
@@ -69,7 +69,7 @@ see the https://www.elastic.co/guide/en/elastic-stack/7.17/upgrading-elastic-sta
 {apm-guide-7x}/upgrading-to-717.html[upgrade to version 7.17].
 
 . Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and Observability {observability-guide}/whats-new.html[What's new] content.
+and {observability} {observability-guide}/whats-new.html[What's new] content.
 
 [float]
 ==== Upgrade steps
@@ -150,7 +150,7 @@ must be upgraded to version 7.17. To upgrade {es} and {kib},
 see the https://www.elastic.co/guide/en/elastic-stack/7.17/upgrading-elastic-stack.html[{stack} Installation and Upgrade Guide]
 
 . Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and Observability {observability-guide}/whats-new.html[What's new] content.
+and {observability} {observability-guide}/whats-new.html[What's new] content.
 
 [float]
 ==== Upgrade steps
@@ -194,7 +194,7 @@ Only use this guide if both of the following are true:
 Follow these steps to upgrade:
 
 . Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and Observability {observability-guide}/whats-new.html[What's new] content.
+and {observability} {observability-guide}/whats-new.html[What's new] content.
 
 . Upgrade {ecloud} to {version},
 See https://www.elastic.co/guide/en/cloud/current/ec-upgrade-deployment.html[Upgrade versions] for instructions.
@@ -221,7 +221,7 @@ Only use this guide if both of the following are true:
 Follow these steps to upgrade:
 
 . Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and Observability {observability-guide}/whats-new.html[What's new] content.
+and {observability} {observability-guide}/whats-new.html[What's new] content.
 
 . Upgrade your {ecloud} instance to {version}.
 See https://www.elastic.co/guide/en/cloud/current/ec-upgrade-deployment.html[Upgrade versions] for details.

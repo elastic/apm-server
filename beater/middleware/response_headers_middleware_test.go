@@ -31,5 +31,5 @@ func TestResponseHeadersMiddleware(t *testing.T) {
 	}
 	c, _ := beatertest.DefaultContextWithResponseRecorder()
 	Apply(ResponseHeadersMiddleware(h), beatertest.HandlerIdle)(c)
-	assert.Equal(t, "custom-header-value", c.Header().Get("X-Custom-Header"))
+	assert.Equal(t, "custom-header-value", c.ResponseWriter.Header().Get("X-Custom-Header"))
 }
