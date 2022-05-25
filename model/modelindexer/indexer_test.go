@@ -212,11 +212,7 @@ func TestModelIndexerCompressionLevel(t *testing.T) {
 	err = indexer.Close(context.Background())
 	require.NoError(t, err)
 	stats := indexer.Stats()
-	// BUG(axw) stats.BytesTotal is incorrect when using compression,
-	// as we count the internal buffer size before flushing/closing
-	// the gzip writer. For consistency with libbeat, we may want to
-	// count the size of bytes written on the wire; but I think we
-	// have some flexibility here.
+	assert.GreaterOrEqual(t, stats.BytesTotal, int64(155))
 	stats.BytesTotal = 0
 	assert.Equal(t, modelindexer.Stats{
 		Added:                 1,

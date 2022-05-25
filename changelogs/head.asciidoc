@@ -15,6 +15,7 @@ https://github.com/elastic/apm-server/compare/8.2\...main[View commits]
 ==== Bug fixes
 - Fix a bug that caused some of the decoded events to have incorrect labels {pull}8081[8081]
 - Propagate datastream namespace changes from apm-integration into server {pull}8176[8176]
+- Correct the `libbeat.output.write.bytes` metric to count the written bytes after the compressed writer has been flushed {pull}8221[8221]
 
 [float]
 ==== Intake API Changes

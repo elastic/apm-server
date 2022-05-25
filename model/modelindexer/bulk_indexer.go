@@ -135,21 +135,26 @@ func (b *bulkIndexer) writeMeta(item elasticsearch.BulkIndexerItem) {
 	b.jsonw.Reset()
 }
 
-// Flush executes a bulk request if there are any items buffered, and clears out the buffer.
-func (b *bulkIndexer) Flush(ctx context.Context) (elasticsearch.BulkIndexerResponse, error) {
+func (b *bulkIndexer) newBulkRequest() (esapi.BulkRequest, error) {
 	if b.itemsAdded == 0 {
-		return elasticsearch.BulkIndexerResponse{}, nil
+		return esapi.BulkRequest{}, nil
 	}
+	req := esapi.BulkRequest{Body: &b.buf, Header: esHeader}
 	if b.gzipw != nil {
 		if err := b.gzipw.Close(); err != nil {
-			return elasticsearch.BulkIndexerResponse{}, err
+			return esapi.BulkRequest{}, fmt.Errorf(
+				"failed closing the gzip writer: %w", err,
+			)
 		}
-	}
-
-	req := esapi.BulkRequest{Body: &b.buf}
-	req.Header = esHeader
-	if b.gzipw != nil {
 		req.Header = gzipHeader
+	}
+	return req, nil
+}
+
+// Flush executes a bulk request if there are any items buffered, and clears out the buffer.
+func (b *bulkIndexer) Flush(ctx context.Context, req esapi.BulkRequest) (elasticsearch.BulkIndexerResponse, error) {
+	if b.itemsAdded == 0 {
+		return elasticsearch.BulkIndexerResponse{}, nil
 	}
 	res, err := req.Do(ctx, b.client)
 	if err != nil {
