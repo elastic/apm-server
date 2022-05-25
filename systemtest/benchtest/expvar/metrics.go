@@ -172,8 +172,8 @@ func (c *Collector) updateMetric(stats AggregateStats, value int64) AggregateSta
 		stats.First, stats.Min, stats.Max = value, value, value
 	}
 
-	stats.Last = value
 	stats.samples++
+	stats.Last = value
 	stats.Mean += (float64(value) - stats.Mean) / float64(stats.samples)
 	if stats.Min > value {
 		stats.Min = value
@@ -185,9 +185,11 @@ func (c *Collector) updateMetric(stats AggregateStats, value int64) AggregateSta
 	return stats
 }
 
-func (c *Collector) rejectWatches() {
+func (c *Collector) cleanup() {
 	c.l.Lock()
 	defer c.l.Unlock()
+
+	c.stopped = true
 
 	for m, watch := range c.watches {
 		close(watch.notifyChan)
@@ -199,17 +201,14 @@ func (c *Collector) start(ctx context.Context, serverURL string, period time.Dur
 	var first expvar
 	err := queryExpvar(ctx, &first, serverURL)
 	if err != nil {
-		c.stopped = true
+		c.cleanup()
 		return err
 	}
 	c.accumulate(first)
 
 	outChan, errChan := run(ctx, serverURL, period)
 	go func() {
-		defer func() {
-			c.stopped = true
-			c.rejectWatches()
-		}()
+		defer c.cleanup()
 		for {
 			select {
 			case <-ctx.Done():
