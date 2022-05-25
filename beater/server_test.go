@@ -606,7 +606,12 @@ func TestServerOutputConfigReload(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}
 
+<<<<<<< HEAD
 	inputConfig := common.MustNewConfigFrom(map[string]interface{}{
+=======
+	inputConfig := agentconfig.MustNewConfigFrom(map[string]interface{}{
+		"data_stream.namespace": "custom",
+>>>>>>> a38bda29 (prefer integration config's data_stream.namespace (#8176))
 		"apm-server": map[string]interface{}{
 			"host": "localhost:0",
 			"sampling.tail": map[string]interface{}{
@@ -622,6 +627,7 @@ func TestServerOutputConfigReload(t *testing.T) {
 
 	runServerArgs := <-runServerCalls
 	assert.Equal(t, "", runServerArgs.Config.Sampling.Tail.ESConfig.Username)
+	assert.Equal(t, "custom", runServerArgs.Namespace)
 
 	// Reloaded output config should be passed into apm-server config.
 	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{
