@@ -236,9 +236,14 @@ type reloader struct {
 	args             sharedServerRunnerParams
 
 	mu           sync.Mutex
+<<<<<<< HEAD
 	namespace    string
 	rawConfig    *common.Config
 	outputConfig common.ConfigNamespace
+=======
+	rawConfig    *agentconfig.C
+	outputConfig agentconfig.Namespace
+>>>>>>> a38bda29 (prefer integration config's data_stream.namespace (#8176))
 	fleetConfig  *config.Fleet
 	runner       *serverRunner
 }
@@ -264,14 +269,18 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 	if err != nil {
 		return err
 	}
-	var namespace string
-	if integrationConfig.DataStream != nil {
-		namespace = integrationConfig.DataStream.Namespace
-	}
 
 	r.mu.Lock()
-	r.namespace = namespace
 	r.rawConfig = integrationConfig.APMServer
+	// Merge in datastream namespace passed in from apm integration
+	if integrationConfig.DataStream != nil && integrationConfig.DataStream.Namespace != "" {
+		c := agentconfig.MustNewConfigFrom(map[string]interface{}{
+			"data_streams.namespace": integrationConfig.DataStream.Namespace,
+		})
+		if r.rawConfig, err = agentconfig.MergeConfigs(r.rawConfig, c); err != nil {
+			return err
+		}
+	}
 	r.fleetConfig = &integrationConfig.Fleet
 	r.mu.Unlock()
 	return r.reload()
