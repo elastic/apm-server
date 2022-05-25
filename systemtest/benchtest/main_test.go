@@ -29,7 +29,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func Test_warmup(t *testing.T) {
@@ -194,6 +196,67 @@ func Test_warmupTimeout(t *testing.T) {
 				tt.args.cpus,
 			)
 			assert.Equal(t, tt.expected, got)
+		})
+	}
+}
+
+type mockCollector struct {
+	mock.Mock
+}
+
+func (c *mockCollector) Get(m expvar.Metric) expvar.AggregateStats {
+	args := c.Called(m)
+	return args.Get(0).(expvar.AggregateStats)
+}
+
+func (c *mockCollector) Delta(m expvar.Metric) int64 {
+	args := c.Called(m)
+	return args.Get(0).(int64)
+}
+
+func TestAddExpvarMetrics(t *testing.T) {
+	tests := []struct {
+		name                string
+		detailed            bool
+		errorResponse       bool
+		expectedExtraMetric int
+	}{
+		{
+			name:                "important metrics without detailed flag and no err resp",
+			detailed:            false,
+			errorResponse:       false,
+			expectedExtraMetric: 1,
+		},
+		{
+			name:                "important metrics without detailed flag and err resp",
+			detailed:            false,
+			errorResponse:       true,
+			expectedExtraMetric: 2,
+		},
+		{
+			name:                "metrics with detailed flag",
+			detailed:            true,
+			errorResponse:       false,
+			expectedExtraMetric: 12,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			collector := &mockCollector{}
+			r := testing.BenchmarkResult{
+				Extra: make(map[string]float64),
+				T:     time.Second,
+			}
+			var deltaValue int64
+			if tt.errorResponse {
+				deltaValue = 1
+			}
+			collector.Mock.On("Delta", mock.Anything).Return(deltaValue)
+			collector.Mock.On("Get", mock.Anything).Return(expvar.AggregateStats{})
+			addExpvarMetrics(&r, collector, tt.detailed)
+
+			assert.Equal(t, tt.expectedExtraMetric, len(r.Extra))
 		})
 	}
 }

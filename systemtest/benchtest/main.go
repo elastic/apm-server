@@ -59,6 +59,11 @@ type benchmark struct {
 	f    BenchmarkFunc
 }
 
+type metricsCollector interface {
+	Delta(expvar.Metric) int64
+	Get(expvar.Metric) expvar.AggregateStats
+}
+
 func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 	// Run the benchmark. testing.Benchmark will invoke the function
 	// multiple times, but only returns the final result.
@@ -89,12 +94,12 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 		ok = !b.Failed()
 	})
 	if result.Extra != nil {
-		addExpvarMetrics(result, collector, *detailed)
+		addExpvarMetrics(&result, collector, *detailed)
 	}
 	return result, ok, nil
 }
 
-func addExpvarMetrics(result testing.BenchmarkResult, collector *expvar.Collector, detailed bool) {
+func addExpvarMetrics(result *testing.BenchmarkResult, collector metricsCollector, detailed bool) {
 	result.Bytes = collector.Delta(expvar.Bytes)
 	result.MemAllocs = uint64(collector.Delta(expvar.MemAllocs))
 	result.MemBytes = uint64(collector.Delta(expvar.MemBytes))
