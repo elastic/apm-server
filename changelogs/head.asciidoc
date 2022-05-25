@@ -1,0 +1,35 @@
+[[release-notes-head]]
+== APM version HEAD
+
+https://github.com/elastic/apm-server/compare/8.2\...main[View commits]
+
+[float]
+==== Breaking Changes
+- Removed support for experimental firehose endpoint for CloudWatch metric streams {pull}8109[8109]
+
+[float]
+==== Deprecations
+- `span.context.destination.service.resource` is deprecated {pull}7925[7925]
+
+[float]
+==== Bug fixes
+- Fix a bug that caused some of the decoded events to have incorrect labels {pull}8081[8081]
+- Propagate datastream namespace changes from apm-integration into server {pull}8176[8176]
+
+[float]
+==== Intake API Changes
+- For OpenTelemetry exception span events, stack traces that cannot be parsed will now be stored in `event.stack_trace` {pull}7706[7706]
+- Support for ingesting `service.target.type` and `service.target.name` added to intake API for spans {pull}7870[7870]
+- Derive `service.target.{type, name}` fields for older agents from `span.context.destination.service.resource` {pull}7925[7925]
+- Support `service.target.*` in metrics aggregation {pull}7924[7924]
+
+[float]
+==== Added
+- System, process, and well-defined runtime metrics are now sent to the shared `metrics-apm.internal-<namespace>` data stream {pull}7882[7882]
+- Number of parallel bulk requests are now configurable via `output.elasticsearch.max_requests` {pull}8055[8055]
+
+
+// Added but still being debugged
+- `apm-server` artifacts now have the apm java-attacher.jar packaged alongside them {pull}6593[6593]
+- Run the java attacher jar when configured and not in a cloud environment {pull}6617[6617]
+- OTLP/HTTP protocol is now supported {pull}8156{8156}
