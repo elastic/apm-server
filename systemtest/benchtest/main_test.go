@@ -20,6 +20,7 @@ package benchtest
 import (
 	"bufio"
 	"compress/zlib"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,10 +30,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_warmup(t *testing.T) {
@@ -201,63 +200,146 @@ func Test_warmupTimeout(t *testing.T) {
 	}
 }
 
-type mockCollector struct {
-	mock.Mock
-}
-
-func (c *mockCollector) Get(m expvar.Metric) expvar.AggregateStats {
-	args := c.Called(m)
-	return args.Get(0).(expvar.AggregateStats)
-}
-
-func (c *mockCollector) Delta(m expvar.Metric) int64 {
-	args := c.Called(m)
-	return args.Get(0).(int64)
-}
-
 func TestAddExpvarMetrics(t *testing.T) {
 	tests := []struct {
-		name                string
-		detailed            bool
-		errorResponse       bool
-		expectedExtraMetric int
+		name            string
+		detailed        bool
+		responseMetrics []string
+		memstatsMetrics []string
+		expectedResult  map[string]float64
 	}{
 		{
-			name:                "important metrics without detailed flag and no err resp",
-			detailed:            false,
-			errorResponse:       false,
-			expectedExtraMetric: 1,
+			name:     "with false detailed flag and no error resp",
+			detailed: false,
+			responseMetrics: []string{
+				`"libbeat.output.events.total": 10`,
+				`"beat.runtime.goroutines": 4`,
+				`"beat.memstats.rss": 1048576`,
+				`"apm-server.otlp.grpc.metrics.response.errors.count": 0`,
+			},
+			expectedResult: map[string]float64{
+				"events/sec": 10,
+			},
 		},
 		{
-			name:                "important metrics without detailed flag and err resp",
-			detailed:            false,
-			errorResponse:       true,
-			expectedExtraMetric: 2,
+			name:     "with false detailed flag and error resp",
+			detailed: false,
+			responseMetrics: []string{
+				`"libbeat.output.events.total": 10`,
+				`"beat.runtime.goroutines": 4`,
+				`"beat.memstats.rss": 1048576`,
+				`"apm-server.otlp.grpc.metrics.response.errors.count": 1`,
+			},
+			expectedResult: map[string]float64{
+				"events/sec":          10,
+				"error_responses/sec": 1,
+			},
 		},
 		{
-			name:                "metrics with detailed flag",
-			detailed:            true,
-			errorResponse:       false,
-			expectedExtraMetric: 12,
+			name:     "with true detailed flag and error resp",
+			detailed: true,
+			responseMetrics: []string{
+				`"libbeat.output.events.total": 24`,
+				`"apm-server.processor.transaction.transformations": 7`,
+				`"apm-server.processor.span.transformations": 5`,
+				`"apm-server.processor.metric.transformations": 9`,
+				`"apm-server.processor.error.transformations": 3`,
+				`"beat.runtime.goroutines": 4`,
+				`"beat.memstats.rss": 1048576`,
+				`"output.elasticsearch.bulk_requests.available": 0`,
+				`"apm-server.otlp.grpc.metrics.response.errors.count": 1`,
+			},
+			memstatsMetrics: []string{
+				`"Alloc": 10240`,
+				`"NumGC": 10`,
+				`"HeapAlloc": 10240`,
+				`"HeapObjects": 102`,
+			},
+			expectedResult: map[string]float64{
+				"events/sec":              24,
+				"txs/sec":                 7,
+				"spans/sec":               5,
+				"metrics/sec":             9,
+				"errors/sec":              3,
+				"gc_cycles":               10,
+				"max_rss":                 1048576,
+				"max_goroutines":          4,
+				"max_heap_alloc":          10240,
+				"max_heap_objects":        102,
+				"mean_available_indexers": 0,
+				"error_responses/sec":     1,
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			collector := &mockCollector{}
+			server := getTestServer(t, tt.responseMetrics, tt.memstatsMetrics)
+			defer server.Close()
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			collector, err := expvar.StartNewCollector(ctx, server.URL, 10*time.Millisecond)
+			assert.NoError(t, err)
+			<-time.After(100 * time.Millisecond)
+			cancel()
+
 			r := testing.BenchmarkResult{
 				Extra: make(map[string]float64),
 				T:     time.Second,
 			}
-			var deltaValue int64
-			if tt.errorResponse {
-				deltaValue = 1
-			}
-			collector.Mock.On("Delta", mock.Anything).Return(deltaValue)
-			collector.Mock.On("Get", mock.Anything).Return(expvar.AggregateStats{})
 			addExpvarMetrics(&r, collector, tt.detailed)
 
-			assert.Equal(t, tt.expectedExtraMetric, len(r.Extra))
+			assert.Equal(t, len(tt.expectedResult), len(r.Extra))
+			for k, v := range tt.expectedResult {
+				assert.Equal(t, v, r.Extra[k])
+			}
 		})
 	}
+}
+
+// first response is always empty, second response has responseMetrics
+func getTestServer(t *testing.T, responseMetrics, memstats []string) *httptest.Server {
+	var count int64
+	return httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != "/debug/vars" {
+				t.Errorf("unexpcted path: %s", r.URL.Path)
+			}
+			w.WriteHeader(http.StatusOK)
+			response := "{}"
+			// 12 comes from the repeated calls made while querying expvar
+			if count > 12 {
+				response = createResponse(responseMetrics, memstats)
+			}
+			w.Write([]byte(response))
+			atomic.AddInt64(&count, 1)
+		}),
+	)
+}
+
+func createResponse(metrics, memstats []string) string {
+	var resp strings.Builder
+	resp.WriteByte('{')
+
+	for i, m := range metrics {
+		if i > 0 {
+			resp.WriteByte(',')
+		}
+		resp.WriteString(m)
+	}
+
+	if len(memstats) > 0 {
+		resp.WriteByte(',')
+		resp.WriteString(`"memstats":{`)
+		for i, m := range memstats {
+			if i > 0 {
+				resp.WriteByte(',')
+			}
+			resp.WriteString(m)
+		}
+		resp.WriteByte('}')
+	}
+
+	resp.WriteByte('}')
+
+	return resp.String()
 }
