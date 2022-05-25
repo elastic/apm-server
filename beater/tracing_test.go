@@ -25,8 +25,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 )
 
@@ -40,8 +40,9 @@ func TestServerTracingEnabled(t *testing.T) {
 				"host":                    "localhost:0",
 				"instrumentation.enabled": enabled,
 			})
-			events := make(chan beat.Event, 10)
-			beater, err := setupServer(t, cfg, nil, events)
+
+			docs := make(chan []byte, 10)
+			beater, err := setupServer(t, cfg, nil, docs)
 			require.NoError(t, err)
 
 			// Make an HTTP request to the server, which should be traced
@@ -51,20 +52,41 @@ func TestServerTracingEnabled(t *testing.T) {
 			resp.Body.Close()
 
 			if enabled {
-				select {
-				case e := <-events:
-					transactionName, _ := e.Fields.GetValue("transaction.name")
-					assert.Equal(t, "GET unknown route", transactionName)
-				case <-time.After(10 * time.Second):
-					t.Fatal("timed out waiting for event")
+				// There will be some internal trace events before the transaction
+				// corresponding to "GET /foo" above, so consume documents until we
+				// find the one we are interested in.
+				for {
+					var doc []byte
+					select {
+					case doc = <-docs:
+					case <-time.After(10 * time.Second):
+						t.Fatal("timed out waiting for event")
+					}
+					transactionName := gjson.GetBytes(doc, "transaction.name")
+					if transactionName.Exists() && transactionName.String() == "GET unknown route" {
+						break
+					}
 				}
 			}
 
-			// We expect no more events, i.e. no recursive self-tracing.
-			select {
-			case e := <-events:
-				t.Errorf("unexpected event: %v", e)
-			case <-time.After(100 * time.Millisecond):
+			// There should be no more "request" transactions: there may be ongoing
+			// "flush" requests for the output. Consume documents for a little while
+			// to ensure there are no more "request" transactions.
+			var done bool
+			var traced bool
+			timeout := time.After(100 * time.Millisecond)
+			for !done {
+				select {
+				case doc := <-docs:
+					traced = true
+					transactionType := gjson.GetBytes(doc, "transaction.type")
+					assert.NotEqual(t, "request", transactionType.String())
+				case <-timeout:
+					done = true
+				}
+			}
+			if !enabled {
+				assert.False(t, traced)
 			}
 		})
 	}

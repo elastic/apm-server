@@ -34,6 +34,7 @@ import (
 	"github.com/pkg/errors"
 	"go.elastic.co/apm/module/apmhttp/v2"
 	"go.elastic.co/apm/v2"
+	"go.uber.org/automaxprocs/maxprocs"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -95,11 +96,22 @@ func NewCreator(args CreatorParams) beat.Creator {
 			libbeatMonitoringRegistry: monitoring.Default.GetRegistry("libbeat"),
 		}
 
+		// Use `maxprocs` to change the GOMAXPROCS respecting any CFS quotas, if
+		// set. This is necessary since the Go runtime will default to the number
+		// of CPUs available in the  machine it's running in, however, when running
+		// in a container or in a cgroup with resource limits, the disparity can be
+		// extreme.
+		// Having a significantly greater GOMAXPROCS set than the granted CFS quota
+		// results in a significant amount of time spent "throttling", essentially
+		// pausing the the running OS threads for the throttled period.
+		_, err := maxprocs.Set(maxprocs.Logger(logger.Infof))
+		if err != nil {
+			logger.Errorf("failed to set GOMAXPROCS: %v", err)
+		}
 		var elasticsearchOutputConfig *agentconfig.C
 		if hasElasticsearchOutput(b) {
 			elasticsearchOutputConfig = b.Config.Output.Config()
 		}
-		var err error
 		bt.config, err = config.NewConfig(bt.rawConfig, elasticsearchOutputConfig)
 		if err != nil {
 			return nil, err
@@ -464,10 +476,17 @@ func (s *serverRunner) run(listener net.Listener) error {
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
 	publishReady := make(chan struct{})
+	drain := make(chan struct{})
 	g.Go(func() error {
-		defer close(publishReady)
-		err := s.waitReady(ctx, kibanaClient)
-		return errors.Wrap(err, "error waiting for server to be ready")
+		if err := s.waitReady(ctx, kibanaClient); err != nil {
+			// One or more preconditions failed; drop events.
+			close(drain)
+			return errors.Wrap(err, "error waiting for server to be ready")
+		}
+		// All preconditions have been met; start indexing documents
+		// into elasticsearch.
+		close(publishReady)
+		return nil
 	})
 	callbackUUID, err := esoutput.RegisterConnectCallback(func(*eslegclient.Connection) error {
 		select {
@@ -486,10 +505,13 @@ func (s *serverRunner) run(listener net.Listener) error {
 		if err != nil {
 			return nil, err
 		}
-		transport := &waitReadyRoundTripper{Transport: httpTransport, ready: publishReady}
+		transport := &waitReadyRoundTripper{Transport: httpTransport, ready: publishReady, drain: drain}
 		return elasticsearch.NewClientParams(elasticsearch.ClientParams{
 			Config:    cfg,
 			Transport: transport,
+			RetryOnError: func(_ *http.Request, err error) bool {
+				return !errors.Is(err, errServerShuttingDown)
+			},
 		})
 	}
 

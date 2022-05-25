@@ -23,7 +23,7 @@ https://github.com/elastic/apm-server/compare/v7.5.0\...v7.5.1[View commits]
 
 [float]
 ==== Bug fixes
-- Update Kibana client when its version becomes stale {pull}3031[3031].
+- Update {kib} client when its version becomes stale {pull}3031[3031].
 
 [float]
 [[release-notes-7.5.0]]
@@ -33,8 +33,8 @@ https://github.com/elastic/apm-server/compare/v7.4.1\...v7.5.0[View commits]
 
 [float]
 ==== Breaking Changes
-- Introduce dedicated ILM setup flags and ignore `setup.template.*` flags for ILM {pull}2764[2764], {pull}2877[2877].
-- Remove ILM specific templates from `apm-server export template` command {pull}2764[2764].
+- Introduce dedicated {ilm-init} setup flags and ignore `setup.template.*` flags for {ilm-init} {pull}2764[2764], {pull}2877[2877].
+- Remove {ilm-init} specific templates from `apm-server export template` command {pull}2764[2764].
 
 [float]
 ==== Bug fixes
@@ -48,8 +48,8 @@ See https://www.elastic.co/community/security/[Elastic security issues].
 ==== Added
 - Add `service.node.configured_name` to Intake API and transform to `service.node.name` for ES output {pull}2746[2746].
 - Index value from `client.ip` in `source.ip` for ECS compatibility {pull}2771[2771].
-- Make ILM policies configurable {pull}2764[2764].
+- Make {ilm-init} policies configurable {pull}2764[2764].
 - Add support for agent config GA {pull}2747[2747].
-- Change ILM default policies to rollover after 30 days {pull}2798[2798].
+- Change {ilm-init} default policies to rollover after 30 days {pull}2798[2798].
 - Introduce `apm-server.ilm.setup.overwrite` config option and stop overwriting by default {pull}2877[2877].
 - Upgrade Go to 1.12.12 {pull}2922[2922].

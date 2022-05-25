@@ -12,11 +12,11 @@ As soon as an authenticated communication is enabled,
 requests without a valid token or API key will be denied.
 If both API keys and a secret token are enabled, APM agents can choose whichever mechanism they support.
 
-In some use-cases, like when an APM agent is running on the client side,
+In some use-cases, like when an {apm-agent} is running on the client side,
 authentication is not possible. See <<anonymous-auth>> for more information.
 
 [[agent-tls]]
-=== APM agent TLS communication
+=== {apm-agent} TLS communication
 
 TLS is disabled by default.
 When TLS is enabled for APM Server inbound communication, agents will verify the identity
@@ -54,17 +54,17 @@ Configure the APM integration to point to the extracted certificate and key.
 ==== Step 3: Configure APM agents
 
 When the APM server uses a certificate that is not chained to a publicly-trusted certificate
-(e.g. self-signed), additional configuration is required in the APM agent:
+(e.g. self-signed), additional configuration is required in the {apm-agent}:
 
 * *Go agent*: certificate pinning through {apm-go-ref}/configuration.html#config-server-cert[`ELASTIC_APM_SERVER_CERT`]
 * *Python agent*: certificate pinning through {apm-py-ref}/configuration.html#config-server-cert[`server_cert`]
 * *Ruby agent*: certificate pinning through {apm-ruby-ref}/configuration.html#config-ssl-ca-cert[`server_ca_cert`]
 * *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-server-cert[`ServerCert`]
-* *NodeJS agent*: custom CA setting through {apm-node-ref}/configuration.html#server-ca-cert-file[`serverCaCertFile`]
+* *Node.js agent*: custom CA setting through {apm-node-ref}/configuration.html#server-ca-cert-file[`serverCaCertFile`]
 * *Java agent*: adding the certificate to the JVM `trustStore`.
 See {apm-java-ref}/ssl-configuration.html#ssl-server-authentication[APM Server authentication] for more details.
 
-We do not recommend disabling APM agent verification of the server's certificate, but it is possible:
+We do not recommend disabling {apm-agent} verification of the server's certificate, but it is possible:
 
 * *Go agent*: {apm-go-ref}/configuration.html#config-verify-server-cert[`ELASTIC_APM_VERIFY_SERVER_CERT`]
 * *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-verify-server-cert[`VerifyServerCert`]
@@ -72,7 +72,7 @@ We do not recommend disabling APM agent verification of the server's certificate
 * *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-verify-server-cert[`verify_server_cert`]
 * *Python agent*: {apm-py-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
 * *Ruby agent*: {apm-ruby-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
-* *NodeJS agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]
+* *Node.js agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]
 
 [float]
 [[agent-client-cert]]
@@ -120,63 +120,64 @@ API keys can only have the same or lower access rights than the user that create
 Instead of using a superuser account to create API keys, you can create a role with the minimum required
 privileges.
 
-The user creating an APM agent API key must have at least the `manage_own_api_key` cluster privilege
+The user creating an {apm-agent} API key must have at least the `manage_own_api_key` cluster privilege
 and the APM application-level privileges that it wishes to grant.
-The example below uses the Kibana {kibana-ref}/role-management-api.html[role management API]
+In addition, when creating an API key from the {apm-app},
+you'll need the appropriate {kib} Space and Feature privileges.
+
+The example below uses the {kib} {kibana-ref}/role-management-api.html[role management API]
 to create a role named `apm_agent_key_role`.
 
 [source,js]
 ----
 POST /_security/role/apm_agent_key_role
 {
-  "cluster": ["manage_own_api_key"],
-  "applications": [{
-    "application": "apm",
-    "privileges": ["event:write", "config_agent:read"],
-    "resources": ["*"]
-  }]
+   "cluster": [ "manage_own_api_key" ],
+   "applications": [
+      {
+         "application":"apm",
+         "privileges":[
+            "event:write",
+            "config_agent:read"
+         ],
+         "resources":[ "*" ]
+      },
+      {
+         "application":"kibana-.kibana",
+         "privileges":[ "feature_apm.all" ],
+         "resources":[ "space:default" ] <1>
+      }
+   ]
 }
 ----
+<1> This example assigns privileges for the default space.
 
-Assign the newly created `apm_agent_key_role` role to any user that wishes to create APM agent API keys.
+Assign the newly created `apm_agent_key_role` role to any user that wishes to create {apm-agent} API keys.
 
 [[create-an-api-key]]
 [float]
-=== Create an API key in {kib}
+=== Create an API key in the {apm-app}
+
+The {apm-app} has a built-in workflow that you can use to easily create and view {apm-agent} API keys.
+Only API keys created in the {apm-app} will show up here.
 
 Using a superuser account, or a user with the role created in the previous step,
-open {kib} and navigate to **Stack Management** > **API keys** and click **Create API key**.
+open {kib} and navigate to **{observability}** > **APM** > **Settings** > **Agent keys**.
+Enter a name for your API key and select at least one privilege.
 
-Enter a name for your API key and select **Restrict privileges**.
-In the role descriptors box, copy and paste the following JSON.
-This example creates an API key with privileges for ingesting APM events
-and reading agent central configuration:
+For example, to create an API key that can be used to ingest APM events
+and read agent central configuration, select `config_agent:read` and `event:write`.
 
-[source,json]
-----
-{
-   "apm": {
-      "applications": [
-         {
-            "application": "apm",
-            "privileges": ["event:write", "config_agent:read"], <1>
-            "resources": ["*"]
-         }
-      ]
-   }
-}
-----
-<1> This example adds both API privileges to the new API key.
-Privileges are described <<api-key,above>>. Remove any privileges that you do not need.
+IMPORTANT: The `sourcemap:write` privilege is outdated and will be removed in a future release.
+To learn more about the privileges required to upload a source map,
+see the {kibana-ref}/rum-sourcemap-api.html[RUM source map API].
 
-To set an expiration date for the API key, select **Expire after time**
-and input the lifetime of the API key in days.
-
-Click **Create API key** and then copy the Base64 encoded API key.
+// lint ignore apm-agent
+Click **Create APM Agent key** and copy the Base64 encoded API key.
 You will need this for the next step, and you will not be able to view it again.
 
 [role="screenshot"]
-image::images/api-key-copy.png[API key copy base64]
+image::images/apm-ui-api-key.png[{apm-app} API key]
 
 [[agent-api-key]]
 [float]
@@ -202,7 +203,7 @@ so they only provide security when used in combination with <<agent-tls,TLS>>.
 
 Define a secret token in the <<input-apm,APM integration settings>>.
 When defined, secret tokens are used to authorize requests to the APM Server.
-Both the APM agent and APM integration must be configured with the same secret token for the request to be accepted.
+Both the {apm-agent} and APM integration must be configured with the same secret token for the request to be accepted.
 
 To secure the communication between APM agents and the APM Server with a secret token:
 
@@ -217,6 +218,7 @@ as there is no way to prevent them from being publicly exposed.
 [[create-secret-token]]
 === Create a secret token
 
+// lint ignore fleet
 Define a secret token in the <<input-apm,APM integration settings>>.
 Alternatively, {ess} and {ece} deployments provision a secret token when the deployment is created.
 The secret token can be found and reset in the {ecloud} console under **Deployments** -- **APM & Fleet**.
@@ -225,7 +227,7 @@ The secret token can be found and reset in the {ecloud} console under **Deployme
 [float]
 === Configure the secret token in your APM agents
 
-Each Elastic APM agent has a configuration option to set the value of the secret token:
+Each Elastic {apm-agent} has a configuration option to set the value of the secret token:
 
 * *Go agent*: {apm-go-ref}/configuration.html#config-secret-token[`ELASTIC_APM_SECRET_TOKEN`]
 * *iOS agent*: {apm-ios-ref-v}/configuration.html#secretToken[`secretToken`]

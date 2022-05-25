@@ -261,6 +261,6 @@ func Check() error {
 
 // PythonEnv ensures the Python venv is up-to-date with the beats requrements.txt.
 func PythonEnv() error {
-	_, err := mage.PythonVirtualenv()
+	_, err := mage.PythonVirtualenv(false)
 	return err
 }

@@ -621,7 +621,29 @@
                     "string"
                   ]
                 }
-              }
+              },
+              "anyOf": [
+                {
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                },
+                {
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              ]
             },
             "version": {
               "description": "Version of the monitored service.",
@@ -756,6 +778,22 @@
               "unknown",
               null
             ]
+          },
+          "service_target_name": {
+            "description": "ServiceTargetName identifies the instance name of the target service being operated on",
+            "type": [
+              "null",
+              "string"
+            ],
+            "maxLength": 512
+          },
+          "service_target_type": {
+            "description": "ServiceTargetType identifies the type of the target service being operated on e.g. 'oracle', 'rabbitmq'",
+            "type": [
+              "null",
+              "string"
+            ],
+            "maxLength": 512
           }
         }
       },

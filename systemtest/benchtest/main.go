@@ -85,12 +85,12 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 		ok = !b.Failed()
 	})
 	if result.Extra != nil {
-		addExpvarMetrics(result, before, after)
+		addExpvarMetrics(&result, before, after)
 	}
 	return result, ok, nil
 }
 
-func addExpvarMetrics(result testing.BenchmarkResult, before, after expvar) {
+func addExpvarMetrics(result *testing.BenchmarkResult, before, after expvar) {
 	result.MemAllocs = after.MemStats.Mallocs - before.MemStats.Mallocs
 	result.MemBytes = after.MemStats.TotalAlloc - before.MemStats.TotalAlloc
 	result.Bytes = after.UncompressedBytes - before.UncompressedBytes
@@ -239,13 +239,15 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 }
 
 func warmup(agents int, events uint, url, token string) error {
-	// Assume a base ingest rate of at least 2000 per second, and dynamically
+	// Assume a base ingest rate of at least 1000 per second, and dynamically
 	// set the context timeout based on this ingest rate, or if lower, default
-	// to 15 seconds. The default 5000 / 2000 ~= 2, so the default 15 seconds
+	// to 15 seconds. The default 5000 / 1000 ~= 5, so the default 15 seconds
 	// will be used instead. Additionally, the number of agents is also taken
 	// into account, since each of the agents will send the number of specified
 	// events to the APM Server, increasing its load.
-	timeout := warmupTimeout(2000, events, maxEPM, agents)
+	// Also account the GOMAXPROCS setting, since it will dictate the goroutines
+	// that are scheduled at any time.
+	timeout := warmupTimeout(1000, events, maxEPM, agents, runtime.GOMAXPROCS(0))
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -285,11 +287,15 @@ func warmup(agents int, events uint, url, token string) error {
 }
 
 // warmupTimeout calculates the timeout for the warm up.
-func warmupTimeout(ingestRate float64, events uint, epm, agents int) time.Duration {
+func warmupTimeout(ingestRate float64, events uint, epm, agents, cpus int) time.Duration {
 	if epm > 0 {
 		ingestRate = math.Min(ingestRate, float64(epm/60))
 	}
-	return time.Duration(math.Max(
-		float64(events)/float64(ingestRate)*float64(agents), 15,
-	)) * time.Second
+	// Divide the number of agents (concurrency) by the number of gomaxprocs.
+	// This allows the timeout calculation to respect how much concurrent work
+	// the apmbench runner can do.
+	factor := math.Max(1, float64(agents)/float64(cpus))
+	timeoutSeconds := math.Max(float64(events)/ingestRate, 1) *
+		float64(agents) * factor
+	return time.Duration(math.Max(timeoutSeconds, 15)) * time.Second
 }
