@@ -24,6 +24,10 @@ import (
 	"runtime"
 )
 
+const (
+	cloudProxyHeader = "x-found-handling-instance"
+)
+
 // TODO(axw) reuse apmservertest.Expvar, expose function(s) for fetching
 // from APM Server given a URL.
 
@@ -72,12 +76,54 @@ func queryExpvar(out *expvar, srv string) error {
 	}
 	req.Header.Set("Accept", "application/json")
 
+	agg := make(map[string]expvar)
+	var seen int
+	const timesSeen = 10
+	for {
+		var tmp expvar
+		// NOTE(marclop) we could also aggregate based on the beats ephemeral id.
+		// However, that has the drawback of not being to replace a node when it
+		// restarts.
+		// For example, if we push too hard and it falls out of the LB, the beats
+		// ID will change if the APM Server process is restarted, resulting in
+		// some stats never being updated.
+		id, err := doExpvar(req, &tmp)
+		if err != nil {
+			return err
+		}
+		if _, ok := agg[id]; ok {
+			seen++
+		}
+		agg[id] = tmp
+		// We must ensure that we have made enough requests to the remote APM
+		// Server to guarantee with a degree of certainty that all the remote
+		// APM Servers metrics have been queried.
+		if seen > timesSeen*len(agg) {
+			break
+		}
+	}
+
+	var result expvar
+	for _, s := range agg {
+		aggregateMemStats(s.MemStats, &result.MemStats)
+		aggregateResponseStats(s.ElasticResponseStats, &result.ElasticResponseStats)
+		aggregateOTLPResponseStats(s.OTLPResponseStats, &result.OTLPResponseStats)
+		aggregateLibbeatStats(s.LibbeatStats, &result.LibbeatStats)
+		result.UncompressedBytes += s.UncompressedBytes
+	}
+	*out = result
+	return nil
+}
+
+func doExpvar(req *http.Request, out *expvar) (string, error) {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer resp.Body.Close()
-	return json.NewDecoder(resp.Body).Decode(out)
+	id := resp.Header.Get(cloudProxyHeader)
+	err = json.NewDecoder(resp.Body).Decode(out)
+	return id, err
 }
 
 // WaitUntilServerInactive blocks until one of the conditions occurs:
@@ -97,4 +143,58 @@ func WaitUntilServerInactive(ctx context.Context, server string) error {
 		}
 	}
 	return nil
+}
+
+// NOTE(marclop): There are some fields that aren't being aggregated
+// like the circular buffers PauseNS, PauseEnd, BySize, and booleans
+// (DebugGC, EnableGC).
+func aggregateMemStats(from runtime.MemStats, to *runtime.MemStats) {
+	to.Alloc += from.Alloc
+	to.TotalAlloc += from.TotalAlloc
+	to.Sys += from.Sys
+	to.Lookups += from.Lookups
+	to.Mallocs += from.Mallocs
+	to.Frees += from.Frees
+	to.HeapAlloc += from.HeapAlloc
+	to.HeapSys += from.HeapSys
+	to.HeapIdle += from.HeapIdle
+	to.HeapInuse += from.HeapInuse
+	to.HeapReleased += from.HeapReleased
+	to.HeapObjects += from.HeapObjects
+	to.StackInuse += from.StackInuse
+	to.StackSys += from.StackSys
+	to.MSpanInuse += from.MSpanInuse
+	to.MSpanSys += from.MSpanSys
+	to.MCacheInuse += from.MCacheInuse
+	to.MCacheSys += from.MCacheSys
+	to.BuckHashSys += from.BuckHashSys
+	to.GCSys += from.GCSys
+	to.OtherSys += from.OtherSys
+	to.NextGC += from.NextGC
+	to.LastGC += from.LastGC
+	to.PauseTotalNs += from.PauseTotalNs
+	to.NumGC += from.NumGC
+	to.NumForcedGC += from.NumForcedGC
+	to.GCCPUFraction += from.GCCPUFraction
+}
+
+func aggregateLibbeatStats(from LibbeatStats, to *LibbeatStats) {
+	to.ActiveEvents += from.ActiveEvents
+	to.TotalEvents += from.TotalEvents
+}
+
+func aggregateResponseStats(from ElasticResponseStats, to *ElasticResponseStats) {
+	to.ErrorElasticResponses += from.ErrorElasticResponses
+	to.ErrorsProcessed += from.ErrorsProcessed
+	to.MetricsProcessed += from.MetricsProcessed
+	to.SpansProcessed += from.SpansProcessed
+	to.TransactionsProcessed += from.TransactionsProcessed
+	to.TotalElasticResponses += from.TotalElasticResponses
+}
+
+func aggregateOTLPResponseStats(from OTLPResponseStats, to *OTLPResponseStats) {
+	to.TotalOTLPMetricsResponses += from.TotalOTLPMetricsResponses
+	to.TotalOTLPTracesResponses += from.TotalOTLPTracesResponses
+	to.ErrorOTLPTracesResponses += from.ErrorOTLPTracesResponses
+	to.ErrorOTLPMetricsResponses += from.ErrorOTLPMetricsResponses
 }

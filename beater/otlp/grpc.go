@@ -19,7 +19,6 @@ package otlp
 
 import (
 	"context"
-	"sync"
 
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -34,12 +33,13 @@ import (
 	"github.com/elastic/apm-server/processor/otel"
 )
 
+const (
+	metricsFullMethod = "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export"
+	tracesFullMethod  = "/opentelemetry.proto.collector.trace.v1.TraceService/Export"
+	logsFullMethod    = "/opentelemetry.proto.collector.logs.v1.LogsService/Export"
+)
+
 var (
-	monitoringKeys = append(request.DefaultResultIDs,
-		request.IDResponseErrorsRateLimit,
-		request.IDResponseErrorsTimeout,
-		request.IDResponseErrorsUnauthorized,
-	)
 	gRPCMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.grpc.metrics")
 	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)
 	gRPCTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.grpc.traces")
@@ -47,23 +47,19 @@ var (
 	gRPCLogsRegistry         = monitoring.Default.NewRegistry("apm-server.otlp.grpc.logs")
 	gRPCLogsMonitoringMap    = request.MonitoringMapForRegistry(gRPCLogsRegistry, monitoringKeys)
 
-	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
+	// GRPCRegistryMonitoringMaps provides mappings from the fully qualified gRPC
 	// method name to its respective monitoring map.
-	RegistryMonitoringMaps = map[string]map[request.ResultID]*monitoring.Int{
+	GRPCRegistryMonitoringMaps = map[string]map[request.ResultID]*monitoring.Int{
 		metricsFullMethod: gRPCMetricsMonitoringMap,
 		tracesFullMethod:  gRPCTracesMonitoringMap,
 		logsFullMethod:    gRPCLogsMonitoringMap,
 	}
-)
 
-const (
-	metricsFullMethod = "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export"
-	tracesFullMethod  = "/opentelemetry.proto.collector.trace.v1.TraceService/Export"
-	logsFullMethod    = "/opentelemetry.proto.collector.logs.v1.LogsService/Export"
+	gRPCMonitoredConsumer monitoredConsumer
 )
 
 func init() {
-	monitoring.NewFunc(gRPCMetricsRegistry, "consumer", collectMetricsMonitoring, monitoring.Report)
+	monitoring.NewFunc(gRPCMetricsRegistry, "consumer", gRPCMonitoredConsumer.collect, monitoring.Report)
 }
 
 // MethodAuthenticators returns a map of all supported OTLP/gRPC methods to authenticators.
@@ -78,47 +74,20 @@ func MethodAuthenticators(authenticator *auth.Authenticator) map[string]intercep
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
 func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcessor) error {
-	consumer := &otel.Consumer{Processor: processor}
-
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running
 	// at any time, and instead aggregate metrics from consumers that are
 	// dynamically registered and unregistered.
-	setCurrentMonitoredConsumer(consumer)
+	consumer := &otel.Consumer{Processor: processor}
+	gRPCMonitoredConsumer.set(consumer)
 
-	if err := otlpreceiver.RegisterTraceReceiver(context.Background(), consumer, grpcServer); err != nil {
+	if err := otlpreceiver.RegisterGRPCTraceReceiver(context.Background(), consumer, grpcServer); err != nil {
 		return errors.Wrap(err, "failed to register OTLP trace receiver")
 	}
-	if err := otlpreceiver.RegisterMetricsReceiver(context.Background(), consumer, grpcServer); err != nil {
+	if err := otlpreceiver.RegisterGRPCMetricsReceiver(context.Background(), consumer, grpcServer); err != nil {
 		return errors.Wrap(err, "failed to register OTLP metrics receiver")
 	}
-	if err := otlpreceiver.RegisterLogsReceiver(context.Background(), consumer, grpcServer); err != nil {
+	if err := otlpreceiver.RegisterGRPCLogsReceiver(context.Background(), consumer, grpcServer); err != nil {
 		return errors.Wrap(err, "failed to register OTLP logs receiver")
 	}
 	return nil
-}
-
-var (
-	currentMonitoredConsumerMu sync.RWMutex
-	currentMonitoredConsumer   *otel.Consumer
-)
-
-func setCurrentMonitoredConsumer(c *otel.Consumer) {
-	currentMonitoredConsumerMu.Lock()
-	defer currentMonitoredConsumerMu.Unlock()
-	currentMonitoredConsumer = c
-}
-
-func collectMetricsMonitoring(mode monitoring.Mode, V monitoring.Visitor) {
-	V.OnRegistryStart()
-	defer V.OnRegistryFinished()
-
-	currentMonitoredConsumerMu.RLock()
-	c := currentMonitoredConsumer
-	currentMonitoredConsumerMu.RUnlock()
-	if c == nil {
-		return
-	}
-
-	stats := c.Stats()
-	monitoring.ReportInt(V, "unsupported_dropped", stats.UnsupportedMetricsDropped)
 }

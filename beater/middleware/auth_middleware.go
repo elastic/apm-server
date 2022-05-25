@@ -55,13 +55,13 @@ func AuthMiddleware(authenticator Authenticator, required bool) Middleware {
 						status := request.MapResultIDToStatus[id]
 						status.Keyword = err.Error()
 						c.Result.Set(id, status.Code, status.Keyword, nil, nil)
-						c.Write()
+						c.WriteResult()
 						return
 					}
 				} else {
 					c.Result.SetDefault(request.IDResponseErrorsServiceUnavailable)
 					c.Result.Err = err
-					c.Write()
+					c.WriteResult()
 					return
 				}
 			}

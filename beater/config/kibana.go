@@ -20,8 +20,8 @@ package config
 import (
 	"strings"
 
-	"github.com/elastic/beats/v7/libbeat/kibana"
 	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/kibana"
 )
 
 type KibanaConfig struct {

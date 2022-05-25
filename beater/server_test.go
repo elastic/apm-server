@@ -855,7 +855,6 @@ func TestServerFailedPreconditionDoesNotIndex(t *testing.T) {
 }
 
 func TestServerElasticsearchOutput(t *testing.T) {
-	bulkCh := make(chan *http.Request, 1)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -863,14 +862,19 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		// elasticsearch client to send bulk requests.
 		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
 	})
+
+	done := make(chan struct{})
+	bulkCh := make(chan *http.Request, 1)
 	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
 		select {
 		case bulkCh <- r:
 		default:
 		}
+		<-done // block all requests from completing until test is done
 	})
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
+	defer close(done)
 
 	// The beater has no way of unregistering itself from reload.Register,
 	// so we create a fresh registry and replace it after the test.
@@ -965,6 +969,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 			},
 		},
 	}, snapshot)
+
 	snapshot = monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("output"), monitoring.Full, false)
 	assert.Equal(t, map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
@@ -993,44 +998,6 @@ func TestServerPProf(t *testing.T) {
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode, path)
 	}
-}
-
-type chanClient struct {
-	done    chan struct{}
-	Channel chan beat.Event
-}
-
-func newChanClientWith(ch chan beat.Event) *chanClient {
-	if ch == nil {
-		ch = make(chan beat.Event, 1)
-	}
-	c := &chanClient{
-		done:    make(chan struct{}),
-		Channel: ch,
-	}
-	return c
-}
-
-func (c *chanClient) Close() error {
-	close(c.done)
-	return nil
-}
-
-// Publish will publish every event in the batch on the channel. Options will be ignored.
-// Always returns without error.
-func (c *chanClient) Publish(_ context.Context, batch pubs.Batch) error {
-	for _, event := range batch.Events() {
-		select {
-		case <-c.done:
-		case c.Channel <- event.Content:
-		}
-	}
-	batch.ACK()
-	return nil
-}
-
-func (c *chanClient) String() string {
-	return "event capturing test client"
 }
 
 type dummyOutputClient struct {
