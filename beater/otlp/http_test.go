@@ -34,7 +34,6 @@ import (
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -187,10 +186,9 @@ func newHTTPServer(t *testing.T, batchProcessor model.BatchProcessor) string {
 	cfg := &config.Config{}
 	auth, _ := auth.NewAuthenticator(cfg.AgentAuth)
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
-	consumer := otlp.NewOTLPConsumer(batchProcessor)
 	router, err := api.NewMux(
 		beat.Info{Version: "1.2.3"}, cfg, batchProcessor, auth, agentcfg.NewFetcher(cfg), ratelimitStore,
-		nil, consumer, false, func() bool { return true })
+		nil, false, func() bool { return true })
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}
 	go srv.Serve(lis)

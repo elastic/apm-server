@@ -21,7 +21,6 @@ import (
 	"sync"
 
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
@@ -32,36 +31,30 @@ var (
 		request.IDResponseErrorsTimeout,
 		request.IDResponseErrorsUnauthorized,
 	)
-	currentMonitoredConsumerMu sync.RWMutex
-	currentMonitoredConsumer   *otel.Consumer
 )
 
-func NewOTLPConsumer(processor model.BatchProcessor) *otel.Consumer {
-	// TODO(axw) stop assuming we have only one OTLP gRPC service running
-	// at any time, and instead aggregate metrics from consumers that are
-	// dynamically registered and unregistered.
-	consumer := &otel.Consumer{Processor: processor}
-	setCurrentMonitoredConsumer(consumer)
-	return consumer
+type monitoredConsumer struct {
+	mu       sync.RWMutex
+	consumer *otel.Consumer
 }
 
-func collectMetricsMonitoring(mode monitoring.Mode, V monitoring.Visitor) {
+func (m *monitoredConsumer) set(c *otel.Consumer) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.consumer = c
+}
+
+func (m *monitoredConsumer) collect(mode monitoring.Mode, V monitoring.Visitor) {
 	V.OnRegistryStart()
 	defer V.OnRegistryFinished()
 
-	currentMonitoredConsumerMu.RLock()
-	c := currentMonitoredConsumer
-	currentMonitoredConsumerMu.RUnlock()
+	m.mu.RLock()
+	c := m.consumer
+	m.mu.RUnlock()
 	if c == nil {
 		return
 	}
 
 	stats := c.Stats()
 	monitoring.ReportInt(V, "unsupported_dropped", stats.UnsupportedMetricsDropped)
-}
-
-func setCurrentMonitoredConsumer(c *otel.Consumer) {
-	currentMonitoredConsumerMu.Lock()
-	defer currentMonitoredConsumerMu.Unlock()
-	currentMonitoredConsumer = c
 }

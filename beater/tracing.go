@@ -22,7 +22,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 
@@ -73,8 +72,7 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 		authenticator,
 		agentcfg.NewFetcher(cfg),
 		ratelimitStore,
-		nil, // no sourcemap store
-		&otel.Consumer{},
+		nil,                         // no sourcemap store
 		false,                       // not managed
 		func() bool { return true }, // ready for publishing
 	)

@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
@@ -35,13 +36,21 @@ var (
 	HTTPTracesMonitoringMap  = request.MonitoringMapForRegistry(httpTracesRegistry, monitoringKeys)
 	httpLogsRegistry         = monitoring.Default.NewRegistry("apm-server.otlp.http.logs")
 	HTTPLogsMonitoringMap    = request.MonitoringMapForRegistry(httpLogsRegistry, monitoringKeys)
+
+	httpMonitoredConsumer monitoredConsumer
 )
 
 func init() {
-	monitoring.NewFunc(httpMetricsRegistry, "consumer", collectMetricsMonitoring, monitoring.Report)
+	monitoring.NewFunc(httpMetricsRegistry, "consumer", httpMonitoredConsumer.collect, monitoring.Report)
 }
 
-func NewHTTPHandlers(consumer *otel.Consumer) (*otlpreceiver.HTTPHandlers, error) {
+func NewHTTPHandlers(processor model.BatchProcessor) (*otlpreceiver.HTTPHandlers, error) {
+	// TODO(axw) stop assuming we have only one OTLP HTTP consumer running
+	// at any time, and instead aggregate metrics from consumers that are
+	// dynamically registered and unregistered.
+	consumer := &otel.Consumer{Processor: processor}
+	httpMonitoredConsumer.set(consumer)
+
 	tracesHandler, err := otlpreceiver.TracesHTTPHandler(context.Background(), consumer)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create OTLP trace receiver")

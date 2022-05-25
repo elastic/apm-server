@@ -194,8 +194,7 @@ func newGRPCServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.Clie
 	srv := grpc.NewServer(
 		grpc.UnaryInterceptor(interceptors.Metrics(logger, otlp.GRPCRegistryMonitoringMaps)),
 	)
-	consumer := otlp.NewOTLPConsumer(batchProcessor)
-	err = otlp.RegisterGRPCServices(srv, consumer)
+	err = otlp.RegisterGRPCServices(srv, batchProcessor)
 	require.NoError(t, err)
 
 	go srv.Serve(lis)

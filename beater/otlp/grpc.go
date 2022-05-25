@@ -29,6 +29,7 @@ import (
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
 )
 
@@ -53,10 +54,12 @@ var (
 		tracesFullMethod:  gRPCTracesMonitoringMap,
 		logsFullMethod:    gRPCLogsMonitoringMap,
 	}
+
+	gRPCMonitoredConsumer monitoredConsumer
 )
 
 func init() {
-	monitoring.NewFunc(gRPCMetricsRegistry, "consumer", collectMetricsMonitoring, monitoring.Report)
+	monitoring.NewFunc(gRPCMetricsRegistry, "consumer", gRPCMonitoredConsumer.collect, monitoring.Report)
 }
 
 // MethodAuthenticators returns a map of all supported OTLP/gRPC methods to authenticators.
@@ -70,7 +73,13 @@ func MethodAuthenticators(authenticator *auth.Authenticator) map[string]intercep
 }
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
-func RegisterGRPCServices(grpcServer *grpc.Server, consumer *otel.Consumer) error {
+func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcessor) error {
+	// TODO(axw) stop assuming we have only one OTLP gRPC service running
+	// at any time, and instead aggregate metrics from consumers that are
+	// dynamically registered and unregistered.
+	consumer := &otel.Consumer{Processor: processor}
+	gRPCMonitoredConsumer.set(consumer)
+
 	if err := otlpreceiver.RegisterGRPCTraceReceiver(context.Background(), consumer, grpcServer); err != nil {
 		return errors.Wrap(err, "failed to register OTLP trace receiver")
 	}

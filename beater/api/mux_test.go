@@ -36,7 +36,6 @@ import (
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -167,7 +166,6 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		agentcfg.NewFetcher(cfg),
 		ratelimitStore,
 		m.SourcemapFetcher,
-		&otel.Consumer{},
 		m.Managed,
 		func() bool { return true },
 	)

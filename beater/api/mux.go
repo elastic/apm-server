@@ -27,7 +27,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -90,7 +89,6 @@ func NewMux(
 	fetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
 	sourcemapFetcher sourcemap.Fetcher,
-	otlpConsumer *otel.Consumer,
 	fleetManaged bool,
 	publishReady func() bool,
 ) (*mux.Router, error) {
@@ -115,7 +113,7 @@ func NewMux(
 		handlerFn func() (request.Handler, error)
 	}
 
-	otlpHandlers, err := otlp.NewHTTPHandlers(otlpConsumer)
+	otlpHandlers, err := otlp.NewHTTPHandlers(batchProcessor)
 	if err != nil {
 		return nil, err
 	}
