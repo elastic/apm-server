@@ -85,12 +85,12 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 		ok = !b.Failed()
 	})
 	if result.Extra != nil {
-		addExpvarMetrics(result, before, after)
+		addExpvarMetrics(&result, before, after)
 	}
 	return result, ok, nil
 }
 
-func addExpvarMetrics(result testing.BenchmarkResult, before, after expvar) {
+func addExpvarMetrics(result *testing.BenchmarkResult, before, after expvar) {
 	result.MemAllocs = after.MemStats.Mallocs - before.MemStats.Mallocs
 	result.MemBytes = after.MemStats.TotalAlloc - before.MemStats.TotalAlloc
 	result.Bytes = after.UncompressedBytes - before.UncompressedBytes
