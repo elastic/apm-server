@@ -18,27 +18,29 @@
 package otlp_test
 
 import (
+	"bytes"
 	"context"
-	"errors"
+	"fmt"
 	"net"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/model/otlpgrpc"
 	"go.opentelemetry.io/collector/model/pdata"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-server/beater/interceptors"
-	"github.com/elastic/apm-server/beater/otlp"
+	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/beater/api"
+	"github.com/elastic/apm-server/beater/auth"
+	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
-func TestConsumeTracesGRPC(t *testing.T) {
+func TestConsumeTracesHTTP(t *testing.T) {
 	var batches []model.Batch
 	var reportError error
 	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
@@ -46,8 +48,7 @@ func TestConsumeTracesGRPC(t *testing.T) {
 		return reportError
 	}
 
-	conn := newGRPCServer(t, batchProcessor)
-	client := otlpgrpc.NewTracesClient(conn)
+	addr := newHTTPServer(t, batchProcessor)
 
 	// Send a minimal trace to verify that everything is connected properly.
 	//
@@ -59,27 +60,25 @@ func TestConsumeTracesGRPC(t *testing.T) {
 
 	tracesRequest := otlpgrpc.NewTracesRequest()
 	tracesRequest.SetTraces(traces)
-	_, err := client.Export(context.Background(), tracesRequest)
+	request, err := tracesRequest.Marshal()
+	assert.NoError(t, err)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/traces", addr), bytes.NewReader(request))
+	assert.NoError(t, err)
+	req.Header.Set("Content-Type", "application/x-protobuf")
+	client := http.Client{}
+	_, err = client.Do(req)
 	assert.NoError(t, err)
 	require.Len(t, batches, 1)
-
-	reportError = errors.New("failed to publish events")
-	_, err = client.Export(context.Background(), tracesRequest)
-	assert.Error(t, err)
-	errStatus := status.Convert(err)
-	assert.Equal(t, "failed to publish events", errStatus.Message())
-	require.Len(t, batches, 2)
 	assert.Len(t, batches[0], 1)
-	assert.Len(t, batches[1], 1)
 
 	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.grpc.traces").Do(monitoring.Full, func(key string, value interface{}) {
+	monitoring.GetRegistry("apm-server.otlp.http.traces").Do(monitoring.Full, func(key string, value interface{}) {
 		actual[key] = value
 	})
 	assert.Equal(t, map[string]interface{}{
-		"request.count":                int64(2),
-		"response.count":               int64(2),
-		"response.errors.count":        int64(1),
+		"request.count":                int64(1),
+		"response.count":               int64(1),
+		"response.errors.count":        int64(0),
 		"response.valid.count":         int64(1),
 		"response.errors.ratelimit":    int64(0),
 		"response.errors.timeout":      int64(0),
@@ -87,14 +86,13 @@ func TestConsumeTracesGRPC(t *testing.T) {
 	}, actual)
 }
 
-func TestConsumeMetricsGRPC(t *testing.T) {
+func TestConsumeMetricsHTTP(t *testing.T) {
 	var reportError error
 	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
 		return reportError
 	}
 
-	conn := newGRPCServer(t, batchProcessor)
-	client := otlpgrpc.NewMetricsClient(conn)
+	addr := newHTTPServer(t, batchProcessor)
 
 	// Send a minimal metric to verify that everything is connected properly.
 	//
@@ -108,29 +106,28 @@ func TestConsumeMetricsGRPC(t *testing.T) {
 
 	metricsRequest := otlpgrpc.NewMetricsRequest()
 	metricsRequest.SetMetrics(metrics)
-	_, err := client.Export(context.Background(), metricsRequest)
+	request, err := metricsRequest.Marshal()
+	assert.NoError(t, err)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/metrics", addr), bytes.NewReader(request))
+	assert.NoError(t, err)
+	req.Header.Set("Content-Type", "application/x-protobuf")
+	client := http.Client{}
+	_, err = client.Do(req)
 	assert.NoError(t, err)
 
-	reportError = errors.New("failed to publish events")
-	_, err = client.Export(context.Background(), metricsRequest)
-	assert.Error(t, err)
-
-	errStatus := status.Convert(err)
-	assert.Equal(t, "failed to publish events", errStatus.Message())
-
 	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.grpc.metrics").Do(monitoring.Full, func(key string, value interface{}) {
+	monitoring.GetRegistry("apm-server.otlp.http.metrics").Do(monitoring.Full, func(key string, value interface{}) {
 		actual[key] = value
 	})
 	assert.Equal(t, map[string]interface{}{
-		// In both of the requests we send above,
+		// In the request we send above,
 		// the metrics do not have a type and so
 		// we treat them as unsupported metrics.
-		"consumer.unsupported_dropped": int64(2),
+		"consumer.unsupported_dropped": int64(1),
 
-		"request.count":                int64(2),
-		"response.count":               int64(2),
-		"response.errors.count":        int64(1),
+		"request.count":                int64(1),
+		"response.count":               int64(1),
+		"response.errors.count":        int64(0),
 		"response.valid.count":         int64(1),
 		"response.errors.ratelimit":    int64(0),
 		"response.errors.timeout":      int64(0),
@@ -138,7 +135,7 @@ func TestConsumeMetricsGRPC(t *testing.T) {
 	}, actual)
 }
 
-func TestConsumeLogsGRPC(t *testing.T) {
+func TestConsumeLogsHTTP(t *testing.T) {
 	var batches []model.Batch
 	var reportError error
 	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
@@ -146,8 +143,7 @@ func TestConsumeLogsGRPC(t *testing.T) {
 		return reportError
 	}
 
-	conn := newGRPCServer(t, batchProcessor)
-	client := otlpgrpc.NewLogsClient(conn)
+	addr := newHTTPServer(t, batchProcessor)
 
 	// Send a minimal log record to verify that everything is connected properly.
 	//
@@ -159,27 +155,24 @@ func TestConsumeLogsGRPC(t *testing.T) {
 
 	logsRequest := otlpgrpc.NewLogsRequest()
 	logsRequest.SetLogs(logs)
-	_, err := client.Export(context.Background(), logsRequest)
+	request, err := logsRequest.Marshal()
+	assert.NoError(t, err)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/logs", addr), bytes.NewReader(request))
+	assert.NoError(t, err)
+	req.Header.Set("Content-Type", "application/x-protobuf")
+	client := http.Client{}
+	_, err = client.Do(req)
 	assert.NoError(t, err)
 	require.Len(t, batches, 1)
 
-	reportError = errors.New("failed to publish events")
-	_, err = client.Export(context.Background(), logsRequest)
-	assert.Error(t, err)
-	errStatus := status.Convert(err)
-	assert.Equal(t, "failed to publish events", errStatus.Message())
-	require.Len(t, batches, 2)
-	assert.Len(t, batches[0], 1)
-	assert.Len(t, batches[1], 1)
-
 	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.grpc.logs").Do(monitoring.Full, func(key string, value interface{}) {
+	monitoring.GetRegistry("apm-server.otlp.http.logs").Do(monitoring.Full, func(key string, value interface{}) {
 		actual[key] = value
 	})
 	assert.Equal(t, map[string]interface{}{
-		"request.count":                int64(2),
-		"response.count":               int64(2),
-		"response.errors.count":        int64(1),
+		"request.count":                int64(1),
+		"response.count":               int64(1),
+		"response.errors.count":        int64(0),
 		"response.valid.count":         int64(1),
 		"response.errors.ratelimit":    int64(0),
 		"response.errors.timeout":      int64(0),
@@ -187,20 +180,17 @@ func TestConsumeLogsGRPC(t *testing.T) {
 	}, actual)
 }
 
-func newGRPCServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientConn {
+func newHTTPServer(t *testing.T, batchProcessor model.BatchProcessor) string {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
-	logger := logp.NewLogger("otlp.grpc.test")
-	srv := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptors.Metrics(logger, otlp.GRPCRegistryMonitoringMaps)),
-	)
-	err = otlp.RegisterGRPCServices(srv, batchProcessor)
+	cfg := &config.Config{}
+	auth, _ := auth.NewAuthenticator(cfg.AgentAuth)
+	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
+	router, err := api.NewMux(
+		beat.Info{Version: "1.2.3"}, cfg, batchProcessor, auth, agentcfg.NewFetcher(cfg), ratelimitStore,
+		nil, false, func() bool { return true })
 	require.NoError(t, err)
-
+	srv := http.Server{Handler: router}
 	go srv.Serve(lis)
-	t.Cleanup(srv.GracefulStop)
-	conn, err := grpc.Dial(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err)
-	t.Cleanup(func() { conn.Close() })
-	return conn
+	return lis.Addr().String()
 }

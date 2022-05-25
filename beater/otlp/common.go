@@ -15,22 +15,46 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package middleware
+package otlp
 
 import (
+	"sync"
+
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/processor/otel"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
-// ResponseHeadersMiddleware sets the configured headers in the response
-func ResponseHeadersMiddleware(headers map[string][]string) Middleware {
-	return func(h request.Handler) (request.Handler, error) {
-		return func(c *request.Context) {
-			for k, v := range headers {
-				for _, s := range v {
-					c.ResponseWriter.Header().Add(k, s)
-				}
-			}
-			h(c)
-		}, nil
+var (
+	monitoringKeys = append(request.DefaultResultIDs,
+		request.IDResponseErrorsRateLimit,
+		request.IDResponseErrorsTimeout,
+		request.IDResponseErrorsUnauthorized,
+	)
+)
+
+type monitoredConsumer struct {
+	mu       sync.RWMutex
+	consumer *otel.Consumer
+}
+
+func (m *monitoredConsumer) set(c *otel.Consumer) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.consumer = c
+}
+
+func (m *monitoredConsumer) collect(mode monitoring.Mode, V monitoring.Visitor) {
+	V.OnRegistryStart()
+	defer V.OnRegistryFinished()
+
+	m.mu.RLock()
+	c := m.consumer
+	m.mu.RUnlock()
+	if c == nil {
+		return
 	}
+
+	stats := c.Stats()
+	monitoring.ReportInt(V, "unsupported_dropped", stats.UnsupportedMetricsDropped)
 }

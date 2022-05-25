@@ -39,6 +39,7 @@ import (
 	"github.com/elastic/apm-server/beater/auth"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/middleware"
+	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/beater/ratelimit"
 	"github.com/elastic/apm-server/beater/request"
 	logs "github.com/elastic/apm-server/log"
@@ -69,6 +70,13 @@ const (
 	IntakeRUMPath = "/intake/v2/rum/events"
 
 	IntakeRUMV3Path = "/intake/v3/rum/events"
+
+	// OTLPTracesIntakePath defines the path to ingest OpenTelemetry traces (HTTP Collector)
+	OTLPTracesIntakePath = "/v1/traces"
+	// OTLPMetricsIntakePath defines the path to ingest OpenTelemetry metrics (HTTP Collector)
+	OTLPMetricsIntakePath = "/v1/metrics"
+	// OTLPLogsIntakePath defines the path to ingest OpenTelemetry logs (HTTP Collector)
+	OTLPLogsIntakePath = "/v1/logs"
 )
 
 // NewMux creates a new gorilla/mux router, with routes registered for handling the
@@ -104,6 +112,12 @@ func NewMux(
 		path      string
 		handlerFn func() (request.Handler, error)
 	}
+
+	otlpHandlers, err := otlp.NewHTTPHandlers(batchProcessor)
+	if err != nil {
+		return nil, err
+	}
+
 	routeMap := []route{
 		{RootPath, builder.rootHandler(publishReady)},
 		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher)},
@@ -113,6 +127,9 @@ func NewMux(
 		{IntakePath, builder.backendIntakeHandler},
 		// The profile endpoint is in Beta
 		{ProfilePath, builder.profileHandler},
+		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.TraceHandler, otlp.HTTPTracesMonitoringMap)},
+		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.MetricsHandler, otlp.HTTPMetricsMonitoringMap)},
+		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.LogsHandler, otlp.HTTPLogsMonitoringMap)},
 	}
 
 	for _, route := range routeMap {
@@ -164,6 +181,15 @@ func (r *routeBuilder) profileHandler() (request.Handler, error) {
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
 	h := intake.Handler(stream.BackendProcessor(r.cfg, r.intakeSemaphore), backendRequestMetadataFunc(r.cfg), r.batchProcessor)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
+}
+
+func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, monitoringMap map[request.ResultID]*monitoring.Int) func() (request.Handler, error) {
+	return func() (request.Handler, error) {
+		h := func(c *request.Context) {
+			handler(c.ResponseWriter, c.Request)
+		}
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, monitoringMap)...)
+	}
 }
 
 func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config, chan struct{}) *stream.Processor) func() (request.Handler, error) {
@@ -327,5 +353,5 @@ func rumRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.A
 
 func notFoundHandler(c *request.Context) {
 	c.Result.SetDefault(request.IDResponseErrorsNotFound)
-	c.Write()
+	c.WriteResult()
 }

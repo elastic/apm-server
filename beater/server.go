@@ -207,7 +207,7 @@ func newGRPCServer(
 			apmInterceptor,
 			interceptors.ClientMetadata(),
 			interceptors.Logging(logger),
-			interceptors.Metrics(logger, otlp.RegistryMonitoringMaps, jaeger.RegistryMonitoringMaps),
+			interceptors.Metrics(logger, otlp.GRPCRegistryMonitoringMaps, jaeger.RegistryMonitoringMaps),
 			interceptors.Timeout(),
 			authInterceptor,
 			interceptors.AnonymousRateLimit(ratelimitStore),
