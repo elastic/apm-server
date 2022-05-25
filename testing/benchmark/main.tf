@@ -18,10 +18,11 @@ provider "aws" {
   region = var.worker_region
   default_tags {
     tags = {
-      environment  = "ci"
-      repo         = "apm-server"
-      branch       = "benchmarks_2_job"
-      build        = "1"      
+      environment  = var.ENVIRONMENT
+      repo         = var.REPO
+      branch       = var.BRANCH
+      build        = var.BUILD_ID
+      created_date = var.CREATED_DATE
     }
   }
 }
