@@ -49,6 +49,7 @@ pipeline {
         TF_VAR_BRANCH = "${BRANCH_NAME_LOWER_CASE}"
         TF_VAR_REPO = "${REPO}"
         GOBENCH = 'gobench'
+        GOBENCH_INDEX = 'gobench'
       }
       steps {
         dir ("${BASE_DIR}") {
