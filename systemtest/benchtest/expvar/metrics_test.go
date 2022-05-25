@@ -35,6 +35,7 @@ func TestStart(t *testing.T) {
 	defer server.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
+
 	c, err := StartNewCollector(ctx, server.URL, 10*time.Second)
 	assert.NoError(t, err)
 	assert.Equal(t, int64(1), c.Get(Goroutines).samples)
@@ -48,6 +49,7 @@ func TestAggregate(t *testing.T) {
 	defer cancel()
 	c, _ := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
 	<-time.After(55 * time.Millisecond)
+
 	stats := c.Get(Goroutines)
 	assert.GreaterOrEqual(t, stats.Last, int64(6))
 	assert.Equal(t, stats.Last, stats.Max)
@@ -55,13 +57,14 @@ func TestAggregate(t *testing.T) {
 	assert.Equal(t, float64(stats.Last*(stats.Last+1))/float64(2*stats.samples), stats.Mean)
 }
 
-func TestWatch(t *testing.T) {
+func TestWatchMetric(t *testing.T) {
 	server := getTestServer(t)
 	defer server.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	c, _ := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
-	watcher, err := c.AddWatch(Goroutines, 5)
+
+	watcher, err := c.WatchMetric(Goroutines, 5)
 	assert.NoError(t, err)
 	select {
 	case w := <-watcher:
@@ -72,14 +75,27 @@ func TestWatch(t *testing.T) {
 	}
 }
 
-func TestWatchFalse(t *testing.T) {
+func TestWatchMetricFail(t *testing.T) {
 	server := getTestServer(t)
 	defer server.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	c, _ := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
-	watcher, err := c.AddWatch(Goroutines, 20)
+	cancel()
+	<-time.After(100 * time.Millisecond)
+
+	_, err := c.WatchMetric(Goroutines, 10)
+	assert.Error(t, err)
+}
+
+func TestWatchMetricFalse(t *testing.T) {
+	server := getTestServer(t)
+	defer server.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	c, _ := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
+	watcher, err := c.WatchMetric(Goroutines, 20)
 	require.NoError(t, err)
 	cancel()
+
 	select {
 	case w := <-watcher:
 		assert.False(t, w)
@@ -88,16 +104,15 @@ func TestWatchFalse(t *testing.T) {
 	}
 }
 
-func TestWatchNonBlocking(t *testing.T) {
+func TestWatchMetricNonBlocking(t *testing.T) {
 	server := getTestServer(t)
 	defer server.Close()
 	timeout := 100 * time.Millisecond
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	c, _ := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
-	watcher, err := c.AddWatch(Goroutines, 5)
+	watcher, err := c.WatchMetric(Goroutines, 5)
 	require.NoError(t, err)
-
 	// Wait for the context to be cancelled.
 	<-time.After(timeout)
 

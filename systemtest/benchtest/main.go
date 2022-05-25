@@ -79,7 +79,7 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 		b.ResetTimer()
 		f(b, limiter)
 		if !b.Failed() {
-			watcher, err := collector.AddWatch(expvar.ActiveEvents, 0)
+			watcher, err := collector.WatchMetric(expvar.ActiveEvents, 0)
 			if err != nil {
 				b.Error(err)
 			} else if status := <-watcher; !status {

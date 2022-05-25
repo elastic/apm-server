@@ -70,6 +70,7 @@ type Collector struct {
 	l       sync.Mutex
 	metrics map[Metric]AggregateStats
 	watches map[Metric]watchItem
+	stopped bool
 }
 
 // StartNewCollector creates a new collector and starts
@@ -78,6 +79,7 @@ func StartNewCollector(ctx context.Context, serverURL string, period time.Durati
 	c := &Collector{
 		metrics: make(map[Metric]AggregateStats),
 		watches: make(map[Metric]watchItem),
+		stopped: false,
 	}
 	return c, c.start(ctx, serverURL, period)
 }
@@ -100,18 +102,22 @@ func (c *Collector) Delta(m Metric) int64 {
 	return stats.Last - stats.First
 }
 
-// AddWatch configures a new watch for a given metric. The
+// WatchMetric configures a new watch for a given metric. The
 // watch is deleted after the specified expected value is
-// observed.
+// observed or collector is stopped.
 //
-// AddWatch returns a read only channel to observe the state
+// WatchMetric returns a read only channel to observe the state
 // of the watch. A true event on this channel refers to an
-// observation with the expected value while a false event
-// refers to an error in the collector. Both cases end the
+// observation with the expected value while the channel is
+// closed to denote error in the collector. Both cases end the
 // lifecycle of the watch.
-func (c *Collector) AddWatch(m Metric, expected int64) (<-chan bool, error) {
+func (c *Collector) WatchMetric(m Metric, expected int64) (<-chan bool, error) {
 	c.l.Lock()
 	defer c.l.Unlock()
+
+	if c.stopped {
+		return nil, errors.New("collector has stopped")
+	}
 
 	if _, ok := c.watches[m]; ok {
 		return nil, errors.New("watch already exists for the given metric")
@@ -126,7 +132,7 @@ func (c *Collector) AddWatch(m Metric, expected int64) (<-chan bool, error) {
 	return out, nil
 }
 
-func (c *Collector) addExpvar(e expvar) {
+func (c *Collector) accumulate(e expvar) {
 	c.l.Lock()
 	defer c.l.Unlock()
 
@@ -193,13 +199,17 @@ func (c *Collector) start(ctx context.Context, serverURL string, period time.Dur
 	var first expvar
 	err := queryExpvar(ctx, &first, serverURL)
 	if err != nil {
+		c.stopped = true
 		return err
 	}
-	c.addExpvar(first)
+	c.accumulate(first)
 
 	outChan, errChan := run(ctx, serverURL, period)
 	go func() {
-		defer c.rejectWatches()
+		defer func() {
+			c.stopped = true
+			c.rejectWatches()
+		}()
 		for {
 			select {
 			case <-ctx.Done():
@@ -207,7 +217,7 @@ func (c *Collector) start(ctx context.Context, serverURL string, period time.Dur
 			case <-errChan:
 				return
 			case m := <-outChan:
-				c.addExpvar(m)
+				c.accumulate(m)
 			}
 		}
 	}()
