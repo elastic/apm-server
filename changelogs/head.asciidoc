@@ -30,3 +30,4 @@ https://github.com/elastic/apm-server/compare/8.2\...main[View commits]
 // Added but still being debugged
 - `apm-server` artifacts now have the apm java-attacher.jar packaged alongside them {pull}6593[6593]
 - Run the java attacher jar when configured and not in a cloud environment {pull}6617[6617]
+- OTLP/HTTP protocol is now supported {pull}8156{8156}

@@ -196,13 +196,13 @@ func writeResult(c *request.Context, id request.ResultID, statusCode int, result
 		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
-		c.Header().Add(headers.Connection, "Close")
+		c.ResponseWriter.Header().Add(headers.Connection, "Close")
 		body = result
 	} else if _, ok := c.Request.URL.Query()["verbose"]; ok {
 		body = result
 	}
 	c.Result.Set(id, statusCode, request.MapResultIDToStatus[id].Keyword, body, err)
-	c.Write()
+	c.WriteResult()
 }
 
 type compressedRequestReaderError struct {
