@@ -1,7 +1,7 @@
 # Deployment settings
 
 variable "deployment_name_prefix" {
-  default     = "apmserver-benchmarks"
+  default     = "apmserver"
   description = "Optional ESS or ECE region. Defaults to GCP US West 2 (Los Angeles)"
   type        = string
 }

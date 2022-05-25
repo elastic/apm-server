@@ -10,8 +10,9 @@ pipeline {
     AWS_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-aws-account-auth'
     GCP_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-account-auth'
     EC_KEY_SECRET = 'secret/observability-team/ci/elastic-cloud/observability-pro'
+    BENCHMARK_ES_SECRET = 'secret/apm-team/ci/benchmark-cloud'
     TERRAFORM_VERSION = '1.1.9'
-
+    
     CREATED_DATE = "${new Date().getTime()}"
     JOB_GCS_BUCKET_STASH = 'apm-ci-temp'
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
@@ -24,8 +25,7 @@ pipeline {
     ansiColor('xterm')
     disableResume()
     durabilityHint('PERFORMANCE_OPTIMIZED')
-    rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
-    quietPeriod(10)
+    rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])    
   }
 
   stages {
@@ -39,13 +39,25 @@ pipeline {
 
     stage('Benchmarks') {
       options { skipDefaultCheckout() }
+      environment {
+        SSH_KEY = "./id_rsa_terraform"
+        TF_VAR_public_key = "${env.SSH_KEY}.pub"
+        TF_VAR_private_key = "${env.SSH_KEY}"
+        TF_VAR_BUILD_ID = "${env.BUILD_ID}"
+        TF_VAR_BRANCH_NAME = "${env.BRANCH_NAME}"
+        TF_VAR_ENVIRONMENT= 'ci'
+        TF_VAR_BRANCH = "${BRANCH_NAME_LOWER_CASE}"
+        TF_VAR_REPO = "${REPO}"
+        GOBENCH = 'gobench'
+      }
       steps {
         dir ("${BASE_DIR}") {
-          withGoEnv() {
+          withGoEnv(pkgs: ['github.com/elastic/gobench']) {
             dir("testing/benchmark") {
               withTestClusterEnv {
-                  sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
-                  sh(label: 'Spin up benchmark environment', script: 'make init apply')
+                sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
+                sh(label: 'Spin up benchmark environment', script: 'make init apply')
+                withESBenchmarkEnv {
                   sh(label: 'Run benchmarks', script: 'make run-benchmark index-benchmark-results')
                 }
               }
@@ -71,38 +83,20 @@ def withTestClusterEnv(Closure body) {
   withGCPEnv(secret: "${GCP_ACCOUNT_SECRET}") {
     withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}") {
       withTerraformEnv(version: "${TERRAFORM_VERSION}") {
-        withECKey {
-          withEnv(['SSH_KEY=./id_rsa_terraform',
-                  'TF_VAR_public_key=./id_rsa_terraform.pub',
-                  'TF_VAR_private_key=./id_rsa_terraform'],
-                  "TF_VAR_BUILD_ID=${BUILD_ID}",
-                  "TF_VAR_BRANCH_NAME=${BRANCH_NAME}",
-                  "TF_VAR_CREATED_DATE=${CREATED_DATE}",
-                  "TF_VAR_ENVIRONMENT=ci",
-                  "TF_VAR_BRANCH=${BRANCH_NAME_LOWER_CASE}",
-                  "TF_VAR_REPO=${REPO}") {
-            body()
-          }
+        withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
+          body()
         }
       }
     }
   }
 }
 
-def withECKey(Closure body) {
-  def vaultResponse = getVaultSecret(secret: "${EC_KEY_SECRET}")
-  if (vaultResponse.errors) {
-    error("withECKey: Unable to get credentials from the vault: ${props.errors.toString()}")
-  }
-
-  def ecKey = vaultResponse?.data?.apiKey
-  if (!ecKey?.trim()) {
-    error("withECKey: Unable to read the apiKey field")
-  }
-
-  withEnvMask(vars: [
-    [var: "EC_API_KEY", password: ecKey]
-  ]) {
+def withESBenchmarkEnv(Closure body) {
+  withSecretVault(
+      secret: "${BENCHMARK_ES_SECRET}", 
+      data: ['user': 'GOBENCH_USERNAME', 
+            'url': 'GOBENCH_HOST', 
+            'password': 'GOBENCH_PASSWORD'] ) {
     body()
   }
 }

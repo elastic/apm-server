@@ -14,7 +14,7 @@
         discover-pr-origin: merge-current
         discover-tags: false
         # todo: remove benchmarks_2_job
-        head-filter-regex: '(main|7\.17|8\.\d+|PR-.*|benchmarks_2_job)'
+        head-filter-regex: '(main|7\.17|8\.\d+|PR-.*)'
         notification-context: 'apm-server-benckmarks'
         repo: apm-server
         repo-owner: elastic
