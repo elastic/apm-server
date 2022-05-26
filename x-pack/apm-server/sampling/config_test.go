@@ -43,11 +43,11 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	}}
 	assertInvalidConfigError("invalid local sampling config: Policies does not contain a default (empty criteria) policy")
 	config.Policies[0].PolicyCriteria = sampling.PolicyCriteria{}
-	for _, invalid := range []float64{-1, 1.0, 2.0} {
+	for _, invalid := range []float64{-1, 2.0} {
 		config.Policies[0].SampleRate = invalid
-		assertInvalidConfigError("invalid local sampling config: Policy 0 invalid: SampleRate unspecified or out of range [0,1)")
+		assertInvalidConfigError("invalid local sampling config: Policy 0 invalid: SampleRate unspecified or out of range [0,1]")
 	}
-	config.Policies[0].SampleRate = 0.5
+	config.Policies[0].SampleRate = 1.0
 
 	for _, invalid := range []float64{-1, 0, 2.0} {
 		config.IngestRateDecayFactor = invalid
