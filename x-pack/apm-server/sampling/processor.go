@@ -228,6 +228,10 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 	}
 
 	// Root transaction: apply reservoir sampling.
+	//
+	// TODO(axw) we should skip reservoir sampling when the matching
+	// policy's sampling rate is 100%, immediately index the event
+	// and record the trace sampling decision.
 	reservoirSampled, err := p.groups.sampleTrace(event)
 	if err == errTooManyTraceGroups {
 		// Too many trace groups, drop the transaction.
