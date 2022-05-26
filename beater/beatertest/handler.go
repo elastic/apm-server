@@ -25,22 +25,22 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 )
 
-// Handler403 sets a full 403 result and calls Write()
+// Handler403 sets a full 403 result and calls WriteResult()
 func Handler403(c *request.Context) {
 	c.Result.Set(request.IDResponseErrorsForbidden,
 		http.StatusForbidden,
 		request.MapResultIDToStatus[request.IDResponseErrorsForbidden].Keyword,
 		nil,
 		nil)
-	c.Write()
+	c.WriteResult()
 }
 
-// Handler202 sets a 202 ID, status code and keyword to the context's response and calls Write()
+// Handler202 sets a 202 ID, status code and keyword to the context's response and calls WriteResult()
 func Handler202(c *request.Context) {
 	c.Result.ID = request.IDResponseValidAccepted
 	c.Result.StatusCode = http.StatusAccepted
 	c.Result.Keyword = request.MapResultIDToStatus[request.IDResponseValidAccepted].Keyword
-	c.Write()
+	c.WriteResult()
 }
 
 // HandlerPanic panics on request

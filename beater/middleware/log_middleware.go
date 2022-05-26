@@ -41,7 +41,7 @@ func LogMiddleware() Middleware {
 				id := request.IDResponseErrorsInternal
 				c.Logger.Error(request.MapResultIDToStatus[id].Keyword, logp.Error(err))
 				c.Result.SetWithError(id, err)
-				c.Write()
+				c.WriteResult()
 				return
 			}
 			h(c)

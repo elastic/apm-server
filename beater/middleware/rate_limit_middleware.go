@@ -39,7 +39,7 @@ func AnonymousRateLimitMiddleware(store *ratelimit.Store) Middleware {
 						request.IDResponseErrorsRateLimit,
 						ratelimit.ErrRateLimitExceeded,
 					)
-					c.Write()
+					c.WriteResult()
 					return
 				}
 				ctx := c.Request.Context()
