@@ -17,7 +17,7 @@ package configmapprovider // import "go.opentelemetry.io/collector/config/config
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -53,7 +53,7 @@ func (fmp *fileMapProvider) Retrieve(_ context.Context, location string, _ Watch
 	}
 
 	// Clean the path before using it.
-	content, err := ioutil.ReadFile(filepath.Clean(location[len(fileSchemeName)+1:]))
+	content, err := os.ReadFile(filepath.Clean(location[len(fileSchemeName)+1:]))
 	if err != nil {
 		return nil, fmt.Errorf("unable to read the file %v: %w", location, err)
 	}

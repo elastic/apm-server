@@ -18,7 +18,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
@@ -132,7 +132,7 @@ func (c TLSSetting) loadTLSConfig() (*tls.Config, error) {
 }
 
 func (c TLSSetting) loadCert(caPath string) (*x509.CertPool, error) {
-	caPEM, err := ioutil.ReadFile(filepath.Clean(caPath))
+	caPEM, err := os.ReadFile(filepath.Clean(caPath))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load CA %s: %w", caPath, err)
 	}
