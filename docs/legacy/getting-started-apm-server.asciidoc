@@ -8,7 +8,7 @@
 IMPORTANT: {deprecation-notice-installation}
 
 IMPORTANT: Starting in version 8.0.0, {fleet} uses the APM integration to set up and manage APM index templates,
-ILM policies, and ingest pipelines. APM Server will only send data to {es} _after_ the APM integration has been installed.
+{ilm-init} policies, and ingest pipelines. APM Server will only send data to {es} _after_ the APM integration has been installed.
 
 The easiest way to get started with Elastic APM is by using our
 {ess-product}[hosted {es} Service] on {ecloud}.
@@ -16,11 +16,11 @@ The {es} Service is available on AWS, GCP, and Azure,
 and automatically configures APM Server to work with {es} and {kib}.
 
 [float]
-=== Hosted Elasticsearch Service
+=== Hosted {es} Service
 
 Skip managing your own {es}, {kib}, and APM Server by using our
 {ess-product}[hosted {es} Service] on
-Elastic Cloud.
+{ecloud}.
 
 image::images/apm-architecture-cloud.png[Install Elastic APM on cloud]
 
@@ -37,7 +37,7 @@ You'll need:
 * *{es}* for storing and indexing data.
 * *{kib}* for visualizing with the APM UI.
 
-We recommend you use the same version of Elasticsearch, Kibana, and APM Server.
+We recommend you use the same version of {es}, {kib}, and APM Server.
 
 image::images/apm-architecture-diy.png[Install Elastic APM yourself]
 
@@ -197,7 +197,7 @@ See <<running-on-docker, Running on Docker>> for deploying Docker containers.
 IMPORTANT: {deprecation-notice-installation}
 
 [float]
-==== Elastic Cloud
+==== {ecloud}
 
 If you're running APM in Elastic cloud,
 see {cloud}/ec-manage-apm-settings.html[Add APM user settings] for information on how to configure Elastic APM.
@@ -208,7 +208,7 @@ see {cloud}/ec-manage-apm-settings.html[Add APM user settings] for information o
 // This content is reused in the upgrading guide
 // tag::why-apm-integration[]
 Starting in version 8.0.0, {fleet} uses the APM integration to set up and manage APM index templates,
-ILM policies, and ingest pipelines. APM Server will only send data to {es} _after_ the APM integration has been installed.
+{ilm-init} policies, and ingest pipelines. APM Server will only send data to {es} _after_ the APM integration has been installed.
 // end::why-apm-integration[]
 
 [float]
@@ -220,6 +220,7 @@ NOTE: An internet connection is required to install the APM integration.
 If your environment has network traffic restrictions, there are ways to work around this requirement.
 See {fleet-guide}/air-gapped.html[Air-gapped environments] for more information.
 
+// lint ignore elastic-agent
 . Open {kib} and select **Add integrations** > **Elastic APM**.
 . Click **APM integration**.
 . Click **Add Elastic APM**.
@@ -265,8 +266,8 @@ All available configuration options are outlined in
 IMPORTANT: {deprecation-notice-installation}
 
 In a production environment, you would put APM Server on its own machines,
-similar to how you run Elasticsearch.
-You _can_ run it on the same machines as Elasticsearch, but this is not recommended,
+similar to how you run {es}.
+You _can_ run it on the same machines as {es}, but this is not recommended,
 as the processes will be competing for resources.
 
 To start APM Server, run:
@@ -278,10 +279,10 @@ To start APM Server, run:
 
 NOTE: The `-e` <<global-flags,global flag>> enables logging to stderr and disables syslog/file output.
 Remove this flag if you've enabled logging in the configuration file.
-For linux systems, see <<running-with-systemd,APM Server status and logs>>.
+For Linux systems, see <<running-with-systemd,APM Server status and logs>>.
 
 You should see APM Server start up.
-It will try to connect to Elasticsearch on localhost port `9200` and expose an API to agents on port `8200`.
+It will try to connect to {es} on localhost port `9200` and expose an API to agents on port `8200`.
 You can change the defaults in `apm-server.yml` or by supplying a different address on the command line:
 
 [source,bash]
@@ -293,7 +294,7 @@ You can change the defaults in `apm-server.yml` or by supplying a different addr
 [[running-deb-rpm]]
 ==== Debian Package / RPM
 
-For Debian package and RPM installations, we recommend the apm-server process runs as a non-root user.
+For Debian package and RPM installations, we recommend the `apm-server` process runs as a non-root user.
 Therefore, these installation methods create an `apm-server` user which you can use to start the process.
 In addition, {beatname_uc} will only start if the configuration file is
 <<config-file-ownership,owned by the user running the process>>.
@@ -330,8 +331,8 @@ If you haven't already, you can now install APM Agents in your services!
 * {apm-ruby-ref-v}/introduction.html[Ruby agent]
 * {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]
 
-Once you have at least one APM agent sending data to APM Server,
-you can start visualizing your data in the {kibana-ref}/xpack-apm.html[APM app].
+Once you have at least one {apm-agent} sending data to APM Server,
+you can start visualizing your data in the {kibana-ref}/xpack-apm.html[{apm-app}].
 
 If you're migrating from Jaeger, see <<jaeger>>.
 

@@ -31,7 +31,7 @@ There are two ways to filter other types APM data:
 All agents and fields are supported. Data leaves the instrumented service.
 There are no performance overhead implications on the instrumented service.
 
-|<<filter-in-agent,APM agent filters>> | Not supported by all agents.
+|<<filter-in-agent,{apm-agent} filters>> | Not supported by all agents.
 Data is sanitized before leaving the instrumented service.
 Potential overhead implications on the instrumented service
 |====
@@ -139,7 +139,7 @@ Note that Elastic APM currently does not make an effort to strip parameters of r
 Not using prepared statements makes your code vulnerable to SQL injection attacks,
 so be sure to use prepared statements.
 
-For non-SQL data stores, such as Elasticsearch or MongoDB,
+For non-SQL data stores, such as {es} or MongoDB,
 Elastic APM captures the full statement for queries.
 For inserts or updates, the full document is not stored.
 To filter or obfuscate data in non-SQL database statements,
@@ -447,7 +447,7 @@ to learn more about the default `apm` pipeline.
 
 [discrete]
 [[filter-in-agent]]
-==== APM agent filters
+==== {apm-agent} filters
 
 Some APM agents offer a way to manipulate or drop APM events _before_ they are sent to the APM Server.
 Please see the relevant agent's documentation for more information and examples:

@@ -76,8 +76,8 @@ https://github.com/elastic/apm-server/compare/v6.1.4\...v6.2.0[View commits]
 - Increase default 'MaxUnzippedSize' from 10mb to 50mb {pull}439[439]
 - Add transaction.id to errors {pull}437[437]
 - Support for `transaction.marks` {pull}430[430]
-- Support for uploading sourcemaps {pull}302[302].
-- Support for sourcemap mapping on incoming front-end requests {pull}381[381], {pull}462[462], {pull}502[502]
+- Support for uploading source maps {pull}302[302].
+- Support for source mapping on incoming front-end requests {pull}381[381], {pull}462[462], {pull}502[502]
 - Support for `transaction.span_count.dropped.total` {pull}448[448].
 - Optional field `transaction.sampled` {pull}441[441]
 - Add {kib} sourcefilter for `sourcemap.sourcemap` {pull}454[454]
@@ -85,7 +85,7 @@ https://github.com/elastic/apm-server/compare/v6.1.4\...v6.2.0[View commits]
 - Add Config option for excluding stack trace frames from `grouping_key` calculation {pull}482[482]
 - Expose expvar {pull}509[509]
 - Add `process.ppid` as optional field {pull}564[564]
-- Change `error.culprit` after successfully applying sourcemapping {pull}520[520]
+- Change `error.culprit` after successfully applying source mapping {pull}520[520]
 - Make `transaction.name` optional {pull}554[554]
 - Remove config files from beats. Manually add relevant config options {pull}578[578]
 - Use separate index for uploaded `source maps` {pull}582[582].

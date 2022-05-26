@@ -11,6 +11,7 @@ You can specify Kerberos options with any output or input that supports Kerberos
 
 The following encryption types are supported:
 
+// lint ignore
 * aes128-cts-hmac-sha1-96
 * aes128-cts-hmac-sha256-128
 * aes256-cts-hmac-sha1-96
@@ -30,7 +31,7 @@ output.elasticsearch.kerberos.config_path: "/etc/krb5.conf"
 output.elasticsearch.kerberos.realm: "ELASTIC.CO"
 ----
 
-The service principal name for the Elasticsearch instance is contructed from these options. Based on this configuration
+The service principal name for the {es} instance is constructed from these options. Based on this configuration
 it is going to be `HTTP/my-elasticsearch.elastic.co@ELASTIC.CO`.
 
 [float]
@@ -41,7 +42,7 @@ You can specify the following options in the `kerberos` section of the +{beatnam
 [float]
 ==== `enabled`
 
-The `enabled` setting can be used to enable the kerberos configuration by setting
+The `enabled` setting can be used to enable the `kerberos` configuration by setting
 it to `false`. The default value is `true`.
 
 NOTE: Kerberos settings are disabled if either `enabled` is set to `false` or the
