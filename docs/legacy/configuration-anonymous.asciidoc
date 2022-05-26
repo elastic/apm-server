@@ -94,7 +94,7 @@ Default: `false` (disabled)
 [float]
 [[config-auth-anon-allow-agent]]
 ==== `allow_agent`
-A list of permitted APM agent names for anonymous authentication.
+A list of permitted {apm-agent} names for anonymous authentication.
 Names in this list must match the agent's `agent.name`.
 
 Default: `[rum-js, js-base]` (only RUM agent events are accepted)

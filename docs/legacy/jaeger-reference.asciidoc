@@ -12,7 +12,7 @@ If you've already upgraded, please see <<jaeger-integration>> instead.
 // tag::jaeger-intro[]
 Elastic APM integrates with https://www.jaegertracing.io/[Jaeger], an open-source, distributed tracing system.
 This integration allows users with an existing Jaeger setup to switch from the default Jaeger backend,
-to the Elastic Stack -- transform data with APM Server, store data in {es}, and visualize traces in the Kibana APM app.
+to the {stack} -- transform data with APM Server, store data in {es}, and visualize traces in the {kib} {apm-app}.
 Best of all, no instrumentation changes are needed in your application code.
 // end::jaeger-intro[]
 
@@ -26,7 +26,7 @@ Jaeger architecture supports different data formats and transport protocols
 that define how data can be sent to a collector. Elastic APM, as a Jaeger collector,
 supports communication with *Jaeger agents* via gRPC.
 
-* APM Server serves Jaeger gRPC over the same <<host,host and port>> as the Elastic APM agent protocol.
+* APM Server serves Jaeger gRPC over the same <<host,host and port>> as the Elastic {apm-agent} protocol.
 
 * The APM Server gRPC endpoint supports TLS. If `apm-server.ssl` is configured,
 SSL settings will automatically be applied to APM Server's Jaeger gRPC endpoint.
@@ -54,7 +54,7 @@ it is not possible to mix and match the use of Elastic's APM agents and Jaeger's
 * Jaeger clients only sends trace data.
 APM agents support a larger number of features, like
 multiple types of metrics, and application breakdown charts.
-When using Jaeger, features like this will not be available in the APM app.
+When using Jaeger, features like this will not be available in the {apm-app}.
 * Elastic APM's {apm-overview-ref-v}/apm-data-model.html[data model] is different than Jaegers.
 For Jaeger trace data to work with Elastic's data model, we rely on spans being tagged with the appropriate
 https://github.com/opentracing/specification/blob/master/semantic_conventions.md[`span.kind`].

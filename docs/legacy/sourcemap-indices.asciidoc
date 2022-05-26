@@ -5,7 +5,7 @@
 <titleabbrev>Source map document</titleabbrev>
 ++++
 
-This example shows what a source map document can look like when indexed in Elasticsearch:
+This example shows what a source map document can look like when indexed in {es}:
 
 [source,json]
 ----
