@@ -37,10 +37,9 @@ func TestDefaultServiceEnvironment(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	defer os.Unsetenv("ELASTIC_APM_ENVIRONMENT")
 	tracerDefaultEnvironment := srv.Tracer()
 
-	os.Setenv("ELASTIC_APM_ENVIRONMENT", "specified")
+	t.Setenv("ELASTIC_APM_ENVIRONMENT", "specified")
 	tracerSpecifiedEnvironment := srv.Tracer()
 
 	tracerDefaultEnvironment.StartTransaction("default_environment", "type").End()
