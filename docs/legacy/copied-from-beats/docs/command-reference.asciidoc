@@ -21,11 +21,11 @@
 
 ifndef::serverless[]
 ifndef::no_dashboards[]
-:export-command-short-desc: Exports the configuration, index template, ILM policy, or a dashboard to stdout
+:export-command-short-desc: Exports the configuration, index template, {ilm-init} policy, or a dashboard to stdout
 endif::no_dashboards[]
 
 ifdef::no_dashboards[]
-:export-command-short-desc: Exports the configuration, index template, or ILM policy to stdout
+:export-command-short-desc: Exports the configuration, index template, or {ilm-init} policy to stdout
 endif::no_dashboards[]
 endif::serverless[]
 
@@ -41,15 +41,15 @@ endif::serverless[]
 :run-command-short-desc: Runs {beatname_uc}. This command is used by default if you start {beatname_uc} without specifying a command
 
 ifdef::has_ml_jobs[]
-:setup-command-short-desc: Sets up the initial environment, including the index template, ILM policy and write alias, {kib} dashboards (when available), and machine learning jobs (when available)
+:setup-command-short-desc: Sets up the initial environment, including the index template, {ilm-init} policy and write alias, {kib} dashboards (when available), and {ml} jobs (when available)
 endif::[]
 
 ifdef::no_dashboards[]
-:setup-command-short-desc: Sets up the initial environment, including the ES index template, and ILM policy and write alias
+:setup-command-short-desc: Sets up the initial environment, including the ES index template, and {ilm-init} policy and write alias
 endif::no_dashboards[]
 
 ifndef::has_ml_jobs,no_dashboards[]
-:setup-command-short-desc: Sets up the initial environment, including the index template, ILM policy and write alias, and {kib} dashboards (when available)
+:setup-command-short-desc: Sets up the initial environment, including the index template, {ilm-init} policy and write alias, and {kib} dashboards (when available)
 endif::[]
 
 :update-command-short-desc: Updates the specified function
@@ -153,7 +153,7 @@ and you must ensure that `apm-server.api_key` or `output.elasticsearch` are conf
 {beatname_lc} apikey SUBCOMMAND [FLAGS]
 ----
 
-*SUBCOMMANDS*
+*`SUBCOMMAND`*
 
 // tag::apikey-subcommands[]
 *`create`*::
@@ -182,7 +182,7 @@ When used with `create`, gives the `config_agent:read` privilege to the created 
 When used with `verify`, asks for the `config_agent:read` privilege.
 
 *`--credentials CREDS`*::
-Required for the `verify` subcommand. Specifies the credentials for which to to check privileges.
+Required for the `verify` subcommand. Specifies the credentials for which to check privileges.
 Credentials are the base64 encoded representation of the API key's `id:api_key`.
 
 *`--expiration TIME`*::
@@ -209,7 +209,7 @@ When used with `info`, specifies the API key to query (multiple matches are poss
 When used with `invalidate`, specifies the API key to delete (multiple matches are possible).
 
 *`--sourcemap`*::
-Required for uploading sourcemaps. Valid with the `create` and `verify` subcommands.
+Required for uploading source maps. Valid with the `create` and `verify` subcommands.
 When used with `create`, gives the `sourcemap:write` privilege to the created key.
 When used with `verify`, asks for the `sourcemap:write` privilege.
 
@@ -272,20 +272,20 @@ ifndef::serverless[]
 ifndef::no_dashboards[]
 {export-command-short-desc}. You can use this
 command to quickly view your configuration, see the contents of the index
-template and the ILM policy, or export a dashboard from {kib}.
+template and the {ilm-init} policy, or export a dashboard from {kib}.
 endif::no_dashboards[]
 
 ifdef::no_dashboards[]
 {export-command-short-desc}. You can use this
 command to quickly view your configuration or see the contents of the index
-template or the ILM policy.
+template or the {ilm-init} policy.
 endif::no_dashboards[]
 endif::serverless[]
 
 ifdef::serverless[]
 {export-command-short-desc}. You can use this
 command to quickly view your configuration, see the contents of the index
-template and the ILM policy, or export an CloudFormation template.
+template and the {ilm-init} policy, or export an CloudFormation template.
 endif::serverless[]
 
 *SYNOPSIS*
@@ -295,7 +295,7 @@ endif::serverless[]
 {beatname_lc} export SUBCOMMAND [FLAGS]
 ----
 
-*SUBCOMMANDS*
+*`SUBCOMMAND`*
 
 *`config`*::
 Exports the current configuration to stdout. If you use the `-c` flag, this
@@ -333,7 +333,7 @@ the template to a file instead of `stdout` by defining a directory via `--dir`.
 
 [[ilm-policy-subcommand]]
 *`ilm-policy`*::
-Exports the index lifecycle management policy to stdout. You can specify the
+Exports the {ilm} policy to stdout. You can specify the
 `--es.version` and a `--dir` to which the policy should be exported as a
 file rather than exporting to `stdout`.
 
@@ -347,8 +347,8 @@ endif::serverless[]
 *`--es.version VERSION`*::
 When used with <<template-subcommand,`template`>>, exports an index
 template that is compatible with the specified version.
-When used with <<ilm-policy-subcommand,`ilm-policy`>>, exports the ILM policy
-if the specified ES version is enabled for ILM.
+When used with <<ilm-policy-subcommand,`ilm-policy`>>, exports the {ilm-init} policy
+if the specified ES version is enabled for {ilm-init}.
 
 *`-h, --help`*::
 Shows help for the `export` command.
@@ -359,7 +359,7 @@ the index template. If this flag is not specified, the default base name is
 +{beatname_lc}+.
 
 *`--dir DIRNAME`*::
-Define a directory to which the template and ILM policy should be exported to
+Define a directory to which the template and {ilm-init} policy should be exported to
 as files instead of printing them to `stdout`.
 
 ifndef::no_dashboards[]
@@ -446,7 +446,7 @@ ifndef::serverless[]
 {beatname_lc} keystore SUBCOMMAND [FLAGS]
 ----
 
-*SUBCOMMANDS*
+*`SUBCOMMAND`*
 
 *`add KEY`*::
 Adds the specified key to the keystore. Use the `--force` flag to overwrite an
@@ -573,7 +573,7 @@ To see which modules are enabled and disabled, run the `list` subcommand.
 ----
 
 
-*SUBCOMMANDS*
+*`SUBCOMMAND`*
 
 *`disable MODULE_LIST`*::
 Disables the modules specified in the space-separated list.
@@ -676,7 +676,7 @@ endif::[]
 Shows help for the `run` command.
 
 *`--httpprof [HOST]:PORT`*::
-Starts an http server for profiling. This option is useful for troubleshooting
+Starts an HTTP server for profiling. This option is useful for troubleshooting
 and profiling {beatname_uc}.
 
 ifeval::["{beatname_lc}"=="packetbeat"]
@@ -716,7 +716,7 @@ endif::[]
 
 *`--system.hostfs MOUNT_POINT`*::
 
-Specifies the mount point of the host's filesystem for use in monitoring a host.
+Specifies the mount point of the host's file system for use in monitoring a host.
 
 
 ifeval::["{beatname_lc}"=="packetbeat"]
@@ -750,10 +750,10 @@ ifndef::apm-server[]
 
 {setup-command-short-desc}
 
-* The index template ensures that fields are mapped correctly in Elasticsearch.
-If index lifecycle management is enabled it also ensures that the defined ILM policy
+* The index template ensures that fields are mapped correctly in {es}.
+If {ilm} is enabled it also ensures that the defined {ilm-init} policy
 and write alias are connected to the indices matching the index template.
-The ILM policy takes care of the lifecycle of an index, when to do a rollover,
+The {ilm-init} policy takes care of the lifecycle of an index, when to do a rollover,
 when to move an index from the hot phase to the next phase, etc.
 
 ifndef::no_dashboards[]
@@ -762,7 +762,7 @@ in {kib}.
 endif::no_dashboards[]
 
 ifdef::has_ml_jobs[]
-* The machine learning jobs contain the configuration information and metadata
+* The {ml} jobs contain the configuration information and metadata
 necessary to analyze data for anomalies.
 endif::[]
 
@@ -785,7 +785,7 @@ ifndef::no_dashboards[]
 Sets up the {kib} dashboards (when available). This option loads the dashboards
 from the {beatname_uc} package. For more options, such as loading customized
 dashboards, see {beatsdevguide}/import-dashboards.html[Importing Existing Beat
-Dashboards] in the _Beats Developer Guide_.
+Dashboards] in the _{beats} Developer Guide_.
 endif::no_dashboards[]
 
 *`-h, --help`*::
@@ -804,8 +804,8 @@ directory, also specify the `--modules` flag.
 endif::[]
 
 *`--index-management`*::
-Sets up components related to Elasticsearch index management including
-template, ILM policy, and write alias (if supported and configured).
+Sets up components related to {es} index management including
+template, {ilm-init} policy, and write alias (if supported and configured).
 
 ifdef::apm-server[]
 *`--pipelines`*::
@@ -819,7 +819,7 @@ It is recommended to use `--index-management` instead.
 
 *`--ilm-policy`*::
 deprecated:[7.2]
-Sets up the index lifecycle management policy.
+Sets up the {ilm} policy.
 It is recommended to use `--index-management` instead.
 
 {global-flags}
@@ -884,7 +884,7 @@ endif::apm-server[]
 {beatname_lc} test SUBCOMMAND [FLAGS]
 ----
 
-*SUBCOMMANDS*
+*`SUBCOMMAND`*
 
 *`config`*::
 Tests the configuration settings.

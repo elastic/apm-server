@@ -31,7 +31,7 @@ There are three breaking changes to be aware of;
 these changes only impact users ingesting data with
 {apm-server-ref-v}/jaeger.html[Jaeger clients].
 
-* Leading 0s are no longer removed from Jaeger client trace/span ids.
+* Leading zeros are no longer removed from Jaeger client trace/span ids.
 +
 --
 This change ensures distributed tracing continues to work across platforms by creating
@@ -44,7 +44,7 @@ and OpenTelemetry SDKs.
 --
 If the Jaeger span type is not inferred, it will now be "app".
 This aligns with the OpenTelemetry Collector exporter
-and improves the functionality of the _time spent by span type_ charts in the APM app.
+and improves the functionality of the _time spent by span type_ charts in the {apm-app}.
 --
 
 * Jaeger spans may now have a more accurate outcome of "unknown".
@@ -87,16 +87,16 @@ There are no breaking changes in APM Server.
 The following breaking changes have been introduced in 7.5:
 
 * Introduced dedicated `apm-server.ilm.setup.*` flags.
-This means you can now customize ILM behavior from within the APM Server configuration.
-As a side effect, `setup.template.*` settings will be ignored for ILM related templates per event type.
-See {apm-server-ref}/ilm.html[set up ILM] for more information.
+This means you can now customize {ilm-init} behavior from within the APM Server configuration.
+As a side effect, `setup.template.*` settings will be ignored for {ilm-init} related templates per event type.
+See {apm-server-ref}/ilm.html[set up {ilm-init}] for more information.
 
-* By default, ILM policies will not longer be versioned.
-All event types will switch to the new default policy: rollover after 30 days or when reaching a size 50gb.
+* By default, {ilm-init} policies will not longer be versioned.
+All event types will switch to the new default policy: rollover after 30 days or when reaching a size of 50 GB.
 See {apm-server-ref}/ilm.html[default policy] for more information.
 
 * To make use of all the new features introduced in 7.5,
-you must ensure you are using version 7.5+ of APM Server and version 7.5+ of Kibana.
+you must ensure you are using version 7.5+ of APM Server and version 7.5+ of {kib}.
 
 [float]
 === 7.0
@@ -105,7 +105,7 @@ The following breaking changes have been introduced in 7.0:
 * Removed deprecated Intake v1 API endpoints.
 Upgrade agents to a version that supports APM Server ≥ 6.5.
 {apm-guide-ref}/breaking-7.0.0.html#breaking-remove-v1[More information].
-* Moved fields in Elasticsearch to be compliant with the Elastic Common Schema (ECS).
+* Moved fields in {es} to be compliant with the Elastic Common Schema (ECS).
 {apm-guide-ref}/breaking-7.0.0.html#breaking-ecs[More information and changed fields].
 
 [float]

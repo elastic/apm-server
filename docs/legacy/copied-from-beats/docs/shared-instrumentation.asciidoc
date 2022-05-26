@@ -8,7 +8,7 @@
 IMPORTANT: {deprecation-notice-config}
 
 Libbeat uses the Elastic APM Go Agent to instrument its publishing pipeline.
-Currently, only the Elasticsearch output is instrumented.
+Currently, only the {es} output is instrumented.
 To gain insight into the performance of {beatname_uc}, you can enable this instrumentation and send trace data to APM Server.
 
 Example configuration with instrumentation enabled:
@@ -38,7 +38,7 @@ Defaults to `false`.
 ==== `environment`
 
 Set the environment in which {beatname_uc} is running, for example, `staging`, `production`, `dev`, etc.
-Environments can be filtered in the {kibana-ref}/xpack-apm.html[APM app].
+Environments can be filtered in the {kibana-ref}/xpack-apm.html[{apm-app}].
 
 [float]
 ==== `hosts`

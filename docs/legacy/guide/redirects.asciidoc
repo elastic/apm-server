@@ -49,7 +49,7 @@ This page has moved. Please see <<agent-server-compatibility>>.
 === APM release highlights
 
 This page has moved.
-Please see {observability-guide}/whats-new.html[What's new in Observability {minor-version}].
+Please see {observability-guide}/whats-new.html[What's new in {observability} {minor-version}].
 
 Please see <<whats-new>>.
 
@@ -57,4 +57,4 @@ Please see <<whats-new>>.
 === What's new in APM {minor-version}
 
 This page has moved.
-Please see {observability-guide}/whats-new.html[What's new in Observability {minor-version}].
+Please see {observability-guide}/whats-new.html[What's new in {observability} {minor-version}].
