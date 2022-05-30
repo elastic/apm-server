@@ -19,7 +19,6 @@ package systemtest
 
 import (
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -57,7 +56,7 @@ func sendEventsPayload(t *testing.T, srv *apmservertest.Server, urlPath string, 
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusAccepted, resp.StatusCode, string(respBody))
 }
