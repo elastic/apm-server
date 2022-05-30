@@ -5,10 +5,11 @@
 package pubsub
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/hashicorp/go-multierror"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
@@ -65,38 +66,52 @@ type DataStreamConfig struct {
 	Namespace string
 }
 
+var (
+	ErrClientMissing         = errors.New("Client unspecified")
+	ErrBeatIDMissing         = errors.New("BeatID unspecified")
+	ErrSearchIntervalInvalid = errors.New("SearchInterval unspecified or negative")
+	ErrFlushIntervalInvalid  = errors.New("FlushInterval unspecified or negative")
+	ErrTypeMissing           = errors.New("Type unspecified")
+	ErrDatasetMissing        = errors.New("Dataset unspecified")
+	ErrNamespaceMissing      = errors.New("Namespace unspecified")
+)
+
 // Validate validates the configuration.
 func (config Config) Validate() error {
+	var result error
+
 	if config.Client == nil {
-		return errors.New("Client unspecified")
+		result = multierror.Append(result, ErrClientMissing)
 	}
 	if err := config.DataStream.Validate(); err != nil {
-		return errors.Wrap(err, "DataStream unspecified or invalid")
+		result = multierror.Append(result, fmt.Errorf("DataStream unspecified or invalid: %w", err))
 	}
 	if config.BeatID == "" {
-		return errors.New("BeatID unspecified")
+		result = multierror.Append(result, ErrBeatIDMissing)
 	}
 	if config.SearchInterval <= 0 {
-		return errors.New("SearchInterval unspecified or negative")
+		result = multierror.Append(result, ErrSearchIntervalInvalid)
 	}
 	if config.FlushInterval <= 0 {
-		return errors.New("FlushInterval unspecified or negative")
+		result = multierror.Append(result, ErrFlushIntervalInvalid)
 	}
-	return nil
+	return result
 }
 
 // Validate validates the configuration.
 func (config DataStreamConfig) Validate() error {
+	var result error
+
 	if config.Type == "" {
-		return errors.New("Type unspecified")
+		result = multierror.Append(result, ErrTypeMissing)
 	}
 	if config.Dataset == "" {
-		return errors.New("Dataset unspecified")
+		result = multierror.Append(result, ErrDatasetMissing)
 	}
 	if config.Namespace == "" {
-		return errors.New("Namespace unspecified")
+		result = multierror.Append(result, ErrNamespaceMissing)
 	}
-	return nil
+	return result
 }
 
 // String returns the data stream as a combined string.

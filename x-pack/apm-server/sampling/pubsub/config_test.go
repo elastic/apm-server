@@ -22,17 +22,17 @@ func TestConfigInvalid(t *testing.T) {
 
 	type test struct {
 		config pubsub.Config
-		err    string
+		err    error
 	}
 
 	for _, test := range []test{{
 		config: pubsub.Config{},
-		err:    "Client unspecified",
+		err:    pubsub.ErrClientMissing,
 	}, {
 		config: pubsub.Config{
 			Client: elasticsearchClient,
 		},
-		err: "DataStream unspecified or invalid: Type unspecified",
+		err: pubsub.ErrTypeMissing,
 	}, {
 		config: pubsub.Config{
 			Client: elasticsearchClient,
@@ -40,7 +40,7 @@ func TestConfigInvalid(t *testing.T) {
 				Type: "type",
 			},
 		},
-		err: "DataStream unspecified or invalid: Dataset unspecified",
+		err: pubsub.ErrDatasetMissing,
 	}, {
 		config: pubsub.Config{
 			Client: elasticsearchClient,
@@ -49,7 +49,7 @@ func TestConfigInvalid(t *testing.T) {
 				Dataset: "dataset",
 			},
 		},
-		err: "DataStream unspecified or invalid: Namespace unspecified",
+		err: pubsub.ErrNamespaceMissing,
 	}, {
 		config: pubsub.Config{
 			Client: elasticsearchClient,
@@ -59,7 +59,7 @@ func TestConfigInvalid(t *testing.T) {
 				Namespace: "namespace",
 			},
 		},
-		err: "BeatID unspecified",
+		err: pubsub.ErrBeatIDMissing,
 	}, {
 		config: pubsub.Config{
 			Client: elasticsearchClient,
@@ -70,7 +70,7 @@ func TestConfigInvalid(t *testing.T) {
 			},
 			BeatID: "beat_id",
 		},
-		err: "SearchInterval unspecified or negative",
+		err: pubsub.ErrSearchIntervalInvalid,
 	}, {
 		config: pubsub.Config{
 			Client: elasticsearchClient,
@@ -82,11 +82,11 @@ func TestConfigInvalid(t *testing.T) {
 			BeatID:         "beat_id",
 			SearchInterval: time.Second,
 		},
-		err: "FlushInterval unspecified or negative",
+		err: pubsub.ErrFlushIntervalInvalid,
 	}} {
 		pubsub, err := pubsub.New(test.config)
-		require.Error(t, err)
 		require.Nil(t, pubsub)
-		assert.EqualError(t, err, "invalid pubsub config: "+test.err)
+		assert.ErrorContains(t, err, "invalid pubsub config:")
+		require.ErrorIs(t, err, test.err)
 	}
 }

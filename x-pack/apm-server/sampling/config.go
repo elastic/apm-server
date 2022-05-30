@@ -5,10 +5,12 @@
 package sampling
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
-	"github.com/pkg/errors"
+	"github.com/hashicorp/go-multierror"
 
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/model"
@@ -153,65 +155,88 @@ type PolicyCriteria struct {
 	TraceName string
 }
 
+var (
+	ErrBeatIDMissing                = errors.New("BeatID unspecified")
+	ErrBashProcessorMissing         = errors.New("BatchProcessor unspecified")
+	ErrFlushIntervalInvalid         = errors.New("FlushInterval unspecified or negative")
+	ErrMaxDynamicServicesInvalid    = errors.New("MaxDynamicServices unspecified or negative")
+	ErrPoliciesMissing              = errors.New("Policies unspecified")
+	ErrDefaultPolicyMissing         = errors.New("Policies does not contain a default (empty criteria) policy")
+	ErrIngestRateDecayFactorInvalid = errors.New("IngestRateDecayFactor unspecified or out of range (0,1]")
+	ErrCompressionLevelInvalid      = errors.New("CompressionLevel out of range [-1,9]")
+	ErrElasticsearchMissing         = errors.New("Elasticsearch unspecified")
+	ErrDBMissing                    = errors.New("DB unspecified")
+	ErrStorageDirMissing            = errors.New("StorageDir unspecified")
+	ErrStorageGCIntervalInvalid     = errors.New("StorageGCInterval unspecified or negative")
+	ErrTTLInvalid                   = errors.New("TTL unspecified or negative")
+	ErrSampleRateInvalid            = errors.New("SampleRate unspecified or out of range [0,1]")
+)
+
 // Validate validates the configuration.
 func (config Config) Validate() error {
+	var result error
+
 	if config.BeatID == "" {
-		return errors.New("BeatID unspecified")
+		result = multierror.Append(result, ErrBeatIDMissing)
 	}
 	if config.BatchProcessor == nil {
-		return errors.New("BatchProcessor unspecified")
+		result = multierror.Append(result, ErrBashProcessorMissing)
 	}
 	if err := config.LocalSamplingConfig.validate(); err != nil {
-		return errors.Wrap(err, "invalid local sampling config")
+		result = multierror.Append(result, fmt.Errorf("invalid local sampling config: %w", err))
 	}
 	if err := config.RemoteSamplingConfig.validate(); err != nil {
-		return errors.Wrap(err, "invalid remote sampling config")
+		result = multierror.Append(result, fmt.Errorf("invalid remote sampling config: %w", err))
 	}
 	if err := config.StorageConfig.validate(); err != nil {
-		return errors.Wrap(err, "invalid storage config")
+		result = multierror.Append(result, fmt.Errorf("invalid storage config: %w", err))
 	}
-	return nil
+	return result
 }
 
 func (config LocalSamplingConfig) validate() error {
+	var result error
+
 	if config.FlushInterval <= 0 {
-		return errors.New("FlushInterval unspecified or negative")
+		result = multierror.Append(result, ErrFlushIntervalInvalid)
 	}
 	if config.MaxDynamicServices <= 0 {
-		return errors.New("MaxDynamicServices unspecified or negative")
+		result = multierror.Append(result, ErrMaxDynamicServicesInvalid)
 	}
 	if len(config.Policies) == 0 {
-		return errors.New("Policies unspecified")
+		result = multierror.Append(result, ErrPoliciesMissing)
 	}
 	var anyDefaultPolicy bool
 	for i, policy := range config.Policies {
 		if err := policy.validate(); err != nil {
-			return errors.Wrapf(err, "Policy %d invalid", i)
+			result = multierror.Append(result, fmt.Errorf("Policy %d invalid: %w", i, err))
 		}
 		if policy.PolicyCriteria == (PolicyCriteria{}) {
 			anyDefaultPolicy = true
 		}
 	}
 	if !anyDefaultPolicy {
-		return errors.New("Policies does not contain a default (empty criteria) policy")
+		result = multierror.Append(result, ErrDefaultPolicyMissing)
 	}
 	if config.IngestRateDecayFactor <= 0 || config.IngestRateDecayFactor > 1 {
-		return errors.New("IngestRateDecayFactor unspecified or out of range (0,1]")
+		result = multierror.Append(result, ErrIngestRateDecayFactorInvalid)
 	}
-	return nil
+	return result
 }
 
 func (config RemoteSamplingConfig) validate() error {
+	var result error
+
 	if config.CompressionLevel < -1 || config.CompressionLevel > 9 {
-		return errors.New("CompressionLevel out of range [-1,9]")
+		result = multierror.Append(result, ErrCompressionLevelInvalid)
 	}
 	if config.Elasticsearch == nil {
-		return errors.New("Elasticsearch unspecified")
+		result = multierror.Append(result, ErrElasticsearchMissing)
 	}
 	if err := config.SampledTracesDataStream.validate(); err != nil {
-		return errors.New("SampledTracesDataStream unspecified or invalid")
+		result = multierror.Append(result, fmt.Errorf("SampledTracesDataStream unspecified or invalid: %w", err))
 	}
-	return nil
+	return result
 }
 
 func (config DataStreamConfig) validate() error {
@@ -219,24 +244,26 @@ func (config DataStreamConfig) validate() error {
 }
 
 func (config StorageConfig) validate() error {
+	var result error
+
 	if config.DB == nil {
-		return errors.New("DB unspecified")
+		result = multierror.Append(result, ErrDBMissing)
 	}
 	if config.StorageDir == "" {
-		return errors.New("StorageDir unspecified")
+		result = multierror.Append(result, ErrStorageDirMissing)
 	}
 	if config.StorageGCInterval <= 0 {
-		return errors.New("StorageGCInterval unspecified or negative")
+		result = multierror.Append(result, ErrStorageGCIntervalInvalid)
 	}
 	if config.TTL <= 0 {
-		return errors.New("TTL unspecified or negative")
+		result = multierror.Append(result, ErrTTLInvalid)
 	}
-	return nil
+	return result
 }
 
 func (p Policy) validate() error {
 	if p.SampleRate < 0 || p.SampleRate > 1 {
-		return errors.New("SampleRate unspecified or out of range [0,1]")
+		return ErrSampleRateInvalid
 	}
 	return nil
 }
