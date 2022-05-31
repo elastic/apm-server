@@ -21,7 +21,7 @@ different types will lead to mapping conflicts. To avoid such mapping conflicts,
 as well as to enable per-application retention policies, we send application metrics
 to service-specific data streams: `metrics-apm.app.<service.name>-<namespace>`.
 It is still possible for a single application to produce mapping conflicts by
-changing the field type of a metric, but we expect this be less likely.
+changing the field type of a metric, but we expect this to be less likely.
 
 ## Dotted metric names
 
