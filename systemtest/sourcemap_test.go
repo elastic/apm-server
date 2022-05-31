@@ -18,7 +18,7 @@
 package systemtest_test
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -36,7 +36,7 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	sourcemap, err := ioutil.ReadFile("../testdata/sourcemap/bundle.js.map")
+	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
 	require.NoError(t, err)
 	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
 		"http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map",
@@ -61,7 +61,7 @@ func TestRUMSpanSourcemapping(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	sourcemap, err := ioutil.ReadFile("../testdata/sourcemap/bundle.js.map")
+	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
 	require.NoError(t, err)
 	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.0",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
@@ -89,7 +89,7 @@ func TestNoMatchingSourcemap(t *testing.T) {
 	require.NoError(t, err)
 
 	// upload sourcemap with a wrong service version
-	sourcemap, err := ioutil.ReadFile("../testdata/sourcemap/bundle.js.map")
+	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
 	require.NoError(t, err)
 	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "2.0",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
@@ -117,7 +117,7 @@ func TestSourcemapCaching(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	sourcemap, err := ioutil.ReadFile("../testdata/sourcemap/bundle.js.map")
+	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
 	require.NoError(t, err)
 	sourcemapID := systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",

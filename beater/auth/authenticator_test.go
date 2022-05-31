@@ -21,7 +21,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -96,7 +96,7 @@ func TestAuthenticatorAPIKey(t *testing.T) {
 	var requestAuthorizationHeader string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestURLPath = r.URL.Path
-		requestBody, _ = ioutil.ReadAll(r.Body)
+		requestBody, _ = io.ReadAll(r.Body)
 		requestAuthorizationHeader = r.Header.Get("Authorization")
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		w.Write([]byte(`{
