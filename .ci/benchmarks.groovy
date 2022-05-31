@@ -7,8 +7,7 @@ pipeline {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
     BRANCH_NAME_LOWER_CASE = "${env.BRANCH_NAME.toLowerCase().replaceAll('[^a-z0-9-]', '-')}"
-    AWS_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-aws-account-auth'
-    GCP_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-account-auth'
+    AWS_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-aws-account-auth'    
     EC_KEY_SECRET = 'secret/observability-team/ci/elastic-cloud/observability-pro'
     BENCHMARK_ES_SECRET = 'secret/apm-team/ci/benchmark-cloud'
     TERRAFORM_VERSION = '1.1.9'
@@ -47,20 +46,22 @@ pipeline {
         TF_VAR_BRANCH_NAME = "${env.BRANCH_NAME}"
         TF_VAR_ENVIRONMENT= 'ci'
         TF_VAR_BRANCH = "${BRANCH_NAME_LOWER_CASE}"
-        TF_VAR_REPO = "${REPO}"
-        GOBENCH = 'gobench'
-        GOBENCH_INDEX = 'gobench'
+        TF_VAR_REPO = "${REPO}"        
+        GOBENCH_INDEX = "gobench-v2-${BRANCH_NAME_LOWER_CASE}"
+        GOBENCH_TAGS = ""
       }
       steps {
         dir ("${BASE_DIR}") {
-          withGoEnv(pkgs: ['github.com/elastic/gobench']) {
+          withGoEnv() {
             dir("testing/benchmark") {
               withTestClusterEnv {
+                // sh(label: 'Install go deps', script: 'make build/linux/gobench')
                 sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
                 sh(label: 'Spin up benchmark environment', script: 'make init apply')
                 withESBenchmarkEnv {
-                  sh(label: 'Run benchmarks', script: 'make run-benchmark index-benchmark-results')
+                  sh(label: 'Run benchmarks', script: 'make run-benchmark index-benchmark-results')                  
                 }
+                sh(label: 'debug', script: 'ls -lah')
               }
             }
           }
@@ -71,7 +72,7 @@ pipeline {
           dir("${BASE_DIR}/testing/benchmark") {
             stashV2(name: 'build', bucket: "${JOB_GCS_BUCKET_STASH}", credentialsId: "${JOB_GCS_CREDENTIALS}")
             withTestClusterEnv {
-              sh(label: 'Tear down benchmark environment', script: 'make destroy')
+              sh(label: 'Tear down benchmark environment', script: 'make init destroy')
             }
           }
         }
@@ -80,13 +81,11 @@ pipeline {
   }
 }
 
-def withTestClusterEnv(Closure body) {
-  withGCPEnv(secret: "${GCP_ACCOUNT_SECRET}") {
-    withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}") {
-      withTerraformEnv(version: "${TERRAFORM_VERSION}") {
-        withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
-          body()
-        }
+def withTestClusterEnv(Closure body) {  
+  withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}") {
+    withTerraformEnv(version: "${TERRAFORM_VERSION}") {
+      withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
+        body()
       }
     }
   }
