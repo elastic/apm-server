@@ -235,11 +235,8 @@ func (config StorageConfig) validate() error {
 }
 
 func (p Policy) validate() error {
-	// TODO(axw) allow sampling rate of 1.0 (100%), which would
-	// cause the root transaction to be indexed, and a sampling
-	// decision to be written to local storage, immediately.
-	if p.SampleRate < 0 || p.SampleRate >= 1 {
-		return errors.New("SampleRate unspecified or out of range [0,1)")
+	if p.SampleRate < 0 || p.SampleRate > 1 {
+		return errors.New("SampleRate unspecified or out of range [0,1]")
 	}
 	return nil
 }

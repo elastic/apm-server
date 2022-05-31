@@ -51,7 +51,7 @@ This storage is separate from {apm-server-ref-v}/transaction-indices.html[transa
 For performance reasons, APM agents can choose to sample or omit spans purposefully.
 This can be useful in preventing edge cases, like long-running transactions with over 100 spans,
 that would otherwise overload both the Agent and the APM Server.
-When this occurs, the APM app will display the number of spans dropped.
+When this occurs, the {apm-app} will display the number of spans dropped.
 
 To configure the number of spans recorded per transaction, see the relevant Agent documentation:
 
@@ -72,7 +72,7 @@ Agents stream spans to the APM Server separately from their transactions.
 Because of this, unforeseen errors may cause spans to go missing.
 Agents know how many spans a transaction should have;
 if the number of expected spans does not equal the number of spans received by the APM Server,
-the APM app will calculate the difference and display a message.
+the {apm-app} will calculate the difference and display a message.
 
 [[transactions]]
 === Transactions
@@ -81,7 +81,7 @@ IMPORTANT: {deprecation-notice-data}
 If you've already upgraded, see <<data-model>>.
 
 *Transactions* are a special kind of <<transaction-spans,span>> that have additional attributes associated with them.
-They describe an event captured by an Elastic APM agent instrumenting a service.
+They describe an event captured by an Elastic {apm-agent} instrumenting a service.
 You can think of transactions as the highest level of work you’re measuring within a service.
 As an example, a transaction might be a:
 
@@ -173,7 +173,7 @@ like {apm-java-ref-v}/metrics.html[JVM metrics] in the Java Agent,
 and {apm-go-ref-v}/metrics.html[Go runtime] metrics in the Go Agent.
 
 Infrastructure and application metrics are important sources of information when debugging production systems,
-which is why we've made it easy to filter metrics for specific hosts or containers in the Kibana {kibana-ref}/metrics.html[metrics overview].
+which is why we've made it easy to filter metrics for specific hosts or containers in the {kib} {kibana-ref}/metrics.html[metrics overview].
 
 Metrics have the `processor.event` property set to `metric`.
 
@@ -205,16 +205,16 @@ Let's explore the different types of metadata that Elastic APM offers.
 ==== Labels
 
 Labels add *indexed* information to transactions, spans, and errors.
-Indexed means the data is searchable and aggregatable in Elasticsearch.
+Indexed means the data is searchable and aggregatable in {es}.
 Add additional key-value pairs to define multiple labels.
 
 * Indexed: Yes
-* Elasticsearch type: {ref}/object.html[object]
-* Elasticsearch field: `labels`
+* {es} type: {ref}/object.html[object]
+* {es} field: `labels`
 * Applies to: <<transactions>> | <<transaction-spans>> | <<errors>>
 
 Label values can be a string, boolean, or number, although some agents only support string values at this time.
-Because labels for a given key, regardless of agent used, are stored in the same place in Elasticsearch,
+Because labels for a given key, regardless of agent used, are stored in the same place in {es},
 all label values of a given key must have the same data type.
 Multiple data types per key will throw an exception, for example: `{foo: bar}` and `{foo: 42}` is not allowed.
 
@@ -240,7 +240,7 @@ Defining too many unique fields in an index is a condition that can lead to a
 
 Custom context adds *non-indexed*,
 custom contextual information to transactions and errors.
-Non-indexed means the data is not searchable or aggregatable in Elasticsearch,
+Non-indexed means the data is not searchable or aggregatable in {es},
 and you cannot build dashboards on top of the data.
 This also means you don't have to worry about {ref}/mapping.html#mapping-limit-settings[mapping explosions],
 as these fields are not added to the mapping.
@@ -249,8 +249,8 @@ Non-indexed information is useful for providing contextual information to help y
 quickly debug performance issues or errors.
 
 * Indexed: No
-* Elasticsearch type: {ref}/object.html[object]
-* Elasticsearch fields: `transaction.custom` | `error.custom`
+* {es} type: {ref}/object.html[object]
+* {es} fields: `transaction.custom` | `error.custom`
 * Applies to: <<transactions>> | <<errors>>
 
 IMPORTANT: Setting a circular object, a large object, or a non JSON serializable object can lead to errors.
@@ -273,11 +273,11 @@ IMPORTANT: Setting a circular object, a large object, or a non JSON serializable
 ==== User context
 
 User context adds *indexed* user information to transactions and errors.
-Indexed means the data is searchable and aggregatable in Elasticsearch.
+Indexed means the data is searchable and aggregatable in {es}.
 
 * Indexed: Yes
-* Elasticsearch type: {ref}/keyword.html[keyword]
-* Elasticsearch fields: `user.email` | `user.name` | `user.id`
+* {es} type: {ref}/keyword.html[keyword]
+* {es} fields: `user.email` | `user.name` | `user.id`
 * Applies to: <<transactions>> | <<errors>>
 
 [float]

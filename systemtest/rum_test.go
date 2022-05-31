@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -62,7 +61,7 @@ func TestRUMXForwardedFor(t *testing.T) {
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusAccepted, resp.StatusCode)
-	io.Copy(ioutil.Discard, resp.Body)
+	io.Copy(io.Discard, resp.Body)
 	resp.Body.Close()
 
 	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*,metrics-apm*", estest.TermsQuery{
@@ -107,7 +106,7 @@ func TestRUMAllowServiceNames(t *testing.T) {
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
-	respBody, _ := ioutil.ReadAll(resp.Body)
+	respBody, _ := io.ReadAll(resp.Body)
 	assert.Equal(t, http.StatusForbidden, resp.StatusCode, string(respBody))
 	assert.Equal(t, `{"accepted":0,"errors":[{"message":"unauthorized: anonymous access not permitted for service \"disallowed\""}]}`+"\n", string(respBody))
 }
@@ -143,7 +142,7 @@ func TestRUMRateLimit(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
-		respBody, _ := ioutil.ReadAll(resp.Body)
+		respBody, _ := io.ReadAll(resp.Body)
 		if resp.StatusCode != http.StatusAccepted {
 			return fmt.Errorf("%s (%s)", resp.Status, strings.TrimSpace(string(respBody)))
 		}
