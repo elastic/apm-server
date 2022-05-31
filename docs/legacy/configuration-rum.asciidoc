@@ -115,8 +115,8 @@ Default: Not set
 [float]
 [[rum-library-pattern]]
 ==== `library_pattern`
-RegExp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
-If the RegExp matches, the stacktrace frame is considered to be a library frame.
+RegExp to be matched against a stack trace frame's `file_name` and `abs_path` attributes.
+If the RegExp matches, the stack trace frame is considered to be a library frame.
 When source mapping is applied, the `error.culprit` is set to reflect the _function_ and the _filename_
 of the first non library frame.
 This aims to provide an entry point for identifying issues.
@@ -125,15 +125,15 @@ Default: `"node_modules|bower_components|~"`
 
 [float]
 ==== `exclude_from_grouping`
-RegExp to be matched against a stacktrace frame's `file_name`.
-If the RegExp matches, the stacktrace frame is excluded from being used for calculating error groups.
+RegExp to be matched against a stack trace frame's `file_name`.
+If the RegExp matches, the stack trace frame is excluded from being used for calculating error groups.
 
-Default: `"^/webpack"` (excludes stacktrace frames that have a filename starting with `/webpack`)
+Default: `"^/webpack"` (excludes stack trace frames that have a filename starting with `/webpack`)
 
 [[config-sourcemapping-enabled]]
 [float]
 ==== `source_mapping.enabled`
-Used to enable/disable <<sourcemaps,sourcemapping>> for RUM events.
+Used to enable/disable <<sourcemaps,source mapping>> for RUM events.
 When enabled, the APM Server needs additional privileges to read source maps.
 See <<privileges-to-publish-events>> for more details.
 
@@ -142,8 +142,8 @@ Default: `true`
 [[config-sourcemapping-elasticsearch]]
 [float]
 ==== `source_mapping.elasticsearch`
-Configure the Elasticsearch source map retrieval location, taking the same options as <<elasticsearch-output,output.elasticsearch>>.
-This must be set when using an output other than Elasticsearch, and that output is writing to Elasticsearch.
+Configure the {es} source map retrieval location, taking the same options as <<elasticsearch-output,output.elasticsearch>>.
+This must be set when using an output other than {es}, and that output is writing to {es}.
 Otherwise leave this section empty.
 
 [[rum-sourcemap-cache]]
@@ -151,7 +151,7 @@ Otherwise leave this section empty.
 ==== `source_mapping.cache.expiration`
 If a source map has been uploaded to the APM Server,
 <<sourcemaps,source mapping>> is automatically applied to documents sent to the RUM endpoint.
-Source maps are fetched from Elasticsearch and then kept in an in-memory cache for the configured time.
+Source maps are fetched from {es} and then kept in an in-memory cache for the configured time.
 Values configured without a time unit are treated as seconds.
 
 Default: `5m` (5 minutes)
@@ -167,4 +167,4 @@ Default: `"apm-*-sourcemap*"`
 === Ingest pipelines
 
 The default APM Server pipeline includes processors that enrich RUM data prior to indexing in {es}.
-See <<ingest-pipelines>> for details on how to locate, edit, or disable this pre-processing.
+See <<ingest-pipelines>> for details on how to locate, edit, or disable this preprocessing.

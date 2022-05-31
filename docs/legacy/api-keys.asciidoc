@@ -21,7 +21,7 @@ You can create as many API keys per user as necessary.
 [[beats-api-key-publish]]
 === Create an API key for writing events
 
-In {kib}, navigate to **Stack Management** > **API keys** and click **Create API key**.
+In {kib}, navigate to **{stack-manage-app}** > **API keys** and click **Create API key**.
 
 [role="screenshot"]
 image::images/server-api-key-create.png[API key creation]
@@ -53,7 +53,7 @@ See <<feature-roles>> for additional privileges and information.
 To set an expiration date for the API key, select **Expire after time**
 and input the lifetime of the API key in days.
 
-Click **Create API key**. In the dropdown, switch to **Beats** and copy the API key.
+Click **Create API key**. In the dropdown, switch to **{beats}** and copy the API key.
 
 You can now use this API key in your +{beatname_lc}.yml+ configuration file:
 
@@ -62,13 +62,13 @@ You can now use this API key in your +{beatname_lc}.yml+ configuration file:
 output.elasticsearch:
   api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSowb0kQ0HWoA <1>
 --------------------
-<1> Format is `id:api_key` (as shown in the Beats dropdown)
+<1> Format is `id:api_key` (as shown in the {beats} dropdown)
 
 [float]
 [[beats-api-key-monitor]]
 === Create an API key for monitoring
 
-In {kib}, navigate to **Stack Management** > **API keys** and click **Create API key**.
+In {kib}, navigate to **{stack-manage-app}** > **API keys** and click **Create API key**.
 
 [role="screenshot"]
 image::images/server-api-key-create.png[API key creation]
@@ -97,7 +97,7 @@ See <<feature-roles>> for additional privileges and information.
 To set an expiration date for the API key, select **Expire after time**
 and input the lifetime of the API key in days.
 
-Click **Create API key**. In the dropdown, switch to **Beats** and copy the API key.
+Click **Create API key**. In the dropdown, switch to **{beats}** and copy the API key.
 
 You can now use this API key in your +{beatname_lc}.yml+ configuration file like this:
 
@@ -106,7 +106,7 @@ You can now use this API key in your +{beatname_lc}.yml+ configuration file like
 monitoring.elasticsearch:
   api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSowb0kQ0HWoA <1>
 --------------------
-<1> Format is `id:api_key` (as shown in the Beats dropdown)
+<1> Format is `id:api_key` (as shown in the {beats} dropdown)
 
 [float]
 [[beats-api-key-es]]
