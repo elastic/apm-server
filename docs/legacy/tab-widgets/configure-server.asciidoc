@@ -1,6 +1,6 @@
 // tag::ess[]
 
-If you're running APM Server in Elastic cloud, you can configure your own user settings right in the Elasticsearch Service Console.
+If you're running APM Server in Elastic cloud, you can configure your own user settings right in the {es} Service Console.
 Any changes are automatically appended to the `apm-server.yml` configuration file for your instance.
 
 Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user settings] documentation.
