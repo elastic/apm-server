@@ -162,6 +162,7 @@ func (c *Collector) processMetric(m Metric, val int64) {
 
 	if watch, ok := c.watches[m]; ok && watch.validator(val) {
 		watch.notifyChan <- true
+		close(watch.notifyChan)
 		delete(c.watches, m)
 	}
 }
