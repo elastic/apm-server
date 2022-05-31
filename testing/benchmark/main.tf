@@ -12,18 +12,22 @@ terraform {
   }
 }
 
-provider "ec" {}
-
-provider "aws" {
-  region = var.worker_region
-  default_tags {
-    tags = {
+locals {
+  ci_tags = {
       environment  = var.ENVIRONMENT
       repo         = var.REPO
       branch       = var.BRANCH
       build        = var.BUILD_ID
       created_date = var.CREATED_DATE
     }
+}
+
+provider "ec" {}
+
+provider "aws" {
+  region = var.worker_region
+  default_tags {
+    tags = local.ci_tags
   }
 }
 
@@ -48,6 +52,14 @@ module "ec_deployment" {
 
   docker_image              = var.docker_image_override
   docker_image_tag_override = var.docker_image_tag_override
+
+  tags = {
+      environment  = var.ENVIRONMENT
+      repo         = var.REPO
+      branch       = var.BRANCH
+      build        = var.BUILD_ID
+      created_date = var.CREATED_DATE
+    }
 }
 
 module "benchmark_worker" {
