@@ -10,7 +10,7 @@ ifdef::apm-server[]
 == SSL output settings
 
 IMPORTANT: {deprecation-notice-config}
-If you're using {fleet} and the Elastic APM integration, please see the {fleet-guide}[Fleet User Guide] instead.
+If you're using {fleet} and the Elastic APM integration, please see the {fleet-guide}[{fleet} User Guide] instead.
 
 You can specify SSL options with any output that supports SSL, like {es}, {ls}, or Kafka.
 endif::[]
@@ -20,7 +20,7 @@ You can specify SSL options when you configure:
 
 * <<configuring-output,outputs>> that support SSL
 ifndef::no_dashboards[]
-* the <<setup-kibana-endpoint,Kibana endpoint>>
+* the <<setup-kibana-endpoint,{kib} endpoint>>
 endif::[]
 ifeval::["{beatname_lc}"=="heartbeat"]
 * <<configuration-heartbeat-options,{beatname_uc} monitors>> that support SSL
@@ -45,7 +45,7 @@ Also see <<configuring-ssl-logstash>>.
 endif::[]
 
 ifndef::no_kibana[]
-Example Kibana endpoint config with SSL enabled:
+Example {kib} endpoint config with SSL enabled:
 
 [source,yaml]
 ----
@@ -140,6 +140,7 @@ individually configurable in Go, so they are not included in this list.
 // tag::cipher_suites[]
 The following cipher suites are available:
 
+// lint disable
 [options="header"]
 |===
 | Cypher | Notes
@@ -166,6 +167,7 @@ The following cipher suites are available:
 | RSA-AES-256-GCM-SHA384 | TLS 1.2 only.
 | RSA-RC4-128-SHA | Disabled by default. RC4 not recommended.
 |===
+// lint enable
 
 Here is a list of acronyms used in defining the cipher suites:
 

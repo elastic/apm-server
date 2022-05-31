@@ -1,5 +1,5 @@
 // tag::ess[]
-. Log into {ess-console}[Elastic Cloud] and select your deployment.
+. Log into {ess-console}[{ecloud}] and select your deployment.
 Copy your APM endpoint and APM Server secret token; you'll need these in the next step.
 
 . Configure APM Server as a collector for your Jaeger agents.

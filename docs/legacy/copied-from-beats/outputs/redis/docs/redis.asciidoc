@@ -9,7 +9,7 @@ IMPORTANT: {deprecation-notice-config}
 
 The Redis output inserts the events into a Redis list or a Redis channel.
 This output plugin is compatible with
-the https://www.elastic.co/guide/en/logstash/current/plugins-inputs-redis.html[Redis input plugin] for Logstash.
+the https://www.elastic.co/guide/en/logstash/current/plugins-inputs-redis.html[Redis input plugin] for {ls}.
 
 To use this output, edit the {beatname_uc} configuration file to disable the {es}
 output by commenting it out, and enable the Redis output by adding `output.redis`.
@@ -58,7 +58,7 @@ configured, the output uses the system certificate store.
 
 ===== `index`
 
-The index name added to the events metadata for use by Logstash. The default is "{beatname_lc}".
+The index name added to the events metadata for use by {ls}. The default is "{beatname_lc}".
 
 [[key-option-redis]]
 ===== `key`
@@ -149,7 +149,7 @@ The default value is `list`.
 
 ===== `codec`
 
-Output codec configuration. If the `codec` section is missing, events will be json encoded.
+Output codec configuration. If the `codec` section is missing, events will be JSON encoded.
 
 See <<configuration-output-codec>> for more information.
 
@@ -174,12 +174,12 @@ The number of seconds to wait before trying to reconnect to Redis after
 a network error. After waiting `backoff.init` seconds, {beatname_uc} tries to
 reconnect. If the attempt fails, the backoff timer is increased exponentially up
 to `backoff.max`. After a successful connection, the backoff timer is reset. The
-default is 1s.
+default is `1s`.
 
 ===== `backoff.max`
 
 The maximum number of seconds to wait before attempting to connect to
-Redis after a network error. The default is 60s.
+Redis after a network error. The default is `60s`.
 
 ===== `max_retries`
 

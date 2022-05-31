@@ -19,7 +19,6 @@ package cmd
 
 import (
 	"errors"
-	"os"
 
 	"github.com/spf13/pflag"
 
@@ -37,7 +36,6 @@ import (
 
 const (
 	beatName = "apm-server"
-	cloudEnv = "CLOUD_APM_CAPACITY"
 )
 
 var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
@@ -53,17 +51,6 @@ var libbeatConfigOverrides = func() []cfgfile.ConditionalOverride {
 					},
 				},
 			}),
-		},
-		{
-			Check: func(_ *agentconfig.C) bool {
-				return os.Getenv(cloudEnv) != ""
-			},
-			Config: func() *agentconfig.C {
-				return agentconfig.MustNewConfigFrom(map[string]interface{}{
-					// default to medium compression on cloud
-					"output.elasticsearch.compression_level": 5,
-				})
-			}(),
 		},
 		{
 			Check: func(_ *agentconfig.C) bool {

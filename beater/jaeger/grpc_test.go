@@ -21,8 +21,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"net"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -127,7 +127,7 @@ func TestApprovals(t *testing.T) {
 			client := api_v2.NewCollectorServiceClient(conn)
 
 			f := filepath.Join("..", "..", "testdata", "jaeger", name)
-			data, err := ioutil.ReadFile(f + ".json")
+			data, err := os.ReadFile(f + ".json")
 			require.NoError(t, err)
 
 			var request api_v2.PostSpansRequest

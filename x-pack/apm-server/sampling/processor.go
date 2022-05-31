@@ -7,7 +7,6 @@ package sampling
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
@@ -228,6 +227,10 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 	}
 
 	// Root transaction: apply reservoir sampling.
+	//
+	// TODO(axw) we should skip reservoir sampling when the matching
+	// policy's sampling rate is 100%, immediately index the event
+	// and record the trace sampling decision.
 	reservoirSampled, err := p.groups.sampleTrace(event)
 	if err == errTooManyTraceGroups {
 		// Too many trace groups, drop the transaction.
@@ -501,7 +504,7 @@ func (p *Processor) Run() error {
 
 func readSubscriberPosition(storageDir string) (pubsub.SubscriberPosition, error) {
 	var pos pubsub.SubscriberPosition
-	data, err := ioutil.ReadFile(filepath.Join(storageDir, subscriberPositionFile))
+	data, err := os.ReadFile(filepath.Join(storageDir, subscriberPositionFile))
 	if errors.Is(err, os.ErrNotExist) {
 		return pos, nil
 	} else if err != nil {
@@ -515,7 +518,7 @@ func writeSubscriberPosition(storageDir string, pos pubsub.SubscriberPosition) e
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(filepath.Join(storageDir, subscriberPositionFile), data, 0644)
+	return os.WriteFile(filepath.Join(storageDir, subscriberPositionFile), data, 0644)
 }
 
 func sendTraceIDs(ctx context.Context, out chan<- string, traceIDs []string) error {

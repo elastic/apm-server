@@ -23,9 +23,9 @@ When possible, assign users the built-in roles to minimize the affect of future 
 If no built-in role is available, you can assign users the privileges needed to accomplish a specific task.
 In general, there are three types of privileges you'll work with:
 
-* **Elasticsearch cluster privileges**: Manage the actions a user can perform against your cluster.
-* **Elasticsearch index privileges**: Control access to the data in specific indices your cluster.
-* **Kibana space privileges**: Grant users write or read access to features and apps within Kibana.
+* **{es} cluster privileges**: Manage the actions a user can perform against your cluster.
+* **{es} index privileges**: Control access to the data in specific indices your cluster.
+* **{kib} space privileges**: Grant users write or read access to features and apps within {kib}.
 
 ////
 ***********************************  ***********************************
@@ -113,7 +113,7 @@ collect metrics about {beatname_uc}, {security-features} provides
 the +{beat_monitoring_user}+ {ref}/built-in-users.html[built-in user] and
 +{beat_monitoring_user}+ {ref}/built-in-roles.html[built-in role] to send
 monitoring information. You can use the built-in user, if it's available in your
-environment, or create a user who has the the built-in role assigned,
+environment, or create a user who has the built-in role assigned,
 or create a user and manually assign the privileges needed to send monitoring
 information.
 
@@ -144,12 +144,12 @@ If you don't use the +{beat_monitoring_user}+ user:
 
 [float]
 [[privileges-to-publish-monitoring-metricbeat]]
-===== Metricbeat collection
+===== {metricbeat} collection
 
-NOTE: When using Metricbeat to collect metrics,
+NOTE: When using {metricbeat} to collect metrics,
 no roles or users need to be created with APM Server.
 See <<monitoring-metricbeat-collection>>
-for complete details on setting up Metricbeat collection.
+for complete details on setting up {metricbeat} collection.
 
 If you're <<monitoring-metricbeat-collection,using {metricbeat}>> to collect
 metrics about {beatname_uc}, {security-features} provides the `remote_monitoring_user`
@@ -195,7 +195,7 @@ To grant users the required privileges for viewing monitoring data:
 
 | Spaces
 |`Read` on Stack monitoring
-|Read-only access to the Stack Monitoring feature in {kib}.
+|Read-only access to the {stack-monitor-app} feature in {kib}.
 
 | Spaces
 |`Read` on Dashboards
@@ -246,9 +246,9 @@ also assign the appropriate `apm` application-level privileges:
 +
 * To **receive Agent configuration**, assign `config_agent:read`.
 * To **ingest agent data**, assign `event:write`.
-* To **upload sourcemaps**, assign `sourcemap:write`.
+* To **upload source maps**, assign `sourcemap:write`.
 
-. Assign the **API key role** role to users that need to create and manage API keys.
+. Assign the **API key role** to users that need to create and manage API keys.
 Users with this role can only create API keys that have the same or lower access rights.
 
 [float]
@@ -300,8 +300,8 @@ IMPORTANT: {deprecation-notice-config}
 [[privileges-agent-central-config-server]]
 ==== APM Server central configuration management
 
-APM Server acts as a proxy between your APM agents and the APM app.
-The APM app communicates any changed settings to APM Server so that your agents only need to poll the Server
+APM Server acts as a proxy between your APM agents and the {apm-app}.
+The {apm-app} communicates any changed settings to APM Server so that your agents only need to poll the Server
 to determine which central configuration settings have changed.
 
 To grant an APM Server user with the required privileges for managing central configuration,
@@ -316,8 +316,8 @@ assign the user the following privileges:
 |Allow {beatname_uc} to manage central configurations via the {beat_kib_app}
 |====
 
-TIP: Looking for privileges and roles needed use central configuration from the APM app or APM app API?
-See {kibana-ref}/apm-app-central-config-user.html[APM app central configuration user].
+TIP: Looking for privileges and roles needed use central configuration from the {apm-app} or {apm-app} API?
+See {kibana-ref}/apm-app-central-config-user.html[{apm-app} central configuration user].
 
 ////
 ***********************************  ***********************************
@@ -346,10 +346,10 @@ IMPORTANT: {deprecation-notice-config}
 In addition to the {beatname_uc} users described in this documentation,
 you'll likely need to create users for other APM tasks:
 
-* An {kibana-ref}/apm-app-reader.html[APM reader], for {kib} users who need to view the APM app,
+* An {kibana-ref}/apm-app-reader.html[APM reader], for {kib} users who need to view the {apm-app},
 or create and edit visualizations that access +{beat_default_index_prefix}-*+ data.
-* Various {kibana-ref}/apm-app-api-user.html[APM app API users],
-for interacting with the APIs exposed by the APM app.
+* Various {kibana-ref}/apm-app-api-user.html[{apm-app} API users],
+for interacting with the APIs exposed by the {apm-app}.
 
 [float]
 [[learn-more-security]]
