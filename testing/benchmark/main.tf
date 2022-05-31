@@ -53,13 +53,7 @@ module "ec_deployment" {
   docker_image              = var.docker_image_override
   docker_image_tag_override = var.docker_image_tag_override
 
-  tags = {
-      environment  = var.ENVIRONMENT
-      repo         = var.REPO
-      branch       = var.BRANCH
-      build        = var.BUILD_ID
-      created_date = var.CREATED_DATE
-    }
+  tags = local.ci_tags
 }
 
 module "benchmark_worker" {
