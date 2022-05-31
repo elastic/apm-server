@@ -42,11 +42,15 @@ https://github.com/elastic/kibana/blob/main/x-pack/plugins/apm/dev_docs/apm_quer
 Transaction metrics are aggregated from transaction events. To avoid agents
 having to send events to APM Server for non-sampled traces, we instead have
 agents include the sampling rate in events that it does send. APM Server then
-multiplies metrics by the inverse of the sampling rate. For example, if a
-transaction is sent to APM Server with a sampling rate of 0.1, then APM Server
-will increment the transaction metrics by a count of 10, each having the same
-latency. In APM Server, the inverse sampling rate is recorded on the in-memory
-trace event model as the field "RepresentativeCount".
+multiplies metrics by the inverse of the sampling rate, such that the recorded
+metrics are scaled to approximate the complete population of traces. Lower
+sampling rates may lead to greater statistical error when there is significant
+variance.
+
+For example, if a transaction is sent to APM Server with a sampling rate of 0.1,
+then APM Server will increment the transaction metrics by a count of 10, each
+having the same latency. In APM Server, the inverse sampling rate is recorded
+on the in-memory trace event model as the field "RepresentativeCount".
 
 As of version 8.0, APM Server discards all non-sampled transaction documents,
 and agents may detect the server version and choose not to send non-sampled
