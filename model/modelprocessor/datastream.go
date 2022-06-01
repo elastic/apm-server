@@ -99,6 +99,16 @@ func metricsetDataset(event *model.APMEvent) string {
 			}
 		}
 		if internal {
+			// The internal metrics data stream does not use dynamic
+			// mapping, so we must drop type and unit if specified.
+			for name, sample := range event.Metricset.Samples {
+				if sample.Type == "" && sample.Unit == "" {
+					continue
+				}
+				sample.Type = ""
+				sample.Unit = ""
+				event.Metricset.Samples[name] = sample
+			}
 			return model.InternalMetricsDataset
 		}
 	}
