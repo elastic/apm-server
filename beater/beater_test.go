@@ -419,6 +419,47 @@ func TestQueryClusterUUIDRegistriesDoNotExist(t *testing.T) {
 	assert.Equal(t, clusterUUID, fs.Strings["cluster_uuid"])
 }
 
+func TestAdjustMaxProcsTickerRefresh(t *testing.T) {
+	// This test asserts that the GOMAXPROCS is called multiple times
+	// respecting the time.Duration that is passed in the function.
+	t.Setenv("GOMAXPROCS", "2")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	core, observedLogs := observer.New(zapcore.DebugLevel)
+	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(in, core)
+	}))
+
+	errChan := make(chan error)
+	go func() {
+		errChan <- adjustMaxProcs(ctx, time.Millisecond, logger)
+	}()
+
+	receivedChan := make(chan struct{})
+	observedThreshold := 5
+	const filterMsg = `maxprocs: Honoring GOMAXPROCS="2"`
+	go func() {
+		for {
+			select {
+			case <-time.After(5 * time.Millisecond):
+				logs := observedLogs.FilterMessageSnippet(filterMsg)
+				if logs.Len() >= observedThreshold {
+					receivedChan <- struct{}{}
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	select {
+	case <-receivedChan:
+	case <-errChan:
+		t.Errorf("timed out while waiting to receive %d events", observedThreshold)
+	}
+}
+
 type mockClusterUUIDClient struct {
 	ClusterUUID string `json:"cluster_uuid"`
 }
