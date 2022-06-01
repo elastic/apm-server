@@ -4,7 +4,7 @@
 - name: nodejs.requests.active
   type: long
   metric_type: gauge
-- name: nodejs.eventloop.delay.avg.msg
+- name: nodejs.eventloop.delay.avg.ms
   type: scaled_float
   metric_type: gauge
   unit: ms
