@@ -380,16 +380,12 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 		}
 	}
 
-	req, err := bulkIndexer.newBulkRequest()
-	if err != nil {
-		return err
+	resp, err := bulkIndexer.Flush(ctx)
+	// Record the bulkIndexer buffer's length as the bytesTotal metric after
+	// the request has been flushed.
+	if flushed := bulkIndexer.BytesFlushed(); flushed > 0 {
+		atomic.AddInt64(&i.bytesTotal, int64(flushed))
 	}
-	// Record the bulkIndexer buffer's length as the bytesTotal metric. The
-	// length of the buffer should only be taken after the bulkIndexer's gzip
-	// writer has been flushed, otherwise, not all the bytes may be accounted
-	// for.
-	atomic.AddInt64(&i.bytesTotal, int64(bulkIndexer.buf.Len()))
-	resp, err := bulkIndexer.Flush(ctx, req)
 	if err != nil {
 		atomic.AddInt64(&i.eventsFailed, int64(n))
 		logger.With(logp.Error(err)).Error("bulk indexing request failed")
@@ -405,7 +401,6 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 		}
 		return err
 	}
-
 	var eventsFailed, eventsIndexed, tooManyRequests int64
 	for _, item := range resp.Items {
 		for _, info := range item {
