@@ -76,12 +76,13 @@ func TestFleetIntegrationMonitoring(t *testing.T) {
 		Output  map[string]interface{}
 	}
 	apmIntegration.getBeatsMonitoringStats(t, &metrics)
-	// We don't have a way to assert the writtenBytes at this layer
-	// use the value of `output.write.bytes`.
-	var writeBytes float64
+	// Remove the output.write.bytes key since there isn't a way to assert the
+	// writtenBytes at this layer.
 	if o := metrics.Libbeat["output"].(map[string]interface{}); len(o) > 0 {
 		if w := o["write"].(map[string]interface{}); len(w) > 0 {
-			writeBytes = w["bytes"].(float64)
+			if w["bytes"] != nil {
+				delete(w, "bytes")
+			}
 		}
 	}
 	assert.Equal(t, map[string]interface{}{
@@ -94,10 +95,8 @@ func TestFleetIntegrationMonitoring(t *testing.T) {
 				"toomany": 0.0,
 				"total":   float64(N),
 			},
-			"type": "elasticsearch",
-			"write": map[string]interface{}{
-				"bytes": writeBytes,
-			},
+			"type":  "elasticsearch",
+			"write": map[string]interface{}{},
 		},
 		"pipeline": map[string]interface{}{
 			"events": map[string]interface{}{

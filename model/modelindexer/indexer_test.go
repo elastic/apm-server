@@ -107,13 +107,11 @@ func TestModelIndexer(t *testing.T) {
 
 func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	unblockRequests := make(chan struct{})
-	var bytesTotal int64
 	client := modelindexertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
 		// Wait until signaled to service requests
 		<-unblockRequests
 		_, result := modelindexertest.DecodeBulkRequest(r)
 		json.NewEncoder(w).Encode(result)
-		bytesTotal += r.ContentLength
 	})
 	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute, FlushBytes: 1})
 	require.NoError(t, err)
@@ -132,20 +130,18 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	stats := indexer.Stats()
 	// FlushBytes is set arbitrarily low, forcing a flush on each new
 	// event. There should be no available bulk indexers.
-	assert.Equal(t, modelindexer.Stats{
-		Added: N, Active: N, AvailableBulkRequests: 0, BytesTotal: bytesTotal,
-	}, stats)
+	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 0}, stats)
 
 	close(unblockRequests)
 	err = indexer.Close(context.Background())
 	require.NoError(t, err)
 	stats = indexer.Stats()
+	stats.BytesTotal = 0 // Asserted elsewhere.
 	assert.Equal(t, modelindexer.Stats{
 		Added:                 N,
 		BulkRequests:          N,
 		Indexed:               N,
 		AvailableBulkRequests: 10,
-		BytesTotal:            bytesTotal,
 	}, stats)
 }
 

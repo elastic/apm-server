@@ -146,15 +146,19 @@ func (b *bulkIndexer) Flush(ctx context.Context) (elasticsearch.BulkIndexerRespo
 	if b.itemsAdded == 0 {
 		return elasticsearch.BulkIndexerResponse{}, nil
 	}
-	req := esapi.BulkRequest{Body: &b.buf, Header: esHeader}
 	if b.gzipw != nil {
 		if err := b.gzipw.Close(); err != nil {
 			return elasticsearch.BulkIndexerResponse{}, fmt.Errorf(
 				"failed closing the gzip writer: %w", err,
 			)
 		}
+	}
+
+	req := esapi.BulkRequest{Body: &b.buf, Header: esHeader}
+	if b.gzipw != nil {
 		req.Header = gzipHeader
 	}
+
 	bytesFlushed := b.buf.Len()
 	res, err := req.Do(ctx, b.client)
 	if err != nil {
