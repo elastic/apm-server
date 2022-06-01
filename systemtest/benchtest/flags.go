@@ -45,6 +45,7 @@ var (
 
 	warmupEvents = flag.Uint("warmup-events", 5000, "The number of events that will be used to warm up the APM Server before each benchmark")
 	maxRate      = flag.String("max-rate", "-1eps", "Max event rate with a burst size of max(1000, 2*eps), >= 0 values evaluate to Inf")
+	detailed     = flag.Bool("detailed", false, "Get detailed metrics recorded during benchmark")
 
 	maxEPM     int
 	agentsList []int

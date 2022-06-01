@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package benchtest
+package expvar
 
 import (
 	"context"
@@ -45,7 +45,8 @@ type expvar struct {
 	// transferred, so we can measure for OTLP and Jaeger too.
 	// Alternatively, implement an in-memory reverse proxy that
 	// does the same.
-	UncompressedBytes int64 `json:"apm-server.decoder.uncompressed.bytes"`
+	UncompressedBytes     int64 `json:"apm-server.decoder.uncompressed.bytes"`
+	AvailableBulkRequests int64 `json:"output.elasticsearch.bulk_requests.available"`
 }
 
 type ElasticResponseStats struct {
@@ -65,15 +66,18 @@ type OTLPResponseStats struct {
 }
 
 type LibbeatStats struct {
-	ActiveEvents int64 `json:"libbeat.output.events.active"`
-	TotalEvents  int64 `json:"libbeat.output.events.total"`
+	ActiveEvents   int64 `json:"libbeat.output.events.active"`
+	TotalEvents    int64 `json:"libbeat.output.events.total"`
+	Goroutines     int64 `json:"beat.runtime.goroutines"`
+	RSSMemoryBytes int64 `json:"beat.memstats.rss"`
 }
 
-func queryExpvar(out *expvar, srv string) error {
+func queryExpvar(ctx context.Context, out *expvar, srv string) error {
 	req, err := http.NewRequest("GET", srv+"/debug/vars", nil)
 	if err != nil {
 		return err
 	}
+	req.WithContext(ctx)
 	req.Header.Set("Accept", "application/json")
 
 	agg := make(map[string]expvar)
@@ -110,6 +114,7 @@ func queryExpvar(out *expvar, srv string) error {
 		aggregateOTLPResponseStats(s.OTLPResponseStats, &result.OTLPResponseStats)
 		aggregateLibbeatStats(s.LibbeatStats, &result.LibbeatStats)
 		result.UncompressedBytes += s.UncompressedBytes
+		result.AvailableBulkRequests += s.AvailableBulkRequests
 	}
 	*out = result
 	return nil
@@ -137,7 +142,7 @@ func WaitUntilServerInactive(ctx context.Context, server string) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			if err := queryExpvar(&result, server); err != nil {
+			if err := queryExpvar(ctx, &result, server); err != nil {
 				return err
 			}
 		}
@@ -181,6 +186,8 @@ func aggregateMemStats(from runtime.MemStats, to *runtime.MemStats) {
 func aggregateLibbeatStats(from LibbeatStats, to *LibbeatStats) {
 	to.ActiveEvents += from.ActiveEvents
 	to.TotalEvents += from.TotalEvents
+	to.Goroutines += from.Goroutines
+	to.RSSMemoryBytes += from.RSSMemoryBytes
 }
 
 func aggregateResponseStats(from ElasticResponseStats, to *ElasticResponseStats) {

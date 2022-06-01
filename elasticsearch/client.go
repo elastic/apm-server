@@ -21,7 +21,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"go.elastic.co/apm/module/apmelasticsearch/v2"
@@ -172,7 +172,7 @@ func doRequest(ctx context.Context, transport esapiv8.Transport, req esapiv8.Req
 	}
 	defer resp.Body.Close()
 	if resp.IsError() {
-		bytes, err := ioutil.ReadAll(resp.Body)
+		bytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}

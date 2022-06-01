@@ -21,7 +21,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -48,7 +47,7 @@ func main() {
 
 	metricNames := make(map[string]struct{})
 	for _, file := range files {
-		data, err := ioutil.ReadFile(file)
+		data, err := os.ReadFile(file)
 		if err != nil {
 			log.Fatal(err)
 		}

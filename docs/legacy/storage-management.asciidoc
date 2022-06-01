@@ -11,7 +11,7 @@ If you've already upgraded, please see <<manage-storage>> instead.
 * <<sizing-guide, Storage and sizing guide>>
 * <<processing-performance, Processing and performance>>
 * <<reduce-storage, Reduce storage usage>>
-* <<manage-indices-kibana, Manage APM indices via Kibana>>
+* <<manage-indices-kibana, Manage APM indices via {kib}>>
 * <<update-existing-data, Update existing data>>
 
 [[sizing-guide]]
@@ -22,7 +22,7 @@ If you've already upgraded, please see <<storage-guide>> instead.
 
 APM processing and storage costs are largely dominated by transactions, spans, and stack frames.
 
-* {apm-overview-ref-v}/transactions.html[*Transactions*] describe an event captured by an Elastic APM agent instrumenting a service.
+* {apm-overview-ref-v}/transactions.html[*Transactions*] describe an event captured by an Elastic {apm-agent} instrumenting a service.
 They are the highest level of work being measuring within a service.
 * {apm-overview-ref-v}/transaction-spans.html[*Spans*] belong to transactions. They measure from the start to end of an activity,
 and contain information about a specific code path that has been executed.
@@ -65,20 +65,20 @@ Small transactions are the most common.
 ==== Typical storage
 
 Consider the following typical storage reference.
-These numbers do not account for Elasticsearch compression.
+These numbers do not account for {es} compression.
 
-* 1 unsampled transaction is **~1 Kb**
-* 1 span with 10 stack frames is **~4 Kb**
-* 1 span with 50 stack frames is **~20 Kb**
-* 1 transaction with 10 spans, each with 10 stack frames is **~50 Kb**
-* 1 transaction with 25 spans, each with 25 spans is **250-300 Kb**
-* 100 transactions with 10 spans, each with 10 stack frames, sampled at 90% is **600 Kb**
+* 1 unsampled transaction is **~1 KB**
+* 1 span with 10 stack frames is **~4 KB**
+* 1 span with 50 stack frames is **~20 KB**
+* 1 transaction with 10 spans, each with 10 stack frames is **~50 KB**
+* 1 transaction with 25 spans, each with 25 spans is **250-300 KB**
+* 100 transactions with 10 spans, each with 10 stack frames, sampled at 90% is **600 KB**
 
-APM data compresses quite well, so the storage cost in Elasticsearch will be considerably less:
+APM data compresses quite well, so the storage cost in {es} will be considerably less:
 
-* Indexing 100 unsampled transactions per second for 1 hour results in 360,000 documents. These documents use around **50 Mb** of disk space.
-* Indexing 10 transactions per second for 1 hour, each transaction with 10 spans, each span with 10 stack frames, results in 396,000 documents. These documents use around **200 Mb** of disk space.
-* Indexing 25 transactions per second for 1 hour, each transaction with 25 spans, each span with 25 stack frames, results in 2,340,000 documents. These documents use around **1.2 Gb** of disk space.
+* Indexing 100 unsampled transactions per second for 1 hour results in 360,000 documents. These documents use around **50 MB** of disk space.
+* Indexing 10 transactions per second for 1 hour, each transaction with 10 spans, each span with 10 stack frames, results in 396,000 documents. These documents use around **200 MB** of disk space.
+* Indexing 25 transactions per second for 1 hour, each transaction with 25 spans, each span with 25 stack frames, results in 2,340,000 documents. These documents use around **1.2 GB** of disk space.
 
 NOTE: These examples were indexing the same data over and over with minimal variation. Because of that, the compression ratios observed of 80-90% are somewhat optimistic.
 
@@ -94,7 +94,7 @@ agent and server settings, versions, and protocol.
 
 Let's look at a simple example that makes the following assumptions:
 
-* The load is generated in the same region as where APM Server and Elasticsearch are deployed.
+* The load is generated in the same region as where APM Server and {es} are deployed.
 * We're using the default settings in cloud.
 * A small number of agents are reporting.
 
@@ -106,7 +106,7 @@ As a reminder, events are
 
 [options="header"]
 |=======================================================================
-|Transaction/Instance |512Mb Instance |2Gb Instance |8Gb Instance
+|Transaction/Instance |512 MB Instance |2 GB Instance |8 GB Instance
 |Small transactions
 
 _5 spans with 5 stack frames each_ |600 events/second |1200 events/second |4800 events/second
@@ -118,15 +118,15 @@ _15 spans with 15 stack frames each_ |300 events/second |600 events/second |2400
 _30 spans with 30 stack frames each_ |150 events/second |300 events/second |1400 events/second
 |=======================================================================
 
-In other words, a 512 Mb instance can process \~3 Mbs per second,
-while an 8 Gb instance can process ~20 Mbs per second.
+In other words, a 512 MB instance can process \~3 MB per second,
+while an 8 GB instance can process ~20 MB per second.
 
-APM Server is CPU bound, so it scales better from 2 Gb to 8 Gb than it does from 512 Mb to 2 Gb.
-This is because larger instance types in Elastic Cloud come with much more computing power.
+APM Server is CPU bound, so it scales better from 2 GB to 8 GB than it does from 512 MB to 2 GB.
+This is because larger instance types in {ecloud} come with much more computing power.
 
 Don't forget that the APM Server is stateless.
 Several instances running do not need to know about each other.
-This means that with a properly sized Elasticsearch instance, APM Server scales out linearly.
+This means that with a properly sized {es} instance, APM Server scales out linearly.
 
 NOTE: RUM deserves special consideration. The RUM agent runs in browsers, and there can be many thousands reporting to an APM Server with very variable network latency.
 
@@ -152,13 +152,13 @@ Reducing it does not affect the collection of metrics such as _Transactions per 
 
 [float]
 [[reduce-stacktrace]]
-==== Reduce collected stacktrace information
+==== Reduce collected stack trace information
 
 Elastic APM agents collect `stacktrace` information under certain circumstances.
 This can be very helpful in identifying issues in your code,
 but it also comes with an overhead at collection time and increases the storage usage.
 
-Stacktrace collection settings are managed in each agent.
+Stack trace collection settings are managed in each agent.
 
 [float]
 [[delete-data]]
@@ -170,15 +170,15 @@ deleting data collected for specific services or customers,
 or deleting specific indices.
 
 Depending on your use case,
-you can delete data periodically with <<delete-data-ilm,index lifecycle management>>,
+you can delete data periodically with <<delete-data-ilm,{ilm}>>,
 {curator-ref-current}[Curator], the {ref}/docs-delete-by-query.html[Delete By Query API],
-or in the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
+or in the {kibana-ref}/managing-indices.html[{kib} Index Management UI].
 
 [float]
 [[delete-data-ilm]]
-===== Delete data with ILM
+===== Delete data with {ilm-init}
 
-Index Lifecycle management (ILM) enables you to automate how you want to manage your indices over time.
+Index Lifecycle management ({ilm-init}) enables you to automate how you want to manage your indices over time.
 You can base actions on factors such as shard size and performance requirements.
 See <<ilm>> to learn more.
 
@@ -244,20 +244,20 @@ See {ref}/docs-delete-by-query.html[delete by query] for further information on 
 
 [float]
 [[delete-data-kibana]]
-===== Delete data via Kibana Index Management UI
+===== Delete data via {kib} Index Management UI
 
 Select the indices you want to delete, and click **Manage indices** to see the available actions.
 Then click **delete indices**.
 
 [[manage-indices-kibana]]
-=== Manage Indices via Kibana
+=== Manage Indices via {kib}
 
 IMPORTANT: {deprecation-notice-data}
 If you've already upgraded, please see <<reduce-apm-storage>> instead.
 
-The Kibana UI for {kibana-ref}/managing-indices.html[managing indices] allows you to view indices,
+The {kib} UI for {kibana-ref}/managing-indices.html[managing indices] allows you to view indices,
 index settings, mappings, document counts, used storage per index, and much more.
-You can also perform management operations, like deleting indices directly via the Kibana UI.
+You can also perform management operations, like deleting indices directly via the {kib} UI.
 Finally, the UI supports applying bulk operations on several indices at once.
 
 [[update-existing-data]]
@@ -296,4 +296,4 @@ POST /apm-*/_update_by_query
 ------------------------------------------------------------
 // CONSOLE
 
-TIP: Remember to also change the service name in the {apm-agents-ref}/index.html[APM agent configuration].
+TIP: Remember to also change the service name in the {apm-agents-ref}/index.html[{apm-agent} configuration].

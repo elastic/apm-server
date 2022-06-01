@@ -19,8 +19,8 @@ package systemtest_test
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -36,7 +36,7 @@ func TestErrorIngest(t *testing.T) {
 	srv := apmservertest.NewServer(t)
 
 	// TODO(marclop): Update APM go agent to the latest to test this.
-	events, err := ioutil.ReadFile("../testdata/intake-v2/errors.ndjson")
+	events, err := os.ReadFile("../testdata/intake-v2/errors.ndjson")
 	require.NoError(t, err)
 
 	req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/events", bytes.NewReader(events))

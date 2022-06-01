@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -137,14 +136,14 @@ func writeCorpus(name string, documents []byte) error {
 
 	metadataPath := filepath.Join(corporaDir, name+".json")
 	documentsPath := filepath.Join(corporaDir, documentsFilename)
-	if err := ioutil.WriteFile(documentsPath, documents, 0644); err != nil {
+	if err := os.WriteFile(documentsPath, documents, 0644); err != nil {
 		return err
 	}
 	metadataBytes, err := json.MarshalIndent(metadata, "", "  ")
 	if err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(metadataPath, append(metadataBytes, '\n'), 0644); err != nil {
+	if err := os.WriteFile(metadataPath, append(metadataBytes, '\n'), 0644); err != nil {
 		return err
 	}
 

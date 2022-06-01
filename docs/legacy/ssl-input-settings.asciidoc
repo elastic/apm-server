@@ -10,7 +10,7 @@ They apply to SSL/TLS communication between the APM Server and APM Agents.
 [float]
 ==== `enabled`
 
-The `enabled` setting can be used to enable the ssl configuration by setting
+The `enabled` setting can be used to enable the SSL configuration by setting
 it to `true`. The default value is `false`.
 
 [float]

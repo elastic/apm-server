@@ -1,8 +1,8 @@
 [[logstash-output]]
-=== Configure the Logstash output
+=== Configure the {ls} output
 
 ++++
-<titleabbrev>Logstash</titleabbrev>
+<titleabbrev>{ls}</titleabbrev>
 ++++
 
 IMPORTANT: {deprecation-notice-config}
@@ -16,7 +16,7 @@ generated events.
 [IMPORTANT]
 .Prerequisite
 To send events to {ls}, you also need to create a {ls} configuration pipeline
-that listens for incoming Beats connections and indexes the received events into
+that listens for incoming {beats} connections and indexes the received events into
 {es}. For more information, see
 {logstash-ref}/getting-started-with-logstash.html[Getting Started with {ls}].
 Also see the documentation for the
@@ -37,7 +37,7 @@ output.logstash:
 ------------------------------------------------------------------------------
 
 The `hosts` option specifies the {ls} server and the port (`5044`) where {ls} is configured to listen for incoming
-Beats connections.
+{beats} connections.
 
 ifeval::["{beatname_lc}"=="filebeat"]
 Want to use <<filebeat-modules,{beatname_uc} modules>> with {ls}? You need to do
@@ -173,13 +173,13 @@ Events indexed into {es} with the {ls} configuration shown here
 will be similar to events directly indexed by {beatname_uc} into {es}.
 
 ifndef::apm-server[]
-NOTE: If ILM is not being used, set `index` to `%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}` instead so {ls} creates an index per day, based on the `@timestamp` value of the events coming from Beats.
+NOTE: If {ilm-init} is not being used, set `index` to `%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}` instead so {ls} creates an index per day, based on the `@timestamp` value of the events coming from {beats}.
 endif::[]
 
 ifdef::apm-server[]
-==== {ls} and ILM
+==== {ls} and {ilm-init}
 
-When used with {apm-server-ref}/ilm.html[Index lifecycle management], {ls} does not need to create a new index each day.
+When used with {apm-server-ref}/ilm.html[{ilm-cap}], {ls} does not need to create a new index each day.
 Here's a sample {ls} configuration file that would accomplish this:
 
 [source,logstash]
@@ -283,7 +283,7 @@ instances.  Specifying a TTL of 0 will disable this feature.
 
 The default value is 0.
 
-NOTE: The "ttl" option is not yet supported on an async {ls} client (one with the "pipelining" option set).
+NOTE: The "ttl" option is not yet supported on an asynchronous {ls} client (one with the "pipelining" option set).
 
 ===== `pipelining`
 
@@ -333,7 +333,7 @@ can then be accessed in {ls}'s output section as `%{[@metadata][beat]}`.
 
 Configuration options for SSL parameters like the root CA for {ls} connections. See
 <<configuration-ssl>> for more information. To use SSL, you must also configure the
-https://www.elastic.co/guide/en/logstash/current/plugins-inputs-beats.html[Beats input plugin for Logstash] to use SSL/TLS.
+https://www.elastic.co/guide/en/logstash/current/plugins-inputs-beats.html[{beats} input plugin for {ls}] to use SSL/TLS.
 
 ===== `timeout`
 
@@ -386,9 +386,9 @@ The number of seconds to wait before trying to reconnect to {ls} after
 a network error. After waiting `backoff.init` seconds, {beatname_uc} tries to
 reconnect. If the attempt fails, the backoff timer is increased exponentially up
 to `backoff.max`. After a successful connection, the backoff timer is reset. The
-default is 1s.
+default is `1s`.
 
 ===== `backoff.max`
 
 The maximum number of seconds to wait before attempting to connect to
-{ls} after a network error. The default is 60s.
+{ls} after a network error. The default is `60s`.
