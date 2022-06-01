@@ -22,6 +22,7 @@ https://github.com/elastic/apm-server/compare/8.2.2\...8.3.0[View commits]
 [float]
 ==== Bug fixes
 - Propagate datastream namespace changes from apm-integration into server {pull}8176[8176]
+- Correct the `libbeat.output.write.bytes` metric to count the written bytes after the compressed writer has been flushed {pull}8221[8221]
 - Allow 100% tail-based sampling {pull}8233[8233]
 
 [float]
