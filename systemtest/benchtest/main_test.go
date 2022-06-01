@@ -289,10 +289,7 @@ func TestAddExpvarMetrics(t *testing.T) {
 			}
 			addExpvarMetrics(&r, collector, tt.detailed)
 
-			assert.Equal(t, len(tt.expectedResult), len(r.Extra))
-			for k, v := range tt.expectedResult {
-				assert.Equal(t, v, r.Extra[k])
-			}
+			assert.Equal(t, tt.expectedResult, r.Extra)
 		})
 	}
 }
