@@ -22,18 +22,29 @@
   type: long
   metric_type: gauge
   unit: byte
-- name: jvm.memory.non_heap.pool.used
+- name: jvm.memory.non_heap.used
   type: long
   metric_type: gauge
   unit: byte
-- name: jvm.memory.non_heap.pool.committed
+- name: jvm.memory.non_heap.committed
   type: long
   metric_type: gauge
   unit: byte
-- name: jvm.memory.non_heap.pool.max
+- name: jvm.memory.non_heap.max
   type: long
   metric_type: gauge
   unit: byte
 - name: jvm.thread.count
   type: long
   metric_type: gauge
+- name: jvm.gc.count
+  type: long
+  metric_type: gauge
+- name: jvm.gc.time
+  type: long
+  metric_type: gauge
+  unit: ms
+- name: jvm.gc.alloc
+  type: long
+  metric_type: gauge
+  unit: byte
