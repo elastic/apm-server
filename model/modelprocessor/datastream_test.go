@@ -153,3 +153,25 @@ func TestSetDataStream(t *testing.T) {
 	}
 
 }
+
+func TestSetDataStreamInternalMetricsetTypeUnit(t *testing.T) {
+	batch := model.Batch{{
+		Agent:     model.Agent{Name: "rum-js"},
+		Processor: model.MetricsetProcessor,
+		Service:   model.Service{Name: "service-name"},
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"system.memory.total":        {Type: model.MetricTypeGauge, Unit: "byte"},
+				"system.process.memory.size": {Type: model.MetricTypeGauge, Unit: "byte"},
+			},
+		},
+	}}
+
+	processor := modelprocessor.SetDataStream{Namespace: "custom"}
+	err := processor.ProcessBatch(context.Background(), &batch)
+	assert.NoError(t, err)
+	for _, sample := range batch[0].Metricset.Samples {
+		assert.Zero(t, sample.Type)
+		assert.Zero(t, sample.Unit)
+	}
+}
