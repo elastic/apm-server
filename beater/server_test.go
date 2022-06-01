@@ -33,6 +33,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -864,12 +865,14 @@ func TestServerElasticsearchOutput(t *testing.T) {
 
 	done := make(chan struct{})
 	bulkCh := make(chan *http.Request, 1)
+	var writeBytes int64
 	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
 		select {
 		case bulkCh <- r:
 		default:
 		}
 		<-done // block all requests from completing until test is done
+		atomic.AddInt64(&writeBytes, r.ContentLength)
 	})
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
@@ -959,7 +962,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 			},
 			"type": "elasticsearch",
 			"write": map[string]interface{}{
-				"bytes": int64(10),
+				"bytes": writeBytes,
 			},
 		},
 		"pipeline": map[string]interface{}{
