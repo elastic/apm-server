@@ -56,6 +56,11 @@
   description: Memory usage by the current cgroup slice.
   metric_type: gauge
   unit: byte
+- name: system.process.cgroup.memory.stats.inactive_file.bytes
+  type: long
+  description: File-backed memory on inactive LRU list, in bytes.
+  metric_type: gauge
+  unit: byte
 # system.process.cgroup.cpu.*
 - name: system.process.cgroup.cpu.cfs.period.us
   type: long
