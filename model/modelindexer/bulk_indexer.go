@@ -58,15 +58,16 @@ var (
 // maximum possible size, based on configuration and throughput.
 
 type bulkIndexer struct {
-	client     elasticsearch.Client
-	itemsAdded int
-	jsonw      fastjson.Writer
-	gzipw      *gzip.Writer
-	copybuf    [32 * 1024]byte
-	writer     io.Writer
-	buf        bytes.Buffer
-	respBuf    bytes.Buffer
-	resp       elasticsearch.BulkIndexerResponse
+	client       elasticsearch.Client
+	itemsAdded   int
+	bytesFlushed int
+	jsonw        fastjson.Writer
+	gzipw        *gzip.Writer
+	copybuf      [32 * 1024]byte
+	writer       io.Writer
+	buf          bytes.Buffer
+	respBuf      bytes.Buffer
+	resp         elasticsearch.BulkIndexerResponse
 }
 
 func newBulkIndexer(client elasticsearch.Client, compressionLevel int) *bulkIndexer {
@@ -83,7 +84,7 @@ func newBulkIndexer(client elasticsearch.Client, compressionLevel int) *bulkInde
 
 // BulkIndexer resets b, ready for a new request.
 func (b *bulkIndexer) Reset() {
-	b.itemsAdded = 0
+	b.itemsAdded, b.bytesFlushed = 0, 0
 	b.buf.Reset()
 	if b.gzipw != nil {
 		b.gzipw.Reset(&b.buf)
@@ -100,6 +101,11 @@ func (b *bulkIndexer) Items() int {
 // Len returns the number of buffered bytes.
 func (b *bulkIndexer) Len() int {
 	return b.buf.Len()
+}
+
+// BytesFlushed returns the number of bytes flushed by the bulk indexer.
+func (b *bulkIndexer) BytesFlushed() int {
+	return b.bytesFlushed
 }
 
 // Add encodes an item in the buffer.
@@ -142,20 +148,26 @@ func (b *bulkIndexer) Flush(ctx context.Context) (elasticsearch.BulkIndexerRespo
 	}
 	if b.gzipw != nil {
 		if err := b.gzipw.Close(); err != nil {
-			return elasticsearch.BulkIndexerResponse{}, err
+			return elasticsearch.BulkIndexerResponse{}, fmt.Errorf(
+				"failed closing the gzip writer: %w", err,
+			)
 		}
 	}
 
-	req := esapi.BulkRequest{Body: &b.buf}
-	req.Header = esHeader
+	req := esapi.BulkRequest{Body: &b.buf, Header: esHeader}
 	if b.gzipw != nil {
 		req.Header = gzipHeader
 	}
+
+	bytesFlushed := b.buf.Len()
 	res, err := req.Do(ctx, b.client)
 	if err != nil {
 		return elasticsearch.BulkIndexerResponse{}, err
 	}
 	defer res.Body.Close()
+	// Record the number of flushed bytes only when err == nil. The body may
+	// not have been sent otherwise.
+	b.bytesFlushed = bytesFlushed
 	if res.IsError() {
 		if res.StatusCode == http.StatusTooManyRequests {
 			return elasticsearch.BulkIndexerResponse{}, errorTooManyRequests{res: res}

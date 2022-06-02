@@ -79,8 +79,10 @@ type Context struct {
 	// UserAgent holds the User-Agent request header value.
 	UserAgent string
 
-	w             http.ResponseWriter
-	writeAttempts int
+	// ResponseWriter is exported to enable passing Context to OTLP handlers
+	// An alternate solution would be to implement context.WriteHeaders()
+	ResponseWriter http.ResponseWriter
+	writeAttempts  int
 }
 
 // NewContext creates an empty Context struct
@@ -106,7 +108,7 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 		Request:        r,
 		Logger:         nil,
 		Authentication: auth.AuthenticationDetails{},
-		w:              w,
+		ResponseWriter: w,
 	}
 	c.Result.Reset()
 
@@ -124,31 +126,27 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Header returns the http.Header of the context's writer
-func (c *Context) Header() http.Header {
-	return c.w.Header()
-}
-
-// MultipleWriteAttempts returns a boolean set to true if Write() was called multiple times.
+// MultipleWriteAttempts returns a boolean set to true if WriteResult() was called multiple times.
 func (c *Context) MultipleWriteAttempts() bool {
 	return c.writeAttempts > 1
 }
 
-// Write sets response headers, and writes the body to the response writer.
+// WriteResult sets response headers, and writes the body to the response writer.
 // In case body is nil only the headers will be set.
 // In case statusCode indicates an error response, the body is also set as error in the context.
 // Only first call with write to http response.
-func (c *Context) Write() {
+// This function wraps c.ResponseWriter.Write() - only one or the other should be used.
+func (c *Context) WriteResult() {
 	if c.MultipleWriteAttempts() {
 		return
 	}
 	c.writeAttempts++
 
-	c.w.Header().Set(headers.XContentTypeOptions, "nosniff")
+	c.ResponseWriter.Header().Set(headers.XContentTypeOptions, "nosniff")
 
 	body := c.Result.Body
 	if body == nil {
-		c.w.WriteHeader(c.Result.StatusCode)
+		c.ResponseWriter.WriteHeader(c.Result.StatusCode)
 		return
 	}
 
@@ -161,12 +159,12 @@ func (c *Context) Write() {
 
 	var err error
 	if c.acceptJSON() {
-		c.w.Header().Set(headers.ContentType, "application/json")
-		c.w.WriteHeader(c.Result.StatusCode)
+		c.ResponseWriter.Header().Set(headers.ContentType, "application/json")
+		c.ResponseWriter.WriteHeader(c.Result.StatusCode)
 		err = c.writeJSON(body, true)
 	} else {
-		c.w.Header().Set(headers.ContentType, "text/plain; charset=utf-8")
-		c.w.WriteHeader(c.Result.StatusCode)
+		c.ResponseWriter.Header().Set(headers.ContentType, "text/plain; charset=utf-8")
+		c.ResponseWriter.WriteHeader(c.Result.StatusCode)
 		err = c.writePlain(body)
 	}
 	if err != nil {
@@ -185,7 +183,7 @@ func (c *Context) acceptJSON() bool {
 }
 
 func (c *Context) writeJSON(body interface{}, pretty bool) error {
-	enc := json.NewEncoder(c.w)
+	enc := json.NewEncoder(c.ResponseWriter)
 	if pretty {
 		enc.SetIndent("", "  ")
 	}
@@ -194,7 +192,7 @@ func (c *Context) writeJSON(body interface{}, pretty bool) error {
 
 func (c *Context) writePlain(body interface{}) error {
 	if b, ok := body.(string); ok {
-		_, err := c.w.Write([]byte(b + "\n"))
+		_, err := c.ResponseWriter.Write([]byte(b + "\n"))
 		return err
 	}
 	// unexpected behavior to return json but changing this would be breaking

@@ -34,6 +34,7 @@ import (
 	"github.com/pkg/errors"
 	"go.elastic.co/apm/module/apmhttp/v2"
 	"go.elastic.co/apm/v2"
+	"go.uber.org/automaxprocs/maxprocs"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -95,11 +96,22 @@ func NewCreator(args CreatorParams) beat.Creator {
 			libbeatMonitoringRegistry: monitoring.Default.GetRegistry("libbeat"),
 		}
 
+		// Use `maxprocs` to change the GOMAXPROCS respecting any CFS quotas, if
+		// set. This is necessary since the Go runtime will default to the number
+		// of CPUs available in the  machine it's running in, however, when running
+		// in a container or in a cgroup with resource limits, the disparity can be
+		// extreme.
+		// Having a significantly greater GOMAXPROCS set than the granted CFS quota
+		// results in a significant amount of time spent "throttling", essentially
+		// pausing the the running OS threads for the throttled period.
+		_, err := maxprocs.Set(maxprocs.Logger(logger.Infof))
+		if err != nil {
+			logger.Errorf("failed to set GOMAXPROCS: %v", err)
+		}
 		var elasticsearchOutputConfig *agentconfig.C
 		if hasElasticsearchOutput(b) {
 			elasticsearchOutputConfig = b.Config.Output.Config()
 		}
-		var err error
 		bt.config, err = config.NewConfig(bt.rawConfig, elasticsearchOutputConfig)
 		if err != nil {
 			return nil, err
@@ -247,7 +259,6 @@ type reloader struct {
 	args             sharedServerRunnerParams
 
 	mu           sync.Mutex
-	namespace    string
 	rawConfig    *agentconfig.C
 	outputConfig agentconfig.Namespace
 	fleetConfig  *config.Fleet
@@ -275,14 +286,18 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 	if err != nil {
 		return err
 	}
-	var namespace string
-	if integrationConfig.DataStream != nil {
-		namespace = integrationConfig.DataStream.Namespace
-	}
 
 	r.mu.Lock()
-	r.namespace = namespace
 	r.rawConfig = integrationConfig.APMServer
+	// Merge in datastream namespace passed in from apm integration
+	if integrationConfig.DataStream != nil && integrationConfig.DataStream.Namespace != "" {
+		c := agentconfig.MustNewConfigFrom(map[string]interface{}{
+			"data_streams.namespace": integrationConfig.DataStream.Namespace,
+		})
+		if r.rawConfig, err = agentconfig.MergeConfigs(r.rawConfig, c); err != nil {
+			return err
+		}
+	}
 	r.fleetConfig = &integrationConfig.Fleet
 	r.mu.Unlock()
 	return r.reload()

@@ -22,22 +22,20 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/kibana"
-
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/version"
 )
 
 // MockKibanaClient implements the kibana.Client interface for testing purposes
 type MockKibanaClient struct {
 	code      int
 	body      map[string]interface{}
-	v         common.Version
+	v         version.V
 	connected bool
 }
 
@@ -52,7 +50,7 @@ func (c *MockKibanaClient) Send(
 	if err := json.NewEncoder(&buf).Encode(c.body); err != nil {
 		panic(err)
 	}
-	resp := http.Response{StatusCode: c.code, Body: ioutil.NopCloser(&buf)}
+	resp := http.Response{StatusCode: c.code, Body: io.NopCloser(&buf)}
 	if resp.StatusCode == http.StatusBadGateway {
 		return nil, errors.New("testerror")
 	}
@@ -60,12 +58,12 @@ func (c *MockKibanaClient) Send(
 }
 
 // GetVersion returns a mock version based on parameters used to init the MockKibanaClient instance
-func (c *MockKibanaClient) GetVersion(context.Context) (common.Version, error) {
+func (c *MockKibanaClient) GetVersion(context.Context) (version.V, error) {
 	return c.v, nil
 }
 
 // SupportsVersion returns whether or not mock client is compatible with given version
-func (c *MockKibanaClient) SupportsVersion(_ context.Context, v *common.Version, _ bool) (bool, error) {
+func (c *MockKibanaClient) SupportsVersion(_ context.Context, v *version.V, _ bool) (bool, error) {
 	if !c.connected {
 		return false, errors.New("unable to retrieve connection to Kibana")
 	}
@@ -73,6 +71,6 @@ func (c *MockKibanaClient) SupportsVersion(_ context.Context, v *common.Version,
 }
 
 // MockKibana provides a fake connection for unit tests
-func MockKibana(respCode int, respBody map[string]interface{}, v common.Version, connected bool) kibana.Client {
+func MockKibana(respCode int, respBody map[string]interface{}, v version.V, connected bool) kibana.Client {
 	return &MockKibanaClient{code: respCode, body: respBody, v: v, connected: connected}
 }

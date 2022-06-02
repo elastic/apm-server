@@ -19,7 +19,7 @@ package kibana
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -29,8 +29,8 @@ import (
 
 	"github.com/elastic/apm-server/beater/config"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/kibana"
+	"github.com/elastic/elastic-agent-libs/kibana"
+	"github.com/elastic/elastic-agent-libs/version"
 )
 
 func TestNewConnectingClientFrom(t *testing.T) {
@@ -93,27 +93,27 @@ func TestConnectingClient_GetVersion(t *testing.T) {
 		v, err := c.GetVersion(context.Background())
 		require.Error(t, err)
 		assert.Equal(t, err, errNotConnected)
-		assert.Equal(t, common.Version{}, v)
+		assert.Equal(t, version.V{}, v)
 	})
 }
 
 func TestConnectingClient_SupportsVersion(t *testing.T) {
 	t.Run("SupportsVersionTrue", func(t *testing.T) {
 		c := mockClient()
-		s, err := c.SupportsVersion(context.Background(), common.MustNewVersion("7.3.0"), false)
+		s, err := c.SupportsVersion(context.Background(), version.MustNew("7.3.0"), false)
 		require.NoError(t, err)
 		assert.True(t, s)
 	})
 	t.Run("SupportsVersionFalse", func(t *testing.T) {
 		c := mockClient()
-		s, err := c.SupportsVersion(context.Background(), common.MustNewVersion("7.4.0"), false)
+		s, err := c.SupportsVersion(context.Background(), version.MustNew("7.4.0"), false)
 		require.NoError(t, err)
 		assert.False(t, s)
 	})
 
 	t.Run("SupportsVersionError", func(t *testing.T) {
 		c := NewConnectingClient(mockCfg)
-		s, err := c.SupportsVersion(context.Background(), common.MustNewVersion("7.3.0"), false)
+		s, err := c.SupportsVersion(context.Background(), version.MustNew("7.3.0"), false)
 		require.Error(t, err)
 		assert.Equal(t, err, errNotConnected)
 		assert.False(t, s)
@@ -131,9 +131,9 @@ var (
 			Host: "non-existing",
 		},
 	}
-	mockBody    = ioutil.NopCloser(strings.NewReader(`{"response": "ok"}`))
+	mockBody    = io.NopCloser(strings.NewReader(`{"response": "ok"}`))
 	mockStatus  = http.StatusOK
-	mockVersion = *common.MustNewVersion("7.3.0")
+	mockVersion = *version.MustNew("7.3.0")
 )
 
 // RoundTrip implements the Round Tripper interface

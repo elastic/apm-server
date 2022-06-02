@@ -21,7 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/go-sourcemap/sourcemap"
@@ -63,7 +63,7 @@ func (s *kibanaFetcher) Fetch(ctx context.Context, name, version, path string) (
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("failed to query source maps (%s): %s", resp.Status, body)
 	}
 

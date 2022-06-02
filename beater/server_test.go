@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -98,7 +97,7 @@ func TestServerRoot(t *testing.T) {
 
 	checkResponse := func(hasOk bool) func(t *testing.T, res *http.Response) {
 		return func(t *testing.T, res *http.Response) {
-			b, err := ioutil.ReadAll(res.Body)
+			b, err := io.ReadAll(res.Body)
 			require.NoError(t, err)
 			rsp := string(b)
 			assert.Contains(t, rsp, "build_date")
@@ -190,7 +189,7 @@ func TestServerTcpNoPort(t *testing.T) {
 }
 
 func tmpTestUnix(t *testing.T) string {
-	f, err := ioutil.TempFile("", "test-apm-server")
+	f, err := os.CreateTemp("", "test-apm-server")
 	assert.NoError(t, err)
 	addr := f.Name()
 	f.Close()
@@ -517,7 +516,7 @@ func TestServerConfigReload(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		return string(body)
 	}
@@ -597,6 +596,7 @@ func TestServerOutputConfigReload(t *testing.T) {
 	}
 
 	inputConfig := agentconfig.MustNewConfigFrom(map[string]interface{}{
+		"data_stream.namespace": "custom",
 		"apm-server": map[string]interface{}{
 			"host": "localhost:0",
 			"sampling.tail": map[string]interface{}{
@@ -612,6 +612,7 @@ func TestServerOutputConfigReload(t *testing.T) {
 
 	runServerArgs := <-runServerCalls
 	assert.Equal(t, "", runServerArgs.Config.Sampling.Tail.ESConfig.Username)
+	assert.Equal(t, "custom", runServerArgs.Namespace)
 
 	// Reloaded output config should be passed into apm-server config.
 	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{
@@ -958,7 +959,8 @@ func TestServerElasticsearchOutput(t *testing.T) {
 			},
 			"type": "elasticsearch",
 			"write": map[string]interface{}{
-				"bytes": int64(10),
+				// _bulk requests haven't completed, so bytes flushed won't have been updated.
+				"bytes": int64(0),
 			},
 		},
 		"pipeline": map[string]interface{}{
@@ -1046,7 +1048,7 @@ func dummyPipeline(cfg *agentconfig.C, info beat.Info, clients ...outputs.Client
 }
 
 var testData = func() []byte {
-	b, err := ioutil.ReadFile("../testdata/intake-v2/transactions.ndjson")
+	b, err := os.ReadFile("../testdata/intake-v2/transactions.ndjson")
 	if err != nil {
 		panic(err)
 	}
@@ -1070,7 +1072,7 @@ func decodeJSONMap(t *testing.T, r io.Reader) map[string]interface{} {
 }
 
 func body(t *testing.T, response *http.Response) string {
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	require.NoError(t, err)
 	require.NoError(t, response.Body.Close())
 	return string(body)

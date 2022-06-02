@@ -66,6 +66,16 @@ func BenchmarkOTLPTraces(b *testing.B, l *rate.Limiter) {
 	})
 }
 
+// BenchmarkAgentAll matches all the agent event files, allowing the benchmark
+// to contain a wider mix of events compared to the other BenchmarkAgent<Name>
+// benchmarks. The objective is to measure how the APM Server performs when it
+// receives events from multiple agents.
+// Even though files are loaded alphabetically and the events sent sequentially
+// there is inherent randomness in the order the events are sent to APM Sever.
+func BenchmarkAgentAll(b *testing.B, l *rate.Limiter) {
+	benchmarkAgent(b, l, `*.ndjson`)
+}
+
 func BenchmarkAgentGo(b *testing.B, l *rate.Limiter) {
 	benchmarkAgent(b, l, `go*.ndjson`)
 }
@@ -95,6 +105,7 @@ func main() {
 	if err := benchtest.Run(
 		Benchmark1000Transactions,
 		BenchmarkOTLPTraces,
+		BenchmarkAgentAll,
 		BenchmarkAgentGo,
 		BenchmarkAgentNodeJS,
 		BenchmarkAgentPython,

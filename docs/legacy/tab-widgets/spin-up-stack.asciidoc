@@ -5,11 +5,11 @@ and automatically configures APM Server to work with {es} and {kib}:
 
 . {ess-trial}[Get a free trial].
 
-. Log into {ess-console}[Elastic Cloud].
+. Log into {ess-console}[{ecloud}].
 
 . Click *Create deployment*.
 
-. Select *Elastic Observability* and give your deployment a name.
+. Select *Elastic {observability}* and give your deployment a name.
 
 . Click *Create deployment* and copy the password for the `elastic` user.
 

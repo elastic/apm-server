@@ -88,7 +88,7 @@ func TestLogMiddleware(t *testing.T) {
 			level:   zapcore.ErrorLevel,
 			handler: func(c *request.Context) {
 				c.Result.StatusCode = http.StatusForbidden
-				c.Write()
+				c.WriteResult()
 			},
 			code:    http.StatusForbidden,
 			ecsKeys: []string{"url.original"},

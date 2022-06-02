@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -34,8 +33,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2/apmtest"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-	libkibana "github.com/elastic/beats/v7/libbeat/kibana"
+	libkibana "github.com/elastic/elastic-agent-libs/kibana"
+	"github.com/elastic/elastic-agent-libs/version"
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/auth"
@@ -49,7 +48,7 @@ import (
 type m map[string]interface{}
 
 var (
-	mockVersion = *common.MustNewVersion("7.5.0")
+	mockVersion = *version.MustNew("7.5.0")
 	mockEtag    = "1c9588f5a4da71cdef992981a9c9735c"
 	successBody = map[string]string{"sampling_rate": "0.5"}
 	emptyBody   = map[string]string{}
@@ -129,8 +128,7 @@ var (
 		},
 
 		"InvalidVersion": {
-			kbClient: kibanatest.MockKibana(http.StatusServiceUnavailable, m{},
-				*common.MustNewVersion("7.2.0"), true),
+			kbClient:               kibanatest.MockKibana(http.StatusServiceUnavailable, m{}, *version.MustNew("7.2.0"), true),
 			method:                 http.MethodGet,
 			queryParams:            map[string]string{"service.name": "opbeans-node"},
 			respStatus:             http.StatusServiceUnavailable,
@@ -183,7 +181,7 @@ func TestAgentConfigHandler(t *testing.T) {
 		require.Equal(t, tc.respStatus, w.Code)
 		require.Equal(t, tc.respCacheControlHeader, w.Header().Get(headers.CacheControl))
 		require.Equal(t, tc.respEtagHeader, w.Header().Get(headers.Etag))
-		b, err := ioutil.ReadAll(w.Body)
+		b, err := io.ReadAll(w.Body)
 		require.NoError(t, err)
 		var actualBody map[string]string
 		json.Unmarshal(b, &actualBody)
@@ -304,8 +302,8 @@ func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(m{"service": m{"name": "opbeans-node"}})))
 	require.Len(t, kb.requests, 2)
 
-	body0, _ := ioutil.ReadAll(kb.requests[0].Body)
-	body1, _ := ioutil.ReadAll(kb.requests[1].Body)
+	body0, _ := io.ReadAll(kb.requests[0].Body)
+	body1, _ := io.ReadAll(kb.requests[1].Body)
 	assert.Equal(t, `{"service":{"name":"opbeans-node","environment":"specified"},"etag":""}`+"\n", string(body0))
 	assert.Equal(t, `{"service":{"name":"opbeans-node","environment":"default"},"etag":""}`+"\n", string(body1))
 }

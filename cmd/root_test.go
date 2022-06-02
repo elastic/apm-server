@@ -18,7 +18,6 @@
 package cmd
 
 import (
-	"os"
 	"testing"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -29,22 +28,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func TestCloudEnv(t *testing.T) {
-	defer os.Unsetenv(cloudEnv)
-
-	// no cloud environment variable set
-	settings := DefaultSettings()
-	assert.Len(t, settings.ConfigOverrides, 3)
-	assert.False(t, settings.ConfigOverrides[1].Check(nil))
-
-	// cloud environment picked up
-	os.Setenv(cloudEnv, "valuedoesnotmatter")
-	assert.True(t, settings.ConfigOverrides[1].Check(nil))
-	assert.Equal(t, agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"output.elasticsearch.compression_level": 5,
-	}), settings.ConfigOverrides[1].Config)
-}
 
 func TestProcessorsDisallowed(t *testing.T) {
 	logger := logp.NewLogger("")

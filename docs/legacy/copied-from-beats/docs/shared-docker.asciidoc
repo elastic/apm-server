@@ -48,7 +48,7 @@ load visualizations
 ifndef::no_dashboards[]
 , dashboards,
 endif::no_dashboards[]
-and machine learning jobs.  Run this command:
+and {ml} jobs.  Run this command:
 
 ifeval::["{beatname_lc}"=="filebeat"]
 ["source", "sh", subs="attributes"]
@@ -113,7 +113,7 @@ docker run \
 --------------------------------------------
 endif::[]
 
-<1> Substitute your Kibana and Elasticsearch hosts and ports.
+<1> Substitute your {kib} and {es} hosts and ports.
 <2> If you are using the hosted {ess} in {ecloud}, replace
 the `-E output.elasticsearch.hosts` line with the Cloud ID and elastic password
 using this syntax:
@@ -257,7 +257,7 @@ docker run -d \
 --------------------------------------------
 endif::[]
 
-<1> Substitute your Elasticsearch hosts and ports.
+<1> Substitute your {es} hosts and ports.
 <2> If you are using the hosted {ess} in {ecloud}, replace
 the `-E output.elasticsearch.hosts` line with the Cloud ID and elastic password
 using the syntax shown earlier.
@@ -266,7 +266,7 @@ using the syntax shown earlier.
 ===== Customize your configuration
 
 ifdef::has_docker_label_ex[]
-The +{beatname_lc}.docker.yml+ file you downloaded earlier is configured to deploy Beats modules based on the Docker labels applied to your containers.  See <<configuration-autodiscover-hints>> for more details. Add labels to your application Docker containers, and they will be picked up by the Beats autodiscover feature when they are deployed.  Here is an example command for an Apache HTTP Server container with labels to configure the Filebeat and Metricbeat modules for the Apache HTTP Server:
+The +{beatname_lc}.docker.yml+ file you downloaded earlier is configured to deploy {beats} modules based on the Docker labels applied to your containers.  See <<configuration-autodiscover-hints>> for more details. Add labels to your application Docker containers, and they will be picked up by the {beats} autodiscover feature when they are deployed.  Here is an example command for an Apache HTTP Server container with labels to configure the {filebeat} and {metricbeat} modules for the Apache HTTP Server:
 
 ["source", "sh", subs="attributes"]
 --------------------------------------------
