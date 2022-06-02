@@ -959,7 +959,8 @@ func TestServerElasticsearchOutput(t *testing.T) {
 			},
 			"type": "elasticsearch",
 			"write": map[string]interface{}{
-				"bytes": int64(10),
+				// _bulk requests haven't completed, so bytes flushed won't have been updated.
+				"bytes": int64(0),
 			},
 		},
 		"pipeline": map[string]interface{}{
