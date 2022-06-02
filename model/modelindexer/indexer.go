@@ -380,8 +380,12 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 		}
 	}
 
-	atomic.AddInt64(&i.bytesTotal, int64(bulkIndexer.buf.Len()))
 	resp, err := bulkIndexer.Flush(ctx)
+	// Record the bulkIndexer buffer's length as the bytesTotal metric after
+	// the request has been flushed.
+	if flushed := bulkIndexer.BytesFlushed(); flushed > 0 {
+		atomic.AddInt64(&i.bytesTotal, int64(flushed))
+	}
 	if err != nil {
 		atomic.AddInt64(&i.eventsFailed, int64(n))
 		logger.With(logp.Error(err)).Error("bulk indexing request failed")
@@ -397,7 +401,6 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 		}
 		return err
 	}
-
 	var eventsFailed, eventsIndexed, tooManyRequests int64
 	for _, item := range resp.Items {
 		for _, info := range item {
@@ -485,7 +488,11 @@ type Stats struct {
 	// to Elasticsearch responding with 429 Too many Requests.
 	TooManyRequests int64
 
-	// BytesTotal represents the total number of bytes that
+	// BytesTotal represents the total number of bytes written to the request
+	// body that is sent in the outgoing _bulk request to Elasticsearch.
+	// The number of bytes written will be smaller when compression is enabled.
+	// This implementation differs from the previous number reported by libbeat
+	// which counts bytes at the transport level.
 	BytesTotal int64
 
 	// AvailableBulkIndexers represents the number of bulk indexers
