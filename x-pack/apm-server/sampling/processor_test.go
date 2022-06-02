@@ -584,12 +584,11 @@ func TestStorageGC(t *testing.T) {
 	}
 
 	vlogFilenames := func() []string {
-		dir, _ := os.Open(config.StorageDir)
-		names, _ := dir.Readdirnames(-1)
-		defer dir.Close()
+		entries, _ := os.ReadDir(config.StorageDir)
 
 		var vlogs []string
-		for _, name := range names {
+		for _, entry := range entries {
+			name := entry.Name()
 			if strings.HasSuffix(name, ".vlog") {
 				vlogs = append(vlogs, name)
 			}
@@ -598,10 +597,10 @@ func TestStorageGC(t *testing.T) {
 		return vlogs
 	}
 
-	// Process spans until more than one value log file has been created,
-	// but the first one does not exist (has been garbage collected).
+	// Process spans until value log files have been created.
+	// Garbage collection is disabled at this time.
 	for len(vlogFilenames()) < 3 {
-		writeBatch(50000)
+		writeBatch(500)
 	}
 
 	config.StorageGCInterval = 10 * time.Millisecond
@@ -610,6 +609,7 @@ func TestStorageGC(t *testing.T) {
 	go processor.Run()
 	defer processor.Stop(context.Background())
 
+	// Wait for the first value log file to be garbage collected.
 	deadline := time.Now().Add(10 * time.Second)
 	for time.Now().Before(deadline) {
 		vlogs := vlogFilenames()
