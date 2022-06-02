@@ -47,7 +47,9 @@ import (
 
 func TestModelIndexer(t *testing.T) {
 	var productOriginHeader string
+	var bytesTotal int64
 	client := modelindexertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		bytesTotal += r.ContentLength
 		_, result := modelindexertest.DecodeBulkRequest(r)
 		result.HasErrors = true
 		// Respond with an error for the first two items, with one indicating
@@ -90,8 +92,6 @@ func TestModelIndexer(t *testing.T) {
 	err = indexer.Close(context.Background())
 	require.NoError(t, err)
 	stats := indexer.Stats()
-	assert.GreaterOrEqual(t, stats.BytesTotal, int64(18500))
-	stats.BytesTotal = 0
 	assert.Equal(t, modelindexer.Stats{
 		Added:                 N,
 		Active:                0,
@@ -100,6 +100,7 @@ func TestModelIndexer(t *testing.T) {
 		Indexed:               N - 2,
 		TooManyRequests:       1,
 		AvailableBulkRequests: 10,
+		BytesTotal:            bytesTotal,
 	}, stats)
 	assert.Equal(t, "observability", productOriginHeader)
 }
@@ -127,7 +128,6 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 		require.NoError(t, err)
 	}
 	stats := indexer.Stats()
-	stats.BytesTotal = 0
 	// FlushBytes is set arbitrarily low, forcing a flush on each new
 	// event. There should be no available bulk indexers.
 	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 0}, stats)
@@ -136,7 +136,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	err = indexer.Close(context.Background())
 	require.NoError(t, err)
 	stats = indexer.Stats()
-	stats.BytesTotal = 0
+	stats.BytesTotal = 0 // Asserted elsewhere.
 	assert.Equal(t, modelindexer.Stats{
 		Added:                 N,
 		BulkRequests:          N,
@@ -186,7 +186,9 @@ func TestModelIndexerEncoding(t *testing.T) {
 }
 
 func TestModelIndexerCompressionLevel(t *testing.T) {
+	var bytesTotal int64
 	client := modelindexertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		bytesTotal += r.ContentLength
 		_, result := modelindexertest.DecodeBulkRequest(r)
 		json.NewEncoder(w).Encode(result)
 	})
@@ -212,12 +214,6 @@ func TestModelIndexerCompressionLevel(t *testing.T) {
 	err = indexer.Close(context.Background())
 	require.NoError(t, err)
 	stats := indexer.Stats()
-	// BUG(axw) stats.BytesTotal is incorrect when using compression,
-	// as we count the internal buffer size before flushing/closing
-	// the gzip writer. For consistency with libbeat, we may want to
-	// count the size of bytes written on the wire; but I think we
-	// have some flexibility here.
-	stats.BytesTotal = 0
 	assert.Equal(t, modelindexer.Stats{
 		Added:                 1,
 		Active:                0,
@@ -226,6 +222,7 @@ func TestModelIndexerCompressionLevel(t *testing.T) {
 		Indexed:               1,
 		TooManyRequests:       0,
 		AvailableBulkRequests: 10,
+		BytesTotal:            bytesTotal,
 	}, stats)
 }
 
@@ -307,7 +304,9 @@ func TestModelIndexerFlushBytes(t *testing.T) {
 }
 
 func TestModelIndexerServerError(t *testing.T) {
+	var bytesTotal int64
 	client := modelindexertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		bytesTotal += r.ContentLength
 		w.WriteHeader(http.StatusInternalServerError)
 	})
 	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute})
@@ -326,19 +325,22 @@ func TestModelIndexerServerError(t *testing.T) {
 	err = indexer.Close(context.Background())
 	require.EqualError(t, err, "flush failed: [500 Internal Server Error] ")
 	stats := indexer.Stats()
-	assert.GreaterOrEqual(t, stats.BytesTotal, int64(185))
-	stats.BytesTotal = 0
 	assert.Equal(t, modelindexer.Stats{
 		Added:                 1,
 		Active:                0,
 		BulkRequests:          1,
 		Failed:                1,
 		AvailableBulkRequests: 10,
+		BytesTotal:            bytesTotal,
 	}, stats)
 }
 
 func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
+	var bytesTotal int64
 	client := modelindexertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		// Set the r.ContentLength rather than sum it since 429s will be
+		// retried by the go-elasticsearch transport.
+		bytesTotal = r.ContentLength
 		w.WriteHeader(http.StatusTooManyRequests)
 	})
 	indexer, err := modelindexer.New(client, modelindexer.Config{FlushInterval: time.Minute})
@@ -357,8 +359,6 @@ func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
 	err = indexer.Close(context.Background())
 	require.EqualError(t, err, "flush failed: [429 Too Many Requests] ")
 	stats := indexer.Stats()
-	assert.GreaterOrEqual(t, stats.BytesTotal, int64(185))
-	stats.BytesTotal = 0
 	assert.Equal(t, modelindexer.Stats{
 		Added:                 1,
 		Active:                0,
@@ -366,6 +366,7 @@ func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
 		Failed:                1,
 		TooManyRequests:       1,
 		AvailableBulkRequests: 10,
+		BytesTotal:            bytesTotal,
 	}, stats)
 }
 
