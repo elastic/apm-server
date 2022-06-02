@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -151,9 +150,9 @@ func setupTestServer(t *testing.T, count int, done chan<- bool) *httptest.Server
 	factorBasedOnQueryExpvar := 12
 
 	go func() {
-		var val int32
+		var val int
 		for i := 0; i < count; i++ {
-			atomic.AddInt32(&val, 1)
+			val++
 			for j := 0; j < factorBasedOnQueryExpvar; j++ {
 				select {
 				case resChan <- fmt.Sprintf(`{"beat.runtime.goroutines": %d}`, val):
