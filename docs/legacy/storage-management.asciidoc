@@ -268,8 +268,10 @@ POST /.apm-custom-link/_delete_by_query
 ----
 
 APM agent {kibana-ref}/agent-configuration.html[central configuration] data is stored in the `.apm-agent-configuration` index.
-To delete all central agent configurations, run:
+Follow these steps to delete all central agent configurations.
 
+. Delete all documents in the `.apm-agent-configuration` index:
++
 [source,console]
 ----
 POST /.apm-agent-configuration/_delete_by_query
@@ -279,6 +281,14 @@ POST /.apm-agent-configuration/_delete_by_query
   }
 }
 ----
+
+. Sync the changes with {fleet}.
++
+{fleet} does not routinely sync agent configuration variables,
+so you must force a sync by creating (and then deleting) a new agent configuration.
+In {kib}, navigate to **Observability** > **APM** > **Settings** > **Agent Configuration** > **Create configuration**.
+Create and save any agent configuration. You can then use the trash icon to delete the configuration.
+Creating or deleting a configuration via this method will sync the `.apm-agent-configuration` index with {fleet}.
 
 [float]
 [[delete-data-kibana]]
