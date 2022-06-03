@@ -22,6 +22,8 @@ https://github.com/elastic/apm-server/compare/8.2.2\...8.3.0[View commits]
 [float]
 ==== Bug fixes
 - Propagate datastream namespace changes from apm-integration into server {pull}8176[8176]
+- Correct the `libbeat.output.write.bytes` metric to count the written bytes after the compressed writer has been flushed {pull}8221[8221]
+- Allow 100% tail-based sampling {pull}8233[8233]
 
 [float]
 ==== Intake API Changes
@@ -34,9 +36,4 @@ https://github.com/elastic/apm-server/compare/8.2.2\...8.3.0[View commits]
 ==== Added
 - System, process, and well-defined runtime metrics are now sent to the shared `metrics-apm.internal-<namespace>` data stream {pull}7882[7882]
 - Number of parallel bulk requests are now configurable via `output.elasticsearch.max_requests` {pull}8055[8055]
-- OTLP/HTTP protocol is now supported {pull}8156{8156}
-
-
-// Added but still being debugged
-- `apm-server` artifacts now have the apm java-attacher.jar packaged alongside them {pull}6593[6593]
-- Run the java attacher jar when configured and not in a cloud environment {pull}6617[6617]
+- OTLP/HTTP protocol is now supported {pull}8156[8156]
