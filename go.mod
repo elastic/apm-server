@@ -14,7 +14,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20211022123610-8dd9abb0616d // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.17.5-0.20220601070507-03c3d6adbf01
+	github.com/elastic/beats/v7 v7.17.5-0.20220602093727-9af4d03b20d4
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20220524131921-43bacbeec516 // indirect
 	github.com/elastic/gmux v0.2.0
@@ -69,7 +69,7 @@ require (
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 	golang.org/x/tools v0.1.10
-	google.golang.org/genproto v0.0.0-20220601144221-27df5f98adab // indirect
+	google.golang.org/genproto v0.0.0-20220602131408-e326c6e8e9c8 // indirect
 	google.golang.org/grpc v1.47.0
 	gotest.tools/gotestsum v1.7.0
 	howett.net/plist v1.0.0 // indirect
