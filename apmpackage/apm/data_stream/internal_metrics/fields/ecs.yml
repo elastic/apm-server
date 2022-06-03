@@ -106,6 +106,8 @@
 - external: ecs
   name: source.nat.port
 - external: ecs
+  name: tags
+- external: ecs
   name: user.domain
 - external: ecs
   name: user.email
