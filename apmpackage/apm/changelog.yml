@@ -7,6 +7,26 @@
     - description: Placeholder
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/xxx
+<<<<<<< HEAD
+=======
+- version: "8.3.0"
+  changes:
+    - description: Field mapping for `target.name` and `target.type` added to traces data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7870
+    - description: Remove the release tag
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7792
+    - description: Added config option for `pprof_enabled`
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/8002
+    - description: Added field mappings for system, process, and runtime metrics to internal metrics data stream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/7882
+    - description: Added tags field mapping to internal_metrics data stream
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/8292
+>>>>>>> 6c842076 (Add tags field to internal_metrics data stream (#8292))
 - version: "8.2.0"
   changes:
     - description: Field mapping for `source.nat.ip` and `source.nat.port` added to data streams
