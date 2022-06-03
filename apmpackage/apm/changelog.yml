@@ -20,6 +20,9 @@
     - description: Added field mappings for system, process, and runtime metrics to internal metrics data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7882
+    - description: Added tags field mapping to internal_metrics data stream
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/8292
 - version: "8.2.0"
   changes:
     - description: Field mapping for `source.nat.ip` and `source.nat.port` added to data streams
