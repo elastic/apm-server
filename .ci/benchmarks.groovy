@@ -46,7 +46,9 @@ pipeline {
         TF_VAR_BRANCH_NAME = "${env.BRANCH_NAME}"
         TF_VAR_ENVIRONMENT= 'ci'
         TF_VAR_BRANCH = "${BRANCH_NAME_LOWER_CASE}"
-        TF_VAR_REPO = "${REPO}"        
+        TF_VAR_REPO = "${REPO}"
+        //todo remove
+        TF_LOG = "TRACE"
         GOBENCH_INDEX = "gobench-v2-${BRANCH_NAME_LOWER_CASE}"
         GOBENCH_TAGS = ""
       }
@@ -70,7 +72,7 @@ pipeline {
       post {
         always {
           dir("${BASE_DIR}/testing/benchmark") {
-            stashV2(name: 'build', bucket: "${JOB_GCS_BUCKET_STASH}", credentialsId: "${JOB_GCS_CREDENTIALS}")
+            stashV2(name: 'benchmark_tfstate', bucket: "${JOB_GCS_BUCKET_STASH}", credentialsId: "${JOB_GCS_CREDENTIALS}")
             withTestClusterEnv {
               sh(label: 'Tear down benchmark environment', script: 'make init destroy')
             }
