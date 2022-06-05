@@ -249,6 +249,48 @@ POST /apm-*/_delete_by_query
 See {ref}/docs-delete-by-query.html[delete by query] for further information on this topic.
 
 [float]
+[[delete-other-apm-data]]
+===== Delete other APM data
+
+In addition to trace event data, there are other APM indices that you may wish to delete data from.
+
+APM {kibana-ref}/custom-links.html[custom links] are stored in the `.apm-custom-link` index.
+To delete all custom links, run:
+
+[source,console]
+----
+POST /.apm-custom-link/_delete_by_query
+{
+  "query": {
+    "match_all": {}
+  }
+}
+----
+
+APM agent {kibana-ref}/agent-configuration.html[central configuration] data is stored in the `.apm-agent-configuration` index.
+Follow these steps to delete all central agent configurations.
+
+. Delete all documents in the `.apm-agent-configuration` index:
++
+[source,console]
+----
+POST /.apm-agent-configuration/_delete_by_query
+{
+  "query": {
+    "match_all": {}
+  }
+}
+----
+
+. Sync the changes with {fleet}.
++
+{fleet} does not routinely sync agent configuration variables,
+so you must force a sync by creating (and then deleting) a new agent configuration.
+In {kib}, navigate to **Observability** > **APM** > **Settings** > **Agent Configuration** > **Create configuration**.
+Create and save any agent configuration. You can then use the trash icon to delete the configuration.
+Creating or deleting a configuration via this method will sync the `.apm-agent-configuration` index with {fleet}.
+
+[float]
 [[delete-data-kibana]]
 ===== Delete data via Kibana Index Management UI
 
@@ -283,7 +325,7 @@ To do this, you can use the {ref}/docs-update-by-query.html[Update By Query API]
 
 To rename a service, send the following request:
 
-["source","sh"]
+["source","console"]
 ------------------------------------------------------------
 POST /apm-*/_update_by_query
 {
