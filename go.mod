@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220602163340-62f43259e82c
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220603065643-39de95e2433e
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-elasticsearch/v8 v8.1.0
@@ -83,7 +83,7 @@ require (
 	github.com/elastic/go-lumber v0.1.0 // indirect
 	github.com/elastic/go-seccomp-bpf v1.2.0 // indirect
 	github.com/elastic/go-structform v0.0.9 // indirect
-	github.com/elastic/go-sysinfo v1.7.1 // indirect
+	github.com/elastic/go-sysinfo v1.8.0 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/elastic/gosigar v0.14.2 // indirect
 	github.com/fatih/color v1.13.0 // indirect
