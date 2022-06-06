@@ -35,6 +35,8 @@ import (
 	"go.elastic.co/apm/module/apmhttp/v2"
 	"go.elastic.co/apm/v2"
 	"go.uber.org/automaxprocs/maxprocs"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -163,7 +165,12 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 	// pausing the the running OS threads for the throttled period.
 	// Since the quotas may be updated without restarting the process, the
 	// GOMAXPROCS are adjusted every 30s.
-	go adjustMaxProcs(ctx, 30*time.Second, bt.logger)
+	maxprocsLogger := bt.logger.WithOptions(
+		zap.WrapCore(func(c zapcore.Core) zapcore.Core {
+			return &zapDiffCore{Core: c}
+		}),
+	)
+	go adjustMaxProcs(ctx, 30*time.Second, maxprocsLogger)
 
 	tracer, tracerServer, err := initTracing(b, bt.config, bt.logger)
 	if err != nil {
@@ -1046,4 +1053,24 @@ func adjustMaxProcs(ctx context.Context, d time.Duration, logger *logp.Logger) e
 			setMaxProcs()
 		}
 	}
+}
+
+type zapDiffCore struct {
+	mu sync.Mutex
+	zapcore.Core
+	lastMessage string
+}
+
+// Check records the logged entry.Message and discards the log entry when it
+// matches the previously logged entry.Message.
+func (c *zapDiffCore) Check(e zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	// Discard the entry if the logged message matches the previous log.
+	if e.Message == c.lastMessage && c.lastMessage != "" {
+		return nil
+	}
+	c.lastMessage = e.Message
+	return c.Core.Check(e, ce)
 }
