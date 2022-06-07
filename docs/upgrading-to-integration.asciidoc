@@ -65,26 +65,8 @@ There are some limitations to be aware of:
 * An {agent} with the APM integration enabled must be managed by {fleet}.
 
 [discrete]
-<<<<<<< HEAD
 [[apm-integration-upgrade-steps]]
-=== Upgrade a self-managed cluster
-=======
-=== Make the switch
-
-Select a guide below to get started.
-
-* <<apm-integration-upgrade-steps>>
-* <<apm-integration-upgrade-steps-ess>>
-
-// ********************************************************
-
-[[apm-integration-upgrade-steps]]
-==== Switch a self-installation to the APM integration
-
-++++
-<titleabbrev>Switch a self-installation</titleabbrev>
-++++
->>>>>>> 20a63f3d (docs: it’s a switch, not an upgrade (#8312))
+=== Switch a self-managed cluster
 
 . <<apm-integration-upgrade-1>>
 . <<apm-integration-upgrade-2>>
@@ -158,15 +140,7 @@ Congratulations -- you now have the latest and greatest in Elastic APM!
 
 [discrete]
 [[apm-integration-upgrade-steps-ess]]
-<<<<<<< HEAD
-=== Upgrade an {ecloud} cluster
-=======
-==== Switch an {ecloud} cluster to the APM integration
-
-++++
-<titleabbrev>Switch an {ecloud} cluster</titleabbrev>
-++++
->>>>>>> 20a63f3d (docs: it’s a switch, not an upgrade (#8312))
+=== Switch an {ecloud} cluster
 
 . <<apm-integration-upgrade-ess-1>>
 . <<apm-integration-upgrade-ess-2>>
