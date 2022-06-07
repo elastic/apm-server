@@ -29,11 +29,10 @@ import (
 )
 
 func TestStart(t *testing.T) {
-	server := setupTestServer(t, 1, make(chan bool, 1))
-	defer server.Close()
+	serverURL := setupTestServer(t, 1, make(chan bool, 1))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	c, err := StartNewCollector(ctx, server.URL, 10*time.Second)
+	c, err := StartNewCollector(ctx, serverURL, 10*time.Second)
 	assert.NoError(t, err)
 	assert.Equal(t, int64(1), c.Get(Goroutines).samples)
 	assert.Equal(t, int64(1), c.Get(Goroutines).First)
@@ -43,11 +42,10 @@ func TestStart(t *testing.T) {
 func TestAggregate(t *testing.T) {
 	done := make(chan bool)
 	samples := 5
-	server := setupTestServer(t, samples, done)
-	defer server.Close()
+	serverURL := setupTestServer(t, samples, done)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	c, err := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
+	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond)
 	assert.NoError(t, err)
 	assert.True(t, <-done)
 	stats := c.Get(Goroutines)
@@ -60,11 +58,10 @@ func TestAggregate(t *testing.T) {
 }
 
 func TestWatchMetric(t *testing.T) {
-	server := setupTestServer(t, 5, make(chan bool, 1))
-	defer server.Close()
+	serverURL := setupTestServer(t, 5, make(chan bool, 1))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	c, err := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
+	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond)
 	assert.NoError(t, err)
 	watcher, err := c.WatchMetric(Goroutines, int64(5))
 	assert.NoError(t, err)
@@ -78,10 +75,9 @@ func TestWatchMetric(t *testing.T) {
 }
 
 func TestWatchMetricFail(t *testing.T) {
-	server := setupTestServer(t, 1, make(chan bool, 1))
-	defer server.Close()
+	serverURL := setupTestServer(t, 1, make(chan bool, 1))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	c, err := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
+	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond)
 	assert.NoError(t, err)
 	cancel()
 	<-time.After(100 * time.Millisecond)
@@ -90,10 +86,9 @@ func TestWatchMetricFail(t *testing.T) {
 }
 
 func TestWatchMetricFalse(t *testing.T) {
-	server := setupTestServer(t, 1, make(chan bool, 1))
-	defer server.Close()
+	serverURL := setupTestServer(t, 1, make(chan bool, 1))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	c, err := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
+	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond)
 	assert.NoError(t, err)
 	watcher, err := c.WatchMetric(Goroutines, 20)
 	assert.NoError(t, err)
@@ -109,12 +104,11 @@ func TestWatchMetricFalse(t *testing.T) {
 
 func TestWatchMetricNonBlocking(t *testing.T) {
 	done := make(chan bool)
-	server := setupTestServer(t, 5, done)
-	defer server.Close()
+	serverURL := setupTestServer(t, 5, done)
 	timeout := 100 * time.Millisecond
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	c, err := StartNewCollector(ctx, server.URL, 10*time.Millisecond)
+	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond)
 	assert.NoError(t, err)
 	watcher, err := c.WatchMetric(Goroutines, int64(5))
 	assert.NoError(t, err)
@@ -143,11 +137,14 @@ func TestWatchMetricNonBlocking(t *testing.T) {
 // TODO: @lahsivjar the logic of querying expvar multiple times leaks into
 // these test cases due to the logic in test server to keep the aggregation
 // deterministic for unit testing
-func setupTestServer(t *testing.T, count int, done chan<- bool) *httptest.Server {
+func setupTestServer(t *testing.T, count int, done chan<- bool) string {
+	factorBasedOnQueryExpvar := 12
 	resChan := make(chan string)
 	timeout := time.Second
 	server := getTestServer(t, resChan, timeout)
-	factorBasedOnQueryExpvar := 12
+	t.Cleanup(func() {
+		server.Close()
+	})
 
 	go func() {
 		var val int
@@ -165,7 +162,7 @@ func setupTestServer(t *testing.T, count int, done chan<- bool) *httptest.Server
 		done <- true
 	}()
 
-	return server
+	return server.URL
 }
 
 func getTestServer(t *testing.T, resChan <-chan string, timeout time.Duration) *httptest.Server {
