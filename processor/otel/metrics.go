@@ -344,11 +344,8 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms metricsets) bool {
 		dps := metric.Summary().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
-			if sample, ok := summarySample(dp); ok {
-				ms.upsert(dp.Timestamp().AsTime(), metric.Name(), dp.Attributes(), sample)
-			} else {
-				anyDropped = true
-			}
+			sample := summarySample(dp)
+			ms.upsert(dp.Timestamp().AsTime(), metric.Name(), dp.Attributes(), sample)
 		}
 	default:
 		// Unsupported metric: report that it has been dropped.
@@ -376,14 +373,14 @@ func numberSample(dp pdata.NumberDataPoint, metricType model.MetricType) (model.
 	}, true
 }
 
-func summarySample(dp pdata.SummaryDataPoint) (model.MetricsetSample, bool) {
+func summarySample(dp pdata.SummaryDataPoint) model.MetricsetSample {
 	return model.MetricsetSample{
 		Type: model.MetricTypeSummary,
 		SummaryMetric: model.SummaryMetric{
 			Count: int64(dp.Count()),
 			Sum:   dp.Sum(),
 		},
-	}, true
+	}
 }
 
 func histogramSample(bucketCounts []uint64, explicitBounds []float64) (model.MetricsetSample, bool) {
