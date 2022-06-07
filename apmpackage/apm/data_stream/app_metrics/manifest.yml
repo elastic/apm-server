@@ -16,6 +16,13 @@ elasticsearch:
         - histogram:
             mapping:
               type: histogram
+        - summary:
+            mapping:
+              type: aggregate_metric_double
+              metrics:
+                - sum
+                - value_count
+              default_metric: value_count
         - numeric_labels:
             path_match: numeric_labels.*
             mapping:

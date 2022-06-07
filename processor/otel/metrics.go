@@ -341,10 +341,12 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms metricsets) bool {
 			}
 		}
 	case pdata.MetricDataTypeSummary:
-		// TODO(axw) https://github.com/elastic/apm-server/issues/3195
-		// (Not quite the same issue, but the solution would also enable
-		// aggregate metrics, which would be appropriate for summaries.)
-		fallthrough
+		dps := metric.Summary().DataPoints()
+		for i := 0; i < dps.Len(); i++ {
+			dp := dps.At(i)
+			sample := summarySample(dp)
+			ms.upsert(dp.Timestamp().AsTime(), metric.Name(), dp.Attributes(), sample)
+		}
 	default:
 		// Unsupported metric: report that it has been dropped.
 		anyDropped = true
@@ -369,6 +371,16 @@ func numberSample(dp pdata.NumberDataPoint, metricType model.MetricType) (model.
 		Type:  metricType,
 		Value: value,
 	}, true
+}
+
+func summarySample(dp pdata.SummaryDataPoint) model.MetricsetSample {
+	return model.MetricsetSample{
+		Type: model.MetricTypeSummary,
+		SummaryMetric: model.SummaryMetric{
+			Count: int64(dp.Count()),
+			Sum:   dp.Sum(),
+		},
+	}
 }
 
 func histogramSample(bucketCounts []uint64, explicitBounds []float64) (model.MetricsetSample, bool) {

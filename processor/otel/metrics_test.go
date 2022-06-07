@@ -108,6 +108,13 @@ func TestConsumeMetrics(t *testing.T) {
 	histogramDP.SetBucketCounts([]uint64{1, 1, 2, 3})
 	histogramDP.SetExplicitBounds([]float64{-1.0, 2.0, 3.5})
 
+	metric = appendMetric("summary_metric", pdata.MetricDataTypeSummary)
+	summaryDP := metric.Summary().DataPoints().AppendEmpty()
+	summaryDP.SetTimestamp(pdata.NewTimestampFromTime(timestamp0))
+	summaryDP.SetCount(10)
+	summaryDP.SetSum(123.456)
+	summaryDP.QuantileValues().AppendEmpty() // quantiles are not stored
+
 	metric = appendMetric("invalid_histogram_metric", pdata.MetricDataTypeHistogram)
 	invalidHistogram := metric.Histogram()
 	invalidHistogramDP := invalidHistogram.DataPoints().AppendEmpty()
@@ -122,11 +129,6 @@ func TestConsumeMetrics(t *testing.T) {
 	invalidHistogramDP.SetTimestamp(pdata.NewTimestampFromTime(timestamp0))
 	invalidHistogramDP.SetBucketCounts([]uint64{1})
 	invalidHistogramDP.SetExplicitBounds([]float64{}) // should be non-empty
-	expectDropped++
-
-	// Summary metrics are not yet supported, and will be dropped.
-	metric = appendMetric("summary_metric", pdata.MetricDataTypeSummary)
-	metric.Summary().DataPoints().AppendEmpty()
 	expectDropped++
 
 	events, stats := transformMetrics(t, metrics)
@@ -148,6 +150,13 @@ func TestConsumeMetrics(t *testing.T) {
 					Histogram: model.Histogram{
 						Counts: []int64{1, 1, 2, 3},
 						Values: []float64{-1, 0.5, 2.75, 3.5},
+					},
+				},
+				"summary_metric": {
+					Type: "summary",
+					SummaryMetric: model.SummaryMetric{
+						Count: 10,
+						Sum:   123.456,
 					},
 				},
 			},
