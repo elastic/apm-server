@@ -36,9 +36,9 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/metric"
-	export "go.opentelemetry.io/otel/sdk/export/metric"
 	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
+	export "go.opentelemetry.io/otel/sdk/metric/export"
 	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -198,7 +198,22 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.app.*", estest.BoolQuery{Filter: []interface{}{
+	// opentelemetry-go does not support sending Summary metrics,
+	// so we send them using the lower level OTLP/gRPC client.
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock())
+	require.NoError(t, err)
+	defer conn.Close()
+	metricsClient := otlpgrpc.NewMetricsClient(conn)
+	metrics := pdata.NewMetrics()
+	metric := metrics.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty().Metrics().AppendEmpty()
+	metric.SetName("summary")
+	metric.SetDataType(pdata.MetricDataTypeSummary)
+	summaryDP := metric.Summary().DataPoints().AppendEmpty()
+	summaryDP.SetCount(10)
+	summaryDP.SetSum(123.456)
+	metricsClient.Export(context.Background(), metrics)
+
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.app.*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "metric"},
 	}})
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
