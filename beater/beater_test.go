@@ -448,16 +448,17 @@ func testAdjustMaxProcs(t *testing.T, maxP int, diffCore bool) *observer.Observe
 
 	core, observedLogs := observer.New(zapcore.DebugLevel)
 	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
-		c := zapcore.NewTee(in, core)
-		if diffCore {
-			return &zapDiffCore{Core: c}
-		}
-		return c
+		return zapcore.NewTee(in, core)
 	}))
 
 	// Adjust maxprocs every 1ms.
 	refreshDuration := time.Millisecond
-	go adjustMaxProcs(ctx, refreshDuration, logger)
+	logFunc := logger.Infof
+	if diffCore {
+		logFunc = diffInfof(logger)
+	}
+
+	go adjustMaxProcs(ctx, refreshDuration, logFunc, logger.Errorf)
 
 	filterMsg := fmt.Sprintf(`maxprocs: Honoring GOMAXPROCS="%d"`, maxP)
 	for {

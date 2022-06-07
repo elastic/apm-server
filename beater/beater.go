@@ -35,8 +35,6 @@ import (
 	"go.elastic.co/apm/module/apmhttp/v2"
 	"go.elastic.co/apm/v2"
 	"go.uber.org/automaxprocs/maxprocs"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -165,12 +163,7 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 	// pausing the the running OS threads for the throttled period.
 	// Since the quotas may be updated without restarting the process, the
 	// GOMAXPROCS are adjusted every 30s.
-	maxprocsLogger := bt.logger.WithOptions(
-		zap.WrapCore(func(c zapcore.Core) zapcore.Core {
-			return &zapDiffCore{Core: c}
-		}),
-	)
-	go adjustMaxProcs(ctx, 30*time.Second, maxprocsLogger)
+	go adjustMaxProcs(ctx, 30*time.Second, diffInfof(bt.logger), bt.logger.Errorf)
 
 	tracer, tracerServer, err := initTracing(b, bt.config, bt.logger)
 	if err != nil {
@@ -1035,10 +1028,12 @@ func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error 
 	return nil
 }
 
-func adjustMaxProcs(ctx context.Context, d time.Duration, logger *logp.Logger) error {
+type logf func(string, ...interface{})
+
+func adjustMaxProcs(ctx context.Context, d time.Duration, infof, errorf logf) error {
 	setMaxProcs := func() {
-		if _, err := maxprocs.Set(maxprocs.Logger(logger.Infof)); err != nil {
-			logger.Errorf("failed to set GOMAXPROCS: %v", err)
+		if _, err := maxprocs.Set(maxprocs.Logger(infof)); err != nil {
+			errorf("failed to set GOMAXPROCS: %v", err)
 		}
 	}
 	// set the gomaxprocs immediately.
@@ -1055,22 +1050,13 @@ func adjustMaxProcs(ctx context.Context, d time.Duration, logger *logp.Logger) e
 	}
 }
 
-type zapDiffCore struct {
-	mu sync.Mutex
-	zapcore.Core
-	lastMessage string
-}
-
-// Check records the logged entry.Message and discards the log entry when it
-// matches the previously logged entry.Message.
-func (c *zapDiffCore) Check(e zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	// Discard the entry if the logged message matches the previous log.
-	if e.Message == c.lastMessage && c.lastMessage != "" {
-		return nil
+func diffInfof(logger *logp.Logger) logf {
+	var last string
+	return func(format string, args ...interface{}) {
+		msg := fmt.Sprintf(format, args...)
+		if msg != last {
+			logger.Info(msg)
+			last = msg
+		}
 	}
-	c.lastMessage = e.Message
-	return c.Core.Check(e, ce)
 }
