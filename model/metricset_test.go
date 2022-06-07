@@ -80,6 +80,13 @@ func TestMetricset(t *testing.T) {
 							Values: []float64{1.1, 2.2, 3.3},
 						},
 					},
+					"request_summary": {
+						Type: "summary",
+						SummaryMetric: SummaryMetric{
+							Count: 10,
+							Sum:   123.456,
+						},
+					},
 					"just_type": {
 						Type:  "counter",
 						Value: 123,
@@ -95,12 +102,19 @@ func TestMetricset(t *testing.T) {
 					"counts": []int64{1, 2, 3},
 					"values": []float64{1.1, 2.2, 3.3},
 				},
+				"request_summary": mapstr.M{
+					"sum":         123.456,
+					"value_count": int64(10),
+				},
 				"just_type": 123.0,
 				"just_unit": 0.99,
 				"_metric_descriptions": mapstr.M{
 					"latency_histogram": mapstr.M{
 						"type": "histogram",
 						"unit": "s",
+					},
+					"request_summary": mapstr.M{
+						"type": "summary",
 					},
 					"just_type": mapstr.M{
 						"type": "counter",

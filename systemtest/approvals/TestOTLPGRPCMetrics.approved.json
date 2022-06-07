@@ -3,6 +3,45 @@
         {
             "@timestamp": "dynamic",
             "agent": {
+                "name": "otlp",
+                "version": "unknown"
+            },
+            "data_stream.dataset": "apm.app.unknown",
+            "data_stream.namespace": "default",
+            "data_stream.type": "metrics",
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "metricset.name": "app",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "summary": {
+                "sum": 123.456,
+                "value_count": 10
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
                 "name": "opentelemetry/go",
                 "version": "1.5.0"
             },
