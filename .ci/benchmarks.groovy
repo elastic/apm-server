@@ -48,7 +48,7 @@ pipeline {
         TF_VAR_BRANCH = "${BRANCH_NAME_LOWER_CASE}"
         TF_VAR_REPO = "${REPO}"
         //todo remove
-        TF_LOG = "TRACE"
+        TF_LOG = "DEBUG"
         GOBENCH_INDEX = "gobench-v2-${BRANCH_NAME_LOWER_CASE}"
         GOBENCH_TAGS = ""
       }
