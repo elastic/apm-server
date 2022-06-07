@@ -17,3 +17,4 @@ https://github.com/elastic/apm-server/compare/8.4\...main[View commits]
 
 [float]
 ==== Added
+- Added support for OpenTelemetry summary metrics {pull}7772[7772]

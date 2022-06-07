@@ -3,9 +3,9 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "8.4.0"
   changes:
-    - description: Placeholder for 8.4.0 changelog
+    - description: Added support for dynamically mapping summary metrics
       type: enhancement
-      link: https://github.com/elastic/apm-server/pull/xxx
+      link: https://github.com/elastic/apm-server/pull/7772
 - version: "8.3.0"
   changes:
     - description: Field mapping for `target.name` and `target.type` added to traces data stream
