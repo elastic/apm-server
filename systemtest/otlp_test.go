@@ -187,10 +187,12 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	defer cancel()
 	aggregator := simple.NewWithHistogramDistribution(histogram.WithExplicitBoundaries([]float64{1, 100, 1000, 10000}))
 	err = sendOTLPMetrics(t, ctx, srv, aggregator, func(meter metric.Meter) {
-		float64Counter, _ := meter.SyncFloat64().Counter("float64_counter")
+		float64Counter, err := meter.SyncFloat64().Counter("float64_counter")
+		require.NoError(t, err)
 		float64Counter.Add(context.Background(), 1)
 
-		int64Histogram, _ := meter.SyncInt64().Histogram("int64_histogram")
+		int64Histogram, err := meter.SyncInt64().Histogram("int64_histogram")
+		require.NoError(t, err)
 		int64Histogram.Record(context.Background(), 1)
 		int64Histogram.Record(context.Background(), 123)
 		int64Histogram.Record(context.Background(), 1024)
