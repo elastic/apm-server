@@ -40,4 +40,4 @@ https://github.com/elastic/apm-server/compare/8.2.2\...8.3.0[View commits]
 
 [float]
 ==== Performance improvements
-- Limit the number of gomaxprocs when CPU limits have been set within a cgroup, which yield significant improvements, particularly when the APM Server experiences high traffic from a high number of APM agents {pull}8175[8175] {pull}8278[8278]
+- Limit the number of gomaxprocs when CPU limits have been set within a cgroup, yielding significant performance improvements, particularly when the APM Server experiences high traffic from a high number of APM agents {pull}8175[8175] {pull}8278[8278]
