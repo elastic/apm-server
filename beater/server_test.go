@@ -1001,6 +1001,43 @@ func TestServerPProf(t *testing.T) {
 	}
 }
 
+func TestServerGoMaxProcsLogMessage(t *testing.T) {
+	// Assert that the gomaxprocs library is called and use the
+	// log message that is printed as
+	for _, n := range []int{1, 2, 4} {
+		t.Run(fmt.Sprintf("%d_GOMAXPROCS", n), func(t *testing.T) {
+			t.Setenv("GOMAXPROCS", fmt.Sprint(n))
+
+			beat, cfg := newBeat(t, nil, nil, nil)
+			apm, err := newTestBeater(t, beat, cfg, nil)
+			require.NoError(t, err)
+			apm.start()
+			defer apm.Stop()
+
+			timeout := time.NewTimer(time.Second)
+			defer timeout.Stop()
+			for {
+				select {
+				case <-timeout.C:
+					t.Error("timed out waiting for log message, total logs observed:", apm.logs.Len())
+					for _, log := range apm.logs.All() {
+						t.Log(log.LoggerName, log.Message)
+					}
+					return
+				case <-time.After(time.Millisecond):
+					logs := apm.logs.FilterMessageSnippet(fmt.Sprintf(
+						`maxprocs: Honoring GOMAXPROCS="%d" as set in environment`, n,
+					))
+					if logs.Len() > 0 {
+						assert.Len(t, logs.All(), 1, "coundn't find gomaxprocs message logs")
+						return
+					}
+				}
+			}
+		})
+	}
+}
+
 type dummyOutputClient struct {
 }
 
