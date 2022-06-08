@@ -497,8 +497,14 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 	)
 
 	var (
-		messageSystem    string
-		messageOperation string
+		messageSystem          string
+		messageOperation       string
+		messageTempDestination bool
+	)
+
+	var (
+		rpcSystem  string
+		rpcService string
 	)
 
 	var http model.HTTP
@@ -507,8 +513,8 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 	var message model.Message
 	var db model.DB
 	var destinationService model.DestinationService
+	var serviceTarget model.ServiceTarget
 	var foundSpanType int
-	var rpcSystem string
 	var samplerType, samplerParam pdata.AttributeValue
 	attributes.Range(func(kDots string, v pdata.AttributeValue) bool {
 		if isJaeger {
@@ -527,7 +533,13 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		case pdata.AttributeValueTypeArray:
 			setLabel(k, event, ifaceAttributeValueSlice(v.SliceVal()))
 		case pdata.AttributeValueTypeBool:
-			setLabel(k, event, strconv.FormatBool(v.BoolVal()))
+			switch kDots {
+			case semconv.AttributeMessagingTempDestination:
+				messageTempDestination = v.BoolVal()
+				fallthrough
+			default:
+				setLabel(k, event, strconv.FormatBool(v.BoolVal()))
+			}
 		case pdata.AttributeValueTypeDouble:
 			setLabel(k, event, v.DoubleVal())
 		case pdata.AttributeValueTypeInt:
@@ -625,6 +637,8 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 				rpcSystem = stringval
 				foundSpanType = rpcSpan
 			case semconv.AttributeRPCService:
+				rpcService = stringval
+				foundSpanType = rpcSpan
 			case semconv.AttributeRPCMethod:
 
 			// miscellaneous
@@ -688,6 +702,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		}
 	}
 
+	serviceTarget.Name = peerService
 	destinationService.Name = peerService
 	destinationService.Resource = peerService
 	if peerAddress != "" {
@@ -706,7 +721,8 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		event.Span.Subtype = subtype
 		event.HTTP = http
 		event.URL.Original = httpURL
-		if destinationService.Name == "" && fullURL != nil {
+		serviceTarget.Type = event.Span.Subtype
+		if serviceTarget.Name == "" && fullURL != nil {
 			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
 			resource := url.Host
 			if destPort == schemeDefaultPort(url.Scheme) {
@@ -719,19 +735,25 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 				}
 			}
 
+			serviceTarget.Name = resource
 			destinationService.Name = url.String()
 			destinationService.Resource = resource
 		}
 	case dbSpan:
 		event.Span.Type = "db"
-		if db.Type != "" {
-			event.Span.Subtype = db.Type
+		event.Span.Subtype = db.Type
+		serviceTarget.Type = event.Span.Type
+		if event.Span.Subtype != "" {
+			serviceTarget.Type = event.Span.Subtype
 			if destinationService.Name == "" {
 				// For database requests, we currently just identify
 				// the destination service by db.system.
 				destinationService.Name = event.Span.Subtype
 				destinationService.Resource = event.Span.Subtype
 			}
+		}
+		if serviceTarget.Name == "" {
+			serviceTarget.Name = db.Instance
 		}
 		event.Span.DB = &db
 	case messagingSpan:
@@ -741,23 +763,35 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 			messageOperation = "send"
 		}
 		event.Span.Action = messageOperation
-		if destinationService.Name == "" {
-			destinationService.Name = messageSystem
-			destinationService.Resource = messageSystem
+		serviceTarget.Type = event.Span.Type
+		if event.Span.Subtype != "" {
+			serviceTarget.Type = event.Span.Subtype
+			if destinationService.Name == "" {
+				destinationService.Name = event.Span.Subtype
+				destinationService.Resource = event.Span.Subtype
+			}
 		}
 		if destinationService.Resource != "" && message.QueueName != "" {
 			destinationService.Resource += "/" + message.QueueName
 		}
+		if serviceTarget.Name == "" && !messageTempDestination {
+			serviceTarget.Name = message.QueueName
+		}
 		event.Span.Message = &message
 	case rpcSpan:
+		event.Span.Type = "external"
+		event.Span.Subtype = rpcSystem
+		serviceTarget.Type = event.Span.Type
+		if event.Span.Subtype != "" {
+			serviceTarget.Type = event.Span.Subtype
+		}
 		// Set destination.service.* from the peer address, unless peer.service was specified.
-		if destinationService.Name == "" {
+		if serviceTarget.Name == "" {
+			serviceTarget.Name = rpcService
 			destHostPort := net.JoinHostPort(destAddr, strconv.Itoa(destPort))
 			destinationService.Name = destHostPort
 			destinationService.Resource = destHostPort
 		}
-		event.Span.Type = "external"
-		event.Span.Subtype = rpcSystem
 	default:
 		// Only set event.Span.Type if not already set
 		if event.Span.Type == "" {
@@ -780,6 +814,10 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 			destinationService.Type = event.Span.Type
 		}
 		event.Span.DestinationService = &destinationService
+	}
+
+	if serviceTarget != (model.ServiceTarget{}) {
+		event.Service.Target = &serviceTarget
 	}
 
 	if samplerType != (pdata.AttributeValue{}) {
