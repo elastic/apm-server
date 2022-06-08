@@ -193,10 +193,16 @@ func generateSpans(ctx context.Context, tracer trace.Tracer) error {
 }
 
 func generateMetrics(ctx context.Context, meter metric.Meter) error {
-	counter, _ := meter.SyncFloat64().Counter("float64_counter")
+	counter, err := meter.SyncFloat64().Counter("float64_counter")
+	if err != nil {
+		return err
+	}
 	counter.Add(ctx, 1)
 
-	hist, _ := meter.SyncInt64().Histogram("int64_histogram")
+	hist, err := meter.SyncInt64().Histogram("int64_histogram")
+	if err != nil {
+		return err
+	}
 	hist.Record(ctx, 1)
 	hist.Record(ctx, 10)
 	hist.Record(ctx, 10)
