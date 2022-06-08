@@ -80,7 +80,7 @@ pipeline {
         always {
           dir("${BASE_DIR}") {
             withGoEnv() {
-              dir("/testing/benchmark") {
+              dir("testing/benchmark") {
                 //todo: remove
                 sh(label: 'debug env before aws cli setup', script: 'printenv | grep AWS') //remove
                 sh(label: 'debug aws profile list bofore', script: 'aws configure list || echo 0') // remove
