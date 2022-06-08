@@ -78,17 +78,21 @@ pipeline {
       }
       post {
         always {
-          dir("${BASE_DIR}/testing/benchmark") {
-            //todo: remove
-            sh(label: 'debug env before aws cli setup', script: 'printenv | grep AWS') //remove
-            sh(label: 'debug aws profile list bofore', script: 'aws configure list || echo 0') // remove
-            stashV2(name: 'benchmark_tfstate', bucket: "${JOB_GCS_BUCKET_STASH}", credentialsId: "${JOB_GCS_CREDENTIALS}")
-            withTestClusterEnv {
-              sh(label: 'debug env after aws cli setup', script: 'printenv | grep AWS') //remove
-              sh(label: 'debug aws profile list after', script: 'aws configure list || echo 0') // remove
-              sh(label: 'debug aws profile after', script: 'aws configure list --profile observability-robots@elastic.co || echo 0') // remove
-              sh(label: 'Tear down benchmark environment', script: 'make destroy')
-            }
+          dir("${BASE_DIR}") {
+            withGoEnv() {
+              dir("/testing/benchmark") {
+                //todo: remove
+                sh(label: 'debug env before aws cli setup', script: 'printenv | grep AWS') //remove
+                sh(label: 'debug aws profile list bofore', script: 'aws configure list || echo 0') // remove
+                stashV2(name: 'benchmark_tfstate', bucket: "${JOB_GCS_BUCKET_STASH}", credentialsId: "${JOB_GCS_CREDENTIALS}")
+                withTestClusterEnv {
+                  sh(label: 'debug env after aws cli setup', script: 'printenv | grep AWS') //remove
+                  sh(label: 'debug aws profile list after', script: 'aws configure list || echo 0') // remove
+                  sh(label: 'debug aws profile after', script: 'aws configure list --profile observability-robots@elastic.co || echo 0') // remove
+                  sh(label: 'Tear down benchmark environment', script: 'make destroy')
+                }
+              }  
+            }  
           }
         }
       }
