@@ -19,6 +19,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"flag"
 	"fmt"
@@ -27,16 +28,20 @@ import (
 	"os"
 	"time"
 
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/sdkapi"
 	"go.opentelemetry.io/otel/sdk/export/metric/aggregation"
 	"go.opentelemetry.io/otel/sdk/instrumentation"
 	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
 	"go.opentelemetry.io/otel/sdk/metric/export"
 	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
+	"go.opentelemetry.io/otel/sdk/metric/sdkapi"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -66,7 +71,13 @@ var (
 
 	logLevel = zap.LevelFlag(
 		"loglevel", zapcore.InfoLevel,
-		"set log level to one of DEBUG, INFO (default), WARN, ERROR, DPANIC, PANIC, FATAL",
+		"set log level to one of: DEBUG, INFO (default), WARN, ERROR, DPANIC, PANIC, FATAL",
+	)
+
+	protocol = flag.String(
+		"protocol",
+		getenvDefault("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
+		"set transport protocol to one of: grpc (default), http/protobuf",
 	)
 )
 
@@ -98,7 +109,6 @@ func main() {
 }
 
 func Main(ctx context.Context, logger *zap.SugaredLogger) error {
-	var transportCredentials credentials.TransportCredentials
 	endpointURL, err := url.Parse(*endpoint)
 	if err != nil {
 		return fmt.Errorf("failed to parse endpoint: %w", err)
@@ -108,53 +118,28 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) error {
 		if endpointURL.Port() == "" {
 			endpointURL.Host = net.JoinHostPort(endpointURL.Host, "80")
 		}
-		// If http:// is specified, then use insecure (plaintext).
-		transportCredentials = insecure.NewCredentials()
 	case "https":
 		if endpointURL.Port() == "" {
 			endpointURL.Host = net.JoinHostPort(endpointURL.Host, "443")
 		}
-		transportCredentials = credentials.NewClientTLSFromCert(nil, "")
 	default:
-		return fmt.Errorf(
-			"endpoint must be prefixed with http:// or https://",
-		)
+		return fmt.Errorf("endpoint must be prefixed with http:// or https://")
 	}
-	logger.Infof("sending OTLP data to %s", endpointURL.String())
-	grpcEndpoint := endpointURL.Host
 
-	grpcConn, err := grpc.DialContext(ctx, grpcEndpoint, grpc.WithTransportCredentials(transportCredentials))
+	otlpExporters, err := newOTLPExporters(ctx, endpointURL)
 	if err != nil {
 		return err
 	}
-	defer grpcConn.Close()
+	defer otlpExporters.cleanup(ctx)
 
-	traceOptions := []otlptracegrpc.Option{otlptracegrpc.WithGRPCConn(grpcConn)}
-	metricOptions := []otlpmetricgrpc.Option{otlpmetricgrpc.WithGRPCConn(grpcConn)}
-	if *secretToken != "" {
-		// If -secret-token is specified then we set headers explicitly,
-		// overriding anything set in $OTEL_EXPORTER_OTLP_HEADERS.
-		headers := map[string]string{"Authorization": "Bearer " + *secretToken}
-		traceOptions = append(traceOptions, otlptracegrpc.WithHeaders(headers))
-		metricOptions = append(metricOptions, otlpmetricgrpc.WithHeaders(headers))
-	}
+	logger.Infof("sending OTLP data to %s (%s)", endpointURL.String(), *protocol)
 
-	otlpTraceExporter, err := otlptracegrpc.New(ctx, traceOptions...)
-	if err != nil {
-		return err
-	}
-	var tracerProviderOptions []sdktrace.TracerProviderOption
-	tracerProviderOptions = append(tracerProviderOptions,
+	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSyncer(loggingExporter{logger.Desugar()}),
-		sdktrace.WithSyncer(otlpTraceExporter),
+		sdktrace.WithSyncer(otlpExporters.trace),
 	)
-	tracerProvider := sdktrace.NewTracerProvider(tracerProviderOptions...)
+	metricExporter := chainMetricExporter{loggingExporter{logger.Desugar()}, otlpExporters.metric}
 
-	otlpMetricExporter, err := otlpmetricgrpc.New(ctx, metricOptions...)
-	if err != nil {
-		return err
-	}
-	metricExporter := chainMetricExporter{loggingExporter{logger.Desugar()}, otlpMetricExporter}
 	metricsController := controller.New(
 		processor.NewFactory(
 			simple.NewWithHistogramDistribution(
@@ -184,16 +169,10 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) error {
 	}
 
 	// Shutdown, flushing all data to the server.
-	if otlpMetricExporter.Shutdown(ctx); err != nil {
-		return err
-	}
 	if err := tracerProvider.Shutdown(ctx); err != nil {
 		return err
 	}
-	if err := otlpTraceExporter.Shutdown(ctx); err != nil {
-		return err
-	}
-	return grpcConn.Close()
+	return otlpExporters.cleanup(ctx)
 }
 
 func generateSpans(ctx context.Context, tracer trace.Tracer) error {
@@ -214,9 +193,16 @@ func generateSpans(ctx context.Context, tracer trace.Tracer) error {
 }
 
 func generateMetrics(ctx context.Context, meter metric.Meter) error {
-	metric.Must(meter).NewFloat64Counter("float64_counter").Add(ctx, 1)
+	counter, err := meter.SyncFloat64().Counter("float64_counter")
+	if err != nil {
+		return err
+	}
+	counter.Add(ctx, 1)
 
-	hist := metric.Must(meter).NewInt64Histogram("int64_histogram")
+	hist, err := meter.SyncInt64().Histogram("int64_histogram")
+	if err != nil {
+		return err
+	}
 	hist.Record(ctx, 1)
 	hist.Record(ctx, 10)
 	hist.Record(ctx, 10)
@@ -225,6 +211,126 @@ func generateMetrics(ctx context.Context, meter metric.Meter) error {
 	hist.Record(ctx, 100)
 
 	return nil
+}
+
+type otlpExporters struct {
+	cleanup func(context.Context) error
+	trace   *otlptrace.Exporter
+	metric  *otlpmetric.Exporter
+}
+
+func newOTLPExporters(ctx context.Context, endpointURL *url.URL) (*otlpExporters, error) {
+	switch *protocol {
+	case "grpc":
+		return newOTLPGRPCExporters(ctx, endpointURL)
+	case "http/protobuf":
+		return newOTLPHTTPExporters(ctx, endpointURL)
+	default:
+		return nil, fmt.Errorf("invalid protocol %q", *protocol)
+	}
+}
+
+func newOTLPGRPCExporters(ctx context.Context, endpointURL *url.URL) (*otlpExporters, error) {
+	var transportCredentials credentials.TransportCredentials
+	switch endpointURL.Scheme {
+	case "http":
+		// If http:// is specified, then use insecure (plaintext).
+		transportCredentials = insecure.NewCredentials()
+	case "https":
+		transportCredentials = credentials.NewClientTLSFromCert(nil, "")
+	}
+
+	grpcConn, err := grpc.DialContext(ctx, endpointURL.Host, grpc.WithTransportCredentials(transportCredentials))
+	if err != nil {
+		return nil, err
+	}
+	cleanup := func(context.Context) error {
+		return grpcConn.Close()
+	}
+
+	traceOptions := []otlptracegrpc.Option{otlptracegrpc.WithGRPCConn(grpcConn)}
+	metricOptions := []otlpmetricgrpc.Option{otlpmetricgrpc.WithGRPCConn(grpcConn)}
+	if *secretToken != "" {
+		// If -secret-token is specified then we set headers explicitly,
+		// overriding anything set in $OTEL_EXPORTER_OTLP_HEADERS.
+		headers := map[string]string{"Authorization": "Bearer " + *secretToken}
+		traceOptions = append(traceOptions, otlptracegrpc.WithHeaders(headers))
+		metricOptions = append(metricOptions, otlpmetricgrpc.WithHeaders(headers))
+	}
+
+	otlpTraceExporter, err := otlptracegrpc.New(ctx, traceOptions...)
+	if err != nil {
+		cleanup(ctx)
+		return nil, err
+	}
+	cleanup = combineCleanup(otlpTraceExporter.Shutdown, cleanup)
+
+	otlpMetricExporter, err := otlpmetricgrpc.New(ctx, metricOptions...)
+	if err != nil {
+		cleanup(ctx)
+		return nil, err
+	}
+	cleanup = combineCleanup(otlpMetricExporter.Shutdown, cleanup)
+
+	return &otlpExporters{
+		cleanup: cleanup,
+		trace:   otlpTraceExporter,
+		metric:  otlpMetricExporter,
+	}, nil
+}
+
+func newOTLPHTTPExporters(ctx context.Context, endpointURL *url.URL) (*otlpExporters, error) {
+	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+	traceOptions := []otlptracehttp.Option{
+		otlptracehttp.WithEndpoint(endpointURL.Host),
+		otlptracehttp.WithTLSClientConfig(tlsConfig),
+	}
+	metricOptions := []otlpmetrichttp.Option{
+		otlpmetrichttp.WithEndpoint(endpointURL.Host),
+		otlpmetrichttp.WithTLSClientConfig(tlsConfig),
+	}
+	if endpointURL.Scheme == "http" {
+		traceOptions = append(traceOptions, otlptracehttp.WithInsecure())
+		metricOptions = append(metricOptions, otlpmetrichttp.WithInsecure())
+	}
+	if *secretToken != "" {
+		// If -secret-token is specified then we set headers explicitly,
+		// overriding anything set in $OTEL_EXPORTER_OTLP_HEADERS.
+		headers := map[string]string{"Authorization": "Bearer " + *secretToken}
+		traceOptions = append(traceOptions, otlptracehttp.WithHeaders(headers))
+		metricOptions = append(metricOptions, otlpmetrichttp.WithHeaders(headers))
+	}
+
+	cleanup := func(context.Context) error { return nil }
+
+	otlpTraceExporter, err := otlptracehttp.New(ctx, traceOptions...)
+	if err != nil {
+		cleanup(ctx)
+		return nil, err
+	}
+	cleanup = combineCleanup(otlpTraceExporter.Shutdown, cleanup)
+
+	otlpMetricExporter, err := otlpmetrichttp.New(ctx, metricOptions...)
+	if err != nil {
+		cleanup(ctx)
+		return nil, err
+	}
+	cleanup = combineCleanup(otlpMetricExporter.Shutdown, cleanup)
+
+	return &otlpExporters{
+		cleanup: cleanup,
+		trace:   otlpTraceExporter,
+		metric:  otlpMetricExporter,
+	}, nil
+}
+
+func combineCleanup(a, b func(context.Context) error) func(context.Context) error {
+	return func(ctx context.Context) error {
+		if err := a(ctx); err != nil {
+			return err
+		}
+		return b(ctx)
+	}
 }
 
 type chainMetricExporter []export.Exporter

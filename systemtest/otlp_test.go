@@ -186,11 +186,13 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	aggregator := simple.NewWithHistogramDistribution(histogram.WithExplicitBoundaries([]float64{1, 100, 1000, 10000}))
-	err = sendOTLPMetrics(t, ctx, srv, aggregator, func(meter metric.MeterMust) {
-		float64Counter := meter.NewFloat64Counter("float64_counter")
+	err = sendOTLPMetrics(t, ctx, srv, aggregator, func(meter metric.Meter) {
+		float64Counter, err := meter.SyncFloat64().Counter("float64_counter")
+		require.NoError(t, err)
 		float64Counter.Add(context.Background(), 1)
 
-		int64Histogram := meter.NewInt64Histogram("int64_histogram")
+		int64Histogram, err := meter.SyncInt64().Histogram("int64_histogram")
+		require.NoError(t, err)
 		int64Histogram.Record(context.Background(), 1)
 		int64Histogram.Record(context.Background(), 123)
 		int64Histogram.Record(context.Background(), 1024)
@@ -507,7 +509,7 @@ func sendOTLPMetrics(
 	ctx context.Context,
 	srv *apmservertest.Server,
 	aggregator export.AggregatorSelector,
-	recordMetrics func(metric.MeterMust),
+	recordMetrics func(metric.Meter),
 ) error {
 	exporter := newOTLPMetricExporter(t, srv)
 	controller := controller.New(
@@ -518,7 +520,7 @@ func sendOTLPMetrics(
 	if err := controller.Start(context.Background()); err != nil {
 		return err
 	}
-	meter := metric.Must(controller.Meter("test-meter"))
+	meter := controller.Meter("test-meter")
 	recordMetrics(meter)
 
 	// Stopping the controller will collect and export metrics.
