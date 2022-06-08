@@ -37,3 +37,7 @@ https://github.com/elastic/apm-server/compare/8.2.2\...8.3.0[View commits]
 - System, process, and well-defined runtime metrics are now sent to the shared `metrics-apm.internal-<namespace>` data stream {pull}7882[7882]
 - Number of parallel bulk requests are now configurable via `output.elasticsearch.max_requests` {pull}8055[8055]
 - OTLP/HTTP protocol is now supported {pull}8156[8156]
+
+[float]
+==== Performance improvements
+- Limit the number of gomaxprocs when CPU limits have been set within a cgroup, which yield significant improvements, particularly when the APM Server experiences high traffic from a high number of APM agents {pull}8175[8175] {pull}8278[8278]
