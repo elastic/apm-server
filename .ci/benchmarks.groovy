@@ -54,7 +54,7 @@ pipeline {
         //Benchmark options
         BENCHMARK_WARMUP = "5000"
         BENCHMARK_COUNT = "1"
-        BENCHMARK_TIME = "1m"
+        BENCHMARK_TIME = "10s"
       }
       steps {
         dir ("${BASE_DIR}") {
