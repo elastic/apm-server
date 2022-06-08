@@ -52,9 +52,9 @@ pipeline {
         GOBENCH_INDEX = "gobench-v2-${BRANCH_NAME_LOWER_CASE}"
         GOBENCH_TAGS = ""
         //Benchmark options
-        BENCHMARK_WARMUP = 5000
-        BENCHMARK_COUNT = 1
-        BENCHMARK_TIME = 1m
+        BENCHMARK_WARMUP = "5000"
+        BENCHMARK_COUNT = "1"
+        BENCHMARK_TIME = "1m"
       }
       steps {
         dir ("${BASE_DIR}") {
