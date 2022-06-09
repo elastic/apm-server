@@ -47,13 +47,11 @@ pipeline {
         TF_VAR_ENVIRONMENT= 'ci'
         TF_VAR_BRANCH = "${BRANCH_NAME_LOWER_CASE}"
         TF_VAR_REPO = "${REPO}"
-        //todo remove
-        TF_LOG = "INFO"
         GOBENCH_INDEX = "apmbench-v2-${BRANCH_NAME_LOWER_CASE}"
         //Benchmark options
         BENCHMARK_WARMUP = "5000"
-        BENCHMARK_COUNT = "1"
-        BENCHMARK_TIME = "10s"
+        BENCHMARK_COUNT = "3"
+        BENCHMARK_TIME = "2m"
         BENCHMARK_DETAILED = true
       }
       steps {
@@ -62,6 +60,7 @@ pipeline {
             dir("testing/benchmark") {
               withTestClusterEnv {
                 sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
+                sh(label: 'docker-override-committed-version', script: 'make docker-override-committed-version')
                 sh(label: 'Spin up benchmark environment', script: 'make init apply')
                 withESBenchmarkEnv {
                   sh(label: 'Run benchmarks', script: 'make run-benchmark index-benchmark-results')

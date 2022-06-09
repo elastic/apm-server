@@ -2,6 +2,8 @@ APMBENCH_PATH ?= ../../systemtest/cmd/apmbench
 APMBENCH_GOOS ?= linux
 APMBENCH_GOARCH ?= amd64
 
+ES_SYSTEM_PROFILE ?= default
+
 BENCHMARK_WARMUP ?= 10000
 BENCHMARK_AGENTS ?= 64
 BENCHMARK_COUNT ?= 3
@@ -58,7 +60,7 @@ init:
 
 .PHONY: apply
 apply:
-	@terraform apply -auto-approve
+	@terraform apply -var-file="es-system-profiles/$(ES_SYSTEM_PROFILE).tfvars" -auto-approve
 
 .PHONY: destroy
 destroy:
