@@ -22,7 +22,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -48,7 +48,7 @@ func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string
 	const batchSize = 10
 	batchProcessor := nopBatchProcessor{}
 	benchmark := func(b *testing.B, filename string) {
-		data, err := ioutil.ReadFile(filename)
+		data, err := os.ReadFile(filename)
 		if err != nil {
 			b.Error(err)
 		}
@@ -92,7 +92,7 @@ func benchmarkStreamProcessorParallel(b *testing.B, processor *Processor, files 
 	batchProcessor := nopBatchProcessor{}
 	for _, f := range files {
 		b.Run(filepath.Base(f), func(b *testing.B) {
-			data, err := ioutil.ReadFile(f)
+			data, err := os.ReadFile(f)
 			if err != nil {
 				b.Error(err)
 			}

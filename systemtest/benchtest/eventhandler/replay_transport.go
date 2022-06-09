@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -73,7 +72,7 @@ func (t *Transport) sendEvents(req *http.Request, r io.Reader) error {
 	}
 
 	msg := fmt.Sprintf("unexpected apm server response %d", res.StatusCode)
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return errors.New(msg)
 	}

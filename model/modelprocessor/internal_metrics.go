@@ -63,6 +63,12 @@ func isInternalMetricName(name string) bool {
 		return true
 	case "golang.heap.system.total":
 		return true
+	case "jvm.gc.alloc":
+		return true
+	case "jvm.gc.count":
+		return true
+	case "jvm.gc.time":
+		return true
 	case "jvm.memory.heap.committed":
 		return true
 	case "jvm.memory.heap.max":
@@ -75,15 +81,15 @@ func isInternalMetricName(name string) bool {
 		return true
 	case "jvm.memory.heap.used":
 		return true
-	case "jvm.memory.non_heap.pool.committed":
+	case "jvm.memory.non_heap.committed":
 		return true
-	case "jvm.memory.non_heap.pool.max":
+	case "jvm.memory.non_heap.max":
 		return true
-	case "jvm.memory.non_heap.pool.used":
+	case "jvm.memory.non_heap.used":
 		return true
 	case "jvm.thread.count":
 		return true
-	case "nodejs.eventloop.delay.avg.msg":
+	case "nodejs.eventloop.delay.avg.ms":
 		return true
 	case "nodejs.handles.active":
 		return true
@@ -130,6 +136,8 @@ func isInternalMetricName(name string) bool {
 	case "system.process.cgroup.memory.mem.limit.bytes":
 		return true
 	case "system.process.cgroup.memory.mem.usage.bytes":
+		return true
+	case "system.process.cgroup.memory.stats.inactive_file.bytes":
 		return true
 	case "system.process.cpu.system.norm.pct":
 		return true

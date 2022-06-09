@@ -38,7 +38,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
-func TestConsumeTraces(t *testing.T) {
+func TestConsumeTracesGRPC(t *testing.T) {
 	var batches []model.Batch
 	var reportError error
 	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
@@ -46,7 +46,7 @@ func TestConsumeTraces(t *testing.T) {
 		return reportError
 	}
 
-	conn := newServer(t, batchProcessor)
+	conn := newGRPCServer(t, batchProcessor)
 	client := otlpgrpc.NewTracesClient(conn)
 
 	// Send a minimal trace to verify that everything is connected properly.
@@ -87,13 +87,13 @@ func TestConsumeTraces(t *testing.T) {
 	}, actual)
 }
 
-func TestConsumeMetrics(t *testing.T) {
+func TestConsumeMetricsGRPC(t *testing.T) {
 	var reportError error
 	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
 		return reportError
 	}
 
-	conn := newServer(t, batchProcessor)
+	conn := newGRPCServer(t, batchProcessor)
 	client := otlpgrpc.NewMetricsClient(conn)
 
 	// Send a minimal metric to verify that everything is connected properly.
@@ -123,10 +123,7 @@ func TestConsumeMetrics(t *testing.T) {
 		actual[key] = value
 	})
 	assert.Equal(t, map[string]interface{}{
-		// In both of the requests we send above,
-		// the metrics do not have a type and so
-		// we treat them as unsupported metrics.
-		"consumer.unsupported_dropped": int64(2),
+		"consumer.unsupported_dropped": int64(0),
 
 		"request.count":                int64(2),
 		"response.count":               int64(2),
@@ -138,7 +135,7 @@ func TestConsumeMetrics(t *testing.T) {
 	}, actual)
 }
 
-func TestConsumeLogs(t *testing.T) {
+func TestConsumeLogsGRPC(t *testing.T) {
 	var batches []model.Batch
 	var reportError error
 	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
@@ -146,7 +143,7 @@ func TestConsumeLogs(t *testing.T) {
 		return reportError
 	}
 
-	conn := newServer(t, batchProcessor)
+	conn := newGRPCServer(t, batchProcessor)
 	client := otlpgrpc.NewLogsClient(conn)
 
 	// Send a minimal log record to verify that everything is connected properly.
@@ -187,12 +184,12 @@ func TestConsumeLogs(t *testing.T) {
 	}, actual)
 }
 
-func newServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientConn {
+func newGRPCServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientConn {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 	logger := logp.NewLogger("otlp.grpc.test")
 	srv := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptors.Metrics(logger, otlp.RegistryMonitoringMaps)),
+		grpc.UnaryInterceptor(interceptors.Metrics(logger, otlp.GRPCRegistryMonitoringMaps)),
 	)
 	err = otlp.RegisterGRPCServices(srv, batchProcessor)
 	require.NoError(t, err)

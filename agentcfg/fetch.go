@@ -23,15 +23,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/version"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/kibana"
@@ -55,7 +54,7 @@ var (
 
 // KibanaMinVersion specifies the minimal required version of Kibana
 // that supports agent configuration management
-var KibanaMinVersion = common.MustNewVersion("7.5.0")
+var KibanaMinVersion = version.MustNew("7.5.0")
 
 const endpoint = "/api/apm/settings/agent-configuration/search"
 
@@ -171,7 +170,7 @@ func (f *KibanaFetcher) request(ctx context.Context, r io.Reader) ([]byte, error
 		return nil, nil
 	}
 
-	result, err := ioutil.ReadAll(resp.Body)
+	result, err := io.ReadAll(resp.Body)
 	if resp.StatusCode >= http.StatusBadRequest {
 		return nil, errors.New(string(result))
 	}

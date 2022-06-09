@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/version"
 )
 
 // getCommonPipelines returns pipelines that may be inlined into our data stream ingest pipelines.
@@ -34,7 +34,7 @@ import (
 //     - pipeline:
 //         name: observer_version
 //     - ...
-func getCommonPipeline(name string, version *common.Version) []map[string]interface{} {
+func getCommonPipeline(name string, version *version.V) []map[string]interface{} {
 	commonPipelines := map[string][]map[string]interface{}{
 		"observer_version": getObserverVersionPipeline(version),
 		"user_agent":       userAgentPipeline,
@@ -48,7 +48,7 @@ func getCommonPipeline(name string, version *common.Version) []map[string]interf
 // no greater than the integration package version. The integration package version
 // is always expected to be greater, so this allows us to better reason about and
 // avoid version mismatch bugs.
-func getObserverVersionPipeline(version *common.Version) []map[string]interface{} {
+func getObserverVersionPipeline(version *version.V) []map[string]interface{} {
 	observerVersionCheckIf := fmt.Sprintf(
 		"ctx.observer.version_major > %d || (ctx.observer.version_major == %d && ctx.observer.version_minor > %d)",
 		version.Major, version.Major, version.Minor,

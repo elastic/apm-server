@@ -19,7 +19,6 @@ package apmservertest
 
 import (
 	"context"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -115,11 +114,11 @@ func (c *ServerCmd) prestart() error {
 }
 
 func (c *ServerCmd) createTempDir() error {
-	tempdir, err := ioutil.TempDir("", "apm-server-systemtest")
+	tempdir, err := os.MkdirTemp("", "apm-server-systemtest")
 	if err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(filepath.Join(tempdir, "apm-server.yml"), nil, 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tempdir, "apm-server.yml"), nil, 0644); err != nil {
 		os.RemoveAll(tempdir)
 		return err
 	}

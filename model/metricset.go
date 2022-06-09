@@ -41,6 +41,7 @@ const (
 	MetricTypeGauge     MetricType = "gauge"
 	MetricTypeCounter   MetricType = "counter"
 	MetricTypeHistogram MetricType = "histogram"
+	MetricTypeSummary   MetricType = "summary"
 )
 
 // Metricset describes a set of metrics and associated metadata.
@@ -85,6 +86,10 @@ type MetricsetSample struct {
 
 	// Histogram holds bucket values and counts for histogram metrics.
 	Histogram
+
+	// SummaryMetric holds a combined count and sum of aggregated
+	// measurements.
+	SummaryMetric
 }
 
 // Histogram holds bucket values and counts for a histogram metric.
@@ -112,6 +117,19 @@ func (h *Histogram) fields() mapstr.M {
 	fields.set("counts", h.Counts)
 	fields.set("values", h.Values)
 	return mapstr.M(fields)
+}
+
+// SummaryMetric holds summary metrics (count and sum).
+type SummaryMetric struct {
+	// Count holds the number of aggregated measurements.
+	Count int64
+
+	// Sum holds the sum of aggregated measurements.
+	Sum float64
+}
+
+func (s *SummaryMetric) fields() mapstr.M {
+	return mapstr.M{"value_count": s.Count, "sum": s.Sum}
 }
 
 // AggregatedDuration holds a count and sum of aggregated durations.
@@ -155,9 +173,12 @@ func (me *Metricset) setFields(fields *mapStr) {
 }
 
 func (s *MetricsetSample) set(name string, fields *mapStr) {
-	if s.Type == MetricTypeHistogram {
+	switch s.Type {
+	case MetricTypeHistogram:
 		fields.set(name, s.Histogram.fields())
-	} else {
+	case MetricTypeSummary:
+		fields.set(name, s.SummaryMetric.fields())
+	default:
 		fields.set(name, s.Value)
 	}
 }

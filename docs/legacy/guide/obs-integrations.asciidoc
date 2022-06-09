@@ -1,5 +1,5 @@
 [[observability-integrations]]
-=== Observability integrations
+=== {observability} integrations
 
 IMPORTANT: {deprecation-notice-data}
 If you've already upgraded, see <<log-correlation>>.
@@ -15,14 +15,14 @@ Many applications use logging frameworks to help record, format, and append an a
 Elastic APM now offers a way to make your application logs even more useful,
 by integrating with the most popular logging frameworks in their respective languages.
 This means you can easily inject trace information into your logs,
-allowing you to explore logs in the {observability-guide}/monitor-logs.html[Logs app],
+allowing you to explore logs in the {observability-guide}/monitor-logs.html[{logs-app}],
 then jump straight into the corresponding APM traces -- all while preserving the trace context.
 
 To get started:
 
 . Enable log correlation
 . Add APM identifiers to your logs
-. Ingest your logs into Elasticsearch
+. Ingest your logs into {es}
 
 [float]
 ===== Enable Log correlation
@@ -72,29 +72,29 @@ See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent docu
 // * *Rum*: {apm-rum-ref-v}/[]
 
 [float]
-===== Ingest your logs into Elasticsearch
+===== Ingest your logs into {es}
 
-Once your logs contain the appropriate identifiers (fields), you need to ingest them into Elasticsearch.
-Luckily, we've got a tool for that -- Filebeat is Elastic's log shipper.
-The {filebeat-ref}/filebeat-installation-configuration.html[Filebeat quick start]
+Once your logs contain the appropriate identifiers (fields), you need to ingest them into {es}.
+Luckily, we've got a tool for that -- {filebeat} is Elastic's log shipper.
+The {filebeat-ref}/filebeat-installation-configuration.html[{filebeat} quick start]
 guide will walk you through the setup process.
 
 Because logging frameworks and formats vary greatly between different programming languages,
-there is no one-size-fits-all approach for ingesting your logs into Elasticsearch.
+there is no one-size-fits-all approach for ingesting your logs into {es}.
 The following tips should hopefully get you going in the right direction:
 
-**Download Filebeat**
+**Download {filebeat}**
 
-There are many ways to download and get started with Filebeat.
-Read the {filebeat-ref}/filebeat-installation-configuration.html[Filebeat quick start] guide to determine which is best for you.
+There are many ways to download and get started with {filebeat}.
+Read the {filebeat-ref}/filebeat-installation-configuration.html[{filebeat} quick start] guide to determine which is best for you.
 
-**Configure Filebeat**
+**Configure {filebeat}**
 
 Modify the {filebeat-ref}/configuring-howto-filebeat.html[`filebeat.yml`] configuration file to your needs.
 Here are some recommendations:
 
 * Set `filebeat.inputs` to point to the source of your logs
-* Point Filebeat to the same Elastic Stack that is receiving your APM data
+* Point {filebeat} to the same {stack} that is receiving your APM data
   * If you're using Elastic cloud, set `cloud.id` and `cloud.auth`.
   * If your using a manual setup, use `output.elasticsearch.hosts`.
 
@@ -109,8 +109,8 @@ cloud.auth: "elastic:YOUR_PASSWORD" <4>
 ----
 <1> Configures the `log` input
 <2> Path(s) that must be crawled to fetch the log lines
-<3> Used to resolve the Elasticsearch and Kibana URLs for Elastic Cloud
-<4> Authorization token for Elastic Cloud
+<3> Used to resolve the {es} and {kib} URLs for {ecloud}
+<4> Authorization token for {ecloud}
 
 **JSON logs**
 
@@ -125,7 +125,7 @@ filebeat.inputs:
   json.message_key: message <3>
 ----
 <1> `true` copies JSON keys to the top level in the output document
-<2> Tells Filebeat to add an `error.message` and `error.type: json` key in case of JSON unmarshalling errors
+<2> Tells {filebeat} to add an `error.message` and `error.type: json` key in case of JSON unmarshalling errors
 <3> Specifies the JSON key on which to apply line filtering and multiline settings
 
 **Parsing unstructured logs**
@@ -137,9 +137,9 @@ Consider the following log that is decorated with the `transaction.id` and `trac
 2019-09-18 21:29:49,525 - django.server - ERROR - "GET / HTTP/1.1" 500 27 | elasticapm transaction.id=fcfbbe447b9b6b5a trace.id=f965f4cc5b59bdc62ae349004eece70c span.id=None
 ----
 
-All that's needed now is an {filebeat-ref}/configuring-ingest-node.html[ingest node processor] to pre-process your logs and
-extract these structured fields before they are indexed in Elasticsearch.
-To do this, you'd need to create a pipeline that uses Elasticsearch's {ref}/grok-processor.html[Grok Processor].
+All that's needed now is an {filebeat-ref}/configuring-ingest-node.html[ingest node processor] to preprocess your logs and
+extract these structured fields before they are indexed in {es}.
+To do this, you'd need to create a pipeline that uses {es}'s {ref}/grok-processor.html[Grok Processor].
 Here's an example:
 
 [source, json]
@@ -167,9 +167,9 @@ NOTE: Depending on how you've added APM data to your logs,
 you may need to tweak this grok pattern in order to work for your setup.
 In addition, it's possible to extract more structure out of your logs.
 Make sure to follow the {ecs-ref}/ecs-field-reference.html[Elastic Common Schema]
-when defining which fields you are storing in Elasticsearch.
+when defining which fields you are storing in {es}.
 
-Then, configure Filebeat to use the processor in `filebeat.yml`:
+Then, configure {filebeat} to use the processor in `filebeat.yml`:
 
 [source, json]
 ----
@@ -180,7 +180,7 @@ output.elasticsearch:
 If your logs contain messages that span multiple lines of text (common in Java stack traces),
 you'll also need to configure {filebeat-ref}/multiline-examples.html[multiline settings].
 
-The following example shows how to configure Filebeat to handle a multiline message where the first line of the message begins with a bracket ([).
+The following example shows how to configure {filebeat} to handle a multiline message where the first line of the message begins with a bracket ([).
 
 [source,yml]
 ----

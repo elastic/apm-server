@@ -19,27 +19,27 @@ If no data shows up in {es}, first make sure that your APM components are proper
 
 **Is {agent} healthy?**
 
-In {kib} open **Fleet** and find the host that is running the APM integration;
+In {kib} open **{fleet}** and find the host that is running the APM integration;
 confirm that its status is **Healthy**.
 If it isn't, check the {agent} logs to diagnose potential causes.
 See {fleet-guide}/view-elastic-agent-status.html[view {agent} status] to learn more.
 
 **Is APM Server happy?**
 
-In {kib}, open **Fleet** and select the host that is running the APM integration.
+In {kib}, open **{fleet}** and select the host that is running the APM integration.
 Open the **Logs** tab and select the `elastic_agent.apm_server` dataset.
 Look for any APM Server errors that could help diagnose the problem.
 
 **Can the {apm-agent} connect to APM Server**
 
-To determine if the APM agent can connect to the APM Server, send requests to the instrumented service and look for lines
+To determine if the {apm-agent} can connect to the APM Server, send requests to the instrumented service and look for lines
 containing `[request]` in the APM Server logs.
 
 If no requests are logged, confirm that:
 
 . SSL isn't <<ssl-client-fails, misconfigured>>.
 . The host is correct. For example, if you're using Docker, ensure a bind to the right interface (for example, set
-`apm-server.host = 0.0.0.0:8200` to match any IP) and set the `SERVER_URL` setting in the APM agent accordingly.
+`apm-server.host = 0.0.0.0:8200` to match any IP) and set the `SERVER_URL` setting in the {apm-agent} accordingly.
 
 If you see requests coming through the APM Server but they are not accepted (a response code other than `202`),
 see <<common-response-codes>> to narrow down the possible causes.
@@ -47,8 +47,8 @@ see <<common-response-codes>> to narrow down the possible causes.
 **Instrumentation gaps**
 
 APM agents provide auto-instrumentation for many popular frameworks and libraries.
-If the APM agent is not auto-instrumenting something that you were expecting, data won't be sent to the Elastic Stack.
-Reference the relevant {apm-agents-ref}/index.html[APM agent documentation] for details on what is automatically instrumented.
+If the {apm-agent} is not auto-instrumenting something that you were expecting, data won't be sent to the {stack}.
+Reference the relevant {apm-agents-ref}/index.html[{apm-agent} documentation] for details on what is automatically instrumented.
 
 [float]
 [[common-response-codes]]
@@ -58,7 +58,7 @@ Reference the relevant {apm-agents-ref}/index.html[APM agent documentation] for 
 [float]
 ==== HTTP 400: Data decoding error / Data validation error
 
-The most likely cause for this error is using incompatible versions of APM agent and APM Server.
+The most likely cause for this error is using incompatible versions of {apm-agent} and APM Server.
 See the <<agent-server-compatibility,agent/server compatibility matrix>> to verify compatibility.
 
 [[event-too-large]]
@@ -137,7 +137,7 @@ To resolve this problem, try one of these solutions:
 * Create a DNS entry for the hostname, mapping it to the server's IP.
 * Create an entry in `/etc/hosts` for the hostname. Or, on Windows, add an entry to
 `C:\Windows\System32\drivers\etc\hosts`.
-* Re-create the server certificate and add a SubjectAltName (SAN) for the IP address of the server. This makes the
+* Re-create the server certificate and add a Subject Alternative Name (SAN) for the IP address of the server. This makes the
 server's certificate valid for both the hostname and the IP address.
 
 [float]
@@ -150,7 +150,7 @@ This is not an SSL problem. It's a networking problem. Make sure the two hosts c
 [[getsockopt-connection-refused]]
 ==== getsockopt: connection refused
 
-This is not an SSL problem. Make sure that Logstash is running and that there is no firewall blocking the traffic.
+This is not an SSL problem. Make sure that {ls} is running and that there is no firewall blocking the traffic.
 
 [float]
 [[target-machine-refused-connection]]
@@ -166,7 +166,7 @@ destination host.
 I/O Timeouts can occur when your timeout settings across the stack are not configured correctly,
 especially when using a load balancer.
 
-You may see an error like the one below in the APM agent logs, and/or a similar error on the APM Server side:
+You may see an error like the one below in the {apm-agent} logs, and/or a similar error on the APM Server side:
 
 [source,logs]
 ----
@@ -174,7 +174,7 @@ You may see an error like the one below in the APM agent logs, and/or a similar 
 "read tcp 123.34.22.313:8200->123.34.22.40:41602: i/o timeout"
 ----
 
-To fix this, ensure timeouts are incrementing from the APM agent,
+To fix this, ensure timeouts are incrementing from the {apm-agent},
 through your load balancer, to the APM Server.
 
 By default, the agent timeouts are set at 10 seconds, and the server timeout is set at 3600 seconds.
@@ -198,13 +198,13 @@ The APM Server timeout can be configured by updating the
 APM Server does not have an internal queue to buffer requests,
 but instead leverages an HTTP request timeout to act as back-pressure.
 If {es} goes down, the APM Server will eventually deny incoming requests.
-Both the APM Server and APM agent(s) will issue logs accordingly.
+Both the APM Server and {apm-agent}(s) will issue logs accordingly.
 
 If either {es} or the APM Server goes down,
 some APM agents have internal queues or buffers that will temporarily store data.
 As a general rule of thumb, queues fill up quickly. Assume data will be lost if APM Server or {es} goes down.
 
-Adjusting APM agent queues/buffers can increase the agent's overhead, so use caution when updating default values.
+Adjusting {apm-agent} queues/buffers can increase the agent's overhead, so use caution when updating default values.
 
 * **Go agent** - Circular buffer with configurable size:
 {apm-go-ref}/configuration.html#config-api-buffer-size[`ELASTIC_APM_BUFFER_SIZE`].

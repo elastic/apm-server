@@ -4,9 +4,9 @@
 {apm-go-ref}/api.html#tracer-api-start-transaction[`StartTransaction`] or a span with
 {apm-go-ref}/api.html#transaction-start-span[`StartSpan`].
 
-2. Get the active TraceContext.
+2. Get the active `TraceContext`.
 
-3. Send the TraceContext to the receiving service.
+3. Send the `TraceContext` to the receiving service.
 
 Example:
 
@@ -20,8 +20,8 @@ traceparent := apmhttp.FormatTraceparentHeader(traceContext)) <3>
 tracestate := traceContext.State.String()
 ----
 <1> Start a transaction
-<2> Get TraceContext from current Transaction
-<3> Format the TraceContext or tracestate as a traceparent header.
+<2> Get `TraceContext` from current Transaction
+<3> Format the `TraceContext` or `tracestate` as a `traceparent` header.
 // end::go[]
 
 // ***************************************************
@@ -31,7 +31,7 @@ tracestate := traceContext.State.String()
 
 experimental::[]
 
-The agent will automatically inject trace headers into network requests using `URLSessions`, but if you're using a non-standard network library you may need to maunually inject them. It will be done using the OpenTelemetry APIs:
+The agent will automatically inject trace headers into network requests using `URLSessions`, but if you're using a non-standard network library you may need to manually inject them. It will be done using the OpenTelemetry APIs:
 
 1. Create a `Setter`
 
@@ -194,7 +194,7 @@ elasticapm.get_trace_parent_header('new-transaction') <2>
 # Send `trace_parent_str` to another service
 ----
 <1> Start a new transaction
-<2> Return the string representation of the current transaction's TraceParent object
+<2> Return the string representation of the current transaction's `TraceParent` object
 // end::python[]
 
 // ***************************************************

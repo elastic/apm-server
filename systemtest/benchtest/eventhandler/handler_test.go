@@ -24,7 +24,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -121,7 +120,7 @@ func TestHandlerSendBatches(t *testing.T) {
 		n, err := handler.SendBatches(ctx)
 		assert.NoError(t, err)
 
-		b, err := ioutil.ReadFile(filepath.Join("testdata", "python-test.ndjson"))
+		b, err := os.ReadFile(filepath.Join("testdata", "python-test.ndjson"))
 		assert.NoError(t, err)
 
 		assert.Equal(t, string(b), srv.got.String()) // Ensure the contents match.
@@ -158,7 +157,7 @@ func TestHandlerSendBatches(t *testing.T) {
 		// 16 + 9 (1st sec) + 9 (2nd sec) > 32 (total send)
 		assert.NoError(t, err)
 
-		b, err := ioutil.ReadFile(filepath.Join("testdata", "python-test.ndjson"))
+		b, err := os.ReadFile(filepath.Join("testdata", "python-test.ndjson"))
 		assert.NoError(t, err)
 
 		assert.Equal(t, string(b), srv.got.String()) // Ensure the contents match.

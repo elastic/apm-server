@@ -15,13 +15,13 @@ Other sections in the documentation may also be helpful:
 * <<sizing-guide, Storage and sizing guide>>
 * <<processing-performance, Processing and performance>>
 * <<tune-apm-server, Tune APM Server>>
-* <<tune-es, Tune Elasticsearch>>
+* <<tune-es, Tune {es}>>
 * {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix]
 
 If your issue is potentially related to other components of the APM ecosystem,
 don't forget to check the relevant troubleshooting guides:
 
-* {kibana-ref}/troubleshooting.html[APM app troubleshooting]
+* {kibana-ref}/troubleshooting.html[{apm-app} troubleshooting]
 * {apm-dotnet-ref-v}/troubleshooting.html[.NET agent troubleshooting]
 * {apm-go-ref-v}/troubleshooting.html[Go agent troubleshooting]
 * {apm-ios-ref-v}/troubleshooting.html[iOS agent troubleshooting]

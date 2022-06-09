@@ -21,7 +21,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -275,7 +275,7 @@ func CreateSourceMap(t testing.TB, sourcemap, serviceName, serviceVersion, bundl
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode, string(respBody))
 
@@ -303,7 +303,7 @@ func DeleteSourceMap(t testing.TB, id string) {
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode, string(respBody))
 }

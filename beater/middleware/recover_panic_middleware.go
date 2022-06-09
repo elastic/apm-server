@@ -54,7 +54,7 @@ func RecoverPanicMiddleware() Middleware {
 					c.Result.Set(id, status.Code, status.Keyword, keywordPanic, err)
 					c.Result.Stacktrace = string(debug.Stack())
 
-					c.Write()
+					c.WriteResult()
 				}
 			}()
 			h(c)

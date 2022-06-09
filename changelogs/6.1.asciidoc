@@ -50,12 +50,12 @@ https://github.com/elastic/apm-server/compare/v6.0.1\...v6.1.0[View commits]
 [float]
 ==== Breaking changes
 - Allow ES template index prefix to be `apm` {pull}152[152].
-- Remove `git_ref` from Intake API and Elasticsearch output {pull}158[158].
+- Remove `git_ref` from Intake API and {es} output {pull}158[158].
 - Switch to Go 1.9.2
 
 [float]
 ==== Bug fixes
-- Fix dashboard loading for Kibana 5x {pull}221[221].
+- Fix dashboard loading for {kib} 5x {pull}221[221].
 - Fix command for loading dashboards in docs {pull}205[205].
 - Log a warning message if secret token is set but ssl is not {pull}204[204].
 - Fix wrong content-type in response {pull}171[171].
@@ -66,13 +66,13 @@ https://github.com/elastic/apm-server/compare/v6.0.1\...v6.1.0[View commits]
 
 [float]
 ==== Added
-- Added wildcard matching for allowed origins for frontend {pull}287[287].
-- Added rate limit per IP for frontend {pull}257[257].
+- Added wildcard matching for allowed origins for front-end {pull}287[287].
+- Added rate limit per IP for front-end {pull}257[257].
 - Allow null for all optional fields {pull}253[253].
 - Make context.app.language.version optional {pull}246[246].
-- CORS support for frontend {pull}244[244].
-- Added support for frontend {pull}227[227].
+- CORS support for front-end {pull}244[244].
+- Added support for front-end {pull}227[227].
 - Show transaction.result in Requests per Minute {pull}226[226].
-- Added Kibana 5.6 compatible dashboards {pull}208[208].
+- Added {kib} 5.6 compatible dashboards {pull}208[208].
 - Send document to output on start of server {pull}117[117].
-- Log frontend status at startup {pull}284[284].
+- Log front-end status at startup {pull}284[284].

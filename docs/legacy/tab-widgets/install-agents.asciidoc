@@ -1,7 +1,7 @@
 // tag::go[]
 *Install the agent*
 
-Install the APM agent packages for Go.
+Install the {apm-agent} packages for Go.
 
 [source,go]
 ----
@@ -114,7 +114,7 @@ struct MyApp: App {
 <3> Enable TLS for Open telemetry exporters
 <4> Set secret token for APM server connection
 
-If you're not using `SwiftUI`, you can add the same thing to your AppDelegate file:
+If you're not using `SwiftUI`, you can add the same thing to your `AppDelegate` file:
 
 `AppDelegate.swift`
 [source,swift,linenums,highlight=2;9..14]
@@ -134,7 +134,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 }
 ----
-<1> APM Server url or ip address
+<1> APM Server URL or IP address
 <2> APM Server port number
 <3> Enable TLS for Open telemetry exporters
 <4> Set secret token for APM server connection
@@ -146,12 +146,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 // tag::java[]
 
-*Download the APM agent*
+*Download the {apm-agent}*
 
 Download the agent jar from http://search.maven.org/#search%7Cga%7C1%7Ca%3Aelastic-apm-agent[Maven Central].
 Do not add the agent as a dependency to your application.
 
-*Start your application with the javaagent flag*
+*Start your application with the `javaagent` flag*
 
 Add the `-javaagent` flag and configure the agent with system properties.
 
@@ -179,7 +179,7 @@ java -javaagent:/path/to/elastic-apm-agent-<version>.jar \
 // ***************************************************
 
 // tag::net[]
-*Download the APM agent*
+*Download the {apm-agent}*
 
 Add the agent packages from https://www.nuget.org/packages?q=Elastic.apm[NuGet] to your .NET application.
 There are multiple NuGet packages available for different use cases.
@@ -242,9 +242,9 @@ See the agent reference for more information.
 // ***************************************************
 
 // tag::node[]
-*Install the APM agent*
+*Install the {apm-agent}*
 
-Install the APM agent for Node.js as a dependency to your application.
+Install the {apm-agent} for Node.js as a dependency to your application.
 
 [source,js]
 ----
@@ -337,9 +337,9 @@ elastic_apm.service_name="My-service"
 // tag::python[]
 Django::
 +
-*Install the APM agent*
+*Install the {apm-agent}*
 +
-Install the APM agent for Python as a dependency.
+Install the {apm-agent} for Python as a dependency.
 +
 [source,python]
 ----
@@ -380,9 +380,9 @@ MIDDLEWARE = (
 
 Flask::
 +
-*Install the APM agent*
+*Install the {apm-agent}*
 +
-Install the APM agent for Python as a dependency.
+Install the {apm-agent} for Python as a dependency.
 +
 [source,python]
 ----
@@ -429,7 +429,7 @@ apm = ElasticAPM(app)
 // ***************************************************
 
 // tag::ruby[]
-*Install the APM agent*
+*Install the {apm-agent}*
 
 Add the agent to your Gemfile.
 

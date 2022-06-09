@@ -12,6 +12,8 @@
 [[directory-layout]]
 === Directory layout
 
+// lint disable usr
+
 IMPORTANT: {deprecation-notice-installation}
 
 The directory layout of an installation is as follows:
@@ -73,7 +75,7 @@ endif::docker_platform[]
 
 ifdef::mac_os,win_os[]
 [float]
-===== zip, tar.gz, or tgz
+===== ZIP, tar.gz, or TGZ
 [cols="<h,<,<m",options="header",]
 |=======================================================================
 | Type   | Description | Location
@@ -87,7 +89,7 @@ ifdef::serverless[]
 endif::serverless[]
 |=======================================================================
 
-For the zip, tar.gz, or tgz distributions, these paths are based on the location
+For the ZIP, tar.gz, or TGZ distributions, these paths are based on the location
 of the extracted binary file. This means that if you start {beatname_uc} with
 the following simple command, all paths are set correctly:
 

@@ -11,7 +11,7 @@ The {es} Reference provides insight on tuning {es}.
 
 * Refresh interval
 * Disabling swapping
-* Optimizing filesystem cache
+* Optimizing file system cache
 * Considerations regarding faster hardware
 * Setting the indexing buffer size
 
