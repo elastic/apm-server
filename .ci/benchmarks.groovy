@@ -67,7 +67,7 @@ pipeline {
                 sh(label: 'debug env after apply', script: 'printenv | grep AWS') //remove
                 sh(label: 'debug aws profile list after apply', script: 'aws configure list || echo 0') // remove
                 withESBenchmarkEnv {
-                  sh(label: 'Run benchmarks', script: 'make run-benchmark index-benchmark-results')                  
+                  sh(label: 'Run benchmarks', script: 'make run-benchmark index-benchmark-results')
                 }
                 //todo remove
                 sh(label: 'debug dir', script: 'ls -lah')
