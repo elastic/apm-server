@@ -36,9 +36,9 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/metric"
-	export "go.opentelemetry.io/otel/sdk/export/metric"
 	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
+	export "go.opentelemetry.io/otel/sdk/metric/export"
 	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -186,11 +186,13 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	aggregator := simple.NewWithHistogramDistribution(histogram.WithExplicitBoundaries([]float64{1, 100, 1000, 10000}))
-	err = sendOTLPMetrics(t, ctx, srv, aggregator, func(meter metric.MeterMust) {
-		float64Counter := meter.NewFloat64Counter("float64_counter")
+	err = sendOTLPMetrics(t, ctx, srv, aggregator, func(meter metric.Meter) {
+		float64Counter, err := meter.SyncFloat64().Counter("float64_counter")
+		require.NoError(t, err)
 		float64Counter.Add(context.Background(), 1)
 
-		int64Histogram := meter.NewInt64Histogram("int64_histogram")
+		int64Histogram, err := meter.SyncInt64().Histogram("int64_histogram")
+		require.NoError(t, err)
 		int64Histogram.Record(context.Background(), 1)
 		int64Histogram.Record(context.Background(), 123)
 		int64Histogram.Record(context.Background(), 1024)
@@ -198,7 +200,22 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.app.*", estest.BoolQuery{Filter: []interface{}{
+	// opentelemetry-go does not support sending Summary metrics,
+	// so we send them using the lower level OTLP/gRPC client.
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock())
+	require.NoError(t, err)
+	defer conn.Close()
+	metricsClient := otlpgrpc.NewMetricsClient(conn)
+	metrics := pdata.NewMetrics()
+	metric := metrics.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty().Metrics().AppendEmpty()
+	metric.SetName("summary")
+	metric.SetDataType(pdata.MetricDataTypeSummary)
+	summaryDP := metric.Summary().DataPoints().AppendEmpty()
+	summaryDP.SetCount(10)
+	summaryDP.SetSum(123.456)
+	metricsClient.Export(context.Background(), metrics)
+
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.app.*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "metric"},
 	}})
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
@@ -492,7 +509,7 @@ func sendOTLPMetrics(
 	ctx context.Context,
 	srv *apmservertest.Server,
 	aggregator export.AggregatorSelector,
-	recordMetrics func(metric.MeterMust),
+	recordMetrics func(metric.Meter),
 ) error {
 	exporter := newOTLPMetricExporter(t, srv)
 	controller := controller.New(
@@ -503,7 +520,7 @@ func sendOTLPMetrics(
 	if err := controller.Start(context.Background()); err != nil {
 		return err
 	}
-	meter := metric.Must(controller.Meter("test-meter"))
+	meter := controller.Meter("test-meter")
 	recordMetrics(meter)
 
 	// Stopping the controller will collect and export metrics.
