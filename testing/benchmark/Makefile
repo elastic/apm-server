@@ -66,12 +66,9 @@ destroy:
 
 .PHONY: run-benchmark
 run-benchmark:
-ifeq ($(BENCHMARK_DETAILED),true)
-	$(eval BENCHMARK_DETAILED_FLAG = -detailed)
-endif
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP) ". .envrc && bin/apmbench -run='$(BENCHMARK_RUN)' \
 	-benchtime=$(BENCHMARK_TIME) -count=$(BENCHMARK_COUNT) -warmup-events=$(BENCHMARK_WARMUP) \
-	-agents=$(BENCHMARK_AGENTS) $(BENCHMARK_DETAILED_FLAG)" 2>&1 | tee $(BENCHMARK_RESULT)
+	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED)" 2>&1 | tee $(BENCHMARK_RESULT)
 
 .PHONY: index-benchmark-results
 index-benchmark-results: $(GOBENCH) _default-gobench-vars
