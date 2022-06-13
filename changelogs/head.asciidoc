@@ -11,6 +11,7 @@ https://github.com/elastic/apm-server/compare/8.4\...main[View commits]
 
 [float]
 ==== Bug fixes
+- Fix race for deducing destination service fields for OTel bridge {pull}8363[8363]
 
 [float]
 ==== Intake API Changes
