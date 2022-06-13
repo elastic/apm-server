@@ -38,6 +38,7 @@ so that `apmbench` can be run against a configured APM Server.
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | Optional instance type to use for the worker VM | `string` | `"c6i.large"` | no |
 | <a name="input_private_key"></a> [private\_key](#input\_private\_key) | n/a | `string` | `"~/.ssh/id_rsa_terraform"` | no |
 | <a name="input_public_cidr"></a> [public\_cidr](#input\_public\_cidr) | n/a | `list(string)` | <pre>[<br>  "192.168.44.0/26",<br>  "192.168.44.64/26",<br>  "192.168.44.128/26"<br>]</pre> | no |
+<!-- | <a name="input_public_key"></a> [public\_key](#input\_public\_key) | n/a | `string` | `"~/.ssh/id_rsa_terraform.pub"` | no | -->
 | <a name="input_region"></a> [region](#input\_region) | n/a | `string` | `"us-west2"` | no |
 | <a name="input_user_name"></a> [user\_name](#input\_user\_name) | Required username to use for resource name prefixes | `string` | n/a | yes |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | n/a | `string` | `"192.168.44.0/24"` | no |

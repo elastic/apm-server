@@ -78,6 +78,22 @@ Helper commands
 - `terraform.tfvars`: Copies the examples tfvars and sets the `user_name` var with to `$USER`.
 - `apmbench`: Compiles the `apmbench` binary from the provided location (`APMBENCH_PATH`).
 
+#### Benchmark profiles
+[benchmark-profiles directory](https://github.com/elastic/apm-server/tree/main/testing/benchmark/benchmark-profiles) contains predefined benchmark profiles containing `BENCHMARK_WARMUP`, `BENCHMARK_AGENTS`, `BENCHMARK_COUNT` and `BENCHMARK_TIME` value sets. 
+
+#### System profiles
+[system-profiles directory](https://github.com/elastic/apm-server/tree/main/testing/benchmark/system-profiles) containst predefined system profiles. `1GBx1zone` is the default profile and stands for 1GB apm server size with 1 zone. Profiles created according to this [table](https://github.com/elastic/apm-server/issues/7858#issuecomment-1150741242) 
+
+#### How to specify profiles
+
+##### By environment variables
+```
+$ export ESS_SYSTEM_PROFILE="1GBx1zone"
+$ export BENCHMARK_PROFILE="64agents"
+$ make <run benchmarks>
+
+```
+
 ### Override the docker image tag
 
 It is possible to override the tag of the docker image that is run in the remote ESS deployment. You can

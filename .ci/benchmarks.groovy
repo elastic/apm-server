@@ -41,6 +41,7 @@ pipeline {
       environment {
         SSH_KEY = "./id_rsa_terraform"
         TF_VAR_private_key = "${env.SSH_KEY}"
+        TF_VAR_public_key = "${env.SSH_KEY}.pub"
         // cloud tags
         TF_VAR_BUILD_ID = "${env.BUILD_ID}"
         TF_VAR_BRANCH_NAME = "${env.BRANCH_NAME}"
