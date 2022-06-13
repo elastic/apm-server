@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220608211325-b4566203dc6e
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220610031904-96c586c37c58
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-libs v0.2.5
 	github.com/elastic/gmux v0.2.0
@@ -51,7 +51,7 @@ require (
 	golang.org/x/net v0.0.0-20220607020251-c690dde0001d
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
-	golang.org/x/tools v0.1.10
+	golang.org/x/tools v0.1.11
 	google.golang.org/grpc v1.47.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools/gotestsum v1.7.0
@@ -82,7 +82,7 @@ require (
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/elastic/elastic-agent-autodiscover v0.1.1 // indirect
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20220607160924-1a71765a8bbe // indirect
-	github.com/elastic/elastic-agent-system-metrics v0.3.1 // indirect
+	github.com/elastic/elastic-agent-system-metrics v0.4.1 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.1.0 // indirect
 	github.com/elastic/go-concert v0.2.0 // indirect
 	github.com/elastic/go-licenser v0.4.0 // indirect
@@ -175,10 +175,10 @@ require (
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20220608164250-635b8c9b7f68 // indirect
+	golang.org/x/sys v0.0.0-20220610221304-9f5ed59c137d // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df // indirect
+	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220608133413-ed9918b62aac // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
