@@ -40,28 +40,26 @@ pipeline {
       options { skipDefaultCheckout() }
       environment {
         SSH_KEY = "./id_rsa_terraform"
-        TF_VAR_public_key = "${env.SSH_KEY}.pub"
         TF_VAR_private_key = "${env.SSH_KEY}"
+        // cloud tags
         TF_VAR_BUILD_ID = "${env.BUILD_ID}"
         TF_VAR_BRANCH_NAME = "${env.BRANCH_NAME}"
         TF_VAR_ENVIRONMENT= 'ci'
         TF_VAR_BRANCH = "${BRANCH_NAME_LOWER_CASE}"
         TF_VAR_REPO = "${REPO}"
+
         GOBENCH_INDEX = "apmbench-v2-${BRANCH_NAME_LOWER_CASE}"
-        //Benchmark options
-        BENCHMARK_WARMUP = "5000"
-        BENCHMARK_COUNT = "3"
-        BENCHMARK_TIME = "2m"
-        BENCHMARK_DETAILED = true
+        
+        ESS_SYSTEM_PROFILE = '1GBx1zone'
+        BENCHMARK_PROFILE = '64agents'
       }
       steps {
         dir ("${BASE_DIR}") {
           withGoEnv() {
             dir("testing/benchmark") {
               withTestClusterEnv {
-                sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
-                sh(label: 'docker-override-committed-version', script: 'make docker-override-committed-version')
-                sh(label: 'Spin up benchmark environment', script: 'make init apply')
+                sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')                
+                sh(label: 'Spin up benchmark environment', script: '$(make docker-override-committed-version) && make init apply')
                 withESBenchmarkEnv {
                   sh(label: 'Run benchmarks', script: 'make run-benchmark index-benchmark-results')
                 }

@@ -93,11 +93,6 @@ variable "private_key" {
   type    = string
 }
 
-variable "public_key" {
-  default = "~/.ssh/id_rsa_terraform.pub"
-  type    = string
-}
-
 # CI variables
 variable "BRANCH" {
   description = "Branch name or pull request for tagging purposes"

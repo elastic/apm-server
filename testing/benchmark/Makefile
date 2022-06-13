@@ -2,15 +2,10 @@ APMBENCH_PATH ?= ../../systemtest/cmd/apmbench
 APMBENCH_GOOS ?= linux
 APMBENCH_GOARCH ?= amd64
 
-ES_SYSTEM_PROFILE ?= default
+ESS_SYSTEM_PROFILE ?= 1GBx1zone
+BENCHMARK_PROFILE ?= 64agents
 
-BENCHMARK_WARMUP ?= 10000
-BENCHMARK_AGENTS ?= 64
-BENCHMARK_COUNT ?= 3
-BENCHMARK_TIME ?= 2m
-BENCHMARK_RUN ?= Benchmark
 BENCHMARK_RESULT ?= benchmark-result.txt
-BENCHMARK_DETAILED ?= false
 
 GOBENCH_INDEX ?= gobench
 GOBENCH_USERNAME ?= admin
@@ -47,7 +42,7 @@ init-aws-profile: ~/.aws/credentials
 	@touch $@
 
 terraform.tfvars:
-	@sed "s/USER/$(USER)/" terraform.tfvars.example > terraform.tfvars
+	@sed "s/USER/$(USER)/" system-profiles/$(ESS_SYSTEM_PROFILE).tfvars > terraform.tfvars
 
 .PHONY: apmbench
 apmbench:
@@ -60,14 +55,21 @@ init:
 
 .PHONY: apply
 apply:
-	@terraform apply -var-file="es-system-profiles/$(ES_SYSTEM_PROFILE).tfvars" -auto-approve
+	@terraform apply -auto-approve
 
 .PHONY: destroy
 destroy:
 	@terraform destroy -auto-approve
 
+.PHONY: enable-benckmark-profile
+enable-benckmark-profile: 
+	@. benchmark-profiles/$(BENCHMARK_PROFILE).sh
+
+# BENCHMARK_RUN, BENCHMARK_TIME, BENCHMARK_COUNT, BENCHMARK_WARMUP, BENCHMARK_AGENTS, BENCHMARK_DETAILED
+#    are defined in benchmark-profiles dir
+# 
 .PHONY: run-benchmark
-run-benchmark:
+run-benchmark: enable-benckmark-profile
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP) ". .envrc && bin/apmbench -run='$(BENCHMARK_RUN)' \
 	-benchtime=$(BENCHMARK_TIME) -count=$(BENCHMARK_COUNT) -warmup-events=$(BENCHMARK_WARMUP) \
 	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED)" 2>&1 | tee $(BENCHMARK_RESULT)
@@ -88,7 +90,7 @@ _default-gobench-vars:
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),build_sha=$(shell curl -sL -H "Authorization: Bearer $(shell terraform output -raw apm_secret_token )" $(shell terraform output -raw apm_server_url ) | jq -r '.build_sha'))
 
 $(SSH_KEY):
-	ssh-keygen -t rsa -b 4096 -C "$(USER)@elastic.co" -N "" -f $(SSH_KEY)
+	@ssh-keygen -t rsa -b 4096 -C "$(USER)@elastic.co" -N "" -f $(SSH_KEY)
 
 .PHONY: ssh
 ssh:

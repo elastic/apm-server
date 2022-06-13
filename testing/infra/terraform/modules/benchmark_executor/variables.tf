@@ -23,11 +23,6 @@ variable "apm_secret_token" {
   type    = string
 }
 
-variable "public_key" {
-  default = "~/.ssh/id_rsa_terraform.pub"
-  type    = string
-}
-
 variable "private_key" {
   default = "~/.ssh/id_rsa_terraform"
   type    = string

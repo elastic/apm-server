@@ -41,7 +41,7 @@ module "vpc" {
 
 resource "aws_key_pair" "worker" {
   key_name   = "${var.user_name}_worker_key"
-  public_key = file(var.public_key)
+  public_key = file("${var.private_key}.pub")
 }
 
 data "aws_ami" "worker_ami" {
