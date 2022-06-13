@@ -21,7 +21,7 @@ IMPORTANT: {deprecation-notice-config}
 
 The `path` section of the +{beatname_lc}.yml+ config file contains configuration
 options that define where {beatname_uc} looks for its files. For example, {beatname_uc}
-looks for the Elasticsearch template file in the configuration path and writes
+looks for the {es} template file in the configuration path and writes
 log files in the logs path.
 ifdef::has_registry[]
 {beatname_uc} looks for its registry files in the data path.
@@ -66,7 +66,7 @@ path.home: /usr/share/beats
 
 The configuration path for the {beatname_uc} installation. This is the default base path
 for configuration files, including the main YAML configuration file and the
-Elasticsearch template file. If not set by a CLI flag or in the configuration file, the default for the
+{es} template file. If not set by a CLI flag or in the configuration file, the default for the
 configuration path is the home path.
 
 Example:
@@ -112,7 +112,7 @@ path.logs: /var/log/beats
 [float]
 ==== `system.hostfs`
 
-Specifies the mount point of the host's filesystem for use in monitoring a host.
+Specifies the mount point of the host's file system for use in monitoring a host.
 This can either be set in the config, or with the `--system.hostfs` CLI flag. This is used for cgroup self-monitoring.
 ifeval::["{beatname_lc}"=="metricbeat"]
 This is also used by the system module to read files from `/proc` and `/sys`.

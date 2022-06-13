@@ -5,7 +5,7 @@ IMPORTANT: {deprecation-notice-data}
 If you've already upgraded, see <<apm-data-streams>>.
 
 Elastic APM stores data for each {apm-overview-ref-v}/apm-data-model.html[event type]
-in separate indices. By default, <<ilm,Index Lifecylce Management (ILM)>> is enabled and event data is stored using the following index naming patterns:
+in separate indices. By default, <<ilm,Index Lifecycle Management ({ilm-init})>> is enabled and event data is stored using the following index naming patterns:
 
 ["source","text"]
 ----
@@ -16,7 +16,7 @@ apm-%{[version]}-metric-000001
 apm-%{[version]}-sourcemap
 ----
 
-If you've disabled ILM and are instead using daily indices, the default index naming pattern is:
+If you've disabled {ilm-init} and are instead using daily indices, the default index naming pattern is:
 
 ["source","text"]
 ----
@@ -43,13 +43,13 @@ Sample documents for each of the APM event types are available on these pages:
 
 [float]
 [[elasticsearch-query-examples]]
-== Elasticsearch query examples
+== {es} query examples
 
-The following examples enable you to interact with Elasticsearch's REST API.
-One possible way to do this is using Kibana's
-{kibana-ref}/console-kibana.html[Dev Tools console].
+The following examples enable you to interact with {es}'s REST API.
+One possible way to do this is using {kib}'s
+{kibana-ref}/console-kibana.html[{dev-tools-app} console].
 
-Indices, templates, and index-level operations can also be manged via Kibana's
+Indices, templates, and index-level operations can also be manged via {kib}'s
 {kibana-ref}/managing-indices.html[Index management] panel.
 
 To see an overview of existing indices, run:

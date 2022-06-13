@@ -5,10 +5,11 @@
 <titleabbrev>Metrics documents</titleabbrev>
 ++++
 
-APM Server stores application metrics sent by agents as documents in Elasticsearch.
+APM Server stores application metrics sent by agents as documents in {es}.
 Metric documents contain a timestamp, one or more metric fields,
 and non-numerical fields describing the resource to which the metrics pertain.
 
+// lint ignore g1
 For example, the {apm-java-agent} produces {apm-java-ref-v}/metrics.html#metrics-jvm[JVM-specific metrics].
 This includes garbage collection metrics (`jvm.gc.count`, `jvm.gc.time`) which are related to a specific memory manager,
 such as "G1 Young Generation", identified by the field `labels.name`.
@@ -52,7 +53,7 @@ You can filter and group by these dimensions:
 [float]
 ==== Transaction metrics
 
-To power {kibana-ref}/xpack-apm.html[APM app] visualizations,
+To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
 APM Server aggregates transaction events into latency distribution metrics.
 
 *`transaction.duration.histogram`*::
@@ -70,7 +71,7 @@ You can filter and group by these dimensions (some of which are optional, for ex
 * `transaction.result`: The result of the transaction, for example `HTTP 2xx`
 * `transaction.root`: A boolean flag indicating whether the transaction is the root of a trace
 * `event.outcome`: The outcome of the transaction, for example `success`
-* `agent.name`: The name of the APM agent that instrumented the transaction, for example `java`
+* `agent.name`: The name of the {apm-agent} that instrumented the transaction, for example `java`
 * `service.name`: The name of the service that served the transaction
 * `service.version`: The version of the service that served the transaction
 * `service.node.name`: The name of the service instance that served the transaction
@@ -101,7 +102,7 @@ The `@timestamp` field of these documents holds the start of the aggregation int
 [float]
 ==== Service-destination metrics
 
-To power {kibana-ref}/xpack-apm.html[APM app] visualizations,
+To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
 APM Server aggregates span events into "service destination" metrics.
 
 *`span.destination.service.response_time.count`* and *`span.destination.service.response_time.sum.us`*::
@@ -117,7 +118,7 @@ You can filter and group by these dimensions:
 
 * `span.destination.service.resource`: The destination service resource, for example `mysql`
 * `event.outcome`: The outcome of the operation, for example `success`
-* `agent.name`: The name of the APM agent that instrumented the operation, for example `java`
+* `agent.name`: The name of the {apm-agent} that instrumented the operation, for example `java`
 * `service.name`: The name of the service that made the request
 * `service.environment`: The environment of the service that made the request
 --
@@ -128,7 +129,7 @@ The `@timestamp` field of these documents holds the start of the aggregation int
 [[example-metric-document]]
 === Example metric document
 
-Below is an example of a metric document as stored in Elasticsearch, containing JVM metrics produced by the {apm-java-agent}.
+Below is an example of a metric document as stored in {es}, containing JVM metrics produced by the {apm-java-agent}.
 The document contains two related metrics: `jvm.gc.time` and `jvm.gc.count`. These are accompanied by various fields describing
 the environment in which the metrics were captured: service name, host name, Kubernetes pod UID, container ID, process ID, and more.
 These fields make it possible to search and aggregate across various dimensions, such as by service, host, and Kubernetes pod.
