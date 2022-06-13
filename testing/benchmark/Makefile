@@ -99,4 +99,4 @@ ssh:
 .PHONY: docker-override-committed-version
 docker-override-committed-version:
 	$(eval TAG := $(shell grep docker.elastic.co/ ../../docker-compose.yml |grep SNAPSHOT| cut -d ':' -f3|uniq))
-	@echo 'export TF_VAR_docker_image_tag_override={\"elasticsearch\":\"$(TAG)\",\"kibana\":\"$(TAG)\",\"apm\":\"$(TAG)\"}'
+	@echo 'export TF_VAR_docker_image_tag_override={"elasticsearch":"$(TAG)","kibana":"$(TAG)","apm":"$(TAG)"}'
