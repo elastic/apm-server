@@ -5,6 +5,8 @@ APMBENCH_GOARCH ?= amd64
 ESS_SYSTEM_PROFILE ?= 1GBx1zone
 BENCHMARK_PROFILE ?= 64agents
 
+include benchmark-profiles/$(BENCHMARK_PROFILE).sh
+
 BENCHMARK_RESULT ?= benchmark-result.txt
 
 GOBENCH_INDEX ?= gobench
@@ -61,15 +63,19 @@ apply:
 destroy:
 	@terraform destroy -auto-approve
 
-.PHONY: enable-benckmark-profile
-enable-benckmark-profile: 
-	@. benchmark-profiles/$(BENCHMARK_PROFILE).sh
+.PHONY: log-benckmark-profile
+log-benckmark-profile: 
+	@echo "Starting benchmarks with $(BENCHMARK_PROFILE) profile..."	
+	@echo "Benchmark warmup events: $$BENCHMARK_WARMUP"
+	@echo "Benchmarks count: $$BENCHMARK_COUNT"
+	@echo "Benchmark duration: $$BENCHMARK_TIME"
+	@echo "Benchmark run comand : $$BENCHMARK_RUN"
 
 # BENCHMARK_RUN, BENCHMARK_TIME, BENCHMARK_COUNT, BENCHMARK_WARMUP, BENCHMARK_AGENTS, BENCHMARK_DETAILED
 #    are defined in benchmark-profiles dir
 # 
 .PHONY: run-benchmark
-run-benchmark: enable-benckmark-profile
+run-benchmark: log-benckmark-profile
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP) ". .envrc && bin/apmbench -run='$(BENCHMARK_RUN)' \
 	-benchtime=$(BENCHMARK_TIME) -count=$(BENCHMARK_COUNT) -warmup-events=$(BENCHMARK_WARMUP) \
 	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED)" 2>&1 | tee $(BENCHMARK_RESULT)
