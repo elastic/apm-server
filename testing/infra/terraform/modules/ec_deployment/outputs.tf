@@ -9,12 +9,12 @@ output "kibana_url" {
 }
 
 output "apm_url" {
-  value       = ec_deployment.deployment.apm.0.https_endpoint
+  value       = var.integrations_server ? ec_deployment.deployment.integrations_server.0.https_endpoint : ec_deployment.deployment.apm.0.https_endpoint
   description = "The secure APM URL"
 }
 
 output "apm_secret_token" {
-  value       = ec_deployment.deployment.apm_secret_token
+  value       = var.integrations_server ? jsonencode("secret.json") : ec_deployment.deployment.apm_secret_token
   sensitive   = true
   description = "The APM Secret token"
 }

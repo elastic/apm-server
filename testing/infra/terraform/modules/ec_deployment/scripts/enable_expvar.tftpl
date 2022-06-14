@@ -1,14 +1,23 @@
 #!/bin/bash
 
+set -e
+
 KIBANA_ENDPOINT=${kibana_url}/api/fleet/package_policies/elastic-cloud-apm
 KIBANA_AUTH=elastic:${elastic_password}
 
 # Check if the policy has expvar disabled:
 POLICY=$(curl -sk -u $${KIBANA_AUTH} $${KIBANA_ENDPOINT})
+NOT_FOUND_MSG='statusCode":404'
 
-echo $${POLICY} | grep '"expvar_enabled":{"type":"bool","value":true}' > /dev/null 2>&1
-if [[ $? -eq 0 ]]; then
-    echo "expvar already enabled"
+if [[ "$${POLICY}" == *"$${NOT_FOUND_MSG}"* ]]; then
+    echo "APM policy not found, expvar and pprof won't be enabled."
+    exit 0
+fi
+
+echo $${POLICY} | grep '"expvar_enabled":{"type":"bool","value":true}' > /dev/null 2>&1 && EXPVAR_ENABLED=true
+echo $${POLICY} | grep '"pprof_enabled":{"type":"bool","value":true}' > /dev/null 2>&1 && PPROF_ENABLED=true
+if [[ $${EXPVAR_ENABLED} || $${PPROF_ENABLED} ]] ; then
+    echo "expvar or pprof already enabled"
     exit 0
 fi
 
@@ -16,7 +25,8 @@ fi
 echo $${POLICY} |\
     jq 'del(.item.id)' | jq 'del(.item.elasticsearch)'| jq 'del(.item.inputs[].compiled_input)' | jq 'del(.item.revision)' |\
     jq 'del(.item.created_at)' | jq 'del(.item.created_by)' | jq 'del(.item.updated_at)' | jq 'del(.item.updated_by)' |\
-    jq '.item | select(.inputs[].policy_template == "apmserver") .inputs[].vars.expvar_enabled = {type: "bool", value: true}' > policy.json
+    jq '.item | select(.inputs[].policy_template == "apmserver") .inputs[].vars.expvar_enabled = {type: "bool", value: true}' |\
+    jq '.item | select(.inputs[].policy_template == "apmserver") .inputs[].vars.pprof_enabled = {type: "bool", value: true}' > policy.json
 
 # Update the policy
 curl -s -H 'content-type: application/json' -H 'kbn-xsrf: true' -X PUT -k -d@policy.json -u $${KIBANA_AUTH} $${KIBANA_ENDPOINT}

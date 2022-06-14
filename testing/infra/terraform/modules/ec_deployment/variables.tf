@@ -50,6 +50,12 @@ variable "apm_server_zone_count" {
   description = "Optional apm server zone count"
 }
 
+variable "integrations_server" {
+  description = "Optionally use the integrations server block instead of the apm block"
+  type        = bool
+  default     = false
+}
+
 # Elasticsearch topology
 
 variable "elasticsearch_size" {
