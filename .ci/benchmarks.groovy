@@ -39,20 +39,17 @@ pipeline {
     stage('Benchmarks') {
       options { skipDefaultCheckout() }
       environment {
-        SSH_KEY = "./id_rsa_terraform"
-        TF_VAR_private_key = "${env.SSH_KEY}"
-        TF_VAR_public_key = "${env.SSH_KEY}.pub"
         // cloud tags
         TF_VAR_BUILD_ID = "${env.BUILD_ID}"
         TF_VAR_BRANCH_NAME = "${env.BRANCH_NAME}"
         TF_VAR_ENVIRONMENT= 'ci'
         TF_VAR_BRANCH = "${BRANCH_NAME_LOWER_CASE}"
         TF_VAR_REPO = "${REPO}"
-
-        GOBENCH_INDEX = "apmbench-v2-${BRANCH_NAME_LOWER_CASE}"
-        
+        //profiles
         ESS_SYSTEM_PROFILE = '1GBx1zone'
         BENCHMARK_PROFILE = '64agents'
+        
+        GOBENCH_TAGS = "branch=${BRANCH_NAME_LOWER_CASE},benchmark_profile=${BENCHMARK_PROFILE},system_profile=${ESS_SYSTEM_PROFILE}"
       }
       steps {
         dir ("${BASE_DIR}") {
