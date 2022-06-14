@@ -138,7 +138,8 @@ POST /_security/role/apm_agent_key_role
          "application":"apm",
          "privileges":[
             "event:write",
-            "config_agent:read"
+            "config_agent:read",
+            "sourcemap:write"
          ],
          "resources":[ "*" ]
       },
