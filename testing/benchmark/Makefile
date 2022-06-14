@@ -2,18 +2,19 @@ APMBENCH_PATH ?= ../../systemtest/cmd/apmbench
 APMBENCH_GOOS ?= linux
 APMBENCH_GOARCH ?= amd64
 
-BENCHMARK_WARMUP ?= 50000
+BENCHMARK_WARMUP ?= 10000
 BENCHMARK_AGENTS ?= 64
-BENCHMARK_COUNT ?= 2
-BENCHMARK_TIME ?= 5m
+BENCHMARK_COUNT ?= 3
+BENCHMARK_TIME ?= 2m
 BENCHMARK_RUN ?= Benchmark
 BENCHMARK_RESULT ?= benchmark-result.txt
+BENCHMARK_DETAILED ?= false
 
 GOBENCH_INDEX ?= gobench
 GOBENCH_USERNAME ?= admin
 GOBENCH_PASSWORD ?= changeme
 GOBENCH_HOST ?= http://localhost:9200
-GOBENCH_DEFAULT_TAGS = "apm_server_version=$(APM_SERVER_VERSION)"
+GOBENCH_DEFAULT_TAGS = apm_server_version=$(APM_SERVER_VERSION)
 
 SSH_USER ?= ec2-user
 SSH_OPTS ?= -o LogLevel=ERROR -o StrictHostKeyChecking=no
@@ -65,14 +66,24 @@ destroy:
 
 .PHONY: run-benchmark
 run-benchmark:
-	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP) ". .envrc && bin/apmbench -run=$(BENCHMARK_RUN) \
+	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP) ". .envrc && bin/apmbench -run='$(BENCHMARK_RUN)' \
 	-benchtime=$(BENCHMARK_TIME) -count=$(BENCHMARK_COUNT) -warmup-events=$(BENCHMARK_WARMUP) \
-	-agents=$(BENCHMARK_AGENTS)" 2>&1 | tee $(BENCHMARK_RESULT)
+	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED)" 2>&1 | tee $(BENCHMARK_RESULT)
 
 .PHONY: index-benchmark-results
-index-benchmark-results: $(GOBENCH)
+index-benchmark-results: $(GOBENCH) _default-gobench-vars
 	@cat $(BENCHMARK_RESULT) | $(GOBENCH) -es $(GOBENCH_HOST) -es-username $(GOBENCH_USERNAME) -es-password $(GOBENCH_PASSWORD) \
 	-index $(GOBENCH_INDEX) -tag "$(GOBENCH_DEFAULT_TAGS),$(GOBENCH_TAGS)"
+
+.PHONY: _default-gobench-vars
+_default-gobench-vars:
+# TODO(marclop) Update code below to use a foor loop, rather than copying the lines.
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),apm_server_size=$(shell echo var.apm_server_size | terraform console | tr -d '"'))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),elasticsearch_size=$(shell echo var.elasticsearch_size | terraform console | tr -d '"'))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),stack_version=$(shell echo var.stack_version | terraform console | tr -d '"'))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),apm_server_zone_count=$(shell echo var.apm_server_zone_count | terraform console | tr -d '"'))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),elasticsearch_zone_count=$(shell echo var.elasticsearch_zone_count | terraform console | tr -d '"'))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),build_sha=$(shell curl -sL -H "Authorization: Bearer $(shell terraform output -raw apm_secret_token )" $(shell terraform output -raw apm_server_url ) | jq -r '.build_sha'))
 
 $(SSH_KEY):
 	ssh-keygen -t rsa -b 4096 -C "$(USER)@elastic.co" -N "" -f $(SSH_KEY)
