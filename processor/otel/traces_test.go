@@ -556,6 +556,51 @@ func TestMessagingSpan(t *testing.T) {
 	}, event.Span.DestinationService)
 }
 
+func TestMessagingSpan_DestinationResource(t *testing.T) {
+	test := func(t *testing.T, expectedDestination model.Destination, expectedDestinationService *model.DestinationService, attrs map[string]pdata.AttributeValue) {
+		t.Helper()
+		event := transformSpanWithAttributes(t, attrs)
+		assert.Equal(t, expectedDestination, event.Destination)
+		assert.Equal(t, expectedDestinationService, event.Span.DestinationService)
+	}
+
+	t.Run("system_destination_peerservice_peeraddress", func(t *testing.T) {
+		test(t, model.Destination{
+			Address: "127.0.0.1",
+		}, &model.DestinationService{
+			Type:     "messaging",
+			Name:     "testsvc",
+			Resource: "127.0.0.1/testtopic",
+		}, map[string]pdata.AttributeValue{
+			"messaging.system":      pdata.NewAttributeValueString("kafka"),
+			"messaging.destination": pdata.NewAttributeValueString("testtopic"),
+			"peer.service":          pdata.NewAttributeValueString("testsvc"),
+			"peer.address":          pdata.NewAttributeValueString("127.0.0.1"),
+		})
+	})
+	t.Run("system_destination_peerservice", func(t *testing.T) {
+		test(t, model.Destination{}, &model.DestinationService{
+			Type:     "messaging",
+			Name:     "testsvc",
+			Resource: "testsvc/testtopic",
+		}, map[string]pdata.AttributeValue{
+			"messaging.system":      pdata.NewAttributeValueString("kafka"),
+			"messaging.destination": pdata.NewAttributeValueString("testtopic"),
+			"peer.service":          pdata.NewAttributeValueString("testsvc"),
+		})
+	})
+	t.Run("system_destination", func(t *testing.T) {
+		test(t, model.Destination{}, &model.DestinationService{
+			Type:     "messaging",
+			Name:     "kafka",
+			Resource: "kafka/testtopic",
+		}, map[string]pdata.AttributeValue{
+			"messaging.system":      pdata.NewAttributeValueString("kafka"),
+			"messaging.destination": pdata.NewAttributeValueString("testtopic"),
+		})
+	})
+}
+
 func TestSpanType(t *testing.T) {
 	// Internal spans default to app.internal.
 	event := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{}, func(s pdata.Span) {
