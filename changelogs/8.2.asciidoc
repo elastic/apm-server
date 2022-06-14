@@ -3,9 +3,20 @@
 
 https://github.com/elastic/apm-server/compare/8.1\...8.2[View commits]
 
+* <<release-notes-8.2.3>>
 * <<release-notes-8.2.2>>
 * <<release-notes-8.2.1>>
 * <<release-notes-8.2.0>>
+
+[float]
+[[release-notes-8.2.3]]
+=== APM version 8.2.3
+
+https://github.com/elastic/apm-server/compare/8.2.2\...8.2.3[View commits]
+
+[float]
+==== Bug fixes
+- Added `tags` field mapping to `internal_metrics` data stream {pull}8292[8292]
 
 [float]
 [[release-notes-8.2.2]]
