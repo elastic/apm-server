@@ -5,6 +5,8 @@ https://github.com/elastic/apm-server/compare/8.4\...main[View commits]
 
 [float]
 ==== Breaking Changes
+- APM Server no longer crashes on an invalid tail-based sampling config; it
+  continues running TBS disabled {pull}8375[8375]
 
 [float]
 ==== Deprecations
