@@ -69,10 +69,10 @@ destroy:
 .PHONY: log-benckmark-profile
 log-benckmark-profile: 
 	@echo "Starting benchmarks..."	
-	@echo "Benchmark warmup events: $$BENCHMARK_WARMUP"
-	@echo "Benchmarks count: $$BENCHMARK_COUNT"
-	@echo "Benchmark duration: $$BENCHMARK_TIME"
-	@echo "Benchmark run comand : $$BENCHMARK_RUN"
+	@echo "Benchmark warmup events: $(BENCHMARK_WARMUP)"
+	@echo "Benchmarks count: $(BENCHMARK_COUNT)"
+	@echo "Benchmark duration: $(BENCHMARK_TIME)"
+	@echo "Benchmark run comand : $(BENCHMARK_RUN)"
 
 .PHONY: run-benchmark
 run-benchmark: log-benckmark-profile
