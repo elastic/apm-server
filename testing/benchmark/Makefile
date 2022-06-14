@@ -2,12 +2,15 @@ APMBENCH_PATH ?= ../../systemtest/cmd/apmbench
 APMBENCH_GOOS ?= linux
 APMBENCH_GOARCH ?= amd64
 
-ESS_SYSTEM_PROFILE ?= 1GBx1zone
-BENCHMARK_PROFILE ?= 64agents
+TFVARS_SOURCE ?= terraform.tfvars.example
 
-include benchmark-profiles/$(BENCHMARK_PROFILE).sh
-
+BENCHMARK_WARMUP ?= 10000
+BENCHMARK_AGENTS ?= 64
+BENCHMARK_COUNT ?= 3
+BENCHMARK_TIME ?= 2m
+BENCHMARK_RUN ?= Benchmark
 BENCHMARK_RESULT ?= benchmark-result.txt
+BENCHMARK_DETAILED ?= true
 
 GOBENCH_INDEX ?= apmbench-v2
 GOBENCH_USERNAME ?= admin
@@ -44,7 +47,7 @@ init-aws-profile: ~/.aws/credentials
 	@touch $@
 
 terraform.tfvars:
-	@sed "s/USER/$(USER)/" system-profiles/$(ESS_SYSTEM_PROFILE).tfvars > terraform.tfvars
+	@sed "s/USER/$(USER)/" $(TFVARS_SOURCE) > terraform.tfvars
 
 .PHONY: apmbench
 apmbench:
@@ -65,15 +68,12 @@ destroy:
 
 .PHONY: log-benckmark-profile
 log-benckmark-profile: 
-	@echo "Starting benchmarks with $(BENCHMARK_PROFILE) profile..."	
+	@echo "Starting benchmarks..."	
 	@echo "Benchmark warmup events: $$BENCHMARK_WARMUP"
 	@echo "Benchmarks count: $$BENCHMARK_COUNT"
 	@echo "Benchmark duration: $$BENCHMARK_TIME"
 	@echo "Benchmark run comand : $$BENCHMARK_RUN"
 
-# BENCHMARK_RUN, BENCHMARK_TIME, BENCHMARK_COUNT, BENCHMARK_WARMUP, BENCHMARK_AGENTS, BENCHMARK_DETAILED
-#    are defined in benchmark-profiles dir
-# 
 .PHONY: run-benchmark
 run-benchmark: log-benckmark-profile
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP) ". .envrc && bin/apmbench -run='$(BENCHMARK_RUN)' \

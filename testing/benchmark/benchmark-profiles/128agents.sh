@@ -1,6 +1,0 @@
-export BENCHMARK_WARMUP="5000"
-export BENCHMARK_COUNT="3"
-export BENCHMARK_TIME="2m"
-export BENCHMARK_DETAILED="true"
-export BENCHMARK_RUN="Benchmark"
-export BENCHMARK_AGENTS="128"
