@@ -74,17 +74,9 @@ The main commands are:
 
 Helper commands
 
-- `./id_rsa_terraform`: Generates a new SSH key without passphrase for the worker VMs.
+- `~/.ssh/id_rsa_terraform`: Generates a new SSH key without passphrase for the worker VMs.
 - `terraform.tfvars`: Copies the examples tfvars and sets the `user_name` var with to `$USER`.
 - `apmbench`: Compiles the `apmbench` binary from the provided location (`APMBENCH_PATH`).
-
-##### By environment variables
-```
-$ export ESS_SYSTEM_PROFILE="1GBx1zone"
-$ export BENCHMARK_PROFILE="64agents"
-$ make <run benchmarks>
-
-```
 
 ### Override the docker image tag
 

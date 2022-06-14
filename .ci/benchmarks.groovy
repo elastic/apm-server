@@ -38,7 +38,7 @@ pipeline {
     stage('Benchmarks') {
       options { skipDefaultCheckout() }
       environment {
-        SSH_KEY = "./id_rsa_terraform"
+        SSH_KEY = "~/.ssh/id_rsa_terraform"
         // cloud tags
         TF_VAR_BUILD_ID = "${env.BUILD_ID}"
         TF_VAR_ENVIRONMENT= 'ci'

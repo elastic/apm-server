@@ -20,7 +20,7 @@ GOBENCH_DEFAULT_TAGS = apm_server_version=$(APM_SERVER_VERSION)
 
 SSH_USER ?= ec2-user
 SSH_OPTS ?= -o LogLevel=ERROR -o StrictHostKeyChecking=no
-SSH_KEY ?= ./id_rsa_terraform
+SSH_KEY ?= ~/.ssh/id_rsa_terraform
 WORKER_IP = $(shell terraform output -raw public_ip)
 
 # This profile will also be used by the Terraform provider.

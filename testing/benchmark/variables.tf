@@ -89,12 +89,12 @@ variable "worker_instance_type" {
 }
 
 variable "private_key" {
-  default = "./id_rsa_terraform"
+  default = "~/.ssh/id_rsa_terraform"
   type    = string
 }
 
 variable "public_key" {
-  default = "./id_rsa_terraform.pub"
+  default = "~/.ssh/id_rsa_terraform.pub"
   type    = string
 }
 
