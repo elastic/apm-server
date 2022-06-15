@@ -396,9 +396,10 @@ Here is an example of AWS Lambda Node.js function managed with Terraform and the
 
 A resource attribute is a key/value pair containing information about the entity producing telemetry.
 Use the {ot-resource}[resource processor] to set or apply changes to resource attributes.
-Resource attributes are mapped to Elastic Common Schema (ECS) fields that describe the service and the environment that the service runs in.
+Resource attributes are mapped to Elastic Common Schema (ECS) fields like `service.*`, `cloud.*`, `process.*`, etc.
+These fields describe the service and the environment that the service runs in.
 
-This example sets the Elastic (ECS) `service.environment` field for the resource, i.e. service, that is producing trace events:
+The example below sets the Elastic (ECS) `service.environment` field for the resource, i.e. service, that is producing trace events:
 
 [source,yaml]
 ----
@@ -418,7 +419,7 @@ Need to add event attributes instead?
 Use the {ot-attr}[attributes processor] to add data to span, log, or metric events.
 Attributes set via this method are mapped to the ECS `label` field.
 
-This example sets the `label.foo` field for events to `bar`:
+The example below sets the `label.foo` field for events:
 
 [source,yaml]
 ----
