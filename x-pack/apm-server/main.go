@@ -198,7 +198,6 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 				stopctx, cancel = context.WithTimeout(stopctx, args.Config.ShutdownTimeout)
 				defer cancel()
 			}
-			// TODO: This is where the samplers get stopped
 			return p.Stop(stopctx)
 		})
 	}
