@@ -30,6 +30,12 @@ variable "monitor_deployment" {
   description = "Optionally monitor the deployment in a separate deployment"
 }
 
+variable "tags" {
+  type        = map(string)
+  default     = {}
+  description = "Optional set of tags to use for all deployments"
+}
+
 # APM Server topology
 
 variable "apm_server_size" {

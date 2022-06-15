@@ -7,15 +7,28 @@ terraform {
     }
     aws = {
       source  = "hashicorp/aws"
-      version = ">=4.10.0"
+      version = ">=4.17.1"
     }
   }
+}
+
+locals {
+  ci_tags = {
+      environment  = var.ENVIRONMENT
+      repo         = var.REPO
+      branch       = var.BRANCH
+      build        = var.BUILD_ID
+      created_date = var.CREATED_DATE
+    }
 }
 
 provider "ec" {}
 
 provider "aws" {
   region = var.worker_region
+  default_tags {
+    tags = local.ci_tags
+  }
 }
 
 locals {
@@ -39,6 +52,8 @@ module "ec_deployment" {
 
   docker_image              = var.docker_image_override
   docker_image_tag_override = var.docker_image_tag_override
+
+  tags = local.ci_tags
 }
 
 module "benchmark_worker" {
@@ -52,4 +67,7 @@ module "benchmark_worker" {
 
   apmbench_bin_path = var.apmbench_bin_path
   instance_type     = var.worker_instance_type
+
+  public_key        = var.public_key
+  private_key       = var.private_key
 }
