@@ -51,7 +51,7 @@ require (
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/elastic/go-elasticsearch/v7 v7.17.1 // indirect
 	github.com/elastic/go-ucfg v0.8.4 // indirect
-	github.com/elastic/gobench v0.0.0-20220412070753-2f9c944c8095 // indirect
+	github.com/elastic/gobench v0.0.0-20220608141032-f30bc57e329c // indirect
 	github.com/elastic/package-spec v1.7.0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/envoyproxy/go-control-plane v0.10.1 // indirect
