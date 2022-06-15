@@ -138,6 +138,8 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 	p.storageMu.RLock()
 	defer p.storageMu.RUnlock()
 	if p.storage == nil {
+		// TODO: This is being triggered. The processor is being
+		// stopped before all events have been processed.
 		return ErrStopped
 	}
 	events := *batch

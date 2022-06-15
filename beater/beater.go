@@ -340,6 +340,12 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 			return err
 		}
 	}
+	fmt.Println("apm-server.yml:")
+	var content map[string]interface{}
+	if err := r.rawConfig.Unpack(&content); err != nil {
+		return fmt.Errorf("<config error> %v", err)
+	}
+	fmt.Printf("%+v\n", content)
 	r.fleetConfig = &integrationConfig.Fleet
 	r.mu.Unlock()
 	return r.reload()
