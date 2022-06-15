@@ -15,6 +15,7 @@ resource "ec_deployment" "deployment" {
   version                = data.ec_stack.deployment_version.version
   region                 = local.region
   deployment_template_id = local.deployment_template
+  tags                   = var.tags
 
   elasticsearch {
     topology {
@@ -68,6 +69,7 @@ resource "ec_deployment" "deployment_monitor" {
   version                = data.ec_stack.deployment_version.version
   region                 = local.region
   deployment_template_id = local.deployment_template
+  tags                   = var.tags
 
   elasticsearch {
     topology {

@@ -2,15 +2,17 @@ APMBENCH_PATH ?= ../../systemtest/cmd/apmbench
 APMBENCH_GOOS ?= linux
 APMBENCH_GOARCH ?= amd64
 
+TFVARS_SOURCE ?= terraform.tfvars.example
+
 BENCHMARK_WARMUP ?= 10000
 BENCHMARK_AGENTS ?= 64
 BENCHMARK_COUNT ?= 3
 BENCHMARK_TIME ?= 2m
 BENCHMARK_RUN ?= Benchmark
 BENCHMARK_RESULT ?= benchmark-result.txt
-BENCHMARK_DETAILED ?= false
+BENCHMARK_DETAILED ?= true
 
-GOBENCH_INDEX ?= gobench
+GOBENCH_INDEX ?= apmbench-v2
 GOBENCH_USERNAME ?= admin
 GOBENCH_PASSWORD ?= changeme
 GOBENCH_HOST ?= http://localhost:9200
@@ -45,7 +47,7 @@ init-aws-profile: ~/.aws/credentials
 	@touch $@
 
 terraform.tfvars:
-	@sed "s/USER/$(USER)/" terraform.tfvars.example > terraform.tfvars
+	@sed "s/USER/$(USER)/" $(TFVARS_SOURCE) > terraform.tfvars
 
 .PHONY: apmbench
 apmbench:
@@ -64,8 +66,16 @@ apply:
 destroy:
 	@terraform destroy -auto-approve
 
+.PHONY: log-benckmark-profile
+log-benckmark-profile: 
+	@echo "Starting benchmarks..."	
+	@echo "Benchmark warmup events: $(BENCHMARK_WARMUP)"
+	@echo "Benchmarks count: $(BENCHMARK_COUNT)"
+	@echo "Benchmark duration: $(BENCHMARK_TIME)"
+	@echo "Benchmark run comand : $(BENCHMARK_RUN)"
+
 .PHONY: run-benchmark
-run-benchmark:
+run-benchmark: log-benckmark-profile
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP) ". .envrc && bin/apmbench -run='$(BENCHMARK_RUN)' \
 	-benchtime=$(BENCHMARK_TIME) -count=$(BENCHMARK_COUNT) -warmup-events=$(BENCHMARK_WARMUP) \
 	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED)" 2>&1 | tee $(BENCHMARK_RESULT)
@@ -86,7 +96,7 @@ _default-gobench-vars:
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),build_sha=$(shell curl -sL -H "Authorization: Bearer $(shell terraform output -raw apm_secret_token )" $(shell terraform output -raw apm_server_url ) | jq -r '.build_sha'))
 
 $(SSH_KEY):
-	ssh-keygen -t rsa -b 4096 -C "$(USER)@elastic.co" -N "" -f $(SSH_KEY)
+	@ssh-keygen -t rsa -b 4096 -C "$(USER)@elastic.co" -N "" -f $(SSH_KEY)
 
 .PHONY: ssh
 ssh:
@@ -95,4 +105,4 @@ ssh:
 .PHONY: docker-override-committed-version
 docker-override-committed-version:
 	$(eval TAG := $(shell grep docker.elastic.co/ ../../docker-compose.yml |grep SNAPSHOT| cut -d ':' -f3|uniq))
-	@echo 'export TF_VAR_docker_image_tag_override={\"elasticsearch\":\"$(TAG)\",\"kibana\":\"$(TAG)\",\"apm\":\"$(TAG)\"}'
+	@echo 'export TF_VAR_docker_image_tag_override={"elasticsearch":"$(TAG)","kibana":"$(TAG)","apm":"$(TAG)"}'
