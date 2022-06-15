@@ -48,6 +48,7 @@ type Processor struct {
 	storageMu    sync.RWMutex
 	storage      *eventstorage.ShardedReadWriter
 	eventMetrics *eventMetrics // heap-allocated for 64-bit alignment
+	processing   chan struct{}
 
 	stopMu   sync.Mutex
 	stopping chan struct{}
@@ -82,6 +83,7 @@ func NewProcessor(config Config) (*Processor, error) {
 		eventMetrics:        &eventMetrics{},
 		stopping:            make(chan struct{}),
 		stopped:             make(chan struct{}),
+		processing:          make(chan struct{}),
 	}
 	return p, nil
 }
@@ -138,11 +140,13 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 	p.storageMu.RLock()
 	defer p.storageMu.RUnlock()
 	if p.storage == nil {
-		// TODO: This is being triggered. The processor is being
-		// stopped before all events have been processed.
 		return ErrStopped
 	}
 	events := *batch
+	go func() {
+		// indicate to p.Stop() that we're still processing batches
+		p.processing <- struct{}{}
+	}()
 	for i := 0; i < len(events); i++ {
 		event := &events[i]
 		var report, stored bool
@@ -175,6 +179,10 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 		p.updateProcessorMetrics(report, stored)
 	}
 	*batch = events
+	select {
+	case <-p.processing:
+	default:
+	}
 	return nil
 }
 
@@ -307,6 +315,30 @@ func (p *Processor) Stop(ctx context.Context) error {
 	case <-p.stopped:
 	}
 
+	// Delay closing storage to allow any remaining batches to be
+	// processed.
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		d := 5 * time.Second
+		t := time.NewTimer(d)
+		for {
+			select {
+			case <-p.processing:
+				p.logger.Info("received batch while stopping; waiting")
+				if !t.Stop() {
+					<-t.C
+				}
+				t.Reset(d)
+				continue
+			case <-t.C:
+				p.logger.Info("no batches received; stopping")
+				return
+			}
+		}
+	}()
+	<-done
+
 	// Lock storage before stopping, to prevent closing storage while
 	// ProcessBatch is using it.
 	p.storageMu.Lock()
@@ -317,6 +349,10 @@ func (p *Processor) Stop(ctx context.Context) error {
 	}
 	p.storage.Close()
 	p.storage = nil
+	// Guarded by p.storageMu; subsequent calls to p.Stop() or
+	// p.ProcesseBatch() will early return before attempting to interact
+	// with p.process.
+	close(p.processing)
 	return nil
 }
 
