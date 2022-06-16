@@ -106,7 +106,7 @@ POST /_security/role/apm_agent_key_role
   "cluster": ["manage_own_api_key"],
   "applications": [{
     "application": "apm",
-    "privileges": ["event:write", "config_agent:read"],
+    "privileges": ["event:write", "config_agent:read", "sourcemap:write"],
     "resources": ["*"]
   }]
 }

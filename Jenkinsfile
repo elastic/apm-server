@@ -9,7 +9,6 @@ pipeline {
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
-    CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
@@ -365,7 +364,6 @@ pipeline {
                     keepLongStdio: true,
                     testResults: "TEST-*.xml")
               }
-              codecov(repo: env.REPO, basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
           }
         }

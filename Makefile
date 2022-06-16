@@ -22,9 +22,29 @@ PYTHON=$(PYTHON_BIN)/python
 
 .DEFAULT_GOAL := apm-server
 
+APM_SERVER_BINARIES:= \
+	build/apm-server-linux-amd64 \
+	build/apm-server-linux-386 \
+	build/apm-server-linux-arm64 \
+	build/apm-server-windows-386.exe \
+	build/apm-server-windows-amd64.exe \
+	build/apm-server-darwin-amd64
+
+.PHONY: $(APM_SERVER_BINARIES)
+$(APM_SERVER_BINARIES): $(MAGE)
+	@$(MAGE) build
+
+build/apm-server-linux-%: export GOOS=linux
+build/apm-server-darwin-%: export GOOS=darwin
+build/apm-server-windows-%: export GOOS=windows
+build/apm-server-%-386 build/apm-server-%-386.exe: export GOARCH=386
+build/apm-server-%-amd64 build/apm-server-%-amd64.exe: export GOARCH=amd64
+build/apm-server-%-arm64 build/apm-server-%-arm64.exe: export GOARCH=arm64
+build-all: $(APM_SERVER_BINARIES)
+
 .PHONY: apm-server
-apm-server:
-	@$(GO) build -o $@ ./x-pack/apm-server
+apm-server: build/apm-server-$(shell $(GO) env GOOS)-$(shell $(GO) env GOARCH)
+	@cp $^ $@
 
 .PHONY: apm-server-oss
 apm-server-oss:
@@ -210,9 +230,7 @@ release-manager-snapshot: release
 .PHONY: release-manager-release
 release-manager-release: release
 
-.PHONY: release
-
-JAVA_ATTACHER_VERSION:=1.28.4
+JAVA_ATTACHER_VERSION:=1.32.0
 JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
 JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
 JAVA_ATTACHER_BASE_URL:=https://repo1.maven.org/maven2/co/elastic/apm/apm-agent-attach-cli
@@ -221,9 +239,10 @@ JAVA_ATTACHER_SIG_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA
 
 APM_AGENT_JAVA_PUB_KEY:=apm-agent-java-public-key.asc
 
+.PHONY: release
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
-release: $(MAGE) $(PYTHON) build/$(JAVA_ATTACHER_JAR) build/dependencies.csv
-	$(MAGE) package
+release: $(MAGE) $(PYTHON) build/$(JAVA_ATTACHER_JAR) build/dependencies.csv $(APM_SERVER_BINARIES)
+	@$(MAGE) package
 
 build/dependencies.csv: $(PYTHON) go.mod
 	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
