@@ -248,11 +248,10 @@ func (s server) run(ctx context.Context) error {
 		<-ctx.Done()
 		s.grpcServer.GracefulStop()
 		s.httpServer.stop()
-		ctx = context.WithValue(context.Background(), ProcessingStopped{}, struct{}{})
-		if err := s.batchProcessor.ProcessBatch(ctx, new(model.Batch)); err != nil {
-			s.logger.Errorf("error sending closing batch: %+v", err)
-			return err
-		}
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		ctx = context.WithValue(ctx, ProcessingStopped{}, struct{}{})
+		s.batchProcessor.ProcessBatch(ctx, new(model.Batch))
 		return nil
 	})
 	if err := g.Wait(); err != http.ErrServerClosed {
