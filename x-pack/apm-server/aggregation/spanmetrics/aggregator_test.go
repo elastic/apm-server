@@ -13,8 +13,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func BenchmarkAggregateSpan(b *testing.B) {
@@ -136,6 +140,7 @@ func TestAggregatorRun(t *testing.T) {
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service_destination"},
 		Span: &model.Span{
+			Name: "service-A:" + destinationX,
 			DestinationService: &model.DestinationService{
 				Resource: destinationX,
 				ResponseTime: model.AggregatedDuration{
@@ -157,6 +162,7 @@ func TestAggregatorRun(t *testing.T) {
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service_destination"},
 		Span: &model.Span{
+			Name: "service-A:" + destinationZ,
 			DestinationService: &model.DestinationService{
 				Resource: destinationZ,
 				ResponseTime: model.AggregatedDuration{
@@ -178,6 +184,7 @@ func TestAggregatorRun(t *testing.T) {
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service_destination"},
 		Span: &model.Span{
+			Name: "service-A:" + destinationZ,
 			DestinationService: &model.DestinationService{
 				Resource: destinationZ,
 				ResponseTime: model.AggregatedDuration{
@@ -195,6 +202,7 @@ func TestAggregatorRun(t *testing.T) {
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service_destination"},
 		Span: &model.Span{
+			Name: "service-A:" + destinationZ,
 			DestinationService: &model.DestinationService{
 				Resource: destinationZ,
 				ResponseTime: model.AggregatedDuration{
@@ -216,6 +224,7 @@ func TestAggregatorRun(t *testing.T) {
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service_destination"},
 		Span: &model.Span{
+			Name: "service-B:" + destinationZ,
 			DestinationService: &model.DestinationService{
 				Resource: destinationZ,
 				ResponseTime: model.AggregatedDuration{
@@ -267,6 +276,7 @@ func TestAggregateCompositeSpan(t *testing.T) {
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service_destination"},
 		Span: &model.Span{
+			Name: "service-A:final_destination",
 			DestinationService: &model.DestinationService{
 				Resource: "final_destination",
 				ResponseTime: model.AggregatedDuration{
@@ -432,6 +442,47 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 	}, metricsets)
 }
 
+func TestAggregateHalfCapacityNoSpanName(t *testing.T) {
+	batches := make(chan model.Batch, 1)
+	agg, err := NewAggregator(AggregatorConfig{
+		BatchProcessor: makeChanBatchProcessor(batches),
+		Interval:       10 * time.Millisecond,
+		MaxGroups:      4,
+	})
+	require.NoError(t, err)
+
+	err = agg.ProcessBatch(
+		context.Background(),
+		&model.Batch{
+			makeSpan("service", "agent", "dest1", "target_type", "target1", "success", 100*time.Millisecond, 1),
+			makeSpan("service", "agent", "dest2", "target_type", "target2", "success", 100*time.Millisecond, 1),
+			makeSpan("service", "agent", "dest3", "target_type", "target3", "success", 100*time.Millisecond, 1),
+			makeSpan("service", "agent", "dest4", "target_type", "target4", "success", 100*time.Millisecond, 1),
+		},
+	)
+	require.NoError(t, err)
+
+	// Start the aggregator after processing to ensure metrics are aggregated deterministically.
+	go agg.Run()
+	defer agg.Stop(context.Background())
+
+	batch := expectBatch(t, batches)
+	metricsets := batchMetricsets(t, batch)
+
+	actualDestinationSpanNames := make(map[string]string)
+	for _, ms := range metricsets {
+		actualDestinationSpanNames[ms.Span.DestinationService.Resource] = ms.Span.Name
+	}
+	assert.Equal(t, map[string]string{
+		"dest1": "service:dest1",
+		"dest2": "service:dest2",
+		// After 50% capacity (4 buckets with our configuration) is reached,
+		// the remaining metrics are aggregated without span.name.
+		"dest3": "",
+		"dest4": "",
+	}, actualDestinationSpanNames)
+}
+
 func TestAggregateTimestamp(t *testing.T) {
 	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
@@ -465,17 +516,24 @@ func TestAggregateTimestamp(t *testing.T) {
 	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp)
 }
 
-func TestAggregatorOverflow(t *testing.T) {
+func TestAggregatorMaxGroups(t *testing.T) {
+	core, observed := observer.New(zapcore.DebugLevel)
+	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(in, core)
+	}))
+	_ = observed
+
 	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor: makeChanBatchProcessor(batches),
 		Interval:       10 * time.Millisecond,
-		MaxGroups:      2,
+		MaxGroups:      4,
+		Logger:         logger,
 	})
 	require.NoError(t, err)
 
 	// The first two transaction groups will not require immediate publication,
-	// as we have configured the spanmetrics with a maximum of two buckets.
+	// as we have configured the spanmetrics with a maximum of four buckets.
 	batch := make(model.Batch, 20)
 	for i := 0; i < len(batch); i += 2 {
 		batch[i] = makeSpan("service", "agent", "destination1", "trg_type_1", "trg_name_1", "success", 100*time.Millisecond, 1)
@@ -484,10 +542,25 @@ func TestAggregatorOverflow(t *testing.T) {
 	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
 	assert.Empty(t, batchMetricsets(t, batch))
+	assert.Equal(t, 1, observed.FilterMessage("service destination groups reached 50% capacity").Len())
+	assert.Len(t, observed.TakeAll(), 1)
 
-	// The third group will return a metricset for immediate publication.
+	// After hitting 50% capacity (two buckets), then subsequent new metrics will
+	// be aggregated without span.name.
+	span3 := makeSpan("service", "agent", "destination3", "trg_type_3", "trg_name_3", "success", 100*time.Millisecond, 1)
+	span4 := makeSpan("service", "agent", "destination4", "trg_type_4", "trg_name_4", "success", 100*time.Millisecond, 1)
+	span4.Span.Name = span3.Span.Name
+	batch = append(batch, span3, span4)
+	err = agg.ProcessBatch(context.Background(), &batch)
+	require.NoError(t, err)
+	assert.Empty(t, batchMetricsets(t, batch))
+	assert.Equal(t, 1, observed.FilterMessage("service destination groups reached 100% capacity").Len())
+	assert.Len(t, observed.TakeAll(), 1)
+
+	// After hitting 100% capacity (four buckets), then subsequent new metrics will
+	// return single-event metricsets for immediate publication.
 	for i := 0; i < 2; i++ {
-		batch = append(batch, makeSpan("service", "agent", "destination3", "trg_type_3", "trg_name_3", "success", 100*time.Millisecond, 1))
+		batch = append(batch, makeSpan("service", "agent", "destination5", "trg_type_5", "trg_name_5", "success", 100*time.Millisecond, 1))
 	}
 	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
@@ -501,16 +574,17 @@ func TestAggregatorOverflow(t *testing.T) {
 			Service: model.Service{
 				Name: "service",
 				Target: &model.ServiceTarget{
-					Type: "trg_type_3",
-					Name: "trg_name_3",
+					Type: "trg_type_5",
+					Name: "trg_name_5",
 				},
 			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{Name: "service_destination"},
 			Span: &model.Span{
+				Name: "service:destination5",
 				DestinationService: &model.DestinationService{
-					Resource: "destination3",
+					Resource: "destination5",
 					ResponseTime: model.AggregatedDuration{
 						Count: 1,
 						Sum:   100 * time.Millisecond,
