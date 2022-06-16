@@ -84,7 +84,7 @@ func NewProcessor(config Config) (*Processor, error) {
 		eventMetrics:        &eventMetrics{},
 		stopping:            make(chan struct{}),
 		stopped:             make(chan struct{}),
-		processing:          make(chan struct{}),
+		processing:          make(chan struct{}, 1),
 	}
 	return p, nil
 }
@@ -150,7 +150,7 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 		select {
 		case p.processing <- struct{}{}:
 		default:
-			p.logger.Error("cannot send on processing channel")
+			p.logger.Error("cannot send on processing channel: processing stop message already received")
 		}
 		return nil
 	}
@@ -323,19 +323,17 @@ func (p *Processor) Stop(ctx context.Context) error {
 	// processed.
 	done := make(chan struct{})
 	go func() {
-		defer close(done)
+		// Wait for at most 5 seconds, or less if an earlier deadline
+		// is configured on the incoming ctx.
 		d := 5 * time.Second
-		t := time.NewTimer(d)
-		for {
-			select {
-			case <-p.processing:
-				p.logger.Info("processing complete")
-				if !t.Stop() {
-					<-t.C
-				}
-			case <-t.C:
-				p.logger.Infof("processing not stopped after %s; continuing", d)
-			}
+		ctx, cancel := context.WithTimeout(ctx, d)
+		defer cancel()
+		defer close(done)
+		select {
+		case <-p.processing:
+			p.logger.Info("processing complete")
+		case <-ctx.Done():
+			p.logger.Infof("processing not stopped after timeout; continuing")
 		}
 	}()
 	<-done
