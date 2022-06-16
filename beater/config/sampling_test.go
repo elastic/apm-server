@@ -35,18 +35,20 @@ func TestSamplingPoliciesValidation(t *testing.T) {
 		assert.NoError(t, err)
 	})
 	t.Run("NoPolicies", func(t *testing.T) {
-		_, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
+		c, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
 			"sampling.tail.enabled": true,
 		}), nil)
-		assert.EqualError(t, err, "Error processing configuration: invalid tail sampling config: no policies specified accessing 'sampling.tail'")
+		assert.NoError(t, err)
+		assert.False(t, c.Sampling.Tail.Enabled)
 	})
 	t.Run("NoDefaultPolicies", func(t *testing.T) {
-		_, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
+		c, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
 			"sampling.tail.policies": []map[string]interface{}{{
 				"service.name": "foo",
 				"sample_rate":  0.5,
 			}},
 		}), nil)
-		assert.EqualError(t, err, "Error processing configuration: invalid tail sampling config: no default (empty criteria) policy specified accessing 'sampling.tail'")
+		assert.NoError(t, err)
+		assert.False(t, c.Sampling.Tail.Enabled)
 	})
 }
