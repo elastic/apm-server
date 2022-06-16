@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
@@ -50,6 +51,46 @@ func TestProcessUnsampled(t *testing.T) {
 
 	// Unsampled transaction should be reported immediately.
 	assert.Equal(t, in, out)
+}
+
+func testCoordinatedStop(t *testing.T) {
+	processor, err := sampling.NewProcessor(newTempdirConfig(t))
+	require.NoError(t, err)
+	go processor.Run()
+	stopped := make(chan struct{})
+	defer func() {
+		require.NoError(t, processor.Stop(context.Background()))
+		close(stopped)
+	}()
+
+	in := model.Batch{{
+		Processor: model.TransactionProcessor,
+		Trace: model.Trace{
+			ID: "0102030405060708090a0b0c0d0e0f10",
+		},
+		Transaction: &model.Transaction{
+			ID:      "0102030405060708",
+			Sampled: false,
+		},
+	}}
+	err = processor.ProcessBatch(context.Background(), &in)
+	require.NoError(t, err)
+
+	select {
+	case <-stopped:
+		t.Fatal("processor.Stop() should not have returned")
+	default:
+	}
+
+	ctx := context.WithValue(context.Background(), beater.ProcessingStopped{}, struct{}{})
+	err = processor.ProcessBatch(ctx, new(model.Batch))
+	require.NoError(t, err)
+
+	select {
+	case <-stopped:
+	default:
+		t.Fatal("processor.Stop() should have returned")
+	}
 }
 
 func TestProcessAlreadyTailSampled(t *testing.T) {
