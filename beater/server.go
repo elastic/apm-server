@@ -114,6 +114,7 @@ type server struct {
 	logger                *logp.Logger
 	cfg                   *config.Config
 	agentcfgFetchReporter agentcfg.Reporter
+	batchProcessor        model.BatchProcessor
 
 	httpServer *httpServer
 	grpcServer *grpc.Server
@@ -181,6 +182,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		httpServer:            httpServer,
 		grpcServer:            grpcServer,
 		agentcfgFetchReporter: agentcfgFetchReporter,
+		batchProcessor:        batchProcessor,
 	}, nil
 }
 
@@ -229,6 +231,9 @@ func newGRPCServer(
 	return srv, nil
 }
 
+// ProcessingStopped indicates that no more batches will be sent to the batch processor.
+type ProcessingStopped struct{}
+
 func (s server) run(ctx context.Context) error {
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	defer s.logger.Infof("Server stopped")
@@ -243,6 +248,11 @@ func (s server) run(ctx context.Context) error {
 		<-ctx.Done()
 		s.grpcServer.GracefulStop()
 		s.httpServer.stop()
+		ctx = context.WithValue(context.Background(), ProcessingStopped{}, struct{}{})
+		if err := s.batchProcessor.ProcessBatch(ctx, new(model.Batch)); err != nil {
+			s.logger.Errorf("error sending closing batch: %+v", err)
+			return err
+		}
 		return nil
 	})
 	if err := g.Wait(); err != http.ErrServerClosed {

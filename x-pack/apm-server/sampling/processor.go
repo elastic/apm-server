@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/elastic/apm-server/beater"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
@@ -142,11 +143,18 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 	if p.storage == nil {
 		return ErrStopped
 	}
+	// Check for the sentinel value indicating we won't receive any more
+	// batches.
+	if v := ctx.Value(beater.ProcessingStopped{}); v != nil {
+		p.logger.Info("processing stopped signal received")
+		select {
+		case p.processing <- struct{}{}:
+		default:
+			p.logger.Error("cannot send on processing channel")
+		}
+		return nil
+	}
 	events := *batch
-	go func() {
-		// indicate to p.Stop() that we're still processing batches
-		p.processing <- struct{}{}
-	}()
 	for i := 0; i < len(events); i++ {
 		event := &events[i]
 		var report, stored bool
@@ -179,10 +187,6 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 		p.updateProcessorMetrics(report, stored)
 	}
 	*batch = events
-	select {
-	case <-p.processing:
-	default:
-	}
 	return nil
 }
 
@@ -325,15 +329,12 @@ func (p *Processor) Stop(ctx context.Context) error {
 		for {
 			select {
 			case <-p.processing:
-				p.logger.Info("received batch while stopping; waiting")
+				p.logger.Info("processing complete")
 				if !t.Stop() {
 					<-t.C
 				}
-				t.Reset(d)
-				continue
 			case <-t.C:
-				p.logger.Info("no batches received; stopping")
-				return
+				p.logger.Infof("processing not stopped after %s; continuing", d)
 			}
 		}
 	}()
@@ -351,7 +352,7 @@ func (p *Processor) Stop(ctx context.Context) error {
 	p.storage = nil
 	// Guarded by p.storageMu; subsequent calls to p.Stop() or
 	// p.ProcesseBatch() will early return before attempting to interact
-	// with p.process.
+	// with p.processing
 	close(p.processing)
 	return nil
 }
