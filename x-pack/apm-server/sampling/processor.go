@@ -17,7 +17,6 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-server/beater"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
@@ -49,7 +48,6 @@ type Processor struct {
 	storageMu    sync.RWMutex
 	storage      *eventstorage.ShardedReadWriter
 	eventMetrics *eventMetrics // heap-allocated for 64-bit alignment
-	processing   chan struct{}
 
 	stopMu   sync.Mutex
 	stopping chan struct{}
@@ -84,7 +82,6 @@ func NewProcessor(config Config) (*Processor, error) {
 		eventMetrics:        &eventMetrics{},
 		stopping:            make(chan struct{}),
 		stopped:             make(chan struct{}),
-		processing:          make(chan struct{}, 1),
 	}
 	return p, nil
 }
@@ -142,17 +139,6 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 	defer p.storageMu.RUnlock()
 	if p.storage == nil {
 		return ErrStopped
-	}
-	// Check for the sentinel value indicating we won't receive any more
-	// batches.
-	if v := ctx.Value(beater.ProcessingStopped{}); v != nil {
-		p.logger.Info("processing stopped signal received")
-		select {
-		case p.processing <- struct{}{}:
-		default:
-			p.logger.Error("cannot send on processing channel: processing stop message already received")
-		}
-		return nil
 	}
 	events := *batch
 	for i := 0; i < len(events); i++ {
@@ -319,25 +305,6 @@ func (p *Processor) Stop(ctx context.Context) error {
 	case <-p.stopped:
 	}
 
-	// Delay closing storage to allow any remaining batches to be
-	// processed.
-	done := make(chan struct{})
-	go func() {
-		// Wait for at most 5 seconds, or less if an earlier deadline
-		// is configured on the incoming ctx.
-		d := 5 * time.Second
-		ctx, cancel := context.WithTimeout(ctx, d)
-		defer cancel()
-		defer close(done)
-		select {
-		case <-p.processing:
-			p.logger.Info("processing complete")
-		case <-ctx.Done():
-			p.logger.Infof("processing not stopped after timeout; continuing")
-		}
-	}()
-	<-done
-
 	// Lock storage before stopping, to prevent closing storage while
 	// ProcessBatch is using it.
 	p.storageMu.Lock()
@@ -348,10 +315,6 @@ func (p *Processor) Stop(ctx context.Context) error {
 	}
 	p.storage.Close()
 	p.storage = nil
-	// Guarded by p.storageMu; subsequent calls to p.Stop() or
-	// p.ProcesseBatch() will early return before attempting to interact
-	// with p.processing
-	close(p.processing)
 	return nil
 }
 

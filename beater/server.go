@@ -231,8 +231,8 @@ func newGRPCServer(
 	return srv, nil
 }
 
-// ProcessingStopped indicates that no more batches will be sent to the batch processor.
-type ProcessingStopped struct{}
+// ServerStopped indicates that the gRPC and HTTP servers have stopped.
+type ServerStopped struct{}
 
 func (s server) run(ctx context.Context) error {
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
@@ -248,10 +248,9 @@ func (s server) run(ctx context.Context) error {
 		<-ctx.Done()
 		s.grpcServer.GracefulStop()
 		s.httpServer.stop()
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-		ctx = context.WithValue(ctx, ProcessingStopped{}, struct{}{})
-		s.batchProcessor.ProcessBatch(ctx, new(model.Batch))
+		if cancel, ok := ctx.Value(ServerStopped{}).(context.CancelFunc); ok {
+			cancel()
+		}
 		return nil
 	})
 	if err := g.Wait(); err != http.ErrServerClosed {

@@ -178,6 +178,8 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 	runServer = beater.WrapRunServerWithProcessors(runServer, batchProcessors...)
 
 	g, ctx := errgroup.WithContext(ctx)
+	serverctx, cancel := context.WithCancel(context.Background())
+	ctx = context.WithValue(ctx, beater.ServerStopped{}, cancel)
 	for _, p := range processors {
 		p := p // copy for closure
 		g.Go(func() error {
@@ -189,7 +191,7 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 			return nil
 		})
 		g.Go(func() error {
-			<-ctx.Done()
+			<-serverctx.Done()
 			stopctx := context.Background()
 			if args.Config.ShutdownTimeout > 0 {
 				// On shutdown wait for the aggregator to stop
