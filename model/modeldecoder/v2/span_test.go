@@ -281,6 +281,10 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			mapToSpanModel(&input, &event)
 			assert.Equal(t, expected, event.URL)
 			assert.Equal(t, "CLIENT", event.Span.Kind)
+			assert.Equal(t, &model.ServiceTarget{
+				Type: "http",
+				Name: "testing.invalid:80",
+			}, event.Service.Target)
 		})
 
 		t.Run("http-destination", func(t *testing.T) {
@@ -308,6 +312,10 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			assert.Equal(t, expectedDestination, event.Destination)
 			assert.Equal(t, expectedDestinationService, event.Span.DestinationService)
 			assert.Equal(t, "CLIENT", event.Span.Kind)
+			assert.Equal(t, &model.ServiceTarget{
+				Type: "http",
+				Name: "testing.invalid:443",
+			}, event.Service.Target)
 		})
 
 		t.Run("db", func(t *testing.T) {
@@ -337,13 +345,16 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			assert.Equal(t, "mysql", event.Span.Subtype)
 			assert.Equal(t, "", event.Span.Action)
 			assert.Equal(t, "CLIENT", event.Span.Kind)
-
 			assert.Equal(t, &model.DB{
 				Instance:  "ShopDb",
 				Statement: "SELECT * FROM orders WHERE order_id = 'o4711'",
 				Type:      "mysql",
 				UserName:  "billing_user",
 			}, event.Span.DB)
+			assert.Equal(t, &model.ServiceTarget{
+				Type: "mysql",
+				Name: "ShopDb",
+			}, event.Service.Target)
 		})
 
 		t.Run("rpc", func(t *testing.T) {
@@ -377,6 +388,10 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				Name:     "10.20.30.40:123",
 				Resource: "10.20.30.40:123",
 			}, event.Span.DestinationService)
+			assert.Equal(t, &model.ServiceTarget{
+				Type: "grpc",
+				Name: "myservice.EchoService",
+			}, event.Service.Target)
 		})
 
 		t.Run("messaging", func(t *testing.T) {
@@ -408,7 +423,10 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				Name:     "kafka",
 				Resource: "kafka/myTopic",
 			}, event.Span.DestinationService)
-
+			assert.Equal(t, &model.ServiceTarget{
+				Type: "kafka",
+				Name: "myTopic",
+			}, event.Service.Target)
 		})
 
 		t.Run("network", func(t *testing.T) {
