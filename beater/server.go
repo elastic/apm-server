@@ -229,7 +229,8 @@ func newGRPCServer(
 	return srv, nil
 }
 
-// ServerStopped indicates that the gRPC and HTTP servers have stopped.
+// ServerStopped is the context key holding a context.CancelFunc whose
+// cancellation signals the gRPC and HTTP servers have stopped.
 type ServerStopped struct{}
 
 func (s server) run(ctx context.Context) error {
