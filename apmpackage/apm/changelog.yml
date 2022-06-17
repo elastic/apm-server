@@ -6,6 +6,9 @@
     - description: Added support for dynamically mapping summary metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7772
+    - description: Added `span.name` to internal_metrics data stream, for service_destination metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/8391
     - description: Added field mappings for Lambda metrics to internal metrics data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/8400
