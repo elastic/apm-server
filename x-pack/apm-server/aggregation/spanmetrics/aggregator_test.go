@@ -546,10 +546,10 @@ func TestAggregatorMaxGroups(t *testing.T) {
 
 	// After hitting 50% capacity (two buckets), then subsequent new metrics will
 	// be aggregated without span.name.
-	span3 := makeSpan("service", "agent", "destination3", "trg_type_3", "trg_name_3", "success", 100*time.Millisecond, 1)
-	span4 := makeSpan("service", "agent", "destination4", "trg_type_4", "trg_name_4", "success", 100*time.Millisecond, 1)
-	span4.Span.Name = span3.Span.Name
-	batch = append(batch, span3, span4)
+	batch = append(batch,
+		makeSpan("service", "agent", "destination3", "trg_type_3", "trg_name_3", "success", 100*time.Millisecond, 1),
+		makeSpan("service", "agent", "destination4", "trg_type_4", "trg_name_4", "success", 100*time.Millisecond, 1),
+	)
 	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
 	assert.Empty(t, batchMetricsets(t, batch))
