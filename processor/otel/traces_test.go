@@ -1184,6 +1184,151 @@ func TestTracesLogging(t *testing.T) {
 	}
 }
 
+func TestServiceTarget(t *testing.T) {
+	test := func(t *testing.T, expected *model.ServiceTarget, input map[string]pdata.AttributeValue) {
+		t.Helper()
+		event := transformSpanWithAttributes(t, input)
+		assert.Equal(t, expected, event.Service.Target)
+	}
+	t.Run("db_spans_with_peerservice_system", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Type: "postgresql",
+			Name: "testsvc",
+		}, map[string]pdata.AttributeValue{
+			"peer.service": pdata.NewAttributeValueString("testsvc"),
+			"db.system":    pdata.NewAttributeValueString("postgresql"),
+		})
+	})
+
+	t.Run("db_spans_with_peerservice_name_system", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Type: "postgresql",
+			Name: "testdb",
+		}, map[string]pdata.AttributeValue{
+			"peer.service": pdata.NewAttributeValueString("testsvc"),
+			"db.name":      pdata.NewAttributeValueString("testdb"),
+			"db.system":    pdata.NewAttributeValueString("postgresql"),
+		})
+	})
+
+	t.Run("db_spans_with_name", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Type: "db",
+			Name: "testdb",
+		}, map[string]pdata.AttributeValue{
+			"db.name": pdata.NewAttributeValueString("testdb"),
+		})
+	})
+
+	t.Run("http_spans_with_peerservice_url", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Name: "test-url:443",
+			Type: "http",
+		}, map[string]pdata.AttributeValue{
+			"peer.service": pdata.NewAttributeValueString("testsvc"),
+			"http.url":     pdata.NewAttributeValueString("https://test-url:443/"),
+		})
+	})
+
+	t.Run("http_spans_with_scheme_host_target", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Name: "test-url:443",
+			Type: "http",
+		}, map[string]pdata.AttributeValue{
+			"http.scheme": pdata.NewAttributeValueString("https"),
+			"http.host":   pdata.NewAttributeValueString("test-url:443"),
+			"http.target": pdata.NewAttributeValueString("/"),
+		})
+	})
+
+	t.Run("http_spans_with_scheme_netpeername_netpeerport_target", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Name: "test-url:443",
+			Type: "http",
+		}, map[string]pdata.AttributeValue{
+			"http.scheme":   pdata.NewAttributeValueString("https"),
+			"net.peer.name": pdata.NewAttributeValueString("test-url"),
+			"net.peer.ip":   pdata.NewAttributeValueString("::1"), // net.peer.name preferred
+			"net.peer.port": pdata.NewAttributeValueInt(443),
+			"http.target":   pdata.NewAttributeValueString("/"),
+		})
+	})
+
+	t.Run("http_spans_with_scheme_netpeerip_netpeerport_target", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Name: "[::1]:443",
+			Type: "http",
+		}, map[string]pdata.AttributeValue{
+			"http.scheme":   pdata.NewAttributeValueString("https"),
+			"net.peer.ip":   pdata.NewAttributeValueString("::1"), // net.peer.name preferred
+			"net.peer.port": pdata.NewAttributeValueInt(443),
+			"http.target":   pdata.NewAttributeValueString("/"),
+		})
+	})
+
+	t.Run("rpc_spans_with_peerservice_system", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Name: "testsvc",
+			Type: "grpc",
+		}, map[string]pdata.AttributeValue{
+			"peer.service": pdata.NewAttributeValueString("testsvc"),
+			"rpc.system":   pdata.NewAttributeValueString("grpc"),
+		})
+	})
+
+	t.Run("rpc_spans_with_peerservice_system_service", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Name: "test",
+			Type: "grpc",
+		}, map[string]pdata.AttributeValue{
+			"peer.service": pdata.NewAttributeValueString("testsvc"),
+			"rpc.system":   pdata.NewAttributeValueString("grpc"),
+			"rpc.service":  pdata.NewAttributeValueString("test"),
+		})
+	})
+
+	t.Run("rpc_spans_with_service", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Name: "test",
+			Type: "external",
+		}, map[string]pdata.AttributeValue{
+			"rpc.service": pdata.NewAttributeValueString("test"),
+		})
+	})
+
+	t.Run("messaging_spans_with_peerservice_system_destination", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Name: "myTopic",
+			Type: "kafka",
+		}, map[string]pdata.AttributeValue{
+			"peer.service":          pdata.NewAttributeValueString("testsvc"),
+			"messaging.system":      pdata.NewAttributeValueString("kafka"),
+			"messaging.destination": pdata.NewAttributeValueString("myTopic"),
+		})
+	})
+
+	t.Run("messaging_spans_with_peerservice_system_destination_tempdestination", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Name: "testsvc",
+			Type: "kafka",
+		}, map[string]pdata.AttributeValue{
+			"peer.service":               pdata.NewAttributeValueString("testsvc"),
+			"messaging.temp_destination": pdata.NewAttributeValueBool(true),
+			"messaging.system":           pdata.NewAttributeValueString("kafka"),
+			"messaging.destination":      pdata.NewAttributeValueString("myTopic"),
+		})
+	})
+
+	t.Run("messaging_spans_with_destination", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Name: "myTopic",
+			Type: "messaging",
+		}, map[string]pdata.AttributeValue{
+			"messaging.destination": pdata.NewAttributeValueString("myTopic"),
+		})
+	})
+}
+
 func testJaegerLogs() []jaegermodel.Log {
 	return []jaegermodel.Log{{
 		// errors that can be converted to elastic errors

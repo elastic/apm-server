@@ -31,7 +31,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "db01",
+                    "type": "mysql"
+                }
             },
             "span": {
                 "db": {
