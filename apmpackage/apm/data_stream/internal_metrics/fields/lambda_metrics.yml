@@ -1,17 +1,20 @@
 - name: aws.lambda.metrics.billed_duration
   type: long
   metric_type: counter
+  unit: ms
   description: The number of milliseconds for which the Lambda end user is billed.
 - name: aws.lambda.metrics.coldstart_duration
   type: float
   metric_type: counter
+  unit: ms
   description: The number of milliseconds elapsed during cold start.
 - name: aws.lambda.metrics.duration
   type: float
   metric_type: counter
+  unit: ms
   description: The total number of milliseconds elapsed during the execution of the Lambda function.
 - name: aws.lambda.metrics.timeout
   type: long
   metric_type: counter
+  unit: ms
   description: The Lambda function timeout, expressed in milliseconds.
-  
