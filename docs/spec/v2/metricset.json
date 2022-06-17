@@ -2,6 +2,73 @@
   "$id": "docs/spec/v2/metricset",
   "type": "object",
   "properties": {
+    "faas": {
+      "description": "FAAS holds fields related to Function as a Service events.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "coldstart": {
+          "description": "Indicates whether a function invocation was a cold start or not.",
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "execution": {
+          "description": "The request id of the function invocation.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "id": {
+          "description": "A unique identifier of the invoked serverless function.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "name": {
+          "description": "The lambda function name.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "trigger": {
+          "description": "Trigger attributes.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "request_id": {
+              "description": "The id of the origin trigger request.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "type": {
+              "description": "The trigger type.",
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
+        },
+        "version": {
+          "description": "The lambda function version.",
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
     "samples": {
       "description": "Samples hold application metrics collected from the agent.",
       "type": "object",
