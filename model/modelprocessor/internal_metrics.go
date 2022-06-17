@@ -19,14 +19,6 @@ package modelprocessor
 
 func isInternalMetricName(name string) bool {
 	switch name {
-	case "faas.billed_duration":
-		return true
-	case "faas.coldstart_duration":
-		return true
-	case "faas.duration":
-		return true
-	case "faas.timeout":
-		return true
 	case "clr.gc.count":
 		return true
 	case "clr.gc.gen0size":
@@ -38,6 +30,14 @@ func isInternalMetricName(name string) bool {
 	case "clr.gc.gen3size":
 		return true
 	case "clr.gc.time":
+		return true
+	case "faas.billed_duration":
+		return true
+	case "faas.coldstart_duration":
+		return true
+	case "faas.duration":
+		return true
+	case "faas.timeout":
 		return true
 	case "golang.goroutines":
 		return true
