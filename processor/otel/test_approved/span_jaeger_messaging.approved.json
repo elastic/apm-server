@@ -28,7 +28,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "queue-abc",
+                    "type": "messaging"
+                }
             },
             "span": {
                 "id": "0000000041414646",
