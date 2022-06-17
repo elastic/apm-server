@@ -245,10 +245,10 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "aws.lambda.metrics.billed_duration": 183,
-            "aws.lambda.metrics.coldstart_duration": 422.9700012207031,
-            "aws.lambda.metrics.duration": 182.42999267578125,
-            "aws.lambda.metrics.timeout": 5000,
+            "faas.billed_duration": 183,
+            "faas.coldstart_duration": 422.9700012207031,
+            "faas.duration": 182.42999267578125,
+            "faas.timeout": 5000,
             "faas": {
                 "coldstart": true,
                 "execution": "6f7f0961f83442118a7af6fe80b88d56",

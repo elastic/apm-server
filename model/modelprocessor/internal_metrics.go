@@ -19,13 +19,13 @@ package modelprocessor
 
 func isInternalMetricName(name string) bool {
 	switch name {
-	case "aws.lambda.metrics.billed_duration":
+	case "faas.billed_duration":
 		return true
-	case "aws.lambda.metrics.coldstart_duration":
+	case "faas.coldstart_duration":
 		return true
-	case "aws.lambda.metrics.duration":
+	case "faas.duration":
 		return true
-	case "aws.lambda.metrics.timeout":
+	case "faas.timeout":
 		return true
 	case "clr.gc.count":
 		return true
