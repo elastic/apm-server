@@ -45,7 +45,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "foo.bar.com:80",
+                    "type": "http"
+                }
             },
             "span": {
                 "destination": {
@@ -108,7 +112,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "foo.bar.com:80",
+                    "type": "http"
+                }
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -153,7 +161,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "foo.bar.com:80",
+                    "type": "http"
+                }
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -200,7 +212,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "foo.bar.com:80",
+                    "type": "http"
+                }
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -247,7 +263,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "foo.bar.com:80",
+                    "type": "http"
+                }
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -294,7 +314,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "foo.bar.com:80",
+                    "type": "http"
+                }
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -339,7 +363,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "foo.bar.com:80",
+                    "type": "http"
+                }
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -384,7 +412,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "foo.bar.com:80",
+                    "type": "http"
+                }
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
@@ -426,7 +458,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "foo.bar.com:80",
+                    "type": "http"
+                }
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
@@ -467,7 +503,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "foo.bar.com:80",
+                    "type": "http"
+                }
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
