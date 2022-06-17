@@ -521,7 +521,6 @@ func TestAggregatorMaxGroups(t *testing.T) {
 	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(in, core)
 	}))
-	_ = observed
 
 	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
