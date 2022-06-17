@@ -181,6 +181,10 @@
               description: |
                 Aggregated span duration, excluding the time periods where a direct child was running, in microseconds.
               unit: micros
+    - name: name
+      type: keyword
+      description: |
+        Generic designation of a span in the scope of a transaction.
     - name: subtype
       type: keyword
       description: |
