@@ -28,6 +28,8 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
+var zeroLimiter = eventstorage.NewMockLimiter(0, 0, 1)
+
 func TestProcessUnsampled(t *testing.T) {
 	processor, err := sampling.NewProcessor(newTempdirConfig(t))
 	require.NoError(t, err)
@@ -59,13 +61,13 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// subsequent events in the trace will be reported immediately.
 	trace1 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f11"}
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute)
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute, zeroLimiter)
 	writer := storage.NewReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace1.ID, true))
 	assert.NoError(t, writer.Flush())
 	writer.Close()
 
-	storage = eventstorage.New(config.DB, eventstorage.JSONCodec{}, -1) // expire immediately
+	storage = eventstorage.New(config.DB, eventstorage.JSONCodec{}, -1, zeroLimiter) // expire immediately
 	writer = storage.NewReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace2.ID, true))
 	assert.NoError(t, writer.Flush())
@@ -122,6 +124,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.stored"] = 2
 	expectedMonitoring.Ints["sampling.events.sampled"] = 2
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
+	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
 	// Stop the processor so we can access the database.
@@ -227,11 +230,12 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.sampled"] = 2
 	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
+	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute)
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute, zeroLimiter)
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -286,7 +290,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute)
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute, zeroLimiter)
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -446,11 +450,12 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.sampled"] = 1
 	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
+	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
 	assert.Equal(t, trace1Events, events)
 
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute)
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute, zeroLimiter)
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -505,6 +510,7 @@ func TestGroupsMonitoring(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.dropped"] = 1 // final event dropped, after service limit reached
 	expectedMonitoring.Ints["sampling.events.sampled"] = 0
 	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 1
+	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`, `sampling.dynamic_service_groups`)
 }
 
@@ -677,6 +683,7 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 			StorageDir:        tempdir,
 			StorageGCInterval: time.Second,
 			TTL:               30 * time.Minute,
+			StorageLimit:      3 * 1024 * 1024 * 1024,
 		},
 	}
 }

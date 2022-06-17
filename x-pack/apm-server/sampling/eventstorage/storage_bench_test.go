@@ -21,7 +21,7 @@ func BenchmarkWriteTransaction(b *testing.B) {
 	test := func(b *testing.B, codec eventstorage.Codec) {
 		db := newBadgerDB(b, badgerOptions)
 		ttl := time.Minute
-		store := eventstorage.New(db, codec, ttl)
+		store := eventstorage.New(db, codec, ttl, zeroLimiter)
 		readWriter := store.NewReadWriter()
 		defer readWriter.Close()
 
@@ -61,7 +61,7 @@ func BenchmarkReadEvents(b *testing.B) {
 			b.Run(fmt.Sprintf("%d events", count), func(b *testing.B) {
 				db := newBadgerDB(b, badgerOptions)
 				ttl := time.Minute
-				store := eventstorage.New(db, codec, ttl)
+				store := eventstorage.New(db, codec, ttl, zeroLimiter)
 				readWriter := store.NewReadWriter()
 				defer readWriter.Close()
 
@@ -119,7 +119,7 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 	// Test with varying numbers of events in the trace.
 	db := newBadgerDB(b, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, zeroLimiter)
 	readWriter := store.NewReadWriter()
 	defer readWriter.Close()
 

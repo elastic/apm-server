@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"sync"
 	"sync/atomic"
-	"syscall"
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
@@ -31,9 +30,16 @@ const (
 	// the subscriber position across server restarts.
 	subscriberPositionFile = "subscriber_position.json"
 
-	// tooManyGroupsLoggerRateLimit is the maximum frequency at which
-	// "too many groups" log messages are logged.
-	tooManyGroupsLoggerRateLimit = time.Minute
+	// loggerRateLimit is the maximum frequency at which "too many groups" and
+	// "write failure" log messages are logged.
+	loggerRateLimit = time.Minute
+)
+
+const (
+	// writeFailSampleStrategy will sample traces when badger writes fail.
+	writeFailSampleStrategy = iota
+	// writeFailDiscardStrategy will discard traces when badger writes fail.
+	writeFailDiscardStrategy
 )
 
 // ErrStopped is returned when calling ProcessBatch on a stopped Processor.
@@ -41,18 +47,21 @@ var ErrStopped = errors.New("processor is stopped")
 
 // Processor is a tail-sampling event processor.
 type Processor struct {
-	config              Config
-	logger              *logp.Logger
-	tooManyGroupsLogger *logp.Logger
-	groups              *traceGroups
+	config             Config
+	logger             *logp.Logger
+	rateLimittedLogger *logp.Logger
+	groups             *traceGroups
 
 	storageMu    sync.RWMutex
 	storage      *eventstorage.ShardedReadWriter
 	eventMetrics *eventMetrics // heap-allocated for 64-bit alignment
+	limiter      *eventstorage.Limiter
 
 	stopMu   sync.Mutex
 	stopping chan struct{}
 	stopped  chan struct{}
+
+	writeFailStrategy uint8
 }
 
 type eventMetrics struct {
@@ -61,6 +70,7 @@ type eventMetrics struct {
 	stored        int64
 	sampled       int64
 	headUnsampled int64
+	failedWrites  int64
 }
 
 // NewProcessor returns a new Processor, for tail-sampling trace events.
@@ -69,20 +79,30 @@ func NewProcessor(config Config) (*Processor, error) {
 		return nil, errors.Wrap(err, "invalid tail-sampling config")
 	}
 
-	logger := logp.NewLogger(logs.Sampling)
+	limiter, err := eventstorage.NewLimiter(eventstorage.LimiterCfg{
+		DB:    config.DB,
+		Limit: int64(config.StorageLimit),
+	})
+	if err != nil {
+		return nil, err
+	}
 	eventCodec := eventstorage.JSONCodec{}
-	storage := eventstorage.New(config.DB, eventCodec, config.TTL)
+	storage := eventstorage.New(config.DB, eventCodec, config.TTL, limiter)
+	logger := logp.NewLogger(logs.Sampling)
 	readWriter := storage.NewShardedReadWriter()
 
 	p := &Processor{
-		config:              config,
-		logger:              logger,
-		tooManyGroupsLogger: logger.WithOptions(logs.WithRateLimit(tooManyGroupsLoggerRateLimit)),
-		groups:              newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
-		storage:             readWriter,
-		eventMetrics:        &eventMetrics{},
-		stopping:            make(chan struct{}),
-		stopped:             make(chan struct{}),
+		config:             config,
+		logger:             logger,
+		rateLimittedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
+		groups:             newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
+		storage:            readWriter,
+		eventMetrics:       &eventMetrics{},
+		stopping:           make(chan struct{}),
+		stopped:            make(chan struct{}),
+		limiter:            limiter,
+		// TODO(marclop): make the writeFailStrategy configurable.
+		writeFailStrategy: writeFailSampleStrategy,
 	}
 	return p, nil
 }
@@ -121,6 +141,7 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 		monitoring.ReportInt(V, "stored", atomic.LoadInt64(&p.eventMetrics.stored))
 		monitoring.ReportInt(V, "sampled", atomic.LoadInt64(&p.eventMetrics.sampled))
 		monitoring.ReportInt(V, "head_unsampled", atomic.LoadInt64(&p.eventMetrics.headUnsampled))
+		monitoring.ReportInt(V, "failed_writes", atomic.LoadInt64(&p.eventMetrics.failedWrites))
 	})
 }
 
@@ -144,7 +165,7 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 	events := *batch
 	for i := 0; i < len(events); i++ {
 		event := &events[i]
-		var report, stored bool
+		var report, stored, failed bool
 		var err error
 		switch event.Processor {
 		case model.TransactionProcessor:
@@ -163,9 +184,18 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 		// NOTE(marclop) This behavior should be configurable so users who
 		// rely on tail sampling for cost cutting, can discard events once
 		// the disk is full.
-		if err != nil && ignoreENOSPCErr(err) == nil {
-			p.logger.Info("received disk is full error, sampling trace by default")
-			report = true
+		if err != nil {
+			failed = true
+			var action string
+			switch p.writeFailStrategy {
+			case writeFailDiscardStrategy:
+				action = "discarding"
+				report = false
+			case writeFailSampleStrategy:
+				action = "sampling"
+				report = true
+			}
+			p.rateLimittedLogger.Infof("processing trace failed, %s trace by default", action)
 		}
 
 		if !report {
@@ -176,13 +206,16 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 			i--
 		}
 
-		p.updateProcessorMetrics(report, stored)
+		p.updateProcessorMetrics(report, stored, failed)
 	}
 	*batch = events
 	return nil
 }
 
-func (p *Processor) updateProcessorMetrics(report, stored bool) {
+func (p *Processor) updateProcessorMetrics(report, stored, failedWrite bool) {
+	if failedWrite {
+		atomic.AddInt64(&p.eventMetrics.failedWrites, 1)
+	}
 	if stored {
 		atomic.AddInt64(&p.eventMetrics.stored, 1)
 	} else if !report {
@@ -240,7 +273,7 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 	reservoirSampled, err := p.groups.sampleTrace(event)
 	if err == errTooManyTraceGroups {
 		// Too many trace groups, drop the transaction.
-		p.tooManyGroupsLogger.Warn(`
+		p.rateLimittedLogger.Warn(`
 Tail-sampling service group limit reached, discarding trace events.
 This is caused by having many unique service names while relying on
 sampling policies without service name specified.
@@ -379,6 +412,14 @@ func (p *Processor) Run() error {
 	publishSampledTraceIDs := make(chan string)
 	g, ctx := errgroup.WithContext(context.Background())
 	g.Go(func() error {
+		// Poll the size of the database using the configured poll period.
+		// this will keep a local cache of the size of the database for both
+		// metric reporting purposes and also to be able to limit the size to
+		// which the badger database will grow to.
+		p.limiter.PollSize(ctx, p.config.StoragePollPeriod)
+		return nil
+	})
+	g.Go(func() error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -451,12 +492,18 @@ func (p *Processor) Run() error {
 				remoteDecision = true
 			case traceID = <-localSampledTraceIDs:
 			}
-			if err := ignoreENOSPCErr(p.storage.WriteTraceSampled(traceID, true)); err != nil {
-				return err
+			if err := p.storage.WriteTraceSampled(traceID, true); err != nil {
+				p.rateLimittedLogger.Warnf(
+					"recived error writing sampled trace: %w", err,
+				)
+				continue
 			}
 			var events model.Batch
-			if err := ignoreENOSPCErr(p.storage.ReadTraceEvents(traceID, &events)); err != nil {
-				return err
+			if err := p.storage.ReadTraceEvents(traceID, &events); err != nil {
+				p.rateLimittedLogger.Warnf(
+					"recived error reading trace events: %s", err,
+				)
+				continue
 			}
 			if n := len(events); n > 0 {
 				p.logger.Debugf("reporting %d events", n)
@@ -495,8 +542,10 @@ func (p *Processor) Run() error {
 			case <-ctx.Done():
 				return ctx.Err()
 			case pos := <-subscriberPositions:
-				if err := ignoreENOSPCErr(writeSubscriberPosition(p.config.StorageDir, pos)); err != nil {
-					return err
+				if err := writeSubscriberPosition(p.config.StorageDir, pos); err != nil {
+					p.rateLimittedLogger.Warnf(
+						"recived error writing remote subscriber sampled position: %w", err,
+					)
 				}
 			}
 		}
@@ -535,26 +584,4 @@ func sendTraceIDs(ctx context.Context, out chan<- string, traceIDs []string) err
 		}
 	}
 	return nil
-}
-
-// ignoreENOSPCErr returns nil if the error is `syscall.ENOSPC` or os.PathError,
-// which is returned by calls to `os.Created`, if the error doesn't match any
-// of the two errors, the error is returned.
-func ignoreENOSPCErr(err error) error {
-	if err == nil {
-		return nil
-	}
-	// Since most times the "no space left on device" is triggered by writing
-	// to an existing vlog file, check if the error is syscall.ENOSPC first.
-	if errors.Is(err, syscall.ENOSPC) {
-		return nil
-	}
-
-	// If "no space left on device" occurs when a new value log file is created,
-	// then we return after checking that the error is `os.PathError`.
-	var pathErr *os.PathError
-	if errors.As(err, &pathErr) {
-		return nil
-	}
-	return err
 }

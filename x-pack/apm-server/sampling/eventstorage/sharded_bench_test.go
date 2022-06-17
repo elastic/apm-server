@@ -17,7 +17,7 @@ import (
 func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 	db := newBadgerDB(b, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, zeroLimiter)
 	sharded := store.NewShardedReadWriter()
 	defer sharded.Close()
 
@@ -37,7 +37,7 @@ func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 func BenchmarkShardedWriteTransactionContended(b *testing.B) {
 	db := newBadgerDB(b, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, zeroLimiter)
 	sharded := store.NewShardedReadWriter()
 	defer sharded.Close()
 

@@ -100,6 +100,13 @@ type StorageConfig struct {
 	// StorageGCInterval holds the amount of time between storage garbage collections.
 	StorageGCInterval time.Duration
 
+	// StorageLimit for the badger database, in bytes.
+	StorageLimit uint64
+
+	// StoragePollPeriod can be set to adjust the frequency on which the badger
+	// database size is checked.
+	StoragePollPeriod time.Duration
+
 	// TTL holds the amount of time before events and sampling decisions
 	// are expired from local storage.
 	TTL time.Duration

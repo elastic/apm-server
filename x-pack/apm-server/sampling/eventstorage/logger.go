@@ -23,21 +23,18 @@ type LogpAdaptor struct {
 // previously logged message.
 func (a *LogpAdaptor) Errorf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	if a.skipLog(msg) {
-		return
-	}
 	if a.setLast(msg) {
 		a.Logger.Errorf(format, args...)
 	}
 }
 
-func (a *LogpAdaptor) skipLog(msg string) bool {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-	return msg == a.last
-}
-
 func (a *LogpAdaptor) setLast(msg string) bool {
+	a.mu.RLock()
+	if msg != a.last {
+		a.mu.RUnlock()
+		return false
+	}
+	a.mu.RUnlock()
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	shouldSet := msg != a.last
