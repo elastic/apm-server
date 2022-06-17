@@ -685,6 +685,8 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) bool {
 		event.Service.Version = from.Service.Version.Val
 	}
 
+	mapToFAASModel(from.FAAS, &event.FAAS)
+
 	return ok
 }
 
