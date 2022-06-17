@@ -114,7 +114,6 @@ type server struct {
 	logger                *logp.Logger
 	cfg                   *config.Config
 	agentcfgFetchReporter agentcfg.Reporter
-	batchProcessor        model.BatchProcessor
 
 	httpServer *httpServer
 	grpcServer *grpc.Server
@@ -182,7 +181,6 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		httpServer:            httpServer,
 		grpcServer:            grpcServer,
 		agentcfgFetchReporter: agentcfgFetchReporter,
-		batchProcessor:        batchProcessor,
 	}, nil
 }
 
