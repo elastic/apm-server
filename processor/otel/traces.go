@@ -722,7 +722,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		event.HTTP = http
 		event.URL.Original = httpURL
 		serviceTarget.Type = event.Span.Subtype
-		if serviceTarget.Name == "" && fullURL != nil {
+		if fullURL != nil {
 			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
 			resource := url.Host
 			if destPort == schemeDefaultPort(url.Scheme) {
@@ -736,8 +736,10 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 			}
 
 			serviceTarget.Name = resource
-			destinationService.Name = url.String()
-			destinationService.Resource = resource
+			if destinationService.Name == "" {
+				destinationService.Name = url.String()
+				destinationService.Resource = resource
+			}
 		}
 	case dbSpan:
 		event.Span.Type = "db"
@@ -752,7 +754,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 				destinationService.Resource = event.Span.Subtype
 			}
 		}
-		if serviceTarget.Name == "" {
+		if db.Instance != "" {
 			serviceTarget.Name = db.Instance
 		}
 		event.Span.DB = &db
@@ -774,7 +776,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		if destinationService.Resource != "" && message.QueueName != "" {
 			destinationService.Resource += "/" + message.QueueName
 		}
-		if serviceTarget.Name == "" && !messageTempDestination {
+		if message.QueueName != "" && !messageTempDestination {
 			serviceTarget.Name = message.QueueName
 		}
 		event.Span.Message = &message
@@ -786,11 +788,13 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 			serviceTarget.Type = event.Span.Subtype
 		}
 		// Set destination.service.* from the peer address, unless peer.service was specified.
-		if serviceTarget.Name == "" {
-			serviceTarget.Name = rpcService
+		if destinationService.Name == "" {
 			destHostPort := net.JoinHostPort(destAddr, strconv.Itoa(destPort))
 			destinationService.Name = destHostPort
 			destinationService.Resource = destHostPort
+		}
+		if rpcService != "" {
+			serviceTarget.Name = rpcService
 		}
 	default:
 		// Only set event.Span.Type if not already set

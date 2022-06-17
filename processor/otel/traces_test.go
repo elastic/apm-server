@@ -1190,24 +1190,24 @@ func TestServiceTarget(t *testing.T) {
 		event := transformSpanWithAttributes(t, input)
 		assert.Equal(t, expected, event.Service.Target)
 	}
-	t.Run("db_spans_with_peerservice_name_system", func(t *testing.T) {
+	t.Run("db_spans_with_peerservice_system", func(t *testing.T) {
 		test(t, &model.ServiceTarget{
 			Type: "postgresql",
 			Name: "testsvc",
 		}, map[string]pdata.AttributeValue{
-			"peer.service": pdata.NewAttributeValueString("testsvc"), // takes highest priority for target.name
-			"db.name":      pdata.NewAttributeValueString("testdb"),
+			"peer.service": pdata.NewAttributeValueString("testsvc"),
 			"db.system":    pdata.NewAttributeValueString("postgresql"),
 		})
 	})
 
-	t.Run("db_spans_with_name_system", func(t *testing.T) {
+	t.Run("db_spans_with_peerservice_name_system", func(t *testing.T) {
 		test(t, &model.ServiceTarget{
 			Type: "postgresql",
 			Name: "testdb",
 		}, map[string]pdata.AttributeValue{
-			"db.name":   pdata.NewAttributeValueString("testdb"),
-			"db.system": pdata.NewAttributeValueString("postgresql"),
+			"peer.service": pdata.NewAttributeValueString("testsvc"),
+			"db.name":      pdata.NewAttributeValueString("testdb"),
+			"db.system":    pdata.NewAttributeValueString("postgresql"),
 		})
 	})
 
@@ -1222,20 +1222,11 @@ func TestServiceTarget(t *testing.T) {
 
 	t.Run("http_spans_with_peerservice_url", func(t *testing.T) {
 		test(t, &model.ServiceTarget{
-			Name: "testsvc",
-			Type: "http",
-		}, map[string]pdata.AttributeValue{
-			"peer.service": pdata.NewAttributeValueString("testsvc"), // takes highest priority for target.name
-			"http.url":     pdata.NewAttributeValueString("https://test-url:443/"),
-		})
-	})
-
-	t.Run("http_spans_with_url", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
 			Name: "test-url:443",
 			Type: "http",
 		}, map[string]pdata.AttributeValue{
-			"http.url": pdata.NewAttributeValueString("https://test-url:443/"),
+			"peer.service": pdata.NewAttributeValueString("testsvc"),
+			"http.url":     pdata.NewAttributeValueString("https://test-url:443/"),
 		})
 	})
 
@@ -1275,24 +1266,24 @@ func TestServiceTarget(t *testing.T) {
 		})
 	})
 
-	t.Run("rpc_spans_with_peerservice_system_service", func(t *testing.T) {
+	t.Run("rpc_spans_with_peerservice_system", func(t *testing.T) {
 		test(t, &model.ServiceTarget{
 			Name: "testsvc",
 			Type: "grpc",
 		}, map[string]pdata.AttributeValue{
-			"peer.service": pdata.NewAttributeValueString("testsvc"), // takes highest priority for target.name
+			"peer.service": pdata.NewAttributeValueString("testsvc"),
 			"rpc.system":   pdata.NewAttributeValueString("grpc"),
-			"rpc.service":  pdata.NewAttributeValueString("test"),
 		})
 	})
 
-	t.Run("rpc_spans_with_system_service", func(t *testing.T) {
+	t.Run("rpc_spans_with_peerservice_system_service", func(t *testing.T) {
 		test(t, &model.ServiceTarget{
 			Name: "test",
 			Type: "grpc",
 		}, map[string]pdata.AttributeValue{
-			"rpc.system":  pdata.NewAttributeValueString("grpc"),
-			"rpc.service": pdata.NewAttributeValueString("test"),
+			"peer.service": pdata.NewAttributeValueString("testsvc"),
+			"rpc.system":   pdata.NewAttributeValueString("grpc"),
+			"rpc.service":  pdata.NewAttributeValueString("test"),
 		})
 	})
 
@@ -1305,13 +1296,26 @@ func TestServiceTarget(t *testing.T) {
 		})
 	})
 
-	t.Run("messaging_spans_with_system_destination", func(t *testing.T) {
+	t.Run("messaging_spans_with_peerservice_system_destination", func(t *testing.T) {
 		test(t, &model.ServiceTarget{
 			Name: "myTopic",
 			Type: "kafka",
 		}, map[string]pdata.AttributeValue{
+			"peer.service":          pdata.NewAttributeValueString("testsvc"),
 			"messaging.system":      pdata.NewAttributeValueString("kafka"),
 			"messaging.destination": pdata.NewAttributeValueString("myTopic"),
+		})
+	})
+
+	t.Run("messaging_spans_with_peerservice_system_destination_tempdestination", func(t *testing.T) {
+		test(t, &model.ServiceTarget{
+			Name: "testsvc",
+			Type: "kafka",
+		}, map[string]pdata.AttributeValue{
+			"peer.service":               pdata.NewAttributeValueString("testsvc"),
+			"messaging.temp_destination": pdata.NewAttributeValueBool(true),
+			"messaging.system":           pdata.NewAttributeValueString("kafka"),
+			"messaging.destination":      pdata.NewAttributeValueString("myTopic"),
 		})
 	})
 

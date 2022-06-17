@@ -33,7 +33,7 @@
                 },
                 "name": "unknown",
                 "target": {
-                    "name": "sql",
+                    "name": "db01",
                     "type": "mysql"
                 }
             },
