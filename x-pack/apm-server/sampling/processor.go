@@ -131,7 +131,7 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 	monitoring.ReportNamespace(V, "storage", func() {
 		p.storageMu.RLock()
 		defer p.storageMu.RUnlock()
-		lsmSize, valueLogSize := p.config.DB.Size()
+		lsmSize, valueLogSize := p.limiter.Size()
 		monitoring.ReportInt(V, "lsm_size", int64(lsmSize))
 		monitoring.ReportInt(V, "value_log_size", int64(valueLogSize))
 	})
