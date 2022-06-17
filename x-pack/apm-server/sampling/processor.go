@@ -164,7 +164,7 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 		// rely on tail sampling for cost cutting, can discard events once
 		// the disk is full.
 		if err != nil && ignoreENOSPCErr(err) == nil {
-			p.logger.Info("received disk is full error, sampling transaction by default")
+			p.logger.Info("received disk is full error, sampling trace by default")
 			report = true
 		}
 
