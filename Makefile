@@ -43,8 +43,8 @@ build/apm-server-%-arm64 build/apm-server-%-arm64.exe: export GOARCH=arm64
 build-all: $(APM_SERVER_BINARIES)
 
 .PHONY: apm-server
-apm-server: build/apm-server-$(shell $(GO) env GOOS)-$(shell $(GO) env GOARCH)
-	@cp $^ $@
+apm-server:
+	@$(GO) build -o $@ ./x-pack/apm-server
 
 .PHONY: apm-server-oss
 apm-server-oss:
