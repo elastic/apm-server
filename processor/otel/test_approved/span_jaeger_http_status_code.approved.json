@@ -36,7 +36,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "foo.bar.com:80",
+                    "type": "http"
+                }
             },
             "span": {
                 "destination": {
