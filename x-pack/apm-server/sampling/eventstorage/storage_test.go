@@ -18,6 +18,8 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
 
+var zeroLimiter = eventstorage.NewMockLimiter(0, 0, 1)
+
 func TestWriteEvents(t *testing.T) {
 	// Run two tests:
 	//  - 1 transaction and 1 span
@@ -35,7 +37,7 @@ func TestWriteEvents(t *testing.T) {
 func testWriteEvents(t *testing.T, numSpans int) {
 	db := newBadgerDB(t, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, zeroLimiter)
 	readWriter := store.NewShardedReadWriter()
 	defer readWriter.Close()
 
@@ -105,7 +107,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 func TestWriteTraceSampled(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, zeroLimiter)
 	readWriter := store.NewShardedReadWriter()
 	defer readWriter.Close()
 
@@ -155,7 +157,7 @@ func TestWriteTraceSampled(t *testing.T) {
 func TestReadTraceEvents(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, zeroLimiter)
 
 	traceID := [...]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
@@ -202,7 +204,7 @@ func TestReadTraceEvents(t *testing.T) {
 func TestReadTraceEventsDecodeError(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, zeroLimiter)
 
 	traceID := [...]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
@@ -225,7 +227,7 @@ func TestReadTraceEventsDecodeError(t *testing.T) {
 func TestIsTraceSampled(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, zeroLimiter)
 
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
 		if err := txn.SetEntry(badger.NewEntry([]byte("sampled_trace_id"), nil).WithMeta('s')); err != nil {

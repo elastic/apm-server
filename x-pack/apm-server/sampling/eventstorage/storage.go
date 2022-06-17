@@ -6,6 +6,8 @@ package eventstorage
 
 import (
 	"errors"
+	"fmt"
+	"syscall"
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
@@ -21,16 +23,23 @@ const (
 	entryMetaTraceEvent     = 'e'
 )
 
-// ErrNotFound is returned by by the Storage.IsTraceSampled method,
-// for non-existing trace IDs.
-var ErrNotFound = errors.New("key not found")
+var (
+	// ErrNotFound is returned by by the Storage.IsTraceSampled method,
+	// for non-existing trace IDs.
+	ErrNotFound = errors.New("key not found")
+
+	// ErrLimitReached is returned by the ReadWriter.Flush meethod when
+	// the configured StorageLimiter.Limit is true.
+	ErrLimitReached = fmt.Errorf("configured storage limit reached: %w", syscall.ENOSPC)
+)
 
 // Storage provides storage for sampled transactions and spans,
 // and for recording trace sampling decisions.
 type Storage struct {
-	db    *badger.DB
-	codec Codec
-	ttl   time.Duration
+	db      *badger.DB
+	limiter *Limiter
+	codec   Codec
+	ttl     time.Duration
 }
 
 // Codec provides methods for encoding and decoding events.
@@ -42,8 +51,13 @@ type Codec interface {
 // New returns a new Storage using db and codec.
 //
 // Storage entries expire after ttl.
-func New(db *badger.DB, codec Codec, ttl time.Duration) *Storage {
-	return &Storage{db: db, codec: codec, ttl: ttl}
+// The amount of storage that can be consumed can be limited by passing in a
+// Limiter.
+func New(db *badger.DB, codec Codec, ttl time.Duration, limiter *Limiter) *Storage {
+	if limiter == nil {
+		limiter = zeroLimiter
+	}
+	return &Storage{db: db, codec: codec, ttl: ttl, limiter: limiter}
 }
 
 // NewShardedReadWriter returns a new ShardedReadWriter, for sharded
@@ -61,8 +75,9 @@ func (s *Storage) NewShardedReadWriter() *ShardedReadWriter {
 // The returned ReadWriter must be closed when it is no longer needed.
 func (s *Storage) NewReadWriter() *ReadWriter {
 	return &ReadWriter{
-		s:   s,
-		txn: s.db.NewTransaction(true),
+		s:       s,
+		txn:     s.db.NewTransaction(true),
+		limiter: s.limiter,
 	}
 }
 
@@ -74,14 +89,15 @@ func (s *Storage) NewReadWriter() *ReadWriter {
 // avoid conflicts, e.g. by using consistent hashing to distribute to one of
 // a set of ReadWriters, such as implemented by ShardedReadWriter.
 type ReadWriter struct {
-	s             *Storage
-	txn           *badger.Txn
-	pendingWrites int
+	s       *Storage
+	txn     *badger.Txn
+	limiter *Limiter
 
 	// readKeyBuf is a reusable buffer for keys used in read operations.
 	// This must not be used in write operations, as keys are expected to
 	// be unmodified until the end of a transaction.
-	readKeyBuf []byte
+	readKeyBuf    []byte
+	pendingWrites int
 }
 
 // Close closes the writer. Any writes that have not been flushed may be lost.
@@ -92,16 +108,26 @@ func (rw *ReadWriter) Close() {
 	rw.txn.Discard()
 }
 
+const flushErrFmt = "flush pending writes: %w"
+
 // Flush waits for preceding writes to be committed to storage.
 //
 // Flush must be called to ensure writes are committed to storage.
 // If Flush is not called before the writer is closed, then writes
 // may be lost.
+// Flush returns ErrLimitReached when the StorageLimiter reports that
+// the size of LSM and Vlog files exceeds the configured threshold.
 func (rw *ReadWriter) Flush() error {
+	if rw.limiter.Reached() {
+		return fmt.Errorf(flushErrFmt, ErrLimitReached)
+	}
 	err := rw.txn.Commit()
 	rw.txn = rw.s.db.NewTransaction(true)
 	rw.pendingWrites = 0
-	return err
+	if err != nil {
+		return fmt.Errorf(flushErrFmt, err)
+	}
+	return nil
 }
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
