@@ -140,12 +140,18 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *model.AP
 	if err != nil {
 		return err
 	}
-	return rw.writeEntry(badger.NewEntry(key[:], data).WithMeta(entryMetaTraceEvent).WithTTL(rw.s.ttl))
+	return rw.writeEntry(badger.NewEntry(key[:], data).
+		WithMeta(entryMetaTraceEvent).
+		WithTTL(rw.s.ttl),
+	)
 }
 
 func (rw *ReadWriter) writeEntry(e *badger.Entry) error {
 	rw.pendingWrites++
 	err := rw.txn.SetEntry(e)
+	// If the transaction is already too big to accommodate the new entry, flush
+	// the existing transaction and set the entry on a new one, otherwise,
+	// returns early.
 	if err != badger.ErrTxnTooBig {
 		return err
 	}

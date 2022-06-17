@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
@@ -144,24 +145,29 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 	for i := 0; i < len(events); i++ {
 		event := &events[i]
 		var report, stored bool
+		var err error
 		switch event.Processor {
 		case model.TransactionProcessor:
-			var err error
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
 			report, stored, err = p.processTransaction(event)
-			if err != nil {
-				return err
-			}
 		case model.SpanProcessor:
-			var err error
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
 			report, stored, err = p.processSpan(event)
-			if err != nil {
-				return err
-			}
 		default:
 			continue
 		}
+
+		// If processing the transaction or span returns with an error and
+		// it's caused by the OS returning a "no space left on device", we
+		// sample the transaction or span by default.
+		// NOTE(marclop) This behavior should be configurable so users who
+		// rely on tail sampling for cost cutting, can discard events once
+		// the disk is full.
+		if err != nil && ignoreENOSPCErr(err) == nil {
+			p.logger.Info("received disk is full error, sampling transaction by default")
+			report = true
+		}
+
 		if !report {
 			// We shouldn't report this event, so remove it from the slice.
 			n := len(events)
@@ -274,11 +280,10 @@ func (p *Processor) processSpan(event *model.APMEvent) (report, stored bool, _ e
 		return false, false, err
 	}
 	// Tail-sampling decision has been made, report or drop the event.
-	if !traceSampled {
-		return false, false, nil
+	if traceSampled {
+		atomic.AddInt64(&p.eventMetrics.sampled, 1)
 	}
-	atomic.AddInt64(&p.eventMetrics.sampled, 1)
-	return true, false, nil
+	return traceSampled, false, nil
 }
 
 // Stop stops the processor, flushing event storage. Note that the underlying
@@ -446,11 +451,11 @@ func (p *Processor) Run() error {
 				remoteDecision = true
 			case traceID = <-localSampledTraceIDs:
 			}
-			if err := p.storage.WriteTraceSampled(traceID, true); err != nil {
+			if err := ignoreENOSPCErr(p.storage.WriteTraceSampled(traceID, true)); err != nil {
 				return err
 			}
 			var events model.Batch
-			if err := p.storage.ReadTraceEvents(traceID, &events); err != nil {
+			if err := ignoreENOSPCErr(p.storage.ReadTraceEvents(traceID, &events)); err != nil {
 				return err
 			}
 			if n := len(events); n > 0 {
@@ -490,7 +495,7 @@ func (p *Processor) Run() error {
 			case <-ctx.Done():
 				return ctx.Err()
 			case pos := <-subscriberPositions:
-				if err := writeSubscriberPosition(p.config.StorageDir, pos); err != nil {
+				if err := ignoreENOSPCErr(writeSubscriberPosition(p.config.StorageDir, pos)); err != nil {
 					return err
 				}
 			}
@@ -530,4 +535,26 @@ func sendTraceIDs(ctx context.Context, out chan<- string, traceIDs []string) err
 		}
 	}
 	return nil
+}
+
+// ignoreENOSPCErr returns nil if the error is `syscall.ENOSPC` or os.PathError,
+// which is returned by calls to `os.Created`, if the error doesn't match any
+// of the two errors, the error is returned.
+func ignoreENOSPCErr(err error) error {
+	if err == nil {
+		return nil
+	}
+	// Since most times the "no space left on device" is triggered by writing
+	// to an existing vlog file, check if the error is syscall.ENOSPC first.
+	if errors.Is(err, syscall.ENOSPC) {
+		return nil
+	}
+
+	// If "no space left on device" occurs when a new value log file is created,
+	// then we return after checking that the error is `os.PathError`.
+	var pathErr *os.PathError
+	if errors.As(err, &pathErr) {
+		return nil
+	}
+	return err
 }
