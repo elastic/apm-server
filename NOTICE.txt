@@ -260,11 +260,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20220616213358-bcd4f9f81ab1
+Version: v7.0.0-alpha2.0.20220617161731-46717e23b60f
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220616213358-bcd4f9f81ab1/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20220617161731-46717e23b60f/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -5246,11 +5246,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.0.0-20220615171555-694bf12d69de
+Version: v0.0.0-20220617184016-355a448f1bc9
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20220615171555-694bf12d69de/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20220617184016-355a448f1bc9/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -5283,11 +5283,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sync
-Version: v0.0.0-20210220032951-036812b2e83c
+Version: v0.0.0-20220513210516-0976fa681c29
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.0.0-20210220032951-036812b2e83c/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.0.0-20220513210516-0976fa681c29/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -9759,11 +9759,11 @@ Copyright (c) 2016 Felix Geisendörfer (felix@debuggable.com)
 
 --------------------------------------------------------------------------------
 Dependency : github.com/go-logr/logr
-Version: v1.2.2
+Version: v1.2.3
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/go-logr/logr@v1.2.2/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/go-logr/logr@v1.2.3/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -10732,11 +10732,11 @@ Contents of probable licence file $GOMODCACHE/github.com/gomodule/redigo@v1.8.3/
 
 --------------------------------------------------------------------------------
 Dependency : github.com/google/go-cmp
-Version: v0.5.7
+Version: v0.5.8
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/google/go-cmp@v0.5.7/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/google/go-cmp@v0.5.8/LICENSE:
 
 Copyright (c) 2017 The Go Authors. All rights reserved.
 
@@ -18809,11 +18809,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20220616135557-88e70c0c3a90
+Version: v0.0.0-20220617124728-180714bec0ad
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220616135557-88e70c0c3a90/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220617124728-180714bec0ad/LICENSE:
 
 
                                  Apache License
