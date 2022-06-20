@@ -3,6 +3,8 @@
 
 :ot-spec:       https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md
 :ot-contrib:    https://github.com/open-telemetry/opentelemetry-collector-contrib
+:ot-resource:   {ot-contrib}/tree/main/processor/resourceprocessor
+:ot-attr:       {ot-contrib}/blob/main/processor/attributesprocessor
 :ot-repo:       https://github.com/open-telemetry/opentelemetry-collector
 :ot-pipelines:  https://opentelemetry.io/docs/collector/configuration/#service
 :ot-extension:  {ot-repo}/blob/master/extension/README.md
@@ -60,7 +62,7 @@ java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
 
 |===
 
-| `OTEL_RESOURCE_ATTRIBUTES` | The service name to identify your application.
+| `OTEL_RESOURCE_ATTRIBUTES` | Fields that describe the service and the environment that the service runs in. See <<open-telemetry-resource-attributes>> for more information.
 
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
 
@@ -387,6 +389,50 @@ To manage the configuration of your AWS Lambda functions, we recommend using an 
 Here is an example of AWS Lambda Node.js function managed with Terraform and the https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function[AWS Provider / Lambda Functions]:
 
 * https://github.com/michaelhyatt/terraform-aws-nodejs-api-worker-otel/tree/v0.24[Sample Terraform code]
+
+[float]
+[[open-telemetry-resource-attributes]]
+==== Resource attributes
+
+A resource attribute is a key/value pair containing information about the entity producing telemetry.
+Resource attributes are mapped to Elastic Common Schema (ECS) fields like `service.*`, `cloud.*`, `process.*`, etc.
+These fields describe the service and the environment that the service runs in.
+
+The examples below set the Elastic (ECS) `service.environment` field for the resource, i.e. service, that is producing trace events.
+Note that Elastic maps the OpenTelemetry `deployment.environment` field to
+the ECS `service.environment` field on ingestion.
+
+**OpenTelemetry agent**
+
+Use the `OTEL_RESOURCE_ATTRIBUTES` environment variable to pass resource attributes at process invocation.
+
+[source,bash]
+----
+export OTEL_RESOURCE_ATTRIBUTES=deployment.environment=production
+----
+
+**OpenTelemetry collector**
+
+Use the {ot-resource}[resource processor] to set or apply changes to resource attributes.
+
+[source,yaml]
+----
+...
+processors:
+  resource:
+    attributes:
+    - key: deployment.environment
+      action: insert
+      value: production
+...
+----
+
+[TIP]
+--
+Need to add event attributes instead?
+Use attributes--not to be confused with resource attributes--to add data to span, log, or metric events.
+Attributes can be added as a part of the OpenTelemetry instrumentation process or with the {ot-attr}[attributes processor].
+--
 
 [float]
 [[open-telemetry-known-limitations]]
