@@ -24,11 +24,9 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -183,15 +181,6 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		bt.logger.Warn("deprecation notice: support for 32-bit system target architecture will be removed in an upcoming version")
 	}
 
-	// TODO: Delete me. This is just so I can trigger a reload locally
-	// without having to use elastic-agent.
-	var mgmt struct {
-		Test bool `config:"management.test"`
-	}
-	if err := bt.rawConfig.Unpack(&mgmt); err != nil {
-		return fmt.Errorf("failed to unpack local cfg: %+v", err)
-	}
-
 	reloader := reloader{
 		runServerContext: ctx,
 		args: sharedServerRunnerParams{
@@ -248,36 +237,6 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		}
 		if err := reloader.reload(); err != nil {
 			return err
-		}
-		if mgmt.Test {
-			// local managed mode
-			fmt.Println("local management test enabled; SIGUSR1 reloads local config")
-			sigs := make(chan os.Signal, 1)
-			defer close(sigs)
-			signal.Notify(sigs, syscall.SIGUSR1)
-			go func() {
-				for {
-					select {
-					case <-sigs:
-						configs := make([]*reload.ConfigWithMeta, 1)
-						byts, err := os.ReadFile("./apm-server.dev.yml")
-						if err != nil {
-							fmt.Printf("err on reload: %+v\n", err)
-							continue
-						}
-						integrationCfg, err := agentconfig.NewConfigWithYAML(byts, "apm-server.yml")
-						if err != nil {
-							fmt.Printf("err on reload: %+v\n", err)
-							continue
-						}
-						cfg := &reload.ConfigWithMeta{
-							Config: integrationCfg,
-						}
-						configs[0] = cfg
-						reloader.Reload(configs)
-					}
-				}
-			}()
 		}
 	}
 	return g.Wait()
