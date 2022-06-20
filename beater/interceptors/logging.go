@@ -58,12 +58,11 @@ func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 			"event.duration", time.Since(start),
 			"grpc.response.status_code", res.Code(),
 		)
-
 		if err != nil {
 			logger.With("error.message", res.Message()).Error(logp.Error(err))
-		} else {
-			logger.Info(res.Message())
+			return nil, err
 		}
-		return resp, err
+		logger.Info("request accepted")
+		return resp, nil
 	}
 }
