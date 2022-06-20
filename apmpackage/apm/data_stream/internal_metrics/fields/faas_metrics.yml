@@ -2,7 +2,7 @@
   type: long
   metric_type: counter
   unit: ms
-  description: The number of milliseconds for which the Lambda end user is billed.
+  description: The number of milliseconds for which the FaaS end user is billed.
 - name: faas.coldstart_duration
   type: float
   metric_type: counter
@@ -12,9 +12,9 @@
   type: float
   metric_type: counter
   unit: ms
-  description: The total number of milliseconds elapsed during the execution of the Lambda function.
+  description: The total number of milliseconds elapsed during the execution of the FaaS invocation.
 - name: faas.timeout
   type: long
   metric_type: counter
   unit: ms
-  description: The Lambda function timeout, expressed in milliseconds.
+  description: The FaaS invocation timeout, expressed in milliseconds.

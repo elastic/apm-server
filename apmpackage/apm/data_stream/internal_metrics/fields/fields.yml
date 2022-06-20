@@ -11,6 +11,14 @@
       type: keyword
       description: |
         A unique identifier of the invoked serverless function.
+    - name: execution
+      type: keyword
+      description: |
+        Request ID of the function invocation.
+    - name: trigger.request_id
+      type: keyword
+      description: |
+        The ID of the origin trigger request.
     - name: trigger.type
       type: keyword
       description: |
