@@ -50,7 +50,6 @@ type TailSamplingConfig struct {
 	StorageGCInterval     time.Duration         `config:"storage_gc_interval" validate:"min=1s"`
 	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
 	StorageLimit          uint64                `config:"ttl" validate:"min=1048576"` // 1MB
-	StoragePollPeriod     time.Duration         `config:"ttl" validate:"min=1s"`
 
 	esConfigured bool
 }
@@ -146,6 +145,5 @@ func defaultTailSamplingConfig() TailSamplingConfig {
 		StorageGCInterval:     5 * time.Minute,
 		TTL:                   30 * time.Minute,
 		StorageLimit:          3 * 1024 * 1024 * 1024, // 3GB default size limit?
-		StoragePollPeriod:     5 * time.Second,
 	}
 }

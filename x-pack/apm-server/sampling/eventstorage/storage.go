@@ -23,6 +23,10 @@ const (
 	entryMetaTraceEvent     = 'e'
 )
 
+const (
+	storageLimitThreshold = 0.90 // Allow 90% of the quota to be used.
+)
+
 var (
 	// ErrNotFound is returned by by the Storage.IsTraceSampled method,
 	// for non-existing trace IDs.
@@ -36,10 +40,10 @@ var (
 // Storage provides storage for sampled transactions and spans,
 // and for recording trace sampling decisions.
 type Storage struct {
-	db      *badger.DB
-	limiter *Limiter
-	codec   Codec
-	ttl     time.Duration
+	db    *badger.DB
+	codec Codec
+	ttl   time.Duration
+	limit int64
 }
 
 // Codec provides methods for encoding and decoding events.
@@ -52,12 +56,14 @@ type Codec interface {
 //
 // Storage entries expire after ttl.
 // The amount of storage that can be consumed can be limited by passing in a
-// Limiter.
-func New(db *badger.DB, codec Codec, ttl time.Duration, limiter *Limiter) *Storage {
-	if limiter == nil {
-		limiter = zeroLimiter
+// limit value greater than zero. The hard limit on storage is set to 90% of
+// the limit to account for delay in the size reporting by badger.
+// https://github.com/dgraph-io/badger/blob/82b00f27e3827022082225221ae05c03f0d37620/db.go#L1302-L1319.
+func New(db *badger.DB, codec Codec, ttl time.Duration, limit int64) *Storage {
+	if limit > 1 {
+		limit = int64(float64(limit) * storageLimitThreshold)
 	}
-	return &Storage{db: db, codec: codec, ttl: ttl, limiter: limiter}
+	return &Storage{db: db, codec: codec, ttl: ttl, limit: limit}
 }
 
 // NewShardedReadWriter returns a new ShardedReadWriter, for sharded
@@ -75,10 +81,22 @@ func (s *Storage) NewShardedReadWriter() *ShardedReadWriter {
 // The returned ReadWriter must be closed when it is no longer needed.
 func (s *Storage) NewReadWriter() *ReadWriter {
 	return &ReadWriter{
-		s:       s,
-		txn:     s.db.NewTransaction(true),
-		limiter: s.limiter,
+		s:   s,
+		txn: s.db.NewTransaction(true),
 	}
+}
+
+func (s *Storage) limitReached() bool {
+	if s.limit == 0 {
+		return false
+	}
+	// The badger database has an async size reconciliation, with a 1 minute
+	// ticker that keeps the lsm and vlog sizes updated in an in-memory map.
+	// It's OK to call call s.db.Size() on the hot path, since the memory
+	// lookup is cheap.
+	lsm, vlog := s.db.Size()
+	current := lsm + vlog
+	return current >= s.limit
 }
 
 // ReadWriter provides a means of reading events from storage, and batched
@@ -89,9 +107,8 @@ func (s *Storage) NewReadWriter() *ReadWriter {
 // avoid conflicts, e.g. by using consistent hashing to distribute to one of
 // a set of ReadWriters, such as implemented by ShardedReadWriter.
 type ReadWriter struct {
-	s       *Storage
-	txn     *badger.Txn
-	limiter *Limiter
+	s   *Storage
+	txn *badger.Txn
 
 	// readKeyBuf is a reusable buffer for keys used in read operations.
 	// This must not be used in write operations, as keys are expected to
@@ -118,7 +135,7 @@ const flushErrFmt = "flush pending writes: %w"
 // Flush returns ErrLimitReached when the StorageLimiter reports that
 // the size of LSM and Vlog files exceeds the configured threshold.
 func (rw *ReadWriter) Flush() error {
-	if rw.limiter.Reached() {
+	if rw.s.limitReached() {
 		return fmt.Errorf(flushErrFmt, ErrLimitReached)
 	}
 	err := rw.txn.Commit()

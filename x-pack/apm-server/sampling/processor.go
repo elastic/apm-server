@@ -35,33 +35,25 @@ const (
 	loggerRateLimit = time.Minute
 )
 
-const (
-	// writeFailSampleStrategy will sample traces when badger writes fail.
-	writeFailSampleStrategy = iota
-	// writeFailDiscardStrategy will discard traces when badger writes fail.
-	writeFailDiscardStrategy
-)
-
 // ErrStopped is returned when calling ProcessBatch on a stopped Processor.
 var ErrStopped = errors.New("processor is stopped")
 
 // Processor is a tail-sampling event processor.
 type Processor struct {
-	config             Config
-	logger             *logp.Logger
-	rateLimittedLogger *logp.Logger
-	groups             *traceGroups
+	config            Config
+	logger            *logp.Logger
+	rateLimitedLogger *logp.Logger
+	groups            *traceGroups
 
 	storageMu    sync.RWMutex
 	storage      *eventstorage.ShardedReadWriter
 	eventMetrics *eventMetrics // heap-allocated for 64-bit alignment
-	limiter      *eventstorage.Limiter
 
 	stopMu   sync.Mutex
 	stopping chan struct{}
 	stopped  chan struct{}
 
-	writeFailStrategy uint8
+	indexOnWriteFailure bool
 }
 
 type eventMetrics struct {
@@ -79,30 +71,25 @@ func NewProcessor(config Config) (*Processor, error) {
 		return nil, errors.Wrap(err, "invalid tail-sampling config")
 	}
 
-	limiter, err := eventstorage.NewLimiter(eventstorage.LimiterCfg{
-		DB:    config.DB,
-		Limit: int64(config.StorageLimit),
-	})
-	if err != nil {
-		return nil, err
-	}
 	eventCodec := eventstorage.JSONCodec{}
-	storage := eventstorage.New(config.DB, eventCodec, config.TTL, limiter)
+	storage := eventstorage.New(config.DB, eventCodec, config.TTL, int64(config.StorageLimit))
 	logger := logp.NewLogger(logs.Sampling)
 	readWriter := storage.NewShardedReadWriter()
 
 	p := &Processor{
-		config:             config,
-		logger:             logger,
-		rateLimittedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
-		groups:             newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
-		storage:            readWriter,
-		eventMetrics:       &eventMetrics{},
-		stopping:           make(chan struct{}),
-		stopped:            make(chan struct{}),
-		limiter:            limiter,
-		// TODO(marclop): make the writeFailStrategy configurable.
-		writeFailStrategy: writeFailSampleStrategy,
+		config:            config,
+		logger:            logger,
+		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
+		groups:            newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
+		storage:           readWriter,
+		eventMetrics:      &eventMetrics{},
+		stopping:          make(chan struct{}),
+		stopped:           make(chan struct{}),
+		// NOTE(marclop) This behavior should be configurable so users who
+		// rely on tail sampling for cost cutting, can discard events once
+		// the disk is full.
+		// Index all traces when the storage limit is reached.
+		indexOnWriteFailure: true,
 	}
 	return p, nil
 }
@@ -131,7 +118,7 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 	monitoring.ReportNamespace(V, "storage", func() {
 		p.storageMu.RLock()
 		defer p.storageMu.RUnlock()
-		lsmSize, valueLogSize := p.limiter.Size()
+		lsmSize, valueLogSize := p.config.DB.Size()
 		monitoring.ReportInt(V, "lsm_size", int64(lsmSize))
 		monitoring.ReportInt(V, "value_log_size", int64(valueLogSize))
 	})
@@ -178,24 +165,18 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 			continue
 		}
 
-		// If processing the transaction or span returns with an error and
-		// it's caused by the OS returning a "no space left on device", we
-		// sample the transaction or span by default.
-		// NOTE(marclop) This behavior should be configurable so users who
-		// rely on tail sampling for cost cutting, can discard events once
-		// the disk is full.
+		// If processing the transaction or span returns with an error we
+		// either discard or sample the trace by default.
 		if err != nil {
 			failed = true
-			var action string
-			switch p.writeFailStrategy {
-			case writeFailDiscardStrategy:
-				action = "discarding"
-				report = false
-			case writeFailSampleStrategy:
-				action = "sampling"
+			stored = false
+			if p.indexOnWriteFailure {
 				report = true
+				p.rateLimitedLogger.Info("processing trace failed, indexing by default")
+			} else {
+				report = false
+				p.rateLimitedLogger.Info("processing trace failed, discarding by default")
 			}
-			p.rateLimittedLogger.Infof("processing trace failed, %s trace by default", action)
 		}
 
 		if !report {
@@ -273,7 +254,7 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 	reservoirSampled, err := p.groups.sampleTrace(event)
 	if err == errTooManyTraceGroups {
 		// Too many trace groups, drop the transaction.
-		p.rateLimittedLogger.Warn(`
+		p.rateLimitedLogger.Warn(`
 Tail-sampling service group limit reached, discarding trace events.
 This is caused by having many unique service names while relying on
 sampling policies without service name specified.
@@ -412,14 +393,6 @@ func (p *Processor) Run() error {
 	publishSampledTraceIDs := make(chan string)
 	g, ctx := errgroup.WithContext(context.Background())
 	g.Go(func() error {
-		// Poll the size of the database using the configured poll period.
-		// this will keep a local cache of the size of the database for both
-		// metric reporting purposes and also to be able to limit the size to
-		// which the badger database will grow to.
-		p.limiter.PollSize(ctx, p.config.StoragePollPeriod)
-		return nil
-	})
-	g.Go(func() error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -493,15 +466,15 @@ func (p *Processor) Run() error {
 			case traceID = <-localSampledTraceIDs:
 			}
 			if err := p.storage.WriteTraceSampled(traceID, true); err != nil {
-				p.rateLimittedLogger.Warnf(
-					"recived error writing sampled trace: %w", err,
+				p.rateLimitedLogger.Warnf(
+					"received error writing sampled trace: %w", err,
 				)
 				continue
 			}
 			var events model.Batch
 			if err := p.storage.ReadTraceEvents(traceID, &events); err != nil {
-				p.rateLimittedLogger.Warnf(
-					"recived error reading trace events: %s", err,
+				p.rateLimitedLogger.Warnf(
+					"received error reading trace events: %s", err,
 				)
 				continue
 			}
@@ -543,8 +516,8 @@ func (p *Processor) Run() error {
 				return ctx.Err()
 			case pos := <-subscriberPositions:
 				if err := writeSubscriberPosition(p.config.StorageDir, pos); err != nil {
-					p.rateLimittedLogger.Warnf(
-						"recived error writing remote subscriber sampled position: %w", err,
+					p.rateLimitedLogger.Warnf(
+						"received error writing remote subscriber sampled position: %w", err,
 					)
 				}
 			}
