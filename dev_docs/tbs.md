@@ -64,10 +64,10 @@ sampled ones. All non-sampled events will be removed from the store through TTL 
 
 BadgerDB doesn't provide a setting to limit disk usage, which is not ideal, since APM Server will
 most likely be running with a limit on storage and allowing BadgerDB to consume all disk space
-will eventually cause the APM Server to malfunction. For this reason, we default to sampling all
-incoming events should writes fail when the disk is full. Eventually, this behavior should be
-configurable and allow users to either discard or sample incoming events when the disk is full.
+will eventually cause the APM Server to malfunction. For this reason, we have implemented a storage
+limit based on the size of the Badger database as reported by the SDK. This accounting has some lag
+of up to 1 minute and may allow the database to grow over the configured limit.
 
-Furthermore, we should limit how much the BadgerDB size is allowed to grow to, to avoid consuming
-all disk space thus reducing the chances of causing the APM Server to malfunction due no disk space
-available.
+Once the limit has been reached, or the writes to badger fail, the default default behavior is to
+sample all incoming traces. Eventually, this behavior should be configurable and allow users to
+either discard or sample incoming events when the disk is full.

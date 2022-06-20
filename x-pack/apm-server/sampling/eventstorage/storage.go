@@ -32,7 +32,7 @@ var (
 	// for non-existing trace IDs.
 	ErrNotFound = errors.New("key not found")
 
-	// ErrLimitReached is returned by the ReadWriter.Flush meethod when
+	// ErrLimitReached is returned by the ReadWriter.Flush method when
 	// the configured StorageLimiter.Limit is true.
 	ErrLimitReached = fmt.Errorf("configured storage limit reached: %w", syscall.ENOSPC)
 )

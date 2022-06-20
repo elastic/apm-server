@@ -150,9 +150,9 @@ Requiring this default policy ensures that traces are only dropped intentionally
 If you enable tail-based sampling and send a transaction that does not match any of the policies,
 APM Server will reject the transaction with the error `no matching policy`.
 
-Please note that by default APM Server doesn't have a hard limit on how much disk space the
-local trace buffer is allowed to consume. For this reason, high throughput deployments may use all
-available disk space.
+IMPORTANT: Please note that from version `8.3.1` APM Server implements a storage limit of 3GB
+but due to how the limit is calculated and enforced the actual disk space may still grow slightly
+over the configured limit.
 
 ===== Example configuration
 

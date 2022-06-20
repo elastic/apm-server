@@ -14,6 +14,7 @@ https://github.com/elastic/apm-server/compare/8.4\...main[View commits]
 [float]
 ==== Bug fixes
 - Fix race for deducing destination service fields for OTel bridge {pull}8363[8363]
+- Limit the the local badger database space to 3GB by default for tail-based sampling {pull}8407[8407]
 
 [float]
 ==== Intake API Changes
