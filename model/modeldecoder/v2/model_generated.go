@@ -1496,7 +1496,7 @@ func (val *metricsetRoot) validate() error {
 }
 
 func (val *metricset) IsSet() bool {
-	return val.Timestamp.IsSet() || (len(val.Samples) > 0) || val.Span.IsSet() || (len(val.Tags) > 0) || val.Transaction.IsSet() || val.Service.IsSet()
+	return val.Timestamp.IsSet() || (len(val.Samples) > 0) || val.Span.IsSet() || (len(val.Tags) > 0) || val.Transaction.IsSet() || val.Service.IsSet() || val.FAAS.IsSet()
 }
 
 func (val *metricset) Reset() {
@@ -1510,6 +1510,7 @@ func (val *metricset) Reset() {
 	}
 	val.Transaction.Reset()
 	val.Service.Reset()
+	val.FAAS.Reset()
 }
 
 func (val *metricset) validate() error {
@@ -1548,6 +1549,9 @@ func (val *metricset) validate() error {
 	}
 	if err := val.Service.validate(); err != nil {
 		return errors.Wrapf(err, "service")
+	}
+	if err := val.FAAS.validate(); err != nil {
+		return errors.Wrapf(err, "faas")
 	}
 	return nil
 }
@@ -1651,6 +1655,45 @@ func (val *metricsetServiceRef) validate() error {
 	}
 	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *faas) IsSet() bool {
+	return val.ID.IsSet() || val.Coldstart.IsSet() || val.Execution.IsSet() || val.Trigger.IsSet() || val.Name.IsSet() || val.Version.IsSet()
+}
+
+func (val *faas) Reset() {
+	val.ID.Reset()
+	val.Coldstart.Reset()
+	val.Execution.Reset()
+	val.Trigger.Reset()
+	val.Name.Reset()
+	val.Version.Reset()
+}
+
+func (val *faas) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Trigger.validate(); err != nil {
+		return errors.Wrapf(err, "trigger")
+	}
+	return nil
+}
+
+func (val *trigger) IsSet() bool {
+	return val.Type.IsSet() || val.RequestID.IsSet()
+}
+
+func (val *trigger) Reset() {
+	val.Type.Reset()
+	val.RequestID.Reset()
+}
+
+func (val *trigger) validate() error {
+	if !val.IsSet() {
+		return nil
 	}
 	return nil
 }
@@ -2259,45 +2302,6 @@ func (val *transactionDroppedSpansDurationSum) validate() error {
 	}
 	if val.Us.IsSet() && val.Us.Val < 0 {
 		return fmt.Errorf("'us': validation rule 'min(0)' violated")
-	}
-	return nil
-}
-
-func (val *faas) IsSet() bool {
-	return val.ID.IsSet() || val.Coldstart.IsSet() || val.Execution.IsSet() || val.Trigger.IsSet() || val.Name.IsSet() || val.Version.IsSet()
-}
-
-func (val *faas) Reset() {
-	val.ID.Reset()
-	val.Coldstart.Reset()
-	val.Execution.Reset()
-	val.Trigger.Reset()
-	val.Name.Reset()
-	val.Version.Reset()
-}
-
-func (val *faas) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if err := val.Trigger.validate(); err != nil {
-		return errors.Wrapf(err, "trigger")
-	}
-	return nil
-}
-
-func (val *trigger) IsSet() bool {
-	return val.Type.IsSet() || val.RequestID.IsSet()
-}
-
-func (val *trigger) Reset() {
-	val.Type.Reset()
-	val.RequestID.Reset()
-}
-
-func (val *trigger) validate() error {
-	if !val.IsSet() {
-		return nil
 	}
 	return nil
 }

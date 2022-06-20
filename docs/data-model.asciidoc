@@ -352,10 +352,13 @@ These metric documents can be identified by searching for `metricset.name: servi
 You can filter and group by these dimensions:
 
 * `span.destination.service.resource`: The destination service resource, for example `mysql`
+* `span.name`: The name of the operation, for example `SELECT FROM table_name`.
 * `event.outcome`: The outcome of the operation, for example `success`
 * `agent.name`: The name of the {apm-agent} that instrumented the operation, for example `java`
 * `service.name`: The name of the service that made the request
 * `service.environment`: The environment of the service that made the request
+* `service.target.name`: The target service name, for example `customer_db`
+* `service.target.type`: The target service type, for example `mysql`
 --
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
