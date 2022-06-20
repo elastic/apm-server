@@ -31,6 +31,14 @@ func isInternalMetricName(name string) bool {
 		return true
 	case "clr.gc.time":
 		return true
+	case "faas.billed_duration":
+		return true
+	case "faas.coldstart_duration":
+		return true
+	case "faas.duration":
+		return true
+	case "faas.timeout":
+		return true
 	case "golang.goroutines":
 		return true
 	case "golang.heap.allocations.active":
