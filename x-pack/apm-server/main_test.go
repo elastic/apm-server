@@ -34,13 +34,6 @@ func TestMonitoring(t *testing.T) {
 	var aggregationMonitoringSnapshot, tailSamplingMonitoringSnapshot monitoring.FlatSnapshot
 	runServerError := errors.New("runServer")
 	runServer := func(ctx context.Context, args beater.ServerParams) error {
-		defer func() {
-			// indicate that the server has stopped so that the
-			// processors also stop.
-			if cancel, ok := ctx.Value(beater.ServerStopped{}).(context.CancelFunc); ok {
-				cancel()
-			}
-		}()
 		aggregationMonitoringSnapshot = monitoring.CollectFlatSnapshot(aggregationMonitoringRegistry, monitoring.Full, false)
 		tailSamplingMonitoringSnapshot = monitoring.CollectFlatSnapshot(samplingMonitoringRegistry, monitoring.Full, false)
 		return runServerError
