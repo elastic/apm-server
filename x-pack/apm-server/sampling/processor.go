@@ -350,6 +350,7 @@ func (p *Processor) Run() error {
 
 	initialSubscriberPosition, err := readSubscriberPosition(p.config.StorageDir)
 	if err != nil {
+		p.logger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Debug("failed to read subscriber position")
 		return err
 	}
 	subscriberPositions := make(chan pubsub.SubscriberPosition)
@@ -491,6 +492,7 @@ func (p *Processor) Run() error {
 				return ctx.Err()
 			case pos := <-subscriberPositions:
 				if err := writeSubscriberPosition(p.config.StorageDir, pos); err != nil {
+					p.logger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Debug("failed to write subscriber position")
 					return err
 				}
 			}
