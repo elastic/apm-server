@@ -28,7 +28,11 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "target": {
+                    "name": "foo.bar.com:443",
+                    "type": "http"
+                }
             },
             "span": {
                 "destination": {
