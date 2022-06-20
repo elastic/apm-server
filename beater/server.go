@@ -229,10 +229,6 @@ func newGRPCServer(
 	return srv, nil
 }
 
-// ServerStopped is the context key holding a context.CancelFunc whose
-// cancellation signals the gRPC and HTTP servers have stopped.
-type ServerStopped struct{}
-
 func (s server) run(ctx context.Context) error {
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	defer s.logger.Infof("Server stopped")
@@ -247,9 +243,6 @@ func (s server) run(ctx context.Context) error {
 		<-ctx.Done()
 		s.grpcServer.GracefulStop()
 		s.httpServer.stop()
-		if cancel, ok := ctx.Value(ServerStopped{}).(context.CancelFunc); ok {
-			cancel()
-		}
 		return nil
 	})
 	if err := g.Wait(); err != http.ErrServerClosed {
