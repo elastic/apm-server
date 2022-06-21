@@ -641,6 +641,8 @@ type metricset struct {
 	Transaction metricsetTransactionRef `json:"transaction"`
 	// Service holds selected information about the correlated service.
 	Service metricsetServiceRef `json:"service"`
+	// FAAS holds fields related to Function as a Service events.
+	FAAS faas `json:"faas"`
 }
 
 type metricsetSampleValue struct {

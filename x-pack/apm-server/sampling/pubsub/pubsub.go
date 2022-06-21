@@ -93,6 +93,7 @@ func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan strin
 				Trace:      model.Trace{ID: id},
 			}
 			if err := indexer.ProcessBatch(ctx, &model.Batch{doc}); err != nil {
+				p.config.Logger.With(logp.Error(err)).With(logp.Reflect("event", doc)).Debug("failed to index sampled trace id")
 				return err
 			}
 		}
@@ -130,7 +131,7 @@ func (p *Pubsub) SubscribeSampledTraceIDs(
 			if err != nil {
 				// Errors may occur due to rate limiting, or while the index is
 				// still being created, so just log and continue.
-				p.config.Logger.With(logp.Error(err)).Debug("error searching for trace IDs")
+				p.config.Logger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Debug("error searching for trace IDs")
 				continue
 			}
 			if changed {
