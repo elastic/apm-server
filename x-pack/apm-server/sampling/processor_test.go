@@ -685,7 +685,7 @@ func TestStorageLimit(t *testing.T) {
 	failedWrites := collectProcessorMetrics(processor).Ints["sampling.events.failed_writes"]
 	t.Log(failedWrites)
 	// Ensure that there are some failed writes.
-	assert.GreaterOrEqual(t, failedWrites, 1)
+	assert.GreaterOrEqual(t, failedWrites, int64(1))
 }
 
 func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
