@@ -44,7 +44,7 @@ https://github.com/elastic/apm-server/compare/v7.15.2\...v7.16.0[View commits]
 ****
 The APM integration for {agent} is now generally available!
 This new APM ecosystem brings a number of new benefits to Elastic APM.
-Learn more about this change in the {apm-guide-ref}/upgrade-to-apm-integration.html[Upgrade guide].
+See {apm-guide-ref}/upgrade-to-apm-integration.html[Switch to the Elastic APM integration] to learn more about this change.
 Documentation for standalone APM Server has moved to the {apm-guide-ref}/legacy-apm-overview.html[Legacy APM Overview] and {apm-guide-ref}/overview.html[Legacy APM Server Reference].
 ****
 

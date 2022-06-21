@@ -42,7 +42,7 @@ This upgrade guide is for the standalone (legacy) method of running APM Server.
 Only use this guide if both of the following are true:
 
 * You have a self-installation of the {stack}, i.e. you're not using {ecloud}.
-* You're running the APM Server binary, i.e. you haven't upgraded to the Elastic APM integration.
+* You're running the APM Server binary, i.e. you haven't switched to the Elastic APM integration.
 
 [float]
 ==== Prerequisites
@@ -110,7 +110,7 @@ This upgrade guide is for the Elastic APM integration.
 Only use this guide if both of the following are true:
 
 * You have a self-installation of the {stack}, i.e. you're not using {ecloud}.
-* You have already upgraded to and are running {fleet} and the Elastic APM integration.
+* You have already switched to and are running {fleet} and the Elastic APM integration.
 
 [float]
 ==== Prerequisites
@@ -155,7 +155,7 @@ This upgrade guide is for the standalone (legacy) method of running APM Server.
 Only use this guide if both of the following are true:
 
 * You're using {ecloud}.
-* You're using the APM Server binary, i.e. you haven't upgraded to the Elastic APM integration.
+* You're using the APM Server binary, i.e. you haven't switched to the Elastic APM integration.
 
 Follow these steps to upgrade:
 
@@ -182,7 +182,7 @@ This upgrade guide is for the Elastic APM integration.
 Only use this guide if both of the following are true:
 
 * You're using {ecloud}.
-* You have already upgraded to and are running {fleet} and the Elastic APM integration.
+* You have already switched to and are running {fleet} and the Elastic APM integration.
 
 Follow these steps to upgrade:
 
