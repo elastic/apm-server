@@ -469,7 +469,6 @@ func (p *Processor) Run() error {
 				p.rateLimitedLogger.Warnf(
 					"received error writing sampled trace: %s", err,
 				)
-				continue
 			}
 			var events model.Batch
 			if err := p.storage.ReadTraceEvents(traceID, &events); err != nil {

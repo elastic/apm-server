@@ -195,10 +195,12 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry) error {
 	// If the transaction is already too big to accommodate the new entry, flush
 	// the existing transaction and set the entry on a new one, otherwise,
 	// returns early.
-	if err != badger.ErrTxnTooBig {
-		return err
+	if rw.pendingWrites >= 500 {
+		if err := rw.Flush(); err != nil {
+			return err
+		}
 	}
-	if err := rw.Flush(); err != nil {
+	if err != badger.ErrTxnTooBig {
 		return err
 	}
 	return rw.txn.SetEntry(e)
@@ -223,11 +225,11 @@ func (rw *ReadWriter) ReadTraceEvents(traceID string, out *model.Batch) error {
 	// NewIterator slows down with uncommitted writes, as it must sort
 	// all keys lexicographically. If there are a significant number of
 	// writes pending, flush first.
-	if rw.pendingWrites > 100 {
-		if err := rw.Flush(); err != nil {
-			return err
-		}
-	}
+	// if rw.pendingWrites > 100 {
+	// 	if err := rw.Flush(); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	iter := rw.txn.NewIterator(opts)
 	defer iter.Close()
