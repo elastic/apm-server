@@ -367,7 +367,7 @@ func (p *Processor) Run() error {
 		bulkIndexerFlushInterval = p.config.FlushInterval
 	}
 
-	initialSubscriberPosition, err := readSubscriberPosition(p.config.StorageDir)
+	initialSubscriberPosition, err := readSubscriberPosition(p.logger, p.config.StorageDir)
 	if err != nil {
 		return err
 	}
@@ -516,8 +516,8 @@ func (p *Processor) Run() error {
 				return ctx.Err()
 			case pos := <-subscriberPositions:
 				if err := writeSubscriberPosition(p.config.StorageDir, pos); err != nil {
-					p.rateLimitedLogger.Warnf(
-						"received error writing remote subscriber sampled position: %s", err,
+					p.rateLimitedLogger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Warn(
+						"failed to write subscriber position: %s", err,
 					)
 				}
 			}
@@ -529,7 +529,7 @@ func (p *Processor) Run() error {
 	return nil
 }
 
-func readSubscriberPosition(storageDir string) (pubsub.SubscriberPosition, error) {
+func readSubscriberPosition(logger *logp.Logger, storageDir string) (pubsub.SubscriberPosition, error) {
 	var pos pubsub.SubscriberPosition
 	data, err := os.ReadFile(filepath.Join(storageDir, subscriberPositionFile))
 	if errors.Is(err, os.ErrNotExist) {
@@ -537,7 +537,11 @@ func readSubscriberPosition(storageDir string) (pubsub.SubscriberPosition, error
 	} else if err != nil {
 		return pos, err
 	}
-	return pos, json.Unmarshal(data, &pos)
+	err = json.Unmarshal(data, &pos)
+	if err != nil {
+		logger.With(logp.Error(err)).With(logp.ByteString("file", data)).Debug("failed to read subscriber position")
+	}
+	return pos, err
 }
 
 func writeSubscriberPosition(storageDir string, pos pubsub.SubscriberPosition) error {
