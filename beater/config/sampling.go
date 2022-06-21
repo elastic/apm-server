@@ -20,6 +20,7 @@ package config
 import (
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/elasticsearch"
@@ -49,7 +50,8 @@ type TailSamplingConfig struct {
 	IngestRateDecayFactor float64               `config:"ingest_rate_decay" validate:"min=0, max=1"`
 	StorageGCInterval     time.Duration         `config:"storage_gc_interval" validate:"min=1s"`
 	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
-	StorageLimit          uint64                `config:"ttl" validate:"min=1048576"` // 1MB
+	StorageLimit          string                `config:"storage_limit"`
+	StorageLimitParsed    uint64
 
 	esConfigured bool
 }
@@ -88,9 +90,15 @@ func (c *TailSamplingConfig) Unpack(in *config.C) error {
 		err = errors.Wrap(err, "error unpacking config")
 		return nil
 	}
+	limit, err := humanize.ParseBytes(cfg.StorageLimit)
+	if err != nil {
+		return err
+	}
+	cfg.StorageLimitParsed = limit
 	cfg.Enabled = in.Enabled()
 	*c = TailSamplingConfig(cfg)
 	c.esConfigured = in.HasField("elasticsearch")
+	c.StorageLimitParsed = limit
 	err = errors.Wrap(c.Validate(), "invalid config")
 	return nil
 }
@@ -137,13 +145,19 @@ func defaultSamplingConfig() SamplingConfig {
 }
 
 func defaultTailSamplingConfig() TailSamplingConfig {
-	return TailSamplingConfig{
+	cfg := TailSamplingConfig{
 		Enabled:               false,
 		ESConfig:              elasticsearch.DefaultConfig(),
 		Interval:              1 * time.Minute,
 		IngestRateDecayFactor: 0.25,
 		StorageGCInterval:     5 * time.Minute,
 		TTL:                   30 * time.Minute,
-		StorageLimit:          3 * 1024 * 1024 * 1024, // 3GB default size limit?
+		StorageLimit:          "3GB",
 	}
+	parsed, err := humanize.ParseBytes(cfg.StorageLimit)
+	if err != nil {
+		panic(err)
+	}
+	cfg.StorageLimitParsed = parsed
+	return cfg
 }

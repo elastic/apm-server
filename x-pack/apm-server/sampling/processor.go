@@ -467,7 +467,7 @@ func (p *Processor) Run() error {
 			}
 			if err := p.storage.WriteTraceSampled(traceID, true); err != nil {
 				p.rateLimitedLogger.Warnf(
-					"received error writing sampled trace: %w", err,
+					"received error writing sampled trace: %s", err,
 				)
 				continue
 			}
@@ -517,7 +517,7 @@ func (p *Processor) Run() error {
 			case pos := <-subscriberPositions:
 				if err := writeSubscriberPosition(p.config.StorageDir, pos); err != nil {
 					p.rateLimitedLogger.Warnf(
-						"received error writing remote subscriber sampled position: %w", err,
+						"received error writing remote subscriber sampled position: %s", err,
 					)
 				}
 			}

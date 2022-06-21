@@ -635,7 +635,7 @@ func TestStorageLimit(t *testing.T) {
 		t.Skip("skipping slow test")
 	}
 
-	writeBatch := func(n int, c sampling.Config, assertBatch func(b model.Batch)) {
+	writeBatch := func(n int, c sampling.Config, assertBatch func(b model.Batch)) *sampling.Processor {
 		processor, err := sampling.NewProcessor(c)
 		require.NoError(t, err)
 		go processor.Run()
@@ -653,6 +653,7 @@ func TestStorageLimit(t *testing.T) {
 		err = processor.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
 		assertBatch(batch)
+		return processor
 	}
 
 	config := newTempdirConfig(t)
@@ -677,9 +678,14 @@ func TestStorageLimit(t *testing.T) {
 	// Rather than setting a static threshold, use the runtime.NumCPU as a
 	// multiplier since the sharded writers use that variable and the more CPUs
 	// we have, the more sharded writes we'll have, resulting in a greater buffer.
-	writeBatch(150_000*runtime.NumCPU(), config, func(b model.Batch) {
+	processor := writeBatch(150_000*runtime.NumCPU(), config, func(b model.Batch) {
 		assert.NotEmpty(t, b)
 	})
+
+	failedWrites := collectProcessorMetrics(processor).Ints["sampling.events.failed_writes"]
+	t.Log(failedWrites)
+	// Ensure that there are some failed writes.
+	assert.GreaterOrEqual(t, failedWrites, 1)
 }
 
 func TestProcessRemoteTailSamplingPersistence(t *testing.T) {

@@ -144,7 +144,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			DB:                badgerDB,
 			StorageDir:        storageDir,
 			StorageGCInterval: tailSamplingConfig.StorageGCInterval,
-			StorageLimit:      tailSamplingConfig.StorageLimit,
+			StorageLimit:      tailSamplingConfig.StorageLimitParsed,
 			TTL:               tailSamplingConfig.TTL,
 		},
 	})

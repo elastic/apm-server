@@ -62,12 +62,10 @@ For this purpose, we use [BadgerDB](https://github.com/dgraph-io/badger). Badger
 fast writes, which is important for our use case: we write all events here, and read out only the
 sampled ones. All non-sampled events will be removed from the store through TTL expiry.
 
-BadgerDB doesn't provide a setting to limit disk usage, which is not ideal, since APM Server will
-most likely be running with a limit on storage and allowing BadgerDB to consume all disk space
-will eventually cause the APM Server to malfunction. For this reason, we have implemented a storage
-limit based on the size of the Badger database as reported by the SDK. This accounting has some lag
-of up to 1 minute and may allow the database to grow over the configured limit.
+We have implemented a configurable storage limit based on the size of the Badger database as reported
+by the SDK. This accounting has some lag of up to 1 minute and may allow the database to grow over
+the configured limit. The limit can be disabled by setting it to `0`.
 
-Once the limit has been reached, or the writes to badger fail, the default default behavior is to
-sample all incoming traces. Eventually, this behavior should be configurable and allow users to
-either discard or sample incoming events when the disk is full.
+When writes to badger fail, or the storage limit has been reached, the default behavior is to sample
+all incoming traces. Eventually, this behavior will be configurable and allow users to either discard
+or sample incoming events when the disk is full.
