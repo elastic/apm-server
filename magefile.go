@@ -47,16 +47,6 @@ func init() {
 		DocBranch:   filepath.Join(repo.RootDir, "docs/version.asciidoc"),
 	})
 
-	// Filter platforms to those that are supported by apm-server.
-	mage.Platforms = mage.Platforms.Filter(strings.Join([]string{
-		"linux/amd64",
-		"linux/386",
-		"linux/arm64",
-		"windows/386",
-		"windows/amd64",
-		"darwin/amd64",
-	}, " "))
-
 	mage.BeatDescription = "Elastic APM Server"
 	mage.BeatURL = "https://www.elastic.co/apm"
 	mage.BeatIndexPrefix = "apm"
