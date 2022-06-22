@@ -20,7 +20,6 @@ package benchtest
 import (
 	"context"
 	"crypto/tls"
-	"embed"
 	"errors"
 	"fmt"
 	"log"
@@ -28,7 +27,6 @@ import (
 	"net/http"
 	"os"
 	"reflect"
-	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -41,13 +39,10 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
+	"github.com/elastic/apm-server/systemtest/loadgen"
 )
 
 const waitInactiveTimeout = 30 * time.Second
-
-// events holds the current stored events.
-//go:embed events/*.ndjson
-var events embed.FS
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
 type BenchmarkFunc func(*testing.B, *rate.Limiter)
@@ -68,14 +63,15 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		var err error
-		collector, err = expvar.StartNewCollector(ctx, *server, 100*time.Millisecond)
+		server := loadgen.Config.ServerURL.String()
+		collector, err = expvar.StartNewCollector(ctx, server, 100*time.Millisecond)
 		if err != nil {
 			b.Error(err)
 			ok = !b.Failed()
 			return
 		}
 
-		limiter := getNewLimiter(maxEPM)
+		limiter := loadgen.GetNewLimiter(loadgen.Config.MaxEPM)
 		b.ResetTimer()
 		f(b, limiter)
 		if !b.Failed() {
@@ -89,7 +85,7 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 		ok = !b.Failed()
 	})
 	if result.Extra != nil {
-		addExpvarMetrics(&result, collector, *detailed)
+		addExpvarMetrics(&result, collector, benchConfig.Detailed)
 	}
 	return result, ok, nil
 }
@@ -141,35 +137,15 @@ func benchmarkFuncName(f BenchmarkFunc) (string, error) {
 	return name, nil
 }
 
-func getNewLimiter(epm int) *rate.Limiter {
-	if epm <= 0 {
-		return rate.NewLimiter(rate.Inf, 0)
-	}
-	eps := float64(epm) / float64(60)
-	return rate.NewLimiter(rate.Limit(eps), getBurstSize(int(math.Ceil(eps))))
-}
-
-func getBurstSize(eps int) int {
-	burst := eps * 2
-	// Allow for a batch to have 1000 events minimum
-	if burst < 1000 {
-		burst = 1000
-	}
-	return burst
-}
-
 // Run runs the given benchmarks according to the flags defined.
 //
 // Run expects to receive statically-defined functions whose names
 // are all prefixed with "Benchmark", like those that are designed
 // to work with "go test".
 func Run(allBenchmarks ...BenchmarkFunc) error {
-	if err := parseFlags(); err != nil {
-		return err
-	}
 	// Sets the http.DefaultClient.Transport.TLSClientConfig.InsecureSkipVerify
 	// to match the "-secure" flag value.
-	verifyTLS := *secure
+	verifyTLS := loadgen.Config.Secure
 	http.DefaultClient.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: !verifyTLS},
 	}
@@ -184,14 +160,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		}
 	}()
 
-	var matchRE *regexp.Regexp
-	if *match != "" {
-		re, err := regexp.Compile(*match)
-		if err != nil {
-			return err
-		}
-		matchRE = re
-	}
+	matchRE := benchConfig.RunRE
 	benchmarks := make([]benchmark, 0, len(allBenchmarks))
 	for _, benchmarkFunc := range allBenchmarks {
 		name, err := benchmarkFuncName(benchmarkFunc)
@@ -210,6 +179,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 	})
 
 	var maxLen int
+	agentsList := benchConfig.AgentsList
 	for _, agents := range agentsList {
 		for _, benchmark := range benchmarks {
 			if n := len(fullBenchmarkName(benchmark.name, agents)); n > maxLen {
@@ -220,9 +190,11 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 
 	// Warm up the APM Server with the specified `-agents`. Only the first
 	// value in the list will be used.
-	if len(agentsList) > 0 && *warmupEvents > 0 {
+	if len(agentsList) > 0 && benchConfig.WarmupEvents > 0 {
 		agents := agentsList[0]
-		if err := warmup(agents, *warmupEvents, serverURL.String(), *secretToken); err != nil {
+		serverURL := loadgen.Config.ServerURL.String()
+		secretToken := loadgen.Config.SecretToken
+		if err := warmup(agents, benchConfig.WarmupEvents, serverURL, secretToken); err != nil {
 			return fmt.Errorf("warm-up failed with %d agents: %v", agents, err)
 		}
 	}
@@ -231,7 +203,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		runtime.GOMAXPROCS(int(agents))
 		for _, benchmark := range benchmarks {
 			name := fullBenchmarkName(benchmark.name, agents)
-			for i := 0; i < int(*count); i++ {
+			for i := 0; i < int(benchConfig.Count); i++ {
 				profileChan := profiles.record(name)
 				result, ok, err := runBenchmark(benchmark.f)
 				if err != nil {
@@ -261,15 +233,16 @@ func warmup(agents int, events uint, url, token string) error {
 	// events to the APM Server, increasing its load.
 	// Also account the GOMAXPROCS setting, since it will dictate the goroutines
 	// that are scheduled at any time.
+	maxEPM := loadgen.Config.MaxEPM
 	timeout := warmupTimeout(1000, events, maxEPM, agents, runtime.GOMAXPROCS(0))
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	errs := make(chan error, agents)
-	rl := getNewLimiter(maxEPM)
+	rl := loadgen.GetNewLimiter(maxEPM)
 	var wg sync.WaitGroup
 	for i := 0; i < agents; i++ {
-		h, err := newEventHandler(`*.ndjson`, url, token, rl)
+		h, err := loadgen.NewEventHandler(`*.ndjson`, url, token, rl)
 		if err != nil {
 			return fmt.Errorf("unable to create warm-up handler: %w", err)
 		}
