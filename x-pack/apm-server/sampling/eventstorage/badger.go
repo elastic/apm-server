@@ -27,6 +27,6 @@ func OpenBadger(storageDir string, valueLogFileSize int64) (*badger.DB, error) {
 	if valueLogFileSize > 0 {
 		badgerOpts.ValueLogFileSize = valueLogFileSize
 	}
-	badgerOpts.Logger = LogpAdaptor{Logger: logger}
+	badgerOpts.Logger = &LogpAdaptor{Logger: logger}
 	return badger.Open(badgerOpts)
 }
