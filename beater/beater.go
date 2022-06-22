@@ -221,6 +221,15 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 				ctx, reload.ReloadableFunc(reloader.reloadOutput),
 			)
 		})
+		d := &debouncer{
+			triggerc: make(chan chan error),
+			timeout:  500 * time.Millisecond,
+			fn:       reloader.reload,
+		}
+		reloader.debouncer = d
+		g.Go(func() error {
+			return d.loop(ctx)
+		})
 
 		// Start the manager after all the hooks are initialized
 		// and defined this ensure reloading consistency..
@@ -264,6 +273,59 @@ type reloader struct {
 	outputConfig agentconfig.Namespace
 	fleetConfig  *config.Fleet
 	runner       *serverRunner
+	debouncer    *debouncer
+}
+
+type debouncer struct {
+	triggerc chan chan error
+	timeout  time.Duration
+	fn       func() error
+}
+
+func (d *debouncer) trigger() chan error {
+	res := make(chan error, 1)
+	d.triggerc <- res
+	return res
+}
+
+func (d *debouncer) loop(ctx context.Context) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case res := <-d.triggerc:
+			res <- d.debounce(ctx)
+			close(res)
+		}
+	}
+}
+
+func (d *debouncer) debounce(ctx context.Context) (err error) {
+	t := time.NewTimer(d.timeout)
+	callers := []chan error{}
+	defer func() {
+		for _, res := range callers {
+			select {
+			case res <- err:
+			default:
+			}
+			close(res)
+		}
+	}()
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-t.C:
+			return d.fn()
+		case res := <-d.triggerc:
+			callers = append(callers, res)
+			if !t.Stop() {
+				<-t.C
+			}
+			t.Reset(d.timeout)
+		}
+	}
 }
 
 func (r *reloader) stop() {
@@ -301,7 +363,7 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 	}
 	r.fleetConfig = &integrationConfig.Fleet
 	r.mu.Unlock()
-	return r.reload()
+	return <-r.debouncer.trigger()
 }
 
 func (r *reloader) reloadOutput(config *reload.ConfigWithMeta) error {
@@ -314,7 +376,7 @@ func (r *reloader) reloadOutput(config *reload.ConfigWithMeta) error {
 	r.mu.Lock()
 	r.outputConfig = outputConfig
 	r.mu.Unlock()
-	return r.reload()
+	return <-r.debouncer.trigger()
 }
 
 func (r *reloader) reload() error {
