@@ -193,6 +193,11 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry) error {
 	rw.pendingWrites++
 	err := rw.txn.SetEntry(e)
 	// Attempt to flush if there are 200 or more uncommitted writes.
+	// This ensures calls to ReadTraceEvents are not slowed down;
+	// ReadTraceEvents uses an iterator, which must sort all keys
+	// of uncommitted writes.
+	// The 200 value yielded a good balance between read and write speed:
+	// https://github.com/elastic/apm-server/pull/8407#issuecomment-1162994643
 	if rw.pendingWrites >= 200 {
 		if err := rw.Flush(); err != nil {
 			return err
