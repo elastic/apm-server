@@ -1,1 +1,3 @@
 scripts/enable_expvar.sh
+scripts/secret_token.sh
+secret_token.json
