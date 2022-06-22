@@ -9,7 +9,7 @@
 
 [discrete]
 [[why-upgrade-to-integrations]]
-=== Why upgrade?
+=== Why switch?
 
 The new APM ecosystem offers a number of benefits:
 
