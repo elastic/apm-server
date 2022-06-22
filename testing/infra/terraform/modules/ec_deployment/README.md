@@ -26,7 +26,9 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | [ec_deployment.deployment](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/deployment) | resource |
 | [ec_deployment.deployment_monitor](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/deployment) | resource |
 | [local_file.enable_expvar](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.secret_token](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [null_resource.enable_expvar](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [null_resource.secret_token](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [ec_stack.deployment_version](https://registry.terraform.io/providers/elastic/ec/latest/docs/data-sources/stack) | data source |
 
 ## Inputs
@@ -43,9 +45,11 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | <a name="input_docker_image_tag_override"></a> [docker\_image\_tag\_override](#input\_docker\_image\_tag\_override) | Optional docker image tag overrides, The full map needs to be specified | `map(string)` | <pre>{<br>  "apm": "",<br>  "elasticsearch": "",<br>  "kibana": ""<br>}</pre> | no |
 | <a name="input_elasticsearch_size"></a> [elasticsearch\_size](#input\_elasticsearch\_size) | Optional Elasticsearch instance size | `string` | `"8g"` | no |
 | <a name="input_elasticsearch_zone_count"></a> [elasticsearch\_zone\_count](#input\_elasticsearch\_zone\_count) | Optional Elasticsearch zone count | `number` | `2` | no |
+| <a name="input_integrations_server"></a> [integrations\_server](#input\_integrations\_server) | Optionally use the integrations server block instead of the apm block | `bool` | `false` | no |
 | <a name="input_monitor_deployment"></a> [monitor\_deployment](#input\_monitor\_deployment) | Optionally monitor the deployment in a separate deployment | `bool` | `false` | no |
 | <a name="input_region"></a> [region](#input\_region) | Optional ESS or ECE region. Defaults to GCP US West 2 (Los Angeles) | `string` | `"gcp-us-west2"` | no |
 | <a name="input_stack_version"></a> [stack\_version](#input\_stack\_version) | Optional stack version | `string` | `"latest"` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | Optional set of tags to use for all deployments | `map(string)` | `{}` | no |
 
 ## Outputs
 
