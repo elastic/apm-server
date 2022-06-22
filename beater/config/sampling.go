@@ -20,6 +20,7 @@ package config
 import (
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/elasticsearch"
@@ -48,6 +49,8 @@ type TailSamplingConfig struct {
 	IngestRateDecayFactor float64               `config:"ingest_rate_decay" validate:"min=0, max=1"`
 	StorageGCInterval     time.Duration         `config:"storage_gc_interval" validate:"min=1s"`
 	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
+	StorageLimit          string                `config:"storage_limit"`
+	StorageLimitParsed    uint64
 
 	esConfigured bool
 }
@@ -76,10 +79,21 @@ func (c *TailSamplingConfig) Unpack(in *config.C) error {
 	if err := in.Unpack(&cfg); err != nil {
 		return errors.Wrap(err, "error unpacking tail sampling config")
 	}
+	limit, err := humanize.ParseBytes(cfg.StorageLimit)
+	if err != nil {
+		return err
+	}
+	cfg.StorageLimitParsed = limit
 	cfg.Enabled = in.Enabled()
 	*c = TailSamplingConfig(cfg)
 	c.esConfigured = in.HasField("elasticsearch")
+<<<<<<< HEAD
 	return errors.Wrap(c.Validate(), "invalid tail sampling config")
+=======
+	c.StorageLimitParsed = limit
+	err = errors.Wrap(c.Validate(), "invalid config")
+	return nil
+>>>>>>> 45daab7e (sampling: Log non-fatal errors, add eventstorage limit (#8407))
 }
 
 func (c *TailSamplingConfig) Validate() error {
@@ -124,12 +138,19 @@ func defaultSamplingConfig() SamplingConfig {
 }
 
 func defaultTailSamplingConfig() TailSamplingConfig {
-	return TailSamplingConfig{
+	cfg := TailSamplingConfig{
 		Enabled:               false,
 		ESConfig:              elasticsearch.DefaultConfig(),
 		Interval:              1 * time.Minute,
 		IngestRateDecayFactor: 0.25,
 		StorageGCInterval:     5 * time.Minute,
 		TTL:                   30 * time.Minute,
+		StorageLimit:          "3GB",
 	}
+	parsed, err := humanize.ParseBytes(cfg.StorageLimit)
+	if err != nil {
+		panic(err)
+	}
+	cfg.StorageLimitParsed = parsed
+	return cfg
 }

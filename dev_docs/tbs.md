@@ -61,3 +61,11 @@ As mentioned above, APM Servers will buffer events locally until a sampling deci
 For this purpose, we use [BadgerDB](https://github.com/dgraph-io/badger). BadgerDB is designed for
 fast writes, which is important for our use case: we write all events here, and read out only the
 sampled ones. All non-sampled events will be removed from the store through TTL expiry.
+
+We have implemented a configurable storage limit based on the size of the Badger database as reported
+by the SDK. This accounting has some lag of up to 1 minute and may allow the database to grow over
+the configured limit. The limit can be disabled by setting it to `0`.
+
+When writes to badger fail, or the storage limit has been reached, the default behavior is to sample
+all incoming traces. Eventually, this behavior will be configurable and allow users to either discard
+or sample incoming events when the disk is full.
