@@ -192,15 +192,19 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *model.AP
 func (rw *ReadWriter) writeEntry(e *badger.Entry) error {
 	rw.pendingWrites++
 	err := rw.txn.SetEntry(e)
-	// If the transaction is already too big to accommodate the new entry, flush
-	// the existing transaction and set the entry on a new one, otherwise,
-	// returns early.
-	if rw.pendingWrites >= 500 {
+	// Attempt to flush if there are 200 or more uncommitted writes.
+	if rw.pendingWrites >= 200 {
 		if err := rw.Flush(); err != nil {
 			return err
 		}
 	}
+	// If the transaction is already too big to accommodate the new entry, flush
+	// the existing transaction and set the entry on a new one, otherwise,
+	// returns early.
 	if err != badger.ErrTxnTooBig {
+		return err
+	}
+	if err := rw.Flush(); err != nil {
 		return err
 	}
 	return rw.txn.SetEntry(e)
@@ -213,23 +217,10 @@ func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 }
 
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
-//
-// ReadTraceEvents may implicitly commit the current transaction when the number of
-// pending writes exceeds a threshold. This is due to how Badger internally iterates
-// over uncommitted writes, where it will sort keys for each new iterator.
 func (rw *ReadWriter) ReadTraceEvents(traceID string, out *model.Batch) error {
 	opts := badger.DefaultIteratorOptions
 	rw.readKeyBuf = append(append(rw.readKeyBuf[:0], traceID...), ':')
 	opts.Prefix = rw.readKeyBuf
-
-	// NewIterator slows down with uncommitted writes, as it must sort
-	// all keys lexicographically. If there are a significant number of
-	// writes pending, flush first.
-	// if rw.pendingWrites > 100 {
-	// 	if err := rw.Flush(); err != nil {
-	// 		return err
-	// 	}
-	// }
 
 	iter := rw.txn.NewIterator(opts)
 	defer iter.Close()
