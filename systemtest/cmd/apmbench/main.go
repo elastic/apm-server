@@ -19,6 +19,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"testing"
 
@@ -102,6 +103,7 @@ func benchmarkAgent(b *testing.B, l *rate.Limiter, expr string) {
 }
 
 func main() {
+	flag.Parse()
 	if err := benchtest.Run(
 		Benchmark1000Transactions,
 		BenchmarkOTLPTraces,
