@@ -41,7 +41,7 @@ We recommend you use the same version of {es}, {kib}, and APM Server.
 
 image::images/apm-architecture-diy.png[Install Elastic APM yourself]
 
-See {stack-gs}/get-started-elastic-stack.html[Getting started with the {stack}]
+See {stack-ref}/installing-elastic-stack.html[Installing the {stack}].
 for more information about installing these products.
 After installing the {stack}, read the following topics to learn how to install,
 configure, and start APM Server:
@@ -61,7 +61,8 @@ configure, and start APM Server:
 IMPORTANT: {deprecation-notice-installation}
 
 NOTE: *Before you begin*: If you haven't installed the {stack}, do that now.
-See {stack-gs}/get-started-elastic-stack.html[Getting started with the {stack}].
+See {stack-ref}/installing-elastic-stack.html[Learn how to install the
+{stack} on your own hardware].
 
 To download and install {beatname_uc}, use the commands below that work with your system.
 If you use `apt` or `yum`, you can <<setup-repositories,install {beatname_uc} from our repositories>>
