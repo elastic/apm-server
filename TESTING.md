@@ -101,6 +101,26 @@ The rest of the flags configure the `apmbench` so it can target an APM Server, t
 set flags, or their `ELASTIC_APM_<UPPERCASE FLAG NAME>` alternative, for example, to configure the server URL
 set `ELASTIC_APM_SERVER_URL` to the full URL of the APM Server you'd like to benchmark.
 
+## Soak testing
+
+Soak testing involves testing apm-server against a continuous, sustained workload to identify performance
+and stability issues that occur over an extended period. `apmsoak` command can be used to generate a
+sustained and continuous load for the purpose of soak testing:
+
+```console
+$ cd systemtest/cmd/apmsoak
+$ go run main.go -h
+Usage of /var/folders/k9/z1yw8fsn0sjbl5yy7z2rsdpr0000gn/T/go-build2038486186/b001/exe/main:
+  -max-rate value
+    	Max event rate as epm or eps with burst size=max(1000, 2*eps), <= 0 values evaluate to Inf (default 0epm)
+  -secret-token string
+    	secret token for APM Server
+  -secure
+    	validate the remote server TLS certificates
+  -server value
+    	apm-server URL (default http://localhost:8200)
+```
+
 ## Manual testing
 
 Often, we need to manually test the integration between different features, PR testing or pre-release testing.

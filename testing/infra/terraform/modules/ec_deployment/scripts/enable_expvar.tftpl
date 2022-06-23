@@ -22,11 +22,11 @@ if [[ $${EXPVAR_ENABLED} || $${PPROF_ENABLED} ]] ; then
 fi
 
 # Download and modify the APM policy
-echo $${POLICY} |\
-    jq 'del(.item.id)' | jq 'del(.item.elasticsearch)'| jq 'del(.item.inputs[].compiled_input)' | jq 'del(.item.revision)' |\
-    jq 'del(.item.created_at)' | jq 'del(.item.created_by)' | jq 'del(.item.updated_at)' | jq 'del(.item.updated_by)' |\
-    jq '.item | select(.inputs[].policy_template == "apmserver") .inputs[].vars.expvar_enabled = {type: "bool", value: true}' |\
-    jq '.item | select(.inputs[].policy_template == "apmserver") .inputs[].vars.pprof_enabled = {type: "bool", value: true}' > policy.json
+echo $${POLICY} | jq '.item' | \
+    jq 'del(.id)' | jq 'del(.elasticsearch)'| jq 'del(.inputs[].compiled_input)' | jq 'del(.revision)' |\
+    jq 'del(.created_at)' | jq 'del(.created_by)' | jq 'del(.updated_at)' | jq 'del(.updated_by)' |\
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.expvar_enabled = {type: "bool", value: ${enable_expvar}}' |\
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.pprof_enabled = {type: "bool", value: ${enable_pprof}}' > policy.json
 
 # Update the policy
 curl -s -H 'content-type: application/json' -H 'kbn-xsrf: true' -X PUT -k -d@policy.json -u $${KIBANA_AUTH} $${KIBANA_ENDPOINT}
