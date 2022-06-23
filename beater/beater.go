@@ -221,6 +221,8 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 				ctx, reload.ReloadableFunc(reloader.reloadOutput),
 			)
 		})
+		// Create a debouncer to limit the number of repeated calls to
+		// reloader.reload().
 		d := &debouncer{
 			triggerc: make(chan chan error),
 			timeout:  500 * time.Millisecond,
@@ -228,6 +230,8 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		}
 		reloader.debouncer = d
 		g.Go(func() error {
+			// Start the debouncer loop. This listens and debounces
+			// requests from reloader to reload the apm-server.
 			return d.loop(ctx)
 		})
 
@@ -276,18 +280,29 @@ type reloader struct {
 	debouncer    *debouncer
 }
 
+// debouncer wraps a function fn that is to be debounced for the length of
+// timeout. Additional calls to fire fn will reset the timer. After timeout
+// elapses, fn is fired.
 type debouncer struct {
 	triggerc chan chan error
 	timeout  time.Duration
 	fn       func() error
 }
 
+// trigger sends a request to fire the function fn. a buffered channel which
+// will contain the return value of fn is returned to the caller, which they
+// are responsible for draining.
 func (d *debouncer) trigger() chan error {
 	res := make(chan error, 1)
 	d.triggerc <- res
 	return res
 }
 
+// loop waits for requests to fire the debounced function fn sent on channel
+// triggerc. When the first request is received, it starts the debounce()
+// method. While debounce() is active, all additional sends on triggerc will be
+// received within that function. The return value of debounce() is sent to the
+// buffered channel res.
 func (d *debouncer) loop(ctx context.Context) error {
 	for {
 		select {
@@ -300,6 +315,11 @@ func (d *debouncer) loop(ctx context.Context) error {
 	}
 }
 
+// debounce debounces function fn, so that repeated calls to trigger() will
+// only execute fn a single time after timeout has elapsed. Repeated calls to
+// trigger() reset the timer. Additionally, each call to trigger() sends a chan
+// error on triggerc; the return value of fn is sent to all callers once fn has
+// executed.
 func (d *debouncer) debounce(ctx context.Context) (err error) {
 	t := time.NewTimer(d.timeout)
 	callers := []chan error{}
@@ -363,6 +383,8 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 	}
 	r.fleetConfig = &integrationConfig.Fleet
 	r.mu.Unlock()
+	// debouncer is wrapping r.reload(), ensuring that a rapid succession
+	// of config changes will only reload the apm-server once.
 	return <-r.debouncer.trigger()
 }
 
@@ -376,6 +398,8 @@ func (r *reloader) reloadOutput(config *reload.ConfigWithMeta) error {
 	r.mu.Lock()
 	r.outputConfig = outputConfig
 	r.mu.Unlock()
+	// debouncer is wrapping r.reload(), ensuring that a rapid succession
+	// of config changes will only reload the apm-server once.
 	return <-r.debouncer.trigger()
 }
 
