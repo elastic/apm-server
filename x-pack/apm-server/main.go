@@ -144,6 +144,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			DB:                badgerDB,
 			StorageDir:        storageDir,
 			StorageGCInterval: tailSamplingConfig.StorageGCInterval,
+			StorageLimit:      tailSamplingConfig.StorageLimitParsed,
 			TTL:               tailSamplingConfig.TTL,
 		},
 	})
@@ -183,7 +184,7 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 		p := p // copy for closure
 		g.Go(func() error {
 			if err := p.Run(); err != nil {
-				args.Logger.Errorf("%s aborted", p.name, logp.Error(err))
+				args.Logger.With(logp.Error(err)).Errorf("%s aborted", p.name)
 				return err
 			}
 			args.Logger.Infof("%s stopped", p.name)

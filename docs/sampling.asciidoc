@@ -150,6 +150,10 @@ Requiring this default policy ensures that traces are only dropped intentionally
 If you enable tail-based sampling and send a transaction that does not match any of the policies,
 APM Server will reject the transaction with the error `no matching policy`.
 
+IMPORTANT: Please note that from version `8.3.1` APM Server implements a default storage limit of 3GB,
+but, due to how the limit is calculated and enforced the actual disk space may still grow slightly
+over the limit.
+
 ===== Example configuration
 
 This example defines three tail-based sampling polices:

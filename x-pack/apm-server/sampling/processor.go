@@ -30,9 +30,9 @@ const (
 	// the subscriber position across server restarts.
 	subscriberPositionFile = "subscriber_position.json"
 
-	// tooManyGroupsLoggerRateLimit is the maximum frequency at which
-	// "too many groups" log messages are logged.
-	tooManyGroupsLoggerRateLimit = time.Minute
+	// loggerRateLimit is the maximum frequency at which "too many groups" and
+	// "write failure" log messages are logged.
+	loggerRateLimit = time.Minute
 )
 
 // ErrStopped is returned when calling ProcessBatch on a stopped Processor.
@@ -40,10 +40,10 @@ var ErrStopped = errors.New("processor is stopped")
 
 // Processor is a tail-sampling event processor.
 type Processor struct {
-	config              Config
-	logger              *logp.Logger
-	tooManyGroupsLogger *logp.Logger
-	groups              *traceGroups
+	config            Config
+	logger            *logp.Logger
+	rateLimitedLogger *logp.Logger
+	groups            *traceGroups
 
 	storageMu    sync.RWMutex
 	storage      *eventstorage.ShardedReadWriter
@@ -52,6 +52,8 @@ type Processor struct {
 	stopMu   sync.Mutex
 	stopping chan struct{}
 	stopped  chan struct{}
+
+	indexOnWriteFailure bool
 }
 
 type eventMetrics struct {
@@ -60,6 +62,7 @@ type eventMetrics struct {
 	stored        int64
 	sampled       int64
 	headUnsampled int64
+	failedWrites  int64
 }
 
 // NewProcessor returns a new Processor, for tail-sampling trace events.
@@ -68,20 +71,25 @@ func NewProcessor(config Config) (*Processor, error) {
 		return nil, errors.Wrap(err, "invalid tail-sampling config")
 	}
 
-	logger := logp.NewLogger(logs.Sampling)
 	eventCodec := eventstorage.JSONCodec{}
-	storage := eventstorage.New(config.DB, eventCodec, config.TTL)
+	storage := eventstorage.New(config.DB, eventCodec, config.TTL, int64(config.StorageLimit))
+	logger := logp.NewLogger(logs.Sampling)
 	readWriter := storage.NewShardedReadWriter()
 
 	p := &Processor{
-		config:              config,
-		logger:              logger,
-		tooManyGroupsLogger: logger.WithOptions(logs.WithRateLimit(tooManyGroupsLoggerRateLimit)),
-		groups:              newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
-		storage:             readWriter,
-		eventMetrics:        &eventMetrics{},
-		stopping:            make(chan struct{}),
-		stopped:             make(chan struct{}),
+		config:            config,
+		logger:            logger,
+		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
+		groups:            newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
+		storage:           readWriter,
+		eventMetrics:      &eventMetrics{},
+		stopping:          make(chan struct{}),
+		stopped:           make(chan struct{}),
+		// NOTE(marclop) This behavior should be configurable so users who
+		// rely on tail sampling for cost cutting, can discard events once
+		// the disk is full.
+		// Index all traces when the storage limit is reached.
+		indexOnWriteFailure: true,
 	}
 	return p, nil
 }
@@ -120,6 +128,7 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 		monitoring.ReportInt(V, "stored", atomic.LoadInt64(&p.eventMetrics.stored))
 		monitoring.ReportInt(V, "sampled", atomic.LoadInt64(&p.eventMetrics.sampled))
 		monitoring.ReportInt(V, "head_unsampled", atomic.LoadInt64(&p.eventMetrics.headUnsampled))
+		monitoring.ReportInt(V, "failed_writes", atomic.LoadInt64(&p.eventMetrics.failedWrites))
 	})
 }
 
@@ -143,25 +152,33 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 	events := *batch
 	for i := 0; i < len(events); i++ {
 		event := &events[i]
-		var report, stored bool
+		var report, stored, failed bool
+		var err error
 		switch event.Processor {
 		case model.TransactionProcessor:
-			var err error
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
 			report, stored, err = p.processTransaction(event)
-			if err != nil {
-				return err
-			}
 		case model.SpanProcessor:
-			var err error
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
 			report, stored, err = p.processSpan(event)
-			if err != nil {
-				return err
-			}
 		default:
 			continue
 		}
+
+		// If processing the transaction or span returns with an error we
+		// either discard or sample the trace by default.
+		if err != nil {
+			failed = true
+			stored = false
+			if p.indexOnWriteFailure {
+				report = true
+				p.rateLimitedLogger.Info("processing trace failed, indexing by default")
+			} else {
+				report = false
+				p.rateLimitedLogger.Info("processing trace failed, discarding by default")
+			}
+		}
+
 		if !report {
 			// We shouldn't report this event, so remove it from the slice.
 			n := len(events)
@@ -170,13 +187,16 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *model.Batch) error 
 			i--
 		}
 
-		p.updateProcessorMetrics(report, stored)
+		p.updateProcessorMetrics(report, stored, failed)
 	}
 	*batch = events
 	return nil
 }
 
-func (p *Processor) updateProcessorMetrics(report, stored bool) {
+func (p *Processor) updateProcessorMetrics(report, stored, failedWrite bool) {
+	if failedWrite {
+		atomic.AddInt64(&p.eventMetrics.failedWrites, 1)
+	}
 	if stored {
 		atomic.AddInt64(&p.eventMetrics.stored, 1)
 	} else if !report {
@@ -234,7 +254,7 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 	reservoirSampled, err := p.groups.sampleTrace(event)
 	if err == errTooManyTraceGroups {
 		// Too many trace groups, drop the transaction.
-		p.tooManyGroupsLogger.Warn(`
+		p.rateLimitedLogger.Warn(`
 Tail-sampling service group limit reached, discarding trace events.
 This is caused by having many unique service names while relying on
 sampling policies without service name specified.
@@ -274,11 +294,10 @@ func (p *Processor) processSpan(event *model.APMEvent) (report, stored bool, _ e
 		return false, false, err
 	}
 	// Tail-sampling decision has been made, report or drop the event.
-	if !traceSampled {
-		return false, false, nil
+	if traceSampled {
+		atomic.AddInt64(&p.eventMetrics.sampled, 1)
 	}
-	atomic.AddInt64(&p.eventMetrics.sampled, 1)
-	return true, false, nil
+	return traceSampled, false, nil
 }
 
 // Stop stops the processor, flushing event storage. Note that the underlying
@@ -348,7 +367,7 @@ func (p *Processor) Run() error {
 		bulkIndexerFlushInterval = p.config.FlushInterval
 	}
 
-	initialSubscriberPosition, err := readSubscriberPosition(p.config.StorageDir)
+	initialSubscriberPosition, err := readSubscriberPosition(p.logger, p.config.StorageDir)
 	if err != nil {
 		return err
 	}
@@ -447,11 +466,16 @@ func (p *Processor) Run() error {
 			case traceID = <-localSampledTraceIDs:
 			}
 			if err := p.storage.WriteTraceSampled(traceID, true); err != nil {
-				return err
+				p.rateLimitedLogger.Warnf(
+					"received error writing sampled trace: %s", err,
+				)
 			}
 			var events model.Batch
 			if err := p.storage.ReadTraceEvents(traceID, &events); err != nil {
-				return err
+				p.rateLimitedLogger.Warnf(
+					"received error reading trace events: %s", err,
+				)
+				continue
 			}
 			if n := len(events); n > 0 {
 				p.logger.Debugf("reporting %d events", n)
@@ -491,7 +515,9 @@ func (p *Processor) Run() error {
 				return ctx.Err()
 			case pos := <-subscriberPositions:
 				if err := writeSubscriberPosition(p.config.StorageDir, pos); err != nil {
-					return err
+					p.rateLimitedLogger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Warn(
+						"failed to write subscriber position: %s", err,
+					)
 				}
 			}
 		}
@@ -502,7 +528,7 @@ func (p *Processor) Run() error {
 	return nil
 }
 
-func readSubscriberPosition(storageDir string) (pubsub.SubscriberPosition, error) {
+func readSubscriberPosition(logger *logp.Logger, storageDir string) (pubsub.SubscriberPosition, error) {
 	var pos pubsub.SubscriberPosition
 	data, err := os.ReadFile(filepath.Join(storageDir, subscriberPositionFile))
 	if errors.Is(err, os.ErrNotExist) {
@@ -510,7 +536,11 @@ func readSubscriberPosition(storageDir string) (pubsub.SubscriberPosition, error
 	} else if err != nil {
 		return pos, err
 	}
-	return pos, json.Unmarshal(data, &pos)
+	err = json.Unmarshal(data, &pos)
+	if err != nil {
+		logger.With(logp.Error(err)).With(logp.ByteString("file", data)).Debug("failed to read subscriber position")
+	}
+	return pos, err
 }
 
 func writeSubscriberPosition(storageDir string, pos pubsub.SubscriberPosition) error {

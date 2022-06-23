@@ -50,6 +50,12 @@ variable "apm_server_zone_count" {
   description = "Optional apm server zone count"
 }
 
+variable "integrations_server" {
+  description = "Optionally use the integrations server block instead of the apm block"
+  type        = bool
+  default     = false
+}
+
 # Elasticsearch topology
 
 variable "elasticsearch_size" {
@@ -90,12 +96,12 @@ variable "docker_image" {
 
 variable "apm_server_expvar" {
   default     = true
-  description = "Wether or not to enable APM Server's expvar endpoint. Defaults to true"
+  description = "Whether or not to enable APM Server's expvar endpoint. Defaults to true"
   type        = bool
 }
 
 variable "apm_server_pprof" {
   default     = true
-  description = "Wether or not to enable APM Server's pprof endpoint. Defaults to true"
+  description = "Whether or not to enable APM Server's pprof endpoint. Defaults to true"
   type        = bool
 }

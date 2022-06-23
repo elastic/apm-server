@@ -31,7 +31,7 @@ APM_SERVER_BINARIES:= \
 	build/apm-server-darwin-amd64
 
 .PHONY: $(APM_SERVER_BINARIES)
-$(APM_SERVER_BINARIES): $(MAGE)
+$(APM_SERVER_BINARIES) build/apm-server-darwin-arm64: $(MAGE)
 	@$(MAGE) build
 
 build/apm-server-linux-%: export GOOS=linux
