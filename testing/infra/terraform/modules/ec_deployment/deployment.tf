@@ -103,6 +103,8 @@ resource "local_file" "enable_expvar" {
   content = templatefile("${path.module}/scripts/enable_expvar.tftpl", {
     kibana_url       = ec_deployment.deployment.kibana.0.https_endpoint,
     elastic_password = ec_deployment.deployment.elasticsearch_password,
+    enable_expvar    = var.apm_server_expvar
+    enable_pprof     = var.apm_server_pprof
   })
   filename = "${path.module}/scripts/enable_expvar.sh"
 }
