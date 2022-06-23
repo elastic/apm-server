@@ -292,7 +292,7 @@ type debouncer struct {
 // trigger sends a request to fire the function fn. a buffered channel which
 // will contain the return value of fn is returned to the caller, which they
 // are responsible for draining.
-func (d *debouncer) trigger() chan error {
+func (d *debouncer) trigger() <-chan error {
 	res := make(chan error, 1)
 	d.triggerc <- res
 	return res
@@ -327,9 +327,9 @@ func (d *debouncer) debounce(ctx context.Context) (err error) {
 		for _, res := range callers {
 			select {
 			case res <- err:
+				close(res)
 			default:
 			}
-			close(res)
 		}
 	}()
 	for {
