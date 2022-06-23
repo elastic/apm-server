@@ -31,7 +31,7 @@ func TestDebouncer(t *testing.T) {
 	defer cancel()
 	fired := make(chan struct{})
 	d := &debouncer{
-		triggerc: make(chan chan error),
+		triggerc: make(chan chan<- error),
 		timeout:  50 * time.Millisecond,
 		fn: func() error {
 			close(fired)

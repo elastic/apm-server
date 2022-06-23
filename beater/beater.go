@@ -224,7 +224,7 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		// Create a debouncer to limit the number of repeated calls to
 		// reloader.reload().
 		d := &debouncer{
-			triggerc: make(chan chan error),
+			triggerc: make(chan chan<- error),
 			timeout:  500 * time.Millisecond,
 			fn:       reloader.reload,
 		}
@@ -284,7 +284,7 @@ type reloader struct {
 // timeout. Additional calls to fire fn will reset the timer. After timeout
 // elapses, fn is fired.
 type debouncer struct {
-	triggerc chan chan error
+	triggerc chan chan<- error
 	timeout  time.Duration
 	fn       func() error
 }
@@ -322,7 +322,7 @@ func (d *debouncer) loop(ctx context.Context) error {
 // executed.
 func (d *debouncer) debounce(ctx context.Context) (err error) {
 	t := time.NewTimer(d.timeout)
-	callers := []chan error{}
+	callers := []chan<- error{}
 	defer func() {
 		for _, res := range callers {
 			select {
