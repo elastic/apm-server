@@ -5,6 +5,8 @@ IMPORTANT: {deprecation-notice-data}
 If you've already upgraded, see <<open-telemetry>>.
 
 :ot-spec:       https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md
+:ot-grpc:       https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md#otlpgrpc
+:ot-http:       https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md#otlphttp
 :ot-contrib:    https://github.com/open-telemetry/opentelemetry-collector-contrib
 :ot-resource:   {ot-contrib}/tree/main/processor/resourceprocessor
 :ot-attr:       {ot-contrib}/blob/main/processor/attributesprocessor
@@ -28,11 +30,6 @@ business KPIs and technical components with the {stack}.
 [float]
 [[open-telemetry-elastic-protocol]]
 ==== APM Server native support of OpenTelemetry protocol
-
-****
-Starting in {stack} version 8.3,
-APM Server supports the OpenTelemetry protocol over HTTP transport {ot-http}[(OTLP/HTTP)].
-****
 
 Elastic APM Server natively supports the OpenTelemetry protocol.
 This means trace data and metrics collected from your applications and infrastructure can
@@ -469,9 +466,8 @@ Attributes can be added as a part of the OpenTelemetry instrumentation process o
 [[elastic-open-telemetry-otlp-limitations]]
 ===== OpenTelemetry Line Protocol (OTLP)
 
-APM Server supports both the OTLP protocol over gRPC transport {ot-grpc}[(OTLP/gRPC)]
-and the OTLP protocol over HTTP transport {ot-http}[(OTLP/HTTP)].
-Both OTLP/gRPC and OTLP/HTTP use the same ProtoBuf payload. APM Server does not yet support JSON Encoding for OTLP/HTTP.
+APM Server supports both the {ot-grpc}[(OTLP/gRPC)] and {ot-http}[(OTLP/HTTP)] protocol with ProtoBuf payload.
+APM Server does not yet support JSON Encoding for OTLP/HTTP.
 
 [float]
 [[elastic-open-telemetry-collector-exporter]]
