@@ -439,8 +439,9 @@ pipeline {
                 withMageEnv(){
                   sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                 }
+                sendBenchmarks(file: "${BASE_DIR}/bench.out", index: "benchmark-server")
+                generateGoBenchmarkDiff(current: 'bench.out', filter: 'exclude')
               }
-              sendBenchmarks(file: "${BASE_DIR}/bench.out", index: "benchmark-server")
             }
           }
         }
@@ -517,7 +518,7 @@ pipeline {
       archiveArtifacts artifacts: 'beats-tester.properties'
     }
     cleanup {
-      notifyBuildResult()
+      notifyBuildResult(goBenchmarkComment: true)
     }
   }
 }
