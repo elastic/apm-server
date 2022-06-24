@@ -47,6 +47,7 @@ cmd/intake-receiver/intake-receiver
 cmd/intake-receiver/events
 .terraform
 .terraform.lock*
+.terraform.tfstate*
 terraform.tfstate
 terraform.tfstate.backup
 terraform.tfvars

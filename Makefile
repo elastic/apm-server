@@ -279,3 +279,13 @@ rally/corpora/.generated: rally/gencorpora/main.go rally/gencorpora/api.go rally
 	@rm -fr rally/corpora && mkdir rally/corpora
 	@cd rally/gencorpora && $(GO) run .
 	@touch $@
+
+##############################################################################
+# Smoke tests -- Basic smoke tests for APM Server.
+##############################################################################
+
+SMOKETEST_VERSIONS ?= latest
+
+.PHONY: smoketest
+smoketest:
+	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do cd ./testing/smoke/basic_upgrade && ./test.sh $$version; cd - ; done

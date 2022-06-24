@@ -142,3 +142,8 @@ resource "null_resource" "secret_token" {
     working_dir = path.module
   }
 }
+
+data "local_file" "secret_token" {
+  depends_on = [null_resource.secret_token]
+  filename = "${path.module}/secret_token.json"
+}
