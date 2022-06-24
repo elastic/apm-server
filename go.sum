@@ -574,8 +574,8 @@ github.com/eclipse/paho.mqtt.golang v1.3.5/go.mod h1:eTzb4gxwwyWpqBUHGQZ4ABAV7+J
 github.com/edsrzf/mmap-go v1.0.0/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
 github.com/elastic/bayeux v1.0.5/go.mod h1:CSI4iP7qeo5MMlkznGvYKftp8M7qqP/3nzmVZoXHY68=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220623030558-ea65707e2f22 h1:/GLZpbwRk9g/kDOR3SfdJxRiAb4ntySZl0IBmY8wi88=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220623030558-ea65707e2f22/go.mod h1:dkf2s5lA3Z16OfGaOGqJbeumbX9MAoXjKB65AlZqy/Q=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220623232029-f3c43bea8ffc h1:0c5mpQC422mRNmffncpr+QjWiwVdV5/AFDgdtEgpQ/0=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220623232029-f3c43bea8ffc/go.mod h1:dkf2s5lA3Z16OfGaOGqJbeumbX9MAoXjKB65AlZqy/Q=
 github.com/elastic/ecs v1.12.0 h1:u6WZ2AWtxv5vHvTQ4EuVZdWZ51mKHQ2UIltRePcta5U=
 github.com/elastic/ecs v1.12.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/elastic-agent-autodiscover v0.1.1 h1:oSV42MKIcPq30VJFZwc066eVm+pKpxfQNY4RIPE1fyg=
@@ -2644,8 +2644,8 @@ google.golang.org/genproto v0.0.0-20211206160659-862468c7d6e0/go.mod h1:5CzLGKJ6
 google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
 google.golang.org/genproto v0.0.0-20220329172620-7be39ac1afc7/go.mod h1:8w6bsBMX6yCPbAVTeqQHvzxW0EIFigd5lZyahWgyfDo=
 google.golang.org/genproto v0.0.0-20220426171045-31bebdecfb46/go.mod h1:8w6bsBMX6yCPbAVTeqQHvzxW0EIFigd5lZyahWgyfDo=
-google.golang.org/genproto v0.0.0-20220622171453-ea41d75dfa0f h1:kYlCnpX4eB0QEnXm12j4DAX4yrjjhJmsyuWtSSZ+Buo=
-google.golang.org/genproto v0.0.0-20220622171453-ea41d75dfa0f/go.mod h1:KEWEmljWE5zPzLBa/oHl6DaEt9LmfH6WtH1OHIvleBA=
+google.golang.org/genproto v0.0.0-20220623142657-077d458a5694 h1:itnFmgk4Ls5nT+mYO2ZK6F0DpKsGZLhB5BB9y5ZL2HA=
+google.golang.org/genproto v0.0.0-20220623142657-077d458a5694/go.mod h1:KEWEmljWE5zPzLBa/oHl6DaEt9LmfH6WtH1OHIvleBA=
 google.golang.org/grpc v1.8.0/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.14.0/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.17.0/go.mod h1:6QZJwpn2B+Zp71q/5VxRsJ6NXXVCE5NRUHRo+f3cWCs=
