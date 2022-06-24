@@ -110,7 +110,9 @@ sustained and continuous load for the purpose of soak testing:
 ```console
 $ cd systemtest/cmd/apmsoak
 $ go run main.go -h
-Usage of /var/folders/k9/z1yw8fsn0sjbl5yy7z2rsdpr0000gn/T/go-build2038486186/b001/exe/main:
+Usage of /var/folders/k9/z1yw8fsn0sjbl5yy7z2rsdpr0000gn/T/go-build4164012609/b001/exe/main:
+  -agents-replicas int
+    	Number of agents replicas to use, each replica launches 4 agents, one for each type (default 1)
   -max-rate value
     	Max event rate as epm or eps with burst size=max(1000, 2*eps), <= 0 values evaluate to Inf (default 0epm)
   -secret-token string

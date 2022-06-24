@@ -77,9 +77,11 @@ check-approvals: $(APPROVALS)
 check: $(MAGE) check-fmt check-headers
 	@$(MAGE) check
 
+BENCH_BENCHTIME?=100ms
+BENCH_COUNT?=1
 .PHONY: bench
 bench:
-	@$(GO) test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
+	@$(GO) test -count=$(BENCH_COUNT) -benchmem -run=XXX -benchtime=$(BENCH_BENCHTIME) -bench='.*' ./...
 
 ##############################################################################
 # Rules for updating config files, etc.
@@ -279,3 +281,13 @@ rally/corpora/.generated: rally/gencorpora/main.go rally/gencorpora/api.go rally
 	@rm -fr rally/corpora && mkdir rally/corpora
 	@cd rally/gencorpora && $(GO) run .
 	@touch $@
+
+##############################################################################
+# Smoke tests -- Basic smoke tests for APM Server.
+##############################################################################
+
+SMOKETEST_VERSIONS ?= latest
+
+.PHONY: smoketest
+smoketest:
+	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do cd ./testing/smoke/basic_upgrade && ./test.sh $$version; cd - ; done

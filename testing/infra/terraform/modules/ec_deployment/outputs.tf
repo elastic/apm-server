@@ -14,7 +14,7 @@ output "apm_url" {
 }
 
 output "apm_secret_token" {
-  value       = var.integrations_server ? jsonencode("secret.json") : ec_deployment.deployment.apm_secret_token
+  value       = var.integrations_server ? jsondecode(data.local_file.secret_token.content).secret_token : ec_deployment.deployment.apm_secret_token
   sensitive   = true
   description = "The APM Secret token"
 }
