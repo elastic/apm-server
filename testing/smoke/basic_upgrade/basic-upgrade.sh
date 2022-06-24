@@ -25,28 +25,19 @@ else
     exit 5
 fi
 
+echo "-> Running basic upgrade smoke test for version ${VERSION}"
+
 . $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
 
 trap "terraform_destroy" EXIT
 
 terraform_apply ${PREV_LATEST_VERSION} ${INTEGRATIONS_SERVER}
-
-ELASTICSEARCH_URL=$(terraform output -raw elasticsearch_url)
-ELASTICSEARCH_USER=$(terraform output -raw elasticsearch_username)
-ELASTICSEARCH_PASS=$(terraform output -raw elasticsearch_password)
-APM_AUTH_HEADER="Authorization: Bearer $(terraform output -raw apm_secret_token)"
-APM_SERVER_URL=$(terraform output -raw apm_server_url)
-
 healthcheck 1
 send_events
 ${ASSERT_EVENTS_FUNC} ${PREV_LATEST_VERSION}
 
 echo "-> Upgrading APM Server to ${LATEST_VERSION}"
-echo stack_version=\"${LATEST_VERSION}\" > terraform.tfvars
 terraform_apply ${LATEST_VERSION} ${INTEGRATIONS_SERVER}
-
 healthcheck 1
 send_events
 ${ASSERT_EVENTS_FUNC} ${LATEST_VERSION}
-
-echo "-> Smoke tests passed!"
