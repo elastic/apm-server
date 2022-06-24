@@ -87,13 +87,8 @@ func (c *TailSamplingConfig) Unpack(in *config.C) error {
 	cfg.Enabled = in.Enabled()
 	*c = TailSamplingConfig(cfg)
 	c.esConfigured = in.HasField("elasticsearch")
-<<<<<<< HEAD
-	return errors.Wrap(c.Validate(), "invalid tail sampling config")
-=======
 	c.StorageLimitParsed = limit
-	err = errors.Wrap(c.Validate(), "invalid config")
-	return nil
->>>>>>> 45daab7e (sampling: Log non-fatal errors, add eventstorage limit (#8407))
+	return errors.Wrap(c.Validate(), "invalid tail sampling config")
 }
 
 func (c *TailSamplingConfig) Validate() error {

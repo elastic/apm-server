@@ -516,13 +516,9 @@ func (p *Processor) Run() error {
 				return ctx.Err()
 			case pos := <-subscriberPositions:
 				if err := writeSubscriberPosition(p.config.StorageDir, pos); err != nil {
-<<<<<<< HEAD
-					return err
-=======
 					p.rateLimitedLogger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Warn(
 						"failed to write subscriber position: %s", err,
 					)
->>>>>>> 45daab7e (sampling: Log non-fatal errors, add eventstorage limit (#8407))
 				}
 			}
 		}
