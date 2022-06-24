@@ -41,7 +41,7 @@ We recommend you use the same version of {es}, {kib}, and APM Server.
 
 image::images/apm-architecture-diy.png[Install Elastic APM yourself]
 
-See {stack-ref}/installing-elastic-stack.html[Installing the {stack}].
+See {stack-ref}/installing-elastic-stack.html[Installing the {stack}]
 for more information about installing these products.
 After installing the {stack}, read the following topics to learn how to install,
 configure, and start APM Server:
