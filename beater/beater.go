@@ -224,16 +224,12 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		// Create a debouncer to limit the number of repeated calls to
 		// reloader.reload().
 		d := &debouncer{
+			active:   make(chan struct{}, 1),
 			triggerc: make(chan chan<- error),
 			timeout:  500 * time.Millisecond,
 			fn:       reloader.reload,
 		}
 		reloader.debouncer = d
-		g.Go(func() error {
-			// Start the debouncer loop. This listens and debounces
-			// requests from reloader to reload the apm-server.
-			return d.loop(ctx)
-		})
 
 		// Start the manager after all the hooks are initialized
 		// and defined this ensure reloading consistency..
@@ -287,32 +283,30 @@ type debouncer struct {
 	triggerc chan chan<- error
 	timeout  time.Duration
 	fn       func() error
+
+	// Used to show execution of fn is currently being debounced. Must be a
+	// buffered channel with length 1.
+	active chan struct{}
 }
 
 // trigger sends a request to fire the function fn. a buffered channel which
 // will contain the return value of fn is returned to the caller, which they
 // are responsible for draining.
-func (d *debouncer) trigger() <-chan error {
+func (d *debouncer) trigger(ctx context.Context) <-chan error {
 	res := make(chan error, 1)
+	select {
+	case d.active <- struct{}{}:
+		// Update the internal state to show we're currently debouncing
+		// fn execution and start the debounce method.
+		go func() {
+			d.debounce(ctx)
+			// release lock on debouncing
+			<-d.active
+		}()
+	default:
+	}
 	d.triggerc <- res
 	return res
-}
-
-// loop waits for requests to fire the debounced function fn sent on channel
-// triggerc. When the first request is received, it starts the debounce()
-// method. While debounce() is active, all additional sends on triggerc will be
-// received within that function. The return value of debounce() is sent to the
-// buffered channel res.
-func (d *debouncer) loop(ctx context.Context) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case res := <-d.triggerc:
-			res <- d.debounce(ctx)
-			close(res)
-		}
-	}
 }
 
 // debounce debounces function fn, so that repeated calls to trigger() will
@@ -385,7 +379,7 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 	r.mu.Unlock()
 	// debouncer is wrapping r.reload(), ensuring that a rapid succession
 	// of config changes will only reload the apm-server once.
-	return <-r.debouncer.trigger()
+	return <-r.debouncer.trigger(r.runServerContext)
 }
 
 func (r *reloader) reloadOutput(config *reload.ConfigWithMeta) error {
@@ -400,7 +394,7 @@ func (r *reloader) reloadOutput(config *reload.ConfigWithMeta) error {
 	r.mu.Unlock()
 	// debouncer is wrapping r.reload(), ensuring that a rapid succession
 	// of config changes will only reload the apm-server once.
-	return <-r.debouncer.trigger()
+	return <-r.debouncer.trigger(r.runServerContext)
 }
 
 func (r *reloader) reload() error {

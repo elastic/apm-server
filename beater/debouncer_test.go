@@ -31,6 +31,7 @@ func TestDebouncer(t *testing.T) {
 	defer cancel()
 	fired := make(chan struct{})
 	d := &debouncer{
+		active:   make(chan struct{}, 1),
 		triggerc: make(chan chan<- error),
 		timeout:  50 * time.Millisecond,
 		fn: func() error {
@@ -39,21 +40,19 @@ func TestDebouncer(t *testing.T) {
 		},
 	}
 
-	go d.loop(ctx)
-
-	c1 := d.trigger()
+	c1 := d.trigger(ctx)
 	select {
 	case <-fired:
 		t.Fatal("didn't debounce")
 	case <-time.After(30 * time.Millisecond):
 	}
-	c2 := d.trigger()
+	c2 := d.trigger(ctx)
 	select {
 	case <-fired:
 		t.Fatal("didn't debounce")
 	case <-time.After(30 * time.Millisecond):
 	}
-	c3 := d.trigger()
+	c3 := d.trigger(ctx)
 	select {
 	case <-fired:
 	case <-time.After(time.Second):
