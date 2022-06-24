@@ -439,6 +439,7 @@ pipeline {
                 withMageEnv(){
                   sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                 }
+                archiveArtifacts artifacts: 'bench.out'
               }
               sendBenchmarks(file: "${BASE_DIR}/bench.out", index: "benchmark-server")
             }
