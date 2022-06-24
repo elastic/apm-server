@@ -30,11 +30,13 @@ func RunBlocking(ctx context.Context) error {
 	limiter := loadgen.GetNewLimiter(loadgen.Config.MaxEPM)
 	g, gCtx := errgroup.WithContext(ctx)
 
-	for _, expr := range []string{`go*.ndjson`, `nodejs*.ndjson`, `python*.ndjson`, `ruby*.ndjson`} {
-		expr := expr
-		g.Go(func() error {
-			return runAgent(gCtx, expr, limiter)
-		})
+	for i := 0; i < soakConfig.AgentsReplicas; i++ {
+		for _, expr := range []string{`go*.ndjson`, `nodejs*.ndjson`, `python*.ndjson`, `ruby*.ndjson`} {
+			expr := expr
+			g.Go(func() error {
+				return runAgent(gCtx, expr, limiter)
+			})
+		}
 	}
 
 	return g.Wait()
