@@ -433,7 +433,7 @@ pipeline {
                 withMageEnv(){
                   sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                 }
-                sendBenchmarks(file: "${BASE_DIR}/bench.out", index: "benchmark-server")
+                sendBenchmarks(file: "bench.out", index: "benchmark-server")
                 generateGoBenchmarkDiff(current: 'bench.out', filter: 'exclude')
               }
             }
