@@ -84,9 +84,11 @@ check-approvals: $(APPROVALS)
 check: $(MAGE) check-fmt check-headers check-package
 	@$(MAGE) check
 
+BENCH_BENCHTIME?=100ms
+BENCH_COUNT?=1
 .PHONY: bench
 bench:
-	@$(GO) test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
+	@$(GO) test -count=$(BENCH_COUNT) -benchmem -run=XXX -benchtime=$(BENCH_BENCHTIME) -bench='.*' ./...
 
 .PHONY: system-tests
 system-tests: $(PYTHON_BIN) apm-server.test
