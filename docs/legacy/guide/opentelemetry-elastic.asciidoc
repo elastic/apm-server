@@ -5,6 +5,8 @@ IMPORTANT: {deprecation-notice-data}
 If you've already upgraded, see <<open-telemetry>>.
 
 :ot-spec:       https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md
+:ot-grpc:       https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md#otlpgrpc
+:ot-http:       https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md#otlphttp
 :ot-contrib:    https://github.com/open-telemetry/opentelemetry-collector-contrib
 :ot-resource:   {ot-contrib}/tree/main/processor/resourceprocessor
 :ot-attr:       {ot-contrib}/blob/main/processor/attributesprocessor
@@ -28,12 +30,6 @@ business KPIs and technical components with the {stack}.
 [float]
 [[open-telemetry-elastic-protocol]]
 ==== APM Server native support of OpenTelemetry protocol
-
-
-IMPORTANT: The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#legacy-opentelemetry-collector-exporter-for-elastic[OpenTelemetry Collector exporter for Elastic]
-was deprecated in 7.13 and replaced by the native support of the OpenTelemetry Line Protocol in
-Elastic {observability} (OTLP). To learn more, see
-https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#migration[migration].
 
 Elastic APM Server natively supports the OpenTelemetry protocol.
 This means trace data and metrics collected from your applications and infrastructure can
@@ -74,7 +70,7 @@ For information on how to format an API key, see our {apm-server-ref-v}/api-key.
 
 Please note the required space between `Bearer` and `an_apm_secret_token`, and `APIKey` and `an_api_key`.
 
-| `OTEL_EXPORTER_OTLP_CERTIFICATE` | Certificate for TLS credentials of the gRPC client. (optional)
+| `OTEL_EXPORTER_OTLP_CERTIFICATE` | The trusted certificate used to verify the TLS credentials of the client. (optional)
 
 |===
 
@@ -126,7 +122,12 @@ service:
 the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver[OTLP receiver], that forward data emitted by APM agents or the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/hostmetricsreceiver[host metrics receiver].
 <2> We recommend using the https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md[Batch processor] and also suggest using the https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md[memory limiter processor]. For more information, see https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/README.md#recommended-processors[Recommended processors].
 <3> The https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter[logging exporter] is helpful for troubleshooting and supports various logging levels: `debug`, `info`, `warn`, and `error`.
-<4> Elastic {observability} endpoint configuration. To learn more, see https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter[OpenTelemetry Collector > OTLP gRPC exporter].
+<4> Elastic {observability} endpoint configuration.
+APM Server supports a ProtoBuf payload via both the OTLP protocol over gRPC transport {ot-grpc}[(OTLP/gRPC)]
+and the OTLP protocol over HTTP transport {ot-http}[(OTLP/HTTP)].
+To learn more about these exporters, see the OpenTelemetry Collector documentation:
+https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter[OTLP/HTTP Exporter] or
+https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter[OTLP/gRPC exporter].
 <5> Hostname and port of the APM Server endpoint. For example, `elastic-apm-server:8200`.
 <6> Credential for Elastic APM {apm-server-ref-v}/secret-token.html[secret token authorization] (`Authorization: "Bearer a_secret_token"`) or {apm-server-ref-v}/api-key.html[API key authorization] (`Authorization: "ApiKey an_api_key"`).
 <7> Environment-specific configuration parameters can be conveniently passed in as environment variables documented https://opentelemetry.io/docs/collector/configuration/#configuration-environment-variables[here] (e.g. `ELASTIC_APM_SERVER_ENDPOINT` and `ELASTIC_APM_SERVER_TOKEN`).
@@ -460,3 +461,19 @@ Attributes can be added as a part of the OpenTelemetry instrumentation process o
 ===== OpenTelemetry logs
 
 * OpenTelemetry logs are not yet supported https://github.com/elastic/apm-server/issues/5491[#5491]
+
+[float]
+[[elastic-open-telemetry-otlp-limitations]]
+===== OpenTelemetry Line Protocol (OTLP)
+
+APM Server supports both the {ot-grpc}[(OTLP/gRPC)] and {ot-http}[(OTLP/HTTP)] protocol with ProtoBuf payload.
+APM Server does not yet support JSON Encoding for OTLP/HTTP.
+
+[float]
+[[elastic-open-telemetry-collector-exporter]]
+===== OpenTelemetry Collector exporter for Elastic
+
+The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#legacy-opentelemetry-collector-exporter-for-elastic[OpenTelemetry Collector exporter for Elastic]
+was deprecated in 7.13 and replaced by the native support of the OpenTelemetry Line Protocol in
+Elastic {observability} (OTLP). To learn more, see
+https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#migration[migration].
