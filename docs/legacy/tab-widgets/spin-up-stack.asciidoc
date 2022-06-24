@@ -19,7 +19,7 @@ You'll need these in step two.
 // end::ess[]
 
 // tag::self-managed[]
-To install and run {es} and {kib}, see {stack-gs}/get-started-elastic-stack.html[getting started with the {stack}].
+To install and run {es} and {kib}, see {stack-ref}/installing-elastic-stack.html[Installing the {stack}].
 
 Next, install, set up, and run APM Server:
 
