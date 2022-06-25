@@ -19,6 +19,7 @@ package apmservertest
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -149,22 +150,9 @@ func (c *ServerCmd) cleanup() {
 	}
 }
 
-// BuildServerBinary builds the apm-server binary for the given GOOS,
-// returning its absolute path.
+// BuildServerBinary builds the apm-server binary for the given GOOS
+// and GOARCH, returning its absolute path.
 func BuildServerBinary(goos, goarch string) (string, error) {
-	// Build apm-server binary in the repo root, unless
-	// we're building for another GOOS, in which case we
-	// suffix the binary with that GOOS and place it in
-	// the build directory.
-	var reldir, suffix string
-	if goos != runtime.GOOS {
-		reldir = "build/"
-		suffix = "-" + goos
-		if runtime.GOOS == "windows" {
-			suffix += ".exe"
-		}
-	}
-
 	apmServerBinaryMu.Lock()
 	defer apmServerBinaryMu.Unlock()
 	if binary := apmServerBinary[goos]; binary != "" {
@@ -175,14 +163,14 @@ func BuildServerBinary(goos, goarch string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	abspath := filepath.Join(repoRoot, reldir, "apm-server"+suffix)
+	relpath := filepath.Join("build", fmt.Sprintf("apm-server-%s-%s", goos, goarch))
+	if goos == "windows" {
+		relpath += ".exe"
+	}
+	abspath := filepath.Join(repoRoot, relpath)
 
 	log.Println("Building apm-server...")
-	cmd := exec.Command("go", "build", "-o", abspath, "./x-pack/apm-server")
-	cmd.Env = append(os.Environ(), "GOOS="+goos, "CGO_ENABLED=0")
-	if goarch != "" {
-		cmd.Env = append(cmd.Env, "GOARCH="+goarch)
-	}
+	cmd := exec.Command("make", relpath)
 	cmd.Dir = repoRoot
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
