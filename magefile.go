@@ -68,6 +68,7 @@ func init() {
 // Build builds the Beat binary.
 func Build() error {
 	args := mage.DefaultBuildArgs()
+	args.InputFiles = []string{"./x-pack/apm-server"}
 	args.Name += "-" + mage.Platform.GOOS + "-" + mage.Platform.Arch
 	args.OutputDir = "build"
 	args.CGO = false
