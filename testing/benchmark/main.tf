@@ -14,12 +14,12 @@ terraform {
 
 locals {
   ci_tags = {
-      environment  = var.ENVIRONMENT
-      repo         = var.REPO
-      branch       = var.BRANCH
-      build        = var.BUILD_ID
-      created_date = var.CREATED_DATE
-    }
+    environment  = var.ENVIRONMENT
+    repo         = var.REPO
+    branch       = var.BRANCH
+    build        = var.BUILD_ID
+    created_date = var.CREATED_DATE
+  }
 }
 
 provider "ec" {}
@@ -68,6 +68,6 @@ module "benchmark_worker" {
   apmbench_bin_path = var.apmbench_bin_path
   instance_type     = var.worker_instance_type
 
-  public_key        = var.public_key
-  private_key       = var.private_key
+  public_key  = var.public_key
+  private_key = var.private_key
 }
