@@ -57,9 +57,11 @@ check-approvals: $(APPROVALS)
 check: $(MAGE) check-fmt check-headers
 	@$(MAGE) check
 
+BENCH_BENCHTIME?=100ms
+BENCH_COUNT?=1
 .PHONY: bench
 bench:
-	@$(GO) test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
+	@$(GO) test -count=$(BENCH_COUNT) -benchmem -run=XXX -benchtime=$(BENCH_BENCHTIME) -bench='.*' ./...
 
 ##############################################################################
 # Rules for updating config files, etc.
