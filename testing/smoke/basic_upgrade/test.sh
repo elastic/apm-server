@@ -2,6 +2,9 @@
 
 set -eo pipefail
 
+# Load common lib
+. $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
+
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
     VERSIONS=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions)
@@ -27,8 +30,6 @@ fi
 
 echo "-> Running basic upgrade smoke test for version ${VERSION}"
 
-. $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
-
 trap "terraform_destroy" EXIT
 
 terraform_apply ${PREV_LATEST_VERSION} ${INTEGRATIONS_SERVER}
@@ -41,3 +42,7 @@ terraform_apply ${LATEST_VERSION} ${INTEGRATIONS_SERVER}
 healthcheck 1
 send_events
 ${ASSERT_EVENTS_FUNC} ${LATEST_VERSION}
+
+if [ "${VERSION}" == "7.17" ]; then
+    ${RELATIVE_DIR}/legacy-managed.sh && ${RELATIVE_DIR}/standalone-major-managed.sh
+fi

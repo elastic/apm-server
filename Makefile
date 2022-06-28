@@ -287,9 +287,28 @@ rally/corpora/.generated: rally/gencorpora/main.go rally/gencorpora/api.go rally
 ##############################################################################
 
 SMOKETEST_VERSIONS ?= latest
+SMOKETEST_DIRS = $$(find ./testing/smoke -type d -depth 1)
 
-.PHONY: smoketest
-smoketest:
-	@ echo "-> Running smoke tests for versions: $(SMOKETEST_VERSIONS)..."
-	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do cd ./testing/smoke/basic_upgrade && ./basic-upgrade.sh $$version; if [ $$version == 7.17 ]; then ./legacy-managed.sh && ./standalone-major-managed.sh; fi; cd -; done
-	@ echo "-> Smoke tests passed!"
+.PHONY: smoketest/run
+smoketest/run:
+	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do \
+		cd $(TEST_DIR) && ./test.sh $${version}; \
+	done
+
+.PHONY: smoketest/cleanup
+smoketest/cleanup:
+	@ cd $(TEST_DIR) && ./cleanup.sh;
+
+.PHONY: smoketest/all
+smoketest/all:
+	@ for test_dir in $(SMOKETEST_DIRS); do \
+		echo "-> Running $${test_dir} smoke tests..."; \
+		$(MAKE) smoketest/run TEST_DIR=$${test_dir}; \
+	done
+
+.PHONY: smoketest/all
+smoketest/all/cleanup:
+	@ for test_dir in $(SMOKETEST_DIRS); do \
+		echo "-> Cleanup $${test_dir} smoke tests..."; \
+		$(MAKE) smoketest/cleanup TEST_DIR=$${test_dir}; \
+	done

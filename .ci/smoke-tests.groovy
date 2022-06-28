@@ -50,7 +50,18 @@ pipeline {
         dir ("${BASE_DIR}") {
           withGoEnv() {
             withTestClusterEnv {
-              sh(label: 'Run smoke tests', script: 'make smoketest')
+              sh(label: 'Run smoke tests', script: 'make smoketest/all')
+            }
+          }
+        }
+      }
+      post {
+        always {
+          dir("${BASE_DIR}") {
+            withGoEnv() {
+              withTestClusterEnv {
+                sh(label: 'Teardown smoke tests infra', script: 'make smoketest/all/cleanup')
+              }
             }
           }
         }
