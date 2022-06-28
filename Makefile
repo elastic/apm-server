@@ -297,7 +297,10 @@ smoketest/run:
 
 .PHONY: smoketest/cleanup
 smoketest/cleanup:
-	@ cd $(TEST_DIR) && ./cleanup.sh;
+	@ cd $(TEST_DIR); \
+	if [ -f "./cleanup.sh" ]; then \
+		./cleanup.sh; \
+	fi
 
 .PHONY: smoketest/all
 smoketest/all:
