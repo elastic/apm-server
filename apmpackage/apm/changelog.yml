@@ -1,6 +1,11 @@
 # newer versions go on top
 #
 # change type can be one of: enhancement, bugfix, breaking-change
+- version: "8.3.1"
+  changes:
+    - description: Placeholder.
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/<placeholder>
 - version: "8.3.0"
   changes:
     - description: Field mapping for `target.name` and `target.type` added to traces data stream
