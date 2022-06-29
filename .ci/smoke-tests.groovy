@@ -51,11 +51,11 @@ pipeline {
           withGoEnv() {
             withTestClusterEnv {
               script {
-                // def smokeTests = [:]
+                def smokeTests = sh(returnStdout: true, script: 'find ./testing/smoke -mindepth 1 -maxdepth 1 -type d').trim().split('\r?\n')
                 def smokeTestJobs = [:]
-                for (smokeTest in ["./testing/smoke/basic_upgrade"]) {
-                  smokeTestJobs[smokeTest] = {
-                    stage(smokeTest) {
+                for (smokeTest in smokeTests) {
+                  smokeTestJobs["Run smoke tests in ${smokeTest}"] = {
+                    stage("Run smoke tests in ${smokeTest}") {
                       sh(label: 'Run smoke tests', script: "make smoketest/run TEST_DIR=${smokeTest}")
                     }
                   }
