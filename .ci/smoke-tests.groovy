@@ -50,7 +50,18 @@ pipeline {
         dir ("${BASE_DIR}") {
           withGoEnv() {
             withTestClusterEnv {
-              sh(label: 'Run smoke tests', script: 'make smoketest/all')
+              script {
+                // def smokeTests = [:]
+                def smokeTestJobs = [:]
+                for (smokeTest in ["./testing/smoke/basic_upgrade"]) {
+                  smokeTestJobs[smokeTest] = {
+                    stage(smokeTest) {
+                      sh(label: 'Run smoke tests', script: "make smoketest/run TEST_DIR=${smokeTest}")
+                    }
+                  }
+                }
+                parallel smokeTestJobs
+              }
             }
           }
         }
