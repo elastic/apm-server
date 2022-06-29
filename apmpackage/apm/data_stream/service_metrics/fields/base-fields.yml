@@ -1,0 +1,14 @@
+- name: '@timestamp'
+  external: ecs
+- name: data_stream.type
+  external: ecs
+- name: data_stream.dataset
+  external: ecs
+- name: data_stream.namespace
+  external: ecs
+- name: processor.event
+  type: constant_keyword
+  description: Processor event.
+- name: processor.name
+  type: constant_keyword
+  description: Processor name.

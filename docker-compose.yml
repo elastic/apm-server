@@ -91,7 +91,7 @@ services:
   package-registry:
     image: docker.elastic.co/package-registry/distribution:snapshot
     ports:
-      - 8080
+      - 8080:8080
     healthcheck:
       test: ["CMD-SHELL", "curl --fail localhost:8080/health"]
       retries: 100

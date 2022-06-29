@@ -1,0 +1,31 @@
+title: APM service metrics
+type: metrics
+dataset: apm.service
+ilm_policy: metrics-apm.service_metrics-default_policy
+elasticsearch:
+  index_template:
+    mappings:
+      # Internal metrics should have all fields strictly mapped;
+      # we are in full control of the field names.
+      dynamic: false
+      # mapping this here because aggregate_metric_double is unsupported in field sets
+      # https://github.com/elastic/package-spec/issues/363
+      properties:
+        transaction:
+          type: object
+          properties:
+            duration:
+              type: object
+              properties:
+                aggregate:
+                  type: aggregate_metric_double
+                  metrics:
+                    - min
+                    - max
+                    - sum
+                    - value_count
+                  default_metric: max
+    settings:
+      index:
+        sort.field: "@timestamp"
+        sort.order: desc

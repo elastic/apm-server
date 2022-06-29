@@ -20,6 +20,7 @@ import (
 
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicemetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
@@ -84,6 +85,19 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		return nil, errors.Wrapf(err, "error creating %s", spanName)
 	}
 	processors = append(processors, namedProcessor{name: spanName, processor: spanAggregator})
+
+	const serviceName = "service metrics aggregation"
+	args.Logger.Infof("creating %s with config: %+v", spanName, args.Config.Aggregation.ServiceDestinations)
+	serviceAggregator, err := servicemetrics.NewAggregator(servicemetrics.AggregatorConfig{
+		BatchProcessor: args.BatchProcessor,
+		Interval:       args.Config.Aggregation.ServiceDestinations.Interval,
+		MaxGroups:      args.Config.Aggregation.ServiceDestinations.MaxGroups,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "error creating %s", spanName)
+	}
+	processors = append(processors, namedProcessor{name: spanName, processor: serviceAggregator})
+
 	if args.Config.Sampling.Tail.Enabled {
 		const name = "tail sampler"
 		sampler, err := newTailSamplingProcessor(args)

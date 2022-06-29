@@ -65,6 +65,7 @@ func waitReady(
 			}
 			continue
 		}
+		logger.Info("No longer blocking ingestion as all precondition checks are now satisfied")
 		return nil
 	}
 }
