@@ -48,20 +48,18 @@ pipeline {
       }
       steps {
         dir ("${BASE_DIR}") {
-          withGoEnv() {
-            withTestClusterEnv {
-              script {
-                def smokeTests = sh(returnStdout: true, script: 'find ./testing/smoke -mindepth 1 -maxdepth 1 -type d').trim().split('\r?\n')
-                def smokeTestJobs = [:]
-                for (smokeTest in smokeTests) {
-                  smokeTestJobs["Run smoke tests in ${smokeTest}"] = {
-                    stage("Run smoke tests in ${smokeTest}") {
-                      sh(label: 'Run smoke tests', script: "make smoketest/run TEST_DIR=${smokeTest}")
-                    }
+          withTestClusterEnv {
+            script {
+              def smokeTests = sh(returnStdout: true, script: 'make smoketest/discover').trim().split('\r?\n')
+              def smokeTestJobs = [:]
+              for (smokeTest in smokeTests) {
+                smokeTestJobs["Run smoke tests in ${smokeTest}"] = {
+                  stage("Run smoke tests in ${smokeTest}") {
+                    sh(label: 'Run smoke tests', script: "make smoketest/run TEST_DIR=${smokeTest}")
                   }
                 }
-                parallel smokeTestJobs
               }
+              parallel smokeTestJobs
             }
           }
         }
@@ -69,10 +67,8 @@ pipeline {
       post {
         always {
           dir("${BASE_DIR}") {
-            withGoEnv() {
-              withTestClusterEnv {
-                sh(label: 'Teardown smoke tests infra', script: 'make smoketest/all/cleanup')
-              }
+            withTestClusterEnv {
+              sh(label: 'Teardown smoke tests infra', script: 'make smoketest/all/cleanup')
             }
           }
         }

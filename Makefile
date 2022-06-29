@@ -289,6 +289,10 @@ rally/corpora/.generated: rally/gencorpora/main.go rally/gencorpora/api.go rally
 SMOKETEST_VERSIONS ?= latest
 SMOKETEST_DIRS = $$(find ./testing/smoke -mindepth 1 -maxdepth 1 -type d)
 
+.PHONY: smoketest/discover
+smoketest/discover:
+	@echo $(SMOKETEST_DIRS)
+
 .PHONY: smoketest/run
 smoketest/run:
 	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do \
