@@ -160,6 +160,9 @@ policy_templates:
           - name: tail_sampling_enabled
             type: bool
             default: false
+          - name: tail_sampling_storage_limit
+            type: text
+            default: "3GB"
         template_path: template.yml.hbs
 owner:
   github: elastic/apm-server

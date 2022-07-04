@@ -18,17 +18,24 @@ import (
 )
 
 func BenchmarkWriteTransaction(b *testing.B) {
-	test := func(b *testing.B, codec eventstorage.Codec) {
+	test := func(b *testing.B, codec eventstorage.Codec, bigTX bool) {
 		db := newBadgerDB(b, badgerOptions)
 		ttl := time.Minute
-		store := eventstorage.New(db, codec, ttl)
+		store := eventstorage.New(db, codec, ttl, 0)
 		readWriter := store.NewReadWriter()
 		defer readWriter.Close()
 
 		traceID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
 		transactionID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8})
-		transaction := &model.APMEvent{
-			Transaction: &model.Transaction{ID: transactionID},
+		var transaction *model.APMEvent
+		if bigTX {
+			transaction = makeTransaction(transactionID, traceID)
+		} else {
+			transaction = &model.APMEvent{
+				Transaction: &model.Transaction{
+					ID: transactionID,
+				},
+			}
 		}
 
 		b.ResetTimer()
@@ -39,48 +46,68 @@ func BenchmarkWriteTransaction(b *testing.B) {
 		}
 		assert.NoError(b, readWriter.Flush())
 	}
-	b.Run("json_codec", func(b *testing.B) {
-		test(b, eventstorage.JSONCodec{})
-	})
-	b.Run("nop_codec", func(b *testing.B) {
-		// This tests the eventstorage performance without
-		// JSON encoding. This would be the theoretical
-		// upper limit of what we can achieve with a more
-		// efficient codec.
-		test(b, nopCodec{})
-	})
+
+	type testCase struct {
+		codec eventstorage.Codec
+		name  string
+	}
+	cases := []testCase{
+		{
+			name:  "json_codec",
+			codec: eventstorage.JSONCodec{},
+		},
+		{
+			// This tests the eventstorage performance without
+			// JSON encoding. This would be the theoretical
+			// upper limit of what we can achieve with a more
+			// efficient codec.
+			name:  "nop_codec",
+			codec: nopCodec{},
+		},
+	}
+	for _, tc := range cases {
+		b.Run(tc.name, func(b *testing.B) {
+			test(b, tc.codec, false)
+		})
+		b.Run(tc.name+"_big_tx", func(b *testing.B) {
+			test(b, tc.codec, true)
+		})
+	}
 }
 
 func BenchmarkReadEvents(b *testing.B) {
 	traceID := uuid.Must(uuid.NewV4()).String()
 
-	test := func(b *testing.B, codec eventstorage.Codec) {
+	test := func(b *testing.B, codec eventstorage.Codec, bigTX bool) {
 		// Test with varying numbers of events in the trace.
-		counts := []int{0, 1, 10, 100, 1000}
+		counts := []int{0, 1, 10, 100, 199, 399, 1000}
 		for _, count := range counts {
 			b.Run(fmt.Sprintf("%d events", count), func(b *testing.B) {
 				db := newBadgerDB(b, badgerOptions)
 				ttl := time.Minute
-				store := eventstorage.New(db, codec, ttl)
+				store := eventstorage.New(db, codec, ttl, 0)
 				readWriter := store.NewReadWriter()
 				defer readWriter.Close()
 
 				for i := 0; i < count; i++ {
 					transactionID := uuid.Must(uuid.NewV4()).String()
-					transaction := &model.APMEvent{
-						Transaction: &model.Transaction{
-							ID: transactionID,
-						},
+					var transaction *model.APMEvent
+					if bigTX {
+						transaction = makeTransaction(transactionID, traceID)
+					} else {
+						transaction = &model.APMEvent{
+							Transaction: &model.Transaction{
+								ID: transactionID,
+							},
+						}
 					}
 					if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
 						b.Fatal(err)
 					}
 				}
 
-				// NOTE(axw) we don't explicitly flush, which is most representative of
-				// real workloads. For larger event counts, this ensures we exercise the
-				// code path which automatically flushes before reads.
-
+				// NOTE(marclop) We want to check how badly the read performance is affected with
+				// by having uncommitted events in the badger TX.
 				b.ResetTimer()
 				var batch model.Batch
 				for i := 0; i < b.N; i++ {
@@ -99,16 +126,32 @@ func BenchmarkReadEvents(b *testing.B) {
 		}
 	}
 
-	b.Run("json_codec", func(b *testing.B) {
-		test(b, eventstorage.JSONCodec{})
-	})
-	b.Run("nop_codec", func(b *testing.B) {
-		// This tests the eventstorage performance without
-		// JSON decoding. This would be the theoretical
-		// upper limit of what we can achieve with a more
-		// efficient codec.
-		test(b, nopCodec{})
-	})
+	type testCase struct {
+		codec eventstorage.Codec
+		name  string
+	}
+	cases := []testCase{
+		{
+			name:  "json_codec",
+			codec: eventstorage.JSONCodec{},
+		},
+		{
+			// This tests the eventstorage performance without
+			// JSON encoding. This would be the theoretical
+			// upper limit of what we can achieve with a more
+			// efficient codec.
+			name:  "nop_codec",
+			codec: nopCodec{},
+		},
+	}
+	for _, tc := range cases {
+		b.Run(tc.name, func(b *testing.B) {
+			test(b, tc.codec, false)
+		})
+		b.Run(tc.name+"_big_tx", func(b *testing.B) {
+			test(b, tc.codec, true)
+		})
+	}
 }
 
 func BenchmarkIsTraceSampled(b *testing.B) {
@@ -119,7 +162,7 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 	// Test with varying numbers of events in the trace.
 	db := newBadgerDB(b, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, 0)
 	readWriter := store.NewReadWriter()
 	defer readWriter.Close()
 
@@ -158,3 +201,72 @@ type nopCodec struct{}
 
 func (nopCodec) DecodeEvent(data []byte, event *model.APMEvent) error { return nil }
 func (nopCodec) EncodeEvent(*model.APMEvent) ([]byte, error)          { return nil, nil }
+
+func makeTransaction(id, traceID string) *model.APMEvent {
+	return &model.APMEvent{
+		Transaction: &model.Transaction{ID: id},
+		Service: model.Service{
+			Name:        "myname",
+			Version:     "version",
+			Environment: "dev",
+			Language: model.Language{
+				Name: "go", Version: "1.17.11",
+			},
+			Runtime: model.Runtime{
+				Name: "gc",
+			},
+			Framework: model.Framework{
+				Name: "name", Version: "foo",
+			},
+			Node: model.ServiceNode{
+				Name: "serviceNode",
+			},
+		},
+		Processor: model.TransactionProcessor,
+		Labels: model.Labels{
+			"key": model.LabelValue{
+				Value: "value",
+			},
+			"key2": model.LabelValue{
+				Values: []string{"value"},
+			},
+		},
+		DataStream: model.DataStream{
+			Namespace: "default",
+			Type:      "traces",
+			Dataset:   "apm_server",
+		},
+		Agent: model.Agent{
+			Name:    "apm-agent-go",
+			Version: "2.1.0",
+		},
+		Container: model.Container{
+			ID:        "someid",
+			Name:      "name",
+			Runtime:   "runtime",
+			ImageName: "ImageName",
+			ImageTag:  "latest",
+		},
+		Process: model.Process{
+			Pid:        123,
+			Ppid:       newIntP(100),
+			Title:      "process title",
+			Argv:       []string{"arg1", "arg2", "arg3"},
+			Executable: "main.go",
+		},
+		Host: model.Host{
+			OS: model.OS{
+				Platform: "ubuntu",
+				Type:     "linux",
+			},
+			Name:         "hostname",
+			Hostname:     "hostname.full.domain",
+			Architecture: "arm64",
+		},
+		Trace: model.Trace{ID: traceID},
+	}
+}
+
+func newIntP(i int) *int {
+	return &i
+}
