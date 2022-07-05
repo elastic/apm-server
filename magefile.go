@@ -21,14 +21,19 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/dev-tools/mage"
@@ -149,7 +154,16 @@ func Ironbank() error {
 		return errors.Wrap(err, "failed to prepare build")
 	}
 
-	fmt.Println(">> Building docker images again (after 10 s)")
+	fmt.Println(">> Building docker images for IronBank")
+	tag, err := dockerBuildIronbank()
+	if err != nil {
+		return errors.Wrap(err, "failed to build docker")
+	}
+
+	if err := dockerSaveIronbank(tag); err != nil {
+		return errors.Wrap(err, "failed to save docker as artifact")
+	}
+
 	return nil
 }
 
@@ -248,6 +262,79 @@ func customizePackaging() {
 			panic(errors.Errorf("unhandled package type: %v", pkgType))
 		}
 	}
+}
+
+func dockerBuildIronbank() (string, error) {
+	v, err := mage.BeatQualifiedVersion()
+	if err != nil {
+		return "", errors.Wrapf(err, "Beat version could not found.")
+	}
+	tag := fmt.Sprintf("%s:%s", "apm-server-ironbank", v)
+	if mage.Snapshot {
+		tag = tag + "-SNAPSHOT"
+	}
+	tag = fmt.Sprintf("docker.elastic.co/apm/%s", tag)
+	buildDir := filepath.Join("build", "ironbank")
+	return tag, sh.Run("docker", "build", "-t", tag, buildDir)
+}
+
+func dockerSaveIronbank(tag string) error {
+	distributionsDir := "build/distributions"
+	if _, err := os.Stat(distributionsDir); os.IsNotExist(err) {
+		err := os.MkdirAll(distributionsDir, 0750)
+		if err != nil {
+			return fmt.Errorf("cannot create folder for docker artifacts: %+v", err)
+		}
+	}
+
+	// Save the container as artifact
+	defaultBinaryName := "{{.Name}}-{{.Version}}{{if .Snapshot}}-SNAPSHOT{{end}}{{if .OS}}-{{.OS}}{{end}}{{if .Arch}}-{{.Arch}}{{end}}"
+	outputTar, err := mage.Expand(defaultBinaryName+".docker.tar.gz", map[string]interface{}{
+		"Name": "apm-server-ironbank",
+	})
+	if err != nil {
+		return err
+	}
+	outputFile := filepath.Join(distributionsDir, outputTar)
+
+	var stderr bytes.Buffer
+	cmd := exec.Command("docker", "save", tag)
+	cmd.Stderr = &stderr
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	if err = cmd.Start(); err != nil {
+		return err
+	}
+
+	err = func() error {
+		f, err := os.Create(outputFile)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		w := gzip.NewWriter(f)
+		defer w.Close()
+
+		_, err = io.Copy(w, stdout)
+		if err != nil {
+			return err
+		}
+		return nil
+	}()
+	if err != nil {
+		return err
+	}
+
+	if err = cmd.Wait(); err != nil {
+		if errmsg := strings.TrimSpace(stderr.String()); errmsg != "" {
+			err = errors.Wrap(errors.New(errmsg), err.Error())
+		}
+		return err
+	}
+	return errors.Wrap(mage.CreateSHA512File(outputFile), "failed to create .sha512 file")
 }
 
 func prepareIronbankBuild() error {
