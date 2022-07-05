@@ -280,7 +280,8 @@ func prepareIronbankBuild() error {
 
 func majorMinor() string {
 	if v, _ := mage.BeatQualifiedVersion(); v != "" {
-		return v
+		parts := strings.SplitN(v, ".", 3)
+		return parts[0] + "." + parts[1]
 	}
 	return ""
 }
