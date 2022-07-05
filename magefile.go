@@ -140,6 +140,19 @@ func filterPackages(types string) {
 	mage.Packages = packages
 }
 
+// Package packages apm-server for the IronBank distribution, relying on the
+// binaries having already been built.
+//
+// Use SNAPSHOT=true to build snapshots.
+func Ironbank() error {
+	if err := prepareIronbankBuild(); err != nil {
+		return errors.Wrap(err, "failed to prepare build")
+	}
+
+	fmt.Println(">> Building docker images again (after 10 s)")
+	return nil
+}
+
 // Package packages apm-server for distribution, relying on the
 // binaries having already been built.
 //
@@ -235,6 +248,41 @@ func customizePackaging() {
 			panic(errors.Errorf("unhandled package type: %v", pkgType))
 		}
 	}
+}
+
+func prepareIronbankBuild() error {
+	templatesDir := filepath.Join("packaging", "ironbank")
+
+	data := map[string]interface{}{
+		"MajorMinor": majorMinor(),
+	}
+
+	err := filepath.Walk(templatesDir, func(path string, info os.FileInfo, _ error) error {
+		if !info.IsDir() {
+			target := strings.TrimSuffix(
+				filepath.Join("build", "ironbank", filepath.Base(path)),
+				".tmpl",
+			)
+
+			err := mage.ExpandFile(path, target, data)
+			if err != nil {
+				return errors.Wrapf(err, "expanding template '%s' to '%s'", path, target)
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func majorMinor() string {
+	if v, _ := mage.BeatQualifiedVersion(); v != "" {
+		return v
+	}
+	return ""
 }
 
 func Check() error {
