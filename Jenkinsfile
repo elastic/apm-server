@@ -416,7 +416,7 @@ pipeline {
         Finally archive the results.
         */
         stage('Benchmarking') {
-          agent { label 'linux && immutable' }
+          agent { label 'linux && metal' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
