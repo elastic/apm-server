@@ -50,9 +50,14 @@ output "apm_server_url" {
   description = "The APM Server URL"
 }
 
+output "kibana_url" {
+  value       = module.ec_deployment.kibana_url
+  description = "The Kibana URL"
+}
+
 output "elasticsearch_url" {
   value       = module.ec_deployment.elasticsearch_url
-  description = "The APM Server URL"
+  description = "The Elasticsearch URL"
 }
 
 output "elasticsearch_username" {

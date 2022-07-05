@@ -290,4 +290,6 @@ SMOKETEST_VERSIONS ?= latest
 
 .PHONY: smoketest
 smoketest:
-	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do cd ./testing/smoke/basic_upgrade && ./test.sh $$version; cd - ; done
+	@ echo "-> Running smoke tests for versions: $(SMOKETEST_VERSIONS)..."
+	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do cd ./testing/smoke/basic_upgrade && ./basic-upgrade.sh $$version; if [ $$version == 7.17 ]; then ./legacy-managed.sh && ./standalone-major-managed.sh; fi; cd -; done
+	@ echo "-> Smoke tests passed!"
