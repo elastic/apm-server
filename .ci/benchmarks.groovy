@@ -36,7 +36,10 @@ pipeline {
     }
 
     stage('Benchmarks') {
-      options { skipDefaultCheckout() }
+      options {
+        skipDefaultCheckout()
+        retry(1)
+      }
       environment {
         SSH_KEY = "./id_rsa_terraform"
         TF_VAR_private_key = "./id_rsa_terraform"
