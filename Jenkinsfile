@@ -416,7 +416,7 @@ pipeline {
         Finally archive the results.
         */
         stage('Benchmarking') {
-          agent { label 'linux && immutable' }
+          agent { label 'linux && metal' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
@@ -436,6 +436,11 @@ pipeline {
                 sendBenchmarks(file: "bench.out", index: "benchmark-server")
                 generateGoBenchmarkDiff(file: 'bench.out', filter: 'exclude')
               }
+            }
+          }
+          post {
+            cleanup {
+              deleteDir()
             }
           }
         }
