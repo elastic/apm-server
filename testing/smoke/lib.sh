@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Found current script directory
-readonly RELATIVE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-
 terraform_apply() {
     echo "-> Creating / Upgrading deployment to version ${1}"
     echo stack_version=\"${1}\" > terraform.tfvars
