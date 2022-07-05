@@ -21,19 +21,17 @@
 package main
 
 import (
-	"bytes"
+	"archive/tar"
 	"compress/gzip"
 	"context"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/magefile/mage/mg"
-	"github.com/magefile/mage/sh"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/dev-tools/mage"
@@ -153,17 +151,9 @@ func Ironbank() error {
 	if err := prepareIronbankBuild(); err != nil {
 		return errors.Wrap(err, "failed to prepare build")
 	}
-
-	fmt.Println(">> Building docker images for IronBank")
-	tag, err := dockerBuildIronbank()
-	if err != nil {
-		return errors.Wrap(err, "failed to build docker")
+	if err := saveIronbank(); err != nil {
+		return errors.Wrap(err, "failed to save artifacts for ironbank")
 	}
-
-	if err := dockerSaveIronbank(tag); err != nil {
-		return errors.Wrap(err, "failed to save docker as artifact")
-	}
-
 	return nil
 }
 
@@ -264,21 +254,89 @@ func customizePackaging() {
 	}
 }
 
-func dockerBuildIronbank() (string, error) {
-	v, err := mage.BeatQualifiedVersion()
+func Tar(source, target string) error {
+	filename := filepath.Base(source)
+	target = filepath.Join(target, fmt.Sprintf("%s.tar", filename))
+	tarfile, err := os.Create(target)
 	if err != nil {
-		return "", errors.Wrapf(err, "Beat version could not found.")
+		return err
 	}
-	tag := fmt.Sprintf("%s:%s", "apm-server-ironbank", v)
-	if mage.Snapshot {
-		tag = tag + "-SNAPSHOT"
+	defer tarfile.Close()
+
+	tarball := tar.NewWriter(tarfile)
+	defer tarball.Close()
+
+	info, err := os.Stat(source)
+	if err != nil {
+		return nil
 	}
-	tag = fmt.Sprintf("docker.elastic.co/apm/%s", tag)
-	buildDir := filepath.Join("build", "ironbank")
-	return tag, sh.Run("docker", "build", "-t", tag, buildDir)
+
+	var baseDir string
+	if info.IsDir() {
+		baseDir = filepath.Base(source)
+	}
+
+	return filepath.Walk(source,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			header, err := tar.FileInfoHeader(info, info.Name())
+			if err != nil {
+				return err
+			}
+
+			if baseDir != "" {
+				header.Name = filepath.Join(baseDir, strings.TrimPrefix(path, source))
+			}
+
+			if err := tarball.WriteHeader(header); err != nil {
+				return err
+			}
+
+			if info.IsDir() {
+				return nil
+			}
+
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			_, err = io.Copy(tarball, file)
+			return err
+		})
 }
 
-func dockerSaveIronbank(tag string) error {
+func Gzip(source, target string) error {
+	reader, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+
+	filename := filepath.Base(source)
+	target = filepath.Join(target, fmt.Sprintf("%s.gz", filename))
+	writer, err := os.Create(target)
+	if err != nil {
+		return err
+	}
+	defer writer.Close()
+
+	archiver := gzip.NewWriter(writer)
+	archiver.Name = filename
+	defer archiver.Close()
+
+	_, err = io.Copy(archiver, reader)
+	return err
+}
+
+func saveIronbank() error {
+	ironbank := getIronbankContextName()
+	buildDir := filepath.Join("build", ironbank)
+	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
+		return fmt.Errorf("cannot find the folder with the ironbank context")
+	}
+
 	distributionsDir := "build/distributions"
 	if _, err := os.Stat(distributionsDir); os.IsNotExist(err) {
 		err := os.MkdirAll(distributionsDir, 0750)
@@ -287,57 +345,29 @@ func dockerSaveIronbank(tag string) error {
 		}
 	}
 
-	// Save the container as artifact
-	defaultBinaryName := "{{.Name}}-{{.Version}}{{if .Snapshot}}-SNAPSHOT{{end}}{{if .OS}}-{{.OS}}{{end}}{{if .Arch}}-{{.Arch}}{{end}}"
-	outputTar, err := mage.Expand(defaultBinaryName+".docker.tar.gz", map[string]interface{}{
-		"Name": "apm-server-ironbank",
+	// Save the build context as artifact
+	Tar(buildDir, distributionsDir)
+	tarSource := filepath.Join(distributionsDir, ironbank+".tar")
+	Gzip(tarSource, distributionsDir)
+	tarGzSource := tarSource + ".gz"
+
+	// Remove leftovers
+
+	return errors.Wrap(mage.CreateSHA512File(tarGzSource), "failed to create .sha512 file")
+}
+
+func getIronbankContextName() string {
+	version, _ := mage.BeatQualifiedVersion()
+	defaultBinaryName := "{{.Name}}-ironbank-{{.Version}}{{if .Snapshot}}-SNAPSHOT{{end}}"
+	outputDir, _ := mage.Expand(defaultBinaryName+"-docker-build-context", map[string]interface{}{
+		"Name":    "apm-server",
+		"Version": version,
 	})
-	if err != nil {
-		return err
-	}
-	outputFile := filepath.Join(distributionsDir, outputTar)
-
-	var stderr bytes.Buffer
-	cmd := exec.Command("docker", "save", tag)
-	cmd.Stderr = &stderr
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	if err = cmd.Start(); err != nil {
-		return err
-	}
-
-	err = func() error {
-		f, err := os.Create(outputFile)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		w := gzip.NewWriter(f)
-		defer w.Close()
-
-		_, err = io.Copy(w, stdout)
-		if err != nil {
-			return err
-		}
-		return nil
-	}()
-	if err != nil {
-		return err
-	}
-
-	if err = cmd.Wait(); err != nil {
-		if errmsg := strings.TrimSpace(stderr.String()); errmsg != "" {
-			err = errors.Wrap(errors.New(errmsg), err.Error())
-		}
-		return err
-	}
-	return errors.Wrap(mage.CreateSHA512File(outputFile), "failed to create .sha512 file")
+	return outputDir
 }
 
 func prepareIronbankBuild() error {
+	ironbank := getIronbankContextName()
 	templatesDir := filepath.Join("packaging", "ironbank")
 
 	data := map[string]interface{}{
@@ -347,7 +377,7 @@ func prepareIronbankBuild() error {
 	err := filepath.Walk(templatesDir, func(path string, info os.FileInfo, _ error) error {
 		if !info.IsDir() {
 			target := strings.TrimSuffix(
-				filepath.Join("build", "ironbank", filepath.Base(path)),
+				filepath.Join("build", ironbank, filepath.Base(path)),
 				".tmpl",
 			)
 
