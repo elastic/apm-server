@@ -373,17 +373,11 @@ pipeline {
         Finally archive the results.
         */
         stage('Benchmarking') {
-          agent { label 'linux && immutable' }
+          agent { label 'linux && metal' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
             allOf {
-              anyOf {
-                branch 'main'
-                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-                branch pattern: 'v\\d?', comparator: 'REGEXP'
-                expression { return params.Run_As_Main_Branch }
-              }
               expression { return params.bench_ci }
               expression { return env.ONLY_DOCS == "false" }
             }
@@ -398,6 +392,11 @@ pipeline {
                 }
                 sendBenchmarks(file: "bench.out", index: "benchmark-server")
               }
+            }
+          }
+          post {
+            cleanup {
+              deleteDir()
             }
           }
         }
