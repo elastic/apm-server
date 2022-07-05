@@ -347,11 +347,18 @@ func saveIronbank() error {
 
 	// Save the build context as artifact
 	Tar(buildDir, distributionsDir)
-	tarSource := filepath.Join(distributionsDir, ironbank+".tar")
+	source := filepath.Join(distributionsDir, ironbank)
+	tarSource := source + ".tar"
 	Gzip(tarSource, distributionsDir)
 	tarGzSource := tarSource + ".gz"
 
 	// Remove leftovers
+	if err := os.RemoveAll(source); err != nil {
+		return errors.Wrapf(err, "failed to clean existing build directory %s", source)
+	}
+	if err := os.RemoveAll(tarSource); err != nil {
+		return errors.Wrapf(err, "failed to clean existing build directory %s", tarSource)
+	}
 
 	return errors.Wrap(mage.CreateSHA512File(tarGzSource), "failed to create .sha512 file")
 }
