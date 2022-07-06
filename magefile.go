@@ -154,10 +154,10 @@ func Ironbank() error {
 		return nil
 	}
 	if err := prepareIronbankBuild(); err != nil {
-		return errors.Wrap(err, "failed to prepare build")
+		return errors.Wrap(err, "failed to prepare the IronBank context")
 	}
 	if err := saveIronbank(); err != nil {
-		return errors.Wrap(err, "failed to save artifacts for ironbank")
+		return errors.Wrap(err, "failed to save artifacts for IronBank")
 	}
 	return nil
 }
@@ -260,6 +260,8 @@ func customizePackaging() {
 }
 
 func saveIronbank() error {
+	fmt.Println(">> saveIronbank: save the IronBank container context.")
+
 	ironbank := getIronbankContextName()
 	buildDir := filepath.Join("build", "ironbank", ironbank)
 	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
@@ -384,6 +386,7 @@ func getIronbankContextName() string {
 }
 
 func prepareIronbankBuild() error {
+	fmt.Println(">> prepareIronbankBuild: prepare the IronBank container context.")
 	ironbank := getIronbankContextName()
 	templatesDir := filepath.Join("packaging", "ironbank")
 
@@ -394,7 +397,7 @@ func prepareIronbankBuild() error {
 	err := filepath.Walk(templatesDir, func(path string, info os.FileInfo, _ error) error {
 		if !info.IsDir() {
 			target := strings.TrimSuffix(
-				filepath.Join("build", ironbank, filepath.Base(path)),
+				filepath.Join("build", "ironbank", ironbank, filepath.Base(path)),
 				".tmpl",
 			)
 
