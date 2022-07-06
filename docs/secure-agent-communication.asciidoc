@@ -217,18 +217,12 @@ as there is no way to prevent them from being publicly exposed.
 [[create-secret-token]]
 === Create a secret token
 
-<<<<<<< HEAD
-Define a secret token in the APM integration configuration panel.
-Alternatively, {ess} and {ece} deployments provision a secret token when the deployment is created.
-The secret token can be found and reset in the {ecloud} console under **Deployments** -- **APM & Fleet**.
-=======
 Create or update a secret token in {fleet}.
 
 include::./input-apm.asciidoc[tag=edit-integration-settings]
 +
 . Navigate to **Agent authorization** > **Secret token** and set the value of your token.
 . Click **Save integration**. The APM Server will restart before the change takes effect.
->>>>>>> 00dc777d (docs: clarify secret token create/update (#8538))
 
 [[configure-secret-token]]
 [float]
