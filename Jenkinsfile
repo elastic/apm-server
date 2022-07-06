@@ -418,7 +418,11 @@ pipeline {
         Finally archive the results.
         */
         stage('Benchmarking') {
-          agent { label 'linux && metal' }
+          // As long as the existing baremetal are not based on the same specs
+          // we use https://apm-ci.elastic.co/computer/worker-1225339/
+          // further context in https://github.com/elastic/apm-server/pull/8471
+          // agent { label 'linux && metal' }
+          agent { label 'worker-1225339' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
@@ -436,6 +440,7 @@ pipeline {
                   sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                 }
                 sendBenchmarks(file: "bench.out", index: "benchmark-server")
+                generateGoBenchmarkDiff(file: 'bench.out', filter: 'exclude')
               }
             }
           }
@@ -518,7 +523,7 @@ pipeline {
       archiveArtifacts artifacts: 'beats-tester.properties'
     }
     cleanup {
-      notifyBuildResult()
+      notifyBuildResult(goBenchmarkComment: true)
     }
   }
 }
