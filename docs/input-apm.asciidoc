@@ -7,10 +7,13 @@
 <titleabbrev>Input settings</titleabbrev>
 ++++
 
-To edit the APM integration input settings, open {kib}, select **Add data**,
-and search for and select "Elastic APM".
-If the integration is already installed, under the polices tab, select **Actions** > **Edit integration**.
-If the integration has not been installed, select **Add Elastic APM**.
+Configure and customize APM integration settings directly in {kib}:
+
+// tag::edit-integration-settings[]
+. Open {kib} and navigate to **{fleet}**.
+. Under the **Agent policies** tab, select the policy you would like to configure.
+. Find the Elastic APM integration and select **Actions** > **Edit integration**.
+// end::edit-integration-settings[]
 
 [float]
 [[apm-input-general-settings]]
