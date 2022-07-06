@@ -29,6 +29,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/magefile/mage/mg"
@@ -148,6 +149,10 @@ func filterPackages(types string) {
 //
 // Use SNAPSHOT=true to build snapshots.
 func Ironbank() error {
+	if runtime.GOARCH != "amd64" {
+		fmt.Printf(">> IronBank images are only supported for amd64 arch (%s is not supported)\n", runtime.GOARCH)
+		return nil
+	}
 	if err := prepareIronbankBuild(); err != nil {
 		return errors.Wrap(err, "failed to prepare build")
 	}
