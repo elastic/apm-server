@@ -69,7 +69,9 @@ pipeline {
         always {
           dir("${BASE_DIR}") {
             withTestClusterEnv {
-              sh(label: 'Teardown smoke tests infra', script: 'make smoketest/all/cleanup')
+              withGoEnv(version: readFile(file: ".go-version").trim()) {
+                sh(label: 'Teardown smoke tests infra', script: 'make smoketest/all/cleanup')
+              }
             }
           }
         }
