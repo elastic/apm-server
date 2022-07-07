@@ -5,10 +5,12 @@ set -eo pipefail
 # Load common lib
 . $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
 
+# Load all versions except SNAPSHOTS
+VERSIONS=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions | jq -r -c '[.versions[] | select(. | endswith("-SNAPSHOT") | not)] | sort')
+
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
-    VERSIONS=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions)
-    VERSION=$(echo ${VERSIONS} | jq -r '.versions[]' | grep -v 'SNAPSHOT' | tail -1)
+    VERSION=$(echo ${VERSIONS} | jq -r 'last')
     echo "-> unspecified version, using $(echo ${VERSION} | cut -d '.' -f1-2)"
 fi
 MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
@@ -20,8 +22,8 @@ if [[ ${MAJOR_VERSION} -eq 7 ]]; then
     PREV_LATEST_VERSION=$(echo ${MAJOR_VERSION}.${MINOR_VERSION}.$(( $(echo ${LATEST_VERSION} | cut -d '.' -f3) -1 )))
 elif [[ ${MAJOR_VERSION} -eq 8 ]]; then
     ASSERT_EVENTS_FUNC=data_stream_assert_events
-    LATEST_VERSION=$(echo ${VERSIONS} | jq -r '.versions[]' | grep -v 'SNAPSHOT' | grep ${VERSION} | tail -1)
-    PREV_LATEST_VERSION=$(echo ${VERSIONS} | jq -r '.versions[]' | grep -v 'SNAPSHOT' | grep $(echo ${MAJOR_VERSION}.$(( $(echo ${MINOR_VERSION} | cut -d '.' -f3) -1 ))) | tail -1)
+    LATEST_VERSION=$(echo ${VERSIONS} | jq -r "[.[] | select(. | contains(\"${VERSION}\"))] | last")
+    PREV_LATEST_VERSION=$(echo ${VERSIONS} | jq -r "[.[] | select(. | contains(\"$(echo ${MAJOR_VERSION}.$(( ${MINOR_VERSION} -1 )))\"))] | last")
     INTEGRATIONS_SERVER=true
 else
     echo "version ${VERSION} not supported"
