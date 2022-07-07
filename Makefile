@@ -11,6 +11,7 @@ GOTESTFLAGS?=-v
 PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
 PYTHON=$(PYTHON_BIN)/python
+CURRENT_DIR=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 # Create a local config.mk file to override configuration,
 # e.g. for setting "GOLINT_UPSTREAM".
@@ -287,7 +288,7 @@ rally/corpora/.generated: rally/gencorpora/main.go rally/gencorpora/api.go rally
 ##############################################################################
 
 SMOKETEST_VERSIONS ?= latest
-SMOKETEST_DIRS = $$(find ./testing/smoke -mindepth 1 -maxdepth 1 -type d)
+SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d)
 
 .PHONY: smoketest/discover
 smoketest/discover:
@@ -296,7 +297,7 @@ smoketest/discover:
 .PHONY: smoketest/run
 smoketest/run:
 	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do \
-		cd $(TEST_DIR) && ./test.sh $${version} && cd -; \
+		cd $(TEST_DIR) && ./test.sh $${version}; \
 	done
 
 .PHONY: smoketest/cleanup
