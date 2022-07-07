@@ -21,10 +21,16 @@ if [[ ${MAJOR_VERSION} -eq 7 ]]; then
 elif [[ ${MAJOR_VERSION} -eq 8 ]]; then
     ASSERT_EVENTS_FUNC=data_stream_assert_events
     LATEST_VERSION=$(echo ${VERSIONS} | jq -r '.versions[]' | grep -v 'SNAPSHOT' | grep ${VERSION} | tail -1)
-    PREV_LATEST_VERSION=$(echo ${VERSIONS} | jq -r '.versions[]' | grep -v 'SNAPSHOT' | grep $(echo ${MAJOR}.$(( $(echo ${MINOR_VERSION} | cut -d '.' -f3) -1 ))) | tail -1)
+    PREV_LATEST_VERSION=$(echo ${VERSIONS} | jq -r '.versions[]' | grep -v 'SNAPSHOT' | grep $(echo ${MAJOR_VERSION}.$(( $(echo ${MINOR_VERSION} | cut -d '.' -f3) -1 ))) | tail -1)
     INTEGRATIONS_SERVER=true
 else
     echo "version ${VERSION} not supported"
+    exit 5
+fi
+
+# Check if we are testing upgrade over the same version
+if [ "${LATEST_VERSION}" == "${PREV_LATEST_VERSION}" ]; then
+    echo "Latest version '${LATEST_VERSION}' and previous latest version '${PREV_LATEST_VERSION}' must be different"
     exit 5
 fi
 
