@@ -296,7 +296,7 @@ smoketest/discover:
 .PHONY: smoketest/run
 smoketest/run:
 	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do \
-		cd $(TEST_DIR) && ./test.sh $${version}; \
+		cd $(TEST_DIR) && ./test.sh $${version} && cd -; \
 	done
 
 .PHONY: smoketest/cleanup

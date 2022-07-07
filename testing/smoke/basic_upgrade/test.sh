@@ -9,7 +9,7 @@ readonly RELATIVE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 
 . $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
 VERSION=${1}
 
-${RELATIVE_DIR}/basic_upgrade.sh "${VERSION}"
+${RELATIVE_DIR}/basic-upgrade.sh "${VERSION}"
 
 if [ "${VERSION}" == "7.17" ]; then
     ${RELATIVE_DIR}/legacy-managed.sh && ${RELATIVE_DIR}/standalone-major-managed.sh
