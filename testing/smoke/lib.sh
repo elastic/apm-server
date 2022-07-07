@@ -135,3 +135,108 @@ upgrade_managed() {
     echo "-> Waiting for 70 seconds for the APM Server to become available..."
     sleep 70
 }
+
+
+LEGACY_ILM_POLICY=apm-rollover-30-days
+
+legacy_assert_templates() {
+    local VERSION=$1
+    local TEMPLATE_PREFIX=apm-${VERSION}
+    echo "-> Asserting legacy index templates..."
+    # Verify the apm-${VERSION} template which contains the mappings
+    elasticsearch_curl "/_template/${TEMPLATE_PREFIX}" > /dev/null
+
+    # Then assert each individual template has the right ILM policies set.
+    local TEMPLATES=( error metric profile span transaction )
+    local SUCCESS=true
+    for suffix in "${TEMPLATES[@]}"; do
+        local TEMPLATE_NAME=${TEMPLATE_PREFIX}-${suffix}
+        local RESPONSE=$(elasticsearch_curl "/_template/${TEMPLATE_NAME}")
+        local ILM_POLICY=$(echo ${RESPONSE} | jq 'to_entries[0]|.value.settings.index.lifecycle')
+        local ILM_POLICY_NAME=$(echo ${ILM_POLICY} | jq -r '.name')
+        local ILM_POLICY_ROLLOVER_ALIAS=$(echo ${ILM_POLICY} | jq -r '.rollover_alias')
+        if [[ "${ILM_POLICY_NAME}" != "${LEGACY_ILM_POLICY}" ]]; then
+            echo "-> Invalid template ${TEMPLATE_NAME}; ILM policy name, expected ${LEGACY_ILM_POLICY}, got ${ILM_POLICY_NAME}"
+            SUCCESS=false
+        fi
+        if [[ "${ILM_POLICY_ROLLOVER_ALIAS}" != "${TEMPLATE_NAME}" ]]; then
+            echo "-> Invalid template ${TEMPLATE_NAME}; ILM policy rollover_alias, expected ${TEMPLATE_NAME}, got ${ILM_POLICY_ROLLOVER_ALIAS}"
+            SUCCESS=false
+        fi
+    done
+    if [[ ${SUCCESS} == false ]]; then
+        echo "-> Failed asserting legacy templates"
+        return 21
+    fi
+}
+
+legacy_assert_ilm() {
+    # Expected values
+    local EXPECTED_MAX_SIZE=50gb
+    local EXPECTED_MAX_AGE=30d
+    local EXPECTED_PHASES=1
+    echo "-> Asserting legacy ILM policies..."
+    # Verify the ILM policy exists, and has the right settings.
+    local RESPONSE=$(elasticsearch_curl "/_ilm/policy/${LEGACY_ILM_POLICY}")
+    local ILM_PHASES=$(echo ${RESPONSE} | jq 'to_entries[0]|.value.policy.phases')
+    local ILM_PHASE_COUNT=$(echo ${RESPONSE} | jq -r '. | length')
+    local SUCCESS=true
+    if [[ ${ILM_PHASE_COUNT} -ne ${EXPECTED_PHASES} ]]; then
+        echo "-> Invalid ILM policy ${LEGACY_ILM_POLICY}; expected 1 phase got ${ILM_PHASE_COUNT}"
+        echo "${ILM_PHASES}"
+        SUCCESS=false
+    fi
+    local ILM_HOT_PHASE=$(echo ${ILM_PHASES} | jq '.hot')
+    local ILM_HOT_PHASE_MAX_SIZE=$(echo ${ILM_HOT_PHASE} | jq -r '.actions.rollover.max_size')
+    local ILM_HOT_PHASE_MAX_AGE=$(echo ${ILM_HOT_PHASE} | jq -r '.actions.rollover.max_age')
+    if [[ "${ILM_HOT_PHASE_MAX_SIZE}" != "${EXPECTED_MAX_SIZE}" ]]; then
+        echo "-> Invalid ILM policy ${LEGACY_ILM_POLICY}; expected hot phase max_size ${EXPECTED_MAX_SIZE} got ${ILM_HOT_PHASE_MAX_SIZE}"
+        echo "${ILM_HOT_PHASE}"
+        SUCCESS=false
+    fi
+    if [[ "${ILM_HOT_PHASE_MAX_AGE}" != "${EXPECTED_MAX_AGE}" ]]; then
+        echo "-> Invalid ILM policy ${LEGACY_ILM_POLICY}; expected hot phase max_size ${EXPECTED_MAX_AGE} got ${ILM_HOT_PHASE_MAX_AGE}"
+        echo "${ILM_HOT_PHASE}"
+        SUCCESS=false
+    fi
+    if [[ ${SUCCESS} == false ]]; then
+        echo "-> Failed asserting ILM policies"
+        return 22
+    fi
+}
+
+legacy_ingest_pipelines() {
+    echo "-> Asserting legacy ingest pipelines..."
+    local RESPONSE=$(elasticsearch_curl "/_ingest/pipeline/apm")
+    local PIPELINES=( $(echo ${RESPONSE} | jq -r '.apm.processors[].pipeline.name') )
+    local SUCCESS=true
+    for pipeline in "${PIPELINES[@]}"; do
+        # Verify the pipeline exists.
+        local RESPONSE=$(elasticsearch_curl "/_ingest/pipeline/${pipeline}")
+        local PIPELINE_BODY=$(echo ${RESPONSE} | jq 'to_entries[0]|.value.processors')
+        if [[ -z ${PIPELINE_BODY} ]]; then
+            echo "-> Invalid ingest pipeline ${pipeline}"
+            echo "${RESPONSE}"
+            SUCCESS=false
+        fi
+    done
+    if [[ ${SUCCESS} == false ]]; then
+        echo "-> Failed asserting ingest pipelines"
+        return 23
+    fi
+}
+
+legacy_assertions() {
+    VERSION=${1}
+    ENTRIES=${2}
+    legacy_ingest_pipelines
+    legacy_assert_templates ${VERSION}
+    legacy_assert_ilm
+    legacy_assert_events ${VERSION} ${ENTRIES}
+}
+
+elasticsearch_curl() {
+    local URL=${1}
+    local AUTH=${ELASTICSEARCH_USER}:${ELASTICSEARCH_PASS}
+    curl --fail -s -H 'Content-Type: application/json' -u ${AUTH} -XGET "${ELASTICSEARCH_URL}${URL}"
+}
