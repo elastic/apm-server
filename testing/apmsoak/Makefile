@@ -5,7 +5,7 @@ APMSOAK_GOARCH ?= 386
 .default: all
 
 .PHONY: all
-all: $(SSH_KEY) terraform.tfvars init apmsoak apply
+all: terraform.tfvars init apmsoak apply
 
 include $(shell git rev-parse --show-toplevel)/go.mk
 

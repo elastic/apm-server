@@ -38,11 +38,7 @@ resource "google_service_account" "worker_svc_account" {
 
 resource "google_compute_firewall" "allow_ssh" {
   name    = "apmserver-soaktest-allowssh"
-  network = local.network_name
-
-  depends_on = [
-    google_compute_network.apmsoak_worker_network
-  ]
+  network = google_compute_network.apmsoak_worker_network.self_link
 
   allow {
     protocol = "tcp"
