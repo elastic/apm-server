@@ -15,7 +15,7 @@ MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
 MINOR_VERSION=$(echo ${VERSION} | cut -d '.' -f2 )
 
 if [[ ${MAJOR_VERSION} -eq 7 ]]; then
-    ASSERT_EVENTS_FUNC=legacy_assert_events
+    ASSERT_EVENTS_FUNC=legacy_assertions
     LATEST_VERSION=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions/${MAJOR_VERSION}.${MINOR_VERSION} | jq -r '.version.builds[0].version')
     PREV_LATEST_VERSION=$(echo ${MAJOR_VERSION}.${MINOR_VERSION}.$(( $(echo ${LATEST_VERSION} | cut -d '.' -f3) -1 )))
 elif [[ ${MAJOR_VERSION} -eq 8 ]]; then
