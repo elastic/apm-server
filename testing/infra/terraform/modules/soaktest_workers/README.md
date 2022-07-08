@@ -2,11 +2,6 @@
 
 This module sets up worker with load generation binary for soaktest configured as a systemd unit along with required monitoring setup.
 
-## Pre-requisites
-
-1. Follow the steps in [this guide](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/getting_started).
-2. The project uses [OS login](https://cloud.google.com/compute/docs/oslogin) to ssh into the created worker node, make sure that your google account has the [required privileges](https://cloud.google.com/compute/docs/oslogin/set-up-oslogin#grant-iam-roles)
-
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -17,6 +12,7 @@ No requirements.
 | Name | Version |
 |------|---------|
 | <a name="provider_google"></a> [google](#provider\_google) | n/a |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | n/a |
 
 ## Modules
 
@@ -27,12 +23,12 @@ No modules.
 | Name | Type |
 |------|------|
 | [google_compute_firewall.allow_ssh](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_firewall) | resource |
-| [google_compute_instance.worker_instance](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_instance) | resource |
-| [google_compute_network.apmsoak_worker_network](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_network) | resource |
-| [google_os_login_ssh_public_key.cache](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/os_login_ssh_public_key) | resource |
-| [google_service_account.worker_svc_account](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/service_account) | resource |
-| [google_client_openid_userinfo.me](https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/client_openid_userinfo) | data source |
+| [google_compute_instance.worker](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_instance) | resource |
+| [google_compute_network.worker](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_network) | resource |
+| [google_service_account.worker](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/service_account) | resource |
+| [tls_private_key.worker_login](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 | [google_compute_image.worker_image](https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/compute_image) | data source |
+| [tls_public_key.worker_login](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/data-sources/public_key) | data source |
 
 ## Inputs
 
@@ -49,8 +45,6 @@ No modules.
 | <a name="input_gcp_project"></a> [gcp\_project](#input\_gcp\_project) | GCP Project name | `string` | `"elastic-apm"` | no |
 | <a name="input_gcp_region"></a> [gcp\_region](#input\_gcp\_region) | GCP region | `string` | `"us-west2"` | no |
 | <a name="input_gcp_zone"></a> [gcp\_zone](#input\_gcp\_zone) | GCP zone | `string` | `"us-west2-b"` | no |
-| <a name="input_private_key"></a> [private\_key](#input\_private\_key) | Private key to be used to establish ssh connection with the worker | `string` | n/a | yes |
-| <a name="input_public_key"></a> [public\_key](#input\_public\_key) | Public key to be added to the current IAM user for OS login | `string` | n/a | yes |
 
 ## Outputs
 

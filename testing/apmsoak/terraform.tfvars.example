@@ -11,14 +11,6 @@ gcp_zone = "us-west2-b"
 # Defaults to `../../systemtest/cmd/apmsoak`
 # apmsoak_bin_path = "."
 
-# Path for the public key that will be added to the current IAM user for OS login
-# Defaults to `~/.ssh/google_compute_engine.pub`
-# public_key = "."
-
-# Path for the private key that will be used to establish ssh connection with the worker
-# Defaults to `~/.ssh/google_compute_engine`
-# private_key = "."
-
 # APM Server URL to send events to
 # apm_server_url = "http://localhost:8200"
 

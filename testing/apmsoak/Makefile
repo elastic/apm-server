@@ -12,6 +12,10 @@ include $(shell git rev-parse --show-toplevel)/go.mk
 terraform.tfvars:
 	@cp terraform.tfvars.example terraform.tfvars
 
+.PHONY: use-production
+use-production:
+	@terraform workspace select production || terraform worksapce new production
+
 .PHONY: apmsoak
 apmsoak:
 	@echo "-> Building apmsoak..."

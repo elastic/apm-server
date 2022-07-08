@@ -6,6 +6,10 @@ terraform {
       version = ">=4.27.0"
     }
   }
+  backend "gcs" {
+    bucket = "apmsoak-tf"
+    prefix = "/tfstate"
+  }
 }
 
 module "soaktest_workers" {
@@ -16,8 +20,6 @@ module "soaktest_workers" {
   gcp_zone    = var.gcp_zone
 
   apmsoak_bin_path = var.apmsoak_bin_path
-  public_key       = var.public_key
-  private_key      = var.private_key
 
   apm_server_url              = var.apm_server_url
   apm_secret_token            = var.apm_secret_token

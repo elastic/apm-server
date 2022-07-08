@@ -22,18 +22,6 @@ variable "apmsoak_bin_path" {
   default     = "../../systemtest/cmd/apmsoak"
 }
 
-variable "public_key" {
-  type        = string
-  description = "Public key to be added to the current IAM user for OS login"
-  default     = "~/.ssh/google_compute_engine.pub"
-}
-
-variable "private_key" {
-  type        = string
-  description = "Private key to be used to establish ssh connection with the worker"
-  default     = "~/.ssh/google_compute_engine"
-}
-
 variable "apm_server_url" {
   type        = string
   description = "APM Server URL for sending the generated load"
@@ -42,6 +30,7 @@ variable "apm_server_url" {
 variable "apm_secret_token" {
   type        = string
   description = "Secret token for auth against the given server URL"
+  sensitive   = true
 }
 
 variable "apm_loadgen_max_rate" {

@@ -1,4 +1,5 @@
 locals {
+  ssh_user_name      = "apmsoak"
   executable_name    = "apmsoak"
   service_name       = "apmsoak.service"
   network_name       = "apmsoak-network"
@@ -15,30 +16,27 @@ locals {
   ))
 }
 
-data "google_compute_image" "worker_image" {
-  project = "ubuntu-os-cloud"
-  family  = "ubuntu-minimal-2004-lts"
+resource "tls_private_key" "worker_login" {
+  algorithm = "RSA"
+  rsa_bits  = "4096"
 }
 
-data "google_client_openid_userinfo" "me" {}
-
-resource "google_os_login_ssh_public_key" "cache" {
-  user = data.google_client_openid_userinfo.me.email
-  key  = file(var.public_key)
+data "tls_public_key" "worker_login" {
+  private_key_openssh = tls_private_key.worker_login.private_key_openssh
 }
 
-resource "google_compute_network" "apmsoak_worker_network" {
+resource "google_compute_network" "worker" {
   name = local.network_name
 }
 
-resource "google_service_account" "worker_svc_account" {
+resource "google_service_account" "worker" {
   account_id   = "apmserver-soaktest-worker"
   display_name = "APM Server soaktest worker"
 }
 
 resource "google_compute_firewall" "allow_ssh" {
   name    = "apmserver-soaktest-allowssh"
-  network = google_compute_network.apmsoak_worker_network.self_link
+  network = google_compute_network.worker.self_link
 
   allow {
     protocol = "tcp"
@@ -47,7 +45,12 @@ resource "google_compute_firewall" "allow_ssh" {
   source_ranges = ["0.0.0.0/0"]
 }
 
-resource "google_compute_instance" "worker_instance" {
+data "google_compute_image" "worker_image" {
+  project = "ubuntu-os-cloud"
+  family  = "ubuntu-minimal-2004-lts"
+}
+
+resource "google_compute_instance" "worker" {
   # Trigger a recreate of workers on config changes
   name         = substr("apmsoak-worker-${local.config_hash}", 0, 63)
   machine_type = "e2-micro"
@@ -64,29 +67,29 @@ resource "google_compute_instance" "worker_instance" {
     access_config {}
   }
 
-  depends_on = [
-    google_compute_firewall.allow_ssh,
-  ]
-
   labels = {
     team = "apm-server"
   }
 
   metadata = {
-    enable-oslogin = "TRUE"
+    ssh-keys = "${local.ssh_user_name}:${data.tls_public_key.worker_login.public_key_openssh}"
   }
 
   service_account {
-    email  = google_service_account.worker_svc_account.email
+    email  = google_service_account.worker.email
     scopes = ["cloud-platform"]
   }
+
+  depends_on = [
+    google_compute_firewall.allow_ssh,
+  ]
 
   connection {
     type        = "ssh"
     host        = self.network_interface[0].access_config[0].nat_ip
-    user        = join("_", regexall("[a-zA-Z0-9]+", data.google_client_openid_userinfo.me.email))
+    user        = local.ssh_user_name
     timeout     = "500s"
-    private_key = file(var.private_key)
+    private_key = tls_private_key.worker_login.private_key_openssh
   }
 
   provisioner "remote-exec" {
@@ -125,7 +128,6 @@ resource "google_compute_instance" "worker_instance" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x ${local.remote_working_dir}/${local.executable_name}",
-      "sudo useradd apmsoak -s /sbin/nologin -M",
       "sudo mv ${local.remote_working_dir}/${local.executable_name} /bin/",
       "sudo mv ${local.remote_working_dir}/${local.service_name} /lib/systemd/system/.",
       "sudo chmod 755 /lib/systemd/system/${local.service_name}",
