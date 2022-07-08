@@ -14,7 +14,7 @@ trap "terraform_destroy" EXIT
 terraform_apply ${LATEST_VERSION}
 healthcheck 1
 send_events
-legacy_assert_events ${LATEST_VERSION}
+legacy_assertions ${LATEST_VERSION}
 
 echo "-> Upgrading APM Server to managed mode"
 upgrade_managed ${LATEST_VERSION}

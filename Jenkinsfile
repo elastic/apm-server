@@ -416,7 +416,7 @@ pipeline {
         Finally archive the results.
         */
         stage('Benchmarking') {
-          agent { label 'linux && metal' }
+          agent { label 'microbenchmarks-pool' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
@@ -434,6 +434,7 @@ pipeline {
                   sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                 }
                 sendBenchmarks(file: "bench.out", index: "benchmark-server")
+                generateGoBenchmarkDiff(file: 'bench.out', filter: 'exclude')
               }
             }
           }
@@ -516,7 +517,7 @@ pipeline {
       archiveArtifacts artifacts: 'beats-tester.properties'
     }
     cleanup {
-      notifyBuildResult()
+      notifyBuildResult(goBenchmarkComment: true)
     }
   }
 }
