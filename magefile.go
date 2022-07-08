@@ -141,20 +141,20 @@ func filterPackages(types string) {
 	mage.Packages = packages
 }
 
-// Package packages apm-server for the IronBank distribution, relying on the
+// Ironbank packages apm-server for the Ironbank distribution, relying on the
 // binaries having already been built.
 //
 // Use SNAPSHOT=true to build snapshots.
 func Ironbank() error {
 	if runtime.GOARCH != "amd64" {
-		fmt.Printf(">> IronBank images are only supported for amd64 arch (%s is not supported)\n", runtime.GOARCH)
+		fmt.Printf(">> Ironbank images are only supported for amd64 arch (%s is not supported)\n", runtime.GOARCH)
 		return nil
 	}
 	if err := prepareIronbankBuild(); err != nil {
-		return errors.Wrap(err, "failed to prepare the IronBank context")
+		return errors.Wrap(err, "failed to prepare the ironbank context")
 	}
 	if err := saveIronbank(); err != nil {
-		return errors.Wrap(err, "failed to save artifacts for IronBank")
+		return errors.Wrap(err, "failed to save artifacts for ironbank")
 	}
 	return nil
 }
@@ -190,6 +190,7 @@ func Update() error {
 	return nil
 }
 
+// GoTestUnit runs the go test unit.
 // Use RACE_DETECTOR=true to enable the race detector.
 func GoTestUnit(ctx context.Context) error {
 	return mage.GoTest(ctx, mage.DefaultGoTestUnitArgs())
@@ -331,6 +332,7 @@ func majorMinor() string {
 	return ""
 }
 
+// Check checks the source code for common problems.
 func Check() error {
 	fmt.Println(">> check: Checking source code for common problems")
 
