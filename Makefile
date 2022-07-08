@@ -11,6 +11,7 @@ GOTESTFLAGS?=-v
 PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
 PYTHON=$(PYTHON_BIN)/python
+CURRENT_DIR=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 # Create a local config.mk file to override configuration,
 # e.g. for setting "GOLINT_UPSTREAM".
@@ -287,9 +288,35 @@ rally/corpora/.generated: rally/gencorpora/main.go rally/gencorpora/api.go rally
 ##############################################################################
 
 SMOKETEST_VERSIONS ?= latest
+SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d)
 
-.PHONY: smoketest
-smoketest:
-	@ echo "-> Running smoke tests for versions: $(SMOKETEST_VERSIONS)..."
-	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do cd ./testing/smoke/basic_upgrade && ./basic-upgrade.sh $$version; if [ $$version == 7.17 ]; then ./legacy-managed.sh && ./standalone-major-managed.sh; fi; cd -; done
-	@ echo "-> Smoke tests passed!"
+.PHONY: smoketest/discover
+smoketest/discover:
+	@echo $(SMOKETEST_DIRS)
+
+.PHONY: smoketest/run
+smoketest/run:
+	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do \
+		cd $(TEST_DIR) && ./test.sh $${version}; \
+	done
+
+.PHONY: smoketest/cleanup
+smoketest/cleanup:
+	@ cd $(TEST_DIR); \
+	if [ -f "./cleanup.sh" ]; then \
+		./cleanup.sh; \
+	fi
+
+.PHONY: smoketest/all
+smoketest/all:
+	@ for test_dir in $(SMOKETEST_DIRS); do \
+		echo "-> Running $${test_dir} smoke tests..."; \
+		$(MAKE) smoketest/run TEST_DIR=$${test_dir}; \
+	done
+
+.PHONY: smoketest/all
+smoketest/all/cleanup:
+	@ for test_dir in $(SMOKETEST_DIRS); do \
+		echo "-> Cleanup $${test_dir} smoke tests..."; \
+		$(MAKE) smoketest/cleanup TEST_DIR=$${test_dir}; \
+	done

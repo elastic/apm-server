@@ -9,7 +9,6 @@ pipeline {
     AWS_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-aws-account-auth'
     EC_KEY_SECRET = 'secret/observability-team/ci/elastic-cloud/observability-pro'
     TERRAFORM_VERSION = '1.2.3'
-
     CREATED_DATE = "${new Date().getTime()}"
   }
 
@@ -23,7 +22,7 @@ pipeline {
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
   }
   parameters {
-    string(name: 'SMOKETEST_VERSIONS', defaultValue: 'latest', description: 'Run smoke tests using following APM versions')
+    string(name: 'SMOKETEST_VERSIONS', defaultValue: '7.17,latest', description: 'Run smoke tests using following APM versions')
   }
   stages {
     stage('Checkout') {
@@ -48,9 +47,31 @@ pipeline {
       }
       steps {
         dir ("${BASE_DIR}") {
-          withGoEnv() {
+          withTestClusterEnv {
+            withGoEnv(version: readFile(file: ".go-version").trim()) {
+              script {
+                def smokeTests = sh(returnStdout: true, script: 'make smoketest/discover').trim().split('\r?\n')
+                def smokeTestJobs = [:]
+                for (smokeTest in smokeTests) {
+                  smokeTestJobs["Run smoke tests in ${smokeTest}"] = {
+                    stage("Run smoke tests in ${smokeTest}") {
+                      sh(label: 'Run smoke tests', script: "make smoketest/run TEST_DIR=${smokeTest}")
+                    }
+                  }
+                }
+                parallel smokeTestJobs
+              }
+            }
+          }
+        }
+      }
+      post {
+        always {
+          dir("${BASE_DIR}") {
             withTestClusterEnv {
-              sh(label: 'Run smoke tests', script: 'make smoketest')
+              withGoEnv(version: readFile(file: ".go-version").trim()) {
+                sh(label: 'Teardown smoke tests infra', script: 'make smoketest/all/cleanup')
+              }
             }
           }
         }
@@ -61,7 +82,7 @@ pipeline {
 
 def withTestClusterEnv(Closure body) {  
   withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}", version: "2.7.6") {
-    withTerraformEnv(version: "${TERRAFORM_VERSION}") {
+    withTerraformEnv(version: "${TERRAFORM_VERSION}", forceInstallation: true) {
       withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
         body()
       }
