@@ -6,6 +6,7 @@ locals {
   remote_working_dir = "apmsoak/"
   config_hash = sha256(join("_",
     [
+      terraform.workspace,
       var.apm_server_url,
       var.apm_secret_token,
       var.apm_loadgen_max_rate,
@@ -52,7 +53,7 @@ data "google_compute_image" "worker_image" {
 
 resource "google_compute_instance" "worker" {
   # Trigger a recreate of workers on config changes
-  name         = substr("apmsoak-${terraform.workspace}-${local.config_hash}", 0, 63)
+  name         = substr("apmsoak-${local.config_hash}", 0, 63)
   machine_type = "e2-micro"
   zone         = var.gcp_zone
 
@@ -68,7 +69,8 @@ resource "google_compute_instance" "worker" {
   }
 
   labels = {
-    team = "apm-server"
+    team      = "apm-server"
+    workspace = terraform.workspace
   }
 
   metadata = {

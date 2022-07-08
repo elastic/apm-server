@@ -17,8 +17,9 @@ This folder provides tools to enable creation of a worker instance which have th
     b. `Compute Network Admin`
     c. `Compute Security Admin`
     d. `Create Service Accounts`
-    e. `Compute Instance Admin (v1)`
-    f. `Service Account User` if service account is used
+    e. `Delete Service Accounts`
+    f. `Compute Instance Admin (v1)`
+    g. `Service Account User` if service account is used
 3. Install [gcloud CLI](https://cloud.google.com/sdk/docs/install)
 4. Authenticate with GCP by running `gcloud auth application-default login`
 
