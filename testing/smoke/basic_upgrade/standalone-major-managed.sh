@@ -3,9 +3,11 @@
 set -eo pipefail
 
 VERSION=7.17
+
+# Load all versions except SNAPSHOTS
+VERSIONS=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions | jq -r -c '[.versions[] | select(. | endswith("-SNAPSHOT") | not)] | sort')
+NEXT_MAJOR_LATEST=$(echo ${VERSIONS} | jq -r '[.[] | select(. | startswith("8"))] | last')
 LATEST_VERSION=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions/${VERSION} | jq -r '.version.builds[0].version')
-VERSIONS=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions)
-NEXT_MAJOR_LATEST=$(echo ${VERSIONS} | jq -r '.versions[]' | grep -v 'SNAPSHOT' | grep '^8' | tail -1)
 
 echo "-> Running ${LATEST_VERSION} standalone to ${NEXT_MAJOR_LATEST} to ${NEXT_MAJOR_LATEST} managed"
 
