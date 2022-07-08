@@ -2,7 +2,7 @@ locals {
   ssh_user_name      = "apmsoak"
   executable_name    = "apmsoak"
   service_name       = "apmsoak.service"
-  network_name       = "apmsoak-network"
+  network_name       = "apmsoak-network-${terraform.workspace}"
   remote_working_dir = "apmsoak/"
   config_hash = sha256(join("_",
     [
@@ -30,12 +30,12 @@ resource "google_compute_network" "worker" {
 }
 
 resource "google_service_account" "worker" {
-  account_id   = "apmserver-soaktest-worker"
+  account_id   = "apmserver-soaktest-worker-${terraform.workspace}"
   display_name = "APM Server soaktest worker"
 }
 
 resource "google_compute_firewall" "allow_ssh" {
-  name    = "apmserver-soaktest-allowssh"
+  name    = "apmserver-soaktest-allowssh-${terraform.workspace}"
   network = google_compute_network.worker.self_link
 
   allow {
@@ -52,7 +52,7 @@ data "google_compute_image" "worker_image" {
 
 resource "google_compute_instance" "worker" {
   # Trigger a recreate of workers on config changes
-  name         = substr("apmsoak-worker-${local.config_hash}", 0, 63)
+  name         = substr("apmsoak-${terraform.workspace}-${local.config_hash}", 0, 63)
   machine_type = "e2-micro"
   zone         = var.gcp_zone
 
