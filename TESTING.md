@@ -136,6 +136,19 @@ $ make apply
 Above command starts the apmsoak process as a systemd unit configured to send load at the specified rate.
 The module also installs `elastic-agent` to monitor the worker.
 
+## Smoke testing
+
+Smoke tests verify are light end to end tests which ensure that the "happy path" of the APM Server works as
+expected per the asserted scenarios. The idea is to automatically gauge if there are any critical problems in
+the APM Server in a regular manner.
+
+These tests are currently using a Terraform module which manages the creation of deployments in ESS (could also
+be configured to use an ECE installation) with some light bash scripting which is run in a variety of scenarios
+and upgrades, but ensures there aren't any major problems with APM Server accepting and indexing events where
+it should.
+
+The smoke tests can be found under [`testing/smoke`](./testing/smoke)
+
 ## Manual testing
 
 Often, we need to manually test the integration between different features, PR testing or pre-release testing.
