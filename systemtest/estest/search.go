@@ -61,9 +61,12 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 		Index:           strings.Split(",", index),
 		ExpandWildcards: "all",
 	}
-	if _, err := refreshReq.Do(context.Background(), es.Transport); err != nil {
+	rsp, err := refreshReq.Do(context.Background(), es.Transport)
+	if err != nil {
 		t.Fatalf("failed refreshing indices: %s: %s", index, err.Error())
 	}
+
+	rsp.Body.Close()
 
 	if _, err := req.Do(context.Background(), &result, opts...); err != nil {
 		t.Fatal(err)
