@@ -18,50 +18,20 @@
 package javaattacher
 
 import (
-	"context"
-	"os"
-	"path/filepath"
-	"strings"
+	"github.com/elastic/apm-server/beater/config"
+	"regexp"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/apm-server/beater/config"
 )
 
-func TestNew(t *testing.T) {
-	cfg := config.JavaAttacherConfig{JavaBin: ""}
-	jh := os.Getenv("JAVA_HOME")
-	os.Setenv("JAVA_HOME", "/usr/local")
-	f, err := os.Create(javaAttacher)
-	require.NoError(t, err)
-	defer func() {
-		// reset JAVA_HOME
-		os.Setenv("JAVA_HOME", jh)
-		os.Remove(f.Name())
-	}()
-
-	attacher, err := New(cfg)
-	require.NoError(t, err)
-
-	javapath := filepath.FromSlash("/usr/local/bin/java")
-	assert.Equal(t, javapath, attacher.cfg.JavaBin)
-
-	cfg.JavaBin = "/home/user/bin/java"
-	attacher, err = New(cfg)
-	require.NoError(t, err)
-
-	javapath = filepath.FromSlash("/home/user/bin/java")
-	assert.Equal(t, javapath, attacher.cfg.JavaBin)
-}
-
-func TestBuild(t *testing.T) {
+func TestConfig(t *testing.T) {
 	args := []map[string]string{
 		{"exclude-user": "root"},
 		{"include-main": "MyApplication"},
-		{"include-main": "my-application.jar"},
-		{"include-vmarg": "elastic.apm.agent.attach=true"},
+		{"exclude-user": "me"},
+		{"include-vmarg": "-D.*attach=true"},
+		{"include-all": "ignored"},
 	}
 	cfg := config.JavaAttacherConfig{
 		Enabled:        true,
@@ -69,33 +39,58 @@ func TestBuild(t *testing.T) {
 		Config: map[string]string{
 			"server_url": "http://localhost:8200",
 		},
-		JavaBin:              "/usr/bin/java",
 		DownloadAgentVersion: "1.25.0",
 	}
+	javaAttacher := New(cfg)
+	require.True(t, javaAttacher.enabled)
+	require.Equal(t, "http://localhost:8200", javaAttacher.agentConfigs["server_url"])
+	require.Equal(t, "1.25.0", javaAttacher.downloadAgentVersion)
+	require.Len(t, javaAttacher.discoveryRules, 5)
+	require.Equal(t, UserDiscoveryRule{user: "root", isIncludeRule: false}, javaAttacher.discoveryRules[0])
+	mainRegex, _ := regexp.Compile("MyApplication")
+	require.Equal(t, CmdLineDiscoveryRule{regex: mainRegex, isIncludeRule: true}, javaAttacher.discoveryRules[1])
+	require.Equal(t, UserDiscoveryRule{user: "me", isIncludeRule: false}, javaAttacher.discoveryRules[2])
+	vmargRegex, _ := regexp.Compile("-D.*attach=true")
+	require.Equal(t, CmdLineDiscoveryRule{regex: vmargRegex, isIncludeRule: true}, javaAttacher.discoveryRules[3])
+	require.Equal(t, IncludeAllRule{}, javaAttacher.discoveryRules[4])
 
-	f, err := os.Create(javaAttacher)
-	require.NoError(t, err)
-	defer os.Remove(f.Name())
+	jvmDetails := JvmDetails{
+		user:      "me",
+		uid:       "",
+		gid:       "",
+		pid:       "",
+		startTime: "",
+		command:   "",
+		version:   "",
+		cmdLineArgs: "org.apache.catalina.startup.Bootstrap --add-opens=java.base/java.lang=ALL-UNNAMED " +
+			"--add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED " +
+			"--add-opens=java.base/java.util.concurrent=ALL-UNNAMED " +
+			"--add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED " +
+			"-Djava.util.logging.config.file=/Users/eyalkoren/tests/apache-tomcat-9.0.58/conf/logging.properties " +
+			"-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djdk.tls.ephemeralDHKeySize=2048 " +
+			"-Djava.protocol.handler.pkgs=org.apache.catalina.webresources -Dorg.apache.catalina.security.SecurityListener.UMASK=0027 " +
+			"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -Delastic.apm.service_name=Tomcat9 " +
+			"-Dignore.endorsed.dirs= -Dcatalina.base=/Users/eyalkoren/tests/apache-tomcat-9.0.58 " +
+			"-Delastic.apm.agent.attach=true " +
+			"-Dcatalina.home=/Users/eyalkoren/tests/apache-tomcat-9.0.58 -Djava.io.tmpdir=/Users/eyalkoren/tests/apache-tomcat-9.0.58/temp",
+	}
 
-	attacher, err := New(cfg)
-	require.NoError(t, err)
-
-	cmd := attacher.build(context.Background())
-
-	want := filepath.FromSlash("/usr/bin/java -jar ./java-attacher.jar") +
-		" --continuous --log-level debug --download-agent-version 1.25.0 --exclude-user root --include-main MyApplication " +
-		"--include-main my-application.jar --include-vmarg elastic.apm.agent.attach=true " +
-		"--config server_url=http://localhost:8200"
-
-	cmdArgs := strings.Join(cmd.Args, " ")
-	assert.Equal(t, want, cmdArgs)
-
-	cfg.Config["service_name"] = "my-cool-service"
-	attacher, err = New(cfg)
-	require.NoError(t, err)
-
-	cmd = attacher.build(context.Background())
-	cmdArgs = strings.Join(cmd.Args, " ")
-	assert.Contains(t, cmdArgs, "--config server_url=http://localhost:8200")
-	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
+	match := javaAttacher.findFirstMatch(&jvmDetails)
+	require.NotNil(t, match)
+	require.IsType(t, UserDiscoveryRule{}, match)
+	require.Equal(t, "me", match.(UserDiscoveryRule).user)
+	require.False(t, match.include())
+	javaAttacher.discoveryRules[2] = UserDiscoveryRule{}
+	match = javaAttacher.findFirstMatch(&jvmDetails)
+	require.NotNil(t, match)
+	require.IsType(t, CmdLineDiscoveryRule{}, match)
+	require.Equal(t, vmargRegex, match.(CmdLineDiscoveryRule).regex)
+	require.True(t, match.include())
+	javaAttacher.discoveryRules[3] = UserDiscoveryRule{}
+	match = javaAttacher.findFirstMatch(&jvmDetails)
+	require.NotNil(t, match)
+	require.IsType(t, IncludeAllRule{}, match)
+	require.True(t, match.include())
+	javaAttacher.discoveryRules[4] = UserDiscoveryRule{}
+	require.Nil(t, javaAttacher.findFirstMatch(&jvmDetails))
 }

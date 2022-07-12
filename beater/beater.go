@@ -461,14 +461,8 @@ func (s *serverRunner) run(listener net.Listener) error {
 		if eac == "" {
 			// We aren't running in a cloud environment
 			go func() {
-				attacher, err := javaattacher.New(s.config.JavaAttacherConfig)
-				if err != nil {
-					s.logger.Errorf("failed to start java attacher: %v", err)
-					return
-				}
-				if err := attacher.Run(s.runServerContext); err != nil {
-					s.logger.Errorf("failed to run java attacher: %v", err)
-				}
+				attacher := javaattacher.New(s.config.JavaAttacherConfig)
+				attacher.Run(s.runServerContext)
 			}()
 		} else {
 			s.logger.Error("java attacher not supported in cloud environments")
