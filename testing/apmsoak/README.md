@@ -1,4 +1,4 @@
-# Run soak test workers
+# Run soak test worker
 
 **NOTE: This is unlikely to be useful for non-Elastic employees**
 

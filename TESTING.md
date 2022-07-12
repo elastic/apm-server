@@ -125,7 +125,7 @@ Usage of /var/folders/k9/z1yw8fsn0sjbl5yy7z2rsdpr0000gn/T/go-build4164012609/b00
 
 ### Launching apmsoak on GCP
 
-Workers with `apmsoak` installed for generating load can be created on GCP using the `soaktest_workers`
+Worker with `apmsoak` installed for generating load can be created on GCP using the `soaktest_workers`
 terraform module. The terraform module can be run as follows:
 
 ```
