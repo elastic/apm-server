@@ -2,7 +2,7 @@
 
 **NOTE: This is unlikely to be useful for non-Elastic employees**
 
-This folder provides tools to enable creation of a worker instance which have the capability to send load to any APM Server. Worker uses `apmsoak` binary to generate a continuous and sustained load. Since worker is a long running process, it is created as systemd unit with configuration to restart on failure. Monitoring is also setup for the worker as part of the terraform module to monitor the node resources and the systemd unit status.
+This folder provides tools to enable creation of a worker instance to send load to any APM Server. Worker run the `apmsoak` binary to generate a continuous load and since it is a long running process, it is run as systemd unit configured to restart on failure. Monitoring is also setup for the worker as part of the terraform module to monitor the node resources and the systemd unit status.
 
 ## Dependencies
 

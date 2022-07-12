@@ -2,7 +2,6 @@ locals {
   ssh_user_name      = "apmsoak"
   executable_name    = "apmsoak"
   service_name       = "apmsoak.service"
-  network_name       = "apmsoak-network-${terraform.workspace}"
   remote_working_dir = "apmsoak/"
   config_hash = sha256(join("_",
     [
@@ -27,7 +26,7 @@ data "tls_public_key" "worker_login" {
 }
 
 resource "google_compute_network" "worker" {
-  name = local.network_name
+  name = "apmsoak-network-${terraform.workspace}"
 }
 
 resource "google_service_account" "worker" {
@@ -64,7 +63,7 @@ resource "google_compute_instance" "worker" {
   }
 
   network_interface {
-    network = local.network_name
+    network = google_compute_network.worker.self_link
     access_config {}
   }
 
