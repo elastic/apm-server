@@ -123,6 +123,19 @@ Usage of /var/folders/k9/z1yw8fsn0sjbl5yy7z2rsdpr0000gn/T/go-build4164012609/b00
     	apm-server URL (default http://localhost:8200)
 ```
 
+### Launching apmsoak on GCP
+
+Worker with `apmsoak` installed for generating load can be created on GCP using the `soaktest_workers`
+terraform module. The terraform module can be run as follows:
+
+```
+$ cd testing/apmsoak/
+$ make apply
+```
+
+Above command starts the apmsoak process as a systemd unit configured to send load at the specified rate.
+The module also installs `elastic-agent` to monitor the worker.
+
 ## Smoke testing
 
 Smoke tests verify are light end to end tests which ensure that the "happy path" of the APM Server works as
