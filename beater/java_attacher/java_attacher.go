@@ -353,7 +353,6 @@ func (j *JavaAttacher) verifyJvmExecutable(ctx context.Context, jvm *JvmDetails)
 	}
 	if err := scanner.Err(); err != nil {
 		j.logger.Errorf("error reading output of command '%v' when running as user %v: %v", strings.Join(cmd.Args, " "), jvm.user, err)
-		fmt.Println(err)
 	}
 	return cmd.Wait()
 }
@@ -428,7 +427,6 @@ func (j *JavaAttacher) attach(ctx context.Context, jvm *JvmDetails) error {
 			case "INFO":
 				j.logger.Info(b.Message)
 			case "DEBUG", "TRACE":
-				fmt.Println(b.Message)
 				j.logger.Debug(b.Message)
 			default:
 				j.logger.Errorf("unrecognized java-attacher log.level: %s", b.LogLevel)
@@ -441,7 +439,6 @@ func (j *JavaAttacher) attach(ctx context.Context, jvm *JvmDetails) error {
 
 	scanner := bufio.NewScanner(stderr)
 	for scanner.Scan() {
-		fmt.Println(scanner.Text())
 		j.logger.Errorf("error running attacher: %v", scanner.Text())
 	}
 
