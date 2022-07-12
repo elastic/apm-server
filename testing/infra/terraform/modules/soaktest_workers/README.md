@@ -1,11 +1,7 @@
+<!-- BEGIN_TF_DOCS -->
 ## Soaktest worker module
 
 This module sets up worker with load generation binary for soaktest configured as a systemd unit along with required monitoring setup. The workers generated are immutable in nature and are recreated for every configuration change.
-
-<!-- BEGIN_TF_DOCS -->
-## Requirements
-
-No requirements.
 
 ## Providers
 
@@ -13,10 +9,6 @@ No requirements.
 |------|---------|
 | <a name="provider_google"></a> [google](#provider\_google) | n/a |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | n/a |
-
-## Modules
-
-No modules.
 
 ## Resources
 
@@ -45,8 +37,4 @@ No modules.
 | <a name="input_gcp_project"></a> [gcp\_project](#input\_gcp\_project) | GCP Project name | `string` | `"elastic-apm"` | no |
 | <a name="input_gcp_region"></a> [gcp\_region](#input\_gcp\_region) | GCP region | `string` | `"us-west2"` | no |
 | <a name="input_gcp_zone"></a> [gcp\_zone](#input\_gcp\_zone) | GCP zone | `string` | `"us-west2-b"` | no |
-
-## Outputs
-
-No outputs.
 <!-- END_TF_DOCS -->
