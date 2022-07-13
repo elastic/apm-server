@@ -3,9 +3,9 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "8.3.3"
   changes:
-    - description: Placeholder.
+    - description: Support TLSv1.3 and remove TLSv1.0 in the default TLS supported protocols
       type: bugfix
-      link: https://github.com/elastic/apm-server/pull/<placeholder>
+      link: https://github.com/elastic/apm-server/pull/8577
 - version: "8.3.0"
   changes:
     - description: Field mapping for `target.name` and `target.type` added to traces data stream
