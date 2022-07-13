@@ -30,3 +30,8 @@ output "elasticsearch_password" {
   sensitive   = true
   description = "The Elasticsearch password"
 }
+
+output "stack_version" {
+  value       = data.ec_stack.deployment_version.version
+  description = "The matching stack pack version from the provided stack_version"
+}

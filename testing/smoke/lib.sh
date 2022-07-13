@@ -4,7 +4,7 @@ terraform_apply() {
     echo "-> Creating / Upgrading deployment to version ${1}"
     echo stack_version=\"${1}\" > terraform.tfvars
     if [[ ! -z ${2} ]] && [[ ${2} ]]; then echo integrations_server=true >> terraform.tfvars; fi
-    terraform init
+    if [[ ! -f .terraform.lock.hcl ]]; then terraform init; fi
     terraform apply -auto-approve
 
     if [[ ${EXPORTED_AUTH} ]]; then
@@ -16,6 +16,7 @@ terraform_apply() {
     APM_AUTH_HEADER="Authorization: Bearer $(terraform output -raw apm_secret_token)"
     APM_SERVER_URL=$(terraform output -raw apm_server_url)
     KIBANA_URL=$(terraform output -raw kibana_url)
+    STACK_VERSION=$(terraform output -raw stack_version)
     EXPORTED_AUTH=true
 }
 
@@ -136,9 +137,6 @@ upgrade_managed() {
     sleep 70
 }
 
-
-LEGACY_ILM_POLICY=apm-rollover-30-days
-
 legacy_assert_templates() {
     local VERSION=$1
     local TEMPLATE_PREFIX=apm-${VERSION}
@@ -227,12 +225,72 @@ legacy_ingest_pipelines() {
 }
 
 legacy_assertions() {
-    VERSION=${1}
-    ENTRIES=${2}
+    local VERSION=${1}
+    local ENTRIES=${2}
+    local LEGACY_ILM_POLICY=apm-rollover-30-days
     legacy_ingest_pipelines
     legacy_assert_templates ${VERSION}
     legacy_assert_ilm
     legacy_assert_events ${VERSION} ${ENTRIES}
+}
+
+data_stream_assertions() {
+    local VERSION=${1}
+    local ENTRIES=${2}
+    data_stream_assert_templates_ilm ${VERSION}
+    data_stream_assert_pipelines
+    data_stream_assert_events ${VERSION} ${ENTRIES}
+}
+
+data_stream_assert_pipelines() {
+    # NOTE(marclop) we could assert that the pipelines have some sort of version suffix
+    # in their name, however, the APM package version may not equal the deployment version.
+    echo "-> Asserting ingest pipelines..."
+    local SUCCESS=true
+    local RESPONSE=$(elasticsearch_curl '/_ingest/pipeline/*apm*')
+    local HAS_APM_PIPELINES=$(echo ${RESPONSE} | jq -r '.|length>0')
+    if [[ ${HAS_APM_PIPELINES} != true ]]; then
+        SUCCESS=false
+        echo "-> Did not find any APM ingest pipelines"
+        echo ${RESPONSE}
+    fi
+
+    if [[ ${SUCCESS} == false ]]; then
+        echo "-> Failed asserting ingest pipelines"
+        return 31
+    fi
+}
+
+data_stream_assert_templates_ilm() {
+    echo "-> Asserting component templates and ILM policies..."
+    local SUCCESS=true
+    local VERSION=${1}
+    local MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
+    if [[ ${MAJOR_VERSION} -eq 7 ]]; then
+        local COMPONENTS=( settings custom )
+    else
+        local COMPONENTS=( package custom )
+    fi
+
+    local COMPOSABLE_TEMPLATES=( $(elasticsearch_curl "/_ilm/policy" | jq -r 'to_entries[]|select(.key|contains("apm"))|.value.in_use_by.composable_templates[]') )
+    for ct in "${COMPOSABLE_TEMPLATES[@]}"; do
+        for type in "${COMPONENTS[@]}"; do
+            local RESPONSE=$(elasticsearch_curl "/_component_template/${ct}@${type}")
+            local FOUND=$(echo ${RESPONSE} | jq '.component_templates|length==1')
+            if [[ ${FOUND} != true ]]; then
+                echo "-> Unable to find component template ${ct}@${type}"
+                SUCCESS=false
+            fi
+            # Ensure the ILM lifecycle policy exists.
+            local ILM_POLICY_NAME=$(echo | jq -r '.component_templates[0].template.settings.index.lifecycle.name')
+            elasticsearch_curl "/_ilm/policy/${ILM_POLICY_NAME}" > /dev/null
+        done
+    done
+
+    if [[ ${SUCCESS} == false ]]; then
+        echo "-> Failed asserting component templates"
+        return 32
+    fi
 }
 
 elasticsearch_curl() {

@@ -71,3 +71,8 @@ output "elasticsearch_password" {
   sensitive   = true
   description = "The Elasticsearch password"
 }
+
+output "stack_version" {
+  value       = module.ec_deployment.stack_version
+  description = "The matching stack pack version from the provided stack_version"
+}
