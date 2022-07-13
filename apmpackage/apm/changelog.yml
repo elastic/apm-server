@@ -4,9 +4,9 @@
 
 - version: "8.2.4"
   changes:
-    - description: Placeholder.
+    - description: Support TLSv1.3 and remove TLSv1.0 in the default TLS supported protocols
       type: bugfix
-      link: https://github.com/elastic/apm-server/issues/<placeholder>
+      link: https://github.com/elastic/apm-server/pull/8577
 - version: "8.2.3"
   changes:
     - description: Added tags field mapping to internal_metrics data stream
