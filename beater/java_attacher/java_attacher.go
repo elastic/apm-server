@@ -22,8 +22,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/elastic-agent-libs/logp"
 	"os/exec"
 	"os/user"
 	"path/filepath"
@@ -33,6 +31,9 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 var encounteredJvmCache = make(map[string]*JvmDetails)

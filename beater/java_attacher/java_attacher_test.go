@@ -18,9 +18,10 @@
 package javaattacher
 
 import (
-	"github.com/elastic/apm-server/beater/config"
 	"regexp"
 	"testing"
+
+	"github.com/elastic/apm-server/beater/config"
 
 	"github.com/stretchr/testify/require"
 )
