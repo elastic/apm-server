@@ -131,7 +131,14 @@ func (j *JavaAttacher) Run(ctx context.Context) {
 			if err != nil {
 				j.logger.Infof("error during JVMs discovery: %v", err)
 			}
-			j.executeForEachJvm(ctx, jvms, j.attach, true, 10*time.Second)
+			for _, jvm := range jvms {
+				go func(jvm *JvmDetails) {
+					err := j.attach(ctx, jvm)
+					if err != nil {
+						j.logger.Errorf("error attaching to JVM %v: %v", jvm, err)
+					}
+				}(jvm)
+			}
 			select {
 			case <-ctx.Done():
 				return
@@ -434,13 +441,16 @@ func (j *JavaAttacher) attach(ctx context.Context, jvm *JvmDetails) error {
 			}
 		}
 		if err := scanner.Err(); err != nil {
-			j.logger.Errorf("error scanning attacher logs: %v", err)
+			j.logger.Errorf("error reading attacher logs: %v", err)
 		}
 	}()
 
 	scanner := bufio.NewScanner(stderr)
 	for scanner.Scan() {
 		j.logger.Errorf("error running attacher: %v", scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		j.logger.Errorf("error reading attacher error output: %v", err)
 	}
 
 	return cmd.Wait()
