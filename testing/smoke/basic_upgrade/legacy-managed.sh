@@ -20,4 +20,4 @@ echo "-> Upgrading APM Server to managed mode"
 upgrade_managed ${LATEST_VERSION}
 healthcheck 1
 send_events
-data_stream_assert_events ${LATEST_VERSION}
+data_stream_assertions ${LATEST_VERSION}
