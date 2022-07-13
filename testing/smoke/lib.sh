@@ -246,17 +246,11 @@ data_stream_assert_pipelines() {
     # NOTE(marclop) we could assert that the pipelines have some sort of version suffix
     # in their name, however, the APM package version may not equal the deployment version.
     echo "-> Asserting ingest pipelines..."
-    local SUCCESS=true
     local RESPONSE=$(elasticsearch_curl '/_ingest/pipeline/*apm*')
     local HAS_APM_PIPELINES=$(echo ${RESPONSE} | jq -r '.|length>0')
     if [[ ${HAS_APM_PIPELINES} != true ]]; then
-        SUCCESS=false
         echo "-> Did not find any APM ingest pipelines"
         echo ${RESPONSE}
-    fi
-
-    if [[ ${SUCCESS} == false ]]; then
-        echo "-> Failed asserting ingest pipelines"
         return 31
     fi
 }
