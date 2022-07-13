@@ -156,9 +156,8 @@ func (j *JavaAttacher) discoverJvmsForAttachment(ctx context.Context) (map[strin
 	if err != nil {
 		if jvms == nil {
 			return nil, err
-		} else {
-			j.logger.Errorf("error during JVMs discovery: %v. Continuing with properly discovered %v JVMs", err, len(jvms))
 		}
+		j.logger.Errorf("error during JVMs discovery: %v. Continuing with properly discovered %v JVMs", err, len(jvms))
 	}
 
 	// remove stale processes from the cache
@@ -188,7 +187,7 @@ func (j *JavaAttacher) discoverJvmsForAttachment(ctx context.Context) (map[strin
 	}
 
 	for _, jvm := range jvms {
-		fmt.Printf("Found a Java process (PID %v) of version %v that was started at %v by '%v' using command '%v'\n",
+		j.logger.Debugf("found a Java process (PID %v) of version %v that was started at %v by '%v' using command '%v'",
 			jvm.pid, jvm.version, jvm.startTime, jvm.user, jvm.command)
 	}
 	return jvms, nil
