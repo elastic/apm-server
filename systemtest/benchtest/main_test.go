@@ -123,7 +123,7 @@ func Test_warmupTimeout(t *testing.T) {
 				agents:     16,
 				cpus:       2,
 			},
-			expected: 128 * time.Second,
+			expected: 256 * time.Second,
 		},
 		{
 			name: "5000 events 500 agents",
@@ -133,7 +133,7 @@ func Test_warmupTimeout(t *testing.T) {
 				agents:     500,
 				cpus:       16,
 			},
-			expected: 78125 * time.Second,
+			expected: 156250 * time.Second,
 		},
 		{
 			name: "5000 events 500 agents with 8 cpus",
@@ -143,7 +143,7 @@ func Test_warmupTimeout(t *testing.T) {
 				agents:     500,
 				cpus:       8,
 			},
-			expected: 156250 * time.Second,
+			expected: 312500 * time.Second,
 		},
 		{
 			name: "50k events",
@@ -153,7 +153,7 @@ func Test_warmupTimeout(t *testing.T) {
 				agents:     1,
 				cpus:       16,
 			},
-			expected: 50 * time.Second,
+			expected: 100 * time.Second,
 		},
 		{
 			name: "default events 16 agents",
@@ -163,7 +163,7 @@ func Test_warmupTimeout(t *testing.T) {
 				agents:     16,
 				cpus:       16,
 			},
-			expected: 80 * time.Second,
+			expected: 160 * time.Second,
 		},
 		{
 			name: "default events 32 agents",
@@ -173,7 +173,7 @@ func Test_warmupTimeout(t *testing.T) {
 				agents:     32,
 				cpus:       16,
 			},
-			expected: 320 * time.Second,
+			expected: 640 * time.Second,
 		},
 		{
 			name: "default events 12000 epm (200/s) yields a bigger timeout",
@@ -184,7 +184,7 @@ func Test_warmupTimeout(t *testing.T) {
 				agents:     32,
 				cpus:       16,
 			},
-			expected: 1600 * time.Second,
+			expected: 3200 * time.Second,
 		},
 	}
 	for _, tt := range tests {
