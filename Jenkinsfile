@@ -229,7 +229,7 @@ pipeline {
         Build on a mac environment.
         */
         stage('OSX build-test') {
-          agent { label 'macosx && x86_64' }
+          agent { label 'orka && darwin && x86_64' }
           options {
             skipDefaultCheckout()
             warnError('OSX execution failed')
@@ -241,9 +241,6 @@ pipeline {
               expression { return env.ONLY_DOCS == "false" }
             }
           }
-          environment {
-            HOME = "${env.WORKSPACE}"
-          }
           steps {
             withGithubNotify(context: 'Build-Test - OSX') {
               deleteDir()
@@ -252,8 +249,8 @@ pipeline {
                 withMageEnv(){
                   // Retry in case there are any errors to avoid temporary glitches
                   retryWithSleep(retries: 2) {
-                    sh(label: 'OSX build', script: '.ci/scripts/build-darwin.sh')
-                    sh(label: 'Run Unit tests', script: '.ci/scripts/test-darwin.sh')
+                    sh(label: 'OSX build', script: '.ci/scripts/build.sh')
+                    sh(label: 'Run Unit tests', script: '.ci/scripts/unit-test.sh')
                   }
                 }
               }
