@@ -21,6 +21,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"math"
@@ -143,6 +144,11 @@ func benchmarkFuncName(f BenchmarkFunc) (string, error) {
 // are all prefixed with "Benchmark", like those that are designed
 // to work with "go test".
 func Run(allBenchmarks ...BenchmarkFunc) error {
+	// Set flags in package testing.
+	testing.Init()
+	if err := flag.Set("test.benchtime", benchConfig.Benchtime.String()); err != nil {
+		return err
+	}
 	// Sets the http.DefaultClient.Transport.TLSClientConfig.InsecureSkipVerify
 	// to match the "-secure" flag value.
 	verifyTLS := loadgen.Config.Secure
