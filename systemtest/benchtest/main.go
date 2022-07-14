@@ -264,7 +264,7 @@ func warmup(agents int, events uint, url, token string) error {
 	close(errs)
 	var merr multierror.Errors
 	for err := range errs {
-		if err != nil {
+		if err != nil && !errors.Is(err, context.DeadlineExceeded) {
 			merr = append(merr, err)
 		}
 	}
@@ -289,6 +289,6 @@ func warmupTimeout(ingestRate float64, events uint, epm, agents, cpus int) time.
 	// the apmbench runner can do.
 	factor := math.Max(1, float64(agents)/float64(cpus))
 	timeoutSeconds := math.Max(float64(events)/ingestRate, 1) *
-		float64(agents) * factor
+		float64(agents*2) * factor
 	return time.Duration(math.Max(timeoutSeconds, 15)) * time.Second
 }
