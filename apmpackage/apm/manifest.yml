@@ -1,7 +1,7 @@
 format_version: 1.0.0
 name: apm
 title: Elastic APM
-version: 7.16.2
+version: 7.16.3
 license: basic
 description: Ingest APM data
 type: integration
@@ -133,7 +133,7 @@ policy_templates:
           - name: tls_supported_protocols
             type: text
             multi: true
-            default: ["TLSv1.0", "TLSv1.1", "TLSv1.2"]
+            default: ["TLSv1.1", "TLSv1.2", "TLSv1.3"]
           - name: tls_cipher_suites
             type: text
             multi: true
