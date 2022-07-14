@@ -23,7 +23,6 @@ pipeline {
         updateBeatsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
         runWindowsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
         runSmokeTests(branches: ['main'])
-        runBenchmarks(branches: ['main'])
       }
     }
   }
@@ -49,13 +48,6 @@ def runWindowsBuilds(Map args = [:]) {
             booleanParam(name: 'windows_ci', value: true)
           ],
           wait: false, propagate: false)
-  }
-}
-
-def runBenchmarks(Map args = [:]) {
-  def branches = getBranchesFromAliases(aliases: args.branches)
-  branches.each { branch ->
-    build(job: "apm-server/benchmarks/${branch}", wait: false, propagate: false)
   }
 }
 
