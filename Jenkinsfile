@@ -416,17 +416,11 @@ pipeline {
         Finally archive the results.
         */
         stage('Benchmarking') {
-          agent { label 'linux && immutable' }
+          agent { label 'microbenchmarks-pool' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
             allOf {
-              anyOf {
-                branch 'main'
-                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-                branch pattern: 'v\\d?', comparator: 'REGEXP'
-                expression { return params.Run_As_Main_Branch }
-              }
               expression { return params.bench_ci }
               expression { return env.ONLY_DOCS == "false" }
             }
@@ -440,7 +434,13 @@ pipeline {
                   sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                 }
                 sendBenchmarks(file: "bench.out", index: "benchmark-server")
+                generateGoBenchmarkDiff(file: 'bench.out', filter: 'exclude')
               }
+            }
+          }
+          post {
+            cleanup {
+              deleteDir()
             }
           }
         }
@@ -517,7 +517,7 @@ pipeline {
       archiveArtifacts artifacts: 'beats-tester.properties'
     }
     cleanup {
-      notifyBuildResult()
+      notifyBuildResult(goBenchmarkComment: true)
     }
   }
 }

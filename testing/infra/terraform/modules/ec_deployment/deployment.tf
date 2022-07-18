@@ -143,7 +143,12 @@ resource "null_resource" "secret_token" {
   }
 }
 
-data "local_file" "secret_token" {
-  depends_on = [null_resource.secret_token]
-  filename = "${path.module}/secret_token.json"
+# Since the secret token value is set in the APM Integration policy, we need
+# an "external" resource to run a shell script that returns the secret token
+# as {"value":"SECRET_TOKEN"}.
+data "external" "secret_token" {
+  count       = var.integrations_server ? 1 : 0
+  depends_on  = [local_file.secret_token]
+  program     = ["/bin/bash", "-c", "scripts/secret_token.sh"]
+  working_dir = path.module
 }

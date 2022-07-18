@@ -22,7 +22,7 @@ pipeline {
       steps {
         updateBeatsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
         runWindowsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
-        runBenchmarks(branches: ['main'])
+        runSmokeTests(branches: ['main'])
       }
     }
   }
@@ -51,9 +51,9 @@ def runWindowsBuilds(Map args = [:]) {
   }
 }
 
-def runBenchmarks(Map args = [:]) {
+def runSmokeTests(Map args = [:]) {
   def branches = getBranchesFromAliases(aliases: args.branches)
   branches.each { branch ->
-    build(job: "apm-server/benchmarks/${branch}", wait: false, propagate: false)
+    build(job: "apm-server/smoke-tests-mbp/${branch}", wait: false, propagate: false)
   }
 }

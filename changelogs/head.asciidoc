@@ -14,7 +14,6 @@ https://github.com/elastic/apm-server/compare/8.4\...main[View commits]
 [float]
 ==== Bug fixes
 - Fix race for deducing destination service fields for OTel bridge {pull}8363[8363]
-- When tail-based sampling is enabled, limit the local disk space for the feature to 3GB {pull}8407[8407]
 
 [float]
 ==== Intake API Changes
