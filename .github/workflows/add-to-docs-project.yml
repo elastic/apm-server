@@ -2,11 +2,11 @@ name: Add to obs-docs project
 on:
   issues:
     types:
-      - opened
+      - labeled
 jobs:
   add_to_project:
     runs-on: ubuntu-latest
-    if: ${{ github.event.label.name == 'Team:Docs'}}
+    if: github.event.label.name == 'Team:Docs'
     steps:
       - uses: octokit/graphql-action@v2.x
         id: add_to_project
