@@ -19,43 +19,43 @@ package javaattacher
 
 import "regexp"
 
-type DiscoveryRule interface {
+type discoveryRule interface {
 	include() bool
 	match(jvm *JvmDetails) bool
 }
 
-type IncludeAllRule struct{}
+type includeAllRule struct{}
 
-func (IncludeAllRule) match(jvm *JvmDetails) bool {
+func (includeAllRule) match(jvm *JvmDetails) bool {
 	return true
 }
 
-func (IncludeAllRule) include() bool {
+func (includeAllRule) include() bool {
 	return true
 }
 
-type UserDiscoveryRule struct {
+type userDiscoveryRule struct {
 	isIncludeRule bool
 	user          string
 }
 
-func (rule UserDiscoveryRule) match(jvm *JvmDetails) bool {
+func (rule userDiscoveryRule) match(jvm *JvmDetails) bool {
 	return jvm.user == rule.user
 }
 
-func (rule UserDiscoveryRule) include() bool {
+func (rule userDiscoveryRule) include() bool {
 	return rule.isIncludeRule
 }
 
-type CmdLineDiscoveryRule struct {
+type cmdLineDiscoveryRule struct {
 	isIncludeRule bool
 	regex         *regexp.Regexp
 }
 
-func (rule CmdLineDiscoveryRule) match(jvm *JvmDetails) bool {
+func (rule cmdLineDiscoveryRule) match(jvm *JvmDetails) bool {
 	return rule.regex.MatchString(jvm.cmdLineArgs)
 }
 
-func (rule CmdLineDiscoveryRule) include() bool {
+func (rule cmdLineDiscoveryRule) include() bool {
 	return rule.isIncludeRule
 }

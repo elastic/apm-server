@@ -52,13 +52,13 @@ type JvmDetails struct {
 type JavaAttacher struct {
 	logger               *logp.Logger
 	enabled              bool
-	discoveryRules       []DiscoveryRule
+	discoveryRules       []discoveryRule
 	rawDiscoveryRules    []map[string]string
 	agentConfigs         map[string]string
 	downloadAgentVersion string
 }
 
-func (j *JavaAttacher) addDiscoveryRule(rule DiscoveryRule) {
+func (j *JavaAttacher) addDiscoveryRule(rule discoveryRule) {
 	j.discoveryRules = append(j.discoveryRules, rule)
 	j.logger.Debugf("added discovery rule: %v", rule)
 }
@@ -76,11 +76,11 @@ func New(cfg config.JavaAttacherConfig) JavaAttacher {
 		for name, value := range flag {
 			switch name {
 			case "include-all":
-				attacher.addDiscoveryRule(IncludeAllRule{})
+				attacher.addDiscoveryRule(includeAllRule{})
 			case "include-user":
-				attacher.addDiscoveryRule(UserDiscoveryRule{user: value, isIncludeRule: true})
+				attacher.addDiscoveryRule(userDiscoveryRule{user: value, isIncludeRule: true})
 			case "exclude-user":
-				attacher.addDiscoveryRule(UserDiscoveryRule{user: value, isIncludeRule: false})
+				attacher.addDiscoveryRule(userDiscoveryRule{user: value, isIncludeRule: false})
 			case "include-main":
 				attacher.addCmdLineDiscoveryRule(value, true, "include-main")
 			case "exclude-main":
@@ -89,6 +89,8 @@ func New(cfg config.JavaAttacherConfig) JavaAttacher {
 				attacher.addCmdLineDiscoveryRule(value, true, "include-vmarg")
 			case "exclude-vmarg":
 				attacher.addCmdLineDiscoveryRule(value, false, "exclude-main")
+			default:
+				logger.Errorf("Unknown discovery rule - '%v'", name)
 			}
 		}
 	}
@@ -99,13 +101,12 @@ func (j *JavaAttacher) addCmdLineDiscoveryRule(regexS string, isIncludeRule bool
 	regex, err := regexp.Compile(regexS)
 	if err != nil {
 		j.logger.Errorf("invalid regex for the `%v` argument: %v", argumentName, err)
+		return
 	}
-	if regex != nil {
-		j.addDiscoveryRule(CmdLineDiscoveryRule{regex: regex, isIncludeRule: isIncludeRule})
-	}
+	j.addDiscoveryRule(cmdLineDiscoveryRule{regex: regex, isIncludeRule: isIncludeRule})
 }
 
-func (j *JavaAttacher) findFirstMatch(jvm *JvmDetails) DiscoveryRule {
+func (j *JavaAttacher) findFirstMatch(jvm *JvmDetails) discoveryRule {
 	for _, rule := range j.discoveryRules {
 		if rule.match(jvm) {
 			return rule
@@ -127,14 +128,15 @@ func (j *JavaAttacher) Run(ctx context.Context) {
 			jvms, err := j.discoverJvmsForAttachment(ctx)
 			if err != nil {
 				j.logger.Infof("error during JVMs discovery: %v", err)
-			}
-			for _, jvm := range jvms {
-				go func(jvm *JvmDetails) {
-					err := j.attach(ctx, jvm)
-					if err != nil {
-						j.logger.Errorf("error attaching to JVM %v: %v", jvm, err)
-					}
-				}(jvm)
+			} else {
+				for _, jvm := range jvms {
+					go func(jvm *JvmDetails) {
+						err := j.attach(ctx, jvm)
+						if err != nil {
+							j.logger.Errorf("error attaching to JVM %v: %v", jvm, err)
+						}
+					}(jvm)
+				}
 			}
 			select {
 			case <-ctx.Done():
@@ -142,6 +144,8 @@ func (j *JavaAttacher) Run(ctx context.Context) {
 			case <-c:
 				return
 			default:
+				// todo - remove
+				j.logger.Debug("sleeping for 1 sec")
 				time.Sleep(1 * time.Second)
 			}
 		}
@@ -151,10 +155,7 @@ func (j *JavaAttacher) Run(ctx context.Context) {
 func (j *JavaAttacher) discoverJvmsForAttachment(ctx context.Context) (map[string]*JvmDetails, error) {
 	jvms, err := j.discoverAllRunningJavaProcesses(ctx)
 	if err != nil {
-		if jvms == nil {
-			return nil, err
-		}
-		j.logger.Errorf("error during JVMs discovery: %v. Continuing with properly discovered %v JVMs", err, len(jvms))
+		return nil, err
 	}
 
 	// remove stale processes from the cache
@@ -167,20 +168,20 @@ func (j *JavaAttacher) discoverJvmsForAttachment(ctx context.Context) (map[strin
 
 	// trying to improve start time accuracy - worth to consider optimizing as this runs every time the loop runs (1 second or so)
 	if j.executeForEachJvm(ctx, jvms, j.obtainAccurateStartTime, false, time.Second) {
-		j.logger.Errorf("timeout trying to find accurate start time for %v jvms", len(jvms))
+		j.logger.Infof("finding accurate start time for %v jvms did not finish successfully, either canceled or timed out", len(jvms))
 	}
 
 	j.filterCached(jvms)
 
 	if j.executeForEachJvm(ctx, jvms, j.obtainCommandLineArgs, false, time.Second) {
-		j.logger.Errorf("timeout trying to find command line args for %v jvms", len(jvms))
+		j.logger.Infof("finding command line args for %v jvms did not finish successfully, either canceled or timed out", len(jvms))
 	}
 
 	// todo: decide whether we have enough advantage to do that within the integration instead of doing it within the attacher
 	j.filterByDiscoveryRules(jvms)
 
 	if j.executeForEachJvm(ctx, jvms, j.verifyJvmExecutable, true, time.Second) {
-		j.logger.Errorf("timeout trying to verify Java executables for %v jvms", len(jvms))
+		j.logger.Infof("verifying Java executables for %v jvms did not finish successfully, either canceled or timed out", len(jvms))
 	}
 
 	for _, jvm := range jvms {
@@ -232,7 +233,10 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map
 		j.logger.Errorf("error reading output for command '%v': %v", strings.Join(cmd.Args, " "), err)
 	}
 	err = cmd.Wait()
-	return jvms, err
+	if err != nil {
+		j.logger.Errorf("error executing command '%v': %v", strings.Join(cmd.Args, " "), err)
+	}
+	return jvms, nil
 }
 
 func (j *JavaAttacher) executeForEachJvm(ctx context.Context, jvms map[string]*JvmDetails,
@@ -260,9 +264,9 @@ func (j *JavaAttacher) executeForEachJvm(ctx context.Context, jvms map[string]*J
 	case <-ctx.Done():
 		return false
 	case <-c:
-		return false
+		return true
 	case <-time.After(timeout):
-		return true // timed out
+		return false
 	}
 }
 

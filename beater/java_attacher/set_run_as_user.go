@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"os/exec"
 	"os/user"
-	"runtime"
 	"strconv"
 	"syscall"
 )
@@ -46,10 +45,8 @@ func (j *JavaAttacher) setRunAsUser(jvm *JvmDetails, cmd *exec.Cmd) error {
 			return fmt.Errorf("invalid GID '%v': %v", jvm.gid, err)
 		}
 
-		if runtime.GOOS != "windows" {
-			cmd.SysProcAttr = &syscall.SysProcAttr{}
-			cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)}
-		}
+		cmd.SysProcAttr = &syscall.SysProcAttr{}
+		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)}
 	}
 	return nil
 }

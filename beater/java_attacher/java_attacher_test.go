@@ -26,6 +26,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDiscoveryRulesAllowlist(t *testing.T) {
+	allowlistLength := len(config.JavaAttacherAllowlist)
+	args := make([]map[string]string, allowlistLength+1, allowlistLength+1)
+	for discoveryRuleKey := range config.JavaAttacherAllowlist {
+		args = append(args, map[string]string{discoveryRuleKey: "test"})
+	}
+	args = append(args, map[string]string{"invalid": "test"})
+	cfg := config.JavaAttacherConfig{
+		DiscoveryRules: args,
+	}
+	javaAttacher := New(cfg)
+	discoveryRules := javaAttacher.discoveryRules
+	require.Len(t, discoveryRules, allowlistLength)
+}
+
 func TestConfig(t *testing.T) {
 	args := []map[string]string{
 		{"exclude-user": "root"},
@@ -47,13 +62,13 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, "http://localhost:8200", javaAttacher.agentConfigs["server_url"])
 	require.Equal(t, "1.25.0", javaAttacher.downloadAgentVersion)
 	require.Len(t, javaAttacher.discoveryRules, 5)
-	require.Equal(t, UserDiscoveryRule{user: "root", isIncludeRule: false}, javaAttacher.discoveryRules[0])
+	require.Equal(t, userDiscoveryRule{user: "root", isIncludeRule: false}, javaAttacher.discoveryRules[0])
 	mainRegex, _ := regexp.Compile("MyApplication")
-	require.Equal(t, CmdLineDiscoveryRule{regex: mainRegex, isIncludeRule: true}, javaAttacher.discoveryRules[1])
-	require.Equal(t, UserDiscoveryRule{user: "me", isIncludeRule: false}, javaAttacher.discoveryRules[2])
+	require.Equal(t, cmdLineDiscoveryRule{regex: mainRegex, isIncludeRule: true}, javaAttacher.discoveryRules[1])
+	require.Equal(t, userDiscoveryRule{user: "me", isIncludeRule: false}, javaAttacher.discoveryRules[2])
 	vmargRegex, _ := regexp.Compile("-D.*attach=true")
-	require.Equal(t, CmdLineDiscoveryRule{regex: vmargRegex, isIncludeRule: true}, javaAttacher.discoveryRules[3])
-	require.Equal(t, IncludeAllRule{}, javaAttacher.discoveryRules[4])
+	require.Equal(t, cmdLineDiscoveryRule{regex: vmargRegex, isIncludeRule: true}, javaAttacher.discoveryRules[3])
+	require.Equal(t, includeAllRule{}, javaAttacher.discoveryRules[4])
 
 	jvmDetails := JvmDetails{
 		user:      "me",
@@ -78,20 +93,20 @@ func TestConfig(t *testing.T) {
 
 	match := javaAttacher.findFirstMatch(&jvmDetails)
 	require.NotNil(t, match)
-	require.IsType(t, UserDiscoveryRule{}, match)
-	require.Equal(t, "me", match.(UserDiscoveryRule).user)
+	require.IsType(t, userDiscoveryRule{}, match)
+	require.Equal(t, "me", match.(userDiscoveryRule).user)
 	require.False(t, match.include())
-	javaAttacher.discoveryRules[2] = UserDiscoveryRule{}
+	javaAttacher.discoveryRules[2] = userDiscoveryRule{}
 	match = javaAttacher.findFirstMatch(&jvmDetails)
 	require.NotNil(t, match)
-	require.IsType(t, CmdLineDiscoveryRule{}, match)
-	require.Equal(t, vmargRegex, match.(CmdLineDiscoveryRule).regex)
+	require.IsType(t, cmdLineDiscoveryRule{}, match)
+	require.Equal(t, vmargRegex, match.(cmdLineDiscoveryRule).regex)
 	require.True(t, match.include())
-	javaAttacher.discoveryRules[3] = UserDiscoveryRule{}
+	javaAttacher.discoveryRules[3] = userDiscoveryRule{}
 	match = javaAttacher.findFirstMatch(&jvmDetails)
 	require.NotNil(t, match)
-	require.IsType(t, IncludeAllRule{}, match)
+	require.IsType(t, includeAllRule{}, match)
 	require.True(t, match.include())
-	javaAttacher.discoveryRules[4] = UserDiscoveryRule{}
+	javaAttacher.discoveryRules[4] = userDiscoveryRule{}
 	require.Nil(t, javaAttacher.findFirstMatch(&jvmDetails))
 }
