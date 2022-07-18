@@ -6555,11 +6555,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/dlclark/regexp2
-Version: v1.4.0
+Version: v1.7.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/dlclark/regexp2@v1.4.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/dlclark/regexp2@v1.7.0/LICENSE:
 
 The MIT License (MIT)
 
@@ -18839,11 +18839,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20220712014510-0a85c31ab51e
+Version: v0.0.0-20220715151400-c0bba94af5f8
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220712014510-0a85c31ab51e/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220715151400-c0bba94af5f8/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18950,11 +18950,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20220714211235-042d03aeabc9
+Version: v0.0.0-20220715211116-798f69b842b9
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220714211235-042d03aeabc9/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220715211116-798f69b842b9/LICENSE:
 
 
                                  Apache License
