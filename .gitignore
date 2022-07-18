@@ -53,3 +53,4 @@ terraform.tfstate.backup
 terraform.tfvars
 testing/benchmark/.envrc
 testing/benchmark/benchmark-result.txt
+testing/smoke/**/tf.log
