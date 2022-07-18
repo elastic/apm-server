@@ -299,6 +299,9 @@ func (j *JavaAttacher) obtainCommandLineArgs(ctx context.Context, jvmDetails *Jv
 	scanner := bufio.NewScanner(stdout)
 	if scanner.Scan() {
 		jvmDetails.cmdLineArgs = scanner.Text()
+		// at least in some Linux distributions, the `comm` option may only contain the executable and not the full path,
+		// so we should replace jvmDetails.command with the first part of the output of ps -o command
+		jvmDetails.command = strings.Fields(jvmDetails.cmdLineArgs)[0]
 	}
 	if err := scanner.Err(); err != nil {
 		j.logger.Errorf("error obtaining command line args for process %v using 'ps -o command=': %v", err)
