@@ -458,7 +458,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	}
 
 	if s.config.JavaAttacherConfig.Enabled {
-		if eac == "" {
+		if eac == "" && runtime.GOOS != "windows" {
 			// We aren't running in a cloud environment
 			go func() {
 				attacher := javaattacher.New(s.config.JavaAttacherConfig)
