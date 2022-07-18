@@ -285,16 +285,7 @@ type aggregationKey struct {
 	serviceEnvironment string
 	transactionType    string
 
-	// operation (span)
-	spanName string
-	outcome  string
-
-	// target
-	targetType string
-	targetName string
-
-	// destination
-	resource string
+	outcome string
 }
 
 func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregationKey {
