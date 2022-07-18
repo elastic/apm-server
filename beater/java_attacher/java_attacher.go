@@ -23,13 +23,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -362,28 +359,6 @@ func (j *JavaAttacher) verifyJvmExecutable(ctx context.Context, jvm *JvmDetails)
 		j.logger.Errorf("error reading output of command '%v' when running as user %v: %v", strings.Join(cmd.Args, " "), jvm.user, err)
 	}
 	return cmd.Wait()
-}
-
-func (j *JavaAttacher) setRunAsUser(jvm *JvmDetails, cmd *exec.Cmd) error {
-	currentUser, err := user.Current()
-	if err != nil {
-		j.logger.Infof("failed to get the current user: %v", err)
-	} else {
-		j.logger.Debugf("current user: %v", currentUser)
-	}
-	if currentUser.Gid != jvm.gid || currentUser.Uid != jvm.uid {
-		uid, err := strconv.ParseInt(jvm.uid, 10, 32)
-		if err != nil {
-			return fmt.Errorf("invalid UID '%v': %v", jvm.uid, err)
-		}
-		gid, err := strconv.ParseInt(jvm.gid, 10, 32)
-		if err != nil {
-			return fmt.Errorf("invalid GID '%v': %v", jvm.gid, err)
-		}
-		cmd.SysProcAttr = &syscall.SysProcAttr{}
-		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)}
-	}
-	return nil
 }
 
 func (j *JavaAttacher) attach(ctx context.Context, jvm *JvmDetails) error {
