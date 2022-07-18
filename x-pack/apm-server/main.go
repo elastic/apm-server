@@ -87,7 +87,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	processors = append(processors, namedProcessor{name: spanName, processor: spanAggregator})
 
 	const serviceName = "service metrics aggregation"
-	args.Logger.Infof("creating %s with config: %+v", spanName, args.Config.Aggregation.Service)
+	args.Logger.Infof("creating %s with config: %+v", serviceName, args.Config.Aggregation.Service)
 	serviceAggregator, err := servicemetrics.NewAggregator(servicemetrics.AggregatorConfig{
 		BatchProcessor: args.BatchProcessor,
 		Interval:       args.Config.Aggregation.Service.Interval,
