@@ -21,6 +21,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"math"
@@ -143,6 +144,11 @@ func benchmarkFuncName(f BenchmarkFunc) (string, error) {
 // are all prefixed with "Benchmark", like those that are designed
 // to work with "go test".
 func Run(allBenchmarks ...BenchmarkFunc) error {
+	// Set flags in package testing.
+	testing.Init()
+	if err := flag.Set("test.benchtime", benchConfig.Benchtime.String()); err != nil {
+		return err
+	}
 	// Sets the http.DefaultClient.Transport.TLSClientConfig.InsecureSkipVerify
 	// to match the "-secure" flag value.
 	verifyTLS := loadgen.Config.Secure
@@ -258,7 +264,7 @@ func warmup(agents int, events uint, url, token string) error {
 	close(errs)
 	var merr multierror.Errors
 	for err := range errs {
-		if err != nil {
+		if err != nil && !errors.Is(err, context.DeadlineExceeded) {
 			merr = append(merr, err)
 		}
 	}
@@ -283,6 +289,6 @@ func warmupTimeout(ingestRate float64, events uint, epm, agents, cpus int) time.
 	// the apmbench runner can do.
 	factor := math.Max(1, float64(agents)/float64(cpus))
 	timeoutSeconds := math.Max(float64(events)/ingestRate, 1) *
-		float64(agents) * factor
+		float64(agents*2) * factor
 	return time.Duration(math.Max(timeoutSeconds, 15)) * time.Second
 }

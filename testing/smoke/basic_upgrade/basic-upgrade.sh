@@ -5,7 +5,7 @@ set -eo pipefail
 # Load common lib
 . $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
 
-# Load all versions except SNAPSHOTS
+# Load the latest versions except SNAPSHOTS
 VERSIONS=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions | jq -r -c '[.versions[] | select(. | endswith("-SNAPSHOT") | not)] | sort')
 
 VERSION=${1}
@@ -21,9 +21,11 @@ if [[ ${MAJOR_VERSION} -eq 7 ]]; then
     LATEST_VERSION=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions/${MAJOR_VERSION}.${MINOR_VERSION} | jq -r '.version.builds[0].version')
     PREV_LATEST_VERSION=$(echo ${MAJOR_VERSION}.${MINOR_VERSION}.$(( $(echo ${LATEST_VERSION} | cut -d '.' -f3) -1 )))
 elif [[ ${MAJOR_VERSION} -eq 8 ]]; then
-    ASSERT_EVENTS_FUNC=data_stream_assert_events
+    ASSERT_EVENTS_FUNC=data_stream_assertions
     LATEST_VERSION=$(echo ${VERSIONS} | jq -r "[.[] | select(. | contains(\"${VERSION}\"))] | last")
-    PREV_LATEST_VERSION=$(echo ${VERSIONS} | jq -r "[.[] | select(. | contains(\"$(echo ${MAJOR_VERSION}.$(( ${MINOR_VERSION} -1 )))\"))] | last")
+    # https://artifacts-api.elastic.co/v1/versions only provides the last two
+    # major versions and minor versions. For that reason, we use a regex.
+    PREV_LATEST_VERSION=$(echo "${MAJOR_VERSION}.$(( ${MINOR_VERSION} -1 )).[0-9]?([0-9])\$")
     INTEGRATIONS_SERVER=true
 else
     echo "version ${VERSION} not supported"
@@ -43,10 +45,10 @@ trap "terraform_destroy" EXIT
 terraform_apply ${PREV_LATEST_VERSION} ${INTEGRATIONS_SERVER}
 healthcheck 1
 send_events
-${ASSERT_EVENTS_FUNC} ${PREV_LATEST_VERSION}
+${ASSERT_EVENTS_FUNC} ${STACK_VERSION}
 
-echo "-> Upgrading APM Server to ${LATEST_VERSION}"
+echo "-> Upgrading APM Server from ${STACK_VERSION} to ${LATEST_VERSION}"
 terraform_apply ${LATEST_VERSION} ${INTEGRATIONS_SERVER}
 healthcheck 1
 send_events
-${ASSERT_EVENTS_FUNC} ${LATEST_VERSION}
+${ASSERT_EVENTS_FUNC} ${STACK_VERSION}

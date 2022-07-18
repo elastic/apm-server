@@ -23,10 +23,10 @@ legacy_assertions ${LATEST_VERSION}
 terraform_apply ${NEXT_MAJOR_LATEST}
 healthcheck 1
 send_events
-data_stream_assert_events ${NEXT_MAJOR_LATEST}
+data_stream_assertions ${NEXT_MAJOR_LATEST}
 
 upgrade_managed ${NEXT_MAJOR_LATEST}
 healthcheck 1
 send_events
 # Assert there are 2 instances of the same event, since we ingested data twice.
-data_stream_assert_events ${NEXT_MAJOR_LATEST} 2
+data_stream_assertions ${NEXT_MAJOR_LATEST} 2
