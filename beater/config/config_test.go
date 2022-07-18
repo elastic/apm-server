@@ -159,6 +159,9 @@ func TestUnpackConfig(t *testing.T) {
 					"service_destinations": map[string]interface{}{
 						"max_groups": 456,
 					},
+					"service": map[string]interface{}{
+						"max_groups": 457,
+					},
 				},
 				"default_service_environment": "overridden",
 			},
@@ -249,6 +252,10 @@ func TestUnpackConfig(t *testing.T) {
 					ServiceDestinations: ServiceDestinationAggregationConfig{
 						Interval:  time.Minute,
 						MaxGroups: 456,
+					},
+					Service: ServiceAggregationConfig{
+						Interval:  time.Minute,
+						MaxGroups: 457,
 					},
 				},
 				Sampling: SamplingConfig{
@@ -398,6 +405,10 @@ func TestUnpackConfig(t *testing.T) {
 						HDRHistogramSignificantFigures: 2,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
+						Interval:  time.Minute,
+						MaxGroups: 10000,
+					},
+					Service: ServiceAggregationConfig{
 						Interval:  time.Minute,
 						MaxGroups: 10000,
 					},

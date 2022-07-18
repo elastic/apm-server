@@ -28,12 +28,16 @@ const (
 
 	defaultServiceDestinationAggregationInterval  = time.Minute
 	defaultServiceDestinationAggregationMaxGroups = 10000
+
+	defaultServiceAggregationInterval  = time.Minute
+	defaultServiceAggregationMaxGroups = 10000
 )
 
 // AggregationConfig holds configuration related to various metrics aggregations.
 type AggregationConfig struct {
 	Transactions        TransactionAggregationConfig        `config:"transactions"`
 	ServiceDestinations ServiceDestinationAggregationConfig `config:"service_destinations"`
+	Service             ServiceAggregationConfig            `config:"service"`
 }
 
 // TransactionAggregationConfig holds configuration related to transaction metrics aggregation.
@@ -49,6 +53,12 @@ type ServiceDestinationAggregationConfig struct {
 	MaxGroups int           `config:"max_groups" validate:"min=1"`
 }
 
+// ServiceAggregationConfig holds configuration related to service metrics aggregation.
+type ServiceAggregationConfig struct {
+	Interval  time.Duration `config:"interval" validate:"min=1"`
+	MaxGroups int           `config:"max_groups" validate:"min=1"`
+}
+
 func defaultAggregationConfig() AggregationConfig {
 	return AggregationConfig{
 		Transactions: TransactionAggregationConfig{
@@ -59,6 +69,10 @@ func defaultAggregationConfig() AggregationConfig {
 		ServiceDestinations: ServiceDestinationAggregationConfig{
 			Interval:  defaultServiceDestinationAggregationInterval,
 			MaxGroups: defaultServiceDestinationAggregationMaxGroups,
+		},
+		Service: ServiceAggregationConfig{
+			Interval:  defaultServiceAggregationInterval,
+			MaxGroups: defaultServiceAggregationMaxGroups,
 		},
 	}
 }
