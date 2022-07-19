@@ -263,7 +263,7 @@ func saveIronbank() error {
 	ironbank := getIronbankContextName()
 	buildDir := filepath.Join("build", ironbank)
 	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
-		return fmt.Errorf("cannot find the folder with the ironbank context")
+		return fmt.Errorf("cannot find the folder with the ironbank context: %+v", err)
 	}
 
 	distributionsDir := "build/distributions"
@@ -274,12 +274,20 @@ func saveIronbank() error {
 		}
 	}
 
-	tarGzFile := filepath.Join(distributionsDir, ironbank+".tar.gz")
+	// change dir to the buildDir location where the ironbank folder exists
+	// this will generate a tar.gz without some nested folders.
+	wd, _ := os.Getwd()
+	os.Chdir(buildDir)
+	defer os.Chdir(wd)
+
+	// move the folder to the parent folder, there are two parent folder since
+	// buildDir contains a two folders dir.
+	tarGzFile := filepath.Join("..", "..", distributionsDir, ironbank+".tar.gz")
 
 	// Save the build context as tar.gz artifact
-	err := mage.Tar(buildDir, tarGzFile)
+	err := mage.Tar("./", tarGzFile)
 	if err != nil {
-		return fmt.Errorf("cannot compress the tar.gz file")
+		return fmt.Errorf("cannot compress the tar.gz file: %+v", err)
 	}
 
 	return errors.Wrap(mage.CreateSHA512File(tarGzFile), "failed to create .sha512 file")
