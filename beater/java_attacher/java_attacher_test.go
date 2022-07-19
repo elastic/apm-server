@@ -32,13 +32,10 @@ import (
 
 func TestNew(t *testing.T) {
 	cfg := config.JavaAttacherConfig{JavaBin: ""}
-	jh := os.Getenv("JAVA_HOME")
-	os.Setenv("JAVA_HOME", "/usr/local")
+	t.Setenv("JAVA_HOME", "/usr/local")
 	f, err := os.Create(javaAttacher)
 	require.NoError(t, err)
 	defer func() {
-		// reset JAVA_HOME
-		os.Setenv("JAVA_HOME", jh)
 		os.Remove(f.Name())
 	}()
 
