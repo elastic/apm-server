@@ -3,12 +3,12 @@ module github.com/elastic/apm-server/systemtest
 go 1.17
 
 require (
-	github.com/docker/docker v20.10.11+incompatible
+	github.com/docker/docker v20.10.17+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20211026132249-f55eeca23be5
 	github.com/gofrs/uuid v4.1.0+incompatible
-	github.com/google/pprof v0.0.0-20210406223550-17a10ee72223
+	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38
 	github.com/jaegertracing/jaeger v1.18.1
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/stretchr/testify v1.7.1
@@ -30,13 +30,14 @@ require (
 	go.opentelemetry.io/otel/trace v1.7.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20220318055525-2edf467146b5
+	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 	google.golang.org/grpc v1.46.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
 
 require (
+	github.com/containerd/containerd v1.6.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect
@@ -46,12 +47,11 @@ require (
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Microsoft/go-winio v0.5.1 // indirect
-	github.com/Microsoft/hcsshim v0.9.2 // indirect
+	github.com/Microsoft/hcsshim v0.9.3 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/containerd/cgroups v1.0.3 // indirect
-	github.com/containerd/containerd v1.6.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/go-units v0.4.0 // indirect
@@ -73,8 +73,8 @@ require (
 	github.com/moby/term v0.0.0-20210610120745-9d4ed1856297 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.0.2 // indirect
-	github.com/opencontainers/runc v1.1.0 // indirect
+	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect
+	github.com/opencontainers/runc v1.1.2 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -101,8 +101,7 @@ require (
 )
 
 replace (
-	github.com/containerd/containerd => github.com/containerd/containerd v1.6.1
+	github.com/containerd/containerd => github.com/containerd/containerd v1.6.6
 	github.com/elastic/apm-server/approvaltest => ../approvaltest
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
-	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3
 )

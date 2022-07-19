@@ -4,13 +4,14 @@ APMBENCH_GOARCH ?= amd64
 
 TFVARS_SOURCE ?= terraform.tfvars.example
 
-BENCHMARK_WARMUP ?= 10000
+BENCHMARK_WARMUP ?= 40000
 BENCHMARK_AGENTS ?= 64
 BENCHMARK_COUNT ?= 3
 BENCHMARK_TIME ?= 2m
 BENCHMARK_RUN ?= Benchmark
 BENCHMARK_RESULT ?= benchmark-result.txt
 BENCHMARK_DETAILED ?= true
+BENCHMARK_MAX_RATE ?= 0epm
 
 GOBENCH_INDEX ?= apmbench-v2
 GOBENCH_USERNAME ?= admin
@@ -67,8 +68,8 @@ destroy:
 	@terraform destroy -auto-approve
 
 .PHONY: log-benckmark-profile
-log-benckmark-profile: 
-	@echo "Starting benchmarks..."	
+log-benckmark-profile:
+	@echo "Starting benchmarks..."
 	@echo "Benchmark warmup events: $(BENCHMARK_WARMUP)"
 	@echo "Benchmarks count: $(BENCHMARK_COUNT)"
 	@echo "Benchmark duration: $(BENCHMARK_TIME)"
@@ -78,7 +79,7 @@ log-benckmark-profile:
 run-benchmark: log-benckmark-profile
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP) ". .envrc && bin/apmbench -run='$(BENCHMARK_RUN)' \
 	-benchtime=$(BENCHMARK_TIME) -count=$(BENCHMARK_COUNT) -warmup-events=$(BENCHMARK_WARMUP) \
-	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED)" 2>&1 | tee $(BENCHMARK_RESULT)
+	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED) -max-rate=$(BENCHMARK_MAX_RATE)" 2>&1 | tee $(BENCHMARK_RESULT)
 
 .PHONY: index-benchmark-results
 index-benchmark-results: $(GOBENCH) _default-gobench-vars

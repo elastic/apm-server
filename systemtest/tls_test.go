@@ -32,7 +32,7 @@ import (
 func TestTLSConfig(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.TLS = &apmservertest.TLSConfig{
-		SupportedProtocols: []string{"TLSv1.2"},
+		SupportedProtocols: []string{"TLSv1.2", "TLSv1.3"},
 		CipherSuites:       []string{"ECDHE-RSA-AES-128-GCM-SHA256"},
 	}
 	require.NoError(t, srv.StartTLS())
@@ -56,23 +56,26 @@ func TestTLSConfig(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("compatible_protocol", func(t *testing.T) {
+	t.Run("compatible_protocol TLSv1.2", func(t *testing.T) {
 		err := attemptRequest(t, tls.VersionTLS12, tls.VersionTLS12)
 		require.NoError(t, err)
 	})
 
+	t.Run("compatible_protocol TLSv1.3", func(t *testing.T) {
+		err := attemptRequest(t, tls.VersionTLS13, tls.VersionTLS13)
+		require.NoError(t, err)
+	})
+
 	t.Run("incompatible_cipher_suite", func(t *testing.T) {
-		err := attemptRequest(t, 0, 0, tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384)
+		err := attemptRequest(t, tls.VersionTLS12, tls.VersionTLS12, tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384)
 		require.Error(t, err)
 		assert.Regexp(t, ".*tls: handshake failure", err.Error())
 	})
 
 	t.Run("incompatible_protocol", func(t *testing.T) {
-		for _, version := range []uint16{tls.VersionTLS10, tls.VersionTLS13} {
-			err := attemptRequest(t, version, version)
-			require.Error(t, err)
-			assert.Regexp(t, ".*tls: protocol version not supported", err.Error())
-		}
+		err := attemptRequest(t, tls.VersionTLS10, tls.VersionTLS10)
+		require.Error(t, err)
+		assert.Regexp(t, ".*tls: protocol version not supported", err.Error())
 	})
 }
 

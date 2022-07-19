@@ -19,7 +19,6 @@ package beater
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -31,8 +30,7 @@ import (
 )
 
 func TestServerTracingEnabled(t *testing.T) {
-	os.Setenv("ELASTIC_APM_API_REQUEST_TIME", "10ms")
-	defer os.Unsetenv("ELASTIC_APM_API_REQUEST_TIME")
+	t.Setenv("ELASTIC_APM_API_REQUEST_TIME", "10ms")
 
 	for _, enabled := range []bool{false, true} {
 		t.Run(fmt.Sprint(enabled), func(t *testing.T) {

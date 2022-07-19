@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220711163837-cad3c7f951e5
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220718194253-ccee622b70fc
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-libs v0.2.9
 	github.com/elastic/gmux v0.2.0
@@ -52,7 +52,7 @@ require (
 	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 	golang.org/x/tools v0.1.11
-	google.golang.org/grpc v1.47.0
+	google.golang.org/grpc v1.48.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools/gotestsum v1.7.0
 )
@@ -69,21 +69,21 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
-	github.com/dlclark/regexp2 v1.4.0 // indirect
+	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/dnephin/pflag v1.0.7 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/docker v20.10.12+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/dop251/goja v0.0.0-20220705101429-189bfeb9f530 // indirect
-	github.com/dop251/goja_nodejs v0.0.0-20220706223936-8bb8eec2f26a // indirect
+	github.com/dop251/goja v0.0.0-20220714114325-87952593a54c // indirect
+	github.com/dop251/goja_nodejs v0.0.0-20220712185256-8cad205bf387 // indirect
 	github.com/eapache/go-resiliency v1.2.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/elastic/elastic-agent-autodiscover v0.2.1 // indirect
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20220607160924-1a71765a8bbe // indirect
 	github.com/elastic/elastic-agent-shipper-client v0.2.0 // indirect
-	github.com/elastic/elastic-agent-system-metrics v0.4.2 // indirect
+	github.com/elastic/elastic-agent-system-metrics v0.4.3 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.1.0 // indirect
 	github.com/elastic/go-concert v0.2.0 // indirect
 	github.com/elastic/go-licenser v0.4.1 // indirect
@@ -138,7 +138,7 @@ require (
 	github.com/mostynb/go-grpc-compression v1.1.16 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.44.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.0.2 // indirect
+	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
@@ -177,12 +177,12 @@ require (
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20220712014510-0a85c31ab51e // indirect
+	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220711200234-e2551ce405a2 // indirect
+	google.golang.org/genproto v0.0.0-20220718134204-073382fd740c // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
@@ -208,7 +208,7 @@ replace (
 	github.com/Microsoft/go-winio => github.com/bi-zone/go-winio v0.4.15
 	github.com/Shopify/sarama => github.com/elastic/sarama v1.19.1-0.20210823122811-11c3ef800752
 	github.com/aws/aws-sdk-go-v2 => github.com/aws/aws-sdk-go-v2 v0.9.0
-	github.com/containerd/containerd => github.com/containerd/containerd v1.6.1
+	github.com/containerd/containerd => github.com/containerd/containerd v1.6.6
 	github.com/docker/docker => github.com/docker/engine v0.0.0-20191113042239-ea84732a7725
 	github.com/docker/go-plugins-helpers => github.com/elastic/go-plugins-helpers v0.0.0-20200207104224-bdf17607b79f
 	github.com/dop251/goja => github.com/andrewkroh/goja v0.0.0-20190128172624-dd2ac4456e20
