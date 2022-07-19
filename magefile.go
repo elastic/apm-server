@@ -261,7 +261,8 @@ func saveIronbank() error {
 	fmt.Println(">> saveIronbank: save the IronBank container context.")
 
 	ironbank := getIronbankContextName()
-	if _, err := os.Stat(ironbank); os.IsNotExist(err) {
+	buildDir := filepath.Join("build", ironbank)
+	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
 		return fmt.Errorf("cannot find the folder with the ironbank context")
 	}
 
@@ -276,7 +277,7 @@ func saveIronbank() error {
 	tarGzFile := filepath.Join(distributionsDir, ironbank+".tar.gz")
 
 	// Save the build context as tar.gz artifact
-	err := mage.Tar(ironbank, tarGzFile)
+	err := mage.Tar(buildDir, tarGzFile)
 	if err != nil {
 		return fmt.Errorf("cannot compress the tar.gz file")
 	}
@@ -297,6 +298,7 @@ func getIronbankContextName() string {
 func prepareIronbankBuild() error {
 	fmt.Println(">> prepareIronbankBuild: prepare the IronBank container context.")
 	ironbank := getIronbankContextName()
+	buildDir := filepath.Join("build", ironbank)
 	templatesDir := filepath.Join("packaging", "ironbank")
 
 	data := map[string]interface{}{
@@ -306,7 +308,7 @@ func prepareIronbankBuild() error {
 	err := filepath.Walk(templatesDir, func(path string, info os.FileInfo, _ error) error {
 		if !info.IsDir() {
 			target := strings.TrimSuffix(
-				filepath.Join(ironbank, filepath.Base(path)),
+				filepath.Join(buildDir, filepath.Base(path)),
 				".tmpl",
 			)
 

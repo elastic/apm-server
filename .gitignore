@@ -54,5 +54,3 @@ terraform.tfvars
 testing/benchmark/.envrc
 testing/benchmark/benchmark-result.txt
 
-# Ironbank
-apm-server-ironbank*
