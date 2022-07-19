@@ -60,7 +60,7 @@ type JavaAttacher struct {
 
 func (j *JavaAttacher) addDiscoveryRule(rule discoveryRule) {
 	j.discoveryRules = append(j.discoveryRules, rule)
-	j.logger.Debugf("added discovery rule: %v", rule)
+	j.logger.Debugf("added discovery rule: %v", rule.asString())
 }
 
 func New(cfg config.JavaAttacherConfig) JavaAttacher {
@@ -103,7 +103,7 @@ func (j *JavaAttacher) addCmdLineDiscoveryRule(regexS string, isIncludeRule bool
 		j.logger.Errorf("invalid regex for the `%v` argument: %v", argumentName, err)
 		return
 	}
-	j.addDiscoveryRule(cmdLineDiscoveryRule{regex: regex, isIncludeRule: isIncludeRule})
+	j.addDiscoveryRule(cmdLineDiscoveryRule{regex: regex, isIncludeRule: isIncludeRule, argumentName: argumentName})
 }
 
 func (j *JavaAttacher) findFirstMatch(jvm *JvmDetails) discoveryRule {
@@ -189,24 +189,27 @@ func (j *JavaAttacher) discoverJvmsForAttachment(ctx context.Context) (map[strin
 	if !j.executeForEachJvm(ctx, jvms, j.verifyJvmExecutable, true, time.Second) {
 		j.logger.Infof("verifying Java executables for %v jvms did not finish successfully, either canceled or timed out", len(jvms))
 	}
+	if len(jvms) > 0 {
+		j.printJvms(jvms, "Java executable verification")
+	}
 
+	return jvms, nil
+}
+
+func (j *JavaAttacher) printJvms(jvms map[string]*JvmDetails, stepName string) {
+	j.logger.Debugf("%v processes are candidates for Java agent attachment after %v:", len(jvms), stepName)
 	for _, jvm := range jvms {
-		j.logger.Debugf("found a Java process (PID %v) of version %v that was started at %v by '%v' using command '%v'",
+		j.logger.Debugf("PID: %v, version: %v, start-time: %v, user: '%v', command: '%v'",
 			jvm.pid, jvm.version, jvm.startTime, jvm.user, jvm.command)
 	}
-	return jvms, nil
 }
 
 func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map[string]*JvmDetails, error) {
 	jvms := make(map[string]*JvmDetails)
 
-	// We use `start`, which is very inaccurate only as a fallback, expecting it to be replaced with an accurate start time later on.
-	// An example for the `start` time format: "4:01PM". We may decide that with the combination of PID, it is safe enough for
-	// uniqueness determination for caching purposes, especially if we remove stale PIDs when we don't see them.
-	// We avoid using `lstart` here because it is not one of the standard ps columns, and because it may have different format in different
-	// systems. In addition, it would complicate output parsing as its format is full of spaces, which we rely on as a delimiter between
-	// output line parts.
-	cmd := exec.CommandContext(ctx, "ps", "-A", "-ww", "-o", "user,uid,gid,pid,start,comm")
+	// We can't discover start time at this point because both `start` and `lstart` don't follow a strict-enough format,
+	// which may interfere with output parsing.
+	cmd := exec.CommandContext(ctx, "ps", "-A", "-ww", "-o", "user,uid,gid,pid,comm")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
@@ -218,8 +221,8 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map
 	for scanner.Scan() {
 		line := scanner.Text()
 		psOutputLineParts := strings.Fields(line)
-		if len(psOutputLineParts) > 5 {
-			command := psOutputLineParts[5]
+		if len(psOutputLineParts) == 5 {
+			command := psOutputLineParts[4]
 			if strings.Contains(strings.ToLower(command), "java") {
 				pid := psOutputLineParts[3]
 				jvms[pid] = &JvmDetails{
@@ -227,12 +230,14 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map
 					psOutputLineParts[1],
 					psOutputLineParts[2],
 					pid,
-					psOutputLineParts[4],
-					psOutputLineParts[5],
+					"unknown",
+					command,
 					"unknown",
 					"",
 				}
 			}
+		} else {
+			j.logger.Errorf("Unexpected number of output fields (%v) from command '%v'", len(psOutputLineParts), strings.Join(cmd.Args, " "))
 		}
 	}
 	if err := scanner.Err(); err != nil {

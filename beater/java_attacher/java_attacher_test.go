@@ -64,10 +64,10 @@ func TestConfig(t *testing.T) {
 	require.Len(t, javaAttacher.discoveryRules, 5)
 	require.Equal(t, userDiscoveryRule{user: "root", isIncludeRule: false}, javaAttacher.discoveryRules[0])
 	mainRegex, _ := regexp.Compile("MyApplication")
-	require.Equal(t, cmdLineDiscoveryRule{regex: mainRegex, isIncludeRule: true}, javaAttacher.discoveryRules[1])
+	require.Equal(t, cmdLineDiscoveryRule{argumentName: "include-main", regex: mainRegex, isIncludeRule: true}, javaAttacher.discoveryRules[1])
 	require.Equal(t, userDiscoveryRule{user: "me", isIncludeRule: false}, javaAttacher.discoveryRules[2])
 	vmargRegex, _ := regexp.Compile("-D.*attach=true")
-	require.Equal(t, cmdLineDiscoveryRule{regex: vmargRegex, isIncludeRule: true}, javaAttacher.discoveryRules[3])
+	require.Equal(t, cmdLineDiscoveryRule{argumentName: "include-vmarg", regex: vmargRegex, isIncludeRule: true}, javaAttacher.discoveryRules[3])
 	require.Equal(t, includeAllRule{}, javaAttacher.discoveryRules[4])
 
 	jvmDetails := JvmDetails{

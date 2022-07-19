@@ -17,11 +17,15 @@
 
 package javaattacher
 
-import "regexp"
+import (
+	"fmt"
+	"regexp"
+)
 
 type discoveryRule interface {
 	include() bool
 	match(jvm *JvmDetails) bool
+	asString() string
 }
 
 type includeAllRule struct{}
@@ -32,6 +36,10 @@ func (includeAllRule) match(jvm *JvmDetails) bool {
 
 func (includeAllRule) include() bool {
 	return true
+}
+
+func (includeAllRule) asString() string {
+	return "--includeAll"
 }
 
 type userDiscoveryRule struct {
@@ -47,7 +55,15 @@ func (rule userDiscoveryRule) include() bool {
 	return rule.isIncludeRule
 }
 
+func (rule userDiscoveryRule) asString() string {
+	if rule.isIncludeRule {
+		return fmt.Sprintf("--include-user=%v", rule.user)
+	}
+	return fmt.Sprintf("--exclude-user=%v", rule.user)
+}
+
 type cmdLineDiscoveryRule struct {
+	argumentName  string
 	isIncludeRule bool
 	regex         *regexp.Regexp
 }
@@ -58,4 +74,8 @@ func (rule cmdLineDiscoveryRule) match(jvm *JvmDetails) bool {
 
 func (rule cmdLineDiscoveryRule) include() bool {
 	return rule.isIncludeRule
+}
+
+func (rule cmdLineDiscoveryRule) asString() string {
+	return fmt.Sprintf("--%v=%v", rule.argumentName, rule.regex.String())
 }
