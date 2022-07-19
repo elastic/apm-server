@@ -199,6 +199,13 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"DurationHistogram",
 				"DurationHistogram.Counts",
 				"DurationHistogram.Values",
+				// only set by service metrics
+				"DurationAggregate",
+				"DurationAggregate.Count",
+				"DurationAggregate.Min",
+				"DurationAggregate.Max",
+				"DurationAggregate.Sum",
+				"FailureCount",
 				"Root",
 			} {
 				if strings.HasPrefix(key, s) {
