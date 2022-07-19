@@ -62,7 +62,7 @@ func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 			logger.With("error.message", res.Message()).Error(logp.Error(err))
 			return nil, err
 		}
-		logger.Debugf("request accepted")
+		logger.Infof("request accepted")
 		return resp, nil
 	}
 }
