@@ -330,7 +330,7 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
 			Name: metricsetName,
 		},
 		Transaction: &model.Transaction{
-			FailureCount: metrics.sumFailures,
+			FailureCount: &metrics.sumFailures,
 			DurationAggregate: model.AggregateMetric{
 				Count: metrics.count,
 				Sum:   metrics.sum,
