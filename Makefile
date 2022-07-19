@@ -288,7 +288,7 @@ rally/corpora/.generated: rally/gencorpora/main.go rally/gencorpora/api.go rally
 ##############################################################################
 
 SMOKETEST_VERSIONS ?= latest
-SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type l)
+SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d)
 
 .PHONY: smoketest/discover
 smoketest/discover:

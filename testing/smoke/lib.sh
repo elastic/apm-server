@@ -1,9 +1,13 @@
 #!/bin/bash
 
+export TF_IN_AUTOMATION=1
+export TF_CLI_ARGS=-no-color
+
 terraform_apply() {
     echo "-> Creating / Upgrading deployment to version ${1}"
     echo stack_version=\"${1}\" > terraform.tfvars
     if [[ ! -z ${2} ]] && [[ ${2} ]]; then echo integrations_server=true >> terraform.tfvars; fi
+    if [[ ! -f main.tf ]]; then cp ../main.tf .; fi
     if [[ ! -f .terraform.lock.hcl ]]; then terraform init >> tf.log; fi
     terraform apply -auto-approve >> tf.log
 
@@ -29,7 +33,7 @@ terraform_destroy() {
     fi
     echo "-> Destroying the underlying infrastructure..." 
     terraform destroy -auto-approve >> tf.log
-    rm -f terraform.tfvars tf.log
+    rm -f terraform.tfvars tf.log main.tf
     exit ${exit_code}
 }
 
