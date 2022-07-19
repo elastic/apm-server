@@ -12,6 +12,11 @@
     - description: Added field mappings for Lambda metrics to internal metrics data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/8400
+- version: "8.3.3"
+  changes:
+    - description: Update APM integration description
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/8592
 - version: "8.3.0"
   changes:
     - description: Field mapping for `target.name` and `target.type` added to traces data stream
