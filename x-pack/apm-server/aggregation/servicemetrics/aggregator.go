@@ -111,7 +111,7 @@ func (a *Aggregator) Run() error {
 		}
 		if err := a.publish(context.Background()); err != nil {
 			a.config.Logger.With(logp.Error(err)).Warnf(
-				"publishing span metrics failed: %s", err,
+				"publishing service metrics failed: %s", err,
 			)
 		}
 	}
@@ -158,7 +158,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 
 	size := len(a.inactive.m)
 	if size == 0 {
-		a.config.Logger.Debugf("no span metrics to publish")
+		a.config.Logger.Debugf("no service metrics to publish")
 		return nil
 	}
 
@@ -172,12 +172,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
 
-// ProcessBatch aggregates all spans contained in "b", adding to it any
-// metricsets requiring immediate publication. It also aggregates transactions
-// where transaction.DroppedSpansStats > 0.
-//
-// This method is expected to be used immediately prior to publishing
-// the events.
+// ProcessBatch aggregates all service latency metrics
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
@@ -210,6 +205,7 @@ func (a *Aggregator) processTransaction(event *model.APMEvent) model.APMEvent {
 		min:         duration,
 		max:         duration,
 		sumFailures: 0,
+		agentName:   event.Agent.Name,
 	}
 	if a.active.storeOrUpdate(key, metrics, event, a.config.Logger) {
 		return model.APMEvent{}
@@ -243,9 +239,9 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, value serviceMetrics,
 			case mb.maxSize:
 				return false
 			case half - 1:
-				logger.Warn("service metrics reached 50% capacity")
+				logger.Warn("service metrics groups reached 50% capacity")
 			case mb.maxSize - 1:
-				logger.Warn("service metrics reached 100% capacity")
+				logger.Warn("service metrics groups reached 100% capacity")
 			}
 		}
 	}
@@ -334,7 +330,7 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
 			Name: metricsetName,
 		},
 		Transaction: &model.Transaction{
-			FailureCount: &metrics.sumFailures,
+			FailureCount: metrics.sumFailures,
 			DurationAggregate: model.AggregateMetric{
 				Count: metrics.count,
 				Sum:   metrics.sum,

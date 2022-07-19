@@ -60,7 +60,7 @@ type Transaction struct {
 	DurationAggregate AggregateMetric
 
 	// FailureCount is used by service metrics documents to indicate how many failed transactions were observed
-	FailureCount *int
+	FailureCount int
 
 	Marks          TransactionMarks
 	Message        *Message
@@ -95,7 +95,7 @@ func (e *Transaction) fields() mapstr.M {
 	transaction.maybeSetString("type", e.Type)
 	transaction.maybeSetMapStr("duration.histogram", e.DurationHistogram.fields())
 	transaction.maybeSetMapStr("duration.aggregate", e.DurationAggregate.fields())
-	transaction.maybeSetIntptr("duration.failure_count", e.FailureCount)
+	transaction.maybeSetIntptr("duration.failure_count", &e.FailureCount)
 	transaction.maybeSetString("name", e.Name)
 	transaction.maybeSetString("result", e.Result)
 	transaction.maybeSetMapStr("marks", e.Marks.fields())
