@@ -126,6 +126,8 @@ func TestAggregatorRun(t *testing.T) {
 
 	batch := expectBatch(t, batches)
 	metricsets := batchMetricsets(t, batch)
+	serviceAFailureCount := 100
+	serviceBFailureCount := 0
 	expected := []model.APMEvent{{
 		Agent: model.Agent{Name: "java"},
 		Service: model.Service{
@@ -140,7 +142,7 @@ func TestAggregatorRun(t *testing.T) {
 				Min:   0,
 				Max:   100000,
 			},
-			FailureCount: 100,
+			FailureCount: &serviceAFailureCount,
 		},
 	}, {
 		Agent: model.Agent{Name: "python"},
@@ -155,7 +157,7 @@ func TestAggregatorRun(t *testing.T) {
 				Min:   0,
 				Max:   100000,
 			},
-			FailureCount: 0,
+			FailureCount: &serviceBFailureCount,
 		},
 		Metricset: &model.Metricset{Name: "service"},
 	}}
@@ -256,6 +258,7 @@ func TestAggregatorMaxGroups(t *testing.T) {
 	assert.Len(t, metricsets, 2)
 
 	for _, m := range metricsets {
+		failureCount := 0
 		assert.Equal(t, model.APMEvent{
 			Agent: model.Agent{
 				Name: "agent",
@@ -271,7 +274,7 @@ func TestAggregatorMaxGroups(t *testing.T) {
 					Min:   100000,
 					Max:   100000,
 				},
-				FailureCount: 0,
+				FailureCount: &failureCount,
 			},
 			Metricset: &model.Metricset{Name: "service"},
 		}, m)
