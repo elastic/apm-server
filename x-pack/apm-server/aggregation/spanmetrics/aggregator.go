@@ -31,6 +31,12 @@ type AggregatorConfig struct {
 	// group metrics to store within an aggregation period. Once this
 	// number of groups is reached, any new aggregation keys will cause
 	// individual metrics documents to be immediately published.
+	//
+	// Some agents continue to send high cardinality span names, e.g.
+	// Elasticsearch spans may contain a document ID
+	// (see https://github.com/elastic/apm/issues/439). To protect against
+	// this, once MaxGroups becomes 50% full then we will stop aggregating
+	// on span.name.
 	MaxGroups int
 
 	// Interval is the interval between publishing of aggregated metrics.
@@ -238,13 +244,14 @@ func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
 		event.Span.DestinationService.Resource,
 		serviceTargetType,
 		serviceTargetName,
+		event.Span.Name,
 		a.config.Interval,
 	)
 	metrics := spanMetrics{
 		count: float64(count) * event.Span.RepresentativeCount,
 		sum:   float64(duration) * event.Span.RepresentativeCount,
 	}
-	if a.active.storeOrUpdate(key, metrics) {
+	if a.active.storeOrUpdate(key, metrics, a.config.Logger) {
 		return model.APMEvent{}
 	}
 	return makeMetricset(key, metrics)
@@ -264,13 +271,18 @@ func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.Dr
 		dss.DestinationServiceResource,
 		dss.ServiceTargetType,
 		dss.ServiceTargetName,
+
+		// BUG(axw) dropped span statistics do not contain span name.
+		// Capturing the service name requires changes to Elastic APM agents.
+		"",
+
 		a.config.Interval,
 	)
 	metrics := spanMetrics{
 		count: float64(dss.Duration.Count) * representativeCount,
 		sum:   float64(dss.Duration.Sum) * representativeCount,
 	}
-	if a.active.storeOrUpdate(key, metrics) {
+	if a.active.storeOrUpdate(key, metrics, a.config.Logger) {
 		return model.APMEvent{}
 	}
 	return makeMetricset(key, metrics)
@@ -290,12 +302,33 @@ func newMetricsBuffer(maxSize int) *metricsBuffer {
 	}
 }
 
-func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, value spanMetrics) bool {
+func (mb *metricsBuffer) storeOrUpdate(
+	key aggregationKey, value spanMetrics,
+	logger *logp.Logger,
+) bool {
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
 	old, ok := mb.m[key]
-	if !ok && len(mb.m) == mb.maxSize {
-		return false
+	if !ok {
+		n := len(mb.m)
+		half := mb.maxSize / 2
+		if n >= half {
+			// To protect against agents that send high cardinality
+			// span names, stop aggregating on span.name once the
+			// number of groups reaches 50% capacity.
+			key.spanName = ""
+			old, ok = mb.m[key]
+		}
+		if !ok {
+			switch n {
+			case mb.maxSize:
+				return false
+			case half - 1:
+				logger.Warn("service destination groups reached 50% capacity")
+			case mb.maxSize - 1:
+				logger.Warn("service destination groups reached 100% capacity")
+			}
+		}
 	}
 	mb.m[key] = spanMetrics{count: value.count + old.count, sum: value.sum + old.sum}
 	return true
@@ -309,16 +342,21 @@ type aggregationKey struct {
 	serviceEnvironment string
 	agentName          string
 
+	// operation (span)
+	spanName string
+	outcome  string
+
 	// target
 	targetType string
 	targetName string
 
 	// destination
 	resource string
-	outcome  string
 }
 
-func makeAggregationKey(event *model.APMEvent, resource, targetType, targetName string, interval time.Duration) aggregationKey {
+func makeAggregationKey(
+	event *model.APMEvent, resource, targetType, targetName, spanName string, interval time.Duration,
+) aggregationKey {
 	return aggregationKey{
 		// Group metrics by time interval.
 		timestamp: event.Timestamp.Truncate(interval),
@@ -327,11 +365,13 @@ func makeAggregationKey(event *model.APMEvent, resource, targetType, targetName 
 		serviceEnvironment: event.Service.Environment,
 		agentName:          event.Agent.Name,
 
+		spanName: spanName,
+		outcome:  event.Event.Outcome,
+
 		targetType: targetType,
 		targetName: targetName,
 
 		resource: resource,
-		outcome:  event.Event.Outcome,
 	}
 }
 
@@ -364,6 +404,7 @@ func makeMetricset(key aggregationKey, metrics spanMetrics) model.APMEvent {
 			Name: metricsetName,
 		},
 		Span: &model.Span{
+			Name: key.spanName,
 			DestinationService: &model.DestinationService{
 				Resource: key.resource,
 				ResponseTime: model.AggregatedDuration{

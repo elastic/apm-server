@@ -11,6 +11,14 @@
       type: keyword
       description: |
         A unique identifier of the invoked serverless function.
+    - name: execution
+      type: keyword
+      description: |
+        Request ID of the function invocation.
+    - name: trigger.request_id
+      type: keyword
+      description: |
+        The ID of the origin trigger request.
     - name: trigger.type
       type: keyword
       description: |
@@ -181,6 +189,10 @@
               description: |
                 Aggregated span duration, excluding the time periods where a direct child was running, in microseconds.
               unit: micros
+    - name: name
+      type: keyword
+      description: |
+        Generic designation of a span in the scope of a transaction.
     - name: subtype
       type: keyword
       description: |

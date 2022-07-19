@@ -66,7 +66,7 @@ Kafka version {beatname_lc} is assumed to run against. Defaults to 1.0.0.
 
 Event timestamps will be added, if version 0.10.0.0+ is enabled.
 
-Valid values are all kafka releases in between `0.8.2.0` and `2.0.0`.
+Valid values are all Kafka releases in between `0.8.2.0` and `2.0.0`.
 
 See <<kafka-compatibility>> for information on supported versions.
 
@@ -201,7 +201,7 @@ NOTE: Publishing to a subset of available partitions potentially increases resou
 
 ===== `client_id`
 
-The configurable ClientID used for logging, debugging, and auditing purposes. The default is "beats".
+The configurable client ID used for logging, debugging, and auditing purposes. The default is "beats".
 
 ===== `worker`
 
@@ -209,7 +209,7 @@ The number of concurrent load-balanced Kafka output workers.
 
 ===== `codec`
 
-Output codec configuration. If the `codec` section is missing, events will be json encoded.
+Output codec configuration. If the `codec` section is missing, events will be JSON encoded.
 
 See <<configuration-output-codec>> for more information.
 
@@ -226,7 +226,7 @@ metadata for the configured topics. The default is false.
 
 *`retry.max`*:: Total number of metadata update retries when cluster is in middle of leader election. The default is 3.
 
-*`retry.backoff`*:: Waiting time between retries during leader elections. Default is 250ms.
+*`retry.backoff`*:: Waiting time between retries during leader elections. Default is `250ms`.
 
 ===== `max_retries`
 
@@ -249,12 +249,12 @@ The number of seconds to wait before trying to republish to Kafka
 after a network error. After waiting `backoff.init` seconds, {beatname_uc}
 tries to republish. If the attempt fails, the backoff timer is increased
 exponentially up to `backoff.max`. After a successful publish, the backoff
-timer is reset. The default is 1s.
+timer is reset. The default is `1s`.
 
 ===== `backoff.max`
 
 The maximum number of seconds to wait before attempting to republish to
-Kafka after a network error. The default is 60s.
+Kafka after a network error. The default is `60s`.
 
 ===== `bulk_max_size`
 
@@ -271,7 +271,7 @@ out. The default is 30 (seconds).
 
 ===== `broker_timeout`
 
-The maximum duration a broker will wait for number of required ACKs. The default is 10s.
+The maximum duration a broker will wait for number of required ACKs. The default is `10s`.
 
 ===== `channel_buffer_size`
 
@@ -279,7 +279,7 @@ Per Kafka broker number of messages buffered in output pipeline. The default is 
 
 ===== `keep_alive`
 
-The keep-alive period for an active network connection. If 0s, keep-alives are disabled. The default is 0 seconds.
+The keep-alive period for an active network connection. If `0s`, keep-alives are disabled. The default is `0s`.
 
 ===== `compression`
 
@@ -296,7 +296,7 @@ When targeting Azure Event Hub for Kafka, set `compression` to `none` as the pro
 Sets the compression level used by gzip. Setting this value to 0 disables compression.
 The compression level must be in the range of 1 (best speed) to 9 (best compression).
 
-Increasing the compression level will reduce the network usage but will increase the cpu usage.
+Increasing the compression level will reduce the network usage but will increase the CPU usage.
 
 The default value is 4.
 
@@ -322,7 +322,7 @@ Enable Kerberos FAST authentication. This may conflict with some Active Director
 Configuration options for SSL parameters like the root CA for Kafka connections.
  The Kafka host keystore should be created with the
 `-keyalg RSA` argument to ensure it uses a cipher supported by
-https://github.com/Shopify/sarama/wiki/Frequently-Asked-Questions#why-cant-sarama-connect-to-my-kafka-cluster-using-ssl[Filebeat's Kafka library].
+https://github.com/Shopify/sarama/wiki/Frequently-Asked-Questions#why-cant-sarama-connect-to-my-kafka-cluster-using-ssl[{filebeat}'s Kafka library].
 See <<configuration-ssl>> for more information.
 
 [[kerberos-option-kafka]]

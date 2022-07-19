@@ -30,6 +30,12 @@ variable "monitor_deployment" {
   description = "Optionally monitor the deployment in a separate deployment"
 }
 
+variable "tags" {
+  type        = map(string)
+  default     = {}
+  description = "Optional set of tags to use for all deployments"
+}
+
 # APM Server topology
 
 variable "apm_server_size" {
@@ -42,6 +48,12 @@ variable "apm_server_zone_count" {
   default     = 1
   type        = number
   description = "Optional apm server zone count"
+}
+
+variable "integrations_server" {
+  description = "Optionally use the integrations server block instead of the apm block"
+  type        = bool
+  default     = false
 }
 
 # Elasticsearch topology
@@ -84,12 +96,12 @@ variable "docker_image" {
 
 variable "apm_server_expvar" {
   default     = true
-  description = "Wether or not to enable APM Server's expvar endpoint. Defaults to true"
+  description = "Whether or not to enable APM Server's expvar endpoint. Defaults to true"
   type        = bool
 }
 
 variable "apm_server_pprof" {
   default     = true
-  description = "Wether or not to enable APM Server's pprof endpoint. Defaults to true"
+  description = "Whether or not to enable APM Server's pprof endpoint. Defaults to true"
   type        = bool
 }

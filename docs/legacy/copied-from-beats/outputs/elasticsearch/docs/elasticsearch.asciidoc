@@ -1,13 +1,13 @@
 [[elasticsearch-output]]
-=== Configure the Elasticsearch output
+=== Configure the {es} output
 
 ++++
-<titleabbrev>Elasticsearch</titleabbrev>
+<titleabbrev>{es}</titleabbrev>
 ++++
 
 IMPORTANT: {deprecation-notice-config}
 
-The Elasticsearch output sends events directly to Elasticsearch using the Elasticsearch HTTP API.
+The {es} output sends events directly to {es} using the {es} HTTP API.
 
 Example configuration:
 
@@ -58,7 +58,7 @@ See <<securing-communication-elasticsearch>> for details on each authentication 
 
 ==== Compatibility
 
-This output works with all compatible versions of Elasticsearch. See the
+This output works with all compatible versions of {es}. See the
 https://www.elastic.co/support/matrix#matrix_compatibility[Elastic Support
 Matrix].
 
@@ -77,9 +77,9 @@ The default value is `true`.
 [[hosts-option]]
 ===== `hosts`
 
-The list of Elasticsearch nodes to connect to. The events are distributed to
+The list of {es} nodes to connect to. The events are distributed to
 these nodes in round robin order. If one node becomes unreachable, the event is
-automatically sent to another node. Each Elasticsearch node can be defined as a `URL` or `IP:PORT`.
+automatically sent to another node. Each {es} node can be defined as a `URL` or `IP:PORT`.
 For example: `http://192.15.3.2`, `https://es.found.io:9230` or `192.24.3.2:9300`.
 If no port is specified, `9200` is used.
 
@@ -94,7 +94,7 @@ output.elasticsearch:
   path: /elasticsearch
 ------------------------------------------------------------------------------
 
-In the previous example, the Elasticsearch nodes are available at `https://10.45.3.2:9220/elasticsearch` and
+In the previous example, the {es} nodes are available at `https://10.45.3.2:9220/elasticsearch` and
 `https://10.45.3.1:9230/elasticsearch`.
 
 ===== `compression_level`
@@ -102,7 +102,7 @@ In the previous example, the Elasticsearch nodes are available at `https://10.45
 The gzip compression level. Setting this value to `0` disables compression.
 The compression level must be in the range of `1` (best speed) to `9` (best compression).
 
-Increasing the compression level will reduce the network usage but will increase the cpu usage.
+Increasing the compression level will reduce the network usage but will increase the CPU usage.
 
 The default value is `0`.
 
@@ -121,23 +121,23 @@ See <<beats-api-keys>> for more information.
 
 ===== `username`
 
-The basic authentication username for connecting to Elasticsearch.
+The basic authentication username for connecting to {es}.
 
 This user needs the privileges required to publish events to {es}.
 To create a user like this, see <<privileges-to-publish-events>>.
 
 ===== `password`
 
-The basic authentication password for connecting to Elasticsearch.
+The basic authentication password for connecting to {es}.
 
 ===== `parameters`
 
-Dictionary of HTTP parameters to pass within the url with index operations.
+Dictionary of HTTP parameters to pass within the URL with index operations.
 
 [[protocol-option]]
 ===== `protocol`
 
-The name of the protocol Elasticsearch is reachable on. The options are:
+The name of the protocol {es} is reachable on. The options are:
 `http` or `https`. The default is `http`. However, if you specify a URL for
 <<hosts-option,`hosts`>>, the value of `protocol` is overridden by whatever scheme you
 specify in the URL.
@@ -146,12 +146,12 @@ specify in the URL.
 ===== `path`
 
 An HTTP path prefix that is prepended to the HTTP API calls. This is useful for
-the cases where Elasticsearch listens behind an HTTP reverse proxy that exports
+the cases where {es} listens behind an HTTP reverse proxy that exports
 the API under a custom prefix.
 
 ===== `headers`
 
-Custom HTTP headers to add to each request created by the Elasticsearch output.
+Custom HTTP headers to add to each request created by the {es} output.
 Example:
 
 [source,yaml]
@@ -165,7 +165,7 @@ name by separating them with a comma.
 
 ===== `proxy_url`
 
-The URL of the proxy to use when connecting to the Elasticsearch servers. The
+The URL of the proxy to use when connecting to the {es} servers. The
 value may be either a complete URL or a "host[:port]", in which case the "http"
 scheme is assumed. If a value is not specified through the configuration file
 then proxy environment variables are used. See the
@@ -185,16 +185,16 @@ need to configure the `setup.template.name` and `setup.template.pattern` options
 (see <<configuration-template>>).
 
 ifndef::no_dashboards[]
-If you are using the pre-built Kibana
+If you are using the pre-built {kib}
 dashboards, you also need to set the `setup.dashboards.index` option (see
 <<configuration-dashboards>>).
 endif::no_dashboards[]
 
 ifndef::no_ilm[]
-When <<ilm,index lifecycle management (ILM)>> is enabled, the default `index` is
+When <<ilm,{ilm} ({ilm-init})>> is enabled, the default `index` is
 +"{beatname_lc}-%{[{beat_version_key}]}-%{+yyyy.MM.dd}-%{index_num}"+, for example,
 +"{beatname_lc}-{version}-{localdate}-000001"+. Custom `index` settings are ignored
-when ILM is enabled. If you’re sending events to a cluster that supports index
+when {ilm-init} is enabled. If you’re sending events to a cluster that supports index
 lifecycle management, see <<ilm>> to learn how to change the index name.
 endif::no_ilm[]
 
@@ -304,7 +304,7 @@ ifndef::no_ilm[]
 [[ilm-es]]
 ===== `ilm`
 
-Configuration options for index lifecycle management.
+Configuration options for {ilm}.
 
 See <<ilm>> for more information.
 endif::no_ilm[]
@@ -443,7 +443,7 @@ The value must have a duration suffix, e.g. `"5s"`. The default is `1s`.
 
 ===== `backoff.init`
 
-The number of seconds to wait before trying to reconnect to Elasticsearch after
+The number of seconds to wait before trying to reconnect to {es} after
 a network error. After waiting `backoff.init` seconds, {beatname_uc} tries to
 reconnect. If the attempt fails, the backoff timer is increased exponentially up
 to `backoff.max`. After a successful connection, the backoff timer is reset. The
@@ -453,17 +453,17 @@ default is `1s`.
 ===== `backoff.max`
 
 The maximum number of seconds to wait before attempting to connect to
-Elasticsearch after a network error. The default is `60s`.
+{es} after a network error. The default is `60s`.
 
 ===== `timeout`
 
-The http request timeout in seconds for the Elasticsearch request. The default is 90.
+The HTTP request timeout in seconds for the {es} request. The default is 90.
 
 ===== `ssl`
 
 Configuration options for SSL parameters like the certificate authority to use
 for HTTPS-based connections. If the `ssl` section is missing, the host CAs are used for HTTPS connections to
-Elasticsearch.
+{es}.
 
 See the <<securing-communication-elasticsearch,secure communication with {es}>> guide
 or <<configuration-ssl,SSL configuration reference>> for more information.

@@ -101,6 +101,55 @@ The rest of the flags configure the `apmbench` so it can target an APM Server, t
 set flags, or their `ELASTIC_APM_<UPPERCASE FLAG NAME>` alternative, for example, to configure the server URL
 set `ELASTIC_APM_SERVER_URL` to the full URL of the APM Server you'd like to benchmark.
 
+## Soak testing
+
+Soak testing involves testing apm-server against a continuous, sustained workload to identify performance
+and stability issues that occur over an extended period. `apmsoak` command can be used to generate a
+sustained and continuous load for the purpose of soak testing:
+
+```console
+$ cd systemtest/cmd/apmsoak
+$ go run main.go -h
+Usage of /var/folders/k9/z1yw8fsn0sjbl5yy7z2rsdpr0000gn/T/go-build4164012609/b001/exe/main:
+  -agents-replicas int
+    	Number of agents replicas to use, each replica launches 4 agents, one for each type (default 1)
+  -max-rate value
+    	Max event rate as epm or eps with burst size=max(1000, 2*eps), <= 0 values evaluate to Inf (default 0epm)
+  -secret-token string
+    	secret token for APM Server
+  -secure
+    	validate the remote server TLS certificates
+  -server value
+    	apm-server URL (default http://localhost:8200)
+```
+
+### Launching apmsoak on GCP
+
+Worker with `apmsoak` installed for generating load can be created on GCP using the `soaktest_workers`
+terraform module. The terraform module can be run as follows:
+
+```
+$ cd testing/apmsoak/
+$ make apply
+```
+
+Above command starts the apmsoak process as a systemd unit configured to send load at the specified rate.
+The module also installs `elastic-agent` to monitor the worker.
+
+## Smoke testing
+
+Smoke tests verify are light end to end tests which ensure that the "happy path" of the APM Server works as
+expected per the asserted scenarios. The idea is to automatically gauge if there are any critical problems in
+the APM Server in a regular manner.
+
+These tests are currently using a Terraform module which manages the creation of deployments in ESS (could also
+be configured to use an ECE installation) with some light bash scripting which is run in a variety of scenarios
+and upgrades, but ensures there aren't any major problems with APM Server accepting and indexing events where
+it should.
+
+The smoke tests can be found under [`testing/smoke`](./testing/smoke) and the latest CI runs can be found in
+the [APM CI dashboard](https://ela.st/apm-server-smoke-tests).
+
 ## Manual testing
 
 Often, we need to manually test the integration between different features, PR testing or pre-release testing.

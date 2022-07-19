@@ -1,5 +1,5 @@
 [![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=apm-server/apm-server-mbp/main)](https://apm-ci.elastic.co/job/apm-server/job/apm-server-mbp/view/change-requests/job/main/)
-[![codecov.io](https://codecov.io/github/elastic/apm-server/coverage.svg?branch=main)](https://codecov.io/github/elastic/apm-server?branch=main)
+[![Smoke Tests](https://apm-ci.elastic.co/buildStatus/icon?job=apm-server/smoke-tests-mbp/main&subject=smoke%20tests)](https://apm-ci.elastic.co/job/apm-server/job/smoke-tests-mbp/job/main/)
 
 # APM Server
 

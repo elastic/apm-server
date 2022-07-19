@@ -83,6 +83,26 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		return false
 	}
 
+	t.Run("faas", func(t *testing.T) {
+		var input metricset
+		var out model.APMEvent
+		input.FAAS.ID.Set("faasID")
+		input.FAAS.Coldstart.Set(true)
+		input.FAAS.Execution.Set("execution")
+		input.FAAS.Trigger.Type.Set("http")
+		input.FAAS.Trigger.RequestID.Set("abc123")
+		input.FAAS.Name.Set("faasName")
+		input.FAAS.Version.Set("1.0.0")
+		mapToMetricsetModel(&input, &out)
+		assert.Equal(t, "faasID", out.FAAS.ID)
+		assert.True(t, *out.FAAS.Coldstart)
+		assert.Equal(t, "execution", out.FAAS.Execution)
+		assert.Equal(t, "http", out.FAAS.TriggerType)
+		assert.Equal(t, "abc123", out.FAAS.TriggerRequestID)
+		assert.Equal(t, "faasName", out.FAAS.Name)
+		assert.Equal(t, "1.0.0", out.FAAS.Version)
+	})
+
 	t.Run("metricset-values", func(t *testing.T) {
 		var input metricset
 		var out1, out2 model.APMEvent

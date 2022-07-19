@@ -46,16 +46,16 @@ The default is `50`. For more information, see <<elasticsearch-output>>.
 
 ===== `backoff.init`
 
-The number of seconds to wait before trying to reconnect to Elasticsearch after
+The number of seconds to wait before trying to reconnect to {es} after
 a network error. After waiting `backoff.init` seconds, {beatname_uc} tries to
 reconnect. If the attempt fails, the backoff timer is increased exponentially up
 to `backoff.max`. After a successful connection, the backoff timer is reset. The
-default is 1s.
+default is `1s`.
 
 ===== `backoff.max`
 
 The maximum number of seconds to wait before attempting to connect to
-Elasticsearch after a network error. The default is 60s.
+{es} after a network error. The default is `60s`.
 
 ===== `compression_level`
 
@@ -83,7 +83,7 @@ default value is `3`. For more information, see <<elasticsearch-output>>.
 
 ===== `parameters`
 
-Dictionary of HTTP parameters to pass within the url with index operations.
+Dictionary of HTTP parameters to pass within the URL with index operations.
 
 ===== `password`
 

@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -98,7 +97,7 @@ func TestServerRoot(t *testing.T) {
 
 	checkResponse := func(hasOk bool) func(t *testing.T, res *http.Response) {
 		return func(t *testing.T, res *http.Response) {
-			b, err := ioutil.ReadAll(res.Body)
+			b, err := io.ReadAll(res.Body)
 			require.NoError(t, err)
 			rsp := string(b)
 			assert.Contains(t, rsp, "build_date")
@@ -190,7 +189,7 @@ func TestServerTcpNoPort(t *testing.T) {
 }
 
 func tmpTestUnix(t *testing.T) string {
-	f, err := ioutil.TempFile("", "test-apm-server")
+	f, err := os.CreateTemp("", "test-apm-server")
 	assert.NoError(t, err)
 	addr := f.Name()
 	f.Close()
@@ -517,7 +516,7 @@ func TestServerConfigReload(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		return string(body)
 	}
@@ -960,7 +959,8 @@ func TestServerElasticsearchOutput(t *testing.T) {
 			},
 			"type": "elasticsearch",
 			"write": map[string]interface{}{
-				"bytes": int64(10),
+				// _bulk requests haven't completed, so bytes flushed won't have been updated.
+				"bytes": int64(0),
 			},
 		},
 		"pipeline": map[string]interface{}{
@@ -997,6 +997,43 @@ func TestServerPProf(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode, path)
+	}
+}
+
+func TestServerGoMaxProcsLogMessage(t *testing.T) {
+	// Assert that the gomaxprocs library is called and use the
+	// log message that is printed as
+	for _, n := range []int{1, 2, 4} {
+		t.Run(fmt.Sprintf("%d_GOMAXPROCS", n), func(t *testing.T) {
+			t.Setenv("GOMAXPROCS", fmt.Sprint(n))
+
+			beat, cfg := newBeat(t, nil, nil, nil)
+			apm, err := newTestBeater(t, beat, cfg, nil)
+			require.NoError(t, err)
+			apm.start()
+			defer apm.Stop()
+
+			timeout := time.NewTimer(time.Second)
+			defer timeout.Stop()
+			for {
+				select {
+				case <-timeout.C:
+					t.Error("timed out waiting for log message, total logs observed:", apm.logs.Len())
+					for _, log := range apm.logs.All() {
+						t.Log(log.LoggerName, log.Message)
+					}
+					return
+				case <-time.After(time.Millisecond):
+					logs := apm.logs.FilterMessageSnippet(fmt.Sprintf(
+						`maxprocs: Honoring GOMAXPROCS="%d" as set in environment`, n,
+					))
+					if logs.Len() > 0 {
+						assert.Len(t, logs.All(), 1, "coundn't find gomaxprocs message logs")
+						return
+					}
+				}
+			}
+		})
 	}
 }
 
@@ -1048,7 +1085,7 @@ func dummyPipeline(cfg *agentconfig.C, info beat.Info, clients ...outputs.Client
 }
 
 var testData = func() []byte {
-	b, err := ioutil.ReadFile("../testdata/intake-v2/transactions.ndjson")
+	b, err := os.ReadFile("../testdata/intake-v2/transactions.ndjson")
 	if err != nil {
 		panic(err)
 	}
@@ -1072,7 +1109,7 @@ func decodeJSONMap(t *testing.T, r io.Reader) map[string]interface{} {
 }
 
 func body(t *testing.T, response *http.Response) string {
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	require.NoError(t, err)
 	require.NoError(t, response.Body.Close())
 	return string(body)

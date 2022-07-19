@@ -58,12 +58,13 @@ The main commands are:
 - `all` (default): runs `auth`, `apmbench`, creates the config files and runs terraform apply.
 - `auth`: Re-generate AWS credentials, they will expire after 4h.
 - `run-benchmark`: Run the benchmarks, can configured by tweaking:
-  - `BENCHMARK_WARMUP`: Set the number of events that are used as warmup. Defaults to 4.5M.
-  - `BENCHMARK_AGENTS`: Set the number of agents to send data to the APM Server. Defaults to 64.
-  - `BENCHMARK_COUNT`: Set the number of times each benchmark scenario is run. Defaults to 2.
-  - `BENCHMARK_TIME`: Set the amount of time to run each benchmark scenario for. 5m.
-  - `BENCHMARK_RUN`: Set the expression that matches the benchmark scenarios to run. Defaults to Benchmark (all).
-  - `BENCHMARK_RESULT`: Set the output file where the results of the benchmark will be written.
+  - `BENCHMARK_WARMUP`: Set the number of events that are used as warmup. Defaults to `10000`.
+  - `BENCHMARK_AGENTS`: Set the number of agents to send data to the APM Server. Defaults to `64`.
+  - `BENCHMARK_COUNT`: Set the number of times each benchmark scenario is run. Defaults to `3`.
+  - `BENCHMARK_TIME`: Set the amount of time to run each benchmark scenario for. Defaults to `2m`.
+  - `BENCHMARK_RUN`: Set the expression that matches the benchmark scenarios to run. Defaults to `Benchmark` (all).
+  - `BENCHMARK_RESULT`: Set the output file where the results of the benchmark will be written. Defaults to `benchmark-result.txt`
+  - `BENCHMARK_DETAILED`: Sets the `-detailed` when running `apmbench`, displaying extra metrics for each benchmark. Defaults to `false`.
 - `index-benchmark-result`: Indexes `$(BENCHMARK_RESULT)` to an Elasticsearch cluster. Can be configured with:
   - `GOBENCH_INDEX`: Set the Elasticsearch index where the benchmark results will be stored. Defaults to `gobench`.
   - `GOBENCH_USERNAME`: Set the Elasticsearch username to use for authentication. Defaults to `admin`.

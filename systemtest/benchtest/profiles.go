@@ -20,17 +20,20 @@ package benchtest
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/google/pprof/profile"
+
+	"github.com/elastic/apm-server/systemtest/loadgen"
 )
 
 func fetchProfile(urlPath string, duration time.Duration) (*profile.Profile, error) {
-	req, err := http.NewRequest("GET", *server+urlPath, nil)
+	serverURL := loadgen.Config.ServerURL.String()
+	req, err := http.NewRequest("GET", serverURL+urlPath, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +53,7 @@ func fetchProfile(urlPath string, duration time.Duration) (*profile.Profile, err
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("failed to fetch profile (%s): %s", resp.Status, body)
 	}
 	return profile.Parse(resp.Body)
@@ -82,10 +85,10 @@ func (p *profiles) record(benchmarkName string) <-chan error {
 }
 
 func (p *profiles) recordCPU() error {
-	if *cpuprofile == "" {
+	if benchConfig.CPUProfile == "" {
 		return nil
 	}
-	duration := 2 * (*benchtime)
+	duration := 2 * benchConfig.Benchtime
 	profile, err := fetchProfile("/debug/pprof/profile", duration)
 	if err != nil {
 		return fmt.Errorf("failed to fetch CPU profile: %w", err)
@@ -95,20 +98,20 @@ func (p *profiles) recordCPU() error {
 }
 
 func (p *profiles) recordCumulatives() error {
-	if err := p.recordCumulative(memprofile, "/debug/pprof/heap", &p.heap); err != nil {
+	if err := p.recordCumulative(benchConfig.MemProfile, "/debug/pprof/heap", &p.heap); err != nil {
 		return err
 	}
-	if err := p.recordCumulative(mutexprofile, "/debug/pprof/mutex", &p.mutex); err != nil {
+	if err := p.recordCumulative(benchConfig.MutexProfile, "/debug/pprof/mutex", &p.mutex); err != nil {
 		return err
 	}
-	if err := p.recordCumulative(blockprofile, "/debug/pprof/block", &p.block); err != nil {
+	if err := p.recordCumulative(benchConfig.BlockProfile, "/debug/pprof/block", &p.block); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *profiles) recordCumulative(flag *string, urlPath string, out *[]*profile.Profile) error {
-	if *flag == "" {
+func (p *profiles) recordCumulative(flag string, urlPath string, out *[]*profile.Profile) error {
+	if flag == "" {
 		return nil
 	}
 	profile, err := fetchProfile(urlPath, 0)
@@ -120,16 +123,16 @@ func (p *profiles) recordCumulative(flag *string, urlPath string, out *[]*profil
 }
 
 func (p *profiles) writeProfiles() error {
-	if err := p.writeCumulative(*memprofile, p.heap); err != nil {
+	if err := p.writeCumulative(benchConfig.MemProfile, p.heap); err != nil {
 		return err
 	}
-	if err := p.writeCumulative(*mutexprofile, p.mutex); err != nil {
+	if err := p.writeCumulative(benchConfig.MutexProfile, p.mutex); err != nil {
 		return err
 	}
-	if err := p.writeCumulative(*blockprofile, p.block); err != nil {
+	if err := p.writeCumulative(benchConfig.BlockProfile, p.block); err != nil {
 		return err
 	}
-	if err := p.writeDeltas(*cpuprofile, p.cpu); err != nil {
+	if err := p.writeDeltas(benchConfig.CPUProfile, p.cpu); err != nil {
 		return err
 	}
 	return nil

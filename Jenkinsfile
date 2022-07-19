@@ -9,7 +9,6 @@ pipeline {
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
-    CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
@@ -365,7 +364,6 @@ pipeline {
                     keepLongStdio: true,
                     testResults: "TEST-*.xml")
               }
-              codecov(repo: env.REPO, basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
           }
         }
@@ -418,17 +416,11 @@ pipeline {
         Finally archive the results.
         */
         stage('Benchmarking') {
-          agent { label 'linux && immutable' }
+          agent { label 'microbenchmarks-pool' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
             allOf {
-              anyOf {
-                branch 'main'
-                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-                branch pattern: 'v\\d?', comparator: 'REGEXP'
-                expression { return params.Run_As_Main_Branch }
-              }
               expression { return params.bench_ci }
               expression { return env.ONLY_DOCS == "false" }
             }
@@ -441,8 +433,14 @@ pipeline {
                 withMageEnv(){
                   sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                 }
+                sendBenchmarks(file: "bench.out", index: "benchmark-server")
+                generateGoBenchmarkDiff(file: 'bench.out', filter: 'exclude')
               }
-              sendBenchmarks(file: "${BASE_DIR}/bench.out", index: "benchmark-server")
+            }
+          }
+          post {
+            cleanup {
+              deleteDir()
             }
           }
         }
@@ -519,7 +517,7 @@ pipeline {
       archiveArtifacts artifacts: 'beats-tester.properties'
     }
     cleanup {
-      notifyBuildResult()
+      notifyBuildResult(goBenchmarkComment: true)
     }
   }
 }

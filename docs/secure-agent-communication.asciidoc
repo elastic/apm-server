@@ -138,7 +138,8 @@ POST /_security/role/apm_agent_key_role
          "application":"apm",
          "privileges":[
             "event:write",
-            "config_agent:read"
+            "config_agent:read",
+            "sourcemap:write"
          ],
          "resources":[ "*" ]
       },
@@ -218,10 +219,12 @@ as there is no way to prevent them from being publicly exposed.
 [[create-secret-token]]
 === Create a secret token
 
-// lint ignore fleet
-Define a secret token in the <<input-apm,APM integration settings>>.
-Alternatively, {ess} and {ece} deployments provision a secret token when the deployment is created.
-The secret token can be found and reset in the {ecloud} console under **Deployments** -- **APM & Fleet**.
+Create or update a secret token in {fleet}.
+
+include::./input-apm.asciidoc[tag=edit-integration-settings]
++
+. Navigate to **Agent authorization** > **Secret token** and set the value of your token.
+. Click **Save integration**. The APM Server will restart before the change takes effect.
 
 [[configure-secret-token]]
 [float]

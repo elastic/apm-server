@@ -3,7 +3,27 @@
 
 https://github.com/elastic/apm-server/compare/8.2\...8.3[View commits]
 
+* <<release-notes-8.3.2>>
+* <<release-notes-8.3.1>>
 * <<release-notes-8.3.0>>
+
+[float]
+[[release-notes-8.3.2]]
+=== APM version 8.3.2
+
+https://github.com/elastic/apm-server/compare/8.3.1\...8.3.2[View commits]
+
+[float]
+==== Bug fixes
+- When tail-based sampling is enabled, limit the local disk space for the feature to 3GB {pull}8407[8407]
+
+[float]
+[[release-notes-8.3.1]]
+=== APM version 8.3.1
+
+https://github.com/elastic/apm-server/compare/8.3.0\...8.3.1[View commits]
+
+No significant changes.
 
 [float]
 [[release-notes-8.3.0]]
@@ -22,6 +42,8 @@ https://github.com/elastic/apm-server/compare/8.2.2\...8.3.0[View commits]
 [float]
 ==== Bug fixes
 - Propagate datastream namespace changes from apm-integration into server {pull}8176[8176]
+- Correct the `libbeat.output.write.bytes` metric to count the written bytes after the compressed writer has been flushed {pull}8221[8221]
+- Allow 100% tail-based sampling {pull}8233[8233]
 
 [float]
 ==== Intake API Changes
@@ -34,9 +56,8 @@ https://github.com/elastic/apm-server/compare/8.2.2\...8.3.0[View commits]
 ==== Added
 - System, process, and well-defined runtime metrics are now sent to the shared `metrics-apm.internal-<namespace>` data stream {pull}7882[7882]
 - Number of parallel bulk requests are now configurable via `output.elasticsearch.max_requests` {pull}8055[8055]
-- OTLP/HTTP protocol is now supported {pull}8156{8156}
+- OTLP/HTTP protocol is now supported {pull}8156[8156]
 
-
-// Added but still being debugged
-- `apm-server` artifacts now have the apm java-attacher.jar packaged alongside them {pull}6593[6593]
-- Run the java attacher jar when configured and not in a cloud environment {pull}6617[6617]
+[float]
+==== Performance improvements
+- Limit the number of gomaxprocs when CPU limits have been set within a cgroup, yielding significant performance improvements, particularly when the APM Server experiences high traffic from a high number of APM agents {pull}8175[8175] {pull}8278[8278]

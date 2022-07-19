@@ -485,6 +485,11 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 	)
 
 	var (
+		peerService string
+		peerAddress string
+	)
+
+	var (
 		httpURL    string
 		httpHost   string
 		httpTarget string
@@ -492,8 +497,14 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 	)
 
 	var (
-		messageSystem    string
-		messageOperation string
+		messageSystem          string
+		messageOperation       string
+		messageTempDestination bool
+	)
+
+	var (
+		rpcSystem  string
+		rpcService string
 	)
 
 	var http model.HTTP
@@ -502,8 +513,8 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 	var message model.Message
 	var db model.DB
 	var destinationService model.DestinationService
+	var serviceTarget model.ServiceTarget
 	var foundSpanType int
-	var rpcSystem string
 	var samplerType, samplerParam pdata.AttributeValue
 	attributes.Range(func(kDots string, v pdata.AttributeValue) bool {
 		if isJaeger {
@@ -522,7 +533,13 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		case pdata.AttributeValueTypeArray:
 			setLabel(k, event, ifaceAttributeValueSlice(v.SliceVal()))
 		case pdata.AttributeValueTypeBool:
-			setLabel(k, event, strconv.FormatBool(v.BoolVal()))
+			switch kDots {
+			case semconv.AttributeMessagingTempDestination:
+				messageTempDestination = v.BoolVal()
+				fallthrough
+			default:
+				setLabel(k, event, strconv.FormatBool(v.BoolVal()))
+			}
 		case pdata.AttributeValueTypeDouble:
 			setLabel(k, event, v.DoubleVal())
 		case pdata.AttributeValueTypeInt:
@@ -586,14 +603,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 			case semconv.AttributeNetPeerIP, "peer.ipv4", "peer.ipv6":
 				netPeerIP = stringval
 			case "peer.address":
-				destinationService.Resource = stringval
-				if !strings.ContainsRune(stringval, ':') || net.ParseIP(stringval) != nil {
-					// peer.address is not necessarily a hostname
-					// or IP address; it could be something like
-					// a JDBC connection string or ip:port. Ignore
-					// values containing colons, except for IPv6.
-					netPeerName = stringval
-				}
+				peerAddress = stringval
 			case attributeNetworkConnectionType:
 				event.Network.Connection.Type = stringval
 			case attributeNetworkConnectionSubtype:
@@ -616,8 +626,6 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 				foundSpanType = messagingSpan
 			case semconv.AttributeMessagingSystem:
 				messageSystem = stringval
-				destinationService.Resource = stringval
-				destinationService.Name = stringval
 				foundSpanType = messagingSpan
 
 			// rpc.*
@@ -629,22 +637,28 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 				rpcSystem = stringval
 				foundSpanType = rpcSpan
 			case semconv.AttributeRPCService:
+				rpcService = stringval
+				foundSpanType = rpcSpan
 			case semconv.AttributeRPCMethod:
 
 			// miscellaneous
 			case "span.kind": // filter out
 			case semconv.AttributePeerService:
-				destinationService.Name = stringval
-				if destinationService.Resource == "" {
-					// Prefer using peer.address for resource.
-					destinationService.Resource = stringval
-				}
+				peerService = stringval
 			default:
 				event.Labels.Set(k, stringval)
 			}
 		}
 		return true
 	})
+
+	if netPeerName == "" && (!strings.ContainsRune(peerAddress, ':') || net.ParseIP(peerAddress) != nil) {
+		// peer.address is not necessarily a hostname
+		// or IP address; it could be something like
+		// a JDBC connection string or ip:port. Ignore
+		// values containing colons, except for IPv6.
+		netPeerName = peerAddress
+	}
 
 	destPort := netPeerPort
 	destAddr := netPeerName
@@ -672,39 +686,27 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		}
 	}
 	if fullURL != nil {
-		url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
-		hostname := truncate(url.Hostname())
 		var port int
-		portString := url.Port()
+		portString := fullURL.Port()
 		if portString != "" {
 			port, _ = strconv.Atoi(portString)
 		} else {
-			port = schemeDefaultPort(url.Scheme)
+			port = schemeDefaultPort(fullURL.Scheme)
 		}
 
 		// Set destination.{address,port} from the HTTP URL,
 		// replacing peer.* based values to ensure consistency.
-		destAddr = hostname
+		destAddr = truncate(fullURL.Hostname())
 		if port > 0 {
 			destPort = port
 		}
+	}
 
-		// Set destination.service.* from the HTTP URL, unless peer.service was specified.
-		if destinationService.Name == "" {
-			resource := url.Host
-			if port > 0 && port == schemeDefaultPort(url.Scheme) {
-				hasDefaultPort := portString != ""
-				if hasDefaultPort {
-					// Remove the default port from destination.service.name.
-					url.Host = hostname
-				} else {
-					// Add the default port to destination.service.resource.
-					resource = fmt.Sprintf("%s:%d", resource, port)
-				}
-			}
-			destinationService.Name = url.String()
-			destinationService.Resource = resource
-		}
+	serviceTarget.Name = peerService
+	destinationService.Name = peerService
+	destinationService.Resource = peerService
+	if peerAddress != "" {
+		destinationService.Resource = peerAddress
 	}
 
 	switch foundSpanType {
@@ -719,16 +721,41 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		event.Span.Subtype = subtype
 		event.HTTP = http
 		event.URL.Original = httpURL
+		serviceTarget.Type = event.Span.Subtype
+		if fullURL != nil {
+			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
+			resource := url.Host
+			if destPort == schemeDefaultPort(url.Scheme) {
+				if fullURL.Port() != "" {
+					// Remove the default port from destination.service.name
+					url.Host = destAddr
+				} else {
+					// Add the default port to destination.service.resource
+					resource = fmt.Sprintf("%s:%d", resource, destPort)
+				}
+			}
+
+			serviceTarget.Name = resource
+			if destinationService.Name == "" {
+				destinationService.Name = url.String()
+				destinationService.Resource = resource
+			}
+		}
 	case dbSpan:
 		event.Span.Type = "db"
-		if db.Type != "" {
-			event.Span.Subtype = db.Type
+		event.Span.Subtype = db.Type
+		serviceTarget.Type = event.Span.Type
+		if event.Span.Subtype != "" {
+			serviceTarget.Type = event.Span.Subtype
 			if destinationService.Name == "" {
 				// For database requests, we currently just identify
 				// the destination service by db.system.
 				destinationService.Name = event.Span.Subtype
 				destinationService.Resource = event.Span.Subtype
 			}
+		}
+		if db.Instance != "" {
+			serviceTarget.Name = db.Instance
 		}
 		event.Span.DB = &db
 	case messagingSpan:
@@ -738,19 +765,37 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 			messageOperation = "send"
 		}
 		event.Span.Action = messageOperation
+		serviceTarget.Type = event.Span.Type
+		if event.Span.Subtype != "" {
+			serviceTarget.Type = event.Span.Subtype
+			if destinationService.Name == "" {
+				destinationService.Name = event.Span.Subtype
+				destinationService.Resource = event.Span.Subtype
+			}
+		}
 		if destinationService.Resource != "" && message.QueueName != "" {
 			destinationService.Resource += "/" + message.QueueName
 		}
+		if message.QueueName != "" && !messageTempDestination {
+			serviceTarget.Name = message.QueueName
+		}
 		event.Span.Message = &message
 	case rpcSpan:
+		event.Span.Type = "external"
+		event.Span.Subtype = rpcSystem
+		serviceTarget.Type = event.Span.Type
+		if event.Span.Subtype != "" {
+			serviceTarget.Type = event.Span.Subtype
+		}
 		// Set destination.service.* from the peer address, unless peer.service was specified.
 		if destinationService.Name == "" {
 			destHostPort := net.JoinHostPort(destAddr, strconv.Itoa(destPort))
 			destinationService.Name = destHostPort
 			destinationService.Resource = destHostPort
 		}
-		event.Span.Type = "external"
-		event.Span.Subtype = rpcSystem
+		if rpcService != "" {
+			serviceTarget.Name = rpcService
+		}
 	default:
 		// Only set event.Span.Type if not already set
 		if event.Span.Type == "" {
@@ -773,6 +818,10 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 			destinationService.Type = event.Span.Type
 		}
 		event.Span.DestinationService = &destinationService
+	}
+
+	if serviceTarget != (model.ServiceTarget{}) {
+		event.Service.Target = &serviceTarget
 	}
 
 	if samplerType != (pdata.AttributeValue{}) {

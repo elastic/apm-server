@@ -22,7 +22,6 @@ import (
 	"compress/gzip"
 	"compress/zlib"
 	"io"
-	"io/ioutil"
 	"net/http/httptest"
 	"testing"
 
@@ -94,7 +93,7 @@ func BenchmarkCompressedRequestReader(b *testing.B) {
 			req.Header.Set("Content-Encoding", contentEncoding)
 		}
 		for i := 0; i < b.N; i++ {
-			req.Body = ioutil.NopCloser(bytes.NewReader(input))
+			req.Body = io.NopCloser(bytes.NewReader(input))
 			if _, err := decoder.CompressedRequestReader(req); err != nil {
 				b.Fatal(err)
 			}
@@ -120,7 +119,7 @@ func BenchmarkCompressedRequestReader(b *testing.B) {
 
 func assertReaderContents(t *testing.T, expected string, r io.Reader) {
 	t.Helper()
-	contents, err := ioutil.ReadAll(r)
+	contents, err := io.ReadAll(r)
 	require.NoError(t, err)
 	assert.Equal(t, expected, string(contents))
 }

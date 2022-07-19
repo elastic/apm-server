@@ -5,11 +5,11 @@ and automatically configures APM Server to work with {es} and {kib}:
 
 . {ess-trial}[Get a free trial].
 
-. Log into {ess-console}[Elastic Cloud].
+. Log into {ess-console}[{ecloud}].
 
 . Click *Create deployment*.
 
-. Select *Elastic Observability* and give your deployment a name.
+. Select *Elastic {observability}* and give your deployment a name.
 
 . Click *Create deployment* and copy the password for the `elastic` user.
 
@@ -19,7 +19,7 @@ You'll need these in step two.
 // end::ess[]
 
 // tag::self-managed[]
-To install and run {es} and {kib}, see {stack-gs}/get-started-elastic-stack.html[getting started with the {stack}].
+To install and run {es} and {kib}, see {stack-ref}/installing-elastic-stack.html[Installing the {stack}].
 
 Next, install, set up, and run APM Server:
 

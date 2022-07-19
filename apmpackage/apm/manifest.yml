@@ -142,7 +142,7 @@ policy_templates:
           - name: tls_supported_protocols
             type: text
             multi: true
-            default: ["TLSv1.0", "TLSv1.1", "TLSv1.2"]
+            default: ["TLSv1.1", "TLSv1.2", "TLSv1.3"]
           - name: tls_cipher_suites
             type: text
             multi: true
@@ -160,6 +160,9 @@ policy_templates:
           - name: tail_sampling_enabled
             type: bool
             default: false
+          - name: tail_sampling_storage_limit
+            type: text
+            default: "3GB"
         template_path: template.yml.hbs
 owner:
   github: elastic/apm-server

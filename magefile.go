@@ -32,7 +32,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/dev-tools/mage"
-	"github.com/elastic/beats/v7/dev-tools/mage/target/build"
 
 	"github.com/elastic/apm-server/beater/config"
 )
@@ -48,33 +47,36 @@ func init() {
 		DocBranch:   filepath.Join(repo.RootDir, "docs/version.asciidoc"),
 	})
 
+	// Filter platforms to those that are supported by apm-server.
+	mage.Platforms = mage.Platforms.Filter(strings.Join([]string{
+		"linux/amd64",
+		"linux/386",
+		"linux/arm64",
+		"windows/386",
+		"windows/amd64",
+		"darwin/amd64",
+	}, " "))
+
 	mage.BeatDescription = "Elastic APM Server"
 	mage.BeatURL = "https://www.elastic.co/apm"
 	mage.BeatIndexPrefix = "apm"
 	mage.XPackDir = "x-pack"
 	mage.BeatUser = "apm-server"
-	mage.CrossBuildMountModcache = true
 	mage.VirtualenvReqs = []string{filepath.Join(repo.RootDir, "script", "requirements.txt")}
 }
 
 // Build builds the Beat binary.
 func Build() error {
-	return mage.Build(mage.DefaultBuildArgs())
-}
-
-// GolangCrossBuild build the Beat binary inside of the golang-builder.
-// Do not use directly, use crossBuild instead.
-func GolangCrossBuild() error {
-	return mage.GolangCrossBuild(mage.DefaultGolangCrossBuildArgs())
-}
-
-// AssembleDarwinUniversal merges the darwin/amd64 and darwin/arm64 into a single
-// universal binary using `lipo`. It assumes the darwin/amd64 and darwin/arm64
-// were built and only performs the merge.
-//
-// This is used by crossbuild.
-func AssembleDarwinUniversal() error {
-	return build.AssembleDarwinUniversal()
+	args := mage.DefaultBuildArgs()
+	args.InputFiles = []string{"./x-pack/apm-server"}
+	args.Name += "-" + mage.Platform.GOOS + "-" + mage.Platform.Arch
+	args.OutputDir = "build"
+	args.CGO = false
+	if mage.Platform.Arch == "386" {
+		// Only enable PIE on 64-bit platforms.
+		args.BuildMode = ""
+	}
+	return mage.Build(args)
 }
 
 // Clean cleans all generated files and build artifacts.
@@ -138,25 +140,14 @@ func filterPackages(types string) {
 	mage.Packages = packages
 }
 
-// Package builds and packages apm-server for distribution.
+// Package packages apm-server for distribution, relying on the
+// binaries having already been built.
 //
 // Use SNAPSHOT=true to build snapshots.
 // Use PLATFORMS to control the target platforms. eg linux/amd64
 // Use TYPES to control the target types. eg docker
 func Package() error {
-	mg.Deps(Update)
-	mg.Deps(func() error {
-		// TODO(axw) when we disable cgo, build all binaries using
-		// Go's native cross-compiling (GOOS=..., GOARCH=...)
-		return mage.CrossBuildXPack()
-	})
-	return PackageOnly()
-}
-
-// PackageOnly packages apm-server for distribution, relying on
-// the binaries having already been built. See Package for more.
-func PackageOnly() error {
-	mage.MustUsePackaging("elastic_beat_xpack_separate_binaries", "dev-tools/packaging/packages.yml")
+	mage.UseElasticBeatXPackPackaging()
 	customizePackaging()
 	if packageTypes := os.Getenv("TYPES"); packageTypes != "" {
 		filterPackages(packageTypes)
@@ -195,6 +186,13 @@ func customizePackaging() {
 
 	for idx := len(mage.Packages) - 1; idx >= 0; idx-- {
 		args := &mage.Packages[idx]
+
+		// Replace "build/golang-crossbuild" with "build" in the sources.
+		trimCrossbuildPrefix := filepath.Join("build", "golang-cross")
+		for filename, filespec := range args.Spec.Files {
+			filespec.Source = strings.TrimPrefix(filespec.Source, trimCrossbuildPrefix)
+			args.Spec.Files[filename] = filespec
+		}
 
 		// Replace the generic Beats README.md with an APM specific one, and remove files unused by apm-server.
 		for filename, filespec := range args.Spec.Files {

@@ -43,7 +43,7 @@ Complete steps 4-6 to configure your application to collect and report APM data.
 
 **Visualize**
 
-Use the APM app at http://localhost:5601/app/apm to visualize your application performance data!
+Use the {apm-app} at http://localhost:5601/app/apm to visualize your application performance data!
 
 When you're done, `ctrl+c` will stop all of the containers.
 
@@ -53,7 +53,7 @@ If you're interested in learning more about all of the APM features available,
 or running the Elastic stack on Docker in a production environment, see the following documentation:
 
 * {apm-server-ref-v}/running-on-docker.html[Running APM Server on Docker]
-* {stack-gs}/get-started-docker.html[Running the Elastic Stack on Docker]
+* {stack-gs}/get-started-docker.html[Running the {stack} on Docker]
 
 endif::[]
 // end::dev-environment[]
