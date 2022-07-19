@@ -8,8 +8,8 @@ terraform_apply() {
     echo stack_version=\"${1}\" > terraform.tfvars
     if [[ ! -z ${2} ]] && [[ ${2} ]]; then echo integrations_server=true >> terraform.tfvars; fi
     if [[ ! -f main.tf ]]; then cp ../main.tf .; fi
-    if [[ ! -f .terraform.lock.hcl ]]; then terraform init -lock=false >> tf.log; fi
-    terraform apply -lock=false -auto-approve >> tf.log
+    if [[ ! -f .terraform.lock.hcl ]]; then terraform init >> tf.log; fi
+    terraform apply -auto-approve >> tf.log
 
     if [[ ${EXPORTED_AUTH} ]]; then
         return
@@ -32,7 +32,7 @@ terraform_destroy() {
         cat tf.log
     fi
     echo "-> Destroying the underlying infrastructure..." 
-    terraform destroy -auto-approve -lock=false >> tf.log
+    terraform destroy -auto-approve >> tf.log
     rm -f terraform.tfvars tf.log main.tf
     exit ${exit_code}
 }
