@@ -125,19 +125,25 @@ func (j *JavaAttacher) Run(ctx context.Context) {
 	defer close(c)
 	go func() {
 		for {
+			// todo: remove
+			j.logger.Debugf("Starting iteration")
 			jvms, err := j.discoverJvmsForAttachment(ctx)
 			if err != nil {
 				j.logger.Infof("error during JVMs discovery: %v", err)
-			} else {
+			} else if len(jvms) > 0 {
 				for _, jvm := range jvms {
 					go func(jvm *JvmDetails) {
 						err := j.attach(ctx, jvm)
 						if err != nil {
 							j.logger.Errorf("error attaching to JVM %v: %v", jvm, err)
+						} else {
+							j.logger.Debugf("attached to JVM: %v", jvm)
 						}
 					}(jvm)
 				}
 			}
+			// todo: remove
+			j.logger.Debugf("Going into select")
 			select {
 			case <-ctx.Done():
 				return
@@ -167,20 +173,20 @@ func (j *JavaAttacher) discoverJvmsForAttachment(ctx context.Context) (map[strin
 	}
 
 	// trying to improve start time accuracy - worth to consider optimizing as this runs every time the loop runs (1 second or so)
-	if j.executeForEachJvm(ctx, jvms, j.obtainAccurateStartTime, false, time.Second) {
+	if !j.executeForEachJvm(ctx, jvms, j.obtainAccurateStartTime, false, time.Second) {
 		j.logger.Infof("finding accurate start time for %v jvms did not finish successfully, either canceled or timed out", len(jvms))
 	}
 
 	j.filterCached(jvms)
 
-	if j.executeForEachJvm(ctx, jvms, j.obtainCommandLineArgs, false, time.Second) {
+	if !j.executeForEachJvm(ctx, jvms, j.obtainCommandLineArgs, false, time.Second) {
 		j.logger.Infof("finding command line args for %v jvms did not finish successfully, either canceled or timed out", len(jvms))
 	}
 
 	// todo: decide whether we have enough advantage to do that within the integration instead of doing it within the attacher
 	j.filterByDiscoveryRules(jvms)
 
-	if j.executeForEachJvm(ctx, jvms, j.verifyJvmExecutable, true, time.Second) {
+	if !j.executeForEachJvm(ctx, jvms, j.verifyJvmExecutable, true, time.Second) {
 		j.logger.Infof("verifying Java executables for %v jvms did not finish successfully, either canceled or timed out", len(jvms))
 	}
 
@@ -241,6 +247,9 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map
 
 func (j *JavaAttacher) executeForEachJvm(ctx context.Context, jvms map[string]*JvmDetails,
 	executable func(ctx context.Context, jvm *JvmDetails) error, removeOnError bool, timeout time.Duration) bool {
+	if len(jvms) == 0 {
+		return true
+	}
 	var wg sync.WaitGroup
 	for pid, jvm := range jvms {
 		wg.Add(1)
@@ -405,7 +414,8 @@ func (j *JavaAttacher) attach(ctx context.Context, jvm *JvmDetails) error {
 			default:
 			}
 			if err := json.Unmarshal(scanner.Bytes(), &b); err != nil {
-				j.logger.Errorf("error unmarshaling attacher logs: %v", err)
+				j.logger.Debugf("error unmarshaling attacher log line (probably not ECS-formatted): %v", err)
+				j.logger.Debugf(scanner.Text())
 				continue
 			}
 			switch b.LogLevel {
