@@ -28,7 +28,7 @@ import (
 
 func TestDiscoveryRulesAllowlist(t *testing.T) {
 	allowlistLength := len(config.JavaAttacherAllowlist)
-	args := make([]map[string]string, allowlistLength+1, allowlistLength+1)
+	args := make([]map[string]string, allowlistLength+1)
 	for discoveryRuleKey := range config.JavaAttacherAllowlist {
 		args = append(args, map[string]string{discoveryRuleKey: "test"})
 	}
