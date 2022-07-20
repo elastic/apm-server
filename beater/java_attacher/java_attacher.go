@@ -121,43 +121,25 @@ func (j *JavaAttacher) Run(ctx context.Context) {
 		return
 	}
 
-	c := make(chan struct{})
-	defer close(c)
-	go func() {
-		for {
-			// todo: remove
-			j.logger.Debugf("Starting iteration")
-			jvms, err := j.discoverJvmsForAttachment(ctx)
-			if err != nil {
-				j.logger.Infof("error during JVMs discovery: %v", err)
-			} else if len(jvms) > 0 {
-				for _, jvm := range jvms {
-					go func(jvm *JvmDetails) {
-						err := j.attach(ctx, jvm)
-						if err != nil {
-							j.logger.Errorf("error attaching to JVM %v: %v", jvm, err)
-						} else {
-							j.logger.Debugf("attached to JVM: %v", jvm)
-						}
-					}(jvm)
-				}
-			}
-			// todo: remove
-			j.logger.Debugf("Going into select")
-			select {
-			case <-ctx.Done():
-				return
-			case <-c:
-				return
-			default:
-				// todo - remove
-				j.logger.Debug("sleeping for 1 sec")
-				time.Sleep(1 * time.Second)
+	for {
+		jvms, err := j.discoverJvmsForAttachment(ctx)
+		if err != nil {
+			j.logger.Infof("error during JVMs discovery: %v", err)
+		} else {
+			if err := j.executeForEachJvm(ctx, jvms, j.attach, true, 30*time.Second); err != nil {
+				j.logger.Error(err)
 			}
 		}
-	}()
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			time.Sleep(time.Second)
+		}
+	}
 }
 
+// this function blocks until discovery has ended, an error occurred or the context had been cancelled
 func (j *JavaAttacher) discoverJvmsForAttachment(ctx context.Context) (map[string]*JvmDetails, error) {
 	jvms, err := j.discoverAllRunningJavaProcesses(ctx)
 	if err != nil {
@@ -173,21 +155,21 @@ func (j *JavaAttacher) discoverJvmsForAttachment(ctx context.Context) (map[strin
 	}
 
 	// trying to improve start time accuracy - worth to consider optimizing as this runs every time the loop runs (1 second or so)
-	if !j.executeForEachJvm(ctx, jvms, j.obtainAccurateStartTime, false, time.Second) {
-		j.logger.Infof("finding accurate start time for %v jvms did not finish successfully, either canceled or timed out", len(jvms))
+	if err := j.executeForEachJvm(ctx, jvms, j.obtainAccurateStartTime, false, time.Second); err != nil {
+		j.logger.Infof("finding accurate start time for %v jvms did not finish successfully: %v", len(jvms), err)
 	}
 
 	j.filterCached(jvms)
 
-	if !j.executeForEachJvm(ctx, jvms, j.obtainCommandLineArgs, false, time.Second) {
-		j.logger.Infof("finding command line args for %v jvms did not finish successfully, either canceled or timed out", len(jvms))
+	if err := j.executeForEachJvm(ctx, jvms, j.obtainCommandLineArgs, false, time.Second); err != nil {
+		j.logger.Infof("finding command line args for %v jvms did not finish successfully: %v", len(jvms), err)
 	}
 
 	// todo: decide whether we have enough advantage to do that within the integration instead of doing it within the attacher
 	j.filterByDiscoveryRules(jvms)
 
-	if !j.executeForEachJvm(ctx, jvms, j.verifyJvmExecutable, true, time.Second) {
-		j.logger.Infof("verifying Java executables for %v jvms did not finish successfully, either canceled or timed out", len(jvms))
+	if err := j.executeForEachJvm(ctx, jvms, j.verifyJvmExecutable, true, time.Second); err != nil {
+		j.logger.Infof("verifying Java executables for %v jvms did not finish successfully: %v", len(jvms), err)
 	}
 	if len(jvms) > 0 {
 		j.printJvms(jvms, "Java executable verification")
@@ -204,12 +186,13 @@ func (j *JavaAttacher) printJvms(jvms map[string]*JvmDetails, stepName string) {
 	}
 }
 
+// this function blocks until discovery has ended, an error occurred or the context had been cancelled
 func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map[string]*JvmDetails, error) {
 	jvms := make(map[string]*JvmDetails)
 
 	// We can't discover start time at this point because both `start` and `lstart` don't follow a strict-enough format,
 	// which may interfere with output parsing.
-	cmd := exec.CommandContext(ctx, "ps", "-A", "-ww", "-o", "user,uid,gid,pid,comm")
+	cmd := exec.CommandContext(ctx, "ps", "-A", "-ww", "-o", "user=,uid=,gid=,pid=,comm=")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
@@ -221,7 +204,9 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map
 	for scanner.Scan() {
 		line := scanner.Text()
 		psOutputLineParts := strings.Fields(line)
-		if len(psOutputLineParts) == 5 {
+		// we cannot rely on exact number of parts because the command output may contain spaces, however, since it is printed last,
+		// we are ok with just taking the command's first part in the case of Java processes
+		if len(psOutputLineParts) > 4 {
 			command := psOutputLineParts[4]
 			if strings.Contains(strings.ToLower(command), "java") {
 				pid := psOutputLineParts[3]
@@ -250,16 +235,22 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map
 	return jvms, nil
 }
 
+// this function blocks until the first of the following occurs:
+// 	1.	the requested operation was executed and terminated (orderly or erroneously) for all received JVMs
+//	2.	the joint execution timed out
+// 	3.	the context either had been cancelled
 func (j *JavaAttacher) executeForEachJvm(ctx context.Context, jvms map[string]*JvmDetails,
-	executable func(ctx context.Context, jvm *JvmDetails) error, removeOnError bool, timeout time.Duration) bool {
+	executable func(ctx context.Context, jvm *JvmDetails) error, removeOnError bool, timeout time.Duration) error {
 	if len(jvms) == 0 {
-		return true
+		return nil
 	}
+	timeoutCtx, cancelFunc := context.WithTimeout(ctx, timeout)
+	defer cancelFunc()
 	var wg sync.WaitGroup
 	for pid, jvm := range jvms {
 		wg.Add(1)
 		go func(jvm *JvmDetails, pid string) {
-			err := executable(ctx, jvm)
+			err := executable(timeoutCtx, jvm)
 			if err != nil {
 				j.logger.Debug(err)
 				if removeOnError {
@@ -276,11 +267,11 @@ func (j *JavaAttacher) executeForEachJvm(ctx context.Context, jvms map[string]*J
 	}()
 	select {
 	case <-ctx.Done():
-		return false
+		return ctx.Err()
+	case <-timeoutCtx.Done():
+		return timeoutCtx.Err()
 	case <-c:
-		return true
-	case <-time.After(timeout):
-		return false
+		return nil
 	}
 }
 
