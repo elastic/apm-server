@@ -22,9 +22,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -56,6 +58,7 @@ type JavaAttacher struct {
 	rawDiscoveryRules    []map[string]string
 	agentConfigs         map[string]string
 	downloadAgentVersion string
+	javaBin              string
 }
 
 func (j *JavaAttacher) addDiscoveryRule(rule discoveryRule) {
@@ -63,14 +66,18 @@ func (j *JavaAttacher) addDiscoveryRule(rule discoveryRule) {
 	j.logger.Debugf("added discovery rule: %v", rule.asString())
 }
 
-func New(cfg config.JavaAttacherConfig) JavaAttacher {
+func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
 	logger := logp.NewLogger("java-attacher")
+	if _, err := os.Stat(javaAttacher); err != nil {
+		return JavaAttacher{}, err
+	}
 	attacher := JavaAttacher{
 		logger:               logger,
 		enabled:              cfg.Enabled,
 		agentConfigs:         cfg.Config,
 		downloadAgentVersion: cfg.DownloadAgentVersion,
 		rawDiscoveryRules:    cfg.DiscoveryRules,
+		javaBin:              cfg.JavaBin,
 	}
 	for _, flag := range cfg.DiscoveryRules {
 		for name, value := range flag {
@@ -94,7 +101,7 @@ func New(cfg config.JavaAttacherConfig) JavaAttacher {
 			}
 		}
 	}
-	return attacher
+	return attacher, nil
 }
 
 func (j *JavaAttacher) addCmdLineDiscoveryRule(regexS string, isIncludeRule bool, argumentName string) {
@@ -115,12 +122,20 @@ func (j *JavaAttacher) findFirstMatch(jvm *JvmDetails) discoveryRule {
 	return nil
 }
 
-func (j *JavaAttacher) Run(ctx context.Context) {
+func (j *JavaAttacher) Run(ctx context.Context) error {
 	if !j.enabled {
-		j.logger.Debugf("Java Agent attacher is disabled")
-		return
+		return fmt.Errorf("java attacher is disabled")
 	}
 
+	if runtime.GOOS == "windows" {
+		// in Windows, we run the attacher by a JVM available to the current user in continuous mode and return immediately
+		if err := j.discoverJavaExecutable(); err != nil {
+			return err
+		}
+		return j.attach(ctx, &JvmDetails{})
+	}
+
+	// non-Windows - run discovery and attachment until context is closed
 	for {
 		jvms, err := j.discoverJvmsForAttachment(ctx)
 		if err != nil {
@@ -132,11 +147,30 @@ func (j *JavaAttacher) Run(ctx context.Context) {
 		}
 		select {
 		case <-ctx.Done():
-			return
+			return ctx.Err()
 		default:
 			time.Sleep(time.Second)
 		}
 	}
+}
+
+func (j *JavaAttacher) discoverJavaExecutable() error {
+	if j.javaBin == "" {
+		if jh := os.Getenv("JAVA_HOME"); jh != "" {
+			j.javaBin = filepath.Join(jh, "/bin/java")
+		} else {
+			bin, err := exec.LookPath("java")
+			if err != nil {
+				return fmt.Errorf("no java binary found: %v", err)
+			}
+			j.javaBin = bin
+		}
+	} else {
+		// Ensure we're using the correct separators for the system
+		// running apm-server
+		j.javaBin = filepath.FromSlash(j.javaBin)
+	}
+	return nil
 }
 
 // this function blocks until discovery has ended, an error occurred or the context had been cancelled
@@ -335,10 +369,10 @@ func (j *JavaAttacher) filterByDiscoveryRules(jvms map[string]*JvmDetails) {
 		matchRule := j.findFirstMatch(jvm)
 		if matchRule != nil {
 			if matchRule.include() {
-				j.logger.Debugf("include rule %v matches for JVM %v", matchRule, jvm)
+				j.logger.Debugf("include rule '%v' matches for JVM %v", matchRule.asString(), jvm)
 			} else {
 				delete(jvms, pid)
-				j.logger.Debugf("exclude rule %v matches for JVM %v", matchRule, jvm)
+				j.logger.Debugf("exclude rule '%v' matches for JVM %v", matchRule.asString(), jvm)
 			}
 		} else {
 			delete(jvms, pid)
@@ -445,23 +479,31 @@ func (j *JavaAttacher) attach(ctx context.Context, jvm *JvmDetails) error {
 
 func (j JavaAttacher) build(ctx context.Context, jvm *JvmDetails) *exec.Cmd {
 	args := append([]string{"-jar", javaAttacher}, j.formatArgs(jvm)...)
-	return exec.CommandContext(ctx, jvm.command, args...)
+	if jvm.command != "" {
+		return exec.CommandContext(ctx, jvm.command, args...)
+	}
+	return exec.CommandContext(ctx, j.javaBin, args...)
 }
 
 func (j JavaAttacher) formatArgs(jvm *JvmDetails) []string {
 	args := []string{"--log-level", "debug"}
-	args = append(args, "--include-pid", jvm.pid)
+	if jvm.pid != "" {
+		// attach to a specific process and return
+		args = append(args, "--include-pid", jvm.pid)
+	} else {
+		args = append(args, "--continuous")
+		// todo: discovery rules are currently applied in the integration level, unless attaching continuously to a non-specific process
+		// (typically on Windows). If we decide to apply at the attacher level by default - we need to move this from the conditional block
+		for _, flag := range j.rawDiscoveryRules {
+			for name, value := range flag {
+				args = append(args, "--"+name, value)
+			}
+		}
+	}
 
 	if j.downloadAgentVersion != "" {
 		args = append(args, "--download-agent-version", j.downloadAgentVersion)
 	}
-
-	// todo: decide if we apply rules in the integration level or the attacher level
-	//for _, flag := range j.rawDiscoveryRules {
-	//	for name, value := range flag {
-	//		args = append(args, "--"+name, value)
-	//	}
-	//}
 
 	cfg := make([]string, 0, len(j.agentConfigs))
 	for k, v := range j.agentConfigs {
