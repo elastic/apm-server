@@ -26,6 +26,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/magefile/mage/mg"
@@ -138,7 +139,30 @@ func filterPackages(types string) {
 	mage.Packages = packages
 }
 
+<<<<<<< HEAD
 // Package builds and packages apm-server for distribution.
+=======
+// Ironbank packages apm-server for the Ironbank distribution, relying on the
+// binaries having already been built.
+//
+// Use SNAPSHOT=true to build snapshots.
+func Ironbank() error {
+	if runtime.GOARCH != "amd64" {
+		fmt.Printf(">> Ironbank images are only supported for amd64 arch (%s is not supported)\n", runtime.GOARCH)
+		return nil
+	}
+	if err := prepareIronbankBuild(); err != nil {
+		return errors.Wrap(err, "failed to prepare the ironbank context")
+	}
+	if err := saveIronbank(); err != nil {
+		return errors.Wrap(err, "failed to save artifacts for ironbank")
+	}
+	return nil
+}
+
+// Package packages apm-server for distribution, relying on the
+// binaries having already been built.
+>>>>>>> 682a0e5b (automate the ironbank generation (#8537))
 //
 // Use SNAPSHOT=true to build snapshots.
 // Use PLATFORMS to control the target platforms. eg linux/amd64
@@ -180,6 +204,7 @@ func Update() error {
 	return nil
 }
 
+// GoTestUnit runs the go test unit.
 // Use RACE_DETECTOR=true to enable the race detector.
 func GoTestUnit(ctx context.Context) error {
 	return mage.GoTest(ctx, mage.DefaultGoTestUnitArgs())
@@ -239,6 +264,92 @@ func customizePackaging() {
 	}
 }
 
+func saveIronbank() error {
+	fmt.Println(">> saveIronbank: save the IronBank container context.")
+
+	ironbank := getIronbankContextName()
+	buildDir := filepath.Join("build", ironbank)
+	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
+		return fmt.Errorf("cannot find the folder with the ironbank context: %+v", err)
+	}
+
+	distributionsDir := "build/distributions"
+	if _, err := os.Stat(distributionsDir); os.IsNotExist(err) {
+		err := os.MkdirAll(distributionsDir, 0750)
+		if err != nil {
+			return fmt.Errorf("cannot create folder for docker artifacts: %+v", err)
+		}
+	}
+
+	// change dir to the buildDir location where the ironbank folder exists
+	// this will generate a tar.gz without some nested folders.
+	wd, _ := os.Getwd()
+	os.Chdir(buildDir)
+	defer os.Chdir(wd)
+
+	// move the folder to the parent folder, there are two parent folder since
+	// buildDir contains a two folders dir.
+	tarGzFile := filepath.Join("..", "..", distributionsDir, ironbank+".tar.gz")
+
+	// Save the build context as tar.gz artifact
+	err := mage.Tar("./", tarGzFile)
+	if err != nil {
+		return fmt.Errorf("cannot compress the tar.gz file: %+v", err)
+	}
+
+	return errors.Wrap(mage.CreateSHA512File(tarGzFile), "failed to create .sha512 file")
+}
+
+func getIronbankContextName() string {
+	version, _ := mage.BeatQualifiedVersion()
+	defaultBinaryName := "{{.Name}}-ironbank-{{.Version}}{{if .Snapshot}}-SNAPSHOT{{end}}"
+	outputDir, _ := mage.Expand(defaultBinaryName+"-docker-build-context", map[string]interface{}{
+		"Name":    "apm-server",
+		"Version": version,
+	})
+	return outputDir
+}
+
+func prepareIronbankBuild() error {
+	fmt.Println(">> prepareIronbankBuild: prepare the IronBank container context.")
+	ironbank := getIronbankContextName()
+	buildDir := filepath.Join("build", ironbank)
+	templatesDir := filepath.Join("packaging", "ironbank")
+
+	data := map[string]interface{}{
+		"MajorMinor": majorMinor(),
+	}
+
+	err := filepath.Walk(templatesDir, func(path string, info os.FileInfo, _ error) error {
+		if !info.IsDir() {
+			target := strings.TrimSuffix(
+				filepath.Join(buildDir, filepath.Base(path)),
+				".tmpl",
+			)
+
+			err := mage.ExpandFile(path, target, data)
+			if err != nil {
+				return errors.Wrapf(err, "expanding template '%s' to '%s'", path, target)
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func majorMinor() string {
+	if v, _ := mage.BeatQualifiedVersion(); v != "" {
+		parts := strings.SplitN(v, ".", 3)
+		return parts[0] + "." + parts[1]
+	}
+	return ""
+}
+
+// Check checks the source code for common problems.
 func Check() error {
 	fmt.Println(">> check: Checking source code for common problems")
 
