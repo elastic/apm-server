@@ -3,7 +3,7 @@ name: apm
 title: Elastic APM
 version: generated
 license: basic
-description: Ingest APM data
+description: Monitor, detect, and diagnose complex application performance issues.
 type: integration
 categories: ["elastic_stack", "monitoring"]
 conditions:
