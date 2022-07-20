@@ -226,6 +226,7 @@ APM_AGENT_JAVA_PUB_KEY:=apm-agent-java-public-key.asc
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
 release: $(MAGE) $(PYTHON) build/$(JAVA_ATTACHER_JAR) build/dependencies.csv
 	$(MAGE) package
+	$(MAGE) ironbank
 
 build/dependencies.csv: $(PYTHON) go.mod
 	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
