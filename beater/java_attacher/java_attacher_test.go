@@ -19,7 +19,6 @@ package javaattacher
 
 import (
 	"context"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -27,6 +26,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/beater/config"
 
