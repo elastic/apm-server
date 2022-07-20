@@ -305,8 +305,14 @@ release-manager-release: release
 
 .PHONY: release
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
+<<<<<<< HEAD
 release: $(MAGE) build/dependencies.csv
 	$(MAGE) package
+=======
+release: $(MAGE) $(PYTHON) build/$(JAVA_ATTACHER_JAR) build/dependencies.csv $(APM_SERVER_BINARIES)
+	@$(MAGE) package
+	@$(MAGE) ironbank
+>>>>>>> 682a0e5b (automate the ironbank generation (#8537))
 
 build/dependencies.csv: $(PYTHON) go.mod
 	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
