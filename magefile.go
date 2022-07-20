@@ -181,7 +181,6 @@ func Ironbank() error {
 }
 
 // Package packages the Beat for distribution.
-//
 // Use SNAPSHOT=true to build snapshots.
 // Use PLATFORMS to control the target platforms. eg linux/amd64
 // Use TYPES to control the target types. eg docker
