@@ -139,9 +139,6 @@ func filterPackages(types string) {
 	mage.Packages = packages
 }
 
-<<<<<<< HEAD
-// Package builds and packages apm-server for distribution.
-=======
 // Ironbank packages apm-server for the Ironbank distribution, relying on the
 // binaries having already been built.
 //
@@ -160,9 +157,7 @@ func Ironbank() error {
 	return nil
 }
 
-// Package packages apm-server for distribution, relying on the
-// binaries having already been built.
->>>>>>> 682a0e5b (automate the ironbank generation (#8537))
+// Package builds and packages apm-server for distribution.
 //
 // Use SNAPSHOT=true to build snapshots.
 // Use PLATFORMS to control the target platforms. eg linux/amd64
