@@ -24,14 +24,25 @@ import (
 )
 
 // Label keys are sanitized, replacing the reserved characters '.', '*' and '"'
-// with '_'. Null-valued labels are omitted.
+// with '_'. Null-valued labels are omitted. Labels must not be mutated, as it
+// may be shared by multiple events; if sanitization is required, a new map
+// will be returned.
 func sanitizeLabels(labels common.MapStr) common.MapStr {
+	cloned := false
 	for k, v := range labels {
 		if v == nil {
+			if !cloned {
+				labels = labels.Clone()
+				cloned = true
+			}
 			delete(labels, k)
 			continue
 		}
 		if k2 := sanitizeLabelKey(k); k != k2 {
+			if !cloned {
+				labels = labels.Clone()
+				cloned = true
+			}
 			delete(labels, k)
 			labels[k2] = v
 		}
