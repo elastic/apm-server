@@ -10,8 +10,8 @@ import (
 	"github.com/dgraph-io/badger/v2"
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/elasticsearch"
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 

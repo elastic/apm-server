@@ -21,8 +21,8 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/go-hdrhistogram"
 
-	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/internal/model"
 )
 
 const (
