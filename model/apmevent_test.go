@@ -20,6 +20,7 @@ package model
 import (
 	"context"
 	"net"
+	"sync"
 	"testing"
 	"time"
 
@@ -192,4 +193,26 @@ func TestAPMEventFields(t *testing.T) {
 		event := test.input.BeatEvent(context.Background())
 		assert.Equal(t, test.output, event.Fields)
 	}
+}
+
+func TestAPMEventSharedLabels(t *testing.T) {
+	// Labels will be shared by multiple events in the case where
+	// global labels are sent by an agent, and there are no event-
+	// specific labels. Ensure that transformation can safely be
+	// done in parallel.
+	input := APMEvent{
+		Labels: common.MapStr{
+			"nil_value":       nil,
+			"unsanitized.key": "needs_replacing",
+		},
+	}
+	var g sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		g.Add(1)
+		go func() {
+			defer g.Done()
+			_ = input.BeatEvent(context.Background())
+		}()
+	}
+	g.Wait()
 }
