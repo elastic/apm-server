@@ -162,9 +162,6 @@ func filterPackages(types string) {
 	mage.Packages = packages
 }
 
-<<<<<<< HEAD
-// Package packages the Beat for distribution.
-=======
 // Ironbank packages apm-server for the Ironbank distribution, relying on the
 // binaries having already been built.
 //
@@ -183,10 +180,8 @@ func Ironbank() error {
 	return nil
 }
 
-// Package packages apm-server for distribution, relying on the
-// binaries having already been built.
+// Package packages the Beat for distribution.
 //
->>>>>>> 682a0e5b (automate the ironbank generation (#8537))
 // Use SNAPSHOT=true to build snapshots.
 // Use PLATFORMS to control the target platforms. eg linux/amd64
 // Use TYPES to control the target types. eg docker
@@ -223,7 +218,6 @@ func Update() error {
 	return nil
 }
 
-<<<<<<< HEAD
 func Fields() error {
 	fieldsInclude := "include/fields.go"
 	xpackFieldsInclude := mage.XPackBeatDir(fieldsInclude)
@@ -323,9 +317,7 @@ func generateFieldsYAML(output string, modules ...string) error {
 	return ioutil.WriteFile(output, contents, 0644)
 }
 
-=======
 // GoTestUnit runs the go test unit.
->>>>>>> 682a0e5b (automate the ironbank generation (#8537))
 // Use RACE_DETECTOR=true to enable the race detector.
 func GoTestUnit(ctx context.Context) error {
 	return mage.GoTest(ctx, mage.DefaultGoTestUnitArgs())
