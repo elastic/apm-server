@@ -8,11 +8,15 @@ on:
       - 7.1*
       - 8.*
 
+env:
+  BASE_DIR: src/github.com/elastic/apm-server
+
 jobs:
   macos:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
+      path: $BASE_DIR
     - name: Fetch Go version from .go-version
       run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
     - uses: actions/setup-go@v2
@@ -21,6 +25,10 @@ jobs:
     - name: Install dependencies
       run:  go get -u github.com/magefile/mage
     - name: Run build
-      run: WORKSPACE=$GITHUB_WORKSPACE .ci/scripts/build.sh
+      run: |-
+        cd $BASE_DIR
+        WORKSPACE=$GITHUB_WORKSPACE .ci/scripts/build.sh
     - name: Run test
-      run: WORKSPACE=$GITHUB_WORKSPACE .ci/scripts/unit-test.sh
+      run: |-
+        cd $BASE_DIR
+        WORKSPACE=$GITHUB_WORKSPACE .ci/scripts/unit-test.sh
