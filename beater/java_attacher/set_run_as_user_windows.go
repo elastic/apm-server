@@ -21,7 +21,7 @@ import (
 	"os/exec"
 )
 
-func (j *JavaAttacher) setRunAsUser(_ *JvmDetails, _ *exec.Cmd) error {
+func (j *JavaAttacher) setRunAsUser(_ *jvmDetails, _ *exec.Cmd) error {
 	// See https://github.com/golang/go/issues/21105 for possible Windows alternative
 	return nil
 }
