@@ -76,8 +76,8 @@ pipeline {
     }
   }
   post {
-    failure {
-      notifyBuildResult(slackComment: true, slackNotify: true)
+    cleanup {
+      notifyBuildResult(slackComment: true)
     }
   }
 }
