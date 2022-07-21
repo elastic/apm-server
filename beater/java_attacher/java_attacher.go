@@ -136,28 +136,31 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 	}
 
 	if runtime.GOOS == "windows" {
-		// in Windows, we run the attacher by a JVM available to the current user in continuous mode and return immediately
+		// On Windows, we run the attacher by a JVM available to the
+		// current user in continuous mode.
 		if err := j.discoverJavaExecutable(); err != nil {
 			return err
 		}
-		return j.attach(ctx, &jvmDetails{})
+		return j.runAttacherContinuous(ctx)
 	}
 
-	// non-Windows - run discovery and attachment until context is closed
+	// Non-Windows: run discovery and attachment until context is closed.
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
 	for {
-		jvms, err := j.discoverJVMsForAttachment(ctx)
-		if err != nil {
-			j.logger.Infof("error during JVMs discovery: %v", err)
-		} else {
-			if err := j.executeForEachJVM(ctx, jvms, j.attach, true, 30*time.Second); err != nil {
-				j.logger.Error(err)
-			}
-		}
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		default:
-			time.Sleep(time.Second)
+		case <-ticker.C:
+		}
+		jvms, err := j.discoverJVMsForAttachment(ctx)
+		if err != nil {
+			// Error is non-fatal; try again next time.
+			j.logger.Errorf("error during JVMs discovery: %v", err)
+			continue
+		}
+		if err := j.executeForEachJVM(ctx, jvms, j.attachJVM, true, 30*time.Second); err != nil {
+			j.logger.Error(err)
 		}
 	}
 }
@@ -415,13 +418,56 @@ func (j *JavaAttacher) verifyJVMExecutable(ctx context.Context, jvm *jvmDetails)
 	return cmd.Wait()
 }
 
-func (j *JavaAttacher) attach(ctx context.Context, jvm *jvmDetails) error {
-	cmd := j.build(ctx, jvm)
-	err := j.setRunAsUser(jvm, cmd)
-	if err != nil {
-		j.logger.Errorf("failed to attach to JVM pid %v as user %v: %v. Trying to attach as current user,", jvm.pid, jvm.user, err)
+// attachJVM runs the Java agent attacher for a specific JVM.
+func (j *JavaAttacher) attachJVM(ctx context.Context, jvm *jvmDetails) error {
+	cmd := j.attachJVMCommand(ctx, jvm)
+	return runAttacherCommand(ctx, cmd, j.logger)
+}
+
+func (j *JavaAttacher) attachJVMCommand(ctx context.Context, jvm *jvmDetails) *exec.Cmd {
+	return j.attacherCommand(ctx, jvm.command, "--include-pid", jvm.pid)
+}
+
+// attachJVM runs the Java agent attacher in continuous mode, delegating
+// JVM discovery to the attacher.
+func (j *JavaAttacher) runAttacherContinuous(ctx context.Context) error {
+	cmd := j.runAttacherContinuousCommand(ctx)
+	return runAttacherCommand(ctx, cmd, j.logger)
+}
+
+func (j *JavaAttacher) runAttacherContinuousCommand(ctx context.Context) *exec.Cmd {
+	args := []string{"--continuous"}
+	for _, flag := range j.rawDiscoveryRules {
+		for name, value := range flag {
+			args = append(args, "--"+name, value)
+		}
 	}
-	j.logger.Infof("starting java attacher with command: %s", strings.Join(cmd.Args, " "))
+	return j.attacherCommand(ctx, j.javaBin, args...)
+}
+
+// attacherCommand returns an os/exec.Cmd that will run the Java agent attacher
+// with the given java command. If java is empty, then j.javaBin will be used.
+// Any supplied arguments will be appended to the command line.
+func (j *JavaAttacher) attacherCommand(ctx context.Context, java string, extraArgs ...string) *exec.Cmd {
+	args := []string{
+		"-jar", javaAttacher,
+		"--log-level", "debug",
+	}
+	if j.downloadAgentVersion != "" {
+		args = append(args, "--download-agent-version", j.downloadAgentVersion)
+	}
+	for k, v := range j.agentConfigs {
+		args = append(args, "--config", k+"="+v)
+	}
+	args = append(args, extraArgs...)
+	if java == "" {
+		java = j.javaBin
+	}
+	return exec.CommandContext(ctx, java, args...)
+}
+
+func runAttacherCommand(ctx context.Context, cmd *exec.Cmd, logger *logp.Logger) error {
+	logger.Infof("starting java attacher with command: %s", strings.Join(cmd.Args, " "))
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return fmt.Errorf("cannot read from attacher standard output: %w", err)
@@ -452,71 +498,35 @@ func (j *JavaAttacher) attach(ctx context.Context, jvm *jvmDetails) error {
 			default:
 			}
 			if err := json.Unmarshal(scanner.Bytes(), &b); err != nil {
-				j.logger.Debugf("error unmarshaling attacher log line (probably not ECS-formatted): %v", err)
-				j.logger.Debugf(scanner.Text())
+				logger.Debugf("error unmarshaling attacher log line (probably not ECS-formatted): %v", err)
+				logger.Debugf(scanner.Text())
 				continue
 			}
 			switch b.LogLevel {
 			case "FATAL", "ERROR":
-				j.logger.Error(b.Message)
+				logger.Error(b.Message)
 			case "WARN":
-				j.logger.Warn(b.Message)
+				logger.Warn(b.Message)
 			case "INFO":
-				j.logger.Info(b.Message)
+				logger.Info(b.Message)
 			case "DEBUG", "TRACE":
-				j.logger.Debug(b.Message)
+				logger.Debug(b.Message)
 			default:
-				j.logger.Errorf("unrecognized java-attacher log.level: %s", b.LogLevel)
+				logger.Errorf("unrecognized java-attacher log.level: %s", b.LogLevel)
 			}
 		}
 		if err := scanner.Err(); err != nil {
-			j.logger.Errorf("error reading attacher logs: %v", err)
+			logger.Errorf("error reading attacher logs: %v", err)
 		}
 	}()
 
 	scanner := bufio.NewScanner(stderr)
 	for scanner.Scan() {
-		j.logger.Errorf("error running attacher: %v", scanner.Text())
+		logger.Errorf("error running attacher: %v", scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
-		j.logger.Errorf("error reading attacher error output: %v", err)
+		logger.Errorf("error reading attacher error output: %v", err)
 	}
 
 	return cmd.Wait()
-}
-
-func (j JavaAttacher) build(ctx context.Context, jvm *jvmDetails) *exec.Cmd {
-	args := append([]string{"-jar", javaAttacher}, j.formatArgs(jvm)...)
-	if jvm.command != "" {
-		return exec.CommandContext(ctx, jvm.command, args...)
-	}
-	return exec.CommandContext(ctx, j.javaBin, args...)
-}
-
-func (j JavaAttacher) formatArgs(jvm *jvmDetails) []string {
-	args := []string{"--log-level", "debug"}
-	if jvm.pid != "" {
-		// attach to a specific process and return
-		args = append(args, "--include-pid", jvm.pid)
-	} else {
-		args = append(args, "--continuous")
-		// todo: discovery rules are currently applied in the integration level, unless attaching continuously to a non-specific process
-		// (typically on Windows). If we decide to apply at the attacher level by default - we need to move this from the conditional block
-		for _, flag := range j.rawDiscoveryRules {
-			for name, value := range flag {
-				args = append(args, "--"+name, value)
-			}
-		}
-	}
-
-	if j.downloadAgentVersion != "" {
-		args = append(args, "--download-agent-version", j.downloadAgentVersion)
-	}
-
-	cfg := make([]string, 0, len(j.agentConfigs))
-	for k, v := range j.agentConfigs {
-		cfg = append(cfg, "--config", k+"="+v)
-	}
-
-	return append(args, cfg...)
 }

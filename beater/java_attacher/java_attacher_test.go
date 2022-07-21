@@ -69,10 +69,10 @@ func TestBuildWithJvmDiscovery(t *testing.T) {
 		pid:     "12345",
 		command: "/home/someuser/java_home/bin/java",
 	}
-	cmd := attacher.build(context.Background(), jvm)
+	cmd := attacher.attachJVMCommand(context.Background(), jvm)
 	want := filepath.FromSlash("/home/someuser/java_home/bin/java -jar ./java-attacher.jar") +
-		" --log-level debug --include-pid 12345 " +
-		"--download-agent-version 1.27.0 --config server_url=http://myhost:8200"
+		" --log-level debug --download-agent-version 1.27.0 --config server_url=http://myhost:8200" +
+		" --include-pid 12345"
 
 	cmdArgs := strings.Join(cmd.Args, " ")
 	assert.Equal(t, want, cmdArgs)
@@ -81,7 +81,7 @@ func TestBuildWithJvmDiscovery(t *testing.T) {
 	attacher, err = New(cfg)
 	require.NoError(t, err)
 
-	cmd = attacher.build(context.Background(), jvm)
+	cmd = attacher.attachJVMCommand(context.Background(), jvm)
 	cmdArgs = strings.Join(cmd.Args, " ")
 	assert.Contains(t, cmdArgs, "--config server_url=http://myhost:8200")
 	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
@@ -97,11 +97,11 @@ func TestBuildWithoutJvmDiscovery(t *testing.T) {
 	attacher, err := New(cfg)
 	require.NoError(t, err)
 
-	cmd := attacher.build(context.Background(), &jvmDetails{})
+	cmd := attacher.runAttacherContinuousCommand(context.Background())
 	want := filepath.FromSlash("/usr/bin/java -jar ./java-attacher.jar") +
-		" --log-level debug --continuous --exclude-user root --include-main MyApplication " +
-		"--include-main my-application.jar --include-vmarg elastic.apm.agent.attach=true " +
-		"--download-agent-version 1.27.0 --config server_url=http://myhost:8200"
+		" --log-level debug --download-agent-version 1.27.0 --config server_url=http://myhost:8200" +
+		" --continuous --exclude-user root --include-main MyApplication" +
+		" --include-main my-application.jar --include-vmarg elastic.apm.agent.attach=true"
 
 	cmdArgs := strings.Join(cmd.Args, " ")
 	assert.Equal(t, want, cmdArgs)
@@ -110,7 +110,7 @@ func TestBuildWithoutJvmDiscovery(t *testing.T) {
 	attacher, err = New(cfg)
 	require.NoError(t, err)
 
-	cmd = attacher.build(context.Background(), &jvmDetails{})
+	cmd = attacher.runAttacherContinuousCommand(context.Background())
 	cmdArgs = strings.Join(cmd.Args, " ")
 	assert.Contains(t, cmdArgs, "--config server_url=http://myhost:8200")
 	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
