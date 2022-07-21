@@ -31,8 +31,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/apm-server/beater/config"
+	"golang.org/x/sync/errgroup"
+
 	"github.com/elastic/elastic-agent-libs/logp"
+
+	"github.com/elastic/apm-server/beater/config"
 )
 
 // javaAttacher is bundled by the server
@@ -159,8 +162,9 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 			j.logger.Errorf("error during JVMs discovery: %v", err)
 			continue
 		}
-		if err := j.executeForEachJVM(ctx, jvms, j.attachJVM, true, 30*time.Second); err != nil {
-			j.logger.Error(err)
+		if err := j.foreachJVM(ctx, jvms, j.attachJVM, true, 30*time.Second); err != nil {
+			// Error is non-fatal; try again next time.
+			j.logger.Errorf("JVM attachment failed: %s", err)
 		}
 	}
 }
@@ -186,6 +190,8 @@ func (j *JavaAttacher) discoverJavaExecutable() error {
 
 // this function blocks until discovery has ended, an error occurred or the context had been cancelled
 func (j *JavaAttacher) discoverJVMsForAttachment(ctx context.Context) (map[string]*jvmDetails, error) {
+	// TODO: use github.com/elastic/go-sysinfo instead of shelling out to `ps`.
+
 	jvms, err := j.discoverAllRunningJavaProcesses(ctx)
 	if err != nil {
 		return nil, err
@@ -193,27 +199,27 @@ func (j *JavaAttacher) discoverJVMsForAttachment(ctx context.Context) (map[strin
 
 	// remove stale processes from the cache
 	for pid := range j.jvmCache {
-		_, found := jvms[pid]
-		if !found {
+		if _, found := jvms[pid]; !found {
 			delete(j.jvmCache, pid)
 		}
 	}
 
 	// trying to improve start time accuracy - worth to consider optimizing as this runs every time the loop runs (1 second or so)
-	if err := j.executeForEachJVM(ctx, jvms, j.obtainAccurateStartTime, false, time.Second); err != nil {
+	if err := j.foreachJVM(ctx, jvms, j.obtainAccurateStartTime, false, time.Second); err != nil {
 		j.logger.Infof("finding accurate start time for %v jvms did not finish successfully: %v", len(jvms), err)
 	}
 
+	// Remove any JVMs that have previously been discovered.
 	j.filterCached(jvms)
 
-	if err := j.executeForEachJVM(ctx, jvms, j.obtainCommandLineArgs, false, time.Second); err != nil {
+	if err := j.foreachJVM(ctx, jvms, j.obtainCommandLineArgs, false, time.Second); err != nil {
 		j.logger.Infof("finding command line args for %v jvms did not finish successfully: %v", len(jvms), err)
 	}
 
 	// todo: decide whether we have enough advantage to do that within the integration instead of doing it within the attacher
 	j.filterByDiscoveryRules(jvms)
 
-	if err := j.executeForEachJVM(ctx, jvms, j.verifyJVMExecutable, true, time.Second); err != nil {
+	if err := j.foreachJVM(ctx, jvms, j.verifyJVMExecutable, true, time.Second); err != nil {
 		j.logger.Infof("verifying Java executables for %v jvms did not finish successfully: %v", len(jvms), err)
 	}
 	if len(jvms) > 0 {
@@ -280,44 +286,49 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map
 	return jvms, nil
 }
 
-// this function blocks until the first of the following occurs:
-// 	1.	the requested operation was executed and terminated (orderly or erroneously) for all received JVMs
-//	2.	the joint execution timed out
-// 	3.	the context either had been cancelled
-func (j *JavaAttacher) executeForEachJVM(ctx context.Context, jvms map[string]*jvmDetails,
-	executable func(ctx context.Context, jvm *jvmDetails) error, removeOnError bool, timeout time.Duration) error {
+// foreachJVM calls f for each JVM in jvms concurrently,
+// returning when one of the following is true:
+//   1. The function completes for each JVM
+//   2. The timeout is reached.
+//   3.	The context is cancelled.
+//
+// If removeOnError is true and f returns an error, that
+// JVM will be removed from the map.
+func (j *JavaAttacher) foreachJVM(
+	ctx context.Context,
+	jvms map[string]*jvmDetails,
+	f func(ctx context.Context, jvm *jvmDetails) error,
+	removeOnError bool,
+	timeout time.Duration,
+) error {
 	if len(jvms) == 0 {
 		return nil
 	}
-	timeoutCtx, cancelFunc := context.WithTimeout(ctx, timeout)
-	defer cancelFunc()
-	var wg sync.WaitGroup
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	// mutex for synchronisation removal on error. This being
+	// local assumes jvms is not accessed concurrently by any
+	// other goroutines.
+	var mu sync.Mutex
+
+	var g errgroup.Group
 	for pid, jvm := range jvms {
-		wg.Add(1)
-		go func(jvm *jvmDetails, pid string) {
-			err := executable(timeoutCtx, jvm)
+		pid, jvm := pid, jvm // copy for closure
+		g.Go(func() error {
+			err := f(ctx, jvm)
 			if err != nil {
-				j.logger.Debug(err)
+				j.logger.Error(err)
 				if removeOnError {
+					mu.Lock()
 					delete(jvms, pid)
+					mu.Unlock()
 				}
 			}
-			wg.Done()
-		}(jvm, pid)
+			return err
+		})
 	}
-	c := make(chan struct{})
-	go func() {
-		defer close(c)
-		wg.Wait()
-	}()
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-timeoutCtx.Done():
-		return timeoutCtx.Err()
-	case <-c:
-		return nil
-	}
+	return g.Wait()
 }
 
 func (j *JavaAttacher) obtainAccurateStartTime(ctx context.Context, jvmDetails *jvmDetails) error {
@@ -393,32 +404,22 @@ func (j *JavaAttacher) filterByDiscoveryRules(jvms map[string]*jvmDetails) {
 }
 
 func (j *JavaAttacher) verifyJVMExecutable(ctx context.Context, jvm *jvmDetails) error {
-	// `java -version` prints to the error stream, so we want to insist on it, we need to use StderrPipe instead of StdoutPipe
+	// NOTE: we use --version (double dash), not -version (single dash) to ensure output is sent to stdout.
 	cmd := exec.CommandContext(ctx, jvm.command, "--version")
-	err := j.setRunAsUser(jvm, cmd)
+	if err := j.setRunAsUser(jvm, cmd); err != nil {
+		j.logger.Warnf("Failed to run `java --version` as user %q: %v. Trying to execute as current user,", jvm.user, err)
+	}
+	output, err := cmd.Output()
 	if err != nil {
-		j.logger.Errorf("failed to run `java --version` as user %v: %v. Trying to execute as current user,", jvm.user, err)
+		return fmt.Errorf("java --version failed: %w (%s)", err, output)
 	}
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	scanner := bufio.NewScanner(stdout)
-	if scanner.Scan() {
-		// only use first line of the output
-		jvm.version = scanner.Text()
-	}
-	if err := scanner.Err(); err != nil {
-		j.logger.Errorf("error reading output of command '%v' when running as user %v: %v", strings.Join(cmd.Args, " "), jvm.user, err)
-	}
-	return cmd.Wait()
+	firstLine := strings.TrimSpace(strings.SplitAfterN(string(output), "\n", 2)[0])
+	jvm.version = firstLine
+	return nil
 }
 
-// attachJVM runs the Java agent attacher for a specific JVM.
+// attachJVM runs the Java agent attacher for a specific JVM. This will return
+// once the agent is attached; it is not long-running.
 func (j *JavaAttacher) attachJVM(ctx context.Context, jvm *jvmDetails) error {
 	cmd := j.attachJVMCommand(ctx, jvm)
 	return runAttacherCommand(ctx, cmd, j.logger)
@@ -527,6 +528,5 @@ func runAttacherCommand(ctx context.Context, cmd *exec.Cmd, logger *logp.Logger)
 	if err := scanner.Err(); err != nil {
 		logger.Errorf("error reading attacher error output: %v", err)
 	}
-
 	return cmd.Wait()
 }
