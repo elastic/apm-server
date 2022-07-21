@@ -32,4 +32,5 @@ jobs:
     - name: Run test
       run: |-
         cd $BASE_DIR
+        go get -u github.com/magefile/mage
         WORKSPACE=$GITHUB_WORKSPACE .ci/scripts/unit-test.sh
