@@ -19,43 +19,19 @@ package javaattacher
 
 import (
 	"context"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"testing"
-	"time"
-
-	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/beater/config"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestJavaBinaryDiscovery(t *testing.T) {
-	cfg := config.JavaAttacherConfig{JavaBin: ""}
-	t.Setenv("JAVA_HOME", "/usr/local")
-	f, err := os.Create(javaAttacher)
-	require.NoError(t, err)
-	//goland:noinspection GoUnhandledErrorResult
-	defer os.Remove(f.Name())
-	attacher, _ := New(cfg)
-	err = attacher.discoverJavaExecutable()
-	require.NoError(t, err)
-	javapath := filepath.FromSlash("/usr/local/bin/java")
-	assert.Equal(t, javapath, attacher.javaBin)
-
-	cfg.JavaBin = "/home/user/bin/java"
-	attacher, _ = New(cfg)
-	err = attacher.discoverJavaExecutable()
-	require.NoError(t, err)
-	javapath = filepath.FromSlash("/home/user/bin/java")
-	assert.Equal(t, javapath, attacher.javaBin)
-}
-
-func TestBuildWithJvmDiscovery(t *testing.T) {
+func TestBuild(t *testing.T) {
 	cfg := createTestConfig()
 	f, err := os.Create(javaAttacher)
 	require.NoError(t, err)
@@ -71,8 +47,7 @@ func TestBuildWithJvmDiscovery(t *testing.T) {
 	}
 	cmd := attacher.attachJVMCommand(context.Background(), jvm)
 	want := filepath.FromSlash("/home/someuser/java_home/bin/java -jar ./java-attacher.jar") +
-		" --log-level debug --download-agent-version 1.27.0 --config server_url=http://myhost:8200" +
-		" --include-pid 12345"
+		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
 
 	cmdArgs := strings.Join(cmd.Args, " ")
 	assert.Equal(t, want, cmdArgs)
@@ -82,35 +57,6 @@ func TestBuildWithJvmDiscovery(t *testing.T) {
 	require.NoError(t, err)
 
 	cmd = attacher.attachJVMCommand(context.Background(), jvm)
-	cmdArgs = strings.Join(cmd.Args, " ")
-	assert.Contains(t, cmdArgs, "--config server_url=http://myhost:8200")
-	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
-}
-
-func TestBuildWithoutJvmDiscovery(t *testing.T) {
-	cfg := createTestConfig()
-	f, err := os.Create(javaAttacher)
-	require.NoError(t, err)
-	//goland:noinspection GoUnhandledErrorResult
-	defer os.Remove(f.Name())
-
-	attacher, err := New(cfg)
-	require.NoError(t, err)
-
-	cmd := attacher.runAttacherContinuousCommand(context.Background())
-	want := filepath.FromSlash("/usr/bin/java -jar ./java-attacher.jar") +
-		" --log-level debug --download-agent-version 1.27.0 --config server_url=http://myhost:8200" +
-		" --continuous --exclude-user root --include-main MyApplication" +
-		" --include-main my-application.jar --include-vmarg elastic.apm.agent.attach=true"
-
-	cmdArgs := strings.Join(cmd.Args, " ")
-	assert.Equal(t, want, cmdArgs)
-
-	cfg.Config["service_name"] = "my-cool-service"
-	attacher, err = New(cfg)
-	require.NoError(t, err)
-
-	cmd = attacher.runAttacherContinuousCommand(context.Background())
 	cmdArgs = strings.Join(cmd.Args, " ")
 	assert.Contains(t, cmdArgs, "--config server_url=http://myhost:8200")
 	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
@@ -226,24 +172,4 @@ func TestConfig(t *testing.T) {
 	require.True(t, match.include())
 	javaAttacher.discoveryRules[4] = &userDiscoveryRule{}
 	require.Nil(t, javaAttacher.findFirstMatch(&jvmDetails))
-}
-
-func TestRunMode(t *testing.T) {
-	cfg := createTestConfig()
-	f, err := os.Create(javaAttacher)
-	require.NoError(t, err)
-	//goland:noinspection GoUnhandledErrorResult
-	defer os.Remove(f.Name())
-	attacher, err := New(cfg)
-	require.NoError(t, err)
-	timeout, cancelFunc := context.WithTimeout(context.Background(), time.Second)
-	defer cancelFunc()
-	attacher.Run(timeout)
-	if runtime.GOOS == "windows" {
-		require.NoError(t, timeout.Err())
-	} else {
-		err := timeout.Err()
-		require.Error(t, err, "test")
-		require.Equal(t, "context deadline exceeded", err.Error())
-	}
 }

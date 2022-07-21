@@ -27,7 +27,6 @@ import (
 	"os/user"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -62,7 +61,6 @@ type JavaAttacher struct {
 	rawDiscoveryRules    []map[string]string
 	agentConfigs         map[string]string
 	downloadAgentVersion string
-	javaBin              string
 	jvmCache             map[int]*jvmDetails
 }
 
@@ -77,7 +75,6 @@ func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
 		agentConfigs:         cfg.Config,
 		downloadAgentVersion: cfg.DownloadAgentVersion,
 		rawDiscoveryRules:    cfg.DiscoveryRules,
-		javaBin:              cfg.JavaBin,
 		jvmCache:             make(map[int]*jvmDetails),
 	}
 	for _, flag := range cfg.DiscoveryRules {
@@ -141,15 +138,6 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 		return fmt.Errorf("java attacher is disabled")
 	}
 
-	if runtime.GOOS == "windows" {
-		// On Windows, we run the attacher by a JVM available to the
-		// current user in continuous mode.
-		if err := j.discoverJavaExecutable(); err != nil {
-			return err
-		}
-		return j.runAttacherContinuous(ctx)
-	}
-
 	// Non-Windows: run discovery and attachment until context is closed.
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
@@ -161,7 +149,7 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 		}
 		jvms, err := j.discoverJVMsForAttachment(ctx)
 		if err != nil {
-			// Error is non-fatal; try again next time.
+			// Error is non-fatal; try again next time. Errors related to specific JVMs should not reoccur as we cache encountered JVMs.
 			j.logger.Errorf("error during JVMs discovery: %v", err)
 			continue
 		}
@@ -172,28 +160,9 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 	}
 }
 
-func (j *JavaAttacher) discoverJavaExecutable() error {
-	if j.javaBin == "" {
-		if jh := os.Getenv("JAVA_HOME"); jh != "" {
-			j.javaBin = filepath.Join(jh, "bin", "java")
-		} else {
-			bin, err := exec.LookPath("java")
-			if err != nil {
-				return fmt.Errorf("no java binary found: %w", err)
-			}
-			j.javaBin = bin
-		}
-	} else {
-		// Ensure we're using the correct separators for the system
-		// running apm-server
-		j.javaBin = filepath.FromSlash(j.javaBin)
-	}
-	return nil
-}
-
 // this function blocks until discovery has ended, an error occurred or the context had been cancelled
 func (j *JavaAttacher) discoverJVMsForAttachment(ctx context.Context) (map[int]*jvmDetails, error) {
-	jvms, err := j.discoverAllRunningJavaProcesses(ctx)
+	jvms, err := j.discoverAllRunningJavaProcesses()
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +177,6 @@ func (j *JavaAttacher) discoverJVMsForAttachment(ctx context.Context) (map[int]*
 	// Remove any JVMs that have previously been discovered.
 	j.filterCached(jvms)
 
-	// todo: decide whether we have enough advantage to do that within the integration instead of doing it within the attacher
 	j.filterByDiscoveryRules(jvms)
 
 	if err := j.foreachJVM(ctx, jvms, j.verifyJVMExecutable, true, time.Second); err != nil {
@@ -232,7 +200,7 @@ func (j *JavaAttacher) discoverJVMsForAttachment(ctx context.Context) (map[int]*
 
 // discoverAllRunningJavaProcesses returns a map of PIDs to running Java processes,
 // by looking for processes with "java" in the command.
-func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map[int]*jvmDetails, error) {
+func (j *JavaAttacher) discoverAllRunningJavaProcesses() (map[int]*jvmDetails, error) {
 	processes, err := sysinfo.Processes()
 	if err != nil {
 		return nil, err
@@ -265,11 +233,11 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map
 		}
 
 		var username string
-		if user, err := user.LookupId(uid); err != nil {
+		if jvmUser, err := user.LookupId(uid); err != nil {
 			j.logger.Warnf("failed to obtain username for user %s (process %d), using numerical ID", uid, pid)
 			username = userInfo.EUID
 		} else {
-			username = user.Username
+			username = jvmUser.Username
 		}
 
 		jvms[pid] = &jvmDetails{
@@ -376,40 +344,17 @@ func (j *JavaAttacher) verifyJVMExecutable(ctx context.Context, jvm *jvmDetails)
 }
 
 // attachJVM runs the Java agent attacher for a specific JVM. This will return
-// once the agent is attached; it is not long-running.
+// once the agent is attached or the context is closed; it may be blocking for long and should be called with a timeout context.
 func (j *JavaAttacher) attachJVM(ctx context.Context, jvm *jvmDetails) error {
 	cmd := j.attachJVMCommand(ctx, jvm)
 	return runAttacherCommand(ctx, cmd, j.logger)
 }
 
 func (j *JavaAttacher) attachJVMCommand(ctx context.Context, jvm *jvmDetails) *exec.Cmd {
-	return j.attacherCommand(ctx, jvm.command, "--include-pid", strconv.Itoa(jvm.pid))
-}
-
-// attachJVM runs the Java agent attacher in continuous mode, delegating
-// JVM discovery to the attacher.
-func (j *JavaAttacher) runAttacherContinuous(ctx context.Context) error {
-	cmd := j.runAttacherContinuousCommand(ctx)
-	return runAttacherCommand(ctx, cmd, j.logger)
-}
-
-func (j *JavaAttacher) runAttacherContinuousCommand(ctx context.Context) *exec.Cmd {
-	args := []string{"--continuous"}
-	for _, flag := range j.rawDiscoveryRules {
-		for name, value := range flag {
-			args = append(args, "--"+name, value)
-		}
-	}
-	return j.attacherCommand(ctx, j.javaBin, args...)
-}
-
-// attacherCommand returns an os/exec.Cmd that will run the Java agent attacher
-// with the given java command. If java is empty, then j.javaBin will be used.
-// Any supplied arguments will be appended to the command line.
-func (j *JavaAttacher) attacherCommand(ctx context.Context, java string, extraArgs ...string) *exec.Cmd {
 	args := []string{
 		"-jar", javaAttacher,
 		"--log-level", "debug",
+		"--include-pid", strconv.Itoa(jvm.pid),
 	}
 	if j.downloadAgentVersion != "" {
 		args = append(args, "--download-agent-version", j.downloadAgentVersion)
@@ -417,11 +362,7 @@ func (j *JavaAttacher) attacherCommand(ctx context.Context, java string, extraAr
 	for k, v := range j.agentConfigs {
 		args = append(args, "--config", k+"="+v)
 	}
-	args = append(args, extraArgs...)
-	if java == "" {
-		java = j.javaBin
-	}
-	return exec.CommandContext(ctx, java, args...)
+	return exec.CommandContext(ctx, jvm.command, args...)
 }
 
 func runAttacherCommand(ctx context.Context, cmd *exec.Cmd, logger *logp.Logger) error {
