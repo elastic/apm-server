@@ -67,7 +67,7 @@ func TestBuildWithJvmDiscovery(t *testing.T) {
 
 	jvm := &jvmDetails{
 		pid:     12345,
-		command: "/home/someuser/java_home/bin/java",
+		command: filepath.FromSlash("/home/someuser/java_home/bin/java"),
 	}
 	cmd := attacher.attachJVMCommand(context.Background(), jvm)
 	want := filepath.FromSlash("/home/someuser/java_home/bin/java -jar ./java-attacher.jar") +
@@ -129,7 +129,7 @@ func createTestConfig() config.JavaAttacherConfig {
 		Config: map[string]string{
 			"server_url": "http://myhost:8200",
 		},
-		JavaBin:              "/usr/bin/java",
+		JavaBin:              filepath.FromSlash("/usr/bin/java"),
 		DownloadAgentVersion: "1.27.0",
 	}
 	return cfg
