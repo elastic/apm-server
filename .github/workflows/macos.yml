@@ -8,16 +8,16 @@ on:
       - 7.1*
       - 8.*
 
-env:
-  BASE_DIR: src/github.com/elastic/apm-server
 
 jobs:
   macos:
     runs-on: macos-latest
+    env:
+      BASE_DIR: src/github.com/elastic/apm-server
     steps:
     - uses: actions/checkout@v3
       with:
-        path: $BASE_DIR
+        path: ${{ env.BASE_DIR }}
     - name: Fetch Go version from .go-version
       run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
     - uses: actions/setup-go@v2
