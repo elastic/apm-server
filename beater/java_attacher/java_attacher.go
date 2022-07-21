@@ -35,8 +35,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
-var encounteredJvmCache = make(map[string]*jvmDetails)
-
 // javaAttacher is bundled by the server
 var javaAttacher = filepath.FromSlash("./java-attacher.jar")
 
@@ -59,11 +57,7 @@ type JavaAttacher struct {
 	agentConfigs         map[string]string
 	downloadAgentVersion string
 	javaBin              string
-}
-
-func (j *JavaAttacher) addDiscoveryRule(rule discoveryRule) {
-	j.discoveryRules = append(j.discoveryRules, rule)
-	j.logger.Debugf("added discovery rule: %s", rule)
+	jvmCache             map[string]*jvmDetails
 }
 
 func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
@@ -78,6 +72,7 @@ func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
 		downloadAgentVersion: cfg.DownloadAgentVersion,
 		rawDiscoveryRules:    cfg.DiscoveryRules,
 		javaBin:              cfg.JavaBin,
+		jvmCache:             make(map[string]*jvmDetails),
 	}
 	for _, flag := range cfg.DiscoveryRules {
 		for name, value := range flag {
@@ -85,9 +80,9 @@ func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
 			case "include-all":
 				attacher.addDiscoveryRule(includeAllRule{})
 			case "include-user":
-				attacher.addDiscoveryRule(&userDiscoveryRule{user: value, isIncludeRule: true})
+				attacher.addUserDiscoveryRule(value, true)
 			case "exclude-user":
-				attacher.addDiscoveryRule(&userDiscoveryRule{user: value, isIncludeRule: false})
+				attacher.addUserDiscoveryRule(value, false)
 			case "include-main":
 				attacher.addCmdLineDiscoveryRule(value, true, "include-main")
 			case "exclude-main":
@@ -104,6 +99,10 @@ func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
 	return attacher, nil
 }
 
+func (j *JavaAttacher) addUserDiscoveryRule(user string, isIncludeRule bool) {
+	j.addDiscoveryRule(&userDiscoveryRule{user: user, isIncludeRule: isIncludeRule})
+}
+
 func (j *JavaAttacher) addCmdLineDiscoveryRule(regexS string, isIncludeRule bool, argumentName string) {
 	regex, err := regexp.Compile(regexS)
 	if err != nil {
@@ -115,6 +114,11 @@ func (j *JavaAttacher) addCmdLineDiscoveryRule(regexS string, isIncludeRule bool
 		isIncludeRule: isIncludeRule,
 		argumentName:  argumentName,
 	})
+}
+
+func (j *JavaAttacher) addDiscoveryRule(rule discoveryRule) {
+	j.discoveryRules = append(j.discoveryRules, rule)
+	j.logger.Debugf("added discovery rule: %s", rule)
 }
 
 func (j *JavaAttacher) findFirstMatch(jvm *jvmDetails) discoveryRule {
@@ -141,11 +145,11 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 
 	// non-Windows - run discovery and attachment until context is closed
 	for {
-		jvms, err := j.discoverJvmsForAttachment(ctx)
+		jvms, err := j.discoverJVMsForAttachment(ctx)
 		if err != nil {
 			j.logger.Infof("error during JVMs discovery: %v", err)
 		} else {
-			if err := j.executeForEachJvm(ctx, jvms, j.attach, true, 30*time.Second); err != nil {
+			if err := j.executeForEachJVM(ctx, jvms, j.attach, true, 30*time.Second); err != nil {
 				j.logger.Error(err)
 			}
 		}
@@ -178,45 +182,45 @@ func (j *JavaAttacher) discoverJavaExecutable() error {
 }
 
 // this function blocks until discovery has ended, an error occurred or the context had been cancelled
-func (j *JavaAttacher) discoverJvmsForAttachment(ctx context.Context) (map[string]*jvmDetails, error) {
+func (j *JavaAttacher) discoverJVMsForAttachment(ctx context.Context) (map[string]*jvmDetails, error) {
 	jvms, err := j.discoverAllRunningJavaProcesses(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// remove stale processes from the cache
-	for pid := range encounteredJvmCache {
+	for pid := range j.jvmCache {
 		_, found := jvms[pid]
 		if !found {
-			delete(encounteredJvmCache, pid)
+			delete(j.jvmCache, pid)
 		}
 	}
 
 	// trying to improve start time accuracy - worth to consider optimizing as this runs every time the loop runs (1 second or so)
-	if err := j.executeForEachJvm(ctx, jvms, j.obtainAccurateStartTime, false, time.Second); err != nil {
+	if err := j.executeForEachJVM(ctx, jvms, j.obtainAccurateStartTime, false, time.Second); err != nil {
 		j.logger.Infof("finding accurate start time for %v jvms did not finish successfully: %v", len(jvms), err)
 	}
 
 	j.filterCached(jvms)
 
-	if err := j.executeForEachJvm(ctx, jvms, j.obtainCommandLineArgs, false, time.Second); err != nil {
+	if err := j.executeForEachJVM(ctx, jvms, j.obtainCommandLineArgs, false, time.Second); err != nil {
 		j.logger.Infof("finding command line args for %v jvms did not finish successfully: %v", len(jvms), err)
 	}
 
 	// todo: decide whether we have enough advantage to do that within the integration instead of doing it within the attacher
 	j.filterByDiscoveryRules(jvms)
 
-	if err := j.executeForEachJvm(ctx, jvms, j.verifyJvmExecutable, true, time.Second); err != nil {
+	if err := j.executeForEachJVM(ctx, jvms, j.verifyJVMExecutable, true, time.Second); err != nil {
 		j.logger.Infof("verifying Java executables for %v jvms did not finish successfully: %v", len(jvms), err)
 	}
 	if len(jvms) > 0 {
-		j.printJvms(jvms, "Java executable verification")
+		j.printJVMs(jvms, "Java executable verification")
 	}
 
 	return jvms, nil
 }
 
-func (j *JavaAttacher) printJvms(jvms map[string]*jvmDetails, stepName string) {
+func (j *JavaAttacher) printJVMs(jvms map[string]*jvmDetails, stepName string) {
 	j.logger.Debugf("%v processes are candidates for Java agent attachment after %v:", len(jvms), stepName)
 	for _, jvm := range jvms {
 		j.logger.Debugf("PID: %v, version: %v, start-time: %v, user: '%v', command: '%v'",
@@ -277,7 +281,7 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map
 // 	1.	the requested operation was executed and terminated (orderly or erroneously) for all received JVMs
 //	2.	the joint execution timed out
 // 	3.	the context either had been cancelled
-func (j *JavaAttacher) executeForEachJvm(ctx context.Context, jvms map[string]*jvmDetails,
+func (j *JavaAttacher) executeForEachJVM(ctx context.Context, jvms map[string]*jvmDetails,
 	executable func(ctx context.Context, jvm *jvmDetails) error, removeOnError bool, timeout time.Duration) error {
 	if len(jvms) == 0 {
 		return nil
@@ -358,10 +362,10 @@ func (j *JavaAttacher) obtainCommandLineArgs(ctx context.Context, jvmDetails *jv
 
 func (j *JavaAttacher) filterCached(jvms map[string]*jvmDetails) {
 	for pid, jvm := range jvms {
-		cachedjvmDetails, found := encounteredJvmCache[pid]
+		cachedjvmDetails, found := j.jvmCache[pid]
 		if !found || cachedjvmDetails.startTime != jvm.startTime {
 			// this is a JVM not yet encountered - add to cache
-			encounteredJvmCache[pid] = jvm
+			j.jvmCache[pid] = jvm
 		} else {
 			delete(jvms, pid)
 		}
@@ -371,21 +375,21 @@ func (j *JavaAttacher) filterCached(jvms map[string]*jvmDetails) {
 func (j *JavaAttacher) filterByDiscoveryRules(jvms map[string]*jvmDetails) {
 	for pid, jvm := range jvms {
 		matchRule := j.findFirstMatch(jvm)
-		if matchRule != nil {
-			if matchRule.include() {
-				j.logger.Debugf("include rule %q matches for JVM %v", matchRule, jvm)
-			} else {
-				delete(jvms, pid)
-				j.logger.Debugf("exclude rule %q matches for JVM %v", matchRule, jvm)
-			}
-		} else {
+		if matchRule == nil {
 			delete(jvms, pid)
 			j.logger.Debugf("no rule matches JVM %v", jvm)
+			continue
+		}
+		if matchRule.include() {
+			j.logger.Debugf("include rule %q matches for JVM %v", matchRule, jvm)
+		} else {
+			delete(jvms, pid)
+			j.logger.Debugf("exclude rule %q matches for JVM %v", matchRule, jvm)
 		}
 	}
 }
 
-func (j *JavaAttacher) verifyJvmExecutable(ctx context.Context, jvm *jvmDetails) error {
+func (j *JavaAttacher) verifyJVMExecutable(ctx context.Context, jvm *jvmDetails) error {
 	// `java -version` prints to the error stream, so we want to insist on it, we need to use StderrPipe instead of StdoutPipe
 	cmd := exec.CommandContext(ctx, jvm.command, "--version")
 	err := j.setRunAsUser(jvm, cmd)
