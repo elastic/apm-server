@@ -33,7 +33,7 @@ func main() {
 	logp.DevelopmentSetup(logp.WithSelectors("*"))
 	ja, err := javaattacher.New(config.JavaAttacherConfig{
 		Enabled:        true,
-		DiscoveryRules: []map[string]string{{"include-all": ""}},
+		DiscoveryRules: []map[string]string{{"include-vmarg": "elastic.apm.attach=true"}},
 	})
 	if err != nil {
 		log.Fatal(err)
