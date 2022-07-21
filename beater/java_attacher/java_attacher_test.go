@@ -181,12 +181,12 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, "http://localhost:8200", javaAttacher.agentConfigs["server_url"])
 	require.Equal(t, "1.25.0", javaAttacher.downloadAgentVersion)
 	require.Len(t, javaAttacher.discoveryRules, 5)
-	require.Equal(t, userDiscoveryRule{user: "root", isIncludeRule: false}, javaAttacher.discoveryRules[0])
+	require.Equal(t, &userDiscoveryRule{user: "root", isIncludeRule: false}, javaAttacher.discoveryRules[0])
 	mainRegex, _ := regexp.Compile("MyApplication")
-	require.Equal(t, cmdLineDiscoveryRule{argumentName: "include-main", regex: mainRegex, isIncludeRule: true}, javaAttacher.discoveryRules[1])
-	require.Equal(t, userDiscoveryRule{user: "me", isIncludeRule: false}, javaAttacher.discoveryRules[2])
+	require.Equal(t, &cmdLineDiscoveryRule{argumentName: "include-main", regex: mainRegex, isIncludeRule: true}, javaAttacher.discoveryRules[1])
+	require.Equal(t, &userDiscoveryRule{user: "me", isIncludeRule: false}, javaAttacher.discoveryRules[2])
 	vmargRegex, _ := regexp.Compile("-D.*attach=true")
-	require.Equal(t, cmdLineDiscoveryRule{argumentName: "include-vmarg", regex: vmargRegex, isIncludeRule: true}, javaAttacher.discoveryRules[3])
+	require.Equal(t, &cmdLineDiscoveryRule{argumentName: "include-vmarg", regex: vmargRegex, isIncludeRule: true}, javaAttacher.discoveryRules[3])
 	require.Equal(t, includeAllRule{}, javaAttacher.discoveryRules[4])
 
 	jvmDetails := JvmDetails{
@@ -212,21 +212,21 @@ func TestConfig(t *testing.T) {
 
 	match := javaAttacher.findFirstMatch(&jvmDetails)
 	require.NotNil(t, match)
-	require.IsType(t, userDiscoveryRule{}, match)
-	require.Equal(t, "me", match.(userDiscoveryRule).user)
+	require.IsType(t, &userDiscoveryRule{}, match)
+	require.Equal(t, "me", match.(*userDiscoveryRule).user)
 	require.False(t, match.include())
-	javaAttacher.discoveryRules[2] = userDiscoveryRule{}
+	javaAttacher.discoveryRules[2] = &userDiscoveryRule{}
 	match = javaAttacher.findFirstMatch(&jvmDetails)
 	require.NotNil(t, match)
-	require.IsType(t, cmdLineDiscoveryRule{}, match)
-	require.Equal(t, vmargRegex, match.(cmdLineDiscoveryRule).regex)
+	require.IsType(t, &cmdLineDiscoveryRule{}, match)
+	require.Equal(t, vmargRegex, match.(*cmdLineDiscoveryRule).regex)
 	require.True(t, match.include())
-	javaAttacher.discoveryRules[3] = userDiscoveryRule{}
+	javaAttacher.discoveryRules[3] = &userDiscoveryRule{}
 	match = javaAttacher.findFirstMatch(&jvmDetails)
 	require.NotNil(t, match)
 	require.IsType(t, includeAllRule{}, match)
 	require.True(t, match.include())
-	javaAttacher.discoveryRules[4] = userDiscoveryRule{}
+	javaAttacher.discoveryRules[4] = &userDiscoveryRule{}
 	require.Nil(t, javaAttacher.findFirstMatch(&jvmDetails))
 }
 

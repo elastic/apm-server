@@ -85,9 +85,9 @@ func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
 			case "include-all":
 				attacher.addDiscoveryRule(includeAllRule{})
 			case "include-user":
-				attacher.addDiscoveryRule(userDiscoveryRule{user: value, isIncludeRule: true})
+				attacher.addDiscoveryRule(&userDiscoveryRule{user: value, isIncludeRule: true})
 			case "exclude-user":
-				attacher.addDiscoveryRule(userDiscoveryRule{user: value, isIncludeRule: false})
+				attacher.addDiscoveryRule(&userDiscoveryRule{user: value, isIncludeRule: false})
 			case "include-main":
 				attacher.addCmdLineDiscoveryRule(value, true, "include-main")
 			case "exclude-main":
@@ -110,7 +110,11 @@ func (j *JavaAttacher) addCmdLineDiscoveryRule(regexS string, isIncludeRule bool
 		j.logger.Errorf("invalid regex for the `%v` argument: %v", argumentName, err)
 		return
 	}
-	j.addDiscoveryRule(cmdLineDiscoveryRule{regex: regex, isIncludeRule: isIncludeRule, argumentName: argumentName})
+	j.addDiscoveryRule(&cmdLineDiscoveryRule{
+		regex:         regex,
+		isIncludeRule: isIncludeRule,
+		argumentName:  argumentName,
+	})
 }
 
 func (j *JavaAttacher) findFirstMatch(jvm *JvmDetails) discoveryRule {

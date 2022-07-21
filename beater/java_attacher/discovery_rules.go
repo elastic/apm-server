@@ -46,15 +46,15 @@ type userDiscoveryRule struct {
 	user          string
 }
 
-func (rule userDiscoveryRule) match(jvm *JvmDetails) bool {
+func (rule *userDiscoveryRule) match(jvm *JvmDetails) bool {
 	return jvm.user == rule.user
 }
 
-func (rule userDiscoveryRule) include() bool {
+func (rule *userDiscoveryRule) include() bool {
 	return rule.isIncludeRule
 }
 
-func (rule userDiscoveryRule) String() string {
+func (rule *userDiscoveryRule) String() string {
 	if rule.isIncludeRule {
 		return fmt.Sprintf("--include-user=%v", rule.user)
 	}
@@ -67,14 +67,14 @@ type cmdLineDiscoveryRule struct {
 	regex         *regexp.Regexp
 }
 
-func (rule cmdLineDiscoveryRule) match(jvm *JvmDetails) bool {
+func (rule *cmdLineDiscoveryRule) match(jvm *JvmDetails) bool {
 	return rule.regex.MatchString(jvm.cmdLineArgs)
 }
 
-func (rule cmdLineDiscoveryRule) include() bool {
+func (rule *cmdLineDiscoveryRule) include() bool {
 	return rule.isIncludeRule
 }
 
-func (rule cmdLineDiscoveryRule) String() string {
+func (rule *cmdLineDiscoveryRule) String() string {
 	return fmt.Sprintf("--%v=%v", rule.argumentName, rule.regex.String())
 }
