@@ -24,9 +24,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -34,6 +36,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/go-sysinfo"
 
 	"github.com/elastic/apm-server/beater/config"
 )
@@ -45,8 +48,8 @@ type jvmDetails struct {
 	user        string
 	uid         string
 	gid         string
-	pid         string
-	startTime   string
+	pid         int
+	startTime   time.Time
 	command     string
 	version     string
 	cmdLineArgs string
@@ -60,7 +63,7 @@ type JavaAttacher struct {
 	agentConfigs         map[string]string
 	downloadAgentVersion string
 	javaBin              string
-	jvmCache             map[string]*jvmDetails
+	jvmCache             map[int]*jvmDetails
 }
 
 func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
@@ -75,7 +78,7 @@ func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
 		downloadAgentVersion: cfg.DownloadAgentVersion,
 		rawDiscoveryRules:    cfg.DiscoveryRules,
 		javaBin:              cfg.JavaBin,
-		jvmCache:             make(map[string]*jvmDetails),
+		jvmCache:             make(map[int]*jvmDetails),
 	}
 	for _, flag := range cfg.DiscoveryRules {
 		for name, value := range flag {
@@ -189,9 +192,7 @@ func (j *JavaAttacher) discoverJavaExecutable() error {
 }
 
 // this function blocks until discovery has ended, an error occurred or the context had been cancelled
-func (j *JavaAttacher) discoverJVMsForAttachment(ctx context.Context) (map[string]*jvmDetails, error) {
-	// TODO: use github.com/elastic/go-sysinfo instead of shelling out to `ps`.
-
+func (j *JavaAttacher) discoverJVMsForAttachment(ctx context.Context) (map[int]*jvmDetails, error) {
 	jvms, err := j.discoverAllRunningJavaProcesses(ctx)
 	if err != nil {
 		return nil, err
@@ -204,84 +205,83 @@ func (j *JavaAttacher) discoverJVMsForAttachment(ctx context.Context) (map[strin
 		}
 	}
 
-	// trying to improve start time accuracy - worth to consider optimizing as this runs every time the loop runs (1 second or so)
-	if err := j.foreachJVM(ctx, jvms, j.obtainAccurateStartTime, false, time.Second); err != nil {
-		j.logger.Infof("finding accurate start time for %v jvms did not finish successfully: %v", len(jvms), err)
-	}
-
 	// Remove any JVMs that have previously been discovered.
 	j.filterCached(jvms)
-
-	if err := j.foreachJVM(ctx, jvms, j.obtainCommandLineArgs, false, time.Second); err != nil {
-		j.logger.Infof("finding command line args for %v jvms did not finish successfully: %v", len(jvms), err)
-	}
 
 	// todo: decide whether we have enough advantage to do that within the integration instead of doing it within the attacher
 	j.filterByDiscoveryRules(jvms)
 
 	if err := j.foreachJVM(ctx, jvms, j.verifyJVMExecutable, true, time.Second); err != nil {
-		j.logger.Infof("verifying Java executables for %v jvms did not finish successfully: %v", len(jvms), err)
+		// This is non-fatal: if the Java executable could not be verified for
+		// one of the JVM processes, then that process will be removed from the
+		// map and excluded from attachment.
+		j.logger.Infof("verifying Java executables for JVMs did not finish successfully: %s", err)
 	}
 	if len(jvms) > 0 {
-		j.printJVMs(jvms, "Java executable verification")
+		j.logger.Debugf("%v processes are candidates for Java agent attachment after Java executable verification:", len(jvms))
+		for _, jvm := range jvms {
+			j.logger.Debugf(
+				"PID: %v, version: %v, start-time: %s, user: %q, command: %q",
+				jvm.pid, jvm.version, jvm.startTime, jvm.user, jvm.command,
+			)
+		}
 	}
 
 	return jvms, nil
 }
 
-func (j *JavaAttacher) printJVMs(jvms map[string]*jvmDetails, stepName string) {
-	j.logger.Debugf("%v processes are candidates for Java agent attachment after %v:", len(jvms), stepName)
-	for _, jvm := range jvms {
-		j.logger.Debugf("PID: %v, version: %v, start-time: %v, user: '%v', command: '%v'",
-			jvm.pid, jvm.version, jvm.startTime, jvm.user, jvm.command)
-	}
-}
-
-// this function blocks until discovery has ended, an error occurred or the context had been cancelled
-func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map[string]*jvmDetails, error) {
-	jvms := make(map[string]*jvmDetails)
-
-	// We can't discover start time at this point because both `start` and `lstart` don't follow a strict-enough format,
-	// which may interfere with output parsing.
-	cmd := exec.CommandContext(ctx, "ps", "-A", "-ww", "-o", "user=,uid=,gid=,pid=,comm=")
-	stdout, err := cmd.StdoutPipe()
+// discoverAllRunningJavaProcesses returns a map of PIDs to running Java processes,
+// by looking for processes with "java" in the command.
+func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map[int]*jvmDetails, error) {
+	processes, err := sysinfo.Processes()
 	if err != nil {
 		return nil, err
 	}
-	if err := cmd.Start(); err != nil {
-		return nil, err
-	}
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		line := scanner.Text()
-		psOutputLineParts := strings.Fields(line)
-		// we cannot rely on exact number of parts because the command output may contain spaces, however, since it is printed last,
-		// we are ok with just taking the command's first part in the case of Java processes
-		if len(psOutputLineParts) > 4 {
-			command := psOutputLineParts[4]
-			if strings.Contains(strings.ToLower(command), "java") {
-				pid := psOutputLineParts[3]
-				jvms[pid] = &jvmDetails{
-					user:        psOutputLineParts[0],
-					uid:         psOutputLineParts[1],
-					gid:         psOutputLineParts[2],
-					pid:         pid,
-					startTime:   "unknown",
-					command:     command,
-					version:     "unknown",
-					cmdLineArgs: "",
-				}
-			}
-		} else {
-			j.logger.Errorf("Unexpected number of output fields (%v) from command '%v'", len(psOutputLineParts), strings.Join(cmd.Args, " "))
+	jvms := make(map[int]*jvmDetails)
+	for _, proc := range processes {
+		pid := proc.PID()
+		info, err := proc.Info()
+		if err != nil {
+			// We intentionally do not log this error, because it is expected that when
+			// apm-server runs as an unprivileged process, it cannot obtain information
+			// about every process on the system.
+			continue
 		}
-	}
-	if err := scanner.Err(); err != nil {
-		j.logger.Errorf("error reading output for command %q: %v", strings.Join(cmd.Args, " "), err)
-	}
-	err = cmd.Wait()
-	if err != nil {
-		j.logger.Errorf("error executing command %q: %v", strings.Join(cmd.Args, " "), err)
+		if !strings.Contains(strings.ToLower(info.Exe), "java") {
+			continue
+		}
+		userInfo, err := proc.User()
+		if err != nil {
+			j.logger.Warnf("failed to obtain user for process %d, ignoring", pid)
+			continue
+		}
+		uid := userInfo.EUID
+		if uid == "" {
+			uid = userInfo.UID
+		}
+		gid := userInfo.EGID
+		if gid == "" {
+			gid = userInfo.GID
+		}
+
+		var username string
+		if user, err := user.LookupId(uid); err != nil {
+			j.logger.Warnf("failed to obtain username for user %s (process %d), using numerical ID", uid, pid)
+			username = userInfo.EUID
+		} else {
+			username = user.Username
+		}
+
+		jvms[pid] = &jvmDetails{
+			user:        username,
+			uid:         uid,
+			gid:         gid,
+			pid:         pid,
+			startTime:   info.StartTime,
+			command:     info.Exe,
+			version:     "unknown", // filled in later
+			cmdLineArgs: strings.Join(info.Args, " "),
+		}
 	}
 	return jvms, nil
 }
@@ -296,7 +296,7 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map
 // JVM will be removed from the map.
 func (j *JavaAttacher) foreachJVM(
 	ctx context.Context,
-	jvms map[string]*jvmDetails,
+	jvms map[int]*jvmDetails,
 	f func(ctx context.Context, jvm *jvmDetails) error,
 	removeOnError bool,
 	timeout time.Duration,
@@ -331,53 +331,10 @@ func (j *JavaAttacher) foreachJVM(
 	return g.Wait()
 }
 
-func (j *JavaAttacher) obtainAccurateStartTime(ctx context.Context, jvmDetails *jvmDetails) error {
-	// An example output for "ps -p <PID> -o lstart=": "Mon Jul  4 16:01:48 2022"
-	// Optional optimization: chain all PIDs and execute a single command, e.g. "ps -p 18246 -p 680 -o lstart="
-	cmd := exec.CommandContext(ctx, "ps", "-p", fmt.Sprint(jvmDetails.pid), "-o", "lstart=")
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	scanner := bufio.NewScanner(stdout)
-	if scanner.Scan() {
-		jvmDetails.startTime = scanner.Text()
-	}
-	if err := scanner.Err(); err != nil {
-		j.logger.Errorf("error obtaining accurate start time for process %s using 'ps -o lstart=': %v", jvmDetails.pid, err)
-	}
-	return cmd.Wait()
-}
-
-func (j *JavaAttacher) obtainCommandLineArgs(ctx context.Context, jvmDetails *jvmDetails) error {
-	cmd := exec.CommandContext(ctx, "ps", "-p", fmt.Sprint(jvmDetails.pid), "-ww", "-o", "command=")
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	scanner := bufio.NewScanner(stdout)
-	if scanner.Scan() {
-		jvmDetails.cmdLineArgs = scanner.Text()
-		// at least in some Linux distributions, the `comm` option may only contain the executable and not the full path,
-		// so we should replace jvmDetails.command with the first part of the output of ps -o command
-		jvmDetails.command = strings.Fields(jvmDetails.cmdLineArgs)[0]
-	}
-	if err := scanner.Err(); err != nil {
-		j.logger.Errorf("error obtaining command line args for process %s using 'ps -o command=': %v", jvmDetails.pid, err)
-	}
-	return cmd.Wait()
-}
-
-func (j *JavaAttacher) filterCached(jvms map[string]*jvmDetails) {
+func (j *JavaAttacher) filterCached(jvms map[int]*jvmDetails) {
 	for pid, jvm := range jvms {
 		cachedjvmDetails, found := j.jvmCache[pid]
-		if !found || cachedjvmDetails.startTime != jvm.startTime {
+		if !found || !cachedjvmDetails.startTime.Equal(jvm.startTime) {
 			// this is a JVM not yet encountered - add to cache
 			j.jvmCache[pid] = jvm
 		} else {
@@ -386,7 +343,7 @@ func (j *JavaAttacher) filterCached(jvms map[string]*jvmDetails) {
 	}
 }
 
-func (j *JavaAttacher) filterByDiscoveryRules(jvms map[string]*jvmDetails) {
+func (j *JavaAttacher) filterByDiscoveryRules(jvms map[int]*jvmDetails) {
 	for pid, jvm := range jvms {
 		matchRule := j.findFirstMatch(jvm)
 		if matchRule == nil {
@@ -426,7 +383,7 @@ func (j *JavaAttacher) attachJVM(ctx context.Context, jvm *jvmDetails) error {
 }
 
 func (j *JavaAttacher) attachJVMCommand(ctx context.Context, jvm *jvmDetails) *exec.Cmd {
-	return j.attacherCommand(ctx, jvm.command, "--include-pid", jvm.pid)
+	return j.attacherCommand(ctx, jvm.command, "--include-pid", strconv.Itoa(jvm.pid))
 }
 
 // attachJVM runs the Java agent attacher in continuous mode, delegating
