@@ -21,6 +21,6 @@ jobs:
     - name: Install dependencies
       run:  go get -u github.com/magefile/mage
     - name: Run build
-      run: .ci/scripts/build.sh
+      run: WORKSPACE=$GITHUB_WORKSPACE .ci/scripts/build.sh
     - name: Run test
-      run: .ci/scripts/unit-test.sh
+      run: WORKSPACE=$GITHUB_WORKSPACE .ci/scripts/unit-test.sh
