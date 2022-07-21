@@ -5,7 +5,7 @@
     description: APM Server
     project-type: multibranch
     concurrent: true
-    script-path: Jenkinsfile
+    script-path: .ci/Jenkinsfile
     scm:
     - github:
         branch-discovery: no-pr
