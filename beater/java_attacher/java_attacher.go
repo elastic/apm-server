@@ -172,7 +172,7 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 func (j *JavaAttacher) discoverJavaExecutable() error {
 	if j.javaBin == "" {
 		if jh := os.Getenv("JAVA_HOME"); jh != "" {
-			j.javaBin = filepath.Join(jh, "/bin/java")
+			j.javaBin = filepath.Join(jh, "bin", "java")
 		} else {
 			bin, err := exec.LookPath("java")
 			if err != nil {
