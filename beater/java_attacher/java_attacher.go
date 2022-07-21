@@ -63,7 +63,7 @@ type JavaAttacher struct {
 
 func (j *JavaAttacher) addDiscoveryRule(rule discoveryRule) {
 	j.discoveryRules = append(j.discoveryRules, rule)
-	j.logger.Debugf("added discovery rule: %v", rule.asString())
+	j.logger.Debugf("added discovery rule: %s", rule)
 }
 
 func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
@@ -369,10 +369,10 @@ func (j *JavaAttacher) filterByDiscoveryRules(jvms map[string]*JvmDetails) {
 		matchRule := j.findFirstMatch(jvm)
 		if matchRule != nil {
 			if matchRule.include() {
-				j.logger.Debugf("include rule '%v' matches for JVM %v", matchRule.asString(), jvm)
+				j.logger.Debugf("include rule '%s' matches for JVM %v", matchRule, jvm)
 			} else {
 				delete(jvms, pid)
-				j.logger.Debugf("exclude rule '%v' matches for JVM %v", matchRule.asString(), jvm)
+				j.logger.Debugf("exclude rule '%s' matches for JVM %v", matchRule, jvm)
 			}
 		} else {
 			delete(jvms, pid)

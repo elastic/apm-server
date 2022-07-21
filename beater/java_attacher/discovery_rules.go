@@ -25,7 +25,6 @@ import (
 type discoveryRule interface {
 	include() bool
 	match(jvm *JvmDetails) bool
-	asString() string
 }
 
 type includeAllRule struct{}
@@ -38,7 +37,7 @@ func (includeAllRule) include() bool {
 	return true
 }
 
-func (includeAllRule) asString() string {
+func (includeAllRule) String() string {
 	return "--includeAll"
 }
 
@@ -55,7 +54,7 @@ func (rule userDiscoveryRule) include() bool {
 	return rule.isIncludeRule
 }
 
-func (rule userDiscoveryRule) asString() string {
+func (rule userDiscoveryRule) String() string {
 	if rule.isIncludeRule {
 		return fmt.Sprintf("--include-user=%v", rule.user)
 	}
@@ -76,6 +75,6 @@ func (rule cmdLineDiscoveryRule) include() bool {
 	return rule.isIncludeRule
 }
 
-func (rule cmdLineDiscoveryRule) asString() string {
+func (rule cmdLineDiscoveryRule) String() string {
 	return fmt.Sprintf("--%v=%v", rule.argumentName, rule.regex.String())
 }
