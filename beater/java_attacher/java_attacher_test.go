@@ -31,6 +31,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestNoAttacherCreatedWithoutDiscoveryRules(t *testing.T) {
+	cfg := config.JavaAttacherConfig{
+		Enabled: true,
+	}
+	_, err := New(cfg)
+	require.Error(t, err)
+}
+
 func TestBuild(t *testing.T) {
 	cfg := createTestConfig()
 	f, err := os.Create(javaAttacher)
@@ -89,6 +97,7 @@ func TestDiscoveryRulesAllowlist(t *testing.T) {
 	}
 	args = append(args, map[string]string{"invalid": "test"})
 	cfg := config.JavaAttacherConfig{
+		Enabled:        true,
 		DiscoveryRules: args,
 	}
 	f, err := os.Create(javaAttacher)

@@ -69,6 +69,13 @@ func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
 	if _, err := os.Stat(javaAttacher); err != nil {
 		return nil, err
 	}
+	if !cfg.Enabled {
+		return nil, fmt.Errorf("APM Java agent attacher needs to be explicitly enabled")
+	}
+	if len(cfg.DiscoveryRules) == 0 {
+		return nil, fmt.Errorf("APM Java agent attacher is enabled but no discovery rules are configured, " +
+			"meaning no JVM can be attached to")
+	}
 	attacher := &JavaAttacher{
 		logger:               logger,
 		enabled:              cfg.Enabled,
