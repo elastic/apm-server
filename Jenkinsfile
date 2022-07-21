@@ -62,7 +62,6 @@ pipeline {
             def regexps =[
               "^_beats.*",
               "^apm-server.yml",
-              "^apm-server.docker.yml",
               "^magefile.go",
               "^ingest.*",
               "^packaging.*",

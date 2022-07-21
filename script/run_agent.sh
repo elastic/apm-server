@@ -5,7 +5,7 @@
 
 set -xe
 
-version=$(mage version)
+version=$(make get-version)
 
 apmdir=apm-server-$version-linux-x86_64
 builddir=build/distributions/$apmdir

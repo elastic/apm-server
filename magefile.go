@@ -29,7 +29,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/magefile/mage/mg"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/dev-tools/mage"
@@ -63,7 +62,6 @@ func init() {
 	mage.BeatIndexPrefix = "apm"
 	mage.XPackDir = "x-pack"
 	mage.BeatUser = "apm-server"
-	mage.VirtualenvReqs = []string{filepath.Join(repo.RootDir, "script", "requirements.txt")}
 }
 
 // Build builds the Beat binary.
@@ -78,39 +76,6 @@ func Build() error {
 		args.BuildMode = ""
 	}
 	return mage.Build(args)
-}
-
-// Clean cleans all generated files and build artifacts.
-func Clean() error {
-	return mage.Clean()
-}
-
-// Config generates apm-server.yml and apm-server.docker.yml.
-func Config() error {
-	if err := mage.Config(mage.ShortConfigType, shortConfigFileParams(), "."); err != nil {
-		return err
-	}
-	return mage.Config(mage.DockerConfigType, dockerConfigFileParams(), ".")
-}
-
-func shortConfigFileParams() mage.ConfigFileParams {
-	return mage.ConfigFileParams{
-		Short: mage.ConfigParams{Template: mage.OSSBeatDir("_meta/beat.yml")},
-		ExtraVars: map[string]interface{}{
-			"elasticsearch_hostport": "localhost:9200",
-			"listen_hostport":        "localhost:" + config.DefaultPort,
-		},
-	}
-}
-
-func dockerConfigFileParams() mage.ConfigFileParams {
-	return mage.ConfigFileParams{
-		Docker: mage.ConfigParams{Template: mage.OSSBeatDir("_meta/beat.yml")},
-		ExtraVars: map[string]interface{}{
-			"elasticsearch_hostport": "elasticsearch:9200",
-			"listen_hostport":        "0.0.0.0:" + config.DefaultPort,
-		},
-	}
 }
 
 func keepPackages(types []string) map[mage.PackageType]struct{} {
@@ -172,22 +137,6 @@ func Package() error {
 		filterPackages(packageTypes)
 	}
 	return mage.Package()
-}
-
-// Version prints out the qualified stack version.
-func Version() error {
-	v, err := mage.BeatQualifiedVersion()
-	if err != nil {
-		return err
-	}
-	fmt.Print(v)
-	return nil
-}
-
-// Update updates the generated files.
-func Update() error {
-	mg.Deps(Config)
-	return nil
 }
 
 // GoTestUnit runs the go test unit.
@@ -340,31 +289,4 @@ func majorMinor() string {
 		return parts[0] + "." + parts[1]
 	}
 	return ""
-}
-
-// Check checks the source code for common problems.
-func Check() error {
-	fmt.Println(">> check: Checking source code for common problems")
-
-	mg.Deps(mage.GoVet, mage.CheckPythonTestNotExecutable, mage.CheckYAMLNotExecutable)
-
-	changes, err := mage.GitDiffIndex()
-	if err != nil {
-		return errors.Wrap(err, "failed to diff the git index")
-	}
-	if len(changes) > 0 {
-		if mg.Verbose() {
-			mage.GitDiff()
-		}
-		return errors.Errorf("some files are not up-to-date. "+
-			"Run 'make fmt update' then review and commit the changes. "+
-			"Modified: %v", changes)
-	}
-	return nil
-}
-
-// PythonEnv ensures the Python venv is up-to-date with the beats requrements.txt.
-func PythonEnv() error {
-	_, err := mage.PythonVirtualenv(false)
-	return err
 }
