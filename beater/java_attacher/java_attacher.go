@@ -66,12 +66,12 @@ func (j *JavaAttacher) addDiscoveryRule(rule discoveryRule) {
 	j.logger.Debugf("added discovery rule: %s", rule)
 }
 
-func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
+func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
 	logger := logp.NewLogger("java-attacher")
 	if _, err := os.Stat(javaAttacher); err != nil {
-		return JavaAttacher{}, err
+		return nil, err
 	}
-	attacher := JavaAttacher{
+	attacher := &JavaAttacher{
 		logger:               logger,
 		enabled:              cfg.Enabled,
 		agentConfigs:         cfg.Config,
