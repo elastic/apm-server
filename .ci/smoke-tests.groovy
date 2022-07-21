@@ -10,6 +10,7 @@ pipeline {
     EC_KEY_SECRET = 'secret/observability-team/ci/elastic-cloud/observability-pro'
     TERRAFORM_VERSION = '1.2.3'
     CREATED_DATE = "${new Date().getTime()}"
+    SLACK_CHANNEL = "#apm-server"
   }
 
   options {
@@ -72,6 +73,11 @@ pipeline {
           }
         }
       }
+    }
+  }
+  post {
+    failure {
+      notifyBuildResult(slackComment: true, slackNotify: true)
     }
   }
 }
