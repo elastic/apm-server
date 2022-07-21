@@ -262,14 +262,14 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map
 			if strings.Contains(strings.ToLower(command), "java") {
 				pid := psOutputLineParts[3]
 				jvms[pid] = &jvmDetails{
-					psOutputLineParts[0],
-					psOutputLineParts[1],
-					psOutputLineParts[2],
-					pid,
-					"unknown",
-					command,
-					"unknown",
-					"",
+					user:        psOutputLineParts[0],
+					uid:         psOutputLineParts[1],
+					gid:         psOutputLineParts[2],
+					pid:         pid,
+					startTime:   "unknown",
+					command:     command,
+					version:     "unknown",
+					cmdLineArgs: "",
 				}
 			}
 		} else {
