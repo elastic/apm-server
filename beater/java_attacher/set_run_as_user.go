@@ -31,10 +31,10 @@ import (
 func (j *JavaAttacher) setRunAsUser(jvm *JvmDetails, cmd *exec.Cmd) error {
 	currentUser, err := user.Current()
 	if err != nil {
-		j.logger.Infof("failed to get the current user: %v", err)
-	} else {
-		j.logger.Debugf("current user: %v", currentUser)
+		return fmt.Errorf("failed to get the current user: %w", err)
 	}
+	j.logger.Debugf("current user: %v", currentUser)
+
 	if currentUser.Gid != jvm.gid || currentUser.Uid != jvm.uid {
 		uid, err := strconv.ParseInt(jvm.uid, 10, 32)
 		if err != nil {
@@ -44,7 +44,6 @@ func (j *JavaAttacher) setRunAsUser(jvm *JvmDetails, cmd *exec.Cmd) error {
 		if err != nil {
 			return fmt.Errorf("invalid GID %q: %w", jvm.gid, err)
 		}
-
 		cmd.SysProcAttr = &syscall.SysProcAttr{}
 		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)}
 	}
