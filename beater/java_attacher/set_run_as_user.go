@@ -28,7 +28,7 @@ import (
 	"syscall"
 )
 
-func (j *JavaAttacher) setRunAsUser(jvm *JvmDetails, cmd *exec.Cmd) error {
+func (j *JavaAttacher) setRunAsUser(jvm *jvmDetails, cmd *exec.Cmd) error {
 	currentUser, err := user.Current()
 	if err != nil {
 		return fmt.Errorf("failed to get the current user: %w", err)

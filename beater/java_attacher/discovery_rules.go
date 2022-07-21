@@ -24,12 +24,12 @@ import (
 
 type discoveryRule interface {
 	include() bool
-	match(jvm *JvmDetails) bool
+	match(jvm *jvmDetails) bool
 }
 
 type includeAllRule struct{}
 
-func (includeAllRule) match(jvm *JvmDetails) bool {
+func (includeAllRule) match(jvm *jvmDetails) bool {
 	return true
 }
 
@@ -46,7 +46,7 @@ type userDiscoveryRule struct {
 	user          string
 }
 
-func (rule *userDiscoveryRule) match(jvm *JvmDetails) bool {
+func (rule *userDiscoveryRule) match(jvm *jvmDetails) bool {
 	return jvm.user == rule.user
 }
 
@@ -67,7 +67,7 @@ type cmdLineDiscoveryRule struct {
 	regex         *regexp.Regexp
 }
 
-func (rule *cmdLineDiscoveryRule) match(jvm *JvmDetails) bool {
+func (rule *cmdLineDiscoveryRule) match(jvm *jvmDetails) bool {
 	return rule.regex.MatchString(jvm.cmdLineArgs)
 }
 

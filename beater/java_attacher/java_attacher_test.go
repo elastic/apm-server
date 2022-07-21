@@ -65,7 +65,7 @@ func TestBuildWithJvmDiscovery(t *testing.T) {
 	attacher, err := New(cfg)
 	require.NoError(t, err)
 
-	jvm := &JvmDetails{
+	jvm := &jvmDetails{
 		pid:     "12345",
 		command: "/home/someuser/java_home/bin/java",
 	}
@@ -97,7 +97,7 @@ func TestBuildWithoutJvmDiscovery(t *testing.T) {
 	attacher, err := New(cfg)
 	require.NoError(t, err)
 
-	cmd := attacher.build(context.Background(), &JvmDetails{})
+	cmd := attacher.build(context.Background(), &jvmDetails{})
 	want := filepath.FromSlash("/usr/bin/java -jar ./java-attacher.jar") +
 		" --log-level debug --continuous --exclude-user root --include-main MyApplication " +
 		"--include-main my-application.jar --include-vmarg elastic.apm.agent.attach=true " +
@@ -110,7 +110,7 @@ func TestBuildWithoutJvmDiscovery(t *testing.T) {
 	attacher, err = New(cfg)
 	require.NoError(t, err)
 
-	cmd = attacher.build(context.Background(), &JvmDetails{})
+	cmd = attacher.build(context.Background(), &jvmDetails{})
 	cmdArgs = strings.Join(cmd.Args, " ")
 	assert.Contains(t, cmdArgs, "--config server_url=http://myhost:8200")
 	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
@@ -189,7 +189,7 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, &cmdLineDiscoveryRule{argumentName: "include-vmarg", regex: vmargRegex, isIncludeRule: true}, javaAttacher.discoveryRules[3])
 	require.Equal(t, includeAllRule{}, javaAttacher.discoveryRules[4])
 
-	jvmDetails := JvmDetails{
+	jvmDetails := jvmDetails{
 		user:      "me",
 		uid:       "",
 		gid:       "",
