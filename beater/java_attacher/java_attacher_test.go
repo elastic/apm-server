@@ -66,7 +66,7 @@ func TestBuildWithJvmDiscovery(t *testing.T) {
 	require.NoError(t, err)
 
 	jvm := &jvmDetails{
-		pid:     "12345",
+		pid:     12345,
 		command: "/home/someuser/java_home/bin/java",
 	}
 	cmd := attacher.attachJVMCommand(context.Background(), jvm)
@@ -190,13 +190,11 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, includeAllRule{}, javaAttacher.discoveryRules[4])
 
 	jvmDetails := jvmDetails{
-		user:      "me",
-		uid:       "",
-		gid:       "",
-		pid:       "",
-		startTime: "",
-		command:   "",
-		version:   "",
+		user:    "me",
+		uid:     "",
+		gid:     "",
+		command: "",
+		version: "",
 		cmdLineArgs: "org.apache.catalina.startup.Bootstrap --add-opens=java.base/java.lang=ALL-UNNAMED " +
 			"--add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED " +
 			"--add-opens=java.base/java.util.concurrent=ALL-UNNAMED " +
