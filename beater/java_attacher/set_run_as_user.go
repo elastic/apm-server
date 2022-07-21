@@ -38,11 +38,11 @@ func (j *JavaAttacher) setRunAsUser(jvm *JvmDetails, cmd *exec.Cmd) error {
 	if currentUser.Gid != jvm.gid || currentUser.Uid != jvm.uid {
 		uid, err := strconv.ParseInt(jvm.uid, 10, 32)
 		if err != nil {
-			return fmt.Errorf("invalid UID '%v': %v", jvm.uid, err)
+			return fmt.Errorf("invalid UID %q: %w", jvm.uid, err)
 		}
 		gid, err := strconv.ParseInt(jvm.gid, 10, 32)
 		if err != nil {
-			return fmt.Errorf("invalid GID '%v': %v", jvm.gid, err)
+			return fmt.Errorf("invalid GID %q: %w", jvm.gid, err)
 		}
 
 		cmd.SysProcAttr = &syscall.SysProcAttr{}

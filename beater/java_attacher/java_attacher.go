@@ -97,7 +97,7 @@ func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
 			case "exclude-vmarg":
 				attacher.addCmdLineDiscoveryRule(value, false, "exclude-main")
 			default:
-				logger.Errorf("Unknown discovery rule - '%v'", name)
+				logger.Warnf("Ignoring unknown discovery rule %q", name)
 			}
 		}
 	}
@@ -107,7 +107,7 @@ func New(cfg config.JavaAttacherConfig) (JavaAttacher, error) {
 func (j *JavaAttacher) addCmdLineDiscoveryRule(regexS string, isIncludeRule bool, argumentName string) {
 	regex, err := regexp.Compile(regexS)
 	if err != nil {
-		j.logger.Errorf("invalid regex for the `%v` argument: %v", argumentName, err)
+		j.logger.Errorf("invalid regex for the %q argument: %v", argumentName, err)
 		return
 	}
 	j.addDiscoveryRule(&cmdLineDiscoveryRule{
@@ -165,7 +165,7 @@ func (j *JavaAttacher) discoverJavaExecutable() error {
 		} else {
 			bin, err := exec.LookPath("java")
 			if err != nil {
-				return fmt.Errorf("no java binary found: %v", err)
+				return fmt.Errorf("no java binary found: %w", err)
 			}
 			j.javaBin = bin
 		}
@@ -264,11 +264,11 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses(ctx context.Context) (map
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		j.logger.Errorf("error reading output for command '%v': %v", strings.Join(cmd.Args, " "), err)
+		j.logger.Errorf("error reading output for command %q: %v", strings.Join(cmd.Args, " "), err)
 	}
 	err = cmd.Wait()
 	if err != nil {
-		j.logger.Errorf("error executing command '%v': %v", strings.Join(cmd.Args, " "), err)
+		j.logger.Errorf("error executing command %q: %v", strings.Join(cmd.Args, " "), err)
 	}
 	return jvms, nil
 }
@@ -329,7 +329,7 @@ func (j *JavaAttacher) obtainAccurateStartTime(ctx context.Context, jvmDetails *
 		jvmDetails.startTime = scanner.Text()
 	}
 	if err := scanner.Err(); err != nil {
-		j.logger.Errorf("error obtaining accurate start time for process %v using 'ps -o lstart=': %v", err)
+		j.logger.Errorf("error obtaining accurate start time for process %s using 'ps -o lstart=': %v", jvmDetails.pid, err)
 	}
 	return cmd.Wait()
 }
@@ -351,7 +351,7 @@ func (j *JavaAttacher) obtainCommandLineArgs(ctx context.Context, jvmDetails *Jv
 		jvmDetails.command = strings.Fields(jvmDetails.cmdLineArgs)[0]
 	}
 	if err := scanner.Err(); err != nil {
-		j.logger.Errorf("error obtaining command line args for process %v using 'ps -o command=': %v", err)
+		j.logger.Errorf("error obtaining command line args for process %s using 'ps -o command=': %v", jvmDetails.pid, err)
 	}
 	return cmd.Wait()
 }
@@ -373,10 +373,10 @@ func (j *JavaAttacher) filterByDiscoveryRules(jvms map[string]*JvmDetails) {
 		matchRule := j.findFirstMatch(jvm)
 		if matchRule != nil {
 			if matchRule.include() {
-				j.logger.Debugf("include rule '%s' matches for JVM %v", matchRule, jvm)
+				j.logger.Debugf("include rule %q matches for JVM %v", matchRule, jvm)
 			} else {
 				delete(jvms, pid)
-				j.logger.Debugf("exclude rule '%s' matches for JVM %v", matchRule, jvm)
+				j.logger.Debugf("exclude rule %q matches for JVM %v", matchRule, jvm)
 			}
 		} else {
 			delete(jvms, pid)
@@ -420,15 +420,15 @@ func (j *JavaAttacher) attach(ctx context.Context, jvm *JvmDetails) error {
 	j.logger.Infof("starting java attacher with command: %s", strings.Join(cmd.Args, " "))
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("cannot read from attacher standard output: %v", err)
+		return fmt.Errorf("cannot read from attacher standard output: %w", err)
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return fmt.Errorf("cannot read from attacher standard error: %v", err)
+		return fmt.Errorf("cannot read from attacher standard error: %w", err)
 	}
 
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to start attacher standard error: %v", err)
+		return fmt.Errorf("failed to start attacher standard error: %w", err)
 	}
 
 	donec := make(chan struct{})
