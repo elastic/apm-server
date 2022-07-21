@@ -53,11 +53,7 @@ pipeline {
                 def smokeTests = sh(returnStdout: true, script: 'make smoketest/discover').trim().split('\r?\n')
                 def smokeTestJobs = [:]
                 for (smokeTest in smokeTests) {
-                  smokeTestJobs["Run smoke tests in ${smokeTest}"] = {
-                    stage("Run smoke tests in ${smokeTest}") {
-                      sh(label: 'Run smoke tests', script: "make smoketest/run TEST_DIR=${smokeTest}")
-                    }
-                  }
+                  smokeTestJobs["Run smoke tests in ${smokeTest}"] = runSmokeTest(smokeTest)
                 }
                 parallel smokeTestJobs
               }
@@ -76,6 +72,14 @@ pipeline {
           }
         }
       }
+    }
+  }
+}
+
+def runSmokeTest(String testDir) {
+  return {
+    stage("Run smoke tests in ${testDir}") {
+      sh(label: 'Run smoke tests', script: "make smoketest/run TEST_DIR=${testDir}")
     }
   }
 }
