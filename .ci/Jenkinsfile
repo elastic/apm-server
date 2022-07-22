@@ -33,13 +33,8 @@ pipeline {
     booleanParam(name: 'Run_As_Main_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on main branch.')
     booleanParam(name: 'arm_ci', defaultValue: true, description: 'Enable ARM build')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
-<<<<<<< HEAD
-    booleanParam(name: 'osx_ci', defaultValue: true, description: 'Enable OSX CI')
-    booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
-=======
     booleanParam(name: 'osx_ci', defaultValue: false, description: 'Enable OSX CI')
-    booleanParam(name: 'windows_ci', defaultValue: false, description: 'Enable Windows CI')
->>>>>>> bec7fb44 (ci: enable github actions for macos (#8685))
+    booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
