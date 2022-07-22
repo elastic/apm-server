@@ -25,8 +25,7 @@ type JavaAttacherConfig struct {
 	Enabled              bool                `config:"enabled"`
 	DiscoveryRules       []map[string]string `config:"discovery-rules"`
 	Config               map[string]string   `config:"config"`
-	JavaBin              string
-	DownloadAgentVersion string `config:"download-agent-version"`
+	DownloadAgentVersion string              `config:"download-agent-version"`
 }
 
 func (j JavaAttacherConfig) setup() error {

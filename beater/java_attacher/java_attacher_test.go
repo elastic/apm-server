@@ -19,16 +19,16 @@ package javaattacher
 
 import (
 	"context"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
 
-	"github.com/elastic/apm-server/beater/config"
-
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/beater/config"
 )
 
 func TestNoAttacherCreatedWithoutDiscoveryRules(t *testing.T) {
@@ -83,7 +83,6 @@ func createTestConfig() config.JavaAttacherConfig {
 		Config: map[string]string{
 			"server_url": "http://myhost:8200",
 		},
-		JavaBin:              filepath.FromSlash("/usr/bin/java"),
 		DownloadAgentVersion: "1.27.0",
 	}
 	return cfg
