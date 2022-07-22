@@ -10,6 +10,7 @@ pipeline {
     EC_KEY_SECRET = 'secret/observability-team/ci/elastic-cloud/observability-pro'
     TERRAFORM_VERSION = '1.2.3'
     CREATED_DATE = "${new Date().getTime()}"
+    SLACK_CHANNEL = "#apm-server"
   }
 
   options {
@@ -53,11 +54,7 @@ pipeline {
                 def smokeTests = sh(returnStdout: true, script: 'make smoketest/discover').trim().split('\r?\n')
                 def smokeTestJobs = [:]
                 for (smokeTest in smokeTests) {
-                  smokeTestJobs["Run smoke tests in ${smokeTest}"] = {
-                    stage("Run smoke tests in ${smokeTest}") {
-                      sh(label: 'Run smoke tests', script: "make smoketest/run TEST_DIR=${smokeTest}")
-                    }
-                  }
+                  smokeTestJobs["Run smoke tests in ${smokeTest}"] = runSmokeTest(smokeTest)
                 }
                 parallel smokeTestJobs
               }
@@ -76,6 +73,19 @@ pipeline {
           }
         }
       }
+    }
+  }
+  post {
+    cleanup {
+      notifyBuildResult(slackComment: true)
+    }
+  }
+}
+
+def runSmokeTest(String testDir) {
+  return {
+    stage("Run smoke tests in ${testDir}") {
+      sh(label: 'Run smoke tests', script: "make smoketest/run TEST_DIR=${testDir}")
     }
   }
 }

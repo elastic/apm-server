@@ -438,6 +438,22 @@ Attributes can be added as a part of the OpenTelemetry instrumentation process o
 --
 
 [float]
+[[elastic-open-telemetry-proxy-apm]]
+==== Proxy requests to APM Server
+
+APM Server supports both the {ot-grpc}[(OTLP/gRPC)] and {ot-http}[(OTLP/HTTP)] protocol on the same port as Elastic APM agent requests. For ease of setup, we recommend using OTLP/HTTP when proxying or load balancing requests to the APM Server.
+
+If you use the OTLP/gRPC protocol, requests to the APM Server must use either HTTP/2 over TLS or HTTP/2 Cleartext (H2C). No matter which protocol is used, OTLP/gRPC requests will have the header: `"Content-Type: application/grpc"`.
+
+When using a layer 7 (L7) proxy like AWS ALB, requests must be proxied in a way that ensures requests to the APM Server follow the rules outlined above. For example, with ALB you can create rules to select an alternative backend protocol based on the headers of requests coming into ALB. In this example, you'd select the gRPC protocol when the  `"Content-Type: application/grpc"` header exists on a request.
+
+For more information on how to configure an AWS ALB to support gRPC, see this AWS blog post:
+https://aws.amazon.com/blogs/aws/new-application-load-balancer-support-for-end-to-end-http-2-and-grpc/[Application Load Balancer Support for End-to-End HTTP/2 and gRPC].
+
+For more information on how APM Server services gRPC requests, see
+https://github.com/elastic/apm-server/blob/main/dev_docs/otel.md#muxing-grpc-and-http11[Muxing gRPC and HTTP/1.1].
+
+[float]
 [[elastic-open-telemetry-known-limitations]]
 ==== Limitations
 

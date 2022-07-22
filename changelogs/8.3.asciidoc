@@ -3,9 +3,20 @@
 
 https://github.com/elastic/apm-server/compare/8.2\...8.3[View commits]
 
+* <<release-notes-8.3.3>>
 * <<release-notes-8.3.2>>
 * <<release-notes-8.3.1>>
 * <<release-notes-8.3.0>>
+
+[float]
+[[release-notes-8.3.3]]
+=== APM version 8.3.3
+
+https://github.com/elastic/apm-server/compare/8.3.2\...8.3.3[View commits]
+
+[float]
+==== Bug fixes
+- Update APM integration description {pull}8592[8592]
 
 [float]
 [[release-notes-8.3.2]]
