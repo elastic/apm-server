@@ -12,12 +12,8 @@ on:
 jobs:
   macos:
     runs-on: macos-latest
-    env:
-      BASE_DIR: src/github.com/elastic/apm-server
     steps:
     - uses: actions/checkout@v3
-      with:
-        path: ${{ env.BASE_DIR }}
     - name: Fetch Go version from .go-version
       run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
     - uses: actions/setup-go@v3
@@ -26,5 +22,4 @@ jobs:
         cache: true
     - name: Run tests
       run: |-
-        cd $BASE_DIR
         go test -v ./...
