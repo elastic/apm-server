@@ -23,14 +23,7 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
-    - name: Install dependencies
-      run:  go get -u github.com/magefile/mage
-    - name: Run build
+    - name: Run tests
       run: |-
         cd $BASE_DIR
-        WORKSPACE=$GITHUB_WORKSPACE .ci/scripts/build.sh
-    - name: Run test
-      run: |-
-        cd $BASE_DIR
-        go get -u github.com/magefile/mage
-        WORKSPACE=$GITHUB_WORKSPACE .ci/scripts/unit-test.sh
+        go test -v ./...
