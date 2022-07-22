@@ -5,11 +5,13 @@ go 1.17
 require (
 	github.com/elastic/elastic-package v0.45.1
 	github.com/elastic/go-licenser v0.4.0
+	github.com/elastic/gobench v0.0.0-20220608141032-f30bc57e329c
 	github.com/reviewdog/reviewdog v0.13.1-0.20211107024453-1ccbebf6b175
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	github.com/terraform-docs/terraform-docs v0.16.0
 	go.elastic.co/go-licence-detector v0.5.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
+	gotest.tools/gotestsum v1.7.0
 	honnef.co/go/tools v0.3.0
 )
 
@@ -48,10 +50,10 @@ require (
 	github.com/creasty/defaults v1.5.2 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dnephin/pflag v1.0.7 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/elastic/go-elasticsearch/v7 v7.17.1 // indirect
 	github.com/elastic/go-ucfg v0.8.4 // indirect
-	github.com/elastic/gobench v0.0.0-20220608141032-f30bc57e329c // indirect
 	github.com/elastic/package-spec v1.7.0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/envoyproxy/go-control-plane v0.10.1 // indirect
@@ -105,6 +107,7 @@ require (
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jedib0t/go-pretty v4.3.0+incompatible // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
+	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/karrick/godirwalk v1.15.8 // indirect
