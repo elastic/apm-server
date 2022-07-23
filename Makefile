@@ -122,7 +122,7 @@ update-beats-docs: $(PYTHON)
 # Beats synchronisation.
 ##############################################################################
 
-BEATS_VERSION?=main
+BEATS_VERSION?=8.3
 BEATS_MODULE:=$(shell $(GO) list -m -f {{.Path}} all | grep github.com/elastic/beats)
 
 .PHONY: update-beats
