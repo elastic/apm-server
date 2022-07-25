@@ -25,8 +25,7 @@ type JavaAttacherConfig struct {
 	Enabled              bool                `config:"enabled"`
 	DiscoveryRules       []map[string]string `config:"discovery-rules"`
 	Config               map[string]string   `config:"config"`
-	JavaBin              string
-	DownloadAgentVersion string `config:"download-agent-version"`
+	DownloadAgentVersion string              `config:"download-agent-version"`
 }
 
 func (j JavaAttacherConfig) setup() error {
@@ -38,7 +37,7 @@ func (j JavaAttacherConfig) setup() error {
 			return fmt.Errorf("unexpected discovery rule format: %v", rule)
 		}
 		for flag := range rule {
-			if _, ok := allowlist[flag]; !ok {
+			if _, ok := JavaAttacherAllowlist[flag]; !ok {
 				return fmt.Errorf("unrecognized discovery rule: --%s. Supported flags are available at https://www.elastic.co/guide/en/apm/agent/java/current/setup-attach-cli.html", flag)
 			}
 		}
@@ -46,7 +45,7 @@ func (j JavaAttacherConfig) setup() error {
 	return nil
 }
 
-var allowlist = map[string]struct{}{
+var JavaAttacherAllowlist = map[string]struct{}{
 	"include-all":   {},
 	"include-main":  {},
 	"include-vmarg": {},

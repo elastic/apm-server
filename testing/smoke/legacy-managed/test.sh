@@ -2,6 +2,11 @@
 
 set -eo pipefail
 
+if [[ ${1} != 7.17 ]]; then
+    echo "-> Skipping smoke test..."
+    exit 0
+fi
+
 VERSION=7.17
 LATEST_VERSION=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions/${VERSION} | jq -r '.version.builds[0].version')
 
