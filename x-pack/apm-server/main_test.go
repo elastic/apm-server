@@ -20,10 +20,10 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
 
-	"github.com/elastic/apm-server/beater"
-	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/elasticsearch"
-	"github.com/elastic/apm-server/model/modelprocessor"
+	"github.com/elastic/apm-server/internal/beater"
+	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/internal/model/modelprocessor"
 )
 
 func TestMonitoring(t *testing.T) {

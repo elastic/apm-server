@@ -24,7 +24,7 @@ import (
 
 	"github.com/tidwall/gjson"
 
-	"github.com/elastic/apm-server/approvaltest"
+	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/systemtest/estest"
 )
 

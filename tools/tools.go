@@ -28,7 +28,6 @@ import (
 	_ "github.com/reviewdog/reviewdog/cmd/reviewdog" // go.mod/go.sum
 	_ "github.com/t-yuki/gocover-cobertura"          // go.mod/go.sum
 	_ "go.elastic.co/go-licence-detector"            // go.mod/go.sum
-	_ "golang.org/x/lint/golint"                     // go.mod/go.sum
 	_ "gotest.tools/gotestsum"                       // go.mod/go.sum
 	_ "honnef.co/go/tools/cmd/staticcheck"           // go.mod/go.sum
 

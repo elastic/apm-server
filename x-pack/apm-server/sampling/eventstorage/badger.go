@@ -7,7 +7,7 @@ package eventstorage
 import (
 	"github.com/dgraph-io/badger/v2"
 
-	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
