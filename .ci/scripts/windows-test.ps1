@@ -18,27 +18,7 @@ function Exec {
     }
 }
 
-# Setup Go.
 $env:GOPATH = $env:WORKSPACE
 $env:PATH = "$env:GOPATH\bin;C:\tools\mingw64\bin;$env:PATH"
 & gvm --format=powershell $(Get-Content .go-version) | Invoke-Expression
-
-# Write cached magefile binaries to workspace to ensure
-# each run starts from a clean slate.
-$env:MAGEFILE_CACHE = "$env:WORKSPACE\.magefile"
-
-# Configure testing parameters.
-$env:TEST_COVERAGE = "true"
-$env:RACE_DETECTOR = "true"
-
-# Install mage.
-exec { go install github.com/magefile/mage }
-
-if (Test-Path "build") { Remove-Item -Recurse -Force build }
-New-Item -ItemType directory -Path build\coverage | Out-Null
-
-echo "Building $env:beat"
-exec { mage build } "Build FAILURE"
-
-echo "Unit testing $env:beat"
-exec { mage goTestUnit }
+exec { go test -v ./... }

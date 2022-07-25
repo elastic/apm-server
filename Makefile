@@ -52,7 +52,7 @@ apm-server-oss:
 
 .PHONY: test
 test:
-	$(GO) test $(GOTESTFLAGS) ./...
+	@$(GO) test $(GOTESTFLAGS) ./...
 
 .PHONY: system-test
 system-test:

@@ -134,7 +134,7 @@ pipeline {
           // }
           steps {
             withGithubNotify(context: 'apmpackage') {
-              runWithMage() {
+              runWithGo() {
                 sh(script: 'make build-package', label: 'make build-package')
                 archiveArtifacts(allowEmptyArchive: false, artifacts: 'build/packages/*.zip')
                 // sh(label: 'package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
@@ -222,11 +222,11 @@ def runReleaseManager(def args = [:]) {
   }
 }
 
-def runWithMage(Closure body) {
+def runWithGo(Closure body) {
   deleteDir()
   unstash 'source'
   dir("${BASE_DIR}"){
-    withMageEnv() {
+    withGoEnv() {
       body()
     }
   }
@@ -250,7 +250,7 @@ def runPackage(def args = [:]) {
   if (type.equals('staging')) {
     makeGoal = 'release-manager-release'
   }
-  runWithMage() {
+  runWithGo() {
     sh(label: "make ${makeGoal}", script: "make ${makeGoal}")
   }
 }
