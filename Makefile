@@ -49,7 +49,7 @@ apm-server: build/apm-server-$(shell $(GO) env GOOS)-$(shell $(GO) env GOARCH)
 
 .PHONY: apm-server-oss
 apm-server-oss:
-	@$(GO) build -o $@
+	@$(GO) build -o $@ ./cmd/apm-server
 
 .PHONY: test
 test:
@@ -98,12 +98,14 @@ apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml
 
 .PHONY: go-generate
 go-generate:
-	@$(GO) generate .
+	@$(GO) run internal/model/modeldecoder/generator/cmd/main.go
+	@$(GO) run internal/model/modelprocessor/generate_internal_metrics.go
+	@bash script/vendor_otel.sh
 	@cd cmd/intake-receiver && APM_SERVER_VERSION=$(APM_SERVER_VERSION) $(GO) generate .
 
 notice: NOTICE.txt
 NOTICE.txt: $(PYTHON) go.mod tools/go.mod
-	@$(PYTHON) script/generate_notice.py . ./x-pack/apm-server
+	@$(PYTHON) script/generate_notice.py ./cmd/apm-server ./x-pack/apm-server
 
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
@@ -246,6 +248,7 @@ APM_AGENT_JAVA_PUB_KEY:=apm-agent-java-public-key.asc
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
 release: $(MAGE) $(PYTHON) build/$(JAVA_ATTACHER_JAR) build/dependencies.csv $(APM_SERVER_BINARIES)
 	@$(MAGE) package
+	@$(MAGE) ironbank
 
 build/dependencies.csv: $(PYTHON) go.mod
 	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
@@ -292,7 +295,7 @@ SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -t
 
 .PHONY: smoketest/discover
 smoketest/discover:
-	@echo $(SMOKETEST_DIRS)
+	@echo "$(SMOKETEST_DIRS)"
 
 .PHONY: smoketest/run
 smoketest/run:

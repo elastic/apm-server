@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/docker/docker v20.10.17+incompatible
 	github.com/docker/go-connections v0.4.0
-	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
+	github.com/elastic/apm-server/internal/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20211026132249-f55eeca23be5
 	github.com/gofrs/uuid v4.1.0+incompatible
 	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38
@@ -102,6 +102,6 @@ require (
 
 replace (
 	github.com/containerd/containerd => github.com/containerd/containerd v1.6.6
-	github.com/elastic/apm-server/approvaltest => ../approvaltest
+	github.com/elastic/apm-server/internal/approvaltest => ../internal/approvaltest
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 )
