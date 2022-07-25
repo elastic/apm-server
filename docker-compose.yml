@@ -98,7 +98,7 @@ services:
       interval: 5s
     volumes:
       - "./testing/docker/package-registry/config.yml:/package-registry/config.yml"
-      - "./build/integrations/apm:/packages/local/apm"
+      - "./build/packages/apm:/packages/local/apm"
 
   metricbeat:
     image: docker.elastic.co/beats/metricbeat:8.4.0-d058e92f-SNAPSHOT
