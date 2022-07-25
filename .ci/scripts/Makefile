@@ -16,7 +16,7 @@ APM_SERVER_VERSION=$(shell make --no-print-directory -C ../../ get-version)
 package-storage-snapshot:
 	@rm -fr $(PACKAGE_STORAGE_PATH)
 	git clone https://github.com/elastic/package-storage.git $(PACKAGE_STORAGE_PATH) --branch snapshot --single-branch --depth=1
-	cp -rf $(BUILD)/integrations/apm/$(APM_SERVER_VERSION) $(PACKAGE_STORAGE_PATH)/packages/apm/
+	cp -rf $(BUILD)/packages/apm/$(APM_SERVER_VERSION) $(PACKAGE_STORAGE_PATH)/packages/apm/
 
 ## create-package-storage-pull-request : Create the pull request for the package storage
 .PHONY: create-package-storage-pull-request
