@@ -8,7 +8,11 @@ require (
 	github.com/reviewdog/reviewdog v0.13.1-0.20211107024453-1ccbebf6b175
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	go.elastic.co/go-licence-detector v0.5.0
+<<<<<<< HEAD
 	honnef.co/go/tools v0.2.1
+=======
+	honnef.co/go/tools v0.3.2
+>>>>>>> 5334e343 (Remove golint, just use staticcheck (#8680))
 )
 
 require (
@@ -34,9 +38,16 @@ require (
 	github.com/creasty/defaults v1.5.2 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+<<<<<<< HEAD
 	github.com/elastic/go-elasticsearch/v7 v7.15.0 // indirect
 	github.com/elastic/go-ucfg v0.8.3 // indirect
 	github.com/elastic/package-spec v1.2.0 // indirect
+=======
+	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
+	github.com/elastic/go-elasticsearch/v7 v7.17.1 // indirect
+	github.com/elastic/go-ucfg v0.8.4 // indirect
+	github.com/elastic/package-spec v1.7.0 // indirect
+>>>>>>> 5334e343 (Remove golint, just use staticcheck (#8680))
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
@@ -81,8 +92,15 @@ require (
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/karrick/godirwalk v1.15.8 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
+<<<<<<< HEAD
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
+=======
+	github.com/kevinburke/ssh_config v1.2.0 // indirect
+	github.com/klauspost/compress v1.15.1 // indirect
+	github.com/klauspost/pgzip v1.2.5 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
+>>>>>>> 5334e343 (Remove golint, just use staticcheck (#8680))
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/magefile/mage v1.11.0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
@@ -107,6 +125,10 @@ require (
 	github.com/reva2/bitbucket-insights-api v1.0.0 // indirect
 	github.com/reviewdog/errorformat v0.0.0-20210809090836-cda72036d1df // indirect
 	github.com/reviewdog/go-bitbucket v0.0.0-20201024094602-708c3f6a7de0 // indirect
+<<<<<<< HEAD
+=======
+	github.com/rivo/uniseg v0.2.0 // indirect
+>>>>>>> 5334e343 (Remove golint, just use staticcheck (#8680))
 	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/spf13/cobra v1.2.1 // indirect
@@ -123,6 +145,7 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	golang.org/x/build v0.0.0-20200616162219-07bebbe343e9 // indirect
+<<<<<<< HEAD
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
@@ -133,6 +156,19 @@ require (
 	golang.org/x/text v0.3.6 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	golang.org/x/tools v0.1.7 // indirect
+=======
+	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29 // indirect
+	golang.org/x/exp/typeparams v0.0.0-20220218215828-6cf2b201936e // indirect
+	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
+	golang.org/x/net v0.0.0-20220403103023-749bd193bc2b // indirect
+	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
+	golang.org/x/sys v0.0.0-20220405052023-b1e9470b6e64 // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
+	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65 // indirect
+	golang.org/x/tools v0.1.11-0.20220513221640-090b14e8501f // indirect
+>>>>>>> 5334e343 (Remove golint, just use staticcheck (#8680))
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/api v0.59.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
