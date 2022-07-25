@@ -26,6 +26,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -37,12 +38,23 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 )
 
+var versionFileRegex = regexp.MustCompile(`(?m)^const Version = "(.+)"\r?$`)
+
 func init() {
 	repo, err := mage.GetProjectRepoInfo()
 	if err != nil {
 		panic(err)
 	}
 	mage.SetBuildVariableSources(&mage.BuildVariableSources{
+		BeatVersion: filepath.Join(repo.RootDir, "internal", "version", "version.go"),
+		BeatVersionParser: func(data []byte) (string, error) {
+			matches := versionFileRegex.FindSubmatch(data)
+			if len(matches) == 2 {
+				return string(matches[1]), nil
+			}
+			return "", errors.New("failed to parse version file")
+
+		},
 		GoVersion: filepath.Join(repo.RootDir, ".go-version"),
 		DocBranch: filepath.Join(repo.RootDir, "docs/version.asciidoc"),
 	})
