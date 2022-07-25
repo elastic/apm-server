@@ -17,7 +17,7 @@ GOBENCH=$(GOOSBUILD)/gobench
 APM_SERVER_VERSION=$(shell grep "const Version" $(GITROOT)/internal/version/version.go | cut -d'=' -f2 | tr -d '" ')
 APM_PACKAGE_SNAPSHOT_VERSION=$(APM_SERVER_VERSION)-SNAPSHOT-$(shell date +%s)
 
-ELASTICPACKAGE_VERSION=0.58.0
+ELASTICPACKAGE_VERSION=0.58.1
 
 ##############################################################################
 # Rules for creating and installing build tools.
