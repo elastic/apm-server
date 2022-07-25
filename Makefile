@@ -192,8 +192,9 @@ format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
 	@rm -fr ./build/integrations/apm/* ./build/apmpackage
-	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_VERSION)
-	@(cd ./build/apmpackage; $(ELASTICPACKAGE) build && $(ELASTICPACKAGE) check)
+    @APM_PACKAGE_VERSION=$(APM_SERVER_VERSION)-SNAPSHOT-$(shell date +%s)
+	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_PACKAGE_VERSION)
+	@(cd ./build/apmpackage && $(ELASTICPACKAGE) check) # check = build + format + lint
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
 check-fmt: check-gofmt check-autopep8
