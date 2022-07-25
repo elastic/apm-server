@@ -108,7 +108,7 @@ func (v *ValidationError) Keyword() string { return v.keyword }
 // Body returns the body for the ValidationError.
 func (v *ValidationError) Body() string { return v.body }
 
-// Error() implements the error interface.
+// Error implements the error interface.
 func (v *ValidationError) Error() string { return v.err.Error() }
 
 // Validate validates the currently configured KibanaFetcher.
