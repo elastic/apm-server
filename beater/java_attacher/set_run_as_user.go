@@ -31,9 +31,12 @@ import (
 func (j *JavaAttacher) setRunAsUser(jvm *jvmDetails, cmd *exec.Cmd) error {
 	currentUser, err := user.Current()
 	if err != nil {
-		return fmt.Errorf("failed to get the current user: %w", err)
+		// If we cannot get the current user, then we assume apm-server
+		// is not the same as the target JVM user.
+		j.logger.Warnf("failed to get the current user: %v", err)
+	} else {
+		j.logger.Debugf("current user: %v", currentUser)
 	}
-	j.logger.Debugf("current user: %v", currentUser)
 
 	if currentUser.Gid != jvm.gid || currentUser.Uid != jvm.uid {
 		uid, err := strconv.ParseInt(jvm.uid, 10, 32)
