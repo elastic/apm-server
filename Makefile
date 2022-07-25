@@ -192,7 +192,7 @@ format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
 	@rm -fr ./build/integrations/apm/* ./build/apmpackage
-    @APM_PACKAGE_VERSION=$(APM_SERVER_VERSION)-SNAPSHOT-$(shell date +%s)
+	@APM_PACKAGE_VERSION=$(APM_SERVER_VERSION)-SNAPSHOT-$(shell date +%s)
 	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_PACKAGE_VERSION)
 	@(cd ./build/apmpackage && $(ELASTICPACKAGE) check) # check = build + format + lint
 
