@@ -136,11 +136,10 @@ pipeline {
             withGithubNotify(context: 'apmpackage') {
               runWithGo() {
                 sh(script: 'make build-package', label: 'make build-package')
-                archiveArtifacts(allowEmptyArchive: false, artifacts: 'build/packages/*.zip')
-                 sh(label: 'package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
-                 withGitContext() {
-                   sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
-                 }
+                sh(label: 'package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
+                withGitContext() {
+                  sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
+                }
               }
             }
           }
