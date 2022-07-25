@@ -16,11 +16,6 @@ TERRAFORMDOCS=$(GOOSBUILD)/terraform-docs
 GOBENCH=$(GOOSBUILD)/gobench
 APM_SERVER_VERSION=$(shell grep "const Version" $(GITROOT)/internal/version/version.go | cut -d'=' -f2 | tr -d '" ')
 
-# NOTE(axw) BEAT_VERSION is used by beats/dev-tools/mage in preference to
-# trying to read the version from cmd/version.go. This should not be used
-# for any other purpose; use APM_SERVER_VERSION instead.
-export BEAT_VERSION=$(APM_SERVER_VERSION)
-
 ##############################################################################
 # Rules for creating and installing build tools.
 ##############################################################################
