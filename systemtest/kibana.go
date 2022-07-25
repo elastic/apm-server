@@ -78,7 +78,7 @@ func init() {
 		log.Fatal("could not locate systemtest directory")
 	}
 	systemtestDir := filepath.Dir(filename)
-	apmIntegrationBuildDir := filepath.Join(systemtestDir, "..", "build", "integrations", "apm")
+	apmIntegrationBuildDir := filepath.Join(systemtestDir, "..", "build", "packages", "apm")
 	entries, err := os.ReadDir(apmIntegrationBuildDir)
 	if err != nil {
 		log.Fatalf("error reading build/packages/apm (run `make build-package`?): %s", err)
