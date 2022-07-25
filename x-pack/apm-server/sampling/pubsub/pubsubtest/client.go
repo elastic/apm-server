@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/apm-server/elasticsearch"
+	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
 // Publisher is an interface to pass to Client that responds to publish

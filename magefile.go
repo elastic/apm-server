@@ -34,7 +34,7 @@ import (
 
 	"github.com/elastic/beats/v7/dev-tools/mage"
 
-	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/internal/beater/config"
 )
 
 func init() {
@@ -43,9 +43,8 @@ func init() {
 		panic(err)
 	}
 	mage.SetBuildVariableSources(&mage.BuildVariableSources{
-		BeatVersion: filepath.Join(repo.RootDir, "cmd", "version.go"),
-		GoVersion:   filepath.Join(repo.RootDir, ".go-version"),
-		DocBranch:   filepath.Join(repo.RootDir, "docs/version.asciidoc"),
+		GoVersion: filepath.Join(repo.RootDir, ".go-version"),
+		DocBranch: filepath.Join(repo.RootDir, "docs/version.asciidoc"),
 	})
 
 	// Filter platforms to those that are supported by apm-server.
