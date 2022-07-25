@@ -33,6 +33,6 @@ import (
 
 	_ "github.com/terraform-docs/terraform-docs" // go.mod/go.sum
 
-	_ "github.com/elastic/go-licenser"     // go.mod/go.sum
-	_ "github.com/elastic/gobench"         // go.mod/go.sum
+	_ "github.com/elastic/go-licenser" // go.mod/go.sum
+	_ "github.com/elastic/gobench"     // go.mod/go.sum
 )
