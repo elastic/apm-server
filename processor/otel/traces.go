@@ -488,7 +488,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		httpURL    string
 		httpHost   string
 		httpTarget string
-		httpScheme string = "http"
+		httpScheme = "http"
 	)
 
 	var (
