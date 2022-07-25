@@ -21,7 +21,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
@@ -199,12 +198,6 @@ func Version() error {
 func Update() error {
 	mg.Deps(Config)
 	return nil
-}
-
-// GoTestUnit runs the go test unit.
-// Use RACE_DETECTOR=true to enable the race detector.
-func GoTestUnit(ctx context.Context) error {
-	return mage.GoTest(ctx, mage.DefaultGoTestUnitArgs())
 }
 
 // -----------------------------------------------------------------------------
