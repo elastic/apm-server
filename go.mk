@@ -18,6 +18,9 @@ APM_SERVER_VERSION=$(shell grep "const Version" $(GITROOT)/internal/version/vers
 APM_PACKAGE_SNAPSHOT_VERSION=$(APM_SERVER_VERSION)-beta-$(shell date +%s)
 
 ELASTICPACKAGE_VERSION=0.58.1
+ELASTICPACKAGE_GOOS=$(shell $(GO) env GOOS)
+ELASTICPACKAGE_GOARCH=$(shell $(GO) env GOARCH)
+ELASTICPACKAGE_TAR_GZ=elastic-package_$(ELASTICPACKAGE_VERSION)_$(ELASTICPACKAGE_GOOS)_$(ELASTICPACKAGE_GOARCH).tar.gz
 
 ##############################################################################
 # Rules for creating and installing build tools.
@@ -44,10 +47,10 @@ $(GOLICENSER): $(GITROOT)/tools/go.mod
 
 # FIXME elastic-package requires Go 1.18 runtime to build, but apm-server uses on 1.17.
 $(ELASTICPACKAGE):
-	mkdir -p build/linux
-	curl https://github.com/elastic/elastic-package/releases/download/v$(ELASTICPACKAGE_VERSION)/elastic-package_$(ELASTICPACKAGE_VERSION)_linux_amd64.tar.gz -sLO
-	tar xvzf elastic-package_$(ELASTICPACKAGE_VERSION)_linux_amd64.tar.gz -C build/linux elastic-package
-	rm elastic-package_$(ELASTICPACKAGE_VERSION)_linux_amd64.tar.gz
+	mkdir -p build/$(ELASTICPACKAGE_GOOS)
+	curl https://github.com/elastic/elastic-package/releases/download/v$(ELASTICPACKAGE_VERSION)/$(ELASTICPACKAGE_TAR_GZ) -sLO
+	tar xvzf $(ELASTICPACKAGE_TAR_GZ) -C build/$(ELASTICPACKAGE_GOOS) elastic-package
+	rm $(ELASTICPACKAGE_TAR_GZ)
 
 $(TERRAFORMDOCS): $(GITROOT)/tools/go.mod
 	$(GO) build -o $@ -modfile=$< github.com/terraform-docs/terraform-docs
