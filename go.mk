@@ -45,7 +45,7 @@ $(GOLICENSER): $(GITROOT)/tools/go.mod
 # FIXME elastic-package requires Go 1.18 runtime to build, but apm-server uses on 1.17.
 $(ELASTICPACKAGE):
 	mkdir -p build/linux
-	curl https://github.com/elastic/elastic-package/releases/download/v$(ELASTICPACKAGE_VERSION)/elastic-package_$(ELASTICPACKAGE_VERSION)_linux_amd64.tar.gz -O -L
+	curl https://github.com/elastic/elastic-package/releases/download/v$(ELASTICPACKAGE_VERSION)/elastic-package_$(ELASTICPACKAGE_VERSION)_linux_amd64.tar.gz -sLO
 	tar xvzf elastic-package_$(ELASTICPACKAGE_VERSION)_linux_amd64.tar.gz -C build/linux elastic-package
 	rm elastic-package_$(ELASTICPACKAGE_VERSION)_linux_amd64.tar.gz
 
