@@ -296,6 +296,7 @@ smoketest/discover:
 .PHONY: smoketest/run
 smoketest/run:
 	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do \
+		echo "-> Running $(TEST_DIR) smoke tests for version $${version}..."; \
 		cd $(TEST_DIR) && ./test.sh $${version}; \
 	done
 
@@ -309,7 +310,6 @@ smoketest/cleanup:
 .PHONY: smoketest/all
 smoketest/all:
 	@ for test_dir in $(SMOKETEST_DIRS); do \
-		echo "-> Running $${test_dir} smoke tests..."; \
 		$(MAKE) smoketest/run TEST_DIR=$${test_dir}; \
 	done
 

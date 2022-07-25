@@ -2,6 +2,11 @@
 
 set -eo pipefail
 
+if [[ ${1} != 7.17 ]]; then
+    echo "-> Skipping smoke test..."
+    exit 0
+fi
+
 VERSION=7.17
 
 # Load all versions except SNAPSHOTS
