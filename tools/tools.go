@@ -34,4 +34,5 @@ import (
 
 	_ "github.com/elastic/elastic-package" // go.mod/go.sum
 	_ "github.com/elastic/go-licenser"     // go.mod/go.sum
+	_ "github.com/elastic/gobench"         // go.mod/go.sum
 )
