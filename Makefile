@@ -231,7 +231,7 @@ release-manager-snapshot: release
 .PHONY: release-manager-release
 release-manager-release: release
 
-JAVA_ATTACHER_VERSION:=1.32.0
+JAVA_ATTACHER_VERSION:=1.33.0
 JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
 JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
 JAVA_ATTACHER_BASE_URL:=https://repo1.maven.org/maven2/co/elastic/apm/apm-agent-attach-cli
