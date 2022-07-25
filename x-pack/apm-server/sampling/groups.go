@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/internal/model"
 )
 
 const minReservoirSize = 1000
