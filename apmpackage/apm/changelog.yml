@@ -1,6 +1,11 @@
 # newer versions go on top
 #
 # change type can be one of: enhancement, bugfix, breaking-change
+- version: generated
+  changes:
+    - description: Prepare for the next release
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/8710
 - version: "8.4.0"
   changes:
     - description: Added support for dynamically mapping summary metrics
