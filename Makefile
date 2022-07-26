@@ -188,13 +188,20 @@ endif
 check-docker-compose: $(PYTHON_BIN)
 	@PATH=$(PYTHON_BIN):$(PATH) ./script/check_docker_compose.sh $(BEATS_VERSION)
 
-.PHONY: format-package build-package
-format-package: $(ELASTICPACKAGE)
-	@(cd apmpackage/apm; $(ELASTICPACKAGE) format)
+.PHONY: build-package
 build-package: $(ELASTICPACKAGE)
-	@rm -fr ./build/packages/apm/* ./build/apmpackage
-	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_VERSION)
-	@(cd ./build/apmpackage; $(ELASTICPACKAGE) build && $(ELASTICPACKAGE) check)
+	$(MAKE) build-package-with-version APM_SERVER_BUILD_VERSION=$(APM_SERVER_VERSION)
+
+.PHONY: build-package-snapshot
+build-package-snapshot: $(ELASTICPACKAGE)
+	$(MAKE) build-package-with-version APM_SERVER_BUILD_VERSION=$(APM_SERVER_VERSION)-beta-$(shell date +%s)
+
+.PHONY: build-package-with-version
+build-package-with-version: $(ELASTICPACKAGE)
+	@rm -fr ./build/packages/apm/* ./build/packages/apm-*.zip ./build/apmpackage
+	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_BUILD_VERSION)
+	@(cd ./build/apmpackage && $(ELASTICPACKAGE) check -v) # check = build + format + lint
+
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
 check-fmt: check-gofmt check-autopep8

@@ -127,21 +127,23 @@ pipeline {
         }
         stage('apmpackage') {
           options { skipDefaultCheckout() }
-          when {
-            allOf {
-              // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
-              changeset pattern: '(cmd/version.go|apmpackage/.*)', comparator: 'REGEXP'
-              not { changeRequest() }
-            }
-          }
+          // when {
+          //   allOf {
+          //     // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
+          //     changeset pattern: '(cmd/version.go|apmpackage/.*)', comparator: 'REGEXP'
+          //     not { changeRequest() }
+          //   }
+          // }
           steps {
             withGithubNotify(context: 'apmpackage') {
               runWithGo() {
-                sh(script: 'make build-package', label: 'make build-package')
-                sh(label: 'package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
-                withGitContext() {
-                  sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
-                }
+                sh(script: 'make build-package', label: 'legacy: make build-package')
+                sh(label: 'legacy: package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
+                // withGitContext() {
+                //  sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
+                // }
+
+                sh(script: 'make build-package', label: 'v2: make build-package')
               }
             }
           }
