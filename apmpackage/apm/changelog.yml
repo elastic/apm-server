@@ -179,4 +179,4 @@
   changes:
     - description: initial release
       type: enhancement
-      link: https://github.com/elastic/apm-server/
+      link: https://github.com/elastic/apm-server/1
