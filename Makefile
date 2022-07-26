@@ -12,8 +12,7 @@ PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
 PYTHON=$(PYTHON_BIN)/python
 
-# Create a local config.mk file to override configuration,
-# e.g. for setting "GOLINT_UPSTREAM".
+# Create a local config.mk file to override configuration.
 -include config.mk
 
 ##############################################################################
@@ -47,7 +46,7 @@ clean: $(MAGE)
 ##############################################################################
 
 .PHONY: check-full
-check-full: update check golint staticcheck check-docker-compose
+check-full: update check staticcheck check-docker-compose
 
 .PHONY: check-approvals
 check-approvals: $(APPROVALS)
@@ -122,7 +121,7 @@ update-beats-docs: $(PYTHON)
 # Beats synchronisation.
 ##############################################################################
 
-BEATS_VERSION?=main
+BEATS_VERSION?=8.3
 BEATS_MODULE:=$(shell $(GO) list -m -f {{.Path}} all | grep github.com/elastic/beats)
 
 .PHONY: update-beats
@@ -140,18 +139,15 @@ update-beats-module:
 # Linting, style-checking, license header checks, etc.
 ##############################################################################
 
-GOLINT_TARGETS?=$(shell $(GO) list ./...)
-GOLINT_UPSTREAM?=origin/main
-REVIEWDOG_FLAGS?=-conf=reviewdog.yml -f=golint -diff="git diff $(GOLINT_UPSTREAM)"
-GOLINT_COMMAND=$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) $(REVIEWDOG_FLAGS)
-
-.PHONY: golint
-golint: $(GOLINT) $(REVIEWDOG)
-	@output=$$($(GOLINT_COMMAND)); test -z "$$output" || (echo $$output && exit 1)
+# NOTE(axw) ST1000 is disabled for the moment as many packages do not have 
+# comments. It would be a good idea to add them later, and remove this exception,
+# so we're a bit more intentional about the meaning of packages and how code is
+# organised.
+STATICCHECK_CHECKS?=all,-ST1000
 
 .PHONY: staticcheck
 staticcheck: $(STATICCHECK)
-	$(STATICCHECK) github.com/elastic/apm-server/...
+	$(STATICCHECK) -checks=$(STATICCHECK_CHECKS) ./...
 
 .PHONY: check-changelogs
 check-changelogs: $(PYTHON)
