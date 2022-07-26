@@ -143,7 +143,7 @@ pipeline {
                 //  sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
                 // }
 
-                sh(script: 'make build-package', label: 'v2: make build-package-snapshot')
+                sh(script: 'make build-package-snapshot', label: 'v2: make build-package-snapshot')
                 archiveArtifacts(allowEmptyArchive: false, artifacts: 'build/packages/*.zip')
               }
             }
