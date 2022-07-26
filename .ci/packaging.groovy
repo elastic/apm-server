@@ -127,73 +127,15 @@ pipeline {
         }
         stage('apmpackage') {
           options { skipDefaultCheckout() }
-          when {
-             allOf {
-               // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
-               changeset pattern: '(cmd/version.go|apmpackage/.*)', comparator: 'REGEXP'
-               not { changeRequest() }
-             }
-          }
           steps {
             withGithubNotify(context: 'apmpackage') {
               runWithGo() {
                 sh(script: 'make build-package', label: 'legacy: make build-package')
                 sh(label: 'legacy: package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
-                withGitContext() {
-                  sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
-                }
 
                 sh(script: 'make build-package-snapshot', label: 'v2: make build-package-snapshot')
                 archiveArtifacts(allowEmptyArchive: false, artifacts: 'build/packages/*.zip')
               }
-            }
-          }
-          post {
-            failure {
-              notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] apmpackage failed")
-            }
-          }
-        }
-        stage('DRA Snapshot') {
-          options { skipDefaultCheckout() }
-          // The Unified Release process keeps moving branches as soon as a new
-          // minor version is created, therefore old release branches won't be able
-          // to use the release manager as their definition is removed.
-          when {
-            expression { return env.IS_BRANCH_AVAILABLE == "true" }
-          }
-          steps {
-            runReleaseManager(type: 'snapshot', outputFile: env.DRA_OUTPUT)
-          }
-          post {
-            failure {
-              notifyStatus(analyse: true,
-                           file: "${BASE_DIR}/${env.DRA_OUTPUT}",
-                           subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed.",
-                           body: 'Contact the Release Platform team [#platform-release].')
-            }
-          }
-        }
-        stage('DRA Staging') {
-          options { skipDefaultCheckout() }
-          when {
-            allOf {
-              // The Unified Release process keeps moving branches as soon as a new
-              // minor version is created, therefore old release branches won't be able
-              // to use the release manager as their definition is removed.
-              expression { return env.IS_BRANCH_AVAILABLE == "true" }
-              not { branch 'main' }
-            }
-          }
-          steps {
-            runReleaseManager(type: 'staging', outputFile: env.DRA_OUTPUT)
-          }
-          post {
-            failure {
-              notifyStatus(analyse: true,
-                           file: "${BASE_DIR}/${env.DRA_OUTPUT}",
-                           subject: "[${env.REPO}@${env.BRANCH_NAME}] DRA failed.",
-                           body: 'Contact the Release Platform team [#platform-release].')
             }
           }
         }
