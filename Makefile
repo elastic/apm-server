@@ -191,7 +191,7 @@ check-docker-compose: $(PYTHON_BIN)
 format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
-	@rm -fr ./build/integrations/apm/* ./build/apmpackage
+	@rm -fr ./build/packages/apm/* ./build/apmpackage
 	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_VERSION)
 	@(cd ./build/apmpackage; $(ELASTICPACKAGE) build && $(ELASTICPACKAGE) check)
 
