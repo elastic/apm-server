@@ -406,3 +406,10 @@ def uploadUnpublishedToPackageStorage(builtPackagesPath) {
     }
   }
 }
+
+def isAlreadyPublished(packageZip) {
+  def responseCode = httpRequest(method: "HEAD",
+    url: "https://package-storage.elastic.co/artifacts/packages/${packageZip}",
+    response_code_only: true)
+  return responseCode == 200
+}
