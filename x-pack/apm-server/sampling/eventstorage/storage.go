@@ -12,7 +12,7 @@ import (
 
 	"github.com/dgraph-io/badger/v2"
 
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/internal/model"
 )
 
 const (

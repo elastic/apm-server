@@ -38,7 +38,7 @@ pipeline {
     stage('Benchmarks') {
       options {
         skipDefaultCheckout()
-        retry(1)
+        retry(2)
       }
       environment {
         SSH_KEY = "./id_rsa_terraform"

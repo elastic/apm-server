@@ -21,7 +21,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 
-	"github.com/elastic/apm-server/elasticsearch"
+	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 

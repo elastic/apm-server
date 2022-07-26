@@ -21,11 +21,11 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -33,8 +33,10 @@ import (
 
 	"github.com/elastic/beats/v7/dev-tools/mage"
 
-	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/internal/beater/config"
 )
+
+var versionFileRegex = regexp.MustCompile(`(?m)^const Version = "(.+)"\r?$`)
 
 func init() {
 	repo, err := mage.GetProjectRepoInfo()
@@ -42,9 +44,17 @@ func init() {
 		panic(err)
 	}
 	mage.SetBuildVariableSources(&mage.BuildVariableSources{
-		BeatVersion: filepath.Join(repo.RootDir, "cmd", "version.go"),
-		GoVersion:   filepath.Join(repo.RootDir, ".go-version"),
-		DocBranch:   filepath.Join(repo.RootDir, "docs/version.asciidoc"),
+		BeatVersion: filepath.Join(repo.RootDir, "internal", "version", "version.go"),
+		BeatVersionParser: func(data []byte) (string, error) {
+			matches := versionFileRegex.FindSubmatch(data)
+			if len(matches) == 2 {
+				return string(matches[1]), nil
+			}
+			return "", errors.New("failed to parse version file")
+
+		},
+		GoVersion: filepath.Join(repo.RootDir, ".go-version"),
+		DocBranch: filepath.Join(repo.RootDir, "docs/version.asciidoc"),
 	})
 
 	// Filter platforms to those that are supported by apm-server.
@@ -139,12 +149,6 @@ func Package() error {
 	return mage.Package()
 }
 
-// GoTestUnit runs the go test unit.
-// Use RACE_DETECTOR=true to enable the race detector.
-func GoTestUnit(ctx context.Context) error {
-	return mage.GoTest(ctx, mage.DefaultGoTestUnitArgs())
-}
-
 // -----------------------------------------------------------------------------
 
 func customizePackaging() {
@@ -175,12 +179,12 @@ func customizePackaging() {
 
 		switch pkgType := args.Types[0]; pkgType {
 		case mage.Zip, mage.TarGz:
-			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
+			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0644, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 		case mage.Docker:
 			args.Spec.ExtraVars["expose_ports"] = config.DefaultPort
 			args.Spec.ExtraVars["repository"] = "docker.elastic.co/apm"
-			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
+			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0644, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 		case mage.Deb, mage.RPM:
 			// Update config file owner.
@@ -188,7 +192,7 @@ func customizePackaging() {
 			pf.Owner = mage.BeatUser
 			args.Spec.Files["/etc/{{.BeatName}}/{{.BeatName}}.yml"] = pf
 			args.Spec.Files["/var/log/{{.BeatName}}"] = mage.PackageFile{Mode: 0750, Source: emptyDir, Owner: mage.BeatUser}
-			args.Spec.Files["/usr/share/{{.BeatName}}/bin/java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
+			args.Spec.Files["/usr/share/{{.BeatName}}/bin/java-attacher.jar"] = mage.PackageFile{Mode: 0644, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 			// Customise the pre-install and post-install scripts.
 			args.Spec.PreInstallScript = "packaging/files/linux/pre-install.sh.tmpl"

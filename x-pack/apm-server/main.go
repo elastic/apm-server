@@ -18,11 +18,10 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
 
-	"github.com/elastic/apm-server/beater"
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/internal/beater"
+	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
-	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
@@ -232,7 +231,7 @@ func closeBadger() error {
 }
 
 func Main() error {
-	rootCmd := cmd.NewXPackRootCommand(
+	rootCmd := newXPackRootCommand(
 		beater.NewCreator(beater.CreatorParams{
 			WrapRunServer: wrapRunServer,
 		}),
