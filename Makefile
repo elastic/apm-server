@@ -200,7 +200,7 @@ build-package-snapshot: $(ELASTICPACKAGE)
 build-package-with-version: $(ELASTICPACKAGE)
 	@rm -fr ./build/packages/apm/* ./build/packages/apm-*.zip ./build/apmpackage
 	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_BUILD_VERSION)
-	@(cd ./build/apmpackage && $(ELASTICPACKAGE) check -v) # check = build + format + lint
+	@(cd ./build/apmpackage && $(ELASTICPACKAGE) format && $(ELASTICPACKAGE) build -v && $(ELASTICPACKAGE) lint) # FIXME: https://github.com/elastic/elastic-package/pull/911
 
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
