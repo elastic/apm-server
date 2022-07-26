@@ -9,7 +9,8 @@ include go.mk
 GOTESTFLAGS?=-v
 
 PYTHON_ENV?=.
-PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
+PYTHON_VENV_DIR:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)
+PYTHON_BIN:=$(PYTHON_VENV_DIR)/bin
 PYTHON=$(PYTHON_BIN)/python
 CURRENT_DIR=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
@@ -59,8 +60,8 @@ system-test:
 	@(cd systemtest; $(GO) test $(GOTESTFLAGS) -timeout=20m ./...)
 
 .PHONY:
-clean: $(MAGE)
-	@$(MAGE) clean
+clean:
+	@rm -f build apm-server apm-server.exe
 
 ##############################################################################
 # Checks/tests.
@@ -73,9 +74,11 @@ check-full: update check staticcheck check-docker-compose
 check-approvals: $(APPROVALS)
 	@$(APPROVALS)
 
-.PHONY: check
-check: $(MAGE) check-fmt check-headers
-	@$(MAGE) check
+check: check-fmt check-headers check-git-diff
+
+.PHONY: check-git-diff
+check-git-diff:
+	@sh script/check_git_clean.sh
 
 BENCH_BENCHTIME?=100ms
 BENCH_COUNT?=1
@@ -87,13 +90,11 @@ bench:
 # Rules for updating config files, etc.
 ##############################################################################
 
-update: go-generate add-headers build-package notice $(MAGE)
-	@$(MAGE) update
+update: go-generate add-headers build-package notice apm-server.docker.yml
 	@go mod download all # make sure go.sum is complete
 
-config: apm-server.yml apm-server.docker.yml
-apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml
-	@$(MAGE) config
+apm-server.docker.yml: apm-server.yml
+	sed -e 's/localhost:8200/0.0.0.0:8200/' -e 's/localhost:9200/elasticsearch:9200/' $< > $@
 
 .PHONY: go-generate
 go-generate:
@@ -213,10 +214,16 @@ autopep8: $(PYTHON_BIN)
 # Rules for creating and installing build tools.
 ##############################################################################
 
+# PYTHON_EXE may be set in the environment to override the Python binary used
+# for creating the virtual environment.
+PYTHON_EXE?=python3
+
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
-$(PYTHON_BIN)/activate: $(MAGE) script/requirements.txt
-	@$(MAGE) pythonEnv
+$(PYTHON_BIN)/activate: script/requirements.txt
+	@$(PYTHON_EXE) -m venv $(PYTHON_VENV_DIR)
+	@$(PYTHON_BIN)/pip install -U pip wheel
+	@$(PYTHON_BIN)/pip install -Ur script/requirements.txt
 	@touch $@
 
 ##############################################################################
