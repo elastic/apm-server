@@ -72,19 +72,19 @@ func init() {
 	KibanaURL = u
 	Fleet = fleettest.NewClient(KibanaURL.String())
 
-	// Identify the integration package version in build/integrations/apm.
+	// Identify the integration package version in build/packages/apm.
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
 		log.Fatal("could not locate systemtest directory")
 	}
 	systemtestDir := filepath.Dir(filename)
-	apmIntegrationBuildDir := filepath.Join(systemtestDir, "..", "build", "integrations", "apm")
+	apmIntegrationBuildDir := filepath.Join(systemtestDir, "..", "build", "packages", "apm")
 	entries, err := os.ReadDir(apmIntegrationBuildDir)
 	if err != nil {
-		log.Fatalf("error reading build/integrations/apm (run `make build-package`?): %s", err)
+		log.Fatalf("error reading build/packages/apm (run `make build-package`?): %s", err)
 	}
 	if n := len(entries); n != 1 {
-		log.Fatalf("expected 1 entry in build/integrations/apm, got %d (run `make build-package`?)", n)
+		log.Fatalf("expected 1 entry in build/packages/apm, got %d (run `make build-package`?)", n)
 	}
 	integrationPackageVersion = entries[0].Name()
 }
