@@ -109,7 +109,7 @@ NOTICE.txt: $(PYTHON) go.mod tools/go.mod
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -exclude x-pack -exclude internal/otel_collector
+	@$(GOLICENSER) -exclude x-pack -exclude internal/otel_collector -exclude internal/.otel_collector_mixin
 	@$(GOLICENSER) -license Elasticv2 x-pack
 endif
 
@@ -179,7 +179,7 @@ check-changelogs: $(PYTHON)
 .PHONY: check-headers
 check-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -d -exclude build -exclude x-pack -exclude internal/otel_collector
+	@$(GOLICENSER) -d -exclude build -exclude x-pack -exclude internal/otel_collector -exclude internal/.otel_collector_mixin
 	@$(GOLICENSER) -d -exclude build -license Elasticv2 x-pack
 endif
 
