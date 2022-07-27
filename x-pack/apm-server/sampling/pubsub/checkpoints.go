@@ -8,14 +8,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/pkg/errors"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 
-	"github.com/elastic/apm-server/elasticsearch"
+	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
 // getGlobalCheckpoints returns the current global checkpoint for each index
@@ -43,7 +43,7 @@ func getGlobalCheckpoints(
 			// Data stream does not yet exist.
 			return indexGlobalCheckpoints, nil
 		}
-		message, _ := ioutil.ReadAll(resp.Body)
+		message, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("index stats request failed: %s", message)
 	}
 

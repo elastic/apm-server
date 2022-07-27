@@ -21,7 +21,6 @@ import (
 	"context"
 	"crypto/tls"
 	"net/url"
-	"path/filepath"
 	"testing"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -30,7 +29,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/elastic/apm-server/systemtest/benchtest/eventhandler"
+	"github.com/elastic/apm-server/systemtest/loadgen"
+	"github.com/elastic/apm-server/systemtest/loadgen/eventhandler"
 
 	"go.elastic.co/apm/v2"
 	"go.elastic.co/apm/v2/transport"
@@ -40,8 +40,8 @@ import (
 // to send to the target APM Server.
 func NewTracer(tb testing.TB) *apm.Tracer {
 	httpTransport, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{
-		ServerURLs:  []*url.URL{serverURL},
-		SecretToken: *secretToken,
+		ServerURLs:  []*url.URL{loadgen.Config.ServerURL},
+		SecretToken: loadgen.Config.SecretToken,
 	})
 	if err != nil {
 		tb.Fatal(err)
@@ -59,6 +59,8 @@ func NewTracer(tb testing.TB) *apm.Tracer {
 // NewOTLPExporter returns a new OpenTelemetry Go exporter, configured
 // to export to the target APM Server.
 func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
+	serverURL := loadgen.Config.ServerURL
+	secretToken := loadgen.Config.SecretToken
 	endpoint := serverURL.Host
 	if serverURL.Port() == "" {
 		switch serverURL.Scheme {
@@ -72,9 +74,9 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 		otlptracegrpc.WithEndpoint(endpoint),
 		otlptracegrpc.WithDialOption(grpc.WithBlock()),
 	}
-	if *secretToken != "" {
+	if secretToken != "" {
 		opts = append(opts, otlptracegrpc.WithHeaders(map[string]string{
-			"Authorization": "Bearer " + *secretToken,
+			"Authorization": "Bearer " + secretToken,
 		}))
 	}
 	if serverURL.Scheme == "http" {
@@ -96,20 +98,10 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 // NewEventHandler creates a eventhandler which loads the files matching the
 // passed regex.
 func NewEventHandler(tb testing.TB, p string, l *rate.Limiter) *eventhandler.Handler {
-	h, err := newEventHandler(p, serverURL.String(), *secretToken, l)
+	serverCfg := loadgen.Config
+	h, err := loadgen.NewEventHandler(p, serverCfg.ServerURL.String(), serverCfg.SecretToken, l)
 	if err != nil {
 		tb.Fatal(err)
 	}
 	return h
-}
-
-func newEventHandler(p, url, token string, l *rate.Limiter) (*eventhandler.Handler, error) {
-	// We call the HTTPTransport constructor to avoid copying all the config
-	// parsing that creates the `*http.Client`.
-	t, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{})
-	if err != nil {
-		return nil, err
-	}
-	transp := eventhandler.NewTransport(t.Client, url, token)
-	return eventhandler.New(filepath.Join("events", p), transp, events, l)
 }

@@ -2,18 +2,19 @@
 # Variables used for various build targets.
 ##############################################################################
 
-include go.make
+include go.mk
 
 # By default we run tests with verbose output. This may be overridden, e.g.
 # scripts may set GOTESTFLAGS=-json to format test output for processing.
 GOTESTFLAGS?=-v
 
 PYTHON_ENV?=.
-PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
+PYTHON_VENV_DIR:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)
+PYTHON_BIN:=$(PYTHON_VENV_DIR)/bin
 PYTHON=$(PYTHON_BIN)/python
+CURRENT_DIR=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-# Create a local config.mk file to override configuration,
-# e.g. for setting "GOLINT_UPSTREAM".
+# Create a local config.mk file to override configuration.
 -include config.mk
 
 ##############################################################################
@@ -22,70 +23,94 @@ PYTHON=$(PYTHON_BIN)/python
 
 .DEFAULT_GOAL := apm-server
 
+APM_SERVER_BINARIES:= \
+	build/apm-server-linux-amd64 \
+	build/apm-server-linux-386 \
+	build/apm-server-linux-arm64 \
+	build/apm-server-windows-386.exe \
+	build/apm-server-windows-amd64.exe \
+	build/apm-server-darwin-amd64
+
+.PHONY: $(APM_SERVER_BINARIES)
+$(APM_SERVER_BINARIES) build/apm-server-darwin-arm64: $(MAGE)
+	@$(MAGE) build
+
+build/apm-server-linux-%: export GOOS=linux
+build/apm-server-darwin-%: export GOOS=darwin
+build/apm-server-windows-%: export GOOS=windows
+build/apm-server-%-386 build/apm-server-%-386.exe: export GOARCH=386
+build/apm-server-%-amd64 build/apm-server-%-amd64.exe: export GOARCH=amd64
+build/apm-server-%-arm64 build/apm-server-%-arm64.exe: export GOARCH=arm64
+build-all: $(APM_SERVER_BINARIES)
+
 .PHONY: apm-server
-apm-server:
-	@$(GO) build -o $@ ./x-pack/apm-server
+apm-server: build/apm-server-$(shell $(GO) env GOOS)-$(shell $(GO) env GOARCH)
+	@cp $^ $@
 
 .PHONY: apm-server-oss
 apm-server-oss:
-	@$(GO) build -o $@
+	@$(GO) build -o $@ ./cmd/apm-server
 
 .PHONY: test
 test:
-	$(GO) test $(GOTESTFLAGS) ./...
+	@$(GO) test $(GOTESTFLAGS) ./...
 
 .PHONY: system-test
 system-test:
 	@(cd systemtest; $(GO) test $(GOTESTFLAGS) -timeout=20m ./...)
 
 .PHONY:
-clean: $(MAGE)
-	@$(MAGE) clean
+clean:
+	@rm -f build apm-server apm-server.exe
 
 ##############################################################################
 # Checks/tests.
 ##############################################################################
 
 .PHONY: check-full
-check-full: update check golint staticcheck check-docker-compose
+check-full: update check staticcheck check-docker-compose
 
 .PHONY: check-approvals
 check-approvals: $(APPROVALS)
 	@$(APPROVALS)
 
-.PHONY: check
-check: $(MAGE) check-fmt check-headers
-	@$(MAGE) check
+check: check-fmt check-headers check-git-diff
 
+.PHONY: check-git-diff
+check-git-diff:
+	@sh script/check_git_clean.sh
+
+BENCH_BENCHTIME?=100ms
+BENCH_COUNT?=1
 .PHONY: bench
 bench:
-	@$(GO) test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
+	@$(GO) test -count=$(BENCH_COUNT) -benchmem -run=XXX -benchtime=$(BENCH_BENCHTIME) -bench='.*' ./...
 
 ##############################################################################
 # Rules for updating config files, etc.
 ##############################################################################
 
-update: go-generate add-headers build-package notice $(MAGE)
-	@$(MAGE) update
+update: go-generate add-headers build-package notice apm-server.docker.yml
 	@go mod download all # make sure go.sum is complete
 
-config: apm-server.yml apm-server.docker.yml
-apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml
-	@$(MAGE) config
+apm-server.docker.yml: apm-server.yml
+	sed -e 's/localhost:8200/0.0.0.0:8200/' -e 's/localhost:9200/elasticsearch:9200/' $< > $@
 
 .PHONY: go-generate
 go-generate:
-	@$(GO) generate .
+	@$(GO) run internal/model/modeldecoder/generator/cmd/main.go
+	@$(GO) run internal/model/modelprocessor/generate_internal_metrics.go
+	@bash script/vendor_otel.sh
 	@cd cmd/intake-receiver && APM_SERVER_VERSION=$(APM_SERVER_VERSION) $(GO) generate .
 
 notice: NOTICE.txt
 NOTICE.txt: $(PYTHON) go.mod tools/go.mod
-	@$(PYTHON) script/generate_notice.py . ./x-pack/apm-server
+	@$(PYTHON) script/generate_notice.py ./cmd/apm-server ./x-pack/apm-server
 
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -exclude x-pack -exclude internal/otel_collector
+	@$(GOLICENSER) -exclude x-pack -exclude internal/otel_collector -exclude internal/.otel_collector_mixin
 	@$(GOLICENSER) -license Elasticv2 x-pack
 endif
 
@@ -138,18 +163,15 @@ update-beats-module:
 # Linting, style-checking, license header checks, etc.
 ##############################################################################
 
-GOLINT_TARGETS?=$(shell $(GO) list ./...)
-GOLINT_UPSTREAM?=origin/main
-REVIEWDOG_FLAGS?=-conf=reviewdog.yml -f=golint -diff="git diff $(GOLINT_UPSTREAM)"
-GOLINT_COMMAND=$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) $(REVIEWDOG_FLAGS)
-
-.PHONY: golint
-golint: $(GOLINT) $(REVIEWDOG)
-	@output=$$($(GOLINT_COMMAND)); test -z "$$output" || (echo $$output && exit 1)
+# NOTE(axw) ST1000 is disabled for the moment as many packages do not have 
+# comments. It would be a good idea to add them later, and remove this exception,
+# so we're a bit more intentional about the meaning of packages and how code is
+# organised.
+STATICCHECK_CHECKS?=all,-ST1000
 
 .PHONY: staticcheck
 staticcheck: $(STATICCHECK)
-	$(STATICCHECK) github.com/elastic/apm-server/...
+	$(STATICCHECK) -checks=$(STATICCHECK_CHECKS) ./...
 
 .PHONY: check-changelogs
 check-changelogs: $(PYTHON)
@@ -158,7 +180,7 @@ check-changelogs: $(PYTHON)
 .PHONY: check-headers
 check-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -d -exclude build -exclude x-pack -exclude internal/otel_collector
+	@$(GOLICENSER) -d -exclude build -exclude x-pack -exclude internal/otel_collector -exclude internal/.otel_collector_mixin
 	@$(GOLICENSER) -d -exclude build -license Elasticv2 x-pack
 endif
 
@@ -170,7 +192,7 @@ check-docker-compose: $(PYTHON_BIN)
 format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(ELASTICPACKAGE) format)
 build-package: $(ELASTICPACKAGE)
-	@rm -fr ./build/integrations/apm/* ./build/apmpackage
+	@rm -fr ./build/packages/apm/* ./build/apmpackage
 	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_VERSION)
 	@(cd ./build/apmpackage; $(ELASTICPACKAGE) build && $(ELASTICPACKAGE) check)
 
@@ -192,10 +214,16 @@ autopep8: $(PYTHON_BIN)
 # Rules for creating and installing build tools.
 ##############################################################################
 
+# PYTHON_EXE may be set in the environment to override the Python binary used
+# for creating the virtual environment.
+PYTHON_EXE?=python3
+
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
-$(PYTHON_BIN)/activate: $(MAGE) script/requirements.txt
-	@$(MAGE) pythonEnv
+$(PYTHON_BIN)/activate: script/requirements.txt
+	@$(PYTHON_EXE) -m venv $(PYTHON_VENV_DIR)
+	@$(PYTHON_BIN)/pip install -U pip wheel
+	@$(PYTHON_BIN)/pip install -Ur script/requirements.txt
 	@touch $@
 
 ##############################################################################
@@ -210,9 +238,7 @@ release-manager-snapshot: release
 .PHONY: release-manager-release
 release-manager-release: release
 
-.PHONY: release
-
-JAVA_ATTACHER_VERSION:=1.28.4
+JAVA_ATTACHER_VERSION:=1.33.0
 JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
 JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
 JAVA_ATTACHER_BASE_URL:=https://repo1.maven.org/maven2/co/elastic/apm/apm-agent-attach-cli
@@ -221,9 +247,11 @@ JAVA_ATTACHER_SIG_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA
 
 APM_AGENT_JAVA_PUB_KEY:=apm-agent-java-public-key.asc
 
+.PHONY: release
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
-release: $(MAGE) $(PYTHON) build/$(JAVA_ATTACHER_JAR) build/dependencies.csv
-	$(MAGE) package
+release: $(MAGE) $(PYTHON) build/$(JAVA_ATTACHER_JAR) build/dependencies.csv $(APM_SERVER_BINARIES)
+	@$(MAGE) package
+	@$(MAGE) ironbank
 
 build/dependencies.csv: $(PYTHON) go.mod
 	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
@@ -260,3 +288,41 @@ rally/corpora/.generated: rally/gencorpora/main.go rally/gencorpora/api.go rally
 	@rm -fr rally/corpora && mkdir rally/corpora
 	@cd rally/gencorpora && $(GO) run .
 	@touch $@
+
+##############################################################################
+# Smoke tests -- Basic smoke tests for APM Server.
+##############################################################################
+
+SMOKETEST_VERSIONS ?= latest
+SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d)
+
+.PHONY: smoketest/discover
+smoketest/discover:
+	@echo "$(SMOKETEST_DIRS)"
+
+.PHONY: smoketest/run
+smoketest/run:
+	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do \
+		echo "-> Running $(TEST_DIR) smoke tests for version $${version}..."; \
+		cd $(TEST_DIR) && ./test.sh $${version}; \
+	done
+
+.PHONY: smoketest/cleanup
+smoketest/cleanup:
+	@ cd $(TEST_DIR); \
+	if [ -f "./cleanup.sh" ]; then \
+		./cleanup.sh; \
+	fi
+
+.PHONY: smoketest/all
+smoketest/all:
+	@ for test_dir in $(SMOKETEST_DIRS); do \
+		$(MAKE) smoketest/run TEST_DIR=$${test_dir}; \
+	done
+
+.PHONY: smoketest/all
+smoketest/all/cleanup:
+	@ for test_dir in $(SMOKETEST_DIRS); do \
+		echo "-> Cleanup $${test_dir} smoke tests..."; \
+		$(MAKE) smoketest/cleanup TEST_DIR=$${test_dir}; \
+	done

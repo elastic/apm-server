@@ -25,4 +25,6 @@ OUTPUT_JUNIT_FILE="$OUTPUT_DIR/TEST-go-system_tests.xml"
 cd systemtest && go mod download && cd -
 
 export GOTESTFLAGS="-v -json"
-gotestsum --no-color -f standard-quiet --jsonfile "$OUTPUT_JSON_FILE" --junitfile "$OUTPUT_JUNIT_FILE" --raw-command -- make system-test
+go run -modfile=tools/go.mod gotest.tools/gotestsum \
+	--no-color -f standard-quiet --jsonfile "$OUTPUT_JSON_FILE" --junitfile "$OUTPUT_JUNIT_FILE" \
+	--raw-command -- make system-test

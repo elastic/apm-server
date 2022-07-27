@@ -9,11 +9,11 @@ IMPORTANT: {deprecation-notice-api}
 If you've already upgraded, see <<api-config>>.
 
 APM Server exposes an API endpoint that allows agents to query the server for configuration changes.
-More information on this feature is available in {kibana-ref}/agent-configuration.html[APM Agent configuration in Kibana].
+More information on this feature is available in {kibana-ref}/agent-configuration.html[APM Agent configuration in {kib}].
 
 Starting with release 7.14, agent configuration can be declared directly within
 `apm-server.yml`. Requests to the endpoint are unchanged; `apm-server` responds
-directly without querying kibana for the agent configuration. Refer to the
+directly without querying {kib} for the agent configuration. Refer to the
 example in `apm-server.yml` under Agent Configuration.
 
 [[agent-config-endpoint]]
@@ -58,8 +58,8 @@ http(s)://{hostname}:{port}/config/v1/agents
 ==== Responses
 
 * Successful - `200`
-* Kibana endpoint is disabled - `403`
-* Kibana is unreachable - `503`
+* {kib} endpoint is disabled - `403`
+* {kib} is unreachable - `503`
 
 [[agent-config-api-example]]
 [float]

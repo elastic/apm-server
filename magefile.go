@@ -21,21 +21,22 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
+	"runtime"
 	"strings"
 
-	"github.com/magefile/mage/mg"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/dev-tools/mage"
-	"github.com/elastic/beats/v7/dev-tools/mage/target/build"
 
-	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/internal/beater/config"
 )
+
+var versionFileRegex = regexp.MustCompile(`(?m)^const Version = "(.+)"\r?$`)
 
 func init() {
 	repo, err := mage.GetProjectRepoInfo()
@@ -43,71 +44,48 @@ func init() {
 		panic(err)
 	}
 	mage.SetBuildVariableSources(&mage.BuildVariableSources{
-		BeatVersion: filepath.Join(repo.RootDir, "cmd", "version.go"),
-		GoVersion:   filepath.Join(repo.RootDir, ".go-version"),
-		DocBranch:   filepath.Join(repo.RootDir, "docs/version.asciidoc"),
+		BeatVersion: filepath.Join(repo.RootDir, "internal", "version", "version.go"),
+		BeatVersionParser: func(data []byte) (string, error) {
+			matches := versionFileRegex.FindSubmatch(data)
+			if len(matches) == 2 {
+				return string(matches[1]), nil
+			}
+			return "", errors.New("failed to parse version file")
+
+		},
+		GoVersion: filepath.Join(repo.RootDir, ".go-version"),
+		DocBranch: filepath.Join(repo.RootDir, "docs/version.asciidoc"),
 	})
+
+	// Filter platforms to those that are supported by apm-server.
+	mage.Platforms = mage.Platforms.Filter(strings.Join([]string{
+		"linux/amd64",
+		"linux/386",
+		"linux/arm64",
+		"windows/386",
+		"windows/amd64",
+		"darwin/amd64",
+	}, " "))
 
 	mage.BeatDescription = "Elastic APM Server"
 	mage.BeatURL = "https://www.elastic.co/apm"
 	mage.BeatIndexPrefix = "apm"
 	mage.XPackDir = "x-pack"
 	mage.BeatUser = "apm-server"
-	mage.CrossBuildMountModcache = true
-	mage.VirtualenvReqs = []string{filepath.Join(repo.RootDir, "script", "requirements.txt")}
 }
 
 // Build builds the Beat binary.
 func Build() error {
-	return mage.Build(mage.DefaultBuildArgs())
-}
-
-// GolangCrossBuild build the Beat binary inside of the golang-builder.
-// Do not use directly, use crossBuild instead.
-func GolangCrossBuild() error {
-	return mage.GolangCrossBuild(mage.DefaultGolangCrossBuildArgs())
-}
-
-// AssembleDarwinUniversal merges the darwin/amd64 and darwin/arm64 into a single
-// universal binary using `lipo`. It assumes the darwin/amd64 and darwin/arm64
-// were built and only performs the merge.
-//
-// This is used by crossbuild.
-func AssembleDarwinUniversal() error {
-	return build.AssembleDarwinUniversal()
-}
-
-// Clean cleans all generated files and build artifacts.
-func Clean() error {
-	return mage.Clean()
-}
-
-// Config generates apm-server.yml and apm-server.docker.yml.
-func Config() error {
-	if err := mage.Config(mage.ShortConfigType, shortConfigFileParams(), "."); err != nil {
-		return err
+	args := mage.DefaultBuildArgs()
+	args.InputFiles = []string{"./x-pack/apm-server"}
+	args.Name += "-" + mage.Platform.GOOS + "-" + mage.Platform.Arch
+	args.OutputDir = "build"
+	args.CGO = false
+	if mage.Platform.Arch == "386" {
+		// Only enable PIE on 64-bit platforms.
+		args.BuildMode = ""
 	}
-	return mage.Config(mage.DockerConfigType, dockerConfigFileParams(), ".")
-}
-
-func shortConfigFileParams() mage.ConfigFileParams {
-	return mage.ConfigFileParams{
-		Short: mage.ConfigParams{Template: mage.OSSBeatDir("_meta/beat.yml")},
-		ExtraVars: map[string]interface{}{
-			"elasticsearch_hostport": "localhost:9200",
-			"listen_hostport":        "localhost:" + config.DefaultPort,
-		},
-	}
-}
-
-func dockerConfigFileParams() mage.ConfigFileParams {
-	return mage.ConfigFileParams{
-		Docker: mage.ConfigParams{Template: mage.OSSBeatDir("_meta/beat.yml")},
-		ExtraVars: map[string]interface{}{
-			"elasticsearch_hostport": "elasticsearch:9200",
-			"listen_hostport":        "0.0.0.0:" + config.DefaultPort,
-		},
-	}
+	return mage.Build(args)
 }
 
 func keepPackages(types []string) map[mage.PackageType]struct{} {
@@ -138,51 +116,37 @@ func filterPackages(types string) {
 	mage.Packages = packages
 }
 
-// Package builds and packages apm-server for distribution.
+// Ironbank packages apm-server for the Ironbank distribution, relying on the
+// binaries having already been built.
+//
+// Use SNAPSHOT=true to build snapshots.
+func Ironbank() error {
+	if runtime.GOARCH != "amd64" {
+		fmt.Printf(">> Ironbank images are only supported for amd64 arch (%s is not supported)\n", runtime.GOARCH)
+		return nil
+	}
+	if err := prepareIronbankBuild(); err != nil {
+		return errors.Wrap(err, "failed to prepare the ironbank context")
+	}
+	if err := saveIronbank(); err != nil {
+		return errors.Wrap(err, "failed to save artifacts for ironbank")
+	}
+	return nil
+}
+
+// Package packages apm-server for distribution, relying on the
+// binaries having already been built.
 //
 // Use SNAPSHOT=true to build snapshots.
 // Use PLATFORMS to control the target platforms. eg linux/amd64
 // Use TYPES to control the target types. eg docker
 func Package() error {
-	mg.Deps(Update)
-	mg.Deps(func() error {
-		// TODO(axw) when we disable cgo, build all binaries using
-		// Go's native cross-compiling (GOOS=..., GOARCH=...)
-		return mage.CrossBuildXPack()
-	})
-	return PackageOnly()
-}
-
-// PackageOnly packages apm-server for distribution, relying on
-// the binaries having already been built. See Package for more.
-func PackageOnly() error {
-	mage.MustUsePackaging("elastic_beat_xpack_separate_binaries", "dev-tools/packaging/packages.yml")
+	mage.UseElasticBeatXPackPackaging()
 	customizePackaging()
 	if packageTypes := os.Getenv("TYPES"); packageTypes != "" {
 		filterPackages(packageTypes)
 	}
 	return mage.Package()
-}
-
-// Version prints out the qualified stack version.
-func Version() error {
-	v, err := mage.BeatQualifiedVersion()
-	if err != nil {
-		return err
-	}
-	fmt.Print(v)
-	return nil
-}
-
-// Update updates the generated files.
-func Update() error {
-	mg.Deps(Config)
-	return nil
-}
-
-// Use RACE_DETECTOR=true to enable the race detector.
-func GoTestUnit(ctx context.Context) error {
-	return mage.GoTest(ctx, mage.DefaultGoTestUnitArgs())
 }
 
 // -----------------------------------------------------------------------------
@@ -196,6 +160,13 @@ func customizePackaging() {
 	for idx := len(mage.Packages) - 1; idx >= 0; idx-- {
 		args := &mage.Packages[idx]
 
+		// Replace "build/golang-crossbuild" with "build" in the sources.
+		trimCrossbuildPrefix := filepath.Join("build", "golang-cross")
+		for filename, filespec := range args.Spec.Files {
+			filespec.Source = strings.TrimPrefix(filespec.Source, trimCrossbuildPrefix)
+			args.Spec.Files[filename] = filespec
+		}
+
 		// Replace the generic Beats README.md with an APM specific one, and remove files unused by apm-server.
 		for filename, filespec := range args.Spec.Files {
 			switch filespec.Source {
@@ -208,12 +179,12 @@ func customizePackaging() {
 
 		switch pkgType := args.Types[0]; pkgType {
 		case mage.Zip, mage.TarGz:
-			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
+			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0644, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 		case mage.Docker:
 			args.Spec.ExtraVars["expose_ports"] = config.DefaultPort
 			args.Spec.ExtraVars["repository"] = "docker.elastic.co/apm"
-			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
+			args.Spec.Files["java-attacher.jar"] = mage.PackageFile{Mode: 0644, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 		case mage.Deb, mage.RPM:
 			// Update config file owner.
@@ -221,7 +192,7 @@ func customizePackaging() {
 			pf.Owner = mage.BeatUser
 			args.Spec.Files["/etc/{{.BeatName}}/{{.BeatName}}.yml"] = pf
 			args.Spec.Files["/var/log/{{.BeatName}}"] = mage.PackageFile{Mode: 0750, Source: emptyDir, Owner: mage.BeatUser}
-			args.Spec.Files["/usr/share/{{.BeatName}}/bin/java-attacher.jar"] = mage.PackageFile{Mode: 0750, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
+			args.Spec.Files["/usr/share/{{.BeatName}}/bin/java-attacher.jar"] = mage.PackageFile{Mode: 0644, Source: "build/java-attacher.jar", Owner: mage.BeatUser}
 
 			// Customise the pre-install and post-install scripts.
 			args.Spec.PreInstallScript = "packaging/files/linux/pre-install.sh.tmpl"
@@ -239,28 +210,87 @@ func customizePackaging() {
 	}
 }
 
-func Check() error {
-	fmt.Println(">> check: Checking source code for common problems")
+func saveIronbank() error {
+	fmt.Println(">> saveIronbank: save the IronBank container context.")
 
-	mg.Deps(mage.GoVet, mage.CheckPythonTestNotExecutable, mage.CheckYAMLNotExecutable)
-
-	changes, err := mage.GitDiffIndex()
-	if err != nil {
-		return errors.Wrap(err, "failed to diff the git index")
+	ironbank := getIronbankContextName()
+	buildDir := filepath.Join("build", ironbank)
+	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
+		return fmt.Errorf("cannot find the folder with the ironbank context: %+v", err)
 	}
-	if len(changes) > 0 {
-		if mg.Verbose() {
-			mage.GitDiff()
+
+	distributionsDir := "build/distributions"
+	if _, err := os.Stat(distributionsDir); os.IsNotExist(err) {
+		err := os.MkdirAll(distributionsDir, 0750)
+		if err != nil {
+			return fmt.Errorf("cannot create folder for docker artifacts: %+v", err)
 		}
-		return errors.Errorf("some files are not up-to-date. "+
-			"Run 'make fmt update' then review and commit the changes. "+
-			"Modified: %v", changes)
+	}
+
+	// change dir to the buildDir location where the ironbank folder exists
+	// this will generate a tar.gz without some nested folders.
+	wd, _ := os.Getwd()
+	os.Chdir(buildDir)
+	defer os.Chdir(wd)
+
+	// move the folder to the parent folder, there are two parent folder since
+	// buildDir contains a two folders dir.
+	tarGzFile := filepath.Join("..", "..", distributionsDir, ironbank+".tar.gz")
+
+	// Save the build context as tar.gz artifact
+	err := mage.Tar("./", tarGzFile)
+	if err != nil {
+		return fmt.Errorf("cannot compress the tar.gz file: %+v", err)
+	}
+
+	return errors.Wrap(mage.CreateSHA512File(tarGzFile), "failed to create .sha512 file")
+}
+
+func getIronbankContextName() string {
+	version, _ := mage.BeatQualifiedVersion()
+	defaultBinaryName := "{{.Name}}-ironbank-{{.Version}}{{if .Snapshot}}-SNAPSHOT{{end}}"
+	outputDir, _ := mage.Expand(defaultBinaryName+"-docker-build-context", map[string]interface{}{
+		"Name":    "apm-server",
+		"Version": version,
+	})
+	return outputDir
+}
+
+func prepareIronbankBuild() error {
+	fmt.Println(">> prepareIronbankBuild: prepare the IronBank container context.")
+	ironbank := getIronbankContextName()
+	buildDir := filepath.Join("build", ironbank)
+	templatesDir := filepath.Join("packaging", "ironbank")
+
+	data := map[string]interface{}{
+		"MajorMinor": majorMinor(),
+	}
+
+	err := filepath.Walk(templatesDir, func(path string, info os.FileInfo, _ error) error {
+		if !info.IsDir() {
+			target := strings.TrimSuffix(
+				filepath.Join(buildDir, filepath.Base(path)),
+				".tmpl",
+			)
+
+			err := mage.ExpandFile(path, target, data)
+			if err != nil {
+				return errors.Wrapf(err, "expanding template '%s' to '%s'", path, target)
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-// PythonEnv ensures the Python venv is up-to-date with the beats requrements.txt.
-func PythonEnv() error {
-	_, err := mage.PythonVirtualenv()
-	return err
+func majorMinor() string {
+	if v, _ := mage.BeatQualifiedVersion(); v != "" {
+		parts := strings.SplitN(v, ".", 3)
+		return parts[0] + "." + parts[1]
+	}
+	return ""
 }

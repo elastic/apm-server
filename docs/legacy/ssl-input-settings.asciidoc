@@ -10,7 +10,7 @@ They apply to SSL/TLS communication between the APM Server and APM Agents.
 [float]
 ==== `enabled`
 
-The `enabled` setting can be used to enable the ssl configuration by setting
+The `enabled` setting can be used to enable the SSL configuration by setting
 it to `true`. The default value is `false`.
 
 [float]
@@ -59,8 +59,9 @@ The list of curve types for ECDHE (Elliptic Curve Diffie-Hellman ephemeral key e
 The list of root certificates for verifying client certificates.
 If `certificate_authorities` is empty or not set, the trusted certificate authorities of the host system are used.
 If `certificate_authorities` is set, `client_authentication` will be automatically set to `required`.
-Sending client certificates is currently only supported by the RUM agent through the browser
-and by the Jaeger agent.
+Sending client certificates is currently only supported by the RUM agent through the browser,
+the Java agent (see {apm-java-ref-v}/ssl-configuration.html[Agent certificate authentication]),
+and the Jaeger agent.
 
 [float]
 ==== `client_authentication`
@@ -69,8 +70,9 @@ This configures what types of client authentication are supported. The valid opt
 are `none`, `optional`, and `required`. The default is `none`.
 If `certificate_authorities` has been specified, this setting will automatically change to `required`.
 This option only needs to be configured when the agent is expected to provide a client certificate.
-Sending client certificates is currently only supported by the RUM agent through the browser
-and by the Jaeger agent.
+Sending client certificates is currently only supported by the RUM agent through the browser,
+the Java agent (see {apm-java-ref-v}/ssl-configuration.html[Agent certificate authentication]),
+and the Jaeger agent.
 
 * `none` - Disables client authentication.
 * `optional` - When a client certificate is given, the server will verify it.

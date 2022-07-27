@@ -7,11 +7,11 @@ package sampling_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
@@ -60,13 +60,13 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// subsequent events in the trace will be reported immediately.
 	trace1 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f11"}
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute)
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute, 0)
 	writer := storage.NewReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace1.ID, true))
 	assert.NoError(t, writer.Flush())
 	writer.Close()
 
-	storage = eventstorage.New(config.DB, eventstorage.JSONCodec{}, -1) // expire immediately
+	storage = eventstorage.New(config.DB, eventstorage.JSONCodec{}, -1, 0) // expire immediately
 	writer = storage.NewReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace2.ID, true))
 	assert.NoError(t, writer.Flush())
@@ -123,6 +123,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.stored"] = 2
 	expectedMonitoring.Ints["sampling.events.sampled"] = 2
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
+	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
 	// Stop the processor so we can access the database.
@@ -228,11 +229,12 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.sampled"] = 2
 	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
+	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute)
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute, 0)
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -287,7 +289,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute)
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute, 0)
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -447,11 +449,12 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.sampled"] = 1
 	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
+	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
 	assert.Equal(t, trace1Events, events)
 
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute)
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute, 0)
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -506,6 +509,7 @@ func TestGroupsMonitoring(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.dropped"] = 1 // final event dropped, after service limit reached
 	expectedMonitoring.Ints["sampling.events.sampled"] = 0
 	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 1
+	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`, `sampling.dynamic_service_groups`)
 }
 
@@ -583,12 +587,11 @@ func TestStorageGC(t *testing.T) {
 	}
 
 	vlogFilenames := func() []string {
-		dir, _ := os.Open(config.StorageDir)
-		names, _ := dir.Readdirnames(-1)
-		defer dir.Close()
+		entries, _ := os.ReadDir(config.StorageDir)
 
 		var vlogs []string
-		for _, name := range names {
+		for _, entry := range entries {
+			name := entry.Name()
 			if strings.HasSuffix(name, ".vlog") {
 				vlogs = append(vlogs, name)
 			}
@@ -597,10 +600,10 @@ func TestStorageGC(t *testing.T) {
 		return vlogs
 	}
 
-	// Process spans until more than one value log file has been created,
-	// but the first one does not exist (has been garbage collected).
-	for len(vlogFilenames()) < 2 {
-		writeBatch(50000)
+	// Process spans until value log files have been created.
+	// Garbage collection is disabled at this time.
+	for len(vlogFilenames()) < 3 {
+		writeBatch(500)
 	}
 
 	config.StorageGCInterval = 10 * time.Millisecond
@@ -609,6 +612,7 @@ func TestStorageGC(t *testing.T) {
 	go processor.Run()
 	defer processor.Stop(context.Background())
 
+	// Wait for the first value log file to be garbage collected.
 	deadline := time.Now().Add(10 * time.Second)
 	for time.Now().Before(deadline) {
 		vlogs := vlogFilenames()
@@ -619,6 +623,69 @@ func TestStorageGC(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	t.Fatal("timed out waiting for value log garbage collection")
+}
+
+func TestStorageLimit(t *testing.T) {
+	// This test ensures that when tail sampling is configured with a hard
+	// storage limit, the limit is respected once the size is available.
+	// To update the database size during our test without waiting a full
+	// minute, we store some span events, close and re-open the database, so
+	// the size is updated.
+	if testing.Short() {
+		t.Skip("skipping slow test")
+	}
+
+	writeBatch := func(n int, c sampling.Config, assertBatch func(b model.Batch)) *sampling.Processor {
+		processor, err := sampling.NewProcessor(c)
+		require.NoError(t, err)
+		go processor.Run()
+		defer processor.Stop(context.Background())
+		var batch model.Batch
+		for i := 0; i < n; i++ {
+			traceID := uuid.Must(uuid.NewV4()).String()
+			batch = append(batch, model.APMEvent{
+				Processor: model.SpanProcessor,
+				Trace:     model.Trace{ID: traceID},
+				Event:     model.Event{Duration: 123 * time.Millisecond},
+				Span:      &model.Span{ID: traceID},
+			})
+		}
+		err = processor.ProcessBatch(context.Background(), &batch)
+		require.NoError(t, err)
+		assertBatch(batch)
+		return processor
+	}
+
+	config := newTempdirConfig(t)
+	// Write 5K span events and close the DB to persist to disk the storage
+	// size and assert that none are reported immediately.
+	writeBatch(5000, config, func(b model.Batch) { assert.Empty(t, b) })
+	config.DB.Close()
+
+	// Open a new instance of the badgerDB and check the size.
+	var err error
+	config.DB, err = eventstorage.OpenBadger(config.StorageDir, 1024*1024)
+	require.NoError(t, err)
+	t.Cleanup(func() { config.DB.Close() })
+
+	lsm, vlog := config.DB.Size()
+	assert.GreaterOrEqual(t, lsm+vlog, int64(1024))
+
+	config.StorageLimit = 1024 // Set the storage limit to 1024 bytes.
+	// Create a massive 150K span batch (per CPU) to trigger the badger error
+	// Transaction too big, causing the ProcessBatch to report the some traces
+	// immediately.
+	// Rather than setting a static threshold, use the runtime.NumCPU as a
+	// multiplier since the sharded writers use that variable and the more CPUs
+	// we have, the more sharded writes we'll have, resulting in a greater buffer.
+	processor := writeBatch(150_000*runtime.NumCPU(), config, func(b model.Batch) {
+		assert.NotEmpty(t, b)
+	})
+
+	failedWrites := collectProcessorMetrics(processor).Ints["sampling.events.failed_writes"]
+	t.Log(failedWrites)
+	// Ensure that there are some failed writes.
+	assert.GreaterOrEqual(t, failedWrites, int64(1))
 }
 
 func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
@@ -646,7 +713,7 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 }
 
 func newTempdirConfig(tb testing.TB) sampling.Config {
-	tempdir, err := ioutil.TempDir("", "samplingtest")
+	tempdir, err := os.MkdirTemp("", "samplingtest")
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
 
@@ -678,6 +745,7 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 			StorageDir:        tempdir,
 			StorageGCInterval: time.Second,
 			TTL:               30 * time.Minute,
+			StorageLimit:      0, // No storage limit.
 		},
 	}
 }
@@ -758,7 +826,7 @@ func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, 
 				tb.Fatal(err)
 			}
 			if info.ModTime().After(after) {
-				data, err := ioutil.ReadFile(filename)
+				data, err := os.ReadFile(filename)
 				if err != nil {
 					tb.Fatal(err)
 				}

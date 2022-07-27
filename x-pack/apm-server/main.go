@@ -18,11 +18,10 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
 
-	"github.com/elastic/apm-server/beater"
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/internal/beater"
+	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
-	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
@@ -144,6 +143,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			DB:                badgerDB,
 			StorageDir:        storageDir,
 			StorageGCInterval: tailSamplingConfig.StorageGCInterval,
+			StorageLimit:      tailSamplingConfig.StorageLimitParsed,
 			TTL:               tailSamplingConfig.TTL,
 		},
 	})
@@ -178,18 +178,19 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 	runServer = beater.WrapRunServerWithProcessors(runServer, batchProcessors...)
 
 	g, ctx := errgroup.WithContext(ctx)
+	serverStopped := make(chan struct{})
 	for _, p := range processors {
 		p := p // copy for closure
 		g.Go(func() error {
 			if err := p.Run(); err != nil {
-				args.Logger.Errorf("%s aborted", p.name, logp.Error(err))
+				args.Logger.With(logp.Error(err)).Errorf("%s aborted", p.name)
 				return err
 			}
 			args.Logger.Infof("%s stopped", p.name)
 			return nil
 		})
 		g.Go(func() error {
-			<-ctx.Done()
+			<-serverStopped
 			stopctx := context.Background()
 			if args.Config.ShutdownTimeout > 0 {
 				// On shutdown wait for the aggregator to stop
@@ -202,6 +203,7 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 		})
 	}
 	g.Go(func() error {
+		defer close(serverStopped)
 		return runServer(ctx, args)
 	})
 	return g.Wait()
@@ -229,7 +231,7 @@ func closeBadger() error {
 }
 
 func Main() error {
-	rootCmd := cmd.NewXPackRootCommand(
+	rootCmd := newXPackRootCommand(
 		beater.NewCreator(beater.CreatorParams{
 			WrapRunServer: wrapRunServer,
 		}),

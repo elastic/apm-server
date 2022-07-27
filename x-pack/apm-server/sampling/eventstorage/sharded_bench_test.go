@@ -10,14 +10,14 @@ import (
 
 	"github.com/gofrs/uuid"
 
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
 
 func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 	db := newBadgerDB(b, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, 0)
 	sharded := store.NewShardedReadWriter()
 	defer sharded.Close()
 
@@ -37,7 +37,7 @@ func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 func BenchmarkShardedWriteTransactionContended(b *testing.B) {
 	db := newBadgerDB(b, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, 0)
 	sharded := store.NewShardedReadWriter()
 	defer sharded.Close()
 

@@ -30,7 +30,7 @@ Among other things, spans can contain:
 * A `parent.id` attribute that refers to its parent span or transaction.
 * Its start time and duration.
 * A `name`, `type`, `subtype`, and `action`—see the {span-name-type-sheet}[span name/type alignment]
-sheet for span name patterns and examples by APM agent.
+sheet for span name patterns and examples by {apm-agent}.
 In addition, some APM agents test against a public {span-spec}[span type/subtype spec].
 * An optional `stack trace`. Stack traces consist of stack frames,
 which represent a function call on the call stack.
@@ -46,7 +46,7 @@ and non-keyword fields, like `span.start.us`, to 10,000 characters.
 For performance reasons, APM agents can choose to sample or omit spans purposefully.
 This can be useful in preventing edge cases, like long-running transactions with over 100 spans,
 that would otherwise overload both the Agent and the APM Server.
-When this occurs, the APM app will display the number of spans dropped.
+When this occurs, the {apm-app} will display the number of spans dropped.
 
 To configure the number of spans recorded per transaction, see the relevant Agent documentation:
 
@@ -67,7 +67,7 @@ Agents stream spans to the APM Server separately from their transactions.
 Because of this, unforeseen errors may cause spans to go missing.
 Agents know how many spans a transaction should have;
 if the number of expected spans does not equal the number of spans received by the APM Server,
-the APM app will calculate the difference and display a message.
+the {apm-app} will calculate the difference and display a message.
 
 [float]
 ==== Data streams
@@ -96,7 +96,7 @@ include::./data/elasticsearch/generated/spans.json[]
 === Transactions
 
 *Transactions* are a special kind of <<data-model-spans,span>> that have additional attributes associated with them.
-They describe an event captured by an Elastic APM agent instrumenting a service.
+They describe an event captured by an Elastic {apm-agent} instrumenting a service.
 You can think of transactions as the highest level of work you’re measuring within a service.
 As an example, a transaction might be a:
 
@@ -222,7 +222,7 @@ include::./data/elasticsearch/generated/errors.json[]
 **Metrics** measure the state of a system by gathering information on a regular interval. There are two types of APM metrics:
 
 * **System metrics**: Basic infrastructure and application metrics.
-* **Calculated metrics**: Aggregated trace event metrics used to power visualizations in the APM app.
+* **Calculated metrics**: Aggregated trace event metrics used to power visualizations in the {apm-app}.
 
 [float]
 ==== System metrics
@@ -234,7 +234,7 @@ like {apm-java-ref-v}/metrics.html[JVM metrics] in the Java Agent,
 and {apm-go-ref-v}/metrics.html[Go runtime] metrics in the Go Agent.
 
 Infrastructure and application metrics are important sources of information when debugging production systems,
-which is why we've made it easy to filter metrics for specific hosts or containers in the Kibana {kibana-ref}/metrics.html[metrics overview].
+which is why we've made it easy to filter metrics for specific hosts or containers in the {kib} {kibana-ref}/metrics.html[metrics overview].
 
 Metrics have the `processor.event` property set to `metric`.
 
@@ -254,7 +254,7 @@ For a full list of tracked metrics, see the relevant agent documentation:
 [float]
 ==== Calculated metrics
 
-APM agents and APM Server calculate metrics from trace events to power visualizations in the APM app.
+APM agents and APM Server calculate metrics from trace events to power visualizations in the {apm-app}.
 These metrics are described below.
 
 [float]
@@ -285,7 +285,7 @@ You can filter and group by these dimensions:
 [float]
 ===== Transaction metrics
 
-To power {kibana-ref}/xpack-apm.html[APM app] visualizations,
+To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
 APM Server aggregates transaction events into latency distribution metrics.
 
 *`transaction.duration.histogram`*::
@@ -303,7 +303,7 @@ You can filter and group by these dimensions (some of which are optional, for ex
 * `transaction.result`: The result of the transaction, for example `HTTP 2xx`
 * `transaction.root`: A boolean flag indicating whether the transaction is the root of a trace
 * `event.outcome`: The outcome of the transaction, for example `success`
-* `agent.name`: The name of the APM agent that instrumented the transaction, for example `java`
+* `agent.name`: The name of the {apm-agent} that instrumented the transaction, for example `java`
 * `service.name`: The name of the service that served the transaction
 * `service.version`: The version of the service that served the transaction
 * `service.node.name`: The name of the service instance that served the transaction
@@ -337,7 +337,7 @@ The `@timestamp` field of these documents holds the start of the aggregation int
 [float]
 ===== Service-destination metrics
 
-To power {kibana-ref}/xpack-apm.html[APM app] visualizations,
+To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
 APM Server aggregates span events into service-destination metrics.
 
 *`span.destination.service.response_time.count`* and *`span.destination.service.response_time.sum.us`*::
@@ -352,10 +352,13 @@ These metric documents can be identified by searching for `metricset.name: servi
 You can filter and group by these dimensions:
 
 * `span.destination.service.resource`: The destination service resource, for example `mysql`
+* `span.name`: The name of the operation, for example `SELECT FROM table_name`.
 * `event.outcome`: The outcome of the operation, for example `success`
-* `agent.name`: The name of the APM agent that instrumented the operation, for example `java`
+* `agent.name`: The name of the {apm-agent} that instrumented the operation, for example `java`
 * `service.name`: The name of the service that made the request
 * `service.environment`: The environment of the service that made the request
+* `service.target.name`: The target service name, for example `customer_db`
+* `service.target.type`: The target service type, for example `mysql`
 --
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
@@ -401,16 +404,16 @@ Let's explore the different types of metadata that Elastic APM offers.
 ==== Labels
 
 Labels add *indexed* information to transactions, spans, and errors.
-Indexed means the data is searchable and aggregatable in Elasticsearch.
+Indexed means the data is searchable and aggregatable in {es}.
 Add additional key-value pairs to define multiple labels.
 
 * Indexed: Yes
-* Elasticsearch type: {ref}/object.html[object]
-* Elasticsearch field: `labels`
+* {es} type: {ref}/object.html[object]
+* {es} field: `labels`
 * Applies to: <<data-model-transactions>> | <<data-model-spans>> | <<data-model-errors>>
 
 Label values can be a string, boolean, or number, although some agents only support string values at this time.
-Because labels for a given key, regardless of agent used, are stored in the same place in Elasticsearch,
+Because labels for a given key, regardless of agent used, are stored in the same place in {es},
 all label values of a given key must have the same data type.
 Multiple data types per key will throw an exception, for example: `{foo: bar}` and `{foo: 42}` is not allowed.
 
@@ -436,7 +439,7 @@ Defining too many unique fields in an index is a condition that can lead to a
 
 Custom context adds *non-indexed*,
 custom contextual information to transactions and errors.
-Non-indexed means the data is not searchable or aggregatable in Elasticsearch,
+Non-indexed means the data is not searchable or aggregatable in {es},
 and you cannot build dashboards on top of the data.
 This also means you don't have to worry about {ref}/mapping.html#mapping-limit-settings[mapping explosions],
 as these fields are not added to the mapping.
@@ -445,8 +448,8 @@ Non-indexed information is useful for providing contextual information to help y
 quickly debug performance issues or errors.
 
 * Indexed: No
-* Elasticsearch type: {ref}/object.html[object]
-* Elasticsearch fields: `transaction.custom` | `error.custom`
+* {es} type: {ref}/object.html[object]
+* {es} fields: `transaction.custom` | `error.custom`
 * Applies to: <<data-model-transactions>> | <<data-model-errors>>
 
 IMPORTANT: Setting a circular object, a large object, or a non JSON serializable object can lead to errors.
@@ -469,11 +472,11 @@ IMPORTANT: Setting a circular object, a large object, or a non JSON serializable
 ==== User context
 
 User context adds *indexed* user information to transactions and errors.
-Indexed means the data is searchable and aggregatable in Elasticsearch.
+Indexed means the data is searchable and aggregatable in {es}.
 
 * Indexed: Yes
-* Elasticsearch type: {ref}/keyword.html[keyword]
-* Elasticsearch fields: `user.email` | `user.name` | `user.id`
+* {es} type: {ref}/keyword.html[keyword]
+* {es} fields: `user.email` | `user.name` | `user.id`
 * Applies to: <<data-model-transactions>> | <<data-model-errors>>
 
 [float]

@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -77,6 +76,15 @@ func TestFleetIntegrationMonitoring(t *testing.T) {
 		Output  map[string]interface{}
 	}
 	apmIntegration.getBeatsMonitoringStats(t, &metrics)
+	// Remove the output.write.bytes key since there isn't a way to assert the
+	// writtenBytes at this layer.
+	if o := metrics.Libbeat["output"].(map[string]interface{}); len(o) > 0 {
+		if w := o["write"].(map[string]interface{}); len(w) > 0 {
+			if w["bytes"] != nil {
+				delete(w, "bytes")
+			}
+		}
+	}
 	assert.Equal(t, map[string]interface{}{
 		"output": map[string]interface{}{
 			"events": map[string]interface{}{
@@ -87,10 +95,8 @@ func TestFleetIntegrationMonitoring(t *testing.T) {
 				"toomany": 0.0,
 				"total":   float64(N),
 			},
-			"type": "elasticsearch",
-			"write": map[string]interface{}{
-				"bytes": float64(10),
-			},
+			"type":  "elasticsearch",
+			"write": map[string]interface{}{},
 		},
 		"pipeline": map[string]interface{}{
 			"events": map[string]interface{}{
@@ -129,7 +135,7 @@ func TestFleetIntegrationAnonymousAuth(t *testing.T) {
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
-		respBody, _ := ioutil.ReadAll(resp.Body)
+		respBody, _ := io.ReadAll(resp.Body)
 		require.Equal(t, statusCode, resp.StatusCode, string(respBody))
 	}
 	test("allowed_service", "allowed_agent", http.StatusAccepted)
@@ -145,7 +151,7 @@ func TestFleetPackageNonMultiple(t *testing.T) {
 	packagePolicy.Name = "apm-2"
 	err := systemtest.Fleet.CreatePackagePolicy(packagePolicy)
 	require.Error(t, err)
-	assert.EqualError(t, err, "Unable to create package policy. Package 'apm' already exists on this agent policy.")
+	assert.EqualError(t, err, "Unable to create integration policy. Integration 'apm' already exists on this agent policy.")
 }
 
 // newAPMIntegration creates a new agent policy and assigns the APM integration

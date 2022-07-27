@@ -9,9 +9,11 @@
 
 Configure and customize APM integration settings directly in {kib}:
 
-. Open {kib} and navigate to **Fleet**.
+// tag::edit-integration-settings[]
+. Open {kib} and navigate to **{fleet}**.
 . Under the **Agent policies** tab, select the policy you would like to configure.
 . Find the Elastic APM integration and select **Actions** > **Edit integration**.
+// end::edit-integration-settings[]
 
 [float]
 [[apm-input-general-settings]]

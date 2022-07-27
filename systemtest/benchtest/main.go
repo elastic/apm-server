@@ -20,15 +20,14 @@ package benchtest
 import (
 	"context"
 	"crypto/tls"
-	"embed"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"math"
 	"net/http"
 	"os"
 	"reflect"
-	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -39,13 +38,12 @@ import (
 	"github.com/joeshaw/multierror"
 	"go.elastic.co/apm/v2/stacktrace"
 	"golang.org/x/time/rate"
+
+	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
+	"github.com/elastic/apm-server/systemtest/loadgen"
 )
 
 const waitInactiveTimeout = 30 * time.Second
-
-// events holds the current stored events.
-//go:embed events/*.ndjson
-var events embed.FS
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
 type BenchmarkFunc func(*testing.B, *rate.Limiter)
@@ -61,50 +59,63 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 	// Run the benchmark. testing.Benchmark will invoke the function
 	// multiple times, but only returns the final result.
 	var ok bool
-	var before, after expvar
+	var collector *expvar.Collector
 	result := testing.Benchmark(func(b *testing.B) {
-		if err := queryExpvar(&before, *server); err != nil {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		var err error
+		server := loadgen.Config.ServerURL.String()
+		collector, err = expvar.StartNewCollector(ctx, server, 100*time.Millisecond)
+		if err != nil {
 			b.Error(err)
 			ok = !b.Failed()
 			return
 		}
 
-		limiter := getNewLimiter(maxEPM)
+		limiter := loadgen.GetNewLimiter(loadgen.Config.MaxEPM)
 		b.ResetTimer()
 		f(b, limiter)
-		for !b.Failed() {
-			if err := queryExpvar(&after, *server); err != nil {
+		if !b.Failed() {
+			watcher, err := collector.WatchMetric(expvar.ActiveEvents, 0)
+			if err != nil {
 				b.Error(err)
-				break
+			} else if status := <-watcher; !status {
+				b.Error("failed to wait for APM server to be inactive")
 			}
-			if after.ActiveEvents == 0 {
-				break
-			}
-			time.Sleep(100 * time.Millisecond)
 		}
 		ok = !b.Failed()
 	})
 	if result.Extra != nil {
-		addExpvarMetrics(result, before, after)
+		addExpvarMetrics(&result, collector, benchConfig.Detailed)
 	}
 	return result, ok, nil
 }
 
-func addExpvarMetrics(result testing.BenchmarkResult, before, after expvar) {
-	result.MemAllocs = after.MemStats.Mallocs - before.MemStats.Mallocs
-	result.MemBytes = after.MemStats.TotalAlloc - before.MemStats.TotalAlloc
-	result.Bytes = after.UncompressedBytes - before.UncompressedBytes
-	result.Extra["events/sec"] = float64(after.TotalEvents-before.TotalEvents) / result.T.Seconds()
-	result.Extra["txs/sec"] = float64(after.TransactionsProcessed-before.TransactionsProcessed) / result.T.Seconds()
-	result.Extra["spans/sec"] = float64(after.SpansProcessed-before.SpansProcessed) / result.T.Seconds()
-	result.Extra["metrics/sec"] = float64(after.MetricsProcessed-before.MetricsProcessed) / result.T.Seconds()
-	result.Extra["errors/sec"] = float64(after.ErrorsProcessed-before.ErrorsProcessed) / result.T.Seconds()
+func addExpvarMetrics(result *testing.BenchmarkResult, collector *expvar.Collector, detailed bool) {
+	result.Bytes = collector.Delta(expvar.Bytes)
+	result.MemAllocs = uint64(collector.Delta(expvar.MemAllocs))
+	result.MemBytes = uint64(collector.Delta(expvar.MemBytes))
+	result.Extra["events/sec"] = float64(collector.Delta(expvar.TotalEvents)) / result.T.Seconds()
+	if detailed {
+		result.Extra["txs/sec"] = float64(collector.Delta(expvar.TransactionsProcessed)) / result.T.Seconds()
+		result.Extra["spans/sec"] = float64(collector.Delta(expvar.SpansProcessed)) / result.T.Seconds()
+		result.Extra["metrics/sec"] = float64(collector.Delta(expvar.MetricsProcessed)) / result.T.Seconds()
+		result.Extra["errors/sec"] = float64(collector.Delta(expvar.ErrorsProcessed)) / result.T.Seconds()
+		result.Extra["gc_cycles"] = float64(collector.Delta(expvar.NumGC))
+		result.Extra["max_rss"] = float64(collector.Get(expvar.RSSMemoryBytes).Max)
+		result.Extra["max_goroutines"] = float64(collector.Get(expvar.Goroutines).Max)
+		result.Extra["max_heap_alloc"] = float64(collector.Get(expvar.HeapAlloc).Max)
+		result.Extra["max_heap_objects"] = float64(collector.Get(expvar.HeapObjects).Max)
+		result.Extra["mean_available_indexers"] = float64(collector.Get(expvar.AvailableBulkRequests).Mean)
+	}
 
 	// Record the number of error responses returned by the server: lower is better.
-	errorResponsesAfter := after.ErrorElasticResponses + after.ErrorOTLPTracesResponses + after.ErrorOTLPMetricsResponses
-	errorResponsesBefore := before.ErrorElasticResponses + before.ErrorOTLPTracesResponses + before.ErrorOTLPMetricsResponses
-	errorResponses := errorResponsesAfter - errorResponsesBefore
-	result.Extra["error_responses/sec"] = float64(errorResponses) / result.T.Seconds()
+	errorResponses := collector.Delta(expvar.ErrorElasticResponses) +
+		collector.Delta(expvar.ErrorOTLPTracesResponses) +
+		collector.Delta(expvar.ErrorOTLPMetricsResponses)
+	if detailed || errorResponses > 0 {
+		result.Extra["error_responses/sec"] = float64(errorResponses) / result.T.Seconds()
+	}
 }
 
 func fullBenchmarkName(name string, agents int) string {
@@ -127,35 +138,20 @@ func benchmarkFuncName(f BenchmarkFunc) (string, error) {
 	return name, nil
 }
 
-func getNewLimiter(epm int) *rate.Limiter {
-	if epm <= 0 {
-		return rate.NewLimiter(rate.Inf, 0)
-	}
-	eps := float64(epm) / float64(60)
-	return rate.NewLimiter(rate.Limit(eps), getBurstSize(int(math.Ceil(eps))))
-}
-
-func getBurstSize(eps int) int {
-	burst := eps * 2
-	// Allow for a batch to have 1000 events minimum
-	if burst < 1000 {
-		burst = 1000
-	}
-	return burst
-}
-
 // Run runs the given benchmarks according to the flags defined.
 //
 // Run expects to receive statically-defined functions whose names
 // are all prefixed with "Benchmark", like those that are designed
 // to work with "go test".
 func Run(allBenchmarks ...BenchmarkFunc) error {
-	if err := parseFlags(); err != nil {
+	// Set flags in package testing.
+	testing.Init()
+	if err := flag.Set("test.benchtime", benchConfig.Benchtime.String()); err != nil {
 		return err
 	}
 	// Sets the http.DefaultClient.Transport.TLSClientConfig.InsecureSkipVerify
 	// to match the "-secure" flag value.
-	verifyTLS := *secure
+	verifyTLS := loadgen.Config.Secure
 	http.DefaultClient.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: !verifyTLS},
 	}
@@ -170,14 +166,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		}
 	}()
 
-	var matchRE *regexp.Regexp
-	if *match != "" {
-		re, err := regexp.Compile(*match)
-		if err != nil {
-			return err
-		}
-		matchRE = re
-	}
+	matchRE := benchConfig.RunRE
 	benchmarks := make([]benchmark, 0, len(allBenchmarks))
 	for _, benchmarkFunc := range allBenchmarks {
 		name, err := benchmarkFuncName(benchmarkFunc)
@@ -196,6 +185,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 	})
 
 	var maxLen int
+	agentsList := benchConfig.AgentsList
 	for _, agents := range agentsList {
 		for _, benchmark := range benchmarks {
 			if n := len(fullBenchmarkName(benchmark.name, agents)); n > maxLen {
@@ -206,9 +196,11 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 
 	// Warm up the APM Server with the specified `-agents`. Only the first
 	// value in the list will be used.
-	if len(agentsList) > 0 && *warmupEvents > 0 {
+	if len(agentsList) > 0 && benchConfig.WarmupEvents > 0 {
 		agents := agentsList[0]
-		if err := warmup(agents, *warmupEvents, serverURL.String(), *secretToken); err != nil {
+		serverURL := loadgen.Config.ServerURL.String()
+		secretToken := loadgen.Config.SecretToken
+		if err := warmup(agents, benchConfig.WarmupEvents, serverURL, secretToken); err != nil {
 			return fmt.Errorf("warm-up failed with %d agents: %v", agents, err)
 		}
 	}
@@ -217,7 +209,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		runtime.GOMAXPROCS(int(agents))
 		for _, benchmark := range benchmarks {
 			name := fullBenchmarkName(benchmark.name, agents)
-			for i := 0; i < int(*count); i++ {
+			for i := 0; i < int(benchConfig.Count); i++ {
 				profileChan := profiles.record(name)
 				result, ok, err := runBenchmark(benchmark.f)
 				if err != nil {
@@ -239,21 +231,24 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 }
 
 func warmup(agents int, events uint, url, token string) error {
-	// Assume a base ingest rate of at least 2000 per second, and dynamically
+	// Assume a base ingest rate of at least 1000 per second, and dynamically
 	// set the context timeout based on this ingest rate, or if lower, default
-	// to 15 seconds. The default 5000 / 2000 ~= 2, so the default 15 seconds
+	// to 15 seconds. The default 5000 / 1000 ~= 5, so the default 15 seconds
 	// will be used instead. Additionally, the number of agents is also taken
 	// into account, since each of the agents will send the number of specified
 	// events to the APM Server, increasing its load.
-	timeout := warmupTimeout(2000, events, maxEPM, agents)
+	// Also account the GOMAXPROCS setting, since it will dictate the goroutines
+	// that are scheduled at any time.
+	maxEPM := loadgen.Config.MaxEPM
+	timeout := warmupTimeout(1000, events, maxEPM, agents, runtime.GOMAXPROCS(0))
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	errs := make(chan error, agents)
-	rl := getNewLimiter(maxEPM)
+	rl := loadgen.GetNewLimiter(maxEPM)
 	var wg sync.WaitGroup
 	for i := 0; i < agents; i++ {
-		h, err := newEventHandler(`*.ndjson`, url, token, rl)
+		h, err := loadgen.NewEventHandler(`*.ndjson`, url, token, rl)
 		if err != nil {
 			return fmt.Errorf("unable to create warm-up handler: %w", err)
 		}
@@ -269,7 +264,7 @@ func warmup(agents int, events uint, url, token string) error {
 	close(errs)
 	var merr multierror.Errors
 	for err := range errs {
-		if err != nil {
+		if err != nil && !errors.Is(err, context.DeadlineExceeded) {
 			merr = append(merr, err)
 		}
 	}
@@ -278,18 +273,22 @@ func warmup(agents int, events uint, url, token string) error {
 	}
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
 	defer cancel()
-	if err := WaitUntilServerInactive(ctx, url); err != nil {
+	if err := expvar.WaitUntilServerInactive(ctx, url); err != nil {
 		return fmt.Errorf("received error waiting for server inactive: %w", err)
 	}
 	return nil
 }
 
 // warmupTimeout calculates the timeout for the warm up.
-func warmupTimeout(ingestRate float64, events uint, epm, agents int) time.Duration {
+func warmupTimeout(ingestRate float64, events uint, epm, agents, cpus int) time.Duration {
 	if epm > 0 {
 		ingestRate = math.Min(ingestRate, float64(epm/60))
 	}
-	return time.Duration(math.Max(
-		float64(events)/float64(ingestRate)*float64(agents), 15,
-	)) * time.Second
+	// Divide the number of agents (concurrency) by the number of gomaxprocs.
+	// This allows the timeout calculation to respect how much concurrent work
+	// the apmbench runner can do.
+	factor := math.Max(1, float64(agents)/float64(cpus))
+	timeoutSeconds := math.Max(float64(events)/ingestRate, 1) *
+		float64(agents*2) * factor
+	return time.Duration(math.Max(timeoutSeconds, 15)) * time.Second
 }

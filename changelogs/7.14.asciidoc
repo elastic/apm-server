@@ -35,7 +35,7 @@ https://github.com/elastic/apm-server/compare/v7.13.4\...v7.14.0[View commits]
 
 [float]
 ==== Bug fixes
-* Fix panic on Fleet policy change when transaction metrics or tail-based sampling are enabled {pull}5670[5670]
+* Fix panic on {fleet} policy change when transaction metrics or tail-based sampling are enabled {pull}5670[5670]
 * Remove multipart form temporary files left behind by source map uploads {pull}5718[5718]
 * Removed service name from dataset {pull}5451[5451]
 * Fixed tail-based sampling pubsub to use _seq_no correctly {pull}5126[5126]
@@ -44,7 +44,7 @@ https://github.com/elastic/apm-server/compare/v7.13.4\...v7.14.0[View commits]
 
 [float]
 ==== Added
-* Support fetching sourcemaps from fleet {pull}5410[5410]
+* Support fetching source maps from fleet {pull}5410[5410]
 * Add support for more input variables in fleet integration {pull}5444[5444]
 * Add debug logging of OpenTelemetry payloads {pull}5474[5474]
 * Add support for OpenTelemetry labels describing mobile connectivity {pull}5436[5436]

@@ -7,7 +7,7 @@ package eventstorage
 import (
 	"github.com/dgraph-io/badger/v2"
 
-	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
@@ -27,6 +27,6 @@ func OpenBadger(storageDir string, valueLogFileSize int64) (*badger.DB, error) {
 	if valueLogFileSize > 0 {
 		badgerOpts.ValueLogFileSize = valueLogFileSize
 	}
-	badgerOpts.Logger = LogpAdaptor{Logger: logger}
+	badgerOpts.Logger = &LogpAdaptor{Logger: logger}
 	return badger.Open(badgerOpts)
 }

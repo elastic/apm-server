@@ -9,12 +9,12 @@ output "kibana_url" {
 }
 
 output "apm_url" {
-  value       = ec_deployment.deployment.apm.0.https_endpoint
+  value       = var.integrations_server ? ec_deployment.deployment.integrations_server.0.https_endpoint : ec_deployment.deployment.apm.0.https_endpoint
   description = "The secure APM URL"
 }
 
 output "apm_secret_token" {
-  value       = ec_deployment.deployment.apm_secret_token
+  value       = var.integrations_server ? data.external.secret_token.0.result.value : ec_deployment.deployment.apm_secret_token
   sensitive   = true
   description = "The APM Secret token"
 }
@@ -29,4 +29,9 @@ output "elasticsearch_password" {
   value       = ec_deployment.deployment.elasticsearch_password
   sensitive   = true
   description = "The Elasticsearch password"
+}
+
+output "stack_version" {
+  value       = data.ec_stack.deployment_version.version
+  description = "The matching stack pack version from the provided stack_version"
 }

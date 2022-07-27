@@ -9,13 +9,14 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_ec"></a> [ec](#requirement\_ec) | >=0.4.0 |
+| <a name="requirement_ec"></a> [ec](#requirement\_ec) | >=0.4.1 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_ec"></a> [ec](#provider\_ec) | 0.4.0 |
+| <a name="provider_external"></a> [external](#provider\_external) | n/a |
 | <a name="provider_local"></a> [local](#provider\_local) | n/a |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
 
@@ -26,15 +27,18 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | [ec_deployment.deployment](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/deployment) | resource |
 | [ec_deployment.deployment_monitor](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/deployment) | resource |
 | [local_file.enable_expvar](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.secret_token](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [null_resource.enable_expvar](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [null_resource.secret_token](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [ec_stack.deployment_version](https://registry.terraform.io/providers/elastic/ec/latest/docs/data-sources/stack) | data source |
+| [external_external.secret_token](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_apm_server_expvar"></a> [apm\_server\_expvar](#input\_apm\_server\_expvar) | Wether or not to enable APM Server's expvar endpoint. Defaults to true | `bool` | `true` | no |
-| <a name="input_apm_server_pprof"></a> [apm\_server\_pprof](#input\_apm\_server\_pprof) | Wether or not to enable APM Server's pprof endpoint. Defaults to true | `bool` | `true` | no |
+| <a name="input_apm_server_expvar"></a> [apm\_server\_expvar](#input\_apm\_server\_expvar) | Whether or not to enable APM Server's expvar endpoint. Defaults to true | `bool` | `true` | no |
+| <a name="input_apm_server_pprof"></a> [apm\_server\_pprof](#input\_apm\_server\_pprof) | Whether or not to enable APM Server's pprof endpoint. Defaults to true | `bool` | `true` | no |
 | <a name="input_apm_server_size"></a> [apm\_server\_size](#input\_apm\_server\_size) | Optional apm server instance size | `string` | `"1g"` | no |
 | <a name="input_apm_server_zone_count"></a> [apm\_server\_zone\_count](#input\_apm\_server\_zone\_count) | Optional apm server zone count | `number` | `1` | no |
 | <a name="input_deployment_name_prefix"></a> [deployment\_name\_prefix](#input\_deployment\_name\_prefix) | Optional ESS or ECE region. Defaults to GCP US West 2 (Los Angeles) | `string` | `"apmserver"` | no |
@@ -43,9 +47,11 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | <a name="input_docker_image_tag_override"></a> [docker\_image\_tag\_override](#input\_docker\_image\_tag\_override) | Optional docker image tag overrides, The full map needs to be specified | `map(string)` | <pre>{<br>  "apm": "",<br>  "elasticsearch": "",<br>  "kibana": ""<br>}</pre> | no |
 | <a name="input_elasticsearch_size"></a> [elasticsearch\_size](#input\_elasticsearch\_size) | Optional Elasticsearch instance size | `string` | `"8g"` | no |
 | <a name="input_elasticsearch_zone_count"></a> [elasticsearch\_zone\_count](#input\_elasticsearch\_zone\_count) | Optional Elasticsearch zone count | `number` | `2` | no |
+| <a name="input_integrations_server"></a> [integrations\_server](#input\_integrations\_server) | Optionally use the integrations server block instead of the apm block | `bool` | `false` | no |
 | <a name="input_monitor_deployment"></a> [monitor\_deployment](#input\_monitor\_deployment) | Optionally monitor the deployment in a separate deployment | `bool` | `false` | no |
 | <a name="input_region"></a> [region](#input\_region) | Optional ESS or ECE region. Defaults to GCP US West 2 (Los Angeles) | `string` | `"gcp-us-west2"` | no |
 | <a name="input_stack_version"></a> [stack\_version](#input\_stack\_version) | Optional stack version | `string` | `"latest"` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | Optional set of tags to use for all deployments | `map(string)` | `{}` | no |
 
 ## Outputs
 
@@ -57,4 +63,5 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | <a name="output_elasticsearch_url"></a> [elasticsearch\_url](#output\_elasticsearch\_url) | The secure Elasticsearch URL |
 | <a name="output_elasticsearch_username"></a> [elasticsearch\_username](#output\_elasticsearch\_username) | The Elasticsearch username |
 | <a name="output_kibana_url"></a> [kibana\_url](#output\_kibana\_url) | The secure Kibana URL |
+| <a name="output_stack_version"></a> [stack\_version](#output\_stack\_version) | The matching stack pack version from the provided stack\_version |
 <!-- END_TF_DOCS -->

@@ -29,7 +29,10 @@
                 "name": "metric"
             },
             "service": {
-                "name": "systemtest"
+                "name": "systemtest",
+                "target": {
+                    "type": "resource"
+                }
             },
             "span": {
                 "destination": {
@@ -40,7 +43,8 @@
                             "sum.us": 5000000
                         }
                     }
-                }
+                },
+                "name": "name"
             }
         }
     ]

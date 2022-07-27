@@ -4,7 +4,7 @@
 This guide explains the upgrade process for version {version}.
 For a detailed look at what's new, see:
 
-* {observability-guide}/whats-new.html[What's new in Observability]
+* {observability-guide}/whats-new.html[What's new in {observability}]
 * {kibana-ref}/whats-new.html[What's new in {kib}]
 * {ref}/release-highlights.html[{es} release highlights]
 
@@ -56,7 +56,7 @@ This upgrade guide is for the standalone (legacy) method of running APM Server.
 Only use this guide if both of the following are true:
 
 * You have a self-installation of the {stack}, i.e. you're not using {ecloud}.
-* You're running the APM Server binary, i.e. you haven't upgraded to the Elastic APM integration.
+* You're running the APM Server binary, i.e. you haven't switched to the Elastic APM integration.
 
 [float]
 ==== Prerequisites
@@ -69,7 +69,7 @@ see the https://www.elastic.co/guide/en/elastic-stack/7.17/upgrading-elastic-sta
 {apm-guide-7x}/upgrading-to-717.html[upgrade to version 7.17].
 
 . Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and Observability {observability-guide}/whats-new.html[What's new] content.
+and {observability} {observability-guide}/whats-new.html[What's new] content.
 
 [float]
 ==== Upgrade steps
@@ -140,7 +140,7 @@ This upgrade guide is for the Elastic APM integration.
 Only use this guide if both of the following are true:
 
 * You have a self-installation of the {stack}, i.e. you're not using {ecloud}.
-* You have already upgraded to and are running {fleet} and the Elastic APM integration.
+* You have already switched to and are running {fleet} and the Elastic APM integration.
 
 [float]
 ==== Prerequisites
@@ -150,7 +150,7 @@ must be upgraded to version 7.17. To upgrade {es} and {kib},
 see the https://www.elastic.co/guide/en/elastic-stack/7.17/upgrading-elastic-stack.html[{stack} Installation and Upgrade Guide]
 
 . Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and Observability {observability-guide}/whats-new.html[What's new] content.
+and {observability} {observability-guide}/whats-new.html[What's new] content.
 
 [float]
 ==== Upgrade steps
@@ -189,12 +189,12 @@ This upgrade guide is for the standalone (legacy) method of running APM Server.
 Only use this guide if both of the following are true:
 
 * You're using {ecloud}.
-* You're using the APM Server binary, i.e. you haven't upgraded to the Elastic APM integration.
+* You're using the APM Server binary, i.e. you haven't switched to the Elastic APM integration.
 
 Follow these steps to upgrade:
 
 . Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and Observability {observability-guide}/whats-new.html[What's new] content.
+and {observability} {observability-guide}/whats-new.html[What's new] content.
 
 . Upgrade {ecloud} to {version},
 See https://www.elastic.co/guide/en/cloud/current/ec-upgrade-deployment.html[Upgrade versions] for instructions.
@@ -216,12 +216,12 @@ This upgrade guide is for the Elastic APM integration.
 Only use this guide if both of the following are true:
 
 * You're using {ecloud}.
-* You have already upgraded to and are running {fleet} and the Elastic APM integration.
+* You have already switched to and are running {fleet} and the Elastic APM integration.
 
 Follow these steps to upgrade:
 
 . Review the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and Observability {observability-guide}/whats-new.html[What's new] content.
+and {observability} {observability-guide}/whats-new.html[What's new] content.
 
 . Upgrade your {ecloud} instance to {version}.
 See https://www.elastic.co/guide/en/cloud/current/ec-upgrade-deployment.html[Upgrade versions] for details.

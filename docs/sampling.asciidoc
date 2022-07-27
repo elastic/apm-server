@@ -5,7 +5,7 @@ Distributed tracing can generate a substantial amount of data.
 More data can mean higher costs and more noise.
 Sampling aims to lower the amount of data ingested and the effort required to analyze that data --
 all while still making it easy to find anomalous patterns in your applications, detect outages, track errors,
-and lower MTTR.
+and lower mean time to recovery (MTTR).
 
 Elastic APM supports two types of sampling:
 
@@ -81,7 +81,7 @@ A sampled trace retains all data associated with it.
 A non-sampled trace drops all <<data-model-spans,span>> and <<data-model-transactions,transaction>> data^1^.
 Regardless of the sampling decision, all traces retain <<data-model-errors,error>> data.
 
-Some visualizations in the APM app, like latency, are powered by aggregated transaction and span <<data-model-metrics,metrics>>.
+Some visualizations in the {apm-app}, like latency, are powered by aggregated transaction and span <<data-model-metrics,metrics>>.
 Metrics are based on sampled traces and weighted by the inverse sampling rate.
 For example, if you sample at 5%, each trace is counted as 20.
 As a result, as the variance of latency increases, or the sampling rate decreases, your level of error will increase.
@@ -94,7 +94,7 @@ so non-sampled RUM traces retain transaction data -- only span data is dropped.
 === Sample rates
 
 What's the best sampling rate? Unfortunately, there isn't one.
-Sampling is dependent on your data, the throughput of your application, data retainment policies, and other factors.
+Sampling is dependent on your data, the throughput of your application, data retention policies, and other factors.
 A sampling rate from `.1%` to `100%` would all be considered normal.
 You'll likely decide on a unique sample rate for different scenarios.
 Here are some examples:
@@ -114,15 +114,15 @@ There are three ways to adjust the head-based sampling rate of your APM agents:
 ===== Dynamic configuration
 
 The transaction sample rate can be changed dynamically (no redeployment necessary) on a per-service and per-environment
-basis with {kibana-ref}/agent-configuration.html[APM Agent Configuration] in Kibana.
+basis with {kibana-ref}/agent-configuration.html[{apm-agent} Configuration] in {kib}.
 
-===== Kibana API configuration
+===== {kib} API configuration
 
-APM Agent configuration exposes an API that can be used to programmatically change
+{apm-agent} configuration exposes an API that can be used to programmatically change
 your agents' sampling rate.
 An example is provided in the {kibana-ref}/agent-config-api.html[Agent configuration API reference].
 
-===== APM agent configuration
+===== {apm-agent} configuration
 
 Each agent provides a configuration value used to set the transaction sample rate.
 See the relevant agent's documentation for more details:
@@ -149,6 +149,10 @@ This default policy is used to catch remaining trace events that don't match a s
 Requiring this default policy ensures that traces are only dropped intentionally.
 If you enable tail-based sampling and send a transaction that does not match any of the policies,
 APM Server will reject the transaction with the error `no matching policy`.
+
+IMPORTANT: Please note that from version `8.3.1` APM Server implements a default storage limit of 3GB,
+but, due to how the limit is calculated and enforced the actual disk space may still grow slightly
+over the limit.
 
 ===== Example configuration
 

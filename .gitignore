@@ -47,8 +47,12 @@ cmd/intake-receiver/intake-receiver
 cmd/intake-receiver/events
 .terraform
 .terraform.lock*
+.terraform.tfstate*
 terraform.tfstate
 terraform.tfstate.backup
 terraform.tfvars
 testing/benchmark/.envrc
 testing/benchmark/benchmark-result.txt
+testing/smoke/**/tf.log
+testing/smoke/**/main.tf
+!testing/smoke/main.tf

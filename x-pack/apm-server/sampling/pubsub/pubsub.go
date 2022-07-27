@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"sync"
 	"time"
@@ -22,9 +21,9 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 
-	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/modelindexer"
+	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-server/internal/model/modelindexer"
 )
 
 // ErrClosed may be returned by Pubsub methods after the Close method is called.
@@ -94,6 +93,7 @@ func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan strin
 				Trace:      model.Trace{ID: id},
 			}
 			if err := indexer.ProcessBatch(ctx, &model.Batch{doc}); err != nil {
+				p.config.Logger.With(logp.Error(err)).With(logp.Reflect("event", doc)).Debug("failed to index sampled trace id")
 				return err
 			}
 		}
@@ -131,7 +131,7 @@ func (p *Pubsub) SubscribeSampledTraceIDs(
 			if err != nil {
 				// Errors may occur due to rate limiting, or while the index is
 				// still being created, so just log and continue.
-				p.config.Logger.With(logp.Error(err)).Debug("error searching for trace IDs")
+				p.config.Logger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Debug("error searching for trace IDs")
 				continue
 			}
 			if changed {
@@ -219,7 +219,7 @@ func (p *Pubsub) refreshIndices(ctx context.Context, indices []string) error {
 	}
 	defer resp.Body.Close()
 	if resp.IsError() {
-		message, _ := ioutil.ReadAll(resp.Body)
+		message, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("index refresh request failed: %s", message)
 	}
 	return nil
@@ -315,7 +315,7 @@ func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Read
 		if resp.StatusCode == http.StatusNotFound {
 			return errIndexNotFound
 		}
-		message, _ := ioutil.ReadAll(resp.Body)
+		message, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("search request failed: %s", message)
 	}
 	return json.NewDecoder(resp.Body).Decode(out)

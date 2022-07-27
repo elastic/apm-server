@@ -12,7 +12,7 @@
 
 [role="xpack"]
 [[securing-communication-elasticsearch]]
-== Secure communication with Elasticsearch
+== Secure communication with {es}
 
 IMPORTANT: {deprecation-notice-config}
 
@@ -123,14 +123,14 @@ ifndef::no_dashboards[]
 [role="xpack"]
 [float]
 [[securing-communication-kibana]]
-=== Secure communication with the Kibana endpoint
+=== Secure communication with the {kib} endpoint
 
 If you've configured the <<setup-kibana-endpoint,{kib} endpoint>>,
 you can also specify credentials for authenticating with {kib} under `kibana.setup`.
-If no credentials are specified, Kibana will use the configured authentication method
-in the Elasticsearch output.
+If no credentials are specified, {kib} will use the configured authentication method
+in the {es} output.
 
-For example, specify a unique username and password to connect to Kibana like this:
+For example, specify a unique username and password to connect to {kib} like this:
 
 --
 ["source","yaml",subs="attributes,callouts"]
