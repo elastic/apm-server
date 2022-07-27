@@ -68,7 +68,7 @@ clean:
 ##############################################################################
 
 .PHONY: check-full
-check-full: update check staticcheck check-docker-compose
+check-full: update check staticcheck check-docker-compose check-beats-version
 
 .PHONY: check-approvals
 check-approvals: $(APPROVALS)
@@ -187,6 +187,12 @@ endif
 .PHONY: check-docker-compose
 check-docker-compose: $(PYTHON_BIN)
 	@PATH=$(PYTHON_BIN):$(PATH) ./script/check_docker_compose.sh $(BEATS_VERSION)
+
+.PHONY: check-beats-version
+check-beats-version:
+ifneq ($(BEATS_VERSION),$(shell git branch --show-current))
+	$(error BEATS_VERSION is not synced with the current branch)
+endif
 
 .PHONY: format-package build-package
 format-package: $(ELASTICPACKAGE)
