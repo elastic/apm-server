@@ -14,6 +14,9 @@
       link: https://github.com/elastic/apm-server/pull/8400
 - version: "8.3.3"
   changes:
+    - description: Support TLSv1.3 and remove TLSv1.0 in the default TLS supported protocols
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/8577
     - description: Update APM integration description
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/8592
