@@ -70,9 +70,8 @@ For patch releases, only the version on the existing major and minor version bra
       Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc)
       If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file.
     * Patch version: Add new section to existing release notes. ([Sample PR](https://github.com/elastic/apm-server/pull/2064/files))
-  * Create changelog PRs in `main` and backport to the release branch.
+  * Create changelog PRs in `main` and backport to the release branch, but remove the _changelogs/head.asciidoc_ file from the backport.
   * The [`check_changelogs.py`](script/check_changelogs.py) script is run as a PR check, ensuring that changelog changes are synced across branches.
-  * Don't forget to update the "SUPPORTED_VERSIONS" to include a new branch if necessary.
 
 * Collaborate with the docs team on any release highlights or breaking changes that should be included in the APM Server guide. 
 
