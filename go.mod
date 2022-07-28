@@ -48,10 +48,10 @@ require (
 	go.opentelemetry.io/collector/model v0.44.0
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.21.0
-	golang.org/x/net v0.0.0-20220726230323-06994584191e
+	golang.org/x/net v0.0.0-20220728030405-41545e8bf201
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
-	golang.org/x/tools v0.1.11
+	golang.org/x/tools v0.1.12
 	google.golang.org/grpc v1.48.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools/gotestsum v1.7.0
@@ -75,7 +75,7 @@ require (
 	github.com/docker/docker v20.10.12+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/dop251/goja v0.0.0-20220722151623-4765a9872229 // indirect
+	github.com/dop251/goja v0.0.0-20220727084619-a070957bbee3 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20220712185256-8cad205bf387 // indirect
 	github.com/eapache/go-resiliency v1.2.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
@@ -175,7 +175,7 @@ require (
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
+	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
