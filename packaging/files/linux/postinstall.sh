@@ -3,5 +3,4 @@
 mkdir -p /var/lib/apm-server
 chown -R apm-server:apm-server /var/lib/apm-server /var/log/apm-server /etc/apm-server/apm-server.yml
 
-systemctl daemon-reload 2> /dev/null
-exit 0
+exec systemctl daemon-reload 2> /dev/null
