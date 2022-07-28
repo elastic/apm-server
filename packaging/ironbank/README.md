@@ -30,9 +30,9 @@ visiting [Elastic Community](https://www.elastic.co/community).
 
 
 This software is governed by the [Elastic
-License](https://github.com/elastic/apm-server/blob/{{ .MajorMinor }}/licenses/ELASTIC-LICENSE.txt),
+License](https://github.com/elastic/apm-server/blob/${APM_SERVER_VERSION_MAJORMINOR}/licenses/ELASTIC-LICENSE.txt),
 and includes the full set of [free
 features](https://www.elastic.co/subscriptions).
 
 View the detailed release notes
-[here](https://www.elastic.co/guide/en/apm/guide/current/release-notes-{{ .MajorMinor }}.html).
+[here](https://www.elastic.co/guide/en/apm/guide/current/release-notes-${APM_SERVER_VERSION_MAJORMINOR}.html).
