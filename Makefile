@@ -61,7 +61,7 @@ system-test:
 
 .PHONY:
 clean:
-	@rm -f build apm-server apm-server.exe
+	@rm -rf build apm-server apm-server.exe
 
 ##############################################################################
 # Checks/tests.
