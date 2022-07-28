@@ -118,7 +118,7 @@ pipeline {
           }
           post {
             failure {
-              if (!isPR()) {
+              whenTrue(isBranch()) {
                 notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] package failed.",
                              body: 'Contact the Productivity team [#observablt-robots] if you need further assistance.')
               }
