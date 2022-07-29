@@ -32,8 +32,10 @@ func main() {
 	flag.Parse()
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 	if err := soaktest.RunBlocking(ctx); err != nil {
-		log.Fatal(err)
-		cancel()
+		if err != context.Canceled {
+			log.Fatal(err)
+		}
 	}
 }
