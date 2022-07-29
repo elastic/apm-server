@@ -72,7 +72,7 @@ COPY --chmod=0644 licenses/ELASTIC-LICENSE-2.0.txt /licenses
 COPY --chmod=0644 NOTICE.txt /licenses
 
 WORKDIR /usr/share/apm-server
-COPY --chmod=0600 apm-server.yml ./apm-server.yml
+COPY --chmod=0640 apm-server.yml ./apm-server.yml
 COPY --chmod=0755 --from=builder /src/apm-server ./apm-server
 RUN sed -i 's/localhost:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
