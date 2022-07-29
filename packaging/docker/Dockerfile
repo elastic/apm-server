@@ -81,4 +81,3 @@ RUN mkdir --mode=0775 data
 USER 1000
 EXPOSE 8200
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint"]
-CMD ["-environment", "container"]
