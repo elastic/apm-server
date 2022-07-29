@@ -261,7 +261,9 @@ def publishArtifactsDev() {
 
   dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
   sh(label: 'Tag Docker image', script: "docker tag ${dockerImage} ${env.DOCKER_IMAGE}:${env.GIT_BASE_COMMIT}")
-  sh(label: 'Push Docker image', script: "docker push ${env.DOCKER_IMAGE}:${env.GIT_BASE_COMMIT}")
+  retryWithSleep(retries: 3, seconds: 5, backoff: true) {
+    sh(label: 'Push Docker image', script: "docker push ${env.DOCKER_IMAGE}:${env.GIT_BASE_COMMIT}")
+  }
 }
 
 def publishArtifactsDRA(def args = [:]) {
