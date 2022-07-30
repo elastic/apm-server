@@ -125,7 +125,9 @@ func NewClientParams(args ClientParams) (Client, error) {
 		}
 	}
 
-	headers.Set("User-Agent", userAgent)
+	if headers.Get("User-Agent") == "" {
+		headers.Set("User-Agent", userAgent)
+	}
 
 	var apikey string
 	if args.Config.APIKey != "" {
