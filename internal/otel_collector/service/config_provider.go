@@ -17,17 +17,14 @@ package service // import "go.opentelemetry.io/collector/service"
 import (
 	"context"
 	"fmt"
-	"regexp"
-	"strings"
-	"sync"
-
-	"go.uber.org/multierr"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configmapprovider"
-	"go.opentelemetry.io/collector/config/configunmarshaler"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
+	"go.opentelemetry.io/collector/confmap/provider/envprovider"
+	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
+	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
+	"go.opentelemetry.io/collector/service/internal/configunmarshaler"
 )
 
 // ConfigProvider provides the service configuration.
@@ -44,7 +41,7 @@ type ConfigProvider interface {
 	// Get returns the service configuration, or error otherwise.
 	//
 	// Should never be called concurrently with itself, Watch or Shutdown.
-	Get(ctx context.Context, factories component.Factories) (*config.Config, error)
+	Get(ctx context.Context, factories component.Factories) (*Config, error)
 
 	// Watch blocks until any configuration change was detected or an unrecoverable error
 	// happened during monitoring the configuration changes.
@@ -65,110 +62,56 @@ type ConfigProvider interface {
 }
 
 type configProvider struct {
-	locations          []string
-	configMapProviders map[string]configmapprovider.Provider
-	cfgMapConverters   []config.MapConverterFunc
-	configUnmarshaler  configunmarshaler.ConfigUnmarshaler
-
-	sync.Mutex
-	ret     configmapprovider.Retrieved
-	watcher chan error
+	mapResolver *confmap.Resolver
 }
 
-// MustNewConfigProvider returns a new ConfigProvider that provides the configuration:
-// * Retrieve the config.Map by merging all retrieved maps from all the configmapprovider.Provider in order.
-// * Then applies all the ConfigMapConverterFunc in the given order.
-// * Then unmarshalls the final config.Config using the given configunmarshaler.ConfigUnmarshaler.
-//
-// The `configMapProviders` is a map of pairs <scheme,Provider>.
-//
-// Notice: This API is experimental.
-func MustNewConfigProvider(
-	locations []string,
-	configMapProviders map[string]configmapprovider.Provider,
-	cfgMapConverters []config.MapConverterFunc,
-	configUnmarshaler configunmarshaler.ConfigUnmarshaler) ConfigProvider {
-	return NewConfigProvider(locations, configMapProviders, cfgMapConverters, configUnmarshaler)
+// ConfigProviderSettings are the settings to configure the behavior of the ConfigProvider.
+// TODO: embed confmap.ResolverSettings into this to avoid duplicates.
+type ConfigProviderSettings struct {
+	// Locations from where the confmap.Conf is retrieved, and merged in the given order.
+	// It is required to have at least one location.
+	Locations []string
+
+	// MapProviders is a map of pairs <scheme, confmap.Provider>.
+	// It is required to have at least one confmap.Provider.
+	MapProviders map[string]confmap.Provider
+
+	// MapConverters is a slice of confmap.Converter.
+	MapConverters []confmap.Converter
 }
 
-// Deprecated: use MustNewConfigProvider instead
-// NewConfigProvider returns a new ConfigProvider that provides the configuration:
-// * Retrieve the config.Map by merging all retrieved maps from all the configmapprovider.Provider in order.
-// * Then applies all the config.MapConverterFunc in the given order.
-// * Then unmarshalls the final config.Config using the given configunmarshaler.ConfigUnmarshaler.
-//
-// The `configMapProviders` is a map of pairs <scheme,Provider>.
-//
-// Notice: This API is experimental.
-func NewConfigProvider(
-	locations []string,
-	configMapProviders map[string]configmapprovider.Provider,
-	cfgMapConverters []config.MapConverterFunc,
-	configUnmarshaler configunmarshaler.ConfigUnmarshaler) ConfigProvider {
-	// Safe copy, ensures the slice cannot be changed from the caller.
-	locationsCopy := make([]string, len(locations))
-	copy(locationsCopy, locations)
+func newDefaultConfigProviderSettings(locations []string) ConfigProviderSettings {
+	return ConfigProviderSettings{
+		Locations:     locations,
+		MapProviders:  makeMapProvidersMap(fileprovider.New(), envprovider.New(), yamlprovider.New()),
+		MapConverters: []confmap.Converter{expandconverter.New()},
+	}
+}
+
+// NewConfigProvider returns a new ConfigProvider that provides the service configuration:
+// * Initially it resolves the "configuration map":
+//	 * Retrieve the confmap.Conf by merging all retrieved maps from the given `locations` in order.
+// 	 * Then applies all the confmap.Converter in the given order.
+// * Then unmarshalls the confmap.Conf into the service Config.
+func NewConfigProvider(set ConfigProviderSettings) (ConfigProvider, error) {
+	mr, err := confmap.NewResolver(confmap.ResolverSettings{URIs: set.Locations, Providers: set.MapProviders, Converters: set.MapConverters})
+	if err != nil {
+		return nil, err
+	}
+
 	return &configProvider{
-		locations:          locationsCopy,
-		configMapProviders: configMapProviders,
-		cfgMapConverters:   cfgMapConverters,
-		configUnmarshaler:  configUnmarshaler,
-		watcher:            make(chan error, 1),
-	}
+		mapResolver: mr,
+	}, nil
 }
 
-// MustNewDefaultConfigProvider returns the default ConfigProvider, and it creates configuration from a file
-// defined by the given configFile and overwrites fields using properties.
-func MustNewDefaultConfigProvider(configLocations []string, properties []string) ConfigProvider {
-	return NewDefaultConfigProvider(configLocations, properties)
-}
-
-// Deprecated: use MustNewDefaultConfigProvider instead
-// NewDefaultConfigProvider returns the default ConfigProvider, and it creates configuration from a file
-// defined by the given configFile and overwrites fields using properties.
-func NewDefaultConfigProvider(configLocations []string, properties []string) ConfigProvider {
-	return NewConfigProvider(
-		configLocations,
-		map[string]configmapprovider.Provider{
-			"file": configmapprovider.NewFile(),
-			"env":  configmapprovider.NewEnv(),
-		},
-		[]config.MapConverterFunc{
-			configmapprovider.NewOverwritePropertiesConverter(properties),
-			configmapprovider.NewExpandConverter(),
-		},
-		configunmarshaler.NewDefault())
-}
-
-func (cm *configProvider) Get(ctx context.Context, factories component.Factories) (*config.Config, error) {
-	// First check if already an active watching, close that if any.
-	if err := cm.closeIfNeeded(ctx); err != nil {
-		return nil, fmt.Errorf("cannot close previous watch: %w", err)
-	}
-
-	var err error
-	cm.ret, err = cm.mergeRetrieve(ctx)
+func (cm *configProvider) Get(ctx context.Context, factories component.Factories) (*Config, error) {
+	retMap, err := cm.mapResolver.Resolve(ctx)
 	if err != nil {
-		// Nothing to close, no valid retrieved value.
-		cm.ret = nil
-		return nil, fmt.Errorf("cannot retrieve the configuration: %w", err)
+		return nil, fmt.Errorf("cannot resolve the configuration: %w", err)
 	}
 
-	var cfgMap *config.Map
-	cfgMap, err = cm.ret.Get(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get the configuration: %w", err)
-	}
-
-	// Apply all converters.
-	for _, cfgMapConv := range cm.cfgMapConverters {
-		if err = cfgMapConv(ctx, cfgMap); err != nil {
-			return nil, fmt.Errorf("cannot convert the config.Map: %w", err)
-		}
-	}
-
-	var cfg *config.Config
-	if cfg, err = cm.configUnmarshaler.Unmarshal(cfgMap, factories); err != nil {
+	var cfg *Config
+	if cfg, err = configunmarshaler.New().Unmarshal(retMap, factories); err != nil {
 		return nil, fmt.Errorf("cannot unmarshal the configuration: %w", err)
 	}
 
@@ -180,78 +123,17 @@ func (cm *configProvider) Get(ctx context.Context, factories component.Factories
 }
 
 func (cm *configProvider) Watch() <-chan error {
-	return cm.watcher
-}
-
-func (cm *configProvider) onChange(event *configmapprovider.ChangeEvent) {
-	// TODO: Remove check for configsource.ErrSessionClosed when providers updated to not call onChange when closed.
-	if event.Error != configsource.ErrSessionClosed {
-		cm.watcher <- event.Error
-	}
-}
-
-func (cm *configProvider) closeIfNeeded(ctx context.Context) error {
-	if cm.ret != nil {
-		return cm.ret.Close(ctx)
-	}
-	return nil
+	return cm.mapResolver.Watch()
 }
 
 func (cm *configProvider) Shutdown(ctx context.Context) error {
-	close(cm.watcher)
-
-	var errs error
-	errs = multierr.Append(errs, cm.closeIfNeeded(ctx))
-	for _, p := range cm.configMapProviders {
-		errs = multierr.Append(errs, p.Shutdown(ctx))
-	}
-
-	return errs
+	return cm.mapResolver.Shutdown(ctx)
 }
 
-// follows drive-letter specification:
-// https://tools.ietf.org/id/draft-kerwin-file-scheme-07.html#syntax
-var driverLetterRegexp = regexp.MustCompile("^[A-z]:")
-
-func (cm *configProvider) mergeRetrieve(ctx context.Context) (configmapprovider.Retrieved, error) {
-	var retrs []configmapprovider.Retrieved
-	retCfgMap := config.NewMap()
-	for _, location := range cm.locations {
-		// For backwards compatibility:
-		// - empty url scheme means "file".
-		// - "^[A-z]:" also means "file"
-		scheme := "file"
-		if idx := strings.Index(location, ":"); idx != -1 && !driverLetterRegexp.MatchString(location) {
-			scheme = location[:idx]
-		} else {
-			location = scheme + ":" + location
-		}
-		p, ok := cm.configMapProviders[scheme]
-		if !ok {
-			return nil, fmt.Errorf("scheme %v is not supported for location %v", scheme, location)
-		}
-		retr, err := p.Retrieve(ctx, location, cm.onChange)
-		if err != nil {
-			return nil, err
-		}
-		cfgMap, err := retr.Get(ctx)
-		if err != nil {
-			return nil, err
-		}
-		if err = retCfgMap.Merge(cfgMap); err != nil {
-			return nil, err
-		}
-		retrs = append(retrs, retr)
+func makeMapProvidersMap(providers ...confmap.Provider) map[string]confmap.Provider {
+	ret := make(map[string]confmap.Provider, len(providers))
+	for _, provider := range providers {
+		ret[provider.Scheme()] = provider
 	}
-	return configmapprovider.NewRetrieved(
-		func(ctx context.Context) (*config.Map, error) {
-			return retCfgMap, nil
-		},
-		configmapprovider.WithClose(func(ctxF context.Context) error {
-			var err error
-			for _, ret := range retrs {
-				err = multierr.Append(err, ret.Close(ctxF))
-			}
-			return err
-		}))
+	return ret
 }

@@ -24,7 +24,6 @@ import (
 	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/internal/sharedcomponent"
-	"go.opentelemetry.io/collector/receiver/receiverhelper"
 )
 
 const (
@@ -32,17 +31,16 @@ const (
 
 	defaultGRPCEndpoint = "0.0.0.0:4317"
 	defaultHTTPEndpoint = "0.0.0.0:4318"
-	legacyHTTPEndpoint  = "0.0.0.0:55681"
 )
 
 // NewFactory creates a new OTLP receiver factory.
 func NewFactory() component.ReceiverFactory {
-	return receiverhelper.NewFactory(
+	return component.NewReceiverFactory(
 		typeStr,
 		createDefaultConfig,
-		receiverhelper.WithTraces(createTracesReceiver),
-		receiverhelper.WithMetrics(createMetricsReceiver),
-		receiverhelper.WithLogs(createLogReceiver))
+		component.WithTracesReceiverAndStabilityLevel(createTracesReceiver, component.StabilityLevelStable),
+		component.WithMetricsReceiverAndStabilityLevel(createMetricsReceiver, component.StabilityLevelStable),
+		component.WithLogsReceiverAndStabilityLevel(createLogReceiver, component.StabilityLevelBeta))
 }
 
 // createDefaultConfig creates the default configuration for receiver.
@@ -65,7 +63,7 @@ func createDefaultConfig() config.Receiver {
 	}
 }
 
-// CreateTracesReceiver creates a  trace receiver based on provided config.
+// createTracesReceiver creates a trace receiver based on provided config.
 func createTracesReceiver(
 	_ context.Context,
 	set component.ReceiverCreateSettings,
@@ -82,7 +80,7 @@ func createTracesReceiver(
 	return r, nil
 }
 
-// CreateMetricsReceiver creates a metrics receiver based on provided config.
+// createMetricsReceiver creates a metrics receiver based on provided config.
 func createMetricsReceiver(
 	_ context.Context,
 	set component.ReceiverCreateSettings,
@@ -99,7 +97,7 @@ func createMetricsReceiver(
 	return r, nil
 }
 
-// CreateLogReceiver creates a log receiver based on provided config.
+// createLogReceiver creates a log receiver based on provided config.
 func createLogReceiver(
 	_ context.Context,
 	set component.ReceiverCreateSettings,

@@ -1,13 +1,16 @@
 # OTLP/HTTP Exporter
 
-Exports traces and/or metrics via HTTP using [OTLP](
+| Status                   |                       |
+| ------------------------ | --------------------- |
+| Stability                | traces [stable]       |
+|                          | metrics [stable]      |
+|                          | logs [beta]           |
+| Supported pipeline types | traces, metrics, logs |
+| Distributions            | [core], [contrib]     |
+
+Export traces and/or metrics via HTTP using [OTLP](
 https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md)
 format.
-
-Supported pipeline types: traces, metrics, logs
-
-:warning: OTLP logs format is currently marked as "Beta" and may change in
-incompatible ways.
 
 The following settings are required:
 
@@ -24,12 +27,7 @@ The following settings can be optionally configured:
    If this setting is present the `endpoint` setting is ignored for metrics.
 - `logs_endpoint` (no default): The target URL to send log data to (e.g.: https://example.com:4318/v1/logs).
    If this setting is present the `endpoint` setting is ignored logs.
-
-- `tls:`
-  - `insecure` (default = false): when set to true disables verifying the server's certificate chain and host name. The connection is still encrypted but server identity is not verified.
-  - `ca_file` path to the CA cert. For a client this verifies the server certificate. Should only be used if `insecure` is set to false.
-  - `cert_file` path to the TLS cert to use for TLS required connections. Should only be used if `insecure` is set to false.
-  - `key_file` path to the TLS key to use for TLS required connections. Should only be used if `insecure` is set to false.
+- `tls`: see [TLS Configuration Settings](../../config/configtls/README.md) for the full set of available options.
 - `timeout` (default = 30s): HTTP request time limit. For details see https://golang.org/pkg/net/http/#Client
 - `read_buffer_size` (default = 0): ReadBufferSize for HTTP client.
 - `write_buffer_size` (default = 512 * 1024): WriteBufferSize for HTTP client.
@@ -42,5 +40,19 @@ exporters:
     endpoint: https://example.com:4318/v1/traces
 ```
 
+By default `gzip` compression is enabled. See [compression comparison](../../config/configgrpc/README.md#compression-comparison) for details benchmark information. To disable, configure as follows:
+
+```yaml
+exporters:
+  otlphttp:
+    ...
+    compression: none
+```
+
 The full list of settings exposed for this exporter are documented [here](./config.go)
 with detailed sample configurations [here](./testdata/config.yaml).
+
+[beta]: https://github.com/open-telemetry/opentelemetry-collector#beta
+[contrib]: https://github.com/open-telemetry/opentelemetry-collector-releases/tree/main/distributions/otelcol-contrib
+[core]: https://github.com/open-telemetry/opentelemetry-collector-releases/tree/main/distributions/otelcol
+[stable]: https://github.com/open-telemetry/opentelemetry-collector#stable

@@ -19,6 +19,7 @@ package exporterhelper // import "go.opentelemetry.io/collector/exporter/exporte
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"go.opencensus.io/metric/metricdata"
@@ -44,8 +45,8 @@ type QueueSettings struct {
 	QueueSize int `mapstructure:"queue_size"`
 }
 
-// DefaultQueueSettings returns the default settings for QueueSettings.
-func DefaultQueueSettings() QueueSettings {
+// NewDefaultQueueSettings returns the default settings for QueueSettings.
+func NewDefaultQueueSettings() QueueSettings {
 	return QueueSettings{
 		Enabled:      true,
 		NumConsumers: 10,
@@ -55,6 +56,19 @@ func DefaultQueueSettings() QueueSettings {
 		// multiply that by the number of requests per seconds.
 		QueueSize: 5000,
 	}
+}
+
+// Validate checks if the QueueSettings configuration is valid
+func (qCfg *QueueSettings) Validate() error {
+	if !qCfg.Enabled {
+		return nil
+	}
+
+	if qCfg.QueueSize <= 0 {
+		return errors.New("queue size must be positive")
+	}
+
+	return nil
 }
 
 type queuedRetrySender struct {
@@ -112,7 +126,13 @@ func (qrs *queuedRetrySender) start(context.Context, component.Host) error {
 			return int64(qrs.queue.Size())
 		}, metricdata.NewLabelValue(qrs.fullName))
 		if err != nil {
-			return fmt.Errorf("failed to create retry queue size metric: %v", err)
+			return fmt.Errorf("failed to create retry queue size metric: %w", err)
+		}
+		err = globalInstruments.queueCapacity.UpsertEntry(func() int64 {
+			return int64(qrs.cfg.QueueSize)
+		}, metricdata.NewLabelValue(qrs.fullName))
+		if err != nil {
+			return fmt.Errorf("failed to create retry queue capacity metric: %w", err)
 		}
 	}
 

@@ -19,17 +19,16 @@ import (
 	"errors"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenthelper"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 var errNilFunc = errors.New("nil scrape func")
 
 // ScrapeFunc scrapes metrics.
-type ScrapeFunc func(context.Context) (pdata.Metrics, error)
+type ScrapeFunc func(context.Context) (pmetric.Metrics, error)
 
-func (sf ScrapeFunc) Scrape(ctx context.Context) (pdata.Metrics, error) {
+func (sf ScrapeFunc) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 	return sf(ctx)
 }
 
@@ -39,21 +38,21 @@ type Scraper interface {
 
 	// ID returns the scraper id.
 	ID() config.ComponentID
-	Scrape(context.Context) (pdata.Metrics, error)
+	Scrape(context.Context) (pmetric.Metrics, error)
 }
 
 // ScraperOption apply changes to internal options.
 type ScraperOption func(*baseScraper)
 
 // WithStart sets the function that will be called on startup.
-func WithStart(start componenthelper.StartFunc) ScraperOption {
+func WithStart(start component.StartFunc) ScraperOption {
 	return func(o *baseScraper) {
 		o.StartFunc = start
 	}
 }
 
 // WithShutdown sets the function that will be called on shutdown.
-func WithShutdown(shutdown componenthelper.ShutdownFunc) ScraperOption {
+func WithShutdown(shutdown component.ShutdownFunc) ScraperOption {
 	return func(o *baseScraper) {
 		o.ShutdownFunc = shutdown
 	}
@@ -62,8 +61,8 @@ func WithShutdown(shutdown componenthelper.ShutdownFunc) ScraperOption {
 var _ Scraper = (*baseScraper)(nil)
 
 type baseScraper struct {
-	componenthelper.StartFunc
-	componenthelper.ShutdownFunc
+	component.StartFunc
+	component.ShutdownFunc
 	ScrapeFunc
 	id config.ComponentID
 }

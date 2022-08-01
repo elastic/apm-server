@@ -19,6 +19,7 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configcompression"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
@@ -31,22 +32,25 @@ const (
 
 // NewFactory creates a factory for OTLP exporter.
 func NewFactory() component.ExporterFactory {
-	return exporterhelper.NewFactory(
+	return component.NewExporterFactory(
 		typeStr,
 		createDefaultConfig,
-		exporterhelper.WithTraces(createTracesExporter),
-		exporterhelper.WithMetrics(createMetricsExporter),
-		exporterhelper.WithLogs(createLogsExporter))
+		component.WithTracesExporterAndStabilityLevel(createTracesExporter, component.StabilityLevelStable),
+		component.WithMetricsExporterAndStabilityLevel(createMetricsExporter, component.StabilityLevelStable),
+		component.WithLogsExporterAndStabilityLevel(createLogsExporter, component.StabilityLevelBeta),
+	)
 }
 
 func createDefaultConfig() config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
-		TimeoutSettings:  exporterhelper.DefaultTimeoutSettings(),
-		RetrySettings:    exporterhelper.DefaultRetrySettings(),
-		QueueSettings:    exporterhelper.DefaultQueueSettings(),
+		TimeoutSettings:  exporterhelper.NewDefaultTimeoutSettings(),
+		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
+		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
 			Headers: map[string]string{},
+			// Default to gzip compression
+			Compression: configcompression.Gzip,
 			// We almost read 0 bytes, so no need to tune ReadBufferSize.
 			WriteBufferSize: 512 * 1024,
 		},
@@ -58,7 +62,7 @@ func createTracesExporter(
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.TracesExporter, error) {
-	oce, err := newExporter(cfg, set.TelemetrySettings, set.BuildInfo)
+	oce, err := newExporter(cfg, set)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +84,7 @@ func createMetricsExporter(
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.MetricsExporter, error) {
-	oce, err := newExporter(cfg, set.TelemetrySettings, set.BuildInfo)
+	oce, err := newExporter(cfg, set)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +107,7 @@ func createLogsExporter(
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.LogsExporter, error) {
-	oce, err := newExporter(cfg, set.TelemetrySettings, set.BuildInfo)
+	oce, err := newExporter(cfg, set)
 	if err != nil {
 		return nil, err
 	}
