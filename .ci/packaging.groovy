@@ -86,58 +86,6 @@ pipeline {
             }
           }
         }
-        stage('Package') {
-          options { skipDefaultCheckout() }
-          matrix {
-            agent {
-              label "${PLATFORM}"
-            }
-            axes {
-              axis {
-                name 'PLATFORM'
-                values 'linux && immutable', 'arm'
-              }
-              axis {
-                name 'TYPE'
-                values 'snapshot', 'staging'
-              }
-            }
-            stages {
-              stage('Package') {
-                options { skipDefaultCheckout() }
-                environment {
-                  PLATFORMS = "${isArm() ? 'linux/arm64' : ''}"
-                  PACKAGES = "${isArm() ? 'docker' : ''}"
-                }
-                steps {
-                  withGithubNotify(context: "Package-${TYPE}-${PLATFORM}") {
-                    runIfNoMainAndNoStaging() {
-                      runPackage(type: env.TYPE)
-                    }
-                  }
-                }
-              }
-              stage('Publish') {
-                options { skipDefaultCheckout() }
-                steps {
-                  withGithubNotify(context: "Publish-${TYPE}-${PLATFORM}") {
-                    runIfNoMainAndNoStaging() {
-                      publishArtifacts()
-                    }
-                  }
-                }
-              }
-            }
-          }
-          post {
-            failure {
-              whenTrue(isBranch()) {
-                notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] package failed.",
-                             body: 'Contact the Productivity team [#observablt-robots] if you need further assistance.')
-              }
-            }
-          }
-        }
         stage('apmpackage') {
           options { skipDefaultCheckout() }
           steps {
