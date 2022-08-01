@@ -25,8 +25,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/model/otlpgrpc"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
@@ -47,18 +51,17 @@ func TestConsumeTracesGRPC(t *testing.T) {
 	}
 
 	conn := newGRPCServer(t, batchProcessor)
-	client := otlpgrpc.NewTracesClient(conn)
+	client := ptraceotlp.NewClient(conn)
 
 	// Send a minimal trace to verify that everything is connected properly.
 	//
 	// We intentionally do not check the published event contents; those are
 	// tested in processor/otel.
-	traces := pdata.NewTraces()
-	span := traces.ResourceSpans().AppendEmpty().InstrumentationLibrarySpans().AppendEmpty().Spans().AppendEmpty()
+	traces := ptrace.NewTraces()
+	span := traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
 	span.SetName("operation_name")
 
-	tracesRequest := otlpgrpc.NewTracesRequest()
-	tracesRequest.SetTraces(traces)
+	tracesRequest := ptraceotlp.NewRequestFromTraces(traces)
 	_, err := client.Export(context.Background(), tracesRequest)
 	assert.NoError(t, err)
 	require.Len(t, batches, 1)
@@ -94,20 +97,19 @@ func TestConsumeMetricsGRPC(t *testing.T) {
 	}
 
 	conn := newGRPCServer(t, batchProcessor)
-	client := otlpgrpc.NewMetricsClient(conn)
+	client := pmetricotlp.NewClient(conn)
 
 	// Send a minimal metric to verify that everything is connected properly.
 	//
 	// We intentionally do not check the published event contents; those are
 	// tested in processor/otel.
-	metrics := pdata.NewMetrics()
-	metric := metrics.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty().Metrics().AppendEmpty()
+	metrics := pmetric.NewMetrics()
+	metric := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
 	metric.SetName("metric_type")
-	metric.SetDataType(pdata.MetricDataTypeSummary)
+	metric.SetDataType(pmetric.MetricDataTypeSummary)
 	metric.Summary().DataPoints().AppendEmpty()
 
-	metricsRequest := otlpgrpc.NewMetricsRequest()
-	metricsRequest.SetMetrics(metrics)
+	metricsRequest := pmetricotlp.NewRequestFromMetrics(metrics)
 	_, err := client.Export(context.Background(), metricsRequest)
 	assert.NoError(t, err)
 
@@ -144,18 +146,16 @@ func TestConsumeLogsGRPC(t *testing.T) {
 	}
 
 	conn := newGRPCServer(t, batchProcessor)
-	client := otlpgrpc.NewLogsClient(conn)
+	client := plogotlp.NewClient(conn)
 
 	// Send a minimal log record to verify that everything is connected properly.
 	//
 	// We intentionally do not check the published event contents; those are
 	// tested in processor/otel.
-	logs := pdata.NewLogs()
-	logRecord := logs.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().LogRecords().AppendEmpty()
-	logRecord.SetName("log_name")
+	logs := plog.NewLogs()
+	logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty()
 
-	logsRequest := otlpgrpc.NewLogsRequest()
-	logsRequest.SetLogs(logs)
+	logsRequest := plogotlp.NewRequestFromLogs(logs)
 	_, err := client.Export(context.Background(), logsRequest)
 	assert.NoError(t, err)
 	require.Len(t, batches, 1)

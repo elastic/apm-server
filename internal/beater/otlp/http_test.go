@@ -27,8 +27,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/model/otlpgrpc"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api"
@@ -54,13 +58,12 @@ func TestConsumeTracesHTTP(t *testing.T) {
 	//
 	// We intentionally do not check the published event contents; those are
 	// tested in processor/otel.
-	traces := pdata.NewTraces()
-	span := traces.ResourceSpans().AppendEmpty().InstrumentationLibrarySpans().AppendEmpty().Spans().AppendEmpty()
+	traces := ptrace.NewTraces()
+	span := traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
 	span.SetName("operation_name")
 
-	tracesRequest := otlpgrpc.NewTracesRequest()
-	tracesRequest.SetTraces(traces)
-	request, err := tracesRequest.Marshal()
+	tracesRequest := ptraceotlp.NewRequestFromTraces(traces)
+	request, err := tracesRequest.MarshalProto()
 	assert.NoError(t, err)
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/traces", addr), bytes.NewReader(request))
 	assert.NoError(t, err)
@@ -98,15 +101,14 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 	//
 	// We intentionally do not check the published event contents; those are
 	// tested in processor/otel.
-	metrics := pdata.NewMetrics()
-	metric := metrics.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty().Metrics().AppendEmpty()
+	metrics := pmetric.NewMetrics()
+	metric := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
 	metric.SetName("metric_type")
-	metric.SetDataType(pdata.MetricDataTypeSummary)
+	metric.SetDataType(pmetric.MetricDataTypeSummary)
 	metric.Summary().DataPoints().AppendEmpty()
 
-	metricsRequest := otlpgrpc.NewMetricsRequest()
-	metricsRequest.SetMetrics(metrics)
-	request, err := metricsRequest.Marshal()
+	metricsRequest := pmetricotlp.NewRequestFromMetrics(metrics)
+	request, err := metricsRequest.MarshalProto()
 	assert.NoError(t, err)
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/metrics", addr), bytes.NewReader(request))
 	assert.NoError(t, err)
@@ -146,13 +148,11 @@ func TestConsumeLogsHTTP(t *testing.T) {
 	//
 	// We intentionally do not check the published event contents; those are
 	// tested in processor/otel.
-	logs := pdata.NewLogs()
-	logRecord := logs.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().LogRecords().AppendEmpty()
-	logRecord.SetName("log_name")
+	logs := plog.NewLogs()
+	logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty()
 
-	logsRequest := otlpgrpc.NewLogsRequest()
-	logsRequest.SetLogs(logs)
-	request, err := logsRequest.Marshal()
+	logsRequest := plogotlp.NewRequestFromLogs(logs)
+	request, err := logsRequest.MarshalProto()
 	assert.NoError(t, err)
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/logs", addr), bytes.NewReader(request))
 	assert.NoError(t, err)

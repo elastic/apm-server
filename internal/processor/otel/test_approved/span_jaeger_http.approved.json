@@ -398,9 +398,9 @@
                 }
             },
             "labels": {
-                "event": "baggage",
                 "isValid": "false"
             },
+            "message": "baggage",
             "parent": {
                 "id": "0000000058585858"
             },
