@@ -5,6 +5,8 @@
 #
 set -euo pipefail
 
+make check-beats-version
+
 make update-beats
 COMMIT_MESSAGE="Update to elastic/beats@$(go list -m -f {{.Version}} github.com/elastic/beats/... | cut -d- -f3)"
 
