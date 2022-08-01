@@ -19,15 +19,19 @@ package elasticsearch
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	apmVersion "github.com/elastic/apm-server/internal/version"
 	"github.com/elastic/beats/v7/libbeat/version"
+	esv8 "github.com/elastic/go-elasticsearch/v8"
 )
 
 func TestClient(t *testing.T) {
@@ -73,4 +77,26 @@ func TestClientCustomHeaders(t *testing.T) {
 
 	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
 	assert.Equal(t, "header", requestHeaders.Get("custom"))
+}
+
+func TestClientCustomUserAgent(t *testing.T) {
+	wait := make(chan struct{})
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", apmVersion.Version, esv8.Version), r.Header.Get("User-Agent"))
+		close(wait)
+	}))
+	defer srv.Close()
+
+	cfg := Config{
+		Hosts: Hosts{srv.URL},
+	}
+	client, err := NewClient(&cfg)
+	require.NoError(t, err)
+
+	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
+	select {
+	case <-wait:
+	case <-time.After(1 * time.Second):
+		t.Fatal("timed out while waiting for request")
+	}
 }
