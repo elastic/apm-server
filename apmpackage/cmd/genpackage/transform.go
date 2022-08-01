@@ -42,6 +42,9 @@ func transformFile(path string, content []byte, version *version.V) ([]byte, err
 	if isIngestPipeline(path) {
 		return transformIngestPipeline(path, content, version)
 	}
+	if path == "changelog.yml" {
+		return transformChangelog(content, version)
+	}
 	return content, nil
 }
 
@@ -99,6 +102,26 @@ func transformIngestPipeline(path string, content []byte, version *version.V) ([
 	}
 	// Elasticsearch expects YAML ingest pipeline definitions to begin with "---".
 	return append([]byte("---\n"), content...), nil
+}
+
+func transformChangelog(content []byte, version *version.V) ([]byte, error) {
+	var doc yaml.Node
+	if err := yaml.Unmarshal(content, &doc); err != nil {
+		return nil, err
+	}
+
+	n := doc.Content[0]
+	if n.Kind != yaml.SequenceNode {
+		panic(fmt.Sprintf("expected node kind %v, got %v", yaml.SequenceNode, n.Kind))
+	}
+
+	for i := 0; i < len(n.Content); i++ {
+		changelogEntryVersion := yamlMapLookup(n.Content[i], "version")
+		if changelogEntryVersion.Value == "generated" {
+			changelogEntryVersion.Value = version.String()
+		}
+	}
+	return marshalYAML(&doc)
 }
 
 // resolveIngestPipelineReferences resolves pipeline processors to common
