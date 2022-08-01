@@ -17,3 +17,4 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 
 [float]
 ==== Added
+- Set a default User-Agent field value when making HTTP requests {pull}8758[8758]

@@ -21,11 +21,13 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
 	"go.elastic.co/apm/module/apmelasticsearch/v2"
 
+	"github.com/elastic/apm-server/internal/version"
 	esv8 "github.com/elastic/go-elasticsearch/v8"
 	esapiv8 "github.com/elastic/go-elasticsearch/v8/esapi"
 	esutilv8 "github.com/elastic/go-elasticsearch/v8/esutil"
@@ -37,6 +39,8 @@ var retryableStatuses = []int{
 	http.StatusServiceUnavailable,
 	http.StatusGatewayTimeout,
 }
+
+var userAgent = fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", version.Version, esv8.Version)
 
 // Client is an interface designed to abstract away version differences between elasticsearch clients
 type Client interface {
@@ -114,12 +118,15 @@ func NewClientParams(args ClientParams) (Client, error) {
 		return nil, err
 	}
 
-	var headers http.Header
+	headers := make(http.Header, len(args.Config.Headers)+1)
 	if len(args.Config.Headers) > 0 {
-		headers = make(http.Header, len(args.Config.Headers))
 		for k, v := range args.Config.Headers {
 			headers.Set(k, v)
 		}
+	}
+
+	if headers.Get("User-Agent") == "" {
+		headers.Set("User-Agent", userAgent)
 	}
 
 	var apikey string
