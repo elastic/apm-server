@@ -941,7 +941,8 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	select {
 	case r := <-bulkCh:
 		userAgent := r.UserAgent()
-		assert.True(t, strings.HasPrefix(userAgent, "go-elasticsearch"), userAgent)
+		assert.True(t, strings.Contains(userAgent, "Elastic-APM-Server"), userAgent)
+		assert.True(t, strings.Contains(userAgent, "go-elasticsearch"), userAgent)
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for bulk request")
 	}

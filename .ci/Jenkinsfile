@@ -57,18 +57,10 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
           dir("${BASE_DIR}"){
-            def regexps =[
-              "^_beats.*",
-              "^apm-server.yml",
-              "^magefile.go",
-              "^ingest.*",
-              "^packaging.*",
-              "^vendor/github.com/elastic/beats.*"
-            ]
             withGoEnv(){
               setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
             }
-            env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
+            env.PACKAGING_UPDATED = isGitRegionMatch(patterns: ["^packaging.*"])
             // Skip all the stages except docs for PR's with asciidoc changes only
             whenTrue(isPR()) {
               setEnvVar('ONLY_DOCS', isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true))
@@ -337,7 +329,7 @@ pipeline {
               expression { return env.ONLY_DOCS == "false" }
               changeRequest()
               anyOf {
-                expression { return env.BEATS_UPDATED != "false" }
+                expression { return env.PACKAGING_UPDATED != "false" }
                 expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
                 expression { return params.Run_As_Main_Branch }
               }
@@ -370,15 +362,6 @@ pipeline {
     }
   }
   post {
-    success {
-      writeFile(file: 'beats-tester.properties',
-                text: """\
-                ## To be consumed by the beats-tester pipeline
-                COMMIT=${env.GIT_BASE_COMMIT}
-                APM_URL_BASE=https://storage.googleapis.com/${env.JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}
-                VERSION=${env.APM_SERVER_VERSION}-SNAPSHOT""".stripIndent()) // stripIdent() requires '''/
-      archiveArtifacts artifacts: 'beats-tester.properties'
-    }
     cleanup {
       notifyBuildResult(goBenchmarkComment: true)
     }

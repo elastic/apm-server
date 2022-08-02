@@ -3,6 +3,7 @@
 ##############################################################################
 
 include go.mk
+include packaging.mk
 
 # By default we run tests with verbose output. This may be overridden, e.g.
 # scripts may set GOTESTFLAGS=-json to format test output for processing.
@@ -29,19 +30,45 @@ APM_SERVER_BINARIES:= \
 	build/apm-server-linux-arm64 \
 	build/apm-server-windows-386.exe \
 	build/apm-server-windows-amd64.exe \
-	build/apm-server-darwin-amd64
+	build/apm-server-darwin-amd64 \
+	build/apm-server-darwin-arm64
 
+# Strip binary and inject the Git commit hash and timestamp.
+LDFLAGS := \
+	-s \
+	-X github.com/elastic/beats/v7/libbeat/version.commit=$(GITCOMMIT) \
+	-X github.com/elastic/beats/v7/libbeat/version.buildTime=$(GITCOMMITTIMESTAMP) \
+
+# Rule to build apm-server binaries, using Go's native cross-compilation.
+#
+# Note, we do not export GO* environment variables in the Makefile,
+# as they would be inherited by common dependencies, which is undesirable.
+# Instead, we use the "env" command to export them just when cross-compiling
+# the apm-server binaries.
 .PHONY: $(APM_SERVER_BINARIES)
-$(APM_SERVER_BINARIES) build/apm-server-darwin-arm64: $(MAGE)
-	@$(MAGE) build
+$(APM_SERVER_BINARIES):
+	env CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) \
+	$(GO) build -o $@ -trimpath $(GOFLAGS) -ldflags "$(LDFLAGS)" ./x-pack/apm-server
 
-build/apm-server-linux-%: export GOOS=linux
-build/apm-server-darwin-%: export GOOS=darwin
-build/apm-server-windows-%: export GOOS=windows
-build/apm-server-%-386 build/apm-server-%-386.exe: export GOARCH=386
-build/apm-server-%-amd64 build/apm-server-%-amd64.exe: export GOARCH=amd64
-build/apm-server-%-arm64 build/apm-server-%-arm64.exe: export GOARCH=arm64
-build-all: $(APM_SERVER_BINARIES)
+build/apm-server-linux-%: GOOS=linux
+build/apm-server-darwin-%: GOOS=darwin
+build/apm-server-windows-%: GOOS=windows
+build/apm-server-%-386 build/apm-server-%-386.exe: GOARCH=386
+build/apm-server-%-amd64 build/apm-server-%-amd64.exe: GOARCH=amd64
+build/apm-server-%-amd64 build/apm-server-%-amd64.exe: GOFLAGS+=-buildmode=pie
+build/apm-server-%-arm64 build/apm-server-%-arm64.exe: GOARCH=arm64
+build/apm-server-%-arm64 build/apm-server-%-arm64.exe: GOFLAGS+=-buildmode=pie
+
+GOVERSIONINFO_FLAGS := \
+	-file-version "$(APM_SERVER_VERSION)" \
+	-product-version "$(APM_SERVER_VERSION)" \
+	-comment "commit=$(GITCOMMIT)"
+
+build/apm-server-windows-386.exe: x-pack/apm-server/versioninfo_windows_386.syso
+build/apm-server-windows-amd64.exe: x-pack/apm-server/versioninfo_windows_amd64.syso
+x-pack/apm-server/versioninfo_windows_amd64.syso: GOVERSIONINFO_FLAGS+=-64
+x-pack/apm-server/versioninfo_%.syso: $(GOVERSIONINFO) $(GITREFFILE) packaging/versioninfo.json
+	$(GOVERSIONINFO) -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
 
 .PHONY: apm-server
 apm-server: build/apm-server-$(shell $(GO) env GOOS)-$(shell $(GO) env GOARCH)
@@ -61,7 +88,7 @@ system-test:
 
 .PHONY:
 clean:
-	@rm -f build apm-server apm-server.exe
+	@rm -rf build apm-server apm-server.exe
 
 ##############################################################################
 # Checks/tests.
@@ -156,7 +183,7 @@ update-beats: update-beats-module update
 update-beats-module:
 	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
 	cp -f $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version .go-version
-	find . -maxdepth 2 -name Dockerfile -exec sed -i'.bck' -E -e "s#(FROM golang):[0-9]+\.[0-9]+\.[0-9]+#\1:$$(cat .go-version)#g" {} \;
+	find . -maxdepth 3 -name Dockerfile -exec sed -i'.bck' -E -e "s#(FROM golang):[0-9]+\.[0-9]+\.[0-9]+#\1:$$(cat .go-version)#g" {} \;
 	sed -i'.bck' -E -e "s#(:go-version): [0-9]+\.[0-9]+\.[0-9]+#\1: $$(cat .go-version)#g" docs/version.asciidoc
 
 ##############################################################################
@@ -225,48 +252,6 @@ $(PYTHON_BIN)/activate: script/requirements.txt
 	@$(PYTHON_BIN)/pip install -U pip wheel
 	@$(PYTHON_BIN)/pip install -Ur script/requirements.txt
 	@touch $@
-
-##############################################################################
-# Release manager.
-##############################################################################
-
-# Builds a snapshot release.
-release-manager-snapshot: export SNAPSHOT=true
-release-manager-snapshot: release
-
-# Builds a snapshot release.
-.PHONY: release-manager-release
-release-manager-release: release
-
-JAVA_ATTACHER_VERSION:=1.33.0
-JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
-JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
-JAVA_ATTACHER_BASE_URL:=https://repo1.maven.org/maven2/co/elastic/apm/apm-agent-attach-cli
-JAVA_ATTACHER_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_JAR)
-JAVA_ATTACHER_SIG_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_SIG)
-
-APM_AGENT_JAVA_PUB_KEY:=apm-agent-java-public-key.asc
-
-.PHONY: release
-release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
-release: $(MAGE) $(PYTHON) build/$(JAVA_ATTACHER_JAR) build/dependencies.csv $(APM_SERVER_BINARIES)
-	@$(MAGE) package
-	@$(MAGE) ironbank
-
-build/dependencies.csv: $(PYTHON) go.mod
-	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
-
-.imported-java-agent-pubkey:
-	@gpg --import $(APM_AGENT_JAVA_PUB_KEY)
-	@touch $@
-
-build/$(JAVA_ATTACHER_SIG):
-	curl -sSL $(JAVA_ATTACHER_SIG_URL) > $@
-
-build/$(JAVA_ATTACHER_JAR): build/$(JAVA_ATTACHER_SIG) .imported-java-agent-pubkey
-	curl -sSL $(JAVA_ATTACHER_URL) > $@
-	gpg --verify $< $@
-	@cp $@ build/java-attacher.jar
 
 ##############################################################################
 # Rally -- Elasticsearch performance benchmarking.

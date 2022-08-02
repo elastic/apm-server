@@ -3,7 +3,7 @@ include ./Makefile.Common
 # This is the code that we want to run lint, etc.
 ALL_SRC := $(shell find . -name '*.go' \
 							-not -path './internal/tools/*' \
-							-not -path './model/internal/data/protogen/*' \
+							-not -path './pdata/internal/data/protogen/*' \
 							-not -path './service/internal/zpages/tmplgen/*' \
 							-type f | sort)
 
@@ -17,16 +17,18 @@ ALL_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort 
 CMD?=
 TOOLS_MOD_DIR := ./internal/tools
 
-GOOS=$(shell go env GOOS)
-GOARCH=$(shell go env GOARCH)
+GOOS=$(shell $(GOCMD) env GOOS)
+GOARCH=$(shell $(GOCMD) env GOARCH)
+GH := $(shell which gh)
 
+# TODO: Find a way to configure this in the generated code, currently no effect.
 BUILD_INFO_IMPORT_PATH=go.opentelemetry.io/collector/internal/version
 VERSION=$(shell git describe --always --match "v[0-9]*" HEAD)
 BUILD_INFO=-ldflags "-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)"
 
 RUN_CONFIG?=examples/local/otel-config.yaml
 CONTRIB_PATH=$(CURDIR)/../opentelemetry-collector-contrib
-COMP_REL_PATH=service/defaultcomponents/defaults.go
+COMP_REL_PATH=cmd/otelcorecol/components.go
 MOD_NAME=go.opentelemetry.io/collector
 
 ADDLICENSE=addlicense
@@ -56,42 +58,44 @@ all-modules:
 
 .PHONY: gomoddownload
 gomoddownload:
-	@$(MAKE) for-all CMD="go mod download"
+	@$(MAKE) for-all-target TARGET="moddownload"
 
 .PHONY: gotest
 gotest:
-	@$(MAKE) for-all CMD="make test test-unstable"
+	@$(MAKE) for-all-target TARGET="test test-unstable"
 
 .PHONY: gobenchmark
 gobenchmark:
-	@$(MAKE) for-all CMD="make benchmark"
+	@$(MAKE) for-all-target TARGET="benchmark"
 
 .PHONY: gotest-with-cover
 gotest-with-cover:
-	@$(MAKE) for-all CMD="make test-with-cover"
+	@$(MAKE) for-all-target TARGET="test-with-cover"
 	$(GOCOVMERGE) $$(find . -name coverage.out) > coverage.txt
 
 .PHONY: goporto
 goporto:
-	@$(MAKE) for-all CMD="make porto"
+	porto -w --include-internal ./
 
 .PHONY: golint
 golint:
-	@$(MAKE) for-all CMD="make lint lint-unstable"
+	@$(MAKE) for-all-target TARGET="lint lint-unstable"
 
 .PHONY: goimpi
 goimpi:
-	@$(MAKE) for-all CMD="make impi"
+	@$(MAKE) for-all-target TARGET="impi"
 
 .PHONY: gofmt
 gofmt:
-	@$(MAKE) for-all CMD="make fmt"
+	@$(MAKE) for-all-target TARGET="fmt"
 
 .PHONY: gotidy
 gotidy:
-	$(MAKE) for-all CMD="rm -fr go.sum"
-	$(MAKE) for-all CMD="go mod tidy -go=1.16"
-	$(MAKE) for-all CMD="go mod tidy -go=1.17"
+	@$(MAKE) for-all-target TARGET="tidy"
+
+.PHONY: gogenerate
+gogenerate:
+	@$(MAKE) for-all-target TARGET="generate"
 
 .PHONY: addlicense
 addlicense:
@@ -126,33 +130,36 @@ misspell-correction:
 
 .PHONY: install-tools
 install-tools:
-	cd $(TOOLS_MOD_DIR) && go install github.com/client9/misspell/cmd/misspell
-	cd $(TOOLS_MOD_DIR) && go install github.com/golangci/golangci-lint/cmd/golangci-lint
-	cd $(TOOLS_MOD_DIR) && go install github.com/google/addlicense
-	cd $(TOOLS_MOD_DIR) && go install github.com/ory/go-acc
-	cd $(TOOLS_MOD_DIR) && go install github.com/pavius/impi/cmd/impi
-	cd $(TOOLS_MOD_DIR) && go install github.com/tcnksm/ghr
-	cd $(TOOLS_MOD_DIR) && go install github.com/wadey/gocovmerge
-	cd $(TOOLS_MOD_DIR) && go install go.opentelemetry.io/build-tools/checkdoc
-	cd $(TOOLS_MOD_DIR) && go install go.opentelemetry.io/build-tools/semconvgen
-	cd $(TOOLS_MOD_DIR) && go install golang.org/x/exp/cmd/apidiff
-	cd $(TOOLS_MOD_DIR) && go install golang.org/x/tools/cmd/goimports
-	cd $(TOOLS_MOD_DIR) && go install github.com/jcchavezs/porto/cmd/porto
-	cd $(TOOLS_MOD_DIR) && go install go.opentelemetry.io/build-tools/multimod
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/client9/misspell/cmd/misspell
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/golangci/golangci-lint/cmd/golangci-lint
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/google/addlicense
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/ory/go-acc
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/pavius/impi/cmd/impi
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/tcnksm/ghr
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/wadey/gocovmerge
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/checkdoc
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/semconvgen
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/exp/cmd/apidiff
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/tools/cmd/goimports
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/jcchavezs/porto/cmd/porto
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/multimod
 
 .PHONY: run
 run: otelcorecol
 	./bin/otelcorecol_$(GOOS)_$(GOARCH) --config ${RUN_CONFIG} ${RUN_ARGS}
 
-.PHONY: for-all
-for-all:
-	@echo "running $${CMD} in root"
-	@$${CMD}
-	@set -e; for dir in $(ALL_MODULES); do \
-	  (cd "$${dir}" && \
-	  	echo "running $${CMD} in $${dir}" && \
-	 	$${CMD} ); \
-	done
+# Append root module to all modules
+GOMODULES = $(ALL_MODULES) $(PWD)
+
+# Define a delegation target for each module
+.PHONY: $(GOMODULES)
+$(GOMODULES):
+	@echo "Running target '$(TARGET)' in module '$@'"
+	$(MAKE) -C $@ $(TARGET)
+
+# Triggers each module's delegation target
+.PHONY: for-all-target
+for-all-target: $(GOMODULES)
 
 .PHONY: check-component
 check-component:
@@ -174,10 +181,10 @@ add-tag:
 push-tag:
 	@[ "${TAG}" ] || ( echo ">> env var TAG is not set"; exit 1 )
 	@echo "Pushing tag ${TAG}"
-	@git push upstream ${TAG}
+	@git push git@github.com:open-telemetry/opentelemetry-collector.git ${TAG}
 	@set -e; for dir in $(ALL_MODULES); do \
 	  (echo Pushing tag "$${dir:2}/$${TAG}" && \
-	 	git push upstream "$${dir:2}/$${TAG}"); \
+	 	git push git@github.com:open-telemetry/opentelemetry-collector.git "$${dir:2}/$${TAG}"); \
 	done
 
 .PHONY: delete-tag
@@ -193,16 +200,12 @@ delete-tag:
 # Build the Collector executable.
 .PHONY: otelcorecol
 otelcorecol:
-	pushd cmd/otelcorecol && GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ../../bin/otelcorecol_$(GOOS)_$(GOARCH) \
+	pushd cmd/otelcorecol && GO111MODULE=on CGO_ENABLED=0 $(GOCMD) build -trimpath -o ../../bin/otelcorecol_$(GOOS)_$(GOARCH) \
 		$(BUILD_INFO) -tags $(GO_BUILD_TAGS) ./cmd/otelcorecol && popd
 
 .PHONY: genotelcorecol
 genotelcorecol:
-	pushd cmd/builder/ && go run ./ --skip-compilation --config ../otelcorecol/builder-config.yaml --output-path ../otelcorecol && popd
-
-.PHONY: genmdata
-genmdata:
-	$(MAKE) for-all CMD="go generate ./..."
+	pushd cmd/builder/ && $(GOCMD) run ./ --skip-compilation --config ../otelcorecol/builder-config.yaml --output-path ../otelcorecol && popd
 
 DEPENDABOT_PATH=".github/dependabot.yml"
 .PHONY: internal-gendependabot
@@ -222,7 +225,6 @@ gendependabot: $(eval SHELL:=/bin/bash)
 	@echo "version: 2" >> ${DEPENDABOT_PATH}
 	@echo "updates:" >> ${DEPENDABOT_PATH}
 	$(MAKE) internal-gendependabot DIR="/" PACKAGE="github-actions"
-	$(MAKE) internal-gendependabot DIR="/" PACKAGE="docker"
 	$(MAKE) internal-gendependabot DIR="/" PACKAGE="gomod"
 	@set -e; for dir in $(ALL_MODULES); do \
 		$(MAKE) internal-gendependabot DIR=$${dir:1} PACKAGE="gomod"; \
@@ -231,24 +233,24 @@ gendependabot: $(eval SHELL:=/bin/bash)
 # Definitions for ProtoBuf generation.
 
 # The source directory for OTLP ProtoBufs.
-OPENTELEMETRY_PROTO_SRC_DIR=model/internal/opentelemetry-proto
+OPENTELEMETRY_PROTO_SRC_DIR=pdata/internal/opentelemetry-proto
 
 # The SHA matching the current version of the proto to use
-OPENTELEMETRY_PROTO_VERSION=v0.12.0
+OPENTELEMETRY_PROTO_VERSION=v0.18.0
 
 # Find all .proto files.
 OPENTELEMETRY_PROTO_FILES := $(subst $(OPENTELEMETRY_PROTO_SRC_DIR)/,,$(wildcard $(OPENTELEMETRY_PROTO_SRC_DIR)/opentelemetry/proto/*/v1/*.proto $(OPENTELEMETRY_PROTO_SRC_DIR)/opentelemetry/proto/collector/*/v1/*.proto))
 
 # Target directory to write generated files to.
-PROTO_TARGET_GEN_DIR=model/internal/data/protogen
+PROTO_TARGET_GEN_DIR=pdata/internal/data/protogen
 
 # Go package name to use for generated files.
 PROTO_PACKAGE=go.opentelemetry.io/collector/$(PROTO_TARGET_GEN_DIR)
 
 # Intermediate directory used during generation.
-PROTO_INTERMEDIATE_DIR=model/internal/.patched-otlp-proto
+PROTO_INTERMEDIATE_DIR=pdata/internal/.patched-otlp-proto
 
-DOCKER_PROTOBUF ?= otel/build-protobuf:0.4.1
+DOCKER_PROTOBUF ?= otel/build-protobuf:0.9.0
 PROTOC := docker run --rm -u ${shell id -u} -v${PWD}:${PWD} -w${PWD}/$(PROTO_INTERMEDIATE_DIR) ${DOCKER_PROTOBUF} --proto_path=${PWD}
 PROTO_INCLUDES := -I/usr/include/github.com/gogo/protobuf -I./
 
@@ -294,7 +296,7 @@ genproto_sub:
 # Generate structs, functions and tests for pdata package. Must be used after any changes
 # to proto and after running `make genproto`
 genpdata:
-	go run model/internal/cmd/pdatagen/main.go
+	$(GOCMD) run pdata/internal/cmd/pdatagen/main.go
 	$(MAKE) fmt
 
 # Generate semantic convention constants. Requires a clone of the opentelemetry-specification repo
@@ -302,30 +304,35 @@ gensemconv:
 	@[ "${SPECPATH}" ] || ( echo ">> env var SPECPATH is not set"; exit 1 )
 	@[ "${SPECTAG}" ] || ( echo ">> env var SPECTAG is not set"; exit 1 )
 	@echo "Generating semantic convention constants from specification version ${SPECTAG} at ${SPECPATH}"
-	semconvgen -o model/semconv/${SPECTAG} -t model/internal/semconv/template.j2 -s ${SPECTAG} -i ${SPECPATH}/semantic_conventions/resource -p conventionType=resource
-	semconvgen -o model/semconv/${SPECTAG} -t model/internal/semconv/template.j2 -s ${SPECTAG} -i ${SPECPATH}/semantic_conventions/trace -p conventionType=trace
+	semconvgen -o semconv/${SPECTAG} -t semconv/template.j2 -s ${SPECTAG} -i ${SPECPATH}/semantic_conventions/resource -p conventionType=resource -f generated_resource.go
+	semconvgen -o semconv/${SPECTAG} -t semconv/template.j2 -s ${SPECTAG} -i ${SPECPATH}/semantic_conventions/trace -p conventionType=trace -f generated_trace.go
 
 # Checks that the HEAD of the contrib repo checked out in CONTRIB_PATH compiles
 # against the current version of this repo.
 .PHONY: check-contrib
 check-contrib:
 	@echo Setting contrib at $(CONTRIB_PATH) to use this core checkout
-	make -C $(CONTRIB_PATH) for-all CMD="go mod edit -replace go.opentelemetry.io/collector=$(CURDIR)"
-	make -C $(CONTRIB_PATH) for-all CMD="go mod edit -replace go.opentelemetry.io/collector/model=$(CURDIR)/model"
-	make -C $(CONTRIB_PATH) for-all CMD="go mod tidy -go=1.16"
-	make -C $(CONTRIB_PATH) for-all CMD="go mod tidy -go=1.17"
-	make -C $(CONTRIB_PATH) test
+	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -replace go.opentelemetry.io/collector=$(CURDIR)"
+	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -replace go.opentelemetry.io/collector/pdata=$(CURDIR)/pdata"
+	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -replace go.opentelemetry.io/collector/semconv=$(CURDIR)/semconv"
+	@$(MAKE) -C $(CONTRIB_PATH) -j2 gotidy
+	@$(MAKE) -C $(CONTRIB_PATH) test
 	@echo Restoring contrib to no longer use this core checkout
-	make -C $(CONTRIB_PATH) for-all CMD="go mod edit -dropreplace go.opentelemetry.io/collector"
+	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -dropreplace go.opentelemetry.io/collector"
 
 # List of directories where certificates are stored for unit tests.
-CERT_DIRS := config/configgrpc/testdata \
-             config/confighttp/testdata
+CERT_DIRS := localhost|""|config/configgrpc/testdata \
+             localhost|""|config/confighttp/testdata \
+             example1|"-1"|config/configtls/testdata \
+             example2|"-2"|config/configtls/testdata
+cert-domain = $(firstword $(subst |, ,$1))
+cert-suffix = $(word 2,$(subst |, ,$1))
+cert-dir = $(word 3,$(subst |, ,$1))
 
 # Generate certificates for unit tests relying on certificates.
 .PHONY: certs
 certs:
-	$(foreach dir, $(CERT_DIRS), $(call exec-command, @internal/buildscripts/gen-certs.sh -o $(dir)))
+	$(foreach dir, $(CERT_DIRS), $(call exec-command, @internal/buildscripts/gen-certs.sh -o $(call cert-dir,$(dir)) -s $(call cert-suffix,$(dir)) -m $(call cert-domain,$(dir))))
 
 # Generate certificates for unit tests relying on certificates without copying certs to specific test directories.
 .PHONY: certs-dryrun
@@ -361,4 +368,48 @@ multimod-verify: install-tools
 
 .PHONY: multimod-prerelease
 multimod-prerelease: install-tools
-	multimod prerelease -v ./versions.yaml -m collector-base
+	multimod prerelease -v ./versions.yaml -m collector-core
+	$(MAKE) gotidy
+
+.PHONY: prepare-release
+prepare-release:
+ifdef PREVIOUS_VERSION
+	@echo "Previous version $(PREVIOUS_VERSION)"
+else
+	@echo "PREVIOUS_VERSION not defined"
+	@echo "usage: make prepare-release RELEASE_CANDIDATE=<version eg 0.53.0> PREVIOUS_VERSION=<version eg 0.52.0>"
+	exit 1
+endif
+ifdef RELEASE_CANDIDATE
+	@echo "Preparing release $(RELEASE_CANDIDATE)"
+else
+	@echo "RELEASE_CANDIDATE not defined"
+	@echo "usage: make prepare-release RELEASE_CANDIDATE=<version eg 0.53.0> PREVIOUS_VERSION=<version eg 0.52.0>"
+	exit 1
+endif
+	# ensure a clean branch
+	git diff -s --exit-code || (echo "local repository not clean"; exit 1)
+	# TODO: update changelog
+	# update versions.yaml config.go builder-config.yaml
+	sed -i.bak 's/$(PREVIOUS_VERSION)/$(RELEASE_CANDIDATE)/g' versions.yaml
+	sed -i.bak 's/$(PREVIOUS_VERSION)/$(RELEASE_CANDIDATE)/g' ./cmd/builder/internal/builder/config.go
+	sed -i.bak 's/$(PREVIOUS_VERSION)/$(RELEASE_CANDIDATE)/g' ./cmd/otelcorecol/builder-config.yaml
+	sed -i.bak 's/$(PREVIOUS_VERSION)/$(RELEASE_CANDIDATE)/g' examples/k8s/otel-config.yaml
+	find . -name "*.bak" -type f -delete
+	# regenerate files
+	$(MAKE) genotelcorecol
+	# commit changes before running multimod
+	git checkout -b opentelemetry-collector-bot/release-$(RELEASE_CANDIDATE)
+	git add .
+	git commit -m "prepare release $(RELEASE_CANDIDATE)"
+	$(MAKE) multimod-prerelease
+	# commit multimod changes
+	git add .
+	git commit -m "add multimod changes" || (echo "no multimod changes to commit")
+	git push fork opentelemetry-collector-bot/release-$(RELEASE_CANDIDATE)
+	@if [ -z "$(GH)" ]; then \
+		echo "'gh' command not found, can't submit the PR on your behalf."; \
+		exit 1; \
+	fi
+	gh pr create --title "[chore] prepare release $(RELEASE_CANDIDATE)"
+

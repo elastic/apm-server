@@ -31,7 +31,8 @@ import (
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -97,17 +98,17 @@ func TestPostSpans(t *testing.T) {
 }
 
 func newPostSpansRequest(t *testing.T) *api_v2.PostSpansRequest {
-	traces := pdata.NewTraces()
+	traces := ptrace.NewTraces()
 	resourceSpans := traces.ResourceSpans().AppendEmpty()
-	spans := resourceSpans.InstrumentationLibrarySpans().AppendEmpty()
+	spans := resourceSpans.ScopeSpans().AppendEmpty()
 	span0 := spans.Spans().AppendEmpty()
-	span0.SetTraceID(pdata.NewTraceID([16]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
-	span0.SetSpanID(pdata.NewSpanID([8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}))
+	span0.SetTraceID(pcommon.NewTraceID([16]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
+	span0.SetSpanID(pcommon.NewSpanID([8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}))
 	span1 := spans.Spans().AppendEmpty()
-	span1.SetTraceID(pdata.NewTraceID([16]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
-	span1.SetSpanID(pdata.NewSpanID([8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}))
+	span1.SetTraceID(pcommon.NewTraceID([16]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
+	span1.SetSpanID(pcommon.NewSpanID([8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}))
 
-	batches, err := jaegertranslator.InternalTracesToJaegerProto(traces)
+	batches, err := jaegertranslator.ProtoFromTraces(traces)
 	require.NoError(t, err)
 	require.Len(t, batches, 1)
 	return &api_v2.PostSpansRequest{Batch: *batches[0]}

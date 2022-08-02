@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# Add default apm-server arguments.
+APM_SERVER="apm-server --environment=container"
+
+# If no arguments are provided, just run "apm-server".
+if [[ $# -eq 0 ]]; then
+  exec $APM_SERVER
+fi
+
+# Check if the the user has invoked the image with flags.
+# eg. "apm-server -c apm-server.yml"
+if [[ -z $1 ]] || [[ ${1:0:1} == '-' ]] ; then
+  exec $APM_SERVER "$@"
+else
+  # The user may be looking for a subcommand, like "apm-server apikey".
+  subcommands=$(apm-server help \
+                  | awk 'BEGIN {RS=""; FS="\n"} /Available Commands:/' \
+                  | awk '/^ / {print $1}')
+
+  # If we _did_ get a subcommand, pass it to apm-server.
+  for subcommand in $subcommands; do
+      if [[ $1 == $subcommand ]]; then
+        exec $APM_SERVER "$@"
+      fi
+  done
+fi
+
+# If neither of those worked, then they have specified the binary they want, so
+# just do exactly as they say.
+exec "$@"

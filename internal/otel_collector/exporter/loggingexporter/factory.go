@@ -16,13 +16,13 @@ package loggingexporter // import "go.opentelemetry.io/collector/exporter/loggin
 
 import (
 	"context"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
 const (
@@ -34,12 +34,13 @@ const (
 
 // NewFactory creates a factory for Logging exporter
 func NewFactory() component.ExporterFactory {
-	return exporterhelper.NewFactory(
+	return component.NewExporterFactory(
 		typeStr,
 		createDefaultConfig,
-		exporterhelper.WithTraces(createTracesExporter),
-		exporterhelper.WithMetrics(createMetricsExporter),
-		exporterhelper.WithLogs(createLogsExporter))
+		component.WithTracesExporterAndStabilityLevel(createTracesExporter, component.StabilityLevelInDevelopment),
+		component.WithMetricsExporterAndStabilityLevel(createMetricsExporter, component.StabilityLevelInDevelopment),
+		component.WithLogsExporterAndStabilityLevel(createLogsExporter, component.StabilityLevelInDevelopment),
+	)
 }
 
 func createDefaultConfig() config.Exporter {
@@ -53,50 +54,29 @@ func createDefaultConfig() config.Exporter {
 
 func createTracesExporter(_ context.Context, set component.ExporterCreateSettings, config config.Exporter) (component.TracesExporter, error) {
 	cfg := config.(*Config)
-
-	exporterLogger, err := createLogger(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	return newTracesExporter(config, exporterLogger, set)
+	exporterLogger := createLogger(cfg, set.TelemetrySettings.Logger)
+	return newTracesExporter(cfg, exporterLogger, set)
 }
 
 func createMetricsExporter(_ context.Context, set component.ExporterCreateSettings, config config.Exporter) (component.MetricsExporter, error) {
 	cfg := config.(*Config)
-
-	exporterLogger, err := createLogger(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	return newMetricsExporter(config, exporterLogger, set)
+	exporterLogger := createLogger(cfg, set.TelemetrySettings.Logger)
+	return newMetricsExporter(cfg, exporterLogger, set)
 }
 
 func createLogsExporter(_ context.Context, set component.ExporterCreateSettings, config config.Exporter) (component.LogsExporter, error) {
 	cfg := config.(*Config)
-
-	exporterLogger, err := createLogger(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	return newLogsExporter(config, exporterLogger, set)
+	exporterLogger := createLogger(cfg, set.TelemetrySettings.Logger)
+	return newLogsExporter(cfg, exporterLogger, set)
 }
 
-func createLogger(cfg *Config) (*zap.Logger, error) {
-	// We take development config as the base since it matches the purpose
-	// of logging exporter being used for debugging reasons (so e.g. console encoder)
-	conf := zap.NewDevelopmentConfig()
-	conf.Level = zap.NewAtomicLevelAt(cfg.LogLevel)
-	conf.Sampling = &zap.SamplingConfig{
-		Initial:    cfg.SamplingInitial,
-		Thereafter: cfg.SamplingThereafter,
-	}
+func createLogger(cfg *Config, logger *zap.Logger) *zap.Logger {
+	core := zapcore.NewSamplerWithOptions(
+		logger.Core(),
+		1*time.Second,
+		cfg.SamplingInitial,
+		cfg.SamplingThereafter,
+	)
 
-	logginglogger, err := conf.Build()
-	if err != nil {
-		return nil, err
-	}
-	return logginglogger, nil
+	return zap.New(core)
 }
