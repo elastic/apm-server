@@ -16,7 +16,7 @@ package configtelemetry // import "go.opentelemetry.io/collector/config/configte
 
 import (
 	"encoding"
-	"flag"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -37,18 +37,10 @@ const (
 	levelDetailedStr = "detailed"
 )
 
-const UseOpenTelemetryForInternalMetrics = false
-
-// Flags is a helper function to add telemetry config flags to the service that exposes
-// the application flags.
-// Deprecated: No-op, kept for backwards compatibility until v0.44.0.
-func Flags(*flag.FlagSet) {}
-
 // Level is the level of internal telemetry (metrics, logs, traces about the component itself)
 // that every component should generate.
 type Level int32
 
-var _ flag.Value = (*Level)(nil)
 var _ encoding.TextUnmarshaler = (*Level)(nil)
 
 func (l Level) String() string {
@@ -65,40 +57,26 @@ func (l Level) String() string {
 	return "unknown"
 }
 
-// Deprecated: will be removed in v0.44.0.
-func (l *Level) Set(s string) error {
-	lvl, err := parseLevel(s)
-	if err != nil {
-		return err
-	}
-	*l = lvl
-	return nil
-}
-
-// UnmarshalText unmarshals text to a Level.
+// UnmarshalText unmarshalls text to a Level.
 func (l *Level) UnmarshalText(text []byte) error {
 	if l == nil {
-		return fmt.Errorf("cannot unmarshal to a nil *Level")
+		return errors.New("cannot unmarshal to a nil *Level")
 	}
-	var err error
-	*l, err = parseLevel(string(text))
-	return err
-}
 
-// parseLevel returns the Level represented by the string. The parsing is case-insensitive
-// and it returns error if the string value is unknown.
-func parseLevel(str string) (Level, error) {
-	str = strings.ToLower(str)
-
+	str := strings.ToLower(string(text))
 	switch str {
 	case levelNoneStr:
-		return LevelNone, nil
+		*l = LevelNone
+		return nil
 	case levelBasicStr:
-		return LevelBasic, nil
+		*l = LevelBasic
+		return nil
 	case levelNormalStr:
-		return LevelNormal, nil
+		*l = LevelNormal
+		return nil
 	case levelDetailedStr:
-		return LevelDetailed, nil
+		*l = LevelDetailed
+		return nil
 	}
-	return LevelNone, fmt.Errorf("unknown metrics level %q", str)
+	return fmt.Errorf("unknown metrics level %q", str)
 }

@@ -13,7 +13,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "action": "doOperation()",
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "severity": 9

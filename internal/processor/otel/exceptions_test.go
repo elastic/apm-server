@@ -40,17 +40,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/model/pdata"
-	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 
 	"github.com/elastic/apm-server/internal/model"
 )
 
 func TestEncodeSpanEventsNonExceptions(t *testing.T) {
-	nonExceptionEvent := pdata.NewSpanEvent()
+	nonExceptionEvent := ptrace.NewSpanEvent()
 	nonExceptionEvent.SetName("not_exception")
 
-	incompleteExceptionEvent := pdata.NewSpanEvent()
+	incompleteExceptionEvent := ptrace.NewSpanEvent()
 	incompleteExceptionEvent.SetName("exception")
 	incompleteExceptionEvent.Attributes().InsertString(
 		// At least one of exception.message and exception.type is required.
@@ -66,8 +67,8 @@ func TestEncodeSpanEventsNonExceptions(t *testing.T) {
 func TestEncodeSpanEventsJavaExceptions(t *testing.T) {
 	timestamp := time.Unix(123, 0).UTC()
 
-	exceptionEvent1 := pdata.NewSpanEvent()
-	exceptionEvent1.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
+	exceptionEvent1 := ptrace.NewSpanEvent()
+	exceptionEvent1.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 	exceptionEvent1.SetName("exception")
 	exceptionEvent1.Attributes().InsertString("exception.type", "java.net.ConnectException.OSError")
 	exceptionEvent1.Attributes().InsertString("exception.message", "Division by zero")
@@ -82,8 +83,8 @@ Exception in thread "main" java.lang.RuntimeException: Test exception
 	at java.base/java.lang.Thread.run(Unknown Source)
 `[1:])
 
-	exceptionEvent2 := pdata.NewSpanEvent()
-	exceptionEvent2.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
+	exceptionEvent2 := ptrace.NewSpanEvent()
+	exceptionEvent2.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 	exceptionEvent2.SetName("exception")
 	exceptionEvent2.Attributes().InsertString("exception.type", "HighLevelException")
 	exceptionEvent2.Attributes().InsertString("exception.message", "MidLevelException: LowLevelException")
@@ -282,9 +283,9 @@ Caused by: whatever
 	at the movies`,
 	}
 
-	var events []pdata.SpanEvent
+	var events []ptrace.SpanEvent
 	for _, stacktrace := range stacktraces {
-		event := pdata.NewSpanEvent()
+		event := ptrace.NewSpanEvent()
 		event.SetName("exception")
 		event.Attributes().InsertString("exception.type", "ExceptionType")
 		event.Attributes().InsertString("exception.stacktrace", stacktrace)
@@ -303,8 +304,8 @@ Caused by: whatever
 func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 	timestamp := time.Unix(123, 0).UTC()
 
-	exceptionEvent := pdata.NewSpanEvent()
-	exceptionEvent.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
+	exceptionEvent := ptrace.NewSpanEvent()
+	exceptionEvent.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 	exceptionEvent.SetName("exception")
 	exceptionEvent.Attributes().InsertString("exception.type", "the_type")
 	exceptionEvent.Attributes().InsertString("exception.message", "the_message")

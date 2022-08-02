@@ -45,9 +45,10 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/model/otlp"
-	"go.opentelemetry.io/collector/model/pdata"
-	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -78,8 +79,8 @@ const (
 )
 
 var (
-	jsonTracesMarshaler  = otlp.NewJSONTracesMarshaler()
-	jsonMetricsMarshaler = otlp.NewJSONMetricsMarshaler()
+	jsonTracesMarshaler  = ptrace.NewJSONMarshaler()
+	jsonMetricsMarshaler = pmetric.NewJSONMarshaler()
 )
 
 // Consumer transforms open-telemetry data to be compatible with elastic APM data
@@ -118,7 +119,7 @@ func (c *Consumer) Capabilities() consumer.Capabilities {
 
 // ConsumeTraces consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
-func (c *Consumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error {
+func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) error {
 	receiveTimestamp := time.Now()
 	logger := logp.NewLogger(logs.Otel)
 	if logger.IsDebug() {
@@ -133,7 +134,7 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error
 	return c.Processor.ProcessBatch(ctx, batch)
 }
 
-func (c *Consumer) convert(td pdata.Traces, receiveTimestamp time.Time, logger *logp.Logger) *model.Batch {
+func (c *Consumer) convert(td ptrace.Traces, receiveTimestamp time.Time, logger *logp.Logger) *model.Batch {
 	batch := model.Batch{}
 	resourceSpans := td.ResourceSpans()
 	for i := 0; i < resourceSpans.Len(); i++ {
@@ -143,7 +144,7 @@ func (c *Consumer) convert(td pdata.Traces, receiveTimestamp time.Time, logger *
 }
 
 func (c *Consumer) convertResourceSpans(
-	resourceSpans pdata.ResourceSpans,
+	resourceSpans ptrace.ResourceSpans,
 	receiveTimestamp time.Time,
 	logger *logp.Logger,
 	out *model.Batch,
@@ -155,16 +156,14 @@ func (c *Consumer) convertResourceSpans(
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
 		timeDelta = receiveTimestamp.Sub(exportTimestamp)
 	}
-	instrumentationLibrarySpans := resourceSpans.InstrumentationLibrarySpans()
-	for i := 0; i < instrumentationLibrarySpans.Len(); i++ {
-		c.convertInstrumentationLibrarySpans(
-			instrumentationLibrarySpans.At(i), baseEvent, timeDelta, logger, out,
-		)
+	scopeSpans := resourceSpans.ScopeSpans()
+	for i := 0; i < scopeSpans.Len(); i++ {
+		c.convertScopeSpans(scopeSpans.At(i), baseEvent, timeDelta, logger, out)
 	}
 }
 
-func (c *Consumer) convertInstrumentationLibrarySpans(
-	in pdata.InstrumentationLibrarySpans,
+func (c *Consumer) convertScopeSpans(
+	in ptrace.ScopeSpans,
 	baseEvent model.APMEvent,
 	timeDelta time.Duration,
 	logger *logp.Logger,
@@ -172,13 +171,13 @@ func (c *Consumer) convertInstrumentationLibrarySpans(
 ) {
 	otelSpans := in.Spans()
 	for i := 0; i < otelSpans.Len(); i++ {
-		c.convertSpan(otelSpans.At(i), in.InstrumentationLibrary(), baseEvent, timeDelta, logger, out)
+		c.convertSpan(otelSpans.At(i), in.Scope(), baseEvent, timeDelta, logger, out)
 	}
 }
 
 func (c *Consumer) convertSpan(
-	otelSpan pdata.Span,
-	otelLibrary pdata.InstrumentationLibrary,
+	otelSpan ptrace.Span,
+	otelLibrary pcommon.InstrumentationScope,
 	baseEvent model.APMEvent,
 	timeDelta time.Duration,
 	logger *logp.Logger,
@@ -208,7 +207,7 @@ func (c *Consumer) convertSpan(
 	event.Event.Duration = duration
 	event.Event.Outcome = spanStatusOutcome(otelSpan.Status())
 	event.Parent.ID = parentID
-	if root || otelSpan.Kind() == pdata.SpanKindServer || otelSpan.Kind() == pdata.SpanKindConsumer {
+	if root || otelSpan.Kind() == ptrace.SpanKindServer || otelSpan.Kind() == ptrace.SpanKindConsumer {
 		event.Processor = model.TransactionProcessor
 		event.Transaction = &model.Transaction{
 			ID:      spanID,
@@ -246,9 +245,9 @@ func (c *Consumer) convertSpan(
 // TranslateTransaction converts incoming otlp/otel trace data into the
 // expected elasticsearch format.
 func TranslateTransaction(
-	attributes pdata.AttributeMap,
-	spanStatus pdata.SpanStatus,
-	library pdata.InstrumentationLibrary,
+	attributes pcommon.Map,
+	spanStatus ptrace.SpanStatus,
+	library pcommon.InstrumentationScope,
 	event *model.APMEvent,
 ) {
 	isJaeger := strings.HasPrefix(event.Agent.Name, "Jaeger")
@@ -271,8 +270,8 @@ func TranslateTransaction(
 	var foundSpanType int
 	var message model.Message
 
-	var samplerType, samplerParam pdata.AttributeValue
-	attributes.Range(func(kDots string, v pdata.AttributeValue) bool {
+	var samplerType, samplerParam pcommon.Value
+	attributes.Range(func(kDots string, v pcommon.Value) bool {
 		if isJaeger {
 			switch kDots {
 			case "sampler.type":
@@ -286,13 +285,13 @@ func TranslateTransaction(
 
 		k := replaceDots(kDots)
 		switch v.Type() {
-		case pdata.AttributeValueTypeArray:
+		case pcommon.ValueTypeSlice:
 			setLabel(k, event, ifaceAttributeValue(v))
-		case pdata.AttributeValueTypeBool:
+		case pcommon.ValueTypeBool:
 			setLabel(k, event, ifaceAttributeValue(v))
-		case pdata.AttributeValueTypeDouble:
+		case pcommon.ValueTypeDouble:
 			setLabel(k, event, ifaceAttributeValue(v))
-		case pdata.AttributeValueTypeInt:
+		case pcommon.ValueTypeInt:
 			switch kDots {
 			case semconv.AttributeHTTPStatusCode:
 				foundSpanType = httpSpan
@@ -307,8 +306,8 @@ func TranslateTransaction(
 			default:
 				setLabel(k, event, ifaceAttributeValue(v))
 			}
-		case pdata.AttributeValueTypeMap:
-		case pdata.AttributeValueTypeString:
+		case pcommon.ValueTypeMap:
+		case pcommon.ValueTypeString:
 			stringval := truncate(v.StringVal())
 			switch kDots {
 			// http.*
@@ -449,7 +448,7 @@ func TranslateTransaction(
 		event.Client = model.Client{IP: event.Source.IP, Port: event.Source.Port, Domain: event.Source.Domain}
 	}
 
-	if samplerType != (pdata.AttributeValue{}) {
+	if samplerType != (pcommon.Value{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate span metrics.
 		parseSamplerAttributes(samplerType, samplerParam, event)
 	} else {
@@ -475,7 +474,7 @@ const (
 
 // TranslateSpan converts incoming otlp/otel trace data into the
 // expected elasticsearch format.
-func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event *model.APMEvent) {
+func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *model.APMEvent) {
 	isJaeger := strings.HasPrefix(event.Agent.Name, "Jaeger")
 
 	var (
@@ -515,8 +514,8 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 	var destinationService model.DestinationService
 	var serviceTarget model.ServiceTarget
 	var foundSpanType int
-	var samplerType, samplerParam pdata.AttributeValue
-	attributes.Range(func(kDots string, v pdata.AttributeValue) bool {
+	var samplerType, samplerParam pcommon.Value
+	attributes.Range(func(kDots string, v pcommon.Value) bool {
 		if isJaeger {
 			switch kDots {
 			case "sampler.type":
@@ -530,9 +529,9 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 
 		k := replaceDots(kDots)
 		switch v.Type() {
-		case pdata.AttributeValueTypeArray:
+		case pcommon.ValueTypeSlice:
 			setLabel(k, event, ifaceAttributeValueSlice(v.SliceVal()))
-		case pdata.AttributeValueTypeBool:
+		case pcommon.ValueTypeBool:
 			switch kDots {
 			case semconv.AttributeMessagingTempDestination:
 				messageTempDestination = v.BoolVal()
@@ -540,9 +539,9 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 			default:
 				setLabel(k, event, strconv.FormatBool(v.BoolVal()))
 			}
-		case pdata.AttributeValueTypeDouble:
+		case pcommon.ValueTypeDouble:
 			setLabel(k, event, v.DoubleVal())
-		case pdata.AttributeValueTypeInt:
+		case pcommon.ValueTypeInt:
 			switch kDots {
 			case "http.status_code":
 				httpResponse.StatusCode = int(v.IntVal())
@@ -555,7 +554,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 			default:
 				setLabel(k, event, v.IntVal())
 			}
-		case pdata.AttributeValueTypeString:
+		case pcommon.ValueTypeString:
 			stringval := truncate(v.StringVal())
 
 			switch kDots {
@@ -761,7 +760,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 	case messagingSpan:
 		event.Span.Type = "messaging"
 		event.Span.Subtype = messageSystem
-		if messageOperation == "" && spanKind == pdata.SpanKindProducer {
+		if messageOperation == "" && spanKind == ptrace.SpanKindProducer {
 			messageOperation = "send"
 		}
 		event.Span.Action = messageOperation
@@ -800,7 +799,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		// Only set event.Span.Type if not already set
 		if event.Span.Type == "" {
 			switch spanKind {
-			case pdata.SpanKindInternal:
+			case ptrace.SpanKindInternal:
 				event.Span.Type = "app"
 				event.Span.Subtype = "internal"
 			default:
@@ -824,7 +823,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 		event.Service.Target = &serviceTarget
 	}
 
-	if samplerType != (pdata.AttributeValue{}) {
+	if samplerType != (pcommon.Value{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate transaction metrics.
 		parseSamplerAttributes(samplerType, samplerParam, event)
 	} else {
@@ -832,7 +831,7 @@ func TranslateSpan(spanKind pdata.SpanKind, attributes pdata.AttributeMap, event
 	}
 }
 
-func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, event *model.APMEvent) {
+func parseSamplerAttributes(samplerType, samplerParam pcommon.Value, event *model.APMEvent) {
 	switch samplerType := samplerType.StringVal(); samplerType {
 	case "probabilistic":
 		probability := samplerParam.DoubleVal()
@@ -847,9 +846,9 @@ func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, even
 	default:
 		event.Labels.Set("sampler_type", samplerType)
 		switch samplerParam.Type() {
-		case pdata.AttributeValueTypeBool:
+		case pcommon.ValueTypeBool:
 			event.Labels.Set("sampler_param", strconv.FormatBool(samplerParam.BoolVal()))
-		case pdata.AttributeValueTypeDouble:
+		case pcommon.ValueTypeDouble:
 			event.NumericLabels.Set("sampler_param", samplerParam.DoubleVal())
 		}
 	}
@@ -857,7 +856,7 @@ func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, even
 
 func convertSpanEvent(
 	logger *logp.Logger,
-	spanEvent pdata.SpanEvent,
+	spanEvent ptrace.SpanEvent,
 	parent model.APMEvent, // either span or transaction
 	timeDelta time.Duration,
 ) model.APMEvent {
@@ -878,7 +877,7 @@ func convertSpanEvent(
 		//   `The name of the event MUST be "exception"`
 		var exceptionEscaped bool
 		var exceptionMessage, exceptionStacktrace, exceptionType string
-		spanEvent.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {
 			switch k {
 			case semconv.AttributeExceptionMessage:
 				exceptionMessage = v.StringVal()
@@ -912,46 +911,50 @@ func convertSpanEvent(
 		event.Processor = model.LogProcessor
 		event.DataStream.Type = datastreams.LogsType
 		event.Message = spanEvent.Name()
-		spanEvent.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
-			setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
+		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {
+			k = replaceDots(k)
+			if isJaeger && k == "message" {
+				event.Message = truncate(v.StringVal())
+				return true
+			}
+			setLabel(k, &event, ifaceAttributeValue(v))
 			return true
 		})
 	}
 	return event
 }
 
-func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, apmEvent *model.APMEvent) *model.Error {
+func convertJaegerErrorSpanEvent(logger *logp.Logger, event ptrace.SpanEvent, apmEvent *model.APMEvent) *model.Error {
 	var isError bool
 	var exMessage, exType string
-	logMessage := event.Name()
-	hasMinimalInfo := logMessage != ""
-	event.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
-		if v.Type() != pdata.AttributeValueTypeString {
+	var logMessage string
+
+	if name := truncate(event.Name()); name == "error" {
+		isError = true // according to opentracing spec
+	} else {
+		// Jaeger seems to send the message in the 'event' field.
+		//
+		// In case 'message' is sent we will use that, otherwise
+		// we will use 'event'.
+		logMessage = name
+	}
+
+	event.Attributes().Range(func(k string, v pcommon.Value) bool {
+		if v.Type() != pcommon.ValueTypeString {
 			return true
 		}
 		stringval := truncate(v.StringVal())
 		switch k {
 		case "error", "error.object":
 			exMessage = stringval
-			hasMinimalInfo = true
 			isError = true
-		case "event":
-			if stringval == "error" { // according to opentracing spec
-				isError = true
-			} else if logMessage == "" {
-				// Jaeger seems to send the message in the 'event' field.
-				//
-				// In case 'message' is sent, the event's name will be set
-				// and we will use that. Otherwise we use 'event'.
-				logMessage = stringval
-				hasMinimalInfo = true
-			}
 		case "error.kind":
 			exType = stringval
-			hasMinimalInfo = true
 			isError = true
 		case "level":
 			isError = stringval == "error"
+		case "message":
+			logMessage = stringval
 		default:
 			setLabel(replaceDots(k), apmEvent, ifaceAttributeValue(v))
 		}
@@ -960,7 +963,7 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent, apm
 	if !isError {
 		return nil
 	}
-	if !hasMinimalInfo {
+	if logMessage == "" && exMessage == "" && exType == "" {
 		logger.Debugf("Cannot convert span event (name=%q) into elastic apm error: %v", event.Name())
 		return nil
 	}
@@ -995,7 +998,7 @@ func setErrorContext(out *model.APMEvent, parent model.APMEvent) {
 	}
 }
 
-func translateSpanLinks(out *model.APMEvent, in pdata.SpanLinkSlice) {
+func translateSpanLinks(out *model.APMEvent, in ptrace.SpanLinkSlice) {
 	n := in.Len()
 	if n == 0 {
 		return
@@ -1019,11 +1022,11 @@ func replaceDots(s string) string {
 
 // spanStatusOutcome returns the outcome for transactions and spans based on
 // the given OTLP span status.
-func spanStatusOutcome(status pdata.SpanStatus) string {
+func spanStatusOutcome(status ptrace.SpanStatus) string {
 	switch status.Code() {
-	case pdata.StatusCodeOk:
+	case ptrace.StatusCodeOk:
 		return outcomeSuccess
-	case pdata.StatusCodeError:
+	case ptrace.StatusCodeError:
 		return outcomeFailure
 	}
 	return outcomeUnknown
@@ -1032,11 +1035,11 @@ func spanStatusOutcome(status pdata.SpanStatus) string {
 // spanStatusResult returns the result for transactions based on the given
 // OTLP span status. If the span status is unknown, an empty result string
 // is returned.
-func spanStatusResult(status pdata.SpanStatus) string {
+func spanStatusResult(status ptrace.SpanStatus) string {
 	switch status.Code() {
-	case pdata.StatusCodeOk:
+	case ptrace.StatusCodeOk:
 		return "Success"
-	case pdata.StatusCodeError:
+	case ptrace.StatusCodeError:
 		return "Error"
 	}
 	return ""

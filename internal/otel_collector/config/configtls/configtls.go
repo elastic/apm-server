@@ -17,9 +17,12 @@ package configtls // import "go.opentelemetry.io/collector/config/configtls"
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"sync"
+	"time"
 )
 
 // TLSSetting exposes the common client and server TLS configurations.
@@ -38,12 +41,16 @@ type TLSSetting struct {
 	KeyFile string `mapstructure:"key_file"`
 
 	// MinVersion sets the minimum TLS version that is acceptable.
-	// If not set, TLS 1.0 is used. (optional)
+	// If not set, refer to crypto/tls for defaults. (optional)
 	MinVersion string `mapstructure:"min_version"`
 
 	// MaxVersion sets the maximum TLS version that is acceptable.
-	// If not set, TLS 1.3 is used. (optional)
+	// If not set, refer to crypto/tls for defaults. (optional)
 	MaxVersion string `mapstructure:"max_version"`
+
+	// ReloadInterval specifies the duration after which the certificate will be reloaded
+	// If not set, it will never be reloaded (optional)
+	ReloadInterval time.Duration `mapstructure:"reload_interval"`
 }
 
 // TLSClientSetting contains TLS configurations that are specific to client
@@ -85,6 +92,59 @@ type TLSServerSetting struct {
 	ClientCAFile string `mapstructure:"client_ca_file"`
 }
 
+// certReloader is a wrapper object for certificate reloading
+// Its GetCertificate method will either return the current certificate or reload from disk
+// if the last reload happened more than ReloadInterval ago
+type certReloader struct {
+	// Path to the TLS cert
+	CertFile string
+	// Path to the TLS key
+	KeyFile string
+	// ReloadInterval specifies the duration after which the certificate will be reloaded
+	// If not set, it will never be reloaded (optional)
+	ReloadInterval time.Duration
+	nextReload     time.Time
+	cert           *tls.Certificate
+	lock           sync.RWMutex
+}
+
+func newCertReloader(certFile, keyFile string, reloadInterval time.Duration) (*certReloader, error) {
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		return nil, err
+	}
+	return &certReloader{
+		CertFile:       certFile,
+		KeyFile:        keyFile,
+		ReloadInterval: reloadInterval,
+		nextReload:     time.Now().Add(reloadInterval),
+		cert:           &cert,
+	}, nil
+}
+
+func (r *certReloader) GetCertificate() (*tls.Certificate, error) {
+	now := time.Now()
+	// Read locking here before we do the time comparison
+	// If a reload is in progress this will block and we will skip reloading in the current
+	// call once we can continue
+	r.lock.RLock()
+	if r.ReloadInterval != 0 && r.nextReload.Before(now) {
+		// Need to release the read lock, otherwise we deadlock
+		r.lock.RUnlock()
+		r.lock.Lock()
+		defer r.lock.Unlock()
+		cert, err := tls.LoadX509KeyPair(r.CertFile, r.KeyFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load TLS cert and key: %w", err)
+		}
+		r.cert = &cert
+		r.nextReload = now.Add(r.ReloadInterval)
+		return r.cert, nil
+	}
+	defer r.lock.RUnlock()
+	return r.cert, nil
+}
+
 // LoadTLSConfig loads TLS certificates and returns a tls.Config.
 // This will set the RootCAs and Certificates of a tls.Config.
 func (c TLSSetting) loadTLSConfig() (*tls.Config, error) {
@@ -101,17 +161,19 @@ func (c TLSSetting) loadTLSConfig() (*tls.Config, error) {
 	}
 
 	if (c.CertFile == "" && c.KeyFile != "") || (c.CertFile != "" && c.KeyFile == "") {
-		return nil, fmt.Errorf("for auth via TLS, either both certificate and key must be supplied, or neither")
+		return nil, errors.New("for auth via TLS, either both certificate and key must be supplied, or neither")
 	}
 
-	var certificates []tls.Certificate
+	var getCertificate func(*tls.ClientHelloInfo) (*tls.Certificate, error)
+	var getClientCertificate func(*tls.CertificateRequestInfo) (*tls.Certificate, error)
 	if c.CertFile != "" && c.KeyFile != "" {
-		var tlsCert tls.Certificate
-		tlsCert, err = tls.LoadX509KeyPair(filepath.Clean(c.CertFile), filepath.Clean(c.KeyFile))
+		var certReloader *certReloader
+		certReloader, err = newCertReloader(c.CertFile, c.KeyFile, c.ReloadInterval)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load TLS cert and key: %w", err)
 		}
-		certificates = append(certificates, tlsCert)
+		getCertificate = func(chi *tls.ClientHelloInfo) (*tls.Certificate, error) { return certReloader.GetCertificate() }
+		getClientCertificate = func(cri *tls.CertificateRequestInfo) (*tls.Certificate, error) { return certReloader.GetCertificate() }
 	}
 
 	minTLS, err := convertVersion(c.MinVersion)
@@ -124,10 +186,11 @@ func (c TLSSetting) loadTLSConfig() (*tls.Config, error) {
 	}
 
 	return &tls.Config{
-		RootCAs:      certPool,
-		Certificates: certificates,
-		MinVersion:   minTLS,
-		MaxVersion:   maxTLS,
+		RootCAs:              certPool,
+		GetCertificate:       getCertificate,
+		GetClientCertificate: getClientCertificate,
+		MinVersion:           minTLS,
+		MaxVersion:           maxTLS,
 	}, nil
 }
 
@@ -177,8 +240,9 @@ func (c TLSServerSetting) LoadTLSConfig() (*tls.Config, error) {
 }
 
 func convertVersion(v string) (uint16, error) {
+	// Defaults will be handled by go/crypto/tls
 	if v == "" {
-		return tls.VersionTLS12, nil // default
+		return 0, nil
 	}
 	val, ok := tlsVersions[v]
 	if !ok {

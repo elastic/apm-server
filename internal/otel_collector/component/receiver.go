@@ -28,7 +28,7 @@ import (
 // to by calling the nextConsumer.Consume*() function.
 //
 // Error Handling
-// ==============
+//
 // The nextConsumer.Consume*() function may return an error to indicate that the data
 // was not accepted. There are 2 types of possible errors: Permanent and non-Permanent.
 // The receiver must check the type of the error using IsPermanent() helper.
@@ -49,7 +49,7 @@ import (
 // is returned.
 //
 // Acknowledgment Handling
-// =======================
+//
 // The receivers that receive data via a network protocol that support acknowledgments
 // MUST follow this order of operations:
 // - Receive data from some sender (typically from a network).
@@ -66,7 +66,7 @@ type Receiver interface {
 // Its purpose is to translate data from any format to the collector's internal trace format.
 // TracesReceiver feeds a consumer.Traces with data.
 //
-// For example it could be Zipkin data source which translates Zipkin spans into pdata.Traces.
+// For example it could be Zipkin data source which translates Zipkin spans into ptrace.Traces.
 type TracesReceiver interface {
 	Receiver
 }
@@ -75,7 +75,7 @@ type TracesReceiver interface {
 // Its purpose is to translate data from any format to the collector's internal metrics format.
 // MetricsReceiver feeds a consumer.Metrics with data.
 //
-// For example it could be Prometheus data source which translates Prometheus metrics into pdata.Metrics.
+// For example it could be Prometheus data source which translates Prometheus metrics into pmetric.Metrics.
 type MetricsReceiver interface {
 	Receiver
 }
@@ -84,7 +84,7 @@ type MetricsReceiver interface {
 // Its purpose is to translate data from any format to the collector's internal logs data format.
 // LogsReceiver feeds a consumer.Logs with data.
 //
-// For example a LogsReceiver can read syslogs and convert them into pdata.Logs.
+// For example a LogsReceiver can read syslogs and convert them into plog.Logs.
 type LogsReceiver interface {
 	Receiver
 }
@@ -97,11 +97,10 @@ type ReceiverCreateSettings struct {
 	BuildInfo BuildInfo
 }
 
-// ReceiverFactory can create TracesReceiver, MetricsReceiver and
-// and LogsReceiver. This is the new preferred factory type to create receivers.
+// ReceiverFactory is factory interface for receivers.
 //
 // This interface cannot be directly implemented. Implementations must
-// use the receiverhelper.NewFactory to implement it.
+// use the NewReceiverFactory to implement it.
 type ReceiverFactory interface {
 	Factory
 
@@ -131,4 +130,136 @@ type ReceiverFactory interface {
 	// an error will be returned instead.
 	CreateLogsReceiver(ctx context.Context, set ReceiverCreateSettings,
 		cfg config.Receiver, nextConsumer consumer.Logs) (LogsReceiver, error)
+}
+
+// ReceiverFactoryOption apply changes to ReceiverOptions.
+type ReceiverFactoryOption interface {
+	// applyReceiverFactoryOption applies the option.
+	applyReceiverFactoryOption(o *receiverFactory)
+}
+
+var _ ReceiverFactoryOption = (*receiverFactoryOptionFunc)(nil)
+
+// receiverFactoryOptionFunc is an ReceiverFactoryOption created through a function.
+type receiverFactoryOptionFunc func(*receiverFactory)
+
+func (f receiverFactoryOptionFunc) applyReceiverFactoryOption(o *receiverFactory) {
+	f(o)
+}
+
+// ReceiverCreateDefaultConfigFunc is the equivalent of ReceiverFactory.CreateDefaultConfig().
+type ReceiverCreateDefaultConfigFunc func() config.Receiver
+
+// CreateDefaultConfig implements ReceiverFactory.CreateDefaultConfig().
+func (f ReceiverCreateDefaultConfigFunc) CreateDefaultConfig() config.Receiver {
+	return f()
+}
+
+// CreateTracesReceiverFunc is the equivalent of ReceiverFactory.CreateTracesReceiver().
+type CreateTracesReceiverFunc func(context.Context, ReceiverCreateSettings, config.Receiver, consumer.Traces) (TracesReceiver, error)
+
+// CreateTracesReceiver implements ReceiverFactory.CreateTracesReceiver().
+func (f CreateTracesReceiverFunc) CreateTracesReceiver(
+	ctx context.Context,
+	set ReceiverCreateSettings,
+	cfg config.Receiver,
+	nextConsumer consumer.Traces) (TracesReceiver, error) {
+	if f == nil {
+		return nil, ErrDataTypeIsNotSupported
+	}
+	return f(ctx, set, cfg, nextConsumer)
+}
+
+// CreateMetricsReceiverFunc is the equivalent of ReceiverFactory.CreateMetricsReceiver().
+type CreateMetricsReceiverFunc func(context.Context, ReceiverCreateSettings, config.Receiver, consumer.Metrics) (MetricsReceiver, error)
+
+// CreateMetricsReceiver implements ReceiverFactory.CreateMetricsReceiver().
+func (f CreateMetricsReceiverFunc) CreateMetricsReceiver(
+	ctx context.Context,
+	set ReceiverCreateSettings,
+	cfg config.Receiver,
+	nextConsumer consumer.Metrics,
+) (MetricsReceiver, error) {
+	if f == nil {
+		return nil, ErrDataTypeIsNotSupported
+	}
+	return f(ctx, set, cfg, nextConsumer)
+}
+
+// CreateLogsReceiverFunc is the equivalent of ReceiverFactory.CreateLogsReceiver().
+type CreateLogsReceiverFunc func(context.Context, ReceiverCreateSettings, config.Receiver, consumer.Logs) (LogsReceiver, error)
+
+// CreateLogsReceiver implements ReceiverFactory.CreateLogsReceiver().
+func (f CreateLogsReceiverFunc) CreateLogsReceiver(
+	ctx context.Context,
+	set ReceiverCreateSettings,
+	cfg config.Receiver,
+	nextConsumer consumer.Logs,
+) (LogsReceiver, error) {
+	if f == nil {
+		return nil, ErrDataTypeIsNotSupported
+	}
+	return f(ctx, set, cfg, nextConsumer)
+}
+
+type receiverFactory struct {
+	baseFactory
+	ReceiverCreateDefaultConfigFunc
+	CreateTracesReceiverFunc
+	CreateMetricsReceiverFunc
+	CreateLogsReceiverFunc
+}
+
+// WithTracesReceiver overrides the default "error not supported" implementation for CreateTracesReceiver.
+// Deprecated: [v0.55.0] Use WithTracesReceiverAndStabilityLevel instead.
+func WithTracesReceiver(createTracesReceiver CreateTracesReceiverFunc) ReceiverFactoryOption {
+	return WithTracesReceiverAndStabilityLevel(createTracesReceiver, StabilityLevelUndefined)
+}
+
+// WithTracesReceiverAndStabilityLevel overrides the default "error not supported" implementation for CreateTracesReceiver and the default "undefined" stability level.
+func WithTracesReceiverAndStabilityLevel(createTracesReceiver CreateTracesReceiverFunc, sl StabilityLevel) ReceiverFactoryOption {
+	return receiverFactoryOptionFunc(func(o *receiverFactory) {
+		o.stability[config.TracesDataType] = sl
+		o.CreateTracesReceiverFunc = createTracesReceiver
+	})
+}
+
+// WithMetricsReceiver overrides the default "error not supported" implementation for CreateMetricsReceiver.
+// Deprecated: [v0.55.0] Use WithMetricsReceiverAndStabilityLevel instead.
+func WithMetricsReceiver(createMetricsReceiver CreateMetricsReceiverFunc) ReceiverFactoryOption {
+	return WithMetricsReceiverAndStabilityLevel(createMetricsReceiver, StabilityLevelUndefined)
+}
+
+// WithMetricsReceiverAndStabilityLevel overrides the default "error not supported" implementation for CreateMetricsReceiver and the default "undefined" stability level.
+func WithMetricsReceiverAndStabilityLevel(createMetricsReceiver CreateMetricsReceiverFunc, sl StabilityLevel) ReceiverFactoryOption {
+	return receiverFactoryOptionFunc(func(o *receiverFactory) {
+		o.stability[config.MetricsDataType] = sl
+		o.CreateMetricsReceiverFunc = createMetricsReceiver
+	})
+}
+
+// WithLogsReceiver overrides the default "error not supported" implementation for CreateLogsReceiver.
+// Deprecated: [v0.55.0] Use WithLogsReceiverAndStabilityLevel instead.
+func WithLogsReceiver(createLogsReceiver CreateLogsReceiverFunc) ReceiverFactoryOption {
+	return WithLogsReceiverAndStabilityLevel(createLogsReceiver, StabilityLevelUndefined)
+}
+
+// WithLogsReceiverAndStabilityLevel overrides the default "error not supported" implementation for CreateLogsReceiver and the default "undefined" stability level.
+func WithLogsReceiverAndStabilityLevel(createLogsReceiver CreateLogsReceiverFunc, sl StabilityLevel) ReceiverFactoryOption {
+	return receiverFactoryOptionFunc(func(o *receiverFactory) {
+		o.stability[config.LogsDataType] = sl
+		o.CreateLogsReceiverFunc = createLogsReceiver
+	})
+}
+
+// NewReceiverFactory returns a ReceiverFactory.
+func NewReceiverFactory(cfgType config.Type, createDefaultConfig ReceiverCreateDefaultConfigFunc, options ...ReceiverFactoryOption) ReceiverFactory {
+	f := &receiverFactory{
+		baseFactory:                     baseFactory{cfgType: cfgType, stability: make(map[config.DataType]StabilityLevel)},
+		ReceiverCreateDefaultConfigFunc: createDefaultConfig,
+	}
+	for _, opt := range options {
+		opt.applyReceiverFactoryOption(f)
+	}
+	return f
 }

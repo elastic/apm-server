@@ -20,10 +20,9 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"go.opentelemetry.io/collector/component/componenthelper"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/consumerhelper"
 	"go.opentelemetry.io/collector/internal/obsreportconfig/obsmetrics"
 )
 
@@ -37,7 +36,7 @@ type Option func(*baseSettings)
 
 // WithStart overrides the default Start function for an processor.
 // The default shutdown function does nothing and always returns nil.
-func WithStart(start componenthelper.StartFunc) Option {
+func WithStart(start component.StartFunc) Option {
 	return func(o *baseSettings) {
 		o.StartFunc = start
 	}
@@ -45,7 +44,7 @@ func WithStart(start componenthelper.StartFunc) Option {
 
 // WithShutdown overrides the default Shutdown function for an processor.
 // The default shutdown function does nothing and always returns nil.
-func WithShutdown(shutdown componenthelper.ShutdownFunc) Option {
+func WithShutdown(shutdown component.ShutdownFunc) Option {
 	return func(o *baseSettings) {
 		o.ShutdownFunc = shutdown
 	}
@@ -55,21 +54,21 @@ func WithShutdown(shutdown componenthelper.ShutdownFunc) Option {
 // The default GetCapabilities function returns mutable capabilities.
 func WithCapabilities(capabilities consumer.Capabilities) Option {
 	return func(o *baseSettings) {
-		o.consumerOptions = append(o.consumerOptions, consumerhelper.WithCapabilities(capabilities))
+		o.consumerOptions = append(o.consumerOptions, consumer.WithCapabilities(capabilities))
 	}
 }
 
 type baseSettings struct {
-	componenthelper.StartFunc
-	componenthelper.ShutdownFunc
-	consumerOptions []consumerhelper.Option
+	component.StartFunc
+	component.ShutdownFunc
+	consumerOptions []consumer.Option
 }
 
 // fromOptions returns the internal settings starting from the default and applying all options.
 func fromOptions(options []Option) *baseSettings {
 	// Start from the default options:
 	opts := &baseSettings{
-		consumerOptions: []consumerhelper.Option{consumerhelper.WithCapabilities(consumer.Capabilities{MutatesData: true})},
+		consumerOptions: []consumer.Option{consumer.WithCapabilities(consumer.Capabilities{MutatesData: true})},
 	}
 
 	for _, op := range options {

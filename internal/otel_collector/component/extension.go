@@ -52,10 +52,23 @@ type ExtensionCreateSettings struct {
 	BuildInfo BuildInfo
 }
 
-// ExtensionFactory is a factory interface for extensions to the service.
-//
-// This interface cannot be directly implemented. Implementations must
-// use the extensionhelper.NewFactory to implement it.
+// ExtensionCreateDefaultConfigFunc is the equivalent of component.ExtensionFactory.CreateDefaultConfig()
+type ExtensionCreateDefaultConfigFunc func() config.Extension
+
+// CreateDefaultConfig implements ExtensionFactory.CreateDefaultConfig()
+func (f ExtensionCreateDefaultConfigFunc) CreateDefaultConfig() config.Extension {
+	return f()
+}
+
+// CreateExtensionFunc is the equivalent of component.ExtensionFactory.CreateExtension()
+type CreateExtensionFunc func(context.Context, ExtensionCreateSettings, config.Extension) (Extension, error)
+
+// CreateExtension implements ExtensionFactory.CreateExtension.
+func (f CreateExtensionFunc) CreateExtension(ctx context.Context, set ExtensionCreateSettings, cfg config.Extension) (Extension, error) {
+	return f(ctx, set, cfg)
+}
+
+// ExtensionFactory is a factory for extensions to the service.
 type ExtensionFactory interface {
 	Factory
 
@@ -68,6 +81,23 @@ type ExtensionFactory interface {
 	// tests of any implementation of the Factory interface.
 	CreateDefaultConfig() config.Extension
 
-	// CreateExtension creates a service extension based on the given config.
+	// CreateExtension creates an extension based on the given config.
 	CreateExtension(ctx context.Context, set ExtensionCreateSettings, cfg config.Extension) (Extension, error)
+}
+
+type extensionFactory struct {
+	baseFactory
+	ExtensionCreateDefaultConfigFunc
+	CreateExtensionFunc
+}
+
+func NewExtensionFactory(
+	cfgType config.Type,
+	createDefaultConfig ExtensionCreateDefaultConfigFunc,
+	createServiceExtension CreateExtensionFunc) ExtensionFactory {
+	return &extensionFactory{
+		baseFactory:                      baseFactory{cfgType: cfgType},
+		ExtensionCreateDefaultConfigFunc: createDefaultConfig,
+		CreateExtensionFunc:              createServiceExtension,
+	}
 }
