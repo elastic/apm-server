@@ -202,16 +202,25 @@
           },
           "minItems": 0
         },
+        "parent": {
+          "description": "Parent holds the parent process information.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "pid": {
+              "description": "PID holds the process ID.",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "pid"
+          ]
+        },
         "pid": {
           "description": "PID holds the process ID of the service.",
           "type": "integer"
-        },
-        "ppid": {
-          "description": "Ppid holds the parent process ID of the service.",
-          "type": [
-            "null",
-            "integer"
-          ]
         },
         "title": {
           "description": "Title is the process title. It can be the same as process name.",

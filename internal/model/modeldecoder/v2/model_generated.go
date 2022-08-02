@@ -261,13 +261,13 @@ func (val *metadataCloudService) validate() error {
 }
 
 func (val *metadataProcess) IsSet() bool {
-	return (len(val.Argv) > 0) || val.Pid.IsSet() || val.Ppid.IsSet() || val.Title.IsSet()
+	return (len(val.Argv) > 0) || val.Pid.IsSet() || val.Parent.IsSet() || val.Title.IsSet()
 }
 
 func (val *metadataProcess) Reset() {
 	val.Argv = val.Argv[:0]
 	val.Pid.Reset()
-	val.Ppid.Reset()
+	val.Parent.Reset()
 	val.Title.Reset()
 }
 
@@ -278,8 +278,29 @@ func (val *metadataProcess) validate() error {
 	if !val.Pid.IsSet() {
 		return fmt.Errorf("'pid' required")
 	}
+	if err := val.Parent.validate(); err != nil {
+		return errors.Wrapf(err, "parent")
+	}
 	if val.Title.IsSet() && utf8.RuneCountInString(val.Title.Val) > 1024 {
 		return fmt.Errorf("'title': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *metadataProcessParent) IsSet() bool {
+	return val.Pid.IsSet()
+}
+
+func (val *metadataProcessParent) Reset() {
+	val.Pid.Reset()
+}
+
+func (val *metadataProcessParent) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if !val.Pid.IsSet() {
+		return fmt.Errorf("'pid' required")
 	}
 	return nil
 }

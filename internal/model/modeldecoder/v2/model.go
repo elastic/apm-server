@@ -500,10 +500,15 @@ type metadataProcess struct {
 	Argv []string `json:"argv"`
 	// PID holds the process ID of the service.
 	Pid nullable.Int `json:"pid" validate:"required"`
-	// Ppid holds the parent process ID of the service.
-	Ppid nullable.Int `json:"ppid"`
+	// Parent holds the parent process information.
+	Parent metadataProcessParent `json:"parent"`
 	// Title is the process title. It can be the same as process name.
 	Title nullable.String `json:"title" validate:"maxLength=1024"`
+}
+
+type metadataProcessParent struct {
+	// PID holds the process ID.
+	Pid nullable.Int `json:"pid" validate:"required"`
 }
 
 type metadataService struct {
