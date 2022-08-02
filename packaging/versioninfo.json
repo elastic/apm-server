@@ -1,0 +1,12 @@
+{
+  "FixedFileInfo": {
+    "FileType": "01"
+  },
+  "StringFileInfo": {
+    "CompanyName": "Elastic",
+    "ProductName": "APM Server",
+    "FileDescription": "APM Server",
+    "OriginalFilename": "apm-server.exe",
+    "LegalCopyright": "Copyright Elasticsearch B.V. Licensed under the Elastic License 2.0."
+  }
+}

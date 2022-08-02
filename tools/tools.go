@@ -25,6 +25,8 @@
 package main
 
 import (
+	_ "github.com/goreleaser/nfpm/v2/cmd/nfpm"       // go.mod/go.sum
+	_ "github.com/josephspurrier/goversioninfo"      // go.mod/go.sum
 	_ "github.com/reviewdog/reviewdog/cmd/reviewdog" // go.mod/go.sum
 	_ "github.com/t-yuki/gocover-cobertura"          // go.mod/go.sum
 	_ "go.elastic.co/go-licence-detector"            // go.mod/go.sum

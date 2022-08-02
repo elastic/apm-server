@@ -8,14 +8,14 @@ name: "elastic/apm-server/apm-server"
 # The most specific version should be the first tag and will be shown
 # on ironbank.dsop.io
 tags:
-- "{{ beat_version }}"
+- "${APM_SERVER_VERSION}"
 - "latest"
 
 # Build args passed to Dockerfile ARGs
 args:
   BASE_IMAGE: "redhat/ubi/ubi8"
   BASE_TAG: "8.6"
-  ELASTIC_STACK: "{{ beat_version }}"
+  ELASTIC_STACK: "${APM_SERVER_VERSION}"
   ELASTIC_PRODUCT: "apm-server"
 
 # Docker image labels
@@ -29,7 +29,7 @@ labels:
   org.opencontainers.image.url: "https://github.com/elastic/apm-server"
   ## Name of the distributing entity, organization or individual
   org.opencontainers.image.vendor: "Elastic"
-  org.opencontainers.image.version: {{ beat_version }}"
+  org.opencontainers.image.version: "${APM_SERVER_VERSION}"
   ## Keywords to help with search (ex. "cicd,gitops,golang")
   mil.dso.ironbank.image.keywords: "apm,observabilty,o11y,oblt,performance,monitoring,elastic,elasticsearch,golang"
   ## This value can be "opensource" or "commercial"
@@ -39,8 +39,8 @@ labels:
 
 # List of resources to make available to the offline build context
 resources:
-  - filename: "apm-server-{{ beat_version }}-linux-x86_64.tar.gz"
-    url: "<artifact_path>/apm-server-{{ beat_version }}-linux-x86_64.tar.gz"
+  - filename: "apm-server-${APM_SERVER_VERSION}-linux-x86_64.tar.gz"
+    url: "<artifact_path>/apm-server-${APM_SERVER_VERSION}-linux-x86_64.tar.gz"
     validation:
       type: "sha512"
       value: "<insert SHA 512 here>"
