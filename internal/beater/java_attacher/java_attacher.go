@@ -354,6 +354,9 @@ func (j *JavaAttacher) verifyJVMExecutable(ctx context.Context, jvm *jvmDetails)
 // once the agent is attached or the context is closed; it may be blocking for long and should be called with a timeout context.
 func (j *JavaAttacher) attachJVM(ctx context.Context, jvm *jvmDetails) error {
 	cmd := j.attachJVMCommand(ctx, jvm)
+	if err := j.setRunAsUser(jvm, cmd); err != nil {
+		j.logger.Warnf("Failed to attach as user %q: %v. Trying to attach as current user,", jvm.user, err)
+	}
 	return runAttacherCommand(ctx, cmd, j.logger)
 }
 
