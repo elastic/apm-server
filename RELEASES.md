@@ -12,6 +12,16 @@ For patch releases, only the version on the existing major and minor version bra
 * For patch releases, ensure all relevant backport PRs are merged. 
   We use backport labels on PRs and automation to ensure labels are set.
 
+* Update Changelog
+
+  * Review existing [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) to ensure all relevant notes have been added.
+  * Move changelog entries from _head_ to _release_version_:
+    * Minor version: 
+      Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc)
+      If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file.
+    * Patch version: Add new section to existing release notes. ([Sample PR](https://github.com/elastic/apm-server/pull/2064/files))
+  * The [`check_changelogs.py`](script/check_changelogs.py) script is run as a PR check, ensuring that changelog changes are synced across branches.
+
 ## Day after Feature Freeze
 * For minor releases, cut a new release branch from `main` and update them.
 
@@ -19,6 +29,7 @@ For patch releases, only the version on the existing major and minor version bra
     Update versions and ensure that the `BEATS_VERSION` in the Makefile is updated,
     e.g. [#2803](https://github.com/elastic/apm-server/pull/2803/files).
     Trigger a new beats update, once the beats branch is also created.
+    Remove the [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc) file from the release branch. 
 
   * Main branch: 
     Update [.mergify.yml](https://github.com/elastic/apm-server/blob/main/.mergify.yml) with a new backport rule for the next version,
@@ -61,17 +72,6 @@ For patch releases, only the version on the existing major and minor version bra
   * Test the PR following the Author's how to test this section.
   * Post your testing scenarios on the PR as a comment (for tracking down details in case we run into regressions).
   * Add the `test-plan-ok` or the `test-plan-regression` label to the PR. In case of regression, either open a PR with a fix or open an issue with the details.
-    
-* Update Changelog
-
-  * Review existing [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) to ensure all relevant notes have been added.
-  * Move changelogs from _head_ to _release_version_:
-    * Minor version: 
-      Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc)
-      If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file.
-    * Patch version: Add new section to existing release notes. ([Sample PR](https://github.com/elastic/apm-server/pull/2064/files))
-  * Create changelog PRs in `main` and backport to the release branch, but remove the _changelogs/head.asciidoc_ file from the backport.
-  * The [`check_changelogs.py`](script/check_changelogs.py) script is run as a PR check, ensuring that changelog changes are synced across branches.
 
 * Collaborate with the docs team on any release highlights or breaking changes that should be included in the APM Server guide. 
 
