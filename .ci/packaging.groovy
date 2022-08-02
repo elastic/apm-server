@@ -433,7 +433,7 @@ def signUnpublishedArtifactsWithElastic(builtPackagesPath) {
 def uploadUnpublishedToPackageStorage(builtPackagesPath) {
   def dryRun = env.BRANCH_NAME != 'main'
   if (dryRun) {
-    echo "Dry run: endpoint-package won't be published"
+    echo "Dry run: apm won't be published"
   }
 
   dir(builtPackagesPath) {
