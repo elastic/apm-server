@@ -5,6 +5,7 @@ pipeline {
   agent none
   environment {
     REPO = 'apm-server'
+    REPO_BUILD_TAG = "${env.REPO}/${env.BUILD_TAG}/packaging"
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
     SLACK_CHANNEL = '#apm-server'
     NOTIFY_TO = 'build-apm+apm-server@elastic.co'
