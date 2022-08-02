@@ -43,7 +43,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/internal/model"
@@ -52,7 +53,7 @@ import (
 
 // ConsumeMetrics consumes OpenTelemetry metrics data, converting into
 // the Elastic APM metrics model and sending to the reporter.
-func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) error {
+func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) error {
 	receiveTimestamp := time.Now()
 	logger := logp.NewLogger(logs.Otel)
 	if logger.IsDebug() {
@@ -67,7 +68,7 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) er
 	return c.Processor.ProcessBatch(ctx, batch)
 }
 
-func (c *Consumer) convertMetrics(metrics pdata.Metrics, receiveTimestamp time.Time) *model.Batch {
+func (c *Consumer) convertMetrics(metrics pmetric.Metrics, receiveTimestamp time.Time) *model.Batch {
 	batch := model.Batch{}
 	resourceMetrics := metrics.ResourceMetrics()
 	for i := 0; i < resourceMetrics.Len(); i++ {
@@ -76,7 +77,7 @@ func (c *Consumer) convertMetrics(metrics pdata.Metrics, receiveTimestamp time.T
 	return &batch
 }
 
-func (c *Consumer) convertResourceMetrics(resourceMetrics pdata.ResourceMetrics, receiveTimestamp time.Time, out *model.Batch) {
+func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetrics, receiveTimestamp time.Time, out *model.Batch) {
 	var baseEvent model.APMEvent
 	var timeDelta time.Duration
 	resource := resourceMetrics.Resource()
@@ -84,9 +85,9 @@ func (c *Consumer) convertResourceMetrics(resourceMetrics pdata.ResourceMetrics,
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
 		timeDelta = receiveTimestamp.Sub(exportTimestamp)
 	}
-	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics()
-	for i := 0; i < instrumentationLibraryMetrics.Len(); i++ {
-		c.convertInstrumentationLibraryMetrics(instrumentationLibraryMetrics.At(i), baseEvent, timeDelta, out)
+	scopeMetrics := resourceMetrics.ScopeMetrics()
+	for i := 0; i < scopeMetrics.Len(); i++ {
+		c.convertScopeMetrics(scopeMetrics.At(i), baseEvent, timeDelta, out)
 	}
 }
 
@@ -126,10 +127,10 @@ type jvmMemoryKey struct {
 }
 
 // accumulate processes m, translating to and accumulating equivalent Elastic APM metrics in b.
-func (b *apmMetricsBuilder) accumulate(m pdata.Metric) {
+func (b *apmMetricsBuilder) accumulate(m pmetric.Metric) {
 
 	switch m.DataType() {
-	case pdata.MetricDataTypeSum:
+	case pmetric.MetricDataTypeSum:
 		dpsCounter := m.Sum().DataPoints()
 		for i := 0; i < dpsCounter.Len(); i++ {
 			dp := dpsCounter.At(i)
@@ -155,7 +156,7 @@ func (b *apmMetricsBuilder) accumulate(m pdata.Metric) {
 				}
 			}
 		}
-	case pdata.MetricDataTypeGauge:
+	case pmetric.MetricDataTypeGauge:
 		// Gauge metrics accumulation
 		dpsGauge := m.Gauge().DataPoints()
 		for i := 0; i < dpsGauge.Len(); i++ {
@@ -205,7 +206,7 @@ func (b *apmMetricsBuilder) accumulate(m pdata.Metric) {
 					}
 				case "runtime.jvm.memory.area":
 					var key jvmMemoryKey
-					dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+					dp.Attributes().Range(func(k string, v pcommon.Value) bool {
 						switch k {
 						case "area":
 							key.area = v.AsString()
@@ -231,7 +232,7 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	// Direct translation of system.memory.usage (state = free)
 	if b.freeMemoryBytes.value > 0 {
 		ms.upsertOne(
-			b.freeMemoryBytes.timestamp, "system.memory.actual.free", pdata.NewAttributeMap(),
+			b.freeMemoryBytes.timestamp, "system.memory.actual.free", pcommon.NewMap(),
 			model.MetricsetSample{Value: b.freeMemoryBytes.value},
 		)
 	}
@@ -240,7 +241,7 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	totalMemoryBytes := b.freeMemoryBytes.value + b.usedMemoryBytes.value
 	if totalMemoryBytes > 0 {
 		ms.upsertOne(
-			b.freeMemoryBytes.timestamp, "system.memory.total", pdata.NewAttributeMap(),
+			b.freeMemoryBytes.timestamp, "system.memory.total", pcommon.NewMap(),
 			model.MetricsetSample{Value: totalMemoryBytes},
 		)
 	}
@@ -248,15 +249,15 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	// Averaging of non-idle CPU utilization over all CPU cores
 	if b.nonIdleCPUUtilizationSum.value > 0 && b.cpuCount > 0 {
 		ms.upsertOne(
-			b.nonIdleCPUUtilizationSum.timestamp, "system.cpu.total.norm.pct", pdata.NewAttributeMap(),
+			b.nonIdleCPUUtilizationSum.timestamp, "system.cpu.total.norm.pct", pcommon.NewMap(),
 			model.MetricsetSample{Value: b.nonIdleCPUUtilizationSum.value / float64(b.cpuCount)},
 		)
 	}
 	// jvm.gc.time
 	// Direct translation of runtime.jvm.gc.time or runtime.jvm.gc.collection
 	for k, v := range b.jvmGCTime {
-		elasticapmAttributes := pdata.NewAttributeMap()
-		elasticapmAttributes.Insert("name", pdata.NewAttributeValueString(k))
+		elasticapmAttributes := pcommon.NewMap()
+		elasticapmAttributes.Insert("name", pcommon.NewValueString(k))
 		ms.upsertOne(
 			v.timestamp, "jvm.gc.time", elasticapmAttributes,
 			model.MetricsetSample{Value: v.value},
@@ -265,8 +266,8 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	// jvm.gc.count
 	// Direct translation of runtime.jvm.gc.count
 	for k, v := range b.jvmGCCount {
-		elasticapmAttributes := pdata.NewAttributeMap()
-		elasticapmAttributes.Insert("name", pdata.NewAttributeValueString(k))
+		elasticapmAttributes := pcommon.NewMap()
+		elasticapmAttributes.Insert("name", pcommon.NewValueString(k))
 		ms.upsertOne(
 			v.timestamp, "jvm.gc.count", elasticapmAttributes,
 			model.MetricsetSample{Value: v.value},
@@ -275,10 +276,10 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	// jvm.memory.<area>.<type>
 	// Direct translation of runtime.jvm.memory.area (area = xxx, type = xxx)
 	for k, v := range b.jvmMemory {
-		elasticapmAttributes := pdata.NewAttributeMap()
+		elasticapmAttributes := pcommon.NewMap()
 		var elasticapmMetricName string
 		if k.pool != "" {
-			elasticapmAttributes.Insert("name", pdata.NewAttributeValueString(k.pool))
+			elasticapmAttributes.Insert("name", pcommon.NewValueString(k.pool))
 			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.pool.%s", k.area, k.jvmType)
 		} else {
 			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.%s", k.area, k.jvmType)
@@ -290,8 +291,8 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	}
 }
 
-func (c *Consumer) convertInstrumentationLibraryMetrics(
-	in pdata.InstrumentationLibraryMetrics,
+func (c *Consumer) convertScopeMetrics(
+	in pmetric.ScopeMetrics,
 	baseEvent model.APMEvent,
 	timeDelta time.Duration,
 	out *model.Batch,
@@ -314,7 +315,7 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 		event.Metricset = &model.Metricset{Samples: ms.samples}
 		if ms.attributes.Len() > 0 {
 			initEventLabels(&event)
-			ms.attributes.Range(func(k string, v pdata.AttributeValue) bool {
+			ms.attributes.Range(func(k string, v pcommon.Value) bool {
 				setLabel(k, &event, ifaceAttributeValue(v))
 				return true
 			})
@@ -332,11 +333,11 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(
 	}
 }
 
-func (c *Consumer) addMetric(metric pdata.Metric, ms metricsets) bool {
+func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 	// TODO(axw) support units
 	anyDropped := false
 	switch metric.DataType() {
-	case pdata.MetricDataTypeGauge:
+	case pmetric.MetricDataTypeGauge:
 		dps := metric.Gauge().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
@@ -347,7 +348,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms metricsets) bool {
 			}
 		}
 		return !anyDropped
-	case pdata.MetricDataTypeSum:
+	case pmetric.MetricDataTypeSum:
 		dps := metric.Sum().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
@@ -358,7 +359,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms metricsets) bool {
 			}
 		}
 		return !anyDropped
-	case pdata.MetricDataTypeHistogram:
+	case pmetric.MetricDataTypeHistogram:
 		dps := metric.Histogram().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
@@ -368,7 +369,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms metricsets) bool {
 				anyDropped = true
 			}
 		}
-	case pdata.MetricDataTypeSummary:
+	case pmetric.MetricDataTypeSummary:
 		dps := metric.Summary().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
@@ -382,12 +383,12 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms metricsets) bool {
 	return !anyDropped
 }
 
-func numberSample(dp pdata.NumberDataPoint, metricType model.MetricType) (model.MetricsetSample, bool) {
+func numberSample(dp pmetric.NumberDataPoint, metricType model.MetricType) (model.MetricsetSample, bool) {
 	var value float64
-	switch dp.Type() {
-	case pdata.MetricValueTypeInt:
+	switch dp.ValueType() {
+	case pmetric.NumberDataPointValueTypeInt:
 		value = float64(dp.IntVal())
-	case pdata.MetricValueTypeDouble:
+	case pmetric.NumberDataPointValueTypeDouble:
 		value = dp.DoubleVal()
 		if math.IsNaN(value) || math.IsInf(value, 0) {
 			return model.MetricsetSample{}, false
@@ -401,7 +402,7 @@ func numberSample(dp pdata.NumberDataPoint, metricType model.MetricType) (model.
 	}, true
 }
 
-func summarySample(dp pdata.SummaryDataPoint) model.MetricsetSample {
+func summarySample(dp pmetric.SummaryDataPoint) model.MetricsetSample {
 	return model.MetricsetSample{
 		Type: model.MetricTypeSummary,
 		SummaryMetric: model.SummaryMetric{
@@ -411,7 +412,7 @@ func summarySample(dp pdata.SummaryDataPoint) model.MetricsetSample {
 	}
 }
 
-func histogramSample(bucketCounts []uint64, explicitBounds []float64) (model.MetricsetSample, bool) {
+func histogramSample(bucketCounts pcommon.ImmutableUInt64Slice, explicitBounds pcommon.ImmutableFloat64Slice) (model.MetricsetSample, bool) {
 	// (From opentelemetry-proto/opentelemetry/proto/metrics/v1/metrics.proto)
 	//
 	// This defines size(explicit_bounds) + 1 (= N) buckets. The boundaries for
@@ -423,7 +424,7 @@ func histogramSample(bucketCounts []uint64, explicitBounds []float64) (model.Met
 	//
 	// The values in the explicit_bounds array must be strictly increasing.
 	//
-	if len(bucketCounts) != len(explicitBounds)+1 || len(explicitBounds) == 0 {
+	if bucketCounts.Len() != explicitBounds.Len()+1 || explicitBounds.Len() == 0 {
 		return model.MetricsetSample{}, false
 	}
 
@@ -437,9 +438,10 @@ func histogramSample(bucketCounts []uint64, explicitBounds []float64) (model.Met
 	// bucket is assumed to be 0 if the upper bound of that bucket is greater than 0. In that
 	// case, the usual linear interpolation is applied within that bucket. Otherwise, the upper
 	// bound of the lowest bucket is returned for quantiles located in the lowest bucket."
-	values := make([]float64, 0, len(bucketCounts))
-	counts := make([]int64, 0, len(bucketCounts))
-	for i, count := range bucketCounts {
+	values := make([]float64, 0, bucketCounts.Len())
+	counts := make([]int64, 0, bucketCounts.Len())
+	for i := 0; i < bucketCounts.Len(); i++ {
+		count := bucketCounts.At(i)
 		if count == 0 {
 			continue
 		}
@@ -448,19 +450,19 @@ func histogramSample(bucketCounts []uint64, explicitBounds []float64) (model.Met
 		switch i {
 		// (-infinity, explicit_bounds[i]]
 		case 0:
-			value = explicitBounds[i]
+			value = explicitBounds.At(i)
 			if value > 0 {
 				value /= 2
 			}
 
 		// (explicit_bounds[i], +infinity)
-		case len(bucketCounts) - 1:
-			value = explicitBounds[i-1]
+		case bucketCounts.Len() - 1:
+			value = explicitBounds.At(i - 1)
 
 		// [explicit_bounds[i-1], explicit_bounds[i])
 		default:
 			// Use the midpoint between the boundaries.
-			value = explicitBounds[i-1] + (explicitBounds[i]-explicitBounds[i-1])/2.0
+			value = explicitBounds.At(i-1) + (explicitBounds.At(i)-explicitBounds.At(i-1))/2.0
 		}
 
 		counts = append(counts, int64(count))
@@ -483,22 +485,22 @@ type metricsetKey struct {
 }
 
 type metricset struct {
-	attributes pdata.AttributeMap
+	attributes pcommon.Map
 	samples    map[string]model.MetricsetSample
 }
 
 // upsert searches for an existing metricset with the given timestamp and labels,
 // and appends the sample to it. If there is no such existing metricset, a new one
 // is created.
-func (ms metricsets) upsert(timestamp time.Time, name string, attributes pdata.AttributeMap, sample model.MetricsetSample) {
+func (ms metricsets) upsert(timestamp time.Time, name string, attributes pcommon.Map, sample model.MetricsetSample) {
 	// We always record metrics as they are given. We also copy some
 	// well-known OpenTelemetry metrics to their Elastic APM equivalents.
 	ms.upsertOne(timestamp, name, attributes, sample)
 }
 
-func (ms metricsets) upsertOne(timestamp time.Time, name string, attributes pdata.AttributeMap, sample model.MetricsetSample) {
+func (ms metricsets) upsertOne(timestamp time.Time, name string, attributes pcommon.Map, sample model.MetricsetSample) {
 	var signatureBuilder strings.Builder
-	attributes.Range(func(k string, v pdata.AttributeValue) bool {
+	attributes.Range(func(k string, v pcommon.Value) bool {
 		signatureBuilder.WriteString(k)
 		signatureBuilder.WriteString(v.AsString())
 		return true

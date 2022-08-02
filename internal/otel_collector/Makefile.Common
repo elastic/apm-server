@@ -3,8 +3,9 @@ ALL_PKGS := $(sort $(shell go list ./...))
 
 # Use a single process (-p 1) on go test to avoid tests clashing on machine
 # wide resources, e.g. ports.
-GOTEST_OPT?= -v -p 1 -race -timeout 60s
-GOTEST=go test
+GOTEST_OPT?= -v -p 1 -race -timeout 120s
+GOCMD?= go
+GOTEST=$(GOCMD) test
 GO_ACC=go-acc
 LINT=golangci-lint
 IMPI=impi
@@ -30,18 +31,27 @@ fmt:
 	gofmt -w -s ./
 	goimports -w  -local go.opentelemetry.io/collector ./
 
+.PHONY: tidy
+tidy:
+	rm -fr go.sum
+	$(GOCMD) mod tidy -compat=1.17
+
 .PHONY: lint
 lint:
-	$(LINT) run --allow-parallel-runners
+	$(LINT) run
 
 .PHONY: lint-unstable
 lint-unstable:
-	$(LINT) run --allow-parallel-runners --build-tags enable_unstable
+	$(LINT) run --build-tags enable_unstable
 
-.PHONY: porto
-porto:
-	porto -w --include-internal  ./
+.PHONY: generate
+generate:
+	$(GOCMD) generate ./...
 
 .PHONY: impi
 impi:
 	@$(IMPI) --local go.opentelemetry.io/collector --scheme stdThirdPartyLocal ./...
+
+.PHONY: moddownload
+moddownload:
+	$(GOCMD) mod download

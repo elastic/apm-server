@@ -20,13 +20,13 @@ package otel
 import (
 	"time"
 
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 )
 
 // exportTimestamp extracts the `telemetry.sdk.elastic_export_timestamp`
 // resource attribute as a timestamp, and returns a boolean indicating
 // whether the attribute was found.
-func exportTimestamp(resource pdata.Resource) (time.Time, bool) {
+func exportTimestamp(resource pcommon.Resource) (time.Time, bool) {
 	attr, ok := resource.Attributes().Get("telemetry.sdk.elastic_export_timestamp")
 	if !ok {
 		return time.Time{}, false

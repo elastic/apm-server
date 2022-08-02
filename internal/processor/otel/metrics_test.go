@@ -42,7 +42,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/processor/otel"
@@ -50,11 +51,11 @@ import (
 )
 
 func TestConsumeMetrics(t *testing.T) {
-	metrics := pdata.NewMetrics()
+	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
-	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics().AppendEmpty()
-	metricSlice := instrumentationLibraryMetrics.Metrics()
-	appendMetric := func(name string, dataType pdata.MetricDataType) pdata.Metric {
+	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+	metricSlice := scopeMetrics.Metrics()
+	appendMetric := func(name string, dataType pmetric.MetricDataType) pmetric.Metric {
 		metric := metricSlice.AppendEmpty()
 		metric.SetName(name)
 		metric.SetDataType(dataType)
@@ -66,69 +67,70 @@ func TestConsumeMetrics(t *testing.T) {
 
 	var expectDropped int64
 
-	metric := appendMetric("gauge_metric", pdata.MetricDataTypeGauge)
+	metric := appendMetric("gauge_metric", pmetric.MetricDataTypeGauge)
 	gauge := metric.Gauge()
 	gaugeDP0 := gauge.DataPoints().AppendEmpty()
-	gaugeDP0.SetTimestamp(pdata.NewTimestampFromTime(timestamp0))
+	gaugeDP0.SetTimestamp(pcommon.NewTimestampFromTime(timestamp0))
 	gaugeDP0.SetIntVal(1)
 	gaugeDP1 := gauge.DataPoints().AppendEmpty()
-	gaugeDP1.SetTimestamp(pdata.NewTimestampFromTime(timestamp1))
+	gaugeDP1.SetTimestamp(pcommon.NewTimestampFromTime(timestamp1))
 	gaugeDP1.SetDoubleVal(2.3)
 	gaugeDP1.Attributes().InsertString("k", "v")
 	gaugeDP2 := gauge.DataPoints().AppendEmpty()
-	gaugeDP2.SetTimestamp(pdata.NewTimestampFromTime(timestamp1))
+	gaugeDP2.SetTimestamp(pcommon.NewTimestampFromTime(timestamp1))
 	gaugeDP2.SetIntVal(4)
 	gaugeDP3 := gauge.DataPoints().AppendEmpty()
-	gaugeDP3.SetTimestamp(pdata.NewTimestampFromTime(timestamp1))
+	gaugeDP3.SetTimestamp(pcommon.NewTimestampFromTime(timestamp1))
 	gaugeDP3.SetDoubleVal(5.6)
 	gaugeDP3.Attributes().InsertString("k", "v2")
 
-	metric = appendMetric("sum_metric", pdata.MetricDataTypeSum)
+	metric = appendMetric("sum_metric", pmetric.MetricDataTypeSum)
 	sum := metric.Sum()
 	sumDP0 := sum.DataPoints().AppendEmpty()
-	sumDP0.SetTimestamp(pdata.NewTimestampFromTime(timestamp0))
+	sumDP0.SetTimestamp(pcommon.NewTimestampFromTime(timestamp0))
 	sumDP0.SetIntVal(7)
 	sumDP1 := sum.DataPoints().AppendEmpty()
-	sumDP1.SetTimestamp(pdata.NewTimestampFromTime(timestamp1))
+	sumDP1.SetTimestamp(pcommon.NewTimestampFromTime(timestamp1))
 	sumDP1.SetDoubleVal(8.9)
 	sumDP1.Attributes().InsertString("k", "v")
 	sumDP2 := sum.DataPoints().AppendEmpty()
-	sumDP2.SetTimestamp(pdata.NewTimestampFromTime(timestamp1))
+	sumDP2.SetTimestamp(pcommon.NewTimestampFromTime(timestamp1))
 	sumDP2.SetIntVal(10)
 	sumDP2.Attributes().InsertString("k2", "v")
 	sumDP3 := sum.DataPoints().AppendEmpty()
-	sumDP3.SetTimestamp(pdata.NewTimestampFromTime(timestamp1))
+	sumDP3.SetTimestamp(pcommon.NewTimestampFromTime(timestamp1))
 	sumDP3.SetDoubleVal(11.12)
 	sumDP3.Attributes().InsertString("k", "v2")
 
-	metric = appendMetric("histogram_metric", pdata.MetricDataTypeHistogram)
+	metric = appendMetric("histogram_metric", pmetric.MetricDataTypeHistogram)
 	histogram := metric.Histogram()
 	histogramDP := histogram.DataPoints().AppendEmpty()
-	histogramDP.SetTimestamp(pdata.NewTimestampFromTime(timestamp0))
-	histogramDP.SetBucketCounts([]uint64{1, 1, 2, 3})
-	histogramDP.SetExplicitBounds([]float64{-1.0, 2.0, 3.5})
+	histogramDP.SetTimestamp(pcommon.NewTimestampFromTime(timestamp0))
+	histogramDP.SetBucketCounts(pcommon.NewImmutableUInt64Slice([]uint64{1, 1, 2, 3}))
+	histogramDP.SetExplicitBounds(pcommon.NewImmutableFloat64Slice([]float64{-1.0, 2.0, 3.5}))
 
-	metric = appendMetric("summary_metric", pdata.MetricDataTypeSummary)
+	metric = appendMetric("summary_metric", pmetric.MetricDataTypeSummary)
 	summaryDP := metric.Summary().DataPoints().AppendEmpty()
-	summaryDP.SetTimestamp(pdata.NewTimestampFromTime(timestamp0))
+	summaryDP.SetTimestamp(pcommon.NewTimestampFromTime(timestamp0))
 	summaryDP.SetCount(10)
 	summaryDP.SetSum(123.456)
 	summaryDP.QuantileValues().AppendEmpty() // quantiles are not stored
 
-	metric = appendMetric("invalid_histogram_metric", pdata.MetricDataTypeHistogram)
+	metric = appendMetric("invalid_histogram_metric", pmetric.MetricDataTypeHistogram)
 	invalidHistogram := metric.Histogram()
 	invalidHistogramDP := invalidHistogram.DataPoints().AppendEmpty()
-	invalidHistogramDP.SetTimestamp(pdata.NewTimestampFromTime(timestamp0))
-	invalidHistogramDP.SetBucketCounts([]uint64{1, 2, 3}) // should be one more bucket count than bounds
-	invalidHistogramDP.SetExplicitBounds([]float64{1, 2, 3})
+	invalidHistogramDP.SetTimestamp(pcommon.NewTimestampFromTime(timestamp0))
+	// should be one more bucket count than bounds
+	invalidHistogramDP.SetBucketCounts(pcommon.NewImmutableUInt64Slice([]uint64{1, 2, 3}))
+	invalidHistogramDP.SetExplicitBounds(pcommon.NewImmutableFloat64Slice([]float64{1, 2, 3}))
 	expectDropped++
 
-	metric = appendMetric("invalid_histogram_metric2", pdata.MetricDataTypeHistogram)
+	metric = appendMetric("invalid_histogram_metric2", pmetric.MetricDataTypeHistogram)
 	invalidHistogram = metric.Histogram()
 	invalidHistogramDP = invalidHistogram.DataPoints().AppendEmpty()
-	invalidHistogramDP.SetTimestamp(pdata.NewTimestampFromTime(timestamp0))
-	invalidHistogramDP.SetBucketCounts([]uint64{1})
-	invalidHistogramDP.SetExplicitBounds([]float64{}) // should be non-empty
+	invalidHistogramDP.SetTimestamp(pcommon.NewTimestampFromTime(timestamp0))
+	invalidHistogramDP.SetBucketCounts(pcommon.NewImmutableUInt64Slice([]uint64{1}))
+	invalidHistogramDP.SetExplicitBounds(pcommon.NewImmutableFloat64Slice([]float64{})) // should be non-empty
 	expectDropped++
 
 	events, stats := transformMetrics(t, metrics)
@@ -211,11 +213,11 @@ func TestConsumeMetrics(t *testing.T) {
 
 func TestConsumeMetricsNaN(t *testing.T) {
 	timestamp := time.Unix(123, 0).UTC()
-	metrics := pdata.NewMetrics()
+	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
-	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics().AppendEmpty()
-	metricSlice := instrumentationLibraryMetrics.Metrics()
-	appendMetric := func(name string, dataType pdata.MetricDataType) pdata.Metric {
+	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+	metricSlice := scopeMetrics.Metrics()
+	appendMetric := func(name string, dataType pmetric.MetricDataType) pmetric.Metric {
 		metric := metricSlice.AppendEmpty()
 		metric.SetName(name)
 		metric.SetDataType(dataType)
@@ -223,10 +225,10 @@ func TestConsumeMetricsNaN(t *testing.T) {
 	}
 
 	for _, value := range []float64{math.NaN(), math.Inf(-1), math.Inf(1)} {
-		metric := appendMetric("gauge", pdata.MetricDataTypeGauge)
+		metric := appendMetric("gauge", pmetric.MetricDataTypeGauge)
 		gauge := metric.Gauge()
 		dp := gauge.DataPoints().AppendEmpty()
-		dp.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
+		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetDoubleVal(value)
 	}
 
@@ -236,11 +238,11 @@ func TestConsumeMetricsNaN(t *testing.T) {
 }
 
 func TestConsumeMetricsHostCPU(t *testing.T) {
-	metrics := pdata.NewMetrics()
+	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
-	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics().AppendEmpty()
-	metricSlice := instrumentationLibraryMetrics.Metrics()
-	appendMetric := func(name string, dataType pdata.MetricDataType) pdata.Metric {
+	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+	metricSlice := scopeMetrics.Metrics()
+	appendMetric := func(name string, dataType pmetric.MetricDataType) pmetric.Metric {
 		metric := metricSlice.AppendEmpty()
 		metric.SetName(name)
 		metric.SetDataType(dataType)
@@ -248,65 +250,65 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 	}
 
 	timestamp := time.Unix(123, 0).UTC()
-	addFloat64Gauge := func(name string, value float64, attributes map[string]pdata.AttributeValue) {
-		metric := appendMetric(name, pdata.MetricDataTypeGauge)
+	addFloat64Gauge := func(name string, value float64, attributes map[string]interface{}) {
+		metric := appendMetric(name, pmetric.MetricDataTypeGauge)
 		sum := metric.Gauge()
 		dp := sum.DataPoints().AppendEmpty()
-		dp.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
+		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetDoubleVal(value)
-		pdata.NewAttributeMapFromMap(attributes).CopyTo(dp.Attributes())
+		pcommon.NewMapFromRaw(attributes).CopyTo(dp.Attributes())
 	}
 
-	addFloat64Gauge("system.cpu.utilization", 0.8, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("idle"),
-		"cpu":   pdata.NewAttributeValueString("0"),
+	addFloat64Gauge("system.cpu.utilization", 0.8, map[string]interface{}{
+		"state": "idle",
+		"cpu":   "0",
 	})
-	addFloat64Gauge("system.cpu.utilization", 0.1, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("system"),
-		"cpu":   pdata.NewAttributeValueString("0"),
+	addFloat64Gauge("system.cpu.utilization", 0.1, map[string]interface{}{
+		"state": "system",
+		"cpu":   "0",
 	})
-	addFloat64Gauge("system.cpu.utilization", 0.1, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("user"),
-		"cpu":   pdata.NewAttributeValueString("0"),
-	})
-
-	addFloat64Gauge("system.cpu.utilization", 0.45, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("idle"),
-		"cpu":   pdata.NewAttributeValueString("1"),
-	})
-	addFloat64Gauge("system.cpu.utilization", 0.05, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("system"),
-		"cpu":   pdata.NewAttributeValueString("1"),
-	})
-	addFloat64Gauge("system.cpu.utilization", 0.5, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("user"),
-		"cpu":   pdata.NewAttributeValueString("1"),
+	addFloat64Gauge("system.cpu.utilization", 0.1, map[string]interface{}{
+		"state": "user",
+		"cpu":   "0",
 	})
 
-	addFloat64Gauge("system.cpu.utilization", 0.59, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("idle"),
-		"cpu":   pdata.NewAttributeValueString("2"),
+	addFloat64Gauge("system.cpu.utilization", 0.45, map[string]interface{}{
+		"state": "idle",
+		"cpu":   "1",
 	})
-	addFloat64Gauge("system.cpu.utilization", 0.01, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("system"),
-		"cpu":   pdata.NewAttributeValueString("2"),
+	addFloat64Gauge("system.cpu.utilization", 0.05, map[string]interface{}{
+		"state": "system",
+		"cpu":   "1",
 	})
-	addFloat64Gauge("system.cpu.utilization", 0.4, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("user"),
-		"cpu":   pdata.NewAttributeValueString("2"),
+	addFloat64Gauge("system.cpu.utilization", 0.5, map[string]interface{}{
+		"state": "user",
+		"cpu":   "1",
 	})
 
-	addFloat64Gauge("system.cpu.utilization", 0.6, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("idle"),
-		"cpu":   pdata.NewAttributeValueString("3"),
+	addFloat64Gauge("system.cpu.utilization", 0.59, map[string]interface{}{
+		"state": "idle",
+		"cpu":   "2",
 	})
-	addFloat64Gauge("system.cpu.utilization", 0.3, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("system"),
-		"cpu":   pdata.NewAttributeValueString("3"),
+	addFloat64Gauge("system.cpu.utilization", 0.01, map[string]interface{}{
+		"state": "system",
+		"cpu":   "2",
 	})
-	addFloat64Gauge("system.cpu.utilization", 0.1, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("user"),
-		"cpu":   pdata.NewAttributeValueString("3"),
+	addFloat64Gauge("system.cpu.utilization", 0.4, map[string]interface{}{
+		"state": "user",
+		"cpu":   "2",
+	})
+
+	addFloat64Gauge("system.cpu.utilization", 0.6, map[string]interface{}{
+		"state": "idle",
+		"cpu":   "3",
+	})
+	addFloat64Gauge("system.cpu.utilization", 0.3, map[string]interface{}{
+		"state": "system",
+		"cpu":   "3",
+	})
+	addFloat64Gauge("system.cpu.utilization", 0.1, map[string]interface{}{
+		"state": "user",
+		"cpu":   "3",
 	})
 
 	events, _ := transformMetrics(t, metrics)
@@ -496,11 +498,11 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 }
 
 func TestConsumeMetricsHostMemory(t *testing.T) {
-	metrics := pdata.NewMetrics()
+	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
-	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics().AppendEmpty()
-	metricSlice := instrumentationLibraryMetrics.Metrics()
-	appendMetric := func(name string, dataType pdata.MetricDataType) pdata.Metric {
+	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+	metricSlice := scopeMetrics.Metrics()
+	appendMetric := func(name string, dataType pmetric.MetricDataType) pmetric.Metric {
 		metric := metricSlice.AppendEmpty()
 		metric.SetName(name)
 		metric.SetDataType(dataType)
@@ -508,19 +510,19 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 	}
 
 	timestamp := time.Unix(123, 0).UTC()
-	addInt64Sum := func(name string, value int64, attributes map[string]pdata.AttributeValue) {
-		metric := appendMetric(name, pdata.MetricDataTypeSum)
+	addInt64Sum := func(name string, value int64, attributes map[string]interface{}) {
+		metric := appendMetric(name, pmetric.MetricDataTypeSum)
 		sum := metric.Sum()
 		dp := sum.DataPoints().AppendEmpty()
-		dp.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
+		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetIntVal(value)
-		pdata.NewAttributeMapFromMap(attributes).CopyTo(dp.Attributes())
+		pcommon.NewMapFromRaw(attributes).CopyTo(dp.Attributes())
 	}
-	addInt64Sum("system.memory.usage", 4773351424, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("free"),
+	addInt64Sum("system.memory.usage", 4773351424, map[string]interface{}{
+		"state": "free",
 	})
-	addInt64Sum("system.memory.usage", 3563778048, map[string]pdata.AttributeValue{
-		"state": pdata.NewAttributeValueString("used"),
+	addInt64Sum("system.memory.usage", 3563778048, map[string]interface{}{
+		"state": "used",
 	})
 	events, _ := transformMetrics(t, metrics)
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
@@ -572,11 +574,11 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 }
 
 func TestConsumeMetrics_JVM(t *testing.T) {
-	metrics := pdata.NewMetrics()
+	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
-	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics().AppendEmpty()
-	metricSlice := instrumentationLibraryMetrics.Metrics()
-	appendMetric := func(name string, dataType pdata.MetricDataType) pdata.Metric {
+	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+	metricSlice := scopeMetrics.Metrics()
+	appendMetric := func(name string, dataType pmetric.MetricDataType) pmetric.Metric {
 		metric := metricSlice.AppendEmpty()
 		metric.SetName(name)
 		metric.SetDataType(dataType)
@@ -584,36 +586,36 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	}
 
 	timestamp := time.Unix(123, 0).UTC()
-	addInt64Sum := func(name string, value int64, attributes map[string]pdata.AttributeValue) {
-		metric := appendMetric(name, pdata.MetricDataTypeSum)
+	addInt64Sum := func(name string, value int64, attributes map[string]interface{}) {
+		metric := appendMetric(name, pmetric.MetricDataTypeSum)
 		sum := metric.Sum()
 		dp := sum.DataPoints().AppendEmpty()
-		dp.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
+		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetIntVal(value)
-		pdata.NewAttributeMapFromMap(attributes).CopyTo(dp.Attributes())
+		pcommon.NewMapFromRaw(attributes).CopyTo(dp.Attributes())
 	}
-	addInt64Gauge := func(name string, value int64, attributes map[string]pdata.AttributeValue) {
-		metric := appendMetric(name, pdata.MetricDataTypeGauge)
+	addInt64Gauge := func(name string, value int64, attributes map[string]interface{}) {
+		metric := appendMetric(name, pmetric.MetricDataTypeGauge)
 		sum := metric.Gauge()
 		dp := sum.DataPoints().AppendEmpty()
-		dp.SetTimestamp(pdata.NewTimestampFromTime(timestamp))
+		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetIntVal(value)
-		pdata.NewAttributeMapFromMap(attributes).CopyTo(dp.Attributes())
+		pcommon.NewMapFromRaw(attributes).CopyTo(dp.Attributes())
 	}
-	addInt64Sum("runtime.jvm.gc.time", 9, map[string]pdata.AttributeValue{
-		"gc": pdata.NewAttributeValueString("G1 Young Generation"),
+	addInt64Sum("runtime.jvm.gc.time", 9, map[string]interface{}{
+		"gc": "G1 Young Generation",
 	})
-	addInt64Sum("runtime.jvm.gc.count", 2, map[string]pdata.AttributeValue{
-		"gc": pdata.NewAttributeValueString("G1 Young Generation"),
+	addInt64Sum("runtime.jvm.gc.count", 2, map[string]interface{}{
+		"gc": "G1 Young Generation",
 	})
-	addInt64Gauge("runtime.jvm.memory.area", 42, map[string]pdata.AttributeValue{
-		"area": pdata.NewAttributeValueString("heap"),
-		"type": pdata.NewAttributeValueString("used"),
+	addInt64Gauge("runtime.jvm.memory.area", 42, map[string]interface{}{
+		"area": "heap",
+		"type": "used",
 	})
-	addInt64Gauge("runtime.jvm.memory.area", 24, map[string]pdata.AttributeValue{
-		"area": pdata.NewAttributeValueString("heap"),
-		"type": pdata.NewAttributeValueString("used"),
-		"pool": pdata.NewAttributeValueString("eden"),
+	addInt64Gauge("runtime.jvm.memory.area", 24, map[string]interface{}{
+		"area": "heap",
+		"type": "used",
+		"pool": "eden",
 	})
 	addInt64Gauge("process.runtime.jvm.memory.limit", 20000, map[string]pdata.AttributeValue{
 		"type": pdata.NewAttributeValueString("heap"),
@@ -741,7 +743,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 }
 
 func TestConsumeMetricsExportTimestamp(t *testing.T) {
-	metrics := pdata.NewMetrics()
+	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
 
 	// The actual timestamps will be non-deterministic, as they are adjusted
@@ -760,13 +762,13 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	dataPointOffset := -time.Second
 	exportedDataPointTimestamp := exportTimestamp.Add(dataPointOffset)
 
-	instrumentationLibraryMetrics := resourceMetrics.InstrumentationLibraryMetrics().AppendEmpty()
-	metric := instrumentationLibraryMetrics.Metrics().AppendEmpty()
+	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+	metric := scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName("int_gauge")
-	metric.SetDataType(pdata.MetricDataTypeGauge)
+	metric.SetDataType(pmetric.MetricDataTypeGauge)
 	intGauge := metric.Gauge()
 	dp := intGauge.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pdata.NewTimestampFromTime(exportedDataPointTimestamp))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(exportedDataPointTimestamp))
 	dp.SetIntVal(1)
 
 	events, _ := transformMetrics(t, metrics)
@@ -778,7 +780,7 @@ func TestMetricsLogging(t *testing.T) {
 	for _, level := range []logp.Level{logp.InfoLevel, logp.DebugLevel} {
 		t.Run(level.String(), func(t *testing.T) {
 			logp.DevelopmentSetup(logp.ToObserverOutput(), logp.WithLevel(level))
-			transformMetrics(t, pdata.NewMetrics())
+			transformMetrics(t, pmetric.NewMetrics())
 			logs := logp.ObserverLogs().TakeAll()
 			if level == logp.InfoLevel {
 				assert.Empty(t, logs)
@@ -789,7 +791,7 @@ func TestMetricsLogging(t *testing.T) {
 	}
 }
 
-func transformMetrics(t *testing.T, metrics pdata.Metrics) ([]model.APMEvent, otel.ConsumerStats) {
+func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]model.APMEvent, otel.ConsumerStats) {
 	var batches []*model.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
 

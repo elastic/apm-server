@@ -1,0 +1,15 @@
+[Unit]
+Description=Elastic APM Server
+Documentation=https://www.elastic.co/apm
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=apm-server
+Group=apm-server
+UMask=0027
+ExecStart=/usr/bin/apm-server --environment systemd
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

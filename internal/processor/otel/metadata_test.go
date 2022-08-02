@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 
 	"github.com/elastic/apm-server/internal/model"
 )
@@ -35,7 +35,7 @@ func TestResourceConventions(t *testing.T) {
 	}
 
 	for name, test := range map[string]struct {
-		attrs    map[string]pdata.AttributeValue
+		attrs    map[string]interface{}
 		expected model.APMEvent
 	}{
 		"empty": {
@@ -43,10 +43,10 @@ func TestResourceConventions(t *testing.T) {
 			expected: model.APMEvent{Agent: defaultAgent, Service: defaultService},
 		},
 		"service": {
-			attrs: map[string]pdata.AttributeValue{
-				"service.name":           pdata.NewAttributeValueString("service_name"),
-				"service.version":        pdata.NewAttributeValueString("service_version"),
-				"deployment.environment": pdata.NewAttributeValueString("service_environment"),
+			attrs: map[string]interface{}{
+				"service.name":           "service_name",
+				"service.version":        "service_version",
+				"deployment.environment": "service_environment",
 			},
 			expected: model.APMEvent{
 				Agent: model.Agent{Name: "otlp", Version: "unknown"},
@@ -59,10 +59,10 @@ func TestResourceConventions(t *testing.T) {
 			},
 		},
 		"agent": {
-			attrs: map[string]pdata.AttributeValue{
-				"telemetry.sdk.name":     pdata.NewAttributeValueString("sdk_name"),
-				"telemetry.sdk.version":  pdata.NewAttributeValueString("sdk_version"),
-				"telemetry.sdk.language": pdata.NewAttributeValueString("language_name"),
+			attrs: map[string]interface{}{
+				"telemetry.sdk.name":     "sdk_name",
+				"telemetry.sdk.version":  "sdk_version",
+				"telemetry.sdk.language": "language_name",
 			},
 			expected: model.APMEvent{
 				Agent: model.Agent{Name: "sdk_name/language_name", Version: "sdk_version"},
@@ -73,9 +73,9 @@ func TestResourceConventions(t *testing.T) {
 			},
 		},
 		"runtime": {
-			attrs: map[string]pdata.AttributeValue{
-				"process.runtime.name":    pdata.NewAttributeValueString("runtime_name"),
-				"process.runtime.version": pdata.NewAttributeValueString("runtime_version"),
+			attrs: map[string]interface{}{
+				"process.runtime.name":    "runtime_name",
+				"process.runtime.version": "runtime_version",
 			},
 			expected: model.APMEvent{
 				Agent: model.Agent{Name: "otlp", Version: "unknown"},
@@ -90,12 +90,12 @@ func TestResourceConventions(t *testing.T) {
 			},
 		},
 		"cloud": {
-			attrs: map[string]pdata.AttributeValue{
-				"cloud.provider":          pdata.NewAttributeValueString("provider_name"),
-				"cloud.region":            pdata.NewAttributeValueString("region_name"),
-				"cloud.account.id":        pdata.NewAttributeValueString("account_id"),
-				"cloud.availability_zone": pdata.NewAttributeValueString("availability_zone"),
-				"cloud.platform":          pdata.NewAttributeValueString("platform_name"),
+			attrs: map[string]interface{}{
+				"cloud.provider":          "provider_name",
+				"cloud.region":            "region_name",
+				"cloud.account.id":        "account_id",
+				"cloud.availability_zone": "availability_zone",
+				"cloud.platform":          "platform_name",
 			},
 			expected: model.APMEvent{
 				Agent:   defaultAgent,
@@ -110,12 +110,12 @@ func TestResourceConventions(t *testing.T) {
 			},
 		},
 		"container": {
-			attrs: map[string]pdata.AttributeValue{
-				"container.name":       pdata.NewAttributeValueString("container_name"),
-				"container.id":         pdata.NewAttributeValueString("container_id"),
-				"container.image.name": pdata.NewAttributeValueString("container_image_name"),
-				"container.image.tag":  pdata.NewAttributeValueString("container_image_tag"),
-				"container.runtime":    pdata.NewAttributeValueString("container_runtime"),
+			attrs: map[string]interface{}{
+				"container.name":       "container_name",
+				"container.id":         "container_id",
+				"container.image.name": "container_image_name",
+				"container.image.tag":  "container_image_tag",
+				"container.runtime":    "container_runtime",
 			},
 			expected: model.APMEvent{
 				Agent:   defaultAgent,
@@ -130,11 +130,11 @@ func TestResourceConventions(t *testing.T) {
 			},
 		},
 		"kubernetes": {
-			attrs: map[string]pdata.AttributeValue{
-				"k8s.namespace.name": pdata.NewAttributeValueString("kubernetes_namespace"),
-				"k8s.node.name":      pdata.NewAttributeValueString("kubernetes_node_name"),
-				"k8s.pod.name":       pdata.NewAttributeValueString("kubernetes_pod_name"),
-				"k8s.pod.uid":        pdata.NewAttributeValueString("kubernetes_pod_uid"),
+			attrs: map[string]interface{}{
+				"k8s.namespace.name": "kubernetes_namespace",
+				"k8s.node.name":      "kubernetes_node_name",
+				"k8s.pod.name":       "kubernetes_pod_name",
+				"k8s.pod.uid":        "kubernetes_pod_uid",
 			},
 			expected: model.APMEvent{
 				Agent:   defaultAgent,
@@ -148,11 +148,11 @@ func TestResourceConventions(t *testing.T) {
 			},
 		},
 		"host": {
-			attrs: map[string]pdata.AttributeValue{
-				"host.name": pdata.NewAttributeValueString("host_name"),
-				"host.id":   pdata.NewAttributeValueString("host_id"),
-				"host.type": pdata.NewAttributeValueString("host_type"),
-				"host.arch": pdata.NewAttributeValueString("host_arch"),
+			attrs: map[string]interface{}{
+				"host.name": "host_name",
+				"host.id":   "host_id",
+				"host.type": "host_type",
+				"host.arch": "host_arch",
 			},
 			expected: model.APMEvent{
 				Agent:   defaultAgent,
@@ -166,10 +166,10 @@ func TestResourceConventions(t *testing.T) {
 			},
 		},
 		"process": {
-			attrs: map[string]pdata.AttributeValue{
-				"process.pid":             pdata.NewAttributeValueInt(123),
-				"process.command_line":    pdata.NewAttributeValueString("command_line"),
-				"process.executable.path": pdata.NewAttributeValueString("executable_path"),
+			attrs: map[string]interface{}{
+				"process.pid":             123,
+				"process.command_line":    "command_line",
+				"process.executable.path": "executable_path",
 			},
 			expected: model.APMEvent{
 				Agent:   defaultAgent,
@@ -182,9 +182,9 @@ func TestResourceConventions(t *testing.T) {
 			},
 		},
 		"os": {
-			attrs: map[string]pdata.AttributeValue{
-				"os.type":        pdata.NewAttributeValueString("DARWIN"),
-				"os.description": pdata.NewAttributeValueString("Mac OS Mojave"),
+			attrs: map[string]interface{}{
+				"os.type":        "DARWIN",
+				"os.description": "Mac OS Mojave",
 			},
 			expected: model.APMEvent{
 				Agent:   defaultAgent,
@@ -207,17 +207,9 @@ func TestResourceConventions(t *testing.T) {
 }
 
 func TestResourceLabels(t *testing.T) {
-	stringArray := pdata.NewAttributeValueArray()
-	stringArray.SliceVal().AppendEmpty().SetStringVal("abc")
-	stringArray.SliceVal().AppendEmpty().SetStringVal("def")
-
-	intArray := pdata.NewAttributeValueArray()
-	intArray.SliceVal().AppendEmpty().SetIntVal(123)
-	intArray.SliceVal().AppendEmpty().SetIntVal(456)
-
-	metadata := transformResourceMetadata(t, map[string]pdata.AttributeValue{
-		"string_array": stringArray,
-		"int_array":    intArray,
+	metadata := transformResourceMetadata(t, map[string]interface{}{
+		"string_array": []interface{}{"abc", "def"},
+		"int_array":    []interface{}{123, 456},
 	})
 	assert.Equal(t, model.Labels{
 		"string_array": {Values: []string{"abc", "def"}},
@@ -227,12 +219,12 @@ func TestResourceLabels(t *testing.T) {
 	}, metadata.NumericLabels)
 }
 
-func transformResourceMetadata(t *testing.T, resourceAttrs map[string]pdata.AttributeValue) model.APMEvent {
+func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{}) model.APMEvent {
 	traces, spans := newTracesSpans()
-	pdata.NewAttributeMapFromMap(resourceAttrs).CopyTo(traces.ResourceSpans().At(0).Resource().Attributes())
+	pcommon.NewMapFromRaw(resourceAttrs).CopyTo(traces.ResourceSpans().At(0).Resource().Attributes())
 	otelSpan := spans.Spans().AppendEmpty()
-	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
-	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	otelSpan.SetTraceID(pcommon.NewTraceID([16]byte{1}))
+	otelSpan.SetSpanID(pcommon.NewSpanID([8]byte{2}))
 	events := transformTraces(t, traces)
 	events[0].Transaction = nil
 	events[0].Trace = model.Trace{}

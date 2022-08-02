@@ -108,7 +108,10 @@ func (c *grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansReques
 func (c *grpcCollector) postSpans(ctx context.Context, batch jaegermodel.Batch) error {
 	spanCount := int64(len(batch.Spans))
 	gRPCCollectorMonitoringMap.add(request.IDEventReceivedCount, spanCount)
-	traces := jaegertranslator.ProtoBatchToInternalTraces(batch)
+	traces, err := jaegertranslator.ProtoToTraces([]*jaegermodel.Batch{&batch})
+	if err != nil {
+		return err
+	}
 	return c.consumer.ConsumeTraces(ctx, traces)
 }
 

@@ -1,0 +1,73 @@
+# Configuration file for https://nfpm.goreleaser.com/
+
+name: apm-server
+arch: ${GOARCH}
+platform: linux
+version: v${APM_SERVER_VERSION}
+section: default
+license: Elastic License 2.0
+vendor: Elastic
+maintainer: infra@elastic.co
+homepage: https://www.elastic.co/apm
+description: Elastic APM Server
+
+scripts:
+  preinstall: ./packaging/files/linux/preinstall.sh
+  postinstall: ./packaging/files/linux/postinstall.sh
+
+contents:
+  - src: "build/apm-server-linux-${GOARCH}"
+    dst: /usr/share/apm-server/bin/apm-server
+    file_info:
+      mode: 0755
+
+  - src: apm-server.yml
+    dst: /etc/apm-server/apm-server.yml
+    file_info:
+      mode: 0600
+      owner: apm-server
+      group: apm-server
+
+  - dst: /var/lib/apm-server
+    type: dir
+    file_info:
+      mode: 0755
+      owner: apm-server
+      group: apm-server
+
+  - dst: /var/log/apm-server
+    type: dir
+    file_info:
+      mode: 0755
+      owner: apm-server
+      group: apm-server
+
+  - src: packaging/files/linux/apm-server.sh
+    dst: /usr/bin/apm-server
+    file_info:
+      mode: 0755
+
+  - src: packaging/files/linux/systemd.unit
+    dst: /lib/systemd/system/apm-server.service
+    file_info:
+      mode: 0755
+
+  - src: build/LICENSE.txt
+    dst: /usr/share/apm-server/LICENSE.txt
+    file_info:
+      mode: 0644
+
+  - src: NOTICE.txt
+    dst: /usr/share/apm-server/NOTICE.txt
+    file_info:
+      mode: 0644
+
+  - src: build/.build_hash.txt
+    dst: /usr/share/apm-server/.build_hash.txt
+    file_info:
+      mode: 0644
+
+  - src: build/java-attacher.jar
+    dst: /usr/share/apm-server/java-attacher.jar
+    file_info:
+      mode: 0644
