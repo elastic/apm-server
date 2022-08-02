@@ -25,6 +25,22 @@ contents:
     dst: /etc/apm-server/apm-server.yml
     file_info:
       mode: 0600
+      owner: apm-server
+      group: apm-server
+
+  - dst: /var/lib/apm-server
+    type: dir
+    file_info:
+      mode: 0755
+      owner: apm-server
+      group: apm-server
+
+  - dst: /var/log/apm-server
+    type: dir
+    file_info:
+      mode: 0755
+      owner: apm-server
+      group: apm-server
 
   - src: packaging/files/linux/apm-server.sh
     dst: /usr/bin/apm-server

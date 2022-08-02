@@ -108,7 +108,7 @@ build/nfpm-amd64.yml: PACKAGE_GOARCH=amd64
 build/nfpm-arm64.yml: PACKAGE_GOARCH=arm64
 build/nfpm-386.yml: PACKAGE_GOARCH=386
 build/nfpm-%.yml: packaging/nfpm.yml
-	sed 's/$${GOARCH}/$(PACKAGE_GOARCH)/' $< > $@
+	sed 's/$${GOARCH}/$(PACKAGE_GOARCH)/' $< | sed 's/$${APM_SERVER_VERSION}/${APM_SERVER_VERSION}/' > $@
 
 DEB_ARCH := i386 amd64 arm64
 DEBS := $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-%.deb, $(DEB_ARCH))
