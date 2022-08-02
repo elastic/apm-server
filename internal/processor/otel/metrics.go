@@ -175,6 +175,34 @@ func (b *apmMetricsBuilder) accumulate(m pdata.Metric) {
 							b.cpuCount = cpuID + 1
 						}
 					}
+				case "process.runtime.jvm.memory.usage",
+					"process.runtime.jvm.memory.init",
+					"process.runtime.jvm.memory.committed",
+					"process.runtime.jvm.memory.limit":
+
+					var key jvmMemoryKey
+					dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+						switch k {
+						case "type":
+							key.area = v.AsString()
+						case "pool":
+							key.pool = v.AsString()
+						}
+						return true
+					})
+
+					switch m.Name()[strings.LastIndex(m.Name(), ".")+1:] {
+					case "limit":
+						key.jvmType = "max"
+					case "usage":
+						key.jvmType = "used"
+					case "committed":
+						key.jvmType = "committed"
+					}
+
+					if key.jvmType != "" {
+						b.jvmMemory[key] = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
+					}
 				case "runtime.jvm.memory.area":
 					var key jvmMemoryKey
 					dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
