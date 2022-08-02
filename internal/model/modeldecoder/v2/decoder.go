@@ -37,7 +37,8 @@ import (
 	"github.com/elastic/apm-server/internal/netutil"
 	otel_processor "github.com/elastic/apm-server/internal/processor/otel"
 
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
 var (
@@ -1284,7 +1285,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 }
 
 func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
-	library := pdata.NewInstrumentationLibrary()
+	scope := pcommon.NewInstrumentationScope()
 	m := otelAttributeMap(&from)
 	if from.SpanKind.IsSet() {
 		out.Span.Kind = from.SpanKind.Val
@@ -1297,9 +1298,9 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 	}
 	// TODO: Does this work? Is there a way we can infer the status code,
 	// potentially in the actual attributes map?
-	spanStatus := pdata.NewSpanStatus()
-	spanStatus.SetCode(pdata.StatusCodeUnset)
-	otel_processor.TranslateTransaction(m, spanStatus, library, out)
+	spanStatus := ptrace.NewSpanStatus()
+	spanStatus.SetCode(ptrace.StatusCodeUnset)
+	otel_processor.TranslateTransaction(m, spanStatus, scope, out)
 
 	if out.Span.Kind == "" {
 		switch out.Transaction.Type {
@@ -1323,27 +1324,27 @@ func mapOTelAttributesSpan(from otel, out *model.APMEvent) {
 	if out.NumericLabels == nil {
 		out.NumericLabels = make(model.NumericLabels)
 	}
-	var spanKind pdata.SpanKind
+	var spanKind ptrace.SpanKind
 	if from.SpanKind.IsSet() {
 		switch from.SpanKind.Val {
-		case pdata.SpanKindInternal.String()[len(spanKindStringPrefix):]:
-			spanKind = pdata.SpanKindInternal
-		case pdata.SpanKindServer.String()[len(spanKindStringPrefix):]:
-			spanKind = pdata.SpanKindServer
-		case pdata.SpanKindClient.String()[len(spanKindStringPrefix):]:
-			spanKind = pdata.SpanKindClient
-		case pdata.SpanKindProducer.String()[len(spanKindStringPrefix):]:
-			spanKind = pdata.SpanKindProducer
-		case pdata.SpanKindConsumer.String()[len(spanKindStringPrefix):]:
-			spanKind = pdata.SpanKindConsumer
+		case ptrace.SpanKindInternal.String()[len(spanKindStringPrefix):]:
+			spanKind = ptrace.SpanKindInternal
+		case ptrace.SpanKindServer.String()[len(spanKindStringPrefix):]:
+			spanKind = ptrace.SpanKindServer
+		case ptrace.SpanKindClient.String()[len(spanKindStringPrefix):]:
+			spanKind = ptrace.SpanKindClient
+		case ptrace.SpanKindProducer.String()[len(spanKindStringPrefix):]:
+			spanKind = ptrace.SpanKindProducer
+		case ptrace.SpanKindConsumer.String()[len(spanKindStringPrefix):]:
+			spanKind = ptrace.SpanKindConsumer
 		default:
-			spanKind = pdata.SpanKindUnspecified
+			spanKind = ptrace.SpanKindUnspecified
 		}
 		out.Span.Kind = from.SpanKind.Val
 	}
 	otel_processor.TranslateSpan(spanKind, m, out)
 
-	if spanKind == pdata.SpanKindUnspecified {
+	if spanKind == ptrace.SpanKindUnspecified {
 		switch out.Span.Type {
 		case "db", "external", "storage":
 			out.Span.Kind = "CLIENT"
@@ -1384,8 +1385,8 @@ func overwriteUserInMetadataModel(from user, out *model.APMEvent) {
 	}
 }
 
-func otelAttributeMap(o *otel) pdata.AttributeMap {
-	m := pdata.NewAttributeMap()
+func otelAttributeMap(o *otel) pcommon.Map {
+	m := pcommon.NewMap()
 	for k, v := range o.Attributes {
 		if attr, ok := otelAttributeValue(k, v); ok {
 			m.Insert(k, attr)
@@ -1394,29 +1395,29 @@ func otelAttributeMap(o *otel) pdata.AttributeMap {
 	return m
 }
 
-func otelAttributeValue(k string, v interface{}) (pdata.AttributeValue, bool) {
+func otelAttributeValue(k string, v interface{}) (pcommon.Value, bool) {
 	// According to the spec, these are the allowed primitive types
 	// Additionally, homogeneous arrays (single type) of primitive types are allowed
 	// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes
 	switch v := v.(type) {
 	case string:
-		return pdata.NewAttributeValueString(v), true
+		return pcommon.NewValueString(v), true
 	case bool:
-		return pdata.NewAttributeValueBool(v), true
+		return pcommon.NewValueBool(v), true
 	case json.Number:
 		// Semantic conventions have specified types, and we rely on this
 		// in processor/otel when mapping to our data model. For example,
 		// `http.status_code` is expected to be an int.
 		if !isOTelDoubleAttribute(k) {
 			if v, err := v.Int64(); err == nil {
-				return pdata.NewAttributeValueInt(v), true
+				return pcommon.NewValueInt(v), true
 			}
 		}
 		if v, err := v.Float64(); err == nil {
-			return pdata.NewAttributeValueDouble(v), true
+			return pcommon.NewValueDouble(v), true
 		}
 	case []interface{}:
-		array := pdata.NewAttributeValueArray()
+		array := pcommon.NewValueSlice()
 		array.SliceVal().EnsureCapacity(len(v))
 		for i := range v {
 			if elem, ok := otelAttributeValue(k, v[i]); ok {
@@ -1425,7 +1426,7 @@ func otelAttributeValue(k string, v interface{}) (pdata.AttributeValue, bool) {
 		}
 		return array, true
 	}
-	return pdata.AttributeValue{}, false
+	return pcommon.Value{}, false
 }
 
 // isOTelDoubleAttribute indicates whether k is an OpenTelemetry semantic convention attribute

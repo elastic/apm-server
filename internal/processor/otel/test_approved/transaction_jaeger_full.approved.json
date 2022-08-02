@@ -430,9 +430,9 @@
                 "version": "1.1"
             },
             "labels": {
-                "event": "baggage",
                 "isValid": "false"
             },
+            "message": "baggage",
             "processor": {
                 "event": "log",
                 "name": "log"

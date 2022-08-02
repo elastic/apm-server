@@ -38,17 +38,17 @@ import (
 	"context"
 	"time"
 
-	"go.opentelemetry.io/collector/model/otlp"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
 
 	apmserverlogs "github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
-var jsonLogsMarshaler = otlp.NewJSONLogsMarshaler()
+var jsonLogsMarshaler = plog.NewJSONMarshaler()
 
-func (c *Consumer) ConsumeLogs(ctx context.Context, logs pdata.Logs) error {
+func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 	receiveTimestamp := time.Now()
 	logger := logp.NewLogger(apmserverlogs.Otel)
 	if logger.IsDebug() {
@@ -67,7 +67,7 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs pdata.Logs) error {
 	return c.Processor.ProcessBatch(ctx, &batch)
 }
 
-func (c *Consumer) convertResourceLogs(resourceLogs pdata.ResourceLogs, receiveTimestamp time.Time, out *model.Batch) {
+func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *model.Batch) {
 	var timeDelta time.Duration
 	resource := resourceLogs.Resource()
 	baseEvent := model.APMEvent{Processor: model.LogProcessor}
@@ -76,14 +76,14 @@ func (c *Consumer) convertResourceLogs(resourceLogs pdata.ResourceLogs, receiveT
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
 		timeDelta = receiveTimestamp.Sub(exportTimestamp)
 	}
-	instrumentationLibraryLogs := resourceLogs.InstrumentationLibraryLogs()
-	for i := 0; i < instrumentationLibraryLogs.Len(); i++ {
-		c.convertInstrumentationLibraryLogs(instrumentationLibraryLogs.At(i), baseEvent, timeDelta, out)
+	scopeLogs := resourceLogs.ScopeLogs()
+	for i := 0; i < scopeLogs.Len(); i++ {
+		c.convertInstrumentationLibraryLogs(scopeLogs.At(i), baseEvent, timeDelta, out)
 	}
 }
 
 func (c *Consumer) convertInstrumentationLibraryLogs(
-	in pdata.InstrumentationLibraryLogs,
+	in plog.ScopeLogs,
 	baseEvent model.APMEvent,
 	timeDelta time.Duration,
 	out *model.Batch,
@@ -96,7 +96,7 @@ func (c *Consumer) convertInstrumentationLibraryLogs(
 }
 
 func (c *Consumer) convertLogRecord(
-	record pdata.LogRecord,
+	record plog.LogRecord,
 	baseEvent model.APMEvent,
 	timeDelta time.Duration,
 ) model.APMEvent {
@@ -104,11 +104,10 @@ func (c *Consumer) convertLogRecord(
 	initEventLabels(&event)
 	event.Timestamp = record.Timestamp().AsTime().Add(timeDelta)
 	event.Event.Severity = int64(record.SeverityNumber())
-	event.Event.Action = record.Name()
 	event.Log.Level = record.SeverityText()
-	if body := record.Body(); body.Type() != pdata.AttributeValueTypeEmpty {
+	if body := record.Body(); body.Type() != pcommon.ValueTypeEmpty {
 		event.Message = body.AsString()
-		if body.Type() == pdata.AttributeValueTypeMap {
+		if body.Type() == pcommon.ValueTypeMap {
 			setLabels(body.MapVal(), &event)
 		}
 	}
@@ -127,8 +126,8 @@ func (c *Consumer) convertLogRecord(
 	return event
 }
 
-func setLabels(m pdata.AttributeMap, event *model.APMEvent) {
-	m.Range(func(k string, v pdata.AttributeValue) bool {
+func setLabels(m pcommon.Map, event *model.APMEvent) {
+	m.Range(func(k string, v pcommon.Value) bool {
 		setLabel(k, event, ifaceAttributeValue(v))
 		return true
 	})

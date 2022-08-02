@@ -24,8 +24,8 @@ import (
 	"strconv"
 	"strings"
 
-	"go.opentelemetry.io/collector/model/pdata"
-	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 
 	"github.com/elastic/apm-server/internal/model"
 )
@@ -38,9 +38,9 @@ var (
 	serviceNameInvalidRegexp = regexp.MustCompile("[^a-zA-Z0-9 _-]")
 )
 
-func translateResourceMetadata(resource pdata.Resource, out *model.APMEvent) {
+func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 	var exporterVersion string
-	resource.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+	resource.Attributes().Range(func(k string, v pcommon.Value) bool {
 		switch k {
 		// service.*
 		case semconv.AttributeServiceName:
@@ -201,23 +201,23 @@ func cleanServiceName(name string) string {
 	return serviceNameInvalidRegexp.ReplaceAllString(truncate(name), "_")
 }
 
-func ifaceAttributeValue(v pdata.AttributeValue) interface{} {
+func ifaceAttributeValue(v pcommon.Value) interface{} {
 	switch v.Type() {
-	case pdata.AttributeValueTypeString:
+	case pcommon.ValueTypeString:
 		return truncate(v.StringVal())
-	case pdata.AttributeValueTypeBool:
+	case pcommon.ValueTypeBool:
 		return strconv.FormatBool(v.BoolVal())
-	case pdata.AttributeValueTypeInt:
+	case pcommon.ValueTypeInt:
 		return float64(v.IntVal())
-	case pdata.AttributeValueTypeDouble:
+	case pcommon.ValueTypeDouble:
 		return v.DoubleVal()
-	case pdata.AttributeValueTypeArray:
+	case pcommon.ValueTypeSlice:
 		return ifaceAttributeValueSlice(v.SliceVal())
 	}
 	return nil
 }
 
-func ifaceAttributeValueSlice(slice pdata.AttributeValueSlice) []interface{} {
+func ifaceAttributeValueSlice(slice pcommon.Slice) []interface{} {
 	values := make([]interface{}, slice.Len())
 	for i := range values {
 		values[i] = ifaceAttributeValue(slice.At(i))

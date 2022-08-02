@@ -5,12 +5,14 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 
 [float]
 ==== Breaking Changes
+- `event.action` is no longer recorded for OTLP logs, due to breaking OTLP changes {pull}8765[8765]
 
 [float]
 ==== Deprecations
 
 [float]
 ==== Bug fixes
+- Set `message` instead of `labels.event` for Jaeger span events {pull}8765[8765]
 
 [float]
 ==== Intake API Changes
@@ -18,3 +20,4 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 [float]
 ==== Added
 - Set a default User-Agent field value when making HTTP requests {pull}8758[8758]
+- OTLP support updated to opentelemetry-collector v0.56.0 {pull}8765[8765]
