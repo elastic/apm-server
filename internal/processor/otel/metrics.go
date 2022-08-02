@@ -182,7 +182,7 @@ func (b *apmMetricsBuilder) accumulate(m pmetric.Metric) {
 					"process.runtime.jvm.memory.limit":
 
 					var key jvmMemoryKey
-					dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+					dp.Attributes().Range(func(k string, v pcommon.Value) bool {
 						switch k {
 						case "type":
 							key.area = v.AsString()

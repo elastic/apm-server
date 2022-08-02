@@ -617,9 +617,9 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		"type": "used",
 		"pool": "eden",
 	})
-	addInt64Gauge("process.runtime.jvm.memory.limit", 20000, map[string]pdata.AttributeValue{
-		"type": pdata.NewAttributeValueString("heap"),
-		"pool": pdata.NewAttributeValueString("G1 Eden Space"),
+	addInt64Gauge("process.runtime.jvm.memory.limit", 20000, map[string]interface{}{
+		"type": "heap",
+		"pool": "G1 Eden Space",
 	})
 
 	events, _ := transformMetrics(t, metrics)
