@@ -26,9 +26,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
-	"go.opentelemetry.io/collector/model/otlpgrpc"
-	"go.opentelemetry.io/collector/model/pdata"
-	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
+
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
+	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric"
@@ -205,15 +209,15 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock())
 	require.NoError(t, err)
 	defer conn.Close()
-	metricsClient := otlpgrpc.NewMetricsClient(conn)
-	metrics := pdata.NewMetrics()
-	metric := metrics.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty().Metrics().AppendEmpty()
+	metricsClient := pmetricotlp.NewClient(conn)
+	metrics := pmetric.NewMetrics()
+	metric := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
 	metric.SetName("summary")
-	metric.SetDataType(pdata.MetricDataTypeSummary)
+	metric.SetDataType(pmetric.MetricDataTypeSummary)
 	summaryDP := metric.Summary().DataPoints().AppendEmpty()
 	summaryDP.SetCount(10)
 	summaryDP.SetSum(123.456)
-	metricsClient.Export(context.Background(), metrics)
+	metricsClient.Export(context.Background(), pmetricotlp.NewRequestFromMetrics(metrics))
 
 	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.app.*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "metric"},
@@ -235,10 +239,10 @@ func TestOTLPGRPCLogs(t *testing.T) {
 	require.NoError(t, err)
 	defer conn.Close()
 
-	logsClient := otlpgrpc.NewLogsClient(conn)
+	logsClient := plogotlp.NewClient(conn)
 
 	logs := newLogs("a log message")
-	_, err = logsClient.Export(ctx, logs)
+	_, err = logsClient.Export(ctx, plogotlp.NewRequestFromLogs(logs))
 	require.NoError(t, err)
 
 	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm*", estest.TermQuery{
@@ -548,24 +552,21 @@ func (m *idGeneratorFuncs) NewSpanID(ctx context.Context, traceID trace.TraceID)
 	return m.newSpanID(ctx, traceID)
 }
 
-func newLogs(body interface{}) pdata.Logs {
-	logs := pdata.NewLogs()
+func newLogs(body interface{}) plog.Logs {
+	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
-	logs.ResourceLogs().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		semconv.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString("go"),
-	})
-	instrumentationLogs := resourceLogs.InstrumentationLibraryLogs().AppendEmpty()
-	otelLog := instrumentationLogs.Logs().AppendEmpty()
-	otelLog.SetTraceID(pdata.NewTraceID([16]byte{1}))
-	otelLog.SetSpanID(pdata.NewSpanID([8]byte{2}))
-	otelLog.SetName("doOperation()")
-	otelLog.SetSeverityNumber(pdata.SeverityNumberINFO)
+	logs.ResourceLogs().At(0).Resource().Attributes().InsertString(
+		semconv.AttributeTelemetrySDKLanguage, "go",
+	)
+	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+	otelLog := scopeLogs.LogRecords().AppendEmpty()
+	otelLog.SetTraceID(pcommon.NewTraceID([16]byte{1}))
+	otelLog.SetSpanID(pcommon.NewSpanID([8]byte{2}))
+	otelLog.SetSeverityNumber(plog.SeverityNumberINFO)
 	otelLog.SetSeverityText("Info")
-	otelLog.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1, 0)))
-	otelLog.Attributes().InitFromMap(map[string]pdata.AttributeValue{
-		"key":         pdata.NewAttributeValueString("value"),
-		"numeric_key": pdata.NewAttributeValueDouble(1234),
-	})
+	otelLog.SetTimestamp(pcommon.NewTimestampFromTime(time.Unix(1, 0)))
+	otelLog.Attributes().InsertString("key", "value")
+	otelLog.Attributes().InsertDouble("numeric_key", 1234)
 
 	switch b := body.(type) {
 	case string:

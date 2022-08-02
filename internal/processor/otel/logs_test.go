@@ -40,8 +40,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.opentelemetry.io/collector/model/pdata"
-	semconv "go.opentelemetry.io/collector/model/semconv/v1.5.0"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
+	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/processor/otel"
@@ -55,7 +56,7 @@ func TestConsumerConsumeLogs(t *testing.T) {
 		}
 
 		consumer := otel.Consumer{Processor: processor}
-		logs := pdata.NewLogs()
+		logs := plog.NewLogs()
 		assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 	})
 
@@ -71,8 +72,7 @@ func TestConsumerConsumeLogs(t *testing.T) {
 		},
 		Message: "a random log message",
 		Event: model.Event{
-			Severity: int64(pdata.SeverityNumberINFO),
-			Action:   "doOperation()",
+			Severity: int64(plog.SeverityNumberINFO),
 		},
 		Log:           model.Log{Level: "Info"},
 		Span:          &model.Span{ID: "0200000000000000"},
@@ -82,11 +82,11 @@ func TestConsumerConsumeLogs(t *testing.T) {
 	}
 	test := func(name string, body interface{}, expectedMessage string) {
 		t.Run(name, func(t *testing.T) {
-			logs := pdata.NewLogs()
+			logs := plog.NewLogs()
 			resourceLogs := logs.ResourceLogs().AppendEmpty()
 			logs.ResourceLogs().At(0).Resource().Attributes().InsertString(semconv.AttributeTelemetrySDKLanguage, "go")
-			instrumentationLogs := resourceLogs.InstrumentationLibraryLogs().AppendEmpty()
-			newLogRecord(body).CopyTo(instrumentationLogs.LogRecords().AppendEmpty())
+			scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+			newLogRecord(body).CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 			var processed model.Batch
 			var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
@@ -114,25 +114,25 @@ func TestConsumerConsumeLogs(t *testing.T) {
 }
 
 func TestConsumerConsumeLogsLabels(t *testing.T) {
-	logs := pdata.NewLogs()
+	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
 	resourceAttrs.InsertString(semconv.AttributeTelemetrySDKLanguage, "go")
 	resourceAttrs.InsertString("key0", "zero")
-	instrumentationLogs := resourceLogs.InstrumentationLibraryLogs().AppendEmpty()
+	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 
 	record1 := newLogRecord("whatever")
 	record1.Attributes().InsertString("key1", "one")
-	record1.CopyTo(instrumentationLogs.LogRecords().AppendEmpty())
+	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 	record2 := newLogRecord("andever")
 	record2.Attributes().InsertDouble("key2", 2)
-	record2.CopyTo(instrumentationLogs.LogRecords().AppendEmpty())
+	record2.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 	record3 := newLogRecord("amen")
 	record3.Attributes().InsertString("key3", "three")
 	record3.Attributes().InsertInt("key4", 4)
-	record3.CopyTo(instrumentationLogs.LogRecords().AppendEmpty())
+	record3.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 	var processed model.Batch
 	var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
@@ -156,14 +156,13 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 	assert.Equal(t, model.NumericLabels{"key4": {Value: 4}}, processed[2].NumericLabels)
 }
 
-func newLogRecord(body interface{}) pdata.LogRecord {
-	otelLogRecord := pdata.NewLogRecord()
-	otelLogRecord.SetTraceID(pdata.NewTraceID([16]byte{1}))
-	otelLogRecord.SetSpanID(pdata.NewSpanID([8]byte{2}))
-	otelLogRecord.SetName("doOperation()")
-	otelLogRecord.SetSeverityNumber(pdata.SeverityNumberINFO)
+func newLogRecord(body interface{}) plog.LogRecord {
+	otelLogRecord := plog.NewLogRecord()
+	otelLogRecord.SetTraceID(pcommon.NewTraceID([16]byte{1}))
+	otelLogRecord.SetSpanID(pcommon.NewSpanID([8]byte{2}))
+	otelLogRecord.SetSeverityNumber(plog.SeverityNumberINFO)
 	otelLogRecord.SetSeverityText("Info")
-	otelLogRecord.SetTimestamp(pdata.NewTimestampFromTime(time.Now()))
+	otelLogRecord.SetTimestamp(pcommon.NewTimestampFromTime(time.Now()))
 
 	switch b := body.(type) {
 	case string:

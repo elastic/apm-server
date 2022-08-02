@@ -1,13 +1,16 @@
 # OTLP gRPC Exporter
 
-Exports data via gRPC using [OTLP](
+| Status                   |                       |
+| ------------------------ | --------------------- |
+| Stability                | traces [stable]       |
+|                          | metrics [stable]      |
+|                          | logs [beta]           |
+| Supported pipeline types | traces, metrics, logs |
+| Distributions            | [core], [contrib]     |
+
+Export data via gRPC using [OTLP](
 https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md)
 format. By default, this exporter requires TLS and offers queued retry capabilities.
-
-Supported pipeline types: traces, metrics, logs
-
-:warning: OTLP logs format is currently marked as "Beta" and may change in
-incompatible ways.
 
 ## Getting Started
 
@@ -17,19 +20,7 @@ The following settings are required:
 using the gRPC protocol. The valid syntax is described
 [here](https://github.com/grpc/grpc/blob/master/doc/naming.md).
 If a scheme of `https` is used then client transport security is enabled and overrides the `insecure` setting.
-
-By default, TLS is enabled:
-
-- `tls:`
-
-  - `insecure` (default = `false`): whether to enable client transport security for the exporter's connection.
-
-As a result, the following parameters are also required:
-
-- `tls:`
-
-  - `cert_file` (no default): path to the TLS cert to use for TLS required connections. Should only be used if `insecure` is set to false.
-  - `key_file` (no default): path to the TLS key to use for TLS required connections. Should only be used if `insecure` is set to false.
+- `tls`: see [TLS Configuration Settings](../../config/configtls/README.md) for the full set of available options.
 
 Example:
 
@@ -46,6 +37,15 @@ exporters:
       insecure: true
 ```
 
+By default, `gzip` compression is enabled. See [compression comparison](../../config/configgrpc/README.md#compression-comparison) for details benchmark information. To disable, configure as follows:
+
+```yaml
+exporters:
+  otlp:
+    ...
+    compression: none
+```
+
 ## Advanced Configuration
 
 Several helper files are leveraged to provide additional capabilities automatically:
@@ -53,3 +53,8 @@ Several helper files are leveraged to provide additional capabilities automatica
 - [gRPC settings](https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/configgrpc/README.md)
 - [TLS and mTLS settings](https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/configtls/README.md)
 - [Queuing, retry and timeout settings](https://github.com/open-telemetry/opentelemetry-collector/blob/main/exporter/exporterhelper/README.md)
+
+[beta]: https://github.com/open-telemetry/opentelemetry-collector#beta
+[contrib]: https://github.com/open-telemetry/opentelemetry-collector-releases/tree/main/distributions/otelcol-contrib
+[core]: https://github.com/open-telemetry/opentelemetry-collector-releases/tree/main/distributions/otelcol
+[stable]: https://github.com/open-telemetry/opentelemetry-collector#stable

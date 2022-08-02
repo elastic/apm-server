@@ -20,7 +20,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/confignet"
-	"go.opentelemetry.io/collector/extension/extensionhelper"
 )
 
 const (
@@ -32,10 +31,7 @@ const (
 
 // NewFactory creates a factory for Z-Pages extension.
 func NewFactory() component.ExtensionFactory {
-	return extensionhelper.NewFactory(
-		typeStr,
-		createDefaultConfig,
-		createExtension)
+	return component.NewExtensionFactory(typeStr, createDefaultConfig, createExtension)
 }
 
 func createDefaultConfig() config.Extension {
@@ -49,5 +45,5 @@ func createDefaultConfig() config.Extension {
 
 // createExtension creates the extension based on this config.
 func createExtension(_ context.Context, set component.ExtensionCreateSettings, cfg config.Extension) (component.Extension, error) {
-	return newServer(cfg.(*Config), set.Logger), nil
+	return newServer(cfg.(*Config), set.TelemetrySettings), nil
 }
