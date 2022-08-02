@@ -21,6 +21,7 @@ if [ -x "$(command -v docker)" ]; then
 fi
 
 # Download Go module dependencies.
-go mod download
-go mod download -modfile=tools/go.mod
-go mod download -modfile=systemtest/go.mod
+GO_MOD_DIRS=". tools systemtest"
+for dir in ${GO_MOD_DIRS}; do
+  (cd $dir && go mod download) || echo "Error downloading modules from ${dir}/go.mod, continuing"
+done
