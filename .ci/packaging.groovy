@@ -92,10 +92,6 @@ pipeline {
             stages {
               stage('Package') {
                 options { skipDefaultCheckout() }
-                environment {
-                  PLATFORMS = "${isArm() ? 'linux/arm64' : ''}"
-                  PACKAGES = "${isArm() ? 'docker' : ''}"
-                }
                 steps {
                   withGithubNotify(context: "Package-${TYPE}-${PLATFORM}") {
                     runIfNoMainAndNoStaging() {
@@ -214,7 +210,6 @@ def runReleaseManager(def args = [:]) {
                         pathPrefix: "${env.PATH_PREFIX}/${args.type}")
   dir("${BASE_DIR}") {
     dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-    sh(label: "prepare-release-manager-artifacts ${args.type}", script: ".ci/scripts/prepare-release-manager.sh ${args.type}")
     releaseManager(project: 'apm-server',
                    version: env.VERSION,
                    type: args.type,
@@ -245,18 +240,20 @@ def publishArtifacts() {
   }
 }
 
+// runPackage builds the distribution packages: tarballs, RPMs, Docker images, etc.
+// We run this on linux/amd64 and linux/arm64. On linux/amd64 we build all packages;
+// on linux/arm64 we build only Docker images.
 def runPackage(def args = [:]) {
   def type = args.type
-  def makeGoal = 'release-manager-snapshot'
-  if (type.equals('staging')) {
-    makeGoal = 'release-manager-release'
-  }
+  def makeGoal = isArm() ? 'package-docker' : 'package'
+  makeGoal += type.equals('snapshot') ? '-snapshot' : ''
   runWithGo() {
     sh(label: "make ${makeGoal}", script: "make ${makeGoal}")
   }
 }
 
 def publishArtifactsDev() {
+  def dockerImage = readFile(file: "${BASE_DIR}/build/docker/apm-server-${env.VERSION}-SNAPSHOT.txt").trim()
   def bucketLocation = "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}"
   if (isPR()) {
     bucketLocation = "gs://${JOB_GCS_BUCKET}/snapshots"
@@ -265,8 +262,9 @@ def publishArtifactsDev() {
   uploadArtifacts(bucketLocation: "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}")
 
   dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-  dir("${BASE_DIR}"){
-    sh(label: 'Push', script: "./.ci/scripts/push-docker.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+  sh(label: 'Tag Docker image', script: "docker tag ${dockerImage} ${env.DOCKER_IMAGE}:${env.GIT_BASE_COMMIT}")
+  retryWithSleep(retries: 3, seconds: 5, backoff: true) {
+    sh(label: 'Push Docker image', script: "docker push ${env.DOCKER_IMAGE}:${env.GIT_BASE_COMMIT}")
   }
 }
 
@@ -287,7 +285,7 @@ def uploadArtifacts(def args = [:]) {
     googleStorageUpload(bucket: "${args.bucketLocation}",
       credentialsId: "${JOB_GCS_CREDENTIALS}",
       pathPrefix: "${BASE_DIR}/build/",
-      pattern: "${BASE_DIR}/build/dependencies.csv",
+      pattern: "${BASE_DIR}/build/dependencies*.csv",
       sharedPublicly: true,
       showInline: true)
   }
