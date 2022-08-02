@@ -123,6 +123,10 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 			out.Host.OS.Platform = strings.ToLower(truncate(v.StringVal()))
 		case semconv.AttributeOSDescription:
 			out.Host.OS.Full = truncate(v.StringVal())
+		case semconv.AttributeOSName:
+			out.Host.OS.Name = truncate(v.StringVal())
+		case semconv.AttributeOSVersion:
+			out.Host.OS.Version = truncate(v.StringVal())
 
 		// Legacy OpenCensus attributes.
 		case "opencensus.exporterversion":
@@ -151,6 +155,13 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 		out.Host.OS.Type = "macos"
 	case "aix", "hpux", "solaris":
 		out.Host.OS.Type = "unix"
+	}
+
+	switch out.Host.Name {
+	case "Android":
+		out.Host.Type = "android"
+	case "iOS":
+		out.Host.Type = "ios"
 	}
 
 	if strings.HasPrefix(exporterVersion, "Jaeger") {

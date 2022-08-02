@@ -598,6 +598,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 		out.Host.OS.Platform = from.System.Platform.Val
 	}
 
+
 	// User
 	if from.User.Domain.IsSet() {
 		out.User.Domain = fmt.Sprint(from.User.Domain.Val)

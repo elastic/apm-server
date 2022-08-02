@@ -107,6 +107,8 @@ func isUnmappedMetadataField(key string) bool {
 		"Processor.Name",
 		"Host.OS.Full",
 		"Host.OS.Type",
+		"Host.OS.Name",
+		"Host.OS.Version",
 		"Host.ID",
 		"Host.IP",
 		"Host.Type",
