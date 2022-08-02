@@ -18809,11 +18809,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20220728213248-dd149ef739b9
+Version: v0.0.0-20220801145646-83ce21fca29f
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220728213248-dd149ef739b9/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220801145646-83ce21fca29f/LICENSE:
 
 
                                  Apache License

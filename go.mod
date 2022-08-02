@@ -75,7 +75,7 @@ require (
 	github.com/docker/docker v20.10.12+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/dop251/goja v0.0.0-20220730095050-d11430fb5f72 // indirect
+	github.com/dop251/goja v0.0.0-20220801092856-7adb49968576 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20220712185256-8cad205bf387 // indirect
 	github.com/eapache/go-resiliency v1.2.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
@@ -180,7 +180,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220728213248-dd149ef739b9 // indirect
+	google.golang.org/genproto v0.0.0-20220801145646-83ce21fca29f // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
