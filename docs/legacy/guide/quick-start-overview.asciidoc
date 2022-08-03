@@ -53,7 +53,7 @@ If you're interested in learning more about all of the APM features available,
 or running the Elastic stack on Docker in a production environment, see the following documentation:
 
 * {apm-server-ref-v}/running-on-docker.html[Running APM Server on Docker]
-* {stack-gs}/get-started-docker.html[Running the {stack} on Docker]
+* {stack-gs}/get-started-stack-docker.html[Running the {stack} on Docker]
 
 endif::[]
 // end::dev-environment[]
