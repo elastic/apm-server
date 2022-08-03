@@ -188,12 +188,6 @@ endif
 check-docker-compose: $(PYTHON_BIN)
 	@PATH=$(PYTHON_BIN):$(PATH) ./script/check_docker_compose.sh $(BEATS_VERSION)
 
-.PHONY: check-beats-version
-check-beats-version:
-ifneq ($(BEATS_VERSION),$(shell git rev-parse --abbrev-ref HEAD))
-	$(error BEATS_VERSION is not synced with the current branch)
-endif
-
 .PHONY: format-package build-package
 format-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(ELASTICPACKAGE) format)
