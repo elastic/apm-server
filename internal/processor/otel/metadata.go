@@ -157,11 +157,11 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 		out.Host.OS.Type = "unix"
 	}
 
-	switch out.Host.Name {
+	switch out.Host.OS.Name {
 	case "Android":
-		out.Host.Type = "android"
+		out.Host.OS.Type = "android"
 	case "iOS":
-		out.Host.Type = "ios"
+		out.Host.OS.Type = "ios"
 	}
 
 	if strings.HasPrefix(exporterVersion, "Jaeger") {
