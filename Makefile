@@ -221,7 +221,7 @@ build-package: $(ELASTICPACKAGE)
 
 .PHONY: build-package-snapshot
 build-package-snapshot: $(ELASTICPACKAGE)
-	$(MAKE) build-package-with-version APM_SERVER_BUILD_VERSION=$(APM_SERVER_VERSION)-beta-$(shell date +%s)
+	$(MAKE) build-package-with-version APM_SERVER_BUILD_VERSION=$(APM_SERVER_VERSION)-preview-$(shell date +%s)
 
 .PHONY: build-package-with-version
 build-package-with-version: $(ELASTICPACKAGE)
