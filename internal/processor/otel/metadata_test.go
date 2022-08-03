@@ -202,6 +202,48 @@ func TestResourceConventions(t *testing.T) {
 				},
 			},
 		},
+		"os ios": {
+			attrs: map[string]interface{}{
+				"os.name":        "iOS",
+				"os.version":     "15.6",
+				"os.type":        "DARWIN",
+				"os.description": "iOS 15.6",
+			},
+			expected: model.APMEvent{
+				Agent:   defaultAgent,
+				Service: defaultService,
+				Host: model.Host{
+					OS: model.OS{
+						Name:     "iOS",
+						Version:  "15.6",
+						Platform: "darwin",
+						Type:     "ios",
+						Full:     "iOS 15.6",
+					},
+				},
+			},
+		},
+		"os android": {
+			attrs: map[string]interface{}{
+				"os.name":        "Android",
+				"os.version":     "13",
+				"os.type":        "linux",
+				"os.description": "Android 13",
+			},
+			expected: model.APMEvent{
+				Agent:   defaultAgent,
+				Service: defaultService,
+				Host: model.Host{
+					OS: model.OS{
+						Name:     "Android",
+						Version:  "13",
+						Platform: "linux",
+						Type:     "android",
+						Full:     "Android 13",
+					},
+				},
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			meta := transformResourceMetadata(t, test.attrs)
