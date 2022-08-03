@@ -112,7 +112,7 @@ func transformChangelog(content []byte, version *version.V) ([]byte, error) {
 
 	n := doc.Content[0]
 	if n.Kind != yaml.SequenceNode {
-		panic(fmt.Sprintf("expected node kind %v, got %v", yaml.SequenceNode, n.Kind))
+		return nil, fmt.Errorf("expected list of versions (%v), got %v", yaml.SequenceNode, n.Kind)
 	}
 
 	for i := 0; i < len(n.Content); i++ {
