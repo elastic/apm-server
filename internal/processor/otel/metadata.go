@@ -132,6 +132,11 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 		case "opencensus.exporterversion":
 			exporterVersion = v.StringVal()
 
+		// timestamp attribute to deal with time skew on mobile
+		// devices. APM server should drop this field.
+		case "telemetry.sdk.elastic_export_timestamp":
+			// Do nothing.
+
 		default:
 			if out.Labels == nil {
 				out.Labels = make(model.Labels)

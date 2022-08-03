@@ -740,6 +740,11 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	// Durations should be unaffected.
 	assert.Equal(t, transactionDuration, batch[0].Event.Duration)
 	assert.Equal(t, spanDuration, batch[1].Event.Duration)
+
+	for _, b := range batch {
+		// telemetry.sdk.elastic_export_timestamp should not be sent as a label.
+		assert.Empty(t, b.NumericLabels)
+	}
 }
 
 func TestSpanLinks(t *testing.T) {
