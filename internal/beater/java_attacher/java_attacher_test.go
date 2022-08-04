@@ -19,6 +19,7 @@ package javaattacher
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -41,7 +42,7 @@ func TestNoAttacherCreatedWithoutDiscoveryRules(t *testing.T) {
 
 func TestBuild(t *testing.T) {
 	cfg := createTestConfig()
-	f, err := os.Create(javaAttacher)
+	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
 	//goland:noinspection GoUnhandledErrorResult
 	defer os.Remove(f.Name())
@@ -58,6 +59,16 @@ func TestBuild(t *testing.T) {
 		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
 
 	cmdArgs := strings.Join(cmd.Args, " ")
+	assert.Equal(t, want, cmdArgs)
+
+	tmpDir, err := attacher.createAttacherTempDir()
+	require.NoError(t, err)
+	defer os.Remove(tmpDir)
+	cmd = attacher.attachJVMCommand(context.Background(), jvm)
+	want = filepath.FromSlash(fmt.Sprintf("/home/someuser/java_home/bin/java -jar %v/java-attacher.jar"+
+		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200", tmpDir))
+
+	cmdArgs = strings.Join(cmd.Args, " ")
 	assert.Equal(t, want, cmdArgs)
 
 	cfg.Config["service_name"] = "my-cool-service"
@@ -99,7 +110,7 @@ func TestDiscoveryRulesAllowlist(t *testing.T) {
 		Enabled:        true,
 		DiscoveryRules: args,
 	}
-	f, err := os.Create(javaAttacher)
+	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
 	//goland:noinspection GoUnhandledErrorResult
 	defer os.Remove(f.Name())
@@ -125,7 +136,7 @@ func TestConfig(t *testing.T) {
 		},
 		DownloadAgentVersion: "1.25.0",
 	}
-	f, err := os.Create(javaAttacher)
+	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
 	//goland:noinspection GoUnhandledErrorResult
 	defer os.Remove(f.Name())
@@ -180,4 +191,33 @@ func TestConfig(t *testing.T) {
 	require.True(t, match.include())
 	javaAttacher.discoveryRules[4] = &userDiscoveryRule{}
 	require.Nil(t, javaAttacher.findFirstMatch(&jvmDetails))
+}
+
+func TestTempDirCreation(t *testing.T) {
+	cfg := createTestConfig()
+	f, err := os.Create(bundledJavaAttacher)
+	require.NoError(t, err)
+	//goland:noinspection GoUnhandledErrorResult
+	defer os.Remove(f.Name())
+	attacher, err := New(cfg)
+	require.NoError(t, err)
+
+	tempAttacherDir, err := attacher.createAttacherTempDir()
+	require.NoError(t, err)
+	//goland:noinspection GoUnhandledErrorResult
+	defer os.RemoveAll(tempAttacherDir)
+	require.DirExists(t, tempAttacherDir)
+	attacherDirInfo, err := os.Stat(tempAttacherDir)
+	require.NoError(t, err)
+	// todo - this may fail on Windows
+	require.Equal(t, os.FileMode(0755), attacherDirInfo.Mode().Perm())
+	tempDir, err := os.Open(tempAttacherDir)
+	require.NoError(t, err)
+	files, err := tempDir.ReadDir(0)
+	require.NoError(t, err)
+	require.Len(t, files, 1)
+	attacherJarFileInfo, err := files[0].Info()
+	require.NoError(t, err)
+	require.Equal(t, os.FileMode(0755), attacherJarFileInfo.Mode())
+	require.FileExists(t, attacherJarFileInfo.Name())
 }

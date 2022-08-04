@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"os/user"
@@ -40,8 +41,10 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 )
 
-// javaAttacher is bundled by the server
-var javaAttacher = filepath.FromSlash("./java-attacher.jar")
+const javaAttacherJarName = "java-attacher.jar"
+
+// referring the Java attacher that is bundled at the server root
+var bundledJavaAttacher = filepath.FromSlash(fmt.Sprintf("./%v", javaAttacherJarName))
 
 type jvmDetails struct {
 	user        string
@@ -62,11 +65,12 @@ type JavaAttacher struct {
 	agentConfigs         map[string]string
 	downloadAgentVersion string
 	jvmCache             map[int]*jvmDetails
+	tempAttacherDir      string
 }
 
 func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
 	logger := logp.NewLogger("java-attacher")
-	if _, err := os.Stat(javaAttacher); err != nil {
+	if _, err := os.Stat(bundledJavaAttacher); err != nil {
 		return nil, err
 	}
 	if !cfg.Enabled {
@@ -145,7 +149,13 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 		return fmt.Errorf("java attacher is disabled")
 	}
 
-	// Non-Windows: run discovery and attachment until context is closed.
+	tempDir, err := j.createAttacherTempDir()
+	if err != nil {
+		j.logger.Errorf("failed to create a Java attacher temp dir: %v. Using the bundled attacher jar instead", err)
+	} else {
+		defer j.deleteTempDir(tempDir)
+	}
+
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 	for {
@@ -164,6 +174,71 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 			// Error is non-fatal; try again next time.
 			j.logger.Errorf("JVM attachment failed: %s", err)
 		}
+	}
+}
+
+func (j *JavaAttacher) deleteTempDir(tempDir string) {
+	func(name string) {
+		err := os.RemoveAll(name)
+		if err != nil {
+			j.logger.Errorf("failed to delete Java attacher temp dir at %v: %v", tempDir, err)
+		}
+	}(tempDir)
+}
+
+// Creates a temp dir for the java attacher jar with the attacher jar in it, both with 0755 access permissions.
+// The assumption is that the default temp dir will be readable for all users.
+// However, there may be systems in which the temp directory is user-specific,
+// in which case we'll need to modify this function to run a temp dir search per user,
+// maybe by externally executing `echo XXX` and reading the output, relying on environment
+// variables as implemented in os.TempDir, or looking in known paths.
+// In such case, we would switch to using a cache of temp-agent-dir per user.
+func (j *JavaAttacher) createAttacherTempDir() (string, error) {
+	tempDir, err := os.MkdirTemp("", "elasticapmagent")
+	if err != nil {
+		return "", err
+	}
+	// todo: check if we need to use different value for specific OSs
+	// make sure this dir is readable and executable by all users and writable only by the current user
+	err = os.Chmod(tempDir, 0755)
+	if err != nil {
+		j.logger.Errorf("failed to change permissions for %v to make it readable for all users: %v", tempDir, err)
+	}
+	bundledAttacherFile, err := os.Open(bundledJavaAttacher)
+	if err != nil {
+		defer j.deleteTempDir(tempDir)
+		return "", fmt.Errorf("failed to open bundled attacher jar: %w", err)
+	}
+	defer j.closeFile(bundledAttacherFile)
+	tmpAttacherJarPath := tmpJavaAttacherJarPath(tempDir)
+	tmpAttacherJarFile, err := os.Create(tmpAttacherJarPath)
+	if err != nil {
+		defer j.deleteTempDir(tempDir)
+		return "", fmt.Errorf("failed to create tmp attacher jar: %w", err)
+	}
+	defer j.closeFile(tmpAttacherJarFile)
+	nBytes, err := io.Copy(tmpAttacherJarFile, bundledAttacherFile)
+	if err != nil {
+		defer j.deleteTempDir(tempDir)
+		return "", fmt.Errorf("failed to copy bundled attacher jar to %v: %w", bundledJavaAttacher, err)
+	}
+	j.logger.Debugf("%v (%v bytes) successfully copied to %v", bundledJavaAttacher, nBytes, tmpAttacherJarPath)
+	err = os.Chmod(tmpAttacherJarPath, 0755)
+	if err != nil {
+		j.logger.Errorf("failed to change permissions for %v to make it readable for all users: %v", tmpAttacherJarPath, err)
+	}
+	j.tempAttacherDir = tempDir
+	return tempDir, nil
+}
+
+func tmpJavaAttacherJarPath(tempDir string) string {
+	return filepath.Join(tempDir, javaAttacherJarName)
+}
+
+func (j *JavaAttacher) closeFile(file *os.File) {
+	err := file.Close()
+	if err != nil {
+		j.logger.Errorf("failed to close file %v: %v", file, err)
 	}
 }
 
@@ -361,8 +436,12 @@ func (j *JavaAttacher) attachJVM(ctx context.Context, jvm *jvmDetails) error {
 }
 
 func (j *JavaAttacher) attachJVMCommand(ctx context.Context, jvm *jvmDetails) *exec.Cmd {
+	attacherJar := bundledJavaAttacher
+	if j.tempAttacherDir != "" {
+		attacherJar = tmpJavaAttacherJarPath(j.tempAttacherDir)
+	}
 	args := []string{
-		"-jar", javaAttacher,
+		"-jar", attacherJar,
 		"--log-level", "debug",
 		"--include-pid", strconv.Itoa(jvm.pid),
 	}
