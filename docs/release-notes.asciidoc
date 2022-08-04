@@ -4,9 +4,13 @@
 = Release notes
 :issue: https://github.com/elastic/apm-server/issues/
 :pull: https://github.com/elastic/apm-server/pull/
+:lambda-pull: https://github.com/elastic/apm-aws-lambda/pull/
 
 This section summarizes the changes in each release.
 
+**APM**
+
+* <<release-notes-8.4>>
 * <<release-notes-8.3>>
 * <<release-notes-8.2>>
 * <<release-notes-8.1>>
@@ -14,4 +18,13 @@ This section summarizes the changes in each release.
 
 Looking for a previous version? See the {apm-guide-7x}/release-notes.html[7.x release notes].
 
+**Extensions**
+
+* <<apm-aws-lambda-release-notes>>
+
 include::{root-dir}/CHANGELOG.asciidoc[]
+
+[[apm-aws-lambda-release-notes]]
+== Elastic APM AWS Lambda extension
+
+include::{apm-aws-repo-cl}/CHANGELOG.asciidoc[]

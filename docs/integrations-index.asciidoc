@@ -6,6 +6,7 @@ include::./notices.asciidoc[]
 :apm-package-dir:    {docdir}/apm-package
 :obs-repo-dir:       {observability-docs-root}/docs/en
 :apm-aws-repo-dir:       {apm-aws-lambda-root}/docs
+:apm-aws-repo-cl:        {apm-aws-lambda-root}/apm-lambda-extension
 
 :github_repo_link: https://github.com/elastic/apm-server/blob/v{version}
 ifeval::["{version}" == "8.0.0"]
