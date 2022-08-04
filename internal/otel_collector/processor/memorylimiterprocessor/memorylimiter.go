@@ -19,16 +19,19 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
-	"sync/atomic"
+	"sync"
 	"time"
 
+	"go.uber.org/atomic"
 	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension/ballastextension"
 	"go.opentelemetry.io/collector/internal/iruntime"
-	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/obsreport"
+	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
 const (
@@ -54,6 +57,8 @@ var (
 	errPercentageLimitOutOfRange = errors.New(
 		"memoryLimitPercentage and memorySpikePercentage must be greater than zero and less than or equal to hundred",
 	)
+
+	errShutdownNotStarted = errors.New("no existing monitoring routine is running")
 )
 
 // make it overridable by tests
@@ -66,7 +71,7 @@ type memoryLimiter struct {
 	ballastSize  uint64
 
 	// forceDrop is used atomically to indicate when data should be dropped.
-	forceDrop int64
+	forceDrop *atomic.Bool
 
 	ticker *time.Ticker
 
@@ -81,6 +86,9 @@ type memoryLimiter struct {
 	configMismatchedLogged bool
 
 	obsrep *obsreport.Processor
+
+	refCounterLock sync.Mutex
+	refCounter     int
 }
 
 // Minimum interval between forced GC when in soft limited mode. We don't want to
@@ -113,6 +121,7 @@ func newMemoryLimiter(set component.ProcessorCreateSettings, cfg *Config) (*memo
 		ticker:         time.NewTicker(cfg.CheckInterval),
 		readMemStatsFn: runtime.ReadMemStats,
 		logger:         logger,
+		forceDrop:      atomic.NewBool(false),
 		obsrep: obsreport.NewProcessor(obsreport.ProcessorSettings{
 			Level:                   set.MetricsLevel,
 			ProcessorID:             cfg.ID(),
@@ -148,19 +157,26 @@ func (ml *memoryLimiter) start(_ context.Context, host component.Host) error {
 			break
 		}
 	}
-
 	ml.startMonitoring()
 	return nil
 }
 
 func (ml *memoryLimiter) shutdown(context.Context) error {
-	ml.ticker.Stop()
+	ml.refCounterLock.Lock()
+	defer ml.refCounterLock.Unlock()
+
+	if ml.refCounter == 0 {
+		return errShutdownNotStarted
+	} else if ml.refCounter == 1 {
+		ml.ticker.Stop()
+	}
+	ml.refCounter--
 	return nil
 }
 
-func (ml *memoryLimiter) processTraces(ctx context.Context, td pdata.Traces) (pdata.Traces, error) {
+func (ml *memoryLimiter) processTraces(ctx context.Context, td ptrace.Traces) (ptrace.Traces, error) {
 	numSpans := td.SpanCount()
-	if ml.forcingDrop() {
+	if ml.forceDrop.Load() {
 		// TODO: actually to be 100% sure that this is "refused" and not "dropped"
 		// 	it is necessary to check the pipeline to see if this is directly connected
 		// 	to a receiver (ie.: a receiver is on the call stack). For now it
@@ -177,9 +193,9 @@ func (ml *memoryLimiter) processTraces(ctx context.Context, td pdata.Traces) (pd
 	return td, nil
 }
 
-func (ml *memoryLimiter) processMetrics(ctx context.Context, md pdata.Metrics) (pdata.Metrics, error) {
+func (ml *memoryLimiter) processMetrics(ctx context.Context, md pmetric.Metrics) (pmetric.Metrics, error) {
 	numDataPoints := md.DataPointCount()
-	if ml.forcingDrop() {
+	if ml.forceDrop.Load() {
 		// TODO: actually to be 100% sure that this is "refused" and not "dropped"
 		// 	it is necessary to check the pipeline to see if this is directly connected
 		// 	to a receiver (ie.: a receiver is on the call stack). For now it
@@ -195,9 +211,9 @@ func (ml *memoryLimiter) processMetrics(ctx context.Context, md pdata.Metrics) (
 	return md, nil
 }
 
-func (ml *memoryLimiter) processLogs(ctx context.Context, ld pdata.Logs) (pdata.Logs, error) {
+func (ml *memoryLimiter) processLogs(ctx context.Context, ld plog.Logs) (plog.Logs, error) {
 	numRecords := ld.LogRecordCount()
-	if ml.forcingDrop() {
+	if ml.forceDrop.Load() {
 		// TODO: actually to be 100% sure that this is "refused" and not "dropped"
 		// 	it is necessary to check the pipeline to see if this is directly connected
 		// 	to a receiver (ie.: a receiver is on the call stack). For now it
@@ -230,27 +246,20 @@ func (ml *memoryLimiter) readMemStats() *runtime.MemStats {
 	return ms
 }
 
-// startMonitoring starts a ticker'd goroutine that will check memory usage
-// every checkInterval period.
+// startMonitoring starts a single ticker'd goroutine per instance
+// that will check memory usage every checkInterval period.
 func (ml *memoryLimiter) startMonitoring() {
-	go func() {
-		for range ml.ticker.C {
-			ml.checkMemLimits()
-		}
-	}()
-}
+	ml.refCounterLock.Lock()
+	defer ml.refCounterLock.Unlock()
 
-// forcingDrop indicates when memory resources need to be released.
-func (ml *memoryLimiter) forcingDrop() bool {
-	return atomic.LoadInt64(&ml.forceDrop) != 0
-}
-
-func (ml *memoryLimiter) setForcingDrop(b bool) {
-	var i int64
-	if b {
-		i = 1
+	ml.refCounter++
+	if ml.refCounter == 1 {
+		go func() {
+			for range ml.ticker.C {
+				ml.checkMemLimits()
+			}
+		}()
 	}
-	atomic.StoreInt64(&ml.forceDrop, i)
 }
 
 func memstatToZapField(ms *runtime.MemStats) zap.Field {
@@ -276,7 +285,7 @@ func (ml *memoryLimiter) checkMemLimits() {
 	}
 
 	// Remember current dropping state.
-	wasForcingDrop := ml.forcingDrop()
+	wasForcingDrop := ml.forceDrop.Load()
 
 	// Check if the memory usage is above the soft limit.
 	mustForceDrop := ml.usageChecker.aboveSoftLimit(ms)
@@ -301,7 +310,7 @@ func (ml *memoryLimiter) checkMemLimits() {
 		}
 	}
 
-	ml.setForcingDrop(mustForceDrop)
+	ml.forceDrop.Store(mustForceDrop)
 }
 
 type memUsageChecker struct {

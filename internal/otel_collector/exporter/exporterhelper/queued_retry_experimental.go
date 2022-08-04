@@ -48,8 +48,8 @@ type QueueSettings struct {
 	PersistentStorageEnabled bool `mapstructure:"persistent_storage_enabled"`
 }
 
-// DefaultQueueSettings returns the default settings for QueueSettings.
-func DefaultQueueSettings() QueueSettings {
+// NewDefaultQueueSettings returns the default settings for QueueSettings.
+func NewDefaultQueueSettings() QueueSettings {
 	return QueueSettings{
 		Enabled:      true,
 		NumConsumers: 10,
@@ -60,6 +60,19 @@ func DefaultQueueSettings() QueueSettings {
 		QueueSize:                5000,
 		PersistentStorageEnabled: false,
 	}
+}
+
+// Validate checks if the QueueSettings configuration is valid
+func (qCfg *QueueSettings) Validate() error {
+	if !qCfg.Enabled {
+		return nil
+	}
+
+	if qCfg.QueueSize <= 0 {
+		return errors.New("queue size must be positive")
+	}
+
+	return nil
 }
 
 var (
@@ -204,7 +217,13 @@ func (qrs *queuedRetrySender) start(ctx context.Context, host component.Host) er
 			return int64(qrs.queue.Size())
 		}, metricdata.NewLabelValue(qrs.fullName()))
 		if err != nil {
-			return fmt.Errorf("failed to create retry queue size metric: %v", err)
+			return fmt.Errorf("failed to create retry queue size metric: %w", err)
+		}
+		err = globalInstruments.queueCapacity.UpsertEntry(func() int64 {
+			return int64(qrs.cfg.QueueSize)
+		}, metricdata.NewLabelValue(qrs.fullName()))
+		if err != nil {
+			return fmt.Errorf("failed to create retry queue capacity metric: %w", err)
 		}
 	}
 

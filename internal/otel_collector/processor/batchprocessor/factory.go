@@ -21,7 +21,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/processor/processorhelper"
 )
 
 const (
@@ -34,12 +33,12 @@ const (
 
 // NewFactory returns a new factory for the Batch processor.
 func NewFactory() component.ProcessorFactory {
-	return processorhelper.NewFactory(
+	return component.NewProcessorFactory(
 		typeStr,
 		createDefaultConfig,
-		processorhelper.WithTraces(createTracesProcessor),
-		processorhelper.WithMetrics(createMetricsProcessor),
-		processorhelper.WithLogs(createLogsProcessor))
+		component.WithTracesProcessorAndStabilityLevel(createTracesProcessor, component.StabilityLevelStable),
+		component.WithMetricsProcessorAndStabilityLevel(createMetricsProcessor, component.StabilityLevelStable),
+		component.WithLogsProcessorAndStabilityLevel(createLogsProcessor, component.StabilityLevelStable))
 }
 
 func createDefaultConfig() config.Processor {

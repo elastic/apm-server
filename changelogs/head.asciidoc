@@ -1,26 +1,23 @@
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/8.4\...main[View commits]
+https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 
 [float]
 ==== Breaking Changes
-- APM Server no longer crashes on an invalid tail-based sampling config; it
-  continues running TBS disabled {pull}8375[8375]
+- `event.action` is no longer recorded for OTLP logs, due to breaking OTLP changes {pull}8765[8765]
 
 [float]
 ==== Deprecations
 
 [float]
 ==== Bug fixes
-- Fix race for deducing destination service fields for OTel bridge {pull}8363[8363]
+- Set `message` instead of `labels.event` for Jaeger span events {pull}8765[8765]
 
 [float]
 ==== Intake API Changes
 
 [float]
 ==== Added
-- Added support for `service.target.{type,name}` to be inferred from OpenTelemetry events {pull}8334[8334]
-- Added support for OpenTelemetry summary metrics {pull}7772[7772]
-- Upgraded bundled APM Java agent attacher CLI to version 1.32.0, which supports the `latest` version tag {pull}8374[8374]
-- Added `span.name` to `service_destination` metrics {pull}8391[8391]
+- Set a default User-Agent field value when making HTTP requests {pull}8758[8758]
+- OTLP support updated to opentelemetry-collector v0.56.0 {pull}8765[8765]

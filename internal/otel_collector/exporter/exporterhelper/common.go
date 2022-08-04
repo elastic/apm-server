@@ -19,10 +19,8 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenthelper"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/consumerhelper"
 	"go.opentelemetry.io/collector/exporter/exporterhelper/internal"
 	"go.opentelemetry.io/collector/obsreport"
 )
@@ -33,8 +31,8 @@ type TimeoutSettings struct {
 	Timeout time.Duration `mapstructure:"timeout"`
 }
 
-// DefaultTimeoutSettings returns the default settings for TimeoutSettings.
-func DefaultTimeoutSettings() TimeoutSettings {
+// NewDefaultTimeoutSettings returns the default settings for TimeoutSettings.
+func NewDefaultTimeoutSettings() TimeoutSettings {
 	return TimeoutSettings{
 		Timeout: 5 * time.Second,
 	}
@@ -88,9 +86,9 @@ func (req *baseRequest) OnProcessingFinished() {
 
 // baseSettings represents all the options that users can configure.
 type baseSettings struct {
-	componenthelper.StartFunc
-	componenthelper.ShutdownFunc
-	consumerOptions []consumerhelper.Option
+	component.StartFunc
+	component.ShutdownFunc
+	consumerOptions []consumer.Option
 	TimeoutSettings
 	QueueSettings
 	RetrySettings
@@ -100,7 +98,7 @@ type baseSettings struct {
 func fromOptions(options ...Option) *baseSettings {
 	// Start from the default options:
 	opts := &baseSettings{
-		TimeoutSettings: DefaultTimeoutSettings(),
+		TimeoutSettings: NewDefaultTimeoutSettings(),
 		// TODO: Enable queuing by default (call DefaultQueueSettings)
 		QueueSettings: QueueSettings{Enabled: false},
 		// TODO: Enable retry by default (call DefaultRetrySettings)
@@ -119,7 +117,7 @@ type Option func(*baseSettings)
 
 // WithStart overrides the default Start function for an exporter.
 // The default start function does nothing and always returns nil.
-func WithStart(start componenthelper.StartFunc) Option {
+func WithStart(start component.StartFunc) Option {
 	return func(o *baseSettings) {
 		o.StartFunc = start
 	}
@@ -127,7 +125,7 @@ func WithStart(start componenthelper.StartFunc) Option {
 
 // WithShutdown overrides the default Shutdown function for an exporter.
 // The default shutdown function does nothing and always returns nil.
-func WithShutdown(shutdown componenthelper.ShutdownFunc) Option {
+func WithShutdown(shutdown component.ShutdownFunc) Option {
 	return func(o *baseSettings) {
 		o.ShutdownFunc = shutdown
 	}
@@ -162,14 +160,14 @@ func WithQueue(queueSettings QueueSettings) Option {
 // TODO: Verify if we can change the default to be mutable as we do for processors.
 func WithCapabilities(capabilities consumer.Capabilities) Option {
 	return func(o *baseSettings) {
-		o.consumerOptions = append(o.consumerOptions, consumerhelper.WithCapabilities(capabilities))
+		o.consumerOptions = append(o.consumerOptions, consumer.WithCapabilities(capabilities))
 	}
 }
 
 // baseExporter contains common fields between different exporter types.
 type baseExporter struct {
-	componenthelper.StartFunc
-	componenthelper.ShutdownFunc
+	component.StartFunc
+	component.ShutdownFunc
 	obsrep   *obsExporter
 	sender   requestSender
 	qrSender *queuedRetrySender
