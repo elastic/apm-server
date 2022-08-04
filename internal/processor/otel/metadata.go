@@ -106,6 +106,10 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 		case "host.arch":
 			out.Host.Architecture = truncate(v.StringVal())
 
+		// session.*
+		case "session.id":
+			out.Session.ID = truncate(v.StringVal())
+
 		// process.*
 		case semconv.AttributeProcessPID:
 			out.Process.Pid = int(v.IntVal())

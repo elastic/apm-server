@@ -244,6 +244,18 @@ func TestResourceConventions(t *testing.T) {
 				},
 			},
 		},
+		"session": {
+			attrs: map[string]interface{}{
+				"session.id": "opbeans-swift",
+			},
+			expected: model.APMEvent{
+				Agent:   defaultAgent,
+				Service: defaultService,
+				Session: model.Session{
+					ID: "opbeans-swift",
+				},
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			meta := transformResourceMetadata(t, test.attrs)
