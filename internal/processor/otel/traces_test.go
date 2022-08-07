@@ -646,6 +646,20 @@ func TestSpanNetworkAttributes(t *testing.T) {
 	assert.Equal(t, expected, spanEvent.Network)
 }
 
+func TestSessionID(t *testing.T) {
+	sessionAttributes := map[string]interface{}{
+		"session.id": "opbeans-swift",
+	}
+	txEvent := transformTransactionWithAttributes(t, sessionAttributes)
+	spanEvent := transformSpanWithAttributes(t, sessionAttributes)
+
+	expected := model.Session{
+		ID: "opbeans-swift",
+	}
+	assert.Equal(t, expected, txEvent.Session)
+	assert.Equal(t, expected, spanEvent.Session)
+}
+
 func TestArrayLabels(t *testing.T) {
 	stringArray := []interface{}{"string1", "string2"}
 	boolArray := []interface{}{false, true}
