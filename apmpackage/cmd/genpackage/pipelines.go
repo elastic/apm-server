@@ -97,7 +97,7 @@ var userAgentPipeline = []map[string]interface{}{{
 }}
 
 var processPpidPipeline = []map[string]interface{}{{
-	"process_ppid": map[string]interface{}{
+	"rename": map[string]interface{}{
 		"field":          "process.ppid",
 		"target_field":   "process.parent.pid",
 		"ignore_missing": true,
