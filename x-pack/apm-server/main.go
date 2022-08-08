@@ -250,12 +250,12 @@ func closeBadger() error {
 	return nil
 }
 
-func closeStorage() error {
-	if err := storage.Flush(); err != nil {
-		return err
+func closeStorage() (err error) {
+	if storage != nil {
+		err = storage.Flush()
+		storage.Close()
 	}
-	storage.Close()
-	return nil
+	return
 }
 
 func cleanup() (result error) {
