@@ -197,4 +197,22 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		mapToErrorModel(&input, &out)
 		assert.Equal(t, "123", out.Error.Exception.Code)
 	})
+<<<<<<< HEAD:model/modeldecoder/v2/error_test.go
+=======
+
+	t.Run("transaction-name", func(t *testing.T) {
+		var input errorEvent
+		var out model.APMEvent
+		input.Transaction.Name.Set("My Transaction")
+		mapToErrorModel(&input, &out)
+		assert.Equal(t, "My Transaction", out.Transaction.Name)
+	})
+	t.Run("transaction-id-empty-transaction", func(t *testing.T) {
+		var input errorEvent
+		var out model.APMEvent
+		input.TransactionID.Set("12341231")
+		mapToErrorModel(&input, &out)
+		assert.Equal(t, "12341231", out.Transaction.ID)
+	})
+>>>>>>> 48fecb38 (decoder: Always map transaction.id (#8820)):internal/model/modeldecoder/v2/error_test.go
 }

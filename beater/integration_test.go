@@ -136,6 +136,7 @@ func TestPublishIntegration(t *testing.T) {
 		name    string
 	}{
 		{payload: "errors.ndjson", name: "Errors"},
+		{payload: "errors_transaction_id.ndjson", name: "ErrorsTxID"},
 		{payload: "events.ndjson", name: "Events"},
 		{payload: "metricsets.ndjson", name: "Metricsets"},
 		{payload: "spans.ndjson", name: "Spans"},
