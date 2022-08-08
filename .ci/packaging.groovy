@@ -128,7 +128,7 @@ pipeline {
           when {
             allOf {
               // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
-              changeset pattern: '(cmd/version.go|apmpackage/.*)', comparator: 'REGEXP'
+              changeset pattern: '(internal/version/.*|apmpackage/.*)', comparator: 'REGEXP'
               not { changeRequest() }
             }
           }
