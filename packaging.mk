@@ -22,7 +22,7 @@ build/LICENSE.txt: licenses/ELASTIC-LICENSE-2.0.txt
 export DOCKER_BUILDKIT=1
 
 DOCKER_BUILD_ARGS := \
-	--build-arg BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%Sz") \
+	--build-arg BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%S%z") \
 	--build-arg VCS_REF=$(GITCOMMIT)
 
 DOCKER_IMAGES := \
