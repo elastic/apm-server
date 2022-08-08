@@ -415,8 +415,13 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 	if from.TraceID.IsSet() {
 		event.Trace.ID = from.TraceID.Val
 	}
-	if from.Transaction.IsSet() {
+	if from.TransactionID.IsSet() || from.Transaction.IsSet() {
 		event.Transaction = &model.Transaction{}
+	}
+	if from.TransactionID.IsSet() {
+		event.Transaction.ID = from.TransactionID.Val
+	}
+	if from.Transaction.IsSet() {
 		if from.Transaction.Sampled.IsSet() {
 			event.Transaction.Sampled = from.Transaction.Sampled.Val
 		}
@@ -425,9 +430,6 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 		}
 		if from.Transaction.Type.IsSet() {
 			event.Transaction.Type = from.Transaction.Type.Val
-		}
-		if from.TransactionID.IsSet() {
-			event.Transaction.ID = from.TransactionID.Val
 		}
 	}
 }
