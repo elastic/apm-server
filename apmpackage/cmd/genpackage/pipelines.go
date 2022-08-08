@@ -38,6 +38,7 @@ func getCommonPipeline(name string, version *version.V) []map[string]interface{}
 	commonPipelines := map[string][]map[string]interface{}{
 		"observer_version": getObserverVersionPipeline(version),
 		"user_agent":       userAgentPipeline,
+		"process_ppid":     processPpidPipeline,
 		"client_geoip":     clientGeoIPPipeline,
 		"event_duration":   eventDurationPipeline,
 	}
@@ -90,6 +91,15 @@ var userAgentPipeline = []map[string]interface{}{{
 	"user_agent": map[string]interface{}{
 		"field":          "user_agent.original",
 		"target_field":   "user_agent",
+		"ignore_missing": true,
+		"ignore_failure": true,
+	},
+}}
+
+var processPpidPipeline = []map[string]interface{}{{
+	"rename": map[string]interface{}{
+		"field":          "process.ppid",
+		"target_field":   "process.parent.pid",
 		"ignore_missing": true,
 		"ignore_failure": true,
 	},

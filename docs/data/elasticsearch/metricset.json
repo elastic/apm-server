@@ -11,7 +11,9 @@
   "process": {
     "pid": 8,
     "title": "/opt/java/openjdk/bin/java",
-    "ppid": 1
+    "parent": {
+      "pid": 1
+    },
   },
   "agent": {
     "name": "java",
