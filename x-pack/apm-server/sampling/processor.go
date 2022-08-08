@@ -33,6 +33,10 @@ const (
 	// loggerRateLimit is the maximum frequency at which "too many groups" and
 	// "write failure" log messages are logged.
 	loggerRateLimit = time.Minute
+
+	// shutdownGracePeriod is the time that the processor has to gracefully
+	// terminate after the stop method is called.
+	shutdownGracePeriod = 500 * time.Millisecond
 )
 
 // Processor is a tail-sampling event processor.
@@ -363,6 +367,7 @@ func (p *Processor) Run() error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-p.stopping:
+			<-time.After(shutdownGracePeriod)
 			return context.Canceled
 		}
 	})
@@ -395,23 +400,33 @@ func (p *Processor) Run() error {
 		ticker := time.NewTicker(p.config.FlushInterval)
 		defer ticker.Stop()
 		var traceIDs []string
+
+		publishDecisions := func() error {
+			p.logger.Debug("finalizing local sampling reservoirs")
+			traceIDs = p.groups.finalizeSampledTraces(traceIDs)
+			if len(traceIDs) == 0 {
+				return nil
+			}
+			var g errgroup.Group
+			g.Go(func() error { return sendTraceIDs(ctx, publishSampledTraceIDs, traceIDs) })
+			g.Go(func() error { return sendTraceIDs(ctx, localSampledTraceIDs, traceIDs) })
+			if err := g.Wait(); err != nil {
+				return err
+			}
+			traceIDs = traceIDs[:0]
+			return nil
+		}
+
 		for {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
+			case <-p.stopping:
+				return publishDecisions()
 			case <-ticker.C:
-				p.logger.Debug("finalizing local sampling reservoirs")
-				traceIDs = p.groups.finalizeSampledTraces(traceIDs)
-				if len(traceIDs) == 0 {
-					continue
-				}
-				var g errgroup.Group
-				g.Go(func() error { return sendTraceIDs(ctx, publishSampledTraceIDs, traceIDs) })
-				g.Go(func() error { return sendTraceIDs(ctx, localSampledTraceIDs, traceIDs) })
-				if err := g.Wait(); err != nil {
+				if err := publishDecisions(); err != nil {
 					return err
 				}
-				traceIDs = traceIDs[:0]
 			}
 		}
 	})

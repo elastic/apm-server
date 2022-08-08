@@ -299,6 +299,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
+	assert.NoError(t, config.Storage.Flush())
 	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, time.Minute, 0)
 	reader := storage.NewReadWriter()
 	defer reader.Close()
@@ -310,9 +311,10 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 			// No sampling decision made yet.
 		} else {
 			assert.NoError(t, err)
-			assert.False(t, sampled)
-			anyUnsampled = true
-			break
+			if !sampled {
+				anyUnsampled = true
+				break
+			}
 		}
 	}
 	assert.True(t, anyUnsampled)
@@ -742,6 +744,49 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	subscriberChan <- "0102030405060708090a0b0c0d0e0f10"
 	data, _ = waitFileModified(t, subscriberPositionFile, info.ModTime())
 	assert.Equal(t, `{"index_name":1}`, string(data))
+}
+
+func TestGracefulShutdown(t *testing.T) {
+	config := newTempdirConfig(t)
+	sampleRate := 0.5
+	config.Policies = []sampling.Policy{{SampleRate: sampleRate}}
+	config.FlushInterval = time.Minute // disable finalize
+
+	processor, err := sampling.NewProcessor(config)
+	require.NoError(t, err)
+	go processor.Run()
+
+	totalTraces := 100
+	traceIDGen := func(i int) string { return fmt.Sprintf("trace%d", i) }
+
+	var batch model.Batch
+	for i := 0; i < totalTraces; i++ {
+		batch = append(batch, model.APMEvent{
+			Processor: model.TransactionProcessor,
+			Trace:     model.Trace{ID: traceIDGen(i)},
+			Transaction: &model.Transaction{
+				ID:      fmt.Sprintf("tx%d", i),
+				Sampled: true,
+			},
+		})
+	}
+
+	assert.NoError(t, processor.ProcessBatch(context.Background(), &batch))
+	assert.Empty(t, batch)
+	assert.NoError(t, processor.Stop(context.Background()))
+	assert.NoError(t, config.Storage.Flush())
+
+	reader := eventstorage.
+		New(config.DB, eventstorage.JSONCodec{}, time.Minute, 0).
+		NewReadWriter()
+
+	var count int
+	for i := 0; i < totalTraces; i++ {
+		if ok, _ := reader.IsTraceSampled(traceIDGen(i)); ok {
+			count++
+		}
+	}
+	assert.Equal(t, int(sampleRate*float64(totalTraces)), count)
 }
 
 func newTempdirConfig(tb testing.TB) sampling.Config {
