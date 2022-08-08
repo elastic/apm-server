@@ -646,6 +646,20 @@ func TestSpanNetworkAttributes(t *testing.T) {
 	assert.Equal(t, expected, spanEvent.Network)
 }
 
+func TestSessionID(t *testing.T) {
+	sessionAttributes := map[string]interface{}{
+		"session.id": "opbeans-swift",
+	}
+	txEvent := transformTransactionWithAttributes(t, sessionAttributes)
+	spanEvent := transformSpanWithAttributes(t, sessionAttributes)
+
+	expected := model.Session{
+		ID: "opbeans-swift",
+	}
+	assert.Equal(t, expected, txEvent.Session)
+	assert.Equal(t, expected, spanEvent.Session)
+}
+
 func TestArrayLabels(t *testing.T) {
 	stringArray := []interface{}{"string1", "string2"}
 	boolArray := []interface{}{false, true}
@@ -740,6 +754,11 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	// Durations should be unaffected.
 	assert.Equal(t, transactionDuration, batch[0].Event.Duration)
 	assert.Equal(t, spanDuration, batch[1].Event.Duration)
+
+	for _, b := range batch {
+		// telemetry.sdk.elastic_export_timestamp should not be sent as a label.
+		assert.Empty(t, b.NumericLabels)
+	}
 }
 
 func TestSpanLinks(t *testing.T) {
