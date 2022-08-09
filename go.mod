@@ -11,10 +11,10 @@ require (
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/dop251/goja v0.0.0-20220806120448-1444e6b94559 // indirect
-	github.com/dop251/goja_nodejs v0.0.0-20220806163711-ca17575a9f4f // indirect
+	github.com/dop251/goja_nodejs v0.0.0-20220808115320-bac29516aae9 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.17.6-0.20220805065535-8d58086eefae
+	github.com/elastic/beats/v7 v7.17.6-0.20220808065502-d3027d522e6a
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20220804181728-b0328d2fe484 // indirect
 	github.com/elastic/gmux v0.2.0
@@ -61,15 +61,15 @@ require (
 	go.opentelemetry.io/collector/model v0.34.0
 	go.uber.org/atomic v1.9.0
 	go.uber.org/multierr v1.8.0 // indirect
-	go.uber.org/zap v1.21.0
+	go.uber.org/zap v1.22.0
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/mod v0.5.1 // indirect
-	golang.org/x/net v0.0.0-20220805013720-a33c5aa5df48
+	golang.org/x/net v0.0.0-20220809012201-f428fae20770
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
-	golang.org/x/sys v0.0.0-20220804214406-8e32c043e418 // indirect
+	golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 	golang.org/x/tools v0.1.12
-	google.golang.org/genproto v0.0.0-20220805133916-01dd62135a58 // indirect
+	google.golang.org/genproto v0.0.0-20220808204814-fd01256a5276 // indirect
 	google.golang.org/grpc v1.48.0
 	gotest.tools/gotestsum v1.7.0
 	howett.net/plist v1.0.0 // indirect
@@ -200,7 +200,7 @@ require (
 	gopkg.in/jcmturner/gokrb5.v7 v7.5.0 // indirect
 	gopkg.in/jcmturner/rpc.v1 v1.1.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.21.1 // indirect
 	k8s.io/apimachinery v0.21.1 // indirect
 	k8s.io/client-go v0.21.1 // indirect
