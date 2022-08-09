@@ -233,10 +233,8 @@
                 "args": [
                     "-v"
                 ],
-                "parent": {
-                    "pid": 1
-                },
                 "pid": 1234,
+                "ppid": 1,
                 "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
             },
             "processor": {
