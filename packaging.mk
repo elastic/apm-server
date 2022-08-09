@@ -51,7 +51,7 @@ $(DOCKER_IMAGE_RELEASE_TARBALLS):
 $(DOCKER_IMAGE_SNAPSHOT_TARBALLS):
 $(DISTDIR)/%-$(DOCKER_IMAGE_SUFFIX): build/docker/%.txt
 	@mkdir -p $(@D)
-	docker save -o $@ $(shell cat $<)
+	docker save $(shell cat $<) | gzip -c > $@
 
 ##############################################################################
 # Java agent attacher. Fetched from Maven and verified with the committed key.
