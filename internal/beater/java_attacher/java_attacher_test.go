@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -65,8 +66,8 @@ func TestBuild(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(tmpDir)
 	cmd = attacher.attachJVMCommand(context.Background(), jvm)
-	want = filepath.FromSlash(fmt.Sprintf("/home/someuser/java_home/bin/java -jar %v/java-attacher.jar"+
-		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200", tmpDir))
+	want = filepath.FromSlash(fmt.Sprintf("/home/someuser/java_home/bin/java -jar %v/java-attacher.jar", tmpDir)) +
+		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
 
 	cmdArgs = strings.Join(cmd.Args, " ")
 	assert.Equal(t, want, cmdArgs)
@@ -209,8 +210,9 @@ func TestTempDirCreation(t *testing.T) {
 	require.DirExists(t, tempAttacherDir)
 	attacherDirInfo, err := os.Stat(tempAttacherDir)
 	require.NoError(t, err)
-	// todo - this may fail on Windows
-	require.Equal(t, os.FileMode(0755), attacherDirInfo.Mode().Perm())
+	if runtime.GOOS != "windows" {
+		require.Equal(t, os.FileMode(0755), attacherDirInfo.Mode().Perm())
+	}
 	tempDir, err := os.Open(tempAttacherDir)
 	require.NoError(t, err)
 	files, err := tempDir.ReadDir(0)
@@ -218,6 +220,8 @@ func TestTempDirCreation(t *testing.T) {
 	require.Len(t, files, 1)
 	attacherJarFileInfo, err := files[0].Info()
 	require.NoError(t, err)
-	require.Equal(t, os.FileMode(0755), attacherJarFileInfo.Mode())
+	if runtime.GOOS != "windows" {
+		require.Equal(t, os.FileMode(0755), attacherJarFileInfo.Mode().Perm())
+	}
 	require.FileExists(t, attacherJarFileInfo.Name())
 }
