@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/internal/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220808155251-3fe687167d56
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220809095456-62ddcc4022bb
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-libs v0.2.10
 	github.com/elastic/gmux v0.2.0
@@ -49,7 +49,7 @@ require (
 	go.opentelemetry.io/collector/semconv v0.56.0
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.22.0
-	golang.org/x/net v0.0.0-20220809012201-f428fae20770
+	golang.org/x/net v0.0.0-20220809184613-07c6da5e1ced
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 	golang.org/x/tools v0.1.12
