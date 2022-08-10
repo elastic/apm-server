@@ -85,8 +85,10 @@
                     "node",
                     "server.js"
                 ],
+                "parent": {
+                    "pid": 6789
+                },
                 "pid": 1234,
-                "ppid": 6789,
                 "title": "node"
             },
             "processor": {
@@ -216,8 +218,10 @@
                     "node",
                     "server.js"
                 ],
+                "parent": {
+                    "pid": 6789
+                },
                 "pid": 1234,
-                "ppid": 6789,
                 "title": "node"
             },
             "processor": {
@@ -350,8 +354,10 @@
                     "node",
                     "server.js"
                 ],
+                "parent": {
+                    "pid": 6789
+                },
                 "pid": 1234,
-                "ppid": 6789,
                 "title": "node"
             },
             "processor": {
@@ -480,8 +486,10 @@
                     "node",
                     "server.js"
                 ],
+                "parent": {
+                    "pid": 6789
+                },
                 "pid": 1234,
-                "ppid": 6789,
                 "title": "node"
             },
             "processor": {
@@ -626,8 +634,10 @@
                     "node",
                     "server.js"
                 ],
+                "parent": {
+                    "pid": 6789
+                },
                 "pid": 1234,
-                "ppid": 6789,
                 "title": "node"
             },
             "processor": {
@@ -844,8 +854,10 @@
                     "node",
                     "server.js"
                 ],
+                "parent": {
+                    "pid": 6789
+                },
                 "pid": 1234,
-                "ppid": 6789,
                 "title": "node"
             },
             "processor": {
@@ -1062,8 +1074,10 @@
                     "node",
                     "server.js"
                 ],
+                "parent": {
+                    "pid": 6789
+                },
                 "pid": 1234,
-                "ppid": 6789,
                 "title": "node"
             },
             "processor": {
@@ -1267,8 +1281,10 @@
                     "node",
                     "server.js"
                 ],
+                "parent": {
+                    "pid": 6789
+                },
                 "pid": 1234,
-                "ppid": 6789,
                 "title": "node"
             },
             "processor": {
@@ -1413,8 +1429,10 @@
                     "node",
                     "server.js"
                 ],
+                "parent": {
+                    "pid": 6789
+                },
                 "pid": 1234,
-                "ppid": 6789,
                 "title": "node"
             },
             "processor": {
@@ -1553,8 +1571,10 @@
                     "node",
                     "server.js"
                 ],
+                "parent": {
+                    "pid": 6789
+                },
                 "pid": 1234,
-                "ppid": 6789,
                 "title": "node"
             },
             "processor": {

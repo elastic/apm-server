@@ -43,6 +43,8 @@ func TestSystemTransformation(t *testing.T) {
 			Type:         "t2.medium",
 			IP:           []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")},
 			OS: OS{
+				Name:     "macOS",
+				Version:  "10.14.6",
 				Platform: "osx",
 				Full:     "Mac OS Mojave",
 				Type:     "macos",
