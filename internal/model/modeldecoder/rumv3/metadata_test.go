@@ -93,6 +93,8 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		// Dedicated test for it.
 		"NumericLabels",
 		"Labels",
+		"GlobalLabels",
+		"GlobalNumericLabels",
 
 		// event-specific fields
 		"Error",

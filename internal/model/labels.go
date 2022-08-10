@@ -18,6 +18,8 @@
 package model
 
 import (
+	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/elastic/elastic-agent-libs/mapstr"
@@ -57,6 +59,53 @@ func (l Labels) Clone() Labels {
 		cp[k] = to
 	}
 	return cp
+}
+
+// Equal returns true when the two maps of labels are equal.
+func (l Labels) Equal(labels Labels) bool {
+	for key, localV := range l {
+		v, ok := labels[key]
+		if !ok {
+			return false
+		}
+		if v.Value != localV.Value {
+			return false
+		}
+		if len(v.Values) != len(localV.Values) {
+			return false
+		}
+		for _, s := range [][]string{v.Values, localV.Values} {
+			if !sort.StringsAreSorted(s) {
+				sort.Strings(s)
+			}
+		}
+		for i, v := range v.Values {
+			if v != localV.Values[i] {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// Flatten returns a string interpretation of the labels.
+func (l Labels) Flatten() string {
+	if len(l) == 0 {
+		return ""
+	}
+
+	var strbld strings.Builder
+	for key, value := range l {
+		strbld.WriteString(key)
+		if value.Value != "" {
+			strbld.WriteString(value.Value)
+			continue
+		}
+		for _, v := range value.Values {
+			strbld.WriteString(v)
+		}
+	}
+	return strbld.String()
 }
 
 func (l Labels) fields() mapstr.M {
@@ -105,6 +154,53 @@ func (l NumericLabels) Clone() NumericLabels {
 		cp[k] = to
 	}
 	return cp
+}
+
+// Equal returns true when the two maps of labels are equal.
+func (l NumericLabels) Equal(labels NumericLabels) bool {
+	for key, localV := range l {
+		v, ok := labels[key]
+		if !ok {
+			return false
+		}
+		if v.Value != localV.Value {
+			return false
+		}
+		if len(v.Values) != len(localV.Values) {
+			return false
+		}
+		for _, s := range [][]float64{v.Values, localV.Values} {
+			if !sort.Float64sAreSorted(s) {
+				sort.Float64s(s)
+			}
+		}
+		for i, v := range v.Values {
+			if v != localV.Values[i] {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// Flatten returns a string interpretation of the labels.
+func (l NumericLabels) Flatten() string {
+	if len(l) == 0 {
+		return ""
+	}
+
+	var strbld strings.Builder
+	for key, value := range l {
+		strbld.WriteString(key)
+		if value.Value > 0 {
+			strbld.WriteString(strconv.FormatFloat(value.Value, 'e', -1, 64))
+			continue
+		}
+		for _, v := range value.Values {
+			strbld.WriteString(strconv.FormatFloat(v, 'e', -1, 64))
+		}
+	}
+	return strbld.String()
 }
 
 func (l NumericLabels) fields() mapstr.M {

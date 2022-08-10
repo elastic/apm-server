@@ -36,7 +36,7 @@ func isMetadataException(key string) bool {
 }
 
 func isIgnoredPrefix(key string) bool {
-	ignore := []string{"Labels", "NumericLabels"}
+	ignore := []string{"Labels", "NumericLabels", "GlobalLabels", "GlobalNumericLabels"}
 	for _, k := range ignore {
 		if strings.HasPrefix(key, k) {
 			return true

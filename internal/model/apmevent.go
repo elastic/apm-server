@@ -72,6 +72,14 @@ type APMEvent struct {
 	// Supports slice values.
 	NumericLabels NumericLabels
 
+	// GlobalLabels are only populated when the batch metadata contains labels
+	// and the decoded event is a transaction event. This is done to be able to
+	// differentiate between event and global labels since we're generating
+	// transaction metrics which include global labels as dimensions to power
+	// certain parts of the APM UI. Not indexed.
+	GlobalLabels        Labels
+	GlobalNumericLabels NumericLabels
+
 	// Message holds the message for log events.
 	//
 	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-message
