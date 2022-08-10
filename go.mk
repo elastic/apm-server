@@ -1,6 +1,7 @@
 GITDIR ?= $(shell git rev-parse --git-dir)
 GITCOMMIT ?= $(shell git rev-parse HEAD)
 GITCOMMITTIMESTAMP ?= $(shell git log -1 --pretty=%cI)
+GITCOMMITTIMESTAMPUNIX ?= $(shell git log -1 --pretty=%ct)
 GITREFFILE ?= $(GITDIR)/$(shell git rev-parse --symbolic-full-name HEAD)
 GITROOT ?= $(shell git rev-parse --show-toplevel)
 
