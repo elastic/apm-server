@@ -36,7 +36,7 @@ const (
 
 	// shutdownGracePeriod is the time that the processor has to gracefully
 	// terminate after the stop method is called.
-	shutdownGracePeriod = 500 * time.Millisecond
+	shutdownGracePeriod = 5 * time.Second
 )
 
 // Processor is a tail-sampling event processor.
@@ -367,7 +367,11 @@ func (p *Processor) Run() error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-p.stopping:
-			<-time.After(shutdownGracePeriod)
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(shutdownGracePeriod):
+			}
 			return context.Canceled
 		}
 	})
