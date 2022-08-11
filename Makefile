@@ -181,7 +181,7 @@ update-beats: update-beats-module update
 
 .PHONY: update-beats-module
 update-beats-module:
-	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
+	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy -compat=1.17
 	cp -f $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version .go-version
 	find . -maxdepth 3 -name Dockerfile -exec sed -i'.bck' -E -e "s#(FROM golang):[0-9]+\.[0-9]+\.[0-9]+#\1:$$(cat .go-version)#g" {} \;
 	sed -i'.bck' -E -e "s#(:go-version): [0-9]+\.[0-9]+\.[0-9]+#\1: $$(cat .go-version)#g" docs/version.asciidoc
@@ -215,13 +215,20 @@ endif
 check-docker-compose: $(PYTHON_BIN)
 	@PATH=$(PYTHON_BIN):$(PATH) ./script/check_docker_compose.sh $(BEATS_VERSION)
 
-.PHONY: format-package build-package
-format-package: $(ELASTICPACKAGE)
-	@(cd apmpackage/apm; $(ELASTICPACKAGE) format)
+.PHONY: build-package
 build-package: $(ELASTICPACKAGE)
-	@rm -fr ./build/packages/apm/* ./build/apmpackage
-	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_VERSION)
-	@(cd ./build/apmpackage; $(ELASTICPACKAGE) build && $(ELASTICPACKAGE) check)
+	$(MAKE) build-package-with-version APM_SERVER_BUILD_VERSION=$(APM_SERVER_VERSION)
+
+.PHONY: build-package-snapshot
+build-package-snapshot: $(ELASTICPACKAGE)
+	$(MAKE) build-package-with-version APM_SERVER_BUILD_VERSION=$(APM_SERVER_VERSION)-preview-$(shell date +%s)
+
+.PHONY: build-package-with-version
+build-package-with-version: $(ELASTICPACKAGE)
+	@rm -fr ./build/packages/apm/* ./build/packages/apm-*.zip ./build/apmpackage
+	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_BUILD_VERSION)
+	@(cd ./build/apmpackage && $(ELASTICPACKAGE) format && $(ELASTICPACKAGE) build -v && $(ELASTICPACKAGE) lint)
+
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
 check-fmt: check-gofmt check-autopep8

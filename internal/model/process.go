@@ -36,7 +36,7 @@ func (p *Process) fields() mapstr.M {
 		proc.set("pid", p.Pid)
 	}
 	if p.Ppid != nil {
-		proc.set("ppid", *p.Ppid)
+		proc.set("parent", mapstr.M{"pid": *p.Ppid})
 	}
 	if len(p.Argv) > 0 {
 		proc.set("args", p.Argv)

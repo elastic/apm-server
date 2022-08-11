@@ -123,10 +123,19 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 			out.Host.OS.Platform = strings.ToLower(truncate(v.StringVal()))
 		case semconv.AttributeOSDescription:
 			out.Host.OS.Full = truncate(v.StringVal())
+		case semconv.AttributeOSName:
+			out.Host.OS.Name = truncate(v.StringVal())
+		case semconv.AttributeOSVersion:
+			out.Host.OS.Version = truncate(v.StringVal())
 
 		// Legacy OpenCensus attributes.
 		case "opencensus.exporterversion":
 			exporterVersion = v.StringVal()
+
+		// timestamp attribute to deal with time skew on mobile
+		// devices. APM server should drop this field.
+		case "telemetry.sdk.elastic_export_timestamp":
+			// Do nothing.
 
 		default:
 			if out.Labels == nil {
@@ -151,6 +160,13 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 		out.Host.OS.Type = "macos"
 	case "aix", "hpux", "solaris":
 		out.Host.OS.Type = "unix"
+	}
+
+	switch out.Host.OS.Name {
+	case "Android":
+		out.Host.OS.Type = "android"
+	case "iOS":
+		out.Host.OS.Type = "ios"
 	}
 
 	if strings.HasPrefix(exporterVersion, "Jaeger") {

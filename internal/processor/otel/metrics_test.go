@@ -774,6 +774,11 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	events, _ := transformMetrics(t, metrics)
 	require.Len(t, events, 1)
 	assert.InDelta(t, now.Add(dataPointOffset).Unix(), events[0].Timestamp.Unix(), allowedError)
+
+	for _, e := range events {
+		// telemetry.sdk.elastic_export_timestamp should not be sent as a label.
+		assert.Empty(t, e.NumericLabels)
+	}
 }
 
 func TestMetricsLogging(t *testing.T) {
