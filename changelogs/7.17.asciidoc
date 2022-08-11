@@ -3,12 +3,23 @@
 
 https://github.com/elastic/apm-server/compare/7.16\...7.17[View commits]
 
+* <<release-notes-7.17.6>>
 * <<release-notes-7.17.5>>
 * <<release-notes-7.17.4>>
 * <<release-notes-7.17.3>>
 * <<release-notes-7.17.2>>
 * <<release-notes-7.17.1>>
 * <<release-notes-7.17.0>>
+
+[float]
+[[release-notes-7.17.6]]
+=== APM version 7.17.6
+
+https://github.com/elastic/apm-server/compare/v7.17.5\...v7.17.6[View commits]
+
+[float]
+==== Bug fixes
+- Fix a bug where an event's transaction_id is ignored if no transaction object is set {pull} 8820[8820]
 
 [float]
 [[release-notes-7.17.5]]
