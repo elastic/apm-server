@@ -8,7 +8,9 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"math"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -381,11 +383,31 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 			faasVersion:     event.FAAS.Version,
 		},
 	}
-	if len(event.GlobalLabels) > 0 {
-		key.labels = event.GlobalLabels.Clone()
+	for k, v := range event.Labels {
+		if !v.Global {
+			continue
+		}
+		if key.labels == nil {
+			key.labels = make(model.Labels)
+		}
+		if len(v.Values) > 0 {
+			key.labels.SetSlice(k, v.Values)
+		} else {
+			key.labels.Set(k, v.Value)
+		}
 	}
-	if len(event.GlobalNumericLabels) > 0 {
-		key.numericLabels = event.GlobalNumericLabels.Clone()
+	for k, v := range event.NumericLabels {
+		if !v.Global {
+			continue
+		}
+		if key.numericLabels == nil {
+			key.numericLabels = make(model.NumericLabels)
+		}
+		if len(v.Values) > 0 {
+			key.numericLabels.SetSlice(k, v.Values)
+		} else {
+			key.numericLabels.Set(k, v.Value)
+		}
 	}
 	return key
 }
@@ -545,12 +567,8 @@ func (k *transactionAggregationKey) hash() uint64 {
 	if k.faasColdstart != nil && *k.faasColdstart {
 		h.WriteString("1")
 	}
-	if len(k.labels) > 0 {
-		h.WriteString(k.labels.Flatten())
-	}
-	if len(k.numericLabels) > 0 {
-		h.WriteString(k.numericLabels.Flatten())
-	}
+	writeLabels(&h, k.labels)
+	writeNumericLabels(&h, k.numericLabels)
 	h.WriteString(k.agentName)
 	h.WriteString(k.containerID)
 	h.WriteString(k.hostname)
@@ -625,4 +643,36 @@ func transactionCount(tx *model.Transaction) float64 {
 		return tx.RepresentativeCount
 	}
 	return 1
+}
+
+func writeLabels(w io.StringWriter, l model.Labels) {
+	if len(l) == 0 {
+		return
+	}
+	for key, value := range l {
+		w.WriteString(key)
+		if value.Value != "" {
+			w.WriteString(value.Value)
+			continue
+		}
+		for _, v := range value.Values {
+			w.WriteString(v)
+		}
+	}
+}
+
+func writeNumericLabels(w io.StringWriter, l model.NumericLabels) {
+	if len(l) == 0 {
+		return
+	}
+	for key, value := range l {
+		w.WriteString(key)
+		if value.Value != 0 {
+			w.WriteString(strconv.FormatFloat(value.Value, 'e', -1, 64))
+			continue
+		}
+		for _, v := range value.Values {
+			w.WriteString(strconv.FormatFloat(v, 'e', -1, 64))
+		}
+	}
 }

@@ -1118,17 +1118,6 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 	mapToCloudModel(from.Context.Cloud, &event.Cloud)
 	mapToDroppedSpansModel(from.DroppedSpanStats, event.Transaction)
 
-	// Populate the event.GlobalLabels and GlobalNumericLabels with a clone of
-	// the current labels and numeric labels that have been decoded from the
-	// metadata. These are global labels and are used for transaction metrics
-	// that power features like Service Groups in the APM UI.
-	if len(event.Labels) > 0 {
-		event.GlobalLabels = event.Labels.Clone()
-	}
-	if len(event.NumericLabels) > 0 {
-		event.GlobalNumericLabels = event.NumericLabels.Clone()
-	}
-
 	// map transaction specific data
 
 	if from.Context.IsSet() {

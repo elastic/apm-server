@@ -18,8 +18,6 @@
 package model
 
 import (
-	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/elastic/elastic-agent-libs/mapstr"
@@ -37,6 +35,8 @@ type LabelValue struct {
 	Value string
 	// Values holds the label `[]string` value.
 	Values []string
+	// Global is `true` when the label has been decoded from the metadata.
+	Global bool
 }
 
 func (l Labels) Set(k string, v string) {
@@ -51,7 +51,7 @@ func (l Labels) SetSlice(k string, v []string) {
 func (l Labels) Clone() Labels {
 	cp := make(Labels)
 	for k, v := range l {
-		to := LabelValue{Value: v.Value}
+		to := LabelValue{Global: v.Global, Value: v.Value}
 		if len(v.Values) > 0 {
 			to.Values = make([]string, len(v.Values))
 			copy(to.Values, v.Values)
@@ -63,49 +63,35 @@ func (l Labels) Clone() Labels {
 
 // Equal returns true when the two maps of labels are equal.
 func (l Labels) Equal(labels Labels) bool {
+	if len(l) != len(labels) {
+		return false
+	}
 	for key, localV := range l {
 		v, ok := labels[key]
 		if !ok {
 			return false
 		}
-		if v.Value != localV.Value {
+		// If the slice value is set, ignore the Value field.
+		if len(v.Values) == 0 && v.Value != localV.Value {
 			return false
 		}
 		if len(v.Values) != len(localV.Values) {
 			return false
 		}
-		for _, s := range [][]string{v.Values, localV.Values} {
-			if !sort.StringsAreSorted(s) {
-				sort.Strings(s)
+		for _, value := range v.Values {
+			var found bool
+			for _, localValue := range localV.Values {
+				if value == localValue {
+					found = true
+					break
+				}
 			}
-		}
-		for i, v := range v.Values {
-			if v != localV.Values[i] {
+			if !found {
 				return false
 			}
 		}
 	}
 	return true
-}
-
-// Flatten returns a string interpretation of the labels.
-func (l Labels) Flatten() string {
-	if len(l) == 0 {
-		return ""
-	}
-
-	var strbld strings.Builder
-	for key, value := range l {
-		strbld.WriteString(key)
-		if value.Value != "" {
-			strbld.WriteString(value.Value)
-			continue
-		}
-		for _, v := range value.Values {
-			strbld.WriteString(v)
-		}
-	}
-	return strbld.String()
 }
 
 func (l Labels) fields() mapstr.M {
@@ -132,6 +118,8 @@ type NumericLabelValue struct {
 	Values []float64
 	// Value holds the label `float64` value.
 	Value float64
+	// Global is `true` when the label has been decoded from the metadata.
+	Global bool
 }
 
 func (l NumericLabels) Set(k string, v float64) {
@@ -146,7 +134,7 @@ func (l NumericLabels) SetSlice(k string, v []float64) {
 func (l NumericLabels) Clone() NumericLabels {
 	cp := make(NumericLabels)
 	for k, v := range l {
-		to := NumericLabelValue{Value: v.Value}
+		to := NumericLabelValue{Global: v.Global, Value: v.Value}
 		if len(v.Values) > 0 {
 			to.Values = make([]float64, len(v.Values))
 			copy(to.Values, v.Values)
@@ -158,49 +146,35 @@ func (l NumericLabels) Clone() NumericLabels {
 
 // Equal returns true when the two maps of labels are equal.
 func (l NumericLabels) Equal(labels NumericLabels) bool {
+	if len(l) != len(labels) {
+		return false
+	}
 	for key, localV := range l {
 		v, ok := labels[key]
 		if !ok {
 			return false
 		}
-		if v.Value != localV.Value {
+		// If the slice value is set, ignore the Value field.
+		if len(v.Values) == 0 && v.Value != localV.Value {
 			return false
 		}
 		if len(v.Values) != len(localV.Values) {
 			return false
 		}
-		for _, s := range [][]float64{v.Values, localV.Values} {
-			if !sort.Float64sAreSorted(s) {
-				sort.Float64s(s)
+		for _, value := range v.Values {
+			var found bool
+			for _, localValue := range localV.Values {
+				if value == localValue {
+					found = true
+					break
+				}
 			}
-		}
-		for i, v := range v.Values {
-			if v != localV.Values[i] {
+			if !found {
 				return false
 			}
 		}
 	}
 	return true
-}
-
-// Flatten returns a string interpretation of the labels.
-func (l NumericLabels) Flatten() string {
-	if len(l) == 0 {
-		return ""
-	}
-
-	var strbld strings.Builder
-	for key, value := range l {
-		strbld.WriteString(key)
-		if value.Value > 0 {
-			strbld.WriteString(strconv.FormatFloat(value.Value, 'e', -1, 64))
-			continue
-		}
-		for _, v := range value.Values {
-			strbld.WriteString(strconv.FormatFloat(v, 'e', -1, 64))
-		}
-	}
-	return strbld.String()
 }
 
 func (l NumericLabels) fields() mapstr.M {

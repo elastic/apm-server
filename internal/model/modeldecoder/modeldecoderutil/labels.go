@@ -26,11 +26,19 @@ import (
 	"github.com/elastic/apm-server/internal/model"
 )
 
-// LabelsFrom populates the Labels and NumericLabels.
+// LabelsFrom populates the Labels and NumericLabels for the metadata object.
 func LabelsFrom(from mapstr.M, to *model.APMEvent) {
 	to.NumericLabels = make(model.NumericLabels)
 	to.Labels = make(model.Labels)
 	MergeLabels(from, to)
+	for key, v := range to.NumericLabels {
+		v.Global = true
+		to.NumericLabels[key] = v
+	}
+	for key, v := range to.Labels {
+		v.Global = true
+		to.Labels[key] = v
+	}
 }
 
 // MergeLabels merges eventLabels into the APMEvent. This is used for

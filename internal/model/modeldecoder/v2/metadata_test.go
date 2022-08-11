@@ -200,12 +200,12 @@ func TestDecodeMetadata(t *testing.T) {
 				Service: model.Service{Name: "user-service"},
 				Agent:   model.Agent{Name: "go", Version: "1.0.0"},
 				Labels: model.Labels{
-					"a": {Value: "b"},
-					"c": {Value: "true"},
+					"a": {Global: true, Value: "b"},
+					"c": {Global: true, Value: "true"},
 				},
 				NumericLabels: model.NumericLabels{
-					"d": {Value: float64(1234)},
-					"e": {Value: float64(1234.11)},
+					"d": {Global: true, Value: float64(1234)},
+					"e": {Global: true, Value: float64(1234.11)},
 				},
 			}, out)
 

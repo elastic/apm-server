@@ -160,11 +160,11 @@ func TestAggregatorRun(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		metricset := agg.AggregateTransaction(model.APMEvent{
 			Processor: model.TransactionProcessor,
-			GlobalLabels: model.Labels{
-				"department_name": model.LabelValue{Value: "apm"},
+			Labels: model.Labels{
+				"department_name": model.LabelValue{Global: true, Value: "apm"},
 			},
-			GlobalNumericLabels: model.NumericLabels{
-				"user_id": model.NumericLabelValue{Value: 100},
+			NumericLabels: model.NumericLabels{
+				"user_id": model.NumericLabelValue{Global: true, Value: 100},
 			},
 			Transaction: &model.Transaction{
 				Name:                "T-1000",
