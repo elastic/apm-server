@@ -6,6 +6,8 @@ processors:
   - pipeline:
       name: user_agent
   - pipeline:
+      name: process_ppid
+  - pipeline:
       name: client_geoip
   - script:
       # TODO(axw) handle unit in metric descriptions.

@@ -22,7 +22,7 @@ build/LICENSE.txt: licenses/ELASTIC-LICENSE-2.0.txt
 export DOCKER_BUILDKIT=1
 
 DOCKER_BUILD_ARGS := \
-	--build-arg BUILD_DATE=$(shell date -u --iso-8601=seconds) \
+	--build-arg BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%S%z") \
 	--build-arg VCS_REF=$(GITCOMMIT)
 
 DOCKER_IMAGES := \
@@ -51,7 +51,7 @@ $(DOCKER_IMAGE_RELEASE_TARBALLS):
 $(DOCKER_IMAGE_SNAPSHOT_TARBALLS):
 $(DISTDIR)/%-$(DOCKER_IMAGE_SUFFIX): build/docker/%.txt
 	@mkdir -p $(@D)
-	docker save -o $@ $(shell cat $<)
+	docker save $(shell cat $<) | gzip -c > $@
 
 ##############################################################################
 # Java agent attacher. Fetched from Maven and verified with the committed key.

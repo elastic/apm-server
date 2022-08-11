@@ -53,8 +53,10 @@ func TestProcessTransform(t *testing.T) {
 				Executable:  executablePath,
 			},
 			Output: mapstr.M{
-				"pid":          123,
-				"ppid":         456,
+				"pid": 123,
+				"parent": mapstr.M{
+					"pid": 456,
+				},
 				"title":        processTitle,
 				"args":         argv,
 				"command_line": commandLine,

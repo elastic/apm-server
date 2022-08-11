@@ -97,14 +97,6 @@ jenkins_setup() {
   export TEMP_PYTHON_ENV=$(mktemp -d)
   export PYTHON_ENV="${TEMP_PYTHON_ENV}/python-env"
   export PATH=${PYTHON_ENV}/build/ve/linux/bin:${PATH}
-
-  # Write cached magefile binaries to workspace to ensure
-  # each run starts from a clean slate.
-  export MAGEFILE_CACHE="${WORKSPACE}/.magefile"
-
-  # Enable verbose output for Mage,
-  # to help diagnose build failures.
-  export MAGEFILE_VERBOSE=1
 }
 
 docker_setup() {
