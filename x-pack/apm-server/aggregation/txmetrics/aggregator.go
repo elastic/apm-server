@@ -526,7 +526,8 @@ type comparable struct {
 	traceRoot              bool
 }
 
-// NOTE(axw) the dimensions should be kept in sync with docs/metricset-indices.asciidoc.
+// NOTE(axw) the dimensions should be kept in sync with docs/metricset-indices.asciidoc (legacy).
+// And docs/data-model.asciidoc for the current documentation on the APM Server model.
 type transactionAggregationKey struct {
 	labels        model.Labels
 	numericLabels model.NumericLabels
