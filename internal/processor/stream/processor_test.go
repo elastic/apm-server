@@ -294,17 +294,17 @@ func TestLabelLeak(t *testing.T) {
 	// Assert first tx
 	assert.Equal(t, model.NumericLabels{
 		"time_set": {Value: 1652185276},
-		"numeric":  {Value: 1},
+		"numeric":  {Global: true, Value: 1},
 	}, txs[0].NumericLabels)
 	assert.Equal(t, model.Labels{
 		"appOs":     {Value: "Android"},
 		"email_set": {Value: "hello@hello.com"},
-		"ci_commit": {Value: "unknown"},
+		"ci_commit": {Global: true, Value: "unknown"},
 	}, txs[0].Labels)
 
 	// Assert second tx
-	assert.Equal(t, model.NumericLabels{"numeric": {Value: 1}}, txs[1].NumericLabels)
-	assert.Equal(t, model.Labels{"ci_commit": {Value: "unknown"}}, txs[1].Labels)
+	assert.Equal(t, model.NumericLabels{"numeric": {Global: true, Value: 1}}, txs[1].NumericLabels)
+	assert.Equal(t, model.Labels{"ci_commit": {Global: true, Value: "unknown"}}, txs[1].Labels)
 }
 
 func makeApproveEventsBatchProcessor(t *testing.T, name string, count *int) model.BatchProcessor {
