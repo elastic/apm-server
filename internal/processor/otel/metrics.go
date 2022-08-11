@@ -204,6 +204,9 @@ func (b *apmMetricsBuilder) accumulate(m pmetric.Metric) {
 					if key.jvmType != "" {
 						b.jvmMemory[key] = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
 					}
+				// runtime.jvm.* metrics were renamed in the OTel Java SDK v1.13.0
+				// (https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.13.0)
+				// We should remove this code some time in the future.
 				case "runtime.jvm.memory.area":
 					var key jvmMemoryKey
 					dp.Attributes().Range(func(k string, v pcommon.Value) bool {
