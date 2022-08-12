@@ -28,7 +28,7 @@ import (
 
 var benchConfig struct {
 	Count        uint
-	WarmupEvents uint
+	WarmupTime   time.Duration
 	Benchtime    time.Duration
 	RunRE        *regexp.Regexp
 	CPUProfile   string
@@ -43,7 +43,7 @@ func init() {
 	benchConfig.AgentsList = []int{1}
 
 	flag.UintVar(&benchConfig.Count, "count", 1, "run benchmarks `n` times")
-	flag.UintVar(&benchConfig.WarmupEvents, "warmup-events", 5000, "The number of events that will be used to warm up the APM Server before each benchmark")
+	flag.DurationVar(&benchConfig.WarmupTime, "warmup-time", time.Minute, "The time to warm up the APM Server for")
 	flag.DurationVar(&benchConfig.Benchtime, "benchtime", time.Second, "run each benchmark for duration `d`")
 	flag.Func("run", "run only benchmarks matching `regexp`", func(restr string) error {
 		if restr != "" {

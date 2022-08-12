@@ -101,17 +101,17 @@ variable "public_key" {
 # CI variables
 variable "BRANCH" {
   description = "Branch name or pull request for tagging purposes"
-  default = "unknown-branch"
+  default     = "unknown-branch"
 }
 
 variable "BUILD_ID" {
   description = "Build ID in the CI for tagging purposes"
-  default = "unknown-build"
+  default     = "unknown-build"
 }
 
 variable "CREATED_DATE" {
   description = "Creation date in epoch time for tagging purposes"
-  default = "unknown-date"
+  default     = "unknown-date"
 }
 
 variable "ENVIRONMENT" {

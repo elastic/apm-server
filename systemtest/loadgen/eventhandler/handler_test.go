@@ -193,34 +193,20 @@ func TestHandlerWarmUp(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		h, srv := newHandler(t, "testdata", "python*.ndjson", rate.NewLimiter(rate.Inf, 0))
 		t.Cleanup(srv.close)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 		defer cancel()
 		// Warm up with more events than  saved.
-		warmupEvents := uint(1000)
-		err := h.WarmUpServer(ctx, warmupEvents)
-		assert.NoError(t, err)
-		assert.GreaterOrEqual(t, srv.received, warmupEvents)
+		err := h.WarmUpServer(ctx)
+		assert.ErrorIs(t, err, context.DeadlineExceeded)
+		assert.Greater(t, srv.received, uint(0))
 	})
 	t.Run("cancel-before-warmup", func(t *testing.T) {
 		h, srv := newHandler(t, "testdata", "python*.ndjson", rate.NewLimiter(rate.Inf, 0))
 		t.Cleanup(srv.close)
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		cancel()
-		err := h.WarmUpServer(ctx, 10)
+		err := h.WarmUpServer(ctx)
 		assert.ErrorIs(t, err, context.Canceled)
 		assert.Equal(t, srv.received, uint(0))
-	})
-	t.Run("cancel-deadline-exceeded", func(t *testing.T) {
-		h, srv := newHandler(t, "testdata", "python*.ndjson", rate.NewLimiter(rate.Inf, 0))
-		t.Cleanup(srv.close)
-		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
-		defer cancel()
-		warmupEvents := uint(100000)
-		err := h.WarmUpServer(ctx, warmupEvents)
-		assert.ErrorIs(t, err, context.DeadlineExceeded)
-		assert.Greater(t, srv.received, uint(0))
-		// Assert that the sent events are less than the desired since the
-		// context was cancelled on timeout.
-		assert.Less(t, srv.received, warmupEvents)
 	})
 }

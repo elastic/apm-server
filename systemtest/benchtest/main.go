@@ -24,7 +24,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math"
 	"net/http"
 	"os"
 	"reflect"
@@ -196,11 +195,11 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 
 	// Warm up the APM Server with the specified `-agents`. Only the first
 	// value in the list will be used.
-	if len(agentsList) > 0 && benchConfig.WarmupEvents > 0 {
+	if len(agentsList) > 0 && benchConfig.WarmupTime.Seconds() > 0 {
 		agents := agentsList[0]
 		serverURL := loadgen.Config.ServerURL.String()
 		secretToken := loadgen.Config.SecretToken
-		if err := warmup(agents, benchConfig.WarmupEvents, serverURL, secretToken); err != nil {
+		if err := warmup(agents, benchConfig.WarmupTime, serverURL, secretToken); err != nil {
 			return fmt.Errorf("warm-up failed with %d agents: %v", agents, err)
 		}
 	}
@@ -230,22 +229,14 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 	return nil
 }
 
-func warmup(agents int, events uint, url, token string) error {
-	// Assume a base ingest rate of at least 1000 per second, and dynamically
-	// set the context timeout based on this ingest rate, or if lower, default
-	// to 15 seconds. The default 5000 / 1000 ~= 5, so the default 15 seconds
-	// will be used instead. Additionally, the number of agents is also taken
-	// into account, since each of the agents will send the number of specified
-	// events to the APM Server, increasing its load.
-	// Also account the GOMAXPROCS setting, since it will dictate the goroutines
-	// that are scheduled at any time.
-	maxEPM := loadgen.Config.MaxEPM
-	timeout := warmupTimeout(1000, events, maxEPM, agents, runtime.GOMAXPROCS(0))
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+// warmup sends events to the remote APM Server using the specified number of
+// agents for the specified duration.
+func warmup(agents int, duration time.Duration, url, token string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
 	errs := make(chan error, agents)
-	rl := loadgen.GetNewLimiter(maxEPM)
+	rl := loadgen.GetNewLimiter(loadgen.Config.MaxEPM)
 	var wg sync.WaitGroup
 	for i := 0; i < agents; i++ {
 		h, err := loadgen.NewEventHandler(`*.ndjson`, url, token, rl)
@@ -255,7 +246,7 @@ func warmup(agents int, events uint, url, token string) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := h.WarmUpServer(ctx, events); err != nil {
+			if err := h.WarmUpServer(ctx); err != nil {
 				errs <- err
 			}
 		}()
@@ -265,6 +256,9 @@ func warmup(agents int, events uint, url, token string) error {
 	var merr multierror.Errors
 	for err := range errs {
 		if err != nil && !errors.Is(err, context.DeadlineExceeded) {
+			if e, ok := err.(timeoutError); ok && e.Timeout() {
+				continue
+			}
 			merr = append(merr, err)
 		}
 	}
@@ -279,16 +273,6 @@ func warmup(agents int, events uint, url, token string) error {
 	return nil
 }
 
-// warmupTimeout calculates the timeout for the warm up.
-func warmupTimeout(ingestRate float64, events uint, epm, agents, cpus int) time.Duration {
-	if epm > 0 {
-		ingestRate = math.Min(ingestRate, float64(epm/60))
-	}
-	// Divide the number of agents (concurrency) by the number of gomaxprocs.
-	// This allows the timeout calculation to respect how much concurrent work
-	// the apmbench runner can do.
-	factor := math.Max(1, float64(agents)/float64(cpus))
-	timeoutSeconds := math.Max(float64(events)/ingestRate, 1) *
-		float64(agents*2) * factor
-	return time.Duration(math.Max(timeoutSeconds, 15)) * time.Second
+type timeoutError interface {
+	Timeout() bool
 }

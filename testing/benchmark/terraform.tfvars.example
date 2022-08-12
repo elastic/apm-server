@@ -2,16 +2,16 @@ user_name = "USER"
 
 # The ESS region where the deployment will be provisioned. See the full list
 # in https://www.elastic.co/guide/en/cloud/current/ec-reference-regions.html.
-# region = "gcp-europe-west1"
+# ess_region = "gcp-europe-west1"
 
 # The deployment template for the ESS deployment. The names will differ between
 # cloud providers (GCP, AWS and Azure have slightly different names).
 # https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html.
-# deployment_template = "gcp-compute-optimized-v2
+# deployment_template = "gcp-compute-optimized-v2"
 
 # The stack version for the ESS deployment, this can be any
 # of the available stack pack versions.
-# stack_version = "8.3.0"
+# stack_version = "8.4.0"
 
 # The size of the APM Server. It is possible to go over 8GB, and cloud
 # will provision additional instances / 8gb, for example, if 16gb is
