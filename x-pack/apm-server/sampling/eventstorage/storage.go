@@ -42,7 +42,6 @@ var (
 type Storage struct {
 	db    *badger.DB
 	codec Codec
-	ttl   time.Duration
 	limit int64
 }
 
@@ -59,11 +58,11 @@ type Codec interface {
 // limit value greater than zero. The hard limit on storage is set to 90% of
 // the limit to account for delay in the size reporting by badger.
 // https://github.com/dgraph-io/badger/blob/82b00f27e3827022082225221ae05c03f0d37620/db.go#L1302-L1319.
-func New(db *badger.DB, codec Codec, ttl time.Duration, limit int64) *Storage {
+func New(db *badger.DB, codec Codec, limit int64) *Storage {
 	if limit > 1 {
 		limit = int64(float64(limit) * storageLimitThreshold)
 	}
-	return &Storage{db: db, codec: codec, ttl: ttl, limit: limit}
+	return &Storage{db: db, codec: codec, limit: limit}
 }
 
 // NewShardedReadWriter returns a new ShardedReadWriter, for sharded
@@ -148,14 +147,14 @@ func (rw *ReadWriter) Flush() error {
 }
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
-func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
+func (rw *ReadWriter) WriteTraceSampled(ttl time.Duration, traceID string, sampled bool) error {
 	key := []byte(traceID)
 	var meta uint8 = entryMetaTraceUnsampled
 	if sampled {
 		meta = entryMetaTraceSampled
 	}
 	entry := badger.NewEntry(key[:], nil).WithMeta(meta)
-	return rw.writeEntry(entry.WithTTL(rw.s.ttl))
+	return rw.writeEntry(entry.WithTTL(ttl))
 }
 
 // IsTraceSampled reports whether traceID belongs to a trace that is sampled
@@ -177,7 +176,7 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 //
 // WriteTraceEvent may return before the write is committed to storage.
 // Call Flush to ensure the write is committed.
-func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *model.APMEvent) error {
+func (rw *ReadWriter) WriteTraceEvent(ttl time.Duration, traceID string, id string, event *model.APMEvent) error {
 	key := append(append([]byte(traceID), ':'), id...)
 	data, err := rw.s.codec.EncodeEvent(event)
 	if err != nil {
@@ -185,7 +184,7 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *model.AP
 	}
 	return rw.writeEntry(badger.NewEntry(key[:], data).
 		WithMeta(entryMetaTraceEvent).
-		WithTTL(rw.s.ttl),
+		WithTTL(ttl),
 	)
 }
 

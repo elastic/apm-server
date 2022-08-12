@@ -176,7 +176,7 @@ func getStorage(db *badger.DB, ttl time.Duration, limit int64) *eventstorage.Sha
 		eventCodec := eventstorage.JSONCodec{}
 		// TTL and storage limit are not dynamically configurable
 		storage = eventstorage.
-			New(db, eventCodec, ttl, limit).
+			New(db, eventCodec, limit).
 			NewShardedReadWriter()
 	}
 	return storage

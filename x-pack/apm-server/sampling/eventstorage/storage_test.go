@@ -35,7 +35,7 @@ func TestWriteEvents(t *testing.T) {
 func testWriteEvents(t *testing.T, numSpans int) {
 	db := newBadgerDB(t, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, 0)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, 0)
 	readWriter := store.NewShardedReadWriter()
 	defer readWriter.Close()
 
@@ -45,7 +45,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 	transaction := model.APMEvent{
 		Transaction: &model.Transaction{ID: transactionID},
 	}
-	assert.NoError(t, readWriter.WriteTraceEvent(traceID, transactionID, &transaction))
+	assert.NoError(t, readWriter.WriteTraceEvent(ttl, traceID, transactionID, &transaction))
 
 	var spanEvents []model.APMEvent
 	for i := 0; i < numSpans; i++ {
@@ -53,7 +53,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 		span := model.APMEvent{
 			Span: &model.Span{ID: spanID},
 		}
-		assert.NoError(t, readWriter.WriteTraceEvent(traceID, spanID, &span))
+		assert.NoError(t, readWriter.WriteTraceEvent(ttl, traceID, spanID, &span))
 		spanEvents = append(spanEvents, span)
 	}
 	afterWrite := time.Now()
@@ -105,13 +105,13 @@ func testWriteEvents(t *testing.T, numSpans int) {
 func TestWriteTraceSampled(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, 0)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, 0)
 	readWriter := store.NewShardedReadWriter()
 	defer readWriter.Close()
 
 	before := time.Now()
-	assert.NoError(t, readWriter.WriteTraceSampled("sampled_trace_id", true))
-	assert.NoError(t, readWriter.WriteTraceSampled("unsampled_trace_id", false))
+	assert.NoError(t, readWriter.WriteTraceSampled(ttl, "sampled_trace_id", true))
+	assert.NoError(t, readWriter.WriteTraceSampled(ttl, "unsampled_trace_id", false))
 
 	// We can read our writes without flushing.
 	isSampled, err := readWriter.IsTraceSampled("sampled_trace_id")
@@ -154,8 +154,7 @@ func TestWriteTraceSampled(t *testing.T) {
 
 func TestReadTraceEvents(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
-	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, 0)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, 0)
 
 	traceID := [...]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
@@ -201,8 +200,7 @@ func TestReadTraceEvents(t *testing.T) {
 
 func TestReadTraceEventsDecodeError(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
-	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, 0)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, 0)
 
 	traceID := [...]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
@@ -224,8 +222,7 @@ func TestReadTraceEventsDecodeError(t *testing.T) {
 
 func TestIsTraceSampled(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
-	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, 0)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, 0)
 
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
 		if err := txn.SetEntry(badger.NewEntry([]byte("sampled_trace_id"), nil).WithMeta('s')); err != nil {

@@ -46,6 +46,7 @@ type Processor struct {
 	rateLimitedLogger *logp.Logger
 	groups            *traceGroups
 
+	eventStore   *wrappedRW
 	eventMetrics *eventMetrics // heap-allocated for 64-bit alignment
 
 	stopMu   sync.Mutex
@@ -76,6 +77,7 @@ func NewProcessor(config Config) (*Processor, error) {
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
 		groups:            newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
+		eventStore:        newWrappedRW(config.Storage, config.TTL),
 		eventMetrics:      &eventMetrics{},
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
@@ -208,7 +210,7 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 		return true, false, nil
 	}
 
-	traceSampled, err := p.config.Storage.IsTraceSampled(event.Trace.ID)
+	traceSampled, err := p.eventStore.IsTraceSampled(event.Trace.ID)
 	switch err {
 	case nil:
 		// Tail-sampling decision has been made: report the transaction
@@ -228,7 +230,7 @@ func (p *Processor) processTransaction(event *model.APMEvent) (report, stored bo
 	if event.Parent.ID != "" {
 		// Non-root transaction: write to local storage while we wait
 		// for a sampling decision.
-		return false, true, p.config.Storage.WriteTraceEvent(
+		return false, true, p.eventStore.WriteTraceEvent(
 			event.Trace.ID, event.Transaction.ID, event,
 		)
 	}
@@ -258,25 +260,21 @@ sampling policies without service name specified.
 		// This is a local optimisation only. To avoid creating network
 		// traffic and load on Elasticsearch for uninteresting root
 		// transactions, we do not propagate this to other APM Servers.
-		return false, false, p.config.Storage.WriteTraceSampled(event.Trace.ID, false)
+		return false, false, p.eventStore.WriteTraceSampled(event.Trace.ID, false)
 	}
 
 	// The root transaction was admitted to the sampling reservoir, so we
 	// can proceed to write the transaction to storage; we may index it later,
 	// after finalising the sampling decision.
-	return false, true, p.config.Storage.WriteTraceEvent(
-		event.Trace.ID, event.Transaction.ID, event,
-	)
+	return false, true, p.eventStore.WriteTraceEvent(event.Trace.ID, event.Transaction.ID, event)
 }
 
 func (p *Processor) processSpan(event *model.APMEvent) (report, stored bool, _ error) {
-	traceSampled, err := p.config.Storage.IsTraceSampled(event.Trace.ID)
+	traceSampled, err := p.eventStore.IsTraceSampled(event.Trace.ID)
 	if err != nil {
 		if err == eventstorage.ErrNotFound {
 			// Tail-sampling decision has not yet been made, write event to local storage.
-			return false, true, p.config.Storage.WriteTraceEvent(
-				event.Trace.ID, event.Span.ID, event,
-			)
+			return false, true, p.eventStore.WriteTraceEvent(event.Trace.ID, event.Span.ID, event)
 		}
 		return false, false, err
 	}
@@ -450,13 +448,13 @@ func (p *Processor) Run() error {
 				remoteDecision = true
 			case traceID = <-localSampledTraceIDs:
 			}
-			if err := p.config.Storage.WriteTraceSampled(traceID, true); err != nil {
+			if err := p.eventStore.WriteTraceSampled(traceID, true); err != nil {
 				p.rateLimitedLogger.Warnf(
 					"received error writing sampled trace: %s", err,
 				)
 			}
 			var events model.Batch
-			if err := p.config.Storage.ReadTraceEvents(traceID, &events); err != nil {
+			if err := p.eventStore.ReadTraceEvents(traceID, &events); err != nil {
 				p.rateLimitedLogger.Warnf(
 					"received error reading trace events: %s", err,
 				)
@@ -474,11 +472,11 @@ func (p *Processor) Run() error {
 					for _, event := range events {
 						switch event.Processor {
 						case model.TransactionProcessor:
-							if err := p.config.Storage.DeleteTraceEvent(event.Trace.ID, event.Transaction.ID); err != nil {
+							if err := p.eventStore.DeleteTraceEvent(event.Trace.ID, event.Transaction.ID); err != nil {
 								return errors.Wrap(err, "failed to delete transaction from local storage")
 							}
 						case model.SpanProcessor:
-							if err := p.config.Storage.DeleteTraceEvent(event.Trace.ID, event.Span.ID); err != nil {
+							if err := p.eventStore.DeleteTraceEvent(event.Trace.ID, event.Span.ID); err != nil {
 								return errors.Wrap(err, "failed to delete span from local storage")
 							}
 						}
@@ -545,4 +543,41 @@ func sendTraceIDs(ctx context.Context, out chan<- string, traceIDs []string) err
 		}
 	}
 	return nil
+}
+
+type wrappedRW struct {
+	rw  *eventstorage.ShardedReadWriter
+	ttl time.Duration
+}
+
+func newWrappedRW(rw *eventstorage.ShardedReadWriter, ttl time.Duration) *wrappedRW {
+	return &wrappedRW{
+		rw:  rw,
+		ttl: ttl,
+	}
+}
+
+// ReadTraceEvents calls Writer.ReadTraceEvents, using a sharded, locked, Writer.
+func (s *wrappedRW) ReadTraceEvents(traceID string, out *model.Batch) error {
+	return s.rw.ReadTraceEvents(traceID, out)
+}
+
+// WriteTraceEvent calls Writer.WriteTraceEvent, using a sharded, locked, Writer.
+func (s *wrappedRW) WriteTraceEvent(traceID, id string, event *model.APMEvent) error {
+	return s.rw.WriteTraceEvent(s.ttl, traceID, id, event)
+}
+
+// WriteTraceSampled calls Writer.WriteTraceSampled, using a sharded, locked, Writer.
+func (s *wrappedRW) WriteTraceSampled(traceID string, sampled bool) error {
+	return s.rw.WriteTraceSampled(s.ttl, traceID, sampled)
+}
+
+// IsTraceSampled calls Writer.IsTraceSampled, using a sharded, locked, Writer.
+func (s *wrappedRW) IsTraceSampled(traceID string) (bool, error) {
+	return s.rw.IsTraceSampled(traceID)
+}
+
+// DeleteTraceEvent calls Writer.DeleteTraceEvent, using a sharded, locked, Writer.
+func (s *wrappedRW) DeleteTraceEvent(traceID, id string) error {
+	return s.rw.DeleteTraceEvent(traceID, id)
 }

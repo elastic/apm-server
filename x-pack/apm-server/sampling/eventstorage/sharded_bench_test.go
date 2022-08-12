@@ -17,7 +17,7 @@ import (
 func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 	db := newBadgerDB(b, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, 0)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, 0)
 	sharded := store.NewShardedReadWriter()
 	defer sharded.Close()
 
@@ -27,7 +27,7 @@ func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 			Transaction: &model.Transaction{ID: traceID},
 		}
 		for pb.Next() {
-			if err := sharded.WriteTraceEvent(traceID, traceID, transaction); err != nil {
+			if err := sharded.WriteTraceEvent(ttl, traceID, traceID, transaction); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -37,7 +37,7 @@ func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 func BenchmarkShardedWriteTransactionContended(b *testing.B) {
 	db := newBadgerDB(b, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, 0)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, 0)
 	sharded := store.NewShardedReadWriter()
 	defer sharded.Close()
 
@@ -51,7 +51,7 @@ func BenchmarkShardedWriteTransactionContended(b *testing.B) {
 			Transaction: &model.Transaction{ID: transactionID},
 		}
 		for pb.Next() {
-			if err := sharded.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
+			if err := sharded.WriteTraceEvent(ttl, traceID, transactionID, transaction); err != nil {
 				b.Fatal(err)
 			}
 		}

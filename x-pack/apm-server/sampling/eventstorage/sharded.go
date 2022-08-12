@@ -7,6 +7,7 @@ package eventstorage
 import (
 	"runtime"
 	"sync"
+	"time"
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/hashicorp/go-multierror"
@@ -57,13 +58,13 @@ func (s *ShardedReadWriter) ReadTraceEvents(traceID string, out *model.Batch) er
 }
 
 // WriteTraceEvent calls Writer.WriteTraceEvent, using a sharded, locked, Writer.
-func (s *ShardedReadWriter) WriteTraceEvent(traceID, id string, event *model.APMEvent) error {
-	return s.getWriter(traceID).WriteTraceEvent(traceID, id, event)
+func (s *ShardedReadWriter) WriteTraceEvent(ttl time.Duration, traceID, id string, event *model.APMEvent) error {
+	return s.getWriter(traceID).WriteTraceEvent(ttl, traceID, id, event)
 }
 
 // WriteTraceSampled calls Writer.WriteTraceSampled, using a sharded, locked, Writer.
-func (s *ShardedReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
-	return s.getWriter(traceID).WriteTraceSampled(traceID, sampled)
+func (s *ShardedReadWriter) WriteTraceSampled(ttl time.Duration, traceID string, sampled bool) error {
+	return s.getWriter(traceID).WriteTraceSampled(ttl, traceID, sampled)
 }
 
 // IsTraceSampled calls Writer.IsTraceSampled, using a sharded, locked, Writer.
@@ -110,16 +111,16 @@ func (rw *lockedReadWriter) ReadTraceEvents(traceID string, out *model.Batch) er
 	return rw.rw.ReadTraceEvents(traceID, out)
 }
 
-func (rw *lockedReadWriter) WriteTraceEvent(traceID, id string, event *model.APMEvent) error {
+func (rw *lockedReadWriter) WriteTraceEvent(ttl time.Duration, traceID, id string, event *model.APMEvent) error {
 	rw.mu.Lock()
 	defer rw.mu.Unlock()
-	return rw.rw.WriteTraceEvent(traceID, id, event)
+	return rw.rw.WriteTraceEvent(ttl, traceID, id, event)
 }
 
-func (rw *lockedReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
+func (rw *lockedReadWriter) WriteTraceSampled(ttl time.Duration, traceID string, sampled bool) error {
 	rw.mu.Lock()
 	defer rw.mu.Unlock()
-	return rw.rw.WriteTraceSampled(traceID, sampled)
+	return rw.rw.WriteTraceSampled(ttl, traceID, sampled)
 }
 
 func (rw *lockedReadWriter) IsTraceSampled(traceID string) (bool, error) {

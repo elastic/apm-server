@@ -21,7 +21,7 @@ func BenchmarkWriteTransaction(b *testing.B) {
 	test := func(b *testing.B, codec eventstorage.Codec, bigTX bool) {
 		db := newBadgerDB(b, badgerOptions)
 		ttl := time.Minute
-		store := eventstorage.New(db, codec, ttl, 0)
+		store := eventstorage.New(db, codec, 0)
 		readWriter := store.NewReadWriter()
 		defer readWriter.Close()
 
@@ -40,7 +40,7 @@ func BenchmarkWriteTransaction(b *testing.B) {
 
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
+			if err := readWriter.WriteTraceEvent(ttl, traceID, transactionID, transaction); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -85,7 +85,7 @@ func BenchmarkReadEvents(b *testing.B) {
 			b.Run(fmt.Sprintf("%d events", count), func(b *testing.B) {
 				db := newBadgerDB(b, badgerOptions)
 				ttl := time.Minute
-				store := eventstorage.New(db, codec, ttl, 0)
+				store := eventstorage.New(db, codec, 0)
 				readWriter := store.NewReadWriter()
 				defer readWriter.Close()
 
@@ -101,7 +101,7 @@ func BenchmarkReadEvents(b *testing.B) {
 							},
 						}
 					}
-					if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
+					if err := readWriter.WriteTraceEvent(ttl, traceID, transactionID, transaction); err != nil {
 						b.Fatal(err)
 					}
 				}
@@ -162,14 +162,14 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 	// Test with varying numbers of events in the trace.
 	db := newBadgerDB(b, badgerOptions)
 	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, 0)
+	store := eventstorage.New(db, eventstorage.JSONCodec{}, 0)
 	readWriter := store.NewReadWriter()
 	defer readWriter.Close()
 
-	if err := readWriter.WriteTraceSampled(sampledTraceUUID.String(), true); err != nil {
+	if err := readWriter.WriteTraceSampled(ttl, sampledTraceUUID.String(), true); err != nil {
 		b.Fatal(err)
 	}
-	if err := readWriter.WriteTraceSampled(unsampledTraceUUID.String(), false); err != nil {
+	if err := readWriter.WriteTraceSampled(ttl, unsampledTraceUUID.String(), false); err != nil {
 		b.Fatal(err)
 	}
 
