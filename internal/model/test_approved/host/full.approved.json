@@ -8,8 +8,10 @@
     "name": "custom hostname",
     "os": {
         "full": "Mac OS Mojave",
+        "name": "macOS",
         "platform": "osx",
-        "type": "macos"
+        "type": "macos",
+        "version": "10.14.6"
     },
     "type": "t2.medium"
 }
