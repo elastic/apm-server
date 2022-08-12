@@ -16,10 +16,13 @@ import (
 
 func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 	db := newBadgerDB(b, badgerOptions)
-	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, 0)
+	store := eventstorage.New(db, eventstorage.JSONCodec{})
 	sharded := store.NewShardedReadWriter()
 	defer sharded.Close()
+	wOpts := eventstorage.WriterOpts{
+		TTL:                 time.Minute,
+		StorageLimitInBytes: 0,
+	}
 
 	b.RunParallel(func(pb *testing.PB) {
 		traceID := uuid.Must(uuid.NewV4()).String()
@@ -27,7 +30,7 @@ func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 			Transaction: &model.Transaction{ID: traceID},
 		}
 		for pb.Next() {
-			if err := sharded.WriteTraceEvent(ttl, traceID, traceID, transaction); err != nil {
+			if err := sharded.WriteTraceEvent(traceID, traceID, transaction, wOpts); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -36,10 +39,13 @@ func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 
 func BenchmarkShardedWriteTransactionContended(b *testing.B) {
 	db := newBadgerDB(b, badgerOptions)
-	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, 0)
+	store := eventstorage.New(db, eventstorage.JSONCodec{})
 	sharded := store.NewShardedReadWriter()
 	defer sharded.Close()
+	wOpts := eventstorage.WriterOpts{
+		TTL:                 time.Minute,
+		StorageLimitInBytes: 0,
+	}
 
 	// Use a single trace ID, causing all events to go through
 	// the same sharded writer, contending for a single lock.
@@ -51,7 +57,7 @@ func BenchmarkShardedWriteTransactionContended(b *testing.B) {
 			Transaction: &model.Transaction{ID: transactionID},
 		}
 		for pb.Next() {
-			if err := sharded.WriteTraceEvent(ttl, traceID, transactionID, transaction); err != nil {
+			if err := sharded.WriteTraceEvent(traceID, transactionID, transaction, wOpts); err != nil {
 				b.Fatal(err)
 			}
 		}

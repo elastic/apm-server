@@ -77,7 +77,7 @@ func NewProcessor(config Config) (*Processor, error) {
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
 		groups:            newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
-		eventStore:        newWrappedRW(config.Storage, config.TTL),
+		eventStore:        newWrappedRW(config.Storage, config.TTL, int64(config.StorageLimit)),
 		eventMetrics:      &eventMetrics{},
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
@@ -545,39 +545,50 @@ func sendTraceIDs(ctx context.Context, out chan<- string, traceIDs []string) err
 	return nil
 }
 
+const (
+	storageLimitThreshold = 0.90 // Allow 90% of the quota to be used.
+)
+
+// wrappedRW wraps configurable write options for global ShardedReadWriter
 type wrappedRW struct {
-	rw  *eventstorage.ShardedReadWriter
-	ttl time.Duration
+	rw         *eventstorage.ShardedReadWriter
+	writerOpts eventstorage.WriterOpts
 }
 
-func newWrappedRW(rw *eventstorage.ShardedReadWriter, ttl time.Duration) *wrappedRW {
+func newWrappedRW(rw *eventstorage.ShardedReadWriter, ttl time.Duration, limit int64) *wrappedRW {
+	if limit > 1 {
+		limit = int64(float64(limit) * storageLimitThreshold)
+	}
 	return &wrappedRW{
-		rw:  rw,
-		ttl: ttl,
+		rw: rw,
+		writerOpts: eventstorage.WriterOpts{
+			TTL:                 ttl,
+			StorageLimitInBytes: limit,
+		},
 	}
 }
 
-// ReadTraceEvents calls Writer.ReadTraceEvents, using a sharded, locked, Writer.
+// ReadTraceEvents calls ShardedReadWriter.ReadTraceEvents
 func (s *wrappedRW) ReadTraceEvents(traceID string, out *model.Batch) error {
 	return s.rw.ReadTraceEvents(traceID, out)
 }
 
-// WriteTraceEvent calls Writer.WriteTraceEvent, using a sharded, locked, Writer.
+// WriteTraceEvents calls ShardedReadWriter.WriteTraceEvents using the configured WriterOpts
 func (s *wrappedRW) WriteTraceEvent(traceID, id string, event *model.APMEvent) error {
-	return s.rw.WriteTraceEvent(s.ttl, traceID, id, event)
+	return s.rw.WriteTraceEvent(traceID, id, event, s.writerOpts)
 }
 
-// WriteTraceSampled calls Writer.WriteTraceSampled, using a sharded, locked, Writer.
+// WriteTraceSampled calls ShardedReadWriter.WriteTraceSampled using the configured WriterOpts
 func (s *wrappedRW) WriteTraceSampled(traceID string, sampled bool) error {
-	return s.rw.WriteTraceSampled(s.ttl, traceID, sampled)
+	return s.rw.WriteTraceSampled(traceID, sampled, s.writerOpts)
 }
 
-// IsTraceSampled calls Writer.IsTraceSampled, using a sharded, locked, Writer.
+// IsTraceSampled calls ShardedReadWriter.IsTraceSampled
 func (s *wrappedRW) IsTraceSampled(traceID string) (bool, error) {
 	return s.rw.IsTraceSampled(traceID)
 }
 
-// DeleteTraceEvent calls Writer.DeleteTraceEvent, using a sharded, locked, Writer.
+// DeleteTraceEvent calls ShardedReadWriter.DeleteTraceEvent
 func (s *wrappedRW) DeleteTraceEvent(traceID, id string) error {
 	return s.rw.DeleteTraceEvent(traceID, id)
 }

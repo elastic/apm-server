@@ -8,7 +8,6 @@ import (
 	"context"
 	"os"
 	"sync"
-	"time"
 
 	"github.com/dgraph-io/badger/v2"
 	"github.com/hashicorp/go-multierror"
@@ -112,7 +111,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get Badger database")
 	}
-	readWriters := getStorage(badgerDB, tailSamplingConfig.TTL, int64(tailSamplingConfig.StorageLimitParsed))
+	readWriters := getStorage(badgerDB)
 
 	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
 	for i, in := range tailSamplingConfig.Policies {
@@ -169,15 +168,12 @@ func getBadgerDB(storageDir string) (*badger.DB, error) {
 	return badgerDB, nil
 }
 
-func getStorage(db *badger.DB, ttl time.Duration, limit int64) *eventstorage.ShardedReadWriter {
+func getStorage(db *badger.DB) *eventstorage.ShardedReadWriter {
 	storageMu.Lock()
 	defer storageMu.Unlock()
 	if storage == nil {
 		eventCodec := eventstorage.JSONCodec{}
-		// TTL and storage limit are not dynamically configurable
-		storage = eventstorage.
-			New(db, eventCodec, limit).
-			NewShardedReadWriter()
+		storage = eventstorage.New(db, eventCodec).NewShardedReadWriter()
 	}
 	return storage
 }
@@ -252,7 +248,8 @@ func closeBadger() error {
 
 func closeStorage() (err error) {
 	if storage != nil {
-		err = storage.Flush()
+		// Force flush without limit consideration
+		err = storage.Flush(0)
 		storage.Close()
 	}
 	return

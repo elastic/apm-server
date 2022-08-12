@@ -60,25 +60,28 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// subsequent events in the trace will be reported immediately.
 	trace1 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f11"}
-	ttl := time.Minute
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, 0)
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{})
 	writer := storage.NewReadWriter()
-	assert.NoError(t, writer.WriteTraceSampled(ttl, trace1.ID, true))
-	assert.NoError(t, writer.Flush())
+	wOpts := eventstorage.WriterOpts{
+		TTL:                 time.Minute,
+		StorageLimitInBytes: 0,
+	}
+	assert.NoError(t, writer.WriteTraceSampled(trace1.ID, true, wOpts))
+	assert.NoError(t, writer.Flush(wOpts.StorageLimitInBytes))
 	writer.Close()
 
-	ttlExpireImmediately := -1 * time.Minute
-	storage = eventstorage.New(config.DB, eventstorage.JSONCodec{}, 0)
+	wOpts.TTL = -1
+	storage = eventstorage.New(config.DB, eventstorage.JSONCodec{})
 	writer = storage.NewReadWriter()
-	assert.NoError(t, writer.WriteTraceSampled(ttlExpireImmediately, trace2.ID, true))
-	assert.NoError(t, writer.Flush())
+	assert.NoError(t, writer.WriteTraceSampled(trace2.ID, true, wOpts))
+	assert.NoError(t, writer.Flush(wOpts.StorageLimitInBytes))
 	writer.Close()
 
 	// Overwrite global storage to allow the transactions created by
 	// sharded read writers to view the explicitly sampled traces so far
 	eventCodec := eventstorage.JSONCodec{}
 	config.Storage = eventstorage.
-		New(config.DB, eventCodec, 0).
+		New(config.DB, eventCodec).
 		NewShardedReadWriter()
 	t.Cleanup(func() { config.Storage.Close() })
 
@@ -138,7 +141,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
+	assert.NoError(t, config.Storage.Flush(0))
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -245,8 +248,8 @@ func TestProcessLocalTailSampling(t *testing.T) {
 
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, 0)
+	assert.NoError(t, config.Storage.Flush(0))
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{})
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -301,8 +304,8 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, 0)
+	assert.NoError(t, config.Storage.Flush(0))
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{})
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -455,7 +458,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
+	assert.NoError(t, config.Storage.Flush(0))
 	assert.Empty(t, published) // remote decisions don't get republished
 
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
@@ -469,7 +472,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	assert.Equal(t, trace1Events, events)
 
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{}, 0)
+	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{})
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -583,10 +586,10 @@ func TestStorageGC(t *testing.T) {
 	// sharded read writers to view the explicitly sampled traces so far
 	eventCodec := eventstorage.JSONCodec{}
 	config.Storage = eventstorage.
-		New(config.DB, eventCodec, 0).
+		New(config.DB, eventCodec).
 		NewShardedReadWriter()
 	t.Cleanup(func() {
-		config.Storage.Flush()
+		config.Storage.Flush(0)
 		config.Storage.Close()
 	})
 
@@ -686,7 +689,7 @@ func TestStorageLimit(t *testing.T) {
 	// Write 5K span events and close the DB to persist to disk the storage
 	// size and assert that none are reported immediately.
 	writeBatch(5000, config, func(b model.Batch) { assert.Empty(t, b) })
-	assert.NoError(t, config.Storage.Flush())
+	assert.NoError(t, config.Storage.Flush(0))
 	config.Storage.Close()
 	assert.NoError(t, config.DB.Close())
 
@@ -696,18 +699,10 @@ func TestStorageLimit(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { config.DB.Close() })
 
-	config.StorageLimit = 1024 // Set the storage limit to 1024 bytes.
-	// Overwrite global storage to allow the transactions created by
-	// sharded read writers to view the explicitly sampled traces so far
-	eventCodec := eventstorage.JSONCodec{}
-	config.Storage = eventstorage.
-		New(config.DB, eventCodec, int64(config.StorageLimit)).
-		NewShardedReadWriter()
-	t.Cleanup(func() { config.Storage.Close() })
-
 	lsm, vlog := config.DB.Size()
 	assert.GreaterOrEqual(t, lsm+vlog, int64(1024))
 
+	config.StorageLimit = 1024 // Set the storage limit to 1024 bytes.
 	// Create a massive 150K span batch (per CPU) to trigger the badger error
 	// Transaction too big, causing the ProcessBatch to report the some traces
 	// immediately.
@@ -776,11 +771,9 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.NoError(t, processor.ProcessBatch(context.Background(), &batch))
 	assert.Empty(t, batch)
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
+	assert.NoError(t, config.Storage.Flush(0))
 
-	reader := eventstorage.
-		New(config.DB, eventstorage.JSONCodec{}, 0).
-		NewReadWriter()
+	reader := eventstorage.New(config.DB, eventstorage.JSONCodec{}).NewReadWriter()
 
 	var count int
 	for i := 0; i < totalTraces; i++ {
@@ -802,9 +795,7 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 
 	ttl := 30 * time.Minute
 	eventCodec := eventstorage.JSONCodec{}
-	storage := eventstorage.
-		New(badgerDB, eventCodec, 0).
-		NewShardedReadWriter()
+	storage := eventstorage.New(badgerDB, eventCodec).NewShardedReadWriter()
 	tb.Cleanup(func() { storage.Close() })
 
 	return sampling.Config{
