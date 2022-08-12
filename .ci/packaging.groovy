@@ -155,9 +155,14 @@ pipeline {
                   sh(label: 'legacy: create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
                 }
 
+                // Build a preview package which includes the Git commit timestamp,
+                // and upload it to to package storage v2. Note, we intentionally do
+                // not sign or upload the "release" package, as it does not include
+                // a timestamp, and will break storage v2's immutability requirement.
                 sh(label: 'v2: make build-package-snapshot', script: 'make build-package-snapshot')
+                packageStoragePublish('build/packages', 'apm-*-preview-*.zip')
+
                 archiveArtifacts(allowEmptyArchive: false, artifacts: 'build/packages/*.zip')
-                packageStoragePublish('build/packages')
               }
             }
           }
@@ -382,34 +387,34 @@ def smartGitCheckout() {
   }
 }
 
-def packageStoragePublish(builtPackagesPath) {
-  def unpublished = signUnpublishedArtifactsWithElastic(builtPackagesPath)
-  if (!unpublished) {
-    echo 'Package has been already published'
+def packageStoragePublish(builtPackagesPath, glob) {
+  def unpublished = signUnpublishedArtifactsWithElastic(builtPackagesPath, glob)
+  if (unpublished.isEmpty()) {
+    echo 'All packages have been published already'
     return
   }
-  uploadUnpublishedToPackageStorage(builtPackagesPath)
+  uploadUnpublishedToPackageStorage(builtPackagesPath, unpublished)
 }
 
-def signUnpublishedArtifactsWithElastic(builtPackagesPath) {
-  def unpublished = false
+def signUnpublishedArtifactsWithElastic(builtPackagesPath, glob) {
+  def unpublished = []
   dir(builtPackagesPath) {
-    findFiles()?.findAll{ it.name.endsWith('.zip') }?.collect{ it.name }?.sort()?.each {
+    findFiles(glob: glob)?.collect{ it.name }?.sort()?.each {
       def packageZip = it
       if (isAlreadyPublished(packageZip)) {
         return
       }
 
-      unpublished = true
+      unpublished.add(packageZip)
       googleStorageUpload(bucket: env.INFRA_SIGNING_BUCKET_ARTIFACTS_PATH,
         credentialsId: env.INTERNAL_CI_JOB_GCS_CREDENTIALS,
-        pattern: '*.zip',
+        pattern: packageZip,
         sharedPublicly: false,
         showInline: true)
     }
   }
 
-  if (!unpublished) {
+  if (!unpublished.isEmpty()) {
     return unpublished
   }
 
@@ -430,20 +435,20 @@ def signUnpublishedArtifactsWithElastic(builtPackagesPath) {
   return unpublished
 }
 
-def uploadUnpublishedToPackageStorage(builtPackagesPath) {
+def uploadUnpublishedToPackageStorage(builtPackagesPath, packageZips) {
   def dryRun = env.BRANCH_NAME != 'main'
   if (dryRun) {
-    echo "Dry run: apm won't be published"
+    packageZips.each {
+      echo "Dry run: not publishing ${it}"
+    }
+    return
   }
 
   dir(builtPackagesPath) {
     withGCPEnv(secret: env.PACKAGE_STORAGE_UPLOADER_GCP_SERVICE_ACCOUNT) {
       withCredentials([string(credentialsId: env.PACKAGE_STORAGE_UPLOADER_CREDENTIALS, variable: 'TOKEN')]) {
-        findFiles()?.findAll{ it.name.endsWith('.zip') }?.collect{ it.name }?.sort()?.each {
+        packageZips.each {
           def packageZip = it
-          if (isAlreadyPublished(packageZip)) {
-            return
-          }
 
           sh(label: 'Upload package .zip file', script: "gsutil cp ${packageZip} ${env.PACKAGE_STORAGE_INTERNAL_BUCKET_QUEUE_PUBLISHING_PATH}/")
           sh(label: 'Upload package .sig file', script: "gsutil cp ${packageZip}.sig ${env.PACKAGE_STORAGE_INTERNAL_BUCKET_QUEUE_PUBLISHING_PATH}/")
