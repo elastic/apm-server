@@ -22,3 +22,4 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 ==== Added
 - Set a default User-Agent field value when making HTTP requests {pull}8758[8758]
 - OTLP support updated to opentelemetry-collector v0.56.0 {pull}8765[8765]
+- Map additional fields from mobile agents {pull}8784[8784]

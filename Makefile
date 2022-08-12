@@ -101,7 +101,7 @@ check-full: update check staticcheck check-docker-compose
 check-approvals: $(APPROVALS)
 	@$(APPROVALS)
 
-check: check-fmt check-headers check-git-diff
+check: check-fmt check-headers check-git-diff check-package
 
 .PHONY: check-git-diff
 check-git-diff:
@@ -147,6 +147,24 @@ get-version:
 	@echo $(APM_SERVER_VERSION)
 
 ##############################################################################
+# Integration package generation.
+##############################################################################
+
+build-package: build/packages/apm-$(APM_SERVER_VERSION).zip
+build-package-snapshot: build/packages/apm-$(APM_SERVER_VERSION)-preview-$(GITCOMMITTIMESTAMPUNIX).zip
+build/packages/apm-$(APM_SERVER_VERSION).zip: build/apmpackage
+build/packages/apm-$(APM_SERVER_VERSION)-preview-$(GITCOMMITTIMESTAMPUNIX).zip: build/apmpackage-snapshot
+build/packages/apm-%.zip: $(ELASTICPACKAGE)
+	cd $(filter build/apmpackage%, $^) && $(ELASTICPACKAGE) build
+
+.PHONY: build/apmpackage build/apmpackage-snapshot
+build/apmpackage: PACKAGE_VERSION=$(APM_SERVER_VERSION)
+build/apmpackage-snapshot: PACKAGE_VERSION=$(APM_SERVER_VERSION)-preview-$(GITCOMMITTIMESTAMPUNIX)
+build/apmpackage build/apmpackage-snapshot:
+	@mkdir -p $(@D) && rm -fr $@
+	@$(GO) run ./apmpackage/cmd/genpackage -o $@ -version=$(PACKAGE_VERSION)
+
+##############################################################################
 # Documentation.
 ##############################################################################
 
@@ -181,7 +199,7 @@ update-beats: update-beats-module update
 
 .PHONY: update-beats-module
 update-beats-module:
-	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
+	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy -compat=1.17
 	cp -f $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version .go-version
 	find . -maxdepth 3 -name Dockerfile -exec sed -i'.bck' -E -e "s#(FROM golang):[0-9]+\.[0-9]+\.[0-9]+#\1:$$(cat .go-version)#g" {} \;
 	sed -i'.bck' -E -e "s#(:go-version): [0-9]+\.[0-9]+\.[0-9]+#\1: $$(cat .go-version)#g" docs/version.asciidoc
@@ -215,20 +233,8 @@ endif
 check-docker-compose: $(PYTHON_BIN)
 	@PATH=$(PYTHON_BIN):$(PATH) ./script/check_docker_compose.sh $(BEATS_VERSION)
 
-.PHONY: build-package
-build-package: $(ELASTICPACKAGE)
-	$(MAKE) build-package-with-version APM_SERVER_BUILD_VERSION=$(APM_SERVER_VERSION)
-
-.PHONY: build-package-snapshot
-build-package-snapshot: $(ELASTICPACKAGE)
-	$(MAKE) build-package-with-version APM_SERVER_BUILD_VERSION=$(APM_SERVER_VERSION)-preview-$(shell date +%s)
-
-.PHONY: build-package-with-version
-build-package-with-version: $(ELASTICPACKAGE)
-	@rm -fr ./build/packages/apm/* ./build/packages/apm-*.zip ./build/apmpackage
-	@$(GO) run ./apmpackage/cmd/genpackage -o ./build/apmpackage -version=$(APM_SERVER_BUILD_VERSION)
-	@(cd ./build/apmpackage && $(ELASTICPACKAGE) format && $(ELASTICPACKAGE) build -v && $(ELASTICPACKAGE) lint)
-
+check-package: build-package $(ELASTICPACKAGE)
+	@(cd build/apmpackage && $(ELASTICPACKAGE) format --fail-fast && $(ELASTICPACKAGE) lint)
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
 check-fmt: check-gofmt check-autopep8

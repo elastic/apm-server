@@ -15,6 +15,7 @@ https://github.com/elastic/apm-server/compare/8.3\...8.4[View commits]
 ==== Bug fixes
 - Fix race for deducing destination service fields for OTel bridge {pull}8363[8363]
 - Fix processors receiving events even after the server has stopped {pull}8388[8388]
+- Fix a bug where an event's transaction_id is ignored if no transaction object is set {pull} 8820[8820]
 
 [float]
 ==== Intake API Changes

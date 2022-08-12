@@ -39,15 +39,15 @@ const (
 )
 
 var (
-	force            bool
-	reinstallPackage bool
-	keep             bool
-	background       bool
-	policyName       string
-	namespace        string
-	containerName    string
-	arch             string
-	vars             = make(varsFlag)
+	force         bool
+	keep          bool
+	background    bool
+	initOnly      bool
+	policyName    string
+	namespace     string
+	containerName string
+	arch          string
+	vars          = make(varsFlag)
 )
 
 func init() {
@@ -56,9 +56,9 @@ func init() {
 	flag.StringVar(&namespace, "namespace", "default", "Agent policy namespace")
 	flag.StringVar(&containerName, "name", "", "Docker container name to use, defaults to random")
 	flag.BoolVar(&force, "f", false, "Force agent policy creation, deleting existing policy if found")
-	flag.BoolVar(&reinstallPackage, "reinstall", true, "Reinstall APM integration package")
 	flag.BoolVar(&keep, "keep", false, "If true, agent policy and agent will not be destroyed on exit")
 	flag.BoolVar(&background, "d", false, "If true, runapm will exit after the agent container has been started")
+	flag.BoolVar(&initOnly, "init", false, "If true, runapm will exit after initializing Fleet and installing the APM package")
 	flag.Var(vars, "var", "Define a package var (k=v), with values being YAML-encoded; can be specified more than once")
 }
 
@@ -109,8 +109,11 @@ func Main() error {
 			}
 		}
 	}
-	if err := systemtest.InitFleetPackage(reinstallPackage); err != nil {
+	if err := systemtest.InitFleetPackage(); err != nil {
 		return err
+	}
+	if initOnly {
+		return nil
 	}
 
 	log.Println("Creating Elastic Agent policy")

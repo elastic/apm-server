@@ -387,6 +387,8 @@ func TranslateTransaction(
 			// miscellaneous
 			case "type":
 				event.Transaction.Type = stringval
+			case "session.id":
+				event.Session.ID = stringval
 			case semconv.AttributeServiceVersion:
 				// NOTE support for sending service.version as a span tag
 				// is deprecated, and will be removed in 8.0. Instrumentation
@@ -615,6 +617,10 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				event.Network.Carrier.Name = stringval
 			case attributeNetworkICC:
 				event.Network.Carrier.ICC = stringval
+
+			// session.*
+			case "session.id":
+				event.Session.ID = stringval
 
 			// messaging.*
 			case "message_bus.destination", semconv.AttributeMessagingDestination:

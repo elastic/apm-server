@@ -23,6 +23,12 @@ import (
 
 // OS holds information about the operating system.
 type OS struct {
+	// Name holds the operating system name, e.g. Android.
+	Name string
+
+	// Version holds the operating system version, e.g. 15.5.0.
+	Version string
+
 	// Platform holds the operating system platform, e.g. centos, ubuntu, windows.
 	Platform string
 
@@ -38,6 +44,8 @@ type OS struct {
 
 func (o *OS) fields() mapstr.M {
 	var fields mapStr
+	fields.maybeSetString("name", o.Name)
+	fields.maybeSetString("version", o.Version)
 	fields.maybeSetString("platform", o.Platform)
 	fields.maybeSetString("full", o.Full)
 	fields.maybeSetString("type", o.Type)
