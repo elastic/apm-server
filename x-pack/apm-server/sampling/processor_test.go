@@ -581,12 +581,8 @@ func TestStorageGC(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { badgerDB.Close() })
 	config.DB = badgerDB
-
-	// Overwrite global storage to allow the transactions created by
-	// sharded read writers to view the explicitly sampled traces so far
-	eventCodec := eventstorage.JSONCodec{}
 	config.Storage = eventstorage.
-		New(config.DB, eventCodec).
+		New(config.DB, eventstorage.JSONCodec{}).
 		NewShardedReadWriter()
 	t.Cleanup(func() {
 		config.Storage.Flush(0)
@@ -793,7 +789,6 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 	require.NoError(tb, err)
 	tb.Cleanup(func() { badgerDB.Close() })
 
-	ttl := 30 * time.Minute
 	eventCodec := eventstorage.JSONCodec{}
 	storage := eventstorage.New(badgerDB, eventCodec).NewShardedReadWriter()
 	tb.Cleanup(func() { storage.Close() })
@@ -822,7 +817,7 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 			Storage:           storage,
 			StorageDir:        tempdir,
 			StorageGCInterval: time.Second,
-			TTL:               ttl,
+			TTL:               30 * time.Minute,
 			StorageLimit:      0, // No storage limit.
 		},
 	}
