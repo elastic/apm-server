@@ -182,16 +182,13 @@ testing/infra/terraform/modules/%/README.md: .FORCE
 .PHONY: .FORCE
 .FORCE:
 
-.PHONY: update-beats-docs
-update-beats-docs: $(PYTHON)
-	@$(PYTHON) script/copy-docs.py
-
 ##############################################################################
 # Beats synchronisation.
 ##############################################################################
 
 BEATS_VERSION?=main
 BEATS_MODULE:=$(shell $(GO) list -m -f {{.Path}} all | grep github.com/elastic/beats)
+BEATS_MODULE_DIR=$(shell $(GO) list -m -f {{.Dir}} $(BEATS_MODULE))
 
 .PHONY: update-beats
 update-beats: update-beats-module update
@@ -200,9 +197,13 @@ update-beats: update-beats-module update
 .PHONY: update-beats-module
 update-beats-module:
 	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy -compat=1.17
-	cp -f $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version .go-version
+	cp -f $(BEATS_MODULE_DIR)/.go-version .go-version
 	find . -maxdepth 3 -name Dockerfile -exec sed -i'.bck' -E -e "s#(FROM golang):[0-9]+\.[0-9]+\.[0-9]+#\1:$$(cat .go-version)#g" {} \;
 	sed -i'.bck' -E -e "s#(:go-version): [0-9]+\.[0-9]+\.[0-9]+#\1: $$(cat .go-version)#g" docs/version.asciidoc
+
+.PHONY: update-beats-docs
+update-beats-docs:
+	rsync -v -r --existing $(BEATS_MODULE_DIR)/libbeat/ ./docs/legacy/copied-from-beats
 
 ##############################################################################
 # Linting, style-checking, license header checks, etc.
