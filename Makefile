@@ -130,10 +130,6 @@ go-generate:
 	@bash script/vendor_otel.sh
 	@cd cmd/intake-receiver && APM_SERVER_VERSION=$(APM_SERVER_VERSION) $(GO) generate .
 
-notice: NOTICE.txt
-NOTICE.txt: $(PYTHON) go.mod tools/go.mod
-	@$(PYTHON) script/generate_notice.py ./cmd/apm-server ./x-pack/apm-server
-
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
@@ -188,7 +184,7 @@ testing/infra/terraform/modules/%/README.md: .FORCE
 
 BEATS_VERSION?=main
 BEATS_MODULE:=$(shell $(GO) list -m -f {{.Path}} all | grep github.com/elastic/beats)
-BEATS_MODULE_DIR=$(shell $(GO) list -m -f {{.Dir}} $(BEATS_MODULE))
+BEATS_MODULE_DIR:=$(shell $(GO) list -m -f {{.Dir}} $(BEATS_MODULE))
 
 .PHONY: update-beats
 update-beats: update-beats-module update
@@ -250,6 +246,24 @@ check-autopep8: $(PYTHON_BIN)
 autopep8: $(PYTHON_BIN)
 	@echo "fmt - autopep8: Formatting Python code"
 	@PATH=$(PYTHON_BIN):$(PATH) sh script/autopep8_all.sh --in-place
+
+##############################################################################
+# NOTICE.txt & dependencies.csv generation.
+##############################################################################
+
+MODULE_DEPS=$(sort $(shell \
+  $(GO) list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+
+notice: NOTICE.txt
+NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
+	$(GO) list -m -json $(MODULE_DEPS) | go run -modfile=tools/go.mod go.elastic.co/go-licence-detector \
+		-includeIndirect \
+		-overrides tools/notice/overrides.json \
+		-rules tools/notice/rules.json \
+		-noticeTemplate tools/notice/NOTICE.txt.tmpl \
+		-noticeOut NOTICE.txt \
+		-depsTemplate tools/notice/dependencies.csv.tmpl \
+		-depsOut build/dependencies-$(APM_SERVER_VERSION).csv
 
 ##############################################################################
 # Rules for creating and installing build tools.
