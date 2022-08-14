@@ -617,6 +617,10 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		"type": "used",
 		"pool": "eden",
 	})
+	addInt64Gauge("process.runtime.jvm.memory.limit", 20000, map[string]interface{}{
+		"type": "heap",
+		"pool": "G1 Eden Space",
+	})
 
 	events, _ := transformMetrics(t, metrics)
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
@@ -708,6 +712,33 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 				},
 			},
 		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"type": {Value: "heap"}, "pool": {Value: "G1 Eden Space"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"process.runtime.jvm.memory.limit": {
+					Type:  "gauge",
+					Value: 20000,
+				},
+			},
+		},
+	}, {
+		Agent:     agent,
+		Service:   service,
+		Labels:    model.Labels{"name": {Value: "G1 Eden Space"}},
+		Timestamp: timestamp,
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Samples: map[string]model.MetricsetSample{
+				"jvm.memory.heap.pool.max": {
+					Value: 20000,
+				},
+			},
+		},
 	}}, events)
 }
 
@@ -743,6 +774,11 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	events, _ := transformMetrics(t, metrics)
 	require.Len(t, events, 1)
 	assert.InDelta(t, now.Add(dataPointOffset).Unix(), events[0].Timestamp.Unix(), allowedError)
+
+	for _, e := range events {
+		// telemetry.sdk.elastic_export_timestamp should not be sent as a label.
+		assert.Empty(t, e.NumericLabels)
+	}
 }
 
 func TestMetricsLogging(t *testing.T) {

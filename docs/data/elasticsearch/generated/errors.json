@@ -54,8 +54,10 @@
                 "node",
                 "server.js"
             ],
+            "parent": {
+                "pid": 7788
+            },
             "pid": 1234,
-            "ppid": 7788,
             "title": "node"
         },
         "processor": {
@@ -348,7 +350,9 @@
                 "server.js"
             ],
             "pid": 1234,
-            "ppid": 7788,
+            "parent": {
+                "pid": 7788
+            },
             "title": "node"
         },
         "processor": {
@@ -460,7 +464,9 @@
                 "server.js"
             ],
             "pid": 1234,
-            "ppid": 7788,
+            "parent": {
+                "pid": 7788
+            },
             "title": "node"
         },
         "processor": {
@@ -549,7 +555,9 @@
                 "server.js"
             ],
             "pid": 1234,
-            "ppid": 7788,
+            "parent": {
+                "pid": 7788
+            },
             "title": "node"
         },
         "processor": {

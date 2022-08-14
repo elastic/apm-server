@@ -5,6 +5,7 @@ pipeline {
   agent none
   environment {
     REPO = 'apm-server'
+    REPO_BUILD_TAG = "${env.REPO}/${env.BUILD_TAG}/packaging"
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
     SLACK_CHANNEL = '#apm-server'
     NOTIFY_TO = 'build-apm+apm-server@elastic.co'
@@ -16,6 +17,19 @@ pipeline {
     COMMIT = "${params?.COMMIT}"
     JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
     DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
+
+    // Signing
+    JOB_SIGNING_CREDENTIALS = 'sign-artifacts-with-gpg-job'
+    INFRA_SIGNING_BUCKET_NAME = 'internal-ci-artifacts'
+    INFRA_SIGNING_BUCKET_SIGNED_ARTIFACTS_SUBFOLDER = "${env.REPO_BUILD_TAG}/signed-artifacts"
+    INFRA_SIGNING_BUCKET_ARTIFACTS_PATH = "gs://${env.INFRA_SIGNING_BUCKET_NAME}/${env.REPO_BUILD_TAG}"
+    INFRA_SIGNING_BUCKET_SIGNED_ARTIFACTS_PATH = "gs://${env.INFRA_SIGNING_BUCKET_NAME}/${env.INFRA_SIGNING_BUCKET_SIGNED_ARTIFACTS_SUBFOLDER}"
+
+    // Publishing
+    INTERNAL_CI_JOB_GCS_CREDENTIALS = 'internal-ci-gcs-plugin'
+    PACKAGE_STORAGE_UPLOADER_CREDENTIALS = 'upload-package-to-package-storage'
+    PACKAGE_STORAGE_UPLOADER_GCP_SERVICE_ACCOUNT = 'secret/gce/elastic-bekitzur/service-account/package-storage-uploader'
+    PACKAGE_STORAGE_INTERNAL_BUCKET_QUEUE_PUBLISHING_PATH = "gs://elastic-bekitzur-package-storage-internal/queue-publishing/${env.REPO_BUILD_TAG}"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -126,18 +140,29 @@ pipeline {
           when {
             allOf {
               // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
-              changeset pattern: '(cmd/version.go|apmpackage/.*)', comparator: 'REGEXP'
+              changeset pattern: '(internal/version/.*|apmpackage/.*)', comparator: 'REGEXP'
               not { changeRequest() }
             }
           }
           steps {
             withGithubNotify(context: 'apmpackage') {
               runWithGo() {
-                sh(script: 'make build-package', label: 'make build-package')
-                sh(label: 'package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
+                sh(script: 'make build-package', label: 'legacy: make build-package')
+
+                // Deprecated: Package Storage v1 will be archived
+                sh(label: 'legacy: package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
                 withGitContext() {
-                  sh(label: 'create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
+                  sh(label: 'legacy: create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
                 }
+
+                // Build a preview package which includes the Git commit timestamp,
+                // and upload it to to package storage v2. Note, we intentionally do
+                // not sign or upload the "release" package, as it does not include
+                // a timestamp, and will break storage v2's immutability requirement.
+                sh(label: 'v2: make build-package-snapshot', script: 'make build-package-snapshot')
+                packageStoragePublish('build/packages', 'apm-*-preview-*.zip')
+
+                archiveArtifacts(allowEmptyArchive: false, artifacts: 'build/packages/*.zip')
               }
             }
           }
@@ -360,4 +385,92 @@ def smartGitCheckout() {
                 githubNotifyFirstTimeContributor: false,
                 shallow: false)
   }
+}
+
+def packageStoragePublish(builtPackagesPath, glob) {
+  def unpublished = signUnpublishedArtifactsWithElastic(builtPackagesPath, glob)
+  if (unpublished.isEmpty()) {
+    echo 'All packages have been published already'
+    return
+  }
+  uploadUnpublishedToPackageStorage(builtPackagesPath, unpublished)
+}
+
+def signUnpublishedArtifactsWithElastic(builtPackagesPath, glob) {
+  def unpublished = []
+  dir(builtPackagesPath) {
+    findFiles(glob: glob)?.collect{ it.name }?.sort()?.each {
+      def packageZip = it
+      if (isAlreadyPublished(packageZip)) {
+        return
+      }
+
+      unpublished.add(packageZip)
+      googleStorageUpload(bucket: env.INFRA_SIGNING_BUCKET_ARTIFACTS_PATH,
+        credentialsId: env.INTERNAL_CI_JOB_GCS_CREDENTIALS,
+        pattern: packageZip,
+        sharedPublicly: false,
+        showInline: true)
+    }
+  }
+
+  if (!unpublished.isEmpty()) {
+    return unpublished
+  }
+
+  withCredentials([string(credentialsId: env.JOB_SIGNING_CREDENTIALS, variable: 'TOKEN')]) {
+    triggerRemoteJob(auth: CredentialsAuth(credentials: 'local-readonly-api-token'),
+      job: 'https://internal-ci.elastic.co/job/elastic+unified-release+master+sign-artifacts-with-gpg',
+      token: TOKEN,
+      parameters: "gcs_input_path=${env.INFRA_SIGNING_BUCKET_ARTIFACTS_PATH}",
+      useCrumbCache: false,
+      useJobInfoCache: false)
+  }
+  googleStorageDownload(bucketUri: "${env.INFRA_SIGNING_BUCKET_SIGNED_ARTIFACTS_PATH}/*",
+    credentialsId: env.INTERNAL_CI_JOB_GCS_CREDENTIALS,
+    localDirectory: builtPackagesPath + '/',
+    pathPrefix: "${env.INFRA_SIGNING_BUCKET_SIGNED_ARTIFACTS_SUBFOLDER}")
+    sh(label: 'Rename .asc to .sig', script: 'for f in ' + builtPackagesPath + '/*.asc; do mv "$f" "${f%.asc}.sig"; done')
+  archiveArtifacts(allowEmptyArchive: false, artifacts: "${builtPackagesPath}/*.sig")
+  return unpublished
+}
+
+def uploadUnpublishedToPackageStorage(builtPackagesPath, packageZips) {
+  def dryRun = env.BRANCH_NAME != 'main'
+  if (dryRun) {
+    packageZips.each {
+      echo "Dry run: not publishing ${it}"
+    }
+    return
+  }
+
+  dir(builtPackagesPath) {
+    withGCPEnv(secret: env.PACKAGE_STORAGE_UPLOADER_GCP_SERVICE_ACCOUNT) {
+      withCredentials([string(credentialsId: env.PACKAGE_STORAGE_UPLOADER_CREDENTIALS, variable: 'TOKEN')]) {
+        packageZips.each {
+          def packageZip = it
+
+          sh(label: 'Upload package .zip file', script: "gsutil cp ${packageZip} ${env.PACKAGE_STORAGE_INTERNAL_BUCKET_QUEUE_PUBLISHING_PATH}/")
+          sh(label: 'Upload package .sig file', script: "gsutil cp ${packageZip}.sig ${env.PACKAGE_STORAGE_INTERNAL_BUCKET_QUEUE_PUBLISHING_PATH}/")
+
+          triggerRemoteJob(auth: CredentialsAuth(credentials: 'local-readonly-api-token'),
+            job: 'https://internal-ci.elastic.co/job/package_storage/job/publishing-job-remote',
+            token: TOKEN,
+            parameters: """
+              gs_package_build_zip_path=${env.PACKAGE_STORAGE_INTERNAL_BUCKET_QUEUE_PUBLISHING_PATH}/${packageZip}
+              gs_package_signature_path=${env.PACKAGE_STORAGE_INTERNAL_BUCKET_QUEUE_PUBLISHING_PATH}/${packageZip}.sig
+              dry_run=false""",
+              useCrumbCache: true,
+              useJobInfoCache: true)
+        }
+      }
+    }
+  }
+}
+
+def isAlreadyPublished(packageZip) {
+  def responseCode = httpRequest(method: "HEAD",
+    url: "https://package-storage.elastic.co/artifacts/packages/${packageZip}",
+    response_code_only: true)
+  return responseCode == 200
 }

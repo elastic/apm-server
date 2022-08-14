@@ -256,6 +256,18 @@ func (c *Client) InstallPackage(name, version string) error {
 	return consumeResponse(resp, nil)
 }
 
+// InstallPackageByUpload uploads and installs a package zip.
+func (c *Client) InstallPackageByUpload(body io.ReadCloser) error {
+	req := c.newFleetRequest("POST", "/epm/packages", body)
+	req.Header.Set("Content-Type", "application/zip")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return consumeResponse(resp, nil)
+}
+
 // DeletePackage deletes (uninstalls) the package with the given name and version.
 func (c *Client) DeletePackage(name, version string) error {
 	req := c.newFleetRequest("DELETE", "/epm/packages/"+name+"-"+version, nil)
