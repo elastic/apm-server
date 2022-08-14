@@ -37,7 +37,7 @@ APM_SERVER_BINARIES:= \
 LDFLAGS := \
 	-s \
 	-X github.com/elastic/beats/v7/libbeat/version.commit=$(GITCOMMIT) \
-	-X github.com/elastic/beats/v7/libbeat/version.buildTime=$(GITCOMMITTIMESTAMP) \
+	-X github.com/elastic/beats/v7/libbeat/version.buildTime=$(GITCOMMITTIMESTAMP)
 
 # Rule to build apm-server binaries, using Go's native cross-compilation.
 #
@@ -227,25 +227,20 @@ ifndef CHECK_HEADERS_DISABLED
 endif
 
 .PHONY: check-docker-compose
-check-docker-compose: $(PYTHON_BIN)
-	@PATH=$(PYTHON_BIN):$(PATH) ./script/check_docker_compose.sh $(BEATS_VERSION)
+check-docker-compose:
+	./script/check_docker_compose.sh $(BEATS_VERSION)
 
 check-package: build-package $(ELASTICPACKAGE)
 	@(cd build/apmpackage && $(ELASTICPACKAGE) format --fail-fast && $(ELASTICPACKAGE) lint)
 
-.PHONY: check-gofmt check-autopep8 gofmt autopep8
-check-fmt: check-gofmt check-autopep8
-fmt: gofmt autopep8
+.PHONY: check-gofmt gofmt
+check-fmt: check-gofmt
+fmt: gofmt
 check-gofmt: $(GOIMPORTS)
 	@PATH=$(GOOSBUILD):$(PATH) sh script/check_goimports.sh
 gofmt: $(GOIMPORTS) add-headers
 	@echo "fmt - goimports: Formatting Go code"
 	@PATH=$(GOOSBUILD):$(PATH) GOIMPORTSFLAGS=-w sh script/goimports.sh
-check-autopep8: $(PYTHON_BIN)
-	@PATH=$(PYTHON_BIN):$(PATH) sh script/autopep8_all.sh --diff --exit-code
-autopep8: $(PYTHON_BIN)
-	@echo "fmt - autopep8: Formatting Python code"
-	@PATH=$(PYTHON_BIN):$(PATH) sh script/autopep8_all.sh --in-place
 
 ##############################################################################
 # NOTICE.txt & dependencies.csv generation.
@@ -270,16 +265,15 @@ NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
 ##############################################################################
 
 # PYTHON_EXE may be set in the environment to override the Python binary used
-# for creating the virtual environment.
+# for creating the virtual environment, or for executing simple scripts that
+# do not require a virtual environment.
 PYTHON_EXE?=python3
 
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
-$(PYTHON_BIN)/activate: script/requirements.txt
+$(PYTHON_BIN)/activate:
 	@$(PYTHON_EXE) -m venv $(PYTHON_VENV_DIR)
 	@$(PYTHON_BIN)/pip install -U pip wheel
-	@$(PYTHON_BIN)/pip install -Ur script/requirements.txt
-	@touch $@
 
 ##############################################################################
 # Rally -- Elasticsearch performance benchmarking.
