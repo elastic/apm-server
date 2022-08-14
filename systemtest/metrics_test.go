@@ -170,7 +170,7 @@ func TestApplicationMetrics(t *testing.T) {
 			"full_name": "a.b.c",
 			"mapping": map[string]interface{}{
 				"c": map[string]interface{}{
-					"type": "long",
+					"type": "float",
 				},
 			},
 		},
