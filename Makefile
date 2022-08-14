@@ -269,6 +269,7 @@ NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
 # do not require a virtual environment.
 PYTHON_EXE?=python3
 
+venv: $(PYTHON_BIN)
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
 $(PYTHON_BIN)/activate:
