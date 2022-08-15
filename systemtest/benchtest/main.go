@@ -24,7 +24,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"reflect"
@@ -35,7 +34,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/joeshaw/multierror"
 	"go.elastic.co/apm/v2/stacktrace"
 	"golang.org/x/time/rate"
 
@@ -236,7 +234,6 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
-	errs := make(chan error, agents)
 	rl := loadgen.GetNewLimiter(loadgen.Config.MaxEPM)
 	var wg sync.WaitGroup
 	for i := 0; i < agents; i++ {
@@ -247,28 +244,10 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := h.WarmUpServer(ctx); err != nil {
-				errs <- err
-			}
+			h.WarmUpServer(ctx)
 		}()
 	}
 	wg.Wait()
-	close(errs)
-	var merr multierror.Errors
-	for err := range errs {
-		if err != nil && !errors.Is(err, context.DeadlineExceeded) {
-			// TODO(marclop): Remove after we upgrade to Go 1.19.
-			// https://go.dev/doc/go1.19#net.
-			var e net.Error
-			if errors.As(err, &e) {
-				continue
-			}
-			merr = append(merr, err)
-		}
-	}
-	if err := merr.Err(); err != nil {
-		return err
-	}
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
 	defer cancel()
 	if err := expvar.WaitUntilServerInactive(ctx, url); err != nil {
