@@ -193,9 +193,6 @@ PACKAGE_SUFFIXES := \
 	i686.rpm \
 	aarch64.rpm
 
-build/dependencies-$(APM_SERVER_VERSION).csv: $(PYTHON) go.mod
-	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
-
 build/dependencies-$(APM_SERVER_VERSION)-SNAPSHOT.csv: build/dependencies-$(APM_SERVER_VERSION).csv
 	cp $< $@
 
