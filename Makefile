@@ -218,10 +218,6 @@ STATICCHECK_CHECKS?=all,-ST1000
 staticcheck: $(STATICCHECK)
 	$(STATICCHECK) -checks=$(STATICCHECK_CHECKS) ./...
 
-.PHONY: check-changelogs
-check-changelogs: $(PYTHON)
-	$(PYTHON) script/check_changelogs.py
-
 .PHONY: check-headers
 check-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED

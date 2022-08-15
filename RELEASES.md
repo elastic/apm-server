@@ -20,7 +20,6 @@ For patch releases, only the version on the existing major and minor version bra
       Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc)
       If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file.
     * Patch version: Add new section to existing release notes. ([Sample PR](https://github.com/elastic/apm-server/pull/2064/files))
-  * The [`check_changelogs.py`](script/check_changelogs.py) script is run as a PR check, ensuring that changelog changes are synced across branches.
 
 ## Day after Feature Freeze
 * For minor releases, cut a new release branch from `main` and update them.
