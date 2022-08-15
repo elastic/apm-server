@@ -93,6 +93,6 @@ to specify the full object of images that is defined in `variables.tf`: `docker_
 
 ### Set APM index shards
 
-By default, the APM indices shiop with `number_of_shards` set to `1`. To override this behavior, you can modify the
+By default, the APM indices ship with `number_of_shards` set to `1`. To override this behavior, you can modify the
 `apm_shards` variable and individually set the setting for each of the component templates. See an example of how to
 do that in `terraform.tfvars.example`.
