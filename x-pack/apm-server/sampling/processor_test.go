@@ -582,6 +582,7 @@ func TestStorageGC(t *testing.T) {
 	config.Storage = eventstorage.
 		New(config.DB, eventstorage.JSONCodec{}).
 		NewShardedReadWriter()
+	t.Cleanup(func() { config.Storage.Close() })
 
 	writeBatch := func(n int) {
 		config.StorageGCInterval = time.Minute // effectively disable
