@@ -41,8 +41,8 @@ func Test_warmup(t *testing.T) {
 		duration time.Duration
 	}
 	cases := []testCase{
-		{1, time.Second},
-		{10, time.Second},
+		{1, 2 * time.Second},
+		{4, 2 * time.Second},
 	}
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("%d_agent_%s_events", c.agents, c.duration.String()), func(t *testing.T) {
@@ -51,6 +51,7 @@ func Test_warmup(t *testing.T) {
 				if r.URL.Path == "/debug/vars" {
 					// Report idle APM Server.
 					w.Write([]byte(`{"libbeat.output.events.active":0}`))
+					return
 				}
 
 				if !strings.HasPrefix(r.URL.Path, "/intake") {
@@ -79,6 +80,10 @@ func Test_warmup(t *testing.T) {
 					} else {
 						readMeta = true
 					}
+				}
+				if scanner.Err() != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					return
 				}
 				atomic.AddUint64(&received, localReceive)
 				w.WriteHeader(http.StatusAccepted)

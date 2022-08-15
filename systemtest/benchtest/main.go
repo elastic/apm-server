@@ -24,6 +24,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"reflect"
@@ -256,7 +257,10 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 	var merr multierror.Errors
 	for err := range errs {
 		if err != nil && !errors.Is(err, context.DeadlineExceeded) {
-			if e, ok := err.(timeoutError); ok && e.Timeout() {
+			// TODO(marclop): Remove after we upgrade to Go 1.19.
+			// https://go.dev/doc/go1.19#net.
+			var e net.Error
+			if errors.As(err, &e) {
 				continue
 			}
 			merr = append(merr, err)
@@ -271,8 +275,4 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 		return fmt.Errorf("received error waiting for server inactive: %w", err)
 	}
 	return nil
-}
-
-type timeoutError interface {
-	Timeout() bool
 }
