@@ -228,3 +228,8 @@ $  go run main.go -arch amd64
 2022/05/19 11:08:04 Built /Users/marclop/repos/elastic/apm-server/build/apm-server-linux
 2022/05/19 11:09:07 Built image elastic-agent-systemtest:8.3.0-e4aa1f83-SNAPSHOT (amd64)
 ```
+
+### Running an Elastic Cloud deployment with a locally built APM Server and APM integration package
+
+It is possible for Elastic employees to create an Elastic Cloud deployment with a locally built
+APM Server binary and APM integration package. See [`testing/cloud`](./testing/cloud) for instructions.

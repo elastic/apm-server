@@ -1,0 +1,4 @@
+ARG KIBANA_IMAGE # e.g. docker.elastic.co/cloud-release/kibana-cloud:8.5.0-7dbc10f8-SNAPSHOT
+
+FROM ${KIBANA_IMAGE}
+COPY --chown=kibana apm-*.zip x-pack/plugins/fleet/target/bundled_packages

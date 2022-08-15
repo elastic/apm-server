@@ -1,3 +1,0 @@
-autopep8
-requests
-docker-compose==1.29.2
