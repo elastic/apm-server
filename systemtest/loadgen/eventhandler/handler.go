@@ -167,18 +167,17 @@ func (h *Handler) sendBatch(ctx context.Context, b batch) (uint, error) {
 }
 
 // WarmUpServer will "warm up" the remote APM Server by sending events until
-// the configured threshold is met.
-func (h *Handler) WarmUpServer(ctx context.Context, threshold uint) error {
-	var events uint
+// the context is cancelled.
+func (h *Handler) WarmUpServer(ctx context.Context) error {
 	for {
 		for _, batch := range h.batches {
-			n, err := h.sendBatch(ctx, batch)
-			if err != nil {
-				return err
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
 			}
-			events += n
-			if events >= threshold {
-				return nil
+			if _, err := h.sendBatch(ctx, batch); err != nil {
+				return err
 			}
 		}
 	}
