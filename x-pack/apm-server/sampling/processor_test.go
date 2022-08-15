@@ -70,7 +70,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	assert.NoError(t, writer.Flush(wOpts.StorageLimitInBytes))
 	writer.Close()
 
-	wOpts.TTL = -1
+	wOpts.TTL = -1 // expire immediately
 	storage = eventstorage.New(config.DB, eventstorage.JSONCodec{})
 	writer = storage.NewReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace2.ID, true, wOpts))
