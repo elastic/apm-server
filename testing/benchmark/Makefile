@@ -32,7 +32,10 @@ export AWS_PROFILE ?= default
 .PHONY: all
 all: $(SSH_KEY) terraform.tfvars apmbench auth apply
 
-include $(shell git rev-parse --show-toplevel)/go.mk
+MAKEFILE_PATH:=$(abspath $(lastword ${MAKEFILE_LIST}))
+MAKEFILE_DIR:=$(dir ${MAKEFILE_PATH})
+
+include ${MAKEFILE_DIR}/../../go.mk
 
 .PHONY: auth
 auth: init-aws-profile

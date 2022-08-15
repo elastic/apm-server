@@ -37,7 +37,7 @@ APM_SERVER_BINARIES:= \
 LDFLAGS := \
 	-s \
 	-X github.com/elastic/beats/v7/libbeat/version.commit=$(GITCOMMIT) \
-	-X github.com/elastic/beats/v7/libbeat/version.buildTime=$(GITCOMMITTIMESTAMP) \
+	-X github.com/elastic/beats/v7/libbeat/version.buildTime=$(GITCOMMITTIMESTAMP)
 
 # Rule to build apm-server binaries, using Go's native cross-compilation.
 #
@@ -130,10 +130,6 @@ go-generate:
 	@bash script/vendor_otel.sh
 	@cd cmd/intake-receiver && APM_SERVER_VERSION=$(APM_SERVER_VERSION) $(GO) generate .
 
-notice: NOTICE.txt
-NOTICE.txt: $(PYTHON) go.mod tools/go.mod
-	@$(PYTHON) script/generate_notice.py ./cmd/apm-server ./x-pack/apm-server
-
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
@@ -182,16 +178,13 @@ testing/infra/terraform/modules/%/README.md: .FORCE
 .PHONY: .FORCE
 .FORCE:
 
-.PHONY: update-beats-docs
-update-beats-docs: $(PYTHON)
-	@$(PYTHON) script/copy-docs.py
-
 ##############################################################################
 # Beats synchronisation.
 ##############################################################################
 
 BEATS_VERSION?=main
 BEATS_MODULE:=$(shell $(GO) list -m -f {{.Path}} all | grep github.com/elastic/beats)
+BEATS_MODULE_DIR:=$(shell $(GO) list -m -f {{.Dir}} $(BEATS_MODULE))
 
 .PHONY: update-beats
 update-beats: update-beats-module update
@@ -200,9 +193,13 @@ update-beats: update-beats-module update
 .PHONY: update-beats-module
 update-beats-module:
 	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy -compat=1.17
-	cp -f $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version .go-version
+	cp -f $(BEATS_MODULE_DIR)/.go-version .go-version
 	find . -maxdepth 3 -name Dockerfile -exec sed -i'.bck' -E -e "s#(FROM golang):[0-9]+\.[0-9]+\.[0-9]+#\1:$$(cat .go-version)#g" {} \;
 	sed -i'.bck' -E -e "s#(:go-version): [0-9]+\.[0-9]+\.[0-9]+#\1: $$(cat .go-version)#g" docs/version.asciidoc
+
+.PHONY: update-beats-docs
+update-beats-docs:
+	rsync -v -r --existing $(BEATS_MODULE_DIR)/libbeat/ ./docs/legacy/copied-from-beats
 
 ##############################################################################
 # Linting, style-checking, license header checks, etc.
@@ -218,10 +215,6 @@ STATICCHECK_CHECKS?=all,-ST1000
 staticcheck: $(STATICCHECK)
 	$(STATICCHECK) -checks=$(STATICCHECK_CHECKS) ./...
 
-.PHONY: check-changelogs
-check-changelogs: $(PYTHON)
-	$(PYTHON) script/check_changelogs.py
-
 .PHONY: check-headers
 check-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
@@ -230,41 +223,54 @@ ifndef CHECK_HEADERS_DISABLED
 endif
 
 .PHONY: check-docker-compose
-check-docker-compose: $(PYTHON_BIN)
-	@PATH=$(PYTHON_BIN):$(PATH) ./script/check_docker_compose.sh $(BEATS_VERSION)
+check-docker-compose:
+	./script/check_docker_compose.sh $(BEATS_VERSION)
 
 check-package: build-package $(ELASTICPACKAGE)
 	@(cd build/apmpackage && $(ELASTICPACKAGE) format --fail-fast && $(ELASTICPACKAGE) lint)
 
-.PHONY: check-gofmt check-autopep8 gofmt autopep8
-check-fmt: check-gofmt check-autopep8
-fmt: gofmt autopep8
+.PHONY: check-gofmt gofmt
+check-fmt: check-gofmt
+fmt: gofmt
 check-gofmt: $(GOIMPORTS)
 	@PATH=$(GOOSBUILD):$(PATH) sh script/check_goimports.sh
 gofmt: $(GOIMPORTS) add-headers
 	@echo "fmt - goimports: Formatting Go code"
 	@PATH=$(GOOSBUILD):$(PATH) GOIMPORTSFLAGS=-w sh script/goimports.sh
-check-autopep8: $(PYTHON_BIN)
-	@PATH=$(PYTHON_BIN):$(PATH) sh script/autopep8_all.sh --diff --exit-code
-autopep8: $(PYTHON_BIN)
-	@echo "fmt - autopep8: Formatting Python code"
-	@PATH=$(PYTHON_BIN):$(PATH) sh script/autopep8_all.sh --in-place
+
+##############################################################################
+# NOTICE.txt & dependencies.csv generation.
+##############################################################################
+
+MODULE_DEPS=$(sort $(shell \
+  $(GO) list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+
+notice: NOTICE.txt
+NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
+	$(GO) list -m -json $(MODULE_DEPS) | go run -modfile=tools/go.mod go.elastic.co/go-licence-detector \
+		-includeIndirect \
+		-overrides tools/notice/overrides.json \
+		-rules tools/notice/rules.json \
+		-noticeTemplate tools/notice/NOTICE.txt.tmpl \
+		-noticeOut NOTICE.txt \
+		-depsTemplate tools/notice/dependencies.csv.tmpl \
+		-depsOut build/dependencies-$(APM_SERVER_VERSION).csv
 
 ##############################################################################
 # Rules for creating and installing build tools.
 ##############################################################################
 
 # PYTHON_EXE may be set in the environment to override the Python binary used
-# for creating the virtual environment.
+# for creating the virtual environment, or for executing simple scripts that
+# do not require a virtual environment.
 PYTHON_EXE?=python3
 
+venv: $(PYTHON_BIN)
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
-$(PYTHON_BIN)/activate: script/requirements.txt
+$(PYTHON_BIN)/activate:
 	@$(PYTHON_EXE) -m venv $(PYTHON_VENV_DIR)
 	@$(PYTHON_BIN)/pip install -U pip wheel
-	@$(PYTHON_BIN)/pip install -Ur script/requirements.txt
-	@touch $@
 
 ##############################################################################
 # Rally -- Elasticsearch performance benchmarking.

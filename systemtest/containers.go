@@ -18,7 +18,6 @@
 package systemtest
 
 import (
-	"archive/tar"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -46,19 +45,30 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
 	"github.com/elastic/go-elasticsearch/v8"
 )
 
 const (
 	startContainersTimeout = 5 * time.Minute
+
+	ElasticAgentImage = "docker.elastic.co/beats/elastic-agent"
 )
 
 var (
 	containerReaper         *testcontainers.Reaper
 	initContainerReaperOnce sync.Once
+
+	systemtestDir string
 )
+
+func init() {
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("could not locate systemtest directory")
+	}
+	systemtestDir = filepath.Dir(filename)
+}
 
 // InitContainerReaper initialises the testcontainers container reaper,
 // which will ensure all containers started by testcontainers are removed
@@ -291,9 +301,18 @@ func (c *ElasticsearchContainer) Close() error {
 }
 
 type ContainerConfig struct {
-	Name             string
-	Arch             string
-	BaseImage        string
+	Name string
+	Arch string
+
+	// BaseImage, if non-empty, specifies the elastic-agent
+	// image to use. If BaseImage is empty, ElasticAgentImage
+	// will be used.
+	BaseImage string
+
+	// BaseImageVersion, if non-empty, specifies the elastic-agent
+	// image tag to use. If BaseImageVersion is empty, the image
+	// tag used by the fleet-server docker-compose service will be
+	// used.
 	BaseImageVersion string
 }
 
@@ -306,7 +325,7 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		opts.Arch = runtime.GOARCH
 	}
 	if opts.BaseImage == "" {
-		opts.BaseImage = "docker.elastic.co/beats/elastic-agent"
+		opts.BaseImage = ElasticAgentImage
 	}
 
 	docker, err := client.NewClientWithOpts(client.FromEnv)
@@ -333,32 +352,18 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		// Use the same elastic-agent image as used for fleet-server.
 		opts.BaseImageVersion = fleetServerContainer.Image[strings.LastIndex(fleetServerContainer.Image, ":")+1:]
 	}
-	imageDetails, err := inspectImage(context.Background(),
-		docker,
-		fmt.Sprintf("%s:%s", opts.BaseImage, opts.BaseImageVersion),
-		opts.Arch,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	stackVersion := imageDetails.Config.Labels["org.label-schema.version"]
-	vCSRef := imageDetails.Config.Labels["org.label-schema.vcs-ref"]
 
 	// Build a custom elastic-agent image with a locally built apm-server binary injected.
-	agentImage, err := buildElasticAgentImage(context.Background(),
-		docker, stackVersion, opts.BaseImage, opts.BaseImageVersion, vCSRef, opts.Arch,
-	)
-	if err != nil {
+	agentImage := fmt.Sprintf("elastic-agent-systemtest:%s", opts.BaseImageVersion)
+	if err := BuildElasticAgentImage(context.Background(),
+		docker, opts.Arch,
+		fmt.Sprintf("%s:%s", opts.BaseImage, opts.BaseImageVersion),
+		agentImage,
+	); err != nil {
 		return nil, err
 	}
 
 	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		panic("could not locate systemtest directory")
-	}
-	systemtestDir := filepath.Dir(filename)
 	hostCACertPath := filepath.Join(systemtestDir, "../testing/docker/fleet-server/ca.pem")
 	req := testcontainers.ContainerRequest{
 		Name:       opts.Name,
@@ -627,97 +632,39 @@ func matchFleetServerAPIStatusHealthy(r io.Reader) bool {
 	return status.Status == "HEALTHY"
 }
 
-// buildElasticAgentImage builds a Docker image from the published image with a locally built apm-server injected.
-func buildElasticAgentImage(ctx context.Context, docker *client.Client, stackVersion, image, imageVersion, vcsRef, arch string) (string, error) {
-	imageName := fmt.Sprintf("elastic-agent-systemtest:%s", imageVersion)
-	log.Printf("Building image %s (%s) from %s:%s...", imageName, arch, image, imageVersion)
-
-	// Build apm-server, and copy it into the elastic-agent container's "install" directory.
-	// This bypasses downloading the artifact.
-	var tarArch = arch
-	if tarArch == "amd64" {
-		tarArch = "x86_64"
-	}
-	vcsRefShort := vcsRef[:6]
-	apmServerInstallDir := fmt.Sprintf("./data/elastic-agent-%s/install/apm-server-%s-linux-%s", vcsRefShort, stackVersion, tarArch)
-	apmServerBinary, err := apmservertest.BuildServerBinary("linux", arch)
-	if err != nil {
-		return "", err
+// BuildElasticAgentImage builds a Docker image from the published image with a locally built apm-server injected.
+func BuildElasticAgentImage(
+	ctx context.Context,
+	docker *client.Client,
+	arch string,
+	baseImage, outputImageName string,
+) error {
+	agentImageMu.Lock()
+	defer agentImageMu.Unlock()
+	if agentImages[arch] {
+		return nil
 	}
 
-	// Binaries to copy from disk into the build context.
-	binaries := map[string]string{
-		"apm-server": apmServerBinary,
+	log.Printf("Building image %s (%s) from %s...", outputImageName, arch, baseImage)
+	cmd := exec.Command(
+		"bash",
+		filepath.Join(systemtestDir, "..", "testing", "docker", "elastic-agent", "build.sh"),
+		"-t", outputImageName,
+	)
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "BASE_IMAGE="+baseImage, "GOARCH="+arch)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
 	}
 
-	// Generate Dockerfile contents.
-	var dockerfile bytes.Buffer
-	platform := fmt.Sprintf("linux/%s", arch)
-	fmt.Fprintf(&dockerfile, "FROM --platform=%s %s:%s\n", platform, image, imageVersion)
-	fmt.Fprintf(&dockerfile, "COPY --chown=elastic-agent:elastic-agent apm-server apm-server.yml %s/\n", apmServerInstallDir)
-
-	// Files to generate in the build context.
-	generatedFiles := map[string][]byte{
-		"Dockerfile":     dockerfile.Bytes(),
-		"apm-server.yml": []byte(""),
-	}
-
-	var buildContext bytes.Buffer
-	tarw := tar.NewWriter(&buildContext)
-	for name, path := range binaries {
-		f, err := os.Open(path)
-		if err != nil {
-			return "", err
-		}
-		defer f.Close()
-		info, err := f.Stat()
-		if err != nil {
-			return "", err
-		}
-		if err := tarw.WriteHeader(&tar.Header{
-			Name:  name,
-			Size:  info.Size(),
-			Mode:  0755,
-			Uname: "elastic-agent",
-			Gname: "elastic-agent",
-		}); err != nil {
-			return "", err
-		}
-		if _, err := io.Copy(tarw, f); err != nil {
-			return "", err
-		}
-	}
-	for name, content := range generatedFiles {
-		if err := tarw.WriteHeader(&tar.Header{
-			Name:  name,
-			Size:  int64(len(content)),
-			Mode:  0644,
-			Uname: "elastic-agent",
-			Gname: "elastic-agent",
-		}); err != nil {
-			return "", err
-		}
-		if _, err := tarw.Write(content); err != nil {
-			return "", err
-		}
-	}
-	if err := tarw.Close(); err != nil {
-		return "", err
-	}
-
-	resp, err := docker.ImageBuild(ctx, &buildContext, types.ImageBuildOptions{
-		Tags: []string{imageName},
-		// This is necessary to be able to build images with a different platform.
-		Platform:   platform,
-		PullParent: true,
-	})
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
-		return "", err
-	}
-	log.Printf("Built image %s (%s)", imageName, arch)
-	return imageName, nil
+	log.Printf("Built image %s (%s)", outputImageName, arch)
+	agentImages[arch] = true
+	return nil
 }
+
+var (
+	agentImageMu sync.RWMutex
+	agentImages  = make(map[string]bool)
+)
