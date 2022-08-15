@@ -44,6 +44,7 @@ pipeline {
         SSH_KEY = "./id_rsa_terraform"
         TF_VAR_private_key = "./id_rsa_terraform"
         TF_VAR_public_key = "./id_rsa_terraform.pub"
+        BENCHMARK_RESULT = "benchmark-result.txt"
         // cloud tags
         TF_VAR_BUILD_ID = "${env.BUILD_ID}"
         TF_VAR_ENVIRONMENT= 'ci'
@@ -76,6 +77,10 @@ pipeline {
                 withTestClusterEnv { 
                   sh(label: 'Tear down benchmark environment', script: 'make destroy')
                 }
+                archiveArtifacts(allowEmptyArchive: true,
+                  artifacts: "${env.BENCHMARK_RESULT}",
+                  defaultExcludes: false
+                )
               }
             }
           }
