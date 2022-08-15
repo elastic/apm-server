@@ -18,69 +18,81 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
-	"strings"
+	"regexp"
+	"runtime"
 	"time"
 
-	"gopkg.in/yaml.v2"
+	"github.com/docker/docker/client"
 
 	"github.com/elastic/apm-server/systemtest"
 )
 
 var (
-	arch       string
-	cloudImage bool
+	arch             string
+	outputName       string
+	cloudImage       bool
+	baseImageVersion string
 )
 
 func init() {
 	flag.StringVar(&arch, "arch", `amd64`, "The architecture to use for the APM Server and Docker Image")
+	flag.StringVar(&outputName, "name", "", "The name of the output Docker image")
+	flag.StringVar(&baseImageVersion, "tag", "", "The tag of the Elastic Agent base image")
 	flag.BoolVar(&cloudImage, "cloud", false, "Toggle to the Elastic Agent cloud image as the base")
 	rand.Seed(time.Now().Unix())
-}
-
-type compose struct {
-	Services struct {
-		FleetServer struct {
-			Image string `yaml:"image"`
-		} `yaml:"fleet-server"`
-	} `yaml:"services"`
 }
 
 func Main() error {
 	flag.Parse()
 
-	f, err := os.Open(filepath.Join("..", "..", "..", "docker-compose.yml"))
-	if err != nil {
-		return err
-	}
-	var c compose
-	if err := yaml.NewDecoder(f).Decode(&c); err != nil {
-		return err
-	}
-	image := c.Services.FleetServer.Image
-	i := strings.LastIndex(image, ":")
-	if i < 0 {
-		return fmt.Errorf("invalid fleet-server image: %s", image)
-	}
-	tag := image[i+1:]
-	opts := systemtest.ContainerConfig{
-		Arch:             arch,
-		BaseImageVersion: tag,
-	}
-	if cloudImage {
-		opts.BaseImage = "docker.elastic.co/cloud-release/elastic-agent-cloud"
+	if baseImageVersion == "" {
+		// Locate docker-compose.yml at the root of the repo.
+		_, file, _, ok := runtime.Caller(0)
+		if !ok {
+			return errors.New("failed to locate source directory")
+		}
+		repoRoot := filepath.Join(filepath.Dir(file), "..", "..", "..")
+		data, err := os.ReadFile(filepath.Join(repoRoot, "docker-compose.yml"))
+		if err != nil {
+			return err
+		}
+		imageRegexp := regexp.MustCompile("docker.elastic.co/.*:(.*)")
+		match := imageRegexp.FindStringSubmatch(string(data))
+		if match == nil {
+			return errors.New("failed to locate stack version")
+		}
+		baseImageVersion = match[1]
+		log.Printf("Found stack version %q", baseImageVersion)
 	}
 
-	agent, err := systemtest.NewUnstartedElasticAgentContainer(opts)
+	baseImage := systemtest.ElasticAgentImage
+	if cloudImage {
+		baseImage = "docker.elastic.co/cloud-release/elastic-agent-cloud"
+	}
+
+	docker, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return err
 	}
-	return agent.Close()
+	defer docker.Close()
+
+	if outputName == "" {
+		outputName = fmt.Sprintf("elastic-agent-systemtest:%s", baseImageVersion)
+	}
+	return systemtest.BuildElasticAgentImage(
+		context.Background(),
+		docker, arch,
+		fmt.Sprintf("%s:%s", baseImage, baseImageVersion),
+		outputName,
+	)
 }
 
 func main() {
