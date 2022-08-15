@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"strconv"
+	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -395,6 +395,7 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 		} else {
 			key.labels.Set(k, v.Value)
 		}
+		key.labelKeys = append(key.labelKeys, k)
 	}
 	for k, v := range event.NumericLabels {
 		if !v.Global {
@@ -408,7 +409,10 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 		} else {
 			key.numericLabels.Set(k, v.Value)
 		}
+		key.numericLabelKeys = append(key.numericLabelKeys, k)
 	}
+	sort.Strings(key.labelKeys)
+	sort.Strings(key.numericLabelKeys)
 	return key
 }
 
@@ -551,8 +555,10 @@ type comparable struct {
 // NOTE(axw) the dimensions should be kept in sync with docs/metricset-indices.asciidoc (legacy).
 // And docs/data-model.asciidoc for the current documentation on the APM Server model.
 type transactionAggregationKey struct {
-	labels        model.Labels
-	numericLabels model.NumericLabels
+	labelKeys        []string
+	labels           model.Labels
+	numericLabelKeys []string
+	numericLabels    model.NumericLabels
 	comparable
 }
 
@@ -567,8 +573,7 @@ func (k *transactionAggregationKey) hash() uint64 {
 	if k.faasColdstart != nil && *k.faasColdstart {
 		h.WriteString("1")
 	}
-	writeLabels(&h, k.labels)
-	writeNumericLabels(&h, k.numericLabels)
+	writeLabels(&h, k)
 	h.WriteString(k.agentName)
 	h.WriteString(k.containerID)
 	h.WriteString(k.hostname)
@@ -604,8 +609,8 @@ func (k *transactionAggregationKey) hash() uint64 {
 
 func (k *transactionAggregationKey) equal(key transactionAggregationKey) bool {
 	return k.comparable == key.comparable &&
-		k.labels.Equal(key.labels) &&
-		k.numericLabels.Equal(key.numericLabels)
+		equalLabels(k.labels, key.labels) &&
+		equalNumericLabels(k.numericLabels, key.numericLabels)
 }
 
 type transactionMetrics struct {
@@ -645,34 +650,102 @@ func transactionCount(tx *model.Transaction) float64 {
 	return 1
 }
 
-func writeLabels(w io.StringWriter, l model.Labels) {
-	if len(l) == 0 {
+func writeLabels(w io.Writer, aggKey *transactionAggregationKey) {
+	if len(aggKey.labelKeys) == 0 && len(aggKey.numericLabels) == 0 {
 		return
 	}
-	for key, value := range l {
-		w.WriteString(key)
-		if value.Value != "" {
-			w.WriteString(value.Value)
+	for _, key := range aggKey.labelKeys {
+		label := aggKey.labels[key]
+		io.WriteString(w, key)
+		if label.Value != "" {
+			io.WriteString(w, label.Value)
 			continue
 		}
-		for _, v := range value.Values {
-			w.WriteString(v)
+		for _, v := range label.Values {
+			io.WriteString(w, v)
+		}
+	}
+	for _, key := range aggKey.numericLabelKeys {
+		label := aggKey.numericLabels[key]
+		io.WriteString(w, key)
+		if label.Value != 0 {
+			var b [8]byte
+			binary.LittleEndian.PutUint64(b[:], math.Float64bits(label.Value))
+			w.Write(b[:])
+			continue
+		}
+		for _, v := range label.Values {
+			var b [8]byte
+			binary.LittleEndian.PutUint64(b[:], math.Float64bits(v))
+			w.Write(b[:])
 		}
 	}
 }
 
-func writeNumericLabels(w io.StringWriter, l model.NumericLabels) {
-	if len(l) == 0 {
-		return
+// equalLabels returns true if the labels are equal. The Global property is
+// ignored since only global labels are compared.
+func equalLabels(l, labels model.Labels) bool {
+	if len(l) != len(labels) {
+		return false
 	}
-	for key, value := range l {
-		w.WriteString(key)
-		if value.Value != 0 {
-			w.WriteString(strconv.FormatFloat(value.Value, 'e', -1, 64))
-			continue
+	for key, localV := range l {
+		v, ok := labels[key]
+		if !ok {
+			return false
 		}
-		for _, v := range value.Values {
-			w.WriteString(strconv.FormatFloat(v, 'e', -1, 64))
+		// If the slice value is set, ignore the Value field.
+		if len(v.Values) == 0 && v.Value != localV.Value {
+			return false
+		}
+		if len(v.Values) != len(localV.Values) {
+			return false
+		}
+		for _, value := range v.Values {
+			var found bool
+			for _, localValue := range localV.Values {
+				if value == localValue {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return false
+			}
 		}
 	}
+	return true
+}
+
+// equalNumericLabels returns true if the labels are equal. The Global property
+// is ignored since only global labels are compared.
+func equalNumericLabels(l, labels model.NumericLabels) bool {
+	if len(l) != len(labels) {
+		return false
+	}
+	for key, localV := range l {
+		v, ok := labels[key]
+		if !ok {
+			return false
+		}
+		// If the slice value is set, ignore the Value field.
+		if len(v.Values) == 0 && v.Value != localV.Value {
+			return false
+		}
+		if len(v.Values) != len(localV.Values) {
+			return false
+		}
+		for _, value := range v.Values {
+			var found bool
+			for _, localValue := range localV.Values {
+				if value == localValue {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return false
+			}
+		}
+	}
+	return true
 }

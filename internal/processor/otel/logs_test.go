@@ -148,11 +148,11 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
 	assert.Len(t, processed, 3)
-	assert.Equal(t, model.Labels{"key0": {Value: "zero"}, "key1": {Value: "one"}}, processed[0].Labels)
+	assert.Equal(t, model.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: "one"}}, processed[0].Labels)
 	assert.Empty(t, processed[0].NumericLabels)
-	assert.Equal(t, model.Labels{"key0": {Value: "zero"}}, processed[1].Labels)
+	assert.Equal(t, model.Labels{"key0": {Global: true, Value: "zero"}}, processed[1].Labels)
 	assert.Equal(t, model.NumericLabels{"key2": {Value: 2}}, processed[1].NumericLabels)
-	assert.Equal(t, model.Labels{"key0": {Value: "zero"}, "key3": {Value: "three"}}, processed[2].Labels)
+	assert.Equal(t, model.Labels{"key0": {Global: true, Value: "zero"}, "key3": {Value: "three"}}, processed[2].Labels)
 	assert.Equal(t, model.NumericLabels{"key4": {Value: 4}}, processed[2].NumericLabels)
 }
 

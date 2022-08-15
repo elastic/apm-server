@@ -35,14 +35,19 @@ type LabelValue struct {
 	Value string
 	// Values holds the label `[]string` value.
 	Values []string
-	// Global is `true` when the label has been decoded from the metadata.
+	// Global is `true` when the label is defined at the agent level, rather
+	// than being event-specific.
 	Global bool
 }
 
+// Set sets the label k to value v. If there existed a label in l with the same
+// key, it will be replaced and its Global field will be set to false.
 func (l Labels) Set(k string, v string) {
 	l[k] = LabelValue{Value: v}
 }
 
+// SetSlice sets the label k to value v. If there existed a label in l with the
+// same key, it will be replaced and its Global field will be set to false.
 func (l Labels) SetSlice(k string, v []string) {
 	l[k] = LabelValue{Values: v}
 }
@@ -59,39 +64,6 @@ func (l Labels) Clone() Labels {
 		cp[k] = to
 	}
 	return cp
-}
-
-// Equal returns true when the two maps of labels are equal.
-func (l Labels) Equal(labels Labels) bool {
-	if len(l) != len(labels) {
-		return false
-	}
-	for key, localV := range l {
-		v, ok := labels[key]
-		if !ok {
-			return false
-		}
-		// If the slice value is set, ignore the Value field.
-		if len(v.Values) == 0 && v.Value != localV.Value {
-			return false
-		}
-		if len(v.Values) != len(localV.Values) {
-			return false
-		}
-		for _, value := range v.Values {
-			var found bool
-			for _, localValue := range localV.Values {
-				if value == localValue {
-					found = true
-					break
-				}
-			}
-			if !found {
-				return false
-			}
-		}
-	}
-	return true
 }
 
 func (l Labels) fields() mapstr.M {
@@ -122,10 +94,14 @@ type NumericLabelValue struct {
 	Global bool
 }
 
+// Set sets the label k to value v. If there existed a label in l with the same
+// key, it will be replaced and its Global field will be set to false.
 func (l NumericLabels) Set(k string, v float64) {
 	l[k] = NumericLabelValue{Value: v}
 }
 
+// SetSlice sets the label k to value v. If there existed a label in l with the
+// same key, it will be replaced and its Global field will be set to false.
 func (l NumericLabels) SetSlice(k string, v []float64) {
 	l[k] = NumericLabelValue{Values: v}
 }
@@ -142,39 +118,6 @@ func (l NumericLabels) Clone() NumericLabels {
 		cp[k] = to
 	}
 	return cp
-}
-
-// Equal returns true when the two maps of labels are equal.
-func (l NumericLabels) Equal(labels NumericLabels) bool {
-	if len(l) != len(labels) {
-		return false
-	}
-	for key, localV := range l {
-		v, ok := labels[key]
-		if !ok {
-			return false
-		}
-		// If the slice value is set, ignore the Value field.
-		if len(v.Values) == 0 && v.Value != localV.Value {
-			return false
-		}
-		if len(v.Values) != len(localV.Values) {
-			return false
-		}
-		for _, value := range v.Values {
-			var found bool
-			for _, localValue := range localV.Values {
-				if value == localValue {
-					found = true
-					break
-				}
-			}
-			if !found {
-				return false
-			}
-		}
-	}
-	return true
 }
 
 func (l NumericLabels) fields() mapstr.M {
