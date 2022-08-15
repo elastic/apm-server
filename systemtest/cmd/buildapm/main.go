@@ -19,6 +19,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -56,7 +57,7 @@ func Main() error {
 		// Locate docker-compose.yml at the root of the repo.
 		_, file, _, ok := runtime.Caller(0)
 		if !ok {
-			log.Fatal("failed to locate source directory")
+			return errors.New("failed to locate source directory")
 		}
 		repoRoot := filepath.Join(filepath.Dir(file), "..", "..", "..")
 		data, err := os.ReadFile(filepath.Join(repoRoot, "docker-compose.yml"))
@@ -66,7 +67,7 @@ func Main() error {
 		imageRegexp := regexp.MustCompile("docker.elastic.co/.*:(.*)")
 		match := imageRegexp.FindStringSubmatch(string(data))
 		if match == nil {
-			log.Fatalf("failed to locate stack version")
+			return errors.New("failed to locate stack version")
 		}
 		baseImageVersion = match[1]
 		log.Printf("Found stack version %q", baseImageVersion)
