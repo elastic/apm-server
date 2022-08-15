@@ -8,9 +8,9 @@ set -e
 
 SDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BRANCH=$*
-LATEST_SNAPSHOT_VERSION=$($SDIR/latest_snapshot_version.py $BRANCH)
+LATEST_SNAPSHOT_VERSION=$($SDIR/latest_snapshot_version.sh $BRANCH)
 
-# latest_snapshot_version.py returns "" if $BRANCH has no snapshot yet.
+# latest_snapshot_version.sh returns "" if $BRANCH has no snapshot yet.
 # If no snapshot is available, just exit.
 [ -n "$LATEST_SNAPSHOT_VERSION" ] || exit 0
 
