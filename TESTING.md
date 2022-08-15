@@ -90,8 +90,8 @@ to send the events to the APM Server in parallel. The `-max-rate` can be used to
 or `epm` to send to the APM server instead of the default behaviour. To benchmark the APM Server in setup similar
 to what we'd see in production, the number of agents should be high (>`500`).
 
-By default, `apmbench` will warm up the APM Server by sending N events to the APM Server before any of the
-benchmark scenarios are run. That N can be configured via `-warmup-events` and defaults to a conservative number.
+By default, `apmbench` will warm up the APM Server by sending events for N duration to the APM Server before any of the
+benchmark scenarios are run. That N can be configured via `-warmup-time` and defaults to a conservative number of 1 minute.
 
 The default `-benchtime` is `1s` which, for our purposes isn't a great default, so if you're benchmarking
 changes to the APM Server you'll want to set the duration to at least `30s` to have some quick feedback, our
