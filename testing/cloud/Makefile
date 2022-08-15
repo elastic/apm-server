@@ -58,6 +58,7 @@ build_kibana_docker_image:
 	docker build -t ${CI_KIBANA_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG} \
 		-f "${REPO_ROOT}/testing/docker/kibana/Dockerfile-apmpackage" \
 		--build-arg KIBANA_IMAGE=${KIBANA_DOCKER_IMAGE}:${IMAGE_TAG} \
+		--platform linux/amd64 \
 		"${REPO_ROOT}/build/packages"
 
 # elastic_agent_docker_image builds the Cloud Elastic Agent image
