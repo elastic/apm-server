@@ -41,10 +41,10 @@ func (s *ShardedReadWriter) Close() {
 }
 
 // Flush flushes all sharded storage readWriters.
-func (s *ShardedReadWriter) Flush() error {
+func (s *ShardedReadWriter) Flush(limit int64) error {
 	var result error
 	for i := range s.readWriters {
-		if err := s.readWriters[i].Flush(); err != nil {
+		if err := s.readWriters[i].Flush(limit); err != nil {
 			result = multierror.Append(result, err)
 		}
 	}
@@ -57,13 +57,13 @@ func (s *ShardedReadWriter) ReadTraceEvents(traceID string, out *model.Batch) er
 }
 
 // WriteTraceEvent calls Writer.WriteTraceEvent, using a sharded, locked, Writer.
-func (s *ShardedReadWriter) WriteTraceEvent(traceID, id string, event *model.APMEvent) error {
-	return s.getWriter(traceID).WriteTraceEvent(traceID, id, event)
+func (s *ShardedReadWriter) WriteTraceEvent(traceID, id string, event *model.APMEvent, opts WriterOpts) error {
+	return s.getWriter(traceID).WriteTraceEvent(traceID, id, event, opts)
 }
 
 // WriteTraceSampled calls Writer.WriteTraceSampled, using a sharded, locked, Writer.
-func (s *ShardedReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
-	return s.getWriter(traceID).WriteTraceSampled(traceID, sampled)
+func (s *ShardedReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
+	return s.getWriter(traceID).WriteTraceSampled(traceID, sampled, opts)
 }
 
 // IsTraceSampled calls Writer.IsTraceSampled, using a sharded, locked, Writer.
@@ -98,10 +98,10 @@ func (rw *lockedReadWriter) Close() {
 	rw.rw.Close()
 }
 
-func (rw *lockedReadWriter) Flush() error {
+func (rw *lockedReadWriter) Flush(limit int64) error {
 	rw.mu.Lock()
 	defer rw.mu.Unlock()
-	return rw.rw.Flush()
+	return rw.rw.Flush(limit)
 }
 
 func (rw *lockedReadWriter) ReadTraceEvents(traceID string, out *model.Batch) error {
@@ -110,16 +110,16 @@ func (rw *lockedReadWriter) ReadTraceEvents(traceID string, out *model.Batch) er
 	return rw.rw.ReadTraceEvents(traceID, out)
 }
 
-func (rw *lockedReadWriter) WriteTraceEvent(traceID, id string, event *model.APMEvent) error {
+func (rw *lockedReadWriter) WriteTraceEvent(traceID, id string, event *model.APMEvent, opts WriterOpts) error {
 	rw.mu.Lock()
 	defer rw.mu.Unlock()
-	return rw.rw.WriteTraceEvent(traceID, id, event)
+	return rw.rw.WriteTraceEvent(traceID, id, event, opts)
 }
 
-func (rw *lockedReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
+func (rw *lockedReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
 	rw.mu.Lock()
 	defer rw.mu.Unlock()
-	return rw.rw.WriteTraceSampled(traceID, sampled)
+	return rw.rw.WriteTraceSampled(traceID, sampled, opts)
 }
 
 func (rw *lockedReadWriter) IsTraceSampled(traceID string) (bool, error) {
