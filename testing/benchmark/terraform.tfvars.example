@@ -57,3 +57,13 @@ user_name = "USER"
 # Override the path where the compiled apmbench binary is going to be uploaded.
 # Defaults to `../../systemtest/cmd/apmbench`.
 # apmbench_bin_path = "."
+
+# Override the default shard settings for APM indices:
+# apm_shards = {
+#   "logs-apm.app@custom": 10
+#   "logs-apm.error@custom": 10
+#   "metrics-apm.app@custom": 10
+#   "metrics-apm.internal@custom": 10
+#   "traces-apm.rum@custom": 10
+#   "traces-apm@custom": 10
+# }

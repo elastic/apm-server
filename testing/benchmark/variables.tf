@@ -68,6 +68,19 @@ variable "docker_image_override" {
   type = map(string)
 }
 
+variable "apm_shards" {
+  default = {
+    "traces-apm@custom" : 1,
+    "logs-apm.app@custom" : 1,
+    "logs-apm.error@custom" : 1,
+    "metrics-apm.app@custom" : 1,
+    "metrics-apm.internal@custom" : 1,
+    "traces-apm.rum@custom" : 1,
+    "traces-apm@custom" : 1,
+  }
+  type = map(string)
+}
+
 ## Worker configuraiton
 
 variable "worker_region" {

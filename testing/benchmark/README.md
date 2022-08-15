@@ -90,3 +90,9 @@ to have use the committed tags in the `docker-compose.yml` file: `eval $(make do
 It is also possible to override the docker image to one that is allowed to run in ESS. For more information
 on which repositories can be used, please refer to our internal docs. To override the docker image, you'll need
 to specify the full object of images that is defined in `variables.tf`: `docker_image_override`.
+
+### Set APM index shards
+
+By default, the APM indices shiop with `number_of_shards` set to `1`. To override this behavior, you can modify the
+`apm_shards` variable and individually set the setting for each of the component templates. See an example of how to
+do that in `terraform.tfvars.example`.
