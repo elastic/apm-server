@@ -304,7 +304,9 @@ func (p *Processor) Stop(ctx context.Context) error {
 		return ctx.Err()
 	case <-p.stopped:
 	}
-	return nil
+
+	// Flush event store and the underlying read writers
+	return p.eventStore.Flush()
 }
 
 // Run runs the tail-sampling processor. This method is responsible for:
@@ -596,4 +598,9 @@ func (s *wrappedRW) IsTraceSampled(traceID string) (bool, error) {
 // DeleteTraceEvent calls ShardedReadWriter.DeleteTraceEvent
 func (s *wrappedRW) DeleteTraceEvent(traceID, id string) error {
 	return s.rw.DeleteTraceEvent(traceID, id)
+}
+
+// Flush calls ShardedReadWriter.Flush
+func (s *wrappedRW) Flush() error {
+	return s.rw.Flush(s.writerOpts.StorageLimitInBytes)
 }

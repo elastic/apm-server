@@ -77,13 +77,11 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	assert.NoError(t, writer.Flush(wOpts.StorageLimitInBytes))
 	writer.Close()
 
-	// Overwrite global storage to allow the transactions created by
-	// sharded read writers to view the explicitly sampled traces so far
-	eventCodec := eventstorage.JSONCodec{}
-	config.Storage = eventstorage.
-		New(config.DB, eventCodec).
-		NewShardedReadWriter()
-	t.Cleanup(func() { config.Storage.Close() })
+	// Badger transactions created globally before committing the above writes
+	// will not see them due to SSI (Serializable Snapshot Isolation). Flush
+	// the storage so that new transactions are created for the underlying
+	// writer shards that can list all the events committed so far.
+	require.NoError(t, config.Storage.Flush(0))
 
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
@@ -584,10 +582,6 @@ func TestStorageGC(t *testing.T) {
 	config.Storage = eventstorage.
 		New(config.DB, eventstorage.JSONCodec{}).
 		NewShardedReadWriter()
-	t.Cleanup(func() {
-		config.Storage.Flush(0)
-		config.Storage.Close()
-	})
 
 	writeBatch := func(n int) {
 		config.StorageGCInterval = time.Minute // effectively disable

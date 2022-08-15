@@ -246,19 +246,16 @@ func closeBadger() error {
 	return nil
 }
 
-func closeStorage() (err error) {
+func closeStorage() {
 	if storage != nil {
-		// Force flush without limit consideration
-		err = storage.Flush(0)
 		storage.Close()
 	}
-	return
 }
 
 func cleanup() (result error) {
-	if err := closeStorage(); err != nil {
-		result = multierror.Append(result, err)
-	}
+	// Close the underlying storage, the storage will be flushed on processor stop.
+	closeStorage()
+
 	if err := closeBadger(); err != nil {
 		result = multierror.Append(result, err)
 	}
