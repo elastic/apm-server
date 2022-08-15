@@ -12,6 +12,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 
@@ -93,6 +94,12 @@ type StorageConfig struct {
 	//
 	// DB will not be closed when the processor is closed.
 	DB *badger.DB
+
+	// Storage holds the read writers which provide sharded, locked access to storage.
+	//
+	// Storage lives outside processor lifecycle and will not be closed when processor
+	// is closed
+	Storage *eventstorage.ShardedReadWriter
 
 	// StorageDir holds the directory in which event storage will be maintained.
 	StorageDir string
@@ -224,6 +231,9 @@ func (config DataStreamConfig) validate() error {
 func (config StorageConfig) validate() error {
 	if config.DB == nil {
 		return errors.New("DB unspecified")
+	}
+	if config.Storage == nil {
+		return errors.New("Storage unspecified")
 	}
 	if config.StorageDir == "" {
 		return errors.New("StorageDir unspecified")
