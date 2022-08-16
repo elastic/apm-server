@@ -7,8 +7,9 @@ package txmetrics
 import (
 	"testing"
 
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/internal/model"
 )
 
 func TestLabelsEqual(t *testing.T) {
