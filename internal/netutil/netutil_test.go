@@ -89,7 +89,7 @@ func TestClientAddrFromHeaders(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			ip, port := ClientAddrFromHeaders(tc.header)
 			if tc.ip == "" {
-				assert.Nil(t, ip)
+				assert.False(t, ip.IsValid())
 			} else {
 				require.NotNil(t, ip)
 				assert.Equal(t, tc.ip, ip.String())

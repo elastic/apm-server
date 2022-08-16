@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+	"net/netip"
 	"strconv"
 	"strings"
 	"testing"
@@ -228,7 +229,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, gatewayIP.String(), out.Client.IP.String())
 		// ignore if set in event already
 		out = model.APMEvent{
-			Client: model.Client{IP: net.ParseIP("192.17.1.1")},
+			Client: model.Client{IP: netip.MustParseAddr("192.17.1.1")},
 		}
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "192.17.1.1", out.Client.IP.String())
@@ -468,7 +469,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			require.NotNil(t, parsedIP)
 			assert.Equal(t, model.Source{
 				Domain: expectedDomain,
-				IP:     net.ParseIP(expectedIP),
+				IP:     netip.MustParseAddr(expectedIP),
 				Port:   expectedPort,
 			}, event.Source)
 			want := model.Client{IP: event.Source.IP, Port: event.Source.Port, Domain: event.Source.Domain}
@@ -498,7 +499,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			assert.Equal(t, "Unavailable", event.Transaction.Result)
 			assert.Equal(t, model.Client{
 				Domain: "peer_name",
-				IP:     net.ParseIP("10.20.30.40"),
+				IP:     netip.MustParseAddr("10.20.30.40"),
 				Port:   123,
 			}, event.Client)
 			assert.Equal(t, "SERVER", event.Span.Kind)

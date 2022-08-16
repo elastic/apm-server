@@ -18,8 +18,8 @@
 package v2
 
 import (
-	"net"
 	"net/http"
+	"net/netip"
 	"strings"
 	"testing"
 	"time"
@@ -81,8 +81,8 @@ func TestDecodeNestedError(t *testing.T) {
 }
 
 func TestDecodeMapToErrorModel(t *testing.T) {
-	gatewayIP := net.ParseIP("192.168.0.1")
-	randomIP := net.ParseIP("71.0.54.1")
+	gatewayIP := netip.MustParseAddr("192.168.0.1")
+	randomIP := netip.MustParseAddr("71.0.54.1")
 
 	exceptions := func(key string) bool { return false }
 	t.Run("metadata-overwrite", func(t *testing.T) {

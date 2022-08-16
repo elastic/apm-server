@@ -38,6 +38,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/netip"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -358,7 +359,7 @@ func TestHTTPTransactionSource(t *testing.T) {
 		require.NotNil(t, parsedIP)
 		assert.Equal(t, model.Source{
 			Domain: expectedDomain,
-			IP:     net.ParseIP(expectedIP),
+			IP:     netip.MustParseAddr(expectedIP),
 			Port:   expectedPort,
 		}, event.Source)
 		want := model.Client{IP: event.Source.IP, Port: event.Source.Port, Domain: event.Source.Domain}
@@ -404,8 +405,8 @@ func TestHTTPTransactionClientIP(t *testing.T) {
 		"net.peer.port":  5678,
 		"http.client_ip": "9.10.11.12",
 	})
-	assert.Equal(t, model.Source{IP: net.ParseIP("1.2.3.4"), Port: 5678}, event.Source)
-	assert.Equal(t, model.Client{IP: net.ParseIP("9.10.11.12")}, event.Client)
+	assert.Equal(t, model.Source{IP: netip.MustParseAddr("1.2.3.4"), Port: 5678}, event.Source)
+	assert.Equal(t, model.Client{IP: netip.MustParseAddr("9.10.11.12")}, event.Client)
 }
 
 func TestHTTPTransactionStatusCode(t *testing.T) {
@@ -488,7 +489,7 @@ func TestRPCTransaction(t *testing.T) {
 	assert.Empty(t, event.Labels)
 	assert.Equal(t, model.Client{
 		Domain: "peer_name",
-		IP:     net.ParseIP("10.20.30.40"),
+		IP:     netip.MustParseAddr("10.20.30.40"),
 		Port:   123,
 	}, event.Client)
 }

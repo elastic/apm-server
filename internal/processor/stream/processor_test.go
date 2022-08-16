@@ -21,7 +21,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"net"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"strings"
@@ -186,7 +186,7 @@ func TestIntegrationESOutput(t *testing.T) {
 			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
 			baseEvent := model.APMEvent{
-				Host:      model.Host{IP: []net.IP{net.ParseIP("192.0.0.1")}},
+				Host:      model.Host{IP: []netip.Addr{netip.MustParseAddr("192.0.0.1")}},
 				Timestamp: reqTimestamp,
 			}
 
@@ -222,8 +222,8 @@ func TestIntegrationRum(t *testing.T) {
 
 			baseEvent := model.APMEvent{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
-				Source:    model.Source{IP: net.ParseIP("192.0.0.1")},
-				Client:    model.Client{IP: net.ParseIP("192.0.0.2")}, // X-Forwarded-For
+				Source:    model.Source{IP: netip.MustParseAddr("192.0.0.1")},
+				Client:    model.Client{IP: netip.MustParseAddr("192.0.0.2")}, // X-Forwarded-For
 				Timestamp: reqTimestamp,
 			}
 
@@ -255,8 +255,8 @@ func TestRUMV3(t *testing.T) {
 
 			baseEvent := model.APMEvent{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
-				Source:    model.Source{IP: net.ParseIP("192.0.0.1")},
-				Client:    model.Client{IP: net.ParseIP("192.0.0.2")}, // X-Forwarded-For
+				Source:    model.Source{IP: netip.MustParseAddr("192.0.0.1")},
+				Client:    model.Client{IP: netip.MustParseAddr("192.0.0.2")}, // X-Forwarded-For
 				Timestamp: reqTimestamp,
 			}
 
@@ -275,7 +275,7 @@ func TestLabelLeak(t *testing.T) {
 {"transaction": {"id": "ba5c6d6c1ab44bd1", "trace_id": "88c0a00431531a80c5ca9a41fe115f41", "name": "GET /nolabels", "type": "request", "duration": 0.652, "result": "HTTP 2xx", "timestamp": 1652185278813952, "outcome": "success", "sampled": true, "span_count": {"started": 0, "dropped": 0}, "sample_rate": 1.0, "context": {"request": {"env": {"REMOTE_ADDR": "127.0.0.1", "SERVER_NAME": "127.0.0.1", "SERVER_PORT": "5000"}, "method": "GET", "socket": {"remote_address": "127.0.0.1"}, "cookies": {}, "headers": {"host": "localhost:5000", "user-agent": "curl/7.81.0", "accept": "*/*"}, "url": {"full": "http://localhost:5000/nolabels?third_no_label", "protocol": "http:", "hostname": "localhost", "pathname": "/nolabels", "port": "5000", "search": "?third_no_label"}}, "response": {"status_code": 200, "headers": {"Content-Type": "text/html; charset=utf-8", "Content-Length": "14"}}, "tags": {}}}}`
 
 	baseEvent := model.APMEvent{
-		Host: model.Host{IP: []net.IP{net.ParseIP("192.0.0.1")}},
+		Host: model.Host{IP: []netip.Addr{netip.MustParseAddr("192.0.0.1")}},
 	}
 
 	var processed *model.Batch

@@ -19,8 +19,8 @@ package modeldecodertest
 
 import (
 	"fmt"
-	"net"
 	"net/http"
+	"net/netip"
 	"reflect"
 	"strings"
 	"testing"
@@ -42,7 +42,7 @@ type Values struct {
 	Bool            bool
 	Time            time.Time
 	Duration        time.Duration
-	IP              net.IP
+	IP              netip.Addr
 	HTTPHeader      http.Header
 	LabelVal        model.LabelValue
 	NumericLabelVal model.NumericLabelValue
@@ -60,7 +60,7 @@ func DefaultValues() *Values {
 		Bool:            true,
 		Time:            initTime,
 		Duration:        time.Second,
-		IP:              net.ParseIP("127.0.0.1"),
+		IP:              netip.MustParseAddr("127.0.0.1"),
 		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"a", "b", "c"}},
 		LabelVal:        model.LabelValue{Value: "init"},
 		NumericLabelVal: model.NumericLabelValue{Value: 0.5},
@@ -78,7 +78,7 @@ func NonDefaultValues() *Values {
 		Bool:            false,
 		Time:            updatedTime,
 		Duration:        time.Minute,
-		IP:              net.ParseIP("192.168.0.1"),
+		IP:              netip.MustParseAddr("192.168.0.1"),
 		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"d", "e"}},
 		LabelVal:        model.LabelValue{Value: "overwritten"},
 		NumericLabelVal: model.NumericLabelValue{Value: 3.5},
@@ -100,7 +100,7 @@ func (v *Values) Update(args ...interface{}) {
 			v.Bool = a
 		case time.Time:
 			v.Time = a
-		case net.IP:
+		case netip.Addr:
 			v.IP = a
 		case http.Header:
 			v.HTTPHeader = a
@@ -144,10 +144,8 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				elemVal = reflect.ValueOf(int64(values.Int))
 			case []float64:
 				elemVal = reflect.ValueOf(values.Float)
-			case []net.IP:
+			case []netip.Addr:
 				elemVal = reflect.ValueOf(values.IP)
-			case net.IP:
-				fieldVal = reflect.ValueOf(values.IP)
 			default:
 				if f.Type().Elem().Kind() != reflect.Struct {
 					panic(fmt.Sprintf("unhandled type %s for key %s", v, key))
@@ -208,6 +206,8 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 			case nullable.HTTPHeader:
 				v.Set(values.HTTPHeader.Clone())
 				fieldVal = reflect.ValueOf(v)
+			case netip.Addr:
+				fieldVal = reflect.ValueOf(values.IP)
 			default:
 				if f.IsZero() {
 					fieldVal = reflect.Zero(f.Type())
@@ -311,7 +311,7 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 		case *float64:
 			val := values.Float
 			newVal = &val
-		case net.IP:
+		case netip.Addr:
 			newVal = values.IP
 		case bool:
 			newVal = values.Bool
