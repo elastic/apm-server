@@ -48,7 +48,6 @@ func run() error {
 	apmServer.StreamLogs(context.Background())
 
 	ctx, cancel := context.WithCancel(context.Background())
-
 	g, gctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		<-gctx.Done()
