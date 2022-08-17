@@ -93,6 +93,8 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		// Dedicated test for it.
 		"NumericLabels",
 		"Labels",
+		"GlobalLabels",
+		"GlobalNumericLabels",
 
 		// event-specific fields
 		"Error",
@@ -154,12 +156,12 @@ func TestDecodeNestedMetadata(t *testing.T) {
 			Service: model.Service{Name: "name"},
 			Agent:   model.Agent{Name: "go", Version: "1.0.0"},
 			Labels: model.Labels{
-				"a": {Value: "b"},
-				"c": {Value: "true"},
+				"a": {Global: true, Value: "b"},
+				"c": {Global: true, Value: "true"},
 			},
 			NumericLabels: model.NumericLabels{
-				"d": {Value: float64(1234)},
-				"e": {Value: float64(1234.11)},
+				"d": {Global: true, Value: float64(1234)},
+				"e": {Global: true, Value: float64(1234.11)},
 			},
 		}, out)
 	})
@@ -169,7 +171,7 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 	expected := func(s string, ip net.IP, n int) model.APMEvent {
 		labels := model.Labels{}
 		for i := 0; i < n; i++ {
-			labels[fmt.Sprintf("%s%v", s, i)] = model.LabelValue{Value: s}
+			labels[fmt.Sprintf("%s%v", s, i)] = model.LabelValue{Global: true, Value: s}
 		}
 		return model.APMEvent{
 			Agent: model.Agent{Name: s, Version: s},

@@ -160,6 +160,15 @@ func TestAggregatorRun(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		metricset := agg.AggregateTransaction(model.APMEvent{
 			Processor: model.TransactionProcessor,
+			Labels: model.Labels{
+				"department_name": model.LabelValue{Global: true, Value: "apm"},
+				"organization":    model.LabelValue{Global: true, Value: "observability"},
+				"company":         model.LabelValue{Global: true, Value: "elastic"},
+			},
+			NumericLabels: model.NumericLabels{
+				"user_id":     model.NumericLabelValue{Global: true, Value: 100},
+				"cost_center": model.NumericLabelValue{Global: true, Value: 10},
+			},
 			Transaction: &model.Transaction{
 				Name:                "T-1000",
 				RepresentativeCount: 1,
@@ -189,8 +198,19 @@ func TestAggregatorRun(t *testing.T) {
 	})
 
 	assert.Equal(t, "T-1000", metricsets[0].Transaction.Name)
+	assert.Equal(t, model.Labels{
+		"department_name": model.LabelValue{Value: "apm"},
+		"organization":    model.LabelValue{Value: "observability"},
+		"company":         model.LabelValue{Value: "elastic"},
+	}, metricsets[0].Labels)
+	assert.Equal(t, model.NumericLabels{
+		"user_id":     model.NumericLabelValue{Value: 100},
+		"cost_center": model.NumericLabelValue{Value: 10},
+	}, metricsets[0].NumericLabels)
 	assert.Equal(t, []int64{1000}, metricsets[0].Transaction.DurationHistogram.Counts)
 	assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
+	assert.Empty(t, metricsets[1].Labels)
+	assert.Empty(t, metricsets[1].NumericLabels)
 	assert.Equal(t, []int64{800}, metricsets[1].Transaction.DurationHistogram.Counts)
 
 	select {
