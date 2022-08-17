@@ -1,6 +1,11 @@
 # newer versions go on top
 #
 # change type can be one of: enhancement, bugfix, breaking-change
+- version: "generated"
+  changes:
+    - description: Placeholder
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/123
 - version: "8.4.0"
   changes:
     - description: Added support for dynamically mapping summary metrics
@@ -12,6 +17,17 @@
     - description: Added field mappings for Lambda metrics to internal metrics data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/8400
+- version: "8.3.3"
+  changes:
+    - description: Support TLSv1.3 and remove TLSv1.0 in the default TLS supported protocols
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/8577
+    - description: Update APM integration description
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/8592
+    - description: Update APM integration screenshots
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/8669
 - version: "8.3.0"
   changes:
     - description: Field mapping for `target.name` and `target.type` added to traces data stream
@@ -171,4 +187,4 @@
   changes:
     - description: initial release
       type: enhancement
-      link: https://github.com/elastic/apm-server/
+      link: https://github.com/elastic/apm-server/1

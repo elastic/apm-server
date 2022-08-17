@@ -18,12 +18,11 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
 
-	"github.com/elastic/apm-server/beater"
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/internal/beater"
+	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicemetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
-	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
@@ -42,6 +41,9 @@ var (
 	// badgerDB holds the badger database to use when tail-based sampling is configured.
 	badgerMu sync.Mutex
 	badgerDB *badger.DB
+
+	storageMu sync.Mutex
+	storage   *eventstorage.ShardedReadWriter
 )
 
 type namedProcessor struct {
@@ -123,6 +125,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get Badger database")
 	}
+	readWriters := getStorage(badgerDB)
 
 	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
 	for i, in := range tailSamplingConfig.Policies {
@@ -136,6 +139,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			SampleRate: in.SampleRate,
 		}
 	}
+
 	return sampling.NewProcessor(sampling.Config{
 		BeatID:         args.Info.ID.String(),
 		BatchProcessor: args.BatchProcessor,
@@ -156,6 +160,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		},
 		StorageConfig: sampling.StorageConfig{
 			DB:                badgerDB,
+			Storage:           readWriters,
 			StorageDir:        storageDir,
 			StorageGCInterval: tailSamplingConfig.StorageGCInterval,
 			StorageLimit:      tailSamplingConfig.StorageLimitParsed,
@@ -175,6 +180,16 @@ func getBadgerDB(storageDir string) (*badger.DB, error) {
 		badgerDB = db
 	}
 	return badgerDB, nil
+}
+
+func getStorage(db *badger.DB) *eventstorage.ShardedReadWriter {
+	storageMu.Lock()
+	defer storageMu.Unlock()
+	if storage == nil {
+		eventCodec := eventstorage.JSONCodec{}
+		storage = eventstorage.New(db, eventCodec).NewShardedReadWriter()
+	}
+	return storage
 }
 
 // runServerWithProcessors runs the APM Server and the given list of processors.
@@ -245,14 +260,30 @@ func closeBadger() error {
 	return nil
 }
 
+func closeStorage() {
+	if storage != nil {
+		storage.Close()
+	}
+}
+
+func cleanup() (result error) {
+	// Close the underlying storage, the storage will be flushed on processor stop.
+	closeStorage()
+
+	if err := closeBadger(); err != nil {
+		result = multierror.Append(result, err)
+	}
+	return result
+}
+
 func Main() error {
-	rootCmd := cmd.NewXPackRootCommand(
+	rootCmd := newXPackRootCommand(
 		beater.NewCreator(beater.CreatorParams{
 			WrapRunServer: wrapRunServer,
 		}),
 	)
 	result := rootCmd.Execute()
-	if err := closeBadger(); err != nil {
+	if err := cleanup(); err != nil {
 		result = multierror.Append(result, err)
 	}
 	return result

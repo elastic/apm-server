@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server/rally/gencorpora
 
-go 1.17
+go 1.18
 
 require (
 	go.opentelemetry.io/otel v1.2.0

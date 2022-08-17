@@ -65,10 +65,10 @@
                 ]
             },
             "labels": {
-                "event": "baggage",
                 "key": "customer",
                 "value": "Japanese Desserts"
             },
+            "message": "baggage",
             "processor": {
                 "event": "log",
                 "name": "log"
@@ -98,10 +98,10 @@
                 ]
             },
             "labels": {
-                "event": "Searching for nearby drivers",
                 "level": "info",
                 "location": "728,326"
             },
+            "message": "Searching for nearby drivers",
             "processor": {
                 "event": "log",
                 "name": "log"
@@ -275,9 +275,9 @@
                 ]
             },
             "labels": {
-                "event": "Search successful",
                 "level": "info"
             },
+            "message": "Search successful",
             "numeric_labels": {
                 "num_drivers": 10
             },

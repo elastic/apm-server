@@ -1,3 +1,6 @@
-build
-apm-server
-Dockerfile
+/build
+/apm-server
+/systemtest
+/rally
+/docs
+/testdata

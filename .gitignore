@@ -10,7 +10,6 @@
 /build
 /data
 /logs
-/beater/test_certs
 **/*.received.json
 .DS_Store
 *.pyc
@@ -20,19 +19,13 @@
 /apm-server
 /apm-server-oss
 **/*.test
-/apm-server.dev.yml
-/_meta/fields.generated.yml
-/_meta/kibana/*/index-pattern
-/_meta/kibana.generated/*
-/fields.yml
-/apm-server.template-es.json
-/vendor/github.com/elastic/beats/libbeat/fields.yml
 /docs/elastic/
 html_docs
 /x-pack/apm-server/apm-server
 /x-pack/apm-server/build
 /x-pack/apm-server/data
 /x-pack/apm-server/logs
+/x-pack/apm-server/*.syso
 /docker-compose.override.yml
 /config.mk
 /systemtest/logs
@@ -53,3 +46,6 @@ terraform.tfstate.backup
 terraform.tfvars
 testing/benchmark/.envrc
 testing/benchmark/benchmark-result.txt
+testing/smoke/**/tf.log
+testing/smoke/**/main.tf
+!testing/smoke/main.tf

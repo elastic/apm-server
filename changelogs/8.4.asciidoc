@@ -1,0 +1,28 @@
+[[release-notes-8.4.0]]
+== APM version 8.4.0
+
+https://github.com/elastic/apm-server/compare/8.3\...8.4[View commits]
+
+[float]
+==== Breaking Changes
+- APM Server no longer crashes on an invalid tail-based sampling config; it
+  continues running TBS disabled {pull}8375[8375]
+
+[float]
+==== Deprecations
+
+[float]
+==== Bug fixes
+- Fix race for deducing destination service fields for OTel bridge {pull}8363[8363]
+- Fix processors receiving events even after the server has stopped {pull}8388[8388]
+- Fix a bug where an event's transaction_id is ignored if no transaction object is set {pull} 8820[8820]
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+- Added support for `service.target.{type,name}` to be inferred from OpenTelemetry events {pull}8334[8334]
+- Added support for OpenTelemetry summary metrics {pull}7772[7772]
+- Upgraded bundled APM Java agent attacher CLI to version 1.32.0, which supports the `latest` version tag {pull}8374[8374]
+- Added `span.name` to `service_destination` metrics {pull}8391[8391]

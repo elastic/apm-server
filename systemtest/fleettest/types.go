@@ -54,9 +54,9 @@ type PackagePolicy struct {
 	Name          string               `json:"name"`
 	Namespace     string               `json:"namespace"`
 	Enabled       bool                 `json:"enabled"`
-	Description   string               `json:"description"`
+	Description   string               `json:"description,omitempty"`
 	AgentPolicyID string               `json:"policy_id"`
-	OutputID      string               `json:"output_id"`
+	OutputID      string               `json:"output_id,omitempty"`
 	Inputs        []PackagePolicyInput `json:"inputs"`
 	Package       struct {
 		Name    string `json:"name"`

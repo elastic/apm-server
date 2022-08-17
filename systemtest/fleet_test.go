@@ -151,7 +151,7 @@ func TestFleetPackageNonMultiple(t *testing.T) {
 	packagePolicy.Name = "apm-2"
 	err := systemtest.Fleet.CreatePackagePolicy(packagePolicy)
 	require.Error(t, err)
-	assert.EqualError(t, err, "Unable to create package policy. Package 'apm' already exists on this agent policy.")
+	assert.EqualError(t, err, "Unable to create integration policy. Integration 'apm' already exists on this agent policy.")
 }
 
 // newAPMIntegration creates a new agent policy and assigns the APM integration

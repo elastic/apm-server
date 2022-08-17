@@ -37,166 +37,61 @@ import (
 
 func Test_warmup(t *testing.T) {
 	type testCase struct {
-		agents int
-		events []uint
+		agents   int
+		duration time.Duration
 	}
 	cases := []testCase{
-		{1, []uint{100, 1000}},
+		{1, 2 * time.Second},
+		{4, 2 * time.Second},
 	}
 	for _, c := range cases {
-		for _, events := range c.events {
-			t.Run(fmt.Sprintf("%d_agent_%v_events", c.agents, events), func(t *testing.T) {
-				var received uint64
-				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					if r.URL.Path == "/debug/vars" {
-						// Report idle APM Server.
-						w.Write([]byte(`{"libbeat.output.events.active":0}`))
-					}
+		t.Run(fmt.Sprintf("%d_agent_%s_events", c.agents, c.duration.String()), func(t *testing.T) {
+			var received uint64
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path == "/debug/vars" {
+					// Report idle APM Server.
+					w.Write([]byte(`{"libbeat.output.events.active":0}`))
+					return
+				}
 
-					if !strings.HasPrefix(r.URL.Path, "/intake") {
+				if !strings.HasPrefix(r.URL.Path, "/intake") {
+					return
+				}
+
+				var reader io.Reader
+				switch r.Header.Get("Content-Encoding") {
+				case "deflate":
+					zreader, err := zlib.NewReader(r.Body)
+					if err != nil {
+						http.Error(w, fmt.Sprintf("zlib.NewReader(): %v", err), 400)
 						return
 					}
-
-					var reader io.Reader
-					switch r.Header.Get("Content-Encoding") {
-					case "deflate":
-						zreader, err := zlib.NewReader(r.Body)
-						if err != nil {
-							http.Error(w, fmt.Sprintf("zlib.NewReader(): %v", err), 400)
-							return
-						}
-						defer zreader.Close()
-						reader = zreader
-					default:
-						reader = r.Body
+					defer zreader.Close()
+					reader = zreader
+				default:
+					reader = r.Body
+				}
+				scanner := bufio.NewScanner(reader)
+				var localReceive uint64
+				var readMeta bool
+				for scanner.Scan() {
+					if readMeta {
+						localReceive++
+					} else {
+						readMeta = true
 					}
-					scanner := bufio.NewScanner(reader)
-					var localReceive uint64
-					var readMeta bool
-					for scanner.Scan() {
-						if readMeta {
-							localReceive++
-						} else {
-							readMeta = true
-						}
-					}
-					atomic.AddUint64(&received, localReceive)
-					w.WriteHeader(http.StatusAccepted)
-				}))
-				defer srv.Close()
-				err := warmup(c.agents, events, srv.URL, "")
-				assert.NoError(t, err)
-				assert.GreaterOrEqual(t, received, uint64(events))
-			})
-		}
-	}
-}
-
-func Test_warmupTimeout(t *testing.T) {
-	type args struct {
-		ingestRate float64
-		events     uint
-		epm        int
-		agents     int
-		cpus       int
-	}
-	tests := []struct {
-		name     string
-		args     args
-		expected time.Duration
-	}{
-		{
-			name: "default warmup",
-			args: args{
-				ingestRate: 1000,
-				events:     5000,
-				agents:     1,
-				cpus:       16,
-			},
-			expected: 15 * time.Second,
-		},
-		{
-			name: "default warmup",
-			args: args{
-				ingestRate: 1000,
-				events:     100,
-				agents:     16,
-				cpus:       2,
-			},
-			expected: 256 * time.Second,
-		},
-		{
-			name: "5000 events 500 agents",
-			args: args{
-				ingestRate: 1000,
-				events:     5000,
-				agents:     500,
-				cpus:       16,
-			},
-			expected: 156250 * time.Second,
-		},
-		{
-			name: "5000 events 500 agents with 8 cpus",
-			args: args{
-				ingestRate: 1000,
-				events:     5000,
-				agents:     500,
-				cpus:       8,
-			},
-			expected: 312500 * time.Second,
-		},
-		{
-			name: "50k events",
-			args: args{
-				ingestRate: 1000,
-				events:     50000,
-				agents:     1,
-				cpus:       16,
-			},
-			expected: 100 * time.Second,
-		},
-		{
-			name: "default events 16 agents",
-			args: args{
-				ingestRate: 1000,
-				events:     5000,
-				agents:     16,
-				cpus:       16,
-			},
-			expected: 160 * time.Second,
-		},
-		{
-			name: "default events 32 agents",
-			args: args{
-				ingestRate: 1000,
-				events:     5000,
-				agents:     32,
-				cpus:       16,
-			},
-			expected: 640 * time.Second,
-		},
-		{
-			name: "default events 12000 epm (200/s) yields a bigger timeout",
-			args: args{
-				ingestRate: 1000,
-				events:     5000,
-				epm:        200 * 60,
-				agents:     32,
-				cpus:       16,
-			},
-			expected: 3200 * time.Second,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := warmupTimeout(
-				tt.args.ingestRate,
-				tt.args.events,
-				tt.args.epm,
-				tt.args.agents,
-				tt.args.cpus,
-			)
-			assert.Equal(t, tt.expected, got)
+				}
+				if scanner.Err() != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				atomic.AddUint64(&received, localReceive)
+				w.WriteHeader(http.StatusAccepted)
+			}))
+			defer srv.Close()
+			err := warmup(c.agents, c.duration, srv.URL, "")
+			assert.NoError(t, err)
+			assert.Greater(t, received, uint64(c.agents))
 		})
 	}
 }

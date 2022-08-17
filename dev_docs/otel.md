@@ -5,14 +5,15 @@ APM Server supports receiving traces, metrics, and logs over OTLP/gRPC (OpenTele
 ## Servicing OTLP/gRPC requests
 
 APM Server services gRPC requests on the same port as HTTP requests sent by Elastic APM agents. The gRPC
-server is created in the [`beater`](../beater) package, with requests flowing through various gRPC interceptors
-defined under [`beater/interceptors`](../beater/interceptors) for authentication, logging, rate limiting, etc.
+server is created in the [`beater`](../internal/beater) package, with requests flowing through various gRPC
+interceptors defined under [`beater/interceptors`](../internal/beater/interceptors) for authentication,
+logging, rate limiting, etc.
 
 We register OTLP/gRPC services for receiving traces, metrics, and logs with the gRPC server in
-[`beater/otlp`](../beater/otlp). The business logic for handling these events lives in the type
-[`processor/otel.Consumer`](../processor/otel/traces.go). The `Consumer` type consumes decoded OTLP events,
-translates them to Elastic APM's data model, and then finally passes them to the standard event processing
-pipeline [`model.BatchProcessor`](../model/batch.go).
+[`beater/otlp`](../internal/beater/otlp). The business logic for handling these events lives in the type
+[`processor/otel.Consumer`](../internal/processor/otel/traces.go). The `Consumer` type consumes decoded
+OTLP events, translates them to Elastic APM's data model, and then finally passes them to the standard
+event processing pipeline [`model.BatchProcessor`](../internal/model/batch.go).
 
 ## Debugging OTLP tranlation
 
