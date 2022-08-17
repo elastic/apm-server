@@ -68,6 +68,11 @@ variable "docker_image_override" {
   type = map(string)
 }
 
+variable "apm_shards" {
+  default = {}
+  type    = map(string)
+}
+
 ## Worker configuraiton
 
 variable "worker_region" {
