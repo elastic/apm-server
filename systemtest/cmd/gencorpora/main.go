@@ -23,6 +23,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
@@ -34,9 +37,7 @@ import (
 
 const apmHost = "127.0.0.1:8200"
 
-func run() error {
-	flag.Parse()
-
+func run(rootCtx context.Context) error {
 	// Create fake ES server
 	esServer, err := gencorpora.GetCatBulkServer()
 	if err != nil {
@@ -44,10 +45,10 @@ func run() error {
 	}
 
 	// Create APM-Server to send documents to fake ES
-	apmServer := gencorpora.GetAPMServer(context.Background(), esServer.Addr, apmHost)
-	apmServer.StreamLogs(context.Background())
+	apmServer := gencorpora.GetAPMServer(rootCtx, esServer.Addr, apmHost)
+	apmServer.StreamLogs(rootCtx)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(rootCtx)
 	g, gctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		<-gctx.Done()
@@ -67,7 +68,7 @@ func run() error {
 	g.Go(func() error {
 		defer cancel()
 
-		waitCtx, waitCancel := context.WithTimeout(ctx, 10*time.Second)
+		waitCtx, waitCancel := context.WithTimeout(gctx, 10*time.Second)
 		defer waitCancel()
 		if err := apmServer.WaitForPublishReady(waitCtx); err != nil {
 			return fmt.Errorf("failed while waiting for APM-Server to be ready with err %v", err)
@@ -95,7 +96,11 @@ func generateLoad(ctx context.Context, serverURL string) error {
 }
 
 func main() {
-	if err := run(); err != nil {
+	flag.Parse()
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	if err := run(ctx); err != nil {
 		log.Fatal(err)
 	}
 }

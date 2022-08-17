@@ -21,6 +21,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -128,6 +129,10 @@ func (s *APMServer) WaitForPublishReady(ctx context.Context) error {
 func (s *APMServer) Stop() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if s.cmd.Cmd.Process == nil {
+		return errors.New("no APM-Server running")
+	}
 
 	if err := s.cmd.Cmd.Process.Signal(os.Interrupt); err != nil {
 		return s.cmd.Cmd.Process.Kill()
