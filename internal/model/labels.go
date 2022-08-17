@@ -90,7 +90,8 @@ type NumericLabelValue struct {
 	Values []float64
 	// Value holds the label `float64` value.
 	Value float64
-	// Global is `true` when the label has been decoded from the metadata.
+	// Global is `true` when the label is defined at the agent level, rather
+	// than being event-specific.
 	Global bool
 }
 

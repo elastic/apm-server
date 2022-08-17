@@ -651,9 +651,6 @@ func transactionCount(tx *model.Transaction) float64 {
 }
 
 func writeLabels(w io.Writer, aggKey *transactionAggregationKey) {
-	if len(aggKey.labelKeys) == 0 && len(aggKey.numericLabels) == 0 {
-		return
-	}
 	for _, key := range aggKey.labelKeys {
 		label := aggKey.labels[key]
 		io.WriteString(w, key)
@@ -700,15 +697,8 @@ func equalLabels(l, labels model.Labels) bool {
 		if len(v.Values) != len(localV.Values) {
 			return false
 		}
-		for _, value := range v.Values {
-			var found bool
-			for _, localValue := range localV.Values {
-				if value == localValue {
-					found = true
-					break
-				}
-			}
-			if !found {
+		for i, value := range v.Values {
+			if localV.Values[i] != value {
 				return false
 			}
 		}
@@ -734,15 +724,8 @@ func equalNumericLabels(l, labels model.NumericLabels) bool {
 		if len(v.Values) != len(localV.Values) {
 			return false
 		}
-		for _, value := range v.Values {
-			var found bool
-			for _, localValue := range localV.Values {
-				if value == localValue {
-					found = true
-					break
-				}
-			}
-			if !found {
+		for i, value := range v.Values {
+			if localV.Values[i] != value {
 				return false
 			}
 		}
