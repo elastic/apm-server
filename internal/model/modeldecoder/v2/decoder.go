@@ -508,7 +508,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 
 	// Labels
 	if len(from.Labels) > 0 {
-		modeldecoderutil.LabelsFrom(from.Labels, out)
+		modeldecoderutil.GlobalLabelsFrom(from.Labels, out)
 	}
 
 	// Process

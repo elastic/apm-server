@@ -166,7 +166,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		// do not overwrite client.ip if already set in metadata
 		assert.Equal(t, localhostIP, out.Client.IP, out.Client.IP.String())
 		assert.Equal(t, model.Labels{
-			"init0": {Value: "init"}, "init1": {Value: "init"}, "init2": {Value: "init"},
+			"init0": {Global: true, Value: "init"}, "init1": {Global: true, Value: "init"}, "init2": {Global: true, Value: "init"},
 			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
 		}, out.Labels)
 		// service values should be set

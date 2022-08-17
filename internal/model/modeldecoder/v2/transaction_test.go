@@ -104,7 +104,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		ip := modeldecodertest.DefaultValues().IP
 		assert.Equal(t, ip, out.Client.IP, out.Client.IP.String())
 		assert.Equal(t, model.Labels{
-			"init0": {Value: "init"}, "init1": {Value: "init"}, "init2": {Value: "init"},
+			"init0": {Global: true, Value: "init"}, "init1": {Global: true, Value: "init"}, "init2": {Global: true, Value: "init"},
 			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
 		}, out.Labels)
 		//assert.Equal(t, tLabels, out.Transaction.Labels)

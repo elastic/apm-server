@@ -258,10 +258,10 @@ func TestResourceLabels(t *testing.T) {
 		"int_array":    []interface{}{123, 456},
 	})
 	assert.Equal(t, model.Labels{
-		"string_array": {Values: []string{"abc", "def"}},
+		"string_array": {Global: true, Values: []string{"abc", "def"}},
 	}, metadata.Labels)
 	assert.Equal(t, model.NumericLabels{
-		"int_array": {Values: []float64{123, 456}},
+		"int_array": {Global: true, Values: []float64{123, 456}},
 	}, metadata.NumericLabels)
 }
 

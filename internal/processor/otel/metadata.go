@@ -211,6 +211,9 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 	} else {
 		out.Service.Language.Name = "unknown"
 	}
+
+	// Set the decoded labels as "glboal".
+	out.MarkGlobalLabels()
 }
 
 func cleanServiceName(name string) string {
