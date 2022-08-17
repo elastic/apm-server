@@ -413,7 +413,7 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 // the server.
 func (s *Server) Close() error {
 	if s.cmd != nil {
-		if err := interruptProcess(s.cmd.Process); err != nil {
+		if err := s.cmd.InterruptProcess(); err != nil {
 			s.cmd.Process.Kill()
 		}
 	}

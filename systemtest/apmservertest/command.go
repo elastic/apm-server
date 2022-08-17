@@ -102,6 +102,11 @@ func (c *ServerCmd) Wait() error {
 	return c.Cmd.Wait()
 }
 
+// InterruptProcess sends an interrupt signal
+func (c *ServerCmd) InterruptProcess() error {
+	return interruptProcess(c.Process)
+}
+
 func (c *ServerCmd) prestart() error {
 	if c.buildError != nil {
 		return c.buildError

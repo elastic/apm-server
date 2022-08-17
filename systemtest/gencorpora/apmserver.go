@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 
@@ -130,12 +129,12 @@ func (s *APMServer) Stop() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if s.cmd.Cmd.Process == nil {
+	if s.cmd.Process == nil {
 		return errors.New("no APM-Server running")
 	}
 
-	if err := s.cmd.Cmd.Process.Signal(os.Interrupt); err != nil {
-		return s.cmd.Cmd.Process.Kill()
+	if err := s.cmd.InterruptProcess(); err != nil {
+		return s.cmd.Process.Kill()
 	}
 
 	return s.cmd.Wait()
