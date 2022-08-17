@@ -20,6 +20,7 @@ package interceptors
 import (
 	"context"
 	"net"
+	"net/netip"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -54,15 +55,15 @@ func TestClientMetadata(t *testing.T) {
 		peer: &peer.Peer{Addr: tcpAddr},
 		expected: ClientMetadataValues{
 			SourceAddr: tcpAddr,
-			ClientIP:   tcpAddr.IP,
+			ClientIP:   tcpAddr.AddrPort().Addr(),
 		},
 	}, {
 		peer:     &peer.Peer{Addr: tcpAddr},
 		metadata: metadata.Pairs("X-Real-Ip", "5.6.7.8"),
 		expected: ClientMetadataValues{
 			SourceAddr:  &net.TCPAddr{IP: net.ParseIP("5.6.7.8")},
-			ClientIP:    net.ParseIP("5.6.7.8"),
-			SourceNATIP: tcpAddr.IP,
+			ClientIP:    netip.MustParseAddr("5.6.7.8"),
+			SourceNATIP: tcpAddr.AddrPort().Addr(),
 		},
 	}, {
 		metadata: metadata.Pairs("User-Agent", "User-Agent"),

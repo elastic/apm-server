@@ -19,7 +19,7 @@ package otel
 
 import (
 	"fmt"
-	"net"
+	"net/netip"
 	"regexp"
 	"strconv"
 	"strings"
@@ -187,8 +187,8 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 			delete(out.Labels, "client-uuid")
 		}
 		if systemIP, ok := out.Labels["ip"]; ok {
-			if ip := net.ParseIP(systemIP.Value); ip != nil {
-				out.Host.IP = []net.IP{ip}
+			if ip, err := netip.ParseAddr(systemIP.Value); err == nil {
+				out.Host.IP = []netip.Addr{ip}
 			}
 			delete(out.Labels, "ip")
 		}

@@ -18,9 +18,9 @@
 package api
 
 import (
-	"net"
 	"net/http"
 	httppprof "net/http/pprof"
+	"net/netip"
 	"regexp"
 	"runtime/pprof"
 
@@ -322,9 +322,9 @@ func backendRequestMetadataFunc(cfg *config.Config) func(c *request.Context) mod
 		return baseRequestMetadata
 	}
 	return func(c *request.Context) model.APMEvent {
-		var hostIP []net.IP
-		if c.ClientIP != nil {
-			hostIP = []net.IP{c.ClientIP}
+		var hostIP []netip.Addr
+		if c.ClientIP.IsValid() {
+			hostIP = []netip.Addr{c.ClientIP}
 		}
 		return model.APMEvent{
 			Host:      model.Host{IP: hostIP},
@@ -344,7 +344,7 @@ func rumRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.A
 			Timestamp: c.Timestamp,
 			UserAgent: model.UserAgent{Original: c.UserAgent},
 		}
-		if c.SourceNATIP != nil {
+		if c.SourceNATIP.IsValid() {
 			e.Source.NAT = &model.NAT{IP: c.SourceNATIP}
 		}
 		return e

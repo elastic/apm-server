@@ -21,6 +21,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"net/netip"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -44,7 +45,7 @@ func ClientMetadata() grpc.UnaryServerInterceptor {
 		if p, ok := peer.FromContext(ctx); ok {
 			values.SourceAddr = p.Addr
 			if addr, ok := p.Addr.(*net.TCPAddr); ok {
-				values.ClientIP = addr.IP
+				values.ClientIP = addr.AddrPort().Addr()
 			}
 		}
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
@@ -52,10 +53,13 @@ func ClientMetadata() grpc.UnaryServerInterceptor {
 				values.UserAgent = ua[0]
 			}
 			// Account for `forwarded`, `x-real-ip`, `x-forwarded-for` headers
-			if ip, port := netutil.ClientAddrFromHeaders(http.Header(md)); ip != nil {
+			if ip, port := netutil.ClientAddrFromHeaders(http.Header(md)); ip.IsValid() {
+				// this is forcing 16-byte representation even for IPv4
+				// TODO: move to AsSlice and investigate the test failure
+				sliceIP := ip.As16()
 				values.SourceNATIP = values.ClientIP
 				values.ClientIP = ip
-				values.SourceAddr = &net.TCPAddr{IP: ip, Port: int(port)}
+				values.SourceAddr = &net.TCPAddr{IP: sliceIP[:], Port: int(port)}
 			}
 		}
 		ctx = context.WithValue(ctx, clientMetadataKey{}, values)
@@ -86,11 +90,11 @@ type ClientMetadataValues struct {
 	//
 	// For requests without one of the forwarded headers, this will be
 	// blank.
-	ClientIP net.IP
+	ClientIP netip.Addr
 
 	// SourceNATIP holds the IP address of the originating gRPC client, if
 	// known.
-	SourceNATIP net.IP
+	SourceNATIP netip.Addr
 
 	// UserAgent holds the User-Agent for the gRPC client, if known.
 	UserAgent string
