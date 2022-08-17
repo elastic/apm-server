@@ -346,13 +346,17 @@ func TranslateTransaction(
 				foundSpanType = httpSpan
 				httpServerName = stringval
 			case semconv.AttributeHTTPClientIP:
-				event.Client.IP = netip.MustParseAddr(stringval)
+				if ip, err := netip.ParseAddr(stringval); err == nil {
+					event.Client.IP = ip
+				}
 			case semconv.AttributeHTTPUserAgent:
 				event.UserAgent.Original = stringval
 
 			// net.*
 			case semconv.AttributeNetPeerIP:
-				event.Source.IP = netip.MustParseAddr(stringval)
+				if ip, err := netip.ParseAddr(stringval); err == nil {
+					event.Source.IP = ip
+				}
 			case semconv.AttributeNetPeerName:
 				event.Source.Domain = stringval
 			case semconv.AttributeNetHostName:
