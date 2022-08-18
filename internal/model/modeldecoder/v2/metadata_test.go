@@ -18,7 +18,7 @@
 package v2
 
 import (
-	"net"
+	"net/netip"
 	"reflect"
 	"strings"
 	"testing"
@@ -277,7 +277,7 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
 		out2.Timestamp = otherVal.Time
-		out2.Host.IP = []net.IP{defaultVal.IP}
+		out2.Host.IP = []netip.Addr{defaultVal.IP}
 		out2.Client.IP = defaultVal.IP
 		out2.Source.IP = defaultVal.IP
 		modeldecodertest.AssertStructValues(t, &out2, isMetadataException, otherVal)

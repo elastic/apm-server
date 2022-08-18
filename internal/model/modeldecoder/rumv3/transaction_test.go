@@ -18,8 +18,8 @@
 package rumv3
 
 import (
-	"net"
 	"net/http"
+	"net/netip"
 	"strings"
 	"testing"
 	"time"
@@ -151,7 +151,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 }
 
 func TestDecodeMapToTransactionModel(t *testing.T) {
-	localhostIP := net.ParseIP("127.0.0.1")
+	localhostIP := netip.MustParseAddr("127.0.0.1")
 
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with transaction metadata values

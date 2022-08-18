@@ -19,7 +19,7 @@ package interceptors_test
 
 import (
 	"context"
-	"net"
+	"net/netip"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -75,7 +75,7 @@ func TestAnonymousRateLimit(t *testing.T) {
 
 		ctx := interceptors.ContextWithClientMetadata(context.Background(),
 			interceptors.ClientMetadataValues{
-				ClientIP: net.ParseIP("10.2.3.4"),
+				ClientIP: netip.MustParseAddr("10.2.3.4"),
 			},
 		)
 		details := auth.AuthenticationDetails{}
@@ -101,7 +101,7 @@ func TestAnonymousRateLimitForIP(t *testing.T) {
 
 	requestWithIP := func(ip string) error {
 		ctx := interceptors.ContextWithClientMetadata(context.Background(),
-			interceptors.ClientMetadataValues{ClientIP: net.ParseIP(ip)},
+			interceptors.ClientMetadataValues{ClientIP: netip.MustParseAddr(ip)},
 		)
 		ctx = interceptors.ContextWithAuthenticationDetails(ctx, auth.AuthenticationDetails{})
 		_, err := interceptor(ctx, "request", &grpc.UnaryServerInfo{}, handler)

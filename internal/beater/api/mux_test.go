@@ -19,9 +19,9 @@ package api
 
 import (
 	"context"
-	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/netip"
 	"testing"
 	"time"
 
@@ -49,7 +49,7 @@ func TestBackendRequestMetadata(t *testing.T) {
 	assert.Equal(t, tNow, event.Timestamp)
 	assert.Equal(t, model.Host{}, event.Host)
 
-	c.ClientIP = net.ParseIP("127.0.0.1")
+	c.ClientIP = netip.MustParseAddr("127.0.0.1")
 	event = backendRequestMetadataFunc(cfg)(c)
 	assert.Equal(t, tNow, event.Timestamp)
 	assert.NotEqual(t, model.Host{}, event.Host)
@@ -65,7 +65,7 @@ func TestRUMRequestMetadata(t *testing.T) {
 	assert.Equal(t, model.Source{}, event.Source)
 	assert.Equal(t, model.UserAgent{}, event.UserAgent)
 
-	ip := net.ParseIP("127.0.0.1")
+	ip := netip.MustParseAddr("127.0.0.1")
 	c = &request.Context{Timestamp: tNow, ClientIP: ip, SourceIP: ip, UserAgent: "firefox"}
 	event = rumRequestMetadataFunc(cfg)(c)
 	assert.Equal(t, tNow, event.Timestamp)
