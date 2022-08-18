@@ -18,8 +18,8 @@
 package rumv3
 
 import (
-	"net"
 	"net/http"
+	"net/netip"
 	"strings"
 	"testing"
 	"time"
@@ -151,7 +151,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 }
 
 func TestDecodeMapToTransactionModel(t *testing.T) {
-	localhostIP := net.ParseIP("127.0.0.1")
+	localhostIP := netip.MustParseAddr("127.0.0.1")
 
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with transaction metadata values
@@ -166,7 +166,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		// do not overwrite client.ip if already set in metadata
 		assert.Equal(t, localhostIP, out.Client.IP, out.Client.IP.String())
 		assert.Equal(t, model.Labels{
-			"init0": {Value: "init"}, "init1": {Value: "init"}, "init2": {Value: "init"},
+			"init0": {Global: true, Value: "init"}, "init1": {Global: true, Value: "init"}, "init2": {Global: true, Value: "init"},
 			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
 		}, out.Labels)
 		// service values should be set

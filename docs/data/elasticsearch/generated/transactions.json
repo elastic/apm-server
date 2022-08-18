@@ -42,7 +42,9 @@
                 "server.js"
             ],
             "pid": 1234,
-            "ppid": 6789,
+            "parent": {
+                "pid": 6789
+            },
             "title": "node"
         },
         "processor": {
@@ -137,7 +139,9 @@
                 "server.js"
             ],
             "pid": 1234,
-            "ppid": 6789,
+            "parent": {
+                "pid": 6789
+            },
             "title": "node"
         },
         "processor": {
@@ -303,7 +307,9 @@
                 "server.js"
             ],
             "pid": 1234,
-            "ppid": 6789,
+            "parent": {
+                "pid": 6789
+            },
             "title": "node"
         },
         "processor": {

@@ -19,7 +19,7 @@ package otel
 
 import (
 	"fmt"
-	"net"
+	"net/netip"
 	"regexp"
 	"strconv"
 	"strings"
@@ -123,10 +123,19 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 			out.Host.OS.Platform = strings.ToLower(truncate(v.StringVal()))
 		case semconv.AttributeOSDescription:
 			out.Host.OS.Full = truncate(v.StringVal())
+		case semconv.AttributeOSName:
+			out.Host.OS.Name = truncate(v.StringVal())
+		case semconv.AttributeOSVersion:
+			out.Host.OS.Version = truncate(v.StringVal())
 
 		// Legacy OpenCensus attributes.
 		case "opencensus.exporterversion":
 			exporterVersion = v.StringVal()
+
+		// timestamp attribute to deal with time skew on mobile
+		// devices. APM server should drop this field.
+		case "telemetry.sdk.elastic_export_timestamp":
+			// Do nothing.
 
 		default:
 			if out.Labels == nil {
@@ -153,6 +162,13 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 		out.Host.OS.Type = "unix"
 	}
 
+	switch out.Host.OS.Name {
+	case "Android":
+		out.Host.OS.Type = "android"
+	case "iOS":
+		out.Host.OS.Type = "ios"
+	}
+
 	if strings.HasPrefix(exporterVersion, "Jaeger") {
 		// version is of format `Jaeger-<agentlanguage>-<version>`, e.g. `Jaeger-Go-2.20.0`
 		const nVersionParts = 3
@@ -171,8 +187,8 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 			delete(out.Labels, "client-uuid")
 		}
 		if systemIP, ok := out.Labels["ip"]; ok {
-			if ip := net.ParseIP(systemIP.Value); ip != nil {
-				out.Host.IP = []net.IP{ip}
+			if ip, err := netip.ParseAddr(systemIP.Value); err == nil {
+				out.Host.IP = []netip.Addr{ip}
 			}
 			delete(out.Labels, "ip")
 		}
@@ -195,6 +211,9 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 	} else {
 		out.Service.Language.Name = "unknown"
 	}
+
+	// Set the decoded labels as "glboal".
+	out.MarkGlobalLabels()
 }
 
 func cleanServiceName(name string) string {

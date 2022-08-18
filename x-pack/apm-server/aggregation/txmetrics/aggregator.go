@@ -8,7 +8,9 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"math"
+	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -296,7 +298,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	var offset int
 	if ok {
 		for offset = range entries {
-			if entries[offset].transactionAggregationKey == key {
+			if entries[offset].transactionAggregationKey.equal(key) {
 				entries[offset].recordDuration(duration, count)
 				return true
 			}
@@ -308,7 +310,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	entries, ok = m.m[hash]
 	if ok {
 		for i := range entries[offset:] {
-			if entries[offset+i].transactionAggregationKey == key {
+			if entries[offset+i].transactionAggregationKey.equal(key) {
 				m.mu.Unlock()
 				entries[offset+i].recordDuration(duration, count)
 				return true
@@ -337,48 +339,81 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 }
 
 func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interval time.Duration) transactionAggregationKey {
-	return transactionAggregationKey{
-		// Group metrics by time interval.
-		timestamp: event.Timestamp.Truncate(interval),
+	key := transactionAggregationKey{
+		comparable: comparable{
+			// Group metrics by time interval.
+			timestamp: event.Timestamp.Truncate(interval),
 
-		traceRoot:         event.Parent.ID == "",
-		transactionName:   event.Transaction.Name,
-		transactionResult: event.Transaction.Result,
-		transactionType:   event.Transaction.Type,
-		eventOutcome:      event.Event.Outcome,
+			traceRoot:         event.Parent.ID == "",
+			transactionName:   event.Transaction.Name,
+			transactionResult: event.Transaction.Result,
+			transactionType:   event.Transaction.Type,
+			eventOutcome:      event.Event.Outcome,
 
-		agentName:             event.Agent.Name,
-		serviceEnvironment:    event.Service.Environment,
-		serviceName:           event.Service.Name,
-		serviceVersion:        event.Service.Version,
-		serviceNodeName:       event.Service.Node.Name,
-		serviceRuntimeName:    event.Service.Runtime.Name,
-		serviceRuntimeVersion: event.Service.Runtime.Version,
+			agentName:             event.Agent.Name,
+			serviceEnvironment:    event.Service.Environment,
+			serviceName:           event.Service.Name,
+			serviceVersion:        event.Service.Version,
+			serviceNodeName:       event.Service.Node.Name,
+			serviceRuntimeName:    event.Service.Runtime.Name,
+			serviceRuntimeVersion: event.Service.Runtime.Version,
 
-		serviceLanguageName:    event.Service.Language.Name,
-		serviceLanguageVersion: event.Service.Language.Version,
+			serviceLanguageName:    event.Service.Language.Name,
+			serviceLanguageVersion: event.Service.Language.Version,
 
-		hostname:          event.Host.Hostname,
-		hostOSPlatform:    event.Host.OS.Platform,
-		containerID:       event.Container.ID,
-		kubernetesPodName: event.Kubernetes.PodName,
+			hostname:          event.Host.Hostname,
+			hostOSPlatform:    event.Host.OS.Platform,
+			containerID:       event.Container.ID,
+			kubernetesPodName: event.Kubernetes.PodName,
 
-		cloudProvider:         event.Cloud.Provider,
-		cloudRegion:           event.Cloud.Region,
-		cloudAvailabilityZone: event.Cloud.AvailabilityZone,
-		cloudServiceName:      event.Cloud.ServiceName,
-		cloudAccountID:        event.Cloud.AccountID,
-		cloudAccountName:      event.Cloud.AccountName,
-		cloudProjectID:        event.Cloud.ProjectID,
-		cloudProjectName:      event.Cloud.ProjectName,
-		cloudMachineType:      event.Cloud.MachineType,
+			cloudProvider:         event.Cloud.Provider,
+			cloudRegion:           event.Cloud.Region,
+			cloudAvailabilityZone: event.Cloud.AvailabilityZone,
+			cloudServiceName:      event.Cloud.ServiceName,
+			cloudAccountID:        event.Cloud.AccountID,
+			cloudAccountName:      event.Cloud.AccountName,
+			cloudProjectID:        event.Cloud.ProjectID,
+			cloudProjectName:      event.Cloud.ProjectName,
+			cloudMachineType:      event.Cloud.MachineType,
 
-		faasColdstart:   event.FAAS.Coldstart,
-		faasID:          event.FAAS.ID,
-		faasTriggerType: event.FAAS.TriggerType,
-		faasName:        event.FAAS.Name,
-		faasVersion:     event.FAAS.Version,
+			faasColdstart:   event.FAAS.Coldstart,
+			faasID:          event.FAAS.ID,
+			faasTriggerType: event.FAAS.TriggerType,
+			faasName:        event.FAAS.Name,
+			faasVersion:     event.FAAS.Version,
+		},
 	}
+	for k, v := range event.Labels {
+		if !v.Global {
+			continue
+		}
+		if key.labels == nil {
+			key.labels = make(model.Labels)
+		}
+		if len(v.Values) > 0 {
+			key.labels.SetSlice(k, v.Values)
+		} else {
+			key.labels.Set(k, v.Value)
+		}
+		key.labelKeys = append(key.labelKeys, k)
+	}
+	for k, v := range event.NumericLabels {
+		if !v.Global {
+			continue
+		}
+		if key.numericLabels == nil {
+			key.numericLabels = make(model.NumericLabels)
+		}
+		if len(v.Values) > 0 {
+			key.numericLabels.SetSlice(k, v.Values)
+		} else {
+			key.numericLabels.Set(k, v.Value)
+		}
+		key.numericLabelKeys = append(key.numericLabelKeys, k)
+	}
+	sort.Strings(key.labelKeys)
+	sort.Strings(key.numericLabelKeys)
+	return key
 }
 
 // makeMetricset makes a metricset event from key, counts, and values, with timestamp ts.
@@ -439,7 +474,9 @@ func makeMetricset(
 			Name:        key.faasName,
 			Version:     key.faasVersion,
 		},
-		Processor: model.MetricsetProcessor,
+		Labels:        key.labels,
+		NumericLabels: key.numericLabels,
+		Processor:     model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name:                 metricsetName,
 			DocCount:             totalCount,
@@ -477,8 +514,9 @@ type metricsMapEntry struct {
 	transactionAggregationKey
 }
 
-// NOTE(axw) the dimensions should be kept in sync with docs/metricset-indices.asciidoc.
-type transactionAggregationKey struct {
+// comparable contains the fields with types which can be compared with the
+// equal operator '=='.
+type comparable struct {
 	timestamp              time.Time
 	faasColdstart          *bool
 	faasID                 string
@@ -514,6 +552,16 @@ type transactionAggregationKey struct {
 	traceRoot              bool
 }
 
+// NOTE(axw) the dimensions should be kept in sync with docs/metricset-indices.asciidoc (legacy).
+// And docs/data-model.asciidoc for the current documentation on the APM Server model.
+type transactionAggregationKey struct {
+	labelKeys        []string
+	labels           model.Labels
+	numericLabelKeys []string
+	numericLabels    model.NumericLabels
+	comparable
+}
+
 func (k *transactionAggregationKey) hash() uint64 {
 	var h xxhash.Digest
 	var buf [8]byte
@@ -525,6 +573,7 @@ func (k *transactionAggregationKey) hash() uint64 {
 	if k.faasColdstart != nil && *k.faasColdstart {
 		h.WriteString("1")
 	}
+	writeLabels(&h, k)
 	h.WriteString(k.agentName)
 	h.WriteString(k.containerID)
 	h.WriteString(k.hostname)
@@ -556,6 +605,12 @@ func (k *transactionAggregationKey) hash() uint64 {
 	h.WriteString(k.faasName)
 	h.WriteString(k.faasVersion)
 	return h.Sum64()
+}
+
+func (k *transactionAggregationKey) equal(key transactionAggregationKey) bool {
+	return k.comparable == key.comparable &&
+		equalLabels(k.labels, key.labels) &&
+		equalNumericLabels(k.numericLabels, key.numericLabels)
 }
 
 type transactionMetrics struct {
@@ -593,4 +648,87 @@ func transactionCount(tx *model.Transaction) float64 {
 		return tx.RepresentativeCount
 	}
 	return 1
+}
+
+func writeLabels(w io.Writer, aggKey *transactionAggregationKey) {
+	for _, key := range aggKey.labelKeys {
+		label := aggKey.labels[key]
+		io.WriteString(w, key)
+		if label.Value != "" {
+			io.WriteString(w, label.Value)
+			continue
+		}
+		for _, v := range label.Values {
+			io.WriteString(w, v)
+		}
+	}
+	for _, key := range aggKey.numericLabelKeys {
+		label := aggKey.numericLabels[key]
+		io.WriteString(w, key)
+		if label.Value != 0 {
+			var b [8]byte
+			binary.LittleEndian.PutUint64(b[:], math.Float64bits(label.Value))
+			w.Write(b[:])
+			continue
+		}
+		for _, v := range label.Values {
+			var b [8]byte
+			binary.LittleEndian.PutUint64(b[:], math.Float64bits(v))
+			w.Write(b[:])
+		}
+	}
+}
+
+// equalLabels returns true if the labels are equal. The Global property is
+// ignored since only global labels are compared.
+func equalLabels(l, labels model.Labels) bool {
+	if len(l) != len(labels) {
+		return false
+	}
+	for key, localV := range l {
+		v, ok := labels[key]
+		if !ok {
+			return false
+		}
+		// If the slice value is set, ignore the Value field.
+		if len(v.Values) == 0 && v.Value != localV.Value {
+			return false
+		}
+		if len(v.Values) != len(localV.Values) {
+			return false
+		}
+		for i, value := range v.Values {
+			if localV.Values[i] != value {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// equalNumericLabels returns true if the labels are equal. The Global property
+// is ignored since only global labels are compared.
+func equalNumericLabels(l, labels model.NumericLabels) bool {
+	if len(l) != len(labels) {
+		return false
+	}
+	for key, localV := range l {
+		v, ok := labels[key]
+		if !ok {
+			return false
+		}
+		// If the slice value is set, ignore the Value field.
+		if len(v.Values) == 0 && v.Value != localV.Value {
+			return false
+		}
+		if len(v.Values) != len(localV.Values) {
+			return false
+		}
+		for i, value := range v.Values {
+			if localV.Values[i] != value {
+				return false
+			}
+		}
+	}
+	return true
 }

@@ -18,7 +18,7 @@
 package v2
 
 import (
-	"net"
+	"net/netip"
 	"reflect"
 	"strings"
 	"testing"
@@ -36,7 +36,7 @@ func isMetadataException(key string) bool {
 }
 
 func isIgnoredPrefix(key string) bool {
-	ignore := []string{"Labels", "NumericLabels"}
+	ignore := []string{"Labels", "NumericLabels", "GlobalLabels", "GlobalNumericLabels"}
 	for _, k := range ignore {
 		if strings.HasPrefix(key, k) {
 			return true
@@ -107,6 +107,8 @@ func isUnmappedMetadataField(key string) bool {
 		"Processor.Name",
 		"Host.OS.Full",
 		"Host.OS.Type",
+		"Host.OS.Name",
+		"Host.OS.Version",
 		"Host.ID",
 		"Host.IP",
 		"Host.Type",
@@ -198,12 +200,12 @@ func TestDecodeMetadata(t *testing.T) {
 				Service: model.Service{Name: "user-service"},
 				Agent:   model.Agent{Name: "go", Version: "1.0.0"},
 				Labels: model.Labels{
-					"a": {Value: "b"},
-					"c": {Value: "true"},
+					"a": {Global: true, Value: "b"},
+					"c": {Global: true, Value: "true"},
 				},
 				NumericLabels: model.NumericLabels{
-					"d": {Value: float64(1234)},
-					"e": {Value: float64(1234.11)},
+					"d": {Global: true, Value: float64(1234)},
+					"e": {Global: true, Value: float64(1234.11)},
 				},
 			}, out)
 
@@ -275,7 +277,7 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
 		out2.Timestamp = otherVal.Time
-		out2.Host.IP = []net.IP{defaultVal.IP}
+		out2.Host.IP = []netip.Addr{defaultVal.IP}
 		out2.Client.IP = defaultVal.IP
 		out2.Source.IP = defaultVal.IP
 		modeldecodertest.AssertStructValues(t, &out2, isMetadataException, otherVal)

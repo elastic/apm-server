@@ -18,8 +18,8 @@
 package v2
 
 import (
-	"net"
 	"net/http"
+	"net/netip"
 	"strings"
 	"testing"
 	"time"
@@ -81,8 +81,8 @@ func TestDecodeNestedError(t *testing.T) {
 }
 
 func TestDecodeMapToErrorModel(t *testing.T) {
-	gatewayIP := net.ParseIP("192.168.0.1")
-	randomIP := net.ParseIP("71.0.54.1")
+	gatewayIP := netip.MustParseAddr("192.168.0.1")
+	randomIP := netip.MustParseAddr("71.0.54.1")
 
 	exceptions := func(key string) bool { return false }
 	t.Run("metadata-overwrite", func(t *testing.T) {
@@ -101,7 +101,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		ip := modeldecodertest.DefaultValues().IP
 		assert.Equal(t, ip, out.Client.IP, out.Client.IP.String())
 		assert.Equal(t, model.Labels{
-			"init0": {Value: "init"}, "init1": {Value: "init"}, "init2": {Value: "init"},
+			"init0": {Global: true, Value: "init"}, "init1": {Global: true, Value: "init"}, "init2": {Global: true, Value: "init"},
 			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
 		}, out.Labels)
 		// service and user values should be set
@@ -206,5 +206,12 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		input.Transaction.Name.Set("My Transaction")
 		mapToErrorModel(&input, &out)
 		assert.Equal(t, "My Transaction", out.Transaction.Name)
+	})
+	t.Run("transaction-id-empty-transaction", func(t *testing.T) {
+		var input errorEvent
+		var out model.APMEvent
+		input.TransactionID.Set("12341231")
+		mapToErrorModel(&input, &out)
+		assert.Equal(t, "12341231", out.Transaction.ID)
 	})
 }

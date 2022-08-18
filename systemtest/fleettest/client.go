@@ -256,6 +256,18 @@ func (c *Client) InstallPackage(name, version string) error {
 	return consumeResponse(resp, nil)
 }
 
+// InstallPackageByUpload uploads and installs a package zip.
+func (c *Client) InstallPackageByUpload(body io.ReadCloser) error {
+	req := c.newFleetRequest("POST", "/epm/packages", body)
+	req.Header.Set("Content-Type", "application/zip")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return consumeResponse(resp, nil)
+}
+
 // DeletePackage deletes (uninstalls) the package with the given name and version.
 func (c *Client) DeletePackage(name, version string) error {
 	req := c.newFleetRequest("DELETE", "/epm/packages/"+name+"-"+version, nil)
@@ -265,6 +277,22 @@ func (c *Client) DeletePackage(name, version string) error {
 	}
 	defer resp.Body.Close()
 	return consumeResponse(resp, nil)
+}
+
+// ListPackagePolicies returns information about the package policy with the given ID.
+func (c *Client) ListPackagePolicies() ([]PackagePolicy, error) {
+	resp, err := http.Get(c.fleetURL + "/package_policies")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var result struct {
+		Items []PackagePolicy `json:"items"`
+	}
+	if err := consumeResponse(resp, &result); err != nil {
+		return nil, err
+	}
+	return result.Items, nil
 }
 
 // PackagePolicy returns information about the package policy with the given ID.
@@ -290,6 +318,26 @@ func (c *Client) CreatePackagePolicy(p *PackagePolicy) error {
 		return err
 	}
 	req := c.newFleetRequest("POST", "/package_policies", &body)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return consumeResponse(resp, nil)
+}
+
+// UpdatePackagePolicy updates an existing integration package policy.
+func (c *Client) UpdatePackagePolicy(p *PackagePolicy) error {
+	policyID := p.ID
+	pCopy := *p
+	pCopy.ID = ""
+	p = &pCopy
+
+	var body bytes.Buffer
+	if err := json.NewEncoder(&body).Encode(p); err != nil {
+		return err
+	}
+	req := c.newFleetRequest("PUT", "/package_policies/"+policyID, &body)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err

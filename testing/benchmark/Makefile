@@ -4,7 +4,7 @@ APMBENCH_GOARCH ?= amd64
 
 TFVARS_SOURCE ?= terraform.tfvars.example
 
-BENCHMARK_WARMUP ?= 40000
+BENCHMARK_WARMUP_TIME ?= 5m
 BENCHMARK_AGENTS ?= 64
 BENCHMARK_COUNT ?= 3
 BENCHMARK_TIME ?= 2m
@@ -32,7 +32,10 @@ export AWS_PROFILE ?= default
 .PHONY: all
 all: $(SSH_KEY) terraform.tfvars apmbench auth apply
 
-include $(shell git rev-parse --show-toplevel)/go.mk
+MAKEFILE_PATH:=$(abspath $(lastword ${MAKEFILE_LIST}))
+MAKEFILE_DIR:=$(dir ${MAKEFILE_PATH})
+
+include ${MAKEFILE_DIR}/../../go.mk
 
 .PHONY: auth
 auth: init-aws-profile
@@ -69,17 +72,24 @@ destroy:
 
 .PHONY: log-benckmark-profile
 log-benckmark-profile:
-	@echo "Starting benchmarks..."
-	@echo "Benchmark warmup events: $(BENCHMARK_WARMUP)"
-	@echo "Benchmarks count: $(BENCHMARK_COUNT)"
+	@echo "Running benchmarks..."
+	@echo "Benchmark warmup time: $(BENCHMARK_WARMUP_TIME)"
+	@echo "Benchmark agents: $(BENCHMARK_AGENTS)"
+	@echo "Benchmark max rate: $(BENCHMARK_MAX_RATE)"
+	@echo "Benchmark count: $(BENCHMARK_COUNT)"
 	@echo "Benchmark duration: $(BENCHMARK_TIME)"
-	@echo "Benchmark run comand : $(BENCHMARK_RUN)"
+	@echo "Benchmark run expression : $(BENCHMARK_RUN)"
 
 .PHONY: run-benchmark
 run-benchmark: log-benckmark-profile
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP) ". .envrc && bin/apmbench -run='$(BENCHMARK_RUN)' \
-	-benchtime=$(BENCHMARK_TIME) -count=$(BENCHMARK_COUNT) -warmup-events=$(BENCHMARK_WARMUP) \
+	-benchtime=$(BENCHMARK_TIME) -count=$(BENCHMARK_COUNT) -warmup-time=$(BENCHMARK_WARMUP_TIME) \
 	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED) -max-rate=$(BENCHMARK_MAX_RATE)" 2>&1 | tee $(BENCHMARK_RESULT)
+
+.PHONY: run-benchmark-autotuned
+run-benchmark-autotuned:
+	$(eval APM_SERVER_SIZE:=$(shell echo var.apm_server_size | terraform console | tr -d '"'| tr -d 'g'))
+	@ $(MAKE) run-benchmark BENCHMARK_AGENTS=$(shell echo $$(( $(BENCHMARK_AGENTS) * $(APM_SERVER_SIZE) )) )
 
 .PHONY: index-benchmark-results
 index-benchmark-results: $(GOBENCH) _default-gobench-vars

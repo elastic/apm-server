@@ -55,6 +55,7 @@ pipeline {
         dir("${BASE_DIR}"){
           withGoEnv(){
             setupAPMGitEmail(global: true)
+            sh(label: 'check BEATS_VERSION matches branch', script: '.ci/scripts/check-beats-version.sh')
             sh(label: 'make update-beats', script: '.ci/scripts/update-beats.sh')
           }
         }

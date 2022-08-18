@@ -311,15 +311,15 @@ func mapToCloudModel(from contextCloud, cloud *model.Cloud) {
 
 func mapToClientModel(from contextRequest, source *model.Source, client *model.Client) {
 	// http.Request.Headers and http.Request.Socket are only set for backend events.
-	if source.IP == nil {
+	if !source.IP.IsValid() {
 		ip, port := netutil.ParseIPPort(
 			netutil.MaybeSplitHostPort(from.Socket.RemoteAddress.Val),
 		)
 		source.IP, source.Port = ip, int(port)
 	}
-	if client.IP == nil {
+	if !client.IP.IsValid() {
 		client.IP = source.IP
-		if ip, port := netutil.ClientAddrFromHeaders(from.Headers.Val); ip != nil {
+		if ip, port := netutil.ClientAddrFromHeaders(from.Headers.Val); ip.IsValid() {
 			source.NAT = &model.NAT{IP: source.IP}
 			client.IP, client.Port = ip, int(port)
 			source.IP, source.Port = client.IP, client.Port
@@ -415,8 +415,13 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 	if from.TraceID.IsSet() {
 		event.Trace.ID = from.TraceID.Val
 	}
-	if from.Transaction.IsSet() {
+	if from.TransactionID.IsSet() || from.Transaction.IsSet() {
 		event.Transaction = &model.Transaction{}
+	}
+	if from.TransactionID.IsSet() {
+		event.Transaction.ID = from.TransactionID.Val
+	}
+	if from.Transaction.IsSet() {
 		if from.Transaction.Sampled.IsSet() {
 			event.Transaction.Sampled = from.Transaction.Sampled.Val
 		}
@@ -425,9 +430,6 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 		}
 		if from.Transaction.Type.IsSet() {
 			event.Transaction.Type = from.Transaction.Type.Val
-		}
-		if from.TransactionID.IsSet() {
-			event.Transaction.ID = from.TransactionID.Val
 		}
 	}
 }
@@ -506,7 +508,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 
 	// Labels
 	if len(from.Labels) > 0 {
-		modeldecoderutil.LabelsFrom(from.Labels, out)
+		modeldecoderutil.GlobalLabelsFrom(from.Labels, out)
 	}
 
 	// Process

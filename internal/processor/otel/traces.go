@@ -38,6 +38,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/netip"
 	"net/url"
 	"strconv"
 	"strings"
@@ -345,13 +346,17 @@ func TranslateTransaction(
 				foundSpanType = httpSpan
 				httpServerName = stringval
 			case semconv.AttributeHTTPClientIP:
-				event.Client.IP = net.ParseIP(stringval)
+				if ip, err := netip.ParseAddr(stringval); err == nil {
+					event.Client.IP = ip
+				}
 			case semconv.AttributeHTTPUserAgent:
 				event.UserAgent.Original = stringval
 
 			// net.*
 			case semconv.AttributeNetPeerIP:
-				event.Source.IP = net.ParseIP(stringval)
+				if ip, err := netip.ParseAddr(stringval); err == nil {
+					event.Source.IP = ip
+				}
 			case semconv.AttributeNetPeerName:
 				event.Source.Domain = stringval
 			case semconv.AttributeNetHostName:
@@ -387,6 +392,8 @@ func TranslateTransaction(
 			// miscellaneous
 			case "type":
 				event.Transaction.Type = stringval
+			case "session.id":
+				event.Session.ID = stringval
 			case semconv.AttributeServiceVersion:
 				// NOTE support for sending service.version as a span tag
 				// is deprecated, and will be removed in 8.0. Instrumentation
@@ -444,7 +451,7 @@ func TranslateTransaction(
 		event.Transaction.Message = &message
 	}
 
-	if event.Client.IP == nil {
+	if !event.Client.IP.IsValid() {
 		event.Client = model.Client{IP: event.Source.IP, Port: event.Source.Port, Domain: event.Source.Domain}
 	}
 
@@ -615,6 +622,10 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				event.Network.Carrier.Name = stringval
 			case attributeNetworkICC:
 				event.Network.Carrier.ICC = stringval
+
+			// session.*
+			case "session.id":
+				event.Session.ID = stringval
 
 			// messaging.*
 			case "message_bus.destination", semconv.AttributeMessagingDestination:

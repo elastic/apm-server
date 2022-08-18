@@ -23,7 +23,7 @@ func BenchmarkProcess(b *testing.B) {
 	processor, err := sampling.NewProcessor(newTempdirConfig(b))
 	require.NoError(b, err)
 	go processor.Run()
-	defer processor.Stop(context.Background())
+	b.Cleanup(func() { processor.Stop(context.Background()) })
 
 	b.RunParallel(func(pb *testing.PB) {
 		var seed int64
