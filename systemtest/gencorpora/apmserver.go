@@ -38,8 +38,8 @@ type APMServer struct {
 	mu      sync.Mutex
 }
 
-// GetAPMServer returns an APMServer CMD with the required args
-func GetAPMServer(ctx context.Context, esHost, apmHost string) *APMServer {
+// NewAPMServer returns an APMServer CMD with the required args
+func NewAPMServer(ctx context.Context, esHost, apmHost string) *APMServer {
 	args := []string{
 		"--strict.perms=false",
 		"-E", fmt.Sprintf("logging.level=%s", gencorporaConfig.LoggingLevel),

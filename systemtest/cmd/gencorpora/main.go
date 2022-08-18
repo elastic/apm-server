@@ -39,13 +39,13 @@ const apmHost = "127.0.0.1:8200"
 
 func run(rootCtx context.Context) error {
 	// Create fake ES server
-	esServer, err := gencorpora.GetCatBulkServer()
+	esServer, err := gencorpora.NewCatBulkServer()
 	if err != nil {
 		return err
 	}
 
 	// Create APM-Server to send documents to fake ES
-	apmServer := gencorpora.GetAPMServer(rootCtx, esServer.Addr, apmHost)
+	apmServer := gencorpora.NewAPMServer(rootCtx, esServer.Addr, apmHost)
 	apmServer.StreamLogs(rootCtx)
 
 	ctx, cancel := context.WithCancel(rootCtx)
@@ -63,7 +63,7 @@ func run(rootCtx context.Context) error {
 
 		return result
 	})
-	g.Go(esServer.Start)
+	g.Go(esServer.Serve)
 	g.Go(apmServer.Start)
 	g.Go(func() error {
 		defer cancel()

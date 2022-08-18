@@ -44,10 +44,10 @@ type CatBulkServer struct {
 	writer io.WriteCloser
 }
 
-// GetCatBulkServer returns a HTTP Server which can serve as a
+// NewCatBulkServer returns a HTTP Server which can serve as a
 // fake ES server writing the response of the bulk request to the
 // provided writer. Writes to the provided writer must be thread safe.
-func GetCatBulkServer() (*CatBulkServer, error) {
+func NewCatBulkServer() (*CatBulkServer, error) {
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
 		return nil, err
@@ -70,8 +70,8 @@ func GetCatBulkServer() (*CatBulkServer, error) {
 	}, nil
 }
 
-// Start starts the fake ES server on a listener.
-func (s *CatBulkServer) Start() error {
+// Serve starts the fake ES server on a listener.
+func (s *CatBulkServer) Serve() error {
 	if err := s.server.Serve(s.listener); err != http.ErrServerClosed {
 		return err
 	}
