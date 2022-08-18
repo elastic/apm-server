@@ -33,7 +33,7 @@ import (
 
 func TestErrorIngest(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 
 	// TODO(marclop): Update APM go agent to the latest to test this.
 	events, err := os.ReadFile("../testdata/intake-v2/errors.ndjson")
