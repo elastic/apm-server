@@ -17,25 +17,10 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/elastic-agent-libs/logp"
+
+	"github.com/elastic/apm-server/internal/model"
 )
-
-func BenchmarkAggregateSpan(b *testing.B) {
-	agg, err := NewAggregator(AggregatorConfig{
-		BatchProcessor: makeErrBatchProcessor(nil),
-		Interval:       time.Minute,
-		MaxGroups:      1000,
-	})
-	require.NoError(b, err)
-
-	transaction := makeTransaction("test_service", "agent", "test_destination", "trg_type", "trg_name", "success", time.Second, 1)
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			_ = agg.ProcessBatch(context.Background(), &model.Batch{transaction})
-		}
-	})
-}
 
 func TestNewAggregatorConfigInvalid(t *testing.T) {
 	report := makeErrBatchProcessor(nil)
@@ -77,31 +62,26 @@ func TestAggregatorRun(t *testing.T) {
 	require.NoError(t, err)
 
 	type input struct {
-		serviceName string
-		agentName   string
-		destination string
-		targetType  string
-		targetName  string
-		outcome     string
-		count       float64
+		serviceName        string
+		serviceEnvironment string
+		agentName          string
+		transactionType    string
+		outcome            string
+		count              float64
 	}
 
-	destinationX := "destination-X"
-	destinationZ := "destination-Z"
-	trgTypeX := "trg-type-X"
-	trgNameX := "trg-name-X"
-	trgTypeZ := "trg-type-Z"
-	trgNameZ := "trg-name-Z"
 	inputs := []input{
-		{serviceName: "service-A", agentName: "java", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 2},
-		{serviceName: "service-A", agentName: "java", destination: destinationX, targetType: trgTypeX, targetName: trgNameX, outcome: "success", count: 1},
-		{serviceName: "service-B", agentName: "python", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 1},
-		{serviceName: "service-A", agentName: "java", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 1},
-		{serviceName: "service-A", agentName: "java", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 0},
-		{serviceName: "service-A", agentName: "java", outcome: "success", count: 1},                                             // no destination or service target
-		{serviceName: "service-A", agentName: "java", targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 1}, // no destination
-		{serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "success", count: 1},                  // no service target
-		{serviceName: "service-A", agentName: "java", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "failure", count: 1},
+		{serviceName: "ignored", agentName: "ignored", transactionType: "ignored", count: 0}, // ignored because count is zero
+
+		{serviceName: "backend", agentName: "java", transactionType: "request", outcome: "success", count: 2},
+		{serviceName: "backend", agentName: "java", transactionType: "request", outcome: "failure", count: 3},
+		{serviceName: "backend", agentName: "java", transactionType: "request", outcome: "unknown", count: 1},
+
+		{serviceName: "backend", agentName: "go", transactionType: "request", outcome: "unknown", count: 1},
+		{serviceName: "backend", agentName: "go", transactionType: "background", outcome: "unknown", count: 1},
+
+		{serviceName: "frontend", agentName: "rum-js", transactionType: "page-load", outcome: "unknown", count: 1},
+		{serviceName: "frontend", serviceEnvironment: "staging", agentName: "rum-js", transactionType: "page-load", outcome: "unknown", count: 1},
 	}
 
 	var wg sync.WaitGroup
@@ -109,13 +89,16 @@ func TestAggregatorRun(t *testing.T) {
 		wg.Add(1)
 		go func(in input) {
 			defer wg.Done()
-			transaction := makeTransaction(in.serviceName, in.agentName, in.destination, in.targetType, in.targetName, in.outcome, 100*time.Millisecond, in.count)
+			transaction := makeTransaction(
+				in.serviceName, in.agentName, in.transactionType,
+				in.outcome, time.Millisecond, in.count,
+			)
+			transaction.Service.Environment = in.serviceEnvironment
+
 			batch := model.Batch{transaction}
-			for i := 0; i < 100; i++ {
-				err := agg.ProcessBatch(context.Background(), &batch)
-				require.NoError(t, err)
-				assert.Equal(t, model.Batch{transaction}, batch)
-			}
+			err := agg.ProcessBatch(context.Background(), &batch)
+			require.NoError(t, err)
+			assert.Equal(t, model.Batch{transaction}, batch)
 		}(in)
 	}
 	wg.Wait()
@@ -126,46 +109,71 @@ func TestAggregatorRun(t *testing.T) {
 
 	batch := expectBatch(t, batches)
 	metricsets := batchMetricsets(t, batch)
-	serviceAFailureCount := 100
-	serviceBFailureCount := 0
 	expected := []model.APMEvent{{
-		Agent: model.Agent{Name: "java"},
-		Service: model.Service{
-			Name: "service-A",
-		},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service"},
+		Service:   model.Service{Name: "backend"},
+		Agent:     model.Agent{Name: "java"},
 		Transaction: &model.Transaction{
-			DurationAggregate: model.AggregateMetric{
-				Count: 800,
-				Sum:   80000000,
-				Min:   0,
-				Max:   100000,
+			Type: "request",
+			DurationSummary: model.SummaryMetric{
+				Count: 6,
+				Sum:   6000, // 6ms in micros
 			},
-			FailureCount: &serviceAFailureCount,
+			SuccessCount: 2,
+			FailureCount: 3,
 		},
 	}, {
-		Agent: model.Agent{Name: "python"},
-		Service: model.Service{
-			Name: "service-B",
-		},
 		Processor: model.MetricsetProcessor,
-		Transaction: &model.Transaction{
-			DurationAggregate: model.AggregateMetric{
-				Count: 100,
-				Sum:   10000000,
-				Min:   0,
-				Max:   100000,
-			},
-			FailureCount: &serviceBFailureCount,
-		},
 		Metricset: &model.Metricset{Name: "service"},
+		Service:   model.Service{Name: "backend"},
+		Agent:     model.Agent{Name: "go"},
+		Transaction: &model.Transaction{
+			Type: "request",
+			DurationSummary: model.SummaryMetric{
+				Count: 1,
+				Sum:   1000, // 1ms in micros
+			},
+		},
+	}, {
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{Name: "service"},
+		Service:   model.Service{Name: "backend"},
+		Agent:     model.Agent{Name: "go"},
+		Transaction: &model.Transaction{
+			Type: "background",
+			DurationSummary: model.SummaryMetric{
+				Count: 1,
+				Sum:   1000, // 1ms in micros
+			},
+		},
+	}, {
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{Name: "service"},
+		Service:   model.Service{Name: "frontend"},
+		Agent:     model.Agent{Name: "rum-js"},
+		Transaction: &model.Transaction{
+			Type: "page-load",
+			DurationSummary: model.SummaryMetric{
+				Count: 1,
+				Sum:   1000, // 1ms in micros
+			},
+		},
+	}, {
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{Name: "service"},
+		Service:   model.Service{Name: "frontend", Environment: "staging"},
+		Agent:     model.Agent{Name: "rum-js"},
+		Transaction: &model.Transaction{
+			Type: "page-load",
+			DurationSummary: model.SummaryMetric{
+				Count: 1,
+				Sum:   1000, // 1ms in micros
+			},
+		},
 	}}
 
 	assert.Equal(t, len(expected), len(metricsets))
-	assert.Equal(t, expected[0], metricsets[0])
-	assert.Equal(t, expected[1], metricsets[1])
-
 	assert.ElementsMatch(t, expected, metricsets)
 
 	select {
@@ -186,7 +194,7 @@ func TestAggregateTimestamp(t *testing.T) {
 
 	t0 := time.Unix(0, 0)
 	for _, ts := range []time.Time{t0, t0.Add(15 * time.Second), t0.Add(30 * time.Second)} {
-		transaction := makeTransaction("service_name", "agent_name", "destination", "trg_type", "trg_name", "success", 100*time.Millisecond, 1)
+		transaction := makeTransaction("service_name", "agent_name", "tx_type", "success", 100*time.Millisecond, 1)
 		transaction.Timestamp = ts
 		batch := model.Batch{transaction}
 		err = agg.ProcessBatch(context.Background(), &batch)
@@ -223,22 +231,21 @@ func TestAggregatorMaxGroups(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// The first two transaction groups will not require immediate publication,
-	// as we have configured the spanmetrics with a maximum of four buckets.
+	// The first four groups will not require immediate publication,
+	// as we have configured a maximum of four buckets. Log messages
+	// are produced after 50% and 100% of capacity are reached.
 	batch := make(model.Batch, 2)
-	batch[0] = makeTransaction("service1", "agent", "destination1", "trg_type_1", "trg_name_1", "success", 100*time.Millisecond, 1)
-	batch[1] = makeTransaction("service2", "agent", "destination2", "trg_type_2", "trg_name_2", "success", 100*time.Millisecond, 1)
+	batch[0] = makeTransaction("service1", "agent", "tx_type", "success", 100*time.Millisecond, 1)
+	batch[1] = makeTransaction("service2", "agent", "tx_type", "success", 100*time.Millisecond, 1)
 	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
 	assert.Empty(t, batchMetricsets(t, batch))
 	assert.Equal(t, 1, observed.FilterMessage("service metrics groups reached 50% capacity").Len())
 	assert.Len(t, observed.TakeAll(), 1)
 
-	// After hitting 50% capacity (two buckets), then subsequent new metrics will
-	// be aggregated without span.name.
 	batch = append(batch,
-		makeTransaction("service3", "agent", "destination3", "trg_type_3", "trg_name_3", "success", 100*time.Millisecond, 1),
-		makeTransaction("service4", "agent", "destination4", "trg_type_4", "trg_name_4", "success", 100*time.Millisecond, 1),
+		makeTransaction("service3", "agent", "tx_type", "success", 100*time.Millisecond, 1),
+		makeTransaction("service4", "agent", "tx_type", "success", 100*time.Millisecond, 1),
 	)
 	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
@@ -249,7 +256,7 @@ func TestAggregatorMaxGroups(t *testing.T) {
 	// After hitting 100% capacity (four buckets), then subsequent new metrics will
 	// return single-event metricsets for immediate publication.
 	for i := 0; i < 2; i++ {
-		batch = append(batch, makeTransaction("service5", "agent", "destination5", "trg_type_5", "trg_name_5", "success", 100*time.Millisecond, 1))
+		batch = append(batch, makeTransaction("service5", "agent", "tx_type", "success", 100*time.Millisecond, 1))
 	}
 	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
@@ -258,7 +265,6 @@ func TestAggregatorMaxGroups(t *testing.T) {
 	assert.Len(t, metricsets, 2)
 
 	for _, m := range metricsets {
-		failureCount := 0
 		assert.Equal(t, model.APMEvent{
 			Agent: model.Agent{
 				Name: "agent",
@@ -268,13 +274,12 @@ func TestAggregatorMaxGroups(t *testing.T) {
 			},
 			Processor: model.MetricsetProcessor,
 			Transaction: &model.Transaction{
-				DurationAggregate: model.AggregateMetric{
+				Type: "tx_type",
+				DurationSummary: model.SummaryMetric{
 					Count: 1,
 					Sum:   100000,
-					Min:   100000,
-					Max:   100000,
 				},
-				FailureCount: &failureCount,
+				SuccessCount: 1,
 			},
 			Metricset: &model.Metricset{Name: "service"},
 		}, m)
@@ -282,11 +287,10 @@ func TestAggregatorMaxGroups(t *testing.T) {
 }
 
 func makeTransaction(
-	serviceName, agentName, destinationServiceResource, targetType, targetName, outcome string,
-	duration time.Duration,
-	count float64,
+	serviceName, agentName, transactionType, outcome string,
+	duration time.Duration, count float64,
 ) model.APMEvent {
-	event := model.APMEvent{
+	return model.APMEvent{
 		Agent:   model.Agent{Name: agentName},
 		Service: model.Service{Name: serviceName},
 		Event: model.Event{
@@ -295,17 +299,11 @@ func makeTransaction(
 		},
 		Processor: model.TransactionProcessor,
 		Transaction: &model.Transaction{
-			Name:                serviceName + ":" + destinationServiceResource,
+			Name:                "transaction_name",
+			Type:                transactionType,
 			RepresentativeCount: count,
 		},
 	}
-	if targetType != "" {
-		event.Service.Target = &model.ServiceTarget{
-			Type: targetType,
-			Name: targetName,
-		}
-	}
-	return event
 }
 
 func makeErrBatchProcessor(err error) model.BatchProcessor {

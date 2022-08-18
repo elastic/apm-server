@@ -132,33 +132,6 @@ func (s *SummaryMetric) fields() mapstr.M {
 	return mapstr.M{"value_count": s.Count, "sum": s.Sum}
 }
 
-// AggregateMetric holds extended summary metrics (value_count, sum, min, max).
-type AggregateMetric struct {
-	// Count holds the number of aggregated measurements.
-	Count int64
-
-	// Sum holds the sum of aggregated measurements.
-	Sum int64
-
-	// Min holds the min of aggregated measurements.
-	Min int64
-
-	// Min holds the max of aggregated measurements.
-	Max int64
-}
-
-func (h *AggregateMetric) fields() mapstr.M {
-	if h.Count == 0 {
-		return nil
-	}
-	var fields mapStr
-	fields.set("value_count", h.Count)
-	fields.set("sum", h.Sum)
-	fields.set("min", h.Min)
-	fields.set("max", h.Max)
-	return mapstr.M(fields)
-}
-
 // AggregatedDuration holds a count and sum of aggregated durations.
 type AggregatedDuration struct {
 	// Count holds the number of durations aggregated.

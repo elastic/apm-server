@@ -56,11 +56,20 @@ type Transaction struct {
 	// duration metrics.
 	DurationHistogram Histogram
 
-	// DurationAggregate stores the value_count, min, max and sum of observed duration for the service metrics.
-	DurationAggregate AggregateMetric
+	// DurationSummary holds an aggregated transaction duration summary,
+	// for service metrics. The DurationSummary.Sum field has microsecond
+	// resolution.
+	DurationSummary SummaryMetric
 
-	// FailureCount is used by service metrics documents to indicate how many failed transactions were observed
-	FailureCount *int
+	// FailureCount holds an aggregated count of transactions with the
+	// outcome "failure". If FailureCount is zero, it will be omitted from
+	// the output event.
+	FailureCount int
+
+	// SuccessCount holds an aggregated count of transactions with the
+	// outcome "success". If SuccessCount is zero, it will be omitted from
+	// the output event.
+	SuccessCount int
 
 	Marks          TransactionMarks
 	Message        *Message
@@ -94,8 +103,15 @@ func (e *Transaction) fields() mapstr.M {
 	transaction.maybeSetString("id", e.ID)
 	transaction.maybeSetString("type", e.Type)
 	transaction.maybeSetMapStr("duration.histogram", e.DurationHistogram.fields())
-	transaction.maybeSetMapStr("duration.aggregate", e.DurationAggregate.fields())
-	transaction.maybeSetIntptr("duration.failure_count", e.FailureCount)
+	if e.DurationSummary.Count != 0 {
+		transaction.maybeSetMapStr("duration.summary", e.DurationSummary.fields())
+	}
+	if e.FailureCount != 0 {
+		transaction.set("failure_count", e.FailureCount)
+	}
+	if e.SuccessCount != 0 {
+		transaction.set("success_count", e.SuccessCount)
+	}
 	transaction.maybeSetString("name", e.Name)
 	transaction.maybeSetString("result", e.Result)
 	transaction.maybeSetMapStr("marks", e.Marks.fields())

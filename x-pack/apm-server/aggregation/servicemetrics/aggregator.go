@@ -6,14 +6,16 @@ package servicemetrics
 
 import (
 	"context"
+	"math"
 	"sync"
 	"time"
 
 	"github.com/pkg/errors"
 
-	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/elastic-agent-libs/logp"
+
+	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/internal/model"
 )
 
 const (
@@ -76,7 +78,7 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		return nil, errors.Wrap(err, "invalid aggregator config")
 	}
 	if config.Logger == nil {
-		config.Logger = logp.NewLogger(logs.SpanMetrics)
+		config.Logger = logp.NewLogger(logs.ServiceMetrics)
 	}
 	return &Aggregator{
 		stopping: make(chan struct{}),
@@ -188,26 +190,12 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 }
 
 func (a *Aggregator) processTransaction(event *model.APMEvent) model.APMEvent {
-	if event.Transaction == nil {
+	if event.Transaction == nil || event.Transaction.RepresentativeCount <= 0 {
 		return model.APMEvent{}
 	}
-
-	// For composite spans we use the composite sum duration, which is the sum of
-	// pre-aggregated spans and excludes time gaps that are counted in the reported
-	// span duration. For non-composite spans we just use the reported span duration.
-	duration := event.Event.Duration.Microseconds()
-
 	key := makeAggregationKey(event, a.config.Interval)
-
-	metrics := serviceMetrics{
-		count:       1,
-		sum:         duration,
-		min:         duration,
-		max:         duration,
-		sumFailures: 0,
-		agentName:   event.Agent.Name,
-	}
-	if a.active.storeOrUpdate(key, metrics, event, a.config.Logger) {
+	metrics := makeServiceMetrics(event)
+	if a.active.storeOrUpdate(key, metrics, a.config.Logger) {
 		return model.APMEvent{}
 	}
 	return makeMetricset(key, metrics)
@@ -227,7 +215,7 @@ func newMetricsBuffer(maxSize int) *metricsBuffer {
 	}
 }
 
-func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, value serviceMetrics, event *model.APMEvent, logger *logp.Logger) bool {
+func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetrics, logger *logp.Logger) bool {
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
 	old, ok := mb.m[key]
@@ -245,71 +233,56 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, value serviceMetrics,
 			}
 		}
 	}
-	var max = old.max
-	var min = old.min
-	if value.max > max {
-		max = value.max
+	mb.m[key] = serviceMetrics{
+		transactionDuration: old.transactionDuration + metrics.transactionDuration,
+		transactionCount:    old.transactionCount + metrics.transactionCount,
+		failureCount:        old.failureCount + metrics.failureCount,
+		successCount:        old.successCount + metrics.successCount,
 	}
-	if value.min < min {
-		min = value.min
-	}
-	var sumNewFailures = 0
-	if event.Event.Outcome == "failure" {
-		sumNewFailures = 1
-	}
-	var agentName = old.agentName
-	if old.agentName == "" {
-		agentName = event.Agent.Name
-	}
-	var metrics = serviceMetrics{
-		count:       value.count + old.count,
-		sum:         value.sum + old.sum,
-		max:         max,
-		min:         min,
-		sumFailures: old.sumFailures + sumNewFailures,
-		agentName:   agentName,
-	}
-	mb.m[key] = metrics
 	return true
 }
 
 type aggregationKey struct {
 	timestamp time.Time
 
-	// origin
+	agentName          string
 	serviceName        string
 	serviceEnvironment string
 	transactionType    string
-
-	outcome string
 }
 
 func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregationKey {
-	var transactionType = ""
-	if event.Transaction != nil {
-		transactionType = event.Transaction.Type
-	} else if event.Span != nil {
-		transactionType = event.Span.Type
-	}
 	return aggregationKey{
 		// Group metrics by time interval.
 		timestamp: event.Timestamp.Truncate(interval),
 
+		agentName:          event.Agent.Name,
 		serviceName:        event.Service.Name,
 		serviceEnvironment: event.Service.Environment,
-		transactionType:    transactionType,
+		transactionType:    event.Transaction.Type,
 	}
 }
 
 type serviceMetrics struct {
-	count int64
-	sum   int64
+	transactionDuration float64
+	transactionCount    float64
+	failureCount        float64
+	successCount        float64
+}
 
-	min int64
-	max int64
-
-	sumFailures int
-	agentName   string
+func makeServiceMetrics(event *model.APMEvent) serviceMetrics {
+	transactionCount := event.Transaction.RepresentativeCount
+	metrics := serviceMetrics{
+		transactionDuration: transactionCount * float64(event.Event.Duration),
+		transactionCount:    transactionCount,
+	}
+	switch event.Event.Outcome {
+	case "failure":
+		metrics.failureCount = transactionCount
+	case "success":
+		metrics.successCount = transactionCount
+	}
+	return metrics
 }
 
 func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
@@ -319,23 +292,20 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
 			Name:        key.serviceName,
 			Environment: key.serviceEnvironment,
 		},
-		Event: model.Event{
-			Outcome: key.outcome,
-		},
 		Agent: model.Agent{
-			Name: metrics.agentName,
+			Name: key.agentName,
 		},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name: metricsetName,
 		},
 		Transaction: &model.Transaction{
-			FailureCount: &metrics.sumFailures,
-			DurationAggregate: model.AggregateMetric{
-				Count: metrics.count,
-				Sum:   metrics.sum,
-				Min:   metrics.min,
-				Max:   metrics.max,
+			Type:         key.transactionType,
+			FailureCount: int(math.Round(metrics.failureCount)),
+			SuccessCount: int(math.Round(metrics.successCount)),
+			DurationSummary: model.SummaryMetric{
+				Count: int64(math.Round(metrics.transactionCount)),
+				Sum:   float64(time.Duration(math.Round(metrics.transactionDuration)).Microseconds()),
 			},
 		},
 	}
