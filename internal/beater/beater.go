@@ -690,19 +690,12 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 	return waitReady(ctx, s.config.WaitReadyInterval, s.tracer, s.logger, check)
 }
 
-// This mutex must be held when updating the libbeat monitoring registry,
-// as there may be multiple servers running concurrently.
-var monitoringRegistryMu sync.Mutex
-
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
 // and a cleanup function which should be called on server shutdown. If the output is
 // "elasticsearch", then we use modelindexer; otherwise we use the libbeat publisher.
 func (s *serverRunner) newFinalBatchProcessor(
 	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
 ) (model.BatchProcessor, func(context.Context) error, error) {
-	monitoringRegistryMu.Lock()
-	defer monitoringRegistryMu.Unlock()
-
 	if s.elasticsearchOutputConfig == nil {
 		// When the publisher stops cleanly it will close its pipeline client,
 		// calling the acker's Close method. We need to call Open for each new
