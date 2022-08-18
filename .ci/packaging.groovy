@@ -461,7 +461,7 @@ def uploadUnpublishedToPackageStorage(builtPackagesPath, packageZips) {
             parameters: [
               gs_package_build_zip_path: "${env.PACKAGE_STORAGE_INTERNAL_BUCKET_QUEUE_PUBLISHING_PATH}/${packageZip}",
               gs_package_signature_path: "${env.PACKAGE_STORAGE_INTERNAL_BUCKET_QUEUE_PUBLISHING_PATH}/${packageZip}.sig",
-              dry_run=false,
+              dry_run: false,
             ],
             useCrumbCache: true,
             useJobInfoCache: true)
