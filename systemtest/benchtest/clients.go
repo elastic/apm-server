@@ -30,6 +30,7 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/elastic/apm-server/systemtest/loadgen"
+	loadgencfg "github.com/elastic/apm-server/systemtest/loadgen/config"
 	"github.com/elastic/apm-server/systemtest/loadgen/eventhandler"
 
 	"go.elastic.co/apm/v2"
@@ -40,8 +41,8 @@ import (
 // to send to the target APM Server.
 func NewTracer(tb testing.TB) *apm.Tracer {
 	httpTransport, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{
-		ServerURLs:  []*url.URL{loadgen.Config.ServerURL},
-		SecretToken: loadgen.Config.SecretToken,
+		ServerURLs:  []*url.URL{loadgencfg.Config.ServerURL},
+		SecretToken: loadgencfg.Config.SecretToken,
 	})
 	if err != nil {
 		tb.Fatal(err)
@@ -59,8 +60,8 @@ func NewTracer(tb testing.TB) *apm.Tracer {
 // NewOTLPExporter returns a new OpenTelemetry Go exporter, configured
 // to export to the target APM Server.
 func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
-	serverURL := loadgen.Config.ServerURL
-	secretToken := loadgen.Config.SecretToken
+	serverURL := loadgencfg.Config.ServerURL
+	secretToken := loadgencfg.Config.SecretToken
 	endpoint := serverURL.Host
 	if serverURL.Port() == "" {
 		switch serverURL.Scheme {
@@ -98,7 +99,7 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 // NewEventHandler creates a eventhandler which loads the files matching the
 // passed regex.
 func NewEventHandler(tb testing.TB, p string, l *rate.Limiter) *eventhandler.Handler {
-	serverCfg := loadgen.Config
+	serverCfg := loadgencfg.Config
 	h, err := loadgen.NewEventHandler(p, serverCfg.ServerURL.String(), serverCfg.SecretToken, l)
 	if err != nil {
 		tb.Fatal(err)
