@@ -325,9 +325,9 @@ func (r *reloader) reloadOnce() error {
 }
 
 // reload creates a new serverRunner, launches it in a new goroutine, waits
-// for it to have successfully started and returns after waiting for the
-// previous serverRunner to exit. Calls to reload must be sycnhronized
-// explicitly by acquiring reloader#mu by callers.
+// for it to have successfully started and returns after waiting for the previous
+// serverRunner (if any) to exit. Calls to reload must be sycnhronized explicitly
+// by acquiring reloader#mu by callers.
 func (r *reloader) reload() error {
 	if r.rawConfig == nil {
 		// APM Server config not loaded yet.
@@ -356,8 +356,8 @@ func (r *reloader) reload() error {
 	}()
 
 	// Wait for the new runner to start; this avoids the race condition in updating
-	// the monitoring#Deafult global registry inside the runner introduced due to two
-	// reloads (one for input and the other for output)
+	// the monitoring#Deafult global registry inside the runner due to two reloads,
+	// one for the inputs and the other for the elasticsearch output
 	select {
 	case <-runner.done:
 		return errors.New("runner exited unexpectedly")
