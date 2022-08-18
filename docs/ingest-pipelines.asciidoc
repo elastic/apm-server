@@ -9,23 +9,58 @@
 // tag::ingest-pipelines[]
 
 Ingest pipelines preprocess and enrich APM documents before indexing them.
-For example, a pipeline might define one processor that removes a field, and another that renames a field.
-This can be useful for ensuring data security by removing or obfuscating sensitive information.
-See <<apm-data-security,data security>> for more on this topic.
+For example, a pipeline might define one processor that removes a field,
+one that transforms a field, and another that renames a field.
 
 The default APM pipelines are defined in index templates that {fleet} loads into {es}.
 {es} then uses the index pattern in these index templates to match pipelines to APM data streams.
 
 [discrete]
-[id="view-edit-default-pipelines{append-legacy}"]
-=== View ingest pipelines
+[id="custom-ingest-pipelines{append-legacy}"]
+=== Custom ingest pipelines
 
-To view or edit a default pipelines in {kib},
-select **{stack-manage-app}** > **Ingest Pipelines**.
-Search for `apm`.
+The Elastic APM integration supports custom ingest pipelines.
+A custom pipeline allows you to alter incoming data to better match your specific use case.
+This can be useful, for example, to ensure data security by removing or obfuscating sensitive information.
 
-It is not currently possible to edit or add pipelines that persist through upgrades.
+In addition, ingest pipelines can also be used to direct metrics events to a data stream with a different dataset.
+Sending other APM data to alternate data streams, like traces (`traces-apm.*`), logs (`logs-apm.*`), and internal metrics (`metrics-apm.internal*`) is not currently supported.
 
-See {ref}/ingest.html[ingest node pipelines] for more information.
+// [discrete]
+// [id="custom-ingest-pipelines-details{append-legacy}"]
+// === Custom ingest pipeline details
+
+// Add links to Fleet docs
+// To be added in https://github.com/elastic/observability-docs/pull/2094
+
+
+Create a custom ingest pipeline?
+
+There are two tutorials you can follows to get started:
+
+* <<filters-ingest-pipeline>> — learn how to obfuscated passwords stored in the `http.request.body.original` field.
+* _link coming soon_ — learn how to add a custom field to incoming data.
+
+
+
+See <<apm-data-security,data security>> for more on this topic.
+
+// To view or edit a default pipelines in {kib},
+// select **{stack-manage-app}** > **Ingest Pipelines**.
+// Search for `apm`.
+
+
+
+For metrics it can also be used to direct events to a datastream with a different dataset
+
+ or ) currently lack privileges to write to any other data streams. Attemmessage such as:
+
+failed to index event (security_exception): action [indices:admin/auto_create] is unauthorized for API key id [RzVTRIIB4facokgKjivy] of user [elastic/fleet-server] on indices [traces-apm.custom-default], this action is granted by the index privileges [auto_configure,create_index,manage,all]
+
+
+
+
+
+
 
 // end::ingest-pipelines[]
