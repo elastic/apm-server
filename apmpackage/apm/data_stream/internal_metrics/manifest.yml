@@ -8,7 +8,6 @@ elasticsearch:
       # Internal metrics should have all fields strictly mapped;
       # we are in full control of the field names.
       dynamic: strict
-
       # We map transaction.duration.summary here because aggregate_metric_double
       # is not currently supported by package-spec.
       #
