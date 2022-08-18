@@ -59,16 +59,28 @@ type Transaction struct {
 	// DurationSummary holds an aggregated transaction duration summary,
 	// for service metrics. The DurationSummary.Sum field has microsecond
 	// resolution.
+	//
+	// NOTE(axw) this is used only for service metrics, which are in technical
+	// preview. Do not use this field without discussion, as the field mapping
+	// is subject to removal.
 	DurationSummary SummaryMetric
 
 	// FailureCount holds an aggregated count of transactions with the
 	// outcome "failure". If FailureCount is zero, it will be omitted from
 	// the output event.
+	//
+	// NOTE(axw) this is used only for service metrics, which are in technical
+	// preview. Do not use this field without discussion, as the field mapping
+	// is subject to removal.
 	FailureCount int
 
 	// SuccessCount holds an aggregated count of transactions with the
 	// outcome "success". If SuccessCount is zero, it will be omitted from
 	// the output event.
+	//
+	// NOTE(axw) this is used only for service metrics, which are in technical
+	// preview. Do not use this field without discussion, as the field mapping
+	// is subject to removal.
 	SuccessCount int
 
 	Marks          TransactionMarks
