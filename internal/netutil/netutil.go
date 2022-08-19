@@ -150,7 +150,7 @@ func SplitAddrPort(in string) (netip.Addr, uint16) {
 	// IPv6
 	if strings.Count(in, ":") > 1 {
 		// If [ is missing, there is no port
-		if strings.Index(in, "[") == -1 {
+		if !strings.Contains(in, "[") {
 			if addr, err := netip.ParseAddr(in); err == nil {
 				return addr, 0
 			}
@@ -169,7 +169,7 @@ func SplitAddrPort(in string) (netip.Addr, uint16) {
 	// IPv4
 
 	// If : is missing, there is no port
-	if strings.Index(in, ":") == -1 {
+	if !strings.Contains(in, ":") {
 		if addr, err := netip.ParseAddr(in); err == nil {
 			return addr, 0
 		}
