@@ -39,6 +39,7 @@ import (
 
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
 	"github.com/elastic/apm-server/systemtest/loadgen"
+	loadgencfg "github.com/elastic/apm-server/systemtest/loadgen/config"
 )
 
 const waitInactiveTimeout = 30 * time.Second
@@ -62,7 +63,7 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		var err error
-		server := loadgen.Config.ServerURL.String()
+		server := loadgencfg.Config.ServerURL.String()
 		collector, err = expvar.StartNewCollector(ctx, server, 100*time.Millisecond)
 		if err != nil {
 			b.Error(err)
@@ -70,7 +71,7 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 			return
 		}
 
-		limiter := loadgen.GetNewLimiter(loadgen.Config.MaxEPM)
+		limiter := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
 		b.ResetTimer()
 		f(b, limiter)
 		if !b.Failed() {
@@ -149,7 +150,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 	}
 	// Sets the http.DefaultClient.Transport.TLSClientConfig.InsecureSkipVerify
 	// to match the "-secure" flag value.
-	verifyTLS := loadgen.Config.Secure
+	verifyTLS := loadgencfg.Config.Secure
 	http.DefaultClient.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: !verifyTLS},
 	}
@@ -196,8 +197,8 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 	// value in the list will be used.
 	if len(agentsList) > 0 && benchConfig.WarmupTime.Seconds() > 0 {
 		agents := agentsList[0]
-		serverURL := loadgen.Config.ServerURL.String()
-		secretToken := loadgen.Config.SecretToken
+		serverURL := loadgencfg.Config.ServerURL.String()
+		secretToken := loadgencfg.Config.SecretToken
 		if err := warmup(agents, benchConfig.WarmupTime, serverURL, secretToken); err != nil {
 			return fmt.Errorf("warm-up failed with %d agents: %v", agents, err)
 		}
@@ -234,7 +235,7 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
-	rl := loadgen.GetNewLimiter(loadgen.Config.MaxEPM)
+	rl := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
 	var wg sync.WaitGroup
 	for i := 0; i < agents; i++ {
 		h, err := loadgen.NewEventHandler(`*.ndjson`, url, token, rl)
