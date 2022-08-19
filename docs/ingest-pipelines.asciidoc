@@ -20,47 +20,53 @@ The default APM pipelines are defined in index templates that {fleet} loads into
 === Custom ingest pipelines
 
 The Elastic APM integration supports custom ingest pipelines.
-A custom pipeline allows you to alter incoming data to better match your specific use case.
+A custom pipeline allows you to transform data to better match your specific use case.
 This can be useful, for example, to ensure data security by removing or obfuscating sensitive information.
+
+Each data stream ships with a default pipeline.
+This default pipeline calls a non-existent and non-versioned "`@custom`" ingest pipeline.
+If left uncreated, this pipeline has no effect on your data. However, if utilized,
+this pipeline can be used for custom data processing, adding fields, sanitizing data, and more.
 
 In addition, ingest pipelines can also be used to direct metrics events to a data stream with a different dataset.
 Sending other APM data to alternate data streams, like traces (`traces-apm.*`), logs (`logs-apm.*`), and internal metrics (`metrics-apm.internal*`) is not currently supported.
 
-// [discrete]
-// [id="custom-ingest-pipelines-details{append-legacy}"]
-// === Custom ingest pipeline details
+[discrete]
+[id="custom-ingest-pipeline-naming{append-legacy}"]
+=== `@custom` ingest pipeline naming convention
 
+// tag::ingest-pipeline-naming[]
+`@custom` pipelines are specific to each data stream and follow a similar naming convention: `<type>-<dataset>@custom`.
+As a reminder, the default APM data streams are:
+
+include::./data-streams.asciidoc[tag=traces-data-streams]
+include::./data-streams.asciidoc[tag=metrics-data-streams]
+include::./data-streams.asciidoc[tag=logs-data-streams]
+
+To match a custom ingest pipeline with a data stream, follow the `<type>-<dataset>@custom` template,
+or replace `-namespace` with `@custom` in the table above.
+For example, to target application traces, you'd create a pipeline named `traces-apm@custom`.
+// end::ingest-pipeline-naming[]
+
+The `@custom` pipeline can directly contain processors or you can use the
+pipeline processor to call other pipelines that can be shared across multiple data streams or integrations.
+The `@custom` pipeline will persist across all version upgrades.
+
+[discrete]
+[id="custom-ingest-pipeline-create{append-legacy}"]
+=== Create a `@custom` ingest pipeline
+
+The process for creating a custom ingest pipeline is as follows:
+
+* Create a pipeline with processors specific to your use case
+* Add the newly created pipeline to an `@custom` pipeline that matches an APM data stream
+* Roll over your data stream
+
+If you prefer more guidance, see one of these tutorials:
+
+* <<filters-ingest-pipeline>> — An APM-specific tutorial where you learn how to obfuscate passwords stored in the `http.request.body.original` field.
+* _link coming soon_ — A simple Elastic integration tutorial where you learn how to add a custom field to incoming data.
 // Add links to Fleet docs
 // To be added in https://github.com/elastic/observability-docs/pull/2094
-
-
-Create a custom ingest pipeline?
-
-There are two tutorials you can follows to get started:
-
-* <<filters-ingest-pipeline>> — learn how to obfuscated passwords stored in the `http.request.body.original` field.
-* _link coming soon_ — learn how to add a custom field to incoming data.
-
-
-
-See <<apm-data-security,data security>> for more on this topic.
-
-// To view or edit a default pipelines in {kib},
-// select **{stack-manage-app}** > **Ingest Pipelines**.
-// Search for `apm`.
-
-
-
-For metrics it can also be used to direct events to a datastream with a different dataset
-
- or ) currently lack privileges to write to any other data streams. Attemmessage such as:
-
-failed to index event (security_exception): action [indices:admin/auto_create] is unauthorized for API key id [RzVTRIIB4facokgKjivy] of user [elastic/fleet-server] on indices [traces-apm.custom-default], this action is granted by the index privileges [auto_configure,create_index,manage,all]
-
-
-
-
-
-
 
 // end::ingest-pipelines[]

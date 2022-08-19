@@ -214,9 +214,9 @@ Ingest node pipelines specify a series of processors that transform data in a sp
 Transformation happens prior to indexing--inflicting no performance overhead on the monitored application.
 Pipelines are a flexible and easy way to filter or obfuscate Elastic APM data.
 
-Custom ingest pipelines persist through upgrades.
-
-**Example**
+[discrete]
+[[filters-ingest-pipeline-tutorial]]
+===== Tutorial: redact sensitive information
 
 Say you decide to <<filter-http-body,capture HTTP request bodies>>
 but quickly notice that sensitive information is being collected in the
@@ -229,6 +229,8 @@ but quickly notice that sensitive information is being collected in the
   "password": "hunter2"
 }
 ----
+
+**Create a pipeline**
 
 To obfuscate the passwords stored in the request body,
 you can use a series of {ref}/processors.html[ingest processors].
@@ -245,7 +247,9 @@ To start, create a pipeline with a simple description and an empty array of proc
 ----
 <1> The processors defined below will go in this array
 
-Add the first processor to the processors array.
+**Add a JSON processor**
+
+Add your first processor to the processors array.
 Because the agent captures the request body as a string, use the
 {ref}/json-processor.html[JSON processor] to convert the original field value into a structured JSON object.
 Save this JSON object in a new field:
@@ -261,7 +265,9 @@ Save this JSON object in a new field:
 }
 ----
 
-If `body.original_json` is not `null`, redact the `password` with the {ref}/set-processor.html[set processor],
+**Add a set processor**
+
+If `body.original_json` is not `null`, i.e., it exists, we'll redact the `password` with the {ref}/set-processor.html[set processor],
 by setting the value of `body.original_json.password` to `"redacted"`:
 
 [source,json]
@@ -274,6 +280,8 @@ by setting the value of `body.original_json.password` to `"redacted"`:
   }
 }
 ----
+
+**Add a convert processor**
 
 Use the {ref}/convert-processor.html[convert processor] to convert the JSON value of `body.original_json` to a string and set it as the `body.original` value:
 
@@ -290,6 +298,8 @@ Use the {ref}/convert-processor.html[convert processor] to convert the JSON valu
 }
 ----
 
+**Add a remove processor**
+
 Finally, use the {ref}/remove-processor.html[remove processor] to remove the `body.original_json` field:
 
 [source,json]
@@ -303,8 +313,10 @@ Finally, use the {ref}/remove-processor.html[remove processor] to remove the `bo
 }
 ----
 
-Now that the pipeline has been defined,
-use the {ref}/put-pipeline-api.html[create or update pipeline API] to register the new pipeline in {es}.
+**Register the pipeline**
+
+Now we'll put it all together.
+Use the {ref}/put-pipeline-api.html[create or update pipeline API] to register the new pipeline in {es}.
 Name the pipeline `apm_redacted_body_password`:
 
 [source,console]
@@ -346,6 +358,8 @@ PUT _ingest/pipeline/apm_redacted_body_password
   ]
 }
 ----
+
+**Test the pipeline**
 
 Prior to enabling this new pipeline, you can test it with the {ref}/simulate-pipeline-api.html[simulate pipeline API].
 This API allows you to run multiple documents through a pipeline to ensure it is working correctly.
@@ -440,34 +454,50 @@ The API response should be similar to this:
 As expected, only the first simulated document has a redacted password field.
 All other documents are unaffected.
 
-The final step in this process is to add the newly created `apm_redacted_body_password` pipeline
-to the default APM pipeline.
+**Create an `@custom` pipeline**
 
-Pipelines are defined per data stream, and APM data streams are dependent on the type of data being ingested:
+The final step in this process is to call the newly created `apm_redacted_body_password` pipeline
+from the `@custom` pipeline of the data stream you wish to edit.
 
-include::./data-streams.asciidoc[tag=traces-data-streams]
-include::./data-streams.asciidoc[tag=metrics-data-streams]
-include::./data-streams.asciidoc[tag=logs-data-streams]
+include::./ingest-pipelines.asciidoc[tag=ingest-pipeline-naming]
 
-In this example, we're interested in redacting application tracing data,
-so we'll edit the `traces-apm-<namespace>` ingest pipeline.
+Use the {ref}/put-pipeline-api.html[create or update pipeline API] to register the new pipeline in {es}.
+Name the pipeline `traces-apm@custom`:
 
-Navigate to **Stack Management** > **Index Management** > **Data Streams**.
-Search for the `traces-apm` data stream and select it.
-In the flyover panel, select the **Index template** for this data stream.
-Select **Settings** and find the name of the `default_pipeline`; in this example, it's +traces-apm-{version}+.
+[source,console]
+----
+PUT _ingest/pipeline/traces-apm@custom
+{
+  "processors": [
+    {
+      "pipeline": {
+        "name": "apm_redacted_body_password" <1>
+      }
+    }
+  ]
+}
+----
+<1> The name of the pipeline we previously created
 
-Navigate to **Stack Management** > **Index Pipelines** and search for +traces-apm-{version}+.
-Select **Manage** > **Edit**.
+TIP: If you prefer using a GUI, you can instead open {kib} and navigate to
+**Stack Management** -> **Ingest Pipelines** -> **Create pipeline**.
+Use the same naming convention explained previously to ensure your new pipeline matches the correct APM data stream.
 
-WARNING: Do not edit any of the predefined pipeline steps or you may break the APM UI.
+**Roll over the data stream (optional)**
 
-At the end of the pipeline, select **Add a processor**.
-Select the `Pipeline` processor, and use the Pipeline name we created in the previous step, `apm_redacted_body_password`.
-Select **Add** and finally, **Save pipeline**.
+Pipeline changes are not applied retroactively to existing indices.
+For changes to take effect immediately, you must create a new write index for the data stream.
+This can be done with the {es} {ref}/indices-rollover-index.html[Rollover API].
+For example, to roll over the default application traces data stream, with a `namespace` of "default", run:
+
+[source,console]
+----
+POST /traces-apm-default/_rollover/
+----
 
 That's it! Passwords will now be redacted from your APM HTTP body data.
-Don't forget to re-add your custom pipelines after each version upgrade.
+
+To learn more about ingest pipelines, see <<custom-index-template>>.
 
 [discrete]
 [[filters-in-agent]]
