@@ -147,18 +147,8 @@ func SplitAddrPort(in string) (netip.Addr, uint16) {
 		return netip.Addr{}, 0
 	}
 
-	// IPv6
-	if strings.Count(in, ":") > 1 {
-		// If [ is missing, there is no port
-		if !strings.Contains(in, "[") {
-			if addr, err := netip.ParseAddr(in); err == nil {
-				return addr, 0
-			}
-
-			return netip.Addr{}, 0
-		}
-
-		// [host]:port
+	// [host]:port or host:port
+	if in[0] == '[' || (strings.Contains(in, ".") && strings.Contains(in, ":")) {
 		if addr, err := netip.ParseAddrPort(in); err == nil {
 			return addr.Addr(), addr.Port()
 		}
@@ -166,20 +156,9 @@ func SplitAddrPort(in string) (netip.Addr, uint16) {
 		return netip.Addr{}, 0
 	}
 
-	// IPv4
-
-	// If : is missing, there is no port
-	if !strings.Contains(in, ":") {
-		if addr, err := netip.ParseAddr(in); err == nil {
-			return addr, 0
-		}
-
-		return netip.Addr{}, 0
-	}
-
-	// host:port
-	if addr, err := netip.ParseAddrPort(in); err == nil {
-		return addr.Addr(), addr.Port()
+	// host
+	if addr, err := netip.ParseAddr(in); err == nil {
+		return addr, 0
 	}
 
 	return netip.Addr{}, 0
