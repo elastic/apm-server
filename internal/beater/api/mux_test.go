@@ -18,7 +18,9 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
@@ -125,7 +127,7 @@ func testPanicMiddleware(t *testing.T, urlPath string, approvalPath string) {
 	h := newTestMux(t, config.DefaultConfig())
 	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
 
-	var rec beatertest.WriterPanicOnce
+	var rec WriterPanicOnce
 	h.ServeHTTP(&rec, req)
 
 	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
@@ -169,4 +171,39 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		m.Managed,
 		func() bool { return true },
 	)
+}
+
+// WriterPanicOnce implements the http.ResponseWriter interface
+// It panics once when any method is called.
+type WriterPanicOnce struct {
+	StatusCode int
+	Body       bytes.Buffer
+	panicked   bool
+}
+
+// Header panics if it is the first call to the struct, otherwise returns empty Header
+func (w *WriterPanicOnce) Header() http.Header {
+	if !w.panicked {
+		w.panicked = true
+		panic(errors.New("panic on Header"))
+	}
+	return http.Header{}
+}
+
+// Write panics if it is the first call to the struct, otherwise it writes the given bytes to the body
+func (w *WriterPanicOnce) Write(b []byte) (int, error) {
+	if !w.panicked {
+		w.panicked = true
+		panic(errors.New("panic on Write"))
+	}
+	return w.Body.Write(b)
+}
+
+// WriteHeader panics if it is the first call to the struct, otherwise it writes the given status code
+func (w *WriterPanicOnce) WriteHeader(statusCode int) {
+	if !w.panicked {
+		w.panicked = true
+		panic(errors.New("panic on WriteHeader"))
+	}
+	w.StatusCode = statusCode
 }

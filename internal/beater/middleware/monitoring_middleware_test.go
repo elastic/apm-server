@@ -41,7 +41,7 @@ func TestMonitoringHandler(t *testing.T) {
 		m map[request.ResultID]*monitoring.Int,
 	) {
 		beatertest.ClearRegistry(m)
-		c, _ := beatertest.DefaultContextWithResponseRecorder()
+		c, _ := DefaultContextWithResponseRecorder()
 		Apply(MonitoringMiddleware(m), h)(c)
 		equal, result := beatertest.CompareMonitoringInt(expected, m)
 		assert.True(t, equal, result)
@@ -49,7 +49,7 @@ func TestMonitoringHandler(t *testing.T) {
 
 	t.Run("Error", func(t *testing.T) {
 		checkMonitoring(t,
-			beatertest.Handler403,
+			Handler403,
 			map[request.ResultID]int{
 				request.IDRequestCount:            1,
 				request.IDResponseCount:           1,
@@ -60,7 +60,7 @@ func TestMonitoringHandler(t *testing.T) {
 
 	t.Run("Accepted", func(t *testing.T) {
 		checkMonitoring(t,
-			beatertest.Handler202,
+			Handler202,
 			map[request.ResultID]int{
 				request.IDRequestCount:          1,
 				request.IDResponseCount:         1,
@@ -71,7 +71,7 @@ func TestMonitoringHandler(t *testing.T) {
 
 	t.Run("Idle", func(t *testing.T) {
 		checkMonitoring(t,
-			beatertest.HandlerIdle,
+			HandlerIdle,
 			map[request.ResultID]int{
 				request.IDRequestCount:       1,
 				request.IDResponseCount:      1,
@@ -82,7 +82,7 @@ func TestMonitoringHandler(t *testing.T) {
 
 	t.Run("Panic", func(t *testing.T) {
 		checkMonitoring(t,
-			Apply(RecoverPanicMiddleware(), beatertest.HandlerPanic),
+			Apply(RecoverPanicMiddleware(), HandlerPanic),
 			map[request.ResultID]int{
 				request.IDRequestCount:           1,
 				request.IDResponseCount:          1,
@@ -94,7 +94,7 @@ func TestMonitoringHandler(t *testing.T) {
 
 	t.Run("Nil", func(t *testing.T) {
 		checkMonitoring(t,
-			beatertest.HandlerIdle,
+			HandlerIdle,
 			map[request.ResultID]int{},
 			mockMonitoringNil)
 	})
