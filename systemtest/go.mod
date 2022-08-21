@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server/systemtest
 
-go 1.17
+go 1.18
 
 require (
 	github.com/docker/docker v20.10.17+incompatible
@@ -9,12 +9,14 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20211026132249-f55eeca23be5
 	github.com/gofrs/uuid v4.1.0+incompatible
 	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jaegertracing/jaeger v1.18.1
 	github.com/mitchellh/mapstructure v1.1.2
+	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.8.0
 	github.com/testcontainers/testcontainers-go v0.11.2-0.20211110075312-4b5710b46477
 	github.com/tidwall/gjson v1.9.3
-	go.elastic.co/apm/v2 v2.0.0
+	go.elastic.co/apm/v2 v2.1.1-0.20220810211444-b8542dccafec
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/collector/pdata v0.56.0
 	go.opentelemetry.io/collector/semconv v0.56.0
@@ -42,6 +44,9 @@ require (
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.1 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.8.0 // indirect
 )
 
@@ -67,7 +72,7 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/jcchavezs/porto v0.1.0 // indirect
-	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901
+	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/moby/sys/mountinfo v0.5.0 // indirect
@@ -96,7 +101,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/genproto v0.0.0-20220728213248-dd149ef739b9 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	howett.net/plist v1.0.0 // indirect
 )
 

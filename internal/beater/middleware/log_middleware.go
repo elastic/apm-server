@@ -69,10 +69,10 @@ func loggerWithRequestContext(c *request.Context) *logp.Logger {
 		"http.request.method", c.Request.Method,
 		"user_agent.original", c.Request.Header.Get(headers.UserAgent),
 	)
-	if c.SourceIP != nil {
+	if c.SourceIP.IsValid() {
 		logger = logger.With("source.address", c.SourceIP.String())
 	}
-	if c.ClientIP != nil && !c.ClientIP.Equal(c.SourceIP) {
+	if c.ClientIP.IsValid() && c.ClientIP != c.SourceIP {
 		logger = logger.With("client.ip", c.ClientIP.String())
 	}
 	if c.Request.ContentLength != -1 {

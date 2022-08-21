@@ -20,6 +20,7 @@ package otlp_test
 import (
 	"context"
 	"net"
+	"net/netip"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,9 +31,10 @@ import (
 )
 
 func TestSetClientMetadata(t *testing.T) {
+	netip1234 := netip.MustParseAddr("1.2.3.4")
 	ip1234 := net.ParseIP("1.2.3.4")
-	ip5678 := net.ParseIP("5.6.7.8")
-	ip10 := net.ParseIP("10.10.10.10")
+	ip5678 := netip.MustParseAddr("5.6.7.8")
+	ip10 := netip.MustParseAddr("10.10.10.10")
 
 	for _, test := range []struct {
 		ctx      context.Context
@@ -41,20 +43,20 @@ func TestSetClientMetadata(t *testing.T) {
 	}{{
 		ctx: context.Background(),
 		in: model.APMEvent{
-			Client: model.Client{IP: ip1234},
+			Client: model.Client{IP: netip1234},
 		},
 		expected: model.APMEvent{
-			Client: model.Client{IP: ip1234},
+			Client: model.Client{IP: netip1234},
 		},
 	}, {
 		ctx: context.Background(),
 		in: model.APMEvent{
 			Agent:  model.Agent{Name: "iOS/swift"},
-			Client: model.Client{IP: ip1234},
+			Client: model.Client{IP: netip1234},
 		},
 		expected: model.APMEvent{
 			Agent:  model.Agent{Name: "iOS/swift"},
-			Client: model.Client{IP: ip1234},
+			Client: model.Client{IP: netip1234},
 		},
 	}, {
 		ctx: context.Background(),
@@ -75,7 +77,7 @@ func TestSetClientMetadata(t *testing.T) {
 		expected: model.APMEvent{
 			Agent:  model.Agent{Name: "iOS/swift"},
 			Client: model.Client{IP: ip5678},
-			Source: model.Source{IP: ip1234, Port: 4321},
+			Source: model.Source{IP: netip1234, Port: 4321},
 		},
 	}, {
 		ctx: interceptors.ContextWithClientMetadata(context.Background(), interceptors.ClientMetadataValues{
@@ -90,7 +92,7 @@ func TestSetClientMetadata(t *testing.T) {
 			Agent:  model.Agent{Name: "iOS/swift"},
 			Client: model.Client{IP: ip5678},
 			Source: model.Source{
-				IP:   ip1234,
+				IP:   netip1234,
 				Port: 4321,
 				NAT:  &model.NAT{IP: ip10},
 			},

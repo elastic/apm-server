@@ -58,7 +58,7 @@ The main commands are:
 - `all` (default): runs `auth`, `apmbench`, creates the config files and runs terraform apply.
 - `auth`: Re-generate AWS credentials, they will expire after 4h.
 - `run-benchmark`: Run the benchmarks, can configured by tweaking:
-  - `BENCHMARK_WARMUP`: Set the number of events that are used as warmup. Defaults to `10000`.
+  - `BENCHMARK_WARMUP_TIME`: Set the amount of time to warm the APM Server for. Defaults to `5m`.
   - `BENCHMARK_AGENTS`: Set the number of agents to send data to the APM Server. Defaults to `64`.
   - `BENCHMARK_COUNT`: Set the number of times each benchmark scenario is run. Defaults to `3`.
   - `BENCHMARK_TIME`: Set the amount of time to run each benchmark scenario for. Defaults to `2m`.
@@ -90,3 +90,9 @@ to have use the committed tags in the `docker-compose.yml` file: `eval $(make do
 It is also possible to override the docker image to one that is allowed to run in ESS. For more information
 on which repositories can be used, please refer to our internal docs. To override the docker image, you'll need
 to specify the full object of images that is defined in `variables.tf`: `docker_image_override`.
+
+### Set APM index shards
+
+By default, the APM indices ship with `number_of_shards` set to `1`. To override this behavior, you can modify the
+`apm_shards` variable and individually set the setting for each of the component templates. See an example of how to
+do that in `terraform.tfvars.example`.

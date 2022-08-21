@@ -42,16 +42,16 @@ func SetClientMetadata(ctx context.Context, batch *model.Batch) error {
 		}
 		clientMetadata, ok := interceptors.ClientMetadataFromContext(ctx)
 		if ok {
-			if event.Source.IP == nil {
+			if !event.Source.IP.IsValid() {
 				if tcpAddr, ok := clientMetadata.SourceAddr.(*net.TCPAddr); ok {
-					event.Source.IP = tcpAddr.IP
+					event.Source.IP = tcpAddr.AddrPort().Addr()
 					event.Source.Port = tcpAddr.Port
 				}
 			}
-			if event.Client.IP == nil {
+			if !event.Client.IP.IsValid() {
 				event.Client.IP = clientMetadata.ClientIP
 			}
-			if clientMetadata.SourceNATIP != nil {
+			if clientMetadata.SourceNATIP.IsValid() {
 				event.Source.NAT = &model.NAT{IP: clientMetadata.SourceNATIP}
 			}
 		}

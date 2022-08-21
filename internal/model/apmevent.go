@@ -153,3 +153,16 @@ func (e *APMEvent) BeatEvent() beat.Event {
 	fields.maybeSetMapStr("log", e.Log.fields())
 	return event
 }
+
+// MarkGlobalLabels marks the current labels as "Global". This is only done
+// after the agent defined labels have been decoded.
+func (e *APMEvent) MarkGlobalLabels() {
+	for key, v := range e.NumericLabels {
+		v.Global = true
+		e.NumericLabels[key] = v
+	}
+	for key, v := range e.Labels {
+		v.Global = true
+		e.Labels[key] = v
+	}
+}

@@ -38,6 +38,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/netip"
 	"net/url"
 	"strconv"
 	"strings"
@@ -345,13 +346,17 @@ func TranslateTransaction(
 				foundSpanType = httpSpan
 				httpServerName = stringval
 			case semconv.AttributeHTTPClientIP:
-				event.Client.IP = net.ParseIP(stringval)
+				if ip, err := netip.ParseAddr(stringval); err == nil {
+					event.Client.IP = ip
+				}
 			case semconv.AttributeHTTPUserAgent:
 				event.UserAgent.Original = stringval
 
 			// net.*
 			case semconv.AttributeNetPeerIP:
-				event.Source.IP = net.ParseIP(stringval)
+				if ip, err := netip.ParseAddr(stringval); err == nil {
+					event.Source.IP = ip
+				}
 			case semconv.AttributeNetPeerName:
 				event.Source.Domain = stringval
 			case semconv.AttributeNetHostName:
@@ -446,7 +451,7 @@ func TranslateTransaction(
 		event.Transaction.Message = &message
 	}
 
-	if event.Client.IP == nil {
+	if !event.Client.IP.IsValid() {
 		event.Client = model.Client{IP: event.Source.IP, Port: event.Source.Port, Domain: event.Source.Domain}
 	}
 

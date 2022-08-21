@@ -35,3 +35,7 @@ output "stack_version" {
   value       = data.ec_stack.deployment_version.version
   description = "The matching stack pack version from the provided stack_version"
 }
+
+output "admin_console_url" {
+  value = "https://admin.found.no/deployments/${ec_deployment.deployment.id}/integrations_server"
+}
