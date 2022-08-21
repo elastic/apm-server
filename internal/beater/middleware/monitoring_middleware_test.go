@@ -24,7 +24,7 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
-	"github.com/elastic/apm-server/internal/beater/beatertest"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
 )
 
@@ -40,10 +40,10 @@ func TestMonitoringHandler(t *testing.T) {
 		expected map[request.ResultID]int,
 		m map[request.ResultID]*monitoring.Int,
 	) {
-		beatertest.ClearRegistry(m)
+		monitoringtest.ClearRegistry(m)
 		c, _ := DefaultContextWithResponseRecorder()
 		Apply(MonitoringMiddleware(m), h)(c)
-		equal, result := beatertest.CompareMonitoringInt(expected, m)
+		equal, result := monitoringtest.CompareMonitoringInt(expected, m)
 		assert.True(t, equal, result)
 	}
 

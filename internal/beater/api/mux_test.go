@@ -33,8 +33,8 @@ import (
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/beatertest"
 	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/model"
@@ -135,13 +135,13 @@ func testPanicMiddleware(t *testing.T, urlPath string, approvalPath string) {
 }
 
 func testMonitoringMiddleware(t *testing.T, urlPath string, monitoringMap map[request.ResultID]*monitoring.Int, expected map[request.ResultID]int) {
-	beatertest.ClearRegistry(monitoringMap)
+	monitoringtest.ClearRegistry(monitoringMap)
 
 	h := newTestMux(t, config.DefaultConfig())
 	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
 	h.ServeHTTP(httptest.NewRecorder(), req)
 
-	equal, result := beatertest.CompareMonitoringInt(expected, monitoringMap)
+	equal, result := monitoringtest.CompareMonitoringInt(expected, monitoringMap)
 	assert.True(t, equal, result)
 }
 
