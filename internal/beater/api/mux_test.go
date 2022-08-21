@@ -29,7 +29,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
-	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/beatertest"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -37,7 +36,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/sourcemap"
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
@@ -121,7 +119,7 @@ func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseReco
 	return w, nil
 }
 
-func testPanicMiddleware(t *testing.T, urlPath string, approvalPath string) {
+func testPanicMiddleware(t *testing.T, urlPath string) {
 	h := newTestMux(t, config.DefaultConfig())
 	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
 
@@ -129,7 +127,7 @@ func testPanicMiddleware(t *testing.T, urlPath string, approvalPath string) {
 	h.ServeHTTP(&rec, req)
 
 	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	approvaltest.ApproveJSON(t, approvalPath, rec.Body.Bytes())
+	assert.JSONEq(t, `{"error":"panic handling request"}`, rec.Body.String())
 }
 
 func testMonitoringMiddleware(t *testing.T, urlPath string, monitoringMap map[request.ResultID]*monitoring.Int, expected map[request.ResultID]int) {
@@ -159,7 +157,6 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
 	return NewMux(
-		beat.Info{Version: "1.2.3"},
 		cfg,
 		nopBatchProcessor,
 		authenticator,

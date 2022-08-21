@@ -569,7 +569,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 
 	g.Go(func() error {
 		return runServer(ctx, ServerParams{
-			Info:                   s.beat.Info,
+			UUID:                   s.beat.Info.ID,
 			Config:                 s.config,
 			Managed:                s.beat.Manager != nil && s.beat.Manager.Enabled(),
 			Namespace:              s.namespace,
