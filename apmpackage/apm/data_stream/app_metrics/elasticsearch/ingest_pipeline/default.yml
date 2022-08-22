@@ -24,7 +24,7 @@ processors:
           } else if (metric_type == "summary") {
             dynamic_templates[name] = "summary";
           } else if (metric_type == "counter" || metric_type == "gauge") {
-            dynamic_templates[name] = "doubles";
+            dynamic_templates[name] = "double";
           }
         }
         ctx._dynamic_templates = dynamic_templates;

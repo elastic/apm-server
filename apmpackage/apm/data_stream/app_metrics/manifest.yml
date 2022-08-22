@@ -23,8 +23,7 @@ elasticsearch:
                 - sum
                 - value_count
               default_metric: value_count
-        - doubles:
-            match_mapping_type: float
+        - double:
             mapping:
               type: double
         - numeric_labels:
