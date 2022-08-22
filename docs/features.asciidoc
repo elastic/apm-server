@@ -14,6 +14,7 @@
 * <<cross-cluster-search>>
 * <<span-compression>>
 * <<monitoring-aws-lambda>>
+* <<apm-mutating-admission-webhook>>
 
 include::./apm-data-security.asciidoc[]
 
@@ -32,3 +33,5 @@ include::./cross-cluster-search.asciidoc[]
 include::./span-compression.asciidoc[]
 
 include::./aws-lambda-extension.asciidoc[leveloffset=+2]
+
+include::./apm-mutating-webhook.asciidoc[leveloffset=+2]
