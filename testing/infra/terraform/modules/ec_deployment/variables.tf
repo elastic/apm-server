@@ -70,6 +70,12 @@ variable "elasticsearch_zone_count" {
   description = "Optional Elasticsearch zone count"
 }
 
+variable "elasticsearch_autoscale" {
+  default     = false
+  type        = bool
+  description = "Optional autoscale the Elasticsearch deployment"
+}
+
 # Docker image overrides
 
 variable "docker_image_tag_override" {

@@ -18,6 +18,7 @@ resource "ec_deployment" "deployment" {
   tags                   = var.tags
 
   elasticsearch {
+    autoscale = var.elasticsearch_autoscale
     topology {
       id         = "hot_content"
       size       = var.elasticsearch_size
