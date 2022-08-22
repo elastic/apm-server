@@ -22,7 +22,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
@@ -66,7 +65,6 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 		return nil, err
 	}
 	mux, err := api.NewMux(
-		beat.Info{},
 		cfg,
 		processBatch,
 		authenticator,
