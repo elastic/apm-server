@@ -6,6 +6,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 [float]
 ==== Breaking Changes
 - `event.action` is no longer recorded for OTLP logs, due to breaking OTLP changes {pull}8765[8765]
+- Experimental support for ingesting profile data has been removed {pull}8911[8911]
 
 [float]
 ==== Deprecations

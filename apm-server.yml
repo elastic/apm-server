@@ -763,20 +763,6 @@ output.elasticsearch:
   # Secret token for the remote APM Server(s).
   #secret_token:
 
-  # Enable profiling of the server, recording profile samples as events.
-  #
-  # This feature is experimental.
-  #profiling:
-    #cpu:
-      # Set to true to enable CPU profiling.
-      #enabled: false
-      #interval: 60s
-      #duration: 10s
-    #heap:
-      # Set to true to enable heap profiling.
-      #enabled: false
-      #interval: 60s
-
 #================================= Paths ==================================
 
 # The home path for the apm-server installation. This is the default base path

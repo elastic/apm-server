@@ -34,7 +34,6 @@ import (
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api/config/agent"
 	"github.com/elastic/apm-server/internal/beater/api/intake"
-	"github.com/elastic/apm-server/internal/beater/api/profile"
 	"github.com/elastic/apm-server/internal/beater/api/root"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -59,8 +58,6 @@ const (
 	AgentConfigPath = "/config/v1/agents"
 	// IntakePath defines the path to ingest monitored events
 	IntakePath = "/intake/v2/events"
-	// ProfilePath defines the path to ingest profiles
-	ProfilePath = "/intake/v2/profile"
 
 	// RUM routes
 
@@ -125,8 +122,6 @@ func NewMux(
 		{IntakeRUMPath, builder.rumIntakeHandler(stream.RUMV2Processor)},
 		{IntakeRUMV3Path, builder.rumIntakeHandler(stream.RUMV3Processor)},
 		{IntakePath, builder.backendIntakeHandler},
-		// The profile endpoint is in Beta
-		{ProfilePath, builder.profileHandler},
 		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.TraceHandler, otlp.HTTPTracesMonitoringMap)},
 		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.MetricsHandler, otlp.HTTPMetricsMonitoringMap)},
 		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.LogsHandler, otlp.HTTPLogsMonitoringMap)},
@@ -171,11 +166,6 @@ type routeBuilder struct {
 	sourcemapFetcher sourcemap.Fetcher
 	fleetManaged     bool
 	intakeSemaphore  chan struct{}
-}
-
-func (r *routeBuilder) profileHandler() (request.Handler, error) {
-	h := profile.Handler(backendRequestMetadataFunc(r.cfg), r.batchProcessor)
-	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, profile.MonitoringMap)...)
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
