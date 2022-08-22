@@ -235,7 +235,10 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		if b.Config != nil {
 			reloader.outputConfig = b.Config.Output
 		}
-		if err := reloader.reloadOnce(); err != nil {
+		reloader.mu.Lock()
+		err := reloader.reload()
+		reloader.mu.Unlock()
+		if err != nil {
 			return err
 		}
 	}
@@ -314,13 +317,6 @@ func (r *reloader) reloadOutput(config *reload.ConfigWithMeta) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.outputConfig = outputConfig
-	return r.reload()
-}
-
-func (r *reloader) reloadOnce() error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
 	return r.reload()
 }
 
