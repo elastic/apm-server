@@ -95,7 +95,7 @@ func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
 }
 
 func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
-	testPanicMiddleware(t, "/config/v1/agents", approvalPathConfigAgent(t.Name()))
+	testPanicMiddleware(t, "/config/v1/agents")
 }
 
 func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
