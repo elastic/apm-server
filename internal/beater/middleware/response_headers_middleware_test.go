@@ -21,15 +21,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/apm-server/internal/beater/beatertest"
 )
 
 func TestResponseHeadersMiddleware(t *testing.T) {
 	h := map[string][]string{
 		"X-Custom-Header": {"custom-header-value"},
 	}
-	c, _ := beatertest.DefaultContextWithResponseRecorder()
-	Apply(ResponseHeadersMiddleware(h), beatertest.HandlerIdle)(c)
+	c, _ := DefaultContextWithResponseRecorder()
+	Apply(ResponseHeadersMiddleware(h), HandlerIdle)(c)
 	assert.Equal(t, "custom-header-value", c.ResponseWriter.Header().Get("X-Custom-Header"))
 }
