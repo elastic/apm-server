@@ -105,3 +105,9 @@ variable "apm_server_pprof" {
   description = "Whether or not to enable APM Server's pprof endpoint. Defaults to true"
   type        = bool
 }
+
+variable "apm_index_shards" {
+  default     = 0
+  description = "The number of shards to set for APM Indices"
+  type        = number
+}

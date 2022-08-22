@@ -118,6 +118,17 @@ resource "local_file" "secret_token" {
   filename = "${path.module}/scripts/secret_token.sh"
 }
 
+resource "local_file" "shard_settings" {
+  count = var.apm_index_shards > 0 ? 1 : 0
+  content = templatefile("${path.module}/scripts/index_shards.tftpl", {
+    elasticsearch_url      = ec_deployment.deployment.elasticsearch.0.https_endpoint,
+    elasticsearch_password = ec_deployment.deployment.elasticsearch_password,
+    elasticsearch_username = ec_deployment.deployment.elasticsearch_username,
+    shards                 = var.apm_index_shards,
+  })
+  filename = "${path.module}/scripts/index_shards.sh"
+}
+
 resource "null_resource" "enable_expvar" {
   triggers = {
     shell_hash          = local_file.enable_expvar.id
@@ -138,6 +149,19 @@ resource "null_resource" "secret_token" {
   }
   provisioner "local-exec" {
     command     = "scripts/secret_token.sh"
+    interpreter = ["/bin/bash", "-c"]
+    working_dir = path.module
+  }
+}
+
+resource "null_resource" "shard_settings" {
+  count = var.apm_index_shards > 0 ? 1 : 0
+  triggers = {
+    deployment_id = ec_deployment.deployment.id
+    shell_hash    = local_file.shard_settings.0.id
+  }
+  provisioner "local-exec" {
+    command     = "scripts/index_shards.sh"
     interpreter = ["/bin/bash", "-c"]
     working_dir = path.module
   }
