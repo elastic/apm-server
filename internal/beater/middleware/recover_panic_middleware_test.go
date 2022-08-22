@@ -27,19 +27,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/internal/beater/beatertest"
 	"github.com/elastic/apm-server/internal/beater/request"
 )
 
 func TestPanicHandler(t *testing.T) {
 
 	t.Run("NoPanic", func(t *testing.T) {
-		c, w := beatertest.DefaultContextWithResponseRecorder()
-		Apply(RecoverPanicMiddleware(), beatertest.Handler403)(c)
+		c, w := DefaultContextWithResponseRecorder()
+		Apply(RecoverPanicMiddleware(), Handler403)(c)
 
 		// response assertions
 		assert.Equal(t, http.StatusForbidden, w.Code)
-		assert.Equal(t, beatertest.ResultErrWrap("forbidden request"), w.Body.String())
+		assert.Equal(t, ResultErrWrap("forbidden request"), w.Body.String())
 		// result assertions e.g. for logging
 		assert.NotNil(t, c.Result.Err)
 		assert.Empty(t, c.Result.Stacktrace)
@@ -47,12 +46,12 @@ func TestPanicHandler(t *testing.T) {
 
 	t.Run("HandlePanic", func(t *testing.T) {
 		h := func(c *request.Context) { panic(errors.New("panic xyz")) }
-		c, w := beatertest.DefaultContextWithResponseRecorder()
+		c, w := DefaultContextWithResponseRecorder()
 		Apply(RecoverPanicMiddleware(), h)(c)
 
 		// response assertions
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		assert.Equal(t, beatertest.ResultErrWrap(keywordPanic), w.Body.String())
+		assert.Equal(t, ResultErrWrap(keywordPanic), w.Body.String())
 
 		// result assertions e.g. for logging
 		assert.NotNil(t, c.Result.Err)
@@ -64,7 +63,7 @@ func TestPanicHandler(t *testing.T) {
 		w := &writerPanic{}
 		c := &request.Context{}
 		c.Reset(w, httptest.NewRequest(http.MethodGet, "/", nil))
-		Apply(RecoverPanicMiddleware(), beatertest.Handler202)(c)
+		Apply(RecoverPanicMiddleware(), Handler202)(c)
 
 		// response assertions: cannot even write to writer, as it panics
 		assert.Equal(t, 0, w.StatusCode)

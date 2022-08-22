@@ -23,13 +23,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"go.elastic.co/apm/module/apmgorilla/v2"
 	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/v2"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/logp"
 
@@ -53,8 +53,8 @@ type RunServerFunc func(context.Context, ServerParams) error
 
 // ServerParams holds parameters for running the APM Server.
 type ServerParams struct {
-	// Info holds metadata about the server, such as its UUID.
-	Info beat.Info
+	// UUID holds a unique ID for the server.
+	UUID uuid.UUID
 
 	// Config is the configuration used for running the APM Server.
 	Config *config.Config
@@ -153,7 +153,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 
 	// Create an HTTP server for serving Elastic APM agent requests.
 	router, err := api.NewMux(
-		args.Info, args.Config, batchProcessor,
+		args.Config, batchProcessor,
 		authenticator, agentcfgFetchReporter, ratelimitStore,
 		args.SourcemapFetcher, args.Managed, publishReady,
 	)
@@ -161,7 +161,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		return server{}, err
 	}
 	apmgorilla.Instrument(router, apmgorilla.WithRequestIgnorer(doNotTrace), apmgorilla.WithTracer(args.Tracer))
-	httpServer, err := newHTTPServer(args.Logger, args.Info, args.Config, router, listener)
+	httpServer, err := newHTTPServer(args.Logger, args.Config, router, listener)
 	if err != nil {
 		return server{}, err
 	}

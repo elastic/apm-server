@@ -27,7 +27,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/beatertest"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
 )
@@ -59,7 +58,7 @@ func TestAuthMiddleware(t *testing.T) {
 			authRequired: true,
 			authError:    fmt.Errorf("%w: nope", auth.ErrAuthFailed),
 			expectStatus: http.StatusUnauthorized,
-			expectBody:   beatertest.ResultErrWrap("authentication failed: nope"),
+			expectBody:   ResultErrWrap("authentication failed: nope"),
 		},
 		"auth_failed_optional": {
 			authRequired: false,
@@ -68,7 +67,7 @@ func TestAuthMiddleware(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, rec := beatertest.DefaultContextWithResponseRecorder()
+			c, rec := DefaultContextWithResponseRecorder()
 			if tc.authHeader != "" {
 				c.Request.Header.Set(headers.Authorization, tc.authHeader)
 			}
@@ -78,7 +77,7 @@ func TestAuthMiddleware(t *testing.T) {
 				return auth.AuthenticationDetails{Method: auth.MethodSecretToken}, denyAll{}, tc.authError
 			}
 			m := AuthMiddleware(authenticator, tc.authRequired)
-			Apply(m, beatertest.Handler202)(c)
+			Apply(m, Handler202)(c)
 			assert.Equal(t, tc.expectStatus, rec.Code)
 			assert.Equal(t, tc.expectBody, rec.Body.String())
 			assert.Equal(t, tc.expectAuthentication, c.Authentication)
@@ -91,9 +90,9 @@ func TestAuthMiddlewareError(t *testing.T) {
 		return auth.AuthenticationDetails{}, nil, errors.New("internal details should not be leaked")
 	}
 	for _, required := range []bool{false, true} {
-		c, rec := beatertest.DefaultContextWithResponseRecorder()
+		c, rec := DefaultContextWithResponseRecorder()
 		m := AuthMiddleware(authenticator, required)
-		Apply(m, beatertest.Handler202)(c)
+		Apply(m, Handler202)(c)
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 		assert.Equal(t, `{"error":"service unavailable"}`+"\n", rec.Body.String())
 		assert.EqualError(t, c.Result.Err, "internal details should not be leaked")
@@ -111,7 +110,7 @@ func TestAuthUnauthorized(t *testing.T) {
 	next := func(c *request.Context) {
 		c.Result.Err = auth.Authorize(c.Request.Context(), auth.ActionEventIngest, auth.Resource{})
 	}
-	c, _ := beatertest.DefaultContextWithResponseRecorder()
+	c, _ := DefaultContextWithResponseRecorder()
 	m := AuthMiddleware(authenticator, true)
 	Apply(m, next)(c)
 

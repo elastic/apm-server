@@ -76,7 +76,7 @@ func init() {
 
 func TestOTLPGRPCTraces(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -125,7 +125,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 
 func TestOTLPGRPCTraceSpanLinks(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -182,7 +182,7 @@ func TestOTLPGRPCTraceSpanLinks(t *testing.T) {
 
 func TestOTLPGRPCMetrics(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Monitoring = newFastMonitoringConfig()
 	err := srv.Start()
 	require.NoError(t, err)
@@ -231,7 +231,7 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 
 func TestOTLPGRPCLogs(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -253,7 +253,7 @@ func TestOTLPGRPCLogs(t *testing.T) {
 
 func TestOTLPGRPCAuth(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.AgentAuth.SecretToken = "abc123"
 	err := srv.Start()
 	require.NoError(t, err)
@@ -276,7 +276,7 @@ func TestOTLPGRPCAuth(t *testing.T) {
 
 func TestOTLPClientIP(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -313,7 +313,7 @@ func TestOTLPClientIP(t *testing.T) {
 }
 
 func TestOTLPAnonymous(t *testing.T) {
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.AgentAuth.SecretToken = "abc123" // enable auth & rate limiting
 	srv.Config.AgentAuth.Anonymous = &apmservertest.AnonymousAuthConfig{
 		Enabled:      true,
@@ -386,7 +386,7 @@ func TestOTLPRateLimit(t *testing.T) {
 	// limit as well.
 	const sendEventLimit = (3 * eventRateLimit) / 2
 
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.AgentAuth.SecretToken = "abc123" // enable auth & rate limiting
 	srv.Config.AgentAuth.Anonymous = &apmservertest.AnonymousAuthConfig{
 		Enabled:    true,
