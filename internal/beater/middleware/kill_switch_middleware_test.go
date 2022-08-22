@@ -22,19 +22,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/apm-server/internal/beater/beatertest"
 )
 
 func TestKillSwitchMiddleware(t *testing.T) {
 	t.Run("On", func(t *testing.T) {
-		c, rec := beatertest.DefaultContextWithResponseRecorder()
-		Apply(KillSwitchMiddleware(true, "endpoint is disabled"), beatertest.Handler202)(c)
+		c, rec := DefaultContextWithResponseRecorder()
+		Apply(KillSwitchMiddleware(true, "endpoint is disabled"), Handler202)(c)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})
 	t.Run("Off", func(t *testing.T) {
-		c, rec := beatertest.DefaultContextWithResponseRecorder()
-		Apply(KillSwitchMiddleware(false, "endpoint is disabled"), beatertest.Handler202)(c)
+		c, rec := DefaultContextWithResponseRecorder()
+		Apply(KillSwitchMiddleware(false, "endpoint is disabled"), Handler202)(c)
 		assert.Equal(t, http.StatusForbidden, rec.Code)
 	})
 }
