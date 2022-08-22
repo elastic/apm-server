@@ -110,8 +110,8 @@ func TestRUMHandler_CORSMiddleware(t *testing.T) {
 }
 
 func TestIntakeRUMHandler_PanicMiddleware(t *testing.T) {
-	testPanicMiddleware(t, "/intake/v2/rum/events", approvalPathIntakeRUM(t.Name()))
-	testPanicMiddleware(t, "/intake/v3/rum/events", approvalPathIntakeRUM(t.Name()))
+	testPanicMiddleware(t, "/intake/v2/rum/events")
+	testPanicMiddleware(t, "/intake/v3/rum/events")
 }
 
 func TestRumHandler_MonitoringMiddleware(t *testing.T) {
