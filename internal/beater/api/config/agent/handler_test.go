@@ -410,9 +410,9 @@ func TestIfNoneMatch(t *testing.T) {
 }
 
 func TestAgentConfigTraceContext(t *testing.T) {
-	kibanaCfg := config.KibanaConfig{Enabled: true, ClientConfig: libkibana.DefaultClientConfig()}
-	kibanaCfg.Host = "testKibana:12345"
-	client := kibana.NewConnectingClient(&kibanaCfg)
+	kibanaClientConfig := libkibana.DefaultClientConfig()
+	kibanaClientConfig.Host = "testKibana:12345"
+	client := kibana.NewConnectingClient(kibanaClientConfig)
 	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: 5 * time.Minute}}
 	f := agentcfg.NewKibanaFetcher(client, cfg.Cache.Expiration)
 	handler := NewHandler(f, cfg, "default", nil)

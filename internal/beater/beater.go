@@ -459,7 +459,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 
 	var kibanaClient kibana.Client
 	if s.config.Kibana.Enabled {
-		kibanaClient = kibana.NewConnectingClient(&s.config.Kibana)
+		kibanaClient = kibana.NewConnectingClient(s.config.Kibana.ClientConfig)
 	}
 
 	cfg := ucfg.Config(*s.rawConfig)
