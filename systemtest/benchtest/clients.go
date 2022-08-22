@@ -100,9 +100,13 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 // passed regex.
 func NewEventHandler(tb testing.TB, p string, l *rate.Limiter) *eventhandler.Handler {
 	serverCfg := loadgencfg.Config
-	h, err := loadgen.NewEventHandler(p, serverCfg.ServerURL.String(), serverCfg.SecretToken, l)
+	h, err := newEventHandler(p, serverCfg.ServerURL.String(), serverCfg.SecretToken, l)
 	if err != nil {
 		tb.Fatal(err)
 	}
 	return h
+}
+
+func newEventHandler(p, url, token string, l *rate.Limiter) (*eventhandler.Handler, error) {
+	return loadgen.NewEventHandler(p, url, token, l)
 }

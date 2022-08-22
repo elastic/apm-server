@@ -78,3 +78,18 @@ func (t *Transport) sendEvents(req *http.Request, r io.Reader) error {
 	}
 	return fmt.Errorf(msg+": %s", string(b))
 }
+
+func (t *Transport) reset(url, token string) {
+	if token != "" {
+		newToken := "Bearer " + token
+		if t.intakeHeaders.Get("Authorization") != newToken {
+			t.intakeHeaders.Set("Authorization", newToken)
+		}
+	}
+	if url != "" {
+		newURL := url + `/intake/v2/events`
+		if t.intakeV2URL != newURL {
+			t.intakeV2URL = newURL
+		}
+	}
+}

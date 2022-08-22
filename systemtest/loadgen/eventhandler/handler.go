@@ -25,6 +25,7 @@ import (
 	"errors"
 	"io"
 	"io/fs"
+	"sync"
 
 	"golang.org/x/time/rate"
 )
@@ -45,6 +46,7 @@ type batch struct {
 type Handler struct {
 	transport *Transport
 	limiter   *rate.Limiter
+	mu        sync.Mutex
 	batches   []batch
 }
 
@@ -181,6 +183,39 @@ func (h *Handler) WarmUpServer(ctx context.Context) error {
 			}
 		}
 	}
+}
+
+// Clone creates a new instance of the Handler, copying the batches contents
+// to a new slice.
+func (h *Handler) Clone() (*Handler, error) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	batches := make([]batch, len(h.batches))
+	for i, b := range h.batches {
+		bs, err := io.ReadAll(b.r)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := b.r.Seek(0, io.SeekStart); err != nil {
+			return nil, err
+		}
+		batches[i] = batch{
+			r:     bytes.NewReader(bs),
+			items: b.items,
+		}
+	}
+	return &Handler{
+		transport: h.transport,
+		limiter:   h.limiter,
+		batches:   batches,
+	}, nil
+}
+
+// Reset reconfigures the handler's transport for the new url and secret token.
+func (h *Handler) Reset(url, token string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.transport.reset(url, token)
 }
 
 type compressedWriter struct {

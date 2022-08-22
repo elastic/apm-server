@@ -232,22 +232,51 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 // warmup sends events to the remote APM Server using the specified number of
 // agents for the specified duration.
 func warmup(agents int, duration time.Duration, url, token string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), duration)
-	defer cancel()
-
 	rl := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
+	expr := `*.ndjson`
+	parentHandler, err := newEventHandler(expr, url, token, rl)
+	if err != nil {
+		return fmt.Errorf("unable to create warm-up handler: %w", err)
+	}
 	var wg sync.WaitGroup
+	var once sync.Once
+	var ctx context.Context
+	var cancel context.CancelFunc
+	ctxReady := make(chan struct{})
 	for i := 0; i < agents; i++ {
-		h, err := loadgen.NewEventHandler(`*.ndjson`, url, token, rl)
-		if err != nil {
-			return fmt.Errorf("unable to create warm-up handler: %w", err)
-		}
+		h := NewPooledEventHandler(expr, func() any {
+			h, err := parentHandler.Clone()
+			// It would be unexpected to receive some errors on the Clone
+			// operation since the NewEventHandler succeeded. Nevertheless,
+			// we use log.Fatal in case there's an error.
+			if err != nil {
+				log.Fatal(err)
+			}
+			return h
+		})
+		// NOTE(marclop) h.Reset() is unlikely to do much when the handler
+		// is used in non-testing code, since the URL and token are set at
+		// a global level and remain unchanged for the duration of the program.
+		h.Reset(url, token)
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			// Create the context within the first goroutine that calls once.
+			// This ensures that the timeout starts counting from the moment
+			// the warm-up traffic starts
+			// This delay starts becoming more noticeable once the number of
+			// agents increases.
+			once.Do(func() {
+				ctx, cancel = context.WithTimeout(context.Background(), duration)
+				close(ctxReady)
+			})
+			<-ctxReady
 			h.WarmUpServer(ctx)
+			ReleaseEventHandler(expr, h)
 		}()
 	}
+	<-ctxReady
+	defer cancel()
 	wg.Wait()
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
 	defer cancel()
