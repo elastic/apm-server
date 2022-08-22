@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beatertest
+package monitoringtest
 
 import (
 	"fmt"
@@ -24,6 +24,12 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/request"
 )
+
+// TODO(axw) consider moving these to the middleware package,
+// and removing their use in other packages. We should only
+// need to check specific values in one place, and elsewhere
+// we might want to check that the middleware is installed by
+// checking that the middleware has done _something_.
 
 // CompareMonitoringInt matches expected with real monitoring counters and
 // returns false and an a string showind diffs if not matching.
@@ -35,7 +41,7 @@ func CompareMonitoringInt(
 	m map[request.ResultID]*monitoring.Int,
 ) (bool, string) {
 	var result string
-	for _, id := range AllRequestResultIDs() {
+	for _, id := range allRequestResultIDs() {
 		monitoringIntVal := int64(0)
 		monitoringInt := m[id]
 		if monitoringInt != nil {
@@ -52,8 +58,8 @@ func CompareMonitoringInt(
 	return len(result) == 0, result
 }
 
-// AllRequestResultIDs returns all registered request.ResultIDs (needs to be manually maintained)
-func AllRequestResultIDs() []request.ResultID {
+// allRequestResultIDs returns all registered request.ResultIDs (needs to be manually maintained)
+func allRequestResultIDs() []request.ResultID {
 	var ids []request.ResultID
 	for k := range request.MapResultIDToStatus {
 		ids = append(ids, k)
