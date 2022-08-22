@@ -309,17 +309,6 @@ func encodeAny(v interface{}, out *fastjson.Writer) error {
 		return encodeMap(v, out)
 	case map[string]interface{}:
 		return encodeMap(v, out)
-	case float64:
-		// truncate the value with int conversion to
-		// check for decimals.
-		if v == float64(int64(v)) {
-			// we cannot rely on fastjson.Marshal as it would strip
-			// the leading zero and encode the value as an "int".
-			// So we call AppendFloat directly with precision=1.
-			out.RawBytes(strconv.AppendFloat(nil, v, 'f', 1, 64))
-			return nil
-		}
-		return fastjson.Marshal(out, v)
 	default:
 		return fastjson.Marshal(out, v)
 	}
