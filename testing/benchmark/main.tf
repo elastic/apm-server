@@ -9,6 +9,10 @@ terraform {
       source  = "hashicorp/aws"
       version = ">=4.17.1"
     }
+    elasticstack = {
+      source  = "elastic/elasticstack"
+      version = ">=0.3.3"
+    }
   }
 }
 
@@ -31,6 +35,14 @@ provider "aws" {
   }
 }
 
+provider "elasticstack" {
+  elasticsearch {
+    username  = module.ec_deployment.elasticsearch_username
+    password  = module.ec_deployment.elasticsearch_password
+    endpoints = [module.ec_deployment.elasticsearch_url]
+  }
+}
+
 locals {
   name_prefix = "${var.user_name}-bench"
 }
@@ -44,6 +56,7 @@ module "ec_deployment" {
   deployment_template    = var.deployment_template
   deployment_name_prefix = local.name_prefix
 
+  integrations_server   = true
   apm_server_size       = var.apm_server_size
   apm_server_zone_count = var.apm_server_zone_count
 
@@ -70,4 +83,22 @@ module "benchmark_worker" {
 
   public_key  = var.public_key
   private_key = var.private_key
+}
+
+resource "elasticstack_elasticsearch_component_template" "apm" {
+  depends_on = [module.ec_deployment]
+  for_each   = var.apm_shards
+  name       = each.key
+  template {
+    settings = jsonencode({
+      number_of_shards = tonumber(each.value)
+    })
+  }
+  metadata = jsonencode({
+    "package" : {
+      "name" : "apm"
+    },
+    "managed_by" : "fleet",
+    "managed" : true
+  })
 }

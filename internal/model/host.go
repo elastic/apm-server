@@ -18,7 +18,7 @@
 package model
 
 import (
-	"net"
+	"net/netip"
 
 	"github.com/elastic/elastic-agent-libs/mapstr"
 )
@@ -41,7 +41,7 @@ type Host struct {
 	Type string
 
 	// IP holds the IP addresses of the host.
-	IP []net.IP
+	IP []netip.Addr
 
 	// OS holds information about the operating system running on the host.
 	OS OS

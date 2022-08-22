@@ -18,7 +18,7 @@
 package ratelimit
 
 import (
-	"net"
+	"net/netip"
 	"testing"
 	"time"
 
@@ -49,20 +49,20 @@ func TestCacheEviction(t *testing.T) {
 	require.NoError(t, err)
 
 	// add new limiter
-	rlA := store.ForIP(net.ParseIP("127.0.0.1"))
+	rlA := store.ForIP(netip.MustParseAddr("127.0.0.1"))
 	rlA.AllowN(time.Now(), 3)
 
 	// add new limiter
-	rlB := store.ForIP(net.ParseIP("127.0.0.2"))
+	rlB := store.ForIP(netip.MustParseAddr("127.0.0.2"))
 	rlB.AllowN(time.Now(), 2)
 
 	// reuse evicted limiter rlA
-	rlC := store.ForIP(net.ParseIP("127.0.0.3"))
+	rlC := store.ForIP(netip.MustParseAddr("127.0.0.3"))
 	assert.False(t, rlC.Allow())
 	assert.Equal(t, rlC, store.evictedLimiter)
 
 	// reuse evicted limiter rlB
-	rlD := store.ForIP(net.ParseIP("127.0.0.1"))
+	rlD := store.ForIP(netip.MustParseAddr("127.0.0.1"))
 	assert.True(t, rlD.Allow())
 	assert.False(t, rlD.Allow())
 	assert.Equal(t, rlD, store.evictedLimiter)
@@ -76,6 +76,6 @@ func TestCacheEviction(t *testing.T) {
 func TestCacheOk(t *testing.T) {
 	store, err := NewStore(1, 1, 1)
 	require.NoError(t, err)
-	limiter := store.ForIP(net.ParseIP("127.0.0.1"))
+	limiter := store.ForIP(netip.MustParseAddr("127.0.0.1"))
 	assert.NotNil(t, limiter)
 }

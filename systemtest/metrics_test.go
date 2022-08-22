@@ -221,6 +221,7 @@ type metricsetDoc struct {
 	Trasaction    metricsetTransaction `json:"transaction"`
 	Span          metricsetSpan        `json:"span"`
 	MetricsetName string               `json:"metricset.name"`
+	Labels        map[string]string    `json:"labels"`
 }
 
 func unmarshalMetricsetDocs(t testing.TB, hits []estest.SearchHit) []metricsetDoc {

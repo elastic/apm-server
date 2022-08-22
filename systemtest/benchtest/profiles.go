@@ -28,11 +28,11 @@ import (
 
 	"github.com/google/pprof/profile"
 
-	"github.com/elastic/apm-server/systemtest/loadgen"
+	loadgencfg "github.com/elastic/apm-server/systemtest/loadgen/config"
 )
 
 func fetchProfile(urlPath string, duration time.Duration) (*profile.Profile, error) {
-	serverURL := loadgen.Config.ServerURL.String()
+	serverURL := loadgencfg.Config.ServerURL.String()
 	req, err := http.NewRequest("GET", serverURL+urlPath, nil)
 	if err != nil {
 		return nil, err

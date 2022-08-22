@@ -18,7 +18,7 @@
 package ratelimit
 
 import (
-	"net"
+	"net/netip"
 	"sync"
 
 	"github.com/hashicorp/golang-lru/simplelru"
@@ -62,20 +62,18 @@ func NewStore(size, rateLimit, burstFactor int) (*Store, error) {
 }
 
 // ForIP returns a rate limiter for the given IP.
-func (s *Store) ForIP(ip net.IP) *rate.Limiter {
-	key := ip.String()
-
+func (s *Store) ForIP(ip netip.Addr) *rate.Limiter {
 	// lock get and add action for cache to allow proper eviction handling without
 	// race conditions.
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if l, ok := s.cache.Get(key); ok {
+	if l, ok := s.cache.Get(ip); ok {
 		return *l.(**rate.Limiter)
 	}
 
 	var limiter *rate.Limiter
-	if evicted := s.cache.Add(key, &limiter); evicted {
+	if evicted := s.cache.Add(ip, &limiter); evicted {
 		limiter = s.evictedLimiter
 	} else {
 		limiter = rate.NewLimiter(rate.Limit(s.limit), s.limit*s.burstFactor)

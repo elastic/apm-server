@@ -18,7 +18,7 @@
 package model
 
 import (
-	"net"
+	"net/netip"
 	"testing"
 	"time"
 
@@ -74,10 +74,10 @@ func TestAPMEventFields(t *testing.T) {
 			},
 			Client: Client{Domain: "client.domain"},
 			Source: Source{
-				IP:   net.ParseIP("127.0.0.1"),
+				IP:   netip.MustParseAddr("127.0.0.1"),
 				Port: 1234,
 				NAT: &NAT{
-					IP: net.ParseIP("10.10.10.10"),
+					IP: netip.MustParseAddr("10.10.10.10"),
 				},
 			},
 			Destination: Destination{Address: destinationAddress, Port: destinationPort},

@@ -35,12 +35,19 @@ type LabelValue struct {
 	Value string
 	// Values holds the label `[]string` value.
 	Values []string
+	// Global is `true` when the label is defined at the agent level, rather
+	// than being event-specific.
+	Global bool
 }
 
+// Set sets the label k to value v. If there existed a label in l with the same
+// key, it will be replaced and its Global field will be set to false.
 func (l Labels) Set(k string, v string) {
 	l[k] = LabelValue{Value: v}
 }
 
+// SetSlice sets the label k to value v. If there existed a label in l with the
+// same key, it will be replaced and its Global field will be set to false.
 func (l Labels) SetSlice(k string, v []string) {
 	l[k] = LabelValue{Values: v}
 }
@@ -49,7 +56,7 @@ func (l Labels) SetSlice(k string, v []string) {
 func (l Labels) Clone() Labels {
 	cp := make(Labels)
 	for k, v := range l {
-		to := LabelValue{Value: v.Value}
+		to := LabelValue{Global: v.Global, Value: v.Value}
 		if len(v.Values) > 0 {
 			to.Values = make([]string, len(v.Values))
 			copy(to.Values, v.Values)
@@ -83,12 +90,19 @@ type NumericLabelValue struct {
 	Values []float64
 	// Value holds the label `float64` value.
 	Value float64
+	// Global is `true` when the label is defined at the agent level, rather
+	// than being event-specific.
+	Global bool
 }
 
+// Set sets the label k to value v. If there existed a label in l with the same
+// key, it will be replaced and its Global field will be set to false.
 func (l NumericLabels) Set(k string, v float64) {
 	l[k] = NumericLabelValue{Value: v}
 }
 
+// SetSlice sets the label k to value v. If there existed a label in l with the
+// same key, it will be replaced and its Global field will be set to false.
 func (l NumericLabels) SetSlice(k string, v []float64) {
 	l[k] = NumericLabelValue{Values: v}
 }
@@ -97,7 +111,7 @@ func (l NumericLabels) SetSlice(k string, v []float64) {
 func (l NumericLabels) Clone() NumericLabels {
 	cp := make(NumericLabels)
 	for k, v := range l {
-		to := NumericLabelValue{Value: v.Value}
+		to := NumericLabelValue{Global: v.Global, Value: v.Value}
 		if len(v.Values) > 0 {
 			to.Values = make([]float64, len(v.Values))
 			copy(to.Values, v.Values)

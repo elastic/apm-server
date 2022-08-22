@@ -15,37 +15,28 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package gencorpora
 
 import (
-	"net/netip"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/elastic-agent-libs/mapstr"
+	"flag"
 )
 
-func TestClientFields(t *testing.T) {
-	for name, tc := range map[string]struct {
-		domain string
-		ip     netip.Addr
-		port   int
-		out    mapstr.M
-	}{
-		"Empty":  {out: nil},
-		"IPv4":   {ip: netip.MustParseAddr("192.0.0.1"), out: mapstr.M{"ip": "192.0.0.1"}},
-		"IPv6":   {ip: netip.MustParseAddr("2001:db8::68"), out: mapstr.M{"ip": "2001:db8::68"}},
-		"Port":   {port: 123, out: mapstr.M{"port": 123}},
-		"Domain": {domain: "testing.invalid", out: mapstr.M{"domain": "testing.invalid"}},
-	} {
-		t.Run(name, func(t *testing.T) {
-			c := Client{
-				Domain: tc.domain,
-				IP:     tc.ip,
-				Port:   tc.port,
-			}
-			assert.Equal(t, tc.out, c.fields())
-		})
-	}
+var gencorporaConfig struct {
+	WritePath    string
+	LoggingLevel string
+}
+
+func init() {
+	flag.StringVar(
+		&gencorporaConfig.WritePath,
+		"write-path",
+		"",
+		"Write path for writing the generated ES corpora, uses stdout if empty",
+	)
+	flag.StringVar(
+		&gencorporaConfig.LoggingLevel,
+		"logging-level",
+		"warning",
+		"Logging level for the APM-Server",
+	)
 }
