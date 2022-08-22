@@ -69,8 +69,9 @@ variable "docker_image_override" {
 }
 
 variable "apm_shards" {
-  default = {}
-  type    = map(string)
+  default     = 0
+  type        = number
+  description = "The number of shards to use for apm indices. Defaults to 0, doesn't modify the default values"
 }
 
 ## Worker configuraiton
