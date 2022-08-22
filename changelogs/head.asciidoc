@@ -13,8 +13,6 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 [float]
 ==== Bug fixes
 - Set `message` instead of `labels.event` for Jaeger span events {pull}8765[8765]
-- Fix event loss during reload of TBS processor {pull}8809[8809]
-- Fix sporadically missing custom libbeat metrics {pull}8900[8900]
 
 [float]
 ==== Intake API Changes
