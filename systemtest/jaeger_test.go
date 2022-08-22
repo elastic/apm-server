@@ -41,7 +41,7 @@ import (
 
 func TestJaegerGRPCMuxed(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Monitoring = newFastMonitoringConfig()
 	require.NoError(t, srv.Start())
 	testJaegerGRPC(t, srv, serverAddr(srv), grpc.WithInsecure())
@@ -49,7 +49,7 @@ func TestJaegerGRPCMuxed(t *testing.T) {
 
 func TestJaegerGRPCMuxedTLS(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Monitoring = newFastMonitoringConfig()
 	srv.Config.TLS = &apmservertest.TLSConfig{ClientAuthentication: "required"}
 	require.NoError(t, srv.StartTLS())
@@ -79,7 +79,7 @@ func testJaegerGRPC(t *testing.T, srv *apmservertest.Server, addr string, dialOp
 
 func TestJaegerGRPCSampling(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	err := srv.Start()
 	require.NoError(t, err)
 
@@ -97,7 +97,7 @@ func TestJaegerGRPCSampling(t *testing.T) {
 
 func TestJaegerGRPCAuth(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.AgentAuth.SecretToken = "secret"
 	require.NoError(t, srv.Start())
 

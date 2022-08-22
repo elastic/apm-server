@@ -18,17 +18,18 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/api/root"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/internal/version"
 )
 
 func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
@@ -47,12 +48,19 @@ func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
 		rec, err := requestToMuxerWithHeader(cfg, RootPath, http.MethodGet, h)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, rec.Code)
-		approvaltest.ApproveJSON(t, approvalPathRoot(t.Name()), rec.Body.Bytes())
+		assert.Contains(t, rec.Body.String(), "build_date")
+
+		var result struct {
+			Version string
+		}
+		err = json.Unmarshal(rec.Body.Bytes(), &result)
+		require.NoError(t, err)
+		assert.Equal(t, version.Version, result.Version)
 	})
 }
 
 func TestRootHandler_PanicMiddleware(t *testing.T) {
-	testPanicMiddleware(t, "/", approvalPathRoot(t.Name()))
+	testPanicMiddleware(t, "/")
 }
 
 func TestRootHandler_MonitoringMiddleware(t *testing.T) {
@@ -63,5 +71,3 @@ func TestRootHandler_MonitoringMiddleware(t *testing.T) {
 		request.IDResponseValidOK:    1,
 	})
 }
-
-func approvalPathRoot(f string) string { return "root/test_approved/integration/" + f }

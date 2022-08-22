@@ -32,7 +32,7 @@ import (
 
 func TestErrorGroupingName(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 
 	tracer := srv.Tracer()
 	tracer.NewError(errors.New("only_exception_message")).Send()

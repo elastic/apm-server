@@ -40,7 +40,7 @@ import (
 
 func TestApprovedMetrics(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 	eventsPayload, err := os.ReadFile("../testdata/intake-v2/metricsets.ndjson")
 	require.NoError(t, err)
 
@@ -85,7 +85,7 @@ func TestApprovedMetrics(t *testing.T) {
 
 func TestBreakdownMetrics(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 
 	tracer := srv.Tracer()
 	tx := tracer.StartTransaction("tx_name", "tx_type")
@@ -124,7 +124,7 @@ func TestBreakdownMetrics(t *testing.T) {
 
 func TestApplicationMetrics(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 
 	tracer := srv.Tracer()
 	tracer.RegisterMetricsGatherer(apm.GatherMetricsFunc(func(ctx context.Context, metrics *apm.Metrics) error {
