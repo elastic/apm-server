@@ -596,6 +596,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 			BatchProcessor:         batchProcessor,
 			SourcemapFetcher:       sourcemapFetcher,
 			PublishReady:           publishReady,
+			KibanaClient:           kibanaClient,
 			NewElasticsearchClient: newElasticsearchClient,
 		})
 	})

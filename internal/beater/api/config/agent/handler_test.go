@@ -263,6 +263,21 @@ func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
 	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
 }
 
+func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
+	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
+	fetcher := agentcfg.NewDirectFetcher([]agentcfg.AgentConfig{{
+		ServiceName: "service1",
+		Config:      map[string]string{"key1": "val1"},
+		Etag:        "abc123",
+	}})
+	h := NewHandler(fetcher, cfg, "", nil)
+
+	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(m{
+		"service": m{"name": "service1"}})))
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	assert.JSONEq(t, `{"key1":"val1"}`, w.Body.String())
+}
+
 func TestAgentConfigHandler_PostOk(t *testing.T) {
 	kb := kibanatest.MockKibana(http.StatusOK, m{
 		"_id": "1",

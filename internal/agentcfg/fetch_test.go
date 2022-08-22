@@ -29,7 +29,6 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/version"
 
-	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/kibana"
 	"github.com/elastic/apm-server/internal/kibana/kibanatest"
 )
@@ -159,7 +158,7 @@ func mockDoc(sampleRate float64) m {
 func TestDirectConfigurationPrecedence(t *testing.T) {
 	for _, tc := range []struct {
 		query            Query
-		agentConfigs     []config.AgentConfig
+		agentConfigs     []AgentConfig
 		expectedSettings map[string]string
 	}{
 		{
@@ -169,21 +168,22 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			agentConfigs: []config.AgentConfig{
+			agentConfigs: []AgentConfig{
 				{
-					Service: config.Service{Name: "", Environment: "production"},
-					Config:  map[string]string{"key1": "val2", "key2": "val2"},
-					Etag:    "def456",
+					ServiceEnvironment: "production",
+					Config:             map[string]string{"key1": "val2", "key2": "val2"},
+					Etag:               "def456",
 				},
 				{
-					Service: config.Service{Name: "service1", Environment: ""},
-					Config:  map[string]string{"key3": "val3"},
-					Etag:    "abc123",
+					ServiceName: "service1",
+					Config:      map[string]string{"key3": "val3"},
+					Etag:        "abc123",
 				},
 				{
-					Service: config.Service{Name: "service1", Environment: "production"},
-					Config:  map[string]string{"key1": "val1"},
-					Etag:    "abc123",
+					ServiceName:        "service1",
+					ServiceEnvironment: "production",
+					Config:             map[string]string{"key1": "val1"},
+					Etag:               "abc123",
 				},
 			},
 			expectedSettings: map[string]string{
@@ -197,16 +197,16 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			agentConfigs: []config.AgentConfig{
+			agentConfigs: []AgentConfig{
 				{
-					Service: config.Service{Name: "", Environment: "production"},
-					Config:  map[string]string{"key3": "val3"},
-					Etag:    "def456",
+					ServiceEnvironment: "production",
+					Config:             map[string]string{"key3": "val3"},
+					Etag:               "def456",
 				},
 				{
-					Service: config.Service{Name: "service1", Environment: ""},
-					Config:  map[string]string{"key1": "val1", "key2": "val2"},
-					Etag:    "abc123",
+					ServiceName: "service1",
+					Config:      map[string]string{"key1": "val1", "key2": "val2"},
+					Etag:        "abc123",
 				},
 			},
 			expectedSettings: map[string]string{
@@ -222,16 +222,16 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			agentConfigs: []config.AgentConfig{
+			agentConfigs: []AgentConfig{
 				{
-					Service: config.Service{Name: "", Environment: "production"},
-					Config:  map[string]string{"key3": "val3"},
-					Etag:    "def456",
+					ServiceEnvironment: "production",
+					Config:             map[string]string{"key3": "val3"},
+					Etag:               "def456",
 				},
 				{
-					Service: config.Service{Name: "service1", Environment: ""},
-					Config:  map[string]string{"key1": "val1", "key2": "val2"},
-					Etag:    "abc123",
+					ServiceName: "service1",
+					Config:      map[string]string{"key1": "val1", "key2": "val2"},
+					Etag:        "abc123",
 				},
 			},
 			expectedSettings: map[string]string{},
@@ -244,17 +244,17 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			agentConfigs: []config.AgentConfig{
+			agentConfigs: []AgentConfig{
 				{
-					Service: config.Service{Name: "", Environment: "production"},
-					Config:  map[string]string{"key3": "val3"},
-					Etag:    "def456",
+					ServiceEnvironment: "production",
+					Config:             map[string]string{"key3": "val3"},
+					Etag:               "def456",
 				},
 				{
-					Service:   config.Service{Name: "service1", Environment: ""},
-					AgentName: "Jaeger/Python",
-					Config:    map[string]string{"key1": "val1", "key2": "val2", "transaction_sample_rate": "0.1"},
-					Etag:      "abc123",
+					ServiceName: "service1",
+					AgentName:   "Jaeger/Python",
+					Config:      map[string]string{"key1": "val1", "key2": "val2", "transaction_sample_rate": "0.1"},
+					Etag:        "abc123",
 				},
 			},
 			expectedSettings: map[string]string{
@@ -268,16 +268,16 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			agentConfigs: []config.AgentConfig{
+			agentConfigs: []AgentConfig{
 				{
-					Service: config.Service{Name: "service2", Environment: ""},
-					Config:  map[string]string{"key1": "val1", "key2": "val2"},
-					Etag:    "abc123",
+					ServiceName: "service2",
+					Config:      map[string]string{"key1": "val1", "key2": "val2"},
+					Etag:        "abc123",
 				},
 				{
-					Service: config.Service{Name: "", Environment: "production"},
-					Config:  map[string]string{"key3": "val3"},
-					Etag:    "def456",
+					ServiceEnvironment: "production",
+					Config:             map[string]string{"key3": "val3"},
+					Etag:               "def456",
 				},
 			},
 			expectedSettings: map[string]string{
@@ -291,11 +291,11 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			agentConfigs: []config.AgentConfig{
+			agentConfigs: []AgentConfig{
 				{
-					Service: config.Service{Name: "not-found", Environment: ""},
-					Config:  map[string]string{"key1": "val1"},
-					Etag:    "abc123",
+					ServiceName: "not-found",
+					Config:      map[string]string{"key1": "val1"},
+					Etag:        "abc123",
 				},
 			},
 			expectedSettings: map[string]string{},
@@ -307,16 +307,16 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			agentConfigs: []config.AgentConfig{
+			agentConfigs: []AgentConfig{
 				{
-					Service: config.Service{Name: "service1", Environment: ""},
-					Config:  map[string]string{"key1": "val1", "key2": "val2"},
-					Etag:    "abc123",
+					ServiceName: "service1",
+					Config:      map[string]string{"key1": "val1", "key2": "val2"},
+					Etag:        "abc123",
 				},
 				{
-					Service: config.Service{Name: "service2", Environment: ""},
-					Config:  map[string]string{"key1": "val4", "key2": "val5"},
-					Etag:    "abc123",
+					ServiceName: "service2",
+					Config:      map[string]string{"key1": "val4", "key2": "val5"},
+					Etag:        "abc123",
 				},
 			},
 			expectedSettings: map[string]string{
@@ -331,21 +331,20 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "staging",
 				},
 			},
-			agentConfigs: []config.AgentConfig{
+			agentConfigs: []AgentConfig{
 				{
-					Service: config.Service{Name: "service1", Environment: ""},
-					Config:  map[string]string{"key1": "val1", "key2": "val2"},
-					Etag:    "abc123",
+					ServiceName: "service1",
+					Config:      map[string]string{"key1": "val1", "key2": "val2"},
+					Etag:        "abc123",
 				},
 				{
-					Service: config.Service{Name: "", Environment: "production"},
-					Config:  map[string]string{"key1": "val4", "key2": "val5"},
-					Etag:    "abc123",
+					ServiceEnvironment: "production",
+					Config:             map[string]string{"key1": "val4", "key2": "val5"},
+					Etag:               "abc123",
 				},
 				{
-					Service: config.Service{Name: "", Environment: ""},
-					Config:  map[string]string{"key3": "val5", "key4": "val6"},
-					Etag:    "abc123",
+					Config: map[string]string{"key3": "val5", "key4": "val6"},
+					Etag:   "abc123",
 				},
 			},
 			expectedSettings: map[string]string{

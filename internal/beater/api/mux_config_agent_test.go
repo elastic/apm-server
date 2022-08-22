@@ -19,12 +19,11 @@ package api
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/api/config/agent"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -38,18 +37,22 @@ func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(cfg, AgentConfigPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusUnauthorized, rec.Code)
-		approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
+		assert.JSONEq(t,
+			`{"error":"authentication failed: missing or improperly formatted Authorization header: expected 'Authorization: Bearer secret_token' or 'Authorization: ApiKey base64(API key ID:API key)'"}`,
+			rec.Body.String(),
+		)
 	})
 
 	t.Run("Authorized", func(t *testing.T) {
 		cfg := configEnabledConfigAgent()
 		cfg.AgentAuth.SecretToken = "1234"
+
 		header := map[string]string{headers.Authorization: "Bearer 1234"}
 		queryString := map[string]string{"service.name": "service1"}
 		rec, err := requestToMuxerWithHeaderAndQueryString(cfg, AgentConfigPath, http.MethodGet, header, queryString)
 		require.NoError(t, err)
 		require.NotEqual(t, http.StatusUnauthorized, rec.Code)
-		approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
+		assert.JSONEq(t, "{}", rec.Body.String())
 	})
 }
 
@@ -58,7 +61,7 @@ func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), AgentConfigPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusForbidden, rec.Code)
-		approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
+		assert.JSONEq(t, "{\"error\":\"forbidden request: Agent remote configuration is disabled. Configure the `apm-server.kibana` section in apm-server.yml to enable it. If you are using a RUM agent, you also need to configure the `apm-server.rum` section. If you are not using remote configuration, you can safely ignore this error.\"}", rec.Body.String())
 
 	})
 
@@ -67,31 +70,8 @@ func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
 		rec, err := requestToMuxerWithHeaderAndQueryString(configEnabledConfigAgent(), AgentConfigPath, http.MethodGet, nil, queryString)
 		require.NoError(t, err)
 		require.NotEqual(t, http.StatusForbidden, rec.Code)
-		approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
+		assert.JSONEq(t, "{}", rec.Body.String())
 	})
-}
-
-func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
-	cfg := config.DefaultConfig()
-	cfg.AgentConfigs = []config.AgentConfig{
-		{
-			Service: config.Service{Name: "service1", Environment: ""},
-			Config:  map[string]string{"key1": "val1"},
-			Etag:    "abc123",
-		},
-	}
-
-	mux, err := muxBuilder{Managed: true}.build(cfg)
-	require.NoError(t, err)
-
-	r := httptest.NewRequest(http.MethodGet, AgentConfigPath, nil)
-	r = requestWithQueryString(r, map[string]string{"service.name": "service1"})
-
-	w := httptest.NewRecorder()
-	mux.ServeHTTP(w, r)
-	require.Equal(t, http.StatusOK, w.Code)
-	approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), w.Body.Bytes())
-
 }
 
 func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
@@ -113,5 +93,3 @@ func configEnabledConfigAgent() *config.Config {
 	cfg.Kibana.Host = "localhost:foo"
 	return cfg
 }
-
-func approvalPathConfigAgent(f string) string { return "config/agent/test_approved/integration/" + f }
