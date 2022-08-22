@@ -18,13 +18,15 @@
 package middleware
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/apm-server/internal/beater/beatertest"
 	"github.com/elastic/apm-server/internal/beater/request"
 )
 
@@ -47,7 +49,7 @@ func TestWithMiddleware(t *testing.T) {
 			addKeyword(c, "[m2.2]")
 		}, nil
 	}
-	c, _ := beatertest.DefaultContextWithResponseRecorder()
+	c, _ := DefaultContextWithResponseRecorder()
 	h, e := Wrap(h, m1, m2)
 	require.NoError(t, e)
 	h(c)
@@ -58,4 +60,44 @@ func TestWithMiddleware(t *testing.T) {
 func Apply(m Middleware, h request.Handler) request.Handler {
 	r, _ := m(h)
 	return r
+}
+
+// ResultErrWrap wraps given input into the expected result error string
+func ResultErrWrap(s string) string {
+	return fmt.Sprintf("{\"error\":\"%+v\"}\n", s)
+}
+
+// Handler403 sets a full 403 result and calls WriteResult()
+func Handler403(c *request.Context) {
+	c.Result.Set(request.IDResponseErrorsForbidden,
+		http.StatusForbidden,
+		request.MapResultIDToStatus[request.IDResponseErrorsForbidden].Keyword,
+		nil,
+		nil)
+	c.WriteResult()
+}
+
+// Handler202 sets a 202 ID, status code and keyword to the context's response and calls WriteResult()
+func Handler202(c *request.Context) {
+	c.Result.ID = request.IDResponseValidAccepted
+	c.Result.StatusCode = http.StatusAccepted
+	c.Result.Keyword = request.MapResultIDToStatus[request.IDResponseValidAccepted].Keyword
+	c.WriteResult()
+}
+
+// HandlerPanic panics on request
+func HandlerPanic(_ *request.Context) {
+	panic(errors.New("panic on Handle"))
+}
+
+// HandlerIdle doesn't do anything but implement the request.Handler type
+func HandlerIdle(c *request.Context) {}
+
+// DefaultContextWithResponseRecorder returns a context and response recorder for testing purposes
+// It is set to send a GET request to the root path.
+func DefaultContextWithResponseRecorder() (*request.Context, *httptest.ResponseRecorder) {
+	c := request.NewContext()
+	rec := httptest.NewRecorder()
+	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	return c, rec
 }

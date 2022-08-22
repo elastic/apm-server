@@ -43,7 +43,7 @@ func TestAuth(t *testing.T) {
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	secretToken := strconv.Itoa(rng.Int())
 
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.AgentAuth.SecretToken = secretToken
 	srv.Config.AgentAuth.APIKey = &apmservertest.APIKeyAuthConfig{Enabled: true}
 	srv.Config.AgentAuth.Anonymous = &apmservertest.AnonymousAuthConfig{

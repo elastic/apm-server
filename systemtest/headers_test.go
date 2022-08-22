@@ -30,7 +30,7 @@ import (
 
 func TestResponseHeaders(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.ResponseHeaders = http.Header{}
 	srv.Config.ResponseHeaders.Set("both", "all_value")
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true, ResponseHeaders: http.Header{}}
