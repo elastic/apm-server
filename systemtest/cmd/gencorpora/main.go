@@ -35,8 +35,6 @@ import (
 	"github.com/elastic/apm-server/systemtest/loadgen"
 )
 
-const apmHost = "127.0.0.1:8200"
-
 func run(rootCtx context.Context) error {
 	// Create fake ES server
 	esServer, err := gencorpora.NewCatBulkServer()
@@ -45,8 +43,10 @@ func run(rootCtx context.Context) error {
 	}
 
 	// Create APM-Server to send documents to fake ES
-	apmServer := gencorpora.NewAPMServer(rootCtx, esServer.Addr, apmHost)
-	apmServer.StreamLogs(rootCtx)
+	apmServer := gencorpora.NewAPMServer(rootCtx, esServer.Addr)
+	if err := apmServer.Start(); err != nil {
+		return err
+	}
 
 	ctx, cancel := context.WithCancel(rootCtx)
 	g, gctx := errgroup.WithContext(ctx)
@@ -54,7 +54,7 @@ func run(rootCtx context.Context) error {
 		<-gctx.Done()
 
 		var result error
-		if err := apmServer.Stop(); err != nil {
+		if err := apmServer.Close(); err != nil {
 			result = multierror.Append(result, err)
 		}
 		if err := esServer.Stop(); err != nil {
@@ -64,7 +64,9 @@ func run(rootCtx context.Context) error {
 		return result
 	})
 	g.Go(esServer.Serve)
-	g.Go(apmServer.Start)
+	g.Go(func() error {
+		return gencorpora.StreamAPMServerLogs(ctx, apmServer)
+	})
 	g.Go(func() error {
 		defer cancel()
 
@@ -74,7 +76,7 @@ func run(rootCtx context.Context) error {
 			return fmt.Errorf("failed while waiting for APM-Server to be ready with err %v", err)
 		}
 
-		return generateLoad(ctx, "http://127.0.0.1:8200")
+		return generateLoad(ctx, apmServer.URL)
 	})
 
 	if err := g.Wait(); !errors.Is(err, context.Canceled) {

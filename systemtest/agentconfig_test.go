@@ -40,7 +40,7 @@ func TestAgentConfig(t *testing.T) {
 	systemtest.DeleteAgentConfig(t, serviceName, serviceEnvironment)
 
 	// Run apm-server standalone, exercising the Kibana agent config implementation.
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.KibanaAgentConfig = &apmservertest.KibanaAgentConfig{CacheExpiration: time.Second}
 	err := srv.Start()
 	require.NoError(t, err)
