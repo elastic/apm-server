@@ -19,11 +19,15 @@ package gencorpora
 
 import (
 	"flag"
+
+	"go.uber.org/zap/zapcore"
 )
 
-var gencorporaConfig struct {
+var gencorporaConfig = struct {
 	WritePath    string
-	LoggingLevel string
+	LoggingLevel zapcore.Level
+}{
+	LoggingLevel: zapcore.WarnLevel,
 }
 
 func init() {
@@ -33,10 +37,9 @@ func init() {
 		"",
 		"Write path for writing the generated ES corpora, uses stdout if empty",
 	)
-	flag.StringVar(
+	flag.Var(
 		&gencorporaConfig.LoggingLevel,
 		"logging-level",
-		"warning",
-		"Logging level for the APM-Server",
+		"Logging level for APM Server",
 	)
 }

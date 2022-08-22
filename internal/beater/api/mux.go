@@ -27,7 +27,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
@@ -47,6 +46,7 @@ import (
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/processor/stream"
 	"github.com/elastic/apm-server/internal/sourcemap"
+	"github.com/elastic/apm-server/internal/version"
 )
 
 const (
@@ -82,7 +82,6 @@ const (
 // NewMux creates a new gorilla/mux router, with routes registered for handling the
 // APM Server API.
 func NewMux(
-	beatInfo beat.Info,
 	beaterConfig *config.Config,
 	batchProcessor model.BatchProcessor,
 	authenticator *auth.Authenticator,
@@ -98,7 +97,6 @@ func NewMux(
 	router.NotFoundHandler = pool.HTTPHandler(notFoundHandler)
 
 	builder := routeBuilder{
-		info:             beatInfo,
 		cfg:              beaterConfig,
 		authenticator:    authenticator,
 		batchProcessor:   batchProcessor,
@@ -163,7 +161,6 @@ func NewMux(
 }
 
 type routeBuilder struct {
-	info             beat.Info
 	cfg              *config.Config
 	authenticator    *auth.Authenticator
 	batchProcessor   model.BatchProcessor
@@ -229,7 +226,7 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config, chan s
 func (r *routeBuilder) rootHandler(publishReady func() bool) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := root.Handler(root.HandlerConfig{
-			Version:      r.info.Version,
+			Version:      version.Version,
 			PublishReady: publishReady,
 		})
 		return middleware.Wrap(h, rootMiddleware(r.cfg, r.authenticator)...)

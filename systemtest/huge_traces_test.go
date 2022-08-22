@@ -34,7 +34,7 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 	// Disable span compression.
 	t.Setenv("ELASTIC_APM_SPAN_COMPRESSION_ENABLED", "false")
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
 			Interval: time.Second,
@@ -85,7 +85,7 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 func TestCompressedSpans(t *testing.T) {
 	t.Setenv("ELASTIC_APM_SPAN_COMPRESSION_SAME_KIND_MAX_DURATION", "5ms")
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
 			Interval: time.Second,

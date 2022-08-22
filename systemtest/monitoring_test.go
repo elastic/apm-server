@@ -33,7 +33,7 @@ import (
 )
 
 func TestAPMServerMonitoring(t *testing.T) {
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Monitoring = newFastMonitoringConfig()
 	err := srv.Start()
 	require.NoError(t, err)
@@ -57,7 +57,7 @@ func TestAPMServerMonitoringBuiltinUser(t *testing.T) {
 	const password = "changeme"
 	systemtest.ChangeUserPassword(t, username, password)
 
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Monitoring = &apmservertest.MonitoringConfig{
 		Enabled:     true,
 		StatePeriod: time.Duration(time.Second),
