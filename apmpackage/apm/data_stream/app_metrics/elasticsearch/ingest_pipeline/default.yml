@@ -23,7 +23,7 @@ processors:
             dynamic_templates[name] = "histogram";
           } else if (metric_type == "summary") {
             dynamic_templates[name] = "summary";
-          } else if (metric_type == "counter" || metric_type == "gauge") {
+          } else {
             dynamic_templates[name] = "double";
           }
         }
