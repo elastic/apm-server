@@ -24,7 +24,7 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
-	"github.com/elastic/apm-server/internal/beater/beatertest"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
 )
 
@@ -40,16 +40,16 @@ func TestMonitoringHandler(t *testing.T) {
 		expected map[request.ResultID]int,
 		m map[request.ResultID]*monitoring.Int,
 	) {
-		beatertest.ClearRegistry(m)
-		c, _ := beatertest.DefaultContextWithResponseRecorder()
+		monitoringtest.ClearRegistry(m)
+		c, _ := DefaultContextWithResponseRecorder()
 		Apply(MonitoringMiddleware(m), h)(c)
-		equal, result := beatertest.CompareMonitoringInt(expected, m)
+		equal, result := monitoringtest.CompareMonitoringInt(expected, m)
 		assert.True(t, equal, result)
 	}
 
 	t.Run("Error", func(t *testing.T) {
 		checkMonitoring(t,
-			beatertest.Handler403,
+			Handler403,
 			map[request.ResultID]int{
 				request.IDRequestCount:            1,
 				request.IDResponseCount:           1,
@@ -60,7 +60,7 @@ func TestMonitoringHandler(t *testing.T) {
 
 	t.Run("Accepted", func(t *testing.T) {
 		checkMonitoring(t,
-			beatertest.Handler202,
+			Handler202,
 			map[request.ResultID]int{
 				request.IDRequestCount:          1,
 				request.IDResponseCount:         1,
@@ -71,7 +71,7 @@ func TestMonitoringHandler(t *testing.T) {
 
 	t.Run("Idle", func(t *testing.T) {
 		checkMonitoring(t,
-			beatertest.HandlerIdle,
+			HandlerIdle,
 			map[request.ResultID]int{
 				request.IDRequestCount:       1,
 				request.IDResponseCount:      1,
@@ -82,7 +82,7 @@ func TestMonitoringHandler(t *testing.T) {
 
 	t.Run("Panic", func(t *testing.T) {
 		checkMonitoring(t,
-			Apply(RecoverPanicMiddleware(), beatertest.HandlerPanic),
+			Apply(RecoverPanicMiddleware(), HandlerPanic),
 			map[request.ResultID]int{
 				request.IDRequestCount:           1,
 				request.IDResponseCount:          1,
@@ -94,7 +94,7 @@ func TestMonitoringHandler(t *testing.T) {
 
 	t.Run("Nil", func(t *testing.T) {
 		checkMonitoring(t,
-			beatertest.HandlerIdle,
+			HandlerIdle,
 			map[request.ResultID]int{},
 			mockMonitoringNil)
 	})

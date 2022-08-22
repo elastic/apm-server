@@ -27,7 +27,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-server/internal/beater/beatertest"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -139,7 +139,7 @@ func TestMetrics(t *testing.T) {
 	} {
 		i(ctx, nil, info, tc.f)
 		assertMonitoring(t, tc.monitoringInt, monitoringMap)
-		beatertest.ClearRegistry(monitoringMap)
+		monitoringtest.ClearRegistry(monitoringMap)
 	}
 }
 
