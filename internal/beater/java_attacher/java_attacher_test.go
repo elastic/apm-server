@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -41,7 +42,7 @@ func TestNoAttacherCreatedWithoutDiscoveryRules(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestBuild(t *testing.T) {
+func TestBuildCommandWithBundledJar(t *testing.T) {
 	cfg := createTestConfig()
 	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
@@ -50,36 +51,75 @@ func TestBuild(t *testing.T) {
 
 	attacher, err := New(cfg)
 	require.NoError(t, err)
+	defer attacher.cleanResources()
 
+	// invalid user and group ensures usage of the bundled jar
 	jvm := &jvmDetails{
 		pid:     12345,
+		uid:     "invalid",
+		gid:     "invalid",
 		command: filepath.FromSlash("/home/someuser/java_home/bin/java"),
 	}
-	cmd := attacher.attachJVMCommand(context.Background(), jvm)
-	want := filepath.FromSlash("/home/someuser/java_home/bin/java -jar ./java-attacher.jar") +
+	command := attacher.attachJVMCommand(context.Background(), jvm)
+	want := filepath.FromSlash("/home/someuser/java_home/bin/java -jar java-attacher.jar") +
 		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
 
-	cmdArgs := strings.Join(cmd.Args, " ")
-	assert.Equal(t, want, cmdArgs)
-
-	tmpDir, err := attacher.createAttacherTempDir()
-	require.NoError(t, err)
-	defer os.Remove(tmpDir)
-	cmd = attacher.attachJVMCommand(context.Background(), jvm)
-	want = filepath.FromSlash(fmt.Sprintf("/home/someuser/java_home/bin/java -jar %v/java-attacher.jar", tmpDir)) +
-		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
-
-	cmdArgs = strings.Join(cmd.Args, " ")
+	cmdArgs := strings.Join(command.Args, " ")
 	assert.Equal(t, want, cmdArgs)
 
 	cfg.Config["service_name"] = "my-cool-service"
 	attacher, err = New(cfg)
 	require.NoError(t, err)
+	defer attacher.cleanResources()
 
-	cmd = attacher.attachJVMCommand(context.Background(), jvm)
-	cmdArgs = strings.Join(cmd.Args, " ")
+	command = attacher.attachJVMCommand(context.Background(), jvm)
+	// verify the former result is cached
+	assert.Len(t, attacher.uidToAttacherJar, 1)
+	cmdArgs = strings.Join(command.Args, " ")
 	assert.Contains(t, cmdArgs, "--config server_url=http://myhost:8200")
 	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
+}
+
+func TestBuildCommandWithTempJar(t *testing.T) {
+	// todo: what's the proper way to exclude tests for a specific OS?
+	if runtime.GOOS == "windows" {
+		return
+	}
+	cfg := createTestConfig()
+	f, err := os.Create(bundledJavaAttacher)
+	require.NoError(t, err)
+	//goland:noinspection GoUnhandledErrorResult
+	defer os.Remove(f.Name())
+
+	attacher, err := New(cfg)
+	require.NoError(t, err)
+	defer attacher.cleanResources()
+
+	currentUser, _ := user.Current()
+	jvm := &jvmDetails{
+		pid:     12345,
+		uid:     currentUser.Uid,
+		gid:     currentUser.Gid,
+		command: filepath.FromSlash("/home/someuser/java_home/bin/java"),
+	}
+	assert.Empty(t, attacher.tmpDirs)
+	assert.Empty(t, attacher.uidToAttacherJar)
+	command := attacher.attachJVMCommand(context.Background(), jvm)
+	assert.Len(t, attacher.tmpDirs, 1)
+	assert.Len(t, attacher.uidToAttacherJar, 1)
+	attacherJar := attacher.uidToAttacherJar[currentUser.Uid]
+	assert.NotEqual(t, attacherJar, "")
+	require.NotEqual(t, bundledJavaAttacher, attacherJar)
+	want := filepath.FromSlash(fmt.Sprintf("/home/someuser/java_home/bin/java -jar %v", attacherJar)) +
+		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
+
+	cmdArgs := strings.Join(command.Args, " ")
+	assert.Equal(t, want, cmdArgs)
+
+	// verify caching
+	_ = attacher.attachJVMCommand(context.Background(), jvm)
+	assert.Len(t, attacher.tmpDirs, 1)
+	assert.Len(t, attacher.uidToAttacherJar, 1)
 }
 
 func createTestConfig() config.JavaAttacherConfig {
@@ -117,6 +157,7 @@ func TestDiscoveryRulesAllowlist(t *testing.T) {
 	defer os.Remove(f.Name())
 	javaAttacher, err := New(cfg)
 	require.NoError(t, err)
+	defer javaAttacher.cleanResources()
 	discoveryRules := javaAttacher.discoveryRules
 	require.Len(t, discoveryRules, allowlistLength)
 }
@@ -143,6 +184,7 @@ func TestConfig(t *testing.T) {
 	defer os.Remove(f.Name())
 	javaAttacher, err := New(cfg)
 	require.NoError(t, err)
+	defer javaAttacher.cleanResources()
 	require.True(t, javaAttacher.enabled)
 	require.Equal(t, "http://localhost:8200", javaAttacher.agentConfigs["server_url"])
 	require.Equal(t, "1.25.0", javaAttacher.downloadAgentVersion)
@@ -195,6 +237,10 @@ func TestConfig(t *testing.T) {
 }
 
 func TestTempDirCreation(t *testing.T) {
+	// todo: what's the proper way to exclude tests for a specific OS?
+	if runtime.GOOS == "windows" {
+		return
+	}
 	cfg := createTestConfig()
 	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
@@ -202,17 +248,18 @@ func TestTempDirCreation(t *testing.T) {
 	defer os.Remove(f.Name())
 	attacher, err := New(cfg)
 	require.NoError(t, err)
+	defer attacher.cleanResources()
 
-	tempAttacherDir, err := attacher.createAttacherTempDir()
+	currentUser, _ := user.Current()
+	attacherJar, err := attacher.createAttacherTempDir(currentUser.Uid, currentUser.Gid)
 	require.NoError(t, err)
-	//goland:noinspection GoUnhandledErrorResult
-	defer os.RemoveAll(tempAttacherDir)
+	defer attacher.cleanResources()
+
+	tempAttacherDir := filepath.Dir(attacherJar)
 	require.DirExists(t, tempAttacherDir)
 	attacherDirInfo, err := os.Stat(tempAttacherDir)
 	require.NoError(t, err)
-	if runtime.GOOS != "windows" {
-		require.Equal(t, os.FileMode(0755), attacherDirInfo.Mode().Perm())
-	}
+	require.Equal(t, os.FileMode(0700), attacherDirInfo.Mode().Perm())
 	tempDir, err := os.Open(tempAttacherDir)
 	require.NoError(t, err)
 	files, err := tempDir.ReadDir(0)
@@ -220,8 +267,6 @@ func TestTempDirCreation(t *testing.T) {
 	require.Len(t, files, 1)
 	attacherJarFileInfo, err := files[0].Info()
 	require.NoError(t, err)
-	if runtime.GOOS != "windows" {
-		require.Equal(t, os.FileMode(0755), attacherJarFileInfo.Mode().Perm())
-	}
+	require.Equal(t, os.FileMode(0600), attacherJarFileInfo.Mode().Perm())
 	require.FileExists(t, attacherJarFileInfo.Name())
 }
