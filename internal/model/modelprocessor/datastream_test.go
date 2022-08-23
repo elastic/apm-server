@@ -112,13 +112,6 @@ func TestSetDataStream(t *testing.T) {
 		output: model.DataStream{Type: "metrics", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
 		input: model.APMEvent{
-			Agent:         model.Agent{Name: "rum-js"},
-			Processor:     model.ProfileProcessor,
-			ProfileSample: &model.ProfileSample{},
-		},
-		output: model.DataStream{Type: "metrics", Dataset: "apm.profiling", Namespace: "custom"},
-	}, {
-		input: model.APMEvent{
 			Processor:   model.MetricsetProcessor,
 			Service:     model.Service{Name: "service-name"},
 			Metricset:   &model.Metricset{},
@@ -136,12 +129,6 @@ func TestSetDataStream(t *testing.T) {
 			},
 		},
 		output: model.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
-	}, {
-		input: model.APMEvent{
-			Processor:     model.ProfileProcessor,
-			ProfileSample: &model.ProfileSample{},
-		},
-		output: model.DataStream{Type: "metrics", Dataset: "apm.profiling", Namespace: "custom"},
 	}}
 
 	for _, test := range tests {

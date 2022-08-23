@@ -25,7 +25,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/internal/beater/beatertest"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
 )
@@ -33,9 +32,11 @@ import (
 func TestCORSMiddleware(t *testing.T) {
 
 	cors := func(origin string, allowedOrigins, allowedHeaders []string, m string) (*request.Context, *httptest.ResponseRecorder) {
-		c, rec := beatertest.ContextWithResponseRecorder(m, "/")
+		c := request.NewContext()
+		rec := httptest.NewRecorder()
+		c.Reset(rec, httptest.NewRequest(m, "/", nil))
 		c.Request.Header.Set(headers.Origin, origin)
-		Apply(CORSMiddleware(allowedOrigins, allowedHeaders), beatertest.Handler202)(c)
+		Apply(CORSMiddleware(allowedOrigins, allowedHeaders), Handler202)(c)
 		return c, rec
 	}
 
@@ -75,7 +76,7 @@ func TestCORSMiddleware(t *testing.T) {
 
 			assert.Equal(t, http.StatusForbidden, rec.Code)
 			assert.Equal(t,
-				beatertest.ResultErrWrap(fmt.Sprintf("%s: origin: '%s' is not allowed",
+				ResultErrWrap(fmt.Sprintf("%s: origin: '%s' is not allowed",
 					request.MapResultIDToStatus[request.IDResponseErrorsForbidden].Keyword,
 					origin)),
 				rec.Body.String())

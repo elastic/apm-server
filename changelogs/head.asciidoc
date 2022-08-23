@@ -6,6 +6,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 [float]
 ==== Breaking Changes
 - `event.action` is no longer recorded for OTLP logs, due to breaking OTLP changes {pull}8765[8765]
+- Experimental support for ingesting profile data has been removed {pull}8911[8911]
 
 [float]
 ==== Deprecations
@@ -14,6 +15,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 ==== Bug fixes
 - Set `message` instead of `labels.event` for Jaeger span events {pull}8765[8765]
 - Fix event loss during reload of TBS processor {pull}8809[8809]
+- Fix sporadically missing custom libbeat metrics {pull}8900[8900]
 
 [float]
 ==== Intake API Changes
