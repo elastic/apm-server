@@ -19,9 +19,15 @@ package gencorpora
 
 import (
 	"flag"
+	"fmt"
 	"path/filepath"
 
 	"go.uber.org/zap/zapcore"
+)
+
+const (
+	defaultDir        = "./"
+	defaultFilePrefix = "es_corpora"
 )
 
 var gencorporaConfig = struct {
@@ -29,18 +35,23 @@ var gencorporaConfig = struct {
 	MetadataPath string
 	LoggingLevel zapcore.Level
 }{
+	CorporaPath:  filepath.Join(defaultDir, getCorporaPath(defaultFilePrefix)),
+	MetadataPath: filepath.Join(defaultDir, getMetaPath(defaultFilePrefix)),
 	LoggingLevel: zapcore.WarnLevel,
 }
 
 func init() {
+	filePrefix := flag.String(
+		"file-prefix",
+		defaultFilePrefix,
+		"Prefix for the generated corpora document and metadata file",
+	)
 	flag.Func(
 		"write-dir",
-		"Directory for writing the generated ES corpora and metadata, uses stdout if empty",
+		"Directory for writing the generated ES corpora and metadata, uses current dir if empty",
 		func(writeDir string) error {
-			if writeDir != "" {
-				gencorporaConfig.CorporaPath = filepath.Join(writeDir, "es_corpora.ndjson")
-				gencorporaConfig.MetadataPath = filepath.Join(writeDir, "es_corpora_meta.json")
-			}
+			gencorporaConfig.CorporaPath = filepath.Join(writeDir, getCorporaPath(*filePrefix))
+			gencorporaConfig.MetadataPath = filepath.Join(writeDir, getMetaPath(*filePrefix))
 			return nil
 		},
 	)
@@ -49,4 +60,12 @@ func init() {
 		"logging-level",
 		"Logging level for APM Server",
 	)
+}
+
+func getCorporaPath(prefix string) string {
+	return fmt.Sprintf("%s_docs.ndjson", prefix)
+}
+
+func getMetaPath(prefix string) string {
+	return fmt.Sprintf("%s_meta.json", prefix)
 }

@@ -29,7 +29,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/esutil"
@@ -63,7 +62,7 @@ func NewCatBulkServer() (*CatBulkServer, error) {
 		return nil, err
 	}
 
-	writer, err := getWriter(gencorporaConfig.CorporaPath)
+	writer, err := os.Create(gencorporaConfig.CorporaPath)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +138,7 @@ func (s *CatBulkServer) metaWriter() error {
 		return err
 	}
 
-	writer, err := getWriter(gencorporaConfig.MetadataPath)
+	writer, err := os.Create(gencorporaConfig.MetadataPath)
 	defer writer.Close()
 
 	if _, err := writer.Write(metadataBytes); err != nil {
@@ -218,11 +217,4 @@ func handleReq(metaUpdateChan chan docsStat, writer io.Writer) http.HandlerFunc 
 			w.WriteHeader(http.StatusNotFound)
 		}
 	})
-}
-
-func getWriter(path string) (io.WriteCloser, error) {
-	if path == "" {
-		return os.Stdout, nil
-	}
-	return os.Create(filepath.Join(path))
 }
