@@ -19,23 +19,30 @@ package gencorpora
 
 import (
 	"flag"
+	"path/filepath"
 
 	"go.uber.org/zap/zapcore"
 )
 
 var gencorporaConfig = struct {
-	WritePath    string
+	CorporaPath  string
+	MetadataPath string
 	LoggingLevel zapcore.Level
 }{
 	LoggingLevel: zapcore.WarnLevel,
 }
 
 func init() {
-	flag.StringVar(
-		&gencorporaConfig.WritePath,
-		"write-path",
-		"",
-		"Write path for writing the generated ES corpora, uses stdout if empty",
+	flag.Func(
+		"write-dir",
+		"Directory for writing the generated ES corpora and metadata, uses stdout if empty",
+		func(writeDir string) error {
+			if writeDir != "" {
+				gencorporaConfig.CorporaPath = filepath.Join(writeDir, "es_corpora.ndjson")
+				gencorporaConfig.MetadataPath = filepath.Join(writeDir, "es_corpora_meta.json")
+			}
+			return nil
+		},
 	)
 	flag.Var(
 		&gencorporaConfig.LoggingLevel,
