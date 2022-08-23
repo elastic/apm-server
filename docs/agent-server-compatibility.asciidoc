@@ -8,7 +8,7 @@ The chart below outlines the compatibility between different versions of Elastic
 |Language |{apm-agent} version |APM integration version
 // APM AWS Lambda extension
 .1+|**APM AWS Lambda extension**
-|`1.x` |≥ `6.5`
+|`1.x` |≥ `8.2`
 
 // Go
 .1+|**Go agent**
