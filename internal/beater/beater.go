@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	"strings"
@@ -38,6 +39,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/licenser"
@@ -459,7 +461,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 
 	var kibanaClient kibana.Client
 	if s.config.Kibana.Enabled {
-		kibanaClient = kibana.NewConnectingClient(&s.config.Kibana)
+		kibanaClient = kibana.NewConnectingClient(s.config.Kibana.ClientConfig)
 	}
 
 	cfg := ucfg.Config(*s.rawConfig)
@@ -596,6 +598,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 			BatchProcessor:         batchProcessor,
 			SourcemapFetcher:       sourcemapFetcher,
 			PublishReady:           publishReady,
+			KibanaClient:           kibanaClient,
 			NewElasticsearchClient: newElasticsearchClient,
 		})
 	})
@@ -897,7 +900,35 @@ func newSourcemapFetcher(
 			TLSClientConfig: tlsConfig.ToConfig(),
 		})
 
-		return sourcemap.NewFleetFetcher(&client, fleetCfg, cfg.Metadata)
+		fleetServerURLs := make([]*url.URL, len(fleetCfg.Hosts))
+		for i, host := range fleetCfg.Hosts {
+			urlString, err := common.MakeURL(fleetCfg.Protocol, "", host, 8220)
+			if err != nil {
+				return nil, err
+			}
+			u, err := url.Parse(urlString)
+			if err != nil {
+				return nil, err
+			}
+			fleetServerURLs[i] = u
+		}
+
+		artifactRefs := make([]sourcemap.FleetArtifactReference, len(cfg.Metadata))
+		for i, meta := range cfg.Metadata {
+			artifactRefs[i] = sourcemap.FleetArtifactReference{
+				ServiceName:        meta.ServiceName,
+				ServiceVersion:     meta.ServiceVersion,
+				BundleFilepath:     meta.BundleFilepath,
+				FleetServerURLPath: meta.SourceMapURL,
+			}
+		}
+
+		return sourcemap.NewFleetFetcher(
+			&client,
+			fleetCfg.AccessAPIKey,
+			fleetServerURLs,
+			artifactRefs,
+		)
 	}
 
 	// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.

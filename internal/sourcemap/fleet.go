@@ -24,25 +24,21 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"path"
 	"sync"
 
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/pkg/errors"
-
-	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/internal/beater/config"
 )
-
-const defaultFleetPort = 8220
 
 var errMsgFleetFailure = errMsgFailure + " fleet"
 
 type fleetFetcher struct {
-	apikey        string
-	c             *http.Client
-	sourceMapURLs map[key]string
-	fleetBaseURLs []string
+	authorization     string
+	httpClient        *http.Client
+	fleetServerURLs   []*url.URL
+	sourceMapURLPaths map[key]string
 }
 
 type key struct {
@@ -51,42 +47,55 @@ type key struct {
 	BundleFilepath string
 }
 
+// FleetArtifactReference holds information mapping a source map to a
+// Fleet Artifact URL path. The server uses this to fetch the source
+// map content via Fleet Server.
+type FleetArtifactReference struct {
+	// ServiceName holds the service name to which the source map relates.
+	ServiceName string
+
+	// ServiceVersion holds the service version to which the source map relates.
+	ServiceVersion string
+
+	// BundleFilepath holds the bundle file path to which the source map relates.
+	BundleFilepath string
+
+	// FleetServerURLPath holds the URL path for fetching the source map,
+	// by appending it to each of the Fleet Server URLs.
+	FleetServerURLPath string
+}
+
 // NewFleetFetcher returns a Fetcher which fetches source maps via Fleet Server.
-func NewFleetFetcher(c *http.Client, fleetCfg *config.Fleet, cfgs []config.SourceMapMetadata) (Fetcher, error) {
-	if len(fleetCfg.Hosts) < 1 {
-		return nil, errors.New("no fleet hosts present for fleet store")
+func NewFleetFetcher(
+	httpClient *http.Client, apiKey string,
+	fleetServerURLs []*url.URL,
+	refs []FleetArtifactReference,
+) (Fetcher, error) {
+
+	if len(fleetServerURLs) == 0 {
+		return nil, errors.New("no fleet-server hosts present for fleet store")
 	}
 
-	sourceMapURLs := make(map[key]string)
-	for _, cfg := range cfgs {
-		k := key{cfg.ServiceName, cfg.ServiceVersion, cfg.BundleFilepath}
-		sourceMapURLs[k] = cfg.SourceMapURL
-	}
-
-	fleetBaseURLs := make([]string, len(fleetCfg.Hosts))
-	for i, host := range fleetCfg.Hosts {
-		baseURL, err := common.MakeURL(fleetCfg.Protocol, "", host, defaultFleetPort)
-		if err != nil {
-			return nil, err
-		}
-		fleetBaseURLs[i] = baseURL
+	sourceMapURLPaths := make(map[key]string)
+	for _, ref := range refs {
+		k := key{ref.ServiceName, ref.ServiceVersion, ref.BundleFilepath}
+		sourceMapURLPaths[k] = ref.FleetServerURLPath
 	}
 
 	return fleetFetcher{
-		apikey:        "ApiKey " + fleetCfg.AccessAPIKey,
-		fleetBaseURLs: fleetBaseURLs,
-		sourceMapURLs: sourceMapURLs,
-		c:             c,
+		authorization:     "ApiKey " + apiKey,
+		httpClient:        httpClient,
+		fleetServerURLs:   fleetServerURLs,
+		sourceMapURLPaths: sourceMapURLPaths,
 	}, nil
 }
 
 // Fetch fetches a source map from Fleet Server.
-func (f fleetFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
-	k := key{name, version, path}
-	sourceMapURL, ok := f.sourceMapURLs[k]
+func (f fleetFetcher) Fetch(ctx context.Context, name, version, bundleFilepath string) (*sourcemap.Consumer, error) {
+	sourceMapURLPath, ok := f.sourceMapURLPaths[key{name, version, bundleFilepath}]
 	if !ok {
 		return nil, fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s",
-			name, version, path,
+			name, version, bundleFilepath,
 		)
 	}
 
@@ -100,16 +109,21 @@ func (f fleetFetcher) Fetch(ctx context.Context, name, version, path string) (*s
 
 	results := make(chan result)
 	var wg sync.WaitGroup
-	for _, baseURL := range f.fleetBaseURLs {
+	for _, baseURL := range f.fleetServerURLs {
+		// TODO(axw) use URL.JoinPath when we upgrade to Go 1.19.
+		u := *baseURL
+		u.Path = path.Join(u.Path, sourceMapURLPath)
+		artifactURL := u.String()
+
 		wg.Add(1)
-		go func(fleetURL string) {
+		go func() {
 			defer wg.Done()
-			sourcemap, err := sendRequest(ctx, f, fleetURL)
+			sourcemap, err := sendRequest(ctx, f, artifactURL)
 			select {
 			case <-ctx.Done():
 			case results <- result{sourcemap, err}:
 			}
-		}(baseURL + sourceMapURL)
+		}()
 	}
 
 	go func() {
@@ -133,13 +147,13 @@ func (f fleetFetcher) Fetch(ctx context.Context, name, version, path string) (*s
 }
 
 func sendRequest(ctx context.Context, f fleetFetcher, fleetURL string) (string, error) {
-	req, err := http.NewRequest(http.MethodGet, fleetURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fleetURL, nil)
 	if err != nil {
 		return "", err
 	}
-	req.Header.Add("Authorization", f.apikey)
+	req.Header.Add("Authorization", f.authorization)
 
-	resp, err := f.c.Do(req.WithContext(ctx))
+	resp, err := f.httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}

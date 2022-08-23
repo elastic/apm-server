@@ -42,6 +42,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/otlp"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/internal/kibana"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/sourcemap"
@@ -90,6 +91,11 @@ type ServerParams struct {
 	// accept events and enqueue them for later publication.
 	PublishReady <-chan struct{}
 
+	// KibanaClient holds a Kibana client if the server has Kibana
+	// configuration. If the server has no Kibana configuration, this
+	// field will be nil.
+	KibanaClient kibana.Client
+
 	// NewElasticsearchClient returns an elasticsearch.Client for cfg.
 	//
 	// This must be used whenever an elasticsearch client might be used
@@ -120,7 +126,8 @@ type server struct {
 }
 
 func newServer(args ServerParams, listener net.Listener) (server, error) {
-	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(args.Config), args.BatchProcessor, 30*time.Second)
+	agentcfgFetcher := newAgentConfigFetcher(args.Config, args.KibanaClient)
+	agentcfgFetchReporter := agentcfg.NewReporter(agentcfgFetcher, args.BatchProcessor, 30*time.Second)
 
 	ratelimitStore, err := ratelimit.NewStore(
 		args.Config.AgentAuth.Anonymous.RateLimit.IPLimit,
@@ -249,4 +256,22 @@ func (s server) run(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+func newAgentConfigFetcher(cfg *config.Config, kibanaClient kibana.Client) agentcfg.Fetcher {
+	if cfg.AgentConfigs != nil || kibanaClient == nil {
+		// Direct agent configuration is present, disable communication with kibana.
+		agentConfigurations := make([]agentcfg.AgentConfig, len(cfg.AgentConfigs))
+		for i, in := range cfg.AgentConfigs {
+			agentConfigurations[i] = agentcfg.AgentConfig{
+				ServiceName:        in.Service.Name,
+				ServiceEnvironment: in.Service.Environment,
+				AgentName:          in.AgentName,
+				Etag:               in.Etag,
+				Config:             in.Config,
+			}
+		}
+		return agentcfg.NewDirectFetcher(agentConfigurations)
+	}
+	return agentcfg.NewKibanaFetcher(kibanaClient, cfg.KibanaAgentConfig.Cache.Expiration)
 }

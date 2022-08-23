@@ -25,8 +25,7 @@ import (
 )
 
 type KibanaConfig struct {
-	Enabled             bool   `config:"enabled"`
-	APIKey              string `config:"api_key"`
+	Enabled             bool `config:"enabled"`
 	kibana.ClientConfig `config:",inline"`
 }
 
