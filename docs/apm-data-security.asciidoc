@@ -42,9 +42,9 @@ Built-in data filters allow you to filter or turn off ingestion of the following
 Custom filters allow you to filter or redact other types of APM data on ingestion:
 
 |====
-// |<<filters-ingest-pipeline,Ingest node pipelines>> | Applied at ingestion time.
-// All agents and fields are supported. Data leaves the instrumented service.
-// There are no performance overhead implications on the instrumented service.
+|<<filters-ingest-pipeline,Ingest pipelines>> | Applied at ingestion time.
+All agents and fields are supported. Data leaves the instrumented service.
+There are no performance overhead implications on the instrumented service.
 
 |<<filters-in-agent,{apm-agent} filters>> | Not supported by all agents.
 Data is sanitized before leaving the instrumented service.
@@ -206,269 +206,298 @@ disabled by default with {apm-java-ref-v}/config-reporter.html#config-include-pr
 
 include::./apm-data-security.asciidoc[tag=custom-filters]
 
-// [discrete]
-// [[filters-ingest-pipeline]]
-// ==== Create an ingest node pipeline filter
+[discrete]
+[[filters-ingest-pipeline]]
+==== Create an ingest pipeline filter
 
-// Ingest node pipelines specify a series of processors that transform data in a specific way.
-// Transformation happens prior to indexing--inflicting no performance overhead on the monitored application.
-// Pipelines are a flexible and easy way to filter or obfuscate Elastic APM data.
+Ingest node pipelines specify a series of processors that transform data in a specific way.
+Transformation happens prior to indexing--inflicting no performance overhead on the monitored application.
+Pipelines are a flexible and easy way to filter or obfuscate Elastic APM data.
 
-// WARNING: Changes to the default APM pipeline do not persist through upgrades.
-// You will need to re-add custom ingest pipelines after every upgrade.
+[discrete]
+[[filters-ingest-pipeline-tutorial]]
+===== Tutorial: redact sensitive information
 
-// **Example**
+Say you decide to <<filter-http-body,capture HTTP request bodies>>
+but quickly notice that sensitive information is being collected in the
+`http.request.body.original` field:
 
-// Say you decide to <<filter-http-body,capture HTTP request bodies>>
-// but quickly notice that sensitive information is being collected in the
-// `http.request.body.original` field:
+[source,json]
+----
+{
+  "email": "test@abc.com",
+  "password": "hunter2"
+}
+----
 
-// [source,json]
-// ----
-// {
-//   "email": "test@abc.com",
-//   "password": "hunter2"
-// }
-// ----
+**Create a pipeline**
 
-// To obfuscate the passwords stored in the request body,
-// you can use a series of {ref}/processors.html[ingest processors].
-// To start, create a pipeline with a simple description and an empty array of processors:
+To obfuscate the passwords stored in the request body,
+you can use a series of {ref}/processors.html[ingest processors].
+To start, create a pipeline with a simple description and an empty array of processors:
 
-// [source,json]
-// ----
-// {
-//   "pipeline": {
-//     "description": "redact http.request.body.original.password",
-//     "processors": [] <1>
-//   }
-// }
-// ----
-// <1> The processors defined below will go in this array
+[source,json]
+----
+{
+  "pipeline": {
+    "description": "redact http.request.body.original.password",
+    "processors": [] <1>
+  }
+}
+----
+<1> The processors defined below will go in this array
 
-// Add the first processor to the processors array.
-// Because the agent captures the request body as a string, use the
-// {ref}/json-processor.html[JSON processor] to convert the original field value into a structured JSON object.
-// Save this JSON object in a new field:
+**Add a JSON processor**
 
-// [source,json]
-// ----
-// {
-//   "json": {
-//     "field": "http.request.body.original",
-//     "target_field": "http.request.body.original_json",
-//     "ignore_failure": true
-//   }
-// }
-// ----
+Add your first processor to the processors array.
+Because the agent captures the request body as a string, use the
+{ref}/json-processor.html[JSON processor] to convert the original field value into a structured JSON object.
+Save this JSON object in a new field:
 
-// If `body.original_json` is not `null`, redact the `password` with the {ref}/set-processor.html[set processor],
-// by setting the value of `body.original_json.password` to `"redacted"`:
+[source,json]
+----
+{
+  "json": {
+    "field": "http.request.body.original",
+    "target_field": "http.request.body.original_json",
+    "ignore_failure": true
+  }
+}
+----
 
-// [source,json]
-// ----
-// {
-//   "set": {
-//     "field": "http.request.body.original_json.password",
-//     "value": "redacted",
-//     "if": "ctx?.http?.request?.body?.original_json != null"
-//   }
-// }
-// ----
+**Add a set processor**
 
-// Use the {ref}/convert-processor.html[convert processor] to convert the JSON value of `body.original_json` to a string and set it as the `body.original` value:
+If `body.original_json` is not `null`, i.e., it exists, we'll redact the `password` with the {ref}/set-processor.html[set processor],
+by setting the value of `body.original_json.password` to `"redacted"`:
 
-// [source,json]
-// ----
-// {
-//   "convert": {
-//     "field": "http.request.body.original_json",
-//     "target_field": "http.request.body.original",
-//     "type": "string",
-//     "if": "ctx?.http?.request?.body?.original_json != null",
-//     "ignore_failure": true
-//   }
-// }
-// ----
+[source,json]
+----
+{
+  "set": {
+    "field": "http.request.body.original_json.password",
+    "value": "redacted",
+    "if": "ctx?.http?.request?.body?.original_json != null"
+  }
+}
+----
 
-// Finally, use the {ref}/remove-processor.html[remove processor] to remove the `body.original_json` field:
+**Add a convert processor**
 
-// [source,json]
-// ----
-// {
-//   "remove": {
-//     "field": "http.request.body.original",
-//     "if": "ctx?.http?.request?.body?.original_json != null",
-//     "ignore_failure": true
-//   }
-// }
-// ----
+Use the {ref}/convert-processor.html[convert processor] to convert the JSON value of `body.original_json` to a string and set it as the `body.original` value:
 
-// Now that the pipeline has been defined,
-// use the {ref}/put-pipeline-api.html[create or update pipeline API] to register the new pipeline in {es}.
-// Name the pipeline `apm_redacted_body_password`:
+[source,json]
+----
+{
+  "convert": {
+    "field": "http.request.body.original_json",
+    "target_field": "http.request.body.original",
+    "type": "string",
+    "if": "ctx?.http?.request?.body?.original_json != null",
+    "ignore_failure": true
+  }
+}
+----
 
-// [source,console]
-// ----
-// PUT _ingest/pipeline/apm_redacted_body_password
-// {
-//   "description": "redact http.request.body.original.password",
-//   "processors": [
-//     {
-//       "json": {
-//         "field": "http.request.body.original",
-//         "target_field": "http.request.body.original_json",
-//         "ignore_failure": true
-//       }
-//     },
-//     {
-//       "set": {
-//         "field": "http.request.body.original_json.password",
-//         "value": "redacted",
-//         "if": "ctx?.http?.request?.body?.original_json != null"
-//       }
-//     },
-//     {
-//       "convert": {
-//         "field": "http.request.body.original_json",
-//         "target_field": "http.request.body.original",
-//         "type": "string",
-//         "if": "ctx?.http?.request?.body?.original_json != null",
-//         "ignore_failure": true
-//       }
-//     },
-//     {
-//       "remove": {
-//         "field": "http.request.body.original_json",
-//         "if": "ctx?.http?.request?.body?.original_json != null",
-//         "ignore_failure": true
-//       }
-//     }
-//   ]
-// }
-// ----
+**Add a remove processor**
 
-// Prior to enabling this new pipeline, you can test it with the {ref}/simulate-pipeline-api.html[simulate pipeline API].
-// This API allows you to run multiple documents through a pipeline to ensure it is working correctly.
+Finally, use the {ref}/remove-processor.html[remove processor] to remove the `body.original_json` field:
 
-// The request below simulates running three different documents through the pipeline:
+[source,json]
+----
+{
+  "remove": {
+    "field": "http.request.body.original",
+    "if": "ctx?.http?.request?.body?.original_json != null",
+    "ignore_failure": true
+  }
+}
+----
 
-// [source,console]
-// ----
-// POST _ingest/pipeline/apm_redacted_body_password/_simulate
-// {
-//   "docs": [
-//     {
-//       "_source": { <1>
-//         "http": {
-//           "request": {
-//             "body": {
-//               "original": """{"email": "test@abc.com", "password": "hunter2"}"""
-//             }
-//           }
-//         }
-//       }
-//     },
-//     {
-//       "_source": { <2>
-//         "some-other-field": true
-//       }
-//     },
-//     {
-//       "_source": { <3>
-//         "http": {
-//           "request": {
-//             "body": {
-//               "original": """["invalid json" """
-//             }
-//           }
-//         }
-//       }
-//     }
-//   ]
-// }
-// ----
-// <1> This document features the same sensitive data from the original example above
-// <2> This document only contains an unrelated field
-// <3> This document contains invalid JSON
+**Register the pipeline**
 
-// The API response should be similar to this:
+Now we'll put it all together.
+Use the {ref}/put-pipeline-api.html[create or update pipeline API] to register the new pipeline in {es}.
+Name the pipeline `apm_redacted_body_password`:
 
-// [source,json]
-// ----
-// {
-//   "docs" : [
-//     {
-//       "doc" : {
-//         "_source" : {
-//           "http" : {
-//             "request" : {
-//               "body" : {
-//                 "original" : {
-//                   "password" : "redacted",
-//                   "email" : "test@abc.com"
-//                 }
-//               }
-//             }
-//           }
-//         }
-//       }
-//     },
-//     {
-//       "doc" : {
-//         "_source" : {
-//           "nobody" : true
-//         }
-//       }
-//     },
-//     {
-//       "doc" : {
-//         "_source" : {
-//           "http" : {
-//             "request" : {
-//               "body" : {
-//                 "original" : """["invalid json" """
-//               }
-//             }
-//           }
-//         }
-//       }
-//     }
-//   ]
-// }
-// ----
+[source,console]
+----
+PUT _ingest/pipeline/apm_redacted_body_password
+{
+  "description": "redact http.request.body.original.password",
+  "processors": [
+    {
+      "json": {
+        "field": "http.request.body.original",
+        "target_field": "http.request.body.original_json",
+        "ignore_failure": true
+      }
+    },
+    {
+      "set": {
+        "field": "http.request.body.original_json.password",
+        "value": "redacted",
+        "if": "ctx?.http?.request?.body?.original_json != null"
+      }
+    },
+    {
+      "convert": {
+        "field": "http.request.body.original_json",
+        "target_field": "http.request.body.original",
+        "type": "string",
+        "if": "ctx?.http?.request?.body?.original_json != null",
+        "ignore_failure": true
+      }
+    },
+    {
+      "remove": {
+        "field": "http.request.body.original_json",
+        "if": "ctx?.http?.request?.body?.original_json != null",
+        "ignore_failure": true
+      }
+    }
+  ]
+}
+----
 
-// As expected, only the first simulated document has a redacted password field.
-// All other documents are unaffected.
+**Test the pipeline**
 
-// The final step in this process is to add the newly created `apm_redacted_body_password` pipeline
-// to the default APM pipeline.
+Prior to enabling this new pipeline, you can test it with the {ref}/simulate-pipeline-api.html[simulate pipeline API].
+This API allows you to run multiple documents through a pipeline to ensure it is working correctly.
 
-// Pipelines are defined per data stream, and APM data streams are dependent on the type of data being ingested:
+The request below simulates running three different documents through the pipeline:
 
-// include::./data-streams.asciidoc[tag=traces-data-streams]
-// include::./data-streams.asciidoc[tag=metrics-data-streams]
-// include::./data-streams.asciidoc[tag=logs-data-streams]
+[source,console]
+----
+POST _ingest/pipeline/apm_redacted_body_password/_simulate
+{
+  "docs": [
+    {
+      "_source": { <1>
+        "http": {
+          "request": {
+            "body": {
+              "original": """{"email": "test@abc.com", "password": "hunter2"}"""
+            }
+          }
+        }
+      }
+    },
+    {
+      "_source": { <2>
+        "some-other-field": true
+      }
+    },
+    {
+      "_source": { <3>
+        "http": {
+          "request": {
+            "body": {
+              "original": """["invalid json" """
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+----
+<1> This document features the same sensitive data from the original example above
+<2> This document only contains an unrelated field
+<3> This document contains invalid JSON
 
-// In this example, we're interested in redacting application tracing data,
-// so we'll edit the `traces-apm-<namespace>` ingest pipeline.
+The API response should be similar to this:
 
-// Navigate to **Stack Management** > **Index Management** > **Data Streams**.
-// Search for the `traces-apm` data stream and select it.
-// In the flyover panel, select the **Index template** for this data stream.
-// Select **Settings** and find the name of the `default_pipeline`; in this example, it's +traces-apm-{version}+.
+[source,json]
+----
+{
+  "docs" : [
+    {
+      "doc" : {
+        "_source" : {
+          "http" : {
+            "request" : {
+              "body" : {
+                "original" : {
+                  "password" : "redacted",
+                  "email" : "test@abc.com"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "doc" : {
+        "_source" : {
+          "nobody" : true
+        }
+      }
+    },
+    {
+      "doc" : {
+        "_source" : {
+          "http" : {
+            "request" : {
+              "body" : {
+                "original" : """["invalid json" """
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+----
 
-// Navigate to **Stack Management** > **Index Pipelines** and search for +traces-apm-{version}+.
-// Select **Manage** > **Edit**.
+As expected, only the first simulated document has a redacted password field.
+All other documents are unaffected.
 
-// WARNING: Do not edit any of the predefined pipeline steps or you may break the APM UI.
+**Create an `@custom` pipeline**
 
-// At the end of the pipeline, select **Add a processor**.
-// Select the `Pipeline` processor, and use the Pipeline name we created in the previous step, `apm_redacted_body_password`.
-// Select **Add** and finally, **Save pipeline**.
+The final step in this process is to call the newly created `apm_redacted_body_password` pipeline
+from the `@custom` pipeline of the data stream you wish to edit.
 
-// That's it! Passwords will now be redacted from your APM HTTP body data.
-// Don't forget to re-add your custom pipelines after each version upgrade.
+include::./ingest-pipelines.asciidoc[tag=ingest-pipeline-naming]
+
+Use the {ref}/put-pipeline-api.html[create or update pipeline API] to register the new pipeline in {es}.
+Name the pipeline `traces-apm@custom`:
+
+[source,console]
+----
+PUT _ingest/pipeline/traces-apm@custom
+{
+  "processors": [
+    {
+      "pipeline": {
+        "name": "apm_redacted_body_password" <1>
+      }
+    }
+  ]
+}
+----
+<1> The name of the pipeline we previously created
+
+TIP: If you prefer using a GUI, you can instead open {kib} and navigate to
+**Stack Management** -> **Ingest Pipelines** -> **Create pipeline**.
+Use the same naming convention explained previously to ensure your new pipeline matches the correct APM data stream.
+
+**Roll over the data stream (optional)**
+
+Pipeline changes are not applied retroactively to existing indices.
+For changes to take effect immediately, you must create a new write index for the data stream.
+This can be done with the {es} {ref}/indices-rollover-index.html[Rollover API].
+For example, to roll over the default application traces data stream, with a `namespace` of "default", run:
+
+[source,console]
+----
+POST /traces-apm-default/_rollover/
+----
+
+That's it! Passwords will now be redacted from your APM HTTP body data.
+
+To learn more about ingest pipelines, see <<custom-index-template>>.
 
 [discrete]
 [[filters-in-agent]]
