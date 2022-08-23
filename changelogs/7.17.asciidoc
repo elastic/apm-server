@@ -19,7 +19,7 @@ https://github.com/elastic/apm-server/compare/v7.17.5\...v7.17.6[View commits]
 
 [float]
 ==== Bug fixes
-- Fix a bug where an event's transaction_id is ignored if no transaction object is set {pull} 8820[8820]
+- Fix a bug where an event's transaction_id is ignored if no transaction object is set {pull}8820[8820]
 
 [float]
 [[release-notes-7.17.5]]
