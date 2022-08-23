@@ -115,6 +115,8 @@ func (s *CatBulkServer) Stop() error {
 }
 
 func (s *CatBulkServer) metaWriter() error {
+	defer close(s.metaWriteDone)
+
 	metadata := struct {
 		SourceFile                 string `json:"source-file"`
 		DocumentCount              int    `json:"document-count"`
@@ -124,8 +126,6 @@ func (s *CatBulkServer) metaWriter() error {
 		SourceFile:                 gencorporaConfig.CorporaPath,
 		IncludedsActionAndMetadata: true,
 	}
-
-	defer close(s.metaWriteDone)
 
 	// update metadata as request is received by the server
 	for stat := range s.metaUpdateChan {
@@ -194,6 +194,8 @@ func handleReq(metaUpdateChan chan docsStat, writer io.Writer) http.HandlerFunc 
 				}
 			}
 
+			// Write the ES corpora for each request at once to avoid race condition
+			// between metadata and action lines for different requests
 			n, err := writer.Write(buf.Bytes())
 			if err != nil {
 				log.Println("failed to write ES corpora to a file", err)
