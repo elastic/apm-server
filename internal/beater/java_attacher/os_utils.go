@@ -94,13 +94,15 @@ func (j *JavaAttacher) createAttacherTempDir(uidS, gidS string) (string, error) 
 	if err != nil {
 		return "", fmt.Errorf("failed to open bundled attacher jar: %w", err)
 	}
-	defer j.closeFile(bundledAttacherFile)
+	//goland:noinspection GoUnhandledErrorResult
+	defer bundledAttacherFile.Close()
 	tmpAttacherJarPath := filepath.Join(tempDir, bundledJavaAttacher)
 	tmpAttacherJarFile, err := os.Create(tmpAttacherJarPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to create tmp attacher jar: %w", err)
 	}
-	defer j.closeFile(tmpAttacherJarFile)
+	//goland:noinspection GoUnhandledErrorResult
+	defer tmpAttacherJarFile.Close()
 	nBytes, err := io.Copy(tmpAttacherJarFile, bundledAttacherFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to copy bundled attacher jar to %v: %w", bundledJavaAttacher, err)
@@ -131,13 +133,6 @@ func parseUserIds(uidS, gidS string) (int64, int64, error) {
 		return 0, 0, fmt.Errorf("invalid GID %v: %w", gidS, err)
 	}
 	return uid, gid, nil
-}
-
-func (j *JavaAttacher) closeFile(file *os.File) {
-	err := file.Close()
-	if err != nil {
-		j.logger.Errorf("failed to close file %v: %v", file, err)
-	}
 }
 
 func (j *JavaAttacher) cleanResources() {
