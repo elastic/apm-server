@@ -566,7 +566,7 @@ func (c *ElasticAgentContainer) APMServerLog() (io.ReadCloser, error) {
 	return c.container.CopyFileFromContainer(
 		context.Background(), fmt.Sprintf(
 			"/usr/share/elastic-agent/state/data/logs/default/apm-server-%s-1.ndjson",
-			time.Now().Format("20060102"),
+			time.Now().UTC().Format("20060102"),
 		),
 	)
 }
