@@ -30,7 +30,7 @@ import (
 )
 
 func TestTLSConfig(t *testing.T) {
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.TLS = &apmservertest.TLSConfig{
 		SupportedProtocols: []string{"TLSv1.2", "TLSv1.3"},
 		CipherSuites:       []string{"ECDHE-RSA-AES-128-GCM-SHA256"},
@@ -80,7 +80,7 @@ func TestTLSConfig(t *testing.T) {
 }
 
 func TestTLSClientAuth(t *testing.T) {
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.TLS = &apmservertest.TLSConfig{ClientAuthentication: "required"}
 	require.NoError(t, srv.StartTLS())
 

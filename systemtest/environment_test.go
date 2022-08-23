@@ -31,7 +31,7 @@ import (
 
 func TestDefaultServiceEnvironment(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.DefaultServiceEnvironment = "default"
 	err := srv.Start()
 	require.NoError(t, err)
