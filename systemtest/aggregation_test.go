@@ -38,7 +38,7 @@ import (
 
 func TestTransactionAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Monitoring = &apmservertest.MonitoringConfig{
 		Enabled:       true,
 		MetricsPeriod: 100 * time.Millisecond,
@@ -119,7 +119,7 @@ func TestTransactionAggregation(t *testing.T) {
 
 func TestTransactionAggregationShutdown(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		Transactions: &apmservertest.TransactionAggregationConfig{
 			// Set aggregation_interval to something that would cause
@@ -158,7 +158,7 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 
 func TestServiceDestinationAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
 			Interval: time.Second,
@@ -192,7 +192,7 @@ func TestServiceDestinationAggregation(t *testing.T) {
 func TestTransactionAggregationLabels(t *testing.T) {
 	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		Transactions: &apmservertest.TransactionAggregationConfig{
 			Interval: time.Second,

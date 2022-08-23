@@ -96,3 +96,8 @@ to specify the full object of images that is defined in `variables.tf`: `docker_
 By default, the APM indices ship with `number_of_shards` set to `1`. To override this behavior, you can modify the
 `apm_shards` variable and individually set the setting for each of the component templates. See an example of how to
 do that in `terraform.tfvars.example`.
+
+### Delete all the APM data streams
+
+`make cleanup-elasticsearch` will delete all the APM data streams. This may be useful in case you'd like to re-run
+the benchmarks without destroying the deployment.

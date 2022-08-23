@@ -39,7 +39,7 @@ import (
 
 func TestAPMServerInstrumentation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Instrumentation = &apmservertest.InstrumentationConfig{Enabled: true}
 	err := srv.Start()
 	require.NoError(t, err)
@@ -101,7 +101,7 @@ func TestAPMServerInstrumentation(t *testing.T) {
 func TestAPMServerInstrumentationAuth(t *testing.T) {
 	test := func(t *testing.T, external, useSecretToken, useAPIKey bool) {
 		systemtest.CleanupElasticsearch(t)
-		srv := apmservertest.NewUnstartedServer(t)
+		srv := apmservertest.NewUnstartedServerTB(t)
 		srv.Config.AgentAuth.SecretToken = "hunter2"
 		srv.Config.AgentAuth.APIKey = &apmservertest.APIKeyAuthConfig{Enabled: true}
 		srv.Config.Instrumentation = &apmservertest.InstrumentationConfig{Enabled: true}
@@ -192,7 +192,7 @@ func TestAPMServerProfiling(t *testing.T) {
 
 	test := func(t *testing.T, profilingConfig *apmservertest.ProfilingConfig, expectedMetrics []string) {
 		systemtest.CleanupElasticsearch(t)
-		srv := apmservertest.NewUnstartedServer(t)
+		srv := apmservertest.NewUnstartedServerTB(t)
 		srv.Config.Instrumentation = &apmservertest.InstrumentationConfig{
 			Enabled:   true,
 			Profiling: profilingConfig,
