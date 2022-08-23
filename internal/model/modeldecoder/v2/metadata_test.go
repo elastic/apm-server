@@ -153,7 +153,7 @@ func isUnmappedMetadataField(key string) bool {
 }
 
 func isEventField(key string) bool {
-	for _, prefix := range []string{"Error", "Metricset", "ProfileSample", "Span", "Transaction"} {
+	for _, prefix := range []string{"Error", "Metricset", "Span", "Transaction"} {
 		if key == prefix || strings.HasPrefix(key, prefix+".") {
 			return true
 		}
