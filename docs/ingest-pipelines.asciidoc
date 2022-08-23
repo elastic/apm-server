@@ -24,11 +24,11 @@ A custom pipeline allows you to transform data to better match your specific use
 This can be useful, for example, to ensure data security by removing or obfuscating sensitive information.
 
 Each data stream ships with a default pipeline.
-This default pipeline calls a non-existent and non-versioned "`@custom`" ingest pipeline.
+This default pipeline calls an initially non-existent and non-versioned "`@custom`" ingest pipeline.
 If left uncreated, this pipeline has no effect on your data. However, if utilized,
 this pipeline can be used for custom data processing, adding fields, sanitizing data, and more.
 
-In addition, ingest pipelines can also be used to direct metrics events to a data stream with a different dataset.
+In addition, ingest pipelines can also be used to direct application metrics (`metrics-apm.app.*`) to a data stream with a different dataset, e.g. to combine metrics for two applications.
 Sending other APM data to alternate data streams, like traces (`traces-apm.*`), logs (`logs-apm.*`), and internal metrics (`metrics-apm.internal*`) is not currently supported.
 
 [discrete]
