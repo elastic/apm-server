@@ -113,6 +113,41 @@ func (s *CatBulkServer) Stop() error {
 	return nil
 }
 
+func (s *CatBulkServer) metaWriter() error {
+	metadata := struct {
+		SourceFile                 string `json:"source-file"`
+		DocumentCount              int    `json:"document-count"`
+		UncompressedBytes          int    `json:"uncompressed-bytes"`
+		IncludedsActionAndMetadata bool   `json:"includes-action-and-meta-data"`
+	}{
+		SourceFile:                 gencorporaConfig.CorporaPath,
+		IncludedsActionAndMetadata: true,
+	}
+
+	defer close(s.metaWriteDone)
+
+	// update metadata as request is received by the server
+	for stat := range s.metaUpdateChan {
+		metadata.DocumentCount += stat.count
+		metadata.UncompressedBytes += stat.bytes
+	}
+
+	// write metadata to a file
+	metadataBytes, err := json.MarshalIndent(metadata, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	writer, err := getWriter(gencorporaConfig.MetadataPath)
+	defer writer.Close()
+
+	if _, err := writer.Write(metadataBytes); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func handleReq(metaUpdateChan chan docsStat, writer io.Writer) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -173,41 +208,6 @@ func handleReq(metaUpdateChan chan docsStat, writer io.Writer) http.HandlerFunc 
 			w.WriteHeader(http.StatusNotFound)
 		}
 	})
-}
-
-func (s *CatBulkServer) metaWriter() error {
-	metadata := struct {
-		SourceFile                 string `json:"source-file"`
-		DocumentCount              int    `json:"document-count"`
-		UncompressedBytes          int    `json:"uncompressed-bytes"`
-		IncludedsActionAndMetadata bool   `json:"includes-action-and-meta-data"`
-	}{
-		SourceFile:                 gencorporaConfig.CorporaPath,
-		IncludedsActionAndMetadata: true,
-	}
-
-	defer close(s.metaWriteDone)
-
-	// update metadata as request is received by the server
-	for stat := range s.metaUpdateChan {
-		metadata.DocumentCount += stat.count
-		metadata.UncompressedBytes += stat.bytes
-	}
-
-	// write metadata to a file
-	metadataBytes, err := json.MarshalIndent(metadata, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	writer, err := getWriter(gencorporaConfig.MetadataPath)
-	defer writer.Close()
-
-	if _, err := writer.Write(metadataBytes); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func getWriter(path string) (io.WriteCloser, error) {
