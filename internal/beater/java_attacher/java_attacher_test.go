@@ -115,11 +115,6 @@ func TestBuildCommandWithTempJar(t *testing.T) {
 
 	cmdArgs := strings.Join(command.Args, " ")
 	assert.Equal(t, want, cmdArgs)
-
-	// verify caching
-	_ = attacher.attachJVMCommand(context.Background(), jvm)
-	assert.Len(t, attacher.tmpDirs, 1)
-	assert.Len(t, attacher.uidToAttacherJar, 1)
 }
 
 func createTestConfig() config.JavaAttacherConfig {
@@ -251,11 +246,23 @@ func TestTempDirCreation(t *testing.T) {
 	defer attacher.cleanResources()
 
 	currentUser, _ := user.Current()
-	attacherJar, err := attacher.createAttacherTempDir(currentUser.Uid, currentUser.Gid)
-	require.NoError(t, err)
-	defer attacher.cleanResources()
+	jvm := &jvmDetails{
+		pid:     12345,
+		uid:     currentUser.Uid,
+		gid:     currentUser.Gid,
+		command: filepath.FromSlash("/home/someuser/java_home/bin/java"),
+	}
+	assert.Empty(t, attacher.tmpDirs)
+	assert.Empty(t, attacher.uidToAttacherJar)
+	// this call creates the temp dir
+	attacher.attachJVMCommand(context.Background(), jvm)
+	assert.Len(t, attacher.uidToAttacherJar, 1)
+	attacherJar := attacher.uidToAttacherJar[currentUser.Uid]
+	assert.NotEqual(t, attacherJar, "")
+	require.NotEqual(t, bundledJavaAttacher, attacherJar)
 
-	tempAttacherDir := filepath.Dir(attacherJar)
+	assert.Len(t, attacher.tmpDirs, 1)
+	tempAttacherDir := attacher.tmpDirs[0]
 	require.DirExists(t, tempAttacherDir)
 	attacherDirInfo, err := os.Stat(tempAttacherDir)
 	require.NoError(t, err)
@@ -268,5 +275,10 @@ func TestTempDirCreation(t *testing.T) {
 	attacherJarFileInfo, err := files[0].Info()
 	require.NoError(t, err)
 	require.Equal(t, os.FileMode(0600), attacherJarFileInfo.Mode().Perm())
-	require.FileExists(t, attacherJarFileInfo.Name())
+	require.Equal(t, attacherJar, filepath.Join(tempAttacherDir, attacherJarFileInfo.Name()))
+
+	// verify caching
+	attacher.attachJVMCommand(context.Background(), jvm)
+	assert.Len(t, attacher.tmpDirs, 1)
+	assert.Len(t, attacher.uidToAttacherJar, 1)
 }
