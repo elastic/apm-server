@@ -183,8 +183,8 @@ func newHTTPServer(t *testing.T, batchProcessor model.BatchProcessor) string {
 	auth, _ := auth.NewAuthenticator(cfg.AgentAuth)
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	router, err := api.NewMux(
-		cfg, batchProcessor, auth, agentcfg.NewFetcher(cfg), ratelimitStore,
-		nil, false, func() bool { return true })
+		cfg, batchProcessor, auth, agentcfg.NewDirectFetcher(nil),
+		ratelimitStore, nil, false, func() bool { return true })
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}
 	go srv.Serve(lis)

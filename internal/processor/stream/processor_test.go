@@ -33,7 +33,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/internal/approvaltest"
-	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modelindexer/modelindexertest"
 	"github.com/elastic/apm-server/internal/publish"
@@ -51,7 +50,10 @@ func TestHandlerReadStreamError(t *testing.T) {
 	require.NoError(t, err)
 	timeoutReader := iotest.TimeoutReader(bytes.NewReader(payload))
 
-	sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+	sp := BackendProcessor(Config{
+		MaxEventSize: 100 * 1024,
+		Semaphore:    make(chan struct{}, 1),
+	})
 
 	var actualResult Result
 	err = sp.HandleStream(context.Background(), model.APMEvent{}, timeoutReader, 10, processor, &actualResult)
@@ -73,7 +75,10 @@ func TestHandlerReportingStreamError(t *testing.T) {
 		name: "QueueFull",
 		err:  publish.ErrFull,
 	}} {
-		sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+		sp := BackendProcessor(Config{
+			MaxEventSize: 100 * 1024,
+			Semaphore:    make(chan struct{}, 1),
+		})
 		processor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
 			return test.err
 		})
@@ -190,7 +195,10 @@ func TestIntegrationESOutput(t *testing.T) {
 				Timestamp: reqTimestamp,
 			}
 
-			p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+			p := BackendProcessor(Config{
+				MaxEventSize: 100 * 1024,
+				Semaphore:    make(chan struct{}, 1),
+			})
 			var actualResult Result
 			err = p.HandleStream(context.Background(), baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			if test.err != nil {
@@ -227,7 +235,10 @@ func TestIntegrationRum(t *testing.T) {
 				Timestamp: reqTimestamp,
 			}
 
-			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+			p := RUMV2Processor(Config{
+				MaxEventSize: 100 * 1024,
+				Semaphore:    make(chan struct{}, 1),
+			})
 			var actualResult Result
 			err = p.HandleStream(context.Background(), baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
@@ -260,7 +271,10 @@ func TestRUMV3(t *testing.T) {
 				Timestamp: reqTimestamp,
 			}
 
-			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+			p := RUMV3Processor(Config{
+				MaxEventSize: 100 * 1024,
+				Semaphore:    make(chan struct{}, 1),
+			})
 			var actualResult Result
 			err = p.HandleStream(context.Background(), baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
@@ -284,7 +298,10 @@ func TestLabelLeak(t *testing.T) {
 		return nil
 	})
 
-	p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+	p := BackendProcessor(Config{
+		MaxEventSize: 100 * 1024,
+		Semaphore:    make(chan struct{}, 1),
+	})
 	var actualResult Result
 	err := p.HandleStream(context.Background(), baseEvent, strings.NewReader(payload), 10, batchProcessor, &actualResult)
 	require.NoError(t, err)
