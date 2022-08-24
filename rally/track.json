@@ -32,7 +32,7 @@
     {
       "operation": {
         "operation-type": "bulk",
-        "bulk-size": 5000
+        "bulk-size": {{bulk_size}}
       }
     }
   ]

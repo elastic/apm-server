@@ -279,12 +279,13 @@ $(PYTHON_BIN)/activate:
 RALLY_EXTRA_FLAGS?=
 RALLY_CLIENT_OPTIONS?=basic_auth_user:'admin',basic_auth_password:'changeme'
 RALLY_FLAGS?=--pipeline=benchmark-only --client-options="$(RALLY_CLIENT_OPTIONS)" $(RALLY_EXTRA_FLAGS)
+RALLY_BULK_SIZE?=5000
 
 .PHONY: rally
 rally: $(PYTHON_BIN)/esrally rally/corpora
 	@$(PYTHON_BIN)/esrally race \
 		--track-path=rally \
-		--track-params=expected_cluster_health:yellow \
+		--track-params=expected_cluster_health:yellow,bulk_size:$(RALLY_BULK_SIZE) \
 		--kill-running-processes \
 		$(RALLY_FLAGS)
 
