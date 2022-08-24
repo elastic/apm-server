@@ -7,24 +7,24 @@
     {"name": "logs-apm*"}
   ],
   "corpora": [
-    {"name": "apm-events", "documents": [{% include "corpora/http_and_sql.json" %}]}
+    {"name": "apm-events", "documents": [{% include "corpora/es_corpora_meta.json" %}]}
   ],
   "schedule": [
     {
       "operation": {
         "operation-type": "delete-data-stream",
-	"data-stream": [
-          "traces-apm*",
-          "metrics-apm*",
-          "logs-apm*"
-	]
+	    "data-stream": [
+              "traces-apm*",
+              "metrics-apm*",
+              "logs-apm*"
+	    ]
       }
     },
     {
       "operation": {
         "operation-type": "cluster-health",
         "request-params": {
-          "wait_for_status": "green"
+          "wait_for_status": "{{expected_cluster_health}}"
         },
         "retry-until-success": true
       }
