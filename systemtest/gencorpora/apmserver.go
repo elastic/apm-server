@@ -41,6 +41,7 @@ func NewAPMServer(ctx context.Context, esHost string) *apmservertest.Server {
 	waitForIntegration := false
 	srv.Config.WaitForIntegration = &waitForIntegration
 	srv.Config.Output.Elasticsearch.Hosts = []string{esHost}
+	srv.Config.Kibana = nil
 	return srv
 }
 
