@@ -94,8 +94,8 @@ func BenchmarkAgentRuby(b *testing.B, l *rate.Limiter) {
 }
 
 func benchmarkAgent(b *testing.B, l *rate.Limiter, expr string) {
+	h := benchtest.NewEventHandler(b, expr, l)
 	b.RunParallel(func(pb *testing.PB) {
-		h := benchtest.NewEventHandler(b, expr, l)
 		for pb.Next() {
 			h.SendBatches(context.Background())
 		}

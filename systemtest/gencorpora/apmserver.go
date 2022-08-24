@@ -41,12 +41,13 @@ func NewAPMServer(ctx context.Context, esHost string) *apmservertest.Server {
 	waitForIntegration := false
 	srv.Config.WaitForIntegration = &waitForIntegration
 	srv.Config.Output.Elasticsearch.Hosts = []string{esHost}
+	srv.Config.Kibana = nil
 	return srv
 }
 
-// StreamLogs streams logs from the apmservertest.Server process to stderr.
+// StreamAPMServerLogs streams logs from the apmservertest.Server process to stderr.
 //
-// StreamLogs must be called after the server is started, and only one active
+// The method must be called after the server is started, and only one active
 // StreamAPMServerLogs call is allowed per server.
 func StreamAPMServerLogs(ctx context.Context, srv *apmservertest.Server) error {
 	logger, err := zap.NewDevelopment(zap.IncreaseLevel(gencorporaConfig.LoggingLevel))

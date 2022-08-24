@@ -45,7 +45,7 @@ func Test_warmup(t *testing.T) {
 		{4, 2 * time.Second},
 	}
 	for _, c := range cases {
-		t.Run(fmt.Sprintf("%d_agent_%s_events", c.agents, c.duration.String()), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d_agent_%s", c.agents, c.duration.String()), func(t *testing.T) {
 			var received uint64
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path == "/debug/vars" {
@@ -88,7 +88,7 @@ func Test_warmup(t *testing.T) {
 				atomic.AddUint64(&received, localReceive)
 				w.WriteHeader(http.StatusAccepted)
 			}))
-			defer srv.Close()
+			t.Cleanup(srv.Close)
 			err := warmup(c.agents, c.duration, srv.URL, "")
 			assert.NoError(t, err)
 			assert.Greater(t, received, uint64(c.agents))
