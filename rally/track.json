@@ -13,11 +13,11 @@
     {
       "operation": {
         "operation-type": "delete-data-stream",
-	    "data-stream": [
-              "traces-apm*",
-              "metrics-apm*",
-              "logs-apm*"
-	    ]
+        "data-stream": [
+          "traces-apm*",
+          "metrics-apm*",
+          "logs-apm*"
+        ]
       }
     },
     {
