@@ -73,8 +73,6 @@ func TestBuildCommandWithBundledJar(t *testing.T) {
 	defer attacher.cleanResources()
 
 	command = attacher.attachJVMCommand(context.Background(), jvm)
-	// verify the former result is cached
-	assert.Len(t, attacher.uidToAttacherJar, 1)
 	cmdArgs = strings.Join(command.Args, " ")
 	assert.Contains(t, cmdArgs, "--config server_url=http://myhost:8200")
 	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
