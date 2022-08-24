@@ -307,3 +307,9 @@ func TestTempDirCreation(t *testing.T) {
 	assert.Len(t, attacher.tmpDirs, 1)
 	assert.Len(t, attacher.uidToAttacherJar, 1)
 }
+
+func TestJavaCommandNormalization(t *testing.T) {
+	javaBin := "java_home/bin/"
+	assert.Equal(t, javaBin+javaExe, normalizeJavaCommand(javaBin+javaExe))
+	assert.Equal(t, javaBin+javaExe, normalizeJavaCommand(javaBin+javawExe))
+}

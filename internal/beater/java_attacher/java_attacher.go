@@ -39,6 +39,9 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 )
 
+const javawExe = "javaw.exe"
+const javaExe = "java.exe"
+
 const bundledJavaAttacher = "java-attacher.jar"
 
 type jvmDetails struct {
@@ -256,12 +259,20 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses() (map[int]*jvmDetails, e
 			gid:         gid,
 			pid:         pid,
 			startTime:   info.StartTime,
-			command:     info.Exe,
+			command:     normalizeJavaCommand(info.Exe),
 			version:     "unknown", // filled in later
 			cmdLineArgs: strings.Join(info.Args, " "),
 		}
 	}
 	return jvms, nil
+}
+
+func normalizeJavaCommand(command string) string {
+	if strings.HasSuffix(command, javawExe) {
+		command = strings.TrimSuffix(command, javawExe)
+		command = command + javaExe
+	}
+	return command
 }
 
 // foreachJVM calls f for each JVM in jvms concurrently,
