@@ -238,29 +238,15 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 		return fmt.Errorf("unable to create warm-up handler: %w", err)
 	}
 	var wg sync.WaitGroup
-	var once sync.Once
-	var ctx context.Context
-	var cancel context.CancelFunc
-	ctxReady := make(chan struct{})
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
+	defer cancel()
 	for i := 0; i < agents; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			// Create the context within the first goroutine that calls once.
-			// This ensures that the timeout starts counting from the moment
-			// the warm-up traffic starts.
-			// This delay starts becoming more noticeable once the number of
-			// agents increases.
-			once.Do(func() {
-				ctx, cancel = context.WithTimeout(context.Background(), duration)
-				close(ctxReady)
-			})
-			<-ctxReady
 			h.WarmUpServer(ctx)
 		}()
 	}
-	<-ctxReady
-	defer cancel()
 	wg.Wait()
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
 	defer cancel()
