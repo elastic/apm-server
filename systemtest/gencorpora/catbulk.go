@@ -171,7 +171,7 @@ func handleReq(metaUpdateChan chan docsStat, writer io.Writer) http.HandlerFunc 
 
 			mockResp := esutil.BulkIndexerResponse{}
 			scanner := bufio.NewScanner(reader)
-			scanner.Split(scanMetadataAndSource)
+			scanner.Split(splitMetadataAndSource)
 
 			var stat docsStat
 			for scanner.Scan() {
@@ -186,8 +186,6 @@ func handleReq(metaUpdateChan chan docsStat, writer io.Writer) http.HandlerFunc 
 				stat.count++
 				stat.bytes += n
 
-				// create mock bulk response considering all request items
-				// exist with action_and_metadata followed by source line
 				item := map[string]esutil.BulkIndexerResponseItem{
 					"action": {Status: http.StatusOK},
 				}
@@ -217,20 +215,20 @@ func handleReq(metaUpdateChan chan docsStat, writer io.Writer) http.HandlerFunc 
 	})
 }
 
-// scanMetadataAndSource scans the input ES corpora expecting each corpus to have
+// splitMetadataAndSource splits the input ES corpora expecting each corpus to have
 // action-and-metdata line followed by source document in an ndjson format. The EOL
 // markers are preserved and included in the token.
-func scanMetadataAndSource(data []byte, atEOF bool) (advance int, token []byte, err error) {
+func splitMetadataAndSource(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
 
 	if i := bytes.IndexByte(data, '\n'); i >= 0 {
 		// This represents metadata EOL marker
-		// Try to find the action end-of-line marker
+		// Try to find the source EOL marker
 		if len(data) > i+1 {
 			if j := bytes.IndexByte(data[i+1:], '\n'); j >= 0 {
-				// This represents action EOL marker
+				// This represents source EOL marker
 				return i + j + 2, data[:i+j+2], nil
 			}
 		}
