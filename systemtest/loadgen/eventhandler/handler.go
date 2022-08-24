@@ -23,8 +23,8 @@ import (
 	"compress/zlib"
 	"context"
 	"errors"
-	"io"
 	"io/fs"
+	"sync"
 
 	"golang.org/x/time/rate"
 )
@@ -35,7 +35,7 @@ var (
 )
 
 type batch struct {
-	r io.ReadSeeker
+	bytes []byte
 	// items contains the number of events (minus metadata) in the batch.
 	items uint
 }
@@ -43,9 +43,10 @@ type batch struct {
 // Handler is used to replay a set of stored events to a remote APM Server
 // using a ReplayTransport.
 type Handler struct {
-	transport *Transport
-	limiter   *rate.Limiter
-	batches   []batch
+	transport  *Transport
+	limiter    *rate.Limiter
+	readerPool *byteReaderPool
+	batches    []batch
 }
 
 // New creates a new tracehandler.Handler from a glob expression, a filesystem,
@@ -73,10 +74,10 @@ func New(p string, t *Transport, storage fs.FS, l *rate.Limiter) (*Handler, erro
 		l = rate.NewLimiter(rate.Inf, 0)
 	}
 	h := Handler{
-		transport: t,
-		limiter:   l,
+		transport:  t,
+		limiter:    l,
+		readerPool: newByteReaderPool(),
 	}
-
 	matches, err := fs.Glob(storage, p)
 	if err != nil {
 		return nil, err
@@ -116,7 +117,7 @@ func New(p string, t *Transport, storage fs.FS, l *rate.Limiter) (*Handler, erro
 					return nil, err
 				}
 				h.batches = append(h.batches, batch{
-					r:     bytes.NewReader(writer.Bytes()),
+					bytes: writer.Bytes(),
 					items: scanned,
 				})
 			}
@@ -129,7 +130,7 @@ func New(p string, t *Transport, storage fs.FS, l *rate.Limiter) (*Handler, erro
 			return nil, err
 		}
 		h.batches = append(h.batches, batch{
-			r:     bytes.NewReader(writer.Bytes()),
+			bytes: writer.Bytes(),
 			items: scanned,
 		})
 		writer.Reset()
@@ -158,9 +159,10 @@ func (h *Handler) sendBatch(ctx context.Context, b batch) (uint, error) {
 	if err := h.limiter.WaitN(ctx, int(b.items)); err != nil {
 		return 0, err
 	}
-	defer b.r.Seek(0, io.SeekStart)
+	r := h.readerPool.newReader(b.bytes)
+	defer h.readerPool.release(r)
 	// NOTE(marclop) RUM event replaying is not yet supported.
-	if err := h.transport.SendV2Events(ctx, b.r); err != nil {
+	if err := h.transport.SendV2Events(ctx, r); err != nil {
 		return 0, err
 	}
 	return b.items, nil
@@ -212,4 +214,24 @@ func (w *compressedWriter) Bytes() []byte {
 
 func (w *compressedWriter) Close() error {
 	return w.zwriter.Close()
+}
+
+func newByteReaderPool() *byteReaderPool {
+	return &byteReaderPool{p: sync.Pool{New: func() any {
+		return bytes.NewReader(nil)
+	}}}
+}
+
+type byteReaderPool struct {
+	p sync.Pool
+}
+
+func (bp *byteReaderPool) newReader(b []byte) *bytes.Reader {
+	r := bp.p.Get().(*bytes.Reader)
+	r.Reset(b)
+	return r
+}
+
+func (bp *byteReaderPool) release(r *bytes.Reader) {
+	bp.p.Put(r)
 }
