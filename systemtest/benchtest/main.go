@@ -232,16 +232,15 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 // warmup sends events to the remote APM Server using the specified number of
 // agents for the specified duration.
 func warmup(agents int, duration time.Duration, url, token string) error {
+	rl := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
+	h, err := newEventHandler(`*.ndjson`, url, token, rl)
+	if err != nil {
+		return fmt.Errorf("unable to create warm-up handler: %w", err)
+	}
+	var wg sync.WaitGroup
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
-
-	rl := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
-	var wg sync.WaitGroup
 	for i := 0; i < agents; i++ {
-		h, err := loadgen.NewEventHandler(`*.ndjson`, url, token, rl)
-		if err != nil {
-			return fmt.Errorf("unable to create warm-up handler: %w", err)
-		}
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
