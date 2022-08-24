@@ -33,6 +33,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -58,6 +59,15 @@ type Server struct {
 	// empty apm-server.yml, and the pipeline definition, will be created.
 	// The temporary directory will be removed when the server is closed.
 	Dir string
+
+	// Log holds an optional io.Writer to which the process's Stderr will
+	// be written, in addition to being available through the Server.Logs
+	// field.
+	//
+	// Log is set by NewServerTB and NewUnstartedServerTB, and will be nil
+	// for calls to NewUnstartedServer. Callers of NewUnstartedServer may
+	// set Log prior to calling Start.
+	Log io.Writer
 
 	// BeatUUID will be populated with the server's Beat UUID after Start
 	// returns successfully. This can be used to search for documents
@@ -91,28 +101,61 @@ type Server struct {
 	// test environments.
 	EventMetadataFilter EventMetadataFilter
 
-	tb   testing.TB
 	args []string
 	cmd  *ServerCmd
+
+	mu      sync.Mutex
+	tracers []*apm.Tracer
 }
 
-// NewServer returns a started Server, passings args to the apm-server command.
-// The server's Close method will be called when the test ends.
-func NewServer(tb testing.TB, args ...string) *Server {
-	s := NewUnstartedServer(tb, args...)
+// NewServerTB returns a started Server, passings args to the apm-server command.
+// The server's Close method will be called when the test ends, and logs will be
+// written under apm-server/systemtest/logs/<test-name>/.
+func NewServerTB(tb testing.TB, args ...string) *Server {
+	s := NewUnstartedServerTB(tb, args...)
 	if err := s.Start(); err != nil {
 		tb.Fatal(err)
 	}
 	return s
 }
 
-// NewUnstartedServer returns an unstarted Server, passing args to the
-// apm-server command.
-func NewUnstartedServer(tb testing.TB, args ...string) *Server {
+// NewUnstartedServerTB returns an unstarted Server, passing args to the apm-server
+// command. The server's Close method will be called when the test ends, and logs
+// will be written under apm-server/systemtest/logs/<test-name>/.
+func NewUnstartedServerTB(tb testing.TB, args ...string) *Server {
+	s := NewUnstartedServer(args...)
+	logfile := createLogfile(tb, "apm-server")
+	s.Log = logfile
+	tb.Cleanup(func() {
+		defer logfile.Close()
+		if tb.Failed() {
+			tb.Logf("log file: %s", logfile.Name())
+		}
+
+		// Call the server's Close method in a background goroutine,
+		// and wait for up to 10 seconds for it to complete.
+		errc := make(chan error)
+		go func() { errc <- s.Close() }()
+		select {
+		case <-errc:
+			close(errc)
+		case <-time.After(10 * time.Second):
+			// Channel receive on errc never happened. Start up a
+			// goroutine to receive on errc and then clean up the
+			// associated resources.
+			go func() { <-errc; close(errc) }()
+		}
+	})
+	return s
+}
+
+// NewUnstartedServer returns an unstarted Server, passing args to the apm-server
+// command. The server's Close method must be called to clean up any resources
+// created by Start.
+func NewUnstartedServer(args ...string) *Server {
 	return &Server{
 		Config:              DefaultConfig(),
 		EventMetadataFilter: DefaultMetadataFilter{},
-		tb:                  tb,
 		args:                args,
 	}
 }
@@ -161,8 +204,7 @@ func (s *Server) start(tls bool) error {
 	args := append(cfgargs, s.args...)
 	args = append(args, "--path.home", ".") // working directory, s.Dir
 
-	ctx, cancel := context.WithCancel(context.Background())
-	s.cmd = ServerCommand(ctx, "run", args...)
+	s.cmd = ServerCommand(context.Background(), "run", args...)
 	s.cmd.Dir = s.Dir
 
 	// This speeds up tests by forcing the self-instrumentation
@@ -183,42 +225,15 @@ func (s *Server) start(tls bool) error {
 		return err
 	}
 	s.Dir = s.cmd.Dir
-	s.tb.Cleanup(func() {
-		errc := make(chan error)
-		defer cancel()
-		go func() { errc <- s.Close() }()
-		select {
-		case <-errc:
-			close(errc)
-		case <-time.After(10 * time.Second):
-			// Channel receive on errc never happened. Start up a
-			// goroutine to receive on errc and then clean up the
-			// associated resources.
-			go func() { <-errc; close(errc) }()
-		}
-	})
 
-	logfile := createLogfile(s.tb, "apm-server")
-	closeLogfile := true
-	s.tb.Cleanup(func() {
-		if s.tb.Failed() {
-			s.tb.Logf("log file: %s", logfile.Name())
-		}
-	})
-	defer func() {
-		if closeLogfile {
-			// Server failed to start, close the log file.
-			logfile.Close()
-		}
-	}()
-
-	// Write the apm-server command line to the top of the log file.
-	s.printCmdline(logfile, args)
-	closeLogfile = false
-	go func() {
-		defer logfile.Close()
-		s.consumeStderr(io.TeeReader(stderr, logfile))
-	}()
+	// Consume the process's stderr.
+	var stderrReader io.Reader = stderr
+	if s.Log != nil {
+		// Write the apm-server command line to the top of the log.
+		s.printCmdline(s.Log, args)
+		stderrReader = io.TeeReader(stderrReader, s.Log)
+	}
+	go s.consumeStderr(stderrReader)
 
 	logs := s.Logs.Iterator()
 	defer logs.Close()
@@ -283,7 +298,7 @@ func (s *Server) printCmdline(w io.Writer, args []string) {
 		}
 	}
 	if _, err := buf.WriteTo(w); err != nil {
-		s.tb.Fatal(err)
+		panic(err)
 	}
 }
 
@@ -337,7 +352,7 @@ func (s *Server) waitUntilListening(tls bool, logs *LogEntryIterator) error {
 		if tls {
 			urlScheme = "https"
 		}
-		s.URL = makeURLString(urlScheme, elasticHTTPListeningAddr)
+		s.URL = (&url.URL{Scheme: urlScheme, Host: elasticHTTPListeningAddr}).String()
 		return nil
 	}
 
@@ -410,14 +425,25 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 // Close shuts down the server gracefully if possible, and forcefully otherwise.
 //
 // Close must be called in order to clean up any resources created for running
-// the server.
+// the server. Calling Close on an unstarted server is a no-op.
 func (s *Server) Close() error {
-	if s.cmd != nil {
-		if err := interruptProcess(s.cmd.Process); err != nil {
-			s.cmd.Process.Kill()
-		}
+	if s.cmd == nil {
+		return nil
+	}
+	s.closeTracers()
+	if err := interruptProcess(s.cmd.Process); err != nil {
+		s.cmd.Process.Kill()
 	}
 	return s.Wait()
+}
+
+func (s *Server) closeTracers() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, tracer := range s.tracers {
+		tracer.Close()
+	}
+	s.tracers = nil
 }
 
 // Kill forcefully shuts down the server.
@@ -455,11 +481,11 @@ func (s *Server) Wait() error {
 // Tracer returns a new apm.Tracer, configured with the server's URL and secret
 // token if any. This must only be called after the server has been started.
 //
-// The Tracer will be closed when the test ends.
+// The Tracer will be closed when the server is closed.
 func (s *Server) Tracer() *apm.Tracer {
 	serverURL, err := url.Parse(s.URL)
 	if err != nil {
-		s.tb.Fatal(err)
+		panic(err)
 	}
 	httpTransport, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{
 		ServerURLs:      []*url.URL{serverURL},
@@ -467,7 +493,7 @@ func (s *Server) Tracer() *apm.Tracer {
 		TLSClientConfig: s.TLS,
 	})
 	if err != nil {
-		s.tb.Fatal(err)
+		panic(err)
 	}
 
 	opts := apm.TracerOptions{Transport: httpTransport}
@@ -476,9 +502,12 @@ func (s *Server) Tracer() *apm.Tracer {
 	}
 	tracer, err := apm.NewTracerOptions(opts)
 	if err != nil {
-		s.tb.Fatal(err)
+		panic(err)
 	}
-	s.tb.Cleanup(tracer.Close)
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.tracers = append(s.tracers, tracer)
 	return tracer
 }
 
@@ -487,17 +516,63 @@ func (s *Server) Tracer() *apm.Tracer {
 func (s *Server) GetExpvar() *Expvar {
 	resp, err := http.Get(s.URL + "/debug/vars")
 	if err != nil {
-		s.tb.Fatal(err)
+		panic(err)
 	}
 	defer resp.Body.Close()
 	expvar, err := decodeExpvar(resp.Body)
 	if err != nil {
-		s.tb.Fatal(err)
+		panic(err)
 	}
 	return expvar
 }
 
-func makeURLString(scheme, host string) string {
-	u := url.URL{Scheme: scheme, Host: host}
-	return u.String()
+// WaitForPublishReady polls the server's "GET /" endpoint, waiting for it to
+// indicate it is in the publish-ready state, or for the context to be canceled.
+func (s *Server) WaitForPublishReady(ctx context.Context) error {
+	ticker := time.NewTicker(50 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			ready, err := s.isPublishReady()
+			if err != nil {
+				// Errors are not expected, as the server
+				// should be operational by the time Start
+				// returns.
+				return err
+			}
+			if ready {
+				return nil
+			}
+		}
+	}
+}
+
+func (s *Server) isPublishReady() (bool, error) {
+	req, err := http.NewRequest(http.MethodGet, s.URL+"/", nil)
+	if err != nil {
+		return false, err
+	}
+	if secretToken := s.Config.AgentAuth.SecretToken; secretToken != "" {
+		req.Header.Set("Authorization", "Bearer "+secretToken)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	var apmResp struct {
+		BuildDate    string `json:"build_date"`
+		BuildSHA     string `json:"build_sha"`
+		PublishReady bool   `json:"publish_ready"`
+		Version      string `json:"version"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&apmResp); err != nil {
+		return false, err
+	}
+	return apmResp.PublishReady, nil
 }

@@ -39,10 +39,6 @@ Each policy includes a rollover and delete definition:
 |30 days / 50 GB
 |90 days
 
-|`metrics-apm.profiling`
-|30 days / 50 GB
-|10 days
-
 |`metrics-apm.internal`
 |30 days / 50 GB
 |90 days

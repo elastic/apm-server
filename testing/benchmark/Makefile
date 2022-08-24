@@ -117,3 +117,12 @@ ssh:
 docker-override-committed-version:
 	$(eval TAG := $(shell grep docker.elastic.co/ ../../docker-compose.yml |grep SNAPSHOT| cut -d ':' -f3|uniq))
 	@echo 'export TF_VAR_docker_image_tag_override={"elasticsearch":"$(TAG)","kibana":"$(TAG)","apm":"$(TAG)"}'
+
+.PHONY: cleanup-elasticsearch
+cleanup-elasticsearch:
+	$(eval ELASTICSEARCH_URL = $(shell terraform output elasticsearch_url))
+	$(eval ELASTICSEARCH_USER = $(shell terraform output -raw elasticsearch_username))
+	$(eval ELASTICSEARCH_PASS = $(shell terraform output -raw elasticsearch_password))
+	$(eval APM_DATA_STREAMS = traces-apm*,metrics-apm*,logs-apm*)
+	@ echo "-> Deleting APM Server data streams..."
+	@ curl -u $(ELASTICSEARCH_USER):$(ELASTICSEARCH_PASS) -XDELETE $(ELASTICSEARCH_URL)/_data_stream/$(APM_DATA_STREAMS)

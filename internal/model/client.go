@@ -18,7 +18,7 @@
 package model
 
 import (
-	"net"
+	"net/netip"
 
 	"github.com/elastic/elastic-agent-libs/mapstr"
 )
@@ -29,7 +29,7 @@ type Client struct {
 	Domain string
 
 	// IP holds the client's IP address.
-	IP net.IP
+	IP netip.Addr
 
 	// Port holds the client's IP port.
 	Port int
@@ -38,7 +38,7 @@ type Client struct {
 func (c *Client) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("domain", c.Domain)
-	if c.IP != nil {
+	if c.IP.IsValid() {
 		fields.set("ip", c.IP.String())
 	}
 	if c.Port > 0 {

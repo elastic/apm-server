@@ -19,7 +19,7 @@ package model
 
 import (
 	"encoding/json"
-	"net"
+	"net/netip"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -41,7 +41,7 @@ func TestSystemTransformation(t *testing.T) {
 			Name:         configured,
 			Architecture: "amd",
 			Type:         "t2.medium",
-			IP:           []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")},
+			IP:           []netip.Addr{netip.MustParseAddr("127.0.0.1"), netip.MustParseAddr("::1")},
 			OS: OS{
 				Name:     "macOS",
 				Version:  "10.14.6",

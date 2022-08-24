@@ -38,7 +38,7 @@ import (
 
 func TestDropUnsampled(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Monitoring = newFastMonitoringConfig()
 	srv.Config.RUM = &apmservertest.RUMConfig{
 		Enabled: true,
@@ -171,7 +171,7 @@ func TestTailSamplingUnlicensed(t *testing.T) {
 	// the integration package. We won't be indexing anything, so just don't wait
 	// for the integration package to be installed in this test.
 	waitForIntegration := false
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Output.Elasticsearch.Hosts = []string{es.Addr}
 	srv.Config.WaitForIntegration = &waitForIntegration
 	srv.Config.Sampling = &apmservertest.SamplingConfig{

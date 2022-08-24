@@ -77,11 +77,10 @@ type APMEvent struct {
 	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-message
 	Message string
 
-	Transaction   *Transaction
-	Span          *Span
-	Metricset     *Metricset
-	Error         *Error
-	ProfileSample *ProfileSample
+	Transaction *Transaction
+	Span        *Span
+	Metricset   *Metricset
+	Error       *Error
 }
 
 // BeatEvent converts e to a beat.Event.
@@ -103,9 +102,6 @@ func (e *APMEvent) BeatEvent() beat.Event {
 	}
 	if e.Error != nil {
 		fields.maybeSetMapStr("error", e.Error.fields())
-	}
-	if e.ProfileSample != nil {
-		fields.maybeSetMapStr("profile", e.ProfileSample.fields())
 	}
 
 	// Set high resolution timestamp.

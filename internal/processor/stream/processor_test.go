@@ -21,7 +21,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"net"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,7 +33,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/internal/approvaltest"
-	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modelindexer/modelindexertest"
 	"github.com/elastic/apm-server/internal/publish"
@@ -51,7 +50,10 @@ func TestHandlerReadStreamError(t *testing.T) {
 	require.NoError(t, err)
 	timeoutReader := iotest.TimeoutReader(bytes.NewReader(payload))
 
-	sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+	sp := BackendProcessor(Config{
+		MaxEventSize: 100 * 1024,
+		Semaphore:    make(chan struct{}, 1),
+	})
 
 	var actualResult Result
 	err = sp.HandleStream(context.Background(), model.APMEvent{}, timeoutReader, 10, processor, &actualResult)
@@ -73,7 +75,10 @@ func TestHandlerReportingStreamError(t *testing.T) {
 		name: "QueueFull",
 		err:  publish.ErrFull,
 	}} {
-		sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+		sp := BackendProcessor(Config{
+			MaxEventSize: 100 * 1024,
+			Semaphore:    make(chan struct{}, 1),
+		})
 		processor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
 			return test.err
 		})
@@ -186,11 +191,14 @@ func TestIntegrationESOutput(t *testing.T) {
 			batchProcessor := makeApproveEventsBatchProcessor(t, name, &accepted)
 
 			baseEvent := model.APMEvent{
-				Host:      model.Host{IP: []net.IP{net.ParseIP("192.0.0.1")}},
+				Host:      model.Host{IP: []netip.Addr{netip.MustParseAddr("192.0.0.1")}},
 				Timestamp: reqTimestamp,
 			}
 
-			p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+			p := BackendProcessor(Config{
+				MaxEventSize: 100 * 1024,
+				Semaphore:    make(chan struct{}, 1),
+			})
 			var actualResult Result
 			err = p.HandleStream(context.Background(), baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			if test.err != nil {
@@ -222,12 +230,15 @@ func TestIntegrationRum(t *testing.T) {
 
 			baseEvent := model.APMEvent{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
-				Source:    model.Source{IP: net.ParseIP("192.0.0.1")},
-				Client:    model.Client{IP: net.ParseIP("192.0.0.2")}, // X-Forwarded-For
+				Source:    model.Source{IP: netip.MustParseAddr("192.0.0.1")},
+				Client:    model.Client{IP: netip.MustParseAddr("192.0.0.2")}, // X-Forwarded-For
 				Timestamp: reqTimestamp,
 			}
 
-			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+			p := RUMV2Processor(Config{
+				MaxEventSize: 100 * 1024,
+				Semaphore:    make(chan struct{}, 1),
+			})
 			var actualResult Result
 			err = p.HandleStream(context.Background(), baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
@@ -255,12 +266,15 @@ func TestRUMV3(t *testing.T) {
 
 			baseEvent := model.APMEvent{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
-				Source:    model.Source{IP: net.ParseIP("192.0.0.1")},
-				Client:    model.Client{IP: net.ParseIP("192.0.0.2")}, // X-Forwarded-For
+				Source:    model.Source{IP: netip.MustParseAddr("192.0.0.1")},
+				Client:    model.Client{IP: netip.MustParseAddr("192.0.0.2")}, // X-Forwarded-For
 				Timestamp: reqTimestamp,
 			}
 
-			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+			p := RUMV3Processor(Config{
+				MaxEventSize: 100 * 1024,
+				Semaphore:    make(chan struct{}, 1),
+			})
 			var actualResult Result
 			err = p.HandleStream(context.Background(), baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
@@ -275,7 +289,7 @@ func TestLabelLeak(t *testing.T) {
 {"transaction": {"id": "ba5c6d6c1ab44bd1", "trace_id": "88c0a00431531a80c5ca9a41fe115f41", "name": "GET /nolabels", "type": "request", "duration": 0.652, "result": "HTTP 2xx", "timestamp": 1652185278813952, "outcome": "success", "sampled": true, "span_count": {"started": 0, "dropped": 0}, "sample_rate": 1.0, "context": {"request": {"env": {"REMOTE_ADDR": "127.0.0.1", "SERVER_NAME": "127.0.0.1", "SERVER_PORT": "5000"}, "method": "GET", "socket": {"remote_address": "127.0.0.1"}, "cookies": {}, "headers": {"host": "localhost:5000", "user-agent": "curl/7.81.0", "accept": "*/*"}, "url": {"full": "http://localhost:5000/nolabels?third_no_label", "protocol": "http:", "hostname": "localhost", "pathname": "/nolabels", "port": "5000", "search": "?third_no_label"}}, "response": {"status_code": 200, "headers": {"Content-Type": "text/html; charset=utf-8", "Content-Length": "14"}}, "tags": {}}}}`
 
 	baseEvent := model.APMEvent{
-		Host: model.Host{IP: []net.IP{net.ParseIP("192.0.0.1")}},
+		Host: model.Host{IP: []netip.Addr{netip.MustParseAddr("192.0.0.1")}},
 	}
 
 	var processed *model.Batch
@@ -284,7 +298,10 @@ func TestLabelLeak(t *testing.T) {
 		return nil
 	})
 
-	p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}, make(chan struct{}, 1))
+	p := BackendProcessor(Config{
+		MaxEventSize: 100 * 1024,
+		Semaphore:    make(chan struct{}, 1),
+	})
 	var actualResult Result
 	err := p.HandleStream(context.Background(), baseEvent, strings.NewReader(payload), 10, batchProcessor, &actualResult)
 	require.NoError(t, err)

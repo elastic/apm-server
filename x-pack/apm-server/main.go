@@ -143,7 +143,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	return sampling.NewProcessor(sampling.Config{
-		BeatID:         args.Info.ID.String(),
+		BeatID:         args.UUID.String(),
 		BatchProcessor: args.BatchProcessor,
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval:         tailSamplingConfig.Interval,
