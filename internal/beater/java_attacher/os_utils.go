@@ -123,14 +123,14 @@ func (j *JavaAttacher) createAttacherTempDir(uidS, gidS string) (string, error) 
 	return tmpAttacherJarPath, nil
 }
 
-func parseUserIds(uidS, gidS string) (int64, int64, error) {
-	uid, err := strconv.ParseInt(uidS, 10, 32)
+func parseUserIds(uidS, gidS string) (int, int, error) {
+	uid, err := strconv.Atoi(uidS)
 	if err != nil {
-		return 0, 0, fmt.Errorf("invalid UID %v: %w", uidS, err)
+		return 0, 0, fmt.Errorf("invalid UID %q: %w", uidS, err)
 	}
-	gid, err := strconv.ParseInt(gidS, 10, 32)
+	gid, err := strconv.Atoi(gidS)
 	if err != nil {
-		return 0, 0, fmt.Errorf("invalid GID %v: %w", gidS, err)
+		return 0, 0, fmt.Errorf("invalid GID %q: %w", gidS, err)
 	}
 	return uid, gid, nil
 }
