@@ -62,6 +62,7 @@ type JavaAttacher struct {
 	jvmCache             map[int]*jvmDetails
 	uidToAttacherJar     map[string]string
 	tmpDirs              []string
+	tmpAttacherLock      sync.Mutex
 }
 
 func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
@@ -162,7 +163,7 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 			j.logger.Errorf("error during JVMs discovery: %v", err)
 			continue
 		}
-		if err := j.foreachJVM(ctx, jvms, j.attachJVM, true, 30*time.Second); err != nil {
+		if err := j.foreachJVM(ctx, jvms, j.attachJVM, false, 2*time.Minute); err != nil {
 			// Error is non-fatal; try again next time.
 			j.logger.Errorf("JVM attachment failed: %s", err)
 		}
@@ -356,6 +357,9 @@ func (j *JavaAttacher) verifyJVMExecutable(ctx context.Context, jvm *jvmDetails)
 // once the agent is attached or the context is closed; it may be blocking for long and should be called with a timeout context.
 func (j *JavaAttacher) attachJVM(ctx context.Context, jvm *jvmDetails) error {
 	cmd := j.attachJVMCommand(ctx, jvm)
+	if cmd == nil {
+		return nil
+	}
 	if err := j.setRunAsUser(jvm, cmd); err != nil {
 		j.logger.Warnf("Failed to attach as user %q: %v. Trying to attach as current user,", jvm.user, err)
 	}
@@ -366,7 +370,10 @@ func (j *JavaAttacher) attachJVM(ctx context.Context, jvm *jvmDetails) error {
 // NOTE: this method may have side effects, including the creation of a tmp directory with a copy of the attacher jar (non-Windows),
 // as well as a corresponding status change to this JavaAttacher, where the created tmp dir and jar paths are cached.
 func (j *JavaAttacher) attachJVMCommand(ctx context.Context, jvm *jvmDetails) *exec.Cmd {
-	attacherJar := j.getAttacherJar(jvm.uid, jvm.gid)
+	attacherJar := j.getAttacherJar(jvm.uid)
+	if attacherJar == "" {
+		return nil
+	}
 	args := []string{
 		"-jar", attacherJar,
 		"--log-level", "debug",

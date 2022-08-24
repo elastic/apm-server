@@ -43,6 +43,38 @@ func TestNoAttacherCreatedWithoutDiscoveryRules(t *testing.T) {
 }
 
 func TestBuildCommandWithBundledJar(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		return
+	}
+	cfg := createTestConfig()
+	f, err := os.Create(bundledJavaAttacher)
+	require.NoError(t, err)
+	//goland:noinspection GoUnhandledErrorResult
+	defer os.Remove(f.Name())
+
+	attacher, err := New(cfg)
+	require.NoError(t, err)
+	defer attacher.cleanResources()
+
+	// invalid user and group ensures usage of the bundled jar
+	jvm := &jvmDetails{
+		pid:     12345,
+		command: filepath.FromSlash("/home/someuser/java_home/bin/java"),
+	}
+	command := attacher.attachJVMCommand(context.Background(), jvm)
+	want := filepath.FromSlash("/home/someuser/java_home/bin/java -jar java-attacher.jar") +
+		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
+
+	cmdArgs := strings.Join(command.Args, " ")
+	assert.Equal(t, want, cmdArgs)
+	assert.Empty(t, attacher.tmpDirs)
+	assert.Empty(t, attacher.uidToAttacherJar)
+}
+
+func TestBuildInvalidCommand(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	cfg := createTestConfig()
 	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
@@ -57,29 +89,15 @@ func TestBuildCommandWithBundledJar(t *testing.T) {
 	jvm := &jvmDetails{
 		pid:     12345,
 		uid:     "invalid",
-		gid:     "invalid",
 		command: filepath.FromSlash("/home/someuser/java_home/bin/java"),
 	}
 	command := attacher.attachJVMCommand(context.Background(), jvm)
-	want := filepath.FromSlash("/home/someuser/java_home/bin/java -jar java-attacher.jar") +
-		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
-
-	cmdArgs := strings.Join(command.Args, " ")
-	assert.Equal(t, want, cmdArgs)
-
-	cfg.Config["service_name"] = "my-cool-service"
-	attacher, err = New(cfg)
-	require.NoError(t, err)
-	defer attacher.cleanResources()
-
-	command = attacher.attachJVMCommand(context.Background(), jvm)
-	cmdArgs = strings.Join(command.Args, " ")
-	assert.Contains(t, cmdArgs, "--config server_url=http://myhost:8200")
-	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
+	assert.Nil(t, command)
+	assert.Empty(t, attacher.tmpDirs)
+	assert.Len(t, attacher.uidToAttacherJar, 1)
 }
 
 func TestBuildCommandWithTempJar(t *testing.T) {
-	// todo: what's the proper way to exclude tests for a specific OS?
 	if runtime.GOOS == "windows" {
 		return
 	}
@@ -113,6 +131,16 @@ func TestBuildCommandWithTempJar(t *testing.T) {
 
 	cmdArgs := strings.Join(command.Args, " ")
 	assert.Equal(t, want, cmdArgs)
+
+	cfg.Config["service_name"] = "my-cool-service"
+	attacher, err = New(cfg)
+	require.NoError(t, err)
+	defer attacher.cleanResources()
+
+	command = attacher.attachJVMCommand(context.Background(), jvm)
+	cmdArgs = strings.Join(command.Args, " ")
+	assert.Contains(t, cmdArgs, "--config server_url=http://myhost:8200")
+	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
 }
 
 func createTestConfig() config.JavaAttacherConfig {
@@ -230,7 +258,6 @@ func TestConfig(t *testing.T) {
 }
 
 func TestTempDirCreation(t *testing.T) {
-	// todo: what's the proper way to exclude tests for a specific OS?
 	if runtime.GOOS == "windows" {
 		return
 	}

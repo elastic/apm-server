@@ -28,7 +28,7 @@ func (j *JavaAttacher) setRunAsUser(_ *jvmDetails, _ *exec.Cmd) error {
 
 // getAttacherJar finds an attacher jar based on the given uid.
 // In Windows that would always be the bundled attacher jar.
-func (j *JavaAttacher) getAttacherJar(uid, gid string) string {
+func (j *JavaAttacher) getAttacherJar(uid string) string {
 	return bundledJavaAttacher
 }
 

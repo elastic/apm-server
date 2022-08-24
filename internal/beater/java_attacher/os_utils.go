@@ -55,14 +55,14 @@ func (j *JavaAttacher) setRunAsUser(jvm *jvmDetails, cmd *exec.Cmd) error {
 // getAttacherJar finds an attacher jar based on the given uid.
 // In POSIX-compliant systems, it would be an attacher jar owned by the given user and with 0600 access mode.
 // If such was not yet created, this function calls createAttacherTempDir to create it and keep a mapping for it
-func (j *JavaAttacher) getAttacherJar(uid, gid string) string {
-	attacherJar := j.uidToAttacherJar[uid]
-	if attacherJar == "" {
-		tmpAttacherJar, err := j.createAttacherTempDir(uid, gid)
+func (j *JavaAttacher) getAttacherJar(uid string) string {
+	j.tmpAttacherLock.Lock()
+	defer j.tmpAttacherLock.Unlock()
+	attacherJar, uidMapped := j.uidToAttacherJar[uid]
+	if !uidMapped {
+		tmpAttacherJar, err := j.createAttacherTempDir(uid)
 		if err != nil {
 			j.logger.Errorf("failed to create tmp dir for user %v, using the bundled attacher jar", err)
-			// this is required so that we don't try to create tmp dir and copy every time we see a JVM ran by this user
-			attacherJar = bundledJavaAttacher
 		} else {
 			attacherJar = tmpAttacherJar
 		}
@@ -74,19 +74,13 @@ func (j *JavaAttacher) getAttacherJar(uid, gid string) string {
 // createAttacherTempDir looks for a temp dir that is already mapped to the given user.
 // If such is not found, creates one as follows:
 // 	1.	create a temporary dir with 0700 access
-//	2.	copy the bundled attacher jar into the tmp dir
-//	3.	change the jar access mode to 0600
-//	4.	change tmp dir and tmp attacher jar owner to the given user
-//	5.	keep a mapping of this jar to the user ID
-func (j *JavaAttacher) createAttacherTempDir(uidS, gidS string) (string, error) {
-	// creates the temp dir with access mode 0700
-	tempDir, err := os.MkdirTemp("", "elasticapmagent-*")
-	if err != nil {
-		return "", err
-	}
-	// keep track so we eventually delete
-	j.tmpDirs = append(j.tmpDirs, tempDir)
-	uid, gid, err := parseUserIds(uidS, gidS)
+//	2.	copy the bundled attacher jar into the tmp dir with 0600 mode
+//	3.	change tmp dir and tmp attacher jar owner to the given user
+//	4.	keep a mapping of this jar to the user ID
+//
+// NOTE: this method is not thread-safe, so it should not be invoked concurrently by multiple goroutines
+func (j *JavaAttacher) createAttacherTempDir(uidS string) (string, error) {
+	uid, _, err := parseUserIds(uidS, "0")
 	if err != nil {
 		return "", err
 	}
@@ -96,8 +90,15 @@ func (j *JavaAttacher) createAttacherTempDir(uidS, gidS string) (string, error) 
 	}
 	//goland:noinspection GoUnhandledErrorResult
 	defer bundledAttacherFile.Close()
+	// creates the temp dir with access mode 0700
+	tempDir, err := os.MkdirTemp("", "elasticapmagent-*")
+	if err != nil {
+		return "", err
+	}
+	// keep track so we eventually delete
+	j.tmpDirs = append(j.tmpDirs, tempDir)
 	tmpAttacherJarPath := filepath.Join(tempDir, bundledJavaAttacher)
-	tmpAttacherJarFile, err := os.Create(tmpAttacherJarPath)
+	tmpAttacherJarFile, err := os.OpenFile(tmpAttacherJarPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return "", fmt.Errorf("failed to create tmp attacher jar: %w", err)
 	}
@@ -105,20 +106,16 @@ func (j *JavaAttacher) createAttacherTempDir(uidS, gidS string) (string, error) 
 	defer tmpAttacherJarFile.Close()
 	nBytes, err := io.Copy(tmpAttacherJarFile, bundledAttacherFile)
 	if err != nil {
-		return "", fmt.Errorf("failed to copy bundled attacher jar to %v: %w", bundledJavaAttacher, err)
+		return "", fmt.Errorf("failed to copy bundled attacher jar to %q: %w", bundledJavaAttacher, err)
 	}
 	j.logger.Debugf("%v (%v bytes) successfully copied to %v", bundledJavaAttacher, nBytes, tmpAttacherJarPath)
-	err = os.Chmod(tmpAttacherJarPath, 0600)
+	err = os.Chown(tempDir, uid, -1)
 	if err != nil {
-		return "", fmt.Errorf("failed to change permissions of %v to 0600: %w", tmpAttacherJarPath, err)
+		return "", fmt.Errorf("failed to change owner of %q to be %d: %w", tempDir, uid, err)
 	}
-	err = os.Chown(tempDir, int(uid), int(gid))
+	err = tmpAttacherJarFile.Chown(uid, -1)
 	if err != nil {
-		return "", fmt.Errorf("failed to change owner of %v to be %v: %w", tempDir, uidS, err)
-	}
-	err = os.Chown(tmpAttacherJarPath, int(uid), int(gid))
-	if err != nil {
-		return "", fmt.Errorf("failed to change owner of %v to be %v: %w", tmpAttacherJarPath, uidS, err)
+		return "", fmt.Errorf("failed to change owner of %q to be %d: %w", tmpAttacherJarPath, uid, err)
 	}
 	return tmpAttacherJarPath, nil
 }
@@ -137,7 +134,6 @@ func parseUserIds(uidS, gidS string) (int, int, error) {
 
 func (j *JavaAttacher) cleanResources() {
 	for _, dir := range j.tmpDirs {
-		// todo delete all contents recursively in case there is still a jar held by the another process
 		err := os.RemoveAll(dir)
 		if err != nil {
 			j.logger.Errorf("failed to delete tmp dir %v: %v", dir, err)
