@@ -161,6 +161,7 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				"default_service_environment": "overridden",
+				"profiling.enabled":           true,
 			},
 			outCfg: &Config{
 				Host:                  "localhost:3000",
@@ -269,6 +270,10 @@ func TestUnpackConfig(t *testing.T) {
 					WaitForIntegration: true,
 				},
 				WaitReadyInterval: 5 * time.Second,
+				Profiling: ProfilingConfig{
+					Enabled:  true,
+					ESConfig: elasticsearch.DefaultConfig(),
+				},
 			},
 		},
 		"merge config with default": {
@@ -420,6 +425,10 @@ func TestUnpackConfig(t *testing.T) {
 					WaitForIntegration: false,
 				},
 				WaitReadyInterval: 5 * time.Second,
+				Profiling: ProfilingConfig{
+					Enabled:  false,
+					ESConfig: elasticsearch.DefaultConfig(),
+				},
 			},
 		},
 		"kibana trailing slash": {

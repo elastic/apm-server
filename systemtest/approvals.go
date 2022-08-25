@@ -71,7 +71,7 @@ var apmEventSortFields = []string{
 	"error.id",
 	"timeseries.instance",
 	"span.destination.service.resource",
-	"@timestamp", // last resort, order is generally guaranteed
+	"@timestamp", // last resort before _id; order is generally guaranteed
 }
 
 type apmEventSearchHits []estest.SearchHit
@@ -95,5 +95,6 @@ func (hits apmEventSearchHits) Less(i, j int) bool {
 			return false
 		}
 	}
-	return false
+	// All _source fields are equivalent, so compare doc _ids.
+	return hits[i].ID < hits[j].ID
 }
