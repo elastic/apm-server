@@ -3,7 +3,19 @@
 
 https://github.com/elastic/apm-server/compare/8.3\...8.4[View commits]
 
+* <<release-notes-8.4.1>>
 * <<release-notes-8.4.0>>
+
+[float]
+[[release-notes-8.4.1]]
+=== APM version 8.4.1
+
+https://github.com/elastic/apm-server/compare/8.4.0\...8.4.1[View commits]
+
+[float]
+==== Bug fixes
+- Fix event loss during reload of TBS processor {pull}8809[8809]
+- Fix sporadically missing custom libbeat metrics {pull}8900[8900]
 
 [float]
 [[release-notes-8.4.0]]
