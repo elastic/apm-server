@@ -1,24 +1,32 @@
-[[release-notes-8.4.0]]
-== APM version 8.4.0
+[[release-notes-8.4]]
+== APM version 8.4
 
 https://github.com/elastic/apm-server/compare/8.3\...8.4[View commits]
+
+* <<release-notes-8.4.0>>
+
+[float]
+[[release-notes-8.4.0]]
+=== APM version 8.4.0
+
+https://github.com/elastic/apm-server/compare/8.3.3\...8.4.0[View commits]
 
 [float]
 ==== Breaking Changes
 - APM Server no longer crashes on an invalid tail-based sampling config; it
-  continues running TBS disabled {pull}8375[8375]
+  continues running with TBS disabled {pull}8375[8375]
 
-[float]
-==== Deprecations
+// [float]
+// ==== Deprecations
 
 [float]
 ==== Bug fixes
 - Fix race for deducing destination service fields for OTel bridge {pull}8363[8363]
 - Fix processors receiving events even after the server has stopped {pull}8388[8388]
-- Fix a bug where an event's transaction_id is ignored if no transaction object is set {pull} 8820[8820]
+- Fix a bug where an event's `transaction_id` is ignored if no transaction object is set {pull}8820[8820]
 
-[float]
-==== Intake API Changes
+// [float]
+// ==== Intake API Changes
 
 [float]
 ==== Added
