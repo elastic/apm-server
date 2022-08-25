@@ -15,27 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package logs
+package middleware
 
-// logging selectors
-const (
-	Beater             = "beater"
-	Config             = "config"
-	Handler            = "handler"
-	Ilm                = "ilm"
-	IndexManagement    = "index-management"
-	Jaeger             = "jaeger"
-	Kibana             = "kibana"
-	Otel               = "otel"
-	Pipelines          = "pipelines"
-	Request            = "request"
-	Response           = "response"
-	Server             = "server"
-	Sourcemap          = "sourcemap"
-	Stacktrace         = "stacktrace"
-	TransactionMetrics = "txmetrics"
-	SpanMetrics        = "spanmetrics"
-	Transform          = "transform"
-	Sampling           = "sampling"
-	Processor          = "processor"
+import (
+	"strconv"
+
+	"github.com/elastic/apm-server/internal/beater/request"
 )
+
+// AsyncMiddleware parses the incoming request path and if `async` is set,
+// it updates the request.Context.Async field with the parsed bool value.
+func AsyncMiddleware() Middleware {
+	return func(h request.Handler) (request.Handler, error) {
+		return func(c *request.Context) {
+			if async := c.Request.URL.Query().Get("async"); async != "" {
+				c.Async, _ = strconv.ParseBool(async)
+			}
+			h(c)
+		}, nil
+	}
+}

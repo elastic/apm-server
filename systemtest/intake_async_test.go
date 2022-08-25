@@ -15,27 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package logs
+package systemtest_test
 
-// logging selectors
-const (
-	Beater             = "beater"
-	Config             = "config"
-	Handler            = "handler"
-	Ilm                = "ilm"
-	IndexManagement    = "index-management"
-	Jaeger             = "jaeger"
-	Kibana             = "kibana"
-	Otel               = "otel"
-	Pipelines          = "pipelines"
-	Request            = "request"
-	Response           = "response"
-	Server             = "server"
-	Sourcemap          = "sourcemap"
-	Stacktrace         = "stacktrace"
-	TransactionMetrics = "txmetrics"
-	SpanMetrics        = "spanmetrics"
-	Transform          = "transform"
-	Sampling           = "sampling"
-	Processor          = "processor"
+import (
+	"testing"
+
+	"github.com/elastic/apm-server/systemtest"
+	"github.com/elastic/apm-server/systemtest/apmservertest"
 )
+
+func TestIntakeAsync(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServerTB(t)
+
+	systemtest.SendBackendEventsAsyncPayload(t, srv, `../testdata/intake-v2/errors_transaction_id.ndjson`)
+	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
+	systemtest.ApproveEvents(
+		t, t.Name(), result.Hits.Hits,
+	)
+}

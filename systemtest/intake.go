@@ -43,6 +43,11 @@ func SendBackendEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFi
 	sendEventsPayload(t, srv, "/intake/v2/events", f)
 }
 
+func SendBackendEventsAsyncPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {
+	f := openFile(t, payloadFile)
+	sendEventsPayload(t, srv, "/intake/v2/events?async=true", f)
+}
+
 func SendBackendEventsLiteral(t *testing.T, srv *apmservertest.Server, raw string) {
 	sendEventsPayload(t, srv, "/intake/v2/events", strings.NewReader(raw))
 }

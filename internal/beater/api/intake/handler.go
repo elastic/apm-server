@@ -18,12 +18,15 @@
 package intake
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
@@ -56,8 +59,9 @@ var (
 type StreamHandler interface {
 	HandleStream(
 		ctx context.Context,
+		async bool,
 		base model.APMEvent,
-		stream io.Reader,
+		stream io.ReadCloser,
 		batchSize int,
 		processor model.BatchProcessor,
 		out *stream.Result,
@@ -77,6 +81,30 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 			return
 		}
 
+		// When the request processing is set to be asynchronous, a few things
+		// need to be copied:
+		// 1. The context authorizer into a new context, since the current
+		//    context is cancelled after the server handles the request.
+		// 2. The Request.Body contents. The HTTP server closes the body after
+		//    a request has been handled. Replacing Request.Body contents won't
+		//    work, because the HTTP server keeps a reference to the body and
+		//    closes that.
+		// This will result in an async request to perform synchronous work.
+		// The amount of bytes copied is minimized by copying the body contents
+		// before we attempt to create the de-compressors. It's still possible
+		// that a request is uncompressed, in which case, more copying will
+		// take place.
+		ctx := c.Request.Context()
+		if c.Async {
+			ctx = auth.CopyAuthorizer(ctx, context.Background())
+			b, err := newPooledBodyReader(c.Request.Body)
+			if err != nil {
+				writeError(c, err)
+				return
+			}
+			c.Request.Body = b // Replace reference with pooledBodyReader.
+		}
+
 		reader, err := decoder.CompressedRequestReader(c.Request)
 		if err != nil {
 			writeError(c, compressedRequestReaderError{err})
@@ -86,7 +114,8 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 		base := requestMetadataFunc(c)
 		var result stream.Result
 		if err := handler.HandleStream(
-			c.Request.Context(),
+			ctx,
+			c.Async,
 			base,
 			reader,
 			batchSize,
@@ -217,4 +246,62 @@ type jsonResult struct {
 type jsonError struct {
 	Message  string `json:"message"`
 	Document string `json:"document,omitempty"`
+}
+
+var bodyReaderPool sync.Pool
+
+// pooledBodyReader can be used to consume an io.Reader contents, using a
+// bufio.Reader to avoid reading entire body contents into memory at once.
+// The main use for this reader is to de-couple Request.Body consumption,
+// from the http.Request lifecycle.
+// Once the entire buffer's contents has been consumed (io.EOF), the reader
+// is closed (reset and put back into the pool).
+// pooledBodyReader is not safe for concurrent use.
+type pooledBodyReader struct {
+	bytes.Buffer
+	bufioReader *bufio.Reader
+	closed      bool
+}
+
+func newPooledBodyReader(src io.Reader) (*pooledBodyReader, error) {
+	if b, ok := bodyReaderPool.Get().(*pooledBodyReader); ok {
+		b.reset(src)
+		if _, err := b.Buffer.ReadFrom(b.bufioReader); err != nil {
+			return nil, err
+		}
+		return b, nil
+	}
+	var buf bytes.Buffer
+	bufioReader := bufio.NewReader(src)
+	buf.ReadFrom(bufioReader)
+	return &pooledBodyReader{
+		bufioReader: bufioReader,
+		Buffer:      buf,
+	}, nil
+}
+
+func (b *pooledBodyReader) Read(p []byte) (n int, err error) {
+	n, err = b.Buffer.Read(p)
+	if err != nil && !b.closed {
+		// Close the pooledBodyReader so it can be returned to the pool after
+		// io.EOF is returned (all the contents have been read).
+		if errors.Is(err, io.EOF) {
+			b.Close()
+		}
+	}
+	return
+}
+
+func (b *pooledBodyReader) Close() error {
+	if !b.closed {
+		b.closed = true
+		bodyReaderPool.Put(b)
+	}
+	return nil
+}
+
+func (b *pooledBodyReader) reset(src io.Reader) {
+	b.bufioReader.Reset(src)
+	b.Buffer.Reset()
+	b.closed = false
 }

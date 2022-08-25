@@ -22,16 +22,20 @@ import (
 	"context"
 	"io"
 	"sync"
+	"time"
 
 	"go.elastic.co/apm/v2"
 
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/internal/decoder"
+	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modeldecoder"
 	"github.com/elastic/apm-server/internal/model/modeldecoder/rumv3"
 	v2 "github.com/elastic/apm-server/internal/model/modeldecoder/v2"
+	"github.com/elastic/apm-server/internal/publish"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 var (
@@ -58,6 +62,7 @@ type Processor struct {
 	streamReaderPool sync.Pool
 	decodeMetadata   decodeMetadataFunc
 	sem              chan struct{}
+	logger           *logp.Logger
 	MaxEventSize     int
 }
 
@@ -76,6 +81,7 @@ func BackendProcessor(cfg Config) *Processor {
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: v2.DecodeNestedMetadata,
 		sem:            cfg.Semaphore,
+		logger:         logp.NewLogger(logs.Processor),
 	}
 }
 
@@ -212,31 +218,70 @@ func (p *Processor) readBatch(
 // Callers must not access result concurrently with HandleStream.
 func (p *Processor) HandleStream(
 	ctx context.Context,
+	async bool,
 	baseEvent model.APMEvent,
-	reader io.Reader,
+	reader io.ReadCloser,
 	batchSize int,
 	processor model.BatchProcessor,
 	result *Result,
 ) error {
-	// Since processor.ProcessBatch can block for some time until all the batch
-	// is added to the modelindexer's cache and there isn't a fail-fast rejection,
-	// we want to cap how many in-flight requests are read at any time.
+	// Limits the number of concurrent batch decodes.
 	// Defaults to 200 (N), only allowing N requests to read and cache Y events
-	// (determined by batchSize) from the batch, effectively limitting the decoding
-	// concurrency to N batches at any time, which should be a good ceiling. The
-	// ceiling also reduces the contention on the modelindexer.activeMu.
-	select {
-	case p.sem <- struct{}{}:
-	case <-ctx.Done():
-		return ctx.Err()
+	// (determined by batchSize) from the batch.
+	// The ceiling may also reduce the contention on the modelindexer.activeMu.
+	// Clients can set a async to true which makes the processor handle the
+	// events in the background. Returns with an error `publish.ErrFull` if the
+	// semaphore is full.
+	if err := p.acquireLock(ctx, async); err != nil {
+		return err
 	}
 
 	sr := p.getStreamReader(reader)
-	defer func() {
+	releaseResources := func() {
 		sr.release()
-		<-p.sem
-	}()
+		// Close the reader after the batch have been processed.
+		reader.Close()
+		p.releaseLock()
+	}
 
+	// By default, streams are handled synchronously, however, clients can
+	// set the request to be processed asynchronously, in which case, a
+	// the processing will happen in the background within an new goroutine,
+	// and since error cannot be sent back to the client, they are logged.
+	if !async {
+		defer releaseResources()
+		return p.handleStream(ctx, baseEvent, sr, batchSize, processor, result)
+	}
+	go func() {
+		defer releaseResources()
+		// TODO(marclop) what kind of timeout should we assume?
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		err := p.handleStream(ctx,
+			baseEvent, sr, batchSize, processor, result,
+		)
+		if p.logger == nil {
+			return
+		}
+		if err != nil {
+			p.logger.Errorf("failed handling async request: %v", err)
+		}
+		// TODO(marclop): how should we report result.Errors?
+		for _, err := range result.Errors {
+			p.logger.Error(err)
+		}
+	}()
+	return nil
+}
+
+func (p *Processor) handleStream(
+	ctx context.Context,
+	baseEvent model.APMEvent,
+	sr *streamReader,
+	batchSize int,
+	processor model.BatchProcessor,
+	result *Result,
+) error {
 	// first item is the metadata object
 	if err := p.readMetadata(sr, &baseEvent); err != nil {
 		// no point in continuing if we couldn't read the metadata
@@ -248,7 +293,7 @@ func (p *Processor) HandleStream(
 
 	for {
 		var batch model.Batch
-		n, readErr := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
+		n, err := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
 		if n > 0 {
 			// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
 			// the slice memory. We should investigate alternative interfaces between the
@@ -260,13 +305,13 @@ func (p *Processor) HandleStream(
 			}
 			result.AddAccepted(len(batch))
 		}
-		if readErr == io.EOF {
-			break
-		} else if readErr != nil {
-			return readErr
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return nil
+			}
+			return err
 		}
 	}
-	return nil
 }
 
 // getStreamReader returns a streamReader that reads ND-JSON lines from r.
@@ -280,6 +325,24 @@ func (p *Processor) getStreamReader(r io.Reader) *streamReader {
 		NDJSONStreamDecoder: decoder.NewNDJSONStreamDecoder(r, p.MaxEventSize),
 	}
 }
+
+func (p *Processor) acquireLock(ctx context.Context, async bool) error {
+	select {
+	case p.sem <- struct{}{}:
+	default:
+		if async {
+			return publish.ErrFull
+		}
+		select {
+		case p.sem <- struct{}{}:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	return nil
+}
+
+func (p *Processor) releaseLock() { <-p.sem }
 
 // streamReader wraps NDJSONStreamReader, converting errors to stream errors.
 type streamReader struct {

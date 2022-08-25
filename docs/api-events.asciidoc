@@ -33,6 +33,22 @@ Send an `HTTP POST` request to the APM Server `intake/v2/events` endpoint:
 http(s)://{hostname}:{port}/intake/v2/events
 ------------------------------------------------------------
 
+From version `8.5.0` onwards, the APM Server supports asynchronous processing of batches.
+To request asynchronous processing the `async` query parameter can be set in the POST requst
+to the `intake/v2/events` endpoint:
+
+[source,bash]
+------------------------------------------------------------
+http(s)://{hostname}:{port}/intake/v2/events?async=true
+------------------------------------------------------------
+
+NOTE: Asynchronous processing has weaker guarantees since content validation errors
+cannot be communicated back to the client and may be more difficult to uncover,
+instead, requests resulting in an error will be logged by the APM Server.
+Furthermore, asynchronous processing requests will only be scheduled if the APM Server can
+service the incoming request, requests that cannot be serviced will receive an internal error
+`500` "queue is full" error.
+
 For <<apm-rum,RUM>> send an `HTTP POST` request to the APM Server `intake/v2/rum/events` endpoint instead:
 
 [source,bash]

@@ -49,3 +49,13 @@ func Authorize(ctx context.Context, action Action, resource Resource) error {
 	}
 	return auth.Authorize(ctx, action, resource)
 }
+
+// CopyAuthorizer copies the authorizer from the first context to the
+// second context. If no authorizer is found, the second context is returned.
+func CopyAuthorizer(from, to context.Context) context.Context {
+	auth, ok := authorizationFromContext(from)
+	if ok {
+		return context.WithValue(to, authorizationKey{}, auth)
+	}
+	return to
+}
