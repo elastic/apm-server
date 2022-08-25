@@ -173,7 +173,7 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 	}
 }
 
-// discoverJVMsForAttachment this function blocks until discovery has ended, an error occurred or the context had been cancelled
+// discoverJVMsForAttachment blocks until discovery ends, an error is received or the context is done.
 func (j *JavaAttacher) discoverJVMsForAttachment(ctx context.Context) (map[int]*jvmDetails, error) {
 	jvms, err := j.discoverAllRunningJavaProcesses()
 	if err != nil {

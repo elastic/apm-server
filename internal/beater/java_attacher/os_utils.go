@@ -41,15 +41,16 @@ func (j *JavaAttacher) setRunAsUser(jvm *jvmDetails, cmd *exec.Cmd) error {
 		j.logger.Debugf("current user: %v", currentUser)
 	}
 
-	if currentUser.Gid != jvm.gid || currentUser.Uid != jvm.uid {
-		uid, gid, err := parseUserIds(jvm.uid, jvm.gid)
-		if err != nil {
-			return err
-		}
-		cmd.SysProcAttr = &syscall.SysProcAttr{}
-		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)}
+	if currentUser.Gid == jvm.gid && currentUser.Uid == jvm.uid {
+		return nil // Users match, nothing to do.
 	}
-	return nil
+	uid, gid, err := parseUserIds(jvm.uid, jvm.gid)
+	if err != nil {
+		return err
+	}
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Credential: &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)},
+	}
 }
 
 // getAttacherJar finds an attacher jar based on the given uid.
@@ -59,15 +60,14 @@ func (j *JavaAttacher) getAttacherJar(uid string) string {
 	j.tmpAttacherLock.Lock()
 	defer j.tmpAttacherLock.Unlock()
 	attacherJar, uidMapped := j.uidToAttacherJar[uid]
-	if !uidMapped {
-		tmpAttacherJar, err := j.createAttacherTempDir(uid)
-		if err != nil {
-			j.logger.Errorf("failed to create tmp dir for user %v, using the bundled attacher jar", err)
-		} else {
-			attacherJar = tmpAttacherJar
-		}
-		j.uidToAttacherJar[uid] = attacherJar
+	if uidMapped {
+		return attacherJar
 	}
+	attacherJar, err := j.createAttacherTempDir(uid)
+	if err != nil {
+		j.logger.Errorf("failed to create tmp dir for user %d, using the bundled attacher jar: %v", uid, err)
+	}
+	j.uidToAttacherJar[uid] = attacherJar
 	return attacherJar
 }
 
@@ -88,7 +88,6 @@ func (j *JavaAttacher) createAttacherTempDir(uidS string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to open bundled attacher jar: %w", err)
 	}
-	//goland:noinspection GoUnhandledErrorResult
 	defer bundledAttacherFile.Close()
 	// creates the temp dir with access mode 0700
 	tempDir, err := os.MkdirTemp("", "elasticapmagent-*")
