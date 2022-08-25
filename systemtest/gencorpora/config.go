@@ -34,6 +34,7 @@ var gencorporaConfig = struct {
 	CorporaPath  string
 	MetadataPath string
 	LoggingLevel zapcore.Level
+	ReplayCount  int
 }{
 	CorporaPath:  filepath.Join(defaultDir, getCorporaPath(defaultFilePrefix)),
 	MetadataPath: filepath.Join(defaultDir, getMetaPath(defaultFilePrefix)),
@@ -54,6 +55,12 @@ func init() {
 			gencorporaConfig.MetadataPath = filepath.Join(writeDir, getMetaPath(*filePrefix))
 			return nil
 		},
+	)
+	flag.IntVar(
+		&gencorporaConfig.ReplayCount,
+		"replay-count",
+		1,
+		"Number of times the events are replayed",
 	)
 	flag.Var(
 		&gencorporaConfig.LoggingLevel,

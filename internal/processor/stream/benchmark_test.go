@@ -34,7 +34,7 @@ func BenchmarkBackendProcessor(b *testing.B) {
 		MaxEventSize: 300 * 1024, // 300 kb
 		Semaphore:    make(chan struct{}, 200),
 	})
-	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v2/*.ndjson"))
+	files, _ := filepath.Glob(filepath.FromSlash("../../../testdata/intake-v2/*.ndjson"))
 	benchmarkStreamProcessor(b, processor, files)
 }
 
@@ -43,7 +43,7 @@ func BenchmarkRUMV3Processor(b *testing.B) {
 		MaxEventSize: 300 * 1024, // 300 kb
 		Semaphore:    make(chan struct{}, 200),
 	})
-	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v3/rum_*.ndjson"))
+	files, _ := filepath.Glob(filepath.FromSlash("../../../testdata/intake-v3/rum_*.ndjson"))
 	benchmarkStreamProcessor(b, processor, files)
 }
 
