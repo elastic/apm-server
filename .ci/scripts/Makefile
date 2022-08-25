@@ -23,7 +23,7 @@ package-storage-snapshot:
 ## create-package-storage-pull-request : Create the pull request for the package storage
 .PHONY: create-package-storage-pull-request
 create-package-storage-pull-request:
-	@cd $(PACKAGE_STORAGE_PATH) ; \
+	cd $(PACKAGE_STORAGE_PATH) ; \
 		echo "INFO: create branch" ; \
 		git checkout -b $(PACKAGE_STORAGE_BRANCH) ; \
 		echo "INFO: add files if any" ; \
