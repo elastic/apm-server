@@ -51,6 +51,7 @@ func (j *JavaAttacher) setRunAsUser(jvm *jvmDetails, cmd *exec.Cmd) error {
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Credential: &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)},
 	}
+	return nil
 }
 
 // getAttacherJar finds an attacher jar based on the given uid.
