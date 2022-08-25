@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220823063648-110ed9468b95
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20220824063950-6b4566e502b8
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-libs v0.2.11
 	github.com/elastic/gmux v0.2.0
@@ -33,7 +33,7 @@ require (
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.8.0
 	github.com/tidwall/gjson v1.9.3
 	github.com/tidwall/sjson v1.1.1
 	github.com/xeipuuv/gojsonschema v1.2.0
@@ -47,7 +47,7 @@ require (
 	go.opentelemetry.io/collector v0.44.0
 	go.opentelemetry.io/collector/model v0.44.0
 	go.uber.org/automaxprocs v1.5.1
-	go.uber.org/zap v1.22.0
+	go.uber.org/zap v1.23.0
 	golang.org/x/net v0.0.0-20220822230855-b0a4917ee28c
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
@@ -172,7 +172,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.3.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	golang.org/x/crypto v0.0.0-20220817201139-bc19a97f63c8 // indirect
+	golang.org/x/crypto v0.0.0-20220824171710-5757bc0c5503 // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sys v0.0.0-20220823224334-20c2bfdbfe24 // indirect
