@@ -7,6 +7,8 @@ PACKAGE_STORAGE=.package-storage
 PACKAGE_STORAGE_PATH=$(BUILD)/$(PACKAGE_STORAGE)
 PACKAGE_STORAGE_BRANCH=update-apm-$(shell date "+%Y%m%d%H%M%S")
 APM_SERVER_VERSION=$(shell make --no-print-directory -C ../../ get-version)
+REPO_PROJECT=elastic/package-storage
+BASE_BRANCH=snapshot
 
 ##############################################################################
 # Rules for the package-storage.
@@ -15,7 +17,7 @@ APM_SERVER_VERSION=$(shell make --no-print-directory -C ../../ get-version)
 .PHONY: package-storage-snapshot
 package-storage-snapshot:
 	@rm -fr $(PACKAGE_STORAGE_PATH)
-	git clone https://github.com/elastic/package-storage.git $(PACKAGE_STORAGE_PATH) --branch snapshot --single-branch --depth=1
+	git clone https://github.com/$(REPO_PROJECT).git $(PACKAGE_STORAGE_PATH) --branch $(BASE_BRANCH) --single-branch --depth=5
 	cp -rf $(BUILD)/packages/apm/$(APM_SERVER_VERSION) $(PACKAGE_STORAGE_PATH)/packages/apm/
 
 ## create-package-storage-pull-request : Create the pull request for the package storage
@@ -40,8 +42,9 @@ create-package-storage-pull-request:
 			--title "Publish apm-$(APM_SERVER_VERSION)" \
 			--body "Automated by $${BUILD_URL}" \
 			--label automation \
-			--base snapshot \
+			--base $(BASE_BRANCH) \
 			--head $(PACKAGE_STORAGE_BRANCH) \
+			--repo $(REPO_PROJECT) \
 			--reviewer elastic/apm-server || true ; \
 
 ## get-package-storage-location : Get the package storage location
