@@ -104,7 +104,7 @@ func (s *CatBulkServer) Stop() error {
 	defer s.writer.Close()
 
 	if err := s.server.Shutdown(ctx); err != nil {
-		return fmt.Errorf("failed to shutdown cat bulk server with error %v, no metadata written", err)
+		return fmt.Errorf("failed to shutdown cat bulk server no metadata written: %w", err)
 	}
 
 	close(s.metaUpdateChan)

@@ -29,11 +29,10 @@ import (
 	"github.com/elastic/apm-server/systemtest/loadgen"
 )
 
-// RunBlocking runs APM-Server and CatBulk server followed by
-// sending load to APM-Server and writing the generated corpus
-// to a file. RunBlocking exits on error or on successful
-// corpora generation.
-func RunBlocking(rootCtx context.Context) error {
+// Run runs APM-Server and CatBulk server followed by sending
+// load to APM-Server and writing the generated corpus to a file.
+// Run exits on error or on successful corpora generation.
+func Run(rootCtx context.Context) error {
 	// Create fake ES server
 	esServer, err := NewCatBulkServer()
 	if err != nil {
@@ -71,7 +70,7 @@ func RunBlocking(rootCtx context.Context) error {
 		waitCtx, waitCancel := context.WithTimeout(gctx, 10*time.Second)
 		defer waitCancel()
 		if err := apmServer.WaitForPublishReady(waitCtx); err != nil {
-			return fmt.Errorf("failed while waiting for APM-Server to be ready with err %v", err)
+			return fmt.Errorf("failed while waiting for APM-Server to be ready: %w", err)
 		}
 
 		return generateLoad(ctx, apmServer.URL, gencorporaConfig.ReplayCount)
@@ -93,7 +92,7 @@ func generateLoad(ctx context.Context, serverURL string, replayCount int) error 
 
 	for i := 0; i < replayCount; i++ {
 		if _, err = handler.SendBatches(ctx); err != nil {
-			return err
+			return fmt.Errorf("failed sending batches on iteration %d: %w", i+1, err)
 		}
 	}
 	return nil

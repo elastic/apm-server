@@ -33,7 +33,7 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	if err := gencorpora.RunBlocking(ctx); err != nil {
+	if err := gencorpora.Run(ctx); err != nil {
 		log.Fatal(err)
 	}
 }
