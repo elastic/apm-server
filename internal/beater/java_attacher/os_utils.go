@@ -59,15 +59,14 @@ func (j *JavaAttacher) getAttacherJar(uid string) string {
 	j.tmpAttacherLock.Lock()
 	defer j.tmpAttacherLock.Unlock()
 	attacherJar, uidMapped := j.uidToAttacherJar[uid]
-	if !uidMapped {
-		tmpAttacherJar, err := j.createAttacherTempDir(uid)
-		if err != nil {
-			j.logger.Errorf("failed to create tmp dir for user %v, using the bundled attacher jar", err)
-		} else {
-			attacherJar = tmpAttacherJar
-		}
-		j.uidToAttacherJar[uid] = attacherJar
+	if uidMapped {
+		return attacherJar
 	}
+	attacherJar, err := j.createAttacherTempDir(uid)
+	if err != nil {
+		j.logger.Errorf("failed to create tmp dir for user %d, using the bundled attacher jar: %v", uid, err)
+	}
+	j.uidToAttacherJar[uid] = attacherJar
 	return attacherJar
 }
 
