@@ -35,6 +35,6 @@ See the {kibana-ref}/release-notes.html[Kibana release notes].
 
 **APM extensions**
 
-* https://github.com/elastic/apm-aws-lambda/blob/main/apm-lambda-extension/CHANGELOG.asciidoc[Elastic APM AWS Lambda extension]
+* https://github.com/elastic/apm-aws-lambda/blob/main/CHANGELOG.asciidoc[Elastic APM AWS Lambda extension]
 
 include::{root-dir}/CHANGELOG.asciidoc[]
