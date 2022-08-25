@@ -88,7 +88,6 @@ func (j *JavaAttacher) createAttacherTempDir(uidS string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to open bundled attacher jar: %w", err)
 	}
-	//goland:noinspection GoUnhandledErrorResult
 	defer bundledAttacherFile.Close()
 	// creates the temp dir with access mode 0700
 	tempDir, err := os.MkdirTemp("", "elasticapmagent-*")
