@@ -41,15 +41,16 @@ func (j *JavaAttacher) setRunAsUser(jvm *jvmDetails, cmd *exec.Cmd) error {
 		j.logger.Debugf("current user: %v", currentUser)
 	}
 
-	if currentUser.Gid != jvm.gid || currentUser.Uid != jvm.uid {
-		uid, gid, err := parseUserIds(jvm.uid, jvm.gid)
-		if err != nil {
-			return err
-		}
-		cmd.SysProcAttr = &syscall.SysProcAttr{}
-		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)}
+	if currentUser.Gid == jvm.gid && currentUser.Uid == jvm.uid {
+		return nil // Users match, nothing to do.
 	}
-	return nil
+	uid, gid, err := parseUserIds(jvm.uid, jvm.gid)
+	if err != nil {
+		return err
+	}
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Credential: &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)},
+	}
 }
 
 // getAttacherJar finds an attacher jar based on the given uid.
