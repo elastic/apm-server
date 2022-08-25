@@ -19,7 +19,6 @@ package kibana
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"io"
 	"net/http"
@@ -36,7 +35,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/version"
 
-	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/logs"
 )
 
@@ -61,12 +59,12 @@ type Client interface {
 type ConnectingClient struct {
 	m      sync.RWMutex
 	client *kibana.Client
-	cfg    *config.KibanaConfig
+	cfg    kibana.ClientConfig
 }
 
 // NewConnectingClient returns instance of ConnectingClient and starts a background routine trying to connect
 // to configured Kibana instance, using JitterBackoff for establishing connection.
-func NewConnectingClient(cfg *config.KibanaConfig) Client {
+func NewConnectingClient(cfg kibana.ClientConfig) Client {
 	c := &ConnectingClient{cfg: cfg}
 	go func() {
 		log := logp.NewLogger(logs.Kibana)
@@ -128,7 +126,7 @@ func (c *ConnectingClient) SupportsVersion(ctx context.Context, v *version.V, re
 		return upToDate, nil
 	}
 	client, err := kibana.NewClientWithConfig(
-		c.clientConfig(), "apm-server",
+		&c.cfg, "apm-server",
 		libbeatversion.GetDefaultVersion(),
 		libbeatversion.Commit(),
 		libbeatversion.BuildTime().String(),
@@ -154,7 +152,7 @@ func (c *ConnectingClient) connect() error {
 		return nil
 	}
 	client, err := kibana.NewClientWithConfig(
-		c.clientConfig(), "apm-server",
+		&c.cfg, "apm-server",
 		libbeatversion.GetDefaultVersion(),
 		libbeatversion.Commit(),
 		libbeatversion.BuildTime().String(),
@@ -162,19 +160,7 @@ func (c *ConnectingClient) connect() error {
 	if err != nil {
 		return err
 	}
-	if c.cfg.APIKey != "" {
-		client.Headers["Authorization"] = []string{"ApiKey " + base64.StdEncoding.EncodeToString([]byte(c.cfg.APIKey))}
-		client.Username = ""
-		client.Password = ""
-	}
 	client.HTTP = apmhttp.WrapClient(client.HTTP)
 	c.client = client
-	return nil
-}
-
-func (c *ConnectingClient) clientConfig() *kibana.ClientConfig {
-	if c != nil && c.cfg != nil {
-		return &c.cfg.ClientConfig
-	}
 	return nil
 }

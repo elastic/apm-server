@@ -60,9 +60,6 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 	case model.MetricsetProcessor:
 		event.DataStream.Type = datastreams.MetricsType
 		event.DataStream.Dataset = metricsetDataset(event)
-	case model.ProfileProcessor:
-		event.DataStream.Type = datastreams.MetricsType
-		event.DataStream.Dataset = model.ProfilesDataset
 	}
 }
 

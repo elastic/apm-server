@@ -22,13 +22,12 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"sync"
 	"sync/atomic"
 	"testing"
 
 	"github.com/go-sourcemap/sourcemap"
-
-	"github.com/elastic/apm-server/internal/beater/config"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -58,29 +57,22 @@ func TestFleetFetch(t *testing.T) {
 
 	ts0 := httptest.NewServer(h)
 	defer ts0.Close()
+	ts0URL, _ := url.Parse(ts0.URL)
 
 	ts1 := httptest.NewServer(h)
 	defer ts1.Close()
+	ts1URL, _ := url.Parse(ts1.URL)
 
-	fleetCfg := &config.Fleet{
-		Hosts:        []string{ts0.URL[7:], ts1.URL[7:]},
-		Protocol:     "http",
-		AccessAPIKey: apikey,
-		TLS:          nil,
-	}
-
-	cfgs := []config.SourceMapMetadata{
-		{
-			ServiceName:    name,
-			ServiceVersion: version,
-			BundleFilepath: path,
-			SourceMapURL:   sourceMapPath,
-		},
-	}
-	fb, err := NewFleetFetcher(c, fleetCfg, cfgs)
+	fleetServerURLs := []*url.URL{ts0URL, ts1URL}
+	f, err := NewFleetFetcher(c, apikey, fleetServerURLs, []FleetArtifactReference{{
+		ServiceName:        name,
+		ServiceVersion:     version,
+		BundleFilepath:     path,
+		FleetServerURLPath: sourceMapPath,
+	}})
 	assert.NoError(t, err)
 
-	consumer, err := fb.Fetch(context.Background(), name, version, path)
+	consumer, err := f.Fetch(context.Background(), name, version, path)
 	assert.NoError(t, err)
 	assert.NotNil(t, consumer)
 }
@@ -118,6 +110,7 @@ func TestFailedAndSuccessfulFleetHostsFetch(t *testing.T) {
 		http.Error(w, "err", http.StatusInternalServerError)
 	})
 	ts0 := httptest.NewServer(hError)
+	ts0URL, _ := url.Parse(ts0.URL)
 
 	h1 := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		wg.Done()
@@ -127,29 +120,23 @@ func TestFailedAndSuccessfulFleetHostsFetch(t *testing.T) {
 		wr.Write([]byte(resp))
 	})
 	ts1 := httptest.NewServer(h1)
+	ts1URL, _ := url.Parse(ts1.URL)
+
 	h2 := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		wg.Done()
 		lastc <- struct{}{}
 		close(waitc)
 	})
 	ts2 := httptest.NewServer(h2)
+	ts2URL, _ := url.Parse(ts2.URL)
 
-	fleetCfg := &config.Fleet{
-		Hosts:        []string{ts0.URL[7:], ts1.URL[7:], ts2.URL[7:]},
-		Protocol:     "http",
-		AccessAPIKey: apikey,
-		TLS:          nil,
-	}
-
-	cfgs := []config.SourceMapMetadata{
-		{
-			ServiceName:    name,
-			ServiceVersion: version,
-			BundleFilepath: path,
-			SourceMapURL:   sourceMapPath,
-		},
-	}
-	f, err := NewFleetFetcher(c, fleetCfg, cfgs)
+	fleetServerURLs := []*url.URL{ts0URL, ts1URL, ts2URL}
+	f, err := NewFleetFetcher(c, apikey, fleetServerURLs, []FleetArtifactReference{{
+		ServiceName:        name,
+		ServiceVersion:     version,
+		BundleFilepath:     path,
+		FleetServerURLPath: sourceMapPath,
+	}})
 	assert.NoError(t, err)
 
 	go func() {
@@ -187,33 +174,27 @@ func TestAllFailedFleetHostsFetch(t *testing.T) {
 
 	ts0 := httptest.NewServer(h)
 	defer ts0.Close()
+	ts0URL, _ := url.Parse(ts0.URL)
 
 	ts1 := httptest.NewServer(h)
 	defer ts1.Close()
+	ts1URL, _ := url.Parse(ts1.URL)
 
 	ts2 := httptest.NewServer(h)
 	defer ts2.Close()
+	ts2URL, _ := url.Parse(ts2.URL)
 
-	fleetCfg := &config.Fleet{
-		Hosts:        []string{ts0.URL[7:], ts1.URL[7:], ts2.URL[7:]},
-		Protocol:     "http",
-		AccessAPIKey: apikey,
-		TLS:          nil,
-	}
-
-	cfgs := []config.SourceMapMetadata{
-		{
-			ServiceName:    name,
-			ServiceVersion: version,
-			BundleFilepath: path,
-			SourceMapURL:   sourceMapPath,
-		},
-	}
-	f, err := NewFleetFetcher(c, fleetCfg, cfgs)
+	fleetServerURLs := []*url.URL{ts0URL, ts1URL, ts2URL}
+	f, err := NewFleetFetcher(c, apikey, fleetServerURLs, []FleetArtifactReference{{
+		ServiceName:        name,
+		ServiceVersion:     version,
+		BundleFilepath:     path,
+		FleetServerURLPath: sourceMapPath,
+	}})
 	assert.NoError(t, err)
 
 	consumer, err := f.Fetch(context.Background(), name, version, path)
-	assert.EqualValues(t, len(fleetCfg.Hosts), requestCount)
+	assert.EqualValues(t, len(fleetServerURLs), requestCount)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), errMsgFleetFailure)
 	assert.Nil(t, consumer)

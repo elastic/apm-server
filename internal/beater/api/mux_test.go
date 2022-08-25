@@ -162,7 +162,7 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		cfg,
 		nopBatchProcessor,
 		authenticator,
-		agentcfg.NewFetcher(cfg),
+		agentcfg.NewDirectFetcher(nil),
 		ratelimitStore,
 		m.SourcemapFetcher,
 		m.Managed,

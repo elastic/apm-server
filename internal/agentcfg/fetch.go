@@ -32,7 +32,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/version"
 
-	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/kibana"
 )
 
@@ -61,20 +60,6 @@ const endpoint = "/api/apm/settings/agent-configuration/search"
 // Fetcher defines a common interface to retrieving agent config.
 type Fetcher interface {
 	Fetch(context.Context, Query) (Result, error)
-}
-
-// NewFetcher returns a new Fetcher based on the provided config.
-func NewFetcher(cfg *config.Config) Fetcher {
-	if cfg.AgentConfigs != nil || !cfg.Kibana.Enabled {
-		// Direct agent configuration is present, disable communication
-		// with kibana.
-		return NewDirectFetcher(cfg.AgentConfigs)
-	}
-	var client kibana.Client
-	if cfg.Kibana.Enabled {
-		client = kibana.NewConnectingClient(&cfg.Kibana)
-	}
-	return NewKibanaFetcher(client, cfg.KibanaAgentConfig.Cache.Expiration)
 }
 
 // KibanaFetcher holds static information and information shared between requests.
@@ -206,11 +191,41 @@ func containsAnyPrefix(s string, prefixes []string) bool {
 	return false
 }
 
-type DirectFetcher struct {
-	cfgs []config.AgentConfig
+// AgentConfig holds an agent configuration definition, as used by DirectFetcher.
+type AgentConfig struct {
+	// ServiceName holds the service name to which this agent configuration
+	// applies. This is optional.
+	ServiceName string
+
+	// ServiceEnvironment holds the service environment to which this agent
+	// configuration applies. This is optional.
+	ServiceEnvironment string
+
+	// AgentName holds the agent name to which this agent configuration
+	// applies. This is optional, and is used for filtering configuration
+	// settings for unauthenticated agents.
+	AgentName string
+
+	// Etag holds a unique ID for the configuration, which agents
+	// will send along with their queries. The server uses this to
+	// determine whether agent configuration has been applied.
+	Etag string
+
+	// Config holds configuration settings that should be sent to
+	// agents matching the above constraints.
+	Config map[string]string
 }
 
-func NewDirectFetcher(cfgs []config.AgentConfig) *DirectFetcher {
+// DirectFetcher is an agent config fetcher which serves requests out of a
+// statically defined set of agent configuration. These configurations are
+// typically provided via Fleet.
+type DirectFetcher struct {
+	cfgs []AgentConfig
+}
+
+// NewDirectFetcher returns a new DirectFetcher that serves agent configuration
+// requests using cfgs.
+func NewDirectFetcher(cfgs []AgentConfig) *DirectFetcher {
 	return &DirectFetcher{cfgs}
 }
 
@@ -224,17 +239,17 @@ func NewDirectFetcher(cfgs []config.AgentConfig) *DirectFetcher {
 func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
 	name, env := query.Service.Name, query.Service.Environment
 	result := zeroResult()
-	var nameConf, envConf, defaultConf *config.AgentConfig
+	var nameConf, envConf, defaultConf *AgentConfig
 
 	for i, cfg := range f.cfgs {
-		if cfg.Service.Name == name && cfg.Service.Environment == env {
+		if cfg.ServiceName == name && cfg.ServiceEnvironment == env {
 			nameConf = &f.cfgs[i]
 			break
-		} else if cfg.Service.Name == name && cfg.Service.Environment == "" {
+		} else if cfg.ServiceName == name && cfg.ServiceEnvironment == "" {
 			nameConf = &f.cfgs[i]
-		} else if cfg.Service.Name == "" && cfg.Service.Environment == env {
+		} else if cfg.ServiceName == "" && cfg.ServiceEnvironment == env {
 			envConf = &f.cfgs[i]
-		} else if cfg.Service.Name == "" && cfg.Service.Environment == "" {
+		} else if cfg.ServiceName == "" && cfg.ServiceEnvironment == "" {
 			defaultConf = &f.cfgs[i]
 		}
 	}
