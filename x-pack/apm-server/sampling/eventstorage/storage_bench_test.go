@@ -20,8 +20,7 @@ import (
 func BenchmarkWriteTransaction(b *testing.B) {
 	test := func(b *testing.B, codec eventstorage.Codec, bigTX bool) {
 		db := newBadgerDB(b, badgerOptions)
-		ttl := time.Minute
-		store := eventstorage.New(db, codec, ttl, 0)
+		store := eventstorage.New(db, codec)
 		readWriter := store.NewReadWriter()
 		defer readWriter.Close()
 
@@ -39,12 +38,17 @@ func BenchmarkWriteTransaction(b *testing.B) {
 		}
 
 		b.ResetTimer()
+
+		wOpts := eventstorage.WriterOpts{
+			TTL:                 time.Minute,
+			StorageLimitInBytes: 0,
+		}
 		for i := 0; i < b.N; i++ {
-			if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
+			if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction, wOpts); err != nil {
 				b.Fatal(err)
 			}
 		}
-		assert.NoError(b, readWriter.Flush())
+		assert.NoError(b, readWriter.Flush(wOpts.StorageLimitInBytes))
 	}
 
 	type testCase struct {
@@ -84,10 +88,13 @@ func BenchmarkReadEvents(b *testing.B) {
 		for _, count := range counts {
 			b.Run(fmt.Sprintf("%d events", count), func(b *testing.B) {
 				db := newBadgerDB(b, badgerOptions)
-				ttl := time.Minute
-				store := eventstorage.New(db, codec, ttl, 0)
+				store := eventstorage.New(db, codec)
 				readWriter := store.NewReadWriter()
 				defer readWriter.Close()
+				wOpts := eventstorage.WriterOpts{
+					TTL:                 time.Minute,
+					StorageLimitInBytes: 0,
+				}
 
 				for i := 0; i < count; i++ {
 					transactionID := uuid.Must(uuid.NewV4()).String()
@@ -101,7 +108,7 @@ func BenchmarkReadEvents(b *testing.B) {
 							},
 						}
 					}
-					if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
+					if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction, wOpts); err != nil {
 						b.Fatal(err)
 					}
 				}
@@ -161,15 +168,18 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 
 	// Test with varying numbers of events in the trace.
 	db := newBadgerDB(b, badgerOptions)
-	ttl := time.Minute
-	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl, 0)
+	store := eventstorage.New(db, eventstorage.JSONCodec{})
 	readWriter := store.NewReadWriter()
 	defer readWriter.Close()
+	wOpts := eventstorage.WriterOpts{
+		TTL:                 time.Minute,
+		StorageLimitInBytes: 0,
+	}
 
-	if err := readWriter.WriteTraceSampled(sampledTraceUUID.String(), true); err != nil {
+	if err := readWriter.WriteTraceSampled(sampledTraceUUID.String(), true, wOpts); err != nil {
 		b.Fatal(err)
 	}
-	if err := readWriter.WriteTraceSampled(unsampledTraceUUID.String(), false); err != nil {
+	if err := readWriter.WriteTraceSampled(unsampledTraceUUID.String(), false, wOpts); err != nil {
 		b.Fatal(err)
 	}
 

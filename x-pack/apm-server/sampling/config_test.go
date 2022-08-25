@@ -14,6 +14,7 @@ import (
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
+	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
 
 func TestNewProcessorConfigInvalid(t *testing.T) {
@@ -74,6 +75,9 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 
 	assertInvalidConfigError("invalid storage config: DB unspecified")
 	config.DB = &badger.DB{}
+
+	assertInvalidConfigError("invalid storage config: Storage unspecified")
+	config.Storage = &eventstorage.ShardedReadWriter{}
 
 	assertInvalidConfigError("invalid storage config: StorageDir unspecified")
 	config.StorageDir = "tbs"
