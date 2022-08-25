@@ -88,7 +88,6 @@ func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
 		rawDiscoveryRules:    cfg.DiscoveryRules,
 		jvmCache:             make(map[int]*jvmDetails),
 		uidToAttacherJar:     make(map[string]string),
-		tmpDirs:              make([]string, 0),
 	}
 	for _, flag := range cfg.DiscoveryRules {
 		for name, value := range flag {
