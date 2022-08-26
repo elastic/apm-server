@@ -5,7 +5,7 @@
 BUILD=../../build
 PACKAGE_STORAGE=.package-storage
 PACKAGE_STORAGE_PATH=$(BUILD)/$(PACKAGE_STORAGE)
-PACKAGE_STORAGE_BRANCH = $(eval PACKAGE_STORAGE_BRANCH := $$(shell date "+%Y%m%d%H%M%S"))$(PACKAGE_STORAGE_BRANCH)
+PACKAGE_STORAGE_BRANCH:=update-apm-$(shell date "+%Y%m%d%H%M%S")
 APM_SERVER_VERSION=$(shell make --no-print-directory -C ../../ get-version)
 REPO_PROJECT=elastic/package-storage
 BASE_BRANCH=snapshot
