@@ -65,7 +65,7 @@ func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string
 			b.StartTimer()
 
 			var result Result
-			processor.HandleStream(context.Background(), model.APMEvent{}, r, batchSize, batchProcessor, &result)
+			processor.HandleStream(context.Background(), false, model.APMEvent{}, io.NopCloser(r), batchSize, batchProcessor, &result)
 		}
 	}
 
@@ -103,7 +103,7 @@ func benchmarkStreamProcessorParallel(b *testing.B, processor *Processor, files 
 				r := bytes.NewReader(data)
 				for p.Next() {
 					var result Result
-					processor.HandleStream(context.Background(), model.APMEvent{}, r, batchSize, batchProcessor, &result)
+					processor.HandleStream(context.Background(), false, model.APMEvent{}, io.NopCloser(r), batchSize, batchProcessor, &result)
 					r.Seek(0, io.SeekStart)
 				}
 			})
