@@ -19,90 +19,21 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
-
-	"github.com/hashicorp/go-multierror"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/systemtest/gencorpora"
-	"github.com/elastic/apm-server/systemtest/loadgen"
 )
-
-func run(rootCtx context.Context) error {
-	// Create fake ES server
-	esServer, err := gencorpora.NewCatBulkServer()
-	if err != nil {
-		return err
-	}
-
-	// Create APM-Server to send documents to fake ES
-	apmServer := gencorpora.NewAPMServer(rootCtx, esServer.Addr)
-	if err := apmServer.Start(); err != nil {
-		return err
-	}
-
-	ctx, cancel := context.WithCancel(rootCtx)
-	g, gctx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		<-gctx.Done()
-
-		var result error
-		if err := apmServer.Close(); err != nil {
-			result = multierror.Append(result, err)
-		}
-		if err := esServer.Stop(); err != nil {
-			result = multierror.Append(result, err)
-		}
-
-		return result
-	})
-	g.Go(esServer.Serve)
-	g.Go(func() error {
-		return gencorpora.StreamAPMServerLogs(ctx, apmServer)
-	})
-	g.Go(func() error {
-		defer cancel()
-
-		waitCtx, waitCancel := context.WithTimeout(gctx, 10*time.Second)
-		defer waitCancel()
-		if err := apmServer.WaitForPublishReady(waitCtx); err != nil {
-			return fmt.Errorf("failed while waiting for APM-Server to be ready with err %v", err)
-		}
-
-		return generateLoad(ctx, apmServer.URL)
-	})
-
-	if err := g.Wait(); !errors.Is(err, context.Canceled) {
-		return err
-	}
-
-	return nil
-}
-
-func generateLoad(ctx context.Context, serverURL string) error {
-	inf := loadgen.GetNewLimiter(0)
-	handler, err := loadgen.NewEventHandler(`*.ndjson`, serverURL, "", inf)
-	if err != nil {
-		return err
-	}
-
-	_, err = handler.SendBatches(ctx)
-	return err
-}
 
 func main() {
 	flag.Parse()
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	if err := run(ctx); err != nil {
+	if err := gencorpora.Run(ctx); err != nil {
 		log.Fatal(err)
 	}
 }

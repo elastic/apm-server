@@ -24,7 +24,13 @@ import (
 )
 
 //TODO(simitt): look into config options for performance tuning
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
+// ConfigCompatibleWithStandardLibrary + UseNumber
+var json = jsoniter.Config{
+	EscapeHTML:             true,
+	SortMapKeys:            true,
+	ValidateJsonRawMessage: true,
+	UseNumber:              true,
+}.Froze()
 
 type Decoder interface {
 	Decode(v interface{}) error
@@ -39,6 +45,5 @@ type JSONDecoder struct {
 // as a Number instead of a float64 into an interface{}
 func NewJSONDecoder(r io.Reader) JSONDecoder {
 	d := json.NewDecoder(r)
-	d.UseNumber()
 	return JSONDecoder{Decoder: d, reader: r}
 }
