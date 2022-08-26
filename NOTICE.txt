@@ -6938,11 +6938,11 @@ Contents of probable licence file $GOMODCACHE/github.com/cloudfoundry/sonde-go@v
 
 --------------------------------------------------------------------------------
 Dependency : github.com/containerd/containerd
-Version: v1.5.6
+Version: v1.5.13
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/containerd/containerd@v1.5.6/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/containerd/containerd@v1.5.13/LICENSE:
 
 
                                  Apache License
@@ -15799,11 +15799,11 @@ Contents of probable licence file $GOMODCACHE/github.com/opencontainers/go-diges
 
 --------------------------------------------------------------------------------
 Dependency : github.com/opencontainers/image-spec
-Version: v1.0.2-0.20190823105129-775207bd45b6
+Version: v1.0.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/opencontainers/image-spec@v1.0.2-0.20190823105129-775207bd45b6/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/opencontainers/image-spec@v1.0.2/LICENSE:
 
 
                                  Apache License

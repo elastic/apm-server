@@ -35,19 +35,18 @@ require (
 	go.uber.org/zap v1.15.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20211109184856-51b60fd695b3
+	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
 	google.golang.org/grpc v1.40.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
 require (
-	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect
-	github.com/opencontainers/image-spec v1.0.1 // indirect
+	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	golang.org/x/tools v0.1.5 // indirect
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
 )
 
 replace (
-	github.com/containerd/containerd => github.com/containerd/containerd v1.4.11
+	github.com/containerd/containerd => github.com/containerd/containerd v1.5.13
 	github.com/elastic/apm-server/approvaltest => ../approvaltest
 )
