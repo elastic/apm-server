@@ -58,7 +58,6 @@ func (dec *NDJSONStreamDecoder) Reset(r io.Reader) {
 
 func (dec *NDJSONStreamDecoder) resetDecoder() {
 	dec.decoder = json.NewDecoder(&dec.latestLineReader)
-	dec.decoder.UseNumber()
 }
 
 // Decode decodes the next line into v.
