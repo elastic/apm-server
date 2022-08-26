@@ -188,11 +188,8 @@ func newGRPCServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.Clie
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 	logger := logp.NewLogger("otlp.grpc.test")
-	srv := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptors.Metrics(logger, otlp.GRPCRegistryMonitoringMaps)),
-	)
-	err = otlp.RegisterGRPCServices(srv, batchProcessor)
-	require.NoError(t, err)
+	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Metrics(logger)))
+	otlp.RegisterGRPCServices(srv, batchProcessor)
 
 	go srv.Serve(lis)
 	t.Cleanup(srv.GracefulStop)
